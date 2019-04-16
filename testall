@@ -1,0 +1,1 @@
+pytest -vv -r P tests/test_all.py

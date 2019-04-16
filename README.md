@@ -1,5 +1,13 @@
 This software is used to package data into self-describing Data Products.
 
+_**Installation for developers**_
+```
+cd /tmp
+git clone http://mercury.bao.ac.cn:9006/mh/dataset.git
+cd dataset
+pip install -e .
+```
+
 _**Rationale**_
 
 Generally 'products' means output results of a processing tasks to be shared by other tasks or users. 

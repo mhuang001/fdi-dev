@@ -2,7 +2,7 @@ This software is used to package data into self-describing Data Products.
 
 Rationale
 
-Generally ‘products’ means output results of a processing tasks to be shared by other tasks or users. 
+Generally 'products' means output results of a processing tasks to be shared by other tasks or users. 
 
 People tend to store data with no meaning attached to them. Without attach meaning of the collection of numbers you have, it is difficult for other people to fully understand your data, it could be difficult for even you to recall the exact meaning of these numbers after a while.
 
@@ -78,7 +78,7 @@ a1 = [dict(name='col1', unit='keV', column=[1, 4.4, 5.4E3]),
 v = TableDataset(data=a1)
     
 >>> v.getColumnName(0)
-'col1’
+'col1'
 >>> v.getValueAt(rowIndex=1, columnIndex=1)
 43.2
 >>> v.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
@@ -89,11 +89,11 @@ v = TableDataset(data=a1)
 ```
 from dataset.metadata import Parameter, NumericParameter, MetaData
 
-a1 = ‘parameter_1'
+a1 = 'parameter_1'
 a2 = Parameter(description='test param', value=534)
-v = MetaData(description=‘my metadata’)
+v = MetaData(description='my metadata')
 v[a1] = a2
-v[‘more’] = NumericParameter(description='another param', value=2.3, unit='sec')
+v['more'] = NumericParameter(description='another param', value=2.3, unit='sec')
 >>> print(v)
 MetaData[my metadata, parameter_1 = Parameter{ description = "test param", value = 534, type = int}, more = NumericParameter{ description = "another param", value = "2.3", unit = "sec", type = "float"}, ]
 >>> print(v.description) 
@@ -114,14 +114,14 @@ x = Product(description="This is my product example",  instrument="MyFavourite",
 # ways to add datasets
 i0 = 6
 i1 = [[1, 2, 3], [4, 5, i0], [7, 8, 9]]
-image = ArrayDataset(data=i1, unit=“magV”, description=“image 1”)
+image = ArrayDataset(data=i1, unit='magV', description='image 1')
 s1 = [dict(name='col1', unit='keV', column=[1, 4.4, 5.4E3]),
          dict(name='col2', unit='cnt', column=[0, 43.2, 2E3])]
 spec = TableDataset(data=s1)
 x["RawImage"] = image
 >>> print( x.sets["RawImage"].data[1][2] )                  # should be i0
 0
-x.set('QualityImage', 'aQualityImage’)   # diff syntax same function as above
+x.set('QualityImage', 'aQualityImage')   # diff syntax same function as above
 x.sets["Spectrum"] = spec
 >>> x["Spectrum"].getValueAt(columnIndex=1, rowIndex=0)   # should be 0
 0

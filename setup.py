@@ -21,7 +21,7 @@ setup(
     description=("packaging data into self-describing Data Products"),
     license="GPL",
     keywords="dataset product metadata HCSS",
-    url="packaging data into self-describing Data Products",
+    url="http://mercury.bao.ac.cn:9006/mh/dataset",
     packages=['dataset', 'tests'],
     long_description=read('README.md'),
     classifiers=[

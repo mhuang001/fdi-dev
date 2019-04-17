@@ -7,6 +7,10 @@ git clone http://mercury.bao.ac.cn:9006/mh/dataset.git
 cd dataset
 pip install -e .
 ```
+To run tests, in the same directory:
+```
+./testall
+```
 
 _**Rationale**_
 

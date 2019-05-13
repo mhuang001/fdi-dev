@@ -1,0 +1,4 @@
+#https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository
+git add LICENSE README.md CHANGELOG.md requirements.txt setup.py gitadd
+git add *.py startserver test
+git add resources/

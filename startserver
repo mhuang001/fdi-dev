@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# default username and password are in pnsconfig.py
+python3 pns.py --username=foo --password=bar -v

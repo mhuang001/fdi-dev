@@ -651,40 +651,42 @@ def test_Product():
 
 from collections import OrderedDict
 import datetime
-from jsonconversion.encoder import JSONObjectEncoder, JSONObject
-from jsonconversion.decoder import JSONObjectDecoder
+
+# serializing using package jsonconversion
+#from jsonconversion.encoder import JSONObjectEncoder, JSONObject
+#from jsonconversion.decoder import JSONObjectDecoder
 
 
-class MyClass(JSONObject):
+# class MyClass(JSONObject):
 
-    def __init__(self, a, b, c):
-        self.a = a
-        self.b = b
-        self.c = c
+#     def __init__(self, a, b, c):
+#         self.a = a
+#         self.b = b
+#         self.c = c
 
-    @classmethod
-    def from_dict(cls, dict_):
-        return cls(dict_['a'], dict_['b'], dict_['c'])
+#     @classmethod
+#     def from_dict(cls, dict_):
+#         return cls(dict_['a'], dict_['b'], dict_['c'])
 
-    def to_dict(self):
-        return {'a': self.a, 'b': self.b, 'c': self.c}
+#     def to_dict(self):
+#         return {'a': self.a, 'b': self.b, 'c': self.c}
 
-    def __eq__(self, other):
-        return self.a == other.a and self.b == other.b and self.c == other.c
+#     def __eq__(self, other):
+#         return self.a == other.a and self.b == other.b and self.c == other.c
 
 
-def test_jsonconversion():
-    l = OrderedDict(d=0)
-    d = datetime.datetime.now()
-    a1 = MyClass(1, 2, 'pp')
-    s = dict(name='SVOM', year=2019, result=[1.3, 4.7, 6, 45, a1])
-    data = dict(k=4, h=MyClass(1, l, s))
-    print(data)
-    print('---------')
-    js = json.dumps(data, cls=JSONObjectEncoder)
-    #js = serializeClassID(data)
-    # print(js)
-    #js = json.dumps(data)
-    print(js)
-    p = json.loads(js, cls=JSONObjectDecoder)
-    print(p['h'].b)
+# def test_jsonconversion():
+#     l = OrderedDict(d=0)
+#     d = datetime.datetime.now()
+#     a1 = MyClass(1, 2, 'pp')
+#     s = dict(name='SVOM', year=2019, result=[1.3, 4.7, 6, 45, a1])
+#     data = dict(k=4, h=MyClass(1, l, s))
+#     print(data)
+#     print('---------')
+#     js = json.dumps(data, cls=JSONObjectEncoder)
+#     #js = serializeClassID(data)
+#     # print(js)
+#     #js = json.dumps(data)
+#     print(js)
+#     p = json.loads(js, cls=JSONObjectDecoder)
+#     print(p['h'].b)

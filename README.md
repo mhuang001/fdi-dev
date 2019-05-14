@@ -5,7 +5,7 @@ _**Installation for developers**_
 cd /tmp
 git clone http://mercury.bao.ac.cn:9006/mh/dataset.git
 cd dataset
-pip install -e .
+pip3 install -e .
 ```
 To run tests, in the same directory:
 ```

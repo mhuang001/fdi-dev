@@ -231,7 +231,7 @@ class Attributable(MetaDataHolder):
 class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):
     """ A DataWrapper is a composite of data, unit and description.
     mh: note that all data are in the same unit. There is no metadata.
-    Implemwnted from AbstractDataWrapper.
+    Implemented from AbstractDataWrapper.
     """
 
     def __init__(self, **kwds):

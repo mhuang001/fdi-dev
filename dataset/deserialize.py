@@ -89,10 +89,10 @@ def constructSerializableClassID(obj, dbg=False):
     return inst
 
 
-def deserializeClassID(js):
+def deserializeClassID(js, dbg=False):
     """ Loads classes with ClassID from the results of serializeClassID
     """
-    dbg = False  # True if issubclass(obj.__class__, list) else False
+    # dbg = False  # True if issubclass(obj.__class__, list) else False
     obj = json.loads(js, object_hook=OrderedDict)
     if dbg:
         # print('load-str ' + str(o) + ' class ' + str(o.__class__))

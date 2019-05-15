@@ -24,7 +24,7 @@ def checkjson(obj):
     """ seriaizes the given object and deserialize. check equality.
     """
 
-    dbg = False  # True if issubclass(obj.__class__, Product) else False
+    dbg = True if issubclass(obj.__class__, MetaData) else False
 
     js = obj.serialized()
     if dbg:
@@ -647,10 +647,11 @@ def test_Product():
     assert x.creator == a1
 
 
-from collections import OrderedDict
-import datetime
-
 # serializing using package jsonconversion
+
+# from collections import OrderedDict
+# import datetime
+
 #from jsonconversion.encoder import JSONObjectEncoder, JSONObject
 #from jsonconversion.decoder import JSONObjectDecoder
 

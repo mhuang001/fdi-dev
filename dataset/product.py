@@ -81,9 +81,9 @@ class FineTime1(Copyable, DeepEqual, Serializable):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return dict(tai=self.tai,
-                    classID=self.classID,
-                    version=self.version)
+        return OrderedDict(tai=self.tai,
+                           classID=self.classID,
+                           version=self.version)
 
 
 class History(CompositeDataset, DeepEqual):
@@ -137,14 +137,14 @@ class History(CompositeDataset, DeepEqual):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return dict(description=self.description,
-                    HIST_SCRIPT=self.HIST_SCRIPT,
-                    PARAM_HISTORY=self.PARAM_HISTORY,
-                    TASK_HISTORY=self.TASK_HISTORY,
-                    meta=self.meta,
-                    sets=self.sets,
-                    classID=self.classID,
-                    version=self.version)
+        return OrderedDict(description=self.description,
+                           HIST_SCRIPT=self.HIST_SCRIPT,
+                           PARAM_HISTORY=self.PARAM_HISTORY,
+                           TASK_HISTORY=self.TASK_HISTORY,
+                           meta=self.meta,
+                           sets=self.sets,
+                           classID=self.classID,
+                           version=self.version)
 
 
 class Product(AbstractComposite, Copyable, Serializable,  DatasetEventSender, DatasetListener):
@@ -284,4 +284,4 @@ class Product(AbstractComposite, Copyable, Serializable,  DatasetEventSender, Da
             ("history", self.history),
             ("classID", self.classID),
             ("version", self.version)]
-        return dict(ls)
+        return OrderedDict(ls)

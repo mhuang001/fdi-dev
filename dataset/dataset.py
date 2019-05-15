@@ -53,12 +53,12 @@ class ArrayDataset(Dataset, DataWrapper):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return dict(description=self.description,
-                    meta=self.meta,
-                    data=self.data,
-                    unit=self.unit,
-                    classID=self.classID,
-                    version=self.version)
+        return OrderedDict(description=self.description,
+                           meta=self.meta,
+                           data=self.data,
+                           unit=self.unit,
+                           classID=self.classID,
+                           version=self.version)
 
 
 class TableModel():
@@ -117,11 +117,11 @@ class TableDataset(Dataset, DataWrapper, TableModel):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return dict(description=self.description,
-                    meta=self.meta,
-                    data=self.data,
-                    classID=self.classID,
-                    version=self.version)
+        return OrderedDict(description=self.description,
+                           meta=self.meta,
+                           data=self.data,
+                           classID=self.classID,
+                           version=self.version)
 
 
 class CompositeDataset(AbstractComposite, Dataset):
@@ -140,8 +140,8 @@ class CompositeDataset(AbstractComposite, Dataset):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return dict(description=self.description,
-                    meta=self.meta,
-                    sets=self.sets,
-                    classID=self.classID,
-                    version=self.version)
+        return OrderedDict(description=self.description,
+                           meta=self.meta,
+                           sets=self.sets,
+                           classID=self.classID,
+                           version=self.version)

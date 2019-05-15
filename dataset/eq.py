@@ -95,9 +95,10 @@ class Serializable():
         return serializeClassID(self)
 
     def serializable(self):
-        """ returns a dict that has all state info of this object
+        """ returns an OrderedDict that has all state info of this object.
+        Subclasses should override this function.
         """
-        return dict(info='serializable function not implemented')
+        return OrderedDict(info='serializable function not implemented')
 
 
 def deepcmp(obj1, obj2, seenlist=None, verbose=False):

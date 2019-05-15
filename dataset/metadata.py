@@ -84,11 +84,11 @@ class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializab
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return dict(description=self.description,
-                    value=self.value,
-                    type=self.type,
-                    classID=self.classID,
-                    version=self.version)
+        return OrderedDict(description=self.description,
+                           value=self.value,
+                           type=self.type,
+                           classID=self.classID,
+                           version=self.version)
 
 
 class Quantifiable():
@@ -127,12 +127,12 @@ class NumericParameter(Parameter, Quantifiable):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return dict(description=self.description,
-                    value=self.value,
-                    unit=self.unit,
-                    type=self.type,
-                    classID=self.classID,
-                    version=self.version)
+        return OrderedDict(description=self.description,
+                           value=self.value,
+                           unit=self.unit,
+                           type=self.type,
+                           classID=self.classID,
+                           version=self.version)
 
 
 class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEventSender):
@@ -195,9 +195,9 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return dict(sets=self.sets,
-                    classID=self.classID,
-                    version=self.version)
+        return OrderedDict(sets=self.sets,
+                           classID=self.classID,
+                           version=self.version)
 
 
 class MetaDataHolder():

@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from dataset.logdict import doLogging, logdict
 if doLogging:
     import logging

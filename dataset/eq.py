@@ -138,7 +138,7 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False):
                 #  OrderedDict
                 r = run(list(o1.keys()), list(o2.keys()))
             if r is not None:
-                return " due to diff dict keys" + r
+                return " due to diff " + c.__name__ + " keys" + r
             for k in o1.keys():
                 r = run(o1[k], o2[k])
                 if r is not None:

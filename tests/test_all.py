@@ -28,10 +28,10 @@ def checkjson(obj):
 
     js = obj.serialized()
     if dbg:
-        print(obj.__class__.__name__ + ' serialized: ' + js)
+        print('checkjsom ' + obj.__class__.__name__ + ' serialized: ' + js)
     des = deserializeClassID(js, debug=dbg)
     if dbg:
-        print('des ' + str(des) + str(des.__class__))
+        print('checkjson des ' + str(des) + str(des.__class__))
         # js2 = json.dumps(des, cls=SerializableEncoder)
         # print('des     serialized: ' + js)
 

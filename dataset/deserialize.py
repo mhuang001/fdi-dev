@@ -51,12 +51,12 @@ def constructSerializableClassID(obj, dbg=False):
     if 'classID' not in obj:
         """ This object is supported by JSONEncoder """
         if dbg:
-            print('fff ' + classname)
+            print('No ClassID. ' + classname)
         inst = obj
     else:
         classname = obj['classID']
         if dbg:
-            print('ccc ' + classname)
+            print('ClassID ' + classname)
         # process types wrapped in a dict
         if classname == 'bytes':
             inst = bytes.fromhex(obj['hex'])
@@ -96,6 +96,6 @@ def deserializeClassID(js, debug=False):
     obj = json.loads(js, object_hook=OrderedDict)
     if debug:
         # print('load-str ' + str(o) + ' class ' + str(o.__class__))
-        print('obj ' + str(obj) + str(obj.__class__))
+        print('deserializeClassID returns: ' + str(obj) + str(obj.__class__))
 
     return constructSerializableClassID(obj, dbg=debug)

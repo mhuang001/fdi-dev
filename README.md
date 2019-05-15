@@ -3,7 +3,7 @@ This software is used to package data into self-describing Data Products.
 _**Installation for developers**_
 ```
 cd /tmp
-git clone http://mercury.bao.ac.cn:9006/mh/dataset.git
+git clone ssh://git@mercury.bao.ac.cn:9005/mh/dataset.git
 cd dataset
 pip3 install -e .
 ```

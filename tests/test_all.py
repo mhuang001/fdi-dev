@@ -24,7 +24,8 @@ def checkjson(obj):
     """ seriaizes the given object and deserialize. check equality.
     """
 
-    dbg = True if issubclass(obj.__class__, MetaData) else False
+    dbg = True if issubclass(obj.__class__, MetaData) or issubclass(
+        obj.__class__, CompositeDataset) else False
 
     js = obj.serialized()
     if dbg:

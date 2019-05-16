@@ -3,12 +3,20 @@ Processing Network Node Web API Server
 
 Thhis Web API Server for a data processing pipeline/network node provides interfaces to make a run request to and read results from a processing task in a processing node via web APIs.
 
-_**Installation for developers**_
+_**Installation**_
+for developers
 ```
 cd /tmp
-git clone http://mercury.bao.ac.cn:9006/mh/pns.git
-cd pns
-pip install -e .
+git clone ssh://git@mercury.bao.ac.cn:9005/mh/dataset.git
+cd dataset
+pip3 install -e .
+```
+for users
+```
+cd /tmp
+git clone http://mercury.bao.ac.cn:9005/mh/dataset.git
+cd dataset
+pip3 install -e .
 ```
 
 _**To Run Server**_

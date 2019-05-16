@@ -1,12 +1,21 @@
 This software is used to package data into self-describing Data Products.
 
-_**Installation for developers**_
+_**Installation**_
+for developers
 ```
 cd /tmp
 git clone ssh://git@mercury.bao.ac.cn:9005/mh/dataset.git
 cd dataset
 pip3 install -e .
 ```
+for users
+```
+cd /tmp
+git clone http://mercury.bao.ac.cn:9005/mh/dataset.git
+cd dataset
+pip3 install -e .
+```
+
 To run tests, in the same directory:
 ```
 ./testall

@@ -7,15 +7,15 @@ _**Installation**_
 for developers
 ```
 cd /tmp
-git clone ssh://git@mercury.bao.ac.cn:9005/mh/dataset.git
-cd dataset
+git clone ssh://git@mercury.bao.ac.cn:9005/mh/pns.git
+cd pns
 pip3 install -e .
 ```
 for users
 ```
 cd /tmp
-git clone http://mercury.bao.ac.cn:9005/mh/dataset.git
-cd dataset
+git clone http://mercury.bao.ac.cn:9005/mh/pns.git
+cd pns
 pip3 install -e .
 ```
 

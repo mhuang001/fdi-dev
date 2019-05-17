@@ -1,5 +1,5 @@
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # https://pythonhosted.org/an_example_pypi_project/setuptools.html
 #
@@ -22,7 +22,7 @@ setup(
     license="GPL",
     keywords="api processing dataset",
     url="http://mercury.bao.ac.cn:9006/mh/pns",
-    packages=['pns'],
+    packages=find_packages(exclude=['tests']),
     long_description=read('README.md'),
     classifiers=[
         "Development Status :: 3 - Alpha",

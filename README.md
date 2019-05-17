@@ -14,7 +14,7 @@ pip3 install -e .
 for users
 ```
 cd /tmp
-git clone http://mercury.bao.ac.cn:9005/mh/pns.git
+git clone http://mercury.bao.ac.cn:9006/mh/pns.git
 cd pns
 pip3 install -e .
 ```

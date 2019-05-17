@@ -11,7 +11,7 @@ pip3 install -e .
 for users
 ```
 cd /tmp
-git clone http://mercury.bao.ac.cn:9005/mh/dataset.git
+git clone http://mercury.bao.ac.cn:9006/mh/dataset.git
 cd dataset
 pip3 install -e .
 ```

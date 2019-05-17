@@ -25,9 +25,6 @@ class Composite(DeepEqual):
     in the sequence as they were added.
     Note that replacing a dataset with the same name,
     will keep the order.
-    Because it needs to exten DataWrappers
-    this class is designed to have an OrderedDict member instead of
-    extending OrderedDict. mh
     """
 
     def __init__(self, **kwds):

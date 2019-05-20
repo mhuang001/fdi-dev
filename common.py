@@ -6,11 +6,8 @@ import urllib.request
 import urllib.error as ue
 import json
 
-from logdict import doLogging, logdict
 import logging
-import logging.config
 # create logger
-logging.config.dictConfig(logdict)
 logger = logging.getLogger(__name__)
 logger.debug('level %d' % (logger.getEffectiveLevel()))
 
@@ -24,7 +21,7 @@ if 0:
 
 from dataset.deserialize import deserializeClassID
 from dataset.eq import serializeClassID
-
+print(logger.handlers)
 commonheaders = {
     'Accept': 'application/json',
     'Accept-Charset': 'utf-8',

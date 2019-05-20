@@ -15,12 +15,23 @@ logging.config.dictConfig(logdict)
 logger = logging.getLogger()
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
+print(id(logger.handlers[1]))
+print(logger.handlers)
+
 import common
+
+print(id(logger.handlers[1]))
+print(logger.handlers)
+
 import pnsconfig as pc
 from dataset.product import Product, FineTime1, History
 from dataset.dataset import ArrayDataset, TableDataset
 from dataset.eq import serializeClassID
 from dataset.deserialize import deserializeClassID
+
+print(id(logger.handlers[1]))
+print(logger.handlers)
+
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()

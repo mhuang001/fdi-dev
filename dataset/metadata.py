@@ -1,12 +1,9 @@
 from collections import OrderedDict
-from dataset.logdict import doLogging, logdict
-if doLogging:
-    import logging
-    import logging.config
-    # create logger
-    logging.config.dictConfig(logdict)
-    logger = logging.getLogger(__name__)
-    #logger.debug('level %d' %  (logger.getEffectiveLevel()))
+
+import logging
+# create logger
+logger = logging.getLogger(__name__)
+#logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 from dataset.eq import Annotatable, Copyable, DeepEqual, Serializable
 from dataset.listener import DatasetEventSender, DatasetBaseListener, ParameterListener, DatasetListener, DatasetEvent, EventType

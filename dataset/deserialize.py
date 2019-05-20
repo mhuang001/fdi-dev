@@ -1,15 +1,10 @@
 from collections import OrderedDict
 import json
 
-from dataset.logdict import doLogging, logdict
-if doLogging:
-    import logging
-    import logging.config
-    # create logger
-    logging.config.dictConfig(logdict)
-    # logconf = os.path.abspath('pnslog.conf')
-    # logging.config.dictConfig(json.load(open(logconf, 'r')))
-    logger = logging.getLogger(__name__)
+import logging
+# create logger
+logger = logging.getLogger(__name__)
+#logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 from dataset.metadata import Parameter, NumericParameter, MetaData
 from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset
@@ -93,7 +88,7 @@ def deserializeClassID(js, debug=False):
     """ Loads classes with ClassID from the results of serializeClassID
     """
     # debug = False  # True if issubclass(obj.__class__, list) else False
-    obj = json.loads(js, object_hook=OrderedDict)
+    obj = json.loads(js, object_pairs_hook=OrderedDict)
     if debug:
         # print('load-str ' + str(o) + ' class ' + str(o.__class__))
         print('deserializeClassID returns: ' + str(obj) + str(obj.__class__))

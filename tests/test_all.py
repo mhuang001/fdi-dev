@@ -1,7 +1,7 @@
 import datetime
 
 
-from dataset.logdict import doLogging, logdict
+from .logdict import doLogging, logdict
 if doLogging:
     import logging
     import logging.config

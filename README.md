@@ -46,6 +46,9 @@ Start the server fresh in one terminal and in another terminal
 ./test
 ```
 
+_**Configuration**_
+Host IP is 0.0.0.0 and port number 5000 by default. They are configurable in pnsconfig.py 
+
 API
 ---
 Suppose the server address and port are 127.0.0.1 and 5000:

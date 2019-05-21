@@ -23,7 +23,7 @@ from dataset.dataset import ArrayDataset
 from dataset.eq import deepcmp
 
 testname = 'SVOM'
-addrport = 'http://127.0.0.1:5000'
+addrport = 'http://' + pc.flask_host + ':' + str(pc.flask_port)
 
 
 def maketestdata():

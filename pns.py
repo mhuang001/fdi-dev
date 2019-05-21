@@ -205,4 +205,4 @@ if __name__ == '__main__':
             'Error. Specify non-empty username and password on commandline')
         exit(3)
 
-    app.run(debug=verbose)
+    app.run(host=pc.flask_host, port=pc.flask_port, debug=verbose)

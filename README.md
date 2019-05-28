@@ -22,9 +22,12 @@ pip3 install -e .
 _**To Run Server**_
 
 ```
-python3 pns.py --username=<username> --password=<password>
+python3 pns.py --username=<username> --password=<password> [--ip=<host ip>] [--port=<port>]
 ```
-
+or
+```
+python3 pns.py -u <username> -p <password> [-i <host ip>] [-o <port>]
+```
 in debugging mode:
 ```
 python3 pns.py --username=foo --password=bar -v
@@ -33,6 +36,7 @@ or just
 ```
 ./startserver
 ```
+to use the defaults.
 
 Do not run debugging mode for production use.
 
@@ -45,13 +49,14 @@ Start the server fresh in one terminal and in another terminal
 ```
 ./test
 ```
+with default ip and port
 
 _**Configuration**_
 Host IP is 0.0.0.0 and port number 5000 by default. They are configurable in pnsconfig.py 
 
 API
 ---
-Suppose the server address and port are 127.0.0.1 and 5000:
+Suppose the server address and port are 127.0.0.1 and 5000, respectively:
 
 <b>Get public information and access APIs</b>
 

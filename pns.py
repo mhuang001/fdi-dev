@@ -4,8 +4,6 @@ import datetime
 import time
 from flask import Flask, jsonify, abort, make_response, request
 from flask_httpauth import HTTPBasicAuth
-import getopt
-import sys
 
 from logdict import logdict
 import logging
@@ -15,7 +13,7 @@ logging.config.dictConfig(logdict)
 logger = logging.getLogger()
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-import common
+from common import opt
 
 import pnsconfig as pc
 from dataset.product import Product, FineTime1, History
@@ -151,49 +149,13 @@ def not_found(error):
     return make_response(jsonify(w), 409)
 
 
-def opt(username=None, password=None):
-    """Get username and password of the pc.node
-    """
-    logger.debug('username %s password %s' % (username, password))
-    msg = 'Specify non-empty username (-u or --username=) and password (-p or --password= ) on commandline.'
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hu:p:v",
-                                   [
-                                       "help",
-                                       "username=",
-                                       "password=",
-                                       'verbose'
-        ])
-    except getopt.GetoptError as err:
-        # print help information and exit:
-        # will print something like "option -a not recognized"
-        logger.error(str(err))
-        logger.info(msg)
-        sys.exit(2)
-    logger.debug('Command line options %s args %s' % (opts, args))
-    verbose = False
-    for o, a in opts:
-        if o == "-v":
-            verbose = True
-        elif o in ("-h", '--help'):
-            print(msg)
-            sys.exit(0)
-        elif o in ("-u", '--username'):
-            username = a
-        elif o in ('-p', '--password'):
-            password = a
-        else:
-            logger.error("unhandled option")
-            print(msg)
-            sys.exit(1)
-    return username, password, verbose
-
-
 if __name__ == '__main__':
 
     logger.info(
         'Pipline Pc.Node server starting. Make sure no other instance is running')
-    pc.node['username'], pc.node['password'], verbose = opt()
+    pc.node['username'], pc.node['password'], pc.node['host'], pc.node['port'], verbose = opt(
+        host=pc.node['host'], port=pc.node['port'])
+
     if verbose:
         logger.setLevel(logging.DEBUG)
     else:
@@ -205,4 +167,4 @@ if __name__ == '__main__':
             'Error. Specify non-empty username and password on commandline')
         exit(3)
 
-    app.run(host=pc.flask_host, port=pc.flask_port, debug=verbose)
+    app.run(host=pc.node['host'], port=pc.node['port'], debug=verbose)

@@ -14,7 +14,7 @@ logger = logging.getLogger()
 
 logger.debug('level %d' % (logger.getEffectiveLevel()))
 
-from common import getJsonObj, postJsonObj, commonheaders
+from common import getJsonObj, postJsonObj, commonheaders, opt
 import pnsconfig as pc
 from dataset.deserialize import deserializeClassID
 from dataset.product import Product
@@ -23,7 +23,7 @@ from dataset.dataset import ArrayDataset
 from dataset.eq import deepcmp
 
 testname = 'SVOM'
-addrport = 'http://' + pc.flask_host + ':' + str(pc.flask_port)
+addrport = ''
 
 
 def maketestdata():
@@ -140,6 +140,14 @@ def test_postmirror():
 
 
 if __name__ == '__main__':
+    pc.node['username'], pc.node['password'], pc.node['host'], pc.node['port'], verbose = opt(
+        host=pc.node['host'], port=pc.node['port'])
+    if verbose:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+    logger.info('logging level %d' % (logger.getEffectiveLevel()))
+    addrport = 'http://' + pc.node['host'] + ':' + str(pc.node['port'])
     setup_module()
     test_post()
     test_getlastUpdate()

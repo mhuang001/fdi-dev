@@ -1,10 +1,6 @@
-# flask ip
-flask_host = '0.0.0.0'
-
-# flask port
-flask_port = 5000
 
 # base url for webserver
 baseurl = '/v0.1'
 
-node = {'username': 'foo', 'password': 'bar'}
+# username, passwd, flask ip, flask port
+node = {'username': 'foo', 'password': 'bar', 'host': '0.0.0.0', 'port': 5000}

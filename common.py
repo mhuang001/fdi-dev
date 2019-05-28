@@ -5,11 +5,14 @@ from pprint import pprint, pformat
 import urllib.request
 import urllib.error as ue
 import json
+import getopt
+import sys
 
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 logger.debug('level %d' % (logger.getEffectiveLevel()))
+
 
 if 0:
     print(logger.propagate)
@@ -199,6 +202,51 @@ def mkdir(f, mode=0o755):
             else:
                 raise  # re-raise the exception
             os.chmod(path, mode)
+
+
+def opt(username=None, password=None, host='127.0.0.1', port=5000):
+    """Get username and password and host ip and port
+    """
+    logger.debug('username %s password %s host=%s port=%d' %
+                 (username, password, host, port))
+    msg = 'Specify non-empty username (-u or --username=) and password (-p or --password= ) host IP (-i or --ip=) and port (-o or --port=) on commandline.'
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hu:p:i:o:v",
+                                   [
+                                       "help",
+                                       "username=",
+                                       "password=",
+                                       "ip=",
+                                       "port="
+                                       'verbose'
+        ])
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        # will print something like "option -a not recognized"
+        logger.error(str(err))
+        logger.info(msg)
+        sys.exit(2)
+    logger.debug('Command line options %s args %s' % (opts, args))
+    verbose = False
+    for o, a in opts:
+        if o == "-v":
+            verbose = True
+        elif o in ("-h", '--help'):
+            print(msg)
+            sys.exit(0)
+        elif o in ("-u", '--username'):
+            username = a
+        elif o in ('-p', '--password'):
+            password = a
+        elif o in ("-i", '--ip'):
+            host = a
+        elif o in ('-o', '--port'):
+            port = int(a)
+        else:
+            logger.error("unhandled option")
+            print(msg)
+            sys.exit(1)
+    return username, password, host, port, verbose
 
 
 if 0 and __name__ == '__main__':

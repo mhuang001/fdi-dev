@@ -217,7 +217,7 @@ def opt(username=None, password=None, host='127.0.0.1', port=5000):
                                        "username=",
                                        "password=",
                                        "ip=",
-                                       "port="
+                                       "port=",
                                        'verbose'
         ])
     except getopt.GetoptError as err:

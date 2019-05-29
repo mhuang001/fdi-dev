@@ -47,7 +47,7 @@ _**To Test**_
 
 Start the server fresh in one terminal and in another terminal
 ```
-./test
+./test [-u <username> -p <password> [-i <host ip>] [-o <port>]]
 ```
 with default ip and port
 

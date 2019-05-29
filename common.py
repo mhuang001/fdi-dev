@@ -204,11 +204,13 @@ def mkdir(f, mode=0o755):
             os.chmod(path, mode)
 
 
-def opt(username=None, password=None, host='127.0.0.1', port=5000):
+def opt(node):
     """Get username and password and host ip and port
     """
+
     logger.debug('username %s password %s host=%s port=%d' %
-                 (username, password, host, port))
+                 (node['username'], node['password'],
+                  node['host'], node['port']))
     msg = 'Specify non-empty username (-u or --username=) and password (-p or --password= ) host IP (-i or --ip=) and port (-o or --port=) on commandline.'
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hu:p:i:o:v",
@@ -235,18 +237,21 @@ def opt(username=None, password=None, host='127.0.0.1', port=5000):
             print(msg)
             sys.exit(0)
         elif o in ("-u", '--username'):
-            username = a
+            node['username'] = a
         elif o in ('-p', '--password'):
-            password = a
+            node['password'] = a
         elif o in ("-i", '--ip'):
-            host = a
+            node['host'] = a
         elif o in ('-o', '--port'):
-            port = int(a)
+            node['port'] = int(a)
         else:
             logger.error("unhandled option")
             print(msg)
             sys.exit(1)
-    return username, password, host, port, verbose
+    logger.debug('username %s password %s host=%s port=%d' %
+                 (node['username'], node['password'],
+                  node['host'], node['port']))
+    return node, verbose
 
 
 if 0 and __name__ == '__main__':

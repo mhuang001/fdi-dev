@@ -140,8 +140,7 @@ def test_postmirror():
 
 
 if __name__ == '__main__':
-    pc.node['username'], pc.node['password'], pc.node['host'], pc.node['port'], verbose = opt(
-        host=pc.node['host'], port=pc.node['port'])
+    pc.node, verbose = opt(pc.node)
     if verbose:
         logger.setLevel(logging.DEBUG)
     else:

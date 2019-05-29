@@ -31,8 +31,8 @@ lupd = None
 
 
 def genposttestprod(indata):
-    """ generate poet test product. 
-    put the 1st input (see maketestdata in test_pns.py) 
+    """ generate poet test product.
+    put the 1st input (see maketestdata in test_pns.py)
     parameter to metadata
     and 2nd to the product's dataset
     """
@@ -81,9 +81,9 @@ def get_result(target):
     return resp
 
 
-#import requests
-#from http.client import HTTPConnection
-#HTTPConnection.debuglevel = 1
+# import requests
+# from http.client import HTTPConnection
+# HTTPConnection.debuglevel = 1
 
 @auth.verify_password
 def verify(username, password):
@@ -153,16 +153,14 @@ if __name__ == '__main__':
 
     logger.info(
         'Pipline Pc.Node server starting. Make sure no other instance is running')
-    pc.node['username'], pc.node['password'], pc.node['host'], pc.node['port'], verbose = opt(
-        host=pc.node['host'], port=pc.node['port'])
+    pc.node, verbose = opt(pc.node)
 
     if verbose:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
     logger.info('logging level %d' % (logger.getEffectiveLevel()))
-    if pc.node['username'] == '' or pc.node['password'] == '' or \
-            pc.node['username'] is None or pc.node['password'] is None:
+    if pc.node['username'] in ['', None] or pc.node['password'] in ['', None]:
         logger.error(
             'Error. Specify non-empty username and password on commandline')
         exit(3)

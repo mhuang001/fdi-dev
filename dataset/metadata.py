@@ -252,10 +252,6 @@ class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):
         """ Populates this DataWrapper with actual data. """
         self.data = data
 
-    def setData(self, data):
-        """ Populates this DataWrapper with actual data. """
-        self.data = data
-
     def setUnit(self, unit):
         """ Sets the unit of this object.. """
         self.unit = unit

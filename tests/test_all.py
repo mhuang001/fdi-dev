@@ -45,6 +45,19 @@ def checkjson(obj):
     assert obj == des
 
 
+def checkgeneral(v):
+    # can always add attributes
+    t = 'random'
+    v.testattr = t
+    assert v.testattr == t
+    try:
+        m = v.notexists
+    except AttributeError as e:
+        assert str(e).split()[-1] == "'notexists'", str(e)
+    except:
+        assert false
+
+
 def test_deepcmp():
     i1 = 3982
     i2 = 3982
@@ -104,6 +117,7 @@ def test_Annotatable():
     assert v.description == a1
     v.description = a
     assert v.description == a
+    checkgeneral(v)
 
 
 def test_AbstractComposite():
@@ -147,6 +161,8 @@ def test_AbstractComposite():
     v.set(a1, a2)
     assert v.remove(a1) == a2
     assert v.size() == 0
+
+    checkgeneral(v)
 
 
 def test_Copyable():
@@ -302,6 +318,8 @@ def test_Parameter():
     v.value = 4
     # print(test123)
 
+    checkgeneral(v)
+
 
 def test_Quantifiable():
     a = 'volt'
@@ -332,6 +350,8 @@ def test_NumericParameter():
     v1.unit = 'meter'
     assert v != v1
     assert v1 != v
+
+    checkgeneral(v)
 
 
 def test_MetaData():
@@ -389,6 +409,8 @@ def test_MetaData():
     v1['foo'] = 'bar'
     assert v != v1
 
+    checkgeneral(v)
+
 
 def test_MetaDataHolder():
     v = MetaDataHolder()
@@ -420,6 +442,8 @@ def test_Attributable():
     v = Attributable(meta=a1)
     assert v.getMeta() == a1
 
+    checkgeneral(v)
+
 
 def test_DataWrapper():
     a1 = [1, 4.4, 5.4E3]
@@ -433,6 +457,8 @@ def test_DataWrapper():
     assert v.data == a1
     assert v.unit == a2
     assert v.description == a3
+
+    checkgeneral(v)
 
 
 def test_ArrayDataset():
@@ -494,6 +520,7 @@ def test_ArrayDataset():
     assert v1 != v
 
     checkjson(v)
+    checkgeneral(v)
 
 
 def test_TableDataset():
@@ -506,6 +533,7 @@ def test_TableDataset():
     assert v.getValueAt(rowIndex=1, columnIndex=1) == 43.2
     v.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
     assert v.getValueAt(rowIndex=1, columnIndex=1) == 42
+    checkgeneral(v)
 
 
 def test_CompositeDataset():
@@ -562,6 +590,7 @@ def test_CompositeDataset():
     assert v1 != v
 
     checkjson(v)
+    checkgeneral(v)
 
 
 def test_FineTime1():
@@ -577,11 +606,13 @@ def test_FineTime1():
     assert v != v2
     assert v2.subtract(v) == 61100000
     checkjson(v)
+    checkgeneral(v)
 
 
 def test_History():
     v = History()
     checkjson(v)
+    checkgeneral(v)
 
 
 def test_Product():
@@ -647,6 +678,7 @@ def test_Product():
     assert x.meta["creator"] == a1
     assert x.creator == a1
 
+    checkgeneral(x)
 
 # serializing using package jsonconversion
 

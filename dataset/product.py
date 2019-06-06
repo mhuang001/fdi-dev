@@ -211,7 +211,7 @@ class Product(AbstractComposite, Copyable, Serializable,  DatasetEventSender, Da
         read
         """
         if name in self.mandatoryAttrs and updatemeta:
-            # if there is meta does not exist, inherit Attributable
+            # if meta does not exist, inherit Attributable
             # before any class that access mandatory attributes
             return self.meta[name]
         return super(AbstractComposite, self).__getattr__(name)

@@ -1,5 +1,5 @@
 import datetime
-
+import traceback
 
 from .logdict import doLogging, logdict
 if doLogging:
@@ -14,7 +14,7 @@ if doLogging:
 from dataset.eq import Annotatable, Copyable, serializeClassID, SerializableEncoder, deepcmp
 from dataset.listener import EventSender, DatasetBaseListener
 from dataset.composite import Composite
-from dataset.metadata import Parameter, Quantifiable, NumericParameter, MetaDataHolder, MetaData, Attributable, DataWrapper, AbstractComposite
+from dataset.metadata import Parameter, Quantifiable, NumericParameter, MetaDataHolder, MetaData, Attributable, DataWrapper, DataWrapperMapper, AbstractComposite
 from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset
 from dataset.product import FineTime1, History, Product
 from dataset.deserialize import deserializeClassID
@@ -53,8 +53,9 @@ def checkgeneral(v):
     try:
         m = v.notexists
     except AttributeError as e:
-        assert str(e).split()[-1] == "'notexists'", str(e)
+        assert str(e).split()[-1] == "'notexists'", traceback.print_exc()
     except:
+        traceback.print_exc()
         assert false
 
 
@@ -120,23 +121,26 @@ def test_Annotatable():
     checkgeneral(v)
 
 
-def test_AbstractComposite():
+def test_Composite():
 
+    # set/get
     a1 = 'this'
     a2 = 'that'
-    v = AbstractComposite()
+    v = Composite()
     v.set(a1, a2)
     assert v.get(a1) == a2
+    # keyword arg, new value substitute old
     a3 = 'more'
     v.set(name=a1, dataset=a3)
-    assert v[a1] == a3
+    assert v.get(a1) == a3
 
-    v = AbstractComposite()
-    v[a1] = a2  # DRM doc case
+    v = Composite()
+    v[a1] = a2  # DRM doc case 'v.get(a1)' == 'v[a1]'
     assert v[a1] == a2
+    assert v[a1] == v.get(a1)
 
     # test for containsKey, isEmpty, keySet, size
-    v = AbstractComposite()
+    v = Composite()
     assert v.containsKey(a1) == False
     assert v.isEmpty() == True
     ks = v.keySet()
@@ -149,20 +153,33 @@ def test_AbstractComposite():
     assert len(ks) == 1 and ks[0] == a1
     assert v.size() == 1
 
-    # test dict view
+    # dict view
     a3 = 'k'
     a4 = 'focus'
     v[a3] = a4
     assert [k for k in v] == [a1, a3]
     assert [(k, v) for (k, v) in v.items()] == [(a1, a2), (a3, a4)]
 
-    # test for a1=none pending
-    v = AbstractComposite()
+    # remove
+    v = Composite()
     v.set(a1, a2)
+    assert v[a1] == a2
     assert v.remove(a1) == a2
     assert v.size() == 0
+    assert v.remove(a1) is None
+    assert v.remove('notexist') is None
 
     checkgeneral(v)
+
+
+def test_AbstractComposite():
+
+    v = AbstractComposite()
+    assert issubclass(v.__class__, Annotatable)
+    assert issubclass(v.__class__, Attributable)
+    assert issubclass(v.__class__, DataWrapperMapper)
+    checkgeneral(v)
+    print(dir(v))
 
 
 def test_Copyable():
@@ -181,6 +198,8 @@ def test_Copyable():
     old[1][1] = 'AA'
     assert new[1][1] == 2
     assert id(old) != id(new)
+
+    checkgeneral(v)
 
 
 def test_EventSender():

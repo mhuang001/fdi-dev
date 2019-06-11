@@ -4,7 +4,7 @@ import json
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 from dataset.metadata import Parameter, NumericParameter, MetaData
 from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset
@@ -56,7 +56,7 @@ def constructSerializableClassID(obj, dbg=False):
         if classname == 'bytes':
             inst = bytes.fromhex(obj['hex'])
             return inst
-        #inst = eval(classname + '()')
+        # inst = eval(classname + '()')
         inst = globals()[classname]()
     for (k, v) in obj.items():
         """ loop through all key-value pairs. """
@@ -91,6 +91,5 @@ def deserializeClassID(js, debug=False):
     obj = json.loads(js, object_pairs_hook=OrderedDict)
     if debug:
         # print('load-str ' + str(o) + ' class ' + str(o.__class__))
-        print('deserializeClassID returns: ' + str(obj) + str(obj.__class__))
-
+        print('-------- json loads returns: --------\n' + str(obj))
     return constructSerializableClassID(obj, dbg=debug)

@@ -46,6 +46,17 @@ class ArrayDataset(Dataset, DataWrapper):
         self.data = data
         self.unit = unit
 
+    def __repr__(self):
+        return self.__class__.__name__ + \
+            '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' % \
+            (str(self.description), str(self.meta), str(self.data), str(self.unit))
+
+    def toString(self):
+        s = '{description = "%s", meta = %s, data = "%s", unit = "%s"}' % \
+            (str(self.description), self.meta.toString(),
+             str(self.data), str(self.unit))
+        return s
+
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
@@ -109,6 +120,17 @@ class TableDataset(Dataset, DataWrapper, TableModel):
         """
         super().__init__(**kwds)  # initialize data, meta, unit
         self.data = [] if data is None else [OrderedDict(x) for x in data]
+
+    def __repr__(self):
+        return self.__class__.__name__ + \
+            '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' % \
+            (str(self.description), str(self.meta), str(self.data), str(self.unit))
+
+    def toString(self):
+        s = '{description = "%s", meta = %s, data = "%s", unit = "%s"}' % \
+            (str(self.description), self.meta.toString(),
+             str(self.data), str(self.unit))
+        return s
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

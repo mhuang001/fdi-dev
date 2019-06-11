@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class DatasetBaseListener():
     """ Generic interface for listeners that will listen to events
     happening on a target of a specific type.
-    Warning:
+    Java Warning:
     The listener must be a class field in order to make an object
     hard reference.
     """
@@ -32,8 +32,11 @@ class EventSender():
 
     def addListener(self, listener):
         """ Adds a listener to this. """
-        if listener not in self.listeners:
-            self.listeners.append(listener)
+        if issubclass(listener.__class__, DatasetBaseListener):
+            if listener not in self.listeners:
+                self.listeners.append(listener)
+        else:
+            raise TypeError("Listener is not subclass of DatasetBaseListener.")
         return self
 
     def removeListener(self, listener):
@@ -53,6 +56,24 @@ class EventSender():
 
     __call__ = fire
     #__len__ = getHandlerCount
+
+
+class DatasetEventSender(EventSender):
+    def __init__(self, **kwds):
+        self.listeners = set()
+        super().__init__(**kwds)
+
+    def addListener(self, listener):
+        """ Adds a listener to this. """
+        if issubclass(listener.__class__, DatasetBaseListener):
+            addListener(listener)
+        else:
+            raise TypeError("Listener is not subclass of DatasetBaseListener.")
+        return self
+
+    def fire(self, event):
+        for listener in self.listeners:
+            listener.targetChanged(event)
 
 
 class EventType():
@@ -87,24 +108,6 @@ class EventType():
     UNIT_CHANGED = 14
     # Some value in the target object has changed.
     VALUE_CHANGED = 15
-
-
-class DatasetEventSender(EventSender):
-    def __init__(self, **kwds):
-        self.listeners = set()
-        super().__init__(**kwds)
-
-    def addListener(self, listener):
-        """ Adds a listener to this. """
-        if issubclass(listener.__class__, DatasetBaseListener):
-            super().addListener(listener)
-        else:
-            raise TypeError("Listener is not subclass of DatasetBaseListener.")
-        return self
-
-    def fire(self, event):
-        for listener in self.listeners:
-            listener.targetChanged(event)
 
 
 class DatasetEvent():

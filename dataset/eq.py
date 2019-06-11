@@ -66,7 +66,7 @@ class SerializableEncoder(json.JSONEncoder):
 
 def serializeClassID(o):
     """ return JSON using special encoder SerializableEncoder """
-    return json.dumps(o, cls=SerializableEncoder)
+    return json.dumps(o, cls=SerializableEncoder, indent=2)
 
 
 class Serializable():
@@ -78,7 +78,7 @@ class Serializable():
     def __init__(self, **kwds):
         super().__init__(**kwds)
         sc = self.__class__
-        # print('$$ ' + sc.__name__)
+        #print('$$ ' + sc.__name__ + str(issubclass(sc, dict)))
         if issubclass(sc, dict):
             self['classID'] = sc.__qualname__
             self['version'] = ''
@@ -119,7 +119,7 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False):
             print('2 ' + str(c2) + str(o2))
         if pair in seen:
             if v:
-                print('deja vue')
+                logger.debug('deja vue')
             return None
         seen.append(pair)
         if c != c2:
@@ -143,7 +143,8 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False):
             return None
         elif c in (sc, tc, lc):
             if len(o1) != len(o2):
-                return ' due to diff lengths ' + c.__name__
+                return ' due to diff %s lengths %d and %d' %\
+                    (c.__name__, len(o1), len(o2))
             if c in (tc, lc):
                 for i in range(len(o1)):
                     r = run(o1[i], o2[i])

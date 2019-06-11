@@ -6,11 +6,11 @@ logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 from dataset.eq import Annotatable, Copyable, DeepEqual, Serializable
-from dataset.listener import DatasetEventSender, DatasetBaseListener, ParameterListener, DatasetListener, DatasetEvent, EventType
+from dataset.listener import EventSender, DatasetBaseListener, ParameterListener, DatasetListener, DatasetEvent, EventType
 from dataset.composite import Composite
 
 
-class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializable):
+class Parameter(Annotatable, Copyable, DeepEqual, EventSender, Serializable):
     """ Parameter is the interface for all named attributes
     in the MetaData container. It can have a value and a description."""
 
@@ -133,7 +133,7 @@ class NumericParameter(Parameter, Quantifiable):
                            version=self.version)
 
 
-class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEventSender):
+class MetaData(Composite, Copyable, Serializable, ParameterListener, EventSender):
     """ A container of named Parameters. A MetaData object can
     have one or more parameters, each of them stored against a
     unique name. The order of adding parameters to this container
@@ -191,6 +191,14 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             self.fire(e)
         return r
 
+    def toString(self):
+        s, l = '', ''
+        for (k, v) in self.sets.items():
+            s = s + str(k) + ' = ' + str(v) + ', '
+        l = ''.join(['"' + x.description + '", ' for x in self.listeners])
+        return self.__class__.__name__ + \
+            '{[' + s + '], listeners = [%s]}' % (l)
+
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(sets=self.sets,
@@ -198,32 +206,52 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
                            version=self.version)
 
 
-class MetaDataHolder():
-    """ Object holding meta data. """
+class MetaDataHolder(object):
+    """ Object holding meta data. 
+    mh: object for compatibility with python2
+    """
 
-    def __init__(self, meta=None, **kwds):
-        if meta is None:
-            self.meta = MetaData()
-        else:
-            self.meta = meta
+    def __init__(self, **kwds):
         super().__init__(**kwds)
         # print(self.__dict__)
 
     def getMeta(self):
         """ Returns the current MetaData container of this object. """
-        return self.meta
+        return self._meta
+
+
+class Mk():
+
+    def __init__(self, **kwds):
+        print('mk')
 
 
 class Attributable(MetaDataHolder):
     """ An Attributable object is an object that has the
     notion of meta data. """
 
-    def __init__(self, **kwds):
+    def __init__(self, meta=None, **kwds):
+        if meta is None:
+            self.setMeta(MetaData())
+        else:
+            self.setMeta(meta)
         super().__init__(**kwds)
+        #print('**' + self._meta.toString())
+
+    @property
+    def meta(self):
+        return self.getMeta()
+
+    @meta.setter
+    def meta(self, newMetadata):
+        self.setMeta(newMetadata)
 
     def setMeta(self, newMetadata):
-        """ Replaces the current MetaData with specified argument. """
-        self.meta = newMetadata
+        """ Replaces the current MetaData with specified argument. 
+        mh: Product will override this to add listener whenevery meta is
+        replaced
+        """
+        self._meta = newMetadata
 
 
 class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):
@@ -259,7 +287,7 @@ class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):
     def __repr__(self):
         return self.__class__.__name__ + \
             '{ description = "%s", data = "%s", unit = "%s"}' % \
-            (str(self.description), str(self.data), self.unit)
+            (str(self.description), str(self.data), str(self.unit))
 
 
 class DataWrapperMapper():
@@ -271,7 +299,7 @@ class DataWrapperMapper():
 
 
 class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper, DatasetListener):
-    """ an annotatable and attributable implementation of Composite. 
+    """ an annotatable and attributable subclass of Composite. 
     """
 
     def __init__(self, **kwds):

@@ -1,5 +1,6 @@
 import datetime
 import traceback
+from pprint import pprint
 
 from .logdict import doLogging, logdict
 if doLogging:
@@ -24,20 +25,29 @@ def checkjson(obj):
     """ seriaizes the given object and deserialize. check equality.
     """
 
-    # True if issubclass(obj.__class__, MetaData) or issubclass( obj.__class__, CompositeDataset) else False
+    #dbg = True if issubclass(obj.__class__, Product) else False
     dbg = False
 
     js = obj.serialized()
     if dbg:
-        print('checkjsom ' + obj.__class__.__name__ + ' serialized: ' + js)
+        print('*************** checkjsom ' + obj.__class__.__name__ +
+              ' serialized: ************\n')
+        print(js)
+        print('*************************')
     des = deserializeClassID(js, debug=dbg)
     if dbg:
-        print('checkjson des ' + str(des) + str(des.__class__))
+        print('moo ' + str((des.meta.listeners)))
+        print('*********** checkjson deserialized ' + str(des.__class__) +
+              '***********\n')
+        pprint(des)
+
         # js2 = json.dumps(des, cls=SerializableEncoder)
-        # print('des     serialized: ' + js)
+        # pprint('******** des     serialized: **********')
+        # pprint(js)
 
         r = deepcmp(obj, des)
-        print('deepcmp ' + 'identical' if r is None else r)
+        print('*************** deepcmp ***************')
+        print('identical' if r is None else r)
         # print(' DIR \n' + str(dir(obj)) + '\n' + str(dir(des)))
     if issubclass(obj.__class__, Product):
         obj.meta.listeners = []
@@ -179,7 +189,6 @@ def test_AbstractComposite():
     assert issubclass(v.__class__, Attributable)
     assert issubclass(v.__class__, DataWrapperMapper)
     checkgeneral(v)
-    print(dir(v))
 
 
 def test_Copyable():
@@ -431,15 +440,6 @@ def test_MetaData():
     checkgeneral(v)
 
 
-def test_MetaDataHolder():
-    v = MetaDataHolder()
-    assert v.getMeta().size() == 0
-    a1 = MetaData()
-    a1['this'] = Parameter(0.3)
-    v = MetaDataHolder(meta=a1)
-    assert v.getMeta() == a1
-
-
 def test_Attributable():
     v = Attributable()
     assert v.getMeta().size() == 0  # inhrited no argument instanciation
@@ -513,6 +513,7 @@ def test_ArrayDataset():
                           value=2.3, unit='sec')
     v.meta[a4] = a5
 
+    # b[1-5] and v1 have the  same contents os a[1-5] and v
     b1 = [1, 4.4, 5.4E3]
     b2 = ''.join(a2)
     b3 = ''.join(a3)
@@ -521,18 +522,25 @@ def test_ArrayDataset():
     b5 = NumericParameter(description='a param in metadata',
                           value=2.3, unit='sec')
     v1.meta[b4] = b5
+
+    # equality
     assert v == v1
     assert v1 == v
     # change data
     v1.data += [6]
     assert v != v1
     assert v1 != v
+    # restore v1 so that v==v1
     v1.data = a1.copy()
+    assert v == v1
     # change description
     v1.description = 'changed'
     assert v != v1
     assert v1 != v
+    # restore v1 so that v==v1
     v1.description = ''.join(a3)
+    assert v == v1
+    assert id(v) != id(v1)
     # change meta
     v1.meta[b4].description = 'c'
     assert v != v1
@@ -638,6 +646,8 @@ def test_Product():
     """ """
     x = Product(description="This is my product example",
                 instrument="MyFavourite", modelName="Flight")
+    # print(x.__dict__)
+    # print(x.meta.toString())
     assert x.meta['description'] == "This is my product example" \
         and x.instrument == "MyFavourite" and x.modelName == "Flight"
     # ways to add datasets
@@ -666,8 +676,8 @@ def test_Product():
     assert x.meta["creator"] == a0
 
     x.meta["Version"] = 0
-    p = Parameter(value="2.1.1a",
-                  description="patch taken from download")
+    p = Parameter(value="2.1a",
+                  description="patched")
     x.meta["Version"] = p
     assert x.meta["Version"] == p
     a1 = 'a test NumericParameter, just b4 json'
@@ -675,8 +685,6 @@ def test_Product():
     a3 = 'second'
     v = NumericParameter(description=a1, value=a2, unit=a3)
     x.meta['numPar'] = v
-
-    checkjson(x)
 
     # test comparison:
     p1 = Product(description="Description")
@@ -697,6 +705,7 @@ def test_Product():
     assert x.meta["creator"] == a1
     assert x.creator == a1
 
+    checkjson(x)
     checkgeneral(x)
 
 # serializing using package jsonconversion

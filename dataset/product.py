@@ -5,12 +5,12 @@ import pprint
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 from dataset.eq import Copyable, DeepEqual, Serializable
 # from dataset.composite import
 from dataset.dataset import CompositeDataset
-from dataset.listener import DatasetEventSender, DatasetEvent, DatasetListener, EventType
+from dataset.listener import EventSender, DatasetEvent, DatasetListener, EventType
 from dataset.metadata import AbstractComposite
 
 
@@ -41,7 +41,7 @@ class FineTime1(Copyable, DeepEqual, Serializable):
                 d = date
             self.tai = int(1000000) * \
                 ((d - FineTime1.EPOCH).total_seconds() + leapsec)
-        #logger.debug('date= %s TAI = %d' % (str(date), self.tai))
+        # logger.debug('date= %s TAI = %d' % (str(date), self.tai))
         super().__init__(**kwds)
 
     def microsecondsSinceEPOCH(self):
@@ -142,7 +142,14 @@ class History(CompositeDataset, DeepEqual):
                            version=self.version)
 
 
-class Product(AbstractComposite, Copyable, Serializable,  DatasetEventSender, DatasetListener):
+mandatoryProductAttrs = ['description', 'creator', 'creationDate',
+                         'instrument', 'startDate', 'endDate',
+                         'rootCause',
+                         'modelName', 'type', 'mission']
+
+
+#@addMandatoryProductAttrs
+class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetListener):
     """ A Product is a generic result that can be passed on between
     (standalone) processes.
 
@@ -162,11 +169,6 @@ class Product(AbstractComposite, Copyable, Serializable,  DatasetEventSender, Da
     or p.meta['creator']
     """
 
-    mandatoryAttrs = ['description', 'creator', 'creationDate',
-                      'instrument', 'startDate', 'endDate',
-                      'rootCause',
-                      'modelName', 'type', 'mission']
-
     def __init__(self, creator='',
                  creationDate=None,
                  instrument='',
@@ -178,22 +180,23 @@ class Product(AbstractComposite, Copyable, Serializable,  DatasetEventSender, Da
                  mission='SVOM',
                  **kwds):
 
-        super().__init__(**kwds)  # initiate meta and get description
+        # must be the first line to initiate meta and get description
+        super().__init__(**kwds)
 
         creationDate = FineTime1() if creationDate is None else creationDate
-
         # list of local variables. 'description' has been consumed in
         # in annotatable super class so it is not in.
         lvar = locals()
         lvar.pop('self')
-        for ma in self.mandatoryAttrs:
+        # print('# ' + self.meta.toString())
+        # print(self.__dict__)
+        for ma in mandatoryProductAttrs:
+            # description has been set by Anotatable.__init__
             if ma != 'description':
-                # metadata entries are also set by exteded setattr
+                # metadata entries are also set by extended setattr
                 self.__setattr__(ma, lvar[ma])
 
-        # self.description has been set by Annotatable constructor
-        #self.meta['description'] = self.description
-        self.meta.addListener(self)
+        #print('% ' + self.meta.toString())
         self.history = History()
 
     def accept(self, visitor):
@@ -206,33 +209,53 @@ class Product(AbstractComposite, Copyable, Serializable,  DatasetEventSender, Da
         belonging to this product. """
         return self.sets[0] if self.sets.size() > 0 else None
 
-    def __getattr__(self, name, updatemeta=True):
+    def __getattribute__(self, name, withmeta=True):
         """ Reads meta data table when Mandatory Attributes are
         read
         """
-        if name in self.mandatoryAttrs and updatemeta:
+        #print('getattribute ' + name)
+        if name in mandatoryProductAttrs and withmeta:
             # if meta does not exist, inherit Attributable
             # before any class that access mandatory attributes
-            return self.meta[name]
-        return super(AbstractComposite, self).__getattr__(name)
+            #print('aa ' + str(self.getMeta()[name]))
+            return self.getMeta()[name]
+        return super().__getattribute__(name)
 
-    def __setattr__(self, name, value, updatemeta=True):
+    def q__getattr__(self, name, withmeta=True):
+        """ Reads meta data table when Mandatory Attributes are
+        read
+        """
+        if name in mandatoryProductAttrs and withmeta:
+            # if meta does not exist, inherit Attributable
+            # before any class that access mandatory attributes
+            print('mm ' + str(self.meta[name]))
+            return self.meta[name]
+        #print('getattr ' + name)
+        return super().__getattribute__(name)
+
+    def setMeta(self, newMetadata):
+        super().setMeta(newMetadata)
+        self.getMeta().addListener(self)
+
+    def __setattr__(self, name, value, withmeta=True):
         """ Updates meta data table when Mandatory Attributes are
         modifed
         """
-        if name in self.mandatoryAttrs and updatemeta:
-            self.meta[name] = value
+        if name in mandatoryProductAttrs and withmeta:
+            self.getMeta()[name] = value
             return
 
-        super(AbstractComposite, self).__setattr__(name, value)
+        #print('setattr ' + name, value)
+        super().__setattr__(name, value)
 
     def __delattr__(self, name):
         """ Refuses deletion of mandatory attributes
         """
-        if name in self.mandatoryAttrs:
+        if name in mandatoryProductAttrs:
             logger.warn('Cannot delete Mandatory Attribute ' + name)
             return
-        super(AbstractComposite, self).__delattr__(name)
+
+        super().__delattr__(name)
 
     def targetChanged(self, event):
         if False and event.source == self.meta:
@@ -259,7 +282,7 @@ class Product(AbstractComposite, Copyable, Serializable,  DatasetEventSender, Da
         ''' meta and datasets only show names
         '''
         s = '{'
-        """for lvar in self.mandatoryAttrs:
+        """for lvar in mandatoryProductAttrs:
             if hasattr(self, lvar):
                 s += '%s = %s, ' % (lvar, getattr(self, lvar))
         """
@@ -272,7 +295,7 @@ class Product(AbstractComposite, Copyable, Serializable,  DatasetEventSender, Da
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        #ls = [(lvar, getattr(self, lvar)) for lvar in self.mandatoryAttrs]
+        # ls = [(lvar, getattr(self, lvar)) for lvar in mandatoryProductAttrs]
         ls = [
             ("meta", self.meta),
             ("sets", self.sets),
@@ -280,3 +303,35 @@ class Product(AbstractComposite, Copyable, Serializable,  DatasetEventSender, Da
             ("classID", self.classID),
             ("version", self.version)]
         return OrderedDict(ls)
+
+
+def addMandatoryProductAttrs(cls):
+    """mh: Add MPAs to a class so that although they are metadata,
+    they can be accessed by for example, productfoo.creator.
+    dynamic properties see
+    https://stackoverflow.com/a/2584050
+    https://stackoverflow.com/a/1355444
+    """
+    for name in mandatoryProductAttrs:
+        def g(self):
+            return self._meta[name]
+
+        def s(self, value):
+            self._meta[name] = value
+
+        def d(self):
+            logger.warn('Cannot delete Mandatory Product Attribute ' + name)
+
+        setattr(cls,
+                name,
+                property(lambda self: self._meta[name],
+                         lambda self, val: self._meta.set(name, val),
+                         lambda self: logger.warn(
+                    'Cannot delete Mandatory Product Attribute ' + name),
+                    'Mandatory Product Attribute ' + name))
+#        setattr(cls, name, property(
+#            g, s, d, 'Mandatory Product Attribute '+ name))
+    return cls
+
+
+Product = addMandatoryProductAttrs(Product)

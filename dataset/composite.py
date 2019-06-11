@@ -65,9 +65,11 @@ class Composite(DeepEqual):
         return list(self.sets.keys())
 
     def remove(self, name):
-        """ Removes the mapping for this name from this composite. """
+        """ Removes the mapping for this name from this composite.
+        mh: returns None if name is None or item does not exist.
+        """
         if name == '' or name is None or name not in self.sets:
-            logger.error('Noooo')
+            logger.warn('Cannot remove non-exist item \'' + name + "'")
             return None
         return self.sets.pop(name)
 

@@ -15,7 +15,7 @@ def read(fname):
 
 setup(
     name="pns",
-    version="0.1",
+    version="0.2",
     author="Maohai Huang",
     author_email="mh@earth.bao.ac.cn",
     description=("Web API server for a data processing network node."),

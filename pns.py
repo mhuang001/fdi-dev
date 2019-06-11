@@ -2,6 +2,7 @@
 from pprint import pformat
 import datetime
 import time
+import subprocess
 from flask import Flask, jsonify, abort, make_response, request
 from flask_httpauth import HTTPBasicAuth
 
@@ -10,10 +11,13 @@ import logging
 import logging.config
 # create logger
 logging.config.dictConfig(logdict)
-logger = logging.getLogger()
+if __name__ == '__main__':
+    logger = logging.getLogger()
+else:
+    logger = logging.getLogger(__name__)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-from common import opt
+from common import mkdir, opt
 
 import pnsconfig as pc
 from dataset.product import Product, FineTime1, History
@@ -30,13 +34,40 @@ result = None
 lupd = None
 
 
-def genposttestprod(indata):
-    """ generate poet test product.
+def run(indata):
+    """ generate  product.
     put the 1st input (see maketestdata in test_pns.py)
     parameter to metadata
     and 2nd to the product's dataset
     """
 
+    global lupd
+    runner, cause = indata['creator'], indata['rootcause']
+    contents = indata['input'].data
+    with open(inputfile, "wb") as inf:
+        inf.write(contents)
+    subprocess.run(prog)
+    with open(outputfile, "rw") as outf:
+        res = outf.read()
+    x = Product(description="hello world pipeline product",
+                creator=runner, rootCause=cause,
+                instrument="hello", modelName="you know what!")
+    x.data = ArrayDataset(data=res, description='result from hello command')
+    lupd = time.time()
+    x.creationDate = FineTime1(datetime.datetime.fromtimestamp(lupd))
+    x.type = 'test'
+    x.history = History()
+    return x
+
+
+def genposttestprod(indata):
+    """ generate post test product.
+    put the 1st input (see maketestdata in test_all.py)
+    parameter to metadata
+    and 2nd to the product's dataset
+    """
+
+    global lupd
     runner, cause = indata['creator'], indata['rootcause']
     x = Product(description="This is my product example",
                 creator=runner, rootCause=cause,
@@ -44,9 +75,9 @@ def genposttestprod(indata):
     i1 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     im = ArrayDataset(data=i1, unit='magV', description='image 1')
     input = indata['input']
-    pname, pv = input[0]
-    dname, dv = input[1]
-    print(im == dv)
+    pname, pv = list(input.meta.items())[0]
+    dname, dv = list(input.sets.items())[0]
+    print(im == dv)  # this should be true
     x.meta[pname] = pv
     x.sets[dname] = dv
     s1 = [dict(name='col1', unit='keV', column=[1, 4.4, 5.4E3]),
@@ -101,13 +132,15 @@ def calcresult(cmd):
     global lupd
     d = request.get_data()
     indata = deserializeClassID(d)
-    print(indata)
+    logger.debug(indata)
     if cmd == 'data':
         result = genposttestprod(indata)
     elif cmd == 'echo':
         result = indata
+    elif cmd == 'run':
+        result = run(indata)
     else:
-        print(cmd)
+        logger.error(cmd)
         # abort(400)
         result = None
     ts = time.time()

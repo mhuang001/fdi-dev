@@ -8,8 +8,11 @@ import json
 import getopt
 import sys
 
+from logdict import logdict
 import logging
+import logging.config
 # create logger
+logging.config.dictConfig(logdict)
 logger = logging.getLogger(__name__)
 logger.debug('level %d' % (logger.getEffectiveLevel()))
 
@@ -24,7 +27,7 @@ if 0:
 
 from dataset.deserialize import deserializeClassID
 from dataset.eq import serializeClassID
-print(logger.handlers)
+
 commonheaders = {
     'Accept': 'application/json',
     'Accept-Charset': 'utf-8',
@@ -198,9 +201,9 @@ def mkdir(f, mode=0o755):
             os.mkdir(path, mode)
         except OSError as e:
             if e.errno == errno.EEXIST:  # file exists error?
-                logger.info('%s exists' % (path))
+                pass  # logger.info('%s exists' % (path))
             else:
-                raise  # re-raise the exception
+                raise(e)  # re-raise the exception
             os.chmod(path, mode)
 
 

@@ -26,20 +26,6 @@ testname = 'SVOM'
 addrport = ''
 
 
-def maketestdata():
-    a1 = 'a test NumericParameter'
-    a2 = 1
-    a3 = 'second'
-    v = NumericParameter(description=a1, value=a2, unit=a3)
-    i0 = 6
-    i1 = [[1, 2, 3], [4, 5, i0], [7, 8, 9]]
-    i2 = 'ev'                 # unit
-    i3 = 'img1'  # description
-    image = ArrayDataset(data=i1, unit=i2, description=i3)
-    return OrderedDict({'creator': 'me', 'rootcause': 'server test',
-                        'input': [['testparam', v], ['testdataset', image]]})
-
-
 # last timestamp/lastUpdate
 lupd = 0
 
@@ -66,16 +52,36 @@ def setup_module():
     # initialize test data.
 
 
-def checkresult(inputtestdata, o):
+def makeposttestdata():
+    a1 = 'a test NumericParameter'
+    a2 = 1
+    a3 = 'second'
+    v = NumericParameter(description=a1, value=a2, unit=a3)
+    i0 = 6
+    i1 = [[1, 2, 3], [4, 5, i0], [7, 8, 9]]
+    i2 = 'ev'                 # unit
+    i3 = 'img1'  # description
+    image = ArrayDataset(data=i1, unit=i2, description=i3)
+    x = Product(description="test post input product")
+    x.set('testdataset', image)
+    x.meta['testparam'] = v
+    return OrderedDict({'creator': 'me', 'rootcause': 'server test',
+                        'input': x})
+
+
+def checkpostresult(o):
+    global result, lupd, inputtestdata
     p = o['result']
     assert issubclass(p.__class__, Product), (p.__class__)
     # creator rootcause
     #print('p.toString()' + p.toString())
     assert p.meta['creator'] == inputtestdata['creator']
     assert p.rootCause == inputtestdata['rootcause']
-    # data
-    pname, pv = inputtestdata['input'][0]
-    dname, dv = inputtestdata['input'][1]
+    # input data
+    input = inputtestdata['input']
+    pname, pv = list(input.meta.items())[0]
+    dname, dv = list(input.sets.items())[0]
+    # compare with returened data
     assert p.meta[pname] == pv
     assert p.sets[dname] == dv
 
@@ -86,7 +92,7 @@ def test_post():
     '''
     logger.info('POST testpipeline node server')
     global result, lupd, inputtestdata
-    inputtestdata = maketestdata()
+    inputtestdata = makeposttestdata()
     code = base64.b64encode(b"foo:bar").decode("ascii")
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(inputtestdata)
@@ -94,10 +100,50 @@ def test_post():
                     '/data',
                     inputtestdata,
                     headers=commonheaders)
+    assert o is not None, "Server is having trouble"
     assert ('error' not in o) or (o['lastUpdate'] - lupd < 0), o['error']
     assert o['timestamp'] == o['lastUpdate']
     lupd = o['lastUpdate']
-    checkresult(inputtestdata, o)
+    checkpostresult(o)
+
+
+def checkrunresult(o):
+    global result, lupd, inputtestdata
+    p = o['result']
+    assert issubclass(p.__class__, Product), (p.__class__)
+    # creator rootcause
+    #print('p.toString()' + p.toString())
+    assert p.meta['creator'] == inputtestdata['creator']
+    assert p.rootCause == inputtestdata['rootcause']
+    # input data
+    input = inputtestdata['input']
+    assert p.data == input.data
+
+
+def test_run():
+    ''' send a product that has a name string as its data
+    to the server and get back a product with
+    a string 'hello, $name!' as its data
+    '''
+    logger.info('POST testpipeline node server by running hello')
+    global result, lupd, inputtestdata
+    x = Product(description="hello world pipeline input product")
+    x.data = ArrayDataset(data=res, description='stranger')
+
+    inputtestdata = OrderedDict({'creator': 'me', 'rootcause': 'server test',
+                                 'input': x})
+    code = base64.b64encode(b"foo:bar").decode("ascii")
+    commonheaders.update({'Authorization': 'Basic %s' % (code)})
+    # print(inputtestdata)
+    o = postJsonObj(addrport + pc.baseurl +
+                    '/run',
+                    inputtestdata,
+                    headers=commonheaders)
+    assert o is not None, "Server is having trouble"
+    assert ('error' not in o) or (o['lastUpdate'] - lupd < 0), o['error']
+    assert o['timestamp'] == o['lastUpdate']
+    lupd = o['lastUpdate']
+    checkrunresult(o)
 
 
 def test_get():
@@ -105,10 +151,11 @@ def test_get():
     '''
     logger.info('read the result')
     o = getJsonObj(addrport + pc.baseurl + '/data')
+    assert o is not None, "Server is having trouble"
     assert ('error' not in o) or (o['lastUpdate'] - lupd < 0), o['error']
     assert o['timestamp'] > o['lastUpdate']
     assert o['lastUpdate'] == lupd  # this is the case after the 1st POST
-    checkresult(inputtestdata, o)
+    checkpostresult(o)
 
 
 def test_getlastUpdate():
@@ -125,7 +172,6 @@ def test_postmirror():
     '''
     logger.info('POST testpipeline node server')
     global result, lupd, inputtestdata
-    inputtestdata = maketestdata()
     code = base64.b64encode(b"foo:bar").decode("ascii")
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(inputtestdata)
@@ -153,4 +199,5 @@ if __name__ == '__main__':
     test_get()
     test_get()
     test_postmirror()
+    test_post()
     print('test successful')

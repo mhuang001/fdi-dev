@@ -27,6 +27,9 @@ def constructSerializableClassID(obj, dbg=False):
     https://stackoverflow.com/questions/452969/does-python-have-an-equivalent-to-java-class-forname
 
     """
+    if not hasattr(obj, '__getitem__'):
+        return obj
+
     classname = obj.__class__.__name__
     # process list first
     if issubclass(obj.__class__, list):

@@ -148,9 +148,6 @@ def test_serverrun():
     logger.info('POST test for pipeline node server "run": hello')
     global result, nodetestinput
 
-    hf = pkg_resources.resource_filename("tests", "hello")
-    print(hf)
-    subprocess.run(['cp', hf, '/tmp'])
     x = makeruntestdata()
     # construct the nodetestinput to the node
     nodetestinput = OrderedDict({'creator': 'me', 'rootcause': 'server test',
@@ -176,6 +173,10 @@ def test_run():
     code = base64.b64encode(b"foo:bar").decode("ascii")
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)
+    o = postJsonObj(addrport + baseurl +
+                    '/inittest',
+                    None,
+                    headers=commonheaders)
     o = postJsonObj(addrport + baseurl +
                     '/run',
                     nodetestinput,

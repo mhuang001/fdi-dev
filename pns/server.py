@@ -4,6 +4,7 @@ import datetime
 import time
 from pathlib import Path
 import subprocess
+import pkg_resources
 from flask import Flask, jsonify, abort, make_response, request
 from flask_httpauth import HTTPBasicAuth
 
@@ -35,6 +36,19 @@ result = None
 lupd = None
 
 
+def inittest():
+    """ Initialize the server.
+    """
+
+    hf = pkg_resources.resource_filename("tests", "hello")
+    print(hf)
+    try:
+        subprocess.run(['cp', hf, '/tmp'])
+        return 'OK'
+    except Exception as e:
+        return str(e)
+
+
 def checkpath(path):
     p = Path(path).resolve()
     if p.exists():
@@ -44,7 +58,6 @@ def checkpath(path):
     else:
         p.mkdir()
         logging.info(str(p) + ' directory has been made.')
-
     return p
 
 
@@ -158,6 +171,8 @@ def calcresult(cmd):
         result = indata
     elif cmd == 'run':
         result = run(indata)
+    elif cmd == 'inittest':
+        result = inittest(indata)
     else:
         logger.error(cmd)
         # abort(400)

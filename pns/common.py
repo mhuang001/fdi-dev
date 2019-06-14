@@ -8,7 +8,7 @@ import json
 import getopt
 import sys
 
-from logdict import logdict
+from pns.logdict import logdict
 import logging
 import logging.config
 # create logger
@@ -196,7 +196,7 @@ def mkdir(f, mode=0o755):
         if i == '':
             continue
         path += (i + '/')
-        print(path)
+        loger.debug(path)
         try:
             os.mkdir(path, mode)
         except OSError as e:

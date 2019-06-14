@@ -2,11 +2,12 @@
 from pprint import pformat
 import datetime
 import time
+from pathlib import Path
 import subprocess
 from flask import Flask, jsonify, abort, make_response, request
 from flask_httpauth import HTTPBasicAuth
 
-from logdict import logdict
+from pns.logdict import logdict
 import logging
 import logging.config
 # create logger
@@ -17,9 +18,9 @@ else:
     logger = logging.getLogger(__name__)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-from common import mkdir, opt
+from pns.common import mkdir, opt
+from pns.pnsconfig import baseurl, node, paths, prog
 
-import pnsconfig as pc
 from dataset.product import Product, FineTime1, History
 from dataset.dataset import ArrayDataset, TableDataset
 from dataset.eq import serializeClassID
@@ -34,25 +35,43 @@ result = None
 lupd = None
 
 
+def checkpath(path):
+    p = Path(path).resolve()
+    if p.exists():
+        if not p.is_dir():
+            logging.error(str(p) + ' is not a directory.')
+            return None
+    else:
+        p.mkdir()
+        logging.info(str(p) + ' directory has been made.')
+
+    return p
+
+
 def run(indata):
     """ generate  product.
     put the 1st input (see maketestdata in test_pns.py)
     parameter to metadata
     and 2nd to the product's dataset
     """
-
+    pi = checkpath(paths['inputdir'])
+    po = checkpath(paths['outputdir'])
+    if pi is None or po is None:
+        abort(401)
     global lupd
     runner, cause = indata['creator'], indata['rootcause']
-    contents = indata['input'].data
-    with open(inputfile, "wb") as inf:
-        inf.write(contents)
+    contents = indata['input']['theName'].data
+    for f in paths['inputfiles']:
+        with pi.joinpath(f).open(mode="w") as inf:
+            inf.write(contents)
     subprocess.run(prog)
-    with open(outputfile, "rw") as outf:
+    with po.joinpath(paths['outputfile']).open("r") as outf:
         res = outf.read()
     x = Product(description="hello world pipeline product",
                 creator=runner, rootCause=cause,
                 instrument="hello", modelName="you know what!")
-    x.data = ArrayDataset(data=res, description='result from hello command')
+    x['theAnswer'] = ArrayDataset(
+        data=res, description='result from hello command')
     lupd = time.time()
     x.creationDate = FineTime1(datetime.datetime.fromtimestamp(lupd))
     x.type = 'test'
@@ -92,7 +111,7 @@ def genposttestprod(indata):
     return x
 
 
-@app.route(pc.baseurl + '/<string:target>', methods=['GET'])
+@app.route(baseurl + '/<string:target>', methods=['GET'])
 def get_result(target):
     ''' return calculation result. If the result is None return accordingly
     '''
@@ -123,10 +142,10 @@ def verify(username, password):
     """
     if not (username and password):
         return False
-    return username == pc.node['username'] and password == pc.node['password']
+    return username == node['username'] and password == node['password']
 
 
-@app.route(pc.baseurl + '/<string:cmd>', methods=['POST'])
+@app.route(baseurl + '/<string:cmd>', methods=['POST'])
 def calcresult(cmd):
     global result
     global lupd
@@ -185,17 +204,17 @@ def not_found(error):
 if __name__ == '__main__':
 
     logger.info(
-        'Pipline Pc.Node server starting. Make sure no other instance is running')
-    pc.node, verbose = opt(pc.node)
+        'Pipline Node server starting. Make sure no other instance is running')
+    node, verbose = opt(node)
 
     if verbose:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
     logger.info('logging level %d' % (logger.getEffectiveLevel()))
-    if pc.node['username'] in ['', None] or pc.node['password'] in ['', None]:
+    if node['username'] in ['', None] or node['password'] in ['', None]:
         logger.error(
             'Error. Specify non-empty username and password on commandline')
         exit(3)
 
-    app.run(host=pc.node['host'], port=pc.node['port'], debug=verbose)
+    app.run(host=node['host'], port=node['port'], debug=verbose)

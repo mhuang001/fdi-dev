@@ -22,15 +22,15 @@ pip3 install -e .
 _**To Run Server**_
 
 ```
-python3 pns.py --username=<username> --password=<password> [--ip=<host ip>] [--port=<port>]
+python3.6 pns/runflaskserver.py --username=<username> --password=<password> [--ip=<host ip>] [--port=<port>]
 ```
 or
 ```
-python3 pns.py -u <username> -p <password> [-i <host ip>] [-o <port>]
+python3.6 pns/runflaskserver.py -u <username> -p <password> [-i <host ip>] [-o <port>]
 ```
 in debugging mode:
 ```
-python3 pns.py --username=foo --password=bar -v
+python3.6 pns/runflaskserver.py --username=foo --password=bar -v
 ```
 or just
 ```
@@ -52,7 +52,10 @@ Start the server fresh in one terminal and in another terminal
 with default ip and port
 
 _**Configuration**_
-Host IP is 0.0.0.0 and port number 5000 by default. They are configurable in pnsconfig.py 
+
+When running Fllask server, the host IP is 0.0.0.0 and port number 5000 by default. They are configurable in pnsconfig.py 
+
+To run a shell script, change the ```prog``` parameter.
 
 API
 ---

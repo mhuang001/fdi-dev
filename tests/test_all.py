@@ -1,7 +1,7 @@
 import datetime
 import traceback
 from pprint import pprint
-
+import json
 from .logdict import doLogging, logdict
 if doLogging:
     import logging
@@ -28,7 +28,11 @@ def checkjson(obj):
     #dbg = True if issubclass(obj.__class__, Product) else False
     dbg = False
 
-    js = obj.serialized()
+    if hasattr(obj, 'serialized'):
+        js = obj.serialized()
+    else:
+        js = json.dumps(obj)
+
     if dbg:
         print('*************** checkjsom ' + obj.__class__.__name__ +
               ' serialized: ************\n')
@@ -113,6 +117,23 @@ def test_deepcmp():
     nc(l1, l3)
     nc(d1, d3)
     nc(d1, d4)
+
+
+def test_serialization():
+    v = 1
+    checkjson(v)
+    v = 'a'
+    checkjson(v)
+    v = 3.4
+    checkjson(v)
+    v = True
+    checkjson(v)
+    v = None
+    checkjson(v)
+    v = [1.2, 'ww']
+    checkjson(v)
+    v = {'e': 4, 'y': {'d': 'ff', '%': '$'}}
+    checkjson(v)
 
 
 def test_Annotatable():

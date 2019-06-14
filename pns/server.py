@@ -40,8 +40,7 @@ def inittest():
     """ Initialize the server.
     """
 
-    hf = pkg_resources.resource_filename("tests", "hello")
-    print(hf)
+    hf = pkg_resources.resource_filename("pns.resource", "hello")
     try:
         subprocess.run(['cp', hf, '/tmp'])
         return 'OK'

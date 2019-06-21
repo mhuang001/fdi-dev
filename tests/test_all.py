@@ -148,6 +148,11 @@ def test_serverrun():
     logger.info('POST test for pipeline node server "run": hello')
     global result, nodetestinput
 
+    o = server.initPTS()
+    if o is None:
+        logger.debug('PTS initialized')
+    else:
+        logger.debug('PTS initialization message: ' + o)
     x = makeruntestdata()
     # construct the nodetestinput to the node
     nodetestinput = OrderedDict({'creator': 'me', 'rootcause': 'server test',
@@ -174,9 +179,14 @@ def test_run():
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)
     o = postJsonObj(addrport + baseurl +
-                    '/inittest',
+                    '/initPTS',
                     None,
                     headers=commonheaders)
+    if o['result'] is None:
+        logger.debug('PTS initialized')
+    else:
+        logger.debug('PTS initialization message: ' + o['result'])
+
     o = postJsonObj(addrport + baseurl +
                     '/run',
                     nodetestinput,
@@ -191,9 +201,7 @@ def test_run():
 #    logger.info('read the result')
 #    o = getJsonObj(addrport + baseurl + '/data')
 #    assert ('error' not in o), o['error']
-#    assert o['lastUpdate'] < lupd
 #    assert o['timestamp'] > o['lastUpdate']
-#    assert o['lastUpdate'] == lupd  # this is the case after the 1st POST
 #    checkpostresult(o)
 #
 #

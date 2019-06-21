@@ -33,17 +33,17 @@ auth = HTTPBasicAuth()
 
 result = None
 
-lupd = None
 
-
-def inittest():
-    """ Initialize the server.
+def initPTS():
+    """ Initialize the Processing Task Software.
     """
 
     hf = pkg_resources.resource_filename("pns.resource", "hello")
     try:
+        #subprocess.run(['/bin/rm', '-rf', prog[0]])
+        #subprocess.run(['/bin/mkdir', paths['inputdir']])
         subprocess.run(['cp', hf, '/tmp'])
-        return 'OK'
+        return None
     except Exception as e:
         return str(e)
 
@@ -84,8 +84,8 @@ def run(indata):
                 instrument="hello", modelName="you know what!")
     x['theAnswer'] = ArrayDataset(
         data=res, description='result from hello command')
-    lupd = time.time()
-    x.creationDate = FineTime1(datetime.datetime.fromtimestamp(lupd))
+    now = time.time()
+    x.creationDate = FineTime1(datetime.datetime.fromtimestamp(now))
     x.type = 'test'
     x.history = History()
     return x
@@ -98,7 +98,6 @@ def genposttestprod(indata):
     and 2nd to the product's dataset
     """
 
-    global lupd
     runner, cause = indata['creator'], indata['rootcause']
     x = Product(description="This is my product example",
                 creator=runner, rootCause=cause,
@@ -116,8 +115,8 @@ def genposttestprod(indata):
     spec = TableDataset(data=s1)
     x.set('QualityImage', 'aQualityImage')
     x.sets["Spectrum"] = spec
-    lupd = time.time()
-    x.creationDate = FineTime1(datetime.datetime.fromtimestamp(lupd))
+    now = time.time()
+    x.creationDate = FineTime1(datetime.datetime.fromtimestamp(now))
     x.type = 'test'
     x.history = History()
     return x
@@ -128,16 +127,16 @@ def get_result(target):
     ''' return calculation result. If the result is None return accordingly
     '''
     logger.debug('getr %s' % (target))
-    global result, lupd
+    global result
     ts = time.time()
     if target == 'data':
-        w = {'result': result, 'lastUpdate': lupd, 'timestamp': ts}
+        w = {'result': result, 'timestamp': ts}
     elif target == 'lastUpdate':
-        w = {'lastUpdate': lupd, 'timestamp': ts}
+        w = {'timestamp': ts}
     else:
         abort(401)
     s = serializeClassID(w)
-    logger.debug(s[:100] + ' ...')
+    logger.debug(s[:] + ' ...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
@@ -160,7 +159,6 @@ def verify(username, password):
 @app.route(baseurl + '/<string:cmd>', methods=['POST'])
 def calcresult(cmd):
     global result
-    global lupd
     d = request.get_data()
     indata = deserializeClassID(d)
     logger.debug(indata)
@@ -171,17 +169,15 @@ def calcresult(cmd):
     elif cmd == 'run':
         result = run(indata)
     elif cmd == 'inittest':
-        result = inittest(indata)
+        result = initPTS(indata)
     else:
         logger.error(cmd)
         # abort(400)
         result = None
     ts = time.time()
-    lupd = ts
-    w = {'result': result, 'lastUpdate': lupd,
-         'timestamp': ts}
+    w = {'result': result, 'timestamp': ts}
     s = serializeClassID(w)
-    logger.debug(s[:100] + ' ...')
+    logger.debug(s[:] + ' ...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp

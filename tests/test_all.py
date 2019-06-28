@@ -26,7 +26,7 @@ def checkjson(obj):
     """
 
     #dbg = True if issubclass(obj.__class__, Product) else False
-    dbg = True  # False
+    dbg = False
 
     if hasattr(obj, 'serialized'):
         js = obj.serialized()

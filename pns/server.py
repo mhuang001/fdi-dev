@@ -284,6 +284,7 @@ def cleanup(cmd):
     """
 
     d = request.get_data()
+    #print('&&&&&&&& ' + str(d))
     if cmd == 'clean':
         try:
             result, msg = cleanPTS(d)

@@ -53,7 +53,7 @@ def checkserver():
     # check if data already exists
     o = getJsonObj(addrport + baseurl + '/')
     assert o is not None, 'Cannot connect to the server'
-    logger.info('initial server response %s' % (str(o)))
+    logger.info('initial server response %s' % (str(o)[:100] + '...'))
     # assert 'result' is not None, 'please start the server to refresh.'
     # initialize test data.
 

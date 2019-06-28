@@ -52,8 +52,10 @@ def initPTS(d=None):
 
     try:
         cp = subprocess.run(init)
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         return -1, init[0] + ' does not exist.'
+    else:
+        return -1, init[0] + ' ' + str(e)
     # cp.check_returncode()
     return cp.returncode, ''
 

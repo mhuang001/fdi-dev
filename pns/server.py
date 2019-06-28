@@ -53,12 +53,11 @@ def initPTS(d=None):
     try:
         cp = subprocess.run(init)
     except Exception as e:
-        if issubclass(e, FileNotFoundError):
-            return -1, init[0] + ' does not exist.'
-        else:
-            return -1, init[0] + ' ' + str(e)
+        return -1, init[0] + ' ' + str(e)
+    msg = cp.stderr if cp.returncode != 0 else ''
+
     # cp.check_returncode()
-    return cp.returncode, ''
+    return cp.returncode, msg
 
 
 def configPTS(d=None):

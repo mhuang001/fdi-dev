@@ -26,7 +26,7 @@ def checkjson(obj):
     """
 
     #dbg = True if issubclass(obj.__class__, Product) else False
-    dbg = False
+    dbg = True  # False
 
     if hasattr(obj, 'serialized'):
         js = obj.serialized()
@@ -40,7 +40,8 @@ def checkjson(obj):
         print('*************************')
     des = deserializeClassID(js, debug=dbg)
     if dbg:
-        print('moo ' + str((des.meta.listeners)))
+        if hasattr(des, 'meta'):
+            print('moo ' + str((des.meta.listeners)))
         print('*********** checkjson deserialized ' + str(des.__class__) +
               '***********\n')
         pprint(des)

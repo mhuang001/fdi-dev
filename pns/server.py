@@ -45,6 +45,7 @@ def initPTS(d=None):
     """ Initialize the Processing Task Software.
     """
 
+    logger.debug(str(d))
     # hf = pkg_resources.resource_filename("pns.resource", "hello")
     indata = deserializeClassID(d)
     logger.debug(indata)
@@ -241,6 +242,7 @@ def setup(cmd):
     """
     global result
     d = request.get_data()
+    logger.debug(d)
     if cmd == 'init':
         try:
             result, msg = initPTS(d)
@@ -265,6 +267,7 @@ def cleanPTS(d):
     """ Removing traces of past runnings the Processing Task Software.
     """
 
+    logger.debug(str(d))
     indata = deserializeClassID(d)
     logger.debug(indata)
 

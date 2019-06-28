@@ -78,22 +78,22 @@ def getJsonObj(url, headers=None):
             stri = urllib.request.urlopen(
                 url, timeout=15).read().decode('utf-8')
             #logger.debug('stri ' + stri)
-            # ret = json.loads(stri, parse_float=Decimal)
-            # ret = json.loads(stri, cls=Decoder,
-            #               object_pairs_hook=collections.OrderedDict)
-            ret = deserializeClassID(stri)
             break
         except Exception as e:
             logger.debug(e)
             if issubclass(e.__class__, ue.HTTPError):
                 ret = e
-                break
+                return None
             if i >= 5:
                 logger.error("Give up " + url + " after %d tries." % i)
                 return None
             else:
                 i += 1
     # print(url,stri)
+    # ret = json.loads(stri, parse_float=Decimal)
+    # ret = json.loads(stri, cls=Decoder,
+    #               object_pairs_hook=collections.OrderedDict)
+    ret = deserializeClassID(stri)
     logger.debug(pformat(ret, depth=3)[:70] + '...')
     return ret
 
@@ -117,9 +117,6 @@ def postJsonObj(url, obj, headers):
             r = requests.post(url, data=js, headers=headers, timeout=15)
             stri = r.text
             # print('ps textx %s\nstatus %d\nheader %s' % (stri, r.status_code, r.headers))
-            # ret = json.loads(stri, parse_float=Decimal)
-            # ret = json.loads(stri, cls=Decoder)
-            ret = deserializeClassID(stri)
             break
         except Exception as e:
             logger.debug(e)
@@ -128,7 +125,10 @@ def postJsonObj(url, obj, headers):
                 return None
             else:
                 i += 1
-    # print(o['result'].__class__)
+
+    # ret = json.loads(stri, parse_float=Decimal)
+    # ret = json.loads(stri, cls=Decoder)
+    ret = deserializeClassID(stri)
     logger.debug(pformat(ret, depth=3)[:90] + '...')
     return ret
 
@@ -144,13 +144,12 @@ def putJsonObj(url, obj, headers):
         # python3
         r = requests.put(url, data=js, headers=headers, timeout=15)
         stri = r.text
-        ret = deserializeClassID(stri)
     except Exception as e:
         logger.debug(e)
         logger.error("Give up PUT " + url)
         return None
 
-    # print(o['result'].__class__)
+    ret = deserializeClassID(stri)
     logger.debug(pformat(ret, depth=3)[:90] + '...')
     return ret
 

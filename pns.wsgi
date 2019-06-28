@@ -7,13 +7,14 @@ import logging
 #logging.basicConfig( filename='/tmp/pns/pns.log')
 
 #sys.path.insert(0, '/tmp/pns/')
-from logdict import logdict
+from pns.logdict import logdict
 import logging.config
 # don't log to file. server will do the logging
-del logdict["handlers"]["file"]
+del logdict["loggers"][""]["handlers"]["file"]
+del logdict["loggers"]["root"]["handlers"]["file"]
 logging.config.dictConfig(logdict)
 logger = logging.getLogger()
 
 
-from pns import app as application
+from pns.server import app as application
 application.secret_key = 'anything you wish'

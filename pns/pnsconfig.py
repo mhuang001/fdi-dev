@@ -3,7 +3,8 @@
 baseurl = '/v0.4'
 
 # username, passwd, flask ip, flask port
-node = {'username': 'foo', 'password': 'bar', 'host': '0.0.0.0', 'port': 5000}
+node = {'username': 'foo', 'password': 'bar',
+        'host': '10.0.10.108', 'port': 8900}
 
 # input file
 # output file

@@ -52,10 +52,11 @@ def initPTS(d=None):
 
     try:
         cp = subprocess.run(init)
-    except FileNotFoundError as e:
-        return -1, init[0] + ' does not exist.'
-    else:
-        return -1, init[0] + ' ' + str(e)
+    except Exception as e:
+        if issubclass(e, FileNotFoundError):
+            return -1, init[0] + ' does not exist.'
+        else:
+            return -1, init[0] + ' ' + str(e)
     # cp.check_returncode()
     return cp.returncode, ''
 
@@ -275,9 +276,12 @@ def cleanPTS(d):
 
     try:
         cp = subprocess.run(clean)
-    except FileNotFoundError as e:
-        logger.error(str(e))
-        return -1, clean[0] + ' does not exist.'
+    except Exception as e:
+        if issubclass(e, FileNotFoundError):
+            return -1, init[0] + ' does not exist.'
+        else:
+            return -1, init[0] + ' ' + str(e)
+
     # cp.check_returncode()
     return cp.returncode, ''
 

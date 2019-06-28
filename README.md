@@ -6,7 +6,7 @@ Thhis Web API Server for a data processing pipeline/network node provides interf
 _**Installation**_
 for developers
 ```
-cd /tmp
+cd /var
 git clone ssh://git@mercury.bao.ac.cn:9005/mh/pns.git
 cd pns
 pip3 install -e .
@@ -19,7 +19,9 @@ cd pns
 pip3 install -e .
 ```
 
-_**To Run Server**_
+_**To Run FLASK Server**_
+
+Edit pnsconfig.py if needed.
 
 ```
 python3.6 pns/runflaskserver.py --username=<username> --password=<password> [--ip=<host ip>] [--port=<port>]
@@ -53,7 +55,7 @@ with default ip and port
 
 _**Configuration**_
 
-When running Fllask server, the host IP is 0.0.0.0 and port number 5000 by default. They are configurable in pnsconfig.py 
+When running Flask server, the host IP is 0.0.0.0 and port number 5000 by default. They are configurable in pnsconfig.py 
 
 To run a shell script, change the ```prog``` parameter.
 
@@ -62,6 +64,8 @@ API
 Suppose the server address and port are 127.0.0.1 and 5000, respectively:
 
 <b>Get public information and access APIs</b>
+
+
 
 <b>Return on Common Errors</b>
 

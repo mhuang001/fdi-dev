@@ -5,7 +5,9 @@ import subprocess
 import base64
 from collections import OrderedDict
 from urllib.request import pathname2url
+import requests
 import os
+from os.path import isfile, join
 
 from pns.logdict import logdict
 import logging
@@ -16,14 +18,14 @@ logger = logging.getLogger()
 
 logger.debug('level %d' % (logger.getEffectiveLevel()))
 
-from pns.common import getJsonObj, postJsonObj, commonheaders, opt
-from pns.pnsconfig import node, baseurl
+from pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders, opt
+from pns.pnsconfig import baseurl, node, paths, init, config, prog
 from pns import server
 from dataset.deserialize import deserializeClassID
 from dataset.product import Product
 from dataset.metadata import NumericParameter
 from dataset.dataset import ArrayDataset
-from dataset.eq import deepcmp
+from dataset.eq import deepcmp, serializeClassID
 
 testname = 'SVOM'
 addrport = 'http://' + node['host'] + ':' + str(node['port'])
@@ -49,11 +51,38 @@ def checkserver():
     """
     global testpns
     # check if data already exists
-    o = getJsonObj(addrport + baseurl + '/data')
+    o = getJsonObj(addrport + baseurl + '/')
     assert o is not None, 'Cannot connect to the server'
     logger.info('initial server response %s' % (str(o)))
     # assert 'result' is not None, 'please start the server to refresh.'
     # initialize test data.
+
+
+def checkputinitresult(returncode, msg):
+    assert returncode != -1, msg
+    assert returncode == 0, 'Error %d testing script file hello.' % (
+        returncode)
+
+
+def test_serverinit():
+    """ server unit test for init() """
+    returncode, msg = server.initPTS(None)
+    checkputinitresult(returncode, msg)
+
+
+def test_putinit():
+    """ calls the default pnsconfig.paths['pnshome']/initPTS script 
+    which checks the existence of hello
+    """
+    code = base64.b64encode(b"foo:bar").decode("ascii")
+    commonheaders.update({'Authorization': 'Basic %s' % (code)})
+    # print(nodetestinput)
+    o = putJsonObj(addrport + baseurl +
+                   '/init',
+                   None,
+                   headers=commonheaders)
+    issane(o)
+    checkputinitresult(o['result'], o['message'])
 
 
 def issane(o):
@@ -110,6 +139,10 @@ def test_post():
     code = base64.b64encode(b"foo:bar").decode("ascii")
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)
+    o = putJsonObj(addrport + baseurl +
+                   '/init',
+                   None,
+                   headers=commonheaders)
     o = postJsonObj(addrport + baseurl +
                     '/data',
                     nodetestinput,
@@ -129,7 +162,8 @@ def makeruntestdata():
 
 def checkrunresult(p):
     global result, lupd, nodetestinput
-    assert issubclass(p.__class__, Product), (p.__class__)
+
+    assert issubclass(p.__class__, Product), str(p.__class__) + ' ' + str(p)
     # creator rootcause
     # print('p.toString()' + p.toString())
     assert p.meta['creator'] == nodetestinput['creator']
@@ -142,22 +176,20 @@ def checkrunresult(p):
 
 def test_serverrun():
     ''' send a product that has a name string as its data
-    to the server "run" routine, and get back a product with
+    to the server "run" routine locally installed with this
+    test, and get back a product with
     a string 'hello, $name!' as its data
     '''
     logger.info('POST test for pipeline node server "run": hello')
     global result, nodetestinput
 
-    o = server.initPTS()
-    if o is None:
-        logger.debug('PTS initialized')
-    else:
-        logger.debug('PTS initialization message: ' + o)
     x = makeruntestdata()
     # construct the nodetestinput to the node
     nodetestinput = OrderedDict({'creator': 'me', 'rootcause': 'server test',
                                  'input': x})
-    o = server.run(nodetestinput)
+    js = serializeClassID(nodetestinput)
+    logger.debug(js[:160])
+    o, msg = server.run(js)
     # issane(o) is skipped
     checkrunresult(o)
 
@@ -171,6 +203,8 @@ def test_run():
     global result, lupd, nodetestinput
     checkserver()
 
+    test_putinit()
+
     x = makeruntestdata()
     # construct the nodetestinput to the node
     nodetestinput = OrderedDict({'creator': 'me', 'rootcause': 'server test',
@@ -179,15 +213,6 @@ def test_run():
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)
     o = postJsonObj(addrport + baseurl +
-                    '/initPTS',
-                    None,
-                    headers=commonheaders)
-    if o['result'] is None:
-        logger.debug('PTS initialized')
-    else:
-        logger.debug('PTS initialization message: ' + o['result'])
-
-    o = postJsonObj(addrport + baseurl +
                     '/run',
                     nodetestinput,
                     headers=commonheaders)
@@ -195,24 +220,50 @@ def test_run():
     checkrunresult(o['result'])
 
 
-# def test_get():
-#    ''' lastUpdate nor result should change.
-#    '''
-#    logger.info('read the result')
-#    o = getJsonObj(addrport + baseurl + '/data')
-#    assert ('error' not in o), o['error']
-#    assert o['timestamp'] > o['lastUpdate']
-#    checkpostresult(o)
-#
-#
-# def test_getlastUpdate():
-#    logger.info('read when the result was caculated')
-#    global lupd
-#    o = getJsonObj(addrport + baseurl + '/lastUpdate')
-#    assert o['lastUpdate'] == lupd  # this is the case after the 1st POST
-#    tr = o['timestamp']
-#    assert tr >= lupd, 't-read %f lastt %f' % (tr, lastt)
-#
+def test_getinit():
+    ''' compare server side initPTS contens with the local copy
+    '''
+    logger.info('get initPTS')
+    o = getJsonObj(addrport + baseurl + '/init')
+    issane(o)
+    with open(init[0], 'r') as f:
+        result = f.read()
+    assert result == o['result']
+
+
+def test_deleteclean():
+    ''' make input and output dirs and see if DELETE removes them.
+    '''
+    logger.info('delete cleanPTS')
+    # make sure input and output dirs are made
+    test_run()
+    o = getJsonObj(addrport + baseurl + '/input')
+    issane(o)
+    assert o['result'] is not None
+    o = getJsonObj(addrport + baseurl + '/output')
+    issane(o)
+    assert o['result'] is not None
+
+    url = addrport + baseurl + '/clean'
+    code = base64.b64encode(b"foo:bar").decode("ascii")
+    commonheaders.update({'Authorization': 'Basic %s' % (code)})
+    try:
+        r = requests.delete(url, headers=commonheaders, timeout=15)
+        stri = r.text
+        o = deserializeClassID(stri)
+    except Exception as e:
+        logger.debug(e)
+        logger.error("Give up DELETE " + url)
+        o = None
+    issane(o)
+    assert o['result'] is not None, o['message']
+    o = getJsonObj(addrport + baseurl + '/input')
+    issane(o)
+    assert o['result'] is None
+    o = getJsonObj(addrport + baseurl + '/output')
+    issane(o)
+    assert o['result'] is None
+
 
 def test_mirror():
     ''' send a set of data to the server and get back the same.

@@ -2,10 +2,13 @@
 from pprint import pformat
 import datetime
 import time
+from os.path import isfile, isdir, join
+from os import listdir
 from pathlib import Path
+import types
 import subprocess
 import pkg_resources
-from flask import Flask, jsonify, abort, make_response, request
+from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
 
 from pns.logdict import logdict
@@ -20,7 +23,7 @@ else:
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 from pns.common import mkdir, opt
-from pns.pnsconfig import baseurl, node, paths, prog
+from pns.pnsconfig import baseurl, node, paths, init, config, prog, clean
 
 from dataset.product import Product, FineTime1, History
 from dataset.dataset import ArrayDataset, TableDataset
@@ -31,36 +34,52 @@ app = Flask(__name__)
 auth = HTTPBasicAuth()
 
 
+class status():
+    successful = 0
+
+
 result = None
 
 
-def initPTS():
+def initPTS(d=None):
     """ Initialize the Processing Task Software.
     """
 
-    hf = pkg_resources.resource_filename("pns.resource", "hello")
+    # hf = pkg_resources.resource_filename("pns.resource", "hello")
+    indata = deserializeClassID(d)
+    logger.debug(indata)
+
     try:
-        #subprocess.run(['/bin/rm', '-rf', prog[0]])
-        #subprocess.run(['/bin/mkdir', paths['inputdir']])
-        subprocess.run(['cp', hf, '/tmp'])
-        return None
-    except Exception as e:
-        return str(e)
+        cp = subprocess.run(init)
+    except FileNotFoundError:
+        return -1, init[0] + ' does not exist.'
+    # cp.check_returncode()
+    return cp.returncode, ''
+
+
+def configPTS(d=None):
+    """ Configure the Processing Task Software.
+    """
+
+    cp = subprocess.run(config)
+    # cp.check_returncode()
+    return cp.returncode, ''
 
 
 def checkpath(path):
     p = Path(path).resolve()
     if p.exists():
         if not p.is_dir():
-            logging.error(str(p) + ' is not a directory.')
-            return None
+            msg = str(p) + ' is not a directory.'
+            logging.error(msg)
+            abort(400)
     else:
         p.mkdir()
         logging.info(str(p) + ' directory has been made.')
     return p
 
 
-def run(indata):
+def run(d):
     """ generate  product.
     put the 1st input (see maketestdata in test_pns.py)
     parameter to metadata
@@ -71,12 +90,17 @@ def run(indata):
     if pi is None or po is None:
         abort(401)
     global lupd
+
+    indata = deserializeClassID(d)
+    logger.debug(indata)
     runner, cause = indata['creator'], indata['rootcause']
     contents = indata['input']['theName'].data
     for f in paths['inputfiles']:
         with pi.joinpath(f).open(mode="w") as inf:
             inf.write(contents)
-    subprocess.run(prog)
+    cp = subprocess.run(prog)
+    if cp.returncode != 0:
+        return -1, 'Error running %s' % (str(prog))
     with po.joinpath(paths['outputfile']).open("r") as outf:
         res = outf.read()
     x = Product(description="hello world pipeline product",
@@ -88,15 +112,18 @@ def run(indata):
     x.creationDate = FineTime1(datetime.datetime.fromtimestamp(now))
     x.type = 'test'
     x.history = History()
-    return x
+    return x, ''
 
 
-def genposttestprod(indata):
+def genposttestprod(d):
     """ generate post test product.
     put the 1st input (see maketestdata in test_all.py)
     parameter to metadata
     and 2nd to the product's dataset
     """
+
+    indata = deserializeClassID(d)
+    logger.debug(indata)
 
     runner, cause = indata['creator'], indata['rootcause']
     x = Product(description="This is my product example",
@@ -119,22 +146,48 @@ def genposttestprod(indata):
     x.creationDate = FineTime1(datetime.datetime.fromtimestamp(now))
     x.type = 'test'
     x.history = History()
-    return x
+    return x, ''
 
 
-@app.route(baseurl + '/<string:target>', methods=['GET'])
-def get_result(target):
-    ''' return calculation result. If the result is None return accordingly
+def filesin(dir):
+    """ returns names and contents of all files in the dir, 'None' if dir not existing. """
+
+    if not isdir(dir):
+        return None, dir + 'does not exist.'
+    result = {}
+    for f in listdir(dir):
+        fn = join(dir, f)
+        if isfile(fn):
+            with open(fn, 'r') as f:
+                result[fn] = f.read()
+    return result, ''
+
+
+@app.route(baseurl + '/<string:cmd>', methods=['GET'])
+def getinfo(cmd):
+    ''' returns init, config, run input, run output.
     '''
-    logger.debug('getr %s' % (target))
+    logger.debug('getr %s' % (cmd))
     global result
     ts = time.time()
-    if target == 'data':
-        w = {'result': result, 'timestamp': ts}
-    elif target == 'lastUpdate':
-        w = {'timestamp': ts}
+    if cmd == 'init':
+        with open(init[0], 'r') as f:
+            result = f.read()
+        w = {'result': result, 'message': '', 'timestamp': ts}
+    elif cmd == 'config':
+        with open(config[0], 'r') as f:
+            result = f.read()
+        w = {'result': result, 'message': '', 'timestamp': ts}
+    elif cmd == 'input':
+        result, msg = filesin(paths['inputdir'])
+        w = {'result': result, 'message': msg, 'timestamp': ts}
+    elif cmd == 'output':
+        result, msg = filesin(paths['outputdir'])
+        w = {'result': result, 'message': msg, 'timestamp': ts}
     else:
-        abort(401)
+        result, msg = 'init, confg, input, ouput', 'get API'
+        w = {'result': result, 'message': msg, 'timestamp': ts}
+
     s = serializeClassID(w)
     logger.debug(s[:] + ' ...')
     resp = make_response(s)
@@ -160,22 +213,20 @@ def verify(username, password):
 def calcresult(cmd):
     global result
     d = request.get_data()
-    indata = deserializeClassID(d)
-    logger.debug(indata)
     if cmd == 'data':
-        result = genposttestprod(indata)
+        result, msg = genposttestprod(d)
     elif cmd == 'echo':
-        result = indata
+        indata = deserializeClassID(d)
+        logger.debug(indata)
+        result, msg = indata, ''
     elif cmd == 'run':
-        result = run(indata)
-    elif cmd == 'inittest':
-        result = initPTS(indata)
+        result, msg = run(d)
     else:
         logger.error(cmd)
-        # abort(400)
+        abort(400)
         result = None
     ts = time.time()
-    w = {'result': result, 'timestamp': ts}
+    w = {'result': result, 'message': msg, 'timestamp': ts}
     s = serializeClassID(w)
     logger.debug(s[:] + ' ...')
     resp = make_response(s)
@@ -183,31 +234,147 @@ def calcresult(cmd):
     return resp
 
 
+@app.route(baseurl + '/<string:cmd>', methods=['PUT'])
+def setup(cmd):
+    """ PUT is used to initialize or configure the Processing Task Software
+    (PST).
+    """
+    global result
+    d = request.get_data()
+    if cmd == 'init':
+        try:
+            result, msg = initPTS(d)
+        except Exception as e:
+            logger.error(str(e))
+    elif cmd == 'config':
+        result, msg = configPTS(d)
+    else:
+        logger.error(cmd)
+        abort(400)
+        result = None
+    ts = time.time()
+    w = {'result': result, 'message': msg, 'timestamp': ts}
+    s = serializeClassID(w)
+    logger.debug(s[:] + ' ...')
+    resp = make_response(s)
+    resp.headers['Content-Type'] = 'application/json'
+    return resp
+
+
+def cleanPTS(d):
+    """ Removing traces of past runnings the Processing Task Software.
+    """
+
+    indata = deserializeClassID(d)
+    logger.debug(indata)
+
+    try:
+        cp = subprocess.run(clean)
+    except FileNotFoundError as e:
+        logger.error(str(e))
+        return -1, clean[0] + ' does not exist.'
+    # cp.check_returncode()
+    return cp.returncode, ''
+
+
+@app.route(baseurl + '/<string:cmd>', methods=['DELETE'])
+def cleanup(cmd):
+    """ DELETE is used to clean up the Processing Task Software
+    (PST) to its initial configured state.
+    """
+
+    d = request.get_data()
+    if cmd == 'clean':
+        try:
+            result, msg = cleanPTS(d)
+        except Exception as e:
+            msg = str(e)
+            logger.error(msg)
+            result = None
+    else:
+        logger.error(cmd)
+        abort(400)
+        result = None
+    ts = time.time()
+    w = {'result': result, 'message': msg, 'timestamp': ts}
+    s = serializeClassID(w)
+    logger.debug(s[:] + ' ...')
+    resp = make_response(s)
+    resp.headers['Content-Type'] = 'application/json'
+    return resp
+
+
+APIs = {'GET':
+        {'func': 'getinfo',
+         'cmds': {'init': 'initPTS file', 'config': 'configPTS file',
+                  'input': filesin, 'output': filesin}
+         },
+        'PUT':
+        {'func': 'setup',
+         'cmds': {'init': initPTS, 'config': configPTS}
+         },
+        'POST':
+        {'func': 'calcresult',
+         'cmds': {'data': genposttestprod, 'echo': 'Echo',
+                  'run': run}
+         },
+        'DELETE':
+        {'func': 'cleanup',
+         'cmds': {'clean': cleanPTS}
+         }}
+
+
+def makepublicAPI(ops):
+    api = {}
+    o = APIs[ops]
+    for cmd in o['cmds'].keys():
+        c = o['cmds'][cmd]
+        desc = c.__doc__ if isinstance(c, types.FunctionType) else c
+        api[desc] = url_for(o['func'],
+                            cmd=cmd,
+                            _external=True)
+    print('******* ' + str(api))
+    return api
+
+
+@app.route(baseurl + '/', methods=['GET'])
+@app.route(baseurl + '/api', methods=['GET'])
+def get_apis():
+    logger.debug('APIs %s' % (APIs.keys()))
+    ts = time.time()
+    l = [(a, makepublicAPI(a)) for a in APIs.keys()]
+    w = {'APIs': dict(l), 'timestamp': ts}
+    logger.debug('ret %s' % (str(w)[:100] + ' ...'))
+    return jsonify(w)
+
+
 @app.errorhandler(400)
 def bad_request(error):
     ts = time.time()
-    w = {'error': 'Bad request.', 'timestamp': ts}
+    w = {'error': 'Bad request.', 'message': str(error), 'timestamp': ts}
     return make_response(jsonify(w), 400)
 
 
 @app.errorhandler(401)
 def unauthorized(error):
     ts = time.time()
-    w = {'error': 'Unauthorized. Authentication needed to modify.', 'timestamp': ts}
+    w = {'error': 'Unauthorized. Authentication needed to modify.',
+         'message': str(error), 'timestamp': ts}
     return make_response(jsonify(w), 401)
 
 
 @app.errorhandler(404)
 def not_found(error):
     ts = time.time()
-    w = {'error': 'Not found.', 'timestamp': ts}
+    w = {'error': 'Not found.', 'message': str(error), 'timestamp': ts}
     return make_response(jsonify(w), 404)
 
 
 @app.errorhandler(409)
 def not_found(error):
     ts = time.time()
-    w = {'error': 'Conflict. Updating.', 'timestamp': ts}
+    w = {'error': 'Conflict. Updating.',
+         'message': str(error), 'timestamp': ts}
     return make_response(jsonify(w), 409)
 
 

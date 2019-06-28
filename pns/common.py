@@ -107,7 +107,9 @@ def postJsonObj(url, obj, headers):
     """ posts object to url. Returns None if fails.
     """
     js = serializeClassID(obj)
-    logger.debug(url + js[:90])  # %s obj %s headers %s' % (url, obj, headers))
+    # %s obj %s headers %s' % (url, obj, headers))
+    logger.debug(url + js[:160])
+
     i = 1
     while True:
         try:
@@ -121,11 +123,33 @@ def postJsonObj(url, obj, headers):
             break
         except Exception as e:
             logger.debug(e)
-            if i >= 5:
+            if i >= 1:
                 logger.error("Give up POST " + url + " after %d tries." % i)
                 return None
             else:
                 i += 1
+    # print(o['result'].__class__)
+    logger.debug(pformat(ret, depth=3)[:90] + '...')
+    return ret
+
+
+def putJsonObj(url, obj, headers):
+    """ puts object to url. Returns None if fails.
+    """
+    js = serializeClassID(obj)
+    # %s obj %s headers %s' % (url, obj, headers))
+    logger.debug(url + js[:160])
+
+    try:
+        # python3
+        r = requests.put(url, data=js, headers=headers, timeout=15)
+        stri = r.text
+        ret = deserializeClassID(stri)
+    except Exception as e:
+        logger.debug(e)
+        logger.error("Give up PUT " + url)
+        return None
+
     # print(o['result'].__class__)
     logger.debug(pformat(ret, depth=3)[:90] + '...')
     return ret

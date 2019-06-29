@@ -21,12 +21,12 @@ logger.debug('level %d' % (logger.getEffectiveLevel()))
 from pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders, opt
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
-from pns.pnsconfig import baseurl, node, paths, init, config, prog, clean
+from pns.pnsconfig import baseurl, node, paths, init, config, prog, clean, timeout
 import sys
 env = expanduser(expandvars('$HOME'))
 sys.path.insert(0, env)
 try:
-    from local import baseurl, node, paths, init, config, prog, clean
+    from local import baseurl, node, paths, init, config, prog, clean, timeout
 except Exception:
     pass
 

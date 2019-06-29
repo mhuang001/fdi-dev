@@ -24,14 +24,14 @@ else:
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 from pns.common import mkdir, opt
-from pns.pnsconfig import baseurl, node, paths, init, config, prog, clean
+from pns.pnsconfig import baseurl, node, paths, init, config, prog, clean, timeout
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
 import sys
 env = expanduser(expandvars('$HOME'))
 sys.path.insert(0, env)
 try:
-    from local import baseurl, node, paths, init, config, prog, clean
+    from local import baseurl, node, paths, init, config, prog, clean, timeout
 except Exception:
     pass
 
@@ -85,7 +85,6 @@ def initPTS(d=None):
     # hf = pkg_resources.resource_filename("pns.resource", "hello")
     logger.debug(str(d))
     indata = deserializeClassID(d)
-    logger.debug(indata)
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
@@ -100,7 +99,6 @@ def configPTS(d=None):
 
     logger.debug(str(d))
     indata = deserializeClassID(d)
-    logger.debug(indata)
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
@@ -115,7 +113,6 @@ def cleanPTS(d):
 
     logger.debug(str(d))
     indata = deserializeClassID(d)
-    logger.debug(indata)
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value

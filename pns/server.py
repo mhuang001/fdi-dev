@@ -7,7 +7,7 @@ from os.path import isfile, isdir, join, expanduser, expandvars
 from os import listdir
 from pathlib import Path
 import types
-from subprocess import Popen, PIPE, TimeoutExpired
+from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 import pkg_resources
 from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
@@ -51,10 +51,16 @@ class status():
 result = None
 
 
-def execute(cmd, timeout=10):
+def execute(cmd, input=None, timeout=10):
     """  executes a command on the server host and returns run status.
     """
     sta = {}
+    cp = srun(cmd, input=input, stdout=PIPE,
+              stderr=PIPE, timeout=timeout, universal_newlines=True)
+    sta['stdout'], sta['stderr'] = cp.stdout, cp.stderr
+    sta['returncode'] = cp.returncode
+    return sta
+
     proc = Popen(cmd, stdin=PIPE, stdout=PIPE,
                  stderr=PIPE, universal_newlines=True)
     try:
@@ -129,10 +135,7 @@ def checkpath(path):
 
 
 def run(d):
-    """ generate  product.
-    put the 1st input (see maketestdata in test_pns.py)
-    parameter to metadata
-    and 2nd to the product's dataset
+    """ generates a product by running hello
     """
     pi = checkpath(paths['inputdir'])
     po = checkpath(paths['outputdir'])

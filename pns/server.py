@@ -7,7 +7,7 @@ from os.path import isfile, isdir, join, expanduser, expandvars
 from os import listdir
 from pathlib import Path
 import types
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, TimeoutExpired
 import pkg_resources
 from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
@@ -63,22 +63,22 @@ def initPTS(d=None):
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
     else:
-        timeout = 15
+        timeout = 10
     res = {}
-    with Popen(init, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True) as proc:
-        try:
-            res['stdout'], res['stderr'] = proc.communicate(timeout=timeout)
-            res['returncode'] = proc.returncode
-        except TimeoutExpired:
-            # The child process is not killed if the timeout expires,
-            # so in order to cleanup properly a well-behaved application
-            # should kill the child process and finish communication
-            # https://docs.python.org/3.6/library/subprocess.html?highlight=subprocess#subprocess.Popen.communicate
-            proc.kill()
-            res['stdout'], res['stderr'] = proc.communicate()
-            res['returncode'] = proc.returncode
+    proc = Popen(init, stdin=PIPE, stdout=PIPE,
+                 stderr=PIPE, universal_newlines=True)
+    try:
+        res['stdout'], res['stderr'] = proc.communicate(timeout=timeout)
+        res['returncode'] = proc.returncode
+    except TimeoutExpired:
+        # The child process is not killed if the timeout expires,
+        # so in order to cleanup properly a well-behaved application
+        # should kill the child process and finish communication
+        # https://docs.python.org/3.6/library/subprocess.html?highlight=subprocess#subprocess.Popen.communicate
+        proc.kill()
+        res['stdout'], res['stderr'] = proc.communicate()
+        res['returncode'] = proc.returncode
 
-    # cp.check_returncode()
     return res
 
 

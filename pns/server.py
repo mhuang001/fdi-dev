@@ -51,12 +51,13 @@ class status():
 result = None
 
 
-def execute(cmd, input=None, timeout=10):
-    """  executes a command on the server host and returns run status.
+def _execute(cmd, input=None, timeout=10):
+    """ Executes a command on the server host in the pnshome directory and returns run status. Default imeout is 10sec.
     """
-    sta = {}
-    cp = srun(cmd, input=input, stdout=PIPE,
-              stderr=PIPE, timeout=timeout, universal_newlines=True)
+    sta = {'command': str(cmd)}
+    cp = srun(cmd, input=input, stdout=PIPE, stderr=PIPE,
+              cwd=paths['pnshome'], timeout=timeout,
+              encoding='utf-8')  # universal_newlines=True)
     sta['stdout'], sta['stderr'] = cp.stdout, cp.stderr
     sta['returncode'] = cp.returncode
     return sta
@@ -78,30 +79,34 @@ def execute(cmd, input=None, timeout=10):
 
 
 def initPTS(d=None):
-    """ Initialize the Processing Task Software.
+    """ Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned.
     """
 
-    logger.debug(str(d))
     # hf = pkg_resources.resource_filename("pns.resource", "hello")
+    logger.debug(str(d))
     indata = deserializeClassID(d)
     logger.debug(indata)
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
-    else:
-        timeout = 10
 
-    stat = execute(init, timeout=timeout)
+    stat = _execute(init, timeout=timeout)
     return stat['returncode'], stat
 
 
 def configPTS(d=None):
-    """ Configure the Processing Task Software.
+    """ Configure the Processing Task Software by running the config script. Ref init PTS.
     """
 
-    cp = subprocess.run(config)
-    # cp.check_returncode()
-    return cp.returncode, ''
+    logger.debug(str(d))
+    indata = deserializeClassID(d)
+    logger.debug(indata)
+
+    if hasattr(indata, '__iter__') and 'timeout' in indata:
+        timeout = indata['timeout'].value
+
+    stat = _execute(config, timeout=timeout)
+    return stat['returncode'], stat
 
 
 def cleanPTS(d):
@@ -135,7 +140,7 @@ def checkpath(path):
 
 
 def run(d):
-    """ generates a product by running hello
+    """ Generates a product by running script defined in the config as prog ('hello' for testing). Execution on the server host is in the pnshome directory and run result and status are returned.
     """
     pi = checkpath(paths['inputdir'])
     po = checkpath(paths['outputdir'])
@@ -150,15 +155,16 @@ def run(d):
     for f in paths['inputfiles']:
         with pi.joinpath(f).open(mode="w") as inf:
             inf.write(contents)
-    #########
+
+    ######### run PTS ########
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
-    else:
-        timeout = 10
 
-    stat = execute(prog, timeout=timeout)
+    stat = _execute(prog, timeout=timeout)
     if stat['returncode'] != 0:
-        return -1, stat
+        return stat['returncode'], stat
+
+    ######### output ########
     with po.joinpath(paths['outputfile']).open("r") as outf:
         res = outf.read()
     x = Product(description="hello world pipeline product",
@@ -211,7 +217,7 @@ def filesin(dir):
     """ returns names and contents of all files in the dir, 'None' if dir not existing. """
 
     if not isdir(dir):
-        return None, dir + 'does not exist.'
+        return None, dir + ' does not exist.'
     result = {}
     for f in listdir(dir):
         fn = join(dir, f)

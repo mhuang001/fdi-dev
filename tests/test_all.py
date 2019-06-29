@@ -85,12 +85,14 @@ def test_putinit():
     """ calls the default pnsconfig.paths['pnshome']/initPTS script
     which checks the existence of hello
     """
+
+    d = {'timeout': NumericParameter(value=5, unit='sec', description='')}
     code = base64.b64encode(b"foo:bar").decode("ascii")
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)
     o = putJsonObj(addrport + baseurl +
                    '/init',
-                   None,
+                   d,
                    headers=commonheaders)
     issane(o)
     checkputinitresult(o['result'], o['message'])

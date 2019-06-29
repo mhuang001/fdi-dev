@@ -21,3 +21,6 @@ init = [join(paths['pnshome'], 'initPTS'), '']
 config = [join(paths['pnshome'], 'configPTS'), '']
 prog = [join(paths['pnshome'], 'hello'), '']
 clean = [join(paths['pnshome'], 'cleanPTS'), '']
+
+# seconds
+timeout = 10

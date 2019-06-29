@@ -256,6 +256,8 @@ def setup(cmd):
         except Exception as e:
             msg = str(e)
             logger.error(msg)
+        else:
+            msg = ''
     elif cmd == 'config':
         result, msg = configPTS(d)
     else:

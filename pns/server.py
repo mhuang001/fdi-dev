@@ -143,7 +143,8 @@ def run(d):
     po = checkpath(paths['outputdir'])
     if pi is None or po is None:
         abort(401)
-    global lupd
+    # timeout is imported and needs to be declared global if referenced in ifs
+    global lupd, timeout
 
     indata = deserializeClassID(d)
     logger.debug(indata)
@@ -154,6 +155,7 @@ def run(d):
             inf.write(contents)
 
     ######### run PTS ########
+    logger.debug(timeout)
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
 

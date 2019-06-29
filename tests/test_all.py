@@ -69,15 +69,16 @@ def checkserver():
 
 
 def checkputinitresult(result, msg):
-    assert len(msg) == 0, msg
-    assert result['returncode'] == 0, 'Error %d testing script file hello. STDOUT %s STDERR %s'\
-        % (result['returncode'], result['stdout'], result['stderr'])
+    # if msg is string, an exception must have happened
+    assert not isinstance(msg, (str, bytes)), msg
+    assert result == 0, 'Error %d testing script file hello. STDOUT %s STDERR %s'\
+        % (msg['returncode'], msg['stdout'], msg['stderr'])
 
 
 def test_serverinit():
-    """ server unit test for init() """
-    returncode, msg = server.initPTS(None)
-    checkputinitresult(returncode, msg)
+    """ server unit test for put init """
+    ret, sta = server.initPTS(None)
+    checkputinitresult(ret, sta)
 
 
 def test_putinit():
@@ -170,10 +171,13 @@ def makeruntestdata():
     return x
 
 
-def checkrunresult(p):
+def checkrunresult(p, msg):
     global result, lupd, nodetestinput
 
-    assert issubclass(p.__class__, Product), str(p.__class__) + ' ' + str(p)
+    assert issubclass(p.__class__, Product), str(p.__class__) + ' ' +\
+        'Error %d running prog. STDOUT %s STDERR %s'\
+        % (msg['returncode'], msg['stdout'], msg['stderr'])
+
     # creator rootcause
     # print('p.toString()' + p.toString())
     assert p.meta['creator'] == nodetestinput['creator']
@@ -201,7 +205,7 @@ def test_serverrun():
     logger.debug(js[:160])
     o, msg = server.run(js)
     # issane(o) is skipped
-    checkrunresult(o)
+    checkrunresult(o, msg)
 
 
 def test_run():
@@ -227,7 +231,7 @@ def test_run():
                     nodetestinput,
                     headers=commonheaders)
     issane(o)
-    checkrunresult(o['result'])
+    checkrunresult(o['result'], o['message'])
 
 
 def test_getinit():

@@ -51,6 +51,26 @@ class status():
 result = None
 
 
+def execute(cmd, timeout=10):
+    """  executes a command on the server host and returns run status.
+    """
+    sta = {}
+    proc = Popen(cmd, stdin=PIPE, stdout=PIPE,
+                 stderr=PIPE, universal_newlines=True)
+    try:
+        sta['stdout'], sta['stderr'] = proc.communicate(timeout=timeout)
+        sta['returncode'] = proc.returncode
+    except TimeoutExpired:
+        # The child process is not killed if the timeout expista,
+        # so in order to cleanup properly a well-behaved application
+        # should kill the child process and finish communication
+        # https://docs.python.org/3.6/library/subprocess.html?highlight=subprocess#subprocess.Popen.communicate
+        proc.kill()
+        sta['stdout'], sta['stderr'] = proc.communicate()
+        sta['returncode'] = proc.returncode
+    return sta
+
+
 def initPTS(d=None):
     """ Initialize the Processing Task Software.
     """
@@ -64,22 +84,9 @@ def initPTS(d=None):
         timeout = indata['timeout'].value
     else:
         timeout = 10
-    res = {}
-    proc = Popen(init, stdin=PIPE, stdout=PIPE,
-                 stderr=PIPE, universal_newlines=True)
-    try:
-        res['stdout'], res['stderr'] = proc.communicate(timeout=timeout)
-        res['returncode'] = proc.returncode
-    except TimeoutExpired:
-        # The child process is not killed if the timeout expires,
-        # so in order to cleanup properly a well-behaved application
-        # should kill the child process and finish communication
-        # https://docs.python.org/3.6/library/subprocess.html?highlight=subprocess#subprocess.Popen.communicate
-        proc.kill()
-        res['stdout'], res['stderr'] = proc.communicate()
-        res['returncode'] = proc.returncode
 
-    return res
+    stat = execute(init, timeout=timeout)
+    return stat['returncode'], stat
 
 
 def configPTS(d=None):
@@ -89,6 +96,23 @@ def configPTS(d=None):
     cp = subprocess.run(config)
     # cp.check_returncode()
     return cp.returncode, ''
+
+
+def cleanPTS(d):
+    """ Removing traces of past runnings the Processing Task Software.
+    """
+
+    logger.debug(str(d))
+    indata = deserializeClassID(d)
+    logger.debug(indata)
+
+    if hasattr(indata, '__iter__') and 'timeout' in indata:
+        timeout = indata['timeout'].value
+    else:
+        timeout = 10
+
+    stat = execute(clean, timeout=timeout)
+    return stat['returncode'], stat
 
 
 def checkpath(path):
@@ -123,9 +147,15 @@ def run(d):
     for f in paths['inputfiles']:
         with pi.joinpath(f).open(mode="w") as inf:
             inf.write(contents)
-    cp = subprocess.run(prog)
-    if cp.returncode != 0:
-        return -1, 'Error running %s' % (str(prog))
+    #########
+    if hasattr(indata, '__iter__') and 'timeout' in indata:
+        timeout = indata['timeout'].value
+    else:
+        timeout = 10
+
+    stat = execute(prog, timeout=timeout)
+    if stat['returncode'] != 0:
+        return -1, stat
     with po.joinpath(paths['outputfile']).open("r") as outf:
         res = outf.read()
     x = Product(description="hello world pipeline product",
@@ -137,7 +167,7 @@ def run(d):
     x.creationDate = FineTime1(datetime.datetime.fromtimestamp(now))
     x.type = 'test'
     x.history = History()
-    return x, ''
+    return x, stat
 
 
 def genposttestprod(d):
@@ -269,12 +299,10 @@ def setup(cmd):
     logger.debug(d)
     if cmd == 'init':
         try:
-            result = initPTS(d)
+            result, msg = initPTS(d)
         except Exception as e:
             msg = str(e)
             logger.error(msg)
-        else:
-            msg = ''
     elif cmd == 'config':
         result, msg = configPTS(d)
     else:
@@ -288,26 +316,6 @@ def setup(cmd):
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
-
-
-def cleanPTS(d):
-    """ Removing traces of past runnings the Processing Task Software.
-    """
-
-    logger.debug(str(d))
-    indata = deserializeClassID(d)
-    logger.debug(indata)
-
-    try:
-        cp = subprocess.run(clean)
-    except Exception as e:
-        if issubclass(e, FileNotFoundError):
-            return -1, init[0] + ' does not exist.'
-        else:
-            return -1, init[0] + ' ' + str(e)
-
-    # cp.check_returncode()
-    return cp.returncode, ''
 
 
 @app.route(baseurl + '/<string:cmd>', methods=['DELETE'])

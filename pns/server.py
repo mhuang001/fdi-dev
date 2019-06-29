@@ -6,7 +6,7 @@ from os.path import isfile, isdir, join
 from os import listdir
 from pathlib import Path
 import types
-import subprocess
+from subprocess import Popen, PIPE
 import pkg_resources
 from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
@@ -30,6 +30,11 @@ from dataset.dataset import ArrayDataset, TableDataset
 from dataset.eq import serializeClassID
 from dataset.deserialize import deserializeClassID
 
+try:
+    from local.py import baseurl, node, paths, init, config, prog, clean
+except Exception:
+    pass
+
 app = Flask(__name__)
 auth = HTTPBasicAuth()
 
@@ -50,19 +55,26 @@ def initPTS(d=None):
     indata = deserializeClassID(d)
     logger.debug(indata)
 
-    result = {}
-    try:
-        cp = subprocess.run(init)
-    except Exception as e:
-        result['status'] = -1
-        result['stderr'] = init[0] + ' ' + str(e)
+    if hasattr(indata, '__iter__') and 'timeout' in indata:
+        timeout = indata['timeout'].value
     else:
-        result['status'] = cp.returncode
-        result['stdoout'] = cp.stdout
-        result['stderr'] = cp.stderr
+        timeout = 15
+    res = {}
+    with Popen(init, stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True) as proc:
+        try:
+            res['stdout'], res['stderr'] = proc.communicate(timeout=timeout)
+            res['returncode'] = proc.returncode
+        except TimeoutExpired:
+            # The child process is not killed if the timeout expires,
+            # so in order to cleanup properly a well-behaved application
+            # should kill the child process and finish communication
+            # https://docs.python.org/3.6/library/subprocess.html?highlight=subprocess#subprocess.Popen.communicate
+            proc.kill()
+            res['stdout'], res['stderr'] = proc.communicate()
+            res['returncode'] = proc.returncode
 
     # cp.check_returncode()
-    return result
+    return res
 
 
 def configPTS(d=None):

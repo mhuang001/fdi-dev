@@ -58,10 +58,10 @@ def checkserver():
     # initialize test data.
 
 
-def checkputinitresult(returncode, msg):
-    assert returncode != -1, msg
-    assert returncode == 0, 'Error %d testing script file hello.' % (
-        returncode)
+def checkputinitresult(result, msg):
+    assert len(msg) == 0, msg
+    assert result['returncode'] == 0, 'Error %d testing script file hello. STDOUT %s STDERR %s'\
+        % (result['returncode'], result['stdout'], result['stderr'])
 
 
 def test_serverinit():

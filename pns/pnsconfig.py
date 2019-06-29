@@ -1,10 +1,10 @@
-
+from os.path import join
 # base url for webserver
 baseurl = '/v0.4'
 
 # username, passwd, flask ip, flask port
 node = {'username': 'foo', 'password': 'bar',
-        'host': '10.0.10.108', 'port': 8900}
+        'host': '0.0.0.0', 'port': 5000}
 
 # input file
 # output file
@@ -17,7 +17,7 @@ paths = dict(
 )
 # the stateless data processing program that reads from inputdir and
 # leave the output in the outputdir. The format is the input for subprocess()
-init = [paths['pnshome'] + '/initPTS', '']
-config = [paths['pnshome'] + '/configPTS', '']
-prog = [paths['pnshome'] + '/hello', '']
-clean = [paths['pnshome'] + '/cleanPTS', '']
+init = [join(paths['pnshome'], 'initPTS'), '']
+config = [join(paths['pnshome'], 'configPTS'), '']
+prog = [join(paths['pnshome'], 'hello'), '']
+clean = [join(paths['pnshome'], 'cleanPTS'), '']

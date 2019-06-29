@@ -150,7 +150,7 @@ def putJsonObj(url, obj, headers):
         return None
 
     ret = deserializeClassID(stri)
-    logger.debug(pformat(ret, depth=3)[:90] + '...')
+    logger.debug(pformat(ret, depth=4)[:160] + '...')
     return ret
 
 
@@ -179,7 +179,7 @@ def postJsonObj2(url, obj, headers):
             else:
                 i += 1
     # print(url,stri)
-    logger.debug(pformat(ret, depth=2)[:70] + '...')
+    logger.debug(pformat(ret, depth=3)[:170] + '...')
     return ret
 
 

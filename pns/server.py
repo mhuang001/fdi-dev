@@ -50,14 +50,19 @@ def initPTS(d=None):
     indata = deserializeClassID(d)
     logger.debug(indata)
 
+    result = {}
     try:
         cp = subprocess.run(init)
     except Exception as e:
-        return -1, init[0] + ' ' + str(e)
-    msg = cp.stderr if cp.returncode != 0 else ''
+        result['status'] = -1
+        result['stderr'] = init[0] + ' ' + str(e)
+    else:
+        result['status'] = cp.returncode
+        result['stdoout'] = cp.stdout
+        result['stderr'] = cp.stderr
 
     # cp.check_returncode()
-    return cp.returncode, msg
+    return result
 
 
 def configPTS(d=None):
@@ -247,9 +252,10 @@ def setup(cmd):
     logger.debug(d)
     if cmd == 'init':
         try:
-            result, msg = initPTS(d)
+            result = initPTS(d)
         except Exception as e:
-            logger.error(str(e))
+            msg = str(e)
+            logger.error(msg)
     elif cmd == 'config':
         result, msg = configPTS(d)
     else:

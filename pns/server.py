@@ -82,6 +82,9 @@ def initPTS(d=None):
     """ Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned.
     """
 
+    # timeout is imported and needs to be declared global if referenced in ifs
+    global timeout
+
     # hf = pkg_resources.resource_filename("pns.resource", "hello")
     logger.debug(str(d))
     indata = deserializeClassID(d)
@@ -97,6 +100,9 @@ def configPTS(d=None):
     """ Configure the Processing Task Software by running the config script. Ref init PTS.
     """
 
+    # timeout is imported and needs to be declared global if referenced in ifs
+    global timeout
+
     logger.debug(str(d))
     indata = deserializeClassID(d)
 
@@ -110,6 +116,8 @@ def configPTS(d=None):
 def cleanPTS(d):
     """ Removing traces of past runnings the Processing Task Software.
     """
+    # timeout is imported and needs to be declared global if referenced in ifs
+    global timeout
 
     logger.debug(str(d))
     indata = deserializeClassID(d)
@@ -119,7 +127,7 @@ def cleanPTS(d):
     else:
         timeout = 10
 
-    stat = execute(clean, timeout=timeout)
+    stat = _execute(clean, timeout=timeout)
     return stat['returncode'], stat
 
 
@@ -144,7 +152,8 @@ def run(d):
     if pi is None or po is None:
         abort(401)
     # timeout is imported and needs to be declared global if referenced in ifs
-    global lupd, timeout
+    global timeout
+    global lupd
 
     indata = deserializeClassID(d)
     logger.debug(indata)
@@ -383,7 +392,7 @@ def makepublicAPI(ops):
         api[desc] = url_for(o['func'],
                             cmd=cmd,
                             _external=True)
-    print('******* ' + str(api))
+    #print('******* ' + str(api))
     return api
 
 

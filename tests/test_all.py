@@ -7,7 +7,7 @@ from collections import OrderedDict
 from urllib.request import pathname2url
 import requests
 import os
-from os.path import isfile, join
+from os.path import isfile, isdir, join, expanduser, expandvars
 
 from pns.logdict import logdict
 import logging
@@ -19,7 +19,17 @@ logger = logging.getLogger()
 logger.debug('level %d' % (logger.getEffectiveLevel()))
 
 from pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders, opt
-from pns.pnsconfig import baseurl, node, paths, init, config, prog
+
+# default configuration is provided. Copy pnsconfig.py to ~/local.py
+from pns.pnsconfig import baseurl, node, paths, init, config, prog, clean
+import sys
+env = expanduser(expandvars('$HOME'))
+sys.path.insert(0, env)
+try:
+    from local import baseurl, node, paths, init, config, prog, clean
+except Exception:
+    pass
+
 from pns import server
 from dataset.deserialize import deserializeClassID
 from dataset.product import Product
@@ -71,7 +81,7 @@ def test_serverinit():
 
 
 def test_putinit():
-    """ calls the default pnsconfig.paths['pnshome']/initPTS script 
+    """ calls the default pnsconfig.paths['pnshome']/initPTS script
     which checks the existence of hello
     """
     code = base64.b64encode(b"foo:bar").decode("ascii")

@@ -2,7 +2,8 @@
 from pprint import pformat
 import datetime
 import time
-from os.path import isfile, isdir, join
+import sys
+from os.path import isfile, isdir, join, expanduser, expandvars
 from os import listdir
 from pathlib import Path
 import types
@@ -25,15 +26,19 @@ logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 from pns.common import mkdir, opt
 from pns.pnsconfig import baseurl, node, paths, init, config, prog, clean
 
+# default configuration is provided. Copy pnsconfig.py to ~/local.py
+import sys
+env = expanduser(expandvars('$HOME'))
+sys.path.insert(0, env)
+try:
+    from local import baseurl, node, paths, init, config, prog, clean
+except Exception:
+    pass
+
 from dataset.product import Product, FineTime1, History
 from dataset.dataset import ArrayDataset, TableDataset
 from dataset.eq import serializeClassID
 from dataset.deserialize import deserializeClassID
-
-try:
-    from local.py import baseurl, node, paths, init, config, prog, clean
-except Exception:
-    pass
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
@@ -312,7 +317,7 @@ def cleanup(cmd):
     """
 
     d = request.get_data()
-    #print('&&&&&&&& ' + str(d))
+    # print('&&&&&&&& ' + str(d))
     if cmd == 'clean':
         try:
             result, msg = cleanPTS(d)

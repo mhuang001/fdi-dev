@@ -160,6 +160,7 @@ def run(d):
     runner, cause = indata['creator'], indata['rootcause']
     contents = indata['input']['theName'].data
     for f in paths['inputfiles']:
+        logging.debug('writing ' + str(f))
         with pi.joinpath(f).open(mode="w") as inf:
             inf.write(contents)
 

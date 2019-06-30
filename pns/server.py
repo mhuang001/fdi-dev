@@ -161,8 +161,11 @@ def run(d):
     contents = indata['input']['theName'].data
     for f in paths['inputfiles']:
         logging.debug('writing ' + str(f))
-        with pi.joinpath(f).open(mode="w") as inf:
-            inf.write(contents)
+        try:
+            with pi.joinpath(f).open(mode="w") as inf:
+                inf.write(contents)
+        except Exception as e:
+            return -1, str(e)
 
     ######### run PTS ########
     logger.debug(timeout)
@@ -174,8 +177,11 @@ def run(d):
         return stat['returncode'], stat
 
     ######### output ########
-    with po.joinpath(paths['outputfile']).open("r") as outf:
-        res = outf.read()
+    try:
+        with po.joinpath(paths['outputfile']).open("r") as outf:
+            res = outf.read()
+    except Exception as e:
+        return -1, str(e)
     x = Product(description="hello world pipeline product",
                 creator=runner, rootCause=cause,
                 instrument="hello", modelName="you know what!")

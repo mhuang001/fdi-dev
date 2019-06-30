@@ -176,9 +176,12 @@ def makeruntestdata():
 def checkrunresult(p, msg):
     global result, lupd, nodetestinput
 
-    assert issubclass(p.__class__, Product), str(p.__class__) + ' ' +\
-        'Error %d running prog. STDOUT %s STDERR %s'\
-        % (msg['returncode'], msg['stdout'], msg['stderr'])
+    if not issubclass(p.__class__, Product):
+        assert issubclass(msg.__class__, str), str(p.__class__) + ' ' +\
+            'Error %d running prog. STDOUT %s STDERR %s'\
+            % (msg['returncode'], msg['stdout'], msg['stderr'])
+        # Exception has happened.
+        assert False, msg
 
     # creator rootcause
     # print('p.toString()' + p.toString())

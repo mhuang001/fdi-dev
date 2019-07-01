@@ -104,7 +104,7 @@ def configPTS(d=None):
     global timeout
 
     logger.debug(str(d))
-    indata = deserializeClassID(d)
+    indata = deserializeClassID88(d)
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
@@ -160,9 +160,11 @@ def run(d):
     runner, cause = indata['creator'], indata['rootcause']
     contents = indata['input']['theName'].data
     for f in paths['inputfiles']:
-        logging.debug('writing ' + str(f))
+        fp = pi.joinpath(f)
+        logging.debug('infile mode 0%o ' % (fp.stat().st_mode))
         try:
-            with pi.joinpath(f).open(mode="w") as inf:
+            fp.unlink()
+            with fp.open(mode="w") as inf:
                 inf.write(contents)
         except Exception as e:
             return -1, str(e)

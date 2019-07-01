@@ -7,6 +7,8 @@ from os.path import isfile, isdir, join, expanduser, expandvars
 from os import listdir
 import os
 from pathlib import Path
+import pwd
+import grp
 import types
 from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 import pkg_resources

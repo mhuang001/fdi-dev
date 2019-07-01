@@ -5,6 +5,7 @@ import time
 import sys
 from os.path import isfile, isdir, join, expanduser, expandvars
 from os import listdir
+import os
 from pathlib import Path
 import types
 from subprocess import Popen, PIPE, TimeoutExpired, run as srun
@@ -140,6 +141,9 @@ def checkpath(path):
             abort(400)
     else:
         p.mkdir()
+        uid = pwd.getpwnam("www-data").pw_uid
+        gid = grp.getgrnam("www-data").gr_gid
+        os.chown(str(p), uid, gid)
         logging.info(str(p) + ' directory has been made.')
     return p
 
@@ -161,7 +165,8 @@ def run(d):
     contents = indata['input']['theName'].data
     for f in paths['inputfiles']:
         fp = pi.joinpath(f)
-        logging.debug('infile mode 0%o ' % (fp.stat().st_mode))
+        if fp.exists:
+            logging.debug('infile mode 0%o ' % (fp.stat().st_mode))
         try:
             fp.unlink()
             with fp.open(mode="w") as inf:

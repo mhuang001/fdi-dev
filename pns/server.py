@@ -176,8 +176,8 @@ def run(d):
             with fp.open(mode="w+") as inf:
                 inf.write(contents)
         except Exception as e:
-            return -1, str(e) + ' '.join(x) for x in
-                traceback.extract_tb(e.__traceback__).format()
+            return -1, str(e) + ' '.join([x for x in
+                                          traceback.extract_tb(e.__traceback__).format()])
 
     ######### run PTS ########
     logger.debug(timeout)

@@ -94,7 +94,7 @@ def getJsonObj(url, headers=None):
     # ret = json.loads(stri, cls=Decoder,
     #               object_pairs_hook=collections.OrderedDict)
     ret = deserializeClassID(stri)
-    logger.debug(pformat(ret, depth=6)[:] + '...')
+    logger.debug(pformat(ret, depth=6)[:160] + '...')
     return ret
 
 
@@ -129,7 +129,7 @@ def postJsonObj(url, obj, headers):
     # ret = json.loads(stri, parse_float=Decimal)
     # ret = json.loads(stri, cls=Decoder)
     ret = deserializeClassID(stri)
-    logger.debug(pformat(ret, depth=6)[:] + '...')
+    logger.debug(pformat(ret, depth=6)[:160] + '...')
     return ret
 
 
@@ -150,7 +150,7 @@ def putJsonObj(url, obj, headers):
         return None
 
     ret = deserializeClassID(stri)
-    logger.debug(pformat(ret, depth=6)[:] + '...')
+    logger.debug(pformat(ret, depth=6)[:160] + '...')
     return ret
 
 

@@ -7,6 +7,7 @@ from os.path import isfile, isdir, join, expanduser, expandvars
 from os import listdir
 import os
 from pathlib import Path
+import traceback
 import pwd
 import grp
 import types
@@ -167,14 +168,14 @@ def run(d):
     contents = indata['input']['theName'].data
     for f in paths['inputfiles']:
         fp = pi.joinpath(f)
-        if fp.exists:
+        if fp.exists():
             logging.debug('infile mode 0%o ' % (fp.stat().st_mode))
         try:
             fp.unlink()
-            with fp.open(mode="w") as inf:
+            with fp.open(mode="w+") as inf:
                 inf.write(contents)
         except Exception as e:
-            return -1, str(e)
+            return -1, str(e) + ' ' + traceback.extract_tb(e.__traceback__).format()
 
     ######### run PTS ########
     logger.debug(timeout)

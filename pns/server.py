@@ -171,11 +171,13 @@ def run(d):
         if fp.exists():
             logging.debug('infile mode 0%o ' % (fp.stat().st_mode))
         try:
-            fp.unlink()
+            if fp.exists():
+                fp.rename(str(fp) + '.old')
             with fp.open(mode="w+") as inf:
                 inf.write(contents)
         except Exception as e:
-            return -1, str(e) + ' ' + traceback.extract_tb(e.__traceback__).format()
+            return -1, str(e) + ' '.join(x) for x in
+                traceback.extract_tb(e.__traceback__).format()
 
     ######### run PTS ########
     logger.debug(timeout)

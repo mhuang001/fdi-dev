@@ -144,9 +144,9 @@ def checkpath(path):
             abort(400)
     else:
         p.mkdir()
-        uid = pwd.getpwnam("www-data").pw_uid
-        gid = grp.getgrnam("www-data").gr_gid
-        os.chown(str(p), uid, gid)
+        #uid = pwd.getpwnam("www-data").pw_uid
+        #gid = grp.getgrnam("www-data").gr_gid
+        #os.chown(str(p), uid, gid)
         logging.info(str(p) + ' directory has been made.')
     return p
 

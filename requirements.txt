@@ -1,2 +1,6 @@
-requests
-pytest
+requests 2.13.0
+pytest 3,2,3
+flask 0.12.2
+flask_httpauth 3.2.3
+dataset 0.2
+

@@ -3,7 +3,6 @@ from pprint import pprint, pformat
 import pkg_resources
 import subprocess
 import base64
-from collections import OrderedDict
 from urllib.request import pathname2url
 import requests
 import os
@@ -31,11 +30,13 @@ except Exception:
     pass
 
 from pns import server
-from dataset.deserialize import deserializeClassID
+from dataset.odict import ODict
+from dataset.serializable import serializeClassID, serializeClassID
 from dataset.product import Product
 from dataset.metadata import NumericParameter
+from dataset.deserialize import deserializeClassID
 from dataset.dataset import ArrayDataset
-from dataset.eq import deepcmp, serializeClassID
+from dataset.eq import deepcmp
 
 testname = 'SVOM'
 addrport = 'http://' + node['host'] + ':' + str(node['port'])
@@ -120,8 +121,8 @@ def makeposttestdata():
     x = Product(description="test post input product")
     x.set('testdataset', image)
     x.meta['testparam'] = v
-    return OrderedDict({'creator': 'me', 'rootcause': 'server test',
-                        'input': x})
+    return ODict({'creator': 'me', 'rootcause': 'server test',
+                  'input': x})
 
 
 def checkpostresult(o):
@@ -204,8 +205,8 @@ def test_serverrun():
 
     x = makeruntestdata()
     # construct the nodetestinput to the node
-    nodetestinput = OrderedDict({'creator': 'me', 'rootcause': 'server test',
-                                 'input': x})
+    nodetestinput = ODict({'creator': 'me', 'rootcause': 'server test',
+                           'input': x})
     js = serializeClassID(nodetestinput)
     logger.debug(js[:160])
     o, msg = server.run(js)
@@ -226,8 +227,8 @@ def test_run():
 
     x = makeruntestdata()
     # construct the nodetestinput to the node
-    nodetestinput = OrderedDict({'creator': 'me', 'rootcause': 'server test',
-                                 'input': x})
+    nodetestinput = ODict({'creator': 'me', 'rootcause': 'server test',
+                           'input': x})
     code = base64.b64encode(b"foo:bar").decode("ascii")
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)

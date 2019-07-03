@@ -5,11 +5,8 @@ import time
 import sys
 from os.path import isfile, isdir, join, expanduser, expandvars
 from os import listdir
-import os
 from pathlib import Path
 import traceback
-import pwd
-import grp
 import types
 from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 import pkg_resources
@@ -41,7 +38,7 @@ except Exception:
 
 from dataset.product import Product, FineTime1, History
 from dataset.dataset import ArrayDataset, TableDataset
-from dataset.eq import serializeClassID
+from dataset.serializable import serializeClassID
 from dataset.deserialize import deserializeClassID
 
 app = Flask(__name__)
@@ -180,7 +177,6 @@ def run(d):
                                           traceback.extract_tb(e.__traceback__).format()])
 
     ######### run PTS ########
-    logger.debug(timeout)
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
 

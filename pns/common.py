@@ -26,7 +26,7 @@ if 0:
     print(logger.level)
 
 from dataset.deserialize import deserializeClassID
-from dataset.eq import serializeClassID
+from dataset.serializable import serializeClassID
 
 commonheaders = {
     'Accept': 'application/json',
@@ -61,7 +61,7 @@ class Decoder(json.JSONDecoder):
             return o
 
 
-def getJsonObj(url, headers=None):
+def getJsonObj(url, headers=None, usedict=False):
     """ return object from url. url can be http or file.
     translate keys and values from string to
     number if applicable. Return None if fails.
@@ -84,7 +84,7 @@ def getJsonObj(url, headers=None):
             if issubclass(e.__class__, ue.HTTPError):
                 ret = e
                 return None
-            if i >= 5:
+            if i >= 1:
                 logger.error("Give up " + url + " after %d tries." % i)
                 return None
             else:
@@ -93,8 +93,9 @@ def getJsonObj(url, headers=None):
     # ret = json.loads(stri, parse_float=Decimal)
     # ret = json.loads(stri, cls=Decoder,
     #               object_pairs_hook=collections.OrderedDict)
-    ret = deserializeClassID(stri)
-    logger.debug(pformat(ret, depth=6)[:160] + '...')
+    ret = deserializeClassID(stri, usedict=usedict)
+    #logger.debug(pformat(ret, depth=6)[:] + '...')
+    logger.debug(str(ret)[:160] + '...')
     return ret
 
 

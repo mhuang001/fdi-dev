@@ -1,4 +1,3 @@
-from copy import deepcopy
 from collections import OrderedDict
 import json
 import pprint
@@ -7,93 +6,6 @@ import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-
-class Annotatable():
-    """ An Annotatable object is an object that can give a
-    human readable description of itself.
-    """
-
-    def __init__(self, description='UNKNOWN', **kwds):
-        self.description = description
-        super().__init__(**kwds)
-
-    def getDescription(self):
-        """ gets the description of this Annotatable object. """
-        return self.description
-
-    def setDescription(self, newDescription):
-        """ sets the description of this Annotatable object. """
-        self.description = newDescription
-        return
-
-
-class Copyable():
-    """ Interface for objects that can make a copy of themselves. """
-
-    def __init__(self, **kwds):
-        super().__init__(**kwds)
-
-    def copy(self):
-        """ Makes a deep copy of itself. """
-        return deepcopy(self)
-
-
-class SerializableEncoder(json.JSONEncoder):
-    """ can encode parameter and product etc such that they can be recovered
-    with deserializeClassID
-    """
-
-    def default(self, obj):
-        try:
-            #print('%%%' + str(obj.__class__))
-            # Let the base class default method raise the TypeError
-            d = json.JSONEncoder.default(self, obj)
-            #print('d=' + d)
-        except TypeError as err:
-            try:
-                # logger.debug
-                #print('&&&& %s %s' % (str(obj.__class__), str(obj)))
-                if issubclass(obj.__class__, bytes):
-                    return dict(hex=obj.hex(), classID='bytes', version='')
-                return obj.serializable()
-            except Exception:
-                print('exc ' + str(err))
-                raise err
-
-
-#    obj = json.loads(jstring)
-
-def serializeClassID(o):
-    """ return JSON using special encoder SerializableEncoder """
-    return json.dumps(o, cls=SerializableEncoder, indent=2)
-
-
-class Serializable():
-    """ mh: Can be serialized.
-    Has a ClassID and version instance property to show its class
-    and version information.
-    """
-
-    def __init__(self, **kwds):
-        super().__init__(**kwds)
-        sc = self.__class__
-        #print('$$ ' + sc.__name__ + str(issubclass(sc, dict)))
-        if issubclass(sc, dict):
-            self['classID'] = sc.__qualname__
-            self['version'] = ''
-        else:
-            self.classID = sc.__qualname__
-            self.version = ''
-
-    def serialized(self):
-        return serializeClassID(self)
-
-    def serializable(self):
-        """ returns an OrderedDict that has all state info of this object.
-        Subclasses should override this function.
-        """
-        return OrderedDict(info='serializable function not implemented')
 
 
 def deepcmp(obj1, obj2, seenlist=None, verbose=False):
@@ -224,7 +136,7 @@ class EqualDict():
         return not self.__eq__(obj)
 
 
-class EqualOrderedDict():
+class EqualDict():
     """ mh: Can compare order and key-val pairs of another object
     with self. False if compare with None
     or exceptions raised, e.g. obj does not have items()

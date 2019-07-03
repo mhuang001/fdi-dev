@@ -12,7 +12,11 @@ if doLogging:
     logger.debug('%s logging level %d' %
                  (__name__, logger.getEffectiveLevel()))
 
-from dataset.eq import Annotatable, Copyable, serializeClassID, SerializableEncoder, deepcmp
+from dataset.annotatable import Annotatable
+from dataset.copyable import Copyable
+from dataset.odict import ODict
+from dataset.serializable import serializeClassID, SerializableEncoder
+from dataset.eq import deepcmp
 from dataset.listener import EventSender, DatasetBaseListener
 from dataset.composite import Composite
 from dataset.metadata import Parameter, Quantifiable, NumericParameter, MetaDataHolder, MetaData, Attributable, DataWrapper, DataWrapperMapper, AbstractComposite

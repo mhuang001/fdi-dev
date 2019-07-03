@@ -1,5 +1,5 @@
-from collections import OrderedDict
 import json
+from dataset.odict import ODict
 
 import logging
 # create logger
@@ -87,13 +87,17 @@ def constructSerializableClassID(obj, dbg=False):
     return inst
 
 
-def deserializeClassID(js, debug=False):
+def deserializeClassID(js, debug=False, usedict=False):
     """ Loads classes with ClassID from the results of serializeClassID
     """
     if not isinstance(js, (str, bytes)) or len(js) == 0:
         return None
     # debug = False  # True if issubclass(obj.__class__, list) else False
-    obj = json.loads(js, object_pairs_hook=OrderedDict)
+    if usedict:
+        obj = json.loads(js)
+    else:
+        obj = json.loads(js, object_pairs_hook=ODict)
+
     if debug:
         # print('load-str ' + str(o) + ' class ' + str(o.__class__))
         print('-------- json loads returns: --------\n' + str(obj))

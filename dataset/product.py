@@ -7,11 +7,14 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.eq import Copyable, DeepEqual, Serializable
+from dataset.copyable import Copyable
+from dataset.eq import DeepEqual
 # from dataset.composite import
 from dataset.dataset import CompositeDataset
 from dataset.listener import EventSender, DatasetEvent, DatasetListener, EventType
 from dataset.metadata import AbstractComposite
+from dataset.odict import ODict
+from dataset.serializable import Serializable
 
 
 class FineTime1(Copyable, DeepEqual, Serializable):
@@ -76,9 +79,9 @@ class FineTime1(Copyable, DeepEqual, Serializable):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(tai=self.tai,
-                           classID=self.classID,
-                           version=self.version)
+        return ODict(tai=self.tai,
+                     classID=self.classID,
+                     version=self.version)
 
 
 class History(CompositeDataset, DeepEqual):
@@ -132,14 +135,14 @@ class History(CompositeDataset, DeepEqual):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           HIST_SCRIPT=self.HIST_SCRIPT,
-                           PARAM_HISTORY=self.PARAM_HISTORY,
-                           TASK_HISTORY=self.TASK_HISTORY,
-                           meta=self.meta,
-                           sets=self.sets,
-                           classID=self.classID,
-                           version=self.version)
+        return ODict(description=self.description,
+                     HIST_SCRIPT=self.HIST_SCRIPT,
+                     PARAM_HISTORY=self.PARAM_HISTORY,
+                     TASK_HISTORY=self.TASK_HISTORY,
+                     meta=self.meta,
+                     sets=self.sets,
+                     classID=self.classID,
+                     version=self.version)
 
 
 mandatoryProductAttrs = ['description', 'creator', 'creationDate',
@@ -228,7 +231,7 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
         if name in mandatoryProductAttrs and withmeta:
             # if meta does not exist, inherit Attributable
             # before any class that access mandatory attributes
-            print('mm ' + str(self.meta[name]))
+            #print('mm ' + str(self.meta[name]))
             return self.meta[name]
         #print('getattr ' + name)
         return super().__getattribute__(name)
@@ -302,7 +305,7 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
             ("history", self.history),
             ("classID", self.classID),
             ("version", self.version)]
-        return OrderedDict(ls)
+        return ODict(ls)
 
 
 def addMandatoryProductAttrs(cls):

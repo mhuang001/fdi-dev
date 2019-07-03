@@ -1,11 +1,10 @@
-from collections import OrderedDict
-
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 from dataset.eq import DeepEqual
+from dataset.odict import ODict
 #from dataset.listener import DatasetEventSender, DatasetListener
 #from dataset.metadata import DataWrapperMapper
 
@@ -23,7 +22,7 @@ class Composite(DeepEqual):
     """
 
     def __init__(self, **kwds):
-        self.sets = OrderedDict()
+        self.sets = ODict()
         super().__init__(**kwds)
 
     def containsKey(self, name):

@@ -5,9 +5,13 @@ import logging
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.eq import Serializable, Annotatable, Copyable, DeepEqual
+from dataset.annotatable import Annotatable
+from dataset.copyable import Copyable
+from dataset.eq import DeepEqual
 # from dataset.composite import
 from dataset.metadata import Attributable, AbstractComposite, DataWrapper
+from dataset.odict import ODict
+from dataset.serializable import Serializable
 
 
 class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual):
@@ -59,12 +63,12 @@ class ArrayDataset(Dataset, DataWrapper):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           meta=self.meta,
-                           data=self.data,
-                           unit=self.unit,
-                           classID=self.classID,
-                           version=self.version)
+        return ODict(description=self.description,
+                     meta=self.meta,
+                     data=self.data,
+                     unit=self.unit,
+                     classID=self.classID,
+                     version=self.version)
 
 
 class TableModel():
@@ -119,7 +123,7 @@ class TableDataset(Dataset, DataWrapper, TableModel):
         """
         """
         super().__init__(**kwds)  # initialize data, meta, unit
-        self.data = [] if data is None else [OrderedDict(x) for x in data]
+        self.data = [] if data is None else [ODict(x) for x in data]
 
     def __repr__(self):
         return self.__class__.__name__ + \
@@ -134,11 +138,11 @@ class TableDataset(Dataset, DataWrapper, TableModel):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           meta=self.meta,
-                           data=self.data,
-                           classID=self.classID,
-                           version=self.version)
+        return ODict(description=self.description,
+                     meta=self.meta,
+                     data=self.data,
+                     classID=self.classID,
+                     version=self.version)
 
 
 class CompositeDataset(AbstractComposite, Dataset):
@@ -157,8 +161,8 @@ class CompositeDataset(AbstractComposite, Dataset):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           meta=self.meta,
-                           sets=self.sets,
-                           classID=self.classID,
-                           version=self.version)
+        return ODict(description=self.description,
+                     meta=self.meta,
+                     sets=self.sets,
+                     classID=self.classID,
+                     version=self.version)

@@ -1,13 +1,15 @@
-from collections import OrderedDict
-
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.eq import Annotatable, Copyable, DeepEqual, Serializable
+from dataset.annotatable import Annotatable
+from dataset.copyable import Copyable
+from dataset.eq import DeepEqual
 from dataset.listener import EventSender, DatasetBaseListener, ParameterListener, DatasetListener, DatasetEvent, EventType
 from dataset.composite import Composite
+from dataset.odict import ODict
+from dataset.serializable import Serializable
 
 
 class Parameter(Annotatable, Copyable, DeepEqual, EventSender, Serializable):
@@ -82,11 +84,11 @@ class Parameter(Annotatable, Copyable, DeepEqual, EventSender, Serializable):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           value=self.value,
-                           type=self.type,
-                           classID=self.classID,
-                           version=self.version)
+        return ODict(description=self.description,
+                     value=self.value,
+                     type=self.type,
+                     classID=self.classID,
+                     version=self.version)
 
 
 class Quantifiable():
@@ -125,12 +127,12 @@ class NumericParameter(Parameter, Quantifiable):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           value=self.value,
-                           unit=self.unit,
-                           type=self.type,
-                           classID=self.classID,
-                           version=self.version)
+        return ODict(description=self.description,
+                     value=self.value,
+                     unit=self.unit,
+                     type=self.type,
+                     classID=self.classID,
+                     version=self.version)
 
 
 class MetaData(Composite, Copyable, Serializable, ParameterListener, EventSender):
@@ -201,9 +203,9 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, EventSender
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(sets=self.sets,
-                           classID=self.classID,
-                           version=self.version)
+        return ODict(sets=self.sets,
+                     classID=self.classID,
+                     version=self.version)
 
 
 class MetaDataHolder(object):

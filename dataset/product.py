@@ -140,7 +140,7 @@ class History(CompositeDataset, DeepEqual):
                      PARAM_HISTORY=self.PARAM_HISTORY,
                      TASK_HISTORY=self.TASK_HISTORY,
                      meta=self.meta,
-                     sets=self.sets,
+                     _sets=self._sets,
                      classID=self.classID,
                      version=self.version)
 
@@ -210,7 +210,7 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
     def getDefault(self):
         """ Convenience method that returns the first dataset \
         belonging to this product. """
-        return self.sets[0] if self.sets.size() > 0 else None
+        return self._sets[0] if self._sets.size() > 0 else None
 
     def __getattribute__(self, name, withmeta=True):
         """ Reads meta data table when Mandatory Attributes are
@@ -274,9 +274,9 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
             if hasattr(self, lvar):
                 s += '%s = %s, ' % (lvar, getattr(self, lvar))
         """
-        s += 'meta = %s, sets = %s, history = %s}' % (
+        s += 'meta = %s, _sets = %s, history = %s}' % (
             self.meta.toString(),
-            self.sets.__str__(),
+            self._sets.__str__(),
             self.history.toString()
         )
         return s
@@ -289,7 +289,7 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
             if hasattr(self, lvar):
                 s += '%s = %s, ' % (lvar, getattr(self, lvar))
         """
-        s += 'meta = "%s", sets = %s, history = %s}' % (
+        s += 'meta = "%s", _sets = %s, history = %s}' % (
             str(self.meta),
             str(self.keySet()),
             str(self.history)
@@ -301,7 +301,7 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
         # ls = [(lvar, getattr(self, lvar)) for lvar in mandatoryProductAttrs]
         ls = [
             ("meta", self.meta),
-            ("sets", self.sets),
+            ("_sets", self._sets),
             ("history", self.history),
             ("classID", self.classID),
             ("version", self.version)]

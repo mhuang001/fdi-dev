@@ -195,7 +195,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, EventSender
 
     def toString(self):
         s, l = '', ''
-        for (k, v) in self.sets.items():
+        for (k, v) in self._sets.items():
             s = s + str(k) + ' = ' + str(v) + ', '
         l = ''.join(['"' + x.description + '", ' for x in self.listeners])
         return self.__class__.__name__ + \
@@ -203,7 +203,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, EventSender
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return ODict(sets=self.sets,
+        return ODict(_sets=self._sets,
                      classID=self.classID,
                      version=self.version)
 
@@ -297,7 +297,7 @@ class DataWrapperMapper():
 
     def getDataWrappers(self):
         """ Gives the data wrappers, mapped by name. """
-        return self.sets
+        return self._sets
 
 
 class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper, DatasetListener):
@@ -311,7 +311,7 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
         ''' meta and datasets only show names
         '''
         s = '{'
-        s += 'meta = "%s", sets = %s}' % (
+        s += 'meta = "%s", _sets = %s}' % (
             str(self.meta),
             str(self.keySet())
         )
@@ -319,8 +319,8 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
 
     def toString(self):
         s = '{'
-        s += 'meta = %s, sets = %s}' % (
+        s += 'meta = %s, _sets = %s}' % (
             self.meta.toString(),
-            self.sets.__str__()
+            self._sets.__str__()
         )
         return s

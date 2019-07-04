@@ -30,7 +30,7 @@ def checkjson(obj):
     """
 
     #dbg = True if issubclass(obj.__class__, Product) else False
-    dbg = False
+    dbg = True
 
     if hasattr(obj, 'serialized'):
         js = obj.serialized()
@@ -539,7 +539,7 @@ def test_ArrayDataset():
                           value=2.3, unit='sec')
     v.meta[a4] = a5
 
-    # b[1-5] and v1 have the  same contents os a[1-5] and v
+    # b[1-5] and v1 have the  same contents as a[1-5] and v
     b1 = [1, 4.4, 5.4E3]
     b2 = ''.join(a2)
     b3 = ''.join(a3)
@@ -549,9 +549,10 @@ def test_ArrayDataset():
                           value=2.3, unit='sec')
     v1.meta[b4] = b5
 
-    # equality
+    # equal
     assert v == v1
     assert v1 == v
+    # not equal
     # change data
     v1.data += [6]
     assert v != v1
@@ -602,12 +603,13 @@ def test_CompositeDataset():
     a10 = 'dataset 2'
     v.set(a9, a4)
     v.set(a10, a8)
-    assert len(v.sets) == 2
+    assert len(v.getDataWrappers()) == 2
     a11 = 'm1'
     a12 = NumericParameter(description='and different param in metadata',
                            value=2.3, unit='sec')
     v.meta[a11] = a12
 
+    # equality
     b1 = a1.copy()
     b2 = ''.join(a2)
     b3 = ''.join(a3)
@@ -619,7 +621,7 @@ def test_CompositeDataset():
     b10 = ''.join(a10)
     v1.set(b9, b4)
     v1.set(b10, b8)
-    assert len(v1.sets) == 2
+    assert len(v1.getDataWrappers()) == 2
     b11 = ''.join(a11)
     b12 = NumericParameter(description='and different param in metadata',
                            value=2.3, unit='sec')
@@ -629,9 +631,9 @@ def test_CompositeDataset():
     assert v1 == v
 
     # change data
-    v1.sets[b9].data[1] += 0
+    v1[b9].data[1] += 0
     assert v == v1
-    v1.sets[b9].data[1] += 0.1
+    v1[b9].data[1] += 0.1
     assert v != v1
     assert v1 != v
     b4 = a4.copy()
@@ -687,11 +689,11 @@ def test_Product():
           ]
     spec = TableDataset(data=s1)
     x["RawImage"] = image
-    assert x.sets["RawImage"].data[1][2] == i0
+    assert x["RawImage"].data[1][2] == i0
     # dummy. diff syntax same function as above
     x.set('QualityImage', 'aQualityImage')
     assert x["QualityImage"] == 'aQualityImage'
-    x.sets["Spectrum"] = spec
+    x["Spectrum"] = spec
     assert x["Spectrum"].getValueAt(columnIndex=1, rowIndex=0) == 0
 
     # Test metadata

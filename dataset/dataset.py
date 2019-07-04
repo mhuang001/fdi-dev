@@ -157,12 +157,12 @@ class CompositeDataset(AbstractComposite, Dataset):
     def __init__(self, **kwds):
         """
         """
-        super().__init__(**kwds)  # initialize sets, meta, unit
+        super().__init__(**kwds)  # initialize _sets, meta, unit
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return ODict(description=self.description,
                      meta=self.meta,
-                     sets=self.sets,
+                     _sets=self._sets,
                      classID=self.classID,
                      version=self.version)

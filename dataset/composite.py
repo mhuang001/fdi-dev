@@ -22,19 +22,19 @@ class Composite(DeepEqual):
     """
 
     def __init__(self, **kwds):
-        self.sets = ODict()
+        self._sets = ODict()
         super().__init__(**kwds)
 
     def containsKey(self, name):
         """ Returns true if this map contains a mapping for
         the specified name. """
-        return name in self.sets
+        return name in self._sets
 
     def get(self, name):
         """ Returns the dataset to which this composite maps the
         specified name.
         mh: changed name to get_ to use super class get"""
-        return self.sets.get(name)
+        return self._sets.get(name)
 
     def set(self, name, dataset):
         """ Associates the specified dataset with the specified key
@@ -47,7 +47,7 @@ class Composite(DeepEqual):
         if name == '' or name is None or dataset is None:
             logger.error('Noooo')
             return
-        self.sets[name] = dataset
+        self._sets[name] = dataset
 
     def __getitem__(self, name):
         return self.get(name)
@@ -57,24 +57,24 @@ class Composite(DeepEqual):
 
     def isEmpty(self):
         """ Returns true if this map contains no key - value mappings. """
-        return len(self.sets) == 0
+        return len(self._sets) == 0
 
     def keySet(self):
         """ Returns a set view of the keys contained in this composite. """
-        return list(self.sets.keys())
+        return list(self._sets.keys())
 
     def remove(self, name):
         """ Removes the mapping for this name from this composite.
         mh: returns None if name is None or item does not exist.
         """
-        if name == '' or name is None or name not in self.sets:
+        if name == '' or name is None or name not in self._sets:
             logger.warn('Cannot remove non-exist item \'' + name + "'")
             return None
-        return self.sets.pop(name)
+        return self._sets.pop(name)
 
     def size(self):
         """ Returns the number of key - value mappings in this map. """
-        return len(self.sets)
+        return len(self._sets)
 
     def __repr__(self):
         ks = self.keySet()
@@ -83,25 +83,25 @@ class Composite(DeepEqual):
 
     def toString(self):
         s = ''
-        for (k, v) in self.sets.items():
+        for (k, v) in self._sets.items():
             s = s + str(k) + ' = ' + str(v) + ', '
         return self.__class__.__name__ + \
             '[' + s + ']'
 
     def __contains__(self, x):
         """ mh: enable 'x in composite' """
-        return x in self.sets
+        return x in self._sets
 
     def items(self):
         """ Enable pairs = [(v, k) for (k, v) in d.items()]. """
-        return self.sets.items()
+        return self._sets.items()
 
     def values(self):
         """ Enable pairs = zip(d.values(), d.keys()) """
-        return self.sets.values
+        return self._sets.values
 
     def __iter__(self):
-        return self.sets.__iter__()
+        return self._sets.__iter__()
 
     def __next__(self):
-        return self.sets.__next__()
+        return self._sets.__next__()

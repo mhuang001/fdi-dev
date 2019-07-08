@@ -30,7 +30,7 @@ def checkjson(obj):
     """
 
     #dbg = True if issubclass(obj.__class__, Product) else False
-    dbg = True
+    dbg = False
 
     if hasattr(obj, 'serialized'):
         js = obj.serialized()
@@ -630,19 +630,23 @@ def test_CompositeDataset():
     assert v == v1
     assert v1 == v
 
-    # change data
+    # change data. diff dataset access syntax []
     v1[b9].data[1] += 0
     assert v == v1
     v1[b9].data[1] += 0.1
     assert v != v1
     assert v1 != v
-    b4 = a4.copy()
-    v1.set(b9, b4)
-    assert v == v1
     # change meta
+    b4 = a4.copy()
+    v1[b9] = b4
+    assert v == v1
     v1.meta[b11].description = 'c'
     assert v != v1
     assert v1 != v
+
+    # nested datasets
+    v['v1'] = v1
+    assert v['v1'][a9] == a4
 
     checkjson(v)
     checkgeneral(v)

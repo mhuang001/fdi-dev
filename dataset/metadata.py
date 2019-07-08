@@ -222,12 +222,6 @@ class MetaDataHolder(object):
         return self._meta
 
 
-class Mk():
-
-    def __init__(self, **kwds):
-        print('mk')
-
-
 class Attributable(MetaDataHolder):
     """ An Attributable object is an object that has the
     notion of meta data. """
@@ -270,10 +264,6 @@ class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):
         """ Returns the data in this """
         return self.data
 
-    def getUnit(self):
-        """ Returns the unit related to this object. """
-        return self.unit
-
     def hasData(self):
         """ Returns whether this data wrapper has data. """
         return self.data is not None
@@ -281,10 +271,6 @@ class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):
     def setData(self, data):
         """ Populates this DataWrapper with actual data. """
         self.data = data
-
-    def setUnit(self, unit):
-        """ Sets the unit of this object.. """
-        self.unit = unit
 
     def __repr__(self):
         return self.__class__.__name__ + \

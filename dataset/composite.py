@@ -45,7 +45,7 @@ class Composite(DeepEqual):
         and the specified key or value is null."""
 
         if name == '' or name is None or dataset is None:
-            logger.error('Noooo')
+            logger.error('Bad dataset name.')
             return
         self._sets[name] = dataset
 

@@ -95,6 +95,7 @@ class DeepEqual():
 
     def equals(self, obj):
         r = deepcmp(self, obj)
+        # logging.debug(r)
         return r == None
 
     def __eq__(self, obj):
@@ -136,7 +137,7 @@ class EqualDict():
         return not self.__eq__(obj)
 
 
-class EqualDict():
+class EqualODict():
     """ mh: Can compare order and key-val pairs of another object
     with self. False if compare with None
     or exceptions raised, e.g. obj does not have items()

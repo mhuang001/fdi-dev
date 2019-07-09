@@ -201,6 +201,18 @@ class DatasetListener(DatasetBaseListener):
     """
 
 
+class ColumnListener(DatasetBaseListener):
+    """ Listener for events occuring in a Column.
+
+    Available types:
+    * DESCRIPTION_CHANGED
+    * UNIT_CHANGED
+    * DATA_CHANGED
+
+    Cause is always null.
+    """
+
+
 class ProductListener(DatasetBaseListener):
     """ Listener for events occuring in Product.
     Available types:

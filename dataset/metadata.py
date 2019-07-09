@@ -258,24 +258,35 @@ class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):
 
     def __init__(self, **kwds):
         super().__init__(**kwds)
-        self.data = None
+        self._data = ODict()
+
+    @property
+    def data(self):
+        return self.getData()
+
+    @data.setter
+    def data(self, newData):
+        self.setData(newData)
+
+    def setData(self, data):
+        """ Replaces the current DataData with specified argument. 
+        mh: subclasses can override this to add listener whenevery data is
+        replaced
+        """
+        self._data = data
 
     def getData(self):
         """ Returns the data in this """
-        return self.data
+        return self._data
 
     def hasData(self):
         """ Returns whether this data wrapper has data. """
-        return self.data is not None
-
-    def setData(self, data):
-        """ Populates this DataWrapper with actual data. """
-        self.data = data
+        return len(self.getData()) > 0
 
     def __repr__(self):
         return self.__class__.__name__ + \
             '{ description = "%s", data = "%s", unit = "%s"}' % \
-            (str(self.description), str(self.data), str(self.unit))
+            (str(self.description), str(self.getData()), str(self.unit))
 
 
 class DataWrapperMapper():

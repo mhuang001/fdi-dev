@@ -20,7 +20,7 @@ from dataset.eq import deepcmp
 from dataset.listener import EventSender, DatasetBaseListener
 from dataset.composite import Composite
 from dataset.metadata import Parameter, Quantifiable, NumericParameter, MetaDataHolder, MetaData, Attributable, DataWrapper, DataWrapperMapper, AbstractComposite
-from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset
+from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column
 from dataset.product import FineTime1, History, Product
 from dataset.deserialize import deserializeClassID
 
@@ -29,7 +29,7 @@ def checkjson(obj):
     """ seriaizes the given object and deserialize. check equality.
     """
 
-    #dbg = True if issubclass(obj.__class__, Product) else False
+    # dbg = True if issubclass(obj.__class__, Product) else False
     dbg = False
 
     if hasattr(obj, 'serialized'):
@@ -521,13 +521,14 @@ def test_ArrayDataset():
     assert c == v
 
     # test data and unit
-    a3 = [34]
+    a3 = [34, 9999]
     a4 = 'm'
     a5 = 'new description'
     v.data = a3
     v.unit = a4
     assert v.data == a3
     assert v.unit == a4
+    assert v.data[1] == 9999
 
     # test equality
     a1 = [1, 4.4, 5.4E3]
@@ -577,17 +578,141 @@ def test_ArrayDataset():
     checkgeneral(v)
 
 
+def test_TableModel():
+    pass
+
+
 def test_TableDataset():
-    a1 = [dict(name='col1', unit='keV', column=[1, 4.4, 5.4E3]),
-          dict(name='col2', unit='cnt', column=[0, 43.2, 2E3])
+    # constructor
+    a1 = [dict(name='col1', column=Column(data=[1, 4.4, 5.4E3], unit='eV')),
+          dict(name='col2', column=Column(data=[0, 43.2, 2E3], unit='cnt'))
           ]
     v = TableDataset(data=a1)
-    assert v.getColumnName(0) == 'col1'
+    v1 = TableDataset()
+    b1 = [('col1', Column(data=[1, 4.4, 5.4E3], unit='eV')),
+          ('col2', Column(data=[0, 43.2, 2E3], unit='cnt'))
+          ]
+    v1.data = b1
+    assert v == v1
     assert v.getColumnCount() == 2
+    assert v.getColumnName(0) == 'col1'
     assert v.getValueAt(rowIndex=1, columnIndex=1) == 43.2
     v.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
     assert v.getValueAt(rowIndex=1, columnIndex=1) == 42
+    # indexOf
+    c = Column()
+    v['col3'] = c
+    v['col4'] = Column([2, 3])
+    assert v.indexOf('col3') == v.indexOf(c)
+
     checkgeneral(v)
+
+    # doc cases
+    # creation:
+    ELECTRON_VOLTS = 'eV'
+    SECONDS = 'sec'
+    t = [x * 1.0 for x in range(10)]
+    e = [2 * x + 100 for x in t]
+
+    # creating a table dataset to hold the quantified data
+    x = TableDataset(description="Example table")
+    x["Time"] = Column(data=t, unit=SECONDS)
+    x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+    # copy
+    # access:
+    # See demo_XDataset
+
+    # access
+    column1 = x["Time"]
+    column2 = x[0]  # idem, but now by index
+    assert column1 == column2
+    text = x.description
+    assert text == 'Example table'
+
+    if 0:
+        # iteration:
+        for i in range(x.rowCount):
+            row = x.getRow(i)
+            print(row.get(0))  # element in 1st column of this row
+            # element in 2nd column of this rowiter = x.iterator()
+            print(row.get(1))
+
+        # Please see also this elaborated example.
+
+        # Additionally you can filter the rows in a table, for example:
+
+        xNew = x.select(x[0].data > 20)
+
+    # Please see also this selection example.
+
+
+def demo_TableDataset():
+
+    # http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/ia/dataset/demo/TableDataset.py
+    ELECTRON_VOLTS = 'eV'
+    SECONDS = 'sec'
+    # create dummy numeric data:
+    # t=Double1d.range(100)
+    # e=2*t+100
+    t = [x * 1.0 for x in range(100)]
+    e = [2 * x + 100 for x in t]
+
+    # creating a table dataset to hold the quantified data
+    table = TableDataset(description="Example table")
+    table["Time"] = Column(data=t, unit=SECONDS)
+    table["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+
+    # alternative Column creation:
+    c = Column()
+    c.data = t
+    c.unit = SECONDS
+    table["Time1"] = c
+
+    # alternative Column creation using Java syntax:
+    c1 = Column()
+    c1.setData(t)
+    c1.setUnit(SECONDS)
+    table.addColumn("Time2", c1)
+
+    t1 = table.copy()
+    t2 = table.copy()
+    assert table.getColumnCount() == 4
+    assert t1.getColumnCount() == 4
+    # removing a column by name:
+    t1.removeColumn("Time2")
+    assert t1.getColumnCount() == 3
+
+    # removing a column by index (removing "Time1")
+    # NOTE: indices start at 0!
+    t2.removeColumn(3)
+    assert t1 == t2
+
+    # adding meta:
+    table.meta["Foo"] = Parameter(value="Bar", description="Bla bla")
+
+    # table access:
+    print(table)  # summary
+    print(table.__class__)  # type
+    print(table.rowCount)
+    print(table.columnCount)
+
+    # meta data access:
+    print(table.meta)
+    print(table.meta["Foo"])
+
+    # column access:
+    print(table["Time"])
+    print(table["Time"].data)
+    print(table["Time"].unit)
+
+
+def test_Column():
+    v = TableDataset()
+    assert v.getColumnCount() == 0
+    v.addColumn("Energy", Column(
+        data=[1, 2, 3, 4], description="desc", unit='eV'))
+    assert v.getColumnCount() == 1
+    # http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/dataset/TableDataset.html#Z:Z__setitem__-java.lang.String-herschel.ia.dataset.Column-
 
 
 def test_CompositeDataset():
@@ -688,8 +813,8 @@ def test_Product():
     i2 = 'ev'                 # unit
     i3 = 'img1'  # description
     image = ArrayDataset(data=i1, unit=i2, description=i3)
-    s1 = [dict(name='col1', unit='keV', column=[1, 4.4, 5.4E3]),
-          dict(name='col2', unit='cnt', column=[0, 43.2, 2E3])
+    s1 = [dict(name='col1', column=Column(data=[1, 4.4, 5.4E3], unit='eV')),
+          dict(name='col2', column=Column(data=[0, 43.2, 2E3], unit='cnt'))
           ]
     spec = TableDataset(data=s1)
     x["RawImage"] = image
@@ -782,3 +907,6 @@ def test_Product():
 #     print(js)
 #     p = json.loads(js, cls=JSONObjectDecoder)
 #     print(p['h'].b)
+
+if __name__ == '__main__':
+    demo_TableDataset()

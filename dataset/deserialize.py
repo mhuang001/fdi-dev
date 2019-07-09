@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 from dataset.metadata import Parameter, NumericParameter, MetaData
-from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset
+from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column
 from dataset.product import FineTime1, History, Product
 
 ''' Note: this has to be in a different file where other interface

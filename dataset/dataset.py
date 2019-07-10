@@ -8,8 +8,9 @@ logger = logging.getLogger(__name__)
 from dataset.annotatable import Annotatable
 from dataset.copyable import Copyable
 from dataset.eq import DeepEqual
+from dataset.datawrapper import DataWrapper
 # from dataset.composite import
-from dataset.metadata import Attributable, AbstractComposite, DataWrapper
+from dataset.metadata import Attributable, AbstractComposite
 from dataset.odict import ODict
 from dataset.serializable import Serializable
 from dataset.listener import ColumnListener

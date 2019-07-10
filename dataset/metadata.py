@@ -6,10 +6,12 @@ logger = logging.getLogger(__name__)
 from dataset.annotatable import Annotatable
 from dataset.copyable import Copyable
 from dataset.eq import DeepEqual
+from dataset.quantifiable import Quantifiable
 from dataset.listener import EventSender, DatasetBaseListener, ParameterListener, DatasetListener, DatasetEvent, EventType
 from dataset.composite import Composite
 from dataset.odict import ODict
 from dataset.serializable import Serializable
+from dataset.datawrapper import DataWrapperMapper
 
 
 class Parameter(Annotatable, Copyable, DeepEqual, EventSender, Serializable):
@@ -91,30 +93,8 @@ class Parameter(Annotatable, Copyable, DeepEqual, EventSender, Serializable):
                      version=self.version)
 
 
-class Quantifiable():
-    """ A Quantifiable object is a numeric object that has a unit.
-    $ x.unit = ELECTRON_VOLTS
-    $ print x.unit
-    eV [1.60218E-19 J]"""
-
-    def __init__(self, unit=None, **kwds):
-        """
-
-        """
-        self.unit = unit
-        super().__init__(**kwds)
-
-    def getUnit(self):
-        """ Returns the unit related to this object."""
-        return self.unit
-
-    def setUnit(self, unit):
-        """ Sets the unit of this object. """
-        self.unit = unit
-
-
 class NumericParameter(Parameter, Quantifiable):
-    """
+    """ has a number as the value and a unit.
     """
 
     def __init__(self, **kwds):
@@ -248,53 +228,6 @@ class Attributable(MetaDataHolder):
         replaced
         """
         self._meta = newMetadata
-
-
-class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):
-    """ A DataWrapper is a composite of data, unit and description.
-    mh: note that all data are in the same unit. There is no metadata.
-    Implemented from AbstractDataWrapper.
-    """
-
-    def __init__(self, **kwds):
-        super().__init__(**kwds)
-        self._data = ODict()
-
-    @property
-    def data(self):
-        return self.getData()
-
-    @data.setter
-    def data(self, newData):
-        self.setData(newData)
-
-    def setData(self, data):
-        """ Replaces the current DataData with specified argument. 
-        mh: subclasses can override this to add listener whenevery data is
-        replaced
-        """
-        self._data = data
-
-    def getData(self):
-        """ Returns the data in this """
-        return self._data
-
-    def hasData(self):
-        """ Returns whether this data wrapper has data. """
-        return len(self.getData()) > 0
-
-    def __repr__(self):
-        return self.__class__.__name__ + \
-            '{ description = "%s", data = "%s", unit = "%s"}' % \
-            (str(self.description), str(self.getData()), str(self.unit))
-
-
-class DataWrapperMapper():
-    """ Object holding a map of data wrappers. """
-
-    def getDataWrappers(self):
-        """ Gives the data wrappers, mapped by name. """
-        return self._sets
 
 
 class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper, DatasetListener):

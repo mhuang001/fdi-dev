@@ -17,9 +17,11 @@ from dataset.copyable import Copyable
 from dataset.odict import ODict
 from dataset.serializable import serializeClassID, SerializableEncoder
 from dataset.eq import deepcmp
+from dataset.quantifiable import Quantifiable
 from dataset.listener import EventSender, DatasetBaseListener
 from dataset.composite import Composite
-from dataset.metadata import Parameter, Quantifiable, NumericParameter, MetaDataHolder, MetaData, Attributable, DataWrapper, DataWrapperMapper, AbstractComposite
+from dataset.metadata import Parameter, NumericParameter, MetaDataHolder, MetaData, Attributable, AbstractComposite
+from dataset.datawrapper import DataWrapper, DataWrapperMapper
 from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column
 from dataset.product import FineTime1, History, Product
 from dataset.deserialize import deserializeClassID

@@ -605,6 +605,7 @@ def test_TableDataset():
     v['col4'] = Column([2, 3])
     assert v.indexOf('col3') == v.indexOf(c)
 
+    checkjson(v)
     checkgeneral(v)
 
     # doc cases
@@ -654,8 +655,8 @@ def demo_TableDataset():
     # create dummy numeric data:
     # t=Double1d.range(100)
     # e=2*t+100
-    t = [x * 1.0 for x in range(100)]
-    e = [2 * x + 100 for x in t]
+    t = [x * 1.0 for x in range(10)]
+    e = [2 * x + 10 for x in t]
 
     # creating a table dataset to hold the quantified data
     table = TableDataset(description="Example table")
@@ -755,6 +756,10 @@ def test_CompositeDataset():
     assert v == v1
     assert v1 == v
 
+    # access datasets mapper
+    sets = v1.getDataWrappers()
+    assert len(sets) == 2
+    assert id(sets[b9]) == id(v1[b9])
     # change data. diff dataset access syntax []
     v1[b9].data[1] += 0
     assert v == v1
@@ -824,6 +829,12 @@ def test_Product():
     assert x["QualityImage"] == 'aQualityImage'
     x["Spectrum"] = spec
     assert x["Spectrum"].getValueAt(columnIndex=1, rowIndex=0) == 0
+
+    # default
+    assert Product('empty').getDefault() is None
+    d = x.getDefault()
+    sets = x.getDataWrappers()
+    assert id(d) == id(sets['RawImage'])
 
     # Test metadata
     x.creator = ""

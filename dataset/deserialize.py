@@ -93,11 +93,15 @@ def deserializeClassID(js, debug=False, usedict=False):
     if not isinstance(js, (str, bytes)) or len(js) == 0:
         return None
     # debug = False  # True if issubclass(obj.__class__, list) else False
-    if usedict:
-        obj = json.loads(js)
-    else:
-        obj = json.loads(js, object_pairs_hook=ODict)
-
+    try:
+        if usedict:
+            obj = json.loads(js)
+        else:
+            obj = json.loads(js, object_pairs_hook=ODict)
+    except json.decoder.JSONDecodeError as e:
+        logging.error(' Bad string to decode:\n==============\n' +
+                      js[:500] + '...\n==============')
+        raise e
     if debug:
         # print('load-str ' + str(o) + ' class ' + str(o.__class__))
         print('-------- json loads returns: --------\n' + str(obj))

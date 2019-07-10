@@ -31,6 +31,7 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual):
 
     def __init__(self, **kwds):
         """
+
         """
         super().__init__(**kwds)
 
@@ -214,12 +215,14 @@ class TableDataset(Dataset, DataWrapper, TableModel):
         If the key is a string, Returns the index of specified Column name.
         mh: Or else returns the key itself.
         """
-        k = list(self.data.keys())
-        v = [id(x) for x in self.data.values()]
         if issubclass(key.__class__, str):
+            k = list(self.data.keys())
             idx = k.index(key)
         elif issubclass(key.__class__, Column):
-            idx = v.index(id(key))
+            v = list(self.data.values())
+            #k,v = zip(*l)
+            i = [id(x) for x in v]
+            idx = i.index(id(key))
         else:
             idx = key
         return idx

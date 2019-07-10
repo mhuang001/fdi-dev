@@ -210,7 +210,7 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
     def getDefault(self):
         """ Convenience method that returns the first dataset \
         belonging to this product. """
-        return self._sets[0] if self._sets.size() > 0 else None
+        return list(self._sets.values())[0] if len(self._sets) > 0 else None
 
     def __getattribute__(self, name, withmeta=True):
         """ Reads meta data table when Mandatory Attributes are

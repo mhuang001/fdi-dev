@@ -784,6 +784,59 @@ def test_CompositeDataset():
     checkgeneral(v)
 
 
+def demo_CompositeDataset():
+    """ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/ia/dataset/demo/CompositeDataset.py
+    """
+    # creating a composite dataset.For this demo, we use empty datasets only.
+    c = CompositeDataset()
+    c["MyArray"] = ArrayDataset()  # adding an array
+    c["MyTable"] = TableDataset()  # adding a table
+    c["MyComposite"] = CompositeDataset()  # adding a composite as child
+
+    # alternative Java syntax:
+    c.set("MyArray", ArrayDataset())
+    c.set("MyTable", TableDataset())
+    c.set("MyComposite", CompositeDataset())
+
+    # adding two children to a "MyComposite":
+    c["MyComposite"]["Child1"] = ArrayDataset()
+    assert issubclass(c["MyComposite"]["Child1"].__class__, ArrayDataset)
+    c["MyComposite"]["Child2"] = TableDataset()
+    c["MyComposite"]["Child3"] = TableDataset()
+
+    # replace array "Child1" by a composite:
+    c["MyComposite"]["Child1"] = CompositeDataset()
+    assert issubclass(c["MyComposite"]["Child1"].__class__, CompositeDataset)
+
+    # remove3 table "Child3"
+    assert c["MyComposite"].containsKey("Child3") == True
+    c["MyComposite"].remove("Child3")
+    assert c["MyComposite"].containsKey("Child3") == False
+
+    # report the number of datasets in this composite
+    print(c.size())
+
+    # print(information about this variable ...
+    print(c.__class__)
+    print(c)
+
+    # ... print(information about child "MyComposite", and ...
+    print(c["MyComposite"].__class__)
+    print(c["MyComposite"])
+
+    # ... that of a nested child ...
+    print(c["MyComposite"]["Child1"].__class__)
+    print(c["MyComposite"]["Child1"])
+
+    # ... or using java syntax to access Child1:
+    print(c.get("MyComposite").get("Child1"))
+
+    # or alternatively:
+    child = c["MyComposite"]
+    print(child.__class__)
+    print(child)
+
+
 def test_FineTime1():
     v = FineTime1(datetime.datetime(2019, 2, 19, 1, 2, 3, 456789,
                                     tzinfo=datetime.timezone.utc))
@@ -922,4 +975,8 @@ def test_Product():
 #     print(p['h'].b)
 
 if __name__ == '__main__':
+    print("TableDataset demo")
     demo_TableDataset()
+
+    print("CompositeDataset demo")
+    demo_CompositeDataset()

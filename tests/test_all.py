@@ -136,10 +136,10 @@ def checkpostresult(o):
     # input data
     input = nodetestinput['input']
     pname, pv = list(input.meta.items())[0]
-    dname, dv = list(input.sets.items())[0]
+    dname, dv = list(input.getDataWrappers().items())[0]
     # compare with returened data
     assert p.meta[pname] == pv
-    assert p.sets[dname] == dv
+    assert p[dname] == dv
 
 
 def test_post():

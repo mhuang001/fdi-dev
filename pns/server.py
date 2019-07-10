@@ -220,15 +220,15 @@ def genposttestprod(d):
     im = ArrayDataset(data=i1, unit='magV', description='image 1')
     input = indata['input']
     pname, pv = list(input.meta.items())[0]
-    dname, dv = list(input.sets.items())[0]
-    print(im == dv)  # this should be true
+    dname, dv = list(input.getDataWrappers().items())[0]
+    # print(im == dv)  # this should be true
     x.meta[pname] = pv
-    x.sets[dname] = dv
+    x[dname] = dv
     s1 = [dict(name='col1', unit='keV', column=[1, 4.4, 5.4E3]),
           dict(name='col2', unit='cnt', column=[0, 43.2, 2E3])]
     spec = TableDataset(data=s1)
     x.set('QualityImage', 'aQualityImage')
-    x.sets["Spectrum"] = spec
+    x["Spectrum"] = spec
     now = time.time()
     x.creationDate = FineTime1(datetime.datetime.fromtimestamp(now))
     x.type = 'test'

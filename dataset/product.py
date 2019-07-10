@@ -224,18 +224,6 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
             return self.getMeta()[name]
         return super().__getattribute__(name)
 
-    def q__getattr__(self, name, withmeta=True):
-        """ Reads meta data table when Mandatory Attributes are
-        read
-        """
-        if name in mandatoryProductAttrs and withmeta:
-            # if meta does not exist, inherit Attributable
-            # before any class that access mandatory attributes
-            #print('mm ' + str(self.meta[name]))
-            return self.meta[name]
-        #print('getattr ' + name)
-        return super().__getattribute__(name)
-
     def setMeta(self, newMetadata):
         super().setMeta(newMetadata)
         self.getMeta().addListener(self)
@@ -337,4 +325,4 @@ def addMandatoryProductAttrs(cls):
     return cls
 
 
-Product = addMandatoryProductAttrs(Product)
+#Product = addMandatoryProductAttrs(Product)

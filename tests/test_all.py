@@ -721,7 +721,7 @@ def test_CompositeDataset():
     a2 = 'ev'
     a3 = 'arraydset 1'
     a4 = ArrayDataset(data=a1, unit=a2, description=a3)
-    a5, a6, a7 = [[1.09, 289], [3455, 564]], 'count', 'arraydset 1'
+    a5, a6, a7 = [[1.09, 289], [3455, 564]], 'count', 'arraydset 2'
     a8 = ArrayDataset(data=a5, unit=a6, description=a7)
     v = CompositeDataset()
     a9 = 'dataset 1'

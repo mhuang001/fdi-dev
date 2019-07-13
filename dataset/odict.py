@@ -1,8 +1,8 @@
 from collections import OrderedDict
-from dataset.serializable import Serializable
+#from dataset.serializable import Serializable
 
 
-class ODict(OrderedDict, Serializable):
+class ODict(OrderedDict):
     """ OrderedDict with a better __repre__.
     """
 

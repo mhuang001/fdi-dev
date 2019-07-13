@@ -514,8 +514,6 @@ def test_ArrayDataset():
     a2 = 'ev'                 # unit
     a3 = 'three energy vals'  # description
     v = ArrayDataset(data=a1, unit=a2, description=a3)
-    v1 = ArrayDataset(a1, a2, description=a3)  # simpler but error-prone
-    assert v == v1
 
     # COPY
     c = v.copy()
@@ -576,6 +574,11 @@ def test_ArrayDataset():
     assert v != v1
     assert v1 != v
 
+    # iteration
+    i = []
+    for m in v:
+        i.append(m)
+    assert i == a1
     checkjson(v)
     checkgeneral(v)
 

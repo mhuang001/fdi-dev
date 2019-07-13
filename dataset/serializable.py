@@ -1,5 +1,12 @@
 import json
 
+import logging
+# create logger
+logger = logging.getLogger(__name__)
+#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+
+from dataset.odict import ODict
+
 
 class SerializableEncoder(json.JSONEncoder):
     """ can encode parameter and product etc such that they can be recovered
@@ -18,10 +25,11 @@ class SerializableEncoder(json.JSONEncoder):
                 #print('&&&& %s %s' % (str(obj.__class__), str(obj)))
                 if issubclass(obj.__class__, bytes):
                     return dict(hex=obj.hex(), classID='bytes', version='')
+                # print(obj.serializable())
                 return obj.serializable()
-            except Exception:
-                print('exc ' + str(err))
-                raise err
+            except Exception as e:
+                print('Ser ' + str(err))
+                raise e
 
 
 #    obj = json.loads(jstring)
@@ -55,4 +63,4 @@ class Serializable():
         """ returns an odict that has all state info of this object.
         Subclasses should override this function.
         """
-        return Dict(info='serializable function not implemented')
+        return ODict()

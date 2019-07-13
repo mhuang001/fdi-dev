@@ -16,9 +16,9 @@ class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):
     Implemented from AbstractDataWrapper.
     """
 
-    def __init__(self, **kwds):
+    def __init__(self, data=None, **kwds):
         super().__init__(**kwds)
-        self._data = ODict()
+        self.setData(data)
 
     @property
     def data(self):
@@ -36,12 +36,12 @@ class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):
         self._data = data
 
     def getData(self):
-        """ Returns the data in this """
+        """ Returns the data in this dw"""
         return self._data
 
     def hasData(self):
         """ Returns whether this data wrapper has data. """
-        return len(self.getData()) > 0
+        return self.getData() is not None and len(self.getData()) > 0
 
     def __repr__(self):
         return self.__class__.__name__ + \

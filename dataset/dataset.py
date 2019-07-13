@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -42,21 +40,20 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual):
         visitor.visit(self)
 
 
-class ArrayDataset(Dataset, DataWrapper):
-    """  Special dataset that contains a single Array Data object.
-    """
-
-    def __init__(self, data=None, unit=None, **kwds):
+class GeneralDataset(Dataset, DataWrapper):
+    def __init__(self, **kwds):
         """
         """
         super().__init__(**kwds)  # initialize data, meta, unit
-        self._data = data
-        self.unit = unit
+
+    def __iter__(self):
+        for x in self.data:
+            yield x
 
     def __repr__(self):
         return self.__class__.__name__ + \
-            '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' % \
-            (str(self.description), str(self.meta), str(self._data), str(self.unit))
+            '{ description = "%s", meta = %s, data = "%s"}' % \
+            (str(self.description), str(self.meta), str(self.data))
 
     def toString(self):
         s = '{description = "%s", meta = %s, data = "%s", unit = "%s"}' % \
@@ -66,12 +63,48 @@ class ArrayDataset(Dataset, DataWrapper):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return ODict(description=self.description,
-                     meta=self.meta,
-                     data=self.getData(),
-                     unit=self.unit,
-                     classID=self.classID,
-                     version=self.version)
+        # s = ODict(description=self.description, meta=self.meta)  # super().serializable()
+        # s.update(ODict(data=self.getData()))
+        s = ODict(description=self.description,
+                  meta=self.meta,
+                  data=self.data,
+                  classID=self.classID,
+                  version=self.version)
+        return s
+
+
+class ArrayDataset(GeneralDataset):
+    """  Special dataset that contains a single Array Data object.
+    mh: assumed to contain a mutable sequence which should provide methods append(), count(), index(), extend(), insert(), pop(), remove(), reverse() and sort()
+    """
+
+    def __init__(self, unit=None, **kwds):
+        """
+        """
+        super().__init__(**kwds)  # initialize data, meta
+        if not issubclass(self.data.__class__, list) and self.data is not None:
+            # dataWrapper initializes data as None
+            logging.error(
+                'data in ArrayDataset must be a subclass of list: ' + self.data.__class__.__name__)
+            raise TypeError()
+
+        self.unit = unit
+
+    def __repr__(self):
+        return self.__class__.__name__ + \
+            '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' % \
+            (str(self.description), str(self.meta), str(self.data), str(self.unit))
+
+    def serializable(self):
+        """ Can be encoded with serializableEncoder """
+        # s = ODict(description=self.description, meta=self.meta, data=self.data)  # super().serializable()
+        s = ODict(description=self.description,
+                  meta=self.meta,
+                  data=self.data,
+                  classID=self.classID,
+                  version=self.version)
+        s.update(ODict(unit=self.unit))
+        return s
 
 
 class Column(ArrayDataset, ColumnListener):
@@ -83,7 +116,7 @@ class Column(ArrayDataset, ColumnListener):
     pass
 
 
-class TableModel():
+class TableModel(DataWrapper):
     """ to interrogate a tabular data model
     """
 
@@ -91,7 +124,6 @@ class TableModel():
         """
 
         """
-        # self.data = []
         super().__init__(**kwds)
 
     def getColumnClass(self, columnIndex):
@@ -132,7 +164,7 @@ class TableModel():
         return list(self.data.items())[columIndex]
 
 
-class TableDataset(Dataset, DataWrapper, TableModel):
+class TableDataset(Dataset, TableModel):
     """  Special dataset that contains a single Array Data object.
     A TableDataset is a tabular collection of Columns. It is optimized to work on array data as specified in the herschel.ia.numeric package.
     The column-wise approach is convenient in many cases. For example, one has an event list, and each algorithm is adding a new field to the events (i.e. a new column, for example a quality mask).
@@ -158,18 +190,17 @@ class TableDataset(Dataset, DataWrapper, TableModel):
     Please see also this selection example. 
     """
 
-    def __init__(self, data=None, **kwds):
+    def __init__(self, **kwds):
         """
         """
         super().__init__(**kwds)  # initialize data, meta, unit
-        self.setData(data)
 
     def setData(self, data):
         """ set name-column pairs if any of ['name'], .name,
         .__next__() is valid for each item in data
         """
         # logging.debug(data.__class__)
-        if data is not None and len(data) != 0:
+        if data is not None:
             d = ODict()
             if issubclass(data.__class__, list):
                 for x in data:
@@ -192,6 +223,8 @@ class TableDataset(Dataset, DataWrapper, TableModel):
 
             # logging.debug(d)
             super().setData(d)
+        else:
+            super().setData(ODict())
 
     def addColumn(self, name, column):
         """ Adds the specified column to this table, and attaches a name
@@ -227,6 +260,15 @@ class TableDataset(Dataset, DataWrapper, TableModel):
         else:
             idx = key
         return idx
+
+    def addRow(self, row):
+        """ Adds the specified map as a new row to this table.
+        """
+        if len(row) < len(self.data):
+            logging.error('row is too short')
+            raise Exception
+        for c in self.data:
+            data[c].data.append(row[c])
 
     @property
     def rowCount(self):

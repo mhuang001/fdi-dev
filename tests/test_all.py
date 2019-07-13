@@ -574,11 +574,21 @@ def test_ArrayDataset():
     assert v != v1
     assert v1 != v
 
+    # data access
+    d = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    x = ArrayDataset(data=d)
+    assert x.data[1][2] == 6
+    assert x.data[1][2] == x[1][2]
+    # slice [0:2] is [[1,2,3][4,5,6]]
+    y = x[0:2]
+    assert y[1][0] == 4
+
     # iteration
     i = []
     for m in v:
         i.append(m)
     assert i == a1
+
     checkjson(v)
     checkgeneral(v)
 
@@ -634,6 +644,14 @@ def test_TableDataset():
     assert column1 == column2
     text = x.description
     assert text == 'Example table'
+
+    # addColumn
+    m = [-x for x in t]
+    c3 = Column(unit='m', data=m)
+    assert x.columnCount == 2
+    x.addColumn('dist', c3)
+    assert x.columnCount == 3
+    assert x[2][1] == m[1]
 
     if 0:
         # iteration:

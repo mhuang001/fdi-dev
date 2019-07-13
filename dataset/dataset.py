@@ -90,6 +90,30 @@ class ArrayDataset(GeneralDataset):
 
         self.unit = unit
 
+    def __setitem__(self, key, value):
+        """
+        """
+        d = self.getData()
+        if key < len(d):
+            d[key] = value
+        else:
+            d.append(value)
+
+    def __getitem__(self, key):
+        """ return value at key.
+        """
+        d = self.getData()
+        l = len(d)
+
+        if issubclass(key.__class__, int) and key < l:
+            return d[key]
+        elif issubclass(key.__class__, slice):
+            r = self.copy()
+            r.data = d[key]
+            return r
+        else:
+            raise ValueError('index %d out of range 0..%d' % (key, l))
+
     def __repr__(self):
         return self.__class__.__name__ + \
             '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' % \
@@ -263,12 +287,13 @@ class TableDataset(Dataset, TableModel):
 
     def addRow(self, row):
         """ Adds the specified map as a new row to this table.
+        mh: row is a dict with names ass keys
         """
         if len(row) < len(self.data):
             logging.error('row is too short')
-            raise Exception
+            raise Exception('row is too short')
         for c in self.data:
-            data[c].data.append(row[c])
+            self.data[c].data.append(row[c])
 
     @property
     def rowCount(self):
@@ -295,6 +320,32 @@ class TableDataset(Dataset, TableModel):
         """ cannot do this.
         """
         raise Exception
+
+    def select(self, selection):
+        """ Select a number of rows from this table dataset and
+        return a new TableDataset object containing only the selected rows.
+        """
+        if not issubclass(selection.__class__, list):
+            raise ValueError('not a list')
+        r = TableDataset()
+        for name in self:
+            u = self.data[name].unit
+            c = Column(unit=u, data=[])
+            if len(selection) == 0:
+                pass
+            elif isinstance(selection[0], int):
+                for i in selection:
+                    c.data.append(self.data[name][i])
+            elif isinstance(selection[0], bool):
+                i = 0
+                for x in selection:
+                    if x:
+                        c.data.append(self.data[name][i])
+                    i += 1
+            else:
+                raise ValueError('not bool, int')
+            r.addColumn(name, c)
+        return r
 
     def __setitem__(self, key, value):
         """

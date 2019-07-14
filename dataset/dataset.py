@@ -11,10 +11,10 @@ from dataset.datawrapper import DataWrapper
 from dataset.metadata import Attributable, AbstractComposite
 from dataset.odict import ODict
 from dataset.serializable import Serializable
-from dataset.listener import ColumnListener
+from dataset.listener import ColumnListener, DatasetBaseListener, MetaDataListener
 
 
-class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual):
+class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, MetaDataListener):
     """ Attributable and annotatable information data container
     that can be be part of a Product.
 
@@ -35,7 +35,7 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual):
         super().__init__(**kwds)
 
     def accept(self, visitor):
-        """ Hook for adding functionality to meta data object
+        """ Hook for adding functionality to object
         through visitor pattern."""
         visitor.visit(self)
 
@@ -49,6 +49,11 @@ class GeneralDataset(Dataset, DataWrapper):
     def __iter__(self):
         for x in self.data:
             yield x
+
+    def __contains__(self, x):
+        """
+        """
+        return x in self.data
 
     def __repr__(self):
         return self.__class__.__name__ + \
@@ -199,19 +204,19 @@ class TableDataset(Dataset, TableModel):
 
     General Note:
 
-    For reasons of flexibility, memory consumption and performance, this class is not checking whether all columns are of the same length: this is the responsibility of the user/developer. See also the library documentation for more information about this. 
+    For reasons of flexibility, memory consumption and performance, this class is not checking whether all columns are of the same length: this is the responsibility of the user/developer. See also the library documentation for more information about this.
 
     Note on column names:
 
     If a column is added without specifying a name, the name ColumnX is created, where X denotes the index of that column.
-    Column name duplicity is not allowed. 
+    Column name duplicity is not allowed.
 
     Developers:
 
-    See "Writing special datasets or products" at the developer's documentation also. 
+    See "Writing special datasets or products" at the developer's documentation also.
 
 
-    Please see also this selection example. 
+    Please see also this selection example.
     """
 
     def __init__(self, **kwds):
@@ -266,10 +271,19 @@ class TableDataset(Dataset, TableModel):
             name = 'column' + str(idx)
         self.data[name] = column
 
+    def removeColumn(self, key):
+        """
+        """
+        if issubclass(key.__class__, str):
+            name = key
+        else:
+            name = self.col(key)[0]
+        del(self.data[name])
+
     def indexOf(self, key):
         """ Returns the index of specified column; if the key is a Column,
-        it looks for equal references (same column objects), not for 
-        equal values. 
+        it looks for equal references (same column objects), not for
+        equal values.
         If the key is a string, Returns the index of specified Column name.
         mh: Or else returns the key itself.
         """
@@ -278,7 +292,7 @@ class TableDataset(Dataset, TableModel):
             idx = k.index(key)
         elif issubclass(key.__class__, Column):
             v = list(self.data.values())
-            #k,v = zip(*l)
+            # k,v = zip(*l)
             i = [id(x) for x in v]
             idx = i.index(id(key))
         else:
@@ -294,6 +308,11 @@ class TableDataset(Dataset, TableModel):
             raise Exception('row is too short')
         for c in self.data:
             self.data[c].data.append(row[c])
+
+    def getRow(self, rowIndex):
+        """ Returns a list containing the objects located at a particular row.
+        """
+        return [self.getColumn(x)[rowIndex] for x in self]
 
     @property
     def rowCount(self):
@@ -326,7 +345,7 @@ class TableDataset(Dataset, TableModel):
         return a new TableDataset object containing only the selected rows.
         """
         if not issubclass(selection.__class__, list):
-            raise ValueError('not a list')
+            raise ValueError('selection is not a list')
         r = TableDataset()
         for name in self:
             u = self.data[name].unit
@@ -347,8 +366,15 @@ class TableDataset(Dataset, TableModel):
             r.addColumn(name, c)
         return r
 
-    def __setitem__(self, key, value):
+    def getColumn(self, key):
+        """ return colmn if given string as name or int as index.
+        returns name if given column.
         """
+        idx = self.indexOf(key)
+        return idx if issubclass(key.__class__, Column) else self.col(idx)[1]
+
+    def setColumn(self, key, value):
+        """ Replaces a column in this table with specified name to specified column if key exists, or else add a new coolumn.
         """
         d = self.getData()
         if key in d:
@@ -360,17 +386,21 @@ class TableDataset(Dataset, TableModel):
         """ return colmn if given string as name or int as index.
         returns name if given column.
         """
-        idx = self.indexOf(key)
-        return idx if issubclass(key.__class__, Column) else self.col(idx)[1]
+        return self.getColumn(key)
 
-    def removeColumn(self, key):
+    def __setitem__(self, key, value):
         """
         """
-        if issubclass(key.__class__, str):
-            name = key
-        else:
-            name = self.col(key)[0]
-        del(self.data[name])
+        self.setColumn(key, value)
+
+    def __iter__(self):
+        for x in self.data:
+            yield x
+
+    def __contains__(self, x):
+        """
+        """
+        return x in self.data
 
     def __repr__(self):
         return self.__class__.__name__ +\

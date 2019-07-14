@@ -614,11 +614,15 @@ def test_TableDataset():
     assert v.getValueAt(rowIndex=1, columnIndex=1) == 43.2
     v.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
     assert v.getValueAt(rowIndex=1, columnIndex=1) == 42
+
     # indexOf
     c = Column()
     v['col3'] = c
     v['col4'] = Column([2, 3])
     assert v.indexOf('col3') == v.indexOf(c)
+
+    # in
+    assert 'col3' in v
 
     checkjson(v)
     checkgeneral(v)
@@ -653,14 +657,16 @@ def test_TableDataset():
     assert x.columnCount == 3
     assert x[2][1] == m[1]
 
-    if 0:
-        # iteration:
-        for i in range(x.rowCount):
-            row = x.getRow(i)
-            print(row.get(0))  # element in 1st column of this row
-            # element in 2nd column of this rowiter = x.iterator()
-            print(row.get(1))
+    # addRow
+    assert x.rowCount == 10
+    x.addRow({'Time': 101, 'Energy': 102, 'dist': 103})
+    assert x.rowCount == 11
+    # select
+    c10 = x[1]
+    r10 = x.select([10])
+    assert r10[1][0] == c10[10]
 
+    if 0:
         # Please see also this elaborated example.
 
         # Additionally you can filter the rows in a table, for example:
@@ -728,6 +734,12 @@ def demo_TableDataset():
     print(table["Time"])
     print(table["Time"].data)
     print(table["Time"].unit)
+    # iteration:
+    for i in range(table.rowCount):
+        row = table.getRow(i)
+        print(row.get(0))  # element in 1st column of this row
+        # element in 2nd column of this rowiter = x.iterator()
+        print(row.get(1))
 
 
 def test_Column():

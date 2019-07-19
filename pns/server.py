@@ -24,7 +24,6 @@ else:
     logger = logging.getLogger(__name__)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-from pns.common import mkdir, opt
 from pns.pnsconfig import baseurl, node, paths, init, config, prog, clean, timeout
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
@@ -37,7 +36,7 @@ except Exception:
     pass
 
 from dataset.product import Product, FineTime1, History
-from dataset.dataset import ArrayDataset, TableDataset
+from dataset.dataset import GeneralDataset, ArrayDataset, TableDataset
 from dataset.serializable import serializeClassID
 from dataset.deserialize import deserializeClassID
 
@@ -193,7 +192,7 @@ def run(d):
     x = Product(description="hello world pipeline product",
                 creator=runner, rootCause=cause,
                 instrument="hello", modelName="you know what!")
-    x['theAnswer'] = ArrayDataset(
+    x['theAnswer'] = GeneralDataset(
         data=res, description='result from hello command')
     now = time.time()
     x.creationDate = FineTime1(datetime.datetime.fromtimestamp(now))
@@ -216,8 +215,6 @@ def genposttestprod(d):
     x = Product(description="This is my product example",
                 creator=runner, rootCause=cause,
                 instrument="MyFavourite", modelName="Flight")
-    i1 = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    im = ArrayDataset(data=i1, unit='magV', description='image 1')
     input = indata['input']
     pname, pv = list(input.meta.items())[0]
     dname, dv = list(input.getDataWrappers().items())[0]
@@ -450,22 +447,3 @@ def not_found(error):
     w = {'error': 'Conflict. Updating.',
          'message': str(error), 'timestamp': ts}
     return make_response(jsonify(w), 409)
-
-
-if __name__ == '__main__':
-
-    logger.info(
-        'Pipline Node server starting. Make sure no other instance is running')
-    node, verbose = opt(node)
-
-    if verbose:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
-    logger.info('logging level %d' % (logger.getEffectiveLevel()))
-    if node['username'] in ['', None] or node['password'] in ['', None]:
-        logger.error(
-            'Error. Specify non-empty username and password on commandline')
-        exit(3)
-
-    app.run(host=node['host'], port=node['port'], debug=verbose)

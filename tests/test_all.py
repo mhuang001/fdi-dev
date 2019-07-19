@@ -17,7 +17,8 @@ logger = logging.getLogger()
 
 logger.debug('level %d' % (logger.getEffectiveLevel()))
 
-from pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders, opt
+from pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
+from pns.options import opt
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
 from pns.pnsconfig import baseurl, node, paths, init, config, prog, clean, timeout
@@ -35,7 +36,7 @@ from dataset.serializable import serializeClassID, serializeClassID
 from dataset.product import Product
 from dataset.metadata import NumericParameter
 from dataset.deserialize import deserializeClassID
-from dataset.dataset import ArrayDataset
+from dataset.dataset import ArrayDataset, GeneralDataset
 from dataset.eq import deepcmp
 
 testname = 'SVOM'
@@ -170,7 +171,8 @@ def makeruntestdata():
     which has one data item -- a string that is the name
     """
     x = Product(description="hello world pipeline input product")
-    x['theName'] = ArrayDataset(data='stranger', description='input. the name')
+    x['theName'] = GeneralDataset(
+        data='stranger', description='input. the name')
     return x
 
 

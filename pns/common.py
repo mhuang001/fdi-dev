@@ -5,8 +5,6 @@ from pprint import pprint, pformat
 import urllib.request
 import urllib.error as ue
 import json
-import getopt
-import sys
 
 from pns.logdict import logdict
 import logging
@@ -36,29 +34,6 @@ commonheaders = {
     'Connection': 'keep-alive',
     "Content-type": 'application/json'
 }
-
-
-class Decoder(json.JSONDecoder):
-    """ adapted from https://stackoverflow.com/questions/45068797/how-to-convert-string-int-json-into-real-int-with-json-loads
-    modified to also convert keys in dictionaries.
-    """
-
-    def decode(self, s):
-        result = super().decode(s)  # result = super(Decoder, self).decode(s) for Python 2.x
-        return self._decode(result)
-
-    def _decode(self, o):
-        if isinstance(o, str) or isinstance(o, bytes):
-            try:
-                return int(o)
-            except ValueError:
-                return o
-        elif isinstance(o, dict):
-            return {self._decode(k): self._decode(v) for k, v in o.items()}
-        elif isinstance(o, list):
-            return [self._decode(v) for v in o]
-        else:
-            return o
 
 
 def getJsonObj(url, headers=None, usedict=False):
@@ -229,56 +204,6 @@ def mkdir(f, mode=0o755):
             else:
                 raise(e)  # re-raise the exception
             os.chmod(path, mode)
-
-
-def opt(node):
-    """Get username and password and host ip and port
-    """
-
-    logger.debug('username %s password %s host=%s port=%d' %
-                 (node['username'], node['password'],
-                  node['host'], node['port']))
-    msg = 'Specify non-empty username (-u or --username=) and password (-p or --password= ) host IP (-i or --ip=) and port (-o or --port=) on commandline.'
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "hu:p:i:o:v",
-                                   [
-                                       "help",
-                                       "username=",
-                                       "password=",
-                                       "ip=",
-                                       "port=",
-                                       'verbose'
-        ])
-    except getopt.GetoptError as err:
-        # print help information and exit:
-        # will print something like "option -a not recognized"
-        logger.error(str(err))
-        logger.info(msg)
-        sys.exit(2)
-    logger.debug('Command line options %s args %s' % (opts, args))
-    verbose = False
-    for o, a in opts:
-        if o == "-v":
-            verbose = True
-        elif o in ("-h", '--help'):
-            print(msg)
-            sys.exit(0)
-        elif o in ("-u", '--username'):
-            node['username'] = a
-        elif o in ('-p', '--password'):
-            node['password'] = a
-        elif o in ("-i", '--ip'):
-            node['host'] = a
-        elif o in ('-o', '--port'):
-            node['port'] = int(a)
-        else:
-            logger.error("unhandled option")
-            print(msg)
-            sys.exit(1)
-    logger.debug('username %s password %s host=%s port=%d' %
-                 (node['username'], node['password'],
-                  node['host'], node['port']))
-    return node, verbose
 
 
 if 0 and __name__ == '__main__':

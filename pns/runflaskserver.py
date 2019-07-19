@@ -1,4 +1,5 @@
 #!flask/bin/python
+
 from pns import module  # absolute import
 from pns import logdict  # import logdict
 import logging
@@ -8,9 +9,9 @@ logging.config.dictConfig(logdict.logdict)
 logger = logging.getLogger()
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-from pns.common import opt
 from pns.server import app
 from pns.pnsconfig import baseurl, node
+from pns.options import opt
 
 if __name__ == '__main__':
 

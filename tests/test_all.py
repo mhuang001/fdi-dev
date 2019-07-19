@@ -2,6 +2,9 @@ import datetime
 import traceback
 from pprint import pprint
 import json
+from pathlib import Path
+import os
+
 from .logdict import doLogging, logdict
 if doLogging:
     import logging
@@ -947,7 +950,6 @@ def test_Product():
     p2 = Product(description="Description 2")
     assert p1.equals(p2) == False
     p3 = p1.copy()
-    deepcmp(p1, p3)
     assert p1.equals(p3) == True
 
     # test mandatory properties that are also metadata
@@ -963,6 +965,192 @@ def test_Product():
 
     checkjson(x)
     checkgeneral(x)
+
+
+from pal.urn import Urn
+from pal.productstorage import ProductStorage
+from pal.productref import ProductRef
+from pal.comparable import Comparable
+
+
+def test_urn():
+    p = Product(description='pal test')
+    a1 = 'asdf'
+    c1, c2 = 's:', '/d'
+    a2 = c1
+    b1, b2, b3 = '/b', '/tmp/foo', '/c'
+    a3 = b1 + b2 + b3
+    a4 = p.__class__.__qualname__
+    a5 = 43
+    s = a1 + '://' + a2   # asdf://s:
+    u = s + a3 + '/' + a4 + '_' + str(a5)
+
+    # constructor
+    # urn only
+    v = Urn(urn=u)
+    assert v.getScheme() == a1
+    assert v.getNetloc() == a2
+    assert v.getStorage() == s + a3  # asdf://s:/b/tmp/foo/c
+    assert v.getPoolId() == ''  # because pool arg is not set
+    assert v.getUrnWithoutPoolId() == a4 + '_' + str(a5)
+    assert v.getIndex() == a5
+    assert v.getUrn() == u
+    # urn with pool
+    v = Urn(urn=u, pool=a3)
+    assert v.getScheme() == a1
+    assert v.getNetloc() == a2
+    assert v.getStorage() == s   # asdf://s:
+    assert v.getPoolId() == a3  # because pool arg is set
+    assert v.getUrnWithoutPoolId() == a4 + '_' + str(a5)
+    assert v.getIndex() == a5
+    # pool is shorter than the path part of urn
+    v = Urn(urn=u, pool=b2)
+    assert v.getScheme() == a1
+    assert v.getNetloc() == a2
+    assert v.getStorage() == s + b1   # asdf://s:/b
+    assert v.getPoolId() == b2  # because pool arg is set
+    assert v.getUrnWithoutPoolId() == b3 + a4 + '_' + str(a5)
+    assert v.getIndex() == a5
+    # urn with storage
+    v = Urn(urn=u, storage=s)
+    assert v.getScheme() == a1
+    assert v.getNetloc() == a2
+    assert v.getStorage() == s
+    assert v.getPoolId() == a3
+    assert v.getUrnWithoutPoolId() == a4 + '_' + str(a5)
+    assert v.getIndex() == a5
+    # urn with storage that has a path part
+    v = Urn(urn=u, storage=s + b1)
+    assert v.getScheme() == a1
+    assert v.getNetloc() == a2
+    assert v.getStorage() == s + b1  # asdf://s:/b
+    assert v.getPoolId() == b2 + b3  # /tmp/foo/c
+    assert v.getUrnWithoutPoolId() == a4 + '_' + str(a5)
+    assert v.getIndex() == a5
+    # urn with storage that does not match urn
+    try:
+        v = Urn(urn=u, storage=s + 'x')
+    except Exception as e:
+        assert issubclass(e.__class__, ValueError)
+    print(v._storage + ' ' + v.toString())
+    # no-arg constructor
+    v = Urn()
+    v.urn = u
+    assert v.getScheme() == a1
+    assert v.getNetloc() == a2
+    assert v.getStorage() == s + a3  # asdf://s:/b/tmp/foo/c
+    assert v.getPoolId() == ''  # because pool is not set
+    assert v.getUrnWithoutPoolId() == a4 + '_' + str(a5)
+    assert v.getIndex() == a5
+    assert v.getUrn() == u
+    v.pool = a3
+    assert v.getScheme() == a1
+    assert v.getNetloc() == a2
+    assert v.getStorage() == s   # asdf://s:
+    assert v.getPoolId() == a3  # because pool is set
+    assert v.getUrnWithoutPoolId() == a4 + '_' + str(a5)
+    assert v.getIndex() == a5
+    assert v.getUrn() == u
+    # the order has no effect. also equality
+    v1 = Urn()
+    v1.pool = a3
+    v1.urn = u
+    assert v == v1
+
+    # access
+    assert v.getUrn() == v.urn
+    assert v.getPool() == v.pool
+
+    checkjson(v)
+
+
+def test_ProductRef():
+    defaultpool = '/tmp/pool'
+    p = Product()
+    a1 = 'asdf'
+    c1, c2 = 's:', '/d'
+    a2 = c1
+    b1, b2, b3 = '/b', defaultpool, '/c'
+    a3 = b1 + b2 + b3
+    a4 = p.__class__.__qualname__
+    a5 = 43
+    s = a1 + '://' + a2   # asdf://s:
+    u = s + a3 + '/' + a4 + '_' + str(a5)
+
+    uobj = Urn(urn=u)
+    # construction
+    pr = ProductRef(urnobj=uobj)
+    assert pr.urn == u
+    assert pr.urnobj == uobj
+
+
+def test_ProductStorage():
+    defaultpool = '/tmp/pool'
+    pdp = Path(defaultpool)
+    os.system('rm -rf ' + defaultpool)
+    assert not pdp.exists()
+
+    x = Product(description="This is my product example",
+                instrument="MyFavourite", modelName="Flight")
+    pcq = x.__class__.__qualname__
+    # constructor
+    ps = ProductStorage()
+    assert ps.getWritablePool()[1]['poolurn'] == 'file://' + defaultpool
+    assert len(ps.getWritablePool()[1]['classes']) == 0
+    # save
+    ref = ps.save(x)
+    assert ref.urn == ps.getUrn() + defaultpool + '/' + \
+        pcq + '_0'
+    # count files in pool and entries in class db
+    assert sum(1 for x in pdp.glob(pcq + '*[0-9]')) == 1
+    cread = json.load(pdp.joinpath('classes.jsn').open())
+    assert cread[pcq]['currentSN'] + 1 == 1
+
+    # save more
+    n = 5
+    x2 = []
+    for d in range(n):
+        x2.append(Product(description='x' + str(d)))
+        ps.save(x2)
+    assert sum(1 for x in pdp.glob(pcq + '*[0-9]')) == 1 + n
+    cread = json.load(pdp.joinpath('classes.jsn').open())
+    assert cread[pcq]['currentSN'] + 1 == 1 + n
+
+    # multiple storages pointing to the same pool will get exception
+    try:
+        ps2 = ProductStorage()
+    except Exception as e:
+        assert 1
+
+    # read HK
+    cp = defaultpool + '_copy'
+    os.system('rm -rf ' + cp + '; cp -rf ' + defaultpool + ' ' + cp)
+    ps2 = ProductStorage(pool=cp)
+    p1, p2 = ps.getPools(), ps2.getPools()
+    assert len(p1) == len(p2)
+    assert deepcmp(p1[0][1]['classes'], p2[0][1]['classes']) is None
+    assert deepcmp(p1[0][1]['tags'], p2[0][1]['tags']) is None
+
+    # access resource
+    pref = ps.load(x[n - 2])
+
+    # removal by reference
+    ps.remove(x2[n - 2])
+    # files are less
+    assert sum(1 for x in pdp.glob(pcq + '*[0-9]')) == n
+    # DB shows less in record
+    cread = json.load(pdp.joinpath('classes.jsn').open())
+    assert cread[pcq]['currentSN'] + 1 == n
+
+    # ps.wipePool()
+
+
+if __name__ == '__main__':
+    print("TableDataset demo")
+    demo_TableDataset()
+
+    print("CompositeDataset demo")
+    demo_CompositeDataset()
 
 # serializing using package jsonconversion
 
@@ -1006,10 +1194,3 @@ def test_Product():
 #     print(js)
 #     p = json.loads(js, cls=JSONObjectDecoder)
 #     print(p['h'].b)
-
-if __name__ == '__main__':
-    print("TableDataset demo")
-    demo_TableDataset()
-
-    print("CompositeDataset demo")
-    demo_CompositeDataset()

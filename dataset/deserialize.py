@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 from dataset.metadata import Parameter, NumericParameter, MetaData
 from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column
 from dataset.product import FineTime1, History, Product
+from pal.urn import Urn
 
 ''' Note: this has to be in a different file where other interface
 classes are defined to avoid circular dependency (such as ,
@@ -72,7 +73,15 @@ def constructSerializableClassID(obj, dbg=False):
             else:
                 if dbg:
                     print('--- %s %s' % (str(v.__class__), str(v)))
-                desv = v
+                if 1:
+                    desv = v
+                else:
+                    if isinstance(v, str) or isinstance(v, bytes):
+                        try:
+                            desv = int(v)
+                        except ValueError:
+                            desv = v
+
             # set k with desv
             if issubclass(inst.__class__, dict):
                 inst[k] = desv
@@ -87,6 +96,29 @@ def constructSerializableClassID(obj, dbg=False):
     return inst
 
 
+class IntDecoder(json.JSONDecoder):
+    """ adapted from https://stackoverflow.com/questions/45068797/how-to-convert-string-int-json-into-real-int-with-json-loads
+    modified to also convert keys in dictionaries.
+    """
+
+    def decode(self, s):
+        result = super().decode(s)  # result = super(Decoder, self).decode(s) for Python 2.x
+        return self._decode(result)
+
+    def _decode(self, o):
+        if isinstance(o, str) or isinstance(o, bytes):
+            try:
+                return int(o)
+            except ValueError:
+                return o
+        elif isinstance(o, dict):
+            return ODict({self._decode(k): self._decode(v) for k, v in o.items()})
+        elif isinstance(o, list):
+            return [self._decode(v) for v in o]
+        else:
+            return o
+
+
 def deserializeClassID(js, debug=False, usedict=False):
     """ Loads classes with ClassID from the results of serializeClassID
     """
@@ -95,9 +127,9 @@ def deserializeClassID(js, debug=False, usedict=False):
     # debug = False  # True if issubclass(obj.__class__, list) else False
     try:
         if usedict:
-            obj = json.loads(js)
+            obj = json.loads(js, cls=IntDecoder)
         else:
-            obj = json.loads(js, object_pairs_hook=ODict)
+            obj = json.loads(js, object_pairs_hook=ODict, cls=IntDecoder)
     except json.decoder.JSONDecodeError as e:
         logging.error(' Bad string to decode:\n==============\n' +
                       js[:500] + '...\n==============')

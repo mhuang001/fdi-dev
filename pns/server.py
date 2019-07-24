@@ -35,6 +35,7 @@ try:
 except Exception:
     pass
 
+from dataset.metadata import Parameter, NumericParameter, MetaData
 from dataset.product import Product, FineTime1, History
 from dataset.dataset import GeneralDataset, ArrayDataset, TableDataset
 from dataset.serializable import serializeClassID
@@ -87,7 +88,7 @@ def initPTS(d=None):
 
     # hf = pkg_resources.resource_filename("pns.resource", "hello")
     logger.debug(str(d))
-    indata = deserializeClassID(d)
+    indata = deserializeClassID(d, dglobals=globals())
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
@@ -120,7 +121,7 @@ def cleanPTS(d):
     global timeout
 
     logger.debug(str(d))
-    indata = deserializeClassID(d)
+    indata = deserializeClassID(d, dglobals=globals())
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
@@ -158,7 +159,7 @@ def run(d):
     global timeout
     global lupd
 
-    indata = deserializeClassID(d)
+    indata = deserializeClassID(d, dglobals=globals())
     logger.debug(indata)
     runner, cause = indata['creator'], indata['rootcause']
     contents = indata['input']['theName'].data
@@ -208,7 +209,7 @@ def genposttestprod(d):
     and 2nd to the product's dataset
     """
 
-    indata = deserializeClassID(d)
+    indata = deserializeClassID(d, dglobals=globals())
     logger.debug(indata)
 
     runner, cause = indata['creator'], indata['rootcause']
@@ -300,7 +301,7 @@ def calcresult(cmd):
     if cmd == 'data':
         result, msg = genposttestprod(d)
     elif cmd == 'echo':
-        indata = deserializeClassID(d)
+        indata = deserializeClassID(d, dglobals=globals())
         logger.debug(indata)
         result, msg = indata, ''
     elif cmd == 'run':

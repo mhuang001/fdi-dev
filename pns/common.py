@@ -23,6 +23,9 @@ if 0:
     print(logger.handlers)
     print(logger.level)
 
+from dataset.product import Product, FineTime1, History
+from dataset.metadata import Parameter, NumericParameter, MetaData
+from dataset.dataset import GeneralDataset, ArrayDataset, TableDataset
 from dataset.deserialize import deserializeClassID
 from dataset.serializable import serializeClassID
 
@@ -68,7 +71,7 @@ def getJsonObj(url, headers=None, usedict=False):
     # ret = json.loads(stri, parse_float=Decimal)
     # ret = json.loads(stri, cls=Decoder,
     #               object_pairs_hook=collections.OrderedDict)
-    ret = deserializeClassID(stri, usedict=usedict)
+    ret = deserializeClassID(stri, dglobals=globals(), usedict=usedict)
     #logger.debug(pformat(ret, depth=6)[:] + '...')
     logger.debug(str(ret)[:160] + '...')
     return ret
@@ -104,7 +107,7 @@ def postJsonObj(url, obj, headers):
 
     # ret = json.loads(stri, parse_float=Decimal)
     # ret = json.loads(stri, cls=Decoder)
-    ret = deserializeClassID(stri)
+    ret = deserializeClassID(stri, dglobals=globals())
     logger.debug(pformat(ret, depth=6)[:160] + '...')
     return ret
 
@@ -125,7 +128,7 @@ def putJsonObj(url, obj, headers):
         logger.error("Give up PUT " + url)
         return None
 
-    ret = deserializeClassID(stri)
+    ret = deserializeClassID(stri, dglobals=globals())
     logger.debug(pformat(ret, depth=6)[:160] + '...')
     return ret
 

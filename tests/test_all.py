@@ -272,7 +272,7 @@ def test_deleteclean():
     try:
         r = requests.delete(url, headers=commonheaders, timeout=15)
         stri = r.text
-        o = deserializeClassID(stri)
+        o = deserializeClassID(stri, dglobals=globals())
     except Exception as e:
         logger.debug(e)
         logger.error("Give up DELETE " + url)

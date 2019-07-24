@@ -25,16 +25,17 @@ _**Rationale**_
 
 In a data processing pipeline or network of processing nodes, data products are generated within a context which may include input data, reference data, and auxiliary data of many kind. It is often needed to have relevant context recorded with a product. However the context could have a large size so including them as metadata of the product is often impractical.
 
-Because once data are generated they can have a reference through which they can be accessed. The size of such references are typically less than a few hundred bytes, like a RUL. In the product context only data references are recorded.
+Because once data are generated they can have a reference through which they can be accessed. The size of such references are typically less than a few hundred bytes, like a URL. In the product context only data references are recorded.
 
-This package provides MapContext, ProductRef, Urn, ProductStorage classes (simplified but mostly API-compatible with Herschel Common Science System v15.0) for the storing, retrieving, tagging, and context creating of data product modeled in the dataset package.
+This package provides MapContext, ProductRef, Urn, ProductStorage classes (simplified but mostly API-compatible with [Herschel Common Science System v15.0](http://herschel.esac.esa.int/hcss-doc-15.0/load/sg/html/Sadm.Pal.html)) for the storing, retrieving, tagging, and context creating of data product modeled in the dataset package.
 
 _**Definitions**_
 
 **Urn**
 
 The Universial Resource Name (URN) string has this format:
-```urn:poolname:resourceclass:serialnumber
+```
+urn:poolname:resourceclass:serialnumber
 ```
 where
   *  resourceclass: fully qualified class name of the resource (product)

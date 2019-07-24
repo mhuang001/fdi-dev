@@ -16,7 +16,7 @@ def read(fname):
 
 setup(
     name="dataset",
-    version="0.3",
+    version="0.4",
     author="Maohai Huang",
     author_email="mhuang@earth.bao.ac.cn",
     description=("Self-describing Data Product Container"),

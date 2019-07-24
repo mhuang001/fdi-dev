@@ -12,4 +12,8 @@ Supports pns v0.3
 0.3 2019-07-04
 --------------
 ODict and refactoring
+
+0.4 2019-07-24
+--------------
+Add Product Access Layer support
 	

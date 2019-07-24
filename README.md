@@ -1,4 +1,4 @@
-This software is used to package data into self-describing Data Products.
+This software is used to package data into self-describing Data Products and make them portable in human-friendly format between data processers, storage, and consumers.
 
 _**Installation**_
 for developers
@@ -18,7 +18,7 @@ pip3 install -e .
 
 To run tests, in the same directory:
 ```
-./testall
+./test
 ```
 
 _**Rationale**_

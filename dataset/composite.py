@@ -1,12 +1,12 @@
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 from dataset.eq import DeepEqual
 from dataset.odict import ODict
-#from dataset.listener import DatasetEventSender, DatasetListener
-#from dataset.metadata import DataWrapperMapper
+# from dataset.listener import DatasetEventSender, DatasetListener
+# from dataset.metadata import DataWrapperMapper
 
 
 class Composite(DeepEqual):
@@ -54,6 +54,12 @@ class Composite(DeepEqual):
 
     def __setitem__(self, name, dataset):
         self.set(name, dataset)
+
+    def getSets(self):
+        """ Provide access to the Map < String, Dataset > .
+        mh: api from CompositeDataset
+        """
+        return self._sets
 
     def isEmpty(self):
         """ Returns true if this map contains no key - value mappings. """

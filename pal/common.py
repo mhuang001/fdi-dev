@@ -8,7 +8,7 @@ from .urn import Urn
 from dataset.deserialize import deserializeClassID
 from dataset.product import Product, FineTime1, History
 from dataset.metadata import Parameter, NumericParameter, MetaData
-from dataset.dataset import GeneralDataset, ArrayDataset, TableDataset, CompositeDataset, Column
+from dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
 
 
 def getJsonObj(fp, usedict=False):

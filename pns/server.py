@@ -37,7 +37,7 @@ except Exception:
 
 from dataset.metadata import Parameter, NumericParameter, MetaData
 from dataset.product import Product, FineTime1, History
-from dataset.dataset import GeneralDataset, ArrayDataset, TableDataset
+from dataset.dataset import GenericDataset, ArrayDataset, TableDataset
 from dataset.serializable import serializeClassID
 from dataset.deserialize import deserializeClassID
 
@@ -190,10 +190,11 @@ def run(d):
             res = outf.read()
     except Exception as e:
         return -1, str(e)
+
     x = Product(description="hello world pipeline product",
                 creator=runner, rootCause=cause,
                 instrument="hello", modelName="you know what!")
-    x['theAnswer'] = GeneralDataset(
+    x['theAnswer'] = GenericDataset(
         data=res, description='result from hello command')
     now = time.time()
     x.creationDate = FineTime1(datetime.datetime.fromtimestamp(now))
@@ -299,12 +300,15 @@ def calcresult(cmd):
     global result
     d = request.get_data()
     if cmd == 'data':
+        # see test_post() in test_all.py
         result, msg = genposttestprod(d)
     elif cmd == 'echo':
+        # see test_mirror() in test_all.py
         indata = deserializeClassID(d, dglobals=globals())
         logger.debug(indata)
         result, msg = indata, ''
     elif cmd == 'run':
+        # see test_run() in test_all.py
         result, msg = run(d)
     else:
         logger.error(cmd)

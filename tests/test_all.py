@@ -36,7 +36,7 @@ from dataset.serializable import serializeClassID, serializeClassID
 from dataset.product import Product
 from dataset.metadata import NumericParameter
 from dataset.deserialize import deserializeClassID
-from dataset.dataset import ArrayDataset, GeneralDataset
+from dataset.dataset import ArrayDataset, GenericDataset
 from dataset.eq import deepcmp
 
 testname = 'SVOM'
@@ -171,7 +171,7 @@ def makeruntestdata():
     which has one data item -- a string that is the name
     """
     x = Product(description="hello world pipeline input product")
-    x['theName'] = GeneralDataset(
+    x['theName'] = GenericDataset(
         data='stranger', description='input. the name')
     return x
 

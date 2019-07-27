@@ -25,7 +25,7 @@ if 0:
 
 from dataset.product import Product, FineTime1, History
 from dataset.metadata import Parameter, NumericParameter, MetaData
-from dataset.dataset import GeneralDataset, ArrayDataset, TableDataset
+from dataset.dataset import GenericDataset, ArrayDataset, TableDataset
 from dataset.deserialize import deserializeClassID
 from dataset.serializable import serializeClassID
 

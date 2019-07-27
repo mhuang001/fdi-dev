@@ -23,6 +23,7 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
     directly. Instead, they should inherit from one of the generic
     datasets that this package provides:
 
+    mh: GenericDataset,
     ArrayDataset.
     TableDataset or
     CompositeDataset.
@@ -40,7 +41,7 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
         visitor.visit(self)
 
 
-class GeneralDataset(Dataset, DataWrapper):
+class GenericDataset(Dataset, DataWrapper):
     def __init__(self, **kwds):
         """
         """
@@ -78,7 +79,7 @@ class GeneralDataset(Dataset, DataWrapper):
         return s
 
 
-class ArrayDataset(GeneralDataset):
+class ArrayDataset(GenericDataset):
     """  Special dataset that contains a single Array Data object.
     mh: assumed to contain a mutable sequence which should provide methods append(), count(), index(), extend(), insert(), pop(), remove(), reverse() and sort()
     """

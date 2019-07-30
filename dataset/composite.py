@@ -44,9 +44,10 @@ class Composite(DeepEqual):
         this composite does not permit null keys or values,
         and the specified key or value is null."""
 
-        if name == '' or name is None or dataset is None:
+        if name == '' or name is None:
             logger.error('Bad dataset name.')
-            return
+            raise ValueError()
+
         self._sets[name] = dataset
 
     def __getitem__(self, name):

@@ -1,3 +1,4 @@
+from collections.abc import Container, Sequence, MutableSequence, Mapping, MutableMapping
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
 
     developer notes:
     The intent is that developers do not derive from this interface
+
     directly. Instead, they should inherit from one of the generic
     datasets that this package provides:
 
@@ -41,7 +43,10 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
         visitor.visit(self)
 
 
-class GenericDataset(Dataset, DataWrapper):
+class GenericDataset(Dataset, DataWrapper, Container):
+    """ mh: Contains one data item.
+    """
+
     def __init__(self, **kwds):
         """
         """
@@ -79,16 +84,17 @@ class GenericDataset(Dataset, DataWrapper):
         return s
 
 
-class ArrayDataset(GenericDataset):
+class ArrayDataset(GenericDataset, Sequence):
     """  Special dataset that contains a single Array Data object.
-    mh: assumed to contain a mutable sequence which should provide methods append(), count(), index(), extend(), insert(), pop(), remove(), reverse() and sort()
+    mh:  contains a sequence which provides methods count(), index(), remove(), reverse().
+A mutable sequence would also need append(), extend(), insert(), pop() and sort()
     """
 
     def __init__(self, unit=None, **kwds):
         """
         """
         super().__init__(**kwds)  # initialize data, meta
-        if not issubclass(self.data.__class__, list) and self.data is not None:
+        if not issubclass(self.data.__class__, Sequence) and self.data is not None:
             # dataWrapper initializes data as None
             logging.error(
                 'data in ArrayDataset must be a subclass of list: ' + self.data.__class__.__name__)
@@ -96,29 +102,50 @@ class ArrayDataset(GenericDataset):
 
         self.unit = unit
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, *args, **kwargs):
+        """ sets value at key.
         """
-        """
-        d = self.getData()
-        if key < len(d):
-            d[key] = value
-        else:
-            d.append(value)
+        self.getData().__setitem__(*args, **kwargs)
 
-    def __getitem__(self, key):
-        """ return value at key.
+    def __getitem__(self, *args, **kwargs):
+        """ returns value at key.
         """
-        d = self.getData()
-        l = len(d)
+        return self.getData().__getitem__(*args, **kwargs)
 
-        if issubclass(key.__class__, int) and key < l:
-            return d[key]
-        elif issubclass(key.__class__, slice):
-            r = self.copy()
-            r.data = d[key]
-            return r
-        else:
-            raise ValueError('index %d out of range 0..%d' % (key, l))
+    def __delitem__(self, *args, **kwargs):
+        """ removes value and its key.
+        """
+        self.getData().__delitem__(*args, **kwargs)
+
+    def __len__(self, *args, **kwargs):
+        """ size of data
+        """
+        return self.getData().__len__(*args, **kwargs)
+
+    def __iter__(self, *args, **kwargs):
+        """ returns an iterator
+        """
+        return self.getData().__iter__(*args, **kwargs)
+
+    def index(self, *args, **kwargs):
+        """ returns the index of a value.
+        """
+        return self.getData().index(*args, **kwargs)
+
+    def count(self, *args, **kwargs):
+        """ returns size.
+        """
+        return self.getData().count(*args, **kwargs)
+
+    def remove(self, *args, **kwargs):
+        """ removes value at first occurrence.
+        """
+        self.getData().remove(*args, **kwargs)
+
+    def pop(self, *args, **kwargs):
+        """ revomes and returns value
+        """
+        return self.getData().pop(*args, **kwargs)
 
     def __repr__(self):
         return self.__class__.__name__ + \
@@ -139,7 +166,7 @@ class ArrayDataset(GenericDataset):
 
 class Column(ArrayDataset, ColumnListener):
     """ A Column is a the vertical cut of a table for which all cells have the same signature. It contains raw ArrayData, and optionally a description and unit.
-
+    example:
     table = TableDataset()
     table.addColumn("Energy",Column(data=[1,2,3,4],description="desc",unit='eV'))
     """
@@ -231,25 +258,33 @@ class TableDataset(Dataset, TableModel):
         """
         # logging.debug(data.__class__)
         if data is not None:
+            # d will be {<name1 str>:<column1 Column>, ... }
             d = ODict()
-            if issubclass(data.__class__, list):
+            if issubclass(data.__class__, Sequence):
                 for x in data:
                     if 'name' in x and 'column' in x:
                         d[x['name']] = x['column']
                     elif hasattr(x, 'name') and hasattr('column', x):
                         d[x.name] = x.column
-                    elif issubclass(x.__class__, dict):
-                        k = x.keys()[0]
-                        d[k] = x[k]
                     elif issubclass(x.__class__, tuple):
-                        d[x[0]] = x[1]
+                        if len(x) == 2:
+                            if issubclass(x[1].__class__, Column):
+                                d[x[0]] = x[1]
+                            else:
+                                d[x[0]] = Column(data=x[1], unit='')
+                        elif len(x) == 3:
+                            d[x[0]] = Column(data=x[1], unit=x[2])
+                        else:
+                            raise ValueError(
+                                'column tuples must be (str, Column), (str, List), or (str, List, str)')
                     else:
-                        raise ValueError
-            elif issubclass(data.__class__, dict):
+                        raise ValueError(
+                            'cannot extract name and column at list member ' + str(x))
+            elif issubclass(data.__class__, Mapping):
                 for k, v in data.items():
                     d[k] = v
             else:
-                raise ValueError
+                raise TypeError('must be a Sequence or a Mapping')
 
             # logging.debug(d)
             super().setData(d)

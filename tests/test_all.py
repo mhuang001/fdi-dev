@@ -589,6 +589,13 @@ def test_ArrayDataset():
     # slice [0:2] is [[1,2,3][4,5,6]]
     y = x[0:2]
     assert y[1][0] == 4
+    # removal
+    r0 = x[0]
+    x.remove(r0)
+    assert x[0][2] == 6  # x=[[4, 5, 6], [7, 8, 9]]
+    r0 = x[0]
+    assert r0 == x.pop(0)
+    assert x[0][1] == 8
 
     # iteration
     i = []
@@ -606,27 +613,46 @@ def test_TableModel():
 
 def test_TableDataset():
     # constructor
+    # data is a sequence
     a1 = [dict(name='col1', column=Column(data=[1, 4.4, 5.4E3], unit='eV')),
           dict(name='col2', column=Column(data=[0, 43.2, 2E3], unit='cnt'))
           ]
-    v = TableDataset(data=a1)
-    v1 = TableDataset()
-    b1 = [('col1', Column(data=[1, 4.4, 5.4E3], unit='eV')),
-          ('col2', Column(data=[0, 43.2, 2E3], unit='cnt'))
-          ]
-    v1.data = b1
-    assert v == v1
+    v = TableDataset(data=a1)  # inherited from DataWrapper
     assert v.getColumnCount() == 2
     assert v.getColumnName(0) == 'col1'
     assert v.getValueAt(rowIndex=1, columnIndex=1) == 43.2
-    v.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
-    assert v.getValueAt(rowIndex=1, columnIndex=1) == 42
+    # other syntax
+    # same as last but using different dict syntax
+    b1 = [{'name': 'col1', 'column': Column(data=[1, 4.4, 5.4E3], unit='eV')},
+          {'name': 'col2', 'column': Column(data=[0, 43.2, 2E3], unit='cnt')}
+          ]
+    v1 = TableDataset()
+    v1.data = b1
+    assert v == v1
+    #
+    b2 = [('col1', Column(data=[1, 4.4, 5.4E3], unit='eV')),
+          ('col2', Column(data=[0, 43.2, 2E3], unit='cnt'))
+          ]
+    v2 = TableDataset(data=b2)  # inherited from DataWrapper
+    assert v == v2
+    # list of tuples that do not need to use Column
+    v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
+                            ('col2', [0, 43.2, 2E3], 'cnt')
+                            ])
+    assert v == v3
+    # data is a mapping
+    v4 = TableDataset(data=dict(col1=Column(data=[1, 4.4, 5.4E3], unit='eV'),
+                                col2=Column(data=[0, 43.2, 2E3], unit='cnt'))
+                      )
+    assert v == v4
 
     # indexOf
     c = Column()
     v['col3'] = c
     v['col4'] = Column([2, 3])
     assert v.indexOf('col3') == v.indexOf(c)
+    v.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
+    assert v.getValueAt(rowIndex=1, columnIndex=1) == 42
 
     # in
     assert 'col3' in v
@@ -1189,7 +1215,7 @@ def test_Context():
         assert False
 
     # dirtiness
-    #assert not c1.hasDirtyReferences('ok')
+    # assert not c1.hasDirtyReferences('ok')
     #
 
 

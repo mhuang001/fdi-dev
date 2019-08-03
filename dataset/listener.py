@@ -1,3 +1,5 @@
+from .serializable import Serializable
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -44,7 +46,8 @@ class EventSender():
         try:
             self.listeners.remove(listener)
         except:
-            raise ValueError("Listener is not listening. Cannot remove.")
+            raise ValueError(
+                "Listener is not listeningregisterd. Cannot remove.")
         return self
 
     def fire(self, *args, **kargs):
@@ -110,18 +113,22 @@ class EventType():
     VALUE_CHANGED = 15
 
 
-class DatasetEvent():
+class DatasetEvent(Serializable):
     """
     """
 
-    def __init__(self, source, target, type, change, cause, rootCause, **kwds):
+    def __init__(self, source, target, type_, change, cause, rootCause, **kwds):
         # The object on which the Event initially occurred.
         self.source = source
         # the target of the event, which is the same object returned
         # by getSource, but strongly typed.
-        self.target = target
+        if isinstance(target, source.__class__):
+            self.target = target
+        else:
+            raise TypeError(str(target) + ' is not of type ' +
+                            str(source.__class__))
         # the type of the event.
-        self.type = type
+        self.type_ = type_
         # Gives more information about the change that caused the event.
         self.change = change
         # The underlying event that provoked this event,
@@ -136,20 +143,37 @@ class DatasetEvent():
         """ """
         if not issubclass(o.__class__, self):
             return False
-        return self.target == o.target and \
-            self.type == o.type and \
+        return self.source == o.source and\
+            self.target == o.target and \
+            self.type_ == o.type_ and \
             self.change == o.change and \
             self.cause == o.cause and \
             self.rootCause == o.rootCause
 
     def __repr__(self):
-        r = '{target=' + str(self.target) +\
-            ', type=' + str(self.type) +\
+        r = '{source=' + str(self.source) +\
+            ', target=' + str(self.target) +\
+            ', type_=' + str(self.type_) +\
             ', change=' + str(self.change) +\
             ', cause=' + str(self.cause) +\
             ', rootCause=' + str(self.rootCause) +\
             '}'
         return r
+
+    def toString(self):
+        return self.__repr__()
+
+    def serializable(self):
+        """ Can be encoded with serializableEncoder """
+        s = ODict(source=self.source,
+                  target=self.target,
+                  type_=self.type_,
+                  change=self.change,
+                  cause=self.cause,
+                  rootCause=self.rootCause,
+                  classID=self.classID,
+                  version=self.version)
+        return s
 
 
 class ParameterListener(DatasetBaseListener):

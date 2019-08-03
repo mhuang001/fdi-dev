@@ -3,22 +3,22 @@ import logging
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.annotatable import Annotatable
-from dataset.copyable import Copyable
-from dataset.eq import DeepEqual
-from dataset.quantifiable import Quantifiable
-from dataset.listener import EventSender, DatasetBaseListener, ParameterListener, DatasetListener, DatasetEvent, EventType
-from dataset.composite import Composite
-from dataset.odict import ODict
-from dataset.serializable import Serializable
-from dataset.datawrapper import DataWrapperMapper
+from .annotatable import Annotatable
+from .copyable import Copyable
+from .eq import DeepEqual
+from .quantifiable import Quantifiable
+from .listener import EventSender, DatasetBaseListener, ParameterListener, DatasetListener, DatasetEvent, EventType
+from .composite import Composite
+from .odict import ODict
+from .serializable import Serializable
+from .datawrapper import DataWrapperMapper
 
 
 class Parameter(Annotatable, Copyable, DeepEqual, EventSender, Serializable):
     """ Parameter is the interface for all named attributes
     in the MetaData container. It can have a value and a description."""
 
-    def __init__(self, value=None, **kwds):
+    def __init__(self, value=None, type_='', **kwds):
         """ invoked with no argument results in a parameter of
         None value and 'UNKNOWN' description.
         With a signle argument: arg -> value, 'UNKNOWN'-> description.
@@ -26,7 +26,7 @@ class Parameter(Annotatable, Copyable, DeepEqual, EventSender, Serializable):
         """
         super().__init__(**kwds)
         self.value = value
-        self.type = value.__class__.__name__
+        self.type_ = type_
 
     def accept(self, visitor):
         """ Adds functionality to classes of this type."""
@@ -35,15 +35,19 @@ class Parameter(Annotatable, Copyable, DeepEqual, EventSender, Serializable):
     def getType(self):
         """ Returns the actual type that is allowed for the value
         of this Parameter."""
-        return self.value.__class__.__name__
+        return self.type_
+
+    def setType(self, type_):
+        """ Replaces the current type of this parameter. """
+        self.type_ = type_
 
     def getValue(self):
         """ Gets the value of this parameter as an Object. """
         return self.value
 
-    def setValue(self, newValue):
+    def setValue(self, value):
         """ Replaces the current value of this parameter. """
-        self.value = newValue
+        self.value = value
 
     def __setattr__(self, name, value):
         """ add eventhandling """
@@ -60,21 +64,9 @@ class Parameter(Annotatable, Copyable, DeepEqual, EventSender, Serializable):
                 ty = EventType.DESCRIPTION_CHANGED
             else:
                 ty = -1
-            e = DatasetEvent(source=so, target=ta, type=ty,
+            e = DatasetEvent(source=so, target=ta, type_=ty,
                              change=ch, cause=ca, rootCause=ro)
             self.fire(e)
-
-    def __set1__(self, obj, type):
-        print('s ' + name + str(type))
-        self.__setattr__(name, value)
-
-    def __get1__(self, name):
-        print('g ' + name)
-        self.__getattr__(name)
-
-    def __delete1__(self, name):
-        print('d ' + name)
-        self.__delattr__(name)
 
     def __repr__(self):
         return self.__class__.__name__ +\
@@ -88,7 +80,7 @@ class Parameter(Annotatable, Copyable, DeepEqual, EventSender, Serializable):
         """ Can be encoded with serializableEncoder """
         return ODict(description=self.description,
                      value=self.value,
-                     type=self.type,
+                     type_=self.type_,
                      classID=self.classID,
                      version=self.version)
 
@@ -110,7 +102,7 @@ class NumericParameter(Parameter, Quantifiable):
         return ODict(description=self.description,
                      value=self.value,
                      unit=self.unit,
-                     type=self.type,
+                     type_=self.type_,
                      classID=self.classID,
                      version=self.version)
 
@@ -152,7 +144,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, EventSender
                 ty = EventType.PARAMETER_CHANGED
             else:
                 ty = EventType.PARAMETER_ADDED
-            e = DatasetEvent(source=so, target=ta, type=ty,
+            e = DatasetEvent(source=so, target=ta, type_=ty,
                              change=ch, cause=ca, rootCause=ro)
             self.fire(e)
 
@@ -168,7 +160,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, EventSender
             ty = EventType.PARAMETER_REMOVED
             ch = (name, r)
             #raise ValueError('Attempt to remove non-existant parameter "%s"' % (name))
-            e = DatasetEvent(source=so, target=ta, type=ty,
+            e = DatasetEvent(source=so, target=ta, type_=ty,
                              change=ch, cause=ca, rootCause=ro)
             self.fire(e)
         return r

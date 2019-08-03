@@ -4,15 +4,15 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.annotatable import Annotatable
-from dataset.copyable import Copyable
-from dataset.eq import DeepEqual
-from dataset.datawrapper import DataWrapper
-# from dataset.composite import
-from dataset.metadata import Attributable, AbstractComposite
-from dataset.odict import ODict
-from dataset.serializable import Serializable
-from dataset.listener import ColumnListener, DatasetBaseListener, MetaDataListener
+from .annotatable import Annotatable
+from .copyable import Copyable
+from .eq import DeepEqual
+from .datawrapper import DataWrapper
+# from .composite import
+from .metadata import Attributable, AbstractComposite
+from .odict import ODict
+from .serializable import Serializable
+from .listener import ColumnListener, DatasetBaseListener, MetaDataListener
 
 
 class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, MetaDataListener):

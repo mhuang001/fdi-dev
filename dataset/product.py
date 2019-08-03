@@ -7,14 +7,14 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.copyable import Copyable
-from dataset.eq import DeepEqual
-# from dataset.composite import
-from dataset.dataset import CompositeDataset
-from dataset.listener import EventSender, DatasetEvent, DatasetListener, EventType
-from dataset.metadata import AbstractComposite
-from dataset.odict import ODict
-from dataset.serializable import Serializable
+from .copyable import Copyable
+from .eq import DeepEqual
+# from .composite import
+from .dataset import CompositeDataset
+from .listener import EventSender, DatasetEvent, DatasetListener, EventType
+from .metadata import AbstractComposite
+from .odict import ODict
+from .serializable import Serializable
 
 
 class FineTime1(Copyable, DeepEqual, Serializable):
@@ -250,8 +250,8 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
 
     def targetChanged(self, event):
         if False and event.source == self.meta:
-            if event.type == EventType.PARAMETER_ADDED or \
-               event.type == EventType.PARAMETER_CHANGED:
+            if event.type_ == EventType.PARAMETER_ADDED or \
+               event.type_ == EventType.PARAMETER_CHANGED:
                 logger.debug(event.source.__class__.__name__ +
                              ' ' + str(event.change))
                 pass

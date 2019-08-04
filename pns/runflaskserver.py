@@ -1,4 +1,5 @@
 #!flask/bin/python
+# -*- coding: utf-8 -*-
 
 from pns import module  # absolute import
 from pns import logdict  # import logdict

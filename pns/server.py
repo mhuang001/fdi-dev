@@ -1,4 +1,6 @@
 #!flask/bin/python
+# -*- coding: utf-8 -*-
+
 from pprint import pformat
 import datetime
 import time

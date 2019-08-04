@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 from pprint import pprint, pformat
 import pkg_resources

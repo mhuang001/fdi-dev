@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import errno
 from pprint import pprint, pformat

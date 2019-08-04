@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 doLogging = False
 logdict = {
     "version": 1,

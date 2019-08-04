@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 from collections import OrderedDict
-#from dataset.serializable import Serializable
+#from .serializable import Serializable
 
 
 class ODict(OrderedDict):

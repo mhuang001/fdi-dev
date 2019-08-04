@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 
 import logging
@@ -5,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.odict import ODict
+from .odict import ODict
 
 
 class SerializableEncoder(json.JSONEncoder):

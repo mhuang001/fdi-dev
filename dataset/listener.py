@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .serializable import Serializable
 
 import logging
@@ -61,8 +62,13 @@ class EventSender():
         return self
 
     def fire(self, *args, **kwargs):
-        for listener in self.listeners:
-            listener.targetChanged(*args, **kwargs)
+        n = 0
+        try:
+            for listener in self.listeners:
+                listener.targetChanged(*args, **kwargs)
+                n += 1
+        except Exception as e:
+            logging.error('listener ' + str(0) + ' got exception ' + str(e))
 
     def getListenerCount(self):
         return len(self.listeners)

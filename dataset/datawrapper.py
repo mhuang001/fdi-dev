@@ -1,13 +1,14 @@
+# -*- coding: utf-8 -*-
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.annotatable import Annotatable
-from dataset.copyable import Copyable
-from dataset.eq import DeepEqual
-from dataset.quantifiable import Quantifiable
-from dataset.odict import ODict
+from .annotatable import Annotatable
+from .copyable import Copyable
+from .eq import DeepEqual
+from .quantifiable import Quantifiable
+from .odict import ODict
 
 
 class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):

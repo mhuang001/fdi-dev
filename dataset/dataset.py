@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from collections.abc import Container, Sequence, MutableSequence, Mapping, MutableMapping
 import logging
 # create logger

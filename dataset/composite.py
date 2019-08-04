@@ -1,12 +1,13 @@
+# -*- coding: utf-8 -*-
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.eq import DeepEqual
-from dataset.odict import ODict
-# from dataset.listener import DatasetEventSender, DatasetListener
-# from dataset.metadata import DataWrapperMapper
+from .eq import DeepEqual
+from .odict import ODict
+# from .listener import DatasetEventSender, DatasetListener
+# from .metadata import DataWrapperMapper
 
 
 class Composite(DeepEqual):

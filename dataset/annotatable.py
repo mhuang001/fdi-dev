@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class Annotatable():
     """ An Annotatable object is an object that can give a
     human readable description of itself.

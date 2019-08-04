@@ -7,14 +7,14 @@ from .annotatable import Annotatable
 from .copyable import Copyable
 from .eq import DeepEqual
 from .quantifiable import Quantifiable
-from .listener import EventSender, DatasetBaseListener, ParameterListener, DatasetListener, DatasetEvent, EventType
+from .listener import DatasetEventSender, DatasetBaseListener, ParameterListener, DatasetListener, DatasetEvent, EventType
 from .composite import Composite
 from .odict import ODict
 from .serializable import Serializable
 from .datawrapper import DataWrapperMapper
 
 
-class Parameter(Annotatable, Copyable, DeepEqual, EventSender, Serializable):
+class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializable):
     """ Parameter is the interface for all named attributes
     in the MetaData container. It can have a value and a description."""
 
@@ -53,6 +53,8 @@ class Parameter(Annotatable, Copyable, DeepEqual, EventSender, Serializable):
         """ add eventhandling """
         super().__setattr__(name, value)
 
+        # this will fail during init when annotatable init sets description
+        # if issubclass(self.__class__, DatasetEventSender):
         if 'listeners' in self.__dict__:
             so, ta, ty, ch, ca, ro = self, self, -1, \
                 (name, value), None, None
@@ -107,7 +109,7 @@ class NumericParameter(Parameter, Quantifiable):
                      version=self.version)
 
 
-class MetaData(Composite, Copyable, Serializable, ParameterListener, EventSender):
+class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEventSender):
     """ A container of named Parameters. A MetaData object can
     have one or more parameters, each of them stored against a
     unique name. The order of adding parameters to this container

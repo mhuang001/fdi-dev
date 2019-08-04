@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import filelock
 import os
 from pathlib import Path
@@ -10,9 +11,9 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from pal.urn import Urn
-from pal.productref import ProductRef
-from pal.comparable import Comparable
+from .urn import Urn
+from .productref import ProductRef
+from .comparable import Comparable
 from .common import getJsonObj
 
 from dataset.serializable import serializeClassID
@@ -114,7 +115,7 @@ class ProductStorage():
             f.write(js)
 
     def save(self, product, tag=None, pool=None):
-        """ Save a product to the storage, possibly under the supplied tag.
+        """ Save a product or a list of products to the storage, possibly under the supplied tag, and return the reference (or a list of references if the input is a list of products).
         """
 
         logging.debug('saving ' + str(product) +
@@ -138,50 +139,57 @@ class ProductStorage():
             raise ValueError(sp[0] + ':// is not supported')
         poolpath = sp[1]
         fp0 = Path(poolpath)
-        pn = product.__class__.__qualname__
 
-        lock = filelock.FileLock(poolpath + '/lock')
-        lock.acquire()
-        if pn in c:
-            sn = (c[pn]['currentSN'] + 1)
+        if not issubclass(product.__class__, list):
+            prds = [product]
         else:
-            sn = 0
-            c[pn] = ODict({'sn2tag': ODict()})
-        if tag is not None:
-            if tag not in t:
-                t[tag] = ODict({pn: []})
-        fp = fp0.joinpath(pn + '_' + str(sn))
+            prds = product
+        rfs = []
+        for prd in prds:
+            pn = prd.__class__.__qualname__
 
-        try:
-            if fp.exists():
-                fp.rename(str(fp) + '.old')
-            with fp.open(mode="w+") as f:
-                js = serializeClassID(product)
-                f.write(js)
+            with filelock.FileLock(poolpath + '/lock'):
+                if pn in c:
+                    sn = (c[pn]['currentSN'] + 1)
+                else:
+                    sn = 0
+                    c[pn] = ODict({'sn2tag': ODict()})
+                if tag is not None:
+                    if tag not in t:
+                        t[tag] = ODict({pn: []})
+                fp = fp0.joinpath(pn + '_' + str(sn))
 
-            c[pn]['currentSN'] = sn
-            s2t = c[pn]['sn2tag']
-            if sn in s2t:
-                s2t[sn].append(tag)
-            else:
-                s2t[sn] = [tag]
+                try:
+                    if fp.exists():
+                        fp.rename(str(fp) + '.old')
+                    with fp.open(mode="w+") as f:
+                        js = serializeClassID(prd)
+                        f.write(js)
 
-            if tag is not None:
-                t[tag][pn].append(sn)
+                    c[pn]['currentSN'] = sn
+                    s2t = c[pn]['sn2tag']
+                    if sn in s2t:
+                        s2t[sn].append(tag)
+                    else:
+                        s2t[sn] = [tag]
 
-            self.writeHK(pool)
-        except IOError as e:
-            logging.debug(str(
-                fp) + str(e) + ' '.join([x for x in traceback.extract_tb(e.__traceback__).format()]))
-            # undo changes
-            c = cl
-            t = ta
-            raise e
-        finally:
-            lock.release()
+                    if tag is not None:
+                        t[tag][pn].append(sn)
 
-        u = Urn(cls=product.__class__, pool=pool, index=sn)
-        return ProductRef(urnobj=u)
+                    self.writeHK(pool)
+                except IOError as e:
+                    logging.debug(str(
+                        fp) + str(e) + ' '.join([x for x in traceback.extract_tb(e.__traceback__).format()]))
+                    # undo changes
+                    c = cl
+                    t = ta
+                    raise e
+            u = Urn(cls=prd.__class__, pool=pool, index=sn)
+            rfs.append(ProductRef(urnobj=u))
+        if not issubclass(product.__class__, list):
+            return rfs[0]
+        else:
+            return rfs
 
     def load(self, urn):
         """ Loads a product from the ProductStorage. returns productref.

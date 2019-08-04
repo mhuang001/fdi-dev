@@ -206,6 +206,23 @@ def test_ProductStorage():
     assert p1 == defaultpool
     pspool = ps.getPool(p1)
     assert len(pspool['classes']) == 0
+    # constrct with a pool
+    ps2 = ProductStorage(defaultpool)
+    assert ps.getPools() == ps2.getPools()
+
+    # register pool
+    # with a storage that already has a pool
+    newpoolpath = '/tmp/newpool'
+    newpoolname = 'file://' + newpoolpath
+    npp = Path(newpoolpath)
+    os.system('rm -rf ' + newpoolpath)
+    assert not npp.exists()
+
+    ps2.register(newpoolname)
+    assert npp.exists()
+    assert len(ps2.getPools()) == 2
+    assert ps2.getPools()[1] == newpoolname
+
     # save
     ref = ps.save(x)
     assert ref.urn == 'urn:' + defaultpool + ':' + pcq + ':0'
@@ -215,12 +232,28 @@ def test_ProductStorage():
     assert cread[pcq]['currentSN'] + 1 == 1
 
     # save more
-    n = 5
+    # one by one
+    q = 3
     x2, ref2 = [], []
-    for d in range(n):
+    for d in range(q):
         tmp = Product(description='x' + str(d))
         x2.append(tmp)
         ref2.append(ps.save(tmp, tag='t' + str(d)))
+        # count files in pool
+    assert sum(1 for x in pdp.glob(pcq + '*[0-9]')) == 1 + q
+    # number of prod in the DB
+    cread = json.load(pdp.joinpath('classes.jsn').open())
+    assert cread[pcq]['currentSN'] + 1 == 1 + q
+    # save many in one go
+    m, x3 = 2, []
+    n = q + m
+    for d in range(q, n):
+        tmp = Product(description='x' + str(d))
+        x3.append(tmp)
+    ref2 += ps.save(x3, tag='all-tm')
+    x2 += x3
+    # check refs
+    assert len(ref2) == n
     # count files in pool
     assert sum(1 for x in pdp.glob(pcq + '*[0-9]')) == 1 + n
     # number of prod in the DB
@@ -248,14 +281,13 @@ def test_ProductStorage():
 
     # tags
     ts = ps.getAllTags()
-    assert len(ts) == n
-    print(ps)
-    ts = ps.getTags(ref2[3].urn)
+    assert len(ts) == q + 1
+    ts = ps.getTags(ref2[0].urn)
     assert len(ts) == 1
-    assert ts[0] == 't3'
-    u = ps.getUrnFromTag('t3')
-    assert len(u) == 1
-    assert u[0] == ref2[3].urn
+    assert ts[0] == 't0'
+    u = ps.getUrnFromTag('all-tm')
+    assert len(u) == m
+    assert u[0] == ref2[q].urn
 
     # access resource
     # get ref from urn
@@ -294,7 +326,7 @@ def test_Context():
         assert False
 
     # dirtiness
-    #assert not c1.hasDirtyReferences('ok')
+    # assert not c1.hasDirtyReferences('ok')
     #
 
 

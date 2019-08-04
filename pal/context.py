@@ -1,12 +1,13 @@
+# -*- coding: utf-8 -*-
 
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from pal.urn import Urn
-from pal.productref import ProductRef
-from pal.comparable import Comparable
+from .urn import Urn
+from .productref import ProductRef
+from .comparable import Comparable
 from .common import getJsonObj
 
 from dataset.product import Product

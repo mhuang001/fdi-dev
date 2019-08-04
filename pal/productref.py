@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import filelock
 
 import logging
@@ -9,8 +10,8 @@ from dataset.metadata import MetaDataHolder
 from dataset.serializable import Serializable
 from dataset.eq import DeepEqual
 from dataset.odict import ODict
-from pal.comparable import Comparable
-from pal.urn import Urn
+from .comparable import Comparable
+from .urn import Urn
 from .common import getProductObject
 
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -12,7 +13,7 @@ from dataset.eq import DeepEqual
 from dataset.product import Product
 from dataset.odict import ODict
 from dataset.serializable import Serializable
-from pal.comparable import Comparable
+from .comparable import Comparable
 
 
 class Urn(DeepEqual, Serializable, Comparable):

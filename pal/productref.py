@@ -117,7 +117,7 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
         return self._urnobj == o._urnobj and sorted(self.parents) == sorted(o.parents)
 
     def __repr__(self):
-        return self.__class__.__name__ + ' { Product=' + self.getType().__qualname__
+        return self.__class__.__name__ + ' { Product=' + self.getType()
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

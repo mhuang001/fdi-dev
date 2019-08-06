@@ -10,6 +10,7 @@ from dataset.deserialize import deserializeClassID
 from dataset.product import Product, FineTime1, History
 from dataset.metadata import Parameter, NumericParameter, MetaData
 from dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
+from product.chart import ATC_VT_B, ATC_VT_R, FDC_VT_B, FDC_VT_R
 
 
 def getJsonObj(fp, usedict=False):
@@ -38,3 +39,9 @@ def getProductObject(urn):
     finally:
         lock.release()
     return p
+
+
+def getClass(name):
+    """
+    """
+    return globals()[name]

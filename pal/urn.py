@@ -7,13 +7,12 @@ logger = logging.getLogger(__name__)
 from pathlib import Path
 from urllib.parse import urlparse
 
-from dataset.annotatable import Annotatable
-from dataset.copyable import Copyable
 from dataset.eq import DeepEqual
-from dataset.product import Product
 from dataset.odict import ODict
 from dataset.serializable import Serializable
+
 from .comparable import Comparable
+#from .common import getClass
 
 
 class Urn(DeepEqual, Serializable, Comparable):
@@ -107,7 +106,7 @@ class Urn(DeepEqual, Serializable, Comparable):
 
         poolname, resourcecn, indexs, scheme, place, poolpath = self.parseUrn(
             urn)
-        cls = globals()[resourcecn]
+        cls = resourcecn  # getClass(resourcecn)
 
         self._scheme = scheme
         self._place = place
@@ -131,7 +130,7 @@ class Urn(DeepEqual, Serializable, Comparable):
     def getTypeName(self):
         """ Returns class type name of Urn.
         """
-        return self._class.__qualname__
+        return self._class  # .__qualname__
 
     def getIndex(self):
         """ Returns the product index.
@@ -205,7 +204,7 @@ class Urn(DeepEqual, Serializable, Comparable):
                 self._scheme,
                 self._place,
                 self._pool,
-                self._class.__qualname__,
+                self._class,  # .__qualname__,
                 self._index,
                 self._poolpath
             )

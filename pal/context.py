@@ -5,15 +5,9 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from .urn import Urn
-from .productref import ProductRef
-from .comparable import Comparable
-from .common import getJsonObj
-
 from dataset.product import Product
 from dataset.serializable import serializeClassID
 from dataset.dataset import CompositeDataset
-from dataset.odict import ODict
 
 
 class Context(Product):

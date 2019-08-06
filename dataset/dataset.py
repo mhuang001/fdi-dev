@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 from .annotatable import Annotatable
 from .copyable import Copyable
 from .eq import DeepEqual
-from .datawrapper import DataWrapper
+from .datawrapper import DataWrapper, DataContainer
 # from .composite import
 from .metadata import Attributable, AbstractComposite
 from .odict import ODict
@@ -44,7 +44,7 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
         visitor.visit(self)
 
 
-class GenericDataset(Dataset, DataWrapper, Container):
+class GenericDataset(Dataset, DataContainer, Container):
     """ mh: Contains one data item.
     """
 
@@ -85,7 +85,7 @@ class GenericDataset(Dataset, DataWrapper, Container):
         return s
 
 
-class ArrayDataset(GenericDataset, Sequence):
+class ArrayDataset(DataWrapper, GenericDataset, Sequence):
     """  Special dataset that contains a single Array Data object.
     mh:  contains a sequence which provides methods count(), index(), remove(), reverse().
 A mutable sequence would also need append(), extend(), insert(), pop() and sort()
@@ -95,13 +95,18 @@ A mutable sequence would also need append(), extend(), insert(), pop() and sort(
         """
         """
         super().__init__(**kwds)  # initialize data, meta
-        if not issubclass(self.data.__class__, Sequence) and self.data is not None:
-            # dataWrapper initializes data as None
-            logging.error(
-                'data in ArrayDataset must be a subclass of list: ' + self.data.__class__.__name__)
-            raise TypeError()
 
         self.unit = unit
+
+    def setData(self, data):
+        """
+        """
+        if not issubclass(data.__class__, Sequence) and data is not None:
+            # dataWrapper initializes data as None
+            m = 'data in ArrayDataset must be a subclass of Sequence: ' + \
+                data.__class__.__name__
+            raise TypeError(m)
+        super().setData(data)
 
     def __setitem__(self, *args, **kwargs):
         """ sets value at key.
@@ -149,9 +154,15 @@ A mutable sequence would also need append(), extend(), insert(), pop() and sort(
         return self.getData().pop(*args, **kwargs)
 
     def __repr__(self):
-        return self.__class__.__name__ + \
-            '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' % \
+        return self.__class__.__name__ +\
+            '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' %\
             (str(self.description), str(self.meta), str(self.data), str(self.unit))
+
+    def toString(self):
+        return self.__class__.__name__ +\
+            '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' %\
+            (str(self.description), self.meta.toString(),
+             self.data.toString(), str(self.unit))
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
@@ -174,7 +185,7 @@ class Column(ArrayDataset, ColumnListener):
     pass
 
 
-class TableModel(DataWrapper):
+class TableModel(DataContainer):
     """ to interrogate a tabular data model
     """
 
@@ -258,6 +269,7 @@ class TableDataset(Dataset, TableModel):
         .__next__() is valid for each item in data
         """
         # logging.debug(data.__class__)
+        #raise Exception()
         if data is not None:
             # d will be {<name1 str>:<column1 Column>, ... }
             d = ODict()
@@ -441,13 +453,13 @@ class TableDataset(Dataset, TableModel):
 
     def __repr__(self):
         return self.__class__.__name__ +\
-            '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' %\
-            (str(self.description), str(self.meta), str(self.data), str(self.unit))
+            '{ description = "%s", meta = %s, data = "%s"}' %\
+            (str(self.description), str(self.meta), str(self.data))
 
     def toString(self):
-        s = '{description = "%s", meta = %s, data = "%s", unit = "%s"}' %\
+        s = '{description = "%s", meta = %s, data = "%s"}' %\
             (str(self.description), self.meta.toString(),
-             str(self.data), str(self.unit))
+             self.data.toString())
         return s
 
     def serializable(self):

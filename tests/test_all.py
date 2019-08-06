@@ -614,6 +614,13 @@ def test_TableModel():
 
 def test_TableDataset():
     # constructor
+    # if data is not a sequence an exception is thrown
+    try:
+        t = 5
+        t = ArrayDataset(data=42)
+    except Exception as e:
+        assert issubclass(e.__class__, TypeError)
+    assert t == 5
     # data is a sequence
     a1 = [dict(name='col1', column=Column(data=[1, 4.4, 5.4E3], unit='eV')),
           dict(name='col2', column=Column(data=[0, 43.2, 2E3], unit='cnt'))
@@ -678,7 +685,7 @@ def test_TableDataset():
 
     # access
     column1 = x["Time"]
-    column2 = x[0]  # idem, but now by index
+    column2 = x[0]  # same, but now by index
     assert column1 == column2
     text = x.description
     assert text == 'Example table'

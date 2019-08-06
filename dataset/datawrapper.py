@@ -11,10 +11,10 @@ from .quantifiable import Quantifiable
 from .odict import ODict
 
 
-class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):
-    """ A DataWrapper is a composite of data, unit and description.
-    mh: note that all data are in the same unit. There is no metadata.
-    Implemented from AbstractDataWrapper.
+class DataContainer(Annotatable, Quantifiable, Copyable, DeepEqual):
+    """ A DataContainer is a composite of data and description.
+    mh: note that There is no metadata.
+    Implemented partly from AbstractDataWrapper.
     """
 
     def __init__(self, data=None, **kwds):
@@ -43,6 +43,18 @@ class DataWrapper(Annotatable, Quantifiable, Copyable, DeepEqual):
     def hasData(self):
         """ Returns whether this data wrapper has data. """
         return self.getData() is not None and len(self.getData()) > 0
+
+    def __repr__(self):
+        return self.__class__.__name__ + \
+            '{ description = "%s", data = "%s"}' % \
+            (str(self.description), str(self.getData()))
+
+
+class DataWrapper(DataContainer, Quantifiable):
+    """ A DataWrapper is a composite of data, unit and description.
+    mh: note that all data are in the same unit. There is no metadata.
+    Implemented from AbstractDataWrapper.
+    """
 
     def __repr__(self):
         return self.__class__.__name__ + \

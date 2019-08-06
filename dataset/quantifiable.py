@@ -15,13 +15,21 @@ class Quantifiable():
         """
 
         """
-        self.unit = unit
+        self.setUnit(unit)
         super().__init__(**kwds)
+
+    @property
+    def unit(self):
+        return self.getUnit()
+
+    @unit.setter
+    def unit(self, unit):
+        self.setUnit(unit)
 
     def getUnit(self):
         """ Returns the unit related to this object."""
-        return self.unit
+        return self._unit
 
     def setUnit(self, unit):
         """ Sets the unit of this object. """
-        self.unit = unit
+        self._unit = unit

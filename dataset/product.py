@@ -258,7 +258,7 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
                 pass
 
     def toString(self):
-        s = '{'
+        s = self.__class__.__name__ + '{'
         """for lvar in self.mandatoryAttrs:
             if hasattr(self, lvar):
                 s += '%s = %s, ' % (lvar, getattr(self, lvar))

@@ -68,7 +68,7 @@ class EventSender():
                 listener.targetChanged(*args, **kwargs)
                 n += 1
         except Exception as e:
-            logging.error('listener ' + str(0) + ' got exception ' + str(e))
+            logging.error('listener ' + str(0) + ' got exception: ' + str(e))
 
     def getListenerCount(self):
         return len(self.listeners)

@@ -9,7 +9,10 @@ class ODict(OrderedDict):
 
     def __repr__(self):
 
-        def q(x): return "'" + x + \
-            "'" if issubclass(x.__class__, str) else str(x)
+        def q(x):
+            return "'" + x + "'" if issubclass(x.__class__, str) else str(x)
         s = ''.join([q(k) + ':' + q(v) + ', ' for k, v in self.items()])
-        return '{' + s[:-2] + '}'
+        return 'OD{' + s[:-2] + '}'
+
+    def toString(self):
+        return self.__repr__()

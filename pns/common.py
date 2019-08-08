@@ -118,7 +118,7 @@ def putJsonObj(url, obj, headers):
     """
     js = serializeClassID(obj)
     # %s obj %s headers %s' % (url, obj, headers))
-    logger.debug(url + js[:160])
+    logger.debug(url + js[:260]+'...')
 
     try:
         # python3
@@ -130,7 +130,7 @@ def putJsonObj(url, obj, headers):
         return None
 
     ret = deserializeClassID(stri, dglobals=globals())
-    logger.debug(pformat(ret, depth=6)[:160] + '...')
+    logger.debug(pformat(ret, depth=6)[:260] + '...')
     return ret
 
 

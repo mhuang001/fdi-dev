@@ -94,7 +94,9 @@ test DELETE Clean-up the server by removing the input and output dirs
 ```
 
 Run all tests in one go:
-
+```
+./test
+```
 
 3. Run the local tests with Apache
 
@@ -123,22 +125,65 @@ http://127.0.0.1:5000/v0.4/
 An online API documentation page similar to below is shown.
 
 ----------------------------------------
-
-APIs	
-DELETE	
-Removing traces of past runnings the Processing Task Software. 	"http://127.0.0.1:5000/v0.4/clean"
-GET	
-returns names and contents of all files in the dir, 'None' if dir not existing. 	"http://127.0.0.1:5000/v0.4/output"
-configPTS file	"http://127.0.0.1:5000/v0.4/config"
-initPTS file	"http://127.0.0.1:5000/v0.4/init"
-POST	
-Generates a product by running script defined in the config as prog ('hello' for testing). Execution on the server host is in the pnshome directory and run result and status are returned. 	"http://127.0.0.1:5000/v0.4/run"
-generate post test product. put the 1st input (see maketestdata in test_all.py) parameter to metadata and 2nd to the product's dataset 	"http://127.0.0.1:5000/v0.4/data"
-Echo	"http://127.0.0.1:5000/v0.4/echo"
-PUT	
-Configure the Processing Task Software by running the config script. Ref init PTS. 	"http://127.0.0.1:5000/v0.4/config"
-Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned. 	"http://127.0.0.1:5000/v0.4/init"
-
+```
+{
+  "APIs": {
+    "DELETE": [
+      {
+        "URL": "http://127.0.0.1:5000/v0.4/clean", 
+        "description": " Removing traces of past runnings the Processing Task Software.\n    "
+      }
+    ], 
+    "GET": [
+      {
+        "URL": "http://127.0.0.1:5000/v0.4/init", 
+        "description": "initPTS file"
+      }, 
+      {
+        "URL": "http://127.0.0.1:5000/v0.4/config", 
+        "description": "configPTS file"
+      }, 
+      {
+        "URL": "http://127.0.0.1:5000/v0.4/input", 
+        "description": " returns names and contents of all files in the dir, 'None' if dir not existing. "
+      }, 
+      {
+        "URL": "http://127.0.0.1:5000/v0.4/output", 
+        "description": " returns names and contents of all files in the dir, 'None' if dir not existing. "
+      }
+    ], 
+    "POST": [
+      {
+        "URL": "http://127.0.0.1:5000/v0.4/data", 
+        "description": " generate post test product.\n    put the 1st input (see maketestdata in test_all.py)\n    parameter to metadata\n    and 2nd to the product's dataset\n    "
+      }, 
+      {
+        "URL": "http://127.0.0.1:5000/v0.4/echo", 
+        "description": "Echo"
+      }, 
+      {
+        "URL": "http://127.0.0.1:5000/v0.4/run", 
+        "description": " Generates a product by running script defined in the config as prog ('hello' for testing). Execution on the server host is in the pnshome directory and run result and status are returned.\n    "
+      }
+    ], 
+    "PUT": [
+      {
+        "URL": "http://127.0.0.1:5000/v0.4/init", 
+        "description": " Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned.\n    "
+      }, 
+      {
+        "URL": "http://127.0.0.1:5000/v0.4/config", 
+        "description": " Configure the Processing Task Software by running the config script. Ref init PTS.\n    "
+      }, 
+      {
+        "URL": "http://127.0.0.1:5000/v0.4/pnsconf", 
+        "description": " Configure the PNS itself\n    "
+      }
+    ]
+  }, 
+  "timestamp": 1565255652.912552
+}
+```
 ----------------------------------------
 
 <b>Return on Common Errors</b>

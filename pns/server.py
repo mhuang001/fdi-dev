@@ -5,7 +5,7 @@ from pprint import pformat
 import datetime
 import time
 import sys
-from os.path import isfile, isdir, join, expanduser, expandvars
+from os.path import isfile, isdir, join
 from os import listdir
 from pathlib import Path
 import traceback
@@ -30,6 +30,7 @@ from pns.pnsconfig import pnsconfig as pc
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
 import sys
+from os.path import expanduser, expandvars
 env = expanduser(expandvars('$HOME'))
 sys.path.insert(0, env)
 try:
@@ -90,24 +91,41 @@ def initPTS(d=None):
     indata = deserializeClassID(d, dglobals=globals())
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
-        timeout = indata['timeout'].value
+        timeout = indata['timeout']
     else:
         timeout=pc['timeout']
 
     stat = _execute(pc['scripts']['init'], timeout=timeout)
     return stat['returncode'], stat
 
+def configPNS(d=None):
+    """ Configure the PNS itself
+    """
+
+    logger.debug(str(d))
+    logger.debug('before conigering pns '+str(pc))
+    try:
+        indata = deserializeClassID(d)
+        pc.update(indata['input'])
+    except Exception as e:
+        re=-1
+        msg = str(e)
+    else:
+        re=pc
+        msg =''
+    logger.debug('after conigering pns '+str(pc))
+    
+    return re, msg 
 
 def configPTS(d=None):
     """ Configure the Processing Task Software by running the config script. Ref init PTS.
     """
 
-    # timeout is imported and needs to be declared global if referenced in ifs
     logger.debug(str(d))
-    indata = deserializeClassID88(d)
+    indata = deserializeClassID(d)
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
-        timeout = indata['timeout'].value
+        timeout = indata['timeout']
     else:
         timeout=pc['timeout']
         
@@ -124,7 +142,7 @@ def cleanPTS(d):
     indata = deserializeClassID(d, dglobals=globals())
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
-        timeout = indata['timeout'].value
+        timeout = indata['timeout']
     else:
         timeout = pc['timeout']
 
@@ -177,7 +195,7 @@ def run(d):
 
     ######### run PTS ########
     if hasattr(indata, '__iter__') and 'timeout' in indata:
-        timeout = indata['timeout'].value
+        timeout = indata['timeout']
     else:
         timeout=pc['timeout']
 
@@ -340,6 +358,8 @@ def setup(cmd):
             logger.error(msg)
     elif cmd == 'config':
         result, msg = configPTS(d)
+    elif cmd == 'pnsconf':
+        result, msg = configPNS(d)
     else:
         logger.error(cmd)
         abort(400)
@@ -388,7 +408,7 @@ APIs = {'GET':
          },
         'PUT':
         {'func': 'setup',
-         'cmds': {'init': initPTS, 'config': configPTS}
+         'cmds': {'init': initPTS, 'config': configPTS, 'pnsconf': configPNS}
          },
         'POST':
         {'func': 'calcresult',
@@ -402,14 +422,17 @@ APIs = {'GET':
 
 
 def makepublicAPI(ops):
-    api = {}
+    api = []
     o = APIs[ops]
     for cmd in o['cmds'].keys():
         c = o['cmds'][cmd]
         desc = c.__doc__ if isinstance(c, types.FunctionType) else c
-        api[desc] = url_for(o['func'],
+        d={}
+        d['description']=desc
+        d['URL'] = url_for(o['func'],
                             cmd=cmd,
                             _external=True)
+        api.append(d)
     #print('******* ' + str(api))
     return api
 

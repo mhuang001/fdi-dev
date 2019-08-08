@@ -11,15 +11,27 @@ logger = logging.getLogger()
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 from pns.server import app
-from pns.pnsconfig import pnsconfig as pc
 from pns.options import opt
+
+from pns.pnsconfig import pnsconfig as pc
+
+# default configuration is provided. Copy pnsconfig.py to ~/local.py
+import sys
+from os.path import expanduser, expandvars
+env = expanduser(expandvars('$HOME'))
+sys.path.insert(0, env)
+try:
+    from local import pnsconfig as pc
+except Exception:
+    pass
 
 if __name__ == '__main__':
 
     logger.info(
         'Pipline Node Server starting. Make sure no other instance is running')
     node, verbose = opt(pc['node'])
-
+    pc['node'].update(node)
+    
     if verbose:
         logger.setLevel(logging.DEBUG)
     else:

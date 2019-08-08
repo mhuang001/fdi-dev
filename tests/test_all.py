@@ -7,7 +7,7 @@ import base64
 from urllib.request import pathname2url
 import requests
 import os
-from os.path import isfile, isdir, join, expanduser, expandvars
+from os.path import isfile, isdir, join
 
 from pns.logdict import logdict
 import logging
@@ -24,6 +24,7 @@ from pns.options import opt
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
 from pns.pnsconfig import pnsconfig as pc
 import sys
+from os.path import expanduser, expandvars
 env = expanduser(expandvars('$HOME'))
 sys.path.insert(0, env)
 try:
@@ -42,6 +43,11 @@ from dataset.eq import deepcmp
 
 testname = 'SVOM'
 aburl = 'http://' + pc['node']['host'] + ':' + str(pc['node']['port']) + pc['baseurl']
+
+up=bytes((pc['node']['username']+':'+pc['node']['password']).encode('ascii'))
+code = base64.b64encode(up).decode("ascii")
+commonheaders.update({'Authorization': 'Basic %s' % (code)})
+del up,code
 
 # last timestamp/lastUpdate
 lupd = 0
@@ -89,9 +95,7 @@ def test_putinit():
     which checks the existence of hello
     """
 
-    d = {'timeout': NumericParameter(value=5, unit='sec', description='')}
-    code = base64.b64encode(b"foo:bar").decode("ascii")
-    commonheaders.update({'Authorization': 'Basic %s' % (code)})
+    d = {'timeout': 10}
     # print(nodetestinput)
     o = putJsonObj(aburl +
                    '/init',
@@ -100,6 +104,20 @@ def test_putinit():
     issane(o)
     checkputinitresult(o['result'], o['message'])
 
+def test_putconfigpns():
+    """ send signatured pnsconfig and check.
+    this function is useless for a stateless server
+    """
+    t=pc.copy()
+    t['scripts']['testing']='yes'
+    d = {'timeout': 10, 'input': t}
+    # print(nodetestinput)
+    o = putJsonObj(aburl +
+                   '/pnsconf',
+                   d,
+                   headers=commonheaders)
+    issane(o)
+    assert o['result']['scripts']['testing']=='yes', o['message']
 
 def issane(o):
     """ basic check on POST return """
@@ -152,8 +170,6 @@ def test_post():
     global result, lupd, nodetestinput
     checkserver()
     nodetestinput = makeposttestdata()
-    code = base64.b64encode(b"foo:bar").decode("ascii")
-    commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)
     o = putJsonObj(aburl +
                    '/init',
@@ -232,8 +248,6 @@ def test_run():
     # construct the nodetestinput to the node
     nodetestinput = ODict({'creator': 'me', 'rootcause': 'server test',
                            'input': x})
-    code = base64.b64encode(b"foo:bar").decode("ascii")
-    commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)
     o = postJsonObj(aburl +
                     '/run',
@@ -268,8 +282,6 @@ def test_deleteclean():
     assert o['result'] is not None
 
     url = aburl + '/clean'
-    code = base64.b64encode(b"foo:bar").decode("ascii")
-    commonheaders.update({'Authorization': 'Basic %s' % (code)})
     try:
         r = requests.delete(url, headers=commonheaders, timeout=15)
         stri = r.text
@@ -295,8 +307,6 @@ def test_mirror():
     checkserver()
     global result, lupd, nodetestinput
     nodetestinput = makeposttestdata()
-    code = base64.b64encode(b"foo:bar").decode("ascii")
-    commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)
     o = postJsonObj(aburl +
                     '/echo',

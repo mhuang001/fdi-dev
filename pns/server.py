@@ -86,7 +86,6 @@ def initPTS(d=None):
     """ Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned.
     """
 
-    # hf = pkg_resources.resource_filename("pns.resource", "hello")
     logger.debug(str(d))
     indata = deserializeClassID(d, dglobals=globals())
 
@@ -96,6 +95,21 @@ def initPTS(d=None):
         timeout=pc['timeout']
 
     stat = _execute(pc['scripts']['init'], timeout=timeout)
+    return stat['returncode'], stat
+
+def initTest(d=None):
+    """ Copy the "hello" script to the pnsome directory specified in pnsconfig.
+    """
+
+    pi = checkpath(pc['paths']['inputdir'])
+    po = checkpath(pc['paths']['outputdir'])
+    if pi is None or po is None:
+        abort(401)
+
+    hf = pkg_resources.resource_filename("pns.resource", "hello")
+    timeout=pc['timeout']
+    cmd=['/bin/cp', '-f', hf, pc['scripts']['pnshome']]
+    stat = _execute(cmd, timeout=timeout)
     return stat['returncode'], stat
 
 def configPNS(d=None):
@@ -132,6 +146,11 @@ def configPTS(d=None):
     stat = _execute(pc['scripts']['config'], timeout=timeout)
     return stat['returncode'], stat
 
+def uploadScript(op, d=None):
+    """
+    """
+
+    return -1, 'not mplemented'
 
 def cleanPTS(d):
     """ Removing traces of past runnings the Processing Task Software.
@@ -274,24 +293,32 @@ def getinfo(cmd):
     '''
     logger.debug('getr %s' % (cmd))
     global result
+    msg=''
     ts = time.time()
-    if cmd == 'init':
-        with open(pc['scripts']['init'][0], 'r') as f:
-            result = f.read()
-        w = {'result': result, 'message': '', 'timestamp': ts}
-    elif cmd == 'config':
-        with open(pc['scripts']['config'][0], 'r') as f:
-            result = f.read()
-        w = {'result': result, 'message': '', 'timestamp': ts}
-    elif cmd == 'input':
-        result, msg = filesin(pc['paths']['inputdir'])
-        w = {'result': result, 'message': msg, 'timestamp': ts}
-    elif cmd == 'output':
-        result, msg = filesin(pc['paths']['outputdir'])
-        w = {'result': result, 'message': msg, 'timestamp': ts}
-    else:
-        result, msg = 'init, confg, input, ouput', 'get API'
-        w = {'result': result, 'message': msg, 'timestamp': ts}
+    try:
+        if cmd == 'init':
+            with open(pc['scripts']['init'][0], 'r') as f:
+                result = f.read()
+        elif cmd == 'config':
+            with open(pc['scripts']['config'][0], 'r') as f:
+                result = f.read()
+        elif cmd == 'prog':
+            with open(pc['scripts']['prog'][0], 'r') as f:
+                result = f.read()
+        elif cmd == 'clean':
+            with open(pc['scripts']['clean'][0], 'r') as f:
+                result = f.read()
+        elif cmd == 'input':
+            result, msg = filesin(pc['paths']['inputdir'])
+        elif cmd == 'output':
+            result, msg = filesin(pc['paths']['outputdir'])
+        elif cmd == 'pnsconfig':
+            result, msg = pc, ''
+        else:
+            result, msg = 'init, confg, prog, input, ouput', 'get API'
+    except Exception as e:
+        msg=str(e)
+    w = {'result': result, 'message': msg, 'timestamp': ts}
 
     s = serializeClassID(w)
     logger.debug(s[:] + ' ...')
@@ -343,6 +370,7 @@ def calcresult(cmd):
 
 
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['PUT'])
+@app.route(pc['baseurl'] + '/<string:cmd>/<ops>', methods=['PUT'])
 def setup(cmd):
     """ PUT is used to initialize or configure the Processing Task Software
     (PST).
@@ -360,6 +388,14 @@ def setup(cmd):
         result, msg = configPTS(d)
     elif cmd == 'pnsconf':
         result, msg = configPNS(d)
+    elif cmd == 'upload':
+        if ops not in pc['scripts'].keys():
+            logger.error('invalid operation type '+ops)
+            abort(400)
+            result = None        
+        result, msg = uploadScript(ops, d)
+    elif cmd == 'inittest':
+        result, msg = initTest(d)
     else:
         logger.error(cmd)
         abort(400)
@@ -403,12 +439,14 @@ def cleanup(cmd):
 
 APIs = {'GET':
         {'func': 'getinfo',
-         'cmds': {'init': 'initPTS file', 'config': 'configPTS file',
-                  'input': filesin, 'output': filesin}
+         'cmds': {'init': 'the initPTS file', 'config': 'the configPTS file',
+                  'prog': 'the file running PTS', 'clean': 'the cleanPTS file',
+                  'input': filesin, 'output': filesin,
+                  'pnsconfig':'PNS configuration'}
          },
         'PUT':
         {'func': 'setup',
-         'cmds': {'init': initPTS, 'config': configPTS, 'pnsconf': configPNS}
+         'cmds': {'init': initPTS, 'config': configPTS, 'pnsconf': configPNS, 'inittest': initTest}
          },
         'POST':
         {'func': 'calcresult',

@@ -26,14 +26,14 @@ else:
     logger = logging.getLogger(__name__)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-from pns.pnsconfig import baseurl, node, paths, init, config, prog, clean, timeout
+from pns.pnsconfig import pnsconfig as pc
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
 import sys
 env = expanduser(expandvars('$HOME'))
 sys.path.insert(0, env)
 try:
-    from local import baseurl, node, paths, init, config, prog, clean, timeout
+    from local import pnsconfig as pc
 except Exception:
     pass
 
@@ -59,7 +59,7 @@ def _execute(cmd, input=None, timeout=10):
     """
     sta = {'command': str(cmd)}
     cp = srun(cmd, input=input, stdout=PIPE, stderr=PIPE,
-              cwd=paths['pnshome'], timeout=timeout,
+              cwd=pc['paths']['pnshome'], timeout=timeout,
               encoding='utf-8')  # universal_newlines=True)
     sta['stdout'], sta['stderr'] = cp.stdout, cp.stderr
     sta['returncode'] = cp.returncode
@@ -85,17 +85,16 @@ def initPTS(d=None):
     """ Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned.
     """
 
-    # timeout is imported and needs to be declared global if referenced in ifs
-    global timeout
-
     # hf = pkg_resources.resource_filename("pns.resource", "hello")
     logger.debug(str(d))
     indata = deserializeClassID(d, dglobals=globals())
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
+    else:
+        timeout=pc['timeout']
 
-    stat = _execute(init, timeout=timeout)
+    stat = _execute(pc['scripts']['init'], timeout=timeout)
     return stat['returncode'], stat
 
 
@@ -104,15 +103,15 @@ def configPTS(d=None):
     """
 
     # timeout is imported and needs to be declared global if referenced in ifs
-    global timeout
-
     logger.debug(str(d))
     indata = deserializeClassID88(d)
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
-
-    stat = _execute(config, timeout=timeout)
+    else:
+        timeout=pc['timeout']
+        
+    stat = _execute(pc['scripts']['config'], timeout=timeout)
     return stat['returncode'], stat
 
 
@@ -120,7 +119,6 @@ def cleanPTS(d):
     """ Removing traces of past runnings the Processing Task Software.
     """
     # timeout is imported and needs to be declared global if referenced in ifs
-    global timeout
 
     logger.debug(str(d))
     indata = deserializeClassID(d, dglobals=globals())
@@ -128,9 +126,9 @@ def cleanPTS(d):
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
     else:
-        timeout = 10
+        timeout = pc['timeout']
 
-    stat = _execute(clean, timeout=timeout)
+    stat = _execute(pc['scripts']['clean'], timeout=timeout)
     return stat['returncode'], stat
 
 
@@ -153,19 +151,18 @@ def checkpath(path):
 def run(d):
     """ Generates a product by running script defined in the config as prog ('hello' for testing). Execution on the server host is in the pnshome directory and run result and status are returned.
     """
-    pi = checkpath(paths['inputdir'])
-    po = checkpath(paths['outputdir'])
+    pi = checkpath(pc['paths']['inputdir'])
+    po = checkpath(pc['paths']['outputdir'])
     if pi is None or po is None:
         abort(401)
-    # timeout is imported and needs to be declared global if referenced in ifs
-    global timeout
+
     global lupd
 
     indata = deserializeClassID(d, dglobals=globals())
     logger.debug(indata)
     runner, cause = indata['creator'], indata['rootcause']
     contents = indata['input']['theName'].data
-    for f in paths['inputfiles']:
+    for f in pc['paths']['inputfiles']:
         fp = pi.joinpath(f)
         if fp.exists():
             logging.debug('infile mode 0%o ' % (fp.stat().st_mode))
@@ -181,14 +178,16 @@ def run(d):
     ######### run PTS ########
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout'].value
+    else:
+        timeout=pc['timeout']
 
-    stat = _execute(prog, timeout=timeout)
+    stat = _execute(pc['scripts']['prog'], timeout=timeout)
     if stat['returncode'] != 0:
         return stat['returncode'], stat
 
     ######### output ########
     try:
-        with po.joinpath(paths['outputfile']).open("r") as outf:
+        with po.joinpath(pc['paths']['outputfile']).open("r") as outf:
             res = outf.read()
     except Exception as e:
         return -1, str(e)
@@ -251,7 +250,7 @@ def filesin(dir):
     return result, ''
 
 
-@app.route(baseurl + '/<string:cmd>', methods=['GET'])
+@app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
 def getinfo(cmd):
     ''' returns init, config, run input, run output.
     '''
@@ -259,18 +258,18 @@ def getinfo(cmd):
     global result
     ts = time.time()
     if cmd == 'init':
-        with open(init[0], 'r') as f:
+        with open(pc['scripts']['init'][0], 'r') as f:
             result = f.read()
         w = {'result': result, 'message': '', 'timestamp': ts}
     elif cmd == 'config':
-        with open(config[0], 'r') as f:
+        with open(pc['scripts']['config'][0], 'r') as f:
             result = f.read()
         w = {'result': result, 'message': '', 'timestamp': ts}
     elif cmd == 'input':
-        result, msg = filesin(paths['inputdir'])
+        result, msg = filesin(pc['paths']['inputdir'])
         w = {'result': result, 'message': msg, 'timestamp': ts}
     elif cmd == 'output':
-        result, msg = filesin(paths['outputdir'])
+        result, msg = filesin(pc['paths']['outputdir'])
         w = {'result': result, 'message': msg, 'timestamp': ts}
     else:
         result, msg = 'init, confg, input, ouput', 'get API'
@@ -294,10 +293,10 @@ def verify(username, password):
     """
     if not (username and password):
         return False
-    return username == node['username'] and password == node['password']
+    return username == pc['node']['username'] and password == pc['node']['password']
 
 
-@app.route(baseurl + '/<string:cmd>', methods=['POST'])
+@app.route(pc['baseurl'] + '/<string:cmd>', methods=['POST'])
 def calcresult(cmd):
     global result
     d = request.get_data()
@@ -325,7 +324,7 @@ def calcresult(cmd):
     return resp
 
 
-@app.route(baseurl + '/<string:cmd>', methods=['PUT'])
+@app.route(pc['baseurl'] + '/<string:cmd>', methods=['PUT'])
 def setup(cmd):
     """ PUT is used to initialize or configure the Processing Task Software
     (PST).
@@ -354,7 +353,7 @@ def setup(cmd):
     return resp
 
 
-@app.route(baseurl + '/<string:cmd>', methods=['DELETE'])
+@app.route(pc['baseurl'] + '/<string:cmd>', methods=['DELETE'])
 def cleanup(cmd):
     """ DELETE is used to clean up the Processing Task Software
     (PST) to its initial configured state.
@@ -415,8 +414,8 @@ def makepublicAPI(ops):
     return api
 
 
-@app.route(baseurl + '/', methods=['GET'])
-@app.route(baseurl + '/api', methods=['GET'])
+@app.route(pc['baseurl'] + '/', methods=['GET'])
+@app.route(pc['baseurl'] + '/api', methods=['GET'])
 def get_apis():
     logger.debug('APIs %s' % (APIs.keys()))
     ts = time.time()

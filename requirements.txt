@@ -3,4 +3,4 @@ pytest 3,2,3
 flask 0.12.2
 flask_httpauth 3.2.3
 dataset 0.3
-
+setuptools==40.7.3

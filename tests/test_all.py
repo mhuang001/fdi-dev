@@ -22,12 +22,12 @@ from pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from pns.options import opt
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
-from pns.pnsconfig import baseurl, node, paths, init, config, prog, clean, timeout
+from pns.pnsconfig import pnsconfig as pc
 import sys
 env = expanduser(expandvars('$HOME'))
 sys.path.insert(0, env)
 try:
-    from local import baseurl, node, paths, init, config, prog, clean, timeout
+    from local import pnsconfig as pc
 except Exception:
     pass
 
@@ -41,7 +41,7 @@ from dataset.dataset import ArrayDataset, GenericDataset
 from dataset.eq import deepcmp
 
 testname = 'SVOM'
-addrport = 'http://' + node['host'] + ':' + str(node['port'])
+aburl = 'http://' + pc['node']['host'] + ':' + str(pc['node']['port']) + pc['baseurl']
 
 # last timestamp/lastUpdate
 lupd = 0
@@ -50,7 +50,7 @@ lupd = 0
 if 0:
     poststr = 'curl -i -H "Content-Type: application/json" -X POST --data @%s http://localhost:5000%s --user %s'
     cmd = poststr % ('resource/' + 'nodetestinput.jsn',
-                     pathname2url(baseurl + '/' +
+                     pathname2url(pc['baseurl'] + '/' +
                                   nodetestinput['creator'] + '/' +
                                   nodetestinput['rootcause']),
                      'foo:bar')
@@ -64,7 +64,7 @@ def checkserver():
     """
     global testpns
     # check if data already exists
-    o = getJsonObj(addrport + baseurl + '/')
+    o = getJsonObj(aburl + '/')
     assert o is not None, 'Cannot connect to the server'
     logger.info('initial server response %s' % (str(o)[:100] + '...'))
     # assert 'result' is not None, 'please start the server to refresh.'
@@ -93,7 +93,7 @@ def test_putinit():
     code = base64.b64encode(b"foo:bar").decode("ascii")
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)
-    o = putJsonObj(addrport + baseurl +
+    o = putJsonObj(aburl +
                    '/init',
                    d,
                    headers=commonheaders)
@@ -155,11 +155,11 @@ def test_post():
     code = base64.b64encode(b"foo:bar").decode("ascii")
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)
-    o = putJsonObj(addrport + baseurl +
+    o = putJsonObj(aburl +
                    '/init',
                    None,
                    headers=commonheaders)
-    o = postJsonObj(addrport + baseurl +
+    o = postJsonObj(aburl +
                     '/data',
                     nodetestinput,
                     headers=commonheaders)
@@ -235,7 +235,7 @@ def test_run():
     code = base64.b64encode(b"foo:bar").decode("ascii")
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)
-    o = postJsonObj(addrport + baseurl +
+    o = postJsonObj(aburl +
                     '/run',
                     nodetestinput,
                     headers=commonheaders)
@@ -247,9 +247,9 @@ def test_getinit():
     ''' compare server side initPTS contens with the local copy
     '''
     logger.info('get initPTS')
-    o = getJsonObj(addrport + baseurl + '/init')
+    o = getJsonObj(aburl + '/init')
     issane(o)
-    with open(init[0], 'r') as f:
+    with open(pc['scripts']['init'][0], 'r') as f:
         result = f.read()
     assert result == o['result']
 
@@ -260,14 +260,14 @@ def test_deleteclean():
     logger.info('delete cleanPTS')
     # make sure input and output dirs are made
     test_run()
-    o = getJsonObj(addrport + baseurl + '/input')
+    o = getJsonObj(aburl + '/input')
     issane(o)
     assert o['result'] is not None
-    o = getJsonObj(addrport + baseurl + '/output')
+    o = getJsonObj(aburl + '/output')
     issane(o)
     assert o['result'] is not None
 
-    url = addrport + baseurl + '/clean'
+    url = aburl + '/clean'
     code = base64.b64encode(b"foo:bar").decode("ascii")
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     try:
@@ -280,10 +280,10 @@ def test_deleteclean():
         o = None
     issane(o)
     assert o['result'] is not None, o['message']
-    o = getJsonObj(addrport + baseurl + '/input')
+    o = getJsonObj(aburl + '/input')
     issane(o)
     assert o['result'] is None
-    o = getJsonObj(addrport + baseurl + '/output')
+    o = getJsonObj(aburl + '/output')
     issane(o)
     assert o['result'] is None
 
@@ -298,7 +298,7 @@ def test_mirror():
     code = base64.b64encode(b"foo:bar").decode("ascii")
     commonheaders.update({'Authorization': 'Basic %s' % (code)})
     # print(nodetestinput)
-    o = postJsonObj(addrport + baseurl +
+    o = postJsonObj(aburl +
                     '/echo',
                     nodetestinput,
                     headers=commonheaders)

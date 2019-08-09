@@ -5,12 +5,13 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from .urn import Urn
 from dataset.deserialize import deserializeClassID
 from dataset.product import Product, FineTime1, History
 from dataset.metadata import Parameter, NumericParameter, MetaData
 from dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
 from product.chart import ATC_VT_B, ATC_VT_R, FDC_VT_B, FDC_VT_R
+from pal.context import MapContext, MapRefsDataset
+from .urn import Urn
 
 
 def getJsonObj(fp, usedict=False):

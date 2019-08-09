@@ -38,20 +38,17 @@ class ProductStorage():
         loads and returns the housekeeping data
         """
         classespath, tagspath = poolpath + '/classes.jsn', poolpath + '/tags.jsn'
-        lock = filelock.FileLock(poolpath + '/lock')
-        lock.acquire()
-        try:
-            c = getJsonObj(classespath)
-            t = getJsonObj(tagspath)
-            if c is None or t is None:
-                raise Exception('reading classes and tags')
-        except Exception as e:
-            logging.error('Error in HK reading')
-            raise e
-        finally:
-            lock.release()
-        logging.debug('ProdStorage HK read from ' +
-                      str(classespath) + ' ' + str(tagspath))
+        with filelock.FileLock(poolpath + '/lock'):
+            try:
+                c = getJsonObj(classespath)
+                t = getJsonObj(tagspath)
+                if c is None or t is None:
+                    raise Exception('reading classes and tags')
+            except Exception as e:
+                logging.error('Error in HK reading')
+                raise e
+        logger.debug('ProdStorage HK read from ' +
+                     str(classespath) + ' ' + str(tagspath))
         return c, t
 
     def register(self, pool):
@@ -62,7 +59,7 @@ class ProductStorage():
         if sp[0] != 'file':
             raise ValueError(sp[0] + ':// is not supported')
         poolpath = sp[1]
-        logging.debug(poolpath)
+        logger.debug(poolpath)
         p = Path(poolpath)
         # check duplicated case
         # if pool in PoolStorageList:
@@ -83,11 +80,11 @@ class ProductStorage():
         pt = p.joinpath('tags.jsn')
         if pc.exists() and pt.exists():
             c, t = self.readHK(poolpath)
-            logging.debug('pool ' + pool + ' HK read')
+            logger.debug('pool ' + pool + ' HK read')
         else:
             c, t = ODict(), ODict()
         self._pool.update({pool: {'classes': c, 'tags': t}})
-        logging.debug('registered pool ' + str(self._pool))
+        logger.debug('registered pool ' + str(self._pool))
         PoolStorageList.append(pool)
 
     def writeHK(self, pool):
@@ -118,8 +115,6 @@ class ProductStorage():
         """ Save a product or a list of products to the storage, possibly under the supplied tag, and return the reference (or a list of references if the input is a list of products).
         """
 
-        logging.debug('saving ' + str(product) +
-                      ' to pool ' + str(pool) + ' with tag ' + str(tag) + ' pools ' + str(self._pool))
         if pool == None:
             if len(self._pool) > 0:
                 pool = self.getWritablePool()
@@ -127,6 +122,9 @@ class ProductStorage():
                 raise ValueError('no pool registered')
         elif pool not in self._pool:
             self.register(pool)
+
+        logger.debug('saving product:' + str(product) +
+                     ' to pool ' + str(pool) + ' with tag ' + str(tag))
 
         c = self._pool[pool]['classes']
         t = self._pool[pool]['tags']
@@ -178,7 +176,7 @@ class ProductStorage():
 
                     self.writeHK(pool)
                 except IOError as e:
-                    logging.debug(str(
+                    logger.debug(str(
                         fp) + str(e) + ' '.join([x for x in traceback.extract_tb(e.__traceback__).format()]))
                     # undo changes
                     c = cl
@@ -223,28 +221,25 @@ class ProductStorage():
         sp0 = Path(poolpath)
         sp1 = sp0.joinpath(resource.replace(':', '_'))
 
-        lock = filelock.FileLock(poolpath + '/lock')
-        lock.acquire()
-        try:
-            del c[prod]['sn2tag'][sn]
-            if len(c[prod]['sn2tag']) == 0:
-                del c[prod]
-            if prod in t:
-                if sn in t[prod]:
-                    t[prod].remove(sn)
-                    if len(t[prod]) == 0:
-                        del t[prod]
+        with filelock.FileLock(poolpath + '/lock'):
+            try:
+                del c[prod]['sn2tag'][sn]
+                if len(c[prod]['sn2tag']) == 0:
+                    del c[prod]
+                if prod in t:
+                    if sn in t[prod]:
+                        t[prod].remove(sn)
+                        if len(t[prod]) == 0:
+                            del t[prod]
 
-            sp1.unlink()
-            self.writeHK(pool)
-        except Exception as e:
-            msg = 'product ' + urn + ' removal failed'
-            logging.debug(msg)
-            c = cs
-            t = ts
-            raise e
-        finally:
-            lock.release()
+                sp1.unlink()
+                self.writeHK(pool)
+            except Exception as e:
+                msg = 'product ' + urn + ' removal failed'
+                logger.debug(msg)
+                c = cs
+                t = ts
+                raise e
 
     def accept(self, visitor):
         """ Hook for adding functionality to object
@@ -313,18 +308,15 @@ class ProductStorage():
             raise ValueError(sp[0] + ':// is not supported')
         poolpath = sp[1]
 
-        lock = filelock.FileLock(poolpath + '/lock')
-        lock.acquire()
-        try:
-            shutil.rmtree(poolpath)
-            pp = Path(poolpath)
-            pp.mkdir()
-        except Exception as e:
-            msg = 'remove-mkdir ' + poolpath + ' failed'
-            logging.error(msg)
-            raise e
-        finally:
-            lock.release()
+        with filelock.FileLock(poolpath + '/lock'):
+            try:
+                shutil.rmtree(poolpath)
+                pp = Path(poolpath)
+                pp.mkdir()
+            except Exception as e:
+                msg = 'remove-mkdir ' + poolpath + ' failed'
+                logger.error(msg)
+                raise e
         self._pool[pool]['classes'] = ODict()
         self._pool[pool]['tags'] = ODict()
 

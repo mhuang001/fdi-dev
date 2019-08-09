@@ -14,6 +14,7 @@ if doLogging:
     logger = logging.getLogger()
     logger.debug('%s logging level %d' %
                  (__name__, logger.getEffectiveLevel()))
+    logging.getLogger("filelock").setLevel(logging.WARNING)
 
 from dataset.annotatable import Annotatable
 from dataset.copyable import Copyable

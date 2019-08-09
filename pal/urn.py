@@ -116,7 +116,7 @@ class Urn(DeepEqual, Serializable, Comparable):
         self._resource = resourcecn + ':' + indexs
         self._poolpath = poolpath
         self._urn = urn
-        logging.debug(urn)
+        logger.debug(urn)
 
     def getUrn(self):
         """ Returns the urn in this """

@@ -43,6 +43,8 @@ from dataset.product import Product, FineTime1, History
 from dataset.dataset import GenericDataset, ArrayDataset, TableDataset
 from dataset.serializable import serializeClassID
 from dataset.deserialize import deserializeClassID
+from pal.productref import ProductRef
+from pal.urn import Urn
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
@@ -92,10 +94,11 @@ def initPTS(d=None):
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout']
     else:
-        timeout=pc['timeout']
+        timeout = pc['timeout']
 
     stat = _execute(pc['scripts']['init'], timeout=timeout)
     return stat['returncode'], stat
+
 
 def initTest(d=None):
     """ Copy the "hello" script to the pnsome directory specified in pnsconfig.
@@ -107,29 +110,31 @@ def initTest(d=None):
         abort(401)
 
     hf = pkg_resources.resource_filename("pns.resource", "hello")
-    timeout=pc['timeout']
-    cmd=['/bin/cp', '-f', hf, pc['scripts']['pnshome']]
+    timeout = pc['timeout']
+    cmd = ['/bin/cp', '-f', hf, pc['scripts']['pnshome']]
     stat = _execute(cmd, timeout=timeout)
     return stat['returncode'], stat
+
 
 def configPNS(d=None):
     """ Configure the PNS itself
     """
 
     logger.debug(str(d))
-    logger.debug('before conigering pns '+str(pc))
+    logger.debug('before conigering pns ' + str(pc))
     try:
         indata = deserializeClassID(d)
         pc.update(indata['input'])
     except Exception as e:
-        re=-1
+        re = -1
         msg = str(e)
     else:
-        re=pc
-        msg =''
-    logger.debug('after conigering pns '+str(pc))
-    
-    return re, msg 
+        re = pc
+        msg = ''
+    logger.debug('after conigering pns ' + str(pc))
+
+    return re, msg
+
 
 def configPTS(d=None):
     """ Configure the Processing Task Software by running the config script. Ref init PTS.
@@ -141,16 +146,18 @@ def configPTS(d=None):
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout']
     else:
-        timeout=pc['timeout']
-        
+        timeout = pc['timeout']
+
     stat = _execute(pc['scripts']['config'], timeout=timeout)
     return stat['returncode'], stat
+
 
 def uploadScript(op, d=None):
     """
     """
 
     return -1, 'not mplemented'
+
 
 def cleanPTS(d):
     """ Removing traces of past runnings the Processing Task Software.
@@ -174,19 +181,25 @@ def checkpath(path):
     if p.exists():
         if not p.is_dir():
             msg = str(p) + ' is not a directory.'
-            logging.error(msg)
+            logger.error(msg)
             abort(400)
     else:
         p.mkdir()
         #uid = pwd.getpwnam("www-data").pw_uid
         #gid = grp.getgrnam("www-data").gr_gid
         #os.chown(str(p), uid, gid)
-        logging.info(str(p) + ' directory has been made.')
+        logger.info(str(p) + ' directory has been made.')
     return p
 
 
 def run(d):
-    """ Generates a product by running script defined in the config as prog ('hello' for testing). Execution on the server host is in the pnshome directory and run result and status are returned.
+    """ Generates a product by running script defined in the config as prog. Execution on the server host is in the pnshome directory and run result and status are returned.
+    """
+    return 0, ''
+
+
+def testrun(d):
+    """  Run 'hello' for testing, and as an example.
     """
     pi = checkpath(pc['paths']['inputdir'])
     po = checkpath(pc['paths']['outputdir'])
@@ -202,7 +215,7 @@ def run(d):
     for f in pc['paths']['inputfiles']:
         fp = pi.joinpath(f)
         if fp.exists():
-            logging.debug('infile mode 0%o ' % (fp.stat().st_mode))
+            logger.debug('infile mode 0%o ' % (fp.stat().st_mode))
         try:
             if fp.exists():
                 fp.rename(str(fp) + '.old')
@@ -216,7 +229,7 @@ def run(d):
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout']
     else:
-        timeout=pc['timeout']
+        timeout = pc['timeout']
 
     stat = _execute(pc['scripts']['prog'], timeout=timeout)
     if stat['returncode'] != 0:
@@ -239,6 +252,12 @@ def run(d):
     x.type = 'test'
     x.history = History()
     return x, stat
+
+
+def calc(d):
+    """ generates result product directly using data on PNS.
+    """
+    return 0, ''
 
 
 def genposttestprod(d):
@@ -293,7 +312,7 @@ def getinfo(cmd):
     '''
     logger.debug('getr %s' % (cmd))
     global result
-    msg=''
+    msg = ''
     ts = time.time()
     try:
         if cmd == 'init':
@@ -317,7 +336,7 @@ def getinfo(cmd):
         else:
             result, msg = 'init, confg, prog, input, ouput', 'get API'
     except Exception as e:
-        msg=str(e)
+        msg = str(e)
     w = {'result': result, 'message': msg, 'timestamp': ts}
 
     s = serializeClassID(w)
@@ -344,8 +363,11 @@ def verify(username, password):
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['POST'])
 def calcresult(cmd):
     global result
+    logger.debug('pos ' + cmd)
     d = request.get_data()
-    if cmd == 'data':
+    if cmd == 'calc':
+        result, msg = calc(d)
+    if cmd == 'testcalc':
         # see test_post() in test_all.py
         result, msg = genposttestprod(d)
     elif cmd == 'echo':
@@ -354,8 +376,10 @@ def calcresult(cmd):
         logger.debug(indata)
         result, msg = indata, ''
     elif cmd == 'run':
-        # see test_run() in test_all.py
         result, msg = run(d)
+    elif cmd == 'testrun':
+        # see test_run() in test_all.py
+        result, msg = testrun(d)
     else:
         logger.error(cmd)
         abort(400)
@@ -390,9 +414,9 @@ def setup(cmd):
         result, msg = configPNS(d)
     elif cmd == 'upload':
         if ops not in pc['scripts'].keys():
-            logger.error('invalid operation type '+ops)
+            logger.error('invalid operation type ' + ops)
             abort(400)
-            result = None        
+            result = None
         result, msg = uploadScript(ops, d)
     elif cmd == 'inittest':
         result, msg = initTest(d)
@@ -442,7 +466,7 @@ APIs = {'GET':
          'cmds': {'init': 'the initPTS file', 'config': 'the configPTS file',
                   'prog': 'the file running PTS', 'clean': 'the cleanPTS file',
                   'input': filesin, 'output': filesin,
-                  'pnsconfig':'PNS configuration'}
+                  'pnsconfig': 'PNS configuration'}
          },
         'PUT':
         {'func': 'setup',
@@ -450,8 +474,8 @@ APIs = {'GET':
          },
         'POST':
         {'func': 'calcresult',
-         'cmds': {'data': genposttestprod, 'echo': 'Echo',
-                  'run': run}
+         'cmds': {'calc': calc, 'testcalc': genposttestprod, 'echo': 'Echo',
+                  'run': run, 'testrun': testrun}
          },
         'DELETE':
         {'func': 'cleanup',
@@ -465,11 +489,11 @@ def makepublicAPI(ops):
     for cmd in o['cmds'].keys():
         c = o['cmds'][cmd]
         desc = c.__doc__ if isinstance(c, types.FunctionType) else c
-        d={}
-        d['description']=desc
+        d = {}
+        d['description'] = desc
         d['URL'] = url_for(o['func'],
-                            cmd=cmd,
-                            _external=True)
+                           cmd=cmd,
+                           _external=True)
         api.append(d)
     #print('******* ' + str(api))
     return api

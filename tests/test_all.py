@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 import sys
-from pprint import pprint, pformat
-import pkg_resources
-import subprocess
 import base64
 from urllib.request import pathname2url
 import requests
 import os
-from os.path import isfile, isdir, join
 
 from pns.logdict import logdict
 import logging
@@ -15,8 +11,8 @@ import logging.config
 # create logger
 logging.config.dictConfig(logdict)
 logger = logging.getLogger()
-
 logger.debug('level %d' % (logger.getEffectiveLevel()))
+# logging.getLogger("requests").setLevel(logging.INFO)
 
 from pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from pns.options import opt
@@ -42,12 +38,14 @@ from dataset.dataset import ArrayDataset, GenericDataset
 from dataset.eq import deepcmp
 
 testname = 'SVOM'
-aburl = 'http://' + pc['node']['host'] + ':' + str(pc['node']['port']) + pc['baseurl']
+aburl = 'http://' + pc['node']['host'] + ':' + \
+    str(pc['node']['port']) + pc['baseurl']
 
-up=bytes((pc['node']['username']+':'+pc['node']['password']).encode('ascii'))
+up = bytes((pc['node']['username'] + ':' +
+            pc['node']['password']).encode('ascii'))
 code = base64.b64encode(up).decode("ascii")
 commonheaders.update({'Authorization': 'Basic %s' % (code)})
-del up,code
+del up, code
 
 # last timestamp/lastUpdate
 lupd = 0
@@ -104,12 +102,13 @@ def test_putinit():
     issane(o)
     checkputinitresult(o['result'], o['message'])
 
+
 def test_putconfigpns():
     """ send signatured pnsconfig and check.
     this function is useless for a stateless server
     """
-    t=pc.copy()
-    t['scripts']['testing']='yes'
+    t = pc.copy()
+    t['scripts']['testing'] = 'yes'
     d = {'timeout': 10, 'input': t}
     # print(nodetestinput)
     o = putJsonObj(aburl +
@@ -117,7 +116,13 @@ def test_putconfigpns():
                    d,
                    headers=commonheaders)
     issane(o)
-    assert o['result']['scripts']['testing']=='yes', o['message']
+    assert o['result']['scripts']['testing'] == 'yes', o['message']
+
+
+def test_putinittest():
+    """ clean 
+    """
+
 
 def issane(o):
     """ basic check on POST return """
@@ -176,7 +181,7 @@ def test_post():
                    None,
                    headers=commonheaders)
     o = postJsonObj(aburl +
-                    '/data',
+                    '/testcalc',
                     nodetestinput,
                     headers=commonheaders)
     issane(o)
@@ -215,11 +220,11 @@ def checkrunresult(p, msg):
 
 def test_serverrun():
     ''' send a product that has a name string as its data
-    to the server "run" routine locally installed with this
+    to the server "testrun" routine locally installed with this
     test, and get back a product with
     a string 'hello, $name!' as its data
     '''
-    logger.info('POST test for pipeline node server "run": hello')
+    logger.info('POST test for pipeline node server "testrun": hello')
     global result, nodetestinput
 
     x = makeruntestdata()
@@ -228,7 +233,7 @@ def test_serverrun():
                            'input': x})
     js = serializeClassID(nodetestinput)
     logger.debug(js[:160])
-    o, msg = server.run(js)
+    o, msg = server.testrun(js)
     # issane(o) is skipped
     checkrunresult(o, msg)
 
@@ -250,7 +255,7 @@ def test_run():
                            'input': x})
     # print(nodetestinput)
     o = postJsonObj(aburl +
-                    '/run',
+                    '/testrun',
                     nodetestinput,
                     headers=commonheaders)
     issane(o)
@@ -264,6 +269,17 @@ def test_getinit():
     o = getJsonObj(aburl + '/init')
     issane(o)
     with open(pc['scripts']['init'][0], 'r') as f:
+        result = f.read()
+    assert result == o['result']
+
+
+def test_getprog():
+    ''' compare server side prog contens with the local copy
+    '''
+    logger.info('get prog')
+    o = getJsonObj(aburl + '/prog')
+    issane(o)
+    with open(pc['scripts']['prog'][0], 'r') as f:
         result = f.read()
     assert result == o['result']
 

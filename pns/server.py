@@ -109,7 +109,7 @@ def initTest(d=None):
     if pi is None or po is None:
         abort(401)
 
-    hf = pkg_resources.resource_filename("pns.resource", "hello")
+    hf = pkg_resources.resource_filename("pns.resources", "hello")
     timeout = pc['timeout']
     cmd = ['/bin/cp', '-f', hf, pc['scripts']['pnshome']]
     stat = _execute(cmd, timeout=timeout)

@@ -1,5 +1,5 @@
 #https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository
 git add LICENSE README.md CHANGELOG.md requirements.txt setup.py gitadd .gitignore
 git add *.py startserver test pns.wsgi hello initPTS configPTS cleanPTS install
-git add pns/resource/*
+git add pns/resources/*
 git add pns/*.py tests/*.py

@@ -1,8 +1,0 @@
-baskets/*/lock
-*~
-.*~
-__pycache__
-*.log
-Flask-HTTPAuth
-old
-.cache

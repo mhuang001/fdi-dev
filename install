@@ -1,0 +1,12 @@
+pdir=/tmp
+cd $pdir
+rm -rf dataset pns
+git clone http://mercury.bao.ac.cn:9006/mh/pns.git
+git clone http://mercury.bao.ac.cn:9006/mh/dataset.git
+cd pns
+pip3 install -e .
+cd ../dataset
+pip3 install -e .
+
+service apache2 restart
+cd $pdir/pns

@@ -45,3 +45,9 @@ Change Log
 --------------
 Prototype. Initial check-in.
 
+	SPDC
+=======================================
+
+0.5 2019-08-11
+--------------
+Projects merged.

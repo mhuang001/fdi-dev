@@ -16,12 +16,12 @@ def read(fname):
 
 setup(
     name="spdc",
-    version="0.4",
+    version="0.5",
     author="Maohai Huang",
     author_email="mhuang@earth.bao.ac.cn",
     description=("Self-describing Portable Dataset Container"),
     license="GPL",
-    keywords="dataset metadata processing context server access REST API  HCSS",
+    keywords="dataset metadata processing context server access REST API HCSS",
     url="http://mercury.bao.ac.cn:9006/mh/spdc",
     packages=find_packages(exclude=['tests']),
     long_description=read('README.md'),

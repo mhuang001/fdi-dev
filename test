@@ -1,3 +1,5 @@
 #!/bin/bash
 cd "$( dirname "${BASH_SOURCE[0]}" )"
-pytest --debug -vv -r P $* tests/test_all.py 
+pytest --debug -vv -r P $* tests/test_dataset.py 
+pytest --debug -vv -r P $* tests/test_pns.py 
+pytest --debug -vv -r P $* tests/test_pal.py 

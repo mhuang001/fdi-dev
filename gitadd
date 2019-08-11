@@ -1,4 +1,8 @@
 #https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository
-git add LICENSE README.md CHANGELOG.md requirements.txt plot setup.py .gitignore gitadd
-git add dataset/*.py test tests/*.py
-git add resources/*.png
+git add LICENSE README.md README-pns.md README-pal.md CHANGELOG.md requirements.txt plot setup.py gitadd .gitignore
+git add dataset/*.py
+git add resources/*
+git add pns/*.py pns/resources/*
+git add startserver pns.wsgi hello initPTS configPTS cleanPTS install
+git add pal/*.py pal/resources/*
+git add test tests/*.py

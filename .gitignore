@@ -1,5 +1,11 @@
 *~
 .*~
-__pycache__
-log
 *.log
+baskets/*/lock
+*~
+.*~
+__pycache__
+*.log
+Flask-HTTPAuth
+*.old
+.cache

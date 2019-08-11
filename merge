@@ -4,6 +4,7 @@ git clone ssh://git@mercury.bao.ac.cn:9005/mh/pns.git
 git clone ssh://git@mercury.bao.ac.cn:9005/mh/pal.git
 [deconflict commit]
 md spdc; cd spdc
+
  git init
 touch merge
 git add merge
@@ -26,8 +27,6 @@ git checkout master
 
  git checkout  master
 ls;git log --oneline --decorate --graph --all
-git merge --allow-unrelated-histories -m 'mp2' mp2
-ls;git log --oneline --decorate --graph --all
 
  git checkout -b mp3
  git remote add r3 /tmp/n/pal
@@ -38,10 +37,17 @@ ls;git log --oneline --decorate --graph --all
  git checkout  master
 ls;git log --oneline --decorate --graph --all
 
-git merge --allow-unrelated-histories -m 'mp3' mp3
+git merge --allow-unrelated-histories -m 'merge dataset' mp1
+ls;git log --oneline --decorate --graph --all
+git merge --allow-unrelated-histories -m 'merge pns' mp2
+ls;git log --oneline --decorate --graph --all
+git merge --allow-unrelated-histories -m 'merge pal' mp3
 ls;git log --oneline --decorate --graph --all
 
+git push origin master
+
  git remote rm r1
- git remote rm r2 r3
+ git remote rm r2
+ git remote rm r3
  git branch -d mp1 mp2 mp3
  git log --oneline --decorate --graph --all

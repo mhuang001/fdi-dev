@@ -16,6 +16,7 @@ from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
 
 from pns.logdict import logdict
+logdict['handlers']['file']['filename'] = '/tmp/pns-server.log'
 import logging
 import logging.config
 # create logger
@@ -54,12 +55,10 @@ class status():
     successful = 0
 
 
-result = None
-
-
 def _execute(cmd, input=None, timeout=10):
     """ Executes a command on the server host in the pnshome directory and returns run status. Default imeout is 10sec.
     """
+    logger.debug(cmd)
     sta = {'command': str(cmd)}
     cp = srun(cmd, input=input, stdout=PIPE, stderr=PIPE,
               cwd=pc['paths']['pnshome'], timeout=timeout,
@@ -84,11 +83,38 @@ def _execute(cmd, input=None, timeout=10):
     return sta
 
 
+def checkpath(path):
+    logger.debug(path)
+    p = Path(path).resolve()
+    if p.exists():
+        if not p.is_dir():
+            msg = str(p) + ' is not a directory.'
+            logger.error(msg)
+            return None
+    else:
+        p.mkdir()
+        #uid = pwd.getpwnam("www-data").pw_uid
+        #gid = grp.getgrnam("www-data").gr_gid
+        #os.chown(str(p), uid, gid)
+        logger.info(str(p) + ' directory has been made.')
+    return p
+
+
 def initPTS(d=None):
     """ Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned.
     """
 
     logger.debug(str(d))
+
+    p = checkpath(pc['paths']['pnshome'])
+    if p is None:
+        abort(401)
+
+    pi = checkpath(pc['paths']['inputdir'])
+    po = checkpath(pc['paths']['outputdir'])
+    if pi is None or po is None:
+        abort(401)
+
     indata = deserializeClassID(d, dglobals=globals())
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
@@ -101,17 +127,15 @@ def initPTS(d=None):
 
 
 def initTest(d=None):
-    """ Copy the "hello" script to the pnsome directory specified in pnsconfig.
+    """     Renames the 'prog' script to "*.save" and points it to the "hello" script.
     """
 
-    pi = checkpath(pc['paths']['inputdir'])
-    po = checkpath(pc['paths']['outputdir'])
-    if pi is None or po is None:
-        abort(401)
-
-    hf = pkg_resources.resource_filename("pns.resources", "hello")
+    #hf = pkg_resources.resource_filename("pns.resources", "hello")
     timeout = pc['timeout']
-    cmd = ['/bin/cp', '-f', hf, pc['scripts']['pnshome']]
+    ni = pc['scripts']['prog'][0]
+    cmd = ['mv', '-f', ni, ni + '.save']
+    stat = _execute(cmd, timeout=timeout)
+    cmd = ['ln', '-s', pc['paths']['pnshome'] + '/hello', ni]
     stat = _execute(cmd, timeout=timeout)
     return stat['returncode'], stat
 
@@ -121,7 +145,7 @@ def configPNS(d=None):
     """
 
     logger.debug(str(d))
-    logger.debug('before conigering pns ' + str(pc))
+    logger.debug('before configering pns ' + str(pc))
     try:
         indata = deserializeClassID(d)
         pc.update(indata['input'])
@@ -131,7 +155,7 @@ def configPNS(d=None):
     else:
         re = pc
         msg = ''
-    logger.debug('after conigering pns ' + str(pc))
+    logger.debug('after configering pns ' + str(pc))
 
     return re, msg
 
@@ -174,22 +198,6 @@ def cleanPTS(d):
 
     stat = _execute(pc['scripts']['clean'], timeout=timeout)
     return stat['returncode'], stat
-
-
-def checkpath(path):
-    p = Path(path).resolve()
-    if p.exists():
-        if not p.is_dir():
-            msg = str(p) + ' is not a directory.'
-            logger.error(msg)
-            abort(400)
-    else:
-        p.mkdir()
-        #uid = pwd.getpwnam("www-data").pw_uid
-        #gid = grp.getgrnam("www-data").gr_gid
-        #os.chown(str(p), uid, gid)
-        logger.info(str(p) + ' directory has been made.')
-    return p
 
 
 def run(d):
@@ -311,7 +319,7 @@ def getinfo(cmd):
     ''' returns init, config, run input, run output.
     '''
     logger.debug('getr %s' % (cmd))
-    global result
+
     msg = ''
     ts = time.time()
     try:
@@ -336,7 +344,7 @@ def getinfo(cmd):
         else:
             result, msg = 'init, confg, prog, input, ouput', 'get API'
     except Exception as e:
-        msg = str(e)
+        result, msg = -1, str(e)
     w = {'result': result, 'message': msg, 'timestamp': ts}
 
     s = serializeClassID(w)
@@ -362,7 +370,7 @@ def verify(username, password):
 
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['POST'])
 def calcresult(cmd):
-    global result
+
     logger.debug('pos ' + cmd)
     d = request.get_data()
     if cmd == 'calc':
@@ -399,7 +407,7 @@ def setup(cmd):
     """ PUT is used to initialize or configure the Processing Task Software
     (PST).
     """
-    global result
+
     d = request.get_data()
     logger.debug(d)
     if cmd == 'init':
@@ -408,6 +416,7 @@ def setup(cmd):
         except Exception as e:
             msg = str(e)
             logger.error(msg)
+            result = -1
     elif cmd == 'config':
         result, msg = configPTS(d)
     elif cmd == 'pnsconf':

@@ -5,14 +5,15 @@ from urllib.request import pathname2url
 import requests
 import os
 
-from pns.logdict import logdict
-import logging
-import logging.config
-# create logger
-logging.config.dictConfig(logdict)
-logger = logging.getLogger()
-logger.debug('level %d' % (logger.getEffectiveLevel()))
-# logging.getLogger("requests").setLevel(logging.INFO)
+from .logdict import doLogging, logdict
+if doLogging:
+    import logging
+    import logging.config
+    # create logger
+    logging.config.dictConfig(logdict)
+    logger = logging.getLogger()
+    logger.debug('level %d' % (logger.getEffectiveLevel()))
+    logging.getLogger("requests").setLevel(logging.INFO)
 
 from pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from pns.options import opt
@@ -89,11 +90,11 @@ def test_serverinit():
 
 
 def test_putinit():
-    """ calls the default pnsconfig.paths['pnshome']/initPTS script
-    which checks the existence of hello
+    """ calls the default pnsconfig['scripts']['init'] script
+    which checks the existence of 'hello'
     """
 
-    d = {'timeout': 10}
+    d = {'timeout': 5}
     # print(nodetestinput)
     o = putJsonObj(aburl +
                    '/init',
@@ -103,13 +104,39 @@ def test_putinit():
     checkputinitresult(o['result'], o['message'])
 
 
+def checkContents(cmd, filename):
+    """ checks a GET commands return matches contents of a file.
+    """
+    o = getJsonObj(aburl + cmd)
+    issane(o)
+    with open(filename, 'r') as f:
+        result = f.read()
+    assert result == o['result'], o['message']
+
+
+def test_putinittest():
+    """ 
+     Renames the 'prog' script to "*.save" and points it to the "hello" script.
+    """
+
+    d = {'timeout': 5}
+    # print(nodetestinput)
+    o = putJsonObj(aburl +
+                   '/inittest',
+                   d,
+                   headers=commonheaders)
+    issane(o)
+    checkputinitresult(o['result'], o['message'])
+    checkContents('/prog', pc['paths']['pnshome'] + '/hello')
+
+
 def test_putconfigpns():
     """ send signatured pnsconfig and check.
     this function is useless for a stateless server
     """
     t = pc.copy()
     t['scripts']['testing'] = 'yes'
-    d = {'timeout': 10, 'input': t}
+    d = {'timeout': 5, 'input': t}
     # print(nodetestinput)
     o = putJsonObj(aburl +
                    '/pnsconf',
@@ -117,11 +144,6 @@ def test_putconfigpns():
                    headers=commonheaders)
     issane(o)
     assert o['result']['scripts']['testing'] == 'yes', o['message']
-
-
-def test_putinittest():
-    """ clean 
-    """
 
 
 def issane(o):
@@ -151,7 +173,7 @@ def makeposttestdata():
 
 
 def checkpostresult(o):
-    global result, lupd, nodetestinput
+    global lupd, nodetestinput
     p = o['result']
     assert issubclass(p.__class__, Product), (p.__class__)
     # creator rootcause
@@ -172,12 +194,12 @@ def test_post():
     properties, parameters, and dataset containing those in the input
     '''
     logger.info('POST testpipeline node server')
-    global result, lupd, nodetestinput
+    global lupd, nodetestinput
     checkserver()
     nodetestinput = makeposttestdata()
     # print(nodetestinput)
     o = putJsonObj(aburl +
-                   '/init',
+                   '/inittest',
                    None,
                    headers=commonheaders)
     o = postJsonObj(aburl +
@@ -199,7 +221,7 @@ def makeruntestdata():
 
 
 def checkrunresult(p, msg):
-    global result, lupd, nodetestinput
+    global lupd, nodetestinput
 
     if not issubclass(p.__class__, Product):
         assert issubclass(msg.__class__, str), str(p.__class__) + ' ' +\
@@ -225,7 +247,11 @@ def test_serverrun():
     a string 'hello, $name!' as its data
     '''
     logger.info('POST test for pipeline node server "testrun": hello')
-    global result, nodetestinput
+    global nodetestinput
+
+    pi = server.checkpath(pc['paths']['inputdir'])
+    po = server.checkpath(pc['paths']['outputdir'])
+    assert pi is not None and po is not None
 
     x = makeruntestdata()
     # construct the nodetestinput to the node
@@ -244,7 +270,7 @@ def test_run():
     a string 'hello, $name!' as its data
     '''
     logger.info('POST test for pipeline node server: hello')
-    global result, lupd, nodetestinput
+    global lupd, nodetestinput
     checkserver()
 
     test_putinit()
@@ -263,25 +289,17 @@ def test_run():
 
 
 def test_getinit():
-    ''' compare server side initPTS contens with the local copy
+    ''' compare. server side initPTS contens with the local copy
     '''
     logger.info('get initPTS')
-    o = getJsonObj(aburl + '/init')
-    issane(o)
-    with open(pc['scripts']['init'][0], 'r') as f:
-        result = f.read()
-    assert result == o['result']
+    checkContents(cmd='/init', filename=pc['scripts']['init'][0])
 
 
 def test_getprog():
-    ''' compare server side prog contens with the local copy
+    ''' compare. server side prog contens with the local copy
     '''
     logger.info('get prog')
-    o = getJsonObj(aburl + '/prog')
-    issane(o)
-    with open(pc['scripts']['prog'][0], 'r') as f:
-        result = f.read()
-    assert result == o['result']
+    checkContents(cmd='/prog', filename=pc['scripts']['prog'][0])
 
 
 def test_deleteclean():
@@ -321,7 +339,7 @@ def test_mirror():
     '''
     logger.info('POST testpipeline node server')
     checkserver()
-    global result, lupd, nodetestinput
+    global lupd, nodetestinput
     nodetestinput = makeposttestdata()
     # print(nodetestinput)
     o = postJsonObj(aburl +

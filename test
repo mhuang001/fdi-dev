@@ -1,5 +1,20 @@
 #!/bin/bash
+# ./test n will test the nth subpackage.
+# ./test will do all
+
 cd "$( dirname "${BASH_SOURCE[0]}" )"
-pytest --debug -vv -r P $* tests/test_dataset.py 
-pytest --debug -vv -r P $* tests/test_pns.py 
-pytest --debug -vv -r P $* tests/test_pal.py 
+n=$#
+f=${1:-0}
+if [ "$n" -eq "0" -o "$f" -eq "1" ]; then
+    shift
+    pytest --debug -vv -r P $* tests/test_dataset.py;
+fi
+if [ $n -eq 0 -o $f -eq 2 ]; then
+    shift
+    pytest --debug -vv -r P $* tests/test_pns.py;
+fi
+
+if [ $n -eq 0 -o $f -eq 3 ]; then
+    shift
+    pytest --debug -vv -r P $* tests/test_pal.py;
+fi

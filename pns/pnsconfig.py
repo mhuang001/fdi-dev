@@ -11,11 +11,14 @@ pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
 
 # input file
 # output file
+from os.path import expanduser, expandvars
+home = expanduser(expandvars('$HOME'))
+phome = join(home, 'pns')
 pnsconfig['paths'] = dict(
-    pnshome='/tmp/pns',
-    inputdir='/tmp/input',
+    pnshome=phome,
+    inputdir=join(phome, 'input'),
     inputfiles=['infile'],
-    outputdir='/tmp/output',
+    outputdir=join(phome, 'output'),
     outputfile='outfile'
 )
 
@@ -25,10 +28,10 @@ h = pnsconfig['paths']['pnshome']
 pnsconfig['scripts'] = dict(
     init=[join(h, 'initPTS'), ''],
     config=[join(h, 'configPTS'), ''],
-    prog=[join(h, 'hello'), ''],
+    prog=[join(h, 'runPTS'), ''],
     clean=[join(h, 'cleanPTS'), '']
 )
-del h
+del phome, h
 
 # seconds
 pnsconfig['timeout'] = 10

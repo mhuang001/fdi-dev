@@ -1,0 +1,15 @@
+INST=~/svom
+mkdir -p $INST
+cd $INST
+pip3 uninstall spdc -y
+pip3 uninstall svom-csc-product -y
+pip3 uninstall vvpp -y
+rm -rf spdc product vvpp
+tar xf /tmp/spdc.tar; tar xf /tmp/svom.tar
+/usr/bin/cp -f spdc/install .
+cd $INST/spdc; pip3 install -e .
+cd $INST/product; pip3 install -e .
+cd $INST/vvpp; pip3 install -e .
+cd $INST/spdc; . installpns
+cd $INST/spdc
+

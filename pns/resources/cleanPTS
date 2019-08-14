@@ -3,4 +3,4 @@
 # Default script to clean up the processing node.
 # Remove input and output directories
 
-/bin/rm -rf /tmp/input /tmp/output
+/bin/rm -rf input output

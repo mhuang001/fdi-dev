@@ -1,0 +1,7 @@
+#!/bin/bash
+# This script should run the Processing Task Software
+#
+# The default runs the 'hello' script
+
+./hello
+

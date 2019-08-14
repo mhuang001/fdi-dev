@@ -76,6 +76,55 @@ def checkserver():
     # initialize test data.
 
 
+def test_getpnsconfig():
+    ''' gets and compares pnsconfig remote and local
+    '''
+    logger.info('get pnsconfig')
+    o = getJsonObj(aburl + '/pnsconfig')
+    issane(o)
+    assert o['result'] == pc
+
+
+def checkContents(cmd, filename):
+    """ checks a GET commands return matches contents of a file.
+    """
+    o = getJsonObj(aburl + cmd)
+    issane(o)
+    with open(filename, 'r') as f:
+        result = f.read()
+    assert result == o['result'], o['message']
+
+
+def test_getinit():
+    ''' compare. server side initPTS contens with the local copy
+    '''
+    logger.info('get initPTS')
+    checkContents(cmd='/init', filename=pc['scripts']['init'][0])
+
+
+def test_getprog():
+    ''' compare. server side prog contens with the local copy
+    '''
+    logger.info('get prog')
+    checkContents(cmd='/prog', filename=pc['scripts']['prog'][0])
+
+
+def test_putinittest():
+    """ 
+     Renames the 'prog' script to "*.save" and points it to the "hello" script.
+    """
+
+    d = {'timeout': 5}
+    # print(nodetestinput)
+    o = putJsonObj(aburl +
+                   '/inittest',
+                   d,
+                   headers=commonheaders)
+    issane(o)
+    checkputinitresult(o['result'], o['message'])
+    checkContents('/prog', pc['paths']['pnshome'] + '/hello')
+
+
 def checkputinitresult(result, msg):
     # if msg is string, an exception must have happened
     assert not isinstance(msg, (str, bytes)), msg
@@ -102,32 +151,6 @@ def test_putinit():
                    headers=commonheaders)
     issane(o)
     checkputinitresult(o['result'], o['message'])
-
-
-def checkContents(cmd, filename):
-    """ checks a GET commands return matches contents of a file.
-    """
-    o = getJsonObj(aburl + cmd)
-    issane(o)
-    with open(filename, 'r') as f:
-        result = f.read()
-    assert result == o['result'], o['message']
-
-
-def test_putinittest():
-    """ 
-     Renames the 'prog' script to "*.save" and points it to the "hello" script.
-    """
-
-    d = {'timeout': 5}
-    # print(nodetestinput)
-    o = putJsonObj(aburl +
-                   '/inittest',
-                   d,
-                   headers=commonheaders)
-    issane(o)
-    checkputinitresult(o['result'], o['message'])
-    checkContents('/prog', pc['paths']['pnshome'] + '/hello')
 
 
 def test_putconfigpns():
@@ -286,20 +309,6 @@ def test_run():
                     headers=commonheaders)
     issane(o)
     checkrunresult(o['result'], o['message'])
-
-
-def test_getinit():
-    ''' compare. server side initPTS contens with the local copy
-    '''
-    logger.info('get initPTS')
-    checkContents(cmd='/init', filename=pc['scripts']['init'][0])
-
-
-def test_getprog():
-    ''' compare. server side prog contens with the local copy
-    '''
-    logger.info('get prog')
-    checkContents(cmd='/prog', filename=pc['scripts']['prog'][0])
 
 
 def test_deleteclean():

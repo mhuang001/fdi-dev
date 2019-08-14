@@ -13,6 +13,8 @@ pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
 # output file
 from os.path import expanduser, expandvars
 home = expanduser(expandvars('$HOME'))
+# apache wsgi will return '$HOME' with no expansion
+home = '/root' if home == '$HOME' else home
 phome = join(home, 'pns')
 pnsconfig['paths'] = dict(
     pnshome=phome,
@@ -35,3 +37,6 @@ del phome, h
 
 # seconds
 pnsconfig['timeout'] = 10
+
+# server permission user
+pnsconfig['serveruser'] = 'apache'

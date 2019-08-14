@@ -1,20 +1,18 @@
-Dataset
-
-This software is used to package data into self-describing Data Products and make them portable in human-friendly format between data processers, storage, and consumers.
+This software is used to package data into self-describing Data Products and make them portable in human-friendly format between data processers, storage, and consumers. The base data model is defined in package dataseet. Persistent data access, referencing, and Universal Resource Names are defined in package pal. A reference REST API server designed to communicate with a data processing docker using the data model is in package pns.
 
 _**Installation**_
 for developers
 ```
 cd /tmp
-git clone ssh://git@mercury.bao.ac.cn:9005/mh/dataset.git
-cd dataset
+git clone ssh://git@mercury.bao.ac.cn:9005/mh/spdc.git
+cd spdc
 pip3 install -e .
 ```
 for users
 ```
 cd /tmp
-git clone http://mercury.bao.ac.cn:9006/mh/dataset.git
-cd dataset
+git clone http://mercury.bao.ac.cn:9006/mh/spdc.git
+cd spdc
 pip3 install -e .
 ```
 
@@ -22,6 +20,9 @@ To run tests, in the same directory:
 ```
 ./test
 ```
+
+
+The following is readme for Dataset. See README-pal.md and README-pns.md
 
 _**Rationale**_
 

@@ -5,8 +5,10 @@ from pprint import pformat
 import datetime
 import time
 import sys
+import pwd
+import grp
 from os.path import isfile, isdir, join
-from os import listdir
+from os import listdir, chown
 from pathlib import Path
 import traceback
 import types
@@ -33,6 +35,8 @@ from pns.pnsconfig import pnsconfig as pc
 import sys
 from os.path import expanduser, expandvars
 env = expanduser(expandvars('$HOME'))
+# apache wsgi will return '$HOME' with no expansion
+env = '/root' if env == '$HOME' else env
 sys.path.insert(0, env)
 try:
     from local import pnsconfig as pc
@@ -93,15 +97,21 @@ def checkpath(path):
             return None
     else:
         p.mkdir()
-        #uid = pwd.getpwnam("www-data").pw_uid
-        #gid = grp.getgrnam("www-data").gr_gid
-        #os.chown(str(p), uid, gid)
+        try:
+            un = pc['serveruser']
+            uid = pwd.getpwnam(un).pw_uid
+            gid = grp.getgrnam(un).gr_gid
+            chown(str(p), uid, gid)
+        except KeyError as e:
+            msg = 'cannot set input/output dirs owner to ' + un + '. check config.'
+            logger.error(msg)
+            return None
         logger.info(str(p) + ' directory has been made.')
     return p
 
 
 def initPTS(d=None):
-    """ Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned.
+    """ Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned. If input/output directories cannot be created with serveruser as owner, Error401 will be given.
     """
 
     logger.debug(str(d))

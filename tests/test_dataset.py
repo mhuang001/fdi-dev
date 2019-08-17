@@ -4,8 +4,9 @@ import traceback
 from pprint import pprint
 import json
 from pathlib import Path
+#import __builtins__
 import os
-
+from collections import ChainMap
 from .logdict import doLogging, logdict
 if doLogging:
     import logging
@@ -24,7 +25,9 @@ from dataset.eq import deepcmp
 from dataset.quantifiable import Quantifiable
 from dataset.listener import EventSender, DatasetBaseListener
 from dataset.composite import Composite
-from dataset.metadata import Parameter, NumericParameter, MetaDataHolder, MetaData, Attributable, AbstractComposite
+from dataset.metadata import Parameter, NumericParameter, MetaDataHolder, MetaData
+from dataset.attributable import Attributable
+from dataset.abstractcomposite import AbstractComposite
 from dataset.datawrapper import DataWrapper, DataWrapperMapper
 from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column
 from dataset.product import FineTime1, History, Product
@@ -48,7 +51,8 @@ def checkjson(obj):
               ' serialized: ************\n')
         print(js)
         print('*************************')
-    des = deserializeClassID(js, dglobals=globals(), debug=dbg)
+    des = deserializeClassID(js, lgb=ChainMap(
+        locals(), globals()), debug=dbg)
     if dbg:
         if hasattr(des, 'meta'):
             print('moo ' + str((des.meta.listeners)))
@@ -64,10 +68,12 @@ def checkjson(obj):
         print('*************** deepcmp ***************')
         print('identical' if r is None else r)
         # print(' DIR \n' + str(dir(obj)) + '\n' + str(dir(des)))
-    if issubclass(obj.__class__, Product):
-        obj.meta.listeners = []
-        des.meta.listeners = []
-    assert obj == des
+    if 0 and issubclass(obj.__class__, Product):
+        print(str(id(obj)) + ' ' + obj.toString())
+        print(str(id(des)) + ' ' + des.toString())
+        #obj.meta.listeners = []
+        #des.meta.listeners = []
+    assert obj == des, deepcmp(obj, des)
     return des
 
 

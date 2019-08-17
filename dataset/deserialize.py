@@ -14,14 +14,34 @@ Serializable.
 '''
 
 
-def constructSerializableClassID(obj, glbs=None, debug=False):
+def makedesables():
+    """
+    """
+    from dataset.deserialize import deserializeClassID
+    from dataset.product import Product, FineTime1, History
+    from dataset.metadata import Parameter, NumericParameter, MetaData
+    from dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
+    from product.chart import ATC_VT_B, ATC_VT_R, FDC_VT_B, FDC_VT_R
+    from pal.context import MapContext, MapRefsDataset
+    from pal.urn import Urn
+    from pal.productref import ProductRef
+
+    l = locals()
+    # logger.debug(l)
+    return l
+
+
+desables = None
+
+
+def constructSerializableClassID(obj, lgb=None, debug=False):
     """ mh: reconstruct object from the output of jason.loads().
     Recursively goes into nested class instances that are not
     encoded by default by JSONEncoder, instantiate and fill in
     variables.
     Objects to be deserialized must have their classes loaded.
     ClassID cannot have module names in it (e.g.  dataset.Product)
-    or globals()[classname] will not work. See alternative in
+    or locals()[classname] or globals()[classname] will not work. See alternative in
     https://stackoverflow.com/questions/452969/does-python-have-an-equivalent-to-java-class-forname
 
     """
@@ -39,7 +59,7 @@ def constructSerializableClassID(obj, glbs=None, debug=False):
         for i in range(len(obj)):
             x = obj[i]
             if issubclass(x.__class__, (list, dict)):
-                des = constructSerializableClassID(x, glbs=glbs, debug=debug)
+                des = constructSerializableClassID(x, lgb=lgb, debug=debug)
             else:
                 des = x
             inst.append(des)
@@ -59,7 +79,7 @@ def constructSerializableClassID(obj, glbs=None, debug=False):
             inst = bytes.fromhex(obj['hex'])
             return inst
         # inst = eval(classname + '()')
-        inst = glbs[classname]()
+        inst = lgb[classname]()
     for (k, v) in obj.items():
         """ loop through all key-value pairs. """
         if k != 'classID' and k != 'version':
@@ -67,7 +87,7 @@ def constructSerializableClassID(obj, glbs=None, debug=False):
             if issubclass(v.__class__, (dict, list)):
                 if debug:
                     print('+++ %s %s' % (str(v.__class__), str(v)))
-                desv = constructSerializableClassID(v, glbs=glbs, debug=debug)
+                desv = constructSerializableClassID(v, lgb=lgb, debug=debug)
             else:
                 if debug:
                     print('--- %s %s' % (str(v.__class__), str(v)))
@@ -117,9 +137,16 @@ class IntDecoder(json.JSONDecoder):
             return o
 
 
-def deserializeClassID(js, dglobals=None, debug=False, usedict=False):
+def deserializeClassID(js, lgb=None, debug=False, usedict=False):
     """ Loads classes with ClassID from the results of serializeClassID
     """
+
+    global desables
+    if lgb is None:
+        if desables is None:
+            desables = makedesables()
+        lgb = desables
+
     if not isinstance(js, (str, bytes)) or len(js) == 0:
         return None
     # debug = False  # True if issubclass(obj.__class__, list) else False
@@ -135,4 +162,4 @@ def deserializeClassID(js, dglobals=None, debug=False, usedict=False):
     if debug:
         # print('load-str ' + str(o) + ' class ' + str(o.__class__))
         print('-------- json loads returns: --------\n' + str(obj))
-    return constructSerializableClassID(obj, glbs=dglobals, debug=debug)
+    return constructSerializableClassID(obj, lgb=lgb, debug=debug)

@@ -40,9 +40,14 @@ urn:poolname:resourceclass:serialnumber
 where
   *  resourceclass: fully qualified class name of the resource (product)
   *  poolname format: scheme + ```://``` + place + directory
-  *  scheme format: ```file```, ```http``` ... etc
-  *  place format: ```192.168.5.6:8080```, ```c:```, an empty string ... etc
-  *  directory format: ```/``` + name + ```/``` + name ... ```/``` + name
+  *  scheme format: ```file```, ```mem```, ```http``` ... etc
+  *  place format:```192.168.5.6:8080```, ```c:```, an empty string ... etc
+  *  directory format:
+     * for 'file' schem: '/' + name + '/' + name + ... + '/' + name
+     * for 'mem' schem: '/' + name + '/' + name + ... + '/' + process_ID
+  *  serialnumber format: str(int).
+     * for 'file' scheme : internal index.
+     * for 'mem' scheme: python object id.
 
 **ProductRef**
 

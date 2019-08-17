@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from collections.abc import Container, Sequence, MutableSequence, Mapping, MutableMapping
+from collections.abc import Container, Sequence, Mapping
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -10,7 +10,8 @@ from .copyable import Copyable
 from .eq import DeepEqual
 from .datawrapper import DataWrapper, DataContainer
 # from .composite import
-from .metadata import Attributable, AbstractComposite
+from .abstractcomposite import AbstractComposite
+from .attributable import Attributable
 from .odict import ODict
 from .serializable import Serializable
 from .listener import ColumnListener, DatasetBaseListener, MetaDataListener

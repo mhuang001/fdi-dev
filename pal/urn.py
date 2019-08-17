@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import os
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -30,9 +32,14 @@ class Urn(DeepEqual, Serializable, Comparable):
     mh: URN format: 'urn:poolname:resourceclass:serialnumber'
     resourceclass: dataset.Product ... etc
     poolname format: scheme + '://' + place + directory
-    scheme format: file, http ... etc
+    scheme format: file, ram, http ... etc
     place format: 192.168.5.6:8080, c: ... etc
-    directory format: '/' + name + '/' + name ... + name
+    directory format: 
+    for 'file' schem: '/' + name + '/' + name + ... + '/' + name
+    for 'mem' schem: '/' + name + '/' + name + ... + '/' + process_ID
+    serialnumber format: str(int). 
+    for file scheme : internal index; 
+    for memm scheme: python object id
     """
 
     @staticmethod
@@ -58,7 +65,7 @@ class Urn(DeepEqual, Serializable, Comparable):
         scheme = pr.scheme
         place = pr.netloc
         # convenient access path
-        poolpath = place + pr.path if scheme == 'file' else pr.path
+        poolpath = place + pr.path if scheme in ('file', 'mem') else pr.path
         return poolname, resourceclass, serialnumstr, scheme, place, poolpath
 
     def __init__(self, cls=None, pool=None, index=None, urn=None, **kwds):
@@ -87,6 +94,11 @@ class Urn(DeepEqual, Serializable, Comparable):
             urn = 'urn:' + pool + ':' + cls.__qualname__ + ':' + str(index)
 
         self.setUrn(urn)
+
+    @staticmethod
+    def getInMemUrnObj(x):
+        ps = 'mem:///' + str(os.getpid())
+        return Urn(cls=x.__class__, pool=ps, index=id(x))
 
     @property
     def urn(self):
@@ -122,7 +134,7 @@ class Urn(DeepEqual, Serializable, Comparable):
         """ Returns the urn in this """
         return self._urn
 
-    def getType(self):
+    def getType1(self):
         """ Returns class type of Urn
         """
         return self._class
@@ -159,10 +171,6 @@ class Urn(DeepEqual, Serializable, Comparable):
         """
         poolname, resourcecn, indexs, scheme, place, poolpath = Urn.parseUrn(
             urn)
-        if scheme != 'file':
-            msg = 'Unsupported scheme ' + scheme
-            logging.error(msg)
-            raise Exception(msg)
         return poolpath + '/' + resourcecn + '_' + indexs
 
     @property

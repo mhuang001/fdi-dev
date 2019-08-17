@@ -51,3 +51,7 @@ Prototype. Initial check-in.
 0.5 2019-08-11
 --------------
 Projects merged.
+
+0.6 2019-08-17
+--------------
+listener, mem: URN, deserializable list

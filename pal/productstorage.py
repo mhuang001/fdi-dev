@@ -151,7 +151,7 @@ class ProductStorage():
                     sn = (c[pn]['currentSN'] + 1)
                 else:
                     sn = 0
-                    c[pn] = ODict({'sn2tag': ODict()})
+                    c[pn] = ODict({'sn': ODict()})
                 if tag is not None:
                     if tag not in t:
                         t[tag] = ODict({pn: []})
@@ -165,11 +165,12 @@ class ProductStorage():
                         f.write(js)
 
                     c[pn]['currentSN'] = sn
-                    s2t = c[pn]['sn2tag']
+                    s2t = c[pn]['sn']
                     if sn in s2t:
-                        s2t[sn].append(tag)
+                        s2t[sn]['meta'] = prd.meta
+                        s2t[sn]['tags'].append(tag)
                     else:
-                        s2t[sn] = [tag]
+                        s2t[sn] = ODict(meta=prd.meta, tags=[tag])
 
                     if tag is not None:
                         t[tag][pn].append(sn)
@@ -211,7 +212,7 @@ class ProductStorage():
         prod = sr1[0]
         sn = int(sr1[1])
         c, t = pprop['classes'], pprop['tags']
-        if prod not in c or sn not in c[prod]['sn2tag']:
+        if prod not in c or sn not in c[prod]['sn']:
             raise ValueError(
                 'product %s or index %d not in pool db %s %s.' % (str(prod), sn, c, t))
         # save for rolling back
@@ -223,8 +224,8 @@ class ProductStorage():
 
         with filelock.FileLock(poolpath + '/lock'):
             try:
-                del c[prod]['sn2tag'][sn]
-                if len(c[prod]['sn2tag']) == 0:
+                del c[prod]['sn'][sn]
+                if len(c[prod]['sn']) == 0:
                     del c[prod]
                 if prod in t:
                     if sn in t[prod]:
@@ -283,7 +284,14 @@ class ProductStorage():
         returns a list.
         """
         uobj = Urn(urn=urn)
-        return self._pool[uobj.pool]['classes'][uobj.getTypeName()]['sn2tag'][uobj.getIndex()]
+        return self._pool[uobj.pool]['classes'][uobj.getTypeName()]['sn'][uobj.getIndex()]['tags']
+
+    def getMeta(self, urn):
+        """  Get the metadata belonging to the writable pool that associated to a given URN.
+        returns a dict.
+        """
+        uobj = Urn(urn=urn)
+        return self._pool[uobj.pool]['classes'][uobj.getTypeName()]['sn'][uobj.getIndex()]['meta']
 
     def getUrnFromTag(self, tag):
         """ Get the URN belonging to the writable pool that is associated

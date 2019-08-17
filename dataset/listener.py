@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
-from .serializable import Serializable
+import os
 
+from .serializable import Serializable
+from pal.urn import Urn
+from pal.common import getProductObject
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -40,22 +43,72 @@ class EventSender():
     """
 
     def __init__(self, **kwds):
-        self.listeners = list()
+        self._listeners = []
         super().__init__(**kwds)
 
-    def addListener(self, listener):
+    @property
+    def listeners(self):
+        return self.getListeners()
+
+    @listeners.setter
+    def listeners(self, listeners):
+        self.setListeners(listeners)
+
+    def setListeners(self, listeners):
+        """ Replaces the current Listeners with specified argument. 
+        """
+        for listener in listeners:
+            self.addListener(listener)
+
+    def getListeners(self):
+        """ Returns the current Listeners.
+        """
+        return self._listeners
+
+    @property
+    def listenersurn(self):
+        return self.getListenersurn()
+
+    @listenersurn.setter
+    def listenersurn(self, listenersurn):
+        self.setListenersurn(listenersurn)
+
+    def setListenersurn(self, listenersurn):
+        """ Replaces the current Listenersurn with specified argument. 
+        """
+        for urn in listenersurn:
+            l = getProductObject(urn)
+            self.addListener(l)
+
+    def getListenersurn(self, remove=None):
+        """ Returns the current Listenersurn.
+        """
+        ret = [Urn.getInMemUrnObj(
+            x).urn for x in self._listeners if remove is None or x != remove]
+        if 0 and remove is not None:
+            print(id(self))
+            print(id(remove))
+            print(ret)
+
+        return ret
+
+    def addListener(self, listener, cls=EventListener):
         """ Adds a listener to this. """
-        if issubclass(listener.__class__, EventListener):
-            if listener not in self.listeners:
-                self.listeners.append(listener)
+
+        l = listener
+
+        if issubclass(l.__class__, cls):
+            if l not in self._listeners:
+                self._listeners.append(l)
         else:
-            raise TypeError("Listener is not subclass of EventListener.")
+            raise TypeError(
+                'Listener is not subclass of ' + cls.__class__ + ' or an object id.')
         return self
 
     def removeListener(self, listener):
         """ Removes a listener from this. """
         try:
-            self.listeners.remove(listener)
+            self._listeners.remove(listener)
         except:
             raise ValueError(
                 "Listener das no listening registerd. Cannot remove.")
@@ -64,14 +117,14 @@ class EventSender():
     def fire(self, *args, **kwargs):
         n = 0
         try:
-            for listener in self.listeners:
+            for listener in self._listeners:
                 listener.targetChanged(*args, **kwargs)
                 n += 1
         except Exception as e:
             logger.error('listener ' + str(0) + ' got exception: ' + str(e))
 
     def getListenerCount(self):
-        return len(self.listeners)
+        return len(self._listeners)
 
     __call__ = fire
     #__len__ = getHandlerCount
@@ -81,12 +134,11 @@ class DatasetEventSender(EventSender):
     def __init__(self, **kwds):
         super().__init__(**kwds)
 
-    def addListener(self, listener):
+    def addListener(self, listener, cls=DatasetBaseListener):
         """ Adds a listener to this. """
-        if issubclass(listener.__class__, DatasetBaseListener):
-            super().addListener(listener)
-        else:
-            raise TypeError("Listener is not subclass of DatasetBaseListener.")
+
+        super().addListener(listener, cls=cls)
+
         return self
 
     def fire(self, event):

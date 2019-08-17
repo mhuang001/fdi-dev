@@ -97,15 +97,27 @@ def checkpath(path):
             return None
     else:
         p.mkdir()
+        un = pc['serveruser']
         try:
-            un = pc['serveruser']
             uid = pwd.getpwnam(un).pw_uid
-            gid = grp.getgrnam(un).gr_gid
-            chown(str(p), uid, gid)
         except KeyError as e:
-            msg = 'cannot set input/output dirs owner to ' + un + '. check config.'
+            msg = 'cannot set input/output dirs owner to ' + \
+                un + '. check config. ' + str(e)
             logger.error(msg)
             return None
+        try:
+            gid = grp.getgrnam(un).gr_gid
+        except KeyError as e:
+            gid = -1
+            logger.warn('input/output group unchanged. ' + str(e))
+        try:
+            chown(str(p), uid, gid)
+        except Exception as e:
+            msg = 'cannot set input/output dirs owner to ' + \
+                un + '. check config. ' + str(e)
+            logger.error(msg)
+            return None
+
         logger.info(str(p) + ' directory has been made.')
     return p
 
@@ -125,7 +137,7 @@ def initPTS(d=None):
     if pi is None or po is None:
         abort(401)
 
-    indata = deserializeClassID(d, dglobals=globals())
+    indata = deserializeClassID(d)
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout']
@@ -151,14 +163,14 @@ def initTest(d=None):
 
 
 def configPNS(d=None):
-    """ Configure the PNS itself
+    """ Configure the PNS itself by replacing the pnsconfig var
     """
-
+    global pc
     logger.debug(str(d))
     logger.debug('before configering pns ' + str(pc))
     try:
         indata = deserializeClassID(d)
-        pc.update(indata['input'])
+        pc = indata['input']
     except Exception as e:
         re = -1
         msg = str(e)
@@ -199,7 +211,7 @@ def cleanPTS(d):
     # timeout is imported and needs to be declared global if referenced in ifs
 
     logger.debug(str(d))
-    indata = deserializeClassID(d, dglobals=globals())
+    indata = deserializeClassID(d)
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout']
@@ -226,7 +238,7 @@ def testrun(d):
 
     global lupd
 
-    indata = deserializeClassID(d, dglobals=globals())
+    indata = deserializeClassID(d)
     logger.debug(indata)
     runner, cause = indata['creator'], indata['rootcause']
     contents = indata['input']['theName'].data
@@ -285,7 +297,7 @@ def genposttestprod(d):
     and 2nd to the product's dataset
     """
 
-    indata = deserializeClassID(d, dglobals=globals())
+    indata = deserializeClassID(d)
     logger.debug(indata)
 
     runner, cause = indata['creator'], indata['rootcause']
@@ -390,7 +402,7 @@ def calcresult(cmd):
         result, msg = genposttestprod(d)
     elif cmd == 'echo':
         # see test_mirror() in test_all.py
-        indata = deserializeClassID(d, dglobals=globals())
+        indata = deserializeClassID(d)
         logger.debug(indata)
         result, msg = indata, ''
     elif cmd == 'run':
@@ -405,7 +417,7 @@ def calcresult(cmd):
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
     s = serializeClassID(w)
-    logger.debug(s[:] + ' ...')
+    logger.debug(s[:160] + ' ...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp

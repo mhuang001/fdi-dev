@@ -37,7 +37,7 @@ class SerializableEncoder(json.JSONEncoder):
 
 def serializeClassID(o):
     """ return JSON using special encoder SerializableEncoder """
-    return json.dumps(o, cls=SerializableEncoder, indent=2)
+    return json.dumps(o, cls=SerializableEncoder, indent=None)
 
 
 class Serializable():

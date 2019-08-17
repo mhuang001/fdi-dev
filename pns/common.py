@@ -72,7 +72,7 @@ def getJsonObj(url, headers=None, usedict=False):
     # ret = json.loads(stri, parse_float=Decimal)
     # ret = json.loads(stri, cls=Decoder,
     #               object_pairs_hook=collections.OrderedDict)
-    ret = deserializeClassID(stri, dglobals=globals(), usedict=usedict)
+    ret = deserializeClassID(stri, usedict=usedict)
     #logger.debug(pformat(ret, depth=6)[:] + '...')
     logger.debug(str(ret)[:160] + '...')
     return ret
@@ -108,8 +108,8 @@ def postJsonObj(url, obj, headers):
 
     # ret = json.loads(stri, parse_float=Decimal)
     # ret = json.loads(stri, cls=Decoder)
-    ret = deserializeClassID(stri, dglobals=globals())
-    logger.debug(pformat(ret, depth=6)[:160] + '...')
+    ret = deserializeClassID(stri)
+    logger.debug(str(ret)[:160] + '...')
     return ret
 
 
@@ -118,7 +118,7 @@ def putJsonObj(url, obj, headers):
     """
     js = serializeClassID(obj)
     # %s obj %s headers %s' % (url, obj, headers))
-    logger.debug(url + js[:260]+'...')
+    logger.debug(url + js[:260] + '...')
 
     try:
         # python3
@@ -129,8 +129,8 @@ def putJsonObj(url, obj, headers):
         logger.error("Give up PUT " + url)
         return None
 
-    ret = deserializeClassID(stri, dglobals=globals())
-    logger.debug(pformat(ret, depth=6)[:260] + '...')
+    ret = deserializeClassID(stri)
+    logger.debug(str(ret)[:160] + '...')
     return ret
 
 
@@ -159,7 +159,7 @@ def postJsonObj2(url, obj, headers):
             else:
                 i += 1
     # print(url,stri)
-    logger.debug(pformat(ret, depth=3)[:170] + '...')
+    logger.debug(str(ret)[:160] + '...')
     return ret
 
 
@@ -178,37 +178,3 @@ def writeJsonObj(o, fn):
     json.dump(o, f)
     f.close()
     return True
-
-
-def addslash(path):
-    """ add a slash at the end of path if there is not one.
-    """
-    logger.debug('%s' % (path))
-    if path[-1] != '/':
-        path += '/'
-    return path
-
-
-def mkdir(f, mode=0o755):
-    """ mkdir for one or multi-level paths. ignore if dir exists.
-    raise exception on other errors.
-    """
-    logger.debug('%s %o' % (f, mode))
-    path = ''
-    for i in f.split('/'):
-        if i == '':
-            continue
-        path += (i + '/')
-        loger.debug(path)
-        try:
-            os.mkdir(path, mode)
-        except OSError as e:
-            if e.errno == errno.EEXIST:  # file exists error?
-                pass  # logger.info('%s exists' % (path))
-            else:
-                raise(e)  # re-raise the exception
-            os.chmod(path, mode)
-
-
-if 0 and __name__ == '__main__':
-    test_readtable_volume()

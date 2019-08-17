@@ -8,11 +8,12 @@ from .annotatable import Annotatable
 from .copyable import Copyable
 from .eq import DeepEqual
 from .quantifiable import Quantifiable
-from .listener import DatasetEventSender, DatasetBaseListener, ParameterListener, DatasetListener, DatasetEvent, EventType
+from .listener import DatasetEventSender, ParameterListener, DatasetListener, DatasetEvent, EventType
 from .composite import Composite
 from .odict import ODict
 from .serializable import Serializable
 from .datawrapper import DataWrapperMapper
+from .metadataholder import MetaDataHolder
 
 
 class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializable):
@@ -172,80 +173,17 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         s, l = '', ''
         for (k, v) in self._sets.items():
             s = s + str(k) + ' = ' + str(v) + ', '
-        l = ''.join(['"' + x.description + '", ' for x in self.listeners])
+        l = ''.join([x.__class__.__name__ + ' ' + str(id(x)) +
+                     ' "' + x.description + '", ' for x in self.listeners])
         return self.__class__.__name__ + \
             '{[' + s + '], listeners = [%s]}' % (l)
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
+        # print(self.listeners)
+        #print([id(o) for o in self.listeners])
+
         return ODict(_sets=self._sets,
+                     listenersurn=self.getListenersurn(),
                      classID=self.classID,
                      version=self.version)
-
-
-class MetaDataHolder(object):
-    """ Object holding meta data. 
-    mh: object for compatibility with python2
-    """
-
-    def __init__(self, **kwds):
-        super().__init__(**kwds)
-        # print(self.__dict__)
-
-    def getMeta(self):
-        """ Returns the current MetaData container of this object. """
-        return self._meta
-
-
-class Attributable(MetaDataHolder):
-    """ An Attributable object is an object that has the
-    notion of meta data. """
-
-    def __init__(self, meta=None, **kwds):
-        if meta is None:
-            self.setMeta(MetaData())
-        else:
-            self.setMeta(meta)
-        super().__init__(**kwds)
-        #print('**' + self._meta.toString())
-
-    @property
-    def meta(self):
-        return self.getMeta()
-
-    @meta.setter
-    def meta(self, newMetadata):
-        self.setMeta(newMetadata)
-
-    def setMeta(self, newMetadata):
-        """ Replaces the current MetaData with specified argument. 
-        mh: Product will override this to add listener whenevery meta is
-        replaced
-        """
-        self._meta = newMetadata
-
-
-class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper, DatasetListener):
-    """ an annotatable and attributable subclass of Composite. 
-    """
-
-    def __init__(self, **kwds):
-        super().__init__(**kwds)
-
-    def __repr__(self):
-        ''' meta and datasets only show names
-        '''
-        s = '{'
-        s += 'meta = "%s", _sets = %s}' % (
-            str(self.meta),
-            str(self.keySet())
-        )
-        return s
-
-    def toString(self):
-        s = '{'
-        s += 'meta = %s, _sets = %s}' % (
-            self.meta.toString(),
-            self._sets.__str__()
-        )
-        return s

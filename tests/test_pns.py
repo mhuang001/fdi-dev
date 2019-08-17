@@ -4,6 +4,8 @@ import base64
 from urllib.request import pathname2url
 import requests
 import os
+import pkg_resources
+import copy
 
 from .logdict import doLogging, logdict
 if doLogging:
@@ -82,7 +84,8 @@ def test_getpnsconfig():
     logger.info('get pnsconfig')
     o = getJsonObj(aburl + '/pnsconfig')
     issane(o)
-    assert o['result'] == pc
+    r = o['result']
+    assert r == pc  # , deepcmp(r, pc)
 
 
 def checkContents(cmd, filename):
@@ -96,21 +99,25 @@ def checkContents(cmd, filename):
 
 
 def test_getinit():
-    ''' compare. server side initPTS contens with the local copy
+    ''' compare. server side initPTS contens with the local  default copy
     '''
     logger.info('get initPTS')
-    checkContents(cmd='/init', filename=pc['scripts']['init'][0])
+    n = pc['scripts']['init'][0].rsplit('/', maxsplit=1)[1]
+    fn = pkg_resources.resource_filename("pns.resources", n)
+    checkContents(cmd='/init', filename=fn)
 
 
 def test_getprog():
-    ''' compare. server side prog contens with the local copy
+    ''' compare. server side prog contens with the local default copy
     '''
     logger.info('get prog')
-    checkContents(cmd='/prog', filename=pc['scripts']['prog'][0])
+    n = pc['scripts']['prog'][0].rsplit('/', maxsplit=1)[1]
+    fn = pkg_resources.resource_filename("pns.resources", n)
+    checkContents(cmd='/prog', filename=fn)
 
 
 def test_putinittest():
-    """ 
+    """
      Renames the 'prog' script to "*.save" and points it to the "hello" script.
     """
 
@@ -157,7 +164,7 @@ def test_putconfigpns():
     """ send signatured pnsconfig and check.
     this function is useless for a stateless server
     """
-    t = pc.copy()
+    t = copy.deepcopy(pc)
     t['scripts']['testing'] = 'yes'
     d = {'timeout': 5, 'input': t}
     # print(nodetestinput)
@@ -165,8 +172,18 @@ def test_putconfigpns():
                    '/pnsconf',
                    d,
                    headers=commonheaders)
+    # put it back not to infere other tests
+    d = {'timeout': 5, 'input': pc}
+    p = putJsonObj(aburl +
+                   '/pnsconf',
+                   d,
+                   headers=commonheaders)
+
     issane(o)
     assert o['result']['scripts']['testing'] == 'yes', o['message']
+    assert 'testing' not in pc['scripts'], str(pc['scripts'])
+    issane(p)
+    assert 'testing' not in p['result']['scripts']
 
 
 def issane(o):
@@ -328,11 +345,10 @@ def test_deleteclean():
     try:
         r = requests.delete(url, headers=commonheaders, timeout=15)
         stri = r.text
-        o = deserializeClassID(stri, dglobals=globals())
     except Exception as e:
-        logger.debug(e)
-        logger.error("Give up DELETE " + url)
-        o = None
+        logger.error("Give up DELETE " + url + ' ' + str(e))
+        stri = None
+    o = deserializeClassID(stri)
     issane(o)
     assert o['result'] is not None, o['message']
     o = getJsonObj(aburl + '/input')

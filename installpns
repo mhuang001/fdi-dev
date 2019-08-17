@@ -1,6 +1,6 @@
 PDIR=~/pns
 mkdir -p $PDIR
 rm -f $PDIR/*PTS $PDIR/hello
-/usr/bin/cp pns/resources/*PTS pns/resources/hello $PDIR
+cp pns/resources/*PTS pns/resources/hello $PDIR
 chown apache $PDIR $PDIR/*PTS $PDIR/hello
 chgrp apache $PDIR $PDIR/*PTS $PDIR/hello

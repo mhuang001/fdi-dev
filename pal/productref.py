@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import filelock
 
 import logging
 # create logger
@@ -20,9 +19,13 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
     """
 
     def __init__(self, urnobj=None, **kwds):
+        """ if urnobj is not None and not a Urn instance create an in-memory URN. 
+        mh: If a URN for a URN is needed, use Urn.getInMemUrnObj()
+        """
         super().__init__(**kwds)
-
-        self._urnobj = urnobj
+        if urnobj is not None and not issubclass(urnobj.__class__, Urn):
+            urnobj = Urn.getInMemUrnObj(urnobj)
+        self.setUrnObj(urnobj)
         self._parents = []
 
     @property
@@ -32,10 +35,7 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
     def getProduct(self):
         """ Get the product that this reference points to.
         """
-        if issubclass(self._urnobj.__class__, Urn):
-            return getProductObject(self.getUrn())
-        else:
-            return self._urnobj
+        return getProductObject(self.getUrn())
 
     def getStorage(self):
         """ Returns the product storage associated.
@@ -71,6 +71,10 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
     def setUrnObj(self, urnobj):
         """
         """
+        if urnobj is not None:
+            logger.debug(urnobj)
+            assert issubclass(urnobj.__class__, Urn)
+
         self._urnobj = urnobj
         self._urn = urnobj.urn if urnobj is not None else None
 
@@ -117,7 +121,7 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
         return self._urnobj == o._urnobj and sorted(self.parents) == sorted(o.parents)
 
     def __repr__(self):
-        return self.__class__.__name__ + '{ Product=' + self.urn + '}'
+        return self.__class__.__name__ + '{ ProductURN=' + self.urn + '}'
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

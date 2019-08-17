@@ -13,7 +13,7 @@ from .eq import DeepEqual
 # from .composite import
 from .dataset import CompositeDataset
 from .listener import EventSender, DatasetEvent, DatasetListener, EventType
-from .metadata import AbstractComposite
+from .abstractcomposite import AbstractComposite
 from .odict import ODict
 from .serializable import Serializable
 
@@ -235,10 +235,9 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
         """
         if name in mandatoryProductAttrs and withmeta:
             self.getMeta()[name] = value
-            return
-
-        #print('setattr ' + name, value)
-        super().__setattr__(name, value)
+        else:
+            #print('setattr ' + name, value)
+            super().__setattr__(name, value)
 
     def __delattr__(self, name):
         """ Refuses deletion of mandatory attributes
@@ -250,11 +249,11 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
         super().__delattr__(name)
 
     def targetChanged(self, event):
-        if False and event.source == self.meta:
+        pass
+        if event.source == self.meta:
             if event.type_ == EventType.PARAMETER_ADDED or \
                event.type_ == EventType.PARAMETER_CHANGED:
-                logger.debug(event.source.__class__.__name__ +
-                             ' ' + str(event.change))
+                #logger.debug(event.source.__class__.__name__ +   ' ' + str(event.change))
                 pass
 
     def toString(self):
@@ -287,11 +286,16 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
+        # remove self from meta's listeners because the deserialzed product will add itself during instanciation.
+        metac = self.meta.copy()
+        #print('***' + metac.toString())
+        metac.removeListener(self)
         # ls = [(lvar, getattr(self, lvar)) for lvar in mandatoryProductAttrs]
         ls = [
-            ("meta", self.meta),
+            ("meta", metac),
             ("_sets", self._sets),
             ("history", self.history),
+            ("listenersurn", self.listenersurn),
             ("classID", self.classID),
             ("version", self.version)]
         return ODict(ls)

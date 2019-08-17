@@ -3,6 +3,8 @@ import traceback
 from pprint import pprint
 import json
 from pathlib import Path
+from collections import ChainMap
+import builtins
 import os
 
 from .logdict import doLogging, logdict
@@ -16,18 +18,8 @@ if doLogging:
                  (__name__, logger.getEffectiveLevel()))
     logging.getLogger("filelock").setLevel(logging.WARNING)
 
-from dataset.annotatable import Annotatable
-from dataset.copyable import Copyable
-from dataset.odict import ODict
-from dataset.serializable import serializeClassID, SerializableEncoder
 from dataset.eq import deepcmp
-from dataset.quantifiable import Quantifiable
-from dataset.listener import EventSender, DatasetBaseListener
-from dataset.composite import Composite
-from dataset.metadata import Parameter, NumericParameter, MetaDataHolder, MetaData, Attributable, AbstractComposite
-from dataset.datawrapper import DataWrapper, DataWrapperMapper
-from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column
-from dataset.product import FineTime1, History, Product
+from dataset.product import Product
 from dataset.deserialize import deserializeClassID
 
 
@@ -48,7 +40,7 @@ def checkjson(obj):
               ' serialized: ************\n')
         print(js)
         print('*************************')
-    des = deserializeClassID(js, dglobals=globals(), debug=dbg)
+    des = deserializeClassID(js, debug=dbg)
     if dbg:
         if hasattr(des, 'meta'):
             print('moo ' + str((des.meta.listeners)))
@@ -118,6 +110,10 @@ def test_Urn():
     assert v.getFullPath(u) == a2 + a3 + '/' + rp  # s:/b/tmp/foo/c
     assert v.getIndex() == a5
     assert v.getUrn() == u
+    # urn in memory
+    v = Urn.getInMemUrnObj(prd)
+    assert v.urn == 'urn:mem:///' + \
+        str(os.getpid()) + ':' + a4 + ':' + str(id(prd))
     # urn with pool
     v = Urn(cls=prd.__class__, pool=p, index=a5)
     assert v.getScheme() == a1
@@ -155,11 +151,12 @@ def test_MapRefsDataset():
 
 
 def test_ProductRef():
-    defaultpool = 'file:///tmp/pool'
+    defaultpoolpath = '/tmp/pool'
+    defaultpool = 'file://' + defaultpoolpath
     prd = Product()
     a1 = 'file'
     a2 = ''
-    a3 = defaultpool
+    a3 = defaultpoolpath
     a4 = prd.__class__.__qualname__
     a5 = 43
     s = a1 + '://' + a2   # file://s:
@@ -168,7 +165,7 @@ def test_ProductRef():
     u = 'urn:' + p + ':' + r
 
     mr = ProductRef(prd)
-    assert mr.urnobj == prd
+    assert mr.urnobj == Urn.getInMemUrnObj(prd)
     uobj = Urn(urn=u)
     # construction
     pr = ProductRef(urnobj=uobj)
@@ -307,7 +304,7 @@ def test_ProductStorage():
     # current serial number not changed
     assert cread[pcq]['currentSN'] + 1 == n + 1
     # number of items decreased by 1
-    assert len(cread[pcq]['sn2tag']) == n
+    assert len(cread[pcq]['sn']) == n
 
     # clean up a pool
     ps.wipePool(defaultpool)
@@ -372,7 +369,10 @@ def test_MapContext():
     assert c3.refs['x'].product.description == 'hi'
     c4 = MapContext()
     # syntax 4. refs is a member in a composite (Context) so set/get = []
-    t = c4['refs']["x"] = ProductRef(image)
+    t = ProductRef(image)
+    c4['refs']["x"] = t
+    print(type(t))
+    print(t)
     assert c3 == c4
     assert c4['refs']['x'].product.description == 'hi'
 
@@ -396,6 +396,16 @@ def test_MapContext():
     # get the urn
     urn = prodref.urn
     # re-create a product only using the urn
+    newp = getProductObject(urn)
+    # the new and the old one are equal
+    assert newp == x
+
+    # URN of an object in memory
+    print(id(x))
+    urn = Urn(cls=x.__class__, pool='mem:///' + str(os.getpid()),
+              index=id(x)).urn
+    print(urn)
+    lgb = ChainMap(locals(), globals())  # , vars(builtins))
     newp = getProductObject(urn)
     # the new and the old one are equal
     assert newp == x

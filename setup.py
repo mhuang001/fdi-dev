@@ -16,7 +16,7 @@ def read(fname):
 
 setup(
     name="spdc",
-    version="0.5",
+    version="0.6",
     author="Maohai Huang",
     author_email="mhuang@earth.bao.ac.cn",
     description=("Self-describing Portable Dataset Container"),

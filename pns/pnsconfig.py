@@ -3,7 +3,7 @@ from os.path import join
 
 
 # base url for webserver
-pnsconfig = dict(baseurl='/v0.5')
+pnsconfig = dict(baseurl='/v0.6')
 
 # username, passwd, flask ip, flask port
 pnsconfig['node'] = {'username': 'foo', 'password': 'bar',

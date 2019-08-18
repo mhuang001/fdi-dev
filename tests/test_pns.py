@@ -15,7 +15,8 @@ if doLogging:
     logging.config.dictConfig(logdict)
     logger = logging.getLogger()
     logger.debug('level %d' % (logger.getEffectiveLevel()))
-    logging.getLogger("requests").setLevel(logging.INFO)
+    logging.getLogger("requests").setLevel(logging.WARN)
+    logging.getLogger("urllib3").setLevel(logging.WARN)
 
 from pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from pns.options import opt
@@ -102,23 +103,24 @@ def test_getinit():
     ''' compare. server side initPTS contens with the local  default copy
     '''
     logger.info('get initPTS')
-    n = pc['scripts']['init'][0].rsplit('/', maxsplit=1)[1]
+    c = 'init'
+    n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
     fn = pkg_resources.resource_filename("pns.resources", n)
-    checkContents(cmd='/init', filename=fn)
+    checkContents(cmd='/' + c, filename=fn + '.ori')
 
 
-def test_getprog():
-    ''' compare. server side prog contens with the local default copy
+def test_getrun():
+    ''' compare. server side run contens with the local default copy
     '''
-    logger.info('get prog')
-    n = pc['scripts']['prog'][0].rsplit('/', maxsplit=1)[1]
+    logger.info('get run')
+    c = 'run'
+    n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
     fn = pkg_resources.resource_filename("pns.resources", n)
-    checkContents(cmd='/prog', filename=fn)
+    checkContents(cmd='/' + c, filename=fn + '.ori')
 
 
 def test_putinittest():
-    """
-     Renames the 'prog' script to "*.save" and points it to the "hello" script.
+    """     Renames the 'init' 'config' 'run' 'clean' scripts to "*.save" and points it to the '.ori' scripts.
     """
 
     d = {'timeout': 5}
@@ -129,7 +131,6 @@ def test_putinittest():
                    headers=commonheaders)
     issane(o)
     checkputinitresult(o['result'], o['message'])
-    checkContents('/prog', pc['paths']['pnshome'] + '/hello')
 
 
 def checkputinitresult(result, msg):
@@ -265,7 +266,7 @@ def checkrunresult(p, msg):
 
     if not issubclass(p.__class__, Product):
         assert issubclass(msg.__class__, str), str(p.__class__) + ' ' +\
-            'Error %d running prog. STDOUT %s STDERR %s'\
+            'Error %d running ["run"]. STDOUT %s STDERR %s'\
             % (msg['returncode'], msg['stdout'], msg['stderr'])
         # Exception has happened.
         assert False, msg

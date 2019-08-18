@@ -30,7 +30,7 @@ h = pnsconfig['paths']['pnshome']
 pnsconfig['scripts'] = dict(
     init=[join(h, 'initPTS'), ''],
     config=[join(h, 'configPTS'), ''],
-    prog=[join(h, 'runPTS'), ''],
+    run=[join(h, 'runPTS'), ''],
     clean=[join(h, 'cleanPTS'), '']
 )
 del phome, h

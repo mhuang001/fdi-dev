@@ -149,16 +149,21 @@ def initPTS(d=None):
 
 
 def initTest(d=None):
-    """     Renames the 'prog' script to "*.save" and points it to the "hello" script.
+    """     Renames the 'init' 'config' 'run' 'clean' scripts to "*.save" and points it to the '.ori' scripts.
     """
 
-    #hf = pkg_resources.resource_filename("pns.resources", "hello")
+    #hf = pkg_resources.resource_filename("pns.resources", "runPTS")
     timeout = pc['timeout']
-    ni = pc['scripts']['prog'][0]
-    cmd = ['mv', '-f', ni, ni + '.save']
-    stat = _execute(cmd, timeout=timeout)
-    cmd = ['ln', '-s', pc['paths']['pnshome'] + '/hello', ni]
-    stat = _execute(cmd, timeout=timeout)
+    for apic in pc['scripts']:
+        ni = pc['scripts'][apic][0]
+        cmd = ['mv', '-f', ni, ni + '.save']
+        stat = _execute(cmd, timeout=timeout)
+        if stat['returncode']:
+            break
+        cmd = ['ln', '-s', ni + '.ori', ni]
+        stat = _execute(cmd, timeout=timeout)
+        if stat['returncode']:
+            break
     return stat['returncode'], stat
 
 
@@ -223,13 +228,13 @@ def cleanPTS(d):
 
 
 def run(d):
-    """ Generates a product by running script defined in the config as prog. Execution on the server host is in the pnshome directory and run result and status are returned.
+    """ Generates a product by running script defined in the config under 'run'. Execution on the server host is in the pnshome directory and run result and status are returned.
     """
     return 0, ''
 
 
 def testrun(d):
-    """  Run 'hello' for testing, and as an example.
+    """  Run 'runPTS' for testing, and as an example.
     """
     pi = checkpath(pc['paths']['inputdir'])
     po = checkpath(pc['paths']['outputdir'])
@@ -261,7 +266,7 @@ def testrun(d):
     else:
         timeout = pc['timeout']
 
-    stat = _execute(pc['scripts']['prog'], timeout=timeout)
+    stat = _execute(pc['scripts']['run'], timeout=timeout)
     if stat['returncode'] != 0:
         return stat['returncode'], stat
 
@@ -276,7 +281,7 @@ def testrun(d):
                 creator=runner, rootCause=cause,
                 instrument="hello", modelName="you know what!")
     x['theAnswer'] = GenericDataset(
-        data=res, description='result from hello command')
+        data=res, description='result from runPTS command')
     now = time.time()
     x.creationDate = FineTime1(datetime.datetime.fromtimestamp(now))
     x.type = 'test'
@@ -351,8 +356,8 @@ def getinfo(cmd):
         elif cmd == 'config':
             with open(pc['scripts']['config'][0], 'r') as f:
                 result = f.read()
-        elif cmd == 'prog':
-            with open(pc['scripts']['prog'][0], 'r') as f:
+        elif cmd == 'run':
+            with open(pc['scripts']['run'][0], 'r') as f:
                 result = f.read()
         elif cmd == 'clean':
             with open(pc['scripts']['clean'][0], 'r') as f:
@@ -364,7 +369,7 @@ def getinfo(cmd):
         elif cmd == 'pnsconfig':
             result, msg = pc, ''
         else:
-            result, msg = 'init, confg, prog, input, ouput', 'get API'
+            result, msg = 'init, config, run, clean, input, ouput', 'get API'
     except Exception as e:
         result, msg = -1, str(e)
     w = {'result': result, 'message': msg, 'timestamp': ts}
@@ -495,7 +500,7 @@ def cleanup(cmd):
 APIs = {'GET':
         {'func': 'getinfo',
          'cmds': {'init': 'the initPTS file', 'config': 'the configPTS file',
-                  'prog': 'the file running PTS', 'clean': 'the cleanPTS file',
+                  'run': 'the file running PTS', 'clean': 'the cleanPTS file',
                   'input': filesin, 'output': filesin,
                   'pnsconfig': 'PNS configuration'}
          },

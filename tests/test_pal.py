@@ -123,7 +123,6 @@ def test_Urn():
         v = Urn(urn=u, cls=prd.__class__, pool=p, index=a5)
     except Exception as e:
         assert issubclass(e.__class__, ValueError)
-    print(v.toString())
     # no-arg constructor
     v = Urn()
     v.urn = u
@@ -369,10 +368,7 @@ def test_MapContext():
     assert c3.refs['x'].product.description == 'hi'
     c4 = MapContext()
     # syntax 4. refs is a member in a composite (Context) so set/get = []
-    t = ProductRef(image)
-    c4['refs']["x"] = t
-    print(type(t))
-    print(t)
+    c4['refs']["x"] = ProductRef(image)
     assert c3 == c4
     assert c4['refs']['x'].product.description == 'hi'
 
@@ -401,11 +397,8 @@ def test_MapContext():
     assert newp == x
 
     # URN of an object in memory
-    print(id(x))
     urn = Urn(cls=x.__class__, pool='mem:///' + str(os.getpid()),
               index=id(x)).urn
-    print(urn)
-    lgb = ChainMap(locals(), globals())  # , vars(builtins))
     newp = getProductObject(urn)
     # the new and the old one are equal
     assert newp == x

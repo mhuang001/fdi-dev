@@ -1,6 +1,9 @@
 PDIR=~/pns
 mkdir -p $PDIR
-rm -f $PDIR/*PTS $PDIR/hello
-cp pns/resources/*PTS pns/resources/hello $PDIR
-chown apache $PDIR $PDIR/*PTS $PDIR/hello
-chgrp apache $PDIR $PDIR/*PTS $PDIR/hello
+for i in init run config clean; do
+  rm -f $PDIR/${i}PTS $PDIR/${i}PTS.ori
+  cp pns/resources/${i}PTS.ori  $PDIR
+  ln -s $PDIR/${i}PTS.ori $PDIR/${i}PTS
+done
+chown apache $PDIR $PDIR/*PTS.ori
+chgrp apache $PDIR $PDIR/*PTS

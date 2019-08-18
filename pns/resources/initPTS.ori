@@ -4,7 +4,4 @@
 # Test if the default Processing Task Software callable script 'hello' exists
 # and return the status code.
 
-if [ -f /bin/test ]; then /bin/test -f hello;
-elif [ -f /usr/bin/test ]; then /usr/bin/test -f hello;
-else echo Cannot find /bin/test.;
-fi
+echo The initialization script at `pwd`

@@ -4,6 +4,8 @@ import logging
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
+from .metadata import MetaData
+
 
 class MetaDataHolder(object):
     """ Object holding meta data. 
@@ -12,8 +14,11 @@ class MetaDataHolder(object):
 
     def __init__(self, **kwds):
         super().__init__(**kwds)
-        # print(self.__dict__)
+        if not hasattr(self, '_meta'):
+            self._meta = MetaData()
 
     def getMeta(self):
-        """ Returns the current MetaData container of this object. """
+        """ Returns the current MetaData container of this object. 
+        Cannot become a python property because setMeta is in Attributable
+        """
         return self._meta

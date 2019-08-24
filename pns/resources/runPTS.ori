@@ -3,7 +3,7 @@
 #
 # The default runs the 'hello' script
 
-date
-echo hello `cat input/infile`\! > output/outfile
-cat output/outfile
+d=`date`
+echo hello `cat input/infile`\! From `whoami` $d > output/outfile
+cat output/outfile | tee -a hello.out 
 

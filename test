@@ -7,14 +7,25 @@ n=$#
 f=${1:-0}
 if [ "$n" -eq "0" -o "$f" -eq "1" ]; then
     shift
-    pytest --debug -vv -r P $* tests/test_dataset.py;
+    pytest --debug -v -r P $* tests/test_dataset.py;
 fi
 if [ $n -eq 0 -o $f -eq 2 ]; then
     shift
-    pytest --debug -vv -r P $* tests/test_pns.py;
+    pytest --debug -v -r P $* tests/test_pal.py;
 fi
 
 if [ $n -eq 0 -o $f -eq 3 ]; then
     shift
-    pytest --debug -vv -r P $* tests/test_pal.py;
+    pytest --debug -v -r P -k 'not server and not vpp' $* tests/test_pns.py;
 fi
+
+if [ $n -ne 0 -a $f -eq 4 ]; then
+    shift
+    pytest --debug -v -r P -k 'server' $* tests/test_pns.py;
+fi
+
+if [ $n -ne 0 -a $f -eq 5 ]; then
+    shift
+    pytest --debug -v -r P -k 'vvpp' $* tests/test_pns.py;
+fi
+

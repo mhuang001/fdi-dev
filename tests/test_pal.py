@@ -56,10 +56,11 @@ def checkjson(obj):
         print('*************** deepcmp ***************')
         print('identical' if r is None else r)
         # print(' DIR \n' + str(dir(obj)) + '\n' + str(dir(des)))
-    if issubclass(obj.__class__, Product):
+    if 0 and issubclass(obj.__class__, Product):
         obj.meta.listeners = []
         des.meta.listeners = []
-    assert obj == des
+    assert obj == des, deepcmp(obj, des) + '\nOBJ ' + \
+        obj.toString() + '\nDES ' + des.toString()
     return des
 
 

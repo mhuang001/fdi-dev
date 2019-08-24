@@ -1,0 +1,20 @@
+#!/bin/bash
+
+PNSHOME=/root/pns
+#d=`date`
+#echo hello `cat input/infile`\! $d > output/outfile
+#cat output/outfile | tee -a hello.out 
+
+CONDA_ROOT=/root/anaconda2.7
+export CONDA_ROOT
+#$CONDA_ROOT/condabin/conda init bash
+PATH=$PATH:$CONDA_ROOT/bin
+export PATH
+
+source $CONDA_ROOT/bin/activate iraf27
+
+cd $PNSHOME/atc_test
+$PNSHOME/atc_test/batch1
+
+cp -f xycc.dat atc.cc $PNSHOME/output
+date | tee -a $PNSHOME/atc_test/date.out 

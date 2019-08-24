@@ -1,7 +1,6 @@
 #!flask/bin/python
 # -*- coding: utf-8 -*-
 
-from pns import module  # absolute import
 from pns import logdict  # import logdict
 import logging
 import logging.config
@@ -31,7 +30,7 @@ if __name__ == '__main__':
         'Pipline Node Server starting. Make sure no other instance is running')
     node, verbose = opt(pc['node'])
     pc['node'].update(node)
-    
+
     if verbose:
         logger.setLevel(logging.DEBUG)
     else:

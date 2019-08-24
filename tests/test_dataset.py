@@ -25,7 +25,9 @@ from dataset.eq import deepcmp
 from dataset.quantifiable import Quantifiable
 from dataset.listener import EventSender, DatasetBaseListener
 from dataset.composite import Composite
-from dataset.metadata import Parameter, NumericParameter, MetaDataHolder, MetaData
+from dataset.metadata import Parameter, NumericParameter, MetaData
+from dataset.datawrapper import DataWrapperMapper
+from dataset.metadataholder import MetaDataHolder
 from dataset.attributable import Attributable
 from dataset.abstractcomposite import AbstractComposite
 from dataset.datawrapper import DataWrapper, DataWrapperMapper

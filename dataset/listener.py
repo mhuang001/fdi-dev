@@ -77,7 +77,11 @@ class EventSender():
         """ Replaces the current Listenersurn with specified argument. 
         """
         for urn in listenersurn:
-            l = getProductObject(urn)
+            try:
+                l = getProductObject(urn)
+            except ValueError as e:
+                logger.warn(str(e))
+                continue
             self.addListener(l)
 
     def getListenersurn(self, remove=None):

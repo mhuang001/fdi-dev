@@ -6,12 +6,12 @@ import pprint
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
 def deepcmp(obj1, obj2, seenlist=None, verbose=False):
     """ recursively descend into set, list, dict, ordereddict,
-    (or ods subclasses) and any objects with '__class__', compare
+    (or ordereddict subclasses) and any objects with '__class__', compare
     every member with the other objects counterpart.
     Detects cyclic references.
     Returns None if finds no difference, a string of explanation
@@ -49,6 +49,8 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False):
             if r is not None:
                 return " due to diff " + c.__name__ + " keys" + r
             for k in o1.keys():
+                if k not in o2:
+                    return ' due to o2 has no key=%s' % (str(k))
                 r = run(o1[k], o2[k])
                 if r is not None:
                     s = ' due to diff values for key=%s' % (str(k))

@@ -12,8 +12,8 @@ sys.path.insert(0, '/root/svom/spdc')
 from pns.logdict import logdict
 import logging.config
 # don't log to file. server will do the logging
-del logdict["loggers"][""]["handlers"][1]
-del logdict["root"]["handlers"][1]
+#del logdict["loggers"][""]["handlers"][1]
+#del logdict["root"]["handlers"][1]
 logging.config.dictConfig(logdict)
 logger = logging.getLogger()
 

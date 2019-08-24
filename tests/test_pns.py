@@ -86,7 +86,9 @@ def test_getpnsconfig():
     o = getJsonObj(aburl + '/pnsconfig')
     issane(o)
     r = o['result']
-    assert r == pc  # , deepcmp(r, pc)
+    # , deepcmp(r['scripts'], pc['scripts'])
+    assert r['scripts'] == pc['scripts']
+    return r
 
 
 def checkContents(cmd, filename):
@@ -119,30 +121,41 @@ def test_getrun():
     checkContents(cmd='/' + c, filename=fn + '.ori')
 
 
-def test_putinittest():
+def checkputinitresult(result, msg):
+    # if msg is string, an exception must have happened
+    assert not isinstance(msg, (str, bytes)), msg
+    assert result == 0, 'Error %d testing script "run". msg: ' + str(msg)
+
+
+def test_servertestinit():
+    """ server unit test for put init """
+    ret, sta = server.testinit(None)
+    checkputinitresult(ret, sta)
+
+
+def test_puttestinit():
     """     Renames the 'init' 'config' 'run' 'clean' scripts to "*.save" and points it to the '.ori' scripts.
     """
 
     d = {'timeout': 5}
     # print(nodetestinput)
     o = putJsonObj(aburl +
-                   '/inittest',
+                   '/testinit',
                    d,
                    headers=commonheaders)
     issane(o)
     checkputinitresult(o['result'], o['message'])
 
 
-def checkputinitresult(result, msg):
-    # if msg is string, an exception must have happened
-    assert not isinstance(msg, (str, bytes)), msg
-    assert result == 0, 'Error %d testing script file hello. STDOUT %s STDERR %s'\
-        % (msg['returncode'], msg['stdout'], msg['stderr'])
-
-
 def test_serverinit():
     """ server unit test for put init """
     ret, sta = server.initPTS(None)
+    checkputinitresult(ret, sta)
+
+
+def test_servertestinit():
+    """ server unit test for put testinit """
+    ret, sta = server.testinit(None)
     checkputinitresult(ret, sta)
 
 
@@ -165,8 +178,8 @@ def test_putconfigpns():
     """ send signatured pnsconfig and check.
     this function is useless for a stateless server
     """
-    t = copy.deepcopy(pc)
-    t['scripts']['testing'] = 'yes'
+    t = test_getpnsconfig()
+    t['testing'] = 'yes'
     d = {'timeout': 5, 'input': t}
     # print(nodetestinput)
     o = putJsonObj(aburl +
@@ -174,17 +187,18 @@ def test_putconfigpns():
                    d,
                    headers=commonheaders)
     # put it back not to infere other tests
-    d = {'timeout': 5, 'input': pc}
+    del t['testing']
+    d = {'timeout': 5, 'input': t}
     p = putJsonObj(aburl +
                    '/pnsconf',
                    d,
                    headers=commonheaders)
 
     issane(o)
-    assert o['result']['scripts']['testing'] == 'yes', o['message']
-    assert 'testing' not in pc['scripts'], str(pc['scripts'])
+    assert o['result']['testing'] == 'yes', o['message']
+    assert 'testing' not in pc, str(pc)
     issane(p)
-    assert 'testing' not in p['result']['scripts']
+    assert 'testing' not in p['result']
 
 
 def issane(o):
@@ -239,10 +253,6 @@ def test_post():
     checkserver()
     nodetestinput = makeposttestdata()
     # print(nodetestinput)
-    o = putJsonObj(aburl +
-                   '/inittest',
-                   None,
-                   headers=commonheaders)
     o = postJsonObj(aburl +
                     '/testcalc',
                     nodetestinput,
@@ -264,12 +274,7 @@ def makeruntestdata():
 def checkrunresult(p, msg):
     global lupd, nodetestinput
 
-    if not issubclass(p.__class__, Product):
-        assert issubclass(msg.__class__, str), str(p.__class__) + ' ' +\
-            'Error %d running ["run"]. STDOUT %s STDERR %s'\
-            % (msg['returncode'], msg['stdout'], msg['stderr'])
-        # Exception has happened.
-        assert False, msg
+    assert issubclass(p.__class__, Product), str(p) + ' ' + str(msg)
 
     # creator rootcause
     # print('p.toString()' + p.toString())
@@ -277,8 +282,8 @@ def checkrunresult(p, msg):
     assert p.rootCause == nodetestinput['rootcause']
     # input data
     input = nodetestinput['input']
-    answer = 'hello ' + input['theName'].data + '!\n'
-    assert p['theAnswer'].data == answer
+    answer = 'hello ' + input['theName'].data + '!'
+    assert p['theAnswer'].data[:len(answer)] == answer
 
 
 def test_serverrun():
@@ -290,9 +295,7 @@ def test_serverrun():
     logger.info('POST test for pipeline node server "testrun": hello')
     global nodetestinput
 
-    pi = server.checkpath(pc['paths']['inputdir'])
-    po = server.checkpath(pc['paths']['outputdir'])
-    assert pi is not None and po is not None
+    test_servertestinit()
 
     x = makeruntestdata()
     # construct the nodetestinput to the node
@@ -327,6 +330,37 @@ def test_run():
                     headers=commonheaders)
     issane(o)
     checkrunresult(o['result'], o['message'])
+
+
+def checkvvppresult(p, msg):
+    global lupd, nodetestinput
+
+   # assert issubclass(p.__class__, Product), str(p) + ' ' + str(msg)
+
+    # input data
+    print('result: ' + str(p))
+    print('message: ' + str(msg))
+
+
+def test_vvpp():
+    ''' 
+    '''
+    logger.info('POST test for pipeline node server: vvpp')
+    global lupd, nodetestinput
+    checkserver()
+
+    test_putinit()
+
+    # construct the nodetestinput to the node
+    nodetestinput = ODict({'creator': 'me', 'rootcause': 'vvpp test',
+                           'input': 0})
+    # print(nodetestinput)
+    o = postJsonObj(aburl +
+                    '/run',
+                    nodetestinput,
+                    headers=commonheaders)
+    issane(o)
+    checkvvppresult(o['result'], o['message'])
 
 
 def test_deleteclean():

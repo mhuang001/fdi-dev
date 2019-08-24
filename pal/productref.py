@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.metadata import MetaDataHolder
+from dataset.metadataholder import MetaDataHolder
 from dataset.serializable import Serializable
 from dataset.eq import DeepEqual
 from dataset.odict import ODict
@@ -24,6 +24,7 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
         """
         super().__init__(**kwds)
         if urnobj is not None and not issubclass(urnobj.__class__, Urn):
+            # urnobj is the python obj id
             urnobj = Urn.getInMemUrnObj(urnobj)
         self.setUrnObj(urnobj)
         self._parents = []
@@ -121,11 +122,12 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
         return self._urnobj == o._urnobj and sorted(self.parents) == sorted(o.parents)
 
     def __repr__(self):
-        return self.__class__.__name__ + '{ ProductURN=' + self.urn + '}'
+        return self.__class__.__name__ + '{ ProductURN=' + self.urn + ', meta=' + str(self.getMeta()) + '}'
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return ODict(urnobj=self.urnobj if issubclass(self.urnobj.__class__, Urn) else None,
                      parents=self.parents,
+                     _meta=self.getMeta(),
                      classID=self.classID,
                      version=self.version)

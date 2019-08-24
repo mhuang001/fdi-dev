@@ -8,7 +8,7 @@ import sys
 import pwd
 import grp
 from os.path import isfile, isdir, join
-from os import listdir, chown
+from os import listdir, chown, chmod, environ, setuid, setgid
 from pathlib import Path
 import traceback
 import types
@@ -18,7 +18,7 @@ from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
 
 from pns.logdict import logdict
-logdict['handlers']['file']['filename'] = '/tmp/pns-server.log'
+#logdict['handlers']['file']['filename'] = '/var/log/pns-server.log'
 import logging
 import logging.config
 # create logger
@@ -41,7 +41,10 @@ sys.path.insert(0, env)
 try:
     from local import pnsconfig as pc
 except Exception:
+    logger.warn(str(e))
     pass
+
+logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
 
 from dataset.metadata import Parameter, NumericParameter, MetaData
 from dataset.product import Product, FineTime1, History
@@ -59,20 +62,61 @@ class status():
     successful = 0
 
 
-def _execute(cmd, input=None, timeout=10):
-    """ Executes a command on the server host in the pnshome directory and returns run status. Default imeout is 10sec.
+def trbk(e):
+    """ trace back 
     """
-    logger.debug(cmd)
-    sta = {'command': str(cmd)}
-    cp = srun(cmd, input=input, stdout=PIPE, stderr=PIPE,
-              cwd=pc['paths']['pnshome'], timeout=timeout,
-              encoding='utf-8')  # universal_newlines=True)
-    sta['stdout'], sta['stderr'] = cp.stdout, cp.stderr
-    sta['returncode'] = cp.returncode
-    return sta
+    return ' '.join([x for x in
+                     traceback.extract_tb(e.__traceback__).format()])
 
-    proc = Popen(cmd, stdin=PIPE, stdout=PIPE,
-                 stderr=PIPE, universal_newlines=True)
+
+def _execute(cmd, input=None, timeout=10):
+    """ Executes a command on the server host in the pnshome directory and returns run status. Default imeout is 10sec. Run as user set byas.
+    returns {return code, msg}
+    """
+
+    logger.debug('%s in:%s to: %d' %
+                 (str(cmd), str(input), timeout))
+    sta = {'command': str(cmd)}
+    asuser = pc['ptsuser']
+
+    try:
+        # https://stackoverflow.com/a/6037494
+        pw_record = pwd.getpwnam(asuser)
+        user_name = pw_record.pw_name
+        user_home_dir = pw_record.pw_dir
+        user_uid = pw_record.pw_uid
+        user_gid = pw_record.pw_gid
+        env = environ.copy()
+        env['HOME'] = user_home_dir
+        env['LOGNAME'] = user_name
+        env['PWD'] = pc['paths']['pnshome']
+        env['USER'] = user_name
+
+        def chusr(user_uid, user_gid):
+            def result():
+                setgid(user_gid)
+                setuid(user_uid)
+                logger.debug('set uid=%d gid=%d' % (user_uid, user_gid))
+            return result
+        executable = None
+
+        # /etc/sudoer: apache ALL:(vvpp) NOPASSWD: ALL
+        # gpasswd -a vvpp apache
+        #cmd = ['sudo', '-u', asuser, 'bash', '-l', '-c'] + cmd
+        #cmd = ['sudo', '-u', asuser] + cmd
+        logger.debug('Popen %s env:%s uid: %d gid:%d' %
+                     (str(cmd), str(env)[:200] + ' ... ', user_uid, user_gid))
+        proc = Popen(cmd, executable=executable,
+                     stdin=PIPE, stdout=PIPE, stderr=PIPE,
+                     preexec_fn=None,
+                     cwd=pc['paths']['pnshome'],
+                     env=env, shell=False,
+                     encoding='utf-8')  # , universal_newlines=True)
+    except Exception as e:
+        msg = repr(e) + trbk(e) + ' ' + \
+            (e.child_traceback if hasattr(e, 'child_traceback') else '')
+        return {'returncode': -1, 'message': msg}
+
     try:
         sta['stdout'], sta['stderr'] = proc.communicate(timeout=timeout)
         sta['returncode'] = proc.returncode
@@ -84,6 +128,13 @@ def _execute(cmd, input=None, timeout=10):
         proc.kill()
         sta['stdout'], sta['stderr'] = proc.communicate()
         sta['returncode'] = proc.returncode
+    return sta
+
+    cp = srun(cmd, input=input, stdout=PIPE, stderr=PIPE,
+              cwd=pc['paths']['pnshome'], timeout=timeout,
+              encoding='utf-8', shell=True)  # universal_newlines=True)
+    sta['stdout'], sta['stderr'] = cp.stdout, cp.stderr
+    sta['returncode'] = cp.returncode
     return sta
 
 
@@ -102,23 +153,25 @@ def checkpath(path):
             uid = pwd.getpwnam(un).pw_uid
         except KeyError as e:
             msg = 'cannot set input/output dirs owner to ' + \
-                un + '. check config. ' + str(e)
+                un + '. check config. ' + str(e) + trbk(e)
             logger.error(msg)
             return None
         try:
             gid = grp.getgrnam(un).gr_gid
         except KeyError as e:
             gid = -1
-            logger.warn('input/output group unchanged. ' + str(e))
+            logger.warn('input/output group unchanged. ' + str(e) + trbk(e))
         try:
             chown(str(p), uid, gid)
+            chmod(str(p), mode=0o775)
         except Exception as e:
             msg = 'cannot set input/output dirs owner to ' + \
-                un + '. check config. ' + str(e)
+                un + ' or mode. check config. ' + str(e) + trbk(e)
             logger.error(msg)
             return None
 
         logger.info(str(p) + ' directory has been made.')
+    logger.debug('checked path at ' + str(p))
     return p
 
 
@@ -148,14 +201,24 @@ def initPTS(d=None):
     return stat['returncode'], stat
 
 
-def initTest(d=None):
-    """     Renames the 'init' 'config' 'run' 'clean' scripts to "*.save" and points it to the '.ori' scripts.
+def testinit(d=None):
+    """     Renames the 'init' 'config' 'run' 'clean' scripts to '.save' and points it to the '.ori' scripts.
     """
 
-    #hf = pkg_resources.resource_filename("pns.resources", "runPTS")
+    p = checkpath(pc['paths']['pnshome'])
+    if p is None:
+        abort(401)
+
+    pi = checkpath(pc['paths']['inputdir'])
+    po = checkpath(pc['paths']['outputdir'])
+    if pi is None or po is None:
+        abort(401)
+
+    # hf = pkg_resources.resource_filename("pns.resources", "runPTS")
     timeout = pc['timeout']
-    for apic in pc['scripts']:
-        ni = pc['scripts'][apic][0]
+    scpts = [x[0] for x in pc['scripts'].values()]
+    logger.debug('mv -f and ln -s :' + str())
+    for ni in scpts:
         cmd = ['mv', '-f', ni, ni + '.save']
         stat = _execute(cmd, timeout=timeout)
         if stat['returncode']:
@@ -227,38 +290,92 @@ def cleanPTS(d):
     return stat['returncode'], stat
 
 
-def run(d):
-    """ Generates a product by running script defined in the config under 'run'. Execution on the server host is in the pnshome directory and run result and status are returned.
+def defaultprocessinput(data):
     """
-    return 0, ''
+    puts all undecoded json to every files.
+    """
+
+    pi = Path(pc['paths']['inputdir'])
+
+    for f in data:
+        fp = pi.joinpath(f)
+        if fp.exists():
+            logger.debug('infile mode 0%o ' % (fp.stat().st_mode))
+            fp.rename(str(fp) + '.old')
+        with fp.open(mode=data[f]['mode']) as inf:
+            inf.write(data[f]['contents'])
+    logger.debug(str(list(data.keys())) + ' written.')
+
+
+def defaultprocessoutput(filemode):
+    """
+    reads each of the files and returns the contents in a filename indexed dict.
+    """
+    res = {}
+    po = Path(pc['paths']['outputdir'])
+    for fn in filemode:
+        with po.joinpath(fn).open(mode=filemode[fn]) as outf:
+            res[fn] = outf.read()
+    logger.debug(str(list(res.keys())) + ' read.')
+    return res
 
 
 def testrun(d):
-    """  Run 'runPTS' for testing, and as an example.
     """
+    """
+    logger.debug('for hello')
+
+    def processinput(d, indata):
+        """ put json decoded input.theName to file 'infile'
+        """
+        contents = indata['input']['theName'].data
+        defaultprocessinput({'infile': {'contents': contents, 'mode': 'w+'}})
+
+    def processoutput(d, indata):
+        """ Read every file in pc.paths.output and put their contents in a dict. process the result to required form -- a product
+        """
+        res = defaultprocessoutput({'outfile': 'r'})
+
+        runner, cause = indata['creator'], indata['rootcause']
+        x = Product(description="test pipeline product",
+                    creator=runner, rootCause=cause,
+                    instrument="hello", modelName="you know what!")
+        x['theAnswer'] = GenericDataset(
+            data=res['outfile'], description='result from runPTS command')
+        x.type = 'test'
+        x.history = History()
+        now = time.time()
+        x.creationDate = FineTime1(datetime.datetime.fromtimestamp(now))
+        return x
+
+    return run(d, processinput, processoutput)
+
+
+def run(d, processinput=None, processoutput=None):
+    """  Generates a product by running script defined in the config under 'run'. Execution on the server host is in the pnshome directory and run result and status are returned.
+    """
+
+    global lupd
+
+    p = checkpath(pc['paths']['pnshome'])
+    if p is None:
+        abort(401)
+
     pi = checkpath(pc['paths']['inputdir'])
     po = checkpath(pc['paths']['outputdir'])
     if pi is None or po is None:
         abort(401)
 
-    global lupd
-
     indata = deserializeClassID(d)
     logger.debug(indata)
-    runner, cause = indata['creator'], indata['rootcause']
-    contents = indata['input']['theName'].data
-    for f in pc['paths']['inputfiles']:
-        fp = pi.joinpath(f)
-        if fp.exists():
-            logger.debug('infile mode 0%o ' % (fp.stat().st_mode))
-        try:
-            if fp.exists():
-                fp.rename(str(fp) + '.old')
-            with fp.open(mode="w+") as inf:
-                inf.write(contents)
-        except Exception as e:
-            return -1, str(e) + ' '.join([x for x in
-                                          traceback.extract_tb(e.__traceback__).format()])
+
+    try:
+        if processinput is not None:
+            processinput(d, indata)
+        else:
+            defaultprocessinput({})  # pc['paths']['inputfiles']
+    except Exception as e:
+        return -1,  str(e) + trbk(e)
 
     ######### run PTS ########
     if hasattr(indata, '__iter__') and 'timeout' in indata:
@@ -272,20 +389,15 @@ def testrun(d):
 
     ######### output ########
     try:
-        with po.joinpath(pc['paths']['outputfile']).open("r") as outf:
-            res = outf.read()
+        if processoutput is not None:
+            x = processoutput(d, indata)
+        else:
+            n = len(pc['paths']['outputfiles'])
+            fm = dict(zip(pc['paths']['outputfiles'], ['r'] * n))
+            x = defaultprocessoutput(fm)
     except Exception as e:
-        return -1, str(e)
+        return -1, str(e) + trbk(e)
 
-    x = Product(description="hello world pipeline product",
-                creator=runner, rootCause=cause,
-                instrument="hello", modelName="you know what!")
-    x['theAnswer'] = GenericDataset(
-        data=res, description='result from runPTS command')
-    now = time.time()
-    x.creationDate = FineTime1(datetime.datetime.fromtimestamp(now))
-    x.type = 'test'
-    x.history = History()
     return x, stat
 
 
@@ -371,7 +483,7 @@ def getinfo(cmd):
         else:
             result, msg = 'init, config, run, clean, input, ouput', 'get API'
     except Exception as e:
-        result, msg = -1, str(e)
+        result, msg = -1, str(e) + trbk(e)
     w = {'result': result, 'message': msg, 'timestamp': ts}
 
     s = serializeClassID(w)
@@ -441,7 +553,7 @@ def setup(cmd):
         try:
             result, msg = initPTS(d)
         except Exception as e:
-            msg = str(e)
+            msg = str(e) + trbk(e)
             logger.error(msg)
             result = -1
     elif cmd == 'config':
@@ -454,8 +566,8 @@ def setup(cmd):
             abort(400)
             result = None
         result, msg = uploadScript(ops, d)
-    elif cmd == 'inittest':
-        result, msg = initTest(d)
+    elif cmd == 'testinit':
+        result, msg = testinit(d)
     else:
         logger.error(cmd)
         abort(400)
@@ -481,7 +593,7 @@ def cleanup(cmd):
         try:
             result, msg = cleanPTS(d)
         except Exception as e:
-            msg = str(e)
+            msg = str(e) + trbk(e)
             logger.error(msg)
             result = None
     else:
@@ -506,7 +618,7 @@ APIs = {'GET':
          },
         'PUT':
         {'func': 'setup',
-         'cmds': {'init': initPTS, 'config': configPTS, 'pnsconf': configPNS, 'inittest': initTest}
+         'cmds': {'init': initPTS, 'config': configPTS, 'pnsconf': configPNS, 'testinit': testinit}
          },
         'POST':
         {'func': 'calcresult',
@@ -531,7 +643,7 @@ def makepublicAPI(ops):
                            cmd=cmd,
                            _external=True)
         api.append(d)
-    #print('******* ' + str(api))
+    # print('******* ' + str(api))
     return api
 
 

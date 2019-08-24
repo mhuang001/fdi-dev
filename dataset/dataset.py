@@ -89,7 +89,7 @@ class GenericDataset(Dataset, DataContainer, Container):
 class ArrayDataset(DataWrapper, GenericDataset, Sequence):
     """  Special dataset that contains a single Array Data object.
     mh:  contains a sequence which provides methods count(), index(), remove(), reverse().
-A mutable sequence would also need append(), extend(), insert(), pop() and sort()
+    A mutable sequence would also need append(), extend(), insert(), pop() and sort().
     """
 
     def __init__(self, unit=None, **kwds):
@@ -163,7 +163,7 @@ A mutable sequence would also need append(), extend(), insert(), pop() and sort(
         return self.__class__.__name__ +\
             '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' %\
             (str(self.description), self.meta.toString(),
-             self.data.toString(), str(self.unit))
+             self.data.toString() if hasattr(self.data, 'toString') else str(self.data), str(self.unit))
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

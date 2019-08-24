@@ -90,11 +90,7 @@ class Composite(DeepEqual):
             str(ks)
 
     def toString(self):
-        s = ''
-        for (k, v) in self._sets.items():
-            s = s + str(k) + ' = ' + str(v) + ', '
-        return self.__class__.__name__ + \
-            '[' + s + ']'
+        return self.__class__.__name__ + self._sets.toString()
 
     def __contains__(self, x):
         """ mh: enable 'x in composite' """

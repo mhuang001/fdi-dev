@@ -12,8 +12,6 @@ from .listener import DatasetEventSender, ParameterListener, DatasetListener, Da
 from .composite import Composite
 from .odict import ODict
 from .serializable import Serializable
-from .datawrapper import DataWrapperMapper
-from .metadataholder import MetaDataHolder
 
 
 class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializable):

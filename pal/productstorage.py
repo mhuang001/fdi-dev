@@ -184,7 +184,10 @@ class ProductStorage():
                     t = ta
                     raise e
             u = Urn(cls=prd.__class__, pool=pool, index=sn)
-            rfs.append(ProductRef(urnobj=u))
+            rf = ProductRef(urnobj=u)
+            # it seems that there is no better way to set meta
+            rf._meta = prd.getMeta()
+            rfs.append(rf)
         if not issubclass(product.__class__, list):
             return rfs[0]
         else:

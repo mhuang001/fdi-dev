@@ -22,7 +22,6 @@ def getJsonObj(fp, usedict=False):
     # ret = json.loads(stri, cls=Decoder,
     #               object_pairs_hook=collections.OrderedDict)
     #lgb = ChainMap(locals(), globals(), vars(builtins))
-    #lgb = desables
     lgb = None
     ret = deserializeClassID(stri, lgb=lgb, usedict=usedict)
     logger.debug(str(ret)[:160] + '...')
@@ -56,9 +55,11 @@ def getProductObject(urn, lgb=None):
             lock.release()
     elif scheme == 'mem':
         processid = int(poolpath.rsplit('/', maxsplit=1)[1])
-        assert processid == os.getpid()
+        if processid != os.getpid():
+            raise ValueError('vannot restore from ' +
+                             urn + ' of another process')
         idn = int(indexs)
-        logger.debug(urn)
+        # logger.debug(urn)
         if lgb is None:
             # lgb = ChainMap(locals(), globals())  # , vars(builtins))
             lgbv = gc.get_objects()

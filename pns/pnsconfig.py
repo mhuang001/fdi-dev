@@ -5,23 +5,36 @@ from os.path import join
 # base url for webserver
 pnsconfig = dict(baseurl='/v0.6')
 
-# username, passwd, flask ip, flask port
-pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                     'host': '0.0.0.0', 'port': 5000}
+dev = False
+if dev:
+    # username, passwd, flask ip, flask port
+    pnsconfig['node'] = {'username': 'foo',
+                         'password': 'bar', 'host': '0.0.0.0', 'port': 5000}
 
-# input file
-# output file
-from os.path import expanduser, expandvars
-home = expanduser(expandvars('$HOME'))
-# apache wsgi will return '$HOME' with no expansion
-home = '/root' if home == '$HOME' else home
+    # server permission user
+    pnsconfig['serveruser'] = 'mh'
+    # PTS app permission user
+    pnsconfig['ptsuser'] = 'mh'
+    # on server
+    home = '/cygdrive/c/Users/mh'
+else:
+    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
+                         'host': '10.0.10.114', 'port': 9888}
+    # server permission user
+    pnsconfig['serveruser'] = 'apache'
+    # PTS app permission user
+    pnsconfig['ptsuser'] = 'pns'
+    # on server
+    home = '/root'
+
+
 phome = join(home, 'pns')
 pnsconfig['paths'] = dict(
     pnshome=phome,
     inputdir=join(phome, 'input'),
     inputfiles=['infile'],
     outputdir=join(phome, 'output'),
-    outputfile='outfile'
+    outputfiles=['xycc.dat', 'atc.cc']
 )
 
 # the stateless data processing program that reads from inputdir and
@@ -37,6 +50,3 @@ del phome, h
 
 # seconds
 pnsconfig['timeout'] = 10
-
-# server permission user
-pnsconfig['serveruser'] = 'apache'

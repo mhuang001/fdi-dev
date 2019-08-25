@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import filelock
-from copy import deepcopy
+import os
 from pathlib import Path
 import collections
 import shutil
@@ -15,94 +15,64 @@ from .urn import Urn
 from .productref import ProductRef
 from .comparable import Comparable
 from .common import getJsonObj
+from .productpool import ProductPool
 
 from dataset.serializable import serializeClassID
 from dataset.dataset import TableDataset
 from dataset.odict import ODict
 
-# Global centralized dict that returns the same ProductStorage+pool.
-PoolStorageList = []
 
-
-class ProductStorage():
-    """
+class LocalPool(ProductPool):
+    """ the pool will save all products in local computer.
     """
 
-    def __init__(self, pool='file:///tmp/pool', **kwds):
+    def __init__(self, **kwds):
+        """ creates file structure if there isn't one. if there is, read and populate ouse-keeping records
+        """
         super().__init__(**kwds)
-        self._pool = collections.OrderedDict()  # dict of pool-urn keys
-        self.register(pool)
+
+        p = Path(self._poolpath)
+        if not p.exists():
+            p.mkdir()
+        c, t, u = self.readHK(self._poolpath)
+        logger.debug('pool ' + self._poolurn + ' HK read.')
+
+        self._classes.update(c)
+        self._tags.update(t)
+        self._urns.update(u)
 
     def readHK(self, poolpath):
         """
         loads and returns the housekeeping data
         """
-        classespath, tagspath = poolpath + '/classes.jsn', poolpath + '/tags.jsn'
         with filelock.FileLock(poolpath + '/lock'):
-            try:
-                c = getJsonObj(classespath)
-                t = getJsonObj(tagspath)
-                print(c)
-                print(t)
-                if c is None or t is None:
-                    raise Exception('reading classes and tags')
-            except Exception as e:
-                logging.error('Error in HK reading')
-                raise e
-        logger.debug('ProdStorage HK read from ' +
-                     str(classespath) + ' ' + str(tagspath))
-        return c, t
-
-    def register(self, pool):
-        """ Registers the given pools to the storage.
-        """
-
-        sp = pool.split('://')
-        if sp[0] != 'file':
-            raise ValueError(sp[0] + ':// is not supported')
-        poolpath = sp[1]
-        logger.debug(poolpath)
-        p = Path(poolpath)
-        # check duplicated case
-        # if pool in PoolStorageList:
-        #    return
-
-        # check if pool is part of an existing storage
-        for ex in self._pool:
-            lex = ex.split('/')
-            lu = pool.split('/')
-            ml = min(len(lex), len(lu))
-            if lex[:ml] == lu[:ml]:
-                raise ValueError(
-                    'pool ' + pool + ' and existing ' + ex + ' overlap.')
-
-        if not p.exists():
-            p.mkdir()
-        pc = p.joinpath('classes.jsn')
-        pt = p.joinpath('tags.jsn')
-        logger.debug(str(pc) + str(pc.exists()))
-        logger.debug(str(pt) + str(pt.exists()))
-        if pc.exists() and pt.exists():
-            c, t = self.readHK(poolpath)
-            logger.debug('pool ' + pool + ' HK read')
-        else:
-            c, t = ODict(), ODict()
-        self._pool.update({pool: {'classes': c, 'tags': t}})
-        logger.debug('registered pool ' + str(self._pool))
-        PoolStorageList.append(pool)
+            for hkdata in ['classes', 'tags', 'urn']:
+                hk = {}
+                fp = fp0.joinpath(hkdata + '.jsn')
+                if fp.exists():
+                    r = getJsonObj(str(fp))
+                    if r is None:
+                        msg = 'Error in HK reading ' + str(fp)
+                        logging.error(msg)
+                        raise Exception(msg)
+                else:
+                    r = ODict()
+                hk[hkdata] = r
+        logger.debug('LocalPool HK read from ' + poolpath)
+        return hk['classes'], hk['tags'], hk['urns']
 
     def writeHK(self, fp0, poolpath):
         """
            save the housekeeping data
         """
 
-        for hkdata in ['classes', 'tags']:
+        for hkdata in ['classes', 'tags', 'urn']:
             fp = fp0.joinpath(hkdata + '.jsn')
             if fp.exists():
                 fp.rename(str(fp) + '.old')
             with fp.open(mode="w+") as f:
-                js = serializeClassID(self._pool['file://' + poolpath][hkdata])
-                f.write(js)
+                #js = serializeClassID(self._pool['file://' + poolpath][hkdata])
+                js = serializeClassID(self.__getattribute__('_' + hkdata))                f.write(js)
 
     def doSaving(self, poolpath, typename, serialnum, data):
         """ do the media-specific saving
@@ -121,79 +91,48 @@ class ProductStorage():
             logger.debug(str(
                 fp) + str(e) + ' '.join([x for x in traceback.extract_tb(e.__traceback__).format()]))
 
-    def save(self, product, tag=None, pool=None):
-        """ Save a product or a list of products to the storage, possibly under the supplied tag, and return the reference (or a list of references if the input is a list of products).
+    def save(self, product, tag=None, poolurn=None):
+        """ saves to the writable pool if it has been registered, if not registers and saves.
         """
 
-        if pool == None:
+        if poolurn == None:
             if len(self._pool) > 0:
-                pool = self.getWritablePool()
+                poolurn = self.getWritablePool()
             else:
                 raise ValueError('no pool registered')
-        elif pool not in self._pool:
-            self.register(pool)
+        elif poolurn not in self._pool:
+            self.register(poolurn)
 
         logger.debug('saving product:' + str(product) +
-                     ' to pool ' + str(pool) + ' with tag ' + str(tag))
+                     ' to pool ' + str(poolurn) + ' with tag ' + str(tag))
 
-        c = self._pool[pool]['classes']
-        t = self._pool[pool]['tags']
-        # save a copy
-        cl = deepcopy(c)
-        ta = deepcopy(t)
+        ret = self._pool[poolurn].saveProduct(product, tag=tag)
 
-        sp = pool.split('://')
-        if sp[0] != 'file':
-            raise ValueError(sp[0] + ':// is not supported')
-        poolpath = sp[1]
+        return ret
 
-        if not issubclass(product.__class__, list):
-            prds = [product]
-        else:
-            prds = product
-        rfs = []
-        for prd in prds:
-            pn = prd.__class__.__qualname__
+    def ZZregister(self, pool):
+        """ Registers the given pools to the storage.
+        """
+        # check duplicated case
+        # if pool in PoolStorageList:
+        #    return
 
-            with filelock.FileLock(poolpath + '/lock'):
-                if pn in c:
-                    sn = (c[pn]['currentSN'] + 1)
-                else:
-                    sn = 0
-                    c[pn] = ODict({'sn': ODict()})
-                if tag is not None:
-                    if tag not in t:
-                        t[tag] = ODict({pn: []})
+        # check if pool is part of an existing one
+        for ex in self._pool:
+            lex = ex.split('/')
+            lu = pool.split('/')
+            ml = min(len(lex), len(lu))
+            if lex[:ml] == lu[:ml]:
+                raise ValueError(
+                    'pool ' + pool + ' and existing ' + ex + ' overlap.')
 
-                c[pn]['currentSN'] = sn
-                s2t = c[pn]['sn']
-                if sn in s2t:
-                    s2t[sn]['meta'] = prd.meta
-                    s2t[sn]['tags'].append(tag)
-                else:
-                    s2t[sn] = ODict(meta=prd.meta, tags=[tag])
+        self._pool[pool] = ProductPool.getPool(pool)
 
-                if tag is not None:
-                    t[tag][pn].append(sn)
-
-                try:
-                    self.doSaving(poolpath, typename=pn,
-                                  serialnum=sn, data=prd)
-                except Exception as e:
-                    # undo changes
-                    c = cl
-                    t = ta
-                    raise e
-            u = Urn(cls=prd.__class__, pool=pool, index=sn)
-            rf = ProductRef(urnobj=u)
-            rfs.append(rf)
-        if not issubclass(product.__class__, list):
-            return rfs[0]
-        else:
-            return rfs
+        logger.debug('registered pool ' + str(self._pool))
+        PoolStorageList.append(pool)
 
     def load(self, urn):
-        """ Loads a product from the ProductStorage. returns productref.
+        """ Loads a product from the pool. returns productref.
         """
 
         # get a nominal urn object. the pool name may be wrong but good enough for making a prod reference
@@ -218,7 +157,7 @@ class ProductStorage():
             raise ValueError(
                 'product %s or index %d not in pool db %s %s.' % (str(prod), sn, c, t))
         # save for rolling back
-        cs, ts = deepcopy(c), deepcopy(t)
+        cs, ts = c.copy(), t.copy()
 
         poolpath = pool.split('://')[1]
         sp0 = Path(poolpath)
@@ -236,7 +175,7 @@ class ProductStorage():
                             del t[prod]
 
                 sp1.unlink()
-                self.writeHK(sp0, poolpath)
+                self.writeHK(pool)
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)
@@ -254,39 +193,37 @@ class ProductStorage():
         to the first pool where the same track id is found.
         """
 
-    def getPools(self):
+    def ZZgetPools(self):
         """  Returns the set of ProductPools registered.
         mh: in a list of (pool, {'classes','tags'})
         """
         return list(self._pool.keys())
 
-    def getPool(self, pool):
+    def ZZgetPool(self, pool):
         """ mh: returns  {'classes','tags'}
         """
         if pool not in self._pool:
             raise ValueError('pool ' + pool + ' not found')
         return self._pool[pool]
 
-    def getWritablePool(self):
+    def ZZgetWritablePool(self):
         return self.getPools()[0]
 
-    def getAllTags(self):
+    def ZZgetAllTags(self):
         """ Get all tags defined in the writable pool.
         """
         return self._pool[self.getWritablePool()]['tags'].keys()
 
-    def getProductClasses(self, pool):
+    def ZZgetProductClasses(self, pool):
         """  Yields all Product classes found in this pool.
-        mh: which pool
         """
-        return self.getPool(pool)['classes'].keys()
+        return self._pool[pool].getProductClasses()
 
     def getTags(self, urn):
         """  Get the tags belonging to the writable pool that associated to a given URN.
-        returns a list.
+        returns an iterator.
         """
-        uobj = Urn(urn=urn)
-        return self._pool[uobj.pool]['classes'][uobj.getTypeName()]['sn'][uobj.getIndex()]['tags']
+        return self.getWritablePool().getTags(urn)
 
     def getMeta(self, urn):
         """  Get the metadata belonging to the writable pool that associated to a given URN.
@@ -296,13 +233,7 @@ class ProductStorage():
             uobj = Urn(urn=urn)
         else:
             uobj = urn
-        try:
-            r = self._pool[uobj.pool]['classes'][uobj.getTypeName(
-            )]['sn'][uobj.getIndex()]['meta']
-        except KeyError as e:
-            msg = 'pool does not have %s . %s' % (uobj.urn, str(e))
-            raise ValueError(msg)
-        return r
+        return self._pool[uobj.pool]['classes'][uobj.getTypeName()]['sn'][uobj.getIndex()]['meta']
 
     def getUrnFromTag(self, tag):
         """ Get the URN belonging to the writable pool that is associated

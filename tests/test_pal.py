@@ -158,19 +158,31 @@ def test_ProductRef():
     a2 = ''
     a3 = defaultpoolpath
     a4 = prd.__class__.__qualname__
-    a5 = 43
+    a5 = 0
     s = a1 + '://' + a2   # file://s:
     p = s + a3
     r = a4 + ':' + str(a5)
     u = 'urn:' + p + ':' + r
+    pdp = Path(defaultpoolpath)
+    os.system('rm -rf ' + defaultpoolpath)
+    assert not pdp.exists()
 
+    # in memory
     mr = ProductRef(prd)
     assert mr.urnobj == Urn.getInMemUrnObj(prd)
     uobj = Urn(urn=u)
     # construction
-    pr = ProductRef(urnobj=uobj)
-    assert pr.urn == u
+    ps = ProductStorage(p)
+    rfps = ps.save(prd)
+    pr = ProductRef(urnobj=rfps.urnobj, storage=ps)
+    assert rfps == pr
+    assert rfps.getMeta() == pr.getMeta()
     assert pr.urnobj == uobj
+    pr = ProductRef(urnobj=rfps.urnobj)
+    assert rfps == pr
+    assert rfps.getMeta() == pr.getMeta()
+    assert pr.urnobj == uobj
+
     # parent
     b1, b2 = 'abc', '3c273'
     pr.addParent(b1)

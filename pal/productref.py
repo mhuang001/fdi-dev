@@ -11,6 +11,7 @@ from dataset.eq import DeepEqual
 from dataset.odict import ODict
 from .comparable import Comparable
 from .urn import Urn
+from . import productstorage
 from .common import getProductObject
 
 
@@ -18,7 +19,7 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 
-    def __init__(self, urnobj=None, **kwds):
+    def __init__(self, urnobj=None, storage=None, **kwds):
         """ if urnobj is not None and not a Urn instance create an in-memory URN. 
         mh: If a URN for a URN is needed, use Urn.getInMemUrnObj()
         """
@@ -26,7 +27,8 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
         if urnobj is not None and not issubclass(urnobj.__class__, Urn):
             # urnobj is the python obj id
             urnobj = Urn.getInMemUrnObj(urnobj)
-        self.setUrnObj(urnobj)
+
+        self.setUrnObj(urnobj, storage)
         self._parents = []
 
     @property
@@ -41,7 +43,7 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
     def getStorage(self):
         """ Returns the product storage associated.
         """
-        return self._urnobj.getStorage()
+        return self._storage
 
     def getType(self):
         """ Specifies the Product class to which this Product reference is pointing to.
@@ -52,6 +54,17 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
     def urn(self):
         """ Property """
         return self.getUrn()
+
+    @urn.setter
+    def urn(self, urn):
+        """
+        """
+        self.setUrn(urn)
+
+    def setUrn(self, urn):
+        """
+        """
+        self.setUrnObj(Urn(urn))
 
     def getUrn(self):
         """ Returns the Uniform Resource Name (URN) of the product.
@@ -69,15 +82,29 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
         """
         self.setUrnObj(urnobj)
 
-    def setUrnObj(self, urnobj):
-        """
+    def setUrnObj(self, urnobj, storage=None):
+        """ use supplied productstorage or create to get metaadata
         """
         if urnobj is not None:
             logger.debug(urnobj)
             assert issubclass(urnobj.__class__, Urn)
 
         self._urnobj = urnobj
-        self._urn = urnobj.urn if urnobj is not None else None
+        if urnobj is not None:
+            self._urn = urnobj.urn
+            if urnobj._scheme == 'file':
+                if storage is not None:
+                    s = storage
+                else:
+                    s = productstorage.ProductStorage(urnobj._pool)
+                self._storage = s
+                # there seems no better way to set ref meta
+                self._meta = s.getMeta(urnobj)
+            else:
+                self._meta = ODict()
+        else:
+            self._urn = None
+            self._meta = ODict()
 
     def getUrnObj(self):
         """ Returns the URN as an object.

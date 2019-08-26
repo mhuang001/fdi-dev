@@ -23,7 +23,7 @@ else:
     # server permission user
     pnsconfig['serveruser'] = 'apache'
     # PTS app permission user
-    pnsconfig['ptsuser'] = 'pns'
+    pnsconfig['ptsuser'] = 'apache'
     # on server
     home = '/root'
 

@@ -5,7 +5,7 @@ pip3 uninstall spdc -y
 pip3 uninstall svom-csc-product -y
 pip3 uninstall vvpp -y
 rm -rf spdc product vvpp
-tar xf /tmp/spdc.tar; tar xf /tmp/svom.tar
+tar xf /tmp/spdc.tar; tar xf /tmp/product.tar xf /tmp/vvpp.tar
 #git clone ssh://git@mercury.bao.ac.cn:9005/mh/spdc.git
 #git clone ssh://git@mercury.bao.ac.cn:9005/svom-csc/product.git
 #git clone ssh://git@mercury.bao.ac.cn:9005/svom-csc/vvpp.git

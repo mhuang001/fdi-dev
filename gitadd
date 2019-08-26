@@ -7,3 +7,4 @@ git add pns/*.py pns/resources/*
 git add startserver installpns
 git add pal/*.py pal/resources/*
 git add test tests/*.py
+git add doc/html doc/doctrees doc/sphinx/mkapi doc/sphinx/index.rst doc/sphinx/usage doc/sphinx/api doc/sphinx/conf.py doc/sphinx/Makefile

@@ -1,0 +1,7 @@
+OP=-E
+SPDC=../..
+rm -rf api/dataset api/pns api/pal
+mkdir -p api/dataset api/pns api/pal
+sphinx-apidoc $OP -o api/dataset $SPDC/dataset
+sphinx-apidoc $OP -o api/pns $SPDC/pns
+sphinx-apidoc $OP -o api/pal $SPDC/pal

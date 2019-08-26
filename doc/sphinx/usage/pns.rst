@@ -19,7 +19,7 @@ When running Flask server, the host IP is 0.0.0.0 and port number 5000 by defaul
 		
 		cp pns/pnsconfig.py ~/local.py
 
-and edit to make local changes.
+and edit to make local changes. Especially set dev to True to run local server.
 
 On the server side (or on your computer which can be both the server and the client) edit the pnshome directory $PDIR if needed and run the deployment script
 
@@ -80,7 +80,7 @@ Tests can be done step-by-step to help pin-point problems:
 
 2. Local Flask Server Functional Tests
 
-Start the server fresh in one terminal (see above) and in another terminal (on the server host) run the following:
+In ~/local.py (in pns/pnsconfig.py if you have not made local.py), set dev=True and make sure the IP is local (0.0.0.0 or 127.0.0.1). Start the server fresh in one terminal (see above) and in another terminal (on the server host) run the following:
 
 test GET initPTS script to see if reading the init script back works:
 
@@ -229,6 +229,7 @@ Install pns on a remote host, configure IP and port, then run the tests above. T
 Run the local tests with Apache
 ===============================
 
+Set dev=False in ~/local.py (see above) and set the IP and port.
 Suppose the server is on CentOS. Edit pns/resources/pns.conf according to local setup, then
 
 

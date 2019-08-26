@@ -12,20 +12,7 @@ logger = logging.getLogger(__name__)
 
 from .urn import Urn
 from dataset.deserialize import deserializeClassID
-
-
-def getJsonObj(fp, usedict=False):
-
-    with open(fp, 'r') as f:
-        stri = f.read()
-    # ret = json.loads(stri, parse_float=Decimal)
-    # ret = json.loads(stri, cls=Decoder,
-    #               object_pairs_hook=collections.OrderedDict)
-    #lgb = ChainMap(locals(), globals(), vars(builtins))
-    lgb = None
-    ret = deserializeClassID(stri, lgb=lgb, usedict=usedict)
-    logger.debug(str(ret)[:160] + '...')
-    return ret
+from pns.common import getJsonObj
 
 
 def getObjectbyId(idn, lgbv):
@@ -48,7 +35,7 @@ def getProductObject(urn, lgb=None):
         lock = filelock.FileLock(poolpath + '/lock')
         lock.acquire()
         try:
-            p = getJsonObj(poolpath + '/' + resourcecn + '_' + indexs)
+            p = getJsonObj(poolname + '/' + resourcecn + '_' + indexs)
         except Exception as e:
             raise e
         finally:
@@ -56,7 +43,7 @@ def getProductObject(urn, lgb=None):
     elif scheme == 'mem':
         processid = int(poolpath.rsplit('/', maxsplit=1)[1])
         if processid != os.getpid():
-            raise ValueError('vannot restore from ' +
+            raise ValueError('cannot restore from ' +
                              urn + ' of another process')
         idn = int(indexs)
         # logger.debug(urn)

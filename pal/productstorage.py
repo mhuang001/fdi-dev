@@ -14,8 +14,8 @@ logger = logging.getLogger(__name__)
 from .urn import Urn
 from .productref import ProductRef
 from .comparable import Comparable
-from .common import getJsonObj
 
+from pns.common import getJsonObj
 from dataset.serializable import serializeClassID
 from dataset.dataset import TableDataset
 from dataset.odict import ODict
@@ -37,7 +37,8 @@ class ProductStorage():
         """
         loads and returns the housekeeping data
         """
-        classespath, tagspath = poolpath + '/classes.jsn', poolpath + '/tags.jsn'
+        classespath, tagspath = 'file://' + poolpath + \
+            '/classes.jsn', 'file://' + poolpath + '/tags.jsn'
         with filelock.FileLock(poolpath + '/lock'):
             try:
                 c = getJsonObj(classespath)

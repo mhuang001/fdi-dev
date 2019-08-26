@@ -53,16 +53,10 @@ from dataset.serializable import serializeClassID
 from dataset.deserialize import deserializeClassID
 from pal.productref import ProductRef
 from pal.urn import Urn
+from .common import trbk
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
-
-
-def trbk(e):
-    """ trace back 
-    """
-    return ' '.join([x for x in
-                     traceback.extract_tb(e.__traceback__).format()])
 
 
 def _execute(cmd, input=None, timeout=10):

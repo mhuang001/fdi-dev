@@ -16,5 +16,6 @@ source $CONDA_ROOT/bin/activate iraf27
 cd $PNSHOME/atc_test
 $PNSHOME/atc_test/batch1
 
+rm -f $PNSHOME/output/*
 cp -f xycc.dat atc.cc $PNSHOME/output
 date | tee -a $PNSHOME/atc_test/date.out 

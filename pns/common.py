@@ -6,6 +6,7 @@ from pprint import pprint, pformat
 import urllib.request
 import urllib.error as ue
 import json
+import traceback
 
 from pns.logdict import logdict
 import logging
@@ -24,9 +25,6 @@ if 0:
     print(logger.handlers)
     print(logger.level)
 
-from dataset.product import Product, FineTime1, History
-from dataset.metadata import Parameter, NumericParameter, MetaData
-from dataset.dataset import GenericDataset, ArrayDataset, TableDataset
 from dataset.deserialize import deserializeClassID
 from dataset.serializable import serializeClassID
 
@@ -38,6 +36,13 @@ commonheaders = {
     'Connection': 'keep-alive',
     "Content-type": 'application/json'
 }
+
+
+def trbk(e):
+    """ trace back 
+    """
+    return ' '.join([x for x in
+                     traceback.extract_tb(e.__traceback__).format()])
 
 
 def getJsonObj(url, headers=None, usedict=False):

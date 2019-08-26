@@ -8,8 +8,8 @@ API Reference
    :caption: Contents:
 
    dataset/dataset
-   pns/pns
    pal/pal
+   pns/pns
 
 Diagrams
 ========

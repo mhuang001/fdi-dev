@@ -58,10 +58,6 @@ app = Flask(__name__)
 auth = HTTPBasicAuth()
 
 
-class status():
-    successful = 0
-
-
 def trbk(e):
     """ trace back 
     """

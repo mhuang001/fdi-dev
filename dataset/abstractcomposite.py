@@ -9,6 +9,8 @@ from .annotatable import Annotatable
 from .composite import Composite
 from .datawrapper import DataWrapperMapper
 from .listener import DatasetListener
+from .odict import bstr
+from .ndprint import ndprint
 
 
 class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper, DatasetListener):
@@ -28,10 +30,13 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
         )
         return s
 
-    def toString(self):
-        s = '{'
-        s += 'meta = %s, _sets = %s}' % (
-            self.meta.toString(),
-            self._sets.__str__()
-        )
-        return s
+    def toString(self, matprint=None, trans=True, beforedata=''):
+        if matprint is None:
+            matprint = ndprint
+
+        s = '# ' + self.__class__.__name__ + '\n' +\
+            '# description = "%s"\n# meta = %s\n' % \
+            (str(self.description), bstr(self.meta))
+        d = '# data = \n\n'
+        d += self._sets.toString(matprint=matprint, trans=trans)
+        return s + beforedata + d

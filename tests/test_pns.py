@@ -7,14 +7,13 @@ import os
 import pkg_resources
 import copy
 
-from .logdict import doLogging, logdict
+from tests.logdict import doLogging, logdict
 if doLogging:
     import logging
     import logging.config
     # create logger
     logging.config.dictConfig(logdict)
     logger = logging.getLogger()
-    logger.debug('level %d' % (logger.getEffectiveLevel()))
     logging.getLogger("requests").setLevel(logging.WARN)
     logging.getLogger("urllib3").setLevel(logging.WARN)
 
@@ -31,6 +30,10 @@ try:
     from local import pnsconfig as pc
 except Exception:
     pass
+
+if doLogging:
+    logger.setLevel(pc['logginglevel'])
+    logger.debug('level %d' % (logger.getEffectiveLevel()))
 
 from pns import server
 from dataset.odict import ODict
@@ -412,17 +415,35 @@ def test_mirror():
     assert r is None, r
 
 
+import time
+
 if __name__ == '__main__':
-    node, verbose = opt(node)
+    now = time.time()
+    node, verbose = opt(pc['node'])
     if verbose:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
     logger.info('logging level %d' % (logger.getEffectiveLevel()))
-    test_post()
-    # test_getlastUpdate()
-    # test_get()
-    # test_get()
-    test_postmirror()
-    test_run()
-    print('test successful')
+
+    t = 3
+
+    if t == 3:
+        test_getpnsconfig()
+        test_getinit()
+        test_getrun()
+        test_puttestinit()
+        test_putinit()
+        test_putconfigpns()
+        test_post()
+        test_run()
+        test_deleteclean()
+        test_mirror()
+    elif t == 4:
+        test_servertestinit()
+        test_serverinit()
+        test_servertestinit()
+        test_serverrun()
+    elif t == 6:
+        test_vvpp()
+    print('test successful ' + str(time.time() - now))

@@ -4,7 +4,7 @@ import traceback
 from pprint import pprint
 import json
 from pathlib import Path
-#import __builtins__
+# import __builtins__
 import os
 from collections import ChainMap
 from .logdict import doLogging, logdict
@@ -31,7 +31,7 @@ from dataset.metadataholder import MetaDataHolder
 from dataset.attributable import Attributable
 from dataset.abstractcomposite import AbstractComposite
 from dataset.datawrapper import DataWrapper, DataWrapperMapper
-from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column
+from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
 from dataset.product import FineTime1, History, Product
 from dataset.deserialize import deserializeClassID
 
@@ -73,8 +73,8 @@ def checkjson(obj):
     if 0 and issubclass(obj.__class__, Product):
         print(str(id(obj)) + ' ' + obj.toString())
         print(str(id(des)) + ' ' + des.toString())
-        #obj.meta.listeners = []
-        #des.meta.listeners = []
+        # obj.meta.listeners = []
+        # des.meta.listeners = []
     assert obj == des, deepcmp(obj, des)
     return des
 
@@ -154,6 +154,133 @@ def test_serialization():
     checkjson(v)
     v = {'e': 4, 'y': {'d': 'ff', '%': '$'}}
     checkjson(v)
+
+
+import pprint
+nds2 = \
+    """0 0 0 0 0 
+0 0 0 0 0 
+0 0 0 0 0 
+0 0 0 0 0 
+
+
+0 0 0 0 0 
+0 0 0 1 0 
+5 4 3 2 1 
+0 0 0 3 0 
+
+
+0 0 0 0 0 
+0 0 0 0 0 
+0 0 0 0 0 
+0 0 0 0 0 
+
+
+#=== dimension 4
+
+0 0 0 0 0 
+0 0 0 0 0 
+0 0 0 0 0 
+0 0 0 0 0 
+
+
+0 0 0 0 0 
+0 0 0 0 0 
+0 0 0 0 0 
+0 0 0 0 0 
+
+
+0 0 0 0 0 
+0 0 0 0 0 
+0 0 0 0 0 
+0 0 0 0 0 
+
+
+#=== dimension 4
+
+"""
+
+nds3 = \
+    """0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+
+
+0 0 5 0 
+0 0 4 0 
+0 0 3 0 
+0 1 2 3 
+0 0 1 0 
+
+
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+
+
+#=== dimension 4
+
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+
+
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+
+
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+0 0 0 0 
+
+
+#=== dimension 4
+
+"""
+
+import copy
+
+
+def ndlist(*args, init=0):
+    """ https://stackoverflow.com/a/33460217"""
+    dp = init
+    for x in reversed(args):
+        dp = [copy.deepcopy(dp) for i in range(x)]
+    return dp
+
+
+def test_ndprint():
+    s = [[i + j for i in range(2)] for j in range(3)]
+    v = ndprint(s)
+    # print(v)
+    assert v == '0 1 2 \n1 2 3 \n'
+    v = ndprint(s, trans=False)
+    # print(v)
+    assert v == '0 1 \n1 2 \n2 3 \n'
+
+    s = ndlist(2, 3, 4, 5)
+    s[0][1][0] = [0, 0, 0, 0, 0]
+    s[0][1][1] = [0, 0, 0, 1, 0]
+    s[0][1][2] = [5, 4, 3, 2, 1]
+    s[0][1][3] = [0, 0, 0, 3, 0]
+    v = ndprint(s, trans=False)
+    # print(v)
+    assert v == nds2
+    v = ndprint(s)
+    # print(v)
+    assert v == nds3
+    # pprint.pprint(s)
 
 
 def test_Annotatable():
@@ -530,6 +657,18 @@ def test_ArrayDataset():
     a2 = 'ev'                 # unit
     a3 = 'three energy vals'  # description
     v = ArrayDataset(data=a1, unit=a2, description=a3)
+    v1 = ArrayDataset(data=a1)
+    assert v1.unit is None
+    # omit the parameter names, the orders are data, unit, description
+    v2 = ArrayDataset(a1)
+    assert v2.data == a1
+    v2 = ArrayDataset(a1, a2)
+    assert v2.data == a1
+    assert v2.unit == a2
+    v2 = ArrayDataset(a1, a2, a3)
+    assert v2.data == a1
+    assert v2.unit == a2
+    assert v2.description == a3
 
     # COPY
     c = v.copy()
@@ -612,6 +751,18 @@ def test_ArrayDataset():
         i.append(m)
     assert i == a1
 
+    # toString()
+    s = ndlist(2, 3, 4, 5)
+    x = ArrayDataset(data=s)
+    x[0][1][0] = [0, 0, 0, 0, 0]
+    x[0][1][1] = [0, 0, 0, 1, 0]
+    x[0][1][2] = [5, 4, 3, 2, 1]
+    x[0][1][3] = [0, 0, 0, 3, 0]
+    ts = x.toString()
+    i = ts.index('0 0 0 0')
+    # print(ts)
+    assert ts[i:] == nds3 + '\n'
+
     checkjson(v)
     checkgeneral(v)
 
@@ -662,16 +813,44 @@ def test_TableDataset():
                       )
     assert v == v4
 
-    # indexOf
+    # access
+    # column
     c = Column()
     v['col3'] = c
     v['col4'] = Column([2, 3])
+    # unit
+    assert v4['col1'].unit == 'eV'
+    # indexOf
     assert v.indexOf('col3') == v.indexOf(c)
+    # set cell value
     v.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
     assert v.getValueAt(rowIndex=1, columnIndex=1) == 42
 
     # in
     assert 'col3' in v
+
+    # toString()
+    s = ndlist(2, 3, 4, 5)
+    x = ArrayDataset(data=s)
+    x[0][1][0] = [0, 0, 0, 0, 0]
+    x[0][1][1] = [0, 0, 0, 1, 0]
+    x[0][1][2] = [5, 4, 3, 2, 1]
+    x[0][1][3] = [0, 0, 0, 3, 0]
+    ts = v2.toString()
+    # print(ts)
+    assert ts == \
+        """# TableDataset
+# description = "UNKNOWN"
+# meta = MetaData{[], listeners = []}
+# data = 
+
+# col1 col2
+# eV cnt
+1 0 
+4.4 43.2 
+5400.0 2000.0 
+
+"""
 
     checkjson(v)
     checkgeneral(v)
@@ -815,7 +994,7 @@ def test_CompositeDataset():
     v.set(a10, a8)
     assert len(v.getDataWrappers()) == 2
     a11 = 'm1'
-    a12 = NumericParameter(description='and different param in metadata',
+    a12 = NumericParameter(description='a different param in metadata',
                            value=2.3, unit='sec')
     v.meta[a11] = a12
 
@@ -833,7 +1012,7 @@ def test_CompositeDataset():
     v1.set(b10, b8)
     assert len(v1.getDataWrappers()) == 2
     b11 = ''.join(a11)
-    b12 = NumericParameter(description='and different param in metadata',
+    b12 = NumericParameter(description='a different param in metadata',
                            value=2.3, unit='sec')
     v1.meta[b11] = b12
 
@@ -870,6 +1049,57 @@ def test_CompositeDataset():
     # nested datasets
     v['v1'] = v1
     assert v['v1'][a9] == a4
+
+    # toString()
+    v3 = CompositeDataset()
+    # creating a table dataset
+    ELECTRON_VOLTS = 'eV'
+    SECONDS = 'sec'
+    t = [x * 1.0 for x in range(5)]
+    e = [2 * x + 100 for x in t]
+    x = TableDataset(description="Example table")
+    x["Time"] = Column(data=t, unit=SECONDS)
+    x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+    # set a tabledataset ans an arraydset, with a parameter in metadata
+    v3.set(a9, a4)
+    v3.set(a10, x)
+    v3.meta[a11] = a12
+    ts = v3.toString()
+    # print(ts)
+    assert ts ==\
+        """# CompositeDataset
+# description = "UNKNOWN"
+# meta = MetaData{[m1 = NumericParameter{ description = "a different param in metadata", value = "2.3", unit = "sec", type = ""}, ], listeners = []}
+# data = 
+
+
+# [ dataset 1 ]
+# ArrayDataset
+# description = "arraydset 1"
+# meta = MetaData{[], listeners = []}
+# unit = "ev"
+# data = 
+
+768 
+4.4 
+5400.0 
+
+
+# [ dataset 2 ]
+# TableDataset
+# description = "Example table"
+# meta = MetaData{[], listeners = []}
+# data = 
+
+# Time Energy
+# sec eV
+0.0 100.0 
+1.0 102.0 
+2.0 104.0 
+3.0 106.0 
+4.0 108.0 
+
+"""
 
     checkjson(v)
     checkgeneral(v)
@@ -964,15 +1194,17 @@ def test_Product():
     i2 = 'ev'                 # unit
     i3 = 'img1'  # description
     image = ArrayDataset(data=i1, unit=i2, description=i3)
-    s1 = [dict(name='col1', column=Column(data=[1, 4.4, 5.4E3], unit='eV')),
-          dict(name='col2', column=Column(data=[0, 43.2, 2E3], unit='cnt'))
+
+    s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
+          ('col2', [0, 43.2, 2E3], 'cnt')
           ]
     spec = TableDataset(data=s1)
     x["RawImage"] = image
     assert x["RawImage"].data[1][2] == i0
-    # dummy. diff syntax same function as above
-    x.set('QualityImage', 'aQualityImage')
-    assert x["QualityImage"] == 'aQualityImage'
+    # no unit or description. diff syntax same function as above
+    x.set('QualityImage', ArrayDataset(
+        [[0.1, 0.5, 0.7], [4e3, 6e7, 8], [-2, 0, 3.1]]))
+    assert x["QualityImage"].unit is None
     x["Spectrum"] = spec
     assert x["Spectrum"].getValueAt(columnIndex=1, rowIndex=0) == 0
 
@@ -1017,6 +1249,10 @@ def test_Product():
     x.meta["creator"] = a1
     assert x.meta["creator"] == a1
     assert x.creator == a1
+
+    # toString
+    ts = x.toString()
+    print(ts)
 
     checkjson(x)
     checkgeneral(x)

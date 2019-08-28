@@ -363,6 +363,8 @@ def run(d, processinput=None, processoutput=None):
         if processinput is not None:
             processinput(d, indata)
         else:
+            # for i in indata.inputs:
+            #    if indata
             defaultprocessinput({})  # pc['paths']['inputfiles']
     except Exception as e:
         return -1,  str(e) + trbk(e)

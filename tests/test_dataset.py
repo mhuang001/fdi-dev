@@ -780,54 +780,69 @@ def test_TableDataset():
     except Exception as e:
         assert issubclass(e.__class__, TypeError)
     assert t == 5
-    # data is a sequence
+    # setData format 1: data is a sequence of dict
     a1 = [dict(name='col1', column=Column(data=[1, 4.4, 5.4E3], unit='eV')),
           dict(name='col2', column=Column(data=[0, 43.2, 2E3], unit='cnt'))
           ]
+    # 2: another syntax
+    # same as last but using different dict syntax
+    # = [{'name': 'col1', 'column': Column(data=[1, 4.4, 5.4E3], unit='eV')},
+    #    {'name': 'col2', 'column': Column(data=[0, 43.2, 2E3], unit='cnt')}]
     v = TableDataset(data=a1)  # inherited from DataWrapper
     assert v.getColumnCount() == 2
     assert v.getColumnName(0) == 'col1'
     assert v.getValueAt(rowIndex=1, columnIndex=1) == 43.2
-    # other syntax
-    # same as last but using different dict syntax
-    b1 = [{'name': 'col1', 'column': Column(data=[1, 4.4, 5.4E3], unit='eV')},
-          {'name': 'col2', 'column': Column(data=[0, 43.2, 2E3], unit='cnt')}
-          ]
-    v1 = TableDataset()
-    v1.data = b1
-    assert v == v1
-    # list of tupllles of name, column
-    b2 = [('col1', Column(data=[1, 4.4, 5.4E3], unit='eV')),
-          ('col2', Column(data=[0, 43.2, 2E3], unit='cnt'))
-          ]
-    v2 = TableDataset(data=b2)  # inherited from DataWrapper
-    assert v == v2
-    # *Quickest?* list of tuples that do not need to use Column
-    v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
-                            ('col2', [0, 43.2, 2E3], 'cnt')
-                            ])
-    assert v == v3
-    # data is a mapping
+    # 3: data is a mapping
     v4 = TableDataset(data=dict(col1=Column(data=[1, 4.4, 5.4E3], unit='eV'),
                                 col2=Column(data=[0, 43.2, 2E3], unit='cnt'))
                       )
     assert v == v4
 
+    # 3: *Quickest?* list of tuples that do not need to use Column
+    v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
+                            ('col2', [0, 43.2, 2E3], 'cnt')
+                            ])
+    assert v == v3
+
     # access
-    # column
-    c = Column()
-    v['col3'] = c
-    v['col4'] = Column([2, 3])
-    # unit
-    assert v4['col1'].unit == 'eV'
-    # indexOf
-    assert v.indexOf('col3') == v.indexOf(c)
+    # column set / get
+    u = TableDataset()
+    c = Column([1, 4], 'sec')
+    u.addColumn('col3', c)
+    # for non-existing names set is addColum.
+    u['col4'] = Column([2, 3], 'eu')
+    assert u['col4'][0] == 2
+    # replace column for existing names
+    u['col4'] = c
+    assert u['col4'][0] == 1
+    # unit access
+    assert u['col4'].unit == 'sec'
+    # with indexOf
+    assert u.indexOf('col3') == u.indexOf(c)
     # set cell value
-    v.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
-    assert v.getValueAt(rowIndex=1, columnIndex=1) == 42
+    u.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
+    assert u.getValueAt(rowIndex=1, columnIndex=1) == 42
+
+    # replace whole table. see constructor examples
+    u.data = dict(n1=Column([1, 4.4, 5.4E3], 'ee'),
+                  n2=Column([0, 43.2, 2E3], 'cnt'))
+    # col3,4 are gone
+    assert list(u.data.keys()) == ['n1', 'n2']
+    # But if providing a list of list of data only for the existing columns
+    u.data = [[0, 9876, 66]]
+    assert u['n1'][1] == 9876
+    assert u['n1'].unit == 'ee'
+    # list of list can go past current number of columns
+    h = [6, 7, 8]
+    u.data = [[0, 9876, 66], [1, 2, 3], h]
+    assert u['n1'][1] == 9876
+    assert u['n1'].unit == 'ee'
+    # genric col[index] names and None unit are given for the added columns
+    assert u['col3'][1] == 7  # index counts from 1 !
+    assert u['col3'].unit is None
 
     # in
-    assert 'col3' in v
+    assert 'col3' in u
 
     # toString()
     s = ndlist(2, 3, 4, 5)
@@ -836,7 +851,7 @@ def test_TableDataset():
     x[0][1][1] = [0, 0, 0, 1, 0]
     x[0][1][2] = [5, 4, 3, 2, 1]
     x[0][1][3] = [0, 0, 0, 3, 0]
-    ts = v2.toString()
+    ts = v3.toString()
     # print(ts)
     assert ts == \
         """# TableDataset
@@ -852,8 +867,8 @@ def test_TableDataset():
 
 """
 
-    checkjson(v)
-    checkgeneral(v)
+    checkjson(u)
+    checkgeneral(u)
 
     # doc cases
     # creation:

@@ -363,9 +363,14 @@ def run(d, processinput=None, processoutput=None):
         if processinput is not None:
             processinput(d, indata)
         else:
-            # for i in indata.inputs:
-            #    if indata
-            defaultprocessinput({})  # pc['paths']['inputfiles']
+            r1 = {'contents': indata['table'].data.toString(),
+                  'mode': 'w+'}
+            p = indata.meta['pointing'].data
+            r2 = {'contents': str(p[0]) + ' ' + str(p[1]),
+                  'mode': 'w+'}
+            data = {pc['paths']['inputfiles'][0]: r1,
+                    pc['paths']['inputfiles'][1]: r2}
+            defaultprocessinput(data)
     except Exception as e:
         return -1,  str(e) + trbk(e)
 

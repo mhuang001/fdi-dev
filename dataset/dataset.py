@@ -289,34 +289,46 @@ class TableDataset(Dataset, TableModel):
         super().__init__(**kwds)  # initialize data, meta, unit
 
     def setData(self, data):
-        """ set name-column pairs if any of ['name'], .name,
-        .__next__() is valid for each item in data
+        """ sets name-column pairs if any of ['name'], .name,
+        .__next__() is valid for each item in data. Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named 'col[index]' (index counting from 1) with unit None.
         """
         # logging.debug(data.__class__)
         #raise Exception()
         if data is not None:
             # d will be {<name1 str>:<column1 Column>, ... }
             d = ODict()
+            replace = True
             if issubclass(data.__class__, Sequence):
+                try:
+                    curd = self.getData()
+                except Exception:
+                    curd = None
+                curdk = list(self.getData().keys()) if curd else []
+                ind = 0
                 for x in data:
                     if 'name' in x and 'column' in x:
                         d[x['name']] = x['column']
                     elif hasattr(x, 'name') and hasattr('column', x):
                         d[x.name] = x.column
+                    elif issubclass(x.__class__, list):
+                        if curd is None:
+                            d['col' + str(ind + 1)] = Column(data=x, unit=None)
+                        elif len(curd) <= ind:
+                            curd['col' + str(ind + 1)
+                                 ] = Column(data=x, unit=None)
+                        else:
+                            curd[curdk[ind]].data = x
+                            replace = False
                     elif issubclass(x.__class__, tuple):
-                        if len(x) == 2:
-                            if issubclass(x[1].__class__, Column):
-                                d[x[0]] = x[1]
-                            else:
-                                d[x[0]] = Column(data=x[1], unit='')
-                        elif len(x) == 3:
+                        if len(x) == 3:
                             d[x[0]] = Column(data=x[1], unit=x[2])
                         else:
                             raise ValueError(
-                                'column tuples must be (str, Column), (str, List), or (str, List, str)')
+                                'column tuples must be  (str, List), or (str, List, str)')
                     else:
                         raise ValueError(
                             'cannot extract name and column at list member ' + str(x))
+                    ind += 1
             elif issubclass(data.__class__, Mapping):
                 for k, v in data.items():
                     d[k] = v
@@ -324,7 +336,8 @@ class TableDataset(Dataset, TableModel):
                 raise TypeError('must be a Sequence or a Mapping')
 
             # logging.debug(d)
-            super().setData(d)
+            if replace:
+                super().setData(d)
         else:
             super().setData(ODict())
 

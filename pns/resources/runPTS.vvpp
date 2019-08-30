@@ -14,6 +14,9 @@ export PATH
 source $CONDA_ROOT/bin/activate iraf27
 
 cd $PNSHOME/atc_test
+cp -f $PNSHOME/input/pns.cat .
+cp -f $PNSHOME/input/pns.pn .
+
 $PNSHOME/atc_test/batch1
 
 rm -f $PNSHOME/output/*

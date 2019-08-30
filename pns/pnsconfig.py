@@ -35,7 +35,7 @@ phome = join(home, 'pns')
 pnsconfig['paths'] = dict(
     pnshome=phome,
     inputdir=join(phome, 'input'),
-    inputfiles=['infile'],
+    inputfiles=['pns.cat', 'pns.pn'],
     outputdir=join(phome, 'output'),
     outputfiles=['xycc.dat', 'atc.cc']
 )

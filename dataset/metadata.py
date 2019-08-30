@@ -25,29 +25,53 @@ class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializab
         With two positional arguments: arg1 -> value, arg2-> description.
         """
         super().__init__(**kwds)
-        self.value = value
-        self.type_ = type_
+        self.setValue(value)
+        self.setType(type_)
 
     def accept(self, visitor):
         """ Adds functionality to classes of this type."""
         visitor.visit(self)
 
+    @property
+    def type_(self):
+        """ for property getter
+        """
+        return self.getType()
+
+    @type_.setter
+    def type_(self, type_):
+        """ for property setter
+        """
+        self.setType(type_)
+
     def getType(self):
         """ Returns the actual type that is allowed for the value
         of this Parameter."""
-        return self.type_
+        return self._type_
 
     def setType(self, type_):
         """ Replaces the current type of this parameter. """
-        self.type_ = type_
+        self._type_ = type_
+
+    @property
+    def value(self):
+        """ for property getter
+        """
+        return self.getValue()
+
+    @value.setter
+    def value(self, value):
+        """ for property setter
+        """
+        self.setValue(value)
 
     def getValue(self):
         """ Gets the value of this parameter as an Object. """
-        return self.value
+        return self._value
 
     def setValue(self, value):
         """ Replaces the current value of this parameter. """
-        self.value = value
+        self._value = value
 
     def __setattr__(self, name, value):
         """ add eventhandling """

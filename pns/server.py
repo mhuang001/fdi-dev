@@ -363,9 +363,9 @@ def run(d, processinput=None, processoutput=None):
         if processinput is not None:
             processinput(d, indata)
         else:
-            r1 = {'contents': indata['table'].data.toString(),
+            r1 = {'contents': indata['input']['table'].data.toString(),
                   'mode': 'w+'}
-            p = indata.meta['pointing'].data
+            p = indata['input'].meta['pointing'].value
             r2 = {'contents': str(p[0]) + ' ' + str(p[1]),
                   'mode': 'w+'}
             data = {pc['paths']['inputfiles'][0]: r1,

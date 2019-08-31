@@ -77,6 +77,12 @@ Submodules
    :show-inheritance:
 
 
+.. automodule:: dataset.ndprint
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 .. automodule:: dataset.odict
    :members:
    :undoc-members:

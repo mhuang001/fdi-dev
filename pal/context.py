@@ -135,7 +135,6 @@ class MapContext(Context):
 
     def getAllRefs(self, recursive=False, includeContexts=True, seen=None):
         """ Provides a set of the unique references stored in this context. This includes references that are contexts, but not the contents of these subcontexts. This is equivalent to getAllRefs(recursive=false, includeContexts= true).
-Parameters:
         recursive - if true, include references in subcontexts
         includeContexts - if true, include references to contexts, not including this one
         """

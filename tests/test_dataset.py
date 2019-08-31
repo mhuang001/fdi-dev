@@ -1267,7 +1267,7 @@ def test_Product():
 
     # toString
     ts = x.toString()
-    print(ts)
+    # print(ts)
 
     checkjson(x)
     checkgeneral(x)

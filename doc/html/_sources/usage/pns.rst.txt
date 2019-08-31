@@ -28,7 +28,7 @@ On the server side (or on your computer which can be both the server and the cli
 		pns/installpns
 		
 Run the FLASK Server
-================
+====================
 
 Edit local.py if needed. Then
 
@@ -70,37 +70,41 @@ To run all tests in one go:
 
 		./test 3 [-u <username> -p <password> [-i <host ip>] [-o <port>]] [options]
 
-Tests can be done step-by-step to help pin-point problems:
+Tests can be done step-by-step to pin-point problems:
 
-1. Server Unit Test, run on the server host. without needing starting the server:
+1. Server Unit Test
+===================
+
+Run on the server host. without needing starting the server:
 
 .. code-block:: shell
 
 		./test 4
 
 2. Local Flask Server Functional Tests
+======================================
 
 In ~/local.py (in pns/pnsconfig.py if you have not made local.py), set dev=True and make sure the IP is local (0.0.0.0 or 127.0.0.1). Start the server fresh in one terminal (see above) and in another terminal (on the server host) run the following:
 
-test GET initPTS script to see if reading the init script back works:
+2a: test GET initPTS script to see if reading the init script back works:
 
 .. code-block:: shell
 		
 		./test 3 getinit
 
-test PUT initialization test:
+2b: test PUT initialization test:
 
 .. code-block:: shell
 
 		./test 3 -k putinittest
 
-If the test passes, you can Run all tests in one go:
+2c1: If the test passes, you can Run all tests in one go:
 
 .. code-block:: shell
 		
 		./test 3
 
-Or keep on individual tests...
+2c2: Or keep on individual tests...
 
 
 test POST In-server processing
@@ -123,8 +127,8 @@ test DELETE Clean-up the server by removing the input and output dirs
 
 Now is a good time to ...
 
-Get public access APIs and information
-======================================
+3. Get public access APIs and information
+=========================================
 
 Suppose the server address and port are 127.0.0.1 and 5000, respectively:
 
@@ -218,10 +222,10 @@ An online API documentation page similar to below is shown.
 		"timestamp": 1566130779.0208821
 		}
 
-Contonue with tests...
-		
-Run tests from a remote client
-==============================
+Continue with tests...
+	
+4. Run tests from a remote client
+=================================
 
 Install pns on a remote host, configure IP and port, then run the tests above. This proves that the server and the client have connection and fire wall configured correctly.
 
@@ -239,17 +243,31 @@ Suppose the server is on CentOS. Edit pns/resources/pns.conf according to local 
 		systemctl restart httpd
 		systemctl status http -l
 
-then run the above with correct IP and port (edit ~/local.py or specifying in command line).
+then run the above with correct IP and port (edit ~/local.py or specifying in command line). Start the server and run all the tests:
+
+.. code-block::
+   
+   ./test 3
+
 
 PTS Configuration
 =================
 
-To run a PTS shell script instead of the 'hello' demo, change the ```run``` parameter in the config file
+To run a PTS shell script instead of the 'hello' demo, change the ```run``` parameter in the config file, e.g. to run the script named ``runPTS.vvpp``
 
+.. code-block::
+   
+   run=[join(h, 'runPTS.vvpp'), ''],
+
+restart the server. run
+
+.. code-block::
+   
+   ./test 4
 
 PTS API
 =======
-
+TBW
 
 Return on Common Errors
 =======================

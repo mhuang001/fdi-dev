@@ -77,11 +77,11 @@
 <div class="section" id="features">
 <h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
 <p>With SPDC one can package data set into <strong>modular</strong> Data Products with annotation (descrition and units) and meta data (data about data). By combining arrays or tables of Products one can define highly complex structures.</p>
-<p><strong>Access APIs</strong> of the components of ‘SPDCs’ are not only avaiabe but convenient, making it easier for <strong>scripting and data mining</strong>.</p>
-<p>All levels of SPDC Products and their component datasets or metadata components are portable (<strong>serializable</strong>) in human-friendly standard format, allowing machine data processers on different platforms to re-construct or parse SPDC. Even a human with a web browser can understand the data.</p>
-<p>Most SPDC Products and components implement <strong>event sender and listener interfaces</strong>, allowing <strong>scalable data-driven</strong> processing pipelines to be consructed.</p>
+<p><strong>Access APIs</strong> of the components of ‘SPDCs’ are not only available but convenient, making it easier for <strong>scripting and data mining</strong>.</p>
+<p>All levels of SPDC Products and their component datasets or metadata components are portable (<strong>serializable</strong>) in human-friendly standard format, allowing machine data processors on different platforms to re-construct or parse SPDC. Even a human with a web browser can understand the data.</p>
+<p>Most SPDC Products and components implement <strong>event sender and listener interfaces</strong>, allowing <strong>scalable data-driven</strong> processing pipelines to be constructed.</p>
 <p>Reference SPDC storage pool (file based and partially implemented memory based) are provided for data <strong>storage</strong> and for all persistent data to be referenced to with <strong>URNs</strong> (Universal Resource Names).</p>
-<p>‘Context’ type of SPDCs are provided so that refrences of SPDCs can become components, enabling SPDCs to encapsulate rich, deep, <strong>sophisticated, and accessible contextual information</strong>, yet remain light weight.</p>
+<p>‘Context’ type of SPDCs are provided so that references of SPDCs can become components, enabling SPDCs to encapsulate rich, deep, <strong>sophisticated, and accessible contextual information</strong>, yet remain light weight.</p>
 <p>On the data processor end, a HTML <strong>server</strong> with <strong>RESTful APIs</strong> is provided to exchange SPDC data, especially suitable for <strong>Docker containers</strong> running Linux. There are a lot of legacy software, or software only runs on a specific combination of OS type, version, language, and library. These software could be highly expensive to replace but need to be run side-by-side with new software to form an integral data processing pipeline, or, often, a network of inter-linked “nodes” of  processing tasks, instead of a “line”. Docker containers are often the perfect solution to insulate software with incompatible dependencies. SPDC allows such processing tasks to run in the Processing Node Server’s memory space, in a daemon process, or in the OS, receiving input and delivering output through a ‘delivery man’ protocol, in a docker, or a normal server.</p>
 </div>
 <div class="section" id="spdc-python-packages">
@@ -118,8 +118,10 @@
 <li class="toctree-l2"><a class="reference internal" href="usage/pns.html#basic-configuration">Basic Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage/pns.html#run-the-flask-server">Run the FLASK Server</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage/pns.html#test-and-verify-installation">Test and Verify Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#get-public-access-apis-and-information">Get public access APIs and information</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#run-tests-from-a-remote-client">Run tests from a remote client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#server-unit-test">1. Server Unit Test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#local-flask-server-functional-tests">2. Local Flask Server Functional Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#get-public-access-apis-and-information">3. Get public access APIs and information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#run-tests-from-a-remote-client">4. Run tests from a remote client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage/pns.html#run-the-local-tests-with-apache">Run the local tests with Apache</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage/pns.html#pts-configuration">PTS Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage/pns.html#pts-api">PTS API</a></li>
@@ -169,7 +171,7 @@
 </li>
 </ul>
 </div>
-<img alt="_images/packages_dataset+pal.png" src="_images/packages_dataset+pal.png" />
+<img alt="_static/packages_dataset+pal.png" src="_static/packages_dataset+pal.png" />
 </div>
 <div class="section" id="indices-and-tables">
 <h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>

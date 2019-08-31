@@ -43,7 +43,7 @@ This class not only holds the URN of the product it references to, but also reco
 
 **Context** and **MapContext**
 
-Context is a Product that holds a set of ```productRef```s that accessible by keys. The keys are strings for MapContext which usually maps names to product references.
+Context is a Product that holds a set of ``productRef``s that accessible by keys. The keys are strings for MapContext which usually maps names to product references.
 
 **ProductStorage**
 

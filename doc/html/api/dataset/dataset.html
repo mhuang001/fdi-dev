@@ -89,7 +89,7 @@
 <p>an annotatable and attributable subclass of Composite.</p>
 <dl class="method">
 <dt id="dataset.abstractcomposite.AbstractComposite.toString">
-<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.abstractcomposite.AbstractComposite.toString" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em>, <em class="sig-param">beforedata=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.abstractcomposite.AbstractComposite.toString" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -158,8 +158,7 @@ the specified name.</p>
 <dt id="dataset.composite.Composite.get">
 <code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the dataset to which this composite maps the
-specified name.
-mh: changed name to <a href="#id1"><span class="problematic" id="id2">get_</span></a> to use super class get</p>
+specified name.</p>
 </dd></dl>
 
 <dl class="method">
@@ -239,7 +238,7 @@ and the specified key or value is null.</p>
 
 <span class="target" id="module-dataset.dataset"></span><dl class="class">
 <dt id="dataset.dataset.ArrayDataset">
-<em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">ArrayDataset</code><span class="sig-paren">(</span><em class="sig-param">unit=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">ArrayDataset</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#dataset.datawrapper.DataWrapper" title="dataset.datawrapper.DataWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.datawrapper.DataWrapper</span></code></a>, <a class="reference internal" href="#dataset.dataset.GenericDataset" title="dataset.dataset.GenericDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.dataset.GenericDataset</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Sequence</span></code></p>
 <p>Special dataset that contains a single Array Data object.
 mh:  contains a sequence which provides methods count(), index(), remove(), reverse().
@@ -281,14 +280,16 @@ A mutable sequence would also need append(), extend(), insert(), pop() and sort(
 
 <dl class="method">
 <dt id="dataset.dataset.ArrayDataset.toString">
-<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset.toString" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset.toString" title="Permalink to this definition">¶</a></dt>
+<dd><p>matprint: an external matrix print function
+trans: print 2D matrix transposed. default is True.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="dataset.dataset.Column">
-<em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">Column</code><span class="sig-paren">(</span><em class="sig-param">unit=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.Column" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">Column</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.Column" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#dataset.dataset.ArrayDataset" title="dataset.dataset.ArrayDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.dataset.ArrayDataset</span></code></a>, <a class="reference internal" href="#dataset.listener.ColumnListener" title="dataset.listener.ColumnListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.ColumnListener</span></code></a></p>
 <p>A Column is a the vertical cut of a table for which all cells have the same signature. It contains raw ArrayData, and optionally a description and unit.
 example:
@@ -334,6 +335,11 @@ CompositeDataset.</p>
 through visitor pattern.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="dataset.dataset.Dataset.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.Dataset.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -349,8 +355,10 @@ through visitor pattern.</p>
 
 <dl class="method">
 <dt id="dataset.dataset.GenericDataset.toString">
-<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.GenericDataset.toString" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.GenericDataset.toString" title="Permalink to this definition">¶</a></dt>
+<dd><p>matprint: an external matrix print function
+trans: print 2D matrix transposed. default is True.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -389,6 +397,11 @@ column - column to be added.</p>
 <dd><p>Adds the specified map as a new row to this table.
 mh: row is a dict with names ass keys</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.atoString">
+<code class="sig-name descname">atoString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.atoString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="dataset.dataset.TableDataset.columnCount">
@@ -456,8 +469,8 @@ return a new TableDataset object containing only the selected rows.</p>
 <dl class="method">
 <dt id="dataset.dataset.TableDataset.setData">
 <code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.setData" title="Permalink to this definition">¶</a></dt>
-<dd><p>set name-column pairs if any of [‘name’], .name,
-.__next__() is valid for each item in data</p>
+<dd><p>sets name-column pairs if any of [‘name’], .name,
+.__next__() is valid for each item in data. Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named ‘col[index]’ (index counting from 1) with unit None.</p>
 </dd></dl>
 
 <dl class="method">
@@ -468,7 +481,7 @@ return a new TableDataset object containing only the selected rows.</p>
 
 <dl class="method">
 <dt id="dataset.dataset.TableDataset.toString">
-<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.toString" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.toString" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -568,7 +581,7 @@ replaced</p>
 <dl class="class">
 <dt id="dataset.datawrapper.DataWrapper">
 <em class="property">class </em><code class="sig-prename descclassname">dataset.datawrapper.</code><code class="sig-name descname">DataWrapper</code><span class="sig-paren">(</span><em class="sig-param">data=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.datawrapper.DataWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#dataset.datawrapper.DataContainer" title="dataset.datawrapper.DataContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.datawrapper.DataContainer</span></code></a>, <a class="reference internal" href="#dataset.quantifiable.Quantifiable" title="dataset.quantifiable.Quantifiable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.quantifiable.Quantifiable</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#dataset.datawrapper.DataContainer" title="dataset.datawrapper.DataContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.datawrapper.DataContainer</span></code></a></p>
 <p>A DataWrapper is a composite of data, unit and description.
 mh: note that all data are in the same unit. There is no metadata.
 Implemented from AbstractDataWrapper.</p>
@@ -1095,6 +1108,18 @@ of this Parameter.</p>
 <code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.Parameter.toString" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="dataset.metadata.Parameter.type_">
+<em class="property">property </em><code class="sig-name descname">type_</code><a class="headerlink" href="#dataset.metadata.Parameter.type_" title="Permalink to this definition">¶</a></dt>
+<dd><p>for property getter</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.Parameter.value">
+<em class="property">property </em><code class="sig-name descname">value</code><a class="headerlink" href="#dataset.metadata.Parameter.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>for property getter</p>
+</dd></dl>
+
 </dd></dl>
 
 <span class="target" id="module-dataset.metadataholder"></span><dl class="class">
@@ -1112,6 +1137,12 @@ Cannot become a python property because setMeta is in Attributable</p>
 
 </dd></dl>
 
+<span class="target" id="module-dataset.ndprint"></span><dl class="function">
+<dt id="dataset.ndprint.ndprint">
+<code class="sig-prename descclassname">dataset.ndprint.</code><code class="sig-name descname">ndprint</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">trans=True</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.ndprint.ndprint" title="Permalink to this definition">¶</a></dt>
+<dd><p>makes a formated string of an N-dimensional array for printing.</p>
+</dd></dl>
+
 <span class="target" id="module-dataset.odict"></span><dl class="class">
 <dt id="dataset.odict.ODict">
 <em class="property">class </em><code class="sig-prename descclassname">dataset.odict.</code><code class="sig-name descname">ODict</code><a class="headerlink" href="#dataset.odict.ODict" title="Permalink to this definition">¶</a></dt>
@@ -1119,9 +1150,15 @@ Cannot become a python property because setMeta is in Attributable</p>
 <p>OrderedDict with a better __repre__.</p>
 <dl class="method">
 <dt id="dataset.odict.ODict.toString">
-<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.odict.ODict.toString" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.odict.ODict.toString" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="dataset.odict.bstr">
+<code class="sig-prename descclassname">dataset.odict.</code><code class="sig-name descname">bstr</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">tostr=True</em>, <em class="sig-param">quote=&quot;'&quot;</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.odict.bstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the best string representation. if the object is a string, return single-quoted; if has toString(), use it; else returns str().</p>
 </dd></dl>
 
 <span class="target" id="module-dataset.product"></span><dl class="class">
@@ -1217,17 +1254,12 @@ through visitor pattern.</p>
 <dd><p>Can be encoded with serializableEncoder</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="dataset.product.History.toString">
-<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.History.toString" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
 <dt id="dataset.product.Product">
 <em class="property">class </em><code class="sig-prename descclassname">dataset.product.</code><code class="sig-name descname">Product</code><span class="sig-paren">(</span><em class="sig-param">creator=''</em>, <em class="sig-param">creationDate=None</em>, <em class="sig-param">instrument=''</em>, <em class="sig-param">startDate=''</em>, <em class="sig-param">endDate=''</em>, <em class="sig-param">rootCause='UNKNOWN'</em>, <em class="sig-param">modelName='UNKNOWN'</em>, <em class="sig-param">type='UNKNOWN'</em>, <em class="sig-param">mission='SVOM'</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.Product" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#dataset.abstractcomposite.AbstractComposite" title="dataset.abstractcomposite.AbstractComposite"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.abstractcomposite.AbstractComposite</span></code></a>, <a class="reference internal" href="#dataset.copyable.Copyable" title="dataset.copyable.Copyable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.copyable.Copyable</span></code></a>, <a class="reference internal" href="#dataset.serializable.Serializable" title="dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.serializable.Serializable</span></code></a>, <a class="reference internal" href="#dataset.listener.EventSender" title="dataset.listener.EventSender"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.EventSender</span></code></a>, <a class="reference internal" href="#dataset.listener.DatasetListener" title="dataset.listener.DatasetListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.DatasetListener</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#dataset.abstractcomposite.AbstractComposite" title="dataset.abstractcomposite.AbstractComposite"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.abstractcomposite.AbstractComposite</span></code></a>, <a class="reference internal" href="#dataset.copyable.Copyable" title="dataset.copyable.Copyable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.copyable.Copyable</span></code></a>, <a class="reference internal" href="#dataset.serializable.Serializable" title="dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.serializable.Serializable</span></code></a>, <a class="reference internal" href="#dataset.listener.EventSender" title="dataset.listener.EventSender"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.EventSender</span></code></a></p>
 <p>A Product is a generic result that can be passed on between
 (standalone) processes.</p>
 <p>In general a Product contains zero or more datasets, history,
@@ -1278,8 +1310,9 @@ specified type.</p>
 
 <dl class="method">
 <dt id="dataset.product.Product.toString">
-<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.Product.toString" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em>, <em class="sig-param">beforedata=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.Product.toString" title="Permalink to this definition">¶</a></dt>
+<dd><p>like AbstractComposite but with history</p>
+</dd></dl>
 
 </dd></dl>
 

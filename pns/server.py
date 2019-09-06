@@ -16,17 +16,19 @@ from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 import pkg_resources
 from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
+import filelock
 
 from pns.logdict import logdict
-#logdict['handlers']['file']['filename'] = '/var/log/pns-server.log'
+# '/var/log/pns-server.log'
+logdict['handlers']['file']['filename'] = '/tmp/server.log'
 import logging
 import logging.config
 # create logger
 logging.config.dictConfig(logdict)
-if __name__ == '__main__':
-    logger = logging.getLogger()
-else:
-    logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+logging.getLogger("requests").setLevel(logging.WARN)
+logging.getLogger("urllib3").setLevel(logging.WARN)
+logging.getLogger("filelock").setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 from pns.pnsconfig import pnsconfig as pc
@@ -64,9 +66,10 @@ def _execute(cmd, input=None, timeout=10):
     returns {return code, msg}
     """
 
-    logger.debug('%s in:%s to: %d' %
+    logger.debug('%s inp:%s tout: %d' %
                  (str(cmd), str(input), timeout))
     sta = {'command': str(cmd)}
+    pnsh = pc['paths']['pnshome']
     asuser = pc['ptsuser']
 
     try:
@@ -79,7 +82,7 @@ def _execute(cmd, input=None, timeout=10):
         env = environ.copy()
         env['HOME'] = user_home_dir
         env['LOGNAME'] = user_name
-        env['PWD'] = pc['paths']['pnshome']
+        env['PWD'] = pnsh
         env['USER'] = user_name
 
         def chusr(user_uid, user_gid):
@@ -95,11 +98,11 @@ def _execute(cmd, input=None, timeout=10):
         #cmd = ['sudo', '-u', asuser, 'bash', '-l', '-c'] + cmd
         #cmd = ['sudo', '-u', asuser] + cmd
         logger.debug('Popen %s env:%s uid: %d gid:%d' %
-                     (str(cmd), str(env)[:200] + ' ... ', user_uid, user_gid))
+                     (str(cmd), str(env)[:40] + ' ... ', user_uid, user_gid))
         proc = Popen(cmd, executable=executable,
                      stdin=PIPE, stdout=PIPE, stderr=PIPE,
                      preexec_fn=None,
-                     cwd=pc['paths']['pnshome'],
+                     cwd=pnsh,
                      env=env, shell=False,
                      encoding='utf-8')  # , universal_newlines=True)
     except Exception as e:
@@ -118,6 +121,7 @@ def _execute(cmd, input=None, timeout=10):
         proc.kill()
         sta['stdout'], sta['stderr'] = proc.communicate()
         sta['returncode'] = proc.returncode
+
     return sta
 
     cp = srun(cmd, input=input, stdout=PIPE, stderr=PIPE,
@@ -171,7 +175,8 @@ def initPTS(d=None):
 
     logger.debug(str(d))
 
-    p = checkpath(pc['paths']['pnshome'])
+    pnsh = pc['paths']['pnshome']
+    p = checkpath(pnsh)
     if p is None:
         abort(401)
 
@@ -195,7 +200,8 @@ def testinit(d=None):
     """     Renames the 'init' 'config' 'run' 'clean' scripts to '.save' and points it to the '.ori' scripts.
     """
 
-    p = checkpath(pc['paths']['pnshome'])
+    pnsh = pc['paths']['pnshome']
+    p = checkpath(pnsh)
     if p is None:
         abort(401)
 
@@ -224,8 +230,8 @@ def configPNS(d=None):
     """ Configure the PNS itself by replacing the pnsconfig var
     """
     global pc
-    logger.debug(str(d))
-    logger.debug('before configering pns ' + str(pc))
+    logger.debug(str(d)[:80] + '...')
+    #logger.debug('before configering pns ' + str(pc))
     try:
         indata = deserializeClassID(d)
         pc = indata['input']
@@ -235,7 +241,7 @@ def configPNS(d=None):
     else:
         re = pc
         msg = ''
-    logger.debug('after configering pns ' + str(pc))
+    #logger.debug('after configering pns ' + str(pc))
 
     return re, msg
 
@@ -260,7 +266,7 @@ def uploadScript(op, d=None):
     """
     """
 
-    return -1, 'not mplemented'
+    return -1, 'not implemented'
 
 
 def cleanPTS(d):
@@ -347,7 +353,8 @@ def run(d, processinput=None, processoutput=None):
 
     global lupd
 
-    p = checkpath(pc['paths']['pnshome'])
+    pnsh = pc['paths']['pnshome']
+    p = checkpath(pnsh)
     if p is None:
         abort(401)
 
@@ -406,7 +413,7 @@ def calc(d):
 
 def genposttestprod(d):
     """ generate post test product.
-    put the 1st input (see maketestdata in test_all.py)
+    put the 1st input (see maketestdata in test_pns.py)
     parameter to metadata
     and 2nd to the product's dataset
     """
@@ -424,16 +431,34 @@ def genposttestprod(d):
     # print(im == dv)  # this should be true
     x.meta[pname] = pv
     x[dname] = dv
-    s1 = [dict(name='col1', unit='keV', column=[1, 4.4, 5.4E3]),
-          dict(name='col2', unit='cnt', column=[0, 43.2, 2E3])]
-    spec = TableDataset(data=s1)
-    x.set('QualityImage', 'aQualityImage')
-    x["Spectrum"] = spec
+    # add some random dataset for good measure
+    s1 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
+                            ('col2', [0, 43.2, 2E3], 'cnt')
+                            ])
+    x['spectrum'] = s1
     now = time.time()
     x.creationDate = FineTime1(datetime.datetime.fromtimestamp(now))
     x.type = 'test'
     x.history = History()
     return x, ''
+
+
+def dosleep(indata, ops):
+    """ run 'sleep [ops]' in the OS. ops is 3 if not given.
+    """
+    try:
+        t = float(ops)
+    except ValueError as e:
+        t = 3
+    if hasattr(indata, '__iter__') and 'timeout' in indata:
+        timeout = indata['timeout']
+    else:
+        timeout = pc['timeout']
+
+    stat = _execute(['sleep', str(t)], timeout=timeout)
+    if stat['returncode'] != 0:
+        return stat['returncode'], stat
+    return 0, stat
 
 
 def filesin(dir):
@@ -478,7 +503,7 @@ def getinfo(cmd):
         elif cmd == 'pnsconfig':
             result, msg = pc, ''
         else:
-            result, msg = 'init, config, run, clean, input, ouput', 'get API'
+            result, msg = -1, cmd + ' is not valid.'
     except Exception as e:
         result, msg = -1, str(e) + trbk(e)
     w = {'result': result, 'message': msg, 'timestamp': ts}
@@ -505,13 +530,14 @@ def verify(username, password):
 
 
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['POST'])
-def calcresult(cmd):
+@app.route(pc['baseurl'] + '/<string:cmd>/<string:ops>', methods=['POST'])
+def calcresult(cmd, ops=''):
 
-    logger.debug('pos ' + cmd)
+    logger.debug('pos ' + cmd + ' ' + ops)
     d = request.get_data()
     if cmd == 'calc':
         result, msg = calc(d)
-    if cmd == 'testcalc':
+    elif cmd == 'testcalc':
         # see test_post() in test_all.py
         result, msg = genposttestprod(d)
     elif cmd == 'echo':
@@ -519,15 +545,30 @@ def calcresult(cmd):
         indata = deserializeClassID(d)
         logger.debug(indata)
         result, msg = indata, ''
-    elif cmd == 'run':
-        result, msg = run(d)
-    elif cmd == 'testrun':
-        # see test_run() in test_all.py
-        result, msg = testrun(d)
     else:
-        logger.error(cmd)
-        abort(400)
-        result = None
+        # the following need to be locked
+        pnsh = pc['paths']['pnshome']
+        # check if it is locked with timeout==0
+        lock = filelock.FileLock(pnsh + '/.lock', timeout=0)
+        try:
+            lock.acquire()
+        except filelock.Timeout as e:
+            logger.debug('busy')
+            abort(409, 'pns is busy')
+        with lock:
+            if cmd == 'run':
+                result, msg = run(d)
+            elif cmd == 'testrun':
+                # see test_run() in test_all.py
+                result, msg = testrun(d)
+            elif cmd == 'sleep':
+                # sleep in the OS for ops seconds
+                indata = deserializeClassID(d)
+                result, msg = dosleep(indata, ops)
+            else:
+                logger.error(cmd)
+                abort(400)
+                result = None
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
     s = serializeClassID(w)
@@ -539,40 +580,50 @@ def calcresult(cmd):
 
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['PUT'])
 @app.route(pc['baseurl'] + '/<string:cmd>/<ops>', methods=['PUT'])
-def setup(cmd):
+def setup(cmd, ops=''):
     """ PUT is used to initialize or configure the Processing Task Software
     (PST).
     """
 
     d = request.get_data()
-    logger.debug(d)
-    if cmd == 'init':
-        try:
-            result, msg = initPTS(d)
-        except Exception as e:
-            msg = str(e) + trbk(e)
-            logger.error(msg)
-            result = -1
-    elif cmd == 'config':
-        result, msg = configPTS(d)
-    elif cmd == 'pnsconf':
-        result, msg = configPNS(d)
-    elif cmd == 'upload':
-        if ops not in pc['scripts'].keys():
-            logger.error('invalid operation type ' + ops)
+    # logger.debug(d)
+
+    # the following need to be locked
+    pnsh = pc['paths']['pnshome']
+    # check if it is locked with timeout==0
+    lock = filelock.FileLock(pnsh + '/.lock', timeout=0)
+    try:
+        lock.acquire()
+    except filelock.Timeout as e:
+        logger.debug('busy')
+        abort(409, 'pns is busy')
+    with lock:
+        if cmd == 'init':
+            try:
+                result, msg = initPTS(d)
+            except Exception as e:
+                msg = str(e) + trbk(e)
+                logger.error(msg)
+                result = -1
+        elif cmd == 'config':
+            result, msg = configPTS(d)
+        elif cmd == 'pnsconf':
+            result, msg = configPNS(d)
+        elif cmd == 'upload':
+            if ops not in pc['scripts'].keys():
+                logger.error('invalid operation type ' + ops)
+                abort(400)
+                result = None
+            result, msg = uploadScript(ops, d)
+        elif cmd == 'testinit':
+            result, msg = testinit(d)
+        else:
+            logger.error(cmd)
             abort(400)
-            result = None
-        result, msg = uploadScript(ops, d)
-    elif cmd == 'testinit':
-        result, msg = testinit(d)
-    else:
-        logger.error(cmd)
-        abort(400)
-        result = None
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
     s = serializeClassID(w)
-    logger.debug(s[:] + ' ...')
+    #logger.debug(s[:] + ' ...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
@@ -619,8 +670,10 @@ APIs = {'GET':
          },
         'POST':
         {'func': 'calcresult',
-         'cmds': {'calc': calc, 'testcalc': genposttestprod, 'echo': 'Echo',
-                  'run': run, 'testrun': testrun}
+         'cmds': {'calc': calc, 'testcalc': genposttestprod,
+                  'run': run, 'testrun': testrun,
+                  'echo': 'Echo',
+                  'sleep': (dosleep,  dict(ops='3'))}
          },
         'DELETE':
         {'func': 'cleanup',
@@ -632,12 +685,19 @@ def makepublicAPI(ops):
     api = []
     o = APIs[ops]
     for cmd in o['cmds'].keys():
-        c = o['cmds'][cmd]
+        cs = o['cmds'][cmd]
+        if not issubclass(cs.__class__, tuple):  # e.g. 'run':run
+            c = cs
+            kwds = {}
+        else:  # e.g. 'sleep': (dosleep, dict(ops='1'))
+            c = cs[0]
+            kwds = cs[1]
         desc = c.__doc__ if isinstance(c, types.FunctionType) else c
         d = {}
         d['description'] = desc
         d['URL'] = url_for(o['func'],
                            cmd=cmd,
+                           **kwds,
                            _external=True)
         api.append(d)
     # print('******* ' + str(api))

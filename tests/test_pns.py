@@ -6,6 +6,7 @@ import requests
 import os
 import pkg_resources
 import copy
+import time
 
 from tests.logdict import doLogging, logdict
 if doLogging:
@@ -16,6 +17,7 @@ if doLogging:
     logger = logging.getLogger()
     logging.getLogger("requests").setLevel(logging.WARN)
     logging.getLogger("urllib3").setLevel(logging.WARN)
+    logging.getLogger("filelock").setLevel(logging.WARN)
 
 from pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from pns.options import opt
@@ -346,7 +348,7 @@ def checkvvppresult(p, msg):
 
 
 def test_vvpp():
-    ''' 
+    '''
     '''
     logger.info('POST test for pipeline node server: vvpp')
     global lupd, nodetestinput
@@ -415,7 +417,143 @@ def test_mirror():
     assert r is None, r
 
 
-import time
+def test_serversleep():
+    """
+    """
+    s = '1.5'
+    tout = 2
+    now = time.time()
+    re, st = server.dosleep({'timeout': tout}, s)
+    d = time.time() - now - float(s)
+    assert re == 0, str(re)
+    assert d > 0 and d < 0.5
+    print('dt=%f re=%s state=%s' % (d, str(re), str(st)))
+    now = time.time()
+    # let it timeout
+    tout = 1
+    re, st = server.dosleep({'timeout': tout}, s)
+    d = time.time() - now - tout
+    assert re < 0
+    assert d > 0 and d < float(s) - tout
+    print('dt=%f re=%s state=%s' % (d, str(re), str(st)))
+
+
+def test_sleep():
+    """
+    """
+    s = '1.5'
+    tout = 2
+    now = time.time()
+    o = postJsonObj(aburl +
+                    '/sleep/' + s,
+                    {'timeout': tout},
+                    headers=commonheaders)
+    d = time.time() - now - float(s)
+    # print(o)
+    issane(o)
+    re, st = o['result'], o['message']
+    assert re == 0, str(re)
+    assert d > 0 and d < 0.5
+    print('deviation=%f re=%s state=%s' % (d, str(re), str(st)))
+    # let it timeout
+    tout = 1
+    now = time.time()
+    o = postJsonObj(aburl +
+                    '/sleep/' + s,
+                    {'timeout': tout},
+                    headers=commonheaders)
+    d = time.time() - now - tout
+    # print(o)
+    issane(o)
+    re, st = o['result'], o['message']
+    assert re < 0
+    assert d > 0 and d < float(s) - tout
+    print('deviation=%f re=%s state=%s' % (d, str(re), str(st)))
+
+
+from multiprocessing import Process, Pool, TimeoutError
+
+
+def info(title):
+    print(title)
+    print('module name:' + __name__)
+    if hasattr(os, 'getppid'):  # only available on Unix
+        print('parent process: %d' % (os.getppid()))
+    print('process id: ' + str(os.getpid()))
+    print(time.time())
+
+
+def nap(t, d):
+    info(t)
+    time.sleep(d)
+    s = str(t)
+    tout = 5
+    o = postJsonObj(aburl +
+                    '/sleep/' + s,
+                    {'timeout': tout},
+                    headers=commonheaders
+                    )
+    # print('nap ' + str(time.time()) + ' ' + str(s) + ' ' + str(o)
+    return o
+
+
+import aiohttp
+import asyncio
+
+
+async def napa(t, d):
+    info(t)
+    asyncio.sleep(d)
+    s = str(t)
+    tout = 11
+    o = None
+    js = serializeClassID({'timeout': tout})
+    async with aiohttp.ClientSession() as session:
+        async with session.post(aburl +
+                                '/sleep/' + s,
+                                data=js,
+                                headers=commonheaders
+                                ) as resp:
+            print(resp.status)
+            stri = await resp.text()
+    o = deserializeClassID(stri)
+    #print('nap ' + str(time.time()) + ' ' + str(s) + ' ' + str(o))
+    return o
+
+
+def test_lock():
+    """ when a pns is busy with any commands that involves executing in the $pnshome dir the execution is locked system-wide with a lock-file .lock. Any attempts to execute a shekk command when the lock is in effect will get a 409.
+    """
+
+    tm = 3
+    if 0:
+        with Pool(processes=4) as pool:
+            res = pool.starmap(nap, [(tm, 0), (0.5, 0.5)])
+    if 0:
+        # does not work
+        import threading
+        try:
+            threading.Thread(target=nap(tm, 0))
+            threading.Thread(target=nap(0.5, 0.5))
+        except Exception as e:
+            print("Error: unable to start thread " + str(e))
+        time.sleep(tm + 2)
+    if 1:
+        loop = asyncio.get_event_loop()
+        tasks = [asyncio.ensure_future(napa(tm, 0)),
+                 asyncio.ensure_future(napa(0.5, 0.5))]
+        taskres = loop.run_until_complete(asyncio.wait(tasks))
+        loop.close()
+        res = [f.result() for f in [x for x in taskres][0]]
+
+    print(res)
+    if issubclass(res[0]['message'].__class__, ODict):
+        r1, r2 = res[0], res[1]
+    else:
+        r2, r1 = res[0], res[1]
+    assert r1['result'] == 0
+    assert '409' in r2['message']
+
 
 if __name__ == '__main__':
     now = time.time()
@@ -426,9 +564,19 @@ if __name__ == '__main__':
         logger.setLevel(logging.INFO)
     logger.info('logging level %d' % (logger.getEffectiveLevel()))
 
-    t = 3
+    t = 8
 
-    if t == 3:
+    if t == 7:
+        # test_lock()
+        # asyncio.AbstractEventLoop.set_debug()
+        loop = asyncio.get_event_loop()
+        tasks = [asyncio.ensure_future(napa(5, 0)),
+                 asyncio.ensure_future(napa(0.5, 0.5))]
+        res = loop.run_until_complete(asyncio.wait(tasks))
+        loop.close()
+        print(res)
+
+    elif t == 3:
         test_getpnsconfig()
         test_getinit()
         test_getrun()
@@ -439,11 +587,14 @@ if __name__ == '__main__':
         test_run()
         test_deleteclean()
         test_mirror()
+        test_sleep()
     elif t == 4:
         test_servertestinit()
         test_serverinit()
         test_servertestinit()
         test_serverrun()
+        test_serversleep()
     elif t == 6:
         test_vvpp()
+
     print('test successful ' + str(time.time() - now))

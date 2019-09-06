@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 from os.path import join
+import logging
 
+# logging level for server or possibly by client
+pnsconfig = dict(logginglevel=logging.INFO)
 
 # base url for webserver
-pnsconfig = dict(baseurl='/v0.6')
+pnsconfig['baseurl'] = '/v0.6'
 
 dev = False
 if dev:
@@ -23,7 +26,7 @@ else:
     # server permission user
     pnsconfig['serveruser'] = 'apache'
     # PTS app permission user
-    pnsconfig['ptsuser'] = 'pns'
+    pnsconfig['ptsuser'] = 'apache'
     # on server
     home = '/root'
 
@@ -32,7 +35,7 @@ phome = join(home, 'pns')
 pnsconfig['paths'] = dict(
     pnshome=phome,
     inputdir=join(phome, 'input'),
-    inputfiles=['infile'],
+    inputfiles=['pns.cat', 'pns.pn'],
     outputdir=join(phome, 'output'),
     outputfiles=['xycc.dat', 'atc.cc']
 )

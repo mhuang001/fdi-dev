@@ -5,3 +5,4 @@
 # and return the status code.
 
 echo The initialization script at `pwd`
+rm -rf input/* output/*

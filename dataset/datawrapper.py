@@ -50,7 +50,7 @@ class DataContainer(Annotatable, Quantifiable, Copyable, DeepEqual):
             (str(self.description), str(self.getData()))
 
 
-class DataWrapper(DataContainer, Quantifiable):
+class DataWrapper(DataContainer):
     """ A DataWrapper is a composite of data, unit and description.
     mh: note that all data are in the same unit. There is no metadata.
     Implemented from AbstractDataWrapper.

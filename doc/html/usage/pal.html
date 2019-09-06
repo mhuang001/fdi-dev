@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>PAL: Product Access Layer &#8212; spdc v0.6 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pns: Processing Network Node Web API Server" href="pns.html" />
+    <link rel="prev" title="Dataset: Data Model" href="dataset.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pns.html" title="pns: Processing Network Node Web API Server"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dataset.html" title="Dataset: Data Model"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">spdc v0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">PAL: Product Access Layer</a><ul>
+<li><a class="reference internal" href="#rationale">Rationale</a></li>
+<li><a class="reference internal" href="#definitions">Definitions</a></li>
+<li><a class="reference internal" href="#run-tests">run tests</a></li>
+<li><a class="reference internal" href="#design">Design</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dataset.html"
+                        title="previous chapter">Dataset: Data Model</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pns.html"
+                        title="next chapter">pns: Processing Network Node Web API Server</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/usage/pal.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pal-product-access-layer">
+<h1>PAL: Product Access Layer<a class="headerlink" href="#pal-product-access-layer" title="Permalink to this headline">¶</a></h1>
+<p>Product Access Layer allows data stored logical “pools” to be accessed with light weight product refernces by data processers, data storage, and data consumers. A data product can include a context built with references of relevant data. A ProductStorage interface is provided to handle saving/retrieving/querying data in registered pools.</p>
+<div class="section" id="rationale">
+<h2>Rationale<a class="headerlink" href="#rationale" title="Permalink to this headline">¶</a></h2>
+<p>In a data processing pipeline or network of processing nodes, data products are generated within a context which may include input data, reference data, and auxiliary data of many kind. It is often needed to have relevant context recorded with a product. However the context could have a large size so including them as metadata of the product is often impractical.</p>
+<p>Because once data are generated they can have a reference through which they can be accessed. The size of such references are typically less than a few hundred bytes, like a URL. In the product context only data references are recorded.</p>
+<p>This package provides MapContext, ProductRef, Urn, ProductStorage classes (simplified but mostly API-compatible with <a class="reference external" href="http://herschel.esac.esa.int/hcss-doc-15.0/load/sg/html/Sadm.Pal.html">Herschel Common Science System v15.0</a>) for the storing, retrieving, tagging, and context creating of data product modeled in the dataset package.</p>
+</div>
+<div class="section" id="definitions">
+<h2>Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<p><strong>Urn</strong></p>
+<p>The Universial Resource Name (URN) string has this format:</p>
+<p><a class="reference external" href="urn:poolname:resourceclass:serialnumber">urn:poolname:resourceclass:serialnumber</a></p>
+<p>where</p>
+<dl class="field-list simple">
+<dt class="field-odd">resourceclass</dt>
+<dd class="field-odd"><p>fully qualified class name of the resource (product)</p>
+</dd>
+<dt class="field-even">poolname format</dt>
+<dd class="field-even"><p>scheme + ‘://’ + place + directory</p>
+</dd>
+<dt class="field-odd">scheme format</dt>
+<dd class="field-odd"><p>‘file’, ‘mem’, ‘http’ … etc</p>
+</dd>
+<dt class="field-even">place format</dt>
+<dd class="field-even"><p>‘192.168.5.6:8080’, ‘c:’, an empty string … etc</p>
+</dd>
+<dt class="field-odd">directory format</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p>for ‘file’ schem: ‘/’ + name + ‘/’ + name + … + ‘/’ + name</p></li>
+<li><p>for ‘mem’ schem: ‘/’ + name + ‘/’ + name + … + ‘/’ + process_ID</p></li>
+</ul>
+</dd>
+<dt class="field-even">serialnumber format</dt>
+<dd class="field-even"><ul class="simple">
+<li><p>for ‘file’ scheme: internal index. str(int).</p></li>
+<li><p>for ‘mem’ scheme: python object id. str(int).</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>ProductRef</strong></p>
+<p>This class not only holds the URN of the product it references to, but also records who ( the _parents_) are keeping this reference.</p>
+<p><strong>Context</strong> and <strong>MapContext</strong></p>
+<p>Context is a Product that holds a set of <a href="#id1"><span class="problematic" id="id2">``</span></a>productRef``s that accessible by keys. The keys are strings for MapContext which usually maps names to product references.</p>
+<p><strong>ProductStorage</strong></p>
+<p>A centralized access place for saving/loading/querying/deleting data organized in conceptual pools. One gets a ProductRef when saving data.</p>
+</div>
+<div class="section" id="run-tests">
+<h2>run tests<a class="headerlink" href="#run-tests" title="Permalink to this headline">¶</a></h2>
+<p>in the same directory:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./test <span class="m">2</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="design">
+<h2>Design<a class="headerlink" href="#design" title="Permalink to this headline">¶</a></h2>
+<p>Packages</p>
+<p>![alt text](resources/packages_pal.png “packages”)</p>
+<p>Classes</p>
+<p>![alt text](resources/classes_pal.png “classes”)</p>
+<p>_**Examples**_</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pal.urn</span> <span class="k">import</span> <span class="n">Urn</span>
+<span class="kn">from</span> <span class="nn">pal.productstorage</span> <span class="k">import</span> <span class="n">ProductStorage</span>
+<span class="kn">from</span> <span class="nn">pal.productref</span> <span class="k">import</span> <span class="n">ProductRef</span>
+<span class="kn">from</span> <span class="nn">pal.comparable</span> <span class="k">import</span> <span class="n">Comparable</span>
+<span class="kn">from</span> <span class="nn">pal.context</span> <span class="k">import</span> <span class="n">Context</span><span class="p">,</span> <span class="n">MapContext</span><span class="p">,</span> <span class="n">MapRefsDataset</span>
+<span class="kn">from</span> <span class="nn">pal.common</span> <span class="k">import</span> <span class="n">getProductObject</span>
+
+<span class="n">defaultpoolpath</span> <span class="o">=</span> <span class="s1">&#39;/tmp/pool&#39;</span>
+<span class="n">defaultpool</span> <span class="o">=</span> <span class="s1">&#39;file://&#39;</span> <span class="o">+</span> <span class="n">defaultpoolpath</span>
+<span class="c1"># create a prooduct</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">Product</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;in store&#39;</span><span class="p">)</span>
+<span class="c1"># create a product store</span>
+<span class="n">pstore</span> <span class="o">=</span> <span class="n">ProductStorage</span><span class="p">()</span>
+<span class="c1"># clean up possible garbage of previous runs</span>
+<span class="n">pstore</span><span class="o">.</span><span class="n">wipePool</span><span class="p">(</span><span class="n">defaultpool</span><span class="p">)</span>
+<span class="c1"># save the product and get a reference</span>
+<span class="n">prodref</span> <span class="o">=</span> <span class="n">pstore</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="c1"># create an empty mapcontext</span>
+<span class="n">mc</span> <span class="o">=</span> <span class="n">MapContext</span><span class="p">()</span>
+<span class="c1"># put the ref in the context.</span>
+<span class="c1"># The manual has this syntax mc.refs.put(&#39;xprod&#39;, prodref)</span>
+<span class="c1"># but I like this for doing the same thing:</span>
+<span class="n">mc</span><span class="p">[</span><span class="s1">&#39;refs&#39;</span><span class="p">][</span><span class="s1">&#39;xprod&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prodref</span>
+<span class="c1"># get the urn</span>
+<span class="n">urn</span> <span class="o">=</span> <span class="n">prodref</span><span class="o">.</span><span class="n">urn</span>
+<span class="c1"># re-create a product only using the urn</span>
+<span class="n">newp</span> <span class="o">=</span> <span class="n">getProductObject</span><span class="p">(</span><span class="n">urn</span><span class="p">)</span>
+<span class="c1"># the new and the old one are equal</span>
+<span class="k">assert</span> <span class="n">newp</span> <span class="o">==</span> <span class="n">x</span>
+</pre></div>
+</div>
+<p>For more examples see tests/test_pal.py</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pns.html" title="pns: Processing Network Node Web API Server"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dataset.html" title="Dataset: Data Model"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">spdc v0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Maohai Huang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

@@ -12,9 +12,10 @@ from .datawrapper import DataWrapper, DataContainer
 # from .composite import
 from .abstractcomposite import AbstractComposite
 from .attributable import Attributable
-from .odict import ODict
+from .odict import ODict, bstr
 from .serializable import Serializable
 from .listener import ColumnListener, DatasetBaseListener, MetaDataListener
+from .ndprint import ndprint
 
 
 class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, MetaDataListener):
@@ -44,6 +45,15 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
         through visitor pattern."""
         visitor.visit(self)
 
+    def toString(self):
+        """ 
+        """
+
+        s = '# ' + self.__class__.__name__ + '\n' +\
+            '# description = "%s"\n# meta = %s\n' % \
+            (str(self.description), bstr(self.meta))
+        return s
+
 
 class GenericDataset(Dataset, DataContainer, Container):
     """ mh: Contains one data item.
@@ -68,11 +78,16 @@ class GenericDataset(Dataset, DataContainer, Container):
             '{ description = "%s", meta = %s, data = "%s"}' % \
             (str(self.description), str(self.meta), str(self.data))
 
-    def toString(self):
-        s = '{description = "%s", meta = %s, data = "%s", unit = "%s"}' % \
+    def toString(self, matprint=None, trans=True):
+        """ matprint: an external matrix print function
+        trans: print 2D matrix transposed. default is True.
+        """
+        s = '# ' + self.__class__.__name__ + '\n' +\
+            '# description = "%s"\n# meta = %s\n# unit = "%s"\n# data = \n\n' % \
             (str(self.description), self.meta.toString(),
-             str(self._data), str(self.unit))
-        return s
+             str(self.unit))
+        d = bstr(self.data) if matprint is None else matprint(self.data)
+        return s + d + '\n'
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
@@ -92,12 +107,19 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
     A mutable sequence would also need append(), extend(), insert(), pop() and sort().
     """
 
-    def __init__(self, unit=None, **kwds):
+    def __init__(self, *args, **kwds):
         """
         """
-        super().__init__(**kwds)  # initialize data, meta
-
-        self.unit = unit
+        ls = list(args)
+        if len(ls) == 1:
+            super().__init__(data=ls[0], **kwds)  # initialize data, meta
+        elif len(ls) == 2:
+            super().__init__(data=ls[0], unit=ls[1], **kwds)
+        elif len(ls) > 2:
+            super().__init__(
+                data=ls[0], unit=ls[1], description=ls[2], **kwds)
+        else:
+            super().__init__(**kwds)  # initialize data, meta
 
     def setData(self, data):
         """
@@ -159,11 +181,12 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
             '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' %\
             (str(self.description), str(self.meta), str(self.data), str(self.unit))
 
-    def toString(self):
-        return self.__class__.__name__ +\
-            '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' %\
-            (str(self.description), self.meta.toString(),
-             self.data.toString() if hasattr(self.data, 'toString') else str(self.data), str(self.unit))
+    def toString(self, matprint=None, trans=True):
+        if matprint is None:
+            matprint = ndprint
+        s = super().toString(matprint=matprint, trans=trans)
+
+        return s
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
@@ -266,34 +289,46 @@ class TableDataset(Dataset, TableModel):
         super().__init__(**kwds)  # initialize data, meta, unit
 
     def setData(self, data):
-        """ set name-column pairs if any of ['name'], .name,
-        .__next__() is valid for each item in data
+        """ sets name-column pairs if any of ['name'], .name,
+        .__next__() is valid for each item in data. Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named 'col[index]' (index counting from 1) with unit None.
         """
         # logging.debug(data.__class__)
         #raise Exception()
         if data is not None:
             # d will be {<name1 str>:<column1 Column>, ... }
             d = ODict()
+            replace = True
             if issubclass(data.__class__, Sequence):
+                try:
+                    curd = self.getData()
+                except Exception:
+                    curd = None
+                curdk = list(self.getData().keys()) if curd else []
+                ind = 0
                 for x in data:
                     if 'name' in x and 'column' in x:
                         d[x['name']] = x['column']
                     elif hasattr(x, 'name') and hasattr('column', x):
                         d[x.name] = x.column
+                    elif issubclass(x.__class__, list):
+                        if curd is None:
+                            d['col' + str(ind + 1)] = Column(data=x, unit=None)
+                        elif len(curd) <= ind:
+                            curd['col' + str(ind + 1)
+                                 ] = Column(data=x, unit=None)
+                        else:
+                            curd[curdk[ind]].data = x
+                            replace = False
                     elif issubclass(x.__class__, tuple):
-                        if len(x) == 2:
-                            if issubclass(x[1].__class__, Column):
-                                d[x[0]] = x[1]
-                            else:
-                                d[x[0]] = Column(data=x[1], unit='')
-                        elif len(x) == 3:
+                        if len(x) == 3:
                             d[x[0]] = Column(data=x[1], unit=x[2])
                         else:
                             raise ValueError(
-                                'column tuples must be (str, Column), (str, List), or (str, List, str)')
+                                'column tuples must be  (str, List), or (str, List, str)')
                     else:
                         raise ValueError(
                             'cannot extract name and column at list member ' + str(x))
+                    ind += 1
             elif issubclass(data.__class__, Mapping):
                 for k, v in data.items():
                     d[k] = v
@@ -301,7 +336,8 @@ class TableDataset(Dataset, TableModel):
                 raise TypeError('must be a Sequence or a Mapping')
 
             # logging.debug(d)
-            super().setData(d)
+            if replace:
+                super().setData(d)
         else:
             super().setData(ODict())
 
@@ -457,11 +493,22 @@ class TableDataset(Dataset, TableModel):
             '{ description = "%s", meta = %s, data = "%s"}' %\
             (str(self.description), str(self.meta), str(self.data))
 
-    def toString(self):
+    def atoString(self):
         s = '{description = "%s", meta = %s, data = "%s"}' %\
             (str(self.description), self.meta.toString(),
              self.data.toString())
         return s
+
+    def toString(self, matprint=None, trans=True):
+        if matprint is None:
+            matprint = ndprint
+        s = super().toString()
+        cols = list(self.data.values())
+        d = '# data = \n\n'
+        d += '# ' + ' '.join([str(x) for x in self.data.keys()]) + '\n'
+        d += '# ' + ' '.join([str(x.unit) for x in cols]) + '\n'
+        d += matprint(cols, trans=trans)
+        return s + d + '\n'
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

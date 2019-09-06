@@ -4,6 +4,8 @@ import os
 from .serializable import Serializable
 from pal.urn import Urn
 from pal.common import getProductObject
+import pns.common as psnc
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -125,7 +127,8 @@ class EventSender():
                 listener.targetChanged(*args, **kwargs)
                 n += 1
         except Exception as e:
-            logger.error('listener ' + str(0) + ' got exception: ' + str(e))
+            logger.error('listener ' + str(n) +
+                         ' got exception: ' + str(e) + ' ' + psnc.trbk(e))
 
     def getListenerCount(self):
         return len(self._listeners)

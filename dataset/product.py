@@ -131,9 +131,6 @@ class History(CompositeDataset, DeepEqual):
         """ Saves the history script to a file.
         """
 
-    def toString(self):
-        return self.__repr__()
-
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return ODict(description=self.description,
@@ -153,7 +150,7 @@ mandatoryProductAttrs = ['description', 'creator', 'creationDate',
 
 
 #@addMandatoryProductAttrs
-class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetListener):
+class Product(AbstractComposite, Copyable, Serializable,  EventSender):
     """ A Product is a generic result that can be passed on between
     (standalone) processes.
 
@@ -256,17 +253,11 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender, DatasetLi
                 #logger.debug(event.source.__class__.__name__ +   ' ' + str(event.change))
                 pass
 
-    def toString(self):
-        s = self.__class__.__name__ + '{'
-        """for lvar in self.mandatoryAttrs:
-            if hasattr(self, lvar):
-                s += '%s = %s, ' % (lvar, getattr(self, lvar))
+    def toString(self, matprint=None, trans=True, beforedata=''):
+        """ like AbstractComposite but with history
         """
-        s += 'meta = %s, _sets = %s, history = %s}' % (
-            self.meta.toString(),
-            self._sets.__str__(),
-            self.history.toString()
-        )
+        h = self.history.toString(matprint=matprint, trans=trans)
+        s = super().toString(matprint=matprint, trans=trans, beforedata=h)
         return s
 
     def __repr__(self):

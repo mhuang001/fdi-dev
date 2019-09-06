@@ -41,4 +41,5 @@ if __name__ == '__main__':
             'Error. Specify non-empty username and password on commandline')
         exit(3)
 
-    app.run(host=node['host'], port=node['port'], debug=verbose)
+    app.run(host=node['host'], port=node['port'],
+            threaded=False, debug=verbose, processes=5)

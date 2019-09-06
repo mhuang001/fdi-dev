@@ -1,0 +1,1448 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>dataset package &#8212; spdc v0.6 documentation</title>
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pal package" href="../pal/pal.html" />
+    <link rel="prev" title="API Reference" href="../api.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../pal/pal.html" title="pal package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../api.html" title="API Reference"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">spdc v0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Reference</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">dataset package</a><ul>
+<li><a class="reference internal" href="#module-dataset.abstractcomposite">Submodules</a></li>
+<li><a class="reference internal" href="#module-dataset">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../api.html"
+                        title="previous chapter">API Reference</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../pal/pal.html"
+                        title="next chapter">pal package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/api/dataset/dataset.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="dataset-package">
+<h1>dataset package<a class="headerlink" href="#dataset-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-dataset.abstractcomposite">
+<span id="submodules"></span><h2>Submodules<a class="headerlink" href="#module-dataset.abstractcomposite" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="dataset.abstractcomposite.AbstractComposite">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.abstractcomposite.</code><code class="sig-name descname">AbstractComposite</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.abstractcomposite.AbstractComposite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.attributable.Attributable" title="dataset.attributable.Attributable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.attributable.Attributable</span></code></a>, <a class="reference internal" href="#dataset.annotatable.Annotatable" title="dataset.annotatable.Annotatable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.annotatable.Annotatable</span></code></a>, <a class="reference internal" href="#dataset.composite.Composite" title="dataset.composite.Composite"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.composite.Composite</span></code></a>, <a class="reference internal" href="#dataset.datawrapper.DataWrapperMapper" title="dataset.datawrapper.DataWrapperMapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.datawrapper.DataWrapperMapper</span></code></a>, <a class="reference internal" href="#dataset.listener.DatasetListener" title="dataset.listener.DatasetListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.DatasetListener</span></code></a></p>
+<p>an annotatable and attributable subclass of Composite.</p>
+<dl class="method">
+<dt id="dataset.abstractcomposite.AbstractComposite.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em>, <em class="sig-param">beforedata=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.abstractcomposite.AbstractComposite.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-dataset.annotatable"></span><dl class="class">
+<dt id="dataset.annotatable.Annotatable">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.annotatable.</code><code class="sig-name descname">Annotatable</code><span class="sig-paren">(</span><em class="sig-param">description='UNKNOWN'</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.annotatable.Annotatable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An Annotatable object is an object that can give a
+human readable description of itself.</p>
+<dl class="method">
+<dt id="dataset.annotatable.Annotatable.getDescription">
+<code class="sig-name descname">getDescription</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.annotatable.Annotatable.getDescription" title="Permalink to this definition">¶</a></dt>
+<dd><p>gets the description of this Annotatable object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.annotatable.Annotatable.setDescription">
+<code class="sig-name descname">setDescription</code><span class="sig-paren">(</span><em class="sig-param">newDescription</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.annotatable.Annotatable.setDescription" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets the description of this Annotatable object.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-dataset.attributable"></span><dl class="class">
+<dt id="dataset.attributable.Attributable">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.attributable.</code><code class="sig-name descname">Attributable</code><span class="sig-paren">(</span><em class="sig-param">meta=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.attributable.Attributable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.metadataholder.MetaDataHolder" title="dataset.metadataholder.MetaDataHolder"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.metadataholder.MetaDataHolder</span></code></a></p>
+<p>An Attributable object is an object that has the
+notion of meta data.</p>
+<dl class="method">
+<dt id="dataset.attributable.Attributable.meta">
+<em class="property">property </em><code class="sig-name descname">meta</code><a class="headerlink" href="#dataset.attributable.Attributable.meta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.attributable.Attributable.setMeta">
+<code class="sig-name descname">setMeta</code><span class="sig-paren">(</span><em class="sig-param">newMetadata</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.attributable.Attributable.setMeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces the current MetaData with specified argument. 
+mh: Product will override this to add listener whenevery meta is
+replaced</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-dataset.composite"></span><dl class="class">
+<dt id="dataset.composite.Composite">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.composite.</code><code class="sig-name descname">Composite</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.eq.DeepEqual" title="dataset.eq.DeepEqual"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.eq.DeepEqual</span></code></a></p>
+<p>A container of named Datasets.</p>
+<p>This container can hold zero or more datasets, each of them
+stored against a unique name. The order of adding datasets
+to this Composite is important, that is:
+the keySet() method will return a set of labels of the datasets
+in the sequence as they were added.
+Note that replacing a dataset with the same name,
+will keep the order.</p>
+<dl class="method">
+<dt id="dataset.composite.Composite.containsKey">
+<code class="sig-name descname">containsKey</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite.containsKey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this map contains a mapping for
+the specified name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.composite.Composite.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dataset to which this composite maps the
+specified name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.composite.Composite.getSets">
+<code class="sig-name descname">getSets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite.getSets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide access to the Map &lt; String, Dataset &gt; .
+mh: api from CompositeDataset</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.composite.Composite.isEmpty">
+<code class="sig-name descname">isEmpty</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite.isEmpty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if this map contains no key - value mappings.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.composite.Composite.items">
+<code class="sig-name descname">items</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable pairs = [(v, k) for (k, v) in d.items()].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.composite.Composite.keySet">
+<code class="sig-name descname">keySet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite.keySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set view of the keys contained in this composite.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.composite.Composite.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the mapping for this name from this composite.
+mh: returns None if name is None or item does not exist.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.composite.Composite.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">dataset</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Associates the specified dataset with the specified key
+in this map(optional operation). If the map previously
+contained a mapping for this key, the old dataset is
+replaced by the specified dataset.
+this composite does not permit null keys or values,
+and the specified key or value is null.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.composite.Composite.size">
+<code class="sig-name descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of key - value mappings in this map.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.composite.Composite.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.composite.Composite.values">
+<code class="sig-name descname">values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.composite.Composite.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enable pairs = zip(d.values(), d.keys())</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-dataset.copyable"></span><dl class="class">
+<dt id="dataset.copyable.Copyable">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.copyable.</code><code class="sig-name descname">Copyable</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.copyable.Copyable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Interface for objects that can make a copy of themselves.</p>
+<dl class="method">
+<dt id="dataset.copyable.Copyable.copy">
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.copyable.Copyable.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes a deep copy of itself.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-dataset.dataset"></span><dl class="class">
+<dt id="dataset.dataset.ArrayDataset">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">ArrayDataset</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.datawrapper.DataWrapper" title="dataset.datawrapper.DataWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.datawrapper.DataWrapper</span></code></a>, <a class="reference internal" href="#dataset.dataset.GenericDataset" title="dataset.dataset.GenericDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.dataset.GenericDataset</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Sequence</span></code></p>
+<p>Special dataset that contains a single Array Data object.
+mh:  contains a sequence which provides methods count(), index(), remove(), reverse().
+A mutable sequence would also need append(), extend(), insert(), pop() and sort().</p>
+<dl class="method">
+<dt id="dataset.dataset.ArrayDataset.count">
+<code class="sig-name descname">count</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns size.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.ArrayDataset.index">
+<code class="sig-name descname">index</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the index of a value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.ArrayDataset.pop">
+<code class="sig-name descname">pop</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>revomes and returns value</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.ArrayDataset.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>removes value at first occurrence.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.ArrayDataset.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.ArrayDataset.setData">
+<code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset.setData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.ArrayDataset.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset.toString" title="Permalink to this definition">¶</a></dt>
+<dd><p>matprint: an external matrix print function
+trans: print 2D matrix transposed. default is True.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.dataset.Column">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">Column</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.Column" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.dataset.ArrayDataset" title="dataset.dataset.ArrayDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.dataset.ArrayDataset</span></code></a>, <a class="reference internal" href="#dataset.listener.ColumnListener" title="dataset.listener.ColumnListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.ColumnListener</span></code></a></p>
+<p>A Column is a the vertical cut of a table for which all cells have the same signature. It contains raw ArrayData, and optionally a description and unit.
+example:
+table = TableDataset()
+table.addColumn(“Energy”,Column(data=[1,2,3,4],description=”desc”,unit=’eV’))</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.dataset.CompositeDataset">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">CompositeDataset</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.CompositeDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.abstractcomposite.AbstractComposite" title="dataset.abstractcomposite.AbstractComposite"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.abstractcomposite.AbstractComposite</span></code></a>, <a class="reference internal" href="#dataset.dataset.Dataset" title="dataset.dataset.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.dataset.Dataset</span></code></a></p>
+<p>An CompositeDataset is a Dataset that contains zero or more
+named Datasets. It allows to build arbitrary complex dataset
+structures.</p>
+<p>It also defines the iteration ordering of its children, which is
+the order in which the children were inserted into this dataset.</p>
+<dl class="method">
+<dt id="dataset.dataset.CompositeDataset.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.CompositeDataset.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.dataset.Dataset">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">Dataset</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.Dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.attributable.Attributable" title="dataset.attributable.Attributable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.attributable.Attributable</span></code></a>, <a class="reference internal" href="#dataset.annotatable.Annotatable" title="dataset.annotatable.Annotatable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.annotatable.Annotatable</span></code></a>, <a class="reference internal" href="#dataset.copyable.Copyable" title="dataset.copyable.Copyable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.copyable.Copyable</span></code></a>, <a class="reference internal" href="#dataset.serializable.Serializable" title="dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.serializable.Serializable</span></code></a>, <a class="reference internal" href="#dataset.eq.DeepEqual" title="dataset.eq.DeepEqual"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.eq.DeepEqual</span></code></a>, <a class="reference internal" href="#dataset.listener.MetaDataListener" title="dataset.listener.MetaDataListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.MetaDataListener</span></code></a></p>
+<p>Attributable and annotatable information data container
+that can be be part of a Product.</p>
+<p>developer notes:
+The intent is that developers do not derive from this interface</p>
+<p>directly. Instead, they should inherit from one of the generic
+datasets that this package provides:</p>
+<p>mh: GenericDataset,
+ArrayDataset.
+TableDataset or
+CompositeDataset.</p>
+<dl class="method">
+<dt id="dataset.dataset.Dataset.accept">
+<code class="sig-name descname">accept</code><span class="sig-paren">(</span><em class="sig-param">visitor</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.Dataset.accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for adding functionality to object
+through visitor pattern.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.Dataset.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.Dataset.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.dataset.GenericDataset">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">GenericDataset</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.GenericDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.dataset.Dataset" title="dataset.dataset.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.dataset.Dataset</span></code></a>, <a class="reference internal" href="#dataset.datawrapper.DataContainer" title="dataset.datawrapper.DataContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.datawrapper.DataContainer</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.Container</span></code></p>
+<p>mh: Contains one data item.</p>
+<dl class="method">
+<dt id="dataset.dataset.GenericDataset.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.GenericDataset.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.GenericDataset.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.GenericDataset.toString" title="Permalink to this definition">¶</a></dt>
+<dd><p>matprint: an external matrix print function
+trans: print 2D matrix transposed. default is True.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.dataset.TableDataset">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">TableDataset</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.dataset.Dataset" title="dataset.dataset.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.dataset.Dataset</span></code></a>, <a class="reference internal" href="#dataset.dataset.TableModel" title="dataset.dataset.TableModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.dataset.TableModel</span></code></a></p>
+<p>Special dataset that contains a single Array Data object.
+A TableDataset is a tabular collection of Columns. It is optimized to work on array data as specified in the herschel.ia.numeric package.
+The column-wise approach is convenient in many cases. For example, one has an event list, and each algorithm is adding a new field to the events (i.e. a new column, for example a quality mask).</p>
+<p>Although mechanisms are provided to grow the table row-wise, one should use these with care especially in performance driven environments as this orthogonal approach (adding rows rather than adding columns) is expensive.</p>
+<p>Examples of actual ArrayData objects can be found in the herschel.ia.numeric package, and therefore they will not be discussed here.</p>
+<p>General Note:</p>
+<p>For reasons of flexibility, memory consumption and performance, this class is not checking whether all columns are of the same length: this is the responsibility of the user/developer. See also the library documentation for more information about this.</p>
+<p>Note on column names:</p>
+<p>If a column is added without specifying a name, the name ColumnX is created, where X denotes the index of that column.
+Column name duplicity is not allowed.</p>
+<p>Developers:</p>
+<p>See “Writing special datasets or products” at the developer’s documentation also.</p>
+<p>Please see also this selection example.</p>
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.addColumn">
+<code class="sig-name descname">addColumn</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">column</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.addColumn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the specified column to this table, and attaches a name
+to it. If the name is null, a dummy name is created, such that
+it can be accessed by getColumn(str).</p>
+<p>Duplicated column names are not allowed.</p>
+<p>Parameters:
+name - column name.
+column - column to be added.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.addRow">
+<code class="sig-name descname">addRow</code><span class="sig-paren">(</span><em class="sig-param">row</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.addRow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the specified map as a new row to this table.
+mh: row is a dict with names ass keys</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.atoString">
+<code class="sig-name descname">atoString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.atoString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.columnCount">
+<em class="property">property </em><code class="sig-name descname">columnCount</code><a class="headerlink" href="#dataset.dataset.TableDataset.columnCount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.getColumn">
+<code class="sig-name descname">getColumn</code><span class="sig-paren">(</span><em class="sig-param">key</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.getColumn" title="Permalink to this definition">¶</a></dt>
+<dd><p>return colmn if given string as name or int as index.
+returns name if given column.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.getRow">
+<code class="sig-name descname">getRow</code><span class="sig-paren">(</span><em class="sig-param">rowIndex</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.getRow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list containing the objects located at a particular row.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.indexOf">
+<code class="sig-name descname">indexOf</code><span class="sig-paren">(</span><em class="sig-param">key</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.indexOf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the index of specified column; if the key is a Column,
+it looks for equal references (same column objects), not for
+equal values.
+If the key is a string, Returns the index of specified Column name.
+mh: Or else returns the key itself.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.removeColumn">
+<code class="sig-name descname">removeColumn</code><span class="sig-paren">(</span><em class="sig-param">key</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.removeColumn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.rowCount">
+<em class="property">property </em><code class="sig-name descname">rowCount</code><a class="headerlink" href="#dataset.dataset.TableDataset.rowCount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.select">
+<code class="sig-name descname">select</code><span class="sig-paren">(</span><em class="sig-param">selection</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.select" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select a number of rows from this table dataset and
+return a new TableDataset object containing only the selected rows.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.setColumn">
+<code class="sig-name descname">setColumn</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.setColumn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces a column in this table with specified name to specified column if key exists, or else add a new coolumn.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.setColumnCount">
+<code class="sig-name descname">setColumnCount</code><span class="sig-paren">(</span><em class="sig-param">columnCount</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.setColumnCount" title="Permalink to this definition">¶</a></dt>
+<dd><p>cannot do this.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.setData">
+<code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.setData" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets name-column pairs if any of [‘name’], .name,
+.__next__() is valid for each item in data. Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named ‘col[index]’ (index counting from 1) with unit None.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.setRowCount">
+<code class="sig-name descname">setRowCount</code><span class="sig-paren">(</span><em class="sig-param">rowCount</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.setRowCount" title="Permalink to this definition">¶</a></dt>
+<dd><p>cannot do this.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableDataset.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.dataset.TableModel">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">TableModel</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.datawrapper.DataContainer" title="dataset.datawrapper.DataContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.datawrapper.DataContainer</span></code></a></p>
+<p>to interrogate a tabular data model</p>
+<dl class="method">
+<dt id="dataset.dataset.TableModel.col">
+<code class="sig-name descname">col</code><span class="sig-paren">(</span><em class="sig-param">columIndex</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableModel.col" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a tuple of (name, column) at the column index.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableModel.getColumnClass">
+<code class="sig-name descname">getColumnClass</code><span class="sig-paren">(</span><em class="sig-param">columnIndex</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableModel.getColumnClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the most specific superclass for all the cell
+values in the column.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableModel.getColumnCount">
+<code class="sig-name descname">getColumnCount</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableModel.getColumnCount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of columns in the model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableModel.getColumnName">
+<code class="sig-name descname">getColumnName</code><span class="sig-paren">(</span><em class="sig-param">columnIndex</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableModel.getColumnName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the column at columnIndex.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableModel.getRowCount">
+<code class="sig-name descname">getRowCount</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableModel.getRowCount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of rows in the model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableModel.getValueAt">
+<code class="sig-name descname">getValueAt</code><span class="sig-paren">(</span><em class="sig-param">rowIndex</em>, <em class="sig-param">columnIndex</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableModel.getValueAt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value for the cell at columnIndex and rowIndex.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableModel.isCellEdidata">
+<code class="sig-name descname">isCellEdidata</code><span class="sig-paren">(</span><em class="sig-param">rowIndex</em>, <em class="sig-param">columnIndex</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableModel.isCellEdidata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the cell at rowIndex and columnIndex
+is edidata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.dataset.TableModel.setValueAt">
+<code class="sig-name descname">setValueAt</code><span class="sig-paren">(</span><em class="sig-param">aValue</em>, <em class="sig-param">rowIndex</em>, <em class="sig-param">columnIndex</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableModel.setValueAt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the value in the cell at columnIndex and rowIndex
+to aValue.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-dataset.datawrapper"></span><dl class="class">
+<dt id="dataset.datawrapper.DataContainer">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.datawrapper.</code><code class="sig-name descname">DataContainer</code><span class="sig-paren">(</span><em class="sig-param">data=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.datawrapper.DataContainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.annotatable.Annotatable" title="dataset.annotatable.Annotatable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.annotatable.Annotatable</span></code></a>, <a class="reference internal" href="#dataset.quantifiable.Quantifiable" title="dataset.quantifiable.Quantifiable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.quantifiable.Quantifiable</span></code></a>, <a class="reference internal" href="#dataset.copyable.Copyable" title="dataset.copyable.Copyable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.copyable.Copyable</span></code></a>, <a class="reference internal" href="#dataset.eq.DeepEqual" title="dataset.eq.DeepEqual"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.eq.DeepEqual</span></code></a></p>
+<p>A DataContainer is a composite of data and description.
+mh: note that There is no metadata.
+Implemented partly from AbstractDataWrapper.</p>
+<dl class="method">
+<dt id="dataset.datawrapper.DataContainer.data">
+<em class="property">property </em><code class="sig-name descname">data</code><a class="headerlink" href="#dataset.datawrapper.DataContainer.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.datawrapper.DataContainer.getData">
+<code class="sig-name descname">getData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.datawrapper.DataContainer.getData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the data in this dw</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.datawrapper.DataContainer.hasData">
+<code class="sig-name descname">hasData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.datawrapper.DataContainer.hasData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether this data wrapper has data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.datawrapper.DataContainer.setData">
+<code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.datawrapper.DataContainer.setData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces the current DataData with specified argument. 
+mh: subclasses can override this to add listener whenevery data is
+replaced</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.datawrapper.DataWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.datawrapper.</code><code class="sig-name descname">DataWrapper</code><span class="sig-paren">(</span><em class="sig-param">data=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.datawrapper.DataWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.datawrapper.DataContainer" title="dataset.datawrapper.DataContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.datawrapper.DataContainer</span></code></a></p>
+<p>A DataWrapper is a composite of data, unit and description.
+mh: note that all data are in the same unit. There is no metadata.
+Implemented from AbstractDataWrapper.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.datawrapper.DataWrapperMapper">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.datawrapper.</code><code class="sig-name descname">DataWrapperMapper</code><a class="headerlink" href="#dataset.datawrapper.DataWrapperMapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Object holding a map of data wrappers.</p>
+<dl class="method">
+<dt id="dataset.datawrapper.DataWrapperMapper.getDataWrappers">
+<code class="sig-name descname">getDataWrappers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.datawrapper.DataWrapperMapper.getDataWrappers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gives the data wrappers, mapped by name.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-dataset.deserialize"></span><dl class="class">
+<dt id="dataset.deserialize.IntDecoder">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.deserialize.</code><code class="sig-name descname">IntDecoder</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">object_hook=None</em>, <em class="sig-param">parse_float=None</em>, <em class="sig-param">parse_int=None</em>, <em class="sig-param">parse_constant=None</em>, <em class="sig-param">strict=True</em>, <em class="sig-param">object_pairs_hook=None</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.deserialize.IntDecoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">json.decoder.JSONDecoder</span></code></p>
+<p>adapted from <a class="reference external" href="https://stackoverflow.com/questions/45068797/how-to-convert-string-int-json-into-real-int-with-json-loads">https://stackoverflow.com/questions/45068797/how-to-convert-string-int-json-into-real-int-with-json-loads</a>
+modified to also convert keys in dictionaries.</p>
+<dl class="method">
+<dt id="dataset.deserialize.IntDecoder.decode">
+<code class="sig-name descname">decode</code><span class="sig-paren">(</span><em class="sig-param">s</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.deserialize.IntDecoder.decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the Python representation of <code class="docutils literal notranslate"><span class="pre">s</span></code> (a <code class="docutils literal notranslate"><span class="pre">str</span></code> instance
+containing a JSON document).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dataset.deserialize.constructSerializableClassID">
+<code class="sig-prename descclassname">dataset.deserialize.</code><code class="sig-name descname">constructSerializableClassID</code><span class="sig-paren">(</span><em class="sig-param">obj</em>, <em class="sig-param">lgb=None</em>, <em class="sig-param">debug=False</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.deserialize.constructSerializableClassID" title="Permalink to this definition">¶</a></dt>
+<dd><p>mh: reconstruct object from the output of jason.loads().
+Recursively goes into nested class instances that are not
+encoded by default by JSONEncoder, instantiate and fill in
+variables.
+Objects to be deserialized must have their classes loaded.
+ClassID cannot have module names in it (e.g.  dataset.Product)
+or locals()[classname] or globals()[classname] will not work. See alternative in
+<a class="reference external" href="https://stackoverflow.com/questions/452969/does-python-have-an-equivalent-to-java-class-forname">https://stackoverflow.com/questions/452969/does-python-have-an-equivalent-to-java-class-forname</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dataset.deserialize.deserializeClassID">
+<code class="sig-prename descclassname">dataset.deserialize.</code><code class="sig-name descname">deserializeClassID</code><span class="sig-paren">(</span><em class="sig-param">js</em>, <em class="sig-param">lgb=None</em>, <em class="sig-param">debug=False</em>, <em class="sig-param">usedict=False</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.deserialize.deserializeClassID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads classes with ClassID from the results of serializeClassID</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="dataset.deserialize.logger">
+<code class="sig-prename descclassname">dataset.deserialize.</code><code class="sig-name descname">logger</code><em class="property"> = &lt;Logger dataset.deserialize (DEBUG)&gt;</em><a class="headerlink" href="#dataset.deserialize.logger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Note: this has to be in a different file where other interface
+classes are defined to avoid circular dependency (such as ,
+Serializable.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="dataset.deserialize.makedesables">
+<code class="sig-prename descclassname">dataset.deserialize.</code><code class="sig-name descname">makedesables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.deserialize.makedesables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<span class="target" id="module-dataset.eq"></span><dl class="class">
+<dt id="dataset.eq.DeepEqual">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.eq.</code><code class="sig-name descname">DeepEqual</code><a class="headerlink" href="#dataset.eq.DeepEqual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>mh: Can compare key-val pairs of another object
+with self. False if compare with None
+or exceptions raised, e.g. obj does not have items()</p>
+<dl class="method">
+<dt id="dataset.eq.DeepEqual.diff">
+<code class="sig-name descname">diff</code><span class="sig-paren">(</span><em class="sig-param">obj</em>, <em class="sig-param">seenlist</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.eq.DeepEqual.diff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.eq.DeepEqual.equals">
+<code class="sig-name descname">equals</code><span class="sig-paren">(</span><em class="sig-param">obj</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.eq.DeepEqual.equals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.eq.EqualDict">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.eq.</code><code class="sig-name descname">EqualDict</code><a class="headerlink" href="#dataset.eq.EqualDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>mh: Can compare key-val pairs of another object
+with self. False if compare with None
+or exceptions raised, e.g. obj does not have items()</p>
+<dl class="method">
+<dt id="dataset.eq.EqualDict.equals">
+<code class="sig-name descname">equals</code><span class="sig-paren">(</span><em class="sig-param">obj</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.eq.EqualDict.equals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.eq.EqualODict">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.eq.</code><code class="sig-name descname">EqualODict</code><a class="headerlink" href="#dataset.eq.EqualODict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>mh: Can compare order and key-val pairs of another object
+with self. False if compare with None
+or exceptions raised, e.g. obj does not have items()</p>
+<dl class="method">
+<dt id="dataset.eq.EqualODict.equals">
+<code class="sig-name descname">equals</code><span class="sig-paren">(</span><em class="sig-param">obj</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.eq.EqualODict.equals" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dataset.eq.deepcmp">
+<code class="sig-prename descclassname">dataset.eq.</code><code class="sig-name descname">deepcmp</code><span class="sig-paren">(</span><em class="sig-param">obj1</em>, <em class="sig-param">obj2</em>, <em class="sig-param">seenlist=None</em>, <em class="sig-param">verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.eq.deepcmp" title="Permalink to this definition">¶</a></dt>
+<dd><p>recursively descend into set, list, dict, ordereddict,
+(or ordereddict subclasses) and any objects with ‘__class__’, compare
+every member with the other objects counterpart.
+Detects cyclic references.
+Returns None if finds no difference, a string of explanation
+otherwise.</p>
+</dd></dl>
+
+<span class="target" id="module-dataset.listener"></span><dl class="class">
+<dt id="dataset.listener.ColumnListener">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.listener.</code><code class="sig-name descname">ColumnListener</code><a class="headerlink" href="#dataset.listener.ColumnListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.listener.DatasetBaseListener" title="dataset.listener.DatasetBaseListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.DatasetBaseListener</span></code></a></p>
+<p>Listener for events occuring in a Column.</p>
+<p>Available types:
+* DESCRIPTION_CHANGED
+* UNIT_CHANGED
+* DATA_CHANGED</p>
+<p>Cause is always null.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.listener.DatasetBaseListener">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.listener.</code><code class="sig-name descname">DatasetBaseListener</code><a class="headerlink" href="#dataset.listener.DatasetBaseListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.listener.EventListener" title="dataset.listener.EventListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.EventListener</span></code></a></p>
+<p>Generic interface for listeners that will listen to events
+happening on a target of a specific type.
+Java Warning:
+The listener must be a class field in order to make an object
+hard reference.</p>
+<dl class="method">
+<dt id="dataset.listener.DatasetBaseListener.targetChanged">
+<code class="sig-name descname">targetChanged</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.DatasetBaseListener.targetChanged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Informs that an event has happened in a target of the
+specified type.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.listener.DatasetEvent">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.listener.</code><code class="sig-name descname">DatasetEvent</code><span class="sig-paren">(</span><em class="sig-param">source</em>, <em class="sig-param">target</em>, <em class="sig-param">type_</em>, <em class="sig-param">change</em>, <em class="sig-param">cause</em>, <em class="sig-param">rootCause</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.DatasetEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.serializable.Serializable" title="dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.serializable.Serializable</span></code></a></p>
+<dl class="method">
+<dt id="dataset.listener.DatasetEvent.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.DatasetEvent.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.listener.DatasetEvent.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.DatasetEvent.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.listener.DatasetEventSender">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.listener.</code><code class="sig-name descname">DatasetEventSender</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.DatasetEventSender" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.listener.EventSender" title="dataset.listener.EventSender"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.EventSender</span></code></a></p>
+<dl class="method">
+<dt id="dataset.listener.DatasetEventSender.addListener">
+<code class="sig-name descname">addListener</code><span class="sig-paren">(</span><em class="sig-param">listener</em>, <em class="sig-param">cls=&lt;class 'dataset.listener.DatasetBaseListener'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.DatasetEventSender.addListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a listener to this.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.listener.DatasetEventSender.fire">
+<code class="sig-name descname">fire</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.DatasetEventSender.fire" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.listener.DatasetListener">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.listener.</code><code class="sig-name descname">DatasetListener</code><a class="headerlink" href="#dataset.listener.DatasetListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.listener.DatasetBaseListener" title="dataset.listener.DatasetBaseListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.DatasetBaseListener</span></code></a></p>
+<p>Listener for events occuring in MetaData.
+Available types:
+* DESCRIPTION_CHANGED, METADATA_CHANGED (all datasets)
+* DATA_CHANGED, UNIT_CHANGED (ArrayDataset)
+* COLUMN_ADDED, COLUMN_REMOVED, COLUMN_CHANGED, ROW_ADDED, VALUE_CHANGED (TableDataset)
+* DATASET_ADDED, DATASET_REMOVED, DATASET_CHANGED (CompositeDataset)</p>
+<p>Possible causes:
+not null (METADATA_CHANGED, COLUMN_CHANGED, DATASET_CHANGED)
+null (rest)</p>
+<p>Warning: The listener handler must be a class attribute in order to
+create an object hard reference. See DatasetBaseListener.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.listener.EventListener">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.listener.</code><code class="sig-name descname">EventListener</code><a class="headerlink" href="#dataset.listener.EventListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Generic interface for listeners that will listen to anything</p>
+<dl class="method">
+<dt id="dataset.listener.EventListener.targetChanged">
+<code class="sig-name descname">targetChanged</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.EventListener.targetChanged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Informs that an event has happened in a target of 
+any type.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.listener.EventSender">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.listener.</code><code class="sig-name descname">EventSender</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.EventSender" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>adapted from Peter Thatcher’s
+<a class="reference external" href="https://stackoverflow.com/questions/1092531/event-system-in-python/1096614#1096614">https://stackoverflow.com/questions/1092531/event-system-in-python/1096614#1096614</a></p>
+<dl class="method">
+<dt id="dataset.listener.EventSender.addListener">
+<code class="sig-name descname">addListener</code><span class="sig-paren">(</span><em class="sig-param">listener</em>, <em class="sig-param">cls=&lt;class 'dataset.listener.EventListener'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.EventSender.addListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a listener to this.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.listener.EventSender.fire">
+<code class="sig-name descname">fire</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.EventSender.fire" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.listener.EventSender.getListenerCount">
+<code class="sig-name descname">getListenerCount</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.EventSender.getListenerCount" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.listener.EventSender.getListeners">
+<code class="sig-name descname">getListeners</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.EventSender.getListeners" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current Listeners.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.listener.EventSender.getListenersurn">
+<code class="sig-name descname">getListenersurn</code><span class="sig-paren">(</span><em class="sig-param">remove=None</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.EventSender.getListenersurn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current Listenersurn.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.listener.EventSender.listeners">
+<em class="property">property </em><code class="sig-name descname">listeners</code><a class="headerlink" href="#dataset.listener.EventSender.listeners" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.listener.EventSender.listenersurn">
+<em class="property">property </em><code class="sig-name descname">listenersurn</code><a class="headerlink" href="#dataset.listener.EventSender.listenersurn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.listener.EventSender.removeListener">
+<code class="sig-name descname">removeListener</code><span class="sig-paren">(</span><em class="sig-param">listener</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.EventSender.removeListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes a listener from this.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.listener.EventSender.setListeners">
+<code class="sig-name descname">setListeners</code><span class="sig-paren">(</span><em class="sig-param">listeners</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.EventSender.setListeners" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces the current Listeners with specified argument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.listener.EventSender.setListenersurn">
+<code class="sig-name descname">setListenersurn</code><span class="sig-paren">(</span><em class="sig-param">listenersurn</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.listener.EventSender.setListenersurn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces the current Listenersurn with specified argument.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.listener.EventType">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.listener.</code><code class="sig-name descname">EventType</code><a class="headerlink" href="#dataset.listener.EventType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="dataset.listener.EventType.COLUMN_ADDED">
+<code class="sig-name descname">COLUMN_ADDED</code><em class="property"> = 0</em><a class="headerlink" href="#dataset.listener.EventType.COLUMN_ADDED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.COLUMN_CHANGED">
+<code class="sig-name descname">COLUMN_CHANGED</code><em class="property"> = 1</em><a class="headerlink" href="#dataset.listener.EventType.COLUMN_CHANGED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.COLUMN_REMOVED">
+<code class="sig-name descname">COLUMN_REMOVED</code><em class="property"> = 2</em><a class="headerlink" href="#dataset.listener.EventType.COLUMN_REMOVED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.DATASET_ADDED">
+<code class="sig-name descname">DATASET_ADDED</code><em class="property"> = 4</em><a class="headerlink" href="#dataset.listener.EventType.DATASET_ADDED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.DATASET_CHANGED">
+<code class="sig-name descname">DATASET_CHANGED</code><em class="property"> = 5</em><a class="headerlink" href="#dataset.listener.EventType.DATASET_CHANGED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.DATASET_REMOVED">
+<code class="sig-name descname">DATASET_REMOVED</code><em class="property"> = 6</em><a class="headerlink" href="#dataset.listener.EventType.DATASET_REMOVED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.DATA_CHANGED">
+<code class="sig-name descname">DATA_CHANGED</code><em class="property"> = 3</em><a class="headerlink" href="#dataset.listener.EventType.DATA_CHANGED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.DESCRIPTION_CHANGED">
+<code class="sig-name descname">DESCRIPTION_CHANGED</code><em class="property"> = 7</em><a class="headerlink" href="#dataset.listener.EventType.DESCRIPTION_CHANGED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.METADATA_CHANGED">
+<code class="sig-name descname">METADATA_CHANGED</code><em class="property"> = 8</em><a class="headerlink" href="#dataset.listener.EventType.METADATA_CHANGED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.PARAMETER_ADDED">
+<code class="sig-name descname">PARAMETER_ADDED</code><em class="property"> = 9</em><a class="headerlink" href="#dataset.listener.EventType.PARAMETER_ADDED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.PARAMETER_CHANGED">
+<code class="sig-name descname">PARAMETER_CHANGED</code><em class="property"> = 10</em><a class="headerlink" href="#dataset.listener.EventType.PARAMETER_CHANGED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.PARAMETER_REMOVED">
+<code class="sig-name descname">PARAMETER_REMOVED</code><em class="property"> = 11</em><a class="headerlink" href="#dataset.listener.EventType.PARAMETER_REMOVED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.ROW_ADDED">
+<code class="sig-name descname">ROW_ADDED</code><em class="property"> = 12</em><a class="headerlink" href="#dataset.listener.EventType.ROW_ADDED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.ROW_REMOVED">
+<code class="sig-name descname">ROW_REMOVED</code><em class="property"> = 13</em><a class="headerlink" href="#dataset.listener.EventType.ROW_REMOVED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.UNIT_CHANGED">
+<code class="sig-name descname">UNIT_CHANGED</code><em class="property"> = 14</em><a class="headerlink" href="#dataset.listener.EventType.UNIT_CHANGED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="dataset.listener.EventType.VALUE_CHANGED">
+<code class="sig-name descname">VALUE_CHANGED</code><em class="property"> = 15</em><a class="headerlink" href="#dataset.listener.EventType.VALUE_CHANGED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.listener.MetaDataListener">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.listener.</code><code class="sig-name descname">MetaDataListener</code><a class="headerlink" href="#dataset.listener.MetaDataListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.listener.DatasetBaseListener" title="dataset.listener.DatasetBaseListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.DatasetBaseListener</span></code></a></p>
+<p>Listener for events occuring in MetaData.
+Available types:
+* PARAMETER_ADDED
+* PARAMETER_REMOVED
+* PARAMETER_CHANGED</p>
+<p>Possible causes:
+not null (for PARAMETER_CHANGED, if parameter internally changed)
+null (for PARAMETER_CHANGED, when set is called with a previous
+existing parameter, and rest)</p>
+<p>Warning: The listener handler must be a class attribute in order to
+create an object hard reference. See DatasetBaseListener.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.listener.ParameterListener">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.listener.</code><code class="sig-name descname">ParameterListener</code><a class="headerlink" href="#dataset.listener.ParameterListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.listener.DatasetBaseListener" title="dataset.listener.DatasetBaseListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.DatasetBaseListener</span></code></a></p>
+<p>Listener for events occuring in a Parameter.
+Available types:
+* DESCRIPTION_CHANGED
+* UNIT_CHANGED
+* VALUE_CHANGED</p>
+<p>Cause is always null.</p>
+<p>Warning: The listener handler must be a class attribute in order to
+create an object hard reference. See DatasetBaseListener.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.listener.ProductListener">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.listener.</code><code class="sig-name descname">ProductListener</code><a class="headerlink" href="#dataset.listener.ProductListener" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.listener.DatasetBaseListener" title="dataset.listener.DatasetBaseListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.DatasetBaseListener</span></code></a></p>
+<p>Listener for events occuring in Product.
+Available types:
+* METADATA_CHANGED
+* DATASET_ADDED
+* DATASET_REMOVED
+* DATASET_CHANGED</p>
+<p>Possible causes:</p>
+<p>not null (METADATA_CHANGED, DATASET_CHANGED)
+null (METADATA_CHANGED, DATASET_REMOVED, DATASET_CHANGED)</p>
+<p>Warning: The listener handler must be a class attribute in order to
+create an object hard reference. See DatasetBaseListener.</p>
+</dd></dl>
+
+<span class="target" id="module-dataset.metadata"></span><dl class="class">
+<dt id="dataset.metadata.MetaData">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.metadata.</code><code class="sig-name descname">MetaData</code><span class="sig-paren">(</span><em class="sig-param">copy=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.MetaData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.composite.Composite" title="dataset.composite.Composite"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.composite.Composite</span></code></a>, <a class="reference internal" href="#dataset.copyable.Copyable" title="dataset.copyable.Copyable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.copyable.Copyable</span></code></a>, <a class="reference internal" href="#dataset.serializable.Serializable" title="dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.serializable.Serializable</span></code></a>, <a class="reference internal" href="#dataset.listener.ParameterListener" title="dataset.listener.ParameterListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.ParameterListener</span></code></a>, <a class="reference internal" href="#dataset.listener.DatasetEventSender" title="dataset.listener.DatasetEventSender"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.DatasetEventSender</span></code></a></p>
+<p>A container of named Parameters. A MetaData object can
+have one or more parameters, each of them stored against a
+unique name. The order of adding parameters to this container
+is important, that is: the keySet() method will return a set of
+labels of the parameters in the sequence as they were added.
+Note that replacing a parameter with the same name,
+will keep the order.</p>
+<dl class="method">
+<dt id="dataset.metadata.MetaData.accept">
+<code class="sig-name descname">accept</code><span class="sig-paren">(</span><em class="sig-param">visitor</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.MetaData.accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for adding functionality to meta data object
+through visitor pattern.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.MetaData.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.MetaData.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all the key - parameter mappings.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.MetaData.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.MetaData.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>add eventhandling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.MetaData.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.MetaData.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.MetaData.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">newParameter</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.MetaData.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>add eventhandling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.MetaData.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.MetaData.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.metadata.NumericParameter">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.metadata.</code><code class="sig-name descname">NumericParameter</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.NumericParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.metadata.Parameter" title="dataset.metadata.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.metadata.Parameter</span></code></a>, <a class="reference internal" href="#dataset.quantifiable.Quantifiable" title="dataset.quantifiable.Quantifiable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.quantifiable.Quantifiable</span></code></a></p>
+<p>has a number as the value and a unit.</p>
+<dl class="method">
+<dt id="dataset.metadata.NumericParameter.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.NumericParameter.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.metadata.Parameter">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.metadata.</code><code class="sig-name descname">Parameter</code><span class="sig-paren">(</span><em class="sig-param">value=None</em>, <em class="sig-param">type_=''</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.Parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.annotatable.Annotatable" title="dataset.annotatable.Annotatable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.annotatable.Annotatable</span></code></a>, <a class="reference internal" href="#dataset.copyable.Copyable" title="dataset.copyable.Copyable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.copyable.Copyable</span></code></a>, <a class="reference internal" href="#dataset.eq.DeepEqual" title="dataset.eq.DeepEqual"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.eq.DeepEqual</span></code></a>, <a class="reference internal" href="#dataset.listener.DatasetEventSender" title="dataset.listener.DatasetEventSender"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.DatasetEventSender</span></code></a>, <a class="reference internal" href="#dataset.serializable.Serializable" title="dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.serializable.Serializable</span></code></a></p>
+<p>Parameter is the interface for all named attributes
+in the MetaData container. It can have a value and a description.</p>
+<dl class="method">
+<dt id="dataset.metadata.Parameter.accept">
+<code class="sig-name descname">accept</code><span class="sig-paren">(</span><em class="sig-param">visitor</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.Parameter.accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds functionality to classes of this type.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.Parameter.getType">
+<code class="sig-name descname">getType</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.Parameter.getType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the actual type that is allowed for the value
+of this Parameter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.Parameter.getValue">
+<code class="sig-name descname">getValue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.Parameter.getValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the value of this parameter as an Object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.Parameter.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.Parameter.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.Parameter.setType">
+<code class="sig-name descname">setType</code><span class="sig-paren">(</span><em class="sig-param">type_</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.Parameter.setType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces the current type of this parameter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.Parameter.setValue">
+<code class="sig-name descname">setValue</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.Parameter.setValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces the current value of this parameter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.Parameter.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadata.Parameter.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.Parameter.type_">
+<em class="property">property </em><code class="sig-name descname">type_</code><a class="headerlink" href="#dataset.metadata.Parameter.type_" title="Permalink to this definition">¶</a></dt>
+<dd><p>for property getter</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.metadata.Parameter.value">
+<em class="property">property </em><code class="sig-name descname">value</code><a class="headerlink" href="#dataset.metadata.Parameter.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>for property getter</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-dataset.metadataholder"></span><dl class="class">
+<dt id="dataset.metadataholder.MetaDataHolder">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.metadataholder.</code><code class="sig-name descname">MetaDataHolder</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadataholder.MetaDataHolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Object holding meta data. 
+mh: object for compatibility with python2</p>
+<dl class="method">
+<dt id="dataset.metadataholder.MetaDataHolder.getMeta">
+<code class="sig-name descname">getMeta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.metadataholder.MetaDataHolder.getMeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current MetaData container of this object. 
+Cannot become a python property because setMeta is in Attributable</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-dataset.ndprint"></span><dl class="function">
+<dt id="dataset.ndprint.ndprint">
+<code class="sig-prename descclassname">dataset.ndprint.</code><code class="sig-name descname">ndprint</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">trans=True</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.ndprint.ndprint" title="Permalink to this definition">¶</a></dt>
+<dd><p>makes a formated string of an N-dimensional array for printing.</p>
+</dd></dl>
+
+<span class="target" id="module-dataset.odict"></span><dl class="class">
+<dt id="dataset.odict.ODict">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.odict.</code><code class="sig-name descname">ODict</code><a class="headerlink" href="#dataset.odict.ODict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.OrderedDict</span></code></p>
+<p>OrderedDict with a better __repre__.</p>
+<dl class="method">
+<dt id="dataset.odict.ODict.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.odict.ODict.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dataset.odict.bstr">
+<code class="sig-prename descclassname">dataset.odict.</code><code class="sig-name descname">bstr</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">tostr=True</em>, <em class="sig-param">quote=&quot;'&quot;</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.odict.bstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the best string representation. if the object is a string, return single-quoted; if has toString(), use it; else returns str().</p>
+</dd></dl>
+
+<span class="target" id="module-dataset.product"></span><dl class="class">
+<dt id="dataset.product.FineTime1">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.product.</code><code class="sig-name descname">FineTime1</code><span class="sig-paren">(</span><em class="sig-param">date=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.FineTime1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.copyable.Copyable" title="dataset.copyable.Copyable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.copyable.Copyable</span></code></a>, <a class="reference internal" href="#dataset.eq.DeepEqual" title="dataset.eq.DeepEqual"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.eq.DeepEqual</span></code></a>, <a class="reference internal" href="#dataset.serializable.Serializable" title="dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.serializable.Serializable</span></code></a></p>
+<p>Atomic time(SI seconds) elapsed since the TAI epoch
+of 1 January 2000 UT2. The resolution is one microsecond and the
+allowable range is: epoch + /-290, 000 years approximately.</p>
+<p>This has the following advantages, compared with the standard class:</p>
+<p>It has better resolution(microseconds)
+Time differences are correct across leap seconds
+It is immutable</p>
+<dl class="attribute">
+<dt id="dataset.product.FineTime1.EPOCH">
+<code class="sig-name descname">EPOCH</code><em class="property"> = datetime.datetime(2000, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)</em><a class="headerlink" href="#dataset.product.FineTime1.EPOCH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.FineTime1.microsecondsSinceEPOCH">
+<code class="sig-name descname">microsecondsSinceEPOCH</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.FineTime1.microsecondsSinceEPOCH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of microseconds since the epoch: 1 Jan 1958.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.FineTime1.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.FineTime1.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.FineTime1.subtract">
+<code class="sig-name descname">subtract</code><span class="sig-paren">(</span><em class="sig-param">time</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.FineTime1.subtract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subract the specified time and return the difference
+in microseconds.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.FineTime1.toDate">
+<code class="sig-name descname">toDate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.FineTime1.toDate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return this time as a Python Date.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.FineTime1.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.FineTime1.toString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a String representation of this object.
+prints like 2019 - 02 - 17T12: 43: 04.577000 TAI</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.product.History">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.product.</code><code class="sig-name descname">History</code><span class="sig-paren">(</span><em class="sig-param">other=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.History" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.dataset.CompositeDataset" title="dataset.dataset.CompositeDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.dataset.CompositeDataset</span></code></a>, <a class="reference internal" href="#dataset.eq.DeepEqual" title="dataset.eq.DeepEqual"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.eq.DeepEqual</span></code></a></p>
+<p>Public interface to the history dataset. Contains the
+main methods for retrieving a script and copying the history.</p>
+<dl class="method">
+<dt id="dataset.product.History.accept">
+<code class="sig-name descname">accept</code><span class="sig-paren">(</span><em class="sig-param">visitor</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.History.accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for adding functionality to meta data object
+through visitor pattern.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.History.getOutputVar">
+<code class="sig-name descname">getOutputVar</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.History.getOutputVar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the final output variable of the history script.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.History.getScript">
+<code class="sig-name descname">getScript</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.History.getScript" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Jython script from the history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.History.getTaskHistory">
+<code class="sig-name descname">getTaskHistory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.History.getTaskHistory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a human readable formatted history tree.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.History.saveScript">
+<code class="sig-name descname">saveScript</code><span class="sig-paren">(</span><em class="sig-param">file</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.History.saveScript" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the history script to a file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.History.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.History.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.product.Product">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.product.</code><code class="sig-name descname">Product</code><span class="sig-paren">(</span><em class="sig-param">creator=''</em>, <em class="sig-param">creationDate=None</em>, <em class="sig-param">instrument=''</em>, <em class="sig-param">startDate=''</em>, <em class="sig-param">endDate=''</em>, <em class="sig-param">rootCause='UNKNOWN'</em>, <em class="sig-param">modelName='UNKNOWN'</em>, <em class="sig-param">type='UNKNOWN'</em>, <em class="sig-param">mission='SVOM'</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.Product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dataset.abstractcomposite.AbstractComposite" title="dataset.abstractcomposite.AbstractComposite"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.abstractcomposite.AbstractComposite</span></code></a>, <a class="reference internal" href="#dataset.copyable.Copyable" title="dataset.copyable.Copyable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.copyable.Copyable</span></code></a>, <a class="reference internal" href="#dataset.serializable.Serializable" title="dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.serializable.Serializable</span></code></a>, <a class="reference internal" href="#dataset.listener.EventSender" title="dataset.listener.EventSender"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.EventSender</span></code></a></p>
+<p>A Product is a generic result that can be passed on between
+(standalone) processes.</p>
+<p>In general a Product contains zero or more datasets, history,
+optional metadata as well as some required metadata fields.
+Its intent is that it can fully describe itself; this includes
+the way how this product was achieved (its history). As it is
+the result of a process, it should be able to save to and restore
+from an Archive device.</p>
+<p>Many times a Product may contain a single dataset and for this
+purpose the first dataset entry can be accessed by the getDefault()
+method. Note that the datasets may be a composite of datasets
+by themselves.</p>
+<p>mh: Mandatory Attributes can be accessed with e.g. p.creator
+or p.meta[‘creator’]</p>
+<dl class="method">
+<dt id="dataset.product.Product.accept">
+<code class="sig-name descname">accept</code><span class="sig-paren">(</span><em class="sig-param">visitor</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.Product.accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for adding functionality to meta data object
+through visitor pattern.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.Product.getDefault">
+<code class="sig-name descname">getDefault</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.Product.getDefault" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method that returns the first dataset         belonging to this product.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.Product.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.Product.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.Product.setMeta">
+<code class="sig-name descname">setMeta</code><span class="sig-paren">(</span><em class="sig-param">newMetadata</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.Product.setMeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces the current MetaData with specified argument. 
+mh: Product will override this to add listener whenevery meta is
+replaced</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.Product.targetChanged">
+<code class="sig-name descname">targetChanged</code><span class="sig-paren">(</span><em class="sig-param">event</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.Product.targetChanged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Informs that an event has happened in a target of the
+specified type.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.product.Product.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em>, <em class="sig-param">beforedata=''</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.Product.toString" title="Permalink to this definition">¶</a></dt>
+<dd><p>like AbstractComposite but with history</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dataset.product.addMandatoryProductAttrs">
+<code class="sig-prename descclassname">dataset.product.</code><code class="sig-name descname">addMandatoryProductAttrs</code><span class="sig-paren">(</span><em class="sig-param">cls</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.product.addMandatoryProductAttrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>mh: Add MPAs to a class so that although they are metadata,
+they can be accessed by for example, productfoo.creator.
+dynamic properties see
+<a class="reference external" href="https://stackoverflow.com/a/2584050">https://stackoverflow.com/a/2584050</a>
+<a class="reference external" href="https://stackoverflow.com/a/1355444">https://stackoverflow.com/a/1355444</a></p>
+</dd></dl>
+
+<span class="target" id="module-dataset.quantifiable"></span><dl class="class">
+<dt id="dataset.quantifiable.Quantifiable">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.quantifiable.</code><code class="sig-name descname">Quantifiable</code><span class="sig-paren">(</span><em class="sig-param">unit=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.quantifiable.Quantifiable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A Quantifiable object is a numeric object that has a unit.
+$ x.unit = ELECTRON_VOLTS
+$ print x.unit
+eV [1.60218E-19 J]</p>
+<dl class="method">
+<dt id="dataset.quantifiable.Quantifiable.getUnit">
+<code class="sig-name descname">getUnit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.quantifiable.Quantifiable.getUnit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the unit related to this object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.quantifiable.Quantifiable.setUnit">
+<code class="sig-name descname">setUnit</code><span class="sig-paren">(</span><em class="sig-param">unit</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.quantifiable.Quantifiable.setUnit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the unit of this object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.quantifiable.Quantifiable.unit">
+<em class="property">property </em><code class="sig-name descname">unit</code><a class="headerlink" href="#dataset.quantifiable.Quantifiable.unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-dataset.serializable"></span><dl class="class">
+<dt id="dataset.serializable.Serializable">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.serializable.</code><code class="sig-name descname">Serializable</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.serializable.Serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>mh: Can be serialized.
+Has a ClassID and version instance property to show its class
+and version information.</p>
+<dl class="method">
+<dt id="dataset.serializable.Serializable.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.serializable.Serializable.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns an odict that has all state info of this object.
+Subclasses should override this function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dataset.serializable.Serializable.serialized">
+<code class="sig-name descname">serialized</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.serializable.Serializable.serialized" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dataset.serializable.SerializableEncoder">
+<em class="property">class </em><code class="sig-prename descclassname">dataset.serializable.</code><code class="sig-name descname">SerializableEncoder</code><span class="sig-paren">(</span><em class="sig-param">*</em>, <em class="sig-param">skipkeys=False</em>, <em class="sig-param">ensure_ascii=True</em>, <em class="sig-param">check_circular=True</em>, <em class="sig-param">allow_nan=True</em>, <em class="sig-param">sort_keys=False</em>, <em class="sig-param">indent=None</em>, <em class="sig-param">separators=None</em>, <em class="sig-param">default=None</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.serializable.SerializableEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">json.encoder.JSONEncoder</span></code></p>
+<p>can encode parameter and product etc such that they can be recovered
+with deserializeClassID</p>
+<dl class="method">
+<dt id="dataset.serializable.SerializableEncoder.default">
+<code class="sig-name descname">default</code><span class="sig-paren">(</span><em class="sig-param">obj</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.serializable.SerializableEncoder.default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement this method in a subclass such that it returns
+a serializable object for <code class="docutils literal notranslate"><span class="pre">o</span></code>, or calls the base implementation
+(to raise a <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>).</p>
+<p>For example, to support arbitrary iterators, you could
+implement default like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">iterable</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+    <span class="c1"># Let the base class default method raise the TypeError</span>
+    <span class="k">return</span> <span class="n">JSONEncoder</span><span class="o">.</span><span class="n">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="dataset.serializable.serializeClassID">
+<code class="sig-prename descclassname">dataset.serializable.</code><code class="sig-name descname">serializeClassID</code><span class="sig-paren">(</span><em class="sig-param">o</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.serializable.serializeClassID" title="Permalink to this definition">¶</a></dt>
+<dd><p>return JSON using special encoder SerializableEncoder</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-dataset">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-dataset" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../pal/pal.html" title="pal package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../api.html" title="API Reference"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">spdc v0.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../api.html" >API Reference</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Maohai Huang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

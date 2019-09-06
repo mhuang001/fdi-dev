@@ -1,0 +1,355 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pns: Processing Network Node Web API Server &#8212; spdc v0.6 documentation</title>
+    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="../api/api.html" />
+    <link rel="prev" title="PAL: Product Access Layer" href="pal.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../api/api.html" title="API Reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="pal.html" title="PAL: Product Access Layer"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">spdc v0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pns: Processing Network Node Web API Server</a><ul>
+<li><a class="reference internal" href="#basic-configuration">Basic Configuration</a></li>
+<li><a class="reference internal" href="#run-the-flask-server">Run the FLASK Server</a></li>
+<li><a class="reference internal" href="#test-and-verify-installation">Test and Verify Installation</a></li>
+<li><a class="reference internal" href="#server-unit-test">1. Server Unit Test</a></li>
+<li><a class="reference internal" href="#local-flask-server-functional-tests">2. Local Flask Server Functional Tests</a></li>
+<li><a class="reference internal" href="#get-public-access-apis-and-information">3. Get public access APIs and information</a></li>
+<li><a class="reference internal" href="#run-tests-from-a-remote-client">4. Run tests from a remote client</a></li>
+<li><a class="reference internal" href="#run-the-local-tests-with-apache">Run the local tests with Apache</a></li>
+<li><a class="reference internal" href="#pts-configuration">PTS Configuration</a></li>
+<li><a class="reference internal" href="#pts-api">PTS API</a></li>
+<li><a class="reference internal" href="#return-on-common-errors">Return on Common Errors</a><ul>
+<li><a class="reference internal" href="#resources">Resources</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="pal.html"
+                        title="previous chapter">PAL: Product Access Layer</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../api/api.html"
+                        title="next chapter">API Reference</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/usage/pns.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pns-processing-network-node-web-api-server">
+<h1>pns: Processing Network Node Web API Server<a class="headerlink" href="#pns-processing-network-node-web-api-server" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<p>Thhis Web API Server for a data processing pipeline/network node provides interfaces to make a run request to and read results from a processing task in a processing node via web APIs.</p>
+<p>The following commands are run from the spdc directory from installation.</p>
+<div class="section" id="basic-configuration">
+<h2>Basic Configuration<a class="headerlink" href="#basic-configuration" title="Permalink to this headline">¶</a></h2>
+<p>When running Flask server, the host IP is 0.0.0.0 and port number 5000 by default. They are configurable in pnsconfig.py. Default configuration can be overrided by ~/local.py. Copy pnsconfig.py to ~/local.py</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cp pns/pnsconfig.py ~/local.py
+</pre></div>
+</div>
+<p>and edit to make local changes. Especially set dev to True to run local server.</p>
+<p>On the server side (or on your computer which can be both the server and the client) edit the pnshome directory $PDIR if needed and run the deployment script</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pns/installpns
+</pre></div>
+</div>
+</div>
+<div class="section" id="run-the-flask-server">
+<h2>Run the FLASK Server<a class="headerlink" href="#run-the-flask-server" title="Permalink to this headline">¶</a></h2>
+<p>Edit local.py if needed. Then</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python3.6 pns/runflaskserver.py --username<span class="o">=</span>&lt;username&gt; --password<span class="o">=</span>&lt;password&gt; <span class="o">[</span>--ip<span class="o">=</span>&lt;host ip&gt;<span class="o">]</span> <span class="o">[</span>--port<span class="o">=</span>&lt;port&gt;<span class="o">]</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python3.6 pns/runflaskserver.py -u &lt;username&gt; -p &lt;password&gt; <span class="o">[</span>-i &lt;host ip&gt;<span class="o">]</span> <span class="o">[</span>-o &lt;port&gt;<span class="o">]</span>
+</pre></div>
+</div>
+<p>in debugging mode:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python3.6 pns/runflaskserver.py --username<span class="o">=</span>foo --password<span class="o">=</span>bar -v
+</pre></div>
+</div>
+<p>or just</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./startserver
+</pre></div>
+</div>
+<p>to use the defaults.</p>
+<p>Do not run debugging mode for production use.</p>
+<p>The username and password are used when making run requests.</p>
+</div>
+<div class="section" id="test-and-verify-installation">
+<h2>Test and Verify Installation<a class="headerlink" href="#test-and-verify-installation" title="Permalink to this headline">¶</a></h2>
+<p>To run all tests in one go:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./test <span class="m">3</span> <span class="o">[</span>-u &lt;username&gt; -p &lt;password&gt; <span class="o">[</span>-i &lt;host ip&gt;<span class="o">]</span> <span class="o">[</span>-o &lt;port&gt;<span class="o">]]</span> <span class="o">[</span>options<span class="o">]</span>
+</pre></div>
+</div>
+<p>Tests can be done step-by-step to pin-point problems:</p>
+</div>
+<div class="section" id="server-unit-test">
+<h2>1. Server Unit Test<a class="headerlink" href="#server-unit-test" title="Permalink to this headline">¶</a></h2>
+<p>Run on the server host. without needing starting the server:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./test <span class="m">4</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="local-flask-server-functional-tests">
+<h2>2. Local Flask Server Functional Tests<a class="headerlink" href="#local-flask-server-functional-tests" title="Permalink to this headline">¶</a></h2>
+<p>In ~/local.py (in pns/pnsconfig.py if you have not made local.py), set dev=True and make sure the IP is local (0.0.0.0 or 127.0.0.1). Start the server fresh in one terminal (see above) and in another terminal (on the server host) run the following:</p>
+<p>2a: test GET initPTS script to see if reading the init script back works:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./test <span class="m">3</span> getinit
+</pre></div>
+</div>
+<p>2b: test PUT initialization test:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./test <span class="m">3</span> -k putinittest
+</pre></div>
+</div>
+<p>2c1: If the test passes, you can Run all tests in one go:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./test <span class="m">3</span>
+</pre></div>
+</div>
+<p>2c2: Or keep on individual tests…</p>
+<p>test POST In-server processing</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./test <span class="m">3</span> -k _post
+</pre></div>
+</div>
+<p>test POST PTS processing</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./test <span class="m">3</span> -k _run
+</pre></div>
+</div>
+<p>test DELETE Clean-up the server by removing the input and output dirs</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./test <span class="m">3</span> -k deleteclean
+</pre></div>
+</div>
+<p>Now is a good time to …</p>
+</div>
+<div class="section" id="get-public-access-apis-and-information">
+<h2>3. Get public access APIs and information<a class="headerlink" href="#get-public-access-apis-and-information" title="Permalink to this headline">¶</a></h2>
+<p>Suppose the server address and port are 127.0.0.1 and 5000, respectively:</p>
+<p>Run the Flask server in a terminal (see above) and open this in a browser:</p>
+<p><a class="reference external" href="http://127.0.0.1:5000/v0.6/">http://127.0.0.1:5000/v0.6/</a></p>
+<p>An online API documentation page similar to below is shown.</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="nt">&quot;APIs&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="nt">&quot;DELETE&quot;</span><span class="p">:</span> <span class="p">[</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/clean&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot; Removing traces of past runnings the Processing Task Software.\n    &quot;</span>
+<span class="p">}</span>
+<span class="p">],</span>
+<span class="nt">&quot;GET&quot;</span><span class="p">:</span> <span class="p">[</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/init&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;the initPTS file&quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/config&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;the configPTS file&quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/run&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;the file running PTS&quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/clean&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;the cleanPTS file&quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/input&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot; returns names and contents of all files in the dir, &#39;None&#39; if dir not existing. &quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/output&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot; returns names and contents of all files in the dir, &#39;None&#39; if dir not existing. &quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/pnsconfig&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;PNS configuration&quot;</span>
+<span class="p">}</span>
+<span class="p">],</span>
+<span class="nt">&quot;POST&quot;</span><span class="p">:</span> <span class="p">[</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/calc&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot; generates result product directly using data on PNS.\n    &quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/testcalc&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot; generate post test product.\n    put the 1st input (see maketestdata in test_all.py)\n    parameter to metadata\n    and 2nd to the product&#39;s dataset\n    &quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/echo&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Echo&quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/run&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot; Generates a product by running script defined in the config under &#39;run&#39;. Execution on the server host is in the pnshome directory and run result and status are returned.\n    &quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/testrun&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;  Run &#39;runPTS&#39; for testing, and as an example.\n    &quot;</span>
+<span class="p">}</span>
+<span class="p">],</span>
+<span class="nt">&quot;PUT&quot;</span><span class="p">:</span> <span class="p">[</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/init&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot; Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned. If input/output directories cannot be created with serveruser as owner, Error401 will be given.\n    &quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/config&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot; Configure the Processing Task Software by running the config script. Ref init PTS.\n    &quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/pnsconf&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot; Configure the PNS itself by replacing the pnsconfig var\n    &quot;</span>
+<span class="p">},</span>
+<span class="p">{</span>
+<span class="nt">&quot;URL&quot;</span><span class="p">:</span> <span class="s2">&quot;http://127.0.0.1:5000/v0.6/inittest&quot;</span><span class="p">,</span>
+<span class="nt">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;     Renames the &#39;init&#39; &#39;config&#39; &#39;run&#39; &#39;clean&#39; scripts to \&quot;*.save\&quot; and points it to the &#39;.ori&#39; scripts.\n    &quot;</span>
+<span class="p">}</span>
+<span class="p">]</span>
+<span class="p">},</span>
+<span class="nt">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mf">1566130779.0208821</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Continue with tests…</p>
+</div>
+<div class="section" id="run-tests-from-a-remote-client">
+<h2>4. Run tests from a remote client<a class="headerlink" href="#run-tests-from-a-remote-client" title="Permalink to this headline">¶</a></h2>
+<p>Install pns on a remote host, configure IP and port, then run the tests above. This proves that the server and the client have connection and fire wall configured correctly.</p>
+</div>
+<div class="section" id="run-the-local-tests-with-apache">
+<h2>Run the local tests with Apache<a class="headerlink" href="#run-the-local-tests-with-apache" title="Permalink to this headline">¶</a></h2>
+<p>Set dev=False in ~/local.py (see above) and set the IP and port.
+Suppose the server is on CentOS. Edit pns/resources/pns.conf according to local setup, then</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cp pns/resources/pns.conf /etc/httpd/conf.d
+systemctl restart httpd
+systemctl status http -l
+</pre></div>
+</div>
+<p>then run the above with correct IP and port (edit ~/local.py or specifying in command line). Start the server and run all the tests:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">test</span> <span class="mi">3</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pts-configuration">
+<h2>PTS Configuration<a class="headerlink" href="#pts-configuration" title="Permalink to this headline">¶</a></h2>
+<p>To run a PTS shell script instead of the ‘hello’ demo, change the <code class="docutils literal notranslate"><span class="pre">`run`</span></code> parameter in the config file, e.g. to run the script named <code class="docutils literal notranslate"><span class="pre">runPTS.vvpp</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">run</span><span class="o">=</span><span class="p">[</span><span class="n">join</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="s1">&#39;runPTS.vvpp&#39;</span><span class="p">),</span> <span class="s1">&#39;&#39;</span><span class="p">],</span>
+</pre></div>
+</div>
+<p>restart the server. run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">test</span> <span class="mi">4</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pts-api">
+<h2>PTS API<a class="headerlink" href="#pts-api" title="Permalink to this headline">¶</a></h2>
+<p>TBW</p>
+</div>
+<div class="section" id="return-on-common-errors">
+<h2>Return on Common Errors<a class="headerlink" href="#return-on-common-errors" title="Permalink to this headline">¶</a></h2>
+<p>400</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Bad request.&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">ts</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>401</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Unauthorized. Authentication needed to modify.&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">ts</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>404</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Not found.&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">ts</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>409</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Conflict. Updating.&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">ts</span><span class="p">}</span>
+</pre></div>
+</div>
+<div class="section" id="resources">
+<h3>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h3>
+<p>TBW</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../api/api.html" title="API Reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="pal.html" title="PAL: Product Access Layer"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">spdc v0.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Maohai Huang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+    </div>
+  </body>
+</html>

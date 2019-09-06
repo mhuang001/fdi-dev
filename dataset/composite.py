@@ -34,7 +34,7 @@ class Composite(DeepEqual):
     def get(self, name):
         """ Returns the dataset to which this composite maps the
         specified name.
-        mh: changed name to get_ to use super class get"""
+        """
         return self._sets.get(name)
 
     def set(self, name, dataset):
@@ -46,8 +46,9 @@ class Composite(DeepEqual):
         and the specified key or value is null."""
 
         if name == '' or name is None:
-            logger.error('Bad dataset name.')
-            raise ValueError()
+            msg = 'Bad dataset name.'
+            logger.error(msg)
+            raise ValueError(msg)
 
         self._sets[name] = dataset
 

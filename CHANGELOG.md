@@ -55,3 +55,8 @@ Projects merged.
 0.6 2019-08-17
 --------------
 listener, mem: URN, deserializable list
+
+0.7 2019-08-27
+--------------
+documentation with sphinx. vvpp docker works. release to FSC.
+	

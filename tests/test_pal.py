@@ -1,4 +1,3 @@
-import datetime
 import traceback
 from pprint import pprint
 import json
@@ -21,6 +20,12 @@ if doLogging:
 from dataset.eq import deepcmp
 from dataset.product import Product
 from dataset.deserialize import deserializeClassID
+
+from pal.urn import Urn, parseUrn, makeUrn
+from pal.productstorage import ProductStorage
+from pal.productref import ProductRef
+from pal.context import Context, MapContext, MapRefsDataset
+from pal.common import getProductObject
 
 
 def checkjson(obj):
@@ -78,14 +83,6 @@ def checkgeneral(v):
         assert false
 
 
-from pal.urn import Urn
-from pal.productstorage import ProductStorage
-from pal.productref import ProductRef
-from pal.comparable import Comparable
-from pal.context import Context, MapContext, MapRefsDataset
-from pal.common import getProductObject
-
-
 def test_Urn():
     prd = Product(description='pal test')
     a1 = 'file'      # scheme
@@ -100,6 +97,21 @@ def test_Urn():
     r = a4 + ':' + str(a5)
     rp = a4 + '_' + str(a5)
     u = 'urn:' + p + ':' + r
+
+    # utils
+    assert parseUrn(u) == (p, a4, str(a5), a1, a2, a2 + a3)
+    poolname, resourceclass, serialnumstr, scheme, place, poolpath = parseUrn(
+        'urn:file://c:/tmp/mypool:proj1.product:322')
+    assert poolname == 'file://c:/tmp/mypool'
+    assert resourceclass == 'proj1.product'
+    assert place == 'c:'
+    assert poolpath == 'c:/tmp/mypool'
+    poolname, resourceclass, serialnumstr, scheme, place, poolpath = parseUrn(
+        'urn:https://127.0.0.1:5000/tmp/mypool:proj1.product:322')
+    assert poolname == 'https://127.0.0.1:5000/tmp/mypool'
+    assert resourceclass == 'proj1.product'
+    assert place == '127.0.0.1:5000'
+    assert poolpath == '/tmp/mypool'
 
     # constructor
     # urn only
@@ -135,9 +147,6 @@ def test_Urn():
     assert v.getPool() == v.pool
     assert v.getTypeName() == a4
     assert v.getPlace() == v.place
-
-    # utils
-    assert Urn.parseUrn(u) == (p, a4, str(a5), a1, a2, a2 + a3)
 
     checkjson(v)
 

@@ -12,10 +12,9 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from .urn import Urn
+from .urn import Urn, makeUrn
 from .productref import ProductRef
-from .comparable import Comparable
-from .common import getJsonObj
+from .common import getProductObject
 from .definable import Definable
 from .taggable import Taggable
 from .versionable import Versionable
@@ -35,23 +34,19 @@ class ProductPool(Definable, Taggable, Versionable):
     def __init__(self, poolurn='file:///tmp/pool', **kwds):
         super().__init__(**kwds)
         self._poolurn = poolurn
-        sp = poolurn.split('://')
-        self._scheme = sp[0]
-        self._poolpath = sp[1]
+        pr = urlparse(poolurn)
+        self._scheme = pr.scheme
+        self._place = pr.netloc
+        # convenient access path
+        self._poolpath = pr.netloc + \
+            pr.path if pr.scheme in ('file', 'mem') else pr.path
         self._classes = ODict()
-        logger.debug(poolpath)
+        logger.debug(self._poolpath)
 
-    @staticmethod
-    def getPool(poolurn):
-        """ returns an instance of pool according to urn.
-        """
-        sp = poolurn.split('://')
-        if sp[0] == 'file':
-            return LocalPool(poolurn)
-        elif sp[0] == 'mem':
-            return MemPool(poolurn)
-        else:
-            raise ValueError(sp[0] + ':// is not supported')
+    def accept(self, visitor):
+        """ Hook for adding functionality to object
+        through visitor pattern."""
+        visitor.visit(self)
 
     def dereference(self, ref):
         """
@@ -63,6 +58,7 @@ class ProductPool(Definable, Taggable, Versionable):
         """
         Determines the existence of a product with specified URN.
         """
+        return urn in self._urns
 
     def getDefinition(self):
         """
@@ -72,9 +68,9 @@ class ProductPool(Definable, Taggable, Versionable):
 
     def getId(self):
         """
-        Get the identifier of this pool.
+        Gets the identifier of this pool.
         """
-        returns self._poolurn
+        return self._poolurn
 
     def getProductClasses(self):
         """
@@ -93,7 +89,7 @@ class ProductPool(Definable, Taggable, Versionable):
         """
         Get the identifier of this pool used to build URN, usually it's same as id returned by getId().
         """
-        return self.getDefinition()
+        return self.getId()
 
     def isAlive(self):
         """
@@ -117,47 +113,92 @@ class ProductPool(Definable, Taggable, Versionable):
         """
         Loads a Product belonging to specified URN.
         """
+        return getProductObject(urn)
 
     def meta(self,  urn):
         """ 
         Loads the meta-data belonging to the product of specified URN.
         """
+        return self._urns[urn]['meta']
 
     def reference(self,  ref):
         """ 
         Increment the reference count of a ProductRef.
         """
 
+    def schematicRemove(self,  typename, serialnum):
+        """ to be implemented by subckasses to do the scheme-specific removing
+        """
+        pass
+
     def remove(self,  urn):
         """
         Removes a Product belonging to specified URN.
         """
 
-    def removeAll(self, ):
+        poolname, resourcecn, indexs, scheme, place, poolpath = \
+            self.parseUrn(urn)
+
+        if self._poolname != poolname:
+            raise ValueError(
+                urn + ' is not from the pool ' + pool)
+
+        prod = resourcecn
+        sn = int(indexs)
+
+        c, t, u = self._classes, self._tags, self._urns
+        # save a copy for rolling back
+        cs, ts, us = deepcopy(c), deepcopy(t), deepcopy(u)
+
+        if urn not in u:
+            raise ValueError(
+                '%s not found in pool %s.' % (urn, self.getId()))
+
+        with filelock.FileLock(poolpath + '/lock'):
+            self.removeUrn(urn)
+            c[prod]['sn'].remove(sn)
+            if len(c[prod]['sn']) == 0:
+                del c[prod]
+            try:
+                self.schematicRemove(typename=prod.__class__.__qualname__,
+                                     serialnum=sn)
+            except Exception as e:
+                msg = 'product ' + urn + ' removal failed'
+                logger.debug(msg)
+                # undo changes
+                c, t, u = cs, ts, us
+                raise e
+
+    def removeAll(self):
         """
         Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).
         """
+        with filelock.FileLock(poolpath + '/lock'):
+            try:
+                self.schematicWipe()
+            except Exception as e:
+                msg = self.getId() + 'wiping failed'
+                logger.debug(msg)
+                raise e
 
     def saveDescriptors(self,  urn,  desc):
         """
         Save/Update descriptors in pool.
         """
 
-    def doSaving(self, poolpath, typename, serialnum, data):
-        """ to be implemented by subckasses to do the media-specific saving
+    def schematicSave(self,  typename, serialnum, data):
+        """ to be implemented by subckasses to do the scheme-specific saving
         """
+        pass
 
     def saveProduct(self,  product, tag=None):
         """
         Saves specified product and returns the designated URN.
-        Save a product or a list of products to the pool, possibly under the supplied tag, and return the reference (or a list of references if the input is a list of products).
+        Saves a product or a list of products to the pool, possibly under the supplied tag, and return the reference (or a list of references if the input is a list of products).
         """
-        c = self._classes
-        t = self._tags
+        c, t, u = self._classes, self._tags, self._urns
         # save a copy
-        cs, ts = deepcopy(c), deepcopy(t)
-
-        poolpath = sp[1]
+        cs, ts, us = deepcopy(c), deepcopy(t), deepcopy(u)
 
         if not issubclass(product.__class__, list):
             prds = [product]
@@ -167,37 +208,36 @@ class ProductPool(Definable, Taggable, Versionable):
         for prd in prds:
             pn = prd.__class__.__qualname__
 
-            with filelock.FileLock(poolpath + '/lock'):
+            with filelock.FileLock(self._poolpath + '/lock'):
                 if pn in c:
                     sn = (c[pn]['currentSN'] + 1)
                 else:
                     sn = 0
-                    c[pn] = ODict({'sn': ODict()})
-                if tag is not None:
-                    if tag not in t:
-                        t[tag] = ODict({pn: []})
+                    c[pn] = ODict(sn=[])
 
                 c[pn]['currentSN'] = sn
-                s2t = c[pn]['sn']
-                if sn in s2t:
-                    s2t[sn]['meta'] = prd.meta
-                    s2t[sn]['tags'].append(tag)
-                else:
-                    s2t[sn] = ODict(meta=prd.meta, tags=[tag])
+                c[pn]['sn'].append(sn)
+                urnobj = Urn(cls=prd.__class__, pool=self._poolurn, index=sn)
+                urn = urnobj.urn
+
+                if urn not in u:
+                    u[urn] = {'tags': [], 'meta': prd.meta}
 
                 if tag is not None:
-                    t[tag][pn].append(sn)
+                    self.setTag(tag, urn)
 
                 try:
-                    self.doSaving(poolpath, typename=pn,
-                                  serialnum=sn, data=prd)
+                    self.schematicSaving(typename=pn,
+                                         serialnum=sn,
+                                         data=prd)
                 except Exception as e:
+                    msg = 'product ' + urn + ' saving failed'
+                    logger.debug(msg)
                     # undo changes
-                    c = cl
-                    t = ta
+                    c, t, u = cs, ts, us
                     raise e
-            u = Urn(cls=prd.__class__, pool=pool, index=sn)
-            rf = ProductRef(urnobj=u)
+
+            rf = ProductRef(urnobj=urnobj)
             # it seems that there is no better way to set meta
             rf._meta = prd.getMeta()
             rfs.append(rf)
@@ -210,8 +250,15 @@ class ProductPool(Definable, Taggable, Versionable):
         """
         Returns a list of references to products that match the specified query.
         """
+        c, t, u = self._classes, self._tags, self._urns
+        cs, ts, us = deepcopy(c), deepcopy(t), deepcopy(u)
+        return
 
     def select(self,  query,  results):
         """
         Refines a previous query, given the refined query and result of the previous query.
         """
+        return
+
+    def __repr__(self):
+        return self.__class__.__name__ + ' { pool= ' + str(self._poolurn) + ' }'

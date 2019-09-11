@@ -14,55 +14,68 @@ class Taggable():
 
     def __init__(self, **kwds):
         super().__init__(**kwds)
+        # {tag:{urn:[]}
         self._tags = dict()
+        # {urn:{tags:[], 'meta':meta}
         self._urns = dict()
 
     def getTags(self, urn=None):
-        """ Get all known tags if urn is not specified.
+        """ 
         Get all of the tags that map to a given URN.
+        Get all known tags if urn is not specified.
         mh: returns an iterator.
         """
         if urn is None:
             return self._tags.keys()
         #uobj = Urn(urn=urn)
-        return self._urns[urn]
+        return self._urns[urn]['tags']
 
     def getTagUrnMap(self):
         """
         Get the full tag->urn mappings.
+        mh: returns an iterator
         """
-        return self._tags
+        return zip(self._tags.keys(), map(lambda v: v['urns'], self._value()))
+
+    def getUrn(self, tag):
+        """
+        Gets the URNs corresponding to the given tag.
+        """
+
+        return self._tags[tag]['urns']
 
     def getUrnObject(self, tag):
         """
         Gets the URNobjects corresponding to the given tag.
         """
-        l = [Urn(x) for x in self._tags(tag)]
+        l = [Urn(x) for x in self._tags[tag]['urns']]
         return l
 
-    def removekey(self, key, themap, oppmap):
+    def removekey(self, key, themap, thename, othermap, othername):
         """
         Remove the given key.
         """
         vals = themap.pop(key)
-        # remove all items whose v is key in the opposit map
-        for val in vals:
-            oppmap[val].remove(key)
-            if len(oppmap[val]) == 0:
-                oppmap.pop(val)
+        # remove all items whose v is key in the otherosit map
+        for val in vals[othername]:
+            othermap[val][thename].remove(key)
+            if len(othermap[val][thename]) == 0:
+                othermap[val].pop(thename)
+                if len(othermap[val]) == 0:
+                    othermap.pop(val)
 
     def removeTag(self, tag):
         """
         Remove the given tag.
         """
-        self.removekey(tag, self._tags, self._urns)
+        self.removekey(tag, self._tags, self._urns, 'tags', 'urns')
 
     def removeUrn(self, urn):
         """
         Remove the given urn from the tag-urn map.
         """
         u = urn.urn if issubclass(urn.__class__, Urn) else urn
-        self.removekey(u, self._urns, self._tags)
+        self.removekey(u, self._urns, self._tags, 'urns', 'tags')
 
     def setTag(self, tag,  urn):
         """
@@ -70,9 +83,12 @@ class Taggable():
         """
         u = urn.urn if issubclass(urn.__class__, Urn) else urn
         if tag in self._tags:
-            self._tags[tag].append(u)
+            if 'urn' in self._tags[tag]:
+                self._tags[tag].append(u)
+            else:
+                self._tags[tag]['urn'] = [u]
         else:
-            self._tags[tag] = [u]
+            self._tags[tag] = {'urns': [u]}
 
     def tagExists(self, tag):
         """

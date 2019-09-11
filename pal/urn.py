@@ -17,6 +17,39 @@ from .comparable import Comparable
 #from .common import getClass
 
 
+def parseUrn(urn):
+    """
+    Checks the URN string is valid in its form and splits it. For example if the urn is ``urn:file://c:/tmp/mypool/proj1.product:322`` into poolname ``file://c:/tmp/mypool/proj1.product:322`` into poolname ``file://c:/tmp/mypool``, resource type (usually class) name ``proj1.product``, serial number in string ``'322'``, scheme ``file``, place ``c:`` (with ip and port if given), and poolpath ``c:/tmp/mypool``
+    """
+    if not issubclass(urn.__class__, str):
+        raise TypeError('a urn string needed')
+    # is a urn?
+    sp1 = urn.split(':', maxsplit=1)
+    if sp1[0] != 'urn':
+        raise ValueError('a urn string must start with \'urn\'')
+    if len(sp1) < 2:
+        raise ValueError('bad urn: ' + sp1[1])
+    # maxsplit=2 so that if netloc is e.g. c: or http: , the : in it is not parsed:
+    sp2 = sp1[1].rsplit(':', maxsplit=2)
+    if len(sp2) < 3:
+        raise ValueError('bad urn: ' + sp1[1])
+    serialnumstr = sp2[2]
+    resourceclass = sp2[1]
+    poolname = sp2[0]
+    pr = urlparse(poolname)
+    scheme = pr.scheme
+    place = pr.netloc
+    # convenient access path
+    poolpath = place + pr.path if scheme in ('file', 'mem') else pr.path
+    return poolname, resourceclass, serialnumstr, scheme, place, poolpath
+
+
+def makeUrn(poolname, typename, index):
+    """ assembles a URN with infos of the pool, the resource type, and the index
+    """
+    return 'urn:' + poolname + ':' + typename + ':' + str(index)
+
+
 class Urn(DeepEqual, Serializable, Comparable):
     """ The object representation of the product URN string. The 
     memory consumed by sets of this object are much less than sets
@@ -35,40 +68,14 @@ class Urn(DeepEqual, Serializable, Comparable):
     scheme format: file, ram, http ... etc
     place format: 192.168.5.6:8080, c: ... etc
     directory format: 
-    for 'file' schem: '/' + name + '/' + name + ... + '/' + name
-    for 'mem' schem: '/' + name + '/' + name + ... + '/' + process_ID
+    for 'file' scheme: '/' + name + '/' + name + ... + '/' + name
+    for 'mem' scheme: '/' + name + '/' + name + ... + '/' + process_ID
     serialnumber format: str(int). 
     for file scheme : internal index; 
     for memm scheme: python object id
     """
 
-    @staticmethod
-    def parseUrn(urn):
-        """
-        """
-        if not issubclass(urn.__class__, str):
-            raise TypeError('a urn string needed')
-        # is a urn?
-        sp1 = urn.split(':', maxsplit=1)
-        if sp1[0] != 'urn':
-            raise ValueError('a urn string must start with \'urn\'')
-        if len(sp1) < 2:
-            raise ValueError('bad urn: ' + sp1[1])
-        # maxsplit=2 so that if netloc is e.g. c: , the : is not parsed
-        sp2 = sp1[1].rsplit(':', maxsplit=2)
-        if len(sp2) < 3:
-            raise ValueError('bad urn: ' + sp1[1])
-        serialnumstr = sp2[2]
-        resourceclass = sp2[1]
-        poolname = sp2[0]
-        pr = urlparse(poolname)
-        scheme = pr.scheme
-        place = pr.netloc
-        # convenient access path
-        poolpath = place + pr.path if scheme in ('file', 'mem') else pr.path
-        return poolname, resourceclass, serialnumstr, scheme, place, poolpath
-
-    def __init__(self, cls=None, pool=None, index=None, urn=None, **kwds):
+    def __init__(self, pool=None, cls=None, index=None, urn=None, **kwds):
         """
         Creates the URN object with the urn string or components.
         if urn is given and pool, class, etc are also specified,
@@ -91,8 +98,9 @@ class Urn(DeepEqual, Serializable, Comparable):
                     return
                 else:
                     raise ValueError('give urn or all other arguments')
-            urn = 'urn:' + pool + ':' + cls.__qualname__ + ':' + str(index)
-
+            urn = makeUrn(poolname=pool,
+                          typename=cls.__qualname__,
+                          index=index)
         self.setUrn(urn)
 
     @staticmethod
@@ -116,8 +124,9 @@ class Urn(DeepEqual, Serializable, Comparable):
         """ parse urn to get scheme, place, pool, resource, index.
         """
 
-        poolname, resourcecn, indexs, scheme, place, poolpath = self.parseUrn(
-            urn)
+        poolname, resourcecn, indexs, scheme, place, poolpath = \
+            parseUrn(urn)
+
         cls = resourcecn  # getClass(resourcecn)
 
         self._scheme = scheme
@@ -169,16 +178,18 @@ class Urn(DeepEqual, Serializable, Comparable):
     def getFullPath(urn):
         """ returns the place+poolname+resource directory of the urn
         """
-        poolname, resourcecn, indexs, scheme, place, poolpath = Urn.parseUrn(
+        poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(
             urn)
         return poolpath + '/' + resourcecn + '_' + indexs
 
     @property
     def pool(self):
+        """ returns the pool URN.
+        """
         return self.getPoolId()
 
     def getPoolId(self):
-        """ Returns the poolId in this """
+        """ Returns the pool URN in this """
         return self._pool
 
     def getPool(self):

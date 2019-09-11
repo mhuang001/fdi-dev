@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 from .urn import Urn
-from dataset.deserialize import deserializeClassID
 from pns.common import getJsonObj
 
 
@@ -61,9 +60,3 @@ def getProductObject(urn, lgb=None):
                     logger.debug(': ' + str(v))
         p = getObjectbyId(idn, lgbv=lgbv)
     return p
-
-
-def getClass1(name):
-    """
-    """
-    return globals()[name]

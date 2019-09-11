@@ -11,7 +11,6 @@ from dataset.eq import DeepEqual
 from dataset.odict import ODict
 from .comparable import Comparable
 from .urn import Urn
-from . import productstorage
 from .common import getProductObject
 
 
@@ -19,16 +18,17 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 
-    def __init__(self, urnobj=None, storage=None, **kwds):
-        """ if urnobj is not None and not a Urn instance create an in-memory URN. 
+    def __init__(self, urn=None, pool=None, storage=None, **kwds):
+        """ Urn can be the string or URNobject. if pool and storage are both None create an in-memory URN. 
         mh: If a URN for a URN is needed, use Urn.getInMemUrnObj()
         """
         super().__init__(**kwds)
-        if urnobj is not None and not issubclass(urnobj.__class__, Urn):
+        urnobj = Urn(urn) if issubclass(urn.__class__, str) else urn
+        if pool is None and storage is None:
             # urnobj is the python obj id
             urnobj = Urn.getInMemUrnObj(urnobj)
 
-        self.setUrnObj(urnobj, storage)
+        self.setUrnObj(urnobj, storage=storage)
         self._parents = []
 
     @property
@@ -82,8 +82,8 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
         """
         self.setUrnObj(urnobj)
 
-    def setUrnObj(self, urnobj, storage=None):
-        """ use supplied productstorage or create to get metaadata
+    def setUrnObj(self, urnobj):
+        """ sets urn and get metadata from the pool
         """
         if urnobj is not None:
             logger.debug(urnobj)
@@ -92,19 +92,13 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
         self._urnobj = urnobj
         if urnobj is not None:
             self._urn = urnobj.urn
-            if urnobj._scheme == 'file':
-                if storage is not None:
-                    s = storage
-                else:
-                    s = productstorage.ProductStorage(urnobj._pool)
-                self._storage = s
-                # there seems no better way to set ref meta
-                self._meta = s.getMeta(urnobj)
-            else:
-                self._meta = ODict()
+            import pal.productstorage as pps
+            self._storage = pps.ProductStorage(urnobj.pool)
+            self._meta = self._storage.getMeta(self._urn)
+            self._parents = None
         else:
             self._urn = None
-            self._meta = ODict()
+            self._parents = None
 
     def getUrnObj(self):
         """ Returns the URN as an object.

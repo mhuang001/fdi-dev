@@ -12,7 +12,6 @@ tar xf /tmp/spdc.tar; tar xf /tmp/svom.tar
 /usr/bin/cp -f spdc/install .
 cd $INST/spdc; pip3 install -e .
 cd $INST/svom; pip3 install -e .
-cd $INST/vvpp; pip3 install -e .
 cd $INST/spdc; . installpns
 
 

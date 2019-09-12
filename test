@@ -24,8 +24,4 @@ if [ $n -ne 0 -a $f -eq 4 ]; then
     pytest --debug -v -r P -k 'server' $* tests/test_pns.py;
 fi
 
-if [ $n -ne 0 -a $f -eq 5 ]; then
-    shift
-    pytest --debug -v -r P -k 'vvpp' $* tests/test_pns.py;
-fi
 

@@ -84,6 +84,12 @@ def checkserver():
     # initialize test data.
 
 
+def check0result(result, msg):
+    # if msg is string, an exception must have happened
+    assert result == 0, 'Error %d testing script "run". msg: ' + str(msg)
+    assert msg == '' or not isinstance(msg, (str, bytes)), msg
+
+
 def test_getpnsconfig():
     ''' gets and compares pnsconfig remote and local
     '''
@@ -106,6 +112,52 @@ def checkContents(cmd, filename):
     assert result == o['result'], o['message']
 
 
+def test_serverinit():
+    """ server unit test for put init. 
+    this is conflict with put testinit. will condition the server for running the PTS, not suitable for running other test
+    """
+    ret, sta = server.initPTS(None)
+    check0result(ret, sta)
+
+
+def test_putinit():
+    """ calls the default pnsconfig['scripts']['init'] script.
+    this is conflict with put testinit. will condition the server for running the PTS, not suitable for running other test
+    """
+
+    d = {'timeout': 5}
+    # print(nodetestinput)
+    o = putJsonObj(aburl +
+                   '/init',
+                   d,
+                   headers=commonheaders)
+    issane(o)
+    check0result(o['result'], o['message'])
+
+# this will condition the server for testing
+
+
+def test_servertestinit():
+    """ server unit test for put testinit """
+    ret, sta = server.testinit(None)
+    check0result(ret, sta)
+
+
+# this will condition the server for testing
+def test_puttestinit():
+    """ Prepares for the rest of the tests.  Renames the 'init' 'config' 'run' 'clean' scripts to "*.save" and points it to the '.ori' scripts.
+    """
+
+    checkserver()
+    d = {'timeout': 5}
+    o = putJsonObj(aburl +
+                   '/testinit',
+                   d,
+                   headers=commonheaders)
+    issane(o)
+    check0result(o['result'], o['message'])
+
+
 def test_getinit():
     ''' compare. server side initPTS contens with the local  default copy
     '''
@@ -124,59 +176,6 @@ def test_getrun():
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
     fn = pkg_resources.resource_filename("pns.resources", n)
     checkContents(cmd='/' + c, filename=fn + '.ori')
-
-
-def checkputinitresult(result, msg):
-    # if msg is string, an exception must have happened
-    assert not isinstance(msg, (str, bytes)), msg
-    assert result == 0, 'Error %d testing script "run". msg: ' + str(msg)
-
-
-def test_servertestinit():
-    """ server unit test for put init """
-    ret, sta = server.testinit(None)
-    checkputinitresult(ret, sta)
-
-
-def test_puttestinit():
-    """     Renames the 'init' 'config' 'run' 'clean' scripts to "*.save" and points it to the '.ori' scripts.
-    """
-
-    d = {'timeout': 5}
-    # print(nodetestinput)
-    o = putJsonObj(aburl +
-                   '/testinit',
-                   d,
-                   headers=commonheaders)
-    issane(o)
-    checkputinitresult(o['result'], o['message'])
-
-
-def test_serverinit():
-    """ server unit test for put init """
-    ret, sta = server.initPTS(None)
-    checkputinitresult(ret, sta)
-
-
-def test_servertestinit():
-    """ server unit test for put testinit """
-    ret, sta = server.testinit(None)
-    checkputinitresult(ret, sta)
-
-
-def test_putinit():
-    """ calls the default pnsconfig['scripts']['init'] script
-    which checks the existence of 'hello'
-    """
-
-    d = {'timeout': 5}
-    # print(nodetestinput)
-    o = putJsonObj(aburl +
-                   '/init',
-                   d,
-                   headers=commonheaders)
-    issane(o)
-    checkputinitresult(o['result'], o['message'])
 
 
 def test_putconfigpns():
@@ -232,8 +231,8 @@ def makeposttestdata():
                   'input': x})
 
 
-def checkpostresult(o):
-    global lupd, nodetestinput
+def checkpostresult(o, nodetestinput):
+
     p = o['result']
     assert issubclass(p.__class__, Product), (p.__class__)
     # creator rootcause
@@ -254,8 +253,7 @@ def test_post():
     properties, parameters, and dataset containing those in the input
     '''
     logger.info('POST testpipeline node server')
-    global lupd, nodetestinput
-    checkserver()
+
     nodetestinput = makeposttestdata()
     # print(nodetestinput)
     o = postJsonObj(aburl +
@@ -263,7 +261,7 @@ def test_post():
                     nodetestinput,
                     headers=commonheaders)
     issane(o)
-    checkpostresult(o)
+    checkpostresult(o, nodetestinput)
 
 
 def makeruntestdata():
@@ -276,8 +274,7 @@ def makeruntestdata():
     return x
 
 
-def checkrunresult(p, msg):
-    global lupd, nodetestinput
+def checkrunresult(p, msg, nodetestinput):
 
     assert issubclass(p.__class__, Product), str(p) + ' ' + str(msg)
 
@@ -291,14 +288,13 @@ def checkrunresult(p, msg):
     assert p['theAnswer'].data[:len(answer)] == answer
 
 
-def test_serverrun():
+def test_servertestrun():
     ''' send a product that has a name string as its data
     to the server "testrun" routine locally installed with this
     test, and get back a product with
     a string 'hello, $name!' as its data
     '''
     logger.info('POST test for pipeline node server "testrun": hello')
-    global nodetestinput
 
     test_servertestinit()
 
@@ -310,19 +306,17 @@ def test_serverrun():
     logger.debug(js[:160])
     o, msg = server.testrun(js)
     # issane(o) is skipped
-    checkrunresult(o, msg)
+    checkrunresult(o, msg, nodetestinput)
 
 
-def test_run():
+def test_testrun():
     ''' send a product that has a name string as its data
     to the server and get back a product with
     a string 'hello, $name!' as its data
     '''
     logger.info('POST test for pipeline node server: hello')
-    global lupd, nodetestinput
-    checkserver()
 
-    test_putinit()
+    test_puttestinit()
 
     x = makeruntestdata()
     # construct the nodetestinput to the node
@@ -334,38 +328,7 @@ def test_run():
                     nodetestinput,
                     headers=commonheaders)
     issane(o)
-    checkrunresult(o['result'], o['message'])
-
-
-def checkvvppresult(p, msg):
-    global lupd, nodetestinput
-
-   # assert issubclass(p.__class__, Product), str(p) + ' ' + str(msg)
-
-    # input data
-    print('result: ' + str(p))
-    print('message: ' + str(msg))
-
-
-def test_vvpp():
-    '''
-    '''
-    logger.info('POST test for pipeline node server: vvpp')
-    global lupd, nodetestinput
-    checkserver()
-
-    test_putinit()
-
-    # construct the nodetestinput to the node
-    nodetestinput = ODict({'creator': 'me', 'rootcause': 'vvpp test',
-                           'input': 0})
-    # print(nodetestinput)
-    o = postJsonObj(aburl +
-                    '/run',
-                    nodetestinput,
-                    headers=commonheaders)
-    issane(o)
-    checkvvppresult(o['result'], o['message'])
+    checkrunresult(o['result'], o['message'], nodetestinput)
 
 
 def test_deleteclean():
@@ -373,7 +336,7 @@ def test_deleteclean():
     '''
     logger.info('delete cleanPTS')
     # make sure input and output dirs are made
-    test_run()
+    test_testrun()
     o = getJsonObj(aburl + '/input')
     issane(o)
     assert o['result'] is not None
@@ -403,8 +366,6 @@ def test_mirror():
     ''' send a set of data to the server and get back the same.
     '''
     logger.info('POST testpipeline node server')
-    checkserver()
-    global lupd, nodetestinput
     nodetestinput = makeposttestdata()
     # print(nodetestinput)
     o = postJsonObj(aburl +
@@ -454,7 +415,7 @@ def test_sleep():
     re, st = o['result'], o['message']
     assert re == 0, str(re)
     assert d > 0 and d < 0.5
-    print('deviation=%f re=%s state=%s' % (d, str(re), str(st)))
+    #print('deviation=%f re=%s state=%s' % (d, str(re), str(st)))
     # let it timeout
     tout = 1
     now = time.time()
@@ -468,7 +429,7 @@ def test_sleep():
     re, st = o['result'], o['message']
     assert re < 0
     assert d > 0 and d < float(s) - tout
-    print('deviation=%f re=%s state=%s' % (d, str(re), str(st)))
+    #print('deviation=%f re=%s state=%s' % (d, str(re), str(st)))
 
 
 from multiprocessing import Process, Pool, TimeoutError
@@ -502,7 +463,7 @@ import asyncio
 
 
 async def napa(t, d):
-    info(t)
+    # info(t)
     asyncio.sleep(d)
     s = str(t)
     tout = 11
@@ -514,7 +475,7 @@ async def napa(t, d):
                                 data=js,
                                 headers=commonheaders
                                 ) as resp:
-            print(resp.status)
+            # print(resp.status)
             stri = await resp.text()
     o = deserializeClassID(stri)
     #print('nap ' + str(time.time()) + ' ' + str(s) + ' ' + str(o))
@@ -546,7 +507,7 @@ def test_lock():
         loop.close()
         res = [f.result() for f in [x for x in taskres][0]]
 
-    print(res)
+    # print(res)
     if issubclass(res[0]['message'].__class__, ODict):
         r1, r2 = res[0], res[1]
     else:
@@ -578,21 +539,20 @@ if __name__ == '__main__':
 
     elif t == 3:
         test_getpnsconfig()
-        test_getinit()
-        test_getrun()
         test_puttestinit()
         test_putinit()
+        test_getinit()
+        test_getrun()
         test_putconfigpns()
         test_post()
-        test_run()
+        test_testrun()
         test_deleteclean()
         test_mirror()
         test_sleep()
     elif t == 4:
-        test_servertestinit()
         test_serverinit()
         test_servertestinit()
-        test_serverrun()
+        test_servertestrun()
         test_serversleep()
     elif t == 6:
         test_vvpp()

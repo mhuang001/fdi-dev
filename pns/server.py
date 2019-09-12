@@ -215,15 +215,17 @@ def testinit(d=None):
     scpts = [x[0] for x in pc['scripts'].values()]
     logger.debug('mv -f and ln -s :' + str())
     for ni in scpts:
-        cmd = ['mv', '-f', ni, ni + '.save']
-        stat = _execute(cmd, timeout=timeout)
-        if stat['returncode']:
-            break
-        cmd = ['ln', '-s', ni + '.ori', ni]
-        stat = _execute(cmd, timeout=timeout)
-        if stat['returncode']:
-            break
-    return stat['returncode'], stat
+        try:
+            p = Path(ni)
+            if not p.is_symlink:
+                p.rename(ni + '.save')
+            if not p.samefile(ni + '.ori'):
+                p.unlink()
+                p.symlink_to(ni + '.ori')
+        except Exception as e:
+            msg = 'rename or ln failed ' + str(e) + trbk(e)
+            return -1,  msg
+    return 0, ''
 
 
 def configPNS(d=None):
@@ -370,7 +372,7 @@ def run(d, processinput=None, processoutput=None):
         if processinput is not None:
             processinput(d, indata)
         else:
-            r1 = {'contents': indata['input']['table'].data.toString(),
+            r1 = {'contents': indata['input']['table'].toString(),
                   'mode': 'w+'}
             p = indata['input'].meta['pointing'].value
             r2 = {'contents': str(p[0]) + ' ' + str(p[1]),
@@ -559,7 +561,7 @@ def calcresult(cmd, ops=''):
             if cmd == 'run':
                 result, msg = run(d)
             elif cmd == 'testrun':
-                # see test_run() in test_all.py
+                # see test_testrun() in test_all.py
                 result, msg = testrun(d)
             elif cmd == 'sleep':
                 # sleep in the OS for ops seconds

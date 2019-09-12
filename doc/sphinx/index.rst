@@ -10,11 +10,11 @@
 Features
 ========
 
-With SPDC one can package data set into **modular** Data Products with annotation (descrition and units) and meta data (data about data). By combining arrays or tables of Products one can define highly complex structures.
+With SPDC one can package data set into **modular** Data Products with annotation (description and units) and meta data (data about data). By combining arrays or tables of Products one can define highly complex structures.
 
-**Access APIs** of the components of 'SPDCs' are not only available but convenient, making it easier for **scripting and data mining**.
+**Access APIs** of the components of 'SPDCs' are convenient, making it easier for **scripting and data mining**.
 
-All levels of SPDC Products and their component datasets or metadata components are portable (**serializable**) in human-friendly standard format, allowing machine data processors on different platforms to re-construct or parse SPDC. Even a human with a web browser can understand the data.
+All levels of SPDC Products and their component (datasets or metadata) are portable (**serializable**) in human-friendly standard format, allowing machine data processors on different platforms to re-construct or parse SPDC. Even a human with a web browser can understand the data.
 
 Most SPDC Products and components implement **event sender and listener interfaces**, allowing **scalable data-driven** processing pipelines to be constructed.
 
@@ -22,7 +22,7 @@ Reference SPDC storage pool (file based and partially implemented memory based) 
 
 'Context' type of SPDCs are provided so that references of SPDCs can become components, enabling SPDCs to encapsulate rich, deep, **sophisticated, and accessible contextual information**, yet remain light weight.
 
-On the data processor end, a HTML **server** with **RESTful APIs** is provided to exchange SPDC data, especially suitable for **Docker containers** running Linux. There are a lot of legacy software, or software only runs on a specific combination of OS type, version, language, and library. These software could be highly expensive to replace but need to be run side-by-side with new software to form an integral data processing pipeline, or, often, a network of inter-linked "nodes" of  processing tasks, instead of a "line". Docker containers are often the perfect solution to insulate software with incompatible dependencies. SPDC allows such processing tasks to run in the Processing Node Server's memory space, in a daemon process, or in the OS, receiving input and delivering output through a 'delivery man' protocol, in a docker, or a normal server.
+On the data processor end, an HTML **server** with **RESTful APIs** is provided to exchange SPDC data, especially suitable for **Docker containers** running Linux. There are a lot of legacy software, or software only runs on a specific combination of OS type, version, language, and library. These software could be highly expensive to replace but need to be run side-by-side with new software to form an integral data processing pipeline, or, often, a network of inter-linked "nodes" of  processing tasks, instead of a "line". Docker containers are often the perfect solution to insulate software with incompatible dependencies. SPDC allows such processing tasks to run in the Processing Node Server's memory space, in a daemon process, or in the OS, receiving input and delivering output through a 'delivery man' protocol, in a docker, or a normal server.
 
 SPDC Python packages
 ====================

@@ -6,3 +6,4 @@
 
 echo The initialization script at `pwd`
 rm -rf input/* output/*
+ln -f runPTS.vvpp runPTS

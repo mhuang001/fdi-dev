@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from .urn import Urn, makeUrn
+from .urn import Urn, makeUrn, parseUrn
 from .productref import ProductRef
 from .common import getProductObject
 from .definable import Definable
@@ -23,8 +23,7 @@ from dataset.serializable import serializeClassID
 from dataset.dataset import TableDataset
 from dataset.odict import ODict
 
-# Global centralized dict that returns the same ProductStorage+pool.
-PoolStorageList = []
+lockpath = '/tmp'
 
 
 class ProductPool(Definable, Taggable, Versionable):
@@ -40,6 +39,7 @@ class ProductPool(Definable, Taggable, Versionable):
         # convenient access path
         self._poolpath = pr.netloc + \
             pr.path if pr.scheme in ('file', 'mem') else pr.path
+        # {type|classname -> {'sn:[sn]'}}
         self._classes = ODict()
         logger.debug(self._poolpath)
 
@@ -137,9 +137,9 @@ class ProductPool(Definable, Taggable, Versionable):
         """
 
         poolname, resourcecn, indexs, scheme, place, poolpath = \
-            self.parseUrn(urn)
+            parseUrn(urn)
 
-        if self._poolname != poolname:
+        if self._poolurn != poolname:
             raise ValueError(
                 urn + ' is not from the pool ' + pool)
 
@@ -154,13 +154,13 @@ class ProductPool(Definable, Taggable, Versionable):
             raise ValueError(
                 '%s not found in pool %s.' % (urn, self.getId()))
 
-        with filelock.FileLock(poolpath + '/lock'):
+        with filelock.FileLock(lockpath + '/lock'):
             self.removeUrn(urn)
             c[prod]['sn'].remove(sn)
             if len(c[prod]['sn']) == 0:
                 del c[prod]
             try:
-                self.schematicRemove(typename=prod.__class__.__qualname__,
+                self.schematicRemove(typename=prod,
                                      serialnum=sn)
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
@@ -173,13 +173,17 @@ class ProductPool(Definable, Taggable, Versionable):
         """
         Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).
         """
-        with filelock.FileLock(poolpath + '/lock'):
-            try:
-                self.schematicWipe()
-            except Exception as e:
-                msg = self.getId() + 'wiping failed'
-                logger.debug(msg)
-                raise e
+
+        try:
+            self.schematicWipe()
+        except Exception as e:
+            msg = self.getId() + 'wiping failed'
+            logger.debug(msg)
+            raise e
+        self._classes.clear()
+        self._tags.clear()
+        self._urns.clear()
+        logger.debug('Done.')
 
     def saveDescriptors(self,  urn,  desc):
         """
@@ -208,7 +212,7 @@ class ProductPool(Definable, Taggable, Versionable):
         for prd in prds:
             pn = prd.__class__.__qualname__
 
-            with filelock.FileLock(self._poolpath + '/lock'):
+            with filelock.FileLock(lockpath + '/lock'):
                 if pn in c:
                     sn = (c[pn]['currentSN'] + 1)
                 else:
@@ -221,15 +225,15 @@ class ProductPool(Definable, Taggable, Versionable):
                 urn = urnobj.urn
 
                 if urn not in u:
-                    u[urn] = {'tags': [], 'meta': prd.meta}
+                    u[urn] = ODict(tags=[], meta=prd.meta)
 
                 if tag is not None:
                     self.setTag(tag, urn)
 
                 try:
-                    self.schematicSaving(typename=pn,
-                                         serialnum=sn,
-                                         data=prd)
+                    self.schematicSave(typename=pn,
+                                       serialnum=sn,
+                                       data=prd)
                 except Exception as e:
                     msg = 'product ' + urn + ' saving failed'
                     logger.debug(msg)
@@ -237,14 +241,15 @@ class ProductPool(Definable, Taggable, Versionable):
                     c, t, u = cs, ts, us
                     raise e
 
-            rf = ProductRef(urnobj=urnobj)
+            rf = ProductRef(urn=urnobj)
             # it seems that there is no better way to set meta
             rf._meta = prd.getMeta()
             rfs.append(rf)
-        if not issubclass(product.__class__, list):
-            return rfs[0]
-        else:
+        logger.debug('generated prefs ' + str(len(rfs)))
+        if issubclass(product.__class__, list):
             return rfs
+        else:
+            return rfs[0]
 
     def select(self,  query):
         """

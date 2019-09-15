@@ -75,12 +75,12 @@ class Urn(DeepEqual, Serializable, Comparable):
     for memm scheme: python object id
     """
 
-    def __init__(self, pool=None, cls=None, index=None, urn=None, **kwds):
+    def __init__(self, urn=None, pool=None, cls=None, index=None, **kwds):
         """
         Creates the URN object with the urn string or components.
         if urn is given and pool, class, etc are also specified,
         the latter are ignored. else the URN is constructed from them.
-
+        Urn(u) will make a Urn object out of u.
         """
         super().__init__(**kwds)
 

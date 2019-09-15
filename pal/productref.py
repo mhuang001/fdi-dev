@@ -3,7 +3,7 @@
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 from dataset.metadataholder import MetaDataHolder
 from dataset.serializable import Serializable
@@ -14,21 +14,37 @@ from .urn import Urn
 from .common import getProductObject
 
 
-class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
+class ProductRef(MetaDataHolder, Serializable, Comparable):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 
-    def __init__(self, urn=None, pool=None, storage=None, **kwds):
-        """ Urn can be the string or URNobject. if pool and storage are both None create an in-memory URN. 
+    def __init__(self, urn=None, pool=None, product=None, **kwds):
+        """ Urn can be the string or URNobject. if product is provided create an in-memory URN.
         mh: If a URN for a URN is needed, use Urn.getInMemUrnObj()
+        pool is the object type.
         """
         super().__init__(**kwds)
-        urnobj = Urn(urn) if issubclass(urn.__class__, str) else urn
-        if pool is None and storage is None:
-            # urnobj is the python obj id
-            urnobj = Urn.getInMemUrnObj(urnobj)
+        if issubclass(urn.__class__, str):
+            urnobj = Urn(urn)
+        elif issubclass(urn.__class__, Urn):
+            urnobj = urn
+        else:
+            # allow ProductRef(p) where p is a Product
+            product = urn
+            urnobj = None  # in case urn is also None
 
-        self.setUrnObj(urnobj, storage=storage)
+        if product:
+            # urnobj is the python obj id
+            urnobj = Urn.getInMemUrnObj(product)
+            self._meta = product.meta
+        elif pool is not None and urnobj is not None:
+            #    import pal.productstorage as pps
+            #    storage = pps.ProductStorage(pool)
+            self._meta = pool.meta(urnobj.urn)
+        else:
+            self._meta = None
+        self.setUrnObj(urnobj)
+        self._storage = None
         self._parents = []
 
     @property
@@ -38,12 +54,20 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
     def getProduct(self):
         """ Get the product that this reference points to.
         """
+
         return getProductObject(self.getUrn())
 
     def getStorage(self):
         """ Returns the product storage associated.
         """
         return self._storage
+
+    def setStorage(self, storage):
+        """ Returns the product storage associated.
+        """
+        self._storage = storage
+        # if hasattr(self, '_urn') and self._urn:
+        #    self._meta = self._storage.getMeta(self._urn)
 
     def getType(self):
         """ Specifies the Product class to which this Product reference is pointing to.
@@ -83,27 +107,34 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
         self.setUrnObj(urnobj)
 
     def setUrnObj(self, urnobj):
-        """ sets urn and get metadata from the pool
+        """ sets urn
         """
         if urnobj is not None:
-            logger.debug(urnobj)
+            # logger.debug(urnobj)
             assert issubclass(urnobj.__class__, Urn)
 
         self._urnobj = urnobj
         if urnobj is not None:
             self._urn = urnobj.urn
-            import pal.productstorage as pps
-            self._storage = pps.ProductStorage(urnobj.pool)
-            self._meta = self._storage.getMeta(self._urn)
-            self._parents = None
+            # if hasattr(self, '_storage') and self._storage:
+            #    self._meta = self._storage.getMeta(self._urn)
         else:
             self._urn = None
-            self._parents = None
 
     def getUrnObj(self):
         """ Returns the URN as an object.
         """
         return self._urnobj
+
+    @property
+    def meta(self):
+        """ Property """
+        return self.getMeta()
+
+    def getMeta(self):
+        """ Returns the metadata of the product.
+        """
+        return self._meta
 
     def addParent(self, parent):
         """ add a parent
@@ -138,17 +169,30 @@ class ProductRef(MetaDataHolder, Serializable, Comparable, DeepEqual):
         self._parents = parents
 
     def __eq__(self, o):
+        """ has the same Urn.
         """
-        """
-        return self._urnobj == o._urnobj and sorted(self.parents) == sorted(o.parents)
+        if not issubclass(o.__class__, ProductRef):
+            return False
+        return self._urnobj == o._urnobj
 
     def __repr__(self):
         return self.__class__.__name__ + '{ ProductURN=' + self.urn + ', meta=' + str(self.getMeta()) + '}'
 
+    def toString(self, matprint=None, trans=True):
+        """
+        """
+        s = '# ' + self.__class__.__name__ + '\n'
+        s += '# ' + self.urn + '\n'
+        s += '# Parents:' + \
+            str([p.__class__.__name__ +
+                 '(' + p.description + ')'
+                 for p in self.parents]) + '\n'
+        s += '# meta;' + self.meta.toString()
+        return s
+
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return ODict(urnobj=self.urnobj if issubclass(self.urnobj.__class__, Urn) else None,
-                     parents=self.parents,
                      _meta=self.getMeta(),
                      classID=self.classID,
                      version=self.version)

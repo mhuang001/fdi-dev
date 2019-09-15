@@ -372,7 +372,7 @@ def run(d, processinput=None, processoutput=None):
         if processinput is not None:
             processinput(d, indata)
         else:
-            r1 = {'contents': indata['input']['table'].toString(),
+            r1 = {'contents': indata['input'].toString(),
                   'mode': 'w+'}
             p = indata['input'].meta['pointing'].value
             r2 = {'contents': str(p[0]) + ' ' + str(p[1]),

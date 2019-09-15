@@ -10,7 +10,7 @@ import gc
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from .urn import Urn
+from .urn import Urn, parseUrn
 from pns.common import getJsonObj
 
 
@@ -28,8 +28,7 @@ def getObjectbyId(idn, lgbv):
 def getProductObject(urn, lgb=None):
     """ Returns a product from URN. returns object.
     """
-    poolname, resourcecn, indexs, scheme, place, poolpath = Urn.parseUrn(
-        urn)
+    poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(urn)
     if scheme == 'file':
         lock = filelock.FileLock(poolpath + '/lock')
         lock.acquire()

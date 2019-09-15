@@ -4,6 +4,8 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
+from dataset.odict import ODict
+
 from .urn import Urn
 
 
@@ -14,10 +16,10 @@ class Taggable():
 
     def __init__(self, **kwds):
         super().__init__(**kwds)
-        # {tag:{urn:[]}
-        self._tags = dict()
-        # {urn:{tags:[], 'meta':meta}
-        self._urns = dict()
+        # {tag->{'urns':[urn]}
+        self._tags = ODict()
+        # {urn->{'tags':[tag], 'meta':meta}}
+        self._urns = ODict()
 
     def getTags(self, urn=None):
         """ 
@@ -66,29 +68,31 @@ class Taggable():
 
     def removeTag(self, tag):
         """
-        Remove the given tag.
+        Remove the given tag from the tag and urn maps.
         """
-        self.removekey(tag, self._tags, self._urns, 'tags', 'urns')
+        self.removekey(tag, self._tags, 'tags', self._urns, 'urns')
 
     def removeUrn(self, urn):
         """
-        Remove the given urn from the tag-urn map.
+        Remove the given urn from the tag and urn maps.
         """
         u = urn.urn if issubclass(urn.__class__, Urn) else urn
-        self.removekey(u, self._urns, self._tags, 'urns', 'tags')
+        self.removekey(u, self._urns, 'urns', self._tags, 'tags')
 
     def setTag(self, tag,  urn):
         """
         Sets the specified tag to the given URN.
         """
         u = urn.urn if issubclass(urn.__class__, Urn) else urn
-        if tag in self._tags:
-            if 'urn' in self._tags[tag]:
-                self._tags[tag].append(u)
-            else:
-                self._tags[tag]['urn'] = [u]
+        if u not in self._urns:
+            raise ValueError(urn + ' not found in pool')
         else:
-            self._tags[tag] = {'urns': [u]}
+            self._urns[urn]['tags'].append(tag)
+
+        if tag in self._tags:
+            self._tags[tag]['urns'].append(u)
+        else:
+            self._tags[tag] = ODict(urns=[u])
 
     def tagExists(self, tag):
         """

@@ -1,25 +1,17 @@
 # -*- coding: utf-8 -*-
-import filelock
-from copy import deepcopy
-from pathlib import Path
 import collections
-import shutil
-from urllib.parse import urlparse
 
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
+from dataset.odict import ODict
+
 from .urn import Urn
 import pal.productref as ppr
 from .productpool import ProductPool
-from .poolfactory import getPool
-
-from pns.common import getJsonObj
-from dataset.serializable import serializeClassID
-from dataset.dataset import TableDataset
-from dataset.odict import ODict
+from .poolmanager import PoolManager
 
 
 class ProductStorage():
@@ -28,7 +20,7 @@ class ProductStorage():
 
     def __init__(self, pool='file:///tmp/pool', **kwds):
         super().__init__(**kwds)
-        self._pools = collections.OrderedDict()  # dict of pool-urn keys
+        self._pools = ODict()  # dict of pool-urn keys
         self.register(pool)
 
     def register(self, pool):
@@ -39,10 +31,6 @@ class ProductStorage():
             self._pools[pool.getId()] = pool
             return
 
-        # check duplicated case
-        # if pool in GlobalPoolList:
-        #    return
-
         # check if pool is part of an existing one
         for ex in self._pools:
             lex = ex.split('/')
@@ -52,26 +40,46 @@ class ProductStorage():
                 raise ValueError(
                     'pool ' + pool + ' and existing ' + ex + ' overlap.')
 
-        self._pools[pool] = getPool(pool)
+        self._pools[pool] = PoolManager().getPool(pool)
 
         logger.debug('registered pool ' + str(self._pools))
 
     def load(self, urnortag):
-        """ Loads a product with a URN or a list of products with a tag, from the pool.  It always creates new ProductRefs. returns productref(s).
+        """ Loads a product with a URN or a list of products with a tag, from the pool.  It always creates new ProductRefs. 
+        returns productref(s).
         urnortag: urn or tag
         """
+        pool = self.getPool(self.getWritablePool())
 
-        if issubclass(urn.__class__, str):
-            if len(urnortag) > 3 and urnortag[0:4] == 'urn:':
-                return ppr.ProductRef(urn=urnortag, storage=self)
+        def runner(urnortag):
+            if issubclass(urnortag.__class__, list):
+                ulist = []
+                [ulist.append(runner(x)) for x in urnortag]
+                return ulist
             else:
-                urns = self.getUrnFromTag(urnortag)
-                return [ppr.ProductRef(urn=u, storage=self) for u in urns]
-        else:
-            return ppr.ProductRef(urnortag, storage=self)
+                if issubclass(urnortag.__class__, str):
+                    if len(urnortag) > 3 and urnortag[0:4] == 'urn:':
+                        urns = [urnortag]
+                    else:
+                        urns = self.getUrnFromTag(urnortag)
+                elif issubclass(urnortag.__class__, Urn):
+                    urns = [urnortag.urn]
+                else:
+                    raise ValueError(
+                        'must provide urn, urnobj, tags, or lists of them')
+                ret = []
+                for x in urns:
+                    pr = ppr.ProductRef(x, pool)
+                    pr.setStorage(self)
+                    ret.append(pr)
+                return ret
+        ls = runner(urnortag=urnortag)
+        # return a list only when more than one refs
+        return ls if len(ls) > 1 else ls[0]
 
     def save(self, product, tag=None, poolurn=None):
-        """ saves to the writable pool if it has been registered, if not registers and saves.
+        """ saves to the writable pool if it has been registered, if not registers and saves. product can be one or a list of prpoducts.
+        Returns: one or a list of productref with storage info.
         """
 
         if poolurn == None:
@@ -82,7 +90,9 @@ class ProductStorage():
         elif poolurn not in self._pools:
             self.register(poolurn)
 
-        logger.debug('saving product:' + str(product) +
+        desc = [x.description for x in product] if issubclass(
+            product.__class__, list) else product.description
+        logger.debug('saving product:' + str(desc) +
                      ' to pool ' + str(poolurn) + ' with tag ' + str(tag))
 
         try:
@@ -90,6 +100,10 @@ class ProductStorage():
         except Exception as e:
             logger.error('unable to save to the writable pool.')
             raise e
+        if issubclass(ret.__class__, list):
+            [x.setStorage(self) for x in ret]
+        else:
+            ret.setStorage(self)
 
         return ret
 
@@ -97,7 +111,7 @@ class ProductStorage():
         """ removes product of urn from the writeable pool
         """
         poolurn = self.getWritablePool()
-        logger.debug('removing product:' + str(product) +
+        logger.debug('removing product:' + str(urn) +
                      ' from pool ' + str(poolurn))
         try:
             self._pools[poolurn].remove(urn)
@@ -117,16 +131,16 @@ class ProductStorage():
 
     def getPools(self):
         """  Returns the set of ProductPools registered.
-        mh: in a list of (pool, {'classes','tags'})
+        mh: in a list of poolurns
         """
         return list(self._pools.keys())
 
-    def getPool(self, pool):
-        """ mh: returns  {'classes','tags'}
+    def getPool(self, poolurn):
+        """ mh: returns the pool object
         """
-        if pool not in self._pools:
-            raise ValueError('pool ' + pool + ' not found')
-        return self._pools[pool]
+        if poolurn not in self._pools:
+            raise ValueError('pool ' + poolurn + ' not found')
+        return self._pools[poolurn]
 
     def getWritablePool(self):
         return self.getPools()[0]
@@ -136,32 +150,32 @@ class ProductStorage():
         """
         return self._pools[self.getWritablePool()].getTags()
 
-    def getProductClasses(self, pool):
+    def getProductClasses(self, poolurn):
         """  Yields all Product classes found in this pool.
         """
-        return self._pools[pool].getProductClasses()
+        return self._pools[poolurn].getProductClasses()
 
     def getTags(self, urn):
         """  Get the tags belonging to the writable pool that associated to a given URN.
         returns an iterator.
         """
-        return self.getWritablePool().getTags(urn)
+        return self._pools[self.getWritablePool()].getTags(urn)
 
     def getMeta(self, urn):
         """  Get the metadata belonging to the writable pool that associated to a given URN.
-        returns a dict.
+        returns an ODict.
         """
         if not issubclass(urn.__class__, str):
-            urn = Urn(urn=urn)
+            urn = urn.urn
 
-        return self.getWritablePool().meta()
+        return self._pools[self.getWritablePool()].meta(urn)
 
     def getUrnFromTag(self, tag):
         """ Get the URN belonging to the writable pool that is associated
         to a given tag.
         """
 
-        return self.getWritablePool().getUrn(tag)
+        return self._pools[self.getWritablePool()].getUrn(tag)
 
     def wipePool(self, poolurn):
         """
@@ -172,6 +186,11 @@ class ProductStorage():
         if sp[0] != 'file':
             raise ValueError(sp[0] + ':// is not supported')
         self._pools[poolurn].removeAll()
+
+    def __eq__(self, o):
+        """ has the same urn of the writable pool.
+        """
+        return self.getWritablePool() == o.getWritablePool()
 
     def __repr__(self):
         return self.__class__.__name__ + ' { pool= ' + str(self._pools) + ' }'

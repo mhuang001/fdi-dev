@@ -28,11 +28,12 @@ class LocalPool(ProductPool):
     """
 
     def __init__(self, **kwds):
-        """ creates file structure if there isn't one. if there is, read and populate ouse-keeping records
+        """ creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
         """
         super().__init__(**kwds)
 
         p = Path(self._poolpath)
+        logger.debug(self._poolpath)
         if not p.exists():
             p.mkdir()
         c, t, u = self.readHK()
@@ -52,13 +53,13 @@ class LocalPool(ProductPool):
             for hkdata in ['classes', 'tags', 'urns']:
                 fp = fp0.joinpath(hkdata + '.jsn')
                 if fp.exists():
-                    r = getJsonObj(str(fp))
+                    r = getJsonObj(self._scheme + '://' + str(fp))
                     if r is None:
                         msg = 'Error in HK reading ' + str(fp)
                         logging.error(msg)
                         raise Exception(msg)
                 else:
-                    r = ODict()
+                    r = dict()
                 hk[hkdata] = r
         logger.debug('LocalPool HK read from ' + self._poolpath)
         return hk['classes'], hk['tags'], hk['urns']
@@ -68,7 +69,7 @@ class LocalPool(ProductPool):
            save the housekeeping data
         """
 
-        for hkdata in ['classes', 'tags', 'urn']:
+        for hkdata in ['classes', 'tags', 'urns']:
             fp = fp0.joinpath(hkdata + '.jsn')
             if fp.exists():
                 fp.rename(str(fp) + '.old')
@@ -90,6 +91,7 @@ class LocalPool(ProductPool):
                 f.write(js)
 
             self.writeHK(fp0)
+            logger.debug('HK written')
         except IOError as e:
             logger.debug(str(fp) + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
@@ -111,14 +113,20 @@ class LocalPool(ProductPool):
         """
         does the scheme-specific remove-all
         """
-        with filelock.FileLock(poolpath + '/lock'):
-            pass  # lock file will be wiped, too. so release it.
+
+        # logger.debug()
+        lk = self._poolpath + '/lock'
+        pp = Path(self._poolpath)
+        if not pp.exists():
+            return
+        if pp.is_dir():
+            with filelock.FileLock(lk):
+                pass  # lock file will be wiped, too. so release it.
         try:
-            shutil.rmtree(poolpath)
-            pp = Path(poolpath)
+            shutil.rmtree(self._poolpath)
             pp.mkdir()
         except Exception as e:
-            msg = 'remove-mkdir ' + poolpath + ' failed'
+            msg = 'remove-mkdir ' + self._poolpath + ' failed'
             logger.error(msg)
             raise e
 

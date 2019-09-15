@@ -84,6 +84,15 @@ def checkserver():
     # initialize test data.
 
 
+def issane(o):
+    """ basic check on return """
+    global lupd
+    assert o is not None, "Server is having trouble"
+    assert 'error' not in o, o['error']
+    assert o['timestamp'] > lupd
+    lupd = o['timestamp']
+
+
 def check0result(result, msg):
     # if msg is string, an exception must have happened
     assert result == 0, 'Error %d testing script "run". msg: ' + str(msg)
@@ -126,7 +135,6 @@ def test_putinit():
     """
 
     d = {'timeout': 5}
-    # print(nodetestinput)
     o = putJsonObj(aburl +
                    '/init',
                    d,
@@ -203,15 +211,6 @@ def test_putconfigpns():
     assert 'testing' not in pc, str(pc)
     issane(p)
     assert 'testing' not in p['result']
-
-
-def issane(o):
-    """ basic check on POST return """
-    global lupd
-    assert o is not None, "Server is having trouble"
-    assert 'error' not in o, o['error']
-    assert o['timestamp'] > lupd
-    lupd = o['timestamp']
 
 
 def makeposttestdata():

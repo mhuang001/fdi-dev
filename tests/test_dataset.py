@@ -481,7 +481,7 @@ def test_Parameter():
     assert v.equals(v1)
     assert v == v1
     v1.value = -4
-    assert not v.equals(v1)
+    assert not v.equals(v1),   deepcmp(v, v1, verbose=True)
     assert v != v1
     b2 = a2 + 0  # make a copy
     v1.value = b2  # change it back

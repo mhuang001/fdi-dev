@@ -95,11 +95,6 @@
 <div class="section" id="module-pal.common">
 <span id="submodules"></span><h2>Submodules<a class="headerlink" href="#module-pal.common" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
-<dt id="pal.common.getClass1">
-<code class="sig-prename descclassname">pal.common.</code><code class="sig-name descname">getClass1</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.common.getClass1" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="pal.common.getObjectbyId">
 <code class="sig-prename descclassname">pal.common.</code><code class="sig-name descname">getObjectbyId</code><span class="sig-paren">(</span><em class="sig-param">idn</em>, <em class="sig-param">lgbv</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.common.getObjectbyId" title="Permalink to this definition">¶</a></dt>
 <dd><p>lgb is from deserializing caller’s globals().values()
@@ -272,15 +267,258 @@ includeContexts - if true, include references to contexts, not including this on
 
 </dd></dl>
 
+<span class="target" id="module-pal.definable"></span><dl class="class">
+<dt id="pal.definable.Definable">
+<em class="property">class </em><code class="sig-prename descclassname">pal.definable.</code><code class="sig-name descname">Definable</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.definable.Definable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>for items being able to be defined with a Definition.</p>
+<dl class="method">
+<dt id="pal.definable.Definable.getDefinition">
+<code class="sig-name descname">getDefinition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.definable.Definable.getDefinition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the definition associated to this definable item.
+mh: adopting <a class="reference external" href="http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/index.html?herschel/ia/pal/ProductRef.html">http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/index.html?herschel/ia/pal/ProductRef.html</a> but parameterize definition does not seem worth it given the few numbers of implemented definitions</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-pal.localpool"></span><dl class="class">
+<dt id="pal.localpool.LocalPool">
+<em class="property">class </em><code class="sig-prename descclassname">pal.localpool.</code><code class="sig-name descname">LocalPool</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.localpool.LocalPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pal.productpool.ProductPool" title="pal.productpool.ProductPool"><code class="xref py py-class docutils literal notranslate"><span class="pre">pal.productpool.ProductPool</span></code></a></p>
+<p>the pool will save all products in local computer.</p>
+<dl class="method">
+<dt id="pal.localpool.LocalPool.getHead">
+<code class="sig-name descname">getHead</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.localpool.LocalPool.getHead" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the latest version of a given product, belonging
+to the first pool where the same track id is found.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.localpool.LocalPool.readHK">
+<code class="sig-name descname">readHK</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.localpool.LocalPool.readHK" title="Permalink to this definition">¶</a></dt>
+<dd><p>loads and returns the housekeeping data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.localpool.LocalPool.schematicRemove">
+<code class="sig-name descname">schematicRemove</code><span class="sig-paren">(</span><em class="sig-param">typename</em>, <em class="sig-param">serialnum</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.localpool.LocalPool.schematicRemove" title="Permalink to this definition">¶</a></dt>
+<dd><p>does the scheme-specific removal.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.localpool.LocalPool.schematicSave">
+<code class="sig-name descname">schematicSave</code><span class="sig-paren">(</span><em class="sig-param">typename</em>, <em class="sig-param">serialnum</em>, <em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.localpool.LocalPool.schematicSave" title="Permalink to this definition">¶</a></dt>
+<dd><p>does the media-specific saving</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.localpool.LocalPool.schematicWipe">
+<code class="sig-name descname">schematicWipe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.localpool.LocalPool.schematicWipe" title="Permalink to this definition">¶</a></dt>
+<dd><p>does the scheme-specific remove-all</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.localpool.LocalPool.writeHK">
+<code class="sig-name descname">writeHK</code><span class="sig-paren">(</span><em class="sig-param">fp0</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.localpool.LocalPool.writeHK" title="Permalink to this definition">¶</a></dt>
+<dd><p>save the housekeeping data</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-pal.poolmanager"></span><dl class="class">
+<dt id="pal.poolmanager.PoolManager">
+<em class="property">class </em><code class="sig-prename descclassname">pal.poolmanager.</code><code class="sig-name descname">PoolManager</code><a class="headerlink" href="#pal.poolmanager.PoolManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<blockquote>
+<div><p>This class provides the means to reference ProductPool objects without having to hard-code the type of pool. For example, it could be desired to easily switch from one pool type to another.</p>
+</div></blockquote>
+<p>This is done by calling the getPool(String) method, which will return an existing pool or create a new one if necessary.</p>
+<dl class="method">
+<dt id="pal.poolmanager.PoolManager.getMap">
+<code class="sig-name descname">getMap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.poolmanager.PoolManager.getMap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pal.poolmanager.PoolManager.getPool">
+<code class="sig-name descname">getPool</code><span class="sig-paren">(</span><em class="sig-param">poolurn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.poolmanager.PoolManager.getPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns an instance of pool according to urn. create the pool if it does not already exist. the same pool-URN always get the same pool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.poolmanager.PoolManager.isLoaded">
+<code class="sig-name descname">isLoaded</code><span class="sig-paren">(</span><em class="sig-param">poolurn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.poolmanager.PoolManager.isLoaded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether an item with the given id has been loaded (cached).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.poolmanager.PoolManager.removeAll">
+<code class="sig-name descname">removeAll</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.poolmanager.PoolManager.removeAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>deletes all pools</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.poolmanager.PoolManager.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">poolurn</em>, <em class="sig-param">poolobj</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.poolmanager.PoolManager.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pal.poolmanager.PoolManager.size">
+<code class="sig-name descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.poolmanager.PoolManager.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gives the number of entries in this manager.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-pal.productpool"></span><dl class="class">
+<dt id="pal.productpool.ProductPool">
+<em class="property">class </em><code class="sig-prename descclassname">pal.productpool.</code><code class="sig-name descname">ProductPool</code><span class="sig-paren">(</span><em class="sig-param">poolurn='file:///tmp/pool'</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pal.definable.Definable" title="pal.definable.Definable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pal.definable.Definable</span></code></a>, <a class="reference internal" href="#pal.taggable.Taggable" title="pal.taggable.Taggable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pal.taggable.Taggable</span></code></a>, <a class="reference internal" href="#pal.versionable.Versionable" title="pal.versionable.Versionable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pal.versionable.Versionable</span></code></a></p>
+<dl class="method">
+<dt id="pal.productpool.ProductPool.accept">
+<code class="sig-name descname">accept</code><span class="sig-paren">(</span><em class="sig-param">visitor</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for adding functionality to object
+through visitor pattern.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.dereference">
+<code class="sig-name descname">dereference</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.dereference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrement the reference count of a ProductRef.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.exists">
+<code class="sig-name descname">exists</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines the existence of a product with specified URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.getDefinition">
+<code class="sig-name descname">getDefinition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.getDefinition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns pool definition info which contains pool type and other pool specific configuration parameters</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.getId">
+<code class="sig-name descname">getId</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.getId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the identifier of this pool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.getProductClasses">
+<code class="sig-name descname">getProductClasses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.getProductClasses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all Product classes found in this pool.
+mh: returns an iterator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.getReferenceCount">
+<code class="sig-name descname">getReferenceCount</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.getReferenceCount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the reference count of a ProductRef.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.getUrnId">
+<code class="sig-name descname">getUrnId</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.getUrnId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the identifier of this pool used to build URN, usually it’s same as id returned by getId().</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.isAlive">
+<code class="sig-name descname">isAlive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.isAlive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if the pool is capable of responding to commands.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.isEmpty">
+<code class="sig-name descname">isEmpty</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.isEmpty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines if the pool is empty.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.loadDescriptors">
+<code class="sig-name descname">loadDescriptors</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.loadDescriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the descriptors belonging to specified URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.loadProduct">
+<code class="sig-name descname">loadProduct</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.loadProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a Product belonging to specified URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.meta">
+<code class="sig-name descname">meta</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the meta-data belonging to the product of specified URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.reference">
+<code class="sig-name descname">reference</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.reference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increment the reference count of a ProductRef.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes a Product belonging to specified URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.removeAll">
+<code class="sig-name descname">removeAll</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.removeAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.saveDescriptors">
+<code class="sig-name descname">saveDescriptors</code><span class="sig-paren">(</span><em class="sig-param">urn</em>, <em class="sig-param">desc</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.saveDescriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save/Update descriptors in pool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.saveProduct">
+<code class="sig-name descname">saveProduct</code><span class="sig-paren">(</span><em class="sig-param">product</em>, <em class="sig-param">tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.saveProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves specified product and returns the designated URN.
+Saves a product or a list of products to the pool, possibly under the supplied tag, and return the reference (or a list of references if the input is a list of products).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.schematicRemove">
+<code class="sig-name descname">schematicRemove</code><span class="sig-paren">(</span><em class="sig-param">typename</em>, <em class="sig-param">serialnum</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.schematicRemove" title="Permalink to this definition">¶</a></dt>
+<dd><p>to be implemented by subckasses to do the scheme-specific removing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.schematicSave">
+<code class="sig-name descname">schematicSave</code><span class="sig-paren">(</span><em class="sig-param">typename</em>, <em class="sig-param">serialnum</em>, <em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.schematicSave" title="Permalink to this definition">¶</a></dt>
+<dd><p>to be implemented by subckasses to do the scheme-specific saving</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productpool.ProductPool.select">
+<code class="sig-name descname">select</code><span class="sig-paren">(</span><em class="sig-param">query</em>, <em class="sig-param">results</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productpool.ProductPool.select" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refines a previous query, given the refined query and result of the previous query.</p>
+</dd></dl>
+
+</dd></dl>
+
 <span class="target" id="module-pal.productref"></span><dl class="class">
 <dt id="pal.productref.ProductRef">
-<em class="property">class </em><code class="sig-prename descclassname">pal.productref.</code><code class="sig-name descname">ProductRef</code><span class="sig-paren">(</span><em class="sig-param">urnobj=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productref.ProductRef" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="../dataset/dataset.html#dataset.metadataholder.MetaDataHolder" title="dataset.metadataholder.MetaDataHolder"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.metadataholder.MetaDataHolder</span></code></a>, <a class="reference internal" href="../dataset/dataset.html#dataset.serializable.Serializable" title="dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.serializable.Serializable</span></code></a>, <a class="reference internal" href="#pal.comparable.Comparable" title="pal.comparable.Comparable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pal.comparable.Comparable</span></code></a>, <a class="reference internal" href="../dataset/dataset.html#dataset.eq.DeepEqual" title="dataset.eq.DeepEqual"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.eq.DeepEqual</span></code></a></p>
+<em class="property">class </em><code class="sig-prename descclassname">pal.productref.</code><code class="sig-name descname">ProductRef</code><span class="sig-paren">(</span><em class="sig-param">urn=None</em>, <em class="sig-param">pool=None</em>, <em class="sig-param">product=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productref.ProductRef" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../dataset/dataset.html#dataset.metadataholder.MetaDataHolder" title="dataset.metadataholder.MetaDataHolder"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.metadataholder.MetaDataHolder</span></code></a>, <a class="reference internal" href="../dataset/dataset.html#dataset.serializable.Serializable" title="dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.serializable.Serializable</span></code></a>, <a class="reference internal" href="#pal.comparable.Comparable" title="pal.comparable.Comparable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pal.comparable.Comparable</span></code></a></p>
 <p>A lightweight reference to a product that is stored in a ProductPool or in memory.</p>
 <dl class="method">
 <dt id="pal.productref.ProductRef.addParent">
 <code class="sig-name descname">addParent</code><span class="sig-paren">(</span><em class="sig-param">parent</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productref.ProductRef.addParent" title="Permalink to this definition">¶</a></dt>
 <dd><p>add a parent</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productref.ProductRef.getMeta">
+<code class="sig-name descname">getMeta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.productref.ProductRef.getMeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the metadata of the product.</p>
 </dd></dl>
 
 <dl class="method">
@@ -320,6 +558,12 @@ includeContexts - if true, include references to contexts, not including this on
 </dd></dl>
 
 <dl class="method">
+<dt id="pal.productref.ProductRef.meta">
+<em class="property">property </em><code class="sig-name descname">meta</code><a class="headerlink" href="#pal.productref.ProductRef.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="pal.productref.ProductRef.parents">
 <em class="property">property </em><code class="sig-name descname">parents</code><a class="headerlink" href="#pal.productref.ProductRef.parents" title="Permalink to this definition">¶</a></dt>
 <dd><p>property</p>
@@ -349,8 +593,25 @@ includeContexts - if true, include references to contexts, not including this on
 </dd></dl>
 
 <dl class="method">
+<dt id="pal.productref.ProductRef.setStorage">
+<code class="sig-name descname">setStorage</code><span class="sig-paren">(</span><em class="sig-param">storage</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productref.ProductRef.setStorage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the product storage associated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productref.ProductRef.setUrn">
+<code class="sig-name descname">setUrn</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productref.ProductRef.setUrn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="pal.productref.ProductRef.setUrnObj">
 <code class="sig-name descname">setUrnObj</code><span class="sig-paren">(</span><em class="sig-param">urnobj</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productref.ProductRef.setUrnObj" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets urn</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.productref.ProductRef.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productref.ProductRef.toString" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -395,34 +656,33 @@ to the first pool where the same track id is found.</p>
 <dt id="pal.productstorage.ProductStorage.getMeta">
 <code class="sig-name descname">getMeta</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.getMeta" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the metadata belonging to the writable pool that associated to a given URN.
-returns a dict.</p>
+returns an ODict.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pal.productstorage.ProductStorage.getPool">
-<code class="sig-name descname">getPool</code><span class="sig-paren">(</span><em class="sig-param">pool</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.getPool" title="Permalink to this definition">¶</a></dt>
-<dd><p>mh: returns  {‘classes’,’tags’}</p>
+<code class="sig-name descname">getPool</code><span class="sig-paren">(</span><em class="sig-param">poolurn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.getPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>mh: returns the pool object</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pal.productstorage.ProductStorage.getPools">
 <code class="sig-name descname">getPools</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.getPools" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the set of ProductPools registered.
-mh: in a list of (pool, {‘classes’,’tags’})</p>
+mh: in a list of poolurns</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pal.productstorage.ProductStorage.getProductClasses">
-<code class="sig-name descname">getProductClasses</code><span class="sig-paren">(</span><em class="sig-param">pool</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.getProductClasses" title="Permalink to this definition">¶</a></dt>
-<dd><p>Yields all Product classes found in this pool.
-mh: which pool</p>
+<code class="sig-name descname">getProductClasses</code><span class="sig-paren">(</span><em class="sig-param">poolurn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.getProductClasses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields all Product classes found in this pool.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pal.productstorage.ProductStorage.getTags">
 <code class="sig-name descname">getTags</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.getTags" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the tags belonging to the writable pool that associated to a given URN.
-returns a list.</p>
+returns an iterator.</p>
 </dd></dl>
 
 <dl class="method">
@@ -439,14 +699,10 @@ to a given tag.</p>
 
 <dl class="method">
 <dt id="pal.productstorage.ProductStorage.load">
-<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads a product from the ProductStorage. returns productref.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="pal.productstorage.ProductStorage.readHK">
-<code class="sig-name descname">readHK</code><span class="sig-paren">(</span><em class="sig-param">poolpath</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.readHK" title="Permalink to this definition">¶</a></dt>
-<dd><p>loads and returns the housekeeping data</p>
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">urnortag</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a product with a URN or a list of products with a tag, from the pool.  It always creates new ProductRefs. 
+returns productref(s).
+urnortag: urn or tag</p>
 </dd></dl>
 
 <dl class="method">
@@ -463,26 +719,85 @@ to a given tag.</p>
 
 <dl class="method">
 <dt id="pal.productstorage.ProductStorage.save">
-<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">product</em>, <em class="sig-param">tag=None</em>, <em class="sig-param">pool=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save a product or a list of products to the storage, possibly under the supplied tag, and return the reference (or a list of references if the input is a list of products).</p>
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">product</em>, <em class="sig-param">tag=None</em>, <em class="sig-param">poolurn=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>saves to the writable pool if it has been registered, if not registers and saves. product can be one or a list of prpoducts.
+Returns: one or a list of productref with storage info.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pal.productstorage.ProductStorage.wipePool">
-<code class="sig-name descname">wipePool</code><span class="sig-paren">(</span><em class="sig-param">pool</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.wipePool" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">wipePool</code><span class="sig-paren">(</span><em class="sig-param">poolurn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.wipePool" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<span class="target" id="module-pal.taggable"></span><dl class="class">
+<dt id="pal.taggable.Taggable">
+<em class="property">class </em><code class="sig-prename descclassname">pal.taggable.</code><code class="sig-name descname">Taggable</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.taggable.Taggable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Definition of services provided by a product storage supporting versioning.</p>
 <dl class="method">
-<dt id="pal.productstorage.ProductStorage.writeHK">
-<code class="sig-name descname">writeHK</code><span class="sig-paren">(</span><em class="sig-param">pool</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.productstorage.ProductStorage.writeHK" title="Permalink to this definition">¶</a></dt>
-<dd><p>save the housekeeping data</p>
+<dt id="pal.taggable.Taggable.getTagUrnMap">
+<code class="sig-name descname">getTagUrnMap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.taggable.Taggable.getTagUrnMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the full tag-&gt;urn mappings.
+mh: returns an iterator</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.taggable.Taggable.getTags">
+<code class="sig-name descname">getTags</code><span class="sig-paren">(</span><em class="sig-param">urn=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.taggable.Taggable.getTags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all of the tags that map to a given URN.
+Get all known tags if urn is not specified.
+mh: returns an iterator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.taggable.Taggable.getUrn">
+<code class="sig-name descname">getUrn</code><span class="sig-paren">(</span><em class="sig-param">tag</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.taggable.Taggable.getUrn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the URNs corresponding to the given tag.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.taggable.Taggable.getUrnObject">
+<code class="sig-name descname">getUrnObject</code><span class="sig-paren">(</span><em class="sig-param">tag</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.taggable.Taggable.getUrnObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the URNobjects corresponding to the given tag.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.taggable.Taggable.removeTag">
+<code class="sig-name descname">removeTag</code><span class="sig-paren">(</span><em class="sig-param">tag</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.taggable.Taggable.removeTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the given tag from the tag and urn maps.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.taggable.Taggable.removeUrn">
+<code class="sig-name descname">removeUrn</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.taggable.Taggable.removeUrn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the given urn from the tag and urn maps.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.taggable.Taggable.removekey">
+<code class="sig-name descname">removekey</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">themap</em>, <em class="sig-param">thename</em>, <em class="sig-param">othermap</em>, <em class="sig-param">othername</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.taggable.Taggable.removekey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the given key.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.taggable.Taggable.setTag">
+<code class="sig-name descname">setTag</code><span class="sig-paren">(</span><em class="sig-param">tag</em>, <em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.taggable.Taggable.setTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the specified tag to the given URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.taggable.Taggable.tagExists">
+<code class="sig-name descname">tagExists</code><span class="sig-paren">(</span><em class="sig-param">tag</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.taggable.Taggable.tagExists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tests if a tag exists.</p>
 </dd></dl>
 
 </dd></dl>
 
 <span class="target" id="module-pal.urn"></span><dl class="class">
 <dt id="pal.urn.Urn">
-<em class="property">class </em><code class="sig-prename descclassname">pal.urn.</code><code class="sig-name descname">Urn</code><span class="sig-paren">(</span><em class="sig-param">cls=None</em>, <em class="sig-param">pool=None</em>, <em class="sig-param">index=None</em>, <em class="sig-param">urn=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.urn.Urn" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pal.urn.</code><code class="sig-name descname">Urn</code><span class="sig-paren">(</span><em class="sig-param">urn=None</em>, <em class="sig-param">pool=None</em>, <em class="sig-param">cls=None</em>, <em class="sig-param">index=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.urn.Urn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../dataset/dataset.html#dataset.eq.DeepEqual" title="dataset.eq.DeepEqual"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.eq.DeepEqual</span></code></a>, <a class="reference internal" href="../dataset/dataset.html#dataset.serializable.Serializable" title="dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.serializable.Serializable</span></code></a>, <a class="reference internal" href="#pal.comparable.Comparable" title="pal.comparable.Comparable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pal.comparable.Comparable</span></code></a></p>
 <p>The object representation of the product URN string. The 
 memory consumed by sets of this object are much less than sets
@@ -499,8 +814,8 @@ poolname format: scheme + ‘://’ + place + directory
 scheme format: file, ram, http … etc
 place format: 192.168.5.6:8080, c: … etc
 directory format: 
-for ‘file’ schem: ‘/’ + name + ‘/’ + name + … + ‘/’ + name
-for ‘mem’ schem: ‘/’ + name + ‘/’ + name + … + ‘/’ + process_ID
+for ‘file’ scheme: ‘/’ + name + ‘/’ + name + … + ‘/’ + name
+for ‘mem’ scheme: ‘/’ + name + ‘/’ + name + … + ‘/’ + process_ID
 serialnumber format: str(int). 
 for file scheme : internal index; 
 for memm scheme: python object id</p>
@@ -536,7 +851,7 @@ for memm scheme: python object id</p>
 <dl class="method">
 <dt id="pal.urn.Urn.getPoolId">
 <code class="sig-name descname">getPoolId</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pal.urn.Urn.getPoolId" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the poolId in this</p>
+<dd><p>Returns the pool URN in this</p>
 </dd></dl>
 
 <dl class="method">
@@ -575,11 +890,6 @@ for memm scheme: python object id</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="pal.urn.Urn.parseUrn">
-<em class="property">static </em><code class="sig-name descname">parseUrn</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.urn.Urn.parseUrn" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
 <dt id="pal.urn.Urn.place">
 <em class="property">property </em><code class="sig-name descname">place</code><a class="headerlink" href="#pal.urn.Urn.place" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -587,7 +897,8 @@ for memm scheme: python object id</p>
 <dl class="method">
 <dt id="pal.urn.Urn.pool">
 <em class="property">property </em><code class="sig-name descname">pool</code><a class="headerlink" href="#pal.urn.Urn.pool" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>returns the pool URN.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="pal.urn.Urn.serializable">
@@ -610,6 +921,43 @@ for memm scheme: python object id</p>
 <dt id="pal.urn.Urn.urn">
 <em class="property">property </em><code class="sig-name descname">urn</code><a class="headerlink" href="#pal.urn.Urn.urn" title="Permalink to this definition">¶</a></dt>
 <dd><p>property</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pal.urn.makeUrn">
+<code class="sig-prename descclassname">pal.urn.</code><code class="sig-name descname">makeUrn</code><span class="sig-paren">(</span><em class="sig-param">poolname</em>, <em class="sig-param">typename</em>, <em class="sig-param">index</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.urn.makeUrn" title="Permalink to this definition">¶</a></dt>
+<dd><p>assembles a URN with infos of the pool, the resource type, and the index</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pal.urn.parseUrn">
+<code class="sig-prename descclassname">pal.urn.</code><code class="sig-name descname">parseUrn</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.urn.parseUrn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks the URN string is valid in its form and splits it. For example if the urn is <code class="docutils literal notranslate"><span class="pre">urn:file://c:/tmp/mypool/proj1.product:322</span></code> into poolname <code class="docutils literal notranslate"><span class="pre">file://c:/tmp/mypool/proj1.product:322</span></code> into poolname <code class="docutils literal notranslate"><span class="pre">file://c:/tmp/mypool</span></code>, resource type (usually class) name <code class="docutils literal notranslate"><span class="pre">proj1.product</span></code>, serial number in string <code class="docutils literal notranslate"><span class="pre">'322'</span></code>, scheme <code class="docutils literal notranslate"><span class="pre">file</span></code>, place <code class="docutils literal notranslate"><span class="pre">c:</span></code> (with ip and port if given), and poolpath <code class="docutils literal notranslate"><span class="pre">c:/tmp/mypool</span></code></p>
+</dd></dl>
+
+<span class="target" id="module-pal.versionable"></span><dl class="class">
+<dt id="pal.versionable.Versionable">
+<em class="property">class </em><code class="sig-prename descclassname">pal.versionable.</code><code class="sig-name descname">Versionable</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.versionable.Versionable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>for items being able to be defined with a Definition.</p>
+<dl class="method">
+<dt id="pal.versionable.Versionable.getLastVersion">
+<code class="sig-name descname">getLastVersion</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.versionable.Versionable.getLastVersion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the latest version of the given ProductRef.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.versionable.Versionable.getVersions">
+<code class="sig-name descname">getVersions</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.versionable.Versionable.getVersions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all the versions of the given ProductRef.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pal.versionable.Versionable.saveProductRef">
+<code class="sig-name descname">saveProductRef</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.versionable.Versionable.saveProductRef" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the product referenced and returns the designated URN.</p>
 </dd></dl>
 
 </dd></dl>

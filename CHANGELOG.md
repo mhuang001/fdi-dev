@@ -60,3 +60,6 @@ listener, mem: URN, deserializable list
 --------------
 documentation with sphinx. vvpp docker works. release to FSC.
 	
+0.8 2019-09-15
+--------------
+Improved toString() for datasets. PAL refactoring.

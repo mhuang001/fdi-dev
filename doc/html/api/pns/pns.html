@@ -154,7 +154,7 @@ Return True if successful else False</p>
 
 <dl class="function">
 <dt id="pns.server.calcresult">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">calcresult</code><span class="sig-paren">(</span><em class="sig-param">cmd</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.calcresult" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">calcresult</code><span class="sig-paren">(</span><em class="sig-param">cmd</em>, <em class="sig-param">ops=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.calcresult" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -200,6 +200,12 @@ Return True if successful else False</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pns.server.dosleep">
+<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">dosleep</code><span class="sig-paren">(</span><em class="sig-param">indata</em>, <em class="sig-param">ops</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.dosleep" title="Permalink to this definition">¶</a></dt>
+<dd><p>run ‘sleep [ops]’ in the OS. ops is 3 if not given.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="pns.server.filesin">
 <code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">filesin</code><span class="sig-paren">(</span><em class="sig-param">dir</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.filesin" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns names and contents of all files in the dir, ‘None’ if dir not existing.</p>
@@ -209,7 +215,7 @@ Return True if successful else False</p>
 <dt id="pns.server.genposttestprod">
 <code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">genposttestprod</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.genposttestprod" title="Permalink to this definition">¶</a></dt>
 <dd><p>generate post test product.
-put the 1st input (see maketestdata in test_all.py)
+put the 1st input (see maketestdata in test_pns.py)
 parameter to metadata
 and 2nd to the product’s dataset</p>
 </dd></dl>
@@ -249,7 +255,7 @@ and 2nd to the product’s dataset</p>
 
 <dl class="function">
 <dt id="pns.server.setup">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">setup</code><span class="sig-paren">(</span><em class="sig-param">cmd</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.setup" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">setup</code><span class="sig-paren">(</span><em class="sig-param">cmd</em>, <em class="sig-param">ops=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.setup" title="Permalink to this definition">¶</a></dt>
 <dd><p>PUT is used to initialize or configure the Processing Task Software
 (PST).</p>
 </dd></dl>

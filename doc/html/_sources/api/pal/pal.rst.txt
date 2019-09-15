@@ -30,6 +30,30 @@ Submodules
    :show-inheritance:
 
 
+.. automodule:: pal.definable
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: pal.localpool
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: pal.poolmanager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: pal.productpool
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 .. automodule:: pal.productref
    :members:
    :undoc-members:
@@ -42,7 +66,19 @@ Submodules
    :show-inheritance:
 
 
+.. automodule:: pal.taggable
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 .. automodule:: pal.urn
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: pal.versionable
    :members:
    :undoc-members:
    :show-inheritance:

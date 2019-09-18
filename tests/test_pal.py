@@ -27,7 +27,7 @@ from pal.productref import ProductRef
 from pal.context import Context, MapContext, MapRefsDataset
 from pal.common import getProductObject
 from pal.poolmanager import PoolManager
-from products.QSRCLIST_VT import QSRCLIST_VT
+#from products.QSRCLIST_VT import QSRCLIST_VT
 
 
 def checkjson(obj):
@@ -219,7 +219,7 @@ def test_ProductRef():
 
     # parent
     b1 = Product(description='abc')
-    b2 = QSRCLIST_VT(description='3c273')
+    b2 = MapContext(description='3c273')
     pr.addParent(b1)
     pr.addParent(b2)
     assert b1 in list(pr.parents)

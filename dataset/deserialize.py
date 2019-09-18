@@ -15,13 +15,18 @@ Serializable.
 
 
 def makedesables():
-    """
+    """ makes a class dictionary for instanciation.
     """
     from dataset.deserialize import deserializeClassID
     from dataset.product import Product, FineTime1, History
     from dataset.metadata import Parameter, NumericParameter, MetaData
     from dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
-    from products.chart import ATC_VT_B, ATC_VT_R, FDC_VT_B, FDC_VT_R
+    try:
+        from products.chart import ATC_VT_B, ATC_VT_R, FDC_VT_B, FDC_VT_R
+    except Exception as e:
+        logger.warn(str(e))
+        pass
+
     from pal.context import MapContext, MapRefsDataset
     from pal.urn import Urn
     from pal.productref import ProductRef

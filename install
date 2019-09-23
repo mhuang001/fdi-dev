@@ -2,13 +2,13 @@ INST=~/svom
 mkdir -p $INST
 cd $INST
 pip3 uninstall spdc -y
-pip3 uninstall svom-csc-product -y
-pip3 uninstall vvpp -y
 pip3 uninstall svom -y
-rm -rf spdc svom product vvpp
-tar xf /tmp/spdc.tar; tar xf /tmp/svom.tar
-#git clone ssh://git@mercury.bao.ac.cn:9005/mh/spdc.git
-#git clone ssh://git@mercury.bao.ac.cn:9005/svom-csc/svom.git
+#pip3 uninstall svom-csc-product -y
+#pip3 uninstall vvpp -y
+#rm -rf spdc svom product vvpp
+#tar xf /tmp/spdc.tar; tar xf /tmp/svom.tar
+git clone ssh://git@mercury.bao.ac.cn:9005/mh/spdc.git
+git clone ssh://git@mercury.bao.ac.cn:9005/svom-csc/svom.git
 /usr/bin/cp -f spdc/install .
 cd $INST/spdc; pip3 install -e .
 cd $INST/svom; pip3 install -e .

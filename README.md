@@ -11,8 +11,9 @@ To install
 		
 		mkdir ~/svom
 		cd ~/svom
+		cp /tmp/spdc/install .
 		nano install [do some editing if needed]
-		./install
+		. ./install
 ```
 change te git line to
 ```

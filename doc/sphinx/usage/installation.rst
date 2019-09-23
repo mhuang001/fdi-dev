@@ -23,8 +23,9 @@ for developers
 		
 		mkdir ~/svom
 		cd ~/svom
+		cp /tmp/spdc/install .
 		nano install [do some editing if needed]
-		./install
+		. ./install
 
 Install the dependencies if needed ((python 3.6, Flask, pytest ...)
 

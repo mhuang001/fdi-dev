@@ -1,0 +1,11 @@
+INST=~/svom
+cd $INST/spdc
+git pull
+cd $INST/svom
+git pull
+cd $INST/spdc; . installpns
+/usr/bin/cp -f spdc/install  $INST
+/usr/bin/cp -f spdc/update $INST
+systemctl restart httpd
+
+

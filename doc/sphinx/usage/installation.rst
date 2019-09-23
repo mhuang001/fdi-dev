@@ -17,7 +17,6 @@ for developers
 		cd spdc
 		pip3 install -e .
 
-Or if you have a tar file, e.g. /tmp/spdc.tar and /tmp/vvpp.tar, do something like
 
 
 .. code-block:: shell

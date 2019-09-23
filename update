@@ -3,9 +3,9 @@ cd $INST/spdc
 git pull
 cd $INST/svom
 git pull
+/usr/bin/cp -f $INST/spdc/install  $INST
+/usr/bin/cp -f $INST/spdc/update $INST
 cd $INST/spdc; . installpns
-/usr/bin/cp -f spdc/install  $INST
-/usr/bin/cp -f spdc/update $INST
 systemctl restart httpd
 
 

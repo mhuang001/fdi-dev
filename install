@@ -12,8 +12,8 @@ pip3 uninstall svom -y
 git clone http://mercury.bao.ac.cn:9006/mh/spdc.git
 git clone http://mercury.bao.ac.cn:9006/svom-csc/svom.git
 /usr/bin/cp -f spdc/install .
-cd $INST/spdc; pip3 install -e .
-cd $INST/svom; pip3 install -e .
-cd $INST/spdc; . installpns
+cd $INST/spdc && pip3 install -e .
+cd $INST/svom && pip3 install -e .
+cd $INST/spdc && . installpns
 
 

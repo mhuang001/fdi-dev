@@ -5,6 +5,7 @@ for i in init run config clean; do
   cp pns/resources/${i}PTS.ori  $PDIR
   ln -s $PDIR/${i}PTS.ori $PDIR/${i}PTS
 done
-cp -f pns/resources/runPTS.vvpp  $PDIR
+rm -f $PDIR/runPTS.vvpp  
+cp pns/resources/runPTS.vvpp  $PDIR
 chown apache $PDIR $PDIR/*PTS.ori $PDIR/runPTS.vvpp
 chgrp apache $PDIR $PDIR/*PTS

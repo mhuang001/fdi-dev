@@ -482,7 +482,7 @@ async def napa(t, d):
 
 
 def test_lock():
-    """ when a pns is busy with any commands that involves executing in the $pnshome dir the execution is locked system-wide with a lock-file .lock. Any attempts to execute a shekk command when the lock is in effect will get a 409.
+    """ when a pns is busy with any commands that involves executing in the $pnshome dir the execution is locked system-wide with a lock-file .lock. Any attempts to execute a shell command when the lock is in effect will get a 409.
     """
 
     tm = 3

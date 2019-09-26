@@ -1,6 +1,6 @@
-===================
-Dataset: Data Model
-===================
+=====================================
+**dataset**: Model for Data Container
+=====================================
 
 .. toctree::
    :maxdepth: 2
@@ -73,11 +73,11 @@ Design
 
 Packages
 
-![alt text](resources/packages_dataset.png "packages")
+.. image:: ../_static/packages_dataset.png
 
 Classes
 
-![alt text](resources/classes_dataset.png "classes")
+.. image:: ../_static/classes_dataset.png
 
 Examples
 ========

@@ -4,8 +4,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Install SPDC &#8212; spdc v0.6 documentation</title>
-    <link rel="stylesheet" href="../_static/sphinxdoc.css" type="text/css" />
+    <title>Install SPDC &#8212; spdc v0.8 documentation</title>
+    <link rel="stylesheet" href="../_static/aiohttp.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
@@ -14,63 +14,17 @@
     <script type="text/javascript" src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Dataset: Data Model" href="dataset.html" />
-    <link rel="prev" title="Self-describing Portable Dataset Container (SPDC)" href="../index.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="dataset.html" title="Dataset: Data Model"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="../index.html" title="Self-describing Portable Dataset Container (SPDC)"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">spdc v0.6 documentation</a> &#187;</li> 
-      </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Install SPDC</a><ul>
-<li><a class="reference internal" href="#for-developers">for developers</a></li>
-<li><a class="reference internal" href="#for-users">for users</a></li>
-</ul>
-</li>
-</ul>
+    <link rel="next" title="dataset: Model for Data Container" href="dataset.html" />
+    <link rel="prev" title="Self-describing Portable Dataset Container (SPDC)" href="../index.html" />
+ 
+<link rel="stylesheet" href="../_static/custom.css" type="text/css" />
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="../index.html"
-                        title="previous chapter">Self-describing Portable Dataset Container (SPDC)</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="dataset.html"
-                        title="next chapter">Dataset: Data Model</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/usage/installation.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
+
+<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet">
+
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
@@ -89,11 +43,11 @@ git clone ssh://git@mercury.bao.ac.cn:9005/mh/spdc.git
 pip3 install -e .
 </pre></div>
 </div>
-<p>Or if you have a tar file, e.g. /tmp/spdc.tar and /tmp/vvpp.tar, do something like</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mkdir ~/svom
 <span class="nb">cd</span> ~/svom
+cp /tmp/spdc/install .
 nano install <span class="o">[</span><span class="k">do</span> some editing <span class="k">if</span> needed<span class="o">]</span>
-./install
+. ./install
 </pre></div>
 </div>
 <p>Install the dependencies if needed ((python 3.6, Flask, pytest …)</p>
@@ -114,29 +68,72 @@ pip3 install -e .
           </div>
         </div>
       </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">spdc</a></h1>
+
+
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Install SPDC</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#for-developers">for developers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#for-users">for users</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dataset.html"><strong>dataset</strong>: Model for Data Container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pal.html"><strong>pal</strong>: Product Access Layer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pns.html"><strong>pns</strong>: Processing Node Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">spdc Quick Start</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../index.html" title="previous chapter">Self-describing Portable Dataset Container (SPDC)</a></li>
+      <li>Next: <a href="dataset.html" title="next chapter"><strong>dataset</strong>: Model for Data Container</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="dataset.html" title="Dataset: Data Model"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="../index.html" title="Self-describing Portable Dataset Container (SPDC)"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">spdc v0.6 documentation</a> &#187;</li> 
-      </ul>
+    <div class="footer">
+      &copy;2019, Maohai Huang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      
+      |
+      <a href="../_sources/usage/installation.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
-    <div class="footer" role="contentinfo">
-        &#169; Copyright 2019, Maohai Huang.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
-    </div>
+
+    
+
+    
   </body>
 </html>

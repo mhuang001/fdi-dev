@@ -12,6 +12,9 @@
 #
 import os
 import sys
+#import sphinx_rtd_theme
+import aiohttp_theme
+
 sys.path.insert(0, os.path.abspath('..'))
 
 
@@ -22,7 +25,7 @@ copyright = '2019, Maohai Huang'
 author = 'Maohai Huang'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.6'
+release = 'v0.8'
 
 
 # -- General configuration ---------------------------------------------------
@@ -30,8 +33,9 @@ release = 'v0.6'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc'
-              ]
+extensions = ['sphinx.ext.autodoc']
+# extensions.append("sphinx_rtd_theme")
+extensions.append('aiohttp_theme')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -44,11 +48,35 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '*~']
 
 # -- Options for HTML output -------------------------------------------------
 
+# https://stackoverflow.com/a/32079202
+# def setup(app):
+#    app.add_css_file("hatnotes.css")
+# app.add_css_file("aiohttp1.css")
+
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
 #html_theme = 'alabaster'
-html_theme = 'sphinxdoc'
+#html_theme = 'sphinxdoc'
+#html_theme = "sphinx_rtd_theme"
+html_theme = "aiohttp_theme"
+
+# Alabaster side bar
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'relations.html',
+        'searchbox.html',
+        'donate.html',
+    ]
+}
+
+#from os import path
+# def xsetup(app):
+#    app.add_html_theme('aiohttp_theme', path.abspath(path.dirname(__file__)))
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

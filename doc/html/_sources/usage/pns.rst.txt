@@ -1,5 +1,5 @@
 ===========================================
-pns: Processing Network Node Web API Server
+**pns**: Processing Node Server
 ===========================================
 
 .. toctree::

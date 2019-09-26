@@ -6,12 +6,11 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 from dataset.product import Product
-from dataset.serializable import serializeClassID
 from dataset.dataset import CompositeDataset
 
 
 class Context(Product):
-    """ A Context is a special kind of Product that can hold references to other Products.
+    """ A  special kind of Product that can hold references to other Products.
 
 This abstract product introduces the lazy loading and saving of references to Products or ProductRefs that it is holding. It remembers its state.
 http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Context.html
@@ -77,32 +76,32 @@ class MapContext(Context):
     """ Allows grouping Products into a map of (String, ProductRef) pairs.
     New entries can be added if they comply to the adding rules of this context. The default behaviour is to allow adding any (String,ProductRef).
 
-    An example:
+    An example::
 
-    image     = ImageProduct(description="hi")
-    spectrum  = SpectrumProduct(description="there")
-    simple    = Product(description="everyone")
+        image     = ImageProduct(description="hi")
+        spectrum  = SpectrumProduct(description="there")
+        simple    = Product(description="everyone")
 
-    context=MapContext()
-    context.refs.put("x",ProductRef(image))
-    context.refs.put("y",ProductRef(spectrum))
-    context.refs.put("z",ProductRef(simple))
-    print context.refs.size() # 3
-    print context.refs.get('x').product.description # hi
-    print context.refs.get('y').product.description # there
-    print context.refs.get('z').product.description # everyone
+        context=MapContext()
+        context.refs.put("x",ProductRef(image))
+        context.refs.put("y",ProductRef(spectrum))
+        context.refs.put("z",ProductRef(simple))
+        print context.refs.size() # 3
+        print context.refs.get('x').product.description # hi
+        print context.refs.get('y').product.description # there
+        print context.refs.get('z').product.description # everyone
 
-    It is possible to insert a ProductRef at a specific key in the MapContext. The same insertion behaviour is followed as for a java Map, in that if there is already an existing ProductRef for the given key, that ProductRef is replaced with the new one:
+    It is possible to insert a ProductRef at a specific key in the MapContext. The same insertion behaviour is followed as for a java Map, in that if there is already an existing ProductRef for the given key, that ProductRef is replaced with the new one::
 
-     product4=SpectrumProduct(description="everybody")
-     context.refs.put("y", ProductRef(product4))
-     product5=SpectrumProduct(description="here")
-     context.refs.put("a", ProductRef(product5))
+         product4=SpectrumProduct(description="everybody")
+         context.refs.put("y", ProductRef(product4))
+         product5=SpectrumProduct(description="here")
+         context.refs.put("a", ProductRef(product5))
 
-     print context.refs.get('x').product.description # hi
-     print context.refs.get('y').product.description # everybody
-     print context.refs.get('z').product.description # everyone
-     print context.refs.get('a').product.description # here
+         print context.refs.get('x').product.description # hi
+         print context.refs.get('y').product.description # everybody
+         print context.refs.get('z').product.description # everyone
+         print context.refs.get('a').product.description # here
     """
 
     def __init__(self,  **kwds):

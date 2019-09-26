@@ -1,6 +1,6 @@
-=========================
-PAL: Product Access Layer
-=========================
+=============================
+**pal**: Product Access Layer
+=============================
 
 Product Access Layer allows data stored logical "pools" to be accessed with light weight product refernces by data processers, data storage, and data consumers. A data product can include a context built with references of relevant data. A ProductStorage interface is provided to handle saving/retrieving/querying data in registered pools.
 
@@ -43,7 +43,7 @@ This class not only holds the URN of the product it references to, but also reco
 
 **Context** and **MapContext**
 
-Context is a Product that holds a set of ``productRef``s that accessible by keys. The keys are strings for MapContext which usually maps names to product references.
+Context is a Product that holds a set of ``productRef`` s that accessible by keys. The keys are strings for MapContext which usually maps names to product references.
 
 **ProductStorage**
 
@@ -64,14 +64,14 @@ Design
 
 Packages
 
-![alt text](resources/packages_pal.png "packages")
+.. image:: ../_static/packages_pal.png
 
 Classes
 
-![alt text](resources/classes_pal.png "classes")
+.. image:: ../_static/classes_pal.png
 
-_**Examples**_
-
+Examples
+========
 
 .. code-block::
 

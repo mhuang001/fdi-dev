@@ -1,178 +1,38 @@
 
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>pns: Processing Network Node Web API Server &mdash; spdc v0.6 documentation</title>
-  
 
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/hatnotes.css" type="text/css" />
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pns: Processing Node Server &#8212; spdc v0.8 documentation</title>
+    <link rel="stylesheet" href="../_static/aiohttp.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="spdc Quick Start" href="quickstart.html" />
-    <link rel="prev" title="PAL: Product Access Layer" href="pal.html" /> 
-</head>
-
-<body class="wy-body-for-nav">
-
-   
-  <div class="wy-grid-for-nav">
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
-          
-
-          
-            <a href="../index.html" class="icon icon-home"> spdc
-          
-
-          
-          </a>
-
-          
-            
-            
-          
-
-          
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Install SPDC</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dataset.html">Dataset: Data Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pal.html">PAL: Product Access Layer</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">pns: Processing Network Node Web API Server</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#basic-configuration">Basic Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#run-the-flask-server">Run the FLASK Server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#test-and-verify-installation">Test and Verify Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#server-unit-test">1. Server Unit Test</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#local-flask-server-functional-tests">2. Local Flask Server Functional Tests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#get-public-access-apis-and-information">3. Get public access APIs and information</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#run-tests-from-a-remote-client">4. Run tests from a remote client</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#run-the-local-tests-with-apache">Run the local tests with Apache</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pts-configuration">PTS Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pts-api">PTS API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#return-on-common-errors">Return on Common Errors</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#resources">Resources</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">spdc Quick Start</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../api/api.html">API Reference</a></li>
-</ul>
-
-            
-          
-        </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">spdc</a>
-        
-      </nav>
+    <link rel="prev" title="pal: Product Access Layer" href="pal.html" />
+ 
+<link rel="stylesheet" href="../_static/custom.css" type="text/css" />
 
 
-      <div class="wy-nav-content">
-        
-        <div class="rst-content">
-        
-          
+<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet">
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
-  <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-      <li>pns: Processing Network Node Web API Server</li>
-    
-    
-      <li class="wy-breadcrumbs-aside">
-        
-            
-            <a href="../_sources/usage/pns.rst.txt" rel="nofollow"> View page source</a>
-          
-        
-      </li>
-    
-  </ul>
-
+  </head><body>
   
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
             
-  <div class="section" id="pns-processing-network-node-web-api-server">
-<h1>pns: Processing Network Node Web API Server<a class="headerlink" href="#pns-processing-network-node-web-api-server" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="pns-processing-node-server">
+<h1><strong>pns</strong>: Processing Node Server<a class="headerlink" href="#pns-processing-node-server" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <p>Thhis Web API Server for a data processing pipeline/network node provides interfaces to make a run request to and read results from a processing task in a processing node via web APIs.</p>
@@ -406,52 +266,84 @@ systemctl status http -l
 </div>
 
 
-           </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="quickstart.html" class="btn btn-neutral float-right" title="spdc Quick Start" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="pal.html" class="btn btn-neutral float-left" title="PAL: Product Access Layer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright 2019, Maohai Huang
-
-    </p>
-  </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
-
-</footer>
-
         </div>
       </div>
-
-    </section>
-
-  </div>
-  
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">spdc</a></h1>
 
 
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script>
 
-  
-  
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Install SPDC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataset.html"><strong>dataset</strong>: Model for Data Container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pal.html"><strong>pal</strong>: Product Access Layer</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#"><strong>pns</strong>: Processing Node Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-configuration">Basic Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-the-flask-server">Run the FLASK Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-and-verify-installation">Test and Verify Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#server-unit-test">1. Server Unit Test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#local-flask-server-functional-tests">2. Local Flask Server Functional Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#get-public-access-apis-and-information">3. Get public access APIs and information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-tests-from-a-remote-client">4. Run tests from a remote client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-the-local-tests-with-apache">Run the local tests with Apache</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pts-configuration">PTS Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pts-api">PTS API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#return-on-common-errors">Return on Common Errors</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">spdc Quick Start</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/api.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="pal.html" title="previous chapter"><strong>pal</strong>: Product Access Layer</a></li>
+      <li>Next: <a href="quickstart.html" title="next chapter">spdc Quick Start</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maohai Huang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      
+      |
+      <a href="../_sources/usage/pns.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
     
-   
 
-</body>
+    
+  </body>
 </html>

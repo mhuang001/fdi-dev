@@ -1,83 +1,160 @@
 
-<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta charset="utf-8" />
-    <title>pal package &#8212; spdc v0.6 documentation</title>
-    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/language_data.js"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pal package &mdash; spdc v0.6 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="pal.resources package" href="pal.resources.html" />
     <link rel="prev" title="dataset package" href="../dataset/dataset.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="pal.resources.html" title="pal.resources package"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="../dataset/dataset.html" title="dataset package"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">spdc v0.6 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Reference</a> &#187;</li> 
-      </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../../index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">pal package</a><ul>
-<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
-<li><a class="reference internal" href="#module-pal.common">Submodules</a></li>
-<li><a class="reference internal" href="#module-pal">Module contents</a></li>
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> spdc
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/installation.html">Install SPDC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/dataset.html">Dataset: Data Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/pal.html">PAL: Product Access Layer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/pns.html">pns: Processing Network Node Web API Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/quickstart.html">spdc Quick Start</a></li>
 </ul>
-</li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
 </ul>
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="../dataset/dataset.html"
-                        title="previous chapter">dataset package</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="pal.resources.html"
-                        title="next chapter">pal.resources package</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../../_sources/api/pal/pal.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+            
+          
         </div>
       </div>
+    </nav>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">spdc</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../api.html">API Reference</a> &raquo;</li>
+        
+      <li>pal package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api/pal/pal.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="pal-package">
 <h1>pal package<a class="headerlink" href="#pal-package" title="Permalink to this headline">¶</a></h1>
@@ -122,7 +199,7 @@ locals().values() and built-ins</p>
 <dt id="pal.context.Context">
 <em class="property">class </em><code class="sig-prename descclassname">pal.context.</code><code class="sig-name descname">Context</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.context.Context" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="../dataset/dataset.html#dataset.product.Product" title="dataset.product.Product"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.product.Product</span></code></a></p>
-<p>A Context is a special kind of Product that can hold references to other Products.</p>
+<p>A  special kind of Product that can hold references to other Products.</p>
 <p>This abstract product introduces the lazy loading and saving of references to Products or ProductRefs that it is holding. It remembers its state.
 <a class="reference external" href="http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Context.html">http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Context.html</a></p>
 <dl class="method">
@@ -176,28 +253,32 @@ locals().values() and built-ins</p>
 <p>Allows grouping Products into a map of (String, ProductRef) pairs.
 New entries can be added if they comply to the adding rules of this context. The default behaviour is to allow adding any (String,ProductRef).</p>
 <p>An example:</p>
-<p>image     = ImageProduct(description=”hi”)
-spectrum  = SpectrumProduct(description=”there”)
-simple    = Product(description=”everyone”)</p>
-<p>context=MapContext()
-context.refs.put(“x”,ProductRef(image))
-context.refs.put(“y”,ProductRef(spectrum))
-context.refs.put(“z”,ProductRef(simple))
-print context.refs.size() # 3
-print context.refs.get(‘x’).product.description # hi
-print context.refs.get(‘y’).product.description # there
-print context.refs.get(‘z’).product.description # everyone</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">image</span>     <span class="o">=</span> <span class="n">ImageProduct</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;hi&quot;</span><span class="p">)</span>
+<span class="n">spectrum</span>  <span class="o">=</span> <span class="n">SpectrumProduct</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;there&quot;</span><span class="p">)</span>
+<span class="n">simple</span>    <span class="o">=</span> <span class="n">Product</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;everyone&quot;</span><span class="p">)</span>
+
+<span class="n">context</span><span class="o">=</span><span class="n">MapContext</span><span class="p">()</span>
+<span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span><span class="n">ProductRef</span><span class="p">(</span><span class="n">image</span><span class="p">))</span>
+<span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span><span class="n">ProductRef</span><span class="p">(</span><span class="n">spectrum</span><span class="p">))</span>
+<span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span><span class="n">ProductRef</span><span class="p">(</span><span class="n">simple</span><span class="p">))</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="c1"># 3</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># hi</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># there</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># everyone</span>
+</pre></div>
+</div>
 <p>It is possible to insert a ProductRef at a specific key in the MapContext. The same insertion behaviour is followed as for a java Map, in that if there is already an existing ProductRef for the given key, that ProductRef is replaced with the new one:</p>
-<blockquote>
-<div><p>product4=SpectrumProduct(description=”everybody”)
-context.refs.put(“y”, ProductRef(product4))
-product5=SpectrumProduct(description=”here”)
-context.refs.put(“a”, ProductRef(product5))</p>
-<p>print context.refs.get(‘x’).product.description # hi
-print context.refs.get(‘y’).product.description # everybody
-print context.refs.get(‘z’).product.description # everyone
-print context.refs.get(‘a’).product.description # here</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">product4</span><span class="o">=</span><span class="n">SpectrumProduct</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;everybody&quot;</span><span class="p">)</span>
+<span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">ProductRef</span><span class="p">(</span><span class="n">product4</span><span class="p">))</span>
+<span class="n">product5</span><span class="o">=</span><span class="n">SpectrumProduct</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;here&quot;</span><span class="p">)</span>
+<span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">ProductRef</span><span class="p">(</span><span class="n">product5</span><span class="p">))</span>
+
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># hi</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># everybody</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># everyone</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># here</span>
+</pre></div>
+</div>
 <dl class="method">
 <dt id="pal.context.MapContext.getAllRefs">
 <code class="sig-name descname">getAllRefs</code><span class="sig-paren">(</span><em class="sig-param">recursive=False</em>, <em class="sig-param">includeContexts=True</em>, <em class="sig-param">seen=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.context.MapContext.getAllRefs" title="Permalink to this definition">¶</a></dt>
@@ -806,19 +887,29 @@ of URN strings.</p>
 the urn object will consume equals or a little more than URN string 
 as the object has to hold the original urn string. However this should
 be considered as exceptional cases.</p>
-<p>Using this object representation also help to avoid parsing cost of
-URN string.
-mh: URN format: ‘<a class="reference external" href="urn:poolname:resourceclass:serialnumber">urn:poolname:resourceclass:serialnumber</a>’
-resourceclass: dataset.Product … etc
-poolname format: scheme + ‘://’ + place + directory
-scheme format: file, ram, http … etc
-place format: 192.168.5.6:8080, c: … etc
-directory format: 
-for ‘file’ scheme: ‘/’ + name + ‘/’ + name + … + ‘/’ + name
-for ‘mem’ scheme: ‘/’ + name + ‘/’ + name + … + ‘/’ + process_ID
-serialnumber format: str(int). 
-for file scheme : internal index; 
-for memm scheme: python object id</p>
+<p>Using this object representation also help to avoid parsing cost of    URN string.
+mh:
+URN format: <code class="docutils literal notranslate"><span class="pre">urn:poolname:resourceclass:serialnumber</span></code>
+resourceclass</p>
+<blockquote>
+<div><p>e.g. <code class="docutils literal notranslate"><span class="pre">dataset.Product</span></code> … etc</p>
+</div></blockquote>
+<dl class="simple">
+<dt>poolname</dt><dd><p>scheme + ‘://’ + place + directory</p>
+</dd>
+<dt>scheme</dt><dd><p><code class="docutils literal notranslate"><span class="pre">file</span></code>, <code class="docutils literal notranslate"><span class="pre">mem</span></code>, <code class="docutils literal notranslate"><span class="pre">http</span></code> … etc</p>
+</dd>
+<dt>place</dt><dd><p><code class="docutils literal notranslate"><span class="pre">192.168.5.6:8080</span></code>, <code class="docutils literal notranslate"><span class="pre">c:</span></code> … etc</p>
+</dd>
+<dt>directory format: <code class="docutils literal notranslate"><span class="pre">file</span></code> scheme:</dt><dd><p>‘/’ + name + ‘/’ + name + … + ‘/’ + name</p>
+</dd>
+<dt>directory format: <code class="docutils literal notranslate"><span class="pre">mem</span></code> scheme:</dt><dd><p>‘/’ + name + ‘/’ + name + … + ‘/’ + process_ID</p>
+</dd>
+<dt>serialnumber format: <code class="docutils literal notranslate"><span class="pre">file</span></code> scheme:</dt><dd><p>string of internal index;</p>
+</dd>
+<dt>serialnumber format: <code class="docutils literal notranslate"><span class="pre">mem</span></code> scheme:</dt><dd><p>string of python object id</p>
+</dd>
+</dl>
 <dl class="method">
 <dt id="pal.urn.Urn.getFullPath">
 <em class="property">static </em><code class="sig-name descname">getFullPath</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#pal.urn.Urn.getFullPath" title="Permalink to this definition">¶</a></dt>
@@ -969,33 +1060,52 @@ for memm scheme: python object id</p>
 </div>
 
 
+           </div>
+           
           </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pal.resources.html" class="btn btn-neutral float-right" title="pal.resources package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../dataset/dataset.html" class="btn btn-neutral float-left" title="dataset package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Maohai Huang
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="pal.resources.html" title="pal.resources package"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="../dataset/dataset.html" title="dataset package"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../index.html">spdc v0.6 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../api.html" >API Reference</a> &#187;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-        &#169; Copyright 2019, Maohai Huang.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
-    </div>
-  </body>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
 </html>

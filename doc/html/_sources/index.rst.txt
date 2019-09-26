@@ -42,7 +42,8 @@ SPDC Python packages
    usage/dataset
    usage/pal
    usage/pns
-
+   usage/quickstart
+   
 API Document
 ============
 

@@ -17,15 +17,15 @@ for developers
 		cd spdc
 		pip3 install -e .
 
-Or if you have a tar file, e.g. /tmp/spdc.tar and /tmp/vvpp.tar, do something like
 
 
 .. code-block:: shell
 		
 		mkdir ~/svom
 		cd ~/svom
+		cp /tmp/spdc/install .
 		nano install [do some editing if needed]
-		./install
+		. ./install
 
 Install the dependencies if needed ((python 3.6, Flask, pytest ...)
 

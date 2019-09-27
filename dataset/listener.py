@@ -251,7 +251,8 @@ class DatasetEvent(Serializable):
 
 class ParameterListener(DatasetBaseListener):
     """ Listener for events occuring in a Parameter.
-    Available types:
+    Available types::
+
     * DESCRIPTION_CHANGED
     * UNIT_CHANGED
     * VALUE_CHANGED
@@ -266,7 +267,8 @@ class ParameterListener(DatasetBaseListener):
 
 class MetaDataListener(DatasetBaseListener):
     """ Listener for events occuring in MetaData.
-    Available types:
+    Available types::
+
     * PARAMETER_ADDED
     * PARAMETER_REMOVED
     * PARAMETER_CHANGED
@@ -283,15 +285,17 @@ class MetaDataListener(DatasetBaseListener):
 
 class DatasetListener(DatasetBaseListener):
     """ Listener for events occuring in MetaData.
-    Available types:
+    Available types::
+
     * DESCRIPTION_CHANGED, METADATA_CHANGED (all datasets)
     * DATA_CHANGED, UNIT_CHANGED (ArrayDataset)
     * COLUMN_ADDED, COLUMN_REMOVED, COLUMN_CHANGED, ROW_ADDED, VALUE_CHANGED (TableDataset)
     * DATASET_ADDED, DATASET_REMOVED, DATASET_CHANGED (CompositeDataset)
 
-    Possible causes:
-    not null (METADATA_CHANGED, COLUMN_CHANGED, DATASET_CHANGED)
-    null (rest)
+    Possible causes::
+
+    * not null (METADATA_CHANGED, COLUMN_CHANGED, DATASET_CHANGED)
+    * null (rest)
 
     Warning: The listener handler must be a class attribute in order to
     create an object hard reference. See DatasetBaseListener.
@@ -301,7 +305,8 @@ class DatasetListener(DatasetBaseListener):
 class ColumnListener(DatasetBaseListener):
     """ Listener for events occuring in a Column.
 
-    Available types:
+    Available types::
+
     * DESCRIPTION_CHANGED
     * UNIT_CHANGED
     * DATA_CHANGED
@@ -312,16 +317,17 @@ class ColumnListener(DatasetBaseListener):
 
 class ProductListener(DatasetBaseListener):
     """ Listener for events occuring in Product.
-    Available types:
+    Available types::
+
     * METADATA_CHANGED
     * DATASET_ADDED
     * DATASET_REMOVED
     * DATASET_CHANGED
 
-    Possible causes:
+    Possible causes::
 
-    not null (METADATA_CHANGED, DATASET_CHANGED)
-    null (METADATA_CHANGED, DATASET_REMOVED, DATASET_CHANGED)
+    * not null (METADATA_CHANGED, DATASET_CHANGED)
+    * null (METADATA_CHANGED, DATASET_REMOVED, DATASET_CHANGED)
 
     Warning: The listener handler must be a class attribute in order to
     create an object hard reference. See DatasetBaseListener.

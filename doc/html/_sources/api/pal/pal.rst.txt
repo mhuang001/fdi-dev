@@ -1,6 +1,11 @@
 pal package
 ===========
 
+.. automodule:: pal
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Subpackages
 -----------
 
@@ -11,83 +16,99 @@ Subpackages
 Submodules
 ----------
 
+pal.common module
+-----------------
 
 .. automodule:: pal.common
    :members:
    :undoc-members:
    :show-inheritance:
 
+pal.comparable module
+---------------------
 
 .. automodule:: pal.comparable
    :members:
    :undoc-members:
    :show-inheritance:
 
+pal.context module
+------------------
 
 .. automodule:: pal.context
    :members:
    :undoc-members:
    :show-inheritance:
 
+pal.definable module
+--------------------
 
 .. automodule:: pal.definable
    :members:
    :undoc-members:
    :show-inheritance:
 
+pal.localpool module
+--------------------
 
 .. automodule:: pal.localpool
    :members:
    :undoc-members:
    :show-inheritance:
 
+pal.poolmanager module
+----------------------
 
 .. automodule:: pal.poolmanager
    :members:
    :undoc-members:
    :show-inheritance:
 
+pal.productpool module
+----------------------
 
 .. automodule:: pal.productpool
    :members:
    :undoc-members:
    :show-inheritance:
 
+pal.productref module
+---------------------
 
 .. automodule:: pal.productref
    :members:
    :undoc-members:
    :show-inheritance:
 
+pal.productstorage module
+-------------------------
 
 .. automodule:: pal.productstorage
    :members:
    :undoc-members:
    :show-inheritance:
 
+pal.taggable module
+-------------------
 
 .. automodule:: pal.taggable
    :members:
    :undoc-members:
    :show-inheritance:
 
+pal.urn module
+--------------
 
 .. automodule:: pal.urn
    :members:
    :undoc-members:
    :show-inheritance:
 
+pal.versionable module
+----------------------
 
 .. automodule:: pal.versionable
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: pal
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -14,7 +14,7 @@ from .abstractcomposite import AbstractComposite
 from .attributable import Attributable
 from .odict import ODict, bstr
 from .serializable import Serializable
-from .listener import ColumnListener, DatasetBaseListener, MetaDataListener
+from .listener import ColumnListener, MetaDataListener
 from .ndprint import ndprint
 
 

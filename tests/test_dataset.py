@@ -253,7 +253,10 @@ import copy
 
 
 def ndlist(*args, init=0):
-    """ https://stackoverflow.com/a/33460217"""
+    """ Generates an N-dimensional array with list.
+    ``ndlist(2, 3, 4, 5)`` will make a list of 2 lists of 3 lists of 4 lists of 5 elements of 0.
+    https://stackoverflow.com/a/33460217
+    """
     dp = init
     for x in reversed(args):
         dp = [copy.deepcopy(dp) for i in range(x)]

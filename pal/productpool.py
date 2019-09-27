@@ -27,7 +27,16 @@ lockpath = '/tmp'
 
 
 class ProductPool(Definable, Taggable, Versionable):
-    """
+    """ A mechanism that can store and retrieve Products.
+
+A product pool should not be used directly by users. The general user should access data in a ProductPool through a ProductStorage instance.
+
+When implementing a ProductPool, the following rules need to be applied:
+
+    1. Pools must guarantee that a Product saved via the pool saveProduct(Product) method is stored persistently, and that method returns a unique identifier (URN). If it is not possible to save a Product, an IOException shall be raised.
+    2. A saved Product can be retrieved using the loadProduct(Urn) method, using as the argument the same URN that assigned to that Product in the earlier saveProduct(Product) call. No other Product shall be retrievable by that same URN. If this is not possible, an IOException or GeneralSecurityException is raised.
+    3. Pools should not implement functionality currently implemented in the core package. Specifically, it should not address functionality provided in the Context abstract class, and it should not implement versioning/cloning support.
+
     """
 
     def __init__(self, poolurn='file:///tmp/pool', **kwds):

@@ -62,24 +62,22 @@ class Urn(DeepEqual, Serializable, Comparable):
 
     Using this object representation also help to avoid parsing cost of    URN string.
     mh:
-    URN format:
-       ``urn:poolname:resourceclass:serialnumber``
-    resourceclass
-       e.g. ``dataset.Product`` ... etc
-    poolname
-       scheme + '://' + place + directory
-    scheme
-       ``file``, ``mem``, ``http`` ... etc
-    place
-       ``192.168.5.6:8080``, ``c:`` ... etc
-    directory format: ``file`` scheme:
-       '/' + name + '/' + name + ... + '/' + name
-    directory format: ``mem`` scheme:
-       '/' + name + '/' + name + ... + '/' + process_ID
-    serialnumber format: ``file`` scheme:
-       string of internal index; 
-    serialnumber format: ``mem`` scheme:
-       string of python object id
+    URN format::
+
+       urn:poolname:resourceclass:serialnumber
+
+    where
+
+    :resourceclass: fully qualified class name of the resource (product)
+    :poolname: scheme + ``://`` + place + directory
+    :scheme: ``file``, ``mem``, ``http`` ... etc
+    :place: ``192.168.5.6:8080``, ``c:``, an empty string ... etc
+    :directory:
+         * for ``file`` scheme: ``/`` + name + ``/`` + name + ... + ``/`` + name
+         * for ``mem`` scheme: ``/`` + name + ... + ``/`` + process_ID
+    :serialnumber:
+         * for ``file`` scheme: internal index. str(int).
+         * for ``mem`` scheme: python object id. str(int).
     """
 
     def __init__(self, urn=None, pool=None, cls=None, index=None, **kwds):

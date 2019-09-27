@@ -42,42 +42,57 @@
 </div>
 <div class="section" id="definitions">
 <h2>Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
-<p><strong>Urn</strong></p>
+<div class="section" id="urn">
+<h3>URN<a class="headerlink" href="#urn" title="Permalink to this headline">¶</a></h3>
 <p>The Universial Resource Name (URN) string has this format:</p>
-<p><a class="reference external" href="urn:poolname:resourceclass:serialnumber">urn:poolname:resourceclass:serialnumber</a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">urn</span><span class="p">:</span><span class="n">poolname</span><span class="p">:</span><span class="n">resourceclass</span><span class="p">:</span><span class="n">serialnumber</span>
+</pre></div>
+</div>
 <p>where</p>
 <dl class="field-list simple">
 <dt class="field-odd">resourceclass</dt>
 <dd class="field-odd"><p>fully qualified class name of the resource (product)</p>
 </dd>
-<dt class="field-even">poolname format</dt>
-<dd class="field-even"><p>scheme + ‘://’ + place + directory</p>
+<dt class="field-even">poolname</dt>
+<dd class="field-even"><p>scheme + <code class="docutils literal notranslate"><span class="pre">://</span></code> + place + directory</p>
 </dd>
-<dt class="field-odd">scheme format</dt>
-<dd class="field-odd"><p>‘file’, ‘mem’, ‘http’ … etc</p>
+<dt class="field-odd">scheme</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">file</span></code>, <code class="docutils literal notranslate"><span class="pre">mem</span></code>, <code class="docutils literal notranslate"><span class="pre">http</span></code> … etc</p>
 </dd>
-<dt class="field-even">place format</dt>
-<dd class="field-even"><p>‘192.168.5.6:8080’, ‘c:’, an empty string … etc</p>
+<dt class="field-even">place</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">192.168.5.6:8080</span></code>, <code class="docutils literal notranslate"><span class="pre">c:</span></code>, an empty string … etc</p>
 </dd>
-<dt class="field-odd">directory format</dt>
+<dt class="field-odd">directory</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p>for ‘file’ schem: ‘/’ + name + ‘/’ + name + … + ‘/’ + name</p></li>
-<li><p>for ‘mem’ schem: ‘/’ + name + ‘/’ + name + … + ‘/’ + process_ID</p></li>
+<li><p>for <code class="docutils literal notranslate"><span class="pre">file</span></code> scheme: <code class="docutils literal notranslate"><span class="pre">/</span></code> + name + <code class="docutils literal notranslate"><span class="pre">/</span></code> + name + … + <code class="docutils literal notranslate"><span class="pre">/</span></code> + name</p></li>
+<li><p>for <code class="docutils literal notranslate"><span class="pre">mem</span></code> scheme: <code class="docutils literal notranslate"><span class="pre">/</span></code> + name + … + <code class="docutils literal notranslate"><span class="pre">/</span></code> + process_ID</p></li>
 </ul>
 </dd>
-<dt class="field-even">serialnumber format</dt>
+<dt class="field-even">serialnumber</dt>
 <dd class="field-even"><ul class="simple">
-<li><p>for ‘file’ scheme: internal index. str(int).</p></li>
-<li><p>for ‘mem’ scheme: python object id. str(int).</p></li>
+<li><p>for <code class="docutils literal notranslate"><span class="pre">file</span></code> scheme: internal index. str(int).</p></li>
+<li><p>for <code class="docutils literal notranslate"><span class="pre">mem</span></code> scheme: python object id. str(int).</p></li>
 </ul>
 </dd>
 </dl>
-<p><strong>ProductRef</strong></p>
+</div>
+<div class="section" id="productref">
+<h3>ProductRef<a class="headerlink" href="#productref" title="Permalink to this headline">¶</a></h3>
 <p>This class not only holds the URN of the product it references to, but also records who ( the _parents_) are keeping this reference.</p>
-<p><strong>Context</strong> and <strong>MapContext</strong></p>
+</div>
+<div class="section" id="context-and-mapcontext">
+<h3>Context and MapContext<a class="headerlink" href="#context-and-mapcontext" title="Permalink to this headline">¶</a></h3>
 <p>Context is a Product that holds a set of <code class="docutils literal notranslate"><span class="pre">productRef</span></code> s that accessible by keys. The keys are strings for MapContext which usually maps names to product references.</p>
-<p><strong>ProductStorage</strong></p>
+</div>
+<div class="section" id="productstorage">
+<h3>ProductStorage<a class="headerlink" href="#productstorage" title="Permalink to this headline">¶</a></h3>
 <p>A centralized access place for saving/loading/querying/deleting data organized in conceptual pools. One gets a ProductRef when saving data.</p>
+</div>
+<div class="section" id="productpool">
+<h3>ProductPool<a class="headerlink" href="#productpool" title="Permalink to this headline">¶</a></h3>
+<p>An place where products can be saved, with a reference for the saved product generated. The product can be retrieved with the reference. Pools based on different media or networking mechanism can be implemented. Multiple pools can be registered in a
+ProductStorage front-end where users can do the saving, loading, querying etc. so that the pools are collectively form a larger logical storage.</p>
+</div>
 </div>
 <div class="section" id="run-tests">
 <h2>run tests<a class="headerlink" href="#run-tests" title="Permalink to this headline">¶</a></h2>
@@ -95,21 +110,19 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pal.urn</span> <span class="k">import</span> <span class="n">Urn</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dataset.product</span> <span class="k">import</span> <span class="n">Product</span>
 <span class="kn">from</span> <span class="nn">pal.productstorage</span> <span class="k">import</span> <span class="n">ProductStorage</span>
-<span class="kn">from</span> <span class="nn">pal.productref</span> <span class="k">import</span> <span class="n">ProductRef</span>
-<span class="kn">from</span> <span class="nn">pal.comparable</span> <span class="k">import</span> <span class="n">Comparable</span>
-<span class="kn">from</span> <span class="nn">pal.context</span> <span class="k">import</span> <span class="n">Context</span><span class="p">,</span> <span class="n">MapContext</span><span class="p">,</span> <span class="n">MapRefsDataset</span>
+<span class="kn">from</span> <span class="nn">pal.poolmanager</span> <span class="k">import</span> <span class="n">PoolManager</span>
+<span class="kn">from</span> <span class="nn">pal.context</span> <span class="k">import</span> <span class="n">MapContext</span>
 <span class="kn">from</span> <span class="nn">pal.common</span> <span class="k">import</span> <span class="n">getProductObject</span>
 
-<span class="n">defaultpoolpath</span> <span class="o">=</span> <span class="s1">&#39;/tmp/pool&#39;</span>
 <span class="n">defaultpool</span> <span class="o">=</span> <span class="s1">&#39;file://&#39;</span> <span class="o">+</span> <span class="n">defaultpoolpath</span>
 <span class="c1"># create a prooduct</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">Product</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;in store&#39;</span><span class="p">)</span>
 <span class="c1"># create a product store</span>
 <span class="n">pstore</span> <span class="o">=</span> <span class="n">ProductStorage</span><span class="p">()</span>
-<span class="c1"># clean up possible garbage of previous runs</span>
-<span class="n">pstore</span><span class="o">.</span><span class="n">wipePool</span><span class="p">(</span><span class="n">defaultpool</span><span class="p">)</span>
+<span class="c1"># remove existing pools in memory</span>
+<span class="n">PoolManager</span><span class="p">()</span><span class="o">.</span><span class="n">removeAll</span><span class="p">()</span>
 <span class="c1"># save the product and get a reference</span>
 <span class="n">prodref</span> <span class="o">=</span> <span class="n">pstore</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="c1"># create an empty mapcontext</span>

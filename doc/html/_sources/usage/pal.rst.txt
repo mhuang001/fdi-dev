@@ -18,36 +18,46 @@ This package provides MapContext, ProductRef, Urn, ProductStorage classes (simpl
 Definitions
 ===========
 
-**Urn**
+URN
+---
 
-The Universial Resource Name (URN) string has this format:
+The Universial Resource Name (URN) string has this format::
 
-urn:poolname:resourceclass:serialnumber
+  urn:poolname:resourceclass:serialnumber
 
 where
 
 :resourceclass: fully qualified class name of the resource (product)
-:poolname format: scheme + '://' + place + directory
-:scheme format: 'file', 'mem', 'http' ... etc
-:place format: '192.168.5.6:8080', 'c:', an empty string ... etc
-:directory format:
-     * for 'file' schem: '/' + name + '/' + name + ... + '/' + name
-     * for 'mem' schem: '/' + name + '/' + name + ... + '/' + process_ID
-:serialnumber format:
-     * for 'file' scheme: internal index. str(int).
-     * for 'mem' scheme: python object id. str(int).
+:poolname: scheme + ``://`` + place + directory
+:scheme: ``file``, ``mem``, ``http`` ... etc
+:place: ``192.168.5.6:8080``, ``c:``, an empty string ... etc
+:directory:
+     * for ``file`` scheme: ``/`` + name + ``/`` + name + ... + ``/`` + name
+     * for ``mem`` scheme: ``/`` + name + ... + ``/`` + process_ID
+:serialnumber:
+     * for ``file`` scheme: internal index. str(int).
+     * for ``mem`` scheme: python object id. str(int).
 
-**ProductRef**
+ProductRef
+----------
 
 This class not only holds the URN of the product it references to, but also records who ( the _parents_) are keeping this reference.
 
-**Context** and **MapContext**
+Context and MapContext
+----------------------
 
 Context is a Product that holds a set of ``productRef`` s that accessible by keys. The keys are strings for MapContext which usually maps names to product references.
 
-**ProductStorage**
+ProductStorage
+--------------
 
 A centralized access place for saving/loading/querying/deleting data organized in conceptual pools. One gets a ProductRef when saving data.
+
+ProductPool
+-----------
+
+An place where products can be saved, with a reference for the saved product generated. The product can be retrieved with the reference. Pools based on different media or networking mechanism can be implemented. Multiple pools can be registered in a
+ProductStorage front-end where users can do the saving, loading, querying etc. so that the pools are collectively form a larger logical storage.
 
 run tests
 =========
@@ -75,36 +85,34 @@ Examples
 
 .. code-block::
 
-   from pal.urn import Urn
-   from pal.productstorage import ProductStorage
-   from pal.productref import ProductRef
-   from pal.comparable import Comparable
-   from pal.context import Context, MapContext, MapRefsDataset
-   from pal.common import getProductObject
+	from dataset.product import Product
+	from pal.productstorage import ProductStorage
+	from pal.poolmanager import PoolManager
+	from pal.context import MapContext
+	from pal.common import getProductObject
 
-   defaultpoolpath = '/tmp/pool'
-   defaultpool = 'file://' + defaultpoolpath
-   # create a prooduct
-   x = Product(description='in store')
-   # create a product store
-   pstore = ProductStorage()
-   # clean up possible garbage of previous runs
-   pstore.wipePool(defaultpool)
-   # save the product and get a reference
-   prodref = pstore.save(x)
-   # create an empty mapcontext
-   mc = MapContext()
-   # put the ref in the context.
-   # The manual has this syntax mc.refs.put('xprod', prodref)
-   # but I like this for doing the same thing:
-   mc['refs']['xprod'] = prodref
-   # get the urn
-   urn = prodref.urn
-   # re-create a product only using the urn
-   newp = getProductObject(urn)
-   # the new and the old one are equal
-   assert newp == x
-
+	defaultpool = 'file://' + defaultpoolpath
+	# create a prooduct
+	x = Product(description='in store')
+	# create a product store
+	pstore = ProductStorage()
+	# remove existing pools in memory
+	PoolManager().removeAll()
+	# save the product and get a reference
+	prodref = pstore.save(x)
+	# create an empty mapcontext
+	mc = MapContext()
+	# put the ref in the context.
+	# The manual has this syntax mc.refs.put('xprod', prodref)
+	# but I like this for doing the same thing:
+	mc['refs']['xprod'] = prodref
+	# get the urn
+	urn = prodref.urn
+	# re-create a product only using the urn
+	newp = getProductObject(urn)
+	# the new and the old one are equal
+	assert newp == x
+	
 
 
 For more examples see tests/test_pal.py

@@ -1,4 +1,4 @@
-OP=-E
+OP="-T -M --ext-viewcode"
 SPDC=../..
 rm -rf api/dataset api/pns api/pal
 mkdir -p api/dataset api/pns api/pal

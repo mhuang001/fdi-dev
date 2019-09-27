@@ -1,116 +1,147 @@
 dataset package
 ===============
 
+.. automodule:: dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Submodules
 ----------
 
+dataset.abstractcomposite module
+--------------------------------
 
 .. automodule:: dataset.abstractcomposite
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.annotatable module
+--------------------------
 
 .. automodule:: dataset.annotatable
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.attributable module
+---------------------------
 
 .. automodule:: dataset.attributable
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.composite module
+------------------------
 
 .. automodule:: dataset.composite
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.copyable module
+-----------------------
 
 .. automodule:: dataset.copyable
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.dataset module
+----------------------
 
 .. automodule:: dataset.dataset
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.datawrapper module
+--------------------------
 
 .. automodule:: dataset.datawrapper
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.deserialize module
+--------------------------
 
 .. automodule:: dataset.deserialize
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.eq module
+-----------------
 
 .. automodule:: dataset.eq
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.listener module
+-----------------------
 
 .. automodule:: dataset.listener
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.metadata module
+-----------------------
 
 .. automodule:: dataset.metadata
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.metadataholder module
+-----------------------------
 
 .. automodule:: dataset.metadataholder
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.ndprint module
+----------------------
 
 .. automodule:: dataset.ndprint
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.odict module
+--------------------
 
 .. automodule:: dataset.odict
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.product module
+----------------------
 
 .. automodule:: dataset.product
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.quantifiable module
+---------------------------
 
 .. automodule:: dataset.quantifiable
    :members:
    :undoc-members:
    :show-inheritance:
 
+dataset.serializable module
+---------------------------
 
 .. automodule:: dataset.serializable
    :members:
    :undoc-members:
    :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: dataset
-   :members:
-   :undoc-members:
-   :show-inheritance:

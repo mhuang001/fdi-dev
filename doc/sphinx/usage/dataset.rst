@@ -14,7 +14,7 @@ A data processing task produces data products that are meant to be shared by oth
 
 Many people tend to store data with no meaning attached to them. Without attach meaning of the collection of numbers, it is difficult for other people to fully understand the data. It could be difficult for even the data producer to recall the exact meaning of the numbers after a while.
 
-This package implements a data product modeled after `Herschel Common Software System (v15)  products <https://www.cosmos.esa.int/web/herschel/data-products-overview/>`_, taking other  requirements of scientific observation and data processing into account. The APIs are kept as compatible with HCSS (written in Java, and in Jython for scripting) as possible, so that HCSS could be re-used with SPDC.
+This package implements a data product modeled after `Herschel Common Software System (v15)  products <https://www.cosmos.esa.int/web/herschel/data-products-overview/>`_, taking other  requirements of scientific observation and data processing into account. The APIs are kept as compatible with HCSS (written in Java, and in Jython for scripting) as possible.
 
 
 Definitions

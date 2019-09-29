@@ -80,39 +80,3 @@ Classes
 
 .. image:: ../_static/classes_pal.png
 
-Examples
-========
-
-.. code-block::
-
-	from dataset.product import Product
-	from pal.productstorage import ProductStorage
-	from pal.poolmanager import PoolManager
-	from pal.context import MapContext
-	from pal.common import getProductObject
-
-	defaultpool = 'file://' + defaultpoolpath
-	# create a prooduct
-	x = Product(description='in store')
-	# create a product store
-	pstore = ProductStorage()
-	# remove existing pools in memory
-	PoolManager().removeAll()
-	# save the product and get a reference
-	prodref = pstore.save(x)
-	# create an empty mapcontext
-	mc = MapContext()
-	# put the ref in the context.
-	# The manual has this syntax mc.refs.put('xprod', prodref)
-	# but I like this for doing the same thing:
-	mc['refs']['xprod'] = prodref
-	# get the urn
-	urn = prodref.urn
-	# re-create a product only using the urn
-	newp = getProductObject(urn)
-	# the new and the old one are equal
-	assert newp == x
-	
-
-
-For more examples see tests/test_pal.py

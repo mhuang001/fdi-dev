@@ -202,9 +202,10 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
 
 class Column(ArrayDataset, ColumnListener):
     """ A Column is a the vertical cut of a table for which all cells have the same signature. It contains raw ArrayData, and optionally a description and unit.
-    example:
-    table = TableDataset()
-    table.addColumn("Energy",Column(data=[1,2,3,4],description="desc",unit='eV'))
+    example::
+
+      table = TableDataset()
+      table.addColumn("Energy",Column(data=[1,2,3,4],description="desc",unit='eV'))
     """
     pass
 
@@ -289,7 +290,7 @@ class TableDataset(Dataset, TableModel):
         super().__init__(**kwds)  # initialize data, meta, unit
 
     def setData(self, data):
-        """ sets name-column pairs if any of ['name'], .name,
+        """ sets name-column pairs if any of ['name'] or .name,
         .__next__() is valid for each item in data. Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named 'col[index]' (index counting from 1) with unit None.
         """
         # logging.debug(data.__class__)
@@ -303,13 +304,18 @@ class TableDataset(Dataset, TableModel):
                     curd = self.getData()
                 except Exception:
                     curd = None
+                # list of keys of current data
                 curdk = list(self.getData().keys()) if curd else []
                 ind = 0
                 for x in data:
                     if 'name' in x and 'column' in x:
-                        d[x['name']] = x['column']
-                    elif hasattr(x, 'name') and hasattr('column', x):
-                        d[x.name] = x.column
+                        if issubclass(x['column'].__class__, Column):
+                            col = x['column']
+                        else:
+                            col = Column(data=x['column'], unit=x['unit'])
+                        d[x['name']] = col
+                    elif issubclass(x.__class__, str) and issubclass(data[x].__class__, Column):
+                        d[x] = data[x]
                     elif issubclass(x.__class__, list):
                         if curd is None:
                             d['col' + str(ind + 1)] = Column(data=x, unit=None)

@@ -10,9 +10,6 @@ import traceback
 
 from pns.logdict import logdict
 import logging
-import logging.config
-# create logger
-logging.config.dictConfig(logdict)
 logger = logging.getLogger(__name__)
 logger.debug('level %d' % (logger.getEffectiveLevel()))
 

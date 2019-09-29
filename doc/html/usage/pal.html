@@ -108,39 +108,6 @@ ProductStorage front-end where users can do the saving, loading, querying etc. s
 <p>Classes</p>
 <img alt="../_images/classes_pal1.png" src="../_images/classes_pal1.png" />
 </div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dataset.product</span> <span class="k">import</span> <span class="n">Product</span>
-<span class="kn">from</span> <span class="nn">pal.productstorage</span> <span class="k">import</span> <span class="n">ProductStorage</span>
-<span class="kn">from</span> <span class="nn">pal.poolmanager</span> <span class="k">import</span> <span class="n">PoolManager</span>
-<span class="kn">from</span> <span class="nn">pal.context</span> <span class="k">import</span> <span class="n">MapContext</span>
-<span class="kn">from</span> <span class="nn">pal.common</span> <span class="k">import</span> <span class="n">getProductObject</span>
-
-<span class="n">defaultpool</span> <span class="o">=</span> <span class="s1">&#39;file://&#39;</span> <span class="o">+</span> <span class="n">defaultpoolpath</span>
-<span class="c1"># create a prooduct</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">Product</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;in store&#39;</span><span class="p">)</span>
-<span class="c1"># create a product store</span>
-<span class="n">pstore</span> <span class="o">=</span> <span class="n">ProductStorage</span><span class="p">()</span>
-<span class="c1"># remove existing pools in memory</span>
-<span class="n">PoolManager</span><span class="p">()</span><span class="o">.</span><span class="n">removeAll</span><span class="p">()</span>
-<span class="c1"># save the product and get a reference</span>
-<span class="n">prodref</span> <span class="o">=</span> <span class="n">pstore</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="c1"># create an empty mapcontext</span>
-<span class="n">mc</span> <span class="o">=</span> <span class="n">MapContext</span><span class="p">()</span>
-<span class="c1"># put the ref in the context.</span>
-<span class="c1"># The manual has this syntax mc.refs.put(&#39;xprod&#39;, prodref)</span>
-<span class="c1"># but I like this for doing the same thing:</span>
-<span class="n">mc</span><span class="p">[</span><span class="s1">&#39;refs&#39;</span><span class="p">][</span><span class="s1">&#39;xprod&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prodref</span>
-<span class="c1"># get the urn</span>
-<span class="n">urn</span> <span class="o">=</span> <span class="n">prodref</span><span class="o">.</span><span class="n">urn</span>
-<span class="c1"># re-create a product only using the urn</span>
-<span class="n">newp</span> <span class="o">=</span> <span class="n">getProductObject</span><span class="p">(</span><span class="n">urn</span><span class="p">)</span>
-<span class="c1"># the new and the old one are equal</span>
-<span class="k">assert</span> <span class="n">newp</span> <span class="o">==</span> <span class="n">x</span>
-</pre></div>
-</div>
-<p>For more examples see tests/test_pal.py</p>
-</div>
 </div>
 
 
@@ -170,7 +137,6 @@ ProductStorage front-end where users can do the saving, loading, querying etc. s
 <li class="toctree-l2"><a class="reference internal" href="#definitions">Definitions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#run-tests">run tests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#design">Design</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pns.html"><strong>pns</strong>: Processing Node Server</a></li>

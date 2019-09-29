@@ -783,22 +783,27 @@ def test_TableDataset():
     except Exception as e:
         assert issubclass(e.__class__, TypeError)
     assert t == 5
+
     # setData format 1: data is a sequence of dict
     a1 = [dict(name='col1', column=Column(data=[1, 4.4, 5.4E3], unit='eV')),
           dict(name='col2', column=Column(data=[0, 43.2, 2E3], unit='cnt'))
           ]
-    # 2: another syntax
-    # same as last but using different dict syntax
-    # = [{'name': 'col1', 'column': Column(data=[1, 4.4, 5.4E3], unit='eV')},
-    #    {'name': 'col2', 'column': Column(data=[0, 43.2, 2E3], unit='cnt')}]
     v = TableDataset(data=a1)  # inherited from DataWrapper
-    assert v.getColumnCount() == 2
-    assert v.getColumnName(0) == 'col1'
-    assert v.getValueAt(rowIndex=1, columnIndex=1) == 43.2
+    assert v.getColumnCount() == len(a1)
+    assert v.getColumnName(0) == list(a1[0].values())[0]  # 'col1'
+    t = list(a1[1].values())[1].data[1]  # 43.2
+    assert v.getValueAt(rowIndex=1, columnIndex=1) == t
+
+    # 2: another syntax, same effect as last
+    a2 = [{'name': 'col1', 'column': Column(data=[1, 4.4, 5.4E3], unit='eV')},
+          {'name': 'col2', 'column': Column(data=[0, 43.2, 2E3], unit='cnt')}]
+    v2 = TableDataset(data=a2)
+    assert v == v2
+
     # 3: data is a mapping
-    v4 = TableDataset(data=dict(col1=Column(data=[1, 4.4, 5.4E3], unit='eV'),
-                                col2=Column(data=[0, 43.2, 2E3], unit='cnt'))
-                      )
+    a4 = dict(col1=Column(data=[1, 4.4, 5.4E3], unit='eV'),
+              col2=Column(data=[0, 43.2, 2E3], unit='cnt'))
+    v4 = TableDataset(data=a4)
     assert v == v4
 
     # 3: *Quickest?* list of tuples that do not need to use Column
@@ -807,7 +812,7 @@ def test_TableDataset():
                             ])
     assert v == v3
 
-    # access
+    # add columns, replace columns
     # column set / get
     u = TableDataset()
     c = Column([1, 4], 'sec')
@@ -818,6 +823,8 @@ def test_TableDataset():
     # replace column for existing names
     u['col4'] = c
     assert u['col4'][0] == 1
+
+    # access
     # unit access
     assert u['col4'].unit == 'sec'
     # with indexOf
@@ -826,34 +833,28 @@ def test_TableDataset():
     u.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
     assert u.getValueAt(rowIndex=1, columnIndex=1) == 42
 
-    # replace whole table. see constructor examples
-    u.data = dict(n1=Column([1, 4.4, 5.4E3], 'ee'),
-                  n2=Column([0, 43.2, 2E3], 'cnt'))
+    # replace whole table. see constructor examples for making a1
+    u.data = a1
+    assert v == u
     # col3,4 are gone
-    assert list(u.data.keys()) == ['n1', 'n2']
-    # But if providing a list of list of data only for the existing columns
+    assert list(u.data.keys()) == ['col1', 'col2']
+    # But if providing a list of lists of data only for the existing columns, units sre not changed
     u.data = [[0, 9876, 66]]
-    assert u['n1'][1] == 9876
-    assert u['n1'].unit == 'ee'
-    # list of list can go past current number of columns
+    assert u['col1'][1] == 9876
+    assert u['col1'].unit == 'eV'
+    # list of lists of new data can go past current number of columns
     h = [6, 7, 8]
     u.data = [[0, 9876, 66], [1, 2, 3], h]
-    assert u['n1'][1] == 9876
-    assert u['n1'].unit == 'ee'
+    assert u['col1'][1] == 9876
+    assert u['col1'].unit == 'eV'
     # genric col[index] names and None unit are given for the added columns
     assert u['col3'][1] == 7  # index counts from 1 !
     assert u['col3'].unit is None
 
-    # in
+    # syntax ``in``
     assert 'col3' in u
 
     # toString()
-    s = ndlist(2, 3, 4, 5)
-    x = ArrayDataset(data=s)
-    x[0][1][0] = [0, 0, 0, 0, 0]
-    x[0][1][1] = [0, 0, 0, 1, 0]
-    x[0][1][2] = [5, 4, 3, 2, 1]
-    x[0][1][3] = [0, 0, 0, 3, 0]
     ts = v3.toString()
     # print(ts)
     assert ts == \
@@ -1213,16 +1214,17 @@ def test_Product():
     i3 = 'img1'  # description
     image = ArrayDataset(data=i1, unit=i2, description=i3)
 
-    s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
-          ('col2', [0, 43.2, 2E3], 'cnt')
-          ]
-    spec = TableDataset(data=s1)
     x["RawImage"] = image
     assert x["RawImage"].data[1][2] == i0
     # no unit or description. diff syntax same function as above
     x.set('QualityImage', ArrayDataset(
         [[0.1, 0.5, 0.7], [4e3, 6e7, 8], [-2, 0, 3.1]]))
     assert x["QualityImage"].unit is None
+    # add a tabledataset
+    s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
+          ('col2', [0, 43.2, 2E3], 'cnt')
+          ]
+    spec = TableDataset(data=s1)
     x["Spectrum"] = spec
     assert x["Spectrum"].getValueAt(columnIndex=1, rowIndex=0) == 0
 
@@ -1233,6 +1235,7 @@ def test_Product():
     assert id(d) == id(sets['RawImage'])
 
     # Test metadata
+    # mandatory properties are also in metadata
     x.creator = ""
     a0 = "Me, myself and I"
     x.creator = a0

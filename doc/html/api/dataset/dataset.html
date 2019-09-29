@@ -263,9 +263,11 @@ trans: print 2D matrix transposed. default is True.</p>
 <em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">Column</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.Column" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#dataset.dataset.ArrayDataset" title="dataset.dataset.ArrayDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.dataset.ArrayDataset</span></code></a>, <a class="reference internal" href="#dataset.listener.ColumnListener" title="dataset.listener.ColumnListener"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.listener.ColumnListener</span></code></a></p>
 <p>A Column is a the vertical cut of a table for which all cells have the same signature. It contains raw ArrayData, and optionally a description and unit.
-example:
-table = TableDataset()
-table.addColumn(“Energy”,Column(data=[1,2,3,4],description=”desc”,unit=’eV’))</p>
+example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">TableDataset</span><span class="p">()</span>
+<span class="n">table</span><span class="o">.</span><span class="n">addColumn</span><span class="p">(</span><span class="s2">&quot;Energy&quot;</span><span class="p">,</span><span class="n">Column</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;desc&quot;</span><span class="p">,</span><span class="n">unit</span><span class="o">=</span><span class="s1">&#39;eV&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="class">
@@ -440,7 +442,7 @@ return a new TableDataset object containing only the selected rows.</p>
 <dl class="method">
 <dt id="dataset.dataset.TableDataset.setData">
 <code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.setData" title="Permalink to this definition">¶</a></dt>
-<dd><p>sets name-column pairs if any of [‘name’], .name,
+<dd><p>sets name-column pairs if any of [‘name’] or .name,
 .__next__() is valid for each item in data. Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named ‘col[index]’ (index counting from 1) with unit None.</p>
 </dd></dl>
 
@@ -613,7 +615,7 @@ or locals()[classname] or globals()[classname] will not work. See alternative in
 
 <dl class="data">
 <dt id="dataset.deserialize.logger">
-<code class="sig-prename descclassname">dataset.deserialize.</code><code class="sig-name descname">logger</code><em class="property"> = &lt;Logger dataset.deserialize (DEBUG)&gt;</em><a class="headerlink" href="#dataset.deserialize.logger" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">dataset.deserialize.</code><code class="sig-name descname">logger</code><em class="property"> = &lt;Logger dataset.deserialize (WARNING)&gt;</em><a class="headerlink" href="#dataset.deserialize.logger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Note: this has to be in a different file where other interface
 classes are defined to avoid circular dependency (such as ,
 Serializable.</p>

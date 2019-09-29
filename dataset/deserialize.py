@@ -24,7 +24,7 @@ def makedesables():
     try:
         from products.chart import ATC_VT_B, ATC_VT_R, FDC_VT_B, FDC_VT_R
     except Exception as e:
-        logger.warn(str(e))
+        logger.info(str(e))
         pass
 
     from pal.context import MapContext, MapRefsDataset

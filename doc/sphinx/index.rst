@@ -7,16 +7,18 @@
  Self-describing Portable Dataset Container (SPDC)
 ==================================================
 
-SPDC is a 'container' written in Python for packing different types of data together, and letting the container take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading. The word 'container' in the name is more closely associated that is 'shipping container' instead of 'docker container'.
+SPDC is a 'container' package written in Python for packing different types of data together, and letting the container take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading. The word 'container' in the name is more closely associated that is 'shipping container' instead of 'docker container'.
 
 Features
 ========
 
-With SPDC one can pack data of different format into **modular** Data Products, together with annotation (description and units) and meta data (data about data). One can associate groups, arrays, or tables of Products using basic data structures such as sets, sequences (Python ``lists``), mappings (Python ``dict``), or custom-made classes. SPDC accomodates nested and highly complex structures.
+With SPDC one can pack data of different format into **modular** Data Products, together with annotation (description and units) and meta data (data about data). One can associate groups, arrays, or tables of Products using basic data structures such as sets, sequences (Python ``list``), mappings (Python ``dict``), or custom-made classes. SPDC accomodates nested and highly complex structures.
 
-**Access APIs** of the components of 'SPDCs' are convenient, making it easier for **scripting and data mining** directly 'on SPDCs'
+**Access APIs** of the components of 'SPDCs' are convenient, making it easier for **scripting and data mining** directly 'on SPDCs'.
 
 All levels of SPDC Products and their component (datasets or metadata) are portable (**serializable**) in human-friendly standard format (JSON implemented), allowing machine data processors on different platforms to parse, access internal components, or re-construct a SPDC. Even a human with a web browser can understand the data.
+
+The ``toString()`` method of major containers classes outputs nicely formated text representation of complex data to help converting SPDC to ASCII.
 
 Most SPDC Products and components implement **event sender and listener interfaces**, allowing **scalable data-driven** processing pipelines to be constructed.
 

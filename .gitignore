@@ -5,6 +5,7 @@
 *.log
 *~
 .*~
+doctrees
 __pycache__
 *.log
 Flask-HTTPAuth

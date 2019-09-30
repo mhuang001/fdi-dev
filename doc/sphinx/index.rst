@@ -7,10 +7,12 @@
  Self-describing Portable Dataset Container (SPDC)
 ==================================================
 
+SPDC is a 'container' for packing different types of data together, and letting the container take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading. The word 'container' in the name is more closely associated that is 'shipping container' instead of 'docker container'.
+
 Features
 ========
 
-With SPDC one can package data set into **modular** Data Products with annotation (description and units) and meta data (data about data). By combining arrays or tables of Products one can define highly complex structures.
+With SPDC one can package data of different format into **modular** Data Products together with annotation (description and units) and meta data (data about data). Arrays or tables of Products can be associated with using basic data structures such as sets, sequences (Python ``lists``), mappings (Python ``dict``), or using custom-made classes, one can define highly complex structures.
 
 **Access APIs** of the components of 'SPDCs' are convenient, making it easier for **scripting and data mining**.
 

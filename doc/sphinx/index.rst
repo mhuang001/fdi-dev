@@ -26,7 +26,8 @@ SPDC storage 'pools' (file based and implemented memory based) are provided as r
 
 *Context* type of SPDCs are provided so that references of SPDCs can become components, enabling SPDCs to encapsulate rich, deep, **sophisticated, and accessible contextual data**, yet remain light weight.
 
-For data processors, an HTML **server** with **RESTful APIs** is implemented (named Processing Node Server, PNS) to exchange SPDC data, especially suitable for **Docker containers** running Linux. There are a lot of legacy software, or software only runs on a specific combination of OS type, version, language, and library. These software could be highly expensive to replace but need to be run side-by-side with new software to form an integral data processing pipeline, as "nodes" of  processing tasks. Docker containers are often the perfect solution to insulate software with incompatible dependencies. SPDC allows such processing tasks to run in the PNS memory space, in a daemon process, or in the OS, receiving input and delivering output through a 'delivery man' protocol.
+For data processors, an HTML **server** with **RESTful APIs** is implemented (named Processing Node Server, PNS) to interface data processing modules. PNS is especially suitable for **Docker containers** in pipelines mixing **legacy software** or software of incompatible environments to form an integral data processing pipeline.
+
 
 SPDC Python packages
 ====================

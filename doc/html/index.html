@@ -42,7 +42,7 @@
 <p>Most SPDC Products and components implement <strong>event sender and listener interfaces</strong>, allowing <strong>scalable data-driven</strong> processing pipelines to be constructed.</p>
 <p>SPDC storage ‘pools’ (file based and implemented memory based) are provided as references for 1) data <strong>storage</strong> and, 2) for all persistent data to be referenced to with <strong>URNs</strong> (Universal Resource Names).</p>
 <p><em>Context</em> type of SPDCs are provided so that references of SPDCs can become components, enabling SPDCs to encapsulate rich, deep, <strong>sophisticated, and accessible contextual data</strong>, yet remain light weight.</p>
-<p>For data processors, an HTML <strong>server</strong> with <strong>RESTful APIs</strong> is implemented (named Processing Node Server, PNS) to exchange SPDC data, especially suitable for <strong>Docker containers</strong> running Linux. There are a lot of legacy software, or software only runs on a specific combination of OS type, version, language, and library. These software could be highly expensive to replace but need to be run side-by-side with new software to form an integral data processing pipeline, as “nodes” of  processing tasks. Docker containers are often the perfect solution to insulate software with incompatible dependencies. SPDC allows such processing tasks to run in the PNS memory space, in a daemon process, or in the OS, receiving input and delivering output through a ‘delivery man’ protocol.</p>
+<p>For data processors, an HTML <strong>server</strong> with <strong>RESTful APIs</strong> is implemented (named Processing Node Server, PNS) to interface data processing modules. PNS is especially suitable for <strong>Docker containers</strong> in pipelines mixing <strong>legacy software</strong> or software of incompatible environments to form an integral data processing pipeline.</p>
 </div>
 <div class="section" id="spdc-python-packages">
 <h2>SPDC Python packages<a class="headerlink" href="#spdc-python-packages" title="Permalink to this headline">¶</a></h2>
@@ -74,6 +74,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="usage/pns.html"><strong>pns</strong>: Processing Node Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#rationale">Rationale</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage/pns.html#basic-configuration">Basic Configuration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage/pns.html#run-the-flask-server">Run the FLASK Server</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage/pns.html#test-and-verify-installation">Test and Verify Installation</a></li>

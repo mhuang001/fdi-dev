@@ -6,14 +6,21 @@
    :maxdepth: 2
    :caption: Contents:
 
-Thhis Web API Server for a data processing pipeline/network node provides interfaces to make a run request to and read results from a processing task in a processing node via web APIs.
+Rationale
+=========
+
+Many data processing pipelines need to run software that only runs on a specific combination of OS type, version, language, and library. These software could be impractical to replace or modify but need to be run side-by-side with software of incompatible environments/formats to form an integral data processing pipeline, each software being a "node" to perform a  processing task. Docker containers are often the perfect solution to run software with incompatible dependencies.
+
+PNS installed on a Docker container or a normal server allows such processing tasks to run in the PNS memory space, in a daemon process, or as an OS process receiving input and delivering output through a 'delivery man' protocol.
+
+This Web API Server for a data processing pipeline/network node provides interfaces to configure the data processing task software (PTS) in a processing node, to make a run request, to deliver necessary input data, and to read results, all via web APIs.
 
 The following commands are run from the spdc directory from installation.
 
 Basic Configuration
 ===================
 
-When running Flask server, the host IP is 0.0.0.0 and port number 5000 by default. They are configurable in pnsconfig.py. Default configuration can be overrided by ~/local.py. Copy pnsconfig.py to ~/local.py
+When running Flask server, the host IP is ``0.0.0.0`` and port number ``5000`` by default. They are configurable in ``pnsconfig.py``. Default configuration can be overridden by ``~/local.py``. Copy ``pnsconfig.py`` to ``~/local.py`` and customize ``local.py``.
 
 .. code-block:: shell
 		
@@ -84,7 +91,7 @@ Run on the server host. without needing starting the server:
 2. Local Flask Server Functional Tests
 ======================================
 
-In ~/local.py (in pns/pnsconfig.py if you have not made local.py), set dev=True and make sure the IP is local (0.0.0.0 or 127.0.0.1). Start the server fresh in one terminal (see above) and in another terminal (on the server host) run the following:
+In ``~/local.py`` (in ``pns/pnsconfig.py`` if you have not made ``~/local.py``), set dev=True and make sure the IP is local (``0.0.0.0`` or ``127.0.0.1``). Start the server fresh in one terminal (see above) and in another terminal (on the server host) run the following:
 
 2a: test GET initPTS script to see if reading the init script back works:
 
@@ -130,7 +137,7 @@ Now is a good time to ...
 3. Get public access APIs and information
 =========================================
 
-Suppose the server address and port are 127.0.0.1 and 5000, respectively:
+Suppose the server address and port are ``127.0.0.1`` and ``5000``, respectively:
 
 Run the Flask server in a terminal (see above) and open this in a browser:
 

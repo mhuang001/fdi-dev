@@ -380,7 +380,7 @@ For more examples see tests/test_dataset.py
 pal
 ===
 
-Create a product and a productStorage with a pool registered::
+Create a product and a productStorage with a pool registered
   
 >>> import os
 >>> 
@@ -411,10 +411,9 @@ Create a product and a productStorage with a pool registered::
 ... pstore = ProductStorage(pool=demopool)
 >>> 
 
-save the product and get a reference:
+Save the product and get a reference
 
-
-... prodref = pstore.save(x)
+>>> prodref = pstore.save(x)
 >>> print(prodref)
 ProductRef{ ProductURN=urn:file:///tmp/demopool:Product:0, meta=MetaData['description', 'creator', 'creationDate', 'instrument', 'startDate', 'endDate', 'rootCause', 'modelName', 'type', 'mission']}
 >>> 
@@ -430,8 +429,7 @@ ProductRef{ ProductURN=urn:file:///tmp/demopool:Product:0, meta=MetaData['descri
 urn:file:///tmp/demopool:Product:0
 
 
-re-create a product only using the urn::
-
+re-create a product only using the urn
   
 >>> newp = getProductObject(urn)
 >>> # the new and the old one are equal

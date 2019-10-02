@@ -46,7 +46,7 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
         visitor.visit(self)
 
     def toString(self):
-        """ 
+        """
         """
 
         s = '# ' + self.__class__.__name__ + '\n' +\
@@ -156,6 +156,11 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
         """
         return self.getData().__iter__(*args, **kwargs)
 
+    def append(self, *args, **kwargs):
+        """ appends to data.
+        """
+        return self.getData().append(*args, **kwargs)
+
     def index(self, *args, **kwargs):
         """ returns the index of a value.
         """
@@ -260,12 +265,10 @@ class TableModel(DataContainer):
 
 class TableDataset(Dataset, TableModel):
     """  Special dataset that contains a single Array Data object.
-    A TableDataset is a tabular collection of Columns. It is optimized to work on array data as specified in the herschel.ia.numeric package.
+    A TableDataset is a tabular collection of Columns. It is optimized to work on array data..
     The column-wise approach is convenient in many cases. For example, one has an event list, and each algorithm is adding a new field to the events (i.e. a new column, for example a quality mask).
 
     Although mechanisms are provided to grow the table row-wise, one should use these with care especially in performance driven environments as this orthogonal approach (adding rows rather than adding columns) is expensive.
-
-    Examples of actual ArrayData objects can be found in the herschel.ia.numeric package, and therefore they will not be discussed here.
 
     General Note:
 
@@ -290,11 +293,12 @@ class TableDataset(Dataset, TableModel):
         super().__init__(**kwds)  # initialize data, meta, unit
 
     def setData(self, data):
-        """ sets name-column pairs if any of ['name'] or .name,
-        .__next__() is valid for each item in data. Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named 'col[index]' (index counting from 1) with unit None.
+        """ sets name-column pairs from [{'name':str,'column':Column}]
+        or {str:Column} or [[num]] or [(str, [], 'str')]
+        form of data, Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named 'col[index]' (index counting from 1) with unit None.
         """
         # logging.debug(data.__class__)
-        #raise Exception()
+        # raise Exception()
         if data is not None:
             # d will be {<name1 str>:<column1 Column>, ... }
             d = ODict()
@@ -393,7 +397,7 @@ class TableDataset(Dataset, TableModel):
 
     def addRow(self, row):
         """ Adds the specified map as a new row to this table.
-        mh: row is a dict with names ass keys
+        mh: row is a dict with names as keys
         """
         if len(row) < len(self.data):
             logging.error('row is too short')
@@ -405,6 +409,12 @@ class TableDataset(Dataset, TableModel):
         """ Returns a list containing the objects located at a particular row.
         """
         return [self.getColumn(x)[rowIndex] for x in self]
+
+    def removeRow(self, rowIndex):
+        """ Removes a row with specified index from this table.
+        mh: returns removed row.
+        """
+        return [self.getColumn(x).pop(rowIndex) for x in self]
 
     @property
     def rowCount(self):
@@ -495,15 +505,15 @@ class TableDataset(Dataset, TableModel):
         return x in self.data
 
     def __repr__(self):
-        return self.__class__.__name__ +\
-            '{ description = "%s", meta = %s, data = "%s"}' %\
+        return self.__class__.__name__ + \
+            '{ description = "%s", meta = %s, data = "%s"}' % \
             (str(self.description), str(self.meta), str(self.data))
 
-    def atoString(self):
-        s = '{description = "%s", meta = %s, data = "%s"}' %\
-            (str(self.description), self.meta.toString(),
-             self.data.toString())
-        return s
+#    def atoString(self):
+#        s = '{description = "%s", meta = %s, data = "%s"}' %
+#            (str(self.description), self.meta.toString(),
+#             self.data.toString())
+#        return s
 
     def toString(self, matprint=None, trans=True):
         if matprint is None:

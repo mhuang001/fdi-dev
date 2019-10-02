@@ -812,24 +812,37 @@ def test_TableDataset():
                             ])
     assert v == v3
 
-    # add columns, replace columns
+    # add, set, and replace columns
     # column set / get
     u = TableDataset()
-    c = Column([1, 4], 'sec')
-    u.addColumn('col3', c)
+    c1 = Column([1, 4], 'sec')
+    u.addColumn('col3', c1)
     # for non-existing names set is addColum.
-    u['col4'] = Column([2, 3], 'eu')
+    c2 = Column([2, 3], 'eu')
+    u['col4'] = c2
     assert u['col4'][0] == 2
     # replace column for existing names
-    u['col4'] = c
-    assert u['col4'][0] == 1
+    c3 = Column([5, 7], 'j')
+    u['col4'] = c3
+    assert u['col4'][0] == c3.data[0]
+    # addRow
+    assert u.rowCount == 2
+    cc = copy.deepcopy(c1)
+    c33, c44 = 3.3, 4.4
+    cc.append(c33)
+    u.addRow({'col4': c44, 'col3': c33})
+    assert u.rowCount == 3
+    assert u['col3'] == cc
+    # removeRow
+    assert u.removeRow(u.rowCount - 1) == [c33, c44]
+    assert u.rowCount == 2
 
     # access
     # unit access
-    assert u['col4'].unit == 'sec'
-    # with indexOf
-    assert u.indexOf('col3') == u.indexOf(c)
-    # set cell value
+    assert u['col4'].unit == 'j'
+    # access index with indexOf
+    assert u.indexOf('col3') == u.indexOf(c1)
+    # access cell value
     u.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
     assert u.getValueAt(rowIndex=1, columnIndex=1) == 42
 

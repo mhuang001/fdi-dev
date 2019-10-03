@@ -173,26 +173,27 @@
 <span class="go">True</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># add columns, replace columns</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># manipulate columns and rows</span>
 <span class="gp">... </span><span class="n">u</span> <span class="o">=</span> <span class="n">TableDataset</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Column</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s1">&#39;sec&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">Column</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">],</span> <span class="s1">&#39;sec&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">u</span><span class="o">.</span><span class="n">addColumn</span><span class="p">(</span><span class="s1">&#39;col3&#39;</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># for non-existing names set is addColum.</span>
-<span class="gp">... </span><span class="n">u</span><span class="p">[</span><span class="s1">&#39;col4&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Column</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;eu&#39;</span><span class="p">)</span>
+<span class="gp">... </span><span class="n">u</span><span class="p">[</span><span class="s1">&#39;col4&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Column</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="s1">&#39;eu&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="s1">&#39;col4&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># == 2</span>
 <span class="go">2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># replace column for existing names</span>
-<span class="gp">... </span><span class="n">u</span><span class="p">[</span><span class="s1">&#39;col4&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="s1">&#39;col4&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># == 1</span>
-<span class="go">1</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">... </span><span class="n">u</span><span class="p">[</span><span class="s1">&#39;col4&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Column</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">],</span> <span class="s1">&#39;j&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="s1">&#39;col4&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># == 5</span>
+<span class="go">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># remove the last row</span>
+<span class="gp">... </span><span class="nb">print</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">removeRow</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">rowCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>  <span class="c1"># == [6.1, 0.2]</span>
+<span class="go">[6.1, 0.2]</span>
 </pre></div>
 </div>
 <p>access</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># unit access</span>
-<span class="gp">... </span><span class="nb">print</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="s1">&#39;col4&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>  <span class="c1"># == &#39;sec&#39;</span>
-<span class="go">sec</span>
+<span class="gp">... </span><span class="nb">print</span><span class="p">(</span><span class="n">u</span><span class="p">[</span><span class="s1">&#39;col4&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>  <span class="c1"># == &#39;j&#39;</span>
+<span class="go">j</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># with indexOf</span>
 <span class="gp">... </span><span class="nb">print</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">indexOf</span><span class="p">(</span><span class="s1">&#39;col3&#39;</span><span class="p">))</span>  <span class="c1"># == u.indexOf(c)</span>
@@ -296,28 +297,27 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dataset.product</span> <span class="k">import</span> <span class="n">Product</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dataset.dataset</span> <span class="k">import</span> <span class="n">ArrayDataset</span><span class="p">,</span> <span class="n">TableDataset</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">Product</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;This is my product example&quot;</span><span class="p">,</span>
-<span class="gp">... </span>            <span class="n">instrument</span><span class="o">=</span><span class="s2">&quot;MyFavourite&quot;</span><span class="p">,</span> <span class="n">modelName</span><span class="o">=</span><span class="s2">&quot;Flight&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">Product</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;product example with several datasets&quot;</span><span class="p">,</span>
+<span class="gp">... </span>            <span class="n">instrument</span><span class="o">=</span><span class="s2">&quot;Crystal-Ball&quot;</span><span class="p">,</span> <span class="n">modelName</span><span class="o">=</span><span class="s2">&quot;Mk II&quot;</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">])</span>  <span class="c1"># == &quot;This is my product example&quot;</span>
-<span class="go">This is my product example</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">])</span>  <span class="c1"># == &quot;product example with several datasets&quot;</span>
+<span class="go">product example with several datasets</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">instrument</span><span class="p">)</span>  <span class="c1"># == &quot;MyFavourite&quot;</span>
-<span class="go">MyFavourite</span>
-</pre></div>
-</div>
-<p>Ways to add datasets</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">i0</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">instrument</span><span class="p">)</span>  <span class="c1"># == &quot;Crystal-Ball&quot;</span>
+<span class="go">Crystal-Ball</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ways to add datasets</span>
+<span class="gp">... </span><span class="n">i0</span> <span class="o">=</span> <span class="mi">6</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">i1</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">i0</span><span class="p">],</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">]]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">i2</span> <span class="o">=</span> <span class="s1">&#39;ev&#39;</span>                 <span class="c1"># unit</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">i3</span> <span class="o">=</span> <span class="s1">&#39;img1&#39;</span>  <span class="c1"># description</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">i3</span> <span class="o">=</span> <span class="s1">&#39;image1&#39;</span>  <span class="c1"># description</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">image</span> <span class="o">=</span> <span class="n">ArrayDataset</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">i1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="n">i2</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="n">i3</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;RawImage&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">image</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;RawImage&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># [1][2] == i0</span>
 <span class="go">[[1, 2, 3], [4, 5, 6], [7, 8, 9]]</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># no unit or description. diff syntax same function as above</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># no unit or description. different syntax but same function as above</span>
 <span class="gp">... </span><span class="n">x</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;QualityImage&#39;</span><span class="p">,</span> <span class="n">ArrayDataset</span><span class="p">(</span>
 <span class="gp">... </span>    <span class="p">[[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">],</span> <span class="p">[</span><span class="mf">4e3</span><span class="p">,</span> <span class="mf">6e7</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">]]))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;QualityImage&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span><span class="p">)</span>  <span class="c1"># is None</span>
@@ -325,27 +325,22 @@
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># add a tabledataset</span>
 <span class="gp">... </span><span class="n">s1</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;col1&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">4.4</span><span class="p">,</span> <span class="mf">5.4E3</span><span class="p">],</span> <span class="s1">&#39;eV&#39;</span><span class="p">),</span>
-<span class="gp">... </span>      <span class="p">(</span><span class="s1">&#39;col2&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">43.2</span><span class="p">,</span> <span class="mf">2E3</span><span class="p">],</span> <span class="s1">&#39;cnt&#39;</span><span class="p">)</span>
-<span class="gp">... </span>      <span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">TableDataset</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">s1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;Spectrum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spec</span>
+<span class="gp">... </span>      <span class="p">(</span><span class="s1">&#39;col2&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">43.2</span><span class="p">,</span> <span class="mf">2E3</span><span class="p">],</span> <span class="s1">&#39;cnt&#39;</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;Spectrum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">TableDataset</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">s1</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># mandatory properties are also in metadata</span>
-<span class="gp">... </span><span class="n">x</span><span class="o">.</span><span class="n">creator</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">a0</span> <span class="o">=</span> <span class="s2">&quot;Me, myself and I&quot;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">creator</span> <span class="o">=</span> <span class="n">a0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">creator</span><span class="p">)</span>  <span class="c1"># == a0</span>
+<span class="gp">... </span><span class="n">x</span><span class="o">.</span><span class="n">creator</span> <span class="o">=</span> <span class="s2">&quot;Me, myself and I&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">creator</span><span class="p">)</span>  <span class="c1"># == &quot;Me, myself and I&quot;</span>
 <span class="go">Me, myself and I</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s2">&quot;creator&quot;</span><span class="p">])</span>  <span class="c1"># == a0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># This is also changed</span>
+<span class="gp">... </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s2">&quot;creator&quot;</span><span class="p">])</span>  <span class="c1"># == &quot;Me, myself and I&quot;</span>
 <span class="go">Me, myself and I</span>
-<span class="go">&gt;&gt;&gt;</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">toString()</span></code> function:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Product</span>
-<span class="c1"># description = &quot;This is my product example&quot;</span>
-<span class="c1"># meta = MetaData{[description = This is my product example, creator = Me, myself and I, creationDate = 2000-01-01T00:00:00.000000 TAI(0), instrument = MyFavourite, startDate = , endDate = , rootCause = UNKNOWN, modelName = Flight, type = UNKNOWN, mission = SVOM, ], listeners = [Product 7696578744448 &quot;This is my product example&quot;, ]}</span>
+<span class="c1"># description = &quot;product example with several datasets&quot;</span>
+<span class="c1"># meta = MetaData{[description = product example with several datasets, creator = Me, myself and I, creationDate = 2000-01-01T00:00:00.000000 TAI(0), instrument = Crystal-Ball, startDate = , endDate = , rootCause = UNKNOWN, modelName = Mk II, type = UNKNOWN, mission = SVOM, ], listeners = [Product 7696577608224 &quot;product example with several datasets&quot;, ]}</span>
 <span class="c1"># History</span>
 <span class="c1"># description = &quot;UNKNOWN&quot;</span>
 <span class="c1"># meta = MetaData{[], listeners = []}</span>
@@ -356,7 +351,7 @@
 
 <span class="c1"># [ RawImage ]</span>
 <span class="c1"># ArrayDataset</span>
-<span class="c1"># description = &quot;img1&quot;</span>
+<span class="c1"># description = &quot;image1&quot;</span>
 <span class="c1"># meta = MetaData{[], listeners = []}</span>
 <span class="c1"># unit = &quot;ev&quot;</span>
 <span class="c1"># data =</span>

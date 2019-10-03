@@ -215,6 +215,12 @@ and the specified key or value is null.</p>
 mh:  contains a sequence which provides methods count(), index(), remove(), reverse().
 A mutable sequence would also need append(), extend(), insert(), pop() and sort().</p>
 <dl class="method">
+<dt id="dataset.dataset.ArrayDataset.append">
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>appends to data.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="dataset.dataset.ArrayDataset.count">
 <code class="sig-name descname">count</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.ArrayDataset.count" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns size.</p>
@@ -340,10 +346,9 @@ trans: print 2D matrix transposed. default is True.</p>
 <em class="property">class </em><code class="sig-prename descclassname">dataset.dataset.</code><code class="sig-name descname">TableDataset</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#dataset.dataset.Dataset" title="dataset.dataset.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.dataset.Dataset</span></code></a>, <a class="reference internal" href="#dataset.dataset.TableModel" title="dataset.dataset.TableModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">dataset.dataset.TableModel</span></code></a></p>
 <p>Special dataset that contains a single Array Data object.
-A TableDataset is a tabular collection of Columns. It is optimized to work on array data as specified in the herschel.ia.numeric package.
+A TableDataset is a tabular collection of Columns. It is optimized to work on array data..
 The column-wise approach is convenient in many cases. For example, one has an event list, and each algorithm is adding a new field to the events (i.e. a new column, for example a quality mask).</p>
 <p>Although mechanisms are provided to grow the table row-wise, one should use these with care especially in performance driven environments as this orthogonal approach (adding rows rather than adding columns) is expensive.</p>
-<p>Examples of actual ArrayData objects can be found in the herschel.ia.numeric package, and therefore they will not be discussed here.</p>
 <p>General Note:</p>
 <p>For reasons of flexibility, memory consumption and performance, this class is not checking whether all columns are of the same length: this is the responsibility of the user/developer. See also the library documentation for more information about this.</p>
 <p>Note on column names:</p>
@@ -368,13 +373,8 @@ column - column to be added.</p>
 <dt id="dataset.dataset.TableDataset.addRow">
 <code class="sig-name descname">addRow</code><span class="sig-paren">(</span><em class="sig-param">row</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.addRow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds the specified map as a new row to this table.
-mh: row is a dict with names ass keys</p>
+mh: row is a dict with names as keys</p>
 </dd></dl>
-
-<dl class="method">
-<dt id="dataset.dataset.TableDataset.atoString">
-<code class="sig-name descname">atoString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.atoString" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="method">
 <dt id="dataset.dataset.TableDataset.columnCount">
@@ -410,6 +410,13 @@ mh: Or else returns the key itself.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="dataset.dataset.TableDataset.removeRow">
+<code class="sig-name descname">removeRow</code><span class="sig-paren">(</span><em class="sig-param">rowIndex</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.removeRow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes a row with specified index from this table.
+mh: returns removed row.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="dataset.dataset.TableDataset.rowCount">
 <em class="property">property </em><code class="sig-name descname">rowCount</code><a class="headerlink" href="#dataset.dataset.TableDataset.rowCount" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -442,8 +449,9 @@ return a new TableDataset object containing only the selected rows.</p>
 <dl class="method">
 <dt id="dataset.dataset.TableDataset.setData">
 <code class="sig-name descname">setData</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#dataset.dataset.TableDataset.setData" title="Permalink to this definition">¶</a></dt>
-<dd><p>sets name-column pairs if any of [‘name’] or .name,
-.__next__() is valid for each item in data. Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named ‘col[index]’ (index counting from 1) with unit None.</p>
+<dd><p>sets name-column pairs from [{‘name’:str,’column’:Column}]
+or {str:Column} or [[num]] or [(str, [], ‘str’)]
+form of data, Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named ‘col[index]’ (index counting from 1) with unit None.</p>
 </dd></dl>
 
 <dl class="method">

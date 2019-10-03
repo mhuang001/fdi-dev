@@ -1,3 +1,4 @@
+
 ================
 spdc Quick Start
 ================
@@ -152,26 +153,28 @@ True
 >>> v == v3
 True
 
->>> 
->>> # add columns, replace columns
+>>> # manipulate columns and rows
 ... u = TableDataset()
->>> c = Column([1, 4], 'sec')
+>>> c = Column([1, 4, 6.1], 'sec')
 >>> u.addColumn('col3', c)
 >>> # for non-existing names set is addColum.
-... u['col4'] = Column([2, 3], 'eu')
+... u['col4'] = Column([2, 3, 6], 'eu')
 >>> print(u['col4'][0])  # == 2
 2
 >>> # replace column for existing names
-... u['col4'] = c
->>> print(u['col4'][0])  # == 1
-1
->>>
+... u['col4'] = Column([5, 7, 0.2], 'j')
+>>> print(u['col4'][0])  # == 5
+5
+>>> # remove the last row
+... print(u.removeRow(u.rowCount - 1))  # == [6.1, 0.2]
+[6.1, 0.2]
+
 
 access
 
 >>> # unit access
-... print(u['col4'].unit)  # == 'sec'
-sec
+... print(u['col4'].unit)  # == 'j'
+j
 >>> 
 >>> # with indexOf
 ... print(u.indexOf('col3'))  # == u.indexOf(c)
@@ -278,28 +281,27 @@ Creation:
 >>> from dataset.product import Product
 >>> from dataset.dataset import ArrayDataset, TableDataset
 >>> 
->>> x = Product(description="This is my product example",
-...             instrument="MyFavourite", modelName="Flight")
+>>> x = Product(description="product example with several datasets",
+...             instrument="Crystal-Ball", modelName="Mk II")
 >>> 
->>> print(x.meta['description'])  # == "This is my product example"
-This is my product example
+>>> print(x.meta['description'])  # == "product example with several datasets"
+product example with several datasets
 >>> 
->>> print(x.instrument)  # == "MyFavourite"
-MyFavourite
-
-Ways to add datasets
-
->>> i0 = 6
+>>> print(x.instrument)  # == "Crystal-Ball"
+Crystal-Ball
+>>> 
+>>> # ways to add datasets
+... i0 = 6
 >>> i1 = [[1, 2, 3], [4, 5, i0], [7, 8, 9]]
 >>> i2 = 'ev'                 # unit
->>> i3 = 'img1'  # description
+>>> i3 = 'image1'  # description
 >>> image = ArrayDataset(data=i1, unit=i2, description=i3)
 >>> 
 >>> x["RawImage"] = image
 >>> print(x["RawImage"].data)  # [1][2] == i0
 [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 >>> 
->>> # no unit or description. diff syntax same function as above
+>>> # no unit or description. different syntax but same function as above
 ... x.set('QualityImage', ArrayDataset(
 ...     [[0.1, 0.5, 0.7], [4e3, 6e7, 8], [-2, 0, 3.1]]))
 >>> print(x["QualityImage"].unit)  # is None
@@ -307,27 +309,22 @@ None
 >>> 
 >>> # add a tabledataset
 ... s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
-...       ('col2', [0, 43.2, 2E3], 'cnt')
-...       ]
->>> spec = TableDataset(data=s1)
->>> x["Spectrum"] = spec
+...       ('col2', [0, 43.2, 2E3], 'cnt')]
+>>> x["Spectrum"] = TableDataset(data=s1)
 >>> 
 >>> # mandatory properties are also in metadata
-... x.creator = ""
->>> a0 = "Me, myself and I"
->>> x.creator = a0
->>> print(x.creator)  # == a0
+... x.creator = "Me, myself and I"
+>>> print(x.creator)  # == "Me, myself and I"
 Me, myself and I
->>> 
->>> print(x.meta["creator"])  # == a0
+>>> # This is also changed
+... print(x.meta["creator"])  # == "Me, myself and I"
 Me, myself and I
->>>
 
 ``toString()`` function::
 
   # Product
-  # description = "This is my product example"
-  # meta = MetaData{[description = This is my product example, creator = Me, myself and I, creationDate = 2000-01-01T00:00:00.000000 TAI(0), instrument = MyFavourite, startDate = , endDate = , rootCause = UNKNOWN, modelName = Flight, type = UNKNOWN, mission = SVOM, ], listeners = [Product 7696578744448 "This is my product example", ]}
+  # description = "product example with several datasets"
+  # meta = MetaData{[description = product example with several datasets, creator = Me, myself and I, creationDate = 2000-01-01T00:00:00.000000 TAI(0), instrument = Crystal-Ball, startDate = , endDate = , rootCause = UNKNOWN, modelName = Mk II, type = UNKNOWN, mission = SVOM, ], listeners = [Product 7696577608224 "product example with several datasets", ]}
   # History
   # description = "UNKNOWN"
   # meta = MetaData{[], listeners = []}
@@ -338,7 +335,7 @@ Me, myself and I
 
   # [ RawImage ]
   # ArrayDataset
-  # description = "img1"
+  # description = "image1"
   # meta = MetaData{[], listeners = []}
   # unit = "ev"
   # data = 

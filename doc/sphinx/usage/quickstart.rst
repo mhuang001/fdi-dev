@@ -379,41 +379,42 @@ pal
 
 Create a product and a productStorage with a pool registered
   
+
 >>> import os
->>> 
 >>> # disable debugging messages
 ... import logging
 >>> logger = logging.getLogger('')
 >>> logger.setLevel(logging.WARNING)
 >>> 
+>>> from dataset.dataset import TableDataset
 >>> from dataset.product import Product
 >>> from pal.productstorage import ProductStorage
->>> from pal.poolmanager import PoolManager
 >>> from pal.context import MapContext
 >>> from pal.common import getProductObject
 >>> 
->>> # a pool for domostration will be create here
+>>> # a pool for demonstration will be create here
 ... demopoolpath = '/tmp/demopool'
 >>> demopool = 'file://' + demopoolpath
 >>> # clean possible data left from previous runs
 ... os.system('rm -rf ' + demopoolpath)
 0
->>> 
->>> # create a prooduct
-... x = Product(description='in store')
->>> print(x)
-{meta = "MetaData['description', 'creator', 'creationDate', 'instrument', 'startDate', 'endDate', 'rootCause', 'modelName', 'type', 'mission']", _sets = [], history = {meta = "MetaData[]", _sets = []}}
->>> 
+
+create a prooduct and save it to a pool
+
+>>> x = Product(description='in store')
+>>> # add a tabledataset
+... s1 = [('energy', [1, 4.4, 5.6], 'eV'), ('freq', [0, 43.2, 2E3], 'Hz')]
+>>> x["Spectrum"] = TableDataset(data=s1)
 >>> # create a product store
 ... pstore = ProductStorage(pool=demopool)
 >>> 
-
-Save the product and get a reference
-
->>> prodref = pstore.save(x)
+>>> # save the product and get a reference
+... prodref = pstore.save(x)
 >>> print(prodref)
 ProductRef{ ProductURN=urn:file:///tmp/demopool:Product:0, meta=MetaData['description', 'creator', 'creationDate', 'instrument', 'startDate', 'endDate', 'rootCause', 'modelName', 'type', 'mission']}
->>> 
+
+the reference can be used in another product
+
 >>> # create an empty mapcontext
 ... mc = MapContext()
 >>> # put the ref in the context.
@@ -425,14 +426,12 @@ ProductRef{ ProductURN=urn:file:///tmp/demopool:Product:0, meta=MetaData['descri
 >>> print(urn)
 urn:file:///tmp/demopool:Product:0
 
-
 re-create a product only using the urn
-  
+
 >>> newp = getProductObject(urn)
 >>> # the new and the old one are equal
-... print(newp)  # == x
-{meta = "MetaData['description', 'creator', 'creationDate', 'instrument', 'startDate', 'endDate', 'rootCause', 'modelName', 'type', 'mission']", _sets = [], history = {meta = "MetaData[]", _sets = []}}
->>> 
+... print(newp == x)
+True
 
 For more examples see tests/test_pal.py
 

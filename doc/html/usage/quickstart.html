@@ -7,15 +7,17 @@
     <title>spdc Quick Start &#8212; spdc v0.8 documentation</title>
     <link rel="stylesheet" href="../_static/aiohttp.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script type="text/javascript" src="../_static/js/custom.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="API Reference" href="../api/api.html" />
-    <link rel="prev" title="pns: Processing Node Server" href="pns.html" />
+    <link rel="prev" title="pal: Product Access Layer" href="pal.html" />
  
 <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
 
@@ -393,41 +395,41 @@
 <h2>pal<a class="headerlink" href="#pal" title="Permalink to this headline">¶</a></h2>
 <p>Create a product and a productStorage with a pool registered</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
-<span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># disable debugging messages</span>
 <span class="gp">... </span><span class="kn">import</span> <span class="nn">logging</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dataset.dataset</span> <span class="k">import</span> <span class="n">TableDataset</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">dataset.product</span> <span class="k">import</span> <span class="n">Product</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pal.productstorage</span> <span class="k">import</span> <span class="n">ProductStorage</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pal.poolmanager</span> <span class="k">import</span> <span class="n">PoolManager</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pal.context</span> <span class="k">import</span> <span class="n">MapContext</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pal.common</span> <span class="k">import</span> <span class="n">getProductObject</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># a pool for domostration will be create here</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># a pool for demonstration will be create here</span>
 <span class="gp">... </span><span class="n">demopoolpath</span> <span class="o">=</span> <span class="s1">&#39;/tmp/demopool&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">demopool</span> <span class="o">=</span> <span class="s1">&#39;file://&#39;</span> <span class="o">+</span> <span class="n">demopoolpath</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># clean possible data left from previous runs</span>
 <span class="gp">... </span><span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s1">&#39;rm -rf &#39;</span> <span class="o">+</span> <span class="n">demopoolpath</span><span class="p">)</span>
 <span class="go">0</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># create a prooduct</span>
-<span class="gp">... </span><span class="n">x</span> <span class="o">=</span> <span class="n">Product</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;in store&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="go">{meta = &quot;MetaData[&#39;description&#39;, &#39;creator&#39;, &#39;creationDate&#39;, &#39;instrument&#39;, &#39;startDate&#39;, &#39;endDate&#39;, &#39;rootCause&#39;, &#39;modelName&#39;, &#39;type&#39;, &#39;mission&#39;]&quot;, _sets = [], history = {meta = &quot;MetaData[]&quot;, _sets = []}}</span>
-<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>create a prooduct and save it to a pool</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">Product</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;in store&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># add a tabledataset</span>
+<span class="gp">... </span><span class="n">s1</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;energy&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">4.4</span><span class="p">,</span> <span class="mf">5.6</span><span class="p">],</span> <span class="s1">&#39;eV&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;freq&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">43.2</span><span class="p">,</span> <span class="mf">2E3</span><span class="p">],</span> <span class="s1">&#39;Hz&#39;</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;Spectrum&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">TableDataset</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">s1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># create a product store</span>
 <span class="gp">... </span><span class="n">pstore</span> <span class="o">=</span> <span class="n">ProductStorage</span><span class="p">(</span><span class="n">pool</span><span class="o">=</span><span class="n">demopool</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
-</pre></div>
-</div>
-<p>Save the product and get a reference</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">prodref</span> <span class="o">=</span> <span class="n">pstore</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># save the product and get a reference</span>
+<span class="gp">... </span><span class="n">prodref</span> <span class="o">=</span> <span class="n">pstore</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">prodref</span><span class="p">)</span>
 <span class="go">ProductRef{ ProductURN=urn:file:///tmp/demopool:Product:0, meta=MetaData[&#39;description&#39;, &#39;creator&#39;, &#39;creationDate&#39;, &#39;instrument&#39;, &#39;startDate&#39;, &#39;endDate&#39;, &#39;rootCause&#39;, &#39;modelName&#39;, &#39;type&#39;, &#39;mission&#39;]}</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># create an empty mapcontext</span>
+</pre></div>
+</div>
+<p>the reference can be used in another product</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># create an empty mapcontext</span>
 <span class="gp">... </span><span class="n">mc</span> <span class="o">=</span> <span class="n">MapContext</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># put the ref in the context.</span>
 <span class="gp">... </span><span class="c1"># The manual has this syntax mc.refs.put(&#39;xprod&#39;, prodref)</span>
@@ -442,9 +444,8 @@
 <p>re-create a product only using the urn</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">newp</span> <span class="o">=</span> <span class="n">getProductObject</span><span class="p">(</span><span class="n">urn</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># the new and the old one are equal</span>
-<span class="gp">... </span><span class="nb">print</span><span class="p">(</span><span class="n">newp</span><span class="p">)</span>  <span class="c1"># == x</span>
-<span class="go">{meta = &quot;MetaData[&#39;description&#39;, &#39;creator&#39;, &#39;creationDate&#39;, &#39;instrument&#39;, &#39;startDate&#39;, &#39;endDate&#39;, &#39;rootCause&#39;, &#39;modelName&#39;, &#39;type&#39;, &#39;mission&#39;]&quot;, _sets = [], history = {meta = &quot;MetaData[]&quot;, _sets = []}}</span>
-<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">... </span><span class="nb">print</span><span class="p">(</span><span class="n">newp</span> <span class="o">==</span> <span class="n">x</span><span class="p">)</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 <p>For more examples see tests/test_pal.py</p>
@@ -478,7 +479,6 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Install SPDC</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dataset.html"><strong>dataset</strong>: Model for Data Container</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pal.html"><strong>pal</strong>: Product Access Layer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pns.html"><strong>pns</strong>: Processing Node Server</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">spdc Quick Start</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#dataset">dataset</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pal">pal</a></li>
@@ -494,7 +494,7 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="pns.html" title="previous chapter"><strong>pns</strong>: Processing Node Server</a></li>
+      <li>Previous: <a href="pal.html" title="previous chapter"><strong>pal</strong>: Product Access Layer</a></li>
       <li>Next: <a href="../api/api.html" title="next chapter">API Reference</a></li>
   </ul></li>
 </ul>

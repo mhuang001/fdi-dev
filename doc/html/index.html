@@ -4,14 +4,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Self-describing Portable Dataset Container (SPDC) &#8212; spdc v0.8 documentation</title>
+    <title>Dataset Container (DSCO) &#8212; spdc v0.8 documentation</title>
     <link rel="stylesheet" href="_static/aiohttp.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="_static/language_data.js"></script>
+    <script type="text/javascript" src="_static/js/custom.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Install SPDC" href="usage/installation.html" />
@@ -30,26 +32,24 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="self-describing-portable-dataset-container-spdc">
-<h1>Self-describing Portable Dataset Container (SPDC)<a class="headerlink" href="#self-describing-portable-dataset-container-spdc" title="Permalink to this headline">¶</a></h1>
-<p>SPDC is a ‘container’ package written in Python for packing different types of data together, and letting the container take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading. The word ‘container’ in the name is more closely associated that is ‘shipping container’ instead of ‘docker container’.</p>
+  <div class="section" id="dataset-container-dsco">
+<h1>Dataset Container (DSCO)<a class="headerlink" href="#dataset-container-dsco" title="Permalink to this headline">¶</a></h1>
+<p>DSCO is a ‘container’ package written in Python for packing different types of data together, and letting the container take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading. The word ‘container’ in the name is more closely associated that is ‘shipping container’ instead of ‘docker container’.</p>
 <div class="section" id="features">
 <h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
-<p>With SPDC one can pack data of different format into <strong>modular</strong> Data Products, together with annotation (description and units) and meta data (data about data). One can associate groups, arrays, or tables of Products using basic data structures such as sets, sequences (Python <code class="docutils literal notranslate"><span class="pre">list</span></code>), mappings (Python <code class="docutils literal notranslate"><span class="pre">dict</span></code>), or custom-made classes. SPDC accomodates nested and highly complex structures.</p>
-<p><strong>Access APIs</strong> of the components of ‘SPDCs’ are convenient, making it easier for <strong>scripting and data mining</strong> directly ‘on SPDCs’.</p>
-<p>All levels of SPDC Products and their component (datasets or metadata) are portable (<strong>serializable</strong>) in human-friendly standard format (JSON implemented), allowing machine data processors on different platforms to parse, access internal components, or re-construct a SPDC. Even a human with a web browser can understand the data.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">toString()</span></code> method of major containers classes outputs nicely formated text representation of complex data to help converting SPDC to ASCII.</p>
-<p>Most SPDC Products and components implement <strong>event sender and listener interfaces</strong>, allowing <strong>scalable data-driven</strong> processing pipelines to be constructed.</p>
-<p>SPDC storage ‘pools’ (file based and implemented memory based) are provided as references for 1) data <strong>storage</strong> and, 2) for all persistent data to be referenced to with <strong>URNs</strong> (Universal Resource Names).</p>
-<p><em>Context</em> type of SPDCs are provided so that references of SPDCs can become components, enabling SPDCs to encapsulate rich, deep, <strong>sophisticated, and accessible contextual data</strong>, yet remain light weight.</p>
-<p>For data processors, an HTML <strong>server</strong> with <strong>RESTful APIs</strong> is implemented (named Processing Node Server, PNS) to interface data processing modules. PNS is especially suitable for <strong>Docker containers</strong> in pipelines mixing <strong>legacy software</strong> or software of incompatible environments to form an integral data processing pipeline.</p>
+<p>With DSCO one can pack data of different format into <strong>modular</strong> Data Products, together with annotation (description and units) and meta data (data about data). One can associate groups, arrays, or tables of Products using basic data structures such as sets, sequences (Python <code class="docutils literal notranslate"><span class="pre">list</span></code>), mappings (Python <code class="docutils literal notranslate"><span class="pre">dict</span></code>), or custom-made classes. DSCO accomodates nested and highly complex structures.</p>
+<p><strong>Access APIs</strong> of the components of ‘DSCOs’ are convenient, making it easier for <strong>scripting and data mining</strong> directly ‘on DSCOs’.</p>
+<p>All levels of DSCO Products and their component (datasets or metadata) are portable (<strong>serializable</strong>) in human-friendly standard format (JSON implemented), allowing machine data processors on different platforms to parse, access internal components, or re-construct a DSCO. Even a human with a web browser can understand the data.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">toString()</span></code> method of major containers classes outputs nicely formated text representation of complex data to help converting DSCO to ASCII.</p>
+<p>Most DSCO Products and components implement <strong>event sender and listener interfaces</strong>, allowing <strong>scalable data-driven</strong> processing pipelines to be constructed.</p>
+<p>DSCO storage ‘pools’ (file based and implemented memory based) are provided as references for 1) data <strong>storage</strong> and, 2) for all persistent data to be referenced to with <strong>URNs</strong> (Universal Resource Names).</p>
+<p><em>Context</em> type of DSCOs are provided so that references of DSCOs can become components, enabling DSCOs to encapsulate rich, deep, <strong>sophisticated, and accessible contextual data</strong>, yet remain light weight.</p>
 </div>
-<div class="section" id="spdc-python-packages">
-<h2>SPDC Python packages<a class="headerlink" href="#spdc-python-packages" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="dsco-python-packages">
+<h2>DSCO Python packages<a class="headerlink" href="#dsco-python-packages" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>The base data model is defined in package <a class="reference internal" href="usage/dataset.html"><span class="doc">dataset</span></a>.</p></li>
 <li><p>Persistent data access, referencing, and Universal Resource Names are defined in package <a class="reference internal" href="usage/pal.html"><span class="doc">pal</span></a>.</p></li>
-<li><p>A reference REST API server designed to communicate with a data processing docker using the data model is in package  <a class="reference internal" href="usage/pns.html"><span class="doc">pns</span></a>.</p></li>
 </ul>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Contents:</span></p>
@@ -71,21 +71,6 @@
 <li class="toctree-l2"><a class="reference internal" href="usage/pal.html#definitions">Definitions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage/pal.html#run-tests">run tests</a></li>
 <li class="toctree-l2"><a class="reference internal" href="usage/pal.html#design">Design</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="usage/pns.html"><strong>pns</strong>: Processing Node Server</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#rationale">Rationale</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#basic-configuration">Basic Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#run-the-flask-server">Run the FLASK Server</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#test-and-verify-installation">Test and Verify Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#server-unit-test">1. Server Unit Test</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#local-flask-server-functional-tests">2. Local Flask Server Functional Tests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#get-public-access-apis-and-information">3. Get public access APIs and information</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#run-tests-from-a-remote-client">4. Run tests from a remote client</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#run-the-local-tests-with-apache">Run the local tests with Apache</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#pts-configuration">PTS Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#pts-api">PTS API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage/pns.html#return-on-common-errors">Return on Common Errors</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="usage/quickstart.html">spdc Quick Start</a><ul>
@@ -198,7 +183,6 @@
 <li class="toctree-l1"><a class="reference internal" href="usage/installation.html">Install SPDC</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage/dataset.html"><strong>dataset</strong>: Model for Data Container</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage/pal.html"><strong>pal</strong>: Product Access Layer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage/pns.html"><strong>pns</strong>: Processing Node Server</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage/quickstart.html">spdc Quick Start</a></li>
 </ul>
 <ul>

@@ -42,7 +42,7 @@ env = '/root' if env == '$HOME' else env
 sys.path.insert(0, env)
 try:
     from local import pnsconfig as pc
-except Exception:
+except Exception as e:
     logger.warn(str(e))
     pass
 

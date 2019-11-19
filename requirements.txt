@@ -1,8 +1,13 @@
-python==3.6
+python>=3.6.8
 requests==2.13.0
-pytest==3,2,3
+requests-file==1.4.2
+pytest==3.2.3
 flask==0.12.2
 flask_httpauth==3.2.3
 setuptools==40.7.3
-filelock
+filelock==2.0.13
+aiohttp==3.5.4
+Sphinx==2.1.2
+sphinx_rtd_theme==0.4.3
+aiohttp_theme==0.1.6
 

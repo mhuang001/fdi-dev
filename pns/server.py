@@ -43,7 +43,8 @@ sys.path.insert(0, env)
 try:
     from local import pnsconfig as pc
 except Exception as e:
-    logger.warn(str(e))
+    logger.warn(str(
+        e) + '. Use default config in pns/pnsconfig.py. Copy it to ~/local.py and make persistent customization there.')
     pass
 
 logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))

@@ -39,20 +39,21 @@
 </div>
 <div class="section" id="for-developers">
 <h2>for developers<a class="headerlink" href="#for-developers" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> /tmp
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nv">SPDCINSTDIR</span><span class="o">=</span>/tmp   <span class="c1"># change this to your installation dir</span>
+<span class="nb">cd</span> <span class="nv">$SPDCINSTDIR</span>
 git clone ssh://git@mercury.bao.ac.cn:9005/mh/spdc.git
 <span class="nb">cd</span> spdc
+pip3 install -r requirements.txt
 pip3 install -e .
 </pre></div>
 </div>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mkdir ~/svom
 <span class="nb">cd</span> ~/svom
-cp /tmp/spdc/install .
+cp <span class="nv">$SPDCINSTDIR</span>/spdc/install .
 nano install <span class="o">[</span><span class="k">do</span> some editing <span class="k">if</span> needed<span class="o">]</span>
 . ./install
 </pre></div>
 </div>
-<p>Install the dependencies if needed ((python 3.6, Flask, pytest …)</p>
 </div>
 <div class="section" id="for-users">
 <h2>for users<a class="headerlink" href="#for-users" title="Permalink to this headline">¶</a></h2>

@@ -12,22 +12,22 @@ for developers
 
 .. code-block:: shell
 
-		cd /tmp
+		SPDCINSTDIR=/tmp   # change this to your installation dir
+		cd $SPDCINSTDIR
 		git clone ssh://git@mercury.bao.ac.cn:9005/mh/spdc.git
 		cd spdc
+		pip3 install -r requirements.txt
 		pip3 install -e .
-
 
 
 .. code-block:: shell
 		
 		mkdir ~/svom
 		cd ~/svom
-		cp /tmp/spdc/install .
+		cp $SPDCINSTDIR/spdc/install .
 		nano install [do some editing if needed]
 		. ./install
 
-Install the dependencies if needed ((python 3.6, Flask, pytest ...)
 
 for users
 =========

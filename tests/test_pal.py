@@ -6,6 +6,10 @@ from collections import ChainMap
 import builtins
 import os
 
+# This is to be able to test w/ or w/o installing the package
+# https://docs.python-guide.org/writing/structure/
+from .pycontext import spdc
+
 from .logdict import doLogging, logdict
 if doLogging:
     import logging
@@ -17,16 +21,16 @@ if doLogging:
                  (__name__, logger.getEffectiveLevel()))
     logging.getLogger("filelock").setLevel(logging.WARNING)
 
-from dataset.eq import deepcmp
-from dataset.product import Product
-from dataset.deserialize import deserializeClassID
+from spdc.dataset.eq import deepcmp
+from spdc.dataset.product import Product
+from spdc.dataset.deserialize import deserializeClassID
 
-from pal.urn import Urn, parseUrn, makeUrn
-from pal.productstorage import ProductStorage
-from pal.productref import ProductRef
-from pal.context import Context, MapContext, MapRefsDataset
-from pal.common import getProductObject
-from pal.poolmanager import PoolManager
+from spdc.pal.urn import Urn, parseUrn, makeUrn
+from spdc.pal.productstorage import ProductStorage
+from spdc.pal.productref import ProductRef
+from spdc.pal.context import Context, MapContext, MapRefsDataset
+from spdc.pal.common import getProductObject
+from spdc.pal.poolmanager import PoolManager
 #from products.QSRCLIST_VT import QSRCLIST_VT
 
 

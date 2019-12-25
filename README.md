@@ -15,13 +15,17 @@ To install
 		nano install [do some editing if needed]
 		. ./install
 ```
-change te git line to
+change the git line to
 ```
 		git clone http://mercury.bao.ac.cn:9006/mh/spdc.git
 ```
 to install as a user.
 
 Install the dependencies if needed ((python 3.6, Flask, pytest ...)
+```
+		cd /tmp/spdc
+		pip3 install -r requirements.txt
+```
 
 See [documents in HTML in doc/html/index.html](doc/html/index.html).
 

@@ -5,10 +5,10 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.metadataholder import MetaDataHolder
-from dataset.serializable import Serializable
-from dataset.eq import DeepEqual
-from dataset.odict import ODict
+from spdc.dataset.metadataholder import MetaDataHolder
+from spdc.dataset.serializable import Serializable
+from spdc.dataset.eq import DeepEqual
+from spdc.dataset.odict import ODict
 from .comparable import Comparable
 from .urn import Urn
 from .common import getProductObject

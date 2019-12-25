@@ -2,9 +2,9 @@
 import os
 
 from .serializable import Serializable
-from pal.urn import Urn
-from pal.common import getProductObject
-import pns.common as psnc
+from spdc.pal.urn import Urn
+from spdc.pal.common import getProductObject
+import spdc.pns.common as psnc
 
 import logging
 # create logger

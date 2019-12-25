@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
-from dataset.odict import ODict
+from .odict import ODict
 
 import logging
 # create logger
@@ -17,19 +17,19 @@ Serializable.
 def makedesables():
     """ makes a class dictionary for instanciation.
     """
-    from dataset.deserialize import deserializeClassID
-    from dataset.product import Product, FineTime1, History
-    from dataset.metadata import Parameter, NumericParameter, MetaData
-    from dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
+    from spdc.dataset.deserialize import deserializeClassID
+    from spdc.dataset.product import Product, FineTime1, History
+    from spdc.dataset.metadata import Parameter, NumericParameter, MetaData
+    from spdc.dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
     try:
-        from products.chart import ATC_VT_B, ATC_VT_R, FDC_VT_B, FDC_VT_R
+        from svom.products.chart import ATC_VT_B, ATC_VT_R, FDC_VT_B, FDC_VT_R
     except Exception as e:
         logger.info(str(e))
         pass
 
-    from pal.context import MapContext, MapRefsDataset
-    from pal.urn import Urn
-    from pal.productref import ProductRef
+    from spdc.pal.context import MapContext, MapRefsDataset
+    from spdc.pal.urn import Urn
+    from spdc.pal.productref import ProductRef
 
     l = locals()
     # logger.debug(l)

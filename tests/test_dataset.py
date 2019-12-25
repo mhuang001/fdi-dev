@@ -7,6 +7,13 @@ from pathlib import Path
 # import __builtins__
 import os
 from collections import ChainMap
+
+# This is to be able to test w/ or w/o installing the package
+# https://docs.python-guide.org/writing/structure/
+from .pycontext import spdc
+
+from .outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
+
 from .logdict import doLogging, logdict
 if doLogging:
     import logging
@@ -17,23 +24,23 @@ if doLogging:
     logger.debug('%s logging level %d' %
                  (__name__, logger.getEffectiveLevel()))
 
-from dataset.annotatable import Annotatable
-from dataset.copyable import Copyable
-from dataset.odict import ODict
-from dataset.serializable import serializeClassID, SerializableEncoder
-from dataset.eq import deepcmp
-from dataset.quantifiable import Quantifiable
-from dataset.listener import EventSender, DatasetBaseListener
-from dataset.composite import Composite
-from dataset.metadata import Parameter, NumericParameter, MetaData
-from dataset.datawrapper import DataWrapperMapper
-from dataset.metadataholder import MetaDataHolder
-from dataset.attributable import Attributable
-from dataset.abstractcomposite import AbstractComposite
-from dataset.datawrapper import DataWrapper, DataWrapperMapper
-from dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
-from dataset.product import FineTime1, History, Product
-from dataset.deserialize import deserializeClassID
+from spdc.dataset.annotatable import Annotatable
+from spdc.dataset.copyable import Copyable
+from spdc.dataset.odict import ODict
+from spdc.dataset.serializable import serializeClassID, SerializableEncoder
+from spdc.dataset.eq import deepcmp
+from spdc.dataset.quantifiable import Quantifiable
+from spdc.dataset.listener import EventSender, DatasetBaseListener
+from spdc.dataset.composite import Composite
+from spdc.dataset.metadata import Parameter, NumericParameter, MetaData
+from spdc.dataset.datawrapper import DataWrapperMapper
+from spdc.dataset.metadataholder import MetaDataHolder
+from spdc.dataset.attributable import Attributable
+from spdc.dataset.abstractcomposite import AbstractComposite
+from spdc.dataset.datawrapper import DataWrapper, DataWrapperMapper
+from spdc.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
+from spdc.dataset.product import FineTime1, History, Product
+from spdc.dataset.deserialize import deserializeClassID
 
 
 def checkjson(obj):
@@ -157,97 +164,6 @@ def test_serialization():
 
 
 import pprint
-nds2 = \
-    """0 0 0 0 0 
-0 0 0 0 0 
-0 0 0 0 0 
-0 0 0 0 0 
-
-
-0 0 0 0 0 
-0 0 0 1 0 
-5 4 3 2 1 
-0 0 0 3 0 
-
-
-0 0 0 0 0 
-0 0 0 0 0 
-0 0 0 0 0 
-0 0 0 0 0 
-
-
-#=== dimension 4
-
-0 0 0 0 0 
-0 0 0 0 0 
-0 0 0 0 0 
-0 0 0 0 0 
-
-
-0 0 0 0 0 
-0 0 0 0 0 
-0 0 0 0 0 
-0 0 0 0 0 
-
-
-0 0 0 0 0 
-0 0 0 0 0 
-0 0 0 0 0 
-0 0 0 0 0 
-
-
-#=== dimension 4
-
-"""
-
-nds3 = \
-    """0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-
-
-0 0 5 0 
-0 0 4 0 
-0 0 3 0 
-0 1 2 3 
-0 0 1 0 
-
-
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-
-
-#=== dimension 4
-
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-
-
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-
-
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-0 0 0 0 
-
-
-#=== dimension 4
-
-"""
 
 import copy
 
@@ -870,19 +786,7 @@ def test_TableDataset():
     # toString()
     ts = v3.toString()
     # print(ts)
-    assert ts == \
-        """# TableDataset
-# description = "UNKNOWN"
-# meta = MetaData{[], listeners = []}
-# data = 
-
-# col1 col2
-# eV cnt
-1 0 
-4.4 43.2 
-5400.0 2000.0 
-
-"""
+    assert ts == out_TableDataset
 
     checkjson(u)
     checkgeneral(u)
@@ -1098,40 +1002,7 @@ def test_CompositeDataset():
     v3.meta[a11] = a12
     ts = v3.toString()
     # print(ts)
-    assert ts ==\
-        """# CompositeDataset
-# description = "UNKNOWN"
-# meta = MetaData{[m1 = NumericParameter{ description = "a different param in metadata", value = "2.3", unit = "sec", type = ""}, ], listeners = []}
-# data = 
-
-
-# [ dataset 1 ]
-# ArrayDataset
-# description = "arraydset 1"
-# meta = MetaData{[], listeners = []}
-# unit = "ev"
-# data = 
-
-768 
-4.4 
-5400.0 
-
-
-# [ dataset 2 ]
-# TableDataset
-# description = "Example table"
-# meta = MetaData{[], listeners = []}
-# data = 
-
-# Time Energy
-# sec eV
-0.0 100.0 
-1.0 102.0 
-2.0 104.0 
-3.0 106.0 
-4.0 108.0 
-
-"""
+    assert ts == out_CompositeDataset
 
     checkjson(v)
     checkgeneral(v)

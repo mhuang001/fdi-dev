@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-import pal.localpool as plp
+import spdc.pal.localpool as plp
 
 #from .definable import Definable
 

@@ -9,9 +9,10 @@ logger = logging.getLogger(__name__)
 from pathlib import Path
 from urllib.parse import urlparse
 
-from dataset.eq import DeepEqual
-from dataset.odict import ODict
-from dataset.serializable import Serializable
+
+from spdc.dataset.eq import DeepEqual
+from spdc.dataset.odict import ODict
+from spdc.dataset.serializable import Serializable
 
 from .comparable import Comparable
 #from .common import getClass

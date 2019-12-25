@@ -18,7 +18,7 @@ from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
 import filelock
 
-from pns.logdict import logdict
+from spdc.pns.logdict import logdict
 # '/var/log/pns-server.log'
 logdict['handlers']['file']['filename'] = '/tmp/server.log'
 import logging
@@ -31,7 +31,7 @@ logging.getLogger("urllib3").setLevel(logging.WARN)
 logging.getLogger("filelock").setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-from pns.pnsconfig import pnsconfig as pc
+from spdc.pns.pnsconfig import pnsconfig as pc
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
 import sys
@@ -49,13 +49,13 @@ except Exception as e:
 
 logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
 
-from dataset.metadata import Parameter, NumericParameter, MetaData
-from dataset.product import Product, FineTime1, History
-from dataset.dataset import GenericDataset, ArrayDataset, TableDataset
-from dataset.serializable import serializeClassID
-from dataset.deserialize import deserializeClassID
-from pal.productref import ProductRef
-from pal.urn import Urn
+from spdc.dataset.metadata import Parameter, NumericParameter, MetaData
+from spdc.dataset.product import Product, FineTime1, History
+from spdc.dataset.dataset import GenericDataset, ArrayDataset, TableDataset
+from spdc.dataset.serializable import serializeClassID
+from spdc.dataset.deserialize import deserializeClassID
+from spdc.pal.productref import ProductRef
+from spdc.pal.urn import Urn
 from .common import trbk
 
 app = Flask(__name__)

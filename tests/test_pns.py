@@ -8,7 +8,11 @@ import pkg_resources
 import copy
 import time
 
-from tests.logdict import doLogging, logdict
+# This is to be able to test w/ or w/o installing the package
+# https://docs.python-guide.org/writing/structure/
+from .pycontext import spdc
+
+from .logdict import doLogging, logdict
 if doLogging:
     import logging
     import logging.config
@@ -19,11 +23,11 @@ if doLogging:
     logging.getLogger("urllib3").setLevel(logging.WARN)
     logging.getLogger("filelock").setLevel(logging.WARN)
 
-from pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
-from pns.options import opt
+from spdc.pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
+from spdc.pns.options import opt
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
-from pns.pnsconfig import pnsconfig as pc
+from spdc.pns.pnsconfig import pnsconfig as pc
 import sys
 from os.path import expanduser, expandvars
 env = expanduser(expandvars('$HOME'))
@@ -37,14 +41,14 @@ if doLogging:
     logger.setLevel(pc['logginglevel'])
     logger.debug('level %d' % (logger.getEffectiveLevel()))
 
-from pns import server
-from dataset.odict import ODict
-from dataset.serializable import serializeClassID, serializeClassID
-from dataset.product import Product
-from dataset.metadata import NumericParameter
-from dataset.deserialize import deserializeClassID
-from dataset.dataset import ArrayDataset, GenericDataset
-from dataset.eq import deepcmp
+from spdc.pns import server
+from spdc.dataset.odict import ODict
+from spdc.dataset.serializable import serializeClassID, serializeClassID
+from spdc.dataset.product import Product
+from spdc.dataset.metadata import NumericParameter
+from spdc.dataset.deserialize import deserializeClassID
+from spdc.dataset.dataset import ArrayDataset, GenericDataset
+from spdc.dataset.eq import deepcmp
 
 testname = 'SVOM'
 aburl = 'http://' + pc['node']['host'] + ':' + \
@@ -172,7 +176,7 @@ def test_getinit():
     logger.info('get initPTS')
     c = 'init'
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
-    fn = pkg_resources.resource_filename("pns.resources", n)
+    fn = pkg_resources.resource_filename("spdc.pns.resources", n)
     checkContents(cmd='/' + c, filename=fn + '.ori')
 
 
@@ -182,7 +186,7 @@ def test_getrun():
     logger.info('get run')
     c = 'run'
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
-    fn = pkg_resources.resource_filename("pns.resources", n)
+    fn = pkg_resources.resource_filename("spdc.pns.resources", n)
     checkContents(cmd='/' + c, filename=fn + '.ori')
 
 

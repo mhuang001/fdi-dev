@@ -5,8 +5,8 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.product import Product
-from dataset.dataset import CompositeDataset
+from spdc.dataset.product import Product
+from spdc.dataset.dataset import CompositeDataset
 
 
 class Context(Product):

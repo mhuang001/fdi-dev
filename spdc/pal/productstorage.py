@@ -6,10 +6,10 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from dataset.odict import ODict
+from spdc.dataset.odict import ODict
 
 from .urn import Urn
-import pal.productref as ppr
+import spdc.pal.productref as ppr
 from .productpool import ProductPool
 from .poolmanager import PoolManager
 

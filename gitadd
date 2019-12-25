@@ -1,10 +1,10 @@
 #https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository
 git add LICENSE README.md CHANGELOG.md requirements.txt plot setup.py gitadd .gitignore
 git add install update
-git add dataset/*.py
+git add spdc/*.py spdc/dataset/*.py
 git add resources/*
-git add pns/*.py pns/resources
+git add spdc/pns/*.py spdc/pns/resources
 git add startserver installpns
-git add pal/*.py pal/resources
+git add spdc/pal/*.py spdc/pal/resources
 git add test tests/*.py
 git add doc/html doc/doctrees doc/sphinx/mkapi doc/sphinx/index.rst doc/sphinx/usage doc/sphinx/api doc/sphinx/conf.py doc/sphinx/Makefile doc/sphinx/_static doc/sphinx/_templates

@@ -63,3 +63,7 @@ documentation with sphinx. vvpp docker works. release to FSC.
 0.8 2019-09-15
 --------------
 Improved toString() for datasets. PAL refactoring.
+
+0.9 2019-12-25
+--------------
+Refactor to make spdc top-level package, instead of dataset, pal, pns

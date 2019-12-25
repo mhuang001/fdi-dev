@@ -8,7 +8,7 @@ import urllib.error as ue
 import json
 import traceback
 
-from pns.logdict import logdict
+from spdc.pns.logdict import logdict
 import logging
 logger = logging.getLogger(__name__)
 logger.debug('level %d' % (logger.getEffectiveLevel()))
@@ -22,8 +22,8 @@ if 0:
     print(logger.handlers)
     print(logger.level)
 
-from dataset.deserialize import deserializeClassID
-from dataset.serializable import serializeClassID
+from spdc.dataset.deserialize import deserializeClassID
+from spdc.dataset.serializable import serializeClassID
 
 commonheaders = {
     'Accept': 'application/json',

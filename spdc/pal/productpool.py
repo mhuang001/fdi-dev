@@ -19,9 +19,9 @@ from .definable import Definable
 from .taggable import Taggable
 from .versionable import Versionable
 
-from dataset.serializable import serializeClassID
-from dataset.dataset import TableDataset
-from dataset.odict import ODict
+from spdc.dataset.serializable import serializeClassID
+from spdc.dataset.dataset import TableDataset
+from spdc.dataset.odict import ODict
 
 lockpath = '/tmp'
 

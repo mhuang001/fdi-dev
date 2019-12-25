@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 from .urn import Urn, parseUrn
-from pns.common import getJsonObj
+from spdc.pns.common import getJsonObj
 
 
 def getObjectbyId(idn, lgbv):

@@ -17,10 +17,10 @@ from .comparable import Comparable
 from .common import getJsonObj
 from .productpool import ProductPool
 
-from dataset.serializable import serializeClassID
-from dataset.dataset import TableDataset
-from dataset.odict import ODict
-from pns.common import trbk
+from spdc.dataset.serializable import serializeClassID
+from spdc.dataset.dataset import TableDataset
+from spdc.dataset.odict import ODict
+from spdc.pns.common import trbk
 
 
 class LocalPool(ProductPool):

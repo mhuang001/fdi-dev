@@ -8,6 +8,12 @@ import urllib.error as ue
 import json
 import traceback
 
+import sys
+if sys.version_info[0] > 2:
+    from urllib.parse import urlencode
+else:
+    from urllib import urlencode
+
 from spdc.pns.logdict import logdict
 import logging
 logger = logging.getLogger(__name__)
@@ -141,7 +147,7 @@ def postJsonObj2(url, obj, headers):
     """
     logger.debug('postJsonObj url %s obj %s headers %s' % (url, obj, headers))
     #
-    data = urllib.parse.urlencode(obj).encode()
+    data = urlencode(obj).encode()
     # print('o', obj, 'd', data)
     i = 1
     while True:

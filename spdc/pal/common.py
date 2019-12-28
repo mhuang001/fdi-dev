@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from collections import ChainMap
-import builtins
 import filelock
 import logging
 import os

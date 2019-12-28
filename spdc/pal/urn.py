@@ -6,8 +6,11 @@ import logging
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from urllib.parse import urlparse
-
+import sys
+if sys.version_info[0] > 2:
+    from urllib.parse import urlparse
+else:
+    from urlparse import urlparse
 
 from spdc.dataset.eq import DeepEqual
 from spdc.dataset.odict import ODict

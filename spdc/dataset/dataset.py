@@ -1,5 +1,16 @@
 # -*- coding: utf-8 -*-
-from collections.abc import Container, Sequence, Mapping
+import sys
+if sys.version_info[0] + sys.version_info[1] / 10.0 >= 3.3:
+    from collections.abc import Container, Sequence, Mapping
+else:
+    class Container:
+        pass
+
+    class Sequence:
+        pass
+
+    class Mapping:
+        pass
 import logging
 # create logger
 logger = logging.getLogger(__name__)

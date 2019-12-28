@@ -6,7 +6,6 @@ import logging
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from pathlib import Path
 from urllib.parse import urlparse
 
 

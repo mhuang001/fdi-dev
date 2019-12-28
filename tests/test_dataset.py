@@ -823,12 +823,24 @@ def test_TableDataset():
 
     # addRow
     assert x.rowCount == 10
-    x.addRow({'Time': 101, 'Energy': 102, 'dist': 103})
+    newR = ODict({'Time': 101, 'Energy': 102, 'dist': 103})
+    x.addRow(newR)
     assert x.rowCount == 11
     # select
     c10 = x[1]
     r10 = x.select([10])
     assert r10[1][0] == c10[10]
+    # iteration:
+    # internal data model is based on OrderedDict so index access OK
+    for i in range(x.rowCount - 1):
+        row = x.getRow(i)
+        assert row[0] == t[i]
+        assert row[1] == e[i]
+        assert row[2] == m[i]
+    row = x.getRow(x.rowCount - 1)
+    v = list(newR.values())
+    for j in range(len(row)):
+        assert row[j] == v[j]
 
     if 0:
         # Please see also this elaborated example.
@@ -898,12 +910,6 @@ def demo_TableDataset():
     print(table["Time"])
     print(table["Time"].data)
     print(table["Time"].unit)
-    # iteration:
-    for i in range(table.rowCount):
-        row = table.getRow(i)
-        print(row.get(0))  # element in 1st column of this row
-        # element in 2nd column of this rowiter = x.iterator()
-        print(row.get(1))
 
 
 def test_Column():
@@ -1212,3 +1218,22 @@ if __name__ == '__main__':
 #     print(js)
 #     p = json.loads(js, cls=JSONObjectDecoder)
 #     print(p['h'].b)
+
+if 0 and __name__ == '__main__':
+    test_AbstractComposite()
+    test_Copyable()
+    test_EventSender()
+    test_Parameter()
+    test_Quantifiable()
+    test_NumericParameter()
+    test_MetaData()
+    test_Attributable()
+    test_DataWrapper()
+    test_ArrayDataset()
+    test_TableModel()
+    test_TableDataset()
+    test_Column()
+    test_CompositeDataset()
+    test_FineTime1()
+    test_History()
+    test_Product()

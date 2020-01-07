@@ -17,7 +17,7 @@ class Attributable(MetaDataHolder):
             self.setMeta(MetaData())
         else:
             self.setMeta(meta)
-        super().__init__(**kwds)
+        super(Attributable, self).__init__(**kwds)
         #print('**' + self._meta.toString())
 
     @property

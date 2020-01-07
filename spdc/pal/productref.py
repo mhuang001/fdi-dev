@@ -23,7 +23,7 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
         mh: If a URN for a URN is needed, use Urn.getInMemUrnObj()
         pool is the object type.
         """
-        super().__init__(**kwds)
+        super(ProductRef, self).__init__(**kwds)
         if issubclass(urn.__class__, str):
             urnobj = Urn(urn)
         elif issubclass(urn.__class__, Urn):

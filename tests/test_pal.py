@@ -6,20 +6,31 @@ from collections import ChainMap
 import builtins
 import os
 
-# This is to be able to test w/ or w/o installing the package
-# https://docs.python-guide.org/writing/structure/
-from .pycontext import spdc
+import sys
+#print([(k, v) for k, v in globals().items() if '__' in k])
 
-from .logdict import doLogging, logdict
-if doLogging:
-    import logging
-    import logging.config
-    # create logger
-    logging.config.dictConfig(logdict)
-    logger = logging.getLogger()
-    logger.debug('%s logging level %d' %
-                 (__name__, logger.getEffectiveLevel()))
-    logging.getLogger("filelock").setLevel(logging.WARNING)
+if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
+    PY3 = True
+else:
+    PY3 = False
+
+if __name__ == '__main__' and __package__ is None:
+    pass
+else:
+    # This is to be able to test w/ or w/o installing the package
+    # https://docs.python-guide.org/writing/structure/
+    from .pycontext import spdc
+
+    from .logdict import doLogging, logdict
+    if doLogging:
+        import logging
+        import logging.config
+        # create logger
+        logging.config.dictConfig(logdict)
+        logger = logging.getLogger()
+        logger.debug('%s logging level %d' %
+                     (__name__, logger.getEffectiveLevel()))
+        logging.getLogger("filelock").setLevel(logging.WARNING)
 
 from spdc.dataset.eq import deepcmp
 from spdc.dataset.product import Product

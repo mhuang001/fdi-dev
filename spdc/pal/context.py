@@ -19,7 +19,7 @@ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Con
     def __init__(self,  **kwds):
         """
         """
-        super().__init__(**kwds)
+        super(Context, self).__init__(**kwds)
 
     def getAllRefs(self, recursive, includeContexts):
         """ Provides a set of the unique references stored in this context.
@@ -64,7 +64,7 @@ class MapRefsDataset(CompositeDataset):
     def __init__(self,  **kwds):
         """
         """
-        super().__init__(**kwds)
+        super(MapRefsDataset, self).__init__(**kwds)
 
     def put(self, key, ref):
         """
@@ -107,7 +107,7 @@ class MapContext(Context):
     def __init__(self,  **kwds):
         """
         """
-        super().__init__(**kwds)
+        super(MapContext, self).__init__(**kwds)
         self.setRefs(MapRefsDataset())
         self._dirty = False
 

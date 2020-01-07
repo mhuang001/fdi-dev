@@ -5,6 +5,7 @@
 *.log
 *~
 .*~
+*.class
 doctrees
 __pycache__
 *.log

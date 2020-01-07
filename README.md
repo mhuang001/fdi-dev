@@ -21,7 +21,7 @@ change the git line to
 ```
 to install as a user.
 
-Install the dependencies if needed ((python 3.6, Flask, pytest ...)
+Install the dependencies if needed. python 3.6 for pal and pns, 2.7 for dataset
 ```
 		cd /tmp/spdc
 		pip3 install -r requirements.txt

@@ -24,7 +24,7 @@ class Composite(DeepEqual):
 
     def __init__(self, **kwds):
         self._sets = ODict()
-        super().__init__(**kwds)
+        super(Composite, self).__init__(**kwds)
 
     def containsKey(self, name):
         """ Returns true if this map contains a mapping for
@@ -77,7 +77,7 @@ class Composite(DeepEqual):
         mh: returns None if name is None or item does not exist.
         """
         if name == '' or name is None or name not in self._sets:
-            logger.warn('Cannot remove non-exist item \'' + name + "'")
+            logger.info('Cannot remove non-exist item \'' + name + "'")
             return None
         return self._sets.pop(name)
 

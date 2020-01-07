@@ -50,6 +50,18 @@ from spdc.dataset.deserialize import deserializeClassID
 from spdc.dataset.dataset import ArrayDataset, GenericDataset
 from spdc.dataset.eq import deepcmp
 
+import pytest
+
+
+@pytest.fixture(scope="module")
+def runserver():
+    from spdc.pns.runflaskserver import app
+    app.run(host='127.0.0.1', port=5000,
+            threaded=False, debug=verbose, processes=5)
+
+    return smtplib.SMTP("smtp.gmail.com", 587, timeout=5)
+
+
 testname = 'SVOM'
 aburl = 'http://' + pc['node']['host'] + ':' + \
     str(pc['node']['port']) + pc['baseurl']

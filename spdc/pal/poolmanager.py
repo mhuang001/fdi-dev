@@ -10,7 +10,7 @@ import spdc.pal.localpool as plp
 #from .definable import Definable
 
 
-class PoolManager():
+class PoolManager(object):
     """
     This class provides the means to reference ProductPool objects without having to hard-code the type of pool. For example, it could be desired to easily switch from one pool type to another.
 

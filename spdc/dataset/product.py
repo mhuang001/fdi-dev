@@ -17,10 +17,33 @@ from .abstractcomposite import AbstractComposite
 from .odict import ODict
 from .serializable import Serializable
 
+# A UTC class.
 
-class FineTime1(Copyable, DeepEqual, Serializable):
+
+class UTC(datetime.tzinfo):
+    """UTC
+    https://docs.python.org/2.7/library/datetime.html?highlight=datetime#datetime.tzinfo
+    """
+
+    ZERO = datetime.timedelta(0)
+    HOUR = datetime.timedelta(hours=1)
+
+    def utcoffset(self, dt):
+        return UTC.ZERO
+
+    def tzname(self, dt):
+        return "UTC"
+
+    def dst(self, dt):
+        return UTC.ZERO
+
+
+utcobj = UTC()
+
+
+class FineTime(Copyable, DeepEqual, Serializable):
     """ Atomic time(SI seconds) elapsed since the TAI epoch
-    of 1 January 2000 UT2. The resolution is one microsecond and the
+    of 1 January 1958 UT2. The resolution is one microsecond and the
     allowable range is: epoch + /-290, 000 years approximately.
 
     This has the following advantages, compared with the standard class:
@@ -30,23 +53,22 @@ class FineTime1(Copyable, DeepEqual, Serializable):
     It is immutable
     """
 
-    EPOCH = datetime.datetime(2000, 1, 1, 0, 0, 0,
-                              tzinfo=datetime.timezone.utc)  # posix timestamp
+    EPOCH = datetime.datetime(1958, 1, 1, 0, 0, 0, tzinfo=utcobj)
 
     def __init__(self, date=None, **kwds):
         """ Initiate with a UTC date """
         leapsec = 0  # leap seconds to be implemented
         if date is None:
-            self.tai = int(0)
+            self.tai = 0
         else:
             if date.tzinfo is None:
-                d = date.replace(tzinfo=datetime.timezone.utc)
+                d = date.replace(tzinfo=utcobj)
             else:
                 d = date
-            self.tai = int(1000000) * \
+            self.tai = 1000000 * \
                 ((d - FineTime1.EPOCH).total_seconds() + leapsec)
         # logger.debug('date= %s TAI = %d' % (str(date), self.tai))
-        super().__init__(**kwds)
+        super(FineTime, self).__init__(**kwds)
 
     def microsecondsSinceEPOCH(self):
         """ Return the number of microseconds since the epoch: 1 Jan 1958. """
@@ -85,6 +107,11 @@ class FineTime1(Copyable, DeepEqual, Serializable):
                      version=self.version)
 
 
+class FineTime1(FineTime):
+    """ Same as FineTime but Epoch is 2017-1-1 0 UTC """
+    EPOCH = datetime.datetime(2017, 1, 1, 0, 0, 0, tzinfo=utcobj)
+
+
 class History(CompositeDataset, DeepEqual):
     """ Public interface to the history dataset. Contains the
     main methods for retrieving a script and copying the history.
@@ -98,7 +125,7 @@ class History(CompositeDataset, DeepEqual):
         relevant table entries to indicate that this a new
         independent product of which the history may change.
         """
-        super().__init__(**kwds)
+        super(History, self).__init__(**kwds)
 
         # Name of the table which contains the history script
         self.HIST_SCRIPT = ''
@@ -182,7 +209,7 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender):
                  **kwds):
 
         # must be the first line to initiate meta and get description
-        super().__init__(**kwds)
+        super(Product, self).__init__(**kwds)
 
         creationDate = FineTime1() if creationDate is None else creationDate
         # list of local variables. 'description' has been consumed in
@@ -220,10 +247,10 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender):
             # before any class that access mandatory attributes
             #print('aa ' + str(self.getMeta()[name]))
             return self.getMeta()[name]
-        return super().__getattribute__(name)
+        return super(Product, self).__getattribute__(name)
 
     def setMeta(self, newMetadata):
-        super().setMeta(newMetadata)
+        super(Product, self).setMeta(newMetadata)
         self.getMeta().addListener(self)
 
     def __setattr__(self, name, value, withmeta=True):
@@ -234,7 +261,7 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender):
             self.getMeta()[name] = value
         else:
             #print('setattr ' + name, value)
-            super().__setattr__(name, value)
+            super(Product, self).__setattr__(name, value)
 
     def __delattr__(self, name):
         """ Refuses deletion of mandatory attributes
@@ -243,7 +270,7 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender):
             logger.warn('Cannot delete Mandatory Attribute ' + name)
             return
 
-        super().__delattr__(name)
+        super(Product, self).__delattr__(name)
 
     def targetChanged(self, event):
         pass
@@ -257,7 +284,8 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender):
         """ like AbstractComposite but with history
         """
         h = self.history.toString(matprint=matprint, trans=trans)
-        s = super().toString(matprint=matprint, trans=trans, beforedata=h)
+        s = super(Product, self).toString(
+            matprint=matprint, trans=trans, beforedata=h)
         return s
 
     def __repr__(self):

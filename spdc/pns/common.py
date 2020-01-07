@@ -2,17 +2,26 @@
 import os
 import errno
 from pprint import pprint, pformat
-# import urllib2
-import urllib.request
-import urllib.error as ue
 import json
 import traceback
 
+# HTTPConnection.debuglevel = 1
+
+
 import sys
 if sys.version_info[0] > 2:
-    from urllib.parse import urlencode
+    #from urllib.parse import urlencode
+    from urllib.request import urlopen
+    from urllib.parse import urlsplit
+    from urllib.error import HTTPError
+    import requests
+    from http.client import HTTPConnection
 else:
-    from urllib import urlencode
+    #from urllib import urlencode
+    from urllib2 import urlopen
+    from urlparse import urlsplit
+    from urllib2 import HTTPError
+    from httplib import HTTPConnection
 
 from spdc.pns.logdict import logdict
 import logging
@@ -59,16 +68,15 @@ def getJsonObj(url, headers=None, usedict=False):
     i = 1
     while True:
         try:
-            # python 2
-            # stri = urllib2.urlopen(urllib2.Request(url), timeout=15).read()
-            # python3
-            stri = urllib.request.urlopen(
+            stri = urlopen(
                 url, timeout=15).read().decode('utf-8')
             #logger.debug('stri ' + stri)
             break
         except Exception as e:
             logger.debug(e)
-            if issubclass(e.__class__, ue.HTTPError):
+            if issubclass(e.__class__, HTTPError):
+                print(e.code)
+                print('urllib   ' + e.read())
                 ret = e
                 return None
             if i >= 1:
@@ -86,13 +94,8 @@ def getJsonObj(url, headers=None, usedict=False):
     return ret
 
 
-import requests
-from http.client import HTTPConnection
-# HTTPConnection.debuglevel = 1
-
-
-def postJsonObj(url, obj, headers):
-    """ posts object to url. Returns None if fails.
+def jsonREST(url, obj, headers, cmd):
+    """ generic RESTful command handler for POST, PUT, and DELETE.
     """
     js = serializeClassID(obj)
     # %s obj %s headers %s' % (url, obj, headers))
@@ -101,15 +104,33 @@ def postJsonObj(url, obj, headers):
     i = 1
     while True:
         try:
-            # python3
-            r = requests.post(url, data=js, headers=headers, timeout=15)
-            stri = r.text
+            if 0 and sys.version_info[0] > 2:
+                if cmd == 'POST':
+                    r = requests.post(
+                        url, data=js, headers=headers, timeout=15)
+                elif cmd == 'PUT':
+                    r = requests.post(
+                        url, data=js, headers=headers, timeout=15)
+                elif cmd == 'DELETE':
+                    r = requests.post(
+                        url, data=js, headers=headers, timeout=15)
+                else:
+                    raise ValueError('Bad REST command ' + cmd)
+                stri = r.text
+            else:
+                o = urlsplit(url)
+                u = o.netloc
+                p = o.path + '?' + o.query + '#' + o.fragment
+                h = HTTPConnection(u, timeout=15)
+                h.request(cmd, p, js, headers)
+                r = h.getresponse()
+                stri = r.read()
             # print('ps textx %s\nstatus %d\nheader %s' % (stri, r.status_code, r.headers))
             break
         except Exception as e:
             logger.debug(e)
             if i >= 1:
-                logger.error("Give up POST " + url + " after %d tries." % i)
+                logger.error("Give up %s %s after %d tries." % (cmd, url, i))
                 return None
             else:
                 i += 1
@@ -121,54 +142,23 @@ def postJsonObj(url, obj, headers):
     return ret
 
 
+def postJsonObj(url, obj, headers):
+    """ posts object to url. Returns None if fails.
+    """
+
+    return jsonREST(url, obj, headers, 'POST')
+
+
 def putJsonObj(url, obj, headers):
     """ puts object to url. Returns None if fails.
     """
-    js = serializeClassID(obj)
-    # %s obj %s headers %s' % (url, obj, headers))
-    logger.debug(url + js[:260] + '...')
-
-    try:
-        # python3
-        r = requests.put(url, data=js, headers=headers, timeout=15)
-        stri = r.text
-    except Exception as e:
-        logger.debug(e)
-        logger.error("Give up PUT " + url)
-        return None
-
-    ret = deserializeClassID(stri)
-    logger.debug(str(ret)[:160] + '...')
-    return ret
+    return jsonREST(url, obj, headers, 'PUT')
 
 
-def postJsonObj2(url, obj, headers):
-    """ post object to url. Return None if fail.
+def deleteJsonObj(url, obj, headers):
+    """ deletes object from url. Returns None if fails.
     """
-    logger.debug('postJsonObj url %s obj %s headers %s' % (url, obj, headers))
-    #
-    data = urlencode(obj).encode()
-    # print('o', obj, 'd', data)
-    i = 1
-    while True:
-        try:
-             # python3
-            req = urllib.request.Request(url, data=data, headers=headers)
-            stri = urllib.request.urlopen(
-                req, timeout=15).read().decode('utf-8')
-            # ret = json.loads(stri, parse_float=Decimal)
-            ret = json.loads(stri, cls=Decoder)
-            break
-        except Exception as e:
-            print(e)
-            if i >= 5:
-                logger.error("Give up POST " + url + " after %d tries." % i)
-                return None
-            else:
-                i += 1
-    # print(url,stri)
-    logger.debug(str(ret)[:160] + '...')
-    return ret
+    return jsonREST(url, obj, headers, 'DELETE')
 
 
 def writeJsonObj(o, fn):

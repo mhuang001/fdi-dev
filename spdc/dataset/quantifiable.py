@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class Quantifiable():
+class Quantifiable(object):
     """ A Quantifiable object is a numeric object that has a unit.
     $ x.unit = ELECTRON_VOLTS
     $ print x.unit
@@ -16,7 +16,8 @@ class Quantifiable():
 
         """
         self.setUnit(unit)
-        super().__init__(**kwds)
+        #print(__name__ + str(kwds))
+        super(Quantifiable, self).__init__(**kwds)
 
     @property
     def unit(self):

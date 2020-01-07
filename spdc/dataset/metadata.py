@@ -24,7 +24,7 @@ class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializab
         With a signle argument: arg -> value, 'UNKNOWN'-> description.
         With two positional arguments: arg1 -> value, arg2-> description.
         """
-        super().__init__(**kwds)
+        super(Parameter, self).__init__(**kwds)
         self.setValue(value)
         self.setType(type_)
 
@@ -75,7 +75,7 @@ class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializab
 
     def __setattr__(self, name, value):
         """ add eventhandling """
-        super().__setattr__(name, value)
+        super(Parameter, self).__setattr__(name, value)
 
         # this will fail during init when annotatable init sets description
         # if issubclass(self.__class__, DatasetEventSender):
@@ -116,7 +116,7 @@ class NumericParameter(Parameter, Quantifiable):
     """
 
     def __init__(self, **kwds):
-        super().__init__(**kwds)
+        super(NumericParameter, self).__init__(**kwds)
 
     def __repr__(self):
         return self.__class__.__name__ + \
@@ -143,7 +143,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
     will keep the order. """
 
     def __init__(self, copy=None, **kwds):
-        super().__init__(**kwds)
+        super(MetaData, self).__init__(**kwds)
         if copy is None:
             return
         else:
@@ -161,7 +161,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
 
     def set(self, name, newParameter):
         """ add eventhandling """
-        super().set(name, newParameter)
+        super(MetaData, self).set(name, newParameter)
 
         if 'listeners' in self.__dict__:
             so, ta, ty, ch, ca, ro = self, self, -1, \
@@ -176,7 +176,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
 
     def remove(self, name):
         """ add eventhandling """
-        r = super().remove(name)
+        r = super(MetaData, self).remove(name)
         if r is None:
             return r
 

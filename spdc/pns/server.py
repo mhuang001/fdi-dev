@@ -1,3 +1,4 @@
+
 #!flask/bin/python
 # -*- coding: utf-8 -*-
 
@@ -27,7 +28,11 @@ import logging.config
 logging.config.dictConfig(logdict)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARN)
-logging.getLogger("urllib3").setLevel(logging.WARN)
+import sys
+if sys.version_info[0] > 2:
+    logging.getLogger("urllib3").setLevel(logging.WARN)
+else:
+    pass
 logging.getLogger("filelock").setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 

@@ -40,7 +40,7 @@ When implementing a ProductPool, the following rules need to be applied:
     """
 
     def __init__(self, poolurn='file:///tmp/pool', **kwds):
-        super().__init__(**kwds)
+        super(ProductPool, self).__init__(**kwds)
         self._poolurn = poolurn
         pr = urlparse(poolurn)
         self._scheme = pr.scheme
@@ -73,7 +73,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         Returns pool definition info which contains pool type and other pool specific configuration parameters
         """
-        return super().getDefinition()
+        return super(ProductPool, self).getDefinition()
 
     def getId(self):
         """

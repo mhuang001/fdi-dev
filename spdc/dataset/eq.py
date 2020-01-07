@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
-import json
 import pprint
 
 import logging
@@ -43,19 +42,19 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False):
             print('2 ' + str(c2) + str(o2))
         if pair in context.seen:
             if v:
-                logger.debug('deja vue')
+                print('deja vue %s' % str(pair))
             return None
         context.seen.append(pair)
         if c != c2:
             if v:
-                logger.debug('type diff')
+                print('type diff')
             return ' due to diff types: ' + c.__name__ + ' and ' + c2.__name__
-        dc, sc, tc, lc = {1: 2}.__class__, {
-            2}.__class__, (2, 9).__class__, [].__class__
+        dc, sc, tc, lc = dict, set, tuple, list
+
         if c == dc or issubclass(c, OrderedDict):
             if v:
-                logger.debug('dict or OrdDict')
-                logger.debug('check keys')
+                print('Find dict or OrderedDict')
+                print('check keys')
             if c == dc:
                 #  dict
                 r = run(set(o1.keys()), set(o2.keys()), v=v)
@@ -65,11 +64,9 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False):
             if r is not None:
                 return " due to diff " + c.__name__ + " keys" + r
             if v:
-                logger.debug('check values')
+                print('check values')
             for k in o1.keys():
                 if k not in o2:
-                    assert False, str(
-                        r) + ' r is None has proved identical keys'
                     return ' due to o2 has no key=%s' % (str(k))
                 r = run(o1[k], o2[k], v=v)
                 if r is not None:
@@ -78,13 +75,13 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False):
             return None
         elif c in (sc, tc, lc):
             if v:
-                logger.debug('set, tuple, or list.')
+                print('Find set, tuple, or list.')
             if len(o1) != len(o2):
                 return ' due to diff %s lengths %d and %d' %\
                     (c.__name__, len(o1), len(o2))
             if c in (tc, lc):
                 if v:
-                    logger.debug('tuple or list.')
+                    print('Check tuple or list.')
                 for i in range(len(o1)):
                     r = run(o1[i], o2[i], v=v)
                     if r is not None:
@@ -92,7 +89,7 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False):
                 return None
             else:
                 if v:
-                    logger.debug('set.')
+                    print('Check set.')
                 oc = o2.copy()
                 for m in o1:
                     found = False
@@ -105,18 +102,22 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False):
                         return ' due to %s not in the latter' % (str(m))
                     oc.remove(n)
                 return None
-        elif hasattr(o1, '__eq__') and not issubclass(c, DeepEqual):
+        elif (hasattr(o1, '__eq__') or hasattr(o1, '__cmp__')) and not issubclass(c, DeepEqual):
             if v:
-                logger.debug('has __eq__ and not using deepcmp')
+                print('obj1 has __eq__ or __cmp__ and not using deepcmp')
             # checked in-seen to ensure whst follows will not cause RecursionError
             if o1 == o2:
                 return None
             else:  # o1 != o2:
                 s = ' due to "%s" != "%s"' % (str(o1), str(o2))
                 return s
+        elif id(o1) == id(o2):
+            if v:
+                print('they are the same object.')
+            return None
         elif hasattr(o1, '__dict__'):
             if v:
-                logger.debug('has __dict__')
+                print('obj1 has __dict__')
             r = run(o1.__dict__, o2.__dict__, v=v)
             if r:
                 return ' due to o1.__dict__ != o2.__dict__' + r
@@ -124,12 +125,12 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False):
                 return None
         else:  # o1 != o2:
             if v:
-                logger.debug('no way')
+                print('no way')
             s = ' due to no reason found for "%s" == "%s"' % (str(o1), str(o2))
     return run(obj1, obj2, verbose)
 
 
-class DeepEqual():
+class DeepEqual(object):
     """ mh: Can compare key-val pairs of another object
     with self. False if compare with None
     or exceptions raised, e.g. obj does not have items()
@@ -155,7 +156,7 @@ class DeepEqual():
         return r
 
 
-class EqualDict():
+class EqualDict(object):
     """ mh: Can compare key-val pairs of another object
     with self. False if compare with None
     or exceptions raised, e.g. obj does not have items()
@@ -183,7 +184,7 @@ class EqualDict():
         return not self.__eq__(obj)
 
 
-class EqualODict():
+class EqualODict(object):
     """ mh: Can compare order and key-val pairs of another object
     with self. False if compare with None
     or exceptions raised, e.g. obj does not have items()

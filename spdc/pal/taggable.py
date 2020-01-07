@@ -9,13 +9,13 @@ from spdc.dataset.odict import ODict
 from .urn import Urn
 
 
-class Taggable():
+class Taggable(object):
     """
     Definition of services provided by a product storage supporting versioning.
     """
 
     def __init__(self, **kwds):
-        super().__init__(**kwds)
+        super(Taggable, self).__init__(**kwds)
         # {tag->{'urns':[urn]}
         self._tags = ODict()
         # {urn->{'tags':[tag], 'meta':meta}}

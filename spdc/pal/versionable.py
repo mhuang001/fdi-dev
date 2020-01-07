@@ -5,13 +5,13 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class Versionable():
+class Versionable(object):
     """
     for items being able to be defined with a Definition.
     """
 
     def __init__(self, **kwds):
-        super().__init__(**kwds)
+        super(Versionable, self).__init__(**kwds)
 
     def getLastVersion(self, ref):
         """

@@ -14,12 +14,12 @@ from .productpool import ProductPool
 from .poolmanager import PoolManager
 
 
-class ProductStorage():
+class ProductStorage(object):
     """
     """
 
     def __init__(self, pool='file:///tmp/pool', **kwds):
-        super().__init__(**kwds)
+        super(ProductStorage, self).__init__(**kwds)
         self._pools = ODict()  # dict of pool-urn keys
         self.register(pool)
 

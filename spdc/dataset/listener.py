@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 #from dataset.metadata import Parameter
 
-class EventListener():
+class EventListener(object):
     """ Generic interface for listeners that will listen to anything
     """
 
@@ -39,14 +39,14 @@ class DatasetBaseListener(EventListener):
         pass
 
 
-class EventSender():
+class EventSender(object):
     """ adapted from Peter Thatcher's
     https://stackoverflow.com/questions/1092531/event-system-in-python/1096614#1096614
     """
 
     def __init__(self, **kwds):
         self._listeners = []
-        super().__init__(**kwds)
+        super(EventSender, self).__init__(**kwds)
 
     @property
     def listeners(self):
@@ -139,20 +139,20 @@ class EventSender():
 
 class DatasetEventSender(EventSender):
     def __init__(self, **kwds):
-        super().__init__(**kwds)
+        super(DatasetEventSender, self).__init__(**kwds)
 
     def addListener(self, listener, cls=DatasetBaseListener):
         """ Adds a listener to this. """
 
-        super().addListener(listener, cls=cls)
+        super(DatasetEventSender, self).addListener(listener, cls=cls)
 
         return self
 
     def fire(self, event):
-        super().fire(event)
+        super(DatasetEventSender, self).fire(event)
 
 
-class EventType():
+class EventType(object):
     # A column has been added to the target TableDataset.
     COLUMN_ADDED = 0
     # A column has been changed in the target TableDataset.
@@ -210,7 +210,7 @@ class DatasetEvent(Serializable):
         # The first event in the chain that provoked this event,
         # or null if this event is its own root.
         self.rootCause = rootCause
-        super().__init__(**kwds)
+        super(DatasetEvent, self).__init__(**kwds)
 
     def __eq__(self, o):
         """ """

@@ -13,7 +13,7 @@ class MetaDataHolder(object):
     """
 
     def __init__(self, **kwds):
-        super().__init__(**kwds)
+        super(MetaDataHolder, self).__init__(**kwds)
         if not hasattr(self, '_meta'):
             self._meta = MetaData()
 

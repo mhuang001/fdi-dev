@@ -30,7 +30,7 @@ class LocalPool(ProductPool):
     def __init__(self, **kwds):
         """ creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
         """
-        super().__init__(**kwds)
+        super(LocalPool, self).__init__(**kwds)
 
         p = Path(self._poolpath)
         logger.debug(self._poolpath)

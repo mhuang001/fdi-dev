@@ -18,7 +18,7 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
     """
 
     def __init__(self, **kwds):
-        super().__init__(**kwds)
+        super(AbstractComposite, self).__init__(**kwds)
 
     def __repr__(self):
         ''' meta and datasets only show names

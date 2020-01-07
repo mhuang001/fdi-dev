@@ -40,21 +40,26 @@ def serializeClassID(o):
     return json.dumps(o, cls=SerializableEncoder, indent=None)
 
 
-class Serializable():
+def serializeHipe(o):
+    """ return JSON using special encoder SerializableHipeEncoder """
+    return json.dumps(o, cls=SerializableHipeEncoder, indent=None)
+
+
+class Serializable(object):
     """ mh: Can be serialized.
     Has a ClassID and version instance property to show its class
     and version information.
     """
 
     def __init__(self, **kwds):
-        super().__init__(**kwds)
+        super(Serializable, self).__init__(**kwds)
         sc = self.__class__
         #print('$$ ' + sc.__name__ + str(issubclass(sc, dict)))
         if issubclass(sc, dict):
-            self['classID'] = sc.__qualname__
+            self['classID'] = sc.__name__
             self['version'] = ''
         else:
-            self.classID = sc.__qualname__
+            self.classID = sc.__name__
             self.version = ''
 
     def serialized(self):

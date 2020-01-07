@@ -67,3 +67,9 @@ Improved toString() for datasets. PAL refactoring.
 0.9 2019-12-25
 --------------
 Refactor to make spdc top-level package, instead of dataset, pal, pns
+
+0.10 2020-01-07
+---------------
+dataset is compatible with python 2.7
+
+	

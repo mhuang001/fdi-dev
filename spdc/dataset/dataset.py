@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 import sys
-if sys.version_info[0] + sys.version_info[1] / 10.0 >= 3.3:
+if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.3:
+    PY33 = True
     from collections.abc import Container, Sequence, Mapping
+    seqlist = Sequence
+    maplist = Mapping
 else:
-    class Container:
-        pass
+    PY33 = False
+    from .collectionsMockUp import ContainerMockUp as Container
+    from .collectionsMockUp import SequenceMockUp as Sequence
+    from .collectionsMockUp import MappingMockUp as Mapping
+    seqlist = (tuple, list, Sequence, str)
+    # ,types.XRangeType, types.BufferType)
+    maplist = (dict, Mapping)
 
-    class Sequence:
-        pass
-
-    class Mapping:
-        pass
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -49,7 +52,7 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
         """
 
         """
-        super().__init__(**kwds)
+        super(Dataset, self).__init__(**kwds)
 
     def accept(self, visitor):
         """ Hook for adding functionality to object
@@ -73,7 +76,8 @@ class GenericDataset(Dataset, DataContainer, Container):
     def __init__(self, **kwds):
         """
         """
-        super().__init__(**kwds)  # initialize data, meta, unit
+        super(GenericDataset, self).__init__(
+            **kwds)  # initialize data, meta, unit
 
     def __iter__(self):
         for x in self.data:
@@ -102,7 +106,7 @@ class GenericDataset(Dataset, DataContainer, Container):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        # s = ODict(description=self.description, meta=self.meta)  # super().serializable()
+        # s = ODict(description=self.description, meta=self.meta)  # super(...).serializable()
         # s.update(ODict(data=self.getData()))
         s = ODict(description=self.description,
                   meta=self.meta,
@@ -123,24 +127,25 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
         """
         ls = list(args)
         if len(ls) == 1:
-            super().__init__(data=ls[0], **kwds)  # initialize data, meta
+            super(ArrayDataset, self).__init__(
+                data=ls[0], **kwds)  # initialize data, meta
         elif len(ls) == 2:
-            super().__init__(data=ls[0], unit=ls[1], **kwds)
+            super(ArrayDataset, self).__init__(data=ls[0], unit=ls[1], **kwds)
         elif len(ls) > 2:
-            super().__init__(
+            super(ArrayDataset, self).__init__(
                 data=ls[0], unit=ls[1], description=ls[2], **kwds)
         else:
-            super().__init__(**kwds)  # initialize data, meta
+            super(ArrayDataset, self).__init__(**kwds)  # initialize data, meta
 
     def setData(self, data):
         """
         """
-        if not issubclass(data.__class__, Sequence) and data is not None:
+        if not issubclass(data.__class__, seqlist) and data is not None:
             # dataWrapper initializes data as None
             m = 'data in ArrayDataset must be a subclass of Sequence: ' + \
                 data.__class__.__name__
             raise TypeError(m)
-        super().setData(data)
+        super(ArrayDataset, self).setData(data)
 
     def __setitem__(self, *args, **kwargs):
         """ sets value at key.
@@ -200,13 +205,13 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
     def toString(self, matprint=None, trans=True):
         if matprint is None:
             matprint = ndprint
-        s = super().toString(matprint=matprint, trans=trans)
+        s = super(ArrayDataset, self).toString(matprint=matprint, trans=trans)
 
         return s
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        # s = ODict(description=self.description, meta=self.meta, data=self.data)  # super().serializable()
+        # s = ODict(description=self.description, meta=self.meta, data=self.data)  # super(...).serializable()
         s = ODict(description=self.description,
                   meta=self.meta,
                   data=self.data,
@@ -234,7 +239,7 @@ class TableModel(DataContainer):
         """
 
         """
-        super().__init__(**kwds)
+        super(TableModel, self).__init__(**kwds)
 
     def getColumnClass(self, columnIndex):
         """ Returns the most specific superclass for all the cell
@@ -301,7 +306,8 @@ class TableDataset(Dataset, TableModel):
     def __init__(self, **kwds):
         """
         """
-        super().__init__(**kwds)  # initialize data, meta, unit
+        super(TableDataset, self).__init__(
+            **kwds)  # initialize data, meta, unit
 
     def setData(self, data):
         """ sets name-column pairs from [{'name':str,'column':Column}]
@@ -314,7 +320,7 @@ class TableDataset(Dataset, TableModel):
             # d will be {<name1 str>:<column1 Column>, ... }
             d = ODict()
             replace = True
-            if issubclass(data.__class__, Sequence):
+            if issubclass(data.__class__, seqlist):
                 try:
                     curd = self.getData()
                 except Exception:
@@ -350,17 +356,18 @@ class TableDataset(Dataset, TableModel):
                         raise ValueError(
                             'cannot extract name and column at list member ' + str(x))
                     ind += 1
-            elif issubclass(data.__class__, Mapping):
+            elif issubclass(data.__class__, maplist):
                 for k, v in data.items():
                     d[k] = v
             else:
-                raise TypeError('must be a Sequence or a Mapping')
+                raise TypeError('must be a Sequence or a Mapping. ' +
+                                data.__class__.__name__ + ' found.')
 
             # logging.debug(d)
             if replace:
-                super().setData(d)
+                super(TableDataset, self).setData(d)
         else:
-            super().setData(ODict())
+            super(TableDataset, self).setData(ODict())
 
     def addColumn(self, name, column):
         """ Adds the specified column to this table, and attaches a name
@@ -529,7 +536,7 @@ class TableDataset(Dataset, TableModel):
     def toString(self, matprint=None, trans=True):
         if matprint is None:
             matprint = ndprint
-        s = super().toString()
+        s = super(TableDataset, self).toString()
         cols = list(self.data.values())
         d = '# data = \n\n'
         d += '# ' + ' '.join([str(x) for x in self.data.keys()]) + '\n'
@@ -558,7 +565,8 @@ class CompositeDataset(AbstractComposite, Dataset):
     def __init__(self, **kwds):
         """
         """
-        super().__init__(**kwds)  # initialize _sets, meta, unit
+        super(CompositeDataset, self).__init__(
+            **kwds)  # initialize _sets, meta, unit
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

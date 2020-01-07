@@ -1,12 +1,28 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
 #from .serializable import Serializable
+import sys
+if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
+    PY3 = True
+else:
+    PY3 = False
 
 
 def bstr(x, tostr=True, quote="'", **kwds):
-    """ returns the best string representation. if the object is a string, return single-quoted; if has toString(), use it; else returns str().
+    """ returns the best string representation. 
+    if the object is a string, return single-quoted; if has toString(), use it; else returns str().
     """
-    return quote + x + quote if issubclass(x.__class__, str) else x.toString(**kwds) if tostr and hasattr(x, 'toString') else str(x)
+
+    s = issubclass(x.__class__, str) if PY3 else issubclass(
+        x.__class__, (str, unicode))
+
+    if s:
+        r = quote + x + quote
+    elif tostr and hasattr(x, 'toString'):
+        r = x.toString(**kwds)
+    else:
+        r = str(x)
+    return r
 
 
 class ODict(OrderedDict):

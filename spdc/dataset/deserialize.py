@@ -18,7 +18,7 @@ def makedesables():
     """ makes a class dictionary for instanciation.
     """
     from spdc.dataset.deserialize import deserializeClassID
-    from spdc.dataset.product import Product, FineTime1, History
+    from spdc.dataset.product import Product, FineTime, FineTime1, History
     from spdc.dataset.metadata import Parameter, NumericParameter, MetaData
     from spdc.dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
     try:
@@ -125,7 +125,8 @@ class IntDecoder(json.JSONDecoder):
     """
 
     def decode(self, s):
-        result = super().decode(s)  # result = super(Decoder, self).decode(s) for Python 2.x
+        # result = super(Decoder, self).decode(s) for Python 2.x
+        result = super(IntDecoder, self).decode(s)
         return self._decode(result)
 
     def _decode(self, o):

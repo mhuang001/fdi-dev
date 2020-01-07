@@ -1,28 +1,38 @@
+#
+#
 # -*- coding: utf-8 -*-
 import datetime
 import traceback
 from pprint import pprint
+import copy
 import json
-from pathlib import Path
+import sys
 # import __builtins__
-import os
-from collections import ChainMap
+#print([(k, v) for k, v in globals().items() if '__' in k])
 
-# This is to be able to test w/ or w/o installing the package
-# https://docs.python-guide.org/writing/structure/
-from .pycontext import spdc
+if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
+    PY3 = True
+else:
+    PY3 = False
 
-from .outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
+if __name__ == '__main__' and __package__ is None:
+    from outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
+else:
+    # This is to be able to test w/ or w/o installing the package
+    # https://docs.python-guide.org/writing/structure/
+    from .pycontext import spdc
 
-from .logdict import doLogging, logdict
-if doLogging:
-    import logging
-    import logging.config
-    # create logger
-    logging.config.dictConfig(logdict)
-    logger = logging.getLogger()
-    logger.debug('%s logging level %d' %
-                 (__name__, logger.getEffectiveLevel()))
+    from .outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
+
+    from .logdict import doLogging, logdict
+    if doLogging:
+        import logging
+        import logging.config
+        # create logger
+        logging.config.dictConfig(logdict)
+        logger = logging.getLogger()
+        logger.debug('%s logging level %d' %
+                     (__name__, logger.getEffectiveLevel()))
 
 from spdc.dataset.annotatable import Annotatable
 from spdc.dataset.copyable import Copyable
@@ -39,7 +49,7 @@ from spdc.dataset.attributable import Attributable
 from spdc.dataset.abstractcomposite import AbstractComposite
 from spdc.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from spdc.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
-from spdc.dataset.product import FineTime1, History, Product
+from spdc.dataset.product import FineTime, FineTime1, History, Product, utcobj
 from spdc.dataset.deserialize import deserializeClassID
 
 
@@ -60,8 +70,8 @@ def checkjson(obj):
               ' serialized: ************\n')
         print(js)
         print('*************************')
-    des = deserializeClassID(js, lgb=ChainMap(
-        locals(), globals()), debug=dbg)
+    des = deserializeClassID(js, lgb=copy.copy(
+        globals()).update(locals()), debug=dbg)
     if dbg:
         if hasattr(des, 'meta'):
             print('moo ' + str((des.meta.listeners)))
@@ -163,29 +173,35 @@ def test_serialization():
     checkjson(v)
 
 
-import pprint
-
-import copy
-
-
-def ndlist(*args, init=0):
+def ndlist(*args):
     """ Generates an N-dimensional array with list.
     ``ndlist(2, 3, 4, 5)`` will make a list of 2 lists of 3 lists of 4 lists of 5 elements of 0.
     https://stackoverflow.com/a/33460217
     """
-    dp = init
+    dp = 0
     for x in reversed(args):
         dp = [copy.deepcopy(dp) for i in range(x)]
     return dp
 
 
 def test_ndprint():
+    s = [1, 2, 3]
+    v = ndprint(s)
+    # print(v)
+    # table, 1 column
+    assert v == '1 \n2 \n3 \n'
+    v = ndprint(s, trans=False)
+    # print(v)
+    # 1D matrix. 1 row.
+    assert v == '1 2 3 '
     s = [[i + j for i in range(2)] for j in range(3)]
     v = ndprint(s)
     # print(v)
+    # 2x3 matrix 3 columns 2 rows
     assert v == '0 1 2 \n1 2 3 \n'
     v = ndprint(s, trans=False)
     # print(v)
+    # 2x3 table view 2 columns 3 rows
     assert v == '0 1 \n1 2 \n2 3 \n'
 
     s = ndlist(2, 3, 4, 5)
@@ -286,7 +302,7 @@ def test_Copyable():
     class Ctest(Copyable):
         def __init__(self, _p, **kwds):
             self.p = _p
-            super().__init__(**kwds)
+            super(Ctest, self).__init__(**kwds)
 
         def get(self):
             return self.p
@@ -414,7 +430,7 @@ def test_Parameter():
     v = Parameter(description=a1, value=a2)
     checkjson(v)
     b1 = 'a binary par'
-    b2 = b'\xaa\x55'
+    b2 = 'z'  # b'\xaa\x55'
     v = Parameter(description=b1)
     v.value = b2
     checkjson(v)
@@ -567,6 +583,12 @@ def test_DataWrapper():
     assert v.unit == a2
     assert v.description == a3
 
+    v = DataWrapper(data=a1, unit=a2, description=a3)
+    assert v.hasData() == True
+    assert v.data == a1
+    assert v.unit == a2
+    assert v.description == a3
+
     checkgeneral(v)
 
 
@@ -633,7 +655,7 @@ def test_ArrayDataset():
     assert v != v1
     assert v1 != v
     # restore v1 so that v==v1
-    v1.data = a1.copy()
+    v1.data = copy.deepcopy(a1)
     assert v == v1
     # change description
     v1.description = 'changed'
@@ -706,8 +728,8 @@ def test_TableDataset():
           ]
     v = TableDataset(data=a1)  # inherited from DataWrapper
     assert v.getColumnCount() == len(a1)
-    assert v.getColumnName(0) == list(a1[0].values())[0]  # 'col1'
-    t = list(a1[1].values())[1].data[1]  # 43.2
+    assert v.getColumnName(0) == a1[0]['name']  # 'col1'
+    t = a1[1]['column'].data[1]  # 43.2
     assert v.getValueAt(rowIndex=1, columnIndex=1) == t
 
     # 2: another syntax, same effect as last
@@ -786,6 +808,7 @@ def test_TableDataset():
     # toString()
     ts = v3.toString()
     # print(ts)
+    # print(out_TableDataset)
     assert ts == out_TableDataset
 
     checkjson(u)
@@ -814,7 +837,7 @@ def test_TableDataset():
     assert text == 'Example table'
 
     # addColumn
-    m = [-x for x in t]
+    m = [-tmp for tmp in t]
     c3 = Column(unit='m', data=m)
     assert x.columnCount == 2
     x.addColumn('dist', c3)
@@ -823,7 +846,12 @@ def test_TableDataset():
 
     # addRow
     assert x.rowCount == 10
-    newR = ODict({'Time': 101, 'Energy': 102, 'dist': 103})
+    # https://stackoverflow.com/q/41866911
+    #newR = ODict(Time=101, Energy=102, dist=103)
+    newR = ODict()
+    newR['Time'] = 101
+    newR['Energy'] = 102
+    newR['dist'] = 103
     x.addRow(newR)
     assert x.rowCount == 11
     # select
@@ -838,7 +866,7 @@ def test_TableDataset():
         assert row[1] == e[i]
         assert row[2] == m[i]
     row = x.getRow(x.rowCount - 1)
-    v = list(newR.values())
+    v = list(newR.values()) if PY3 else newR.values()
     for j in range(len(row)):
         assert row[j] == v[j]
 
@@ -941,11 +969,11 @@ def test_CompositeDataset():
     v.meta[a11] = a12
 
     # equality
-    b1 = a1.copy()
+    b1 = copy.deepcopy(a1)
     b2 = ''.join(a2)
     b3 = ''.join(a3)
     b4 = ArrayDataset(data=b1, unit=b2, description=b3)
-    b5, b6, b7 = a5.copy(), ''.join(a6), ''.join(a7)
+    b5, b6, b7 = copy.deepcopy(a5), ''.join(a6), ''.join(a7)
     b8 = ArrayDataset(data=b5, unit=b6, description=b7)
     v1 = CompositeDataset()
     b9 = ''.join(a9)
@@ -981,7 +1009,7 @@ def test_CompositeDataset():
     assert v != v1
     assert v1 != v
     # change meta
-    b4 = a4.copy()
+    b4 = copy.deepcopy(a4)
     v1[b9] = b4
     assert v == v1
     v1.meta[b11].description = 'c'
@@ -1045,40 +1073,66 @@ def demo_CompositeDataset():
 
     # report the number of datasets in this composite
     print(c.size())
+    assert c.size() == 3
 
     # print(information about this variable ...
+    # <class 'spdc.dataset.dataset.CompositeDataset'>
+    # {meta = "MetaData[]", _sets = ['MyArray', 'MyTable', 'MyComposite']}
     print(c.__class__)
     print(c)
 
     # ... print(information about child "MyComposite", and ...
+    # <class 'spdc.dataset.dataset.CompositeDataset'>
+    # {meta = "MetaData[]", _sets = ['Child1', 'Child2']}
     print(c["MyComposite"].__class__)
     print(c["MyComposite"])
 
     # ... that of a nested child ...
+    # <class 'spdc.dataset.dataset.CompositeDataset'>
+    # {meta = "MetaData[]", _sets = []}
     print(c["MyComposite"]["Child1"].__class__)
     print(c["MyComposite"]["Child1"])
 
     # ... or using java syntax to access Child1:
+    # {meta = "MetaData[]", _sets = []}
     print(c.get("MyComposite").get("Child1"))
 
     # or alternatively:
+    # <class 'spdc.dataset.dataset.CompositeDataset'>
+    # {meta = "MetaData[]", _sets = ['Child1', 'Child2']}
     child = c["MyComposite"]
     print(child.__class__)
     print(child)
 
 
-def test_FineTime1():
-    v = FineTime1(datetime.datetime(2019, 2, 19, 1, 2, 3, 456789,
-                                    tzinfo=datetime.timezone.utc))
+def test_FineTime():
+    v = FineTime(datetime.datetime(
+        2019, 2, 19, 1, 2, 3, 456789, tzinfo=utcobj))
     dt = v.toDate()
     # So that timezone won't show on the left below
     d = dt.replace(tzinfo=None)
     assert d.isoformat() + ' TAI' == '2019-02-19T01:02:03.456789 TAI'
 
-    v2 = FineTime1(datetime.datetime(2019, 2, 19, 1, 3, 4, 556789,
-                                     tzinfo=datetime.timezone.utc))
+    v2 = FineTime(datetime.datetime(
+        2019, 2, 19, 1, 3, 4, 556789, tzinfo=utcobj))
     assert v != v2
-    assert v2.subtract(v) == 61100000
+    assert abs(v2.subtract(v) - 61100000) < 0.5
+    checkjson(v)
+    checkgeneral(v)
+
+
+def test_FineTime1():
+    v = FineTime1(datetime.datetime(
+        2019, 2, 19, 1, 2, 3, 456789, tzinfo=utcobj))
+    dt = v.toDate()
+    # So that timezone won't show on the left below
+    d = dt.replace(tzinfo=None)
+    assert d.isoformat() + ' TAI' == '2019-02-19T01:02:03.456789 TAI'
+
+    v2 = FineTime1(datetime.datetime(
+        2019, 2, 19, 1, 3, 4, 556789, tzinfo=utcobj))
+    assert v != v2
+    assert abs(v2.subtract(v) - 61100000) < 0.5
     checkjson(v)
     checkgeneral(v)
 
@@ -1147,7 +1201,7 @@ def test_Product():
     p1 = Product(description="Description")
     p2 = Product(description="Description 2")
     assert p1.equals(p2) == False
-    p3 = p1.copy()
+    p3 = copy.deepcopy(p1)
     assert p1.equals(p3) == True
 
     # test mandatory properties that are also metadata
@@ -1168,13 +1222,6 @@ def test_Product():
     checkjson(x)
     checkgeneral(x)
 
-
-if __name__ == '__main__':
-    print("TableDataset demo")
-    demo_TableDataset()
-
-    print("CompositeDataset demo")
-    demo_CompositeDataset()
 
 # serializing using package jsonconversion
 
@@ -1219,21 +1266,45 @@ if __name__ == '__main__':
 #     p = json.loads(js, cls=JSONObjectDecoder)
 #     print(p['h'].b)
 
-if 0 and __name__ == '__main__':
-    test_AbstractComposite()
-    test_Copyable()
-    test_EventSender()
-    test_Parameter()
-    test_Quantifiable()
-    test_NumericParameter()
-    test_MetaData()
-    test_Attributable()
-    test_DataWrapper()
-    test_ArrayDataset()
-    test_TableModel()
-    test_TableDataset()
-    test_Column()
-    test_CompositeDataset()
-    test_FineTime1()
-    test_History()
-    test_Product()
+def running(t):
+    print('running ' + str(t))
+    t()
+
+
+if __name__ == '__main__' and __package__ is None:
+
+    if 0:
+        from os import sys, path
+        print(path.abspath(__file__))
+        print(path.dirname(path.abspath(__file__)))
+        print(path.dirname(path.dirname(path.abspath(__file__))))
+        sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
+        print("TableDataset demo")
+        demo_TableDataset()
+
+        print("CompositeDataset demo")
+        demo_CompositeDataset()
+
+    running(test_deepcmp)
+    running(test_serialization)
+    running(test_ndprint)
+    running(test_Annotatable)
+    running(test_Composite)
+    running(test_AbstractComposite)
+    running(test_Copyable)
+    running(test_EventSender)
+    running(test_Parameter)
+    running(test_Quantifiable)
+    running(test_NumericParameter)
+    running(test_MetaData)
+    running(test_Attributable)
+    running(test_DataWrapper)
+    running(test_ArrayDataset)
+    running(test_TableModel)
+    running(test_TableDataset)
+    running(test_Column)
+    running(test_CompositeDataset)
+    running(test_FineTime1)
+    running(test_History)
+    running(test_Product)

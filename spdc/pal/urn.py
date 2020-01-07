@@ -90,7 +90,7 @@ class Urn(DeepEqual, Serializable, Comparable):
         the latter are ignored. else the URN is constructed from them.
         Urn(u) will make a Urn object out of u.
         """
-        super().__init__(**kwds)
+        super(Urn, self).__init__(**kwds)
 
         if urn is None:
             if cls is None or pool is None or index is None:

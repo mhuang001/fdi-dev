@@ -18,7 +18,8 @@ class DataContainer(Annotatable, Quantifiable, Copyable, DeepEqual):
     """
 
     def __init__(self, data=None, **kwds):
-        super().__init__(**kwds)
+        #print(__name__ + str(kwds))
+        super(DataContainer, self).__init__(**kwds)
         self.setData(data)
 
     @property

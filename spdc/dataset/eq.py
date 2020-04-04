@@ -137,7 +137,7 @@ class DeepEqual(object):
     """
 
     def equals(self, obj):
-        r = deepcmp(self, obj)
+        r = self.diff(obj, [])
         # logging.debug(r)
         return r is None
 

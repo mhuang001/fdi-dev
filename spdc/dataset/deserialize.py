@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 import json
+import codecs
 from .odict import ODict
+
+import sys
+if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
+    PY3 = True
+    strset = (str, bytes)
+else:
+    PY3 = False
+    strset = (str, unicode)
 
 import logging
 # create logger
@@ -27,7 +36,7 @@ def makedesables():
         logger.info(str(e))
         pass
 
-    from spdc.pal.context import MapContext, MapRefsDataset
+    from spdc.pal.context import MapContext, RefContainer
     from spdc.pal.urn import Urn
     from spdc.pal.productref import ProductRef
 
@@ -37,6 +46,15 @@ def makedesables():
 
 
 desables = None
+
+
+def lls(s, length=80):
+    """ length-limited string
+    """
+    if len(s) <= length:
+        return s
+    else:
+        return s[:length - 3] + '...'
 
 
 def constructSerializableClassID(obj, lgb=None, debug=False):
@@ -50,15 +68,19 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
     https://stackoverflow.com/questions/452969/does-python-have-an-equivalent-to-java-class-forname
 
     """
+    global indent
+    indent += 1
+    spaces = '  ' * indent
 
-    if not hasattr(obj, '__iter__') or issubclass(obj.__class__, str):
+    if not hasattr(obj, '__iter__') or issubclass(obj.__class__, strset):
+        indent -= 1
         return obj
 
     classname = obj.__class__.__name__
     # process list first
     if issubclass(obj.__class__, list):
         if debug:
-            print('lis ' + classname)
+            print(spaces + 'lis ' + classname)
         inst = []
         # loop i to preserve order
         for i in range(len(obj)):
@@ -68,20 +90,22 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
             else:
                 des = x
             inst.append(des)
+        indent -= 1
         return inst
 
     if 'classID' not in obj:
         """ This object is supported by JSONEncoder """
         if debug:
-            print('No ClassID. ' + classname)
+            print(spaces + 'No ClassID. ' + classname)
         inst = obj
     else:
         classname = obj['classID']
         if debug:
-            print('ClassID ' + classname)
+            print(spaces + 'ClassID ' + classname)
         # process types wrapped in a dict
-        if classname == 'bytes':
-            inst = bytes.fromhex(obj['hex'])
+        if PY3 and classname == 'bytes':
+            inst = codecs.decode(obj, 'hex')
+            indent -= 1
             return inst
         # inst = eval(classname + '()')
         inst = lgb[classname]()
@@ -91,11 +115,14 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
             # deserialize v
             if issubclass(v.__class__, (dict, list)):
                 if debug:
-                    print('+++ %s %s' % (str(v.__class__), str(v)))
+                    print(spaces + '+v+d/l !!%s: #%s' %
+                          (v.__class__.__qualname__,
+                           lls(str(list(iter(v))), 70)))
                 desv = constructSerializableClassID(v, lgb=lgb, debug=debug)
             else:
                 if debug:
-                    print('--- %s %s' % (str(v.__class__), str(v)))
+                    print(spaces + '-v-non-dl !!%s: #%s' %
+                          ((v.__class__.__name__), lls(str(v), 70)))
                 if 1:
                     desv = v
                 else:
@@ -109,13 +136,14 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
             if issubclass(inst.__class__, dict):
                 inst[k] = desv
                 if debug:
-                    print('in %s key  %s found %s %s' %
-                          (str(inst.__class__), str(k), str(desv), str(desv.__class__)))
+                    print(spaces + 'in dict-sub <%s> at key %s found %s <%s>' %
+                          ((inst.__class__.__name__), str(k), lls(str(desv), 70), (desv.__class__.__name__)))
             else:
                 setattr(inst, k, desv)
                 if debug:
-                    print('in %s attr %s found %s %s' %
-                          (str(inst.__class__), str(k), str(desv), str(desv.__class__)))
+                    print(spaces + 'in non-d_sub <%s> attr %s found %s <%s>' %
+                          ((inst.__class__.__name__), str(k), lls(str(desv), 70), (desv.__class__.__name__)))
+    indent -= 1
     return inst
 
 
@@ -144,7 +172,9 @@ class IntDecoder(json.JSONDecoder):
 
 
 def deserializeClassID(js, lgb=None, debug=False, usedict=False):
-    """ Loads classes with ClassID from the results of serializeClassID
+    """ Loads classes with ClassID from the results of serializeClassID.
+
+    if usedict is True dict insted of ODict will be used.
     """
 
     global desables
@@ -153,7 +183,7 @@ def deserializeClassID(js, lgb=None, debug=False, usedict=False):
             desables = makedesables()
         lgb = desables
 
-    if not isinstance(js, (str, bytes)) or len(js) == 0:
+    if not isinstance(js, strset) or len(js) == 0:
         return None
     # debug = False  # True if issubclass(obj.__class__, list) else False
     try:
@@ -163,9 +193,12 @@ def deserializeClassID(js, lgb=None, debug=False, usedict=False):
             obj = json.loads(js, object_pairs_hook=ODict, cls=IntDecoder)
     except json.decoder.JSONDecodeError as e:
         logging.error(' Bad string to decode:\n==============\n' +
-                      js[:500] + '...\n==============')
+                      lls(js, 500) + '\n==============')
         raise e
     if debug:
         # print('load-str ' + str(o) + ' class ' + str(o.__class__))
         print('-------- json loads returns: --------\n' + str(obj))
+
+    global indent
+    indent = -1
     return constructSerializableClassID(obj, lgb=lgb, debug=debug)

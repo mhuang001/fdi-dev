@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import os
 
 from .serializable import Serializable
-from spdc.pal.urn import Urn
-from spdc.pal.common import getProductObject
-import spdc.pns.common as psnc
+from .eq import DeepEqual
+from ..pal.urn import Urn
+from ..pal.common import getProductObject
+from ..pns import common as psnc
 
 import logging
 # create logger
@@ -39,13 +39,58 @@ class DatasetBaseListener(EventListener):
         pass
 
 
+class ListnerSet(Serializable, DeepEqual, list):
+    """ Mutable collection of Listeners of an EvenSender.
+    """
+
+    def __init__(self, **kwds):
+        self._members = []
+        super(ListnerSet, self).__init__(**kwds)
+
+    @property
+    def urns(self):
+        return self.geturns()
+
+    @urns.setter
+    def urns(self, urns):
+        self.seturns(urns)
+
+    def seturns(self, urns):
+        """ Replaces the current urn with specified argument. 
+        """
+        for urn in urns:
+            try:
+                l = ProductRef(urn).product
+            except ValueError as e:
+                logger.warn(str(e))
+                continue
+            self.addListener(l)
+
+    def geturns(self, remove=None):
+        """ Returns the current urns.
+        """
+
+        ret = [ProductRef(
+            x).urn for x in self._members if remove is None or x != remove]
+
+        return ret
+
+    def equals(self, obj):
+        """ compares with another one. """
+        return True
+
+    def serializable(self):
+        """ Can be encoded with serializableEncoder """
+        return ODict()
+
+
 class EventSender(object):
     """ adapted from Peter Thatcher's
     https://stackoverflow.com/questions/1092531/event-system-in-python/1096614#1096614
     """
 
     def __init__(self, **kwds):
-        self._listeners = []
+        self._listeners = ListnerSet()
         super(EventSender, self).__init__(**kwds)
 
     @property
@@ -59,6 +104,7 @@ class EventSender(object):
     def setListeners(self, listeners):
         """ Replaces the current Listeners with specified argument. 
         """
+        self._listeners = ListnerSet()
         for listener in listeners:
             self.addListener(listener)
 
@@ -66,37 +112,6 @@ class EventSender(object):
         """ Returns the current Listeners.
         """
         return self._listeners
-
-    @property
-    def listenersurn(self):
-        return self.getListenersurn()
-
-    @listenersurn.setter
-    def listenersurn(self, listenersurn):
-        self.setListenersurn(listenersurn)
-
-    def setListenersurn(self, listenersurn):
-        """ Replaces the current Listenersurn with specified argument. 
-        """
-        for urn in listenersurn:
-            try:
-                l = getProductObject(urn)
-            except ValueError as e:
-                logger.warn(str(e))
-                continue
-            self.addListener(l)
-
-    def getListenersurn(self, remove=None):
-        """ Returns the current Listenersurn.
-        """
-        ret = [Urn.getInMemUrnObj(
-            x).urn for x in self._listeners if remove is None or x != remove]
-        if 0 and remove is not None:
-            print(id(self))
-            print(id(remove))
-            print(ret)
-
-        return ret
 
     def addListener(self, listener, cls=EventListener):
         """ Adds a listener to this. """
@@ -108,7 +123,7 @@ class EventSender(object):
                 self._listeners.append(l)
         else:
             raise TypeError(
-                'Listener is not subclass of ' + cls.__class__ + ' or an object id.')
+                'Listener is not subclass of ' + str(cls) + ' .')
         return self
 
     def removeListener(self, listener):

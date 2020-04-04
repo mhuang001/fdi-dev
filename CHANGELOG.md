@@ -72,4 +72,7 @@ Refactor to make spdc top-level package, instead of dataset, pal, pns
 ---------------
 dataset is compatible with python 2.7
 
+0.11 2020-04-04
+---------------
+parents for ProductRef, mempool, pal test improvements
 	

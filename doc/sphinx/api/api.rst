@@ -7,9 +7,7 @@ API Reference
    :maxdepth: 2
    :caption: Contents:
 
-   dataset/dataset
-   pal/pal
-   pns/pns
+   spdc/spdc
 
 Diagrams
 ========

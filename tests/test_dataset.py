@@ -167,6 +167,8 @@ def test_serialization():
     checkjson(v)
     v = None
     checkjson(v)
+    #v = b'\xde\xad\xbe\xef'
+    # checkjson(v)
     v = [1.2, 'ww']
     checkjson(v)
     v = {'e': 4, 'y': {'d': 'ff', '%': '$'}}

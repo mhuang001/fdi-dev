@@ -37,7 +37,7 @@ def getProductObject(urn, lgb=None):
         finally:
             lock.release()
     elif scheme == 'mem':
-        processid = int(poolpath.rsplit('/', maxsplit=1)[1])
+        processid = int(poolpath.rsplit('/', 1)[1])
         if processid != os.getpid():
             raise ValueError('cannot restore from ' +
                              urn + ' of another process')
@@ -57,3 +57,12 @@ def getProductObject(urn, lgb=None):
                     logger.debug(': ' + str(v))
         p = getObjectbyId(idn, lgbv=lgbv)
     return p
+
+
+def pathjoin(*p):
+    """ join path segments with given separater (default '/').
+    """
+    sep = '/'
+    r = sep.join(p)
+    # print(p, r)
+    return r

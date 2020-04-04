@@ -1,0 +1,1361 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>spdc.pal package &#8212; spdc v0.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/aiohttp.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script type="text/javascript" src="../../_static/js/custom.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="spdc.pal.resources package" href="spdc.pal.resources.html" />
+    <link rel="prev" title="spdc.dataset package" href="spdc.dataset.html" />
+ 
+<link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+
+
+<meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+<link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet">
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-spdc.pal">
+<span id="spdc-pal-package"></span><h1>spdc.pal package<a class="headerlink" href="#module-spdc.pal" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="spdc.pal.resources.html">spdc.pal.resources package</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-spdc.pal.common">
+<span id="spdc-pal-common-module"></span><h2>spdc.pal.common module<a class="headerlink" href="#module-spdc.pal.common" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="spdc.pal.common.getObjectbyId">
+<code class="sig-prename descclassname">spdc.pal.common.</code><code class="sig-name descname">getObjectbyId</code><span class="sig-paren">(</span><em class="sig-param">idn</em>, <em class="sig-param">lgbv</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.common.getObjectbyId" title="Permalink to this definition">¶</a></dt>
+<dd><p>lgb is from deserializing caller’s globals().values()
+locals().values() and built-ins</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="spdc.pal.common.getProductObject">
+<code class="sig-prename descclassname">spdc.pal.common.</code><code class="sig-name descname">getProductObject</code><span class="sig-paren">(</span><em class="sig-param">urn</em>, <em class="sig-param">lgb=None</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.common.getProductObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a product from URN. returns object.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="spdc.pal.common.pathjoin">
+<code class="sig-prename descclassname">spdc.pal.common.</code><code class="sig-name descname">pathjoin</code><span class="sig-paren">(</span><em class="sig-param">*p</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.common.pathjoin" title="Permalink to this definition">¶</a></dt>
+<dd><p>join path segments with given separater (default ‘/’).</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-spdc.pal.comparable">
+<span id="spdc-pal-comparable-module"></span><h2>spdc.pal.comparable module<a class="headerlink" href="#module-spdc.pal.comparable" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="spdc.pal.comparable.Comparable">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.comparable.</code><code class="sig-name descname">Comparable</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.comparable.Comparable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="spdc.pal.comparable.Comparable.compareTo">
+<code class="sig-name descname">compareTo</code><span class="sig-paren">(</span><em class="sig-param">o</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.comparable.Comparable.compareTo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-spdc.pal.context">
+<span id="spdc-pal-context-module"></span><h2>spdc.pal.context module<a class="headerlink" href="#module-spdc.pal.context" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="spdc.pal.context.Context">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.context.</code><code class="sig-name descname">Context</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.Context" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="spdc.dataset.html#spdc.dataset.product.Product" title="spdc.dataset.product.Product"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.dataset.product.Product</span></code></a></p>
+<p>A  special kind of Product that can hold references to other Products.</p>
+<p>This abstract product introduces the lazy loading and saving of references to Products or ProductRefs that it is holding. It remembers its state.
+<a class="reference external" href="http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Context.html">http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Context.html</a></p>
+<dl class="method">
+<dt id="spdc.pal.context.Context.getAllRefs">
+<code class="sig-name descname">getAllRefs</code><span class="sig-paren">(</span><em class="sig-param">recursive</em>, <em class="sig-param">includeContexts</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.Context.getAllRefs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides a set of the unique references stored in this context.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.Context.hasDirtyReferences">
+<code class="sig-name descname">hasDirtyReferences</code><span class="sig-paren">(</span><em class="sig-param">storage</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.Context.hasDirtyReferences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a logical to specify whether this context has dirty references or not.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.Context.isContext">
+<em class="property">static </em><code class="sig-name descname">isContext</code><span class="sig-paren">(</span><em class="sig-param">cls</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.Context.isContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields true if specified class belongs to the family of contexts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.Context.isValid">
+<code class="sig-name descname">isValid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.Context.isValid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides a mechanism to ensure whether it is valid to store this context in its current state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.Context.readDataset">
+<code class="sig-name descname">readDataset</code><span class="sig-paren">(</span><em class="sig-param">storage</em>, <em class="sig-param">table</em>, <em class="sig-param">defaultPoolId</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.Context.readDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a dataset with information within this context that is normally not accessible from the normal Product interface.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.Context.refsChanged">
+<code class="sig-name descname">refsChanged</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.Context.refsChanged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indicates that the references have been changed in memory, which marks this context as dirty.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.Context.writeDataset">
+<code class="sig-name descname">writeDataset</code><span class="sig-paren">(</span><em class="sig-param">storage</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.Context.writeDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a dataset with information within this context that is normally not accessible from the normal Product interface.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="spdc.pal.context.MapContext">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.context.</code><code class="sig-name descname">MapContext</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#spdc.pal.context.Context" title="spdc.pal.context.Context"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.pal.context.Context</span></code></a></p>
+<p>Allows grouping Products into a map of (String, ProductRef) pairs.
+New entries can be added if they comply to the adding rules of this context. The default behaviour is to allow adding any (String,ProductRef).</p>
+<p>An example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">image</span>     <span class="o">=</span> <span class="n">ImageProduct</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;hi&quot;</span><span class="p">)</span>
+<span class="n">spectrum</span>  <span class="o">=</span> <span class="n">SpectrumProduct</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;there&quot;</span><span class="p">)</span>
+<span class="n">simple</span>    <span class="o">=</span> <span class="n">Product</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;everyone&quot;</span><span class="p">)</span>
+
+<span class="n">context</span><span class="o">=</span><span class="n">MapContext</span><span class="p">()</span>
+<span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span><span class="n">ProductRef</span><span class="p">(</span><span class="n">image</span><span class="p">))</span>
+<span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span><span class="n">ProductRef</span><span class="p">(</span><span class="n">spectrum</span><span class="p">))</span>
+<span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">,</span><span class="n">ProductRef</span><span class="p">(</span><span class="n">simple</span><span class="p">))</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="c1"># 3</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># hi</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># there</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># everyone</span>
+</pre></div>
+</div>
+<p>It is possible to insert a ProductRef at a specific key in the MapContext. The same insertion behaviour is followed as for a Python dict, in that if there is already an existing ProductRef for the given key, that ProductRef is replaced with the new one:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">product4</span><span class="o">=</span><span class="n">SpectrumProduct</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;everybody&quot;</span><span class="p">)</span>
+<span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">ProductRef</span><span class="p">(</span><span class="n">product4</span><span class="p">))</span>
+<span class="n">product5</span><span class="o">=</span><span class="n">SpectrumProduct</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;here&quot;</span><span class="p">)</span>
+<span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">ProductRef</span><span class="p">(</span><span class="n">product5</span><span class="p">))</span>
+
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># hi</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># everybody</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># everyone</span>
+<span class="nb">print</span> <span class="n">context</span><span class="o">.</span><span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">product</span><span class="o">.</span><span class="n">description</span> <span class="c1"># here</span>
+</pre></div>
+</div>
+<p>Note that the rules are only applied when putting an entry to the map!</p>
+<p>Be aware that</p>
+<ol class="arabic simple">
+<li><p>the put() method of the map view may throw a ContextRuleException if the data added to the context violates the rules applied to the context.</p></li>
+<li><p>the put() method of the map view may throw a ValueError if either of the arguments to the put() method are null.</p></li>
+</ol>
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.addRule">
+<code class="sig-name descname">addRule</code><span class="sig-paren">(</span><em class="sig-param">rule</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext.addRule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add to  the rule that controls the products to be added into the context.
+The new rule will be old rule AND added rule.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.getAllRefs">
+<code class="sig-name descname">getAllRefs</code><span class="sig-paren">(</span><em class="sig-param">recursive=False</em>, <em class="sig-param">includeContexts=True</em>, <em class="sig-param">seen=None</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext.getAllRefs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides a set of the unique references stored in this context.
+This includes references that are contexts, but not the contents of these subcontexts. This is equivalent to getAllRefs(recursive=false, includeContexts= true).
+recursive - if true, include references in subcontexts
+includeContexts - if true, include references to contexts, not including this one</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.getRefs">
+<code class="sig-name descname">getRefs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext.getRefs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the reference container mapping</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.getRule">
+<code class="sig-name descname">getRule</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext.getRule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the rule that controls the products to be added into the context.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.hasDirtyReferences">
+<code class="sig-name descname">hasDirtyReferences</code><span class="sig-paren">(</span><em class="sig-param">storage</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext.hasDirtyReferences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a logical to specify whether this context has dirty references or not.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.isContext">
+<em class="property">static </em><code class="sig-name descname">isContext</code><span class="sig-paren">(</span><em class="sig-param">cls</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext.isContext" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields true if specified class belongs to the family of contexts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.isValid">
+<code class="sig-name descname">isValid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext.isValid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides a mechanism to ensure whether it is valid to store this context in its current state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.readDataset">
+<code class="sig-name descname">readDataset</code><span class="sig-paren">(</span><em class="sig-param">storage</em>, <em class="sig-param">table</em>, <em class="sig-param">defaultPoolId</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext.readDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a dataset with information within this context that is normally not accessible from the normal Product interface.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.refs">
+<em class="property">property </em><code class="sig-name descname">refs</code><a class="headerlink" href="#spdc.pal.context.MapContext.refs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">refs</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>add owner to RefContainer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.setRefs">
+<code class="sig-name descname">setRefs</code><span class="sig-paren">(</span><em class="sig-param">refs</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext.setRefs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Changes/Adds the mapping container that holds references.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.setRule">
+<code class="sig-name descname">setRule</code><span class="sig-paren">(</span><em class="sig-param">rule</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext.setRule" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the rule that controls the products to be added into the context.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.MapContext.writeDataset">
+<code class="sig-name descname">writeDataset</code><span class="sig-paren">(</span><em class="sig-param">storage</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.MapContext.writeDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a dataset with information within this context that is normally not accessible from the normal Product interface.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="spdc.pal.context.RefContainer">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.context.</code><code class="sig-name descname">RefContainer</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.RefContainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="spdc.dataset.html#spdc.dataset.serializable.Serializable" title="spdc.dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.dataset.serializable.Serializable</span></code></a>, <a class="reference internal" href="spdc.dataset.html#spdc.dataset.odict.ODict" title="spdc.dataset.odict.ODict"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.dataset.odict.ODict</span></code></a></p>
+<p>A map where Rules of a Context are applied when put(k,v) is called, and the owner MapContext’s ID can be put to v’s parents list.</p>
+<p>Implemwnted using dataset.Composite so that RefContainer has a ClassID when json.loads’ed.
+A MapContext has a _sets, which has a refs:RefContainer, which has a _sets, which has a name:ProductRef.
+when used as context.refs.get(‘x’).product.description, the RefContainer is called with get() or __getitem__(), which calls superclass composite’s _set’s __getitem__()</p>
+<dl class="method">
+<dt id="spdc.pal.context.RefContainer.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.RefContainer.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>remove all productRefs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.RefContainer.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param">key</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.RefContainer.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.RefContainer.put">
+<code class="sig-name descname">put</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.RefContainer.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>set label-ref pair after validating then add parent to the ref</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.RefContainer.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.RefContainer.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.RefContainer.set">
+<code class="sig-name descname">set</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.RefContainer.set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.RefContainer.setOwner">
+<code class="sig-name descname">setOwner</code><span class="sig-paren">(</span><em class="sig-param">owner</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.RefContainer.setOwner" title="Permalink to this definition">¶</a></dt>
+<dd><p>records who owns this container</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.context.RefContainer.size">
+<code class="sig-name descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.RefContainer.size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="spdc.pal.context.applyrules">
+<code class="sig-prename descclassname">spdc.pal.context.</code><code class="sig-name descname">applyrules</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">ref</em>, <em class="sig-param">rules</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.context.applyrules" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-spdc.pal.definable">
+<span id="spdc-pal-definable-module"></span><h2>spdc.pal.definable module<a class="headerlink" href="#module-spdc.pal.definable" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="spdc.pal.definable.Definable">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.definable.</code><code class="sig-name descname">Definable</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.definable.Definable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>for items being able to be defined with a Definition.</p>
+<dl class="method">
+<dt id="spdc.pal.definable.Definable.getDefinition">
+<code class="sig-name descname">getDefinition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.definable.Definable.getDefinition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the definition associated to this definable item.
+mh: adopting <a class="reference external" href="http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/index.html?herschel/ia/pal/ProductRef.html">http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/index.html?herschel/ia/pal/ProductRef.html</a> but parameterize definition does not seem worth it given the few numbers of implemented definitions</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-spdc.pal.localpool">
+<span id="spdc-pal-localpool-module"></span><h2>spdc.pal.localpool module<a class="headerlink" href="#module-spdc.pal.localpool" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="spdc.pal.localpool.LocalPool">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.localpool.</code><code class="sig-name descname">LocalPool</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.localpool.LocalPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#spdc.pal.productpool.ProductPool" title="spdc.pal.productpool.ProductPool"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.pal.productpool.ProductPool</span></code></a></p>
+<p>the pool will save all products in local computer.</p>
+<dl class="method">
+<dt id="spdc.pal.localpool.LocalPool.getHead">
+<code class="sig-name descname">getHead</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.localpool.LocalPool.getHead" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the latest version of a given product, belonging
+to the first pool where the same track id is found.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.localpool.LocalPool.readHK">
+<code class="sig-name descname">readHK</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.localpool.LocalPool.readHK" title="Permalink to this definition">¶</a></dt>
+<dd><p>loads and returns the housekeeping data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.localpool.LocalPool.schematicLoadProduct">
+<code class="sig-name descname">schematicLoadProduct</code><span class="sig-paren">(</span><em class="sig-param">resourcename</em>, <em class="sig-param">indexstr</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.localpool.LocalPool.schematicLoadProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>does the scheme-specific part of loadProduct.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.localpool.LocalPool.schematicRemove">
+<code class="sig-name descname">schematicRemove</code><span class="sig-paren">(</span><em class="sig-param">typename</em>, <em class="sig-param">serialnum</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.localpool.LocalPool.schematicRemove" title="Permalink to this definition">¶</a></dt>
+<dd><p>does the scheme-specific part of removal.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.localpool.LocalPool.schematicSave">
+<code class="sig-name descname">schematicSave</code><span class="sig-paren">(</span><em class="sig-param">typename</em>, <em class="sig-param">serialnum</em>, <em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.localpool.LocalPool.schematicSave" title="Permalink to this definition">¶</a></dt>
+<dd><p>does the media-specific saving</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.localpool.LocalPool.schematicWipe">
+<code class="sig-name descname">schematicWipe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.localpool.LocalPool.schematicWipe" title="Permalink to this definition">¶</a></dt>
+<dd><p>does the scheme-specific remove-all</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.localpool.LocalPool.writeHK">
+<code class="sig-name descname">writeHK</code><span class="sig-paren">(</span><em class="sig-param">fp0</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.localpool.LocalPool.writeHK" title="Permalink to this definition">¶</a></dt>
+<dd><p>save the housekeeping data to disk</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="spdc.pal.localpool.writeJsonwithbackup">
+<code class="sig-prename descclassname">spdc.pal.localpool.</code><code class="sig-name descname">writeJsonwithbackup</code><span class="sig-paren">(</span><em class="sig-param">fp</em>, <em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.localpool.writeJsonwithbackup" title="Permalink to this definition">¶</a></dt>
+<dd><p>write data in JSON after backing up the existing one.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-spdc.pal.mempool">
+<span id="spdc-pal-mempool-module"></span><h2>spdc.pal.mempool module<a class="headerlink" href="#module-spdc.pal.mempool" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="spdc.pal.mempool.MemPool">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.mempool.</code><code class="sig-name descname">MemPool</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.mempool.MemPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#spdc.pal.productpool.ProductPool" title="spdc.pal.productpool.ProductPool"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.pal.productpool.ProductPool</span></code></a></p>
+<p>the pool will save all products in memory.</p>
+<dl class="method">
+<dt id="spdc.pal.mempool.MemPool.getHead">
+<code class="sig-name descname">getHead</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.mempool.MemPool.getHead" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the latest version of a given product, belonging
+to the first pool where the same track id is found.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.mempool.MemPool.getPoolSpace">
+<code class="sig-name descname">getPoolSpace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.mempool.MemPool.getPoolSpace" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the map of this memory pool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.mempool.MemPool.readHK">
+<code class="sig-name descname">readHK</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.mempool.MemPool.readHK" title="Permalink to this definition">¶</a></dt>
+<dd><p>loads and returns the housekeeping data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.mempool.MemPool.schematicLoadProduct">
+<code class="sig-name descname">schematicLoadProduct</code><span class="sig-paren">(</span><em class="sig-param">resourcename</em>, <em class="sig-param">indexstr</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.mempool.MemPool.schematicLoadProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>does the scheme-specific part of loadProduct.
+note that the index is given as a string.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.mempool.MemPool.schematicRemove">
+<code class="sig-name descname">schematicRemove</code><span class="sig-paren">(</span><em class="sig-param">typename</em>, <em class="sig-param">serialnum</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.mempool.MemPool.schematicRemove" title="Permalink to this definition">¶</a></dt>
+<dd><p>does the scheme-specific part of removal.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.mempool.MemPool.schematicSave">
+<code class="sig-name descname">schematicSave</code><span class="sig-paren">(</span><em class="sig-param">typename</em>, <em class="sig-param">serialnum</em>, <em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.mempool.MemPool.schematicSave" title="Permalink to this definition">¶</a></dt>
+<dd><p>does the media-specific saving</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.mempool.MemPool.schematicWipe">
+<code class="sig-name descname">schematicWipe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.mempool.MemPool.schematicWipe" title="Permalink to this definition">¶</a></dt>
+<dd><p>does the scheme-specific remove-all</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.mempool.MemPool.writeHK">
+<code class="sig-name descname">writeHK</code><span class="sig-paren">(</span><em class="sig-param">fp0</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.mempool.MemPool.writeHK" title="Permalink to this definition">¶</a></dt>
+<dd><p>save the housekeeping data to mempool</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-spdc.pal.poolmanager">
+<span id="spdc-pal-poolmanager-module"></span><h2>spdc.pal.poolmanager module<a class="headerlink" href="#module-spdc.pal.poolmanager" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="spdc.pal.poolmanager.PoolManager">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.poolmanager.</code><code class="sig-name descname">PoolManager</code><a class="headerlink" href="#spdc.pal.poolmanager.PoolManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<blockquote>
+<div><p>This class provides the means to reference ProductPool objects without having to hard-code the type of pool. For example, it could be desired to easily switch from one pool type to another.</p>
+</div></blockquote>
+<p>This is done by calling the getPool(String) method, which will return an existing pool or create a new one if necessary.</p>
+<dl class="method">
+<dt id="spdc.pal.poolmanager.PoolManager.getMap">
+<em class="property">classmethod </em><code class="sig-name descname">getMap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.poolmanager.PoolManager.getMap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.poolmanager.PoolManager.getPool">
+<em class="property">classmethod </em><code class="sig-name descname">getPool</code><span class="sig-paren">(</span><em class="sig-param">poolurn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.poolmanager.PoolManager.getPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns an instance of pool according to urn. create the pool if it does not already exist. the same pool-URN always get the same pool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.poolmanager.PoolManager.isLoaded">
+<em class="property">classmethod </em><code class="sig-name descname">isLoaded</code><span class="sig-paren">(</span><em class="sig-param">poolurn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.poolmanager.PoolManager.isLoaded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether an item with the given id has been loaded (cached).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.poolmanager.PoolManager.removeAll">
+<em class="property">classmethod </em><code class="sig-name descname">removeAll</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.poolmanager.PoolManager.removeAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>deletes all pools from the pool list, pools unwiped</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.poolmanager.PoolManager.save">
+<em class="property">classmethod </em><code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">poolurn</em>, <em class="sig-param">poolobj</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.poolmanager.PoolManager.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.poolmanager.PoolManager.size">
+<em class="property">classmethod </em><code class="sig-name descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.poolmanager.PoolManager.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gives the number of entries in this manager.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-spdc.pal.productpool">
+<span id="spdc-pal-productpool-module"></span><h2>spdc.pal.productpool module<a class="headerlink" href="#module-spdc.pal.productpool" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="spdc.pal.productpool.ProductPool">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.productpool.</code><code class="sig-name descname">ProductPool</code><span class="sig-paren">(</span><em class="sig-param">poolurn='file:///tmp/pool'</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#spdc.pal.definable.Definable" title="spdc.pal.definable.Definable"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.pal.definable.Definable</span></code></a>, <a class="reference internal" href="#spdc.pal.taggable.Taggable" title="spdc.pal.taggable.Taggable"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.pal.taggable.Taggable</span></code></a>, <a class="reference internal" href="#spdc.pal.versionable.Versionable" title="spdc.pal.versionable.Versionable"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.pal.versionable.Versionable</span></code></a></p>
+<p>A mechanism that can store and retrieve Products.</p>
+<p>A product pool should not be used directly by users. The general user should access data in a ProductPool through a ProductStorage instance.</p>
+<p>When implementing a ProductPool, the following rules need to be applied:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Pools must guarantee that a Product saved via the pool saveProduct(Product) method is stored persistently, and that method returns a unique identifier (URN). If it is not possible to save a Product, an IOException shall be raised.</p></li>
+<li><p>A saved Product can be retrieved using the loadProduct(Urn) method, using as the argument the same URN that assigned to that Product in the earlier saveProduct(Product) call. No other Product shall be retrievable by that same URN. If this is not possible, an IOException or GeneralSecurityException is raised.</p></li>
+<li><p>Pools should not implement functionality currently implemented in the core paclage. Specifically, it should not address functionality provided in the Context abstract class, and it should not implement versioning/cloning support.</p></li>
+</ol>
+</div></blockquote>
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.accept">
+<code class="sig-name descname">accept</code><span class="sig-paren">(</span><em class="sig-param">visitor</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for adding functionality to object
+through visitor pattern.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.dereference">
+<code class="sig-name descname">dereference</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.dereference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrement the reference count of a ProductRef.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.exists">
+<code class="sig-name descname">exists</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines the existence of a product with specified URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.getDefinition">
+<code class="sig-name descname">getDefinition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.getDefinition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns pool definition info which contains pool type and other pool specific configuration parameters</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.getId">
+<code class="sig-name descname">getId</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.getId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the identifier of this pool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.getProductClasses">
+<code class="sig-name descname">getProductClasses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.getProductClasses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all Product classes found in this pool.
+mh: returns an iterator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.getReferenceCount">
+<code class="sig-name descname">getReferenceCount</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.getReferenceCount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the reference count of a ProductRef.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.getUrnId">
+<code class="sig-name descname">getUrnId</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.getUrnId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the identifier of this pool used to build URN, usually it’s same as id returned by getId().</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.isAlive">
+<code class="sig-name descname">isAlive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.isAlive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if the pool is capable of responding to commands.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.isEmpty">
+<code class="sig-name descname">isEmpty</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.isEmpty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determines if the pool is empty.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.loadDescriptors">
+<code class="sig-name descname">loadDescriptors</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.loadDescriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the descriptors belonging to specified URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.loadProduct">
+<code class="sig-name descname">loadProduct</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.loadProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a Product belonging to specified URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.lockpath">
+<code class="sig-name descname">lockpath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.lockpath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.meta">
+<code class="sig-name descname">meta</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads the meta-data belonging to the product of specified URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.reference">
+<code class="sig-name descname">reference</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.reference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increment the reference count of a ProductRef.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes a Product belonging to specified URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.removeAll">
+<code class="sig-name descname">removeAll</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.removeAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.saveDescriptors">
+<code class="sig-name descname">saveDescriptors</code><span class="sig-paren">(</span><em class="sig-param">urn</em>, <em class="sig-param">desc</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.saveDescriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save/Update descriptors in pool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.saveProduct">
+<code class="sig-name descname">saveProduct</code><span class="sig-paren">(</span><em class="sig-param">product</em>, <em class="sig-param">tag=None</em>, <em class="sig-param">geturnobjs=False</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.saveProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves specified product and returns the designated ProductRefs or URNs.
+Saves a product or a list of products to the pool, possibly under the supplied tag, and return the reference (or a list of references if the input is a list of products),
+or Urns if geturnobjs is True.
+Pool:!!dict</p>
+<blockquote>
+<div><dl>
+<dt>_classes:!!odict</dt><dd><dl class="simple">
+<dt>$product0_class_name:!!dict</dt><dd><dl class="simple">
+<dt>currentSN:!!int $the serial number of the latest added prod to the pool</dt><dd><dl class="simple">
+<dt>sn:!!list</dt><dd><ul class="simple">
+<li><p>$serial number of a prod</p></li>
+<li><p>$serial number of a prod</p></li>
+<li><p>…</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>$product0_class_name:!!dict
+…</p>
+</dd>
+<dt>_urns:!!odict</dt><dd><dl>
+<dt>$URN0:!!odict</dt><dd><p>meta:!!MetaData $prod.meta
+tags:!!list</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>$tag</p></li>
+<li><p>$tag</p></li>
+<li><p>…</p></li>
+</ul>
+</div></blockquote>
+</dd>
+</dl>
+</dd>
+<dt>_tags:!!odict</dt><dd><dl class="simple">
+<dt>urns:!!list</dt><dd><ul class="simple">
+<li><p>$urn</p></li>
+<li><p>$urn</p></li>
+<li><p>…</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>$urn:!!$serialized product</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.schematicLoadProduct">
+<code class="sig-name descname">schematicLoadProduct</code><span class="sig-paren">(</span><em class="sig-param">resourcename</em>, <em class="sig-param">indexstr</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.schematicLoadProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>to be implemented by subclasses to do the scheme-specific loading</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.schematicRemove">
+<code class="sig-name descname">schematicRemove</code><span class="sig-paren">(</span><em class="sig-param">typename</em>, <em class="sig-param">serialnum</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.schematicRemove" title="Permalink to this definition">¶</a></dt>
+<dd><p>to be implemented by subclasses to do the scheme-specific removing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.schematicSave">
+<code class="sig-name descname">schematicSave</code><span class="sig-paren">(</span><em class="sig-param">typename</em>, <em class="sig-param">serialnum</em>, <em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.schematicSave" title="Permalink to this definition">¶</a></dt>
+<dd><p>to be implemented by subclasses to do the scheme-specific saving</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productpool.ProductPool.select">
+<code class="sig-name descname">select</code><span class="sig-paren">(</span><em class="sig-param">query</em>, <em class="sig-param">results</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productpool.ProductPool.select" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refines a previous query, given the refined query and result of the previous query.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-spdc.pal.productref">
+<span id="spdc-pal-productref-module"></span><h2>spdc.pal.productref module<a class="headerlink" href="#module-spdc.pal.productref" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="spdc.pal.productref.ProductRef">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.productref.</code><code class="sig-name descname">ProductRef</code><span class="sig-paren">(</span><em class="sig-param">urn=None</em>, <em class="sig-param">poolurn=None</em>, <em class="sig-param">product=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="spdc.dataset.html#spdc.dataset.metadataholder.MetaDataHolder" title="spdc.dataset.metadataholder.MetaDataHolder"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.dataset.metadataholder.MetaDataHolder</span></code></a>, <a class="reference internal" href="spdc.dataset.html#spdc.dataset.serializable.Serializable" title="spdc.dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.dataset.serializable.Serializable</span></code></a>, <a class="reference internal" href="#spdc.pal.comparable.Comparable" title="spdc.pal.comparable.Comparable"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.pal.comparable.Comparable</span></code></a></p>
+<p>A lightweight reference to a product that is stored in a ProductPool or in memory.</p>
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.addParent">
+<code class="sig-name descname">addParent</code><span class="sig-paren">(</span><em class="sig-param">parent</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.addParent" title="Permalink to this definition">¶</a></dt>
+<dd><p>add a parent</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.equals">
+<code class="sig-name descname">equals</code><span class="sig-paren">(</span><em class="sig-param">o</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.equals" title="Permalink to this definition">¶</a></dt>
+<dd><p>true if o is a non-null ProductRef, with the same Product type than this one, and:</p>
+<p>urns and products are null in both refs, or
+nurs are equal and products are null, or # &lt;– mh
+urns are null in both refs, and their products are equal, or
+urns and products are equal in both refs</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.getHash">
+<code class="sig-name descname">getHash</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.getHash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a code number for the product; actually its MD5 signature. 
+This allows checking whether a product already exists in a pool or not.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.getMeta">
+<code class="sig-name descname">getMeta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.getMeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the metadata of the product.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.getParents">
+<code class="sig-name descname">getParents</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.getParents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the in-memory parent context products of this reference.
+That is, the contexts in program memory that contain this product reference object. 
+A context that contains a different product reference object pointing to the same URN is not a parent of this product reference.</p>
+<p>Furthermore, it should be understood that this method does not return the parent contexts of the product pointed to by this reference as stored in any underlying pool or storage.</p>
+<p>Returns:
+the parents</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.getProduct">
+<code class="sig-name descname">getProduct</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.getProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the product that this reference points to.</p>
+<p>If the product is a Context, it is kept internally, so further accesses don’t need to ask the storage for loading it again.
+Otherwise, the product is returned but the internal reference remains null, so every call to this method involves a request to the storage.</p>
+<p>This way, heavy products are not kept in memory after calling this method, thus maintaining the ProductRef a lighweight reference to the target product.</p>
+<p>In case of a Context, if it is wanted to free the reference, call unload().</p>
+<p>Returns:
+the product</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.getSize">
+<code class="sig-name descname">getSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.getSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the estimated size(in bytes) of the product in memory. 
+Useful for providing this information for a user that wants to download the product from a remote site.
+Returns:
+the size in bytes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.getStorage">
+<code class="sig-name descname">getStorage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.getStorage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the product storage associated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.getType">
+<code class="sig-name descname">getType</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.getType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specifies the Product class to which this Product reference is pointing to.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.getUrn">
+<code class="sig-name descname">getUrn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.getUrn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Uniform Resource Name (URN) of the product.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.getUrnObj">
+<code class="sig-name descname">getUrnObj</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.getUrnObj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the URN as an object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.isLoaded">
+<code class="sig-name descname">isLoaded</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.isLoaded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Informs whether the pointed product is already loaded.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.meta">
+<em class="property">property </em><code class="sig-name descname">meta</code><a class="headerlink" href="#spdc.pal.productref.ProductRef.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.parents">
+<em class="property">property </em><code class="sig-name descname">parents</code><a class="headerlink" href="#spdc.pal.productref.ProductRef.parents" title="Permalink to this definition">¶</a></dt>
+<dd><p>property</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.product">
+<em class="property">property </em><code class="sig-name descname">product</code><a class="headerlink" href="#spdc.pal.productref.ProductRef.product" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.removeParent">
+<code class="sig-name descname">removeParent</code><span class="sig-paren">(</span><em class="sig-param">parent</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.removeParent" title="Permalink to this definition">¶</a></dt>
+<dd><p>remove a parent</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.setParents">
+<code class="sig-name descname">setParents</code><span class="sig-paren">(</span><em class="sig-param">parents</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.setParents" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the in-memory parent context products of this reference.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.setStorage">
+<code class="sig-name descname">setStorage</code><span class="sig-paren">(</span><em class="sig-param">storage</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.setStorage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the product storage associated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.setUrn">
+<code class="sig-name descname">setUrn</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.setUrn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.setUrnObj">
+<code class="sig-name descname">setUrnObj</code><span class="sig-paren">(</span><em class="sig-param">urnobj</em>, <em class="sig-param">poolurn=None</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.setUrnObj" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets urn
+Poolurn if given overrides the pool URN in urn, and causes metadata to be loaded from pool.
+A productref created from a single product will result in a memory pool urn, and the metadata won’t be loaded.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><em class="sig-param">matprint=None</em>, <em class="sig-param">trans=True</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.unload">
+<code class="sig-name descname">unload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productref.ProductRef.unload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the cached meta and frees internal reference to the product, so it can be garbage collected.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.urn">
+<em class="property">property </em><code class="sig-name descname">urn</code><a class="headerlink" href="#spdc.pal.productref.ProductRef.urn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productref.ProductRef.urnobj">
+<em class="property">property </em><code class="sig-name descname">urnobj</code><a class="headerlink" href="#spdc.pal.productref.ProductRef.urnobj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-spdc.pal.productstorage">
+<span id="spdc-pal-productstorage-module"></span><h2>spdc.pal.productstorage module<a class="headerlink" href="#module-spdc.pal.productstorage" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="spdc.pal.productstorage.ProductStorage">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.productstorage.</code><code class="sig-name descname">ProductStorage</code><span class="sig-paren">(</span><em class="sig-param">pool='file:///tmp/pool'</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Logical store created from a pool or a poolURN.</p>
+<p>Every instanciation with the same pool will  result in a new instance of ProdStorage.</p>
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.accept">
+<code class="sig-name descname">accept</code><span class="sig-paren">(</span><em class="sig-param">visitor</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.accept" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for adding functionality to object
+through visitor pattern.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.getAllTags">
+<code class="sig-name descname">getAllTags</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.getAllTags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all tags defined in the writable pool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.getHead">
+<code class="sig-name descname">getHead</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.getHead" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the latest version of a given product, belonging
+to the first pool where the same track id is found.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.getMeta">
+<code class="sig-name descname">getMeta</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.getMeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the metadata belonging to the writable pool that associated to a given URN.
+returns an ODict.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.getPool">
+<code class="sig-name descname">getPool</code><span class="sig-paren">(</span><em class="sig-param">poolurn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.getPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>mh: returns the pool object from poolurn</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.getPools">
+<code class="sig-name descname">getPools</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.getPools" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the set of ProductPools registered.
+mh: in a list of poolurns</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.getProductClasses">
+<code class="sig-name descname">getProductClasses</code><span class="sig-paren">(</span><em class="sig-param">poolurn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.getProductClasses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yields all Product classes found in this pool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.getTags">
+<code class="sig-name descname">getTags</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.getTags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the tags belonging to the writable pool that associated to a given URN.
+returns an iterator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.getUrnFromTag">
+<code class="sig-name descname">getUrnFromTag</code><span class="sig-paren">(</span><em class="sig-param">tag</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.getUrnFromTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the URN belonging to the writable pool that is associated
+to a given tag.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.getWritablePool">
+<code class="sig-name descname">getWritablePool</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.getWritablePool" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the poolurn of the first pool, which is the only writeable pool.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">urnortag</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads a product with a URN or a list of products with a tag, from the (writeable) pool.  It always creates new ProductRefs. 
+returns productref(s).
+urnortag: urn or tag</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.register">
+<code class="sig-name descname">register</code><span class="sig-paren">(</span><em class="sig-param">pool</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.register" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers the given pools to the storage.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.remove">
+<code class="sig-name descname">remove</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>removes product of urn from the writeable pool</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">product</em>, <em class="sig-param">tag=None</em>, <em class="sig-param">poolurn=None</em>, <em class="sig-param">geturnobjs=False</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>saves to the writable pool if it has been registered.
+if not, registers and saves. product can be one or a list of prpoducts.
+Returns: one or a list of productref with storage info. mh: or UrnObjs if geturnobjs is True.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.productstorage.ProductStorage.wipePool">
+<code class="sig-name descname">wipePool</code><span class="sig-paren">(</span><em class="sig-param">poolurn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.productstorage.ProductStorage.wipePool" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-spdc.pal.taggable">
+<span id="spdc-pal-taggable-module"></span><h2>spdc.pal.taggable module<a class="headerlink" href="#module-spdc.pal.taggable" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="spdc.pal.taggable.Taggable">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.taggable.</code><code class="sig-name descname">Taggable</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.taggable.Taggable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Definition of services provided by a product storage supporting versioning.</p>
+<dl class="method">
+<dt id="spdc.pal.taggable.Taggable.getTagUrnMap">
+<code class="sig-name descname">getTagUrnMap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.taggable.Taggable.getTagUrnMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the full tag-&gt;urn mappings.
+mh: returns an iterator</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.taggable.Taggable.getTags">
+<code class="sig-name descname">getTags</code><span class="sig-paren">(</span><em class="sig-param">urn=None</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.taggable.Taggable.getTags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all of the tags that map to a given URN.
+Get all known tags if urn is not specified.
+mh: returns an iterator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.taggable.Taggable.getUrn">
+<code class="sig-name descname">getUrn</code><span class="sig-paren">(</span><em class="sig-param">tag</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.taggable.Taggable.getUrn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the URNs corresponding to the given tag.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.taggable.Taggable.getUrnObject">
+<code class="sig-name descname">getUrnObject</code><span class="sig-paren">(</span><em class="sig-param">tag</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.taggable.Taggable.getUrnObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the URNobjects corresponding to the given tag.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.taggable.Taggable.removeTag">
+<code class="sig-name descname">removeTag</code><span class="sig-paren">(</span><em class="sig-param">tag</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.taggable.Taggable.removeTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the given tag from the tag and urn maps.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.taggable.Taggable.removeUrn">
+<code class="sig-name descname">removeUrn</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.taggable.Taggable.removeUrn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the given urn from the tag and urn maps.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.taggable.Taggable.removekey">
+<code class="sig-name descname">removekey</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">themap</em>, <em class="sig-param">thename</em>, <em class="sig-param">othermap</em>, <em class="sig-param">othername</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.taggable.Taggable.removekey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the given key.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.taggable.Taggable.setTag">
+<code class="sig-name descname">setTag</code><span class="sig-paren">(</span><em class="sig-param">tag</em>, <em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.taggable.Taggable.setTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the specified tag to the given URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.taggable.Taggable.tagExists">
+<code class="sig-name descname">tagExists</code><span class="sig-paren">(</span><em class="sig-param">tag</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.taggable.Taggable.tagExists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tests if a tag exists.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-spdc.pal.urn">
+<span id="spdc-pal-urn-module"></span><h2>spdc.pal.urn module<a class="headerlink" href="#module-spdc.pal.urn" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="spdc.pal.urn.Urn">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.urn.</code><code class="sig-name descname">Urn</code><span class="sig-paren">(</span><em class="sig-param">urn=None</em>, <em class="sig-param">pool=None</em>, <em class="sig-param">cls=None</em>, <em class="sig-param">index=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="spdc.dataset.html#spdc.dataset.eq.DeepEqual" title="spdc.dataset.eq.DeepEqual"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.dataset.eq.DeepEqual</span></code></a>, <a class="reference internal" href="spdc.dataset.html#spdc.dataset.serializable.Serializable" title="spdc.dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.dataset.serializable.Serializable</span></code></a>, <a class="reference internal" href="#spdc.pal.comparable.Comparable" title="spdc.pal.comparable.Comparable"><code class="xref py py-class docutils literal notranslate"><span class="pre">spdc.pal.comparable.Comparable</span></code></a></p>
+<p>The object representation of the product URN string. The
+memory consumed by sets of this object are much less than sets
+of URN strings.</p>
+<p>Only when the class types in URN string are not in classpath,
+the urn object will consume equals or a little more than URN string
+as the object has to hold the original urn string. However this should
+be considered as exceptional cases.</p>
+<p>Using this object representation also help to avoid parsing cost of    URN string.
+mh:
+URN format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">urn</span><span class="p">:</span><span class="n">poolname</span><span class="p">:</span><span class="n">resourceclass</span><span class="p">:</span><span class="n">serialnumber</span>
+</pre></div>
+</div>
+<p>where</p>
+<dl class="field-list simple">
+<dt class="field-odd">Resourceclass</dt>
+<dd class="field-odd"><p>(fully qualified TBC) class name of the resource (product)</p>
+</dd>
+<dt class="field-even">Poolname</dt>
+<dd class="field-even"><p>scheme + <code class="docutils literal notranslate"><span class="pre">://</span></code> + place + directory</p>
+</dd>
+<dt class="field-odd">Scheme</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">file</span></code>, <code class="docutils literal notranslate"><span class="pre">mem</span></code>, <code class="docutils literal notranslate"><span class="pre">http</span></code> … etc</p>
+</dd>
+<dt class="field-even">Place</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">192.168.5.6:8080</span></code>, <code class="docutils literal notranslate"><span class="pre">c:</span></code>, an empty string … etc</p>
+</dd>
+<dt class="field-odd">Directory</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p>for <code class="docutils literal notranslate"><span class="pre">file</span></code> scheme: <code class="docutils literal notranslate"><span class="pre">/</span></code> + name + <code class="docutils literal notranslate"><span class="pre">/</span></code> + name + … + <code class="docutils literal notranslate"><span class="pre">/</span></code> + name</p></li>
+<li><p>for <code class="docutils literal notranslate"><span class="pre">mem</span></code> scheme: <code class="docutils literal notranslate"><span class="pre">/</span></code> + name</p></li>
+</ul>
+</dd>
+<dt class="field-even">Serialnumber</dt>
+<dd class="field-even"><p>internal index. str(int).</p>
+</dd>
+</dl>
+<p>URN is immutable.</p>
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.a__eq__">
+<code class="sig-name descname">a__eq__</code><span class="sig-paren">(</span><em class="sig-param">o</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.a__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>mh: compare  urn string  after the first 4 letters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.getFullPath">
+<em class="property">static </em><code class="sig-name descname">getFullPath</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.getFullPath" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the place+poolname+resource directory of the urn</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.getIndex">
+<code class="sig-name descname">getIndex</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.getIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the product index.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.getPlace">
+<code class="sig-name descname">getPlace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.getPlace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the netloc in this</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.getPool">
+<code class="sig-name descname">getPool</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.getPool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the pool name in this</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.getPoolId">
+<code class="sig-name descname">getPoolId</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.getPoolId" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the pool URN in this</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.getScheme">
+<code class="sig-name descname">getScheme</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.getScheme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the urn scheme.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.getType">
+<code class="sig-name descname">getType</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.getType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns class type of Urn</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.getTypeName">
+<code class="sig-name descname">getTypeName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.getTypeName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns class type name of Urn.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.getUrn">
+<code class="sig-name descname">getUrn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.getUrn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the urn in this</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.getUrnWithoutPoolId">
+<code class="sig-name descname">getUrnWithoutPoolId</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.getUrnWithoutPoolId" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.hasData">
+<code class="sig-name descname">hasData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.hasData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether this data wrapper has data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.place">
+<em class="property">property </em><code class="sig-name descname">place</code><a class="headerlink" href="#spdc.pal.urn.Urn.place" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.pool">
+<em class="property">property </em><code class="sig-name descname">pool</code><a class="headerlink" href="#spdc.pal.urn.Urn.pool" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the pool URN.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.serializable">
+<code class="sig-name descname">serializable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can be encoded with serializableEncoder</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.setUrn">
+<code class="sig-name descname">setUrn</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.setUrn" title="Permalink to this definition">¶</a></dt>
+<dd><p>parse urn to get scheme, place, pool, resource, index.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.toString">
+<code class="sig-name descname">toString</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.Urn.toString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.urn.Urn.urn">
+<em class="property">property </em><code class="sig-name descname">urn</code><a class="headerlink" href="#spdc.pal.urn.Urn.urn" title="Permalink to this definition">¶</a></dt>
+<dd><p>property</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="spdc.pal.urn.makeUrn">
+<code class="sig-prename descclassname">spdc.pal.urn.</code><code class="sig-name descname">makeUrn</code><span class="sig-paren">(</span><em class="sig-param">poolname</em>, <em class="sig-param">typename</em>, <em class="sig-param">index</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.makeUrn" title="Permalink to this definition">¶</a></dt>
+<dd><p>assembles a URN with infos of the pool, the resource type, and the index</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="spdc.pal.urn.parseUrn">
+<code class="sig-prename descclassname">spdc.pal.urn.</code><code class="sig-name descname">parseUrn</code><span class="sig-paren">(</span><em class="sig-param">urn</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.urn.parseUrn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks the URN string is valid in its form and splits it.
+Pool URN is in the form of a URL that does not have ‘:’ in its path part.
+Product URNs are more complicated. For example if the urn is <code class="docutils literal notranslate"><span class="pre">urn:file://c:/tmp/mypool/proj1.product:322</span></code> into poolname <code class="docutils literal notranslate"><span class="pre">file://c:/tmp/mypool/proj1.product:322</span></code> into poolname <code class="docutils literal notranslate"><span class="pre">file://c:/tmp/mypool</span></code>, resource type (usually class) name <code class="docutils literal notranslate"><span class="pre">proj1.product</span></code>, serial number in string <code class="docutils literal notranslate"><span class="pre">'322'</span></code>, scheme <code class="docutils literal notranslate"><span class="pre">file</span></code>, place <code class="docutils literal notranslate"><span class="pre">c:</span></code> (with ip and port if given), and poolpath <code class="docutils literal notranslate"><span class="pre">c:/tmp/mypool</span></code>
+Poolname is also called poolURN or poolID.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-spdc.pal.versionable">
+<span id="spdc-pal-versionable-module"></span><h2>spdc.pal.versionable module<a class="headerlink" href="#module-spdc.pal.versionable" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="spdc.pal.versionable.Versionable">
+<em class="property">class </em><code class="sig-prename descclassname">spdc.pal.versionable.</code><code class="sig-name descname">Versionable</code><span class="sig-paren">(</span><em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.versionable.Versionable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>for items being able to be defined with a Definition.</p>
+<dl class="method">
+<dt id="spdc.pal.versionable.Versionable.getLastVersion">
+<code class="sig-name descname">getLastVersion</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.versionable.Versionable.getLastVersion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the latest version of the given ProductRef.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.versionable.Versionable.getVersions">
+<code class="sig-name descname">getVersions</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.versionable.Versionable.getVersions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all the versions of the given ProductRef.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="spdc.pal.versionable.Versionable.saveProductRef">
+<code class="sig-name descname">saveProductRef</code><span class="sig-paren">(</span><em class="sig-param">ref</em><span class="sig-paren">)</span><a class="headerlink" href="#spdc.pal.versionable.Versionable.saveProductRef" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the product referenced and returns the designated URN.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">spdc</a></h1>
+
+
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/installation.html">Install SPDC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/dataset.html"><strong>dataset</strong>: Model for Data Container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/pal.html"><strong>pal</strong>: Product Access Layer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/pns.html"><strong>pns</strong>: Processing Node Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/quickstart.html">spdc Quick Start</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="spdc.html">spdc package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="spdc.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="spdc.dataset.html">spdc.dataset package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">spdc.pal package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="spdc.pal.resources.html">spdc.pal.resources package</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.common">spdc.pal.common module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.comparable">spdc.pal.comparable module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.context">spdc.pal.context module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.definable">spdc.pal.definable module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.localpool">spdc.pal.localpool module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.mempool">spdc.pal.mempool module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.poolmanager">spdc.pal.poolmanager module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.productpool">spdc.pal.productpool module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.productref">spdc.pal.productref module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.productstorage">spdc.pal.productstorage module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.taggable">spdc.pal.taggable module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.urn">spdc.pal.urn module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#module-spdc.pal.versionable">spdc.pal.versionable module</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="spdc.pns.html">spdc.pns package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#diagrams">Diagrams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../api.html">API Reference</a><ul>
+  <li><a href="spdc.html">spdc package</a><ul>
+      <li>Previous: <a href="spdc.dataset.html" title="previous chapter">spdc.dataset package</a></li>
+      <li>Next: <a href="spdc.pal.resources.html" title="next chapter">spdc.pal.resources package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maohai Huang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      
+      |
+      <a href="../../_sources/api/spdc/spdc.pal.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

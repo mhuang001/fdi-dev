@@ -106,6 +106,7 @@ class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializab
         """ Can be encoded with serializableEncoder """
         return ODict(description=self.description,
                      value=self.value,
+                     listeners=self.listeners,
                      type_=self.type_,
                      classID=self.classID,
                      version=self.version)
@@ -206,6 +207,6 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         #print([id(o) for o in self.listeners])
 
         return ODict(_sets=self._sets,
-                     listenersurn=self.getListenersurn(),
+                     listeners=self.listeners,
                      classID=self.classID,
                      version=self.version)

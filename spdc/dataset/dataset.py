@@ -172,6 +172,11 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
         """
         return self.getData().__iter__(*args, **kwargs)
 
+    def pop(self, *args, **kwargs):
+        """ revomes and returns value
+        """
+        return self.getData().pop(*args, **kwargs)
+
     def append(self, *args, **kwargs):
         """ appends to data.
         """
@@ -191,11 +196,6 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
         """ removes value at first occurrence.
         """
         self.getData().remove(*args, **kwargs)
-
-    def pop(self, *args, **kwargs):
-        """ revomes and returns value
-        """
-        return self.getData().pop(*args, **kwargs)
 
     def __repr__(self):
         return self.__class__.__name__ +\

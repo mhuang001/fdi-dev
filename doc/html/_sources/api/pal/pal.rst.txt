@@ -56,6 +56,14 @@ pal.localpool module
    :undoc-members:
    :show-inheritance:
 
+pal.mempool module
+------------------
+
+.. automodule:: pal.mempool
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pal.poolmanager module
 ----------------------
 

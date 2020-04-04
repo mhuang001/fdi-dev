@@ -1,7 +1,9 @@
 OP="-T -M --ext-viewcode"
-SPDC=../..
+SPDC=../../spdc
 rm -rf api/dataset api/pns api/pal
-mkdir -p api/dataset api/pns api/pal
-sphinx-apidoc $OP -o api/dataset $SPDC/dataset
-sphinx-apidoc $OP -o api/pns $SPDC/pns
-sphinx-apidoc $OP -o api/pal $SPDC/pal
+#mkdir -p api/dataset api/pns api/pal
+#sphinx-apidoc $OP -o api/dataset $SPDC/dataset
+#sphinx-apidoc $OP -o api/pns $SPDC/pns
+#sphinx-apidoc $OP -o api/pal $SPDC/pal
+mkdir -p api/spdc
+sphinx-apidoc $OP -o api/spdc $SPDC

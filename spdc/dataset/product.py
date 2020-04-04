@@ -314,7 +314,7 @@ class Product(AbstractComposite, Copyable, Serializable,  EventSender):
             ("meta", metac),
             ("_sets", self._sets),
             ("history", self.history),
-            ("listenersurn", self.listenersurn),
+            ("listeners", self.listeners),
             ("classID", self.classID),
             ("version", self.version)]
         return ODict(ls)

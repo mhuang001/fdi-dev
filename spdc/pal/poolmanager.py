@@ -5,9 +5,10 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-import spdc.pal.localpool as plp
+from . import localpool, mempool
 
 #from .definable import Definable
+DEFAULT_MEM_POOL = 'mem:///default'
 
 
 class PoolManager(object):
@@ -19,53 +20,61 @@ This is done by calling the getPool(String) method, which will return an existin
     # Global centralized dict that returns singleton -- the same -- pool for the same ID.
     _GlobalPoolList = {}
 
-    def getPool(self, poolurn):
+    @classmethod
+    def getPool(cls, poolurn):
         """ returns an instance of pool according to urn. create the pool if it does not already exist. the same pool-URN always get the same pool.
         """
-        sp = poolurn.split('://')
-        # logger.debug('GPL ' + str(id(self._GlobalPoolList)) +
-        #             str(self._GlobalPoolList))
-        if self.isLoaded(poolurn):
-            return self._GlobalPoolList[poolurn]
+
+        # logger.debug('GPL ' + str(id(cls._GlobalPoolList)) +
+        #             str(cls._GlobalPoolList))
+        if cls.isLoaded(poolurn):
+            return cls._GlobalPoolList[poolurn]
         else:
+            sp = poolurn.split('://')
             if sp[0] == 'file':
-                p = plp.LocalPool(poolurn=poolurn)
-            # elif sp[0] == 'mem':
-             #   return  # MemPool(poolurn)
+                p = localpool.LocalPool(poolurn=poolurn)
+            elif sp[0] == 'mem':
+                p = mempool.MemPool(poolurn=poolurn)
             else:
-                raise ValueError(sp[0] + ':// is not supported')
-            self.save(poolurn, p)
+                raise NotImplementedError(sp[0] + ':// is not supported')
+            cls.save(poolurn, p)
             logger.debug('made pool ' + str(p))
             return p
 
-    def getMap(self):
+    @classmethod
+    def getMap(cls):
         """
 
         """
-        return self._GlobalPoolList
+        return cls._GlobalPoolList
 
-    def isLoaded(self, poolurn):
+    @classmethod
+    def isLoaded(cls, poolurn):
         """
         Whether an item with the given id has been loaded (cached).
         """
-        return poolurn in self._GlobalPoolList
+        return poolurn in cls._GlobalPoolList
 
-    def removeAll(self):
-        """ deletes all pools 
+    @classmethod
+    def removeAll(cls):
+        """ deletes all pools from the pool list, pools unwiped
         """
 
-        self._GlobalPoolList.clear()
+        cls._GlobalPoolList.clear()
 
-    def save(self, poolurn, poolobj):
+    @classmethod
+    def save(cls, poolurn, poolobj):
         """
         """
-        self._GlobalPoolList[poolurn] = poolobj
+        cls._GlobalPoolList[poolurn] = poolobj
 
-    def size(self):
+    @classmethod
+    def size(cls):
         """
         Gives the number of entries in this manager.
         """
-        return len(self._GlobalPoolList)
+        return len(cls._GlobalPoolList)
 
-    def __repr__(self):
-        return self.__class__.__name__ + str(self._GlobalPoolList)
+    @classmethod
+    def __repr__(cls):
+        return cls.__class__.__name__ + str(cls._GlobalPoolList)

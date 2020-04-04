@@ -33,6 +33,14 @@ dataset.attributable module
    :undoc-members:
    :show-inheritance:
 
+dataset.collectionsMockUp module
+--------------------------------
+
+.. automodule:: dataset.collectionsMockUp
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 dataset.composite module
 ------------------------
 

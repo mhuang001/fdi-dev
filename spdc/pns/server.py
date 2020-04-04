@@ -11,7 +11,6 @@ import grp
 from os.path import isfile, isdir, join
 from os import listdir, chown, chmod, environ, setuid, setgid
 from pathlib import Path
-import traceback
 import types
 from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 import pkg_resources

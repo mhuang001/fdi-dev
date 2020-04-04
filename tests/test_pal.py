@@ -1,13 +1,17 @@
+import copy
 import traceback
 from pprint import pprint
 import json
-from pathlib import Path
-from collections import ChainMap
-import builtins
+import shutil
 import os
 
+from os import path as op
+import glob
+import yaml
+
 import sys
-#print([(k, v) for k, v in globals().items() if '__' in k])
+# print([(k, v) for k, v in globals().items() if '__' in k])
+import pdb
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -39,10 +43,13 @@ from spdc.dataset.deserialize import deserializeClassID
 from spdc.pal.urn import Urn, parseUrn, makeUrn
 from spdc.pal.productstorage import ProductStorage
 from spdc.pal.productref import ProductRef
-from spdc.pal.context import Context, MapContext, MapRefsDataset
+from spdc.pal.context import Context, MapContext
 from spdc.pal.common import getProductObject
-from spdc.pal.poolmanager import PoolManager
-#from products.QSRCLIST_VT import QSRCLIST_VT
+from spdc.pns.common import trbk
+from spdc.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
+from spdc.pal.mempool import MemPool
+
+# from products.QSRCLIST_VT import QSRCLIST_VT
 
 
 def checkjson(obj):
@@ -76,13 +83,16 @@ def checkjson(obj):
 
         r = deepcmp(obj, des)
         print('*************** deepcmp ***************')
-        print('identical' if r is None else r)
-        print(' DIR \n' + str(dir(obj)) + '\n' + str(dir(des)))
+        if r is not None:
+            print(r + '\nOBJ ' + yaml.dump(obj) + '\nDES ' + yaml.dump(des))
+        else:
+            print('identical')
+
     if 0 and issubclass(obj.__class__, Product):
         obj.meta.listeners = []
         des.meta.listeners = []
     assert obj == des, deepcmp(obj, des) + '\nOBJ ' + \
-        obj.toString() + '\nDES ' + des.toString()
+        yaml.dump(obj) + '\nDES ' + yaml.dump(des)
     return des
 
 
@@ -107,7 +117,7 @@ def test_Urn():
     a2 = c1            # place
     b1, b2, b3 = '/b', '/tmp/foo', '/c'
     a3 = b1 + b2 + b3
-    a4 = prd.__class__.__qualname__
+    a4 = prd.__class__.__name__
     a5 = 43
     s = a1 + '://' + a2   # file://s:
     p = s + a3
@@ -140,10 +150,6 @@ def test_Urn():
     assert v.getFullPath(u) == a2 + a3 + '/' + rp  # s:/b/tmp/foo/c
     assert v.getIndex() == a5
     assert v.getUrn() == u
-    # urn in memory
-    v = Urn.getInMemUrnObj(prd)
-    assert v.urn == 'urn:mem:///' + \
-        str(os.getpid()) + ':' + a4 + ':' + str(id(prd))
     # urn with pool
     v = Urn(cls=prd.__class__, pool=p, index=a5)
     assert v.getScheme() == a1
@@ -168,63 +174,103 @@ def test_Urn():
     checkjson(v)
 
 
-def test_MapRefsDataset():
-    a1 = 'foo'
-    a2 = 'bar'
-    d = MapRefsDataset()
-    d.put(a1, a2)
-    assert d[a1] == a2
+def cleanup(direc):
+    """ remove pool from disk and memory"""
+    if op.exists(direc):
+        try:
+            # print(os.stat(direc))
+            shutil.rmtree(direc)
+        except Exception as e:
+            print(str(e) + ' ' + trbk(e))
+            raise(e)
+        assert not op.exists(direc)
+    # remove existing pools in memory
+    PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+    PoolManager.removeAll()
 
 
 def test_PoolManager():
     defaultpoolpath = '/tmp/pool'
     defaultpool = 'file://' + defaultpoolpath
+    cleanup(defaultpoolpath)
     pm = PoolManager()
     assert pm.size() == 0
     pool = pm.getPool(defaultpool)
     assert pm.size() == 1
-    print('GlobalPoolList: ' + str(id(pm.getMap())) + str(pm))
+    # print('GlobalPoolList#: ' + str(id(pm.getMap())) + str(pm))
     pm.removeAll()
     assert pm.size() == 0
+
+
+def checkdbcount(n, poolurn, prodname, currentSN=-1):
+    """ count files in pool and entries in class db.
+    n, currentSN: expected number of prods and currentSN in pool for products named prodname
+    """
+
+    poolname, rc, sns, scheme, place, path = parseUrn(poolurn)
+    if scheme == 'file':
+        assert sum(1 for x in glob.glob(
+            op.join(path, prodname + '*[0-9]'))) == n
+        cp = op.join(path, 'classes.jsn')
+        if op.exists(cp) or n != 0:
+            with open(cp, 'r') as fp:
+                cread = json.load(fp)
+                if currentSN == -1:
+                    assert cread[prodname]['currentSN'] == currentSN
+                    # number of items is n
+                assert len(cread[prodname]['sn']) == n
+    elif scheme == 'mem':
+        mpool = PoolManager.getPool(poolname).getPoolSpace()
+        ns = [n for n in mpool if prodname + '_' in n]
+        assert len(ns) == n, len(ns)
+        if currentSN == -1:
+            assert mpool['classes'][prodname]['currentSN'] == currentSN
+        # for this class there are  how many prods
+        assert len(mpool['classes'][prodname]['sn']) == n
+    else:
+        assert False, 'bad pool scheme'
 
 
 def test_ProductRef():
     defaultpoolpath = '/tmp/pool'
     defaultpool = 'file://' + defaultpoolpath
+    cleanup(defaultpoolpath)
     prd = Product()
     a1 = 'file'
     a2 = ''
     a3 = defaultpoolpath
-    a4 = prd.__class__.__qualname__
+    a4 = prd.__class__.__name__
     a5 = 0
     s = a1 + '://' + a2   # file://s:
     p = s + a3  # a pool URN
     r = a4 + ':' + str(a5)  # a resource
     u = 'urn:' + p + ':' + r    # a URN
-    pdp = Path(defaultpoolpath)
-    os.system('rm -rf ' + defaultpoolpath)
-    assert not pdp.exists()
 
     # in memory
-    mr = ProductRef(prd)
-    assert mr.urnobj == Urn.getInMemUrnObj(prd)
-    assert mr.meta == prd.meta
-    uobj = Urn(urn=u)
-    # remove existing pools in memory
-    PoolManager().removeAll()
+    # A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
+    v = ProductRef(prd)
+    # only one prod in memory pool
+    checkdbcount(1, DEFAULT_MEM_POOL, a4, 0)
+    assert v.urn == 'urn:mem:///default:' + a4 + ':' + str(0)
+    assert v.meta is None
+    assert v.product == prd
+    cleanup(defaultpoolpath)
+
     # construction
     ps = ProductStorage(p)
+    prd = Product()
     rfps = ps.save(prd)
-    pr = ProductRef(urn=rfps.urnobj, pool=ps.getPool(p))
+    pr = ProductRef(urn=rfps.urnobj, poolurn=p)
     assert rfps == pr
     assert rfps.getMeta() == pr.getMeta()
+    uobj = Urn(urn=u)
     assert pr.urnobj == uobj
     # This does not obtain metadata
     pr = ProductRef(urn=rfps.urnobj)
     assert rfps == pr
     assert rfps.getMeta() != pr.getMeta()
     assert pr.urnobj == uobj
-    assert pr.getStorage() is None
+    assert pr.getStorage() == ps
     assert rfps.getStorage() is not None
     # load from a storage.
     pr = ps.load(u)
@@ -233,6 +279,7 @@ def test_ProductRef():
     assert pr.getStorage() == rfps.getStorage()
 
     # parent
+    # nominal ops
     b1 = Product(description='abc')
     b2 = MapContext(description='3c273')
     pr.addParent(b1)
@@ -253,15 +300,11 @@ def test_ProductRef():
 def test_ProductStorage():
     defaultpoolpath = '/tmp/pool'
     defaultpool = 'file://' + defaultpoolpath
-    pdp = Path(defaultpoolpath)
-    os.system('rm -rf ' + defaultpoolpath)
-    assert not pdp.exists()
-    # remove existing pools in memory
-    PoolManager().removeAll()
+    cleanup(defaultpoolpath)
 
     x = Product(description="This is my product example",
                 instrument="MyFavourite", modelName="Flight")
-    pcq = x.__class__.__qualname__
+    pcq = x.__class__.__name__
     # constructor
     # default pool
     ps = ProductStorage()
@@ -269,7 +312,7 @@ def test_ProductStorage():
     assert p1 == defaultpool
     pspool = ps.getPool(p1)
     assert len(pspool.getProductClasses()) == 0
-    # constrct with a pool
+    # construct a storage with a pool
     ps2 = ProductStorage(defaultpool)
     assert ps.getPools() == ps2.getPools()
 
@@ -277,51 +320,42 @@ def test_ProductStorage():
     # with a storage that already has a pool
     newpoolpath = '/tmp/newpool'
     newpoolname = 'file://' + newpoolpath
-    npp = Path(newpoolpath)
-    os.system('rm -rf ' + newpoolpath)
-    assert not npp.exists()
+    cleanup(newpoolpath)
 
     ps2.register(newpoolname)
-    assert npp.exists()
+    assert op.exists(newpoolpath)
     assert len(ps2.getPools()) == 2
     assert ps2.getPools()[1] == newpoolname
 
     # save
     ref = ps.save(x)
+    # ps has 1 prod
     assert ref.urn == 'urn:' + defaultpool + ':' + pcq + ':0'
-    # count files in pool and entries in class db
-    assert sum(1 for x in pdp.glob(pcq + '*[0-9]')) == 1
-    cread = json.load(pdp.joinpath('classes.jsn').open())
-    assert cread[pcq]['currentSN'] + 1 == 1
+    checkdbcount(1, defaultpool, pcq, 0)
 
     # save more
     # one by one
     q = 3
     x2, ref2 = [], []
     for d in range(q):
-        tmp = Product(description='x' + str(d))
+        tmp = Product(description='x' + str(d)
+                      ) if d > 0 else MapContext(description='x0')
         x2.append(tmp)
         ref2.append(ps.save(tmp, tag='t' + str(d)))
-        # count files in pool
-    assert sum(1 for x in pdp.glob(pcq + '*[0-9]')) == 1 + q
-    # number of prod in the DB
-    cread = json.load(pdp.joinpath('classes.jsn').open())
-    assert cread[pcq]['currentSN'] + 1 == 1 + q
+    checkdbcount(q, defaultpool, pcq, q - 1)
+    checkdbcount(1, defaultpool, MapContext.__name__, 0)
     # save many in one go
     m, x3 = 2, []
     n = q + m
     for d in range(q, n):
         tmp = Product(description='x' + str(d))
         x3.append(tmp)
-    ref2 += ps.save(x3, tag='all-tm')
-    x2 += x3
+    ref2 += ps.save(x3, tag='all-tm')  # ps has n+1 prods
+    x2 += x3  # there are n prods in x2
     # check refs
     assert len(ref2) == n
-    # count files in pool
-    assert sum(1 for x in pdp.glob(pcq + '*[0-9]')) == 1 + n
-    # number of prod in the DB
-    cread = json.load(pdp.joinpath('classes.jsn').open())
-    assert cread[pcq]['currentSN'] + 1 == 1 + n
+    checkdbcount(n, defaultpool, pcq, n)
+    checkdbcount(1, defaultpool, MapContext.__name__, 0)
 
     # tags
     ts = ps.getAllTags()
@@ -342,39 +376,44 @@ def test_ProductStorage():
         assert 1  # False
 
     # read HK
-    # make a copy of the pool files
+    # copy default pool data in memory
+    ps1 = copy.deepcopy(pspool)
+    # rename the pool
     cp = defaultpoolpath + '_copy'
-    os.system('rm -rf ' + cp + '; cp -rf ' + defaultpoolpath + ' ' + cp)
+    cleanup(cp)
+    # make a copy of the old pool on disk
+    shutil.copytree(defaultpoolpath, cp)
     ps2 = ProductStorage(pool='file://' + cp)
     # two ProdStorage instances have the same DB
     p2 = ps2.getPool(ps2.getPools()[0])
-    assert deepcmp(pspool._urns, p2._urns) is None
-    assert deepcmp(pspool._tags, p2._tags) is None
-    assert deepcmp(pspool._classes, p2._classes) is None
+    assert deepcmp(ps1._urns, p2._urns) is None
+    assert deepcmp(ps1._tags, p2._tags) is None
+    assert deepcmp(ps1._classes, p2._classes) is None
 
     # access resource
+    checkdbcount(n, defaultpool, pcq, n)
+    checkdbcount(1, defaultpool, MapContext.__name__, 0)
     # get ref from urn
     pref = ps.load(ref2[n - 2].urn)
     assert pref == ref2[n - 2]
     # actual product
+    # print(pref._product)
     assert pref.product == x2[n - 2]
     # from tags
 
     # removal by reference urn
-    print(ref2[n - 2].urn)
+    #print(ref2[n - 2].urn)
     ps.remove(ref2[n - 2].urn)
     # files are less
-    assert sum(1 for x in pdp.glob(pcq + '*[0-9]')) == n
     # DB shows less in record
-    cread = json.load(pdp.joinpath('classes.jsn').open())
     # current serial number not changed
-    assert cread[pcq]['currentSN'] + 1 == n + 1
     # number of items decreased by 1
-    assert len(cread[pcq]['sn']) == n
+    checkdbcount(n - 1, defaultpool, pcq, n)
+    checkdbcount(1, defaultpool, MapContext.__name__, 0)
 
     # clean up a pool
     ps.wipePool(defaultpool)
-    assert sum(1 for x in pdp.glob(pcq + '*[0-9]')) == 0
+    checkdbcount(0, defaultpool, pcq)
     assert len(ps.getPool(defaultpool)._urns) == 0
 
 
@@ -426,16 +465,16 @@ def test_MapContext():
     c2 = MapContext()
     # syntax 2  # put == set
     c2.refs.set("x", ProductRef(image))
-    assert c1 == c2
+    ####assert c1 == c2, deepcmp(c1, c2)
     c3 = MapContext()
     # syntax 3 # refs is a composite so set/get = []
     c3.refs["x"] = ProductRef(image)
-    assert c3 == c2
+    ####assert c3 == c2
     assert c3.refs['x'].product.description == 'hi'
     c4 = MapContext()
     # syntax 4. refs is a member in a composite (Context) so set/get = []
     c4['refs']["x"] = ProductRef(image)
-    assert c3 == c4
+    ####assert c3 == c4
     assert c4['refs']['x'].product.description == 'hi'
 
     # stored prod
@@ -449,13 +488,19 @@ def test_MapContext():
     pstore = ProductStorage()
     assert len(pstore.getPools()) == 1
     assert pstore.getWritablePool() == defaultpool
-    assert Path(defaultpoolpath).is_dir()
+    assert op.isdir(defaultpoolpath)
     # clean up possible garbage of previous runs
     pstore.wipePool(defaultpool)
-    assert Path(defaultpoolpath).is_dir()
-    assert sum([1 for x in Path(defaultpoolpath).glob('*')]) == 0
+    assert op.isdir(defaultpoolpath)
+    assert sum([1 for x in glob.glob(op.join(defaultpoolpath, '*'))]) == 0
     # save the product and get a reference
     prodref = pstore.save(x)
+    # has the ProductStorage
+    assert prodref.getStorage() == pstore
+    # has the pool
+    assert prodref._poolurn == defaultpool
+    # returns the product
+    assert prodref.product == x
     # create an empty mapcontext
     mc = MapContext()
     # put the ref in the context.
@@ -468,66 +513,83 @@ def test_MapContext():
     newp = getProductObject(urn)
     # the new and the old one are equal
     assert newp == x
-
-    # URN of an object in memory
-    urn = Urn(cls=x.__class__, pool='mem:///' + str(os.getpid()),
-              index=id(x)).urn
-    newp = getProductObject(urn)
-    # the new and the old one are equal
-    assert newp == x
+    # parent is set
+    assert prodref.parents[0] == mc
 
     des = checkjson(mc)
+    # print(type(des['refs']))
+    #print('&&&&&& ' + des.refs.serialized(indent=4) + ' %%%%%%')
+    # print(yaml.dump(des))
 
     newx = des['refs']['xprod'].product
     assert newx == x
 
+    # remove refs
+    del mc.refs['xprod']
+    assert mc.refs.size() == 0
+    assert len(prodref.parents) == 0
+    # another way to remove
+    des.refs.pop('xprod')
+    assert des.refs.size() == 0
+    assert len(prodref.parents) == 0
+    # clear all
+    prodref2 = pstore.save(Product())
+    mc.refs['a'] = prodref
+    mc.refs['b'] = prodref2
+    assert mc.refs.size() == 2
+    mc.refs.clear()
+    assert mc.refs.size() == 0
 
-if __name__ == '__main__':
-    print("TableDataset demo")
-    demo_TableDataset()
+    # URN of an object in memory
+    urn = ProductRef(x).urn
+    newp = PoolManager.getPool(DEFAULT_MEM_POOL).loadProduct(urn)
+    # the new and the old one are equal
+    assert newp == x
 
-    print("CompositeDataset demo")
-    demo_CompositeDataset()
+    # realistic scenario
+    p1 = Product(description='p1')
+    p2 = Product(description='p2')
+    map1 = MapContext(description='real map1')
+    pref1 = ProductRef(p1)  # in memory
+    pstore = ProductStorage()
+    pref2 = pstore.save(p1)  # on disk
+    assert map1['refs'].size() == 0  # do not use len() due to classID
+    assert len(pref1.parents) == 0
+    assert len(pref2.parents) == 0
+    map1['refs']['prd1'] = pref1
+    assert map1['refs'].size() == 1
+    assert len(pref1.parents) == 1
+    assert pref1.parents[0] == map1
+    # add the second one
+    map1['refs']['prd2'] = pref2
+    assert map1['refs'].size() == 2
+    assert len(pref2.parents) == 1
+    assert pref2.parents[0] == map1
+    assert pref1.parents[0] == map1
+    # remove a ref
+    del map1['refs']['prd1']
+    assert map1.refs.size() == 1
+    assert len(pref1.parents) == 0
+    # add ref2 to another map
+    map2 = MapContext(description='real map2')
+    map2.refs['also2'] = pref2
+    assert map2['refs'].size() == 1
+    # two parents
+    assert len(pref2.parents) == 2
+    assert pref2.parents[1] == map2
 
-# serializing using package jsonconversion
 
-# from collections import OrderedDict
-# import datetime
-
-# from jsonconversion.encoder import JSONObjectEncoder, JSONObject
-# from jsonconversion.decoder import JSONObjectDecoder
+def running(t):
+    print('running ' + str(t))
+    t()
 
 
-# class MyClass(JSONObject):
-
-#     def __init__(self, a, b, c):
-#         self.a = a
-#         self.b = b
-#         self.c = c
-
-#     @classmethod
-#     def from_dict(cls, dict_):
-#         return cls(dict_['a'], dict_['b'], dict_['c'])
-
-#     def to_dict(self):
-#         return {'a': self.a, 'b': self.b, 'c': self.c}
-
-#     def __eq__(self, other):
-#         return self.a == other.a and self.b == other.b and self.c == other.c
-
-
-# def test_jsonconversion():
-#     l = OrderedDict(d=0)
-#     d = datetime.datetime.now()
-#     a1 = MyClass(1, 2, 'pp')
-#     s = dict(name='SVOM', year=2019, result=[1.3, 4.7, 6, 45, a1])
-#     data = dict(k=4, h=MyClass(1, l, s))
-#     print(data)
-#     print('---------')
-#     js = json.dumps(data, cls=JSONObjectEncoder)
-#     #js = serializeClassID(data)
-#     # print(js)
-#     #js = json.dumps(data)
-#     print(js)
-#     p = json.loads(js, cls=JSONObjectDecoder)
-#     print(p['h'].b)
+if __name__ == '__main__' and __package__ is None:
+    running(test_ProductRef)
+    running(test_ProductRef)
+    running(test_MapContext)
+    running(test_Urn)
+    # running(test_MapRefsDataset)
+    running(test_PoolManager)
+    running(test_ProductStorage)
+    running(test_Context)

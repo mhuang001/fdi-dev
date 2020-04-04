@@ -1,29 +1,32 @@
 # -*- coding: utf-8 -*-
 import filelock
-import os
-from pathlib import Path
 from copy import deepcopy
-import collections
-import shutil
-from urllib.parse import urlparse
+import os
+import sys
+
+if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
+    PY3 = True
+    from urllib.parse import urlparse
+else:
+    PY3 = False
+    from urlparse import urlparse
 
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from .urn import Urn, makeUrn, parseUrn
 from .productref import ProductRef
-from .common import getProductObject
+from .common import pathjoin
 from .definable import Definable
 from .taggable import Taggable
 from .versionable import Versionable
+from .urn import Urn, parseUrn
 
-from spdc.dataset.serializable import serializeClassID
-from spdc.dataset.dataset import TableDataset
-from spdc.dataset.odict import ODict
+from ..dataset.odict import ODict
 
-lockpath = '/tmp'
+
+lockpathbase = '/tmp/locks'
 
 
 class ProductPool(Definable, Taggable, Versionable):
@@ -35,11 +38,12 @@ When implementing a ProductPool, the following rules need to be applied:
 
     1. Pools must guarantee that a Product saved via the pool saveProduct(Product) method is stored persistently, and that method returns a unique identifier (URN). If it is not possible to save a Product, an IOException shall be raised.
     2. A saved Product can be retrieved using the loadProduct(Urn) method, using as the argument the same URN that assigned to that Product in the earlier saveProduct(Product) call. No other Product shall be retrievable by that same URN. If this is not possible, an IOException or GeneralSecurityException is raised.
-    3. Pools should not implement functionality currently implemented in the core package. Specifically, it should not address functionality provided in the Context abstract class, and it should not implement versioning/cloning support.
+    3. Pools should not implement functionality currently implemented in the core paclage. Specifically, it should not address functionality provided in the Context abstract class, and it should not implement versioning/cloning support.
 
     """
 
     def __init__(self, poolurn='file:///tmp/pool', **kwds):
+        # print(__name__ + str(kwds))
         super(ProductPool, self).__init__(**kwds)
         self._poolurn = poolurn
         pr = urlparse(poolurn)
@@ -47,10 +51,17 @@ When implementing a ProductPool, the following rules need to be applied:
         self._place = pr.netloc
         # convenient access path
         self._poolpath = pr.netloc + \
-            pr.path if pr.scheme in ('file', 'mem') else pr.path
+            pr.path if pr.scheme in ('file') else pr.path
         # {type|classname -> {'sn:[sn]'}}
         self._classes = ODict()
         logger.debug(self._poolpath)
+
+    def lockpath(self):
+        lp = pathjoin(lockpathbase, self._poolpath)
+        if not os.path.exists(lp):
+            os.makedirs(lp)
+        lf = pathjoin(lp, 'lock')
+        return lf
 
     def accept(self, visitor):
         """ Hook for adding functionality to object
@@ -89,7 +100,7 @@ When implementing a ProductPool, the following rules need to be applied:
         return self._classes.keys()
 
     def getReferenceCount(self, ref):
-        """ 
+        """
         Returns the reference count of a ProductRef.
         """
         self._urns[ref.urn]['refcnt'] += 1
@@ -118,35 +129,44 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         return self._urns[urn]
 
+    def schematicLoadProduct(self, resourcename, indexstr):
+        """ to be implemented by subclasses to do the scheme-specific loading
+        """
+        raise(NotImplementedError)
+
     def loadProduct(self, urn):
         """
         Loads a Product belonging to specified URN.
         """
-        return getProductObject(urn)
+        poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(urn)
+        if poolname != self._poolurn:
+            raise(ValueError('wrong pool: ' + poolname +
+                             ' . This is ' + self._poolurn))
+
+        return self.schematicLoadProduct(resourcecn, indexs)
 
     def meta(self,  urn):
-        """ 
+        """
         Loads the meta-data belonging to the product of specified URN.
         """
         return self._urns[urn]['meta']
 
     def reference(self,  ref):
-        """ 
+        """
         Increment the reference count of a ProductRef.
         """
 
     def schematicRemove(self,  typename, serialnum):
-        """ to be implemented by subckasses to do the scheme-specific removing
+        """ to be implemented by subclasses to do the scheme-specific removing
         """
-        pass
+        raise(NotImplementedError)
 
     def remove(self,  urn):
         """
         Removes a Product belonging to specified URN.
         """
 
-        poolname, resourcecn, indexs, scheme, place, poolpath = \
-            parseUrn(urn)
+        poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(urn)
 
         if self._poolurn != poolname:
             raise ValueError(
@@ -163,7 +183,7 @@ When implementing a ProductPool, the following rules need to be applied:
             raise ValueError(
                 '%s not found in pool %s.' % (urn, self.getId()))
 
-        with filelock.FileLock(lockpath + '/lock'):
+        with filelock.FileLock(self.lockpath()):
             self.removeUrn(urn)
             c[prod]['sn'].remove(sn)
             if len(c[prod]['sn']) == 0:
@@ -200,14 +220,38 @@ When implementing a ProductPool, the following rules need to be applied:
         """
 
     def schematicSave(self,  typename, serialnum, data):
-        """ to be implemented by subckasses to do the scheme-specific saving
+        """ to be implemented by subclasses to do the scheme-specific saving
         """
-        pass
+        raise(NotImplementedError)
 
-    def saveProduct(self,  product, tag=None):
+    def saveProduct(self,  product, tag=None, geturnobjs=False):
         """
-        Saves specified product and returns the designated URN.
-        Saves a product or a list of products to the pool, possibly under the supplied tag, and return the reference (or a list of references if the input is a list of products).
+        Saves specified product and returns the designated ProductRefs or URNs.
+        Saves a product or a list of products to the pool, possibly under the supplied tag, and return the reference (or a list of references if the input is a list of products),
+        or Urns if geturnobjs is True.
+        Pool:!!dict
+          _classes:!!odict
+              $product0_class_name:!!dict
+                      currentSN:!!int $the serial number of the latest added prod to the pool
+                             sn:!!list
+                                 - $serial number of a prod  
+                                 - $serial number of a prod  
+                                 - ...
+              $product0_class_name:!!dict
+              ...
+          _urns:!!odict
+              $URN0:!!odict
+                      meta:!!MetaData $prod.meta
+                      tags:!!list
+                            - $tag
+                            - $tag
+                            - ...
+          _tags:!!odict
+              urns:!!list
+                   - $urn
+                   - $urn
+                   - ...
+          $urn:!!$serialized product
         """
         c, t, u = self._classes, self._tags, self._urns
         # save a copy
@@ -217,11 +261,10 @@ When implementing a ProductPool, the following rules need to be applied:
             prds = [product]
         else:
             prds = product
-        rfs = []
+        res = []
         for prd in prds:
-            pn = prd.__class__.__qualname__
-
-            with filelock.FileLock(lockpath + '/lock'):
+            pn = prd.__class__.__name__
+            with filelock.FileLock(self.lockpath()):
                 if pn in c:
                     sn = (c[pn]['currentSN'] + 1)
                 else:
@@ -249,16 +292,20 @@ When implementing a ProductPool, the following rules need to be applied:
                     # undo changes
                     c, t, u = cs, ts, us
                     raise e
-
-            rf = ProductRef(urn=urnobj)
-            # it seems that there is no better way to set meta
-            rf._meta = prd.getMeta()
-            rfs.append(rf)
-        logger.debug('generated prefs ' + str(len(rfs)))
+            if geturnobjs:
+                res.append(urnobj)
+            else:
+                rf = ProductRef(urn=urnobj)
+                # it seems that there is no better way to set meta
+                rf._meta = prd.getMeta()
+                rf._poolurn = self._poolurn
+                res.append(rf)
+        logger.debug('generated ' + 'Urns ' if geturnobjs else 'prodRefs ' +
+                     str(len(res)))
         if issubclass(product.__class__, list):
-            return rfs
+            return res
         else:
-            return rfs[0]
+            return res[0]
 
     def select(self,  query):
         """

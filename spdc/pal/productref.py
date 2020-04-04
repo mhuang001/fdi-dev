@@ -5,46 +5,49 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from spdc.dataset.metadataholder import MetaDataHolder
-from spdc.dataset.serializable import Serializable
-from spdc.dataset.eq import DeepEqual
-from spdc.dataset.odict import ODict
+from ..dataset.metadataholder import MetaDataHolder
+from ..dataset.serializable import Serializable
+from ..dataset.odict import ODict
+from ..dataset.product import Product
 from .comparable import Comparable
 from .urn import Urn
-from .common import getProductObject
+from .context import Context
 
 
 class ProductRef(MetaDataHolder, Serializable, Comparable):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 
-    def __init__(self, urn=None, pool=None, product=None, **kwds):
+    def __init__(self, urn=None, poolurn=None, product=None, **kwds):
         """ Urn can be the string or URNobject. if product is provided create an in-memory URN.
-        mh: If a URN for a URN is needed, use Urn.getInMemUrnObj()
-        pool is the object type.
+        Poolurn if given overrides the pool URN in urn, and causes metadata to be loaded from pool.
+        A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
         """
         super(ProductRef, self).__init__(**kwds)
         if issubclass(urn.__class__, str):
             urnobj = Urn(urn)
         elif issubclass(urn.__class__, Urn):
             urnobj = urn
-        else:
+        elif issubclass(urn.__class__, Product):
             # allow ProductRef(p) where p is a Product
-            product = urn
-            urnobj = None  # in case urn is also None
+            if product is None:
+                product = urn
+        else:
+            urnobj = None
 
         if product:
-            # urnobj is the python obj id
-            urnobj = Urn.getInMemUrnObj(product)
-            self._meta = product.meta
-        elif pool is not None and urnobj is not None:
-            #    import pal.productstorage as pps
-            #    storage = pps.ProductStorage(pool)
-            self._meta = pool.meta(urnobj.urn)
-        else:
-            self._meta = None
-        self.setUrnObj(urnobj)
-        self._storage = None
+            from .poolmanager import PoolManager, DEFAULT_MEM_POOL
+            from . import productstorage
+            poolurn = DEFAULT_MEM_POOL
+            pool = PoolManager.getPool(poolurn)
+            st = productstorage.ProductStorage(pool)
+            urnobj = st.save(product, geturnobjs=True)
+            # a lone product passed to prodref will be stored to mempool
+        self.setUrnObj(urnobj, poolurn)
+
+        if product and isinstance(product, Context):
+            self._product = product
+
         self._parents = []
 
     @property
@@ -53,9 +56,27 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
 
     def getProduct(self):
         """ Get the product that this reference points to.
+
+        If the product is a Context, it is kept internally, so further accesses don't need to ask the storage for loading it again.
+        Otherwise, the product is returned but the internal reference remains null, so every call to this method involves a request to the storage.
+
+        This way, heavy products are not kept in memory after calling this method, thus maintaining the ProductRef a lighweight reference to the target product.
+
+        In case of a Context, if it is wanted to free the reference, call unload().
+
+        Returns:
+        the product
         """
 
-        return getProductObject(self.getUrn())
+        if self._storage is None:
+            return None
+        if hasattr(self, '_product') and self._product is not None:
+            return self._product
+        from .poolmanager import PoolManager
+        p = PoolManager.getPool(self._poolurn).loadProduct(self.getUrn())
+        if issubclass(p.__class__, Context):
+            self._product = p
+        return p
 
     def getStorage(self):
         """ Returns the product storage associated.
@@ -63,7 +84,7 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
         return self._storage
 
     def setStorage(self, storage):
-        """ Returns the product storage associated.
+        """ Sets the product storage associated.
         """
         self._storage = storage
         # if hasattr(self, '_urn') and self._urn:
@@ -106,8 +127,10 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
         """
         self.setUrnObj(urnobj)
 
-    def setUrnObj(self, urnobj):
+    def setUrnObj(self, urnobj, poolurn=None):
         """ sets urn
+        Poolurn if given overrides the pool URN in urn, and causes metadata to be loaded from pool.
+        A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
         """
         if urnobj is not None:
             # logger.debug(urnobj)
@@ -118,8 +141,24 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
             self._urn = urnobj.urn
             # if hasattr(self, '_storage') and self._storage:
             #    self._meta = self._storage.getMeta(self._urn)
+
+            from .poolmanager import PoolManager, DEFAULT_MEM_POOL
+            from . import productstorage
+            loadmeta = poolurn and poolurn != DEFAULT_MEM_POOL
+            if poolurn is None:
+                poolurn = urnobj.pool
+            pool = PoolManager.getPool(poolurn)
+            self._meta = pool.meta(urnobj.urn) if loadmeta else None
+            st = productstorage.ProductStorage(pool)
+            self._storage = st
+            self._poolurn = poolurn
+            self._product = None
         else:
             self._urn = None
+            self._storage = None
+            self._poolurn = None
+            self._meta = None
+            self._product = None
 
     def getUrnObj(self):
         """ Returns the URN as an object.
@@ -135,6 +174,31 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
         """ Returns the metadata of the product.
         """
         return self._meta
+
+    def getHash(self):
+        """ Returns a code number for the product; actually its MD5 signature. 
+        This allows checking whether a product already exists in a pool or not.
+        """
+        raise NotImplementedError()
+
+    def getSize(self):
+        """ Returns the estimated size(in bytes) of the product in memory. 
+        Useful for providing this information for a user that wants to download the product from a remote site.
+        Returns:
+        the size in bytes
+        """
+        raise NotImplementedError()
+
+    def unload(self):
+        """ Clear the cached meta and frees internal reference to the product, so it can be garbage collected.
+        """
+        self._product = None
+        self._meta = None
+
+    def isLoaded(self):
+        """ Informs whether the pointed product is already loaded.
+        """
+        return self._product is not None
 
     def addParent(self, parent):
         """ add a parent
@@ -160,6 +224,13 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
 
     def getParents(self):
         """ Return the in-memory parent context products of this reference.
+        That is, the contexts in program memory that contain this product reference object. 
+        A context that contains a different product reference object pointing to the same URN is not a parent of this product reference.
+
+        Furthermore, it should be understood that this method does not return the parent contexts of the product pointed to by this reference as stored in any underlying pool or storage.
+
+        Returns:
+        the parents 
         """
         return self._parents
 
@@ -168,12 +239,40 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
         """
         self._parents = parents
 
+    def equals(self, o):
+        """     true if o is a non-null ProductRef, with the same Product type than this one, and:
+
+        urns and products are null in both refs, or
+        nurs are equal and products are null, or # <-- mh
+        urns are null in both refs, and their products are equal, or
+        urns and products are equal in both refs
+        """
+        t1 = issubclass(o.__class__, ProductRef)
+        if not t1:
+            return False
+        if self._product is None:
+            if o._product is None:
+                if o._urnobj is None and self._urnobj is None or o._urnobj == self._urnobj:
+                    return True
+            else:
+                return False
+        else:
+            if self._product == o._product and (self._product.type == o._product.type):
+                if (o._urnobj is None and self._urnobj is None) or \
+                   (o._urnobj == self._urnobj):
+                    return True
+
+        return False
+
     def __eq__(self, o):
         """ has the same Urn.
         """
-        if not issubclass(o.__class__, ProductRef):
-            return False
-        return self._urnobj == o._urnobj
+        return self.equals(o)
+
+    def __hash__(self):
+        """ returns hash of the URN object
+        """
+        return hash(self._urnobj)
 
     def __repr__(self):
         return self.__class__.__name__ + '{ ProductURN=' + self.urn + ', meta=' + str(self.getMeta()) + '}'

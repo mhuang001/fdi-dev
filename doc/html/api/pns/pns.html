@@ -33,8 +33,8 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-pns">
-<span id="pns-package"></span><h1>pns package<a class="headerlink" href="#module-pns" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="pns-package">
+<h1>pns package<a class="headerlink" href="#pns-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
@@ -46,217 +46,23 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-pns.common">
-<span id="pns-common-module"></span><h2>pns.common module<a class="headerlink" href="#module-pns.common" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="pns.common.getJsonObj">
-<code class="sig-prename descclassname">pns.common.</code><code class="sig-name descname">getJsonObj</code><span class="sig-paren">(</span><em class="sig-param">url</em>, <em class="sig-param">headers=None</em>, <em class="sig-param">usedict=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.common.getJsonObj" title="Permalink to this definition">¶</a></dt>
-<dd><p>return object from url. url can be http or file.
-translate keys and values from string to
-number if applicable. Return None if fails.
-Not using requests.get() as it cannot open <a class="reference external" href="file:///">file:///</a> w/o installing
-<a class="reference external" href="https://pypi.python.org/pypi/requests-file">https://pypi.python.org/pypi/requests-file</a></p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.common.postJsonObj">
-<code class="sig-prename descclassname">pns.common.</code><code class="sig-name descname">postJsonObj</code><span class="sig-paren">(</span><em class="sig-param">url</em>, <em class="sig-param">obj</em>, <em class="sig-param">headers</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.common.postJsonObj" title="Permalink to this definition">¶</a></dt>
-<dd><p>posts object to url. Returns None if fails.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.common.postJsonObj2">
-<code class="sig-prename descclassname">pns.common.</code><code class="sig-name descname">postJsonObj2</code><span class="sig-paren">(</span><em class="sig-param">url</em>, <em class="sig-param">obj</em>, <em class="sig-param">headers</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.common.postJsonObj2" title="Permalink to this definition">¶</a></dt>
-<dd><p>post object to url. Return None if fail.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.common.putJsonObj">
-<code class="sig-prename descclassname">pns.common.</code><code class="sig-name descname">putJsonObj</code><span class="sig-paren">(</span><em class="sig-param">url</em>, <em class="sig-param">obj</em>, <em class="sig-param">headers</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.common.putJsonObj" title="Permalink to this definition">¶</a></dt>
-<dd><p>puts object to url. Returns None if fails.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.common.trbk">
-<code class="sig-prename descclassname">pns.common.</code><code class="sig-name descname">trbk</code><span class="sig-paren">(</span><em class="sig-param">e</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.common.trbk" title="Permalink to this definition">¶</a></dt>
-<dd><p>trace back</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.common.writeJsonObj">
-<code class="sig-prename descclassname">pns.common.</code><code class="sig-name descname">writeJsonObj</code><span class="sig-paren">(</span><em class="sig-param">o</em>, <em class="sig-param">fn</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.common.writeJsonObj" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write an object to file fn in json safely
-Return True if successful else False</p>
-</dd></dl>
-
+<div class="section" id="pns-common-module">
+<h2>pns.common module<a class="headerlink" href="#pns-common-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-pns.logdict">
-<span id="pns-logdict-module"></span><h2>pns.logdict module<a class="headerlink" href="#module-pns.logdict" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="pns-logdict-module">
+<h2>pns.logdict module<a class="headerlink" href="#pns-logdict-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-pns.options">
-<span id="pns-options-module"></span><h2>pns.options module<a class="headerlink" href="#module-pns.options" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="pns.options.opt">
-<code class="sig-prename descclassname">pns.options.</code><code class="sig-name descname">opt</code><span class="sig-paren">(</span><em class="sig-param">node</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.options.opt" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get username and password and host ip and port</p>
-</dd></dl>
-
+<div class="section" id="pns-options-module">
+<h2>pns.options module<a class="headerlink" href="#pns-options-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-pns.pnsconfig">
-<span id="pns-pnsconfig-module"></span><h2>pns.pnsconfig module<a class="headerlink" href="#module-pns.pnsconfig" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="pns-pnsconfig-module">
+<h2>pns.pnsconfig module<a class="headerlink" href="#pns-pnsconfig-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-pns.runflaskserver">
-<span id="pns-runflaskserver-module"></span><h2>pns.runflaskserver module<a class="headerlink" href="#module-pns.runflaskserver" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="pns-runflaskserver-module">
+<h2>pns.runflaskserver module<a class="headerlink" href="#pns-runflaskserver-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-pns.server">
-<span id="pns-server-module"></span><h2>pns.server module<a class="headerlink" href="#module-pns.server" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="pns.server.bad_request">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">bad_request</code><span class="sig-paren">(</span><em class="sig-param">error</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.bad_request" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pns.server.calc">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">calc</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.calc" title="Permalink to this definition">¶</a></dt>
-<dd><p>generates result product directly using data on PNS.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.calcresult">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">calcresult</code><span class="sig-paren">(</span><em class="sig-param">cmd</em>, <em class="sig-param">ops=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.calcresult" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pns.server.checkpath">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">checkpath</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.checkpath" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pns.server.cleanPTS">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">cleanPTS</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.cleanPTS" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removing traces of past runnings the Processing Task Software.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.cleanup">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><em class="sig-param">cmd</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.cleanup" title="Permalink to this definition">¶</a></dt>
-<dd><p>DELETE is used to clean up the Processing Task Software
-(PST) to its initial configured state.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.configPNS">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">configPNS</code><span class="sig-paren">(</span><em class="sig-param">d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.configPNS" title="Permalink to this definition">¶</a></dt>
-<dd><p>Configure the PNS itself by replacing the pnsconfig var</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.configPTS">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">configPTS</code><span class="sig-paren">(</span><em class="sig-param">d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.configPTS" title="Permalink to this definition">¶</a></dt>
-<dd><p>Configure the Processing Task Software by running the config script. Ref init PTS.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.defaultprocessinput">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">defaultprocessinput</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.defaultprocessinput" title="Permalink to this definition">¶</a></dt>
-<dd><p>puts all undecoded json to every files.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.defaultprocessoutput">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">defaultprocessoutput</code><span class="sig-paren">(</span><em class="sig-param">filemode</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.defaultprocessoutput" title="Permalink to this definition">¶</a></dt>
-<dd><p>reads each of the files and returns the contents in a filename indexed dict.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.dosleep">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">dosleep</code><span class="sig-paren">(</span><em class="sig-param">indata</em>, <em class="sig-param">ops</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.dosleep" title="Permalink to this definition">¶</a></dt>
-<dd><p>run ‘sleep [ops]’ in the OS. ops is 3 if not given.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.filesin">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">filesin</code><span class="sig-paren">(</span><em class="sig-param">dir</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.filesin" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns names and contents of all files in the dir, ‘None’ if dir not existing.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.genposttestprod">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">genposttestprod</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.genposttestprod" title="Permalink to this definition">¶</a></dt>
-<dd><p>generate post test product.
-put the 1st input (see maketestdata in test_pns.py)
-parameter to metadata
-and 2nd to the product’s dataset</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.get_apis">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">get_apis</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.get_apis" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pns.server.getinfo">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">getinfo</code><span class="sig-paren">(</span><em class="sig-param">cmd</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.getinfo" title="Permalink to this definition">¶</a></dt>
-<dd><p>returns init, config, run input, run output.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.initPTS">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">initPTS</code><span class="sig-paren">(</span><em class="sig-param">d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.initPTS" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned. If input/output directories cannot be created with serveruser as owner, Error401 will be given.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.makepublicAPI">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">makepublicAPI</code><span class="sig-paren">(</span><em class="sig-param">ops</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.makepublicAPI" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pns.server.not_found">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">not_found</code><span class="sig-paren">(</span><em class="sig-param">error</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.not_found" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pns.server.run">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">d</em>, <em class="sig-param">processinput=None</em>, <em class="sig-param">processoutput=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates a product by running script defined in the config under ‘run’. Execution on the server host is in the pnshome directory and run result and status are returned.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.setup">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">setup</code><span class="sig-paren">(</span><em class="sig-param">cmd</em>, <em class="sig-param">ops=''</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.setup" title="Permalink to this definition">¶</a></dt>
-<dd><p>PUT is used to initialize or configure the Processing Task Software
-(PST).</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.testinit">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">testinit</code><span class="sig-paren">(</span><em class="sig-param">d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.testinit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Renames the ‘init’ ‘config’ ‘run’ ‘clean’ scripts to ‘.save’ and points it to the ‘.ori’ scripts.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pns.server.testrun">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">testrun</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.testrun" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pns.server.unauthorized">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">unauthorized</code><span class="sig-paren">(</span><em class="sig-param">error</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.unauthorized" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pns.server.uploadScript">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">uploadScript</code><span class="sig-paren">(</span><em class="sig-param">op</em>, <em class="sig-param">d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.uploadScript" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pns.server.verify">
-<code class="sig-prename descclassname">pns.server.</code><code class="sig-name descname">verify</code><span class="sig-paren">(</span><em class="sig-param">username</em>, <em class="sig-param">password</em><span class="sig-paren">)</span><a class="headerlink" href="#pns.server.verify" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function is called to check if a username /
-password combination is valid.</p>
-</dd></dl>
-
+<div class="section" id="pns-server-module">
+<h2>pns.server module<a class="headerlink" href="#pns-server-module" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -283,6 +89,7 @@ password combination is valid.</p>
 <li class="toctree-l1"><a class="reference internal" href="../../usage/installation.html">Install SPDC</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../usage/dataset.html"><strong>dataset</strong>: Model for Data Container</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../usage/pal.html"><strong>pal</strong>: Product Access Layer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/pns.html"><strong>pns</strong>: Processing Node Server</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../usage/quickstart.html">spdc Quick Start</a></li>
 </ul>
 <ul class="current">
@@ -295,12 +102,12 @@ password combination is valid.</p>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pns.common">pns.common module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pns.logdict">pns.logdict module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pns.options">pns.options module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pns.pnsconfig">pns.pnsconfig module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pns.runflaskserver">pns.runflaskserver module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pns.server">pns.server module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pns-common-module">pns.common module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pns-logdict-module">pns.logdict module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pns-options-module">pns.options module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pns-pnsconfig-module">pns.pnsconfig module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pns-runflaskserver-module">pns.runflaskserver module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pns-server-module">pns.server module</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#diagrams">Diagrams</a></li>

@@ -5,8 +5,9 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from spdc.dataset.product import Product
-from spdc.dataset.dataset import CompositeDataset
+from ..dataset.odict import ODict
+from ..dataset.product import Product
+from ..dataset.serializable import Serializable
 
 
 class Context(Product):
@@ -57,19 +58,83 @@ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Con
         raise NotImplementedError()
 
 
-class MapRefsDataset(CompositeDataset):
-    """ add put(n, ref)
+def applyrules(key, ref, rules):
+    return False
+
+
+# class RefContainer(Composite, Serializable):
+class RefContainer(Serializable, ODict):  # XXXXXXXX order
+    """ A map where Rules of a Context are applied when put(k,v) is called, and the owner MapContext's ID can be put to v's parents list.
+
+    Implemwnted using dataset.Composite so that RefContainer has a ClassID when json.loads'ed.
+    A MapContext has a _sets, which has a refs:RefContainer, which has a _sets, which has a name:ProductRef.
+    when used as context.refs.get('x').product.description, the RefContainer is called with get() or __getitem__(), which calls superclass composite's _set's __getitem__()
     """
 
-    def __init__(self,  **kwds):
+    def __init__(self, **kwds):
+        """ 
         """
+        super(RefContainer, self).__init__(**kwds)
+
+    def setOwner(self, owner):
+        """ records who owns this container
         """
-        super(MapRefsDataset, self).__init__(**kwds)
+        self._owner = owner
+
+    def __setitem__(self, key, ref):
+        if key is None:
+            raise KeyError()
+        if ref is None:
+            raise ValueError()
+        super().__setitem__(key, ref)
+        # during deserialization __setitem__ are called before _owner is set by Context,setRefs()
+        if hasattr(self, '_owner'):
+            if hasattr(self._owner, '_rule'):
+                if applyrules(key, ref, self._owner.getRule()):
+                    raise NotImplementedError()
+            from .productref import ProductRef
+            if isinstance(ref, ProductRef):
+                ref.addParent(self._owner)
+
+    def __delitem__(self, key):
+        if key is None:
+            raise KeyError()
+        # during deserialization __setitem__ are called before _owner is set by Context,setRefs()
+        if hasattr(self, '_owner'):
+            from .productref import ProductRef
+            ref = self.__getitem__(key)
+            if isinstance(ref, ProductRef):
+                ref.removeParent(self._owner)
+        super().__delitem__(key)
+
+    def clear(self):
+        """ remove all productRefs """
+        ks = list(self.keys())
+        for k in ks:
+            if k not in ('classID', 'version'):
+                self.__delitem__(k)
 
     def put(self, key, ref):
+        """ set label-ref pair after validating then add parent to the ref
+        """
+        self.__setitem__(key, ref)
+
+    def set(self, key, ref):
+        self.put(key, ref)
+
+    def get(self, key):
         """
         """
-        self.set(key, ref)
+        return self.__getitem__(key)
+
+    def size(self):
+        return len(self.keys()) - 2
+
+    def serializable(self):
+        """ Can be encoded with serializableEncoder """
+        return ODict(  # _sets=self._sets,
+            classID=self.classID,
+            version=self.version)
 
 
 class MapContext(Context):
@@ -91,7 +156,7 @@ class MapContext(Context):
         print context.refs.get('y').product.description # there
         print context.refs.get('z').product.description # everyone
 
-    It is possible to insert a ProductRef at a specific key in the MapContext. The same insertion behaviour is followed as for a java Map, in that if there is already an existing ProductRef for the given key, that ProductRef is replaced with the new one::
+    It is possible to insert a ProductRef at a specific key in the MapContext. The same insertion behaviour is followed as for a Python dict, in that if there is already an existing ProductRef for the given key, that ProductRef is replaced with the new one::
 
          product4=SpectrumProduct(description="everybody")
          context.refs.put("y", ProductRef(product4))
@@ -102,14 +167,25 @@ class MapContext(Context):
          print context.refs.get('y').product.description # everybody
          print context.refs.get('z').product.description # everyone
          print context.refs.get('a').product.description # here
+
+    Note that the rules are only applied when putting an entry to the map!
+
+    Be aware that
+
+    1. the put() method of the map view may throw a ContextRuleException if the data added to the context violates the rules applied to the context.
+    2. the put() method of the map view may throw a ValueError if either of the arguments to the put() method are null.
+
     """
 
     def __init__(self,  **kwds):
         """
         """
         super(MapContext, self).__init__(**kwds)
-        self.setRefs(MapRefsDataset())
         self._dirty = False
+        self._rule = None  # None means there is no rule.
+        refC = RefContainer()
+        # this line must stay after _rule is set.
+        self.setRefs(refC)
 
     @property
     def refs(self):
@@ -123,22 +199,32 @@ class MapContext(Context):
         self.setRefs(refs)
 
     def setRefs(self, refs):
-        """
+        """ Changes/Adds the mapping container that holds references.
         """
         self.set('refs', refs)
 
+    def set(self, name, refs):
+        """ add owner to RefContainer
+        """
+        if isinstance(refs, RefContainer) and name == 'refs':
+            refs.setOwner(self)
+        super().set(name, refs)
+        if isinstance(refs, RefContainer) and name == 'refs':
+            assert hasattr(self.getRefs(), '_owner')
+
     def getRefs(self):
-        """ Returns the URN as an object.
+        """ Returns the reference container mapping
         """
         return self.get('refs')
 
     def getAllRefs(self, recursive=False, includeContexts=True, seen=None):
-        """ Provides a set of the unique references stored in this context. This includes references that are contexts, but not the contents of these subcontexts. This is equivalent to getAllRefs(recursive=false, includeContexts= true).
+        """ Provides a set of the unique references stored in this context.
+        This includes references that are contexts, but not the contents of these subcontexts. This is equivalent to getAllRefs(recursive=false, includeContexts= true).
         recursive - if true, include references in subcontexts
         includeContexts - if true, include references to contexts, not including this one
         """
         if not Context.isContext(self):
-            raise ValueError('self is not a context')
+            raise TypeError('This ref does not point to a context')
         if seen is None:
             see = list()
         rs = list()
@@ -166,6 +252,22 @@ class MapContext(Context):
                     rs.append(x)
 
         return rs
+
+    def getRule(self):
+        """ Get the rule that controls the products to be added into the context.
+        """
+        return self._rule
+
+    def setRule(self, rule):
+        """ Set the rule that controls the products to be added into the context.
+        """
+        self._rule = rule
+
+    def addRule(self, rule):
+        """ Add to  the rule that controls the products to be added into the context.
+         The new rule will be old rule AND added rule.
+        """
+        self._rule.update(rule)
 
     def hasDirtyReferences(self, storage):
         """ Returns a logical to specify whether this context has dirty references or not.

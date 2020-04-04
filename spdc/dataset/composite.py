@@ -42,8 +42,8 @@ class Composite(DeepEqual):
         in this map(optional operation). If the map previously
         contained a mapping for this key, the old dataset is
         replaced by the specified dataset.
-        this composite does not permit null keys or values,
-        and the specified key or value is null."""
+        this composite does not permit null or empty keys.
+        """
 
         if name == '' or name is None:
             msg = 'Bad dataset name.'
@@ -86,11 +86,10 @@ class Composite(DeepEqual):
         return len(self._sets)
 
     def __repr__(self):
-        ks = self.keySet()
         return self.__class__.__name__ + \
-            str(ks)
+            self._sets.__repr__()
 
-    def toString(self):
+    def toString(self, matprint=None, trans=True):
         return self.__class__.__name__ + self._sets.toString()
 
     def __contains__(self, x):

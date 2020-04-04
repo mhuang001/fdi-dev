@@ -6,19 +6,24 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from spdc.dataset.odict import ODict
+from ..dataset.odict import ODict
 
 from .urn import Urn
-import spdc.pal.productref as ppr
+#from .productpool import ProductPool
 from .productpool import ProductPool
 from .poolmanager import PoolManager
+from . import productref
 
 
 class ProductStorage(object):
-    """
+    """ Logical store created from a pool or a poolURN.
+
+    Every instanciation with the same pool will  result in a new instance of ProdStorage.
     """
 
     def __init__(self, pool='file:///tmp/pool', **kwds):
+        """ input is a pool urn
+        """
         super(ProductStorage, self).__init__(**kwds)
         self._pools = ODict()  # dict of pool-urn keys
         self.register(pool)
@@ -40,16 +45,16 @@ class ProductStorage(object):
                 raise ValueError(
                     'pool ' + pool + ' and existing ' + ex + ' overlap.')
 
-        self._pools[pool] = PoolManager().getPool(pool)
+        self._pools[pool] = PoolManager.getPool(pool)
 
         logger.debug('registered pool ' + str(self._pools))
 
     def load(self, urnortag):
-        """ Loads a product with a URN or a list of products with a tag, from the pool.  It always creates new ProductRefs. 
+        """ Loads a product with a URN or a list of products with a tag, from the (writeable) pool.  It always creates new ProductRefs. 
         returns productref(s).
         urnortag: urn or tag
         """
-        pool = self.getPool(self.getWritablePool())
+        poolurn = self.getWritablePool()
 
         def runner(urnortag):
             if issubclass(urnortag.__class__, list):
@@ -69,17 +74,17 @@ class ProductStorage(object):
                         'must provide urn, urnobj, tags, or lists of them')
                 ret = []
                 for x in urns:
-                    pr = ppr.ProductRef(x, pool)
-                    pr.setStorage(self)
+                    pr = productref.ProductRef(x, poolurn)
                     ret.append(pr)
                 return ret
         ls = runner(urnortag=urnortag)
         # return a list only when more than one refs
         return ls if len(ls) > 1 else ls[0]
 
-    def save(self, product, tag=None, poolurn=None):
-        """ saves to the writable pool if it has been registered, if not registers and saves. product can be one or a list of prpoducts.
-        Returns: one or a list of productref with storage info.
+    def save(self, product, tag=None, poolurn=None, geturnobjs=False):
+        """ saves to the writable pool if it has been registered.
+        if not, registers and saves. product can be one or a list of prpoducts.
+        Returns: one or a list of productref with storage info. mh: or UrnObjs if geturnobjs is True.
         """
 
         if poolurn == None:
@@ -96,15 +101,17 @@ class ProductStorage(object):
                      ' to pool ' + str(poolurn) + ' with tag ' + str(tag))
 
         try:
-            ret = self._pools[poolurn].saveProduct(product, tag=tag)
+            ret = self._pools[poolurn].saveProduct(
+                product, tag=tag, geturnobjs=geturnobjs)
         except Exception as e:
             logger.error('unable to save to the writable pool.')
             raise e
-        if issubclass(ret.__class__, list):
-            [x.setStorage(self) for x in ret]
-        else:
-            ret.setStorage(self)
-
+        if not geturnobjs:
+            if issubclass(ret.__class__, list):
+                for x in ret:
+                    x.setStorage(self)
+            else:
+                ret.setStorage(self)
         return ret
 
     def remove(self, urn):
@@ -136,13 +143,15 @@ class ProductStorage(object):
         return list(self._pools.keys())
 
     def getPool(self, poolurn):
-        """ mh: returns the pool object
+        """ mh: returns the pool object from poolurn
         """
         if poolurn not in self._pools:
             raise ValueError('pool ' + poolurn + ' not found')
         return self._pools[poolurn]
 
     def getWritablePool(self):
+        """ returns the poolurn of the first pool, which is the only writeable pool.
+        """
         return self.getPools()[0]
 
     def getAllTags(self):

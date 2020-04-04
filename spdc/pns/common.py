@@ -53,11 +53,34 @@ commonheaders = {
 def trbk(e):
     """ trace back 
     """
-    return ' '.join([x for x in
-                     traceback.extract_tb(e.__traceback__).format()])
+    ls = [x for x in traceback.extract_tb(e.__traceback__).format()] if hasattr(
+        e, '__traceback__') else ['']
+    return ' '.join(ls) + ' ' + \
+        (e.child_traceback if hasattr(e, 'child_traceback') else '')
 
 
 def getJsonObj(url, headers=None, usedict=False):
+    """ return object from url. url can be http or file.
+    translate keys and values from string to
+    number if applicable. Raise exception if fails.
+    Not using requests.get() as it cannot open file:/// w/o installing
+    https://pypi.python.org/pypi/requests-file
+    """
+    logger.debug('url: %s' % (url))
+    stri = urlopen(
+        url, timeout=15).read().decode('utf-8')
+    #logger.debug('stri ' + stri)
+    # print(url,stri)
+    # ret = json.loads(stri, parse_float=Decimal)
+    # ret = json.loads(stri, cls=Decoder,
+    #               object_pairs_hook=collections.OrderedDict)
+    ret = deserializeClassID(stri, usedict=usedict)
+    #logger.debug(pformat(ret, depth=6)[:] + '...')
+    logger.debug(str(ret)[:160] + '...')
+    return ret
+
+
+def getJsonObj1(url, headers=None, usedict=False):
     """ return object from url. url can be http or file.
     translate keys and values from string to
     number if applicable. Return None if fails.

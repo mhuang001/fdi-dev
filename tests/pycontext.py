@@ -6,9 +6,9 @@ import sys
 sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..')))
 
-import spdc
-#from spdc import dataset
-#from spdc import pal
-#from spdc import pns
-#from spdc import tests
+import fdi
+#from fdi import dataset
+#from fdi import pal
+#from fdi import pns
+#from fdi import tests
 # print(dir(dataset))

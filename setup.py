@@ -15,14 +15,14 @@ def read(fname):
 
 
 setup(
-    name="spdc",
-    version="0.11",
+    name="fdi",
+    version="0.12",
     author="Maohai Huang",
     author_email="mhuang@earth.bao.ac.cn",
     description=("Self-describing Portable Dataset Container"),
     license="LGPL",
     keywords="dataset metadata processing context server access REST API HCSS",
-    url="http://mercury.bao.ac.cn:9006/mh/spdc",
+    url="http://mercury.bao.ac.cn:9006/mh/fdi",
     packages=find_packages(exclude=['tests']),
     long_description=read('README.md'),
     classifiers=[

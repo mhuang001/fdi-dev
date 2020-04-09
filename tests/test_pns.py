@@ -10,7 +10,7 @@ import time
 
 # This is to be able to test w/ or w/o installing the package
 # https://docs.python-guide.org/writing/structure/
-from .pycontext import spdc
+from .pycontext import fdi
 
 from .logdict import doLogging, logdict
 if doLogging:
@@ -23,11 +23,11 @@ if doLogging:
     logging.getLogger("urllib3").setLevel(logging.WARN)
     logging.getLogger("filelock").setLevel(logging.WARN)
 
-from spdc.pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
-from spdc.pns.options import opt
+from fdi.pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
+from fdi.pns.options import opt
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
-from spdc.pns.pnsconfig import pnsconfig as pc
+from fdi.pns.pnsconfig import pnsconfig as pc
 import sys
 from os.path import expanduser, expandvars
 env = expanduser(expandvars('$HOME'))
@@ -41,21 +41,21 @@ if doLogging:
     logger.setLevel(pc['logginglevel'])
     logger.debug('level %d' % (logger.getEffectiveLevel()))
 
-from spdc.pns import server
-from spdc.dataset.odict import ODict
-from spdc.dataset.serializable import serializeClassID, serializeClassID
-from spdc.dataset.product import Product
-from spdc.dataset.metadata import NumericParameter
-from spdc.dataset.deserialize import deserializeClassID
-from spdc.dataset.dataset import ArrayDataset, GenericDataset
-from spdc.dataset.eq import deepcmp
+from fdi.pns import server
+from fdi.dataset.odict import ODict
+from fdi.dataset.serializable import serializeClassID, serializeClassID
+from fdi.dataset.product import Product
+from fdi.dataset.metadata import NumericParameter
+from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.dataset import ArrayDataset, GenericDataset
+from fdi.dataset.eq import deepcmp
 
 import pytest
 
 
 @pytest.fixture(scope="module")
 def runserver():
-    from spdc.pns.runflaskserver import app
+    from fdi.pns.runflaskserver import app
     app.run(host='127.0.0.1', port=5000,
             threaded=False, debug=verbose, processes=5)
 
@@ -188,7 +188,7 @@ def test_getinit():
     logger.info('get initPTS')
     c = 'init'
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
-    fn = pkg_resources.resource_filename("spdc.pns.resources", n)
+    fn = pkg_resources.resource_filename("fdi.pns.resources", n)
     checkContents(cmd='/' + c, filename=fn + '.ori')
 
 
@@ -198,7 +198,7 @@ def test_getrun():
     logger.info('get run')
     c = 'run'
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
-    fn = pkg_resources.resource_filename("spdc.pns.resources", n)
+    fn = pkg_resources.resource_filename("fdi.pns.resources", n)
     checkContents(cmd='/' + c, filename=fn + '.ori')
 
 

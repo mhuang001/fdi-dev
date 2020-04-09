@@ -1,5 +1,5 @@
 #!/bin/sh
-pyreverse -o png -p dataset+pal spdc/dataset spdc/pal
-pyreverse -o png -p dataset spdc/dataset
-pyreverse -o png -p pal spdc/pal
-pyreverse -o png -p pns spdc/pns
+pyreverse -o png -p dataset+pal fdi/dataset fdi/pal
+pyreverse -o png -p dataset fdi/dataset
+pyreverse -o png -p pal fdi/pal
+pyreverse -o png -p pns fdi/pns

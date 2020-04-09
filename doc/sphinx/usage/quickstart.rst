@@ -1,6 +1,6 @@
 
 ================
-spdc Quick Start
+fdi Quick Start
 ================
 
 .. toctree::

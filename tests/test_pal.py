@@ -23,7 +23,7 @@ if __name__ == '__main__' and __package__ is None:
 else:
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
-    from .pycontext import spdc
+    from .pycontext import fdi
 
     from .logdict import doLogging, logdict
     if doLogging:
@@ -36,18 +36,18 @@ else:
                      (__name__, logger.getEffectiveLevel()))
         logging.getLogger("filelock").setLevel(logging.WARNING)
 
-from spdc.dataset.eq import deepcmp
-from spdc.dataset.product import Product
-from spdc.dataset.deserialize import deserializeClassID
+from fdi.dataset.eq import deepcmp
+from fdi.dataset.product import Product
+from fdi.dataset.deserialize import deserializeClassID
 
-from spdc.pal.urn import Urn, parseUrn, makeUrn
-from spdc.pal.productstorage import ProductStorage
-from spdc.pal.productref import ProductRef
-from spdc.pal.context import Context, MapContext
-from spdc.pal.common import getProductObject
-from spdc.pns.common import trbk
-from spdc.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
-from spdc.pal.mempool import MemPool
+from fdi.pal.urn import Urn, parseUrn, makeUrn
+from fdi.pal.productstorage import ProductStorage
+from fdi.pal.productref import ProductRef
+from fdi.pal.context import Context, MapContext
+from fdi.pal.common import getProductObject
+from fdi.pns.common import trbk
+from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
+from fdi.pal.mempool import MemPool
 
 # from products.QSRCLIST_VT import QSRCLIST_VT
 

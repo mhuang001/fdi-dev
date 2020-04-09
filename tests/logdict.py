@@ -21,7 +21,7 @@ logdict = {
             "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
             "formatter": "full",
-            "filename": "/tmp/spdc.log",
+            "filename": "/tmp/fdi.log",
             "maxBytes": 20000000,
             "backupCount": 3
         }

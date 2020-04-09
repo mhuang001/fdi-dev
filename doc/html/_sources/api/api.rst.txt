@@ -7,7 +7,9 @@ API Reference
    :maxdepth: 2
    :caption: Contents:
 
-   spdc/spdc
+   fdi/fdi.dataset
+   fdi/fdi.pal
+   fdi/fdi.pns
 
 Diagrams
 ========

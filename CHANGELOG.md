@@ -76,3 +76,7 @@ dataset is compatible with python 2.7
 ---------------
 parents for ProductRef, mempool, pal test improvements
 	
+0.12 2020-04-09
+---------------
+rename spdc to fdi
+	

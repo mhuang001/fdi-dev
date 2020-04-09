@@ -1,0 +1,59 @@
+tests package
+=============
+
+.. automodule:: tests
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+tests.logdict module
+--------------------
+
+.. automodule:: tests.logdict
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.outputs module
+--------------------
+
+.. automodule:: tests.outputs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.pycontext module
+----------------------
+
+.. automodule:: tests.pycontext
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.test\_dataset module
+--------------------------
+
+.. automodule:: tests.test_dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.test\_pal module
+----------------------
+
+.. automodule:: tests.test_pal
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.test\_pns module
+----------------------
+
+.. automodule:: tests.test_pns
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

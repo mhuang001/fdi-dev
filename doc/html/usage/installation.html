@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Install SPDC &#8212; spdc v0.8 documentation</title>
+    <title>Install FDI &#8212; fdi v0.8 documentation</title>
     <link rel="stylesheet" href="../_static/aiohttp.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../_static/css/custom.css" />
@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="dataset: Model for Data Container" href="dataset.html" />
-    <link rel="prev" title="Self-describing Portable Dataset Container (SPDC)" href="../index.html" />
+    <link rel="prev" title="Self-describing Portable Dataset Container (FDI)" href="../index.html" />
  
 <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
 
@@ -33,23 +33,23 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="install-spdc">
-<h1>Install SPDC<a class="headerlink" href="#install-spdc" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="install-fdi">
+<h1>Install FDI<a class="headerlink" href="#install-fdi" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <div class="section" id="for-developers">
 <h2>for developers<a class="headerlink" href="#for-developers" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nv">SPDCINSTDIR</span><span class="o">=</span>/tmp   <span class="c1"># change this to your installation dir</span>
-<span class="nb">cd</span> <span class="nv">$SPDCINSTDIR</span>
-git clone ssh://git@mercury.bao.ac.cn:9005/mh/spdc.git
-<span class="nb">cd</span> spdc
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nv">FDIINSTDIR</span><span class="o">=</span>/tmp   <span class="c1"># change this to your installation dir</span>
+<span class="nb">cd</span> <span class="nv">$FDIINSTDIR</span>
+git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git
+<span class="nb">cd</span> fdi
 pip3 install -r requirements.txt
 pip3 install -e .
 </pre></div>
 </div>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mkdir ~/svom
 <span class="nb">cd</span> ~/svom
-cp <span class="nv">$SPDCINSTDIR</span>/spdc/install .
+cp <span class="nv">$FDIINSTDIR</span>/fdi/install .
 nano install <span class="o">[</span><span class="k">do</span> some editing <span class="k">if</span> needed<span class="o">]</span>
 . ./install
 </pre></div>
@@ -58,8 +58,8 @@ nano install <span class="o">[</span><span class="k">do</span> some editing <spa
 <div class="section" id="for-users">
 <h2>for users<a class="headerlink" href="#for-users" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> /tmp
-git clone http://mercury.bao.ac.cn:9006/mh/spdc.git
-<span class="nb">cd</span> spdc
+git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
+<span class="nb">cd</span> fdi
 pip3 install -e .
 </pre></div>
 </div>
@@ -73,7 +73,7 @@ pip3 install -e .
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../index.html">spdc</a></h1>
+<h1 class="logo"><a href="../index.html">fdi</a></h1>
 
 
 
@@ -87,7 +87,7 @@ pip3 install -e .
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Install SPDC</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Install FDI</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#for-developers">for developers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#for-users">for users</a></li>
 </ul>
@@ -95,7 +95,7 @@ pip3 install -e .
 <li class="toctree-l1"><a class="reference internal" href="dataset.html"><strong>dataset</strong>: Model for Data Container</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pal.html"><strong>pal</strong>: Product Access Layer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pns.html"><strong>pns</strong>: Processing Node Server</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">spdc Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">fdi Quick Start</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../api/api.html">API Reference</a></li>
@@ -105,7 +105,7 @@ pip3 install -e .
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="../index.html" title="previous chapter">Self-describing Portable Dataset Container (SPDC)</a></li>
+      <li>Previous: <a href="../index.html" title="previous chapter">Self-describing Portable Dataset Container (FDI)</a></li>
       <li>Next: <a href="dataset.html" title="next chapter"><strong>dataset</strong>: Model for Data Container</a></li>
   </ul></li>
 </ul>

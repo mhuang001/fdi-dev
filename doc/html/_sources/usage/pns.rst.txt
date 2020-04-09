@@ -15,7 +15,7 @@ PNS installed on a Docker container or a normal server allows such processing ta
 
 This Web API Server for a data processing pipeline/network node provides interfaces to configure the data processing task software (PTS) in a processing node, to make a run request, to deliver necessary input data, and to read results, all via web APIs.
 
-The following commands are run from the spdc directory from installation.
+The following commands are run from the fdi directory from installation.
 
 Basic Configuration
 ===================

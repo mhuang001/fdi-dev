@@ -20,7 +20,7 @@ if __name__ == '__main__' and __package__ is None:
 else:
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
-    from .pycontext import spdc
+    from .pycontext import fdi
 
     from .outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
 
@@ -34,23 +34,23 @@ else:
         logger.debug('%s logging level %d' %
                      (__name__, logger.getEffectiveLevel()))
 
-from spdc.dataset.annotatable import Annotatable
-from spdc.dataset.copyable import Copyable
-from spdc.dataset.odict import ODict
-from spdc.dataset.serializable import serializeClassID, SerializableEncoder
-from spdc.dataset.eq import deepcmp
-from spdc.dataset.quantifiable import Quantifiable
-from spdc.dataset.listener import EventSender, DatasetBaseListener
-from spdc.dataset.composite import Composite
-from spdc.dataset.metadata import Parameter, NumericParameter, MetaData
-from spdc.dataset.datawrapper import DataWrapperMapper
-from spdc.dataset.metadataholder import MetaDataHolder
-from spdc.dataset.attributable import Attributable
-from spdc.dataset.abstractcomposite import AbstractComposite
-from spdc.dataset.datawrapper import DataWrapper, DataWrapperMapper
-from spdc.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
-from spdc.dataset.product import FineTime, FineTime1, History, Product, utcobj
-from spdc.dataset.deserialize import deserializeClassID
+from fdi.dataset.annotatable import Annotatable
+from fdi.dataset.copyable import Copyable
+from fdi.dataset.odict import ODict
+from fdi.dataset.serializable import serializeClassID, SerializableEncoder
+from fdi.dataset.eq import deepcmp
+from fdi.dataset.quantifiable import Quantifiable
+from fdi.dataset.listener import EventSender, DatasetBaseListener
+from fdi.dataset.composite import Composite
+from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
+from fdi.dataset.datawrapper import DataWrapperMapper
+from fdi.dataset.metadataholder import MetaDataHolder
+from fdi.dataset.attributable import Attributable
+from fdi.dataset.abstractcomposite import AbstractComposite
+from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
+from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
+from fdi.dataset.product import FineTime, FineTime1, History, Product, utcobj
+from fdi.dataset.deserialize import deserializeClassID
 
 
 def checkjson(obj):
@@ -1078,19 +1078,19 @@ def demo_CompositeDataset():
     assert c.size() == 3
 
     # print(information about this variable ...
-    # <class 'spdc.dataset.dataset.CompositeDataset'>
+    # <class 'fdi.dataset.dataset.CompositeDataset'>
     # {meta = "MetaData[]", _sets = ['MyArray', 'MyTable', 'MyComposite']}
     print(c.__class__)
     print(c)
 
     # ... print(information about child "MyComposite", and ...
-    # <class 'spdc.dataset.dataset.CompositeDataset'>
+    # <class 'fdi.dataset.dataset.CompositeDataset'>
     # {meta = "MetaData[]", _sets = ['Child1', 'Child2']}
     print(c["MyComposite"].__class__)
     print(c["MyComposite"])
 
     # ... that of a nested child ...
-    # <class 'spdc.dataset.dataset.CompositeDataset'>
+    # <class 'fdi.dataset.dataset.CompositeDataset'>
     # {meta = "MetaData[]", _sets = []}
     print(c["MyComposite"]["Child1"].__class__)
     print(c["MyComposite"]["Child1"])
@@ -1100,7 +1100,7 @@ def demo_CompositeDataset():
     print(c.get("MyComposite").get("Child1"))
 
     # or alternatively:
-    # <class 'spdc.dataset.dataset.CompositeDataset'>
+    # <class 'fdi.dataset.dataset.CompositeDataset'>
     # {meta = "MetaData[]", _sets = ['Child1', 'Child2']}
     child = c["MyComposite"]
     print(child.__class__)

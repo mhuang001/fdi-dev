@@ -3,7 +3,7 @@
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-# logger.debug('level %d' %  (logger.getEffectiveLevel()))
+#logger.debug('level %d' % (logger.getEffectiveLevel()))
 
 from ..dataset.odict import ODict
 from ..dataset.product import Product

@@ -1,4 +1,3 @@
-doLogging = True
 logdict = {
     "version": 1,
     "formatters": {
@@ -12,7 +11,7 @@ logdict = {
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
+            "level": "INFO",
             "class": "logging.StreamHandler",
             "formatter": "full",
             "stream": "ext://sys.stdout"
@@ -28,13 +27,13 @@ logdict = {
     },
     "loggers": {
         "": {
-            "level": "DEBUG",
+            "level": "INFO",
             "handlers": ["console", "file"],
             "propagate": False
         }
     },
     "root": {
-        "level": "DEBUG",
+        "level": "INFO",
         "handlers": ["console", "file"],
     },
     'disable_existing_loggers': False

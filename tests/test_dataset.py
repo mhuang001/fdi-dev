@@ -24,15 +24,14 @@ else:
 
     from .outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
 
-    from .logdict import doLogging, logdict
-    if doLogging:
-        import logging
-        import logging.config
-        # create logger
-        logging.config.dictConfig(logdict)
-        logger = logging.getLogger()
-        logger.debug('%s logging level %d' %
-                     (__name__, logger.getEffectiveLevel()))
+    from .logdict import logdict
+    import logging
+    import logging.config
+    # create logger
+    logging.config.dictConfig(logdict)
+    logger = logging.getLogger()
+    logger.debug('%s logging level %d' %
+                 (__name__, logger.getEffectiveLevel()))
 
 from fdi.dataset.annotatable import Annotatable
 from fdi.dataset.copyable import Copyable
@@ -49,7 +48,8 @@ from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
-from fdi.dataset.product import FineTime, FineTime1, History, Product, utcobj
+from fdi.dataset.finetime import FineTime, FineTime1, utcobj
+from fdi.dataset.product import History, Product
 from fdi.dataset.deserialize import deserializeClassID
 
 
@@ -1130,11 +1130,11 @@ def test_FineTime1():
     # So that timezone won't show on the left below
     d = dt.replace(tzinfo=None)
     assert d.isoformat() + ' TAI' == '2019-02-19T01:02:03.456789 TAI'
-
+    # add 1min 1.1sec
     v2 = FineTime1(datetime.datetime(
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=utcobj))
     assert v != v2
-    assert abs(v2.subtract(v) - 61100000) < 0.5
+    assert abs(v2.subtract(v) - 61100) < 0.5
     checkjson(v)
     checkgeneral(v)
 

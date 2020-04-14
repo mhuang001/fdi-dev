@@ -27,7 +27,8 @@ def makedesables():
     """ makes a class dictionary for instanciation.
     """
     from fdi.dataset.deserialize import deserializeClassID
-    from fdi.dataset.product import Product, FineTime, FineTime1, History
+    from fdi.dataset.finetime import FineTime, FineTime1, utcobj
+    from fdi.dataset.product import History, Product
     from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
     from fdi.dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
     try:

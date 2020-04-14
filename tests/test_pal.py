@@ -25,16 +25,15 @@ else:
     # https://docs.python-guide.org/writing/structure/
     from .pycontext import fdi
 
-    from .logdict import doLogging, logdict
-    if doLogging:
-        import logging
-        import logging.config
-        # create logger
-        logging.config.dictConfig(logdict)
-        logger = logging.getLogger()
-        logger.debug('%s logging level %d' %
-                     (__name__, logger.getEffectiveLevel()))
-        logging.getLogger("filelock").setLevel(logging.WARNING)
+    from .logdict import logdict
+    import logging
+    import logging.config
+    # create logger
+    logging.config.dictConfig(logdict)
+    logger = logging.getLogger()
+    logger.debug('%s logging level %d' %
+                 (__name__, logger.getEffectiveLevel()))
+    logging.getLogger("filelock").setLevel(logging.WARNING)
 
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.product import Product
@@ -547,12 +546,21 @@ def test_MapContext():
     assert newp == x
 
     # realistic scenario
+
+
+def test_realistic():
+    # remove existing pools in memory
+    PoolManager().removeAll()
+    poolname = 'file:///tmp/realpool'
+    pstore = ProductStorage(pool=poolname)  # on disk
+    # clean up possible garbage of previous runs
+    pstore.wipePool(poolname)
+
     p1 = Product(description='p1')
     p2 = Product(description='p2')
     map1 = MapContext(description='real map1')
     pref1 = ProductRef(p1)  # in memory
-    pstore = ProductStorage()
-    pref2 = pstore.save(p1)  # on disk
+    pref2 = pstore.save(p2)  # on disk
     assert map1['refs'].size() == 0  # do not use len() due to classID
     assert len(pref1.parents) == 0
     assert len(pref2.parents) == 0

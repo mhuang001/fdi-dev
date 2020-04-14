@@ -18,13 +18,12 @@ from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
 import filelock
 
-from ..pns.logdict import logdict
+#from .logdict import logdict
 # '/var/log/pns-server.log'
-logdict['handlers']['file']['filename'] = '/tmp/server.log'
+#logdict['handlers']['file']['filename'] = '/tmp/server.log'
 import logging
-import logging.config
+#import logging.config
 # create logger
-logging.config.dictConfig(logdict)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARN)
 import sys
@@ -35,7 +34,7 @@ else:
 logging.getLogger("filelock").setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-from ..pns.pnsconfig import pnsconfig as pc
+from .pnsconfig import pnsconfig as pc
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
 import sys
@@ -51,7 +50,7 @@ except Exception as e:
         e) + '. Use default config in pns/pnsconfig.py. Copy it to ~/local.py and make persistent customization there.')
     pass
 
-logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
+#logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
 
 from ..dataset.metadata import Parameter, NumericParameter, MetaData
 from ..dataset.product import Product, FineTime1, History

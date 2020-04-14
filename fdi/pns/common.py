@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
-import errno
-from pprint import pprint, pformat
 import json
 import traceback
 
@@ -23,11 +20,10 @@ else:
     from urllib2 import HTTPError
     from httplib import HTTPConnection
 
-from ..pns.logdict import logdict
 import logging
 logger = logging.getLogger(__name__)
 logger.debug('level %d' % (logger.getEffectiveLevel()))
-
+print('XXXXXlevel %d' % (logger.getEffectiveLevel()))
 
 if 0:
     print(logger.propagate)

@@ -12,21 +12,25 @@ import time
 # https://docs.python-guide.org/writing/structure/
 from .pycontext import fdi
 
-from .logdict import doLogging, logdict
-if doLogging:
-    import logging
-    import logging.config
-    # create logger
-    logging.config.dictConfig(logdict)
-    logger = logging.getLogger()
-    logging.getLogger("requests").setLevel(logging.WARN)
-    logging.getLogger("urllib3").setLevel(logging.WARN)
-    logging.getLogger("filelock").setLevel(logging.WARN)
+from .logdict import logdict
+import logging
+import logging.config
+# create logger
+logging.config.dictConfig(logdict)
+logger = logging.getLogger()
+logging.getLogger("requests").setLevel(logging.WARN)
+logging.getLogger("urllib3").setLevel(logging.WARN)
+logging.getLogger("filelock").setLevel(logging.WARN)
+logger.setLevel(logging.INFO)
+print('level %d' % (logger.getEffectiveLevel()))
 
 from fdi.pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.pns.options import opt
 
-# default configuration is provided. Copy pnsconfig.py to ~/local.py
+# default configuration is read and can be superceded
+# by ~/local.py, which is also used by the local test server
+# run by scrupt startserver.
+
 from fdi.pns.pnsconfig import pnsconfig as pc
 import sys
 from os.path import expanduser, expandvars
@@ -37,9 +41,6 @@ try:
 except Exception:
     pass
 
-if doLogging:
-    logger.setLevel(pc['logginglevel'])
-    logger.debug('level %d' % (logger.getEffectiveLevel()))
 
 from fdi.pns import server
 from fdi.dataset.odict import ODict
@@ -50,16 +51,16 @@ from fdi.dataset.deserialize import deserializeClassID
 from fdi.dataset.dataset import ArrayDataset, GenericDataset
 from fdi.dataset.eq import deepcmp
 
-import pytest
+if 0:
+    import pytest
 
+    #@pytest.fixture(scope="module")
+    def runserver():
+        from fdi.pns.runflaskserver import app
+        app.run(host='127.0.0.1', port=5000,
+                threaded=False, debug=verbose, processes=5)
 
-@pytest.fixture(scope="module")
-def runserver():
-    from fdi.pns.runflaskserver import app
-    app.run(host='127.0.0.1', port=5000,
-            threaded=False, debug=verbose, processes=5)
-
-    return smtplib.SMTP("smtp.gmail.com", 587, timeout=5)
+        return smtplib.SMTP("smtp.gmail.com", 587, timeout=5)
 
 
 testname = 'SVOM'
@@ -93,10 +94,14 @@ def checkserver():
     """
     global testpns
     # check if data already exists
-    o = getJsonObj(aburl + '/')
-    assert o is not None, 'Cannot connect to the server'
-    logger.info('initial server response %s' % (str(o)[:100] + '...'))
-    # assert 'result' is not None, 'please start the server to refresh.'
+    try:
+        o = getJsonObj(aburl + '/')
+    except Exception:
+        o = 1
+    assert o is not None, 'Cannot connect to the server' +\
+        'please start the server with script startserver.'
+
+    logger.debug('initial server response %s' % (str(o)[:100] + '...'))
     # initialize test data.
 
 
@@ -118,7 +123,8 @@ def check0result(result, msg):
 def test_getpnsconfig():
     ''' gets and compares pnsconfig remote and local
     '''
-    logger.info('get pnsconfig')
+    logger.debug('get pnsconfig')
+    checkserver()
     o = getJsonObj(aburl + '/pnsconfig')
     issane(o)
     r = o['result']
@@ -185,7 +191,7 @@ def test_puttestinit():
 def test_getinit():
     ''' compare. server side initPTS contens with the local  default copy
     '''
-    logger.info('get initPTS')
+    logger.debug('get initPTS')
     c = 'init'
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
     fn = pkg_resources.resource_filename("fdi.pns.resources", n)
@@ -195,7 +201,7 @@ def test_getinit():
 def test_getrun():
     ''' compare. server side run contens with the local default copy
     '''
-    logger.info('get run')
+    logger.debug('get run')
     c = 'run'
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
     fn = pkg_resources.resource_filename("fdi.pns.resources", n)
@@ -267,7 +273,7 @@ def test_post():
     ''' send a set of data to the server and get back a product with
     properties, parameters, and dataset containing those in the input
     '''
-    logger.info('POST testpipeline node server')
+    logger.debug('POST testpipeline node server')
 
     nodetestinput = makeposttestdata()
     # print(nodetestinput)
@@ -309,7 +315,7 @@ def test_servertestrun():
     test, and get back a product with
     a string 'hello, $name!' as its data
     '''
-    logger.info('POST test for pipeline node server "testrun": hello')
+    logger.debug('POST test for pipeline node server "testrun": hello')
 
     test_servertestinit()
 
@@ -329,7 +335,7 @@ def test_testrun():
     to the server and get back a product with
     a string 'hello, $name!' as its data
     '''
-    logger.info('POST test for pipeline node server: hello')
+    logger.debug('POST test for pipeline node server: hello')
 
     test_puttestinit()
 
@@ -349,7 +355,7 @@ def test_testrun():
 def test_deleteclean():
     ''' make input and output dirs and see if DELETE removes them.
     '''
-    logger.info('delete cleanPTS')
+    logger.debug('delete cleanPTS')
     # make sure input and output dirs are made
     test_testrun()
     o = getJsonObj(aburl + '/input')
@@ -380,7 +386,7 @@ def test_deleteclean():
 def test_mirror():
     ''' send a set of data to the server and get back the same.
     '''
-    logger.info('POST testpipeline node server')
+    logger.debug('POST testpipeline node server')
     nodetestinput = makeposttestdata()
     # print(nodetestinput)
     o = postJsonObj(aburl +
@@ -538,7 +544,7 @@ if __name__ == '__main__':
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
-    logger.info('logging level %d' % (logger.getEffectiveLevel()))
+    logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
     t = 8
 

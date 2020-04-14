@@ -6,6 +6,7 @@
 *~
 .*~
 *.class
+*.stackdump
 doctrees
 __pycache__
 *.log

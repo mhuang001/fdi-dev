@@ -59,7 +59,10 @@ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Con
 
 
 def applyrules(key, ref, rules):
+    """
+    """
     return False
+    return key not in rules['inputs']
 
 
 # class RefContainer(Composite, Serializable):
@@ -91,7 +94,7 @@ class RefContainer(Serializable, ODict):  # XXXXXXXX order
         if hasattr(self, '_owner'):
             if hasattr(self._owner, '_rule'):
                 if applyrules(key, ref, self._owner.getRule()):
-                    raise NotImplementedError()
+                    raise ConnectionAbortedError()
             from .productref import ProductRef
             if isinstance(ref, ProductRef):
                 ref.addParent(self._owner)
@@ -135,6 +138,10 @@ class RefContainer(Serializable, ODict):  # XXXXXXXX order
         return ODict(  # _sets=self._sets,
             classID=self.classID,
             version=self.version)
+
+
+class ContextRuleException(ValueError):
+    pass
 
 
 class MapContext(Context):

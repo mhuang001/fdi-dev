@@ -402,7 +402,7 @@ def test_ProductStorage():
     # from tags
 
     # removal by reference urn
-    #print(ref2[n - 2].urn)
+    # print(ref2[n - 2].urn)
     ps.remove(ref2[n - 2].urn)
     # files are less
     # DB shows less in record
@@ -465,16 +465,16 @@ def test_MapContext():
     c2 = MapContext()
     # syntax 2  # put == set
     c2.refs.set("x", ProductRef(image))
-    ####assert c1 == c2, deepcmp(c1, c2)
+    # assert c1 == c2, deepcmp(c1, c2)
     c3 = MapContext()
     # syntax 3 # refs is a composite so set/get = []
     c3.refs["x"] = ProductRef(image)
-    ####assert c3 == c2
+    # assert c3 == c2
     assert c3.refs['x'].product.description == 'hi'
     c4 = MapContext()
     # syntax 4. refs is a member in a composite (Context) so set/get = []
     c4['refs']["x"] = ProductRef(image)
-    ####assert c3 == c4
+    # assert c3 == c4
     assert c4['refs']['x'].product.description == 'hi'
 
     # stored prod
@@ -518,7 +518,7 @@ def test_MapContext():
 
     des = checkjson(mc)
     # print(type(des['refs']))
-    #print('&&&&&& ' + des.refs.serialized(indent=4) + ' %%%%%%')
+    # print('&&&&&& ' + des.refs.serialized(indent=4) + ' %%%%%%')
     # print(yaml.dump(des))
 
     newx = des['refs']['xprod'].product
@@ -579,12 +579,52 @@ def test_MapContext():
     assert pref2.parents[1] == map2
 
 
+import timeit
+import random
+import itertools
+from fdi.dataset.dataset import ArrayDataset
+
+
+def f(n):
+    return list(itertools.repeat(random.random(), n))
+
+
+def rands(n):
+    return [random.random() for i in range(n)]
+
+
+def h(n):
+    return [random.random()] * n
+
+
+def speed():
+    m = 10000
+    print(timeit.timeit('[func(%d) for func in (rands,)]' % m,
+                        globals=globals(), number=1))
+    a = ArrayDataset(rands(m))
+    p = Product(description="product example",
+                instrument="Favourite", modelName="Flight")
+    p['array'] = a
+    PoolManager().removeAll()
+    # create a product store
+    pool = 'file:///tmp/perf'
+    pstore = ProductStorage(pool)
+    # clean up possible garbage of previous runs
+    pstore.wipePool(pool)
+    # in memory
+    print(timeit.timeit('ref1 = ProductRef(p)',
+                        globals=globals().update(locals()), number=1))
+    pref2 = pstore.save(p)  # on disk
+
+
 def running(t):
     print('running ' + str(t))
     t()
 
 
 if __name__ == '__main__' and __package__ is None:
+    speed()
+    exit()
     running(test_ProductRef)
     running(test_ProductRef)
     running(test_MapContext)

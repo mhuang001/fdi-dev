@@ -36,7 +36,7 @@ def makedesables():
         logger.info(str(e))
         pass
 
-    from fdi.pal.context import MapContext, RefContainer
+    from fdi.pal.context import MapContext, RefContainer, ContextRuleException
     from fdi.pal.urn import Urn
     from fdi.pal.productref import ProductRef
 

@@ -1,4 +1,19 @@
 # -*- coding: utf-8 -*-
+import asyncio
+import aiohttp
+from multiprocessing import Process, Pool, TimeoutError
+from fdi.dataset.eq import deepcmp
+from fdi.dataset.dataset import ArrayDataset, GenericDataset
+from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.metadata import NumericParameter
+from fdi.dataset.product import Product
+from fdi.dataset.serializable import serializeClassID, serializeClassID
+from fdi.dataset.odict import ODict
+from fdi.pns import server
+from os.path import expanduser, expandvars
+from fdi.pns.pnsconfig import pnsconfig as pc
+from fdi.pns.options import opt
+from fdi.pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
 import sys
 import base64
 from urllib.request import pathname2url
@@ -24,16 +39,11 @@ logging.getLogger("filelock").setLevel(logging.WARN)
 logger.setLevel(logging.INFO)
 print('level %d' % (logger.getEffectiveLevel()))
 
-from fdi.pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
-from fdi.pns.options import opt
 
 # default configuration is read and can be superceded
 # by ~/local.py, which is also used by the local test server
 # run by scrupt startserver.
 
-from fdi.pns.pnsconfig import pnsconfig as pc
-import sys
-from os.path import expanduser, expandvars
 env = expanduser(expandvars('$HOME'))
 sys.path.insert(0, env)
 try:
@@ -42,19 +52,10 @@ except Exception:
     pass
 
 
-from fdi.pns import server
-from fdi.dataset.odict import ODict
-from fdi.dataset.serializable import serializeClassID, serializeClassID
-from fdi.dataset.product import Product
-from fdi.dataset.metadata import NumericParameter
-from fdi.dataset.deserialize import deserializeClassID
-from fdi.dataset.dataset import ArrayDataset, GenericDataset
-from fdi.dataset.eq import deepcmp
-
 if 0:
     import pytest
 
-    #@pytest.fixture(scope="module")
+    # @pytest.fixture(scope="module")
     def runserver():
         from fdi.pns.runflaskserver import app
         app.run(host='127.0.0.1', port=5000,
@@ -258,7 +259,7 @@ def checkpostresult(o, nodetestinput):
     assert issubclass(p.__class__, Product), (p.__class__)
     # creator rootcause
     # print('p.toString()' + p.toString())
-    assert p.meta['creator'] == nodetestinput['creator']
+    assert p.meta['creator'].value == nodetestinput['creator']
     assert p.rootCause == nodetestinput['rootcause']
     # input data
     input = nodetestinput['input']
@@ -301,7 +302,7 @@ def checkrunresult(p, msg, nodetestinput):
 
     # creator rootcause
     # print('p.toString()' + p.toString())
-    assert p.meta['creator'] == nodetestinput['creator']
+    assert p.meta['creator'].value == nodetestinput['creator']
     assert p.rootCause == nodetestinput['rootcause']
     # input data
     input = nodetestinput['input']
@@ -453,9 +454,6 @@ def test_sleep():
     #print('deviation=%f re=%s state=%s' % (d, str(re), str(st)))
 
 
-from multiprocessing import Process, Pool, TimeoutError
-
-
 def info(title):
     print(title)
     print('module name:' + __name__)
@@ -477,10 +475,6 @@ def nap(t, d):
                     )
     # print('nap ' + str(time.time()) + ' ' + str(s) + ' ' + str(o)
     return o
-
-
-import aiohttp
-import asyncio
 
 
 async def napa(t, d):
@@ -579,3 +573,5 @@ if __name__ == '__main__':
         test_vvpp()
 
     print('test successful ' + str(time.time() - now))
+
+    # pdb.set_trace()

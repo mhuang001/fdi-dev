@@ -1,15 +1,8 @@
+
+#!flask/bin/python
 # -*- coding: utf-8 -*-
 
-from .common import trbk
-from ..dataset.deserialize import deserializeClassID
-from ..dataset.serializable import serializeClassID
-from ..dataset.dataset import GenericDataset, ArrayDataset, TableDataset
-from ..dataset.product import Product
-from ..dataset.finetime import FineTime1
-from ..dataset.baseproduct import History
-from os.path import expanduser, expandvars
-from .pnsconfig import pnsconfig as pc
-
+from pprint import pformat
 import datetime
 import time
 import sys
@@ -25,14 +18,16 @@ from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
 import filelock
 
-#from .logdict import logdict
+from spdc.pns.logdict import logdict
 # '/var/log/pns-server.log'
-#logdict['handlers']['file']['filename'] = '/tmp/server.log'
+logdict['handlers']['file']['filename'] = '/tmp/server.log'
 import logging
-#import logging.config
+import logging.config
 # create logger
+logging.config.dictConfig(logdict)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARN)
+import sys
 if sys.version_info[0] > 2:
     logging.getLogger("urllib3").setLevel(logging.WARN)
 else:
@@ -40,21 +35,32 @@ else:
 logging.getLogger("filelock").setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
+from spdc.pns.pnsconfig import pnsconfig as pc
 
-# default configuration is provided. Copy pnsconfig.py to ~/local.py
+# default configuration is provided. Copy pnsconfig.py to ~/pnspoolconfig.py
+import sys
+from os.path import expanduser, expandvars
 env = expanduser(expandvars('$HOME'))
 # apache wsgi will return '$HOME' with no expansion
 env = '/root' if env == '$HOME' else env
 sys.path.insert(0, env)
 try:
-    from local import pnsconfig as pc
+    from pnspoolconfig import pnspoolconfig as pc
 except Exception as e:
     logger.warn(str(
         e) + '. Use default config in pns/pnsconfig.py. Copy it to ~/local.py and make persistent customization there.')
     pass
 
-#logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
+logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
 
+from spdc.dataset.metadata import Parameter, NumericParameter, MetaData
+from spdc.dataset.product import Product, FineTime1, History
+from spdc.dataset.dataset import GenericDataset, ArrayDataset, TableDataset
+from spdc.dataset.serializable import serializeClassID
+from spdc.dataset.deserialize import deserializeClassID
+from spdc.pal.productref import ProductRef
+from spdc.pal.urn import Urn
+from .common import trbk
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
@@ -373,7 +379,7 @@ def run(d, processinput=None, processoutput=None):
         else:
             r1 = {'contents': indata['input'].toString(),
                   'mode': 'w+'}
-            p = indata['input'].meta['pointing'].value.components
+            p = indata['input'].meta['pointing'].value
             r2 = {'contents': str(p[0]) + ' ' + str(p[1]),
                   'mode': 'w+'}
             data = {pc['paths']['inputfiles'][0]: r1,
@@ -601,7 +607,7 @@ def setup(cmd, ops=''):
     with lock:
         if cmd == 'init':
             try:
-                result, msg = initPTS(d)
+                result, msg = initPool(d)
             except Exception as e:
                 msg = str(e) + trbk(e)
                 logger.error(msg)

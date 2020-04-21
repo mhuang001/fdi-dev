@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
 import traceback
-
+import pdb
+# pdb.set_trace()
 # HTTPConnection.debuglevel = 1
 
 
@@ -23,7 +24,7 @@ else:
 import logging
 logger = logging.getLogger(__name__)
 logger.debug('level %d' % (logger.getEffectiveLevel()))
-print('XXXXXlevel %d' % (logger.getEffectiveLevel()))
+#print('level %d' % (logger.getEffectiveLevel()))
 
 if 0:
     print(logger.propagate)

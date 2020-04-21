@@ -1,32 +1,56 @@
 # -*- coding: utf-8 -*-
+
+from numbers import Number
+
+from .serializable import Serializable
+from .odict import ODict
+from .composite import Composite
+from .listener import DatasetEventSender, ParameterListener, DatasetListener, DatasetEvent, EventType
+from .quantifiable import Quantifiable
+from .eq import DeepEqual
+from .copyable import Copyable
+from .annotatable import Annotatable
+from .datatypes import Vector, Quaternion
+from .finetime import FineTime1
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from .annotatable import Annotatable
-from .copyable import Copyable
-from .eq import DeepEqual
-from .quantifiable import Quantifiable
-from .listener import DatasetEventSender, ParameterListener, DatasetListener, DatasetEvent, EventType
-from .composite import Composite
-from .odict import ODict
-from .serializable import Serializable
+# Allowed Parameter types and the corresponding classes
+ParameterTypes = {
+    'integer': int,
+    'hex': int,
+    'float': float,
+    'string': str,
+    'finetime1': FineTime1,
+    'vector': Vector,
+    'quaternion': Quaternion,
+    '': None
+}
+
+rev = dict(zip(ParameterTypes.values(), ParameterTypes.keys()))
 
 
 class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializable):
     """ Parameter is the interface for all named attributes
     in the MetaData container. It can have a value and a description."""
 
-    def __init__(self, value=None, type_='', **kwds):
+    def __init__(self, value=None, description='UNKNOWN', type_='', **kwds):
         """ invoked with no argument results in a parameter of
-        None value and 'UNKNOWN' description.
-        With a signle argument: arg -> value, 'UNKNOWN'-> description.
-        With two positional arguments: arg1 -> value, arg2-> description.
+        None value and 'UNKNOWN' description ''. type_ ParameterTypes[''], which is None.
+        With a signle argument: arg -> value, 'UNKNOWN'-> description. ParameterTypes-> type_, hex values have integer type_.
+        Unsuported parameter types will get a NotImplementedError.
+        With two positional arguments: arg1-> value, arg2-> description. ParameterTypes['']-> type_.
+        Unsuported parameter types will get a NotImplementedError.
+        With three positional arguments: arg1 casted to ParameterTypes[arg3]-> value, arg2-> description. arg3-> type_.
+        Unsuported parameter types will get a NotImplementedError.
+        Incompatible value and type_ will get a TypeError.
         """
-        super(Parameter, self).__init__(**kwds)
-        self.setValue(value)
+        super(Parameter, self).__init__(description=description, **kwds)
+
         self.setType(type_)
+        self.setValue(value)
 
     def accept(self, visitor):
         """ Adds functionality to classes of this type."""
@@ -47,11 +71,18 @@ class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializab
     def getType(self):
         """ Returns the actual type that is allowed for the value
         of this Parameter."""
-        return self._type_
+        return self._type
 
     def setType(self, type_):
-        """ Replaces the current type of this parameter. """
-        self._type_ = type_
+        """ Replaces the current type of this parameter.
+        Unsuported parameter types will get a NotImplementedError.
+        """
+        if type_ in ParameterTypes:
+            self._type = type_
+        else:
+            raise NotImplementedError(
+                'Parameter type %s is not in %s.' %
+                (type_, str([''.join(x) for x in ParameterTypes.keys()])))
 
     @property
     def value(self):
@@ -70,8 +101,37 @@ class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializab
         return self._value
 
     def setValue(self, value):
-        """ Replaces the current value of this parameter. """
-        self._value = value
+        """ Replaces the current value of this parameter. 
+        If given/current type_ is '' and arg value's type is in ParameterTypes both value and type are updated; or else TypeError is raised.
+        If value type and given/current type_ are different, if both are Numbers.Number,
+        value is casted into given type_.
+            Incompatible value and type_ will get a TypeError.
+        """
+        t = type(value)
+
+        if self._type == '':
+            if value is None:
+                self._value = value
+                return
+            else:
+                if t in ParameterTypes.values():
+                    self._value = value
+                    self._type = [name for name,
+                                  ty in ParameterTypes.items() if ty == t][0]
+                    return
+                else:
+                    raise TypeError('Value type %s is not in %s.' %
+                                    (t.__name__, str([''.join(x) for x in ParameterTypes.keys()])))
+        tt = ParameterTypes[self._type]
+        if t == tt:
+            self._value = value
+        elif issubclass(t, Number) and issubclass(tt, Number):
+            self._value = tt(value)
+            #self._type = tt.__name__
+        else:
+            vs = hex(value) if self._type == 'hex' else str(value)
+            raise TypeError('Value %s type is %s, not %s.' %
+                            (vs, t.__name__, self.type_))
 
     def __setattr__(self, name, value):
         """ add eventhandling """
@@ -95,9 +155,10 @@ class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializab
             self.fire(e)
 
     def __repr__(self):
+        vs = hex(self._value) if self._type == 'hex' else str(self._value)
         return self.__class__.__name__ +\
             '{ description = "%s", value = %s, type = %s}' %\
-            (str(self.description), str(self.value), str(self.getType()))
+            (str(self.description), vs, str(self._type))
 
     def toString(self):
         return self.__str__()
@@ -134,6 +195,27 @@ class NumericParameter(Parameter, Quantifiable):
                      version=self.version)
 
 
+class StringParameter(Parameter):
+    """ has a unicode string as the value.
+    """
+
+    def __init__(self, **kwds):
+        super(StringParameter, self).__init__(**kwds)
+
+    def __repr__(self):
+        return self.__class__.__name__ + \
+            '{ description = "%s", value = "%s", type = "%s"}' %\
+            (str(self.description), str(self.value), str(self.getType()))
+
+    def serializable(self):
+        """ Can be encoded with serializableEncoder """
+        return ODict(description=self.description,
+                     value=self.value,
+                     type_=self.type_,
+                     classID=self.classID,
+                     version=self.version)
+
+
 class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEventSender):
     """ A container of named Parameters. A MetaData object can
     have one or more parameters, each of them stored against a
@@ -145,11 +227,11 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
 
     def __init__(self, copy=None, **kwds):
         super(MetaData, self).__init__(**kwds)
-        if copy is None:
-            return
-        else:
+        if copy:
             # not implemented ref https://stackoverflow.com/questions/10640642/is-there-a-decent-way-of-creating-a-copy-constructor-in-python
             logger.error('use copy.copy() insteadof MetaData(copy)')
+        else:
+            return
 
     def accept(self, visitor):
         """ Hook for adding functionality to meta data object
@@ -161,7 +243,12 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         self.getDataWrappers().clear()
 
     def set(self, name, newParameter):
-        """ add eventhandling """
+        """ Saves the parameter and  add eventhandling.
+        Raises TypeError if not given Parameter (sub) class object.
+        """
+        if not issubclass(newParameter.__class__, Parameter):
+            raise TypeError('Only Parameters can be saved.')
+
         super(MetaData, self).set(name, newParameter)
 
         if 'listeners' in self.__dict__:
@@ -186,7 +273,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
                 (name), None, None  # generic initial vals
             ty = EventType.PARAMETER_REMOVED
             ch = (name, r)
-            #raise ValueError('Attempt to remove non-existant parameter "%s"' % (name))
+            # raise ValueError('Attempt to remove non-existant parameter "%s"' % (name))
             e = DatasetEvent(source=so, target=ta, type_=ty,
                              change=ch, cause=ca, rootCause=ro)
             self.fire(e)
@@ -204,7 +291,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         # print(self.listeners)
-        #print([id(o) for o in self.listeners])
+        # print([id(o) for o in self.listeners])
 
         return ODict(_sets=self._sets,
                      listeners=self.listeners,

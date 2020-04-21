@@ -2,9 +2,6 @@
 
 from .serializable import Serializable
 from .eq import DeepEqual
-from ..pal.urn import Urn
-from ..pal.common import getProductObject
-from ..pns import common as psnc
 
 import logging
 # create logger
@@ -12,7 +9,14 @@ logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-#from dataset.metadata import Parameter
+def trbk(e):
+    """ trace back 
+    """
+    ls = [x for x in traceback.extract_tb(e.__traceback__).format()] if hasattr(
+        e, '__traceback__') else ['']
+    return ' '.join(ls) + ' ' + \
+        (e.child_traceback if hasattr(e, 'child_traceback') else '')
+
 
 class EventListener(object):
     """ Generic interface for listeners that will listen to anything
@@ -143,7 +147,7 @@ class EventSender(object):
                 n += 1
         except Exception as e:
             logger.error('listener ' + str(n) +
-                         ' got exception: ' + str(e) + ' ' + psnc.trbk(e))
+                         ' got exception: ' + str(e) + ' ' + trbk(e))
 
     def getListenerCount(self):
         return len(self._listeners)

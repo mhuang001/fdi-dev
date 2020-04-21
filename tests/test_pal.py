@@ -641,3 +641,4 @@ if __name__ == '__main__' and __package__ is None:
     running(test_PoolManager)
     running(test_ProductStorage)
     running(test_Context)
+    # pdb.set_trace()

@@ -33,6 +33,14 @@ fdi.dataset.attributable module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.baseproduct module
+------------------------------
+
+.. automodule:: fdi.dataset.baseproduct
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.collectionsMockUp module
 ------------------------------------
 
@@ -65,6 +73,14 @@ fdi.dataset.dataset module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.datatypes module
+----------------------------
+
+.. automodule:: fdi.dataset.datatypes
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.datawrapper module
 ------------------------------
 
@@ -85,6 +101,14 @@ fdi.dataset.eq module
 ---------------------
 
 .. automodule:: fdi.dataset.eq
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.finetime module
+---------------------------
+
+.. automodule:: fdi.dataset.finetime
    :members:
    :undoc-members:
    :show-inheritance:
@@ -149,6 +173,14 @@ fdi.dataset.serializable module
 -------------------------------
 
 .. automodule:: fdi.dataset.serializable
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.yaml2python module
+------------------------------
+
+.. automodule:: fdi.dataset.yaml2python
    :members:
    :undoc-members:
    :show-inheritance:

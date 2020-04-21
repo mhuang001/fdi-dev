@@ -118,6 +118,7 @@ class GenericDataset(Dataset, DataContainer, Container):
 
 class ArrayDataset(DataWrapper, GenericDataset, Sequence):
     """  Special dataset that contains a single Array Data object.
+    mh: If omit the parameter names during instanciation, e.g. ArrayDataset(a, b, c), the assumed order is data, unit, description.
     mh:  contains a sequence which provides methods count(), index(), remove(), reverse().
     A mutable sequence would also need append(), extend(), insert(), pop() and sort().
     """

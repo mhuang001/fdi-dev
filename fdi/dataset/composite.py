@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
+from .odict import ODict
+from .eq import DeepEqual
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from .eq import DeepEqual
-from .odict import ODict
 # from .listener import DatasetEventSender, DatasetListener
 # from .metadata import DataWrapperMapper
 
@@ -77,7 +77,7 @@ class Composite(DeepEqual):
         mh: returns None if name is None or item does not exist.
         """
         if name == '' or name is None or name not in self._sets:
-            logger.info('Cannot remove non-exist item \'' + name + "'")
+            logger.debug('Cannot remove non-exist item \'' + name + "'")
             return None
         return self._sets.pop(name)
 

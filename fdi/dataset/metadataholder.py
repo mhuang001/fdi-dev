@@ -22,3 +22,10 @@ class MetaDataHolder(object):
         Cannot become a python property because setMeta is in Attributable
         """
         return self._meta
+
+    def hasMeta(self):
+        """ whether the metadata holder is present.
+        During initialization subclass of MetaDataHolder may need to know if the metadata holder has been put in place with is method.
+        """
+
+        return hasattr(self, '_meta')

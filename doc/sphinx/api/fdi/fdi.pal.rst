@@ -10,6 +10,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    fdi.pal.resources
 
@@ -48,6 +49,14 @@ fdi.pal.definable module
    :undoc-members:
    :show-inheritance:
 
+fdi.pal.httpclientpool module
+-----------------------------
+
+.. automodule:: fdi.pal.httpclientpool
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.pal.localpool module
 ------------------------
 
@@ -60,6 +69,14 @@ fdi.pal.mempool module
 ----------------------
 
 .. automodule:: fdi.pal.mempool
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.pal.pnspoolserver module
+----------------------------
+
+.. automodule:: fdi.pal.pnspoolserver
    :members:
    :undoc-members:
    :show-inheritance:
@@ -92,6 +109,14 @@ fdi.pal.productstorage module
 -----------------------------
 
 .. automodule:: fdi.pal.productstorage
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.pal.runpnsserver module
+---------------------------
+
+.. automodule:: fdi.pal.runpnsserver
    :members:
    :undoc-members:
    :show-inheritance:

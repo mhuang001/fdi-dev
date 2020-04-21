@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 import json
 import codecs
 from .odict import ODict
@@ -11,7 +12,6 @@ else:
     PY3 = False
     strset = (str, unicode)
 
-import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
@@ -28,7 +28,9 @@ def makedesables():
     """
     from fdi.dataset.deserialize import deserializeClassID
     from fdi.dataset.finetime import FineTime, FineTime1, utcobj
-    from fdi.dataset.product import History, Product
+    from fdi.dataset.baseproduct import History, BaseProduct
+    from fdi.dataset.product import Product
+    from fdi.dataset.datatypes import Vector, Quaternion
     from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
     from fdi.dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
     try:
@@ -53,9 +55,9 @@ def lls(s, length=80):
     """ length-limited string
     """
     if len(s) <= length:
-        return s
+        return str(s)
     else:
-        return s[:length - 3] + '...'
+        return str(s[:length - 3]) + '...'
 
 
 def constructSerializableClassID(obj, lgb=None, debug=False):

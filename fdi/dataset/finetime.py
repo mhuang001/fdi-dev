@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+from .serializable import Serializable
+from .odict import ODict
+from .eq import DeepEqual
+from .copyable import Copyable
 import datetime
 
 import logging
@@ -6,11 +10,6 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-
-from .copyable import Copyable
-from .eq import DeepEqual
-from .odict import ODict
-from .serializable import Serializable
 
 # A UTC class.
 
@@ -52,34 +51,49 @@ class FineTime(Copyable, DeepEqual, Serializable):
     RESOLUTION = 1000000  # microsecond
 
     def __init__(self, date=None, **kwds):
-        """ Initiate with a UTC date """
+        """ Initiate with a UTC date or an integer TAI"""
         leapsec = 0  # leap seconds to be implemented
         if date is None:
             self.tai = 0
+        elif issubclass(date.__class__, int):
+            self.tai = date
         else:
             if date.tzinfo is None:
                 d = date.replace(tzinfo=utcobj)
             else:
                 d = date
-            self.tai = self.RESOLUTION * \
-                ((d - self.EPOCH).total_seconds() + leapsec)
+            self.tai = self.datetimeToFineTime(d)
+
         # logger.debug('date= %s TAI = %d' % (str(date), self.tai))
         super(FineTime, self).__init__(**kwds)
 
     def microsecondsSinceEPOCH(self):
-        """ Return the number of microseconds since the epoch: 1 Jan 1958. """
-        return self.tai * (self.RESOLUTION / FineTime.RESOLUTION)
+        """ Return the rounded integer number of microseconds since the epoch: 1 Jan 1958. """
+        return int(self.tai * self.RESOLUTION / FineTime.RESOLUTION+0.5)
 
     def subtract(self, time):
         """ Subract the specified time and return the difference
         in microseconds. """
         return self.tai - time.tai
 
-    def toDate(self):
-        """ Return this time as a Python Date. """
+    @classmethod
+    def datetimeToFineTime(cls, dtm):
+        """ Return given  Python Datetime as a FineTime. """
         leapsec = 0  # leap seconds to be implemented
-        return datetime.timedelta(seconds=(self.tai / self.RESOLUTION - leapsec))\
-            + self.EPOCH
+        return int(cls.RESOLUTION *
+                   ((dtm - cls.EPOCH).total_seconds() + leapsec)+0.5)
+
+    @classmethod
+    def toDatetime(cls, tai):
+        """ Return given FineTime as a Python Datetime. """
+        leapsec = 0  # leap seconds to be implemented
+        return datetime.timedelta(seconds=(float(tai) / cls.RESOLUTION - leapsec))\
+            + cls.EPOCH
+
+    def toDate(self):
+        """ Return this time as a Python Datetime. """
+
+        return self.toDatetime(self.tai)
 
     def toString(self):
         """ Returns a String representation of this object.

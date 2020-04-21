@@ -7,4 +7,5 @@ git add fdi/pns/*.py fdi/pns/resources
 git add startserver installpns
 git add fdi/pal/*.py fdi/pal/resources
 git add test tests/*.py
-git add doc/html doc/doctrees doc/sphinx/mkapi doc/sphinx/index.rst doc/sphinx/usage doc/sphinx/api doc/sphinx/conf.py doc/sphinx/Makefile doc/sphinx/_static doc/sphinx/_templates
+git add doc/html doc/doctrees doc/sphinx/mkapi doc/sphinx/index.rst doc/sphinx/usage doc/sphinx/api doc/sphinx/conf.py doc/sphinx/Makefile doc/sphinx/_static doc/sphinx/_templates doc/html
+git add fdi/dataset/resources/Product.yml

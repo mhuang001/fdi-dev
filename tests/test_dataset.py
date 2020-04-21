@@ -1,14 +1,33 @@
-#
-#
 # -*- coding: utf-8 -*-
+from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.product import Product
+from fdi.dataset.baseproduct import History, BaseProduct
+from fdi.dataset.finetime import FineTime, FineTime1, utcobj
+from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
+from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
+from fdi.dataset.abstractcomposite import AbstractComposite
+from fdi.dataset.attributable import Attributable
+from fdi.dataset.metadataholder import MetaDataHolder
+from fdi.dataset.datawrapper import DataWrapperMapper
+from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, ParameterTypes
+from fdi.dataset.composite import Composite
+from fdi.dataset.listener import EventSender, DatasetBaseListener
+from fdi.dataset.datatypes import Vector, Quaternion
+from fdi.dataset.quantifiable import Quantifiable
+from fdi.dataset.eq import deepcmp
+from fdi.dataset.serializable import serializeClassID, SerializableEncoder
+from fdi.dataset.odict import ODict
+from fdi.dataset.copyable import Copyable
+from fdi.dataset.annotatable import Annotatable
 import datetime
 import traceback
 from pprint import pprint
 import copy
 import json
 import sys
+import pdb
 # import __builtins__
-#print([(k, v) for k, v in globals().items() if '__' in k])
+
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -16,8 +35,12 @@ else:
     PY3 = False
 
 if __name__ == '__main__' and __package__ is None:
+    # run by pytest
+
     from outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
 else:
+    # run by pyton -m tests.test_dataset
+
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
     from .pycontext import fdi
@@ -33,31 +56,12 @@ else:
     logger.debug('%s logging level %d' %
                  (__name__, logger.getEffectiveLevel()))
 
-from fdi.dataset.annotatable import Annotatable
-from fdi.dataset.copyable import Copyable
-from fdi.dataset.odict import ODict
-from fdi.dataset.serializable import serializeClassID, SerializableEncoder
-from fdi.dataset.eq import deepcmp
-from fdi.dataset.quantifiable import Quantifiable
-from fdi.dataset.listener import EventSender, DatasetBaseListener
-from fdi.dataset.composite import Composite
-from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
-from fdi.dataset.datawrapper import DataWrapperMapper
-from fdi.dataset.metadataholder import MetaDataHolder
-from fdi.dataset.attributable import Attributable
-from fdi.dataset.abstractcomposite import AbstractComposite
-from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
-from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
-from fdi.dataset.finetime import FineTime, FineTime1, utcobj
-from fdi.dataset.product import History, Product
-from fdi.dataset.deserialize import deserializeClassID
-
 
 def checkjson(obj):
     """ seriaizes the given object and deserialize. check equality.
     """
 
-    # dbg = True if issubclass(obj.__class__, Product) else False
+    # dbg = True if issubclass(obj.__class__, BaseProduct) else False
     dbg = False
 
     if hasattr(obj, 'serialized'):
@@ -87,7 +91,7 @@ def checkjson(obj):
         print('*************** deepcmp ***************')
         print('identical' if r is None else r)
         # print(' DIR \n' + str(dir(obj)) + '\n' + str(dir(des)))
-    if 0 and issubclass(obj.__class__, Product):
+    if 0 and issubclass(obj.__class__, BaseProduct):
         print(str(id(obj)) + ' ' + obj.toString())
         print(str(id(des)) + ' ' + des.toString())
         # obj.meta.listeners = []
@@ -167,7 +171,7 @@ def test_serialization():
     checkjson(v)
     v = None
     checkjson(v)
-    #v = b'\xde\xad\xbe\xef'
+    # v = b'\xde\xad\xbe\xef'
     # checkjson(v)
     v = [1.2, 'ww']
     checkjson(v)
@@ -375,7 +379,44 @@ def test_EventSender():
     assert test123 == "'foo' changed."
 
 
-def test_Parameter():
+def test_datatypes():
+    # constructor
+    v = Vector()
+    assert v.getComponents() == (0, 0, 0)
+    assert v.description == 'UNKNOWN'
+    assert v.unit == ''
+    v = Vector((1, 2.3, 4.5))
+    assert v.getComponents() == (1, 2.3, 4.5)
+    assert v.description == 'UNKNOWN'
+    assert v.unit == ''
+    v = Vector((0, 0, 0b101), 'binary!')
+    assert v.getComponents() == (0, 0, 5)
+    assert v.description == 'binary!'
+    assert v.unit == ''
+    v = Vector((0, 0, 0b101), 'binary!', 'km')
+    assert v.getComponents() == (0, 0, 0b101)
+    assert v.description == 'binary!'
+    assert v.unit == 'km'
+    # assignment
+    v.components = (0xaa, 1, 1e2)
+    v.description = 'foo'
+    v.unit = 'bar'
+    assert v.components == (0xaa, 1, 1e2)
+    assert v.description == 'foo'
+    assert v.unit == 'bar'
+    # Quaternion
+    v = Quaternion((-1, 1, 2.3, 4.5), unit='m')
+    assert v.getComponents() == (-1, 1, 2.3, 4.5)
+    assert v.description == 'UNKNOWN'
+    assert v.unit == 'm'
+    # equal
+    a1 = -1
+    v2 = Quaternion((a1, 1+0, 1-a1+0.3, 4.5))
+    v2.setUnit('m')
+    assert v == v2
+
+
+def test_Parameter1():
     # python  keeps an array of integer objects for all integers
     # between -5 and 256 so do not use small int for testing
     # because one cannot make a copy
@@ -389,27 +430,88 @@ def test_Parameter():
     assert v.value == a2
 
     # test constructor
+    # no positional
     v = Parameter()
     assert v.description == 'UNKNOWN'  # inherited from Anotatable
-    assert v.value is None  # inherited from Anotatable
-    a2 = 300
-    v = Parameter(a2)  # description has a default so a2 -> 'value'
-    assert v.description == 'UNKNOWN'  # inherited from Anotatable
-    assert v.value == a2
-    a1 = 'a test parameter'
+    assert v.value is None
+    assert v.type_ == ''
     v = Parameter(description=a1)
     assert v.description == a1
     assert v.value is None
-    v = Parameter(a2, description=a1)  # only one positional argument
+    assert v.type_ == ''
+    # 1
+    a2 = FineTime1(8765)
+    v = Parameter(a2)  # description has a default so a2 -> 'value'
+    assert v.description == 'UNKNOWN'  # inherited from Anotatable
+    assert v.value == a2
+    assert v.type_ == 'finetime1'
+    # incompatible type
+    a2 = DataWrapper()
+    try:
+        v = Parameter(a2)
+    except Exception as e:
+        assert isinstance(e, TypeError)
+    else:
+        assert False, 'no exception caught'
+    # also only one positional argument
+    a2 = FineTime1(8765)
+    v = Parameter(a2, description=a1)
     assert v.value == a2
     assert v.description == a1
-    v = Parameter(description=a1, value=a2)  # arbitrary argument order here
+    assert v.type_ == 'finetime1'
+    # 2
+    a2 = 'bar'
+    a3 = 'foo'
+    v = Parameter(a2, a3)  # two string type positional arguments
+    assert v.value == a2
+    assert v.description == a3
+    assert v.type_ == 'string'
+    # 3
+    a2 = 3.3
+    a4 = 'float'
+    v = Parameter(a2, a1, a4)
+    assert v.description == a1
+    assert v.value == a2
+    assert v.type_ == a4
+    # casting if value and type are Number and different
+    a2 = 9.7
+    a4 = 'hex'
+    # pdb.set_trace()
+    v = Parameter(a2, a1, a4)
+    assert v.description == a1
+    assert type(v.value) == ParameterTypes[a4]
+    assert v.value == ParameterTypes[a4](a2)
+    assert v.type_ == a4
+    # type not Number nor in ParameterTypes gets NotImplementedError
+    a2 = 9
+    a4 = 'guess'
+    try:
+        v = Parameter(a2, a1, a4)
+    except Exception as e:
+        assert isinstance(e, NotImplementedError)
+    else:
+        assert False, 'no exception caught'
+    # value type not Number nor in ParameterTypes gets TypeError
+    a2 = []
+    a4 = 'integer'
+    try:
+        v = Parameter(a2, a1, a4)
+    except Exception as e:
+        assert isinstance(e, TypeError)
+    else:
+        assert False, 'no exception caught'
+
+    # NotImplemented
+    # arbitrary argument order here
+    a1 = 'a test parameter'
+    a2 = 0x3e
+    v = Parameter(description=a1, value=a2)
     assert v.description == a1
     assert v.value == a2
 
     # getType
     assert v.getValue() == a2
-    assert v.getType() == ''
+    assert v.getType() == 'integer'  # NOT hex!!
 
     # test equals
     b1 = ''.join(a1)  # make a new string copy
@@ -426,13 +528,15 @@ def test_Parameter():
     assert not v.equals(v1)
     assert v != v1
 
+    # toString hex
+
     # serializing
     a1 = 'a test parameter'
     a2 = 351
     v = Parameter(description=a1, value=a2)
     checkjson(v)
     b1 = 'a binary par'
-    b2 = 'z'  # b'\xaa\x55'
+    b2 = 6  # b'\xaa\x55'
     v = Parameter(description=b1)
     v.value = b2
     checkjson(v)
@@ -498,8 +602,8 @@ def test_MetaData():
     assert v.get(a1) == a2
     # print(v)
     a3 = 'more'
-    v.set(name=a1, newParameter=a3)
-    assert v[a1] == a3
+    v.set(name=a1, newParameter=Parameter(a3))
+    assert v[a1].value == a3
 
     v = MetaData()
     v[a1] = a2  # DRM doc case
@@ -542,7 +646,7 @@ def test_MetaData():
     assert v1 != v
     b4 = a4.copy()
     v1[b3] = b4
-    v1['foo'] = 'bar'
+    v1['foo'] = Parameter('bar')
     assert v != v1
 
     checkgeneral(v)
@@ -722,6 +826,9 @@ def test_TableDataset():
         t = ArrayDataset(data=42)
     except Exception as e:
         assert issubclass(e.__class__, TypeError)
+    else:
+        assert False, 'no exception caught'
+
     assert t == 5
 
     # setData format 1: data is a sequence of dict
@@ -849,7 +956,7 @@ def test_TableDataset():
     # addRow
     assert x.rowCount == 10
     # https://stackoverflow.com/q/41866911
-    #newR = ODict(Time=101, Energy=102, dist=103)
+    # newR = ODict(Time=101, Energy=102, dist=103)
     newR = ODict()
     newR['Time'] = 101
     newR['Energy'] = 102
@@ -1114,7 +1221,9 @@ def test_FineTime():
     # So that timezone won't show on the left below
     d = dt.replace(tzinfo=None)
     assert d.isoformat() + ' TAI' == '2019-02-19T01:02:03.456789 TAI'
-
+    assert v.tai == FineTime.datetimeToFineTime(dt)
+    assert dt == FineTime.toDatetime(v.tai)
+    # add 1min 1.1sec
     v2 = FineTime(datetime.datetime(
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=utcobj))
     assert v != v2
@@ -1125,14 +1234,16 @@ def test_FineTime():
 
 def test_FineTime1():
     v = FineTime1(datetime.datetime(
-        2019, 2, 19, 1, 2, 3, 456789, tzinfo=utcobj))
+        2019, 2, 19, 1, 2, 3, 456000, tzinfo=utcobj))
     dt = v.toDate()
     # So that timezone won't show on the left below
     d = dt.replace(tzinfo=None)
-    assert d.isoformat() + ' TAI' == '2019-02-19T01:02:03.456789 TAI'
+    assert d.isoformat() + ' TAI' == '2019-02-19T01:02:03.456000 TAI'
+    assert v.tai == FineTime1.datetimeToFineTime(dt)
+    assert dt == FineTime1.toDatetime(v.tai)
     # add 1min 1.1sec
     v2 = FineTime1(datetime.datetime(
-        2019, 2, 19, 1, 3, 4, 556789, tzinfo=utcobj))
+        2019, 2, 19, 1, 3, 4, 556000, tzinfo=utcobj))
     assert v != v2
     assert abs(v2.subtract(v) - 61100) < 0.5
     checkjson(v)
@@ -1145,14 +1256,14 @@ def test_History():
     checkgeneral(v)
 
 
-def test_Product():
+def test_BaseProduct():
     """ """
-    x = Product(description="This is my product example",
-                instrument="MyFavourite", modelName="Flight")
+    x = BaseProduct(description="This is my product example")
     # print(x.__dict__)
     # print(x.meta.toString())
-    assert x.meta['description'] == "This is my product example" \
-        and x.instrument == "MyFavourite" and x.modelName == "Flight"
+    # pdb.set_trace()
+    assert x.meta['description'].value == "This is my product example"
+    assert x.description == "This is my product example"
     # ways to add datasets
     i0 = 6
     i1 = [[1, 2, 3], [4, 5, i0], [7, 8, 9]]
@@ -1174,21 +1285,13 @@ def test_Product():
     x["Spectrum"] = spec
     assert x["Spectrum"].getValueAt(columnIndex=1, rowIndex=0) == 0
 
-    # default
-    assert Product('empty').getDefault() is None
+    # default is the first dataset
+    # pdb.set_trace()
+    assert BaseProduct('empty').getDefault() is None
     d = x.getDefault()
     sets = x.getDataWrappers()
     assert id(d) == id(sets['RawImage'])
 
-    # Test metadata
-    # mandatory properties are also in metadata
-    x.creator = ""
-    a0 = "Me, myself and I"
-    x.creator = a0
-    assert x.creator == a0
-    assert x.meta["creator"] == a0
-
-    x.meta["Version"] = 0
     p = Parameter(value="2.1a",
                   description="patched")
     x.meta["Version"] = p
@@ -1199,23 +1302,60 @@ def test_Product():
     v = NumericParameter(description=a1, value=a2, unit=a3)
     x.meta['numPar'] = v
 
-    # test comparison:
-    p1 = Product(description="Description")
-    p2 = Product(description="Description 2")
-    assert p1.equals(p2) == False
-    p3 = copy.deepcopy(p1)
-    assert p1.equals(p3) == True
-
     # test mandatory properties that are also metadata
     x.creator = ""
     a0 = "Me, myself and I"
     x.creator = a0
     assert x.creator == a0
-    assert x.meta["creator"] == a0
+
+    assert x.meta["creator"].value == a0
     a1 = "or else"
-    x.meta["creator"] = a1
-    assert x.meta["creator"] == a1
+    x.meta["creator"] = Parameter(a1)
+
+    assert x.meta["creator"].value == a1
     assert x.creator == a1
+
+    # test comparison:
+    p1 = BaseProduct(description="oDescription")
+    p2 = BaseProduct(description="Description 2")
+    assert p1.equals(p2) == False
+    p3 = copy.deepcopy(p1)  # XXX
+    assert p1.equals(p3) == True
+
+    # toString
+    ts = x.toString()
+    # print(ts)
+
+    checkjson(x)
+    checkgeneral(x)
+
+
+def test_Product():
+    """ """
+
+    x = Product(description="This is my product example",
+                instrument="MyFavourite", modelName="Flight")
+    # print(x.__dict__)
+    # print(x.meta.toString())
+    assert x.meta['description'].value == "This is my product example"
+    assert x.instrument == "MyFavourite"
+    assert x.modelName == "Flight"
+    x = Product(description="This is my product example")
+    # Test metadata
+    # add one
+    x.meta['an'] = Parameter('other')
+    assert x.meta['an'].value == 'other'
+    # cannot use x.an
+    try:
+        t = x.an
+    except Exception as e:
+        assert issubclass(e.__class__, AttributeError)
+    else:
+        assert False, 'no exception caught'
+    # remove it
+    x.meta.remove('an')
+    # gone
+    assert 'an' not in x.meta
 
     # toString
     ts = x.toString()
@@ -1273,7 +1413,7 @@ def running(t):
     t()
 
 
-if __name__ == '__main__' and __package__ is None:
+if __name__ == '__main__' and __package__ is not None:
 
     if 0:
         from os import sys, path
@@ -1296,7 +1436,8 @@ if __name__ == '__main__' and __package__ is None:
     running(test_AbstractComposite)
     running(test_Copyable)
     running(test_EventSender)
-    running(test_Parameter)
+    running(test_datatypes)
+    running(test_Parameter1)
     running(test_Quantifiable)
     running(test_NumericParameter)
     running(test_MetaData)
@@ -1309,4 +1450,5 @@ if __name__ == '__main__' and __package__ is None:
     running(test_CompositeDataset)
     running(test_FineTime1)
     running(test_History)
+    running(test_BaseProduct)
     running(test_Product)

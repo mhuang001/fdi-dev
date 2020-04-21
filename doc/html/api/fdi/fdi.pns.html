@@ -1,19 +1,19 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
     <title>fdi.pns package &#8212; fdi v0.8 documentation</title>
     <link rel="stylesheet" href="../../_static/aiohttp.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/language_data.js"></script>
-    <script type="text/javascript" src="../../_static/js/custom.js"></script>
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../_static/js/custom.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="fdi.pns.resources package" href="fdi.pns.resources.html" />
@@ -48,15 +48,15 @@
 </div>
 <div class="section" id="module-fdi.pns.common">
 <span id="fdi-pns-common-module"></span><h2>fdi.pns.common module<a class="headerlink" href="#module-fdi.pns.common" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.common.deleteJsonObj">
-<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">deleteJsonObj</code><span class="sig-paren">(</span><em class="sig-param">url</em>, <em class="sig-param">obj</em>, <em class="sig-param">headers</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.deleteJsonObj" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">deleteJsonObj</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">headers</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.deleteJsonObj" title="Permalink to this definition">¶</a></dt>
 <dd><p>deletes object from url. Returns None if fails.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.common.getJsonObj">
-<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">getJsonObj</code><span class="sig-paren">(</span><em class="sig-param">url</em>, <em class="sig-param">headers=None</em>, <em class="sig-param">usedict=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.getJsonObj" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">getJsonObj</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">headers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">usedict</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.getJsonObj" title="Permalink to this definition">¶</a></dt>
 <dd><p>return object from url. url can be http or file.
 translate keys and values from string to
 number if applicable. Raise exception if fails.
@@ -64,9 +64,9 @@ Not using requests.get() as it cannot open <a class="reference external" href="f
 <a class="reference external" href="https://pypi.python.org/pypi/requests-file">https://pypi.python.org/pypi/requests-file</a></p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.common.getJsonObj1">
-<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">getJsonObj1</code><span class="sig-paren">(</span><em class="sig-param">url</em>, <em class="sig-param">headers=None</em>, <em class="sig-param">usedict=False</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.getJsonObj1" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">getJsonObj1</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">headers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">usedict</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.getJsonObj1" title="Permalink to this definition">¶</a></dt>
 <dd><p>return object from url. url can be http or file.
 translate keys and values from string to
 number if applicable. Return None if fails.
@@ -74,33 +74,33 @@ Not using requests.get() as it cannot open <a class="reference external" href="f
 <a class="reference external" href="https://pypi.python.org/pypi/requests-file">https://pypi.python.org/pypi/requests-file</a></p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.common.jsonREST">
-<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">jsonREST</code><span class="sig-paren">(</span><em class="sig-param">url</em>, <em class="sig-param">obj</em>, <em class="sig-param">headers</em>, <em class="sig-param">cmd</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.jsonREST" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">jsonREST</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">headers</span></em>, <em class="sig-param"><span class="n">cmd</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.jsonREST" title="Permalink to this definition">¶</a></dt>
 <dd><p>generic RESTful command handler for POST, PUT, and DELETE.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.common.postJsonObj">
-<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">postJsonObj</code><span class="sig-paren">(</span><em class="sig-param">url</em>, <em class="sig-param">obj</em>, <em class="sig-param">headers</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.postJsonObj" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">postJsonObj</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">headers</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.postJsonObj" title="Permalink to this definition">¶</a></dt>
 <dd><p>posts object to url. Returns None if fails.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.common.putJsonObj">
-<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">putJsonObj</code><span class="sig-paren">(</span><em class="sig-param">url</em>, <em class="sig-param">obj</em>, <em class="sig-param">headers</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.putJsonObj" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">putJsonObj</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">url</span></em>, <em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">headers</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.putJsonObj" title="Permalink to this definition">¶</a></dt>
 <dd><p>puts object to url. Returns None if fails.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.common.trbk">
-<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">trbk</code><span class="sig-paren">(</span><em class="sig-param">e</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.trbk" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">trbk</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">e</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.trbk" title="Permalink to this definition">¶</a></dt>
 <dd><p>trace back</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.common.writeJsonObj">
-<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">writeJsonObj</code><span class="sig-paren">(</span><em class="sig-param">o</em>, <em class="sig-param">fn</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.writeJsonObj" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.common.</code><code class="sig-name descname">writeJsonObj</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">o</span></em>, <em class="sig-param"><span class="n">fn</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.common.writeJsonObj" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write an object to file fn in json safely
 Return True if successful else False</p>
 </dd></dl>
@@ -111,9 +111,9 @@ Return True if successful else False</p>
 </div>
 <div class="section" id="module-fdi.pns.options">
 <span id="fdi-pns-options-module"></span><h2>fdi.pns.options module<a class="headerlink" href="#module-fdi.pns.options" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.options.opt">
-<code class="sig-prename descclassname">fdi.pns.options.</code><code class="sig-name descname">opt</code><span class="sig-paren">(</span><em class="sig-param">node</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.options.opt" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.options.</code><code class="sig-name descname">opt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.options.opt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get username and password and host ip and port</p>
 </dd></dl>
 
@@ -126,149 +126,149 @@ Return True if successful else False</p>
 </div>
 <div class="section" id="module-fdi.pns.server">
 <span id="fdi-pns-server-module"></span><h2>fdi.pns.server module<a class="headerlink" href="#module-fdi.pns.server" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.bad_request">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">bad_request</code><span class="sig-paren">(</span><em class="sig-param">error</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.bad_request" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">bad_request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.bad_request" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.calc">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">calc</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.calc" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">calc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.calc" title="Permalink to this definition">¶</a></dt>
 <dd><p>generates result product directly using data on PNS.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.calcresult">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">calcresult</code><span class="sig-paren">(</span><em class="sig-param">cmd</em>, <em class="sig-param">ops=''</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.calcresult" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">calcresult</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cmd</span></em>, <em class="sig-param"><span class="n">ops</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.calcresult" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.checkpath">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">checkpath</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.checkpath" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">checkpath</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.checkpath" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.cleanPTS">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">cleanPTS</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.cleanPTS" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">cleanPTS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.cleanPTS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Removing traces of past runnings the Processing Task Software.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.cleanup">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><em class="sig-param">cmd</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.cleanup" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cmd</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.cleanup" title="Permalink to this definition">¶</a></dt>
 <dd><p>DELETE is used to clean up the Processing Task Software
 (PST) to its initial configured state.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.configPNS">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">configPNS</code><span class="sig-paren">(</span><em class="sig-param">d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.configPNS" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">configPNS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.configPNS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Configure the PNS itself by replacing the pnsconfig var</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.configPTS">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">configPTS</code><span class="sig-paren">(</span><em class="sig-param">d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.configPTS" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">configPTS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.configPTS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Configure the Processing Task Software by running the config script. Ref init PTS.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.defaultprocessinput">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">defaultprocessinput</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.defaultprocessinput" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">defaultprocessinput</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.defaultprocessinput" title="Permalink to this definition">¶</a></dt>
 <dd><p>puts all undecoded json to every files.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.defaultprocessoutput">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">defaultprocessoutput</code><span class="sig-paren">(</span><em class="sig-param">filemode</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.defaultprocessoutput" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">defaultprocessoutput</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filemode</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.defaultprocessoutput" title="Permalink to this definition">¶</a></dt>
 <dd><p>reads each of the files and returns the contents in a filename indexed dict.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.dosleep">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">dosleep</code><span class="sig-paren">(</span><em class="sig-param">indata</em>, <em class="sig-param">ops</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.dosleep" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">dosleep</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indata</span></em>, <em class="sig-param"><span class="n">ops</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.dosleep" title="Permalink to this definition">¶</a></dt>
 <dd><p>run ‘sleep [ops]’ in the OS. ops is 3 if not given.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.filesin">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">filesin</code><span class="sig-paren">(</span><em class="sig-param">dir</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.filesin" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">filesin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.filesin" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns names and contents of all files in the dir, ‘None’ if dir not existing.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.genposttestprod">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">genposttestprod</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.genposttestprod" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">genposttestprod</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.genposttestprod" title="Permalink to this definition">¶</a></dt>
 <dd><p>generate post test product.
 put the 1st input (see maketestdata in test_pns.py)
 parameter to metadata
 and 2nd to the product’s dataset</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.get_apis">
 <code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">get_apis</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.get_apis" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.getinfo">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">getinfo</code><span class="sig-paren">(</span><em class="sig-param">cmd</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.getinfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">getinfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cmd</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.getinfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>returns init, config, run input, run output.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.initPTS">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">initPTS</code><span class="sig-paren">(</span><em class="sig-param">d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.initPTS" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">initPTS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.initPTS" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned. If input/output directories cannot be created with serveruser as owner, Error401 will be given.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.makepublicAPI">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">makepublicAPI</code><span class="sig-paren">(</span><em class="sig-param">ops</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.makepublicAPI" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">makepublicAPI</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ops</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.makepublicAPI" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.not_found">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">not_found</code><span class="sig-paren">(</span><em class="sig-param">error</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.not_found" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">not_found</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.not_found" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.run">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">d</em>, <em class="sig-param">processinput=None</em>, <em class="sig-param">processoutput=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em>, <em class="sig-param"><span class="n">processinput</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">processoutput</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a product by running script defined in the config under ‘run’. Execution on the server host is in the pnshome directory and run result and status are returned.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.setup">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">setup</code><span class="sig-paren">(</span><em class="sig-param">cmd</em>, <em class="sig-param">ops=''</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.setup" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">setup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cmd</span></em>, <em class="sig-param"><span class="n">ops</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.setup" title="Permalink to this definition">¶</a></dt>
 <dd><p>PUT is used to initialize or configure the Processing Task Software
 (PST).</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.testinit">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">testinit</code><span class="sig-paren">(</span><em class="sig-param">d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.testinit" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">testinit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.testinit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Renames the ‘init’ ‘config’ ‘run’ ‘clean’ scripts to ‘.save’ and points it to the ‘.ori’ scripts.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.testrun">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">testrun</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.testrun" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">testrun</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.testrun" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.unauthorized">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">unauthorized</code><span class="sig-paren">(</span><em class="sig-param">error</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.unauthorized" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">unauthorized</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">error</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.unauthorized" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.uploadScript">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">uploadScript</code><span class="sig-paren">(</span><em class="sig-param">op</em>, <em class="sig-param">d=None</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.uploadScript" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">uploadScript</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">op</span></em>, <em class="sig-param"><span class="n">d</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.uploadScript" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="fdi.pns.server.verify">
-<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">verify</code><span class="sig-paren">(</span><em class="sig-param">username</em>, <em class="sig-param">password</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.verify" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">fdi.pns.server.</code><code class="sig-name descname">verify</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">username</span></em>, <em class="sig-param"><span class="n">password</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.pns.server.verify" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is called to check if a username /
 password combination is valid.</p>
 </dd></dl>
@@ -326,7 +326,7 @@ password combination is valid.</p>
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -335,7 +335,7 @@ password combination is valid.</p>
       &copy;2019, Maohai Huang.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.1</a>
       
       |
       <a href="../../_sources/api/fdi/fdi.pns.rst.txt"

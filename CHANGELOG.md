@@ -1,5 +1,52 @@
 Change Log
 =======================================
+	FDI
+=======================================
+
+	BETA0
+	=====
+
+	0.13 2020-04-21
+	---------------
+refactor Product to have BaseProduct and info. Enforce configured types in Parameter. Enfore Parameter-only in metadata.
+	
+	ALPHA1 SPDC
+	===========
+
+0.12 2020-04-09
+---------------
+rename spdc to fdi
+
+0.11 2020-04-04
+---------------
+parents for ProductRef, mempool, pal test improvements
+	
+0.10 2020-01-07
+---------------
+dataset is compatible with python 2.7
+
+0.9 2019-12-25
+--------------
+Refactor to make spdc top-level package, instead of dataset, pal, pns
+
+0.8 2019-09-15
+--------------
+Improved toString() for datasets. PAL refactoring.
+
+0.7 2019-08-27
+--------------
+documentation with sphinx. vvpp docker works. release to FSC.
+	
+0.6 2019-08-17
+--------------
+listener, mem: URN, deserializable list
+
+0.5 2019-08-11
+--------------
+Projects merged.
+
+	ALPHA0
+	======
 dataset
 0.1 2019-04-16
 --------------
@@ -45,38 +92,3 @@ Change Log
 --------------
 Prototype. Initial check-in.
 
-	SPDC
-=======================================
-
-0.5 2019-08-11
---------------
-Projects merged.
-
-0.6 2019-08-17
---------------
-listener, mem: URN, deserializable list
-
-0.7 2019-08-27
---------------
-documentation with sphinx. vvpp docker works. release to FSC.
-	
-0.8 2019-09-15
---------------
-Improved toString() for datasets. PAL refactoring.
-
-0.9 2019-12-25
---------------
-Refactor to make spdc top-level package, instead of dataset, pal, pns
-
-0.10 2020-01-07
----------------
-dataset is compatible with python 2.7
-
-0.11 2020-04-04
----------------
-parents for ProductRef, mempool, pal test improvements
-	
-0.12 2020-04-09
----------------
-rename spdc to fdi
-	

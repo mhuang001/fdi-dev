@@ -4,7 +4,7 @@ import random
 import timeit
 from fdi.pal.mempool import MemPool
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
-from fdi.pns.common import trbk
+from fdi.utils.common import trbk
 from fdi.pal.common import getProductObject
 from fdi.pal.context import Context, MapContext
 from fdi.pal.productref import ProductRef
@@ -512,12 +512,19 @@ def test_MapContext():
     mc['refs']['xprod'] = prodref
     # get the urn
     urn = prodref.urn
+    assert issubclass(urn.__class__, str)
     # re-create a product only using the urn
-    newp = getProductObject(urn)
+    #newp = getProductObject(urn)
+    newp = ProductRef(urn).product
     # the new and the old one are equal
     assert newp == x
     # parent is set
     assert prodref.parents[0] == mc
+    # re-create a product only using the urn 2
+    newref = pstore.load(urn)
+    newp2 = newref.product
+    # the new and the old one are equal
+    assert newp2 == x
 
     des = checkjson(mc)
     # print(type(des['refs']))
@@ -569,6 +576,7 @@ def test_realistic():
     assert map1['refs'].size() == 0  # do not use len() due to classID
     assert len(pref1.parents) == 0
     assert len(pref2.parents) == 0
+    # add a ref to the contex
     map1['refs']['prd1'] = pref1
     assert map1['refs'].size() == 1
     assert len(pref1.parents) == 1

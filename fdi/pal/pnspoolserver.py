@@ -1,7 +1,18 @@
-
 #!flask/bin/python
 # -*- coding: utf-8 -*-
 
+from fdi.utils.common import trbk
+from fdi.pal.urn import Urn
+from fdi.pal.productref import ProductRef
+from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.serializable import serializeClassID
+from fdi.dataset.dataset import GenericDataset, ArrayDataset, TableDataset
+from fdi.dataset.product import Product, FineTime1, History
+from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
+from os.path import expanduser, expandvars
+from fdi.pns.pnsconfig import pnsconfig as pc
+import logging.config
+import logging
 from pprint import pformat
 import datetime
 import time
@@ -18,16 +29,13 @@ from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
 import filelock
 
-from spdc.pns.logdict import logdict
+from fdi.pns.logdict import logdict
 # '/var/log/pns-server.log'
 logdict['handlers']['file']['filename'] = '/tmp/server.log'
-import logging
-import logging.config
 # create logger
 logging.config.dictConfig(logdict)
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARN)
-import sys
 if sys.version_info[0] > 2:
     logging.getLogger("urllib3").setLevel(logging.WARN)
 else:
@@ -35,11 +43,8 @@ else:
 logging.getLogger("filelock").setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-from spdc.pns.pnsconfig import pnsconfig as pc
 
 # default configuration is provided. Copy pnsconfig.py to ~/pnspoolconfig.py
-import sys
-from os.path import expanduser, expandvars
 env = expanduser(expandvars('$HOME'))
 # apache wsgi will return '$HOME' with no expansion
 env = '/root' if env == '$HOME' else env
@@ -53,14 +58,6 @@ except Exception as e:
 
 logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
 
-from spdc.dataset.metadata import Parameter, NumericParameter, MetaData
-from spdc.dataset.product import Product, FineTime1, History
-from spdc.dataset.dataset import GenericDataset, ArrayDataset, TableDataset
-from spdc.dataset.serializable import serializeClassID
-from spdc.dataset.deserialize import deserializeClassID
-from spdc.pal.productref import ProductRef
-from spdc.pal.urn import Urn
-from .common import trbk
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()

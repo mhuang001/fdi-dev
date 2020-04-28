@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .common import trbk
+from ..utils.common import trbk
 from ..dataset.deserialize import deserializeClassID
 from ..dataset.serializable import serializeClassID
 from ..dataset.dataset import GenericDataset, ArrayDataset, TableDataset

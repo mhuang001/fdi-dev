@@ -13,7 +13,7 @@ from fdi.pns import server
 from os.path import expanduser, expandvars
 from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
-from fdi.pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
+from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 import sys
 import base64
 from urllib.request import pathname2url

@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+from ..pns.jsonio import getJsonObj
+from ..dataset.odict import ODict
+from ..dataset.dataset import TableDataset
+from ..dataset.serializable import serializeClassID
+from .productpool import ProductPool
+from ..utils.common import pathjoin, trbk
 import filelock
 import shutil
 import os
@@ -7,14 +13,6 @@ import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-from .common import pathjoin
-from .productpool import ProductPool
-
-from ..dataset.serializable import serializeClassID
-from ..dataset.dataset import TableDataset
-from ..dataset.odict import ODict
-from ..pns.common import getJsonObj, trbk
 
 
 def writeJsonwithbackup(fp, data):

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from ..pns.jsonio import getJsonObj
+from .urn import parseUrn
 import filelock
 import logging
 import os
@@ -7,9 +9,6 @@ import gc
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-from .urn import Urn, parseUrn
-from ..pns.common import getJsonObj
 
 
 def getObjectbyId(idn, lgbv):
@@ -57,12 +56,3 @@ def getProductObject(urn, lgb=None):
                     logger.debug(': ' + str(v))
         p = getObjectbyId(idn, lgbv=lgbv)
     return p
-
-
-def pathjoin(*p):
-    """ join path segments with given separater (default '/').
-    """
-    sep = '/'
-    r = sep.join(p)
-    # print(p, r)
-    return r

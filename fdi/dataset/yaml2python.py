@@ -79,8 +79,8 @@ if __name__ == '__main__':
          'description': 'Input file name.'},
         {'long': 'template=', 'char': 't', 'default': tdir,
          'description': 'Product class template file name.'},
-        {'long': 'outputfilename=', 'char': 'o', 'default': '[Specified in input file].py',
-         'description': 'Output python file name by default is in YAML input file "name" + .py. Change here.'},
+        {'long': 'outputdir', 'char': 'o', 'default': '.',
+         'description': 'Output directory for python file.'},
     ]
     # pdb.set_trace()
     out = opt(ops)
@@ -110,9 +110,8 @@ if __name__ == '__main__':
     print('Find attributes:\n%s' % ''.join(
         ('%20s' % (k+'=' + v['default'] + ', ') for k, v in attrs.items())))
 
-    # make output filename
-    fout = d['name'].lower(
-    )+'.py' if out[4]['result'] == '[Specified in input file].py' else out[4]['result']
+    # make output filename. by default is in YAML input file "name" + .py
+    fout = pathjoin(out[4]['result'], d['name'].lower())
 
     # make metadata dictionary
     # inf = projectinfo/info

@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+from ..dataset.odict import ODict
+from .urn import Urn, parseUrn
+from .versionable import Versionable
+from .taggable import Taggable
+from .definable import Definable
+from ..utils.common import pathjoin
+from .productref import ProductRef
+import logging
 import filelock
 from copy import deepcopy
 import os
@@ -11,19 +19,9 @@ else:
     PY3 = False
     from urlparse import urlparse
 
-import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-from .productref import ProductRef
-from .common import pathjoin
-from .definable import Definable
-from .taggable import Taggable
-from .versionable import Versionable
-from .urn import Urn, parseUrn
-
-from ..dataset.odict import ODict
 
 
 lockpathbase = '/tmp/locks'

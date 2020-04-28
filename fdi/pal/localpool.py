@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from ..pns.common import getJsonObj, trbk
+from ..pns.jsonio import getJsonObj
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
 from .productpool import ProductPool
-from .common import pathjoin
+from ..utils.common import pathjoin, trbk
 from .productpool import lockpathbase
 import filelock
 import shutil

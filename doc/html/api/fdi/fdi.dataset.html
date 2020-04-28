@@ -109,9 +109,9 @@ replaced</p>
 <span id="fdi-dataset-baseproduct-module"></span><h2>fdi.dataset.baseproduct module<a class="headerlink" href="#module-fdi.dataset.baseproduct" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="fdi.dataset.baseproduct.BaseProduct">
-<em class="property">class </em><code class="sig-prename descclassname">fdi.dataset.baseproduct.</code><code class="sig-name descname">BaseProduct</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">description</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">creator</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">creationDate</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">rootCause</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">type</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">schema</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.dataset.baseproduct.BaseProduct" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">fdi.dataset.baseproduct.</code><code class="sig-name descname">BaseProduct</code><span class="sig-paren">(</span><em class="sig-param">description='UNKOWN'</em>, <em class="sig-param">creator='UNKOWN'</em>, <em class="sig-param">creationDate=2017-01-01T00:00:00.000000 TAI(0)</em>, <em class="sig-param">rootCause='UNKOWN'</em>, <em class="sig-param">type_='BaseProduct'</em>, <em class="sig-param">schema='0.3'</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.dataset.baseproduct.BaseProduct" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#fdi.dataset.abstractcomposite.AbstractComposite" title="fdi.dataset.abstractcomposite.AbstractComposite"><code class="xref py py-class docutils literal notranslate"><span class="pre">fdi.dataset.abstractcomposite.AbstractComposite</span></code></a>, <a class="reference internal" href="#fdi.dataset.copyable.Copyable" title="fdi.dataset.copyable.Copyable"><code class="xref py py-class docutils literal notranslate"><span class="pre">fdi.dataset.copyable.Copyable</span></code></a>, <a class="reference internal" href="#fdi.dataset.serializable.Serializable" title="fdi.dataset.serializable.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">fdi.dataset.serializable.Serializable</span></code></a>, <a class="reference internal" href="#fdi.dataset.listener.EventSender" title="fdi.dataset.listener.EventSender"><code class="xref py py-class docutils literal notranslate"><span class="pre">fdi.dataset.listener.EventSender</span></code></a></p>
-<p>A Product is a generic result that can be passed on between
+<p>A BaseProduct is a generic result that can be passed on between
 (standalone) processes.</p>
 <p>In general a Product contains zero or more datasets, history,
 optional metadata as well as some required metadata fields.
@@ -123,8 +123,13 @@ from an Archive device.</p>
 purpose the first dataset entry can be accessed by the getDefault()
 method. Note that the datasets may be a composite of datasets
 by themselves.</p>
-<p>mh: Mandatory Attribute ‘description’ can be accessed with e.g. p.description
-or p.meta[‘description’].value</p>
+<p>mh: Built-in Attributes can be accessed with e.g. p.creator
+or p.meta[‘description’].value:
+p.creator=’foo’
+assert p.creatur==’foo’
+assert p.meta[‘creator’]==’foo’
+p.meta[‘creator’]=Parameter(‘bar’)
+assert p.meta[‘creator’]==Parameter(‘bar’)</p>
 <dl class="py method">
 <dt id="fdi.dataset.baseproduct.BaseProduct.accept">
 <code class="sig-name descname">accept</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">visitor</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.dataset.baseproduct.BaseProduct.accept" title="Permalink to this definition">¶</a></dt>
@@ -145,7 +150,7 @@ through visitor pattern.</p>
 
 <dl class="py attribute">
 <dt id="fdi.dataset.baseproduct.BaseProduct.productInfo">
-<code class="sig-name descname">productInfo</code><em class="property"> = {'metadata': {'creationDate': {'data_type': 'finetime1', 'default': 2017-01-01T00:00:00.000000 TAI(0), 'description': 'Creation date of this product'}, 'creator': {'data_type': 'string', 'default': 'UNKOWN', 'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.'}, 'description': {'data_type': 'string', 'default': 'UNKOWN', 'description': 'Description of this product'}, 'rootCause': {'data_type': 'string', 'default': 'UNKOWN', 'description': 'Reason of this run of pipeline.'}, 'schema': {'data_type': 'string', 'default': '0.2', 'description': 'Version of product schema'}, 'type': {'data_type': 'string', 'default': 'UNKOWN', 'description': 'Product Type identification. Fully qualified Python class name or CARD.'}}}</em><a class="headerlink" href="#fdi.dataset.baseproduct.BaseProduct.productInfo" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">productInfo</code><em class="property"> = {'metadata': {'creationDate': {'data_type': 'finetime', 'default': 2017-01-01T00:00:00.000000 TAI(0), 'description': 'Creation date of this product', 'unit': ''}, 'creator': {'data_type': 'string', 'default': 'UNKOWN', 'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.', 'unit': ''}, 'description': {'data_type': 'string', 'default': 'UNKOWN', 'description': 'Description of this product', 'unit': ''}, 'rootCause': {'data_type': 'string', 'default': 'UNKOWN', 'description': 'Reason of this run of pipeline.', 'unit': ''}, 'schema': {'data_type': 'string', 'default': '0.3', 'description': 'Version of product schema', 'unit': ''}, 'type': {'data_type': 'string', 'default': 'BaseProduct', 'description': 'Product Type identification. Fully qualified Python class name or CARD.', 'unit': ''}}}</em><a class="headerlink" href="#fdi.dataset.baseproduct.BaseProduct.productInfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -1477,10 +1482,9 @@ Unsuported parameter types will get a NotImplementedError.</p>
 <code class="sig-name descname">setValue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.dataset.metadata.Parameter.setValue" title="Permalink to this definition">¶</a></dt>
 <dd><p>Replaces the current value of this parameter. 
 If given/current <a href="#id1"><span class="problematic" id="id2">type_</span></a> is ‘’ and arg value’s type is in ParameterTypes both value and type are updated; or else TypeError is raised.
-If value type and given/current <a href="#id3"><span class="problematic" id="id4">type_</span></a> are different, if both are Numbers.Number,
-value is casted into given <a href="#id5"><span class="problematic" id="id6">type_</span></a>.</p>
+If value type and given/current <a href="#id3"><span class="problematic" id="id4">type_</span></a> are different.</p>
 <blockquote>
-<div><p>Incompatible value and <a href="#id7"><span class="problematic" id="id8">type_</span></a> will get a TypeError.</p>
+<div><p>Incompatible value and <a href="#id5"><span class="problematic" id="id6">type_</span></a> will get a TypeError.</p>
 </div></blockquote>
 </dd></dl>
 
@@ -1588,25 +1592,12 @@ if the object is a string, return single-quoted; if has toString(), use it; else
 <span id="fdi-dataset-product-module"></span><h2>fdi.dataset.product module<a class="headerlink" href="#module-fdi.dataset.product" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="fdi.dataset.product.Product">
-<em class="property">class </em><code class="sig-prename descclassname">fdi.dataset.product.</code><code class="sig-name descname">Product</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">instrument</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">startDate</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">endDate</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">modelName</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mission</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.dataset.product.Product" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">fdi.dataset.product.</code><code class="sig-name descname">Product</code><span class="sig-paren">(</span><em class="sig-param">type_='Product'</em>, <em class="sig-param">startDate=2017-01-01T00:00:00.000000 TAI(0)</em>, <em class="sig-param">endDate=2017-01-01T00:00:00.000000 TAI(0)</em>, <em class="sig-param">instrument='UNKOWN'</em>, <em class="sig-param">modelName='UNKOWN'</em>, <em class="sig-param">mission='SVOM'</em>, <em class="sig-param">schema='0.3'</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.dataset.product.Product" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#fdi.dataset.baseproduct.BaseProduct" title="fdi.dataset.baseproduct.BaseProduct"><code class="xref py py-class docutils literal notranslate"><span class="pre">fdi.dataset.baseproduct.BaseProduct</span></code></a></p>
-<p>A Product is a generic result that can be passed on between
-(standalone) processes.</p>
-<p>In general a Product contains zero or more datasets, history,
-optional metadata as well as some required metadata fields.
-Its intent is that it can fully describe itself; this includes
-the way how this product was achieved (its history). As it is
-the result of a process, it should be able to save to and restore
-from an Archive device.</p>
-<p>Many times a Product may contain a single dataset and for this
-purpose the first dataset entry can be accessed by the getDefault()
-method. Note that the datasets may be a composite of datasets
-by themselves.</p>
-<p>mh: Mandatory Attributes can be accessed with e.g. p.creator
-or p.meta[‘creator’]</p>
+<p>A Product is a BaseProduct that has project-wide attributes and can be extended to define a plethora of pecialized products.</p>
 <dl class="py attribute">
-<dt id="fdi.dataset.product.Product.projectinfo">
-<code class="sig-name descname">projectinfo</code><em class="property"> = {'metadata': {'instrument': {'data_type': 'string', 'default': 'UNKOWN', 'description': 'Instrument that generated data of this product'}, 'mission': {'data_type': 'string', 'default': 'SVOM', 'description': 'Name of the mission.'}, 'modelName': {'data_type': 'string', 'default': 'UNKOWN', 'description': 'Model name of the instrument of this product'}}}</em><a class="headerlink" href="#fdi.dataset.product.Product.projectinfo" title="Permalink to this definition">¶</a></dt>
+<dt id="fdi.dataset.product.Product.projectInfo">
+<code class="sig-name descname">projectInfo</code><em class="property"> = {'metadata': {'endDate': {'data_type': 'finetime', 'default': 2017-01-01T00:00:00.000000 TAI(0), 'description': 'Nominal end time  of this product.', 'unit': ''}, 'instrument': {'data_type': 'string', 'default': 'UNKOWN', 'description': 'Instrument that generated data of this product', 'unit': ''}, 'mission': {'data_type': 'string', 'default': 'SVOM', 'description': 'Name of the mission.', 'unit': ''}, 'modelName': {'data_type': 'string', 'default': 'UNKOWN', 'description': 'Model name of the instrument of this product', 'unit': ''}, 'schema': {'data_type': 'string', 'default': '0.3', 'description': 'Version of product schema', 'unit': ''}, 'startDate': {'data_type': 'finetime', 'default': 2017-01-01T00:00:00.000000 TAI(0), 'description': 'Nominal start time  of this product.', 'unit': ''}, 'type': {'data_type': 'string', 'default': 'Product', 'description': 'Product Type identification. Fully qualified Python class name or CARD.', 'unit': ''}}}</em><a class="headerlink" href="#fdi.dataset.product.Product.projectInfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1711,8 +1702,13 @@ implement default like this:</p>
 </dd></dl>
 
 </div>
-<div class="section" id="fdi-dataset-yaml2python-module">
-<h2>fdi.dataset.yaml2python module<a class="headerlink" href="#fdi-dataset-yaml2python-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-fdi.dataset.yaml2python">
+<span id="fdi-dataset-yaml2python-module"></span><h2>fdi.dataset.yaml2python module<a class="headerlink" href="#module-fdi.dataset.yaml2python" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="fdi.dataset.yaml2python.mkinfo">
+<code class="sig-prename descclassname">fdi.dataset.yaml2python.</code><code class="sig-name descname">mkinfo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em>, <em class="sig-param"><span class="n">attrs</span></em>, <em class="sig-param"><span class="n">indent</span></em>, <em class="sig-param"><span class="n">demo</span></em>, <em class="sig-param"><span class="n">onlyInclude</span></em><span class="sig-paren">)</span><a class="headerlink" href="#fdi.dataset.yaml2python.mkinfo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 </div>
 

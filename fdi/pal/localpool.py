@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+from ..pns.common import getJsonObj, trbk
+from ..dataset.odict import ODict
+from ..dataset.dataset import TableDataset
+from ..dataset.serializable import serializeClassID
+from .productpool import ProductPool
+from .common import pathjoin
+from .productpool import lockpathbase
 import filelock
 import shutil
 import os
@@ -7,14 +14,6 @@ import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-from .common import pathjoin
-from .productpool import ProductPool
-
-from ..dataset.serializable import serializeClassID
-from ..dataset.dataset import TableDataset
-from ..dataset.odict import ODict
-from ..pns.common import getJsonObj, trbk
 
 
 def writeJsonwithbackup(fp, data):
@@ -124,27 +123,34 @@ class LocalPool(ProductPool):
             logger.error('Remove ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicWipe(self):
+    @classmethod
+    def wipe(cls, poolpath):
         """
         does the scheme-specific remove-all
         """
 
         # logger.debug()
-        pp = (self._poolpath)
+        pp = poolpath
         if not op.exists(pp):
             return
         if op.isdir(pp):
-            with filelock.FileLock(self.lockpath(), timeout=5):
+            with filelock.FileLock(pathjoin(lockpathbase, poolpath, 'lock'), timeout=5):
                 # lock file will be wiped, too. so acquire then release it.
                 pass
         try:
-            shutil.rmtree(self._poolpath)
+            shutil.rmtree(pp)
             os.mkdir(pp)
         except Exception as e:
-            msg = 'remove-mkdir ' + self._poolpath + \
+            msg = 'remove-mkdir ' + pp + \
                 ' failed. ' + str(e) + trbk(e)
             logger.error(msg)
             raise e
+
+    def schematicWipe(self):
+        """
+        does the scheme-specific remove-all
+        """
+        LocalPool.wipe(self._poolpath)
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

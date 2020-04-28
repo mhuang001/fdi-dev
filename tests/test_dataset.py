@@ -19,12 +19,15 @@ from fdi.dataset.serializable import serializeClassID, SerializableEncoder
 from fdi.dataset.odict import ODict
 from fdi.dataset.copyable import Copyable
 from fdi.dataset.annotatable import Annotatable
+
+from fdi.dataset.yaml2python import mkinfo
 import datetime
 import traceback
 from pprint import pprint
 import copy
 import json
 import sys
+import pkg_resources
 import pdb
 # import __builtins__
 
@@ -444,7 +447,7 @@ def test_Parameter1():
     v = Parameter(a2)  # description has a default so a2 -> 'value'
     assert v.description == 'UNKNOWN'  # inherited from Anotatable
     assert v.value == a2
-    assert v.type_ == 'finetime1'
+    assert v.type_ == 'finetime'
     # incompatible type
     a2 = DataWrapper()
     try:
@@ -458,7 +461,7 @@ def test_Parameter1():
     v = Parameter(a2, description=a1)
     assert v.value == a2
     assert v.description == a1
-    assert v.type_ == 'finetime1'
+    assert v.type_ == 'finetime'
     # 2
     a2 = 'bar'
     a3 = 'foo'
@@ -473,15 +476,17 @@ def test_Parameter1():
     assert v.description == a1
     assert v.value == a2
     assert v.type_ == a4
-    # casting if value and type are Number and different
+    assert type(v.value).__name__ == ParameterTypes[a4]
+    # exception if value and type are  different
     a2 = 9.7
     a4 = 'hex'
     # pdb.set_trace()
-    v = Parameter(a2, a1, a4)
-    assert v.description == a1
-    assert type(v.value) == ParameterTypes[a4]
-    assert v.value == ParameterTypes[a4](a2)
-    assert v.type_ == a4
+    try:
+        v = Parameter(a2, a1, a4)
+    except Exception as e:
+        assert isinstance(e, TypeError)
+    else:
+        assert False, 'no exception caught'
     # type not Number nor in ParameterTypes gets NotImplementedError
     a2 = 9
     a4 = 'guess'
@@ -1264,6 +1269,7 @@ def test_BaseProduct():
     # pdb.set_trace()
     assert x.meta['description'].value == "This is my product example"
     assert x.description == "This is my product example"
+    assert x.meta['type'].value == x.__class__.__qualname__
     # ways to add datasets
     i0 = 6
     i1 = [[1, 2, 3], [4, 5, i0], [7, 8, 9]]
@@ -1337,6 +1343,7 @@ def test_Product():
                 instrument="MyFavourite", modelName="Flight")
     # print(x.__dict__)
     # print(x.meta.toString())
+    assert x.meta['type'].value == x.__class__.__qualname__
     assert x.meta['description'].value == "This is my product example"
     assert x.instrument == "MyFavourite"
     assert x.modelName == "Flight"
@@ -1363,6 +1370,19 @@ def test_Product():
 
     checkjson(x)
     checkgeneral(x)
+
+
+def est_yaml2python():
+    v = {'a': 1, 'b': 'foo', 'c': 4.5, 'd': FineTime1(0), 'e': Vector((7, 8, 9))
+         }
+    yf = pkg_resources.resource_filename(
+        "fdi.dataset.resources", "Product.yml")
+    pf = '/tmp/p.py'
+    d = collections.OrderedDict(yaml.load(yf))
+    yaml2python.__main__({'-y': yf, '-o': pf})
+    with open(pf, 'r') as f:
+        p = f.read()
+    print(""" """+p)
 
 
 # serializing using package jsonconversion

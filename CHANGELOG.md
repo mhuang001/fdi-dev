@@ -6,6 +6,11 @@ Change Log
 	BETA0
 	=====
 
+	0.14 2020-04-28
+	---------------
+yaml2python configures product built-in meta attributes with YAML.
+	
+	
 	0.13 2020-04-21
 	---------------
 refactor Product to have BaseProduct and info. Enforce configured types in Parameter. Enfore Parameter-only in metadata.

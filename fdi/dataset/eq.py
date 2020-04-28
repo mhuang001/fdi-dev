@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from collections import OrderedDict
+
 import pprint
+from collections import OrderedDict
 
 import logging
 # create logger
@@ -20,7 +21,7 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False):
     # seen and level are to be used as nonlocal variables in run()
     # to overcome python2's lack of nonlocal type this method is usded
     # https://stackoverflow.com/a/28433571
-    class context:
+    class _context:
         if seenlist is None:
             seen = []
         else:
@@ -35,16 +36,16 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False):
         c = o1.__class__
         c2 = o2.__class__
         if v:
-            context.level += 1
+            _context.level += 1
             print('deepcmp level %d seenlist length %d' %
-                  (context.level, len(context.seen)))
+                  (_context.level, len(_context.seen)))
             print('1 ' + str(c) + str(o1))
             print('2 ' + str(c2) + str(o2))
-        if pair in context.seen:
+        if pair in _context.seen:
             if v:
                 print('deja vue %s' % str(pair))
             return None
-        context.seen.append(pair)
+        _context.seen.append(pair)
         if c != c2:
             if v:
                 print('type diff')

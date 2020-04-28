@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Automatically generated from resources/Product.yml. Do not edit.
+# Automatically generated from /cygdrive/d/code/fdi/fdi/dataset/resources/Product.yml. Do not edit.
 
 # import datetime
 from fdi.dataset.finetime import FineTime1
@@ -17,7 +17,7 @@ class Product(BaseProduct):
     """ A Product is a BaseProduct that has project-wide attributes and can be extended to define a plethora of pecialized products.
     """
 
-    projectInfo = {
+    projectinfo = {
         'metadata': {
             'type': {
                 'data_type': 'string',
@@ -55,25 +55,17 @@ class Product(BaseProduct):
                 'unit': '',
                 'default': 'SVOM',
             },
-            'schema': {
-                'data_type': 'string',
-                'description': 'Version of product schema',
-                'unit': '',
-                'default': '0.3',
-            },
         },
     }
 
 
-
     def __init__(self,
-                 type_ = 'Product',
-                 startDate = FineTime1(0),
-                 endDate = FineTime1(0),
-                 instrument = 'UNKOWN',
-                 modelName = 'UNKOWN',
-                 mission = 'SVOM',
-                 schema = '0.3',
+                 type_ = None,
+                 startDate = None,
+                 endDate = None,
+                 instrument = None,
+                 modelName = None,
+                 mission = None,
                  **kwds):
         """ initializes with more metadata as attributes.
         """
@@ -86,5 +78,5 @@ class Product(BaseProduct):
         lvar = locals()
         lvar.pop('self')
 
-        self.installMetas(group=Product.projectInfo['metadata'], lvar=lvar)
+        self.installMetas(group=Product.projectinfo['metadata'], lvar=lvar)
         #print('% ' + self.meta.toString())

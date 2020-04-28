@@ -3,32 +3,30 @@
 
 # This is to be able to test w/ or w/o installing the package
 # https://docs.python-guide.org/writing/structure/
-#from pycontext import spdc
+#from pycontext import fdi
+from os.path import expanduser, expandvars
+from fdi.pns.pnsconfig import pnsconfig as pc
+from fdi.pns.options import opt
+from fdi.pal.pnspoolserver import app
+import logging.config
+import logging
+from fdi.pns import logdict  # import logdict
+import fdi
 import os
 import sys
 sys.path.insert(0, os.path.abspath(
     os.path.join(os.path.join(os.path.dirname(__file__), '..'), '..')))
 
 # print(sys.path)
-import spdc
 
 
-from spdc.pns import logdict  # import logdict
-import logging
-import logging.config
 # create logger
 logging.config.dictConfig(logdict.logdict)
 logger = logging.getLogger()
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-from spdc.pal.pnspoolserver import app
-from spdc.pns.options import opt
-
-from spdc.pns.pnsconfig import pnsconfig as pc
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
-import sys
-from os.path import expanduser, expandvars
 env = expanduser(expandvars('$HOME'))
 sys.path.insert(0, env)
 try:

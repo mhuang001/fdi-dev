@@ -33,14 +33,6 @@ fdi.pns.logdict module
    :undoc-members:
    :show-inheritance:
 
-fdi.pns.options module
-----------------------
-
-.. automodule:: fdi.pns.options
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 fdi.pns.pnsconfig module
 ------------------------
 

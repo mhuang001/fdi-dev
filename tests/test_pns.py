@@ -12,7 +12,7 @@ from fdi.dataset.odict import ODict
 from fdi.pns import server
 from os.path import expanduser, expandvars
 from fdi.pns.pnsconfig import pnsconfig as pc
-from fdi.pns.options import opt
+from fdi.utils.options import opt
 from fdi.pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
 import sys
 import base64
@@ -424,7 +424,7 @@ def test_serversleep():
 def test_sleep():
     """
     """
-    s = '1.5'
+    s = '1.7'
     tout = 2
     now = time.time()
     o = postJsonObj(aburl +
@@ -449,9 +449,9 @@ def test_sleep():
     # print(o)
     issane(o)
     re, st = o['result'], o['message']
+    #print('deviation=%f re=%s state=%s' % (d, str(re), str(st)))
     assert re < 0
     assert d > 0 and d < float(s) - tout
-    #print('deviation=%f re=%s state=%s' % (d, str(re), str(st)))
 
 
 def info(title):
@@ -533,7 +533,27 @@ def test_lock():
 
 if __name__ == '__main__':
     now = time.time()
-    node, verbose = opt(pc['node'])
+    node = pc['node']
+    # Get username and password and host ip and port.
+    ops = [
+        {'long': 'help', 'char': 'h', 'default': False, 'description': 'print help'},
+        {'long': 'verbose', 'char': 'v', 'default': False,
+            'description': 'print info'},
+        {'long': 'username=', 'char': 'u',
+            'default': node['username'], 'description':'user name/ID'},
+        {'long': 'password=', 'char': 'p',
+            'default': node['password'], 'description':'password'},
+        {'long': 'host=', 'char': 'i',
+            'default': node['host'], 'description':'host IP/name'},
+        {'long': 'port=', 'char': 'o',
+            'default': node['port'], 'description':'port number'}
+    ]
+    out = opt(ops)
+    verbose = out[1]['result']
+    for j in range(2, 6):
+        n = out[j]['long'].strip('=')
+        node[n] = out[j]['result']
+
     if verbose:
         logger.setLevel(logging.DEBUG)
     else:

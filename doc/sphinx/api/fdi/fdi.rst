@@ -15,3 +15,4 @@ Subpackages
    fdi.dataset
    fdi.pal
    fdi.pns
+   fdi.utils

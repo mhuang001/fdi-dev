@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from numbers import Number
-
+from collections import OrderedDict
 from .serializable import Serializable
 from .odict import ODict
 from .composite import Composite
@@ -10,8 +10,7 @@ from .quantifiable import Quantifiable
 from .eq import DeepEqual
 from .copyable import Copyable
 from .annotatable import Annotatable
-from .datatypes import Vector, Quaternion
-from .finetime import FineTime1
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -19,17 +18,18 @@ logger = logging.getLogger(__name__)
 
 # Allowed Parameter types and the corresponding classes
 ParameterTypes = {
-    'integer': int,
-    'hex': int,
-    'float': float,
-    'string': str,
-    'finetime1': FineTime1,
-    'vector': Vector,
-    'quaternion': Quaternion,
-    '': None
+    'integer': 'int',
+    'hex': 'int',
+    'float': 'float',
+    'string': 'str',
+    'finetime': 'FineTime1',
+    'baseProduct': 'BaseProduct',
+    'mapContext': 'MapContext',
+    'product': 'Product',
+    'vector': 'Vector',
+    'quaternion': 'Quaternion',
+    '': 'None'
 }
-
-rev = dict(zip(ParameterTypes.values(), ParameterTypes.keys()))
 
 
 class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializable):
@@ -41,7 +41,7 @@ class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializab
         None value and 'UNKNOWN' description ''. type_ ParameterTypes[''], which is None.
         With a signle argument: arg -> value, 'UNKNOWN'-> description. ParameterTypes-> type_, hex values have integer type_.
         Unsuported parameter types will get a NotImplementedError.
-        With two positional arguments: arg1-> value, arg2-> description. ParameterTypes['']-> type_.
+f        With two positional arguments: arg1-> value, arg2-> description. ParameterTypes['']-> type_.
         Unsuported parameter types will get a NotImplementedError.
         With three positional arguments: arg1 casted to ParameterTypes[arg3]-> value, arg2-> description. arg3-> type_.
         Unsuported parameter types will get a NotImplementedError.
@@ -82,7 +82,7 @@ class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializab
         else:
             raise NotImplementedError(
                 'Parameter type %s is not in %s.' %
-                (type_, str([''.join(x) for x in ParameterTypes.keys()])))
+                (type_, str([''.join(x) for x in ParameterTypes])))
 
     @property
     def value(self):
@@ -103,11 +103,10 @@ class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializab
     def setValue(self, value):
         """ Replaces the current value of this parameter. 
         If given/current type_ is '' and arg value's type is in ParameterTypes both value and type are updated; or else TypeError is raised.
-        If value type and given/current type_ are different, if both are Numbers.Number,
-        value is casted into given type_.
+        If value type and given/current type_ are different.
             Incompatible value and type_ will get a TypeError.
         """
-        t = type(value)
+        t = type(value).__name__
 
         if self._type == '':
             if value is None:
@@ -121,17 +120,17 @@ class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializab
                     return
                 else:
                     raise TypeError('Value type %s is not in %s.' %
-                                    (t.__name__, str([''.join(x) for x in ParameterTypes.keys()])))
+                                    (t, str([''.join(x) for x in ParameterTypes])))
         tt = ParameterTypes[self._type]
-        if t == tt:
+        if t == tt:  # TODO: subclass
             self._value = value
-        elif issubclass(t, Number) and issubclass(tt, Number):
+        elif 0 and issubclass(t, Number) and issubclass(tt, Number):
+            # , if both are Numbers.Number, value is casted into given type_.
             self._value = tt(value)
             #self._type = tt.__name__
         else:
-            vs = hex(value) if self._type == 'hex' else str(value)
-            raise TypeError('Value %s type is %s, not %s.' %
-                            (vs, t.__name__, self.type_))
+            vs = hex(value) if t == 'int' and self._type == 'hex' else str(value)
+            raise TypeError('Value %s type is %s, not %s.' % (vs, t, tt))
 
     def __setattr__(self, name, value):
         """ add eventhandling """

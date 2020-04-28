@@ -1,3 +1,19 @@
+from fdi.dataset.dataset import ArrayDataset
+import itertools
+import random
+import timeit
+from fdi.pal.mempool import MemPool
+from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
+from fdi.pns.common import trbk
+from fdi.pal.common import getProductObject
+from fdi.pal.context import Context, MapContext
+from fdi.pal.productref import ProductRef
+from fdi.pal.productstorage import ProductStorage
+from fdi.pal.urn import Urn, parseUrn, makeUrn
+from fdi.pal.localpool import LocalPool
+from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.product import Product
+from fdi.dataset.eq import deepcmp
 import copy
 import traceback
 from pprint import pprint
@@ -35,18 +51,6 @@ else:
                  (__name__, logger.getEffectiveLevel()))
     logging.getLogger("filelock").setLevel(logging.WARNING)
 
-from fdi.dataset.eq import deepcmp
-from fdi.dataset.product import Product
-from fdi.dataset.deserialize import deserializeClassID
-
-from fdi.pal.urn import Urn, parseUrn, makeUrn
-from fdi.pal.productstorage import ProductStorage
-from fdi.pal.productref import ProductRef
-from fdi.pal.context import Context, MapContext
-from fdi.pal.common import getProductObject
-from fdi.pns.common import trbk
-from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
-from fdi.pal.mempool import MemPool
 
 # from products.QSRCLIST_VT import QSRCLIST_VT
 
@@ -551,10 +555,11 @@ def test_MapContext():
 def test_realistic():
     # remove existing pools in memory
     PoolManager().removeAll()
-    poolname = 'file:///tmp/realpool'
+    poolpath = '/tmp/realpool'
+    poolname = 'file://'+poolpath
+    # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
+    LocalPool.wipe(poolpath)
     pstore = ProductStorage(pool=poolname)  # on disk
-    # clean up possible garbage of previous runs
-    pstore.wipePool(poolname)
 
     p1 = Product(description='p1')
     p2 = Product(description='p2')
@@ -585,12 +590,6 @@ def test_realistic():
     # two parents
     assert len(pref2.parents) == 2
     assert pref2.parents[1] == map2
-
-
-import timeit
-import random
-import itertools
-from fdi.dataset.dataset import ArrayDataset
 
 
 def f(n):

@@ -1,11 +1,11 @@
 #https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository
 git add LICENSE README.md CHANGELOG.md requirements.txt plot setup.py gitadd .gitignore noxfile.py
 git add install update
-git add fdi/*.py fdi/dataset/*.py
+git add fdi/*.py fdi/dataset/*.py fdi/utils/*.py
 git add resources/*
 git add fdi/pns/*.py fdi/pns/resources
 git add startserver installpns
 git add fdi/pal/*.py fdi/pal/resources
 git add test tests/*.py
 git add doc/html doc/doctrees doc/sphinx/mkapi doc/sphinx/index.rst doc/sphinx/usage doc/sphinx/api doc/sphinx/conf.py doc/sphinx/Makefile doc/sphinx/_static doc/sphinx/_templates doc/html
-git add fdi/dataset/resources/Product.yml
+git add fdi/dataset/resources/*

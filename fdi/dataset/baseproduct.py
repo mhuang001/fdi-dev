@@ -6,17 +6,17 @@ from .finetime import FineTime, FineTime1, utcobj
 from .abstractcomposite import AbstractComposite
 from .listener import EventSender, DatasetEvent, DatasetListener, EventType
 from .dataset import CompositeDataset
-from .metadata import Parameter
+from .metadata import Parameter, ParameterTypes
 from .eq import DeepEqual
 from .copyable import Copyable
+
 import pprint
+import pdb
 
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-# from .composite import
 
 
 class History(CompositeDataset, DeepEqual):
@@ -81,7 +81,7 @@ class History(CompositeDataset, DeepEqual):
 
 
 class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
-    """ A Product is a generic result that can be passed on between
+    """ A BaseProduct is a generic result that can be passed on between
     (standalone) processes.
 
     In general a Product contains zero or more datasets, history,
@@ -96,51 +96,62 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
     method. Note that the datasets may be a composite of datasets
     by themselves.
 
-    mh: Mandatory Attribute 'description' can be accessed with e.g. p.description
-    or p.meta['description'].value
+    mh: Built-in Attributes can be accessed with e.g. p.creator
+    or p.meta['description'].value:
+    p.creator='foo'
+    assert p.creatur=='foo'
+    assert p.meta['creator']=='foo'
+    p.meta['creator']=Parameter('bar')
+    assert p.meta['creator']==Parameter('bar')
     """
     productInfo = {
         'metadata': {
             'type': {
                 'data_type': 'string',
                 'description': 'Product Type identification. Fully qualified Python class name or CARD.',
-                'default': 'UNKOWN',
+                'unit': '',
+                'default': 'BaseProduct',
             },
             'creator': {
                 'data_type': 'string',
                 'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
+                'unit': '',
                 'default': 'UNKOWN',
             },
             'creationDate': {
-                'data_type': 'finetime1',
+                'data_type': 'finetime',
                 'description': 'Creation date of this product',
+                'unit': '',
                 'default': FineTime1(0),
             },
             'description': {
                 'data_type': 'string',
                 'description': 'Description of this product',
+                'unit': '',
                 'default': 'UNKOWN',
             },
             'rootCause': {
                 'data_type': 'string',
                 'description': 'Reason of this run of pipeline.',
+                'unit': '',
                 'default': 'UNKOWN',
             },
             'schema': {
                 'data_type': 'string',
                 'description': 'Version of product schema',
-                'default': '0.2',
+                'unit': '',
+                'default': '0.3',
             },
         }
     }
 
     def __init__(self,
-                 description=None,
-                 creator=None,
-                 creationDate=None,
-                 rootCause=None,
-                 type=None,
-                 schema=None,
+                 description='UNKOWN',
+                 creator='UNKOWN',
+                 creationDate=FineTime1(0),
+                 rootCause='UNKOWN',
+                 type_='BaseProduct',
+                 schema='0.3',
                  **kwds):
         """ put description keyword argument here to allow 'BaseProduct{"foo")
         """
@@ -162,14 +173,12 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
 
     def installMetas(self, group, lvar):
         for met, params in group.items():
-            # description has been set by Anotatable.__init__
+            # pdb.set_trace()  # description has been set by Anotatable.__init__
             if met != 'description':
-                #  type changed to type
-                m = 'type' if met == 'type' else met
+                #  type_ in lvar (from __init__) changed to type
+                m = 'type_' if met == 'type' else met
                 # set to input if given or to default.
-                value = lvar[m] if lvar[m] else params['default']
-                #print('setting meta %s = %s' % (met, str(params)))
-                # metadata entries are also set by extended setattr
+                value = lvar[m]
                 self.__setattr__(met, value)
 
     def accept(self, visitor):
@@ -197,19 +206,29 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
         return super(BaseProduct, self).__getattribute__(name)
 
     def __setattr__(self, name, value, withmeta=True):
-        """ Updates meta data table. Updates value when Mandatory Attributes are
-        modifed.
-        value: Parameter if normal metadata. Value if mandatory attribute.
+        """ Updates meta data table. Updates value when built-in Attributes are modifed.
+        value: Parameter/NumericParameter if this is a normal metadata, depending on if value is Number. Value if mandatorybuilt-in attribute.
         """
         if self.hasMeta():
-            if name in self.productInfo['metadata'].keys():
+            met = self.productInfo['metadata']
+            if name in met.keys():
+                # a special attribute like 'description'. store in meta
                 m = self.getMeta()
                 if name in m:
+                    # meta already has a Parameter for name
                     m[name].setValue(value)
                 else:
-                    im = self.productInfo['metadata'][name]
-                    m[name] = Parameter(
-                        value=value, description=im['description'], type_=im['data_type'])
+                    # make a Parameter
+                    im = met[name]  # {'dats_type':..., 'value':....}
+                    if im['unit'] != '':
+                        m[name] = NumericParameter(value=value,
+                                                   description=im['description'],
+                                                   type_=im['data_type'],
+                                                   unit=im['unit'])
+                    else:
+                        m[name] = Parameter(value=value,
+                                            description=im['description'],
+                                            type_=im['data_type'])
                 # must return without updating self.__dict__
                 return
         # print('setattr ' + name, value)

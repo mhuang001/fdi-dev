@@ -14,7 +14,7 @@ OPT	= -r P --log-file=$(TESTLOG)
 T	= 
 S	=
 
-.PHONY: runserver \
+.PHONY: runserver reqs\
 	test test1 test2 test3 test4 \
 	plots plot_all plot_dataset plot_pal plot_pns \
 	docs doc_api doc_plots doc_html
@@ -23,6 +23,9 @@ S	=
 runserver:
 	python3.6 -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
 
+
+reqs:
+	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
 
 test: test1 test2 test3 test4
 

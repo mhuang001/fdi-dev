@@ -21,11 +21,11 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'fdi'
-copyright = '2019, 2020 Maohai Huang'
+copyright = '2019, 2020 Maohai Huang, NAOC, ESA'
 author = 'Maohai Huang'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.12'
+release = 'v0.15'
 
 
 # -- General configuration ---------------------------------------------------

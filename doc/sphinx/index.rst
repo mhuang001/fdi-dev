@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ==================================================
- Flexible Dataset Integrator (FDI)
+ Flexible Dataset Integrator (fdi)
 ==================================================
 
 FDI, known as SPDC before, is written in Python for integrating different types of data, and letting the integrated product take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading.
@@ -12,7 +12,7 @@ FDI, known as SPDC before, is written in Python for integrating different types 
 Features
 ========
 
-With FDI one can pack data of different format into **modular** Data Products, together with annotation (description and units) and meta data (data about data). One can associate groups, arrays, or tables of Products using basic data structures such as sets, sequences (Python ``list``), mappings (Python ``dict``), or custom-made classes. FDI accomodates nested and highly complex structures.
+With FDI one can pack data of different format into **modular** Data Products, together with annotation (description and units) and meta data (data about data). One can make arrays or tables of Products using basic data structures such as sets, sequences (Python ``list``), mappings (Python ``dict``), or custom-made classes. FDI accomodates nested and highly complex structures.
 
 **Access APIs** of the components of 'FDIs' are convenient, making it easier for **scripting and data mining** directly 'on FDIs'.
 
@@ -27,6 +27,9 @@ FDI storage 'pools' (file based and implemented memory based) are provided as re
 *Context* type of FDIs are provided so that references of FDIs can become components, enabling FDIs to encapsulate rich, deep, **sophisticated, and accessible contextual data**, yet remain light weight.
 
 For data processors, an HTML **server** with **RESTful APIs** is implemented (named Processing Node Server, PNS) to interface data processing modules. PNS is especially suitable for **Docker containers** in pipelines mixing **legacy software** or software of incompatible environments to form an integral data processing pipeline.
+
+This package attempts to meet scientific observation and data processing requirements, and is inspired by data models of, and designs APIs as compatible as possible with, European Space Agency's Interactive Analysis package of Herschel Common Science System (written in Java, and in Jython for scripting).
+
 
 
 FDI Python packages

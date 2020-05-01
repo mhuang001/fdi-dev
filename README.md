@@ -8,12 +8,6 @@ To install
 		git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git
 		cd fdi
 		pip3 install -e .
-		
-		mkdir ~/svom
-		cd ~/svom
-		cp /tmp/fdi/install .
-		nano install [do some editing if needed]
-		. ./install
 ```
 change the git line to
 ```
@@ -22,11 +16,8 @@ change the git line to
 to install as a user.
 
 Install the dependencies if needed. python 3.6 for pal and pns, 2.7 for dataset
-```
-		cd /tmp/fdi
-		pip3 install -r requirements.txt
-```
-
-See [documents in HTML in doc/html/index.html](doc/html/index.html).
 
 For more examples see tests/test_*.py
+
+See [introduction, quick start, and API documents on readthedocs.io](https://fdi.readthedocs.io/en/latest/).
+

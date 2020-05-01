@@ -10,9 +10,9 @@
 Rationale
 =========
 
-A data processing task produces data products that are meant to be shared by other people. When someone receives a data 'products' s/he woud expect explanation informaion associated the product.
+A data processing task produces data products that are meant to be shared by other people. When someone receives a data 'product' besides datasets s/he woud expect explanation informaion associated with the product.
 
-Many people tend to storet data with no meaning attached to them. Without attach meaning of the collection of numbers, it is difficult for other people to fully understand the data. It could be difficult for even the data producer to recall the exact meaning of the numbers after a while.
+Many people tend to store data with no note of meaning attached to them. Without attach meaning of the collection of numbers, it is difficult for other people to fully understand or use the data. It could be difficult for even the data producer to recall the exact meaning of the numbers after a while.
 
 This package implements a data product modeled after `Herschel Common Software System (v15)  products <https://www.cosmos.esa.int/web/herschel/data-products-overview/>`_, taking other  requirements of scientific observation and data processing into account. The APIs are kept as compatible with HCSS (written in Java, and in Jython for scripting) as possible.
 
@@ -46,8 +46,8 @@ Metadata and Parameters
 :Parameter: named scalar variables. 
 	    This package provides the following parameter types:
 
-   * _Parameter_: Contains an arbitrary value and no unit
-   * _NumericParameter_: Contains a number with possibly a unit
+   * _Parameter_: Contains value (classes whitelisted in ParameterTypes)
+   * _NumericParameter_: Contains a number with a unit.
 
 Apart from the value of a parameter you can ask it for its description and -if it is a numeric parameter- for its unit as well. 
 
@@ -62,7 +62,7 @@ Serializability
 ---------------
 
 In order to transfer data across the network between heterogeneous nodes data needs to be serializable.
-JSON format is being considered to transfer serialized data for its wide adoption, availability of tools, ease to use with Python, and simplicity.
+JSON format is used considering to transfer serialized data for its wide adoption, availability of tools, ease to use with Python, and simplicity.
 
 run tests
 =========
@@ -71,7 +71,16 @@ In the install directory:
 
 .. code-block:: shell
 
-		./test 1
+		make test
+
+You can only test sub-package ``dataset``, ``pal``, ``pns`` or pns server self-test only, by changing ``test`` above to ``test1``, ``test2``, ``test3``, ``test4``, respectively. To pass command-line arguments to ``pytest`` do
+
+.. code-block:: shell
+
+		make test T='-k Bas'
+
+to test ``BaseProduct`` in sub-package ``dataset``.
+
 
 Design
 ======

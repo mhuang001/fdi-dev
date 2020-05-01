@@ -17,10 +17,10 @@ Subpackages
 Submodules
 ----------
 
-fdi.pns.common module
+fdi.pns.jsonio module
 ---------------------
 
-.. automodule:: fdi.pns.common
+.. automodule:: fdi.pns.jsonio
    :members:
    :undoc-members:
    :show-inheritance:

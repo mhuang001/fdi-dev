@@ -161,6 +161,14 @@ fdi.dataset.product module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.products module
+---------------------------
+
+.. automodule:: fdi.dataset.products
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.quantifiable module
 -------------------------------
 

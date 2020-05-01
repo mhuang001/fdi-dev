@@ -6,11 +6,11 @@ from .finetime import FineTime, FineTime1, utcobj
 from .abstractcomposite import AbstractComposite
 from .listener import EventSender, DatasetEvent, DatasetListener, EventType
 from .dataset import CompositeDataset
-from .metadata import Parameter, ParameterTypes
+from .metadata import Parameter, NumericParameter, ParameterTypes
 from .eq import DeepEqual
 from .copyable import Copyable
 
-import pprint
+from collections import OrderedDict
 import pdb
 
 import logging
@@ -96,7 +96,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
     method. Note that the datasets may be a composite of datasets
     by themselves.
 
-    mh: Built-in Attributes can be accessed with e.g. p.creator
+    mh: Built-in Attributes in productInfo['metadata'] can be accessed with e.g. p.creator
     or p.meta['description'].value:
     p.creator='foo'
     assert p.creatur=='foo'
@@ -105,7 +105,13 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
     assert p.meta['creator']==Parameter('bar')
     """
     productInfo = {
-        'metadata': {
+        'metadata': OrderedDict({
+            'description': {
+                'data_type': 'string',
+                'description': 'Description of this product',
+                'unit': '',
+                'default': 'UNKOWN',
+            },
             'type': {
                 'data_type': 'string',
                 'description': 'Product Type identification. Fully qualified Python class name or CARD.',
@@ -122,13 +128,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
                 'data_type': 'finetime',
                 'description': 'Creation date of this product',
                 'unit': '',
-                'default': FineTime1(0),
-            },
-            'description': {
-                'data_type': 'string',
-                'description': 'Description of this product',
-                'unit': '',
-                'default': 'UNKOWN',
+                'default': '0',
             },
             'rootCause': {
                 'data_type': 'string',
@@ -142,7 +142,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
                 'unit': '',
                 'default': '0.3',
             },
-        }
+        })
     }
 
     def __init__(self,
@@ -153,33 +153,49 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
                  type_='BaseProduct',
                  schema='0.3',
                  **kwds):
-        """ put description keyword argument here to allow 'BaseProduct{"foo")
-        """
 
-        if description is None:
-            description = self.productInfo['metadata']['description']['default']
+        if 'metasToBeInstalled' not in kwds:
+            # this class is being called directly
+
+            # list of local variables.
+            lvar = locals()
+            lvar.pop('self')
+            lvar.pop('__class__')
+            lvar.pop('kwds')
+            metasToBeInstalled = lvar
+        else:
+            # This class is being called probably from super() in a subclass
+            metasToBeInstalled = kwds['metasToBeInstalled']
+            del kwds['metasToBeInstalled']
+        # 'description' is consumed in annotatable super class so it is not in.
+        description = metasToBeInstalled.pop('description')
+        # print('B')
+        # print(metasToBeInstalled)
+        # print(description)
+
         # must be the first line to initiate meta and get description
         super(BaseProduct, self).__init__(description=description, **kwds)
 
-        # list of local variables. 'description' has been consumed in
-        # in annotatable super class so it is not in.
-        lvar = locals()
-        lvar.pop('self')
+        # print(self.productInfo['metadata'].keys())
+        # print(metasToBeInstalled)
         # print('# ' + self.meta.toString())
 
-        self.installMetas(group=BaseProduct.productInfo['metadata'], lvar=lvar)
-
+        self.installMetas(mtbi=metasToBeInstalled)
         self.history = History()
 
-    def installMetas(self, group, lvar):
-        for met, params in group.items():
+    def installMetas(self, mtbi):
+        """ put parameters in group in product metadata, and updates productInfo. values in mtbi override those default ones in group.
+        """
+
+        for met, params in self.productInfo['metadata'].items():
             # pdb.set_trace()  # description has been set by Anotatable.__init__
             if met != 'description':
-                #  type_ in lvar (from __init__) changed to type
-                m = 'type_' if met == 'type' else met
+                #  type_ in mtbi (from __init__) changed to type
+                name = 'type_' if met == 'type' else met
                 # set to input if given or to default.
-                value = lvar[m]
-                self.__setattr__(met, value)
+                if name in mtbi:
+                    value = mtbi[name]
+                    self.__setattr__(met, value)
 
     def accept(self, visitor):
         """ Hook for adding functionality to meta data object
@@ -198,7 +214,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
         # print('getattribute ' + name)
         if name not in ['productInfo', '_meta'] and hasattr(self, '_meta'):
             #            self.hasMeta():
-            if name in self.productInfo['metadata'].keys():
+            if name in self.productInfo['metadata']:
                 # if meta does not exist, inherit Attributable
                 # before any class that access mandatory attributes
                 # print('aa ' + selftr(self.getMeta()[name]))
@@ -206,8 +222,9 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
         return super(BaseProduct, self).__getattribute__(name)
 
     def __setattr__(self, name, value, withmeta=True):
-        """ Updates meta data table. Updates value when built-in Attributes are modifed.
-        value: Parameter/NumericParameter if this is a normal metadata, depending on if value is Number. Value if mandatorybuilt-in attribute.
+        """ Stores value to attribute with name given. 
+        If name is in the built-in list, store the value in a Parameter in metadata container. Updates meta data table. Updates value when built-in Attributes already has its Parameter in metadata.
+        value: Must be Parameter/NumericParameter if this is normal metadata, depending on if it is Number. Value if mandatory / built-in attribute.
         """
         if self.hasMeta():
             met = self.productInfo['metadata']
@@ -216,11 +233,32 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
                 m = self.getMeta()
                 if name in m:
                     # meta already has a Parameter for name
-                    m[name].setValue(value)
+                    p = m[name]
+                    if issubclass(value.__class__, Parameter):
+                        t, tt = value.getType(), p.getType()
+                        if t == tt:  # TODO: subclass
+                            p = value
+                            return
+                        else:
+                            vs = value.value
+                            raise TypeError(
+                                'Parameter %s type is %s, not %s.' % (vs, t, tt))
+                    else:
+                        # value is not a Parameter
+                        t = type(value).__name__
+                        tt = ParameterTypes[p.getType()]
+                        if t == tt:  # TODO: subclass
+                            p.setValue(value)
+                            return
+                        else:
+                            vs = value
+                            raise TypeError(
+                                'Parameter %s type is %s, not %s.' % (vs, t, tt))
                 else:
-                    # make a Parameter
+                    # name is not in prod metadata. make a Parameter
                     im = met[name]  # {'dats_type':..., 'value':....}
-                    if im['unit'] != '':
+                    # in ['integer','hex','float','vector','quaternion']
+                    if im['unit']:
                         m[name] = NumericParameter(value=value,
                                                    description=im['description'],
                                                    type_=im['data_type'],

@@ -225,8 +225,10 @@ When implementing a ProductPool, the following rules need to be applied:
     def saveProduct(self,  product, tag=None, geturnobjs=False):
         """
         Saves specified product and returns the designated ProductRefs or URNs.
-        Saves a product or a list of products to the pool, possibly under the supplied tag, and return the reference (or a list of references if the input is a list of products),
-        or Urns if geturnobjs is True.
+        Saves a product or a list of products to the pool, possibly under the
+        supplied tag, and return the reference (or a list of references is
+        the input is a list of products), or Urns if geturnobjs is True.
+
         Pool:!!dict
           _classes:!!odict
               $product0_class_name:!!dict

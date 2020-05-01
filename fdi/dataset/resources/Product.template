@@ -11,7 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 class $PRODUCTNAME($PARENT):
-    """ A Product is a BaseProduct that has project-wide attributes and can be extended to define a plethora of pecialized products.
+    """ $CLASSDOC
+
+    Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """
 
 $PROJECTINFO
@@ -19,16 +21,29 @@ $PROJECTINFO
     def __init__(self,
 $INITARGS
                  **kwds):
-        """ initializes with more metadata as attributes.
+        """ Initializes instances with more metadata as attributes, set to default values.
+
+        Put description keyword argument here to allow 'BaseProduct("foo") and description='foo'
         """
 
-        # must be the first line to initiate meta and get description
-        super($PRODUCTNAME , self).__init__(**kwds)
+        if 'metasToBeInstalled' not in kwds:
+            # this class is being called directly
 
-        # list of local variables. 'description' has been consumed in
-        # in annotatable super class so it is not in.
-        lvar = locals()
-        lvar.pop('self')
+            # list of local variables.
+            lvar = locals()
+            lvar.pop('self')
+            lvar.pop('__class__')
+            lvar.pop('kwds')
+            metasToBeInstalled = lvar
+        else:
+            # This class is being called probably from super() in a subclass
+            metasToBeInstalled = kwds['metasToBeInstalled']
+            del kwds['metasToBeInstalled']
 
-        self.installMetas(group=$PRODUCTNAME.$INF['metadata'], lvar=lvar)
+
+# must be the first line to initiate meta and get description
+        super($PRODUCTNAME , self).__init__(
+            metasToBeInstalled=metasToBeInstalled, **kwds)
+
+        #self.installMetas(lvar=lvar)
         #print('% ' + self.meta.toString())

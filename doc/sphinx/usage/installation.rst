@@ -16,18 +16,7 @@ for developers
 		cd $FDIINSTDIR
 		git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git
 		cd fdi
-		pip3 install -r requirements.txt
 		pip3 install -e .
-
-
-.. code-block:: shell
-		
-		mkdir ~/svom
-		cd ~/svom
-		cp $FDIINSTDIR/fdi/install .
-		nano install [do some editing if needed]
-		. ./install
-
 
 for users
 =========

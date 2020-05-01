@@ -9,6 +9,14 @@ fdi.utils package
 Submodules
 ----------
 
+fdi.utils.common module
+-----------------------
+
+.. automodule:: fdi.utils.common
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.options module
 ------------------------
 

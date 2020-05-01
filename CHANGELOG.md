@@ -6,6 +6,10 @@ Change Log
 	BETA0
 	=====
 
+	0.15 2020-05-01
+	---------------
+Add Makefile to consolidate various commands, .readthdocs.yml for RTD. Sort out productInfo in Products.
+
 	0.14 2020-04-28
 	---------------
 yaml2python configures product built-in meta attributes with YAML.

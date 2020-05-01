@@ -12,7 +12,7 @@ description:
     description: Description of this product
     description_zh_cn: 对本产品的描述。
     examples: SINGLE EXPOSURE
-    unit: ''
+    unit: None
     default: UNKOWN
     valid: ''
 type:
@@ -25,7 +25,7 @@ type:
         Python class name or CARD.
     description_zh_cn: 产品类型。完整Python类名或卡片名。
     examples: SAT-QM-ThermVac
-    unit: ''
+    unit: None
     default: Product
     valid: ''
 creator:
@@ -38,7 +38,7 @@ creator:
         organization, person, software, special algorithm etc.
     description_zh_cn: 本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。
     examples: SECM-EGSE
-    unit: ''
+    unit: None
     default: UNKOWN
     valid: ''
 creationDate:
@@ -50,7 +50,7 @@ creationDate:
     description: Creation date of this product
     description_zh_cn: 本产品生成时间
     examples: '10361455509632'
-    unit: ''
+    unit: None
     default: '0'
     valid: ''
 rootCause:
@@ -62,7 +62,7 @@ rootCause:
     description: Reason of this run of pipeline.
     description_zh_cn: 数据来源（此例来自鉴定件热真空罐）
     examples: QM-ThermVac
-    unit: ''
+    unit: None
     default: UNKOWN
     valid: ''
 schema:
@@ -74,6 +74,6 @@ schema:
     description: Version of product schema
     description_zh_cn: 产品格式版本
     examples: '1'
-    unit: ''
+    unit: None
     default: '0.3'
     valid: ''

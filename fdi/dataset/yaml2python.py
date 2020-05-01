@@ -4,10 +4,11 @@ from collections import OrderedDict
 import os
 from string import Template
 import pkg_resources
+from datetime import datetime
 import pdb
 # from ..pal.context import MapContext
 from ..utils.options import opt
-
+from ..utils.common import pathjoin
 
 # a dictionary that translates metadata 'type' field to classname
 from fdi.dataset.metadata import ParameterTypes
@@ -25,40 +26,45 @@ attrs = ['startDate', 'endDate', 'instrument', 'modelName', 'mission', 'type']
 indent = '    '
 
 
-def mkinfo(d, attrs, indent, demo, onlyInclude):
+def mkinfo(attrs, indent, demo, onlyInclude):
     # extra indent
     ei = '    '
     infostr = ''
-    if d['CSCLEVEL'] == 'ALL':
-        info = 'productInfo' if d['name'] == 'BaseProduct' else 'projectInfo'
-    else:
-        info = 'info'
+    info = 'productInfo'
     infostr += ei + info + ' = {\n'
-    infostr += ei + indent + '\'metadata\': {\n'
+    infostr += ei + indent + '\'metadata\': OrderedDict({\n'
 
-    default = {}
+    default_code = {}
     for met, val in attrs.items():
+        # met is like 'description', 'type', 'redWinSize'
+        # val is like {'data_type':'string, 'default':'foo'...}
         infostr += ei + indent * 2 + '\'%s\': {\n' % met
         # loop through the properties
-        for pname, pval in val.items():
+        for pname, pv in val.items():
+            # pname is like 'data_type', 'default'
+            # pv is like 'string', 'foo, bar, and baz', '2', '(0, 0, 0,)'
             if demo and pname not in onlyInclude:
                 continue
             dt = val['data_type'].strip()
-            if pname == 'default' and dt != 'string':
+            pval = pv.strip()
+            if pname == 'default':
                 # python instanciation source code.
                 # will be like default: FineTime1(0)
-                t = ParameterTypes[dt]
-                s = '%s(%s)' % (t, pval.strip())
-            else:
-                s = '\'' + pval.strip() + '\''
+                if dt not in ['string', 'integer', 'hex', 'float']:
+                    t = ParameterTypes[dt]
+                    code = '%s(%s)' % (t, pval)
+                elif dt in ['integer', 'hex', 'float'] or pval == 'None':
+                    code = pval
+                else:
+                    code = '\'' + pval + '\''
+                default_code[met] = code
+            s = '\'' + pval + '\''
             infostr += ei + indent * 3 + '\'%s\': %s,\n' % (pname, s)
-            if pname == 'default':
-                default[met] = s
         infostr += ei + indent * 2 + '},\n'
-    infostr += ei + indent + '},\n'
-    infostr += ei + '}\n'
+    infostr += ei + indent + '}),\n'  # 'metadata'
+    infostr += ei + '}\n'  # productInfo
 
-    return infostr, info, default
+    return infostr, default_code
 
 
 if __name__ == '__main__':
@@ -67,19 +73,19 @@ if __name__ == '__main__':
 
     # Get input file name etc. from command line. defaut 'Product.yml'
     mdir = os.path.dirname(__file__)
-    ydir = os.path.join(mdir, 'resources', pkg_resources.resource_filename(
+    ypath = os.path.join(mdir, 'resources', pkg_resources.resource_filename(
         'fdi.dataset.resources', 'Product.yml'))
-    tdir = os.path.join(mdir, 'resources', pkg_resources.resource_filename(
+    tpath = os.path.join(mdir, 'resources', pkg_resources.resource_filename(
         'fdi.dataset.resources', 'Product.template'))
     ops = [
         {'long': 'help', 'char': 'h', 'default': False, 'description': 'print help'},
         {'long': 'verbose', 'char': 'v', 'default': False,
          'description': 'print info'},
-        {'long': 'yamlfile=', 'char': 'y', 'default': ydir,
-         'description': 'Input file name.'},
-        {'long': 'template=', 'char': 't', 'default': tdir,
-         'description': 'Product class template file name.'},
-        {'long': 'outputdir', 'char': 'o', 'default': '.',
+        {'long': 'yamlfile=', 'char': 'y', 'default': ypath,
+         'description': 'Input file path.'},
+        {'long': 'template=', 'char': 't', 'default': tpath,
+         'description': 'Product class template file path.'},
+        {'long': 'outputdir=', 'char': 'o', 'default': '.',
          'description': 'Output directory for python file.'},
     ]
     # pdb.set_trace()
@@ -110,17 +116,26 @@ if __name__ == '__main__':
     print('Find attributes:\n%s' % ''.join(
         ('%20s' % (k+'=' + v['default'] + ', ') for k, v in attrs.items())))
 
-    # make output filename. by default is in YAML input file "name" + .py
-    fout = pathjoin(out[4]['result'], d['name'].lower())
-
-    # make metadata dictionary
-    # inf = projectinfo/info
-    infs, inf, default = mkinfo(d, attrs, indent, demo, onlyInclude)
+    # class doc
+    doc = '%s class (level %s) version %s inheriting %s. Automatically generated from %s on %s.' % (
+        d['name'], d['CSCLEVEL'], d['version'], d['parent'], fin, str(datetime.now()))
 
     # the generated source code must import these
     seen = []
-    imports = '# import datetime\n'
-    for met, val in attrs.items():
+    imports = 'from collections import OrderedDict\n'
+    # import parent class
+    a = ParameterTypes[d['parent']]  # TODO: multiple parents
+    s = 'from %s import %s\n' % (glb[a].__module__, a)
+    if a not in seen:
+        seen.append(a)
+        imports += s
+
+    # get parent attributes
+    all_attrs = glb[a]().productInfo['metadata']
+    # merge to get all attributes including parents' and self's.
+    all_attrs.update(attrs)
+
+    for met, val in all_attrs.items():
         a = ParameterTypes[val['data_type']]
         if a in glb:
             # this attribute class has module
@@ -129,17 +144,18 @@ if __name__ == '__main__':
                 seen.append(a)
                 imports += s+'\n'
 
-    # import parent class
-    a = ParameterTypes[d['parent']]
-    s = 'from %s import %s' % (glb[a].__module__, a)
-    if a not in seen:
-        seen.append(a)
-        imports += s
+    # make metadata dictionary
+    infs, default_code = mkinfo(all_attrs, indent, demo, onlyInclude)
 
     # keyword argument for __init__
     ls = [' '*17 + '%s = %s,\n' %
-          (x + '_' if x == 'type' else x, default[x]) for x in attrs]
+          (x + '_' if x == 'type' else x, default_code[x]) for x in all_attrs]
     ikwds = ''.join(ls).strip('\n')
+
+    # make output filename. by default is in YAML input file "name" + .py
+    fout = pathjoin(out[4]['result'], d['name'].lower()+'.py')
+    print("Output python file is "+fout)
+
     # make aubatitution dictionary for Template
     subs = {}
     subs['WARNING'] = '# Automatically generated from %s. Do not edit.' % fin
@@ -148,11 +164,11 @@ if __name__ == '__main__':
     subs['PARENT'] = ParameterTypes[d['parent']]
     print('parent class: %s' % subs['PARENT'])
     subs['IMPORTS'] = imports + '\n'
-    print('import class:\n%s' % seen)
+    print('import class: %s' % seen)
+    subs['CLASSDOC'] = doc
     subs['PROJECTINFO'] = infs+'\n'
-    subs['INF'] = inf
     subs['INITARGS'] = ikwds
-    print('%s:\n%s\n' % (subs['INF'], subs['INITARGS']))
+    print('productInfo=\n%s\n' % (subs['INITARGS']))
 
     # subtitute the template
     with open(out[3]['result']) as f:

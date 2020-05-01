@@ -428,7 +428,7 @@ urn:file:///tmp/demopool:Product:0
 
 re-create a product only using the urn
 
->>> newp = getProductObject(urn)
+>>> newp = ProductRef(urn).product
 >>> # the new and the old one are equal
 ... print(newp == x)
 True

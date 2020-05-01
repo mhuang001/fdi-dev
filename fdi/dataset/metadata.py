@@ -16,7 +16,9 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-# Allowed Parameter types and the corresponding classes
+""" Allowed Parameter types and the corresponding classes.
+The keys are mnemonics for humans; the values are type(x).__name__.
+"""
 ParameterTypes = {
     'integer': 'int',
     'hex': 'int',

@@ -59,7 +59,7 @@ or just
 
 .. code-block:: shell
 
-		./startserver
+		make runserver
 
 to use the defaults.
 
@@ -75,7 +75,7 @@ To run all tests in one go:
 
 .. code-block:: shell
 
-		./test 3 [-u <username> -p <password> [-i <host ip>] [-o <port>]] [options]
+		make test3 [T='-u <username> -p <password> [-i <host ip>] [-o <port>] [options]']
 
 Tests can be done step-by-step to pin-point problems:
 
@@ -86,7 +86,7 @@ Run on the server host. without needing starting the server:
 
 .. code-block:: shell
 
-		./test 4
+		make test4
 
 2. Local Flask Server Functional Tests
 ======================================
@@ -97,19 +97,19 @@ In ``~/local.py`` (in ``pns/pnsconfig.py`` if you have not made ``~/local.py``),
 
 .. code-block:: shell
 		
-		./test 3 getinit
+		make test3 T='getinit'
 
 2b: test PUT initialization test:
 
 .. code-block:: shell
 
-		./test 3 -k putinittest
+		make test3 T='-k putinittest'
 
 2c1: If the test passes, you can Run all tests in one go:
 
 .. code-block:: shell
 		
-		./test 3
+		make test3
 
 2c2: Or keep on individual tests...
 
@@ -118,19 +118,19 @@ test POST In-server processing
 
 .. code-block:: shell
 		
-		./test 3 -k _post
+		make test3 T='-k _post'
 
 test POST PTS processing
 
 .. code-block:: shell
 		
-		./test 3 -k _run
+		make test3 T='-k _run'
 
 test DELETE Clean-up the server by removing the input and output dirs
 
 .. code-block:: shell
 		
-		./test 3 -k deleteclean
+		make test3 T='-k deleteclean'
 
 Now is a good time to ...
 
@@ -254,7 +254,7 @@ then run the above with correct IP and port (edit ~/local.py or specifying in co
 
 .. code-block::
    
-   ./test 3
+   make test3
 
 
 PTS Configuration
@@ -270,7 +270,7 @@ restart the server. run
 
 .. code-block::
    
-   ./test 4
+   make test4
 
 PTS API
 =======

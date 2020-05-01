@@ -6,7 +6,7 @@
 #from pycontext import fdi
 from os.path import expanduser, expandvars
 from fdi.pns.pnsconfig import pnsconfig as pc
-from fdi.pns.options import opt
+from fdi.utils.options import opt
 from fdi.pal.pnspoolserver import app
 import logging.config
 import logging

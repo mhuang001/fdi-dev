@@ -7,7 +7,9 @@ from fdi.pal.productref import ProductRef
 from fdi.dataset.deserialize import deserializeClassID
 from fdi.dataset.serializable import serializeClassID
 from fdi.dataset.dataset import GenericDataset, ArrayDataset, TableDataset
-from fdi.dataset.product import Product, FineTime1, History
+from fdi.dataset.product import Product
+from fdi.dataset.finetime import FineTime1
+from fdi.dataset.baseproduct import History
 from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
 from os.path import expanduser, expandvars
 from fdi.pns.pnsconfig import pnsconfig as pc

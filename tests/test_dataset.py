@@ -42,7 +42,7 @@ if __name__ == '__main__' and __package__ is None:
 
     from outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
 else:
-    # run by pyton -m tests.test_dataset
+    # run by python -m tests.test_dataset
 
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
@@ -480,7 +480,6 @@ def test_Parameter1():
     # exception if value and type are  different
     a2 = 9.7
     a4 = 'hex'
-    # pdb.set_trace()
     try:
         v = Parameter(a2, a1, a4)
     except Exception as e:
@@ -1292,7 +1291,6 @@ def test_BaseProduct():
     assert x["Spectrum"].getValueAt(columnIndex=1, rowIndex=0) == 0
 
     # default is the first dataset
-    # pdb.set_trace()
     assert BaseProduct('empty').getDefault() is None
     d = x.getDefault()
     sets = x.getDataWrappers()
@@ -1308,16 +1306,15 @@ def test_BaseProduct():
     v = NumericParameter(description=a1, value=a2, unit=a3)
     x.meta['numPar'] = v
 
-    # test mandatory properties that are also metadata
+    # test mandatory BaseProduct properties that are also metadata
     x.creator = ""
     a0 = "Me, myself and I"
     x.creator = a0
     assert x.creator == a0
-
+    # change it
     assert x.meta["creator"].value == a0
     a1 = "or else"
     x.meta["creator"] = Parameter(a1)
-
     assert x.meta["creator"].value == a1
     assert x.creator == a1
 
@@ -1338,16 +1335,18 @@ def test_BaseProduct():
 
 def test_Product():
     """ """
-
+    # pdb.set_trace()
     x = Product(description="This is my product example",
                 instrument="MyFavourite", modelName="Flight")
     # print(x.__dict__)
     # print(x.meta.toString())
     assert x.meta['type'].value == x.__class__.__qualname__
     assert x.meta['description'].value == "This is my product example"
-    assert x.instrument == "MyFavourite"
+    assert x.meta['instrument'].value == "MyFavourite"
     assert x.modelName == "Flight"
-    x = Product(description="This is my product example")
+    # attitute added by Product
+    x = Product("product example")
+    assert x.description == "product example"
     # Test metadata
     # add one
     x.meta['an'] = Parameter('other')
@@ -1363,6 +1362,18 @@ def test_Product():
     x.meta.remove('an')
     # gone
     assert 'an' not in x.meta
+
+    # test mandatory Product project-level properties that are also metadata
+    x.instrument = ""
+    a0 = "Me, myself and I"
+    x.instrument = a0
+    assert x.instrument == a0
+    # change it
+    assert x.meta["instrument"].value == a0
+    a1 = "or else"
+    x.meta["instrument"] = Parameter(a1)
+    assert x.meta["instrument"].value == a1
+    assert x.instrument == a1
 
     # toString
     ts = x.toString()

@@ -7,7 +7,7 @@
  Flexible Dataset Integrator (FDI)
 ==================================================
 
-FDI, known as SPDC before is written in Python for integrating different types of data, and letting the integrated product take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading.
+FDI, known as SPDC before, is written in Python for integrating different types of data, and letting the integrated product take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading.
 
 Features
 ========
@@ -56,7 +56,7 @@ API Document
 
    api/api
    
-.. image:: _static/packages_dataset+pal.png
+.. image:: _static/packages_all.png
 
 	   
 

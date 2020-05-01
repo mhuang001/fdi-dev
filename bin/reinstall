@@ -1,0 +1,13 @@
+INST=~/svom
+mkdir -p $INST
+cd $INST
+pip3 uninstall fdi -y
+pip3 uninstall svom -y
+git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
+git clone http://mercury.bao.ac.cn:9006/svom-csc/svom.git
+/usr/bin/cp -f fdi/bin/reinstall .
+cd $INST/fdi && pip3 install -e .
+cd $INST/svom && pip3 install -e .
+cd $INST/fdi && . bin/reinstallpns
+
+

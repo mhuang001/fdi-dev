@@ -1,26 +1,5 @@
 # -*- coding: utf-8 -*-
-from fdi.dataset.deserialize import deserializeClassID
-from fdi.dataset.product import Product
-from fdi.dataset.baseproduct import History, BaseProduct
-from fdi.dataset.finetime import FineTime, FineTime1, utcobj
-from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
-from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
-from fdi.dataset.abstractcomposite import AbstractComposite
-from fdi.dataset.attributable import Attributable
-from fdi.dataset.metadataholder import MetaDataHolder
-from fdi.dataset.datawrapper import DataWrapperMapper
-from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, ParameterTypes
-from fdi.dataset.composite import Composite
-from fdi.dataset.listener import EventSender, DatasetBaseListener
-from fdi.dataset.datatypes import Vector, Quaternion
-from fdi.dataset.quantifiable import Quantifiable
-from fdi.dataset.eq import deepcmp
-from fdi.dataset.serializable import serializeClassID, SerializableEncoder
-from fdi.dataset.odict import ODict
-from fdi.dataset.copyable import Copyable
-from fdi.dataset.annotatable import Annotatable
 
-from fdi.dataset.yaml2python import mkinfo
 import datetime
 import traceback
 from pprint import pprint
@@ -29,6 +8,27 @@ import json
 import sys
 import pkg_resources
 import pdb
+
+from fdi.dataset.annotatable import Annotatable
+from fdi.dataset.copyable import Copyable
+from fdi.dataset.odict import ODict
+from fdi.dataset.eq import deepcmp
+from fdi.dataset.classes import Classes
+from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.quantifiable import Quantifiable
+from fdi.dataset.datatypes import Vector, Quaternion
+from fdi.dataset.listener import EventSender, DatasetBaseListener
+from fdi.dataset.composite import Composite
+from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, ParameterTypes
+from fdi.dataset.attributable import Attributable
+from fdi.dataset.abstractcomposite import AbstractComposite
+from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
+from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
+from fdi.dataset.finetime import FineTime, FineTime1, utcobj
+from fdi.dataset.baseproduct import History, BaseProduct
+from fdi.dataset.product import Product
+
+
 # import __builtins__
 
 
@@ -77,8 +77,7 @@ def checkjson(obj):
               ' serialized: ************\n')
         print(js)
         print('*************************')
-    des = deserializeClassID(js, lgb=copy.copy(
-        globals()).update(locals()), debug=dbg)
+    des = deserializeClassID(js, lgb=Classes.mapping, debug=dbg)
     if dbg:
         if hasattr(des, 'meta'):
             print('moo ' + str((des.meta.listeners)))

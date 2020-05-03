@@ -12,9 +12,9 @@ from ..utils.common import pathjoin
 
 # a dictionary that translates metadata 'type' field to classname
 from fdi.dataset.metadata import ParameterTypes
-from .deserialize import makedesables
+from .classes import Classes
 
-glb = makedesables()
+glb = Classes.mapping
 
 
 # make simple demo for fdi

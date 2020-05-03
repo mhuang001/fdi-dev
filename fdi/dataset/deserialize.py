@@ -2,7 +2,10 @@
 import logging
 import json
 import codecs
+import pdb
+
 from .odict import ODict
+from .classes import Classes
 
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -23,7 +26,7 @@ Serializable.
 '''
 
 
-def makedesables():
+def imakedesables():
     """ makes a class dictionary for instanciation.
     """
     from fdi.dataset.deserialize import deserializeClassID
@@ -48,7 +51,7 @@ def makedesables():
     return l
 
 
-desables = None
+#desables = None
 
 
 def lls(s, length=80):
@@ -110,7 +113,8 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
             inst = codecs.decode(obj, 'hex')
             indent -= 1
             return inst
-        # inst = eval(classname + '()')
+        if classname not in lgb:
+            raise ValueError('%s not in Classes map.' % classname)
         inst = lgb[classname]()
     for (k, v) in obj.items():
         """ loop through all key-value pairs. """
@@ -180,11 +184,8 @@ def deserializeClassID(js, lgb=None, debug=False, usedict=False):
     if usedict is True dict insted of ODict will be used.
     """
 
-    global desables
     if lgb is None:
-        if desables is None:
-            desables = makedesables()
-        lgb = desables
+        lgb = Classes.mapping
 
     if not isinstance(js, strset) or len(js) == 0:
         return None

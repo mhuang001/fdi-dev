@@ -18,6 +18,11 @@ def trbk(e):
         (e.child_traceback if hasattr(e, 'child_traceback') else '')
 
 
+def trbk2(e):
+    tb = traceback.TracebackException.from_exception(e)
+    return ''.join(tb.stack.format())
+
+
 def pathjoin(*p):
     """ join path segments with given separater (default '/').
     Useful when '\\' is needed.

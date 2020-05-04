@@ -53,8 +53,10 @@ def mkinfo(attrs, indent, demo, onlyInclude):
                 if dt not in ['string', 'integer', 'hex', 'float']:
                     t = ParameterTypes[dt]
                     code = '%s(%s)' % (t, pval)
-                elif dt in ['integer', 'hex', 'float'] or pval == 'None':
+                elif dt in ['integer', 'hex', 'float']:
                     code = pval
+                elif pval == 'None':
+                    code = 'None'
                 else:
                     code = '\'' + pval + '\''
                 default_code[met] = code

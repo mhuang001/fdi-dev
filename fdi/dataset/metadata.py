@@ -156,10 +156,11 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             self.fire(e)
 
     def __repr__(self):
-        vs = hex(self._value) if self._type == 'hex' else str(self._value)
+        vs = hex(self._value) if self._type == 'hex' and issubclass(
+            self._value.__class__, int) else str(self._value)
         return self.__class__.__name__ +\
-            '{ description = "%s", value = %s, type = %s}' %\
-            (str(self.description), vs, str(self._type))
+            '{ %s <%s>, "%s"}' %\
+            (vs, str(self._type), str(self.description))
 
     def toString(self):
         return self.__str__()
@@ -182,9 +183,11 @@ class NumericParameter(Parameter, Quantifiable):
         super(NumericParameter, self).__init__(**kwds)
 
     def __repr__(self):
+        vs = hex(self._value) if self._type == 'hex' and issubclass(
+            self._value.__class__, int) else str(self._value)
         return self.__class__.__name__ + \
-            '{ description = "%s", value = "%s", unit = "%s", type = "%s"}' %\
-            (str(self.description), str(self.value), self.unit, str(self.getType()))
+            '{ %s (%s) <%s>, "%s"}' %\
+            (vs, self.unit, str(self._type), str(self.description))
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

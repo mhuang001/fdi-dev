@@ -109,19 +109,19 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
             'description': {
                 'data_type': 'string',
                 'description': 'Description of this product',
-                'unit': '',
+                'unit': 'None',
                 'default': 'UNKOWN',
             },
             'type': {
                 'data_type': 'string',
                 'description': 'Product Type identification. Fully qualified Python class name or CARD.',
-                'unit': '',
+                'unit': 'None',
                 'default': 'BaseProduct',
             },
             'creator': {
                 'data_type': 'string',
                 'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
-                'unit': '',
+                'unit': 'None',
                 'default': 'UNKOWN',
             },
             'creationDate': {
@@ -133,13 +133,13 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
             'rootCause': {
                 'data_type': 'string',
                 'description': 'Reason of this run of pipeline.',
-                'unit': '',
+                'unit': 'None',
                 'default': 'UNKOWN',
             },
             'schema': {
                 'data_type': 'string',
                 'description': 'Version of product schema',
-                'unit': '',
+                'unit': 'None',
                 'default': '0.3',
             },
         })

@@ -1,12 +1,33 @@
 PRODUCT = Product
+B_PRODUCT = BaseProduct
 PYDIR	= fdi/dataset
-D_RESOURCES= $(PYDIR)/resources
-YAML	= $(D_RESOURCES)/$(PRODUCT).yml
-TEMPLATE	= $(D_RESOURCES)/$(PRODUCT).template
+RESDIR	= $(PYDIR)/resources
+P_PY	= $(shell python -c "print('$(PRODUCT)'.lower())").py
+B_PY	= $(shell python -c "print('$(B_PRODUCT)'.lower())").py
+B_INFO	= $(B_PY)
+P_YAML	= $(RESDIR)/$(PRODUCT).yml
+B_YAML	= $(RESDIR)/$(B_PRODUCT).yml
+P_TEMPLATE	= $(RESDIR)/$(PRODUCT).template
+B_TEMPLATE	= $(RESDIR)/$(B_PRODUCT).template
 
-py: $(YAML) $(TEMPLATE)
-	cp $(D_RESOURCES)/product.py.save $(PYDIR)/products.py
-	python3 -m fdi.dataset.yaml2python -y $(YAML) -t $(TEMPLATE) -o $(PYDIR)
+py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY)
+
+$(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE) $(PYDIR)/$(B_PY)
+	cp $(RESDIR)/product.py.save $(PYDIR)/$(P_PY)
+	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR)
+
+
+# only the productInfo and __init__() kwds are generated in $(RESDIR).
+# $(RESDIR)/$(B_INFO) must be manually integrated into $(PYDIR)/$(B_PY). 
+
+$(RESDIR)/$(B_INFO): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE)
+	python3 -m fdi.dataset.yaml2python -y $(B_YAML) -t $(B_TEMPLATE) -o $(RESDIR)
+
+$(PYDIR)/$(B_PY): $(RESDIR)/$(B_INFO)
+	@echo $(RESDIR)/$(B_INFO) is NEWER than $(PYDIR)/$(B_PY). \
+	It must be manually integrated into $(PYDIR)/$(B_PY).
+	@ echo Re-run make after editing. Exiting... ; exit
+
 
 TESTLOG	= tests/log
 OPT	= --debug -v -r P 

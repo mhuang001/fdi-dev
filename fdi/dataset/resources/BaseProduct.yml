@@ -26,7 +26,7 @@ type:
     description_zh_cn: 产品类型。完整Python类名或卡片名。
     examples: SAT-QM-ThermVac
     unit: None
-    default: Product
+    default: BaseProduct
     valid: ''
 creator:
     current_id: creator

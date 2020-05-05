@@ -20,7 +20,7 @@ glb = Classes.mapping
 # make simple demo for fdi
 demo = 1
 # if demo is true, only output this subset.
-onlyInclude = ['default', 'description', 'data_type', 'unit']
+onlyInclude = ['default', 'description', 'data_type', 'unit', 'fits_keyword']
 # only these attributes in meta
 attrs = ['startDate', 'endDate', 'instrument', 'modelName', 'mission', 'type']
 indent = '    '
@@ -114,28 +114,34 @@ if __name__ == '__main__':
     attrs = OrderedDict([(x, val) for x, val in d.items()
                          if issubclass(val.__class__, dict)])
     print('Read from %s:\n%s' %
-          (fin, ''.join([k+'='+v+'\n' for k, v in d.items() if k not in attrs])))
+          (fin, ''.join([k + '=' + str(v) + '\n'
+                         for k, v in d.items() if k not in attrs])))
     print('Find attributes:\n%s' % ''.join(
         ('%20s' % (k+'=' + v['default'] + ', ') for k, v in attrs.items())))
 
     # class doc
-    doc = '%s class (level %s) version %s inheriting %s. Automatically generated from %s on %s.' % (
-        d['name'], d['CSCLEVEL'], d['version'], d['parent'], fin, str(datetime.now()))
+    doc = '%s class (level %s) version %s inheriting %s. Automatically generated from %s on %s.' % tuple(map(str, (
+        d['name'], d['CSCLEVEL'], d['version'], d['parent'],
+        fin, datetime.now())))
 
     # the generated source code must import these
     seen = []
     imports = 'from collections import OrderedDict\n'
     # import parent class
-    a = ParameterTypes[d['parent']]  # TODO: multiple parents
-    s = 'from %s import %s\n' % (glb[a].__module__, a)
-    if a not in seen:
-        seen.append(a)
-        imports += s
+    pn = d['parent']
+    if pn and pn != '':
+        a = ParameterTypes[pn]  # TODO: multiple parents
+        s = 'from %s import %s\n' % (glb[a].__module__, a)
+        if a not in seen:
+            seen.append(a)
+            imports += s
 
-    # get parent attributes
-    all_attrs = glb[a]().productInfo['metadata']
-    # merge to get all attributes including parents' and self's.
-    all_attrs.update(attrs)
+        # get parent attributes
+        all_attrs = glb[a]().productInfo['metadata']
+        # merge to get all attributes including parents' and self's.
+        all_attrs.update(attrs)
+    else:
+        all_attrs = attrs
 
     for met, val in all_attrs.items():
         a = ParameterTypes[val['data_type']]
@@ -163,7 +169,7 @@ if __name__ == '__main__':
     subs['WARNING'] = '# Automatically generated from %s. Do not edit.' % fin
     subs['PRODUCTNAME'] = d['name']
     print('product name: %s' % subs['PRODUCTNAME'])
-    subs['PARENT'] = ParameterTypes[d['parent']]
+    subs['PARENT'] = ParameterTypes[pn] if pn and pn != '' else ''
     print('parent class: %s' % subs['PARENT'])
     subs['IMPORTS'] = imports + '\n'
     print('import class: %s' % seen)

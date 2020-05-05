@@ -4,7 +4,6 @@ import datetime
 import traceback
 from pprint import pprint
 import copy
-import json
 import sys
 import pkg_resources
 import pdb
@@ -16,7 +15,6 @@ from fdi.dataset.eq import deepcmp
 from fdi.dataset.classes import Classes
 from fdi.dataset.deserialize import deserializeClassID
 from fdi.dataset.quantifiable import Quantifiable
-from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.listener import EventSender, DatasetBaseListener
 from fdi.dataset.composite import Composite
 from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, ParameterTypes
@@ -24,10 +22,11 @@ from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
+from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.finetime import FineTime, FineTime1, utcobj
 from fdi.dataset.baseproduct import History, BaseProduct
 from fdi.dataset.product import Product
-
+from fdi.utils.checkjson import checkjson
 
 # import __builtins__
 
@@ -58,48 +57,6 @@ else:
     logger = logging.getLogger()
     logger.debug('%s logging level %d' %
                  (__name__, logger.getEffectiveLevel()))
-
-
-def checkjson(obj):
-    """ seriaizes the given object and deserialize. check equality.
-    """
-
-    # dbg = True if issubclass(obj.__class__, BaseProduct) else False
-    dbg = False
-
-    if hasattr(obj, 'serialized'):
-        js = obj.serialized()
-    else:
-        js = json.dumps(obj)
-
-    if dbg:
-        print('*************** checkjsom ' + obj.__class__.__name__ +
-              ' serialized: ************\n')
-        print(js)
-        print('*************************')
-    des = deserializeClassID(js, lgb=Classes.mapping, debug=dbg)
-    if dbg:
-        if hasattr(des, 'meta'):
-            print('moo ' + str((des.meta.listeners)))
-        print('*********** checkjson deserialized ' + str(des.__class__) +
-              '***********\n')
-        pprint(des)
-
-        # js2 = json.dumps(des, cls=SerializableEncoder)
-        # pprint('******** des     serialized: **********')
-        # pprint(js)
-
-        r = deepcmp(obj, des)
-        print('*************** deepcmp ***************')
-        print('identical' if r is None else r)
-        # print(' DIR \n' + str(dir(obj)) + '\n' + str(dir(des)))
-    if 0 and issubclass(obj.__class__, BaseProduct):
-        print(str(id(obj)) + ' ' + obj.toString())
-        print(str(id(des)) + ' ' + des.toString())
-        # obj.meta.listeners = []
-        # des.meta.listeners = []
-    assert obj == des, deepcmp(obj, des)
-    return des
 
 
 def checkgeneral(v):

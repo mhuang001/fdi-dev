@@ -14,6 +14,8 @@ from fdi.pal.localpool import LocalPool
 from fdi.dataset.deserialize import deserializeClassID
 from fdi.dataset.product import Product
 from fdi.dataset.eq import deepcmp
+from fdi.utils.checkjson import checkjson
+
 import copy
 import traceback
 from pprint import pprint
@@ -23,7 +25,7 @@ import os
 
 from os import path as op
 import glob
-import yaml
+
 
 import sys
 # print([(k, v) for k, v in globals().items() if '__' in k])
@@ -50,53 +52,6 @@ else:
     logger.debug('%s logging level %d' %
                  (__name__, logger.getEffectiveLevel()))
     logging.getLogger("filelock").setLevel(logging.WARNING)
-
-
-# from products.QSRCLIST_VT import QSRCLIST_VT
-
-
-def checkjson(obj):
-    """ seriaizes the given object and deserialize. check equality.
-    """
-
-    # dbg = True if issubclass(obj.__class__, Product) else False
-    dbg = False
-
-    if hasattr(obj, 'serialized'):
-        js = obj.serialized()
-    else:
-        js = json.dumps(obj)
-
-    if dbg:
-        print('*************** checkjsom ' + obj.__class__.__name__ +
-              ' serialized: ************\n')
-        print(js)
-        print('*************************')
-    des = deserializeClassID(js, debug=dbg)
-    if dbg:
-        if hasattr(des, 'meta'):
-            print('moo ' + str((des.meta.listeners)))
-        print('*********** checkjson deserialized ' + str(des.__class__) +
-              '***********\n')
-        pprint(des)
-
-        # js2 = json.dumps(des, cls=SerializableEncoder)
-        # pprint('******** des     serialized: **********')
-        # pprint(js)
-
-        r = deepcmp(obj, des)
-        print('*************** deepcmp ***************')
-        if r is not None:
-            print(r + '\nOBJ ' + yaml.dump(obj) + '\nDES ' + yaml.dump(des))
-        else:
-            print('identical')
-
-    if 0 and issubclass(obj.__class__, Product):
-        obj.meta.listeners = []
-        des.meta.listeners = []
-    assert obj == des, deepcmp(obj, des) + '\nOBJ ' + \
-        yaml.dump(obj) + '\nDES ' + yaml.dump(des)
-    return des
 
 
 def checkgeneral(v):

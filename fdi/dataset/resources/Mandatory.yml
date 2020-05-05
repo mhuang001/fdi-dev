@@ -1,0 +1,113 @@
+name: Product
+CSCLEVEL: ALL
+version: '0.2'
+type:
+    current_id: type
+    id: type
+    id_zh_cn: 产品类型
+    fits_keyword: TYPE
+    data_type: string
+    description: Product Type identification. Fully qualified
+        Python class name or CARD.
+    description_zh_cn: 产品类型。完整Python类名或卡片名。
+    examples: SAT-QM-ThermVac
+    unit: ''
+    default: UNKOWN
+    valid: ''
+creator:
+    current_id: creator
+    id: creator
+    id_zh_cn: 本产品生成者
+    fits_keyword: CREATOR
+    data_type: string
+    description: Generator of this product. Example name of institute,
+        organization, person, software, special algorithm etc.
+    description_zh_cn: 本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。
+    examples: SECM-EGSE
+    unit: ''
+    default: UNKOWN
+    valid: ''
+creationDate:
+    current_id: creationDate
+    id: creationDate
+    id_zh_cn: 产品生成时间
+    fits_keyword: DATE
+    data_type: 'finetime1'
+    description: Creation date of this product
+    description_zh_cn: 本产品生成时间
+    examples: '10361455509632'
+    unit: ''
+    default: '0'
+    valid: ''
+description:
+    current_id: description
+    id: description
+    id_zh_cn: 描述
+    fits_keyword: DESCRIPT
+    data_type: string
+    description: Description of this product
+    description_zh_cn: 对本产品的描述。
+    examples: SINGLE EXPOSURE
+    unit: ''
+    default: UNKOWN
+    valid: ''
+rootCause:
+    current_id: rootCause
+    id: rootCause
+    id_zh_cn: 数据来源
+    fits_keyword: ROOTCAUS
+    data_type: string
+    description: Reason of this run of pipeline.
+    description_zh_cn: 数据来源（此例来自鉴定件热真空罐）
+    examples: QM-ThermVac
+    unit: ''
+    default: UNKOWN
+    valid: ''
+mission:
+    current_id: mission
+    id: mission
+    id_zh_cn: 任务名称
+    fits_keyword: TELESCOP
+    data_type: string
+    description: Name of the mission.
+    description_zh_cn: 任务名称
+    examples: SVOM
+    unit: ''
+    default: SVOM
+    valid: ''
+instrument:
+    current_id: instrument
+    id: instrument
+    id_zh_cn: 观测仪器名称
+    fits_keyword: INSTRUME
+    data_type: string
+    description: Instrument that generated data of this product
+    description_zh_cn: 观测仪器名称
+    examples: VT
+    unit: ''
+    default: UNKOWN
+    valid: ''
+modelName:
+    current_id: modelName
+    id: modelName
+    id_zh_cn: 样机名称
+    fits_keyword: MODEL
+    data_type: string
+    description: Model name of the instrument of this product
+    description_zh_cn: 观测仪器样机名称
+    examples: QM
+    unit: ''
+    default: UNKOWN
+    valid: ''
+schema:
+    current_id: formatVersion
+    id: schema
+    id_zh_cn: 格式版本
+    fits_keyword: SCHEMA
+    data_type: string
+    description: Version of product schema
+    description_zh_cn: 产品格式版本
+    examples: '1'
+    unit: ''
+    default: '0.2'
+    valid: ''

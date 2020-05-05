@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class Product(BaseProduct):
-    """ Product class (level ALL) version 0.3 inheriting baseProduct. Automatically generated from fdi/dataset/resources/Product.yml on 2020-05-04 12:39:35.531970.
+    """ Product class (level ALL) version 0.3 inheriting baseProduct. Automatically generated from fdi/dataset/resources/Product.yml on 2020-05-04 13:26:33.980320.
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """
@@ -25,7 +25,7 @@ class Product(BaseProduct):
             'description': {
                 'data_type': 'string',
                 'description': 'Description of this product',
-                'unit': '',
+                'unit': 'None',
                 'default': 'UNKOWN',
             },
             'type': {
@@ -37,7 +37,7 @@ class Product(BaseProduct):
             'creator': {
                 'data_type': 'string',
                 'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
-                'unit': '',
+                'unit': 'None',
                 'default': 'UNKOWN',
             },
             'creationDate': {
@@ -49,7 +49,7 @@ class Product(BaseProduct):
             'rootCause': {
                 'data_type': 'string',
                 'description': 'Reason of this run of pipeline.',
-                'unit': '',
+                'unit': 'None',
                 'default': 'UNKOWN',
             },
             'schema': {

@@ -258,7 +258,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
                     # name is not in prod metadata. make a Parameter
                     im = met[name]  # {'dats_type':..., 'value':....}
                     # in ['integer','hex','float','vector','quaternion']
-                    if im['unit']:
+                    if im['unit'] != 'None':
                         m[name] = NumericParameter(value=value,
                                                    description=im['description'],
                                                    type_=im['data_type'],

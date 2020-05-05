@@ -20,9 +20,9 @@ class Vector(Annotatable, Copyable, DeepEqual, Quantifiable, Serializable):
     """ Three dimensional vector with a unit.
     """
 
-    def __init__(self, components=(0, 0, 0), description='UNKNOWN', unit='', **kwds):
+    def __init__(self, components=[0, 0, 0], description='UNKNOWN', unit='', **kwds):
         """ invoked with no argument results in a vector of
-        (0, 0, 0) components and 'UNKNOWN' description, unit ''.
+        [0, 0, 0] components and 'UNKNOWN' description, unit ''.
         With a signle argument: arg -> components, 'UNKNOWN'-> description, ''-> unit.
         With two positional arguments: arg1 -> components, arg2-> description, ''-> unit.
         With three positional arguments: arg1 -> components, arg2-> description, 'arg3-> unit.
@@ -57,12 +57,13 @@ class Vector(Annotatable, Copyable, DeepEqual, Quantifiable, Serializable):
         for c in components:
             if not isinstance(c, Number):
                 raise TypeError('Components must all be numbers.')
-        self._components = components
+        # must be list to make round-trip Json
+        self._components = list(components)
 
     def __repr__(self):
         return self.__class__.__name__ + \
-            '{ description = "%s", components = "%s", unit = "%s"}' %\
-            (str(self.description), str(self.components), str(self.getUnit()))
+            '{ %s (%s) "%s"}' %\
+            (str(self.components), str(self.getUnit()), str(self.description))
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
@@ -77,9 +78,9 @@ class Quaternion(Vector):
     """ Quaternion with a unit.
     """
 
-    def __init__(self, components=(0, 0, 0, 0), **kwds):
+    def __init__(self, components=[0, 0, 0, 0], **kwds):
         """ invoked with no argument results in a vector of
-        (0, 0, 0, 0) components and 'UNKNOWN' description, unit ''.
+        [0, 0, 0, 0] components and 'UNKNOWN' description, unit ''.
         With a signle argument: arg -> components, 'UNKNOWN'-> description, ''-> unit.
         With two positional arguments: arg1 -> components, arg2-> description, ''-> unit.
         With three positional arguments: arg1 -> components, arg2-> description, 'arg3-> unit.

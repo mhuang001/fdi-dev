@@ -13,7 +13,7 @@ B_TEMPLATE	= $(RESDIR)/$(B_PRODUCT).template
 py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY)
 
 $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE) $(PYDIR)/$(B_PY)
-	cp $(RESDIR)/product.py.save $(PYDIR)/$(P_PY)
+	echo $(PRODUCT)=0 > $(PYDIR)/$(P_PY)
 	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR)
 
 
@@ -35,9 +35,9 @@ OPT	= -r P --log-file=$(TESTLOG)
 T	= 
 S	=
 
-.PHONY: runserver reqs\
+.PHONY: runserver reqs FORCE \
 	test test1 test2 test3 test4 \
-	plots plot_all plot_dataset plot_pal plot_pns \
+	plots plotall plot_dataset plot_pal plot_pns \
 	docs doc_api doc_plots doc_html
 
 # default username and password are in pnsconfig.py
@@ -62,11 +62,18 @@ test3:
 test4:
 	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py
 
-plots: plot_all plot_dataset plot_pal plot_pns
+plots: plotall plot_dataset plot_pal plot_pns
 
-plot_all:
+plotall:
 	pyreverse -o png -p all fdi/dataset fdi/pal fdi/pns fdi/utils
 	mv classes_all.png packages_all.png resources
+
+qplot_%: FORCE
+	pyreverse -o png -p $@ fdi/$@
+	mv classes_$@.png packages_$@.png resources
+
+FORCE:
+
 
 plot_dataset:
 	pyreverse -o png -p dataset fdi/dataset
@@ -100,11 +107,4 @@ doc_plots:
 
 doc_html:
 	cd $(SDIR) && make html
-
-PLOTSET	= dataset pal pns
-p: resources/classes_$(PLOTSET).png resources/packages_$(PLOTSET).png
-
-classes_%.png packages_%.png :
-	pyreverse -o png -p $@ fdi/$@
-	mv classes_$@.png packages_$@.png resources
 

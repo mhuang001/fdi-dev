@@ -2,7 +2,6 @@ from collections import OrderedDict
 from fdi.dataset.finetime import FineTime1
 
 
-
     productInfo = {
         'metadata': OrderedDict({
             'description': {
@@ -49,7 +48,6 @@ from fdi.dataset.finetime import FineTime1
             },
         }),
     }
-
 
 
     def __init__(self,

@@ -7,7 +7,6 @@ from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.finetime import FineTime1
 
 
-
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Product(BaseProduct):
-    """ Product class (level ALL) version 0.3 inheriting BaseProduct. Automatically generated from fdi/dataset/resources/Product.yml on 2020-05-06 20:22:20.008455.
+    """ Product class (level ALL) version 0.3 inheriting BaseProduct. Automatically generated from fdi/dataset/resources/Product.yml on 2020-05-07 21:18:34.286447.
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """
@@ -101,7 +100,6 @@ class Product(BaseProduct):
             },
         }),
     }
-
 
 
     def __init__(self,

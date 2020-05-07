@@ -12,9 +12,9 @@ from ..utils.options import opt
 from ..utils.common import pathjoin
 
 # a dictionary that translates metadata 'type' field to classname
-from fdi.dataset.metadata import ParameterTypes
+from .metadata import ParameterTypes
 from .classes import Classes
-
+from .baseproduct import BaseProduct
 
 # make simple demo for fdi
 demo = 1
@@ -45,7 +45,8 @@ def mkinfo(attrs, indent, demo, onlyInclude):
             if demo and pname not in onlyInclude:
                 continue
             dt = val['data_type'].strip()
-            pval = pv.strip()
+            pval = pv.strip() if issubclass(pv.__class__, (str, bytes)) \
+                else str(pv)
             if pname == 'default':
                 # python instanciation source code.
                 # will be like default: FineTime1(0)
@@ -99,15 +100,17 @@ if __name__ == '__main__':
     # include project classes
     clp = out[5]['result']
     if clp == '':
-        Classes.mapping = [(k, v) for k, v in locals()
-                           if issubclass(v, BaseProduct)]
+        # pdb.set_trace()
+        ls = [(k, v) for k, v in locals().items()
+              if issubclass(type(v), BaseProduct)]
+        Classes.mapping = ls
     else:
         clpp, clpf = os.path.split(clp)
         sys.path.insert(0, os.path.abspath(clpp))
-        print(sys.path)
         __import__(clpf.strip('.py'))
     glb = Classes.mapping
 
+    # input file
     fin = out[2]['result']
 
     '''' if input file name ends with '.yaml' or '.yml' (case insensitive)
@@ -130,7 +133,7 @@ if __name__ == '__main__':
           (fin, ''.join([k + '=' + str(v) + '\n'
                          for k, v in d.items() if k not in attrs])))
     print('Find attributes:\n%s' % ''.join(
-        ('%20s' % (k+'=' + v['default'] + ', ') for k, v in attrs.items())))
+        ('%20s' % (k+'=' + str(v['default']) + ', ') for k, v in attrs.items())))
 
     # class doc
     doc = '%s class (level %s) version %s inheriting %s. Automatically generated from %s on %s.' % tuple(map(str, (
@@ -184,10 +187,10 @@ if __name__ == '__main__':
     print('product name: %s' % subs['PRODUCTNAME'])
     subs['PARENT'] = pn if pn and pn != '' else ''
     print('parent class: %s' % subs['PARENT'])
-    subs['IMPORTS'] = imports + '\n'
+    subs['IMPORTS'] = imports
     print('import class: %s' % seen)
     subs['CLASSDOC'] = doc
-    subs['PROJECTINFO'] = infs+'\n'
+    subs['PROJECTINFO'] = infs
     subs['INITARGS'] = ikwds
     print('productInfo=\n%s\n' % (subs['INITARGS']))
 

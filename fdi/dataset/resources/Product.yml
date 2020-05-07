@@ -35,7 +35,7 @@ endDate:
     fits_keyword: DATE_END
     data_type: 'finetime'
     description: Nominal end time  of this product.
-    description_zh_cn: 产品标称的时间
+    description_zh_cn: 产品标称的结束时间
     examples: '10361455509632'
     unit: None
     default: '0'

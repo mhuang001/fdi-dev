@@ -29,8 +29,8 @@ class Classes_meta(type):
         # https://stackoverflow.com/a/1800999
     """
 
-    _package = None
-    _classes = None
+    _package = {}
+    _classes = {}
 
     def __init__(cls, *args, **kwds):
         """ Class is initialized with built-in classes by default.
@@ -41,9 +41,10 @@ class Classes_meta(type):
         """ Updates classes mapping.
         Make the package mapping if it has not been made.
         """
-        if not cls._package:
+        if len(cls._package) == 0:
             cls.makePackageClasses()
-        cls._classes = copy.copy(cls._package)
+        # cls._classes.clear()
+        cls._classes.update(copy.copy(cls._package))
         cls._classes.update(c)
 
     def makePackageClasses(cls):
@@ -51,7 +52,7 @@ class Classes_meta(type):
         Do nothing if the classes mapping is already made so repeated calls will not cost lots more time.
         """
 
-        if cls._package:
+        if len(cls._package):
             return
         from fdi.dataset.deserialize import deserializeClassID
         from fdi.dataset.finetime import FineTime, FineTime1, utcobj
@@ -66,7 +67,8 @@ class Classes_meta(type):
         from fdi.pal.urn import Urn
         from fdi.pal.productref import ProductRef
 
-        cls._package = locals()
+        cls._package.update(locals())
+        del cls._package['cls']
         return
 
     # https://stackoverflow.com/a/1800999
@@ -74,7 +76,7 @@ class Classes_meta(type):
     def mapping(cls):
         """ Returns the dictionary of classes allowed for deserialization, including the fdi built-ins and user added classes.
         """
-        if not cls._classes:
+        if len(cls._classes) == 0:
             cls.updateMapping()
         return cls._classes
 

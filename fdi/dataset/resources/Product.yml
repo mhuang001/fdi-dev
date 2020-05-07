@@ -1,6 +1,6 @@
 name: Product
 description: Project level product
-parent: baseProduct
+parent: BaseProduct
 CSCLEVEL: ALL
 version: '0.3'
 type:

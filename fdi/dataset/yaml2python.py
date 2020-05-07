@@ -2,6 +2,7 @@
 import yaml
 from collections import OrderedDict
 import os
+import sys
 from string import Template
 import pkg_resources
 from datetime import datetime
@@ -13,8 +14,6 @@ from ..utils.common import pathjoin
 # a dictionary that translates metadata 'type' field to classname
 from fdi.dataset.metadata import ParameterTypes
 from .classes import Classes
-
-glb = Classes.mapping
 
 
 # make simple demo for fdi
@@ -89,11 +88,25 @@ if __name__ == '__main__':
          'description': 'Product class template file path.'},
         {'long': 'outputdir=', 'char': 'o', 'default': '.',
          'description': 'Output directory for python file.'},
+        {'long': 'userclasses=', 'char': 'c', 'default': '',
+         'description': 'File to import to update Classes with user-defined classes which YAML file refers to.'},
     ]
     # pdb.set_trace()
     out = opt(ops)
     # print([(x['long'], x['result']) for x in out])
     verbose = out[1]['result']
+
+    # include project classes
+    clp = out[5]['result']
+    if clp == '':
+        Classes.mapping = [(k, v) for k, v in locals()
+                           if issubclass(v, BaseProduct)]
+    else:
+        clpp, clpf = os.path.split(clp)
+        sys.path.insert(0, os.path.abspath(clpp))
+        print(sys.path)
+        __import__(clpf.strip('.py'))
+    glb = Classes.mapping
 
     fin = out[2]['result']
 
@@ -130,7 +143,7 @@ if __name__ == '__main__':
     # import parent class
     pn = d['parent']
     if pn and pn != '':
-        a = ParameterTypes[pn]  # TODO: multiple parents
+        a = pn  # TODO: multiple parents
         s = 'from %s import %s\n' % (glb[a].__module__, a)
         if a not in seen:
             seen.append(a)
@@ -169,7 +182,7 @@ if __name__ == '__main__':
     subs['WARNING'] = '# Automatically generated from %s. Do not edit.' % fin
     subs['PRODUCTNAME'] = d['name']
     print('product name: %s' % subs['PRODUCTNAME'])
-    subs['PARENT'] = ParameterTypes[pn] if pn and pn != '' else ''
+    subs['PARENT'] = pn if pn and pn != '' else ''
     print('parent class: %s' % subs['PARENT'])
     subs['IMPORTS'] = imports + '\n'
     print('import class: %s' % seen)

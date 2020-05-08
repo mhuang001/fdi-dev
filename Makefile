@@ -13,7 +13,7 @@ B_TEMPLATE	= $(RESDIR)/$(B_PRODUCT).template
 py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY)
 
 $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE) $(PYDIR)/$(B_PY)
-	echo $(PRODUCT)=0 > $(PYDIR)/$(P_PY)
+	cp $(RESDIR)/$(P_PY).save $(PYDIR)/$(P_PY)
 	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR)
 
 

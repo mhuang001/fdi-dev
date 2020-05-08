@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from svom.share.svomclasses import Classes
+from ..dataset.classes import Classes
 from ..dataset.deserialize import deserializeClassID
 from ..dataset.eq import deepcmp
 from .ydump import ydump

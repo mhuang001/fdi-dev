@@ -107,7 +107,10 @@ if __name__ == '__main__':
     else:
         clpp, clpf = os.path.split(clp)
         sys.path.insert(0, os.path.abspath(clpp))
-        __import__(clpf.strip('.py'))
+        # print(sys.path)
+        pc = __import__(clpf.rsplit('.py', 1)[
+                        0], globals(), locals(), ['prjcls'], 0)
+        Classes.mapping = pc.prjcls
     glb = Classes.mapping
 
     # input file

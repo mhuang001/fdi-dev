@@ -2,20 +2,12 @@
 
 from .serializable import Serializable
 from .eq import DeepEqual
+from ..utils.common import trbk
 
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-
-def trbk(e):
-    """ trace back 
-    """
-    ls = [x for x in traceback.extract_tb(e.__traceback__).format()] if hasattr(
-        e, '__traceback__') else ['']
-    return ' '.join(ls) + ' ' + \
-        (e.child_traceback if hasattr(e, 'child_traceback') else '')
 
 
 class EventListener(object):

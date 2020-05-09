@@ -7,7 +7,7 @@ from ..dataset.dataset import GenericDataset, ArrayDataset, TableDataset
 from ..dataset.product import Product
 from ..dataset.finetime import FineTime1
 from ..dataset.baseproduct import History
-from os.path import expanduser, expandvars
+from ..dataset.classes import Classes
 from .pnsconfig import pnsconfig as pc
 
 import datetime
@@ -15,7 +15,8 @@ import time
 import sys
 import pwd
 import grp
-from os.path import isfile, isdir, join
+import os
+from os.path import isfile, isdir, join, expanduser, expandvars
 from os import listdir, chown, chmod, environ, setuid, setgid
 from pathlib import Path
 import types
@@ -24,15 +25,17 @@ import pkg_resources
 from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
 import filelock
+import pdb
 
-#from .logdict import logdict
+# from .logdict import logdict
 # '/var/log/pns-server.log'
-#logdict['handlers']['file']['filename'] = '/tmp/server.log'
+# logdict['handlers']['file']['filename'] = '/tmp/server.log'
 import logging
-#import logging.config
+# import logging.config
 # create logger
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARN)
+logger.setLevel(logging.DEBUG)
 if sys.version_info[0] > 2:
     logging.getLogger("urllib3").setLevel(logging.WARN)
 else:
@@ -40,20 +43,41 @@ else:
 logging.getLogger("filelock").setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
+print('pdb.set_trace()')
 
-# default configuration is provided. Copy pnsconfig.py to ~/local.py
-env = expanduser(expandvars('$HOME'))
-# apache wsgi will return '$HOME' with no expansion
-env = '/root' if env == '$HOME' else env
-sys.path.insert(0, env)
-try:
-    from local import pnsconfig as pc
-except Exception as e:
-    logger.warn(str(
-        e) + '. Use default config in pns/pnsconfig.py. Copy it to ~/local.py and make persistent customization there.')
+
+def getConfig():
+    # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
+    env = expanduser(expandvars('$HOME'))
+    # apache wsgi will return '$HOME' with no expansion
+    env = '/root' if env == '$HOME' else env
+    confp = join(env, '.config')
+    sys.path.insert(0, confp)
+    try:
+        from pnslocal import pnsconfig
+        logger.debug('Read from configuration file in dir '+confp)
+        return pnsconfig
+    except ModuleNotFoundError as e:
+        logger.warn(str(
+            e) + '. Use default config in fdi/pns/pnsconfig.py. Copy it to ~/.config/pnslocal.py and make persistent customization there.')
+        return {}
+
+
+pc = getConfig()
+clp = pc['userclasses']
+logger.debug('User class file '+clp)
+if clp == '':
     pass
+else:
+    clpp, clpf = os.path.split(clp)
+    sys.path.insert(0, os.path.abspath(clpp))
+    # print(sys.path)
+    pcs = __import__(clpf.rsplit('.py', 1)[
+        0], globals(), locals(), ['prjcls'], 0)
+    Classes.mapping = pcs.prjcls
+    logger.debug('User classes: %d found.' % len(pcs.prjcls))
 
-#logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
+# logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
 
 
 app = Flask(__name__)
@@ -94,10 +118,10 @@ def _execute(cmd, input=None, timeout=10):
 
         # /etc/sudoer: apache ALL:(vvpp) NOPASSWD: ALL
         # gpasswd -a vvpp apache
-        #cmd = ['sudo', '-u', asuser, 'bash', '-l', '-c'] + cmd
-        #cmd = ['sudo', '-u', asuser] + cmd
+        # cmd = ['sudo', '-u', asuser, 'bash', '-l', '-c'] + cmd
+        # cmd = ['sudo', '-u', asuser] + cmd
         logger.debug('Popen %s env:%s uid: %d gid:%d' %
-                     (str(cmd), str(env)[:40] + ' ... ', user_uid, user_gid))
+                     (str(cmd), str(env)[: 40] + ' ... ', user_uid, user_gid))
         proc = Popen(cmd, executable=executable,
                      stdin=PIPE, stdout=PIPE, stderr=PIPE,
                      preexec_fn=None,
@@ -231,8 +255,8 @@ def configPNS(d=None):
     """ Configure the PNS itself by replacing the pnsconfig var
     """
     global pc
-    logger.debug(str(d)[:80] + '...')
-    #logger.debug('before configering pns ' + str(pc))
+    logger.debug(str(d)[: 80] + '...')
+    # logger.debug('before configering pns ' + str(pc))
     try:
         indata = deserializeClassID(d)
         pc = indata['input']
@@ -242,7 +266,7 @@ def configPNS(d=None):
     else:
         re = pc
         msg = ''
-    #logger.debug('after configering pns ' + str(pc))
+    # logger.debug('after configering pns ' + str(pc))
 
     return re, msg
 
@@ -573,7 +597,7 @@ def calcresult(cmd, ops=''):
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
     s = serializeClassID(w)
-    logger.debug(s[:160] + ' ...')
+    logger.debug(s[: 160] + ' ...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
@@ -624,7 +648,7 @@ def setup(cmd, ops=''):
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
     s = serializeClassID(w)
-    #logger.debug(s[:] + ' ...')
+    # logger.debug(s[:] + ' ...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp

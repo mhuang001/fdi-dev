@@ -22,7 +22,7 @@ def opt(ops):
 
     """
 
-    logger.debug('Input: %s' % ops)
+    #logger.debug('Input: %s' % ops)
 
     msg = 'Specify:\n'+''.join('%s (-%s or --%s)\n' %
                                (i['description'], i['char'], i['long']) for i in ops)
@@ -51,5 +51,5 @@ def opt(ops):
                     if i['long'] == 'help':
                         print(msg)
                         sys.exit(0)
-    logger.debug(str(ops))
+    # logger.debug(str(ops))
     return ops

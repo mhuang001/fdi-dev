@@ -4,18 +4,17 @@
 # This is to be able to test w/ or w/o installing the package
 # https://docs.python-guide.org/writing/structure/
 #from pycontext import fdi
-from os.path import expanduser, expandvars
+from os.path import expanduser, expandvars, join, dirname, abspath
 from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
-from fdi.pns.server import app
+from fdi.pns.server import app, getConfig
 import logging.config
 import logging
 from fdi.pns import logdict  # import logdict
-import fdi
+import pdb
 import os
 import sys
-sys.path.insert(0, os.path.abspath(
-    os.path.join(os.path.join(os.path.dirname(__file__), '..'), '..')))
+#sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
 # print(sys.path)
 
@@ -26,18 +25,12 @@ logger = logging.getLogger()
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
-# default configuration is provided. Copy pnsconfig.py to ~/local.py
-env = expanduser(expandvars('$HOME'))
-sys.path.insert(0, env)
-try:
-    from local import pnsconfig as pc
-except Exception:
-    pass
-
 if __name__ == '__main__':
 
     logger.info(
         'Pipline Node Server starting. Make sure no other instance is running')
+    # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
+    pc = getConfig()
     node = pc['node']
     # Get username and password and host ip and port.
     ops = [
@@ -68,6 +61,5 @@ if __name__ == '__main__':
         logger.error(
             'Error. Specify non-empty username and password on commandline')
         exit(3)
-
     app.run(host=node['host'], port=node['port'],
             threaded=False, debug=verbose, processes=5)

@@ -30,6 +30,8 @@ else:
     # on server
     home = '/root'
 
+# import user classes
+pnsconfig['userclasses'] = ''
 
 phome = join(home, 'pns')
 pnsconfig['paths'] = dict(

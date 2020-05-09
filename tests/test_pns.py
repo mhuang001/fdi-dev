@@ -43,16 +43,10 @@ print('level %d' % (logger.getEffectiveLevel()))
 
 
 # default configuration is read and can be superceded
-# by ~/local.py, which is also used by the local test server
+# by ~/.config/pnslocal.py, which is also used by the local test server
 # run by scrupt startserver.
 
-env = expanduser(expandvars('$HOME'))
-sys.path.insert(0, env)
-try:
-    from local import pnsconfig as pc
-except Exception:
-    pass
-
+pc = server.getConfig()
 
 if 0:
     import pytest

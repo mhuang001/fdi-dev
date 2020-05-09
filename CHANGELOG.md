@@ -6,6 +6,10 @@ Change Log
 	BETA0
 	=====
 
+	0.16 2020-05-10
+	---------------
+pns uses user classes. config file relocates to ~/.config/pnslocal.py. 'fits_keyword'.
+	
 	0.15 2020-05-01
 	---------------
 Add Makefile to consolidate various commands, .readthdocs.yml for RTD. Sort out productInfo in Products.

@@ -819,6 +819,13 @@ def test_TableDataset():
                             ])
     assert v == v3
 
+    # quick and dirty. data are list of lists without names or units
+    a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
+    v5 = TableDataset(data=a5)
+    assert [c.data for c in v5.data.values()] == a5
+    assert v5['col1'][0] == 1
+    assert v5['col2'][1] == 43.2
+
     # add, set, and replace columns
     # column set / get
     u = TableDataset()

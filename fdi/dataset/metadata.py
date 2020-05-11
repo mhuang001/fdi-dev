@@ -292,6 +292,9 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         return self.__class__.__name__ + \
             '{[' + s + '], listeners = [%s]}' % (l)
 
+    def __repr__(self):
+        return self.toString()
+
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         # print(self.listeners)

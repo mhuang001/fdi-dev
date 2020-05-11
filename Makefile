@@ -29,13 +29,9 @@ $(PYDIR)/$(B_PY): $(RESDIR)/$(B_INFO)
 	@ echo Re-run make after editing. Exiting... ; exit
 
 
-TESTLOG	= tests/log
-OPT	= --debug -v -r P 
-OPT	= -r P --log-file=$(TESTLOG)
-T	= 
 S	=
 
-.PHONY: runserver reqs FORCE \
+.PHONY: runserver reqs install FORCE \
 	test test1 test2 test3 test4 \
 	plots plotall plot_dataset plot_pal plot_pns \
 	docs doc_api doc_plots doc_html
@@ -44,10 +40,27 @@ S	=
 runserver:
 	python3.6 -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
 
+install:
+	pip3 install -e .
+
+PNSDIR=~/pns
+installpns:
+	mkdir -p $(PNSDIR)
+	for i in init run config clean; do \
+	  rm -f $(PNSDIR)/$${i}PTS $(PNSDIR)/$${i}PTS.ori; \
+	  cp fdi/pns/resources/$${i}PTS.ori  $(PNSDIR); \
+	  ln -s $(PNSDIR)/$${i}PTS.ori $(PNSDIR)/$${i}PTS; \
+	done
+	chown apache $(PNSDIR) $(PNSDIR)/*PTS.ori
+	chgrp apache $(PNSDIR) $(PNSDIR)/*PTS
 
 reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
 
+TESTLOG	= tests/log
+OPT	= --debug -v -r P 
+OPT	= -r P --log-file=$(TESTLOG)
+T	= 
 test: test1 test2 test3 test4
 
 test1: 
@@ -57,7 +70,7 @@ test2:
 	pytest $(OPT) $(T) tests/test_pal.py
 
 test3:
-	pytest $(OPT) $(T) tests/test_pns.py
+	pytest $(OPT) -k 'not server' $(T) tests/test_pns.py
 
 test4:
 	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py

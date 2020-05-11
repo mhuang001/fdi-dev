@@ -7,7 +7,7 @@ from .abstractcomposite import AbstractComposite
 from .listener import EventSender, DatasetEvent, DatasetListener, EventType
 from .dataset import CompositeDataset
 from .metadata import Parameter, NumericParameter, ParameterTypes
-from .eq import DeepEqual
+from .eq import DeepEqual, deepcmp
 from .copyable import Copyable
 
 from collections import OrderedDict
@@ -229,7 +229,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
         return super(BaseProduct, self).__getattribute__(name)
 
     def __setattr__(self, name, value, withmeta=True):
-        """ Stores value to attribute with name given. 
+        """ Stores value to attribute with name given.
         If name is in the built-in list, store the value in a Parameter in metadata container. Updates meta data table. Updates value when built-in Attributes already has its Parameter in metadata.
         value: Must be Parameter/NumericParameter if this is normal metadata, depending on if it is Number. Value if mandatory / built-in attribute.
         """
@@ -289,7 +289,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
 
     def setMeta(self, newMetadata):
         super(BaseProduct, self).setMeta(newMetadata)
-        self.getMeta().addListener(self)
+        # self.getMeta().addListener(self)
 
     def targetChanged(self, event):
         pass
@@ -324,13 +324,16 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        # remove self from meta's listeners because the deserialzed product will add itself during instanciation.
-        metac = self.meta.copy()
-        # print('***' + metac.toString())
-        metac.removeListener(self)
-        # ls = [(lvar, getattr(self, lvar)) for lvar in self.productInfo['metadata'].keys()]
+        if 0:
+            # remove self from meta's listeners because the deserialzed product will add itself during instanciation.
+            print('1###' + self.meta.toString())
+            metac = self.meta.copy()
+            print('***' + metac.toString())
+            print(deepcmp(self, metac.listeners[0]))
+            metac.removeListener(self)
+
         ls = [
-            ("meta", metac),
+            ("meta", self.meta),
             ("_sets", self._sets),
             ("history", self.history),
             ("listeners", self.listeners),

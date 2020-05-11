@@ -43,8 +43,6 @@ else:
 logging.getLogger("filelock").setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-print('pdb.set_trace()')
-
 
 def getConfig():
     # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
@@ -177,7 +175,8 @@ def checkpath(path):
             gid = grp.getgrnam(un).gr_gid
         except KeyError as e:
             gid = -1
-            logger.warn('input/output group unchanged. ' + str(e) + trbk(e))
+            logger.warning(
+                'input/output group unchanged. ' + str(e) + trbk(e))
         try:
             chown(str(p), uid, gid)
             chmod(str(p), mode=0o775)
@@ -389,7 +388,6 @@ def run(d, processinput=None, processoutput=None):
         abort(401)
 
     indata = deserializeClassID(d)
-    logger.debug(indata)
 
     try:
         if processinput is not None:
@@ -594,6 +592,7 @@ def calcresult(cmd, ops=''):
                 logger.error(cmd)
                 abort(400)
                 result = None
+    logger.debug(result)
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
     s = serializeClassID(w)

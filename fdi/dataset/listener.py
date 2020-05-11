@@ -4,6 +4,8 @@ from .serializable import Serializable
 from .eq import DeepEqual
 from ..utils.common import trbk
 
+import pdb
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -128,7 +130,7 @@ class EventSender(object):
             self._listeners.remove(listener)
         except:
             raise ValueError(
-                "Listener das no listening registerd. Cannot remove.")
+                "Listener has no listening registerd. Cannot remove.")
         return self
 
     def fire(self, *args, **kwargs):

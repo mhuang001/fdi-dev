@@ -24,16 +24,16 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         'setuptools',
-        'pytest==5.4.1',
-        'nox==2019.11.9',
-        'requests==2.23.0',
-        'filelock==3.0.12',
-        'aiohttp_theme==0.1.6',
-        'aiohttp==3.6.2',
-        'sphinx_rtd_theme==0.4.3',
-        'Flask_HTTPAuth==3.3.0',
-        'Flask==1.1.2',
-        'PyYAML==5.3.1'
+        'pytest>=5.4.1',
+        'nox>=2019.11.9',
+        'requests>=2.23.0',
+        'filelock>=3.0.12',
+        'aiohttp_theme>=0.1.6',
+        'aiohttp>=3.6.2',
+        'sphinx_rtd_theme>=0.4.3',
+        'Flask_HTTPAuth>=3.3.0',
+        'Flask>=1.1.2',
+        'PyYAML>=5.3.1'
     ],
     classifiers=[
         "Development Status :: 3 - Beta",

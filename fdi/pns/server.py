@@ -52,16 +52,16 @@ def getConfig():
     confp = join(env, '.config')
     sys.path.insert(0, confp)
     try:
+        logger.debug('Reading from configuration file in dir '+confp)
         from pnslocal import pnsconfig
-        logger.debug('Read from configuration file in dir '+confp)
         return pnsconfig
     except ModuleNotFoundError as e:
-        logger.warn(str(
+        logger.warning(str(
             e) + '. Use default config in fdi/pns/pnsconfig.py. Copy it to ~/.config/pnslocal.py and make persistent customization there.')
         return {}
 
 
-pc = getConfig()
+pc.update(getConfig())
 clp = pc['userclasses']
 logger.debug('User class file '+clp)
 if clp == '':

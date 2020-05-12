@@ -20,40 +20,40 @@ The following commands are run from the fdi directory from installation.
 Basic Configuration
 ===================
 
-When running Flask server, the host IP is ``0.0.0.0`` and port number ``5000`` by default. They are configurable in ``pnsconfig.py``. Default configuration can be overridden by ``~/local.py``. Copy ``pnsconfig.py`` to ``~/local.py`` and customize ``local.py``.
+When running Flask server, the host IP is ``0.0.0.0`` and port number ``5000`` by default. They are configurable in ``pnsconfig.py``. Default configuration can be overridden by ``~/.config/pnslocal.py``. Copy ``pnsconfig.py`` to ``~/.config/pnslocal.py``
 
 .. code-block:: shell
 		
-		cp pns/pnsconfig.py ~/local.py
+		cp fdi/pns/pnsconfig.py ~/.config/pnslocal.py
 
-and edit to make local changes. Especially set dev to True to run local server.
+ and customize ``~/.config/pnslocal.py`` by editing accoding to local changes. Especially set dev to True to run local server.
 
-On the server side (or on your computer which can be both the server and the client) edit the pnshome directory $PDIR if needed and run the deployment script
+On the server side (or on your computer which can be both the server and the client) edit the pnshome directory ``PNSDIR`` IN ``Makefile`` if needed, and run the deployment command
 
 .. code-block:: shell
 
-		pns/installpns
+		make installpns
 		
 Run the FLASK Server
 ====================
 
-Edit local.py if needed. Then
+Edit ``~/.config/pnslocal.py`` if needed. Then
 
 .. code-block:: shell
 
-		python3.6 pns/runflaskserver.py --username=<username> --password=<password> [--ip=<host ip>] [--port=<port>]
+		python3.6 fdi/pns/runflaskserver.py --username=<username> --password=<password> [--ip=<host ip>] [--port=<port>]
 
 or
 
 .. code-block:: shell
 
-		python3.6 pns/runflaskserver.py -u <username> -p <password> [-i <host ip>] [-o <port>]
+		python3.6 fdi/pns/runflaskserver.py -u <username> -p <password> [-i <host ip>] [-o <port>]
 
 in debugging mode:
 
 .. code-block:: shell
 
-		python3.6 pns/runflaskserver.py --username=foo --password=bar -v
+		python3.6 fdi/pns/runflaskserver.py --username=foo --password=bar -v
 
 or just
 
@@ -77,7 +77,7 @@ To run all tests in one go:
 
 		make test3 [T='-u <username> -p <password> [-i <host ip>] [-o <port>] [options]']
 
-Tests can be done step-by-step to pin-point problems:
+Tests can be done step-by-step to pin-point possible problems:
 
 1. Server Unit Test
 ===================
@@ -91,7 +91,7 @@ Run on the server host. without needing starting the server:
 2. Local Flask Server Functional Tests
 ======================================
 
-In ``~/local.py`` (in ``pns/pnsconfig.py`` if you have not made ``~/local.py``), set dev=True and make sure the IP is local (``0.0.0.0`` or ``127.0.0.1``). Start the server fresh in one terminal (see above) and in another terminal (on the server host) run the following:
+In ``~/.config/pnslocal.py`` (in ``fdi/pns/pnsconfig.py`` if you have not made ``~/.config/pnslocal.py``), set dev=True and make sure the IP is local (``0.0.0.0`` or ``127.0.0.1``). Start the server fresh in one terminal (see above) and in another terminal (on the server host) run the following:
 
 2a: test GET initPTS script to see if reading the init script back works:
 
@@ -240,7 +240,7 @@ Install pns on a remote host, configure IP and port, then run the tests above. T
 Run the local tests with Apache
 ===============================
 
-Set dev=False in ~/local.py (see above) and set the IP and port.
+Set dev=False in ~/.config/pnslocal.py (see above) and set the IP and port.
 Suppose the server is on CentOS. Edit pns/resources/pns.conf according to local setup, then
 
 
@@ -250,7 +250,7 @@ Suppose the server is on CentOS. Edit pns/resources/pns.conf according to local 
 		systemctl restart httpd
 		systemctl status http -l
 
-then run the above with correct IP and port (edit ~/local.py or specifying in command line). Start the server and run all the tests:
+then run the above with correct IP and port (edit ~/.config/pnslocal.py or specifying in command line). Start the server and run all the tests:
 
 .. code-block::
    

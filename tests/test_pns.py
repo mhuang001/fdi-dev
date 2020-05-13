@@ -523,7 +523,7 @@ def test_lock():
         r1, r2 = res[0], res[1]
     else:
         r2, r1 = res[0], res[1]
-    assert r1['result'] == 0
+    assert r1['result'] == 0, str(res)
     assert '409' in r2['message']
 
 

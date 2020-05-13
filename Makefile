@@ -45,9 +45,9 @@ install:
 
 PNSDIR=~/pns
 installpns:
+	$(MAKE) deinstallpns
 	mkdir -p $(PNSDIR)
 	for i in init run config clean; do \
-	  rm -f $(PNSDIR)/$${i}PTS $(PNSDIR)/$${i}PTS.ori; \
 	  cp fdi/pns/resources/$${i}PTS.ori  $(PNSDIR); \
 	  ln -s $(PNSDIR)/$${i}PTS.ori $(PNSDIR)/$${i}PTS; \
 	done
@@ -56,6 +56,10 @@ installpns:
 	chgrp apache $(PNSDIR) $(PNSDIR)/*PTS*; \
 	fi
 
+deinstallpns:
+	for i in init run config clean; do \
+	  rm -f $(PNSDIR)/$${i}PTS* $(PNSDIR)/$${i}PTS.ori*; \
+	done
 reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
 

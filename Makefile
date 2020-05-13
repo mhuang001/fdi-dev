@@ -51,8 +51,10 @@ installpns:
 	  cp fdi/pns/resources/$${i}PTS.ori  $(PNSDIR); \
 	  ln -s $(PNSDIR)/$${i}PTS.ori $(PNSDIR)/$${i}PTS; \
 	done
-	chown apache $(PNSDIR) $(PNSDIR)/*PTS.ori
-	chgrp apache $(PNSDIR) $(PNSDIR)/*PTS
+	if id -u apache > /dev/null 2>&1; then \
+	chown apache $(PNSDIR) $(PNSDIR)/*PTS.ori; \
+	chgrp apache $(PNSDIR) $(PNSDIR)/*PTS*; \
+	fi
 
 reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs

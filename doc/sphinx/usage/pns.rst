@@ -26,7 +26,7 @@ When running Flask server, the host IP is ``0.0.0.0`` and port number ``5000`` b
 		
 		cp fdi/pns/pnsconfig.py ~/.config/pnslocal.py
 
-and customize ``~/.config/pnslocal.py`` by editing accoding to local changes. Especially set dev to True to run local server.
+and customize ``~/.config/pnslocal.py`` by editing accoding to local changes. Especially set ``dev`` to ``True`` (``dev = True`` or ``dev = 1``) to run local server. If ``dev`` is true, you need to set correct
 
 On the server side (or on your computer which can be both the server and the client) edit the pnshome directory by changing the value of varible ``PNSDIR`` in ``Makefile`` if needed, and run the deployment command
 

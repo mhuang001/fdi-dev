@@ -29,24 +29,31 @@ import time
 # https://docs.python-guide.org/writing/structure/
 from .pycontext import fdi
 
-from .logdict import logdict
-import logging
-import logging.config
-# create logger
-logging.config.dictConfig(logdict)
+
+def setuplogging():
+    import logging.config
+    import logging
+    from . import logdict
+
+    # create logger
+    logging.config.dictConfig(logdict.logdict)
+    logging.getLogger("requests").setLevel(logging.WARN)
+    logging.getLogger("urllib3").setLevel(logging.WARN)
+    logging.getLogger("filelock").setLevel(logging.WARN)
+    return logging
+
+
+logging = setuplogging()
 logger = logging.getLogger()
-logging.getLogger("requests").setLevel(logging.WARN)
-logging.getLogger("urllib3").setLevel(logging.WARN)
-logging.getLogger("filelock").setLevel(logging.WARN)
-logger.setLevel(logging.INFO)
-print('level %d' % (logger.getEffectiveLevel()))
 
 
 # default configuration is read and can be superceded
 # by ~/.config/pnslocal.py, which is also used by the local test server
 # run by scrupt startserver.
 
-pc = server.getConfig()
+pc.update(server.getConfig())
+logger.setLevel(pc['logginglevel'])
+logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 if 0:
     import pytest

@@ -38,15 +38,15 @@ S	=
 
 # default username and password are in pnsconfig.py
 runserver:
-	python3.6 -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
+	python3 -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
 
 install:
 	pip3 install -e .
 
 PNSDIR=~/pns
 installpns:
-	$(MAKE) deinstallpns
 	mkdir -p $(PNSDIR)
+	$(MAKE) uninstallpns
 	for i in init run config clean; do \
 	  cp fdi/pns/resources/$${i}PTS.ori  $(PNSDIR); \
 	  ln -s $(PNSDIR)/$${i}PTS.ori $(PNSDIR)/$${i}PTS; \
@@ -56,10 +56,13 @@ installpns:
 	chgrp apache $(PNSDIR) $(PNSDIR)/*PTS*; \
 	fi
 
-deinstallpns:
+uninstallpns:
 	for i in init run config clean; do \
 	  rm -f $(PNSDIR)/$${i}PTS* $(PNSDIR)/$${i}PTS.ori*; \
-	done
+	done; \
+	rm -f $(PNSDIR)/.lock $(PNSDIR)/hello.out || \
+	sudo rm -f $(PNSDIR)/.lock $(PNSDIR)/hello.out
+
 reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
 

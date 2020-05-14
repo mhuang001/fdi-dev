@@ -8,9 +8,7 @@ from os.path import expanduser, expandvars, join, dirname, abspath
 from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
 from fdi.pns.server import app, getConfig
-import logging.config
-import logging
-from fdi.pns import logdict  # import logdict
+
 import pdb
 import os
 import sys
@@ -19,10 +17,17 @@ import sys
 # print(sys.path)
 
 
-# create logger
-logging.config.dictConfig(logdict.logdict)
+def setuplogging():
+    import logging.config
+    import logging
+    from fdi.pns import logdict  # import logdict
+    # create logger
+    logging.config.dictConfig(logdict.logdict)
+    return logging
+
+
+logging = setuplogging()
 logger = logging.getLogger()
-logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
 if __name__ == '__main__':
@@ -30,7 +35,10 @@ if __name__ == '__main__':
     logger.info(
         'Pipline Node Server starting. Make sure no other instance is running')
     # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
-    pc = getConfig()
+    pc.update(getConfig())
+    logger.setLevel(pc['logginglevel'])
+    logger.debug('logging level %d' % (logger.getEffectiveLevel()))
+
     node = pc['node']
     # Get username and password and host ip and port.
     ops = [

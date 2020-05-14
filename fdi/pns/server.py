@@ -31,7 +31,6 @@ import pdb
 # '/var/log/pns-server.log'
 # logdict['handlers']['file']['filename'] = '/tmp/server.log'
 import logging
-# import logging.config
 # create logger
 logger = logging.getLogger(__name__)
 logging.getLogger("requests").setLevel(logging.WARN)
@@ -44,7 +43,9 @@ logging.getLogger("filelock").setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
-def getConfig():
+def getConfig(conf='pns'):
+    """ Imports a dict named [conf]config defined in ~/.config/[conf]local.py 
+    """
     # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
     env = expanduser(expandvars('$HOME'))
     # apache wsgi will return '$HOME' with no expansion
@@ -53,15 +54,18 @@ def getConfig():
     sys.path.insert(0, confp)
     try:
         logger.debug('Reading from configuration file in dir '+confp)
-        from pnslocal import pnsconfig
-        return pnsconfig
+        c = __import__(conf+'local', globals(), locals(),
+                       [conf+'config'], 0)
+        return c.__dict__[conf+'config']
     except ModuleNotFoundError as e:
         logger.warning(str(
-            e) + '. Use default config in fdi/pns/pnsconfig.py. Copy it to ~/.config/pnslocal.py and make persistent customization there.')
+            e) + '. Use default config in the package, such as fdi/pns/pnsconfig.py. Copy it to ~/.config/[package]local.py and make persistent customization there.')
         return {}
 
 
 pc.update(getConfig())
+logger.setLevel(pc['logginglevel'])
+
 clp = pc['userclasses']
 logger.debug('User class file '+clp)
 if clp == '':

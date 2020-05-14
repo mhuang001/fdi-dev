@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from os.path import join
 import logging
+import getpass
+import pwd
 
 # logging level for server or possibly by client
 pnsconfig = dict(logginglevel=logging.INFO)
@@ -14,12 +16,12 @@ if dev:
     pnsconfig['node'] = {'username': 'foo',
                          'password': 'bar', 'host': '0.0.0.0', 'port': 5000}
 
-    # server permission user
-    pnsconfig['serveruser'] = 'mh'
-    # PTS app permission user
-    pnsconfig['ptsuser'] = 'mh'
-    # on server
-    home = '/cygdrive/c/Users/mh'
+    # server permission user. default is current user
+    pnsconfig['serveruser'] = getpass.getuser()
+    # PTS app permission user. default is pnsconfig['serveruser']
+    pnsconfig['ptsuser'] = pnsconfig['serveruser']
+    # the directory where the pns ome is on server. default is ptsuser home
+    home = pwd.getpwnam(pnsconfig['ptsuser']).pw_dir
 else:
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
                          'host': '10.0.10.114', 'port': 9888}

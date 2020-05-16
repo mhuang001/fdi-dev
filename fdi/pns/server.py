@@ -63,7 +63,39 @@ def getConfig(conf='pns'):
         return {}
 
 
+def getUidGid(username):
+    """ returns the UID and GID of the named user.
+    """
+
+    try:
+        uid = pwd.getpwnam(username).pw_uid
+    except KeyError as e:
+        msg = 'Cannot get UserID for ' + username + \
+            '. check config. ' + str(e) + trbk(e)
+        logger.error(msg)
+        uid = -1
+    try:
+        gid = grp.getgrnam(username).gr_gid
+    except KeyError as e:
+        msg = 'Cannot get GroupID for ' + username + \
+            '. check config. ' + str(e) + trbk(e)
+        gid = -1
+        logger.error(msg)
+    return uid, gid
+
+
 pc.update(getConfig())
+
+if sys.platform not in ['cygwin']:
+    # effective group of current process
+    uid, gid = getUidGid(pc['serveruser'])
+    os.setuid(uid)
+    os.setgid(gid)
+    ptsuid, ptsgid = getUidGid(pc['ptsuser'])
+    if gid not in os.getgrouplist(pc['ptsuser'], ptsgid):
+        logger.error('ptsuser %s must be in the group of serveruser %s.' %
+                     (pc['ptsuser'], pc['serveruser']))
+        sys.exit(2)
 logger.setLevel(pc['logginglevel'])
 
 clp = pc['userclasses']
@@ -157,7 +189,30 @@ def _execute(cmd, input=None, timeout=10):
     return sta
 
 
+def setOwnerMode(p, username):
+    """ makes UID and GID set to those of serveruser given in the config file. This function is usually done by the initPTS script.
+    """
+
+    logger.debug('set owner, group to %s, mode to 0o775' % username)
+
+    uid, gid = getUidGid(username)
+    if uid == -1 or gid == -1:
+        return None
+    try:
+        chown(str(p), uid, gid)
+        chmod(str(p), mode=0o775)
+    except Exception as e:
+        msg = 'cannot set input/output dirs owner to ' + \
+            username + ' or mode. check config. ' + str(e) + trbk(e)
+        logger.error(msg)
+        return None
+
+    return username
+
+
 def checkpath(path):
+    """ Checks  the directories for data exchange between pns server and  pns PTS.
+    """
     logger.debug(path)
     p = Path(path).resolve()
     if p.exists():
@@ -165,32 +220,35 @@ def checkpath(path):
             msg = str(p) + ' is not a directory.'
             logger.error(msg)
             return None
+        elif sys.platform in ['cygwin']:
+            pass
+        else:
+            # if path exists and can be set owner and group
+            un = pc['serveruser']
+            if p.owner() != un or p.group() != un:
+                msg = str(p) + ' owner %s group %s. Should be %s.' % \
+                    (p.owner(), p.group(), un)
+                logger.warning(msg)
+                logger.info('Setting owner, group, and mode...')
+                if setOwnerMode(p, un):
+                    logger.info('Done.')
+                else:
+                    return None
     else:
-        p.mkdir()
-        un = pc['serveruser']
-        try:
-            uid = pwd.getpwnam(un).pw_uid
-        except KeyError as e:
-            msg = 'cannot set input/output dirs owner to ' + \
-                un + '. check config. ' + str(e) + trbk(e)
-            logger.error(msg)
-            return None
-        try:
-            gid = grp.getgrnam(un).gr_gid
-        except KeyError as e:
-            gid = -1
-            logger.warning(
-                'input/output group unchanged. ' + str(e) + trbk(e))
-        try:
-            chown(str(p), uid, gid)
-            chmod(str(p), mode=0o775)
-        except Exception as e:
-            msg = 'cannot set input/output dirs owner to ' + \
-                un + ' or mode. check config. ' + str(e) + trbk(e)
-            logger.error(msg)
-            return None
+        # path does not exist
 
-        logger.info(str(p) + ' directory has been made.')
+        # p.mkdir()
+        # un = pc['serveruser']
+        # if not setOwnerMode(p, un):
+        #    msg = ...
+        #    return None
+        # logger.info(str(p) + ' directory has been made.')
+
+        msg = str(p) + \
+            ' does not exists. Run %s first.' % pc['scripts']['init']
+        logger.error(msg)
+        return None
+
     logger.debug('checked path at ' + str(p))
     return p
 
@@ -207,8 +265,10 @@ def initPTS(d=None):
         abort(401)
 
     pi = checkpath(pc['paths']['inputdir'])
+    if pi is None:
+        abort(401)
     po = checkpath(pc['paths']['outputdir'])
-    if pi is None or po is None:
+    if po is None:
         abort(401)
 
     indata = deserializeClassID(d)

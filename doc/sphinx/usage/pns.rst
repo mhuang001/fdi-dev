@@ -26,14 +26,24 @@ When running Flask server, the host IP is ``0.0.0.0`` and port number ``5000`` b
 		
 		cp fdi/pns/pnsconfig.py ~/.config/pnslocal.py
 
-and customize ``~/.config/pnslocal.py`` by editing accoding to local changes. Especially set ``dev`` to ``True`` (``dev = True`` or ``dev = 1``) to run local server. If ``dev`` is true, you need to set correct
+and customize ``~/.config/pnslocal.py`` by editing accoding to local changes.
 
-On the server side (or on your computer which can be both the server and the client) edit the pnshome directory by changing the value of varible ``PNSDIR`` in ``Makefile`` if needed, and run the deployment command
+When in developement mode, set ``dev`` to ``True`` (``dev = True`` or ``dev = 1``) to run local server. The ``serveruser`` should be the name of the user of web server, usually your username if you run ``make runserver``. This is the default if ``dev`` is true.
+
+For production deployment the ``dev`` should be set false. Set ``serveruser`` depending which web server (e.g. ``'apache'``).
+
+The ``ptsuser`` is usually the user required by the processing software. It is set to ``serveruser`` by default. ``ptsuser`` must have write previlige to read and write ``inputdir`` and ``outputdir``, which are owned by ``serveruser`` with mode ``o0755``.
+
+On the server side (or on your computer which can be both the server and the client) edit ``Makefile`` by changing the value of varible ``PNSDIR`` in ``Makefile`` the pnshome directory if you do not want the default (``~/pns``).
+
+Then run the deployment command
 
 .. code-block:: shell
 
 		make installpns
-		
+
+to create the pns home directory and copy the demo PTS script set.
+
 Run the FLASK Server
 ====================
 

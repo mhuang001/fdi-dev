@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+import getpass
+
+# different user has different log file to allow multiple user
+logfile = '/tmp/pns_' + getpass.getuser() + '.log'
 logdict = {
     "version": 1,
     "formatters": {
@@ -21,7 +25,7 @@ logdict = {
             "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
             "formatter": "full",
-            "filename": "/tmp/pns.log",
+            "filename": logfile,
             "maxBytes": 20000000,
             "backupCount": 3
         }

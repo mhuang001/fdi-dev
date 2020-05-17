@@ -99,11 +99,12 @@ os.setgid(gid)
 ptsuid, ptsgid = getUidGid(pc['ptsuser'])
 if gid not in os.getgrouplist(pc['ptsuser'], ptsgid):
     logger.error('ptsuser %s must be in the group of serveruser %s.' %
-                 (pc['ptsuser'], ))
+                 (pc['ptsuser'], pc['serveruser']))
     sys.exit(2)
 
 logger.setLevel(pc['logginglevel'])
 
+# setup user class mapping
 clp = pc['userclasses']
 logger.debug('User class file '+clp)
 if clp == '':

@@ -7,7 +7,7 @@ import pwd
 # logging level for server or possibly by client
 pnsconfig = dict(logginglevel=logging.INFO)
 
-# base url for webserver
+# base url for webserver. Update version if needed.
 pnsconfig['baseurl'] = '/v0.6'
 
 dev = False

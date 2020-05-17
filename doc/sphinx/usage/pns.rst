@@ -26,13 +26,13 @@ When running Flask server, the host IP is ``0.0.0.0`` and port number ``5000`` b
 		
 		cp fdi/pns/pnsconfig.py ~/.config/pnslocal.py
 
-and customize ``~/.config/pnslocal.py`` by editing accoding to local changes.
+and customize ``~/.config/pnslocal.py``.
 
 When in developement mode, set ``dev`` to ``True`` (``dev = True`` or ``dev = 1``) to run local server. The ``serveruser`` should be the name of the user of web server, usually your username if you run ``make runserver``. This is the default if ``dev`` is true.
 
 For production deployment the ``dev`` should be set false. Set ``serveruser`` depending which web server (e.g. ``'apache'``).
 
-The ``ptsuser`` is usually the user required by the processing software. It is set to ``serveruser`` by default. ``ptsuser`` must have write previlige to read and write ``inputdir`` and ``outputdir``, which are owned by ``serveruser`` with mode ``o0755``.
+The ``ptsuser`` is usually the user required by the processing software. It is set to ``serveruser`` by default. ``ptsuser`` must have write previlige to read and write ``inputdir`` and ``outputdir``, which are owned by ``serveruser`` with mode ``o0775``.
 
 On the server side (or on your computer which can be both the server and the client) edit ``Makefile`` by changing the value of varible ``PNSDIR`` in ``Makefile`` the pnshome directory if you do not want the default (``~/pns``).
 
@@ -51,19 +51,23 @@ Edit ``~/.config/pnslocal.py`` if needed. Then
 
 .. code-block:: shell
 
-		python3.6 fdi/pns/runflaskserver.py --username=<username> --password=<password> [--ip=<host ip>] [--port=<port>]
+		python3 fdi/pns/runflaskserver.py --username=<username> --password=<password> [--ip=<host ip>] [--port=<port>]
 
-or
+Contents in ``[]``, like ``[--ip=<host ip>] [--port=<port>]`` above, are optional.
+
+``<>`` means you need to substitute with actual information (for example ``--port=<port>`` becomes ``--port=5000``).
+
+Or you can run
 
 .. code-block:: shell
 
-		python3.6 fdi/pns/runflaskserver.py -u <username> -p <password> [-i <host ip>] [-o <port>]
+		python3 fdi/pns/runflaskserver.py -u <username> -p <password> [-i <host ip>] [-o <port>]
 
 in debugging mode:
 
 .. code-block:: shell
 
-		python3.6 fdi/pns/runflaskserver.py --username=foo --password=bar -v
+		python3 fdi/pns/runflaskserver.py --username=foo --password=bar -v
 
 or just
 
@@ -71,7 +75,7 @@ or just
 
 		make runserver
 
-to use the defaults.
+to use the defaults. 
 
 Do not run debugging mode for production use.
 
@@ -92,7 +96,7 @@ Tests can be done step-by-step to pin-point possible problems:
 1. Server Unit Test
 ===================
 
-Run on the server host. without needing starting the server:
+Run this on the server host to verify that internal essential functions of the server work with current configuration. This runs without needing starting the server:
 
 .. code-block:: shell
 
@@ -101,7 +105,7 @@ Run on the server host. without needing starting the server:
 2. Local Flask Server Functional Tests
 ======================================
 
-In ``~/.config/pnslocal.py`` (in ``fdi/pns/pnsconfig.py`` if you have not made ``~/.config/pnslocal.py``), set dev=True and make sure the IP is local (``0.0.0.0`` or ``127.0.0.1``). Start the server fresh in one terminal (see above) and in another terminal (on the server host) run the following:
+In ``~/.config/pnslocal.py`` (see above for installation and customization), set ``dev=True`` and make sure the IP is local (``0.0.0.0`` or ``127.0.0.1``). Start the server fresh in one terminal (see above) and in another terminal (on the server host) run the following:
 
 2a: test GET initPTS script to see if reading the init script back works:
 
@@ -149,7 +153,7 @@ Now is a good time to ...
 
 Suppose the server address and port are ``127.0.0.1`` and ``5000``, respectively:
 
-Run the Flask server in a terminal (see above) and open this in a browser:
+Run the Flask server in a terminal (see above) and open this in a browser. The up-to-date URL is displayed in the server stating message:
 
 http://127.0.0.1:5000/v0.6/
 

@@ -68,5 +68,7 @@ if __name__ == '__main__':
         logger.error(
             'Error. Specify non-empty username and password on commandline')
         exit(3)
+    print('Check http://' + node['host'] + ':' + str(node['port']) +
+          pc['baseurl'] + '/ for API list')
     app.run(host=node['host'], port=node['port'],
             threaded=False, debug=verbose, processes=5)

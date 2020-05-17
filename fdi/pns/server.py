@@ -44,7 +44,7 @@ logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
 def getConfig(conf='pns'):
-    """ Imports a dict named [conf]config defined in ~/.config/[conf]local.py 
+    """ Imports a dict named [conf]config defined in ~/.config/[conf]local.py
     """
     # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
     env = expanduser(expandvars('$HOME'))
@@ -74,6 +74,7 @@ def getUidGid(username):
             '. check config. ' + str(e) + trbk(e)
         logger.error(msg)
         uid = -1
+    # do if platform supports.
     try:
         gid = grp.getgrnam(username).gr_gid
     except KeyError as e:
@@ -81,21 +82,26 @@ def getUidGid(username):
             '. check config. ' + str(e) + trbk(e)
         gid = -1
         logger.error(msg)
+
     return uid, gid
 
 
 pc.update(getConfig())
 
-if sys.platform not in ['cygwin']:
-    # effective group of current process
-    uid, gid = getUidGid(pc['serveruser'])
-    os.setuid(uid)
-    os.setgid(gid)
-    ptsuid, ptsgid = getUidGid(pc['ptsuser'])
-    if gid not in os.getgrouplist(pc['ptsuser'], ptsgid):
-        logger.error('ptsuser %s must be in the group of serveruser %s.' %
-                     (pc['ptsuser'], pc['serveruser']))
-        sys.exit(2)
+# effective group of current process
+uid, gid = getUidGid(pc['serveruser'])
+# logger.info
+print("Set process to %s's uid %d and gid %d..." %
+      (pc['serveruser'], uid, gid))
+os.setuid(uid)
+os.setgid(gid)
+
+ptsuid, ptsgid = getUidGid(pc['ptsuser'])
+if gid not in os.getgrouplist(pc['ptsuser'], ptsgid):
+    logger.error('ptsuser %s must be in the group of serveruser %s.' %
+                 (pc['ptsuser'], ))
+    sys.exit(2)
+
 logger.setLevel(pc['logginglevel'])
 
 clp = pc['userclasses']
@@ -215,38 +221,29 @@ def checkpath(path):
     """
     logger.debug(path)
     p = Path(path).resolve()
+    un = pc['serveruser']
     if p.exists():
         if not p.is_dir():
             msg = str(p) + ' is not a directory.'
             logger.error(msg)
             return None
-        elif sys.platform in ['cygwin']:
-            pass
         else:
+            pass
             # if path exists and can be set owner and group
-            un = pc['serveruser']
             if p.owner() != un or p.group() != un:
                 msg = str(p) + ' owner %s group %s. Should be %s.' % \
                     (p.owner(), p.group(), un)
                 logger.warning(msg)
-                logger.info('Setting owner, group, and mode...')
-                if setOwnerMode(p, un):
-                    logger.info('Done.')
-                else:
-                    return None
     else:
         # path does not exist
 
-        # p.mkdir()
-        # un = pc['serveruser']
-        # if not setOwnerMode(p, un):
-        #    msg = ...
-        #    return None
-        # logger.info(str(p) + ' directory has been made.')
+        msg = str(p) + ' does not exists. Creating...'
+        logger.debug(msg)
+        p.mkdir(mode=0o775)
+        logger.info(str(p) + ' directory has been made.')
 
-        msg = str(p) + \
-            ' does not exists. Run %s first.' % pc['scripts']['init']
-        logger.error(msg)
+    #logger.info('Setting owner, group, and mode...')
+    if not setOwnerMode(p, un):
         return None
 
     logger.debug('checked path at ' + str(p))
@@ -506,7 +503,7 @@ def genposttestprod(d):
     """
 
     indata = deserializeClassID(d)
-    logger.debug(indata)
+    # logger.debug(indata)
 
     runner, cause = indata['creator'], indata['rootcause']
     x = Product(description="This is my product example",
@@ -630,7 +627,7 @@ def calcresult(cmd, ops=''):
     elif cmd == 'echo':
         # see test_mirror() in test_all.py
         indata = deserializeClassID(d)
-        logger.debug(indata)
+        # logger.debug(indata)
         result, msg = indata, ''
     else:
         # the following need to be locked
@@ -656,7 +653,7 @@ def calcresult(cmd, ops=''):
                 logger.error(cmd)
                 abort(400)
                 result = None
-    logger.debug(result)
+    logger.debug(str(result)[:155])
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
     s = serializeClassID(w)

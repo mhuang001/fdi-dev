@@ -28,7 +28,7 @@ import glob
 
 
 import sys
-# print([(k, v) for k, v in globals().items() if '__' in k])
+
 import pdb
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:

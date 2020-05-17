@@ -50,10 +50,11 @@ installpns:
 	for i in init run config clean; do \
 	  cp fdi/pns/resources/$${i}PTS.ori  $(PNSDIR); \
 	  ln -s $(PNSDIR)/$${i}PTS.ori $(PNSDIR)/$${i}PTS; \
-	done
+	done; \
+	mkdir $(PNSDIR)/input $(PNSDIR)/output
 	if id -u apache > /dev/null 2>&1; then \
-	chown apache $(PNSDIR) $(PNSDIR)/*PTS.ori; \
-	chgrp apache $(PNSDIR) $(PNSDIR)/*PTS*; \
+	chown apache $(PNSDIR) $(PNSDIR)/*PTS.ori $(PNSDIR)/input $(PNSDIR)/output; \
+	chgrp apache $(PNSDIR) $(PNSDIR)/*PTS* $(PNSDIR)/input $(PNSDIR)/output; \
 	fi
 
 uninstallpns:

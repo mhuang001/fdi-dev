@@ -37,7 +37,6 @@ if __name__ == '__main__':
     # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
     pc.update(getConfig())
     logger.setLevel(pc['logginglevel'])
-    logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
     node = pc['node']
     # Get username and password and host ip and port.

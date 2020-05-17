@@ -149,7 +149,7 @@ def checkContents(cmd, filename):
 
 def test_serverinit():
     """ server unit test for put init. 
-    this is conflict with put testinit. will condition the server for running the PTS, not suitable for running other test
+    this runs the runPTS script, and is in conflict with put testinit, as this will condition the server for running the PTS, not suitable for running other tests.
     """
     ret, sta = server.initPTS(None)
     check0result(ret, sta)
@@ -157,7 +157,7 @@ def test_serverinit():
 
 def test_putinit():
     """ calls the default pnsconfig['scripts']['init'] script.
-    this is conflict with put testinit. will condition the server for running the PTS, not suitable for running other test
+    this runs the runPTS script, and is in conflict with put testinit, as this will condition the server for running the PTS, not suitable for running other tests.
     """
 
     d = {'timeout': 5}

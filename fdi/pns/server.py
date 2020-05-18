@@ -76,7 +76,7 @@ def getUidGid(username):
         uid = -1
     # do if platform supports.
     try:
-        gid = grp.getgrnam(username).gr_gid
+        gid = pwd.getpwnam(username).pw_gid
     except KeyError as e:
         msg = 'Cannot get GroupID for ' + username + \
             '. check config. ' + str(e) + trbk(e)

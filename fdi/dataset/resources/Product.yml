@@ -74,7 +74,7 @@ mission:
     description_zh_cn: 任务名称
     examples: SVOM
     unit: None
-    default: SVOM
+    default: AGS
     valid: ''
 schema:
     current_id: formatVersion

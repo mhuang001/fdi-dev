@@ -8,16 +8,18 @@ from .ydump import ydump
 import json
 
 
-def checkjson(obj, dbg=False):
+def checkjson(obj, dbg=0):
     """ seriaizes the given object and deserialize. check equality.
     """
 
     # dbg = True if issubclass(obj.__class__, BaseProduct) else False
 
+    indent = 4 if dbg > 1 else None
+
     if hasattr(obj, 'serialized'):
-        js = obj.serialized()
+        js = obj.serialized(indent=indent)
     else:
-        js = json.dumps(obj)
+        js = json.dumps(obj, indent=indent)
 
     if dbg:
         print(ydump(obj))
@@ -47,5 +49,5 @@ def checkjson(obj, dbg=False):
         print(str(id(des)) + ' ' + des.toString())
         # obj.meta.listeners = []
         # des.meta.listeners = []
-    assert obj == des, deepcmp(obj, des)
+    assert obj == des, deepcmp(obj, des) + deepcmp(obj, des)
     return des

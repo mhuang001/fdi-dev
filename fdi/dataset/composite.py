@@ -34,6 +34,7 @@ class Composite(DeepEqual):
     def get(self, name):
         """ Returns the dataset to which this composite maps the
         specified name.
+        If the attitute does not exist, return None. This is an OrderedDict behavior.
         """
         return self._sets.get(name)
 

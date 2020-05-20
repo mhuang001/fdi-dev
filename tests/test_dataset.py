@@ -1281,6 +1281,10 @@ def test_BaseProduct():
     assert x.meta["creator"].value == a1
     assert x.creator == a1
 
+    # normal metadata
+    # if the attitute does not exist, return None. This is an OrderedDict behavior.
+    assert x.meta['notthere'] is None
+
     # test comparison:
     p1 = BaseProduct(description="oDescription")
     p2 = BaseProduct(description="Description 2")

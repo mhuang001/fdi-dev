@@ -90,7 +90,7 @@ if __name__ == '__main__':
         {'long': 'outputdir=', 'char': 'o', 'default': '.',
          'description': 'Output directory for python file.'},
         {'long': 'userclasses=', 'char': 'c', 'default': '',
-         'description': 'File to import to update Classes with user-defined classes which YAML file refers to.'},
+         'description': 'Python file name, or a module name,  to import prjcls to update Classes with user-defined classes which YAML file refers to.'},
     ]
     # pdb.set_trace()
     out = opt(ops)
@@ -100,10 +100,14 @@ if __name__ == '__main__':
     # include project classes
     clp = out[5]['result']
     if clp == '':
-        # pdb.set_trace()
-        ls = [(k, v) for k, v in locals().items()
-              if issubclass(type(v), BaseProduct)]
-        Classes.mapping = ls
+        try:
+            pc = __import__('projectclasses',
+                            globals(), locals(), ['prjcls'], 0)
+            Classes.mapping = pc.prjcls
+        except ModuleNotFoundError as e:
+            # get from existing product classes
+            ls = [(k, v) for k, v in locals().items()]
+            Classes.mapping = ls
     else:
         clpp, clpf = os.path.split(clp)
         sys.path.insert(0, os.path.abspath(clpp))

@@ -14,6 +14,7 @@ import os
 import sys
 import sphinx_rtd_theme
 import aiohttp_theme
+#import sphinx_readable_theme
 
 sys.path.insert(0, os.path.abspath('..'))
 
@@ -35,6 +36,7 @@ release = 'v0.15'
 # ones.
 extensions = ['sphinx.ext.autodoc']
 extensions.append("sphinx_rtd_theme")
+extensions.append('sphinx_copybutton')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -60,6 +62,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '*~']
 #html_theme = 'sphinxdoc'
 #html_theme = "sphinx_rtd_theme"
 html_theme = "aiohttp_theme"
+#html_theme_path = [sphinx_readable_theme.get_html_theme_path()]
+#html_theme = 'readable'
 
 # Alabaster side bar
 html_sidebars = {
@@ -96,3 +100,7 @@ html_js_files = [
 ]
 
 #html_style = 'css/yourtheme.css'
+copybutton_prompt_text = ">>> "
+copybutton_prompt_text1 = "...:"
+copybutton_only_copy_prompt_lines = True
+copybutton_image_path = 'copy-button-color.svg'

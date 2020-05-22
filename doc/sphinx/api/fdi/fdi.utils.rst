@@ -9,6 +9,14 @@ fdi.utils package
 Submodules
 ----------
 
+fdi.utils.checkjson module
+--------------------------
+
+.. automodule:: fdi.utils.checkjson
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.common module
 -----------------------
 
@@ -21,6 +29,14 @@ fdi.utils.options module
 ------------------------
 
 .. automodule:: fdi.utils.options
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.utils.ydump module
+----------------------
+
+.. automodule:: fdi.utils.ydump
    :members:
    :undoc-members:
    :show-inheritance:

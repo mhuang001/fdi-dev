@@ -1,4 +1,15 @@
 # -*- coding: utf-8 -*-
+from .ndprint import ndprint
+from .listener import ColumnListener, MetaDataListener
+from .serializable import Serializable
+from .odict import ODict, bstr
+from .attributable import Attributable
+from .abstractcomposite import AbstractComposite
+from .datawrapper import DataWrapper, DataContainer
+from .eq import DeepEqual
+from .copyable import Copyable
+from .annotatable import Annotatable
+import logging
 import sys
 if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.3:
     PY33 = True
@@ -14,22 +25,11 @@ else:
     # ,types.XRangeType, types.BufferType)
     maplist = (dict, Mapping)
 
-import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from .annotatable import Annotatable
-from .copyable import Copyable
-from .eq import DeepEqual
-from .datawrapper import DataWrapper, DataContainer
 # from .composite import
-from .abstractcomposite import AbstractComposite
-from .attributable import Attributable
-from .odict import ODict, bstr
-from .serializable import Serializable
-from .listener import ColumnListener, MetaDataListener
-from .ndprint import ndprint
 
 
 class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, MetaDataListener):
@@ -90,8 +90,8 @@ class GenericDataset(Dataset, DataContainer, Container):
 
     def __repr__(self):
         return self.__class__.__name__ + \
-            '{ description = "%s", meta = %s, data = "%s"}' % \
-            (str(self.description), str(self.meta), str(self.data))
+            '{ %s, description = "%s", meta = %s }' % \
+            (str(self.data), str(self.description), str(self.meta))
 
     def toString(self, matprint=None, trans=True):
         """ matprint: an external matrix print function
@@ -200,8 +200,8 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
 
     def __repr__(self):
         return self.__class__.__name__ +\
-            '{ description = "%s", meta = %s, data = "%s", unit = "%s"}' %\
-            (str(self.description), str(self.meta), str(self.data), str(self.unit))
+            '{ %s <%s>, description = "%s", meta = %s}' %\
+            (str(self.data), str(self.unit), str(self.description), str(self.meta))
 
     def toString(self, matprint=None, trans=True):
         if matprint is None:

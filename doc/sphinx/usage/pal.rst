@@ -66,7 +66,7 @@ in the same directory:
 
 .. code-block:: shell
 
-		./test 2
+		make test2
 
 
 Design

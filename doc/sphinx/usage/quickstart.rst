@@ -13,120 +13,109 @@ dataset
 
 ArrayDataset
 ------------
+>>> from fdi.dataset.dataset import ArrayDataset
+...: 
+...: a1 = [1, 4.4, 5.4E3, -22, 0xa2]      # a 1D array of data
+...: v = ArrayDataset(data=a1, unit='ev', description='5 elements')
+...: v
+ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta = MetaData{[], listeners = []}}
 
-Creation
 
->>> a1 = [1, 4.4, 5.4E3]      # a 1D array of data
->>> a2 = 'ev'                 # unit
->>> a3 = 'three energy vals'  # description
->>> v = ArrayDataset(data=a1, unit=a2, description=a3)
->>> v1 = ArrayDataset(a1, a2, description=a3)  # simpler but error-prone
->>> print(v)
-ArrayDataset{ description = "three energy vals", meta = MetaData[], data = "[1, 4.4, 5400.0]", unit = "ev"}
->>> 
->>> print(v == v1)
-True
->>> 
+>>> from fdi.dataset.dataset import ArrayDataset
 
-data access
+>>> a1 = [1, 4.4, 5.4E3, -22, 0xa2]      # a 1D array of data
+... v = ArrayDataset(data=a1, unit='ev', description='5 elements')
+... v
+ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta = MetaData{[], listeners = []}}
 
->>> v1.data = [34]
->>> v1.unit = 'm'
->>> print('The diameter is %f %s.' % (v1.data[0], v1.unit))
-The diameter is 34.000000 m.
->>> 
->>> # iteration
-... 
->>> i = []
+>>> v.unit
+'ev'
+
+>>> v.unit = 'm'
+
+>>> v.unit
+'m'
+
 >>> for m in v:
-...     i.append(m)
-... 
->>> #assert i == a1
-... 
->>> print(i)
-[1, 4.4, 5400.0]
->>> 
->>> # slice
-... 
->>> d = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
->>> x = ArrayDataset(data=d)
->>> x
-ArrayDataset{ description = "UNKNOWN", meta = MetaData[], data = "[[1, 2, 3], [4, 5, 6], [7, 8, 9]]", unit = "None"}
->>> 
->>> x[0:2]
+...     print(m)
+1
+4.4
+5400.0
+-22
+162
+
+>>> [m**3 for m in v if m > 0 and m < 40]
+[1, 85.18400000000003]
+
+>>> v[1:3]
+[4.4, 5400.0]
+
+>>> v.data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+>>> v[0:2]
 [[1, 2, 3], [4, 5, 6]]
+
+>>> s = [[[[i + j + k + l for i in range(5)] for j in range(4)]
+...       for k in range(3)] for l in range(2)]
+
+>>> x = ArrayDataset(data=s)
+
+>>> print(x.toString())
+# ArrayDataset
+# description = "UNKNOWN"
+# meta = MetaData{[], listeners = []}
+# unit = "None"
+# data = 
+
+0 1 2 3 
+1 2 3 4 
+2 3 4 5 
+3 4 5 6 
+4 5 6 7 
+
+
+1 2 3 4 
+2 3 4 5 
+3 4 5 6 
+4 5 6 7 
+5 6 7 8 
+
+
+2 3 4 5 
+3 4 5 6 
+4 5 6 7 
+5 6 7 8 
+6 7 8 9 
+
+
+#=== dimension 4
+
+1 2 3 4 
+2 3 4 5 
+3 4 5 6 
+4 5 6 7 
+5 6 7 8 
+
+
+2 3 4 5 
+3 4 5 6 
+4 5 6 7 
+5 6 7 8 
+6 7 8 9 
+
+
+3 4 5 6 
+4 5 6 7 
+5 6 7 8 
+6 7 8 9 
+7 8 9 10 
+
+
+#=== dimension 4
+
+
+
+
 >>> 
- 
-Run this to see a demo of the ``toString()`` function::
-
-  # demo of toString()
-  # make a 4-D array: a list of 2 lists of 3 lists of 4 lists of 5 elements.
-  
-  s = [[[[i + j + k + l for i in range(5)] for j in range(4)]
-         for k in range(3)] for l in range(2)]
-   
-  x = ArrayDataset(data=s)
-   
-  print(x.toString())
-   
-and you get::
-
-   # ArrayDataset
-   # description = "UNKNOWN"
-   # meta = MetaData{[], listeners = []}
-   # unit = "None"
-   # data = 
-   
-   0 1 2 3 
-   1 2 3 4 
-   2 3 4 5 
-   3 4 5 6 
-   4 5 6 7 
-   
-   
-   1 2 3 4 
-   2 3 4 5 
-   3 4 5 6 
-   4 5 6 7 
-   5 6 7 8 
-   
-   
-   2 3 4 5 
-   3 4 5 6 
-   4 5 6 7 
-   5 6 7 8 
-   6 7 8 9 
-   
-   
-   #=== dimension 4
-   
-   1 2 3 4 
-   2 3 4 5 
-   3 4 5 6 
-   4 5 6 7 
-   5 6 7 8 
-   
-   
-   2 3 4 5 
-   3 4 5 6 
-   4 5 6 7 
-   5 6 7 8 
-   6 7 8 9 
-   
-   
-   3 4 5 6 
-   4 5 6 7 
-   5 6 7 8 
-   6 7 8 9 
-   7 8 9 10 
-   
-   
-   #=== dimension 4
-   
-
-
-
-
 
 TableDataset
 ------------

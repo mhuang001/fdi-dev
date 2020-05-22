@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
+from .odict import ODict
+from .quantifiable import Quantifiable
+from .eq import DeepEqual
+from .copyable import Copyable
+from .annotatable import Annotatable
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-from .annotatable import Annotatable
-from .copyable import Copyable
-from .eq import DeepEqual
-from .quantifiable import Quantifiable
-from .odict import ODict
 
 
 class DataContainer(Annotatable, Quantifiable, Copyable, DeepEqual):
@@ -59,8 +58,8 @@ class DataWrapper(DataContainer):
 
     def __repr__(self):
         return self.__class__.__name__ + \
-            '{ description = "%s", data = "%s", unit = "%s"}' % \
-            (str(self.description), str(self.getData()), str(self.unit))
+            '{ %s <%s>, description = "%s" }' % \
+            (str(self.getData()), str(self.unit), str(self.description))
 
 
 class DataWrapperMapper():

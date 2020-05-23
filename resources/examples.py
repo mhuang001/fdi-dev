@@ -1,14 +1,3 @@
-from pal.common import getProductObject
-from pal.context import MapContext
-from pal.productstorage import ProductStorage
-from dataset.dataset import TableDataset
-import logging
-import os
-from dataset.dataset import ArrayDataset, TableDataset
-from dataset.product import Product
-from dataset.metadata import Parameter, NumericParameter, MetaData
-from dataset.dataset import TableDataset, Column
-
 from fdi.dataset.dataset import ArrayDataset
 
 a1 = [1, 4.4, 5.4E3, -22, 0xa2]      # a 1D array of data
@@ -39,25 +28,23 @@ v[2:-1]
 v.data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 v[0:2]
 
+'''
+Run this to see a demo of the ``toString()`` function::
 
-pass  # Run this to see a demo of the ``toString()`` function::
-
-pass  # demo of toString()
-# make a 4-D array: a list of 2 lists of 3 lists of 4 lists of 5 elements.
-pass
-
+make a 4-D array: a list of 2 lists of 3 lists of 4 lists of 5 elements.
+'''
 s = [[[[i + j + k + l for i in range(5)] for j in range(4)]
       for k in range(3)] for l in range(2)]
-
 x = ArrayDataset(data=s)
-
 print(x.toString())
 
-pass  # TableDataset
-pass  # ------------
+'''
+TableDataset
+------------
 
-pass  # Creation
-
+Creation
+'''
+from fdi.dataset.dataset import TableDataset
 a1 = [dict(name='col1', unit='eV', column=[1, 4.4, 5.4E3]),
       dict(name='col2', unit='cnt', column=[0, 43.2, 2E3])
       ]
@@ -68,70 +55,86 @@ pass  # many other ways to create a TableDataset
 v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
                         ('col2', [0, 43.2, 2E3], 'cnt')])
 v == v3
-True
 
-pass  # manipulate columns and rows
-u = TableDataset()
-c = Column([1, 4, 6.1], 'sec')
-u.addColumn('col3', c)
+
+pass  # quick and dirty
+
+pass  # quick and dirty. data are list of lists without names or units
+a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
+v5 = TableDataset(data=a5)
+[c.data for c in v5.data.values()]    # a5
+v5['col1'][0]    # 1
+v5['col2'][1]    # 43.2
+
+pass  # add, set, and replace columns
+pass  # column set / get
+u
+= TableDataset()
+c1 = Column([1, 4], 'sec')
+u.addColumn('col3', c1)
+u.columnCount        # 1
+
 pass  # for non-existing names set is addColum.
-u['col4'] = Column([2, 3, 6], 'eu')
-print(u['col4'][0])  # == 2
-2
+c2 = Column([2, 3], 'eu')
+u['col4'] = c2
+u['col4'][0]    # 2
+
+u.columnCount        # 2
+
 pass  # replace column for existing names
-u['col4'] = Column([5, 7, 0.2], 'j')
-print(u['col4'][0])  # == 5
-5
-pass  # remove the last row
-print(u.removeRow(u.rowCount - 1))  # == [6.1, 0.2]
-[6.1, 0.2]
+c3 = Column([5, 7], 'j')
+u['col4'] = c3
+u['col4'][0]    # c3.data[0]
+
+pass  # addRow
+u.rowCount    # 2
+
+cc = copy.deepcopy(c1)
+c33, c44 = 3.3, 4.4
+cc.append(c33)
+u.addRow({'col4': c44, 'col3': c33})
+u.rowCount    # 3
+
+u['col3']    # cc
+
+pass  # removeRow
+u.removeRow(u.rowCount - 1)    # [c33, c44]
+u.rowCount    # 2
 
 
-access
+pass        # access
 
 pass  # unit access
 print(u['col4'].unit)  # == 'j'
-j
 
 pass  # with indexOf
 print(u.indexOf('col3'))  # == u.indexOf(c)
-0
+
 print(u.indexOf(c))
-0
+
 
 pass  # set cell value
 u.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
-print(u.getValueAt(rowIndex=1, columnIndex=1))
-42
-
-pass  # replace whole table. see constructor examples for making a1
-u.data = a1
-print(v == u)
-True
+print(u.getValueAt(rowIndex=1, columnIndex=1))    # 42
 
 pass  # syntax ``in``
-[c for c in u]  # list of column names
-['col1', 'col2']
+[c for c in u]  # list of column names ['col1', 'col2']
 
-run this to see ``toString()``
+pass   # run this to see ``toString()``
 
-.. code-block::
+from fdi.dataset.dataset import TableDataset
+ELECTRON_VOLTS = 'eV'
+SECONDS = 'sec'
+t = [x * 1.0 for x in range(10)]
+e = [2 * x + 100 for x in t]
+pass # creating a table dataset to hold the quantified data
+x = TableDataset(description="Example table")
+x["Time"] = Column(data=t, unit=SECONDS)
+x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+ts = x.toString()
+print(ts)
 
-    from dataset.dataset import TableDataset
-    # creation:
-    ELECTRON_VOLTS = 'eV'
-    SECONDS = 'sec'
-    t = [x * 1.0 for x in range(10)]
-    e = [2 * x + 100 for x in t]
-
-    # creating a table dataset to hold the quantified data
-    x = TableDataset(description="Example table")
-    x["Time"] = Column(data=t, unit=SECONDS)
-    x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
-    ts = x.toString()
-    print(ts)
-
-the output is::
+'''the output is::
 
     # TableDataset
     # description = "Example table"
@@ -150,7 +153,9 @@ the output is::
     7.0 114.0
     8.0 116.0
     9.0 118.0
+'''
 
+'''
 Metadata and Parameter
 ----------------------
 
@@ -363,3 +368,4 @@ s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
 spec = TableDataset(data=s1)
 x["Spectrum"] = spec
 assert x["Spectrum"].getValueAt(columnIndex=1, rowIndex=0) == 0
+'''

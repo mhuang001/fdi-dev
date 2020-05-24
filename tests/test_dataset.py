@@ -380,24 +380,45 @@ def test_Parameter1():
     # between -5 and 256 so do not use small int for testing
     # because one cannot make a copy
 
-    # test equivalence of v.setValue(a) and v.value=a
-    a2 = 300
-    a1 = 'a test parameter'
-    v = Parameter()
-    v.description = a1
-    v.setValue(a2)
-    assert v.value == a2
+    # Creation
 
     # test constructor
-    # no positional
+    # standard: with keyword arguments
+    a1 = 'a test parameter'
+    a2 = 300
+    a3 = 'integer'
+    v = Parameter(description=a1, value=a2, type_=a3)
+    assert v.description == a1
+    assert v.value == a2
+    assert v.type_ == a3
+
+    # with no argument
     v = Parameter()
     assert v.description == 'UNKNOWN'  # inherited from Anotatable
     assert v.value is None
     assert v.type_ == ''
+
+    # make a blank one then set attributes
     v = Parameter(description=a1)
     assert v.description == a1
     assert v.value is None
     assert v.type_ == ''
+    v.setValue(a2)
+    v.setType(a3)
+    assert v.description == a1
+    assert v.value == a2
+    assert v.type_ == a3
+
+    # test equivalence of v.setXxxx(a) and v.xxx = a
+    a1 = 'distance to earth'
+    a2 = 98.33
+    v = Parameter()
+    v.description = a1
+    v.value = a2
+    assert v.description == a1
+    assert v.value == a2
+
+    # other ways to make parameters
     # 1
     a2 = FineTime1(8765)
     v = Parameter(a2)  # description has a default so a2 -> 'value'
@@ -533,12 +554,14 @@ def test_Quantifiable():
 
 def test_NumericParameter():
     a1 = 'a test NumericParameter'
-    a2 = 100
+    a2 = 100.234
     a3 = 'second'
-    v = NumericParameter(description=a1, value=a2, unit=a3)
+    a4 = 'float'
+    v = NumericParameter(description=a1, value=a2, unit=a3, type_=a4)
     assert v.description == a1
     assert v.value == a2
     assert v.unit == a3
+    assert v.type_ == a4
 
     checkjson(v)
 
@@ -555,22 +578,29 @@ def test_NumericParameter():
 
 
 def test_MetaData():
-    a1 = 'foo'
-    a2 = Parameter(description='test param', value=900)
+    # creation
+    a1 = 'age'
+    a2 = NumericParameter(description='since 2000',
+                          value=20, unit='year', type_='integer')
     v = MetaData()
     v.set(a1, a2)
     assert v.get(a1) == a2
-    # print(v)
-    a3 = 'more'
-    v.set(name=a1, newParameter=Parameter(a3))
-    assert v[a1].value == a3
+    # add more parameter
+    a3 = 'Bob'
+    v.set(name='name', newParameter=Parameter(a3))
+    assert v.get('name').value == a3
 
+    # access parameters in metadata
     v = MetaData()
+    # a more readable way to set a parameter
     v[a1] = a2  # DRM doc case
+    # a more readable way to get a parameter
     assert v[a1] == a2
-    a4 = NumericParameter(description='another param',
-                          value=2.3, unit='sec')
-    v[a3] = a4
+    assert v.get(a1) == a2
+    v['time'] = NumericParameter(description='another param',
+                                 value=2.3, unit='sec')
+    # names of all parameters
+    assert [n for n in v] == [a1, 'time']
 
     checkjson(v)
 
@@ -1257,13 +1287,14 @@ def test_BaseProduct():
     assert BaseProduct('empty').getDefault() is None
     d = x.getDefault()
     sets = x.getDataWrappers()
+    # they are the same
     assert id(d) == id(sets['RawImage'])
 
     p = Parameter(value="2.1a",
                   description="patched")
     x.meta["Version"] = p
     assert x.meta["Version"] == p
-    a1 = 'a test NumericParameter, just b4 json'
+    a1 = 'a test NumericParameter'
     a2 = 1
     a3 = 'second'
     v = NumericParameter(description=a1, value=a2, unit=a3)
@@ -1274,11 +1305,14 @@ def test_BaseProduct():
     a0 = "Me, myself and I"
     x.creator = a0
     assert x.creator == a0
-    # change it
+    # metada by the same name is also set
     assert x.meta["creator"].value == a0
+    # change the metadata
     a1 = "or else"
     x.meta["creator"] = Parameter(a1)
+    # metada changed
     assert x.meta["creator"].value == a1
+    # so did the property
     assert x.creator == a1
 
     # normal metadata

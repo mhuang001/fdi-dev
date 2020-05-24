@@ -526,24 +526,29 @@ def test_realistic():
     p1 = Product(description='p1')
     p2 = Product(description='p2')
     map1 = MapContext(description='real map1')
-    pref1 = ProductRef(p1)  # in memory
-    pref2 = pstore.save(p2)  # on disk
-    assert map1['refs'].size() == 0  # do not use len() due to classID
+    # A ProductRef created from a lone product will use a mempool
+    pref1 = ProductRef(p1)
+    # use a productStorage with a pool on disk
+    pref2 = pstore.save(p2)
+    # how many prodrefs do we have? (do not use len() due to classID, version)
+    assert map1['refs'].size() == 0
     assert len(pref1.parents) == 0
     assert len(pref2.parents) == 0
-    # add a ref to the contex
+    # add a ref to the contex. every ref has a name in mapcontext
     map1['refs']['prd1'] = pref1
     assert map1['refs'].size() == 1
     assert len(pref1.parents) == 1
     assert pref1.parents[0] == map1
     # add the second one
     map1['refs']['prd2'] = pref2
+    # how many prodrefs do we have? (do not use len() due to classID, version)
     assert map1['refs'].size() == 2
     assert len(pref2.parents) == 1
     assert pref2.parents[0] == map1
     assert pref1.parents[0] == map1
     # remove a ref
     del map1['refs']['prd1']
+    # how many prodrefs do we have? (do not use len() due to classID, version)
     assert map1.refs.size() == 1
     assert len(pref1.parents) == 0
     # add ref2 to another map

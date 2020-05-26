@@ -4,39 +4,54 @@ fdi Quick Start
 ================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
+
+The following demostrates important dataset and pal functionalities. It was made by running fdi/resources/example.py with command ``elpy-shell-send-group-and-step [c-c c-y c-g]`` in ``emacs``.
+
+You can copy the code from code blocks by clicking the ``copy`` icon on the top-right, with he proompts and results removed.
+
+
+>>> # import these first.
+... import copy
+... from datetime import datetime
+... import logging
+... from fdi.dataset.product import Product
+... from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
+... from fdi.dataset.finetime import FineTime1, utcobj
+... from fdi.dataset.dataset import ArrayDataset, TableDataset, Column
+... from fdi.pal.context import Context, MapContext
+... from fdi.pal.productref import ProductRef
+... from fdi.pal.productstorage import ProductStorage
 
 
 dataset
 =======
 
+
 ArrayDataset
 ------------
->>> from fdi.dataset.dataset import ArrayDataset
-...: 
-...: a1 = [1, 4.4, 5.4E3, -22, 0xa2]      # a 1D array of data
-...: v = ArrayDataset(data=a1, unit='ev', description='5 elements')
-...: v
-ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta = MetaData{[], listeners = []}}
 
 
->>> from fdi.dataset.dataset import ArrayDataset
-
->>> a1 = [1, 4.4, 5.4E3, -22, 0xa2]      # a 1D array of data
+>>> # Creation
+... a1 = [1, 4.4, 5.4E3, -22, 0xa2]      # a 1D array of data
 ... v = ArrayDataset(data=a1, unit='ev', description='5 elements')
 ... v
 ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta = MetaData{[], listeners = []}}
+
+>>> # data access
+... v[2]
+5400.0
 
 >>> v.unit
 'ev'
 
 >>> v.unit = 'm'
-
->>> v.unit
+... v.unit
 'm'
 
->>> for m in v:
+>>> # iteration
+... for m in v:
 ...     print(m)
 1
 4.4
@@ -47,19 +62,23 @@ ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta 
 >>> [m**3 for m in v if m > 0 and m < 40]
 [1, 85.18400000000003]
 
->>> v[1:3]
+>>> # slice
+... v[1:3]
 [4.4, 5400.0]
 
+>>> v[2:-1]
+[5400.0, -22]
+
 >>> v.data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
->>> v[0:2]
+... v[0:2]
 [[1, 2, 3], [4, 5, 6]]
 
->>> s = [[[[i + j + k + l for i in range(5)] for j in range(4)]
+>>> # Run this to see a demo of the ``toString()`` function::
+... # make a 4-D array: a list of 2 lists of 3 lists of 4 lists of 5 elements.
+... s = [[[[i + j + k + l for i in range(5)] for j in range(4)]
 ...       for k in range(3)] for l in range(2)]
-
->>> x = ArrayDataset(data=s)
-
->>> print(x.toString())
+... x = ArrayDataset(data=s)
+... print(x.toString())
 # ArrayDataset
 # description = "UNKNOWN"
 # meta = MetaData{[], listeners = []}
@@ -114,315 +133,510 @@ ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta 
 
 
 
-
->>> 
-
 TableDataset
 ------------
 
-Creation
 
->>> from dataset.dataset import TableDataset, Column
->>> 
->>> a1 = [dict(name='col1', unit='eV', column=[1, 4.4, 5.4E3]),
+>>> # Creation
+... a1 = [dict(name='col1', unit='eV', column=[1, 4.4, 5.4E3]),
 ...       dict(name='col2', unit='cnt', column=[0, 43.2, 2E3])
 ...       ]
->>> v = TableDataset(data=a1)
->>> 
->>> #  many other ways to create a TableDataset
-... 
->>> a4 = dict(col1=Column(data=[1, 4.4, 5.4E3], unit='eV'),
-...           col2=Column(data=[0, 43.2, 2E3], unit='cnt'))
->>> v4 = TableDataset(data=a4)
->>> v == v4
-True
->>> 
->>> v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
+... v = TableDataset(data=a1)
+... v
+TableDataset{ description = "UNKNOWN", meta = MetaData{[], listeners = []}, data = "OD{'col1':Column{ [1, 4.4, 5400.0] <eV>, description = "UNKNOWN", meta = MetaData{[], listeners = []}}, 'col2':Column{ [0, 43.2, 2000.0] <cnt>, description = "UNKNOWN", meta = MetaData{[], listeners = []}}}"}
+
+>>> # many other ways to create a TableDataset
+... v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
 ...                         ('col2', [0, 43.2, 2E3], 'cnt')])
->>> v == v3
+... v == v3
 True
 
->>> # manipulate columns and rows
-... u = TableDataset()
->>> c = Column([1, 4, 6.1], 'sec')
->>> u.addColumn('col3', c)
->>> # for non-existing names set is addColum.
-... u['col4'] = Column([2, 3, 6], 'eu')
->>> print(u['col4'][0])  # == 2
-2
->>> # replace column for existing names
-... u['col4'] = Column([5, 7, 0.2], 'j')
->>> print(u['col4'][0])  # == 5
-5
->>> # remove the last row
-... print(u.removeRow(u.rowCount - 1))  # == [6.1, 0.2]
-[6.1, 0.2]
+>>> # quick and dirty. data are list of lists without names or units
+... a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
+... v5 = TableDataset(data=a5)
+... print(v5.toString())
+# TableDataset
+# description = "UNKNOWN"
+# meta = MetaData{[], listeners = []}
+# data = 
+
+# col1 col2
+# None None
+1 0 
+4.4 43.2 
+5400.0 2000.0 
 
 
-access
+
+>>> # access
+... # get names of all column
+... v5.data.keys()
+odict_keys(['col1', 'col2'])
+
+>>> # get a list of all columns' data
+... [c.data for c in v5.data.values()]   # == a5
+[[1, 4.4, 5400.0], [0, 43.2, 2000.0]]
+
+>>> # get column by name
+... c_1 = v5['col1']
+... c_1
+Column{ [1, 4.4, 5400.0] <None>, description = "UNKNOWN", meta = MetaData{[], listeners = []}}
+
+>>> #  indexOf
+... v5.indexOf('col1')  # == u.indexOf(c_1)
+0
+
+>>> v5.indexOf(c_1)
+0
+
+>>> # get a cell
+... v5['col2'][1]    # 43.2
+43.2
+
+>>> # set cell value
+... v5['col2'][1] = 123
+... v5['col2'][1]    # 123
+123
+
+>>> v5.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
+... v5.getValueAt(rowIndex=1, columnIndex=1)    # 42
+42
 
 >>> # unit access
-... print(u['col4'].unit)  # == 'j'
-j
->>> 
->>> # with indexOf
-... print(u.indexOf('col3'))  # == u.indexOf(c)
-0
->>> print(u.indexOf(c))
-0
->>> 
->>> # set cell value
-... u.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
->>> print(u.getValueAt(rowIndex=1, columnIndex=1))
-42
->>> 
->>> # replace whole table. see constructor examples for making a1
-... u.data = a1
->>> print(v == u)
-True
->>> 
+... v3['col1'].unit  # == 'eV'
+'eV'
+
+>>> # add, set, and replace columns and rows
+... # column set / get
+... u = TableDataset()
+... c1 = Column([1, 4], 'sec')
+... u.addColumn('col3', c1)
+... u.columnCount        # 1
+1
+
+>>> # for non-existing names set is addColum.
+... c2 = Column([2, 3], 'eu')
+... u['col4'] = c2
+... u['col4'][0]    # 2
+2
+
+>>> u.columnCount        # 2
+2
+
+>>> # replace column for existing names
+... c3 = Column([5, 7], 'j')
+... u['col4'] = c3
+... u['col4'][0]    # c3.data[0]
+5
+
+>>> # addRow
+... u.rowCount    # 2
+2
+
+>>> cc = copy.deepcopy(c1)
+... c33, c44 = 3.3, 4.4
+... cc.append(c33)
+... u.addRow({'col4': c44, 'col3': c33})
+... u.rowCount    # 3
+3
+
+>>> u['col3']    # cc
+Column{ [1, 4, 3.3] <sec>, description = "UNKNOWN", meta = MetaData{[], listeners = []}}
+
+>>> # removeRow
+... u.removeRow(u.rowCount - 1)    # [c33, c44]
+[3.3, 4.4]
+
+>>> u.rowCount    # 2
+2
+
 >>> # syntax ``in``
-... [c for c in u]  # list of column names
-['col1', 'col2']
+... [c for c in u]  # list of column names ['col1', 'col2']
+['col3', 'col4']
 
-run this to see ``toString()``
+>>> ''
+... # run this to see ``toString()``
+... ''
+... ELECTRON_VOLTS = 'eV'
+... SECONDS = 'sec'
+... t = [x * 1.0 for x in range(10)]
+... e = [2 * x + 100 for x in t]
+... # creating a table dataset to hold the quantified data
+... x = TableDataset(description="Example table")
+... x["Time"] = Column(data=t, unit=SECONDS)
+... x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+... print(x.toString())
+# TableDataset
+# description = "Example table"
+# meta = MetaData{[], listeners = []}
+# data = 
 
-.. code-block::
-   
-   from dataset.dataset import TableDataset
-   # creation:
-   ELECTRON_VOLTS = 'eV'
-   SECONDS = 'sec'
-   t = [x * 1.0 for x in range(10)]
-   e = [2 * x + 100 for x in t]
+# Time Energy
+# sec eV
+0.0 100.0 
+1.0 102.0 
+2.0 104.0 
+3.0 106.0 
+4.0 108.0 
+5.0 110.0 
+6.0 112.0 
+7.0 114.0 
+8.0 116.0 
+9.0 118.0 
 
-   # creating a table dataset to hold the quantified data
-   x = TableDataset(description="Example table")
-   x["Time"] = Column(data=t, unit=SECONDS)
-   x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
-   ts = x.toString()
-   print(ts)
 
-the output is::
-  
-  # TableDataset
-  # description = "Example table"
-  # meta = MetaData{[], listeners = []}
-  # data = 
+Parameter
+---------
 
-  # Time Energy
-  # sec eV
-  0.0 100.0 
-  1.0 102.0 
-  2.0 104.0 
-  3.0 106.0 
-  4.0 108.0 
-  5.0 110.0 
-  6.0 112.0 
-  7.0 114.0 
-  8.0 116.0 
-  9.0 118.0 
 
-Metadata and Parameter
-----------------------
+>>> # Creation
+... # standard way -- with keyword arguments
+... a1 = 'a test parameter'
+... a2 = 300
+... a3 = 'integer'
+... v = Parameter(description=a1, value=a2, type_=a3)
+... v.description   # == a1
+'a test parameter'
 
-Creation
+>>> v.value   # == a2
+300
 
->>> from dataset.metadata import Parameter, NumericParameter, MetaData
->>> 
->>> # creation
-... 
->>> v = MetaData()
->>> a1 = 'foo'
->>> a2 = Parameter(description='test param', value=900)
->>> v.set(a1, a2)
->>> print(v)
-MetaData['foo']
+>>> v.type_   # == a3
+'integer'
 
-access
+>>> # with no argument
+... v = Parameter()
+... v.description   # == 'UNKNOWN# inherited from Anotatable
+'UNKNOWN'
 
->>> # set parameter with several syntaxes
-... a3 = 'more'
->>> v.set(name=a1, newParameter=a3)
->>> print(v[a1])  # == a3
-more
->>> 
->>> a4 = NumericParameter(description='another param',
-...                       value=2.3, unit='sec')
->>> v[a3] = a4
->>> print(v)
-MetaData['foo', 'more']
->>> v.toString()
-'MetaData{[more = NumericParameter{ description = "another param", value = "2.3", unit = "sec", type = ""}, ], listeners = []}'
->>> 
+>>> v.value   # is None
+
+>>> v.type_   # == ''
+''
+
+>>> # make a blank one then set attributes
+... v = Parameter(description=a1)
+... v.description   # == a1
+'a test parameter'
+
+>>> v.value    # is None
+
+>>> v.type_   # == ''
+''
+
+>>> v.setValue(a2)
+... v.setType(a3)
+... v.description   # == a1
+'a test parameter'
+
+>>> v.value   # == a2
+300
+
+>>> v.type_   # == a3
+'integer'
+
+>>> # test equivalence of v.setXxxx(a) and v.xxx = a
+... a1 = 'test score'
+... a2 = 98
+... v = Parameter()
+... v.description = a1
+... v.value = a2
+... v.description   # == a1
+'test score'
+
+>>> v.value   # == a2
+98
+
+>>> # test equals
+... b1 = ''.join(a1)  # make a new string copy
+... b2 = a2 + 0  # make a copy
+... v1 = Parameter(description=b1, value=b2)
+... v.equals(v1)
+True
+
+>>> v == v1
+True
+
+>>> v1.value = -4
+... v.equals(v1)   # False
+False
+
+>>> v != v1  # True
+True
+
+
+Metadata
+--------
+
+
+>>> # Creation
+... a1 = 'age'
+... a2 = NumericParameter(description='since 2000',
+...                       value=20, unit='year', type_='integer')
+... v = MetaData()
+... v.set(a1, a2)
+... v.get(a1)   # == a2
+NumericParameter{ 20 (year) <integer>, "since 2000"}
+
+>>> # add more parameter
+... a3 = 'Bob'
+... v.set(name='name', newParameter=Parameter(a3))
+... v.get('name').value   # == a3
+'Bob'
+
+>>> # access parameters in metadata
+... v = MetaData()
+... # a more readable way to set a parameter
+... v[a1] = a2  # DRM doc case
+... # a more readable way to get a parameter
+... v[a1]   # == a2
+NumericParameter{ 20 (year) <integer>, "since 2000"}
+
+>>> v.get(a1)   # == a2
+NumericParameter{ 20 (year) <integer>, "since 2000"}
+
+>>> v['date'] = Parameter(description='take off at',
+...                       value=FineTime1.datetimeToFineTime(datetime.now(tz=utcobj)))
+... # names of all parameters
+... [n for n in v]   # == [a1, 'date']
+['age', 'date']
+
+>>> print(v.toString())
+MetaData{[age = NumericParameter{ 20 (year) <integer>, "since 2000"}, date = Parameter{ 107189462731 <integer>, "take off at"}, ], listeners = []}
+
 >>> # remove parameter
 ... v.remove(a1)  # inherited from composite
-'more'
->>> print(v.size())  # == 1
+... print(v.size())  # == 1
 1
 
 
 Product
 -------
 
-Creation:
 
->>> from dataset.product import Product
->>> from dataset.dataset import ArrayDataset, TableDataset
->>> 
->>> x = Product(description="product example with several datasets",
+>>> # Creation:
+... x = Product(description="product example with several datasets",
 ...             instrument="Crystal-Ball", modelName="Mk II")
->>> 
->>> print(x.meta['description'])  # == "product example with several datasets"
-product example with several datasets
->>> 
->>> print(x.instrument)  # == "Crystal-Ball"
-Crystal-Ball
->>> 
+... x.meta['description'].value  # == "product example with several datasets"
+'product example with several datasets'
+
+>>> x.instrument  # == "Crystal-Ball"
+'Crystal-Ball'
+
 >>> # ways to add datasets
 ... i0 = 6
->>> i1 = [[1, 2, 3], [4, 5, i0], [7, 8, 9]]
->>> i2 = 'ev'                 # unit
->>> i3 = 'image1'  # description
->>> image = ArrayDataset(data=i1, unit=i2, description=i3)
->>> 
->>> x["RawImage"] = image
->>> print(x["RawImage"].data)  # [1][2] == i0
+... i1 = [[1, 2, 3], [4, 5, i0], [7, 8, 9]]
+... i2 = 'ev'                 # unit
+... i3 = 'image1'     # description
+... image = ArrayDataset(data=i1, unit=i2, description=i3)
+... x["RawImage"] = image
+... x["RawImage"].data  # == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
->>> 
+
 >>> # no unit or description. different syntax but same function as above
 ... x.set('QualityImage', ArrayDataset(
 ...     [[0.1, 0.5, 0.7], [4e3, 6e7, 8], [-2, 0, 3.1]]))
->>> print(x["QualityImage"].unit)  # is None
-None
->>> 
+... x["QualityImage"].unit  # is None
+
 >>> # add a tabledataset
 ... s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
 ...       ('col2', [0, 43.2, 2E3], 'cnt')]
->>> x["Spectrum"] = TableDataset(data=s1)
->>> 
+... x["Spectrum"] = TableDataset(data=s1)
+... print(x["Spectrum"].toString())
+# TableDataset
+# description = "UNKNOWN"
+# meta = MetaData{[], listeners = []}
+# data = 
+
+# col1 col2
+# eV cnt
+1 0 
+4.4 43.2 
+5400.0 2000.0 
+
+
+
 >>> # mandatory properties are also in metadata
-... x.creator = "Me, myself and I"
->>> print(x.creator)  # == "Me, myself and I"
-Me, myself and I
->>> # This is also changed
-... print(x.meta["creator"])  # == "Me, myself and I"
-Me, myself and I
+... # test mandatory BaseProduct properties that are also metadata
+... x.creator = ""
+... a0 = "Me, myself and I"
+... x.creator = a0
+... x.creator   # == a0
+'Me, myself and I'
 
-``toString()`` function::
+>>> # metada by the same name is also set
+... x.meta["creator"].value   # == a0
+'Me, myself and I'
 
-  # Product
-  # description = "product example with several datasets"
-  # meta = MetaData{[description = product example with several datasets, creator = Me, myself and I, creationDate = 2000-01-01T00:00:00.000000 TAI(0), instrument = Crystal-Ball, startDate = , endDate = , rootCause = UNKNOWN, modelName = Mk II, type = UNKNOWN, mission = SVOM, ], listeners = [Product 7696577608224 "product example with several datasets", ]}
-  # History
-  # description = "UNKNOWN"
-  # meta = MetaData{[], listeners = []}
-  # data = 
+>>> # change the metadata
+... a1 = "or else"
+... x.meta["creator"] = Parameter(a1)
+... # metada changed
+... x.meta["creator"].value   # == a1
+'or else'
 
-  # data = 
+>>> # so did the property
+... x.creator   # == a1
+'or else'
 
+>>> # Demo ``toString()`` function. The result should be ::
+... print(x.toString())
+# Product
+# description = "product example with several datasets"
+# meta = MetaData{[description = Parameter{ product example with several datasets <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identification. Fully qualified Python class name or CARD."}, creator = Parameter{ or else <string>, "UNKNOWN"}, creationDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Creation date of this product"}, rootCause = Parameter{ UNKOWN <string>, "Reason of this run of pipeline."}, schema = Parameter{ 0.3 <string>, "Version of product schema"}, startDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal start time  of this product."}, endDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal end time  of this product."}, instrument = Parameter{ Crystal-Ball <string>, "Instrument that generated data of this product"}, modelName = Parameter{ Mk II <string>, "Model name of the instrument of this product"}, mission = Parameter{ AGS <string>, "Name of the mission."}, ], listeners = []}
+# History
+# description = "UNKNOWN"
+# meta = MetaData{[], listeners = []}
+# data = 
 
-  # [ RawImage ]
-  # ArrayDataset
-  # description = "image1"
-  # meta = MetaData{[], listeners = []}
-  # unit = "ev"
-  # data = 
-
-  1 4 7 
-  2 5 8 
-  3 6 9 
-
-
-  # [ QualityImage ]
-  # ArrayDataset
-  # description = "UNKNOWN"
-  # meta = MetaData{[], listeners = []}
-  # unit = "None"
-  # data = 
-
-  0.1 4000.0 -2 
-  0.5 60000000.0 0 
-  0.7 8 3.1 
+# data = 
 
 
-  # [ Spectrum ]
-  # TableDataset
-  # description = "UNKNOWN"
-  # meta = MetaData{[], listeners = []}
-  # data = 
+# [ RawImage ]
+# ArrayDataset
+# description = "image1"
+# meta = MetaData{[], listeners = []}
+# unit = "ev"
+# data = 
 
-  # col1 col2
-  # eV cnt
-  1 0 
-  4.4 43.2 
-  5400.0 2000.0 
-
+1 4 7 
+2 5 8 
+3 6 9 
 
 
+# [ QualityImage ]
+# ArrayDataset
+# description = "UNKNOWN"
+# meta = MetaData{[], listeners = []}
+# unit = "None"
+# data = 
 
-For more examples see tests/test_dataset.py
+0.1 4000.0 -2 
+0.5 60000000.0 0 
+0.7 8 3.1 
+
+
+# [ Spectrum ]
+# TableDataset
+# description = "UNKNOWN"
+# meta = MetaData{[], listeners = []}
+# data = 
+
+# col1 col2
+# eV cnt
+1 0 
+4.4 43.2 
+5400.0 2000.0 
+
 
 pal
 ===
 
 Create a product and a productStorage with a pool registered
-  
 
->>> import os
+
 >>> # disable debugging messages
-... import logging
->>> logger = logging.getLogger('')
->>> logger.setLevel(logging.WARNING)
->>> 
->>> from dataset.dataset import TableDataset
->>> from dataset.product import Product
->>> from pal.productstorage import ProductStorage
->>> from pal.context import MapContext
->>> from pal.common import getProductObject
->>> 
+... logger = logging.getLogger('')
+... logger.setLevel(logging.WARNING)
+
 >>> # a pool for demonstration will be create here
 ... demopoolpath = '/tmp/demopool'
->>> demopool = 'file://' + demopoolpath
->>> # clean possible data left from previous runs
+... demopool = 'file://' + demopoolpath
+... # clean possible data left from previous runs
 ... os.system('rm -rf ' + demopoolpath)
 0
 
-create a prooduct and save it to a pool
-
->>> x = Product(description='in store')
->>> # add a tabledataset
+>>> # create a prooduct and save it to a pool
+... x = Product(description='in store')
+... # add a tabledataset
 ... s1 = [('energy', [1, 4.4, 5.6], 'eV'), ('freq', [0, 43.2, 2E3], 'Hz')]
->>> x["Spectrum"] = TableDataset(data=s1)
->>> # create a product store
+... x["Spectrum"] = TableDataset(data=s1)
+... # create a product store
 ... pstore = ProductStorage(pool=demopool)
->>> 
+... pstore
+ProductStorage { pool= OD{'file:///tmp/demopool':LocalPool { pool= file:///tmp/demopool }} }
+
 >>> # save the product and get a reference
 ... prodref = pstore.save(x)
->>> print(prodref)
-ProductRef{ ProductURN=urn:file:///tmp/demopool:Product:0, meta=MetaData['description', 'creator', 'creationDate', 'instrument', 'startDate', 'endDate', 'rootCause', 'modelName', 'type', 'mission']}
+... print(prodref)
+ProductRef{ ProductURN=urn:file:///tmp/demopool:Product:0, meta=MetaData{[description = Parameter{ in store <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identification. Fully qualified Python class name or CARD."}, creator = Parameter{ UNKOWN <string>, "Generator of this product. Example name of institute, organization, person, software, special algorithm etc."}, creationDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Creation date of this product"}, rootCause = Parameter{ UNKOWN <string>, "Reason of this run of pipeline."}, schema = Parameter{ 0.3 <string>, "Version of product schema"}, startDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal start time  of this product."}, endDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal end time  of this product."}, instrument = Parameter{ UNKOWN <string>, "Instrument that generated data of this product"}, modelName = Parameter{ UNKOWN <string>, "Model name of the instrument of this product"}, mission = Parameter{ AGS <string>, "Name of the mission."}, ], listeners = []}}
 
-the reference can be used in another product
-
->>> # create an empty mapcontext
-... mc = MapContext()
->>> # put the ref in the context.
-... # The manual has this syntax mc.refs.put('xprod', prodref)
-... # but I like this for doing the same thing:
-... mc['refs']['very-useful'] = prodref
 >>> # get the urn string
 ... urn = prodref.urn
->>> print(urn)
+... print(urn)    # urn:file:///tmp/demopool:Product:0
 urn:file:///tmp/demopool:Product:0
 
-re-create a product only using the urn
-
 >>> newp = ProductRef(urn).product
->>> # the new and the old one are equal
-... print(newp == x)
+... # the new and the old one are equal
+... print(newp == x)   # == True
 True
 
-For more examples see tests/test_pal.py
+>>> # the reference can be used in another product
+... p1 = Product(description='p1')
+... p2 = Product(description='p2')
+... # create an empty mapcontext
+... map1 = MapContext(description='real map1')
+... # A ProductRef created from a lone product will use a mempool
+... pref1 = ProductRef(p1)
+... pref1
+ProductRef{ ProductURN=urn:mem:///default:Product:0, meta=None}
+
+>>> # use a productStorage with a pool on disk
+... pref2 = pstore.save(p2)
+... pref2
+ProductRef{ ProductURN=urn:file:///tmp/demopool:Product:1, meta=MetaData{[description = Parameter{ p2 <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identification. Fully qualified Python class name or CARD."}, creator = Parameter{ UNKOWN <string>, "Generator of this product. Example name of institute, organization, person, software, special algorithm etc."}, creationDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Creation date of this product"}, rootCause = Parameter{ UNKOWN <string>, "Reason of this run of pipeline."}, schema = Parameter{ 0.3 <string>, "Version of product schema"}, startDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal start time  of this product."}, endDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal end time  of this product."}, instrument = Parameter{ UNKOWN <string>, "Instrument that generated data of this product"}, modelName = Parameter{ UNKOWN <string>, "Model name of the instrument of this product"}, mission = Parameter{ AGS <string>, "Name of the mission."}, ], listeners = []}}
+
+>>> # how many prodrefs do we have? (do not use len() due to classID, version)
+... map1['refs'].size()   # == 0
+0
+
+>>> len(pref1.parents)   # == 0
+0
+
+>>> len(pref2.parents)   # == 0
+0
+
+>>> # add a ref to the contex. every ref has a name in mapcontext
+... map1['refs']['prd1'] = pref1
+... # add the second one
+... map1['refs']['prd2'] = pref2
+... # how many prodrefs do we have? (do not use len() due to classID, version)
+... map1['refs'].size()   # == 2
+2
+
+>>> len(pref2.parents)   # == 1
+1
+
+>>> pref2.parents[0] == map1
+True
+
+>>> pref1.parents[0] == map1
+True
+
+>>> # remove a ref
+... del map1['refs']['prd1']
+... # how many prodrefs do we have? (do not use len() due to classID, version)
+... map1.refs.size()   # == 1
+1
+
+>>> len(pref1.parents)   # == 0
+0
+
+>>> # add ref2 to another map
+... map2 = MapContext(description='real map2')
+... map2.refs['also2'] = pref2
+... map2['refs'].size()   # == 1
+1
+
+>>> # two parents
+... len(pref2.parents)   # == 2
+2
+
+>>> pref2.parents[1] == map2
+
+True
+
+>>>
 
 pns
 ===

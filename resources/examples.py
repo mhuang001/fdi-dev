@@ -1,6 +1,10 @@
 """
-The following demo for important dataset and pal functions are made by running fdi/resources/example.py with command ``elpy-shell-send-group-and-step [c-c c-y c-g]``
+The following demostrates important dataset and pal functionalities. It was made by running fdi/resources/example.py with command ``elpy-shell-send-group-and-step [c-c c-y c-g]`` in ``emacs``.
+
+You can copy the code from code blocks by clicking the ``copy`` icon on the top-right, with he proompts and results removed.
 """
+
+# import these first.
 import copy
 from datetime import datetime
 import logging
@@ -12,7 +16,18 @@ from fdi.pal.context import Context, MapContext
 from fdi.pal.productref import ProductRef
 from fdi.pal.productstorage import ProductStorage
 
+print("""
+dataset
+=======
+""")
 
+print("""
+ArrayDataset
+------------
+""")
+
+
+# Creation
 a1 = [1, 4.4, 5.4E3, -22, 0xa2]      # a 1D array of data
 v = ArrayDataset(data=a1, unit='ev', description='5 elements')
 v
@@ -39,22 +54,19 @@ v[2:-1]
 v.data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 v[0:2]
 
-'''
-Run this to see a demo of the ``toString()`` function::
-
-make a 4-D array: a list of 2 lists of 3 lists of 4 lists of 5 elements.
-'''
+# Run this to see a demo of the ``toString()`` function::
+# make a 4-D array: a list of 2 lists of 3 lists of 4 lists of 5 elements.
 s = [[[[i + j + k + l for i in range(5)] for j in range(4)]
       for k in range(3)] for l in range(2)]
 x = ArrayDataset(data=s)
 print(x.toString())
 
-'''
+print('''
 TableDataset
 ------------
+''')
 
-Creation
-'''
+# Creation
 a1 = [dict(name='col1', unit='eV', column=[1, 4.4, 5.4E3]),
       dict(name='col2', unit='cnt', column=[0, 43.2, 2E3])
       ]
@@ -70,13 +82,38 @@ v == v3
 # quick and dirty. data are list of lists without names or units
 a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
 v5 = TableDataset(data=a5)
-[c.data for c in v5.data.values()]    # a5
+print(v5.toString())
 
-v5['col1'][0]    # 1
+# access
+# get names of all column
+v5.data.keys()
 
+# get a list of all columns' data
+[c.data for c in v5.data.values()]   # == a5
+
+# get column by name
+c_1 = v5['col1']
+c_1
+
+#  indexOf
+v5.indexOf('col1')  # == u.indexOf(c_1)
+
+v5.indexOf(c_1)
+
+# get a cell
 v5['col2'][1]    # 43.2
 
-# add, set, and replace columns
+# set cell value
+v5['col2'][1] = 123
+v5['col2'][1]    # 123
+
+v5.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
+v5.getValueAt(rowIndex=1, columnIndex=1)    # 42
+
+# unit access
+v3['col1'].unit  # == 'eV'
+
+# add, set, and replace columns and rows
 # column set / get
 u = TableDataset()
 c1 = Column([1, 4], 'sec')
@@ -111,22 +148,6 @@ u.removeRow(u.rowCount - 1)    # [c33, c44]
 
 u.rowCount    # 2
 
-
-# access
-
-# unit access
-u['col4'].unit  # == 'j'
-
-# with indexOf
-u.indexOf('col3')  # == u.indexOf(cc)
-
-u.indexOf(c1)
-
-
-# set cell value
-u.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
-u.getValueAt(rowIndex=1, columnIndex=1)    # 42
-
 # syntax ``in``
 [c for c in u]  # list of column names ['col1', 'col2']
 
@@ -143,12 +164,12 @@ x["Time"] = Column(data=t, unit=SECONDS)
 x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
 print(x.toString())
 
-"""
+print("""
 Parameter
 ---------
+""")
 
-Creation
-"""
+# Creation
 # standard way -- with keyword arguments
 a1 = 'a test parameter'
 a2 = 300
@@ -207,12 +228,12 @@ v.equals(v1)   # False
 
 v != v1  # True
 
-"""
+print("""
 Metadata
 --------
+""")
 
-Creation
-"""
+# Creation
 a1 = 'age'
 a2 = NumericParameter(description='since 2000',
                       value=20, unit='year', type_='integer')
@@ -246,15 +267,15 @@ v.remove(a1)  # inherited from composite
 print(v.size())  # == 1
 
 
-"""
+print("""
 Product
 -------
+""")
 
-Creation:
-"""
+# Creation:
 x = Product(description="product example with several datasets",
             instrument="Crystal-Ball", modelName="Mk II")
-x.meta['description']  # == "product example with several datasets"
+x.meta['description'].value  # == "product example with several datasets"
 
 x.instrument  # == "Crystal-Ball"
 
@@ -276,7 +297,7 @@ x["QualityImage"].unit  # is None
 s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
       ('col2', [0, 43.2, 2E3], 'cnt')]
 x["Spectrum"] = TableDataset(data=s1)
-x["Spectrum"].toString()
+print(x["Spectrum"].toString())
 
 # mandatory properties are also in metadata
 # test mandatory BaseProduct properties that are also metadata
@@ -298,19 +319,17 @@ x.meta["creator"].value   # == a1
 x.creator   # == a1
 
 
-"""
-Demo ``toString()`` function. Thevresult should be ::
-
-For more examples see tests/test_dataset.py
-"""
+# Demo ``toString()`` function. The result should be ::
 print(x.toString())
+# For more examples see tests/test_dataset.py
 
-"""
+print('''
 pal
 ===
 
 Create a product and a productStorage with a pool registered
-"""
+''')
+
 # disable debugging messages
 logger = logging.getLogger('')
 logger.setLevel(logging.WARNING)

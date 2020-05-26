@@ -101,6 +101,6 @@ html_js_files = [
 
 #html_style = 'css/yourtheme.css'
 copybutton_prompt_text = ">>> "
-copybutton_prompt_text1 = "...:"
+copybutton_prompt_text1 = "... "
 copybutton_only_copy_prompt_lines = True
 copybutton_image_path = 'copy-button-color.svg'

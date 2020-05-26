@@ -34,7 +34,7 @@ setup(
         'Flask_HTTPAuth>=3.3.0',
         'Flask>=1.1.2',
         'PyYAML>=5.3.1',
-        'sphinx-copybutton @ git+ssh://git@github.com/mhuang001/sphinx-copybutton.git#egg=sphinx-copybutton-0.2.12.dev0'
+        'sphinx-copybutton @ git+http://github.com/mhuang001/sphinx-copybutton.git#egg=sphinx-copybutton-0.2.12.dev0'
     ],
     classifiers=[
         "Development Status :: 3 - Beta",

@@ -3,10 +3,9 @@
 fdi Quick Start
 ================
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Contents:
+.. contents:: Contents:
 
+   
 The following demostrates important dataset and pal functionalities. It was made by running fdi/resources/example.py with command ``elpy-shell-send-group-and-step [c-c c-y c-g]`` in ``emacs``.
 
 You can copy the code from code blocks by clicking the ``copy`` icon on the top-right, with he proompts and results removed.

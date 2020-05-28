@@ -6,6 +6,10 @@ Change Log
 	BETA0
 	=====
 
+	0.17 2020-05-10
+	---------------
+Release to wider group of beta users, with a product-building package.
+	
 	0.16 2020-05-10
 	---------------
 pns uses user classes. config file relocates to ~/.config/pnslocal.py. 'fits_keyword'.

@@ -6,6 +6,7 @@ import sys
 from string import Template
 import pkg_resources
 from datetime import datetime
+import importlib
 import pdb
 # from ..pal.context import MapContext
 from ..utils.options import opt
@@ -103,17 +104,23 @@ if __name__ == '__main__':
         try:
             pc = __import__('projectclasses',
                             globals(), locals(), ['prjcls'], 0)
+            print('Imported project classes from projectclasses module.')
             Classes.mapping = pc.prjcls
         except ModuleNotFoundError as e:
-            # get from existing product classes
+            print('Unable to find projectclasses module. Use existing product classes.')
             ls = [(k, v) for k, v in locals().items()]
             Classes.mapping = ls
     else:
-        clpp, clpf = os.path.split(clp)
-        sys.path.insert(0, os.path.abspath(clpp))
-        # print(sys.path)
-        pc = __import__(clpf.rsplit('.py', 1)[
-                        0], globals(), locals(), ['prjcls'], 0)
+        if '/' not in clp and '\\' not in clp and not clp.endswith('.py'):
+            print('Importing project classes from module '+clp)
+            pc = importlib.import_module(clp)
+        else:
+            clpp, clpf = os.path.split(clp)
+            sys.path.insert(0, os.path.abspath(clpp))
+            # print(sys.path)
+            print('Importing project classes from file '+clp)
+            pc = __import__(clpf.rsplit('.py', 1)[
+                0], globals(), locals(), ['prjcls'], 0)
         Classes.mapping = pc.prjcls
     glb = Classes.mapping
 

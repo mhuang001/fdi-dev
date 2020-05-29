@@ -29,13 +29,14 @@ $(PYDIR)/$(B_PY): $(RESDIR)/$(B_INFO)
 	@ echo Re-run make after editing. Exiting... ; exit
 
 
-S	=
 
-.PHONY: runserver reqs install FORCE \
+.PHONY: runserver reqs install uninstall FORCE \
 	test test1 test2 test3 test4 \
 	plots plotall plot_dataset plot_pal plot_pns \
 	docs doc_api doc_plots doc_html
 
+# extra option for 'make runserver S=...'
+S	=
 # default username and password are in pnsconfig.py
 runserver:
 	python3 -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)

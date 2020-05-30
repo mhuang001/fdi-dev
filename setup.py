@@ -33,7 +33,7 @@ setup(
         'sphinx_rtd_theme>=0.4.3',
         'Flask_HTTPAuth>=3.3.0',
         'Flask>=1.1.2',
-        'PyYAML>=5.3.1',
+        'ruamel.yaml>=0.16.10',
         'sphinx-copybutton @ git+http://github.com/mhuang001/sphinx-copybutton.git#egg=sphinx-copybutton-0.2.12.dev0'
     ],
     classifiers=[

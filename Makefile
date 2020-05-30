@@ -44,6 +44,9 @@ runserver:
 install:
 	pip3 install -e .
 
+uninstall:
+	pip3 uninstall fdi
+
 PNSDIR=~/pns
 installpns:
 	mkdir -p $(PNSDIR)

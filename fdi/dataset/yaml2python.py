@@ -27,6 +27,9 @@ indent = '    '
 
 
 def mkinfo(attrs, indent, demo, onlyInclude):
+    """ make productInfo string from attributes given.
+
+    """
     # extra indent
     ei = '    '
     infostr = ''
@@ -167,7 +170,7 @@ if __name__ == '__main__':
             imports += s
 
         # get parent attributes
-        all_attrs = glb[a]().productInfo['metadata']
+        all_attrs = glb[a].productInfo['metadata']
         # merge to get all attributes including parents' and self's.
         all_attrs.update(attrs)
     else:

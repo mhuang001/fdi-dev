@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Product(BaseProduct):
-    """ Product class (level ALL) version 0.3 inheriting BaseProduct. Automatically generated from fdi/dataset/resources/Product.yml on 2020-05-18 23:03:55.061919.
+    """ Product class (level ALL) version 0.3 inheriting BaseProduct. Automatically generated from fdi/dataset/resources/Product.yml on 2020-05-30 19:29:41.520783.
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """
@@ -96,7 +96,7 @@ class Product(BaseProduct):
                 'data_type': 'string',
                 'description': 'Name of the mission.',
                 'unit': 'None',
-                'default': 'AGS',
+                'default': '_AGS',
             },
         }),
     }
@@ -113,7 +113,7 @@ class Product(BaseProduct):
                  endDate = FineTime1(0),
                  instrument = 'UNKOWN',
                  modelName = 'UNKOWN',
-                 mission = 'AGS',
+                 mission = '_AGS',
                  **kwds):
         """ Initializes instances with more metadata as attributes, set to default values.
 

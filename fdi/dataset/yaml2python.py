@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import yaml
+from ruamel.yaml import YAML
+#import yaml
 from collections import OrderedDict
 import os
 import sys
@@ -142,8 +143,10 @@ if __name__ == '__main__':
         nm = fin[:-5] if finl.endswith('.yaml') else fin
 
     # read YAML
-    with open(fin, 'r') as f:
-        d = OrderedDict(yaml.load(f, Loader=yaml.FullLoader))
+    yaml=YAML()
+    with open(fin, 'r', encoding='utf-8') as f:
+        # d = OrderedDict(yaml.load(f, Loader=yaml.FullLoader))
+        d = OrderedDict(yaml.load(f))
     attrs = OrderedDict([(x, val) for x, val in d.items()
                          if issubclass(val.__class__, dict)])
     print('Read from %s:\n%s' %

@@ -157,7 +157,7 @@ if __name__ == '__main__':
 
     # class doc
     doc = '%s class (level %s) version %s inheriting %s. Automatically generated from %s on %s.' % tuple(map(str, (
-        d['name'], d['CSCLEVEL'], d['version'], d['parent'],
+        d['name'], d['level'], d['version'], d['parent'],
         fin, datetime.now())))
 
     # the generated source code must import these

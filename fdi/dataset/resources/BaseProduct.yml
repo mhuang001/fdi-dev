@@ -1,8 +1,8 @@
 name: BaseProduct
-description: FDI base class
+definition: FDI base class
 parent: 
-CSCLEVEL: ALL
-version: '0.3'
+level: ALL
+version: '0.4'
 description:
     current_id: description
     id: description

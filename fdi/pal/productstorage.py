@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+from . import productref
+from .poolmanager import PoolManager
+from .productpool import ProductPool
+from .urn import Urn
+from ..dataset.odict import ODict
 import collections
 
 import logging
@@ -6,13 +11,8 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from ..dataset.odict import ODict
 
-from .urn import Urn
 #from .productpool import ProductPool
-from .productpool import ProductPool
-from .poolmanager import PoolManager
-from . import productref
 
 
 class ProductStorage(object):
@@ -195,6 +195,21 @@ class ProductStorage(object):
         if sp[0] != 'file':
             raise ValueError(sp[0] + ':// is not supported')
         self._pools[poolurn].removeAll()
+
+    def select(self, query, previous=None):
+        """ Returns a list of URNs to products that match the specified query.
+
+        Parameters:
+        query - the query object
+        previous - results to be refined
+        Returns:
+        the set of return eferences to products matching the supplied query.
+        """
+        ret = []
+        for poolnm, pool in self._pools.items():
+            c, t, u = pool._classes, pool._tags, pool._urns
+            ret += pool.select(query, previous)
+        return ret
 
     def __eq__(self, o):
         """ has the same urn of the writable pool.

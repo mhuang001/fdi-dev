@@ -509,6 +509,21 @@ def test_Parameter1():
     assert not v.equals(v1)
     assert v != v1
 
+    # comparison with simplified syntax w/o '.value'
+    x = 4
+    for t in [int, float, str, FineTime1]:
+        p = Parameter(value=t(x))
+        assert p == t(x)
+        assert p <= t(x)
+        assert p >= t(x)
+        assert p != t(x+1)
+        assert p < t(x+1)
+        assert p != t(x-1)
+        assert p > t(x-1)
+        #assert t(x) == p
+        #assert t(x) >= p
+        #assert t(x+1) > p
+
     # toString hex
 
     # serializing
@@ -847,7 +862,7 @@ def test_TableDataset():
     v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
                             ('col2', [0, 43.2, 2E3], 'cnt')
                             ])
-    assert v == v3
+    assert v == v3  # , deepcmp(v, v3)
 
     # quick and dirty. data are list of lists without names or units
     a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
@@ -1336,18 +1351,23 @@ def test_BaseProduct():
 
 def test_Product():
     """ """
+    # creation
     # pdb.set_trace()
     x = Product(description="This is my product example",
                 instrument="MyFavourite", modelName="Flight")
     # print(x.__dict__)
     # print(x.meta.toString())
+    # attribute added by Product
     assert x.meta['type'].value == x.__class__.__qualname__
     assert x.meta['description'].value == "This is my product example"
     assert x.meta['instrument'].value == "MyFavourite"
     assert x.modelName == "Flight"
-    # attitute added by Product
-    x = Product("product example")
+    # positional arg
+    x = Product("product example", instrument='spam')
+    # not stored in class variable projectInfo
+    x2 = Product("product example2", instrument='egg')
     assert x.description == "product example"
+    assert x.instrument == 'spam'
     # Test metadata
     # add one
     x.meta['an'] = Parameter('other')

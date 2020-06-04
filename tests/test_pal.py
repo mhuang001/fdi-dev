@@ -11,9 +11,14 @@ from fdi.pal.productref import ProductRef
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.urn import Urn, parseUrn, makeUrn
 from fdi.pal.localpool import LocalPool
+from fdi.pal.context import Context
+from fdi.pal.query import AbstractQuery, MetaQuery
 from fdi.dataset.deserialize import deserializeClassID
 from fdi.dataset.product import Product
 from fdi.dataset.eq import deepcmp
+from fdi.dataset.classes import Classes
+from fdi.dataset.metadata import MetaData, Parameter
+from fdi.dataset.finetime import FineTime1
 from fdi.utils.checkjson import checkjson
 
 import copy
@@ -223,6 +228,11 @@ def test_ProductRef():
     assert rfps.getMeta() == pr.getMeta()
     uobj = Urn(urn=u)
     assert pr.urnobj == uobj
+    # load given metadata
+    met = MetaData()
+    met['foo'] = Parameter('bar')
+    prm = ProductRef(urn=u, meta=met)
+    assert prm.meta['foo'].value == 'bar'
     # This does not obtain metadata
     pr = ProductRef(urn=rfps.urnobj)
     assert rfps == pr
@@ -263,7 +273,7 @@ def test_ProductStorage():
     x = Product(description="This is my product example",
                 instrument="MyFavourite", modelName="Flight")
     pcq = x.__class__.__name__
-    # constructor
+    # Constructor
     # default pool
     ps = ProductStorage()
     p1 = ps.getPools()[0]
@@ -375,6 +385,178 @@ def test_ProductStorage():
     assert len(ps.getPool(defaultpool)._urns) == 0
 
 
+def test_query():
+    # creation
+    a1 = MapContext
+    a2 = 'p'
+    a3 = 'p.description == "mc"'
+    a4 = False
+    q = AbstractQuery(product=a1, variable=a2, where=a3, allVersions=a4)
+    assert q.getType() == a1
+    assert q.getVariable() == a2
+    assert q.getWhere() == a3
+    assert q.retrieveAllVersions() == a4
+
+    class TP(Product):
+        pass
+    Classes.mapping = {'TP': TP}
+    a1 = TP
+    a2 = 'm'
+    a3 = 'm["description"].value == "pr"'
+    a4 = False
+    q = MetaQuery(product=a1, where=a3, allVersions=a4)
+    assert q.getType() == a1
+    assert q.getVariable() == a2
+    assert q.getWhere() == a3
+    assert q.retrieveAllVersions() == a4
+
+    # make a productStorage
+    defaultpoolpath = '/tmp/pool'
+    defaultpool = 'file://' + defaultpoolpath
+    cleanup(defaultpoolpath)
+    pstore = ProductStorage(defaultpool)
+    assert op.exists(defaultpoolpath)
+    assert len(pstore.getPools()) == 1
+    assert pstore.getPools()[0] == defaultpool
+    # make another
+    newpoolpath = '/tmp/newpool'
+    newpoolname = 'file://' + newpoolpath
+    cleanup(newpoolpath)
+    pstore2 = ProductStorage(newpoolname)
+    assert op.exists(newpoolpath)
+    assert len(pstore2.getPools()) == 1
+    assert pstore2.getPools()[0] == newpoolname
+
+    # add some products to both storages
+    n = 7
+    rec1 = []
+    for i in range(n):
+        a0, a1, a2 = 'desc %d' % i, 'fatman %d' % i, 5000+i
+        if i < 3:
+            x = TP(description=a0, instrument=a1)
+            x.meta['extra'] = Parameter(value=a2)
+        elif i < 5:
+            x = Context(description=a0, instrument=a1)
+            x.meta['extra'] = Parameter(value=a2)
+        else:
+            x = MapContext(description=a0, instrument=a1)
+            x.meta['extra'] = Parameter(value=a2)
+            x.meta['time'] = Parameter(value=FineTime1(a2))
+        if i < 4:
+            r = pstore.save(x)
+        else:
+            r = pstore2.save(x)
+        rec1.append(dict(p=x, r=r, a0=a0, a1=a1, a2=a2))
+    # [T T T C] [C M M]
+
+    # query with a specific parameter
+    m = 2
+    q = MetaQuery(TP, 'm["description"].value == "%s"' % rec1[m]['a0'])
+    res = pstore.select(q)
+    assert len(res) == 1, str(res)
+
+    def chk(r, c):
+        p = r.product
+        assert type(p) == type(c['p'])
+        assert p.description == c['a0']
+        assert p.instrument == c['a1']
+        assert p.meta['extra'].value == c['a2']
+
+    chk(res[0], rec1[m])
+
+    # query with a parent class and a specific parameter
+    m = 3
+    q = MetaQuery(Product, 'm["instrument"].value == "%s"' % rec1[m]['a1'])
+    res = pstore.select(q)
+    assert len(res) == 1, str(res)
+    chk(res[0], rec1[m])
+    # query with a parent class and a specific parameter
+    q = MetaQuery(Product, 'm["extra"].value < 5002')
+    res = pstore.select(q)
+    # [0,1]
+    assert len(res) == 2, str(res)
+    chk(res[0], rec1[0])
+    chk(res[1], rec1[1])
+
+    # simpler syntax for comparing value only but a bit slower
+    q = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] <= 5002')
+    res = pstore.select(q)
+    # [1,2]
+    assert len(res) == 2, str(res)
+    chk(res[0], rec1[1])
+    chk(res[1], rec1[2])
+
+    # two classes
+    q = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] < 5004')
+    res = pstore.select(q)
+    # [1,2,3]
+    assert len(res) == 3, str(res)
+    chk(res[0], rec1[1])
+    chk(res[1], rec1[2])
+    chk(res[2], rec1[3])
+
+    # this is not in this store
+    q = MetaQuery(Product, 'm["extra"] == 5004')
+    res = pstore.select(q)
+    # []
+    assert len(res) == 0, str(res)
+
+    # it is in the other store
+    q = MetaQuery(Product, 'm["extra"] == 5004')
+    res = pstore2.select(q)
+    # [4]
+    assert len(res) == 1, str(res)
+    chk(res[0], rec1[4])
+
+    # all in  the other store
+    q = MetaQuery(Product, '1')
+    res = pstore2.select(q)
+    # [4,5,6]
+    assert len(res) == 3, str(res)
+    chk(res[0], rec1[4])
+    chk(res[1], rec1[5])
+    chk(res[2], rec1[6])
+
+    # register the new pool above to the  1st productStorage
+    pstore.register(newpoolname)
+    assert len(pstore.getPools()) == 2
+    assert pstore.getPools()[1] == newpoolname
+
+    # all Context, spans over two pools
+    q = MetaQuery(Context, 'True')
+    res = pstore.select(q)
+    # [3,4,5,6]
+    assert len(res) == 4, str(res)
+    chk(res[0], rec1[3])
+    chk(res[1], rec1[4])
+    chk(res[2], rec1[5])
+    chk(res[3], rec1[6])
+
+    # all 'time' < 5006. will cause TypeError because some Contex data do not have 'time'
+    q = MetaQuery(Context, 'm["time"] < 5006')
+    try:
+        res = pstore.select(q)
+    except TypeError as e:
+        pass
+    else:
+        assert False
+
+    # all 'time' < 5006 mapcontext. all in newpool
+    q = MetaQuery(MapContext, 'm["time"] < 5006')
+    res = pstore.select(q)
+    # [5]
+    assert len(res) == 1, str(res)
+    chk(res[0], rec1[5])
+
+    # all 'extra' < 5002, all in 1st pool
+    q = MetaQuery(Product, 'm["extra"] < 5002')
+    res = pstore.select(q)
+    # [0,1   ]
+    assert len(res) == 2, str(res)
+    chk(res[0], rec1[0])
+    chk(res[1], rec1[1])
+
+
 def test_Context():
     c1 = Context(description='1')
     c2 = Context(description='2')
@@ -469,7 +651,7 @@ def test_MapContext():
     urn = prodref.urn
     assert issubclass(urn.__class__, str)
     # re-create a product only using the urn
-    #newp = getProductObject(urn)
+    # newp = getProductObject(urn)
     newp = ProductRef(urn).product
     # the new and the old one are equal
     assert newp == x

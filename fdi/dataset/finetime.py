@@ -3,6 +3,7 @@ from .serializable import Serializable
 from .odict import ODict
 from .eq import DeepEqual
 from .copyable import Copyable
+from .metadata import ParameterTypes
 import datetime
 
 import logging
@@ -103,6 +104,41 @@ class FineTime(Copyable, DeepEqual, Serializable):
         # return dt.isoformat(timespec='microseconds')
         return dt.strftime('%Y-%m-%dT%H:%M:%S.%f TAI') +\
             '(%d)' % (self.tai)
+
+    def equals(self, obj):
+        """ can compare TAI directly """
+        if type(obj).__name__ in ParameterTypes.values():
+            return self.tai == obj
+        else:
+            return super(FineTime, self).equals(obj)
+
+    def __lt__(self, obj):
+        """ can compare TAI directly """
+        if type(obj).__name__ in ParameterTypes.values():
+            return self.tai < obj
+        else:
+            return super(FineTime, self).__lt__(obj)
+
+    def __gt__(self, obj):
+        """ can compare TAI directly """
+        if type(obj).__name__ in ParameterTypes.values():
+            return self.tai > obj
+        else:
+            return super(FineTime, self).__gt__(obj)
+
+    def __le__(self, obj):
+        """ can compare TAI directly """
+        if type(obj).__name__ in ParameterTypes.values():
+            return self.tai <= obj
+        else:
+            return super(FineTime, self).__le__(obj)
+
+    def __ge__(self, obj):
+        """ can compare TAI directly """
+        if type(obj).__name__ in ParameterTypes.values():
+            return self.tai >= obj
+        else:
+            return super(FineTime, self).__ge__(obj)
 
     def __repr__(self):
         return self.toString()

@@ -6,6 +6,10 @@ Change Log
 	BETA0
 	=====
 
+	0.18 2020-06-04
+	---------------
+Query. Parameter value comparison.
+	
 	0.17 2020-05-10
 	---------------
 Release to wider group of beta users, with a product-building package.

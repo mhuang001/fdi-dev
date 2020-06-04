@@ -155,6 +155,41 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
                              change=ch, cause=ca, rootCause=ro)
             self.fire(e)
 
+    def equals(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in ParameterTypes.values():
+            return self.value == obj
+        else:
+            return super(Parameter, self).equals(obj)
+
+    def __lt__(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in ParameterTypes.values():
+            return self.value < obj
+        else:
+            return super(Parameter, self).__lt__(obj)
+
+    def __gt__(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in ParameterTypes.values():
+            return self.value > obj
+        else:
+            return super(Parameter, self).__gt__(obj)
+
+    def __le__(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in ParameterTypes.values():
+            return self.value <= obj
+        else:
+            return super(Parameter, self).__le__(obj)
+
+    def __ge__(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in ParameterTypes.values():
+            return self.value >= obj
+        else:
+            return super(Parameter, self).__ge__(obj)
+
     def __repr__(self):
         vs = hex(self._value) if self._type == 'hex' and issubclass(
             self._value.__class__, int) else str(self._value)

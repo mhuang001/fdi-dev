@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 from ..dataset.odict import ODict
+from ..dataset.classes import Classes
 from .urn import Urn, parseUrn
 from .versionable import Versionable
 from .taggable import Taggable
 from .definable import Definable
 from ..utils.common import pathjoin
 from .productref import ProductRef
+from .query import MetaQuery
 import logging
 import filelock
 from copy import deepcopy
 import os
 import sys
+import pdb
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -234,10 +237,10 @@ When implementing a ProductPool, the following rules need to be applied:
               $product0_class_name:!!dict
                       currentSN:!!int $the serial number of the latest added prod to the pool
                              sn:!!list
-                                 - $serial number of a prod  
-                                 - $serial number of a prod  
+                                 - $serial number of a prod
+                                 - $serial number of a prod
                                  - ...
-              $product0_class_name:!!dict
+              $product1_class_name:!!dict
               ...
           _urns:!!odict
               $URN0:!!odict
@@ -307,19 +310,84 @@ When implementing a ProductPool, the following rules need to be applied:
         else:
             return res[0]
 
-    def select(self,  query):
+    def qfilter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
+        """ returns filtered collection using the query.
+        valid inputs: cls and ns list; productref list; urn list
+        """
+
+        ret = []
+        u = self._urns
+        qw = q.getWhere()
+
+        if reflist:
+            if isinstance(qw, str):
+                code = compile(qw, 'py', 'eval')
+                for ref in reflist:
+                    m = u[ref.urn]['meta']
+                    if eval(code):
+                        ret.append(ref)
+                return ret
+            else:
+                for ref in reflist:
+                    m = u[ref.urn]['meta']
+                    if qw(m):
+                        ret.append(ref)
+                return ret
+        elif urnlist:
+            if isinstance(qw, str):
+                code = compile(qw, 'py', 'eval')
+                for urn in urnlist:
+                    m = u[urn]['meta']
+                    if eval(code):
+                        ret.append(ProductRef(urn=urn, meta=m))
+                return ret
+            else:
+                for urn in urnlist:
+                    m = u[urn]['meta']
+                    if qw(m):
+                        ret.append(ProductRef(urn=urn, meta=m))
+                return ret
+        elif snlist:
+            if isinstance(qw, str):
+                code = compile(qw, 'py', 'eval')
+                for n in snlist:
+                    urno = Urn(cls=cls, pool=self._poolurn, index=n)
+                    m = u[urno.urn]['meta']
+                    if eval(code):
+                        ret.append(ProductRef(urn=urno, meta=m))
+                return ret
+            else:
+                for n in snlist:
+                    urno = Urn(cls=cls, pool=self._poolurn, index=n)
+                    m = u[urno.urn]['meta']
+                    if qw(m):
+                        ret.append(ProductRef(urn=urno, meta=m))
+                return ret
+        else:
+            raise('Must give a list of urn or sn')
+
+    def select(self,  query, results=None):
         """
         Returns a list of references to products that match the specified query.
         """
-        c, t, u = self._classes, self._tags, self._urns
-        cs, ts, us = deepcopy(c), deepcopy(t), deepcopy(u)
-        return
+        if not issubclass(query.__class__, MetaQuery):
+            raise NotImplementedError('not a MetaQuery')
+        lgb = Classes.mapping
+        t, v, w, a = query.getType(), query.getVariable(
+        ), query.getWhere(), query.retrieveAllVersions()
+        ret = []
+        if results:
+            this = (x for x in results if x.urnobj.getPoolId()
+                    == self._poolurn)
+            ret += self.qfilter(q=query, reflist=this)
+        else:
+            for cname in self._classes:
+                cls = lgb[cname]
+                if issubclass(cls, t):
+                    ret += self.qfilter(q=query, cls=cls,
+                                        snlist=self._classes[cname]['sn'])
 
-    def select(self,  query,  results):
-        """
-        Refines a previous query, given the refined query and result of the previous query.
-        """
-        return
+        return ret
 
     def __repr__(self):
         return self.__class__.__name__ + ' { pool= ' + str(self._poolurn) + ' }'

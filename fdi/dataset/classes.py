@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 import logging
 import copy
@@ -62,7 +63,7 @@ class Classes_meta(type):
         from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
         from fdi.dataset.dataset import GenericDataset, ArrayDataset, \
             TableDataset, CompositeDataset, Column
-        from fdi.pal.context import MapContext, RefContainer, \
+        from fdi.pal.context import Context, MapContext, RefContainer, \
             ContextRuleException
         from fdi.pal.urn import Urn
         from fdi.pal.productref import ProductRef

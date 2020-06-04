@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 
+from .context import Context
+from .urn import Urn
+from .comparable import Comparable
+from ..dataset.product import Product
+from ..dataset.odict import ODict
+from ..dataset.serializable import Serializable
+from ..dataset.metadataholder import MetaDataHolder
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-from ..dataset.metadataholder import MetaDataHolder
-from ..dataset.serializable import Serializable
-from ..dataset.odict import ODict
-from ..dataset.product import Product
-from .comparable import Comparable
-from .urn import Urn
-from .context import Context
 
 
 class ProductRef(MetaDataHolder, Serializable, Comparable):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 
-    def __init__(self, urn=None, poolurn=None, product=None, **kwds):
+    def __init__(self, urn=None, poolurn=None, product=None, meta=None, **kwds):
         """ Urn can be the string or URNobject. if product is provided create an in-memory URN.
-        Poolurn if given overrides the pool URN in urn, and causes metadata to be loaded from pool.
+        Poolurn if given overrides the pool URN in urn, and causes metadata to be loaded from pool, unloss this prodref points to a mempool.
+        If meta is given, it will be used instead of that from poolurn.
         A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
         """
         super(ProductRef, self).__init__(**kwds)
@@ -43,7 +43,8 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
             st = productstorage.ProductStorage(pool)
             urnobj = st.save(product, geturnobjs=True)
             # a lone product passed to prodref will be stored to mempool
-        self.setUrnObj(urnobj, poolurn)
+
+        self.setUrnObj(urnobj, poolurn, meta)
 
         if product and isinstance(product, Context):
             self._product = product
@@ -127,10 +128,11 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
         """
         self.setUrnObj(urnobj)
 
-    def setUrnObj(self, urnobj, poolurn=None):
+    def setUrnObj(self, urnobj, poolurn=None, meta=None):
         """ sets urn
         Poolurn if given overrides the pool URN in urn, and causes metadata to be loaded from pool.
         A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
+        If meta is given, it will be used instead of that from poolurn.
         """
         if urnobj is not None:
             # logger.debug(urnobj)
@@ -144,11 +146,12 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
 
             from .poolmanager import PoolManager, DEFAULT_MEM_POOL
             from . import productstorage
-            loadmeta = poolurn and poolurn != DEFAULT_MEM_POOL
+            loadmeta = (poolurn or meta) and poolurn != DEFAULT_MEM_POOL
             if poolurn is None:
                 poolurn = urnobj.pool
             pool = PoolManager.getPool(poolurn)
-            self._meta = pool.meta(urnobj.urn) if loadmeta else None
+            self._meta = (meta if meta else pool.meta(
+                urnobj.urn)) if loadmeta else None
             st = productstorage.ProductStorage(pool)
             self._storage = st
             self._poolurn = poolurn

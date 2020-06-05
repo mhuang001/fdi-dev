@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+from .comparable import Comparable
+from ..dataset.serializable import Serializable
+from ..dataset.odict import ODict
+from ..dataset.eq import DeepEqual
+from ..utils.common import fullname
+import sys
 import os
 
 import logging
@@ -6,7 +12,6 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
     strset = str
@@ -16,11 +21,7 @@ else:
     strset = (str, unicode)
     from urlparse import urlparse
 
-from ..dataset.eq import DeepEqual
-from ..dataset.odict import ODict
-from ..dataset.serializable import Serializable
 
-from .comparable import Comparable
 # from .common import getClass
 
 
@@ -28,7 +29,7 @@ def parseUrn(urn):
     """
     Checks the URN string is valid in its form and splits it.
     Pool URN is in the form of a URL that does not have ':' in its path part.
-    Product URNs are more complicated. For example if the urn is ``urn:file://c:/tmp/mypool/proj1.product:322`` into poolname ``file://c:/tmp/mypool/proj1.product:322`` into poolname ``file://c:/tmp/mypool``, resource type (usually class) name ``proj1.product``, serial number in string ``'322'``, scheme ``file``, place ``c:`` (with ip and port if given), and poolpath ``c:/tmp/mypool``
+    Product URNs are more complicated. For example if the urn is ``urn:file://c:/tmp/mypool/proj1.product:322`` into poolname ``file://c:/tmp/mypool``, resource type (usually class) name ``proj1.product``, serial number in string ``'322'``, scheme ``file``, place ``c:`` (with ip and port if given), and poolpath ``c:/tmp/mypool``
     Poolname is also called poolURN or poolID.
     """
     if not issubclass(urn.__class__, strset):
@@ -87,7 +88,7 @@ class Urn(DeepEqual, Serializable, Comparable):
 
     where
 
-    :resourceclass: (fully qualified TBC) class name of the resource (product)
+    :resourceclass: (fully qualified) class name of the resource (product)
     :poolname: scheme + ``://`` + place + directory
     :scheme: ``file``, ``mem``, ``http`` ... etc
     :place: ``192.168.5.6:8080``, ``c:``, an empty string ... etc
@@ -123,7 +124,7 @@ class Urn(DeepEqual, Serializable, Comparable):
                 else:
                     raise ValueError('give urn or all other arguments')
             urn = makeUrn(poolname=pool,
-                          typename=cls.__name__,
+                          typename=fullname(cls),
                           index=index)
         self.setUrn(urn)
 
@@ -172,7 +173,7 @@ class Urn(DeepEqual, Serializable, Comparable):
     def getTypeName(self):
         """ Returns class type name of Urn.
         """
-        return self._class  # .__name__
+        return self._class  # .__qualname__
 
     def getIndex(self):
         """ Returns the product index.

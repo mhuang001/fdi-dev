@@ -16,13 +16,13 @@ With FDI one can pack data of different format into **modular** Data Products, t
 
 **Access APIs** of the components of 'FDIs' are convenient, making it easier for **scripting and data mining** directly 'on FDIs'.
 
-All levels of FDI Products and their component (datasets or metadata) are portable (**serializable**) in human-friendly standard format (JSON implemented), allowing machine data processors on different platforms to parse, access internal components, or re-construct a FDI. Even a human with a web browser can understand the data.
+All levels of FDI Products and their component (datasets or metadata) are portable (**serializable**) in human-friendly standard format (JSON implemented), allowing machine data processors on different platforms to parse, access internal components, or re-construct "an FDI". Even a human with a web browser can understand the data.
 
 The ``toString()`` method of major containers classes outputs nicely formated text representation of complex data to help converting FDI to ASCII.
 
-Most FDI Products and components implement **event sender and listener interfaces**, allowing **scalable data-driven** processing pipelines to be constructed.
+Most FDI Products and components implement **event sender and listener interfaces**, allowing **scalable data-driven** processing pipelines and visualizers of live data to be constructed.
 
-FDI storage 'pools' (file based and implemented memory based) are provided as references for 1) data **storage** and, 2) for all persistent data to be referenced to with **URNs** (Universal Resource Names).
+FDI storage 'pools' (file based and  memory based) are provided as references for 1) queryable data **storage** and, 2) for all persistent data to be referenced to with **URNs** (Universal Resource Names).
 
 *Context* type of FDIs are provided so that references of FDIs can become components, enabling FDIs to encapsulate rich, deep, **sophisticated, and accessible contextual data**, yet remain light weight.
 
@@ -37,7 +37,7 @@ FDI Python packages
 
 -  The base data model is defined in package :doc:`dataset <usage/dataset>`.
 
--  Persistent data access, referencing, and Universal Resource Names are defined in package :doc:`pal <usage/pal>`.
+-  Persistent data access, referencing, querying, and Universal Resource Names are defined in package :doc:`pal <usage/pal>`.
 
 -  A reference REST API server designed to communicate with a data processing docker using the data model is in package  :doc:`pns <usage/pns>`.
 

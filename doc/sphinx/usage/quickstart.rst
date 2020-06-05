@@ -13,6 +13,7 @@ You can copy the code from code blocks by clicking the ``copy`` icon on the top-
 
 >>> # import these first.
 ... import copy
+... import os
 ... from datetime import datetime
 ... import logging
 ... from fdi.dataset.product import Product
@@ -21,6 +22,8 @@ You can copy the code from code blocks by clicking the ``copy`` icon on the top-
 ... from fdi.dataset.dataset import ArrayDataset, TableDataset, Column
 ... from fdi.pal.context import Context, MapContext
 ... from fdi.pal.productref import ProductRef
+... from fdi.pal.query import MetaQuery
+... from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 ... from fdi.pal.productstorage import ProductStorage
 
 
@@ -80,60 +83,59 @@ ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta 
 ... print(x.toString())
 
 ::
-   
-  # ArrayDataset
-  # description = "UNKNOWN"
-  # meta = MetaData{[], listeners = []}
-  # unit = "None"
-  # data = 
-  
-  0 1 2 3 
-  1 2 3 4 
-  2 3 4 5 
-  3 4 5 6 
-  4 5 6 7 
-  
-  
-  1 2 3 4 
-  2 3 4 5 
-  3 4 5 6 
-  4 5 6 7 
-  5 6 7 8 
-  
-  
-  2 3 4 5 
-  3 4 5 6 
-  4 5 6 7 
-  5 6 7 8 
-  6 7 8 9 
-  
-  
-  #=== dimension 4
-  
-  1 2 3 4 
-  2 3 4 5 
-  3 4 5 6 
-  4 5 6 7 
-  5 6 7 8 
-  
-  
-  2 3 4 5 
-  3 4 5 6 
-  4 5 6 7 
-  5 6 7 8 
-  6 7 8 9 
-  
-  
-  3 4 5 6 
-  4 5 6 7 
-  5 6 7 8 
-  6 7 8 9 
-  7 8 9 10 
-  
-  
-  #=== dimension 4
-  
 
+	# ArrayDataset
+	# description = "UNKNOWN"
+	# meta = MetaData{[], listeners = []}
+	# unit = "None"
+	# data = 
+	
+	0 1 2 3 
+	1 2 3 4 
+	2 3 4 5 
+	3 4 5 6 
+	4 5 6 7 
+	
+	
+	1 2 3 4 
+	2 3 4 5 
+	3 4 5 6 
+	4 5 6 7 
+	5 6 7 8 
+	
+	
+	2 3 4 5 
+	3 4 5 6 
+	4 5 6 7 
+	5 6 7 8 
+	6 7 8 9 
+	
+	
+	#=== dimension 4
+	
+	1 2 3 4 
+	2 3 4 5 
+	3 4 5 6 
+	4 5 6 7 
+	5 6 7 8 
+	
+	
+	2 3 4 5 
+	3 4 5 6 
+	4 5 6 7 
+	5 6 7 8 
+	6 7 8 9 
+	
+	
+	3 4 5 6 
+	4 5 6 7 
+	5 6 7 8 
+	6 7 8 9 
+	7 8 9 10 
+	
+	
+	#=== dimension 4
+	
 
 TableDataset
 ------------
@@ -259,9 +261,7 @@ Column{ [1, 4, 3.3] <sec>, description = "UNKNOWN", meta = MetaData{[], listener
 ... [c for c in u]  # list of column names ['col1', 'col2']
 ['col3', 'col4']
 
->>> ''
-... # run this to see ``toString()``
-... ''
+>>> # run this to see ``toString()``
 ... ELECTRON_VOLTS = 'eV'
 ... SECONDS = 'sec'
 ... t = [x * 1.0 for x in range(10)]
@@ -273,24 +273,25 @@ Column{ [1, 4, 3.3] <sec>, description = "UNKNOWN", meta = MetaData{[], listener
 ... print(x.toString())
 
 ::
-
-   # TableDataset
-   # description = "Example table"
-   # meta = MetaData{[], listeners = []}
-   # data = 
-
-   # Time Energy
-   # sec eV
-   0.0 100.0 
-   1.0 102.0 
-   2.0 104.0 
-   3.0 106.0 
-   4.0 108.0 
-   5.0 110.0 
-   6.0 112.0 
-   7.0 114.0 
-   8.0 116.0 
-   9.0 118.0 
+  
+  # TableDataset
+  # description = "Example table"
+  # meta = MetaData{[], listeners = []}
+  # data = 
+  
+  # Time Energy
+  # sec eV
+  0.0 100.0 
+  1.0 102.0 
+  2.0 104.0 
+  3.0 106.0 
+  4.0 108.0 
+  5.0 110.0 
+  6.0 112.0 
+  7.0 114.0 
+  8.0 116.0 
+  9.0 118.0 
+  
 
 
 Parameter
@@ -410,7 +411,7 @@ NumericParameter{ 20 (year) <integer>, "since 2000"}
 ['age', 'date']
 
 >>> print(v.toString())
-MetaData{[age = NumericParameter{ 20 (year) <integer>, "since 2000"}, date = Parameter{ 107189462731 <integer>, "take off at"}, ], listeners = []}
+MetaData{[age = NumericParameter{ 20 (year) <integer>, "since 2000"}, date = Parameter{ 108120221290 <integer>, "take off at"}, ], listeners = []}
 
 >>> # remove parameter
 ... v.remove(a1)  # inherited from composite
@@ -452,8 +453,9 @@ Product
 ... x["Spectrum"] = TableDataset(data=s1)
 ... print(x["Spectrum"].toString())
 
+
 ::
-   
+
    # TableDataset
    # description = "UNKNOWN"
    # meta = MetaData{[], listeners = []}
@@ -464,7 +466,7 @@ Product
    1 0 
    4.4 43.2 
    5400.0 2000.0 
-  
+
 
 
 >>> # mandatory properties are also in metadata
@@ -493,11 +495,12 @@ Product
 >>> # Demo ``toString()`` function. The result should be ::
 ... print(x.toString())
 
-::
 
+::
+	
 	# Product
 	# description = "product example with several datasets"
-	# meta = MetaData{[description = Parameter{ product example with several datasets <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identification. Fully qualified Python class name or CARD."}, creator = Parameter{ or else <string>, "UNKNOWN"}, creationDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Creation date of this product"}, rootCause = Parameter{ UNKOWN <string>, "Reason of this run of pipeline."}, schema = Parameter{ 0.3 <string>, "Version of product schema"}, startDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal start time  of this product."}, endDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal end time  of this product."}, instrument = Parameter{ Crystal-Ball <string>, "Instrument that generated data of this product"}, modelName = Parameter{ Mk II <string>, "Model name of the instrument of this product"}, mission = Parameter{ AGS <string>, "Name of the mission."}, ], listeners = []}
+	# meta = MetaData{[description = Parameter{ product example with several datasets <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identification. Fully qualified Python class name or CARD."}, creator = Parameter{ or else <string>, "UNKNOWN"}, creationDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Creation date of this product"}, rootCause = Parameter{ UNKOWN <string>, "Reason of this run of pipeline."}, schema = Parameter{ 0.3 <string>, "Version of product schema"}, startDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal start time  of this product."}, endDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal end time  of this product."}, instrument = Parameter{ Crystal-Ball <string>, "Instrument that generated data of this product"}, modelName = Parameter{ Mk II <string>, "Model name of the instrument of this product"}, mission = Parameter{ _AGS <string>, "Name of the mission."}, ], listeners = []}
 	# History
 	# description = "UNKNOWN"
 	# meta = MetaData{[], listeners = []}
@@ -546,6 +549,10 @@ Product
 pal
 ===
 
+Store a Product in a Pool and Get a Reference Back
+--------------------------------------------------
+
+
 Create a product and a productStorage with a pool registered
 
 
@@ -558,7 +565,8 @@ Create a product and a productStorage with a pool registered
 ... demopool = 'file://' + demopoolpath
 ... # clean possible data left from previous runs
 ... os.system('rm -rf ' + demopoolpath)
-0
+... PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+... PoolManager.removeAll()
 
 >>> # create a prooduct and save it to a pool
 ... x = Product(description='in store')
@@ -573,32 +581,37 @@ ProductStorage { pool= OD{'file:///tmp/demopool':LocalPool { pool= file:///tmp/d
 >>> # save the product and get a reference
 ... prodref = pstore.save(x)
 ... print(prodref)
-ProductRef{ ProductURN=urn:file:///tmp/demopool:Product:0, meta=MetaData{[description = Parameter{ in store <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identification. Fully qualified Python class name or CARD."}, creator = Parameter{ UNKOWN <string>, "Generator of this product. Example name of institute, organization, person, software, special algorithm etc."}, creationDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Creation date of this product"}, rootCause = Parameter{ UNKOWN <string>, "Reason of this run of pipeline."}, schema = Parameter{ 0.3 <string>, "Version of product schema"}, startDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal start time  of this product."}, endDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal end time  of this product."}, instrument = Parameter{ UNKOWN <string>, "Instrument that generated data of this product"}, modelName = Parameter{ UNKOWN <string>, "Model name of the instrument of this product"}, mission = Parameter{ AGS <string>, "Name of the mission."}, ], listeners = []}}
+ProductRef{ ProductURN=urn:file:///tmp/demopool:fdi.dataset.product.Product:0, meta=MetaData{[description = Parameter{ in store <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identificat...}
 
 >>> # get the urn string
 ... urn = prodref.urn
 ... print(urn)    # urn:file:///tmp/demopool:Product:0
-urn:file:///tmp/demopool:Product:0
+urn:file:///tmp/demopool:fdi.dataset.product.Product:0
 
 >>> newp = ProductRef(urn).product
 ... # the new and the old one are equal
 ... print(newp == x)   # == True
 True
 
->>> # the reference can be used in another product
+
+Context: a Product with References
+----------------------------------
+
+
+>>> # the reference can be stored in another product of Context class
 ... p1 = Product(description='p1')
 ... p2 = Product(description='p2')
-... # create an empty mapcontext
-... map1 = MapContext(description='real map1')
+... # create an empty mapcontext that can carry references with name labels
+... map1 = MapContext(description='product with refs 1')
 ... # A ProductRef created from a lone product will use a mempool
 ... pref1 = ProductRef(p1)
 ... pref1
-ProductRef{ ProductURN=urn:mem:///default:Product:0, meta=None}
+ProductRef{ ProductURN=urn:mem:///default:fdi.dataset.product.Product:0, meta=None}
 
->>> # use a productStorage with a pool on disk
+>>> # A productStorage with a pool on disk
 ... pref2 = pstore.save(p2)
 ... pref2
-ProductRef{ ProductURN=urn:file:///tmp/demopool:Product:1, meta=MetaData{[description = Parameter{ p2 <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identification. Fully qualified Python class name or CARD."}, creator = Parameter{ UNKOWN <string>, "Generator of this product. Example name of institute, organization, person, software, special algorithm etc."}, creationDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Creation date of this product"}, rootCause = Parameter{ UNKOWN <string>, "Reason of this run of pipeline."}, schema = Parameter{ 0.3 <string>, "Version of product schema"}, startDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal start time  of this product."}, endDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal end time  of this product."}, instrument = Parameter{ UNKOWN <string>, "Instrument that generated data of this product"}, modelName = Parameter{ UNKOWN <string>, "Model name of the instrument of this product"}, mission = Parameter{ AGS <string>, "Name of the mission."}, ], listeners = []}}
+ProductRef{ ProductURN=urn:file:///tmp/demopool:fdi.dataset.product.Product:1, meta=MetaData{[description = Parameter{ p2 <string>, "Description of this p...
 
 >>> # how many prodrefs do we have? (do not use len() due to classID, version)
 ... map1['refs'].size()   # == 0
@@ -637,7 +650,7 @@ True
 0
 
 >>> # add ref2 to another map
-... map2 = MapContext(description='real map2')
+... map2 = MapContext(description='product with refs 2')
 ... map2.refs['also2'] = pref2
 ... map2['refs'].size()   # == 1
 1
@@ -648,6 +661,81 @@ True
 
 >>> pref2.parents[1] == map2
 True
+
+
+Query a ProdStorage
+-------------------
+
+
+>>> # clean possible data left from previous runs
+... defaultpoolpath = '/tmp/pool'
+... newpoolpath = '/tmp/newpool'
+... os.system('rm -rf ' + defaultpoolpath)
+... os.system('rm -rf ' + newpoolpath)
+... PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+... PoolManager.removeAll()
+... # make a productStorage
+... defaultpool = 'file://'+defaultpoolpath
+... pstore = ProductStorage(defaultpool)
+... # make another
+... newpoolname = 'file://' + newpoolpath
+... pstore2 = ProductStorage(newpoolname)
+
+>>> # add some products to both storages
+... n = 7
+... for i in range(n):
+...     a0, a1, a2 = 'desc %d' % i, 'fatman %d' % (i*4), 5000+i
+...     if i < 3:
+...         x = Product(description=a0, instrument=a1)
+...         x.meta['extra'] = Parameter(value=a2)
+...     elif i < 5:
+...         x = Context(description=a0, instrument=a1)
+...         x.meta['extra'] = Parameter(value=a2)
+... ...
+...         x = MapContext(description=a0, instrument=a1)
+...         x.meta['extra'] = Parameter(value=a2)
+...         x.meta['time'] = Parameter(value=FineTime1(a2))
+...     if i < 4:
+...         r = pstore.save(x)
+...     else:
+...         r = pstore2.save(x)
+...     print(r.urn)
+... # Two pools, 7 products
+... # [P P P C] [C M M]
+urn:file:///tmp/pool:fdi.dataset.product.Product:0
+urn:file:///tmp/pool:fdi.dataset.product.Product:1
+urn:file:///tmp/pool:fdi.dataset.product.Product:2
+urn:file:///tmp/pool:fdi.pal.context.Context:0
+urn:file:///tmp/newpool:fdi.pal.context.Context:0
+urn:file:///tmp/newpool:fdi.pal.context.MapContext:0
+urn:file:///tmp/newpool:fdi.pal.context.MapContext:1
+
+>>> # register the new pool above to the  1st productStorage
+... pstore.register(newpoolname)
+... len(pstore.getPools())   # == 2
+2
+
+>>> # make a query on product metadata
+... q = MetaQuery(Product, 'm["extra"] > 5001 and m["extra"] <= 5005')
+... # search all pools registered on pstore
+... res = pstore.select(q)
+... # [2,3,4,5]
+... len(res)   # == 4
+... [r.product.description for r in res]
+['desc 2', 'desc 3', 'desc 4', 'desc 5']
+
+>>> def t(m):
+...     # query is a function
+...     import re
+...     return re.match('.*n.1.*', m['instrument'].value)
+
+>>> q = MetaQuery(Product, t)
+... res = pstore.select(q)
+... # [3,4]
+... [r.product.instrument for r in res]
+['fatman 12', 'fatman 16']
+
+>>> 
 
 
 pns

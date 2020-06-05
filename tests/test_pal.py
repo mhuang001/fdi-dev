@@ -4,7 +4,7 @@ import random
 import timeit
 from fdi.pal.mempool import MemPool
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
-from fdi.utils.common import trbk
+from fdi.utils.common import trbk, fullname
 from fdi.pal.common import getProductObject
 from fdi.pal.context import Context, MapContext
 from fdi.pal.productref import ProductRef
@@ -73,6 +73,12 @@ def checkgeneral(v):
         assert false
 
 
+def test_fullname():
+    assert fullname(Urn()) == 'fdi.pal.urn.Urn'
+    assert fullname(Urn) == 'fdi.pal.urn.Urn'
+    assert fullname('l') == 'str'
+
+
 def test_Urn():
     prd = Product(description='pal test')
     a1 = 'file'      # scheme
@@ -80,7 +86,7 @@ def test_Urn():
     a2 = c1            # place
     b1, b2, b3 = '/b', '/tmp/foo', '/c'
     a3 = b1 + b2 + b3
-    a4 = prd.__class__.__name__
+    a4 = fullname(prd)
     a5 = 43
     s = a1 + '://' + a2   # file://s:
     p = s + a3
@@ -202,12 +208,13 @@ def test_ProductRef():
     a1 = 'file'
     a2 = ''
     a3 = defaultpoolpath
-    a4 = prd.__class__.__name__
+    a4 = fullname(prd)
     a5 = 0
     s = a1 + '://' + a2   # file://s:
     p = s + a3  # a pool URN
     r = a4 + ':' + str(a5)  # a resource
     u = 'urn:' + p + ':' + r    # a URN
+    cleanup(p)
 
     # in memory
     # A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
@@ -217,7 +224,6 @@ def test_ProductRef():
     assert v.urn == 'urn:mem:///default:' + a4 + ':' + str(0)
     assert v.meta is None
     assert v.product == prd
-    cleanup(defaultpoolpath)
 
     # construction
     ps = ProductStorage(p)
@@ -272,7 +278,7 @@ def test_ProductStorage():
 
     x = Product(description="This is my product example",
                 instrument="MyFavourite", modelName="Flight")
-    pcq = x.__class__.__name__
+    pcq = fullname(x)
     # Constructor
     # default pool
     ps = ProductStorage()
@@ -311,7 +317,7 @@ def test_ProductStorage():
         x2.append(tmp)
         ref2.append(ps.save(tmp, tag='t' + str(d)))
     checkdbcount(q, defaultpool, pcq, q - 1)
-    checkdbcount(1, defaultpool, MapContext.__name__, 0)
+    checkdbcount(1, defaultpool, fullname(MapContext), 0)
     # save many in one go
     m, x3 = 2, []
     n = q + m
@@ -323,7 +329,7 @@ def test_ProductStorage():
     # check refs
     assert len(ref2) == n
     checkdbcount(n, defaultpool, pcq, n)
-    checkdbcount(1, defaultpool, MapContext.__name__, 0)
+    checkdbcount(1, defaultpool, fullname(MapContext), 0)
 
     # tags
     ts = ps.getAllTags()
@@ -360,7 +366,7 @@ def test_ProductStorage():
 
     # access resource
     checkdbcount(n, defaultpool, pcq, n)
-    checkdbcount(1, defaultpool, MapContext.__name__, 0)
+    checkdbcount(1, defaultpool, fullname(MapContext), 0)
     # get ref from urn
     pref = ps.load(ref2[n - 2].urn)
     assert pref == ref2[n - 2]
@@ -377,7 +383,7 @@ def test_ProductStorage():
     # current serial number not changed
     # number of items decreased by 1
     checkdbcount(n - 1, defaultpool, pcq, n)
-    checkdbcount(1, defaultpool, MapContext.__name__, 0)
+    checkdbcount(1, defaultpool, fullname(MapContext), 0)
 
     # clean up a pool
     ps.wipePool(defaultpool)
@@ -412,16 +418,16 @@ def test_query():
 
     # make a productStorage
     defaultpoolpath = '/tmp/pool'
-    defaultpool = 'file://' + defaultpoolpath
     cleanup(defaultpoolpath)
+    defaultpool = 'file://'+defaultpoolpath
     pstore = ProductStorage(defaultpool)
     assert op.exists(defaultpoolpath)
     assert len(pstore.getPools()) == 1
     assert pstore.getPools()[0] == defaultpool
     # make another
     newpoolpath = '/tmp/newpool'
-    newpoolname = 'file://' + newpoolpath
     cleanup(newpoolpath)
+    newpoolname = 'file://' + newpoolpath
     pstore2 = ProductStorage(newpoolname)
     assert op.exists(newpoolpath)
     assert len(pstore2.getPools()) == 1
@@ -431,7 +437,7 @@ def test_query():
     n = 7
     rec1 = []
     for i in range(n):
-        a0, a1, a2 = 'desc %d' % i, 'fatman %d' % i, 5000+i
+        a0, a1, a2 = 'desc %d' % i, 'fatman %d' % (i*4), 5000+i
         if i < 3:
             x = TP(description=a0, instrument=a1)
             x.meta['extra'] = Parameter(value=a2)
@@ -447,7 +453,9 @@ def test_query():
         else:
             r = pstore2.save(x)
         rec1.append(dict(p=x, r=r, a0=a0, a1=a1, a2=a2))
+
     # [T T T C] [C M M]
+    #  0 1 2 3   4 5 6
 
     # query with a specific parameter
     m = 2
@@ -555,6 +563,26 @@ def test_query():
     assert len(res) == 2, str(res)
     chk(res[0], rec1[0])
     chk(res[1], rec1[1])
+
+    # instrument = 'fatman 12|16', two pools
+    q = MetaQuery(Product, '"n 1" in m["instrument"].value')
+    res = pstore.select(q)
+    # [3,4]
+    assert len(res) == 2, str(res)
+    chk(res[0], rec1[3])
+    chk(res[1], rec1[4])
+
+    # same as above but query is a function
+    def t(m):
+        import re
+        return re.match('.*n.1.*', m['instrument'].value)
+
+    q = MetaQuery(Product, t)
+    res = pstore.select(q)
+    # [3,4]
+    assert len(res) == 2, str(res)
+    chk(res[0], rec1[3])
+    chk(res[1], rec1[4])
 
 
 def test_Context():
@@ -707,7 +735,7 @@ def test_realistic():
 
     p1 = Product(description='p1')
     p2 = Product(description='p2')
-    map1 = MapContext(description='real map1')
+    map1 = MapContext(description='product with refs 1')
     # A ProductRef created from a lone product will use a mempool
     pref1 = ProductRef(p1)
     # use a productStorage with a pool on disk
@@ -734,7 +762,7 @@ def test_realistic():
     assert map1.refs.size() == 1
     assert len(pref1.parents) == 0
     # add ref2 to another map
-    map2 = MapContext(description='real map2')
+    map2 = MapContext(description='product with refs 2')
     map2.refs['also2'] = pref2
     assert map2['refs'].size() == 1
     # two parents

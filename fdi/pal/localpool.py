@@ -7,13 +7,24 @@ from .productpool import ProductPool
 from ..utils.common import pathjoin, trbk
 from .productpool import lockpathbase
 import filelock
+import sys
 import shutil
+import pdb
 import os
 from os import path as op
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
+
+if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
+    PY3 = True
+    strset = str
+    from urllib.parse import urlparse, quote, unquote
+else:
+    PY3 = False
+    strset = (str, unicode)
+    from urlparse import urlparse, quote, unquote
 
 
 def writeJsonwithbackup(fp, data):
@@ -86,7 +97,7 @@ class LocalPool(ProductPool):
         does the media-specific saving
         """
         fp0 = self._poolpath
-        fp = pathjoin(fp0, typename + '_' + str(serialnum))
+        fp = pathjoin(fp0, quote(typename) + '_' + str(serialnum))
         try:
             writeJsonwithbackup(fp, data)
             self.writeHK(fp0)
@@ -101,7 +112,7 @@ class LocalPool(ProductPool):
         """
 
         with filelock.FileLock(self.lockpath(), timeout=5):
-            uri = self._poolurn + '/' + resourcename + '_' + indexstr
+            uri = self._poolurn + '/' + quote(resourcename) + '_' + indexstr
             try:
                 p = getJsonObj(uri)
             except Exception as e:
@@ -115,7 +126,7 @@ class LocalPool(ProductPool):
         does the scheme-specific part of removal.
         """
         fp0 = (self._poolpath)
-        fp = pathjoin(fp0, typename + '_' + str(serialnum))
+        fp = pathjoin(fp0,  quote(typename) + '_' + str(serialnum))
         try:
             os.unlink(fp)
             self.writeHK(fp0)

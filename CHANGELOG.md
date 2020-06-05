@@ -6,6 +6,10 @@ Change Log
 	BETA0
 	=====
 
+	0.18b 2020-06-05
+	---------------
+Full classname in urn. Updated documentation.
+
 	0.18a 2020-06-04
 	---------------
 remove duplicate 'description' key in YAML prod def (v0.4).

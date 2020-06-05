@@ -5,7 +5,9 @@ You can copy the code from code blocks by clicking the ``copy`` icon on the top-
 """
 
 # import these first.
+import pdb
 import copy
+import os
 from datetime import datetime
 import logging
 from fdi.dataset.product import Product
@@ -14,6 +16,8 @@ from fdi.dataset.finetime import FineTime1, utcobj
 from fdi.dataset.dataset import ArrayDataset, TableDataset, Column
 from fdi.pal.context import Context, MapContext
 from fdi.pal.productref import ProductRef
+from fdi.pal.query import MetaQuery
+from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.pal.productstorage import ProductStorage
 
 print("""
@@ -151,9 +155,8 @@ u.rowCount    # 2
 # syntax ``in``
 [c for c in u]  # list of column names ['col1', 'col2']
 
-''
+
 # run this to see ``toString()``
-''
 ELECTRON_VOLTS = 'eV'
 SECONDS = 'sec'
 t = [x * 1.0 for x in range(10)]
@@ -327,6 +330,10 @@ print('''
 pal
 ===
 
+Store a Product in a Pool and Get a Reference Back
+--------------------------------------------------
+
+
 Create a product and a productStorage with a pool registered
 ''')
 
@@ -340,6 +347,8 @@ demopoolpath = '/tmp/demopool'
 demopool = 'file://' + demopoolpath
 # clean possible data left from previous runs
 os.system('rm -rf ' + demopoolpath)
+PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+PoolManager.removeAll()
 
 # create a prooduct and save it to a pool
 x = Product(description='in store')
@@ -364,16 +373,22 @@ newp = ProductRef(urn).product
 # the new and the old one are equal
 print(newp == x)   # == True
 
-# the reference can be used in another product
+
+print("""
+Context: a Product with References
+----------------------------------
+""")
+
+# the reference can be stored in another product of Context class
 p1 = Product(description='p1')
 p2 = Product(description='p2')
-# create an empty mapcontext
-map1 = MapContext(description='real map1')
+# create an empty mapcontext that can carry references with name labels
+map1 = MapContext(description='product with refs 1')
 # A ProductRef created from a lone product will use a mempool
 pref1 = ProductRef(p1)
 pref1
 
-# use a productStorage with a pool on disk
+# A productStorage with a pool on disk
 pref2 = pstore.save(p2)
 pref2
 
@@ -405,7 +420,7 @@ map1.refs.size()   # == 1
 len(pref1.parents)   # == 0
 
 # add ref2 to another map
-map2 = MapContext(description='real map2')
+map2 = MapContext(description='product with refs 2')
 map2.refs['also2'] = pref2
 map2['refs'].size()   # == 1
 
@@ -413,3 +428,69 @@ map2['refs'].size()   # == 1
 len(pref2.parents)   # == 2
 
 pref2.parents[1] == map2
+
+print("""
+Query a ProdStorage
+-------------------
+""")
+
+# clean possible data left from previous runs
+defaultpoolpath = '/tmp/pool'
+newpoolpath = '/tmp/newpool'
+os.system('rm -rf ' + defaultpoolpath)
+os.system('rm -rf ' + newpoolpath)
+PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+PoolManager.removeAll()
+# make a productStorage
+defaultpool = 'file://'+defaultpoolpath
+pstore = ProductStorage(defaultpool)
+# make another
+newpoolname = 'file://' + newpoolpath
+pstore2 = ProductStorage(newpoolname)
+
+# add some products to both storages
+n = 7
+for i in range(n):
+    a0, a1, a2 = 'desc %d' % i, 'fatman %d' % (i*4), 5000+i
+    if i < 3:
+        x = Product(description=a0, instrument=a1)
+        x.meta['extra'] = Parameter(value=a2)
+    elif i < 5:
+        x = Context(description=a0, instrument=a1)
+        x.meta['extra'] = Parameter(value=a2)
+    else:
+        x = MapContext(description=a0, instrument=a1)
+        x.meta['extra'] = Parameter(value=a2)
+        x.meta['time'] = Parameter(value=FineTime1(a2))
+    if i < 4:
+        r = pstore.save(x)
+    else:
+        r = pstore2.save(x)
+    print(r.urn)
+# Two pools, 7 products
+# [P P P C] [C M M]
+#  0 1 2 3   4 5 6
+
+# register the new pool above to the  1st productStorage
+pstore.register(newpoolname)
+len(pstore.getPools())   # == 2
+
+# make a query on product metadata
+q = MetaQuery(Product, 'm["extra"] > 5001 and m["extra"] <= 5005')
+# search all pools registered on pstore
+res = pstore.select(q)
+# [2,3,4,5]
+len(res)   # == 4
+[r.product.description for r in res]
+
+
+def t(m):
+    # query is a function
+    import re
+    return re.match('.*n.1.*', m['instrument'].value)
+
+
+q = MetaQuery(Product, t)
+res = pstore.select(q)
+# [3,4]
+[r.product.instrument for r in res]

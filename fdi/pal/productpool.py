@@ -5,7 +5,7 @@ from .urn import Urn, parseUrn
 from .versionable import Versionable
 from .taggable import Taggable
 from .definable import Definable
-from ..utils.common import pathjoin
+from ..utils.common import pathjoin, fullname
 from .productref import ProductRef
 from .query import MetaQuery
 import logging
@@ -266,7 +266,7 @@ When implementing a ProductPool, the following rules need to be applied:
             prds = product
         res = []
         for prd in prds:
-            pn = prd.__class__.__name__
+            pn = fullname(prd)
             with filelock.FileLock(self.lockpath()):
                 if pn in c:
                     sn = (c[pn]['currentSN'] + 1)
@@ -382,7 +382,7 @@ When implementing a ProductPool, the following rules need to be applied:
             ret += self.qfilter(q=query, reflist=this)
         else:
             for cname in self._classes:
-                cls = lgb[cname]
+                cls = lgb[cname.split('.')[-1]]
                 if issubclass(cls, t):
                     ret += self.qfilter(q=query, cls=cls,
                                         snlist=self._classes[cname]['sn'])

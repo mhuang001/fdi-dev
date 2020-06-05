@@ -113,6 +113,14 @@ fdi.pal.productstorage module
    :undoc-members:
    :show-inheritance:
 
+fdi.pal.query module
+--------------------
+
+.. automodule:: fdi.pal.query
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.pal.runpnsserver module
 ---------------------------
 

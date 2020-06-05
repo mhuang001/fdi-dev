@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from . import localpool, mempool
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-from . import localpool, mempool
 
 #from .definable import Definable
 DEFAULT_MEM_POOL = 'mem:///default'
@@ -22,7 +22,9 @@ This is done by calling the getPool(String) method, which will return an existin
 
     @classmethod
     def getPool(cls, poolurn):
-        """ returns an instance of pool according to urn. create the pool if it does not already exist. the same pool-URN always get the same pool.
+        """ returns an instance of pool according to urn. 
+
+        create the pool if it does not already exist. the same pool-URN always get the same pool.
         """
 
         # logger.debug('GPL ' + str(id(cls._GlobalPoolList)) +

@@ -12,7 +12,7 @@ def read(fname):
 
 setup(
     name="fdi",
-    version="0.18a",
+    version="0.18b",
     author="Maohai Huang",
     author_email="mhuang@earth.bao.ac.cn",
     description=("Flexible Data Integrator"),

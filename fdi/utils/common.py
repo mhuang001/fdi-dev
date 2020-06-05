@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def trbk(e):
-    """ trace back 
+    """ trace back
     """
     ls = [x for x in traceback.extract_tb(e.__traceback__).format()] if hasattr(
         e, '__traceback__') else ['']
@@ -31,3 +31,19 @@ def pathjoin(*p):
     r = sep.join(p)
     # print(p, r)
     return r
+
+
+bldins = str.__class__.__module__
+
+
+def fullname(obj):
+    """ full class name with module name.
+
+    https://stackoverflow.com/a/2020083/13472124
+    """
+    t = type(obj) if not isinstance(obj, type) else obj
+    module = t.__module__
+    if module is None or module == bldins:
+        return t.__name__  # Avoid reporting __builtin__
+    else:
+        return module + '.' + t.__name__

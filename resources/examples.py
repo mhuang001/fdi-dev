@@ -7,6 +7,7 @@ You can copy the code from code blocks by clicking the ``copy`` icon on the top-
 # import these first.
 import pdb
 import copy
+import getpass
 import os
 from datetime import datetime
 import logging
@@ -343,7 +344,7 @@ logger.setLevel(logging.WARNING)
 
 
 # a pool for demonstration will be create here
-demopoolpath = '/tmp/demopool'
+demopoolpath = '/tmp/demopool_' + getpass.getuser()
 demopool = 'file://' + demopoolpath
 # clean possible data left from previous runs
 os.system('rm -rf ' + demopoolpath)
@@ -365,7 +366,7 @@ print(prodref)
 
 # get the urn string
 urn = prodref.urn
-print(urn)    # urn:file:///tmp/demopool:Product:0
+print(urn)    # urn:file:///tmp/demopool_mh:fdi.dataset.product.Product:0
 
 # re-create a product only using the urn
 
@@ -435,8 +436,8 @@ Query a ProdStorage
 """)
 
 # clean possible data left from previous runs
-defaultpoolpath = '/tmp/pool'
-newpoolpath = '/tmp/newpool'
+defaultpoolpath = '/tmp/pool_' + getpass.getuser()
+newpoolpath = '/tmp/newpool_' + getpass.getuser()
 os.system('rm -rf ' + defaultpoolpath)
 os.system('rm -rf ' + newpoolpath)
 PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()

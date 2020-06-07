@@ -13,6 +13,7 @@ You can copy the code from code blocks by clicking the ``copy`` icon on the top-
 
 >>> # import these first.
 ... import copy
+... import getpass
 ... import os
 ... from datetime import datetime
 ... import logging
@@ -561,7 +562,7 @@ Create a product and a productStorage with a pool registered
 ... logger.setLevel(logging.WARNING)
 
 >>> # a pool for demonstration will be create here
-... demopoolpath = '/tmp/demopool'
+... demopoolpath = '/tmp/demopool_' + getpass.getuser()
 ... demopool = 'file://' + demopoolpath
 ... # clean possible data left from previous runs
 ... os.system('rm -rf ' + demopoolpath)
@@ -576,17 +577,17 @@ Create a product and a productStorage with a pool registered
 ... # create a product store
 ... pstore = ProductStorage(pool=demopool)
 ... pstore
-ProductStorage { pool= OD{'file:///tmp/demopool':LocalPool { pool= file:///tmp/demopool }} }
+ProductStorage { pool= OD{'file:///tmp/demopool_mh':LocalPool { pool= file:///tmp/demopool_mh }} }
 
 >>> # save the product and get a reference
 ... prodref = pstore.save(x)
 ... print(prodref)
-ProductRef{ ProductURN=urn:file:///tmp/demopool:fdi.dataset.product.Product:0, meta=MetaData{[description = Parameter{ in store <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identificat...}
+ProductRef{ ProductURN=urn:file:///tmp/demopool_mh:fdi.dataset.product.Product:0, meta=MetaData{[description = Parameter{ in store <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identificat...}
 
 >>> # get the urn string
 ... urn = prodref.urn
-... print(urn)    # urn:file:///tmp/demopool:Product:0
-urn:file:///tmp/demopool:fdi.dataset.product.Product:0
+... print(urn)    # urn:file:///tmp/demopool_mh:Product:0
+urn:file:///tmp/demopool_mh:fdi.dataset.product.Product:0
 
 >>> newp = ProductRef(urn).product
 ... # the new and the old one are equal
@@ -611,7 +612,7 @@ ProductRef{ ProductURN=urn:mem:///default:fdi.dataset.product.Product:0, meta=No
 >>> # A productStorage with a pool on disk
 ... pref2 = pstore.save(p2)
 ... pref2
-ProductRef{ ProductURN=urn:file:///tmp/demopool:fdi.dataset.product.Product:1, meta=MetaData{[description = Parameter{ p2 <string>, "Description of this p...
+ProductRef{ ProductURN=urn:file:///tmp/demopool_mh:fdi.dataset.product.Product:1, meta=MetaData{[description = Parameter{ p2 <string>, "Description of this p...
 
 >>> # how many prodrefs do we have? (do not use len() due to classID, version)
 ... map1['refs'].size()   # == 0
@@ -668,8 +669,8 @@ Query a ProdStorage
 
 
 >>> # clean possible data left from previous runs
-... defaultpoolpath = '/tmp/pool'
-... newpoolpath = '/tmp/newpool'
+... defaultpoolpath = '/tmp/pool_' + getpass.getuser()
+... newpoolpath = '/tmp/newpool_' + getpass.getuser()
 ... os.system('rm -rf ' + defaultpoolpath)
 ... os.system('rm -rf ' + newpoolpath)
 ... PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
@@ -702,13 +703,13 @@ Query a ProdStorage
 ...     print(r.urn)
 ... # Two pools, 7 products
 ... # [P P P C] [C M M]
-urn:file:///tmp/pool:fdi.dataset.product.Product:0
-urn:file:///tmp/pool:fdi.dataset.product.Product:1
-urn:file:///tmp/pool:fdi.dataset.product.Product:2
-urn:file:///tmp/pool:fdi.pal.context.Context:0
-urn:file:///tmp/newpool:fdi.pal.context.Context:0
-urn:file:///tmp/newpool:fdi.pal.context.MapContext:0
-urn:file:///tmp/newpool:fdi.pal.context.MapContext:1
+urn:file:///tmp/pool_mh:fdi.dataset.product.Product:0
+urn:file:///tmp/pool_mh:fdi.dataset.product.Product:1
+urn:file:///tmp/pool_mh:fdi.dataset.product.Product:2
+urn:file:///tmp/pool_mh:fdi.pal.context.Context:0
+urn:file:///tmp/newpool_mh:fdi.pal.context.Context:0
+urn:file:///tmp/newpool_mh:fdi.pal.context.MapContext:0
+urn:file:///tmp/newpool_mh:fdi.pal.context.MapContext:1
 
 >>> # register the new pool above to the  1st productStorage
 ... pstore.register(newpoolname)

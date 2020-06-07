@@ -28,8 +28,8 @@ def pathjoin(*p):
     Useful when '\\' is needed.
     """
     sep = '/'
-    r = sep.join(p)
-    # print(p, r)
+    r = sep.join(p).replace(sep+sep, sep)
+    #print(p, r)
     return r
 
 

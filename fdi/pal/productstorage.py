@@ -5,6 +5,7 @@ from .productpool import ProductPool
 from .urn import Urn
 from ..dataset.odict import ODict
 import collections
+import getpass
 
 import logging
 # create logger
@@ -21,9 +22,11 @@ class ProductStorage(object):
     Every instanciation with the same pool will  result in a new instance of ProdStorage.
     """
 
-    def __init__(self, pool='file:///tmp/pool', **kwds):
+    def __init__(self, pool=None, **kwds):
         """ input is a pool urn
         """
+        if not pool:
+            pool = 'file:///tmp/pool_' + getpass.getuser()
         super(ProductStorage, self).__init__(**kwds)
         self._pools = ODict()  # dict of pool-urn keys
         self.register(pool)

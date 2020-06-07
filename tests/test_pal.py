@@ -26,6 +26,7 @@ import traceback
 from pprint import pprint
 import json
 import shutil
+import getpass
 import os
 
 from os import path as op
@@ -159,7 +160,7 @@ def cleanup(direc):
 
 
 def test_PoolManager():
-    defaultpoolpath = '/tmp/pool'
+    defaultpoolpath = '/tmp/pool_' + getpass.getuser()
     defaultpool = 'file://' + defaultpoolpath
     cleanup(defaultpoolpath)
     pm = PoolManager()
@@ -201,7 +202,7 @@ def checkdbcount(n, poolurn, prodname, currentSN=-1):
 
 
 def test_ProductRef():
-    defaultpoolpath = '/tmp/pool'
+    defaultpoolpath = '/tmp/pool_' + getpass.getuser()
     defaultpool = 'file://' + defaultpoolpath
     cleanup(defaultpoolpath)
     prd = Product()
@@ -272,7 +273,7 @@ def test_ProductRef():
 
 
 def test_ProductStorage():
-    defaultpoolpath = '/tmp/pool'
+    defaultpoolpath = '/tmp/pool_' + getpass.getuser()
     defaultpool = 'file://' + defaultpoolpath
     cleanup(defaultpoolpath)
 
@@ -292,7 +293,7 @@ def test_ProductStorage():
 
     # register pool
     # with a storage that already has a pool
-    newpoolpath = '/tmp/newpool'
+    newpoolpath = '/tmp/newpool_' + getpass.getuser()
     newpoolname = 'file://' + newpoolpath
     cleanup(newpoolpath)
 
@@ -417,7 +418,7 @@ def test_query():
     assert q.retrieveAllVersions() == a4
 
     # make a productStorage
-    defaultpoolpath = '/tmp/pool'
+    defaultpoolpath = '/tmp/pool_' + getpass.getuser()
     cleanup(defaultpoolpath)
     defaultpool = 'file://'+defaultpoolpath
     pstore = ProductStorage(defaultpool)
@@ -425,7 +426,7 @@ def test_query():
     assert len(pstore.getPools()) == 1
     assert pstore.getPools()[0] == defaultpool
     # make another
-    newpoolpath = '/tmp/newpool'
+    newpoolpath = '/tmp/newpool_' + getpass.getuser()
     cleanup(newpoolpath)
     newpoolname = 'file://' + newpoolpath
     pstore2 = ProductStorage(newpoolname)
@@ -646,7 +647,7 @@ def test_MapContext():
     assert c4['refs']['x'].product.description == 'hi'
 
     # stored prod
-    defaultpoolpath = '/tmp/pool'
+    defaultpoolpath = '/tmp/pool_' + getpass.getuser()
     defaultpool = 'file://' + defaultpoolpath
     # create a prooduct
     x = Product(description='in store')
@@ -727,7 +728,7 @@ def test_MapContext():
 def test_realistic():
     # remove existing pools in memory
     PoolManager().removeAll()
-    poolpath = '/tmp/realpool'
+    poolpath = '/tmp/realpool_' + getpass.getuser()
     poolname = 'file://'+poolpath
     # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
     LocalPool.wipe(poolpath)
@@ -792,7 +793,7 @@ def speed():
     p['array'] = a
     PoolManager().removeAll()
     # create a product store
-    pool = 'file:///tmp/perf'
+    pool = 'file:///tmp/perf_' + getpass.getuser()
     pstore = ProductStorage(pool)
     # clean up possible garbage of previous runs
     pstore.wipePool(pool)

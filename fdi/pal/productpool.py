@@ -13,6 +13,8 @@ import filelock
 from copy import deepcopy
 import os
 import sys
+import getpass
+
 import pdb
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -27,7 +29,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-lockpathbase = '/tmp/locks'
+lockpathbase = '/tmp/locks_' + getpass.getuser()
 
 
 class ProductPool(Definable, Taggable, Versionable):
@@ -43,8 +45,9 @@ When implementing a ProductPool, the following rules need to be applied:
 
     """
 
-    def __init__(self, poolurn='file:///tmp/pool', **kwds):
-        # print(__name__ + str(kwds))
+    def __init__(self, poolurn=None, **kwds):
+        if not poolurn:
+            poolurn = 'file:///tmp/pool_' + getpass.getuser()
         super(ProductPool, self).__init__(**kwds)
         self._poolurn = poolurn
         pr = urlparse(poolurn)
@@ -104,7 +107,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         Returns the reference count of a ProductRef.
         """
-        self._urns[ref.urn]['refcnt'] += 1
+        return self._urns[ref.urn]['refcnt']
 
     def getUrnId(self):
         """
@@ -143,8 +146,9 @@ When implementing a ProductPool, the following rules need to be applied:
         if poolname != self._poolurn:
             raise(ValueError('wrong pool: ' + poolname +
                              ' . This is ' + self._poolurn))
-
-        return self.schematicLoadProduct(resourcecn, indexs)
+        with filelock.FileLock(self.lockpath()):
+            ret = self.schematicLoadProduct(resourcecn, indexs)
+        return ret
 
     def meta(self,  urn):
         """
@@ -156,6 +160,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         Increment the reference count of a ProductRef.
         """
+        self._urns[ref.urn]['refcnt'] += 1
 
     def schematicRemove(self,  typename, serialnum):
         """ to be implemented by subclasses to do the scheme-specific removing
@@ -204,15 +209,16 @@ When implementing a ProductPool, the following rules need to be applied:
         Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).
         """
 
-        try:
-            self.schematicWipe()
-        except Exception as e:
-            msg = self.getId() + 'wiping failed'
-            logger.debug(msg)
-            raise e
-        self._classes.clear()
-        self._tags.clear()
-        self._urns.clear()
+        with filelock.FileLock(self.lockpath()):
+            try:
+                self.schematicWipe()
+                self._classes.clear()
+                self._tags.clear()
+                self._urns.clear()
+            except Exception as e:
+                msg = self.getId() + 'wiping failed'
+                logger.debug(msg)
+                raise e
         logger.debug('Done.')
 
     def saveDescriptors(self,  urn,  desc):

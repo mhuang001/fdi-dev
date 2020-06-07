@@ -106,19 +106,18 @@ class LocalPool(ProductPool):
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicLoadProduct(self, resourcename, indexstr):
+    def schematicLoadProduct(self, typename, indexstr):
         """
         does the scheme-specific part of loadProduct.
         """
 
-        with filelock.FileLock(self.lockpath(), timeout=5):
-            uri = self._poolurn + '/' + quote(resourcename) + '_' + indexstr
-            try:
-                p = getJsonObj(uri)
-            except Exception as e:
-                msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
-                logger.error(msg)
-                raise e
+        uri = self._poolurn + '/' + quote(typename) + '_' + indexstr
+        try:
+            p = getJsonObj(uri)
+        except Exception as e:
+            msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
+            logger.error(msg)
+            raise e
         return p
 
     def schematicRemove(self, typename, serialnum):
@@ -144,10 +143,6 @@ class LocalPool(ProductPool):
         pp = poolpath
         if not op.exists(pp):
             return
-        if op.isdir(pp):
-            with filelock.FileLock(pathjoin(lockpathbase, poolpath, 'lock'), timeout=5):
-                # lock file will be wiped, too. so acquire then release it.
-                pass
         try:
             shutil.rmtree(pp)
             os.mkdir(pp)

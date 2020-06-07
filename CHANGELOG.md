@@ -6,6 +6,10 @@ Change Log
 	BETA0
 	=====
 
+	0.18c 2020-06-07
+	----------------
+Names of lock directory and default pool have username to allow multi users to run fdi on the same machine.
+	
 	0.18b 2020-06-05
 	---------------
 Full classname in urn. Updated documentation.

@@ -35,7 +35,7 @@ where
      * for ``file`` scheme: ``/`` + name + ``/`` + name + ... + ``/`` + name
      * for ``mem`` scheme: ``/`` + name + ``/``
 :serialnumber:
-     * scheme: internal index. str(int).
+     * internal index. str(int).
 
 ProductRef
 ----------
@@ -61,7 +61,7 @@ ProductStorage front-end where users can do the saving, loading, querying etc. s
 Query
 -----
 
-One can  make queries to a ProductStorage and get back a list of references to products that satisfy search chriteria. Queries can be constructed using Python predicate expressions about a product and its metadata, or a function.
+One can  make queries to a ProductStorage and get back a list of references to products that satisfy search chriteria. Queries can be constructed using Python predicate expressions about a product and its metadata, or a function that returns True or False.
 
 run tests
 =========

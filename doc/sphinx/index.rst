@@ -24,7 +24,7 @@ Most FDI Products and components implement **event sender and listener interface
 
 FDI storage 'pools' (file based and  memory based) are provided as references for 1) queryable data **storage** and, 2) for all persistent data to be referenced to with **URNs** (Universal Resource Names).
 
-*Context* type of FDIs are provided so that references of FDIs can become components, enabling FDIs to encapsulate rich, deep, **sophisticated, and accessible contextual data**, yet remain light weight.
+FDI provides *Context* type of product so that references of other products can become components of a Context, enabling **encapsulation of rich, deep, sophisticated, and accessible contextual data**, yet remain light weight.
 
 For data processors, an HTML **server** with **RESTful APIs** is implemented (named Processing Node Server, PNS) to interface data processing modules. PNS is especially suitable for **Docker containers** in pipelines mixing **legacy software** or software of incompatible environments to form an integral data processing pipeline.
 

@@ -26,7 +26,7 @@ copyright = '2019, 2020 Maohai Huang, NAOC, ESA'
 author = 'Maohai Huang'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.15'
+release = 'v0.18c'
 
 
 # -- General configuration ---------------------------------------------------

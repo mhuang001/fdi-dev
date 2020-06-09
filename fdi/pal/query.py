@@ -42,6 +42,7 @@ class AbstractQuery(StorageQuery):
     """ provides default implementations for the pal storage query. """
 
     def __init__(self, product=Product, variable='p', where='', allVersions=False, **kwds):
+        """ creates an AbstractQuery with product variable name, query string or function."""
         self._type = product
         self._where = where
         self._variable = variable
@@ -71,7 +72,11 @@ class MetaQuery(AbstractQuery):
     """
 
     def __init__(self, product=Product, where='', allVersions=False, **kwds):
-        """ variable name is 'm' for a MetaData type. """
+        """ creates an MetaQuery with a query string or function.
+
+        'where' is a query string or function that returns True or False.
+        In the query string variable name is 'm' for a MetaData type, as in ``m = product.meta``.
+        """
         # pdb.set_trace()
         super(MetaQuery, self).__init__(product=product, variable='m',
                                         where=where, allVersions=allVersions, **kwds)

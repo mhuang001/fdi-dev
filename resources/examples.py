@@ -17,7 +17,7 @@ from fdi.dataset.finetime import FineTime1, utcobj
 from fdi.dataset.dataset import ArrayDataset, TableDataset, Column
 from fdi.pal.context import Context, MapContext
 from fdi.pal.productref import ProductRef
-from fdi.pal.query import MetaQuery
+from fdi.pal.query import AbstractQuery, MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.pal.productstorage import ProductStorage
 
@@ -352,7 +352,7 @@ PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
 PoolManager.removeAll()
 
 # create a prooduct and save it to a pool
-x = Product(description='in store')
+x = Product(description='save me in store')
 # add a tabledataset
 s1 = [('energy', [1, 4.4, 5.6], 'eV'), ('freq', [0, 43.2, 2E3], 'Hz')]
 x["Spectrum"] = TableDataset(data=s1)
@@ -401,9 +401,9 @@ len(pref1.parents)   # == 0
 len(pref2.parents)   # == 0
 
 # add a ref to the contex. every ref has a name in mapcontext
-map1['refs']['prd1'] = pref1
+map1['refs']['spam'] = pref1
 # add the second one
-map1['refs']['prd2'] = pref2
+map1['refs']['egg'] = pref2
 # how many prodrefs do we have? (do not use len() due to classID, version)
 map1['refs'].size()   # == 2
 
@@ -414,7 +414,7 @@ pref2.parents[0] == map1
 pref1.parents[0] == map1
 
 # remove a ref
-del map1['refs']['prd1']
+del map1['refs']['spam']
 # how many prodrefs do we have? (do not use len() due to classID, version)
 map1.refs.size()   # == 1
 
@@ -476,7 +476,9 @@ for i in range(n):
 pstore.register(newpoolname)
 len(pstore.getPools())   # == 2
 
-# make a query on product metadata
+# make a query on product metadata, which is the variable 'm'
+# in the query expression, i.e. ``m = product.meta; ...``
+# But '5000 < m["extra"]' does not work. see tests/test.py.
 q = MetaQuery(Product, 'm["extra"] > 5001 and m["extra"] <= 5005')
 # search all pools registered on pstore
 res = pstore.select(q)
@@ -492,6 +494,12 @@ def t(m):
 
 
 q = MetaQuery(Product, t)
+res = pstore.select(q)
+# [3,4]
+[r.product.instrument for r in res]
+
+# same as above but query is on the product. this is slow.
+q = AbstractQuery(Product, 'p', '"n 1" in p.instrument')
 res = pstore.select(q)
 # [3,4]
 [r.product.instrument for r in res]

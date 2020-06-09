@@ -458,7 +458,7 @@ def test_query():
     # [T T T C] [C M M]
     #  0 1 2 3   4 5 6
 
-    # query with a specific parameter
+    # query with a specific parameter in all products' metadata, which is the variable 'm' in the query expression, i.e. ``m = product.meta; ...``
     m = 2
     q = MetaQuery(TP, 'm["description"].value == "%s"' % rec1[m]['a0'])
     res = pstore.select(q)
@@ -487,7 +487,9 @@ def test_query():
     chk(res[0], rec1[0])
     chk(res[1], rec1[1])
 
-    # simpler syntax for comparing value only but a bit slower
+    # simpler syntax for comparing value only but a bit slower.
+    # the parameter with simpler syntax must be on the left hand side of a comparison operator.
+    # '5000 < m["extra"]' does not work. But '5000 < m["extra"].value' works.
     q = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] <= 5002')
     res = pstore.select(q)
     # [1,2]
@@ -585,6 +587,14 @@ def test_query():
     chk(res[0], rec1[3])
     chk(res[1], rec1[4])
 
+    # same as above but query is on the product. this is slow.
+    q = AbstractQuery(Product, 'p', '"n 1" in p.instrument')
+    res = pstore.select(q)
+    # [3,4]
+    assert len(res) == 2, str(res)
+    chk(res[0], rec1[3])
+    chk(res[1], rec1[4])
+
 
 def test_Context():
     c1 = Context(description='1')
@@ -650,7 +660,7 @@ def test_MapContext():
     defaultpoolpath = '/tmp/pool_' + getpass.getuser()
     defaultpool = 'file://' + defaultpoolpath
     # create a prooduct
-    x = Product(description='in store')
+    x = Product(description='save me in store')
     # remove existing pools in memory
     PoolManager().removeAll()
     # create a product store
@@ -746,19 +756,19 @@ def test_realistic():
     assert len(pref1.parents) == 0
     assert len(pref2.parents) == 0
     # add a ref to the contex. every ref has a name in mapcontext
-    map1['refs']['prd1'] = pref1
+    map1['refs']['spam'] = pref1
     assert map1['refs'].size() == 1
     assert len(pref1.parents) == 1
     assert pref1.parents[0] == map1
     # add the second one
-    map1['refs']['prd2'] = pref2
+    map1['refs']['egg'] = pref2
     # how many prodrefs do we have? (do not use len() due to classID, version)
     assert map1['refs'].size() == 2
     assert len(pref2.parents) == 1
     assert pref2.parents[0] == map1
     assert pref1.parents[0] == map1
     # remove a ref
-    del map1['refs']['prd1']
+    del map1['refs']['spam']
     # how many prodrefs do we have? (do not use len() due to classID, version)
     assert map1.refs.size() == 1
     assert len(pref1.parents) == 0

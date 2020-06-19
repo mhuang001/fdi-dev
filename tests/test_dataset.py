@@ -5,7 +5,6 @@ import traceback
 from pprint import pprint
 import copy
 import sys
-import pkg_resources
 import pdb
 
 from fdi.dataset.annotatable import Annotatable
@@ -1405,6 +1404,7 @@ def test_Product():
 
 
 def est_yaml2python():
+    import pkg_resources
     v = {'a': 1, 'b': 'foo', 'c': 4.5, 'd': FineTime1(0), 'e': Vector((7, 8, 9))
          }
     yf = pkg_resources.resource_filename(

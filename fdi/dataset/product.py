@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Product(BaseProduct):
-    """ Product class (level ALL) version 0.4 inheriting BaseProduct. Automatically generated from fdi/dataset/resources/Product.yml on 2020-06-04 15:52:26.633852.
+    """ Product class (level ALL) version 0.5 inheriting BaseProduct. Automatically generated from fdi/dataset/resources/Product.yml on 2020-06-19 12:49:05.502009.
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """
@@ -34,6 +34,7 @@ class Product(BaseProduct):
                 'description': 'Product Type identification. Fully qualified Python class name or CARD.',
                 'unit': 'None',
                 'default': 'Product',
+                'valid': '',
             },
             'creator': {
                 'fits_keyword': 'CREATOR',
@@ -61,7 +62,8 @@ class Product(BaseProduct):
                 'data_type': 'string',
                 'description': 'Version of product schema',
                 'unit': 'None',
-                'default': '0.3',
+                'default': '0.4',
+                'valid': '',
             },
             'startDate': {
                 'fits_keyword': 'DATE_OBS',
@@ -69,6 +71,7 @@ class Product(BaseProduct):
                 'description': 'Nominal start time  of this product.',
                 'unit': 'None',
                 'default': '0',
+                'valid': '',
             },
             'endDate': {
                 'fits_keyword': 'DATE_END',
@@ -76,6 +79,7 @@ class Product(BaseProduct):
                 'description': 'Nominal end time  of this product.',
                 'unit': 'None',
                 'default': '0',
+                'valid': '',
             },
             'instrument': {
                 'fits_keyword': 'INSTRUME',
@@ -83,6 +87,7 @@ class Product(BaseProduct):
                 'description': 'Instrument that generated data of this product',
                 'unit': 'None',
                 'default': 'UNKOWN',
+                'valid': '',
             },
             'modelName': {
                 'fits_keyword': 'MODEL',
@@ -90,6 +95,7 @@ class Product(BaseProduct):
                 'description': 'Model name of the instrument of this product',
                 'unit': 'None',
                 'default': 'UNKOWN',
+                'valid': '',
             },
             'mission': {
                 'fits_keyword': 'TELESCOP',
@@ -97,6 +103,7 @@ class Product(BaseProduct):
                 'description': 'Name of the mission.',
                 'unit': 'None',
                 'default': '_AGS',
+                'valid': '',
             },
         }),
     }
@@ -108,7 +115,7 @@ class Product(BaseProduct):
                  creator = 'UNKOWN',
                  creationDate = FineTime1(0),
                  rootCause = 'UNKOWN',
-                 schema = '0.3',
+                 schema = '0.4',
                  startDate = FineTime1(0),
                  endDate = FineTime1(0),
                  instrument = 'UNKOWN',

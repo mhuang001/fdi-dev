@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 The keys are mnemonics for humans; the values are type(x).__name__.
 """
 ParameterTypes = {
+    'binary': 'int',
     'integer': 'int',
     'hex': 'int',
     'float': 'float',
@@ -32,6 +33,13 @@ ParameterTypes = {
     'quaternion': 'Quaternion',
     '': 'None'
 }
+
+ParameterDataTypes = {}
+for tn, tt in ParameterTypes.items():
+    if tt == 'int':
+        ParameterDataTypes[tt] = 'integer'
+    else:
+        ParameterDataTypes[tt] = tn
 
 
 class Parameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializable):
@@ -104,7 +112,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
     def setValue(self, value):
         """ Replaces the current value of this parameter. 
-        If given/current type_ is '' and arg value's type is in ParameterTypes both value and type are updated; or else TypeError is raised.
+        If given/current type_ is '' and arg value's type is in ParameterTypes both value and type are updated to the suitable one in ParameterDataTypes; or else TypeError is raised.
         If value type and given/current type_ are different.
             Incompatible value and type_ will get a TypeError.
         """
@@ -117,8 +125,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             else:
                 if t in ParameterTypes.values():
                     self._value = value
-                    self._type = [name for name,
-                                  ty in ParameterTypes.items() if ty == t][0]
+                    self._type = ParameterDataTypes[t]
                     return
                 else:
                     raise TypeError('Value type %s is not in %s.' %

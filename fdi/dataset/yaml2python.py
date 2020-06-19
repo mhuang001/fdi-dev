@@ -21,10 +21,19 @@ from .baseproduct import BaseProduct
 # make simple demo for fdi
 demo = 1
 # if demo is true, only output this subset.
-onlyInclude = ['default', 'description', 'data_type', 'unit', 'fits_keyword']
+onlyInclude = ['default', 'description',
+               'data_type', 'unit', 'valid', 'fits_keyword']
 # only these attributes in meta
 attrs = ['startDate', 'endDate', 'instrument', 'modelName', 'mission', 'type']
 indent = '    '
+
+fmtstr = {'integer': '{:d}',
+          'hex': '0x{:02X}',
+          'binary': '0b{:0b}',
+          'float': '{:g}',
+          'string': '{:s}',
+          'finetime': '{:d}'
+          }
 
 
 def mkinfo(attrs, indent, demo, onlyInclude):
@@ -33,43 +42,64 @@ def mkinfo(attrs, indent, demo, onlyInclude):
     """
     # extra indent
     ei = '    '
+    indents = [ei + indent * i for i in range(5)]
     infostr = ''
     info = 'productInfo'
-    infostr += ei + info + ' = {\n'
-    infostr += ei + indent + '\'metadata\': OrderedDict({\n'
+    infostr += indents[0] + info + ' = {\n'
+    infostr += indents[1] + '\'metadata\': OrderedDict({\n'
 
     default_code = {}
     for met, val in attrs.items():
         # met is like 'description', 'type', 'redWinSize'
         # val is like {'data_type':'string, 'default':'foo'...}
-        infostr += ei + indent * 2 + '\'%s\': {\n' % met
+        if met == 'creationDate':  # 'blueMode' and pname == 'valid':
+            pass  # pdb.set_trace()
+        infostr += indents[2] + '\'%s\': {\n' % met
+        # data_typ
+        dt = val['data_type'].strip()
         # loop through the properties
         for pname, pv in val.items():
             # pname is like 'data_type', 'default'
             # pv is like 'string', 'foo, bar, and baz', '2', '(0, 0, 0,)'
             if demo and pname not in onlyInclude:
                 continue
-            dt = val['data_type'].strip()
-            pval = pv.strip() if issubclass(pv.__class__, (str, bytes)) \
-                else str(pv)
-            if pname == 'default':
-                # python instanciation source code.
-                # will be like default: FineTime1(0)
-                if dt not in ['string', 'integer', 'hex', 'float']:
-                    t = ParameterTypes[dt]
-                    code = '%s(%s)' % (t, pval)
-                elif dt in ['integer', 'hex', 'float']:
-                    code = pval
-                elif pval == 'None':
-                    code = 'None'
+            if pname.startswith('valid'):
+                if issubclass(pv.__class__, (str, bytes)):
+                    s = '\'' + pv.strip() + '\''
                 else:
-                    code = '\'' + pval + '\''
-                default_code[met] = code
-            s = '\'' + pval + '\''
-            infostr += ei + indent * 3 + '\'%s\': %s,\n' % (pname, s)
-        infostr += ei + indent * 2 + '},\n'
-    infostr += ei + indent + '}),\n'  # 'metadata'
-    infostr += ei + '}\n'  # productInfo
+                    lst = []
+                    for k, v in pv.items():
+                        if issubclass(k.__class__, tuple):
+                            sk = '(' + ''.join([fmtstr[dt].format(x)
+                                                + ', ' for x in k]) + ')'
+                        else:
+                            sk = fmtstr[dt].format(k)
+                        lst += '\n' + indents[4] + \
+                            sk + ': \'' + str(v)+'\','
+                    kvs = ''.join(lst)
+                    if len(kvs) > 0:
+                        kvs += '\n' + indents[4]
+                    s = '{' + kvs + '}'
+            else:
+                pval = pv.strip() if issubclass(pv.__class__, (str, bytes)) else str(pv)
+                if pname == 'default':
+                    # python instanciation source code.
+                    # will be like default: FineTime1(0)
+                    if dt not in ['string', 'integer', 'hex', 'binary', 'float']:
+                        t = ParameterTypes[dt]
+                        code = '%s(%s)' % (t, pval)
+                    elif dt in ['integer', 'hex', 'float', 'binary']:
+                        code = pval
+                    elif pval == 'None':
+                        code = 'None'
+                    else:
+                        code = '\'' + pval + '\''
+                    default_code[met] = code
+                s = '\'' + pval + '\''
+            infostr += indents[3] + '\'%s\': %s,\n' % (pname, s)
+        infostr += indents[2] + '},\n'
+    infostr += indents[1] + '}),\n'  # 'metadata'
+    infostr += indents[0] + '}\n'  # productInfo
 
     return infostr, default_code
 

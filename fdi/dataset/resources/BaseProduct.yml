@@ -2,7 +2,7 @@ name: BaseProduct
 definition: FDI base class
 parent: 
 level: ALL
-version: '0.4'
+version: '0.5'
 description:
     current_id: description
     id: description

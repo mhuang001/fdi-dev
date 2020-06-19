@@ -2,7 +2,7 @@ name: Product
 definition: Project level product
 parent: BaseProduct
 level: ALL
-version: '0.4'
+version: '0.5'
 type:
     current_id: type
     id: type
@@ -16,6 +16,7 @@ type:
     unit: None
     default: Product
     valid: ''
+    valid_zh_cn: ''
 startDate:
     current_id: startDate
     id: startTime
@@ -28,6 +29,7 @@ startDate:
     unit: None
     default: '0'
     valid: ''
+    valid_zh_cn: ''
 endDate:
     current_id: endDate
     id: endTime
@@ -40,6 +42,7 @@ endDate:
     unit: None
     default: '0'
     valid: ''
+    valid_zh_cn: ''
 instrument:
     current_id: instrument
     id: instrument
@@ -52,6 +55,7 @@ instrument:
     unit: None
     default: UNKOWN
     valid: ''
+    valid_zh_cn: ''
 modelName:
     current_id: modelName
     id: modelName
@@ -64,6 +68,7 @@ modelName:
     unit: None
     default: UNKOWN
     valid: ''
+    valid_zh_cn: ''
 mission:
     current_id: mission
     id: mission
@@ -76,6 +81,7 @@ mission:
     unit: None
     default: _AGS
     valid: ''
+    valid_zh_cn: ''
 schema:
     current_id: formatVersion
     id: schema
@@ -86,5 +92,6 @@ schema:
     description_zh_cn: 产品格式版本
     examples: '1'
     unit: None
-    default: '0.3'
+    default: '0.4'
     valid: ''
+    valid_zh_cn: ''

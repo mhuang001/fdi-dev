@@ -30,7 +30,7 @@ $(PYDIR)/$(B_PY): $(RESDIR)/$(B_INFO)
 
 
 
-.PHONY: runserver reqs install uninstall FORCE \
+.PHONY: runserver reqs install uninstall vtag FORCE \
 	test test1 test2 test3 test4 \
 	plots plotall plot_dataset plot_pal plot_pns \
 	docs doc_api doc_plots doc_html
@@ -70,6 +70,13 @@ uninstallpns:
 
 reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
+
+# update _version.py and tag based on setup.py
+VERSION	= $(shell python -c "from setuptools_scm import get_version;print(get_version('.'))")
+vtag:
+	@ echo update _version.py and tag to $(VERSION)
+	@ echo  version = \"$(VERSION)\" > fdi/_version.py
+	# git tag  $(VERSION)
 
 TESTLOG	= tests/log
 OPT	= --debug -v -r P 

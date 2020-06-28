@@ -1,0 +1,4 @@
+#!/bin/sh
+date
+echo hello `cat input/infile`\! > output/outfile
+cat output/outfile

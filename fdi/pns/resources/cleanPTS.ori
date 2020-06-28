@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# Default script to clean up the processing node.
+# Remove input and output directories
+
+/bin/rm -rf input output

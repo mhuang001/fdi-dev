@@ -1,0 +1,11 @@
+PDIR=~/pns
+mkdir -p $PDIR
+for i in init run config clean; do
+  rm -f $PDIR/${i}PTS $PDIR/${i}PTS.ori
+  cp pns/resources/${i}PTS.ori  $PDIR
+  ln -s $PDIR/${i}PTS.ori $PDIR/${i}PTS
+done
+rm -f $PDIR/runPTS.vvpp  
+cp pns/resources/runPTS.vvpp  $PDIR
+chown apache $PDIR $PDIR/*PTS.ori $PDIR/runPTS.vvpp
+chgrp apache $PDIR $PDIR/*PTS

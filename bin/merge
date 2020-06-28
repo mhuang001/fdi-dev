@@ -1,0 +1,53 @@
+cd /tmp/n
+git clone ssh://git@mercury.bao.ac.cn:9005/mh/dataset.git
+git clone ssh://git@mercury.bao.ac.cn:9005/mh/pns.git
+git clone ssh://git@mercury.bao.ac.cn:9005/mh/pal.git
+[deconflict commit]
+md spdc; cd spdc
+
+ git init
+touch merge
+git add merge
+git commit -am 'merging'
+
+git checkout -b mp1
+git remote add r1 /tmp/n/dataset
+git fetch r1
+ git merge --allow-unrelated-histories -m 'm1' r1/master
+ ls;git log --oneline --decorate --graph --all
+
+git checkout master
+ ls; git log --oneline --decorate --graph --all
+
+ git checkout -b mp2
+ git remote add r2 /tmp/n/pns
+ git fetch r2
+ git merge --allow-unrelated-histories -m 'm2' r2/master
+ ls;git log --oneline --decorate --graph --all
+
+ git checkout  master
+ls;git log --oneline --decorate --graph --all
+
+ git checkout -b mp3
+ git remote add r3 /tmp/n/pal
+ git fetch r3
+ git merge --allow-unrelated-histories -m 'm3' r3/master
+ ls;git log --oneline --decorate --graph --all
+
+ git checkout  master
+ls;git log --oneline --decorate --graph --all
+
+git merge --allow-unrelated-histories -m 'merge dataset' mp1
+ls;git log --oneline --decorate --graph --all
+git merge --allow-unrelated-histories -m 'merge pns' mp2
+ls;git log --oneline --decorate --graph --all
+git merge --allow-unrelated-histories -m 'merge pal' mp3
+ls;git log --oneline --decorate --graph --all
+
+git push origin master
+
+ git remote rm r1
+ git remote rm r2
+ git remote rm r3
+ git branch -d mp1 mp2 mp3
+ git log --oneline --decorate --graph --all

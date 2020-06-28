@@ -1,0 +1,8 @@
+#!/bin/bash
+#
+# Default script to initialize the processing node.
+# Test if the default Processing Task Software callable script 'hello' exists
+# and return the status code.
+
+echo The initialization script at `pwd`
+

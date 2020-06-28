@@ -1,0 +1,9 @@
+#!/bin/bash
+# This script should run the Processing Task Software
+#
+# The default runs the 'hello' script
+
+d=`date`
+echo hello `cat input/infile`\! From `whoami` $d > output/outfile
+cat output/outfile | tee -a hello.out 
+

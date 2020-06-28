@@ -1,0 +1,11 @@
+INST=~/svom
+cd $INST/fdi
+git pull
+cd $INST/svom
+git pull
+/usr/bin/cp -f $INST/fdi/bin/reinstall  $INST
+/usr/bin/cp -f $INST/fdi/bin/update $INST
+cd $INST/fdi; . bin/installpns
+systemctl restart httpd
+
+

@@ -1,0 +1,7 @@
+$IMPORTS
+
+$PROJECTINFO
+
+    def __init__(self,
+$INITARGS
+                 **kwds):

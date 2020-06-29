@@ -9,7 +9,12 @@ from ..dataset.finetime import FineTime1
 from ..dataset.baseproduct import History
 from ..dataset.classes import Classes
 from .pnsconfig_ssa import pnsconfig as pc
+from ..utils.common import str2md5
+from ..pal.productstorage import ProductStorage
+from ..dataset.product import Product
 
+import mysql.connector
+from mysql.connector import Error
 import datetime
 import time
 import sys
@@ -562,6 +567,7 @@ def filesin(dir):
 
     #=============HTTP POOL=========================
 @app.route(pc['baseurl'] + pc['httppoolurl'], methods=['GET'])
+@auth.login_required
 def get_httppool_info():
     ''' returns all pool name.
     '''
@@ -575,9 +581,12 @@ def get_httppool_info():
     resp.headers['Content-Type'] = 'application/json'
     return resp
 
-@app.route(pc['baseurl'] + pc['httppoolurl'] + '/<string:poolid>', methods=['GET', 'DELETE'])
+@app.route(pc['baseurl'] + pc['httppoolurl'] + '/<string:poolid>', methods=['GET', 'DELETE', 'POST'])
+@auth.login_required
 def get_pool_info(poolid):
-    ''' returns info of  target poolid.
+    ''' returns info of  target poolid for GET method.
+        delete a pool for DELETE method.
+        post data to a new pool
     '''
     method = request.method
     logger.debug(method + '  of  target poolid. %s' % (poolid) )
@@ -599,10 +608,27 @@ def get_pool_info(poolid):
         else:
             logger.error('Delete poolid failed, poolid is not expceted: ' + poolid)
             w =  {'result': poolid,  'msg': 'DELETE ' + poolid + ' failed, wrong poolid:' + poolid, 'timestamp': ts}
+    if method == 'POST':
+        if request.data and request.headers['product-name']:
+            p = checkpath(pc['poolpath'] + poolid + '/' + request.headers['product-name'])
+            if p is None:
+                w = {'result': poolpath, 'msg': 'save to ' + poolpath + ' failed.', 'timestamp': ts}
+                abort(401)
+            else:
+                poolpath = 'file://' + str(p)
+                pstore = ProductStorage(pool = poolpath)
+                w = {'result': poolpath, 'msg': 'save to ' + poolpath + ' with successfully.', 'timestamp': ts}
+        else:
+            logger.error('POST data failed: No data found in request or no product-name found in headers! ')
+            w = {'result': 'failed', 'msg': 'No data found in request or no product-name found in headers!', 'timestamp': ts}
     s = serializeClassID(w)
+    logger.debug(s[:] + '...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
+
+
+
 
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
 def getinfo(cmd):
@@ -648,15 +674,39 @@ def getinfo(cmd):
 # from http.client import HTTPConnection
 # HTTPConnection.debuglevel = 1
 
+# @auth.verify_password
+# def verify(username, password):
+#     """This function is called to check if a username /
+#     password combination is valid.
+#     """
+#     if not (username and password):
+#         return False
+#     return username == pc['node']['username'] and password == pc['node']['password']
 @auth.verify_password
-def verify(username, password):
-    """This function is called to check if a username /
-    password combination is valid.
-    """
-    if not (username and password):
+def verify_password(username, password):
+    if not(username and password):
         return False
-    return username == pc['node']['username'] and password == pc['node']['password']
-
+    else:
+        password = str2md5(password)
+        try:
+            conn = mysql.connector.connect(host = pc['mysql']['host'], user =pc['mysql']['user'], password = pc['mysql']['password'], database = pc['mysql']['database'])
+            if conn.is_connected():
+                print("connect to db successfully")
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM userinfo WHERE userName = '" + username + "' AND password = '" + password + "';" )
+                record = cursor.fetchall()
+                if len(record) != 1:
+                    logger.info("User : " + username + " auth failed")
+                    conn.close()
+                    return False
+                else:
+                    conn.close()
+                    return True
+            else:
+                return False
+        except Error as e:
+            logger.error("Connect to database failed: " +str(e))
+    #elif username == 'gsegment' and password == '123456':
 
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['POST'])
 @app.route(pc['baseurl'] + '/<string:cmd>/<string:ops>', methods=['POST'])

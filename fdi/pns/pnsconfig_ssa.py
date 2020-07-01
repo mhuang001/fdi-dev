@@ -10,7 +10,9 @@ pnsconfig = dict(logginglevel=logging.INFO)
 # base url for webserver. Update version if needed.
 pnsconfig['baseurl'] = '/v0.6'
 pnsconfig['httppoolurl'] = '/httppool'
-
+pnsconfig['fdipath'] = '/fdi/'
+pnsconfig['fdidir'] = pnsconfig['fdipath'][1:-1]
+pnsconfig['default_pool'] = 'pool_default'
 dev = True
 if dev:
     # username, passwd, flask ip, flask port
@@ -24,8 +26,8 @@ if dev:
     # the directory where the pns ome is on server. default is ptsuser home
     home = pwd.getpwnam(pnsconfig['ptsuser']).pw_dir
     pnsconfig['mysql'] = {'host': 'localhost',  'user': 'root',  'password': 'toto', 'database': 'users'}
-    pnsconfig['poolpath'] = '/tmp/'
-    
+    pnsconfig['poolpath'] = '/data/'
+
 else:
     pnsconfig['node'] = {'username': 'gsegment', 'password': '123456',
                          'host': '10.0.10.114', 'port': 3306}

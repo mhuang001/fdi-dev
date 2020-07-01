@@ -11,6 +11,7 @@ from ..dataset.classes import Classes
 from .pnsconfig_ssa import pnsconfig as pc
 from ..utils.common import str2md5
 from ..pal.productstorage import ProductStorage
+from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from ..dataset.product import Product
 
 import mysql.connector
@@ -18,6 +19,7 @@ from mysql.connector import Error
 import datetime
 import time
 import sys
+import json
 import pwd
 import grp
 import os
@@ -565,15 +567,39 @@ def filesin(dir):
                 result[fn] = f.read()
     return result, ''
 
-    #=============HTTP POOL=========================
+#=============HTTP POOL=========================
+
+PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+PoolManager.removeAll()
+checkpath( pc['poolpath'] + pc['default_pool'] )
+pstore = ProductStorage(pool='file://' + pc['poolpath'] + pc['default_pool'] + pc['fdipath'])
+def load_all_pools():
+    logger.info("Register pools in memory")
+    print("Register pools in memory and current pool: ")
+    print(pstore.getPools())
+    poolpath = 'file://' + pc['poolpath']
+    filepath = pc['poolpath']
+    pools = os.listdir(filepath)
+    for pool in pools:
+        print("current pool root dir: "  + pool)
+        if os.path.isdir(filepath + pool) and pc['fdidir'] in os.listdir(filepath + pool) \
+         and (pool != pc['default_pool']):
+            pstore.register(poolpath + pool + pc['fdipath'])
+            logger.info("Register pool: " +  poolpath + pool + pc['fdipath'])
+            print("Register pool: " +  poolpath + pool + pc['fdipath'])
+    logger.info("Register all pools done: ")
+    logger.info(pstore.getPools())
+load_all_pools()
+
 @app.route(pc['baseurl'] + pc['httppoolurl'], methods=['GET'])
 @auth.login_required
 def get_httppool_info():
     ''' returns all pool name.
     '''
     logger.debug('get all pools' )
-    filePath = pc['poolpath']
-    pools = os.listdir(filePath)
+    filepath = pc['poolpath']
+    # pools = os.listdir(filepath)
+    pools = pstore.getPools()
     ts = time.time()
     w = {'result': pools,  'msg': '', 'timestamp': ts}
     s = serializeClassID(w)
@@ -581,6 +607,7 @@ def get_httppool_info():
     resp.headers['Content-Type'] = 'application/json'
     return resp
 
+# A default pool created
 @app.route(pc['baseurl'] + pc['httppoolurl'] + '/<string:poolid>', methods=['GET', 'DELETE', 'POST'])
 @auth.login_required
 def get_pool_info(poolid):
@@ -590,11 +617,16 @@ def get_pool_info(poolid):
     '''
     method = request.method
     logger.debug(method + '  of  target poolid. %s' % (poolid) )
-    filepath = pc['poolpath'] + poolid
-    pools = os.listdir(filepath)
+    filepath = pc['poolpath'] + poolid + pc['fdipath']
     ts = time.time()
     if method == 'GET':
-        w = {'result': pools,  'msg': '', 'timestamp': ts}
+        pool_content = os.listdir(filepath)
+        if 'classes.jsn' in pool_content:
+            with open(filepath + 'classes.jsn') as fp:
+                content = json.load(fp)
+            w = {'result': content,  'msg': '', 'timestamp': ts}
+        else:
+            w = {'result': '',  'msg': 'No data found in pool: ' + poolid, 'timestamp': ts}
     if method == 'DELETE':
         if poolid[0] != '/' or poolid != '' or  not os.path.exists(filepath):
             try:
@@ -609,18 +641,22 @@ def get_pool_info(poolid):
             logger.error('Delete poolid failed, poolid is not expceted: ' + poolid)
             w =  {'result': poolid,  'msg': 'DELETE ' + poolid + ' failed, wrong poolid:' + poolid, 'timestamp': ts}
     if method == 'POST':
-        if request.data and request.headers['product-name']:
-            p = checkpath(pc['poolpath'] + poolid + '/' + request.headers['product-name'])
+        if request.data:
+            checkpath(pc['poolpath'] + poolid)
+            p = checkpath(filepath)
             if p is None:
                 w = {'result': poolpath, 'msg': 'save to ' + poolpath + ' failed.', 'timestamp': ts}
                 abort(401)
             else:
                 poolpath = 'file://' + str(p)
                 pstore = ProductStorage(pool = poolpath)
-                w = {'result': poolpath, 'msg': 'save to ' + poolpath + ' with successfully.', 'timestamp': ts}
+                prod = deserializeClassID(request.data)
+                prodref = pstore.save(prod)
+                urn = urn_to_client(prodref.urn)
+                w = {'result': urn, 'msg': 'save to ' + poolpath + ' with successfully.', 'timestamp': ts}
         else:
-            logger.error('POST data failed: No data found in request or no product-name found in headers! ')
-            w = {'result': 'failed', 'msg': 'No data found in request or no product-name found in headers!', 'timestamp': ts}
+            logger.error('POST data failed: No data found in request !')
+            w = {'result': 'failed', 'msg': 'No data found in request!', 'timestamp': ts}
     s = serializeClassID(w)
     logger.debug(s[:] + '...')
     resp = make_response(s)
@@ -628,7 +664,12 @@ def get_pool_info(poolid):
     return resp
 
 
+def urn_to_client(urn):
+    return urn.replace('file://' + pc['poolpath'], '')
 
+def client_to_urn(urn):
+    client_fields = urn.split(':')
+    return client_fields[0] + ':' + 'file://' + pc['poolpath'] + client_fields[1] + ':'+ client_fields[2]+ ':' + client_fields[3]
 
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
 def getinfo(cmd):

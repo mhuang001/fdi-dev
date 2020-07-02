@@ -13,6 +13,10 @@ pnsconfig['httppoolurl'] = '/httppool'
 pnsconfig['fdipath'] = '/fdi/'
 pnsconfig['fdidir'] = pnsconfig['fdipath'][1:-1]
 pnsconfig['default_pool'] = 'pool_default'
+
+pnsconfig['metaquery'] = 'MetaQuery'
+pnsconfig['abstractquery'] = 'AbstractQuery'
+
 dev = True
 if dev:
     # username, passwd, flask ip, flask port

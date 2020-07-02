@@ -12,6 +12,7 @@ from .pnsconfig_ssa import pnsconfig as pc
 from ..utils.common import str2md5
 from ..pal.productstorage import ProductStorage
 from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
+from ..pal.query import MetaQuery, AbstractQuery
 from ..dataset.product import Product
 
 import mysql.connector
@@ -575,8 +576,6 @@ checkpath( pc['poolpath'] + pc['default_pool'] )
 pstore = ProductStorage(pool='file://' + pc['poolpath'] + pc['default_pool'] + pc['fdipath'])
 def load_all_pools():
     logger.info("Register pools in memory")
-    print("Register pools in memory and current pool: ")
-    print(pstore.getPools())
     poolpath = 'file://' + pc['poolpath']
     filepath = pc['poolpath']
     pools = os.listdir(filepath)
@@ -586,9 +585,12 @@ def load_all_pools():
          and (pool != pc['default_pool']):
             pstore.register(poolpath + pool + pc['fdipath'])
             logger.info("Register pool: " +  poolpath + pool + pc['fdipath'])
-            print("Register pool: " +  poolpath + pool + pc['fdipath'])
     logger.info("Register all pools done: ")
     logger.info(pstore.getPools())
+    # print('TEST query :')
+    # q = MetaQuery(Product, 'm["creator"] == "Yuxin"')
+    # res = pstore.select(q)
+    # print(res)
 load_all_pools()
 
 @app.route(pc['baseurl'] + pc['httppoolurl'], methods=['GET'])
@@ -649,9 +651,12 @@ def get_pool_info(poolid):
                 abort(401)
             else:
                 poolpath = 'file://' + str(p)
-                pstore = ProductStorage(pool = poolpath)
+                pstore_tmp = ProductStorage(pool = poolpath)
                 prod = deserializeClassID(request.data)
-                prodref = pstore.save(prod)
+                prodref = pstore_tmp.save(prod)
+                fullpoolpath = poolpath + '/'
+                if fullpoolpath not in pstore.getPools():
+                    pstore.register(poolpath)
                 urn = urn_to_client(prodref.urn)
                 w = {'result': urn, 'msg': 'save to ' + poolpath + ' with successfully.', 'timestamp': ts}
         else:
@@ -663,6 +668,45 @@ def get_pool_info(poolid):
     resp.headers['Content-Type'] = 'application/json'
     return resp
 
+@app.route(pc['baseurl'] + pc['httppoolurl'] + '/query', methods=['POST'])
+@auth.login_required
+def query_pools():
+    ''' Query current product storage and return the results
+    '''
+    ts = time.time()
+    logger.info("Query current product storage and return the results")
+    print(pstore._pools)
+    if len(pstore.getPools()) == 0:
+        w = {'result': 'failed', 'msg': 'no pool is registred.', 'timestamp': ts}
+    else:
+        if request.data:
+            query = deserializeClassID(request.data)
+
+            print(query)
+            res = query_pstore(query)
+            print(res)
+            w = {'result': 'failed', 'msg': res, 'timestamp': ts}
+        else:
+            w = {'result': 'failed', 'msg': 'query error  in request.', 'timestamp': ts}
+
+    s = serializeClassID(w)
+    logger.debug(s[:] + '...')
+    resp = make_response(s)
+    resp.headers['Content-Type'] = 'application/json'
+    return resp
+
+def query_pstore(query):
+    query_type = query['type']
+    query_where = query['where']
+    query_version = query['allVersions']
+    query_variable = query['variable']
+    if query_type == pc['metaquery']:
+        q = MetaQuery(product = Product,  where = query_where, allVersions = query_version)
+    elif query_type == pc['abstractquery']:
+        q = AbstractQuery(product = Product, variable = query_variable,  where = query_where, allVersions = query_version)
+    else:
+        return None
+    return pstore.select(q)
 
 def urn_to_client(urn):
     return urn.replace('file://' + pc['poolpath'], '')

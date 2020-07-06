@@ -45,7 +45,7 @@ class HttpPool(ProductPool):
         """ creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
         """
         # print(__name__ + str(kwds))
-        super(LocalPool, self).__init__(**kwds)
+        super(HttpPool, self).__init__(**kwds)
 
         logger.debug(self._poolpath)
         if not op.exists(self._poolpath):
@@ -63,6 +63,7 @@ class HttpPool(ProductPool):
         loads and returns the housekeeping data
         """
         fp0 = (self._poolpath)
+        print(fp0)
         #import pdb
         # pdb.set_trace()
         with filelock.FileLock(self.lockpath(), timeout=5):
@@ -72,7 +73,9 @@ class HttpPool(ProductPool):
                 fp = pathjoin(fp0, hkdata + '.jsn')
                 if op.exists(fp):
                     try:
-                        r = getJsonObj(self._scheme + '://' + fp)
+                        real_scheme = 'file'
+                        # r = getJsonObj(self._scheme + '://' + fp)
+                        r = getJsonObj(real_scheme + '://' + fp)
                     except Exception as e:
                         msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
                         logging.error(msg)

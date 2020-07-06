@@ -569,20 +569,23 @@ def filesin(dir):
     return result, ''
 
 #=============HTTP POOL=========================
-
+# Init a global HTTP POOL
 PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
 PoolManager.removeAll()
-checkpath( pc['poolpath'] + pc['default_pool'] )
-pstore = ProductStorage(pool='file://' + pc['poolpath'] + pc['default_pool'] + pc['fdipath'])
+checkpath( pc['poolpath'] + pc['defaultpool'] )
+pstore = ProductStorage(pool=pc['poolprefix'] + pc['poolpath'] + pc['defaultpool'] + pc['fdipath'])
 def load_all_pools():
     logger.info("Register pools in memory")
-    poolpath = 'file://' + pc['poolpath']
+    poolpath = pc['poolprefix'] + pc['poolpath']
     filepath = pc['poolpath']
     pools = os.listdir(filepath)
+    print(pc['fdipath'])
     for pool in pools:
         print("current pool root dir: "  + pool)
-        if os.path.isdir(filepath + pool) and pc['fdidir'] in os.listdir(filepath + pool) \
-         and (pool != pc['default_pool']):
+        if os.path.isdir(filepath + pool) and pc['fdipath'][1:] in os.listdir(filepath + pool) \
+         and (pool != pc['defaultpool']):
+            print("Registried: " + poolpath + pool + pc['fdipath'])
+            print(pc['fdipath'])
             pstore.register(poolpath + pool + pc['fdipath'])
             logger.info("Register pool: " +  poolpath + pool + pc['fdipath'])
     logger.info("Register all pools done: ")
@@ -610,6 +613,7 @@ def get_httppool_info():
     return resp
 
 # A default pool created
+
 @app.route(pc['baseurl'] + pc['httppoolurl'] + '/<string:poolid>', methods=['GET', 'DELETE', 'POST'])
 @auth.login_required
 def get_pool_info(poolid):
@@ -625,9 +629,9 @@ def get_pool_info(poolid):
         if not os.path.exists(filepath):
             w = {'result': '',  'msg': 'No such pool or pool is empty: ' + poolid, 'timestamp': ts}
         else:
-            pool_content = os.listdir(filepath)
+            pool_content = os.listdir(filepath + '/')
             if 'classes.jsn' in pool_content:
-                with open(filepath + 'classes.jsn') as fp:
+                with open(filepath+'/' + 'classes.jsn') as fp:
                     content = json.load(fp)
                 w = {'result': content,  'msg': '', 'timestamp': ts}
             else:
@@ -653,12 +657,15 @@ def get_pool_info(poolid):
                 w = {'result': poolpath, 'msg': 'save to ' + poolpath + ' failed.', 'timestamp': ts}
                 abort(401)
             else:
-                poolpath = 'file://' + str(p)
+                poolpath = pc['poolprefix'] + str(p)
                 pstore_tmp = ProductStorage(pool = poolpath)
                 prod = deserializeClassID(request.data)
                 prodref = pstore_tmp.save(prod)
+                print("pool path: " + poolpath)
+                print(pstore.getPools())
                 if poolpath not in pstore.getPools():
                     pstore.register(poolpath)
+                print(pstore.getPools())
                 w = {'result': prodref.urn, 'msg': 'save to ' + poolpath + ' with successfully.', 'timestamp': ts}
         else:
             logger.error('POST data failed: No data found in request !')

@@ -8,12 +8,12 @@ import pwd
 pnsconfig = dict(logginglevel=logging.INFO)
 
 # base url for webserver. Update version if needed.
+pnsconfig['poolprefix'] = 'http://192.168.1.11:5000'
 pnsconfig['baseurl'] = '/v0.6'
 pnsconfig['httppoolurl'] = '/httppool'
-pnsconfig['fdipath'] = '/fdi/'
-pnsconfig['fdidir'] = pnsconfig['fdipath'][1:-1]
-pnsconfig['default_pool'] = 'pool_default'
-
+pnsconfig['poolpath'] = '/data/'
+pnsconfig['fdipath'] = '/fdi'
+pnsconfig['defaultpool'] = 'pool_default'
 pnsconfig['metaquery'] = 'MetaQuery'
 pnsconfig['abstractquery'] = 'AbstractQuery'
 
@@ -30,8 +30,6 @@ if dev:
     # the directory where the pns ome is on server. default is ptsuser home
     home = pwd.getpwnam(pnsconfig['ptsuser']).pw_dir
     pnsconfig['mysql'] = {'host': 'localhost',  'user': 'root',  'password': 'toto', 'database': 'users'}
-    pnsconfig['poolpath'] = '/data/'
-
 else:
     pnsconfig['node'] = {'username': 'gsegment', 'password': '123456',
                          'host': '10.0.10.114', 'port': 3306}

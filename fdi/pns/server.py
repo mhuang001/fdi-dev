@@ -622,15 +622,18 @@ def get_pool_info(poolid):
     filepath = pc['poolpath'] + poolid + pc['fdipath']
     ts = time.time()
     if method == 'GET':
-        pool_content = os.listdir(filepath)
-        if 'classes.jsn' in pool_content:
-            with open(filepath + 'classes.jsn') as fp:
-                content = json.load(fp)
-            w = {'result': content,  'msg': '', 'timestamp': ts}
+        if not os.path.exists(filepath):
+            w = {'result': '',  'msg': 'No such pool or pool is empty: ' + poolid, 'timestamp': ts}
         else:
-            w = {'result': '',  'msg': 'No data found in pool: ' + poolid, 'timestamp': ts}
+            pool_content = os.listdir(filepath)
+            if 'classes.jsn' in pool_content:
+                with open(filepath + 'classes.jsn') as fp:
+                    content = json.load(fp)
+                w = {'result': content,  'msg': '', 'timestamp': ts}
+            else:
+                w = {'result': '',  'msg': 'No data found in pool: ' + poolid, 'timestamp': ts}
     if method == 'DELETE':
-        if poolid[0] != '/' or poolid != '' or  not os.path.exists(filepath):
+        if poolid[0] != '/' and poolid != '' and os.path.exists(filepath):
             try:
                 shutil.rmtree(filepath)
                 os.mkdir(filepath)
@@ -654,11 +657,9 @@ def get_pool_info(poolid):
                 pstore_tmp = ProductStorage(pool = poolpath)
                 prod = deserializeClassID(request.data)
                 prodref = pstore_tmp.save(prod)
-                fullpoolpath = poolpath + '/'
-                if fullpoolpath not in pstore.getPools():
+                if poolpath not in pstore.getPools():
                     pstore.register(poolpath)
-                urn = urn_to_client(prodref.urn)
-                w = {'result': urn, 'msg': 'save to ' + poolpath + ' with successfully.', 'timestamp': ts}
+                w = {'result': prodref.urn, 'msg': 'save to ' + poolpath + ' with successfully.', 'timestamp': ts}
         else:
             logger.error('POST data failed: No data found in request !')
             w = {'result': 'failed', 'msg': 'No data found in request!', 'timestamp': ts}
@@ -697,11 +698,12 @@ def query_pools():
 
 def query_pstore(query):
     query_type = query['type']
-    query_where = query['where']
+    query_where = "'" + query['where'] + "'"
     query_version = query['allVersions']
     query_variable = query['variable']
     if query_type == pc['metaquery']:
         q = MetaQuery(product = Product,  where = query_where, allVersions = query_version)
+        print(query_where)
     elif query_type == pc['abstractquery']:
         q = AbstractQuery(product = Product, variable = query_variable,  where = query_where, allVersions = query_version)
     else:
@@ -709,6 +711,7 @@ def query_pstore(query):
     return pstore.select(q)
 
 def urn_to_client(urn):
+    # return urn.replace('http://192.168.1.11:5000' + pc['poolpath'], '')
     return urn.replace('file://' + pc['poolpath'], '')
 
 def client_to_urn(urn):

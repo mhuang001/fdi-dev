@@ -143,7 +143,7 @@ When implementing a ProductPool, the following rules need to be applied:
         if poolname != self._poolurn:
             raise(ValueError('wrong pool: ' + poolname +
                              ' . This is ' + self._poolurn))
-
+        print(resourcecn, indexs)
         return self.schematicLoadProduct(resourcecn, indexs)
 
     def meta(self,  urn):

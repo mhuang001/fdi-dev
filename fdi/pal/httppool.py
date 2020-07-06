@@ -6,6 +6,7 @@ from ..dataset.serializable import serializeClassID
 from .productpool import ProductPool
 from ..utils.common import pathjoin, trbk
 from .productpool import lockpathbase
+from ..pns.pnsconfig_ssa import pnsconfig as pc
 import filelock
 import sys
 import shutil
@@ -63,7 +64,6 @@ class HttpPool(ProductPool):
         loads and returns the housekeeping data
         """
         fp0 = (self._poolpath)
-        print(fp0)
         #import pdb
         # pdb.set_trace()
         with filelock.FileLock(self.lockpath(), timeout=5):
@@ -115,7 +115,10 @@ class HttpPool(ProductPool):
         """
 
         with filelock.FileLock(self.lockpath(), timeout=5):
-            uri = self._poolurn + '/' + quote(resourcename) + '_' + indexstr
+            real_scheme = 'file://'
+            real_poolurl = self._poolurn.replace(pc['poolprefix'], real_scheme)
+            uri = real_poolurl + '/' + quote(resourcename) + '_' + indexstr
+
             try:
                 p = getJsonObj(uri)
             except Exception as e:

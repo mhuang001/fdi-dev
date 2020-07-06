@@ -13,6 +13,7 @@ from ..utils.common import str2md5
 from ..pal.productstorage import ProductStorage
 from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from ..pal.query import MetaQuery, AbstractQuery
+from ..pal.urn import makeUrn
 from ..dataset.product import Product
 
 import mysql.connector
@@ -624,10 +625,24 @@ def get_pool_info(poolid):
     method = request.method
     logger.debug(method + '  of  target poolid. %s' % (poolid) )
     filepath = pc['poolpath'] + poolid + pc['fdipath']
+    poolname_in_store = pc['poolprefix']  + filepath
     ts = time.time()
     if method == 'GET':
         if not os.path.exists(filepath):
             w = {'result': '',  'msg': 'No such pool or pool is empty: ' + poolid, 'timestamp': ts}
+        elif request.args.get('resourcename') and request.args.get('indexstr'):
+            pool_content = os.listdir(filepath + '/')
+            if poolname_in_store in pstore.getPools():
+                try:
+                    urn = makeUrn(poolname_in_store, request.args.get('resourcename'), request.args.get('indexstr'))
+                    print('URN:' + urn)
+                    prod = pstore.getPool(poolname_in_store).loadProduct(urn)
+                    w = {'result': prod,  'msg': 'Load data by urn:' + urn, 'timestamp': ts}
+                except Exception as e:
+                    raise e
+                    w = {'result': 'Load data failed',  'msg': str(e), 'timestamp': ts}
+            else:
+                    w = {'result': '',  'msg': 'No such pool in product store:' + poolname_in_store, 'timestamp': ts}
         else:
             pool_content = os.listdir(filepath + '/')
             if 'classes.jsn' in pool_content:
@@ -657,16 +672,16 @@ def get_pool_info(poolid):
                 w = {'result': poolpath, 'msg': 'save to ' + poolpath + ' failed.', 'timestamp': ts}
                 abort(401)
             else:
-                poolpath = pc['poolprefix'] + str(p)
-                pstore_tmp = ProductStorage(pool = poolpath)
+                # poolpath = pc['poolprefix'] + str(p)
+                pstore_tmp = ProductStorage(pool = poolname_in_store)
                 prod = deserializeClassID(request.data)
                 prodref = pstore_tmp.save(prod)
-                print("pool path: " + poolpath)
+                print("pool path: " + poolname_in_store)
                 print(pstore.getPools())
-                if poolpath not in pstore.getPools():
+                if poolname_in_store not in pstore.getPools():
                     pstore.register(poolpath)
                 print(pstore.getPools())
-                w = {'result': prodref.urn, 'msg': 'save to ' + poolpath + ' with successfully.', 'timestamp': ts}
+                w = {'result': prodref.urn, 'msg': 'save to ' + poolname_in_store + ' with successfully.', 'timestamp': ts}
         else:
             logger.error('POST data failed: No data found in request !')
             w = {'result': 'failed', 'msg': 'No data found in request!', 'timestamp': ts}
@@ -689,11 +704,8 @@ def query_pools():
     else:
         if request.data:
             query = deserializeClassID(request.data)
-
-            print(query)
             res = query_pstore(query)
-            print(res)
-            w = {'result': 'failed', 'msg': res, 'timestamp': ts}
+            w = {'result': '', 'msg': res, 'timestamp': ts}
         else:
             w = {'result': 'failed', 'msg': 'query error  in request.', 'timestamp': ts}
 
@@ -710,7 +722,7 @@ def query_pstore(query):
     query_variable = query['variable']
     if query_type == pc['metaquery']:
         q = MetaQuery(product = Product,  where = query_where, allVersions = query_version)
-        print(query_where)
+        logger.info(query_where)
     elif query_type == pc['abstractquery']:
         q = AbstractQuery(product = Product, variable = query_variable,  where = query_where, allVersions = query_version)
     else:
@@ -786,7 +798,7 @@ def verify_password(username, password):
         try:
             conn = mysql.connector.connect(host = pc['mysql']['host'], user =pc['mysql']['user'], password = pc['mysql']['password'], database = pc['mysql']['database'])
             if conn.is_connected():
-                print("connect to db successfully")
+                logger.info("connect to db successfully")
                 cursor = conn.cursor()
                 cursor.execute("SELECT * FROM userinfo WHERE userName = '" + username + "' AND password = '" + password + "';" )
                 record = cursor.fetchall()

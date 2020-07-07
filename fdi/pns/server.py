@@ -580,21 +580,15 @@ def load_all_pools():
     poolpath = pc['poolprefix'] + pc['poolpath']
     filepath = pc['poolpath']
     pools = os.listdir(filepath)
-    print(pc['fdipath'])
     for pool in pools:
         print("current pool root dir: "  + pool)
         if os.path.isdir(filepath + pool) and pc['fdipath'][1:] in os.listdir(filepath + pool) \
          and (pool != pc['defaultpool']):
             print("Registried: " + poolpath + pool + pc['fdipath'])
-            print(pc['fdipath'])
             pstore.register(poolpath + pool + pc['fdipath'])
             logger.info("Register pool: " +  poolpath + pool + pc['fdipath'])
     logger.info("Register all pools done: ")
     logger.info(pstore.getPools())
-    # print('TEST query :')
-    # q = MetaQuery(Product, 'm["creator"] == "Yuxin"')
-    # res = pstore.select(q)
-    # print(res)
 load_all_pools()
 
 @app.route(pc['baseurl'] + pc['httppoolurl'], methods=['GET'])

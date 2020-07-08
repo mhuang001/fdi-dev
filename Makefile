@@ -39,7 +39,7 @@ $(PYDIR)/$(B_PY): $(RESDIR)/$(B_INFO)
 S	=
 # default username and password are in pnsconfig.py
 runserver:
-	python3 -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
+	python3 -m fdi.pns.runflaskserver -v $(S)
 
 install:
 	pip3 install -e .

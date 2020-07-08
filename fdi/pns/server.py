@@ -612,9 +612,9 @@ def get_httppool_info():
 @app.route(pc['baseurl'] + pc['httppoolurl'] + '/<string:poolid>', methods=['GET', 'DELETE', 'POST'])
 @auth.login_required
 def get_pool_info(poolid):
-    ''' returns info of  target poolid for GET method.
-        delete a pool for DELETE method.
-        post data to a new pool
+    ''' GET: returns info of  target poolid for or a product if you specify resourcename and indexstr in args.
+        DELETE: delete a pool .
+        POST: post data into a new pool
     '''
     method = request.method
     logger.debug(method + '  of  target poolid. %s' % (poolid) )
@@ -623,7 +623,8 @@ def get_pool_info(poolid):
     ts = time.time()
     if method == 'GET':
         if not os.path.exists(filepath):
-            w = {'result': '',  'msg': 'No such pool or pool is empty: ' + poolid, 'timestamp': ts}
+            result = 'FAILED'
+            msg =  'No such pool or pool is empty: ' + poolid
         elif request.args.get('resourcename') and request.args.get('indexstr'):
             pool_content = os.listdir(filepath + '/')
             if poolname_in_store in pstore.getPools():
@@ -631,54 +632,66 @@ def get_pool_info(poolid):
                     urn = makeUrn(poolname_in_store, request.args.get('resourcename'), request.args.get('indexstr'))
                     print('URN:' + urn)
                     prod = pstore.getPool(poolname_in_store).loadProduct(urn)
-                    w = {'result': prod,  'msg': 'Load data by urn:' + urn, 'timestamp': ts}
+                    result = prod
+                    msg = ''
                 except Exception as e:
-                    raise e
-                    w = {'result': 'Load data failed',  'msg': str(e), 'timestamp': ts}
+                    result = 'FAILED'
+                    msg = 'Load data failed caused by: ' + str(e)
             else:
-                    w = {'result': '',  'msg': 'No such pool in product store:' + poolname_in_store, 'timestamp': ts}
+                result = 'FAILED'
+                msg = 'No such pool in product store:' + poolname_in_store
         else:
             pool_content = os.listdir(filepath + '/')
             if 'classes.jsn' in pool_content:
                 with open(filepath+'/' + 'classes.jsn') as fp:
                     content = json.load(fp)
-                w = {'result': content,  'msg': '', 'timestamp': ts}
+                result = content
+                msg = ''
             else:
-                w = {'result': '',  'msg': 'No data found in pool: ' + poolid, 'timestamp': ts}
+                result = ''
+                msg =  'No data found in pool: ' + poolid
+
     if method == 'DELETE':
         if poolid[0] != '/' and poolid != '' and os.path.exists(filepath):
             try:
                 shutil.rmtree(filepath)
                 os.mkdir(filepath)
-                w = {'result': poolid,  'msg': 'DELETE ' + poolid + ' done.', 'timestamp': ts}
+                result = ''
+                msg =  'DELETE ' + poolid + ' done.'
             except Exception as e:
+                result = ''
                 msg = 'remove-mkdir ' + poolid + ' failed. ' + str(e)
                 logger.error(msg)
                 raise e
         else:
             logger.error('Delete poolid failed, poolid is not expceted: ' + poolid)
-            w =  {'result': poolid,  'msg': 'DELETE ' + poolid + ' failed, wrong poolid:' + poolid, 'timestamp': ts}
+            result = ''
+            msg =  'DELETE ' + poolid + ' failed, wrong poolid:' + poolid
     if method == 'POST':
         if request.data:
             checkpath(pc['poolpath'] + poolid)
             p = checkpath(filepath)
             if p is None:
-                w = {'result': poolpath, 'msg': 'save to ' + poolpath + ' failed.', 'timestamp': ts}
+                result = 'FAILED'
+                msg = 'Save to ' + poolname_in_store + ' failed.'
                 abort(401)
             else:
                 # poolpath = pc['poolprefix'] + str(p)
+                PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+                PoolManager.removeAll()
                 pstore_tmp = ProductStorage(pool = poolname_in_store)
                 prod = deserializeClassID(request.data)
                 prodref = pstore_tmp.save(prod)
-                print("pool path: " + poolname_in_store)
-                print(pstore.getPools())
                 if poolname_in_store not in pstore.getPools():
-                    pstore.register(poolpath)
-                print(pstore.getPools())
-                w = {'result': prodref.urn, 'msg': 'save to ' + poolname_in_store + ' with successfully.', 'timestamp': ts}
+                    pstore.register(poolname_in_store)
+                result = prodref.urn
+                msg =  'Save to ' + poolname_in_store + ' with successfully.'
         else:
             logger.error('POST data failed: No data found in request !')
-            w = {'result': 'failed', 'msg': 'No data found in request!', 'timestamp': ts}
+            result = 'FAILED'
+            msg = 'No data found in request.'
+
+    w = {'result':result, 'msg': msg, 'timestamp': ts}
     s = serializeClassID(w)
     logger.debug(s[:] + '...')
     resp = make_response(s)
@@ -694,15 +707,23 @@ def query_pools():
     logger.info("Query current product storage and return the results")
     print(pstore._pools)
     if len(pstore.getPools()) == 0:
-        w = {'result': 'failed', 'msg': 'no pool is registred.', 'timestamp': ts}
+        result = 'FAILED'
+        msg = 'No pool is registried, please registry a pool firstly.'
     else:
         if request.data:
             query = deserializeClassID(request.data)
             res = query_pstore(query)
-            w = {'result': '', 'msg': res, 'timestamp': ts}
+            if res:
+                result = ''
+                msg = res
+            else:
+                result = 'FAILED'
+                msg = 'Exception when parsing query in request.'
         else:
-            w = {'result': 'failed', 'msg': 'query error  in request.', 'timestamp': ts}
+            result = 'FAILED'
+            msg = 'No query found.'
 
+    w = {'result': result, 'msg': msg, 'timestamp': ts}
     s = serializeClassID(w)
     logger.debug(s[:] + '...')
     resp = make_response(s)
@@ -710,15 +731,18 @@ def query_pools():
     return resp
 
 def query_pstore(query):
-    query_type = query['type']
-    query_where = "'" + query['where'] + "'"
-    query_version = query['allVersions']
-    query_variable = query['variable']
-    if query_type == pc['metaquery']:
-        q = MetaQuery(product = Product,  where = query_where, allVersions = query_version)
-        logger.info(query_where)
-    elif query_type == pc['abstractquery']:
-        q = AbstractQuery(product = Product, variable = query_variable,  where = query_where, allVersions = query_version)
+    query_type = query.get('type')
+    query_where = "'" + query.get('where') + "'"
+    query_version = query.get('allVersions')
+    query_variable = query.get('variable')
+    if query_type != None and query_where != None and query_version != None:
+        if query_type == pc['metaquery']:
+            q = MetaQuery(product = Product,  where = query_where, allVersions = query_version)
+            logger.info(query_where)
+        elif query_type == pc['abstractquery']:
+            q = AbstractQuery(product = Product, variable = query_variable,  where = query_where, allVersions = query_version)
+        else:
+            return None
     else:
         return None
     return pstore.select(q)

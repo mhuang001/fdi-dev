@@ -9,6 +9,8 @@ pnsconfig = dict(logginglevel=logging.INFO)
 
 # base url for webserver. Update version if needed.
 pnsconfig['baseurl'] = '/v0.6'
+pnsconfig['auth_user'] = 'gsegment'
+pnsconfig['auth_pass'] = '123456'
 
 dev = True
 if dev:

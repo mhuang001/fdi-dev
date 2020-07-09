@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from ..pns.jsonio import getJsonObj
+from ..pns.fdi_requests import *
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
@@ -36,8 +37,11 @@ class HttpClientPool(ProductPool):
         super(HttpClientPool, self).__init__(**kwds)
 
         logger.debug(self._poolpath)
-        if not op.exists(self._poolpath):
-            os.mkdir(self._poolpath)
+
+        # TODO: here check if local path exists, but read from remote , is it normal?
+        #  If users use WIndows how to resolve path?
+        # if not op.exists(self._poolpath):
+        #     os.mkdir(self._poolpath)
         c, t, u = self.readHK()
 
         logger.debug('pool ' + self._poolurn + ' HK read.')
@@ -50,25 +54,37 @@ class HttpClientPool(ProductPool):
         """
         loads and returns the housekeeping data
         """
-        fp0 = (self._poolpath)
-        #import pdb
-        # pdb.set_trace()
-        with filelock.FileLock(self.lockpath(), timeout=5):
-            # if 1:
-            hk = {}
-            for hkdata in ['classes', 'tags', 'urns']:
-                fp = pathjoin(fp0, hkdata + '.jsn')
-                if op.exists(fp):
-                    try:
-                        r = getJsonObj(self._scheme + '://' + fp)
-                    except Exception as e:
-                        msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
-                        logging.error(msg)
-                        raise Exception(msg)
-                else:
-                    r = dict()
-                hk[hkdata] = r
-        logger.debug('LocalPool HK read from ' + self._poolpath)
+        # fp0 = (self._poolpath)
+        # #import pdb
+        # # pdb.set_trace()
+        # with filelock.FileLock(self.lockpath(), timeout=5):
+        #     # if 1:
+        #     hk = {}
+        #     for hkdata in ['classes', 'tags', 'urns']:
+        #         fp = pathjoin(fp0, hkdata + '.jsn')
+        #         if op.exists(fp):
+        #             try:
+        #                 r = getJsonObj(self._scheme + '://' + fp)
+        #             except Exception as e:
+        #                 msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
+        #                 logging.error(msg)
+        #                 raise Exception(msg)
+        #         else:
+        #             r = dict()
+        #         hk[hkdata] = r
+        # logger.debug('LocalPool HK read from ' + self._poolpath)
+        poolurn = self._poolurn
+        print("READ HK FROM REMOTE===>poolurl: " + poolurn )
+        hk = {}
+        for hkdata in ['classes', 'tags', 'urns']:
+            try:
+                r = read_from_server(poolurn, hkdata)
+            except Exception as e:
+                msg = 'Error in HK reading from server ' + poolurn
+                logging.error(msg)
+                raise Exception(msg)
+            hk[hkdata] = r
+
         return hk['classes'], hk['tags'], hk['urns']
 
     def writeHK(self, fp0):
@@ -81,15 +97,15 @@ class HttpClientPool(ProductPool):
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
     def schematicSave(self, typename, serialnum, data):
-        """ 
+        """
         does the media-specific saving
         """
         fp0 = self._poolpath
         fp = pathjoin(fp0, typename + '_' + str(serialnum))
         try:
-            writeJsonwithbackup(fp, data)
+            # writeJsonwithbackup(fp, data)
             self.writeHK(fp0)
-            logger.debug('HK written')
+            logger.debug('HK written in local done')
         except IOError as e:
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes

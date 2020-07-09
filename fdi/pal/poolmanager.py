@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-
-from . import localpool, mempool, httppool
+from . import localpool, mempool, httpclientpool
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -38,7 +37,7 @@ This is done by calling the getPool(String) method, which will return an existin
             elif sp[0] == 'mem':
                 p = mempool.MemPool(poolurn=poolurn)
             elif sp[0] == 'http' or sp[0] == 'https':
-                p = httppool.HttpPool(poolurn=poolurn)
+                p = httpclientpool.HttpClientPool(poolurn=poolurn)
             else:
                 raise NotImplementedError(sp[0] + ':// is not supported')
             cls.save(poolurn, p)

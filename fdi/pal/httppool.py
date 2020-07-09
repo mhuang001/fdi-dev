@@ -38,7 +38,7 @@ def writeJsonwithbackup(fp, data):
         f.write(js)
 
 
-class HttpPool(ProductPool):
+class HttpPool(LocalPool):
     """ the pool will save all products in Http server.
     """
 
@@ -54,6 +54,8 @@ class HttpPool(ProductPool):
         c, t, u = self.readHK()
 
         logger.debug('pool ' + self._poolurn + ' HK read.')
+
+        # self._scheme = 'http'
 
         self._classes.update(c)
         self._tags.update(t)

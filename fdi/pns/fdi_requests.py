@@ -64,12 +64,12 @@ def save_to_server(prod, prod_name, metadata_path, addr, poolid):
             files .append(file_tmptup)
     data = serializeClassID(prod)
     api = addr + pcc['baseurl'] + pcc['httppool'] + poolid
-    print("SERVER POST API: " + api)
+    # print("SERVER POST API: " + api)
     res = requests.post(api, header=common_header, files = files, data = data)
     return res
 
 
-def read_from_server(poolurn, contents):
+def read_from_server(poolurn, contents='product'):
     user = pcc['auth_user']
     password = pcc['auth_pass']
     auth = HTTPBasicAuth(user, password)
@@ -77,5 +77,4 @@ def read_from_server(poolurn, contents):
     print("GET REQUEST API: " + api)
     x = requests.get(api, auth=auth)
     result = deserializeClassID(x.text)
-    print(result["result"])
-    return result
+    return result['result']

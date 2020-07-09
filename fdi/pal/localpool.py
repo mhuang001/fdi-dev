@@ -93,7 +93,7 @@ class LocalPool(ProductPool):
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
     def schematicSave(self, typename, serialnum, data):
-        """ 
+        """
         does the media-specific saving
         """
         fp0 = self._poolpath
@@ -106,7 +106,7 @@ class LocalPool(ProductPool):
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicLoadProduct(self, resourcename, indexstr):
+    def schematicLoadProduct(self, resourcename, indexstr, urn=None):
         """
         does the scheme-specific part of loadProduct.
         """

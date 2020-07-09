@@ -110,20 +110,28 @@ class HttpClientPool(ProductPool):
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicLoadProduct(self, resourcename, indexstr):
+    def schematicLoadProduct(self, resourcename, indexstr, urn):
         """
         does the scheme-specific part of loadProduct.
         """
-
-        with filelock.FileLock(self.lockpath(), timeout=5):
-            uri = self._poolurn + '/' + resourcename + '_' + indexstr
-            try:
-                p = getJsonObj(uri)
-            except Exception as e:
-                msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
-                logger.error(msg)
-                raise e
-        return p
+        # with filelock.FileLock(self.lockpath(), timeout=5):
+        #     uri = self._poolurn + '/' + resourcename + '_' + indexstr
+        #     try:
+        #         p = getJsonObj(uri)
+        #     except Exception as e:
+        #         msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
+        #         logger.error(msg)
+        #         raise e
+        poolurn = self._poolurn
+        uri = poolurn + '/' +  resourcename + '_' + indexstr
+        print("READ PRODUCT FROM REMOTE===>poolurl: " + poolurn )
+        try:
+            prod = read_from_server(urn)
+        except Exception as e:
+            msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
+            logger.error(msg)
+            raise e
+        return prod
 
     def schematicRemove(self, typename, serialnum):
         """

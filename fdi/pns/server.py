@@ -13,7 +13,7 @@ from ..utils.common import str2md5
 from ..pal.productstorage import ProductStorage
 from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from ..pal.query import MetaQuery, AbstractQuery
-from ..pal.urn import makeUrn
+from ..pal.urn import makeUrn, parseUrn
 from ..dataset.product import Product
 
 import mysql.connector
@@ -36,6 +36,16 @@ from flask_httpauth import HTTPBasicAuth
 import filelock
 import pdb
 import shutil
+
+if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
+    PY3 = True
+    strset = str
+    from urllib.parse import urlparse
+else:
+    PY3 = False
+    # strset = (str, unicode)
+    strset = str
+    from urlparse import urlparse
 
 # from .logdict import logdict
 # '/var/log/pns-server.log'
@@ -591,23 +601,113 @@ def load_all_pools():
     logger.info(pstore.getPools())
 load_all_pools()
 
-@app.route(pc['baseurl'] + pc['httppoolurl'], methods=['GET'])
+@app.route(pc['baseurl']+'/<path:pool>', methods=['GET', 'POST'])
 @auth.login_required
-def get_httppool_info():
-    ''' returns all pool name.
-    '''
-    logger.debug('get all pools' )
-    filepath = pc['poolpath']
-    # pools = os.listdir(filepath)
-    pools = pstore.getPools()
+def httppool(pool):
+    paths = pool.split('/')
     ts = time.time()
-    w = {'result': pools,  'msg': '', 'timestamp': ts}
+    print("REQUEST PARSER PATH: "+ str(paths))
+    if request.method == 'GET':
+        if paths[-1] in ['classes', 'urns', 'tags']: # Retrieve single metadata
+            result, msg = load_singer_metadata(paths)
+
+        elif paths[-1] == 'hk': # Load all metadata
+            result, msg = load_metadata(paths)
+
+        elif paths[-1].isnumeric(): # Retrieve product
+            result, msg = load_product(paths)
+        else:
+            result = ''
+            msg = 'Unknow request: ' + pool
+    if request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
+        data = deserializeClassID(request.data)
+        result = save_product(data, paths)
+        msg = ''
+
+    w = {'result':result, 'msg': msg, 'timestamp': ts}
     s = serializeClassID(w)
+    logger.debug(s[:] + '...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
 
-# A default pool created
+def save_product(data,  paths):
+    # poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(urn)
+    pool = ''
+    typename = paths[-2]
+    index = str(paths[-1])
+    for i in paths[0: -2]:
+        pool = pool + i + '/'
+    pool = pool[0:-1]
+    print("Save POOL path: " + pool)
+    poolurn = pc['poolprefix'] + pc['poolpath'] + pool
+    print("Real poolurn = " + poolurn)
+    try:
+        PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+        PoolManager.removeAll()
+        pstore_tmp = ProductStorage(pool = poolurn)
+        result = pstore_tmp.save(product=data, fakepoolurn=pc['poolprefix'] + '/' + pool)
+        if poolurn not in pstore.getPools():
+            pstore.register(poolurn)
+        msg = ''
+    except Exception as e:
+        result = 'FAILED'
+        msg = 'Exception : ' + str(e)
+        raise e
+    return result, msg
+
+
+def load_product(paths):
+    pool = ''
+    for i in paths[0: -2]:
+        pool = pool + i + '/'
+    pool = pool[0:-1]
+    print("POOL path: " + pool)
+    poolurn = pc['poolprefix'] + pc['poolpath'] + pool
+    try:
+        if poolurn not in pstore.getPools():
+            pstore.register(poolurn)
+        result = pstore.getPool(poolurn).schematicLoadProduct(paths[-2], paths[-1])
+        msg = ''
+    except Exception as e:
+        result = 'FAILED'
+        msg = 'Exception : ' + str(e)
+    return result, msg
+
+def load_metadata(paths):
+    pool = ''
+    for i in paths[0:-1]:
+        pool = pool + i + '/'
+    pool = pool[0:-1]
+    print('Pool path: ' + pool)
+    poolurn = pc['poolprefix'] + pc['poolpath'] + pool
+    try:
+        if poolurn not  in pstore.getPools():
+            pstore.register(poolurn)
+        c, t, u = pstore.getPool(poolurn).readHK()
+        result = {'classes': c, 'tags': c, 'urns': u}
+        msg = ''
+    except Exception as e:
+        result = 'FAILED'
+        msg = 'Exception : ' + str(e)
+    return result, msg
+
+def load_singer_metadata(paths):
+        pool = ''
+        for i in paths[0: -2]:
+            pool = pool + i + '/'
+        pool = pool[0:-1]
+        print("POOL path: " + pool)
+        poolurn = pc['poolprefix'] + pc['poolpath'] + pool
+        try:
+            if poolurn not  in pstore.getPools():
+                pstore.register(poolurn)
+            result = pstore.getPool(poolurn).readHKObj(paths[-1])
+            msg = ''
+        except Exception as e:
+            result = 'FAILED'
+            msg = 'Exception : ' + str(e)
+        return result, msg
 
 @app.route(pc['baseurl'] + pc['httppoolurl'] + '/<string:poolid>', methods=['GET', 'DELETE', 'POST'])
 @auth.login_required

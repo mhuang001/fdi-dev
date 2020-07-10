@@ -50,7 +50,7 @@ class ProductStorage(object):
         logger.debug('registered pool ' + str(self._pools))
 
     def load(self, urnortag):
-        """ Loads a product with a URN or a list of products with a tag, from the (writeable) pool.  It always creates new ProductRefs. 
+        """ Loads a product with a URN or a list of products with a tag, from the (writeable) pool.  It always creates new ProductRefs.
         returns productref(s).
         urnortag: urn or tag
         """
@@ -81,7 +81,7 @@ class ProductStorage(object):
         # return a list only when more than one refs
         return ls if len(ls) > 1 else ls[0]
 
-    def save(self, product, tag=None, poolurn=None, geturnobjs=False):
+    def save(self, product, tag=None, poolurn=None, geturnobjs=False, fakepoolurn=None):
         """ saves to the writable pool if it has been registered.
         if not, registers and saves. product can be one or a list of prpoducts.
         Returns: one or a list of productref with storage info. mh: or UrnObjs if geturnobjs is True.
@@ -102,7 +102,8 @@ class ProductStorage(object):
 
         try:
             ret = self._pools[poolurn].saveProduct(
-                product, tag=tag, geturnobjs=geturnobjs)
+                product, tag=tag, geturnobjs=True, fakepoolurn=fakepoolurn)
+            geturnobjs=True
         except Exception as e:
             logger.error('unable to save to the writable pool.')
             raise e

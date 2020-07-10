@@ -225,7 +225,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise(NotImplementedError)
 
-    def saveProduct(self,  product, tag=None, geturnobjs=False):
+    def saveProduct(self,  product, tag=None, geturnobjs=True, fakepoolurn=None):
         """
         Saves specified product and returns the designated ProductRefs or URNs.
         Saves a product or a list of products to the pool, possibly under the
@@ -276,7 +276,13 @@ When implementing a ProductPool, the following rules need to be applied:
 
                 c[pn]['currentSN'] = sn
                 c[pn]['sn'].append(sn)
-                urnobj = Urn(cls=prd.__class__, pool=self._poolurn, index=sn)
+
+                if fakepoolurn != None:
+                    print("FAKE POOL URN: " + fakepoolurn)
+                    urnobj = Urn(cls=prd.__class__, pool=fakepoolurn, index=sn)
+                else:
+                    urnobj = Urn(cls=prd.__class__, pool=self._poolurn, index=sn)
+                # urnobj = Urn(cls=prd.__class__, pool=self._poolurn, index=sn)
                 urn = urnobj.urn
 
                 if urn not in u:
@@ -295,10 +301,12 @@ When implementing a ProductPool, the following rules need to be applied:
                     # undo changes
                     c, t, u = cs, ts, us
                     raise e
+            print(geturnobjs)
+            geturnobjs = True
             if geturnobjs:
                 res.append(urnobj)
             else:
-                rf = ProductRef(urn=urnobj)
+                rf = ProductRef(urn=urnobj, fakepoolurn=fakepoolurn)
                 # it seems that there is no better way to set meta
                 rf._meta = prd.getMeta()
                 rf._poolurn = self._poolurn

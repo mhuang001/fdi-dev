@@ -48,8 +48,10 @@ class LocalPool(ProductPool):
         super(LocalPool, self).__init__(**kwds)
 
         logger.debug(self._poolpath)
+        logger.debug("Permission denied path: ====================>" + self._poolpath)
         if not op.exists(self._poolpath):
             os.mkdir(self._poolpath)
+        logger.debug("Permission denied path: ====================>" + self._poolpath)
         c, t, u = self.readHK()
 
         logger.debug('pool ' + self._poolurn + ' HK read.')
@@ -93,7 +95,7 @@ class LocalPool(ProductPool):
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
     def schematicSave(self, typename, serialnum, data):
-        """ 
+        """
         does the media-specific saving
         """
         fp0 = self._poolpath

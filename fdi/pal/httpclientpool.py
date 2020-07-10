@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from ..pns.jsonio import getJsonObj
+from ..pns.fdi_requests import *
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
@@ -51,6 +52,7 @@ class HttpClientPool(ProductPool):
         loads and returns the housekeeping data
         """
         fp0 = (self._poolpath)
+        print("READ HK===>poolpath: " + fp0 )
         #import pdb
         # pdb.set_trace()
         with filelock.FileLock(self.lockpath(), timeout=5):
@@ -81,15 +83,15 @@ class HttpClientPool(ProductPool):
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
     def schematicSave(self, typename, serialnum, data):
-        """ 
+        """
         does the media-specific saving
         """
         fp0 = self._poolpath
         fp = pathjoin(fp0, typename + '_' + str(serialnum))
         try:
-            writeJsonwithbackup(fp, data)
+            # writeJsonwithbackup(fp, data)
             self.writeHK(fp0)
-            logger.debug('HK written')
+            logger.debug('HK written in local done')
         except IOError as e:
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes

@@ -17,12 +17,13 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 
-    def __init__(self, urn=None, poolurn=None, product=None, meta=None, **kwds):
+    def __init__(self, urn=None, poolurn=None, product=None, meta=None, fakepoolurn=None, **kwds):
         """ Urn can be the string or URNobject. if product is provided create an in-memory URN.
         Poolurn if given overrides the pool URN in urn, and causes metadata to be loaded from pool, unloss this prodref points to a mempool.
         If meta is given, it will be used instead of that from poolurn.
         A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
         """
+
         super(ProductRef, self).__init__(**kwds)
         if issubclass(urn.__class__, str):
             urnobj = Urn(urn)
@@ -179,13 +180,13 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
         return self._meta
 
     def getHash(self):
-        """ Returns a code number for the product; actually its MD5 signature. 
+        """ Returns a code number for the product; actually its MD5 signature.
         This allows checking whether a product already exists in a pool or not.
         """
         raise NotImplementedError()
 
     def getSize(self):
-        """ Returns the estimated size(in bytes) of the product in memory. 
+        """ Returns the estimated size(in bytes) of the product in memory.
         Useful for providing this information for a user that wants to download the product from a remote site.
         Returns:
         the size in bytes
@@ -227,13 +228,13 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
 
     def getParents(self):
         """ Return the in-memory parent context products of this reference.
-        That is, the contexts in program memory that contain this product reference object. 
+        That is, the contexts in program memory that contain this product reference object.
         A context that contains a different product reference object pointing to the same URN is not a parent of this product reference.
 
         Furthermore, it should be understood that this method does not return the parent contexts of the product pointed to by this reference as stored in any underlying pool or storage.
 
         Returns:
-        the parents 
+        the parents
         """
         return self._parents
 

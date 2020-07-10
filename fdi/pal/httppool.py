@@ -4,6 +4,7 @@ from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
 from .productpool import ProductPool
+from .localpool import LocalPool
 from ..utils.common import pathjoin, trbk
 from .productpool import lockpathbase
 from ..pns.pnsconfig_ssa import pnsconfig as pc
@@ -38,7 +39,7 @@ def writeJsonwithbackup(fp, data):
         f.write(js)
 
 
-class HttpPool(ProductPool):
+class HttpPool(LocalPool):
     """ the pool will save all products in Http server.
     """
 
@@ -49,15 +50,36 @@ class HttpPool(ProductPool):
         super(HttpPool, self).__init__(**kwds)
 
         logger.debug(self._poolpath)
-        if not op.exists(self._poolpath):
-            os.mkdir(self._poolpath)
-        c, t, u = self.readHK()
+        # if not op.exists(self._poolpath):
+        #     os.mkdir(self._poolpath)
+        # c, t, u = self.readHK()
+        #
+        # logger.debug('pool ' + self._poolurn + ' HK read.')
+        #
+        # # self._scheme = 'http'
+        #
+        # self._classes.update(c)
+        # self._tags.update(t)
+        # self._urns.update(u)
 
-        logger.debug('pool ' + self._poolurn + ' HK read.')
-
-        self._classes.update(c)
-        self._tags.update(t)
-        self._urns.update(u)
+    def readHKObj(self, hkobj):
+        """
+        loads a single object of HK
+        """
+        fp0 = (self._poolpath)
+        with filelock.FileLock(self.lockpath(), timeout=5):
+            fp = pathjoin(fp0, hkobj + '.jsn')
+            if op.exists(fp):
+                try:
+                    real_scheme = 'file'
+                    r = getJsonObj(real_scheme + '://' + fp)
+                except Exception as e:
+                    msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
+                    logging.error(msg)
+                    raise Exception(msg)
+            else:
+                r = dict()
+        return r
 
     def readHK(self):
         """

@@ -35,7 +35,7 @@ common_header = {
 
 defaulturl = 'http://' + pcc['node']['host'] + ':' + str(pcc['node']['port']) + pcc['baseurl']
 
-def urn2fdiurl(urn, contents='product'):
+def urn2fdiurl(urn, contents='product', method='GET'):
     if urn.startswith('urn', 0, 3):
         poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(urn)
         url = urlparse(poolname)
@@ -44,28 +44,32 @@ def urn2fdiurl(urn, contents='product'):
         url = urlparse(urn)
         base = url.scheme + '://' + url.netloc + pcc['baseurl']
 
-    if contents == 'product':
-        ret = base + url.path + '/' + resourcecn + '/' + indexs
-    elif contents == 'housekeeping':
-        ret = base + url.path + '/hk'
-    elif contents in ['classes', 'urns', 'tags']:
-        ret = base + url.path + '/hk/'  + contents
+    if method == 'GET':
+        if contents == 'product':
+            ret = base + url.path + '/' + resourcecn + '/' + indexs
+        elif contents == 'housekeeping':
+            ret = base + url.path + '/hk'
+        elif contents in ['classes', 'urns', 'tags']:
+            ret = base + url.path + '/hk/'  + contents
+        else:
+            raise(ValueError(contents))
+    if method == 'POST':
+        if contents == 'product':
+            ret = base + url.path + '/' + resourcecn + '/' + indexs
+        else:
+            raise ValueError('No such method and contents composition: ' + method + ' / ' + contents)
     else:
-        raise(ValueError(contents))
+        raise ValueError(method)
     return ret
 
 
-def save_to_server(prod, prod_name, metadata_path, addr, poolid):
-    common_header['prod_name'] = prod_name
-    files = []
-    for root, dirs, files in os.walk(metadata_path):
-        for f in files:
-            file_tmptup = ('files', open(os.path.join(root, f), 'r'))
-            files .append(file_tmptup)
-    data = serializeClassID(prod)
-    api = addr + pcc['baseurl'] + pcc['httppool'] + poolid
-    # print("SERVER POST API: " + api)
-    res = requests.post(api, header=common_header, files = files, data = data)
+def save_to_server(data, urn):
+    user = pcc['auth_user']
+    password = pcc['auth_pass']
+    auth = HTTPBasicAuth(user, password)
+    api = urn2fdiurl(urn, contents='product', method='POST')
+    print('POST API: ' + api)
+    x = request.post(api, auth=auth, data=serializeClassID(data))
     return res
 
 

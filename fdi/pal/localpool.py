@@ -92,7 +92,7 @@ class LocalPool(ProductPool):
             fp = pathjoin(fp0, hkdata + '.jsn')
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
-    def schematicSave(self, typename, serialnum, data):
+    def schematicSave(self, typename, serialnum, data, urn=None):
         """
         does the media-specific saving
         """

@@ -225,7 +225,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise(NotImplementedError)
 
-    def saveProduct(self,  product, tag=None, geturnobjs=False):
+    def saveProduct(self,  product, tag=None, geturnobjs=False, isHttpSave=False):
         """
         Saves specified product and returns the designated ProductRefs or URNs.
         Saves a product or a list of products to the pool, possibly under the
@@ -276,6 +276,7 @@ When implementing a ProductPool, the following rules need to be applied:
 
                 c[pn]['currentSN'] = sn
                 c[pn]['sn'].append(sn)
+
                 urnobj = Urn(cls=prd.__class__, pool=self._poolurn, index=sn)
                 urn = urnobj.urn
 
@@ -288,7 +289,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 try:
                     self.schematicSave(typename=pn,
                                        serialnum=sn,
-                                       data=prd)
+                                       data=prd, urn = urn)
                 except Exception as e:
                     msg = 'product ' + urn + ' saving failed'
                     logger.debug(msg)

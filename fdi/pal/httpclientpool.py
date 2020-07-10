@@ -96,16 +96,18 @@ class HttpClientPool(ProductPool):
             fp = pathjoin(fp0, hkdata + '.jsn')
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
-    def schematicSave(self, typename, serialnum, data):
+    def schematicSave(self, typename, serialnum, data, urn):
         """
         does the media-specific saving
         """
         fp0 = self._poolpath
         fp = pathjoin(fp0, typename + '_' + str(serialnum))
+
         try:
             # writeJsonwithbackup(fp, data)
             self.writeHK(fp0)
-            logger.debug('HK written in local done')
+            res = save_to_server(data)
+            logger.debug('HK written in remote server done')
         except IOError as e:
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes

@@ -50,7 +50,7 @@ class ProductStorage(object):
         logger.debug('registered pool ' + str(self._pools))
 
     def load(self, urnortag):
-        """ Loads a product with a URN or a list of products with a tag, from the (writeable) pool.  It always creates new ProductRefs. 
+        """ Loads a product with a URN or a list of products with a tag, from the (writeable) pool.  It always creates new ProductRefs.
         returns productref(s).
         urnortag: urn or tag
         """

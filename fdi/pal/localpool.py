@@ -37,6 +37,28 @@ def writeJsonwithbackup(fp, data):
         f.write(js)
 
 
+def _wipe(poolpath):
+    """
+    does the scheme-specific remove-all
+    """
+
+    # logger.debug()
+    pp = poolpath
+    if pp == '/':
+        raise(ValueError('Do not remove root directory.'))
+
+    if not op.exists(pp):
+        return
+    try:
+        shutil.rmtree(pp)
+        os.mkdir(pp)
+    except Exception as e:
+        msg = 'remove-mkdir ' + pp + \
+            ' failed. ' + str(e) + trbk(e)
+        logger.error(msg)
+        raise e
+
+
 class LocalPool(ProductPool):
     """ the pool will save all products in local computer.
     """
@@ -83,6 +105,12 @@ class LocalPool(ProductPool):
         logger.debug('LocalPool HK read from ' + self._poolpath)
         return hk['classes'], hk['tags'], hk['urns']
 
+    def transformpath(self, path):
+        """ override this to changes the output from the input one (default) to something else.
+
+        """
+        return path
+
     def writeHK(self, fp0):
         """
            save the housekeeping data to disk
@@ -96,7 +124,7 @@ class LocalPool(ProductPool):
         """ 
         does the media-specific saving
         """
-        fp0 = self._poolpath
+        fp0 = self.transformpath(self._poolpath)
         fp = pathjoin(fp0, quote(typename) + '_' + str(serialnum))
         try:
             writeJsonwithbackup(fp, data)
@@ -111,7 +139,8 @@ class LocalPool(ProductPool):
         does the scheme-specific part of loadProduct.
         """
 
-        uri = self._poolurn + '/' + quote(typename) + '_' + indexstr
+        uri = self.transformpath(self._poolurn) + '/' + \
+            quote(typename) + '_' + indexstr
         try:
             p = getJsonObj(uri)
         except Exception as e:
@@ -124,7 +153,7 @@ class LocalPool(ProductPool):
         """
         does the scheme-specific part of removal.
         """
-        fp0 = (self._poolpath)
+        fp0 = self.transformpath(self._poolpath)
         fp = pathjoin(fp0,  quote(typename) + '_' + str(serialnum))
         try:
             os.unlink(fp)
@@ -133,32 +162,15 @@ class LocalPool(ProductPool):
             logger.error('Remove ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    @classmethod
-    def wipe(cls, poolpath):
-        """
-        does the scheme-specific remove-all
-        """
-
-        # logger.debug()
-        pp = poolpath
-        if not op.exists(pp):
-            return
-        try:
-            shutil.rmtree(pp)
-            os.mkdir(pp)
-        except Exception as e:
-            msg = 'remove-mkdir ' + pp + \
-                ' failed. ' + str(e) + trbk(e)
-            logger.error(msg)
-            raise e
-
     def schematicWipe(self):
         """
         does the scheme-specific remove-all
         """
-        LocalPool.wipe(self._poolpath)
+        _wipe(self.transformpath(self._poolpath))
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging
         to the first pool where the same track id is found.
         """
+
+        raise(NotImplementedError())

@@ -195,7 +195,7 @@ class ProductStorage(object):
         if poolurn not in self._pools:
             raise ValueError('pool ' + poolurn + ' not found')
         sp = poolurn.split('://')
-        if sp[0] != 'file':
+        if sp[0] not in ['file', 'http']:
             raise ValueError(sp[0] + ':// is not supported')
         self._pools[poolurn].removeAll()
 

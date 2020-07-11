@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 #from .productpool import ProductPool
 
+DefaultPool = 'file:///tmp/pool_' + getpass.getuser()
+
 
 class ProductStorage(object):
     """ Logical store created from a pool or a poolURN.
@@ -26,7 +28,7 @@ class ProductStorage(object):
         """ input is a pool urn
         """
         if not pool:
-            pool = 'file:///tmp/pool_' + getpass.getuser()
+            pool = DefaultPool
         super(ProductStorage, self).__init__(**kwds)
         self._pools = ODict()  # dict of pool-urn keys
         self.register(pool)

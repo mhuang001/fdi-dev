@@ -15,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-basepoolpath = '/data'
+basepoolpath = '/tmp'
 
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
@@ -41,8 +41,10 @@ class HttpClientPool(ProductPool):
 
         # TODO: here check if local path exists, but read from remote , is it normal?
         #  If users use WIndows how to resolve path?
-        if not op.exists(self._poolpath):
-            os.mkdir(self._poolpath)
+        real_poolpath = self.transformpath(self._poolpath)
+        logger.debug(real_poolpath)
+        if not op.exists(real_poolpath):
+            os.mkdir(real_poolpath)
         c, t, u = self.readHK()
 
         logger.debug('pool ' + self._poolurn + ' HK read.')
@@ -107,7 +109,7 @@ class HttpClientPool(ProductPool):
         try:
             # writeJsonwithbackup(fp, data)
             self.writeHK(fp0)
-            res = save_to_server(data)
+            res = save_to_server(data, urn)
             logger.debug('HK written in remote server done')
         except IOError as e:
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
@@ -117,8 +119,6 @@ class HttpClientPool(ProductPool):
         """
         does the scheme-specific part of loadProduct.
         """
-        # TODO: modify method of LocalPool, read file directly
-        # poolurn = self.transformpath(self._poolurn)
         poolurn = self._poolurn
         uri = poolurn + '/' +  resourcename + '_' + indexstr
         print("READ PRODUCT FROM REMOTE===>poolurl: " + poolurn )

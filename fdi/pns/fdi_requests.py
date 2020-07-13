@@ -53,7 +53,7 @@ def urn2fdiurl(urn, contents='product', method='GET'):
             ret = base + url.path + '/hk/'  + contents
         else:
             raise(ValueError(contents))
-    if method == 'POST':
+    elif method == 'POST':
         if contents == 'product':
             ret = base + url.path + '/' + resourcecn + '/' + indexs
         else:
@@ -69,7 +69,7 @@ def save_to_server(data, urn):
     auth = HTTPBasicAuth(user, password)
     api = urn2fdiurl(urn, contents='product', method='POST')
     print('POST API: ' + api)
-    x = request.post(api, auth=auth, data=serializeClassID(data))
+    res = requests.post(api, auth=auth, data=serializeClassID(data))
     return res
 
 

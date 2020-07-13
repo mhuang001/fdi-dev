@@ -54,7 +54,7 @@ When implementing a ProductPool, the following rules need to be applied:
         self._scheme = pr.scheme
         self._place = pr.netloc
         # convenient access path
-        # self._poolpqth = pr.netloc + pr.path
+        # self._poolpath = pr.netloc + pr.path
         self._poolpath = pr.netloc + \
             pr.path if pr.scheme in ('file') else pr.path
         # {type|classname -> {'sn:[sn]'}}

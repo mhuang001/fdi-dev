@@ -3,6 +3,7 @@ from ..pns.jsonio import getJsonObj
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
+from ..dataset.deserialize import deserializeClassID
 from .productpool import ProductPool
 from ..utils.common import pathjoin, trbk
 from .productpool import lockpathbase
@@ -26,6 +27,7 @@ else:
     strset = (str, unicode)
     from urlparse import urlparse, quote, unquote
 
+basepoolpath = '/data'
 
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
@@ -36,6 +38,25 @@ def writeJsonwithbackup(fp, data):
     with open(fp, mode="w+") as f:
         f.write(js)
 
+def _wipe(poolpath):
+    """
+    does the scheme-specific remove-all
+    """
+    # logger.debug()
+    pp = poolpath
+    if pp == '/':
+        raise(ValueError('Do not remove root directory.'))
+
+    if not op.exists(pp):
+        return
+    try:
+        shutil.rmtree(pp)
+        os.mkdir(pp)
+    except Exception as e:
+        msg = 'remove-mkdir ' + pp + \
+            ' failed. ' + str(e) + trbk(e)
+        logger.error(msg)
+        raise e
 
 class LocalPool(ProductPool):
     """ the pool will save all products in local computer.
@@ -46,10 +67,10 @@ class LocalPool(ProductPool):
         """
         # print(__name__ + str(kwds))
         super(LocalPool, self).__init__(**kwds)
-
-        logger.debug(self._poolpath)
-        if not op.exists(self._poolpath):
-            os.mkdir(self._poolpath)
+        real_poolpath = self.transformpath(self._poolpath)
+        logger.debug(real_poolpath)
+        if not op.exists(real_poolpath):
+            os.mkdir(real_poolpath)
         c, t, u = self.readHK()
 
         logger.debug('pool ' + self._poolurn + ' HK read.')
@@ -62,7 +83,7 @@ class LocalPool(ProductPool):
         """
         loads and returns the housekeeping data
         """
-        fp0 = (self._poolpath)
+        fp0 = self.transformpath(self._poolpath)
         #import pdb
         # pdb.set_trace()
         with filelock.FileLock(self.lockpath(), timeout=5):
@@ -83,6 +104,17 @@ class LocalPool(ProductPool):
         logger.debug('LocalPool HK read from ' + self._poolpath)
         return hk['classes'], hk['tags'], hk['urns']
 
+    def transformpath(self, path):
+        """ override this to changes the output from the input one (default) to something else.
+
+        """
+        if basepoolpath != '':
+            if path[0] == '/':
+                path = basepoolpath + path
+            else:
+                path = basepoolpath + '/' + path
+        return path
+
     def writeHK(self, fp0):
         """
            save the housekeeping data to disk
@@ -96,7 +128,7 @@ class LocalPool(ProductPool):
         """
         does the media-specific saving
         """
-        fp0 = self._poolpath
+        fp0 = self.transformpath(self._poolpath)
         fp = pathjoin(fp0, quote(typename) + '_' + str(serialnum))
         try:
             writeJsonwithbackup(fp, data)
@@ -112,11 +144,15 @@ class LocalPool(ProductPool):
         """
 
         with filelock.FileLock(self.lockpath(), timeout=5):
-            uri = self._poolurn + '/' + quote(resourcename) + '_' + indexstr
+            prod = self.transformpath(self._poolpath) + '/' + quote(resourcename) + '_' + indexstr
+            # uri = self.transformpath(self._poolurn) + '/' + quote(resourcename) + '_' + indexstr
             try:
-                p = getJsonObj(uri)
+                # p = getJsonObj(uri)
+                with open(prod, 'r') as fp:
+                    content = fp.read()
+                p = deserializeClassID(content)
             except Exception as e:
-                msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
+                msg = 'Load' + prod + 'failed. ' + str(e) + trbk(e)
                 logger.error(msg)
                 raise e
         return p
@@ -125,7 +161,7 @@ class LocalPool(ProductPool):
         """
         does the scheme-specific part of removal.
         """
-        fp0 = (self._poolpath)
+        fp0 = self.transformpath(self._poolpath)
         fp = pathjoin(fp0,  quote(typename) + '_' + str(serialnum))
         try:
             os.unlink(fp)
@@ -134,34 +170,34 @@ class LocalPool(ProductPool):
             logger.error('Remove ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    @classmethod
-    def wipe(cls, poolpath):
-        """
-        does the scheme-specific remove-all
-        """
-
-        # logger.debug()
-        pp = poolpath
-        if not op.exists(pp):
-            return
-        if op.isdir(pp):
-            with filelock.FileLock(pathjoin(lockpathbase, poolpath, 'lock'), timeout=5):
-                # lock file will be wiped, too. so acquire then release it.
-                pass
-        try:
-            shutil.rmtree(pp)
-            os.mkdir(pp)
-        except Exception as e:
-            msg = 'remove-mkdir ' + pp + \
-                ' failed. ' + str(e) + trbk(e)
-            logger.error(msg)
-            raise e
+    # @classmethod
+    # def wipe(cls, poolpath):
+    #     """
+    #     does the scheme-specific remove-all
+    #     """
+    #
+    #     # logger.debug()
+    #     pp = poolpath
+    #     if not op.exists(pp):
+    #         return
+    #     if op.isdir(pp):
+    #         with filelock.FileLock(pathjoin(lockpathbase, poolpath, 'lock'), timeout=5):
+    #             # lock file will be wiped, too. so acquire then release it.
+    #             pass
+    #     try:
+    #         shutil.rmtree(pp)
+    #         os.mkdir(pp)
+    #     except Exception as e:
+    #         msg = 'remove-mkdir ' + pp + \
+    #             ' failed. ' + str(e) + trbk(e)
+    #         logger.error(msg)
+    #         raise e
 
     def schematicWipe(self):
         """
         does the scheme-specific remove-all
         """
-        LocalPool.wipe(self._poolpath)
+        _wipe(self.transformpath(self._poolpath))
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

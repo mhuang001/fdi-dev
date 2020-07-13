@@ -20,6 +20,7 @@ This is done by calling the getPool(String) method, which will return an existin
     _GlobalPoolList = {}
 
     @classmethod
+    # def getPool(cls, poolurn, use_default_poolpath=True):
     def getPool(cls, poolurn):
         """ returns an instance of pool according to urn.
 

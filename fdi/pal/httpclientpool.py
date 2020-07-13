@@ -15,6 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
+basepoolpath = '/data'
 
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
@@ -40,8 +41,8 @@ class HttpClientPool(ProductPool):
 
         # TODO: here check if local path exists, but read from remote , is it normal?
         #  If users use WIndows how to resolve path?
-        # if not op.exists(self._poolpath):
-        #     os.mkdir(self._poolpath)
+        if not op.exists(self._poolpath):
+            os.mkdir(self._poolpath)
         c, t, u = self.readHK()
 
         logger.debug('pool ' + self._poolurn + ' HK read.')
@@ -100,7 +101,7 @@ class HttpClientPool(ProductPool):
         """
         does the media-specific saving
         """
-        fp0 = self._poolpath
+        fp0 = self.transformpath(self._poolpath)
         fp = pathjoin(fp0, typename + '_' + str(serialnum))
 
         try:
@@ -116,14 +117,8 @@ class HttpClientPool(ProductPool):
         """
         does the scheme-specific part of loadProduct.
         """
-        # with filelock.FileLock(self.lockpath(), timeout=5):
-        #     uri = self._poolurn + '/' + resourcename + '_' + indexstr
-        #     try:
-        #         p = getJsonObj(uri)
-        #     except Exception as e:
-        #         msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
-        #         logger.error(msg)
-        #         raise e
+        # TODO: modify method of LocalPool, read file directly
+        # poolurn = self.transformpath(self._poolurn)
         poolurn = self._poolurn
         uri = poolurn + '/' +  resourcename + '_' + indexstr
         print("READ PRODUCT FROM REMOTE===>poolurl: " + poolurn )
@@ -169,6 +164,17 @@ class HttpClientPool(ProductPool):
                 ' failed. ' + str(e) + trbk(e)
             logger.error(msg)
             raise e
+
+    def transformpath(self, path):
+        """ override this to changes the output from the input one (default) to something else.
+
+        """
+        if basepoolpath != '':
+            if path[0] == '/':
+                path = basepoolpath + path
+            else:
+                path = basepoolpath + '/' + path
+        return path
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

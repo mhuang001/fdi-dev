@@ -12,6 +12,11 @@ pnsconfig['baseurl'] = '/v0.6'
 pnsconfig['auth_user'] = 'gsegment'
 pnsconfig['auth_pass'] = '123456'
 
+# base url for pool, you must have permission of this path, for example : /home/user/Documents
+# this base pool path will be added at the beginning of your pool urn when you init a pool like:
+# pstore = PoolManager.getPool('/demopool_user'), it will create a pool at /data.demopool_user/
+# User can disable  basepoolpath by: pstore = PoolManager.getPool('/demopool_user', use_default_poolpath=False)
+pnsconfig['basepoolpath'] = '/data'
 dev = True
 if dev:
     # username, passwd, flask ip, flask port

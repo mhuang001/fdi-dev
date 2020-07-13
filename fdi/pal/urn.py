@@ -93,6 +93,7 @@ class Urn(DeepEqual, Serializable, Comparable):
     :scheme: ``file``, ``mem``, ``http`` ... etc
     :place: ``192.168.5.6:8080``, ``c:``, an empty string ... etc
     :directory:
+        A label for the pool that is by default used as the full path where the pool is stored. ProductPool.transformpath() can used to change the directory here to other meaning.
          * for ``file`` scheme: ``/`` + name + ``/`` + name + ... + ``/`` + name
          * for ``mem`` scheme: ``/`` + name
     :serialnumber: internal index. str(int).

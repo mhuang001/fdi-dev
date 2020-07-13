@@ -3,6 +3,7 @@ from ..pns.jsonio import getJsonObj
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
+from ..dataset.deserialize import deserializeClassID
 from .productpool import ProductPool
 from .localpool import LocalPool
 from ..utils.common import pathjoin, trbk
@@ -28,6 +29,26 @@ else:
     strset = (str, unicode)
     from urlparse import urlparse, quote, unquote
 
+def _wipe(poolpath):
+    """
+    does the scheme-specific remove-all
+    """
+    # logger.debug()
+    pp = poolpath
+    if pp == '/':
+        raise(ValueError('Do not remove root directory.'))
+
+    if not op.exists(pp):
+        return
+    try:
+        shutil.rmtree(pp)
+        os.mkdir(pp)
+    except Exception as e:
+        msg = 'remove-mkdir ' + pp + \
+            ' failed. ' + str(e) + trbk(e)
+        logger.error(msg)
+        raise e
+
 
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
@@ -38,6 +59,7 @@ def writeJsonwithbackup(fp, data):
     with open(fp, mode="w+") as f:
         f.write(js)
 
+basepoolpath = pc['basepoolpath']
 
 class HttpPool(LocalPool):
     """ the pool will save all products in Http server.
@@ -66,13 +88,14 @@ class HttpPool(LocalPool):
         """
         loads a single object of HK
         """
-        fp0 = (self._poolpath)
+        fp0 = self.transformpath(self._poolpath)
         with filelock.FileLock(self.lockpath(), timeout=5):
             fp = pathjoin(fp0, hkobj + '.jsn')
             if op.exists(fp):
                 try:
-                    real_scheme = 'file'
-                    r = getJsonObj(real_scheme + '://' + fp)
+                    with open(fp, 'r') as f:
+                        content = f.read()
+                    r = deserializeClassID(content)
                 except Exception as e:
                     msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
                     logging.error(msg)
@@ -85,7 +108,7 @@ class HttpPool(LocalPool):
         """
         loads and returns the housekeeping data
         """
-        fp0 = (self._poolpath)
+        fp0 = self.transformpath(self._poolpath)
         #import pdb
         # pdb.set_trace()
         with filelock.FileLock(self.lockpath(), timeout=5):
@@ -95,9 +118,9 @@ class HttpPool(LocalPool):
                 fp = pathjoin(fp0, hkdata + '.jsn')
                 if op.exists(fp):
                     try:
-                        real_scheme = 'file'
-                        # r = getJsonObj(self._scheme + '://' + fp)
-                        r = getJsonObj(real_scheme + '://' + fp)
+                        with open(fp, 'r') as f:
+                            content = f.read()
+                        r = deserializeClassID(content)
                     except Exception as e:
                         msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
                         logging.error(msg)
@@ -121,7 +144,7 @@ class HttpPool(LocalPool):
         """
         does the media-specific saving
         """
-        fp0 = self._poolpath
+        fp0 = self.transformpath(self._poolpath)
         fp = pathjoin(fp0, quote(typename) + '_' + str(serialnum))
         try:
             writeJsonwithbackup(fp, data)
@@ -137,14 +160,16 @@ class HttpPool(LocalPool):
         """
 
         with filelock.FileLock(self.lockpath(), timeout=5):
-            real_scheme = 'file://'
-            real_poolurl = self._poolurn.replace(pc['poolprefix'], real_scheme)
-            uri = real_poolurl + '/' + quote(resourcename) + '_' + indexstr
-
+            poolpath = self.transformpath(self._poolpath)
+            filepath = poolpath + '/' + quote(resourcename) + '_' + indexstr
+            # uri = real_poolurl + '/' + quote(resourcename) + '_' + indexstr
             try:
-                p = getJsonObj(uri)
+                # p = getJsonObj(uri)
+                with open(filepath, 'r') as f:
+                    content = f.read()
+                p = deserializeClassID(content)
             except Exception as e:
-                msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
+                msg = 'Load' + filepath + 'failed. ' + str(e) + trbk(e)
                 logger.error(msg)
                 raise e
         return p
@@ -153,7 +178,7 @@ class HttpPool(LocalPool):
         """
         does the scheme-specific part of removal.
         """
-        fp0 = (self._poolpath)
+        fp0 =self.transformpath (self._poolpath)
         fp = pathjoin(fp0,  quote(typename) + '_' + str(serialnum))
         try:
             os.unlink(fp)
@@ -162,34 +187,22 @@ class HttpPool(LocalPool):
             logger.error('Remove ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    @classmethod
-    def wipe(cls, poolpath):
-        """
-        does the scheme-specific remove-all
-        """
+    def transformpath(self, path):
+        """ override this to changes the output from the input one (default) to something else.
 
-        # logger.debug()
-        pp = poolpath
-        if not op.exists(pp):
-            return
-        if op.isdir(pp):
-            with filelock.FileLock(pathjoin(lockpathbase, poolpath, 'lock'), timeout=5):
-                # lock file will be wiped, too. so acquire then release it.
-                pass
-        try:
-            shutil.rmtree(pp)
-            os.mkdir(pp)
-        except Exception as e:
-            msg = 'remove-mkdir ' + pp + \
-                ' failed. ' + str(e) + trbk(e)
-            logger.error(msg)
-            raise e
+        """
+        if basepoolpath != '':
+            if path[0] == '/':
+                path = basepoolpath + path[1:]
+            else:
+                path = basepoolpath + path
+        return path
 
     def schematicWipe(self):
         """
         does the scheme-specific remove-all
         """
-        LocalPool.wipe(self._poolpath)
+        _wipe(self.transformpath(self._poolpath))
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

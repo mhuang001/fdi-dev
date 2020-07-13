@@ -583,20 +583,19 @@ def filesin(dir):
 # Init a global HTTP POOL
 PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
 PoolManager.removeAll()
-checkpath( pc['poolpath'] + pc['defaultpool'] )
-pstore = ProductStorage(pool=pc['poolprefix'] + pc['poolpath'] + pc['defaultpool'] + pc['fdipath'])
+checkpath( pc['basepoolpath'] + pc['defaultpool'] )
+pstore = ProductStorage(pool=pc['poolprefix'] + '/' + pc['defaultpool'])
 def load_all_pools():
     logger.info("Register pools in memory")
-    poolpath = pc['poolprefix'] + pc['poolpath']
-    filepath = pc['poolpath']
+    poolpath = pc['poolprefix'] + pc['basepoolpath']
+    filepath = pc['basepoolpath']
     pools = os.listdir(filepath)
     for pool in pools:
         print("current pool root dir: "  + pool)
-        if os.path.isdir(filepath + pool) and pc['fdipath'][1:] in os.listdir(filepath + pool) \
-         and (pool != pc['defaultpool']):
-            print("Registried: " + poolpath + pool + pc['fdipath'])
-            pstore.register(poolpath + pool + pc['fdipath'])
-            logger.info("Register pool: " +  poolpath + pool + pc['fdipath'])
+        if os.path.isdir(filepath + pool) and (pool != pc['defaultpool']):
+            pstore.register(pc['poolprefix'] + '/' + pool)
+            # print("Registried: " + poolpath + pool)
+            logger.info("Register pool: " +  poolpath + pool)
     logger.info("Register all pools done: ")
     logger.info(pstore.getPools())
 load_all_pools()
@@ -640,13 +639,13 @@ def save_product(data,  paths):
         pool = pool + i + '/'
     pool = pool[0:-1]
     print("Save POOL path: " + pool)
-    poolurn = pc['poolprefix'] + pc['poolpath'] + pool
+    poolurn = pc['poolprefix'] + pc['basepoolpath'] + pool
     print("Real poolurn = " + poolurn)
     try:
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
         PoolManager.removeAll()
         pstore_tmp = ProductStorage(pool = poolurn)
-        result = pstore_tmp.save(product=data, fakepoolurn=pc['poolprefix'] + '/' + pool)
+        result = pstore_tmp.save(product=data)
         if poolurn not in pstore.getPools():
             pstore.register(poolurn)
         msg = ''
@@ -663,7 +662,7 @@ def load_product(paths):
         pool = pool + i + '/'
     pool = pool[0:-1]
     print("POOL path: " + pool)
-    poolurn = pc['poolprefix'] + pc['poolpath'] + pool
+    poolurn = pc['poolprefix']  + '/' + pool
     try:
         if poolurn not in pstore.getPools():
             pstore.register(poolurn)
@@ -672,6 +671,7 @@ def load_product(paths):
     except Exception as e:
         result = 'FAILED'
         msg = 'Exception : ' + str(e)
+        raise e
     return result, msg
 
 def load_metadata(paths):
@@ -680,7 +680,7 @@ def load_metadata(paths):
         pool = pool + i + '/'
     pool = pool[0:-1]
     print('Pool path: ' + pool)
-    poolurn = pc['poolprefix'] + pc['poolpath'] + pool
+    poolurn = pc['poolprefix']  + '/' + pool
     try:
         if poolurn not  in pstore.getPools():
             pstore.register(poolurn)
@@ -698,7 +698,7 @@ def load_singer_metadata(paths):
             pool = pool + i + '/'
         pool = pool[0:-1]
         print("POOL path: " + pool)
-        poolurn = pc['poolprefix'] + pc['poolpath'] + pool
+        poolurn = pc['poolprefix']  + '/' + pool
         try:
             if poolurn not  in pstore.getPools():
                 pstore.register(poolurn)
@@ -718,7 +718,7 @@ def get_pool_info(poolid):
     '''
     method = request.method
     logger.debug(method + '  of  target poolid. %s' % (poolid) )
-    filepath = pc['poolpath'] + poolid + pc['fdipath']
+    filepath = pc['basepoolpath'] + poolid
     poolname_in_store = pc['poolprefix']  + filepath
     ts = time.time()
     if method == 'GET':
@@ -769,7 +769,7 @@ def get_pool_info(poolid):
             msg =  'DELETE ' + poolid + ' failed, wrong poolid:' + poolid
     if method == 'POST':
         if request.data:
-            checkpath(pc['poolpath'] + poolid)
+            checkpath(pc['basepoolpath'] + poolid)
             p = checkpath(filepath)
             if p is None:
                 result = 'FAILED'
@@ -848,12 +848,12 @@ def query_pstore(query):
     return pstore.select(q)
 
 def urn_to_client(urn):
-    # return urn.replace('http://192.168.1.11:5000' + pc['poolpath'], '')
-    return urn.replace('file://' + pc['poolpath'], '')
+    # return urn.replace('http://192.168.1.11:5000' + pc['basepoolpath'], '')
+    return urn.replace('file://' + pc['basepoolpath'], '')
 
 def client_to_urn(urn):
     client_fields = urn.split(':')
-    return client_fields[0] + ':' + 'file://' + pc['poolpath'] + client_fields[1] + ':'+ client_fields[2]+ ':' + client_fields[3]
+    return client_fields[0] + ':' + 'file://' + pc['basepoolpath'] + client_fields[1] + ':'+ client_fields[2]+ ':' + client_fields[3]
 
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
 def getinfo(cmd):

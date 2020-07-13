@@ -5,6 +5,7 @@ from .productpool import ProductPool
 from .urn import Urn
 from ..dataset.odict import ODict
 import collections
+import getpass
 
 import logging
 # create logger
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 #from .productpool import ProductPool
-
+DefaultPool = 'file:///tmp/pool_' + getpass.getuser()
 
 class ProductStorage(object):
     """ Logical store created from a pool or a poolURN.
@@ -21,9 +22,12 @@ class ProductStorage(object):
     Every instanciation with the same pool will  result in a new instance of ProdStorage.
     """
 
-    def __init__(self, pool='file:///tmp/pool', **kwds):
+    def __init__(self, pool=None, **kwds):
         """ input is a pool urn
         """
+        if not pool:
+            pool = DefaultPool
+
         super(ProductStorage, self).__init__(**kwds)
         self._pools = ODict()  # dict of pool-urn keys
         self.register(pool)
@@ -193,7 +197,7 @@ class ProductStorage(object):
         if poolurn not in self._pools:
             raise ValueError('pool ' + poolurn + ' not found')
         sp = poolurn.split('://')
-        if sp[0] != 'file':
+        if sp[0] not in ['file', 'http', 'https']:
             raise ValueError(sp[0] + ':// is not supported')
         self._pools[poolurn].removeAll()
 

@@ -39,8 +39,6 @@ class HttpClientPool(ProductPool):
 
         logger.debug(self._poolpath)
 
-        # TODO: here check if local path exists, but read from remote , is it normal?
-        #  If users use WIndows how to resolve path?
         real_poolpath = self.transformpath(self._poolpath)
         logger.debug(real_poolpath)
         if not op.exists(real_poolpath):
@@ -77,7 +75,7 @@ class HttpClientPool(ProductPool):
         #         hk[hkdata] = r
         # logger.debug('LocalPool HK read from ' + self._poolpath)
         poolurn = self._poolurn
-        print("READ HK FROM REMOTE===>poolurl: " + poolurn )
+        # print("READ HK FROM REMOTE===>poolurl: " + poolurn )
         hk = {}
         for hkdata in ['classes', 'tags', 'urns']:
             try:
@@ -121,7 +119,7 @@ class HttpClientPool(ProductPool):
         """
         poolurn = self._poolurn
         uri = poolurn + '/' +  resourcename + '_' + indexstr
-        print("READ PRODUCT FROM REMOTE===>poolurl: " + poolurn )
+        # print("READ PRODUCT FROM REMOTE===>poolurl: " + poolurn )
         try:
             prod = read_from_server(urn)
         except Exception as e:

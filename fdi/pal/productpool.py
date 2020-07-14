@@ -230,7 +230,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise(NotImplementedError)
 
-    def saveProduct(self,  product, tag=None, geturnobjs=False, isHttpSave=False):
+    def saveProduct(self,  product, tag=None, geturnobjs=False):
         """
         Saves specified product and returns the designated ProductRefs or URNs.
         Saves a product or a list of products to the pool, possibly under the

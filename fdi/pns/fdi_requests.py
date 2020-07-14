@@ -68,7 +68,7 @@ def save_to_server(data, urn):
     password = pcc['auth_pass']
     auth = HTTPBasicAuth(user, password)
     api = urn2fdiurl(urn, contents='product', method='POST')
-    print('POST API: ' + api)
+    # print('POST API: ' + api)
     res = requests.post(api, auth=auth, data=serializeClassID(data))
     return res
 
@@ -78,7 +78,7 @@ def read_from_server(poolurn, contents='product'):
     password = pcc['auth_pass']
     auth = HTTPBasicAuth(user, password)
     api = urn2fdiurl(poolurn, contents)
-    print("GET REQUEST API: " + api)
+    # print("GET REQUEST API: " + api)
     x = requests.get(api, auth=auth)
     result = deserializeClassID(x.text)
     return result['result']

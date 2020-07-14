@@ -227,7 +227,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise(NotImplementedError)
 
-    def saveProduct(self,  product, tag=None, geturnobjs=True):
+    def saveProduct(self,  product, tag=None, geturnobjs=False):
         """
         Saves specified product and returns the designated ProductRefs or URNs.
         Saves a product or a list of products to the pool, possibly under the
@@ -298,11 +298,11 @@ When implementing a ProductPool, the following rules need to be applied:
                     # undo changes
                     c, t, u = cs, ts, us
                     raise e
-                    
+
             if geturnobjs:
                 res.append(urnobj)
             else:
-                rf = ProductRef(urn=urnobj, fakepoolurn=fakepoolurn)
+                rf = ProductRef(urn=urnobj)
                 # it seems that there is no better way to set meta
                 rf._meta = prd.getMeta()
                 rf._poolurn = self._poolurn

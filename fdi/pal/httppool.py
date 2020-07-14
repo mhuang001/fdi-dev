@@ -53,12 +53,14 @@ def _wipe(poolpath):
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
     """
+    print('WRITE DATA AT: ' + fp)
     if op.exists(fp):
         os.rename(fp, fp + '.old')
     js = serializeClassID(data)
     with open(fp, mode="w+") as f:
         f.write(js)
-
+    logger.debug('Product saved at: ' + fp)
+    
 basepoolpath = pc['basepoolpath']
 
 class HttpPool(LocalPool):
@@ -162,9 +164,7 @@ class HttpPool(LocalPool):
         with filelock.FileLock(self.lockpath(), timeout=5):
             poolpath = self.transformpath(self._poolpath)
             filepath = poolpath + '/' + quote(resourcename) + '_' + indexstr
-            # uri = real_poolurl + '/' + quote(resourcename) + '_' + indexstr
             try:
-                # p = getJsonObj(uri)
                 with open(filepath, 'r') as f:
                     content = f.read()
                 p = deserializeClassID(content)

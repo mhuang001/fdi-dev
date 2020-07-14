@@ -591,7 +591,6 @@ def load_all_pools():
     filepath = pc['basepoolpath']
     pools = os.listdir(filepath)
     for pool in pools:
-        print("current pool root dir: "  + pool)
         if os.path.isdir(filepath + pool) and (pool != pc['defaultpool']):
             pstore.register(pc['poolprefix'] + '/' + pool)
             # print("Registried: " + poolpath + pool)
@@ -605,7 +604,6 @@ load_all_pools()
 def httppool(pool):
     paths = pool.split('/')
     ts = time.time()
-    print("REQUEST PARSER PATH: "+ str(paths))
     if request.method == 'GET':
         if paths[-1] in ['classes', 'urns', 'tags']: # Retrieve single metadata
             result, msg = load_singer_metadata(paths)
@@ -618,6 +616,7 @@ def httppool(pool):
         else:
             result = ''
             msg = 'Unknow request: ' + pool
+    # TODO: add an argument to choose if return Prodref or urnortag
     if request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
         data = deserializeClassID(request.data)
         result = save_product(data, paths)
@@ -638,9 +637,8 @@ def save_product(data,  paths):
     for i in paths[0: -2]:
         pool = pool + i + '/'
     pool = pool[0:-1]
-    print("Save POOL path: " + pool)
-    poolurn = pc['poolprefix'] + pc['basepoolpath'] + pool
-    print("Real poolurn = " + poolurn)
+    # print("Save to POOL : " + pool)
+    poolurn = pc['poolprefix'] + '/' + pool
     try:
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
         PoolManager.removeAll()
@@ -652,7 +650,6 @@ def save_product(data,  paths):
     except Exception as e:
         result = 'FAILED'
         msg = 'Exception : ' + str(e)
-        raise e
     return result, msg
 
 
@@ -661,7 +658,6 @@ def load_product(paths):
     for i in paths[0: -2]:
         pool = pool + i + '/'
     pool = pool[0:-1]
-    print("POOL path: " + pool)
     poolurn = pc['poolprefix']  + '/' + pool
     try:
         if poolurn not in pstore.getPools():
@@ -671,7 +667,6 @@ def load_product(paths):
     except Exception as e:
         result = 'FAILED'
         msg = 'Exception : ' + str(e)
-        raise e
     return result, msg
 
 def load_metadata(paths):
@@ -679,7 +674,6 @@ def load_metadata(paths):
     for i in paths[0:-1]:
         pool = pool + i + '/'
     pool = pool[0:-1]
-    print('Pool path: ' + pool)
     poolurn = pc['poolprefix']  + '/' + pool
     try:
         if poolurn not  in pstore.getPools():
@@ -697,7 +691,6 @@ def load_singer_metadata(paths):
         for i in paths[0: -2]:
             pool = pool + i + '/'
         pool = pool[0:-1]
-        print("POOL path: " + pool)
         poolurn = pc['poolprefix']  + '/' + pool
         try:
             if poolurn not  in pstore.getPools():
@@ -709,151 +702,7 @@ def load_singer_metadata(paths):
             msg = 'Exception : ' + str(e)
         return result, msg
 
-@app.route(pc['baseurl'] + pc['httppoolurl'] + '/<string:poolid>', methods=['GET', 'DELETE', 'POST'])
-@auth.login_required
-def get_pool_info(poolid):
-    ''' GET: returns info of  target poolid for or a product if you specify resourcename and indexstr in args.
-        DELETE: delete a pool .
-        POST: post data into a new pool
-    '''
-    method = request.method
-    logger.debug(method + '  of  target poolid. %s' % (poolid) )
-    filepath = pc['basepoolpath'] + poolid
-    poolname_in_store = pc['poolprefix']  + filepath
-    ts = time.time()
-    if method == 'GET':
-        if not os.path.exists(filepath):
-            result = 'FAILED'
-            msg =  'No such pool or pool is empty: ' + poolid
-        elif request.args.get('resourcename') and request.args.get('indexstr'):
-            pool_content = os.listdir(filepath + '/')
-            if poolname_in_store in pstore.getPools():
-                try:
-                    urn = makeUrn(poolname_in_store, request.args.get('resourcename'), request.args.get('indexstr'))
-                    print('URN:' + urn)
-                    prod = pstore.getPool(poolname_in_store).loadProduct(urn)
-                    result = prod
-                    msg = ''
-                except Exception as e:
-                    result = 'FAILED'
-                    msg = 'Load data failed caused by: ' + str(e)
-            else:
-                result = 'FAILED'
-                msg = 'No such pool in product store:' + poolname_in_store
-        else:
-            pool_content = os.listdir(filepath + '/')
-            if 'classes.jsn' in pool_content:
-                with open(filepath+'/' + 'classes.jsn') as fp:
-                    content = json.load(fp)
-                result = content
-                msg = ''
-            else:
-                result = ''
-                msg =  'No data found in pool: ' + poolid
 
-    if method == 'DELETE':
-        if poolid[0] != '/' and poolid != '' and os.path.exists(filepath):
-            try:
-                shutil.rmtree(filepath)
-                os.mkdir(filepath)
-                result = ''
-                msg =  'DELETE ' + poolid + ' done.'
-            except Exception as e:
-                result = ''
-                msg = 'remove-mkdir ' + poolid + ' failed. ' + str(e)
-                logger.error(msg)
-                raise e
-        else:
-            logger.error('Delete poolid failed, poolid is not expceted: ' + poolid)
-            result = ''
-            msg =  'DELETE ' + poolid + ' failed, wrong poolid:' + poolid
-    if method == 'POST':
-        if request.data:
-            checkpath(pc['basepoolpath'] + poolid)
-            p = checkpath(filepath)
-            if p is None:
-                result = 'FAILED'
-                msg = 'Save to ' + poolname_in_store + ' failed.'
-                abort(401)
-            else:
-                # poolpath = pc['poolprefix'] + str(p)
-                PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-                PoolManager.removeAll()
-                pstore_tmp = ProductStorage(pool = poolname_in_store)
-                prod = deserializeClassID(request.data)
-                prodref = pstore_tmp.save(prod)
-                if poolname_in_store not in pstore.getPools():
-                    pstore.register(poolname_in_store)
-                result = prodref.urn
-                msg =  'Save to ' + poolname_in_store + ' with successfully.'
-        else:
-            logger.error('POST data failed: No data found in request !')
-            result = 'FAILED'
-            msg = 'No data found in request.'
-
-    w = {'result':result, 'msg': msg, 'timestamp': ts}
-    s = serializeClassID(w)
-    logger.debug(s[:] + '...')
-    resp = make_response(s)
-    resp.headers['Content-Type'] = 'application/json'
-    return resp
-
-@app.route(pc['baseurl'] + pc['httppoolurl'] + '/query', methods=['POST'])
-@auth.login_required
-def query_pools():
-    ''' Query current product storage and return the results
-    '''
-    ts = time.time()
-    logger.info("Query current product storage and return the results")
-    print(pstore._pools)
-    if len(pstore.getPools()) == 0:
-        result = 'FAILED'
-        msg = 'No pool is registried, please registry a pool firstly.'
-    else:
-        if request.data:
-            query = deserializeClassID(request.data)
-            res = query_pstore(query)
-            if res:
-                result = ''
-                msg = res
-            else:
-                result = 'FAILED'
-                msg = 'Exception when parsing query in request.'
-        else:
-            result = 'FAILED'
-            msg = 'No query found.'
-
-    w = {'result': result, 'msg': msg, 'timestamp': ts}
-    s = serializeClassID(w)
-    logger.debug(s[:] + '...')
-    resp = make_response(s)
-    resp.headers['Content-Type'] = 'application/json'
-    return resp
-
-def query_pstore(query):
-    query_type = query.get('type')
-    query_where = "'" + query.get('where') + "'"
-    query_version = query.get('allVersions')
-    query_variable = query.get('variable')
-    if query_type != None and query_where != None and query_version != None:
-        if query_type == pc['metaquery']:
-            q = MetaQuery(product = Product,  where = query_where, allVersions = query_version)
-            logger.info(query_where)
-        elif query_type == pc['abstractquery']:
-            q = AbstractQuery(product = Product, variable = query_variable,  where = query_where, allVersions = query_version)
-        else:
-            return None
-    else:
-        return None
-    return pstore.select(q)
-
-def urn_to_client(urn):
-    # return urn.replace('http://192.168.1.11:5000' + pc['basepoolpath'], '')
-    return urn.replace('file://' + pc['basepoolpath'], '')
-
-def client_to_urn(urn):
-    client_fields = urn.split(':')
-    return client_fields[0] + ':' + 'file://' + pc['basepoolpath'] + client_fields[1] + ':'+ client_fields[2]+ ':' + client_fields[3]
 
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
 def getinfo(cmd):

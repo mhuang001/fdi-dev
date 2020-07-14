@@ -17,7 +17,7 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 
-    def __init__(self, urn=None, poolurn=None, product=None, meta=None, fakepoolurn=None, **kwds):
+    def __init__(self, urn=None, poolurn=None, product=None, meta=None, **kwds):
         """ Urn can be the string or URNobject. if product is provided create an in-memory URN.
         Poolurn if given overrides the pool URN in urn, and causes metadata to be loaded from pool, unloss this prodref points to a mempool.
         If meta is given, it will be used instead of that from poolurn.
@@ -42,7 +42,7 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
             poolurn = DEFAULT_MEM_POOL
             pool = PoolManager.getPool(poolurn)
             st = productstorage.ProductStorage(pool)
-            urnobj = st.save(product, geturnobjs=True)
+            urnobj = st.save(product)
             # a lone product passed to prodref will be stored to mempool
 
         self.setUrnObj(urnobj, poolurn, meta)

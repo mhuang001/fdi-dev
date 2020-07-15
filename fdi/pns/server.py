@@ -599,7 +599,7 @@ def load_all_pools():
     logger.info(pstore.getPools())
 load_all_pools()
 
-@app.route(pc['baseurl']+'/<path:pool>', methods=['GET', 'POST'])
+@app.route(pc['baseurl']+pc['httppoolurl'] +'/<path:pool>', methods=['GET', 'POST', 'DELETE'])
 @auth.login_required
 def httppool(pool):
     paths = pool.split('/')
@@ -619,8 +619,13 @@ def httppool(pool):
     # TODO: add an argument to choose if return Prodref or urnortag
     if request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
         data = deserializeClassID(request.data)
-        result = save_product(data, paths)
-        msg = ''
+        result, msg = save_product(data, paths)
+
+    if request.method == 'DELETE' :
+        if paths[-1].isnumeric():
+            result, msg = delete_product(paths)
+        else:
+            result, msg = delete_pool(paths)
 
     w = {'result':result, 'msg': msg, 'timestamp': ts}
     s = serializeClassID(w)
@@ -628,6 +633,49 @@ def httppool(pool):
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
+
+def delete_product(paths):
+    pool = ''
+    typename = paths[-2]
+    index = str(paths[-1])
+    for i in paths[0: -2]:
+        pool = pool + i + '/'
+    pool = pool[0:-1]
+    poolurn = pc['poolprefix'] + '/' + pool
+    urn = makeUrn(poolurn, paths[-2], paths[-1])
+    logger.debug('DELETE product urn: ' + urn)
+    try:
+        if poolurn in pstore.getPools():
+            pstore.getPool(poolurn).remove(urn)
+            result = ''
+            msg = 'remove product ' + urn + ' OK.'
+        else:
+            result = 'FAILED'
+            msg = 'No such pool : ' + poolurn
+    except Exception as e:
+        result = 'FAILED'
+        msg = 'Unable to remove product: ' + urn + ' caused by ' + str(e)
+    return result, msg
+
+def delete_pool(paths):
+    pool = ''
+    for i in paths:
+        pool = pool + i + '/'
+    pool = pool[0:-1]
+    poolurn = pc['poolprefix'] + '/' + pool
+    logger.debug('DELETE POOLURN' + poolurn)
+    try:
+        if poolurn in pstore.getPools():
+            pstore.getPool(poolurn).schematicWipe()
+            result = ''
+            msg = 'Wipe pool ' + poolurn + ' OK.'
+        else:
+            result = 'FAILED'
+            msg = 'No such pool : ' + poolurn
+    except Exception as e:
+        result = 'FAILED'
+        msg = 'Unable to wipe pool: ' + poolurn + ' caused by ' + str(e)
+    return result, msg
 
 def save_product(data,  paths):
     # poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(urn)
@@ -637,13 +685,16 @@ def save_product(data,  paths):
     for i in paths[0: -2]:
         pool = pool + i + '/'
     pool = pool[0:-1]
-    # print("Save to POOL : " + pool)
     poolurn = pc['poolprefix'] + '/' + pool
     try:
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
         PoolManager.removeAll()
+        # TODO: I find a bug, if file is locked, the data will not be saved , but prodref still return, errors is not return correctly
         pstore_tmp = ProductStorage(pool = poolurn)
         result = pstore_tmp.save(product=data)
+        # if makesure_save(pool, ):
+        #     result = 'FAILED'
+        #     msg = 'File is locked, please try again in a little while.'
         if poolurn not in pstore.getPools():
             pstore.register(poolurn)
         msg = ''
@@ -702,7 +753,10 @@ def load_singer_metadata(paths):
             msg = 'Exception : ' + str(e)
         return result, msg
 
-
+def makesure_save(pool):
+    """
+    make sure that product is saved
+    """
 
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
 def getinfo(cmd):

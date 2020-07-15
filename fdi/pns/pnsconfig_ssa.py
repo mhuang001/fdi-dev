@@ -13,8 +13,6 @@ pnsconfig['baseurl'] = '/v0.6'
 pnsconfig['httppoolurl'] = '/httppool'
 pnsconfig['basepoolpath'] = '/data/'
 pnsconfig['defaultpool'] = 'pool_default'
-pnsconfig['metaquery'] = 'MetaQuery'
-pnsconfig['abstractquery'] = 'AbstractQuery'
 
 dev = True
 if dev:

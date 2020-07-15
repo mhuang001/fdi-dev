@@ -67,9 +67,7 @@ class LocalPool(ProductPool):
         """
         # print(__name__ + str(kwds))
         super(LocalPool, self).__init__(**kwds)
-        print("self pool path: " + self._poolpath)
         real_poolpath = self.transformpath(self._poolpath)
-
         logger.debug(real_poolpath)
         if not op.exists(real_poolpath):
             os.mkdir(real_poolpath)

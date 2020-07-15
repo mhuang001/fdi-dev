@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 # lockpathbase = 'tmp/locks_' + getpass.getuser()
-lockpathbase = '/tmp/locks'
+lockpathbase = '/tmp/locks1'
 
 
 class ProductPool(Definable, Taggable, Versionable):
@@ -196,7 +196,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 del c[prod]
             try:
                 self.schematicRemove(typename=prod,
-                                     serialnum=sn)
+                                     serialnum=sn, urn=urn)
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)
@@ -278,7 +278,6 @@ When implementing a ProductPool, the following rules need to be applied:
                 else:
                     sn = 0
                     c[pn] = ODict(sn=[])
-
                 c[pn]['currentSN'] = sn
                 c[pn]['sn'].append(sn)
 

@@ -11,6 +11,7 @@ pnsconfig = dict(logginglevel=logging.INFO)
 pnsconfig['baseurl'] = '/v0.6'
 pnsconfig['auth_user'] = 'gsegment'
 pnsconfig['auth_pass'] = '123456'
+pnsconfig['httppoolurl'] = '/httppool'
 
 # base url for pool, you must have permission of this path, for example : /home/user/Documents
 # this base pool path will be added at the beginning of your pool urn when you init a pool like:

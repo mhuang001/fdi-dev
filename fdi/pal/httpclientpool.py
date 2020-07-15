@@ -79,11 +79,13 @@ class HttpClientPool(ProductPool):
         hk = {}
         for hkdata in ['classes', 'tags', 'urns']:
             try:
-                r = read_from_server(poolurn, hkdata)
+                r, msg = read_from_server(poolurn, hkdata)
+                if r == 'FAILED':
+                    raise Exception(msg)
             except Exception as e:
-                msg = 'Error in HK reading from server ' + poolurn
-                logging.error(msg)
-                raise Exception(msg)
+                err = 'Error in HK reading from server ' + poolurn
+                logging.error(err)
+                raise Exception(err)
             hk[hkdata] = r
 
         return hk['classes'], hk['tags'], hk['urns']
@@ -99,16 +101,22 @@ class HttpClientPool(ProductPool):
 
     def schematicSave(self, typename, serialnum, data, urn):
         """
-        does the media-specific saving
+        does the media-specific saving to remote server
+        save metadata at localpool
         """
         fp0 = self.transformpath(self._poolpath)
         fp = pathjoin(fp0, typename + '_' + str(serialnum))
 
         try:
-            # writeJsonwithbackup(fp, data)
-            self.writeHK(fp0)
             res = save_to_server(data, urn)
-            logger.debug('HK written in remote server done')
+            if  res['result'] == 'FAILED':
+                # print('Save' + fp + ' to server failed. ' + res['msg'])
+                logger.error('Save ' + fp + ' to server failed. ' + res['msg'])
+                raise Exception(res['msg'])
+            else:
+                self.writeHK(fp0)
+                logger.debug('Saved to server done, HK written in local done')
+            logger.debug('Product written in remote server done')
         except IOError as e:
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
@@ -121,22 +129,33 @@ class HttpClientPool(ProductPool):
         uri = poolurn + '/' +  resourcename + '_' + indexstr
         # print("READ PRODUCT FROM REMOTE===>poolurl: " + poolurn )
         try:
-            prod = read_from_server(urn)
+            res, msg = read_from_server(urn)
+            if res == 'FAILED':
+                # print('Load' + uri + 'failed. ' + res['msg'])
+                logger.error('Load' + uri + 'failed. ' + msg)
+                prod = dict()
+            else:
+                prod = res
         except Exception as e:
-            msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
-            logger.error(msg)
+            err = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
+            logger.error(err)
             raise e
         return prod
 
-    def schematicRemove(self, typename, serialnum):
+    def schematicRemove(self, typename, serialnum, urn):
         """
         does the scheme-specific part of removal.
         """
-        fp0 = (self._poolpath)
+        fp0 = self.transformpath(self._poolpath)
         fp = pathjoin(fp0, typename + '_' + str(serialnum))
         try:
-            os.unlink(fp)
-            self.writeHK(fp0)
+            res, msg = delete_from_server(urn)
+            if res != 'FAILED':
+                # os.unlink(fp)
+                self.writeHK(fp0)
+            else:
+                logger.error('Remove from server ' + fp + 'failed. Caused by: ' + msg)
+                raise msg
         except IOError as e:
             logger.error('Remove ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
@@ -145,22 +164,22 @@ class HttpClientPool(ProductPool):
         """
         does the scheme-specific remove-all
         """
-
         # logger.debug()
-        pp = (self._poolpath)
+        pp = self.transformpath (self._poolpath)
         if not op.exists(pp):
             return
-        if op.isdir(pp):
-            with filelock.FileLock(self.lockpath(), timeout=5):
-                # lock file will be wiped, too. so acquire then release it.
-                pass
         try:
-            shutil.rmtree(self._poolpath)
-            os.mkdir(pp)
+            res, msg = delete_from_server(self._poolurn, 'pool')
+            if res != 'FAILED':
+                shutil.rmtree(pp)
+                os.mkdir(pp)
+            else:
+                logger.error(msg)
+                raise msg
         except Exception as e:
-            msg = 'remove-mkdir ' + self._poolpath + \
+            err  = 'remove-mkdir ' + self._poolpath + \
                 ' failed. ' + str(e) + trbk(e)
-            logger.error(msg)
+            logger.error(err)
             raise e
 
     def transformpath(self, path):

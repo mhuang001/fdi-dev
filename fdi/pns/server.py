@@ -599,6 +599,11 @@ def load_all_pools():
     logger.info(pstore.getPools())
 load_all_pools()
 
+@app.route(pc['baseurl']+pc['httppoolurl'])
+def get_pools():
+    return str(pstore.getPools())
+
+
 @app.route(pc['baseurl']+pc['httppoolurl'] +'/<path:pool>', methods=['GET', 'POST', 'DELETE'])
 @auth.login_required
 def httppool(pool):

@@ -730,9 +730,8 @@ def test_realistic():
     poolpath = '/tmp/realpool'
     poolname = 'file://'+poolpath
     # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
-    LocalPool.wipe(poolpath)
     pstore = ProductStorage(pool=poolname)  # on disk
-
+    pstore.wipe(poolname)
     p1 = Product(description='p1')
     p2 = Product(description='p2')
     map1 = MapContext(description='product with refs 1')

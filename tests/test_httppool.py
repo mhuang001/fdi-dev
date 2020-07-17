@@ -2,7 +2,9 @@
 import sys
 import base64
 from urllib.request import pathname2url
+from requests.auth import HTTPBasicAuth
 import requests
+import random
 import os
 import pkg_resources
 import copy
@@ -10,24 +12,30 @@ import time
 
 # This is to be able to test w/ or w/o installing the package
 # https://docs.python-guide.org/writing/structure/
-from .pycontext import spdc
+# from .pycontext import spdc
+if __name__ == '__main__' and __package__ is None:
+    pass
+else:
+    # This is to be able to test w/ or w/o installing the package
+    # https://docs.python-guide.org/writing/structure/
+    # from .pycontext import fdi
 
-from .logdict import doLogging, logdict
-if doLogging:
+    from .logdict import logdict
     import logging
     import logging.config
     # create logger
     logging.config.dictConfig(logdict)
     logger = logging.getLogger()
-    logging.getLogger("requests").setLevel(logging.WARN)
-    logging.getLogger("urllib3").setLevel(logging.WARN)
-    logging.getLogger("filelock").setLevel(logging.WARN)
+    logger.debug('%s logging level %d' %
+                 (__name__, logger.getEffectiveLevel()))
+    logging.getLogger("filelock").setLevel(logging.WARNING)
 
-from spdc.pns.common import getJsonObj, postJsonObj, putJsonObj, commonheaders
-from spdc.pns.options import opt
+from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
+from fdi.utils.options import opt
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
-from spdc.pns.pnsconfig import pnsconfig as pc
+from fdi.pns.pnsconfig_ssa import pnsconfig as pc
+
 import sys
 from os.path import expanduser, expandvars
 env = expanduser(expandvars('$HOME'))
@@ -37,25 +45,22 @@ try:
 except Exception:
     pass
 
-if doLogging:
-    logger.setLevel(pc['logginglevel'])
-    logger.debug('level %d' % (logger.getEffectiveLevel()))
-
-from spdc.pns import server
-from spdc.dataset.odict import ODict
-from spdc.dataset.serializable import serializeClassID, serializeClassID
-from spdc.dataset.product import Product
-from spdc.dataset.metadata import NumericParameter
-from spdc.dataset.deserialize import deserializeClassID
-from spdc.dataset.dataset import ArrayDataset, GenericDataset
-from spdc.dataset.eq import deepcmp
+from fdi.pns import server
+from fdi.dataset.odict import ODict
+from fdi.dataset.serializable import serializeClassID, serializeClassID
+from fdi.dataset.product import Product
+from fdi.dataset.metadata import NumericParameter
+from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.serializable import serializeClassID
+from fdi.dataset.dataset import ArrayDataset, GenericDataset
+from fdi.dataset.eq import deepcmp
 
 import pytest
 
 
 @pytest.fixture(scope="module")
 def runserver():
-    from spdc.pns.runflaskserver import app
+    from fdi.pns.runflaskserver import app
     app.run(host='127.0.0.1', port=5000,
             threaded=False, debug=verbose, processes=5)
 
@@ -75,6 +80,10 @@ del up, code
 # last timestamp/lastUpdate
 lupd = 0
 
+api_baseurl = pc['poolprefix'] + pc['baseurl'] + pc['httppoolurl']
+auth_user = 'gsegment'
+auth_pass = '123456'
+poolid = '/test_pool'
 
 if 0:
     poststr = 'curl -i -H "Content-Type: application/json" -X POST --data @%s http://localhost:5000%s --user %s'
@@ -138,7 +147,7 @@ def checkContents(cmd, filename):
 
 
 def test_serverinit():
-    """ server unit test for put init. 
+    """ server unit test for put init.
     this is conflict with put testinit. will condition the server for running the PTS, not suitable for running other test
     """
     ret, sta = server.initPTS(None)
@@ -188,7 +197,7 @@ def test_getinit():
     logger.info('get initPTS')
     c = 'init'
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
-    fn = pkg_resources.resource_filename("spdc.pns.resources", n)
+    fn = pkg_resources.resource_filename("fdi.pns.resources", n)
     checkContents(cmd='/' + c, filename=fn + '.ori')
 
 
@@ -198,35 +207,184 @@ def test_getrun():
     logger.info('get run')
     c = 'run'
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
-    fn = pkg_resources.resource_filename("spdc.pns.resources", n)
+    fn = pkg_resources.resource_filename("fdi.pns.resources", n)
     checkContents(cmd='/' + c, filename=fn + '.ori')
 
+# TEST HTTPPOOL  API
+def get_files(poolid):
+    basepoolpath = pc['basepoolpath']
+    path = basepoolpath + poolid
+    if os.path.exists(path):
+        files = os.listdir(path)
+    else:
+        files = []
+    return files
 
-def test_putconfigpns():
-    """ send signatured pnsconfig and check.
-    this function is useless for a stateless server
-    """
-    t = test_getpnsconfig()
-    t['testing'] = 'yes'
-    d = {'timeout': 5, 'input': t}
-    # print(nodetestinput)
-    o = putJsonObj(aburl +
-                   '/pnsconf',
-                   d,
-                   headers=commonheaders)
-    # put it back not to infere other tests
-    del t['testing']
-    d = {'timeout': 5, 'input': t}
-    p = putJsonObj(aburl +
-                   '/pnsconf',
-                   d,
-                   headers=commonheaders)
+def check_response(o, failed_case=False):
+    global lupd
+    assert o is not None, "Server is having trouble"
+    if not failed_case:
+        assert 'FAILED' !=  o['result'], o['result']
+    else:
+        assert 'FAILED' == o['result'], o['result']
+    assert o['timestamp'] > lupd
+    lupd = o['timestamp']
 
-    issane(o)
-    assert o['result']['testing'] == 'yes', o['message']
-    assert 'testing' not in pc, str(pc)
-    issane(p)
-    assert 'testing' not in p['result']
+def test_save_product():
+    ''' test saving products API, products will be saved at /data/pool_id
+    '''
+    logger.info('save products')
+    origin_prod = 0
+    files = get_files(poolid[1:])
+    for f in files:
+        if f[-1].isnumeric():
+            origin_prod = origin_prod + 1
+    creators = ['Todds', 'Cassandra', 'Jane', 'Owen', 'Julian', 'Maurice']
+    instruments = ['fatman', 'herscherl', 'NASA', 'CNSC', 'SVOM']
+    for index,i in enumerate(creators):
+        x = Product(description='desc ' + str(index), instrument=random.choice(instruments))
+        x.creator = i
+        data = serializeClassID(x)
+        url = api_baseurl + poolid + '/fdi.dataset.product.Product/' + str(index)
+        x = requests.post(url, auth=HTTPBasicAuth(auth_user, auth_pass), data = data)
+        o = deserializeClassID(x.text)
+        check_response(o)
+    files = get_files(poolid[1:])
+    num_prod = 0
+    for f in files:
+        if f[-1].isnumeric():
+            num_prod = num_prod + 1
+    assert num_prod == len(creators) + origin_prod, 'Products number not match'
+
+def test_read_product():
+    prodpath = '/fdi.dataset.product.Product/0'
+    url = api_baseurl + poolid + prodpath
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserializeClassID(x.text)
+    check_response(o)
+    assert o['result'].creator == 'Todds', 'Creator not match'
+
+async def lock_pool(sec):
+    import filelock
+    import time
+    with filelock.FileLock('/tmp/locks' + poolid + '/lock'):
+        await asyncio.sleep(sec)
+    fakeres = '{"result": "OK", "msg": "", "timestamp": '+ str(time.time()) + '}'
+    return deserializeClassID(fakeres)
+
+async def read_product():
+    prodpath = '/fdi.dataset.product.Product/0'
+    url = api_baseurl + poolid + prodpath
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, auth=aiohttp.BasicAuth(auth_user, auth_pass)) as res:
+            x = await res.text()
+            o = deserializeClassID(x)
+    return o
+
+def test_lock_file():
+    import asyncio
+    import aiohttp
+    try:
+        loop = asyncio.get_event_loop()
+        tasks = [asyncio.ensure_future(lock_pool(14)), asyncio.ensure_future(read_product())]
+        taskres = loop.run_until_complete(asyncio.wait(tasks))
+        loop.close()
+        res = [f.result() for f in [x for x in taskres][0]]
+        check_response(res[0], True)
+    except Exception as e:
+        print('Error: unable to start thread ' + str(e))
+        raise e
+
+def test_read_hk():
+    hkpath = '/hk'
+    url = api_baseurl + poolid + hkpath
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserializeClassID(x.text)
+    check_response(o)
+    assert o['result']['classes'] is not None, 'Classes jsn read failed'
+    assert o['result']['tags'] is not None, 'Tags jsn read failed'
+    assert o['result']['urns'] is not None, 'Urns jsn read failed'
+
+def test_read_classes():
+    hkpath = '/hk/classes'
+    url = api_baseurl + poolid + hkpath
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserializeClassID(x.text)
+    check_response(o)
+
+def test_read_tags():
+    hkpath = '/hk/tags'
+    url = api_baseurl + poolid + hkpath
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserializeClassID(x.text)
+    check_response(o)
+
+def test_read_urns():
+    hkpath = '/hk/urns'
+    url = api_baseurl + poolid + hkpath
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserializeClassID(x.text)
+    check_response(o)
+
+def test_remove_product():
+    origin_prod = 0
+    files = get_files(poolid[1:])
+    for f in files:
+        if f[-1].isnumeric():
+            origin_prod = origin_prod + 1
+    url = api_baseurl + poolid + '/fdi.dataset.product.Product/1'
+    x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserializeClassID(x.text)
+    check_response(o)
+    num_prod = 0
+    files = get_files(poolid[1:])
+    for f in files:
+        if f[-1].isnumeric():
+            num_prod = num_prod + 1
+    assert num_prod + 1 == origin_prod, 'Remove product failed'
+
+def test_remove_pool():
+    files = get_files(poolid[1:])
+    assert len(files) != 0, 'Pool is already empty: ' + poolid
+
+    url = api_baseurl + poolid
+    x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserializeClassID(x.text)
+    check_response(o)
+
+    files = get_files(poolid[1:])
+    assert len(files) == 0, 'Wipe pool failed: ' + o['msg']
+
+
+
+# ##################################
+
+# def test_putconfigpns():
+#     """ send signatured pnsconfig and check.
+#     this function is useless for a stateless server
+#     """
+#     t = test_getpnsconfig()
+#     t['testing'] = 'yes'
+#     d = {'timeout': 5, 'input': t}
+#     # print(nodetestinput)
+#     o = putJsonObj(aburl +
+#                    '/pnsconf',
+#                    d,
+#                    headers=commonheaders)
+#     # put it back not to infere other tests
+#     del t['testing']
+#     d = {'timeout': 5, 'input': t}
+#     p = putJsonObj(aburl +
+#                    '/pnsconf',
+#                    d,
+#                    headers=commonheaders)
+#
+#     issane(o)
+#     assert o['result']['testing'] == 'yes', o['message']
+#     assert 'testing' not in pc, str(pc)
+#     issane(p)
+#     assert 'testing' not in p['result']
 
 
 def makeposttestdata():
@@ -515,6 +673,7 @@ def test_lock():
             print("Error: unable to start thread " + str(e))
         time.sleep(tm + 2)
     if 1:
+        asyncio.set_event_loop(asyncio.new_event_loop())
         loop = asyncio.get_event_loop()
         tasks = [asyncio.ensure_future(napa(tm, 0)),
                  asyncio.ensure_future(napa(0.5, 0.5))]
@@ -553,7 +712,7 @@ if __name__ == '__main__':
         print(res)
 
     elif t == 3:
-        test_getpnsconfig()
+        # test_getpnsconfig()
         test_puttestinit()
         test_putinit()
         test_getinit()

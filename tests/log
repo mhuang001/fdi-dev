@@ -1,0 +1,17 @@
+INFO     root:test_httppool.py:130 get pnsconfig
+INFO     fdi.pns.server:server.py:264 /home/teasyu/pns/input directory has been made.
+INFO     fdi.pns.server:server.py:264 /home/teasyu/pns/output directory has been made.
+INFO     root:test_httppool.py:107 initial server response OD{'APIs':OD{'DELETE':[OD{'URL':'http://0.0.0.0:5000/v0.6/clean', 'description':' Removing traces of...
+INFO     root:test_httppool.py:197 get initPTS
+INFO     root:test_httppool.py:207 get run
+INFO     root:test_httppool.py:236 save products
+INFO     filelock:filelock.py:248 Lock 139788834721464 acquired on /tmp/locks/test_pool/lock
+INFO     filelock:filelock.py:311 Lock 139788834721464 released on /tmp/locks/test_pool/lock
+INFO     root:test_httppool.py:428 POST testpipeline node server
+INFO     root:test_httppool.py:470 POST test for pipeline node server "testrun": hello
+INFO     root:test_httppool.py:490 POST test for pipeline node server: hello
+INFO     root:test_httppool.py:107 initial server response OD{'APIs':OD{'DELETE':[OD{'URL':'http://0.0.0.0:5000/v0.6/clean', 'description':' Removing traces of...
+INFO     root:test_httppool.py:510 delete cleanPTS
+INFO     root:test_httppool.py:490 POST test for pipeline node server: hello
+INFO     root:test_httppool.py:107 initial server response OD{'APIs':OD{'DELETE':[OD{'URL':'http://0.0.0.0:5000/v0.6/clean', 'description':' Removing traces of...
+INFO     root:test_httppool.py:541 POST testpipeline node server

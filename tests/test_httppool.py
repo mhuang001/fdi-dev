@@ -83,8 +83,21 @@ lupd = 0
 api_baseurl = pc['poolprefix'] + pc['baseurl'] + pc['httppoolurl']
 auth_user = 'gsegment'
 auth_pass = '123456'
-poolid = '/test_pool'
+post_poolid = '/post_test_pool'
+test_poolid = '/pool_default'
+basepoolpath = pc['basepoolpath']
+path = basepoolpath + test_poolid
+if os.path.exists(path):
+    files = os.listdir(path)
+    if len(files) != 0:
+        os.system('rm -rf ' + path)
+    x = Product(description='desc test case')
+    x.creator = 'test'
+    data = serializeClassID(x)
+    url = api_baseurl + test_poolid + '/fdi.dataset.product.Product/0'
+    x = requests.post(url, auth=HTTPBasicAuth(auth_user, auth_pass), data = data)    
 
+        
 if 0:
     poststr = 'curl -i -H "Content-Type: application/json" -X POST --data @%s http://localhost:5000%s --user %s'
     cmd = poststr % ('resource/' + 'nodetestinput.jsn',
@@ -235,7 +248,7 @@ def test_save_product():
     '''
     logger.info('save products')
     origin_prod = 0
-    files = get_files(poolid[1:])
+    files = get_files(post_poolid[1:])
     for f in files:
         if f[-1].isnumeric():
             origin_prod = origin_prod + 1
@@ -245,11 +258,11 @@ def test_save_product():
         x = Product(description='desc ' + str(index), instrument=random.choice(instruments))
         x.creator = i
         data = serializeClassID(x)
-        url = api_baseurl + poolid + '/fdi.dataset.product.Product/' + str(index)
+        url = api_baseurl + post_poolid + '/fdi.dataset.product.Product/' + str(index)
         x = requests.post(url, auth=HTTPBasicAuth(auth_user, auth_pass), data = data)
         o = deserializeClassID(x.text)
         check_response(o)
-    files = get_files(poolid[1:])
+    files = get_files(post_poolid[1:])
     num_prod = 0
     for f in files:
         if f[-1].isnumeric():
@@ -257,24 +270,28 @@ def test_save_product():
     assert num_prod == len(creators) + origin_prod, 'Products number not match'
 
 def test_read_product():
+    ''' test GET products API, read a product /data/pool_id/fdi.dataset.product.Product:0
+    '''
     prodpath = '/fdi.dataset.product.Product/0'
-    url = api_baseurl + poolid + prodpath
+    url = api_baseurl + test_poolid + prodpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
-    assert o['result'].creator == 'Todds', 'Creator not match'
-
+    assert o['result'].creator == 'test', 'Creator not match'
+"""
 async def lock_pool(sec):
+    ''' Lock a pool and return a fake response
+    '''
     import filelock
     import time
-    with filelock.FileLock('/tmp/locks' + poolid + '/lock'):
+    with filelock.FileLock('/tmp/locks' + test_poolid + '/lock'):
         await asyncio.sleep(sec)
-    fakeres = '{"result": "OK", "msg": "", "timestamp": '+ str(time.time()) + '}'
+    fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "timestamp": '+ str(time.time()) + '}'
     return deserializeClassID(fakeres)
 
 async def read_product():
     prodpath = '/fdi.dataset.product.Product/0'
-    url = api_baseurl + poolid + prodpath
+    url = api_baseurl + test_poolid + prodpath
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url, auth=aiohttp.BasicAuth(auth_user, auth_pass)) as res:
@@ -283,6 +300,8 @@ async def read_product():
     return o
 
 def test_lock_file():
+    ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
+    '''
     import asyncio
     import aiohttp
     try:
@@ -292,13 +311,17 @@ def test_lock_file():
         loop.close()
         res = [f.result() for f in [x for x in taskres][0]]
         check_response(res[0], True)
+        check_response(res[1], True)
     except Exception as e:
         print('Error: unable to start thread ' + str(e))
         raise e
+"""
 
 def test_read_hk():
+    ''' Test reak hk api
+    '''
     hkpath = '/hk'
-    url = api_baseurl + poolid + hkpath
+    url = api_baseurl + test_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
@@ -308,55 +331,81 @@ def test_read_hk():
 
 def test_read_classes():
     hkpath = '/hk/classes'
-    url = api_baseurl + poolid + hkpath
+    url = api_baseurl + test_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
 
 def test_read_tags():
     hkpath = '/hk/tags'
-    url = api_baseurl + poolid + hkpath
+    url = api_baseurl + test_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
 
 def test_read_urns():
     hkpath = '/hk/urns'
-    url = api_baseurl + poolid + hkpath
+    url = api_baseurl + test_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
 
 def test_remove_product():
     origin_prod = 0
-    files = get_files(poolid[1:])
+    files = get_files(test_poolid[1:])
+    index = '0'
     for f in files:
         if f[-1].isnumeric():
             origin_prod = origin_prod + 1
-    url = api_baseurl + poolid + '/fdi.dataset.product.Product/1'
+            index = f[-1]
+    url = api_baseurl + test_poolid + '/fdi.dataset.product.Product/' + index
     x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
     num_prod = 0
-    files = get_files(poolid[1:])
+    files = get_files(test_poolid[1:])
     for f in files:
         if f[-1].isnumeric():
             num_prod = num_prod + 1
     assert num_prod + 1 == origin_prod, 'Remove product failed'
 
-def test_remove_pool():
-    files = get_files(poolid[1:])
-    assert len(files) != 0, 'Pool is already empty: ' + poolid
+def test_read_non_exists_pool():
+    ''' Test read a pool which doesn't exist, returns FAILED
+    '''
+    wrong_poolid = '/abc'
+    prodpath = '/fdi.dataset.product.Product/0'
+    url = api_baseurl + wrong_poolid + prodpath
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserializeClassID(x.text)
+    check_response(o, True)
 
-    url = api_baseurl + poolid
+def test_subclasses_pool():
+    poolid_1 = '/subclasses/a'
+    poolid_2 = '/subclasses/b'
+    prodpath = '/fdi.dataset.product.Product/0'
+    url1 = api_baseurl + poolid_1 + prodpath
+    url2 = api_baseurl + poolid_2 + prodpath
+    x = Product(description="product example with several datasets",
+            instrument="Crystal-Ball", modelName="Mk II")
+    data = serializeClassID(x)
+    res1 = requests.post(url1, auth=HTTPBasicAuth(auth_user, auth_pass), data = data)
+    res2 = requests.post(url2, auth=HTTPBasicAuth(auth_user, auth_pass), data = data)
+    o1 = deserializeClassID(res1.text)
+    o2 = deserializeClassID(res2.text)
+    check_response(o1)
+    check_response(o2)
+    
+def test_remove_pool():
+    files = get_files(post_poolid[1:])
+    assert len(files) != 0, 'Pool is already empty: ' + post_poolid
+
+    url = api_baseurl + post_poolid
     x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
 
-    files = get_files(poolid[1:])
+    files = get_files(post_poolid[1:])
     assert len(files) == 0, 'Wipe pool failed: ' + o['msg']
-
-
 
 # ##################################
 

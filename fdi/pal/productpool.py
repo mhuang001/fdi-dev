@@ -179,6 +179,7 @@ When implementing a ProductPool, the following rules need to be applied:
         sn = int(indexs)
 
         c, t, u = self._classes, self._tags, self._urns
+        print(u)
         # save a copy for rolling back
         cs, ts, us = deepcopy(c), deepcopy(t), deepcopy(u)
 

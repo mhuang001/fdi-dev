@@ -33,6 +33,7 @@ from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 import pkg_resources
 from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
+# from flasgger import Swagger, swag_from
 import filelock
 import pdb
 import shutil
@@ -586,6 +587,9 @@ PoolManager.removeAll()
 checkpath( pc['basepoolpath'] + pc['defaultpool'] )
 pstore = ProductStorage(pool=pc['poolprefix'] + '/' + pc['defaultpool'])
 def load_all_pools():
+    """
+    Adding all pool to server pool storage.
+    """
     logger.info("Register pools in memory")
     poolpath = pc['poolprefix'] + pc['basepoolpath']
     filepath = pc['basepoolpath']
@@ -607,6 +611,18 @@ def get_pools():
 @app.route(pc['baseurl']+pc['httppoolurl'] +'/<path:pool>', methods=['GET', 'POST', 'DELETE'])
 @auth.login_required
 def httppool(pool):
+    """
+    APIs for CRUD products, according to path and methods and return results.
+
+    - GET: /pool_id/hk ==> return pool_id housekeeping
+                 /pool_id/product_class/index ==> return product
+                 /pool_id/{urns, classes, tags} ===> return pool_id urns or classes or tags
+
+    - POST: /pool_id ==> Save product in requests.data in server
+
+    - DELETE: /pool_id ==> Wipe all contents in pool_id
+                         /pool_id/product_class/index ==> remove specified products in pool_id
+    """
     paths = pool.split('/')
     ts = time.time()
     if request.method == 'GET':
@@ -649,6 +665,7 @@ def delete_product(paths):
     poolurn = pc['poolprefix'] + '/' + pool
     urn = makeUrn(poolurn, paths[-2], paths[-1])
     logger.debug('DELETE product urn: ' + urn)
+    print('DELETE product urn: ' + urn)
     try:
         if poolurn in pstore.getPools():
             pstore.getPool(poolurn).remove(urn)
@@ -697,10 +714,15 @@ def save_product(data,  paths):
         # TODO: I find a bug, if file is locked, the data will not be saved , but prodref still return, errors is not return correctly
         pstore_tmp = ProductStorage(pool = poolurn)
         result = pstore_tmp.save(product=data)
-        # if makesure_save(pool, ):
-        #     result = 'FAILED'
-        #     msg = 'File is locked, please try again in a little while.'
-        if poolurn not in pstore.getPools():
+        pool_exist = False
+        for ex in pstore.getPools():
+            lex = ex.split('/')
+            lu = poolurn.split('/')
+            ml = min(len(lex), len(lu))
+            if lex[:ml] == lu[:ml]:
+                pool_exist = True
+
+        if pool_exist != True:
             pstore.register(poolurn)
         msg = ''
     except Exception as e:
@@ -716,10 +738,21 @@ def load_product(paths):
     pool = pool[0:-1]
     poolurn = pc['poolprefix']  + '/' + pool
     try:
-        if poolurn not in pstore.getPools():
-            pstore.register(poolurn)
-        result = pstore.getPool(poolurn).schematicLoadProduct(paths[-2], paths[-1])
-        msg = ''
+        pool_exist = False
+        for ex in pstore.getPools():
+            lex = ex.split('/')
+            lu = poolurn.split('/')
+            ml = min(len(lex), len(lu))
+            if lex[:ml] == lu[:ml]:
+                pool_exist = True
+        if pool_exist != True:
+            msg = 'pool ' + poolurn + ' not found.'
+            result = 'FAILED'
+            # pstore.register(poolurn)
+        else:
+            print(pstore.getPool(poolurn)._urns)
+            result = pstore.getPool(poolurn).schematicLoadProduct(paths[-2], paths[-1])
+            msg = ''
     except Exception as e:
         result = 'FAILED'
         msg = 'Exception : ' + str(e)

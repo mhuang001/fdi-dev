@@ -1,3 +1,5 @@
+
+
 from fdi.pns.pnsconfig import pnsconfig
 from fdi.pns.server import getConfig
 # default configuration is provided. Copy contents of svom/engisim/config.py to ~/.config/engisimlocal.py
@@ -30,21 +32,24 @@ def urn2url(urn, contents='product'):
     with a pool:
     myref=pool.load('http://ip:port/v0.6/a/b/c/fdi.dataset.MapContext/203/refs/myinput')
 
-    urn:http://ip:port/a/b/c/fdi.dataset.Product:203
-    ==>
+    urn:http://ip:port/a/b/c/fdi.dataset.Product:203    ==>
     http://ip:port/v0.6/a/b/c/fdi.dataset.Product/203/meta/OBSID
 
-    urn:http://ip:port/a/b/d/fdi.dataset.Product:203
-    ==>
+    At the same time this is not allowed due to overlapping after 'c'
+
+    urn:http://ip:port/a/b/d/fdi.dataset.Product:203    ==>
     http://ip:port/v0.6/a/b/c/d/
 
-    urn:http://ip:port/a/k/fdi.dataset.Product:203
-    ==>
+    This is also overlapping starting from '/'
+
+    urn:http://ip:port/fdi.dataset.Product:203    ==>
+    http://ip:port/v0.6/
+
+    but for example this is allowed:
+
+    urn:http://ip:port/a/k/fdi.dataset.Product:203    ==>
     http://ip:port/v0.6/a/k/
 
-    urn:http://ip:port/fdi.dataset.Product:203
-    ==>
-    http://ip:port/v0.6/
 
     """
     poolname, resourceclass, serialnumstr, scheme, \

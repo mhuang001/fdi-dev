@@ -13,7 +13,7 @@ Product parammeter definition YAML schema v0.5 with valid format. v0.19
 	0.18c 2020-06-07
 	----------------
 Names of lock directory and default pool have username to allow multi users to run fdi on the same machine.
-	
+
 	0.18b 2020-06-05
 	---------------
 Full classname in urn. Updated documentation.
@@ -25,15 +25,15 @@ remove duplicate 'description' key in YAML prod def (v0.4).
 	0.18 2020-06-04
 	---------------
 Query. Parameter value comparison.
-	
+
 	0.17 2020-05-10
 	---------------
 Release to wider group of beta users, with a product-building package.
-	
+
 	0.16 2020-05-10
 	---------------
 pns uses user classes. config file relocates to ~/.config/pnslocal.py. 'fits_keyword'.
-	
+
 	0.15 2020-05-01
 	---------------
 Add Makefile to consolidate various commands, .readthdocs.yml for RTD. Sort out productInfo in Products.
@@ -41,12 +41,12 @@ Add Makefile to consolidate various commands, .readthdocs.yml for RTD. Sort out 
 	0.14 2020-04-28
 	---------------
 yaml2python configures product built-in meta attributes with YAML.
-	
-	
+
+
 	0.13 2020-04-21
 	---------------
 refactor Product to have BaseProduct and info. Enforce configured types in Parameter. Enfore Parameter-only in metadata.
-	
+
 	ALPHA1 SPDC
 	===========
 
@@ -57,7 +57,7 @@ rename spdc to fdi
 0.11 2020-04-04
 ---------------
 parents for ProductRef, mempool, pal test improvements
-	
+
 0.10 2020-01-07
 ---------------
 dataset is compatible with python 2.7
@@ -73,7 +73,7 @@ Improved toString() for datasets. PAL refactoring.
 0.7 2019-08-27
 --------------
 documentation with sphinx. vvpp docker works. release to FSC.
-	
+
 0.6 2019-08-17
 --------------
 listener, mem: URN, deserializable list
@@ -128,4 +128,3 @@ Change Log
 0.1 2019-07-24
 --------------
 Prototype. Initial check-in.
-

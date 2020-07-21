@@ -8,7 +8,11 @@ import pwd
 pnsconfig = dict(logginglevel=logging.INFO)
 
 # base url for webserver. Update version if needed.
+pnsconfig['poolprefix'] = 'http://192.168.1.8:5000'
 pnsconfig['baseurl'] = '/v0.6'
+pnsconfig['httppoolurl'] = '/httppool'
+pnsconfig['basepoolpath'] = '/data/'
+pnsconfig['defaultpool'] = 'pool_default'
 
 dev = True
 if dev:
@@ -22,13 +26,14 @@ if dev:
     pnsconfig['ptsuser'] = pnsconfig['serveruser']
     # the directory where the pns ome is on server. default is ptsuser home
     home = pwd.getpwnam(pnsconfig['ptsuser']).pw_dir
+    pnsconfig['mysql'] = {'host': 'localhost',  'user': 'root',  'password': 'toto', 'database': 'users'}
 else:
-    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '10.0.10.114', 'port': 9888}
+    pnsconfig['node'] = {'username': 'gsegment', 'password': '123456',
+                         'host': '10.0.10.114', 'port': 3306}
     # server permission user
-    pnsconfig['serveruser'] = 'apache'
+    pnsconfig['serveruser'] = 'mysql'
     # PTS app permission user
-    pnsconfig['ptsuser'] = 'apache'
+    pnsconfig['ptsuser'] = 'mysql'
     # on server
     home = '/root'
 

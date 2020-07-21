@@ -44,10 +44,10 @@ if __name__ == '__main__':
         {'long': 'help', 'char': 'h', 'default': False, 'description': 'print help'},
         {'long': 'verbose', 'char': 'v', 'default': False,
             'description': 'print info'},
-        {'long': 'username=', 'char': 'u',
-            'default': node['username'], 'description':'user name/ID'},
-        {'long': 'password=', 'char': 'p',
-            'default': node['password'], 'description':'password'},
+        # {'long': 'username=', 'char': 'u',
+        #     'default': node['username'], 'description':'user name/ID'},
+        # {'long': 'password=', 'char': 'p',
+        #     'default': node['password'], 'description':'password'},
         {'long': 'host=', 'char': 'i',
             'default': node['host'], 'description':'host IP/name'},
         {'long': 'port=', 'char': 'o',
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     ]
     out = opt(ops)
     verbose = out[1]['result']
-    for j in range(2, 6):
+    for j in range(2, 4):
         n = out[j]['long'].strip('=')
         node[n] = out[j]['result']
 
@@ -64,10 +64,10 @@ if __name__ == '__main__':
     else:
         logger.setLevel(logging.INFO)
     logger.info('logging level %d' % (logger.getEffectiveLevel()))
-    if node['username'] in ['', None] or node['password'] in ['', None]:
-        logger.error(
-            'Error. Specify non-empty username and password on commandline')
-        exit(3)
+    # if node['username'] in ['', None] or node['password'] in ['', None]:
+    #     logger.error(
+    #         'Error. Specify non-empty username and password on commandline')
+    #     exit(3)
     print('Check http://' + node['host'] + ':' + str(node['port']) +
           pc['baseurl'] + '/ for API list')
     app.run(host=node['host'], port=node['port'],

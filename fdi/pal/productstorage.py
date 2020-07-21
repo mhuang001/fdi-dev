@@ -14,9 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 #from .productpool import ProductPool
-
 DefaultPool = 'file:///tmp/pool_' + getpass.getuser()
-
 
 class ProductStorage(object):
     """ Logical store created from a pool or a poolURN.
@@ -29,6 +27,7 @@ class ProductStorage(object):
         """
         if not pool:
             pool = DefaultPool
+
         super(ProductStorage, self).__init__(**kwds)
         self._pools = ODict()  # dict of pool-urn keys
         self.register(pool)
@@ -55,7 +54,7 @@ class ProductStorage(object):
         logger.debug('registered pool ' + str(self._pools))
 
     def load(self, urnortag):
-        """ Loads a product with a URN or a list of products with a tag, from the (writeable) pool.  It always creates new ProductRefs. 
+        """ Loads a product with a URN or a list of products with a tag, from the (writeable) pool.  It always creates new ProductRefs.
         returns productref(s).
         urnortag: urn or tag
         """
@@ -197,7 +196,7 @@ class ProductStorage(object):
         if poolurn not in self._pools:
             raise ValueError('pool ' + poolurn + ' not found')
         sp = poolurn.split('://')
-        if sp[0] not in ['file', 'http']:
+        if sp[0] not in ['file', 'http', 'https']:
             raise ValueError(sp[0] + ':// is not supported')
         self._pools[poolurn].removeAll()
 

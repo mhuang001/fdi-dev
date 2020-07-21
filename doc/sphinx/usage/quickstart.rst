@@ -5,7 +5,7 @@ fdi Quick Start
 
 .. contents:: Contents:
 
-   
+
 The following demostrates important dataset and pal functionalities. It was made by running ``fdi/resources/example.py`` with command ``elpy-shell-send-group-and-step [c-c c-y c-g]`` in ``emacs``.
 
 You can copy the code from code blocks by clicking the ``copy`` icon on the top-right, with he prompts and results removed.
@@ -89,54 +89,54 @@ ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta 
 	# description = "UNKNOWN"
 	# meta = MetaData{[], listeners = []}
 	# unit = "None"
-	# data = 
-	
-	0 1 2 3 
-	1 2 3 4 
-	2 3 4 5 
-	3 4 5 6 
-	4 5 6 7 
-	
-	
-	1 2 3 4 
-	2 3 4 5 
-	3 4 5 6 
-	4 5 6 7 
-	5 6 7 8 
-	
-	
-	2 3 4 5 
-	3 4 5 6 
-	4 5 6 7 
-	5 6 7 8 
-	6 7 8 9 
-	
-	
+	# data =
+
+	0 1 2 3
+	1 2 3 4
+	2 3 4 5
+	3 4 5 6
+	4 5 6 7
+
+
+	1 2 3 4
+	2 3 4 5
+	3 4 5 6
+	4 5 6 7
+	5 6 7 8
+
+
+	2 3 4 5
+	3 4 5 6
+	4 5 6 7
+	5 6 7 8
+	6 7 8 9
+
+
 	#=== dimension 4
-	
-	1 2 3 4 
-	2 3 4 5 
-	3 4 5 6 
-	4 5 6 7 
-	5 6 7 8 
-	
-	
-	2 3 4 5 
-	3 4 5 6 
-	4 5 6 7 
-	5 6 7 8 
-	6 7 8 9 
-	
-	
-	3 4 5 6 
-	4 5 6 7 
-	5 6 7 8 
-	6 7 8 9 
-	7 8 9 10 
-	
-	
+
+	1 2 3 4
+	2 3 4 5
+	3 4 5 6
+	4 5 6 7
+	5 6 7 8
+
+
+	2 3 4 5
+	3 4 5 6
+	4 5 6 7
+	5 6 7 8
+	6 7 8 9
+
+
+	3 4 5 6
+	4 5 6 7
+	5 6 7 8
+	6 7 8 9
+	7 8 9 10
+
+
 	#=== dimension 4
-	
+
 
 TableDataset
 ------------
@@ -162,18 +162,18 @@ True
 ... print(v5.toString())
 
 ::
-   
+
   # TableDataset
   # description = "UNKNOWN"
   # meta = MetaData{[], listeners = []}
-  # data = 
-  
+  # data =
+
   # col1 col2
   # None None
-  1 0 
-  4.4 43.2 
-  5400.0 2000.0 
-  
+  1 0
+  4.4 43.2
+  5400.0 2000.0
+
 
 
 >>> # access
@@ -274,25 +274,25 @@ Column{ [1, 4, 3.3] <sec>, description = "UNKNOWN", meta = MetaData{[], listener
 ... print(x.toString())
 
 ::
-  
+
   # TableDataset
   # description = "Example table"
   # meta = MetaData{[], listeners = []}
-  # data = 
-  
+  # data =
+
   # Time Energy
   # sec eV
-  0.0 100.0 
-  1.0 102.0 
-  2.0 104.0 
-  3.0 106.0 
-  4.0 108.0 
-  5.0 110.0 
-  6.0 112.0 
-  7.0 114.0 
-  8.0 116.0 
-  9.0 118.0 
-  
+  0.0 100.0
+  1.0 102.0
+  2.0 104.0
+  3.0 106.0
+  4.0 108.0
+  5.0 110.0
+  6.0 112.0
+  7.0 114.0
+  8.0 116.0
+  9.0 118.0
+
 
 
 Parameter
@@ -460,13 +460,13 @@ Product
    # TableDataset
    # description = "UNKNOWN"
    # meta = MetaData{[], listeners = []}
-   # data = 
-   
+   # data =
+
    # col1 col2
    # eV cnt
-   1 0 
-   4.4 43.2 
-   5400.0 2000.0 
+   1 0
+   4.4 43.2
+   5400.0 2000.0
 
 
 
@@ -498,54 +498,54 @@ Product
 
 
 ::
-	
+
 	# Product
 	# description = "product example with several datasets"
 	# meta = MetaData{[description = Parameter{ product example with several datasets <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identification. Fully qualified Python class name or CARD."}, creator = Parameter{ or else <string>, "UNKNOWN"}, creationDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Creation date of this product"}, rootCause = Parameter{ UNKOWN <string>, "Reason of this run of pipeline."}, schema = Parameter{ 0.3 <string>, "Version of product schema"}, startDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal start time  of this product."}, endDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal end time  of this product."}, instrument = Parameter{ Crystal-Ball <string>, "Instrument that generated data of this product"}, modelName = Parameter{ Mk II <string>, "Model name of the instrument of this product"}, mission = Parameter{ _AGS <string>, "Name of the mission."}, ], listeners = []}
 	# History
 	# description = "UNKNOWN"
 	# meta = MetaData{[], listeners = []}
-	# data = 
-	
-	# data = 
-	
-	
+	# data =
+
+	# data =
+
+
 	# [ RawImage ]
 	# ArrayDataset
 	# description = "image1"
 	# meta = MetaData{[], listeners = []}
 	# unit = "ev"
-	# data = 
-	
-	1 4 7 
-	2 5 8 
-	3 6 9 
-	
-	
+	# data =
+
+	1 4 7
+	2 5 8
+	3 6 9
+
+
 	# [ QualityImage ]
 	# ArrayDataset
 	# description = "UNKNOWN"
 	# meta = MetaData{[], listeners = []}
 	# unit = "None"
-	# data = 
-	
-	0.1 4000.0 -2 
-	0.5 60000000.0 0 
-	0.7 8 3.1 
-	
-	
+	# data =
+
+	0.1 4000.0 -2
+	0.5 60000000.0 0
+	0.7 8 3.1
+
+
 	# [ Spectrum ]
 	# TableDataset
 	# description = "UNKNOWN"
 	# meta = MetaData{[], listeners = []}
-	# data = 
-	
+	# data =
+
 	# col1 col2
 	# eV cnt
-	1 0 
-	4.4 43.2 
-	5400.0 2000.0 
-	
+	1 0
+	4.4 43.2
+	5400.0 2000.0
+
 
 pal
 ===
@@ -745,7 +745,7 @@ urn:file:///tmp/newpool_mh:fdi.pal.context.MapContext:1
 ... [r.product.instrument for r in res]
 ['fatman 12', 'fatman 16']
 
->>> 
+>>>
 
 
 pns

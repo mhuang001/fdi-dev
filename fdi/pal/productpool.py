@@ -28,8 +28,8 @@ else:
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-
-lockpathbase = '/tmp/locks_' + getpass.getuser()
+# lockpathbase = 'tmp/locks_' + getpass.getuser()
+lockpathbase = '/tmp/locks'
 
 
 class ProductPool(Definable, Taggable, Versionable):
@@ -53,7 +53,10 @@ When implementing a ProductPool, the following rules need to be applied:
         self._scheme = pr.scheme
         self._place = pr.netloc
         # convenient access path
-        self._poolpath = pr.netloc + pr.path
+        # self._poolpath = pr.netloc + pr.path
+        self._poolpath = pr.netloc + \
+            pr.path if pr.scheme in ('file') else pr.path
+        print(self._poolpath)
         # {type|classname -> {'sn:[sn]'}}
         self._classes = ODict()
         logger.debug(self._poolpath)
@@ -179,7 +182,9 @@ When implementing a ProductPool, the following rules need to be applied:
         prod = resourcecn
         sn = int(indexs)
 
+        self._classes, self._tags, self._urns = self.readHK()
         c, t, u = self._classes, self._tags, self._urns
+        print(self._urns)
         # save a copy for rolling back
         cs, ts, us = deepcopy(c), deepcopy(t), deepcopy(u)
 

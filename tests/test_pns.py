@@ -148,7 +148,7 @@ def checkContents(cmd, filename):
 
 
 def test_serverinit():
-    """ server unit test for put init. 
+    """ server unit test for put init.
     this runs the runPTS script, and is in conflict with put testinit, as this will condition the server for running the PTS, not suitable for running other tests.
     """
     ret, sta = server.initPTS(None)

@@ -1,6 +1,6 @@
 name: BaseProduct
 definition: FDI base class
-parent: 
+parent:
 level: ALL
 version: '0.5'
 description:

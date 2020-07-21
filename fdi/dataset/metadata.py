@@ -111,7 +111,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         return self._value
 
     def setValue(self, value):
-        """ Replaces the current value of this parameter. 
+        """ Replaces the current value of this parameter.
         If given/current type_ is '' and arg value's type is in ParameterTypes both value and type are updated to the suitable one in ParameterDataTypes; or else TypeError is raised.
         If value type and given/current type_ are different.
             Incompatible value and type_ will get a TypeError.

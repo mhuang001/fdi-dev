@@ -14,3 +14,6 @@ Flask-HTTPAuth
 *.old
 .cache
 *egg-*
+fdi.tar.gz
+.ipynb_checkpoints
+*.ipynb

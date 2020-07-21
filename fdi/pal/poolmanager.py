@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import localpool, mempool
+from . import localpool, mempool, httppool
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ This is done by calling the getPool(String) method, which will return an existin
 
     @classmethod
     def getPool(cls, poolurn):
-        """ returns an instance of pool according to urn. 
+        """ returns an instance of pool according to urn.
 
         create the pool if it does not already exist. the same pool-URN always get the same pool.
         """
@@ -37,6 +37,8 @@ This is done by calling the getPool(String) method, which will return an existin
                 p = localpool.LocalPool(poolurn=poolurn)
             elif sp[0] == 'mem':
                 p = mempool.MemPool(poolurn=poolurn)
+            elif sp[0] == 'http' or sp[0] == 'https':
+                p = httppool.HttpPool(poolurn=poolurn)
             else:
                 raise NotImplementedError(sp[0] + ':// is not supported')
             cls.save(poolurn, p)

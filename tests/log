@@ -3,12 +3,12 @@ INFO     root:test_httppool.py:120 initial server response OD{'APIs':OD{'DELETE'
 INFO     root:test_httppool.py:210 get initPTS
 INFO     root:test_httppool.py:220 get run
 INFO     root:test_httppool.py:249 save products
-INFO     filelock:filelock.py:248 Lock 140671621250016 acquired on /tmp/locks/post_test_pool/lock
-INFO     filelock:filelock.py:311 Lock 140671621250016 released on /tmp/locks/post_test_pool/lock
+INFO     filelock:filelock.py:248 Lock 139631596804248 acquired on /tmp/locks/post_test_pool/lock
+INFO     filelock:filelock.py:311 Lock 139631596804248 released on /tmp/locks/post_test_pool/lock
 INFO     root:test_httppool.py:273 read product
-INFO     root:test_httppool.py:390 Test query a pool non exist.
-INFO     root:test_httppool.py:399 Test create a pool which has subclass
-INFO     filelock:filelock.py:248 Lock 140671620263440 acquired on /tmp/locks/subclasses/a/lock
-INFO     filelock:filelock.py:311 Lock 140671620263440 released on /tmp/locks/subclasses/a/lock
-INFO     filelock:filelock.py:248 Lock 140671620212664 acquired on /tmp/locks/subclasses/b/lock
-INFO     filelock:filelock.py:311 Lock 140671620212664 released on /tmp/locks/subclasses/b/lock
+INFO     root:test_httppool.py:284 read hk
+INFO     root:test_httppool.py:294 read classes
+INFO     root:test_httppool.py:301 read tags
+INFO     root:test_httppool.py:308 read urns
+INFO     root:test_httppool.py:316 delete a product
+INFO     root:test_httppool.py:336 delete a pool

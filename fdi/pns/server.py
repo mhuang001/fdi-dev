@@ -586,6 +586,7 @@ PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
 PoolManager.removeAll()
 checkpath( pc['basepoolpath'] + pc['defaultpool'] )
 pstore = ProductStorage(pool=pc['poolprefix'] + '/' + pc['defaultpool'])
+
 def load_all_pools():
     """
     Adding all pool to server pool storage.
@@ -614,7 +615,6 @@ def load_all_pools():
     for pool in alldirs:
         if pool != pc['defaultpool'] and pool not in pstore.getPools():
             pstore.register(pc['poolprefix'] + '/' + pool)
-            print('Registry pool: ' + pc['poolprefix'] + '/' + pool)
             logger.info("Register pool: " +  poolpath + pool)
 load_all_pools()
 
@@ -638,6 +638,11 @@ def httppool(pool):
     - DELETE: /pool_id ==> Wipe all contents in pool_id
                          /pool_id/product_class/index ==> remove specified products in pool_id
     """
+
+    # TODO: it's too wierd, pstore.register works, but after calling, it returns to original state,
+    # I have to register again and again
+    # load_all_pools()
+
     paths = pool.split('/')
     ts = time.time()
     if request.method == 'GET':
@@ -680,15 +685,16 @@ def delete_product(paths):
     poolurn = pc['poolprefix'] + '/' + pool
     urn = makeUrn(poolurn, paths[-2], paths[-1])
     logger.debug('DELETE product urn: ' + urn)
-    print('DELETE product urn: ' + urn)
     try:
         if poolurn in pstore.getPools():
             pstore.getPool(poolurn).remove(urn)
             result = ''
             msg = 'remove product ' + urn + ' OK.'
         else:
-            result = 'FAILED'
-            msg = 'No such pool : ' + poolurn
+            pstore.register(poolurn)
+            pstore.getPool(poolurn).remove(urn)
+            result = ''
+            msg = 'remove product ' + urn + ' OK.'
     except Exception as e:
         result = 'FAILED'
         msg = 'Unable to remove product: ' + urn + ' caused by ' + str(e)
@@ -708,8 +714,12 @@ def delete_pool(paths):
             result = ''
             msg = 'Wipe pool ' + poolurn + ' OK.'
         else:
-            result = 'FAILED'
-            msg = 'No such pool : ' + poolurn
+            pstore.register(poolurn)
+            pstore.getPool(poolurn).schematicWipe()
+            result = ''
+            msg = 'Wipe pool ' + poolurn + ' OK.'
+            # result = 'FAILED'
+            # msg = 'No such pool : ' + poolurn
     except Exception as e:
         result = 'FAILED'
         msg = 'Unable to wipe pool: ' + poolurn + ' caused by ' + str(e)
@@ -724,22 +734,18 @@ def save_product(data,  paths):
         pool = pool + i + '/'
     pool = pool[0:-1]
     poolurn = pc['poolprefix'] + '/' + pool
+    logger.debug('SAVE product to: ' + poolurn)
     try:
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-        PoolManager.removeAll()
-        pstore_tmp = ProductStorage(pool = poolurn)
-        result = pstore_tmp.save(product=data)
-        if poolurn not in pstore.getPools():
-            print('Register pool: ' + poolurn)
-            # pstore.register(poolurn)
-            load_all_pools()
-            print(pstore.getPools())
+        # PoolManager.removeAll()
+        # pstore_tmp = ProductStorage(pool = poolurn)
+        # result = pstore_tmp.save(product=data)
+        result = pstore.save(product = data, poolurn = poolurn)
         msg = 'Save data to ' + poolurn + ' OK.'
     except Exception as e:
         result = 'FAILED'
         msg = 'Exception : ' + str(e)
     return result, msg
-
 
 def load_product(paths):
     pool = ''
@@ -747,18 +753,21 @@ def load_product(paths):
         pool = pool + i + '/'
     pool = pool[0:-1]
     poolurn = pc['poolprefix']  + '/' + pool
+    logger.debug('LOAD product: ' + poolurn + ':' + paths[-2] + ':' + paths[-1])
     try:
-        print('LOAD PRODUCT====>')
-        print(pstore.getPools())
         if poolurn in pstore.getPools():
             result = pstore.getPool(poolurn).schematicLoadProduct(paths[-2], paths[-1])
             msg = ''
         else:
-            result = 'FAILED'
-            msg = 'Pool or product not found: ' + poolurn
+            pstore.register(poolurn)
+            result = pstore.getPool(poolurn).schematicLoadProduct(paths[-2], paths[-1])
+            msg = ''
+            # result = 'FAILED'
+            # msg = 'Pool or product not found: ' + poolurn
     except Exception as e:
         result = 'FAILED'
         msg = 'Exception : ' + str(e)
+        raise e
     return result, msg
 
 def load_metadata(paths):

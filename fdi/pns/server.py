@@ -686,15 +686,19 @@ def delete_product(paths):
     urn = makeUrn(poolurn, paths[-2], paths[-1])
     logger.debug('DELETE product urn: ' + urn)
     try:
-        if poolurn in pstore.getPools():
-            pstore.getPool(poolurn).remove(urn)
-            result = ''
-            msg = 'remove product ' + urn + ' OK.'
+        if check_pool(pool):
+            if poolurn in pstore.getPools():
+                pstore.getPool(poolurn).remove(urn)
+                result = ''
+                msg = 'remove product ' + urn + ' OK.'
+            else:
+                pstore.register(poolurn)
+                pstore.getPool(poolurn).remove(urn)
+                result = ''
+                msg = 'remove product ' + urn + ' OK.'
         else:
-            pstore.register(poolurn)
-            pstore.getPool(poolurn).remove(urn)
-            result = ''
-            msg = 'remove product ' + urn + ' OK.'
+            result = 'FAILED'
+            msg = 'No such pool: ' + poolurn
     except Exception as e:
         result = 'FAILED'
         msg = 'Unable to remove product: ' + urn + ' caused by ' + str(e)
@@ -709,17 +713,19 @@ def delete_pool(paths):
     poolurn = pc['poolprefix'] + '/' + pool
     logger.debug('DELETE POOLURN' + poolurn)
     try:
-        if poolurn in pstore.getPools():
-            pstore.getPool(poolurn).schematicWipe()
-            result = ''
-            msg = 'Wipe pool ' + poolurn + ' OK.'
+        if check_pool(pool):
+            if poolurn in pstore.getPools():
+                pstore.getPool(poolurn).schematicWipe()
+                result = ''
+                msg = 'Wipe pool ' + poolurn + ' OK.'
+            else:
+                pstore.register(poolurn)
+                pstore.getPool(poolurn).schematicWipe()
+                result = ''
+                msg = 'Wipe pool ' + poolurn + ' OK.'
         else:
-            pstore.register(poolurn)
-            pstore.getPool(poolurn).schematicWipe()
-            result = ''
-            msg = 'Wipe pool ' + poolurn + ' OK.'
-            # result = 'FAILED'
-            # msg = 'No such pool : ' + poolurn
+            result = 'FAILED'
+            msg = 'No such pool : ' + poolurn
     except Exception as e:
         result = 'FAILED'
         msg = 'Unable to wipe pool: ' + poolurn + ' caused by ' + str(e)
@@ -747,6 +753,10 @@ def save_product(data,  paths):
         msg = 'Exception : ' + str(e)
     return result, msg
 
+def check_pool(pool):
+    poolpath = pc['basepoolpath'] + pool
+    return os.path.exists(poolpath)
+
 def load_product(paths):
     pool = ''
     for i in paths[0: -2]:
@@ -755,19 +765,20 @@ def load_product(paths):
     poolurn = pc['poolprefix']  + '/' + pool
     logger.debug('LOAD product: ' + poolurn + ':' + paths[-2] + ':' + paths[-1])
     try:
-        if poolurn in pstore.getPools():
-            result = pstore.getPool(poolurn).schematicLoadProduct(paths[-2], paths[-1])
-            msg = ''
+        if check_pool(pool):
+            if poolurn in pstore.getPools():
+                result = pstore.getPool(poolurn).schematicLoadProduct(paths[-2], paths[-1])
+                msg = ''
+            else:
+                pstore.register(poolurn)
+                result = pstore.getPool(poolurn).schematicLoadProduct(paths[-2], paths[-1])
+                msg = ''
         else:
-            pstore.register(poolurn)
-            result = pstore.getPool(poolurn).schematicLoadProduct(paths[-2], paths[-1])
-            msg = ''
-            # result = 'FAILED'
-            # msg = 'Pool or product not found: ' + poolurn
+            result = 'FAILED'
+            msg = 'Pool not found: ' + poolurn
     except Exception as e:
         result = 'FAILED'
         msg = 'Exception : ' + str(e)
-        raise e
     return result, msg
 
 def load_metadata(paths):
@@ -777,14 +788,19 @@ def load_metadata(paths):
     pool = pool[0:-1]
     poolurn = pc['poolprefix']  + '/' + pool
     try:
-        if poolurn not  in pstore.getPools():
-            pstore.register(poolurn)
-        c, t, u = pstore.getPool(poolurn).readHK()
-        result = {'classes': c, 'tags': c, 'urns': u}
-        msg = ''
+        if check_pool(pool):
+            if poolurn not  in pstore.getPools():
+                pstore.register(poolurn)
+            c, t, u = pstore.getPool(poolurn).readHK()
+            result = {'classes': c, 'tags': c, 'urns': u}
+            msg = ''
+        else:
+            result = 'FAILED'
+            msg = 'No such pool: ' + poolurn
     except Exception as e:
         result = 'FAILED'
         msg = 'Exception : ' + str(e)
+        raise e
     return result, msg
 
 def load_singer_metadata(paths):
@@ -794,19 +810,18 @@ def load_singer_metadata(paths):
         pool = pool[0:-1]
         poolurn = pc['poolprefix']  + '/' + pool
         try:
-            if poolurn not  in pstore.getPools():
-                pstore.register(poolurn)
-            result = pstore.getPool(poolurn).readHKObj(paths[-1])
-            msg = ''
+            if check_pool(pool):
+                if poolurn not  in pstore.getPools():
+                    pstore.register(poolurn)
+                result = pstore.getPool(poolurn).readHKObj(paths[-1])
+                msg = ''
+            else:
+                result = 'FAILED'
+                msg = 'No such pool: ' + poolurn
         except Exception as e:
             result = 'FAILED'
             msg = 'Exception : ' + str(e)
         return result, msg
-
-def makesure_save(pool):
-    """
-    make sure that product is saved
-    """
 
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
 def getinfo(cmd):

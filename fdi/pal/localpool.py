@@ -27,7 +27,7 @@ else:
     strset = (str, unicode)
     from urlparse import urlparse, quote, unquote
 
-basepoolpath = '/data'
+basepoolpath = '/tmp'
 
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
@@ -70,7 +70,8 @@ class LocalPool(ProductPool):
         real_poolpath = self.transformpath(self._poolpath)
         logger.debug(real_poolpath)
         if not op.exists(real_poolpath):
-            os.mkdir(real_poolpath)
+            # os.mkdir(real_poolpath)
+            os.makedirs(real_poolpath)
         c, t, u = self.readHK()
 
         logger.debug('pool ' + self._poolurn + ' HK read.')

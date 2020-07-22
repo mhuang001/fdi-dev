@@ -28,8 +28,8 @@ else:
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-
-lockpathbase = '/tmp/locks_' + getpass.getuser()
+# lockpathbase = 'tmp/locks_' + getpass.getuser()
+lockpathbase = '/tmp/locks1'
 
 
 class ProductPool(Definable, Taggable, Versionable):
@@ -41,19 +41,23 @@ When implementing a ProductPool, the following rules need to be applied:
 
     1. Pools must guarantee that a Product saved via the pool saveProduct(Product) method is stored persistently, and that method returns a unique identifier (URN). If it is not possible to save a Product, an IOException shall be raised.
     2. A saved Product can be retrieved using the loadProduct(Urn) method, using as the argument the same URN that assigned to that Product in the earlier saveProduct(Product) call. No other Product shall be retrievable by that same URN. If this is not possible, an IOException or GeneralSecurityException is raised.
-    3. Pools should not implement functionality currently implemented in the core package. Specifically, it should not address functionality provided in the Context abstract class, and it should not implement versioning/cloning support.
+    3. Pools should not implement functionality currently implemented in the core paclage. Specifically, it should not address functionality provided in the Context abstract class, and it should not implement versioning/cloning support.
 
     """
 
-    def __init__(self, poolurn=None, **kwds):
-
+    def __init__(self, poolurn=None, use_basepoolpath=True, **kwds):
+        # print(__name__ + str(kwds))
         super(ProductPool, self).__init__(**kwds)
+        #    basepoolpath = pcc['basepoolpath']
+        # self._basepoolpath = basepooslpath
         self._poolurn = poolurn
         pr = urlparse(poolurn)
         self._scheme = pr.scheme
         self._place = pr.netloc
         # convenient access path
-        self._poolpath = pr.netloc + pr.path
+        # self._poolpath = pr.netloc + pr.path
+        self._poolpath = pr.netloc + \
+            pr.path if pr.scheme in ('file') else pr.path
         # {type|classname -> {'sn:[sn]'}}
         self._classes = ODict()
         logger.debug(self._poolpath)
@@ -194,7 +198,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 del c[prod]
             try:
                 self.schematicRemove(typename=prod,
-                                     serialnum=sn)
+                                     serialnum=sn, urn=urn)
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)
@@ -292,7 +296,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 try:
                     self.schematicSave(typename=pn,
                                        serialnum=sn,
-                                       data=prd)
+                                       data=prd, urn = urn)
                 except Exception as e:
                     msg = 'product ' + urn + ' saving failed'
                     logger.debug(msg)

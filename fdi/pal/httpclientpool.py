@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from ..pns.jsonio import getJsonObj
+from ..pns.fdi_requests import *
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
@@ -14,6 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
+basepoolpath = '/tmp'
 
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
@@ -36,8 +38,12 @@ class HttpClientPool(ProductPool):
         super(HttpClientPool, self).__init__(**kwds)
 
         logger.debug(self._poolpath)
-        if not op.exists(self._poolpath):
-            os.mkdir(self._poolpath)
+
+        real_poolpath = self.transformpath(self._poolpath)
+        logger.debug(real_poolpath)
+        if not op.exists(real_poolpath):
+            # os.mkdir(real_poolpath)
+            os.makedirs(real_poolpath)
         c, t, u = self.readHK()
 
         logger.debug('pool ' + self._poolurn + ' HK read.')
@@ -50,25 +56,39 @@ class HttpClientPool(ProductPool):
         """
         loads and returns the housekeeping data
         """
-        fp0 = (self._poolpath)
-        #import pdb
-        # pdb.set_trace()
-        with filelock.FileLock(self.lockpath(), timeout=5):
-            # if 1:
-            hk = {}
-            for hkdata in ['classes', 'tags', 'urns']:
-                fp = pathjoin(fp0, hkdata + '.jsn')
-                if op.exists(fp):
-                    try:
-                        r = getJsonObj(self._scheme + '://' + fp)
-                    except Exception as e:
-                        msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
-                        logging.error(msg)
-                        raise Exception(msg)
-                else:
-                    r = dict()
-                hk[hkdata] = r
-        logger.debug('LocalPool HK read from ' + self._poolpath)
+        # fp0 = (self._poolpath)
+        # #import pdb
+        # # pdb.set_trace()
+        # with filelock.FileLock(self.lockpath(), timeout=5):
+        #     # if 1:
+        #     hk = {}
+        #     for hkdata in ['classes', 'tags', 'urns']:
+        #         fp = pathjoin(fp0, hkdata + '.jsn')
+        #         if op.exists(fp):
+        #             try:
+        #                 r = getJsonObj(self._scheme + '://' + fp)
+        #             except Exception as e:
+        #                 msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
+        #                 logging.error(msg)
+        #                 raise Exception(msg)
+        #         else:
+        #             r = dict()
+        #         hk[hkdata] = r
+        # logger.debug('LocalPool HK read from ' + self._poolpath)
+        poolurn = self._poolurn
+        # print("READ HK FROM REMOTE===>poolurl: " + poolurn )
+        hk = {}
+        for hkdata in ['classes', 'tags', 'urns']:
+            try:
+                r, msg = read_from_server(poolurn, hkdata)
+                if r == 'FAILED':
+                    raise Exception(msg)
+            except Exception as e:
+                err = 'Error in HK reading from server ' + poolurn
+                logging.error(err)
+                raise Exception(err)
+            hk[hkdata] = r
+
         return hk['classes'], hk['tags'], hk['urns']
 
     def writeHK(self, fp0):
@@ -80,44 +100,63 @@ class HttpClientPool(ProductPool):
             fp = pathjoin(fp0, hkdata + '.jsn')
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
-    def schematicSave(self, typename, serialnum, data):
-        """ 
-        does the media-specific saving
+    def schematicSave(self, typename, serialnum, data, urn):
         """
-        fp0 = self._poolpath
+        does the media-specific saving to remote server
+        save metadata at localpool
+        """
+        fp0 = self.transformpath(self._poolpath)
         fp = pathjoin(fp0, typename + '_' + str(serialnum))
+
         try:
-            writeJsonwithbackup(fp, data)
-            self.writeHK(fp0)
-            logger.debug('HK written')
+            res = save_to_server(data, urn)
+            if  res['result'] == 'FAILED':
+                # print('Save' + fp + ' to server failed. ' + res['msg'])
+                logger.error('Save ' + fp + ' to server failed. ' + res['msg'])
+                raise Exception(res['msg'])
+            else:
+                self.writeHK(fp0)
+                logger.debug('Saved to server done, HK written in local done')
+            logger.debug('Product written in remote server done')
         except IOError as e:
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicLoadProduct(self, resourcename, indexstr):
+    def schematicLoadProduct(self, resourcename, indexstr, urn):
         """
         does the scheme-specific part of loadProduct.
         """
+        poolurn = self._poolurn
+        uri = poolurn + '/' +  resourcename + '_' + indexstr
+        # print("READ PRODUCT FROM REMOTE===>poolurl: " + poolurn )
+        try:
+            res, msg = read_from_server(urn)
+            if res == 'FAILED':
+                # print('Load' + uri + 'failed. ' + res['msg'])
+                logger.error('Load' + uri + 'failed. ' + msg)
+                prod = dict()
+            else:
+                prod = res
+        except Exception as e:
+            err = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
+            logger.error(err)
+            raise e
+        return prod
 
-        with filelock.FileLock(self.lockpath(), timeout=5):
-            uri = self._poolurn + '/' + resourcename + '_' + indexstr
-            try:
-                p = getJsonObj(uri)
-            except Exception as e:
-                msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
-                logger.error(msg)
-                raise e
-        return p
-
-    def schematicRemove(self, typename, serialnum):
+    def schematicRemove(self, typename, serialnum, urn):
         """
         does the scheme-specific part of removal.
         """
-        fp0 = (self._poolpath)
+        fp0 = self.transformpath(self._poolpath)
         fp = pathjoin(fp0, typename + '_' + str(serialnum))
         try:
-            os.unlink(fp)
-            self.writeHK(fp0)
+            res, msg = delete_from_server(urn)
+            if res != 'FAILED':
+                # os.unlink(fp)
+                self.writeHK(fp0)
+            else:
+                logger.error('Remove from server ' + fp + 'failed. Caused by: ' + msg)
+                raise msg
         except IOError as e:
             logger.error('Remove ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
@@ -126,23 +165,34 @@ class HttpClientPool(ProductPool):
         """
         does the scheme-specific remove-all
         """
-
         # logger.debug()
-        pp = (self._poolpath)
+        pp = self.transformpath (self._poolpath)
         if not op.exists(pp):
             return
-        if op.isdir(pp):
-            with filelock.FileLock(self.lockpath(), timeout=5):
-                # lock file will be wiped, too. so acquire then release it.
-                pass
         try:
-            shutil.rmtree(self._poolpath)
-            os.mkdir(pp)
+            res, msg = delete_from_server(self._poolurn, 'pool')
+            if res != 'FAILED':
+                shutil.rmtree(pp)
+                os.mkdir(pp)
+            else:
+                logger.error(msg)
+                raise msg
         except Exception as e:
-            msg = 'remove-mkdir ' + self._poolpath + \
+            err  = 'remove-mkdir ' + self._poolpath + \
                 ' failed. ' + str(e) + trbk(e)
-            logger.error(msg)
+            logger.error(err)
             raise e
+
+    def transformpath(self, path):
+        """ override this to changes the output from the input one (default) to something else.
+
+        """
+        if basepoolpath != '':
+            if path[0] == '/':
+                path = basepoolpath + path
+            else:
+                path = basepoolpath + '/' + path
+        return path
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

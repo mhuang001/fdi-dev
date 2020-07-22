@@ -3,6 +3,7 @@ from ..pns.jsonio import getJsonObj
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
+from ..dataset.deserialize import deserializeClassID
 from .productpool import ProductPool
 from ..utils.common import pathjoin, trbk
 from .productpool import lockpathbase
@@ -26,6 +27,7 @@ else:
     strset = (str, unicode)
     from urlparse import urlparse, quote, unquote
 
+basepoolpath = '/tmp'
 
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
@@ -36,12 +38,10 @@ def writeJsonwithbackup(fp, data):
     with open(fp, mode="w+") as f:
         f.write(js)
 
-
 def _wipe(poolpath):
     """
     does the scheme-specific remove-all
     """
-
     # logger.debug()
     pp = poolpath
     if pp == '/':
@@ -68,10 +68,11 @@ class LocalPool(ProductPool):
         """
         # print(__name__ + str(kwds))
         super(LocalPool, self).__init__(**kwds)
-
-        logger.debug(self._poolpath)
-        if not op.exists(self._poolpath):
-            os.mkdir(self._poolpath)
+        real_poolpath = self.transformpath(self._poolpath)
+        logger.debug(real_poolpath)
+        if not op.exists(real_poolpath):
+            # os.mkdir(real_poolpath)
+            os.makedirs(real_poolpath)
         c, t, u = self.readHK()
 
         logger.debug('pool ' + self._poolurn + ' HK read.')
@@ -84,7 +85,7 @@ class LocalPool(ProductPool):
         """
         loads and returns the housekeeping data
         """
-        fp0 = (self._poolpath)
+        fp0 = self.transformpath(self._poolpath)
         #import pdb
         # pdb.set_trace()
         with filelock.FileLock(self.lockpath(), timeout=5):
@@ -109,6 +110,11 @@ class LocalPool(ProductPool):
         """ override this to changes the output from the input one (default) to something else.
 
         """
+        if basepoolpath != '':
+            if path[0] == '/':
+                path = basepoolpath + path
+            else:
+                path = basepoolpath + '/' + path
         return path
 
     def writeHK(self, fp0):
@@ -120,8 +126,8 @@ class LocalPool(ProductPool):
             fp = pathjoin(fp0, hkdata + '.jsn')
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
-    def schematicSave(self, typename, serialnum, data):
-        """ 
+    def schematicSave(self, typename, serialnum, data, urn=None):
+        """
         does the media-specific saving
         """
         fp0 = self.transformpath(self._poolpath)
@@ -134,17 +140,20 @@ class LocalPool(ProductPool):
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicLoadProduct(self, typename, indexstr):
+    def schematicLoadProduct(self, resourcename, indexstr, urn=None):
         """
         does the scheme-specific part of loadProduct.
         """
 
-        uri = self.transformpath(self._poolurn) + '/' + \
-            quote(typename) + '_' + indexstr
+        prod = self.transformpath(self._poolpath) + '/' + quote(resourcename) + '_' + indexstr
+        # uri = self.transformpath(self._poolurn) + '/' + quote(resourcename) + '_' + indexstr
         try:
-            p = getJsonObj(uri)
+            # p = getJsonObj(uri)
+            with open(prod, 'r') as fp:
+                content = fp.read()
+            p = deserializeClassID(content)
         except Exception as e:
-            msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
+            msg = 'Load' + prod + 'failed. ' + str(e) + trbk(e)
             logger.error(msg)
             raise e
         return p

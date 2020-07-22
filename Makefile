@@ -18,7 +18,7 @@ $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE) $(PYDIR)/$(B_P
 
 
 # only the productInfo and __init__() kwds are generated in $(RESDIR).
-# $(RESDIR)/$(B_INFO) must be manually integrated into $(PYDIR)/$(B_PY). 
+# $(RESDIR)/$(B_INFO) must be manually integrated into $(PYDIR)/$(B_PY).
 
 $(RESDIR)/$(B_INFO): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE)
 	python3 -m fdi.dataset.yaml2python -y $(B_YAML) -t $(B_TEMPLATE) -o $(RESDIR)
@@ -79,12 +79,12 @@ vtag:
 	# git tag  $(VERSION)
 
 TESTLOG	= tests/log
-OPT	= --debug -v -r P 
+OPT	= --debug -v -r P
 OPT	= -r P --log-file=$(TESTLOG)
-T	= 
+T	=
 test: test1 test2 test4 test3
 
-test1: 
+test1:
 	pytest $(OPT) $(T) tests/test_dataset.py
 
 test2:
@@ -95,6 +95,9 @@ test3:
 
 test4:
 	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py
+
+test5:
+	pytest $(OPT) tests/test_httppool.py
 
 plots: plotall plot_dataset plot_pal plot_pns
 
@@ -141,4 +144,3 @@ doc_plots:
 
 doc_html:
 	cd $(SDIR) && make html
-

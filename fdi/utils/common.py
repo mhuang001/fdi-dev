@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import hashlib
 import traceback
 import logging
 
@@ -8,6 +8,9 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
+
+def str2md5(string):
+    return hashlib.md5(string.encode('utf8')).hexdigest()
 
 def trbk(e):
     """ trace back

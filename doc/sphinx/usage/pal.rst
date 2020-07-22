@@ -83,4 +83,3 @@ Packages
 Classes
 
 .. image:: ../_static/classes_pal.png
-

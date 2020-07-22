@@ -51,17 +51,17 @@ FDI Python packages
    usage/pal
    usage/pns
    usage/quickstart
-   
+
 API Document
 ============
 
 .. toctree::
 
    api/api
-   
+
 .. image:: _static/packages_all.png
 
-	   
+
 
 Indices and tables
 ==================
@@ -69,5 +69,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-

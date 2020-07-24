@@ -148,8 +148,10 @@ When implementing a ProductPool, the following rules need to be applied:
         if poolname != self._poolurn:
             raise(ValueError('wrong pool: ' + poolname +
                              ' . This is ' + self._poolurn))
+
+        # TODO: is it a must to lock local file when load a product from remote?
         with filelock.FileLock(self.lockpath()):
-            ret = self.schematicLoadProduct(resourcecn, indexs)
+            ret = self.schematicLoadProduct(resourcecn, indexs, urn)
         return ret
 
     def meta(self,  urn):
@@ -197,7 +199,7 @@ When implementing a ProductPool, the following rules need to be applied:
             if len(c[prod]['sn']) == 0:
                 del c[prod]
             try:
-                self.schematicRemove(typename=prod,
+                res = self.schematicRemove(typename=prod,
                                      serialnum=sn, urn=urn)
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
@@ -205,6 +207,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 # undo changes
                 c, t, u = cs, ts, us
                 raise e
+        return res
 
     def removeAll(self):
         """

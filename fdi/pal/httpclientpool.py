@@ -133,7 +133,7 @@ class HttpClientPool(ProductPool):
             res, msg = read_from_server(urn)
             if res == 'FAILED':
                 # print('Load' + uri + 'failed. ' + res['msg'])
-                logger.error('Load' + uri + 'failed. ' + msg)
+                logger.error('Load ' + uri + ' failed.  ' + msg)
                 prod = dict()
             else:
                 prod = res
@@ -154,6 +154,7 @@ class HttpClientPool(ProductPool):
             if res != 'FAILED':
                 # os.unlink(fp)
                 self.writeHK(fp0)
+                return res
             else:
                 logger.error('Remove from server ' + fp + 'failed. Caused by: ' + msg)
                 raise msg

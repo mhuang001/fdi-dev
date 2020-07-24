@@ -1,0 +1,15 @@
+INFO     root:test_httpclientpool.py:75 Test GET HK
+INFO     root:test_httpclientpool.py:80 Test GET classes, urns, tags url
+INFO     root:test_httpclientpool.py:93 Get product url
+INFO     root:test_httpclientpool.py:98 Post product url
+INFO     root:test_httpclientpool.py:103 Delete product url
+INFO     root:test_httpclientpool.py:108 Delete pool url
+INFO     root:test_httpclientpool.py:113 Test corrupt request url
+INFO     root:test_httpclientpool.py:122 Init a pstore
+INFO     root:test_httpclientpool.py:130 Save data by httpclientpool
+INFO     root:test_httpclientpool.py:140 Load product from httpclientpool
+INFO     root:test_httpclientpool.py:144 Search metadata
+INFO     root:test_httpclientpool.py:149 Delete a product from httpclientpool
+INFO     root:test_httpclientpool.py:153 Here will generate an load exception message, that is normal, you can ignore it:
+ERROR    fdi.pal.httpclientpool:httpclientpool.py:136 Load http://192.168.1.8:5000/client_test_pool/fdi.dataset.product.Product_0 failed.  Exception : [Errno 2] No such file or directory: '/data/client_test_pool/fdi.dataset.product.Product_0'
+INFO     root:test_httpclientpool.py:157 Delete a pool

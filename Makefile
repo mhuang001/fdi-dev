@@ -97,7 +97,7 @@ test4:
 	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py
 
 test5:
-	pytest $(OPT) tests/test_httppool.py
+	pytest $(OPT) tests/test_httpclientpool.py
 
 plots: plotall plot_dataset plot_pal plot_pns
 

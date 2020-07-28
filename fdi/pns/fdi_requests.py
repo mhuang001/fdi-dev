@@ -69,14 +69,15 @@ def urn2fdiurl(urn, contents='product', method='GET'):
         raise ValueError(method)
     return ret
 
-
-def save_to_server(data, urn):
+# Store tag in headers, maybe that's  a good idea
+def save_to_server(data, urn, tag):
     user = pcc['auth_user']
     password = pcc['auth_pass']
     auth = HTTPBasicAuth(user, password)
     api = urn2fdiurl(urn, contents='product', method='POST')
     print('POST API: ' + api)
-    res = requests.post(api, auth=auth, data=serializeClassID(data))
+    headers = {'tag': tag}
+    res = requests.post(api, auth=auth, data=serializeClassID(data), headers=headers)
     result = deserializeClassID(res.text)
     # print(result)
     return result

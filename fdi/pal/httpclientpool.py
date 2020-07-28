@@ -100,7 +100,7 @@ class HttpClientPool(ProductPool):
             fp = pathjoin(fp0, hkdata + '.jsn')
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
-    def schematicSave(self, typename, serialnum, data, urn):
+    def schematicSave(self, typename, serialnum, data, urn, tag=None):
         """
         does the media-specific saving to remote server
         save metadata at localpool
@@ -109,7 +109,7 @@ class HttpClientPool(ProductPool):
         fp = pathjoin(fp0, typename + '_' + str(serialnum))
 
         try:
-            res = save_to_server(data, urn)
+            res = save_to_server(data, urn,tag)
             if  res['result'] == 'FAILED':
                 # print('Save' + fp + ' to server failed. ' + res['msg'])
                 logger.error('Save ' + fp + ' to server failed. ' + res['msg'])

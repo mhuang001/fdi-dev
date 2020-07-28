@@ -660,7 +660,11 @@ def httppool(pool):
     # TODO: add an argument to choose if return Prodref or urnortag
     if request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
         data = deserializeClassID(request.data)
-        result, msg = save_product(data, paths)
+        if request.headers.get('tag') is not None:
+            tag = request.headers.get('tag')
+        else:
+            tag = None
+        result, msg = save_product(data, paths, tag)
 
     if request.method == 'DELETE' :
         if paths[-1].isnumeric():
@@ -694,7 +698,7 @@ def delete_product(paths):
             else:
                 pstore.register(poolurn)
                 pstore.getPool(poolurn).remove(urn)
-                result = ''
+                result = str(urn)
                 msg = 'remove product ' + urn + ' OK.'
         else:
             result = 'FAILED'
@@ -731,7 +735,7 @@ def delete_pool(paths):
         msg = 'Unable to wipe pool: ' + poolurn + ' caused by ' + str(e)
     return result, msg
 
-def save_product(data,  paths):
+def save_product(data,  paths, tag=None):
     # poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(urn)
     pool = ''
     typename = paths[-2]
@@ -743,10 +747,9 @@ def save_product(data,  paths):
     logger.debug('SAVE product to: ' + poolurn)
     try:
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-        # PoolManager.removeAll()
-        # pstore_tmp = ProductStorage(pool = poolurn)
-        # result = pstore_tmp.save(product=data)
-        result = pstore.save(product = data, poolurn = poolurn)
+        PoolManager.removeAll()
+        # TODO: if user use tags???
+        result = pstore.save(product = data, tag=tag, poolurn = poolurn)
         msg = 'Save data to ' + poolurn + ' OK.'
     except Exception as e:
         result = 'FAILED'
@@ -788,15 +791,15 @@ def load_metadata(paths):
     pool = pool[0:-1]
     poolurn = pc['poolprefix']  + '/' + pool
     try:
-        if check_pool(pool):
+        # if check_pool(pool):
             if poolurn not  in pstore.getPools():
                 pstore.register(poolurn)
             c, t, u = pstore.getPool(poolurn).readHK()
             result = {'classes': c, 'tags': c, 'urns': u}
             msg = ''
-        else:
-            result = 'FAILED'
-            msg = 'No such pool: ' + poolurn
+        # else:
+        #     result = 'FAILED'
+        #     msg = 'No such pool: ' + poolurn
     except Exception as e:
         result = 'FAILED'
         msg = 'Exception : ' + str(e)
@@ -810,14 +813,14 @@ def load_singer_metadata(paths):
         pool = pool[0:-1]
         poolurn = pc['poolprefix']  + '/' + pool
         try:
-            if check_pool(pool):
+            # if check_pool(pool):
                 if poolurn not  in pstore.getPools():
                     pstore.register(poolurn)
                 result = pstore.getPool(poolurn).readHKObj(paths[-1])
                 msg = ''
-            else:
-                result = 'FAILED'
-                msg = 'No such pool: ' + poolurn
+            # else:
+            #     result = 'FAILED'
+            #     msg = 'No such pool: ' + poolurn
         except Exception as e:
             result = 'FAILED'
             msg = 'Exception : ' + str(e)

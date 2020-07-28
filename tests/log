@@ -1,14 +1,26 @@
-INFO     root:test_httppool.py:143 get pnsconfig
-INFO     root:test_httppool.py:120 initial server response OD{'APIs':OD{'DELETE':[OD{'URL':'http://0.0.0.0:5000/v0.6/clean', 'description':' Removing traces of...
-INFO     root:test_httppool.py:210 get initPTS
-INFO     root:test_httppool.py:220 get run
-INFO     root:test_httppool.py:249 save products
-INFO     filelock:filelock.py:248 Lock 139631596804248 acquired on /tmp/locks/post_test_pool/lock
-INFO     filelock:filelock.py:311 Lock 139631596804248 released on /tmp/locks/post_test_pool/lock
-INFO     root:test_httppool.py:273 read product
-INFO     root:test_httppool.py:284 read hk
-INFO     root:test_httppool.py:294 read classes
-INFO     root:test_httppool.py:301 read tags
-INFO     root:test_httppool.py:308 read urns
-INFO     root:test_httppool.py:316 delete a product
-INFO     root:test_httppool.py:336 delete a pool
+INFO     root:test_httppool.py:147 get pnsconfig
+INFO     root:test_httppool.py:124 initial server response OD{'APIs':OD{'DELETE':[OD{'URL':'http://0.0.0.0:5000/v0.6/clean', 'description':' Removing traces of...
+INFO     root:test_httppool.py:214 get initPTS
+INFO     root:test_httppool.py:224 get run
+INFO     root:test_httppool.py:253 save products
+INFO     filelock:filelock.py:248 Lock 140462448849528 acquired on /tmp/locks/post_test_pool/lock
+INFO     filelock:filelock.py:311 Lock 140462448849528 released on /tmp/locks/post_test_pool/lock
+INFO     root:test_httppool.py:277 read product
+INFO     root:test_httppool.py:288 read hk
+INFO     root:test_httppool.py:298 read classes
+INFO     root:test_httppool.py:305 read tags
+INFO     root:test_httppool.py:312 read urns
+INFO     root:test_httppool.py:320 delete a product
+INFO     root:test_httppool.py:340 delete a pool
+INFO     root:test_httppool.py:378 Test read a locked file, it will returns FAILED
+INFO     root:test_httppool.py:358 Keeping files locked
+INFO     filelock:filelock.py:248 Lock 140462448851768 acquired on /tmp/locks/pool_default/lock
+INFO     root:test_httppool.py:367 Read a locked file
+INFO     root:test_httppool.py:372 {"result": "FAILED", "msg": "Exception : The file lock '/tmp/locks/pool_default/lock' could not be acquired.", "timestamp": 1595814732.0617418}
+INFO     filelock:filelock.py:311 Lock 140462448851768 released on /tmp/locks/pool_default/lock
+INFO     root:test_httppool.py:395 Test query a pool non exist.
+INFO     root:test_httppool.py:404 Test create a pool which has subclass
+INFO     filelock:filelock.py:248 Lock 140462448523080 acquired on /tmp/locks/subclasses/a/lock
+INFO     filelock:filelock.py:311 Lock 140462448523080 released on /tmp/locks/subclasses/a/lock
+INFO     filelock:filelock.py:248 Lock 140462448503048 acquired on /tmp/locks/subclasses/b/lock
+INFO     filelock:filelock.py:311 Lock 140462448503048 released on /tmp/locks/subclasses/b/lock

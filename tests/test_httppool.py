@@ -10,6 +10,9 @@ import pkg_resources
 import copy
 import time
 
+import asyncio
+import aiohttp
+
 # This is to be able to test w/ or w/o installing the package
 # https://docs.python-guide.org/writing/structure/
 # from .pycontext import spdc
@@ -87,6 +90,7 @@ post_poolid = '/post_test_pool'
 test_poolid = '/pool_default'
 basepoolpath = pc['basepoolpath']
 path = basepoolpath + test_poolid
+logger.info('create default product')
 if os.path.exists(path):
     files = os.listdir(path)
     if len(files) != 0:
@@ -345,12 +349,13 @@ def test_CRUD_product():
     files = get_files(post_poolid[1:])
     assert len(files) == 0, 'Wipe pool failed: ' + o['msg']
 
-"""
+
 async def lock_pool(sec):
     ''' Lock a pool and return a fake response
     '''
     import filelock
     import time
+    logger.info('Keeping files locked')
     with filelock.FileLock('/tmp/locks' + test_poolid + '/lock'):
         await asyncio.sleep(sec)
     fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "timestamp": '+ str(time.time()) + '}'
@@ -359,18 +364,18 @@ async def lock_pool(sec):
 async def read_product():
     prodpath = '/fdi.dataset.product.Product/0'
     url = api_baseurl + test_poolid + prodpath
-
+    logger.info('Read a locked file')
     async with aiohttp.ClientSession() as session:
         async with session.get(url, auth=aiohttp.BasicAuth(auth_user, auth_pass)) as res:
             x = await res.text()
             o = deserializeClassID(x)
+    logger.info(x)
     return o
 
 def test_lock_file():
     ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
     '''
-    import asyncio
-    import aiohttp
+    logger.info('Test read a locked file, it will returns FAILED')
     try:
         loop = asyncio.get_event_loop()
         tasks = [asyncio.ensure_future(lock_pool(14)), asyncio.ensure_future(read_product())]
@@ -422,7 +427,6 @@ def test_subclasses_pool():
     check_response(o1)
     o2 = deserializeClassID(res2.text)
     check_response(o2)
-"""
 
 # ##################################
 

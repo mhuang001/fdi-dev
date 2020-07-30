@@ -8,7 +8,7 @@ from ..dataset.product import Product
 from ..dataset.finetime import FineTime1
 from ..dataset.baseproduct import History
 from ..dataset.classes import Classes
-from .pnsconfig_ssa import pnsconfig as pc
+from .pnsconfig import pnsconfig as pc
 from ..utils.common import str2md5
 from ..pal.productstorage import ProductStorage
 from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
@@ -885,7 +885,7 @@ def verify_password(username, password):
     else:
         password = str2md5(password)
         try:
-            conn = mysql.connector.connect(host = pc['mysql']['host'], user =pc['mysql']['user'], password = pc['mysql']['password'], database = pc['mysql']['database'])
+            conn = mysql.connector.connect(host = pc['mysql']['host'], port=pc['mysql']['port'], user =pc['mysql']['user'], password = pc['mysql']['password'], database = pc['mysql']['database'])
             if conn.is_connected():
                 logger.info("connect to db successfully")
                 cursor = conn.cursor()

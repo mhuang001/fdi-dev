@@ -4,7 +4,7 @@ from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
 from .productpool import ProductPool
-from ..pns.pnsconfig_ssa import pnsconfig as pc
+from ..pns.pnsconfig import pnsconfig as pc
 from ..utils.common import pathjoin, trbk
 from .productpool import lockpathbase
 import filelock

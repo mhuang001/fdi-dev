@@ -8,7 +8,7 @@ from .productpool import ProductPool
 from .localpool import LocalPool
 from ..utils.common import pathjoin, trbk
 from .productpool import lockpathbase
-from ..pns.pnsconfig_ssa import pnsconfig as pc
+from ..pns.pnsconfig import pnsconfig as pc
 import filelock
 import sys
 import shutil

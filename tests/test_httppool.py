@@ -37,7 +37,7 @@ from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.utils.options import opt
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
-from fdi.pns.pnsconfig_ssa import pnsconfig as pc
+from fdi.pns.pnsconfig import pnsconfig as pc
 
 import sys
 from os.path import expanduser, expandvars

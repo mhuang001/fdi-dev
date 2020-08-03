@@ -748,8 +748,11 @@ def save_product(data,  paths, tag=None):
     try:
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
         PoolManager.removeAll()
-        # TODO: if user use tags???
-        result = pstore.save(product = data, tag=tag, poolurn = poolurn)
+        pstore_tmp = ProductStorage(pool=poolurn)
+        result = pstore_tmp.save(product=data, tag=tag, poolurn=poolurn)
+        # if poolurn not in pstore.getPools():
+        #     pstore.register(poolurn)
+        # result = pstore.save(product = data, tag=tag, poolurn = poolurn)
         msg = 'Save data to ' + poolurn + ' OK.'
     except Exception as e:
         result = 'FAILED'

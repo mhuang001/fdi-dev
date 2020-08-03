@@ -9,7 +9,6 @@ pnsconfig = dict(logginglevel=logging.INFO)
 
 # base url for webserver. Update version if needed.
 pnsconfig['baseurl'] = '/v0.6'
-pnsconfig['poolprefix'] = 'http://192.168.1.8:5000'
 pnsconfig['baseurl'] = '/v0.6'
 pnsconfig['httppoolurl'] = '/httppool'
 pnsconfig['basepoolpath'] = '/data/'
@@ -17,6 +16,7 @@ pnsconfig['defaultpool'] = 'pool_default'
 
 dev = True
 if dev:
+    pnsconfig['poolprefix'] = 'http://192.168.1.8:5000'
     # username, passwd, flask ip, flask port
     pnsconfig['node'] = {'username': 'foo',
                          'password': 'bar', 'host': '0.0.0.0', 'port': 5000}
@@ -30,6 +30,7 @@ if dev:
 
     pnsconfig['mysql'] = {'host': 'localhost',  'port':3306, 'user': 'root',  'password': 'toto', 'database': 'users'}
 else:
+    pnsconfig['poolprefix'] = 'http://' + {SERVER_IP_ADDR} + ':9888'
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
                          'host': '10.0.10.114', 'port': 9888}
 

@@ -30,11 +30,11 @@ if dev:
 
     pnsconfig['mysql'] = {'host': 'localhost',  'port':3306, 'user': 'root',  'password': 'toto', 'database': 'users'}
 else:
-    pnsconfig['poolprefix'] = 'http://' + {SERVER_IP_ADDR} + ':9888'
+    pnsconfig['poolprefix'] = 'http://' + {SERVER_IP_ADDR} + ':' + {SERVER_HOST_PORT}
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '10.0.10.114', 'port': 9888}
+                         'host': '10.0.10.114', 'port': {SERVER_HOST_PORT} }
 
-    pnsconfig['mysql'] = {'host': 'ssa_mysql', 'port':3306, 'user': 'root',  'password': '123456', 'database': 'users'}
+    pnsconfig['mysql'] = {'host': 'ssa-mysql', 'port':3306, 'user': 'root',  'password': '123456', 'database': 'users'}
 
     # server permission user
     pnsconfig['serveruser'] = 'apache'

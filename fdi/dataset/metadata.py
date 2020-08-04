@@ -22,9 +22,12 @@ The keys are mnemonics for humans; the values are type(x).__name__.
 ParameterTypes = {
     'binary': 'int',
     'integer': 'int',
+    'short': 'int',
+    'byte': 'int',
     'hex': 'int',
     'float': 'float',
     'string': 'str',
+    'boolean': 'bool',
     'finetime': 'FineTime1',
     'baseProduct': 'BaseProduct',
     'mapContext': 'MapContext',
@@ -34,6 +37,7 @@ ParameterTypes = {
     '': 'None'
 }
 
+""" maps machine types to human types """
 ParameterDataTypes = {}
 for tn, tt in ParameterTypes.items():
     if tt == 'int':
@@ -213,8 +217,8 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
                      value=self.value,
                      listeners=self.listeners,
                      type_=self.type_,
-                     classID=self.classID,
-                     version=self.version)
+                     classID=self.classID
+                     )
 
 
 class NumericParameter(Parameter, Quantifiable):
@@ -237,8 +241,7 @@ class NumericParameter(Parameter, Quantifiable):
                      value=self.value,
                      unit=self.unit,
                      type_=self.type_,
-                     classID=self.classID,
-                     version=self.version)
+                     classID=self.classID)
 
 
 class StringParameter(Parameter):
@@ -258,8 +261,7 @@ class StringParameter(Parameter):
         return ODict(description=self.description,
                      value=self.value,
                      type_=self.type_,
-                     classID=self.classID,
-                     version=self.version)
+                     classID=self.classID)
 
 
 class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEventSender):
@@ -344,5 +346,4 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
 
         return ODict(_sets=self._sets,
                      listeners=self.listeners,
-                     classID=self.classID,
-                     version=self.version)
+                     classID=self.classID)

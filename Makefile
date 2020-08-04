@@ -5,28 +5,20 @@ RESDIR	= $(PYDIR)/resources
 P_PY	= $(shell python -c "print('$(PRODUCT)'.lower())").py
 B_PY	= $(shell python -c "print('$(B_PRODUCT)'.lower())").py
 B_INFO	= $(B_PY)
-P_YAML	= $(RESDIR)/$(PRODUCT).yml
-B_YAML	= $(RESDIR)/$(B_PRODUCT).yml
-P_TEMPLATE	= $(RESDIR)/$(PRODUCT).template
-B_TEMPLATE	= $(RESDIR)/$(B_PRODUCT).template
+P_YAML	= $(RESDIR)
+B_YAML	= $(RESDIR)
+P_TEMPLATE	= $(RESDIR)
+B_TEMPLATE	= $(RESDIR)
 
 py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY)
 
-$(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE) $(PYDIR)/$(B_PY)
-	echo 'class '$(PRODUCT)'(): pass' > $(PYDIR)/$(P_PY)
+$(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).template $(PYDIR)/$(B_PY)
+	#echo 'class '$(PRODUCT)'(): pass' > $(PYDIR)/$(P_PY)
 	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR)
 
 
-# only the productInfo and __init__() kwds are generated in $(RESDIR).
-# $(RESDIR)/$(B_INFO) must be manually integrated into $(PYDIR)/$(B_PY). 
-
-$(RESDIR)/$(B_INFO): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE)
-	python3 -m fdi.dataset.yaml2python -y $(B_YAML) -t $(B_TEMPLATE) -o $(RESDIR)
-
-$(PYDIR)/$(B_PY): $(RESDIR)/$(B_INFO)
-	@echo $(RESDIR)/$(B_INFO) is NEWER than $(PYDIR)/$(B_PY). \
-	It must be manually integrated into $(PYDIR)/$(B_PY).
-	@ echo Re-run make after editing. Exiting... ; exit
+$(PYDIR)/$(B_PY): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE)/$(B_PRODUCT).template 
+	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR)
 
 
 
@@ -73,10 +65,10 @@ reqs:
 
 # update _version.py and tag based on setup.py
 VERSION	= $(shell python -c "from setuptools_scm import get_version;print(get_version('.'))")
-vtag:
+versiontag:
 	@ echo update _version.py and tag to $(VERSION)
 	@ echo  version = \"$(VERSION)\" > fdi/_version.py
-	# git tag  $(VERSION)
+	git tag  $(VERSION)
 
 TESTLOG	= tests/log
 OPT	= --debug -v -r P 

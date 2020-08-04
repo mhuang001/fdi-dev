@@ -6,6 +6,10 @@ Change Log
 	BETA0
 	=====
 
+	0.20 2020-08-04
+	----------------
+YAML v0.6 switch version and schema. multiple YAML files enabled by -y semantic change. remove version in serializableClassID.
+
 	0.19 2020-06-19
 	----------------
 Product parammeter definition YAML schema v0.5 with valid format. v0.19

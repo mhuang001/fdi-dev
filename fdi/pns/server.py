@@ -115,7 +115,7 @@ else:
     # print(sys.path)
     pcs = __import__(clpf.rsplit('.py', 1)[
         0], globals(), locals(), ['prjcls'], 0)
-    Classes.mapping = pcs.prjcls
+    Classes.updateMapping(pcs.prjcls)
     logger.debug('User classes: %d found.' % len(pcs.prjcls))
 
 # logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))

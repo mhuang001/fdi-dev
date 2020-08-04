@@ -2,7 +2,7 @@ name: BaseProduct
 definition: FDI base class
 parent: 
 level: ALL
-version: '0.5'
+schema: '0.6'
 description:
     current_id: description
     id: description
@@ -65,15 +65,15 @@ rootCause:
     unit: None
     default: UNKOWN
     valid: ''
-schema:
+version:
     current_id: formatVersion
-    id: schema
+    id: version
     id_zh_cn: 格式版本
-    fits_keyword: SCHEMA
+    fits_keyword: VERSION
     data_type: string
     description: Version of product schema
     description_zh_cn: 产品格式版本
     examples: '1'
     unit: None
-    default: '0.3'
+    default: '0.4'
     valid: ''

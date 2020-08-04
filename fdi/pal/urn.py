@@ -240,8 +240,7 @@ class Urn(DeepEqual, Serializable, Comparable):
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return ODict(urn=self.urn,
-                     classID=self.classID,
-                     version=self.version)
+                     classID=self.classID)
 
     def __repr__(self):
         return self.__class__.__name__ + ' ' + self._urn

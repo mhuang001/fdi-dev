@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from .odict import ODict
+import logging
 import json
 import codecs
 
@@ -10,12 +12,9 @@ else:
     PY3 = False
     strset = (str, unicode)
 
-import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-from .odict import ODict
 
 
 class SerializableEncoder(json.JSONEncoder):
@@ -38,9 +37,9 @@ class SerializableEncoder(json.JSONEncoder):
                 # logger.debug
                 #print('&&&& %s %s' % (str(obj.__class__), str(obj)))
                 if PY3 and issubclass(obj.__class__, bytes):
-                    return dict(code=codecs.encode(obj, 'hex'), classID='bytes', version='')
+                    return dict(code=codecs.encode(obj, 'hex'), classID='bytes')
                 if not PY3 and issubclass(obj.__class__, str):
-                    return dict(code=codec.encode(obj, 'hex'), classID='bytes', version='')
+                    return dict(code=codec.encode(obj, 'hex'), classID='bytes')
                 # print(obj.serializable())
                 return obj.serializable()
             except Exception as e:
@@ -62,8 +61,7 @@ def serializeHipe(o):
 
 class Serializable(object):
     """ mh: Can be serialized.
-    Has a ClassID and version instance property to show its class
-    and version information.
+    Has a ClassID  instance property to show its class information.
     """
 
     def __init__(self, **kwds):
@@ -72,10 +70,8 @@ class Serializable(object):
         #print('@@@ ' + sc.__name__ + str(issubclass(sc, dict)))
         if issubclass(sc, dict):
             self['classID'] = sc.__name__
-            self['version'] = ''
         else:
             self.classID = sc.__name__
-            self.version = ''
 
     def serialized(self, indent=None):
         return serializeClassID(self, indent=indent)

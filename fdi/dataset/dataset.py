@@ -111,8 +111,7 @@ class GenericDataset(Dataset, DataContainer, Container):
         s = ODict(description=self.description,
                   meta=self.meta,
                   data=self.data,
-                  classID=self.classID,
-                  version=self.version)
+                  classID=self.classID)
         return s
 
 
@@ -216,8 +215,7 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
         s = ODict(description=self.description,
                   meta=self.meta,
                   data=self.data,
-                  classID=self.classID,
-                  version=self.version)
+                  classID=self.classID)
         s.update(ODict(unit=self.unit))
         return s
 
@@ -550,8 +548,7 @@ class TableDataset(Dataset, TableModel):
         return ODict(description=self.description,
                      meta=self.meta,
                      data=self.data,
-                     classID=self.classID,
-                     version=self.version)
+                     classID=self.classID)
 
 
 class CompositeDataset(AbstractComposite, Dataset):
@@ -574,5 +571,4 @@ class CompositeDataset(AbstractComposite, Dataset):
         return ODict(description=self.description,
                      meta=self.meta,
                      _sets=self._sets,
-                     classID=self.classID,
-                     version=self.version)
+                     classID=self.classID)

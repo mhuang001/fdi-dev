@@ -296,5 +296,4 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
         """ Can be encoded with serializableEncoder """
         return ODict(urnobj=self.urnobj if issubclass(self.urnobj.__class__, Urn) else None,
                      _meta=self.getMeta(),
-                     classID=self.classID,
-                     version=self.version)
+                     classID=self.classID)

@@ -62,6 +62,6 @@ def urn2url(urn, contents='product'):
     elif contents in ['classes', 'urns', 'tags']:
         ret = base+'/hk/' + contents
     else:
-        raise(ValueError(contents)
+        raise(ValueError(contents))
 
     return ret

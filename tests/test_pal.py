@@ -406,7 +406,7 @@ def test_query():
 
     class TP(Product):
         pass
-    Classes.mapping = {'TP': TP}
+    Classes.updateMapping({'TP': TP})
     a1 = TP
     a2 = 'm'
     a3 = 'm["description"].value == "pr"'

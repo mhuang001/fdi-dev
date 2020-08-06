@@ -23,7 +23,8 @@ from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
 from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.finetime import FineTime, FineTime1, utcobj
-from fdi.dataset.baseproduct import History, BaseProduct
+from fdi.dataset.history import History
+from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
 from fdi.utils.checkjson import checkjson
 
@@ -135,6 +136,13 @@ def test_serialization():
     checkjson(v)
     v = {'e': 4, 'y': {'d': 'ff', '%': '$'}}
     checkjson(v)
+
+
+def test_sys():
+    assert sys.int_info.bits_per_digit == 30
+    assert sys.int_info.sizeof_digit == 4
+    assert sys.float_info.dig == 15
+    assert sys.maxsize == 2**63 - 1
 
 
 def ndlist(*args):

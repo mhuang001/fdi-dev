@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from ..dataset.serializable import Serializable
+from ..dataset.product import Product
+from ..dataset.odict import ODict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' % (logger.getEffectiveLevel()))
-
-from ..dataset.odict import ODict
-from ..dataset.product import Product
-from ..dataset.serializable import Serializable
 
 
 class Context(Product):
@@ -114,7 +113,7 @@ class RefContainer(Serializable, ODict):  # XXXXXXXX order
         """ remove all productRefs """
         ks = list(self.keys())
         for k in ks:
-            if k not in ('classID', 'version'):
+            if k != 'classID':
                 self.__delitem__(k)
 
     def put(self, key, ref):
@@ -131,13 +130,13 @@ class RefContainer(Serializable, ODict):  # XXXXXXXX order
         return self.__getitem__(key)
 
     def size(self):
-        return len(self.keys()) - 2
+        """ ClassID uses one """
+        return len(self.keys()) - 1
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return ODict(  # _sets=self._sets,
-            classID=self.classID,
-            version=self.version)
+            classID=self.classID)
 
 
 class ContextRuleException(ValueError):

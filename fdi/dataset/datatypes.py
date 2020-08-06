@@ -70,8 +70,7 @@ class Vector(Annotatable, Copyable, DeepEqual, Quantifiable, Serializable):
         return ODict(description=self.description,
                      components=self.components,
                      unit=self.unit,
-                     classID=self.classID,
-                     version=self.version)
+                     classID=self.classID)
 
 
 class Quaternion(Vector):

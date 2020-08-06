@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Product(BaseProduct):
-    """ Product class (level ALL) version 0.5 inheriting BaseProduct. Automatically generated from fdi/dataset/resources/Product.yml on 2020-06-19 12:49:05.502009.
+    """ Product class (level ALL) schema 0.6 inheriting BaseProduct. Automatically generated from fdi/dataset/resources/Product.yml on 2020-08-03 12:20:26.013775.
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """
@@ -27,6 +27,7 @@ class Product(BaseProduct):
                 'description': 'Description of this product',
                 'unit': 'None',
                 'default': 'UNKOWN',
+                'valid': '',
             },
             'type': {
                 'fits_keyword': 'TYPE',
@@ -42,6 +43,7 @@ class Product(BaseProduct):
                 'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
                 'unit': 'None',
                 'default': 'UNKOWN',
+                'valid': '',
             },
             'creationDate': {
                 'fits_keyword': 'DATE',
@@ -49,6 +51,7 @@ class Product(BaseProduct):
                 'description': 'Creation date of this product',
                 'unit': 'None',
                 'default': '0',
+                'valid': '',
             },
             'rootCause': {
                 'fits_keyword': 'ROOTCAUS',
@@ -56,13 +59,14 @@ class Product(BaseProduct):
                 'description': 'Reason of this run of pipeline.',
                 'unit': 'None',
                 'default': 'UNKOWN',
+                'valid': '',
             },
-            'schema': {
-                'fits_keyword': 'SCHEMA',
+            'version': {
+                'fits_keyword': 'VERSION',
                 'data_type': 'string',
                 'description': 'Version of product schema',
                 'unit': 'None',
-                'default': '0.4',
+                'default': '0.5',
                 'valid': '',
             },
             'startDate': {
@@ -115,7 +119,7 @@ class Product(BaseProduct):
                  creator = 'UNKOWN',
                  creationDate = FineTime1(0),
                  rootCause = 'UNKOWN',
-                 schema = '0.4',
+                 version = '0.5',
                  startDate = FineTime1(0),
                  endDate = FineTime1(0),
                  instrument = 'UNKOWN',

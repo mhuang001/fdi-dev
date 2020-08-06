@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+# Automatically generated from fdi/dataset/resources/BaseProduct.yml. Do not edit.
+
+from collections import OrderedDict
+from fdi.dataset.finetime import FineTime1
+
+
 from .serializable import Serializable
 from .odict import ODict
 from .finetime import FineTime, FineTime1, utcobj
@@ -9,6 +15,7 @@ from .dataset import CompositeDataset
 from .metadata import Parameter, NumericParameter, ParameterTypes
 from .eq import DeepEqual, deepcmp
 from .copyable import Copyable
+from .history import History
 
 from collections import OrderedDict
 import pdb
@@ -19,68 +26,10 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class History(CompositeDataset, DeepEqual):
-    """ Public interface to the history dataset. Contains the
-    main methods for retrieving a script and copying the history.
-    """
-
-    def __init__(self, other=None, **kwds):
-        """
-        mh: The copy constructor is better not be implemented. Use copy()
-        instead. Remember: not only copies the datasets,
-        but also changes the history ID in the metadata and
-        relevant table entries to indicate that this a new
-        independent product of which the history may change.
-        """
-        super(History, self).__init__(**kwds)
-
-        # Name of the table which contains the history script
-        self.HIST_SCRIPT = ''
-        # Name of the parameter history table
-        self.PARAM_HISTORY = ''
-        # Name of the task history table
-        self.TASK_HISTORY = ''
-
-    def accept(self, visitor):
-        """ Hook for adding functionality to meta data object
-        through visitor pattern."""
-        visitor.visit(self)
-
-    def getOutputVar(self):
-        """ Returns the final output variable of the history script.
-        """
-        return None
-
-    def getScript(self):
-        """ Creates a Jython script from the history.
-        """
-        return self.HIST_SCRIPT
-
-    def getTaskHistory(self):
-        """ Returns a human readable formatted history tree.
-        """
-        return self.TASK_HISTORY
-
-    def saveScript(self, file):
-        """ Saves the history script to a file.
-        """
-
-    def serializable(self):
-        """ Can be encoded with serializableEncoder """
-        return ODict(description=self.description,
-                     HIST_SCRIPT=self.HIST_SCRIPT,
-                     PARAM_HISTORY=self.PARAM_HISTORY,
-                     TASK_HISTORY=self.TASK_HISTORY,
-                     meta=self.meta,
-                     _sets=self._sets,
-                     classID=self.classID,
-                     version=self.version)
-
-
 # @addMandatoryProductAttrs
 
 
-class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
+class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     """ A BaseProduct is a generic result that can be passed on between
     (standalone) processes.
 
@@ -103,6 +52,9 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
     assert p.meta['creator']=='foo'
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
+
+    BaseProduct class (level ALL) schema 0.6 inheriting None. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-08-03 12:19:57.186246.
+
     """
 
     productInfo = {
@@ -113,6 +65,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
                 'description': 'Description of this product',
                 'unit': 'None',
                 'default': 'UNKOWN',
+                'valid': '',
             },
             'type': {
                 'fits_keyword': 'TYPE',
@@ -120,6 +73,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
                 'description': 'Product Type identification. Fully qualified Python class name or CARD.',
                 'unit': 'None',
                 'default': 'BaseProduct',
+                'valid': '',
             },
             'creator': {
                 'fits_keyword': 'CREATOR',
@@ -127,6 +81,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
                 'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
                 'unit': 'None',
                 'default': 'UNKOWN',
+                'valid': '',
             },
             'creationDate': {
                 'fits_keyword': 'DATE',
@@ -134,6 +89,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
                 'description': 'Creation date of this product',
                 'unit': 'None',
                 'default': '0',
+                'valid': '',
             },
             'rootCause': {
                 'fits_keyword': 'ROOTCAUS',
@@ -141,24 +97,27 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
                 'description': 'Reason of this run of pipeline.',
                 'unit': 'None',
                 'default': 'UNKOWN',
+                'valid': '',
             },
-            'schema': {
-                'fits_keyword': 'SCHEMA',
+            'version': {
+                'fits_keyword': 'VERSION',
                 'data_type': 'string',
                 'description': 'Version of product schema',
                 'unit': 'None',
-                'default': '0.3',
+                'default': '0.4',
+                'valid': '',
             },
         }),
     }
 
+
     def __init__(self,
-                 description='UNKOWN',
-                 type_='BaseProduct',
-                 creator='UNKOWN',
-                 creationDate=FineTime1(0),
-                 rootCause='UNKOWN',
-                 schema='0.3',
+                 description = 'UNKOWN',
+                 type_ = 'BaseProduct',
+                 creator = 'UNKOWN',
+                 creationDate = FineTime1(0),
+                 rootCause = 'UNKOWN',
+                 version = '0.4',
                  **kwds):
 
         if 'metasToBeInstalled' not in kwds:

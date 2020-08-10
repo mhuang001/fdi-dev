@@ -56,25 +56,6 @@ class HttpClientPool(ProductPool):
         """
         loads and returns the housekeeping data
         """
-        # fp0 = (self._poolpath)
-        # #import pdb
-        # # pdb.set_trace()
-        # with filelock.FileLock(self.lockpath(), timeout=5):
-        #     # if 1:
-        #     hk = {}
-        #     for hkdata in ['classes', 'tags', 'urns']:
-        #         fp = pathjoin(fp0, hkdata + '.jsn')
-        #         if op.exists(fp):
-        #             try:
-        #                 r = getJsonObj(self._scheme + '://' + fp)
-        #             except Exception as e:
-        #                 msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
-        #                 logging.error(msg)
-        #                 raise Exception(msg)
-        #         else:
-        #             r = dict()
-        #         hk[hkdata] = r
-        # logger.debug('LocalPool HK read from ' + self._poolpath)
         poolurn = self._poolurn
         # print("READ HK FROM REMOTE===>poolurl: " + poolurn )
         hk = {}
@@ -109,7 +90,7 @@ class HttpClientPool(ProductPool):
         fp = pathjoin(fp0, typename + '_' + str(serialnum))
 
         try:
-            res = save_to_server(data, urn,tag)
+            res = save_to_server(data, urn, tag)
             if  res['result'] == 'FAILED':
                 # print('Save' + fp + ' to server failed. ' + res['msg'])
                 logger.error('Save ' + fp + ' to server failed. ' + res['msg'])

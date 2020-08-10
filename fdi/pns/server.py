@@ -708,8 +708,10 @@ def delete_product(paths):
         msg = 'Unable to remove product: ' + urn + ' caused by ' + str(e)
     return result, msg
 
-# TODO: if wipe a pool successfully, should it remove this pool from product storage? like pstore.remove(poolurn)
 def delete_pool(paths):
+    """ Remove contents of a pool
+    Checking if the pool exists in server, and removing or returning exception message to client.
+    """
     pool = ''
     for i in paths:
         pool = pool + i + '/'
@@ -736,6 +738,8 @@ def delete_pool(paths):
     return result, msg
 
 def save_product(data,  paths, tag=None):
+    """Save products
+    """
     # poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(urn)
     pool = ''
     typename = paths[-2]
@@ -750,9 +754,6 @@ def save_product(data,  paths, tag=None):
         PoolManager.removeAll()
         pstore_tmp = ProductStorage(pool=poolurn)
         result = pstore_tmp.save(product=data, tag=tag, poolurn=poolurn)
-        # if poolurn not in pstore.getPools():
-        #     pstore.register(poolurn)
-        # result = pstore.save(product = data, tag=tag, poolurn = poolurn)
         msg = 'Save data to ' + poolurn + ' OK.'
     except Exception as e:
         result = 'FAILED'
@@ -764,6 +765,8 @@ def check_pool(pool):
     return os.path.exists(poolpath)
 
 def load_product(paths):
+    """Load product
+    """
     pool = ''
     for i in paths[0: -2]:
         pool = pool + i + '/'
@@ -788,6 +791,8 @@ def load_product(paths):
     return result, msg
 
 def load_metadata(paths):
+    """Load metadata of a pool
+    """
     pool = ''
     for i in paths[0:-1]:
         pool = pool + i + '/'
@@ -810,20 +815,18 @@ def load_metadata(paths):
     return result, msg
 
 def load_singer_metadata(paths):
+        """Load classes or urns or tags of a pool
+        """
         pool = ''
         for i in paths[0: -2]:
             pool = pool + i + '/'
         pool = pool[0:-1]
         poolurn = pc['poolprefix']  + '/' + pool
         try:
-            # if check_pool(pool):
                 if poolurn not  in pstore.getPools():
                     pstore.register(poolurn)
                 result = pstore.getPool(poolurn).readHKObj(paths[-1])
                 msg = ''
-            # else:
-            #     result = 'FAILED'
-            #     msg = 'No such pool: ' + poolurn
         except Exception as e:
             result = 'FAILED'
             msg = 'Exception : ' + str(e)

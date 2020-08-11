@@ -712,7 +712,7 @@ def test_DataWrapper():
 
 def test_ArrayDataset():
     # from DRM
-    a1 = [1, 4.4, 5.4E3]      # a 1D array of data
+    a1 = [1, 4.4, 5.4E3]      # an array of data
     a2 = 'ev'                 # unit
     a3 = 'three energy vals'  # description
     v = ArrayDataset(data=a1, unit=a2, description=a3)
@@ -880,6 +880,12 @@ def test_TableDataset():
 
     # add, set, and replace columns
     # column set / get
+    v = TableDataset()
+    assert v.getColumnCount() == 0
+    v.addColumn("Energy", Column(
+        data=[1, 2, 3, 4], description="desc", unit='eV'))
+    assert v.getColumnCount() == 1
+    # http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/dataset/TableDataset.html#Z:Z__setitem__-java.lang.String-herschel.ia.dataset.Column-
     u = TableDataset()
     c1 = Column([1, 4], 'sec')
     u.addColumn('col3', c1)
@@ -1069,12 +1075,7 @@ def demo_TableDataset():
 
 
 def test_Column():
-    v = TableDataset()
-    assert v.getColumnCount() == 0
-    v.addColumn("Energy", Column(
-        data=[1, 2, 3, 4], description="desc", unit='eV'))
-    assert v.getColumnCount() == 1
-    # http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/dataset/TableDataset.html#Z:Z__setitem__-java.lang.String-herschel.ia.dataset.Column-
+    pass
 
 
 def test_CompositeDataset():

@@ -67,7 +67,7 @@ reqs:
 VERSION	= $(shell python -c "from setuptools_scm import get_version;print(get_version('.'))")
 versiontag:
 	@ echo update _version.py and tag to $(VERSION)
-	@ echo  version = \"$(VERSION)\" > fdi/_version.py
+	@ echo  __version__ = \"$(VERSION)\" > fdi/_version.py
 	git tag  $(VERSION)
 
 TESTLOG	= tests/log

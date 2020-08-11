@@ -47,3 +47,13 @@ def fullname(obj):
         return t.__name__  # Avoid reporting __builtin__
     else:
         return module + '.' + t.__name__
+
+
+def lls(s, length=80):
+    """ length-limited string
+    """
+    st = str(s)
+    if len(st) <= length:
+        return st
+    else:
+        return st[:length - 3] + '...'

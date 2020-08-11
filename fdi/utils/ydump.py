@@ -46,13 +46,16 @@ ruamel.yaml.add_representer(Classes.mapping['ODict'], MyRepresenter.represent_di
                             representer=MyRepresenter)
 
 
-def ydump(od, stream=None):
+def ydump(od, stream=None, register=[]):
     """ YAML dump that outputs OrderedDict like dict.
     """
 
     #d = ordereddict(od)
     # d.update(od)
     d = od
+    for c in register:
+        yaml.register_class(c)
+
     if 0:
         return yaml.dump(d, default_flow_style=False, indent=4,
                          width=60, allow_unicode=True)

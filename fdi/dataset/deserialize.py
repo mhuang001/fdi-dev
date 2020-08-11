@@ -6,6 +6,7 @@ import pdb
 
 from .odict import ODict
 from .classes import Classes
+from ..utils.common import lls
 
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -52,15 +53,6 @@ def imakedesables():
 
 
 #desables = None
-
-
-def lls(s, length=80):
-    """ length-limited string
-    """
-    if len(s) <= length:
-        return str(s)
-    else:
-        return str(s[:length - 3]) + '...'
 
 
 def constructSerializableClassID(obj, lgb=None, debug=False):

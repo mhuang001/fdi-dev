@@ -9,27 +9,28 @@ from pprint import pprint
 import pdb
 
 
-if 0:
-    import inspect
-    import collections
-    import ruamel
-    from ruamel.yaml import YAML
-    from ruamel.yaml.representer import RoundTripRepresenter
+def gety():
+    if 0:
+        import inspect
+        import collections
+        import ruamel
+        from ruamel.yaml import YAML
+        from ruamel.yaml.representer import RoundTripRepresenter
 
-    ruamel.yaml.add_representer(
-        Classes.mapping['ODict'], RoundTripRepresenter.represent_dict)
+        ruamel.yaml.add_representer(
+            Classes.mapping['ODict'], RoundTripRepresenter.represent_dict)
 
-    ruamel.yaml.add_representer(collections.OrderedDict,
-                                RoundTripRepresenter.represent_dict)
-    yaml = YAML(typ='rt')
-    yaml.default_flow_style = False
-    from ..dataset.classes import Classes
-    for n, c in Classes.mapping.items():
-        if inspect.isclass(c):
-            print(n+' %s' % type(c).__name__)
-            yaml.register_class(c)
-else:
-    from .ydump import ydump
+        ruamel.yaml.add_representer(collections.OrderedDict,
+                                    RoundTripRepresenter.represent_dict)
+        yaml = YAML(typ='rt')
+        yaml.default_flow_style = False
+        from ..dataset.classes import Classes
+        for n, c in Classes.mapping.items():
+            if inspect.isclass(c):
+                print(n+' %s' % type(c).__name__)
+                yaml.register_class(c)
+    else:
+        from .ydump import ydump
 
 
 def checkjson(obj, dbg=0):
@@ -46,6 +47,7 @@ def checkjson(obj, dbg=0):
         js = json.dumps(obj, indent=indent)
 
     if dbg:
+        gety()
         try:
             if 0:
                 yaml.dump(obj, sys.stdout)

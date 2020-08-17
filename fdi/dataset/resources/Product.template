@@ -10,13 +10,12 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class $PRODUCTNAME($PARENT):
+class $PRODUCTNAME($PARENTS):
     """ $CLASSDOC
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """
 
-$PROJECTINFO
 
     def __init__(self,
 $INITARGS
@@ -40,10 +39,15 @@ $INITARGS
             metasToBeInstalled = kwds['metasToBeInstalled']
             del kwds['metasToBeInstalled']
 
-
-# must be the first line to initiate meta and get description
+	# must be the first line to initiate meta and get description
         super($PRODUCTNAME , self).__init__(
             metasToBeInstalled=metasToBeInstalled, **kwds)
 
-        #self.installMetas(lvar=lvar)
-        #print('% ' + self.meta.toString())
+        global ProductInfo
+        self.pInfo = ProductInfo
+        super($PRODUCTNAME , self).installMetas(
+            mtbi=metasToBeInstalled, prodInfo=ProductInfo)
+
+
+
+$PRODUCTINFO

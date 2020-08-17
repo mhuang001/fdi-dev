@@ -13,13 +13,14 @@ B_TEMPLATE	= $(RESDIR)
 py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY)
 
 $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).template $(PYDIR)/$(B_PY)
-	#echo 'class '$(PRODUCT)'(): pass' > $(PYDIR)/$(P_PY)
 	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR)
 
 
 $(PYDIR)/$(B_PY): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE)/$(B_PRODUCT).template 
 	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR)
 
+yamlupgrade: 
+	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -u
 
 
 .PHONY: runserver reqs install uninstall vtag FORCE \

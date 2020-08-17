@@ -13,104 +13,11 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class Product(BaseProduct):
-    """ Product class (level ALL) schema 0.6 inheriting BaseProduct. Automatically generated from fdi/dataset/resources/Product.yml on 2020-08-03 12:20:26.013775.
+class Product(BaseProduct,):
+    """ Product class (level ALL) schema 1.0 inheriting ['BaseProduct']. Automatically generated from fdi/dataset/resources/Product.yml on 2020-08-17 02:46:24.843643.
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """
-
-    productInfo = {
-        'metadata': OrderedDict({
-            'description': {
-                'fits_keyword': 'DESCRIPT',
-                'data_type': 'string',
-                'description': 'Description of this product',
-                'unit': 'None',
-                'default': 'UNKOWN',
-                'valid': '',
-            },
-            'type': {
-                'fits_keyword': 'TYPE',
-                'data_type': 'string',
-                'description': 'Product Type identification. Fully qualified Python class name or CARD.',
-                'unit': 'None',
-                'default': 'Product',
-                'valid': '',
-            },
-            'creator': {
-                'fits_keyword': 'CREATOR',
-                'data_type': 'string',
-                'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
-                'unit': 'None',
-                'default': 'UNKOWN',
-                'valid': '',
-            },
-            'creationDate': {
-                'fits_keyword': 'DATE',
-                'data_type': 'finetime',
-                'description': 'Creation date of this product',
-                'unit': 'None',
-                'default': '0',
-                'valid': '',
-            },
-            'rootCause': {
-                'fits_keyword': 'ROOTCAUS',
-                'data_type': 'string',
-                'description': 'Reason of this run of pipeline.',
-                'unit': 'None',
-                'default': 'UNKOWN',
-                'valid': '',
-            },
-            'version': {
-                'fits_keyword': 'VERSION',
-                'data_type': 'string',
-                'description': 'Version of product schema',
-                'unit': 'None',
-                'default': '0.5',
-                'valid': '',
-            },
-            'startDate': {
-                'fits_keyword': 'DATE_OBS',
-                'data_type': 'finetime',
-                'description': 'Nominal start time  of this product.',
-                'unit': 'None',
-                'default': '0',
-                'valid': '',
-            },
-            'endDate': {
-                'fits_keyword': 'DATE_END',
-                'data_type': 'finetime',
-                'description': 'Nominal end time  of this product.',
-                'unit': 'None',
-                'default': '0',
-                'valid': '',
-            },
-            'instrument': {
-                'fits_keyword': 'INSTRUME',
-                'data_type': 'string',
-                'description': 'Instrument that generated data of this product',
-                'unit': 'None',
-                'default': 'UNKOWN',
-                'valid': '',
-            },
-            'modelName': {
-                'fits_keyword': 'MODEL',
-                'data_type': 'string',
-                'description': 'Model name of the instrument of this product',
-                'unit': 'None',
-                'default': 'UNKOWN',
-                'valid': '',
-            },
-            'mission': {
-                'fits_keyword': 'TELESCOP',
-                'data_type': 'string',
-                'description': 'Name of the mission.',
-                'unit': 'None',
-                'default': '_AGS',
-                'valid': '',
-            },
-        }),
-    }
 
 
     def __init__(self,
@@ -145,10 +52,115 @@ class Product(BaseProduct):
             metasToBeInstalled = kwds['metasToBeInstalled']
             del kwds['metasToBeInstalled']
 
-
-# must be the first line to initiate meta and get description
+	# must be the first line to initiate meta and get description
         super(Product , self).__init__(
             metasToBeInstalled=metasToBeInstalled, **kwds)
 
-        #self.installMetas(lvar=lvar)
-        #print('% ' + self.meta.toString())
+        global ProductInfo
+        self.pInfo = ProductInfo
+        super(Product , self).installMetas(
+            mtbi=metasToBeInstalled, prodInfo=ProductInfo)
+
+
+
+ProductInfo = {
+    'name': 'Product',
+    'description': 'Project level product',
+    'parents': [
+        'BaseProduct',
+        ],
+    'level': 'ALL',
+    'schema': '1.0',
+    'metadata': {
+        'description': {
+                'fits_keyword': 'DESCRIPT',
+                'data_type': 'string',
+                'description': 'Description of this product',
+                'unit': None,
+                'default': 'UNKOWN',
+                'valid': '',
+                },
+        'type': {
+                'fits_keyword': 'TYPE',
+                'data_type': 'string',
+                'description': 'Product Type identification. Fully qualified Python class name or CARD.',
+                'unit': None,
+                'default': 'Product',
+                'valid': '',
+                },
+        'creator': {
+                'fits_keyword': 'CREATOR',
+                'data_type': 'string',
+                'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
+                'unit': None,
+                'default': 'UNKOWN',
+                'valid': '',
+                },
+        'creationDate': {
+                'fits_keyword': 'DATE',
+                'data_type': 'finetime',
+                'description': 'Creation date of this product',
+                'unit': 'None',
+                'default': '0',
+                'valid': '',
+                },
+        'rootCause': {
+                'fits_keyword': 'ROOTCAUS',
+                'data_type': 'string',
+                'description': 'Reason of this run of pipeline.',
+                'unit': None,
+                'default': 'UNKOWN',
+                'valid': '',
+                },
+        'version': {
+                'fits_keyword': 'VERSION',
+                'data_type': 'string',
+                'description': 'Version of product schema',
+                'unit': None,
+                'default': '0.5',
+                'valid': '',
+                },
+        'startDate': {
+                'fits_keyword': 'DATE_OBS',
+                'data_type': 'finetime',
+                'description': 'Nominal start time  of this product.',
+                'unit': 'None',
+                'default': '0',
+                'valid': '',
+                },
+        'endDate': {
+                'fits_keyword': 'DATE_END',
+                'data_type': 'finetime',
+                'description': 'Nominal end time  of this product.',
+                'unit': 'None',
+                'default': '0',
+                'valid': '',
+                },
+        'instrument': {
+                'fits_keyword': 'INSTRUME',
+                'data_type': 'string',
+                'description': 'Instrument that generated data of this product',
+                'unit': None,
+                'default': 'UNKOWN',
+                'valid': '',
+                },
+        'modelName': {
+                'fits_keyword': 'MODEL',
+                'data_type': 'string',
+                'description': 'Model name of the instrument of this product',
+                'unit': None,
+                'default': 'UNKOWN',
+                'valid': '',
+                },
+        'mission': {
+                'fits_keyword': 'TELESCOP',
+                'data_type': 'string',
+                'description': 'Name of the mission.',
+                'unit': None,
+                'default': '_AGS',
+                'valid': '',
+                },
+        },
+    'datasets': {
+        },
+    }

@@ -27,34 +27,6 @@ Serializable.
 '''
 
 
-def imakedesables():
-    """ makes a class dictionary for instanciation.
-    """
-    from fdi.dataset.deserialize import deserializeClassID
-    from fdi.dataset.finetime import FineTime, FineTime1, utcobj
-    from fdi.dataset.baseproduct import History, BaseProduct
-    from fdi.dataset.product import Product
-    from fdi.dataset.datatypes import Vector, Quaternion
-    from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
-    from fdi.dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
-    try:
-        from svom.products.chart import ATC_VT_B, ATC_VT_R, FDC_VT_B, FDC_VT_R
-    except Exception as e:
-        logger.info(str(e))
-        pass
-
-    from fdi.pal.context import MapContext, RefContainer, ContextRuleException
-    from fdi.pal.urn import Urn
-    from fdi.pal.productref import ProductRef
-
-    l = locals()
-    # logger.debug(l)
-    return l
-
-
-#desables = None
-
-
 def constructSerializableClassID(obj, lgb=None, debug=False):
     """ mh: reconstruct object from the output of jason.loads().
     Recursively goes into nested class instances that are not

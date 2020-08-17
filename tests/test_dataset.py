@@ -36,12 +36,14 @@ if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
 else:
     PY3 = False
 
-if __name__ == '__main__' and __package__ is None:
-    # run by pytest
+Classes.updateMapping()
+
+if __name__ == '__main__' and __package__ == 'tests':
+    # run by python -m tests.test_dataset
 
     from outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
 else:
-    # run by python -m tests.test_dataset
+    # run by pytest
 
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
@@ -880,11 +882,11 @@ def test_TableDataset():
 
     # add, set, and replace columns
     # column set / get
-    v = TableDataset()
-    assert v.getColumnCount() == 0
-    v.addColumn("Energy", Column(
+    vvv = TableDataset()
+    assert vvv.getColumnCount() == 0
+    vvv.addColumn("Energy", Column(
         data=[1, 2, 3, 4], description="desc", unit='eV'))
-    assert v.getColumnCount() == 1
+    assert vvv.getColumnCount() == 1
     # http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/dataset/TableDataset.html#Z:Z__setitem__-java.lang.String-herschel.ia.dataset.Column-
     u = TableDataset()
     c1 = Column([1, 4], 'sec')

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import pdb
 from ..dataset.classes import Classes
 import ruamel.yaml
 from ruamel.yaml import YAML
@@ -38,23 +39,31 @@ yaml.width = 80
 yaml.allow_unicode = True
 yaml.compact(seq_seq=1, seq_map=True)
 
-for n, c in Classes.mapping.items():
-    if inspect.isclass(c):
-        yaml.register_class(c)
+notinited = True
 
-ruamel.yaml.add_representer(Classes.mapping['ODict'], MyRepresenter.represent_dict,
-                            representer=MyRepresenter)
+
+def init():
+    global notinited
+    # for n, c in Classes.mapping.items():
+    #    if inspect.isclass(c):
+    #        yaml.register_class(c)
+
+    ruamel.yaml.add_representer(Classes.get('ODict'), MyRepresenter.represent_dict,
+                                representer=MyRepresenter)
+    notinited = False
 
 
 def ydump(od, stream=None, register=[]):
     """ YAML dump that outputs OrderedDict like dict.
     """
 
+    global notinited
+
+    if notinited:
+        init()
     #d = ordereddict(od)
     # d.update(od)
     d = od
-    for c in register:
-        yaml.register_class(c)
 
     if 0:
         return yaml.dump(d, default_flow_style=False, indent=4,

@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 # @addMandatoryProductAttrs
 
 
-class $PRODUCTNAME($PARENT AbstractComposite, Copyable, Serializable,  EventSender):
+class $PRODUCTNAME($PARENTS AbstractComposite, Copyable, Serializable,  EventSender):
     """ A BaseProduct is a generic result that can be passed on between
     (standalone) processes.
 
@@ -55,11 +55,13 @@ class $PRODUCTNAME($PARENT AbstractComposite, Copyable, Serializable,  EventSend
 
     """
 
-$PROJECTINFO
 
     def __init__(self,
 $INITARGS
                  **kwds):
+
+        global ProductInfo
+        self.pInfo = ProductInfo
 
         if 'metasToBeInstalled' not in kwds:
             # this class is being called directly
@@ -83,18 +85,20 @@ $INITARGS
         # must be the first line to initiate meta and get description
         super(BaseProduct, self).__init__(description=description, **kwds)
 
-        # print(self.productInfo['metadata'].keys())
+        # print(self.pInfo['metadata'].keys())
         # print(metasToBeInstalled)
         # print('# ' + self.meta.toString())
 
         self.installMetas(mtbi=metasToBeInstalled)
         self.history = History()
 
-    def installMetas(self, mtbi):
+    def installMetas(self, mtbi, prodInfo=None):
         """ put parameters in group in product metadata, and updates productInfo. values in mtbi override those default ones in group.
         """
+        if prodInfo is None:
+            prodInfo = self.pInfo
 
-        for met, params in self.productInfo['metadata'].items():
+        for met, params in prodInfo['metadata'].items():
             # pdb.set_trace()  # description has been set by Anotatable.__init__
             if met != 'description':
                 #  type_ in mtbi (from __init__) changed to type
@@ -119,9 +123,9 @@ $INITARGS
         read, and returns the values only.
         """
         # print('getattribute ' + name)
-        if name not in ['productInfo', '_meta'] and hasattr(self, '_meta'):
+        if name not in ['pInfo', '_meta'] and hasattr(self, '_meta'):
             #            self.hasMeta():
-            if name in self.productInfo['metadata']:
+            if name in self.pInfo['metadata']:
                 # if meta does not exist, inherit Attributable
                 # before any class that access mandatory attributes
                 # print('aa ' + selftr(self.getMeta()[name]))
@@ -134,7 +138,7 @@ $INITARGS
         value: Must be Parameter/NumericParameter if this is normal metadata, depending on if it is Number. Value if mandatory / built-in attribute.
         """
         if self.hasMeta():
-            met = self.productInfo['metadata']
+            met = self.pInfo['metadata']
             if name in met.keys():
                 # a special attribute like 'description'. store in meta
                 m = self.getMeta()
@@ -182,7 +186,7 @@ $INITARGS
     def __delattr__(self, name):
         """ Refuses deletion of mandatory attributes
         """
-        if name in self.productInfo['metadata'].keys():
+        if name in self.pInfo['metadata'].keys():
             logger.warn('Cannot delete Mandatory Attribute ' + name)
 
         super(BaseProduct, self).__delattr__(name)
@@ -211,7 +215,7 @@ $INITARGS
         ''' meta and datasets only show names
         '''
         s = '{'
-        """for lvar in self.productInfo['metadata'].keys():
+        """for lvar in self.pInfo['metadata'].keys():
             if hasattr(self, lvar):
                 s += '%s = %s, ' % (lvar, getattr(self, lvar))
         """
@@ -249,7 +253,7 @@ def addMandatoryProductAttrs(cls):
     https://stackoverflow.com/a/2584050
     https://stackoverflow.com/a/1355444
     """
-    for name in self.productInfo['metadata'].keys():
+    for name in self.pInfo['metadata'].keys():
         def g(self):
             return self._meta[name]
 
@@ -272,3 +276,6 @@ def addMandatoryProductAttrs(cls):
 
 
 # Product = addMandatoryProductAttrs(Product)
+
+$PRODUCTINFO
+

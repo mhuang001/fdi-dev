@@ -53,62 +53,9 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
 
-    BaseProduct class (level ALL) schema 0.6 inheriting None. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-08-03 12:19:57.186246.
+    BaseProduct class (level ALL) schema 1.0 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-08-17 17:03:44.479156.
 
     """
-
-    productInfo = {
-        'metadata': OrderedDict({
-            'description': {
-                'fits_keyword': 'DESCRIPT',
-                'data_type': 'string',
-                'description': 'Description of this product',
-                'unit': 'None',
-                'default': 'UNKOWN',
-                'valid': '',
-            },
-            'type': {
-                'fits_keyword': 'TYPE',
-                'data_type': 'string',
-                'description': 'Product Type identification. Fully qualified Python class name or CARD.',
-                'unit': 'None',
-                'default': 'BaseProduct',
-                'valid': '',
-            },
-            'creator': {
-                'fits_keyword': 'CREATOR',
-                'data_type': 'string',
-                'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
-                'unit': 'None',
-                'default': 'UNKOWN',
-                'valid': '',
-            },
-            'creationDate': {
-                'fits_keyword': 'DATE',
-                'data_type': 'finetime',
-                'description': 'Creation date of this product',
-                'unit': 'None',
-                'default': '0',
-                'valid': '',
-            },
-            'rootCause': {
-                'fits_keyword': 'ROOTCAUS',
-                'data_type': 'string',
-                'description': 'Reason of this run of pipeline.',
-                'unit': 'None',
-                'default': 'UNKOWN',
-                'valid': '',
-            },
-            'version': {
-                'fits_keyword': 'VERSION',
-                'data_type': 'string',
-                'description': 'Version of product schema',
-                'unit': 'None',
-                'default': '0.4',
-                'valid': '',
-            },
-        }),
-    }
 
 
     def __init__(self,
@@ -119,6 +66,9 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
                  rootCause = 'UNKOWN',
                  version = '0.4',
                  **kwds):
+
+        global ProductInfo
+        self.pInfo = ProductInfo
 
         if 'metasToBeInstalled' not in kwds:
             # this class is being called directly
@@ -142,18 +92,20 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
         # must be the first line to initiate meta and get description
         super(BaseProduct, self).__init__(description=description, **kwds)
 
-        # print(self.productInfo['metadata'].keys())
+        # print(self.pInfo['metadata'].keys())
         # print(metasToBeInstalled)
         # print('# ' + self.meta.toString())
 
         self.installMetas(mtbi=metasToBeInstalled)
         self.history = History()
 
-    def installMetas(self, mtbi):
+    def installMetas(self, mtbi, prodInfo=None):
         """ put parameters in group in product metadata, and updates productInfo. values in mtbi override those default ones in group.
         """
+        if prodInfo is None:
+            prodInfo = self.pInfo
 
-        for met, params in self.productInfo['metadata'].items():
+        for met, params in prodInfo['metadata'].items():
             # pdb.set_trace()  # description has been set by Anotatable.__init__
             if met != 'description':
                 #  type_ in mtbi (from __init__) changed to type
@@ -178,9 +130,9 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
         read, and returns the values only.
         """
         # print('getattribute ' + name)
-        if name not in ['productInfo', '_meta'] and hasattr(self, '_meta'):
+        if name not in ['pInfo', '_meta'] and hasattr(self, '_meta'):
             #            self.hasMeta():
-            if name in self.productInfo['metadata']:
+            if name in self.pInfo['metadata']:
                 # if meta does not exist, inherit Attributable
                 # before any class that access mandatory attributes
                 # print('aa ' + selftr(self.getMeta()[name]))
@@ -193,7 +145,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
         value: Must be Parameter/NumericParameter if this is normal metadata, depending on if it is Number. Value if mandatory / built-in attribute.
         """
         if self.hasMeta():
-            met = self.productInfo['metadata']
+            met = self.pInfo['metadata']
             if name in met.keys():
                 # a special attribute like 'description'. store in meta
                 m = self.getMeta()
@@ -241,7 +193,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     def __delattr__(self, name):
         """ Refuses deletion of mandatory attributes
         """
-        if name in self.productInfo['metadata'].keys():
+        if name in self.pInfo['metadata'].keys():
             logger.warn('Cannot delete Mandatory Attribute ' + name)
 
         super(BaseProduct, self).__delattr__(name)
@@ -270,7 +222,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
         ''' meta and datasets only show names
         '''
         s = '{'
-        """for lvar in self.productInfo['metadata'].keys():
+        """for lvar in self.pInfo['metadata'].keys():
             if hasattr(self, lvar):
                 s += '%s = %s, ' % (lvar, getattr(self, lvar))
         """
@@ -296,8 +248,8 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
             ("_sets", self._sets),
             ("history", self.history),
             ("listeners", self.listeners),
-            ("classID", self.classID),
-            ("version", self.version)]
+            ("classID", self.classID)]
+
         return ODict(ls)
 
 
@@ -308,7 +260,7 @@ def addMandatoryProductAttrs(cls):
     https://stackoverflow.com/a/2584050
     https://stackoverflow.com/a/1355444
     """
-    for name in self.productInfo['metadata'].keys():
+    for name in self.pInfo['metadata'].keys():
         def g(self):
             return self._meta[name]
 
@@ -331,3 +283,66 @@ def addMandatoryProductAttrs(cls):
 
 
 # Product = addMandatoryProductAttrs(Product)
+
+ProductInfo = {
+    'name': 'BaseProduct',
+    'description': 'FDI base class',
+    'parents': [
+        None,
+        ],
+    'level': 'ALL',
+    'schema': '1.0',
+    'metadata': {
+        'description': {
+                'fits_keyword': 'DESCRIPT',
+                'data_type': 'string',
+                'description': 'Description of this product',
+                'unit': None,
+                'default': 'UNKOWN',
+                'valid': '',
+                },
+        'type': {
+                'fits_keyword': 'TYPE',
+                'data_type': 'string',
+                'description': 'Product Type identification. Fully qualified Python class name or CARD.',
+                'unit': None,
+                'default': 'BaseProduct',
+                'valid': '',
+                },
+        'creator': {
+                'fits_keyword': 'CREATOR',
+                'data_type': 'string',
+                'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
+                'unit': None,
+                'default': 'UNKOWN',
+                'valid': '',
+                },
+        'creationDate': {
+                'fits_keyword': 'DATE',
+                'data_type': 'finetime',
+                'description': 'Creation date of this product',
+                'unit': 'None',
+                'default': '0',
+                'valid': '',
+                },
+        'rootCause': {
+                'fits_keyword': 'ROOTCAUS',
+                'data_type': 'string',
+                'description': 'Reason of this run of pipeline.',
+                'unit': None,
+                'default': 'UNKOWN',
+                'valid': '',
+                },
+        'version': {
+                'fits_keyword': 'VERSION',
+                'data_type': 'string',
+                'description': 'Version of product schema',
+                'unit': None,
+                'default': '0.4',
+                'valid': '',
+                },
+        },
+    'datasets': {
+        },
+    }
+

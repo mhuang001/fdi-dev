@@ -1,79 +1,81 @@
 name: BaseProduct
-definition: FDI base class
-parent: 
+description: FDI base class
+parents:
+  - 
 level: ALL
-schema: '0.6'
-description:
-    current_id: description
-    id: description
-    id_zh_cn: 描述
-    fits_keyword: DESCRIPT
-    data_type: string
-    description: Description of this product
-    description_zh_cn: 对本产品的描述。
-    examples: SINGLE EXPOSURE
-    unit: None
-    default: UNKOWN
-    valid: ''
-type:
-    current_id: type
-    id: type
-    id_zh_cn: 产品类型
-    fits_keyword: TYPE
-    data_type: string
-    description: Product Type identification. Fully qualified
-        Python class name or CARD.
-    description_zh_cn: 产品类型。完整Python类名或卡片名。
-    examples: SAT-QM-ThermVac
-    unit: None
-    default: BaseProduct
-    valid: ''
-creator:
-    current_id: creator
-    id: creator
-    id_zh_cn: 本产品生成者
-    fits_keyword: CREATOR
-    data_type: string
-    description: Generator of this product. Example name of institute,
-        organization, person, software, special algorithm etc.
-    description_zh_cn: 本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。
-    examples: SECM-EGSE
-    unit: None
-    default: UNKOWN
-    valid: ''
-creationDate:
-    current_id: creationDate
-    id: creationDate
-    id_zh_cn: 产品生成时间
-    fits_keyword: DATE
-    data_type: 'finetime'
-    description: Creation date of this product
-    description_zh_cn: 本产品生成时间
-    examples: '10361455509632'
-    unit: None
-    default: '0'
-    valid: ''
-rootCause:
-    current_id: rootCause
-    id: rootCause
-    id_zh_cn: 数据来源
-    fits_keyword: ROOTCAUS
-    data_type: string
-    description: Reason of this run of pipeline.
-    description_zh_cn: 数据来源（此例来自鉴定件热真空罐）
-    examples: QM-ThermVac
-    unit: None
-    default: UNKOWN
-    valid: ''
-version:
-    current_id: formatVersion
-    id: version
-    id_zh_cn: 格式版本
-    fits_keyword: VERSION
-    data_type: string
-    description: Version of product schema
-    description_zh_cn: 产品格式版本
-    examples: '1'
-    unit: None
-    default: '0.4'
-    valid: ''
+schema: '1.0'
+metadata:
+    description:
+        current_id: description
+        id: description
+        id_zh_cn: 描述
+        fits_keyword: DESCRIPT
+        data_type: string
+        description: Description of this product
+        description_zh_cn: 对本产品的描述。
+        examples: SINGLE EXPOSURE
+        unit:
+        default: UNKOWN
+        valid: ''
+    type:
+        current_id: type
+        id: type
+        id_zh_cn: 产品类型
+        fits_keyword: TYPE
+        data_type: string
+        description: Product Type identification. Fully qualified Python class name
+            or CARD.
+        description_zh_cn: 产品类型。完整Python类名或卡片名。
+        examples: SAT-QM-ThermVac
+        unit:
+        default: BaseProduct
+        valid: ''
+    creator:
+        current_id: creator
+        id: creator
+        id_zh_cn: 本产品生成者
+        fits_keyword: CREATOR
+        data_type: string
+        description: Generator of this product. Example name of institute, organization,
+            person, software, special algorithm etc.
+        description_zh_cn: 本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。
+        examples: SECM-EGSE
+        unit:
+        default: UNKOWN
+        valid: ''
+    creationDate:
+        current_id: creationDate
+        id: creationDate
+        id_zh_cn: 产品生成时间
+        fits_keyword: DATE
+        data_type: finetime
+        description: Creation date of this product
+        description_zh_cn: 本产品生成时间
+        examples: '10361455509632'
+        unit: None
+        default: '0'
+        valid: ''
+    rootCause:
+        current_id: rootCause
+        id: rootCause
+        id_zh_cn: 数据来源
+        fits_keyword: ROOTCAUS
+        data_type: string
+        description: Reason of this run of pipeline.
+        description_zh_cn: 数据来源（此例来自鉴定件热真空罐）
+        examples: QM-ThermVac
+        unit:
+        default: UNKOWN
+        valid: ''
+    version:
+        current_id: formatVersion
+        id: version
+        id_zh_cn: 格式版本
+        fits_keyword: VERSION
+        data_type: string
+        description: Version of product schema
+        description_zh_cn: 产品格式版本
+        examples: '1'
+        unit:
+        default: '0.4'
+        valid: ''

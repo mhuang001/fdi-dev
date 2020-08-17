@@ -15,6 +15,7 @@ from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from ..pal.query import MetaQuery, AbstractQuery
 from ..pal.urn import makeUrn, parseUrn
 from ..dataset.product import Product
+from .db_utils import check_and_create_fdi_record_table, save_action
 
 import mysql.connector
 from mysql.connector import Error
@@ -618,8 +619,13 @@ def load_all_pools():
             logger.info("Register pool: " +  poolpath + pool)
 load_all_pools()
 
+# Check database
+check_and_create_fdi_record_table()
+
 @app.route(pc['baseurl']+pc['httppoolurl'])
+@auth.login_required
 def get_pools():
+    print(request.authorization.username)
     return str(pstore.getPools())
 
 
@@ -638,26 +644,24 @@ def httppool(pool):
     - DELETE: /pool_id ==> Wipe all contents in pool_id
                          /pool_id/product_class/index ==> remove specified products in pool_id
     """
-
-    # TODO: it's too wierd, pstore.register works, but after calling, it returns to original state,
-    # I have to register again and again
-    # load_all_pools()
-
+    username = request.authorization.username
     paths = pool.split('/')
     ts = time.time()
     if request.method == 'GET':
+        # TODO modify client loading pool , prefer use load_metadata rather than load_singer_metadata, because this will generate enormal sql transaction
         if paths[-1] in ['classes', 'urns', 'tags']: # Retrieve single metadata
             result, msg = load_singer_metadata(paths)
-
+            save_action(username=username, action='READ', pool=paths[0])
         elif paths[-1] == 'hk': # Load all metadata
             result, msg = load_metadata(paths)
-
+            save_action(username=username, action='READ', pool=paths[0])
         elif paths[-1].isnumeric(): # Retrieve product
             result, msg = load_product(paths)
+            save_action(username=username, action='READ', pool=paths[0])
         else:
             result = ''
             msg = 'Unknow request: ' + pool
-    # TODO: add an argument to choose if return Prodref or urnortag
+
     if request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
         data = deserializeClassID(request.data)
         if request.headers.get('tag') is not None:
@@ -665,12 +669,16 @@ def httppool(pool):
         else:
             tag = None
         result, msg = save_product(data, paths, tag)
+        save_action(username=username, action='SAVE', pool=paths[0])
 
     if request.method == 'DELETE' :
         if paths[-1].isnumeric():
             result, msg = delete_product(paths)
+            save_action(username=username, action='DELETE', pool=paths[0] +  '/' + paths[-2] + ':' + paths[-1])
         else:
             result, msg = delete_pool(paths)
+            save_action(username=username, action='DELETE', pool=paths[0])
+
 
     w = {'result':result, 'msg': msg, 'timestamp': ts}
     s = serializeClassID(w)

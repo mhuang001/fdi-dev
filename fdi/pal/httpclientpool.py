@@ -57,19 +57,19 @@ class HttpClientPool(ProductPool):
         loads and returns the housekeeping data
         """
         poolurn = self._poolurn
-        # print("READ HK FROM REMOTE===>poolurl: " + poolurn )
+        print("READ HK FROM REMOTE===>poolurl: " + poolurn )
         hk = {}
-        for hkdata in ['classes', 'tags', 'urns']:
-            try:
-                r, msg = read_from_server(poolurn, hkdata)
-                if r == 'FAILED':
-                    raise Exception(msg)
-            except Exception as e:
-                err = 'Error in HK reading from server ' + poolurn
-                logging.error(err)
-                raise Exception(err)
-            hk[hkdata] = r
-
+        try:
+            r, msg = read_from_server(poolurn, 'housekeeping')
+            if r == 'FAILED':
+                raise Exception(msg)
+            else:
+                for hkdata in ['classes', 'tags', 'urns']:
+                    hk[hkdata] = r[hkdata]
+        except Exception as e:
+            err = 'Error in HK reading from server ' + poolurn
+            logging.error(err)
+            raise Exception(err)
         return hk['classes'], hk['tags'], hk['urns']
 
     def writeHK(self, fp0):

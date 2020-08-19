@@ -75,6 +75,7 @@ class Classes_meta(type):
         cls._classes.update(copy.copy(cls._package))
         if c:
             cls._classes.update(c)
+        return cls._classes
 
     def importModuleClasses(cls, rerun=False, exclude=[]):
         """ The set of eserializable classes in modclass is maintained by hand.
@@ -150,6 +151,6 @@ class Classes(metaclass=Classes_meta):
     pass
 
 
-globals()
+# globals()
 # pdb.set_trace()
 # Classes.importModuleClasses()

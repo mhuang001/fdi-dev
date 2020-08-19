@@ -190,23 +190,23 @@ def readyaml(ypath, ver=None):
     """
     yaml = YAML()
     desc = OrderedDict()
+    fins = {}
     for findir in os.listdir(ypath):
-        fin = os.path.join(out[2]['result'], findir)
+        fin = os.path.join(ypath, findir)
 
         ''' The  input file name ends with '.yaml' or '.yml' (case insensitive).
         the stem name of output file is input file name stripped of the extension.
         '''
         # make it all lower case
         finl = findir.lower()
-        if finl.endswith('.yml'):
-            nm = findir[:-4]
-        elif finl.endswith('.yaml'):
-            nm = findir[:-5]
+        if finl.endswith('.yml') or finl.endswith('.yaml'):
+            nm = os.path.splitext(findir)[0]
         else:
             continue
+        fins[nm] = fin
 
         # read YAML
-        print('@@@@ Reading ' + fin + '@@@@')
+        print('----- Reading ' + fin + '-----')
         with open(fin, 'r', encoding='utf-8') as f:
             # pyYAML d = OrderedDict(yaml.load(f, Loader=yaml.FullLoader))
             d = OrderedDict(yaml.load(f))
@@ -238,7 +238,6 @@ def readyaml(ypath, ver=None):
             d2 = OrderedDict()
             metadata = OrderedDict()
             for k, v in d.items():
-                print('key= %s val=%s' % (k, str(v)))
                 if issubclass(v.__class__, dict):
                     if v['unit'] == 'None':
                         dt = v['data_type']
@@ -256,12 +255,14 @@ def readyaml(ypath, ver=None):
                         d2[k] = v
             d2['metadata'] = metadata
             desc[d['name']] = d2
-    return desc
+    return desc, fins
 
 
-def yamlupgrade(descriptors, ypath, version, verbose):
+def yamlupgrade(descriptors, fins, ypath, version, verbose):
     for nm, d in descriptors.items():
-        fout = pathjoin(ypath, d['name'] + '.yml.' + version)
+        os.rename(fins[nm], fins[nm]+'.old')
+        print("Input YAML file is renamed to " + fins[nm]+'.old')
+        fout = fins[nm]
         print("Output YAML file is "+fout)
         if 0:
             ydump(d, sys.stdout)  # yamlfile)
@@ -339,9 +340,9 @@ if __name__ == '__main__':
     tpath = out[3]['result']
     upgrade = out[6]['result']
     # input file
-    descriptors = readyaml(ypath, version)
+    descriptors, fins = readyaml(ypath, version)
     if upgrade:
-        yamlupgrade(descriptors, ypath, version, verbose)
+        yamlupgrade(descriptors, fins, ypath, version, verbose)
         sys.exit()
 
     clp = out[5]['result']
@@ -473,59 +474,3 @@ if __name__ == '__main__':
         pcl = getCls(clp, rerun=True, exclude=importexclude)
         Classes.updateMapping(c=pcl, rerun=True, exclude=importexclude)
         glb = Classes.mapping
-        assert prodname in glb, str(glb.keys())
-
-#############################################
-
-
-def mkmetas(attrs, indents, demo, onlyInclude):
-    """ make productInfo string from attributes given.
-
-    """
-
-    infostr = ''
-    infostr += indents[1] + '\'metadata\': OrderedDict({\n'
-
-    for met, val in attrs.items():
-        # met is like 'description', 'type', 'redWinSize'
-        # val is like {'data_type':'string, 'default':'foo'...}
-        if met == 'creationDate':  # 'blueMode' and pname == 'valid':
-            pass
-        istr, default_code = params(
-            met, val, indents, demo, onlyInclude, default_code=default_code)
-        infostr += istr
-    infostr += indents[1] + '}),\n'  # 'metadata'
-
-    return infostr, default_code
-
-
-def mkdsets(datasets, indents, demo, onlyInclude):
-    """ make dsets string from  datasets given.
-
-    """
-
-    infostr = ''
-    infostr += indents[1] + '\'%s\': OrderedDict({\n' % 'datasets'
-    oneright = indents[1:]
-
-    for dsetname, dsd in datasets.items():
-        """ dsetname is like 'TABLE', 'BlueCCD', 'lightcurve'
-            dsd is like {'extention':str, 'TABLE': {'data_type':'string', 'data':[]...}...}
-        """
-        infostr += indents[2] + '\'%s\': OrderedDict({\n' % dsetname
-        for met, val in dsd.items():
-            if issubclass(val.__class__, dict):
-                # a parameter
-                istr, foo = params(met, val, oneright, demo, onlyInclude)
-                infostr += istr + ','
-            else:
-                # a list. could be 'parents' a list of str; or a table, of dict
-                assert issubclass(val.__class__, list)
-                infostr += indents[3] + '\'%s\': [\n' % met
-                for v in val:
-                    istr, foo = params(None, v, oneright, demo, onlyInclude)
-
-        infostr += indents[2] + '})\n'  # 'dsetname'
-    infostr += indents[1] + '}),\n'  # 'datasets'
-
-    return infostr

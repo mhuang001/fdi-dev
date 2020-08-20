@@ -13,7 +13,6 @@ B_TEMPLATE	= $(RESDIR)
 py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY)
 
 $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).template $(PYDIR)/$(B_PY)
-	#echo 'class '$(PRODUCT)'(): pass' > $(PYDIR)/$(P_PY)
 	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR)
 
 
@@ -28,6 +27,8 @@ $(PYDIR)/$(B_PY): $(RESDIR)/$(B_INFO)
 	It must be manually integrated into $(PYDIR)/$(B_PY).
 	@ echo Re-run make after editing. Exiting... ; exit
 
+yamlupgrade: 
+	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -u
 
 
 .PHONY: runserver reqs install uninstall vtag FORCE \
@@ -75,7 +76,7 @@ reqs:
 VERSION	= $(shell python -c "from setuptools_scm import get_version;print(get_version('.'))")
 versiontag:
 	@ echo update _version.py and tag to $(VERSION)
-	@ echo  version = \"$(VERSION)\" > fdi/_version.py
+	@ echo  __version__ = \"$(VERSION)\" > fdi/_version.py
 	git tag  $(VERSION)
 
 TESTLOG	= tests/log

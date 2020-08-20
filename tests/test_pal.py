@@ -42,9 +42,15 @@ if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
 else:
     PY3 = False
 
-if __name__ == '__main__' and __package__ is None:
+Classes.updateMapping()
+
+if __name__ == '__main__' and __package__ == 'tests':
+    # run by python -m tests.test_dataset
     pass
+
 else:
+    # run by pytest
+
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
     from .pycontext import fdi

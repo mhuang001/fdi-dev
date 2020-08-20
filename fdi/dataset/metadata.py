@@ -34,6 +34,7 @@ ParameterTypes = {
     'product': 'Product',
     'vector': 'Vector',
     'quaternion': 'Quaternion',
+    'null': 'None',
     '': 'None'
 }
 

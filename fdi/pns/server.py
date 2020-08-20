@@ -136,9 +136,10 @@ else:
     sys.path.insert(0, os.path.abspath(clpp))
     # print(sys.path)
     pcs = __import__(clpf.rsplit('.py', 1)[
-        0], globals(), locals(), ['prjcls'], 0)
-    Classes.updateMapping(pcs.prjcls)
-    logger.debug('User classes: %d found.' % len(pcs.prjcls))
+        0], globals(), locals(), ['PC'], 0)
+    pcs.PC.updateMapping()
+    Classes.updateMapping(pcs.PC.mapping)
+    logger.debug('User classes: %d found.' % len(pcs.PC.mapping))
 
 # logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
 

@@ -6,6 +6,7 @@ import pdb
 
 from .odict import ODict
 from .classes import Classes
+from ..utils.common import lls
 
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -24,43 +25,6 @@ logger = logging.getLogger(__name__)
 classes are defined to avoid circular dependency (such as ,
 Serializable.
 '''
-
-
-def imakedesables():
-    """ makes a class dictionary for instanciation.
-    """
-    from fdi.dataset.deserialize import deserializeClassID
-    from fdi.dataset.finetime import FineTime, FineTime1, utcobj
-    from fdi.dataset.baseproduct import History, BaseProduct
-    from fdi.dataset.product import Product
-    from fdi.dataset.datatypes import Vector, Quaternion
-    from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
-    from fdi.dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
-    try:
-        from svom.products.chart import ATC_VT_B, ATC_VT_R, FDC_VT_B, FDC_VT_R
-    except Exception as e:
-        logger.info(str(e))
-        pass
-
-    from fdi.pal.context import MapContext, RefContainer, ContextRuleException
-    from fdi.pal.urn import Urn
-    from fdi.pal.productref import ProductRef
-
-    l = locals()
-    # logger.debug(l)
-    return l
-
-
-#desables = None
-
-
-def lls(s, length=80):
-    """ length-limited string
-    """
-    if len(s) <= length:
-        return str(s)
-    else:
-        return str(s[:length - 3]) + '...'
 
 
 def constructSerializableClassID(obj, lgb=None, debug=False):

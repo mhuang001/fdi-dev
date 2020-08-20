@@ -16,7 +16,7 @@ pnsconfig['defaultpool'] = 'pool_default'
 
 dev = True
 if dev:
-    pnsconfig['poolprefix'] = 'http://192.168.1.8:5000'
+    pnsconfig['poolprefix'] = 'http://192.168.1.9:5000'
     # username, passwd, flask ip, flask port
     pnsconfig['node'] = {'username': 'foo',
                          'password': 'bar', 'host': '0.0.0.0', 'port': 5000}

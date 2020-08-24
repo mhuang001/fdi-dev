@@ -11,5 +11,5 @@ INFO     root:test_httpclientpool.py:140 Load product from httpclientpool
 INFO     root:test_httpclientpool.py:144 Search metadata
 INFO     root:test_httpclientpool.py:149 Delete a product from httpclientpool
 INFO     root:test_httpclientpool.py:153 Here will generate an load exception message, that is normal, you can ignore it:
-ERROR    fdi.pal.httpclientpool:httpclientpool.py:136 Load http://192.168.1.8:5000/client_test_pool/fdi.dataset.product.Product_0 failed.  Exception : [Errno 2] No such file or directory: '/data/client_test_pool/fdi.dataset.product.Product_0'
+ERROR    fdi.pal.httpclientpool:httpclientpool.py:121 Load http://192.168.1.9:5000/client_test_pool/fdi.dataset.product.Product_2 failed.  Exception : [Errno 2] No such file or directory: '/data/client_test_pool/fdi.dataset.product.Product_2'
 INFO     root:test_httpclientpool.py:157 Delete a pool

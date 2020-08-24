@@ -6,6 +6,7 @@ from ..dataset.serializable import serializeClassID
 from ..dataset.deserialize import deserializeClassID
 from .productpool import ProductPool
 from ..utils.common import pathjoin, trbk
+from ..pns.pnsconfig import pnsconfig as pc
 from .productpool import lockpathbase
 import filelock
 import sys
@@ -27,7 +28,7 @@ else:
     strset = (str, unicode)
     from urlparse import urlparse, quote, unquote
 
-basepoolpath = '/tmp'
+basepoolpath = pc['basepoolpath_client']
 
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
@@ -126,7 +127,7 @@ class LocalPool(ProductPool):
             fp = pathjoin(fp0, hkdata + '.jsn')
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
-    def schematicSave(self, typename, serialnum, data, urn=None, tag=None):
+    def schematicSave(self, typename, serialnum, data, tag=None):
         """
         does the media-specific saving
         """

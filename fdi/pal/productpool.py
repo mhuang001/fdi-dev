@@ -299,7 +299,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 try:
                     self.schematicSave(typename=pn,
                                        serialnum=sn,
-                                       data=prd, urn = urn, tag=tag)
+                                       data=prd,  tag=tag)
                 except Exception as e:
                     msg = 'product ' + urn + ' saving failed'
                     logger.debug(msg)

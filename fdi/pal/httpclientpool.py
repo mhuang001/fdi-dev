@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 from ..pns.jsonio import getJsonObj
 from ..pns.fdi_requests import *
+from .urn import Urn
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
 from .productpool import ProductPool
 from ..utils.common import pathjoin, trbk
+from ..pns.pnsconfig import pnsconfig as pc
 import filelock
 import shutil
 import os
@@ -15,7 +17,7 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-basepoolpath = '/tmp'
+basepoolpath = pc['basepoolpath_client']
 
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
@@ -81,7 +83,7 @@ class HttpClientPool(ProductPool):
             fp = pathjoin(fp0, hkdata + '.jsn')
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
-    def schematicSave(self, typename, serialnum, data, urn, tag=None):
+    def schematicSave(self, typename, serialnum, data, tag=None):
         """
         does the media-specific saving to remote server
         save metadata at localpool
@@ -89,6 +91,8 @@ class HttpClientPool(ProductPool):
         fp0 = self.transformpath(self._poolpath)
         fp = pathjoin(fp0, typename + '_' + str(serialnum))
 
+        urnobj = Urn(cls=data.__class__, pool=self._poolurn, index=serialnum)
+        urn = urnobj.urn
         try:
             res = save_to_server(data, urn, tag)
             if  res['result'] == 'FAILED':

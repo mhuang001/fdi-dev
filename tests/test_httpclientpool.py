@@ -134,8 +134,8 @@ def test_CRUD_product():
     urn2 = pstore.save(x, geturnobjs = True)
     expceted_urn = 'urn:' + test_poolurn + ':fdi.dataset.product.Product:'
     assert urn.urn[0:-1] == expceted_urn, 'Urn error: ' + expceted_urn
-    assert os.path.exists(pcc['basepoolpath'] + test_poolid ), 'local metadata file not found: ' + pcc['basepoolpath'] + test_poolid
-    assert len(os.listdir(pcc['basepoolpath'] + test_poolid)) >= 3, 'Local metadata file size is less than 3'
+    assert os.path.exists(pcc['basepoolpath_client'] + test_poolid ), 'local metadata file not found: ' + pcc['basepoolpath'] + test_poolid
+    assert len(os.listdir(pcc['basepoolpath_client'] + test_poolid)) >= 3, 'Local metadata file size is less than 3'
 
     logger.info('Load product from httpclientpool')
     res = pstore.getPool(test_poolurn).loadProduct(urn.urn)
@@ -156,7 +156,7 @@ def test_CRUD_product():
 
     logger.info('Delete a pool')
     pstore.getPool(test_poolurn).removeAll()
-    poolfiles = os.listdir(pcc['basepoolpath'] + test_poolid)
+    poolfiles = os.listdir(pcc['basepoolpath_client'] + test_poolid)
     assert len(poolfiles) == 0, 'Delete pool, but local file exists: ' + str(poolfiles)
     reshk = pstore.getPool(test_poolurn).readHK()
     assert reshk[0] == ODict(), 'Server classes is not empty after delete: ' + str(reshk[0])

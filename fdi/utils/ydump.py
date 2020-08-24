@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import pdb
+from ..dataset.classes import Classes
 import ruamel.yaml
 from ruamel.yaml import YAML
 from ruamel.yaml.representer import RoundTripRepresenter
-#from ruamel.comments import CommentedMap
+from ruamel.yaml.comments import CommentedMap
+import inspect
 from collections import OrderedDict
 import sys
 
@@ -31,18 +34,37 @@ ruamel.yaml.add_representer(OrderedDict, MyRepresenter.represent_dict,
 yaml = MyYAML(typ='rt')
 yaml.Representer = MyRepresenter
 yaml.default_flow_style = False
-yaml.indent(mapping=4, sequence=6, offset=3)
-yaml.width = 60
+yaml.indent(mapping=4, sequence=4, offset=2)
+yaml.width = 80
 yaml.allow_unicode = True
+yaml.compact(seq_seq=1, seq_map=True)
+
+notinited = True
 
 
-def ydump(od, stream=None):
+def init():
+    global notinited
+    # for n, c in Classes.mapping.items():
+    #    if inspect.isclass(c):
+    #        yaml.register_class(c)
+
+    ruamel.yaml.add_representer(Classes.get('ODict'), MyRepresenter.represent_dict,
+                                representer=MyRepresenter)
+    notinited = False
+
+
+def ydump(od, stream=None, register=[]):
     """ YAML dump that outputs OrderedDict like dict.
     """
 
+    global notinited
+
+    if notinited:
+        init()
     #d = ordereddict(od)
     # d.update(od)
     d = od
+
     if 0:
         return yaml.dump(d, default_flow_style=False, indent=4,
                          width=60, allow_unicode=True)

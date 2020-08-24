@@ -12,7 +12,7 @@ def read(fname):
 
 setup(
     name="fdi",
-    version="0.19",
+    version="1.0rc",
     author="Maohai Huang",
     author_email="mhuang@earth.bao.ac.cn",
     description=("Flexible Data Integrator"),
@@ -33,6 +33,7 @@ setup(
         'sphinx_rtd_theme>=0.4.3',
         'Flask_HTTPAuth>=3.3.0',
         'Flask>=1.1.2',
+        'mysql-connector==2.2.9',
         'ruamel.yaml>=0.16.10',
         'sphinx-copybutton @ git+https://github.com/mhuang001/sphinx-copybutton.git'
     ],

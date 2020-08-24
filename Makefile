@@ -5,15 +5,14 @@ RESDIR	= $(PYDIR)/resources
 P_PY	= $(shell python -c "print('$(PRODUCT)'.lower())").py
 B_PY	= $(shell python -c "print('$(B_PRODUCT)'.lower())").py
 B_INFO	= $(B_PY)
-P_YAML	= $(RESDIR)/$(PRODUCT).yml
-B_YAML	= $(RESDIR)/$(B_PRODUCT).yml
-P_TEMPLATE	= $(RESDIR)/$(PRODUCT).template
-B_TEMPLATE	= $(RESDIR)/$(B_PRODUCT).template
+P_YAML	= $(RESDIR)
+B_YAML	= $(RESDIR)
+P_TEMPLATE	= $(RESDIR)
+B_TEMPLATE	= $(RESDIR)
 
 py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY)
 
-$(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE) $(PYDIR)/$(B_PY)
-	echo 'class '$(PRODUCT)'(): pass' > $(PYDIR)/$(P_PY)
+$(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).template $(PYDIR)/$(B_PY)
 	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR)
 
 
@@ -28,10 +27,12 @@ $(PYDIR)/$(B_PY): $(RESDIR)/$(B_INFO)
 	It must be manually integrated into $(PYDIR)/$(B_PY).
 	@ echo Re-run make after editing. Exiting... ; exit
 
+yamlupgrade:
+	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -u
 
 
 .PHONY: runserver reqs install uninstall vtag FORCE \
-	test test1 test2 test3 test4 \
+	test test1 test2 test3 test4 test5 \
 	plots plotall plot_dataset plot_pal plot_pns \
 	docs doc_api doc_plots doc_html
 
@@ -73,10 +74,10 @@ reqs:
 
 # update _version.py and tag based on setup.py
 VERSION	= $(shell python -c "from setuptools_scm import get_version;print(get_version('.'))")
-vtag:
+versiontag:
 	@ echo update _version.py and tag to $(VERSION)
-	@ echo  version = \"$(VERSION)\" > fdi/_version.py
-	# git tag  $(VERSION)
+	@ echo  __version__ = \"$(VERSION)\" > fdi/_version.py
+	git tag  $(VERSION)
 
 TESTLOG	= tests/log
 OPT	= --debug -v -r P
@@ -97,6 +98,9 @@ test4:
 	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py
 
 test5:
+	pytest $(OPT) $(T) tests/test_httppool.py
+
+test6:
 	pytest $(OPT) tests/test_httpclientpool.py
 
 plots: plotall plot_dataset plot_pal plot_pns

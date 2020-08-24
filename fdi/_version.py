@@ -1,1 +1,1 @@
-version = "0.20.dev1+g879f87a.d20200628"
+version = "1.0rc1.dev0+g252e0d5.d20200817"

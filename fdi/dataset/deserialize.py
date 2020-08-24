@@ -107,7 +107,7 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
     else:
         classname = obj['classID']
         if debug:
-            print(spaces + 'ClassID ' + classname)
+            print(spaces + 'ClassID= ' + classname)
         # process types wrapped in a dict
         if PY3 and classname == 'bytes':
             inst = codecs.decode(obj, 'hex')
@@ -118,17 +118,17 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
         inst = lgb[classname]()
     for (k, v) in obj.items():
         """ loop through all key-value pairs. """
-        if k != 'classID' and k != 'version':
+        if k != 'classID':
             # deserialize v
             if issubclass(v.__class__, (dict, list)):
                 if debug:
-                    print(spaces + '+v+d/l !!%s: #%s' %
+                    print(spaces + 'val(dict/list) !!%s: %s' %
                           (v.__class__.__qualname__,
                            lls(str(list(iter(v))), 70)))
                 desv = constructSerializableClassID(v, lgb=lgb, debug=debug)
             else:
                 if debug:
-                    print(spaces + '-v-non-dl !!%s: #%s' %
+                    print(spaces + 'val(simple) !!%s: %s' %
                           ((v.__class__.__name__), lls(str(v), 70)))
                 if 1:
                     desv = v
@@ -143,12 +143,12 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
             if issubclass(inst.__class__, dict):
                 inst[k] = desv
                 if debug:
-                    print(spaces + 'in dict-sub <%s> at key %s found %s <%s>' %
+                    print(spaces + 'Set dict <%s>[%s] = %s <%s>' %
                           ((inst.__class__.__name__), str(k), lls(str(desv), 70), (desv.__class__.__name__)))
             else:
                 setattr(inst, k, desv)
                 if debug:
-                    print(spaces + 'in non-d_sub <%s> attr %s found %s <%s>' %
+                    print(spaces + 'set non-dict <%s>.%s = %s <%s>' %
                           ((inst.__class__.__name__), str(k), lls(str(desv), 70), (desv.__class__.__name__)))
     indent -= 1
     return inst
@@ -186,6 +186,7 @@ def deserializeClassID(js, lgb=None, debug=False, usedict=False):
 
     if lgb is None:
         lgb = Classes.mapping
+    # print(lgb)
 
     if not isinstance(js, strset) or len(js) == 0:
         return None

@@ -8,3 +8,4 @@ sphinx_rtd_theme==0.4.3
 Flask_HTTPAuth==3.3.0
 Flask==1.1.2
 PyYAML==5.3.1
+mysql-connector==2.2.9

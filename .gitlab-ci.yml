@@ -1,0 +1,2 @@
+test dataset pal:
+  script: make test1 test2

@@ -20,22 +20,26 @@ def opt(ops):
     {'long':'port=', 'char':'o', 'default': 5000, 'description':'port number'}
     ]
 
+    Optionly use 'OPTSTART' in command line to start options an have ppreceeding ones ignored. Useful when application is invoked with other options, e.g. by pytest
     """
 
     #logger.debug('Input: %s' % ops)
+    stoken = 'OPTSTART'
+    sidx = sys.argv.index(stoken) if stoken in sys.argv else 0
 
-    msg = 'Specify:\n'+''.join('%s (-%s or --%s)\n' %
-                               (i['description'], i['char'], i['long']) for i in ops)
+    msg = 'Specify:\n'+''.join('%s (-%s or --%s) Default=%s\n\n' %
+                               (i['description'], i['char'], i['long'], i['default']) for i in ops)
     # "hu:p:i:o:v"
     fmt = ''.join((i['char']+':' if i['long'].endswith('=')
                    else i['char'] for i in ops))
     try:
-        opts, args = getopt.getopt(sys.argv[1:], fmt, [i['long'] for i in ops])
+        opts, args = getopt.getopt(sys.argv[sidx+1:], fmt, [
+                                   i['long'] for i in ops])
     except getopt.GetoptError as err:
         # print help information and exit:
         # will print something like "option -a not recognized"
-        logger.error(str(err))
-        logger.info(msg)
+        logger.error(str(err) + 'Received: ' + str(sys.argv))
+        print(msg)
         sys.exit(2)
     logger.debug('Command line options %s args %s' % (opts, args))
 

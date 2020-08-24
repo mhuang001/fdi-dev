@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 # lockpathbase = 'tmp/locks_' + getpass.getuser()
-lockpathbase = '/tmp/locks1'
+lockpathbase = '/tmp/locks'
 
 
 class ProductPool(Definable, Taggable, Versionable):
@@ -41,12 +41,12 @@ When implementing a ProductPool, the following rules need to be applied:
 
     1. Pools must guarantee that a Product saved via the pool saveProduct(Product) method is stored persistently, and that method returns a unique identifier (URN). If it is not possible to save a Product, an IOException shall be raised.
     2. A saved Product can be retrieved using the loadProduct(Urn) method, using as the argument the same URN that assigned to that Product in the earlier saveProduct(Product) call. No other Product shall be retrievable by that same URN. If this is not possible, an IOException or GeneralSecurityException is raised.
-    3. Pools should not implement functionality currently implemented in the core paclage. Specifically, it should not address functionality provided in the Context abstract class, and it should not implement versioning/cloning support.
+    3. Pools should not implement functionality currently implemented in the core package. Specifically, it should not address functionality provided in the Context abstract class, and it should not implement versioning/cloning support.
 
     """
 
-    def __init__(self, poolurn=None, use_basepoolpath=True, **kwds):
-        # print(__name__ + str(kwds))
+    def __init__(self, poolurn=None, **kwds):
+
         super(ProductPool, self).__init__(**kwds)
         #    basepoolpath = pcc['basepoolpath']
         # self._basepoolpath = basepooslpath
@@ -151,7 +151,7 @@ When implementing a ProductPool, the following rules need to be applied:
 
         # TODO: is it a must to lock local file when load a product from remote?
         with filelock.FileLock(self.lockpath()):
-            ret = self.schematicLoadProduct(resourcecn, indexs, urn)
+            ret = self.schematicLoadProduct(resourcecn, indexs)
         return ret
 
     def meta(self,  urn):
@@ -185,7 +185,9 @@ When implementing a ProductPool, the following rules need to be applied:
         prod = resourcecn
         sn = int(indexs)
 
+        self._classes, self._tags, self._urns = self.readHK()
         c, t, u = self._classes, self._tags, self._urns
+        print(self._urns)
         # save a copy for rolling back
         cs, ts, us = deepcopy(c), deepcopy(t), deepcopy(u)
 
@@ -200,7 +202,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 del c[prod]
             try:
                 res = self.schematicRemove(typename=prod,
-                                     serialnum=sn, urn=urn)
+                                     serialnum=sn)
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)

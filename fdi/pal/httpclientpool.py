@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from ..pns.jsonio import getJsonObj
 from ..pns.fdi_requests import *
-from .urn import Urn
+from .urn import Urn, makeUrn
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
@@ -107,12 +107,13 @@ class HttpClientPool(ProductPool):
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicLoadProduct(self, resourcename, indexstr, urn):
+    def schematicLoadProduct(self, resourcename, indexstr):
         """
         does the scheme-specific part of loadProduct.
         """
         poolurn = self._poolurn
         uri = poolurn + '/' +  resourcename + '_' + indexstr
+        urn = makeUrn(self._poolurn, resourcename, indexstr)
         # print("READ PRODUCT FROM REMOTE===>poolurl: " + poolurn )
         try:
             res, msg = read_from_server(urn)
@@ -128,12 +129,13 @@ class HttpClientPool(ProductPool):
             raise e
         return prod
 
-    def schematicRemove(self, typename, serialnum, urn):
+    def schematicRemove(self, typename, serialnum):
         """
         does the scheme-specific part of removal.
         """
         fp0 = self.transformpath(self._poolpath)
         fp = pathjoin(fp0, typename + '_' + str(serialnum))
+        urn = makeUrn(self._poolurn, typename, serialnum)
         try:
             res, msg = delete_from_server(urn)
             if res != 'FAILED':
@@ -142,7 +144,7 @@ class HttpClientPool(ProductPool):
                 return res
             else:
                 logger.error('Remove from server ' + fp + 'failed. Caused by: ' + msg)
-                raise msg
+                raise ValueError(msg)
         except IOError as e:
             logger.error('Remove ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes

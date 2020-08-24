@@ -23,7 +23,8 @@ from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
 from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.finetime import FineTime, FineTime1, utcobj
-from fdi.dataset.baseproduct import History, BaseProduct
+from fdi.dataset.history import History
+from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
 from fdi.utils.checkjson import checkjson
 
@@ -35,12 +36,14 @@ if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
 else:
     PY3 = False
 
-if __name__ == '__main__' and __package__ is None:
-    # run by pytest
+Classes.updateMapping()
+
+if __name__ == '__main__' and __package__ == 'tests':
+    # run by python -m tests.test_dataset
 
     from outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
 else:
-    # run by python -m tests.test_dataset
+    # run by pytest
 
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
@@ -135,6 +138,13 @@ def test_serialization():
     checkjson(v)
     v = {'e': 4, 'y': {'d': 'ff', '%': '$'}}
     checkjson(v)
+
+
+def test_sys():
+    assert sys.int_info.bits_per_digit == 30
+    assert sys.int_info.sizeof_digit == 4
+    assert sys.float_info.dig == 15
+    assert sys.maxsize == 2**63 - 1
 
 
 def ndlist(*args):
@@ -704,7 +714,7 @@ def test_DataWrapper():
 
 def test_ArrayDataset():
     # from DRM
-    a1 = [1, 4.4, 5.4E3]      # a 1D array of data
+    a1 = [1, 4.4, 5.4E3]      # an array of data
     a2 = 'ev'                 # unit
     a3 = 'three energy vals'  # description
     v = ArrayDataset(data=a1, unit=a2, description=a3)
@@ -872,6 +882,12 @@ def test_TableDataset():
 
     # add, set, and replace columns
     # column set / get
+    vvv = TableDataset()
+    assert vvv.getColumnCount() == 0
+    vvv.addColumn("Energy", Column(
+        data=[1, 2, 3, 4], description="desc", unit='eV'))
+    assert vvv.getColumnCount() == 1
+    # http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/dataset/TableDataset.html#Z:Z__setitem__-java.lang.String-herschel.ia.dataset.Column-
     u = TableDataset()
     c1 = Column([1, 4], 'sec')
     u.addColumn('col3', c1)
@@ -1061,12 +1077,7 @@ def demo_TableDataset():
 
 
 def test_Column():
-    v = TableDataset()
-    assert v.getColumnCount() == 0
-    v.addColumn("Energy", Column(
-        data=[1, 2, 3, 4], description="desc", unit='eV'))
-    assert v.getColumnCount() == 1
-    # http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/dataset/TableDataset.html#Z:Z__setitem__-java.lang.String-herschel.ia.dataset.Column-
+    pass
 
 
 def test_CompositeDataset():

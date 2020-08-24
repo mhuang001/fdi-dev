@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from . import localpool, mempool, httpclientpool
+from . import localpool, mempool, httpclientpool, httppool
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -20,12 +20,11 @@ This is done by calling the getPool(String) method, which will return an existin
     _GlobalPoolList = {}
 
     @classmethod
-    def getPool(cls, poolurn):
+    def getPool(cls, poolurn, isServer=False):
         """ returns an instance of pool according to urn.
 
         create the pool if it does not already exist. the same pool-URN always get the same pool.
         """
-
         # logger.debug('GPL ' + str(id(cls._GlobalPoolList)) +
         #             str(cls._GlobalPoolList))
         if cls.isLoaded(poolurn):
@@ -36,8 +35,10 @@ This is done by calling the getPool(String) method, which will return an existin
                 p = localpool.LocalPool(poolurn=poolurn)
             elif sp[0] == 'mem':
                 p = mempool.MemPool(poolurn=poolurn)
-            elif sp[0] == 'http' or sp[0] == 'https':
+            elif (sp[0] == 'http' or sp[0] == 'https') and isServer == False:
                 p = httpclientpool.HttpClientPool(poolurn=poolurn)
+            elif (sp[0] == 'http' or sp[0] == 'https') and isServer == True:
+                p = httppool.HttpPool(poolurn=poolurn)
             else:
                 raise NotImplementedError(sp[0] + ':// is not supported')
             cls.save(poolurn, p)

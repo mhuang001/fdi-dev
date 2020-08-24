@@ -179,13 +179,13 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
         return self._meta
 
     def getHash(self):
-        """ Returns a code number for the product; actually its MD5 signature. 
+        """ Returns a code number for the product; actually its MD5 signature.
         This allows checking whether a product already exists in a pool or not.
         """
         raise NotImplementedError()
 
     def getSize(self):
-        """ Returns the estimated size(in bytes) of the product in memory. 
+        """ Returns the estimated size(in bytes) of the product in memory.
         Useful for providing this information for a user that wants to download the product from a remote site.
         Returns:
         the size in bytes
@@ -227,13 +227,13 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
 
     def getParents(self):
         """ Return the in-memory parent context products of this reference.
-        That is, the contexts in program memory that contain this product reference object. 
+        That is, the contexts in program memory that contain this product reference object.
         A context that contains a different product reference object pointing to the same URN is not a parent of this product reference.
 
         Furthermore, it should be understood that this method does not return the parent contexts of the product pointed to by this reference as stored in any underlying pool or storage.
 
         Returns:
-        the parents 
+        the parents
         """
         return self._parents
 
@@ -296,5 +296,4 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
         """ Can be encoded with serializableEncoder """
         return ODict(urnobj=self.urnobj if issubclass(self.urnobj.__class__, Urn) else None,
                      _meta=self.getMeta(),
-                     classID=self.classID,
-                     version=self.version)
+                     classID=self.classID)

@@ -3,9 +3,34 @@
 from ..dataset.classes import Classes
 from ..dataset.deserialize import deserializeClassID
 from ..dataset.eq import deepcmp
-from .ydump import ydump
-
 import json
+import sys
+from pprint import pprint
+import pdb
+
+
+def gety():
+    if 0:
+        import inspect
+        import collections
+        import ruamel
+        from ruamel.yaml import YAML
+        from ruamel.yaml.representer import RoundTripRepresenter
+
+        ruamel.yaml.add_representer(
+            Classes.mapping['ODict'], RoundTripRepresenter.represent_dict)
+
+        ruamel.yaml.add_representer(collections.OrderedDict,
+                                    RoundTripRepresenter.represent_dict)
+        yaml = YAML(typ='rt')
+        yaml.default_flow_style = False
+        from ..dataset.classes import Classes
+        for n, c in Classes.mapping.items():
+            if inspect.isclass(c):
+                print(n+' %s' % type(c).__name__)
+                yaml.register_class(c)
+    else:
+        from .ydump import ydump
 
 
 def checkjson(obj, dbg=0):
@@ -22,7 +47,15 @@ def checkjson(obj, dbg=0):
         js = json.dumps(obj, indent=indent)
 
     if dbg:
-        print(ydump(obj))
+        gety()
+        try:
+            if 0:
+                yaml.dump(obj, sys.stdout)
+            else:
+                print(ydump(obj))
+        except:
+            print('ydump of obj failed')
+
         print('******** checkjsom ' + obj.__class__.__name__ +
               ' serialized: ******\n')
         print(js)
@@ -33,8 +66,14 @@ def checkjson(obj, dbg=0):
             print('des.mets ' + str((des.meta.listeners)))
         print('****** checkjson deserialized ' + str(des.__class__) +
               '******\n')
-        # pprint(des)
-        print(ydump(des))
+        try:
+            if 0:
+                yaml.dump(des, sys.stdout)
+            else:
+                print(ydump(des))
+        except:
+            print('ydump of deserialized obj failed')
+            pprint(des)
 
         # js2 = json.dumps(des, cls=SerializableEncoder)
         # pprint('**** des     serialized: *****')
@@ -49,5 +88,6 @@ def checkjson(obj, dbg=0):
         print(str(id(des)) + ' ' + des.toString())
         # obj.meta.listeners = []
         # des.meta.listeners = []
-    assert obj == des, deepcmp(obj, des) + deepcmp(obj, des)
+
+    assert obj == des, deepcmp(obj, des)
     return des

@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+# Automatically generated from fdi/dataset/resources/BaseProduct.yml. Do not edit.
+
+from collections import OrderedDict
+from fdi.dataset.finetime import FineTime1
+
+
 from .serializable import Serializable
 from .odict import ODict
 from .finetime import FineTime, FineTime1, utcobj
@@ -9,6 +15,7 @@ from .dataset import CompositeDataset
 from .metadata import Parameter, NumericParameter, ParameterTypes
 from .eq import DeepEqual, deepcmp
 from .copyable import Copyable
+from .history import History
 
 from collections import OrderedDict
 import pdb
@@ -19,68 +26,10 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class History(CompositeDataset, DeepEqual):
-    """ Public interface to the history dataset. Contains the
-    main methods for retrieving a script and copying the history.
-    """
-
-    def __init__(self, other=None, **kwds):
-        """
-        mh: The copy constructor is better not be implemented. Use copy()
-        instead. Remember: not only copies the datasets,
-        but also changes the history ID in the metadata and
-        relevant table entries to indicate that this a new
-        independent product of which the history may change.
-        """
-        super(History, self).__init__(**kwds)
-
-        # Name of the table which contains the history script
-        self.HIST_SCRIPT = ''
-        # Name of the parameter history table
-        self.PARAM_HISTORY = ''
-        # Name of the task history table
-        self.TASK_HISTORY = ''
-
-    def accept(self, visitor):
-        """ Hook for adding functionality to meta data object
-        through visitor pattern."""
-        visitor.visit(self)
-
-    def getOutputVar(self):
-        """ Returns the final output variable of the history script.
-        """
-        return None
-
-    def getScript(self):
-        """ Creates a Jython script from the history.
-        """
-        return self.HIST_SCRIPT
-
-    def getTaskHistory(self):
-        """ Returns a human readable formatted history tree.
-        """
-        return self.TASK_HISTORY
-
-    def saveScript(self, file):
-        """ Saves the history script to a file.
-        """
-
-    def serializable(self):
-        """ Can be encoded with serializableEncoder """
-        return ODict(description=self.description,
-                     HIST_SCRIPT=self.HIST_SCRIPT,
-                     PARAM_HISTORY=self.PARAM_HISTORY,
-                     TASK_HISTORY=self.TASK_HISTORY,
-                     meta=self.meta,
-                     _sets=self._sets,
-                     classID=self.classID,
-                     version=self.version)
-
-
 # @addMandatoryProductAttrs
 
 
-class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
+class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     """ A BaseProduct is a generic result that can be passed on between
     (standalone) processes.
 
@@ -103,63 +52,23 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
     assert p.meta['creator']=='foo'
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
+
+    BaseProduct class (level ALL) schema 1.0 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-08-17 17:03:44.479156.
+
     """
 
-    productInfo = {
-        'metadata': OrderedDict({
-            'description': {
-                'fits_keyword': 'DESCRIPT',
-                'data_type': 'string',
-                'description': 'Description of this product',
-                'unit': 'None',
-                'default': 'UNKOWN',
-            },
-            'type': {
-                'fits_keyword': 'TYPE',
-                'data_type': 'string',
-                'description': 'Product Type identification. Fully qualified Python class name or CARD.',
-                'unit': 'None',
-                'default': 'BaseProduct',
-            },
-            'creator': {
-                'fits_keyword': 'CREATOR',
-                'data_type': 'string',
-                'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
-                'unit': 'None',
-                'default': 'UNKOWN',
-            },
-            'creationDate': {
-                'fits_keyword': 'DATE',
-                'data_type': 'finetime',
-                'description': 'Creation date of this product',
-                'unit': 'None',
-                'default': '0',
-            },
-            'rootCause': {
-                'fits_keyword': 'ROOTCAUS',
-                'data_type': 'string',
-                'description': 'Reason of this run of pipeline.',
-                'unit': 'None',
-                'default': 'UNKOWN',
-            },
-            'schema': {
-                'fits_keyword': 'SCHEMA',
-                'data_type': 'string',
-                'description': 'Version of product schema',
-                'unit': 'None',
-                'default': '0.3',
-            },
-        }),
-    }
 
     def __init__(self,
-                 description='UNKOWN',
-                 type_='BaseProduct',
-                 creator='UNKOWN',
-                 creationDate=FineTime1(0),
-                 rootCause='UNKOWN',
-                 schema='0.3',
+                 description = 'UNKOWN',
+                 type_ = 'BaseProduct',
+                 creator = 'UNKOWN',
+                 creationDate = FineTime1(0),
+                 rootCause = 'UNKOWN',
+                 version = '0.4',
                  **kwds):
+
+        global ProductInfo
+        self.pInfo = ProductInfo
 
         if 'metasToBeInstalled' not in kwds:
             # this class is being called directly
@@ -183,18 +92,20 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
         # must be the first line to initiate meta and get description
         super(BaseProduct, self).__init__(description=description, **kwds)
 
-        # print(self.productInfo['metadata'].keys())
+        # print(self.pInfo['metadata'].keys())
         # print(metasToBeInstalled)
         # print('# ' + self.meta.toString())
 
         self.installMetas(mtbi=metasToBeInstalled)
         self.history = History()
 
-    def installMetas(self, mtbi):
+    def installMetas(self, mtbi, prodInfo=None):
         """ put parameters in group in product metadata, and updates productInfo. values in mtbi override those default ones in group.
         """
+        if prodInfo is None:
+            prodInfo = self.pInfo
 
-        for met, params in self.productInfo['metadata'].items():
+        for met, params in prodInfo['metadata'].items():
             # pdb.set_trace()  # description has been set by Anotatable.__init__
             if met != 'description':
                 #  type_ in mtbi (from __init__) changed to type
@@ -219,9 +130,9 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
         read, and returns the values only.
         """
         # print('getattribute ' + name)
-        if name not in ['productInfo', '_meta'] and hasattr(self, '_meta'):
+        if name not in ['pInfo', '_meta'] and hasattr(self, '_meta'):
             #            self.hasMeta():
-            if name in self.productInfo['metadata']:
+            if name in self.pInfo['metadata']:
                 # if meta does not exist, inherit Attributable
                 # before any class that access mandatory attributes
                 # print('aa ' + selftr(self.getMeta()[name]))
@@ -234,7 +145,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
         value: Must be Parameter/NumericParameter if this is normal metadata, depending on if it is Number. Value if mandatory / built-in attribute.
         """
         if self.hasMeta():
-            met = self.productInfo['metadata']
+            met = self.pInfo['metadata']
             if name in met.keys():
                 # a special attribute like 'description'. store in meta
                 m = self.getMeta()
@@ -282,7 +193,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
     def __delattr__(self, name):
         """ Refuses deletion of mandatory attributes
         """
-        if name in self.productInfo['metadata'].keys():
+        if name in self.pInfo['metadata'].keys():
             logger.warn('Cannot delete Mandatory Attribute ' + name)
 
         super(BaseProduct, self).__delattr__(name)
@@ -311,7 +222,7 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
         ''' meta and datasets only show names
         '''
         s = '{'
-        """for lvar in self.productInfo['metadata'].keys():
+        """for lvar in self.pInfo['metadata'].keys():
             if hasattr(self, lvar):
                 s += '%s = %s, ' % (lvar, getattr(self, lvar))
         """
@@ -337,8 +248,8 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
             ("_sets", self._sets),
             ("history", self.history),
             ("listeners", self.listeners),
-            ("classID", self.classID),
-            ("version", self.version)]
+            ("classID", self.classID)]
+
         return ODict(ls)
 
 
@@ -349,7 +260,7 @@ def addMandatoryProductAttrs(cls):
     https://stackoverflow.com/a/2584050
     https://stackoverflow.com/a/1355444
     """
-    for name in self.productInfo['metadata'].keys():
+    for name in self.pInfo['metadata'].keys():
         def g(self):
             return self._meta[name]
 
@@ -372,3 +283,66 @@ def addMandatoryProductAttrs(cls):
 
 
 # Product = addMandatoryProductAttrs(Product)
+
+ProductInfo = {
+    'name': 'BaseProduct',
+    'description': 'FDI base class',
+    'parents': [
+        None,
+        ],
+    'level': 'ALL',
+    'schema': '1.0',
+    'metadata': {
+        'description': {
+                'fits_keyword': 'DESCRIPT',
+                'data_type': 'string',
+                'description': 'Description of this product',
+                'unit': None,
+                'default': 'UNKOWN',
+                'valid': '',
+                },
+        'type': {
+                'fits_keyword': 'TYPE',
+                'data_type': 'string',
+                'description': 'Product Type identification. Fully qualified Python class name or CARD.',
+                'unit': None,
+                'default': 'BaseProduct',
+                'valid': '',
+                },
+        'creator': {
+                'fits_keyword': 'CREATOR',
+                'data_type': 'string',
+                'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
+                'unit': None,
+                'default': 'UNKOWN',
+                'valid': '',
+                },
+        'creationDate': {
+                'fits_keyword': 'DATE',
+                'data_type': 'finetime',
+                'description': 'Creation date of this product',
+                'unit': 'None',
+                'default': '0',
+                'valid': '',
+                },
+        'rootCause': {
+                'fits_keyword': 'ROOTCAUS',
+                'data_type': 'string',
+                'description': 'Reason of this run of pipeline.',
+                'unit': None,
+                'default': 'UNKOWN',
+                'valid': '',
+                },
+        'version': {
+                'fits_keyword': 'VERSION',
+                'data_type': 'string',
+                'description': 'Version of product schema',
+                'unit': None,
+                'default': '0.4',
+                'valid': '',
+                },
+        },
+    'datasets': {
+        },
+    }
+

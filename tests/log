@@ -1,15 +1,20 @@
-INFO     root:test_httpclientpool.py:75 Test GET HK
-INFO     root:test_httpclientpool.py:80 Test GET classes, urns, tags url
-INFO     root:test_httpclientpool.py:93 Get product url
-INFO     root:test_httpclientpool.py:98 Post product url
-INFO     root:test_httpclientpool.py:103 Delete product url
-INFO     root:test_httpclientpool.py:108 Delete pool url
-INFO     root:test_httpclientpool.py:113 Test corrupt request url
-INFO     root:test_httpclientpool.py:122 Init a pstore
-INFO     root:test_httpclientpool.py:130 Save data by httpclientpool
-INFO     root:test_httpclientpool.py:140 Load product from httpclientpool
-INFO     root:test_httpclientpool.py:144 Search metadata
-INFO     root:test_httpclientpool.py:149 Delete a product from httpclientpool
-INFO     root:test_httpclientpool.py:153 Here will generate an load exception message, that is normal, you can ignore it:
-ERROR    fdi.pal.httpclientpool:httpclientpool.py:121 Load http://192.168.1.9:5000/client_test_pool/fdi.dataset.product.Product_2 failed.  Exception : [Errno 2] No such file or directory: '/data/client_test_pool/fdi.dataset.product.Product_2'
-INFO     root:test_httpclientpool.py:157 Delete a pool
+INFO     root:test_httppool.py:147 get pnsconfig
+INFO     root:test_httppool.py:124 initial server response OD{'APIs':OD{'DELETE':[OD{'URL':'http://0.0.0.0:5000/v0.6/clean', 'description':' Removing traces of...
+INFO     root:test_httppool.py:214 get initPTS
+INFO     root:test_httppool.py:224 get run
+INFO     root:test_httppool.py:254 save products
+INFO     root:test_httppool.py:278 read product
+INFO     root:test_httppool.py:289 read hk
+INFO     root:test_httppool.py:299 read classes
+INFO     root:test_httppool.py:306 read tags
+INFO     root:test_httppool.py:313 read urns
+INFO     root:test_httppool.py:321 delete a product
+INFO     root:test_httppool.py:341 delete a pool
+INFO     root:test_httppool.py:379 Test read a locked file, it will returns FAILED
+INFO     root:test_httppool.py:359 Keeping files locked
+INFO     filelock:filelock.py:248 Lock 139917046509240 acquired on /tmp/locks/pool_default/lock
+INFO     root:test_httppool.py:368 Read a locked file
+INFO     root:test_httppool.py:373 {"result": "FAILED", "msg": "Exception : The file lock '/tmp/locks/pool_default/lock' could not be acquired.", "timestamp": 1598251662.178356}
+INFO     filelock:filelock.py:311 Lock 139917046509240 released on /tmp/locks/pool_default/lock
+INFO     root:test_httppool.py:396 Test query a pool non exist.
+INFO     root:test_httppool.py:405 Test create a pool which has subclass

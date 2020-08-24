@@ -149,8 +149,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return ODict(tai=self.tai,
-                     classID=self.classID,
-                     version=self.version)
+                     classID=self.classID)
 
 
 class FineTime1(FineTime):

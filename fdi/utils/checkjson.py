@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ..dataset.classes import Classes
+from ..dataset.serializable import serializeClassID
 from ..dataset.deserialize import deserializeClassID
 from ..dataset.eq import deepcmp
 import json
@@ -9,7 +10,7 @@ from pprint import pprint
 import pdb
 
 
-def gety():
+def getyaml():
     if 0:
         import inspect
         import collections
@@ -30,7 +31,8 @@ def gety():
                 print(n+' %s' % type(c).__name__)
                 yaml.register_class(c)
     else:
-        from .ydump import ydump
+        from .ydump import ydump, init
+        init()
 
 
 def checkjson(obj, dbg=0):
@@ -41,13 +43,13 @@ def checkjson(obj, dbg=0):
 
     indent = 4 if dbg > 1 else None
 
-    if hasattr(obj, 'serialized'):
-        js = obj.serialized(indent=indent)
-    else:
-        js = json.dumps(obj, indent=indent)
-
+    # if hasattr(obj, 'serialized'):
+    #     js = obj.serialized(indent=indent)
+    # else:
+    #     js = json.dumps(obj, indent=indent)
+    js = serializeClassID(obj)
     if dbg:
-        gety()
+        getyaml()
         try:
             if 0:
                 yaml.dump(obj, sys.stdout)
@@ -60,6 +62,8 @@ def checkjson(obj, dbg=0):
               ' serialized: ******\n')
         print(js)
         print('*************')
+    if 0:
+        pdb.set_trace()
     des = deserializeClassID(js, lgb=Classes.mapping, debug=dbg)
     if dbg:
         if 0 and hasattr(des, 'meta'):

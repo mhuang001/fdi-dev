@@ -58,7 +58,8 @@ def mkinfo(metas, dsets, indents):
 
 
 def getPython(val, indents, demo, onlyInclude):
-
+    """ make productInfo and init__() code strings from given data.
+    """
     infostr = ''
 
     if issubclass(val.__class__, dict):
@@ -94,6 +95,24 @@ def getPython(val, indents, demo, onlyInclude):
         infostr += pval + ',\n'
         code = pval
     return infostr, code
+
+
+def makeinitcode(dt, pval):
+    """ python instanciation source code.
+
+    will be like "default: FineTime1(0)"
+    """
+    if dt not in ['string', 'integer', 'hex', 'binary', 'float']:
+        # custom classes
+        t = ParameterTypes[dt]
+        code = '%s(%s)' % (t, pval)
+    elif dt in ['integer', 'hex', 'float', 'binary']:
+        code = pval
+    elif pval == 'None':
+        code = 'None'
+    else:
+        code = '\'' + pval + '\''
+    return code
 
 
 def params(val, indents, demo, onlyInclude):
@@ -132,21 +151,15 @@ def params(val, indents, demo, onlyInclude):
                     kvs += '\n' + indents[2]
                 s = '{' + kvs + '}'
         else:
-            iss = issubclass(pv.__class__, (str, bytes))
+            iss = issubclass(pv.__class__, (str))
+
             # get string representation
-            pval = pv.strip() if iss else str(pv)
+            pval = str(pv).strip() if iss else str(pv)
             if pname == 'default':
-                # python instanciation source code.
-                # will be like "default: FineTime1(0)"
-                if dt not in ['string', 'integer', 'hex', 'binary', 'float']:
-                    t = ParameterTypes[dt]
-                    code = '%s(%s)' % (t, pval)
-                elif dt in ['integer', 'hex', 'float', 'binary']:
-                    code = pval
-                elif pval == 'None':
-                    code = 'None'
-                else:
-                    code = '\'' + pval + '\''
+                code = makeinitcode(dt, pval)
+            if pname in ['example', 'default']:
+                # here data_type instead of input type determines the output type
+                iss = val['data_type'] == 'string'
             s = '\'' + pval + '\'' if iss else pval
         infostr += indents[1] + '\'%s\': %s,\n' % (pname, s)
     infostr += indents[1] + '},\n'
@@ -154,16 +167,21 @@ def params(val, indents, demo, onlyInclude):
     return infostr, code
 
 
-def getCls(clp, rerun=True, exclude=[]):
+def getCls(clp, rerun=True, exclude=None):
+    if exclude is None:
+        exclude = []
     if clp == '':
         # classes path not given on command line
         try:
             pc = importlib.import_module('svom.products.projectclasses')
             pc.PC.updateMapping(rerun=rerun, exclude=exclude)
             ret = pc.PC.mapping
-            print('Imported project classes from svom.products.projectclasses module.')
-        except ModuleNotFoundError as e:
-            print('Unable to import svom.products.projectclasses module.')
+            print(
+                'Imported project classes from svom.products.projectclasses module.')
+        except (ModuleNotFoundError, SyntaxError) as e:
+            print('!'*80 +
+                  '\nUnable to import svom.products.projectclasses module.\n' +
+                  '!'*80+'\n'+str(e)+'\n'+'!'*80)
             ls = []
             # ls = [(k, v) for k, v in locals().items()
             #      if k not in ['clp', 'e', 'exclude', 'rerun']]
@@ -211,6 +229,9 @@ def readyaml(ypath, ver=None):
             # pyYAML d = OrderedDict(yaml.load(f, Loader=yaml.FullLoader))
             d = OrderedDict(yaml.load(f))
 
+        if float(d['schema']) >= 1.0:
+            pass
+            print('Read %s from %s' % (d['schema'], fin))
         if float(d['schema']) > 0.6:
             attrs = OrderedDict(d['metadata'])
             datasets = OrderedDict()
@@ -232,9 +253,7 @@ def readyaml(ypath, ver=None):
             print('Find datasets:\n%s' % ', '.join(itr))
             desc[d['name']] = (d, attrs, datasets, fin)
         else:
-            if float(d['schema']) >= float(version):
-                print('No need to upgrade '+d['schema'])
-                continue
+            # float(d['schema']) <= 0.6:
             d2 = OrderedDict()
             metadata = OrderedDict()
             for k, v in d.items():
@@ -258,17 +277,45 @@ def readyaml(ypath, ver=None):
     return desc, fins
 
 
-def yamlupgrade(descriptors, fins, ypath, version, verbose):
-    for nm, d in descriptors.items():
+def output(nm, d, fins, version, verbose):
+
+    print("Input YAML file is to be renamed to " + fins[nm]+'.old')
+    fout = fins[nm]
+    print("Output YAML file is "+fout)
+    if 0:
+        ydump(d, sys.stdout)  # yamlfile)
+    else:
         os.rename(fins[nm], fins[nm]+'.old')
-        print("Input YAML file is renamed to " + fins[nm]+'.old')
-        fout = fins[nm]
-        print("Output YAML file is "+fout)
-        if 0:
-            ydump(d, sys.stdout)  # yamlfile)
-        else:
-            with open(fout, 'w', encoding='utf-8') as yamlfile:
-                ydump(d,  yamlfile)
+        with open(fout, 'w', encoding='utf-8') as yamlfile:
+            ydump(d,  yamlfile)
+
+
+def yamlupgrade(descriptors, fins, ypath, version, verbose):
+
+    if float(version) > 1.0:
+        for nm, daf in descriptors.items():
+            d, attrs, datasets, fin = daf
+            if float(d['schema']) >= float(version):
+                print('No need to upgrade '+d['schema'])
+                continue
+            d['schema'] = version
+            for pname, w in d['metadata'].items():
+                dt = w['data_type']
+                # no dataset yet
+                if dt in ['boolean', 'string', 'finetime']:
+                    del w['unit']
+                if dt == 'finetime':
+                    w['default'] = 0
+                if 'typecode' not in w:
+                    w['typecode'] = 'B' if dt == 'string' else None
+                if pname == 'version':
+                    v = w['default'].replace('v', '')
+                    w['default'] = str(float(v) + 0.1)
+            output(nm, d, fins, version, verbose)
+    elif float(version) > 0.6:
+        # in:v0.6 and below out:v1.0
+        for nm, d in descriptors.items():
+            output(nm, d, fins, version, verbose)
 
 
 def removeParent(a, b):
@@ -309,7 +356,7 @@ if __name__ == '__main__':
     print('product class generatiom')
 
     # schema version
-    version = '1.0'
+    version = '1.1'
 
     # Get input file name etc. from command line. defaut 'Product.yml'
     mdir = os.path.dirname(__file__)

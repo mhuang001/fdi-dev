@@ -11,11 +11,12 @@ class Quantifiable(object):
     $ print x.unit
     eV [1.60218E-19 J]"""
 
-    def __init__(self, unit=None, **kwds):
-        """
+    def __init__(self, unit=None, typecode=None, **kwds):
+        """ Has a unit and a typecode (as in array.array.typecodes).
 
         """
         self.setUnit(unit)
+        self.setTypecode(typecode)
         #print(__name__ + str(kwds))
         super(Quantifiable, self).__init__(**kwds)
 
@@ -34,3 +35,19 @@ class Quantifiable(object):
     def setUnit(self, unit):
         """ Sets the unit of this object. """
         self._unit = unit
+
+    @property
+    def typecode(self):
+        return self.getTypecode()
+
+    @typecode.setter
+    def typecode(self, typecode):
+        self.setTypecode(typecode)
+
+    def getTypecode(self):
+        """ Returns the typecode related to this object."""
+        return self._typecode
+
+    def setTypecode(self, typecode):
+        """ Sets the typecode of this object. """
+        self._typecode = typecode

@@ -108,7 +108,7 @@ out_TableDataset =\
 out_CompositeDataset =\
     """# CompositeDataset
 # description = "UNKNOWN"
-# meta = MetaData{[m1 = NumericParameter{ 2.3 (sec) <float>, "a different param in metadata"}, ], listeners = []}
+# meta = MetaData{[m1 = NumericParameter{ 2.3 (sec) <float>, "a different param in metadata", dflt None, vld None tcode=None}, ], listeners = []}
 # data = 
 
 

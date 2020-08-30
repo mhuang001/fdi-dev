@@ -44,7 +44,7 @@ class Classes_meta(type):
         'fdi.dataset.baseproduct': ['BaseProduct'],
         'fdi.dataset.product': ['Product'],
         'fdi.dataset.datatypes': ['Vector', 'Quaternion'],
-        'fdi.dataset.metadata': ['Parameter', 'NumericParameter', 'MetaData'],
+        'fdi.dataset.metadata': ['AbstractParameter', 'Parameter', 'NumericParameter', 'DateParameter', 'StringParameter', 'MetaData'],
         'fdi.dataset.dataset': ['GenericDataset', 'ArrayDataset',
                                 'TableDataset', 'CompositeDataset', 'Column'],
         'fdi.pal.context': ['Context', 'MapContext', 'RefContainer',
@@ -88,16 +88,16 @@ modules whose names (without '.') are in exclude are not imported.
         cls._package.clear()
         SelectiveMetaFinder.exclude = exclude
 
-        # print('With %s excluded..' % (str(exclude)))
+        print('With %s excluded..' % (str(exclude)))
         for modnm, froml in cls.modclass.items():
             if any((x in exclude for x in modnm.split('.'))):
                 continue
-            #print('importing %s from %s' % (str(froml), modnm))
+            print('importing %s from %s' % (str(froml), modnm))
             try:
                 #m = importlib.__import__(modnm, globals(), locals(), froml)
                 m = importlib.import_module(modnm)
             except SelectiveMetaFinder.ExcludedModule as e:
-                logger.error('Importing %s not successful. %s' %
+                logger.error('Did not import %s. %s' %
                              (str(froml), str(e)))
                 #ety, enm, tb = sys.exc_info()
             else:

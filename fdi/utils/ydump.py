@@ -42,11 +42,17 @@ yaml.compact(seq_seq=1, seq_map=True)
 notinited = True
 
 
-def init():
+def init(classlist=None):
     global notinited
-    # for n, c in Classes.mapping.items():
-    #    if inspect.isclass(c):
-    #        yaml.register_class(c)
+
+    for n, c in Classes.mapping.items():
+        if inspect.isclass(c):
+            yaml.register_class(c)
+
+    if classlist:
+        for c in classlist:
+            if inspect.isclass(c):
+                yaml.register_class(c)
 
     ruamel.yaml.add_representer(Classes.get('ODict'), MyRepresenter.represent_dict,
                                 representer=MyRepresenter)

@@ -24,6 +24,7 @@ import os
 import pkg_resources
 import copy
 import time
+from collections.abc import Mapping
 
 # This is to be able to test w/ or w/o installing the package
 # https://docs.python-guide.org/writing/structure/
@@ -526,7 +527,7 @@ def test_lock():
         res = [f.result() for f in [x for x in taskres][0]]
 
     # print(res)
-    if issubclass(res[0]['message'].__class__, ODict):
+    if issubclass(res[0]['message'].__class__, Mapping):
         r1, r2 = res[0], res[1]
     else:
         r2, r1 = res[0], res[1]

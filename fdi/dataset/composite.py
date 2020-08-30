@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from .odict import ODict
 from .eq import DeepEqual
+#from collections import OrderedDict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -71,7 +72,7 @@ class Composite(DeepEqual):
 
     def keys(self):
         """ Returns an iterator of the keys contained in this composite. """
-        return list(self._sets.keys())
+        return self._sets.keys()
 
     def keySet(self):
         """ Returns a list view of the keys contained in this composite. """

@@ -34,7 +34,7 @@ class UTC(datetime.tzinfo):
         return UTC.ZERO
 
 
-utcobj = UTC()
+utcobj = datetime.timezone.utc
 
 
 class FineTime(Copyable, DeepEqual, Serializable):
@@ -51,13 +51,14 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
     EPOCH = datetime.datetime(1958, 1, 1, 0, 0, 0, tzinfo=utcobj)
     RESOLUTION = 1000000  # microsecond
-    DEFAUL_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'  # ISO
+    DEFAULT_FORMAT = '%Y-%m-%dT%H:%M:%S.%f UTC'  # ISO
+    TIMESPEC = 'microseconds'
 
     def __init__(self, date=None, format=None, **kwds):
         """ Initiate with a UTC date or an integer TAI"""
         leapsec = 0  # leap seconds to be implemented
 
-        self.format = self.DEFAUL_FORMAT if format is None else format
+        self.format = self.DEFAULT_FORMAT if format is None else format
         self.setTime(date)
         # logger.debug('date= %s TAI = %d' % (str(date), self.tai))
         super(FineTime, self).__init__(**kwds)
@@ -92,6 +93,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
             #     self.tai = int(time)
             # except ValueError:
             d = datetime.datetime.strptime(time, self.format)
+
             self.tai = self.datetimeToFineTime(d)
         else:
             raise TypeError('%s must be an integer, a datetime object, or a string, but its type is %s.' % (
@@ -108,8 +110,8 @@ class FineTime(Copyable, DeepEqual, Serializable):
             format = self.format
         dt = datetime.timedelta(
             seconds=(self.tai / self.RESOLUTION)) + self.EPOCH
-        # return dt.isoformat(timespec='microseconds')
-        return dt.strftime(format)
+        return dt.isoformat(timespec=self.TIMESPEC)
+        # return dt.strftime(format)
 
     def microsecondsSinceEPOCH(self):
         """ Return the rounded integer number of microseconds since the epoch: 1 Jan 1958. """
@@ -143,7 +145,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         """ Returns a String representation of this object according to self.format.
         prints like 2019-02-17T12:43:04.577000 TAI(...)"""
 
-        return self.__format__() + ' TAI' + '(%d)' % (self.tai)
+        return self.__format__() + ' TAI' + '(%d)' % (self.tai) if hasattr(self, 'tai') else 'Unknown_TAI'
 
     def equals(self, obj):
         """ can compare TAI directly """
@@ -201,3 +203,4 @@ class FineTime1(FineTime):
     """ Same as FineTime but Epoch is 2017-1-1 0 UTC """
     EPOCH = datetime.datetime(2017, 1, 1, 0, 0, 0, tzinfo=utcobj)
     RESOLUTION = 1000  # millisecond
+    TIMESPEC = 'milliseconds'

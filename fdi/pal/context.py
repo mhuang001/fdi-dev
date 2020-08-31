@@ -65,7 +65,7 @@ def applyrules(key, ref, rules):
 
 
 # class RefContainer(Composite, Serializable):
-class RefContainer(Serializable, ODict):  # XXXXXXXX order
+class RefContainer(ODict):  # XXXXXXXX order
     """ A map where Rules of a Context are applied when put(k,v) is called, and the owner MapContext's ID can be put to v's parents list.
 
     Implemwnted using dataset.Composite so that RefContainer has a ClassID when json.loads'ed.
@@ -93,7 +93,7 @@ class RefContainer(Serializable, ODict):  # XXXXXXXX order
         if hasattr(self, '_owner'):
             if hasattr(self._owner, '_rule'):
                 if applyrules(key, ref, self._owner.getRule()):
-                    raise ConnectionAbortedError()
+                    raise NotImplementedError()
             from .productref import ProductRef
             if isinstance(ref, ProductRef):
                 ref.addParent(self._owner)
@@ -130,13 +130,13 @@ class RefContainer(Serializable, ODict):  # XXXXXXXX order
         return self.__getitem__(key)
 
     def size(self):
-        """ ClassID uses one """
-        return len(self.keys()) - 1
+        """ """
+        return len(self.keys())
 
-    def serializable(self):
-        """ Can be encoded with serializableEncoder """
-        return ODict(  # _sets=self._sets,
-            classID=self.classID)
+    # def serializable(self):
+    #     """ Can be encoded with serializableEncoder """
+    #     return ODict(  # _sets=self._sets,
+    #         classID=self.classID)
 
 
 class ContextRuleException(ValueError):

@@ -4,7 +4,7 @@ from .odict import ODict
 from .finetime import FineTime, FineTime1, utcobj
 from .dataset import CompositeDataset
 from .eq import DeepEqual, deepcmp
-
+from collections import OrderedDict
 import pdb
 
 import logging
@@ -61,10 +61,10 @@ class History(CompositeDataset, DeepEqual):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return ODict(description=self.description,
-                     HIST_SCRIPT=self.HIST_SCRIPT,
-                     PARAM_HISTORY=self.PARAM_HISTORY,
-                     TASK_HISTORY=self.TASK_HISTORY,
-                     meta=self.meta,
-                     _sets=self._sets,
-                     classID=self.classID)
+        return OrderedDict(description=self.description,
+                           HIST_SCRIPT=self.HIST_SCRIPT,
+                           PARAM_HISTORY=self.PARAM_HISTORY,
+                           TASK_HISTORY=self.TASK_HISTORY,
+                           meta=self.meta,
+                           _sets=self._sets,
+                           classID=self.classID)

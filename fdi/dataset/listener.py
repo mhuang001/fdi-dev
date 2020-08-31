@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from collections import namedtuple, OrderedDict
 from .serializable import Serializable
 from .eq import DeepEqual
 from ..utils.common import trbk
@@ -9,7 +10,7 @@ import pdb
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
 class EventListener(object):
@@ -17,7 +18,7 @@ class EventListener(object):
     """
 
     def targetChanged(self,  *args, **kwargs):
-        """ Informs that an event has happened in a target of 
+        """ Informs that an event has happened in a target of
         any type.
         """
         pass
@@ -54,7 +55,7 @@ class ListnerSet(Serializable, DeepEqual, list):
         self.seturns(urns)
 
     def seturns(self, urns):
-        """ Replaces the current urn with specified argument. 
+        """ Replaces the current urn with specified argument.
         """
         for urn in urns:
             try:
@@ -79,7 +80,7 @@ class ListnerSet(Serializable, DeepEqual, list):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return ODict()
+        return OrderedDict()
 
 
 class EventSender(object):
@@ -100,7 +101,7 @@ class EventSender(object):
         self.setListeners(listeners)
 
     def setListeners(self, listeners):
-        """ Replaces the current Listeners with specified argument. 
+        """ Replaces the current Listeners with specified argument.
         """
         self._listeners = ListnerSet()
         for listener in listeners:
@@ -147,7 +148,7 @@ class EventSender(object):
         return len(self._listeners)
 
     __call__ = fire
-    #__len__ = getHandlerCount
+    # __len__ = getHandlerCount
 
 
 class DatasetEventSender(EventSender):
@@ -165,45 +166,66 @@ class DatasetEventSender(EventSender):
         super(DatasetEventSender, self).fire(event)
 
 
-class EventType(object):
+EventTypes = [
     # A column has been added to the target TableDataset.
-    COLUMN_ADDED = 0
+    'COLUMN_ADDED',
     # A column has been changed in the target TableDataset.
-    COLUMN_CHANGED = 1
+    'COLUMN_CHANGED',
     # A column has been removed from the target TableDataset.
-    COLUMN_REMOVED = 2
-    DATA_CHANGED = 3  # The targets data has changed.
+    'COLUMN_REMOVED',
+    # The targets data has changed.
+    'DATA_CHANGED',
     # A dataset has been added to the target composite.
-    DATASET_ADDED = 4
+    'DATASET_ADDED',
     # A dataset has been changed in the target composite.
-    DATASET_CHANGED = 5
+    'DATASET_CHANGED',
     # A dataset has been removed from the target composite.
-    DATASET_REMOVED = 6
+    'DATASET_REMOVED',
     # The targets  has changed.
-    DESCRIPTION_CHANGED = 7
+    'DESCRIPTION_CHANGED',
     # The targets MetaData has been changed.
-    METADATA_CHANGED = 8
+    'METADATA_CHANGED',
     # A parameter has been added to the target meta data.
-    PARAMETER_ADDED = 9
+    'PARAMETER_ADDED',
     # A parameter has been changed in the target meta data.
-    PARAMETER_CHANGED = 10
+    'PARAMETER_CHANGED',
     # A parameter has been removed from the target meta data.
-    PARAMETER_REMOVED = 11
+    'PARAMETER_REMOVED',
     # A row has been added to the target TableDataset.
-    ROW_ADDED = 12
+    'ROW_ADDED',
     # A row has been removed from the target TableDataset.
-    ROW_REMOVED = 13
+    'ROW_REMOVED',
     # The targets unit has changed.
-    UNIT_CHANGED = 14
+    'UNIT_CHANGED',
     # Some value in the target object has changed.
-    VALUE_CHANGED = 15
+    'VALUE_CHANGED',
+    # Some attributes in the target object has changed.
+    'UNKNOWN_ATTRIBUTE_CHANGED',
+]
+
+# EventTd['VALUE_CHANGED']='VALUE_CHANGED'
+EventTd = dict([(e, e) for e in EventTypes])
+
+# EventType.VALUE_CHANGED = 'VALUE_CHANGED'
+EventType = namedtuple('EventType', EventTypes)(**EventTd)
+
+
+# e.g. eventTypeof['CHANGED']['UNIT'] gives     'UNIT_CHANGED'
+EventTypeOf = {}
+for evt in EventTypes:
+    t = evt.rsplit('_', 1)
+    if t[1] in EventTypeOf:
+        EventTypeOf[t[1]][t[0]] = evt
+    else:
+        EventTypeOf[t[1]] = {}
+        EventTypeOf[t[1]][t[0]] = evt
 
 
 class DatasetEvent(Serializable):
     """
     """
 
-    def __init__(self, source, target, type_, change, cause, rootCause, **kwds):
+    def __init__(self, source, target, typ_, change, cause, rootCause, **kwds):
         # The object on which the Event initially occurred.
         self.source = source
         # the target of the event, which is the same object returned
@@ -214,7 +236,7 @@ class DatasetEvent(Serializable):
             raise TypeError(str(target) + ' is not of type ' +
                             str(source.__class__))
         # the type of the event.
-        self.type_ = type_
+        self.typ_ = typ_
         # Gives more information about the change that caused the event.
         self.change = change
         # The underlying event that provoked this event,
@@ -231,7 +253,7 @@ class DatasetEvent(Serializable):
             return False
         return self.source == o.source and\
             self.target == o.target and \
-            self.type_ == o.type_ and \
+            self.typ_ == o.typ_ and \
             self.change == o.change and \
             self.cause == o.cause and \
             self.rootCause == o.rootCause
@@ -239,7 +261,7 @@ class DatasetEvent(Serializable):
     def __repr__(self):
         r = '{source=' + str(self.source) +\
             ', target=' + str(self.target) +\
-            ', type_=' + str(self.type_) +\
+            ', typ_=' + str(self.typ_) +\
             ', change=' + str(self.change) +\
             ', cause=' + str(self.cause) +\
             ', rootCause=' + str(self.rootCause) +\
@@ -251,13 +273,13 @@ class DatasetEvent(Serializable):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        s = ODict(source=self.source,
-                  target=self.target,
-                  type_=self.type_,
-                  change=self.change,
-                  cause=self.cause,
-                  rootCause=self.rootCause,
-                  classID=self.classID)
+        s = OrderedDict(source=self.source,
+                        target=self.target,
+                        typ_=self.typ_,
+                        change=self.change,
+                        cause=self.cause,
+                        rootCause=self.rootCause,
+                        classID=self.classID)
         return s
 
 
@@ -268,7 +290,7 @@ class ParameterListener(DatasetBaseListener):
     * DESCRIPTION_CHANGED
     * UNIT_CHANGED
     * VALUE_CHANGED
-
+    * UNKOWN_ATTRIBUTE_CHANGED
     Cause is always null.
 
     Warning: The listener handler must be a class attribute in order to

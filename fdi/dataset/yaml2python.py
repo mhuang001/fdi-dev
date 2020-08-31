@@ -58,7 +58,8 @@ def mkinfo(metas, dsets, indents):
 
 
 def getPython(val, indents, demo, onlyInclude):
-
+    """ make productInfo and init__() code strings from given data.
+    """
     infostr = ''
 
     if issubclass(val.__class__, dict):
@@ -94,6 +95,24 @@ def getPython(val, indents, demo, onlyInclude):
         infostr += pval + ',\n'
         code = pval
     return infostr, code
+
+
+def makeinitcode(dt, pval):
+    """ python instanciation source code.
+
+    will be like "default: FineTime1(0)"
+    """
+    if dt not in ['string', 'integer', 'hex', 'binary', 'float']:
+        # custom classes
+        t = ParameterTypes[dt]
+        code = '%s(%s)' % (t, pval)
+    elif dt in ['integer', 'hex', 'float', 'binary']:
+        code = pval
+    elif pval == 'None':
+        code = 'None'
+    else:
+        code = '\'' + pval + '\''
+    return code
 
 
 def params(val, indents, demo, onlyInclude):
@@ -132,21 +151,15 @@ def params(val, indents, demo, onlyInclude):
                     kvs += '\n' + indents[2]
                 s = '{' + kvs + '}'
         else:
-            iss = issubclass(pv.__class__, (str, bytes))
+            iss = issubclass(pv.__class__, (str))
+
             # get string representation
-            pval = pv.strip() if iss else str(pv)
+            pval = str(pv).strip() if iss else str(pv)
             if pname == 'default':
-                # python instanciation source code.
-                # will be like "default: FineTime1(0)"
-                if dt not in ['string', 'integer', 'hex', 'binary', 'float']:
-                    t = ParameterTypes[dt]
-                    code = '%s(%s)' % (t, pval)
-                elif dt in ['integer', 'hex', 'float', 'binary']:
-                    code = pval
-                elif pval == 'None':
-                    code = 'None'
-                else:
-                    code = '\'' + pval + '\''
+                code = makeinitcode(dt, pval)
+            if pname in ['example', 'default']:
+                # here data_type instead of input type determines the output type
+                iss = val['data_type'] == 'string'
             s = '\'' + pval + '\'' if iss else pval
         infostr += indents[1] + '\'%s\': %s,\n' % (pname, s)
     infostr += indents[1] + '},\n'
@@ -154,16 +167,21 @@ def params(val, indents, demo, onlyInclude):
     return infostr, code
 
 
-def getCls(clp, rerun=True, exclude=[]):
+def getCls(clp, rerun=True, exclude=None):
+    if exclude is None:
+        exclude = []
     if clp == '':
         # classes path not given on command line
         try:
             pc = importlib.import_module('svom.products.projectclasses')
             pc.PC.updateMapping(rerun=rerun, exclude=exclude)
             ret = pc.PC.mapping
-            print('Imported project classes from svom.products.projectclasses module.')
-        except ModuleNotFoundError as e:
-            print('Unable to import svom.products.projectclasses module.')
+            print(
+                'Imported project classes from svom.products.projectclasses module.')
+        except (ModuleNotFoundError, SyntaxError) as e:
+            print('!'*80 +
+                  '\nUnable to import svom.products.projectclasses module.\n' +
+                  '!'*80+'\n'+str(e)+'\n'+'!'*80)
             ls = []
             # ls = [(k, v) for k, v in locals().items()
             #      if k not in ['clp', 'e', 'exclude', 'rerun']]
@@ -190,27 +208,30 @@ def readyaml(ypath, ver=None):
     """
     yaml = YAML()
     desc = OrderedDict()
+    fins = {}
     for findir in os.listdir(ypath):
-        fin = os.path.join(out[2]['result'], findir)
+        fin = os.path.join(ypath, findir)
 
         ''' The  input file name ends with '.yaml' or '.yml' (case insensitive).
         the stem name of output file is input file name stripped of the extension.
         '''
         # make it all lower case
         finl = findir.lower()
-        if finl.endswith('.yml'):
-            nm = findir[:-4]
-        elif finl.endswith('.yaml'):
-            nm = findir[:-5]
+        if finl.endswith('.yml') or finl.endswith('.yaml'):
+            nm = os.path.splitext(findir)[0]
         else:
             continue
+        fins[nm] = fin
 
         # read YAML
-        print('@@@@ Reading ' + fin + '@@@@')
+        print('----- Reading ' + fin + '-----')
         with open(fin, 'r', encoding='utf-8') as f:
             # pyYAML d = OrderedDict(yaml.load(f, Loader=yaml.FullLoader))
             d = OrderedDict(yaml.load(f))
 
+        if float(d['schema']) >= 1.0:
+            pass
+            print('Read %s from %s' % (d['schema'], fin))
         if float(d['schema']) > 0.6:
             attrs = OrderedDict(d['metadata'])
             datasets = OrderedDict()
@@ -232,13 +253,10 @@ def readyaml(ypath, ver=None):
             print('Find datasets:\n%s' % ', '.join(itr))
             desc[d['name']] = (d, attrs, datasets, fin)
         else:
-            if float(d['schema']) >= float(version):
-                print('No need to upgrade '+d['schema'])
-                continue
+            # float(d['schema']) <= 0.6:
             d2 = OrderedDict()
             metadata = OrderedDict()
             for k, v in d.items():
-                print('key= %s val=%s' % (k, str(v)))
                 if issubclass(v.__class__, dict):
                     if v['unit'] == 'None':
                         dt = v['data_type']
@@ -256,18 +274,48 @@ def readyaml(ypath, ver=None):
                         d2[k] = v
             d2['metadata'] = metadata
             desc[d['name']] = d2
-    return desc
+    return desc, fins
 
 
-def yamlupgrade(descriptors, ypath, version, verbose):
-    for nm, d in descriptors.items():
-        fout = pathjoin(ypath, d['name'] + '.yml.' + version)
-        print("Output YAML file is "+fout)
-        if 0:
-            ydump(d, sys.stdout)  # yamlfile)
-        else:
-            with open(fout, 'w', encoding='utf-8') as yamlfile:
-                ydump(d,  yamlfile)
+def output(nm, d, fins, version, verbose):
+
+    print("Input YAML file is to be renamed to " + fins[nm]+'.old')
+    fout = fins[nm]
+    print("Output YAML file is "+fout)
+    if 0:
+        ydump(d, sys.stdout)  # yamlfile)
+    else:
+        os.rename(fins[nm], fins[nm]+'.old')
+        with open(fout, 'w', encoding='utf-8') as yamlfile:
+            ydump(d,  yamlfile)
+
+
+def yamlupgrade(descriptors, fins, ypath, version, verbose):
+
+    if float(version) > 1.0:
+        for nm, daf in descriptors.items():
+            d, attrs, datasets, fin = daf
+            if float(d['schema']) >= float(version):
+                print('No need to upgrade '+d['schema'])
+                continue
+            d['schema'] = version
+            for pname, w in d['metadata'].items():
+                dt = w['data_type']
+                # no dataset yet
+                if dt in ['boolean', 'string', 'finetime']:
+                    del w['unit']
+                if dt == 'finetime':
+                    w['default'] = 0
+                if 'typecode' not in w:
+                    w['typecode'] = 'B' if dt == 'string' else None
+                if pname == 'version':
+                    v = w['default'].replace('v', '')
+                    w['default'] = str(float(v) + 0.1)
+            output(nm, d, fins, version, verbose)
+    elif float(version) > 0.6:
+        # in:v0.6 and below out:v1.0
+        for nm, d in descriptors.items():
+            output(nm, d, fins, version, verbose)
 
 
 def removeParent(a, b):
@@ -308,7 +356,7 @@ if __name__ == '__main__':
     print('product class generatiom')
 
     # schema version
-    version = '1.0'
+    version = '1.1'
 
     # Get input file name etc. from command line. defaut 'Product.yml'
     mdir = os.path.dirname(__file__)
@@ -339,9 +387,9 @@ if __name__ == '__main__':
     tpath = out[3]['result']
     upgrade = out[6]['result']
     # input file
-    descriptors = readyaml(ypath, version)
+    descriptors, fins = readyaml(ypath, version)
     if upgrade:
-        yamlupgrade(descriptors, ypath, version, verbose)
+        yamlupgrade(descriptors, fins, ypath, version, verbose)
         sys.exit()
 
     clp = out[5]['result']
@@ -473,59 +521,3 @@ if __name__ == '__main__':
         pcl = getCls(clp, rerun=True, exclude=importexclude)
         Classes.updateMapping(c=pcl, rerun=True, exclude=importexclude)
         glb = Classes.mapping
-        assert prodname in glb, str(glb.keys())
-
-#############################################
-
-
-def mkmetas(attrs, indents, demo, onlyInclude):
-    """ make productInfo string from attributes given.
-
-    """
-
-    infostr = ''
-    infostr += indents[1] + '\'metadata\': OrderedDict({\n'
-
-    for met, val in attrs.items():
-        # met is like 'description', 'type', 'redWinSize'
-        # val is like {'data_type':'string, 'default':'foo'...}
-        if met == 'creationDate':  # 'blueMode' and pname == 'valid':
-            pass
-        istr, default_code = params(
-            met, val, indents, demo, onlyInclude, default_code=default_code)
-        infostr += istr
-    infostr += indents[1] + '}),\n'  # 'metadata'
-
-    return infostr, default_code
-
-
-def mkdsets(datasets, indents, demo, onlyInclude):
-    """ make dsets string from  datasets given.
-
-    """
-
-    infostr = ''
-    infostr += indents[1] + '\'%s\': OrderedDict({\n' % 'datasets'
-    oneright = indents[1:]
-
-    for dsetname, dsd in datasets.items():
-        """ dsetname is like 'TABLE', 'BlueCCD', 'lightcurve'
-            dsd is like {'extention':str, 'TABLE': {'data_type':'string', 'data':[]...}...}
-        """
-        infostr += indents[2] + '\'%s\': OrderedDict({\n' % dsetname
-        for met, val in dsd.items():
-            if issubclass(val.__class__, dict):
-                # a parameter
-                istr, foo = params(met, val, oneright, demo, onlyInclude)
-                infostr += istr + ','
-            else:
-                # a list. could be 'parents' a list of str; or a table, of dict
-                assert issubclass(val.__class__, list)
-                infostr += indents[3] + '\'%s\': [\n' % met
-                for v in val:
-                    istr, foo = params(None, v, oneright, demo, onlyInclude)
-
-        infostr += indents[2] + '})\n'  # 'dsetname'
-    infostr += indents[1] + '}),\n'  # 'datasets'
-
-    return infostr

@@ -13,6 +13,7 @@ import filelock
 import sys
 import shutil
 import pdb
+import json
 import os
 from os import path as op
 import logging
@@ -31,11 +32,22 @@ else:
 
 basepoolpath = pc['basepoolpath_client']
 
+class ODEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if issubclass(obj.__class__, ODict):
+            return dict(obj)
+
+        # Let the base class default method raise the TypeError
+        d = json.JSONEncoder.default(self, obj)
+        return d
+
+
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
     """
     if op.exists(fp):
         os.rename(fp, fp + '.old')
+    #js = json.dumps(data, cls=ODEncoder)
     js = serializeClassID(data)
     with open(fp, mode="w+") as f:
         f.write(js)
@@ -97,11 +109,13 @@ class LocalPool(ProductPool):
                 fp = pathjoin(fp0, hkdata + '.jsn')
                 if op.exists(fp):
                     try:
-                        r = getJsonObj(self._scheme + '://' + fp)
+                        with open(fp, 'r') as f:
+                            js = f.read()
                     except Exception as e:
                         msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
                         logging.error(msg)
                         raise Exception(msg)
+                    r = deserializeClassID(js)
                 else:
                     r = dict()
                 hk[hkdata] = r
@@ -165,7 +179,7 @@ class LocalPool(ProductPool):
             msg = 'Load' + prod + 'failed. ' + str(e) + trbk(e)
             logger.error(msg)
             raise e
-        return p
+        return deserializeClassID(js)
 
     def schematicRemove(self, typename, serialnum):
         """

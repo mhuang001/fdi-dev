@@ -9,6 +9,10 @@ from .datawrapper import DataWrapper, DataContainer
 from .eq import DeepEqual
 from .copyable import Copyable
 from .annotatable import Annotatable
+from .metadata import exprstrs
+from .typed import Typed
+
+from collections import OrderedDict
 import logging
 import sys
 if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.3:
@@ -106,36 +110,28 @@ class GenericDataset(Dataset, DataContainer, Container):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        # s = ODict(description=self.description, meta=self.meta)  # super(...).serializable()
-        # s.update(ODict(data=self.getData()))
-        s = ODict(description=self.description,
-                  meta=self.meta,
-                  data=self.data,
-                  classID=self.classID)
+        # s = OrderedDict(description=self.description, meta=self.meta)  # super(...).serializable()
+        # s.update(OrderedDict(data=self.getData()))
+        s = OrderedDict(description=self.description,
+                        meta=self.meta,
+                        data=self.data,
+                        classID=self.classID)
         return s
 
 
-class ArrayDataset(DataWrapper, GenericDataset, Sequence):
+class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
     """  Special dataset that contains a single Array Data object.
     mh: If omit the parameter names during instanciation, e.g. ArrayDataset(a, b, c), the assumed order is data, unit, description.
     mh:  contains a sequence which provides methods count(), index(), remove(), reverse().
     A mutable sequence would also need append(), extend(), insert(), pop() and sort().
     """
 
-    def __init__(self, *args, **kwds):
+    def __init__(self, data=None, unit=None, description='UNKNOWN', typ_=None, default=None, **kwds):
         """
         """
-        ls = list(args)
-        if len(ls) == 1:
-            super(ArrayDataset, self).__init__(
-                data=ls[0], **kwds)  # initialize data, meta
-        elif len(ls) == 2:
-            super(ArrayDataset, self).__init__(data=ls[0], unit=ls[1], **kwds)
-        elif len(ls) > 2:
-            super(ArrayDataset, self).__init__(
-                data=ls[0], unit=ls[1], description=ls[2], **kwds)
-        else:
-            super(ArrayDataset, self).__init__(**kwds)  # initialize data, meta
+        self.setDefault(default)
+        super(ArrayDataset, self).__init__(data=data, unit=unit,
+                                           description=description, typ_=typ_, **kwds)  # initialize data, meta
 
     def setData(self, data):
         """
@@ -146,6 +142,24 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
                 data.__class__.__name__
             raise TypeError(m)
         super(ArrayDataset, self).setData(data)
+
+    @property
+    def default(self):
+        return self.getDefault()
+
+    @default.setter
+    def default(self, default):
+        self.setDefault(default)
+
+    def getDefault(self):
+        """ Returns the default related to this object."""
+        return self._default
+
+    def setDefault(self, default):
+        """ Sets the default of this object.
+
+        """
+        self._default = default
 
     def __setitem__(self, *args, **kwargs):
         """ sets value at key.
@@ -198,9 +212,10 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
         self.getData().remove(*args, **kwargs)
 
     def __repr__(self):
+        vs, us, ts, ds, fs, gs, cs = exprstrs(self, '_data')
         return self.__class__.__name__ +\
-            '{ %s <%s>, description = "%s", meta = %s}' %\
-            (str(self.data), str(self.unit), str(self.description), str(self.meta))
+            '{ %s (%s) <%s>, "%s", dflt %s, tcode=%s, meta=%s}' %\
+            (vs, us, ts, ds, fs, cs, str(self.meta))
 
     def toString(self, matprint=None, trans=True):
         if matprint is None:
@@ -211,12 +226,15 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        # s = ODict(description=self.description, meta=self.meta, data=self.data)  # super(...).serializable()
-        s = ODict(description=self.description,
-                  meta=self.meta,
-                  data=self.data,
-                  classID=self.classID)
-        s.update(ODict(unit=self.unit))
+        # s = OrderedDict(description=self.description, meta=self.meta, data=self.data)  # super(...).serializable()
+        s = OrderedDict(description=self.description,
+                        meta=self.meta,
+                        data=self.data,
+                        type=self._type,
+                        default=self._default,
+                        typecode=self._typecode,
+                        classID=self.classID)
+        s.update(OrderedDict(unit=self.unit))
         return s
 
 
@@ -545,10 +563,10 @@ class TableDataset(Dataset, TableModel):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return ODict(description=self.description,
-                     meta=self.meta,
-                     data=self.data,
-                     classID=self.classID)
+        return OrderedDict(description=self.description,
+                           meta=self.meta,
+                           data=self.data,
+                           classID=self.classID)
 
 
 class CompositeDataset(AbstractComposite, Dataset):
@@ -568,7 +586,7 @@ class CompositeDataset(AbstractComposite, Dataset):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return ODict(description=self.description,
-                     meta=self.meta,
-                     _sets=self._sets,
-                     classID=self.classID)
+        return OrderedDict(description=self.description,
+                           meta=self.meta,
+                           _sets=self._sets,
+                           classID=self.classID)

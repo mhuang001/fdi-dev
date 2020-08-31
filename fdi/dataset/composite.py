@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from .odict import ODict
 from .eq import DeepEqual
+#from collections import OrderedDict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -69,8 +70,12 @@ class Composite(DeepEqual):
         """ Returns true if this map contains no key - value mappings. """
         return len(self._sets) == 0
 
+    def keys(self):
+        """ Returns an iterator of the keys contained in this composite. """
+        return self._sets.keys()
+
     def keySet(self):
-        """ Returns a set view of the keys contained in this composite. """
+        """ Returns a list view of the keys contained in this composite. """
         return list(self._sets.keys())
 
     def remove(self, name):
@@ -102,7 +107,10 @@ class Composite(DeepEqual):
         return self._sets.items()
 
     def values(self):
-        """ Enable pairs = zip(d.values(), d.keys()) """
+        """ Returns an iterator of the parameters contained in this composite.
+
+        Enables pairs = zip(d.values(), d.keys()) 
+        """
         return self._sets.values
 
     def __iter__(self):

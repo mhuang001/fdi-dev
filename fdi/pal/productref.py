@@ -7,6 +7,7 @@ from ..dataset.product import Product
 from ..dataset.odict import ODict
 from ..dataset.serializable import Serializable
 from ..dataset.metadataholder import MetaDataHolder
+from collections import OrderedDict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -294,6 +295,6 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return ODict(urnobj=self.urnobj if issubclass(self.urnobj.__class__, Urn) else None,
-                     _meta=self.getMeta(),
-                     classID=self.classID)
+        return OrderedDict(urnobj=self.urnobj if issubclass(self.urnobj.__class__, Urn) else None,
+                           _meta=self.getMeta(),
+                           classID=self.classID)

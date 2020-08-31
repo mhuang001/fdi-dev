@@ -3,7 +3,7 @@ description: Project level product
 parents:
   - BaseProduct
 level: ALL
-schema: '1.0'
+schema: '1.1'
 metadata:
     type:
         current_id: type
@@ -15,10 +15,10 @@ metadata:
             or CARD.
         description_zh_cn: 产品类型。完整Python类名或卡片名。
         examples: SAT-QM-ThermVac
-        unit:
         default: Product
         valid: ''
         valid_zh_cn: ''
+        typecode: B
     startDate:
         current_id: startDate
         id: startTime
@@ -28,10 +28,10 @@ metadata:
         description: Nominal start time  of this product.
         description_zh_cn: 产品标称的起始时间
         examples: '10361455509632'
-        unit: None
-        default: '0'
+        default: 0
         valid: ''
         valid_zh_cn: ''
+        typecode:
     endDate:
         current_id: endDate
         id: endTime
@@ -41,10 +41,10 @@ metadata:
         description: Nominal end time  of this product.
         description_zh_cn: 产品标称的结束时间
         examples: '10361455509632'
-        unit: None
-        default: '0'
+        default: 0
         valid: ''
         valid_zh_cn: ''
+        typecode:
     instrument:
         current_id: instrument
         id: instrument
@@ -54,10 +54,10 @@ metadata:
         description: Instrument that generated data of this product
         description_zh_cn: 观测仪器名称
         examples: VT
-        unit:
         default: UNKOWN
         valid: ''
         valid_zh_cn: ''
+        typecode: B
     modelName:
         current_id: modelName
         id: modelName
@@ -67,10 +67,10 @@ metadata:
         description: Model name of the instrument of this product
         description_zh_cn: 观测仪器样机名称
         examples: QM
-        unit:
         default: UNKOWN
         valid: ''
         valid_zh_cn: ''
+        typecode: B
     mission:
         current_id: mission
         id: mission
@@ -80,10 +80,10 @@ metadata:
         description: Name of the mission.
         description_zh_cn: 任务名称
         examples: SVOM
-        unit:
         default: _AGS
         valid: ''
         valid_zh_cn: ''
+        typecode: B
     version:
         current_id: formatVersion
         id: version
@@ -93,7 +93,7 @@ metadata:
         description: Version of product schema
         description_zh_cn: 产品格式版本
         examples: '1'
-        unit:
-        default: '0.5'
+        default: '0.6'
         valid: ''
         valid_zh_cn: ''
+        typecode: B

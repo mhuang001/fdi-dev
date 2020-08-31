@@ -2,6 +2,9 @@
 import logging
 import json
 import codecs
+import builtins
+from collections import UserDict
+
 import pdb
 
 from .odict import ODict
@@ -24,6 +27,8 @@ logger = logging.getLogger(__name__)
 classes are defined to avoid circular dependency (such as ,
 Serializable.
 '''
+
+BD = builtins.__dict__
 
 
 def imakedesables():
@@ -78,78 +83,109 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
     indent += 1
     spaces = '  ' * indent
 
+    classname = obj.__class__.__name__
+    if debug:
+        print(spaces + '===OBJECT %s ===' % (obj))
     if not hasattr(obj, '__iter__') or issubclass(obj.__class__, strset):
+        if debug:
+            print(spaces + 'Find non-iter <%s>' % classname)
         indent -= 1
         return obj
 
-    classname = obj.__class__.__name__
     # process list first
-    if issubclass(obj.__class__, list):
+    if isinstance(obj, list):
         if debug:
-            print(spaces + 'lis ' + classname)
+            print(spaces + 'Find list <%s>' % classname)
         inst = []
         # loop i to preserve order
         for i in range(len(obj)):
             x = obj[i]
-            if issubclass(x.__class__, (list, dict)):
+            xc = x.__class__
+            if debug:
+                print(spaces + 'looping through list %d <%s>' %
+                      (i, xc.__name__))
+            if issubclass(xc, (list, dict, UserDict)):
                 des = constructSerializableClassID(x, lgb=lgb, debug=debug)
             else:
                 des = x
             inst.append(des)
+        if debug:
+            print(spaces + 'Done with list <%s>' % (classname))
         indent -= 1
         return inst
 
-    if 'classID' not in obj:
-        """ This object is supported by JSONEncoder """
+    if not 'classID' in obj:
+        """ This object is supported by JSON encoder """
         if debug:
-            print(spaces + 'No ClassID. ' + classname)
+            print(spaces + 'Find non-ClassID. <%s>' % classname)
         inst = obj
     else:
         classname = obj['classID']
         if debug:
-            print(spaces + 'ClassID= ' + classname)
+            print(spaces + 'Find ClassID <%s>' % classname)
         # process types wrapped in a dict
         if PY3 and classname == 'bytes':
             inst = codecs.decode(obj, 'hex')
+            if debug:
+                print(spaces + 'Instanciate hex')
             indent -= 1
             return inst
-        if classname not in lgb:
-            raise ValueError('%s not in Classes map.' % classname)
-        inst = lgb[classname]()
+        if classname in lgb:
+            inst = lgb[classname]()
+            if debug:
+                print(spaces + 'Instanciate custom obj <%s>' % classname)
+        elif classname in BD:
+            o = constructSerializableClassID(obj['obj'], lgb=lgb, debug=debug)
+            inst = BD[classname](o)
+            if debug:
+                print(spaces + 'Instanciate builtin %s' % obj['obj'])
+            indent -= 1
+            return inst
+        elif classname == 'ellipsis':
+            if debug:
+                print(spaces + 'Instanciate Ellipsis')
+            indent -= 1
+            return Ellipsis
+        else:
+            raise ValueError('Class %s is not known.' % classname)
+    if debug:
+        print(spaces + 'Go through properties of instance')
     for (k, v) in obj.items():
         """ loop through all key-value pairs. """
-        if k != 'classID':
-            # deserialize v
-            if issubclass(v.__class__, (dict, list)):
-                if debug:
-                    print(spaces + 'val(dict/list) !!%s: %s' %
-                          (v.__class__.__qualname__,
-                           lls(str(list(iter(v))), 70)))
-                desv = constructSerializableClassID(v, lgb=lgb, debug=debug)
+        if k == 'classID':
+            continue
+        # deserialize v
+        # should be object_pairs_hook in the following if... line
+        if issubclass(v.__class__, (dict, UserDict, list)):
+            if debug:
+                print(spaces + '[%s]value(dict/usrd/list) <%s>: %s' %
+                      (k, v.__class__.__qualname__,
+                       lls(str(list(iter(v))), 70)))
+            desv = constructSerializableClassID(v, lgb=lgb, debug=debug)
+        else:
+            if debug:
+                print(spaces + '[%s]value(simple) <%s>: %s' %
+                      (k, v.__class__.__name__, lls(str(v), 70)))
+            if 1:
+                desv = v
             else:
-                if debug:
-                    print(spaces + 'val(simple) !!%s: %s' %
-                          ((v.__class__.__name__), lls(str(v), 70)))
-                if 1:
-                    desv = v
-                else:
-                    if isinstance(v, str) or isinstance(v, bytes):
-                        try:
-                            desv = int(v)
-                        except ValueError:
-                            desv = v
+                if isinstance(v, str) or isinstance(v, bytes):
+                    try:
+                        desv = int(v)
+                    except ValueError:
+                        desv = v
 
-            # set k with desv
-            if issubclass(inst.__class__, dict):
-                inst[k] = desv
-                if debug:
-                    print(spaces + 'Set dict <%s>[%s] = %s <%s>' %
-                          ((inst.__class__.__name__), str(k), lls(str(desv), 70), (desv.__class__.__name__)))
-            else:
-                setattr(inst, k, desv)
-                if debug:
-                    print(spaces + 'set non-dict <%s>.%s = %s <%s>' %
-                          ((inst.__class__.__name__), str(k), lls(str(desv), 70), (desv.__class__.__name__)))
+        # set k with desv
+        if issubclass(inst.__class__, (dict)):    # should be object_pairs_hook
+            inst[k] = desv
+            if debug:
+                print(spaces + 'Set dict/usrd <%s>[%s] = %s <%s>' %
+                      ((inst.__class__.__name__), str(k), lls(str(desv), 70), (desv.__class__.__name__)))
+        else:
+            setattr(inst, k, desv)
+            if debug:
+                print(spaces + 'set non-dict <%s>.%s = %s <%s>' %
+                      ((inst.__class__.__name__), str(k), lls(str(desv), 70), (desv.__class__.__name__)))
     indent -= 1
     return inst
 
@@ -171,6 +207,24 @@ class IntDecoder(json.JSONDecoder):
             except ValueError:
                 return o
         elif isinstance(o, dict):
+            return dict({self._decode(k): self._decode(v) for k, v in o.items()})
+        elif isinstance(o, list):
+            return [self._decode(v) for v in o]
+        else:
+            return o
+
+
+class IntDecoderOD(IntDecoder):
+    """ Uses ODict
+    """
+
+    def _decode(self, o):
+        if isinstance(o, str) or isinstance(o, bytes):
+            try:
+                return int(o)
+            except ValueError:
+                return o
+        elif isinstance(o, dict):
             return ODict({self._decode(k): self._decode(v) for k, v in o.items()})
         elif isinstance(o, list):
             return [self._decode(v) for v in o]
@@ -178,7 +232,7 @@ class IntDecoder(json.JSONDecoder):
             return o
 
 
-def deserializeClassID(js, lgb=None, debug=False, usedict=False):
+def deserializeClassID(js, lgb=None, debug=False, usedict=True):
     """ Loads classes with ClassID from the results of serializeClassID.
 
     if usedict is True dict insted of ODict will be used.
@@ -195,7 +249,7 @@ def deserializeClassID(js, lgb=None, debug=False, usedict=False):
         if usedict:
             obj = json.loads(js, cls=IntDecoder)
         else:
-            obj = json.loads(js, object_pairs_hook=ODict, cls=IntDecoder)
+            obj = json.loads(js, object_pairs_hook=ODict, cls=IntDecoderOD)
     except json.decoder.JSONDecodeError as e:
         logging.error(' Bad string to decode:\n==============\n' +
                       lls(js, 500) + '\n==============')

@@ -80,9 +80,9 @@ versiontag:
 	git tag  $(VERSION)
 
 TESTLOG	= tests/log
-OPT	= --debug -v -r P
-OPT	= -r P --log-file=$(TESTLOG)
-T	=
+
+OPT	= -r P --log-file=$(TESTLOG) -v -l --pdb
+T	= 
 test: test1 test2 test4 test3
 
 test1:

@@ -14,9 +14,9 @@ from fdi.dataset.eq import deepcmp
 from fdi.dataset.classes import Classes
 from fdi.dataset.deserialize import deserializeClassID
 from fdi.dataset.quantifiable import Quantifiable
-from fdi.dataset.listener import EventSender, DatasetBaseListener
+from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf
 from fdi.dataset.composite import Composite
-from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, ParameterTypes
+from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, ParameterTypes, ParameterDataTypes, StringParameter, DateParameter
 from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
@@ -132,12 +132,21 @@ def test_serialization():
     checkjson(v)
     v = None
     checkjson(v)
+    v = Ellipsis
+    checkjson(v)
     # v = b'\xde\xad\xbe\xef'
     # checkjson(v)
     v = [1.2, 'ww']
     checkjson(v)
-    v = {'e': 4, 'y': {'d': 'ff', '%': '$'}}
-    checkjson(v)
+    # v = (1, 8.2, 'tt')
+    # checkjson(v)
+    # v = {(5, 4): 4, 'y': {('d', 60): 'ff', '%': '$'}}
+    # try:
+    #     checkjson(v)
+    # except Exception as e:
+    #     assert isinstance(e, TypeError)
+    # else:
+    #     assert False, 'Failed to raise exception'
 
 
 def test_sys():
@@ -145,6 +154,21 @@ def test_sys():
     assert sys.int_info.sizeof_digit == 4
     assert sys.float_info.dig == 15
     assert sys.maxsize == 2**63 - 1
+
+
+def est_TupleKeys():
+    a1 = ('1', '2')
+    a2 = (3.333, 7)
+    a3 = [a1, a2]
+    v = ODict(a3)
+    assert v[a1[0]] == a1[1]
+    v = ODict([(a1, a2)])
+    assert v[a1] == a2
+    assert v.listoflists == [[['1', '2'], a2]]
+    v1 = ODict()
+    v1.listoflists = [[['1', '2'], a2]]
+    assert v1 == v
+    checkjson(v)
 
 
 def ndlist(*args):
@@ -227,7 +251,7 @@ def test_Composite():
     assert v[a1] == a2
     assert v[a1] == v.get(a1)
     sets = v.getSets()
-    assert issubclass(sets.__class__, dict)
+    assert issubclass(sets.__class__, ODict)
 
     # dict view
     a3 = 'k'
@@ -291,6 +315,13 @@ def test_Copyable():
     checkgeneral(v)
 
 
+def test_EventType():
+    # print(EventTypeOf)
+    assert 'UNKNOWN_ATTRIBUTE_CHANGED' in EventTypes
+    assert EventType.UNKNOWN_ATTRIBUTE_CHANGED == 'UNKNOWN_ATTRIBUTE_CHANGED'
+    assert EventTypeOf['CHANGED']['UNKNOWN_ATTRIBUTE'] == 'UNKNOWN_ATTRIBUTE_CHANGED'
+
+
 def test_EventSender():
     global test123
 
@@ -352,19 +383,24 @@ def test_datatypes():
     v = Vector()
     assert v.getComponents() == [0, 0, 0]
     assert v.description == 'UNKNOWN'
-    assert v.unit == ''
+    assert v.unit is None
+    assert v.typecode is None
+    assert v.default is None
     v = Vector([1, 2.3, 4.5])
     assert v.getComponents() == [1, 2.3, 4.5]
     assert v.description == 'UNKNOWN'
-    assert v.unit == ''
+    assert v.unit is None
+    assert v.typecode is None
+    assert v.default is None
     v = Vector((0, 0, 0b101), 'binary!')
-    assert v.getComponents() == [0, 0, 5]
+    assert v.getComponents() == (0, 0, 5)
     assert v.description == 'binary!'
-    assert v.unit == ''
     v = Vector([0, 0, 0b101], 'binary!', 'km')
     assert v.getComponents() == [0, 0, 0b101]
     assert v.description == 'binary!'
     assert v.unit == 'km'
+    checkjson(v)
+
     # assignment
     v.components = [0xaa, 1, 1e2]
     v.description = 'foo'
@@ -372,11 +408,14 @@ def test_datatypes():
     assert v.components == [0xaa, 1, 1e2]
     assert v.description == 'foo'
     assert v.unit == 'bar'
+
     # Quaternion
     v = Quaternion([-1, 1, 2.3, 4.5], unit='m')
     assert v.getComponents() == [-1, 1, 2.3, 4.5]
     assert v.description == 'UNKNOWN'
     assert v.unit == 'm'
+    assert v.typecode is None
+    assert v.default is None
     # equal
     a1 = -1
     v2 = Quaternion([a1, 1+0, 1-a1+0.3, 4.5])
@@ -384,7 +423,7 @@ def test_datatypes():
     assert v == v2
 
 
-def test_Parameter1():
+def test_Parameter_init():
     # python  keeps an array of integer objects for all integers
     # between -5 and 256 so do not use small int for testing
     # because one cannot make a copy
@@ -396,36 +435,39 @@ def test_Parameter1():
     a1 = 'a test parameter'
     a2 = 300
     a3 = 'integer'
-    v = Parameter(description=a1, value=a2, type_=a3)
+    a4 = 9288
+    a5 = ''
+    v = Parameter(description=a1, value=a2, typ_=a3, default=a4, valid=a5)
     assert v.description == a1
     assert v.value == a2
-    assert v.type_ == a3
+    assert v.type == a3
+    assert v.default == a4
+    assert v.valid is None  # not ''
+
+    # if value is None v.value is set to default
+    v = Parameter(description=a1, value=None, typ_=a3, default=a4, valid=a5)
+    assert v.value == v.default
 
     # with no argument
     v = Parameter()
     assert v.description == 'UNKNOWN'  # inherited from Anotatable
-    assert v.value is None
-    assert v.type_ == ''
+    assert v.value == v.default
+    assert v.type == ''
+    assert v.default is None
+    assert v.valid is None
 
     # make a blank one then set attributes
     v = Parameter(description=a1)
-    assert v.description == a1
-    assert v.value is None
-    assert v.type_ == ''
-    v.setValue(a2)
-    v.setType(a3)
-    assert v.description == a1
-    assert v.value == a2
-    assert v.type_ == a3
-
-    # test equivalence of v.setXxxx(a) and v.xxx = a
-    a1 = 'distance to earth'
-    a2 = 98.33
-    v = Parameter()
     v.description = a1
     v.value = a2
+    v.type = a3
+    v.default = a4
+    v.valid = a5
     assert v.description == a1
     assert v.value == a2
+    assert v.type == a3
+    assert v.default == a4
+    assert v.valid is None  # not ''
 
     # other ways to make parameters
     # 1
@@ -433,7 +475,9 @@ def test_Parameter1():
     v = Parameter(a2)  # description has a default so a2 -> 'value'
     assert v.description == 'UNKNOWN'  # inherited from Anotatable
     assert v.value == a2
-    assert v.type_ == 'finetime'
+    assert v.type == 'finetime'  # automatically set to value's
+    assert v.default is None
+    assert v.valid is None
     # incompatible type
     a2 = DataWrapper()
     try:
@@ -442,36 +486,137 @@ def test_Parameter1():
         assert isinstance(e, TypeError)
     else:
         assert False, 'no exception caught'
-    # also only one positional argument
+    # also only one positional argument, but with a keyword arg
+    a1 = 'a test parameter'
     a2 = FineTime1(8765)
     v = Parameter(a2, description=a1)
     assert v.value == a2
     assert v.description == a1
-    assert v.type_ == 'finetime'
+    assert v.type == 'finetime'
     # 2
+    a1 = 'a test parameter'
     a2 = 'bar'
     a3 = 'foo'
     v = Parameter(a2, a3)  # two string type positional arguments
     assert v.value == a2
     assert v.description == a3
-    assert v.type_ == 'string'
+    assert v.type == 'string'
     # 3
+    a1 = 'a test parameter'
     a2 = 3.3
     a4 = 'float'
     v = Parameter(a2, a1, a4)
     assert v.description == a1
     assert v.value == a2
-    assert v.type_ == a4
+    assert v.type == a4
     assert type(v.value).__name__ == ParameterTypes[a4]
-    # exception if value and type are  different
-    a2 = 9.7
-    a4 = 'hex'
-    try:
+
+
+def test_Parameter_valid():
+    a1 = 'a test parameter'
+    a2 = 300
+    a3 = 'integer'
+    a4 = 9288
+    # empty valid causes valid to be set to None
+    a5 = None
+    v = Parameter(description=a1, value=a2, typ_=a3, default=a4, valid=a5)
+    assert v.valid == None
+    a5 = ''
+    v = Parameter(description=a1, value=a2, typ_=a3, default=a4, valid=a5)
+    assert v.valid == None
+    a5 = {}
+    v = Parameter(description=a1, value=a2, typ_=a3, default=a4, valid=a5)
+    assert v.valid == None
+    a5 = {(1, 22222): 'a'}
+    v = Parameter(description=a1, value=a2, typ_=a3, default=a4, valid=a5)
+    assert v.valid == [[[1, 22222], 'a']]
+    # ranges
+    a2 = 300
+    a3 = 'integer'
+    # set two ranges
+    a5 = {(1, 2222): 'a', (3000, 3333): 'b'}
+    v = Parameter(description=a1, value=a2, typ_=a3, default=a4, valid=a5)
+    assert v.validate(a2) == (a2, 'a')
+    assert v.isvalid()
+    # a different range, low edge
+    assert v.validate(3000) == (3000, 'b')
+    # high edge
+    assert v.validate(3333) == (3333, 'b')
+    # invalid
+    assert v.validate(0) == (Parameter.INVALID, 'Invalid')
+    v.value = 0
+    assert v.isvalid() == False
+    assert v.validate(2500) == (Parameter.INVALID, 'Invalid')
+    v.value = 2500
+    assert not v.isvalid()
+    # discrete
+    v.valid = {4321: 'hi there', 99: 'foo'}
+    assert v.validate(4321) == (4321, 'hi there')
+    assert v.validate(99) == (99, 'foo')
+    assert v.validate(2500) == (Parameter.INVALID, 'Invalid')
+    # wrong type
+    assert v.validate(2500.) == (Parameter.INVALID, 'Type float')
+
+    # binary masked
+    v.valid = {
+        (0b00110000, 0b00): 'off',
+        (0b00110000, 0b01): 'mode 1',
+        (0b00110000, 0b10): 'mode 2',
+        (0b00110000, 0b11): 'mode 3',
+    }
+    assert v.validate(0b00000000) == (0b00, 'off')
+    v.value = 0
+    assert v.isvalid()
+    assert v.validate(0b00010000) == (0b01, 'mode 1')
+    assert v.validate(0b00100000) == (0b10, 'mode 2')
+    assert v.validate(0b00110000) == (0b11, 'mode 3')
+    # other bits are ignored
+    assert v.validate(0b11111111) == (0b11, 'mode 3')
+
+
+def test_Parameter_features():
+    # test equivalence of v.setXxxx(a) and v.xxx = a
+    a1 = 'distance to earth'
+    a2 = 98.33
+    v = Parameter()
+    v.description = a1
+    v.value = a2
+    v1 = Parameter()
+    v1.setDescription(a1)
+    v1.setValue(a2)
+    assert v.description == v1.description
+    assert v.value == v1.value
+
+    # handle type diff
+    a2 = 0B1011  # 11 in binary
+    a4 = 'float'
+    if 0:  # strict
+        # exception if value and type are  different
+        try:
+            v = Parameter(a2, a1, a4)
+        except Exception as e:
+            assert isinstance(e, TypeError)
+        else:
+            assert False, 'no exception caught '+str(v.value)
+    else:  # smart
+        # not recommendedxs
         v = Parameter(a2, a1, a4)
-    except Exception as e:
-        assert isinstance(e, TypeError)
-    else:
-        assert False, 'no exception caught'
+        #v = Parameter(typ_=a4)
+        #v.value = a2
+        assert type(v.value) == float
+        assert v.value == 11
+    a2 = 9.7
+    a4 = 'hex'  # hex is internally int
+    if 0:  # strict
+        try:
+            v = Parameter(a2, a1, a4)
+        except Exception as e:
+            assert isinstance(e, TypeError)
+        else:
+            assert False, 'no exception caught '+str(v.value)
+    else:  # smart
+        v = Parameter(a2, a1, a4)
+        assert v.value == 9
     # type not Number nor in ParameterTypes gets NotImplementedError
     a2 = 9
     a4 = 'guess'
@@ -529,16 +674,19 @@ def test_Parameter1():
         assert p < t(x+1)
         assert p != t(x-1)
         assert p > t(x-1)
-        #assert t(x) == p
-        #assert t(x) >= p
-        #assert t(x+1) > p
+        # assert t(x) == p
+        # assert t(x) >= p
+        # assert t(x+1) > p
 
     # toString hex
 
     # serializing
     a1 = 'a test parameter'
-    a2 = 351
-    v = Parameter(description=a1, value=a2)
+    a2 = 300
+    a3 = 'integer'
+    a4 = 928
+    a5 = {(3, 3000): 'kk'}
+    v = Parameter(description=a1, value=a2, typ_=a3, default=a4, valid=a5)
     checkjson(v)
     b1 = 'a binary par'
     b2 = 6  # b'\xaa\x55'
@@ -568,12 +716,17 @@ def test_Parameter1():
 
 def test_Quantifiable():
     a = 'volt'
-    v = Quantifiable(a)
+    b = 'I'
+    v = Quantifiable(a, b)
     assert v.unit == a
     assert v.getUnit() == a
+    assert v.typecode == b
+    assert v.getTypecode() == b
     v = Quantifiable()
     v.setUnit(a)
     assert v.unit == a
+    v.typecode = b
+    assert v.getTypecode() == b
 
 
 def test_NumericParameter():
@@ -581,31 +734,80 @@ def test_NumericParameter():
     a2 = 100.234
     a3 = 'second'
     a4 = 'float'
-    v = NumericParameter(description=a1, value=a2, unit=a3, type_=a4)
+    a5 = 0
+    a6 = ''
+    a7 = 'f'
+    v = NumericParameter(description=a1, value=a2, unit=a3,
+                         typ_=a4, default=a5, valid=a6, typecode=a7)
     assert v.description == a1
     assert v.value == a2
     assert v.unit == a3
-    assert v.type_ == a4
+    assert v.type == a4
+    assert v.default == a5
+    assert v.valid is None
+    assert v.typecode == a7
 
     checkjson(v)
 
-    # equals
-    a4 = ''.join(a3)  # same contents
-    v1 = NumericParameter(description=a1, value=a2, unit=a4)
+    # arg position
+    a1 = 'a test parameter'
+    a2 = 3.3
+    a4 = 'float'
+    v = Parameter(a2, a1, a4)
+    assert v.description == a1
+    assert v.value == a2
+    assert v.type == a4
+    assert type(v.value).__name__ == ParameterTypes[a4]
+
+    # type casting
+    a8 = 4
+    v.value = a8
+    assert type(v.value).__name__ == ParameterDataTypes[v.type]
+    # equality
+    a1 = 'a test parameter'
+    a2 = 3.3
+    a3 = 'float'
+    a4 = 'm'
+    a5 = None
+    a6 = None
+    a7 = 'd'
+    v = NumericParameter(a2, a1, a3, unit=a4, default=a5,
+                         valid=a6, typecode=a7)
+    a3 = ''.join(a3)  # same contents
+    v1 = NumericParameter(description=a1, value=a2,
+                          typ_=a3, unit=a4, typecode=a7)
     assert v == v1
     assert v1 == v
-    v1.unit = 'meter'
+    v1.typecode = 'f'
     assert v != v1
     assert v1 != v
 
     checkgeneral(v)
 
 
+def test_StringParameter():
+    a1 = 'a test NumericParameter'
+    a2 = 'eeeee'
+    a3 = 'second'
+    a4 = 'string'
+    a5 = ''
+    a6 = 'f'
+    v = StringParameter(description=a1, value=a2, default=a3,
+                        valid=a5, typecode=a6)
+    assert v.description == a1
+    assert v.value == a2
+    assert v.default == a3
+    assert v.valid is None
+    assert v.typecode == a6
+
+    checkjson(v)
+
+
 def test_MetaData():
     # creation
     a1 = 'age'
     a2 = NumericParameter(description='since 2000',
-                          value=20, unit='year', type_='integer')
+                          value=20, unit='year', typ_='integer')
     v = MetaData()
     v.set(a1, a2)
     assert v.get(a1) == a2
@@ -694,33 +896,52 @@ def test_DataWrapper():
     a1 = [1, 4.4, 5.4E3]
     a2 = 'ev'
     a3 = 'three energy vals'
+    a4 = 'i'
     v = DataWrapper(description=a3)
     assert v.hasData() == False
     v.setData(a1)
     v.setUnit(a2)
+    v.setTypecode(a4)
     assert v.hasData() == True
     assert v.data == a1
     assert v.unit == a2
     assert v.description == a3
+    assert v.typecode == a4
 
-    v = DataWrapper(data=a1, unit=a2, description=a3)
+    v = DataWrapper(data=a1, unit=a2, description=a3, typecode=a4)
     assert v.hasData() == True
     assert v.data == a1
     assert v.unit == a2
     assert v.description == a3
+    assert v.typecode == a4
 
     checkgeneral(v)
 
 
-def test_ArrayDataset():
+def test_ArrayDataset_init():
     # from DRM
     a1 = [1, 4.4, 5.4E3]      # an array of data
     a2 = 'ev'                 # unit
     a3 = 'three energy vals'  # description
-    v = ArrayDataset(data=a1, unit=a2, description=a3)
-    v1 = ArrayDataset(data=a1)
-    assert v1.unit is None
-    # omit the parameter names, the orders are data, unit, description
+    a4 = 'f'                  # typecode
+    v = ArrayDataset(data=a1, unit=a2, description=a3, typecode=a4)
+    assert v.data == a1
+    assert v.unit == a2
+    assert v.description == a3
+    assert v.typecode == a4
+    # defaults
+    v = ArrayDataset()
+    assert v.data is None
+    assert v.unit is None
+    assert v.description == 'UNKNOWN'
+    assert v.typecode is None
+    assert v._default is None
+    v = ArrayDataset(data=a1)
+    assert v.data == a1
+    assert v.unit is None
+    assert v.description == 'UNKNOWN'
+    assert v.typecode is None
+    # omit the parameter names when instantiating, the orders are data, unit, description
     v2 = ArrayDataset(a1)
     assert v2.data == a1
     v2 = ArrayDataset(a1, a2)
@@ -731,15 +952,18 @@ def test_ArrayDataset():
     assert v2.unit == a2
     assert v2.description == a3
 
-    # COPY
-    c = v.copy()
-    assert v == c
-    assert c == v
+
+def test_ArrayDataset_func():
 
     # test data and unit
+    a1 = [1, 4.4, 5.4E3]      # an array of data
+    a2 = 'ev'                 # unit
     a3 = [34, 9999]
     a4 = 'm'
     a5 = 'new description'
+    v = ArrayDataset(data=a1)
+    assert v.data == a1
+    assert v.unit is None
     v.data = a3
     v.unit = a4
     assert v.data == a3
@@ -750,7 +974,8 @@ def test_ArrayDataset():
     a1 = [1, 4.4, 5.4E3]
     a2 = 'ev'
     a3 = 'three energy vals'
-    v = ArrayDataset(data=a1, unit=a2, description=a3)
+    a6 = None
+    v = ArrayDataset(data=a1, unit=a2, description=a3, typecode=a6)
     a4 = 'm1'
     a5 = NumericParameter(description='a param in metadata',
                           value=2.3, unit='sec')
@@ -784,11 +1009,17 @@ def test_ArrayDataset():
     # restore v1 so that v==v1
     v1.description = ''.join(a3)
     assert v == v1
+    # v and v1 are not the same, really
     assert id(v) != id(v1)
     # change meta
     v1.meta[b4].description = 'c'
     assert v != v1
     assert v1 != v
+
+    # COPY
+    c = v.copy()
+    assert v == c
+    assert c == v
 
     # data access
     d = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
@@ -1237,14 +1468,27 @@ def demo_CompositeDataset():
 
 
 def test_FineTime():
+    # default
+    v = FineTime()
+    assert v.tai == 0
+    assert v.format == v.DEFAUL_FORMAT
+    # at Epoch, TAI=0
+    v = FineTime(FineTime.EPOCH)
+    assert v.tai == 0
     v = FineTime(datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=utcobj))
+    assert v.tai == 1929229323456789
     dt = v.toDate()
     # So that timezone won't show on the left below
     d = dt.replace(tzinfo=None)
     assert d.isoformat() + ' TAI' == '2019-02-19T01:02:03.456789 TAI'
     assert v.tai == FineTime.datetimeToFineTime(dt)
     assert dt == FineTime.toDatetime(v.tai)
+    # format
+    assert v.__format__() == '2019-02-19T01:02:03.456789'
+    assert v.__format__('ASDF %f') == 'ASDF 456789'
+    v.format = '%Y-%S'
+    assert v.__format__() == '2019-03'
     # add 1min 1.1sec
     v2 = FineTime(datetime.datetime(
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=utcobj))
@@ -1283,7 +1527,6 @@ def test_BaseProduct():
     x = BaseProduct(description="This is my product example")
     # print(x.__dict__)
     # print(x.meta.toString())
-    # pdb.set_trace()
     assert x.meta['description'].value == "This is my product example"
     assert x.description == "This is my product example"
     assert x.meta['type'].value == x.__class__.__qualname__
@@ -1362,7 +1605,6 @@ def test_BaseProduct():
 def test_Product():
     """ """
     # creation
-    # pdb.set_trace()
     x = Product(description="This is my product example",
                 instrument="MyFavourite", modelName="Flight")
     # print(x.__dict__)

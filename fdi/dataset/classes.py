@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 import logging
 import copy
@@ -8,7 +7,7 @@ import pdb
 
 from .odict import ODict
 from ..utils.common import trbk
-
+from ..utils.modulerloader import SelectiveMetaFinder, installSelectiveMetaFinder
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True

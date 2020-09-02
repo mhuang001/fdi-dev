@@ -89,31 +89,31 @@ test3:
 test4:
 	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py
 
+PLOTDIR	= $(SDIR)/_static 
 plots: plotall plot_dataset plot_pal plot_pns
 
 plotall:
 	pyreverse -o png -p all fdi/dataset fdi/pal fdi/pns fdi/utils
-	mv classes_all.png packages_all.png resources
+	mv classes_all.png packages_all.png $(PLOTDIR)
 
 qplot_%: FORCE
 	pyreverse -o png -p $@ fdi/$@
-	mv classes_$@.png packages_$@.png resources
+	mv classes_$@.png packages_$@.png $(PLOTDIR)
 
 FORCE:
 
 
 plot_dataset:
 	pyreverse -o png -p dataset fdi/dataset
-	mv classes_dataset.png packages_dataset.png resources
+	mv classes_dataset.png packages_dataset.png $(PLOTDIR)
 
 plot_pal:
 	pyreverse -o png -p pal fdi/pal
-	mv classes_pal.png packages_pal.png resources
+	mv classes_pal.png packages_pal.png $(PLOTDIR)
 
 plot_pns:
 	pyreverse -o png -p pns fdi/pns
-	mv classes_pns.png packages_pns.png resources
-
+	mv classes_pns.png packages_pns.png $(PLOTDIR)					
 
 DOCDIR	= doc
 SDIR = $(DOCDIR)/sphinx
@@ -128,9 +128,9 @@ doc_api:
 	sphinx-apidoc $(APIOPT) -o $(SDIR)/api/fdi fdi
 
 doc_plots:
-	cd $(SDIR)/_static && \
+	cd $(PLOTDIR) && \
 	rm -f  classes*.png packages*.png ;\
-	for i in  ../../../resources/*.png; do  ln -s $$i .; done
+	make plots
 
 doc_html:
 	cd $(SDIR) && make html

@@ -95,8 +95,8 @@ class Composite(DeepEqual):
         return self.__class__.__name__ + \
             self._sets.__repr__()
 
-    def toString(self, matprint=None, trans=True):
-        return self.__class__.__name__ + self._sets.toString()
+    def toString(self, matprint=None, trans=True, level=0):
+        return self.__class__.__name__ + self._sets.toString(level=level)
 
     def __contains__(self, x):
         """ mh: enable 'x in composite' """

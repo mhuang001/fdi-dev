@@ -9,7 +9,7 @@ else:
     PY3 = False
 
 
-def bstr(x, tostr=True, quote="'", **kwds):
+def bstr(x, tostr=True, quote="'", level=0, **kwds):
     """ returns the best string representation.
     if the object is a string, return single-quoted; if has toString(), use it; else returns str().
     """
@@ -20,7 +20,7 @@ def bstr(x, tostr=True, quote="'", **kwds):
     if s:
         r = quote + x + quote
     elif tostr and hasattr(x, 'toString'):
-        r = x.toString(**kwds)
+        r = x.toString(level=level, **kwds)
     else:
         r = str(x)
     return r
@@ -85,11 +85,11 @@ class ODict(UserDict, Serializable):
             return 'OD{\n\t' + s + '\t\n}'
         return 'OD{' + s + '}'
 
-    def toString(self, matprint=None, trans=True):
+    def toString(self, matprint=None, trans=True, level=0):
         d = ''
         for n, v in self.items():
             d += '\n# [ ' + n + ' ]\n'
-            d += bstr(v, matprint=matprint, trans=trans)
+            d += bstr(v, matprint=matprint, trans=trans, level=level)
 
         return d
 

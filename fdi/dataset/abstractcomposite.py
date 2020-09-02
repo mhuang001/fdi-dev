@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
+from .ndprint import ndprint
+from .odict import bstr
+from .listener import DatasetListener
+from .datawrapper import DataWrapperMapper
+from .composite import Composite
+from .annotatable import Annotatable
+from .attributable import Attributable
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-from .attributable import Attributable
-from .annotatable import Annotatable
-from .composite import Composite
-from .datawrapper import DataWrapperMapper
-from .listener import DatasetListener
-from .odict import bstr
-from .ndprint import ndprint
 
 
 class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper, DatasetListener):
@@ -30,13 +29,13 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
         )
         return s
 
-    def toString(self, matprint=None, trans=True, beforedata=''):
+    def toString(self, matprint=None, trans=True, beforedata='', level=0):
         if matprint is None:
             matprint = ndprint
 
         s = '# ' + self.__class__.__name__ + '\n' +\
             '# description = "%s"\n# meta = %s\n' % \
-            (str(self.description), bstr(self.meta))
+            (str(self.description), bstr(self.meta, level=level))
         d = '# data = \n\n'
-        d += self._sets.toString(matprint=matprint, trans=trans)
+        d += self._sets.toString(matprint=matprint, trans=trans, level=level)
         return s + beforedata + d

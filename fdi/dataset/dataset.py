@@ -63,13 +63,13 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
         through visitor pattern."""
         visitor.visit(self)
 
-    def toString(self):
+    def toString(self, level=0):
         """
         """
 
         s = '# ' + self.__class__.__name__ + '\n' +\
             '# description = "%s"\n# meta = %s\n' % \
-            (str(self.description), bstr(self.meta))
+            (str(self.description), bstr(self.meta, level=level))
         return s
 
 
@@ -97,13 +97,13 @@ class GenericDataset(Dataset, DataContainer, Container):
             '{ %s, description = "%s", meta = %s }' % \
             (str(self.data), str(self.description), str(self.meta))
 
-    def toString(self, matprint=None, trans=True):
+    def toString(self, matprint=None, trans=True, level=0):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         """
         s = '# ' + self.__class__.__name__ + '\n' +\
             '# description = "%s"\n# meta = %s\n# unit = "%s"\n# data = \n\n' % \
-            (str(self.description), self.meta.toString(),
+            (str(self.description), self.meta.toString(level=level),
              str(self.unit))
         d = bstr(self.data) if matprint is None else matprint(self.data)
         return s + d + '\n'
@@ -217,10 +217,11 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
             '{ %s (%s) <%s>, "%s", dflt %s, tcode=%s, meta=%s}' %\
             (vs, us, ts, ds, fs, cs, str(self.meta))
 
-    def toString(self, matprint=None, trans=True):
+    def toString(self, matprint=None, trans=True, level=0):
         if matprint is None:
             matprint = ndprint
-        s = super(ArrayDataset, self).toString(matprint=matprint, trans=trans)
+        s = super(ArrayDataset, self).toString(
+            matprint=matprint, trans=trans, level=level)
 
         return s
 
@@ -550,10 +551,10 @@ class TableDataset(Dataset, TableModel):
 #             self.data.toString())
 #        return s
 
-    def toString(self, matprint=None, trans=True):
+    def toString(self, matprint=None, trans=True, level=0):
         if matprint is None:
             matprint = ndprint
-        s = super(TableDataset, self).toString()
+        s = super(TableDataset, self).toString(level=level)
         cols = list(self.data.values())
         d = '# data = \n\n'
         d += '# ' + ' '.join([str(x) for x in self.data.keys()]) + '\n'

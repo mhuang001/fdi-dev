@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+import logging
 import sys
+from itertools import zip_longest
+
 if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.3:
     from collections.abc import Sequence
     seqlist = Sequence
@@ -9,15 +12,14 @@ else:
     seqlist = (tuple, list, Sequence, str)
     # ,types.XRangeType, types.BufferType)
 
-import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
 def ndprint(data, trans=True, table=True):
     """ makes a formated string of an N-dimensional array for printing.
-    The fastest changing index is the innerest list. E.g. 
+    The fastest changing index is the innerest list. E.g.
     A 2 by 3 matrix is [[1,2],[3,4],[5,6]] written as
     1 2
     3 4
@@ -45,9 +47,9 @@ def ndprint(data, trans=True, table=True):
         # output string
         s = ''
 
-    #print("start " + str(data) + ' ' + str(trans))
+    # print("start " + str(data) + ' ' + str(trans))
     t = data
-    while issubclass(t.__class__, seqlist):
+    while issubclass(t.__class__, seqlist) and not issubclass(t.__class__, (str, bytes, bytearray, memoryview)):
         context.maxdim += 1
         t = t[0]
 
@@ -58,7 +60,7 @@ def ndprint(data, trans=True, table=True):
         dbg = False
         delta = ''
         padding = ' ' * context.dim * 4
-        if issubclass(d.__class__, seqlist):
+        if issubclass(d.__class__, seqlist) and not issubclass(d.__class__, (str, bytes, bytearray, memoryview)):
             context.dim += 1
             padding = ' ' * context.dim * 4
             if dbg:
@@ -76,7 +78,7 @@ def ndprint(data, trans=True, table=True):
                         trans = False
                     elif (context.maxdim - context.dim == 1):
                         # transpose using list(zip) technique if maxdim > 1
-                        d2 = list(zip(*d))
+                        d2 = list(zip_longest(*d, fillvalue='-'))
                     else:
                         d2 = d
                 else:

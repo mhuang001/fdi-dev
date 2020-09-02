@@ -11,8 +11,7 @@ metadata:
         id_zh_cn: 产品类型
         fits_keyword: TYPE
         data_type: string
-        description: Product Type identification. Fully qualified Python class name
-            or CARD.
+        description: Product Type identification. Name of class or CARD.
         description_zh_cn: 产品类型。完整Python类名或卡片名。
         examples: SAT-QM-ThermVac
         default: Product
@@ -54,7 +53,7 @@ metadata:
         description: Instrument that generated data of this product
         description_zh_cn: 观测仪器名称
         examples: VT
-        default: UNKOWN
+        default: UNKNOWN
         valid: ''
         valid_zh_cn: ''
         typecode: B
@@ -67,7 +66,7 @@ metadata:
         description: Model name of the instrument of this product
         description_zh_cn: 观测仪器样机名称
         examples: QM
-        default: UNKOWN
+        default: UNKNOWN
         valid: ''
         valid_zh_cn: ''
         typecode: B

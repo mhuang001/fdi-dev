@@ -114,7 +114,6 @@ class SerializableEncoder(json.JSONEncoder):
                 # logger.debug
                 # print('&&&& %s %s' % (str(obj.__class__), str(obj)))
                 if PY3 and issubclass(obj.__class__, bytes):
-                    pdb.set_trace()
                     return dict(code=codecs.encode(obj, 'hex'), classID='bytes')
                 if not PY3 and issubclass(obj.__class__, str):
                     return dict(code=codec.encode(obj, 'hex'), classID='bytes')

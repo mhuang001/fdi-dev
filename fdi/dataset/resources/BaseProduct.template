@@ -87,7 +87,7 @@ $INITARGS
 
         # print(self.pInfo['metadata'].keys())
         # print(metasToBeInstalled)
-        # print('# ' + self.meta.toString())
+        # print('# ' + self.meta.toString(level=0))
 
         self.installMetas(mtbi=metasToBeInstalled)
         self.history = History()
@@ -173,44 +173,7 @@ $INITARGS
                         m[name] = value
                         return
                     # value is not  a Parameter make one.
-                    im = met[name]  # {'dats_type':..., 'value':....}
-                    # in ['integer','hex','float','vector','quaternion']
-                    if 'unit' in im and im['unit'] is not None:
-                        m[name] = NumericParameter(value=value,
-                                                   description=im['description'],
-                                                   typ_=im['data_type'],
-                                                   unit=im['unit'],
-                                                   default=im['default'],
-                                                   valid=im['valid'],
-                                                   typecode=im['typecode'],
-						   )
-                    elif im['data_type'] == 'string':
-                        fs = im['default'] if 'default' in im else None
-                        gs = im['valid'] if 'valid' in im else None
-                        cs = im['typecode'] if 'typecode' in im else 'B'
-                        m[name] = StringParameter(value=value,
-                                            description=im['description'],
-                                            default=fs,
-                                            valid=gs,
-                                            typecode=cs
-                                            )
-                    elif im['data_type'] == 'finetime':
-                        fs = im['default'] if 'default' in im else None
-                        gs = im['valid'] if 'valid' in im else None
-                        cs = im['typecode'] if 'typecode' in im else None
-                        m[name] = DateParameter(value=value,
-                                            description=im['description'],
-                                            default=fs,
-                                            valid=gs,
-                                            typecode=cs
-                                            )
-                    else:
-                        m[name] = Parameter(value=value,
-                                            description=im['description'],
-                                            typ_=im['data_type'],
-                                            default=im['default'],
-					    valid=im['valid'],
-                                            )
+                    m[name] = value2parameter(name, value, met)
                 # must return without updating self.__dict__
                 return
         # print('setattr ' + name, value)
@@ -236,12 +199,12 @@ $INITARGS
                 # logger.debug(event.source.__class__.__name__ +   ' ' + str(event.change))
                 pass
 
-    def toString(self, matprint=None, trans=True, beforedata=''):
+    def toString(self, matprint=None, trans=True, beforedata='', level=0):
         """ like AbstractComposite but with history
         """
-        h = self.history.toString(matprint=matprint, trans=trans)
+        h = self.history.toString(matprint=matprint, trans=trans, level=level)
         s = super(BaseProduct, self).toString(
-            matprint=matprint, trans=trans, beforedata=h)
+            matprint=matprint, trans=trans, beforedata=h, level=level)
         return s
 
     def __repr__(self):
@@ -279,6 +242,54 @@ $INITARGS
         return OrderedDict(ls)
 
 
+def value2parameter(name, value, met):
+    """ returns a parameter with correct type and attributes according to its value and name.
+
+    met is pInfo('metadata'] or pInfo['dataset'][xxx]
+    """
+    
+    im = met[name]  # {'dats_type':..., 'value':....}
+    # in ['integer','hex','float','vector','quaternion']
+    if 'unit' in im and im['unit'] is not None:
+        ret = NumericParameter(value=value,
+                                   description=im['description'],
+                                   typ_=im['data_type'],
+                                   unit=im['unit'],
+                                   default=im['default'],
+                                   valid=im['valid'],
+                                   typecode=im['typecode'],
+ 						   )
+    elif im['data_type'] == 'string':
+        fs = im['default'] if 'default' in im else None
+        gs = im['valid'] if 'valid' in im else None
+        cs = im['typecode'] if 'typecode' in im else 'B'
+        ret = StringParameter(value=value,
+                            description=im['description'],
+                            default=fs,
+                            valid=gs,
+                            typecode=cs
+                            )
+    elif im['data_type'] == 'finetime':
+        fs = im['default'] if 'default' in im else None
+        gs = im['valid'] if 'valid' in im else None
+        cs = im['typecode'] if 'typecode' in im else None
+        ret = DateParameter(value=value,
+                            description=im['description'],
+                            default=fs,
+                            valid=gs,
+                            typecode=cs
+                            )
+    else:
+        fs = im['default'] if 'default' in im else None
+        gs = im['valid'] if 'valid' in im else None
+        ret = Parameter(value=value,
+                            description=im['description'],
+                            typ_=im['data_type'],
+                            default=fs,
+                            valid=gs,
+                            )
+    return ret
+ 
 def addMandatoryProductAttrs(cls):
     """mh: Add MPAs to a class so that although they are metadata,
     they can be accessed by for example, productfoo.creator.

@@ -98,18 +98,18 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
             inst = lgb[classname]()
             if debug:
                 print(spaces + 'Instanciate custom obj <%s>' % classname)
-        elif classname in BD:
+        elif classname == 'ellipsis':
+            if debug:
+                print(spaces + 'Instanciate Ellipsis')
+            indent -= 1
+            return Ellipsis
+        elif classname in BD and 'obj' in obj:
             o = constructSerializableClassID(obj['obj'], lgb=lgb, debug=debug)
             inst = BD[classname](o)
             if debug:
                 print(spaces + 'Instanciate builtin %s' % obj['obj'])
             indent -= 1
             return inst
-        elif classname == 'ellipsis':
-            if debug:
-                print(spaces + 'Instanciate Ellipsis')
-            indent -= 1
-            return Ellipsis
         else:
             raise ValueError('Class %s is not known.' % classname)
     if debug:

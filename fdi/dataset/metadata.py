@@ -16,6 +16,8 @@ from .finetime import FineTime, FineTime1, utcobj
 from .classes import Classes
 from .typed import Typed
 
+import pdb
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -229,14 +231,18 @@ f        With two positional arguments: arg1-> value, arg2-> description.
         else:
             return super(AbstractParameter, self).__ge__(obj)
 
-    def __repr__(self):
-        vs = str(self._value)
-        return self.__class__.__name__ +\
-            '{ %s, "%s"}' %\
-            (vs, str(self.description))
+    def getValueAsString():
+        """ Value as string for building the string representation of the parameter.  """
+        return
 
-    def toString(self):
-        return self.__str__()
+    def __repr__(self):
+        return self.toString()
+
+    def toString(self, level=0):
+        vs = str(self._value)
+        ss = '{ %s }' % (vs) if level else \
+            '{ %s, "%s"}' % (vs, str(self.description))
+        return self.__class__.__name__ + ss
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
@@ -451,6 +457,15 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         self._value = self.checked(value)
 
     def __repr__(self):
+        return self.toString()
+
+    def toString(self, level=0):
+
+        if level:
+            vs = str(self._value)
+            ss = '{ %s }' % (vs)
+            return self.__class__.__name__ + ss
+
         if hasattr(self, '_value'):
             if hasattr(self, '_type'):
                 vs = hex(self._value) if self._type == 'hex' and issubclass(
@@ -495,6 +510,15 @@ class NumericParameter(Parameter, Quantifiable):
             value=value, description=description, typ_=typ_, default=default, valid=valid, **kwds)
 
     def __repr__(self):
+        return self.toString()
+
+    def toString(self, level=0):
+
+        if level:
+            vs = str(self._value)
+            ss = '{ %s }' % (vs)
+            return self.__class__.__name__ + ss
+
         return self.__class__.__name__ +\
             '{ %s (%s) <%s>, "%s", dflt %s, vld %s tcode=%s}' %\
             exprstrs(self)
@@ -542,9 +566,12 @@ class DateParameter(Parameter):
     """ has a FineTime as the value.
     """
 
-    def __init__(self, value=None, description='UNKNOWN', default='', valid=None, typecode=None, **kwds):
-        if value is not None and not issubclass(value.__class__, FineTime):
-            value = FineTime1(date=value, format=typecode)
+    def __init__(self, value=None, description='UNKNOWN', default=0, valid=None, typecode=None, **kwds):
+        """
+        if value and typecode are both given, typecode will be overwritten by value.format.
+        """
+        self.setTypecode(typecode)
+        # this will set default then set value.
         super(DateParameter, self).__init__(
             value=value, description=description, typ_='finetime', default=default, valid=valid, **kwds)
 
@@ -557,14 +584,41 @@ class DateParameter(Parameter):
         self.setTypecode(typecode)
 
     def getTypecode(self):
-        """ Returns the typecode related to this object."""
+        """ Returns the typecode related to this object. None if value not set."""
+        if not hasattr(self, '_value'):
+            return None
         return self._value.format
 
     def setTypecode(self, typecode):
-        """ Sets the typecode of this object. """
+        """ Sets the typecode of this object. quietly returns if value not set."""
+        if not hasattr(self, '_value'):
+            return
         self._value.format = typecode
 
+    def setValue(self, value):
+        """ accept any type thay a FineTime does.
+        """
+        if value is not None and not issubclass(value.__class__, FineTime):
+            value = FineTime1(date=value, format=self.getTypecode())
+        super().setValue(value)
+
+    def setDefault(self, default):
+        """ accept any type thay a FineTime does.
+        """
+        if default is not None and not issubclass(default.__class__, FineTime):
+            default = FineTime1(date=default, format=self.getTypecode())
+        super().setDefault(default)
+
     def __repr__(self):
+
+        return self.toString()
+
+    def toString(self, level=0):
+
+        if level:
+            vs = str(self._value)
+            ss = '{ %s }' % (vs)
+            return self.__class__.__name__ + ss
 
         vs = str(self.value) if hasattr(self, 'value') else 'unknown'
         ds = str(self.description) if hasattr(
@@ -572,7 +626,7 @@ class DateParameter(Parameter):
         fs = str(self._default) if hasattr(self, '_default') else 'unknown'
         gs = str(self._valid) if hasattr(self, '_valid') else 'unknown'
         cs = str(self._value.format) if hasattr(
-            self, '_typecode') else 'unknown'
+            self, '_value') else 'unknown'
         return self.__class__.__name__ +\
             '{ "%s", "%s", dflt %s, vld %s tcode=%s}' % \
             (vs, ds, fs, gs, cs)
@@ -597,7 +651,7 @@ class StringParameter(Parameter):
     def __init__(self, value=None, description='UNKNOWN', default='', valid=None, typecode='B', **kwds):
         self.setTypecode(typecode)
         super(StringParameter, self).__init__(
-            value=str(value), description=description, typ_='string', default=default, valid=valid, **kwds)
+            value=value, description=description, typ_='string', default=default, valid=valid, **kwds)
 
     @property
     def typecode(self):
@@ -616,6 +670,14 @@ class StringParameter(Parameter):
         self._typecode = typecode
 
     def __repr__(self):
+        return self.toString()
+
+    def toString(self, level=0):
+
+        if level:
+            vs = str(self._value)
+            ss = '{ %s }' % (vs)
+            return self.__class__.__name__ + ss
 
         vs = str(self.value) if hasattr(self, 'value') else 'unknown'
         ds = str(self.description) if hasattr(
@@ -703,17 +765,19 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             self.fire(e)
         return r
 
-    def toString(self):
+    def toString(self, level=0):
         s, l = '', ''
         for (k, v) in self._sets.items():
-            s = s + str(k) + ' = ' + str(v) + ', '
+            # vs = str(v.value) if level else
+            vs = v.toString(level=level)
+            s = s + str(k) + ' = ' + vs + ', '
         l = ''.join([x.__class__.__name__ + ' ' + str(id(x)) +
                      ' "' + x.description + '", ' for x in self.listeners])
         return self.__class__.__name__ + \
             '{[' + s + '], listeners = [%s]}' % (l)
 
-    def __repr__(self):
-        return self.toString()
+    def __repr__(self, **kwds):
+        return self.toString(**kwds)
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

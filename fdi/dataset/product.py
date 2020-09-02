@@ -14,23 +14,23 @@ logger = logging.getLogger(__name__)
 
 
 class Product(BaseProduct,):
-    """ Product class (level ALL) schema 1.1 inheriting ['BaseProduct']. Automatically generated from fdi/dataset/resources/Product.yml on 2020-08-30 08:42:38.282260.
+    """ Product class (level ALL) schema 1.1 inheriting ['BaseProduct']. Automatically generated from fdi/dataset/resources/Product.yml on 2020-09-02 23:11:03.424430.
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """
 
 
     def __init__(self,
-                 description = 'UNKOWN',
+                 description = 'UNKNOWN',
                  type_ = 'Product',
-                 creator = 'UNKOWN',
+                 creator = 'UNKNOWN',
                  creationDate = FineTime1(0),
-                 rootCause = 'UNKOWN',
+                 rootCause = 'UNKNOWN',
                  version = '0.6',
                  startDate = FineTime1(0),
                  endDate = FineTime1(0),
-                 instrument = 'UNKOWN',
-                 modelName = 'UNKOWN',
+                 instrument = 'UNKNOWN',
+                 modelName = 'UNKNOWN',
                  mission = '_AGS',
                  **kwds):
         """ Initializes instances with more metadata as attributes, set to default values.
@@ -81,7 +81,7 @@ ProductInfo = {
                 'description': 'Description of this product',
                 'description_zh_cn': '对本产品的描述。',
                 'examples': 'SINGLE EXPOSURE',
-                'default': 'UNKOWN',
+                'default': 'UNKNOWN',
                 'valid': '',
                 'typecode': 'B',
                 },
@@ -91,7 +91,7 @@ ProductInfo = {
                 'id_zh_cn': '产品类型',
                 'fits_keyword': 'TYPE',
                 'data_type': 'string',
-                'description': 'Product Type identification. Fully qualified Python class name or CARD.',
+                'description': 'Product Type identification. Name of class or CARD.',
                 'description_zh_cn': '产品类型。完整Python类名或卡片名。',
                 'examples': 'SAT-QM-ThermVac',
                 'default': 'Product',
@@ -105,10 +105,10 @@ ProductInfo = {
                 'id_zh_cn': '本产品生成者',
                 'fits_keyword': 'CREATOR',
                 'data_type': 'string',
-                'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
+                'description': 'Generator of this product.',
                 'description_zh_cn': '本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。',
                 'examples': 'SECM-EGSE',
-                'default': 'UNKOWN',
+                'default': 'UNKNOWN',
                 'valid': '',
                 'typecode': 'B',
                 },
@@ -134,7 +134,7 @@ ProductInfo = {
                 'description': 'Reason of this run of pipeline.',
                 'description_zh_cn': '数据来源（此例来自鉴定件热真空罐）',
                 'examples': 'QM-ThermVac',
-                'default': 'UNKOWN',
+                'default': 'UNKNOWN',
                 'valid': '',
                 'typecode': 'B',
                 },
@@ -189,7 +189,7 @@ ProductInfo = {
                 'description': 'Instrument that generated data of this product',
                 'description_zh_cn': '观测仪器名称',
                 'examples': 'VT',
-                'default': 'UNKOWN',
+                'default': 'UNKNOWN',
                 'valid': '',
                 'valid_zh_cn': '',
                 'typecode': 'B',
@@ -203,7 +203,7 @@ ProductInfo = {
                 'description': 'Model name of the instrument of this product',
                 'description_zh_cn': '观测仪器样机名称',
                 'examples': 'QM',
-                'default': 'UNKOWN',
+                'default': 'UNKNOWN',
                 'valid': '',
                 'valid_zh_cn': '',
                 'typecode': 'B',

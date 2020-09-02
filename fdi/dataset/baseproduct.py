@@ -53,18 +53,18 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
 
-    BaseProduct class (level ALL) schema 1.1 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-08-30 08:42:38.065448.
+    BaseProduct class (level ALL) schema 1.1 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-09-02 23:11:02.953375.
 
     """
 
 
     def __init__(self,
-                 description = 'UNKOWN',
+                 description = 'UNKNOWN',
                  type_ = 'BaseProduct',
-                 creator = 'UNKOWN',
+                 creator = 'UNKNOWN',
                  creationDate = FineTime1(0),
-                 rootCause = 'UNKOWN',
-                 version = '0.5',
+                 rootCause = 'UNKNOWN',
+                 version = '0.6',
                  **kwds):
 
         global ProductInfo
@@ -94,7 +94,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
 
         # print(self.pInfo['metadata'].keys())
         # print(metasToBeInstalled)
-        # print('# ' + self.meta.toString())
+        # print('# ' + self.meta.toString(level=0))
 
         self.installMetas(mtbi=metasToBeInstalled)
         self.history = History()
@@ -180,44 +180,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
                         m[name] = value
                         return
                     # value is not  a Parameter make one.
-                    im = met[name]  # {'dats_type':..., 'value':....}
-                    # in ['integer','hex','float','vector','quaternion']
-                    if 'unit' in im and im['unit'] is not None:
-                        m[name] = NumericParameter(value=value,
-                                                   description=im['description'],
-                                                   typ_=im['data_type'],
-                                                   unit=im['unit'],
-                                                   default=im['default'],
-                                                   valid=im['valid'],
-                                                   typecode=im['typecode'],
-						   )
-                    elif im['data_type'] == 'string':
-                        fs = im['default'] if 'default' in im else None
-                        gs = im['valid'] if 'valid' in im else None
-                        cs = im['typecode'] if 'typecode' in im else 'B'
-                        m[name] = StringParameter(value=value,
-                                            description=im['description'],
-                                            default=fs,
-                                            valid=gs,
-                                            typecode=cs
-                                            )
-                    elif im['data_type'] == 'finetime':
-                        fs = im['default'] if 'default' in im else None
-                        gs = im['valid'] if 'valid' in im else None
-                        cs = im['typecode'] if 'typecode' in im else None
-                        m[name] = DateParameter(value=value,
-                                            description=im['description'],
-                                            default=fs,
-                                            valid=gs,
-                                            typecode=cs
-                                            )
-                    else:
-                        m[name] = Parameter(value=value,
-                                            description=im['description'],
-                                            typ_=im['data_type'],
-                                            default=im['default'],
-					    valid=im['valid'],
-                                            )
+                    m[name] = value2parameter(name, value, met)
                 # must return without updating self.__dict__
                 return
         # print('setattr ' + name, value)
@@ -243,12 +206,12 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
                 # logger.debug(event.source.__class__.__name__ +   ' ' + str(event.change))
                 pass
 
-    def toString(self, matprint=None, trans=True, beforedata=''):
+    def toString(self, matprint=None, trans=True, beforedata='', level=0):
         """ like AbstractComposite but with history
         """
-        h = self.history.toString(matprint=matprint, trans=trans)
+        h = self.history.toString(matprint=matprint, trans=trans, level=level)
         s = super(BaseProduct, self).toString(
-            matprint=matprint, trans=trans, beforedata=h)
+            matprint=matprint, trans=trans, beforedata=h, level=level)
         return s
 
     def __repr__(self):
@@ -286,6 +249,54 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
         return OrderedDict(ls)
 
 
+def value2parameter(name, value, met):
+    """ returns a parameter with correct type and attributes according to its value and name.
+
+    met is pInfo('metadata'] or pInfo['dataset'][xxx]
+    """
+    
+    im = met[name]  # {'dats_type':..., 'value':....}
+    # in ['integer','hex','float','vector','quaternion']
+    if 'unit' in im and im['unit'] is not None:
+        ret = NumericParameter(value=value,
+                                   description=im['description'],
+                                   typ_=im['data_type'],
+                                   unit=im['unit'],
+                                   default=im['default'],
+                                   valid=im['valid'],
+                                   typecode=im['typecode'],
+ 						   )
+    elif im['data_type'] == 'string':
+        fs = im['default'] if 'default' in im else None
+        gs = im['valid'] if 'valid' in im else None
+        cs = im['typecode'] if 'typecode' in im else 'B'
+        ret = StringParameter(value=value,
+                            description=im['description'],
+                            default=fs,
+                            valid=gs,
+                            typecode=cs
+                            )
+    elif im['data_type'] == 'finetime':
+        fs = im['default'] if 'default' in im else None
+        gs = im['valid'] if 'valid' in im else None
+        cs = im['typecode'] if 'typecode' in im else None
+        ret = DateParameter(value=value,
+                            description=im['description'],
+                            default=fs,
+                            valid=gs,
+                            typecode=cs
+                            )
+    else:
+        fs = im['default'] if 'default' in im else None
+        gs = im['valid'] if 'valid' in im else None
+        ret = Parameter(value=value,
+                            description=im['description'],
+                            typ_=im['data_type'],
+                            default=fs,
+                            valid=gs,
+                            )
+    return ret
+ 
 def addMandatoryProductAttrs(cls):
     """mh: Add MPAs to a class so that although they are metadata,
     they can be accessed by for example, productfoo.creator.
@@ -335,7 +346,7 @@ ProductInfo = {
                 'description': 'Description of this product',
                 'description_zh_cn': '对本产品的描述。',
                 'examples': 'SINGLE EXPOSURE',
-                'default': 'UNKOWN',
+                'default': 'UNKNOWN',
                 'valid': '',
                 'typecode': 'B',
                 },
@@ -345,7 +356,7 @@ ProductInfo = {
                 'id_zh_cn': '产品类型',
                 'fits_keyword': 'TYPE',
                 'data_type': 'string',
-                'description': 'Product Type identification. Fully qualified Python class name or CARD.',
+                'description': 'Product Type identification. Name of class or CARD.',
                 'description_zh_cn': '产品类型。完整Python类名或卡片名。',
                 'examples': 'SAT-QM-ThermVac',
                 'default': 'BaseProduct',
@@ -358,10 +369,10 @@ ProductInfo = {
                 'id_zh_cn': '本产品生成者',
                 'fits_keyword': 'CREATOR',
                 'data_type': 'string',
-                'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
+                'description': 'Generator of this product.',
                 'description_zh_cn': '本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。',
                 'examples': 'SECM-EGSE',
-                'default': 'UNKOWN',
+                'default': 'UNKNOWN',
                 'valid': '',
                 'typecode': 'B',
                 },
@@ -387,7 +398,7 @@ ProductInfo = {
                 'description': 'Reason of this run of pipeline.',
                 'description_zh_cn': '数据来源（此例来自鉴定件热真空罐）',
                 'examples': 'QM-ThermVac',
-                'default': 'UNKOWN',
+                'default': 'UNKNOWN',
                 'valid': '',
                 'typecode': 'B',
                 },
@@ -400,7 +411,7 @@ ProductInfo = {
                 'description': 'Version of product schema',
                 'description_zh_cn': '产品格式版本',
                 'examples': '1',
-                'default': '0.5',
+                'default': '0.6',
                 'valid': '',
                 'typecode': 'B',
                 },

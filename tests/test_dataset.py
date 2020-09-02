@@ -20,7 +20,8 @@ from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, Paramete
 from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
-from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column, ndprint
+from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column
+from fdi.dataset.ndprint import ndprint
 from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.finetime import FineTime, FineTime1, utcobj
 from fdi.dataset.history import History
@@ -730,6 +731,15 @@ def test_Quantifiable():
 
 
 def test_NumericParameter():
+    v = NumericParameter()
+    assert v.description == 'UNKNOWN'
+    assert v.value is None
+    assert v.unit is None
+    assert v.type == ''
+    assert v.default is None
+    assert v.valid is None
+    assert v.typecode is None
+
     a1 = 'a test NumericParameter'
     a2 = 100.234
     a3 = 'second'
@@ -785,13 +795,92 @@ def test_NumericParameter():
     checkgeneral(v)
 
 
-def test_StringParameter():
+def test_NumericParameter():
+    v = NumericParameter()
+    assert v.description == 'UNKNOWN'
+    assert v.value is None
+    assert v.unit is None
+    assert v.type == ''
+    assert v.default is None
+    assert v.valid is None
+    assert v.typecode is None
+
     a1 = 'a test NumericParameter'
+    a2 = 100.234
+    a3 = 'second'
+    a4 = 'float'
+    a5 = 0
+    a6 = ''
+    a7 = 'f'
+    v = NumericParameter(description=a1, value=a2, unit=a3,
+                         typ_=a4, default=a5, valid=a6, typecode=a7)
+    assert v.description == a1
+    assert v.value == a2
+    assert v.unit == a3
+    assert v.type == a4
+    assert v.default == a5
+    assert v.valid is None
+    assert v.typecode == a7
+
+    checkjson(v)
+
+
+def test_DateParameter():
+
+    v = DateParameter()
+    assert v.description == 'UNKNOWN'
+    assert v.value == v.default
+    assert v.type == 'finetime'
+    def0 = FineTime1(0)
+    assert v.default == def0
+    assert v.valid is None
+    assert v.typecode == FineTime.DEFAULT_FORMAT
+
+    a1 = 'a test DateParameter'
+    a2 = 765
+    a5 = 9
+    a6 = ''
+    a7 = '%f'
+    v = DateParameter(description=a1, value=a2,
+                      default=a5, valid=a6, typecode=a7)
+    assert v.description == a1
+    assert v.value == FineTime1(a2)
+    assert v.type == 'finetime'
+    assert v.default == FineTime1(a5)
+    assert v.valid is None
+    # if value and typecode are both given, typecode will be overwritten by value.format.
+    assert v.typecode == v.value.format
+
+    a8 = 9876
+    v.value = a8
+    assert v.value == FineTime1(a8, format=v.typecode)
+
+    try:
+        DateParameter(3.3)
+    except TypeError as e:
+        pass
+    else:
+        assert False, 'fail to raise exception'
+
+    checkjson(v)
+
+
+def test_StringParameter():
+
+    v = StringParameter()
+    assert v.description == 'UNKNOWN'
+    assert v.value == v.default
+    assert v.type == 'string'
+    assert v.default == ''
+    assert v.valid is None
+    assert v.typecode == 'B'
+
+    a1 = 'a test StringcParameter'
     a2 = 'eeeee'
     a3 = 'second'
     a4 = 'string'
     a5 = ''
-    a6 = 'f'
+    a6 = '9B'
     v = StringParameter(description=a1, value=a2, default=a3,
                         valid=a5, typecode=a6)
     assert v.description == a1
@@ -1471,24 +1560,27 @@ def test_FineTime():
     # default
     v = FineTime()
     assert v.tai == 0
-    assert v.format == v.DEFAUL_FORMAT
+    assert v.format == v.DEFAULT_FORMAT
+    assert v.toDate().year == 1958
     # at Epoch, TAI=0
-    v = FineTime(FineTime.EPOCH)
+    v = FineTime(v.EPOCH)
     assert v.tai == 0
-    v = FineTime(datetime.datetime(
-        2019, 2, 19, 1, 2, 3, 456789, tzinfo=utcobj))
+    # at TAI = 1, UTC ...
+    v = FineTime(1)
+    assert v.toDate().microsecond == 1
+    dt0 = datetime.datetime(
+        2019, 2, 19, 1, 2, 3, 456789, tzinfo=utcobj)
+    v = FineTime(dt0)
     assert v.tai == 1929229323456789
     dt = v.toDate()
+    assert int(dt.timestamp()) == int(dt0.timestamp())
     # So that timezone won't show on the left below
     d = dt.replace(tzinfo=None)
-    assert d.isoformat() + ' TAI' == '2019-02-19T01:02:03.456789 TAI'
-    assert v.tai == FineTime.datetimeToFineTime(dt)
-    assert dt == FineTime.toDatetime(v.tai)
+    assert d.isoformat() == '2019-02-19T01:02:03.456789'
+    assert v.tai == v.datetimeToFineTime(dt)
+    assert dt == v.toDatetime(v.tai)
     # format
-    assert v.__format__() == '2019-02-19T01:02:03.456789'
-    assert v.__format__('ASDF %f') == 'ASDF 456789'
-    v.format = '%Y-%S'
-    assert v.__format__() == '2019-03'
+    assert v.isoutc() == '2019-02-19T01:02:03.456789'
     # add 1min 1.1sec
     v2 = FineTime(datetime.datetime(
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=utcobj))
@@ -1499,17 +1591,33 @@ def test_FineTime():
 
 
 def test_FineTime1():
-    v = FineTime1(datetime.datetime(
-        2019, 2, 19, 1, 2, 3, 456000, tzinfo=utcobj))
+    # default
+    v = FineTime1()
+    assert v.tai == 0
+    assert v.format == v.DEFAULT_FORMAT
+    assert v.toDate().year == 2017
+    # at Epoch, TAI=0
+    v = FineTime1(v.EPOCH)
+    assert v.tai == 0
+    # at TAI = 1, UTC ...
+    v = FineTime1(1)
+    assert v.toDate().microsecond == 1000
+    dt0 = datetime.datetime(
+        2019, 2, 19, 1, 2, 3, 456789, tzinfo=utcobj)
+    v = FineTime1(dt0)
+    assert v.tai == 67309323457
     dt = v.toDate()
+    assert int(dt.timestamp()) == int(dt0.timestamp())
     # So that timezone won't show on the left below
     d = dt.replace(tzinfo=None)
-    assert d.isoformat() + ' TAI' == '2019-02-19T01:02:03.456000 TAI'
-    assert v.tai == FineTime1.datetimeToFineTime(dt)
-    assert dt == FineTime1.toDatetime(v.tai)
+    assert d.isoformat() == '2019-02-19T01:02:03.457000'
+    assert v.tai == v.datetimeToFineTime(dt)
+    assert dt == v.toDatetime(v.tai)
+    # format
+    assert v.isoutc() == '2019-02-19T01:02:03.457'
     # add 1min 1.1sec
     v2 = FineTime1(datetime.datetime(
-        2019, 2, 19, 1, 3, 4, 556000, tzinfo=utcobj))
+        2019, 2, 19, 1, 3, 4, 556789, tzinfo=utcobj))
     assert v != v2
     assert abs(v2.subtract(v) - 61100) < 0.5
     checkjson(v)

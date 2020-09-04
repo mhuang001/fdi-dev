@@ -464,7 +464,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         if level:
             vs = str(self._value)
             ss = '{ %s }' % (vs)
-            return self.__class__.__name__ + ss
+            return ss
 
         if hasattr(self, '_value'):
             if hasattr(self, '_type'):
@@ -517,7 +517,7 @@ class NumericParameter(Parameter, Quantifiable):
         if level:
             vs = str(self._value)
             ss = '{ %s }' % (vs)
-            return self.__class__.__name__ + ss
+            return ss
 
         return self.__class__.__name__ +\
             '{ %s (%s) <%s>, "%s", dflt %s, vld %s tcode=%s}' %\
@@ -618,7 +618,7 @@ class DateParameter(Parameter):
         if level:
             vs = str(self._value)
             ss = '{ %s }' % (vs)
-            return self.__class__.__name__ + ss
+            return ss
 
         vs = str(self.value) if hasattr(self, 'value') else 'unknown'
         ds = str(self.description) if hasattr(
@@ -677,7 +677,7 @@ class StringParameter(Parameter):
         if level:
             vs = str(self._value)
             ss = '{ %s }' % (vs)
-            return self.__class__.__name__ + ss
+            return ss
 
         vs = str(self.value) if hasattr(self, 'value') else 'unknown'
         ds = str(self.description) if hasattr(

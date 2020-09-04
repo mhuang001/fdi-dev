@@ -210,9 +210,10 @@ def deserializeClassID(js, lgb=None, debug=False, usedict=True):
     # debug = False  # True if issubclass(obj.__class__, list) else False
     try:
         if usedict:
-            obj = json.loads(js, cls=IntDecoder)
+            obj = json.loads(js)  # , cls=IntDecoder)
         else:
-            obj = json.loads(js, object_pairs_hook=ODict, cls=IntDecoderOD)
+            # , cls=IntDecoderOD)
+            obj = json.loads(js, object_pairs_hook=ODict)
     except json.decoder.JSONDecodeError as e:
         logging.error(' Bad string to decode:\n==============\n' +
                       lls(js, 500) + '\n==============')

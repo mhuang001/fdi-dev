@@ -891,6 +891,13 @@ def test_StringParameter():
 
     checkjson(v)
 
+    a2 = '1'
+    v = StringParameter(description=a1, value=a2, default=a3,
+                        valid=a5, typecode=a6)
+    assert v.description == a1
+    assert v.value == a2
+    checkjson(v)
+
 
 def test_MetaData():
     # creation

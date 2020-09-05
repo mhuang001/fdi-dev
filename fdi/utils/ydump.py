@@ -34,7 +34,6 @@ ruamel.yaml.add_representer(OrderedDict, MyRepresenter.represent_dict,
 yaml = MyYAML(typ='rt')
 yaml.Representer = MyRepresenter
 yaml.default_flow_style = False
-yaml.indent(mapping=4, sequence=4, offset=2)
 yaml.width = 80
 yaml.allow_unicode = True
 yaml.compact(seq_seq=1, seq_map=True)
@@ -42,40 +41,45 @@ yaml.compact(seq_seq=1, seq_map=True)
 notinited = True
 
 
-def init(classlist=None):
+def yinit(mapping=6, sequence=4, offset=2, register=None):
+    """ Initializes YAML.
+    """
     global notinited
+
+    yaml.indent(mapping=mapping, sequence=sequence, offset=offset)
 
     for n, c in Classes.mapping.items():
         if inspect.isclass(c):
             yaml.register_class(c)
 
-    if classlist:
-        for c in classlist:
+    if register:
+        for c in register:
             if inspect.isclass(c):
                 yaml.register_class(c)
 
     ruamel.yaml.add_representer(Classes.get('ODict'), MyRepresenter.represent_dict,
                                 representer=MyRepresenter)
     notinited = False
+    return yaml
 
 
-def ydump(od, stream=None, register=[]):
+def ydump(od, stream=None, register=None, **kwds):
     """ YAML dump that outputs OrderedDict like dict.
     """
 
     global notinited
-
+    if register is None:
+        register = []
     if notinited:
-        init()
-    #d = ordereddict(od)
-    # d.update(od)
+        yinit(register=register)
+
     d = od
 
     if 0:
         return yaml.dump(d, default_flow_style=False, indent=4,
                          width=60, allow_unicode=True)
     else:
-        return yaml.dump(d, stream)
+        return yaml.dump(d, stream, **kwds)
 
 # https://stackoverflow.com/a/49048250
 

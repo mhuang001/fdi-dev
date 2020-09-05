@@ -31,8 +31,8 @@ def getyaml():
                 print(n+' %s' % type(c).__name__)
                 yaml.register_class(c)
     else:
-        from .ydump import ydump, init
-        init()
+        from .ydump import ydump, yinit
+        yinit()
 
 
 def checkjson(obj, dbg=0):

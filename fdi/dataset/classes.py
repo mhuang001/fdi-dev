@@ -88,16 +88,16 @@ modules whose names (without '.') are in exclude are not imported.
         cls._package.clear()
         SelectiveMetaFinder.exclude = exclude
 
-        print('With %s excluded..' % (str(exclude)))
+        logger.debug('With %s excluded..' % (str(exclude)))
         for modnm, froml in cls.modclass.items():
             if any((x in exclude for x in modnm.split('.'))):
                 continue
-            print('importing %s from %s' % (str(froml), modnm))
+            logger.debug('importing %s from %s' % (str(froml), modnm))
             try:
                 #m = importlib.__import__(modnm, globals(), locals(), froml)
                 m = importlib.import_module(modnm)
             except SelectiveMetaFinder.ExcludedModule as e:
-                logger.error('Did not import %s. %s' %
+                logger.debug('Did not import %s. %s' %
                              (str(froml), str(e)))
                 #ety, enm, tb = sys.exc_info()
             else:

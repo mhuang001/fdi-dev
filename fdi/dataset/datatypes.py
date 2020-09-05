@@ -66,7 +66,7 @@ class Vector(ArrayDataset):
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
-                           components=self.components,
+                           components=list(self.components),
                            unit=self.unit,
                            type=self._type,
                            default=self._default,

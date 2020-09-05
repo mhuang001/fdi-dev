@@ -136,12 +136,15 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
     def setData(self, data):
         """
         """
-        if not issubclass(data.__class__, seqlist) and data is not None:
+        isitr = hasattr(data, '__iter__')  # and hasattr(data, '__next__')
+        if not isitr and data is not None:
             # dataWrapper initializes data as None
             m = 'data in ArrayDataset must be a subclass of Sequence: ' + \
                 data.__class__.__name__
             raise TypeError(m)
-        super(ArrayDataset, self).setData(data)
+        d = None if data is None else \
+            data if hasattr(data, '__getitem__') else list(data)
+        super(ArrayDataset, self).setData(d)
 
     @property
     def default(self):
@@ -230,7 +233,7 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
         # s = OrderedDict(description=self.description, meta=self.meta, data=self.data)  # super(...).serializable()
         s = OrderedDict(description=self.description,
                         meta=self.meta,
-                        data=self.data,
+                        data=list(self.data),
                         type=self._type,
                         default=self._default,
                         typecode=self._typecode,

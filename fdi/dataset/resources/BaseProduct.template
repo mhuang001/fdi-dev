@@ -5,17 +5,13 @@ $WARNING
 $IMPORTS
 
 from .serializable import Serializable
-from .odict import ODict
-from .finetime import FineTime, FineTime1, utcobj
 from .abstractcomposite import AbstractComposite
-from .listener import EventSender, DatasetEvent, DatasetListener, EventType
-from .dataset import CompositeDataset
+from .listener import EventSender, EventType
 from .metadata import AbstractParameter, Parameter, NumericParameter, ParameterTypes, StringParameter, DateParameter
-from .eq import DeepEqual, deepcmp
+from .eq import deepcmp
 from .copyable import Copyable
 from .history import History
 
-from collections import OrderedDict
 import pdb
 
 import logging

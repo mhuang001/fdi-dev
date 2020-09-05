@@ -18,6 +18,18 @@ from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 # a dictionary that translates metadata 'type' field to classname
 from .metadata import ParameterTypes, ParameterDataTypes
 
+import logging
+
+# create logger
+logger = logging.getLogger(__file__)
+logging.basicConfig(stream=sys.stdout,
+                    format='%(asctime)s - %(levelname)7s'
+                           ' - [%(filename)s:%(lineno)3s'
+                           ' - %(funcName)10s()] - %(message)s',
+                    datefmt="%Y-%m-%d %H:%M:%S")
+logging.getLogger().setLevel(logging.DEBUG)
+
+
 installSelectiveMetaFinder()
 
 # make simple demo for fdi
@@ -246,11 +258,23 @@ def readyaml(ypath, ver=None):
                   (fin, ''.join([k + '=' + str(v) + '\n'
                                  for k, v in d.items() if k not in ['metadata', 'datasets']])))
 
-            print('Find attributes:\n%s' % ''.join(
-                ('%20s' % (k+'=' + str(v['default']) if 'default' in v else 'url' + ', ') for k, v in attrs.items())))
-            itr = ('%20s' % (k+'=' + str([c['name'] for c in (v['TABLE']
-                                                              if 'TABLE' in v else [])])) for k, v in datasets.items())
-            print('Find datasets:\n%s' % ', '.join(itr))
+            print('Find attributes:\n%s' %
+                  ''.join(('%20s' % (k+'=' + str(v['default'])
+                                     if 'default' in v else 'url' + ', ')
+                           for k, v in attrs.items()
+                           )))
+            if float(d['schema']) > 1.1:
+                itr = ('%20s' % (k+'=' + str([c for c in (v['TABLE'] if 'TABLE'
+                                                          in v else [])]))
+                       for k, v in datasets.items())
+                print('Find datasets:\n%s' % ', '.join(itr))
+            else:
+                # v1.1 1.0 0.7
+                itr = ('%20s' %
+                       (k+'=' + str([c['name'] for c in (v['TABLE'] if 'TABLE'
+                                                         in v else [])]))
+                       for k, v in datasets.items())
+                print('Find datasets:\n%s' % ', '.join(itr))
             desc[d['name']] = (d, attrs, datasets, fin)
         else:
             # float(d['schema']) <= 0.6:
@@ -382,6 +406,10 @@ if __name__ == '__main__':
     out = opt(ops)
     # print([(x['long'], x['result']) for x in out])
     verbose = out[1]['result']
+    if verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+    else:
+        logging.getLogger().setLevel(logging.INFO)
 
     ypath = out[2]['result']
     tpath = out[3]['result']

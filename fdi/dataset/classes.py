@@ -47,7 +47,9 @@ class Classes_meta(type):
         'fdi.dataset.metadata': ['AbstractParameter', 'Parameter', 'NumericParameter', 'DateParameter', 'StringParameter', 'MetaData'],
         'fdi.dataset.dataset': ['GenericDataset', 'ArrayDataset',
                                 'TableDataset', 'CompositeDataset', 'Column'],
-        'fdi.pal.context': ['Context', 'MapContext', 'RefContainer',
+        'fdi.pal.context': ['AbstractContext', 'Context',
+                            'AbstractMapContext', 'MapContext',
+                            'RefContainer',
                             'ContextRuleException'],
         'fdi.pal.urn': ['Urn'],
         'fdi.pal.productref': ['ProductRef']

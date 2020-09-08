@@ -24,7 +24,7 @@ yamlupgrade:
 
 
 .PHONY: runserver reqs install uninstall vtag FORCE \
-	test test1 test2 test3 test4 \
+	test test1 test2 test3 test4 test5\
 	plots plotall plot_dataset plot_pal plot_pns \
 	docs doc_api doc_plots doc_html
 
@@ -88,6 +88,9 @@ test3:
 
 test4:
 	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py
+
+test5:
+	pytest  $(OPT) $(T) tests/test_utils.py
 
 PLOTDIR	= $(SDIR)/_static 
 plots: plotall plot_dataset plot_pal plot_pns

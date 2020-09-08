@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 #logger.debug('level %d' % (logger.getEffectiveLevel()))
 
 
-class Context(Product):
+class AbstractContext():
     """ A  special kind of Product that can hold references to other Products.
 
 This abstract product introduces the lazy loading and saving of references to Products or ProductRefs that it is holding. It remembers its state.
@@ -19,7 +19,7 @@ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Con
     def __init__(self,  **kwds):
         """
         """
-        super(Context, self).__init__(**kwds)
+        super(AbstractContext, self).__init__(**kwds)
 
     def getAllRefs(self, recursive, includeContexts):
         """ Provides a set of the unique references stored in this context.
@@ -35,7 +35,7 @@ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Con
     def isContext(cls):
         """ Yields true if specified class belongs to the family of contexts.
         """
-        return issubclass(cls, Context)
+        return issubclass(cls, AbstractContext)
 
     def isValid(self):
         """ Provides a mechanism to ensure whether it is valid to store this context in its current state.
@@ -55,6 +55,12 @@ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Con
         """ Creates a dataset with information within this context that is normally not accessible from the normal Product interface.
         """
         raise NotImplementedError()
+
+
+class Context(AbstractContext, Product):
+    """ See docstring of AbstractContext.
+    """
+    pass
 
 
 def applyrules(key, ref, rules):
@@ -143,7 +149,7 @@ class ContextRuleException(ValueError):
     pass
 
 
-class MapContext(Context):
+class AbstractMapContext(AbstractContext):
     """ Allows grouping Products into a map of (String, ProductRef) pairs.
     New entries can be added if they comply to the adding rules of this context. The default behaviour is to allow adding any (String,ProductRef).
 
@@ -186,7 +192,7 @@ class MapContext(Context):
     def __init__(self,  **kwds):
         """
         """
-        super(MapContext, self).__init__(**kwds)
+        super(AbstractMapContext, self).__init__(**kwds)
         self._dirty = False
         self._rule = None  # None means there is no rule.
         refC = RefContainer()
@@ -299,3 +305,16 @@ class MapContext(Context):
         """ Creates a dataset with information within this context that is normally not accessible from the normal Product interface.
         """
         raise NotImplementedError()
+
+
+class MapContext(AbstractMapContext, Context):
+    """See docstring of AbstractMapContext
+    BaseProduct--Product
+                        \\
+    AbstractContext------Contex---------MapContext
+                   \\                 /
+                    AbstractMapContext
+
+    """
+
+    pass

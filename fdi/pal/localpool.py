@@ -159,7 +159,7 @@ class LocalPool(ProductPool):
             with open(pp, 'r') as f:
                 js = f.read()
         except Exception as e:
-            msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
+            msg = 'Load' + pp + 'failed. ' + str(e) + trbk(e)
             logger.error(msg)
             raise e
         return deserializeClassID(js)

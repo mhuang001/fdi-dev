@@ -11,7 +11,6 @@ from fdi.pal.productref import ProductRef
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.urn import Urn, parseUrn, makeUrn
 from fdi.pal.localpool import LocalPool
-from fdi.pal.context import Context
 from fdi.pal.query import AbstractQuery, MetaQuery
 from fdi.dataset.deserialize import deserializeClassID
 from fdi.dataset.product import Product

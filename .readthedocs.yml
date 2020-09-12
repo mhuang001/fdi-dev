@@ -20,8 +20,10 @@ formats: all
 python:
   version: 3.6
   install:
-    - requirements: requirements.txt
+    - requirements:
     - method: pip
       path: .
+      extra_requirements:
+         - docs
     - method: setuptools
       path: .

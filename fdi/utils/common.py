@@ -23,6 +23,35 @@ def trbk2(e):
     return ''.join(tb.stack.format())
 
 
+def exprstrs(self, v='_value'):
+    """ Generates a set of strings for expr() """
+
+    if hasattr(self, v):
+        val = getattr(self, v)
+        if hasattr(self, '_type'):
+            vs = hex(val) if self._type == 'hex' and issubclass(
+                val.__class__, int) else str(val)
+            ts = str(self._type)
+        else:
+            vs = str(val)
+            ts = 'unknown'
+    else:
+        vs = 'unknown'
+        if hasattr(self, '_type'):
+            ts = str(self._type)
+        else:
+            ts = 'unknown'
+
+    ds = str(self.description) if hasattr(
+        self, 'description') else 'unknown'
+    fs = str(self._default) if hasattr(self, '_default') else 'unknown'
+    gs = str(self._valid) if hasattr(self, '_valid') else 'unknown'
+    us = str(self._unit) if hasattr(self, '_unit') else 'unknown'
+    cs = str(self._typecode) if hasattr(self, '_typecode') else 'unknown'
+
+    return (vs, us, ts, ds, fs, gs, cs)
+
+
 def pathjoin(*p):
     """ join path segments with given separater (default '/').
     Useful when '\\' is needed.

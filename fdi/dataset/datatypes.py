@@ -2,13 +2,8 @@
 from numbers import Number
 from collections import OrderedDict
 
-from .serializable import Serializable
-from .odict import ODict
 from .dataset import ArrayDataset
-from .eq import DeepEqual
-from .copyable import Copyable
-from .annotatable import Annotatable
-#from .metadata import ParameterTypes
+
 
 import logging
 # create logger

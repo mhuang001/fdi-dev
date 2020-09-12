@@ -26,7 +26,7 @@ copyright = '2019, 2020 Maohai Huang, NAOC, ESA'
 author = 'Maohai Huang'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.18c'
+release = 'v1.0rc2'
 
 
 # -- General configuration ---------------------------------------------------
@@ -100,7 +100,8 @@ html_js_files = [
 ]
 
 #html_style = 'css/yourtheme.css'
-copybutton_prompt_text = ">>> "
-copybutton_prompt_text1 = "... "
+copybutton_prompt_text = r">>> |\.\.\. |\.\.\.: |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
+copybutton_prompt_is_regexp = True
 copybutton_only_copy_prompt_lines = True
 copybutton_image_path = 'copy-button-yellow.svg'
+copybutton_remove_prompts = True

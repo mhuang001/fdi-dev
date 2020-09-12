@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+from .metadataholder import MetaDataHolder
+
+import pdb
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-from .metadataholder import MetaDataHolder
-from .metadata import MetaData
 
 
 class Attributable(MetaDataHolder):
@@ -13,12 +14,10 @@ class Attributable(MetaDataHolder):
     notion of meta data. """
 
     def __init__(self, meta=None, **kwds):
-        if meta is None:
-            self.setMeta(MetaData())
-        else:
-            self.setMeta(meta)
-        super(Attributable, self).__init__(**kwds)
+        # pdb.set_trace()
+        super(Attributable, self).__init__(meta=meta, **kwds)
         #print('**' + self._meta.toString())
+        # if not self.hasMeta()
 
     @property
     def meta(self):

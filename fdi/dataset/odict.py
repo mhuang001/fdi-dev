@@ -79,7 +79,7 @@ class ODict(UserDict, Serializable):
 
     def __repr__(self):
         it = [bstr(k, False) + ':' + bstr(v, False)
-              for k, v in self.items()]
+              for k, v in self.data.items()]
         s = ', '.join(it)
         if len(s) > 70:
             s = ',\n\t'.join(it)
@@ -88,7 +88,7 @@ class ODict(UserDict, Serializable):
 
     def toString(self, matprint=None, trans=True, level=0):
         d = ''
-        for n, v in self.items():
+        for n, v in self.data.items():
             d += '\n# [ ' + n + ' ]\n'
             d += bstr(v, matprint=matprint, trans=trans, level=level)
 

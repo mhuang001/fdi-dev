@@ -15,7 +15,20 @@ change the git line to
 ```
 to install as a user.
 
-Install the dependencies if needed. python 3.6 for pal and pns, 2.7 for dataset
+If plan to compile doc, install the dependencies:
+```
+		make install_with_DOC
+```
+
+To uninstall:
+```
+		make uninstall
+```
+
+To generate ```baseproduct.py``` and ```product.py``` from schema in fdi/dataset/resources```:
+```
+		make py
+```
 
 For more examples see tests/test_*.py
 

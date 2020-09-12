@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 from .ndprint import ndprint
 from .odict import bstr
 from .listener import DatasetListener
@@ -6,6 +7,9 @@ from .datawrapper import DataWrapperMapper
 from .composite import Composite
 from .annotatable import Annotatable
 from .attributable import Attributable
+
+import pdb
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -17,6 +21,7 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
     """
 
     def __init__(self, **kwds):
+        # pdb.set_trace()
         super(AbstractComposite, self).__init__(**kwds)
 
     def __repr__(self):

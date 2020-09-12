@@ -9,7 +9,7 @@ from .datawrapper import DataWrapper, DataContainer
 from .eq import DeepEqual
 from .copyable import Copyable
 from .annotatable import Annotatable
-from .metadata import exprstrs
+from ..utils.common import exprstrs
 from .typed import Typed
 
 from collections import OrderedDict
@@ -275,6 +275,10 @@ class TableModel(DataContainer):
     def getColumnName(self, columnIndex):
         """ Returns the name of the column at columnIndex. """
         return self.col(columnIndex)[0]
+
+    def getColumnNames(self):
+        """ Returns the column names. """
+        return list(self.data.keys())
 
     def getRowCount(self):
         """ Returns the number of rows in the model. """

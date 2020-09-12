@@ -12,7 +12,7 @@ def read(fname):
 
 setup(
     name="fdi",
-    version="1.0rc1",
+    version="1.0rc2",
     author="Maohai Huang",
     author_email="mhuang@earth.bao.ac.cn",
     description=("Flexible Data Integrator"),
@@ -28,17 +28,22 @@ setup(
         'nox>=2019.11.9',
         'requests>=2.23.0',
         'filelock>=3.0.12',
-        'aiohttp_theme>=0.1.6',
         'aiohttp>=3.6.2',
-        'sphinx_rtd_theme>=0.4.3',
         'Flask_HTTPAuth>=3.3.0',
         'Flask>=1.1.2',
         'ruamel.yaml>=0.15.0',
-        'sphinx-copybutton @ git+https://github.com/mhuang001/sphinx-copybutton.git'
     ],
+    extras_require={
+        'DOC': ['aiohttp_theme>=0.1.6',
+                'sphinx_rtd_theme>=0.4.3',
+                'sphinx-copybutton>=0.3.0'
+                ]
+    },
     classifiers=[
         "Development Status :: 3 - Beta",
         "Topic :: Utilities",
         "License :: OSI Approved :: GPL License",
     ],
 )
+
+#  @ git+https://github.com/mhuang001/sphinx-copybutton.git'

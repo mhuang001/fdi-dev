@@ -1,36 +1,45 @@
 
 ================
-fdi Quick Start
+FDI Quick Start
 ================
 
 .. contents:: Contents:
 
    
-The following demostrates important dataset and pal functionalities. It was made by running ``fdi/resources/example.py`` with command ``elpy-shell-send-group-and-step [c-c c-y c-g]`` in ``emacs``.
+The following demostrates important dataset and pal functionalities.
 
-You can copy the code from code blocks by clicking the ``copy`` icon on the top-right, with he prompts and results removed.
+
+.. tip::
+   
+   You can copy the code from code blocks by clicking the ``copy`` icon on the top-right, with he prompts and results removed.
+
+
 
 
 >>> # import these first.
+... import pdb
 ... import copy
 ... import getpass
 ... import os
 ... from datetime import datetime
 ... import logging
 ... from fdi.dataset.product import Product
-... from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
-... from fdi.dataset.finetime import FineTime1, utcobj
+... from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter
+... from fdi.dataset.finetime import FineTime, FineTime1
 ... from fdi.dataset.dataset import ArrayDataset, TableDataset, Column
+... from fdi.dataset.classes import Classes
 ... from fdi.pal.context import Context, MapContext
 ... from fdi.pal.productref import ProductRef
-... from fdi.pal.query import MetaQuery
+... from fdi.pal.query import AbstractQuery, MetaQuery
 ... from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 ... from fdi.pal.productstorage import ProductStorage
+... # initialize the white-listed class dictionary
+... cmap = Classes.updateMapping()
 
 
 dataset
 =======
-
+The data model.
 
 ArrayDataset
 ------------
@@ -38,9 +47,16 @@ ArrayDataset
 
 >>> # Creation
 ... a1 = [1, 4.4, 5.4E3, -22, 0xa2]      # a 1D array of data
-... v = ArrayDataset(data=a1, unit='ev', description='5 elements')
+... # quick
+... v = ArrayDataset(a1)
 ... v
-ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta = MetaData{[], listeners = []}}
+ArrayDataset{ [1, 4.4, 5400.0, -22, 162] (None) <None>, "UNKNOWN", dflt None, tcode=None, meta=MetaData{[], listeners = []}}
+
+>>> # clear
+... v = ArrayDataset(data=a1, unit='ev', description='5 elements',
+...                  typ_='float', default=1.0, typecode='f')
+... v
+ArrayDataset{ [1, 4.4, 5400.0, -22, 162] (ev) <float>, "5 elements", dflt 1.0, tcode=f, meta=MetaData{[], listeners = []}}
 
 >>> # data access
 ... v[2]
@@ -49,7 +65,8 @@ ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta 
 >>> v.unit
 'ev'
 
->>> v.unit = 'm'
+>>> # change attributes
+... v.unit = 'm'
 ... v.unit
 'm'
 
@@ -62,7 +79,8 @@ ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta 
 -22
 162
 
->>> [m**3 for m in v if m > 0 and m < 40]
+>>> # a filter example
+... [m**3 for m in v if m > 0 and m < 40]
 [1, 85.18400000000003]
 
 >>> # slice
@@ -72,7 +90,8 @@ ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta 
 >>> v[2:-1]
 [5400.0, -22]
 
->>> v.data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+>>> # a 2D array
+... v.data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 ... v[0:2]
 [[1, 2, 3], [4, 5, 6]]
 
@@ -84,62 +103,66 @@ ArrayDataset{ [1, 4.4, 5400.0, -22, 162] <ev>, description = "5 elements", meta 
 ... print(x.toString())
 
 ::
+   
+   # ArrayDataset
+   # description = "UNKNOWN"
+   # meta = MetaData{[], listeners = []}
+   # unit = "None"
+   # data = 
 
-	# ArrayDataset
-	# description = "UNKNOWN"
-	# meta = MetaData{[], listeners = []}
-	# unit = "None"
-	# data = 
-	
-	0 1 2 3 
-	1 2 3 4 
-	2 3 4 5 
-	3 4 5 6 
-	4 5 6 7 
-	
-	
-	1 2 3 4 
-	2 3 4 5 
-	3 4 5 6 
-	4 5 6 7 
-	5 6 7 8 
-	
-	
-	2 3 4 5 
-	3 4 5 6 
-	4 5 6 7 
-	5 6 7 8 
-	6 7 8 9 
-	
-	
-	#=== dimension 4
-	
-	1 2 3 4 
-	2 3 4 5 
-	3 4 5 6 
-	4 5 6 7 
-	5 6 7 8 
-	
-	
-	2 3 4 5 
-	3 4 5 6 
-	4 5 6 7 
-	5 6 7 8 
-	6 7 8 9 
-	
-	
-	3 4 5 6 
-	4 5 6 7 
-	5 6 7 8 
-	6 7 8 9 
-	7 8 9 10 
-	
-	
-	#=== dimension 4
-	
+   0 1 2 3 
+   1 2 3 4 
+   2 3 4 5 
+   3 4 5 6 
+   4 5 6 7 
+
+
+   1 2 3 4 
+   2 3 4 5 
+   3 4 5 6 
+   4 5 6 7 
+   5 6 7 8 
+
+
+   2 3 4 5 
+   3 4 5 6 
+   4 5 6 7 
+   5 6 7 8 
+   6 7 8 9 
+
+
+   #=== dimension 4
+
+   1 2 3 4 
+   2 3 4 5 
+   3 4 5 6 
+   4 5 6 7 
+   5 6 7 8 
+
+
+   2 3 4 5 
+   3 4 5 6 
+   4 5 6 7 
+   5 6 7 8 
+   6 7 8 9 
+
+
+   3 4 5 6 
+   4 5 6 7 
+   5 6 7 8 
+   6 7 8 9 
+   7 8 9 10 
+
+
+   #=== dimension 4
+
+
 
 TableDataset
 ------------
+
+TableDataset is mainly a name-Column pairs dictionary with metadata.
+Columns are ArrayDatasets under a different name.
 
 
 >>> # Creation
@@ -148,67 +171,62 @@ TableDataset
 ...       ]
 ... v = TableDataset(data=a1)
 ... v
-TableDataset{ description = "UNKNOWN", meta = MetaData{[], listeners = []}, data = "OD{'col1':Column{ [1, 4.4, 5400.0] <eV>, description = "UNKNOWN", meta = MetaData{[], listeners = []}}, 'col2':Column{ [0, 43.2, 2000.0] <cnt>, description = "UNKNOWN", meta = MetaData{[], listeners = []}}}"}
+TableDataset{ description = "UNKNOWN", meta = MetaData{[], listeners = []}, data = "OD{
+	'col1':Column{ [1, 4.4, 5400.0] (eV) <None>, "UNKNOWN", dflt None, tcode=None, meta=MetaData{[], listeners = []}},
+	'col2':Column{ [0, 43.2, 2000.0] (cnt) <None>, "UNKNOWN", dflt None, tcode=None, meta=MetaData{[], listeners = []}}	
+}"}
 
->>> # many other ways to create a TableDataset
+>>> # one of many other ways to create a TableDataset
 ... v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
 ...                         ('col2', [0, 43.2, 2E3], 'cnt')])
 ... v == v3
 True
 
->>> # quick and dirty. data are list of lists without names or units
+>>> # quick tabledataset. data are list of lists without names or units
 ... a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
 ... v5 = TableDataset(data=a5)
 ... print(v5.toString())
 
 ::
-   
-  # TableDataset
-  # description = "UNKNOWN"
-  # meta = MetaData{[], listeners = []}
-  # data = 
-  
-  # col1 col2
-  # None None
-  1 0 
-  4.4 43.2 
-  5400.0 2000.0 
-  
+	
+   # TableDataset
+   # description = "UNKNOWN"
+   # meta = MetaData{[], listeners = []}
+   # data = 
+
+   # col1 col2
+   # None None
+   1 0 
+   4.4 43.2 
+   5400.0 2000.0 
+
 
 
 >>> # access
 ... # get names of all column
-... v5.data.keys()
-odict_keys(['col1', 'col2'])
+... v5.getColumnNames()
+['col1', 'col2']
 
 >>> # get a list of all columns' data
 ... [c.data for c in v5.data.values()]   # == a5
 [[1, 4.4, 5400.0], [0, 43.2, 2000.0]]
 
 >>> # get column by name
-... c_1 = v5['col1']
-... c_1
-Column{ [1, 4.4, 5400.0] <None>, description = "UNKNOWN", meta = MetaData{[], listeners = []}}
+... my_column = v5['col1']
+... my_column
+Column{ [1, 4.4, 5400.0] (None) <None>, "UNKNOWN", dflt None, tcode=None, meta=MetaData{[], listeners = []}}
 
 >>> #  indexOf
-... v5.indexOf('col1')  # == u.indexOf(c_1)
+... v5.indexOf('col1')  # == u.indexOf(my_column)
 0
 
->>> v5.indexOf(c_1)
+>>> v5.indexOf(my_column)
 0
-
->>> # get a cell
-... v5['col2'][1]    # 43.2
-43.2
 
 >>> # set cell value
 ... v5['col2'][1] = 123
 ... v5['col2'][1]    # 123
 123
-
->>> v5.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
-... v5.getValueAt(rowIndex=1, columnIndex=1)    # 42
-42
 
 >>> # unit access
 ... v3['col1'].unit  # == 'eV'
@@ -218,49 +236,29 @@ Column{ [1, 4.4, 5400.0] <None>, description = "UNKNOWN", meta = MetaData{[], li
 ... # column set / get
 ... u = TableDataset()
 ... c1 = Column([1, 4], 'sec')
-... u.addColumn('col3', c1)
+... u.addColumn('time', c1)
 ... u.columnCount        # 1
 1
 
 >>> # for non-existing names set is addColum.
-... c2 = Column([2, 3], 'eu')
-... u['col4'] = c2
-... u['col4'][0]    # 2
+... u['money'] = Column([2, 3], 'eu')
+... u['money'][0]    # 2
 2
 
 >>> u.columnCount        # 2
 2
 
->>> # replace column for existing names
-... c3 = Column([5, 7], 'j')
-... u['col4'] = c3
-... u['col4'][0]    # c3.data[0]
-5
-
 >>> # addRow
 ... u.rowCount    # 2
 2
 
->>> cc = copy.deepcopy(c1)
-... c33, c44 = 3.3, 4.4
-... cc.append(c33)
-... u.addRow({'col4': c44, 'col3': c33})
+>>> u.addRow({'money': 4.4, 'time': 3.3})
 ... u.rowCount    # 3
 3
 
->>> u['col3']    # cc
-Column{ [1, 4, 3.3] <sec>, description = "UNKNOWN", meta = MetaData{[], listeners = []}}
-
->>> # removeRow
-... u.removeRow(u.rowCount - 1)    # [c33, c44]
-[3.3, 4.4]
-
->>> u.rowCount    # 2
-2
-
 >>> # syntax ``in``
-... [c for c in u]  # list of column names ['col1', 'col2']
-['col3', 'col4']
+... [c for c in u]  # list of column names ['time', 'money']
+['time', 'money']
 
 >>> # run this to see ``toString()``
 ... ELECTRON_VOLTS = 'eV'
@@ -274,25 +272,25 @@ Column{ [1, 4, 3.3] <sec>, description = "UNKNOWN", meta = MetaData{[], listener
 ... print(x.toString())
 
 ::
-  
-  # TableDataset
-  # description = "Example table"
-  # meta = MetaData{[], listeners = []}
-  # data = 
-  
-  # Time Energy
-  # sec eV
-  0.0 100.0 
-  1.0 102.0 
-  2.0 104.0 
-  3.0 106.0 
-  4.0 108.0 
-  5.0 110.0 
-  6.0 112.0 
-  7.0 114.0 
-  8.0 116.0 
-  9.0 118.0 
-  
+	
+   # TableDataset
+   # description = "Example table"
+   # meta = MetaData{[], listeners = []}
+   # data = 
+
+   # Time Energy
+   # sec eV
+   0.0 100.0 
+   1.0 102.0 
+   2.0 104.0 
+   3.0 106.0 
+   4.0 108.0 
+   5.0 110.0 
+   6.0 112.0 
+   7.0 114.0 
+   8.0 116.0 
+   9.0 118.0 
+
 
 
 Parameter
@@ -301,66 +299,18 @@ Parameter
 
 >>> # Creation
 ... # standard way -- with keyword arguments
-... a1 = 'a test parameter'
-... a2 = 300
-... a3 = 'integer'
-... v = Parameter(description=a1, value=a2, type_=a3)
-... v.description   # == a1
-'a test parameter'
+... v = Parameter(value=9000, description='Average age', typ_='integer')
+... v.description   # 'Average age
+'Average age'
 
->>> v.value   # == a2
-300
+>>> v.value   # == 9000
+9000
 
->>> v.type_   # == a3
+>>> v.type   # == 'integer'
 'integer'
-
->>> # with no argument
-... v = Parameter()
-... v.description   # == 'UNKNOWN# inherited from Anotatable
-'UNKNOWN'
-
->>> v.value   # is None
-
->>> v.type_   # == ''
-''
-
->>> # make a blank one then set attributes
-... v = Parameter(description=a1)
-... v.description   # == a1
-'a test parameter'
-
->>> v.value    # is None
-
->>> v.type_   # == ''
-''
-
->>> v.setValue(a2)
-... v.setType(a3)
-... v.description   # == a1
-'a test parameter'
-
->>> v.value   # == a2
-300
-
->>> v.type_   # == a3
-'integer'
-
->>> # test equivalence of v.setXxxx(a) and v.xxx = a
-... a1 = 'test score'
-... a2 = 98
-... v = Parameter()
-... v.description = a1
-... v.value = a2
-... v.description   # == a1
-'test score'
-
->>> v.value   # == a2
-98
 
 >>> # test equals
-... b1 = ''.join(a1)  # make a new string copy
-... b2 = a2 + 0  # make a copy
-... v1 = Parameter(description=b1, value=b2)
+... v1 = Parameter(description='Average age', value=9000, typ_='integer')
 ... v.equals(v1)
 True
 
@@ -374,51 +324,82 @@ False
 >>> v != v1  # True
 True
 
+>>> # NumericParameter with two valid values and a valid range.
+... v = NumericParameter(value=9000, valid={
+...                      0: 'OK1', 1: 'OK2', (100, 9900): 'Go!'})
+
+>>> # There are thee valid conditions
+... v
+NumericParameter{ 9000 (None) <integer>, "UNKNOWN", dflt None, vld [[0, 'OK1'], [1, 'OK2'], [[100, 9900], 'Go!']] tcode=None}
+
+>>> # The current value is valid
+... v.isvalid()
+True
+
+>>> # check if other values are valid according to specification of this parameter
+... v.validate(600)  # valid
+(600, 'Go!')
+
+>>> v.validate(20)  # invalid
+(Invalid, 'Invalid')
+
 
 Metadata
 --------
+A container for named parameters.
 
 
 >>> # Creation
-... a1 = 'age'
-... a2 = NumericParameter(description='since 2000',
-...                       value=20, unit='year', type_='integer')
+... a1 = 'weight'
+... a2 = NumericParameter(description='How heavey is the robot.',
+...                       value=20, unit='kg', typ_='integer')
 ... v = MetaData()
+... # place the parameter with a name
 ... v.set(a1, a2)
+... # get the parameter with the name
 ... v.get(a1)   # == a2
-NumericParameter{ 20 (year) <integer>, "since 2000"}
+NumericParameter{ 20 (kg) <integer>, "How heavey is the robot.", dflt None, vld None tcode=None}
 
 >>> # add more parameter
-... a3 = 'Bob'
-... v.set(name='name', newParameter=Parameter(a3))
-... v.get('name').value   # == a3
-'Bob'
+... v.set(name='job', newParameter=StringParameter('teacher'))
+... # get the value of the parameter
+... v.get('job').value   # == 'teacher'
+'teacher'
 
 >>> # access parameters in metadata
 ... v = MetaData()
-... # a more readable way to set a parameter
-... v[a1] = a2  # DRM doc case
-... # a more readable way to get a parameter
+... # a more readable way to set/get a parameter than "v.set(a1,a2)", "v.get(a1)"
+... v[a1] = a2
 ... v[a1]   # == a2
-NumericParameter{ 20 (year) <integer>, "since 2000"}
+NumericParameter{ 20 (kg) <integer>, "How heavey is the robot.", dflt None, vld None tcode=None}
 
->>> v.get(a1)   # == a2
-NumericParameter{ 20 (year) <integer>, "since 2000"}
+>>> # same result as...
+... v.get(a1)   # == a2
+NumericParameter{ 20 (kg) <integer>, "How heavey is the robot.", dflt None, vld None tcode=None}
 
->>> v['date'] = Parameter(description='take off at',
-...                       value=FineTime1.datetimeToFineTime(datetime.now(tz=utcobj)))
-... # names of all parameters
-... [n for n in v]   # == [a1, 'date']
-['age', 'date']
+>>> # Date type parameter use International Atomic Time (TAI) to keep time,
+... # in 1-microsecond precission
+... v['birthday'] = Parameter(description='was made on',
+...                           value=FineTime('2020-09-09T12:34:56.789098 UTC'))
+... v['birthday'].value.tai
+1978346096789098
 
->>> print(v.toString())
-MetaData{[age = NumericParameter{ 20 (year) <integer>, "since 2000"}, date = Parameter{ 108120221290 <integer>, "take off at"}, ], listeners = []}
+>>> # names of all parameters
+... [n for n in v]   # == ['weight', 'birthday']
+['weight', 'birthday']
+
+>>> # string presentation
+... print(v.toString())
+MetaData{[weight = NumericParameter{ 20 (kg) <integer>, "How heavey is the robot.", dflt None, vld None tcode=None}, birthday = Parameter{ 2020-09-09T12:34:56.-210901 TAI(1978346096789098) <finetime>, "was made on", dflt None, vld None}, ], listeners = []}
 
 >>> # remove parameter
 ... v.remove(a1)  # inherited from composite
 ... print(v.size())  # == 1
 1
 
+>>> # simplifed string presentation
+... print(v.toString(level=1))
+MetaData{[birthday = { 2020-09-09T12:34:56.-210901 TAI(1978346096789098) }, ], listeners = []}
 
 Product
 -------
@@ -454,14 +435,13 @@ Product
 ... x["Spectrum"] = TableDataset(data=s1)
 ... print(x["Spectrum"].toString())
 
-
 ::
-
+	
    # TableDataset
    # description = "UNKNOWN"
    # meta = MetaData{[], listeners = []}
    # data = 
-   
+
    # col1 col2
    # eV cnt
    1 0 
@@ -493,59 +473,59 @@ Product
 ... x.creator   # == a1
 'or else'
 
->>> # Demo ``toString()`` function. The result should be ::
-... print(x.toString())
-
+>>> # Demo ``toString()`` function. The result (detail level 1) should be :
+... print(x.toString(level=1))
 
 ::
 	
-	# Product
-	# description = "product example with several datasets"
-	# meta = MetaData{[description = Parameter{ product example with several datasets <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identification. Fully qualified Python class name or CARD."}, creator = Parameter{ or else <string>, "UNKNOWN"}, creationDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Creation date of this product"}, rootCause = Parameter{ UNKOWN <string>, "Reason of this run of pipeline."}, schema = Parameter{ 0.3 <string>, "Version of product schema"}, startDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal start time  of this product."}, endDate = Parameter{ 2017-01-01T00:00:00.000000 TAI(0) <finetime>, "Nominal end time  of this product."}, instrument = Parameter{ Crystal-Ball <string>, "Instrument that generated data of this product"}, modelName = Parameter{ Mk II <string>, "Model name of the instrument of this product"}, mission = Parameter{ _AGS <string>, "Name of the mission."}, ], listeners = []}
-	# History
-	# description = "UNKNOWN"
-	# meta = MetaData{[], listeners = []}
-	# data = 
-	
-	# data = 
-	
-	
-	# [ RawImage ]
-	# ArrayDataset
-	# description = "image1"
-	# meta = MetaData{[], listeners = []}
-	# unit = "ev"
-	# data = 
-	
-	1 4 7 
-	2 5 8 
-	3 6 9 
-	
-	
-	# [ QualityImage ]
-	# ArrayDataset
-	# description = "UNKNOWN"
-	# meta = MetaData{[], listeners = []}
-	# unit = "None"
-	# data = 
-	
-	0.1 4000.0 -2 
-	0.5 60000000.0 0 
-	0.7 8 3.1 
-	
-	
-	# [ Spectrum ]
-	# TableDataset
-	# description = "UNKNOWN"
-	# meta = MetaData{[], listeners = []}
-	# data = 
-	
-	# col1 col2
-	# eV cnt
-	1 0 
-	4.4 43.2 
-	5400.0 2000.0 
-	
+   # Product
+   # description = "product example with several datasets"
+   # meta = MetaData{[description = { product example with several datasets }, type = { Product }, creator = { or else }, creationDate = { 2017-01-01T00:00:00.0 TAI(0) }, rootCause = { UNKNOWN }, version = { 0.6 }, startDate = { 2017-01-01T00:00:00.0 TAI(0) }, endDate = { 2017-01-01T00:00:00.0 TAI(0) }, instrument = { Crystal-Ball }, modelName = { Mk II }, mission = { _AGS }, ], listeners = []}
+   # History
+   # description = "UNKNOWN"
+   # meta = MetaData{[], listeners = []}
+   # data = 
+
+   # data = 
+
+
+   # [ RawImage ]
+   # ArrayDataset
+   # description = "image1"
+   # meta = MetaData{[], listeners = []}
+   # unit = "ev"
+   # data = 
+
+   1 4 7 
+   2 5 8 
+   3 6 9 
+
+
+   # [ QualityImage ]
+   # ArrayDataset
+   # description = "UNKNOWN"
+   # meta = MetaData{[], listeners = []}
+   # unit = "None"
+   # data = 
+
+   0.1 4000.0 -2 
+   0.5 60000000.0 0 
+   0.7 8 3.1 
+
+
+   # [ Spectrum ]
+   # TableDataset
+   # description = "UNKNOWN"
+   # meta = MetaData{[], listeners = []}
+   # data = 
+
+   # col1 col2
+   # eV cnt
+   1 0 
+   4.4 43.2 
+   5400.0 2000.0 
+
+
 
 pal
 ===
@@ -570,7 +550,7 @@ Create a product and a productStorage with a pool registered
 ... PoolManager.removeAll()
 
 >>> # create a prooduct and save it to a pool
-... x = Product(description='in store')
+... x = Product(description='save me in store')
 ... # add a tabledataset
 ... s1 = [('energy', [1, 4.4, 5.6], 'eV'), ('freq', [0, 43.2, 2E3], 'Hz')]
 ... x["Spectrum"] = TableDataset(data=s1)
@@ -581,8 +561,9 @@ ProductStorage { pool= OD{'file:///tmp/demopool_mh':LocalPool { pool= file:///tm
 
 >>> # save the product and get a reference
 ... prodref = pstore.save(x)
+... # This gives detailed information of the product being referenced
 ... print(prodref)
-ProductRef{ ProductURN=urn:file:///tmp/demopool_mh:fdi.dataset.product.Product:0, meta=MetaData{[description = Parameter{ in store <string>, "Description of this product"}, type = Parameter{ Product <string>, "Product Type identificat...}
+ProductRef{ ProductURN=urn:file:///tmp/demopool_mh:fdi.dataset.product.Product:0, meta=MetaData{[description = StringParameter{ "save me in store", "Description of this product", dflt UNKNOWN, vld None tcode=B}, type = StringParameter{ "Product", "Product Type identification. Name of class or CARD.", dflt BaseProduct, vld None tcode=B}, creator = StringParameter{ "UNKNOWN", "Generator of this product.", dflt UNKNOWN, vld None tcode=B}, creationDate = DateParameter{ "2017-01-01T00:00:00.0 TAI(0)", "Creation date of this product", dflt 1958-01-01T00:00:00.0 TAI(0), vld None tcode=%Y-%m-%dT%H:%M:%S.%f UTC}, rootCause = StringParameter{ "UNKNOWN", "Reason of this run of pipeline.", dflt UNKNOWN, vld None tcode=B}, version = StringParameter{ "0.6", "Version of product schema", dflt 0.6, vld None tcode=B}, startDate = DateParameter{ "2017-01-01T00:00:00.0 TAI(0)", "Nominal start time  of this product.", dflt 1958-01-01T00:00:00.0 TAI(0), vld None tcode=%Y-%m-%dT%H:%M:%S.%f UTC}, endDate = DateParameter{ "2017-01-01T00:00:00.0 TAI(0)", "Nominal end time  of this product.", dflt 1958-01-01T00:00:00.0 TAI(0), vld None tcode=%Y-%m-%dT%H:%M:%S.%f UTC}, instrument = StringParameter{ "UNKNOWN", "Instrument that generated data of this product", dflt UNKNOWN, vld None tcode=B}, modelName = StringParameter{ "UNKNOWN", "Model name of the instrument of this product", dflt UNKNOWN, vld None tcode=B}, mission = StringParameter{ "_AGS", "Name of the mission.", dflt _AGS, vld None tcode=B}, ], listeners = []}}
 
 >>> # get the urn string
 ... urn = prodref.urn
@@ -594,6 +575,10 @@ urn:file:///tmp/demopool_mh:fdi.dataset.product.Product:0
 ... print(newp == x)   # == True
 True
 
+>>> print("""
+... Context: a Product with References
+... ----------------------------------
+... """)
 
 Context: a Product with References
 ----------------------------------
@@ -611,8 +596,8 @@ ProductRef{ ProductURN=urn:mem:///default:fdi.dataset.product.Product:0, meta=No
 
 >>> # A productStorage with a pool on disk
 ... pref2 = pstore.save(p2)
-... pref2
-ProductRef{ ProductURN=urn:file:///tmp/demopool_mh:fdi.dataset.product.Product:1, meta=MetaData{[description = Parameter{ p2 <string>, "Description of this p...
+... pref2.urn
+'urn:file:///tmp/demopool_mh:fdi.dataset.product.Product:1'
 
 >>> # how many prodrefs do we have? (do not use len() due to classID, version)
 ... map1['refs'].size()   # == 0
@@ -664,8 +649,8 @@ True
 True
 
 
-Query a ProductStorage
------------------------
+Query a ProdStorage
+-------------------
 
 
 >>> # clean possible data left from previous runs
@@ -703,13 +688,16 @@ Query a ProductStorage
 ...     print(r.urn)
 ... # Two pools, 7 products
 ... # [P P P C] [C M M]
-urn:file:///tmp/pool_mh:fdi.dataset.product.Product:0
-urn:file:///tmp/pool_mh:fdi.dataset.product.Product:1
-urn:file:///tmp/pool_mh:fdi.dataset.product.Product:2
-urn:file:///tmp/pool_mh:fdi.pal.context.Context:0
-urn:file:///tmp/newpool_mh:fdi.pal.context.Context:0
-urn:file:///tmp/newpool_mh:fdi.pal.context.MapContext:0
-urn:file:///tmp/newpool_mh:fdi.pal.context.MapContext:1
+
+::
+	
+   urn:file:///tmp/pool_mh:fdi.dataset.product.Product:0
+   urn:file:///tmp/pool_mh:fdi.dataset.product.Product:1
+   urn:file:///tmp/pool_mh:fdi.dataset.product.Product:2
+   urn:file:///tmp/pool_mh:fdi.pal.context.Context:0
+   urn:file:///tmp/newpool_mh:fdi.pal.context.Context:0
+   urn:file:///tmp/newpool_mh:fdi.pal.context.MapContext:0
+   urn:file:///tmp/newpool_mh:fdi.pal.context.MapContext:1
 
 >>> # register the new pool above to the  1st productStorage
 ... pstore.register(newpoolname)
@@ -738,17 +726,15 @@ urn:file:///tmp/newpool_mh:fdi.pal.context.MapContext:1
 ... [r.product.instrument for r in res]
 ['fatman 12', 'fatman 16']
 
->>> # same as above but query is on the product. this is slow.
-... q = AbstractQuery(Product, 'p', '"n 1" in p.instrument')
-... res = pstore.select(q)
-... # [3,4]
-... [r.product.instrument for r in res]
-['fatman 12', 'fatman 16']
-
 >>> 
-
 
 pns
 ===
 
 See the installation and testing sections of the pns page.
+
+
+.. tip::
+   
+The demo above was made by running ``fdi/resources/example.py`` with command ``elpy-shell-send-group-and-step [c-c c-y c-g]`` in ``emacs``. The command is further simplified to control-<tab> with the following in ~/.init.el:
+``(add-hook 'elpy-mode-hook (lambda () (local-set-key [C-tab] (quote elpy-shell-send-group-and-step))))``

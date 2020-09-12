@@ -15,6 +15,8 @@ from .annotatable import Annotatable
 from .finetime import FineTime, FineTime1, utcobj
 from .classes import Classes
 from .typed import Typed
+from .invalid import INVALID
+from ..utils.common import exprstrs
 
 import pdb
 
@@ -35,7 +37,8 @@ ParameterTypes = {
     'float': 'float',
     'string': 'str',
     'boolean': 'bool',
-    'finetime': 'FineTime1',
+    'finetime': 'FineTime',
+    'finetime1': 'FineTime1',
     'baseProduct': 'BaseProduct',
     'mapContext': 'MapContext',
     'product': 'Product',
@@ -260,8 +263,6 @@ class Parameter(AbstractParameter, Typed):
     value=default, description='UNKNOWN'
     """
 
-    INVALID = object()
-
     def __init__(self, value=None, description='UNKNOWN', typ_='', default=None, valid=None, **kwds):
         """ invoked with no argument results in a parameter of
         None value and 'UNKNOWN' description ''. typ_ ParameterTypes[''], which is None.
@@ -402,12 +403,12 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             valid) == 0 else [t2l([k, v]) for k, v in valid.items()] if issubclass(valid.__class__, dict) else t2l(valid)
 
     def isvalid(self):
-        return self.validate(self.value)[0] != Parameter.INVALID
+        return self.validate(self.value)[0] is not INVALID
 
     def validate(self, value):
         """ returns the valid value and the rule name if matching a rule.
 
-        (Parameter.INVALID, 'Invalid') if no matching is found.
+        (INVALID, 'Invalid') if no matching is found.
         (value, 'Default') if rule set is empty.
         """
         ruleset = self.getValid()
@@ -418,37 +419,37 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         vt = ParameterDataTypes[type(value).__name__]
 
         if st is not None and st != '' and vt != st:
-            return (Parameter.INVALID, 'Type '+vt)
+            return (INVALID, 'Type '+vt)
 
         for rn in ruleset:
             rule, name = tuple(rn)
             if issubclass(rule.__class__, (tuple, list)):
                 if rule[0] is Ellipsis:
-                    res = Parameter.INVALID if (value > rule[1]) else value
+                    res = INVALID if (value > rule[1]) else value
                 elif rule[1] is Ellipsis:
-                    res = Parameter.INVALID if (value < rule[0]) else value
+                    res = INVALID if (value < rule[0]) else value
                 elif rule[0] >= rule[1]:
                     # they are e.g. [0B011000,0b11]
                     v = masked(value, rule[0])
-                    res = v if v == rule[1] else Parameter.INVALID
+                    res = v if v == rule[1] else INVALID
                 else:
                     # range
-                    res = Parameter.INVALID if (value < rule[0]) or (
+                    res = INVALID if (value < rule[0]) or (
                         value > rule[1]) else value
             else:
                 # discrete value
-                res = value if rule == value else Parameter.INVALID
-            if res != Parameter.INVALID:
+                res = value if rule == value else INVALID
+            if res is not INVALID:
                 return (res, name)
-        return (Parameter.INVALID, 'Invalid')
+        return (INVALID, 'Invalid')
 
     def setValue(self, value):
         """ Replaces the current value of this parameter.
 
         If value is None set it to default.
-        If given/current typ_ is '' and arg value's type is in ParameterTypes both value and type are updated to the suitable one in ParameterDataTypes; or else TypeError is raised.
-        If value type and given/current typ_ are different.
-            Incompatible value and typ_ will get a TypeError.
+        If given/current type is '' and arg value's type is in ParameterTypes both value and type are updated to the suitable one in ParameterDataTypes; or else TypeError is raised.
+        If value type and given/current type are different.
+            Incompatible value and type will get a TypeError.
         """
 
         if value is None:
@@ -535,33 +536,6 @@ class NumericParameter(Parameter, Quantifiable):
                            classID=self.classID)
 
 
-def exprstrs(self, v='_value'):
-    if hasattr(self, v):
-        val = getattr(self, v)
-        if hasattr(self, '_type'):
-            vs = hex(val) if self._type == 'hex' and issubclass(
-                val.__class__, int) else str(val)
-            ts = str(self._type)
-        else:
-            vs = str(val)
-            ts = 'unknown'
-    else:
-        vs = 'unknown'
-        if hasattr(self, '_type'):
-            ts = str(self._type)
-        else:
-            ts = 'unknown'
-
-    ds = str(self.description) if hasattr(
-        self, 'description') else 'unknown'
-    fs = str(self._default) if hasattr(self, '_default') else 'unknown'
-    gs = str(self._valid) if hasattr(self, '_valid') else 'unknown'
-    us = str(self._unit) if hasattr(self, '_unit') else 'unknown'
-    cs = str(self._typecode) if hasattr(self, '_typecode') else 'unknown'
-
-    return (vs, us, ts, ds, fs, gs, cs)
-
-
 class DateParameter(Parameter):
     """ has a FineTime as the value.
     """
@@ -596,17 +570,17 @@ class DateParameter(Parameter):
         self._value.format = typecode
 
     def setValue(self, value):
-        """ accept any type thay a FineTime does.
+        """ accept any type that a FineTime does.
         """
         if value is not None and not issubclass(value.__class__, FineTime):
-            value = FineTime1(date=value, format=self.getTypecode())
+            value = FineTime(date=value, format=self.getTypecode())
         super().setValue(value)
 
     def setDefault(self, default):
-        """ accept any type thay a FineTime does.
+        """ accept any type that a FineTime does.
         """
         if default is not None and not issubclass(default.__class__, FineTime):
-            default = FineTime1(date=default, format=self.getTypecode())
+            default = FineTime(date=default, format=self.getTypecode())
         super().setDefault(default)
 
     def __repr__(self):
@@ -642,6 +616,24 @@ class DateParameter(Parameter):
         return self.__class__.__name__ + \
             '{ description = "%s", value = "%s", typecode = "%s"}' % \
             (str(self.description), str(self.value), str(self.getTypecode()))
+
+
+class DateParameter1(DateParameter):
+    """ Like DateParameter but usese  FineTime1. """
+
+    def setValue(self, value):
+        """ accept any type that a FineTime1 does.
+        """
+        if value is not None and not issubclass(value.__class__, FineTime1):
+            value = FineTime1(date=value, format=self.getTypecode())
+        super().setValue(value)
+
+    def setDefault(self, default):
+        """ accept any type that a FineTime1 does.
+        """
+        if default is not None and not issubclass(default.__class__, FineTime1):
+            default = FineTime1(date=default, format=self.getTypecode())
+        super().setDefault(default)
 
 
 class StringParameter(Parameter):

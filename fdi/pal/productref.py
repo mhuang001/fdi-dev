@@ -6,7 +6,7 @@ from .comparable import Comparable
 from ..dataset.product import Product
 from ..dataset.odict import ODict
 from ..dataset.serializable import Serializable
-from ..dataset.metadataholder import MetaDataHolder
+from ..dataset.attributable import Attributable
 from collections import OrderedDict
 import logging
 # create logger
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class ProductRef(MetaDataHolder, Serializable, Comparable):
+class ProductRef(Attributable, Serializable, Comparable):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 

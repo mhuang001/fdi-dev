@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+
+from . import metadata
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-from .metadata import MetaData
 
 
 class MetaDataHolder(object):
@@ -12,10 +13,12 @@ class MetaDataHolder(object):
     mh: object for compatibility with python2
     """
 
-    def __init__(self, **kwds):
+    def __init__(self, meta=None, **kwds):
+
+        if meta is None:
+            meta = metadata.MetaData()
+        self.setMeta(meta)
         super(MetaDataHolder, self).__init__(**kwds)
-        if not hasattr(self, '_meta'):
-            self._meta = MetaData()
 
     def getMeta(self):
         """ Returns the current MetaData container of this object. 

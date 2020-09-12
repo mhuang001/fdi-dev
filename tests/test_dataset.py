@@ -23,6 +23,7 @@ from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column
 from fdi.dataset.ndprint import ndprint
 from fdi.dataset.datatypes import Vector, Quaternion
+from fdi.dataset.invalid import INVALID
 from fdi.dataset.finetime import FineTime, FineTime1, utcobj
 from fdi.dataset.history import History
 from fdi.dataset.baseproduct import BaseProduct
@@ -476,7 +477,7 @@ def test_Parameter_init():
     v = Parameter(a2)  # description has a default so a2 -> 'value'
     assert v.description == 'UNKNOWN'  # inherited from Anotatable
     assert v.value == a2
-    assert v.type == 'finetime'  # automatically set to value's
+    assert v.type == 'finetime1'  # automatically set to value's
     assert v.default is None
     assert v.valid is None
     # incompatible type
@@ -493,7 +494,7 @@ def test_Parameter_init():
     v = Parameter(a2, description=a1)
     assert v.value == a2
     assert v.description == a1
-    assert v.type == 'finetime'
+    assert v.type == 'finetime1'
     # 2
     a1 = 'a test parameter'
     a2 = 'bar'
@@ -544,19 +545,19 @@ def test_Parameter_valid():
     # high edge
     assert v.validate(3333) == (3333, 'b')
     # invalid
-    assert v.validate(0) == (Parameter.INVALID, 'Invalid')
+    assert v.validate(0) == (INVALID, 'Invalid')
     v.value = 0
     assert v.isvalid() == False
-    assert v.validate(2500) == (Parameter.INVALID, 'Invalid')
+    assert v.validate(2500) == (INVALID, 'Invalid')
     v.value = 2500
     assert not v.isvalid()
     # discrete
     v.valid = {4321: 'hi there', 99: 'foo'}
     assert v.validate(4321) == (4321, 'hi there')
     assert v.validate(99) == (99, 'foo')
-    assert v.validate(2500) == (Parameter.INVALID, 'Invalid')
+    assert v.validate(2500) == (INVALID, 'Invalid')
     # wrong type
-    assert v.validate(2500.) == (Parameter.INVALID, 'Type float')
+    assert v.validate(2500.) == (INVALID, 'Type float')
 
     # binary masked
     v.valid = {
@@ -602,8 +603,8 @@ def test_Parameter_features():
     else:  # smart
         # not recommendedxs
         v = Parameter(a2, a1, a4)
-        #v = Parameter(typ_=a4)
-        #v.value = a2
+        # v = Parameter(typ_=a4)
+        # v.value = a2
         assert type(v.value) == float
         assert v.value == 11
     a2 = 9.7
@@ -921,13 +922,15 @@ def test_MetaData():
     assert v.get(a1) == a2
     v['time'] = NumericParameter(description='another param',
                                  value=2.3, unit='sec')
+    v['birthday'] = Parameter(description='was made on',
+                              value=FineTime('2020-09-09T12:34:56.789098 UTC'))
     # names of all parameters
-    assert [n for n in v] == [a1, 'time']
+    assert [n for n in v] == [a1, 'time', 'birthday']
 
     checkjson(v)
 
     v.remove(a1)  # inherited from composite
-    assert v.size() == 1
+    assert v.size() == 2
 
     # copy
     c = v.copy()
@@ -1015,26 +1018,33 @@ def test_DataWrapper():
 
 
 def test_ArrayDataset_init():
-    # from DRM
-    a1 = [1, 4.4, 5.4E3]      # an array of data
-    a2 = 'ev'                 # unit
-    a3 = 'three energy vals'  # description
-    a4 = 'f'                  # typecode
-    v = ArrayDataset(data=a1, unit=a2, description=a3, typecode=a4)
-    assert v.data == a1
-    assert v.unit == a2
-    assert v.description == a3
-    assert v.typecode == a4
     # defaults
     v = ArrayDataset()
     assert v.data is None
     assert v.unit is None
     assert v.description == 'UNKNOWN'
+    assert v.type is None
+    assert v.default is None
     assert v.typecode is None
-    assert v._default is None
+    # from DRM
+    a1 = [1, 4.4, 5.4E3]      # an array of data
+    a2 = 'ev'                 # unit
+    a3 = 'three energy vals'  # description
+    a4 = 'float'              # type
+    a5 = '0.0'                # default
+    a6 = 'f'                  # typecode
+    v = ArrayDataset(data=a1, unit=a2, description=a3,
+                     typ_=a4, default=a5, typecode=a6)
+    assert v.data == a1
+    assert v.unit == a2
+    assert v.description == a3
+    assert v.type == a4
+    assert v.default == a5
+    assert v.typecode == a6
     v = ArrayDataset(data=a1)
     assert v.data == a1
     assert v.unit is None
+    assert v.type is None
     assert v.description == 'UNKNOWN'
     assert v.typecode is None
     # omit the parameter names when instantiating, the orders are data, unit, description
@@ -1239,6 +1249,8 @@ def test_TableDataset():
     assert u.rowCount == 2
 
     # access
+    # column names
+    assert u.getColumnNames() == ['col3', 'col4']
     # unit access
     assert u['col4'].unit == 'j'
     # access index with indexOf

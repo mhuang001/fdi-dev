@@ -34,11 +34,15 @@ S	=
 runserver:
 	python3 -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
 
+
 install:
-	pip3 install -e .
+	pip3 install -e . $(I)
+
+install_with_DOC:
+	pip3 install -e .[DOC] $(I)
 
 uninstall:
-	pip3 uninstall fdi
+	pip3 uninstall fdi  $(I)
 
 PNSDIR=~/pns
 installpns:
@@ -92,7 +96,7 @@ test4:
 test5:
 	pytest  $(OPT) $(T) tests/test_utils.py
 
-PLOTDIR	= $(SDIR)/_static 
+PLOTDIR	= $(SDIR)/_static
 plots: plotall plot_dataset plot_pal plot_pns
 
 plotall:
@@ -116,7 +120,7 @@ plot_pal:
 
 plot_pns:
 	pyreverse -o png -p pns fdi/pns
-	mv classes_pns.png packages_pns.png $(PLOTDIR)					
+	mv classes_pns.png packages_pns.png $(PLOTDIR)
 
 DOCDIR	= doc
 SDIR = $(DOCDIR)/sphinx
@@ -131,8 +135,7 @@ doc_api:
 	sphinx-apidoc $(APIOPT) -o $(SDIR)/api/fdi fdi
 
 doc_plots:
-	cd $(PLOTDIR) && \
-	rm -f  classes*.png packages*.png ;\
+	rm  $(PLOTDIR)/classes*.png $(PLOTDIR)/packages*.png ;\
 	make plots
 
 doc_html:

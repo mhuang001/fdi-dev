@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ==================================================
- Flexible Dataset Integrator (fdi)
+ Flexible Dataset Integrator (fdi) v1.0rc2
 ==================================================
 
 FDI, known as SPDC before, is written in Python for integrating different types of data, and letting the integrated product take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading.

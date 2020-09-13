@@ -3,7 +3,7 @@
 # Automatically generated from fdi/dataset/resources/BaseProduct.yml. Do not edit.
 
 from collections import OrderedDict
-from fdi.dataset.finetime import FineTime1
+from fdi.dataset.finetime import FineTime
 
 
 from .serializable import Serializable
@@ -49,7 +49,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
 
-    BaseProduct class (level ALL) schema 1.1 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-09-05 23:36:18.533718.
+    BaseProduct class (level ALL) schema 1.1 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-09-13 17:02:23.295850.
 
     """
 
@@ -58,7 +58,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
                  description = 'UNKNOWN',
                  type_ = 'BaseProduct',
                  creator = 'UNKNOWN',
-                 creationDate = FineTime1(0),
+                 creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
                  version = '0.6',
                  **kwds):

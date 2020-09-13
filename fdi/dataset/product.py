@@ -4,7 +4,7 @@
 
 from collections import OrderedDict
 from fdi.dataset.baseproduct import BaseProduct
-from fdi.dataset.finetime import FineTime1
+from fdi.dataset.finetime import FineTime
 
 
 import logging
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Product(BaseProduct,):
-    """ Product class (level ALL) schema 1.1 inheriting ['BaseProduct']. Automatically generated from fdi/dataset/resources/Product.yml on 2020-09-05 23:36:18.901576.
+    """ Product class (level ALL) schema 1.1 inheriting ['BaseProduct']. Automatically generated from fdi/dataset/resources/Product.yml on 2020-09-13 17:02:23.476191.
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """
@@ -24,11 +24,11 @@ class Product(BaseProduct,):
                  description = 'UNKNOWN',
                  type_ = 'Product',
                  creator = 'UNKNOWN',
-                 creationDate = FineTime1(0),
+                 creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
                  version = '0.6',
-                 startDate = FineTime1(0),
-                 endDate = FineTime1(0),
+                 startDate = FineTime(0),
+                 endDate = FineTime(0),
                  instrument = 'UNKNOWN',
                  modelName = 'UNKNOWN',
                  mission = '_AGS',

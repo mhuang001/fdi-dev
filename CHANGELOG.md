@@ -6,6 +6,9 @@ Change Log
 	BETA0
 	=====
 
+	1.0rc2 2020-09-10
+	-----------------
+Document updates. Better presentation APIs. DOC as extras. Contex refctoring.
 	1.0rc1 2020-08-30
 	-----------------
 Parameters support type, default, valid, typecode, and have a new type : DateParameter. YAML 1.1 have attrbutes accordingly, with correct default types. New ODict is serialisable.

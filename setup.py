@@ -41,7 +41,7 @@ setup(
         'ruamel.yaml>=0.15.0',
     ],
     extras_require={
-        'DOC': ['aiohttp_theme>=0.1.6',
+        'DOC': ['aiohttp-theme>=0.1.6',
                 'sphinx_rtd_theme>=0.4.3',
                 'sphinx-copybutton>=0.3.0'
                 ]

@@ -69,11 +69,14 @@ reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
 
 # update _version.py and tag based on setup.py
-VERSION	= $(shell python -c "from setuptools_scm import get_version;print(get_version('.'))")
+# VERSION	= $(shell python -c "from setuptools_scm import get_version;print(get_version('.'))")
+# @ echo update _version.py and tag to $(VERSION)
+
+VERSION	= $(shell python -c "_l = {};f=open('fdi/_version.py'); exec(f.read(), None, _l); f.close; print(_l['__version__'])")
+
 versiontag:
-	@ echo update _version.py and tag to $(VERSION)
-	@ echo  __version__ = \"$(VERSION)\" > fdi/_version.py
-	git tag  $(VERSION)
+	@ echo  __version__ = \"$(VERSION)\" in _version.py
+	#git tag  $(VERSION)
 
 TESTLOG	= tests/log
 

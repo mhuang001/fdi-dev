@@ -1,6 +1,6 @@
-=====================================
-**dataset**: Model for Data Container
-=====================================
+=================================================
+**dataset** sub-package: Model for Data Container
+=================================================
 
 .. toctree::
    :maxdepth: 2
@@ -10,15 +10,15 @@
 Rationale
 =========
 
-A data processing task produces data products that are meant to be shared by other people. When someone receives a data 'product' besides datasets s/he woud expect explanation informaion associated with the product.
+A data processing task produces data products that are meant to be shared with others. When someone receives a data 'product', besides datasets, one would expect explanation informaion associated with the product. Many people tend to store data with no note of meaning attached to those data. Without attached explanation, it is difficult for other people to fully understand or use correctly a collection of numbers. It could be difficult for even the data producer to recall the exact meaning of the numbers after a while.
 
-Many people tend to store data with no note of meaning attached to them. Without attach meaning of the collection of numbers, it is difficult for other people to fully understand or use the data. It could be difficult for even the data producer to recall the exact meaning of the numbers after a while.
+FDI implements a data product container scheme so that not only description and other metadata (data about data) are always attached to your data, but also that your data can have its context data (other data who are peers, components, auxliaries, or at higher levels) attached as light weight references.
 
-This package implements a data product modeled after `Herschel Common Software System (v15)  products <https://www.cosmos.esa.int/web/herschel/data-products-overview/>`_, taking other  requirements of scientific observation and data processing into account. The APIs are kept as compatible with HCSS (written in Java, and in Jython for scripting) as possible.
+FDI is meant to be a small open-source package. Data stored in FDI ojects are easily accessible with Python API and are exported (serialized and stored by default) in cross-platform, human-readable JSON format. There are heavier formats (e..g. HDF5) and packages (e.g. iRODS) for similar goals. FDI's data model was originally inspired by  `Herschel Common Software System (v15)  products <https://www.cosmos.esa.int/web/herschel/data-products-overview/>`_, taking other  requirements of scientific observation and data processing into account. The APIs are kept as compatible with HCSS (written in Java, and in Jython for scripting) as possible.
 
 
-Definitions
-===========
+Data Containers
+===============
 
 Product
 -------
@@ -26,7 +26,7 @@ Product
 A product has
    * zero or more datasets: defining well described data entities (say images, tables, spectra etc...). 
    * history of this product: how was this data created, 
-   * accompanying meta data -- required information such as who created this product, what does the data reflect (say instrument) and so on; possible additional meta data specific to that particular product type.
+   * accompanying meta data -- required information such as who created this product, what does the data reflect (say instrument) and so on; possible additional meta data specific to that particular product type. A number of built-in Parameters can be specified in ``fdi/dataset/resourcese`` in YAML format. A helper utility ``yaml2python`` can be run using ``make`` to generate test-ready Python code of product class module containing the built-ins.
 
 Dataset
 -------
@@ -34,22 +34,23 @@ Dataset
 Three types of datasets are implemented to store potentially any data as a dataset.
 Like a product, all datasets may have meta data, with the distinction that the meta data of a dataset is related to that particular dataset only.
 
-:array dataset: a dataset containing array data (say a data vector, array, cube etc...) and may have a unit. 
-:table dataset: a dataset containing a collection of columns. Each column contains array data (say a data vector, array, cube etc...) and may have a unit. All columns have the same number of rows. Together they make up the table. 
+:array dataset: a dataset containing array data (say a data vector, array, cube etc...) and may have a unit and a typecode for efficient storing.
+:table dataset: a dataset containing a collection of columns with column header as the key. Each column contains array dataset. All columns have the same number of rows.
 :composite dataset: a dataset containing a collection of datasets. This allows arbitrary complex structures, as a child dataset within a composite dataset may be a composite dataset itself and so on...
 
 Metadata and Parameters
 -----------------------
 
-:Meta data: data about data. Defined as a collection of parameters. 
+:Metadata: data about data. Defined as a collection of named Parameters. 
 
-:Parameter: named scalar variables. 
+:Parameter: scalar or vector variables. 
 	    This package provides the following parameter types:
 
-   * _Parameter_: Contains value (classes whitelisted in ParameterTypes)
-   * _NumericParameter_: Contains a number with a unit.
+   * *Parameter*: Contains a value, description, type, validity specification, and default value. Value, default, and type are type-bound in metadata.ParameterTypes. If requested, a Parameter can check its value or a given value with the validity specification, which can be a combination of descrete values, ranges, and bit-masked values.
+   * *NumericParameter*: Contains a number with a unit and a typecode besides those of Parameter.
+   * *DateParameter*: Same as Parameter except taking a FineTime date-time date as the value, and Python datetime.format as the typecode.
+   * *StringParameter*: Same as Parameter except taking a string as the value, and 'B' (for byte unsigned) as the default typecode.
 
-Apart from the value of a parameter you can ask it for its description and -if it is a numeric parameter- for its unit as well. 
 
 History
 -------

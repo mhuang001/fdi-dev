@@ -65,22 +65,6 @@ fdi.dataset.composite module
    :undoc-members:
    :show-inheritance:
 
-fdi.dataset.configurable module
--------------------------------
-
-.. automodule:: fdi.dataset.configurable
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-fdi.dataset.configure module
-----------------------------
-
-.. automodule:: fdi.dataset.configure
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 fdi.dataset.copyable module
 ---------------------------
 

@@ -36,7 +36,7 @@ release = 'v1.0rc2'
 # ones.
 extensions = ['sphinx.ext.autodoc']
 extensions.append("sphinx_rtd_theme")
-extensions.append('sphinx-copybutton')
+extensions.append('sphinx_copybutton')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

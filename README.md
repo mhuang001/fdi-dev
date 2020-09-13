@@ -4,7 +4,8 @@ The base data model is defined in package ```dataset```. Persistent data access,
 
 To install
 ```
-		cd /tmp
+		FDIINSTDIR=/tmp   # change this to your installation dir
+		cd $FDIINSTDIR
 		git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git
 		cd fdi
 		pip3 install -e .
@@ -25,7 +26,8 @@ To uninstall:
 		make uninstall
 ```
 
-To generate ```baseproduct.py``` and ```product.py``` from schema in fdi/dataset/resources```:
+To generate ```baseproduct.py``` and ```product.py``` from schema in ```fdi/dataset/resources```:
+
 ```
 		make py
 ```

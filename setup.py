@@ -5,6 +5,13 @@ from setuptools import setup, find_packages
 # https://code.tutsplus.com/tutorials/how-to-write-package-and-distribute-a-library-in-python--cms-28693
 #
 
+# Version info -- read without importing
+# https://github.com/aio-libs/aiohttp-theme/blob/master/setup.py
+_locals = {}
+with open('fdi/_version.py') as fp:
+    exec(fp.read(), None, _locals)
+version = _locals['__version__']
+
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
@@ -12,7 +19,7 @@ def read(fname):
 
 setup(
     name="fdi",
-    version="1.0rc2",
+    version=version,
     author="Maohai Huang",
     author_email="mhuang@earth.bao.ac.cn",
     description=("Flexible Data Integrator"),

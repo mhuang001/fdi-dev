@@ -20,7 +20,6 @@ formats: all
 python:
   version: 3.6
   install:
-    - requirements:
     - method: pip
       path: .
       extra_requirements:

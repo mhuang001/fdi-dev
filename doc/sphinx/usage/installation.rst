@@ -21,11 +21,31 @@ for developers
 for users
 =========
 
+
+
 .. code-block:: shell
 		
-		cd /tmp
-		git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
-		cd fdi
-		pip3 install -e .
+		pip3 install git+http://mercury.bao.ac.cn:9006/mh/fdi.git
 
-to install in /tmp.
+
+If you plan to compile documentations (using Sphinx), you need to run install with extra dependencies:
+
+.. code-block:: shell
+		
+		make install_with_DOC
+
+
+To uninstall:
+
+.. code-block:: shell
+		
+		make uninstall
+
+
+To generate ``baseproduct.py`` and ``product.py`` from schema in ``fdi/dataset/resources``:
+
+.. code-block:: shell
+		
+		make py
+
+

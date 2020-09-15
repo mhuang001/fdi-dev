@@ -15,6 +15,7 @@ from .typed import Typed
 from collections import OrderedDict
 import logging
 import sys
+import pdb
 if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.3:
     PY33 = True
     from collections.abc import Container, Sequence, Mapping
@@ -288,9 +289,9 @@ class TableModel(DataContainer):
         """ Returns the value for the cell at columnIndex and rowIndex. """
         return self.col(columnIndex)[1].data[rowIndex]
 
-    def isCellEdidata(self, rowIndex, columnIndex):
+    def isCellEditable(self, rowIndex, columnIndex):
         """ Returns true if the cell at rowIndex and columnIndex
-        is edidata. """
+        is editable. """
         return True
 
     def setValueAt(self, aValue, rowIndex, columnIndex):
@@ -451,13 +452,18 @@ class TableDataset(Dataset, TableModel):
     def getRow(self, rowIndex):
         """ Returns a list containing the objects located at a particular row.
         """
-        return [self.getColumn(x)[rowIndex] for x in self]
+        return [self.getColumn(x)[rowIndex] for x in self.data.keys()]
+
+    def getRowMap(self, rowIndex):
+        """ Returns a dict of column-names as the keys and the objects located at a particular row as the values.
+        """
+        return {x: self.getColumn(x)[rowIndex] for x in self.data.keys()}
 
     def removeRow(self, rowIndex):
         """ Removes a row with specified index from this table.
         mh: returns removed row.
         """
-        return [self.getColumn(x).pop(rowIndex) for x in self]
+        return [self.getColumn(x).pop(rowIndex) for x in self.data.keys()]
 
     @property
     def rowCount(self):
@@ -526,6 +532,11 @@ class TableDataset(Dataset, TableModel):
             d[key] = value
         else:
             self.addColumn(name=key, column=value)
+
+    def items(self):
+        """ for k,v in tabledataset.items() 
+        """
+        return self.data.items()
 
     def __getitem__(self, key):
         """ return colmn if given string as name or int as index.

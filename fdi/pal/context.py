@@ -286,7 +286,7 @@ class AbstractMapContext(AbstractContext):
         """
         return self._dirty
 
-    @staticmethod
+    @classmethod
     def isContext(cls):
         """ Yields true if specified class belongs to the family of contexts.
         """

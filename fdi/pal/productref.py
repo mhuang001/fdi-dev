@@ -281,7 +281,7 @@ class ProductRef(Attributable, Serializable, Comparable):
     def __repr__(self):
         return self.__class__.__name__ + '{ ProductURN=' + self.urn + ', meta=' + str(self.getMeta()) + '}'
 
-    def toString(self, matprint=None, trans=True):
+    def toString(self, matprint=None, trans=True, level=0):
         """
         """
         s = '# ' + self.__class__.__name__ + '\n'
@@ -290,7 +290,7 @@ class ProductRef(Attributable, Serializable, Comparable):
             str([p.__class__.__name__ +
                  '(' + p.description + ')'
                  for p in self.parents]) + '\n'
-        s += '# meta;' + self.meta.toString()
+        s += '# meta;' + self.meta.toString(level=level)
         return s
 
     def serializable(self):

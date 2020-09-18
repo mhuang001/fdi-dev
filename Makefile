@@ -34,15 +34,15 @@ S	=
 runserver:
 	python3 -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
 
-
+INSOPT  =
 install:
-	pip3 install -e . $(I)
+	pip3 install $(INSOPT) -e . $(I)
 
 install_with_DOC:
-	pip3 install -e .[DOC] $(I)
+	pip3 install $(INSOPT) -e .[DOC] $(I)
 
 uninstall:
-	pip3 uninstall fdi  $(I)
+	pip3 uninstall $(INSOPT) fdi  $(I)
 
 PNSDIR=~/pns
 installpns:

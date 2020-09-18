@@ -10,7 +10,7 @@ pnsconfig = dict(logginglevel=logging.INFO)
 # base url for webserver. Update version if needed.
 pnsconfig['baseurl'] = '/v0.6'
 
-dev = False
+dev = True
 if dev:
     # username, passwd, flask ip, flask port
     pnsconfig['node'] = {'username': 'foo',
@@ -25,10 +25,10 @@ if dev:
 else:
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
                          'host': '10.0.10.114', 'port': 9888}
-    # server permission user
-    pnsconfig['serveruser'] = 'apache'
+    # server permission user. Change this according to local setup. e.g. 'apache'
+    pnsconfig['serveruser'] = getpass.getuser()
     # PTS app permission user
-    pnsconfig['ptsuser'] = 'apache'
+    pnsconfig['ptsuser'] = getpass.getuser()
     # on server
     home = '/root'
 

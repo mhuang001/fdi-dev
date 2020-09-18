@@ -7,14 +7,13 @@ from fdi.dataset.dataset import ArrayDataset, GenericDataset
 from fdi.dataset.deserialize import deserializeClassID
 from fdi.dataset.metadata import NumericParameter
 from fdi.dataset.product import Product
-from fdi.dataset.serializable import serializeClassID, serializeClassID
+from fdi.dataset.serializable import serializeClassID
 from fdi.dataset.odict import ODict
 from fdi.pns import server
-from os.path import expanduser, expandvars
 from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
 from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
-from fdi.utils.checkjson import checkjson
+from fdi.dataset.classes import Classes
 
 import sys
 import base64
@@ -29,6 +28,8 @@ from collections.abc import Mapping
 # This is to be able to test w/ or w/o installing the package
 # https://docs.python-guide.org/writing/structure/
 from .pycontext import fdi
+
+Classes.updateMapping()
 
 
 def setuplogging():

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ..utils.common import trbk
+from ..utils.common import trbk, trbk2
 from ..dataset.deserialize import deserializeClassID
 from ..dataset.serializable import serializeClassID
 from ..dataset.dataset import GenericDataset, ArrayDataset, TableDataset
@@ -41,7 +41,7 @@ if sys.version_info[0] > 2:
     logging.getLogger("urllib3").setLevel(logging.WARN)
 else:
     pass
-logging.getLogger("filelock").setLevel(logging.INFO)
+logging.getLogger("filelock").setLevel(logging.WARN)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
@@ -90,7 +90,7 @@ logger.setLevel(pc['logginglevel'])
 clp = pc['userclasses']
 logger.debug('User class file '+clp)
 if clp == '':
-    pass
+    Classes.updateMapping()
 else:
     clpp, clpf = os.path.split(clp)
     sys.path.insert(0, os.path.abspath(clpp))
@@ -153,8 +153,7 @@ def _execute(cmd, input=None, timeout=10):
                      env=env, shell=False,
                      encoding='utf-8')  # , universal_newlines=True)
     except Exception as e:
-        msg = repr(e) + trbk(e) + ' ' + \
-            (e.child_traceback if hasattr(e, 'child_traceback') else '')
+        msg = trbk(e)
         return {'returncode': -1, 'message': msg}
 
     try:
@@ -306,7 +305,8 @@ def configPNS(d=None):
         pc = indata['input']
     except Exception as e:
         re = -1
-        msg = str(e)
+        msg = trbk2(e)
+        logger.warning(trbk(e))
     else:
         re = pc
         msg = ''

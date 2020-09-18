@@ -23,11 +23,9 @@ from fdi.utils.checkjson import checkjson
 import copy
 import traceback
 from pprint import pprint
-import json
 import shutil
 import getpass
-import os
-
+import logging
 from os import path as op
 import glob
 
@@ -55,11 +53,11 @@ else:
     from .pycontext import fdi
 
     from .logdict import logdict
-    import logging
     import logging.config
     # create logger
     logging.config.dictConfig(logdict)
-    logger = logging.getLogger()
+    import logging.config
+    logger = logging.getLogger(__name__)
     logger.debug('%s logging level %d' %
                  (__name__, logger.getEffectiveLevel()))
     logging.getLogger("filelock").setLevel(logging.WARNING)

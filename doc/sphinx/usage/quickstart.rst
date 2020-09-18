@@ -736,5 +736,9 @@ See the installation and testing sections of the pns page.
 
 .. tip::
    
-The demo above was made by running ``fdi/resources/example.py`` with command ``elpy-shell-send-group-and-step [c-c c-y c-g]`` in ``emacs``. The command is further simplified to control-<tab> with the following in ~/.init.el:
-``(add-hook 'elpy-mode-hook (lambda () (local-set-key [C-tab] (quote elpy-shell-send-group-and-step))))``
+   The demo above was made by running ``fdi/resources/example.py`` with command ``elpy-shell-send-group-and-step [c-c c-y c-g]`` in ``emacs``. The command is further simplified to control-<tab> with the following in ~/.init.el:
+   
+   .. code-block::
+
+      (add-hook 'elpy-mode-hook (lambda () (local-set-key \
+          [C-tab] (quote elpy-shell-send-group-and-step))))

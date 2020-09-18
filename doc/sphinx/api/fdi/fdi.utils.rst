@@ -25,6 +25,14 @@ fdi.utils.common module
    :undoc-members:
    :show-inheritance:
 
+fdi.utils.getconfig module
+--------------------------
+
+.. automodule:: fdi.utils.getconfig
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.loadfiles module
 --------------------------
 

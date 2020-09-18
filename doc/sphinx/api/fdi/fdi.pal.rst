@@ -73,14 +73,6 @@ fdi.pal.mempool module
    :undoc-members:
    :show-inheritance:
 
-fdi.pal.pnspoolserver module
-----------------------------
-
-.. automodule:: fdi.pal.pnspoolserver
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 fdi.pal.poolmanager module
 --------------------------
 
@@ -117,14 +109,6 @@ fdi.pal.query module
 --------------------
 
 .. automodule:: fdi.pal.query
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-fdi.pal.runpnsserver module
----------------------------
-
-.. automodule:: fdi.pal.runpnsserver
    :members:
    :undoc-members:
    :show-inheritance:

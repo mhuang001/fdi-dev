@@ -309,6 +309,7 @@ class AbstractMapContext(AbstractContext):
 
 class MapContext(AbstractMapContext, Context):
     """See docstring of AbstractMapContext
+
     BaseProduct--Product
                         \\
     AbstractContext------Contex---------MapContext

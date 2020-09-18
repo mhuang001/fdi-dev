@@ -65,23 +65,6 @@ Serializability
 In order to transfer data across the network between heterogeneous nodes data needs to be serializable.
 JSON format is used considering to transfer serialized data for its wide adoption, availability of tools, ease to use with Python, and simplicity.
 
-run tests
-=========
-
-In the install directory:
-
-.. code-block:: shell
-
-		make test
-
-You can only test sub-package ``dataset``, ``pal``, ``pns`` or pns server self-test only, by changing ``test`` above to ``test1``, ``test2``, ``test3``, ``test4``, respectively. To pass command-line arguments to ``pytest`` do
-
-.. code-block:: shell
-
-		make test T='-k Bas'
-
-to test ``BaseProduct`` in sub-package ``dataset``.
-
 
 Design
 ======

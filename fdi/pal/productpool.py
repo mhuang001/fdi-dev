@@ -236,29 +236,7 @@ When implementing a ProductPool, the following rules need to be applied:
         supplied tag, and return the reference (or a list of references is
         the input is a list of products), or Urns if geturnobjs is True.
 
-        Pool:!!dict
-          _classes:!!odict
-              $product0_class_name:!!dict
-                      currentSN:!!int $the serial number of the latest added prod to the pool
-                             sn:!!list
-                                 - $serial number of a prod
-                                 - $serial number of a prod
-                                 - ...
-              $product1_class_name:!!dict
-              ...
-          _urns:!!odict
-              $URN0:!!odict
-                      meta:!!MetaData $prod.meta
-                      tags:!!list
-                            - $tag
-                            - $tag
-                            - ...
-          _tags:!!odict
-              urns:!!list
-                   - $urn
-                   - $urn
-                   - ...
-          $urn:!!$serialized product
+        See pal document for pool structure.
         """
         c, t, u = self._classes, self._tags, self._urns
         # save a copy

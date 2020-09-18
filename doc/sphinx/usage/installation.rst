@@ -48,4 +48,41 @@ To generate ``baseproduct.py`` and ``product.py`` from schema in ``fdi/dataset/r
 		
 		make py
 
+run tests
+=========
+
+In the install directory:
+
+.. code-block:: shell
+
+		make test1
+		make test2
+		make test3
+		make test4
+
+You can only test sub-package ``dataset``, ``pal``, ``pns``, and *pns server self-test only*, by changing ``test`` above to ``test1``, ``test2``, ``test3``, ``test4``, respectively.
+
+To run full test, run this in one window in the install dir:
+
+.. code-block:: shell
+
+		make runserver
+
+(if the server fails to run, see the ``pns`` chapter), then in another window, run
+
+.. code-block:: shell
+
+		make test
+
+
+.. tip::
+
+   To pass command-line arguments to ``pytest`` do, for example,
+   
+   .. code-block:: shell
+		   
+		make test T='-k Bas'
+
+   to test ``BaseProduct`` in sub-package ``dataset``.
+
 

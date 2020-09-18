@@ -13,8 +13,7 @@ def opt(ops):
     ops = [
     {'long':'help', 'char':'h', 'default': false, 'description':'print help'},
     {'long':'verbose', 'char':'v', 'default': false, 'description':'print info'},
-    {'long':'username=', 'char':'u', 'default': 'foo',
-        'description':'non-empty user name/ID'},
+    {'long':'username=', 'char':'u', 'default': 'foo', 'description':'non-empty user name/ID'},
     {'long':'password=', 'char':'p', 'default': 'bar', 'description':'password'},
     {'long':'host=', 'char':'i', 'default': '0.0.0.0', 'description':'host IP/name'},
     {'long':'port=', 'char':'o', 'default': 5000, 'description':'port number'}

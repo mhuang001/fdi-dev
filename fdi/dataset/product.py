@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Product(BaseProduct,):
-    """ Product class (level ALL) schema 1.1 inheriting ['BaseProduct']. Automatically generated from fdi/dataset/resources/Product.yml on 2020-09-13 17:02:23.476191.
+    """ Product class (level ALL) schema 1.1 inheriting ['BaseProduct']. Automatically generated from fdi/dataset/resources/Product.yml on 2020-09-21 13:26:07.402787.
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """

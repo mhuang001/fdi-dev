@@ -72,11 +72,14 @@ reqs:
 # VERSION	= $(shell python -c "from setuptools_scm import get_version;print(get_version('.'))")
 # @ echo update _version.py and tag to $(VERSION)
 
-VERSION	= $(shell python -c "_l = {};f=open('fdi/_version.py'); exec(f.read(), None, _l); f.close; print(_l['__version__'])")
+
+VERSIONFILE	= fdi/_version.py
+VERSION	= $(shell python -c "_l = {};f=open('$(VERSIONFILE)'); exec(f.read(), None, _l); f.close; print(_l['__version__'])")
 
 versiontag:
-	@ echo  __version__ = \"$(VERSION)\" in _version.py
+	@ echo  __version__ = \"$(VERSION)\" in $(VERSIONFILE)
 	#git tag  $(VERSION)
+
 
 TESTLOG	= tests/log
 

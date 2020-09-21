@@ -5,7 +5,7 @@
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-     
+
 
 Product Access Layer allows data stored logical "pools" to be accessed with light weight product refernces by data processers, data storage, and data consumers. A data product can include a context built with references of relevant data. A ``ProductStorage`` interface is provided to handle saving/retrieving/querying data in registered pools.
 

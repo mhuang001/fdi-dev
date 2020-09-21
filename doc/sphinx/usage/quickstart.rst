@@ -1,13 +1,12 @@
 
 ================
-FDI Quick Start
+Quick Start
 ================
 
 .. contents:: Contents:
 
    
 The following demostrates important dataset and pal functionalities.
-
 
 .. tip::
    
@@ -105,10 +104,13 @@ ArrayDataset{ [1, 4.4, 5400.0, -22, 162] (ev) <float>, "5 elements", dflt 1.0, t
 ::
    
    # ArrayDataset
-   # description = "UNKNOWN"
-   # meta = MetaData{[], listeners = []}
-   # unit = "None"
-   # data = 
+   description= {'UNKNOWN'},
+   meta= {},
+   type= {None},
+   default= {None},
+   typecode= {None},
+   unit= {None}
+   data =
 
    0 1 2 3 
    1 2 3 4 
@@ -190,9 +192,8 @@ True
 ::
 	
    # TableDataset
-   # description = "UNKNOWN"
-   # meta = MetaData{[], listeners = []}
-   # data = 
+   description= {'UNKNOWN'}, meta= {}
+   data =
 
    # col1 col2
    # None None
@@ -274,9 +275,8 @@ Column{ [1, 4.4, 5400.0] (None) <None>, "UNKNOWN", dflt None, tcode=None, meta=M
 ::
 	
    # TableDataset
-   # description = "Example table"
-   # meta = MetaData{[], listeners = []}
-   # data = 
+   description= {'Example table'}, meta= {}
+   data =
 
    # Time Energy
    # sec eV
@@ -436,11 +436,10 @@ Product
 ... print(x["Spectrum"].toString())
 
 ::
-	
+   
    # TableDataset
-   # description = "UNKNOWN"
-   # meta = MetaData{[], listeners = []}
-   # data = 
+   description= {'UNKNOWN'}, meta= {}
+   data =
 
    # col1 col2
    # eV cnt
@@ -479,22 +478,21 @@ Product
 ::
 	
    # Product
-   # description = "product example with several datasets"
-   # meta = MetaData{[description = { product example with several datasets }, type = { Product }, creator = { or else }, creationDate = { 2017-01-01T00:00:00.0 TAI(0) }, rootCause = { UNKNOWN }, version = { 0.6 }, startDate = { 2017-01-01T00:00:00.0 TAI(0) }, endDate = { 2017-01-01T00:00:00.0 TAI(0) }, instrument = { Crystal-Ball }, modelName = { Mk II }, mission = { _AGS }, ], listeners = []}
-   # History
-   # description = "UNKNOWN"
-   # meta = MetaData{[], listeners = []}
-   # data = 
-
-   # data = 
+   meta= {description= 'product example with several datasets', type= 'Product', creator= 'or else', creationDate= 1958-01-01T00:00:00.0 TAI(0), rootCause= 'UNKNOWN', version= '0.6', startDate= 1958-01-01T00:00:00.0 TAI(0), endDate= 1958-01-01T00:00:00.0 TAI(0), instrument= 'Crystal-Ball', modelName= 'Mk II', mission= '_AGS'},
+   history= {},
+   listeners= {[]}
+   data =
 
 
    # [ RawImage ]
    # ArrayDataset
-   # description = "image1"
-   # meta = MetaData{[], listeners = []}
-   # unit = "ev"
-   # data = 
+   description= {'image1'},
+   meta= {},
+   type= {None},
+   default= {None},
+   typecode= {None},
+   unit= {'ev'}
+   data =
 
    1 4 7 
    2 5 8 
@@ -503,10 +501,13 @@ Product
 
    # [ QualityImage ]
    # ArrayDataset
-   # description = "UNKNOWN"
-   # meta = MetaData{[], listeners = []}
-   # unit = "None"
-   # data = 
+   description= {'UNKNOWN'},
+   meta= {},
+   type= {None},
+   default= {None},
+   typecode= {None},
+   unit= {None}
+   data =
 
    0.1 4000.0 -2 
    0.5 60000000.0 0 
@@ -515,9 +516,9 @@ Product
 
    # [ Spectrum ]
    # TableDataset
-   # description = "UNKNOWN"
-   # meta = MetaData{[], listeners = []}
-   # data = 
+   description= {'UNKNOWN'},
+   meta= {}
+   data =
 
    # col1 col2
    # eV cnt

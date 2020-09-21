@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .ndprint import ndprint
-from .odict import bstr
+from ..utils.common import mstr
 from .listener import DatasetListener
 from .datawrapper import DataWrapperMapper
 from .composite import Composite
@@ -34,13 +33,13 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
         )
         return s
 
-    def toString(self, matprint=None, trans=True, beforedata='', level=0):
-        if matprint is None:
-            matprint = ndprint
-
+    def toString(self, level=0, matprint=None, trans=True, beforedata='', **kwds):
+        """ matprint: an external matrix print function
+        trans: print 2D matrix transposed. default is True.
+        """
         s = '# ' + self.__class__.__name__ + '\n' +\
-            '# description = "%s"\n# meta = %s\n' % \
-            (str(self.description), bstr(self.meta, level=level))
-        d = '# data = \n\n'
-        d += self._sets.toString(matprint=matprint, trans=trans, level=level)
+            mstr(self.serializable(), level=level, **kwds)
+        d = 'data =\n\n'
+        d += self._sets.toString(level=level,
+                                 matprint=matprint, trans=trans, **kwds)
         return s + beforedata + d

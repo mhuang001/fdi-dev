@@ -58,14 +58,14 @@ In the install directory:
 		make test1
 		make test2
 		make test3
-		make test4
 
-You can only test sub-package ``dataset``, ``pal``, ``pns``, and *pns server self-test only*, by changing ``test`` above to ``test1``, ``test2``, ``test3``, ``test4``, respectively.
+You can only test sub-package ``dataset``, ``pal``, and *pns server self-test only*, with ``test1``, ``test2``, ``test3``, respectively.
 
 To run full test, run this in one window in the install dir:
 
 .. code-block:: shell
 
+		make installpns
 		make runserver
 
 (if the server fails to run, see the ``pns`` chapter), then in another window, run

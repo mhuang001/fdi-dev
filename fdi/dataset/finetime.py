@@ -147,16 +147,26 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
         prints like 2019-02-17T12:43:04.577000 """
         s = self.tai / self.RESOLUTION
-        sub = s-round(s)
+        sub = s - int(s)
         dt = datetime.timedelta(seconds=(s)) + self.EPOCH
         # return dt.isoformat(timespec=self.TIMESPEC)
         return '%s.%d' % (dt.strftime('%Y-%m-%dT%H:%M:%S'), int(sub*self.RESOLUTION+0.5))
 
-    def toString(self):
+    def toString(self, level=0, **kwds):
         """ Returns a String representation of this object according to self.format.
         prints like 2019-02-17T12:43:04.577000 TAI(...)"""
-
-        return self.isoutc() + ' TAI' + '(%d)' % (self.tai) if hasattr(self, 'tai') else 'Unknown_TAI'
+        if level == 0:
+            tais = str(self.tai) if hasattr(self, 'tai') else 'Unknown_TAI'
+            s = self.__class__.__name__ + \
+                '{' + self.isoutc() + ' TAI(%s)' % tais + \
+                ' fmt=' + self.format + '}'
+        elif level == 1:
+            tais = str(self.tai) if hasattr(self, 'tai') else 'Unknown_TAI'
+            s = self.isoutc() + ' TAI(%s)' % tais
+        else:
+            tais = str(self.tai) if hasattr(self, 'tai') else 'Unknown_TAI'
+            s = tais
+        return s
 
     def equals(self, obj):
         """ can compare TAI directly """

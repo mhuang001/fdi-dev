@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+from ..utils.common import mstr, bstr
 from .ndprint import ndprint
 from .listener import ColumnListener, MetaDataListener
 from .serializable import Serializable
-from .odict import ODict, bstr
+from .odict import ODict
 from .attributable import Attributable
 from .abstractcomposite import AbstractComposite
 from .datawrapper import DataWrapper, DataContainer
@@ -64,15 +65,6 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
         through visitor pattern."""
         visitor.visit(self)
 
-    def toString(self, level=0):
-        """
-        """
-
-        s = '# ' + self.__class__.__name__ + '\n' +\
-            '# description = "%s"\n# meta = %s\n' % \
-            (str(self.description), bstr(self.meta, level=level))
-        return s
-
 
 class GenericDataset(Dataset, DataContainer, Container):
     """ mh: Contains one data item.
@@ -98,16 +90,16 @@ class GenericDataset(Dataset, DataContainer, Container):
             '{ %s, description = "%s", meta = %s }' % \
             (str(self.data), str(self.description), str(self.meta))
 
-    def toString(self, matprint=None, trans=True, level=0):
+    def toString(self, level=0, matprint=None, trans=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         """
         s = '# ' + self.__class__.__name__ + '\n' +\
-            '# description = "%s"\n# meta = %s\n# unit = "%s"\n# data = \n\n' % \
-            (str(self.description), self.meta.toString(level=level),
-             str(self.unit))
-        d = bstr(self.data) if matprint is None else matprint(self.data)
-        return s + d + '\n'
+            mstr(self.serializable(), level=level, **kwds)
+        d = 'data =\n\n'
+        d += bstr(self.data, level=level, **kwds) if matprint is None else \
+            matprint(self.data)
+        return s + '\n' + d + '\n'
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
@@ -128,7 +120,8 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
     """
 
     def __init__(self, data=None, unit=None, description='UNKNOWN', typ_=None, default=None, **kwds):
-        """
+        """ Initializes an ArrayDataset.
+
         """
         self.setDefault(default)
         super(ArrayDataset, self).__init__(data=data, unit=unit,
@@ -221,13 +214,19 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
             '{ %s (%s) <%s>, "%s", dflt %s, tcode=%s, meta=%s}' %\
             (vs, us, ts, ds, fs, cs, str(self.meta))
 
-    def toString(self, matprint=None, trans=True, level=0):
+    def toString(self, level=0, matprint=None, trans=True, **kwds):
+        """ matprint: an external matrix print function
+        trans: print 2D matrix transposed. default is True.
+        """
         if matprint is None:
             matprint = ndprint
-        s = super(ArrayDataset, self).toString(
-            matprint=matprint, trans=trans, level=level)
 
-        return s
+        s = '# ' + self.__class__.__name__ + '\n' +\
+            mstr(self.serializable(), level=level, **kwds)
+        d = 'data =\n\n'
+        d += bstr(self.data, level=level, **kwds) if matprint is None else \
+            matprint(self.data)
+        return s + '\n' + d + '\n'
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
@@ -253,7 +252,7 @@ class Column(ArrayDataset, ColumnListener):
     pass
 
 
-class TableModel(DataContainer):
+class TableModel(object):
     """ to interrogate a tabular data model
     """
 
@@ -305,7 +304,7 @@ class TableModel(DataContainer):
         return list(self.data.items())[columIndex]
 
 
-class TableDataset(Dataset, TableModel):
+class TableDataset(GenericDataset, TableModel):
     """  Special dataset that contains a single Array Data object.
     A TableDataset is a tabular collection of Columns. It is optimized to work on array data..
     The column-wise approach is convenient in many cases. For example, one has an event list, and each algorithm is adding a new field to the events (i.e. a new column, for example a quality mask).
@@ -534,7 +533,7 @@ class TableDataset(Dataset, TableModel):
             self.addColumn(name=key, column=value)
 
     def items(self):
-        """ for k,v in tabledataset.items() 
+        """ for k,v in tabledataset.items()
         """
         return self.data.items()
 
@@ -549,36 +548,23 @@ class TableDataset(Dataset, TableModel):
         """
         self.setColumn(key, value)
 
-    def __iter__(self):
-        for x in self.data:
-            yield x
-
-    def __contains__(self, x):
-        """
-        """
-        return x in self.data
-
     def __repr__(self):
         return self.__class__.__name__ + \
             '{ description = "%s", meta = %s, data = "%s"}' % \
             (str(self.description), str(self.meta), str(self.data))
 
-#    def atoString(self):
-#        s = '{description = "%s", meta = %s, data = "%s"}' %
-#            (str(self.description), self.meta.toString(),
-#             self.data.toString())
-#        return s
-
-    def toString(self, matprint=None, trans=True, level=0):
+    def toString(self, level=0, matprint=None, trans=True, **kwds):
         if matprint is None:
             matprint = ndprint
-        s = super(TableDataset, self).toString(level=level)
+
+        s = '# ' + self.__class__.__name__ + '\n' +\
+            mstr(self.serializable(), level=level, **kwds)
         cols = list(self.data.values())
-        d = '# data = \n\n'
+        d = 'data =\n\n'
         d += '# ' + ' '.join([str(x) for x in self.data.keys()]) + '\n'
         d += '# ' + ' '.join([str(x.unit) for x in cols]) + '\n'
         d += matprint(cols, trans=trans)
-        return s + d + '\n'
+        return s + '\n' + d + '\n'
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

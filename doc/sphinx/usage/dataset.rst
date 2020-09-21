@@ -1,6 +1,6 @@
-=================================================
-**dataset** sub-package: Model for Data Container
-=================================================
+======================================
+**dataset**: Model for Data Containers
+======================================
 
 .. toctree::
    :maxdepth: 2
@@ -66,6 +66,21 @@ In order to transfer data across the network between heterogeneous nodes data ne
 JSON format is used considering to transfer serialized data for its wide adoption, availability of tools, ease to use with Python, and simplicity.
 
 
+
+run tests
+=========
+
+In the install directory:
+
+.. code-block:: shell
+
+		make test1
+		make test2
+		make test3
+
+You can test sub-package ``dataset``, ``pal``, and *pns server self-test only*, with ``test1``, ``test2``, ``test3``, respectively.
+
+
 Design
 ======
 
@@ -77,3 +92,4 @@ Classes
 
 .. image:: ../_static/classes_dataset.png
 
+.. inheritance-diagram:: fdi

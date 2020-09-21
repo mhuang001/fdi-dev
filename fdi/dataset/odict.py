@@ -2,29 +2,8 @@
 from collections import OrderedDict, UserDict
 from collections.abc import Collection
 from .serializable import Serializable
-import sys
+from ..utils.common import bstr
 import pdb
-if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
-    PY3 = True
-else:
-    PY3 = False
-
-
-def bstr(x, tostr=True, quote="'", level=0, **kwds):
-    """ returns the best string representation.
-    if the object is a string, return single-quoted; if has toString(), use it; else returns str().
-    """
-
-    s = issubclass(x.__class__, str) if PY3 else issubclass(
-        x.__class__, (str, unicode))
-
-    if s:
-        r = quote + x + quote
-    elif tostr and hasattr(x, 'toString'):
-        r = x.toString(level=level, **kwds)
-    else:
-        r = str(x)
-    return r
 
 
 class ODict(UserDict, Serializable):
@@ -86,11 +65,11 @@ class ODict(UserDict, Serializable):
             return 'OD{\n\t' + s + '\t\n}'
         return 'OD{' + s + '}'
 
-    def toString(self, matprint=None, trans=True, level=0):
+    def toString(self, level=0, matprint=None, trans=True, **kwds):
         d = ''
         for n, v in self.data.items():
             d += '\n# [ ' + n + ' ]\n'
-            d += bstr(v, matprint=matprint, trans=trans, level=level)
+            d += bstr(v, level=level, matprint=matprint, trans=trans, **kwds)
 
         return d
 

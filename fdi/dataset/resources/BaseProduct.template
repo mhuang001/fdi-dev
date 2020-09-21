@@ -195,12 +195,13 @@ $INITARGS
                 # logger.debug(event.source.__class__.__name__ +   ' ' + str(event.change))
                 pass
 
-    def toString(self, matprint=None, trans=True, beforedata='', level=0):
+    def toString(self, level=0, matprint=None, trans=True, beforedata='', **kwds):
         """ like AbstractComposite but with history
         """
-        h = self.history.toString(matprint=matprint, trans=trans, level=level)
+        h = self.history.toString(
+            level=level, matprint=matprint, trans=trans, **kwds)
         s = super(BaseProduct, self).toString(
-            matprint=matprint, trans=trans, beforedata=h, level=level)
+            level=level, matprint=matprint, trans=trans, beforedata=h, **kwds)
         return s
 
     def __repr__(self):

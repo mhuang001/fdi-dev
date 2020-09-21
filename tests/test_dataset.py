@@ -20,7 +20,7 @@ from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, Paramete
 from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
-from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column
+from fdi.dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
 from fdi.dataset.ndprint import ndprint
 from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.invalid import INVALID
@@ -51,7 +51,7 @@ else:
     # https://docs.python-guide.org/writing/structure/
     from .pycontext import fdi
 
-    from .outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
+    from .outputs import nds2, nds3, out_GenericDataset, out_TableDataset, out_CompositeDataset
 
     from .logdict import logdict
     import logging
@@ -1017,6 +1017,30 @@ def test_DataWrapper():
     checkgeneral(v)
 
 
+def standardtestmeta():
+    m = MetaData()
+    m['a'] = NumericParameter(
+        3.4, 'num par', 'float', 2., {(0, 30): 'nok'})
+    then = datetime.datetime(
+        2019, 2, 19, 1, 2, 3, 456789, tzinfo=utcobj)
+    m['b'] = DateParameter(FineTime(then), 'date par', default=99,
+                           valid={(0, 9999999999): 'dok'}, typecode='%Y')
+    m['c'] = StringParameter(
+        'Right', 'str par', {'': 'sok'}, 'cliche', 'B')
+    return m
+
+
+def test_GenericDataset():
+    v = GenericDataset(description='test GD')
+    v.data = 88.8
+    v.meta = standardtestmeta()
+    ts = v.toString()
+    ts += v.toString(1)
+    ts += v.toString(2)
+    # print(ts)
+    assert ts == out_GenericDataset
+
+
 def test_ArrayDataset_init():
     # defaults
     v = ArrayDataset()
@@ -1151,14 +1175,17 @@ def test_ArrayDataset_func():
 
     # toString()
     s = ndlist(2, 3, 4, 5)
-    x = ArrayDataset(data=s)
+    x = ArrayDataset(data=s, description='toString tester AD', unit='lyr')
     x[0][1][0] = [0, 0, 0, 0, 0]
     x[0][1][1] = [0, 0, 0, 1, 0]
     x[0][1][2] = [5, 4, 3, 2, 1]
     x[0][1][3] = [0, 0, 0, 3, 0]
+    x.meta = standardtestmeta()
     ts = x.toString()
-    i = ts.index('0 0 0 0')
     # print(ts)
+    ts = x.toString(level=1)
+    # print(ts)
+    i = ts.index('0 0 0 0')
     assert ts[i:] == nds3 + '\n'
 
     checkjson(v)
@@ -1169,7 +1196,7 @@ def test_TableModel():
     pass
 
 
-def test_TableDataset():
+def test_TableDataset_init():
     # constructor
     # if data is not a sequence an exception is thrown
     try:
@@ -1217,8 +1244,14 @@ def test_TableDataset():
     assert v5['col1'][0] == 1
     assert v5['col2'][1] == 43.2
 
+
+def test_TableDataset_func():
     # add, set, and replace columns
     # column set / get
+    a10 = [dict(name='col1', column=Column(data=[1, 4.4, 5.4E3], unit='eV')),
+           dict(name='col2', column=Column(data=[0, 43.2, 2E3], unit='cnt'))
+           ]
+    v = TableDataset(data=a10)  # inherited from DataWrapper
     vvv = TableDataset()
     assert vvv.getColumnCount() == 0
     vvv.addColumn("Energy", Column(
@@ -1260,7 +1293,10 @@ def test_TableDataset():
     assert u.getValueAt(rowIndex=1, columnIndex=1) == 42
 
     # replace whole table. see constructor examples for making a1
-    u.data = a1
+    # make a deepcopy so when u changes data, v won't be affected
+    c10 = copy.deepcopy(a10)
+    assert id(a10[0]) != id(c10[0])
+    u.data = c10
     assert v == u
     # col3,4 are gone
     assert list(u.data.keys()) == ['col1', 'col2']
@@ -1281,7 +1317,8 @@ def test_TableDataset():
     assert 'col3' in u
 
     # toString()
-    ts = v3.toString()
+    v.meta = standardtestmeta()
+    ts = v.toString()
     # print(ts)
     # print(out_TableDataset)
     assert ts == out_TableDataset
@@ -1289,6 +1326,8 @@ def test_TableDataset():
     checkjson(u)
     checkgeneral(u)
 
+
+def test_TableDataset_doc():
     # doc cases
     # creation:
     ELECTRON_VOLTS = 'eV'
@@ -1353,6 +1392,9 @@ def test_TableDataset():
         xNew = x.select(x[0].data > 20)
 
     # Please see also this selection example.
+
+    #ts = x.toString()
+    # print(ts)
 
 
 def demo_TableDataset():
@@ -1419,8 +1461,8 @@ def test_Column():
     pass
 
 
-def test_CompositeDataset():
-    # test equality
+def test_CompositeDataset_init():
+    # constructor
     a1 = [768, 4.4, 5.4E3]
     a2 = 'ev'
     a3 = 'arraydset 1'
@@ -1437,6 +1479,8 @@ def test_CompositeDataset():
     a12 = NumericParameter(description='a different param in metadata',
                            value=2.3, unit='sec')
     v.meta[a11] = a12
+
+    # def test_CompositeDataset_func():
 
     # equality
     b1 = copy.deepcopy(a1)
@@ -1491,7 +1535,8 @@ def test_CompositeDataset():
     assert v['v1'][a9] == a4
 
     # toString()
-    v3 = CompositeDataset()
+    v3 = CompositeDataset(description='test CD')
+    v3.meta = standardtestmeta()
     # creating a table dataset
     ELECTRON_VOLTS = 'eV'
     SECONDS = 'sec'
@@ -1722,7 +1767,7 @@ def test_BaseProduct():
     assert p1.equals(p3) == True
 
     # toString
-    ts = x.toString()
+    #ts = x.toString()
     # print(ts)
 
     checkjson(x)

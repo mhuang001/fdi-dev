@@ -640,7 +640,7 @@ class StringParameter(Parameter):
     """ has a unicode string as the value, a typecode for length and char.
     """
 
-    def __init__(self, value=None, description='UNKNOWN', default='', valid=None, typecode='B', **kwds):
+    def __init__(self, value=None, description='UNKNOWN', valid=None, default='', typecode='B', **kwds):
         self.setTypecode(typecode)
         super(StringParameter, self).__init__(
             value=value, description=description, typ_='string', default=default, valid=valid, **kwds)
@@ -683,10 +683,10 @@ class StringParameter(Parameter):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           value=self._value,
-                           default=self._default,
+        return OrderedDict(value=self._value,
+                           description=self.description,
                            valid=self._valid,
+                           default=self._default,
                            typecode=self._typecode,
                            classID=self.classID)
         return self.__class__.__name__ + \

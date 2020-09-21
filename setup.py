@@ -39,6 +39,7 @@ setup(
         'Flask_HTTPAuth>=3.3.0',
         'Flask>=1.1.2',
         'ruamel.yaml>=0.15.0',
+        'tabulate>=0.8.7',
     ],
     extras_require={
         'DOC': ['aiohttp-theme>=0.1.6',

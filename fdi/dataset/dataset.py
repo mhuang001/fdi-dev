@@ -225,7 +225,8 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
             mstr(self.serializable(), level=level, **kwds)
         d = 'data =\n\n'
         d += bstr(self.data, level=level, **kwds) if matprint is None else \
-            matprint(self.data)
+            matprint(self.data, trans=False, headers=[],
+                     tablefmt='plain', **kwds)
         return s + '\n' + d + '\n'
 
     def serializable(self):
@@ -553,7 +554,7 @@ class TableDataset(GenericDataset, TableModel):
             '{ description = "%s", meta = %s, data = "%s"}' % \
             (str(self.description), str(self.meta), str(self.data))
 
-    def toString(self, level=0, matprint=None, trans=True, **kwds):
+    def toString(self, level=0, matprint=None, trans=True, tablefmt='rst', **kwds):
         if matprint is None:
             matprint = ndprint
 
@@ -561,9 +562,11 @@ class TableDataset(GenericDataset, TableModel):
             mstr(self.serializable(), level=level, **kwds)
         cols = list(self.data.values())
         d = 'data =\n\n'
-        d += '# ' + ' '.join([str(x) for x in self.data.keys()]) + '\n'
-        d += '# ' + ' '.join([str(x.unit) for x in cols]) + '\n'
-        d += matprint(cols, trans=trans)
+        nmun = zip((str(x) for x in self.data.keys()),
+                   (str(x.unit) for x in cols))
+        hdr = list('%s\n(%s)' % nu for nu in nmun)
+        d += matprint(cols, trans=trans, headers=hdr,
+                      tablefmt=tablefmt, **kwds)
         return s + '\n' + d + '\n'
 
     def serializable(self):

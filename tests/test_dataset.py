@@ -21,7 +21,7 @@ from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
-from fdi.dataset.ndprint import ndprint
+from fdi.dataset.ndprint import ndprint, ndprint0
 from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.invalid import INVALID
 from fdi.dataset.finetime import FineTime, FineTime1, utcobj
@@ -43,7 +43,7 @@ Classes.updateMapping()
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
 
-    from outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
+    from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_TableDataset, out_CompositeDataset
 else:
     # run by pytest
 
@@ -51,7 +51,7 @@ else:
     # https://docs.python-guide.org/writing/structure/
     from .pycontext import fdi
 
-    from .outputs import nds2, nds3, out_GenericDataset, out_TableDataset, out_CompositeDataset
+    from .outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_TableDataset, out_CompositeDataset
 
     from .logdict import logdict
     import logging
@@ -184,22 +184,22 @@ def ndlist(*args):
     return dp
 
 
-def test_ndprint():
+def test_ndprint0():
     s = [1, 2, 3]
-    v = ndprint(s)
+    v = ndprint0(s)
     # print(v)
     # table, 1 column
     assert v == '1 \n2 \n3 \n'
-    v = ndprint(s, trans=False)
+    v = ndprint0(s, trans=False)
     # print(v)
     # 1D matrix. 1 row.
     assert v == '1 2 3 '
     s = [[i + j for i in range(2)] for j in range(3)]
-    v = ndprint(s)
+    v = ndprint0(s)
     # print(v)
     # 2x3 matrix 3 columns 2 rows
     assert v == '0 1 2 \n1 2 3 \n'
-    v = ndprint(s, trans=False)
+    v = ndprint0(s, trans=False)
     # print(v)
     # 2x3 table view 2 columns 3 rows
     assert v == '0 1 \n1 2 \n2 3 \n'
@@ -209,10 +209,49 @@ def test_ndprint():
     s[0][1][1] = [0, 0, 0, 1, 0]
     s[0][1][2] = [5, 4, 3, 2, 1]
     s[0][1][3] = [0, 0, 0, 3, 0]
-    v = ndprint(s, trans=False)
+    v = ndprint0(s, trans=False)
     # print(v)
-    assert v == nds2
+    assert v == nds20
+    v = ndprint0(s)
+    # print(v)
+    assert v == nds30
+    # pprint.pprint(s)
+
+
+def test_ndprint():
+    s = 42
     v = ndprint(s)
+    # print(v)
+    assert v == '--\n42\n--'
+    s = [1, 2, 3]
+    v = ndprint(s, headers=[], tablefmt='plain')
+    # print(v)
+    # table, 1 column
+    assert v == '1\n2\n3'
+    v = ndprint(s, trans=False, headers=[], tablefmt='plain')
+    # print(v)
+    # 1D matrix. 1 row.
+    assert v == '1  2  3'
+    s = [[i + j for i in range(2)] for j in range(3)]
+    v = ndprint(s, headers=[], tablefmt='plain')
+    # print(v)
+    # 2x3 matrix 3 columns 2 rows
+    assert v == '0  1  2\n1  2  3\n\n'
+    v = ndprint(s, trans=False, headers=[], tablefmt='plain')
+    # print(v)
+    # 2x3 table view 2 columns 3 rows
+    assert v == '0  1\n1  2\n2  3\n\n'
+
+    s = ndlist(2, 3, 4, 5)
+    s[0][1][0] = [0, 0, 0, 0, 0]
+    s[0][1][1] = [0, 0, 0, 1, 0]
+    s[0][1][2] = [5, 4, 3, 2, 1]
+    s[0][1][3] = [0, 0, 0, 3, 0]
+    v = ndprint(s, trans=False, headers=[], tablefmt='plain')
+    # print(v)
+    # print(nds2)
+    assert v == nds2
+    v = ndprint(s, headers=[], tablefmt='plain')
     # print(v)
     assert v == nds3
     # pprint.pprint(s)
@@ -1174,6 +1213,11 @@ def test_ArrayDataset_func():
     assert i == a1
 
     # toString()
+    d = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    x = ArrayDataset(data=d)
+    x.meta = standardtestmeta()
+    ts = x.toString()
+    # print(ts)
     s = ndlist(2, 3, 4, 5)
     x = ArrayDataset(data=s, description='toString tester AD', unit='lyr')
     x[0][1][0] = [0, 0, 0, 0, 0]
@@ -1181,12 +1225,12 @@ def test_ArrayDataset_func():
     x[0][1][2] = [5, 4, 3, 2, 1]
     x[0][1][3] = [0, 0, 0, 3, 0]
     x.meta = standardtestmeta()
-    ts = x.toString()
-    # print(ts)
+    #ts = x.toString()
     ts = x.toString(level=1)
     # print(ts)
-    i = ts.index('0 0 0 0')
-    assert ts[i:] == nds3 + '\n'
+    # print(ts)
+    i = ts.index('0  0  0  0  0')
+    assert ts[i:] == nds2 + '\n'
 
     checkjson(v)
     checkgeneral(v)
@@ -1767,7 +1811,7 @@ def test_BaseProduct():
     assert p1.equals(p3) == True
 
     # toString
-    #ts = x.toString()
+    ts = x.toString()
     # print(ts)
 
     checkjson(x)
@@ -1907,7 +1951,7 @@ if __name__ == '__main__' and __package__ is not None:
 
     running(test_deepcmp)
     running(test_serialization)
-    running(test_ndprint)
+    running(test_ndprint0)
     running(test_Annotatable)
     running(test_Composite)
     running(test_AbstractComposite)

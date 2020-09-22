@@ -53,7 +53,7 @@ def _wipe(poolpath):
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
     """
-    print('WRITE DATA AT: ' + fp)
+    # print('WRITE DATA AT: ' + fp)
     if op.exists(fp):
         os.rename(fp, fp + '.old')
     js = serializeClassID(data)
@@ -111,16 +111,14 @@ class HttpPool(LocalPool):
         loads and returns the housekeeping data
         """
         fp0 = self.transformpath(self._poolpath)
-        #import pdb
-        # pdb.set_trace()
         with filelock.FileLock(self.lockpath(), timeout=5):
             # if 1:
             hk = {}
-            for hkdata in ['classes', 'tags', 'urns']:
+            for hkdata in ['urns', 'tags', 'classes']:
                 fp = pathjoin(fp0, hkdata + '.jsn')
                 if op.exists(fp):
                     try:
-                        with open(fp, 'r') as f:
+                        with open(fp, 'rb') as f:
                             content = f.read()
                         r = deserializeClassID(content)
                     except Exception as e:
@@ -130,7 +128,6 @@ class HttpPool(LocalPool):
                 else:
                     r = dict()
                 hk[hkdata] = r
-        logger.debug('LocalPool HK read from ' + self._poolpath)
         return hk['classes'], hk['tags'], hk['urns']
 
     def writeHK(self, fp0):

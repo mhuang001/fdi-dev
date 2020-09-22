@@ -57,3 +57,11 @@ fdi.pns.server module
    :undoc-members:
    :show-inheritance:
 
+fdi.pns.urlconf module
+----------------------
+
+.. automodule:: fdi.pns.urlconf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+

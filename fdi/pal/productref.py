@@ -6,14 +6,15 @@ from .comparable import Comparable
 from ..dataset.product import Product
 from ..dataset.odict import ODict
 from ..dataset.serializable import Serializable
-from ..dataset.metadataholder import MetaDataHolder
+from ..dataset.attributable import Attributable
+from collections import OrderedDict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class ProductRef(MetaDataHolder, Serializable, Comparable):
+class ProductRef(Attributable, Serializable, Comparable):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 
@@ -280,7 +281,7 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
     def __repr__(self):
         return self.__class__.__name__ + '{ ProductURN=' + self.urn + ', meta=' + str(self.getMeta()) + '}'
 
-    def toString(self, matprint=None, trans=True):
+    def toString(self, matprint=None, trans=True, level=0):
         """
         """
         s = '# ' + self.__class__.__name__ + '\n'
@@ -289,11 +290,11 @@ class ProductRef(MetaDataHolder, Serializable, Comparable):
             str([p.__class__.__name__ +
                  '(' + p.description + ')'
                  for p in self.parents]) + '\n'
-        s += '# meta;' + self.meta.toString()
+        s += '# meta;' + self.meta.toString(level=level)
         return s
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return ODict(urnobj=self.urnobj if issubclass(self.urnobj.__class__, Urn) else None,
-                     _meta=self.getMeta(),
-                     classID=self.classID)
+        return OrderedDict(urnobj=self.urnobj if issubclass(self.urnobj.__class__, Urn) else None,
+                           _meta=self.getMeta(),
+                           classID=self.classID)

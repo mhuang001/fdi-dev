@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
+
+from ..utils.common import mstr
+from .listener import DatasetListener
+from .datawrapper import DataWrapperMapper
+from .composite import Composite
+from .annotatable import Annotatable
+from .attributable import Attributable
+
+import pdb
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-from .attributable import Attributable
-from .annotatable import Annotatable
-from .composite import Composite
-from .datawrapper import DataWrapperMapper
-from .listener import DatasetListener
-from .odict import bstr
-from .ndprint import ndprint
 
 
 class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper, DatasetListener):
@@ -18,6 +20,7 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
     """
 
     def __init__(self, **kwds):
+        # pdb.set_trace()
         super(AbstractComposite, self).__init__(**kwds)
 
     def __repr__(self):
@@ -30,13 +33,13 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
         )
         return s
 
-    def toString(self, matprint=None, trans=True, beforedata=''):
-        if matprint is None:
-            matprint = ndprint
-
+    def toString(self, level=0, matprint=None, trans=True, beforedata='', **kwds):
+        """ matprint: an external matrix print function
+        trans: print 2D matrix transposed. default is True.
+        """
         s = '# ' + self.__class__.__name__ + '\n' +\
-            '# description = "%s"\n# meta = %s\n' % \
-            (str(self.description), bstr(self.meta))
-        d = '# data = \n\n'
-        d += self._sets.toString(matprint=matprint, trans=trans)
+            mstr(self.serializable(), level=level, **kwds)
+        d = 'data =\n\n'
+        d += self._sets.toString(level=level,
+                                 matprint=matprint, trans=trans, **kwds)
         return s + beforedata + d

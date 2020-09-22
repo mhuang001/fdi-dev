@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ..utils.common import trbk
+from ..utils.common import trbk, trbk2
 from ..dataset.deserialize import deserializeClassID
 from ..dataset.serializable import serializeClassID
 from ..dataset.dataset import GenericDataset, ArrayDataset, TableDataset
@@ -8,6 +8,8 @@ from ..dataset.product import Product
 from ..dataset.finetime import FineTime1
 from ..dataset.baseproduct import History
 from ..dataset.classes import Classes
+from ..utils.getconfig import getConfig
+
 from .pnsconfig import pnsconfig as pc
 from ..utils.common import str2md5
 from ..pal.productstorage import ProductStorage
@@ -26,7 +28,7 @@ import json
 import pwd
 import grp
 import os
-from os.path import isfile, isdir, join, expanduser, expandvars
+from os.path import isfile, isdir, join
 from os import listdir, chown, chmod, environ, setuid, setgid
 from pathlib import Path
 import types
@@ -61,28 +63,8 @@ if sys.version_info[0] > 2:
     logging.getLogger("urllib3").setLevel(logging.WARN)
 else:
     pass
-logging.getLogger("filelock").setLevel(logging.INFO)
+logging.getLogger("filelock").setLevel(logging.WARN)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
-
-
-def getConfig(conf='pns'):
-    """ Imports a dict named [conf]config defined in ~/.config/[conf]local.py
-    """
-    # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
-    env = expanduser(expandvars('$HOME'))
-    # apache wsgi will return '$HOME' with no expansion
-    env = '/root' if env == '$HOME' else env
-    confp = join(env, '.config')
-    sys.path.insert(0, confp)
-    try:
-        logger.debug('Reading from configuration file in dir '+confp)
-        c = __import__(conf+'local', globals(), locals(),
-                       [conf+'config'], 0)
-        return c.__dict__[conf+'config']
-    except ModuleNotFoundError as e:
-        logger.warning(str(
-            e) + '. Use default config in the package, such as fdi/pns/pnsconfig.py. Copy it to ~/.config/[package]local.py and make persistent customization there.')
-        return {}
 
 
 def getUidGid(username):
@@ -130,7 +112,7 @@ logger.setLevel(pc['logginglevel'])
 clp = pc['userclasses']
 logger.debug('User class file '+clp)
 if clp == '':
-    pass
+    Classes.updateMapping()
 else:
     clpp, clpf = os.path.split(clp)
     sys.path.insert(0, os.path.abspath(clpp))
@@ -193,8 +175,7 @@ def _execute(cmd, input=None, timeout=10):
                      env=env, shell=False,
                      encoding='utf-8')  # , universal_newlines=True)
     except Exception as e:
-        msg = repr(e) + trbk(e) + ' ' + \
-            (e.child_traceback if hasattr(e, 'child_traceback') else '')
+        msg = trbk(e)
         return {'returncode': -1, 'message': msg}
 
     try:
@@ -346,7 +327,8 @@ def configPNS(d=None):
         pc = indata['input']
     except Exception as e:
         re = -1
-        msg = str(e)
+        msg = trbk2(e)
+        logger.warning(trbk(e))
     else:
         re = pc
         msg = ''

@@ -8,6 +8,7 @@ import pdb
 
 from .odict import ODict
 from ..utils.common import trbk
+from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -42,10 +43,12 @@ class Classes_meta(type):
         'fdi.dataset.baseproduct': ['BaseProduct'],
         'fdi.dataset.product': ['Product'],
         'fdi.dataset.datatypes': ['Vector', 'Quaternion'],
-        'fdi.dataset.metadata': ['Parameter', 'NumericParameter', 'MetaData'],
+        'fdi.dataset.metadata': ['AbstractParameter', 'Parameter', 'NumericParameter', 'DateParameter', 'StringParameter', 'MetaData'],
         'fdi.dataset.dataset': ['GenericDataset', 'ArrayDataset',
                                 'TableDataset', 'CompositeDataset', 'Column'],
-        'fdi.pal.context': ['Context', 'MapContext', 'RefContainer',
+        'fdi.pal.context': ['AbstractContext', 'Context',
+                            'AbstractMapContext', 'MapContext',
+                            'RefContainer',
                             'ContextRuleException'],
         'fdi.pal.urn': ['Urn'],
         'fdi.pal.productref': ['ProductRef']
@@ -69,7 +72,10 @@ class Classes_meta(type):
             cls.makePackageClasses()
         # cls._classes.clear()
         cls._classes.update(copy.copy(cls._package))
-        cls._classes.update(c)
+        if c:
+            cls._classes.update(c)
+        return cls._classes
+
 
     def makePackageClasses(cls, rerun=False, exclude=[]):
         """ The set of fdi package-wide deserializable classes is maintained by hand.
@@ -78,36 +84,22 @@ class Classes_meta(type):
 
         if len(cls._package) and not rerun:
             return
-        """
-        from fdi.dataset.deserialize import deserializeClassID
-        from fdi.dataset.finetime import FineTime, FineTime1, utcobj
-        from fdi.dataset.history import History
-        from fdi.dataset.baseproduct import BaseProduct
-        from fdi.dataset.product import Product
-        from fdi.dataset.datatypes import Vector, Quaternion
-        from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
-        from fdi.dataset.dataset import GenericDataset, ArrayDataset, \
-            TableDataset, CompositeDataset, Column
-        from fdi.pal.context import Context, MapContext, RefContainer, \
-            ContextRuleException
-        from fdi.pal.urn import Urn
-        from fdi.pal.productref import ProductRef
+        cls._package.clear()
+        SelectiveMetaFinder.exclude = exclude
 
-        cls._package.update(locals())
-        del cls._package['cls']
-        del cls._package['rerun']
-        """
-        # print('With %s excluded..' % (str(exclude)))
+        logger.debug('With %s excluded..' % (str(exclude)))
         for modnm, froml in cls.modclass.items():
             exed = [x for x in froml if x not in exclude]
             if len(exed) == 0:
                 continue
-            # print('importing %s from %s' % (str(exed), modnm))
+            logger.debug('importing %s from %s' % (str(froml), modnm))
             try:
-                m = importlib.__import__(modnm, globals(), locals(), exed)
-            except Exception as e:
-                #print('Importing %s not successful. %s' % (str(exed), str(e)))
-                pass
+                #m = importlib.__import__(modnm, globals(), locals(), froml)
+                m = importlib.import_module(modnm)
+            except SelectiveMetaFinder.ExcludedModule as e:
+                logger.debug('Did not import %s. %s' %
+                             (str(froml), str(e)))
+                #ety, enm, tb = sys.exc_info()
             else:
                 for n in exed:
                     cls._package[n] = getattr(m, n)
@@ -150,3 +142,6 @@ class Classes(metaclass=Classes_meta):
     """
 
     pass
+# globals()
+# pdb.set_trace()
+# Classes.importModuleClasses()

@@ -6,12 +6,11 @@ from fdi.pal.mempool import MemPool
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.utils.common import trbk, fullname
 from fdi.pal.common import getProductObject
-from fdi.pal.context import Context, MapContext
+from fdi.pal.context import Context, MapContext, RefContainer
 from fdi.pal.productref import ProductRef
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.urn import Urn, parseUrn, makeUrn
 from fdi.pal.localpool import LocalPool
-from fdi.pal.context import Context
 from fdi.pal.query import AbstractQuery, MetaQuery
 from fdi.dataset.deserialize import deserializeClassID
 from fdi.dataset.product import Product
@@ -24,11 +23,9 @@ from fdi.utils.checkjson import checkjson
 import copy
 import traceback
 from pprint import pprint
-import json
 import shutil
 import getpass
-import os
-
+import logging
 from os import path as op
 import glob
 
@@ -56,11 +53,11 @@ else:
     from .pycontext import fdi
 
     from .logdict import logdict
-    import logging
     import logging.config
     # create logger
     logging.config.dictConfig(logdict)
-    logger = logging.getLogger()
+    import logging.config
+    logger = logging.getLogger(__name__)
     logger.debug('%s logging level %d' %
                  (__name__, logger.getEffectiveLevel()))
     logging.getLogger("filelock").setLevel(logging.WARNING)
@@ -190,11 +187,12 @@ def checkdbcount(n, poolurn, prodname, currentSN=-1):
         cp = op.join(path, 'classes.jsn')
         if op.exists(cp) or n != 0:
             with open(cp, 'r') as fp:
-                cread = json.load(fp)
-                if currentSN == -1:
-                    assert cread[prodname]['currentSN'] == currentSN
-                    # number of items is n
-                assert len(cread[prodname]['sn']) == n
+                js = fp.read()
+            cread = deserializeClassID(js)
+            if currentSN == -1:
+                assert cread[prodname]['currentSN'] == currentSN
+                # number of items is n
+            assert len(cread[prodname]['sn']) == n
     elif scheme == 'mem':
         mpool = PoolManager.getPool(poolname).getPoolSpace()
         ns = [n for n in mpool if prodname + '_' in n]
@@ -600,6 +598,40 @@ def test_query():
     assert len(res) == 2, str(res)
     chk(res[0], rec1[3])
     chk(res[1], rec1[4])
+
+
+def test_RefContainer():
+    # construction
+    owner = Context(description='owner')
+    v = RefContainer()
+    v.setOwner(owner)
+    assert v._owner == owner
+    # add
+    image = ProductRef(Product(description="hi"))
+    assert len(image.parents) == 0
+    v['i'] = image
+    assert v.get('i') == image
+    spectrum = ProductRef(Product(description="there"))
+    v.put('s', spectrum)
+    assert v['s'] == spectrum
+    simple = ProductRef(Product(description="everyone"))
+    v.set('m', simple)
+    assert v.size() == 3
+    # number of parents becomes 1
+    assert len(image.parents) == 1
+    # te parent is..
+    assert spectrum.parents[0] == owner
+
+    # del
+    del v['s']
+    assert 'i' in v
+    assert 'm' in v
+    assert 's' not in v
+    assert len(v) == 2
+    # no parent any more
+    assert len(spectrum.parents) == 0
+
+    checkjson(v)
 
 
 def test_Context():

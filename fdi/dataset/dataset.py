@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
+from ..utils.common import mstr, bstr
 from .ndprint import ndprint
 from .listener import ColumnListener, MetaDataListener
 from .serializable import Serializable
-from .odict import ODict, bstr
+from .odict import ODict
 from .attributable import Attributable
 from .abstractcomposite import AbstractComposite
 from .datawrapper import DataWrapper, DataContainer
 from .eq import DeepEqual
 from .copyable import Copyable
 from .annotatable import Annotatable
+from ..utils.common import exprstrs
+from .typed import Typed
+
+from collections import OrderedDict
 import logging
 import sys
+import pdb
 if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.3:
     PY33 = True
     from collections.abc import Container, Sequence, Mapping
@@ -59,15 +65,6 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
         through visitor pattern."""
         visitor.visit(self)
 
-    def toString(self):
-        """
-        """
-
-        s = '# ' + self.__class__.__name__ + '\n' +\
-            '# description = "%s"\n# meta = %s\n' % \
-            (str(self.description), bstr(self.meta))
-        return s
-
 
 class GenericDataset(Dataset, DataContainer, Container):
     """ mh: Contains one data item.
@@ -93,59 +90,73 @@ class GenericDataset(Dataset, DataContainer, Container):
             '{ %s, description = "%s", meta = %s }' % \
             (str(self.data), str(self.description), str(self.meta))
 
-    def toString(self, matprint=None, trans=True):
+    def toString(self, level=0, matprint=None, trans=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         """
         s = '# ' + self.__class__.__name__ + '\n' +\
-            '# description = "%s"\n# meta = %s\n# unit = "%s"\n# data = \n\n' % \
-            (str(self.description), self.meta.toString(),
-             str(self.unit))
-        d = bstr(self.data) if matprint is None else matprint(self.data)
-        return s + d + '\n'
+            mstr(self.serializable(), level=level, **kwds)
+        d = 'data =\n\n'
+        d += bstr(self.data, level=level, **kwds) if matprint is None else \
+            matprint(self.data)
+        return s + '\n' + d + '\n'
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        # s = ODict(description=self.description, meta=self.meta)  # super(...).serializable()
-        # s.update(ODict(data=self.getData()))
-        s = ODict(description=self.description,
-                  meta=self.meta,
-                  data=self.data,
-                  classID=self.classID)
+        # s = OrderedDict(description=self.description, meta=self.meta)  # super(...).serializable()
+        # s.update(OrderedDict(data=self.getData()))
+        s = OrderedDict(description=self.description,
+                        meta=self.meta,
+                        data=self.data,
+                        classID=self.classID)
         return s
 
 
-class ArrayDataset(DataWrapper, GenericDataset, Sequence):
+class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
     """  Special dataset that contains a single Array Data object.
     mh: If omit the parameter names during instanciation, e.g. ArrayDataset(a, b, c), the assumed order is data, unit, description.
     mh:  contains a sequence which provides methods count(), index(), remove(), reverse().
     A mutable sequence would also need append(), extend(), insert(), pop() and sort().
     """
 
-    def __init__(self, *args, **kwds):
+    def __init__(self, data=None, unit=None, description='UNKNOWN', typ_=None, default=None, **kwds):
+        """ Initializes an ArrayDataset.
+
         """
-        """
-        ls = list(args)
-        if len(ls) == 1:
-            super(ArrayDataset, self).__init__(
-                data=ls[0], **kwds)  # initialize data, meta
-        elif len(ls) == 2:
-            super(ArrayDataset, self).__init__(data=ls[0], unit=ls[1], **kwds)
-        elif len(ls) > 2:
-            super(ArrayDataset, self).__init__(
-                data=ls[0], unit=ls[1], description=ls[2], **kwds)
-        else:
-            super(ArrayDataset, self).__init__(**kwds)  # initialize data, meta
+        self.setDefault(default)
+        super(ArrayDataset, self).__init__(data=data, unit=unit,
+                                           description=description, typ_=typ_, **kwds)  # initialize data, meta
 
     def setData(self, data):
         """
         """
-        if not issubclass(data.__class__, seqlist) and data is not None:
+        isitr = hasattr(data, '__iter__')  # and hasattr(data, '__next__')
+        if not isitr and data is not None:
             # dataWrapper initializes data as None
             m = 'data in ArrayDataset must be a subclass of Sequence: ' + \
                 data.__class__.__name__
             raise TypeError(m)
-        super(ArrayDataset, self).setData(data)
+        d = None if data is None else \
+            data if hasattr(data, '__getitem__') else list(data)
+        super(ArrayDataset, self).setData(d)
+
+    @property
+    def default(self):
+        return self.getDefault()
+
+    @default.setter
+    def default(self, default):
+        self.setDefault(default)
+
+    def getDefault(self):
+        """ Returns the default related to this object."""
+        return self._default
+
+    def setDefault(self, default):
+        """ Sets the default of this object.
+
+        """
+        self._default = default
 
     def __setitem__(self, *args, **kwargs):
         """ sets value at key.
@@ -198,25 +209,37 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence):
         self.getData().remove(*args, **kwargs)
 
     def __repr__(self):
+        vs, us, ts, ds, fs, gs, cs = exprstrs(self, '_data')
         return self.__class__.__name__ +\
-            '{ %s <%s>, description = "%s", meta = %s}' %\
-            (str(self.data), str(self.unit), str(self.description), str(self.meta))
+            '{ %s (%s) <%s>, "%s", dflt %s, tcode=%s, meta=%s}' %\
+            (vs, us, ts, ds, fs, cs, str(self.meta))
 
-    def toString(self, matprint=None, trans=True):
+    def toString(self, level=0, matprint=None, trans=True, **kwds):
+        """ matprint: an external matrix print function
+        trans: print 2D matrix transposed. default is True.
+        """
         if matprint is None:
             matprint = ndprint
-        s = super(ArrayDataset, self).toString(matprint=matprint, trans=trans)
 
-        return s
+        s = '# ' + self.__class__.__name__ + '\n' +\
+            mstr(self.serializable(), level=level, **kwds)
+        d = 'data =\n\n'
+        d += bstr(self.data, level=level, **kwds) if matprint is None else \
+            matprint(self.data, trans=False, headers=[],
+                     tablefmt='plain', **kwds)
+        return s + '\n' + d + '\n'
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        # s = ODict(description=self.description, meta=self.meta, data=self.data)  # super(...).serializable()
-        s = ODict(description=self.description,
-                  meta=self.meta,
-                  data=self.data,
-                  classID=self.classID)
-        s.update(ODict(unit=self.unit))
+        # s = OrderedDict(description=self.description, meta=self.meta, data=self.data)  # super(...).serializable()
+        s = OrderedDict(description=self.description,
+                        meta=self.meta,
+                        data=list(self.data),
+                        type=self._type,
+                        default=self._default,
+                        typecode=self._typecode,
+                        classID=self.classID)
+        s.update(OrderedDict(unit=self.unit))
         return s
 
 
@@ -230,7 +253,7 @@ class Column(ArrayDataset, ColumnListener):
     pass
 
 
-class TableModel(DataContainer):
+class TableModel(object):
     """ to interrogate a tabular data model
     """
 
@@ -254,6 +277,10 @@ class TableModel(DataContainer):
         """ Returns the name of the column at columnIndex. """
         return self.col(columnIndex)[0]
 
+    def getColumnNames(self):
+        """ Returns the column names. """
+        return list(self.data.keys())
+
     def getRowCount(self):
         """ Returns the number of rows in the model. """
         return len(self.col(0)[1].data)
@@ -262,9 +289,9 @@ class TableModel(DataContainer):
         """ Returns the value for the cell at columnIndex and rowIndex. """
         return self.col(columnIndex)[1].data[rowIndex]
 
-    def isCellEdidata(self, rowIndex, columnIndex):
+    def isCellEditable(self, rowIndex, columnIndex):
         """ Returns true if the cell at rowIndex and columnIndex
-        is edidata. """
+        is editable. """
         return True
 
     def setValueAt(self, aValue, rowIndex, columnIndex):
@@ -278,7 +305,7 @@ class TableModel(DataContainer):
         return list(self.data.items())[columIndex]
 
 
-class TableDataset(Dataset, TableModel):
+class TableDataset(GenericDataset, TableModel):
     """  Special dataset that contains a single Array Data object.
     A TableDataset is a tabular collection of Columns. It is optimized to work on array data..
     The column-wise approach is convenient in many cases. For example, one has an event list, and each algorithm is adding a new field to the events (i.e. a new column, for example a quality mask).
@@ -425,13 +452,18 @@ class TableDataset(Dataset, TableModel):
     def getRow(self, rowIndex):
         """ Returns a list containing the objects located at a particular row.
         """
-        return [self.getColumn(x)[rowIndex] for x in self]
+        return [self.getColumn(x)[rowIndex] for x in self.data.keys()]
+
+    def getRowMap(self, rowIndex):
+        """ Returns a dict of column-names as the keys and the objects located at a particular row as the values.
+        """
+        return {x: self.getColumn(x)[rowIndex] for x in self.data.keys()}
 
     def removeRow(self, rowIndex):
         """ Removes a row with specified index from this table.
         mh: returns removed row.
         """
-        return [self.getColumn(x).pop(rowIndex) for x in self]
+        return [self.getColumn(x).pop(rowIndex) for x in self.data.keys()]
 
     @property
     def rowCount(self):
@@ -501,6 +533,11 @@ class TableDataset(Dataset, TableModel):
         else:
             self.addColumn(name=key, column=value)
 
+    def items(self):
+        """ for k,v in tabledataset.items()
+        """
+        return self.data.items()
+
     def __getitem__(self, key):
         """ return colmn if given string as name or int as index.
         returns name if given column.
@@ -512,43 +549,32 @@ class TableDataset(Dataset, TableModel):
         """
         self.setColumn(key, value)
 
-    def __iter__(self):
-        for x in self.data:
-            yield x
-
-    def __contains__(self, x):
-        """
-        """
-        return x in self.data
-
     def __repr__(self):
         return self.__class__.__name__ + \
             '{ description = "%s", meta = %s, data = "%s"}' % \
             (str(self.description), str(self.meta), str(self.data))
 
-#    def atoString(self):
-#        s = '{description = "%s", meta = %s, data = "%s"}' %
-#            (str(self.description), self.meta.toString(),
-#             self.data.toString())
-#        return s
-
-    def toString(self, matprint=None, trans=True):
+    def toString(self, level=0, matprint=None, trans=True, tablefmt='rst', **kwds):
         if matprint is None:
             matprint = ndprint
-        s = super(TableDataset, self).toString()
+
+        s = '# ' + self.__class__.__name__ + '\n' +\
+            mstr(self.serializable(), level=level, **kwds)
         cols = list(self.data.values())
-        d = '# data = \n\n'
-        d += '# ' + ' '.join([str(x) for x in self.data.keys()]) + '\n'
-        d += '# ' + ' '.join([str(x.unit) for x in cols]) + '\n'
-        d += matprint(cols, trans=trans)
-        return s + d + '\n'
+        d = 'data =\n\n'
+        nmun = zip((str(x) for x in self.data.keys()),
+                   (str(x.unit) for x in cols))
+        hdr = list('%s\n(%s)' % nu for nu in nmun)
+        d += matprint(cols, trans=trans, headers=hdr,
+                      tablefmt=tablefmt, **kwds)
+        return s + '\n' + d + '\n'
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return ODict(description=self.description,
-                     meta=self.meta,
-                     data=self.data,
-                     classID=self.classID)
+        return OrderedDict(description=self.description,
+                           meta=self.meta,
+                           data=self.data,
+                           classID=self.classID)
 
 
 class CompositeDataset(AbstractComposite, Dataset):
@@ -568,7 +594,7 @@ class CompositeDataset(AbstractComposite, Dataset):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return ODict(description=self.description,
-                     meta=self.meta,
-                     _sets=self._sets,
-                     classID=self.classID)
+        return OrderedDict(description=self.description,
+                           meta=self.meta,
+                           _sets=self._sets,
+                           classID=self.classID)

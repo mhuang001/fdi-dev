@@ -1,17 +1,13 @@
 #!flask/bin/python
 # -*- coding: utf-8 -*-
 
-# This is to be able to test w/ or w/o installing the package
-# https://docs.python-guide.org/writing/structure/
-#from pycontext import fdi
-from os.path import expanduser, expandvars, join, dirname, abspath
 from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
-from fdi.pns.server import app, getConfig
+from fdi.pns.server import app
+from fdi.utils.getconfig import getConfig
 
 import pdb
-import os
-import sys
+
 #sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
 # print(sys.path)

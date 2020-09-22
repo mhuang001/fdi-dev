@@ -5,17 +5,13 @@ $WARNING
 $IMPORTS
 
 from .serializable import Serializable
-from .odict import ODict
-from .finetime import FineTime, FineTime1, utcobj
 from .abstractcomposite import AbstractComposite
-from .listener import EventSender, DatasetEvent, DatasetListener, EventType
-from .dataset import CompositeDataset
-from .metadata import Parameter, NumericParameter, ParameterTypes
-from .eq import DeepEqual, deepcmp
+from .listener import EventSender, EventType
+from .metadata import AbstractParameter, Parameter, NumericParameter, ParameterTypes, StringParameter, DateParameter
+from .eq import deepcmp
 from .copyable import Copyable
 from .history import History
 
-from collections import OrderedDict
 import pdb
 
 import logging
@@ -87,7 +83,7 @@ $INITARGS
 
         # print(self.pInfo['metadata'].keys())
         # print(metasToBeInstalled)
-        # print('# ' + self.meta.toString())
+        # print('# ' + self.meta.toString(level=0))
 
         self.installMetas(mtbi=metasToBeInstalled)
         self.history = History()
@@ -140,44 +136,40 @@ $INITARGS
         if self.hasMeta():
             met = self.pInfo['metadata']
             if name in met.keys():
-                # a special attribute like 'description'. store in meta
+                # a built-in attribute like 'description'. store in meta
                 m = self.getMeta()
                 if name in m:
                     # meta already has a Parameter for name
                     p = m[name]
-                    if issubclass(value.__class__, Parameter):
+                    if issubclass(value.__class__, AbstractParameter):
                         t, tt = value.getType(), p.getType()
-                        if t == tt:  # TODO: subclass
+                        if issubclass(t, tt):
                             p = value
                             return
                         else:
                             vs = value.value
                             raise TypeError(
-                                'Parameter %s type is %s, not %s.' % (vs, t, tt))
+                                "Parameter %s type is %s, not %s's %s." % (vs, t, name, tt))
                     else:
                         # value is not a Parameter
-                        t = type(value).__name__
-                        tt = ParameterTypes[p.getType()]
-                        if t == tt:  # TODO: subclass
+                        t_type = type(value)
+                        tt_type = type(p.value)
+                        if issubclass(t_type, tt_type):
                             p.setValue(value)
                             return
                         else:
                             vs = value
                             raise TypeError(
-                                'Parameter %s type is %s, not %s.' % (vs, t, tt))
+                                "Value %s type is %s, not %s's %s." % (vs, t_type.__name__, name, tt_type.__name__))
                 else:
-                    # name is not in prod metadata. make a Parameter
-                    im = met[name]  # {'dats_type':..., 'value':....}
-                    # in ['integer','hex','float','vector','quaternion']
-                    if im['unit'] != 'None':
-                        m[name] = NumericParameter(value=value,
-                                                   description=im['description'],
-                                                   type_=im['data_type'],
-                                                   unit=im['unit'])
-                    else:
-                        m[name] = Parameter(value=value,
-                                            description=im['description'],
-                                            type_=im['data_type'])
+                    # name is not in prod metadata.
+
+                    if issubclass(value.__class__, AbstractParameter):
+                        # value is a parameter
+                        m[name] = value
+                        return
+                    # value is not  a Parameter make one.
+                    m[name] = value2parameter(name, value, met)
                 # must return without updating self.__dict__
                 return
         # print('setattr ' + name, value)
@@ -203,12 +195,13 @@ $INITARGS
                 # logger.debug(event.source.__class__.__name__ +   ' ' + str(event.change))
                 pass
 
-    def toString(self, matprint=None, trans=True, beforedata=''):
+    def toString(self, level=0, matprint=None, trans=True, beforedata='', **kwds):
         """ like AbstractComposite but with history
         """
-        h = self.history.toString(matprint=matprint, trans=trans)
+        h = self.history.toString(
+            level=level, matprint=matprint, trans=trans, **kwds)
         s = super(BaseProduct, self).toString(
-            matprint=matprint, trans=trans, beforedata=h)
+            level=level, matprint=matprint, trans=trans, beforedata=h, **kwds)
         return s
 
     def __repr__(self):
@@ -243,9 +236,57 @@ $INITARGS
             ("listeners", self.listeners),
             ("classID", self.classID)]
 
-        return ODict(ls)
+        return OrderedDict(ls)
 
 
+def value2parameter(name, value, met):
+    """ returns a parameter with correct type and attributes according to its value and name.
+
+    met is pInfo('metadata'] or pInfo['dataset'][xxx]
+    """
+    
+    im = met[name]  # {'dats_type':..., 'value':....}
+    # in ['integer','hex','float','vector','quaternion']
+    if 'unit' in im and im['unit'] is not None:
+        ret = NumericParameter(value=value,
+                                   description=im['description'],
+                                   typ_=im['data_type'],
+                                   unit=im['unit'],
+                                   default=im['default'],
+                                   valid=im['valid'],
+                                   typecode=im['typecode'],
+ 						   )
+    elif im['data_type'] == 'string':
+        fs = im['default'] if 'default' in im else None
+        gs = im['valid'] if 'valid' in im else None
+        cs = im['typecode'] if 'typecode' in im else 'B'
+        ret = StringParameter(value=value,
+                            description=im['description'],
+                            default=fs,
+                            valid=gs,
+                            typecode=cs
+                            )
+    elif im['data_type'] == 'finetime':
+        fs = im['default'] if 'default' in im else None
+        gs = im['valid'] if 'valid' in im else None
+        cs = im['typecode'] if 'typecode' in im else None
+        ret = DateParameter(value=value,
+                            description=im['description'],
+                            default=fs,
+                            valid=gs,
+                            typecode=cs
+                            )
+    else:
+        fs = im['default'] if 'default' in im else None
+        gs = im['valid'] if 'valid' in im else None
+        ret = Parameter(value=value,
+                            description=im['description'],
+                            typ_=im['data_type'],
+                            default=fs,
+                            valid=gs,
+                            )
+    return ret
+ 
 def addMandatoryProductAttrs(cls):
     """mh: Add MPAs to a class so that although they are metadata,
     they can be accessed by for example, productfoo.creator.

@@ -1,1 +1,2 @@
-version = "1.0rc1.dev0+g252e0d5.d20200817"
+__version_info__ = (1, 0, 'rc3')
+__version__ = '.'.join(map(str, __version_info__))

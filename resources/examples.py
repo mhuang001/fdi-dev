@@ -1,5 +1,12 @@
 """
-The following demostrates important dataset and pal functionalities. It was made by running fdi/resources/example.py with command ``elpy-shell-send-group-and-step [c-c c-y c-g]`` in ``emacs``.
+The following demostrates important dataset and pal functionalities. It was made by running fdi/resources/example.py with command ``elpy-shell-send-group-and-step [c-c c-y c-g]`` in ``emacs``. The command is further simplified to control-<tab> with the following in ~/.init.el:
+
+
+.. code-bloc:: lisp
+   (add-hook 'elpy-mode-hook
+	  (lambda ()
+	    (local-set-key [C-tab] (quote elpy-shell-send-group-and-step))))
+
 
 You can copy the code from code blocks by clicking the ``copy`` icon on the top-right, with he proompts and results removed.
 """
@@ -12,18 +19,22 @@ import os
 from datetime import datetime
 import logging
 from fdi.dataset.product import Product
-from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
-from fdi.dataset.finetime import FineTime1, utcobj
+from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter
+from fdi.dataset.finetime import FineTime, FineTime1
 from fdi.dataset.dataset import ArrayDataset, TableDataset, Column
+from fdi.dataset.classes import Classes
 from fdi.pal.context import Context, MapContext
 from fdi.pal.productref import ProductRef
 from fdi.pal.query import AbstractQuery, MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.pal.productstorage import ProductStorage
+# initialize the white-listed class dictionary
+cmap = Classes.updateMapping()
 
 print("""
 dataset
 =======
+The data model.
 """)
 
 print("""
@@ -34,7 +45,13 @@ ArrayDataset
 
 # Creation
 a1 = [1, 4.4, 5.4E3, -22, 0xa2]      # a 1D array of data
-v = ArrayDataset(data=a1, unit='ev', description='5 elements')
+# quick
+v = ArrayDataset(a1)
+v
+
+# clear
+v = ArrayDataset(data=a1, unit='ev', description='5 elements',
+                 typ_='float', default=1.0, typecode='f')
 v
 
 # data access
@@ -42,6 +59,7 @@ v[2]
 
 v.unit
 
+# change attributes
 v.unit = 'm'
 v.unit
 
@@ -49,6 +67,7 @@ v.unit
 for m in v:
     print(m)
 
+# a filter example
 [m**3 for m in v if m > 0 and m < 40]
 
 # slice
@@ -56,6 +75,7 @@ v[1:3]
 
 v[2:-1]
 
+# a 2D array
 v.data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 v[0:2]
 
@@ -69,6 +89,9 @@ print(x.toString())
 print('''
 TableDataset
 ------------
+
+TableDataset is mainly a name-Column pairs dictionary with metadata.
+Columns are ArrayDatasets under a different name.
 ''')
 
 # Creation
@@ -78,42 +101,36 @@ a1 = [dict(name='col1', unit='eV', column=[1, 4.4, 5.4E3]),
 v = TableDataset(data=a1)
 v
 
-# many other ways to create a TableDataset
+# one of many other ways to create a TableDataset
 v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
                         ('col2', [0, 43.2, 2E3], 'cnt')])
 v == v3
 
 
-# quick and dirty. data are list of lists without names or units
+# quick tabledataset. data are list of lists without names or units
 a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
 v5 = TableDataset(data=a5)
 print(v5.toString())
 
 # access
 # get names of all column
-v5.data.keys()
+v5.getColumnNames()
 
 # get a list of all columns' data
 [c.data for c in v5.data.values()]   # == a5
 
 # get column by name
-c_1 = v5['col1']
-c_1
+my_column = v5['col1']
+my_column
 
 #  indexOf
-v5.indexOf('col1')  # == u.indexOf(c_1)
+v5.indexOf('col1')  # == u.indexOf(my_column)
 
-v5.indexOf(c_1)
-
-# get a cell
-v5['col2'][1]    # 43.2
+v5.indexOf(my_column)
 
 # set cell value
 v5['col2'][1] = 123
 v5['col2'][1]    # 123
-
-v5.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
-v5.getValueAt(rowIndex=1, columnIndex=1)    # 42
 
 # unit access
 v3['col1'].unit  # == 'eV'
@@ -122,39 +139,23 @@ v3['col1'].unit  # == 'eV'
 # column set / get
 u = TableDataset()
 c1 = Column([1, 4], 'sec')
-u.addColumn('col3', c1)
+u.addColumn('time', c1)
 u.columnCount        # 1
 
 # for non-existing names set is addColum.
-c2 = Column([2, 3], 'eu')
-u['col4'] = c2
-u['col4'][0]    # 2
+u['money'] = Column([2, 3], 'eu')
+u['money'][0]    # 2
 
 u.columnCount        # 2
-
-# replace column for existing names
-c3 = Column([5, 7], 'j')
-u['col4'] = c3
-u['col4'][0]    # c3.data[0]
 
 # addRow
 u.rowCount    # 2
 
-cc = copy.deepcopy(c1)
-c33, c44 = 3.3, 4.4
-cc.append(c33)
-u.addRow({'col4': c44, 'col3': c33})
+u.addRow({'money': 4.4, 'time': 3.3})
 u.rowCount    # 3
 
-u['col3']    # cc
-
-# removeRow
-u.removeRow(u.rowCount - 1)    # [c33, c44]
-
-u.rowCount    # 2
-
 # syntax ``in``
-[c for c in u]  # list of column names ['col1', 'col2']
+[c for c in u]  # list of column names ['time', 'money']
 
 
 # run this to see ``toString()``
@@ -175,54 +176,15 @@ Parameter
 
 # Creation
 # standard way -- with keyword arguments
-a1 = 'a test parameter'
-a2 = 300
-a3 = 'integer'
-v = Parameter(description=a1, value=a2, type_=a3)
-v.description   # == a1
+v = Parameter(value=9000, description='Average age', typ_='integer')
+v.description   # 'Average age
 
-v.value   # == a2
+v.value   # == 9000
 
-v.type_   # == a3
-
-# with no argument
-v = Parameter()
-v.description   # == 'UNKNOWN# inherited from Anotatable
-
-v.value   # is None
-
-v.type_   # == ''
-
-# make a blank one then set attributes
-v = Parameter(description=a1)
-v.description   # == a1
-
-v.value    # is None
-
-v.type_   # == ''
-
-v.setValue(a2)
-v.setType(a3)
-v.description   # == a1
-
-v.value   # == a2
-
-v.type_   # == a3
-
-# test equivalence of v.setXxxx(a) and v.xxx = a
-a1 = 'test score'
-a2 = 98
-v = Parameter()
-v.description = a1
-v.value = a2
-v.description   # == a1
-
-v.value   # == a2
+v.type   # == 'integer'
 
 # test equals
-b1 = ''.join(a1)  # make a new string copy
-b2 = a2 + 0  # make a copy
-v1 = Parameter(description=b1, value=b2)
+v1 = Parameter(description='Average age', value=9000, typ_='integer')
 v.equals(v1)
 
 v == v1
@@ -232,44 +194,71 @@ v.equals(v1)   # False
 
 v != v1  # True
 
+# NumericParameter with two valid values and a valid range.
+v = NumericParameter(value=9000, valid={
+                     0: 'OK1', 1: 'OK2', (100, 9900): 'Go!'})
+
+# There are thee valid conditions
+v
+
+# The current value is valid
+v.isvalid()
+
+
+# check if other values are valid according to specification of this parameter
+v.validate(600)  # valid
+
+v.validate(20)  # invalid
+
+
 print("""
 Metadata
 --------
+A container for named parameters.
 """)
 
 # Creation
-a1 = 'age'
-a2 = NumericParameter(description='since 2000',
-                      value=20, unit='year', type_='integer')
+a1 = 'weight'
+a2 = NumericParameter(description='How heavey is the robot.',
+                      value=20, unit='kg', typ_='integer')
 v = MetaData()
+# place the parameter with a name
 v.set(a1, a2)
+# get the parameter with the name
 v.get(a1)   # == a2
 
 # add more parameter
-a3 = 'Bob'
-v.set(name='name', newParameter=Parameter(a3))
-v.get('name').value   # == a3
+v.set(name='job', newParameter=StringParameter('teacher'))
+# get the value of the parameter
+v.get('job').value   # == 'teacher'
 
 # access parameters in metadata
 v = MetaData()
-# a more readable way to set a parameter
-v[a1] = a2  # DRM doc case
-# a more readable way to get a parameter
+# a more readable way to set/get a parameter than "v.set(a1,a2)", "v.get(a1)"
+v[a1] = a2
 v[a1]   # == a2
 
+# same result as...
 v.get(a1)   # == a2
 
-v['date'] = Parameter(description='take off at',
-                      value=FineTime1.datetimeToFineTime(datetime.now(tz=utcobj)))
-# names of all parameters
-[n for n in v]   # == [a1, 'date']
+# Date type parameter use International Atomic Time (TAI) to keep time,
+# in 1-microsecond precission
+v['birthday'] = Parameter(description='was made on',
+                          value=FineTime('2020-09-09T12:34:56.789098 UTC'))
+v['birthday'].value.tai
 
+# names of all parameters
+[n for n in v]   # == ['weight', 'birthday']
+
+# string presentation
 print(v.toString())
 
 # remove parameter
 v.remove(a1)  # inherited from composite
 print(v.size())  # == 1
 
+# simplifed string presentation
+print(v.toString(level=1))
 
 print("""
 Product
@@ -323,8 +312,8 @@ x.meta["creator"].value   # == a1
 x.creator   # == a1
 
 
-# Demo ``toString()`` function. The result should be ::
-print(x.toString())
+# Demo ``toString()`` function. The result (detail level 1) should be ::
+print(x.toString(level=1))
 # For more examples see tests/test_dataset.py
 
 print('''
@@ -362,6 +351,7 @@ pstore
 
 # save the product and get a reference
 prodref = pstore.save(x)
+# This gives detailed information of the product being referenced
 print(prodref)
 
 # get the urn string
@@ -391,7 +381,7 @@ pref1
 
 # A productStorage with a pool on disk
 pref2 = pstore.save(p2)
-pref2
+pref2.urn
 
 # how many prodrefs do we have? (do not use len() due to classID, version)
 map1['refs'].size()   # == 0

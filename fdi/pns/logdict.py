@@ -2,7 +2,7 @@
 import getpass
 
 # different user has different log file to allow multiple user
-logfile = '/tmp/pns_' + getpass.getuser() + '.log'
+logfile = '/tmp/fdi_' + getpass.getuser() + '.log'
 logdict = {
     "version": 1,
     "formatters": {

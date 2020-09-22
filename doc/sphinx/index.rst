@@ -4,27 +4,27 @@
    contain the root `toctree` directive.
 
 ==================================================
- Flexible Dataset Integrator (fdi)
+ Flexible Dataset Integrator (fdi) v1.0rc2
 ==================================================
 
-FDI, known as SPDC before, is written in Python for integrating different types of data, and letting the integrated product take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading.
+FDI helps to establish connections among datasets of different types and origins to form a self-describing, regularly organized, integrated product whose component datasets keeps their own characters and easily accessible. FDI provides facilitied to let the integrated product take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading.
 
 Features
 ========
 
-With FDI one can pack data of different format into **modular** Data Products, together with annotation (description and units) and meta data (data about data). One can make arrays or tables of Products using basic data structures such as sets, sequences (Python ``list``), mappings (Python ``dict``), or custom-made classes. FDI accomodates nested and highly complex structures.
+With FDI one can pack data of different format into **regular and modular** Data Products, together with annotation (description, types, units, defaults, and validity specifications) and meta data (data about data). One can make arrays or tables of Products using basic data structures such as sequences (e.g. Python ``list``), mappings (e.g. Python ``dict``), or custom-made classes. FDI accomodates nested and highly complex structures.
 
-**Access APIs** of the components of 'FDIs' are convenient, making it easier for **scripting and data mining** directly 'on FDIs'.
+**Access APIs** of the components of FDI data objects are convenient and similar to those of standad Python libraries, making it easier for **scripting and data mining** directly 'on FDIs'.
 
-All levels of FDI Products and their component (datasets or metadata) are portable (**serializable**) in human-friendly standard format (JSON implemented), allowing machine data processors on different platforms to parse, access internal components, or re-construct "an FDI". Even a human with a web browser can understand the data.
+All levels of FDI Products and their components (datasets or metadata) are portable (**serializable**) in human-friendly standard format (JSON implemented), allowing machine data processors on different platforms to parse, access internal components, or re-construct a product. Even a human with only a web browser can understand the data.
 
 The ``toString()`` method of major containers classes outputs nicely formated text representation of complex data to help converting FDI to ASCII.
 
-Most FDI Products and components implement **event sender and listener interfaces**, allowing **scalable data-driven** processing pipelines and visualizers of live data to be constructed.
+Most FDI Products and components implement **event sender and listener interfaces**, helping **scalable data-driven** processing pipelines and visualizers of live data to be constructed.
 
-FDI storage 'pools' (file based and  memory based) are provided as references for 1) queryable data **storage** and, 2) for all persistent data to be referenced to with **URNs** (Universal Resource Names).
+FDI stoerage 'pools' (file, network, or memory based) are provided as references for 1) **queryable** data **storage** and, 2) for all persistent data to be referenced to with **URNs** (Universal Resource Names).
 
-FDI provides *Context* type of product so that references of other products can become components of a Context, enabling **encapsulation of rich, deep, sophisticated, and accessible contextual data**, yet remain light weight.
+FDI provides *Context* type of product so that references of other products can become components, enabling **encapsulation of rich, deep, sophisticated, and accessible contextual data**, yet remain light weight.
 
 For data processors, an HTML **server** with **RESTful APIs** is implemented (named Processing Node Server, PNS) to interface data processing modules. PNS is especially suitable for **Docker containers** in pipelines mixing **legacy software** or software of incompatible environments to form an integral data processing pipeline.
 

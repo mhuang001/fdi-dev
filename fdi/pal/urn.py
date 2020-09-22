@@ -6,6 +6,7 @@ from ..dataset.eq import DeepEqual
 from ..utils.common import fullname
 import sys
 import os
+from collections import OrderedDict
 
 import logging
 # create logger
@@ -239,8 +240,8 @@ class Urn(DeepEqual, Serializable, Comparable):
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return ODict(urn=self.urn,
-                     classID=self.classID)
+        return OrderedDict(urn=self.urn,
+                           classID=self.classID)
 
     def __repr__(self):
         return self.__class__.__name__ + ' ' + self._urn

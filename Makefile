@@ -32,7 +32,7 @@ yamlupgrade:
 
 
 .PHONY: runserver reqs install uninstall vtag FORCE \
-	test test1 test2 test3 test4 test5 \
+	test test1 test2 test3 test4 test5\
 	plots plotall plot_dataset plot_pal plot_pns \
 	docs doc_api doc_plots doc_html
 
@@ -42,11 +42,15 @@ S	=
 runserver:
 	python3 -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
 
+INSOPT  =
 install:
-	pip3 install -e .
+	pip3 install $(INSOPT) -e . $(I)
+
+install_with_DOC:
+	pip3 install $(INSOPT) -e .[DOC] $(I)
 
 uninstall:
-	pip3 uninstall fdi
+	pip3 uninstall $(INSOPT) fdi  $(I)
 
 PNSDIR=~/pns
 installpns:
@@ -73,15 +77,21 @@ reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
 
 # update _version.py and tag based on setup.py
-VERSION	= $(shell python -c "from setuptools_scm import get_version;print(get_version('.'))")
+# VERSION	= $(shell python -c "from setuptools_scm import get_version;print(get_version('.'))")
+# @ echo update _version.py and tag to $(VERSION)
+
+
+VERSIONFILE	= fdi/_version.py
+VERSION	= $(shell python -c "_l = {};f=open('$(VERSIONFILE)'); exec(f.read(), None, _l); f.close; print(_l['__version__'])")
+
 versiontag:
-	@ echo update _version.py and tag to $(VERSION)
-	@ echo  __version__ = \"$(VERSION)\" > fdi/_version.py
-	git tag  $(VERSION)
+	@ echo  __version__ = \"$(VERSION)\" in $(VERSIONFILE)
+	#git tag  $(VERSION)
+
 
 TESTLOG	= tests/log
-OPT	= --debug -v -r P
-OPT	= -r P --log-file=$(TESTLOG)
+
+OPT	= -r P --log-file=$(TESTLOG) -v -l --pdb
 T	=
 test: test1 test2 test4 test3
 
@@ -103,31 +113,35 @@ test5:
 test6:
 	pytest $(OPT) tests/test_httpclientpool.py
 
+test7:
+	pytest  $(OPT) $(T) tests/test_utils.py
+
+PLOTDIR	= $(SDIR)/_static
+
 plots: plotall plot_dataset plot_pal plot_pns
 
 plotall:
 	pyreverse -o png -p all fdi/dataset fdi/pal fdi/pns fdi/utils
-	mv classes_all.png packages_all.png resources
+	mv classes_all.png packages_all.png $(PLOTDIR)
 
 qplot_%: FORCE
 	pyreverse -o png -p $@ fdi/$@
-	mv classes_$@.png packages_$@.png resources
+	mv classes_$@.png packages_$@.png $(PLOTDIR)
 
 FORCE:
 
 
 plot_dataset:
 	pyreverse -o png -p dataset fdi/dataset
-	mv classes_dataset.png packages_dataset.png resources
+	mv classes_dataset.png packages_dataset.png $(PLOTDIR)
 
 plot_pal:
 	pyreverse -o png -p pal fdi/pal
-	mv classes_pal.png packages_pal.png resources
+	mv classes_pal.png packages_pal.png $(PLOTDIR)
 
 plot_pns:
 	pyreverse -o png -p pns fdi/pns
-	mv classes_pns.png packages_pns.png resources
-
+	mv classes_pns.png packages_pns.png $(PLOTDIR)
 
 DOCDIR	= doc
 SDIR = $(DOCDIR)/sphinx
@@ -142,9 +156,8 @@ doc_api:
 	sphinx-apidoc $(APIOPT) -o $(SDIR)/api/fdi fdi
 
 doc_plots:
-	cd $(SDIR)/_static && \
-	rm -f  classes*.png packages*.png ;\
-	for i in  ../../../resources/*.png; do  ln -s $$i .; done
+	rm  $(PLOTDIR)/classes*.png $(PLOTDIR)/packages*.png ;\
+	make plots
 
 doc_html:
 	cd $(SDIR) && make html

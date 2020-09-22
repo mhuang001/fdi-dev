@@ -2,7 +2,14 @@
 **pal**: Product Access Layer
 =============================
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+
 Product Access Layer allows data stored logical "pools" to be accessed with light weight product refernces by data processers, data storage, and data consumers. A data product can include a context built with references of relevant data. A ``ProductStorage`` interface is provided to handle saving/retrieving/querying data in registered pools.
+
+
 
 Rationale
 =========
@@ -58,6 +65,40 @@ ProductPool
 An place where products can be saved, with a reference for the saved product generated. The product can be retrieved with the reference. Pools based on different media or networking mechanism can be implemented. Multiple pools can be registered in a
 ProductStorage front-end where users can do the saving, loading, querying etc. so that the pools are collectively form a larger logical storage.
 
+The reference LocalPool is shown in the following YAML-like schematic:
+
+.. code-block::  yaml
+   
+   Pool:!!dict
+          _classes:!!odict
+              product0_class_name:!!dict
+                      currentSN:!!int #the serial number of the latest added prod to the pool
+                             sn:!!list
+                                 - serial number of a prod
+                                 - serial number of a prod
+                                 - ...
+              product1_class_name:
+              ...
+          _urns:!!odict
+              urn0:!!odict
+                      meta:!!MetaData #prod.meta
+                      tags:!!list
+                            - $tag
+                            - $tag
+                            - ...
+              urn1:!!odict
+	      ...
+          _tags:!!odict
+              urns:!!list
+                   - $urn
+                   - $urn
+                   - ...
+
+	  urn0:!!serialized product
+	  urn1:!!serialized product
+	  ...
+
+	  
 Query
 -----
 

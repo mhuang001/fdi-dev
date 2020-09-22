@@ -3,21 +3,18 @@
 # Automatically generated from fdi/dataset/resources/BaseProduct.yml. Do not edit.
 
 from collections import OrderedDict
-from fdi.dataset.finetime import FineTime1
+from fdi.dataset.finetime import FineTime
 
 
 from .serializable import Serializable
-from .odict import ODict
-from .finetime import FineTime, FineTime1, utcobj
 from .abstractcomposite import AbstractComposite
-from .listener import EventSender, DatasetEvent, DatasetListener, EventType
-from .dataset import CompositeDataset
-from .metadata import Parameter, NumericParameter, ParameterTypes
-from .eq import DeepEqual, deepcmp
+from .listener import EventSender, EventType
+from .metadata import AbstractParameter, Parameter, NumericParameter, ParameterTypes, StringParameter, DateParameter
+from .eq import deepcmp
 from .copyable import Copyable
 from .history import History
+from ..utils.common import mstr
 
-from collections import OrderedDict
 import pdb
 
 import logging
@@ -29,7 +26,7 @@ logger = logging.getLogger(__name__)
 # @addMandatoryProductAttrs
 
 
-class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
+class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
     """ A BaseProduct is a generic result that can be passed on between
     (standalone) processes.
 
@@ -53,18 +50,17 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
 
-    BaseProduct class (level ALL) schema 1.0 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-08-17 17:03:44.479156.
+    BaseProduct class (level ALL) schema 1.1 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-09-21 13:26:07.238519.
 
     """
 
-
     def __init__(self,
-                 description = 'UNKOWN',
-                 type_ = 'BaseProduct',
-                 creator = 'UNKOWN',
-                 creationDate = FineTime1(0),
-                 rootCause = 'UNKOWN',
-                 version = '0.4',
+                 description='UNKNOWN',
+                 type_='BaseProduct',
+                 creator='UNKNOWN',
+                 creationDate=FineTime(0),
+                 rootCause='UNKNOWN',
+                 version='0.6',
                  **kwds):
 
         global ProductInfo
@@ -94,7 +90,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
 
         # print(self.pInfo['metadata'].keys())
         # print(metasToBeInstalled)
-        # print('# ' + self.meta.toString())
+        # print('# ' + self.meta.toString(level=0))
 
         self.installMetas(mtbi=metasToBeInstalled)
         self.history = History()
@@ -147,44 +143,40 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
         if self.hasMeta():
             met = self.pInfo['metadata']
             if name in met.keys():
-                # a special attribute like 'description'. store in meta
+                # a built-in attribute like 'description'. store in meta
                 m = self.getMeta()
                 if name in m:
                     # meta already has a Parameter for name
                     p = m[name]
-                    if issubclass(value.__class__, Parameter):
+                    if issubclass(value.__class__, AbstractParameter):
                         t, tt = value.getType(), p.getType()
-                        if t == tt:  # TODO: subclass
+                        if issubclass(t, tt):
                             p = value
                             return
                         else:
                             vs = value.value
                             raise TypeError(
-                                'Parameter %s type is %s, not %s.' % (vs, t, tt))
+                                "Parameter %s type is %s, not %s's %s." % (vs, t, name, tt))
                     else:
                         # value is not a Parameter
-                        t = type(value).__name__
-                        tt = ParameterTypes[p.getType()]
-                        if t == tt:  # TODO: subclass
+                        t_type = type(value)
+                        tt_type = type(p.value)
+                        if issubclass(t_type, tt_type):
                             p.setValue(value)
                             return
                         else:
                             vs = value
                             raise TypeError(
-                                'Parameter %s type is %s, not %s.' % (vs, t, tt))
+                                "Value %s type is %s, not %s's %s." % (vs, t_type.__name__, name, tt_type.__name__))
                 else:
-                    # name is not in prod metadata. make a Parameter
-                    im = met[name]  # {'dats_type':..., 'value':....}
-                    # in ['integer','hex','float','vector','quaternion']
-                    if im['unit'] != 'None':
-                        m[name] = NumericParameter(value=value,
-                                                   description=im['description'],
-                                                   type_=im['data_type'],
-                                                   unit=im['unit'])
-                    else:
-                        m[name] = Parameter(value=value,
-                                            description=im['description'],
-                                            type_=im['data_type'])
+                    # name is not in prod metadata.
+
+                    if issubclass(value.__class__, AbstractParameter):
+                        # value is a parameter
+                        m[name] = value
+                        return
+                    # value is not  a Parameter make one.
+                    m[name] = value2parameter(name, value, met)
                 # must return without updating self.__dict__
                 return
         # print('setattr ' + name, value)
@@ -210,13 +202,25 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
                 # logger.debug(event.source.__class__.__name__ +   ' ' + str(event.change))
                 pass
 
-    def toString(self, matprint=None, trans=True, beforedata=''):
+    def dtoString(self, level=0, matprint=None, trans=True, beforedata='', **kwds):
         """ like AbstractComposite but with history
         """
-        h = self.history.toString(matprint=matprint, trans=trans)
+        h = self.history.toString(
+            level=level, matprint=matprint, trans=trans, **kwds)
         s = super(BaseProduct, self).toString(
-            matprint=matprint, trans=trans, beforedata=h)
+            level=level, matprint=matprint, trans=trans, beforedata=h, **kwds)
         return s
+
+    def toString(self, level=0, matprint=None, trans=True, beforedata='', **kwds):
+        """ matprint: an external matrix print function
+        trans: print 2D matrix transposed. default is True.
+        """
+        s = '# ' + self.__class__.__name__ + '\n' +\
+            mstr(self.serializable(), level=level, **kwds)
+        d = 'data =\n\n'
+        d += self._sets.toString(level=level,
+                                 matprint=matprint, trans=trans, **kwds)
+        return s + '\n' + d + '\n'
 
     def __repr__(self):
         ''' meta and datasets only show names
@@ -250,7 +254,56 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
             ("listeners", self.listeners),
             ("classID", self.classID)]
 
-        return ODict(ls)
+        return OrderedDict(ls)
+
+
+def value2parameter(name, value, met):
+    """ returns a parameter with correct type and attributes according to its value and name.
+
+    met is pInfo('metadata'] or pInfo['dataset'][xxx]
+    """
+
+    im = met[name]  # {'dats_type':..., 'value':....}
+    # in ['integer','hex','float','vector','quaternion']
+    if 'unit' in im and im['unit'] is not None:
+        ret = NumericParameter(value=value,
+                               description=im['description'],
+                               typ_=im['data_type'],
+                               unit=im['unit'],
+                               default=im['default'],
+                               valid=im['valid'],
+                               typecode=im['typecode'],
+                               )
+    elif im['data_type'] == 'string':
+        fs = im['default'] if 'default' in im else None
+        gs = im['valid'] if 'valid' in im else None
+        cs = im['typecode'] if 'typecode' in im else 'B'
+        ret = StringParameter(value=value,
+                              description=im['description'],
+                              default=fs,
+                              valid=gs,
+                              typecode=cs
+                              )
+    elif im['data_type'] == 'finetime':
+        fs = im['default'] if 'default' in im else None
+        gs = im['valid'] if 'valid' in im else None
+        cs = im['typecode'] if 'typecode' in im else None
+        ret = DateParameter(value=value,
+                            description=im['description'],
+                            default=fs,
+                            valid=gs,
+                            typecode=cs
+                            )
+    else:
+        fs = im['default'] if 'default' in im else None
+        gs = im['valid'] if 'valid' in im else None
+        ret = Parameter(value=value,
+                        description=im['description'],
+                        typ_=im['data_type'],
+                        default=fs,
+                        valid=gs,
+                        )
+    return ret
 
 
 def addMandatoryProductAttrs(cls):
@@ -289,60 +342,89 @@ ProductInfo = {
     'description': 'FDI base class',
     'parents': [
         None,
-        ],
+    ],
     'level': 'ALL',
-    'schema': '1.0',
+    'schema': '1.1',
     'metadata': {
         'description': {
-                'fits_keyword': 'DESCRIPT',
-                'data_type': 'string',
-                'description': 'Description of this product',
-                'unit': None,
-                'default': 'UNKOWN',
-                'valid': '',
-                },
+            'current_id': 'description',
+            'id': 'description',
+            'id_zh_cn': '描述',
+            'fits_keyword': 'DESCRIPT',
+            'data_type': 'string',
+            'description': 'Description of this product',
+            'description_zh_cn': '对本产品的描述。',
+            'examples': 'SINGLE EXPOSURE',
+            'default': 'UNKNOWN',
+            'valid': '',
+            'typecode': 'B',
+        },
         'type': {
-                'fits_keyword': 'TYPE',
-                'data_type': 'string',
-                'description': 'Product Type identification. Fully qualified Python class name or CARD.',
-                'unit': None,
-                'default': 'BaseProduct',
-                'valid': '',
-                },
+            'current_id': 'type',
+            'id': 'type',
+            'id_zh_cn': '产品类型',
+            'fits_keyword': 'TYPE',
+            'data_type': 'string',
+            'description': 'Product Type identification. Name of class or CARD.',
+            'description_zh_cn': '产品类型。完整Python类名或卡片名。',
+            'examples': 'SAT-QM-ThermVac',
+            'default': 'BaseProduct',
+            'valid': '',
+            'typecode': 'B',
+        },
         'creator': {
-                'fits_keyword': 'CREATOR',
-                'data_type': 'string',
-                'description': 'Generator of this product. Example name of institute, organization, person, software, special algorithm etc.',
-                'unit': None,
-                'default': 'UNKOWN',
-                'valid': '',
-                },
+            'current_id': 'creator',
+            'id': 'creator',
+            'id_zh_cn': '本产品生成者',
+            'fits_keyword': 'CREATOR',
+            'data_type': 'string',
+            'description': 'Generator of this product.',
+            'description_zh_cn': '本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。',
+            'examples': 'SECM-EGSE',
+            'default': 'UNKNOWN',
+            'valid': '',
+            'typecode': 'B',
+        },
         'creationDate': {
-                'fits_keyword': 'DATE',
-                'data_type': 'finetime',
-                'description': 'Creation date of this product',
-                'unit': 'None',
-                'default': '0',
-                'valid': '',
-                },
+            'current_id': 'creationDate',
+            'id': 'creationDate',
+            'id_zh_cn': '产品生成时间',
+            'fits_keyword': 'DATE',
+            'data_type': 'finetime',
+            'description': 'Creation date of this product',
+            'description_zh_cn': '本产品生成时间',
+            'examples': '10361455509632',
+            'default': 0,
+            'valid': '',
+            'typecode': None,
+        },
         'rootCause': {
-                'fits_keyword': 'ROOTCAUS',
-                'data_type': 'string',
-                'description': 'Reason of this run of pipeline.',
-                'unit': None,
-                'default': 'UNKOWN',
-                'valid': '',
-                },
+            'current_id': 'rootCause',
+            'id': 'rootCause',
+            'id_zh_cn': '数据来源',
+            'fits_keyword': 'ROOTCAUS',
+            'data_type': 'string',
+            'description': 'Reason of this run of pipeline.',
+            'description_zh_cn': '数据来源（此例来自鉴定件热真空罐）',
+            'examples': 'QM-ThermVac',
+            'default': 'UNKNOWN',
+            'valid': '',
+            'typecode': 'B',
+        },
         'version': {
-                'fits_keyword': 'VERSION',
-                'data_type': 'string',
-                'description': 'Version of product schema',
-                'unit': None,
-                'default': '0.4',
-                'valid': '',
-                },
+            'current_id': 'formatVersion',
+            'id': 'version',
+            'id_zh_cn': '格式版本',
+            'fits_keyword': 'VERSION',
+            'data_type': 'string',
+            'description': 'Version of product schema',
+            'description_zh_cn': '产品格式版本',
+            'examples': '1',
+            'default': '0.6',
+            'valid': '',
+            'typecode': 'B',
         },
+    },
     'datasets': {
-        },
-    }
-
+    },
+}

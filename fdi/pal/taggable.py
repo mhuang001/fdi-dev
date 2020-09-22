@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
+from .urn import Urn
+from fdi.dataset.odict import ODict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-from fdi.dataset.odict import ODict
-
-from .urn import Urn
 
 
 class Taggable(object):
@@ -41,9 +39,10 @@ class Taggable(object):
 
     def getUrn(self, tag):
         """
-        Gets the URNs corresponding to the given tag.
+        Gets the URNs corresponding to the given tag. Returns an empty list if tag does not exist.
         """
-
+        if tag not in self._tags:
+            return []
         return self._tags[tag]['urns']
 
     def getUrnObject(self, tag):

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-from .odict import ODict
+import pdb
+# from .odict import ODict
 import logging
 import json
+import copy
 import codecs
-
+from collections.abc import Collection, Mapping
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -14,49 +16,123 @@ else:
 
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
+
+
+class SerializableEncoderAll(json.JSONEncoder):
+    """ can encode parameter and product etc such that they can be recovered
+    with deserializeClassID.
+    Python 3 treats string and unicode as unicode, encoded with utf-8,
+    byte blocks as bytes, encoded with utf-8.
+    Python 2 treats string as str and unicode as unicode, encoded with utf-8,
+    byte blocks as str, encoded with utf-8
+    """
+
+    def default(self, obj):
+        # logger.debug
+        # print('&&&& %s %s' % (str(obj.__class__), str(obj)))
+        if PY3 and issubclass(obj.__class__, bytes):
+            return dict(code=codecs.encode(obj, 'hex'), classID='bytes')
+        if not PY3 and issubclass(obj.__class__, str):
+            return dict(code=codec.encode(obj, 'hex'), classID='bytes')
+        if obj is Ellipsis:
+            return {'obj': '...', 'classID': 'ellipsis'}
+        # print(obj.serializable())
+
+        if issubclass(obj.__class__, Serializable):
+            return obj.serializable()
+        print('%%%' + str(obj.__class__))
+        return
+
+        # Let the base class default method raise the TypeError
+        d = json.JSONEncoder.default(self, obj)
+        print('encoded d=' + d)
+        return d
+
+    # https://stackoverflow.com/a/63455796/13472124
+    base = (str, int, float, bool, type(None))
+
+    def _preprocess(self, obj):
+        """ this all only work on the first level of nested objects """
+        oc = obj.__class__
+        ocn = type(obj).__name__
+
+        #print('%%%*****prepro ' + ocn)
+        # pdb.set_trace()
+        # if issubclass(oc, self.base):
+        #     # mainly to process string which is a collections (bellow)
+        #     return obj
+        # elif 0 and issubclass(oc, (Serializable, bytes)):
+        #     if issubclass(oc, dict):
+        #         # if is both Serializable and Mapping, insert classID, to a copy
+        #         o = copy.copy(obj)
+        #         o['classID'] = obj.classID
+        #         return o
+        #     return obj
+        # elif isinstance(obj, list):
+        #     return obj
+        # elif issubclass(oc, (Mapping)):
+        #     # if all((issubclass(k.__class__, self.base) for k in obj)):
+        #     if True:
+        #         # JSONEncoder can handle the keys
+        #         if isinstance(obj, dict):
+        #             return obj
+        #         else:
+        #             return {'obj': dict(obj), 'classID': ocn}
+        #     else:
+        #         # This handles the top-level dict keys
+        #         return {'obj': [(k, v) for k, v in obj.items()], 'classID': ocn}
+        if issubclass(oc, (Collection)):
+            return {'obj': list(obj), 'classID': ocn}
+        # elif obj is Ellipsis:
+        #     return {'obj': '...', 'classID': ocn}
+
+        else:
+            return obj
+
+    def iterencode(self, obj, **kwds):
+        return super().iterencode(self._preprocess(obj), **kwds)
 
 
 class SerializableEncoder(json.JSONEncoder):
     """ can encode parameter and product etc such that they can be recovered
     with deserializeClassID.
-    Python 3 treats string and unicode as unicode, encoded with utf-8, 
+    Python 3 treats string and unicode as unicode, encoded with utf-8,
     byte blocks as bytes, encoded with utf-8.
-    Python 2 treats string as str and unicode as unicode, encoded with utf-8, 
+    Python 2 treats string as str and unicode as unicode, encoded with utf-8,
     byte blocks as str, encoded with utf-8
     """
 
     def default(self, obj):
         try:
-            #print('%%%' + str(obj.__class__))
+            # print('%%%' + str(obj.__class__))
             # Let the base class default method raise the TypeError
             d = json.JSONEncoder.default(self, obj)
-            #print('d=' + d)
+            # print('d=' + d)
         except TypeError as err:
             try:
                 # logger.debug
-                #print('&&&& %s %s' % (str(obj.__class__), str(obj)))
+                # print('&&&& %s %s' % (str(obj.__class__), str(obj)))
                 if PY3 and issubclass(obj.__class__, bytes):
                     return dict(code=codecs.encode(obj, 'hex'), classID='bytes')
                 if not PY3 and issubclass(obj.__class__, str):
                     return dict(code=codec.encode(obj, 'hex'), classID='bytes')
+                if obj is Ellipsis:
+                    return {'obj': '...', 'classID': 'ellipsis'}
                 # print(obj.serializable())
                 return obj.serializable()
             except Exception as e:
-                print('Ser ' + str(err))
-                raise e
+                print('Serialization failed.' + str(e))
+                raise
 
 
 #    obj = json.loads(jstring)
 
-def serializeClassID(o, indent=None):
+def serializeClassID(o, cls=None, **kwds):
     """ return JSON using special encoder SerializableEncoder """
-    return json.dumps(o, cls=SerializableEncoder, indent=indent)
-
-
-def serializeHipe(o):
-    """ return JSON using special encoder SerializableHipeEncoder """
-    return json.dumps(o, cls=SerializableHipeEncoder, indent=None)
+    if not cls:
+        cls = SerializableEncoder
+    return json.dumps(o, cls=cls, **kwds)
 
 
 class Serializable(object):
@@ -67,8 +143,8 @@ class Serializable(object):
     def __init__(self, **kwds):
         super(Serializable, self).__init__(**kwds)
         sc = self.__class__
-        #print('@@@ ' + sc.__name__ + str(issubclass(sc, dict)))
-        if issubclass(sc, dict):
+        #print('@@@ ' + sc.__name__, str(issubclass(sc, dict)))
+        if 0 and issubclass(sc, dict):
             self['classID'] = sc.__name__
         else:
             self.classID = sc.__name__
@@ -80,4 +156,5 @@ class Serializable(object):
         """ returns an odict that has all state info of this object.
         Subclasses should override this function.
         """
-        return ODict()
+        raise NotImplementedError()
+        return None

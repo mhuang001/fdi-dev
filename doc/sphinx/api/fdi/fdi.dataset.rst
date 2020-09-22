@@ -121,6 +121,22 @@ fdi.dataset.finetime module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.history module
+--------------------------
+
+.. automodule:: fdi.dataset.history
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.invalid module
+--------------------------
+
+.. automodule:: fdi.dataset.invalid
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.listener module
 ---------------------------
 
@@ -181,6 +197,14 @@ fdi.dataset.serializable module
 -------------------------------
 
 .. automodule:: fdi.dataset.serializable
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.typed module
+------------------------
+
+.. automodule:: fdi.dataset.typed
    :members:
    :undoc-members:
    :show-inheritance:

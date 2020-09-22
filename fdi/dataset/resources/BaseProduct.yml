@@ -3,7 +3,7 @@ description: FDI base class
 parents:
   -
 level: ALL
-schema: '1.0'
+schema: '1.1'
 metadata:
     description:
         current_id: description
@@ -14,35 +14,33 @@ metadata:
         description: Description of this product
         description_zh_cn: 对本产品的描述。
         examples: SINGLE EXPOSURE
-        unit:
-        default: UNKOWN
+        default: UNKNOWN
         valid: ''
+        typecode: B
     type:
         current_id: type
         id: type
         id_zh_cn: 产品类型
         fits_keyword: TYPE
         data_type: string
-        description: Product Type identification. Fully qualified Python class name
-            or CARD.
+        description: Product Type identification. Name of class or CARD.
         description_zh_cn: 产品类型。完整Python类名或卡片名。
         examples: SAT-QM-ThermVac
-        unit:
         default: BaseProduct
         valid: ''
+        typecode: B
     creator:
         current_id: creator
         id: creator
         id_zh_cn: 本产品生成者
         fits_keyword: CREATOR
         data_type: string
-        description: Generator of this product. Example name of institute, organization,
-            person, software, special algorithm etc.
+        description: Generator of this product.
         description_zh_cn: 本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。
         examples: SECM-EGSE
-        unit:
-        default: UNKOWN
+        default: UNKNOWN
         valid: ''
+        typecode: B
     creationDate:
         current_id: creationDate
         id: creationDate
@@ -52,9 +50,9 @@ metadata:
         description: Creation date of this product
         description_zh_cn: 本产品生成时间
         examples: '10361455509632'
-        unit: None
-        default: '0'
+        default: 0
         valid: ''
+        typecode:
     rootCause:
         current_id: rootCause
         id: rootCause
@@ -64,9 +62,9 @@ metadata:
         description: Reason of this run of pipeline.
         description_zh_cn: 数据来源（此例来自鉴定件热真空罐）
         examples: QM-ThermVac
-        unit:
-        default: UNKOWN
+        default: UNKNOWN
         valid: ''
+        typecode: B
     version:
         current_id: formatVersion
         id: version
@@ -76,6 +74,6 @@ metadata:
         description: Version of product schema
         description_zh_cn: 产品格式版本
         examples: '1'
-        unit:
-        default: '0.4'
+        default: '0.6'
         valid: ''
+        typecode: B

@@ -65,21 +65,21 @@ class Classes_meta(type):
         """
         super().__init__(*args, **kwds)
 
-    def updateMapping(cls, c=None, rerun=False, exclude=[]):
+    def updateMapping(cls, c=None, rerun=False, exclude=[], verbose=False):
         """ Updates classes mapping.
 
 
         Set rerun=True to reimport module-class list and update mapping with it, with specified modules excluded, before updating with c. If the module-class list has never been imported, it will be imported regardless rerun.
         """
         #
-        cls.importModuleClasses(rerun=rerun, exclude=exclude)
+        cls.importModuleClasses(rerun=rerun, exclude=exclude, verbose=verbose)
         # cls._classes.clear()
         cls._classes.update(copy.copy(cls._package))
         if c:
             cls._classes.update(c)
         return cls._classes
 
-    def importModuleClasses(cls, rerun=False, exclude=[]):
+    def importModuleClasses(cls, rerun=False, exclude=[], verbose=False):
         """ The set of eserializable classes in modclass is maintained by hand.
         Do nothing if the classes mapping is already made so repeated calls will not cost lots more time. Set rerun to True to force re-import. If the module-class list has never been imported, it will be imported regardless rerun.
 modules whose names (without '.') are in exclude are not imported.
@@ -90,17 +90,28 @@ modules whose names (without '.') are in exclude are not imported.
         cls._package.clear()
         SelectiveMetaFinder.exclude = exclude
 
-        logger.debug('With %s excluded..' % (str(exclude)))
+        if verbose:
+            logger.info('With %s excluded..' % (str(exclude)))
+        else:
+            logger.debug('With %s excluded..' % (str(exclude)))
+
         for modnm, froml in cls.modclass.items():
             if any((x in exclude for x in modnm.split('.'))):
                 continue
-            logger.debug('importing %s from %s' % (str(froml), modnm))
+            if verbose:
+                logger.info('importing %s from %s' % (str(froml), modnm))
+            else:
+                logger.debug('importing %s from %s' % (str(froml), modnm))
             try:
                 #m = importlib.__import__(modnm, globals(), locals(), froml)
                 m = importlib.import_module(modnm)
             except SelectiveMetaFinder.ExcludedModule as e:
-                logger.debug('Did not import %s. %s' %
-                             (str(froml), str(e)))
+                if verbose:
+                    logger.info('Did not import %s. %s' %
+                                (str(froml), str(e)))
+                else:
+                    logger.debug('Did not import %s. %s' %
+                                 (str(froml), str(e)))
                 #ety, enm, tb = sys.exc_info()
             else:
                 for n in froml:

@@ -179,14 +179,14 @@ def params(val, indents, demo, onlyInclude):
     return infostr, code
 
 
-def getCls(clp, rerun=True, exclude=None):
+def getCls(clp, rerun=True, exclude=None, verbose=False):
     if exclude is None:
         exclude = []
     if clp == '':
         # classes path not given on command line
         try:
             pc = importlib.import_module('svom.products.projectclasses')
-            pc.PC.updateMapping(rerun=rerun, exclude=exclude)
+            pc.PC.updateMapping(rerun=rerun, exclude=exclude, verbose=verbose)
             ret = pc.PC.mapping
             print(
                 'Imported project classes from svom.products.projectclasses module.')
@@ -429,8 +429,9 @@ if __name__ == '__main__':
     # could be  invalid due to unseccessful previous runs
     importexclude = [x.lower() for x in descriptors.keys()]
 
-    pcl = getCls(clp, rerun=True, exclude=importexclude)
-    Classes.updateMapping(c=pcl, rerun=True, exclude=importexclude)
+    pcl = getCls(clp, rerun=True, exclude=importexclude, verbose=verbose)
+    Classes.updateMapping(
+        c=pcl, rerun=True, exclude=importexclude, verbose=verbose)
     glb = Classes.mapping
 
     for nm, daf in descriptors.items():

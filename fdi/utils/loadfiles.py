@@ -23,7 +23,7 @@ def loadcsv(filepath, delimiter=',', header=0):
     """
     columns = []
 
-    with open(filepath, 'r', newline='') as f:
+    with open(filepath, 'r', newline='', encoding='utf-8') as f:
         logger.debug('reading csv file ' + str(f))
         # pdb.set_trace()
         rowcount = 0

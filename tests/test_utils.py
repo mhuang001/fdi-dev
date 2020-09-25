@@ -2,9 +2,9 @@
 
 import datetime
 import traceback
-from pprint import pprint
 import copy
 import sys
+import os
 import pdb
 
 from fdi.dataset.annotatable import Annotatable
@@ -29,6 +29,7 @@ from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadcsv
+from fdi.utils import moduleloader
 
 # import __builtins__
 
@@ -128,3 +129,8 @@ def test_loadcsv():
     assert v[0] == ('as', ['m', 1.0], 'A')
     assert v[1] == ('if', ['0.2', 2.0], 'B')
     assert v[2] == ('...', ['ev', 3000.], 'R')
+
+
+def test_moduleloader():
+
+    moduleloader.main(ipath=os.path.abspath('tests'))

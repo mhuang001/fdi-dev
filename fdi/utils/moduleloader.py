@@ -62,8 +62,9 @@ class SelectiveMetaFinder(MetaPathFinder):
             *parents, name = fullname.split(".")
         else:
             name = fullname
-        # print('***', name, path, type(path))
+        #print('***', name, path, type(path))
         if name in SelectiveMetaFinder.exclude:
+            # print('!!!!!!!!!!!!!!!!!!!!!!!')
             raise(SelectiveMetaFinder.ExcludedModule(
                 name + ' is excluded from loading.'))
         for entry in path:
@@ -96,7 +97,7 @@ class MyLoader(Loader):
         return None  # use default module creation semantics
 
     def exec_module(self, module):
-        with open(self.filename) as f:
+        with open(self.filename, encoding='utf-8') as f:
             data = f.read()
 
         # manipulate data some way...
@@ -115,27 +116,33 @@ def installSelectiveMetaFinder():
     sys.meta_path.insert(0, SelectiveMetaFinder())
 
 
-if __name__ == '__main__':
-
+def main(ipath='.'):
     if 0:
         install()
 
-        from fdi.utils import bar
+        import bar
         print(dir(bar))
 
     else:
         installSelectiveMetaFinder()
-        SelectiveMetaFinder.exclude = ['baseproduct']
+        SelectiveMetaFinder.exclude = ['notthis']
         # this is allowed
         from fdi.dataset.metadata import Parameter
         p = Parameter(0.99)
         assert p.value == 0.99
         # this is stopped.
         try:
-            from fdi.dataset.baseproduct import BaseProduct
+            from fdi.dataset.notthis import BaseProduct
         except SelectiveMetaFinder.ExcludedModule as e:
             assert True
         else:
             assert False
+        sys.path.insert(0, ipath)
+        import bar
+        assert hasattr(bar, 'k')
 
-        print('passed')
+
+if __name__ == '__main__':
+
+    main('tests')
+    print('passed')

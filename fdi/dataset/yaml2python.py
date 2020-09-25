@@ -521,12 +521,12 @@ if __name__ == '__main__':
         print('productInit=\n%s\n' % (subs['INITARGS']))
 
         # subtitute the template
-        with open(os.path.join(tpath, prodname + '.template')) as f:
+        with open(os.path.join(tpath, prodname + '.template'), encoding='utf-8') as f:
             t = f.read()
 
         sp = Template(t).safe_substitute(subs)
         # print(sp)
-        with open(fout, 'w') as f:
+        with open(fout, 'w', encoding='utf-8') as f:
             f.write(sp)
 
         # import the newly made module  so the following classes could use it

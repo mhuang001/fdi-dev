@@ -1326,6 +1326,17 @@ def test_TableDataset_func():
     assert u.rowCount == 2
 
     # access
+    a1 = [dict(name='col1', column=Column(data=[1, 4.4, 5.4E3], unit='eV')),
+          dict(name='col2', column=Column(data=[0, 43.2, 2E3], unit='cnt')),
+          dict(name='col3', column=Column(data=[-2, 9e-5, 8.888], unit='m'))
+          ]
+    w = TableDataset(data=a1)  # inherited from DataWrapper
+    # column by name
+    assert w['col3'] == a1[2]['column']
+    # column by index
+    assert w[1] == a1[1]['column']
+    # slice is not hashable
+
     # column names
     assert u.getColumnNames() == ['col3', 'col4']
     # unit access

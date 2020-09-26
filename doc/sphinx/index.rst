@@ -3,9 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-==================================================
- Flexible Dataset Integrator (fdi) v1.0rc2
-==================================================
+==================================
+ Flexible Dataset Integrator (fdi)
+==================================
 
 FDI helps to establish connections among datasets of different types and origins to form a self-describing, regularly organized, integrated product whose component datasets keeps their own characters and easily accessible. FDI provides facilitied to let the integrated product take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading.
 

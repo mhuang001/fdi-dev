@@ -290,8 +290,6 @@ x["QualityImage"].unit  # is None
 s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
       ('col2', [0, 43.2, 2E3], 'cnt')]
 x["Spectrum"] = TableDataset(data=s1)
-print(x["Spectrum"].toString())
-
 # mandatory properties are also in metadata
 # test mandatory BaseProduct properties that are also metadata
 x.creator = ""

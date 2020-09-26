@@ -112,48 +112,42 @@ ArrayDataset{ [1, 4.4, 5400.0, -22, 162] (ev) <float>, "5 elements", dflt 1.0, t
    unit= {None}
    data =
 
-   0 1 2 3 
-   1 2 3 4 
-   2 3 4 5 
-   3 4 5 6 
-   4 5 6 7 
+   0  1  2  3  4
+   1  2  3  4  5
+   2  3  4  5  6
+   3  4  5  6  7
 
 
-   1 2 3 4 
-   2 3 4 5 
-   3 4 5 6 
-   4 5 6 7 
-   5 6 7 8 
+   1  2  3  4  5
+   2  3  4  5  6
+   3  4  5  6  7
+   4  5  6  7  8
 
 
-   2 3 4 5 
-   3 4 5 6 
-   4 5 6 7 
-   5 6 7 8 
-   6 7 8 9 
+   2  3  4  5  6
+   3  4  5  6  7
+   4  5  6  7  8
+   5  6  7  8  9
 
 
    #=== dimension 4
 
-   1 2 3 4 
-   2 3 4 5 
-   3 4 5 6 
-   4 5 6 7 
-   5 6 7 8 
+   1  2  3  4  5
+   2  3  4  5  6
+   3  4  5  6  7
+   4  5  6  7  8
 
 
-   2 3 4 5 
-   3 4 5 6 
-   4 5 6 7 
-   5 6 7 8 
-   6 7 8 9 
+   2  3  4  5  6
+   3  4  5  6  7
+   4  5  6  7  8
+   5  6  7  8  9
 
 
-   3 4 5 6 
-   4 5 6 7 
-   5 6 7 8 
-   6 7 8 9 
-   7 8 9 10 
+   3  4  5  6   7
+   4  5  6  7   8
+   5  6  7  8   9
+   6  7  8  9  10
 
 
    #=== dimension 4
@@ -191,16 +185,18 @@ True
 
 ::
 	
-   # TableDataset
-   description= {'UNKNOWN'}, meta= {}
-   data =
-
-   # col1 col2
-   # None None
-   1 0 
-   4.4 43.2 
-   5400.0 2000.0 
-
+    # TableDataset
+    description= {'UNKNOWN'}, meta= {}
+    data =
+    
+    ========  ========
+        col1      col2
+      (None)    (None)
+    ========  ========
+         1         0
+         4.4      43.2
+      5400      2000
+    ========  ========
 
 
 >>> # access
@@ -274,23 +270,26 @@ Column{ [1, 4.4, 5400.0] (None) <None>, "UNKNOWN", dflt None, tcode=None, meta=M
 
 ::
 	
-   # TableDataset
-   description= {'Example table'}, meta= {}
-   data =
-
-   # Time Energy
-   # sec eV
-   0.0 100.0 
-   1.0 102.0 
-   2.0 104.0 
-   3.0 106.0 
-   4.0 108.0 
-   5.0 110.0 
-   6.0 112.0 
-   7.0 114.0 
-   8.0 116.0 
-   9.0 118.0 
-
+    # TableDataset
+    description= {'Example table'}, meta= {}
+    data =
+    
+    =======  ========
+       Time    Energy
+      (sec)      (eV)
+    =======  ========
+          0       100
+          1       102
+          2       104
+          3       106
+          4       108
+          5       110
+          6       112
+          7       114
+          8       116
+          9       118
+    =======  ========
+    
 
 
 Parameter
@@ -434,22 +433,7 @@ Product
 ...       ('col2', [0, 43.2, 2E3], 'cnt')]
 ... x["Spectrum"] = TableDataset(data=s1)
 ... print(x["Spectrum"].toString())
-
-::
-   
-   # TableDataset
-   description= {'UNKNOWN'}, meta= {}
-   data =
-
-   # col1 col2
-   # eV cnt
-   1 0 
-   4.4 43.2 
-   5400.0 2000.0 
-
-
-
->>> # mandatory properties are also in metadata
+... # mandatory properties are also in metadata
 ... # test mandatory BaseProduct properties that are also metadata
 ... x.creator = ""
 ... a0 = "Me, myself and I"
@@ -477,55 +461,60 @@ Product
 
 ::
 	
-   # Product
-   meta= {description= 'product example with several datasets', type= 'Product', creator= 'or else', creationDate= 1958-01-01T00:00:00.0 TAI(0), rootCause= 'UNKNOWN', version= '0.6', startDate= 1958-01-01T00:00:00.0 TAI(0), endDate= 1958-01-01T00:00:00.0 TAI(0), instrument= 'Crystal-Ball', modelName= 'Mk II', mission= '_AGS'},
-   history= {},
-   listeners= {[]}
-   data =
-
-
-   # [ RawImage ]
-   # ArrayDataset
-   description= {'image1'},
-   meta= {},
-   type= {None},
-   default= {None},
-   typecode= {None},
-   unit= {'ev'}
-   data =
-
-   1 4 7 
-   2 5 8 
-   3 6 9 
-
-
-   # [ QualityImage ]
-   # ArrayDataset
-   description= {'UNKNOWN'},
-   meta= {},
-   type= {None},
-   default= {None},
-   typecode= {None},
-   unit= {None}
-   data =
-
-   0.1 4000.0 -2 
-   0.5 60000000.0 0 
-   0.7 8 3.1 
-
-
-   # [ Spectrum ]
-   # TableDataset
-   description= {'UNKNOWN'},
-   meta= {}
-   data =
-
-   # col1 col2
-   # eV cnt
-   1 0 
-   4.4 43.2 
-   5400.0 2000.0 
-
+    # Product
+    meta= {description= 'product example with several datasets', type= 'Product', creator= 'or else', creationDate= 1958-01-01T00:00:00.0 TAI(0), rootCause= 'UNKNOWN', version= '0.6', startDate= 1958-01-01T00:00:00.0 TAI(0), endDate= 1958-01-01T00:00:00.0 TAI(0), instrument= 'Crystal-Ball', modelName= 'Mk II', mission= '_AGS'},
+    history= {},
+    listeners= {[]}
+    data =
+    
+    
+    # [ RawImage ]
+    # ArrayDataset
+    description= {'image1'},
+    meta= {},
+    type= {None},
+    default= {None},
+    typecode= {None},
+    unit= {'ev'}
+    data =
+    
+    1  2  3
+    4  5  6
+    7  8  9
+    
+    
+    
+    # [ QualityImage ]
+    # ArrayDataset
+    description= {'UNKNOWN'},
+    meta= {},
+    type= {None},
+    default= {None},
+    typecode= {None},
+    unit= {None}
+    data =
+    
+       0.1  0.5    0.7
+    4000    6e+07  8
+      -2    0      3.1
+    
+    
+    
+    # [ Spectrum ]
+    # TableDataset
+    description= {'UNKNOWN'},
+    meta= {}
+    data =
+    
+    ======  =======
+      col1     col2
+      (eV)    (cnt)
+    ======  =======
+       1        0
+       4.4     43.2
+    5400     2000
+    ======  =======
+    
 
 
 pal

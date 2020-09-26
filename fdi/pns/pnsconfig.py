@@ -13,6 +13,11 @@ pnsconfig['auth_user'] = 'gsegment'
 pnsconfig['auth_pass'] = '123456'
 pnsconfig['httppoolurl'] = '/httppool'
 pnsconfig['httphost'] = 'http://192.168.1.9:5000'
+
+pnsconfig['auth_user'] = 'luchangfa'
+pnsconfig['auth_pass'] = '123456'
+pnsconfig['httppoolurl'] = '/httppool'
+pnsconfig['httphost'] = 'http://10.0.10.114:9888'
 # base url for pool, you must have permission of this path, for example : /home/user/Documents
 # this base pool path will be added at the beginning of your pool urn when you init a pool like:
 # pstore = PoolManager.getPool('/demopool_user'), it will create a pool at /data.demopool_user/
@@ -20,7 +25,7 @@ pnsconfig['httphost'] = 'http://192.168.1.9:5000'
 pnsconfig['basepoolpath_client'] = '/tmp'
 pnsconfig['basepoolpath'] = '/data/' # For server
 pnsconfig['defaultpool'] = 'pool_default'
-dev = True
+dev = 0
 if dev:
     pnsconfig['poolprefix'] = 'http://192.168.1.9:5000'
     # username, passwd, flask ip, flask port
@@ -36,16 +41,16 @@ if dev:
 
     pnsconfig['mysql'] = {'host': 'localhost',  'port':3306, 'user': 'root',  'password': 'toto', 'database': 'users'}
 else:
-    pnsconfig['poolprefix'] = 'http://' + {SERVER_IP_ADDR} + ':' + {SERVER_HOST_PORT}
+    pnsconfig['poolprefix'] = 'http://10.0.10.114:9888'
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '10.0.10.114', 'port': {SERVER_HOST_PORT} }
+                         'host': '10.0.10.114', 'port': 9888 }
 
     pnsconfig['mysql'] = {'host': 'ssa-mysql', 'port':3306, 'user': 'root',  'password': '123456', 'database': 'users'}
 
     # server permission user
-    pnsconfig['serveruser'] = 'apache'
+    pnsconfig['serveruser'] = getpass.getuser()
     # PTS app permission user
-    pnsconfig['ptsuser'] = 'apache'
+    pnsconfig['ptsuser'] = getpass.getuser()
     # on server
     home = '/root'
 

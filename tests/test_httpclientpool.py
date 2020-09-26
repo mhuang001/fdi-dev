@@ -30,6 +30,7 @@ from fdi.dataset.product import Product
 from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
 from fdi.dataset.finetime import FineTime1, utcobj
 from fdi.dataset.dataset import ArrayDataset, TableDataset, Column
+from fdi.dataset.eq import deepcmp
 from fdi.pal.context import Context, MapContext
 from fdi.pal.productref import ProductRef
 from fdi.pal.query import MetaQuery
@@ -121,6 +122,7 @@ def test_CRUD_product():
     """
     logger.info('Init a pstore')
     test_poolurn = pcc['httphost'] + test_poolid
+    print(test_poolurn)
     PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
     PoolManager.removeAll()
     pstore = ProductStorage(pool=test_poolurn)
@@ -140,6 +142,8 @@ def test_CRUD_product():
     logger.info('Load product from httpclientpool')
     res = pstore.getPool(test_poolurn).loadProduct(urn.urn)
     assert res.creator == 'httpclient', 'Load product error: ' + str(res)
+    diff=deepcmp(x, res)
+    assert diff is None, diff
 
     logger.info('Search metadata')
     q = MetaQuery(Product, 'm["creator"] == "httpclient"')

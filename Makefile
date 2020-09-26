@@ -101,7 +101,7 @@ test5:
 	pytest $(OPT) $(T) tests/test_httppool.py
 
 test6:
-	pytest $(OPT) tests/test_httpclientpool.py
+	pytest $(OPT) $(T) tests/test_httpclientpool.py
 
 plots: plotall plot_dataset plot_pal plot_pns
 

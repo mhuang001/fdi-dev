@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 # lockpathbase = 'tmp/locks_' + getpass.getuser()
-lockpathbase = '/tmp/locks'
+lockpathbase = '/tmp/locks_' + getpass.getuser()
 
 
 class ProductPool(Definable, Taggable, Versionable):

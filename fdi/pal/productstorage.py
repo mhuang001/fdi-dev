@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 #from .productpool import ProductPool
 DefaultPool = 'file:///tmp/pool_' + getpass.getuser()
 
+
 class ProductStorage(object):
     """ Logical store created from a pool or a poolURN.
 
@@ -49,7 +50,7 @@ class ProductStorage(object):
             if lex[:ml] == lu[:ml]:
                 raise ValueError(
                     'pool ' + pool + ' and existing ' + ex + ' overlap.')
-        self._pools[pool] = PoolManager.getPool(pool,self. isServer)
+        self._pools[pool] = PoolManager.getPool(pool, self. isServer)
 
         logger.debug('registered pool ' + str(self._pools))
 
@@ -196,7 +197,7 @@ class ProductStorage(object):
         if poolurn not in self._pools:
             raise ValueError('pool ' + poolurn + ' not found')
         sp = poolurn.split('://')
-        if sp[0] not in ['file', 'http', 'https']:
+        if sp[0] not in ['file', 'mem', 'http', 'https']:
             raise ValueError(sp[0] + ':// is not supported')
         self._pools[poolurn].removeAll()
 

@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
+from . import productpool
 import filelock
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-
-from . import productpool
 
 
 class MemPool(productpool.ProductPool):
@@ -35,7 +33,11 @@ class MemPool(productpool.ProductPool):
     def getPoolSpace(self):
         """ returns the map of this memory pool.
         """
-        return self._MemPool[self._poolpath]
+
+        if self._poolpath in self._MemPool:
+            return self._MemPool[self._poolpath]
+        else:
+            return None
 
     def readHK(self):
         """
@@ -57,7 +59,7 @@ class MemPool(productpool.ProductPool):
         myspace['tags'] = self._tags
         myspace['urns'] = self._urns
 
-    def schematicSave(self, typename, serialnum, data):
+    def schematicSave(self, typename, serialnum, data, tag=None):
         """ 
         does the media-specific saving
         """
@@ -94,10 +96,14 @@ class MemPool(productpool.ProductPool):
         """
 
         # logger.debug()
-        # p=self.getSpace() ; del p will only delete p, not anything in _MemPool
-        pools = [x for x in self._MemPool]
-        for x in pools:
-            del self._MemPool[x]
+        # p = self.getPoolSpace()
+        # del p will only delete p in current namespace, not anything in _MemPool
+        # this wipes all mempools
+        #pools = [x for x in self._MemPool]
+        # for x in pools:
+        #    del self._MemPool[x]
+        if self._poolpath in self._MemPool:
+            del self._MemPool[self._poolpath]
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

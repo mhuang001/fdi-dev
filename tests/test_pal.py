@@ -150,7 +150,7 @@ def test_Urn():
     checkjson(v)
 
 
-def cleanup(direc):
+def cleanup(direc=''):
     """ remove pool from disk and memory"""
     if op.exists(direc):
         try:
@@ -198,12 +198,19 @@ def checkdbcount(n, poolurn, prodname, currentSN=-1):
             assert len(cread[prodname]['sn']) == n
     elif scheme == 'mem':
         mpool = PoolManager.getPool(poolname).getPoolSpace()
+        if mpool is None:
+            # wiped
+            assert n == 0
+            assert currentSN == -1
+            return
         ns = [n for n in mpool if prodname + '_' in n]
         assert len(ns) == n, len(ns)
         if currentSN == -1:
             assert mpool['classes'][prodname]['currentSN'] == currentSN
         # for this class there are  how many prods
         assert len(mpool['classes'][prodname]['sn']) == n
+    elif scheme in ['http', 'https']:
+        assert False, 'not  implemented'
     else:
         assert False, 'bad pool scheme'
 
@@ -279,22 +286,21 @@ def test_ProductRef():
     checkjson(pr)
 
 
-def test_ProductStorage():
+def test_ProductStorage_init():
     defaultpoolpath = '/tmp/pool_' + getpass.getuser()
     defaultpool = 'file://' + defaultpoolpath
     cleanup(defaultpoolpath)
 
-    x = Product(description="This is my product example",
-                instrument="MyFavourite", modelName="Flight")
-    pcq = fullname(x)
     # Constructor
     # default pool
     ps = ProductStorage()
     p1 = ps.getPools()[0]
+    # check default pool's name
     assert p1 == defaultpool
+    # get the pool object
     pspool = ps.getPool(p1)
     assert len(pspool.getProductClasses()) == 0
-    # construct a storage with a pool
+    # check syntax: construct a storage with a pool
     ps2 = ProductStorage(defaultpool)
     assert ps.getPools() == ps2.getPools()
 
@@ -309,11 +315,29 @@ def test_ProductStorage():
     assert len(ps2.getPools()) == 2
     assert ps2.getPools()[1] == newpoolname
 
+    # multiple storages pointing to the same pool will get exception
+    try:
+        ps2 = ProductStorage()
+    except Exception as e:
+        pass
+    else:
+        assert 1  # False
+
+
+def check_ps_func_for_pool(thepool):
+    ps = ProductStorage(thepool)
+    p1 = ps.getPools()[0]
+    # get the pool object
+    pspool = ps.getPool(p1)
+
+    x = Product(description="This is my product example",
+                instrument="MyFavourite", modelName="Flight")
+    pcq = fullname(x)
     # save
     ref = ps.save(x)
     # ps has 1 prod
-    assert ref.urn == 'urn:' + defaultpool + ':' + pcq + ':0'
-    checkdbcount(1, defaultpool, pcq, 0)
+    assert ref.urn == 'urn:' + thepool + ':' + pcq + ':0'
+    checkdbcount(1, thepool, pcq, 0)
 
     # save more
     # one by one
@@ -324,8 +348,8 @@ def test_ProductStorage():
                       ) if d > 0 else MapContext(description='x0')
         x2.append(tmp)
         ref2.append(ps.save(tmp, tag='t' + str(d)))
-    checkdbcount(q, defaultpool, pcq, q - 1)
-    checkdbcount(1, defaultpool, fullname(MapContext), 0)
+    checkdbcount(q, thepool, pcq, q - 1)
+    checkdbcount(1, thepool, fullname(MapContext), 0)
     # save many in one go
     m, x3 = 2, []
     n = q + m
@@ -336,8 +360,8 @@ def test_ProductStorage():
     x2 += x3  # there are n prods in x2
     # check refs
     assert len(ref2) == n
-    checkdbcount(n, defaultpool, pcq, n)
-    checkdbcount(1, defaultpool, fullname(MapContext), 0)
+    checkdbcount(n, thepool, pcq, n)
+    checkdbcount(1, thepool, fullname(MapContext), 0)
 
     # tags
     ts = ps.getAllTags()
@@ -349,32 +373,9 @@ def test_ProductStorage():
     assert len(u) == m
     assert u[0] == ref2[q].urn
 
-    # multiple storages pointing to the same pool will get exception
-    try:
-        ps2 = ProductStorage()
-    except Exception as e:
-        pass
-    else:
-        assert 1  # False
-
-    # read HK
-    # copy default pool data in memory
-    ps1 = copy.deepcopy(pspool)
-    # rename the pool
-    cp = defaultpoolpath + '_copy'
-    cleanup(cp)
-    # make a copy of the old pool on disk
-    shutil.copytree(defaultpoolpath, cp)
-    ps2 = ProductStorage(pool='file://' + cp)
-    # two ProdStorage instances have the same DB
-    p2 = ps2.getPool(ps2.getPools()[0])
-    assert deepcmp(ps1._urns, p2._urns) is None
-    assert deepcmp(ps1._tags, p2._tags) is None
-    assert deepcmp(ps1._classes, p2._classes) is None
-
     # access resource
-    checkdbcount(n, defaultpool, pcq, n)
-    checkdbcount(1, defaultpool, fullname(MapContext), 0)
+    checkdbcount(n, thepool, pcq, n)
+    checkdbcount(1, thepool, fullname(MapContext), 0)
     # get ref from urn
     pref = ps.load(ref2[n - 2].urn)
     assert pref == ref2[n - 2]
@@ -390,13 +391,65 @@ def test_ProductStorage():
     # DB shows less in record
     # current serial number not changed
     # number of items decreased by 1
-    checkdbcount(n - 1, defaultpool, pcq, n)
-    checkdbcount(1, defaultpool, fullname(MapContext), 0)
+    checkdbcount(n - 1, thepool, pcq, n)
+    checkdbcount(1, thepool, fullname(MapContext), 0)
 
     # clean up a pool
-    ps.wipePool(defaultpool)
-    checkdbcount(0, defaultpool, pcq)
-    assert len(ps.getPool(defaultpool)._urns) == 0
+    ps.wipePool(thepool)
+    checkdbcount(0, thepool, pcq)
+    assert len(ps.getPool(thepool)._urns) == 0
+
+
+def test_ProdStorage_func():
+    # local pool
+    thepoolpath = '/tmp/pool_' + getpass.getuser()
+    cleanup(thepoolpath)
+    thepool = 'file://' + thepoolpath
+    check_ps_func_for_pool(thepool)
+
+    # mempool
+    thepool = DEFAULT_MEM_POOL
+    cleanup()
+    check_ps_func_for_pool(thepool)
+
+    # httpclientpool
+    thepoolpath = '/testpool'
+    poolplace = '10.0.0.114:9880'+thepoolpath
+    # cleanup(poolplace)
+    thepool = 'http://' + poolplace
+    # check_ps_func_for_pool(thepool)
+
+
+def test_LocalPool():
+    thepoolpath = '/tmp/pool_' + getpass.getuser()
+    cleanup(thepoolpath)
+    thepool = 'file://' + thepoolpath
+
+    ps = ProductStorage(thepool)
+    p1 = ps.getPools()[0]
+    # get the pool object
+    pspool = ps.getPool(p1)
+
+    x = Product(description="This is my product example",
+                instrument="MyFavourite", modelName="Flight")
+    pcq = fullname(x)
+    # save
+    ref = ps.save(x, tag='ttag')
+
+    # read HK
+    # copy default pool data in memory
+    ps1 = copy.deepcopy(pspool)
+    # rename the pool
+    cp = thepoolpath + '_copy'
+    cleanup(cp)
+    # make a copy of the old pool on disk
+    shutil.copytree(thepoolpath, cp)
+    ps2 = ProductStorage(pool='file://' + cp)
+    # two ProdStorage instances have the same DB
+    p2 = ps2.getPool(ps2.getPools()[0])
+    assert deepcmp(ps1._urns, p2._urns) is None
+    assert deepcmp(ps1._tags, p2._tags) is None
+    assert deepcmp(ps1._classes, p2._classes) is None
 
 
 def test_query():
@@ -425,13 +478,13 @@ def test_query():
     assert q.retrieveAllVersions() == a4
 
     # make a productStorage
-    defaultpoolpath = '/tmp/pool_' + getpass.getuser()
-    cleanup(defaultpoolpath)
-    defaultpool = 'file://'+defaultpoolpath
-    pstore = ProductStorage(defaultpool)
-    assert op.exists(defaultpoolpath)
+    thepoolpath = '/tmp/pool_' + getpass.getuser()
+    cleanup(thepoolpath)
+    thepool = 'file://'+thepoolpath
+    pstore = ProductStorage(thepool)
+    assert op.exists(thepoolpath)
     assert len(pstore.getPools()) == 1
-    assert pstore.getPools()[0] == defaultpool
+    assert pstore.getPools()[0] == thepool
     # make another
     newpoolpath = '/tmp/newpool_' + getpass.getuser()
     cleanup(newpoolpath)
@@ -698,8 +751,8 @@ def test_MapContext():
     assert c4['refs']['x'].product.description == 'hi'
 
     # stored prod
-    defaultpoolpath = '/tmp/pool_' + getpass.getuser()
-    defaultpool = 'file://' + defaultpoolpath
+    thepoolpath = '/tmp/pool_' + getpass.getuser()
+    thepool = 'file://' + thepoolpath
     # create a prooduct
     x = Product(description='save me in store')
     # remove existing pools in memory
@@ -707,18 +760,18 @@ def test_MapContext():
     # create a product store
     pstore = ProductStorage()
     assert len(pstore.getPools()) == 1
-    assert pstore.getWritablePool() == defaultpool
-    assert op.isdir(defaultpoolpath)
+    assert pstore.getWritablePool() == thepool
+    assert op.isdir(thepoolpath)
     # clean up possible garbage of previous runs
-    pstore.wipePool(defaultpool)
-    assert op.isdir(defaultpoolpath)
-    assert sum([1 for x in glob.glob(op.join(defaultpoolpath, '*'))]) == 0
+    pstore.wipePool(thepool)
+    assert op.isdir(thepoolpath)
+    assert sum([1 for x in glob.glob(op.join(thepoolpath, '*'))]) == 0
     # save the product and get a reference
     prodref = pstore.save(x)
     # has the ProductStorage
     assert prodref.getStorage() == pstore
     # has the pool
-    assert prodref._poolurn == defaultpool
+    assert prodref._poolurn == thepool
     # returns the product
     assert prodref.product == x
     # create an empty mapcontext

@@ -202,7 +202,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 del c[prod]
             try:
                 res = self.schematicRemove(typename=prod,
-                                     serialnum=sn)
+                                           serialnum=sn)
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)
@@ -233,7 +233,7 @@ When implementing a ProductPool, the following rules need to be applied:
         Save/Update descriptors in pool.
         """
 
-    def schematicSave(self,  typename, serialnum, data):
+    def schematicSave(self,  typename, serialnum, data, tag=None):
         """ to be implemented by subclasses to do the scheme-specific saving
         """
         raise(NotImplementedError)

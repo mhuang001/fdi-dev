@@ -157,7 +157,7 @@ def transpath(direc):
     return direc
 
 
-def cleanup(direc=None, schm='file'):
+def cleanup(direc='', schm='file'):
     """ remove pool from disk and memory"""
     if schm == 'file':
         direc = transpath(direc)

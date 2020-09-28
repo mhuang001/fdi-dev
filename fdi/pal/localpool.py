@@ -168,7 +168,7 @@ class LocalPool(ProductPool):
         #         msg = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
         #         logger.error(msg)
         #         raise e
-        prod = self.transformpath(self._poolpath) + '/' + quote(resourcename) + '_' + indexstr
+        prod = self.transformpath(self._poolpath) + '/' + quote(typename) + '_' + indexstr
         # uri = self.transformpath(self._poolurn) + '/' + quote(resourcename) + '_' + indexstr
         try:
             # p = getJsonObj(uri)
@@ -179,7 +179,7 @@ class LocalPool(ProductPool):
             msg = 'Load' + prod + 'failed. ' + str(e) + trbk(e)
             logger.error(msg)
             raise e
-        return deserializeClassID(js)
+        return p
 
     def schematicRemove(self, typename, serialnum):
         """
@@ -199,7 +199,7 @@ class LocalPool(ProductPool):
         does the scheme-specific remove-all
         """
         _wipe(self.transformpath(self._poolpath))
-
+        # _wipe(self._poolpath)
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging
         to the first pool where the same track id is found.

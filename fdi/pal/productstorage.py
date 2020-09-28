@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 #from .productpool import ProductPool
-DefaultPool = 'file:///tmp/pool_' + getpass.getuser()
+DefaultPool = 'file:///pool_' + getpass.getuser()
 
 
 class ProductStorage(object):
@@ -194,8 +194,8 @@ class ProductStorage(object):
     def wipePool(self, poolurn):
         """
         """
-        if poolurn not in self._pools:
-            raise ValueError('pool ' + poolurn + ' not found')
+        # if poolurn not in self._pools:
+        #     raise ValueError('pool ' + poolurn + ' not found')
         sp = poolurn.split('://')
         if sp[0] not in ['file', 'mem', 'http', 'https']:
             raise ValueError(sp[0] + ':// is not supported')

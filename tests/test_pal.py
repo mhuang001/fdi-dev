@@ -156,6 +156,10 @@ def transpath(direc):
         direc = pc['basepoolpath_client']+direc
     return direc
 
+def transpath_server(direc):
+    if 'basepoolpath' in pc:
+        direc = pc['basepoolpath'] + direc
+    return direc
 
 def cleanup(direc='', schm='file'):
     """ remove pool from disk and memory"""
@@ -163,26 +167,43 @@ def cleanup(direc='', schm='file'):
         direc = transpath(direc)
         if op.exists(direc):
             try:
-                # print(os.stat(direc))
+                print(os.stat(direc))
                 shutil.rmtree(direc)
             except Exception as e:
                 print(str(e) + ' ' + trbk(e))
                 raise(e)
             assert not op.exists(direc)
+        # remove existing pools in memory
+        PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+        PoolManager.getPool('file://'+direc).removeAll()
+        PoolManager.removeAll()
     elif schm == 'mem':
-        pass
+        # remove existing pools in memory
+        PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+        PoolManager.getPool('file://'+direc).removeAll()
+        PoolManager.removeAll()
+
     elif schm in ['http', 'https']:
-        assert False, 'todo'
+        realdirec = direc.split('/')[1]
+        realdirec = transpath(realdirec)
+        if op.exists(realdirec):
+            try:
+                print(os.stat(realdirec))
+                shutil.rmtree(realdirec)
+            except Exception as e:
+                print(str(e) + ' ' + trbk(e))
+                raise(e)
+            assert not op.exists(realdirec)
+            PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+            PoolManager.getPool('http://'+direc).removeAll()
+            PoolManager.removeAll()
     else:
         assert False
-    # remove existing pools in memory
-    PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-    PoolManager.getPool('file://'+direc).removeAll()
-    PoolManager.removeAll()
+
 
 
 def test_PoolManager():
-    defaultpoolpath = '/tmp/pool_' + getpass.getuser()
+    defaultpoolpath = '/pool_' + getpass.getuser()
     defaultpool = 'file://' + defaultpoolpath
     cleanup(defaultpoolpath)
     pm = PoolManager()
@@ -233,7 +254,7 @@ def checkdbcount(n, poolurn, prodname, currentSN=-1):
 
 
 def test_ProductRef():
-    defaultpoolpath = '/tmp/pool_' + getpass.getuser()
+    defaultpoolpath = '/pool_' + getpass.getuser()
     defaultpool = 'file://' + defaultpoolpath
     cleanup(defaultpoolpath)
     prd = Product()
@@ -304,10 +325,10 @@ def test_ProductRef():
 
 
 def test_ProductStorage_init():
-    defaultpoolpath = '/tmp/pool_' + getpass.getuser()
+    defaultpoolpath = '/pool_' + getpass.getuser()
     defaultpool = 'file://' + defaultpoolpath
     cleanup(defaultpoolpath)
-    newpoolpath = '/tmp/newpool_' + getpass.getuser()
+    newpoolpath = '/newpool_' + getpass.getuser()
     newpoolname = 'file://' + newpoolpath
     cleanup(newpoolpath)
 
@@ -419,26 +440,27 @@ def check_ps_func_for_pool(thepool):
 
 def test_ProdStorage_func():
     # local pool
-    thepoolpath = '/tmp/pool_' + getpass.getuser()
+    thepoolpath = '/pool_' + getpass.getuser()
     cleanup(thepoolpath)
     thepool = 'file://' + thepoolpath
     check_ps_func_for_pool(thepool)
 
     # mempool
     thepool = DEFAULT_MEM_POOL
-    cleanup()
+    cleanup(direc=thepoolpath, schm='mem')
     check_ps_func_for_pool(thepool)
 
     # httpclientpool
-    thepoolpath = '/testpool'
-    poolplace = '10.0.0.114:9880'+thepoolpath
-    #cleanup(poolplace, schm='http')
+    thepoolpath = '/testhttppool'
+    # poolplace = '10.0.0.114:9880'+thepoolpath
+    poolplace = '192.168.1.4:5000' + thepoolpath
+    cleanup(poolplace, schm='http')
     thepool = 'http://' + poolplace
     # check_ps_func_for_pool(thepool)
 
 
 def test_LocalPool():
-    thepoolpath = '/tmp/pool_' + getpass.getuser()
+    thepoolpath = '/pool_' + getpass.getuser()
     cleanup(thepoolpath)
     thepool = 'file://' + thepoolpath
 
@@ -460,7 +482,7 @@ def test_LocalPool():
     cp = thepoolpath + '_copy'
     cleanup(cp)
     # make a copy of the old pool on disk
-    shutil.copytree(thepoolpath, cp)
+    shutil.copytree(transpath(thepoolpath), transpath(cp))
     ps2 = ProductStorage(pool='file://' + cp)
     # two ProdStorage instances have the same DB
     p2 = ps2.getPool(ps2.getPools()[0])
@@ -495,7 +517,7 @@ def test_query():
     assert q.retrieveAllVersions() == a4
 
     # make a productStorage
-    thepoolpath = '/tmp/pool_' + getpass.getuser()
+    thepoolpath = '/pool_' + getpass.getuser()
     cleanup(thepoolpath)
     thepool = 'file://'+thepoolpath
     pstore = ProductStorage(thepool)
@@ -503,7 +525,7 @@ def test_query():
     assert len(pstore.getPools()) == 1
     assert pstore.getPools()[0] == thepool
     # make another
-    newpoolpath = '/tmp/newpool_' + getpass.getuser()
+    newpoolpath = '/newpool_' + getpass.getuser()
     cleanup(newpoolpath)
     newpoolname = 'file://' + newpoolpath
     pstore2 = ProductStorage(newpoolname)
@@ -768,7 +790,7 @@ def test_MapContext():
     assert c4['refs']['x'].product.description == 'hi'
 
     # stored prod
-    thepoolpath = '/tmp/pool_' + getpass.getuser()
+    thepoolpath = '/pool_' + getpass.getuser()
     thepool = 'file://' + thepoolpath
     # create a prooduct
     x = Product(description='save me in store')
@@ -780,7 +802,7 @@ def test_MapContext():
     assert pstore.getWritablePool() == thepool
     assert op.isdir(transpath(thepoolpath))
     # clean up possible garbage of previous runs
-    pstore.wipePool(thepool)
+    pstore.wipePool( thepool)
     assert op.isdir(transpath(thepoolpath))
     assert sum([1 for x in glob.glob(
         op.join(transpath(thepoolpath), '*'))]) == 0
@@ -850,7 +872,7 @@ def test_MapContext():
 def test_realistic():
     # remove existing pools in memory
     PoolManager().removeAll()
-    poolpath = '/tmp/realpool_' + getpass.getuser()
+    poolpath = '/realpool_' + getpass.getuser()
     poolname = 'file://'+poolpath
     # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
     pstore = ProductStorage(pool=poolname)  # on disk

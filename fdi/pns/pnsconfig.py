@@ -12,12 +12,8 @@ pnsconfig['baseurl'] = '/v0.6'
 pnsconfig['auth_user'] = 'gsegment'
 pnsconfig['auth_pass'] = '123456'
 pnsconfig['httppoolurl'] = '/httppool'
-pnsconfig['httphost'] = 'http://192.168.1.9:5000'
+pnsconfig['httphost'] = 'http://192.168.1.4:5000'
 
-pnsconfig['auth_user'] = 'luchangfa'
-pnsconfig['auth_pass'] = '123456'
-pnsconfig['httppoolurl'] = '/httppool'
-pnsconfig['httphost'] = 'http://10.0.10.114:9888'
 # base url for pool, you must have permission of this path, for example : /home/user/Documents
 # this base pool path will be added at the beginning of your pool urn when you init a pool like:
 # pstore = PoolManager.getPool('/demopool_user'), it will create a pool at /data.demopool_user/
@@ -25,9 +21,9 @@ pnsconfig['httphost'] = 'http://10.0.10.114:9888'
 pnsconfig['basepoolpath_client'] = '/tmp'
 pnsconfig['basepoolpath'] = '/data/' # For server
 pnsconfig['defaultpool'] = 'pool_default'
-dev = 0
+dev = True
 if dev:
-    pnsconfig['poolprefix'] = 'http://192.168.1.9:5000'
+    pnsconfig['poolprefix'] = 'http://192.168.1.4:5000'
     # username, passwd, flask ip, flask port
     pnsconfig['node'] = {'username': 'foo',
                          'password': 'bar', 'host': '0.0.0.0', 'port': 5000}

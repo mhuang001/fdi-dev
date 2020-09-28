@@ -12,6 +12,7 @@ import time
 
 import asyncio
 import aiohttp
+import getpass
 
 # This is to be able to test w/ or w/o installing the package
 # https://docs.python-guide.org/writing/structure/
@@ -357,7 +358,7 @@ async def lock_pool(sec):
     import filelock
     import time
     logger.info('Keeping files locked')
-    with filelock.FileLock('/tmp/locks' + test_poolid + '/lock'):
+    with filelock.FileLock('/tmp/locks_' + getpass.getuser() + '/' + test_poolid + '/lock'):
         await asyncio.sleep(sec)
     fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "timestamp": '+ str(time.time()) + '}'
     return deserializeClassID(fakeres)

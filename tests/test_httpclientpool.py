@@ -122,7 +122,6 @@ def test_CRUD_product():
     """
     logger.info('Init a pstore')
     test_poolurn = pcc['httphost'] + test_poolid
-    print(test_poolurn)
     PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
     PoolManager.removeAll()
     pstore = ProductStorage(pool=test_poolurn)

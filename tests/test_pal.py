@@ -157,7 +157,7 @@ def transpath(direc):
     return direc
 
 
-def cleanup(direc=None, schm='file'):
+def cleanup(direc='', schm='file'):
     """ remove pool from disk and memory"""
     if schm == 'file':
         direc = transpath(direc)
@@ -177,7 +177,6 @@ def cleanup(direc=None, schm='file'):
         assert False
     # remove existing pools in memory
     PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-    PoolManager.getPool('file://'+direc).removeAll()
     PoolManager.removeAll()
 
 
@@ -246,7 +245,7 @@ def test_ProductRef():
     p = s + a3  # a pool URN
     r = a4 + ':' + str(a5)  # a resource
     u = 'urn:' + p + ':' + r    # a URN
-    cleanup(a3)
+    cleanup(p)
 
     # in memory
     # A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
@@ -307,9 +306,6 @@ def test_ProductStorage_init():
     defaultpoolpath = '/tmp/pool_' + getpass.getuser()
     defaultpool = 'file://' + defaultpoolpath
     cleanup(defaultpoolpath)
-    newpoolpath = '/tmp/newpool_' + getpass.getuser()
-    newpoolname = 'file://' + newpoolpath
-    cleanup(newpoolpath)
 
     # Constructor
     # default pool
@@ -326,6 +322,9 @@ def test_ProductStorage_init():
 
     # register pool
     # with a storage that already has a pool
+    newpoolpath = '/tmp/newpool_' + getpass.getuser()
+    newpoolname = 'file://' + newpoolpath
+    cleanup(newpoolpath)
 
     ps2.register(newpoolname)
     assert op.exists(transpath(newpoolpath))

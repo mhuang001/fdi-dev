@@ -1,3 +1,4 @@
+from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.dataset.dataset import ArrayDataset
 import itertools
 import random
@@ -150,8 +151,15 @@ def test_Urn():
     checkjson(v)
 
 
+def transpath(direc):
+    if 'basepoolpath_client' in pc:
+        direc = pc['basepoolpath_client']+direc
+    return direc
+
+
 def cleanup(direc=None):
     """ remove pool from disk and memory"""
+    direc = transpath(direc)
     if op.exists(direc):
         try:
             # print(os.stat(direc))
@@ -186,6 +194,7 @@ def checkdbcount(n, poolurn, prodname, currentSN=-1):
 
     poolname, rc, sns, scheme, place, path = parseUrn(poolurn)
     if scheme == 'file':
+        path = transpath(path)
         assert sum(1 for x in glob.glob(
             op.join(path, prodname + '*[0-9]'))) == n
         cp = op.join(path, 'classes.jsn')
@@ -312,7 +321,7 @@ def test_ProductStorage_init():
     # with a storage that already has a pool
 
     ps2.register(newpoolname)
-    assert op.exists(newpoolpath)
+    assert op.exists(transpath(newpoolpath))
     assert len(ps2.getPools()) == 2
     assert ps2.getPools()[1] == newpoolname
 
@@ -483,7 +492,7 @@ def test_query():
     cleanup(thepoolpath)
     thepool = 'file://'+thepoolpath
     pstore = ProductStorage(thepool)
-    assert op.exists(thepoolpath)
+    assert op.exists(transpath(thepoolpath))
     assert len(pstore.getPools()) == 1
     assert pstore.getPools()[0] == thepool
     # make another
@@ -491,7 +500,7 @@ def test_query():
     cleanup(newpoolpath)
     newpoolname = 'file://' + newpoolpath
     pstore2 = ProductStorage(newpoolname)
-    assert op.exists(newpoolpath)
+    assert op.exists(transpath(newpoolpath))
     assert len(pstore2.getPools()) == 1
     assert pstore2.getPools()[0] == newpoolname
 
@@ -762,11 +771,12 @@ def test_MapContext():
     pstore = ProductStorage()
     assert len(pstore.getPools()) == 1
     assert pstore.getWritablePool() == thepool
-    assert op.isdir(thepoolpath)
+    assert op.isdir(transpath(thepoolpath))
     # clean up possible garbage of previous runs
     pstore.wipePool(thepool)
-    assert op.isdir(thepoolpath)
-    assert sum([1 for x in glob.glob(op.join(thepoolpath, '*'))]) == 0
+    assert op.isdir(transpath(thepoolpath))
+    assert sum([1 for x in glob.glob(
+        op.join(transpath(thepoolpath), '*'))]) == 0
     # save the product and get a reference
     prodref = pstore.save(x)
     # has the ProductStorage

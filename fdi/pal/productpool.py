@@ -28,7 +28,7 @@ else:
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-
+# lockpathbase = 'tmp/locks_' + getpass.getuser()
 lockpathbase = '/tmp/locks_' + getpass.getuser()
 
 
@@ -48,12 +48,16 @@ When implementing a ProductPool, the following rules need to be applied:
     def __init__(self, poolurn=None, **kwds):
 
         super(ProductPool, self).__init__(**kwds)
+        #    basepoolpath = pcc['basepoolpath']
+        # self._basepoolpath = basepooslpath
         self._poolurn = poolurn
         pr = urlparse(poolurn)
         self._scheme = pr.scheme
         self._place = pr.netloc
         # convenient access path
-        self._poolpath = pr.netloc + pr.path
+        # self._poolpath = pr.netloc + pr.path
+        self._poolpath = pr.netloc + \
+            pr.path if pr.scheme in ('file') else pr.path
         # {type|classname -> {'sn:[sn]'}}
         self._classes = ODict()
         logger.debug(self._poolpath)
@@ -144,6 +148,8 @@ When implementing a ProductPool, the following rules need to be applied:
         if poolname != self._poolurn:
             raise(ValueError('wrong pool: ' + poolname +
                              ' . This is ' + self._poolurn))
+
+        # TODO: is it a must to lock local file when load a product from remote?
         with filelock.FileLock(self.lockpath()):
             ret = self.schematicLoadProduct(resourcecn, indexs)
         return ret
@@ -179,6 +185,7 @@ When implementing a ProductPool, the following rules need to be applied:
         prod = resourcecn
         sn = int(indexs)
 
+        self._classes, self._tags, self._urns = self.readHK()
         c, t, u = self._classes, self._tags, self._urns
         # save a copy for rolling back
         cs, ts, us = deepcopy(c), deepcopy(t), deepcopy(u)
@@ -193,14 +200,15 @@ When implementing a ProductPool, the following rules need to be applied:
             if len(c[prod]['sn']) == 0:
                 del c[prod]
             try:
-                self.schematicRemove(typename=prod,
-                                     serialnum=sn)
+                res = self.schematicRemove(typename=prod,
+                                           serialnum=sn)
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)
                 # undo changes
                 c, t, u = cs, ts, us
                 raise e
+        return res
 
     def removeAll(self):
         """
@@ -224,7 +232,7 @@ When implementing a ProductPool, the following rules need to be applied:
         Save/Update descriptors in pool.
         """
 
-    def schematicSave(self,  typename, serialnum, data):
+    def schematicSave(self,  typename, serialnum, data, tag=None):
         """ to be implemented by subclasses to do the scheme-specific saving
         """
         raise(NotImplementedError)
@@ -270,7 +278,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 try:
                     self.schematicSave(typename=pn,
                                        serialnum=sn,
-                                       data=prd)
+                                       data=prd,  tag=tag)
                 except Exception as e:
                     msg = 'product ' + urn + ' saving failed'
                     logger.debug(msg)

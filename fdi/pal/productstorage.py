@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 #from .productpool import ProductPool
-
 DefaultPool = 'file:///tmp/pool_' + getpass.getuser()
 
 
@@ -24,13 +23,15 @@ class ProductStorage(object):
     Every instanciation with the same pool will  result in a new instance of ProdStorage.
     """
 
-    def __init__(self, pool=None, **kwds):
+    def __init__(self, pool=None, isServer=False, **kwds):
         """ input is a pool urn
         """
         if not pool:
             pool = DefaultPool
+
         super(ProductStorage, self).__init__(**kwds)
         self._pools = ODict()  # dict of pool-urn keys
+        self.isServer = isServer
         self.register(pool)
 
     def register(self, pool):
@@ -49,8 +50,7 @@ class ProductStorage(object):
             if lex[:ml] == lu[:ml]:
                 raise ValueError(
                     'pool ' + pool + ' and existing ' + ex + ' overlap.')
-
-        self._pools[pool] = PoolManager.getPool(pool)
+        self._pools[pool] = PoolManager.getPool(pool, self. isServer)
 
         logger.debug('registered pool ' + str(self._pools))
 
@@ -197,7 +197,7 @@ class ProductStorage(object):
         if poolurn not in self._pools:
             raise ValueError('pool ' + poolurn + ' not found')
         sp = poolurn.split('://')
-        if sp[0] not in ['file', 'mem', 'http']:
+        if sp[0] not in ['file', 'mem', 'http', 'https']:
             raise ValueError(sp[0] + ':// is not supported')
         self._pools[poolurn].removeAll()
 

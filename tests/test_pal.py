@@ -157,17 +157,24 @@ def transpath(direc):
     return direc
 
 
-def cleanup(direc=None):
+def cleanup(direc=None, schm='file'):
     """ remove pool from disk and memory"""
-    direc = transpath(direc)
-    if op.exists(direc):
-        try:
-            # print(os.stat(direc))
-            shutil.rmtree(direc)
-        except Exception as e:
-            print(str(e) + ' ' + trbk(e))
-            raise(e)
-        assert not op.exists(direc)
+    if schm == 'file':
+        direc = transpath(direc)
+        if op.exists(direc):
+            try:
+                # print(os.stat(direc))
+                shutil.rmtree(direc)
+            except Exception as e:
+                print(str(e) + ' ' + trbk(e))
+                raise(e)
+            assert not op.exists(direc)
+    elif schm == 'mem':
+        pass
+    elif schm in ['http', 'https']:
+        assert False, 'todo'
+    else:
+        assert False
     # remove existing pools in memory
     PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
     PoolManager.getPool('file://'+direc).removeAll()
@@ -425,7 +432,7 @@ def test_ProdStorage_func():
     # httpclientpool
     thepoolpath = '/testpool'
     poolplace = '10.0.0.114:9880'+thepoolpath
-    # cleanup(poolplace)
+    #cleanup(poolplace, schm='http')
     thepool = 'http://' + poolplace
     # check_ps_func_for_pool(thepool)
 

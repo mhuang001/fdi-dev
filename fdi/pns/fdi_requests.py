@@ -122,7 +122,7 @@ def save_to_server(data, urn, tag):
     password = pcc['auth_pass']
     auth = HTTPBasicAuth(user, password)
     api = urn2fdiurl(urn, contents='product', method='POST')
-    print('POST API: ' + api)
+    # print('POST API: ' + api)
     headers = {'tag': tag}
     res = requests.post(api, auth=auth, data=serializeClassID(data), headers=headers)
     result = deserializeClassID(res.text)
@@ -148,7 +148,7 @@ def delete_from_server(poolurn, contents='product'):
     password = pcc['auth_pass']
     auth = HTTPBasicAuth(user, password)
     api = urn2fdiurl(urn=poolurn, contents=contents, method='DELETE')
-    print("DELETE REQUEST API: " + api)
+    # print("DELETE REQUEST API: " + api)
     res = requests.delete(api, auth=auth)
     result = deserializeClassID(res.text)
     return result['result'], result['msg']

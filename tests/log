@@ -1,0 +1,24 @@
+INFO     root:test_httppool.py:148 get pnsconfig
+INFO     root:test_httppool.py:125 initial server response OD{
+	'APIs':OD{
+	'DELETE':[OD{
+	'URL':'http://0.0.0.0:5000/v0.6/clean',
+	'description':' Removing tr...
+INFO     root:test_httppool.py:215 get initPTS
+INFO     root:test_httppool.py:225 get run
+INFO     root:test_httppool.py:255 save products
+INFO     root:test_httppool.py:279 read product
+INFO     root:test_httppool.py:290 read hk
+INFO     root:test_httppool.py:300 read classes
+INFO     root:test_httppool.py:307 read tags
+INFO     root:test_httppool.py:314 read urns
+INFO     root:test_httppool.py:322 delete a product
+INFO     root:test_httppool.py:342 delete a pool
+INFO     root:test_httppool.py:380 Test read a locked file, it will returns FAILED
+INFO     root:test_httppool.py:360 Keeping files locked
+INFO     filelock:filelock.py:248 Lock 139811360012160 acquired on /tmp/locks_teasyu//pool_default/lock
+INFO     root:test_httppool.py:369 Read a locked file
+INFO     root:test_httppool.py:374 {"result": "FAILED", "msg": "Exception : The file lock '/tmp/locks_teasyu/pool_default/lock' could not be acquired.", "timestamp": 1601308337.027548}
+INFO     filelock:filelock.py:311 Lock 139811360012160 released on /tmp/locks_teasyu//pool_default/lock
+INFO     root:test_httppool.py:397 Test query a pool non exist.
+INFO     root:test_httppool.py:406 Test create a pool which has subclass

@@ -624,10 +624,18 @@ load_all_pools()
 # check_and_create_fdi_record_table()
 
 @app.route(pc['baseurl']+pc['httppoolurl'])
-@auth.login_required
 def get_pools():
-    print(request.authorization.username)
     return str(pstore.getPools())
+
+@app.route(pc['baseurl'] + pc['httppoolurl'] + '/sn' +'/<string:prod_type>' + '/<string:pool_id>', methods=['GET'])
+def get_pool_sn(prod_type, pool_id):
+    res = 0
+    path = pc['basepoolpath'] + pool_id
+    if os.path.exists(path):
+        for i in os.listdir(path):
+            if i[-1].isnumeric() and prod_type in i:
+                res = res+1
+    return str(res)
 
 
 @app.route(pc['baseurl']+pc['httppoolurl'] +'/<path:pool>', methods=['GET', 'POST', 'DELETE'])

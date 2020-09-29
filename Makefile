@@ -102,6 +102,13 @@ test4:
 test5:
 	pytest  $(OPT) $(T) tests/test_utils.py
 
+test6:
+	pytest $(OPT) $(T) tests/test_httppool.py
+
+test7:
+	pytest $(OPT) $(T) tests/test_httpclientpool.py
+
+
 PLOTDIR	= $(SDIR)/_static
 plots: plotall plot_dataset plot_pal plot_pns
 

@@ -1,16 +1,13 @@
-
 # -*- coding: utf-8 -*-
 import logging
 import copy
 import importlib
-import traceback
 
 import pdb
 
 from .odict import ODict
 from ..utils.common import trbk
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
-
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -67,9 +64,7 @@ class Classes_meta(type):
 
     def updateMapping(cls, c=None, rerun=False, exclude=[], verbose=False):
         """ Updates classes mapping.
-
-
-        Set rerun=True to reimport module-class list and update mapping with it, with specified modules excluded, before updating with c. If the module-class list has never been imported, it will be imported regardless rerun.
+        Make the package mapping if it has not been made.
         """
         #
         cls.importModuleClasses(rerun=rerun, exclude=exclude, verbose=verbose)
@@ -96,7 +91,8 @@ modules whose names (without '.') are in exclude are not imported.
             logger.debug('With %s excluded..' % (str(exclude)))
 
         for modnm, froml in cls.modclass.items():
-            if any((x in exclude for x in modnm.split('.'))):
+            exed = [x for x in froml if x not in exclude]
+            if len(exed) == 0:
                 continue
             if verbose:
                 logger.info('importing %s from %s' % (str(froml), modnm))
@@ -114,15 +110,13 @@ modules whose names (without '.') are in exclude are not imported.
                                  (str(froml), str(e)))
                 #ety, enm, tb = sys.exc_info()
             else:
-                for n in froml:
-                    #print(n, m)
-                    # print(dir(m))
+                for n in exed:
                     cls._package[n] = getattr(m, n)
 
         return
 
     def reloadClasses(cls):
-        """ re-import classes in mapping list, which is supposed to be populated. """
+        """ re-import classes in list. """
         for n, t in cls._classes.items():
             mo = importlib.import_module(t.__module__)
             importlib.reload(mo)
@@ -134,7 +128,8 @@ modules whose names (without '.') are in exclude are not imported.
     def mapping(cls):
         """ Returns the dictionary of classes allowed for deserialization, including the fdi built-ins and user added classes.
         """
-
+        if len(cls._classes) == 0:
+            cls.updateMapping()
         return cls._classes
 
     @mapping.setter
@@ -143,12 +138,6 @@ modules whose names (without '.') are in exclude are not imported.
         """
         raise NotImplementedError('Use Classes.updateMapping(c).')
         cls.updateMapping(c)
-
-    def get(cls, name):
-        """ returns class objects by name """
-        if len(cls._classes) == 0:
-            cls.updateMapping()
-        return cls._classes[name]
 
 
 class Classes(metaclass=Classes_meta):

@@ -1,0 +1,82 @@
+import mysql.connector
+from mysql.connector import Error
+from .pnsconfig import pnsconfig as pc
+
+def setuplogging():
+    import logging.config
+    import logging
+    from fdi.pns import logdict  # import logdict
+    # create logger
+    logging.config.dictConfig(logdict.logdict)
+    return logging
+
+
+logging = setuplogging()
+logger = logging.getLogger()
+
+
+def get_connector():
+    try:
+        conn = mysql.connector.connect(host = pc['mysql']['host'], user =pc['mysql']['user'], password = pc['mysql']['password'], database = pc['mysql']['database'])
+        if conn.is_connected():
+            print("connect to db successfully")
+            logger.info("connect to database successfully!")
+            return conn
+    except Error as e:
+        logger.error("Connect to database failed: " +str(e))
+    return None
+
+def auth(username = '', password = ''):
+    if username != '' and password != '':
+        conn = get_connector()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM userinfo WHERE userName = '" + username + "' AND password = '" + password + "';" )
+        record = cursor.fetchone()
+        if len(record) != 1:
+            logger.info("User : " + username + " auth failed")
+            conn.close()
+            return False
+        else:
+            conn.close()
+            return True
+
+def check_and_create_fdi_record_table():
+    """Make sure fdi_action_record table exists in database
+    """
+    tb_name = 'fdi_action_record'
+    tb_exist = False
+    conn = get_connector()
+    cursor = conn.cursor()
+    cursor.execute("SHOW TABLES")
+    for x in cursor:
+        if tb_name == x[0]:
+            tb_exist = True
+            print('TABLE ' + tb_name + ' already exists in database.')
+    if tb_exist == False:
+        print("TABLE " + tb_name + " not exists, create it.")
+        #TODO I suggest that adding a column 'result' to save user's action results, it zill be usrful in the future, my experience...
+        cursor.execute("CREATE TABLE  fdi_action_record( \
+                         id bigint(20) not null primary key auto_increment, \
+                         username varchar(100), \
+                         action varchar(20), \
+                         poolname varchar(200), \
+                         change_time datetime(6))")
+    conn.close()
+
+def save_action(username='', action='SAVE', pool=''):
+    """Save actions of user to database
+    ACTION: [SAVE, DELETE, READ]
+    POOL: it could be a poolname or a file in a pool, for exemple: test, test/fdi.dataset.product.Product_1
+    USERNAME: a user registered in db
+    """
+    if username == '' or action not in ['SAVE', 'DELETE', 'READ'] or pool == '':
+        raise ValueError('username, or action or pool got an unexpected value: ' + username + '/' + action + '/' + pool)
+    else:
+        conn = get_connector()
+        cursor = conn.cursor()
+        sql = "INSERT INTO fdi_action_record(username, action, poolname, change_time) values (%s, %s, %s, now(6))"
+        values = (username, action, pool)
+        cursor.execute(sql, values)
+        conn.commit()
+        # print('update fdi_action_record...')
+        conn.close()

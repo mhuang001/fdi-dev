@@ -59,7 +59,7 @@ class MemPool(productpool.ProductPool):
         myspace['tags'] = self._tags
         myspace['urns'] = self._urns
 
-    def schematicSave(self, typename, serialnum, data):
+    def schematicSave(self, typename, serialnum, data, tag=None):
         """ 
         does the media-specific saving
         """

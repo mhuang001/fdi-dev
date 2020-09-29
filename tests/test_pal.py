@@ -168,7 +168,7 @@ def cleanup(direc='', schm='file'):
         direc = transpath(direc)
         if op.exists(direc):
             try:
-                # print(os.stat(direc))
+                print(os.stat(direc))
                 shutil.rmtree(direc)
             except Exception as e:
                 print(str(e) + ' ' + trbk(e))

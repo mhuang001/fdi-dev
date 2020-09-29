@@ -163,25 +163,25 @@ def transpath_server(direc):
     return direc
 
 def cleanup(direc='', schm='file'):
-    """ remove pool from disk and memory"""
+    """ remove pool from disk and memory, direc being the relative poolpath"""
     if schm == 'file':
-        direc = transpath(direc)
-        if op.exists(direc):
+        pu='file://'+direc
+        if PoolManager.isLoaded(pu):
+            PoolManager.getPool(pu).removeAll()
+        # remove existing pools in memory
+        PoolManager.removeAll()
+        d = transpath(direc)
+        if op.exists(d):
             try:
-                print(os.stat(direc))
-                shutil.rmtree(direc)
+                #print(os.stat(d))
+                shutil.rmtree(d)
             except Exception as e:
                 print(str(e) + ' ' + trbk(e))
-                raise(e)
-            assert not op.exists(direc)
-        # remove existing pools in memory
-        PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-        PoolManager.getPool('file://'+direc).removeAll()
-        PoolManager.removeAll()
+                raise
+            assert not op.exists(d)
     elif schm == 'mem':
         # remove existing pools in memory
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-        PoolManager.getPool('file://'+direc).removeAll()
         PoolManager.removeAll()
 
     elif schm in ['http', 'https']:
@@ -189,11 +189,11 @@ def cleanup(direc='', schm='file'):
         realdirec = transpath('/' + realdirec)
         if op.exists(realdirec):
             try:
-                print(os.stat(realdirec))
+                #print(os.stat(realdirec))
                 shutil.rmtree(realdirec)
             except Exception as e:
                 print(str(e) + ' ' + trbk(e))
-                raise(e)
+                raise
             assert not op.exists(realdirec)
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
         uri = 'http://'+direc
@@ -202,6 +202,7 @@ def cleanup(direc='', schm='file'):
         PoolManager.removeAll()
     else:
         assert False
+    PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
 
 
 
@@ -447,8 +448,9 @@ def check_ps_func_for_pool(thepool):
     assert len(ps.getPool(thepool)._urns) == 0
 
 
-def test_ProdStorage_func():
+def test_ProdStorage_func_local_mem():
     # local pool
+    pdb.set_trace()
     thepoolpath = '/pool_' + getpass.getuser()
     cleanup(thepoolpath)
     thepool = 'file://' + thepoolpath
@@ -459,6 +461,7 @@ def test_ProdStorage_func():
     cleanup(direc=thepoolpath, schm='mem')
     check_ps_func_for_pool(thepool)
 
+def test_ProdStorage_func_http():
     # httpclientpool
     thepoolpath = '/testhttppool'
     # poolplace = '10.0.0.114:9880'+thepoolpath

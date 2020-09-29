@@ -91,19 +91,20 @@ test1:
 	pytest $(OPT) $(T) tests/test_dataset.py
 
 test2:
-	pytest $(OPT) $(T) tests/test_pal.py
+	pytest $(OPT) $(T) tests/test_pal.py -k 'not ProdStorage_func_http'
 
 test3:
-	pytest $(OPT) -k 'not server' $(T) tests/test_pns.py
+	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py
 
 test4:
-	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py
+	pytest $(OPT) -k 'not server' $(T) tests/test_pns.py
 
 test5:
 	pytest  $(OPT) $(T) tests/test_utils.py
 
 test6:
 	pytest $(OPT) $(T) tests/test_httppool.py
+	pytest $(OPT) $(T) tests/test_pal.py -k 'ProdStorage_func_http'
 
 test7:
 	pytest $(OPT) $(T) tests/test_httpclientpool.py

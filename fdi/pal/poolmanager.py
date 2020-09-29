@@ -81,4 +81,4 @@ This is done by calling the getPool(String) method, which will return an existin
 
     @classmethod
     def __repr__(cls):
-        return cls.__class__.__name__ + str(cls._GlobalPoolList)
+        return cls.__name__ + str(cls._GlobalPoolList)

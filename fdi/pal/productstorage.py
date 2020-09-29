@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 #from .productpool import ProductPool
-DefaultPool = 'file:///tmp/pool_' + getpass.getuser()
+DefaultPool = 'file:///pool_' + getpass.getuser()
 
 
 class ProductStorage(object):

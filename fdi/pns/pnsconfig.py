@@ -14,10 +14,6 @@ pnsconfig['auth_pass'] = '123456'
 pnsconfig['httppoolurl'] = '/httppool'
 pnsconfig['httphost'] = 'http://192.168.1.9:5000'
 
-pnsconfig['auth_user'] = 'luchangfa'
-pnsconfig['auth_pass'] = '123456'
-pnsconfig['httppoolurl'] = '/httppool'
-pnsconfig['httphost'] = 'http://10.0.10.114:9888'
 # base url for pool, you must have permission of this path, for example : /home/user/Documents
 # this base pool path will be added at the beginning of your pool urn when you init a pool like:
 # pstore = PoolManager.getPool('/demopool_user'), it will create a pool at /data.demopool_user/

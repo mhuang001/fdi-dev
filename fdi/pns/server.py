@@ -903,29 +903,34 @@ def getinfo(cmd):
 #     return username == pc['node']['username'] and password == pc['node']['password']
 @auth.verify_password
 def verify_password(username, password):
+    print(username + "/" + password)
     if not(username and password):
         return False
+    elif username == pc['auth_user'] and password == pc['auth_pass']:
+        return True
     else:
-        password = str2md5(password)
-        try:
-            conn = mysql.connector.connect(host = pc['mysql']['host'], port=pc['mysql']['port'], user =pc['mysql']['user'], password = pc['mysql']['password'], database = pc['mysql']['database'])
-            if conn.is_connected():
-                logger.info("connect to db successfully")
-                cursor = conn.cursor()
-                cursor.execute("SELECT * FROM userinfo WHERE userName = '" + username + "' AND password = '" + password + "';" )
-                record = cursor.fetchall()
-                if len(record) != 1:
-                    logger.info("User : " + username + " auth failed")
-                    conn.close()
-                    return False
-                else:
-                    conn.close()
-                    return True
-            else:
-                return False
-        except Error as e:
-            logger.error("Connect to database failed: " +str(e))
-    #elif username == 'gsegment' and password == '123456':
+        return False
+    # else:
+    #     password = str2md5(password)
+    #     try:
+    #         conn = mysql.connector.connect(host = pc['mysql']['host'], port=pc['mysql']['port'], user =pc['mysql']['user'], password = pc['mysql']['password'], database = pc['mysql']['database'])
+    #         if conn.is_connected():
+    #             logger.info("connect to db successfully")
+    #             cursor = conn.cursor()
+    #             cursor.execute("SELECT * FROM userinfo WHERE userName = '" + username + "' AND password = '" + password + "';" )
+    #             record = cursor.fetchall()
+    #             if len(record) != 1:
+    #                 logger.info("User : " + username + " auth failed")
+    #                 conn.close()
+    #                 return False
+    #             else:
+    #                 conn.close()
+    #                 return True
+    #         else:
+    #             return False
+    #     except Error as e:
+    #         logger.error("Connect to database failed: " +str(e))
+
 
 @app.route(pc['baseurl'] + '/<string:cmd>', methods=['POST'])
 @app.route(pc['baseurl'] + '/<string:cmd>/<string:ops>', methods=['POST'])

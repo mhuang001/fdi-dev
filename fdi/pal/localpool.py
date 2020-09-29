@@ -169,7 +169,7 @@ class LocalPool(ProductPool):
             msg = 'Load' + pp + 'failed. ' + str(e) + trbk(e)
             logger.error(msg)
             raise e
-        return p
+        return deserializeClassID(js)
 
     def schematicRemove(self, typename, serialnum):
         """

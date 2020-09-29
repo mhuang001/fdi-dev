@@ -241,7 +241,7 @@ f        With two positional arguments: arg1-> value, arg2-> description.
     def __repr__(self):
         return self.toString()
 
-    def toString(self, level=0):
+    def toString(self, level=0, **kwds):
         vs = str(self._value)
         ss = '{ %s }' % (vs) if level else \
             '{ %s, "%s"}' % (vs, str(self.description))
@@ -460,7 +460,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
     def __repr__(self):
         return self.toString()
 
-    def toString(self, level=0):
+    def toString(self, level=0, **kwds):
 
         if level:
             vs = str(self._value)
@@ -513,7 +513,7 @@ class NumericParameter(Parameter, Quantifiable):
     def __repr__(self):
         return self.toString()
 
-    def toString(self, level=0):
+    def toString(self, level=0, **kwds):
 
         if level:
             vs = str(self._value)
@@ -587,7 +587,7 @@ class DateParameter(Parameter):
 
         return self.toString()
 
-    def toString(self, level=0):
+    def toString(self, level=0, **kwds):
 
         if level:
             vs = str(self._value)
@@ -664,7 +664,7 @@ class StringParameter(Parameter):
     def __repr__(self):
         return self.toString()
 
-    def toString(self, level=0):
+    def toString(self, level=0, **kwds):
 
         if level:
             vs = str(self._value)
@@ -757,11 +757,11 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             self.fire(e)
         return r
 
-    def toString(self, level=0):
+    def toString(self, level=0, **kwds):
         s, l = '', ''
         for (k, v) in self._sets.items():
             # vs = str(v.value) if level else
-            vs = v.toString(level=level)
+            vs = v.toString(level=level, **kwds)
             s = s + str(k) + ' = ' + vs + ', '
         l = ''.join([x.__class__.__name__ + ' ' + str(id(x)) +
                      ' "' + x.description + '", ' for x in self.listeners])

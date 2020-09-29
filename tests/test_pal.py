@@ -342,7 +342,6 @@ def test_ProductStorage_init():
 
     # Constructor
     # default pool
-    pdb.set_trace()
     ps = ProductStorage()
     p1 = ps.getPools()[0]
     # check default pool's name

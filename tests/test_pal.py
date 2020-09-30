@@ -47,6 +47,7 @@ else:
     PY3 = False
 
 Classes.updateMapping()
+pc.update(getConfig())
 
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset

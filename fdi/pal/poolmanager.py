@@ -48,9 +48,10 @@ This is done by calling the getPool(String) method, which will return an existin
     @classmethod
     def getMap(cls):
         """
-
+        Returns a poolname - poolobject map.
         """
         return cls._GlobalPoolList
+
 
     @classmethod
     def isLoaded(cls, poolurn):
@@ -78,6 +79,38 @@ This is done by calling the getPool(String) method, which will return an existin
         Gives the number of entries in this manager.
         """
         return len(cls._GlobalPoolList)
+
+
+    def items(self):
+        """
+        Returns map's items
+        """
+        return self._GlobalPoolList.items()
+
+    def __setitem__(self, *args, **kwargs):
+        """ sets value at key.
+        """
+        self._GlobalPoolList.__setitem__(*args, **kwargs)
+
+    def __getitem__(self, *args, **kwargs):
+        """ returns value at key.
+        """
+        return self._GlobalPoolList.__getitem__(*args, **kwargs)
+
+    def __delitem__(self, *args, **kwargs):
+        """ removes value and its key.
+        """
+        self._GlobalPoolList.__delitem__(*args, **kwargs)
+
+    def __len__(self, *args, **kwargs):
+        """ size of data
+        """
+        return self._GlobalPoolList.__len__(*args, **kwargs)
+
+    def __iter__(self, *args, **kwargs):
+        """ returns an iterator
+        """
+        return self._GlobalPoolList.__iter__(*args, **kwargs)
 
     @classmethod
     def __repr__(cls):

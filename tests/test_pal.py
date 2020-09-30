@@ -11,6 +11,7 @@ from fdi.pal.context import Context, MapContext, RefContainer
 from fdi.pal.productref import ProductRef
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.urn import Urn, parseUrn, makeUrn
+from fdi.pal.productpool import ProductPool
 from fdi.pal.localpool import LocalPool
 from fdi.pal.context import Context
 from fdi.pal.query import AbstractQuery, MetaQuery
@@ -202,22 +203,32 @@ def cleanup(direc='', schm='file'):
         PoolManager.removeAll()
     else:
         assert False
-    PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+    if DEFAULT_MEM_POOL in PoolManager.getMap():
+        PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
 
 
 
 def test_PoolManager():
     defaultpoolpath = '/pool_' + getpass.getuser()
-    defaultpool = 'file://' + defaultpoolpath
+    defaultpoolname = 'file://' + defaultpoolpath
     cleanup(defaultpoolpath)
-    pm = PoolManager()
-    assert pm.size() == 0
-    pool = pm.getPool(defaultpool)
-    assert pm.size() == 1
+    # class methods
+    assert PoolManager.size() == 0
+    # This creates a pool and returns it if the pool of given name does not exist
+    pool = PoolManager.getPool(defaultpoolname)
+    assert PoolManager.size() == 1
+    assert defaultpoolname in PoolManager.getMap()
     # print('GlobalPoolList#: ' + str(id(pm.getMap())) + str(pm))
-    pm.removeAll()
-    assert pm.size() == 0
-
+    PoolManager.removeAll()
+    assert PoolManager.size() == 0
+    
+    # initiate
+    pm = PoolManager()
+    assert len(pm) == 0
+    pm.getPool(defaultpoolname)
+    for k,v in pm.items():
+        assert isinstance(v, ProductPool)
+    assert defaultpoolname in pm
 
 def checkdbcount(n, poolurn, prodname, currentSN=-1):
     """ count files in pool and entries in class db.
@@ -450,7 +461,6 @@ def check_ps_func_for_pool(thepool):
 
 def test_ProdStorage_func_local_mem():
     # local pool
-    pdb.set_trace()
     thepoolpath = '/pool_' + getpass.getuser()
     cleanup(thepoolpath)
     thepool = 'file://' + thepoolpath

@@ -22,6 +22,7 @@ from fdi.dataset.classes import Classes
 from fdi.dataset.metadata import MetaData, Parameter
 from fdi.dataset.finetime import FineTime1
 from fdi.utils.checkjson import checkjson
+from fdi.utils.getconfig import getConfig
 
 import copy
 import traceback

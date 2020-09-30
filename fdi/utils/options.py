@@ -43,7 +43,7 @@ def opt(ops):
     logger.debug('Command line options %s args %s' % (opts, args))
 
     for i in ops:
-        switches = ('-'+i['char'], '--'+i['long'])
+        switches = ('-'+i['char'], '--'+i['long'].replace('=', ''))
         i['result'] = i['default']
         for o, a in opts:
             if o in switches:

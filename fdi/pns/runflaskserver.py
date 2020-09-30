@@ -73,12 +73,14 @@ if __name__ == '__main__':
 
     if servertype == 'pns':
         from fdi.pns.server import app
+        print('======== %s ========' % servertype)
         app.run(host=node['host'], port=node['port'],
                 threaded=False, debug=verbose, processes=5)
     elif servertype == 'httppool_server':
         from fdi.pns.httppool_server import app
-        print('QQQQQQQQQQQQQ')
+        print('<<<<<< %s >>>>>' % servertype)
         app.run(host=node['host'], port=node['port'],
                 threaded=False, debug=verbose, processes=5)
     else:
-        assert 0
+        logger.error('Unknown server %s' % servertype)
+        sys.exit(-1)

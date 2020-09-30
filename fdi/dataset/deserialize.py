@@ -215,9 +215,10 @@ def deserializeClassID(js, lgb=None, debug=False, usedict=True):
             # , cls=IntDecoderOD)
             obj = json.loads(js, object_pairs_hook=ODict)
     except json.decoder.JSONDecodeError as e:
-        logging.error(' Bad string to decode:\n==============\n' +
-                      lls(js, 500) + '\n==============')
-        raise e
+        msg = ' Bad string to decode:\n==============\n %s \n==============' %\
+            lls(js, 500)
+        logging.error(msg)
+        obj = msg
     if debug:
         # print('load-str ' + str(o) + ' class ' + str(o.__class__))
         print('-------- json loads returns: --------\n' + str(obj))

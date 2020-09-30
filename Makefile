@@ -23,7 +23,7 @@ yamlupgrade:
 	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -u
 
 
-.PHONY: runserver reqs install uninstall vtag FORCE \
+.PHONY: runserver runpoolserver reqs install uninstall vtag FORCE \
 	test test1 test2 test3 test4 test5\
 	plots plotall plot_dataset plot_pal plot_pns \
 	docs doc_api doc_plots doc_html
@@ -33,6 +33,8 @@ S	=
 # default username and password are in pnsconfig.py
 runserver:
 	python3 -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
+runpoolserver:
+	python3 -m fdi.pns.runflaskserver --username=foo --password=bar --server=httppool_server -v $(S)
 
 INSOPT  =
 install:

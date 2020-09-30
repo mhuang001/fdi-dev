@@ -3,7 +3,6 @@
 
 from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
-from fdi.pns.server import app
 from fdi.utils.getconfig import getConfig
 
 import pdb
@@ -47,13 +46,17 @@ if __name__ == '__main__':
         {'long': 'host=', 'char': 'i',
             'default': node['host'], 'description':'host IP/name'},
         {'long': 'port=', 'char': 'o',
-            'default': node['port'], 'description':'port number'}
+            'default': node['port'], 'description':'port number'},
+        {'long': 'server=', 'char': 's',
+            'default': 'pns', 'description': 'server type: pns or httppool_server'},
+
     ]
     out = opt(ops)
     verbose = out[1]['result']
     for j in range(2, 6):
         n = out[j]['long'].strip('=')
         node[n] = out[j]['result']
+    servertype = out[6]['result']
 
     if verbose:
         logger.setLevel(logging.DEBUG)
@@ -66,5 +69,12 @@ if __name__ == '__main__':
         exit(3)
     print('Check http://' + node['host'] + ':' + str(node['port']) +
           pc['baseurl'] + '/ for API list')
-    app.run(host=node['host'], port=node['port'],
-            threaded=False, debug=verbose, processes=5)
+
+    if servertype == 'pns':
+        from fdi.pns.server import app
+        app.run(host=node['host'], port=node['port'],
+                threaded=False, debug=verbose, processes=5)
+    elif servertype == 'httppool_server':
+        from fdi.pns.httppool_server import app
+        app.run(host=node['host'], port=node['port'],
+                threaded=False, debug=verbose, processes=5)

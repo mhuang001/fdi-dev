@@ -12,6 +12,7 @@ from fdi.dataset.odict import ODict
 from fdi.pns import server
 from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
+from fdi.utils.getconfig import getConfig
 from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.dataset.classes import Classes
 
@@ -46,14 +47,14 @@ def setuplogging():
 
 
 logging = setuplogging()
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 # default configuration is read and can be superceded
 # by ~/.config/pnslocal.py, which is also used by the local test server
 # run by scrupt startserver.
 
-pc.update(server.getConfig())
+pc.update(getConfig())
 logger.setLevel(pc['logginglevel'])
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
@@ -415,7 +416,7 @@ def test_serversleep():
     d = time.time() - now - float(s)
     assert re == 0, str(re)
     assert d > 0 and d < 0.5
-    print('dt=%f re=%s state=%s' % (d, str(re), str(st)))
+    #print('dt=%f re=%s state=%s' % (d, str(re), str(st)))
     now = time.time()
     # let it timeout
     tout = 1

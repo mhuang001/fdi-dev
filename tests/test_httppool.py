@@ -1,4 +1,14 @@
 # -*- coding: utf-8 -*-
+import pytest
+from fdi.dataset.eq import deepcmp
+from fdi.dataset.dataset import ArrayDataset, GenericDataset
+from fdi.dataset.serializable import serializeClassID
+from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.metadata import NumericParameter
+from fdi.dataset.product import Product
+from fdi.dataset.serializable import serializeClassID, serializeClassID
+from fdi.dataset.odict import ODict
+from fdi.pns import server
 import sys
 import base64
 from urllib.request import pathname2url
@@ -13,26 +23,6 @@ import getpass
 
 import asyncio
 import aiohttp
-
-# This is to be able to test w/ or w/o installing the package
-# https://docs.python-guide.org/writing/structure/
-# from .pycontext import spdc
-if __name__ == '__main__' and __package__ is None:
-    pass
-else:
-    # This is to be able to test w/ or w/o installing the package
-    # https://docs.python-guide.org/writing/structure/
-    # from .pycontext import fdi
-
-    from .logdict import logdict
-    import logging
-    import logging.config
-    # create logger
-    logging.config.dictConfig(logdict)
-    logger = logging.getLogger()
-    logger.debug('%s logging level %d' %
-                 (__name__, logger.getEffectiveLevel()))
-    logging.getLogger("filelock").setLevel(logging.WARNING)
 
 from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.utils.options import opt
@@ -49,22 +39,36 @@ try:
 except Exception:
     pass
 
-from fdi.pns import server
-from fdi.dataset.odict import ODict
-from fdi.dataset.serializable import serializeClassID, serializeClassID
-from fdi.dataset.product import Product
-from fdi.dataset.metadata import NumericParameter
-from fdi.dataset.deserialize import deserializeClassID
-from fdi.dataset.serializable import serializeClassID
-from fdi.dataset.dataset import ArrayDataset, GenericDataset
-from fdi.dataset.eq import deepcmp
 
-import pytest
+def setuplogging():
+    import logging.config
+    import logging
+    from . import logdict
+
+    # create logger
+    logging.config.dictConfig(logdict.logdict)
+    logging.getLogger("requests").setLevel(logging.WARN)
+    logging.getLogger("urllib3").setLevel(logging.WARN)
+    logging.getLogger("filelock").setLevel(logging.WARN)
+    return logging
+
+
+logging = setuplogging()
+logger = logging.getLogger(__name__)
+
+
+# default configuration is read and can be superceded
+# by ~/.config/pnslocal.py, which is also used by the local test server
+# run by scrupt startserver.
+
+pc.update(server.getConfig())
+logger.setLevel(pc['logginglevel'])
+logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
 @pytest.fixture(scope="module")
 def runserver():
-    from fdi.pns.runflaskserver import app
+    from fdi.pns.httppool_server import app
     app.run(host='127.0.0.1', port=5000,
             threaded=False, debug=verbose, processes=5)
 
@@ -100,7 +104,7 @@ if os.path.exists(path):
     x.creator = 'test'
     data = serializeClassID(x)
     url = api_baseurl + test_poolid + '/fdi.dataset.product.Product/0'
-    x = requests.post(url, auth=HTTPBasicAuth(auth_user, auth_pass), data = data)
+    x = requests.post(url, auth=HTTPBasicAuth(auth_user, auth_pass), data=data)
 
 
 if 0:
@@ -229,6 +233,8 @@ def test_getrun():
     checkContents(cmd='/' + c, filename=fn + '.ori')
 
 # TEST HTTPPOOL  API
+
+
 def get_files(poolid):
     basepoolpath = pc['basepoolpath']
     path = basepoolpath + poolid
@@ -238,11 +244,12 @@ def get_files(poolid):
         files = []
     return files
 
+
 def check_response(o, failed_case=False):
     global lupd
     assert o is not None, "Server is having trouble"
     if not failed_case:
-        assert 'FAILED' !=  o['result'], o['result']
+        assert 'FAILED' != o['result'], o['result']
         assert o['timestamp'] > lupd
         lupd = o['timestamp']
     else:
@@ -260,12 +267,15 @@ def test_CRUD_product():
             origin_prod = origin_prod + 1
     creators = ['Todds', 'Cassandra', 'Jane', 'Owen', 'Julian', 'Maurice']
     instruments = ['fatman', 'herscherl', 'NASA', 'CNSC', 'SVOM']
-    for index,i in enumerate(creators):
-        x = Product(description='desc ' + str(index), instrument=random.choice(instruments))
+    for index, i in enumerate(creators):
+        x = Product(description='desc ' + str(index),
+                    instrument=random.choice(instruments))
         x.creator = i
         data = serializeClassID(x)
-        url = api_baseurl + post_poolid + '/fdi.dataset.product.Product/' + str(index)
-        x = requests.post(url, auth=HTTPBasicAuth(auth_user, auth_pass), data = data)
+        url = api_baseurl + post_poolid + \
+            '/fdi.dataset.product.Product/' + str(index)
+        x = requests.post(url, auth=HTTPBasicAuth(
+            auth_user, auth_pass), data=data)
         o = deserializeClassID(x.text)
         check_response(o)
     files = get_files(post_poolid[1:])
@@ -275,7 +285,7 @@ def test_CRUD_product():
             num_prod = num_prod + 1
     assert num_prod == len(creators) + origin_prod, 'Products number not match'
 
-    #==========
+    # ==========
     logger.info('read product')
     prodpath = '/fdi.dataset.product.Product/0'
     url = api_baseurl + post_poolid + prodpath
@@ -284,7 +294,7 @@ def test_CRUD_product():
     check_response(o)
     assert o['result'].creator == 'Todds', 'Creator not match'
 
-    #===========
+    # ===========
     ''' Test reak hk api
     '''
     logger.info('read hk')
@@ -318,7 +328,7 @@ def test_CRUD_product():
     o = deserializeClassID(x.text)
     check_response(o)
 
-    #========
+    # ========
     logger.info('delete a product')
     origin_prod = 0
     files = get_files(post_poolid[1:])
@@ -338,7 +348,7 @@ def test_CRUD_product():
             num_prod = num_prod + 1
     assert num_prod + 1 == origin_prod, 'Remove product failed'
 
-    #========
+    # ========
     logger.info('delete a pool')
     files = get_files(post_poolid[1:])
     assert len(files) != 0, 'Pool is already empty: ' + post_poolid
@@ -360,8 +370,10 @@ async def lock_pool(sec):
     logger.info('Keeping files locked')
     with filelock.FileLock('/tmp/locks_' + getpass.getuser() + '/' + test_poolid + '/lock'):
         await asyncio.sleep(sec)
-    fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "timestamp": '+ str(time.time()) + '}'
+    fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "timestamp": ' + \
+        str(time.time()) + '}'
     return deserializeClassID(fakeres)
+
 
 async def read_product():
     prodpath = '/fdi.dataset.product.Product/0'
@@ -374,13 +386,15 @@ async def read_product():
     logger.info(x)
     return o
 
+
 def test_lock_file():
     ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
     '''
     logger.info('Test read a locked file, it will returns FAILED')
     try:
         loop = asyncio.get_event_loop()
-        tasks = [asyncio.ensure_future(lock_pool(14)), asyncio.ensure_future(read_product())]
+        tasks = [asyncio.ensure_future(
+            lock_pool(14)), asyncio.ensure_future(read_product())]
         taskres = loop.run_until_complete(asyncio.wait(tasks))
         loop.close()
         res = [f.result() for f in [x for x in taskres][0]]
@@ -402,6 +416,7 @@ def test_read_non_exists_pool():
     o = deserializeClassID(x.text)
     check_response(o, True)
 
+
 def test_subclasses_pool():
     logger.info('Test create a pool which has subclass')
     poolid_1 = '/subclasses/a'
@@ -410,10 +425,12 @@ def test_subclasses_pool():
     url1 = api_baseurl + poolid_1 + prodpath
     url2 = api_baseurl + poolid_2 + prodpath
     x = Product(description="product example with several datasets",
-            instrument="Crystal-Ball", modelName="Mk II")
+                instrument="Crystal-Ball", modelName="Mk II")
     data = serializeClassID(x)
-    res1 = requests.post(url1, auth=HTTPBasicAuth(auth_user, auth_pass), data = data)
-    res2 = requests.post(url2, auth=HTTPBasicAuth(auth_user, auth_pass), data = data)
+    res1 = requests.post(url1, auth=HTTPBasicAuth(
+        auth_user, auth_pass), data=data)
+    res2 = requests.post(url2, auth=HTTPBasicAuth(
+        auth_user, auth_pass), data=data)
     o1 = deserializeClassID(res1.text)
     o2 = deserializeClassID(res2.text)
     check_response(o1)

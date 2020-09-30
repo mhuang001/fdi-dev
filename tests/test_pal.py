@@ -158,15 +158,17 @@ def transpath(direc):
         direc = pc['basepoolpath_client']+direc
     return direc
 
+
 def transpath_server(direc):
     if 'basepoolpath' in pc:
         direc = pc['basepoolpath'] + direc
     return direc
 
+
 def cleanup(direc='', schm='file'):
     """ remove pool from disk and memory, direc being the relative poolpath"""
     if schm == 'file':
-        pu='file://'+direc
+        pu = 'file://'+direc
         if PoolManager.isLoaded(pu):
             PoolManager.getPool(pu).removeAll()
         # remove existing pools in memory
@@ -174,7 +176,7 @@ def cleanup(direc='', schm='file'):
         d = transpath(direc)
         if op.exists(d):
             try:
-                #print(os.stat(d))
+                # print(os.stat(d))
                 shutil.rmtree(d)
             except Exception as e:
                 print(str(e) + ' ' + trbk(e))
@@ -190,7 +192,7 @@ def cleanup(direc='', schm='file'):
         realdirec = transpath('/' + realdirec)
         if op.exists(realdirec):
             try:
-                #print(os.stat(realdirec))
+                # print(os.stat(realdirec))
                 shutil.rmtree(realdirec)
             except Exception as e:
                 print(str(e) + ' ' + trbk(e))
@@ -207,7 +209,6 @@ def cleanup(direc='', schm='file'):
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
 
 
-
 def test_PoolManager():
     defaultpoolpath = '/pool_' + getpass.getuser()
     defaultpoolname = 'file://' + defaultpoolpath
@@ -221,14 +222,15 @@ def test_PoolManager():
     # print('GlobalPoolList#: ' + str(id(pm.getMap())) + str(pm))
     PoolManager.removeAll()
     assert PoolManager.size() == 0
-    
+
     # initiate
     pm = PoolManager()
     assert len(pm) == 0
     pm.getPool(defaultpoolname)
-    for k,v in pm.items():
+    for k, v in pm.items():
         assert isinstance(v, ProductPool)
     assert defaultpoolname in pm
+
 
 def checkdbcount(n, poolurn, prodname, currentSN=-1):
     """ count files in pool and entries in class db.
@@ -263,7 +265,7 @@ def checkdbcount(n, poolurn, prodname, currentSN=-1):
         # for this class there are  how many prods
         assert len(mpool['classes'][prodname]['sn']) == n
     elif scheme in ['http', 'https']:
-        snpath = '/sn/' + prodname +'/testhttppool'
+        snpath = '/sn/' + prodname + '/testhttppool'
         api_baseurl = pc['poolprefix'] + pc['baseurl'] + pc['httppoolurl']
         url = api_baseurl + snpath
         x = requests.get(url)
@@ -471,11 +473,13 @@ def test_ProdStorage_func_local_mem():
     cleanup(direc=thepoolpath, schm='mem')
     check_ps_func_for_pool(thepool)
 
+
 def test_ProdStorage_func_http():
     # httpclientpool
     thepoolpath = '/testhttppool'
+    pc = getConfig()
     # poolplace = '10.0.0.114:9880'+thepoolpath
-    poolplace = '192.168.1.4:5000' + thepoolpath
+    poolplace = pc['httphost'].replace('http://', '') + thepoolpath
     cleanup(poolplace, schm='http')
     thepool = 'http://' + poolplace
     check_ps_func_for_pool(thepool)

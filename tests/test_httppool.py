@@ -81,8 +81,8 @@ del up, code
 lupd = 0
 
 api_baseurl = pc['poolprefix'] + pc['baseurl'] + pc['httppoolurl']
-auth_user = 'gsegment'
-auth_pass = '123456'
+auth_user = pc['auth_user']
+auth_pass = pc['auth_pass']
 post_poolid = '/post_test_pool'
 test_poolid = '/pool_default'
 basepoolpath = pc['basepoolpath']

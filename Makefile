@@ -106,10 +106,10 @@ test5:
 
 test6:
 	pytest $(OPT) $(T) tests/test_httppool.py
-	pytest $(OPT) $(T) tests/test_pal.py -k 'ProdStorage_func_http'
 
 test7:
 	pytest $(OPT) $(T) tests/test_httpclientpool.py
+	pytest $(OPT) $(T) tests/test_pal.py -k 'ProdStorage_func_http'
 
 
 PLOTDIR	= $(SDIR)/_static

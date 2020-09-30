@@ -51,12 +51,13 @@ if __name__ == '__main__':
             'default': 'pns', 'description': 'server type: pns or httppool_server'},
 
     ]
+
     out = opt(ops)
     verbose = out[1]['result']
     for j in range(2, 6):
         n = out[j]['long'].strip('=')
         node[n] = out[j]['result']
-    servertype = out[6]['result']
+    servertype = 'httppool_server'  # out[6]['result']
 
     if verbose:
         logger.setLevel(logging.DEBUG)
@@ -76,5 +77,8 @@ if __name__ == '__main__':
                 threaded=False, debug=verbose, processes=5)
     elif servertype == 'httppool_server':
         from fdi.pns.httppool_server import app
+        print('QQQQQQQQQQQQQ')
         app.run(host=node['host'], port=node['port'],
                 threaded=False, debug=verbose, processes=5)
+    else:
+        assert 0

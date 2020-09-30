@@ -8,7 +8,8 @@ from fdi.dataset.metadata import NumericParameter
 from fdi.dataset.product import Product
 from fdi.dataset.serializable import serializeClassID, serializeClassID
 from fdi.dataset.odict import ODict
-from fdi.pns import server
+from fdi.utils.getconfig import getConfig
+from fdi.pns import httppool_server as server
 import sys
 import base64
 from urllib.request import pathname2url
@@ -29,15 +30,6 @@ from fdi.utils.options import opt
 
 # default configuration is provided. Copy pnsconfig.py to ~/local.py
 from fdi.pns.pnsconfig import pnsconfig as pc
-
-import sys
-from os.path import expanduser, expandvars
-env = expanduser(expandvars('$HOME'))
-sys.path.insert(0, env)
-try:
-    from local import pnsconfig as pc
-except Exception:
-    pass
 
 
 def setuplogging():
@@ -61,7 +53,7 @@ logger = logging.getLogger(__name__)
 # by ~/.config/pnslocal.py, which is also used by the local test server
 # run by scrupt startserver.
 
-pc.update(server.getConfig())
+pc.update(getConfig())
 logger.setLevel(pc['logginglevel'])
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 

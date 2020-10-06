@@ -24,7 +24,8 @@ class MemPool(productpool.ProductPool):
             self._MemPool[self._poolpath] = {}
         c, t, u = self.readHK()
 
-        logger.debug('pool ' + self._place + self._poolurn + ' HK read.')
+        logger.debug('created ' + self.__class__.__name__ +
+                     ' ' + self._poolurn + ' HK read.')
 
         self._classes.update(c)
         self._tags.update(t)

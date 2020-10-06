@@ -1605,7 +1605,8 @@ def test_CompositeDataset_init():
     v3.set(a10, x)
     v3.meta[a11] = a12
     ts = v3.toString()
-    # print(ts)
+#    with open('/tmp/fditest_comp', 'w') as f:
+#        f.write(ts)
     assert ts == out_CompositeDataset
 
     checkjson(v)

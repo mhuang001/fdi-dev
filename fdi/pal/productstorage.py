@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import pdb
 from . import productref
 from .poolmanager import PoolManager
 from .productpool import ProductPool

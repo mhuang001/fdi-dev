@@ -6,6 +6,12 @@ Change Log
 	BETA0
 	=====
 
+	1.0rc4 2020-10-10
+	-----------------
+HTTP pool server an client integration.
+	1.0rc3 2020-09-23
+	-----------------
+Lots of toString improvements. Tabulate-based array and table presentation.
 	1.0rc2 2020-09-10
 	-----------------
 Document updates. Better presentation APIs. DOC as extras. Contex refctoring.

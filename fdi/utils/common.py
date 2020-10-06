@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 def str2md5(string):
     return hashlib.md5(string.encode('utf8')).hexdigest()
 
+
 def trbk(e):
     """ trace back
     """
@@ -157,3 +158,14 @@ def fullname(obj):
         return t.__name__  # Avoid reporting __builtin__
     else:
         return module + '.' + t.__name__
+
+
+def getObjectbyId(idn, lgbv):
+    """ lgb is from deserializing caller's globals().values()
+    locals().values() and built-ins
+    """
+    v = lgbv
+    for obj in v:
+        if id(obj) == idn:
+            return obj
+    raise ValueError("Object not found by id %d." % (idn))

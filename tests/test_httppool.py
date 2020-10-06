@@ -9,6 +9,7 @@ from fdi.dataset.product import Product
 from fdi.dataset.serializable import serializeClassID, serializeClassID
 from fdi.dataset.odict import ODict
 from fdi.utils.getconfig import getConfig
+from fdi.utils.common import trbk
 from fdi.pns import httppool_server as server
 import sys
 import base64
@@ -49,22 +50,19 @@ logging = setuplogging()
 logger = logging.getLogger(__name__)
 
 
-# default configuration is read and can be superceded
-# by ~/.config/pnslocal.py, which is also used by the local test server
-# run by scrupt startserver.
-
 pc.update(getConfig())
 logger.setLevel(pc['logginglevel'])
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
-@pytest.fixture(scope="module")
-def runserver():
-    from fdi.pns.httppool_server import app
-    app.run(host='127.0.0.1', port=5000,
-            threaded=False, debug=verbose, processes=5)
+if 0:
+    @pytest.fixture(scope="module")
+    def runserver():
+        from fdi.pns.httppool_server import app
+        app.run(host='127.0.0.1', port=5000,
+                threaded=False, debug=verbose, processes=5)
 
-    return smtplib.SMTP("smtp.gmail.com", 587, timeout=5)
+        return smtplib.SMTP("smtp.gmail.com", 587, timeout=5)
 
 
 testname = 'SVOM'
@@ -80,23 +78,13 @@ del up, code
 # last timestamp/lastUpdate
 lupd = 0
 
-api_baseurl = pc['poolprefix'] + pc['baseurl'] + pc['httppoolurl']
+api_baseurl = pc['poolprefix'] + pc['baseurl'] + '/'
 auth_user = pc['auth_user']
 auth_pass = pc['auth_pass']
-post_poolid = '/post_test_pool'
-test_poolid = '/pool_default'
-basepoolpath = pc['basepoolpath']
-path = basepoolpath + test_poolid
-logger.info('create default product')
-if os.path.exists(path):
-    files = os.listdir(path)
-    if len(files) != 0:
-        os.system('rm -rf ' + path)
-    x = Product(description='desc test case')
-    x.creator = 'test'
-    data = serializeClassID(x)
-    url = api_baseurl + test_poolid + '/fdi.dataset.product.Product/0'
-    x = requests.post(url, auth=HTTPBasicAuth(auth_user, auth_pass), data=data)
+post_poolid = 'post_test_pool'
+test_poolid = 'pool_default'
+basepath = pc['server_poolpath']
+prodt = 'fdi.dataset.product.Product'
 
 
 if 0:
@@ -138,7 +126,7 @@ def check0result(result, msg):
     assert msg == '' or not isinstance(msg, (str, bytes)), msg
 
 
-def test_getpnspoolconfig():
+def est_getpnspoolconfig():
     ''' gets and compares pnspoolconfig remote and local
     '''
     logger.info('get pnsconfig')
@@ -163,16 +151,6 @@ def checkContents(cmd, filename):
 # TEST HTTPPOOL  API
 
 
-def get_files(poolid):
-    basepoolpath = pc['basepoolpath']
-    path = basepoolpath + poolid
-    if os.path.exists(path):
-        files = os.listdir(path)
-    else:
-        files = []
-    return files
-
-
 def check_response(o, failed_case=False):
     global lupd
     assert o is not None, "Server is having trouble"
@@ -184,15 +162,46 @@ def check_response(o, failed_case=False):
         assert 'FAILED' == o['result'], o['result']
 
 
-def test_CRUD_product():
-    ''' test saving, read, delete products API, products will be saved at /data/pool_id
-    '''
-    logger.info('save products')
-    origin_prod = 0
-    files = get_files(post_poolid[1:])
-    for f in files:
-        if f[-1].isnumeric():
-            origin_prod = origin_prod + 1
+def clear_server_poolpath(poolid):
+    """ deletes files in the given poolid in server pool dir. """
+    logger.info('clear server pool dir ' + poolid)
+    path = os.path.join(basepath, poolid)
+    if os.path.exists(path):
+        if path == '/':
+            raise ValueError('cannot delete root')
+        else:
+            os.system('rm -rf ' + path)
+        # x = Product(description='desc test case')
+        # x.creator = 'test'
+        # data = serializeClassID(x)
+        # url = api_baseurl + test_poolid + '/fdi.dataset.product.Product/0'
+        # x = requests.post(url, auth=HTTPBasicAuth(auth_user, auth_pass), data=data)
+
+
+def get_files(poolid):
+    """ returns a list of files in the given poolid in server pool dir. """
+
+    path = os.path.join(basepath, poolid)
+    if os.path.exists(path):
+        files = os.listdir(path)
+    else:
+        files = []
+    return files
+
+
+def test_clear_server():
+    clrpool = 'test_clear'
+    cpath = os.path.join(basepath, clrpool)
+    if not os.path.exists(cpath):
+        os.mkdir(cpath)
+    assert os.path.exists(cpath)
+    with open(cpath+'/foo', 'w') as f:
+        f.write('k')
+    clear_server_poolpath(clrpool)
+    assert not os.path.exists(cpath)
+
+
+def populate_server(poolid):
     creators = ['Todds', 'Cassandra', 'Jane', 'Owen', 'Julian', 'Maurice']
     instruments = ['fatman', 'herscherl', 'NASA', 'CNSC', 'SVOM']
     for index, i in enumerate(creators):
@@ -200,30 +209,41 @@ def test_CRUD_product():
                     instrument=random.choice(instruments))
         x.creator = i
         data = serializeClassID(x)
-        url = api_baseurl + post_poolid + \
-            '/fdi.dataset.product.Product/' + str(index)
+        url = api_baseurl + poolid + '/' + prodt + '/' + str(index)
         x = requests.post(url, auth=HTTPBasicAuth(
             auth_user, auth_pass), data=data)
         o = deserializeClassID(x.text)
         check_response(o)
-    files = get_files(post_poolid[1:])
-    num_prod = 0
-    for f in files:
-        if f[-1].isnumeric():
-            num_prod = num_prod + 1
+    return creators, instruments
+
+
+def test_CRUD_product():
+    ''' test saving, read, delete products API, products will be saved at /data/pool_id
+    '''
+    logger.info('save products')
+    clear_server_poolpath(post_poolid)
+
+    files = get_files(post_poolid)
+    origin_prod = sum(1 for f in files if f[-1].isnumeric())
+    creators, instruments = populate_server(post_poolid)
+    files = get_files(post_poolid)
+
+    num_prod = sum(1 for f in files if f[-1].isnumeric())
     assert num_prod == len(creators) + origin_prod, 'Products number not match'
 
     # ==========
     logger.info('read product')
-    prodpath = '/fdi.dataset.product.Product/0'
+    index = random.choice(range(origin_prod, num_prod))
+    prodpath = '/' + prodt + '/' + str(index)
     url = api_baseurl + post_poolid + prodpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
-    assert o['result'].creator == 'Todds', 'Creator not match'
+    assert o['result'].creator == creators[index -
+                                           origin_prod], 'Creator not match'
 
     # ===========
-    ''' Test reak hk api
+    ''' Test read hk api
     '''
     logger.info('read hk')
     hkpath = '/hk'
@@ -235,12 +255,20 @@ def test_CRUD_product():
     assert o['result']['tags'] is not None, 'Tags jsn read failed'
     assert o['result']['urns'] is not None, 'Urns jsn read failed'
 
+    assert o['result']['classes'][prodt]['sn'] == list(range(len(creators)))
+    assert o['result']['classes'][prodt]['currentSN'] == len(creators) - 1
+    assert len(o['result']['tags']) == 0
+    assert [d['meta']['creator'].value for u,
+            d in o['result']['urns'].items()] == creators
+
     logger.info('read classes')
     hkpath = '/hk/classes'
     url = api_baseurl + post_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
+    assert o['result'][prodt]['sn'] == list(range(len(creators)))
+    assert o['result'][prodt]['currentSN'] == len(creators) - 1
 
     logger.info('read tags')
     hkpath = '/hk/tags'
@@ -248,6 +276,7 @@ def test_CRUD_product():
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
+    assert len(o['result']) == 0
 
     logger.info('read urns')
     hkpath = '/hk/urns'
@@ -256,29 +285,26 @@ def test_CRUD_product():
     o = deserializeClassID(x.text)
     check_response(o)
 
+    clst = [d['meta']['creator'].value for u, d in o['result'].items()]
+    assert clst == creators
+
     # ========
     logger.info('delete a product')
-    origin_prod = 0
-    files = get_files(post_poolid[1:])
-    index = '0'
-    for f in files:
-        if f[-1].isnumeric():
-            origin_prod = origin_prod + 1
-            index = f[-1]
+    files = get_files(post_poolid)
+    fps = [f for f in files if f[-1].isnumeric()]
+    origin_prod = len(fps)
+    index = fps[-1].rsplit('_', 1)[1]
     url = api_baseurl + post_poolid + '/fdi.dataset.product.Product/' + index
     x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
-    num_prod = 0
-    files = get_files(post_poolid[1:])
-    for f in files:
-        if f[-1].isnumeric():
-            num_prod = num_prod + 1
+    files = get_files(post_poolid)
+    num_prod = sum(1 for f in files if f[-1].isnumeric())
     assert num_prod + 1 == origin_prod, 'Remove product failed'
 
     # ========
     logger.info('delete a pool')
-    files = get_files(post_poolid[1:])
+    files = get_files(post_poolid)
     assert len(files) != 0, 'Pool is already empty: ' + post_poolid
 
     url = api_baseurl + post_poolid
@@ -286,26 +312,27 @@ def test_CRUD_product():
     o = deserializeClassID(x.text)
     check_response(o)
 
-    files = get_files(post_poolid[1:])
+    files = get_files(post_poolid)
     assert len(files) == 0, 'Wipe pool failed: ' + o['msg']
 
 
-async def lock_pool(sec):
+async def lock_pool(poolid, sec):
     ''' Lock a pool and return a fake response
     '''
     import filelock
     import time
     logger.info('Keeping files locked')
-    with filelock.FileLock('/tmp/locks_' + getpass.getuser() + '/' + test_poolid + '/lock'):
+    ppath = os.path.join(basepath, poolid)
+    with filelock.FileLock('/tmp/fdi_locks/' + ppath.replace('/', '_')):
         await asyncio.sleep(sec)
     fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "timestamp": ' + \
         str(time.time()) + '}'
     return deserializeClassID(fakeres)
 
 
-async def read_product():
-    prodpath = '/fdi.dataset.product.Product/0'
-    url = api_baseurl + test_poolid + prodpath
+async def read_product(poolid):
+    prodpath = '/'+prodt+'/0'
+    url = api_baseurl + poolid + prodpath
     logger.info('Read a locked file')
     async with aiohttp.ClientSession() as session:
         async with session.get(url, auth=aiohttp.BasicAuth(auth_user, auth_pass)) as res:
@@ -318,11 +345,13 @@ async def read_product():
 def test_lock_file():
     ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
     '''
-    logger.info('Test read a locked file, it will returns FAILED')
+    logger.info('Test read a locked file, it will return FAILED')
+    poolid = test_poolid
+    populate_server(poolid)
     try:
         loop = asyncio.get_event_loop()
         tasks = [asyncio.ensure_future(
-            lock_pool(14)), asyncio.ensure_future(read_product())]
+            lock_pool(poolid, pc['timeout']+1)), asyncio.ensure_future(read_product(poolid))]
         taskres = loop.run_until_complete(asyncio.wait(tasks))
         loop.close()
         res = [f.result() for f in [x for x in taskres][0]]
@@ -337,8 +366,8 @@ def test_read_non_exists_pool():
     ''' Test read a pool which doesn't exist, returns FAILED
     '''
     logger.info('Test query a pool non exist.')
-    wrong_poolid = '/abc'
-    prodpath = '/fdi.dataset.product.Product/0'
+    wrong_poolid = 'abc'
+    prodpath = '/' + prodt + '/0'
     url = api_baseurl + wrong_poolid + prodpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
@@ -347,9 +376,9 @@ def test_read_non_exists_pool():
 
 def test_subclasses_pool():
     logger.info('Test create a pool which has subclass')
-    poolid_1 = '/subclasses/a'
-    poolid_2 = '/subclasses/b'
-    prodpath = '/fdi.dataset.product.Product/0'
+    poolid_1 = 'subclasses/a'
+    poolid_2 = 'subclasses/b'
+    prodpath = '/' + prodt + '/0'
     url1 = api_baseurl + poolid_1 + prodpath
     url2 = api_baseurl + poolid_2 + prodpath
     x = Product(description="product example with several datasets",

@@ -6,7 +6,6 @@ import timeit
 from fdi.pal.mempool import MemPool
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.utils.common import trbk, fullname
-from fdi.pal.common import getProductObject
 from fdi.pal.context import Context, MapContext, RefContainer
 from fdi.pal.productref import ProductRef
 from fdi.pal.productstorage import ProductStorage
@@ -65,7 +64,7 @@ else:
     import logging.config
     # create logger
     logging.config.dictConfig(logdict)
-    logger = logging.getLogger()
+    logger = logging.getLogger(__name__)
     logger.debug('%s logging level %d' %
                  (__name__, logger.getEffectiveLevel()))
     logging.getLogger("filelock").setLevel(logging.WARNING)
@@ -156,25 +155,19 @@ def test_Urn():
 
 
 def transpath(direc):
-    if 'basepoolpath_client' in pc:
-        direc = pc['basepoolpath_client']+direc
-    return direc
-
-
-def transpath_server(direc):
-    if 'basepoolpath' in pc:
-        direc = pc['basepoolpath'] + direc
+    """ direc must have a leading / if base_poolpath is defined in config """
+    if 'base_poolpath' in pc:
+        direc = pc['base_poolpath']+direc
     return direc
 
 
 def cleanup(direc='', schm='file'):
     """ remove pool from disk and memory, direc being the relative poolpath"""
     if schm == 'file':
-        pu = 'file://'+direc
+        pu = schm + '://'+direc
         if PoolManager.isLoaded(pu):
             PoolManager.getPool(pu).removeAll()
-        # remove existing pools in memory
-        PoolManager.removeAll()
+
         d = transpath(direc)
         if op.exists(d):
             try:
@@ -185,13 +178,14 @@ def cleanup(direc='', schm='file'):
                 raise
             assert not op.exists(d)
     elif schm == 'mem':
-        # remove existing pools in memory
-        PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-        PoolManager.removeAll()
+        pu = schm + '://'+direc
+        if PoolManager.isLoaded(pu):
+            PoolManager.getPool(pu).removeAll()
 
     elif schm in ['http', 'https']:
-        realdirec = direc.split('/')[1]
-        realdirec = transpath('/' + realdirec)
+        # cleanup
+        sdirec = direc.lstrip('/')
+        realdirec = transpath('/' + sdirec)
         if op.exists(realdirec):
             try:
                 # print(os.stat(realdirec))
@@ -200,15 +194,15 @@ def cleanup(direc='', schm='file'):
                 print(str(e) + ' ' + trbk(e))
                 raise
             assert not op.exists(realdirec)
-        PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-        uri = 'http://'+direc
+        uri = 'http://' + sdirec
         pstore = ProductStorage(pool=uri)
         pstore.getPool(uri).removeAll()
-        PoolManager.removeAll()
     else:
         assert False
-    if DEFAULT_MEM_POOL in PoolManager.getMap():
+    if PoolManager.isLoaded(DEFAULT_MEM_POOL):
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+    # remove existing pools in memory
+    PoolManager.removeAll()
 
 
 def test_PoolManager():
@@ -268,7 +262,7 @@ def checkdbcount(n, poolurn, prodname, currentSN=-1):
         assert len(mpool['classes'][prodname]['sn']) == n
     elif scheme in ['http', 'https']:
         snpath = '/sn/' + prodname + '/testhttppool'
-        api_baseurl = pc['poolprefix'] + pc['baseurl'] + pc['httppoolurl']
+        api_baseurl = pc['poolprefix'] + pc['baseurl']
         url = api_baseurl + snpath
         x = requests.get(url)
         sn = int(x.text)
@@ -472,7 +466,7 @@ def test_ProdStorage_func_local_mem():
 
     # mempool
     thepool = DEFAULT_MEM_POOL
-    cleanup(direc=thepoolpath, schm='mem')
+    cleanup(direc=thepool.split('://')[1], schm='mem')
     check_ps_func_for_pool(thepool)
 
 
@@ -852,7 +846,6 @@ def test_MapContext():
     urn = prodref.urn
     assert issubclass(urn.__class__, str)
     # re-create a product only using the urn
-    # newp = getProductObject(urn)
     newp = ProductRef(urn).product
     # the new and the old one are equal
     assert newp == x

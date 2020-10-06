@@ -54,7 +54,7 @@ logger.setLevel(pcc['logginglevel'])
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
-test_poolid = '/client_test_pool'
+test_poolid = 'client_test_pool'
 
 
 @pytest.fixture(scope="module")
@@ -70,34 +70,35 @@ def test_gen_url():
     sampleurn = 'urn:http://127.0.0.1:8080/defaultpool:fdi.dataset.product.Product:10'
 
     logger.info('Test GET HK')
+    base = pcc['baseurl']
     got_hk_url = urn2fdiurl(
         urn=samplepoolurn, contents='housekeeping', method='GET')
     hk_url = 'http://127.0.0.1:8080' + \
-        pcc['baseurl'] + pcc['httppoolurl'] + '/defaultpool/hk'
+        base + '/defaultpool/hk'
     assert got_hk_url == hk_url, 'Housekeeping url error: ' + got_hk_url + ':' + hk_url
 
     logger.info('Test GET classes, urns, tags url')
     got_classes_url = urn2fdiurl(
         urn=samplepoolurn, contents='classes', method='GET')
     classes_url = 'http://127.0.0.1:8080' + \
-        pcc['baseurl'] + pcc['httppoolurl'] + '/defaultpool/hk/classes'
+        base + '/defaultpool/hk/classes'
     assert got_classes_url == classes_url, 'Classes url error: ' + got_classes_url
 
     got_urns_url = urn2fdiurl(urn=samplepoolurn, contents='urns', method='GET')
     urns_url = 'http://127.0.0.1:8080' + \
-        pcc['baseurl'] + pcc['httppoolurl'] + '/defaultpool/hk/urns'
+        base + '/defaultpool/hk/urns'
     assert got_urns_url == urns_url, 'Urns url error: ' + got_urns_url
 
     got_tags_url = urn2fdiurl(urn=samplepoolurn, contents='tags', method='GET')
     tags_url = 'http://127.0.0.1:8080' + \
-        pcc['baseurl'] + pcc['httppoolurl'] + '/defaultpool/hk/tags'
+        base + '/defaultpool/hk/tags'
     assert got_tags_url == tags_url, 'Housekeeping url error: ' + got_tags_url
 
     logger.info('Get product url')
     got_product_url = urn2fdiurl(
         urn=sampleurn, contents='product', method='GET')
     product_url = 'http://127.0.0.1:8080' + \
-        pcc['baseurl'] + pcc['httppoolurl'] + \
+        base + \
         '/defaultpool/fdi.dataset.product.Product/10'
     assert got_product_url == product_url, 'Get product url error: ' + got_product_url
 
@@ -105,7 +106,7 @@ def test_gen_url():
     got_post_product_url = urn2fdiurl(
         urn=sampleurn, contents='product', method='POST')
     post_product_url = 'http://127.0.0.1:8080' + \
-        pcc['baseurl'] + pcc['httppoolurl'] + \
+        base + \
         '/defaultpool/fdi.dataset.product.Product/10'
     assert got_post_product_url == post_product_url, 'Post product url error: ' + \
         got_post_product_url
@@ -114,7 +115,7 @@ def test_gen_url():
     got_del_product_url = urn2fdiurl(
         urn=sampleurn, contents='product', method='DELETE')
     del_product_url = 'http://127.0.0.1:8080' + \
-        pcc['baseurl'] + pcc['httppoolurl'] + \
+        base + \
         '/defaultpool/fdi.dataset.product.Product/10'
     assert got_del_product_url == del_product_url, 'Delete product url error: ' + \
         got_del_product_url
@@ -123,7 +124,7 @@ def test_gen_url():
     got_del_pool_url = urn2fdiurl(
         urn=samplepoolurn, contents='pool', method='DELETE')
     del_pool_url = 'http://127.0.0.1:8080' + \
-        pcc['baseurl'] + pcc['httppoolurl'] + '/defaultpool'
+        base + '/defaultpool'
     assert got_del_pool_url == del_pool_url, 'Delete product url error: ' + got_del_pool_url
 
     logger.info('Test corrupt request url')
@@ -137,26 +138,30 @@ def test_CRUD_product():
     """Client http product storage READ, CREATE, DELETE products in remote
     """
     logger.info('Init a pstore')
-    test_poolurn = pcc['httphost'] + test_poolid
+    test_poolurn = pcc['httphost'] + '/' + test_poolid
     print(test_poolurn)
-    PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+
+    if PoolManager.isLoaded(DEFAULT_MEM_POOL):
+        PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
     PoolManager.removeAll()
     pstore = ProductStorage(pool=test_poolurn)
     assert len(pstore.getPools()) == 1, 'product storage size error: ' + \
         str(pstore.getPools())
-    assert pstore.getPool(test_poolurn) != None, 'Test poolurn is None.'
+    assert pstore.getPool(test_poolurn) is not None, 'Test poolurn is None.'
 
     logger.info('Save data by httpclientpool')
     x = Product(description='desc test')
     x.creator = 'httpclient'
     urn = pstore.save(x, geturnobjs=True)
     urn2 = pstore.save(x, geturnobjs=True)
-    expceted_urn = 'urn:' + test_poolurn + ':fdi.dataset.product.Product:'
-    assert urn.urn[0:-1] == expceted_urn, 'Urn error: ' + expceted_urn
-    assert os.path.exists(pcc['basepoolpath_client'] +
-                          test_poolid), 'local metadata file not found: ' + pcc['basepoolpath'] + test_poolid
-    assert len(os.listdir(pcc['basepoolpath_client'] + test_poolid)
-               ) >= 3, 'Local metadata file size is less than 3'
+    expected_urn = 'urn:' + test_poolurn + ':fdi.dataset.product.Product'
+    assert urn.urn.rsplit(':', 1)[0] == expected_urn, \
+        'Urn error: ' + expected_urn
+    real_poolpath = os.path.join(pcc['base_poolpath'], test_poolid)
+    assert os.path.exists(real_poolpath), \
+        'local metadata file not found: ' + real_poolpath
+    assert len(os.listdir(real_poolpath)) >= 3, \
+        'Local metadata file size is less than 3'
 
     logger.info('Load product from httpclientpool')
     res = pstore.getPool(test_poolurn).loadProduct(urn.urn)
@@ -181,7 +186,7 @@ def test_CRUD_product():
 
     logger.info('Delete a pool')
     pstore.getPool(test_poolurn).removeAll()
-    poolfiles = os.listdir(pcc['basepoolpath_client'] + test_poolid)
+    poolfiles = os.listdir(real_poolpath)
     assert len(
         poolfiles) == 0, 'Delete pool, but local file exists: ' + str(poolfiles)
     reshk = pstore.getPool(test_poolurn).readHK()

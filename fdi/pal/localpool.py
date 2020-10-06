@@ -6,8 +6,7 @@ from ..dataset.serializable import serializeClassID
 from ..dataset.deserialize import deserializeClassID
 from .productpool import ProductPool
 from ..utils.common import pathjoin, trbk
-from ..pns.pnsconfig import pnsconfig as pc
-from .productpool import lockpathbase
+
 import filelock
 import sys
 import shutil
@@ -29,7 +28,6 @@ else:
     strset = (str, unicode)
     from urlparse import urlparse, quote, unquote
 
-basepoolpath = pc['basepoolpath_client']
 
 class ODEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -50,6 +48,8 @@ def writeJsonwithbackup(fp, data):
     js = serializeClassID(data)
     with open(fp, mode="w+") as f:
         f.write(js)
+    logger.debug('JSON saved at: ' + fp)
+
 
 def _wipe(poolpath):
     """
@@ -82,13 +82,12 @@ class LocalPool(ProductPool):
         # print(__name__ + str(kwds))
         super(LocalPool, self).__init__(**kwds)
         real_poolpath = self.transformpath(self._poolpath)
-        logger.debug(real_poolpath)
         if not op.exists(real_poolpath):
-            # os.mkdir(real_poolpath)
             os.makedirs(real_poolpath)
         c, t, u = self.readHK()
 
-        logger.debug('pool ' + self._poolurn + ' HK read.')
+        logger.debug('created ' + self.__class__.__name__ + ' ' + self._poolurn +
+                     ' at ' + real_poolpath + ' HK read.')
 
         self._classes.update(c)
         self._tags.update(t)
@@ -99,8 +98,6 @@ class LocalPool(ProductPool):
         loads and returns the housekeeping data
         """
         fp0 = self.transformpath(self._poolpath)
-        #import pdb
-        # pdb.set_trace()
         with filelock.FileLock(self.lockpath(), timeout=5):
             # if 1:
             hk = {}
@@ -118,19 +115,8 @@ class LocalPool(ProductPool):
                 else:
                     r = dict()
                 hk[hkdata] = r
-        logger.debug('LocalPool HK read from ' + self._poolpath)
+        logger.debug('HK read from ' + fp0)
         return hk['classes'], hk['tags'], hk['urns']
-
-    def transformpath(self, path):
-        """ override this to changes the output from the input one (default) to something else.
-
-        """
-        if basepoolpath != '':
-            if path[0] == '/':
-                path = basepoolpath + path
-            else:
-                path = basepoolpath + '/' + path
-        return path
 
     def writeHK(self, fp0):
         """

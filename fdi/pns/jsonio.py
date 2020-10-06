@@ -24,7 +24,7 @@ else:
     from httplib import HTTPConnection
 
 logger = logging.getLogger(__name__)
-logger.debug('level %d' % (logger.getEffectiveLevel()))
+#logger.debug('level %d' % (logger.getEffectiveLevel()))
 #print('level %d' % (logger.getEffectiveLevel()))
 
 if 0:

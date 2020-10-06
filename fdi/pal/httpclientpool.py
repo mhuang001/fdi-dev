@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from ..pns.jsonio import getJsonObj
-from ..pns.fdi_requests import *
+from ..pns.fdi_requests import urn2fdiurl, save_to_server, read_from_server, delete_from_server
 from .urn import Urn, makeUrn
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
 from .productpool import ProductPool
 from ..utils.common import pathjoin, trbk
-from ..pns.pnsconfig import pnsconfig as pc
+
 import filelock
 import shutil
 import os
@@ -17,7 +17,6 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-basepoolpath = pc['basepoolpath_client']
 
 def writeJsonwithbackup(fp, data):
     """ write data in JSON after backing up the existing one.
@@ -48,7 +47,8 @@ class HttpClientPool(ProductPool):
             os.makedirs(real_poolpath)
         c, t, u = self.readHK()
 
-        logger.debug('pool ' + self._poolurn + ' HK read.')
+        logger.debug('created ' + self.__class__.__name__ + ' ' + self._poolurn +
+                     ' at ' + real_poolpath + ' HK read.')
 
         self._classes.update(c)
         self._tags.update(t)
@@ -59,19 +59,20 @@ class HttpClientPool(ProductPool):
         loads and returns the housekeeping data
         """
         poolurn = self._poolurn
-        print("READ HK FROM REMOTE===>poolurl: " + poolurn )
+        print("READ HK FROM REMOTE===>poolurl: " + poolurn)
         hk = {}
         try:
             r, msg = read_from_server(poolurn, 'housekeeping')
-            if r == 'FAILED':
-                raise Exception(msg)
-            else:
+            if r != 'FAILED':
                 for hkdata in ['classes', 'tags', 'urns']:
                     hk[hkdata] = r[hkdata]
         except Exception as e:
-            err = 'Error in HK reading from server ' + poolurn
-            logging.error(err)
-            raise Exception(err)
+            msg = 'Read ' + poolurn + ' failed. ' + str(e) + trbk(e)
+            r = 'FAILED'
+
+        if r == 'FAILED':
+            logger.error(msg)
+            raise Exception(msg)
         return hk['classes'], hk['tags'], hk['urns']
 
     def writeHK(self, fp0):
@@ -95,7 +96,7 @@ class HttpClientPool(ProductPool):
         urn = urnobj.urn
         try:
             res = save_to_server(data, urn, tag)
-            if  res['result'] == 'FAILED':
+            if res['result'] == 'FAILED':
                 # print('Save' + fp + ' to server failed. ' + res['msg'])
                 logger.error('Save ' + fp + ' to server failed. ' + res['msg'])
                 raise Exception(res['msg'])
@@ -112,7 +113,7 @@ class HttpClientPool(ProductPool):
         does the scheme-specific part of loadProduct.
         """
         poolurn = self._poolurn
-        uri = poolurn + '/' +  resourcename + '_' + indexstr
+        uri = poolurn + '/' + resourcename + '_' + indexstr
         urn = makeUrn(self._poolurn, resourcename, indexstr)
         # print("READ PRODUCT FROM REMOTE===>poolurl: " + poolurn )
         try:
@@ -143,7 +144,8 @@ class HttpClientPool(ProductPool):
                 self.writeHK(fp0)
                 return res
             else:
-                logger.error('Remove from server ' + fp + 'failed. Caused by: ' + msg)
+                logger.error('Remove from server ' + fp +
+                             'failed. Caused by: ' + msg)
                 raise ValueError(msg)
         except IOError as e:
             logger.error('Remove ' + fp + 'failed. ' + str(e) + trbk(e))
@@ -154,7 +156,7 @@ class HttpClientPool(ProductPool):
         does the scheme-specific remove-all
         """
         # logger.debug()
-        pp = self.transformpath (self._poolpath)
+        pp = self.transformpath(self._poolpath)
         if not op.exists(pp):
             return
         try:
@@ -164,23 +166,12 @@ class HttpClientPool(ProductPool):
                 os.mkdir(pp)
             else:
                 logger.error(msg)
-                raise msg
+                raise Exception(msg)
         except Exception as e:
-            err  = 'remove-mkdir ' + self._poolpath + \
+            err = 'remove-mkdir ' + self._poolpath + \
                 ' failed. ' + str(e) + trbk(e)
             logger.error(err)
             raise e
-
-    def transformpath(self, path):
-        """ override this to changes the output from the input one (default) to something else.
-
-        """
-        if basepoolpath != '':
-            if path[0] == '/':
-                path = basepoolpath + path
-            else:
-                path = basepoolpath + '/' + path
-        return path
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

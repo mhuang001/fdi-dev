@@ -109,6 +109,8 @@ test6:
 
 test7:
 	pytest $(OPT) $(T) tests/test_httpclientpool.py
+
+test8:
 	pytest $(OPT) $(T) tests/test_pal.py -k 'ProdStorage_func_http'
 
 

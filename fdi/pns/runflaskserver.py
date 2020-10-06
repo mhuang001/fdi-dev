@@ -5,8 +5,6 @@ from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
 from fdi.utils.getconfig import getConfig
 
-import pdb
-
 #sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
 # print(sys.path)
@@ -22,13 +20,12 @@ def setuplogging():
 
 
 logging = setuplogging()
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 if __name__ == '__main__':
 
-    logger.info(
-        'Pipline Node Server starting. Make sure no other instance is running')
+    logger.info('Server starting. Make sure no other instance is running')
     # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
     pc.update(getConfig())
     logger.setLevel(pc['logginglevel'])
@@ -57,12 +54,11 @@ if __name__ == '__main__':
     for j in range(2, 6):
         n = out[j]['long'].strip('=')
         node[n] = out[j]['result']
-    servertype = 'httppool_server'  # out[6]['result']
+    servertype = out[6]['result']
 
     if verbose:
         logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
+
     logger.info('logging level %d' % (logger.getEffectiveLevel()))
     if node['username'] in ['', None] or node['password'] in ['', None]:
         logger.error(
@@ -70,17 +66,17 @@ if __name__ == '__main__':
         exit(3)
     print('Check http://' + node['host'] + ':' + str(node['port']) +
           pc['baseurl'] + '/ for API list')
+    import pdb
 
     if servertype == 'pns':
-        from fdi.pns.server import app
+        from fdi.pns.pns_server import app
         print('======== %s ========' % servertype)
-        app.run(host=node['host'], port=node['port'],
-                threaded=False, debug=verbose, processes=5)
     elif servertype == 'httppool_server':
         from fdi.pns.httppool_server import app
         print('<<<<<< %s >>>>>' % servertype)
-        app.run(host=node['host'], port=node['port'],
-                threaded=False, debug=verbose, processes=5)
     else:
         logger.error('Unknown server %s' % servertype)
         sys.exit(-1)
+
+    app.run(host=node['host'], port=node['port'],
+            threaded=False, debug=verbose, processes=5, use_reloader=False)

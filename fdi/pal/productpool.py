@@ -8,6 +8,7 @@ from .definable import Definable
 from ..utils.common import pathjoin, fullname
 from .productref import ProductRef
 from .query import AbstractQuery, MetaQuery
+
 import logging
 import filelock
 from copy import deepcopy
@@ -28,8 +29,8 @@ else:
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-# lockpathbase = 'tmp/locks_' + getpass.getuser()
-lockpathbase = '/tmp/locks_' + getpass.getuser()
+
+lockpathbase = '/tmp/fdi_locks'  # + getpass.getuser()
 
 
 class ProductPool(Definable, Taggable, Versionable):
@@ -45,11 +46,10 @@ When implementing a ProductPool, the following rules need to be applied:
 
     """
 
-    def __init__(self, poolurn=None, **kwds):
-
+    def __init__(self, poolurn=None, basepath='', **kwds):
+        self._base = basepath
         super(ProductPool, self).__init__(**kwds)
-        #    basepoolpath = pcc['basepoolpath']
-        # self._basepoolpath = basepooslpath
+
         self._poolurn = poolurn
         pr = urlparse(poolurn)
         self._scheme = pr.scheme
@@ -60,14 +60,39 @@ When implementing a ProductPool, the following rules need to be applied:
             pr.path if pr.scheme in ('file') else pr.path
         # {type|classname -> {'sn:[sn]'}}
         self._classes = ODict()
-        logger.debug(self._poolpath)
 
     def lockpath(self):
-        lp = pathjoin(lockpathbase, self._poolpath)
-        if not os.path.exists(lp):
-            os.makedirs(lp)
-        lf = pathjoin(lp, 'lock')
-        return lf
+        """ returns the appropriate path.
+
+        creats the path if non-existing. Set lockpath-base permission to all-modify so other fdi users can use.
+        """
+        if not os.path.exists(lockpathbase):
+            os.makedirs(lockpathbase, mode=0o777)
+
+        #from .httppool import HttpPool
+        #from .httpclientpool import HttpClientPool
+
+        p = self.transformpath(self._poolpath)
+        lp = pathjoin(lockpathbase, p.replace('/', '_'))
+        if 1:
+            return lp
+        else:
+            if not os.path.exists(lp):
+                os.makedirs(lp)
+                lf = pathjoin(lp, 'lock')
+            return lf
+
+    def transformpath(self, path):
+        """ override this to changes the output from the input one (default) to something else.
+
+        """
+        base = self._base
+        if base != '':
+            if path[0] == '/':
+                path = base + path
+            else:
+                path = base + '/' + path
+        return path
 
     def accept(self, visitor):
         """ Hook for adding functionality to object

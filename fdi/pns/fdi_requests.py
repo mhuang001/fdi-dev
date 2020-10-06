@@ -8,6 +8,7 @@ from fdi.dataset.serializable import serializeClassID
 from fdi.dataset.deserialize import deserializeClassID
 from fdi.pal.urn import parseUrn
 from .pnsconfig import pnsconfig as pcc
+from fdi.utils.getconfig import getConfig
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -33,7 +34,11 @@ common_header = {
     "Content-type": 'application/json'
 }
 
-defaulturl = 'http://' + pcc['node']['host'] + ':' + str(pcc['node']['port']) + pcc['baseurl']
+
+pcc.update(getConfig())
+defaulturl = 'http://' + pcc['node']['host'] + \
+    ':' + str(pcc['node']['port']) + pcc['baseurl']
+
 
 def urn2fdiurl(urn, contents='product', method='GET'):
     """ Returns URL for accessing pools with a URN.
@@ -84,10 +89,10 @@ def urn2fdiurl(urn, contents='product', method='GET'):
     if urn.startswith('urn', 0, 3):
         poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(urn)
         url = urlparse(poolname)
-        base = scheme + '://' + place + pcc['baseurl'] + pcc['httppoolurl']
+        base = scheme + '://' + place + pcc['baseurl']
     elif urn.startswith('http', 0, 4):
         url = urlparse(urn)
-        base = url.scheme + '://' + url.netloc + pcc['baseurl']+pcc['httppoolurl']
+        base = url.scheme + '://' + url.netloc + pcc['baseurl']
 
     if method == 'GET':
         if contents == 'product':
@@ -95,26 +100,31 @@ def urn2fdiurl(urn, contents='product', method='GET'):
         elif contents == 'housekeeping':
             ret = base + url.path + '/hk'
         elif contents in ['classes', 'urns', 'tags']:
-            ret = base + url.path + '/hk/'  + contents
+            ret = base + url.path + '/hk/' + contents
         else:
-            raise ValueError('No such method and contents composition: ' + method + ' / ' + contents)
+            raise ValueError(
+                'No such method and contents composition: ' + method + ' / ' + contents)
     elif method == 'POST':
         if contents == 'product':
             ret = base + url.path + '/' + resourcecn + '/' + indexs
         else:
-            raise ValueError('No such method and contents composition: ' + method + ' / ' + contents)
+            raise ValueError(
+                'No such method and contents composition: ' + method + ' / ' + contents)
     elif method == 'DELETE':
         if contents == 'pool':
             ret = base + url.path
         elif contents == 'product':
             ret = base + url.path + '/' + resourcecn + '/' + indexs
         else:
-            raise ValueError('No such method and contents composition: ' + method + ' / ' + contents)
+            raise ValueError(
+                'No such method and contents composition: ' + method + ' / ' + contents)
     else:
         raise ValueError(method)
     return ret
 
 # Store tag in headers, maybe that's  not a good idea
+
+
 def save_to_server(data, urn, tag):
     """Save product to server with putting tag in headers
     """
@@ -124,10 +134,12 @@ def save_to_server(data, urn, tag):
     api = urn2fdiurl(urn, contents='product', method='POST')
     # print('POST API: ' + api)
     headers = {'tag': tag}
-    res = requests.post(api, auth=auth, data=serializeClassID(data), headers=headers)
+    res = requests.post(
+        api, auth=auth, data=serializeClassID(data), headers=headers)
     result = deserializeClassID(res.text)
     # print(result)
     return result
+
 
 def read_from_server(poolurn, contents='product'):
     """Read product or hk data from server
@@ -140,6 +152,7 @@ def read_from_server(poolurn, contents='product'):
     res = requests.get(api, auth=auth)
     result = deserializeClassID(res.text)
     return result['result'], result['msg']
+
 
 def delete_from_server(poolurn, contents='product'):
     """Remove a product or pool from server

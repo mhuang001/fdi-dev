@@ -9,7 +9,7 @@ from fdi.dataset.metadata import NumericParameter
 from fdi.dataset.product import Product
 from fdi.dataset.serializable import serializeClassID
 from fdi.dataset.odict import ODict
-from fdi.pns import server
+from fdi.pns import pns_server
 from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
 from fdi.utils.getconfig import getConfig
@@ -150,16 +150,18 @@ def checkContents(cmd, filename):
     assert result == o['result'], o['message']
 
 
-def test_serverinit():
+def test_serverinitPTS():
     """ server unit test for put init. 
+
     this runs the runPTS script, and is in conflict with put testinit, as this will condition the server for running the PTS, not suitable for running other tests.
     """
-    ret, sta = server.initPTS(None)
+    ret, sta = pns_server.initPTS(None)
     check0result(ret, sta)
 
 
 def test_putinit():
     """ calls the default pnsconfig['scripts']['init'] script.
+
     this runs the runPTS script, and is in conflict with put testinit, as this will condition the server for running the PTS, not suitable for running other tests.
     """
 
@@ -176,7 +178,7 @@ def test_putinit():
 
 def test_servertestinit():
     """ server unit test for put testinit """
-    ret, sta = server.testinit(None)
+    ret, sta = pns_server.testinit(None)
     check0result(ret, sta)
 
 
@@ -332,7 +334,7 @@ def test_servertestrun():
                            'input': x})
     js = serializeClassID(nodetestinput)
     logger.debug(js[:160])
-    o, msg = server.testrun(js)
+    o, msg = pns_server.testrun(js)
     # issane(o) is skipped
     checkrunresult(o, msg, nodetestinput)
 
@@ -412,7 +414,7 @@ def test_serversleep():
     s = '1.5'
     tout = 2
     now = time.time()
-    re, st = server.dosleep({'timeout': tout}, s)
+    re, st = pns_server.dosleep({'timeout': tout}, s)
     d = time.time() - now - float(s)
     assert re == 0, str(re)
     assert d > 0 and d < 0.5
@@ -420,7 +422,7 @@ def test_serversleep():
     now = time.time()
     # let it timeout
     tout = 1
-    re, st = server.dosleep({'timeout': tout}, s)
+    re, st = pns_server.dosleep({'timeout': tout}, s)
     d = time.time() - now - tout
     assert re < 0
     assert d > 0 and d < float(s) - tout
@@ -591,7 +593,7 @@ if __name__ == '__main__':
         test_mirror()
         test_sleep()
     elif t == 4:
-        test_serverinit()
+        test_serverinitPTS()
         test_servertestinit()
         test_servertestrun()
         test_serversleep()

@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
-from . import localpool, mempool, httpclientpool, httppool
+import pdb
+from ..pns.pnsconfig import pnsconfig as pc
+from ..utils.getconfig import getConfig
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
+pc.update(getConfig())
 
 #from .definable import Definable
 DEFAULT_MEM_POOL = 'mem:///default'
@@ -30,15 +34,19 @@ This is done by calling the getPool(String) method, which will return an existin
         if cls.isLoaded(poolurn):
             return cls._GlobalPoolList[poolurn]
         else:
+            from . import localpool, mempool, httpclientpool, httppool
             sp = poolurn.split('://')
             if sp[0] == 'file':
-                p = localpool.LocalPool(poolurn=poolurn)
+                p = localpool.LocalPool(
+                    poolurn=poolurn, basepath=pc['base_poolpath'])
             elif sp[0] == 'mem':
                 p = mempool.MemPool(poolurn=poolurn)
             elif (sp[0] == 'http' or sp[0] == 'https') and isServer == False:
-                p = httpclientpool.HttpClientPool(poolurn=poolurn)
+                p = httpclientpool.HttpClientPool(
+                    poolurn=poolurn, basepath=pc['base_poolpath'])
             elif (sp[0] == 'http' or sp[0] == 'https') and isServer == True:
-                p = httppool.HttpPool(poolurn=poolurn)
+                p = httppool.HttpPool(
+                    poolurn=poolurn, basepath=pc['server_poolpath'])
             else:
                 raise NotImplementedError(sp[0] + ':// is not supported')
             cls.save(poolurn, p)
@@ -51,7 +59,6 @@ This is done by calling the getPool(String) method, which will return an existin
         Returns a poolname - poolobject map.
         """
         return cls._GlobalPoolList
-
 
     @classmethod
     def isLoaded(cls, poolurn):
@@ -79,7 +86,6 @@ This is done by calling the getPool(String) method, which will return an existin
         Gives the number of entries in this manager.
         """
         return len(cls._GlobalPoolList)
-
 
     def items(self):
         """

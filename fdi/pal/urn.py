@@ -23,22 +23,36 @@ else:
     from urlparse import urlparse
 
 
-# from .common import getClass
+"""
+It is generated to desribe a pool's name, its location, and its access scheme. For example:
+    * file:///tmp/mydata for pool ```mydata```, 
+    * file://d:/data/test2/v2 for pool ``test2/v2``
+    * mem:///dummy for pool ``dummy``
+    * https://10.0.0.114:5000/v0.6/obs for pool ``obs``
+"""
 
 
 def parseUrn(urn):
     """
     Checks the URN string is valid in its form and splits it.
-    Pool URN is in the form of a URL that does not have ':' in its path part.
-    Product URNs are more complicated. For example if the urn is ``urn:file://c:/tmp/mypool/proj1.product:322`` into poolname ``file://c:/tmp/mypool``, resource type (usually class) name ``proj1.product``, serial number in string ``'322'``, scheme ``file``, place ``c:`` (with ip and port if given), and poolpath ``c:/tmp/mypool``
-    Poolname is also called poolURN or poolID.
+
+    A Pool URL is in the form of a URL that does not have ':' in its path part. 
+
+    Product URNs are more complicated. For example if the urn is ``urn:file://c:/tmp/mypool/proj1.product:322`` 
+    * poolname, also called poolURN or poolID ``file://c:/tmp/mypool``, 
+    * resource type (usually class) name ``proj1.product``, 
+    * serial number in string ``'322'``, 
+    * scheme ``file``, 
+    * place ``c:`` (with ip and port if given), 
+    * poolpath ``c:/tmp/mypool`` , (with ip and port if given), 
+
     """
     if not issubclass(urn.__class__, strset):
-        raise TypeError('a urn string needed')
+        raise TypeError('a urn string is needed.')
     # is a urn?
     sp1 = urn.split(':', 1)
     if sp1[0] == 'urn':
-        # this is a product URL
+        # this is a product URN
         if len(sp1) < 2:
             raise ValueError('bad urn: ' + sp1[1])
         # maxsplit=2 so that if netloc is e.g. c: or http: , the : in it is not parsed:

@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from os.path import join, expanduser, expandvars
-from collections import OrderedDict
 import sys
-import pdb
 
 import logging
 # create logger
@@ -20,10 +18,11 @@ def getConfig(conf='pns'):
     env = '/root' if env == '$HOME' else env
     confp = join(env, '.config')
     sys.path.insert(0, confp)
+    logger.debug('Reading from configuration file in dir '+confp)
     try:
-        logger.debug('Reading from configuration file in dir '+confp)
         c = __import__(conf+'local', globals(), locals(),
                        [conf+'config'], 0)
+        logger.debug('Reading %s/%slocal.py done.' % (confp, conf))
         return c.__dict__[conf+'config']
     except ModuleNotFoundError as e:
         logger.warning(str(

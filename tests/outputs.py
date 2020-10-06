@@ -294,7 +294,7 @@ meta= {
     m1= {NumericParameter{ 2.3 (sec) <float>, "a different param in metadata", dflt None, vld None tcode=None}}}data =
 
 
-# [ dataset 1 ]
+# >>> [ dataset 1 ]
 # ArrayDataset
 description= {'arraydset 1'},
 meta= {},
@@ -306,7 +306,7 @@ data =
 
 768  4.4  5400
 
-# [ dataset 2 ]
+# >>> [ dataset 2 ]
 # TableDataset
 description= {'Example table'}, meta= {}
 data =

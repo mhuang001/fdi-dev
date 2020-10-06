@@ -3,11 +3,17 @@ from collections import OrderedDict, UserDict
 from collections.abc import Collection
 from .serializable import Serializable
 from ..utils.common import bstr
+import logging
 import pdb
+
+logger = logging.getLogger(__name__)
+
+# Depth of nesting of ODict.toString()
+OD_toString_Nest = 0
 
 
 class ODict(UserDict, Serializable):
-    """ OrderedDict with a better __repre__.
+    """ OrderedDict with a better __repr__.
     """
 
     def __init__(self, *args, **kwds):
@@ -56,7 +62,7 @@ class ODict(UserDict, Serializable):
     #             kk = tuple(item[0])
     #             self[kk] = item[1]
 
-    def __repr__(self):
+    def __repr1__(self):
         it = [bstr(k, False) + ':' + bstr(v, False)
               for k, v in self.data.items()]
         s = ', '.join(it)
@@ -66,12 +72,20 @@ class ODict(UserDict, Serializable):
         return 'OD{' + s + '}'
 
     def toString(self, level=0, matprint=None, trans=True, **kwds):
+        global OD_toString_Nest
+        OD_toString_Nest += 1
         d = ''
         for n, v in self.data.items():
-            d += '\n# [ ' + n + ' ]\n'
+            d += '\n# ' + '>>> ' * OD_toString_Nest + '[ ' + n + ' ]\n'
             d += bstr(v, level=level, matprint=matprint, trans=trans, **kwds)
-
+        OD_toString_Nest -= 1
         return d
+
+    def __repr__(self):
+        """ returns string representation with details set according to debuglevel.
+        """
+        level = int(logger.getEffectiveLevel()/10) - 1
+        return self.toString(level=level)
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

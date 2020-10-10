@@ -9,7 +9,7 @@ from fdi.utils.common import trbk, fullname
 from fdi.pal.context import Context, MapContext, RefContainer
 from fdi.pal.productref import ProductRef
 from fdi.pal.productstorage import ProductStorage
-from fdi.pal.urn import Urn, parseUrn, makeUrn
+from fdi.pal.urn import Urn, parseUrn, parse_poolurl, makeUrn, UrnUtils
 from fdi.pal.productpool import ProductPool
 from fdi.pal.localpool import LocalPool
 from fdi.pal.context import Context
@@ -84,66 +84,136 @@ def checkgeneral(v):
         assert false
 
 
-def test_fullname():
-    assert fullname(Urn()) == 'fdi.pal.urn.Urn'
-    assert fullname(Urn) == 'fdi.pal.urn.Urn'
-    assert fullname('l') == 'str'
+def test_UrnUtils():
+    prd = Product(description='pal test')
+    a1 = 'file'      # scheme
+    a2 = '/e:'            # place
+    b1, b2 = '/tmp/foo', 'pool/name'
+    a3 = b1 + '/' + b2               # /tmp/foo/pool/name
+    a4 = fullname(prd)           # fdi.dataset.Product
+    a5 = 43
+    s = a1 + '://' + a2          # file:///e:
+    poolurl = s + a3                   # file:///e:/tmp/foo/pool/name
+    r = a4 + ':' + str(a5)       # fdi.dataset.Product:43
+    rp = a4 + '_' + str(a5)      # fdi.dataset.Product_43
+    urn = 'urn:' + b2 + ':' + r  # urn:pool/name:fdi.dataset.Product:43
+    urn1 = 'urn:' + b2 + ':' + a4+':'+str(a5-1)
+    # utils
+    assert parseUrn(urn) == (b2, a4, a5)
+    assert UrnUtils.isUrn(urn)
+    assert UrnUtils.getProductId(urn) == a5
+    assert UrnUtils.getPoolId(urn) == b2
+    assert UrnUtils.getLater(urn1, urn) == urn
+    assert UrnUtils.getClassName(urn) == a4
+    assert UrnUtils.getClass(urn).__name__ == a4.split('.')[-1]
+    assert UrnUtils.extractRecordIDs([urn, urn1]) == [a5, a5-1]
+
+    #assert UrnUtils.getPool(urn,pools)
+    #assert UrnUtils.containsUrn(urn, pool)
+    assert UrnUtils.checkUrn(urn)
+    try:
+        UrnUtils.checkUrn(urn+'r')
+    except ValueError:
+        pass
+    else:
+        assert False, 'should throw ValueError'
+
+    # poolurl
+    poolpath, scheme, place, poolname = parse_poolurl(poolurl, pool=b2)
+    assert poolpath == a2 + b1
+    assert scheme == a1
+    assert place == ''
+    assert poolname == b2
+    # implicit pool is the last segment
+    poolpath, scheme, place, poolname = parse_poolurl(
+        'file:///c:/tmp/mypool/v3/')
+    assert poolpath == '/c:/tmp/mypool'
+    assert scheme == 'file'
+    assert place == ''
+    assert poolname == 'v3'
+    # explicit poolname. the first distinctive substring
+    poolpath, scheme, place, poolname = parse_poolurl(
+        'file:///c:/tmp/mypool/v3/', 'my')
+    assert poolpath == '/c:/tmp'
+    assert scheme == 'file'
+    assert place == ''
+    assert poolname == 'mypool/v3'
+
+    # https scheme. pool parameter is given in a urn
+    poolpath, scheme, place, poolname = parse_poolurl(
+        'https://127.0.0.1:5000/v3/mypool/v2', 'urn:mypool/v2:foo.KProduct:43')
+    assert poolpath == '/v3'
+    assert scheme == 'https'
+    assert place == '127.0.0.1:5000'
+    assert poolname == 'mypool/v2'
 
 
 def test_Urn():
     prd = Product(description='pal test')
     a1 = 'file'      # scheme
-    c1, c2 = 's:', '/d'
-    a2 = c1            # place
-    b1, b2, b3 = '/b', '/tmp/foo', '/c'
-    a3 = b1 + b2 + b3
-    a4 = fullname(prd)
+    a2 = '/e:'            # place
+    b1, b2 = '/tmp/foo', 'pool/name'
+    a3 = b1 + '/' + b2               # /tmp/foo/pool/name
+    a4 = fullname(prd)           # fdi.dataset.Product
     a5 = 43
-    s = a1 + '://' + a2   # file://s:
-    p = s + a3
-    r = a4 + ':' + str(a5)
-    rp = a4 + '_' + str(a5)
-    u = 'urn:' + p + ':' + r
-
-    # utils
-    assert parseUrn(u) == (p, a4, str(a5), a1, a2, a2 + a3)
-    poolname, resourceclass, serialnumstr, scheme, place, poolpath = parseUrn(
-        'urn:file://c:/tmp/mypool:proj1.product:322')
-    assert poolname == 'file://c:/tmp/mypool'
-    assert resourceclass == 'proj1.product'
-    assert place == 'c:'
-    assert poolpath == 'c:/tmp/mypool'
-    poolname, resourceclass, serialnumstr, scheme, place, poolpath = parseUrn(
-        'urn:https://127.0.0.1:5000/tmp/mypool:proj1.product:322')
-    assert poolname == 'https://127.0.0.1:5000/tmp/mypool'
-    assert resourceclass == 'proj1.product'
-    assert place == '127.0.0.1:5000'
-    assert poolpath == '/tmp/mypool'
-
+    s = a1 + '://' + a2          # file:///e:
+    poolurl = s + a3                   # file:///e:/tmp/foo/pool/name
+    r = a4 + ':' + str(a5)       # fdi.dataset.Product:43
+    rp = a4 + '_' + str(a5)      # fdi.dataset.Product_43
+    urn = 'urn:' + b2 + ':' + r  # urn:pool/name:fdi.dataset.Product:43
+    urn1 = 'urn:' + b2 + ':' + a4+':'+str(a5-1)
     # constructor
     # urn only
-    v = Urn(urn=u)
-    assert v.getScheme() == a1
-    assert v.getPlace() == a2
-    assert v.getPoolId() == p  #
+    v = Urn(urn=urn)
+    assert v.getPoolId() == b2
     assert v.getUrnWithoutPoolId() == r
-    assert v.getFullPath(u) == a2 + a3 + '/' + rp  # s:/b/tmp/foo/c
     assert v.getIndex() == a5
-    assert v.getUrn() == u
-    # urn with pool
-    v = Urn(cls=prd.__class__, pool=p, index=a5)
+    assert v.getUrn() == urn
+    assert v.getScheme() is None
+    assert v.getPlace() is None
+    assert v.getPoolpath() is None
+    # urn with poolurl
+    v = Urn(urn=urn, poolurl=poolurl)
+    assert v.getPoolId() == b2  #
+    assert v.getUrnWithoutPoolId() == r
+    assert v.getIndex() == a5
+    assert v.getUrn() == urn
     assert v.getScheme() == a1
-    assert v.getFullPath(u) == a2 + a3 + '/' + rp  # s:/b/tmp/foo/c
+    assert v.getPlace() == ''
+    assert v.getPoolpath() == a2 + b1
+    # urn with components
+    v = Urn(cls=prd.__class__, poolname=b2, index=a5)
+    assert v.getPoolId() == b2
+    assert v.getUrnWithoutPoolId() == r
+    assert v.getIndex() == a5
+    assert v.getUrn() == urn
+    assert v.getScheme() is None
+    assert v.getPlace() is None
+    assert v.getPoolpath() is None
     # urn with storage that does not match urn
     try:
-        v = Urn(urn=u, cls=prd.__class__, pool=p, index=a5)
+        v = Urn(urn=urn, cls=prd.__class__, poolname=b2, index=a5)
     except Exception as e:
         assert issubclass(e.__class__, ValueError)
     # no-arg constructor
     v = Urn()
-    v.urn = u
+    v.urn = urn
+    assert v.getPoolId() == b2
+    assert v.getUrnWithoutPoolId() == r
+    assert v.getIndex() == a5
+    assert v.getUrn() == urn
+    assert v.getScheme() is None
+    assert v.getPlace() is None
+    assert v.getPoolpath() is None
+    v = Urn()
+    v.setUrn(urn=urn, poolurl=poolurl)
+    assert v.getPoolId() == b2
+    assert v.getUrnWithoutPoolId() == r
+    assert v.getIndex() == a5
+    assert v.getUrn() == urn
     assert v.getScheme() == a1
-    assert v.getFullPath(u) == a2 + a3 + '/' + rp  # s:/b/tmp/foo/c
+    assert v.getPlace() == ''
+    assert v.getPoolpath() == a2 + b1
 
     # access
     assert v.getUrn() == v.urn
@@ -161,42 +231,32 @@ def transpath(direc):
     return direc
 
 
-def cleanup(direc='', schm='file'):
-    """ remove pool from disk and memory, direc being the relative poolpath"""
+def rmlocal(d):
+    if op.exists(d):
+        try:
+            # print(os.stat(d))
+            shutil.rmtree(d)
+        except Exception as e:
+            print(str(e) + ' ' + trbk(e))
+            raise
+        assert not op.exists(d)
+
+
+def cleanup(purl, pname):
+    """ remove pool from disk and memory"""
+    direc, schm, place, pn = parse_poolurl(purl, pname)
+    if PoolManager.isLoaded(pn):
+        PoolManager.getPool(pn).removeAll()
     if schm == 'file':
-        pu = schm + '://'+direc
-        if PoolManager.isLoaded(pu):
-            PoolManager.getPool(pu).removeAll()
-
-        d = transpath(direc)
-        if op.exists(d):
-            try:
-                # print(os.stat(d))
-                shutil.rmtree(d)
-            except Exception as e:
-                print(str(e) + ' ' + trbk(e))
-                raise
-            assert not op.exists(d)
+        d = direc + '/' + pn
+        rmlocal(d)
     elif schm == 'mem':
-        pu = schm + '://'+direc
-        if PoolManager.isLoaded(pu):
-            PoolManager.getPool(pu).removeAll()
-
+        pass
     elif schm in ['http', 'https']:
-        # cleanup
-        sdirec = direc.lstrip('/')
-        realdirec = transpath('/' + sdirec)
-        if op.exists(realdirec):
-            try:
-                # print(os.stat(realdirec))
-                shutil.rmtree(realdirec)
-            except Exception as e:
-                print(str(e) + ' ' + trbk(e))
-                raise
-            assert not op.exists(realdirec)
-        uri = 'http://' + sdirec
-        pstore = ProductStorage(pool=uri)
-        pstore.getPool(uri).removeAll()
+        d = direc + '/' + pn
+        rmlocal(d)
+        pstore = ProductStorage(pool=pn)
+        pstore.getPool(pn).removeAll()
     else:
         assert False
     if PoolManager.isLoaded(DEFAULT_MEM_POOL):
@@ -206,15 +266,16 @@ def cleanup(direc='', schm='file'):
 
 
 def test_PoolManager():
-    defaultpoolpath = '/pool_' + getpass.getuser()
-    defaultpoolname = 'file://' + defaultpoolpath
-    cleanup(defaultpoolpath)
+    defaultpoolName = 'pool_' + getpass.getuser()
+    defaultpoolPath = '/tmp'
+    defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
+    cleanup(defaultpoolUrl, defaultpoolName)
     # class methods
     assert PoolManager.size() == 0
     # This creates a pool and returns it if the pool of given name does not exist
-    pool = PoolManager.getPool(defaultpoolname)
+    pool = PoolManager.getPool(defaultpoolName)
     assert PoolManager.size() == 1
-    assert defaultpoolname in PoolManager.getMap()
+    assert defaultpoolName in PoolManager.getMap()
     # print('GlobalPoolList#: ' + str(id(pm.getMap())) + str(pm))
     PoolManager.removeAll()
     assert PoolManager.size() == 0
@@ -222,20 +283,20 @@ def test_PoolManager():
     # initiate
     pm = PoolManager()
     assert len(pm) == 0
-    pm.getPool(defaultpoolname)
+    pm.getPool(defaultpoolName)
     for k, v in pm.items():
         assert isinstance(v, ProductPool)
-    assert defaultpoolname in pm
+    assert defaultpoolName in pm
 
 
-def checkdbcount(n, poolurn, prodname, currentSN=-1):
+def checkdbcount(n, poolurl, prodname, currentSN=-1):
     """ count files in pool and entries in class db.
     n, currentSN: expected number of prods and currentSN in pool for products named prodname
     """
 
-    poolname, rc, sns, scheme, place, path = parseUrn(poolurn)
+    poolpath, scheme, place, poolname = parse_poolurl(poolurl)
     if scheme == 'file':
-        path = transpath(path)
+        path = op.join(poolpath, poolname)
         assert sum(1 for x in glob.glob(
             op.join(path, prodname + '*[0-9]'))) == n
         cp = op.join(path, 'classes.jsn')
@@ -272,13 +333,14 @@ def checkdbcount(n, poolurn, prodname, currentSN=-1):
 
 
 def test_ProductRef():
-    defaultpoolpath = '/pool_' + getpass.getuser()
-    defaultpool = 'file://' + defaultpoolpath
-    cleanup(defaultpoolpath)
+    defaultpoolName = 'pool_' + getpass.getuser()
+    defaultpoolPath = '/tmp'
+    defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
+    cleanup(defaultpoolUrl)
     prd = Product()
     a1 = 'file'
     a2 = ''
-    a3 = defaultpoolpath
+    a3 = defaultpoolName
     a4 = fullname(prd)
     a5 = 0
     s = a1 + '://' + a2   # file://s:
@@ -343,8 +405,8 @@ def test_ProductRef():
 
 
 def test_ProductStorage_init():
-    defaultpoolpath = '/pool_' + getpass.getuser()
-    defaultpool = 'file://' + defaultpoolpath
+    defaultpoolName = '/pool_' + getpass.getuser()
+    defaultpool = 'file://' + defaultpoolName
     cleanup(defaultpoolpath)
     newpoolpath = '/newpool_' + getpass.getuser()
     newpoolname = 'file://' + newpoolpath

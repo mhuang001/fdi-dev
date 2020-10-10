@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 #from .productpool import ProductPool
-DefaultPool = 'file:///pool_' + getpass.getuser()
+DEFAULT_POOL = 'pool_' + getpass.getuser()
 
 
 class ProductStorage(object):
@@ -24,16 +24,16 @@ class ProductStorage(object):
     Every instanciation with the same pool will  result in a new instance of ProdStorage.
     """
 
-    def __init__(self, pool=None, isServer=False, **kwds):
-        """ input is a pool urn
+    def __init__(self, poolname=None, isServer=False, **kwds):
+        """ input is a pool name.
         """
-        if not pool:
-            pool = DefaultPool
+        if not poolname:
+            poolname = DEFAULT_POOL
 
         super(ProductStorage, self).__init__(**kwds)
         self._pools = ODict()  # dict of pool-urn keys
         self.isServer = isServer
-        self.register(pool)
+        self.register(poolname)
 
     def register(self, pool):
         """ Registers the given pools to the storage.
@@ -43,15 +43,8 @@ class ProductStorage(object):
             self._pools[pool.getId()] = pool
             return
 
-        # check if pool is part of an existing one
-        for ex in self._pools:
-            lex = ex.split('/')
-            lu = pool.split('/')
-            ml = min(len(lex), len(lu))
-            if lex[:ml] == lu[:ml]:
-                raise ValueError(
-                    'pool ' + pool + ' and existing ' + ex + ' overlap.')
-        self._pools[pool] = PoolManager.getPool(pool, self. isServer)
+        self._pools[pool] = PoolManager.getPool(
+            poolname=pool, isServer=self.isServer)
 
         logger.debug('registered pool ' + str(self._pools))
 

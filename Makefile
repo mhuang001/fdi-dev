@@ -83,7 +83,7 @@ versiontag:
 	#git tag  $(VERSION)
 
 
-TESTLOG	= tests/log
+TESTLOG	= /tmp/fdi-tests.log
 
 OPT	= -r P --log-file=$(TESTLOG) -v -l --pdb
 T	= 

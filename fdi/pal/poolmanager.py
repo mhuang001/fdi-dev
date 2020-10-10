@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 pc.update(getConfig())
 
-#from .definable import Definable
-DEFAULT_MEM_POOL = 'mem:///default'
+# from .definable import Definable
+DEFAULT_MEM_POOL = 'defaultmem'
 
 
 class PoolManager(object):
@@ -22,65 +22,95 @@ This is done by calling the getPool(String) method, which will return an existin
     """
     # Global centralized dict that returns singleton -- the same -- pool for the same ID.
     _GlobalPoolList = {}
+    # maps scheme to default place\poolpath
+    DefaultPlacePoolpath = {
+        'file': '/tmp/',
+        'mem': '/',
+        'http': '127.0.0.1:5000/',
+        'https': '127.0.0.1:5000/',
+    }
 
     @classmethod
-    def getPool(cls, poolurn, isServer=False):
-        """ returns an instance of pool according to urn.
+    def getPool(cls, poolname, pathurl=None, isServer=False):
+        """ returns an instance of pool according to name and path-URL of the pool.
 
-        create the pool if it does not already exist. the same pool-URN always get the same pool.
+        create the pool if it does not already exist. the same poolname-baseURL always get the same pool.
+        pathurl: poolURL without the poolname part. if not given, PoolManager.DefaultPlacePoolpath['file'] is used, with scheme set to 'file'.
         """
         # logger.debug('GPL ' + str(id(cls._GlobalPoolList)) +
-        #             str(cls._GlobalPoolList))
-        if cls.isLoaded(poolurn):
-            return cls._GlobalPoolList[poolurn]
+        #             str(cls._GlobalPoolList) + ' PConf ' + str(cls._PoolConfig))
+        if cls.isLoaded(poolname):
+            return cls._GlobalPoolList[poolname]
         else:
-            from . import localpool, mempool, httpclientpool, httppool
-            sp = poolurn.split('://')
-            if sp[0] == 'file':
-                p = localpool.LocalPool(
-                    poolurn=poolurn, basepath=pc['base_poolpath'])
-            elif sp[0] == 'mem':
-                p = mempool.MemPool(poolurn=poolurn)
-            elif (sp[0] == 'http' or sp[0] == 'https') and isServer == False:
-                p = httpclientpool.HttpClientPool(
-                    poolurn=poolurn, basepath=pc['base_poolpath'])
-            elif (sp[0] == 'http' or sp[0] == 'https') and isServer == True:
-                p = httppool.HttpPool(
-                    poolurn=poolurn, basepath=pc['server_poolpath'])
+            if pathurl is None:
+                schm = 'file'
+                pathurl = schm + '://' + cls.DefaultPlacePoolpath[schm]
             else:
-                raise NotImplementedError(sp[0] + ':// is not supported')
-            cls.save(poolurn, p)
+                schm = pathurl.lsplit(':', 1)[0]
+
+            from . import localpool, mempool, httpclientpool, httppool
+
+            if schm == 'file':
+                p = localpool.LocalPool(
+                    poolname=poolname, pathurl=pathurl)
+            elif schm == 'mem':
+                p = mempool.MemPool(poolname=poolname)
+            elif schm in ('http', 'https'):
+                if isServer:
+                    p = httppool.HttpPool(
+                        poolname=poolname, pathurl=pathurl)
+                else:
+                    p = httpclientpool.HttpClientPool(
+                        poolname=poolname, pathurl=pathurl)
+            else:
+                raise NotImplementedError(schm + ':// is not supported')
+            cls.save(poolname, p)
             logger.debug('made pool ' + str(p))
             return p
 
-    @classmethod
+    @ classmethod
     def getMap(cls):
         """
         Returns a poolname - poolobject map.
         """
         return cls._GlobalPoolList
 
-    @classmethod
-    def isLoaded(cls, poolurn):
+    @ classmethod
+    def isLoaded(cls, poolname):
         """
         Whether an item with the given id has been loaded (cached).
         """
-        return poolurn in cls._GlobalPoolList
+        return poolname in cls._GlobalPoolList
 
-    @classmethod
+    @ classmethod
     def removeAll(cls):
         """ deletes all pools from the pool list, pools unwiped
         """
 
         cls._GlobalPoolList.clear()
 
-    @classmethod
-    def save(cls, poolurn, poolobj):
+    @ classmethod
+    def save(cls, poolname, poolobj):
         """
         """
-        cls._GlobalPoolList[poolurn] = poolobj
+        cls._GlobalPoolList[poolname] = poolobj
 
-    @classmethod
+    @ classmethod
+    def getPathUrlMap(cls):
+        """
+        Gives the default pathurls of PoolManager.
+        """
+        return cls.DefaultPlacePoolpath
+
+    @ classmethod
+    def setPathUrlMap(cls, new):
+        """
+        Sets the default pathurls of PoolManager.
+        """
+        cls.DefaultPlacePoolpath.clear()
+        cls.DefaultPlacePoolpath.update(new)
+
+    @ classmethod
     def size(cls):
         """
         Gives the number of entries in this manager.
@@ -118,6 +148,6 @@ This is done by calling the getPool(String) method, which will return an existin
         """
         return self._GlobalPoolList.__iter__(*args, **kwargs)
 
-    @classmethod
+    @ classmethod
     def __repr__(cls):
         return cls.__name__ + str(cls._GlobalPoolList)

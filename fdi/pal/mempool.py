@@ -19,9 +19,8 @@ class MemPool(productpool.ProductPool):
         # print(__name__ + str(kwds))
         super(MemPool, self).__init__(**kwds)
 
-        logger.debug(self._poolpath)
-        if self._poolpath not in self._MemPool:
-            self._MemPool[self._poolpath] = {}
+        if self._poolname not in self._MemPool:
+            self._MemPool[self._poolname] = {}
         c, t, u = self.readHK()
 
         logger.debug('created ' + self.__class__.__name__ +
@@ -35,8 +34,8 @@ class MemPool(productpool.ProductPool):
         """ returns the map of this memory pool.
         """
 
-        if self._poolpath in self._MemPool:
-            return self._MemPool[self._poolpath]
+        if self._poolname in self._MemPool:
+            return self._MemPool[self._poolname]
         else:
             return None
 
@@ -50,46 +49,44 @@ class MemPool(productpool.ProductPool):
         else:
             return myspace['classes'], myspace['tags'], myspace['urns']
 
-    def writeHK(self, fp0):
+    def writeHK(self):
         """
            save the housekeeping data to mempool
         """
 
-        myspace = self._MemPool[fp0]
+        myspace = self.getPoolSpace()
         myspace['classes'] = self._classes
         myspace['tags'] = self._tags
         myspace['urns'] = self._urns
 
-    def schematicSave(self, typename, serialnum, data, tag=None):
+    def schematicSave(self, resourcetype, index, data, tag=None):
         """ 
         does the media-specific saving
         """
-        fp0 = self._poolpath
-        resourcep = typename + '_' + str(serialnum)
+        resourcep = resourcetype + '_' + str(index)
         myspace = self.getPoolSpace()
         myspace[resourcep] = data
-        self.writeHK(fp0)
+        self.writeHK()
         logger.debug('HK written')
 
-    def schematicLoadProduct(self, resourcename, indexstr):
+    def schematicLoadProduct(self, resourcetype, index):
         """
         does the scheme-specific part of loadProduct.
         note that the index is given as a string.
         """
-        fp0 = self._poolpath
-        resourcep = resourcename + '_' + indexstr
+        indexstr = str(index)
+        resourcep = resourcetype + '_' + indexstr
         myspace = self.getPoolSpace()
         return myspace[resourcep]
 
-    def schematicRemove(self, typename, serialnum):
+    def schematicRemove(self, resourcetype, index):
         """
         does the scheme-specific part of removal.
         """
-        fp0 = (self._poolpath)
-        resourcep = typename + '_' + str(serialnum)
+        resourcep = resourcetype + '_' + str(index)
         myspace = self.getPoolSpace()
         del myspace[resourcep]
-        self.writeHK(fp0)
+        self.writeHK()
 
     def schematicWipe(self):
         """
@@ -103,8 +100,8 @@ class MemPool(productpool.ProductPool):
         #pools = [x for x in self._MemPool]
         # for x in pools:
         #    del self._MemPool[x]
-        if self._poolpath in self._MemPool:
-            del self._MemPool[self._poolpath]
+        if self._poolname in self._MemPool:
+            del self._MemPool[self._poolname]
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

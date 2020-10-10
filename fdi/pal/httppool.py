@@ -40,8 +40,8 @@ class HttpPool(LocalPool):
         """
         loads a single object of HK
         """
-        fp0 = self.transformpath(self._poolpath)
-        with filelock.FileLock(self.lockpath(), timeout=5):
+        fp0 = self.transformpath(self._poolname)
+        with filelock.FileLock(self.lockpath('r'), timeout=5):
             fp = pathjoin(fp0, hkobj + '.jsn')
             if op.exists(fp):
                 try:
@@ -56,14 +56,14 @@ class HttpPool(LocalPool):
                 r = dict()
         return r
 
-    def schematicLoadProduct(self, resourcename, indexstr):
+    def schematicLoadProduct(self, resourcetype, index):
         """
         does the scheme-specific part of loadProduct.
         """
-
-        with filelock.FileLock(self.lockpath(), timeout=5):
-            poolpath = self.transformpath(self._poolpath)
-            filepath = poolpath + '/' + quote(resourcename) + '_' + indexstr
+        indexstr = str(index)
+        with filelock.FileLock(self.lockpath('r'), timeout=5):
+            poolpath = self.transformpath(self._poolname)
+            filepath = poolpath + '/' + quote(resourcetype) + '_' + indexstr
             try:
                 with open(filepath, 'r') as f:
                     content = f.read()

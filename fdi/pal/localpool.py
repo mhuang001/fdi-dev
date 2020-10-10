@@ -81,12 +81,12 @@ class LocalPool(ProductPool):
         """
         # print(__name__ + str(kwds))
         super(LocalPool, self).__init__(**kwds)
-        real_poolpath = self.transformpath(self._poolpath)
+        real_poolpath = self.transformpath(self._poolname)
         if not op.exists(real_poolpath):
             os.makedirs(real_poolpath)
         c, t, u = self.readHK()
 
-        logger.debug('created ' + self.__class__.__name__ + ' ' + self._poolurn +
+        logger.debug('created ' + self.__class__.__name__ + ' ' + self._poolname +
                      ' at ' + real_poolpath + ' HK read.')
 
         self._classes.update(c)
@@ -97,8 +97,8 @@ class LocalPool(ProductPool):
         """
         loads and returns the housekeeping data
         """
-        fp0 = self.transformpath(self._poolpath)
-        with filelock.FileLock(self.lockpath(), timeout=5):
+        fp0 = self.transformpath(self._poolname)
+        with filelock.FileLock(self.lockpath('r'), timeout=5):
             # if 1:
             hk = {}
             for hkdata in ['classes', 'tags', 'urns']:
@@ -127,12 +127,12 @@ class LocalPool(ProductPool):
             fp = pathjoin(fp0, hkdata + '.jsn')
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
-    def schematicSave(self, typename, serialnum, data, tag=None):
+    def schematicSave(self, resourcetype, index, data, tag=None):
         """
         does the media-specific saving
         """
-        fp0 = self.transformpath(self._poolpath)
-        fp = pathjoin(fp0, quote(typename) + '_' + str(serialnum))
+        fp0 = self.transformpath(self._poolname)
+        fp = pathjoin(fp0, quote(resourcetype) + '_' + str(index))
         try:
             writeJsonwithbackup(fp, data)
             self.writeHK(fp0)
@@ -141,13 +141,13 @@ class LocalPool(ProductPool):
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicLoadProduct(self, typename, indexstr):
+    def schematicLoadProduct(self, resourcetype, index):
         """
         does the scheme-specific part of loadProduct.
         """
-
-        pp = self.transformpath(self._poolpath) + '/' + \
-            quote(typename) + '_' + indexstr
+        indexstr = str(index)
+        pp = self.transformpath(self._poolname) + '/' + \
+            resourcetype + '_' + indexstr
         try:
             with open(pp, 'r') as f:
                 js = f.read()
@@ -157,12 +157,12 @@ class LocalPool(ProductPool):
             raise e
         return deserializeClassID(js)
 
-    def schematicRemove(self, typename, serialnum):
+    def schematicRemove(self, resourcetype, index):
         """
         does the scheme-specific part of removal.
         """
-        fp0 = self.transformpath(self._poolpath)
-        fp = pathjoin(fp0,  quote(typename) + '_' + str(serialnum))
+        fp0 = self.transformpath(self._poolname)
+        fp = pathjoin(fp0,  quote(resourcetype) + '_' + str(index))
         try:
             os.unlink(fp)
             self.writeHK(fp0)
@@ -174,7 +174,7 @@ class LocalPool(ProductPool):
         """
         does the scheme-specific remove-all
         """
-        _wipe(self.transformpath(self._poolpath))
+        _wipe(self.transformpath(self._poolname))
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

@@ -46,25 +46,31 @@ When implementing a ProductPool, the following rules need to be applied:
 
     """
 
-    def __init__(self, poolurn=None, basepath='', **kwds):
-        self._base = basepath
+    def __init__(self, poolname=None, pathurl=None, **kwds):
+        self._base = pathurl
+
         super(ProductPool, self).__init__(**kwds)
 
-        self._poolurn = poolurn
-        pr = urlparse(poolurn)
-        self._scheme = pr.scheme
-        self._place = pr.netloc
-        # convenient access path
-        # self._poolpath = pr.netloc + pr.path
-        self._poolpath = pr.netloc + \
-            pr.path if pr.scheme in ('file') else pr.path
+        self._poolname = poolname
+        # self._pathurl = pr.netloc + pr.path
+        self._pathurl = pathurl
+        if pathurl:
+            pr = urlparse(pathurl)
+            self._scheme = pr.scheme
+            self._place = pr.netloc
+            self._poolpath = pr.path
+        else:
+            self._scheme = None
+            self._place = None
+            self._poolpath = None
         # {type|classname -> {'sn:[sn]'}}
         self._classes = ODict()
 
-    def lockpath(self):
+    def lockpath(self, op='w'):
         """ returns the appropriate path.
 
         creats the path if non-existing. Set lockpath-base permission to all-modify so other fdi users can use.
+        op: 'r' for read 'w' for write
         """
         if not os.path.exists(lockpathbase):
             os.makedirs(lockpathbase, mode=0o777)
@@ -72,21 +78,21 @@ When implementing a ProductPool, the following rules need to be applied:
         #from .httppool import HttpPool
         #from .httpclientpool import HttpClientPool
 
-        p = self.transformpath(self._poolpath)
+        p = self.transformpath(self._poolname)
         lp = pathjoin(lockpathbase, p.replace('/', '_'))
         if 1:
-            return lp
+            return lp+'.read' if op == 'r' else lp+'.write'
         else:
             if not os.path.exists(lp):
                 os.makedirs(lp)
                 lf = pathjoin(lp, 'lock')
-            return lf
+            return lf+'.read' if op == 'r' else lf+'.write'
 
     def transformpath(self, path):
         """ override this to changes the output from the input one (default) to something else.
 
         """
-        base = self._base
+        base = self._poolpath
         if base != '':
             if path[0] == '/':
                 path = base + path
@@ -121,7 +127,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         Gets the identifier of this pool.
         """
-        return self._poolurn
+        return self._poolname
 
     def getProductClasses(self):
         """
@@ -160,7 +166,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         return self._urns[urn]
 
-    def schematicLoadProduct(self, resourcename, indexstr):
+    def schematicLoadProduct(self, resourcetype, index):
         """ to be implemented by subclasses to do the scheme-specific loading
         """
         raise(NotImplementedError)
@@ -169,14 +175,13 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         Loads a Product belonging to specified URN.
         """
-        poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(urn)
-        if poolname != self._poolurn:
+        poolname, resource, index = parseUrn(urn)
+        if poolname != self._poolname:
             raise(ValueError('wrong pool: ' + poolname +
-                             ' . This is ' + self._poolurn))
+                             ' . This is ' + self._poolname))
 
-        # TODO: is it a must to lock local file when load a product from remote?
-        with filelock.FileLock(self.lockpath()):
-            ret = self.schematicLoadProduct(resourcecn, indexs)
+        with filelock.FileLock(self.lockpath('r')):
+            ret = self.schematicLoadProduct(resourcetype, index)
         return ret
 
     def meta(self,  urn):
@@ -191,7 +196,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         self._urns[ref.urn]['refcnt'] += 1
 
-    def schematicRemove(self,  typename, serialnum):
+    def schematicRemove(self, resourcetype, index):
         """ to be implemented by subclasses to do the scheme-specific removing
         """
         raise(NotImplementedError)
@@ -201,14 +206,14 @@ When implementing a ProductPool, the following rules need to be applied:
         Removes a Product belonging to specified URN.
         """
 
-        poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(urn)
+        poolname, resource, index = parseUrn(urn)
 
-        if self._poolurn != poolname:
+        if self._poolname != poolname:
             raise ValueError(
-                urn + ' is not from the pool ' + pool)
+                urn + ' is not from the pool ' + self._poolname)
 
-        prod = resourcecn
-        sn = int(indexs)
+        prod = resource
+        sn = index
 
         self._classes, self._tags, self._urns = self.readHK()
         c, t, u = self._classes, self._tags, self._urns
@@ -220,14 +225,14 @@ When implementing a ProductPool, the following rules need to be applied:
             raise ValueError(
                 '%s not found in pool %s.' % (urn, self.getId()))
 
-        with filelock.FileLock(self.lockpath()):
+        with filelock.FileLock(self.lockpath('w')):
             self.removeUrn(urn)
             c[prod]['sn'].remove(sn)
             if len(c[prod]['sn']) == 0:
                 del c[prod]
             try:
-                res = self.schematicRemove(typename=prod,
-                                           serialnum=sn)
+                res = self.schematicRemove(resourcetype=prod,
+                                           index=sn)
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)
@@ -241,7 +246,7 @@ When implementing a ProductPool, the following rules need to be applied:
         Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).
         """
 
-        with filelock.FileLock(self.lockpath()):
+        with filelock.FileLock(self.lockpath('w')):
             try:
                 self.schematicWipe()
                 self._classes.clear()
@@ -258,7 +263,7 @@ When implementing a ProductPool, the following rules need to be applied:
         Save/Update descriptors in pool.
         """
 
-    def schematicSave(self,  typename, serialnum, data, tag=None):
+    def schematicSave(self, resourcetype, index, data, tag=None):
         """ to be implemented by subclasses to do the scheme-specific saving
         """
         raise(NotImplementedError)
@@ -283,7 +288,7 @@ When implementing a ProductPool, the following rules need to be applied:
         res = []
         for prd in prds:
             pn = fullname(prd)
-            with filelock.FileLock(self.lockpath()):
+            with filelock.FileLock(self.lockpath('w')):
                 if pn in c:
                     sn = (c[pn]['currentSN'] + 1)
                 else:
@@ -292,7 +297,8 @@ When implementing a ProductPool, the following rules need to be applied:
 
                 c[pn]['currentSN'] = sn
                 c[pn]['sn'].append(sn)
-                urnobj = Urn(cls=prd.__class__, pool=self._poolurn, index=sn)
+                urnobj = Urn(cls=prd.__class__,
+                             poolname=self._poolname, index=sn)
                 urn = urnobj.urn
 
                 if urn not in u:
@@ -302,8 +308,8 @@ When implementing a ProductPool, the following rules need to be applied:
                     self.setTag(tag, urn)
 
                 try:
-                    self.schematicSave(typename=pn,
-                                       serialnum=sn,
+                    self.schematicSave(resourcetype=pn,
+                                       index=sn,
                                        data=prd,  tag=tag)
                 except Exception as e:
                     msg = 'product ' + urn + ' saving failed'
@@ -317,7 +323,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 rf = ProductRef(urn=urnobj)
                 # it seems that there is no better way to set meta
                 rf._meta = prd.getMeta()
-                rf._poolurn = self._poolurn
+                rf._poolname = self._poolname
                 res.append(rf)
         logger.debug('generated ' + 'Urns ' if geturnobjs else 'prodRefs ' +
                      str(len(res)))
@@ -371,14 +377,14 @@ When implementing a ProductPool, the following rules need to be applied:
             if isinstance(qw, str):
                 code = compile(qw, 'py', 'eval')
                 for n in snlist:
-                    urno = Urn(cls=cls, pool=self._poolurn, index=n)
+                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
                     m = u[urno.urn]['meta']
                     if eval(code):
                         ret.append(ProductRef(urn=urno, meta=m))
                 return ret
             else:
                 for n in snlist:
-                    urno = Urn(cls=cls, pool=self._poolurn, index=n)
+                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
                     m = u[urno.urn]['meta']
                     if qw(m):
                         ret.append(ProductRef(urn=urno, meta=m))
@@ -445,7 +451,7 @@ When implementing a ProductPool, the following rules need to be applied:
             if isinstance(qw, str):
                 code = compile(qw, 'py', 'eval')
                 for n in snlist:
-                    urno = Urn(cls=cls, pool=self._poolurn, index=n)
+                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
                     pref = ProductRef(urn=urno)
                     glbs[var] = pref.getProduct()
                     if eval(code):
@@ -455,7 +461,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 return ret
             else:
                 for n in snlist:
-                    urno = Urn(cls=cls, pool=self._poolurn, index=n)
+                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
                     pref = ProductRef(urn=urno)
                     glbs[var] = pref.getProduct()
                     if qw(glbs[var]):
@@ -480,7 +486,7 @@ When implementing a ProductPool, the following rules need to be applied:
         ret = []
         if results:
             this = (x for x in results if x.urnobj.getPoolId()
-                    == self._poolurn)
+                    == self._poolname)
             if isMQ:
                 ret += self.mfilter(q=query, reflist=this)
             else:
@@ -499,4 +505,4 @@ When implementing a ProductPool, the following rules need to be applied:
         return ret
 
     def __repr__(self):
-        return self.__class__.__name__ + ' { pool= ' + str(self._poolurn) + ' }'
+        return self.__class__.__name__ + ' { pool= ' + str(self._poolname) + ' }'

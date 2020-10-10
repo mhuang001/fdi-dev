@@ -30,6 +30,7 @@ from fdi.dataset.product import Product
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadcsv
 from fdi.utils import moduleloader
+from fdi.utils.common import fullname
 
 # import __builtins__
 
@@ -134,3 +135,9 @@ def test_loadcsv():
 def test_moduleloader():
 
     moduleloader.main(ipath=os.path.abspath('tests'))
+
+
+def test_fullname():
+    assert fullname(Urn()) == 'fdi.pal.urn.Urn'
+    assert fullname(Urn) == 'fdi.pal.urn.Urn'
+    assert fullname('l') == 'str'

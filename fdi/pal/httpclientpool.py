@@ -38,9 +38,9 @@ class HttpClientPool(ProductPool):
         # print(__name__ + str(kwds))
         super(HttpClientPool, self).__init__(**kwds)
 
-        logger.debug(self._poolpath)
+        logger.debug(self._poolname)
 
-        real_poolpath = self.transformpath(self._poolpath)
+        real_poolpath = self.transformpath(self._poolname)
         logger.debug(real_poolpath)
         if not op.exists(real_poolpath):
             # os.mkdir(real_poolpath)
@@ -84,15 +84,16 @@ class HttpClientPool(ProductPool):
             fp = pathjoin(fp0, hkdata + '.jsn')
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
-    def schematicSave(self, typename, serialnum, data, tag=None):
+    def schematicSave(self, resourcetype, index, data, tag=None):
         """
         does the media-specific saving to remote server
         save metadata at localpool
         """
-        fp0 = self.transformpath(self._poolpath)
-        fp = pathjoin(fp0, typename + '_' + str(serialnum))
+        fp0 = self.transformpath(self._poolname)
+        fp = pathjoin(fp0, resourcetype + '_' + str(index))
 
-        urnobj = Urn(cls=data.__class__, pool=self._poolurn, index=serialnum)
+        urnobj = Urn(cls=data.__class__,
+                     poolname=self._poolurn, index=index)
         urn = urnobj.urn
         try:
             res = save_to_server(data, urn, tag)
@@ -108,13 +109,14 @@ class HttpClientPool(ProductPool):
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicLoadProduct(self, resourcename, indexstr):
+    def schematicLoadProduct(self, resourcetype, index):
         """
         does the scheme-specific part of loadProduct.
         """
+        indexstr = str(index)
         poolurn = self._poolurn
-        uri = poolurn + '/' + resourcename + '_' + indexstr
-        urn = makeUrn(self._poolurn, resourcename, indexstr)
+        uri = poolurn + '/' + resourcetype + '_' + indexstr
+        urn = makeUrn(self._poolurn, resourcetype, indexstr)
         # print("READ PRODUCT FROM REMOTE===>poolurl: " + poolurn )
         try:
             res, msg = read_from_server(urn)
@@ -130,13 +132,13 @@ class HttpClientPool(ProductPool):
             raise e
         return prod
 
-    def schematicRemove(self, typename, serialnum):
+    def schematicRemove(self, resourcetype, index):
         """
         does the scheme-specific part of removal.
         """
-        fp0 = self.transformpath(self._poolpath)
-        fp = pathjoin(fp0, typename + '_' + str(serialnum))
-        urn = makeUrn(self._poolurn, typename, serialnum)
+        fp0 = self.transformpath(self._poolname)
+        fp = pathjoin(fp0, resourcetype + '_' + str(index))
+        urn = makeUrn(self._poolurn, resourcetype, index)
         try:
             res, msg = delete_from_server(urn)
             if res != 'FAILED':
@@ -156,7 +158,7 @@ class HttpClientPool(ProductPool):
         does the scheme-specific remove-all
         """
         # logger.debug()
-        pp = self.transformpath(self._poolpath)
+        pp = self.transformpath(self._poolname)
         if not op.exists(pp):
             return
         try:
@@ -168,7 +170,7 @@ class HttpClientPool(ProductPool):
                 logger.error(msg)
                 raise Exception(msg)
         except Exception as e:
-            err = 'remove-mkdir ' + self._poolpath + \
+            err = 'remove-mkdir ' + pp + \
                 ' failed. ' + str(e) + trbk(e)
             logger.error(err)
             raise e

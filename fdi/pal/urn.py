@@ -3,6 +3,7 @@ from .comparable import Comparable
 from ..dataset.serializable import Serializable
 from ..dataset.odict import ODict
 from ..dataset.eq import DeepEqual
+from ..dataset.classes import Classes
 from ..utils.common import fullname
 import sys
 import os
@@ -23,68 +24,6 @@ else:
     from urlparse import urlparse
 
 
-"""
-It is generated to desribe a pool's name, its location, and its access scheme. For example:
-    * file:///tmp/mydata for pool ```mydata```, 
-    * file://d:/data/test2/v2 for pool ``test2/v2``
-    * mem:///dummy for pool ``dummy``
-    * https://10.0.0.114:5000/v0.6/obs for pool ``obs``
-"""
-
-
-def parseUrn(urn):
-    """
-    Checks the URN string is valid in its form and splits it.
-
-    A Pool URL is in the form of a URL that does not have ':' in its path part. 
-
-    Product URNs are more complicated. For example if the urn is ``urn:file://c:/tmp/mypool/proj1.product:322`` 
-    * poolname, also called poolURN or poolID ``file://c:/tmp/mypool``, 
-    * resource type (usually class) name ``proj1.product``, 
-    * serial number in string ``'322'``, 
-    * scheme ``file``, 
-    * place ``c:`` (with ip and port if given), 
-    * poolpath ``c:/tmp/mypool`` , (with ip and port if given), 
-
-    """
-    if not issubclass(urn.__class__, strset):
-        raise TypeError('a urn string is needed.')
-    # is a urn?
-    sp1 = urn.split(':', 1)
-    if sp1[0] == 'urn':
-        # this is a product URN
-        if len(sp1) < 2:
-            raise ValueError('bad urn: ' + sp1[1])
-        # maxsplit=2 so that if netloc is e.g. c: or http: , the : in it is not parsed:
-        sp2 = sp1[1].rsplit(':', 2)
-        if len(sp2) < 3:
-            raise ValueError('bad urn: ' + sp1[1])
-        serialnumstr = sp2[2]
-        resourceclass = sp2[1]
-        poolname = sp2[0]
-    elif len(sp1[1].split(':')) > 3:  # after scheme and a possible windows path
-        raise ValueError(
-            'a product urn string must start with \'urn:\'; a pool URN can have no more than 2 \':\'.')
-    else:
-        # a pool urn
-        poolname = urn
-        resourceclass = None
-        serialnumstr = None
-
-    pr = urlparse(poolname)
-    scheme = pr.scheme
-    place = pr.netloc
-    # convenient access path
-    poolpath = place + pr.path if scheme in ('file') else pr.path
-    return poolname, resourceclass, serialnumstr, scheme, place, poolpath
-
-
-def makeUrn(poolname, typename, index):
-    """ assembles a URN with infos of the pool, the resource type, and the index
-    """
-    return 'urn:' + poolname + ':' + typename + ':' + str(index)
-
-
 class Urn(DeepEqual, Serializable, Comparable):
     """ The object representation of the product URN string. The
     memory consumed by sets of this object are much less than sets
@@ -99,24 +38,28 @@ class Urn(DeepEqual, Serializable, Comparable):
     mh:
     URN format::
 
-       urn:poolname:resourceclass:serialnumber
+       ``urn``:poolname:resourceclass:serialnumber
 
     where
 
+    :poolname: also called poolID, a (optionally path-like) string without leading or trailing ``/``
     :resourceclass: (fully qualified) class name of the resource (product)
-    :poolname: scheme + ``://`` + place + directory
-    :scheme: ``file``, ``mem``, ``http`` ... etc
-    :place: ``192.168.5.6:8080``, ``c:``, an empty string ... etc
-    :directory:
-      A label for the pool that is by default used as the full path where the pool is stored. ProductPool.transformpath() can used to change the directory here to other meaning.
-         * for ``file`` scheme: ``/`` + name + ``/`` + name + ... + ``/`` + name
-         * for ``mem`` scheme: ``/`` + name
     :serialnumber: internal index. str(int).
+
+    PoolURL format::
+
+         schme://placepoolpath/poolname
+
+    :scheme: ``file``, ``mem``, ``http`` ... etc
+    :place: ``192.168.5.6:8080``, an empty string ... etc
+    :poolpath:
+      The full path where the pool is stored. It is a set-up detail that is supposed to be hidden from pool users. ProductPool.transformpath() is used to map poolname to it.
+    :poolname: same as in URN
 
     URN is immutable.
     """
 
-    def __init__(self, urn=None, pool=None, cls=None, index=None, **kwds):
+    def __init__(self, urn=None, poolname=None, cls=None, index=None, poolurl=None, **kwds):
         """
         Creates the URN object with the urn string or components.
         if urn is given and pool, class, etc are also specified,
@@ -126,11 +69,11 @@ class Urn(DeepEqual, Serializable, Comparable):
         super(Urn, self).__init__(**kwds)
 
         if urn is None:
-            if cls is None or pool is None or index is None:
-                if cls is None and pool is None and index is None:
+            if cls is None or poolname is None or index is None:
+                if cls is None and poolname is None and index is None:
                     self._scheme = None
                     self._place = None
-                    self._pool = None
+                    self._poolname = None
                     self._class = None
                     self._index = None
                     self._resource = None
@@ -139,10 +82,10 @@ class Urn(DeepEqual, Serializable, Comparable):
                     return
                 else:
                     raise ValueError('give urn or all other arguments')
-            urn = makeUrn(poolname=pool,
+            urn = makeUrn(poolname=poolname,
                           typename=fullname(cls),
                           index=index)
-        self.setUrn(urn)
+        self.setUrn(urn, poolurl=poolurl)
 
     @property
     def urn(self):
@@ -156,26 +99,31 @@ class Urn(DeepEqual, Serializable, Comparable):
         """
         self.setUrn(urn)
 
-    def setUrn(self, urn):
-        """ parse urn to get scheme, place, pool, resource, index.
+    def setUrn(self, urn, poolurl=None):
+        """ parse urn to get poolname, resource, index.
         """
         if hasattr(self, '_urn') and self._urn and urn:
             raise TypeError('URN is immutable.')
 
-        poolname, resourcecn, indexs, scheme, place, poolpath = \
-            parseUrn(urn)
+        poolname, resourcetype, index = parseUrn(urn)
 
-        cls = resourcecn  # getClass(resourcecn)
+        cls = Classes.mapping[resourcetype.split('.')[-1]]
 
-        self._scheme = scheme
-        self._place = place
-        self._pool = poolname
+        self._poolname = poolname
         self._class = cls
-        self._index = int(indexs)
-        self._resource = resourcecn + ':' + indexs
-        self._poolpath = poolpath
+        self._index = index
         self._urn = urn
-        # logger.debug(urn)
+
+        if poolurl:
+            poolpath, scheme, place, poolname = parse_poolurl(
+                poolurl, poolname)
+            self._poolpath = poolpath
+            self._scheme = scheme
+            self._place = place
+        else:
+            self._poolpath = None
+            self._scheme = None
+            self._place = None
 
     def getUrn(self):
         """ Returns the urn in this """
@@ -189,7 +137,7 @@ class Urn(DeepEqual, Serializable, Comparable):
     def getTypeName(self):
         """ Returns class type name of Urn.
         """
-        return self._class  # .__qualname__
+        return fullname(self._class)
 
     def getIndex(self):
         """ Returns the product index.
@@ -202,9 +150,9 @@ class Urn(DeepEqual, Serializable, Comparable):
         return self._scheme
 
     def getUrnWithoutPoolId(self):
-        return self._resource
+        return fullname(self._class) + ':' + str(self._index)
 
-    @property
+    @ property
     def place(self):
         return self.getPlace()
 
@@ -212,49 +160,42 @@ class Urn(DeepEqual, Serializable, Comparable):
         """ Returns the netloc in this """
         return self._place
 
-    @staticmethod
-    def getFullPath(urn):
-        """ returns the place+poolname+resource directory of the urn
+    def getPoolpath(self):
+        """ returns the poolpath stored
         """
-        poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(
-            urn)
-        return poolpath + '/' + resourcecn + '_' + indexs
+        return self._poolpath
 
-    @property
+    @ property
     def pool(self):
-        """ returns the pool URN.
+        """ returns the poolname.
         """
         return self.getPoolId()
 
     def getPoolId(self):
         """ Returns the pool URN in this """
-        return self._pool
+        return self._poolname
 
     def getPool(self):
         """ Returns the pool name in this """
         return self.getPoolId()
 
-    def hasData(self):
-        """ Returns whether this data wrapper has data. """
-        return len(self.getData()) > 0
-
-    def a__eq__(self, o):
+    def __eq__(self, o):
         """
         mh: compare  urn string  after the first 4 letters.
         """
 
-        return self.getUrn()[4:] == o.getUrn()[4:]
+        return self._urn[4:] == o.getUrn()[4:]
 
     def __hash__(self):
         """ returns hash of the URN string after the first 4 letters.
         """
         if not hasattr(self, 'HASH') or self.HASH is None:
-            self.HASH = hash(self.getUrn()[4:])
+            self.HASH = hash(self._urn()[4:])
         return self.HASH
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(urn=self.urn,
+        return OrderedDict(urn=self._urn,
                            classID=self.classID)
 
     def __repr__(self):
@@ -266,8 +207,176 @@ class Urn(DeepEqual, Serializable, Comparable):
                 self._urn,
                 self._scheme,
                 self._place,
-                self._pool,
+                self._poolname,
                 self._class,  # .__name__,
                 self._index,
                 self._poolpath
             )
+
+
+"""
+    Product URNs are more complicated. For example if the urn is ``urn:file://c:/tmp/mypool/proj1.product:322``
+    * poolname, also called poolURN or poolID ``file://c:/tmp/mypool``,
+    * resource type (usually class) name ``proj1.product``,
+    * serial number in string ``'322'``,
+    * scheme ``file``,
+    * place ``c:`` (with ip and port if given),
+    * poolpath ``c:/tmp/mypool`` , (with ip and port if given),
+"""
+
+
+def parseUrn(urn):
+    """
+    Checks the URN string is valid in its form and splits it.
+
+    A Product URN has several segment. For example if the urn is ``urn:mypool/v2:proj1.product:322``
+    * poolname, also called poolURN or poolID, optionally path-like: ``mypool/v2``,
+    * resource type (usually class) name ``proj1.product``,
+    * index number  ``322``,
+
+    """
+    if not issubclass(urn.__class__, strset):
+        raise ValueError('a string is needed.: ' + urn)
+    # is a urn?
+    sp1 = urn.split(':')
+    if sp1[0].lower() != 'urn':
+        raise ValueError('Not a URN: ' + urn)
+    # this is a product URN
+    if len(sp1) != 4:
+        # must have 4 segments
+        raise ValueError('bad urn: ' + sp1)
+
+    index = int(sp1[3])
+    resourceclass = sp1[2]
+    poolname = sp1[1]
+    if len(poolname) * len(resourceclass) == 0:
+        # something for a name
+        raise ValueError('empty poolname or typename in urn: ' + urn)
+    return poolname, resourceclass, index
+
+
+def parse_poolurl(url, pool=None):
+    """
+    Disassambles a pool URL.
+
+    A Pool URL is in the form of a URL that preceeds its poolname part. A urn or a poolname (the first distinctive substring) needs to be given if the poolname has more than one level. It is generated to desribe a pool's name, its location, and its access scheme. For example:
+    * file:///tmp/mydata for pool ```mydata```,
+    * file:///d:/data/test2/v2 for pool ``test2/v2`` (pool='t')
+    * mem:///dummy for pool ``dummy``
+    * https://10.0.0.114:5000/v0.6/obs for pool ``obs``  (pool='urn:obs:foo:42')
+
+    output:
+    * scheme: ``file``, ``mem``, ``http`` ...
+    * place: ``10.2.1.10:2000``, empty string for ``file`` scheme
+    * poolpath ``/c:/tmp`` in e.g. ``http://localhost:9000/c:/tmp/mypool/`` with ``pool`` keyword not given or given as ``mypool``. Note that trailing blank and ``/`` are ignored, and stripped in the output.
+    """
+
+    if not issubclass(url.__class__, strset):
+        raise TypeError('a string is needed.')
+
+    sp1 = url.split(':')
+    if len(sp1) > 3:  # after scheme and a possible windows path
+        raise ValueError(
+            'a pool URN can have no more than 2 \':\'.')
+
+    pr = urlparse(url)
+    scheme = pr.scheme       # file
+    place = pr.netloc
+    # Note that trailing blank and ``/`` are ignored.
+    path = pr.path.strip().rstrip('/')
+    # convenient access path
+    # get the poolname
+    if pool:
+        poolin = pool.lstrip('urn:').split(':')[0]
+        pind = path.index(poolin)
+        poolname = path[pind:]
+        poolpath = path[:pind].rstrip('/')
+    else:
+        # the last level is assumed to be the poolname
+        sp = path.rsplit('/', 1)
+        poolname = sp[1]
+        poolpath = sp[0]
+
+    poolpath = place + poolpath if scheme in ('file') else poolpath
+    return poolpath, scheme, place, poolname
+
+
+def makeUrn(poolname, typename, index):
+    """ assembles a URN with infos of the pool, the resource type, and the index
+    """
+    return 'urn:' + poolname + ':' + typename + ':' + str(index)
+
+
+class UrnUtils():
+
+    @ staticmethod
+    def checkUrn(identifier):
+        """ Throw a ValueError  if the identifier is not a legal URN."""
+        return parseUrn(identifier)
+
+    @ staticmethod
+    def containsUrn(poolobj,  urn):
+        """ Informs whether a URN belongs to the given pool. """
+
+        return poolobj.exists(urn)
+
+    @ staticmethod
+    def extractRecordIDs(urns):
+        """ Extracts product IDs (serial numbers) from a set of urns. """
+        ids = []
+        for u in urns:
+            pn, prod, sn = parseUrn(u)
+            ids.append(sn)
+        return ids
+
+    @ staticmethod
+    def getClass(urn):
+        """ Get the class contained in a URN. """
+        pn, prod, sn = parseUrn(urn)
+        return Classes.mapping[prod.rsplit('.', 1)[1]]
+
+    @ staticmethod
+    def getClassName(urn):
+        """ Get the class name contained in a URN. """
+        pn, prod, sn = parseUrn(urn)
+        return prod
+
+    @ staticmethod
+    def getLater(urn1, urn2):
+        """ Returns the later of two urns. """
+        pn1, prod1, sn1 = parseUrn(urn1)
+        pn2, prod2, sn2 = parseUrn(urn2)
+        return urn1 if sn1 > sn2 else urn2
+
+    @ staticmethod
+    def getPool(urn,  pools):
+        """ Returns the pool corresponding to the pool id inside the given urn. """
+        if issubclass(urn.__class__, Urn):
+            urn = urn.urn
+        pn, prod, sn = parseUrn(urn)
+        for p in pools:
+            if pn == p.getId():
+                return p
+        raise KeyError(pn + ' not found in pools')
+
+    @ staticmethod
+    def getPoolId(urn):
+        """ Returns the pool id part of the URN. """
+        pn, prod, sn = parseUrn(urn)
+        return pn
+
+    @ staticmethod
+    def getProductId(urn):
+        """ Returns the product id part of the URN, that is, the last token. """
+        pn, prod, sn = parseUrn(urn)
+        return sn
+
+    @ staticmethod
+    def isUrn(identifier):
+        """ Informs whether the given identifier corresponds to a URN. """
+
+        try:
+            UrnUtils.checkUrn(identifier)
+        except ValueError:
+            return False
+        return True

@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-from . import productpool
-import filelock
+from .productpool import ProductPool
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class MemPool(productpool.ProductPool):
+class MemPool(ProductPool):
     """ the pool will save all products in memory.
     """
 
@@ -16,7 +15,7 @@ class MemPool(productpool.ProductPool):
     def __init__(self, **kwds):
         """ creates data structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
         """
-        # print(__name__ + str(kwds))
+
         super(MemPool, self).__init__(**kwds)
 
         if self._poolname not in self._MemPool:

@@ -24,6 +24,12 @@ else:
     from urlparse import urlparse
 
 
+def makeUrn(poolname, typename, index):
+    """ assembles a URN with infos of the pool, the resource type, and the index
+    """
+    return 'urn:' + poolname + ':' + typename + ':' + str(index)
+
+
 class Urn(DeepEqual, Serializable, Comparable):
     """ The object representation of the product URN string. The
     memory consumed by sets of this object are much less than sets
@@ -62,6 +68,7 @@ class Urn(DeepEqual, Serializable, Comparable):
     def __init__(self, urn=None, poolname=None, cls=None, index=None, poolurl=None, **kwds):
         """
         Creates the URN object with the urn string or components.
+
         if urn is given and pool, class, etc are also specified,
         the latter are ignored. else the URN is constructed from them.
         Urn(u) will make a Urn object out of u.
@@ -236,15 +243,15 @@ def parseUrn(urn):
 
     """
     if not issubclass(urn.__class__, strset):
-        raise ValueError('a string is needed.: ' + urn)
-    # is a urn?
+        raise ValueError('a string is needed: ' + str(urn))
+    # is a urn str?
     sp1 = urn.split(':')
     if sp1[0].lower() != 'urn':
         raise ValueError('Not a URN: ' + urn)
     # this is a product URN
     if len(sp1) != 4:
         # must have 4 segments
-        raise ValueError('bad urn: ' + sp1)
+        raise ValueError('bad urn: ' + str(sp1))
 
     index = int(sp1[3])
     resourceclass = sp1[2]
@@ -255,24 +262,28 @@ def parseUrn(urn):
     return poolname, resourceclass, index
 
 
-def parse_poolurl(url, pool=None):
+def parse_poolurl(url, poolhint=None):
     """
     Disassambles a pool URL.
 
-    A Pool URL is in the form of a URL that preceeds its poolname part. A urn or a poolname (the first distinctive substring) needs to be given if the poolname has more than one level. It is generated to desribe a pool's name, its location, and its access scheme. For example:
+    A Pool URL is in the form of a URL that preceeds its poolname part. It is generated to desribe a pool's name, its location, and its access scheme. For example:
     * file:///tmp/mydata for pool ```mydata```,
     * file:///d:/data/test2/v2 for pool ``test2/v2`` (pool='t')
     * mem:///dummy for pool ``dummy``
     * https://10.0.0.114:5000/v0.6/obs for pool ``obs``  (pool='urn:obs:foo:42')
 
+    input:
+    * url: to be decomposed.
+    * poolhint:  A urn or a poolname (the first distinctive substring) needs to be given if the poolname has more than one level.
     output:
     * scheme: ``file``, ``mem``, ``http`` ...
     * place: ``10.2.1.10:2000``, empty string for ``file`` scheme
     * poolpath ``/c:/tmp`` in e.g. ``http://localhost:9000/c:/tmp/mypool/`` with ``pool`` keyword not given or given as ``mypool``. Note that trailing blank and ``/`` are ignored, and stripped in the output.
+    poolname: poolname from poolurl string
     """
 
     if not issubclass(url.__class__, strset):
-        raise TypeError('a string is needed.')
+        raise ValueError('a string is needed: ' + str(url))
 
     sp1 = url.split(':')
     if len(sp1) > 3:  # after scheme and a possible windows path
@@ -286,8 +297,9 @@ def parse_poolurl(url, pool=None):
     path = pr.path.strip().rstrip('/')
     # convenient access path
     # get the poolname
-    if pool:
-        poolin = pool.lstrip('urn:').split(':')[0]
+    if poolhint:
+        ps = poolhint.split(':')
+        poolin = ps[1] if ps[0].lower() == 'urn' else ps[0]
         pind = path.index(poolin)
         poolname = path[pind:]
         poolpath = path[:pind].rstrip('/')
@@ -301,17 +313,13 @@ def parse_poolurl(url, pool=None):
     return poolpath, scheme, place, poolname
 
 
-def makeUrn(poolname, typename, index):
-    """ assembles a URN with infos of the pool, the resource type, and the index
-    """
-    return 'urn:' + poolname + ':' + typename + ':' + str(index)
-
-
 class UrnUtils():
 
     @ staticmethod
     def checkUrn(identifier):
         """ Throw a ValueError  if the identifier is not a legal URN."""
+        if not issubclass(identifier.__class__, str):
+            raise ValueError('Not a string: %s' % str(identifier))
         return parseUrn(identifier)
 
     @ staticmethod

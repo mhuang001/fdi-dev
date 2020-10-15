@@ -494,6 +494,8 @@ class TableDataset(GenericDataset, TableModel):
     def select(self, selection):
         """ Select a number of rows from this table dataset and
         return a new TableDataset object containing only the selected rows.
+
+        selection: a list of int or booleans to form a new Tabledataset. If ints, they are used as the row index to select the rows. If bools, rows where corresponding selection == True are chosen.
         """
         if not issubclass(selection.__class__, list):
             raise ValueError('selection is not a list')
@@ -513,7 +515,7 @@ class TableDataset(GenericDataset, TableModel):
                         c.data.append(self.data[name][i])
                     i += 1
             else:
-                raise ValueError('not bool, int')
+                raise ValueError('selection is not a list of  bool or int')
             r.addColumn(name, c)
         return r
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from ..dataset.odict import ODict
 from ..dataset.classes import Classes
-from .urn import Urn, parseUrn
+from .urn import Urn, parseUrn, parse_poolurl
 from .versionable import Versionable
 from .taggable import Taggable
 from .definable import Definable
@@ -46,23 +46,28 @@ When implementing a ProductPool, the following rules need to be applied:
 
     """
 
-    def __init__(self, poolname=None, pathurl=None, **kwds):
-        self._base = pathurl
+    def __init__(self, poolname=None, poolurl=None, **kwds):
+        """
+        Creates and initializes a productpool.
 
+        * poolname: if provided will override that in poolurl.
+        * poolurl: needed to initialize.
+
+        """
         super(ProductPool, self).__init__(**kwds)
 
         self._poolname = poolname
-        # self._pathurl = pr.netloc + pr.path
-        self._pathurl = pathurl
-        if pathurl:
-            pr = urlparse(pathurl)
-            self._scheme = pr.scheme
-            self._place = pr.netloc
-            self._poolpath = pr.path
+
+        if poolurl:
+            self._poolpath, self._scheme, self._place, nm = \
+                parse_poolurl(poolurl)
         else:
+            self._poolpath = None
             self._scheme = None
             self._place = None
-            self._poolpath = None
+        self._poolurn = poolurl
+        # self._pathurl = pr.netloc + pr.path
+        self._pathurl = None
         # {type|classname -> {'sn:[sn]'}}
         self._classes = ODict()
 
@@ -181,7 +186,7 @@ When implementing a ProductPool, the following rules need to be applied:
                              ' . This is ' + self._poolname))
 
         with filelock.FileLock(self.lockpath('r')):
-            ret = self.schematicLoadProduct(resourcetype, index)
+            ret = self.schematicLoadProduct(resource, index)
         return ret
 
     def meta(self,  urn):
@@ -297,6 +302,7 @@ When implementing a ProductPool, the following rules need to be applied:
 
                 c[pn]['currentSN'] = sn
                 c[pn]['sn'].append(sn)
+
                 urnobj = Urn(cls=prd.__class__,
                              poolname=self._poolname, index=sn)
                 urn = urnobj.urn

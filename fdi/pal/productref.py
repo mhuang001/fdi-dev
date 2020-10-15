@@ -18,10 +18,10 @@ class ProductRef(Attributable, Serializable, Comparable):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 
-    def __init__(self, urn=None, poolurn=None, product=None, meta=None, **kwds):
+    def __init__(self, urn=None, poolname=None, product=None, meta=None, **kwds):
         """ Urn can be the string or URNobject. if product is provided create an in-memory URN.
-        Poolurn if given overrides the pool URN in urn, and causes metadata to be loaded from pool, unloss this prodref points to a mempool.
-        If meta is given, it will be used instead of that from poolurn.
+        Poolname if given overrides the pool name in urn, and causes metadata to be loaded from pool, unless this prodref points to a mempool.
+        If meta is given, it will be used instead of that from poolname.
         A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
         """
         super(ProductRef, self).__init__(**kwds)
@@ -39,13 +39,12 @@ class ProductRef(Attributable, Serializable, Comparable):
         if product:
             from .poolmanager import PoolManager, DEFAULT_MEM_POOL
             from . import productstorage
-            poolurn = DEFAULT_MEM_POOL
-            pool = PoolManager.getPool(poolurn)
+            pool = PoolManager.getPool(poolurl='mem:///' + DEFAULT_MEM_POOL)
             st = productstorage.ProductStorage(pool)
             urnobj = st.save(product, geturnobjs=True)
             # a lone product passed to prodref will be stored to mempool
 
-        self.setUrnObj(urnobj, poolurn, meta)
+        self.setUrnObj(urnobj, poolname, meta)
 
         if product and isinstance(product, Context):
             self._product = product
@@ -75,7 +74,7 @@ class ProductRef(Attributable, Serializable, Comparable):
         if hasattr(self, '_product') and self._product is not None:
             return self._product
         from .poolmanager import PoolManager
-        p = PoolManager.getPool(self._poolurn).loadProduct(self.getUrn())
+        p = PoolManager.getPool(self._poolname).loadProduct(self.getUrn())
         if issubclass(p.__class__, Context):
             self._product = p
         return p
@@ -129,11 +128,19 @@ class ProductRef(Attributable, Serializable, Comparable):
         """
         self.setUrnObj(urnobj)
 
-    def setUrnObj(self, urnobj, poolurn=None, meta=None):
+    def setUrnObj(self, urnobj, poolname=None, meta=None):
         """ sets urn
-        Poolurn if given overrides the pool URN in urn, and causes metadata to be loaded from pool.
+
         A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
-        If meta is given, it will be used instead of that from poolurn.
+
+        Parameters:
+        -----------
+        urnobj: Urn
+        a URN object.
+        poolname: str
+        if given overrides the pool name in urn, and causes metadata to be loaded from pool.
+        meta: MetaData
+        If  is given, it will be used instead of that from poolname.
         """
         if urnobj is not None:
             # logger.debug(urnobj)
@@ -147,20 +154,20 @@ class ProductRef(Attributable, Serializable, Comparable):
 
             from .poolmanager import PoolManager, DEFAULT_MEM_POOL
             from . import productstorage
-            loadmeta = (poolurn or meta) and poolurn != DEFAULT_MEM_POOL
-            if poolurn is None:
-                poolurn = urnobj.pool
-            pool = PoolManager.getPool(poolurn)
+            loadmeta = (poolname or meta) and poolname != DEFAULT_MEM_POOL
+            if poolname is None:
+                poolname = urnobj.pool
+            pool = PoolManager.getPool(poolname)
             self._meta = (meta if meta else pool.meta(
                 urnobj.urn)) if loadmeta else None
             st = productstorage.ProductStorage(pool)
             self._storage = st
-            self._poolurn = poolurn
+            self._poolname = poolname
             self._product = None
         else:
             self._urn = None
             self._storage = None
-            self._poolurn = None
+            self._poolname = None
             self._meta = None
             self._product = None
 
@@ -211,6 +218,9 @@ class ProductRef(Attributable, Serializable, Comparable):
 
     def removeParent(self, parent):
         """ remove a parent
+
+        :param parent: 
+
         """
         self._parents.remove(parent)
 
@@ -240,6 +250,9 @@ class ProductRef(Attributable, Serializable, Comparable):
 
     def setParents(self, parents):
         """ Sets the in-memory parent context products of this reference.
+
+        :param parents: 
+
         """
         self._parents = parents
 

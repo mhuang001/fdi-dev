@@ -55,12 +55,16 @@ def init_httppool_server():
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
     logger.debug('cleanup PoolManager')
     PoolManager.removeAll()
+    import pdb
+    pdb.set_trace()
 
-    spd = os.path.join(basepath, pc['defaultpool'])
-    checkpath(spd)
-    ppd = os.path.join(pc['poolprefix'], pc['defaultpool'])
+    poolname = pc['defaultpool']
+    poolpath = basepath
+    spd = os.path.join(basepath, poolname)
+    # checkpath(spd)
+    poolurl = os.path.join(pc['poolprefix'], spd)
 
-    pstore = ProductStorage(pool=ppd, isServer=True)
+    pstore = ProductStorage(pool=poolname, poolurl=poolurl, isServer=True)
 
     # print('poolprefix-defaultpool ' + ppd)
 

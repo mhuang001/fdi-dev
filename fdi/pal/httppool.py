@@ -27,7 +27,7 @@ else:
 
 
 class HttpPool(LocalPool):
-    """ the pool will save all products in Http server.
+    """ the pool will save all products locally on the host Http server.
     """
 
     def __init__(self, **kwds):
@@ -36,40 +36,13 @@ class HttpPool(LocalPool):
         # print(__name__ + str(kwds))
         super(HttpPool, self).__init__(**kwds)
 
-    def readHKObj(self, hkobj):
-        """
-        loads a single object of HK
-        """
-        fp0 = self.transformpath(self._poolname)
-        with filelock.FileLock(self.lockpath('r'), timeout=5):
-            fp = pathjoin(fp0, hkobj + '.jsn')
-            if op.exists(fp):
-                try:
-                    with open(fp, 'r') as f:
-                        content = f.read()
-                    r = deserializeClassID(content)
-                except Exception as e:
-                    msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
-                    logging.error(msg)
-                    raise Exception(msg)
-            else:
-                r = dict()
-        return r
-
     def schematicLoadProduct(self, resourcetype, index):
         """
-        does the scheme-specific part of loadProduct.
+        like localpool but returns serialized form by default.
         """
-        indexstr = str(index)
-        with filelock.FileLock(self.lockpath('r'), timeout=5):
-            poolpath = self.transformpath(self._poolname)
-            filepath = poolpath + '/' + quote(resourcetype) + '_' + indexstr
-            try:
-                with open(filepath, 'r') as f:
-                    content = f.read()
-                p = deserializeClassID(content)
-            except Exception as e:
-                msg = 'Load ' + filepath + ' failed. ' + str(e) + trbk(e)
-                logger.error(msg)
-                raise e
+
+        p = super(HttpPool, self).schematicLoadProduct(resourcetype=resourcetype,
+                                                       index=index,
+                                                       serialized=True
+                                                       )
         return p

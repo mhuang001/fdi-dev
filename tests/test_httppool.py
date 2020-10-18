@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 import pytest
-from fdi.dataset.eq import deepcmp
-from fdi.dataset.dataset import ArrayDataset, GenericDataset
 from fdi.dataset.serializable import serializeClassID
 from fdi.dataset.deserialize import deserializeClassID
-from fdi.dataset.metadata import NumericParameter
 from fdi.dataset.product import Product
-from fdi.dataset.serializable import serializeClassID, serializeClassID
-from fdi.dataset.odict import ODict
+from fdi.pal.poolmanager import PoolManager
 from fdi.utils.getconfig import getConfig
-from fdi.utils.common import trbk
-from fdi.pns import httppool_server as server
+#from fdi.pns import httppool_server as HS
 import sys
 import base64
 from urllib.request import pathname2url
@@ -18,10 +13,8 @@ from requests.auth import HTTPBasicAuth
 import requests
 import random
 import os
-import pkg_resources
-import copy
 import time
-import getpass
+
 
 import asyncio
 import aiohttp
@@ -78,13 +71,20 @@ del up, code
 # last timestamp/lastUpdate
 lupd = 0
 
-api_baseurl = pc['poolprefix'] + pc['baseurl'] + '/'
 auth_user = pc['auth_user']
 auth_pass = pc['auth_pass']
-post_poolid = 'post_test_pool'
 test_poolid = 'pool_default'
 basepath = pc['server_poolpath']
 prodt = 'fdi.dataset.product.Product'
+
+# http server pool
+schm = 'server'
+basepath = PoolManager.PlacePaths[schm]
+poolpath = os.path.join(basepath, pc['api_version'])
+# client side
+cschm = 'http'
+api_baseurl = cschm + '://' + \
+    PoolManager.PlacePaths[cschm] + '/'
 
 
 if 0:
@@ -165,10 +165,10 @@ def check_response(o, failed_case=False):
 def clear_server_poolpath(poolid):
     """ deletes files in the given poolid in server pool dir. """
     logger.info('clear server pool dir ' + poolid)
-    path = os.path.join(basepath, poolid)
+    path = os.path.join(poolpath, poolid)
     if os.path.exists(path):
         if path == '/':
-            raise ValueError('cannot delete root')
+            raise ValueError('!!!!! Cannot delete root.!!!!!!!')
         else:
             os.system('rm -rf ' + path)
         # x = Product(description='desc test case')
@@ -181,7 +181,7 @@ def clear_server_poolpath(poolid):
 def get_files(poolid):
     """ returns a list of files in the given poolid in server pool dir. """
 
-    path = os.path.join(basepath, poolid)
+    path = os.path.join(poolpath, poolid)
     if os.path.exists(path):
         files = os.listdir(path)
     else:
@@ -191,7 +191,7 @@ def get_files(poolid):
 
 def test_clear_server():
     clrpool = 'test_clear'
-    cpath = os.path.join(basepath, clrpool)
+    cpath = os.path.join(poolpath, clrpool)
     if not os.path.exists(cpath):
         os.mkdir(cpath)
     assert os.path.exists(cpath)
@@ -204,6 +204,8 @@ def test_clear_server():
 def populate_server(poolid):
     creators = ['Todds', 'Cassandra', 'Jane', 'Owen', 'Julian', 'Maurice']
     instruments = ['fatman', 'herscherl', 'NASA', 'CNSC', 'SVOM']
+    import pdb
+    pdb.set_trace()
     for index, i in enumerate(creators):
         x = Product(description='desc ' + str(index),
                     instrument=random.choice(instruments))
@@ -220,7 +222,9 @@ def populate_server(poolid):
 def test_CRUD_product():
     ''' test saving, read, delete products API, products will be saved at /data/pool_id
     '''
+
     logger.info('save products')
+    post_poolid = 'post_test_pool'
     clear_server_poolpath(post_poolid)
 
     files = get_files(post_poolid)
@@ -233,6 +237,7 @@ def test_CRUD_product():
 
     # ==========
     logger.info('read product')
+
     index = random.choice(range(origin_prod, num_prod))
     prodpath = '/' + prodt + '/' + str(index)
     url = api_baseurl + post_poolid + prodpath
@@ -322,8 +327,8 @@ async def lock_pool(poolid, sec):
     import filelock
     import time
     logger.info('Keeping files locked')
-    ppath = os.path.join(basepath, poolid)
-    with filelock.FileLock('/tmp/fdi_locks/' + ppath.replace('/', '_')):
+    ppath = os.path.join(poolpath, poolid)
+    with filelock.FileLock('/tmp/fdi_locks/' + ppath.replace('/', '_') + '.read'):
         await asyncio.sleep(sec)
     fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "timestamp": ' + \
         str(time.time()) + '}'
@@ -351,7 +356,7 @@ def test_lock_file():
     try:
         loop = asyncio.get_event_loop()
         tasks = [asyncio.ensure_future(
-            lock_pool(poolid, pc['timeout']+1)), asyncio.ensure_future(read_product(poolid))]
+            lock_pool(poolid, pc['timeout']+5)), asyncio.ensure_future(read_product(poolid))]
         taskres = loop.run_until_complete(asyncio.wait(tasks))
         loop.close()
         res = [f.result() for f in [x for x in taskres][0]]
@@ -403,337 +408,6 @@ def test_subclasses_pool():
     check_response(o1)
     o2 = deserializeClassID(res2.text)
     check_response(o2)
-
-# ##################################
-
-# def test_putconfigpns():
-#     """ send signatured pnsconfig and check.
-#     this function is useless for a stateless server
-#     """
-#     t = test_getpnsconfig()
-#     t['testing'] = 'yes'
-#     d = {'timeout': 5, 'input': t}
-#     # print(nodetestinput)
-#     o = putJsonObj(aburl +
-#                    '/pnsconf',
-#                    d,
-#                    headers=commonheaders)
-#     # put it back not to infere other tests
-#     del t['testing']
-#     d = {'timeout': 5, 'input': t}
-#     p = putJsonObj(aburl +
-#                    '/pnsconf',
-#                    d,
-#                    headers=commonheaders)
-#
-#     issane(o)
-#     assert o['result']['testing'] == 'yes', o['message']
-#     assert 'testing' not in pc, str(pc)
-#     issane(p)
-#     assert 'testing' not in p['result']
-
-
-# def makeposttestdata():
-#     a1 = 'a test NumericParameter'
-#     a2 = 1
-#     a3 = 'second'
-#     v = NumericParameter(description=a1, value=a2, unit=a3)
-#     i0 = 6
-#     i1 = [[1, 2, 3], [4, 5, i0], [7, 8, 9]]
-#     i2 = 'ev'                 # unit
-#     i3 = 'img1'  # description
-#     image = ArrayDataset(data=i1, unit=i2, description=i3)
-#     x = Product(description="test post input product")
-#     x.set('testdataset', image)
-#     x.meta['testparam'] = v
-#     return ODict({'creator': 'me', 'rootcause': 'server test',
-#                   'input': x})
-#
-#
-# def checkpostresult(o, nodetestinput):
-#
-#     p = o['result']
-#     assert issubclass(p.__class__, Product), (p.__class__)
-#     # creator rootcause
-#     # print('p.toString()' + p.toString())
-#     assert p.meta['creator'] == nodetestinput['creator']
-#     assert p.rootCause == nodetestinput['rootcause']
-#     # input data
-#     input = nodetestinput['input']
-#     pname, pv = list(input.meta.items())[0]
-#     dname, dv = list(input.getDataWrappers().items())[0]
-#     # compare with returened data
-#     assert p.meta[pname] == pv
-#     assert p[dname] == dv
-#
-#
-# def test_post():
-#     ''' send a set of data to the server and get back a product with
-#     properties, parameters, and dataset containing those in the input
-#     '''
-#     logger.info('POST testpipeline node server')
-#
-#     nodetestinput = makeposttestdata()
-#     # print(nodetestinput)
-#     o = postJsonObj(aburl +
-#                     '/testcalc',
-#                     nodetestinput,
-#                     headers=commonheaders)
-#     issane(o)
-#     checkpostresult(o, nodetestinput)
-#
-#
-# def makeruntestdata():
-#     """ the input has only one product, which has one dataset,
-#     which has one data item -- a string that is the name
-#     """
-#     x = Product(description="hello world pipeline input product")
-#     x['theName'] = GenericDataset(
-#         data='stranger', description='input. the name')
-#     return x
-#
-#
-# def checkrunresult(p, msg, nodetestinput):
-#
-#     assert issubclass(p.__class__, Product), str(p) + ' ' + str(msg)
-#
-#     # creator rootcause
-#     # print('p.toString()' + p.toString())
-#     assert p.meta['creator'] == nodetestinput['creator']
-#     assert p.rootCause == nodetestinput['rootcause']
-#     # input data
-#     input = nodetestinput['input']
-#     answer = 'hello ' + input['theName'].data + '!'
-#     assert p['theAnswer'].data[:len(answer)] == answer
-#
-#
-# def test_servertestrun():
-#     ''' send a product that has a name string as its data
-#     to the server "testrun" routine locally installed with this
-#     test, and get back a product with
-#     a string 'hello, $name!' as its data
-#     '''
-#     logger.info('POST test for pipeline node server "testrun": hello')
-#
-#     test_servertestinit()
-#
-#     x = makeruntestdata()
-#     # construct the nodetestinput to the node
-#     nodetestinput = ODict({'creator': 'me', 'rootcause': 'server test',
-#                            'input': x})
-#     js = serializeClassID(nodetestinput)
-#     logger.debug(js[:160])
-#     o, msg = server.testrun(js)
-#     # issane(o) is skipped
-#     checkrunresult(o, msg, nodetestinput)
-#
-#
-# def test_testrun():
-#     ''' send a product that has a name string as its data
-#     to the server and get back a product with
-#     a string 'hello, $name!' as its data
-#     '''
-#     logger.info('POST test for pipeline node server: hello')
-#
-#     test_puttestinit()
-#
-#     x = makeruntestdata()
-#     # construct the nodetestinput to the node
-#     nodetestinput = ODict({'creator': 'me', 'rootcause': 'server test',
-#                            'input': x})
-#     # print(nodetestinput)
-#     o = postJsonObj(aburl +
-#                     '/testrun',
-#                     nodetestinput,
-#                     headers=commonheaders)
-#     issane(o)
-#     checkrunresult(o['result'], o['message'], nodetestinput)
-#
-#
-# def test_deleteclean():
-#     ''' make input and output dirs and see if DELETE removes them.
-#     '''
-#     logger.info('delete cleanPTS')
-#     # make sure input and output dirs are made
-#     test_testrun()
-#     o = getJsonObj(aburl + '/input')
-#     issane(o)
-#     assert o['result'] is not None
-#     o = getJsonObj(aburl + '/output')
-#     issane(o)
-#     assert o['result'] is not None
-#
-#     url = aburl + '/clean'
-#     try:
-#         r = requests.delete(url, headers=commonheaders, timeout=15)
-#         stri = r.text
-#     except Exception as e:
-#         logger.error("Give up DELETE " + url + ' ' + str(e))
-#         stri = None
-#     o = deserializeClassID(stri)
-#     issane(o)
-#     assert o['result'] is not None, o['message']
-#     o = getJsonObj(aburl + '/input')
-#     issane(o)
-#     assert o['result'] is None
-#     o = getJsonObj(aburl + '/output')
-#     issane(o)
-#     assert o['result'] is None
-#
-#
-# def test_mirror():
-#     ''' send a set of data to the server and get back the same.
-#     '''
-#     logger.info('POST testpipeline node server')
-#     nodetestinput = makeposttestdata()
-#     # print(nodetestinput)
-#     o = postJsonObj(aburl +
-#                     '/echo',
-#                     nodetestinput,
-#                     headers=commonheaders)
-#     # print(o)
-#     issane(o)
-#     r = deepcmp(o['result'], nodetestinput)
-#     assert r is None, r
-#
-#
-# def test_serversleep():
-#     """
-#     """
-#     s = '1.5'
-#     tout = 2
-#     now = time.time()
-#     re, st = server.dosleep({'timeout': tout}, s)
-#     d = time.time() - now - float(s)
-#     assert re == 0, str(re)
-#     assert d > 0 and d < 0.5
-#     print('dt=%f re=%s state=%s' % (d, str(re), str(st)))
-#     now = time.time()
-#     # let it timeout
-#     tout = 1
-#     re, st = server.dosleep({'timeout': tout}, s)
-#     d = time.time() - now - tout
-#     assert re < 0
-#     assert d > 0 and d < float(s) - tout
-#     print('dt=%f re=%s state=%s' % (d, str(re), str(st)))
-#
-#
-# def test_sleep():
-#     """
-#     """
-#     s = '1.5'
-#     tout = 2
-#     now = time.time()
-#     o = postJsonObj(aburl +
-#                     '/sleep/' + s,
-#                     {'timeout': tout},
-#                     headers=commonheaders)
-#     d = time.time() - now - float(s)
-#     # print(o)
-#     issane(o)
-#     re, st = o['result'], o['message']
-#     assert re == 0, str(re)
-#     assert d > 0 and d < 0.5
-#     #print('deviation=%f re=%s state=%s' % (d, str(re), str(st)))
-#     # let it timeout
-#     tout = 1
-#     now = time.time()
-#     o = postJsonObj(aburl +
-#                     '/sleep/' + s,
-#                     {'timeout': tout},
-#                     headers=commonheaders)
-#     d = time.time() - now - tout
-#     # print(o)
-#     issane(o)
-#     re, st = o['result'], o['message']
-#     assert re < 0
-#     assert d > 0 and d < float(s) - tout
-#     #print('deviation=%f re=%s state=%s' % (d, str(re), str(st)))
-#
-#
-# from multiprocessing import Process, Pool, TimeoutError
-#
-#
-# def info(title):
-#     print(title)
-#     print('module name:' + __name__)
-#     if hasattr(os, 'getppid'):  # only available on Unix
-#         print('parent process: %d' % (os.getppid()))
-#     print('process id: ' + str(os.getpid()))
-#     print(time.time())
-#
-#
-# def nap(t, d):
-#     info(t)
-#     time.sleep(d)
-#     s = str(t)
-#     tout = 5
-#     o = postJsonObj(aburl +
-#                     '/sleep/' + s,
-#                     {'timeout': tout},
-#                     headers=commonheaders
-#                     )
-#     # print('nap ' + str(time.time()) + ' ' + str(s) + ' ' + str(o)
-#     return o
-#
-#
-# import aiohttp
-# import asyncio
-#
-#
-# async def napa(t, d):
-#     # info(t)
-#     asyncio.sleep(d)
-#     s = str(t)
-#     tout = 11
-#     o = None
-#     js = serializeClassID({'timeout': tout})
-#     async with aiohttp.ClientSession() as session:
-#         async with session.post(aburl +
-#                                 '/sleep/' + s,
-#                                 data=js,
-#                                 headers=commonheaders
-#                                 ) as resp:
-#             # print(resp.status)
-#             stri = await resp.text()
-#     o = deserializeClassID(stri)
-#     #print('nap ' + str(time.time()) + ' ' + str(s) + ' ' + str(o))
-#     return o
-#
-#
-# def test_lock():
-#     """ when a pns is busy with any commands that involves executing in the $pnshome dir the execution is locked system-wide with a lock-file .lock. Any attempts to execute a shell command when the lock is in effect will get a 409.
-#     """
-#
-#     tm = 3
-#     if 0:
-#         with Pool(processes=4) as pool:
-#             res = pool.starmap(nap, [(tm, 0), (0.5, 0.5)])
-#     if 0:
-#         # does not work
-#         import threading
-#         try:
-#             threading.Thread(target=nap(tm, 0))
-#             threading.Thread(target=nap(0.5, 0.5))
-#         except Exception as e:
-#             print("Error: unable to start thread " + str(e))
-#         time.sleep(tm + 2)
-#     if 1:
-#         asyncio.set_event_loop(asyncio.new_event_loop())
-#         loop = asyncio.get_event_loop()
-#         tasks = [asyncio.ensure_future(napa(tm, 0)),
-#                  asyncio.ensure_future(napa(0.5, 0.5))]
-#         taskres = loop.run_until_complete(asyncio.wait(tasks))
-#         loop.close()
-#         res = [f.result() for f in [x for x in taskres][0]]
-#
-#     # print(res)
-#     if issubclass(res[0]['message'].__class__, ODict):
-#         r1, r2 = res[0], res[1]
-#     else:
-#         r2, r1 = res[0], res[1]
-#     assert r1['result'] == 0
-#     assert '409' in r2['message']
 
 
 if __name__ == '__main__':

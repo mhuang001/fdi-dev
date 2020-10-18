@@ -22,10 +22,10 @@ class ProductStorage(object):
     Every instanciation with the same pool will  result in a new instance of ProdStorage.
 
         pool: if is a string will be taken as a poolname. if is a pool object will be registered with its name,
-        poolurl and isServer: are sent to the PoolManager with poolname to get the pool object.
+        poolurl: is sent to the PoolManager with poolname to get the pool object.
     """
 
-    def __init__(self, pool=None, poolurl=None, isServer=False, **kwds):
+    def __init__(self, pool=None, poolurl=None, **kwds):
         """ Gets the storage "control pannel" for pool with specifed name.
         """
         if issubclass(pool.__class__, str) and ':' in pool:
@@ -33,7 +33,7 @@ class ProductStorage(object):
                 'First argument must be a poolname or a pool object, not ' + str(pool))
         super(ProductStorage, self).__init__(**kwds)
         self._pools = ODict()  # dict of poolname - poolobj pairs
-        self.register(pool=pool, poolurl=poolurl, isServer=isServer, **kwds)
+        self.register(pool=pool, poolurl=poolurl, **kwds)
 
     def register(self, pool=None, **kwds):
         """ Registers the given pools to the storage.

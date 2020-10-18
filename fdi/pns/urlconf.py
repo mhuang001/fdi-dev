@@ -1,12 +1,12 @@
 
 
-from fdi.pns.pnsconfig import pnsconfig
-from fdi.pns.server import getConfig
+from fdi.pns.pnsconfig import pnsconfig as pc
+from fdi.utils.getconfig import getConfig
 # default configuration is provided. Copy contents of svom/engisim/config.py to ~/.config/engisimlocal.py
-pnsconfig.update(getConfig())
+pc.update(getConfig())
 
-defaulturl = 'http://' + pnsconfig['node']['host'] + ':' + \
-    str(pnsconfig['node']['port']) + pnsconfig['baseurl']
+defaulturl = 'http://' + pc['node']['host'] + ':' + \
+    str(pc['node']['port']) + pc['baseurl']
 
 
 def urn2url(urn, contents='product'):
@@ -54,7 +54,7 @@ def urn2url(urn, contents='product'):
     """
     poolname, resourceclass, serialnumstr, scheme, \
         place, poolpath = parseUrn(urn)
-    base = poolname + pnsconfig['baseurl']
+    base = poolname + pc['baseurl']
     if contents == 'product':
         ret = base+'/'+resourceclass+'/'+serialnumstr
     elif contents == 'housekeeping':

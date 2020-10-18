@@ -26,26 +26,27 @@ This is done by calling the getPool() method, which will return an existing pool
     # Global centralized dict that returns singleton -- the same -- pool for the same ID.
     _GlobalPoolList = {}
     # maps scheme to default place\poolpath
-    DefaultPlacePoolpath = {
+    PlacePaths = {
         'file': '/tmp',
         'mem': '/',
-        'http': '127.0.0.1:5000/',
-        'https': '127.0.0.1:5000/',
+        'http': '127.0.0.1:5000/v0.6',
+        'https': '127.0.0.1:5000/v0.6',
+        'server': '/tmp/data',
     }
 
     @classmethod
-    def getPool(cls, poolname=None, poolurl=None, isServer=False):
+    def getPool(cls, poolname=None, poolurl=None):
         """ returns an instance of pool according to name or path of the pool.
 
         Returns the pool object if the pool is registered. Creates the pool if it does not already exist. the same poolname-path always get the same pool.
 
         poolname: name of the pool.
-        poolurl: if given the poolpath, scheme, place will be derived from it. if not given, PoolManager.DefaultPlacePoolpath[scheme] is used to get poolplace and poolpath, with scheme set to 'file'. 
+        poolurl: if given the poolpath, scheme, place will be derived from it. if not given, PoolManager.PlacePaths[scheme] is used to get poolplace and poolpath, with scheme set to 'file'. 
 If poolname is missing it is derived from poolurl; if poolurl is also absent, DEFAULT_POOL is assumed.
 
         """
         # logger.debug('GPL ' + str(id(cls._GlobalPoolList)) +
-        #             str(cls._GlobalPoolList) + ' PConf ' + str(cls.DefaultPlacePoolpath))
+        #             str(cls._GlobalPoolList) + ' PConf ' + str(cls.PlacePaths))
 
         poolpath = None
         if poolname is None:
@@ -55,19 +56,21 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, DE
             else:
                 schm = 'file'
                 poolname = DEFAULT_POOL
-                poolpath = cls.DefaultPlacePoolpath[schm]
+                poolpath = cls.PlacePaths[schm]
                 poolurl = schm + '://' + poolpath + '/' + poolname
                 logger.debug('DEFAULT_MEM_POOL assumed: %s.' % poolurl)
+            if cls.isLoaded(poolname):
+                return cls._GlobalPoolList[poolname]
         else:
+            if cls.isLoaded(poolname):
+                return cls._GlobalPoolList[poolname]
             if poolurl:
                 poolpath, schm, pl, pn = parse_poolurl(poolurl)
             else:
                 schm = 'file'
-                poolpath = cls.DefaultPlacePoolpath[schm]
+                poolpath = cls.PlacePaths[schm]
                 poolurl = schm + '://' + poolpath + '/' + poolname
-                logger.debug('DefaultPlacePoolpath used: %s.' % poolurl)
-        if cls.isLoaded(poolname):
-            return cls._GlobalPoolList[poolname]
+                logger.debug('PlacePaths is used: %s.' % poolurl)
 
         from . import localpool, mempool, httpclientpool, httppool
 
@@ -76,13 +79,12 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, DE
                 poolname=poolname, poolurl=poolurl)
         elif schm == 'mem':
             p = mempool.MemPool(poolname=poolname, poolurl=poolurl)
+        elif schm == 'server':
+            p = httppool.HttpPool(
+                poolname=poolname, poolurl=poolurl)
         elif schm in ('http', 'https'):
-            if isServer:
-                p = httppool.HttpPool(
-                    poolname=poolname, poolurl=poolurl)
-            else:
-                p = httpclientpool.HttpClientPool(
-                    poolname=poolname, poolurl=poolurl)
+            p = httpclientpool.HttpClientPool(
+                poolname=poolname, poolurl=poolurl)
         else:
             raise NotImplementedError(schm + ':// is not supported')
         cls.save(poolname, p)
@@ -121,15 +123,15 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, DE
         """
         Gives the default poolurls of PoolManager.
         """
-        return cls.DefaultPlacePoolpath
+        return cls.PlacePaths
 
     @ classmethod
     def setPoolurlMap(cls, new):
         """
         Sets the default poolurls of PoolManager.
         """
-        cls.DefaultPlacePoolpath.clear()
-        cls.DefaultPlacePoolpath.update(new)
+        cls.PlacePaths.clear()
+        cls.PlacePaths.update(new)
 
     @ classmethod
     def size(cls):

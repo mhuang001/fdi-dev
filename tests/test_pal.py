@@ -969,10 +969,11 @@ def test_MapContext():
 
 
 def test_realistic():
+    poolname = 'pool_' + getpass.getuser()
+    poolpath = '/tmp'
+    poolurl = 'file://' + poolpath + '/' + poolname
     # remove existing pools in memory
-    PoolManager().removeAll()
-    poolname = '/realpool_' + getpass.getuser()
-    poolname = 'file://'+poolpath
+    PoolManager.removeAll()
     # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
     pstore = ProductStorage(pool=poolname)  # on disk
     pstore.wipePool(poolname)

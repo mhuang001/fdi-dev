@@ -109,7 +109,7 @@ class HttpClientPool(ProductPool):
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicLoadProduct(self, resourcetype, index):
+    def schematicLoadProduct(self, resourcetype, index, serialized=False):
         """
         does the scheme-specific part of loadProduct.
         """

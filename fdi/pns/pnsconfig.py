@@ -8,7 +8,8 @@ import pwd
 pnsconfig = dict(logginglevel=logging.DEBUG)
 
 # base url for webserver. Update version if needed.
-pnsconfig['baseurl'] = '/v0.6'
+pnsconfig['api_version'] = 'v0.6'
+pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
 
 # base url for pool, you must have permission of this path, for example : /home/user/Documents
 # this base pool path will be added at the beginning of your pool urn when you init a pool like:

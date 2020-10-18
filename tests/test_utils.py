@@ -27,6 +27,7 @@ from fdi.dataset.finetime import FineTime, FineTime1, utcobj
 from fdi.dataset.history import History
 from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
+from fdi.pal.urn import Urn
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadcsv
 from fdi.utils import moduleloader

@@ -44,11 +44,12 @@ def writeJsonwithbackup(fp, data):
     """
     if op.exists(fp):
         os.rename(fp, fp + '.old')
-    #js = json.dumps(data, cls=ODEncoder)
+    # js = json.dumps(data, cls=ODEncoder)
+    #logger.debug('Writing %s stat %s' % (fp, str(os.path.exists(fp+'/..'))))
     js = serializeClassID(data)
     with open(fp, mode="w+") as f:
         f.write(js)
-    logger.debug('JSON saved at: ' + fp)
+    logger.debug('JSON saved to: ' + fp)
 
 
 def _wipe(poolpath):
@@ -84,6 +85,7 @@ class LocalPool(ProductPool):
         real_poolpath = self.transformpath(self._poolname)
         if not op.exists(real_poolpath):
             os.makedirs(real_poolpath)
+
         c, t, u = self.readHK()
 
         logger.debug('created ' + self.__class__.__name__ + ' ' + self._poolname +
@@ -93,15 +95,22 @@ class LocalPool(ProductPool):
         self._tags.update(t)
         self._urns.update(u)
 
-    def readHK(self):
+    def readHK(self, hktype=None, serialized=False):
         """
         loads and returns the housekeeping data
+
+        hktype: one of 'classes', 'tags', 'urns' to return. default is None to return alldirs
+        serialized: if True return serialized form. Default is false.
         """
+        if hktype is None:
+            hks = ['classes', 'tags', 'urns']
+        else:
+            hks = [hktype]
         fp0 = self.transformpath(self._poolname)
-        with filelock.FileLock(self.lockpath('r'), timeout=5):
+        with filelock.FileLock(self.lockpath('w'), timeout=5):
             # if 1:
             hk = {}
-            for hkdata in ['classes', 'tags', 'urns']:
+            for hkdata in hks:
                 fp = pathjoin(fp0, hkdata + '.jsn')
                 if op.exists(fp):
                     try:
@@ -111,12 +120,12 @@ class LocalPool(ProductPool):
                         msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
                         logging.error(msg)
                         raise Exception(msg)
-                    r = deserializeClassID(js)
+                    r = js if serialized else deserializeClassID(js)
                 else:
-                    r = dict()
+                    r = '{}' if serialized else dict()
                 hk[hkdata] = r
         logger.debug('HK read from ' + fp0)
-        return hk['classes'], hk['tags'], hk['urns']
+        return (hk['classes'], hk['tags'], hk['urns']) if hktype is None else hk[hktype]
 
     def writeHK(self, fp0):
         """
@@ -129,7 +138,9 @@ class LocalPool(ProductPool):
 
     def schematicSave(self, resourcetype, index, data, tag=None):
         """
-        does the media-specific saving
+        does the media-specific saving.
+
+        index: int
         """
         fp0 = self.transformpath(self._poolname)
         fp = pathjoin(fp0, quote(resourcetype) + '_' + str(index))
@@ -141,9 +152,11 @@ class LocalPool(ProductPool):
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicLoadProduct(self, resourcetype, index):
+    def schematicLoadProduct(self, resourcetype, index, serialized=False):
         """
         does the scheme-specific part of loadProduct.
+
+        se
         """
         indexstr = str(index)
         pp = self.transformpath(self._poolname) + '/' + \
@@ -155,7 +168,7 @@ class LocalPool(ProductPool):
             msg = 'Load' + pp + 'failed. ' + str(e) + trbk(e)
             logger.error(msg)
             raise e
-        return deserializeClassID(js)
+        return js if serialized else deserializeClassID(js)
 
     def schematicRemove(self, resourcetype, index):
         """

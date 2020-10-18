@@ -79,4 +79,4 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     app.run(host=node['host'], port=node['port'],
-            threaded=False, debug=verbose, processes=5, use_reloader=False)
+            threaded=False, debug=verbose, processes=1, use_reloader=False)

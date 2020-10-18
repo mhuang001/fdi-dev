@@ -41,7 +41,7 @@ def setuplogging():
     # create logger
     logging.config.dictConfig(logdict.logdict)
     logging.getLogger("requests").setLevel(logging.WARN)
-    logging.getLogger("filelock").setLevel(logging.INFO)
+    logging.getLogger("filelock").setLevel(logging.WARN)
     if sys.version_info[0] > 2:
         logging.getLogger("urllib3").setLevel(logging.WARN)
     return logging
@@ -78,40 +78,43 @@ def getUidGid(username):
     return uid, gid
 
 
-# effective group of current process
-uid, gid = getUidGid(pc['serveruser'])
-# logger.info
-print("Set process to %s's uid %d and gid %d..." %
-      (pc['serveruser'], uid, gid))
-os.setuid(uid)
-os.setgid(gid)
-
-ptsuid, ptsgid = getUidGid(pc['ptsuser'])
-if gid not in os.getgrouplist(pc['ptsuser'], ptsgid):
-    logger.error('ptsuser %s must be in the group of serveruser %s.' %
-                 (pc['ptsuser'], pc['serveruser']))
-    sys.exit(2)
-
-# setup user class mapping
-clp = pc['userclasses']
-logger.debug('User class file '+clp)
-if clp == '':
-    Classes.updateMapping()
-else:
-    clpp, clpf = os.path.split(clp)
-    sys.path.insert(0, os.path.abspath(clpp))
-    # print(sys.path)
-    pcs = __import__(clpf.rsplit('.py', 1)[
-        0], globals(), locals(), ['PC'], 0)
-    pcs.PC.updateMapping()
-    Classes.updateMapping(pcs.PC.mapping)
-    logger.debug('User classes: %d found.' % len(pcs.PC.mapping))
-
-# logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
-
-
 app = Flask(__name__)
 auth = HTTPBasicAuth()
+
+
+@app.before_first_request
+def init_skeleton_module():
+    global pc
+    # effective group of current process
+    uid, gid = getUidGid(pc['serveruser'])
+    # logger.info
+    print("Set process to %s's uid %d and gid %d..." %
+          (pc['serveruser'], uid, gid))
+    os.setuid(uid)
+    os.setgid(gid)
+
+    ptsuid, ptsgid = getUidGid(pc['ptsuser'])
+    if gid not in os.getgrouplist(pc['ptsuser'], ptsgid):
+        logger.error('ptsuser %s must be in the group of serveruser %s.' %
+                     (pc['ptsuser'], pc['serveruser']))
+        sys.exit(2)
+
+    # setup user class mapping
+    clp = pc['userclasses']
+    logger.debug('User class file '+clp)
+    if clp == '':
+        Classes.updateMapping()
+    else:
+        clpp, clpf = os.path.split(clp)
+        sys.path.insert(0, os.path.abspath(clpp))
+        # print(sys.path)
+        pcs = __import__(clpf.rsplit('.py', 1)[
+            0], globals(), locals(), ['PC'], 0)
+        pcs.PC.updateMapping()
+        Classes.updateMapping(pcs.PC.mapping)
+        logger.debug('User classes: %d found.' % len(pcs.PC.mapping))
+
+# logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
 
 
 def setOwnerMode(p, username):
@@ -136,7 +139,10 @@ def setOwnerMode(p, username):
 
 
 def checkpath(path):
-    """ Checks  the directories for data exchange between pns server and  pns PTS.
+    """ Checks  the directories and creats if missing.
+
+    for data exchange between pns server and  pns PTS.
+    path: str. can be resolved with Path.
     """
     logger.debug(path)
     p = Path(path).resolve()
@@ -147,7 +153,6 @@ def checkpath(path):
             logger.error(msg)
             return None
         else:
-            pass
             # if path exists and can be set owner and group
             if p.owner() != un or p.group() != un:
                 msg = str(p) + ' owner %s group %s. Should be %s.' % \
@@ -156,7 +161,7 @@ def checkpath(path):
     else:
         # path does not exist
 
-        msg = str(p) + ' does not exists. Creating...'
+        msg = str(p) + ' does not exist. Creating...'
         logger.debug(msg)
         p.mkdir(mode=0o775, parents=True, exist_ok=True)
         logger.info(str(p) + ' directory has been made.')

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from ..dataset.odict import ODict
+from ..dataset.serializable import serializeClassID
 from ..dataset.classes import Classes
 from .urn import Urn, parseUrn, parse_poolurl
 from .versionable import Versionable
@@ -14,7 +15,7 @@ import filelock
 from copy import deepcopy
 import os
 import sys
-import getpass
+from functools import lru_cache
 
 import pdb
 
@@ -75,7 +76,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """ returns the appropriate path.
 
         creats the path if non-existing. Set lockpath-base permission to all-modify so other fdi users can use.
-        op: 'r' for read 'w' for write
+        op: 'r' for readlock no-reading) 'w' for writelock (no-writing)
         """
         if not os.path.exists(lockpathbase):
             os.makedirs(lockpathbase, mode=0o777)
@@ -85,6 +86,10 @@ When implementing a ProductPool, the following rules need to be applied:
 
         p = self.transformpath(self._poolname)
         lp = pathjoin(lockpathbase, p.replace('/', '_'))
+        if 'mp_po' in lp:
+            import pdb
+            pdb.set_trace()
+
         if 1:
             return lp+'.read' if op == 'r' else lp+'.write'
         else:
@@ -93,6 +98,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 lf = pathjoin(lp, 'lock')
             return lf+'.read' if op == 'r' else lf+'.write'
 
+    @lru_cache(maxsize=5)
     def transformpath(self, path):
         """ override this to changes the output from the input one (default) to something else.
 
@@ -171,22 +177,25 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         return self._urns[urn]
 
-    def schematicLoadProduct(self, resourcetype, index):
+    def schematicLoadProduct(self, resourcetype, index, serialized):
         """ to be implemented by subclasses to do the scheme-specific loading
         """
         raise(NotImplementedError)
 
-    def loadProduct(self, urn):
+    def loadProduct(self, urn, serialized=False):
         """
         Loads a Product belonging to specified URN.
+
+        serialized: if True returns contents in serialized form.
         """
         poolname, resource, index = parseUrn(urn)
         if poolname != self._poolname:
             raise(ValueError('wrong pool: ' + poolname +
                              ' . This is ' + self._poolname))
 
-        with filelock.FileLock(self.lockpath('r')):
-            ret = self.schematicLoadProduct(resource, index)
+        with filelock.FileLock(self.lockpath('w')):
+            ret = self.schematicLoadProduct(
+                resource, index, serialized=serialized)
         return ret
 
     def meta(self,  urn):
@@ -230,7 +239,8 @@ When implementing a ProductPool, the following rules need to be applied:
             raise ValueError(
                 '%s not found in pool %s.' % (urn, self.getId()))
 
-        with filelock.FileLock(self.lockpath('w')):
+        with filelock.FileLock(self.lockpath('w')),\
+                filelock.FileLock(self.lockpath('r')):
             self.removeUrn(urn)
             c[prod]['sn'].remove(sn)
             if len(c[prod]['sn']) == 0:
@@ -251,7 +261,8 @@ When implementing a ProductPool, the following rules need to be applied:
         Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).
         """
 
-        with filelock.FileLock(self.lockpath('w')):
+        with filelock.FileLock(self.lockpath('w')),\
+                filelock.FileLock(self.lockpath('r')):
             try:
                 self.schematicWipe()
                 self._classes.clear()
@@ -273,7 +284,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise(NotImplementedError)
 
-    def saveProduct(self,  product, tag=None, geturnobjs=False):
+    def saveProduct(self,  product, tag=None, geturnobjs=False, serialized=False):
         """
         Saves specified product and returns the designated ProductRefs or URNs.
         Saves a product or a list of products to the pool, possibly under the
@@ -281,6 +292,8 @@ When implementing a ProductPool, the following rules need to be applied:
         the input is a list of products), or Urns if geturnobjs is True.
 
         See pal document for pool structure.
+
+        serialized: if True returns contents in serialized form.
         """
         c, t, u = self._classes, self._tags, self._urns
         # save a copy
@@ -293,7 +306,8 @@ When implementing a ProductPool, the following rules need to be applied:
         res = []
         for prd in prds:
             pn = fullname(prd)
-            with filelock.FileLock(self.lockpath('w')):
+            with filelock.FileLock(self.lockpath('w')),\
+                    filelock.FileLock(self.lockpath('r')):
                 if pn in c:
                     sn = (c[pn]['currentSN'] + 1)
                 else:
@@ -324,7 +338,10 @@ When implementing a ProductPool, the following rules need to be applied:
                     c, t, u = cs, ts, us
                     raise e
             if geturnobjs:
-                res.append(urnobj)
+                if serialized:
+                    res.append(urn)
+                else:
+                    res.append(urnobj)
             else:
                 rf = ProductRef(urn=urnobj)
                 # it seems that there is no better way to set meta
@@ -334,9 +351,9 @@ When implementing a ProductPool, the following rules need to be applied:
         logger.debug('generated ' + 'Urns ' if geturnobjs else 'prodRefs ' +
                      str(len(res)))
         if issubclass(product.__class__, list):
-            return res
+            return serializeClassID(res) if serialized else res
         else:
-            return res[0]
+            return serializeClassID(res[0]) if serialized else res[0]
 
     def mfilter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
         """ returns filtered collection using the query.

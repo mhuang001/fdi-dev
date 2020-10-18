@@ -26,6 +26,8 @@ else:
 
 def makeUrn(poolname, typename, index):
     """ assembles a URN with infos of the pool, the resource type, and the index
+
+    index: int or string
     """
     return 'urn:' + poolname + ':' + typename + ':' + str(index)
 

@@ -32,6 +32,8 @@ logger = logging.getLogger(__name__)
 
 
 lockpathbase = '/tmp/fdi_locks'  # + getpass.getuser()
+# lock time-out
+lockto = 10
 
 
 class ProductPool(Definable, Taggable, Versionable):

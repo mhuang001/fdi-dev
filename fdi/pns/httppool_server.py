@@ -54,7 +54,7 @@ def init_httppool_server():
     global PM
 
     logger.setLevel(pc['logginglevel'])
-    logging.getLogger("filelock").setLevel(logging.WARN)
+    logging.getLogger("filelock").setLevel(logging.INFO)
     logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
     PM = PoolManager
@@ -276,9 +276,10 @@ def load_product(paths):
     """
 
     typename = paths[-2]
-    index = int(paths[-1])
+    indexstr = paths[-1]
     poolname = '/'.join(paths[0: -2])
     poolurl = schm + '://' + os.path.join(poolpath, poolname)
+    urn = makeUrn(poolname=poolname, typename=typename, index=indexstr)
     # resourcetype = fullname(data)
 
     if not PM.isLoaded(poolname):
@@ -286,12 +287,10 @@ def load_product(paths):
         msg = 'Pool not found: ' + poolname
         return result, msg
 
-    logger.debug('LOAD product: ' + poolurl +
-                 ':' + typename + ':' + str(index))
+    logger.debug('LOAD product: ' + urn)
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
-        result = poolobj.schematicLoadProduct(
-            resourcetype=typename, index=index)
+        result = poolobj.loadProduct(urn=urn, serialized=True)
         msg = ''
     except Exception as e:
         result = '"FAILED"'

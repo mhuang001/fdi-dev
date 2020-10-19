@@ -5,7 +5,11 @@ from fdi.dataset.deserialize import deserializeClassID
 from fdi.dataset.product import Product
 from fdi.pal.poolmanager import PoolManager
 from fdi.utils.getconfig import getConfig
+from fdi.utils.common import lls, trbk
 #from fdi.pns import httppool_server as HS
+
+
+import filelock
 import sys
 import base64
 from urllib.request import pathname2url
@@ -14,7 +18,7 @@ import requests
 import random
 import os
 import time
-
+from collections.abc import Mapping
 
 import asyncio
 import aiohttp
@@ -73,7 +77,7 @@ lupd = 0
 
 auth_user = pc['auth_user']
 auth_pass = pc['auth_pass']
-test_poolid = 'pool_default'
+test_poolid = 'test'
 basepath = pc['server_poolpath']
 prodt = 'fdi.dataset.product.Product'
 
@@ -193,7 +197,7 @@ def test_clear_server():
     clrpool = 'test_clear'
     cpath = os.path.join(poolpath, clrpool)
     if not os.path.exists(cpath):
-        os.mkdir(cpath)
+        os.makedirs(cpath)
     assert os.path.exists(cpath)
     with open(cpath+'/foo', 'w') as f:
         f.write('k')
@@ -204,8 +208,7 @@ def test_clear_server():
 def populate_server(poolid):
     creators = ['Todds', 'Cassandra', 'Jane', 'Owen', 'Julian', 'Maurice']
     instruments = ['fatman', 'herscherl', 'NASA', 'CNSC', 'SVOM']
-    import pdb
-    pdb.set_trace()
+
     for index, i in enumerate(creators):
         x = Product(description='desc ' + str(index),
                     instrument=random.choice(instruments))
@@ -224,7 +227,7 @@ def test_CRUD_product():
     '''
 
     logger.info('save products')
-    post_poolid = 'post_test_pool'
+    post_poolid = test_poolid
     clear_server_poolpath(post_poolid)
 
     files = get_files(post_poolid)
@@ -322,13 +325,14 @@ def test_CRUD_product():
 
 
 async def lock_pool(poolid, sec):
-    ''' Lock a pool and return a fake response
+    ''' Lock a pool from reading and return a fake response
     '''
-    import filelock
-    import time
-    logger.info('Keeping files locked')
+    logger.info('Keeping files locked for %f sec' % sec)
     ppath = os.path.join(poolpath, poolid)
-    with filelock.FileLock('/tmp/fdi_locks/' + ppath.replace('/', '_') + '.read'):
+    # lock to prevent writing
+    lock = '/tmp/fdi_locks/' + ppath.replace('/', '_') + '.write'
+    logger.debug(lock)
+    with filelock.FileLock(lock):
         await asyncio.sleep(sec)
     fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "timestamp": ' + \
         str(time.time()) + '}'
@@ -336,14 +340,19 @@ async def lock_pool(poolid, sec):
 
 
 async def read_product(poolid):
-    prodpath = '/'+prodt+'/0'
-    url = api_baseurl + poolid + prodpath
-    logger.info('Read a locked file')
+    # trying to read
+    if 1:
+        prodpath = '/'+prodt+'/0'
+        url = api_baseurl + poolid + prodpath
+    else:
+        hkpath = '/hk/classes'
+        url = api_baseurl + poolid + hkpath
+    logger.debug('Reading a locked file '+url)
     async with aiohttp.ClientSession() as session:
         async with session.get(url, auth=aiohttp.BasicAuth(auth_user, auth_pass)) as res:
             x = await res.text()
             o = deserializeClassID(x)
-    logger.info(x)
+    logger.debug("@@@@@@@locked file read: " + lls(x, 200))
     return o
 
 
@@ -352,19 +361,28 @@ def test_lock_file():
     '''
     logger.info('Test read a locked file, it will return FAILED')
     poolid = test_poolid
+    # init server
     populate_server(poolid)
+    #hkpath = '/hk/classes'
+    #url = api_baseurl + poolid + hkpath
+    #x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+
     try:
         loop = asyncio.get_event_loop()
         tasks = [asyncio.ensure_future(
-            lock_pool(poolid, pc['timeout']+5)), asyncio.ensure_future(read_product(poolid))]
+            lock_pool(poolid, 2)), asyncio.ensure_future(read_product(poolid))]
         taskres = loop.run_until_complete(asyncio.wait(tasks))
         loop.close()
-        res = [f.result() for f in [x for x in taskres][0]]
-        check_response(res[0], True)
-        check_response(res[1], True)
     except Exception as e:
-        print('Error: unable to start thread ' + str(e))
-        raise e
+        logger.error('unable to start thread ' + str(e) + trbk(e))
+        raise
+    res = [f.result() for f in [x for x in taskres][0]]
+    print('res ', lls(res[0], 200), '************', lls(res[1], 200))
+    if issubclass(res[0].__class__, Mapping) and 'result' in res[0] and issubclass(res[0]['result'].__class__, str):
+        r1, r2 = res[0], res[1]
+    else:
+        r2, r1 = res[0], res[1]
+    check_response(r1, True)
 
 
 def test_read_non_exists_pool():

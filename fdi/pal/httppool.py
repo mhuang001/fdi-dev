@@ -36,13 +36,13 @@ class HttpPool(LocalPool):
         # print(__name__ + str(kwds))
         super(HttpPool, self).__init__(**kwds)
 
-    def schematicLoadProduct(self, resourcetype, index):
+    def xschematicLoadProduct(self, resourcetype, index, serialized=True):
         """
         like localpool but returns serialized form by default.
         """
 
         p = super(HttpPool, self).schematicLoadProduct(resourcetype=resourcetype,
                                                        index=index,
-                                                       serialized=True
+                                                       serialized=serialized
                                                        )
         return p

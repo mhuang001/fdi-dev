@@ -7,7 +7,7 @@ logdict = {
     "version": 1,
     "formatters": {
         "short": {
-            "format": "%(funcName)s() %(message)s"
+            "format": "%S %(funcName)s() %(message)s"
         },
         "full": {
             "format": "%(asctime)s %(name)s %(levelname)s %(args)s %(funcName)s():%(lineno)s - %(message)s",

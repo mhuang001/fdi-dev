@@ -57,7 +57,8 @@ def yinit(mapping=6, sequence=4, offset=2, register=None):
             if inspect.isclass(c):
                 yaml.register_class(c)
 
-    ruamel.yaml.add_representer(Classes.get('ODict'), MyRepresenter.represent_dict,
+    ruamel.yaml.add_representer(Classes.mapping['ODict'],
+                                MyRepresenter.represent_dict,
                                 representer=MyRepresenter)
     notinited = False
     return yaml

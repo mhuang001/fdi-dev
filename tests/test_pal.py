@@ -547,10 +547,8 @@ def test_ProdStorage_func_http():
     # httpclientpool
     thepoolname = 'testhttppool'
     pc = getConfig()
-    # poolplace = '10.0.0.114:9880'+thepoolname
-    poolplace = pc['httphost'].replace('http://', '') + thepoolname
-    cleanup(poolplace, schm='http')
-    thepoolurl = 'http://' + poolplace
+    thepoolurl = pc['httphost'] + pc['baseurl'] + '/' + thepoolname
+    cleanup(thepoolurl, thepoolname)
     check_ps_func_for_pool(thepoolname, thepoolurl)
 
 

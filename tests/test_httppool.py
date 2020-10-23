@@ -209,6 +209,7 @@ def populate_server(poolid):
     creators = ['Todds', 'Cassandra', 'Jane', 'Owen', 'Julian', 'Maurice']
     instruments = ['fatman', 'herscherl', 'NASA', 'CNSC', 'SVOM']
 
+    urns = []
     for index, i in enumerate(creators):
         x = Product(description='desc ' + str(index),
                     instrument=random.choice(instruments))
@@ -219,7 +220,8 @@ def populate_server(poolid):
             auth_user, auth_pass), data=data)
         o = deserializeClassID(x.text)
         check_response(o)
-    return creators, instruments
+        urns.append(o['result'])
+    return creators, instruments, urns
 
 
 def test_CRUD_product():
@@ -230,25 +232,29 @@ def test_CRUD_product():
     post_poolid = test_poolid
     clear_server_poolpath(post_poolid)
 
-    files = get_files(post_poolid)
-    origin_prod = sum(1 for f in files if f[-1].isnumeric())
-    creators, instruments = populate_server(post_poolid)
-    files = get_files(post_poolid)
+    files = [f for f in get_files(post_poolid) if f[-1].isnumeric()]
+    origin_prod = len(files)
 
-    num_prod = sum(1 for f in files if f[-1].isnumeric())
+    creators, instruments, urns = populate_server(post_poolid)
+
+    files1 = [f for f in get_files(post_poolid) if f[-1].isnumeric()]
+    num_prod = len(files1)
     assert num_prod == len(creators) + origin_prod, 'Products number not match'
+
+    newfiles = set(files1) - set(files)
+    us = set(u.split(':', 2)[2].replace(':', '_') for u in urns)
+    assert newfiles == us, str(newfiles) + str(us)
 
     # ==========
     logger.info('read product')
 
-    index = random.choice(range(origin_prod, num_prod))
-    prodpath = '/' + prodt + '/' + str(index)
-    url = api_baseurl + post_poolid + prodpath
+    u = random.choice(urns)
+    # remove the leading 'urn:'
+    url = api_baseurl + u[4:].replace(':', '/')
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
-    assert o['result'].creator == creators[index -
-                                           origin_prod], 'Creator not match'
+    assert o['result'].creator == creators[urns.index(u)], 'Creator not match'
 
     # ===========
     ''' Test read hk api
@@ -263,11 +269,14 @@ def test_CRUD_product():
     assert o['result']['tags'] is not None, 'Tags jsn read failed'
     assert o['result']['urns'] is not None, 'Urns jsn read failed'
 
-    assert o['result']['classes'][prodt]['sn'] == list(range(len(creators)))
-    assert o['result']['classes'][prodt]['currentSN'] == len(creators) - 1
+    l = len(urns)
+    inds = [int(u.rsplit(':', 1)[1]) for u in urns]
+    # the last l sn's
+    assert o['result']['classes'][prodt]['sn'][-l:] == inds
+    assert o['result']['classes'][prodt]['currentSN'] == inds[-1]
     assert len(o['result']['tags']) == 0
-    assert [d['meta']['creator'].value for u,
-            d in o['result']['urns'].items()] == creators
+    assert [d['meta']['creator'].value for
+            d in list(o['result']['urns'].values())[-l:]] == creators
 
     logger.info('read classes')
     hkpath = '/hk/classes'
@@ -275,8 +284,8 @@ def test_CRUD_product():
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
-    assert o['result'][prodt]['sn'] == list(range(len(creators)))
-    assert o['result'][prodt]['currentSN'] == len(creators) - 1
+    assert o['result'][prodt]['sn'][-l:] == inds
+    assert o['result'][prodt]['currentSN'] == inds[-1]
 
     logger.info('read tags')
     hkpath = '/hk/tags'
@@ -293,22 +302,30 @@ def test_CRUD_product():
     o = deserializeClassID(x.text)
     check_response(o)
 
-    clst = [d['meta']['creator'].value for u, d in o['result'].items()]
+    clst = [d['meta']['creator'].value for d in list(
+        o['result'].values())[-l:]]
     assert clst == creators
 
     # ========
     logger.info('delete a product')
-    files = get_files(post_poolid)
-    fps = [f for f in files if f[-1].isnumeric()]
-    origin_prod = len(fps)
-    index = fps[-1].rsplit('_', 1)[1]
+
+    files = [f for f in get_files(post_poolid) if f[-1].isnumeric()]
+    origin_prod = len(files)
+
+    index = files[-1].rsplit('_', 1)[1]
     url = api_baseurl + post_poolid + '/fdi.dataset.product.Product/' + index
     x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserializeClassID(x.text)
     check_response(o)
-    files = get_files(post_poolid)
-    num_prod = sum(1 for f in files if f[-1].isnumeric())
-    assert num_prod + 1 == origin_prod, 'Remove product failed'
+
+    files1 = [f for f in get_files(post_poolid) if f[-1].isnumeric()]
+    num_prod = len(files1)
+    assert num_prod + 1 == origin_prod, 'Products number not match'
+
+    newfiles = set(files) - set(files1)
+    assert len(newfiles) == 1
+    f = newfiles.pop()
+    assert f.endswith(str(index))
 
     # ========
     logger.info('delete a pool')

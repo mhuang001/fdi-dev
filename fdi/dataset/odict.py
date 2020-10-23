@@ -3,6 +3,8 @@ from collections import OrderedDict, UserDict
 from collections.abc import Collection
 from .serializable import Serializable
 from ..utils.common import bstr
+
+from pprint import pformat
 import logging
 import pdb
 
@@ -73,6 +75,9 @@ class ODict(UserDict, Serializable):
 
     def toString(self, level=0, matprint=None, trans=True, **kwds):
         global OD_toString_Nest
+
+        return 'OD' + pformat(self)
+
         OD_toString_Nest += 1
         d = ''
         for n, v in self.data.items():

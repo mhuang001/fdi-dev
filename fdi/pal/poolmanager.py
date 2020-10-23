@@ -35,7 +35,7 @@ This is done by calling the getPool() method, which will return an existing pool
     }
 
     @classmethod
-    def getPool(cls, poolname=None, poolurl=None):
+    def getPool(cls, poolname=None, poolurl=None, **kwds):
         """ returns an instance of pool according to name or path of the pool.
 
         Returns the pool object if the pool is registered. Creates the pool if it does not already exist. the same poolname-path always get the same pool.
@@ -43,6 +43,7 @@ This is done by calling the getPool() method, which will return an existing pool
         poolname: name of the pool.
         poolurl: if given the poolpath, scheme, place will be derived from it. if not given, PoolManager.PlacePaths[scheme] is used to get poolplace and poolpath, with scheme set to 'file'. 
 If poolname is missing it is derived from poolurl; if poolurl is also absent, DEFAULT_POOL is assumed.
+        kwds: passed to pool instanciation arg-list.
 
         """
         # logger.debug('GPL ' + str(id(cls._GlobalPoolList)) +
@@ -76,15 +77,15 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, DE
 
         if schm == 'file':
             p = localpool.LocalPool(
-                poolname=poolname, poolurl=poolurl)
+                poolname=poolname, poolurl=poolurl, **kwds)
         elif schm == 'mem':
-            p = mempool.MemPool(poolname=poolname, poolurl=poolurl)
+            p = mempool.MemPool(poolname=poolname, poolurl=poolurl, **kwds)
         elif schm == 'server':
             p = httppool.HttpPool(
-                poolname=poolname, poolurl=poolurl)
+                poolname=poolname, poolurl=poolurl, **kwds)
         elif schm in ('http', 'https'):
             p = httpclientpool.HttpClientPool(
-                poolname=poolname, poolurl=poolurl)
+                poolname=poolname, poolurl=poolurl, **kwds)
         else:
             raise NotImplementedError(schm + ':// is not supported')
         cls.save(poolname, p)

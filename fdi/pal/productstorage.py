@@ -31,7 +31,7 @@ class ProductStorage(object):
         if issubclass(pool.__class__, str) and ':' in pool:
             raise TypeError(
                 'First argument must be a poolname or a pool object, not ' + str(pool))
-        super(ProductStorage, self).__init__(**kwds)
+        super(ProductStorage, self).__init__()
         self._pools = ODict()  # dict of poolname - poolobj pairs
         self.register(pool=pool, poolurl=poolurl, **kwds)
 

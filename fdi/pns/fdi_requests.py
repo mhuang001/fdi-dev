@@ -6,7 +6,7 @@ from requests.auth import HTTPBasicAuth
 
 from fdi.dataset.serializable import serializeClassID
 from fdi.dataset.deserialize import deserializeClassID
-from fdi.pal.urn import parseUrn
+from fdi.pal.urn import parseUrn, parse_poolurl
 from .pnsconfig import pnsconfig as pcc
 from fdi.utils.getconfig import getConfig
 
@@ -40,8 +40,10 @@ defaulturl = 'http://' + pcc['node']['host'] + \
     ':' + str(pcc['node']['port']) + pcc['baseurl']
 
 
-def urn2fdiurl(urn, contents='product', method='GET'):
+def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
     """ Returns URL for accessing pools with a URN.
+
+    This is done by using the PoolURL.
 
     contents:
     'product' for returning a product from the pool.
@@ -56,20 +58,17 @@ def urn2fdiurl(urn, contents='product', method='GET'):
     DELETE compo for removing product or pool
 
     Example:
-    IP=ip dir=/a/b/c files=/a/b//c/classes.jsn | urns.jsn | t.. | urn...
+    IP=ip poolpath=/a poolname=b/c files=/a/b/c/classes.jsn | urns.jsn | t.. | urn...
 
     with python:
     m.refs['myinput'] = special_ref
     ref=pstore.save(m)
-    assert ref.urn == 'urn:http://ip:port/a/b/c/fdi.dataset.MapContext:203'
+    assert ref.urn == 'urn:c:fdi.dataset.MapContext:203'
     p=ref.product
     myref=p.refs['myinput']
 
     with a pool:
     myref=pool.load('http://ip:port/v0.6/a/b/c/fdi.dataset.MapContext/203/refs/myinput')
-
-    urn:http://ip:port/a/b/c/fdi.dataset.Product:203    ==>
-    http://ip:port/v0.6/a/b/c/fdi.dataset.Product/203/meta/OBSID
 
     At the same time this is not allowed due to overlapping after 'c'
 
@@ -86,35 +85,32 @@ def urn2fdiurl(urn, contents='product', method='GET'):
     http://ip:port/v0.6/a/k/
     """
 
-    if urn.startswith('urn', 0, 3):
-        poolname, resourcecn, indexs, scheme, place, poolpath = parseUrn(urn)
-        url = urlparse(poolname)
-        base = scheme + '://' + place + pcc['baseurl']
-    elif urn.startswith('http', 0, 4):
-        url = urlparse(urn)
-        base = url.scheme + '://' + url.netloc + pcc['baseurl']
-
+    poolname, resourcecn, index = parseUrn(urn)
+    indexs = str(index)
+    poolpath, scheme, place, pn = parse_poolurl(poolurl, poolhint=poolname)
+    if poolname is None:
+        poolname = pn
     if method == 'GET':
         if contents == 'product':
-            ret = base + url.path + '/' + resourcecn + '/' + indexs
+            ret = poolurl + '/' + resourcecn + '/' + indexs
         elif contents == 'housekeeping':
-            ret = base + url.path + '/hk'
+            ret = poolurl + '/hk'
         elif contents in ['classes', 'urns', 'tags']:
-            ret = base + url.path + '/hk/' + contents
+            ret = poolurl + '/hk/' + contents
         else:
             raise ValueError(
                 'No such method and contents composition: ' + method + ' / ' + contents)
     elif method == 'POST':
         if contents == 'product':
-            ret = base + url.path + '/' + resourcecn + '/' + indexs
+            ret = poolurl + '/' + resourcecn + '/' + indexs
         else:
             raise ValueError(
                 'No such method and contents composition: ' + method + ' / ' + contents)
     elif method == 'DELETE':
         if contents == 'pool':
-            ret = base + url.path
+            ret = poolurl
         elif contents == 'product':
-            ret = base + url.path + '/' + resourcecn + '/' + indexs
+            ret = poolurl + '/' + resourcecn + '/' + indexs
         else:
             raise ValueError(
                 'No such method and contents composition: ' + method + ' / ' + contents)
@@ -125,13 +121,13 @@ def urn2fdiurl(urn, contents='product', method='GET'):
 # Store tag in headers, maybe that's  not a good idea
 
 
-def save_to_server(data, urn, tag):
+def save_to_server(data, urn, poolurl, tag):
     """Save product to server with putting tag in headers
     """
     user = pcc['auth_user']
     password = pcc['auth_pass']
     auth = HTTPBasicAuth(user, password)
-    api = urn2fdiurl(urn, contents='product', method='POST')
+    api = urn2fdiurl(urn, poolurl, contents='product', method='POST')
     # print('POST API: ' + api)
     headers = {'tag': tag}
     res = requests.post(
@@ -141,26 +137,26 @@ def save_to_server(data, urn, tag):
     return result
 
 
-def read_from_server(poolurn, contents='product'):
+def read_from_server(urn, poolurl, contents='product'):
     """Read product or hk data from server
     """
     user = pcc['auth_user']
     password = pcc['auth_pass']
     auth = HTTPBasicAuth(user, password)
-    api = urn2fdiurl(poolurn, contents)
+    api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
     res = requests.get(api, auth=auth)
     result = deserializeClassID(res.text)
     return result['result'], result['msg']
 
 
-def delete_from_server(poolurn, contents='product'):
+def delete_from_server(urn, poolurl, contents='product'):
     """Remove a product or pool from server
     """
     user = pcc['auth_user']
     password = pcc['auth_pass']
     auth = HTTPBasicAuth(user, password)
-    api = urn2fdiurl(urn=poolurn, contents=contents, method='DELETE')
+    api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)
     res = requests.delete(api, auth=auth)
     result = deserializeClassID(res.text)

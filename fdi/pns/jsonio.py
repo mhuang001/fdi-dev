@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from ..dataset.serializable import serializeClassID
 from ..dataset.deserialize import deserializeClassID
+from ..utils.common import lls
+
 import logging
 import json
 import pdb
@@ -46,7 +48,7 @@ commonheaders = {
 }
 
 
-def getJsonObj(url, headers=None, usedict=False):
+def getJsonObj(url, headers=None, usedict=False, **kwds):
     """ return object from url. url can be http or file.
     translate keys and values from string to
     number if applicable. Raise exception if fails.
@@ -61,9 +63,9 @@ def getJsonObj(url, headers=None, usedict=False):
     # ret = json.loads(stri, parse_float=Decimal)
     # ret = json.loads(stri, cls=Decoder,
     #               object_pairs_hook=collections.OrderedDict)
-    ret = deserializeClassID(stri, usedict=usedict)
+    ret = deserializeClassID(stri, usedict=usedict, **kwds)
     #logger.debug(pformat(ret, depth=6)[:] + '...')
-    logger.debug(str(ret)[:160] + '...')
+    logger.debug(lls(str(ret), 160))
     return ret
 
 
@@ -100,7 +102,7 @@ def getJsonObj1(url, headers=None, usedict=False):
     #               object_pairs_hook=collections.OrderedDict)
     ret = deserializeClassID(stri, usedict=usedict)
     #logger.debug(pformat(ret, depth=6)[:] + '...')
-    logger.debug(str(ret)[:160] + '...')
+    logger.debug(lls(str(ret), 160))
     return ret
 
 
@@ -109,7 +111,7 @@ def jsonREST(url, obj, headers, cmd):
     """
     js = serializeClassID(obj)
     # %s obj %s headers %s' % (url, obj, headers))
-    logger.debug(url + js[:160])
+    logger.debug(url + lls(js, 160))
 
     i = 1
     while True:

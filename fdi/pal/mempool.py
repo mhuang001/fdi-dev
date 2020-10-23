@@ -23,7 +23,7 @@ class MemPool(ProductPool):
         c, t, u = self.readHK()
 
         logger.debug('created ' + self.__class__.__name__ +
-                     ' ' + self._poolurn + ' HK read.')
+                     ' ' + self._poolname + ' HK read.')
 
         self._classes.update(c)
         self._tags.update(t)
@@ -38,15 +38,30 @@ class MemPool(ProductPool):
         else:
             return None
 
-    def readHK(self):
+    def readHK(self, hktype=None, serialized=False):
         """
         loads and returns the housekeeping data
+
+        hktype: one of 'classes', 'tags', 'urns' to return. default is None to return alldirs
+        serialized: if True return serialized form. Default is false.
         """
-        myspace = self.getPoolSpace()
-        if len(myspace) == 0:
-            return {}, {}, {}
+
+        if serialized:
+            raise NotImplementedError
+        if hktype is None:
+            hks = ['classes', 'tags', 'urns']
         else:
-            return myspace['classes'], myspace['tags'], myspace['urns']
+            hks = [hktype]
+        hk = {}
+        myspace = self.getPoolSpace()
+        for hkdata in hks:
+            if len(myspace) == 0:
+                r = {}
+            else:
+                r = myspace[hkdata]
+            hk[hkdata] = r
+        logger.debug('HK read from ' + self._poolname)
+        return (hk['classes'], hk['tags'], hk['urns']) if hktype is None else hk[hktype]
 
     def writeHK(self):
         """
@@ -68,11 +83,13 @@ class MemPool(ProductPool):
         self.writeHK()
         logger.debug('HK written')
 
-    def schematicLoadProduct(self, resourcetype, index):
+    def schematicLoadProduct(self, resourcetype, index, serialized=False):
         """
         does the scheme-specific part of loadProduct.
         note that the index is given as a string.
         """
+        if serialized:
+            raise NotImplementedError
         indexstr = str(index)
         resourcep = resourcetype + '_' + indexstr
         myspace = self.getPoolSpace()

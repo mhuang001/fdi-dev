@@ -6,11 +6,13 @@ from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
 from .productpool import ProductPool
+from .poolmanager import PoolManager
 from ..utils.common import pathjoin, trbk
 
 import filelock
 import shutil
 import os
+from functools import lru_cache
 from os import path as op
 import logging
 # create logger
@@ -32,14 +34,15 @@ class HttpClientPool(ProductPool):
     """ the pool will save all products on a remote server.
     """
 
-    def __init__(self, **kwds):
+    def __init__(self, poolpath_local=None, **kwds):
         """ Initialize connection to the remote server. creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files on server if not exist.
+
+        poolpath_local: sets where to stotr housekeeping data locally. default is None, using PoolManager.PlacePaths['file']
         """
         # print(__name__ + str(kwds))
         super(HttpClientPool, self).__init__(**kwds)
 
-        logger.debug(self._poolname)
-
+        self._poolpath_local = PoolManager.PlacePaths['file'] if poolpath_local is None else poolpath_local
         real_poolpath = self.transformpath(self._poolname)
         logger.debug(real_poolpath)
         if not op.exists(real_poolpath):
@@ -47,27 +50,40 @@ class HttpClientPool(ProductPool):
             os.makedirs(real_poolpath)
         c, t, u = self.readHK()
 
-        logger.debug('created ' + self.__class__.__name__ + ' ' + self._poolurn +
+        logger.debug('created ' + self.__class__.__name__ + ' ' + self._poolname +
                      ' at ' + real_poolpath + ' HK read.')
 
         self._classes.update(c)
         self._tags.update(t)
         self._urns.update(u)
 
+    @lru_cache(maxsize=5)
+    def transformpath(self, path):
+        """ use local poolpath
+
+        """
+        base = self._poolpath_local
+        if base != '':
+            if path[0] == '/':
+                path = base + path
+            else:
+                path = base + '/' + path
+        return path
+
     def readHK(self):
         """
         loads and returns the housekeeping data
         """
-        poolurn = self._poolurn
-        print("READ HK FROM REMOTE===>poolurl: " + poolurn)
+        poolname = self._poolname
+        logger.debug("READ HK FROM REMOTE===>poolurl: " + poolname)
         hk = {}
         try:
-            r, msg = read_from_server(poolurn, 'housekeeping')
+            r, msg = read_from_server(None, self._poolurl, 'housekeeping')
             if r != 'FAILED':
                 for hkdata in ['classes', 'tags', 'urns']:
                     hk[hkdata] = r[hkdata]
         except Exception as e:
-            msg = 'Read ' + poolurn + ' failed. ' + str(e) + trbk(e)
+            msg = 'Read ' + poolname + ' failed. ' + str(e) + trbk(e)
             r = 'FAILED'
 
         if r == 'FAILED':
@@ -93,10 +109,10 @@ class HttpClientPool(ProductPool):
         fp = pathjoin(fp0, resourcetype + '_' + str(index))
 
         urnobj = Urn(cls=data.__class__,
-                     poolname=self._poolurn, index=index)
+                     poolname=self._poolname, index=index)
         urn = urnobj.urn
         try:
-            res = save_to_server(data, urn, tag)
+            res = save_to_server(data, urn, self._poolurl, tag)
             if res['result'] == 'FAILED':
                 # print('Save' + fp + ' to server failed. ' + res['msg'])
                 logger.error('Save ' + fp + ' to server failed. ' + res['msg'])
@@ -114,20 +130,18 @@ class HttpClientPool(ProductPool):
         does the scheme-specific part of loadProduct.
         """
         indexstr = str(index)
-        poolurn = self._poolurn
-        uri = poolurn + '/' + resourcetype + '_' + indexstr
-        urn = makeUrn(self._poolurn, resourcetype, indexstr)
-        # print("READ PRODUCT FROM REMOTE===>poolurl: " + poolurn )
-        try:
-            res, msg = read_from_server(urn)
+        poolname = self._poolname
+        urn = makeUrn(self._poolname, resourcetype, indexstr)
+        logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
+        try:  # TODO fix it
+            res, msg = read_from_server(urn, self._poolurl)
             if res == 'FAILED':
-                # print('Load' + uri + 'failed. ' + res['msg'])
-                logger.error('Load ' + uri + ' failed.  ' + msg)
+                logger.error('Load ' + urn + ' failed.  ' + msg)
                 prod = dict()
             else:
                 prod = res
         except Exception as e:
-            err = 'Load' + uri + 'failed. ' + str(e) + trbk(e)
+            err = 'Load' + urn + 'failed. ' + str(e) + trbk(e)
             logger.error(err)
             raise e
         return prod
@@ -138,9 +152,9 @@ class HttpClientPool(ProductPool):
         """
         fp0 = self.transformpath(self._poolname)
         fp = pathjoin(fp0, resourcetype + '_' + str(index))
-        urn = makeUrn(self._poolurn, resourcetype, index)
+        urn = makeUrn(self._poolname, resourcetype, index)
         try:
-            res, msg = delete_from_server(urn)
+            res, msg = delete_from_server(urn, self._poolurl)
             if res != 'FAILED':
                 # os.unlink(fp)
                 self.writeHK(fp0)
@@ -162,7 +176,7 @@ class HttpClientPool(ProductPool):
         if not op.exists(pp):
             return
         try:
-            res, msg = delete_from_server(self._poolurn, 'pool')
+            res, msg = delete_from_server(None, self._poolurl, 'pool')
             if res != 'FAILED':
                 shutil.rmtree(pp)
                 os.mkdir(pp)

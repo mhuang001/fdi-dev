@@ -243,7 +243,12 @@ def parseUrn(urn):
     * resource type (usually class) name ``proj1.product``,
     * index number  ``322``,
 
+    returns poolname, resourceclass, index. if urn is None or empty returns (None,None,None) 
+
     """
+
+    if urn is None or urn == '':
+        return (None, None, None)
     if not issubclass(urn.__class__, strset):
         raise ValueError('a string is needed: ' + str(urn))
     # is a urn str?
@@ -270,9 +275,10 @@ def parse_poolurl(url, poolhint=None):
 
     A Pool URL is in the form of a URL that preceeds its poolname part. It is generated to desribe a pool's name, its location, and its access scheme. For example:
     * file:///tmp/mydata for pool ```mydata```,
-    * file:///d:/data/test2/v2 for pool ``test2/v2`` (pool='t')
+    * file:///d:/data/test2/v2 for pool ``test2/v2``
     * mem:///dummy for pool ``dummy``
-    * https://10.0.0.114:5000/v0.6/obs for pool ``obs``  (pool='urn:obs:foo:42')
+    * https://10.0.0.114:5000/v0.6/obs for a httpclientpool ``obs``
+    * server;///tmp/data/0.4/test for a httppool ``test`` used on a server.
 
     input:
     * url: to be decomposed.
@@ -280,10 +286,14 @@ def parse_poolurl(url, poolhint=None):
     output:
     * scheme: ``file``, ``mem``, ``http`` ...
     * place: ``10.2.1.10:2000``, empty string for ``file`` scheme
-    * poolpath ``/c:/tmp`` in e.g. ``http://localhost:9000/c:/tmp/mypool/`` with ``pool`` keyword not given or given as ``mypool``. Note that trailing blank and ``/`` are ignored, and stripped in the output.
+    * poolpath: The part between ``place`` and ``poolhint``. for ``file`` or ``server`` schemes, e.g. it is``/c:/tmp`` in ``http://localhost:9000/c:/tmp/mypool/`` with ``poolhint`` keyword arguement not given, or given as ``mypool`` (or ``myp` or 'my' ...). for ``http`` and ``https`` schemes, it is e.g. ``/0.6/tmp`` in ``https://10.0.0.114:5000/v0.6/tmp/mypool`` with ``poolhint`` keyword arguement not given, or given as ``mypool`` (or ``myp` or 'my' ...), the meaning of poolpath is subject to interpretation by the  server. Note that trailing blank and ``/`` are ignored, and stripped in the output.
     poolname: poolname from poolurl string
+
+    if url is None or empty returns (None, None,None,None) 
     """
 
+    if url is None or url == '':
+        return (None, None, None, None)
     if not issubclass(url.__class__, strset):
         raise ValueError('a string is needed: ' + str(url))
 
@@ -360,7 +370,10 @@ class UrnUtils():
 
     @ staticmethod
     def getPool(urn,  pools):
-        """ Returns the pool corresponding to the pool id inside the given urn. """
+        """ Returns the pool corresponding to the pool id inside the given urn. 
+
+        pools: ProductPool or subclass
+        """
         if issubclass(urn.__class__, Urn):
             urn = urn.urn
         pn, prod, sn = parseUrn(urn)

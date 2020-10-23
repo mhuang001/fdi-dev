@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 lockpathbase = '/tmp/fdi_locks'  # + getpass.getuser()
 # lock time-out
-lockto = 10
+locktout = 10
 
 
 class ProductPool(Definable, Taggable, Versionable):
@@ -61,16 +61,11 @@ When implementing a ProductPool, the following rules need to be applied:
 
         self._poolname = poolname
 
-        if poolurl:
-            self._poolpath, self._scheme, self._place, nm = \
-                parse_poolurl(poolurl)
-        else:
-            self._poolpath = None
-            self._scheme = None
-            self._place = None
-        self._poolurn = poolurl
+        self._poolpath, self._scheme, self._place, nm = \
+            parse_poolurl(poolurl)
+        self._poolurl = poolurl
         # self._pathurl = pr.netloc + pr.path
-        self._pathurl = None
+        # self._pathurl = None
         # {type|classname -> {'sn:[sn]'}}
         self._classes = ODict()
 
@@ -88,9 +83,6 @@ When implementing a ProductPool, the following rules need to be applied:
 
         p = self.transformpath(self._poolname)
         lp = pathjoin(lockpathbase, p.replace('/', '_'))
-        if 'mp_po' in lp:
-            import pdb
-            pdb.set_trace()
 
         if 1:
             return lp+'.read' if op == 'r' else lp+'.write'

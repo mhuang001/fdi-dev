@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
 
 # =============HTTP POOL=========================
 
+# the httppool that is local to the server
 schm = 'server'
 basepath = PoolManager.PlacePaths[schm]
 poolpath = os.path.join(basepath, pc['api_version'])
@@ -307,11 +308,6 @@ def load_HKdata(paths):
     poolurl = schm + '://' + os.path.join(poolpath, poolname)
     # resourcetype = fullname(data)
 
-    if not PM.isLoaded(poolname):
-        result = '"FAILED"'
-        msg = 'Pool not found: ' + poolname
-        return result, msg
-
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
         c, t, u = poolobj.readHK(serialized=True)
@@ -334,11 +330,6 @@ def load_single_HKdata(paths):
     poolname = '/'.join(paths[: -2])
     poolurl = schm + '://' + os.path.join(poolpath, poolname)
     # resourcetype = fullname(data)
-
-    if not PM.isLoaded(poolname):
-        result = '"FAILED"'
-        msg = 'Pool not found: ' + poolname
-        return result, msg
 
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)

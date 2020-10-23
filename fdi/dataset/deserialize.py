@@ -49,7 +49,7 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
 
     classname = obj.__class__.__name__
     if debug:
-        print(spaces + '===OBJECT %s ===' % (obj))
+        print(spaces + '===OBJECT %s ===' % lls(obj, 150))
     if not hasattr(obj, '__iter__') or issubclass(obj.__class__, strset):
         if debug:
             print(spaces + 'Find non-iter <%s>' % classname)
@@ -124,12 +124,12 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
             if debug:
                 print(spaces + '[%s]value(dict/usrd/list) <%s>: %s' %
                       (k, v.__class__.__qualname__,
-                       lls(str(list(iter(v))), 70)))
+                       lls(list(iter(v)), 70)))
             desv = constructSerializableClassID(v, lgb=lgb, debug=debug)
         else:
             if debug:
                 print(spaces + '[%s]value(simple) <%s>: %s' %
-                      (k, v.__class__.__name__, lls(str(v), 70)))
+                      (k, v.__class__.__name__, lls(v, 70)))
             if 1:
                 desv = v
             else:
@@ -144,12 +144,12 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
             inst[k] = desv
             if debug:
                 print(spaces + 'Set dict/usrd <%s>[%s] = %s <%s>' %
-                      ((inst.__class__.__name__), str(k), lls(str(desv), 70), (desv.__class__.__name__)))
+                      ((inst.__class__.__name__), str(k), lls(desv, 70), (desv.__class__.__name__)))
         else:
             setattr(inst, k, desv)
             if debug:
                 print(spaces + 'set non-dict <%s>.%s = %s <%s>' %
-                      ((inst.__class__.__name__), str(k), lls(str(desv), 70), (desv.__class__.__name__)))
+                      ((inst.__class__.__name__), str(k), lls(desv, 70), (desv.__class__.__name__)))
     indent -= 1
     return inst
 

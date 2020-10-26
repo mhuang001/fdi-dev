@@ -93,7 +93,7 @@ test1:
 	pytest $(OPT) $(T) tests/test_dataset.py
 
 test2:
-	pytest $(OPT) $(T) tests/test_pal.py -k 'not ProdStorage_func_http'
+	pytest $(OPT) $(T) tests/test_pal.py -k 'not _http'
 
 test3:
 	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py
@@ -111,7 +111,7 @@ test7:
 	pytest $(OPT) $(T) tests/test_httpclientpool.py
 
 test8:
-	pytest $(OPT) $(T) tests/test_pal.py -k 'ProdStorage_func_http'
+	pytest $(OPT) $(T) tests/test_pal.py -k '_http'
 
 
 PLOTDIR	= $(SDIR)/_static

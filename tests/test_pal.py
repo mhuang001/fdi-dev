@@ -20,9 +20,10 @@ from fdi.dataset.eq import deepcmp
 from fdi.dataset.classes import Classes
 from fdi.dataset.metadata import MetaData, Parameter
 from fdi.dataset.finetime import FineTime1
+from fdi.dataset.testproducts import TP
 from fdi.utils.checkjson import checkjson
 from fdi.utils.getconfig import getConfig
-
+from fdi.pns.fdi_requests import save_to_server, read_from_server, delete_from_server
 import copy
 import traceback
 from pprint import pprint
@@ -37,8 +38,6 @@ import glob
 
 
 import sys
-
-import pdb
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -241,27 +240,34 @@ def rmlocal(d):
         assert not op.exists(d)
 
 
-def cleanup(purl, pname):
+def cleanup(poolurl=None, poolname=None):
     """ remove pool from disk and memory"""
-    direc, schm, place, pn = parse_poolurl(purl, pname)
-    if PoolManager.isLoaded(pn):
-        PoolManager.getPool(pn).removeAll()
-    if schm == 'file':
-        d = direc + '/' + pn
-        rmlocal(d)
-    elif schm == 'mem':
-        pass
-    elif schm in ['http', 'https']:
-        d = direc + '/' + pn
-        rmlocal(d)
-        pstore = ProductStorage(pool=pn)
-        pstore.getPool(pn).removeAll()
+
+    if poolurl or poolname:
+        nu = [(poolname, poolurl)]
     else:
-        assert False
-    if PoolManager.isLoaded(DEFAULT_MEM_POOL):
-        PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-    # remove existing pools in memory
-    PoolManager.removeAll()
+        nu = []
+        for pn, pool in PoolManager.getMap().items():
+            nu.append((pn, pool._poolurl))
+    for pname, purl in nu:
+        direc, schm, place, pn = parse_poolurl(purl, pname)
+        if schm in ['file', 'server']:
+            d = direc + '/' + pn
+            rmlocal(d)
+        elif schm == 'mem':
+            pass
+        elif schm in ['http', 'https']:
+            d = PoolManager.PlacePaths['file'] + '/' + pn
+            rmlocal(d)
+            #
+            res, msg = delete_from_server(None, purl, 'pool')
+            assert res != 'FAILED'
+
+        else:
+            assert False
+
+        PoolManager.getPool(pn).removeAll()
+        del PoolManager.getMap()[pn]
 
 
 def test_PoolManager():
@@ -290,6 +296,7 @@ def test_PoolManager():
 
 def checkdbcount(n, poolurl, prodname, currentSN=-1):
     """ count files in pool and entries in class db.
+
     n, currentSN: expected number of prods and currentSN in pool for products named prodname
     """
 
@@ -309,7 +316,7 @@ def checkdbcount(n, poolurl, prodname, currentSN=-1):
             assert len(cread[prodname]['sn']) == n
     elif scheme == 'mem':
         mpool = PoolManager.getPool(poolurl=poolurl).getPoolSpace()
-        if mpool is None:
+        if mpool is None or len(mpool) == 0:
             # wiped
             assert n == 0
             assert currentSN == -1
@@ -321,8 +328,8 @@ def checkdbcount(n, poolurl, prodname, currentSN=-1):
         # for this class there are  how many prods
         assert len(mpool['classes'][prodname]['sn']) == n
     elif scheme in ['http', 'https']:
-        snpath = '/sn/' + prodname + '/testhttppool'
-        api_baseurl = pc['poolprefix'] + pc['baseurl']
+        snpath = 'sn/' + prodname + '/' + poolname
+        api_baseurl = scheme + '://' + place + poolpath + '/'
         url = api_baseurl + snpath
         x = requests.get(url)
         sn = int(x.text)
@@ -539,6 +546,7 @@ def test_ProdStorage_func_local_mem():
     thepoolname = DEFAULT_MEM_POOL
     thepoolpath = '/'
     thepoolurl = 'mem://' + thepoolpath + thepoolname
+
     cleanup(thepoolurl, thepoolname)
     check_ps_func_for_pool(thepoolname, thepoolurl)
 
@@ -546,8 +554,8 @@ def test_ProdStorage_func_local_mem():
 def test_ProdStorage_func_http():
     # httpclientpool
     thepoolname = 'testhttppool'
-    pc = getConfig()
     thepoolurl = pc['httphost'] + pc['baseurl'] + '/' + thepoolname
+
     cleanup(thepoolurl, thepoolname)
     check_ps_func_for_pool(thepoolname, thepoolurl)
 
@@ -574,10 +582,11 @@ def test_LocalPool():
     # rename the pool
     cpn = thepoolname + '_copy'
     cpu = thepoolurl + '_copy'
-    cleanup(cpu, cpn)
+    pcp = transpath(cpn, thepoolpath)
+    if op.exists(pcp):
+        shutil.rmtree(pcp)
     # make a copy of the old pool on disk
-    shutil.copytree(transpath(thepoolname, thepoolpath),
-                    transpath(cpn, thepoolpath))
+    shutil.copytree(transpath(thepoolname, thepoolpath), pcp)
     ps2 = ProductStorage(pool=cpn, poolurl=cpu)
     # two ProdStorage instances have the same DB
     p2 = ps2.getPool(ps2.getPools()[0])
@@ -588,6 +597,8 @@ def test_LocalPool():
 
 def mkStorage(thepoolname, thepoolurl):
     """ returns pool object and productStorage """
+
+    cleanup(thepoolurl, thepoolname)
     pstore = ProductStorage(thepoolname, thepoolurl)
     thepoolpath, tsc, tpl, pn = parse_poolurl(thepoolurl, thepoolname)
     if tsc in ['file', 'server']:
@@ -612,9 +623,6 @@ def doquery(poolpath, newpoolpath):
     assert q.getWhere() == a3
     assert q.retrieveAllVersions() == a4
 
-    class TP(Product):
-        pass
-    Classes.updateMapping({'TP': TP})
     a1 = TP
     a2 = 'm'
     a3 = 'm["description"].value == "pr"'
@@ -628,7 +636,6 @@ def doquery(poolpath, newpoolpath):
     # make a productStorage
     thepoolname = 'pool_' + getpass.getuser()
     thepoolurl = poolpath + '/' + thepoolname
-    cleanup(thepoolurl, thepoolname)
     thepool, pstore = mkStorage(thepoolname, thepoolurl)
 
     # make another
@@ -798,10 +805,21 @@ def doquery(poolpath, newpoolpath):
     chk(res[1], rec1[4])
 
 
-def test_query():
+def test_query_local_mem():
     thepoolpath = '/tmp'
     doquery('file://'+thepoolpath, 'file://'+thepoolpath)
     doquery('mem://'+thepoolpath, 'mem://'+thepoolpath)
+    doquery('file://'+thepoolpath, 'mem://'+thepoolpath)
+    doquery('mem://'+thepoolpath, 'file://'+thepoolpath)
+
+
+def test_query_http():
+    lpath = '/tmp'
+    thepoolpath = pc['node']['host']+':' + \
+        str(pc['node']['port']) + pc['baseurl']
+    doquery('http://'+thepoolpath, 'http://'+thepoolpath)
+    doquery('file://'+lpath, 'http://'+thepoolpath)
+    doquery('mem://'+lpath, 'http://'+thepoolpath)
 
 
 def test_RefContainer():
@@ -1073,4 +1091,3 @@ if __name__ == '__main__' and __package__ is None:
     running(test_PoolManager)
     running(test_ProductStorage)
     running(test_Context)
-    # pdb.set_trace()

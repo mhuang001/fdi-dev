@@ -52,7 +52,7 @@ def writeJsonwithbackup(fp, data):
     logger.debug('JSON saved to: ' + fp)
 
 
-def _wipe(poolpath):
+def wipeLocal(poolpath):
     """
     does the scheme-specific remove-all
     """
@@ -187,7 +187,7 @@ class LocalPool(ProductPool):
         """
         does the scheme-specific remove-all
         """
-        _wipe(self.transformpath(self._poolname))
+        wipeLocal(self.transformpath(self._poolname))
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

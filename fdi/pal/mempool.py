@@ -10,16 +10,14 @@ class MemPool(ProductPool):
     """ the pool will save all products in memory.
     """
 
-    _MemPool = {}
-
     def __init__(self, **kwds):
         """ creates data structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
         """
 
         super(MemPool, self).__init__(**kwds)
-
-        if self._poolname not in self._MemPool:
-            self._MemPool[self._poolname] = {}
+        self._MemPool = {}
+        # if self._poolname not in self._MemPool:
+        #      self._MemPool[self._poolname] = {}
         c, t, u = self.readHK()
 
         logger.debug('created ' + self.__class__.__name__ +
@@ -32,11 +30,11 @@ class MemPool(ProductPool):
     def getPoolSpace(self):
         """ returns the map of this memory pool.
         """
-
-        if self._poolname in self._MemPool:
-            return self._MemPool[self._poolname]
-        else:
-            return None
+        return self._MemPool
+        # if self._poolname in self._MemPool:
+        #     return self._MemPool[self._poolname]
+        # else:
+        #     return None
 
     def readHK(self, hktype=None, serialized=False):
         """
@@ -110,14 +108,16 @@ class MemPool(ProductPool):
         """
 
         # logger.debug()
-        # p = self.getPoolSpace()
+        p = self.getPoolSpace()
+        p.clear()
+
         # del p will only delete p in current namespace, not anything in _MemPool
         # this wipes all mempools
-        #pools = [x for x in self._MemPool]
+        # pools = [x for x in self._MemPool]
         # for x in pools:
         #    del self._MemPool[x]
-        if self._poolname in self._MemPool:
-            del self._MemPool[self._poolname]
+        # if self._poolname in self._MemPool:
+        #    del self._MemPool[self._poolname]
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

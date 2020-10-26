@@ -7,6 +7,7 @@ from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serializeClassID
 from .productpool import ProductPool
 from .poolmanager import PoolManager
+from .localpool import wipeLocal
 from ..utils.common import pathjoin, trbk
 
 import filelock
@@ -56,6 +57,11 @@ class HttpClientPool(ProductPool):
         self._classes.update(c)
         self._tags.update(t)
         self._urns.update(u)
+
+    def getPollpath_local(self):
+        """ returns the path where the client stores local data.
+        """
+        return self._poolpath_local
 
     @lru_cache(maxsize=5)
     def transformpath(self, path):
@@ -173,17 +179,17 @@ class HttpClientPool(ProductPool):
         """
         # logger.debug()
         pp = self.transformpath(self._poolname)
+
+        res, msg = delete_from_server(None, self._poolurl, 'pool')
+        if res == 'FAILED':
+            logger.error(msg)
+            raise Exception(msg)
         if not op.exists(pp):
             return
         try:
-            res, msg = delete_from_server(None, self._poolurl, 'pool')
-            if res != 'FAILED':
-                shutil.rmtree(pp)
-                os.mkdir(pp)
-            else:
-                logger.error(msg)
-                raise Exception(msg)
-        except Exception as e:
+            shutil.rmtree(pp)
+            os.mkdir(pp)
+        except IOError as e:
             err = 'remove-mkdir ' + pp + \
                 ' failed. ' + str(e) + trbk(e)
             logger.error(err)

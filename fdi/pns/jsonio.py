@@ -48,7 +48,7 @@ commonheaders = {
 }
 
 
-def getJsonObj(url, headers=None, usedict=False, **kwds):
+def getJsonObj(url, headers=None, usedict=True, **kwds):
     """ return object from url. url can be http or file.
     translate keys and values from string to
     number if applicable. Raise exception if fails.

@@ -283,13 +283,15 @@ def parse_poolurl(url, poolhint=None):
     input:
     * url: to be decomposed.
     * poolhint:  A urn or a poolname (the first distinctive substring) needs to be given if the poolname has more than one level.
-    output:
+
+    returns: poolpath, scheme, place, poolname
+
     * scheme: ``file``, ``mem``, ``http`` ...
     * place: ``10.2.1.10:2000``, empty string for ``file`` scheme
     * poolpath: The part between ``place`` and ``poolhint``. for ``file`` or ``server`` schemes, e.g. it is``/c:/tmp`` in ``http://localhost:9000/c:/tmp/mypool/`` with ``poolhint`` keyword arguement not given, or given as ``mypool`` (or ``myp` or 'my' ...). for ``http`` and ``https`` schemes, it is e.g. ``/0.6/tmp`` in ``https://10.0.0.114:5000/v0.6/tmp/mypool`` with ``poolhint`` keyword arguement not given, or given as ``mypool`` (or ``myp` or 'my' ...), the meaning of poolpath is subject to interpretation by the  server. Note that trailing blank and ``/`` are ignored, and stripped in the output.
     poolname: poolname from poolurl string
 
-    if url is None or empty returns (None, None,None,None) 
+    returns (None, None,None,None) if url is None or empty.
     """
 
     if url is None or url == '':

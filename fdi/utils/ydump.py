@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import pdb
-from ..dataset.classes import Classes
 import ruamel.yaml
 from ruamel.yaml import YAML
 from ruamel.yaml.representer import RoundTripRepresenter
@@ -47,6 +46,7 @@ def yinit(mapping=6, sequence=4, offset=2, register=None):
     global notinited
 
     yaml.indent(mapping=mapping, sequence=sequence, offset=offset)
+    from ..dataset.classes import Classes
 
     for n, c in Classes.mapping.items():
         if inspect.isclass(c):

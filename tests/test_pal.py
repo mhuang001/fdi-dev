@@ -586,7 +586,21 @@ def test_LocalPool():
     assert deepcmp(ps1._classes, p2._classes) is None
 
 
-def test_query():
+def mkStorage(thepoolname, thepoolurl):
+    """ returns pool object and productStorage """
+    pstore = ProductStorage(thepoolname, thepoolurl)
+    thepoolpath, tsc, tpl, pn = parse_poolurl(thepoolurl, thepoolname)
+    if tsc in ['file', 'server']:
+        assert op.exists(transpath(thepoolname, thepoolpath))
+    assert len(pstore.getPools()) == 1
+    assert pstore.getPools()[0] == thepoolname
+    thepool = PoolManager.getMap()[thepoolname]
+    assert thepool.getScheme() == tsc
+    assert thepool.isEmpty()
+    return thepool, pstore
+
+
+def doquery(poolpath, newpoolpath):
     # creation
     a1 = MapContext
     a2 = 'p'
@@ -613,22 +627,14 @@ def test_query():
 
     # make a productStorage
     thepoolname = 'pool_' + getpass.getuser()
-    thepoolpath = '/tmp'
-    thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
+    thepoolurl = poolpath + '/' + thepoolname
     cleanup(thepoolurl, thepoolname)
+    thepool, pstore = mkStorage(thepoolname, thepoolurl)
 
-    pstore = ProductStorage(thepoolname)
-    assert op.exists(transpath(thepoolname, thepoolpath))
-    assert len(pstore.getPools()) == 1
-    assert pstore.getPools()[0] == thepoolname
     # make another
     newpoolname = 'newpool_' + getpass.getuser()
-    newpoolurl = 'file://' + thepoolpath + '/' + newpoolname
-    cleanup(newpoolurl, newpoolname)
-    pstore2 = ProductStorage(newpoolname)
-    assert op.exists(transpath(newpoolname, thepoolpath))
-    assert len(pstore2.getPools()) == 1
-    assert pstore2.getPools()[0] == newpoolname
+    newpoolurl = newpoolpath + '/' + newpoolname
+    newpool, pstore2 = mkStorage(newpoolname, newpoolurl)
 
     # add some products to both storages
     n = 7
@@ -790,6 +796,12 @@ def test_query():
     assert len(res) == 2, str(res)
     chk(res[0], rec1[3])
     chk(res[1], rec1[4])
+
+
+def test_query():
+    thepoolpath = '/tmp'
+    doquery('file://'+thepoolpath, 'file://'+thepoolpath)
+    doquery('mem://'+thepoolpath, 'mem://'+thepoolpath)
 
 
 def test_RefContainer():

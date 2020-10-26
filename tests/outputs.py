@@ -187,9 +187,9 @@ out_GenericDataset =\
     """# GenericDataset
 description= {'test GD'},
 meta= {
-    a= {NumericParameter{ 3.4 (None) <float>, "num par", dflt 2.0, vld [[[0, 30], 'nok']] tcode=None}},
-    b= {DateParameter{ "FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}", "date par", dflt FineTime{1958-01-01T00:00:00.99 TAI(99) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, vld [[[0, 9999999999], 'dok']] tcode=%Y-%m-%dT%H:%M:%S.%f UTC}},
-    c= {StringParameter{ "Right", "str par", dflt cliche, vld [['', 'sok']] tcode=B}}}
+    a= {NumericParameter{ 3.4 (None) <float>, "num par", default= 2.0, valid= [[[0, 30], 'nok']] tcode=None}},
+    b= {DateParameter{ "FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}", "date par", default= FineTime{1958-01-01T00:00:00.99 TAI(99) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, valid= [[[0, 9999999999], 'dok']] tcode=%Y-%m-%dT%H:%M:%S.%f UTC}},
+    c= {StringParameter{ "Right", "str par", default= cliche, valid= [['', 'sok']] tcode=B}}}
 data =
 
 88.8
@@ -210,9 +210,9 @@ out_TableDataset0 =\
     """# TableDataset
 description= {'UNKNOWN'},
 meta= {
-    a= {NumericParameter{ 3.4 (None) <float>, "num par", dflt 2.0, vld [[[0, 30], 'nok']] tcode=None}},
-    b= {DateParameter{ "FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}", "date par", dflt FineTime{1958-01-01T00:00:00.99 TAI(99) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, vld [[[0, 9999999999], 'dok']] tcode=%Y-%m-%dT%H:%M:%S.%f UTC}},
-    c= {StringParameter{ "Right", "str par", dflt cliche, vld [['', 'sok']] tcode=B}}}
+    a= {NumericParameter{ 3.4 (None) <float>, "num par", default= 2.0, valid= [[[0, 30], 'nok']] tcode=None}},
+    b= {DateParameter{ "FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}", "date par", default= FineTime{1958-01-01T00:00:00.99 TAI(99) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, valid= [[[0, 9999999999], 'dok']] tcode=%Y-%m-%dT%H:%M:%S.%f UTC}},
+    c= {StringParameter{ "Right", "str par", default= cliche, valid= [['', 'sok']] tcode=B}}}
 data =
 
 # col1 col2
@@ -227,9 +227,9 @@ out_TableDataset =\
     """# TableDataset
 description= {'UNKNOWN'},
 meta= {
-    a= {NumericParameter{ 3.4 (None) <float>, "num par", dflt 2.0, vld [[[0, 30], 'nok']] tcode=None}},
-    b= {DateParameter{ "FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}", "date par", dflt FineTime{1958-01-01T00:00:00.99 TAI(99) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, vld [[[0, 9999999999], 'dok']] tcode=%Y-%m-%dT%H:%M:%S.%f UTC}},
-    c= {StringParameter{ "Right", "str par", dflt cliche, vld [['', 'sok']] tcode=B}}}
+    a= {NumericParameter{ 3.4 (None) <float>, "num par", default= 2.0, valid= [[[0, 30], 'nok']] tcode=None}},
+    b= {DateParameter{ "FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}", "date par", default= FineTime{1958-01-01T00:00:00.99 TAI(99) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, valid= [[[0, 9999999999], 'dok']] tcode=%Y-%m-%dT%H:%M:%S.%f UTC}},
+    c= {StringParameter{ "Right", "str par", default= cliche, valid= [['', 'sok']] tcode=B}}}
 data =
 
 ======  =======
@@ -248,10 +248,10 @@ out_CompositeDataset0 =\
     """# CompositeDataset
 description= {'test CD'},
 meta= {
-    a= {NumericParameter{ 3.4 (None) <float>, "num par", dflt 2.0, vld [[[0, 30], 'nok']] tcode=None}},
-    b= {DateParameter{ "FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}", "date par", dflt FineTime{1958-01-01T00:00:00.99 TAI(99) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, vld [[[0, 9999999999], 'dok']] tcode=%Y-%m-%dT%H:%M:%S.%f UTC}},
-    c= {StringParameter{ "Right", "str par", dflt cliche, vld [['', 'sok']] tcode=B}},
-    m1= {NumericParameter{ 2.3 (sec) <float>, "a different param in metadata", dflt None, vld None tcode=None}}}data =
+    a= {NumericParameter{ 3.4 (None) <float>, "num par", default= 2.0, valid= [[[0, 30], 'nok']] tcode=None}},
+    b= {DateParameter{ "FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}", "date par", default= FineTime{1958-01-01T00:00:00.99 TAI(99) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, valid= [[[0, 9999999999], 'dok']] tcode=%Y-%m-%dT%H:%M:%S.%f UTC}},
+    c= {StringParameter{ "Right", "str par", default= cliche, valid= [['', 'sok']] tcode=B}},
+    m1= {NumericParameter{ 2.3 (sec) <float>, "a different param in metadata", default= None, valid= None tcode=None}}}data =
 
 
 # [ dataset 1 ]
@@ -288,13 +288,13 @@ out_CompositeDataset =\
     """# CompositeDataset
 description= {'test CD'},
 meta= {
-    a= {NumericParameter{ 3.4 (None) <float>, "num par", dflt 2.0, vld [[[0, 30], 'nok']] tcode=None}},
-    b= {DateParameter{ "FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}", "date par", dflt FineTime{1958-01-01T00:00:00.99 TAI(99) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, vld [[[0, 9999999999], 'dok']] tcode=%Y-%m-%dT%H:%M:%S.%f UTC}},
-    c= {StringParameter{ "Right", "str par", dflt cliche, vld [['', 'sok']] tcode=B}},
-    m1= {NumericParameter{ 2.3 (sec) <float>, "a different param in metadata", dflt None, vld None tcode=None}}}data =
+    a= {NumericParameter{ 3.4 (None) <float>, "num par", default= 2.0, valid= [[[0, 30], 'nok']] tcode=None}},
+    b= {DateParameter{ "FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}", "date par", default= FineTime{1958-01-01T00:00:00.99 TAI(99) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, valid= [[[0, 9999999999], 'dok']] tcode=%Y-%m-%dT%H:%M:%S.%f UTC}},
+    c= {StringParameter{ "Right", "str par", default= cliche, valid= [['', 'sok']] tcode=B}},
+    m1= {NumericParameter{ 2.3 (sec) <float>, "a different param in metadata", default= None, valid= None tcode=None}}}data =
 
 
-# >>> [ dataset 1 ]
+#     [ dataset 1 ]
 # ArrayDataset
 description= {'arraydset 1'},
 meta= {},
@@ -306,7 +306,7 @@ data =
 
 768  4.4  5400
 
-# >>> [ dataset 2 ]
+#     [ dataset 2 ]
 # TableDataset
 description= {'Example table'}, meta= {}
 data =

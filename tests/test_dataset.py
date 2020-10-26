@@ -735,8 +735,6 @@ def test_Parameter_features():
     v.value = b2
     checkjson(v)
 
-    assert v.toString() == str(v)
-
     # event
     global test123
     test = None

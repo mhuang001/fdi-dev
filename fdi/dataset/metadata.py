@@ -239,12 +239,12 @@ f        With two positional arguments: arg1-> value, arg2-> description.
         return
 
     def __repr__(self):
-        return self.toString()
+        return self.toString(level=1)
 
     def toString(self, level=0, **kwds):
         vs = str(self._value)
-        ss = '{ %s }' % (vs) if level else \
-            '{ %s, "%s"}' % (vs, str(self.description))
+        ss = '%s' % (vs) if level else \
+            '%s, "%s"' % (vs, str(self.description))
         return self.__class__.__name__ + ss
 
     def serializable(self):
@@ -458,13 +458,13 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         self._value = self.checked(value)
 
     def __repr__(self):
-        return self.toString()
+        return self.toString(level=1)
 
     def toString(self, level=0, **kwds):
 
         if level:
             vs = str(self._value)
-            ss = '{ %s }' % (vs)
+            ss = '%s' % (vs)
             return ss
 
         if hasattr(self, '_value'):
@@ -487,7 +487,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         fs = str(self._default) if hasattr(self, '_default') else 'unknown'
         gs = str(self._valid) if hasattr(self, '_valid') else 'unknown'
         return self.__class__.__name__ +\
-            '{ %s <%s>, "%s", dflt %s, vld %s}' %\
+            '{ %s <%s>, "%s", default= %s, valid= %s}' %\
             (vs, ts, ds, fs, gs)
 
     def serializable(self):
@@ -511,17 +511,17 @@ class NumericParameter(Parameter, Quantifiable):
             value=value, description=description, typ_=typ_, default=default, valid=valid, **kwds)
 
     def __repr__(self):
-        return self.toString()
+        return self.toString(level=1)
 
     def toString(self, level=0, **kwds):
 
         if level:
             vs = str(self._value)
-            ss = '{ %s }' % (vs)
+            ss = '%s' % (vs)
             return ss
 
         return self.__class__.__name__ +\
-            '{ %s (%s) <%s>, "%s", dflt %s, vld %s tcode=%s}' %\
+            '{ %s (%s) <%s>, "%s", default= %s, valid= %s tcode=%s}' %\
             exprstrs(self)
 
     def serializable(self):
@@ -585,13 +585,13 @@ class DateParameter(Parameter):
 
     def __repr__(self):
 
-        return self.toString()
+        return self.toString(level=1)
 
     def toString(self, level=0, **kwds):
 
         if level:
-            vs = str(self._value)
-            ss = '{ %s }' % (vs)
+            vs = self._value.toString(level=level, **kwds)
+            ss = '%s' % (vs)
             return ss
 
         vs = str(self.value) if hasattr(self, 'value') else 'unknown'
@@ -602,7 +602,7 @@ class DateParameter(Parameter):
         cs = str(self._value.format) if hasattr(
             self, '_value') else 'unknown'
         return self.__class__.__name__ +\
-            '{ "%s", "%s", dflt %s, vld %s tcode=%s}' % \
+            '{ "%s", "%s", default= %s, valid= %s tcode=%s}' % \
             (vs, ds, fs, gs, cs)
 
     def serializable(self):
@@ -662,13 +662,13 @@ class StringParameter(Parameter):
         self._typecode = typecode
 
     def __repr__(self):
-        return self.toString()
+        return self.toString(level=1)
 
     def toString(self, level=0, **kwds):
 
         if level:
             vs = str(self._value)
-            ss = '{ %s }' % (vs)
+            ss = '%s' % (vs)
             return ss
 
         vs = str(self.value) if hasattr(self, 'value') else 'unknown'
@@ -678,7 +678,7 @@ class StringParameter(Parameter):
         gs = str(self._valid) if hasattr(self, '_valid') else 'unknown'
         cs = str(self._typecode) if hasattr(self, '_typecode') else 'unknown'
         return self.__class__.__name__ + \
-            '{ "%s", "%s", dflt %s, vld %s tcode=%s}' % \
+            '{ "%s", "%s", default= %s, valid= %s tcode=%s}' % \
             (vs, ds, fs, gs, cs)
 
     def serializable(self):
@@ -759,17 +759,27 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
 
     def toString(self, level=0, **kwds):
         s, l = '', ''
+        npk, npv = 10, 19
         for (k, v) in self._sets.items():
-            # vs = str(v.value) if level else
-            vs = v.toString(level=level, **kwds)
-            s = s + str(k) + ' = ' + vs + ', '
-        l = ''.join([x.__class__.__name__ + ' ' + str(id(x)) +
-                     ' "' + x.description + '", ' for x in self.listeners])
+            if level == 0 or level == 1:
+                pk = str(k)
+                # pad to multiples of npk
+                # pk = (' ' * (npk-len(pk)) if npk > len(k) else '') + pk
+                # vs = str(v.value) if level else
+                vs = v.toString(level=level, **kwds)
+                pv = pk + '= ' + vs + ',  '
+                # pad to multiples of npv
+                # pv += ' ' * (npv-len(pv) % npv)
+                s = s + pv
+            else:
+                s = s + str(k) + ', '
+            l = ''.join([x.__class__.__name__ + ' ' + str(id(x)) +
+                         ' "' + x.description + '", ' for x in self.listeners])
         return self.__class__.__name__ + \
-            '{[' + s + '], listeners = [%s]}' % (l)
+            '{' + s + ' Listeners = [%s]}' % (l)
 
     def __repr__(self, **kwds):
-        return self.toString(**kwds)
+        return self.toString(level=1, **kwds)
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

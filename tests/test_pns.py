@@ -132,7 +132,7 @@ def test_getpnsconfig():
     '''
     logger.debug('get pnsconfig')
     checkserver()
-    o = getJsonObj(aburl + '/pnsconfig', debug=True)
+    o = getJsonObj(aburl + '/pnsconfig', debug=False)
     issane(o)
     r = o['result']
     # , deepcmp(r['scripts'], pc['scripts'])

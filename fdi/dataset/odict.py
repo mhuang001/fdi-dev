@@ -3,6 +3,7 @@ from collections import OrderedDict, UserDict
 from collections.abc import Collection
 from .serializable import Serializable
 from ..utils.common import bstr
+from ..utils.ydump import ydump
 
 from pprint import pformat
 import logging
@@ -76,19 +77,23 @@ class ODict(UserDict, Serializable):
     def toString(self, level=0, matprint=None, trans=True, **kwds):
         global OD_toString_Nest
 
-        return 'OD' + pformat(self)
+        # return 'OD' + str(type(self.data))+'*'+str(self.data)
+        # return 'OD' + str(self.data)
+        # return ydump(self.data)
 
         OD_toString_Nest += 1
         d = ''
         for n, v in self.data.items():
-            d += '\n# ' + '>>> ' * OD_toString_Nest + '[ ' + n + ' ]\n'
-            d += bstr(v, level=level, matprint=matprint, trans=trans, **kwds)
+            d += '\n# ' + '    ' * OD_toString_Nest + '[ ' + n + ' ]\n'
+            s = bstr(v, level=level, matprint=matprint, trans=trans, **kwds)
+            d += s
         OD_toString_Nest -= 1
         return d
 
     def __repr__(self):
         """ returns string representation with details set according to debuglevel.
         """
+        # return 'OD'+super().__repr__()
         level = int(logger.getEffectiveLevel()/10) - 1
         return self.toString(level=level)
 

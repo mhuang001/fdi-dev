@@ -134,6 +134,18 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         return self._poolname
 
+    def getPoolurl(self):
+        """
+        Gets the pool URL of this pool.
+        """
+        return self._poolurl
+
+    def getPlace(self):
+        """
+        Gets the place of this pool.
+        """
+        return self._place
+
     def getProductClasses(self):
         """
         Returns all Product classes found in this pool.
@@ -146,6 +158,12 @@ When implementing a ProductPool, the following rules need to be applied:
         Returns the reference count of a ProductRef.
         """
         return self._urns[ref.urn]['refcnt']
+
+    def getScheme(self):
+        """
+        Gets the scheme of this pool.
+        """
+        return self._scheme
 
     def getUrnId(self):
         """

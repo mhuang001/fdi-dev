@@ -6,6 +6,9 @@ Change Log
 	BETA0
 	=====
 
+	1.0rc5 2020-10-26
+	-----------------
+Place info removed from URN.
 	1.0rc4 2020-10-10
 	-----------------
 HTTP pool server an client integration.

@@ -89,6 +89,8 @@ OPT	= -r P --log-file=$(TESTLOG) -v -l --pdb
 T	= 
 test: test1 test2 test5 test4 test3
 
+testhttp: test6 test7 test8
+
 test1: 
 	pytest $(OPT) $(T) tests/test_dataset.py
 

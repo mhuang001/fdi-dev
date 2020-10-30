@@ -190,15 +190,11 @@ class ProductStorage(object):
 
         return self._pools[self.getWritablePool()].getUrn(tag)
 
-    def wipePool(self, poolname):
-        """ Clear all data and meta data of the named pool.
+    def wipePool(self):
+        """ Clear all data and meta data of the writable pool.
         """
-        if poolname not in self._pools:
-            msg = 'pool ' + poolname + ' not found'
-            logger.error(msg)
-            raise ValueError(msg)
 
-        self._pools[poolname].removeAll()
+        list(self._pools.values())[0].removeAll()
 
     def select(self, query, previous=None):
         """ Returns a list of URNs to products that match the specified query.

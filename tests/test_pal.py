@@ -529,7 +529,7 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     checkdbcount(1, thepoolurl, fullname(MapContext), 0)
 
     # clean up a pool
-    ps.wipePool(thepoolname)
+    ps.wipePool()
     checkdbcount(0, thepoolurl, pcq)
     assert len(ps.getPool(thepoolname)._urns) == 0
 
@@ -930,7 +930,7 @@ def test_MapContext():
     assert pstore.getWritablePool() == thepoolname
     assert op.isdir(transpath(thepoolname, thepoolpath))
     # clean up possible garbage of previous runs
-    pstore.wipePool(thepoolname)
+    pstore.wipePool()
     assert op.isdir(transpath(thepoolname, thepoolpath))
     assert sum([1 for x in glob.glob(
         op.join(transpath(thepoolname, thepoolpath), '*'))]) == 0
@@ -1004,7 +1004,7 @@ def test_realistic():
     PoolManager.removeAll()
     # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
     pstore = ProductStorage(pool=poolname)  # on disk
-    pstore.wipePool(poolname)
+    pstore.wipePool()
 
     p1 = Product(description='p1')
     p2 = Product(description='p2')
@@ -1068,7 +1068,7 @@ def speed():
     pool = 'file:///tmp/perf_' + getpass.getuser()
     pstore = ProductStorage(pool)
     # clean up possible garbage of previous runs
-    pstore.wipePool(pool)
+    pstore.wipePool()
     # in memory
     print(timeit.timeit('ref1 = ProductRef(p)',
                         globals=globals().update(locals()), number=1))

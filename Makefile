@@ -2,8 +2,8 @@ PRODUCT = Product
 B_PRODUCT = BaseProduct
 PYDIR	= fdi/dataset
 RESDIR	= $(PYDIR)/resources
-P_PY	= $(shell python -c "print('$(PRODUCT)'.lower())").py
-B_PY	= $(shell python -c "print('$(B_PRODUCT)'.lower())").py
+P_PY	= $(shell python -S -c "print('$(PRODUCT)'.lower())").py
+B_PY	= $(shell python -S -c "print('$(B_PRODUCT)'.lower())").py
 B_INFO	= $(B_PY)
 P_YAML	= $(RESDIR)
 B_YAML	= $(RESDIR)
@@ -71,12 +71,12 @@ reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
 
 # update _version.py and tag based on setup.py
-# VERSION	= $(shell python -c "from setuptools_scm import get_version;print(get_version('.'))")
+# VERSION	= $(shell python -S -c "from setuptools_scm import get_version;print(get_version('.'))")
 # @ echo update _version.py and tag to $(VERSION)
 
 
 VERSIONFILE	= fdi/_version.py
-VERSION	= $(shell python -c "_l = {};f=open('$(VERSIONFILE)'); exec(f.read(), None, _l); f.close; print(_l['__version__'])")
+VERSION	= $(shell python -S -c "_l = {};f=open('$(VERSIONFILE)'); exec(f.read(), None, _l); f.close; print(_l['__version__'])")
 
 versiontag:
 	@ echo  __version__ = \"$(VERSION)\" in $(VERSIONFILE)

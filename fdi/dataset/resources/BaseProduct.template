@@ -204,9 +204,12 @@ $INITARGS
             level=level, matprint=matprint, trans=trans, beforedata=h, **kwds)
         return s
 
-    def __repr__(self):
+    def __repr__(self, **kwds):
         ''' meta and datasets only show names
         '''
+
+        return self.toString(level=1, **kwds)
+
         s = '{'
         """for lvar in self.pInfo['metadata'].keys():
             if hasattr(self, lvar):

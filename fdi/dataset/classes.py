@@ -63,7 +63,7 @@ class Classes_meta(type):
         """
         super().__init__(*args, **kwds)
 
-    def updateMapping(cls, c=None, rerun=False, exclude=[], verbose=False):
+    def updateMapping(cls, c=None, rerun=False, exclude=[], ignore_missing=False, verbose=False):
         """ Updates classes mapping.
         Make the package mapping if it has not been made.
         """
@@ -76,9 +76,12 @@ class Classes_meta(type):
         return cls._classes
 
     def importModuleClasses(cls, rerun=False, exclude=[], verbose=False):
-        """ The set of eserializable classes in modclass is maintained by hand.
-        Do nothing if the classes mapping is already made so repeated calls will not cost lots more time. Set rerun to True to force re-import. If the module-class list has never been imported, it will be imported regardless rerun.
-modules whose names (without '.') are in exclude are not imported.
+        """ The set of deserializable classes in modclass is maintained by hand.
+
+        Do nothing if the classes mapping is already made so repeated calls will not cost  more time.
+
+        rerun: set to True to force re-import. If the module-class list has never been imported, it will be imported regardless rerun.
+        exclude: modules whose names (without '.') are in exclude are not imported.
         """
 
         if len(cls._package) and not rerun:
@@ -145,10 +148,9 @@ class Classes(metaclass=Classes_meta):
     """ A dictionary of class names and their class objects that are allowed to be deserialized.
     A fdi package built-in dictionary (in the format of locals() output) is kept internally.
     Users who need add more deserializable class can for example:
-    def myclasses():
-        from foo.bar import Baz
+    class Myclass():
         ...
-    Classes.classes = myClasses
+    Classes.classes.update({myClasses
     """
 
     pass

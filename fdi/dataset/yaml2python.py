@@ -11,7 +11,7 @@ import importlib
 import pdb
 # from ..pal.context import MapContext
 from ..utils.options import opt
-from ..utils.common import pathjoin
+from ..utils.common import pathjoin, trbk
 from ..utils.ydump import ydump
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 
@@ -198,6 +198,9 @@ def getCls(clp, rerun=True, exclude=None, verbose=False):
             # ls = [(k, v) for k, v in locals().items()
             #      if k not in ['clp', 'e', 'exclude', 'rerun']]
             ret = ls
+            # print(e)
+            # print(trbk(e))
+            # raise
     else:
         if '/' not in clp and '\\' not in clp and not clp.endswith('.py'):
             print('Importing project classes from module '+clp)
@@ -401,6 +404,8 @@ if __name__ == '__main__':
          'description': 'Python file name, or a module name,  to import prjcls to update Classes with user-defined classes which YAML file refers to.'},
         {'long': 'upgrade', 'char': 'u', 'default': False,
          'description': 'Upgrade the file to current schema, to a filename + ' + version},
+        {'long': 'debug', 'char': 'd', 'default': False,
+         'description': 'run in pdb. type "c" to continuue.'},
     ]
 
     out = opt(ops)
@@ -414,13 +419,19 @@ if __name__ == '__main__':
     ypath = out[2]['result']
     tpath = out[3]['result']
     upgrade = out[6]['result']
+    debug = out[7]['result']
+    project_class_path = out[5]['result']
+
+    if debug:
+        import pdb
+        pdb.set_trace()
+
     # input file
     descriptors, fins = readyaml(ypath, version)
     if upgrade:
         yamlupgrade(descriptors, fins, ypath, version, verbose)
         sys.exit()
 
-    clp = out[5]['result']
     # include project classes for every product so that products made just
     # now can be used as parents
     from .classes import Classes
@@ -429,7 +440,8 @@ if __name__ == '__main__':
     # could be  invalid due to unseccessful previous runs
     importexclude = [x.lower() for x in descriptors.keys()]
 
-    pcl = getCls(clp, rerun=True, exclude=importexclude, verbose=verbose)
+    pcl = getCls(project_class_path, rerun=True,
+                 exclude=importexclude, verbose=verbose)
     Classes.updateMapping(
         c=pcl, rerun=True, exclude=importexclude, verbose=verbose)
     glb = Classes.mapping
@@ -505,7 +517,7 @@ if __name__ == '__main__':
 
         ikwds = ''.join(ls).strip('\n')
 
-        # make aubatitution dictionary for Template
+        # make substitution dictionary for Template
         subs = {}
         subs['WARNING'] = '# Automatically generated from %s. Do not edit.' % fin
         subs['PRODUCTNAME'] = prodname
@@ -521,7 +533,14 @@ if __name__ == '__main__':
         print('productInit=\n%s\n' % (subs['INITARGS']))
 
         # subtitute the template
-        with open(os.path.join(tpath, prodname + '.template'), encoding='utf-8') as f:
+        if os.path.exists(os.path.join(tpath, prodname + '.template')):
+            tname = os.path.join(tpath, prodname + '.template')
+        elif os.path.exists(os.path.join(tpath, 'template')):
+            tname = os.path.join(tpath, 'template')
+        else:
+            logger.error('Template file not found.')
+            sys.exit(-3)
+        with open(tname, encoding='utf-8') as f:
             t = f.read()
 
         sp = Template(t).safe_substitute(subs)
@@ -547,6 +566,6 @@ if __name__ == '__main__':
         # the next product can use this one.
         importlib.invalidate_caches()
         importexclude.remove(modulename)
-        pcl = getCls(clp, rerun=True, exclude=importexclude)
+        pcl = getCls(project_class_path, rerun=True, exclude=importexclude)
         Classes.updateMapping(c=pcl, rerun=True, exclude=importexclude)
         glb = Classes.mapping

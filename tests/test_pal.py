@@ -63,9 +63,9 @@ else:
     import logging.config
     # create logger
     logging.config.dictConfig(logdict)
-    logger = logging.getLogger(__name__)
-    logger.debug('%s logging level %d' %
-                 (__name__, logger.getEffectiveLevel()))
+    logger = logging.getLogger()
+    logger.debug('logging level %d' %
+                 (logger.getEffectiveLevel()))
     logging.getLogger("filelock").setLevel(logging.WARNING)
 
 
@@ -384,13 +384,13 @@ def test_ProductRef():
     assert rfps == pr
     assert rfps.getMeta() != pr.getMeta()
     assert pr.urnobj == uobj
-    assert pr.getStorage() == ps
-    assert rfps.getStorage() is not None
+    assert pr.getPoolname() == a3
+    assert rfps.getPoolname() is not None
     # load from a storage.
     pr = ps.load(u)
     assert rfps == pr
     assert rfps.getMeta() == pr.getMeta()
-    assert pr.getStorage() == rfps.getStorage()
+    assert pr.getPoolname() == rfps.getPoolname()
 
     # parent
     # nominal ops
@@ -937,7 +937,7 @@ def test_MapContext():
     # save the product and get a reference
     prodref = pstore.save(x)
     # has the ProductStorage
-    assert prodref.getStorage() == pstore
+    assert prodref.getPoolname() == thepoolname
     # has the pool
     assert prodref._poolname == thepoolname
     # returns the product

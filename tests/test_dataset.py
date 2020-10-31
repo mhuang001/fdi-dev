@@ -59,8 +59,8 @@ else:
     # create logger
     logging.config.dictConfig(logdict)
     logger = logging.getLogger()
-    logger.debug('%s logging level %d' %
-                 (__name__, logger.getEffectiveLevel()))
+    logger.debug('logging level %d' %
+                 (logger.getEffectiveLevel()))
 
 
 def checkgeneral(v):

@@ -69,7 +69,7 @@ class ProductRef(Attributable, Serializable, Comparable):
         the product
         """
 
-        if self._storage is None:
+        if self._poolname is None:
             return None
         if hasattr(self, '_product') and self._product is not None:
             return self._product
@@ -79,14 +79,21 @@ class ProductRef(Attributable, Serializable, Comparable):
             self._product = p
         return p
 
+    def getPoolname(self):
+        """ Returns the name of the product pool associated.
+        """
+        return self._poolname
+
     def getStorage(self):
         """ Returns the product storage associated.
         """
+        raise NotImplementedError
         return self._storage
 
     def setStorage(self, storage):
         """ Sets the product storage associated.
         """
+        raise NotImplementedError
         self._storage = storage
         # if hasattr(self, '_urn') and self._urn:
         #    self._meta = self._storage.getMeta(self._urn)
@@ -149,8 +156,6 @@ class ProductRef(Attributable, Serializable, Comparable):
         self._urnobj = urnobj
         if urnobj is not None:
             self._urn = urnobj.urn
-            # if hasattr(self, '_storage') and self._storage:
-            #    self._meta = self._storage.getMeta(self._urn)
 
             from .poolmanager import PoolManager, DEFAULT_MEM_POOL
             from . import productstorage
@@ -160,13 +165,10 @@ class ProductRef(Attributable, Serializable, Comparable):
             pool = PoolManager.getPool(poolname)
             self._meta = (meta if meta else pool.meta(
                 urnobj.urn)) if loadmeta else None
-            st = productstorage.ProductStorage(pool)
-            self._storage = st
             self._poolname = poolname
             self._product = None
         else:
             self._urn = None
-            self._storage = None
             self._poolname = None
             self._meta = None
             self._product = None

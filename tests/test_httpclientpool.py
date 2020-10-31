@@ -30,8 +30,8 @@ from fdi.utils.common import fullname
 
 
 def setuplogging():
-    import logging.config
     import logging
+    import logging.config
     from . import logdict
 
     # create logger
@@ -43,11 +43,11 @@ def setuplogging():
 
 
 logging = setuplogging()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 pcc.update(getConfig())
-logger.setLevel(pcc['logginglevel'])
+logger.setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
@@ -141,7 +141,6 @@ def test_CRUD_product():
     test_poolpath = pcc['base_poolpath']
     test_poolurl = pcc['httphost'] + pcc['baseurl'] + \
         '/' + test_poolid
-    print(test_poolurl)
 
     if PoolManager.isLoaded(DEFAULT_MEM_POOL):
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
@@ -186,10 +185,13 @@ def test_CRUD_product():
     sn = pstore.getPool(
         test_poolid)._classes['fdi.dataset.product.Product']['sn']
     assert len(sn) >= 1, 'Delete product local error, sn : ' + str(sn)
-    logger.info(
-        'Here will generate an load exception message, that is normal, you can ignore it:')
-    res = pstore.getPool(test_poolid).loadProduct(urn.urn)
-    assert res == {}, 'Remote load product error: ' + str(res)
+    logger.info('A load exception message is expected')
+    try:
+        res = pstore.getPool(test_poolid).loadProduct(urn.urn)
+    except NameError:
+        pass
+    else:
+        assert 0, 'Failed to raise exception'
 
     logger.info('Delete a pool')
     pstore.getPool(test_poolid).removeAll()

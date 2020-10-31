@@ -139,18 +139,10 @@ class HttpClientPool(ProductPool):
         poolname = self._poolname
         urn = makeUrn(self._poolname, resourcetype, indexstr)
         logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
-        try:  # TODO fix it
-            res, msg = read_from_server(urn, self._poolurl)
-            if res == 'FAILED':
-                logger.error('Load ' + urn + ' failed.  ' + msg)
-                prod = dict()
-            else:
-                prod = res
-        except Exception as e:
-            err = 'Load' + urn + 'failed. ' + str(e) + trbk(e)
-            logger.error(err)
-            raise e
-        return prod
+        res, msg = read_from_server(urn, self._poolurl)
+        if res == 'FAILED':
+            raise NameError('Loading ' + urn + ' failed.  ' + msg)
+        return res
 
     def schematicRemove(self, resourcetype, index):
         """

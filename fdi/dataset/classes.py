@@ -131,6 +131,8 @@ class Classes_meta(type):
     @property
     def mapping(cls):
         """ Returns the dictionary of classes allowed for deserialization, including the fdi built-ins and user added classes.
+
+        Will update the classes if the list is empty
         """
         if len(cls._classes) == 0:
             cls.updateMapping()

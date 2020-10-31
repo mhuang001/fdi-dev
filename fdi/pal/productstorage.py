@@ -107,22 +107,16 @@ class ProductStorage(object):
         except Exception as e:
             logger.error('unable to save to the writable pool.')
             raise
-        if not geturnobjs:
-            if issubclass(ret.__class__, list):
-                for x in ret:
-                    x.setStorage(self)
-            else:
-                ret.setStorage(self)
         return ret
 
     def remove(self, urn):
         """ removes product of urn from the writeable pool
         """
-        poolurn = self.getWritablePool()
+        poolname = self.getWritablePool()
         logger.debug('removing product:' + str(urn) +
-                     ' from pool ' + str(poolurn))
+                     ' from pool ' + str(poolname))
         try:
-            self._pools[poolurn].remove(urn)
+            self._pools[poolname].remove(urn)
         except Exception as e:
             logger.error('unable to remove from the writable pool.')
             raise e
@@ -145,7 +139,7 @@ class ProductStorage(object):
         return list(self._pools.keys())
 
     def getPool(self, poolname):
-        """ mh: returns the pool object from poolurn
+        """ mh: returns the pool object from poolname
         """
         if poolname not in self._pools:
             msg = 'pool ' + poolname + ' not found'
@@ -163,10 +157,10 @@ class ProductStorage(object):
         """
         return self._pools[self.getWritablePool()].getTags()
 
-    def getProductClasses(self, poolurn):
+    def getProductClasses(self, poolname):
         """  Yields all Product classes found in this pool.
         """
-        return self._pools[poolurn].getProductClasses()
+        return self._pools[poolname].getProductClasses()
 
     def getTags(self, urn):
         """  Get the tags belonging to the writable pool that associated to a given URN.

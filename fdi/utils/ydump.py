@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import pdb
 import ruamel.yaml
 from ruamel.yaml import YAML
 from ruamel.yaml.representer import RoundTripRepresenter
 from ruamel.yaml.comments import CommentedMap
 import inspect
 from collections import OrderedDict
-import sys
 
 from ruamel.yaml.compat import StringIO, ordereddict
+
+import logging
+# create logger
+logger = logging.getLogger(__name__)
 
 
 class MyYAML(YAML):

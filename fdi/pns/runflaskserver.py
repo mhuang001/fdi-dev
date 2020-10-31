@@ -25,10 +25,11 @@ logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
 
-    logger.info('Server starting. Make sure no other instance is running')
+    logger = logging.getLogger()
     # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
     pc.update(getConfig())
     logger.setLevel(pc['logginglevel'])
+    logger.info('Server starting. Make sure no other instance is running')
 
     node = pc['node']
     # Get username and password and host ip and port.
@@ -66,14 +67,13 @@ if __name__ == '__main__':
         exit(3)
     print('Check http://' + node['host'] + ':' + str(node['port']) +
           pc['baseurl'] + '/ for API list')
-    import pdb
 
     if servertype == 'pns':
-        from fdi.pns.pns_server import app
         print('======== %s ========' % servertype)
+        from fdi.pns.pns_server import app
     elif servertype == 'httppool_server':
-        from fdi.pns.httppool_server import app
         print('<<<<<< %s >>>>>' % servertype)
+        from fdi.pns.httppool_server import app
     else:
         logger.error('Unknown server %s' % servertype)
         sys.exit(-1)

@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from collections import OrderedDict
-import io
-import pdb
-
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
 def loadcsv(filepath, delimiter=',', header=0):

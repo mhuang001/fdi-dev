@@ -31,8 +31,8 @@ from fdi.pns.pnsconfig import pnsconfig as pc
 
 
 def setuplogging():
-    import logging.config
     import logging
+    import logging.config
     from . import logdict
 
     # create logger
@@ -44,11 +44,11 @@ def setuplogging():
 
 
 logging = setuplogging()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 
 pc.update(getConfig())
-logger.setLevel(pc['logginglevel'])
+logger.setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
@@ -394,7 +394,7 @@ def test_lock_file():
         logger.error('unable to start thread ' + str(e) + trbk(e))
         raise
     res = [f.result() for f in [x for x in taskres][0]]
-    print('res ', lls(res[0], 200), '************', lls(res[1], 200))
+    logger.debug('res ' + lls(res[0], 200) + '************' + lls(res[1], 200))
     if issubclass(res[0].__class__, Mapping) and 'result' in res[0] and issubclass(res[0]['result'].__class__, str):
         r1, r2 = res[0], res[1]
     else:
@@ -414,7 +414,7 @@ def test_read_non_exists_pool():
     check_response(o, True)
 
 
-def test_subclasses_pool():
+def XXXtest_subclasses_pool():
     logger.info('Test create a pool which has subclass')
     poolid_1 = 'subclasses/a'
     poolid_2 = 'subclasses/b'

@@ -32,6 +32,7 @@ from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadcsv
 from fdi.utils import moduleloader
 from fdi.utils.common import fullname
+from fdi.utils.options import opt
 
 # import __builtins__
 
@@ -142,3 +143,58 @@ def test_fullname():
     assert fullname(Urn()) == 'fdi.pal.urn.Urn'
     assert fullname(Urn) == 'fdi.pal.urn.Urn'
     assert fullname('l') == 'str'
+
+
+def test_opt():
+    options = [
+        {'long': 'helpme', 'char': 'h', 'default': False,
+         'description': 'print help'},
+        {'long': 'name=', 'char': 'n', 'default': 'Boo',
+         'description': 'name of ship'},
+        {'long': 'verbose', 'char': 'v', 'default': True,
+         'description': 'print info'}
+    ]
+    # no args. defaults returned
+    out = opt(options, [])
+    assert out[0]['result'] == False
+    assert out[1]['result'] == 'Boo'
+    assert out[2]['result'] == True
+
+    assert options[1]['long'] == 'name='
+
+    # options given in short format
+    out = opt(options, ['-h', '-n Awk', '-v'])
+    assert out[0]['result'] == True
+    # leading and trailing white spaces in args are removed
+    assert out[1]['result'] == 'Awk'
+    # the switch always results in True!
+    assert out[2]['result'] == True
+
+    # options given in long format
+    out = opt(options, ['--helpme', '--name=Awk', '--verbose'])
+    assert out[0]['result'] == True
+    assert out[1]['result'] == 'Awk'
+    # the switch always results in True!
+    assert out[2]['result'] == True
+
+    # type of result is determines by that of the default
+    options[0]['default'] = 0
+    out = opt(options, ['--helpme', '--name=Awk', '--verbose'])
+    assert out[0]['result'] == 1
+
+    # unplanned option and '--help' get exception and exits
+    try:
+        out = opt(options, ['--helpme', '--name=Awk', '-y'])
+    except SystemExit:
+        pass
+    else:
+        assert 0, 'failed to exit.'
+
+    try:
+        h = copy.copy(options)
+        h[0]['long'] = 'help'
+        out = opt(h, ['--help', '--name=Awk', '-v'])
+    except SystemExit:
+        pass
+    else:
+        assert 0, 'failed to exit.'

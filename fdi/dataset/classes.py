@@ -106,13 +106,18 @@ class Classes_meta(type):
                 #m = importlib.__import__(modnm, globals(), locals(), froml)
                 m = importlib.import_module(modnm)
             except SelectiveMetaFinder.ExcludedModule as e:
+                msg = 'Did not import %s. %s' % (str(froml), str(e))
                 if verbose:
-                    logger.info('Did not import %s. %s' %
-                                (str(froml), str(e)))
+                    logger.info(msg)
                 else:
-                    logger.debug('Did not import %s. %s' %
-                                 (str(froml), str(e)))
+                    logger.debug(msg)
                 #ety, enm, tb = sys.exc_info()
+            except (ModuleNotFoundError, SyntaxError) as e:
+                msg = 'Could not import %s. %s' % (str(froml), str(e))
+                if verbose:
+                    logger.info(msg)
+                else:
+                    logger.debug(msg)
             else:
                 for n in exed:
                     cls._package[n] = getattr(m, n)

@@ -73,17 +73,19 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, DE
                 poolurl = schm + '://' + poolpath + '/' + poolname
                 logger.debug('PlacePaths is used: %s.' % poolurl)
 
-        from . import localpool, mempool, httpclientpool, httppool
-
         if schm == 'file':
+            from . import localpool
             p = localpool.LocalPool(
                 poolname=poolname, poolurl=poolurl, **kwds)
         elif schm == 'mem':
+            from . import mempool
             p = mempool.MemPool(poolname=poolname, poolurl=poolurl, **kwds)
         elif schm == 'server':
+            from . import httppool
             p = httppool.HttpPool(
                 poolname=poolname, poolurl=poolurl, **kwds)
         elif schm in ('http', 'https'):
+            from . import httpclientpool
             p = httpclientpool.HttpClientPool(
                 poolname=poolname, poolurl=poolurl, **kwds)
         else:

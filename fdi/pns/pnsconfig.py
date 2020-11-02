@@ -77,18 +77,3 @@ del phome, h
 
 # seconds
 pnsconfig['timeout'] = 10
-
-vvppconfig = {
-    'ingest': dict(
-        pool='/tmp/vvpp',
-        tag='rc1',
-        pattern='**/00001*atti.cat'),
-
-    'pmmock': dict(
-        sleep=3,
-        times=1),
-
-    'run': dict(
-        timeout=10)
-}
-pnsconfig['vc'] = vvppconfig

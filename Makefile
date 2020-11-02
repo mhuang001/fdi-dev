@@ -87,7 +87,7 @@ TESTLOG	= /tmp/fdi-tests.log
 
 OPT	= -r P --log-file=$(TESTLOG) -v -l --pdb
 T	= 
-test: test1 test2 test5 test4 test3
+test: test1 test2 test3 test5 test4
 
 testhttp: test6 test7 test8
 

@@ -163,7 +163,7 @@ def test_opt():
     assert options[1]['long'] == 'name='
 
     # options given in short format
-    out = opt(options, ['-h', '-n Awk', '-v'])
+    out = opt(options, ['exe', '-h', '-n Awk', '-v'])
     assert out[0]['result'] == True
     # leading and trailing white spaces in args are removed
     assert out[1]['result'] == 'Awk'
@@ -171,7 +171,7 @@ def test_opt():
     assert out[2]['result'] == True
 
     # options given in long format
-    out = opt(options, ['--helpme', '--name=Awk', '--verbose'])
+    out = opt(options, ['exe', '--helpme', '--name=Awk', '--verbose'])
     assert out[0]['result'] == True
     assert out[1]['result'] == 'Awk'
     # the switch always results in True!
@@ -179,12 +179,12 @@ def test_opt():
 
     # type of result is determines by that of the default
     options[0]['default'] = 0
-    out = opt(options, ['--helpme', '--name=Awk', '--verbose'])
+    out = opt(options, ['exe', '--helpme', '--name=Awk', '--verbose'])
     assert out[0]['result'] == 1
 
     # unplanned option and '--help' get exception and exits
     try:
-        out = opt(options, ['--helpme', '--name=Awk', '-y'])
+        out = opt(options, ['exe', '--helpme', '--name=Awk', '-y'])
     except SystemExit:
         pass
     else:
@@ -193,7 +193,7 @@ def test_opt():
     try:
         h = copy.copy(options)
         h[0]['long'] = 'help'
-        out = opt(h, ['--help', '--name=Awk', '-v'])
+        out = opt(h, ['exe', '--help', '--name=Awk', '-v'])
     except SystemExit:
         pass
     else:

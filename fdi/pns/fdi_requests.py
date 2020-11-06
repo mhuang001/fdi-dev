@@ -23,7 +23,7 @@ else:
 
 
 logger = logging.getLogger(__name__)
-logger.debug('level %d' % (logger.getEffectiveLevel()))
+#logger.debug('level %d' % (logger.getEffectiveLevel()))
 
 
 common_header = {

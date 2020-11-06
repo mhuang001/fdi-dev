@@ -17,14 +17,6 @@ Subpackages
 Submodules
 ----------
 
-fdi.pal.common module
----------------------
-
-.. automodule:: fdi.pal.common
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 fdi.pal.comparable module
 -------------------------
 
@@ -53,6 +45,14 @@ fdi.pal.httpclientpool module
 -----------------------------
 
 .. automodule:: fdi.pal.httpclientpool
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.pal.httppool module
+-----------------------
+
+.. automodule:: fdi.pal.httppool
    :members:
    :undoc-members:
    :show-inheritance:

@@ -82,6 +82,20 @@ class ListnerSet(Serializable, DeepEqual, list):
         """ Can be encoded with serializableEncoder """
         return OrderedDict()
 
+    def toString(self, level=0, **kwds):
+        if level == 0:
+            l = ['%s(%d, %s)' % (x.__class__.__name__, id(x),
+                                 lls(x.description, 20))
+                 for x in self._members]
+        else:
+            l = ['%s(%d, %s)' % (x.__class__.__name__, id(x),
+                                 lls(x.description, 8))
+                 for x in self._members]
+        return self.__class__.__name__ + '{' + ', '.join(l) + '}'
+
+    def __repr__(self, **kwds):
+        return self.toString(level=1, **kwds)
+
 
 class EventSender(object):
     """ adapted from Peter Thatcher's

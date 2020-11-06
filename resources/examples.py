@@ -12,12 +12,7 @@ You can copy the code from code blocks by clicking the ``copy`` icon on the top-
 """
 
 # import these first.
-import pdb
-import copy
-import getpass
-import os
-from datetime import datetime
-import logging
+
 from fdi.dataset.product import Product
 from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter
 from fdi.dataset.finetime import FineTime, FineTime1
@@ -28,6 +23,12 @@ from fdi.pal.productref import ProductRef
 from fdi.pal.query import AbstractQuery, MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.pal.productstorage import ProductStorage
+
+import getpass
+import os
+from datetime import datetime, timezone
+import logging
+
 # initialize the white-listed class dictionary
 cmap = Classes.updateMapping()
 
@@ -258,7 +259,7 @@ v.remove(a1)  # inherited from composite
 print(v.size())  # == 1
 
 # simplifed string presentation
-print(v.toString(level=1))
+print(v)
 
 print("""
 Product
@@ -290,9 +291,9 @@ x["QualityImage"].unit  # is None
 s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
       ('col2', [0, 43.2, 2E3], 'cnt')]
 x["Spectrum"] = TableDataset(data=s1)
+
 # mandatory properties are also in metadata
 # test mandatory BaseProduct properties that are also metadata
-x.creator = ""
 a0 = "Me, myself and I"
 x.creator = a0
 x.creator   # == a0
@@ -309,9 +310,18 @@ x.meta["creator"].value   # == a1
 # so did the property
 x.creator   # == a1
 
-
-# Demo ``toString()`` function. The result (detail level 1) should be ::
-print(x.toString(level=1))
+# load some metadata
+m = x.meta
+m['a'] = NumericParameter(
+    3.4, 'num par', 'float', 2., {(0, 30): 'nok'})
+then = datetime(
+    2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
+m['b'] = DateParameter(FineTime(then), 'date par', default=99,
+                       valid={(0, 9999999999): 'dok'}, typecode='%Y')
+m['c'] = StringParameter(
+    'Right', 'str par', {'': 'sok'}, 'cliche', 'B')
+# Demo ``toString()`` function. The result (detail level=0) should be ::
+print(x.toString())
 # For more examples see tests/test_dataset.py
 
 print('''
@@ -332,10 +342,11 @@ logger.setLevel(logging.WARNING)
 
 # a pool for demonstration will be create here
 demopoolpath = '/tmp/demopool_' + getpass.getuser()
-demopool = 'file://' + demopoolpath
+demopoolurl = 'file://' + demopoolpath
 # clean possible data left from previous runs
 os.system('rm -rf ' + demopoolpath)
-PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+if PoolManager.isLoaded(DEFAULT_MEM_POOL):
+    PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
 PoolManager.removeAll()
 
 # create a prooduct and save it to a pool
@@ -344,7 +355,7 @@ x = Product(description='save me in store')
 s1 = [('energy', [1, 4.4, 5.6], 'eV'), ('freq', [0, 43.2, 2E3], 'Hz')]
 x["Spectrum"] = TableDataset(data=s1)
 # create a product store
-pstore = ProductStorage(pool=demopool)
+pstore = ProductStorage(poolurl=demopoolurl)
 pstore
 
 # save the product and get a reference
@@ -354,7 +365,7 @@ print(prodref)
 
 # get the urn string
 urn = prodref.urn
-print(urn)    # urn:file:///tmp/demopool_mh:fdi.dataset.product.Product:0
+print(urn)    # urn:demopool_mh:fdi.dataset.product.Product:0
 
 # re-create a product only using the urn
 
@@ -425,17 +436,19 @@ Query a ProdStorage
 
 # clean possible data left from previous runs
 defaultpoolpath = '/tmp/pool_' + getpass.getuser()
-newpoolpath = '/tmp/newpool_' + getpass.getuser()
+newpoolname = 'newpool_' + getpass.getuser()
+newpoolpath = '/tmp/' + newpoolname
 os.system('rm -rf ' + defaultpoolpath)
 os.system('rm -rf ' + newpoolpath)
-PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+if PoolManager.isLoaded(DEFAULT_MEM_POOL):
+    PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
 PoolManager.removeAll()
 # make a productStorage
-defaultpool = 'file://'+defaultpoolpath
-pstore = ProductStorage(defaultpool)
+defaultpoolurl = 'file://'+defaultpoolpath
+pstore = ProductStorage(poolurl=defaultpoolurl)
 # make another
-newpoolname = 'file://' + newpoolpath
-pstore2 = ProductStorage(newpoolname)
+newpoolurl = 'file://' + newpoolpath
+pstore2 = ProductStorage(poolurl=newpoolurl)
 
 # add some products to both storages
 n = 7

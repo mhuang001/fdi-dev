@@ -7,7 +7,7 @@ import sys
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-logger.debug('logging level %d' % (logger.getEffectiveLevel()))
+#logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
 @functools.lru_cache(5)

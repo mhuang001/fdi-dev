@@ -309,7 +309,7 @@ class ProductRef(Attributable, Serializable, Comparable):
             s += '# meta=' + self.getMeta().toString(level=level, **kwds)
         else:
             s += ' Parents=' + str([id(p) for p in self.parents])
-            s += ' meta= ' + self.getMeta().toString(level=level, **kwds)
+            s += ' meta= ' + 'None' if self.getMeta() is None else self.getMeta().toString(level=level, **kwds)
         s += '}'
         return s
 

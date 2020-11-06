@@ -42,8 +42,7 @@ setup(
         'tabulate>=0.8.7',
     ],
     extras_require={
-        'DOC': ['aiohttp-theme>=0.1.6',
-                'sphinx_rtd_theme>=0.4.3',
+        'DOC': ['sphinx_rtd_theme>=0.4.3',
                 'sphinx-copybutton>=0.3.0'
                 ]
     },

@@ -210,18 +210,6 @@ $INITARGS
 
         return self.toString(level=1, **kwds)
 
-        s = '{'
-        """for lvar in self.pInfo['metadata'].keys():
-            if hasattr(self, lvar):
-                s += '%s = %s, ' % (lvar, getattr(self, lvar))
-        """
-        s += 'meta = "%s", _sets = %s, history = %s}' % (
-            str(self.meta),
-            str(self.keySet()),
-            str(self.history)
-        )
-        return s
-
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         if 0:

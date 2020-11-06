@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+from tabulate import tabulate
 import hashlib
 import traceback
 import logging
@@ -62,6 +64,18 @@ def lls(s, length=80):
         return '%s...%s' % (st[:l], st[3 + l - length:])
 
 
+def wls(s, width=15):
+    """ widthth-limited string.
+
+    width: if > 0   Returns the str with '\n' inserted every width chars.
+    else return s.
+    """
+
+    if width <= 0:
+        return s
+    return '\n'.join(s[i:i+width] for i in range(0, len(s), width))
+
+
 def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
     """ Makes a presentation string at a detail level.
     """
@@ -72,6 +86,9 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
     if level == 0:
         if not hasattr(obj, 'items'):
             return bstr(obj, level=level, **kwds)
+        from fdi.dataset.metadata import MetaData
+        if issubclass(obj.__class__, MetaData):
+            return obj.toString(level=level, **kwds)
         s = ['%s= {%s}' % (mstr(k, level=level, excpt=excpt,
                                 indent=indent, depth=depth+1, quote='', **kwds),
                            mstr(v, level=level, excpt=excpt,
@@ -88,13 +105,28 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
         if not hasattr(obj, 'items'):
             # returns value of value if possible. limit to 40 char
             obj = obj.getValue() if hasattr(obj, 'getValue') else obj
-            return bstr(obj, length=40, level=level, **kwds)
-        pat = '%s= {%s}' if depth == 0 else '%s= %s'
+            return bstr(obj, length=80, level=level, **kwds)
+        from fdi.dataset.metadata import MetaData
+        if issubclass(obj.__class__, MetaData):
+            pat = '%s= %s' if depth == 0 else '%s= %s'
+            data = obj._sets
+        else:
+            pat = '%s= {%s}' if depth == 0 else '%s= %s'
+            data = obj
+
         s = [pat % (mstr(k, level=level, excpt=excpt,
                          indent=indent, depth=depth+1, quote='', **kwds),
                     mstr(v, level=level, excpt=excpt,
                          indent=indent, depth=depth+1, **kwds))
-             for k, v in obj.items() if k not in excpt]
+             for k, v in data.items() if k not in excpt]
+        if issubclass(obj.__class__, MetaData):
+            tab = []
+            for i in range(int(len(s)/4)):
+                row = tuple(wls(s[i*4+j], 20) for j in range(4))
+                tab.append(row)
+            t = tabulate(tab, headers='', tablefmt='simple', disable_numparse=True,
+                         **kwds) if len(tab) else '(empty)'
+            return '\n' + t + '\n'
         sep = ',\n' if depth == 0 else ', '
         return sep.join(s)
     else:
@@ -105,31 +137,38 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
         return ', '.join(s)
 
 
-def exprstrs(self, v='_value'):
+def attrstr(p, v, ts, missingval, ftime=False):
+    if hasattr(p, v):
+        val = getattr(p, v)
+        if val is None:
+            return 'None'
+        vc = val.__class__
+        # from ..dataset.finetime import FineTime
+        # if issubclass(vc, FineTime):
+        if ftime and ts == 'finetime':
+            # print('***', v, ts)
+            if v == '_valid':
+                s = '['+', '.join(str(x) for x in val) + ']'
+            else:
+                s = val.toString(level=1, width=1)
+            val = s
+        vs = hex(val) if ts == 'hex' and issubclass(
+            vc, int) else str(val)
+    else:
+        vs = missingval
+    return vs
+
+
+def exprstrs(param, v='_value', missingval='-'):
     """ Generates a set of strings for expr() """
 
-    if hasattr(self, v):
-        val = getattr(self, v)
-        if hasattr(self, '_type'):
-            vs = hex(val) if self._type == 'hex' and issubclass(
-                val.__class__, int) else str(val)
-            ts = str(self._type)
-        else:
-            vs = str(val)
-            ts = 'unknown'
-    else:
-        vs = 'unknown'
-        if hasattr(self, '_type'):
-            ts = str(self._type)
-        else:
-            ts = 'unknown'
-
-    ds = str(self.description) if hasattr(
-        self, 'description') else 'unknown'
-    fs = str(self._default) if hasattr(self, '_default') else 'unknown'
-    gs = str(self._valid) if hasattr(self, '_valid') else 'unknown'
-    us = str(self._unit) if hasattr(self, '_unit') else 'unknown'
-    cs = str(self._typecode) if hasattr(self, '_typecode') else 'unknown'
+    ts = attrstr(param, '_type', 'string', missingval)
+    vs = attrstr(param, v, ts, missingval, ftime=True)
+    fs = attrstr(param, '_default', ts, missingval, ftime=True)
+    ds = attrstr(param, 'description', ts, missingval)
+    gs = attrstr(param, '_valid', ts, missingval, ftime=True)
+    us = attrstr(param, '_unit', ts, missingval)
+    cs = attrstr(param, '_typecode', ts, missingval)
 
     return (vs, us, ts, ds, fs, gs, cs)
 
@@ -140,7 +179,7 @@ def pathjoin(*p):
     """
     sep = '/'
     r = sep.join(p).replace(sep+sep, sep)
-    #print(p, r)
+    # print(p, r)
     return r
 
 

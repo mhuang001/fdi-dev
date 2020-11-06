@@ -30,19 +30,22 @@ URN
 
 The Universial Resource Name (URN) string has this format::
 
-  urn:poolname:resourceclass:serialnumber
+  urn:``poolname``:``resourcetype``:``serialnumber``
 
 where
 
-:resourceclass: full class name of the resource (product)
-:poolname: scheme + ``://`` + place + directory
-:scheme: ``file``, ``mem``, ``http`` ... etc
-:place: ``192.168.5.6:8080``, ``c:``, an empty string ... etc
-:directory:
-   A label for the pool that is by default used as the full path where the pool is stored. ProductPool.transformpath() can used to change the directory here to other meaning.
-     * for ``file`` scheme: ``/`` + name + ``/`` + name + ... + ``/`` + name
-     * for ``mem`` scheme: ``/`` + name + ``/``
-:serialnumber: internal index. str(int).
+:poolname: Also called poolID, a (optionally path-like) string. Its format should follow that of a directory name, without leading or trailing ``/``.
+:resourcetype: (fully qualified) class name of the resource (usually Product)
+:serialnumber: internal index.
+
+The ``poolname`` in a URN is a label. Although pool providers could use '/' in it to introduce internal heirachy. The ``PoolURL`` is used to give practical information of a pool. It is a local set-up detail that is supposed to be hidden from pool users. The format::
+
+  ``schme``://``place````poolpath``/``poolname``
+
+:scheme: Implementation protocol including ``file`` for :class:`LocalPool`, ``mem`` for :class:`MemPool`, ``http``, ``https`` for :class:`HttpclientPool`.
+:place: IP:port such as``192.168.5.6:8080`` for ``http`` and ``https`` schemes, or an empty string for ``file`` and ``mem`` schemes.
+:poolpath: The full path where the pool is stored, can have API version.  :meth:`ProductPool.transformpath` is used to map it further.
+:poolname: same as in URN
 
 ProductRef
 ----------

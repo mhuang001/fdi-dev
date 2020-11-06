@@ -85,18 +85,22 @@ class GenericDataset(Dataset, DataContainer, Container):
         """
         return x in self.data
 
-    def __repr__(self):
-        return self.__class__.__name__ + \
-            '{ %s, description = "%s", meta = %s }' % \
-            (str(self.data), str(self.description), str(self.meta))
+    def __repr__(self, **kwds):
+        return self.toString(level=1, **kwds)
 
     def toString(self, level=0, matprint=None, trans=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         """
-        s = '# ' + self.__class__.__name__ + '\n' +\
+        cn = self.__class__.__name__
+        if level > 1:
+            return cn + \
+                '{ %s, description = "%s", meta = %s }' % \
+                (str(self.data), str(self.description), str(self.meta))
+
+        s = '# ' + cn + '\n' +\
             mstr(self.serializable(), level=level, **kwds)
-        d = 'data =\n\n'
+        d = cn + '-dataset =\n'
         d += bstr(self.data, level=level, **kwds) if matprint is None else \
             matprint(self.data)
         return s + '\n' + d + '\n'
@@ -208,11 +212,8 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
         """
         self.getData().remove(*args, **kwargs)
 
-    def __repr__(self):
-        vs, us, ts, ds, fs, gs, cs = exprstrs(self, '_data')
-        return self.__class__.__name__ +\
-            '{ %s (%s) <%s>, "%s", dflt %s, tcode=%s, meta=%s}' %\
-            (vs, us, ts, ds, fs, cs, str(self.meta))
+    def __repr__(self, **kwds):
+        return self.toString(level=1, **kwds)
 
     def toString(self, level=0, matprint=None, trans=True, **kwds):
         """ matprint: an external matrix print function
@@ -221,9 +222,16 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
         if matprint is None:
             matprint = ndprint
 
-        s = '# ' + self.__class__.__name__ + '\n' +\
+        cn = self.__class__.__name__
+        if level > 1:
+            vs, us, ts, ds, fs, gs, cs = exprstrs(self, '_data')
+            return cn +\
+                '{ %s (%s) <%s>, "%s", dflt %s, tcode=%s, meta=%s}' %\
+                (vs, us, ts, ds, fs, cs, str(self.meta))
+
+        s = '# ' + cn + '\n' +\
             mstr(self.serializable(), level=level, **kwds)
-        d = 'data =\n\n'
+        d = cn + '-dataset =\n'
         d += bstr(self.data, level=level, **kwds) if matprint is None else \
             matprint(self.data, trans=False, headers=[],
                      tablefmt='plain', **kwds)
@@ -551,19 +559,22 @@ class TableDataset(GenericDataset, TableModel):
         """
         self.setColumn(key, value)
 
-    def __repr__(self):
-        return self.__class__.__name__ + \
-            '{ description = "%s", meta = %s, data = "%s"}' % \
-            (str(self.description), str(self.meta), str(self.data))
+    def __repr__(self, **kwds):
+        return self.toString(level=1, **kwds)
 
     def toString(self, level=0, matprint=None, trans=True, tablefmt='rst', **kwds):
+        cn = self.__class__.__name__
+        if level > 1:
+            return cn + \
+                '{ description = "%s", meta = %s, data = "%s"}' % \
+                (str(self.description), str(self.meta), str(self.data))
+        s = '# ' + cn + '\n'
         if matprint is None:
             matprint = ndprint
 
-        s = '# ' + self.__class__.__name__ + '\n' +\
-            mstr(self.serializable(), level=level, **kwds)
+        s += mstr(self.serializable(), level=level, **kwds)
         cols = list(self.data.values())
-        d = 'data =\n\n'
+        d = cn + '-dataset =\n'
         nmun = zip((str(x) for x in self.data.keys()),
                    (str(x.unit) for x in cols))
         hdr = list('%s\n(%s)' % nu for nu in nmun)

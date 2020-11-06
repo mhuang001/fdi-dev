@@ -49,7 +49,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
 
-    BaseProduct class (level ALL) schema 1.1 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-10-29 20:35:43.042574.
+    BaseProduct class (level ALL) schema 1.1 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-11-04 20:25:58.646810.
 
     """
 
@@ -216,18 +216,6 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
         '''
 
         return self.toString(level=1, **kwds)
-
-        s = '{'
-        """for lvar in self.pInfo['metadata'].keys():
-            if hasattr(self, lvar):
-                s += '%s = %s, ' % (lvar, getattr(self, lvar))
-        """
-        s += 'meta = "%s", _sets = %s, history = %s}' % (
-            str(self.meta),
-            str(self.keySet()),
-            str(self.history)
-        )
-        return s
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

@@ -58,6 +58,8 @@ class FineTime(Copyable, DeepEqual, Serializable):
     """ """
     DEFAULT_FORMAT = '%Y-%m-%dT%H:%M:%S.%f UTC'  # ISO
 
+    RETURNFMT = '%s.%06d'
+
     """ """
     TIMESPEC = 'microseconds'
 
@@ -142,27 +144,32 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
         return self.toDatetime(self.tai)
 
-    def isoutc(self):
+    def isoutc(self, format='%Y-%m-%dT%H:%M:%S'):
         """ Returns a String representation of this objet in ISO format without timezone. sub-second set to TIMESPEC.
 
-        prints like 2019-02-17T12:43:04.577000 """
+        format: time format. default '%Y-%m-%dT%H:%M:%S' prints like 2019-02-17T12:43:04.577000 """
         s = self.tai / self.RESOLUTION
         sub = s - int(s)
         dt = datetime.timedelta(seconds=(s)) + self.EPOCH
         # return dt.isoformat(timespec=self.TIMESPEC)
-        return '%s.%d' % (dt.strftime('%Y-%m-%dT%H:%M:%S'), int(sub*self.RESOLUTION+0.5))
+        return self.RETURNFMT % (dt.strftime(format), int(sub*self.RESOLUTION+0.5))
 
-    def toString(self, level=0, **kwds):
+    def toString(self, level=0, width=0, **kwds):
         """ Returns a String representation of this object according to self.format.
         prints like 2019-02-17T12:43:04.577000 TAI(...)"""
         if level == 0:
             tais = str(self.tai) if hasattr(self, 'tai') else 'Unknown_TAI'
+            tstr = self.isoutc() + ' TAI(%s)' % tais
             s = self.__class__.__name__ + \
-                '{' + self.isoutc() + ' TAI(%s)' % tais + \
-                ' fmt=' + self.format + '}'
+                '{' + tstr + ' fmt=' + self.format + '}'
         elif level == 1:
             tais = str(self.tai) if hasattr(self, 'tai') else 'Unknown_TAI'
-            s = self.isoutc() + ' TAI(%s)' % tais
+            if width:
+                tstr = self.isoutc(
+                    format='%Y-%m-%d\n%H:%M:%S') + '\n%s' % tais
+            else:
+                tstr = self.isoutc() + ' TAI(%s)' % tais
+            s = tstr
         else:
             tais = str(self.tai) if hasattr(self, 'tai') else 'Unknown_TAI'
             s = tais
@@ -224,4 +231,5 @@ class FineTime1(FineTime):
     """ Same as FineTime but Epoch is 2017-1-1 0 UTC and unit is millisecond"""
     EPOCH = datetime.datetime(2017, 1, 1, 0, 0, 0, tzinfo=utcobj)
     RESOLUTION = 1000  # millisecond
+    RETURNFMT = '%s.%03d'
     TIMESPEC = 'milliseconds'

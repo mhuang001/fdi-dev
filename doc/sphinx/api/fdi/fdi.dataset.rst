@@ -201,6 +201,14 @@ fdi.dataset.serializable module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.testproducts module
+-------------------------------
+
+.. automodule:: fdi.dataset.testproducts
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.typed module
 ------------------------
 

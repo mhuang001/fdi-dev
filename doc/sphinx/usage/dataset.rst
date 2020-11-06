@@ -77,8 +77,9 @@ In the install directory:
 		make test1
 		make test2
 		make test3
+		make test5
 
-You can test sub-package ``dataset``, ``pal``, and *pns server self-test only*, with ``test1``, ``test2``, ``test3``, respectively.
+You can test sub-package ``dataset``, ``pal``, *pns server self-test only*, and ``utils`` with ``test1``, ``test2``, ``test3``, and ``test5`` respectively.
 
 
 Design

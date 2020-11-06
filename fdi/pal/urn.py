@@ -46,22 +46,21 @@ class Urn(DeepEqual, Serializable, Comparable):
     mh:
     URN format::
 
-       ``urn``:poolname:resourceclass:serialnumber
+       urn:``poolname``:``resourcetype``:``serialnumber``
 
     where
 
-    :poolname: also called poolID, a (optionally path-like) string without leading or trailing ``/``
-    :resourceclass: (fully qualified) class name of the resource (product)
-    :serialnumber: internal index. str(int).
+    :poolname: Also called poolID, a (optionally path-like) string. Its format should follow that of a directory name, without leading or trailing ``/``.
+    :resourcetype: (fully qualified) class name of the resource (usually Product)
+    :serialnumber: internal index.
 
-    PoolURL format::
+    The ``poolname`` in a URN is a label. Although pool providers could use '/' in it to introduce internal heirachy. The ``PoolURL`` is used to give practical information of a pool. It is a local set-up detail that is supposed to be hidden from pool users. The format::
 
-         schme://placepoolpath/poolname
+         ``schme``://``place````poolpath``/``poolname``
 
-    :scheme: ``file``, ``mem``, ``http`` ... etc
-    :place: ``192.168.5.6:8080``, an empty string ... etc
-    :poolpath:
-      The full path where the pool is stored. It is a set-up detail that is supposed to be hidden from pool users. ProductPool.transformpath() is used to map poolname to it.
+    :scheme: Implementation protocol including ``file`` for :class:`LocalPool`, ``mem`` for :class:`MemPool`, ``http``, ``https`` for :class:`HttpclientPool`.
+    :place: IP:port such as``192.168.5.6:8080`` for ``http`` and ``https`` schemes, or an empty string for ``file`` and ``mem`` schemes.
+    :poolpath: The full path where the pool is stored, can have API version.  :meth:`ProductPool.transformpath` is used to map it further.
     :poolname: same as in URN
 
     URN is immutable.

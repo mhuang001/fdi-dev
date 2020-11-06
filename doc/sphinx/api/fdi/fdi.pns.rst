@@ -17,6 +17,30 @@ Subpackages
 Submodules
 ----------
 
+fdi.pns.db\_utils module
+------------------------
+
+.. automodule:: fdi.pns.db_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.pns.fdi\_requests module
+----------------------------
+
+.. automodule:: fdi.pns.fdi_requests
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.pns.httppool\_server module
+-------------------------------
+
+.. automodule:: fdi.pns.httppool_server
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.pns.jsonio module
 ---------------------
 
@@ -29,6 +53,14 @@ fdi.pns.logdict module
 ----------------------
 
 .. automodule:: fdi.pns.logdict
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.pns.pns\_server module
+--------------------------
+
+.. automodule:: fdi.pns.pns_server
    :members:
    :undoc-members:
    :show-inheritance:
@@ -49,10 +81,10 @@ fdi.pns.runflaskserver module
    :undoc-members:
    :show-inheritance:
 
-fdi.pns.server module
----------------------
+fdi.pns.server\_skeleton module
+-------------------------------
 
-.. automodule:: fdi.pns.server
+.. automodule:: fdi.pns.server_skeleton
    :members:
    :undoc-members:
    :show-inheritance:

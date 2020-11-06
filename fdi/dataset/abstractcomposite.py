@@ -23,23 +23,19 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
         # pdb.set_trace()
         super(AbstractComposite, self).__init__(**kwds)
 
-    def __repr__(self):
-        ''' meta and datasets only show names
+    def __repr__(self, **kwds):
+        ''' toString(level=1, **kwds)
         '''
-        s = '{'
-        s += 'meta = "%s", _sets = %s}' % (
-            str(self.meta),
-            str(self.keySet())
-        )
-        return s
+        return self.toString(level=1, **kwds)
 
     def toString(self, level=0, matprint=None, trans=True, beforedata='', **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         """
-        s = '# ' + self.__class__.__name__ + '\n' +\
+        cn = self.__class__.__name__
+        s = '# ' + cn + '\n' +\
             mstr(self.serializable(), level=level, **kwds)
-        d = 'data =\n\n'
+        d = cn + '-datasets =\n'
         d += self._sets.toString(level=level,
                                  matprint=matprint, trans=trans, **kwds)
-        return s + beforedata + d
+        return '\n\n'.join((x for x in (s, beforedata, d) if len(x)))

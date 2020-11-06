@@ -16,9 +16,9 @@ from .finetime import FineTime, FineTime1, utcobj
 from .classes import Classes
 from .typed import Typed
 from .invalid import INVALID
-from ..utils.common import exprstrs
+from ..utils.common import exprstrs, wls, mstr
 
-import pdb
+from tabulate import tabulate
 
 import logging
 # create logger
@@ -241,10 +241,15 @@ f        With two positional arguments: arg1-> value, arg2-> description.
     def __repr__(self):
         return self.toString(level=1)
 
-    def toString(self, level=0, **kwds):
+    def toString(self, level=0, alist=False, **kwds):
+        """ alist: returns a dictionary string representation of parameter attributes.
+        """
         vs = str(self._value)
+        ds = str(self.description)
         ss = '%s' % (vs) if level else \
-            '%s, "%s"' % (vs, str(self.description))
+            '%s, "%s"' % (vs, ds)
+        if alist:
+            return exprstrs(self)
         return self.__class__.__name__ + ss
 
     def serializable(self):
@@ -460,7 +465,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
     def __repr__(self):
         return self.toString(level=1)
 
-    def toString(self, level=0, **kwds):
+    def toString(self, level=0, alist=False, **kwds):
 
         if level:
             vs = str(self._value)
@@ -486,6 +491,8 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             self, 'description') else 'unknown'
         fs = str(self._default) if hasattr(self, '_default') else 'unknown'
         gs = str(self._valid) if hasattr(self, '_valid') else 'unknown'
+        if alist:
+            return exprstrs(self)
         return self.__class__.__name__ +\
             '{ %s <%s>, "%s", default= %s, valid= %s}' %\
             (vs, ts, ds, fs, gs)
@@ -513,13 +520,15 @@ class NumericParameter(Parameter, Quantifiable):
     def __repr__(self):
         return self.toString(level=1)
 
-    def toString(self, level=0, **kwds):
+    def toString(self, level=0, alist=False,  **kwds):
 
         if level:
             vs = str(self._value)
             ss = '%s' % (vs)
             return ss
 
+        if alist:
+            return exprstrs(self)
         return self.__class__.__name__ +\
             '{ %s (%s) <%s>, "%s", default= %s, valid= %s tcode=%s}' %\
             exprstrs(self)
@@ -587,7 +596,7 @@ class DateParameter(Parameter):
 
         return self.toString(level=1)
 
-    def toString(self, level=0, **kwds):
+    def toString(self, level=0, alist=False, **kwds):
 
         if level:
             vs = self._value.toString(level=level, **kwds)
@@ -601,6 +610,8 @@ class DateParameter(Parameter):
         gs = str(self._valid) if hasattr(self, '_valid') else 'unknown'
         cs = str(self._value.format) if hasattr(
             self, '_value') else 'unknown'
+        if alist:
+            return exprstrs(self)
         return self.__class__.__name__ +\
             '{ "%s", "%s", default= %s, valid= %s tcode=%s}' % \
             (vs, ds, fs, gs, cs)
@@ -664,7 +675,7 @@ class StringParameter(Parameter):
     def __repr__(self):
         return self.toString(level=1)
 
-    def toString(self, level=0, **kwds):
+    def toString(self, level=0, alist=False, **kwds):
 
         if level:
             vs = str(self._value)
@@ -677,6 +688,8 @@ class StringParameter(Parameter):
         fs = str(self._default) if hasattr(self, '_default') else 'unknown'
         gs = str(self._valid) if hasattr(self, '_valid') else 'unknown'
         cs = str(self._typecode) if hasattr(self, '_typecode') else 'unknown'
+        if alist:
+            return exprstrs(self)
         return self.__class__.__name__ + \
             '{ "%s", "%s", default= %s, valid= %s tcode=%s}' % \
             (vs, ds, fs, gs, cs)
@@ -692,6 +705,10 @@ class StringParameter(Parameter):
         return self.__class__.__name__ + \
             '{ description = "%s", value = "%s", typecode = "%s"}' % \
             (str(self.description), str(self.value), str(self.getTypecode()))
+
+
+header = ['name', 'value', 'unit', 'type', 'valid',
+          'default', 'code', 'description']
 
 
 class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEventSender):
@@ -758,25 +775,27 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         return r
 
     def toString(self, level=0, **kwds):
-        s, l = '', ''
-        npk, npv = 10, 19
+        tab = []
+        cn = self.__class__.__name__
+        s = '# ' + cn + '\n'
         for (k, v) in self._sets.items():
-            if level == 0 or level == 1:
+            if level == 0:
                 pk = str(k)
-                # pad to multiples of npk
-                # pk = (' ' * (npk-len(pk)) if npk > len(k) else '') + pk
-                # vs = str(v.value) if level else
-                vs = v.toString(level=level, **kwds)
-                pv = pk + '= ' + vs + ',  '
-                # pad to multiples of npv
-                # pv += ' ' * (npv-len(pv) % npv)
-                s = s + pv
-            else:
+                vs, us, ts, ds, fs, gs, cs = v.toString(alist=True)
+                #print(vs, us, ts, ds, fs, gs, cs)
+                vw = -1 if ts == 'finetime' else 17
+                tab.append((wls(pk, 12), wls(vs, vw), wls(us, 7),
+                            wls(ts, 8), wls(gs, vw), wls(fs, vw),
+                            wls(cs, 4), wls(ds, 18)))
+            elif level > 1:
                 s = s + str(k) + ', '
-            l = ''.join([x.__class__.__name__ + ' ' + str(id(x)) +
-                         ' "' + x.description + '", ' for x in self.listeners])
-        return self.__class__.__name__ + \
-            '{' + s + ' Listeners = [%s]}' % (l)
+        if level == 0:
+            s += tabulate(tab, header, 'grid', missingval='',
+                          disable_numparse=True, **kwds) if len(tab) else '(empty)'
+        elif level == 1:
+            s += mstr(self, level=level, depth=1, **kwds)
+        l = self.listeners.toString(level=level, **kwds)
+        return '%s\n%s-listeners = %s' % (s, cn, l)
 
     def __repr__(self, **kwds):
         return self.toString(level=1, **kwds)
@@ -789,3 +808,14 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         return OrderedDict(_sets=self._sets,
                            listeners=self.listeners,
                            classID=self.classID)
+    if 0:
+        s, l = '', ''
+        npk, npv = 10, 19
+        # pad to multiples of npk
+        # pk = (' ' * (npk-len(pk)) if npk > len(k) else '') + pk
+        # vs = str(v.value) if level else
+        vs = v.toString(level=level, **kwds)
+        pv = pk + '= ' + vs + ',  '
+        # pad to multiples of npv
+        # pv += ' ' * (npv-len(pv) % npv)
+        s = s + pv

@@ -12,10 +12,10 @@
 #
 import os
 import sys
-#import sphinx_rtd_theme
-import aiohttp_theme
-#import sphinx_bootstrap_theme
+from datetime import datetime
+import sphinx_rtd_theme
 #import sphinx_readable_theme
+#import sphinx_bootstrap_theme
 
 sys.path.insert(0, os.path.abspath('..'))
 
@@ -23,11 +23,12 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'fdi'
-copyright = '2019, 2020 Maohai Huang, NAOC, ESA'
+year = datetime.now().year
+copyright = '2019 - %d Maohai Huang, NAOC, ESA' % year
 author = 'Maohai Huang'
 
 # The full version, including alpha/beta/rc tags
-release = 'v1.0rc2'
+release = 'v1.0rc5'
 
 
 # -- General configuration ---------------------------------------------------
@@ -40,6 +41,9 @@ extensions.append("sphinx_rtd_theme")
 extensions.append('sphinx_copybutton')
 extensions.append('sphinx.ext.napoleon')
 extensions.append('sphinx.ext.inheritance_diagram')
+extensions.append('sphinx.ext.viewcode')
+# extensions.append(['IPython.sphinxext.ipython_console_highlighting',
+#              'IPython.sphinxext.ipython_directive'])
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -52,27 +56,28 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '*~']
 # -- Options for HTML output -------------------------------------------------
 
 # https://stackoverflow.com/a/32079202
-def setup(app):
+def xsetup(app):
     # app.add_css_file("hatnotes.css")
     app.add_css_file("custom.css")
-    # app.add_css_file("bootstrap.css")
+    app.add_css_file("bootstrap.css")
     # app.add_css_file("nature.css")
 
+
+pygments_style = 'monokai'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
+
 #html_theme = 'alabaster'
 #html_theme = 'sphinxdoc'
-#html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_rtd_theme"
 #html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-html_theme = "aiohttp_theme"
-#html_theme = 'readable'
-#html_theme_path = [sphinx_readable_theme.get_html_theme_path()]
 #html_theme = 'bootstrap'
 #html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+
 # Alabaster side bar
-html_sidebars = {
+xhtml_sidebars = {
     '**': [
         'about.html',
         'navigation.html',
@@ -112,18 +117,38 @@ copybutton_remove_prompts = True
 # Theme options are theme-specific and customize the look and feel of a
 # theme further.
 html_theme_options = {
+    'canonical_url': 'http://mercury.bao.ac.cn:9006/mh/fdi',
+    'analytics_id': 'UA-XXXXXXX-1',  # Provided by Google in your dashboard
+    'logo_only': False,
+    'display_version': True,
+    'prev_next_buttons_location': 'bottom',
+    'style_external_links': False,
+    'vcs_pageview_mode': '',
+    'style_nav_header_background': 'white',
+    # Toc options
+    'collapse_navigation': True,
+    'sticky_navigation': True,
+    'navigation_depth': 4,
+    'includehidden': True,
+    'titles_only': False,
+    'display_gitlab': True,
+    'gitlab_url': 'http://mercury.bao.ac.cn:9006/mh/fdi',
+}
+
+XXhtml_theme_options = {
     'page_width': '1200px',
     'sidebar_width': '300px',
     'show_powered_by': True,
     'sidebar_collapse': True,
 }
 
-xhtml_theme_options = {
+
+XXXhtml_theme_options = {
     # Navigation bar title. (Default: ``project`` value)
-    'navbar_title': "Demo",
+    'navbar_title': "fdi",
 
     # Tab name for entire site. (Default: "Site")
-    'navbar_site_name': "Site",
+    'navbar_site_name': "ags",
 
     # A list of tuples containing pages or urls to link to.
     # Valid tuples should be in the following forms:
@@ -170,7 +195,8 @@ xhtml_theme_options = {
     # Location of link to source.
     # Options are "nav" (default), "footer" or anything else to exclude.
     'source_link_position': "nav",
-
+}
+xxxhtml_theme_options = {
     # Bootswatch (http://bootswatch.com/) theme.
     #
     # Options are nothing (default) or the name of a valid theme

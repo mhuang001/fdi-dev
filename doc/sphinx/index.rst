@@ -47,17 +47,20 @@ FDI Python packages
    :caption: Contents:
 
    usage/installation
+   usage/quickstart
    usage/dataset
    usage/pal
    usage/pns
-   usage/quickstart
    
 API Document
 ============
 
 .. toctree::
+   :maxdepth: 2
+   :caption: API:
 
    api/api
+   fdi/fdi
    
 .. image:: _static/packages_all.png
 

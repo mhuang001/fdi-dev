@@ -1,6 +1,11 @@
 fdi.pns package
 ===============
 
+.. automodule:: fdi.pns
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Subpackages
 -----------
 
@@ -88,14 +93,6 @@ fdi.pns.urlconf module
 ----------------------
 
 .. automodule:: fdi.pns.urlconf
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: fdi.pns
    :members:
    :undoc-members:
    :show-inheritance:

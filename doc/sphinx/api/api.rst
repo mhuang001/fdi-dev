@@ -7,6 +7,7 @@ API Reference
    :maxdepth: 1
    :caption: Contents:
 
+   fdi/modules
    fdi/fdi.dataset
    fdi/fdi.pal
    fdi/fdi.pns

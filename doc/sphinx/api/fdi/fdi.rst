@@ -1,11 +1,6 @@
 fdi package
 ===========
 
-.. automodule:: fdi
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Subpackages
 -----------
 
@@ -16,3 +11,11 @@ Subpackages
    fdi.pal
    fdi.pns
    fdi.utils
+
+Module contents
+---------------
+
+.. automodule:: fdi
+   :members:
+   :undoc-members:
+   :show-inheritance:

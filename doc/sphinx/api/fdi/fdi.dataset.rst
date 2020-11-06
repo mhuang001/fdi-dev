@@ -1,11 +1,6 @@
 fdi.dataset package
 ===================
 
-.. automodule:: fdi.dataset
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Submodules
 ----------
 
@@ -225,3 +220,10 @@ fdi.dataset.yaml2python module
    :undoc-members:
    :show-inheritance:
 
+Module contents
+---------------
+
+.. automodule:: fdi.dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,11 +1,6 @@
 fdi.utils package
 =================
 
-.. automodule:: fdi.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Submodules
 ----------
 
@@ -81,3 +76,10 @@ fdi.utils.ydump module
    :undoc-members:
    :show-inheritance:
 
+Module contents
+---------------
+
+.. automodule:: fdi.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:

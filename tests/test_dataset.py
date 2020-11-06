@@ -6,7 +6,7 @@ from pprint import pprint
 import copy
 import sys
 import pdb
-from datetime.timezone import utcobj
+from datetime import timezone
 
 from fdi.dataset.annotatable import Annotatable
 from fdi.dataset.copyable import Copyable
@@ -40,6 +40,9 @@ else:
     PY3 = False
 
 Classes.updateMapping()
+
+# make format output
+mko = 0
 
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
@@ -1060,7 +1063,7 @@ def standardtestmeta():
     m['a'] = NumericParameter(
         3.4, 'num par', 'float', 2., {(0, 30): 'nok'})
     then = datetime.datetime(
-        2019, 2, 19, 1, 2, 3, 456789, tzinfo=utcobj)
+        2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
     m['b'] = DateParameter(FineTime(then), 'date par', default=99,
                            valid={(0, 9999999999): 'dok'}, typecode='%Y')
     m['c'] = StringParameter(
@@ -1075,8 +1078,12 @@ def test_GenericDataset():
     ts = v.toString()
     ts += v.toString(1)
     ts += v.toString(2)
-    print(ts)
-    #assert ts == out_GenericDataset
+    if mko:
+        print(ts)
+        with open('/tmp/fditest_gen', 'w') as f:
+            f.write(ts)
+    else:
+        assert ts == out_GenericDataset
 
 
 def test_ArrayDataset_init():
@@ -1216,7 +1223,7 @@ def test_ArrayDataset_func():
     x = ArrayDataset(data=d)
     x.meta = standardtestmeta()
     ts = x.toString()
-    print(ts)
+    # print(ts)
     s = ndlist(2, 3, 4, 5)
     x = ArrayDataset(data=s, description='toString tester AD', unit='lyr')
     x[0][1][0] = [0, 0, 0, 0, 0]
@@ -1225,9 +1232,13 @@ def test_ArrayDataset_func():
     x[0][1][3] = [0, 0, 0, 3, 0]
     x.meta = standardtestmeta()
     ts = x.toString()
-    print(ts)
+    if mko:
+        print(ts)
+        with open('/tmp/fditest_arr', 'w') as f:
+            f.write(ts)
     ts = x.toString(level=1)
-    print(ts)
+    if mko:
+        print(ts)
     i = ts.index('0  0  0  0  0')
     assert ts[i:] == nds2 + '\n'
 
@@ -1373,9 +1384,13 @@ def test_TableDataset_func():
     # toString()
     v.meta = standardtestmeta()
     ts = v.toString()
-    print(ts)
-    # print(out_TableDataset)
-    #assert ts == out_TableDataset
+    if mko:
+        print(ts)
+        with open('/tmp/fditest_tab', 'w') as f:
+            f.write(ts)
+    else:
+        # print(out_TableDataset)
+        assert ts == out_TableDataset
 
     checkjson(u)
     checkgeneral(u)
@@ -1604,10 +1619,12 @@ def test_CompositeDataset_init():
     v3.set(a10, x)
     v3.meta[a11] = a12
     ts = v3.toString()
-    print(ts)
-#    with open('/tmp/fditest_comp', 'w') as f:
-#        f.write(ts)
-    #assert ts == out_CompositeDataset
+    if mko:
+        print(ts)
+        with open('/tmp/fditest_comp', 'w') as f:
+            f.write(ts)
+    else:
+        assert ts == out_CompositeDataset
 
     checkjson(v)
     checkgeneral(v)
@@ -1689,7 +1706,7 @@ def test_FineTime():
     v = FineTime(1)
     assert v.toDate().microsecond == 1
     dt0 = datetime.datetime(
-        2019, 2, 19, 1, 2, 3, 456789, tzinfo=utcobj)
+        2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
     v = FineTime(dt0)
     assert v.tai == 1929229323456789
     dt = v.toDate()
@@ -1703,7 +1720,7 @@ def test_FineTime():
     assert v.isoutc() == '2019-02-19T01:02:03.456789'
     # add 1min 1.1sec
     v2 = FineTime(datetime.datetime(
-        2019, 2, 19, 1, 3, 4, 556789, tzinfo=utcobj))
+        2019, 2, 19, 1, 3, 4, 556789, tzinfo=timezone.utc))
     assert v != v2
     assert abs(v2.subtract(v) - 61100000) < 0.5
     checkjson(v)
@@ -1723,7 +1740,7 @@ def test_FineTime1():
     v = FineTime1(1)
     assert v.toDate().microsecond == 1000
     dt0 = datetime.datetime(
-        2019, 2, 19, 1, 2, 3, 456789, tzinfo=utcobj)
+        2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
     v = FineTime1(dt0)
     assert v.tai == 67309323457
     dt = v.toDate()
@@ -1737,7 +1754,7 @@ def test_FineTime1():
     assert v.isoutc() == '2019-02-19T01:02:03.457'
     # add 1min 1.1sec
     v2 = FineTime1(datetime.datetime(
-        2019, 2, 19, 1, 3, 4, 556789, tzinfo=utcobj))
+        2019, 2, 19, 1, 3, 4, 556789, tzinfo=timezone.utc))
     assert v != v2
     assert abs(v2.subtract(v) - 61100) < 0.5
     checkjson(v)
@@ -1824,7 +1841,7 @@ def test_BaseProduct():
 
     # toString
     ts = x.toString()
-    print(ts)
+    # print(ts)
 
     checkjson(x)
     checkgeneral(x)

@@ -79,7 +79,7 @@ def getPython(val, indents, demo, onlyInclude):
         code = {}
         for k, v in val.items():
             sk = str(k)
-            infostr += indents[0] + '\'%s\': ' % sk
+            infostr += indents[0] + '"""%s""": ' % sk
             if issubclass(v.__class__, dict) and 'data_type' in v:
                 # v is a dict of parameters
                 istr, d_code = params(v, indents[1:], demo, onlyInclude)
@@ -102,8 +102,8 @@ def getPython(val, indents, demo, onlyInclude):
             code.append(d_code)
         infostr += indents[0] + '],\n'
     else:
-        pval = '\'' + val + \
-            '\'' if issubclass(val.__class__, (str, bytes)) else str(val)
+        pval = '"""' + val + \
+            '"""' if issubclass(val.__class__, (str, bytes)) else str(val)
         infostr += pval + ',\n'
         code = pval
     return infostr, code
@@ -123,7 +123,7 @@ def makeinitcode(dt, pval):
     elif pval == 'None':
         code = 'None'
     else:
-        code = '\'' + pval + '\''
+        code = '"""' + pval + '"""'
     return code
 
 
@@ -144,7 +144,7 @@ def params(val, indents, demo, onlyInclude):
             continue
         if pname.startswith('valid'):
             if issubclass(pv.__class__, (str, bytes)):
-                s = '\'' + pv.strip() + '\''
+                s = '"""' + pv.strip() + '"""'
             else:
                 lst = []
                 for k, v in pv.items():
@@ -157,7 +157,7 @@ def params(val, indents, demo, onlyInclude):
                     else:
                         sk = fmtstr[dt].format(k)
                     lst += '\n' + indents[2] + \
-                        sk + ': \'' + str(v)+'\','
+                        sk + ': """' + str(v)+'""",'
                 kvs = ''.join(lst)
                 if len(kvs) > 0:
                     kvs += '\n' + indents[2]
@@ -172,8 +172,8 @@ def params(val, indents, demo, onlyInclude):
             if pname in ['example', 'default']:
                 # here data_type instead of input type determines the output type
                 iss = val['data_type'] == 'string'
-            s = '\'' + pval + '\'' if iss else pval
-        infostr += indents[1] + '\'%s\': %s,\n' % (pname, s)
+            s = '"""' + pval + '"""' if iss else pval
+        infostr += indents[1] + '"""%s""": %s,\n' % (pname, s)
     infostr += indents[1] + '},\n'
 
     return infostr, code

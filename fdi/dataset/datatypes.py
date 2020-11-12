@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from numbers import Number
+
 from collections import OrderedDict
 
-from .dataset import ArrayDataset
-
+from .serializable import Serializable
+from .eq import DeepEqual
 
 import logging
 # create logger
@@ -11,22 +11,21 @@ logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class Vector(ArrayDataset):
-    """ N dimensional vector with a unit.
+class Vector(Serializable, DeepEqual):
+    """ N dimensional vector.
+
+    If unit, description, type etc meta data is needed, use a Parameter.
     """
 
-    def __init__(self, components=None, description='UNKNOWN', unit=None, typ_=None, default=None, **kwds):
+    def __init__(self, components=None, **kwds):
         """ invoked with no argument results in a vector of
-        [0, 0, 0] components and 'UNKNOWN' description, unit ''.
-        With a signle argument: arg -> components, 'UNKNOWN'-> description, ''-> unit.
-        With two positional arguments: arg1 -> components, arg2-> description, ''-> unit.
-        With three positional arguments: arg1 -> components, arg2-> description, 'arg3-> unit.
+        [0, 0, 0] components.
         """
         if components is None:
-            components = [0, 0, 0]
-        self._default = default
-        super(Vector, self).__init__(data=components,
-                                     description=description, unit=unit, typ_=typ_, **kwds)
+            self._data = [0, 0, 0]
+        else:
+            self.setComponents(components)
+        super(Vector, self).__init__(**kwds)
 
     @property
     def components(self):
@@ -47,41 +46,38 @@ class Vector(ArrayDataset):
 
     def setComponents(self, components):
         """ Replaces the current components of this vector. """
-        for c in components:
-            if not isinstance(c, Number):
-                raise TypeError('Components must all be numbers.')
+        # for c in components:
+        #     if not isinstance(c, Number):
+        #         raise TypeError('Components must all be numbers.')
         # must be list to make round-trip Json
         self._data = list(components)
 
-    # def __repr__(self):
-    #     return self.__class__.__name__ + \
-    #         '{ %s (%s) "%s"}' %\
-    #         (str(self.components), str(self.getUnit()), str(self.description))
+    def __len__(self):
+        return len(self._data)
+
+    def __repr__(self):
+        return str(self._data)
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           components=list(self.components),
-                           unit=self.unit,
-                           type=self._type,
-                           default=self._default,
-                           typecode=self._typecode,
-                           classID=self.classID)
+        return OrderedDict(
+            components=list(self.components),
+            classID=self.classID)
 
 
 class Quaternion(Vector):
-    """ Quaternion with a 4-component data.
+    """ Quaternion with 4-component data.
     """
 
-    def __init__(self, components=None, description='UNKNOWN', unit=None, typ_=None, default=None, **kwds):
+    def __init__(self, components=None, **kwds):
         """ invoked with no argument results in a vector of
-        [0, 0, 0, 0] components and 'UNKNOWN' description, unit ''.
-        With a signle argument: arg -> components, 'UNKNOWN'-> description, ''-> unit.
-        With two positional arguments: arg1 -> components, arg2-> description, ''-> unit.
-        With three positional arguments: arg1 -> components, arg2-> description, 'arg3-> unit.
-        """
-        if components is None:
-            components = [0, 0, 0, 0]
+        [0, 0, 0, 0] components
 
-        super(Vector, self).__init__(data=components, description=description,
-                                     unit=unit, typ_=typ_, default=default, **kwds)
+        """
+
+        super(Quaternion, self).__init__(**kwds)
+
+        if components is None:
+            self._data = [0, 0, 0, 0]
+        else:
+            self.setComponents(components)

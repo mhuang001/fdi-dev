@@ -157,13 +157,17 @@ class FineTime(Copyable, DeepEqual, Serializable):
     def toString(self, level=0, width=0, **kwds):
         """ Returns a String representation of this object according to self.format.
         prints like 2019-02-17T12:43:04.577000 TAI(...)"""
+        tais = str(self.tai) if hasattr(self, 'tai') else 'Unknown_TAI'
         if level == 0:
-            tais = str(self.tai) if hasattr(self, 'tai') else 'Unknown_TAI'
-            tstr = self.isoutc() + ' TAI(%s)' % tais
-            s = self.__class__.__name__ + \
-                '{' + tstr + ' fmt=' + self.format + '}'
+            if width:
+                tstr = self.isoutc(
+                    format='%Y-%m-%d\n%H:%M:%S') + '\n%s' % tais
+                s = tstr
+            else:
+                tstr = self.isoutc() + ' TAI(%s)' % tais
+                s = self.__class__.__name__ + \
+                    '{' + tstr + ' fmt=' + self.format + '}'
         elif level == 1:
-            tais = str(self.tai) if hasattr(self, 'tai') else 'Unknown_TAI'
             if width:
                 tstr = self.isoutc(
                     format='%Y-%m-%d\n%H:%M:%S') + '\n%s' % tais
@@ -171,7 +175,6 @@ class FineTime(Copyable, DeepEqual, Serializable):
                 tstr = self.isoutc() + ' TAI(%s)' % tais
             s = tstr
         else:
-            tais = str(self.tai) if hasattr(self, 'tai') else 'Unknown_TAI'
             s = tais
         return s
 

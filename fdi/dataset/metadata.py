@@ -597,21 +597,17 @@ class DateParameter(Parameter):
         return self.toString(level=1)
 
     def toString(self, level=0, alist=False, **kwds):
+        if 0 and alist:
+            import pdb
+            pdb.set_trace()
 
+        ret = exprstrs(self, level=level, **kwds)
+        if alist:
+            return ret
+        vs, us, ts, ds, fs, gs, cs = ret
         if level:
             vs = self._value.toString(level=level, **kwds)
-            ss = '%s' % (vs)
-            return ss
-
-        vs = str(self.value) if hasattr(self, 'value') else 'unknown'
-        ds = str(self.description) if hasattr(
-            self, 'description') else 'unknown'
-        fs = str(self._default) if hasattr(self, '_default') else 'unknown'
-        gs = str(self._valid) if hasattr(self, '_valid') else 'unknown'
-        cs = str(self._value.format) if hasattr(
-            self, '_value') else 'unknown'
-        if alist:
-            return exprstrs(self)
+            return vs
         return self.__class__.__name__ +\
             '{ "%s", "%s", default= %s, valid= %s tcode=%s}' % \
             (vs, ds, fs, gs, cs)
@@ -630,7 +626,7 @@ class DateParameter(Parameter):
 
 
 class DateParameter1(DateParameter):
-    """ Like DateParameter but usese  FineTime1. """
+    """ Like DateParameter but usese  FineTime. """
 
     def setValue(self, value):
         """ accept any type that a FineTime1 does.
@@ -784,7 +780,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
                 vs, us, ts, ds, fs, gs, cs = v.toString(alist=True)
                 #print(vs, us, ts, ds, fs, gs, cs)
                 vw = -1 if ts == 'finetime' else 17
-                tab.append((wls(pk, 12), wls(vs, vw), wls(us, 7),
+                tab.append((wls(pk, 13), wls(vs, vw), wls(us, 7),
                             wls(ts, 8), wls(gs, vw), wls(fs, vw),
                             wls(cs, 4), wls(ds, 18)))
             elif level > 1:

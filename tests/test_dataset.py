@@ -426,45 +426,22 @@ def test_EventSender():
 def test_datatypes():
     # constructor
     v = Vector()
+    assert len(v) == 3
     assert v.getComponents() == [0, 0, 0]
-    assert v.description == 'UNKNOWN'
-    assert v.unit is None
-    assert v.typecode is None
-    assert v.default is None
     v = Vector([1, 2.3, 4.5])
     assert v.getComponents() == [1, 2.3, 4.5]
-    assert v.description == 'UNKNOWN'
-    assert v.unit is None
-    assert v.typecode is None
-    assert v.default is None
-    v = Vector((0, 0, 0b101), 'binary!')
-    assert v.getComponents() == (0, 0, 5)
-    assert v.description == 'binary!'
-    v = Vector([0, 0, 0b101], 'binary!', 'km')
-    assert v.getComponents() == [0, 0, 0b101]
-    assert v.description == 'binary!'
-    assert v.unit == 'km'
     checkjson(v)
 
     # assignment
     v.components = [0xaa, 1, 1e2]
-    v.description = 'foo'
-    v.unit = 'bar'
     assert v.components == [0xaa, 1, 1e2]
-    assert v.description == 'foo'
-    assert v.unit == 'bar'
 
     # Quaternion
-    v = Quaternion([-1, 1, 2.3, 4.5], unit='m')
+    v = Quaternion([-1, 1, 2.3, 4.5])
     assert v.getComponents() == [-1, 1, 2.3, 4.5]
-    assert v.description == 'UNKNOWN'
-    assert v.unit == 'm'
-    assert v.typecode is None
-    assert v.default is None
     # equal
     a1 = -1
     v2 = Quaternion([a1, 1+0, 1-a1+0.3, 4.5])
-    v2.setUnit('m')
     assert v == v2
 
 

@@ -226,22 +226,22 @@ def test_ndprint():
     s = 42
     v = ndprint(s)
     # print(v)
-    assert v == '--\n42\n--'
+    assert v == '42'
     s = [1, 2, 3]
-    v = ndprint(s, headers=[], tablefmt='plain')
+    v = ndprint(s, headers=[], tablefmt3='plain')
     # print(v)
     # table, 1 column
     assert v == '1\n2\n3'
-    v = ndprint(s, trans=False, headers=[], tablefmt='plain')
+    v = ndprint(s, trans=False, headers=[], tablefmt3='plain')
     # print(v)
     # 1D matrix. 1 row.
     assert v == '1  2  3'
     s = [[i + j for i in range(2)] for j in range(3)]
-    v = ndprint(s, headers=[], tablefmt='plain')
+    v = ndprint(s, headers=[], tablefmt2='plain')
     # print(v)
     # 2x3 matrix 3 columns 2 rows
     assert v == '0  1  2\n1  2  3\n\n'
-    v = ndprint(s, trans=False, headers=[], tablefmt='plain')
+    v = ndprint(s, trans=False, headers=[], tablefmt2='plain')
     # print(v)
     # 2x3 table view 2 columns 3 rows
     assert v == '0  1\n1  2\n2  3\n\n'
@@ -251,11 +251,11 @@ def test_ndprint():
     s[0][1][1] = [0, 0, 0, 1, 0]
     s[0][1][2] = [5, 4, 3, 2, 1]
     s[0][1][3] = [0, 0, 0, 3, 0]
-    v = ndprint(s, trans=False, headers=[], tablefmt='plain')
+    v = ndprint(s, trans=False, headers=[], tablefmt2='plain')
     # print(v)
     # print(nds2)
     assert v == nds2
-    v = ndprint(s, headers=[], tablefmt='plain')
+    v = ndprint(s, headers=[], tablefmt2='plain')
     # print(v)
     assert v == nds3
     # pprint.pprint(s)

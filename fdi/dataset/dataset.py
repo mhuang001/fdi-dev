@@ -233,8 +233,8 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
             mstr(self.serializable(), level=level, **kwds)
         d = cn + '-dataset =\n'
         d += bstr(self.data, level=level, **kwds) if matprint is None else \
-            matprint(self.data, trans=False, headers=[],
-                     tablefmt='plain', **kwds)
+            matprint(self.data, trans=False, headers=[], tablefmt2='plain',
+                     **kwds)
         return s + '\n' + d + '\n'
 
     def serializable(self):
@@ -562,7 +562,7 @@ class TableDataset(GenericDataset, TableModel):
     def __repr__(self, **kwds):
         return self.toString(level=1, **kwds)
 
-    def toString(self, level=0, matprint=None, trans=True, tablefmt='rst', **kwds):
+    def toString(self, level=0, matprint=None, trans=True, tablefmt2='rst', **kwds):
         cn = self.__class__.__name__
         if level > 1:
             return cn + \
@@ -579,7 +579,7 @@ class TableDataset(GenericDataset, TableModel):
                    (str(x.unit) for x in cols))
         hdr = list('%s\n(%s)' % nu for nu in nmun)
         d += matprint(cols, trans=trans, headers=hdr,
-                      tablefmt=tablefmt, **kwds)
+                      tablefmt2=tablefmt2, **kwds)
         return s + '\n' + d + '\n'
 
     def serializable(self):

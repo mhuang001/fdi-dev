@@ -770,7 +770,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             self.fire(e)
         return r
 
-    def toString(self, level=0, **kwds):
+    def toString(self, level=0, tablefmt='grid', **kwds):
         tab = []
         cn = self.__class__.__name__
         s = '# ' + cn + '\n'
@@ -786,10 +786,10 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             elif level > 1:
                 s = s + str(k) + ', '
         if level == 0:
-            s += tabulate(tab, header, 'grid', missingval='',
-                          disable_numparse=True, **kwds) if len(tab) else '(empty)'
+            s += tabulate(tab, header, tablefmt=tablefmt, missingval='',
+                          disable_numparse=True) if len(tab) else '(empty)'
         elif level == 1:
-            s += mstr(self, level=level, depth=1, **kwds)
+            s += mstr(self, level=level, depth=1, tablefmt=tablefmt, **kwds)
         l = self.listeners.toString(level=level, **kwds)
         return '%s\n%s-listeners = %s' % (s, cn, l)
 

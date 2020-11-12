@@ -78,6 +78,8 @@ def wls(s, width=15):
 
 def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
     """ Makes a presentation string at a detail level.
+
+    'tablefmt' is not in the args as it is needed to be passed by kwds in recursive calls although under some conditions it is used.
     """
     if excpt is None:
         excpt = ['classID', 'data', '_sets']
@@ -124,8 +126,10 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
             for i in range(int(len(s)/4)):
                 row = tuple(wls(s[i*4+j], 20) for j in range(4))
                 tab.append(row)
-            t = tabulate(tab, headers='', tablefmt='simple', disable_numparse=True,
-                         **kwds) if len(tab) else '(empty)'
+
+            tf = kwds['tablefmt'] if 'tablefmt' in kwds else 'simple'
+            t = tabulate(tab, headers='', disable_numparse=True,
+                         tablefmt=tf) if len(tab) else '(empty)'
             return '\n' + t + '\n'
         sep = ',\n' if depth == 0 else ', '
         return sep.join(s)

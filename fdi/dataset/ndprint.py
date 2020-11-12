@@ -165,10 +165,12 @@ def ndprint(data, trans=True, **kwds):
         padding = ' ' * context.dim * 4
 
         if context.maxdim == 0:
-            return tabulate([[d]], **kwds)
+            tf = kwds['tablefmt3'] if 'tablefmt3' in kwds else 'plain'
+            return tabulate([[d]], tablefmt=tf)
         elif context.maxdim == 1:
+            tf = kwds['tablefmt3'] if 'tablefmt3' in kwds else 'plain'
             d2 = [[x] for x in d] if trans else [d]
-            return tabulate(d2, **kwds)
+            return tabulate(d2, tablefmt=tf)
         else:
             context.dim += 1
             padding = ' ' * context.dim * 4
@@ -193,8 +195,11 @@ def ndprint(data, trans=True, **kwds):
             if dbg:
                 print(padding + 'd2 %s' % str(d2))
             if context.dim + 1 == context.maxdim:
+                tf = kwds['tablefmt2'] if 'tablefmt2' in kwds else 'rst'
+                hd = kwds['headers'] if 'headers' in kwds else []
                 # d2 is a properly transposed 2D array
-                delta += tabulate(d2, **kwds)
+                # this is where TableDataset prints its tables
+                delta += tabulate(d2, headers=hd, tablefmt=tf)
                 # an extra blank line  is added at the end of the 3rd dimension
                 delta += '\n\n'
             else:

@@ -8,7 +8,7 @@ from string import Template
 import pkg_resources
 from datetime import datetime
 import importlib
-import pdb
+
 # from ..pal.context import MapContext
 from ..utils.options import opt
 from ..utils.common import pathjoin, trbk
@@ -143,6 +143,9 @@ def params(val, indents, demo, onlyInclude):
         if demo and pname not in onlyInclude:
             continue
         if pname.startswith('valid'):
+            if pv is None:
+                pv = ''
+
             if issubclass(pv.__class__, (str, bytes)):
                 s = '"""' + pv.strip() + '"""'
             else:

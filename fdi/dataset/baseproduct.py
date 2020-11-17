@@ -49,7 +49,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
 
-    BaseProduct class (level ALL) schema 1.1 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-11-16 16:28:52.347148.
+    BaseProduct class (level ALL) schema 1.2 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-11-17 08:30:48.797627.
 
     """
 
@@ -60,7 +60,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
                  creator = """UNKNOWN""",
                  creationDate = FineTime(0),
                  rootCause = """UNKNOWN""",
-                 version = """0.6""",
+                 version = """0.7""",
                  **kwds):
 
         global ProductInfo
@@ -323,17 +323,15 @@ ProductInfo = {
         None,
         ],
     """level""": """ALL""",
-    """schema""": """1.1""",
+    """schema""": """1.2""",
     """metadata""": {
         """description""": {
                 """current_id""": """description""",
                 """id""": """description""",
                 """id_zh_cn""": """描述""",
-                """fits_keyword""": """DESCRIPT""",
                 """data_type""": """string""",
                 """description""": """Description of this product""",
                 """description_zh_cn""": """对本产品的描述。""",
-                """examples""": """SINGLE EXPOSURE""",
                 """default""": """UNKNOWN""",
                 """valid""": """""",
                 """typecode""": """B""",
@@ -342,11 +340,9 @@ ProductInfo = {
                 """current_id""": """type""",
                 """id""": """type""",
                 """id_zh_cn""": """产品类型""",
-                """fits_keyword""": """TYPE""",
                 """data_type""": """string""",
                 """description""": """Product Type identification. Name of class or CARD.""",
                 """description_zh_cn""": """产品类型。完整Python类名或卡片名。""",
-                """examples""": """SAT-QM-ThermVac""",
                 """default""": """BaseProduct""",
                 """valid""": """""",
                 """typecode""": """B""",
@@ -355,11 +351,9 @@ ProductInfo = {
                 """current_id""": """creator""",
                 """id""": """creator""",
                 """id_zh_cn""": """本产品生成者""",
-                """fits_keyword""": """CREATOR""",
                 """data_type""": """string""",
                 """description""": """Generator of this product.""",
                 """description_zh_cn""": """本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。""",
-                """examples""": """SECM-EGSE""",
                 """default""": """UNKNOWN""",
                 """valid""": """""",
                 """typecode""": """B""",
@@ -372,7 +366,6 @@ ProductInfo = {
                 """data_type""": """finetime""",
                 """description""": """Creation date of this product""",
                 """description_zh_cn""": """本产品生成时间""",
-                """examples""": """10361455509632""",
                 """default""": 0,
                 """valid""": """""",
                 """typecode""": None,
@@ -381,11 +374,9 @@ ProductInfo = {
                 """current_id""": """rootCause""",
                 """id""": """rootCause""",
                 """id_zh_cn""": """数据来源""",
-                """fits_keyword""": """ROOTCAUS""",
                 """data_type""": """string""",
                 """description""": """Reason of this run of pipeline.""",
                 """description_zh_cn""": """数据来源（此例来自鉴定件热真空罐）""",
-                """examples""": """QM-ThermVac""",
                 """default""": """UNKNOWN""",
                 """valid""": """""",
                 """typecode""": """B""",
@@ -394,12 +385,10 @@ ProductInfo = {
                 """current_id""": """formatVersion""",
                 """id""": """version""",
                 """id_zh_cn""": """格式版本""",
-                """fits_keyword""": """VERSION""",
                 """data_type""": """string""",
                 """description""": """Version of product schema""",
                 """description_zh_cn""": """产品格式版本""",
-                """examples""": """1""",
-                """default""": """0.6""",
+                """default""": """0.7""",
                 """valid""": """""",
                 """typecode""": """B""",
                 },

@@ -467,35 +467,15 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
     def toString(self, level=0, alist=False, **kwds):
 
-        if level:
-            vs = str(self._value)
-            ss = '%s' % (vs)
-            return ss
-
-        if hasattr(self, '_value'):
-            if hasattr(self, '_type'):
-                vs = hex(self._value) if self._type == 'hex' and issubclass(
-                    self._value.__class__, int) else str(self._value)
-                ts = str(self._type)
-            else:
-                vs = str(self._value)
-                ts = 'unknown'
-        else:
-            vs = 'unknown'
-            if hasattr(self, '_type'):
-                ts = str(self._type)
-            else:
-                ts = 'unknown'
-
-        ds = str(self.description) if hasattr(
-            self, 'description') else 'unknown'
-        fs = str(self._default) if hasattr(self, '_default') else 'unknown'
-        gs = str(self._valid) if hasattr(self, '_valid') else 'unknown'
+        ret = exprstrs(self, level=level, **kwds)
         if alist:
-            return exprstrs(self)
+            return ret
+        vs, us, ts, ds, fs, gs, cs = ret
+        if level:
+            return vs
         return self.__class__.__name__ +\
-            '{ %s <%s>, "%s", default= %s, valid= %s}' %\
-            (vs, ts, ds, fs, gs)
+            '{ %s <%s>, "%s", default= %s, valid= %s tcode=%s}' %\
+            (vs, ts, ds, fs, gs, cs)
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
@@ -520,15 +500,15 @@ class NumericParameter(Parameter, Quantifiable):
     def __repr__(self):
         return self.toString(level=1)
 
-    def toString(self, level=0, alist=False,  **kwds):
+    def toString1(self, level=0, alist=False,  **kwds):
+
+        ret = exprstrs(self, level=level, **kwds)
+        if alist:
+            return ret
+        vs, us, ts, ds, fs, gs, cs = ret
 
         if level:
-            vs = str(self._value)
-            ss = '%s' % (vs)
-            return ss
-
-        if alist:
-            return exprstrs(self)
+            return vs
         return self.__class__.__name__ +\
             '{ %s (%s) <%s>, "%s", default= %s, valid= %s tcode=%s}' %\
             exprstrs(self)
@@ -596,18 +576,8 @@ class DateParameter(Parameter):
 
         return self.toString(level=1)
 
-    def toString(self, level=0, alist=False, **kwds):
-        if 0 and alist:
-            import pdb
-            pdb.set_trace()
+    def toString1(self, level=0, alist=False, **kwds):
 
-        ret = exprstrs(self, level=level, **kwds)
-        if alist:
-            return ret
-        vs, us, ts, ds, fs, gs, cs = ret
-        if level:
-            vs = self._value.toString(level=level, **kwds)
-            return vs
         return self.__class__.__name__ +\
             '{ "%s", "%s", default= %s, valid= %s tcode=%s}' % \
             (vs, ds, fs, gs, cs)
@@ -671,21 +641,14 @@ class StringParameter(Parameter):
     def __repr__(self):
         return self.toString(level=1)
 
-    def toString(self, level=0, alist=False, **kwds):
+    def toString1(self, level=0, alist=False, **kwds):
 
-        if level:
-            vs = str(self._value)
-            ss = '%s' % (vs)
-            return ss
-
-        vs = str(self.value) if hasattr(self, 'value') else 'unknown'
-        ds = str(self.description) if hasattr(
-            self, 'description') else 'unknown'
-        fs = str(self._default) if hasattr(self, '_default') else 'unknown'
-        gs = str(self._valid) if hasattr(self, '_valid') else 'unknown'
-        cs = str(self._typecode) if hasattr(self, '_typecode') else 'unknown'
+        ret = exprstrs(self, level=level, **kwds)
         if alist:
-            return exprstrs(self)
+            return ret
+        if level:
+            return vs
+        vs, us, ts, ds, fs, gs, cs = ret
         return self.__class__.__name__ + \
             '{ "%s", "%s", default= %s, valid= %s tcode=%s}' % \
             (vs, ds, fs, gs, cs)
@@ -703,8 +666,8 @@ class StringParameter(Parameter):
             (str(self.description), str(self.value), str(self.getTypecode()))
 
 
-header = ['name', 'value', 'unit', 'type', 'valid',
-          'default', 'code', 'description']
+MetaHeaders = ['name', 'value', 'unit', 'type', 'valid',
+               'default', 'code', 'description']
 
 
 class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEventSender):
@@ -770,26 +733,39 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             self.fire(e)
         return r
 
-    def toString(self, level=0, tablefmt='grid', **kwds):
+    def toString(self, level=0, tablefmt='grid', tablefmt1='simple', **kwds):
         tab = []
+        # N parameters per row for level 1
+        N = 4
+        i, row = 0, []
         cn = self.__class__.__name__
         s = '# ' + cn + '\n'
         for (k, v) in self._sets.items():
+            pk = str(k)
+            vs, us, ts, ds, fs, gs, cs = v.toString(alist=True)
+            #print(vs, us, ts, ds, fs, gs, cs)
             if level == 0:
-                pk = str(k)
-                vs, us, ts, ds, fs, gs, cs = v.toString(alist=True)
-                #print(vs, us, ts, ds, fs, gs, cs)
                 vw = -1 if ts == 'finetime' else 17
                 tab.append((wls(pk, 13), wls(vs, vw), wls(us, 7),
                             wls(ts, 8), wls(gs, vw), wls(fs, vw),
                             wls(cs, 4), wls(ds, 18)))
-            elif level > 1:
-                s = s + str(k) + ', '
-        if level == 0:
-            s += tabulate(tab, header, tablefmt=tablefmt, missingval='',
+            elif level == 1:
+                ps = '%s= %s' % (pk, vs)
+                #s += mstr(self, level=level, depth=1, tablefmt=tablefmt, **kwds)
+                row.append(wls(ps, 20))
+                i += 1
+                if i == N:
+                    tab.append(row)
+                    i, row = 0, []
+            else:
+                tab.append(pk)
+        if level == 0 or level == 1:
+            headers = '' if level == 1 else MetaHeaders
+            fmt = tablefmt if level == 0 else tablefmt1
+            s += tabulate(tab, headers=headers, tablefmt=fmt, missingval='',
                           disable_numparse=True) if len(tab) else '(empty)'
-        elif level == 1:
-            s += mstr(self, level=level, depth=1, tablefmt=tablefmt, **kwds)
+        else:
+            s += ', '.join(tab)
         l = self.listeners.toString(level=level, **kwds)
         return '%s\n%s-listeners = %s' % (s, cn, l)
 

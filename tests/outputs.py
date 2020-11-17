@@ -209,9 +209,7 @@ meta= {
 GenericDataset-dataset =
 88.8
 GenericDataset{ 88.8, description = "test GD", meta = # MetaData
-
 (empty)
-
 MetaData-listeners = ListnerSet{} }"""
 
 out_ArrayDataset =\

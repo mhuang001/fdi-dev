@@ -46,6 +46,8 @@ def bstr(x, length=0, tostr=True, quote="'", level=0, **kwds):
         r = quote + x + quote
     elif tostr and hasattr(x, 'toString'):
         r = x.toString(level=level, **kwds)
+    elif issubclass(x.__class__, (bytes, bytearray, memoryview)):
+        r = x.hex()
     else:
         r = str(x)
     return lls(r, length=length)

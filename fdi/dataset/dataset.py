@@ -16,7 +16,8 @@ from .typed import Typed
 from collections import OrderedDict
 import logging
 import sys
-import pdb
+import itertools
+
 if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.3:
     PY33 = True
     from collections.abc import Container, Sequence, Mapping
@@ -563,23 +564,24 @@ class TableDataset(GenericDataset, TableModel):
         return self.toString(level=1, **kwds)
 
     def toString(self, level=0, matprint=None, trans=True, tablefmt2='rst', **kwds):
-        cn = self.__class__.__name__
-        if level > 1:
-            return cn + \
-                '{ description = "%s", meta = %s, data = "%s"}' % \
-                (str(self.description), str(self.meta), str(self.data))
-        s = '# ' + cn + '\n'
         if matprint is None:
             matprint = ndprint
 
+        cn = self.__class__.__name__
+        s = '# ' + cn + '\n'
         s += mstr(self.serializable(), level=level, **kwds)
-        cols = list(self.data.values())
+        stp = 2 if level > 1 else 20 if level == 1 else None
+        cols = self.data.values()
+
+        coldata = [list(itertools.islice(x.data, stp)) for x in cols]
         d = cn + '-dataset =\n'
         nmun = zip((str(x) for x in self.data.keys()),
                    (str(x.unit) for x in cols))
         hdr = list('%s\n(%s)' % nu for nu in nmun)
-        d += matprint(cols, trans=trans, headers=hdr,
+        d += matprint(coldata, trans=trans, headers=hdr,
                       tablefmt2=tablefmt2, **kwds)
+        if level:
+            d += '(Only display up to %d rows for level=%d.)' % (stp, level)
         return s + '\n' + d + '\n'
 
     def serializable(self):

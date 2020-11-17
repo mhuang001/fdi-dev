@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
+
+from ..utils.common import bstr
+
 from tabulate import tabulate
 import logging
 import sys
 from itertools import zip_longest
 
 if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.3:
-    from collections.abc import Sequence
-    seqlist = Sequence
+    from collections.abc import ValuesView, KeysView, Sequence
+
+    seqlist = (ValuesView, KeysView, Sequence)
 else:
     from .collectionsMockUp import SequenceMockUp as Sequence
     import types
@@ -152,11 +156,18 @@ def ndprint(data, trans=True, **kwds):
 
     # print("start " + str(data) + ' ' + str(trans))
     t = data
-    while issubclass(t.__class__, seqlist) and not issubclass(t.__class__, (str, bytes, bytearray, memoryview)):
-        context.maxdim += 1
-        t = t[0]
+    try:
+        while not issubclass(t.__class__, (str, bytes, bytearray, memoryview)):
+            tmp = list(t)
+            # if we reach this line, tmp has a valid value
+            #t[0] = tmp
+            t = tmp[0]
+            context.maxdim += 1
+    except TypeError as e:
+        # print(e)
+        pass
 
-    def loop(d, trans, **kwds):
+    def loop(data, trans, **kwds):
         # nonlocal s
         # nonlocal maxdim
         # nonlocal dim
@@ -166,12 +177,14 @@ def ndprint(data, trans=True, **kwds):
 
         if context.maxdim == 0:
             tf = kwds['tablefmt3'] if 'tablefmt3' in kwds else 'plain'
-            return tabulate([[d]], tablefmt=tf)
+            return tabulate([[bstr(data)]], tablefmt=tf)
         elif context.maxdim == 1:
             tf = kwds['tablefmt3'] if 'tablefmt3' in kwds else 'plain'
-            d2 = [[x] for x in d] if trans else [d]
+            d2 = [[bstr(x)] for x in data] if trans else [[bstr(x)
+                                                           for x in data]]
             return tabulate(d2, tablefmt=tf)
         else:
+            d = list(data)
             context.dim += 1
             padding = ' ' * context.dim * 4
             if dbg:

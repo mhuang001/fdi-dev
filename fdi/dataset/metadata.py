@@ -396,6 +396,8 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         If valid is None or empty, set as None, else save in a way so the tuple keys can be serialized with JSON.
         """
         def t2l(t):
+            """ convert tuples to lists in nested data structures
+            """
             # print(t)
             if issubclass(t.__class__, (list, tuple)):
                 lst = [t2l(x) if issubclass(
@@ -408,11 +410,18 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             valid) == 0 else [t2l([k, v]) for k, v in valid.items()] if issubclass(valid.__class__, dict) else t2l(valid)
 
     def isvalid(self):
-        return self.validate(self.value)[0] is not INVALID
+        res = self.validate(self.value)
+        if issubclass(res.__class__, tuple):
+            return res[0] is not INVALID
+        else:
+            return True
 
     def validate(self, value):
-        """ returns the valid value and the rule name if matching a rule.
+        """ checks if a match the rule set.
 
+        returns:
+        (valid value, rule name) for discrete and range rules.
+        dictionary of key=mask, val=(valid val, rule name) tuple for binary masks rules.
         (INVALID, 'Invalid') if no matching is found.
         (value, 'Default') if rule set is empty.
         """
@@ -420,23 +429,29 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         if ruleset is None or len(ruleset) == 0:
             return (value, 'Default')
 
-        st = self._type
-        vt = ParameterDataTypes[type(value).__name__]
+        st = ParameterTypes[self._type]
+        vt = type(value).__name__
 
         if st is not None and st != '' and vt != st:
             return (INVALID, 'Type '+vt)
 
+        binmasks = {}
+        hasvalid = False
         for rn in ruleset:
             rule, name = tuple(rn)
+            res = INVALID
             if issubclass(rule.__class__, (tuple, list)):
                 if rule[0] is Ellipsis:
                     res = INVALID if (value > rule[1]) else value
                 elif rule[1] is Ellipsis:
                     res = INVALID if (value < rule[0]) else value
                 elif rule[0] >= rule[1]:
-                    # they are e.g. [0B011000,0b11]
-                    v = masked(value, rule[0])
-                    res = v if v == rule[1] else INVALID
+                    # binary masked rules are [mask, vld] e.g. [0B011000,0b11]
+                    mask, vld = rule[0], rule[1]
+                    if len(binmasks.setdefault(mask, [])) == 0:
+                        if masked(value, mask) == vld:
+                            # record, indexed by mask
+                            binmasks[mask] += [vld, name]
                 else:
                     # range
                     res = INVALID if (value < rule[0]) or (
@@ -444,9 +459,13 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             else:
                 # discrete value
                 res = value if rule == value else INVALID
-            if res is not INVALID:
-                return (res, name)
-        return (INVALID, 'Invalid')
+            if not hasvalid:
+                # record the 1st valid
+                if res is not INVALID:
+                    hasvalid = (res, name)
+        if any(len(resnm) for mask, resnm in binmasks.items()):
+            return [tuple(resnm) if len(resnm) else (INVALID, 'Invalid') for mask, resnm in binmasks.items()]
+        return hasvalid if hasvalid else (INVALID, 'Invalid')
 
     def setValue(self, value):
         """ Replaces the current value of this parameter.
@@ -473,9 +492,8 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         vs, us, ts, ds, fs, gs, cs = ret
         if level:
             return vs
-        return self.__class__.__name__ +\
-            '{ %s <%s>, "%s", default= %s, valid= %s tcode=%s}' %\
-            (vs, ts, ds, fs, gs, cs)
+        return '%s{ %s <%s>, "%s", default= %s, valid= %s tcode=%s}' % \
+            (self.__class__.__name__, vs, ts, ds, fs, gs, cs)
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
@@ -499,19 +517,6 @@ class NumericParameter(Parameter, Quantifiable):
 
     def __repr__(self):
         return self.toString(level=1)
-
-    def toString1(self, level=0, alist=False,  **kwds):
-
-        ret = exprstrs(self, level=level, **kwds)
-        if alist:
-            return ret
-        vs, us, ts, ds, fs, gs, cs = ret
-
-        if level:
-            return vs
-        return self.__class__.__name__ +\
-            '{ %s (%s) <%s>, "%s", default= %s, valid= %s tcode=%s}' %\
-            exprstrs(self)
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
@@ -538,11 +543,11 @@ class DateParameter(Parameter):
         super(DateParameter, self).__init__(
             value=value, description=description, typ_='finetime', default=default, valid=valid, **kwds)
 
-    @property
+    @ property
     def typecode(self):
         return self.getTypecode()
 
-    @typecode.setter
+    @ typecode.setter
     def typecode(self, typecode):
         self.setTypecode(typecode)
 
@@ -575,12 +580,6 @@ class DateParameter(Parameter):
     def __repr__(self):
 
         return self.toString(level=1)
-
-    def toString1(self, level=0, alist=False, **kwds):
-
-        return self.__class__.__name__ +\
-            '{ "%s", "%s", default= %s, valid= %s tcode=%s}' % \
-            (vs, ds, fs, gs, cs)
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
@@ -622,11 +621,11 @@ class StringParameter(Parameter):
         super(StringParameter, self).__init__(
             value=value, description=description, typ_='string', default=default, valid=valid, **kwds)
 
-    @property
+    @ property
     def typecode(self):
         return self.getTypecode()
 
-    @typecode.setter
+    @ typecode.setter
     def typecode(self, typecode):
         self.setTypecode(typecode)
 
@@ -641,18 +640,6 @@ class StringParameter(Parameter):
     def __repr__(self):
         return self.toString(level=1)
 
-    def toString1(self, level=0, alist=False, **kwds):
-
-        ret = exprstrs(self, level=level, **kwds)
-        if alist:
-            return ret
-        if level:
-            return vs
-        vs, us, ts, ds, fs, gs, cs = ret
-        return self.__class__.__name__ + \
-            '{ "%s", "%s", default= %s, valid= %s tcode=%s}' % \
-            (vs, ds, fs, gs, cs)
-
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(value=self._value,
@@ -661,9 +648,6 @@ class StringParameter(Parameter):
                            default=self._default,
                            typecode=self._typecode,
                            classID=self.classID)
-        return self.__class__.__name__ + \
-            '{ description = "%s", value = "%s", typecode = "%s"}' % \
-            (str(self.description), str(self.value), str(self.getTypecode()))
 
 
 MetaHeaders = ['name', 'value', 'unit', 'type', 'valid',
@@ -734,25 +718,26 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         return r
 
     def toString(self, level=0, tablefmt='grid', tablefmt1='simple', **kwds):
+
         tab = []
         # N parameters per row for level 1
-        N = 4
+        N = 3
         i, row = 0, []
         cn = self.__class__.__name__
         s = '# ' + cn + '\n'
         for (k, v) in self._sets.items():
             pk = str(k)
             vs, us, ts, ds, fs, gs, cs = v.toString(alist=True)
-            #print(vs, us, ts, ds, fs, gs, cs)
+            # print(vs, us, ts, ds, fs, gs, cs)
             if level == 0:
-                vw = -1 if ts == 'finetime' else 17
-                tab.append((wls(pk, 13), wls(vs, vw), wls(us, 7),
-                            wls(ts, 8), wls(gs, vw), wls(fs, vw),
-                            wls(cs, 4), wls(ds, 18)))
+                vw = 17  # -1 if ts == 'finetime' else 17
+                tab.append((wls(pk, 14), wls(vs, vw), wls(us, 7),
+                            wls(ts, 8), wls(gs, 20), wls(fs, vw),
+                            wls(cs, 4), wls(ds, 17)))
             elif level == 1:
                 ps = '%s= %s' % (pk, vs)
-                #s += mstr(self, level=level, depth=1, tablefmt=tablefmt, **kwds)
-                row.append(wls(ps, 20))
+                # s += mstr(self, level=level, depth=1, tablefmt=tablefmt, **kwds)
+                row.append(wls(ps, 80//N))
                 i += 1
                 if i == N:
                     tab.append(row)

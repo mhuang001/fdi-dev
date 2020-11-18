@@ -75,7 +75,11 @@ def wls(s, width=15):
 
     if width <= 0:
         return s
-    return '\n'.join(s[i:i+width] for i in range(0, len(s), width))
+    ret = []
+    for seg in s.split('\n'):
+        ret.append('\n'.join(seg[i:i+width]
+                             for i in range(0, len(seg), width)))
+    return '\n'.join(ret)
 
 
 def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
@@ -143,7 +147,7 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
         return ', '.join(s)
 
 
-def binhexstring(val, typ_):
+def binhexstring(val, typ_, width=0):
     """ returns val in binar, hex, or string according to typ_
     """
     if typ_ == 'hex':
@@ -152,6 +156,7 @@ def binhexstring(val, typ_):
         func = bin
     else:
         func = str
+    breakline = True
     if not issubclass(val.__class__, list):
         return func(val)
     lst = []
@@ -159,21 +164,35 @@ def binhexstring(val, typ_):
         if not issubclass(t.__class__, (tuple, list)):
             # val is a vector
             lst.append(func(t))
+            breakline = False
             continue
         # val is for '_valid' [[], [], []..]
         x, label = t[0], t[1]
         if issubclass(x.__class__, (tuple, list)):
             # range or binary with mask. (1,95) (0B011, 011)
-            seg = "(%s, %s):'%s'" % (func(x[0]), func(x[1]), label)
+            seg = "(%s, %s): %s" % (func(x[0]), func(x[1]), label)
         elif issubclass(x.__class__, str):
-            seg = "'%s':'%s'" % (x, label)
+            seg = "'%s': %s" % (x, label)
         else:
-            seg = "%s:'%s'" % (func(x), label)
+            seg = "%s: %s" % (func(x), label)
         lst.append(seg)
-    return '[%s]' % ', '.join(lst)
+    if width and breakline:
+        return '\n'.join(lst)
+    else:
+        return '[%s]' % ', '.join(lst)
 
 
-def attrstr(p, v, ts, missingval='', ftime=False, **kwds):
+def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
+    """
+    p: parameter object.
+    v: name of parameter attribute.
+    missingval: string used when the parameter does not have the attribute.
+    ftime: True means that attribute value will be FineTime if _type is 'finetime'.
+    state: The state validity of the parameter is returned in place of value, if the state is not 'valid' or 'default'.
+    """
+
+    ts = getattr(p, '_type') if hasattr(p, '_type') else missingval
+
     if hasattr(p, v):
         val = getattr(p, v)
         if val is None:
@@ -182,16 +201,40 @@ def attrstr(p, v, ts, missingval='', ftime=False, **kwds):
         # from ..dataset.finetime import FineTime
         # if issubclass(vc, FineTime):
         if ftime:
-            if ts == 'finetime':
+            # v is '_valid', '_default' or value/data
+            if ts.startswith('finetime'):
                 # print('***', v, ts)
                 if v == '_valid':
                     s = binhexstring(val, 'string')
+                elif v == '_default':
+                    s = val.toString(width=width, **kwds)
+                elif state:
+                    vv, vd = p.validate(val)
+                    if vd.lower() not in ['valid', 'default', '']:
+                        s = '%s (%s)' % (vd, val.toString(width=width, **kwds))
+                    else:
+                        s = val.toString(width=width, **kwds)
                 else:
-                    s = val.toString(width=1, **kwds)
+                    s = val.toString(width=width, **kwds)
                 vs = s
+            elif not state or v == '_valid' or v == '_default':
+                if v != '_valid':
+                    width = 0
+                vs = binhexstring(val, ts, width=width)
             else:
-                vs = binhexstring(val, ts)
+                # value/data of parameter of non-finetime
+                vld = p.validate(val)
+                if issubclass(vld.__class__, tuple):
+                    vv, vd = vld
+                    if vd.lower() not in ['valid', 'default']:
+                        vs = '%s (%s)' % (vd, binhexstring(val, ts))
+                    else:
+                        vs = binhexstring(val, ts)
+                else:
+                    # binary masked
+                    vs = binhexstring(vld, ts, width=width)
         else:
+            # must be string
             vs = val
     else:
         vs = missingval
@@ -199,15 +242,17 @@ def attrstr(p, v, ts, missingval='', ftime=False, **kwds):
 
 
 def exprstrs(param, v='_value', **kwds):
-    """ Generates a set of strings for expr() """
+    """ Generates a set of strings for toString().
 
-    ts = attrstr(param, '_type', 'string', **kwds)
-    vs = attrstr(param, v, ts, ftime=True, **kwds)
-    fs = attrstr(param, '_default', ts, ftime=True, **kwds)
-    ds = attrstr(param, 'description', ts, **kwds)
-    gs = attrstr(param, '_valid', ts, ftime=True, **kwds)
-    us = attrstr(param, '_unit', ts, **kwds)
-    cs = attrstr(param, '_typecode', ts, **kwds)
+    """
+
+    ts = attrstr(param, '_type', **kwds)
+    vs = attrstr(param, v, ftime=True, **kwds)
+    fs = attrstr(param, '_default', ftime=True, **kwds)
+    ds = attrstr(param, 'description', **kwds)
+    gs = attrstr(param, '_valid', ftime=True, **kwds)
+    us = attrstr(param, '_unit', **kwds)
+    cs = attrstr(param, '_typecode', **kwds)
 
     return (vs, us, ts, ds, fs, gs, cs)
 

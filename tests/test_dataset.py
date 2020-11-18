@@ -42,7 +42,7 @@ else:
 Classes.updateMapping()
 
 # make format output
-mko = 0
+mko = 1
 
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
@@ -584,16 +584,25 @@ def test_Parameter_valid():
         (0b00110000, 0b00): 'off',
         (0b00110000, 0b01): 'mode 1',
         (0b00110000, 0b10): 'mode 2',
-        (0b00110000, 0b11): 'mode 3',
+        # 0b00110000, 0b11): 'mode 3', undefined. invalid
+        (0b00001111, 0b0000): 'reserved',
     }
-    assert v.validate(0b00000000) == (0b00, 'off')
+    assert v.validate(0b00000000) == [(0b00, 'off'),
+                                      (0b0000, 'reserved')]
     v.value = 0
     assert v.isvalid()
-    assert v.validate(0b00010000) == (0b01, 'mode 1')
-    assert v.validate(0b00100000) == (0b10, 'mode 2')
-    assert v.validate(0b00110000) == (0b11, 'mode 3')
+    assert v.validate(0b00010000) == [(0b01, 'mode 1'),
+                                      (0b0000, 'reserved')]
     # other bits are ignored
-    assert v.validate(0b11111111) == (0b11, 'mode 3')
+    assert v.validate(0b10100000) == [(0b10, 'mode 2'),
+                                      (0b0000, 'reserved')]
+    assert v.validate(0b00110000) == [(INVALID, 'Invalid'),
+                                      (0b0000, 'reserved')]
+    assert v.validate(0b00001111) == [(0b00, 'off'),
+                                      (INVALID, 'Invalid')]
+    # all invalid. [ (INVALID, 'Invalid'),
+    #                                   (INVALID, 'Invalid') ]
+    assert v.validate(0b11111111) == (INVALID, 'Invalid')
 
 
 def test_Parameter_features():
@@ -1038,13 +1047,13 @@ def test_DataWrapper():
 def standardtestmeta():
     m = MetaData()
     m['a'] = NumericParameter(
-        3.4, 'num par', 'float', 2., {(0, 30): 'nok'})
+        3.4, 'rule name, if is "valid", "", or "default", is ommited in value string.', 'float', 2., {(0, 31): 'valid', 99: ''})
     then = datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
-    m['b'] = DateParameter(FineTime(then), 'date par', default=99,
-                           valid={(0, 9999999999): 'dok'}, typecode='%Y')
+    m['b'] = DateParameter(FineTime(then), 'date param', default=99,
+                           valid={(0, 9876543210123456): 'ever'}, typecode='%Y')
     m['c'] = StringParameter(
-        'Right', 'str par', {'': 'sok'}, 'cliche', 'B')
+        'Right', 'str parameter. but only "" is allowed.', {'': 'empty'}, 'cliche', 'B')
     return m
 
 

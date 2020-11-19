@@ -97,13 +97,15 @@ class GenericDataset(Dataset, DataContainer, Container):
         if level > 1:
             return cn + \
                 '{ %s, description = "%s", meta = %s }' % \
-                (str(self.data), str(self.description), str(self.meta))
+                (str(self.data), str(self.description), self.meta.toString(
+                    level=level, matprint=matprint, trans=trans, **kwds))
 
         s = '# ' + cn + '\n' +\
             mstr(self.serializable(), level=level, **kwds)
         d = cn + '-dataset =\n'
         d += bstr(self.data, level=level, **kwds) if matprint is None else \
-            matprint(self.data)
+            matprint(self.data, level=level, trans=False, headers=[], tablefmt2='plain',
+                     **kwds)
         return s + '\n' + d + '\n'
 
     def serializable(self):

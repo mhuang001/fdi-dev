@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import builtins
-from collections import OrderedDict
-from numbers import Number
 from ..utils.masked import masked
+from ..utils.common import grouper
 from .serializable import Serializable
 from .odict import ODict
 from .composite import Composite
@@ -20,6 +18,9 @@ from ..utils.common import exprstrs, wls, mstr
 
 from tabulate import tabulate
 
+import builtins
+from collections import OrderedDict
+from numbers import Number
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -719,12 +720,13 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
 
     def toString(self, level=0, tablefmt='grid', tablefmt1='simple', **kwds):
 
+        l = self.listeners.toString(level=level, **kwds)
         tab = []
         # N parameters per row for level 1
         N = 3
         i, row = 0, []
         cn = self.__class__.__name__
-        s = '# ' + cn + '\n'
+        s = ''
         for (k, v) in self._sets.items():
             pk = str(k)
             vs, us, ts, ds, fs, gs, cs = v.toString(alist=True)
@@ -737,22 +739,31 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             elif level == 1:
                 ps = '%s= %s' % (pk, vs)
                 # s += mstr(self, level=level, depth=1, tablefmt=tablefmt, **kwds)
-                row.append(wls(ps, 80//N))
-                i += 1
-                if i == N:
-                    tab.append(row)
-                    i, row = 0, []
+                tab.append(wls(ps, 80//N))
+                if 0:
+                    row.append(wls(ps, 80//N))
+                    i += 1
+                    if i == N:
+                        tab.append(row)
+                        i, row = 0, []
             else:
                 tab.append(pk)
-        if level == 0 or level == 1:
-            headers = '' if level == 1 else MetaHeaders
-            fmt = tablefmt if level == 0 else tablefmt1
+
+        if level == 0:
+            headers = MetaHeaders
+            fmt = tablefmt
             s += tabulate(tab, headers=headers, tablefmt=fmt, missingval='',
+                          disable_numparse=True) if len(tab) else '(empty)'
+        elif level == 1:
+            t = grouper(tab, N)
+            headers = ''
+            fmt = tablefmt1
+            s += tabulate(t, headers=headers, tablefmt=fmt, missingval='',
                           disable_numparse=True) if len(tab) else '(empty)'
         else:
             s += ', '.join(tab)
-        l = self.listeners.toString(level=level, **kwds)
-        return '%s\n%s-listeners = %s' % (s, cn, l)
+            return '%s, listeners = %s' % (s, l)
+        return '\n%s\n%s-listeners = %s' % (s, cn, l)
 
     def __repr__(self, **kwds):
         return self.toString(level=1, **kwds)

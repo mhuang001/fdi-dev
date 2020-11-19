@@ -4,6 +4,7 @@ from tabulate import tabulate
 import hashlib
 import traceback
 import logging
+from itertools import zip_longest
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -116,8 +117,7 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
             return bstr(obj, length=80, level=level, **kwds)
         from fdi.dataset.metadata import MetaData
         if issubclass(obj.__class__, MetaData):
-            pat = '%s= %s' if depth == 0 else '%s= %s'
-            data = obj._sets
+            return obj.toString(level=level, **kwds) + '\n'
         else:
             pat = '%s= {%s}' if depth == 0 else '%s= %s'
             data = obj
@@ -127,16 +127,6 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
                     mstr(v, level=level, excpt=excpt,
                          indent=indent, depth=depth+1, **kwds))
              for k, v in data.items() if k not in excpt]
-        if issubclass(obj.__class__, MetaData):
-            tab = []
-            for i in range(int(len(s)/4)):
-                row = tuple(wls(s[i*4+j], 20) for j in range(4))
-                tab.append(row)
-
-            tf = kwds['tablefmt'] if 'tablefmt' in kwds else 'simple'
-            t = tabulate(tab, headers='', disable_numparse=True,
-                         tablefmt=tf) if len(tab) else '(empty)'
-            return '\n' + t + '\n'
         sep = ',\n' if depth == 0 else ', '
         return sep.join(s)
     else:
@@ -192,7 +182,8 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
     """
 
     ts = getattr(p, '_type') if hasattr(p, '_type') else missingval
-
+    if ts is None:
+        ts = 'None'
     if hasattr(p, v):
         val = getattr(p, v)
         if val is None:
@@ -217,22 +208,24 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                 else:
                     s = val.toString(width=width, **kwds)
                 vs = s
-            elif not state or v == '_valid' or v == '_default':
+            elif not state or v == '_valid' or v == '_default' or not hasattr(p, 'validate'):
                 if v != '_valid':
+                    # for default and value/data, print list horizontally
                     width = 0
                 vs = binhexstring(val, ts, width=width)
-            else:
+            elif hasattr(p, 'validate'):
                 # value/data of parameter of non-finetime
                 vld = p.validate(val)
                 if issubclass(vld.__class__, tuple):
                     vv, vd = vld
-                    if vd.lower() not in ['valid', 'default']:
+                    if vd.lower() not in ['valid', 'default', '']:
                         vs = '%s (%s)' % (vd, binhexstring(val, ts))
                     else:
                         vs = binhexstring(val, ts)
                 else:
-                    # binary masked
-                    vs = binhexstring(vld, ts, width=width)
+                    # binary masked. vld is a list of tuple/lists
+                    sep = '\n' if width else ', '
+                    vs = sep.join('%s (%s)' % (r[1], bin(r[0])) for r in vld)
         else:
             # must be string
             vs = val
@@ -292,3 +285,11 @@ def getObjectbyId(idn, lgbv):
         if id(obj) == idn:
             return obj
     raise ValueError("Object not found by id %d." % (idn))
+
+
+def grouper(iterable, n, fillvalue=None):
+    "Collect data into fixed-length chunks or blocks"
+    # python 3.6 doc
+    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
+    args = [iter(iterable)] * n
+    return zip_longest(*args, fillvalue=fillvalue)

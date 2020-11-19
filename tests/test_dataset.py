@@ -41,13 +41,13 @@ else:
 
 Classes.updateMapping()
 
-# make format output
-mko = 1
+# make format output in /tmp/fditest_toString
+mko = 0
 
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
 
-    from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_TableDataset, out_CompositeDataset
+    from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset
 else:
     # run by pytest
 
@@ -55,7 +55,7 @@ else:
     # https://docs.python-guide.org/writing/structure/
     from .pycontext import fdi
 
-    from .outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_TableDataset, out_CompositeDataset
+    from .outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset
 
     from .logdict import logdict
     import logging
@@ -1054,6 +1054,8 @@ def standardtestmeta():
                            valid={(0, 9876543210123456): 'ever'}, typecode='%Y')
     m['c'] = StringParameter(
         'Right', 'str parameter. but only "" is allowed.', {'': 'empty'}, 'cliche', 'B')
+    m['d'] = NumericParameter(
+        0b01, 'valid rules described with binary masks', 'binary', 0b00, {(0b0110, 0b01): 'on', (0b0110, 0b00): 'off'})
     return m
 
 
@@ -1061,13 +1063,17 @@ def test_GenericDataset():
     v = GenericDataset(description='test GD')
     v.data = 88.8
     v.meta = standardtestmeta()
-    ts = v.toString()
+    ts = 'level 0\n'
+    ts += v.toString()
+    ts += 'level 1, repr\n'
     ts += v.toString(1)
+    ts += 'level 2,\n'
     ts += v.toString(2)
     if mko:
         print(ts)
-        with open('/tmp/fditest_gen', 'w') as f:
-            f.write(ts)
+        with open('/tmp/fditest_toString', 'wt') as f:
+            clsn = 'out_GenericDataset'
+            f.write('%s = """%s"""\n' % (clsn, ts))
     else:
         assert ts == out_GenericDataset
 
@@ -1217,16 +1223,21 @@ def test_ArrayDataset_func():
     x[0][1][2] = [5, 4, 3, 2, 1]
     x[0][1][3] = [0, 0, 0, 3, 0]
     x.meta = standardtestmeta()
-    ts = x.toString()
-    if mko:
-        print(ts)
-        with open('/tmp/fditest_arr', 'w') as f:
-            f.write(ts)
-    ts = x.toString(level=1)
-    if mko:
-        print(ts)
+    ts = 'level 0\n'
+    ts += x.toString()
     i = ts.index('0  0  0  0  0')
     assert ts[i:] == nds2 + '\n'
+    ts += 'level 1, repr\n'
+    ts += x.toString(1)
+    ts += 'level 2,\n'
+    ts += x.toString(2)
+    if mko:
+        print(ts)
+        with open('/tmp/fditest_toString', 'a') as f:
+            clsn = 'out_ArrayDataset'
+            f.write('%s = """%s"""\n' % (clsn, ts))
+    else:
+        assert ts == out_ArrayDataset
 
     checkjson(v)
     checkgeneral(v)
@@ -1369,13 +1380,18 @@ def test_TableDataset_func():
 
     # toString()
     v.meta = standardtestmeta()
-    ts = v.toString()
+    ts = 'level 0\n'
+    ts += v.toString()
+    ts += 'level 1, repr\n'
+    ts += v.toString(1)
+    ts += 'level 2,\n'
+    ts += v.toString(2)
     if mko:
         print(ts)
-        with open('/tmp/fditest_tab', 'w') as f:
-            f.write(ts)
+        with open('/tmp/fditest_toString', 'a') as f:
+            clsn = 'out_TableDataset'
+            f.write('%s = """%s"""\n' % (clsn, ts))
     else:
-        # print(out_TableDataset)
         assert ts == out_TableDataset
 
     checkjson(u)
@@ -1604,11 +1620,17 @@ def test_CompositeDataset_init():
     v3.set(a9, a4)
     v3.set(a10, x)
     v3.meta[a11] = a12
-    ts = v3.toString()
+    ts = 'level 0\n'
+    ts += v3.toString()
+    ts += 'level 1, repr\n'
+    ts += v3.toString(1)
+    ts += 'level 2,\n'
+    ts += v3.toString(2)
     if mko:
         print(ts)
-        with open('/tmp/fditest_comp', 'w') as f:
-            f.write(ts)
+        with open('/tmp/fditest_toString', 'a') as f:
+            clsn = 'out_CompositeDataset'
+            f.write('%s = """%s"""\n' % (clsn, ts))
     else:
         assert ts == out_CompositeDataset
 

@@ -2,6 +2,7 @@
 
 from .server_skeleton import bad_request, unauthorized, not_found, conflict
 from ..utils.common import trbk, trbk2
+from ..utils.run_proc import run_proc
 from ..dataset.deserialize import deserializeClassID
 from ..dataset.serializable import serializeClassID
 from ..dataset.dataset import GenericDataset, ArrayDataset, TableDataset
@@ -43,59 +44,10 @@ def _execute(cmd, input=None, timeout=10):
 
     logger.debug('%s inp:%s tout: %d' %
                  (str(cmd), str(input), timeout))
-    sta = {'command': str(cmd)}
-    pnsh = pc['paths']['pnshome']
-    asuser = pc['ptsuser']
+    pwdir = pc['paths']['pnshome']
+    as_user = pc['ptsuser']
 
-    try:
-        # https://stackoverflow.com/a/6037494
-        pw_record = pwd.getpwnam(asuser)
-        user_name = pw_record.pw_name
-        user_home_dir = pw_record.pw_dir
-        user_uid = pw_record.pw_uid
-        user_gid = pw_record.pw_gid
-        env = environ.copy()
-        env['HOME'] = user_home_dir
-        env['LOGNAME'] = user_name
-        env['PWD'] = pnsh
-        env['USER'] = user_name
-
-        def chusr(user_uid, user_gid):
-            def result():
-                setgid(user_gid)
-                setuid(user_uid)
-                logger.debug('set uid=%d gid=%d' % (user_uid, user_gid))
-            return result
-        executable = None
-
-        # /etc/sudoer: apache ALL:(vvpp) NOPASSWD: ALL
-        # gpasswd -a vvpp apache
-        # cmd = ['sudo', '-u', asuser, 'bash', '-l', '-c'] + cmd
-        # cmd = ['sudo', '-u', asuser] + cmd
-        logger.debug('Popen %s env:%s uid: %d gid:%d' %
-                     (str(cmd), str(env)[: 40] + ' ... ', user_uid, user_gid))
-        proc = Popen(cmd, executable=executable,
-                     stdin=PIPE, stdout=PIPE, stderr=PIPE,
-                     preexec_fn=None,
-                     cwd=pnsh,
-                     env=env, shell=False,
-                     encoding='utf-8')  # , universal_newlines=True)
-    except Exception as e:
-        msg = trbk(e)
-        return {'returncode': -1, 'message': msg}
-
-    try:
-        sta['stdout'], sta['stderr'] = proc.communicate(timeout=timeout)
-        sta['returncode'] = proc.returncode
-    except TimeoutExpired:
-        # The child process is not killed if the timeout expista,
-        # so in order to cleanup properly a well-behaved application
-        # should kill the child process and finish communication
-        # https://docs.python.org/3.6/library/subprocess.html?highlight=subprocess#subprocess.Popen.communicate
-        proc.kill()
-        sta['stdout'], sta['stderr'] = proc.communicate()
-        sta['returncode'] = proc.returncode
-
+    sta = run_proc(cmd, as_user, pwdir, timeout)
     return sta
 
     cp = srun(cmd, input=input, stdout=PIPE, stderr=PIPE,

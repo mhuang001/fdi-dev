@@ -20,6 +20,12 @@ To install (It is a good idea to add ``--user`` at the end or to use a virtualen
 
    pip3 install git+http://mercury.bao.ac.cn:9006/mh/fdi.git
 
+If you want to install the ``develop`` branch:
+
+.. code-block:: shell
+
+   pip3 install git+http://mercury.bao.ac.cn:9006/mh/fdi.git@develop
+   
 To uninstall:
 
 .. code-block:: shell
@@ -36,10 +42,11 @@ To install (It is a good idea to add ``--user`` at the end or to use a virtualen
 
            FDIINSTDIR=/tmp   # change this to your installation dir
            cd $FDIINSTDIR
-           git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git
+           git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git@develop
            cd fdi
            pip3 install -e .[DEV]
 
+If you want to install the ``master`` branch, remove the ``@develop`` part above..   
 	   
 To test your installation:
 

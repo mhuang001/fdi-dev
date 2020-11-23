@@ -28,7 +28,7 @@ setup(
     url="http://mercury.bao.ac.cn:9006/mh/fdi",
     packages=find_packages(exclude=['tests', 'tmp']),
     long_description=read('README.rst'),
-    long_description_content_type="text/rst",
+    # long_description_content_type="text/markdown",
     python_requires=">=3.6",
     install_requires=[
         'requests>=2.23.0',

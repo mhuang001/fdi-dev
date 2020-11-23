@@ -1,12 +1,11 @@
-FDI helps data producers and processors to build connections among datasets of different types and origins, to assemble and
-integrate isolated data into self-describing, modular, hierarchical, referenceable ``Products``. Component datasets of a Product keep their own characteristicss and are easily accessible.
+FDI helps data producers and processors to build connections into isolated heterogeneous datasets. to assemble, organize, and integrate data into self-describing, modular, hierarchical, persistent, referenceable ``Products``, whose component datasets keep their own characteristicss and are easily accessible.
 
 FDI provides scripting-friendly  APIs  and 
-tools to define custom Products and generating Python class files. The integrated Product takes care of inter-platform compatibility, serialisation to simple exchange format, persistence to disk or server, and data object referencing that enables context-building and lazy-loading.
+tools to define custom Products and generating Python class files. An integrated Product takes care of inter-platform compatibility, string representation, serialisation to simple exchange format, persistence to disk or server, and carrying references of other Products, enabling context-building and lazy-loading.
 
 FDI's base data model is defined in package ``dataset``. Persistent data
 access, referencing, and Universal Resource Names are defined in package
-``pal``. A reference REST API server designed to communicate with a data
+``pal``. A reference RESTful API server designed to communicate with a data
 processing server/docker using the data model, and a reference data store (``pool``) server is in package ``pns``.
 
 Install/Uninstall

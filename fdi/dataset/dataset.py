@@ -565,7 +565,10 @@ class TableDataset(GenericDataset, TableModel):
     def __repr__(self, **kwds):
         return self.toString(level=1, **kwds)
 
-    def toString(self, level=0, matprint=None, trans=True, tablefmt2='rst', **kwds):
+    def toString(self, level=0, matprint=None, trans=True, tablefmt2='simple', **kwds):
+        """
+        tablefmt2: format of 2D data
+        """
         if matprint is None:
             matprint = ndprint
 

@@ -10,9 +10,9 @@
 Rationale
 =========
 
-A data processing task produces data products that are meant to be shared with others. When someone receives a data 'product', besides datasets, one would expect explanation informaion associated with the product. Many people tend to store data with no note of meaning attached to those data. Without attached explanation, it is difficult for other people to fully understand or use correctly a collection of numbers. It could be difficult for even the data producer to recall the exact meaning of the numbers after a while.
+Data products  produced by data processing procedures are meant to be read, underatood, and used by others. Many people tend to store data with no note of meaning attached to those data. Without attached explanation, it is difficult for other people to fully understand or use correctly a collection of numbers. It could be difficult for even the data producer to recall the exact meaning of the numbers after a while. When someone receives a data 'product', besides dataets, one would expect explanation informaion associated with the product. 
 
-FDI implements a data product container scheme so that not only description and other metadata (data about data) are always attached to your data, but also that your data can have its context data (other data who are peers, components, auxliaries, or at higher levels) attached as light weight references.
+FDI implements a data product container scheme so that not only description and other metadata (data about data) are always attached to the "payload" data, but also that your data can have its context data attached as light weight references. One can organize scalar, vector, array, table types of data in the form of sequences, mappings, with nesting and referencing.
 
 FDI is meant to be a small open-source package. Data stored in FDI ojects are easily accessible with Python API and are exported (serialized and stored by default) in cross-platform, human-readable JSON format. There are heavier formats (e..g. HDF5) and packages (e.g. iRODS) for similar goals. FDI's data model was originally inspired by  `Herschel Common Software System (v15)  products <https://www.cosmos.esa.int/web/herschel/data-products-overview/>`_, taking other  requirements of scientific observation and data processing into account. The APIs are kept as compatible with HCSS (written in Java, and in Jython for scripting) as possible.
 
@@ -25,13 +25,13 @@ Product
 
 A product has
    * zero or more datasets: defining well described data entities (say images, tables, spectra etc...). 
-   * history of this product: how was this data created, 
-   * accompanying meta data -- required information such as who created this product, what does the data reflect (say instrument) and so on; possible additional meta data specific to that particular product type. A number of built-in Parameters can be specified in ``fdi/dataset/resourcese`` in YAML format. A helper utility ``yaml2python`` can be run using ``make`` to generate test-ready Python code of product class module containing the built-ins.
+   * accompanying meta data -- required information such as who created this product, what does the data reflect (say instrument) and so on; possible additional meta data specific to that particular product type. A number of built-in Parameters can be specified in ``fdi/dataset/resourcese`` in YAML format. A helper utility ``yaml2python`` can be run using ``make py`` to generate test-ready Python code of product class module containing the built-ins.
+   * history of this product: how was this data created.
 
 Dataset
 -------
 
-Three types of datasets are implemented to store potentially any data as a dataset.
+Three types of datasets are implemented to store potentially any hierarchical data as a dataset.
 Like a product, all datasets may have meta data, with the distinction that the meta data of a dataset is related to that particular dataset only.
 
 :array dataset: a dataset containing array data (say a data vector, array, cube etc...) and may have a unit and a typecode for efficient storing.
@@ -41,9 +41,9 @@ Like a product, all datasets may have meta data, with the distinction that the m
 Metadata and Parameters
 -----------------------
 
-:Metadata: data about data. Defined as a collection of named Parameters. 
+:Metadata: data about data. Defined as a collection of named Parameters. Often a parameter shows a property. So a parameter in the metadata of a dataset or product is often called a property.
 
-:Parameter: scalar or vector variables. 
+:Parameter: scalar or vector variable with attributes. 
 	    This package provides the following parameter types:
 
    * *Parameter*: Contains a value, description, type, validity specification, and default value. Value, default, and type are type-bound in metadata.ParameterTypes. If requested, a Parameter can check its value or a given value with the validity specification, which can be a combination of descrete values, ranges, and bit-masked values.

@@ -11,8 +11,7 @@ The following demostrates important dataset and pal functionalities. It was made
 You can copy the code from code blocks by clicking the ``copy`` icon on the top-right, with he proompts and results removed.
 """
 
-# import these first.
-
+# Import these packages needed in the tutorial
 from fdi.dataset.product import Product
 from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter
 from fdi.dataset.finetime import FineTime, FineTime1
@@ -23,11 +22,11 @@ from fdi.pal.productref import ProductRef
 from fdi.pal.query import AbstractQuery, MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.pal.productstorage import ProductStorage
-
 import getpass
 import os
 from datetime import datetime, timezone
 import logging
+
 
 # initialize the white-listed class dictionary
 cmap = Classes.updateMapping()
@@ -35,86 +34,92 @@ cmap = Classes.updateMapping()
 print("""
 dataset
 =======
-The data model.
-""")
 
-print("""
+First we show how to make and use components of the data model.
+
+This section shows how to create data containers -- datasets, metadata, and Products, how to put data into the containers, read data out, modify data, remove data, inspect data.
+
 ArrayDataset
 ------------
 """)
 
 
-# Creation
-a1 = [1, 4.4, 5.4E3, -22, 0xa2]      # a 1D array of data
-# quick
+# Creation with an array of data quickly
+a1 = [1, 4.4, 5.4E3, -22, 0xa2]
 v = ArrayDataset(a1)
+# Show it. This is the same as print(v) in a non-interactive environment.
 v
 
-# clear
+# Do it with built-in properties set.
 v = ArrayDataset(data=a1, unit='ev', description='5 elements',
                  typ_='float', default=1.0, typecode='f')
 v
 
-# data access
-v[2]
+# add some metadats (see more about meta data below)
+v.meta['greeting'] = StringParameter('Hi there.')
+v.meta['year'] = NumericParameter(2020)
+v
 
+# data access: read the 2nd array element
+v[2]       # 5400
+
+# built-in properties
 v.unit
 
-# change attributes
+# change it
 v.unit = 'm'
 v.unit
 
 # iteration
 for m in v:
-    print(m)
+    print(m + 1)
 
 # a filter example
 [m**3 for m in v if m > 0 and m < 40]
 
-# slice
-v[1:3]
-
+# slice the ArrayDataset and only get part of its data
 v[2:-1]
 
-# a 2D array
+# set data to be a 2D array
 v.data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+# slicing happens on the slowest dimension.
 v[0:2]
 
 # Run this to see a demo of the ``toString()`` function::
 # make a 4-D array: a list of 2 lists of 3 lists of 4 lists of 5 elements.
 s = [[[[i + j + k + l for i in range(5)] for j in range(4)]
       for k in range(3)] for l in range(2)]
-x = ArrayDataset(data=s)
-print(x.toString())
+v.data = s
+print(v.toString())
 
 print('''
 TableDataset
 ------------
 
-TableDataset is mainly a name-Column pairs dictionary with metadata.
-Columns are ArrayDatasets under a different name.
+TableDataset is mainly a dictionary containing name-Column pairs and metadata.
+Columns are basically ArrayDatasets under a different name.
 ''')
 
-# Creation
+# Creation with a list of dicts with column names, data, and unit information.
 a1 = [dict(name='col1', unit='eV', column=[1, 4.4, 5.4E3]),
       dict(name='col2', unit='cnt', column=[0, 43.2, 2E3])
       ]
 v = TableDataset(data=a1)
 v
 
-# one of many other ways to create a TableDataset
+# One of many other ways to create a TableDataset. See ``tests/test_dataset``
 v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
                         ('col2', [0, 43.2, 2E3], 'cnt')])
 v == v3
 
 
-# quick tabledataset. data are list of lists without names or units
+# Make a quick tabledataset. data are list of lists without names or units
 a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
 v5 = TableDataset(data=a5)
 print(v5.toString())
 
 # access
-# get names of all column
+# get names of all columns
 v5.getColumnNames()
 
 # get a list of all columns' data
@@ -124,9 +129,10 @@ v5.getColumnNames()
 my_column = v5['col1']
 my_column
 
-#  indexOf
+#  indexOf by name
 v5.indexOf('col1')  # == u.indexOf(my_column)
 
+#  indexOf by column object
 v5.indexOf(my_column)
 
 # set cell value
@@ -140,13 +146,14 @@ v3['col1'].unit  # == 'eV'
 # column set / get
 u = TableDataset()
 c1 = Column([1, 4], 'sec')
+# add
 u.addColumn('time', c1)
 u.columnCount        # 1
 
 # for non-existing names set is addColum.
 u['money'] = Column([2, 3], 'eu')
 u['money'][0]    # 2
-
+# column increases
 u.columnCount        # 2
 
 # addRow
@@ -163,7 +170,7 @@ u.rowCount    # 3
 ELECTRON_VOLTS = 'eV'
 SECONDS = 'sec'
 t = [x * 1.0 for x in range(10)]
-e = [2 * x + 100 for x in t]
+e = [2.5 * x + 100 for x in t]
 # creating a table dataset to hold the quantified data
 x = TableDataset(description="Example table")
 x["Time"] = Column(data=t, unit=SECONDS)
@@ -171,34 +178,43 @@ x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
 print(x.toString())
 
 print("""
-Parameter
----------
+MetaData and Parameter: Parameter
+---------------------------------
+
+FDI datasets and products not only contain data, but also their metadata -- data about the "payload" data. Metadata is a collections of parameters.
+
+A Parameter is a variable with associated information about its description, unit, type, valid ranges, default, format code etc. Type can be numeric, string, datetime, vector.
+
+Often a parameter shows a property. So a parameter in the metadata of a dataset or product is often called a property.
 """)
 
 # Creation
-# standard way -- with keyword arguments
+# The standard way -- with keyword arguments
 v = Parameter(value=9000, description='Average age', typ_='integer')
-v.description   # 'Average age
+v.description   # 'Average age'
 
 v.value   # == 9000
 
 v.type   # == 'integer'
 
-# test equals
+# test equals.
+# FDI DeepEqual integerface class recursively compares all components.
 v1 = Parameter(description='Average age', value=9000, typ_='integer')
 v.equals(v1)
 
+# more readable 'equals' syntax
 v == v1
 
+# make them not equal.
 v1.value = -4
 v.equals(v1)   # False
 
+# math syntax
 v != v1  # True
 
 # NumericParameter with two valid values and a valid range.
 v = NumericParameter(value=9000, valid={
                      0: 'OK1', 1: 'OK2', (100, 9900): 'Go!'})
-
 # There are thee valid conditions
 v
 
@@ -213,57 +229,69 @@ v.validate(20)  # invalid
 
 
 print("""
-Metadata
---------
-A container for named parameters.
+MetaData and Parameter: Metadata
+--------------------------------
+
+A dict-like container for named parameters.
 """)
 
-# Creation
+# Creation. Start with numeric parameter.
 a1 = 'weight'
 a2 = NumericParameter(description='How heavey is the robot.',
-                      value=20, unit='kg', typ_='integer')
+                      value=60, unit='kg', typ_='float')
+# make an empty MetaData instance.
 v = MetaData()
 # place the parameter with a name
 v.set(a1, a2)
-# get the parameter with the name
+# get the parameter with the name.
 v.get(a1)   # == a2
 
-# add more parameter
-v.set(name='job', newParameter=StringParameter('teacher'))
+# add more parameter. Try a string type.
+v.set(name='job', newParameter=StringParameter('pilot'))
 # get the value of the parameter
-v.get('job').value   # == 'teacher'
+v.get('job').value   # == 'pilot'
 
 # access parameters in metadata
-v = MetaData()
 # a more readable way to set/get a parameter than "v.set(a1,a2)", "v.get(a1)"
-v[a1] = a2
-v[a1]   # == a2
+v['job'] = StringParameter('waitress')
+v['job']   # == waitress
 
 # same result as...
-v.get(a1)   # == a2
+v.get('job')
 
 # Date type parameter use International Atomic Time (TAI) to keep time,
 # in 1-microsecond precission
-v['birthday'] = Parameter(description='was made on',
-                          value=FineTime('2020-09-09T12:34:56.789098 UTC'))
+v['birthday'] = Parameter(description='was born on',
+                          value=FineTime('1990-09-09T12:34:56.789098 UTC'))
+# FDI use International Atomic Time (TAI) internally to record time.
+# The format is the integer number of microseconds since 1958-01-01 00:00:00 UTC.
 v['birthday'].value.tai
 
-# names of all parameters
-[n for n in v]   # == ['weight', 'birthday']
 
-# string presentation
+# names of all parameters
+[n for n in v]   # == ['weight', 'job', 'birthday']
+
+# remove parameter from metadata.   # function inherited from Composite class.
+v.remove(a1)
+v.size()  # == 2
+
+# string representation. This is the same as v.toString(level=0), most detailed.
 print(v.toString())
 
-# remove parameter
-v.remove(a1)  # inherited from composite
-print(v.size())  # == 1
+# simplifed string representation, toString(level=1), also what __repr__() runs.
+v
 
-# simplifed string presentation
-print(v)
+# simplest string representation, toString(level=2).
+print(v.toString(level=2))
 
 print("""
 Product
 -------
+
+The data Product is at the center of FDI data model. A product has
+   * zero or more datasets (say images, tables, spectra etc...). 
+   * accompanying metadata,
+   * history of this product: how was this data created.
 """)
 
 # Creation:
@@ -271,6 +299,8 @@ x = Product(description="product example with several datasets",
             instrument="Crystal-Ball", modelName="Mk II")
 x.meta['description'].value  # == "product example with several datasets"
 
+# The 'instrument' and 'modelName' built-in properties show the
+# origin of FDI -- processing data from scientific instruments.
 x.instrument  # == "Crystal-Ball"
 
 # ways to add datasets
@@ -291,7 +321,6 @@ x["QualityImage"].unit  # is None
 s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
       ('col2', [0, 43.2, 2E3], 'cnt')]
 x["Spectrum"] = TableDataset(data=s1)
-
 # mandatory properties are also in metadata
 # test mandatory BaseProduct properties that are also metadata
 a0 = "Me, myself and I"
@@ -313,34 +342,37 @@ x.creator   # == a1
 # load some metadata
 m = x.meta
 m['a'] = NumericParameter(
-    3.4, 'num par', 'float', 2., {(0, 30): 'nok'})
+    3.4, 'rule name, if is "valid", "", or "default", is ommited in value string.', 'float', 2., {(0, 31): 'valid', 99: ''})
 then = datetime(
     2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
-m['b'] = DateParameter(FineTime(then), 'date par', default=99,
-                       valid={(0, 9999999999): 'dok'}, typecode='%Y')
+m['b'] = DateParameter(FineTime(then), 'date param', default=99,
+                       valid={(0, 9876543210123456): 'ever'}, typecode='%Y')
 m['c'] = StringParameter(
-    'Right', 'str par', {'': 'sok'}, 'cliche', 'B')
-# Demo ``toString()`` function. The result (detail level=0) should be ::
+    'Right', 'str parameter. but only "" is allowed.', {'': 'empty'}, 'cliche', 'B')
+m['d'] = NumericParameter(
+    0b01, 'valid rules described with binary masks', 'binary', 0b00, {(0b0110, 0b01): 'on', (0b0110, 0b00): 'off'})
+# Demo ``toString()`` function.
 print(x.toString())
-# For more examples see tests/test_dataset.py
+
 
 print('''
 pal
 ===
 
-Store a Product in a Pool and Get a Reference Back
---------------------------------------------------
+Products need to persist (be stored somewhere) in order to have a reference that can be used to re-create the product after its creation process ends.
 
+Product Pool and Product References
+-----------------------------------
 
-Create a product and a productStorage with a pool registered
+This section shows how to store a product in a "pool" and get a reference back.
 ''')
 
-# disable debugging messages
+
+# Create a product and a productStorage with a pool registered
+# First disable debugging messages
 logger = logging.getLogger('')
 logger.setLevel(logging.WARNING)
-
-
-# a pool for demonstration will be create here
+# a pool (LocalPool) for demonstration will be create here
 demopoolpath = '/tmp/demopool_' + getpass.getuser()
 demopoolurl = 'file://' + demopoolpath
 # clean possible data left from previous runs
@@ -356,56 +388,60 @@ s1 = [('energy', [1, 4.4, 5.6], 'eV'), ('freq', [0, 43.2, 2E3], 'Hz')]
 x["Spectrum"] = TableDataset(data=s1)
 # create a product store
 pstore = ProductStorage(poolurl=demopoolurl)
+# see what is in it.
 pstore
 
-# save the product and get a reference
+# save the product and get a reference back.
 prodref = pstore.save(x)
 # This gives detailed information of the product being referenced
 print(prodref)
 
-# get the urn string
+# get the URN string
 urn = prodref.urn
 print(urn)    # urn:demopool_mh:fdi.dataset.product.Product:0
 
 # re-create a product only using the urn
-
 newp = ProductRef(urn).product
 # the new and the old one are equal
 print(newp == x)   # == True
 
 
 print("""
-Context: a Product with References
-----------------------------------
+Context
+-------
+
+A Context is a Product with References. This section shows essencial steps how product references can be stored in a context.
+
 """)
 
-# the reference can be stored in another product of Context class
 p1 = Product(description='p1')
 p2 = Product(description='p2')
 # create an empty mapcontext that can carry references with name labels
 map1 = MapContext(description='product with refs 1')
-# A ProductRef created from a lone product will use a mempool
+# A ProductRef created with the syntax of a lone product argument will use a MemPool
 pref1 = ProductRef(p1)
 pref1
 
-# A productStorage with a pool on disk
+# A productStorage with a LocalPool -- a pool on the disk.
 pref2 = pstore.save(p2)
 pref2.urn
 
-# how many prodrefs do we have? (do not use len() due to classID, version)
+# how many prodrefs do we have?
 map1['refs'].size()   # == 0
 
+# how many 'parents' do these prodrefs have before saved?
 len(pref1.parents)   # == 0
 
 len(pref2.parents)   # == 0
 
-# add a ref to the contex. every ref has a name in mapcontext
+# add a ref to the context. Every productref has a name in a MapContext
 map1['refs']['spam'] = pref1
 # add the second one
 map1['refs']['egg'] = pref2
-# how many prodrefs do we have? (do not use len() due to classID, version)
+# how many prodrefs do we have?
 map1['refs'].size()   # == 2
 
+# parent list of the productref object now has an entry
 len(pref2.parents)   # == 1
 
 pref2.parents[0] == map1
@@ -414,9 +450,9 @@ pref1.parents[0] == map1
 
 # remove a ref
 del map1['refs']['spam']
-# how many prodrefs do we have? (do not use len() due to classID, version)
 map1.refs.size()   # == 1
 
+# how many prodrefs do we have?
 len(pref1.parents)   # == 0
 
 # add ref2 to another map
@@ -430,8 +466,10 @@ len(pref2.parents)   # == 2
 pref2.parents[1] == map2
 
 print("""
-Query a ProdStorage
--------------------
+Query 
+------
+
+A ProductStorage with pools attached can be queried with tags, properties stored in metadata, or even data in the stored products, with Python syntax.
 """)
 
 # clean possible data left from previous runs
@@ -450,26 +488,32 @@ pstore = ProductStorage(poolurl=defaultpoolurl)
 newpoolurl = 'file://' + newpoolpath
 pstore2 = ProductStorage(poolurl=newpoolurl)
 
-# add some products to both storages
+# add some products to both storages. The product properties are different.
 n = 7
 for i in range(n):
+    # three counters for properties to be queried.
     a0, a1, a2 = 'desc %d' % i, 'fatman %d' % (i*4), 5000+i
     if i < 3:
+        # Product type
         x = Product(description=a0, instrument=a1)
         x.meta['extra'] = Parameter(value=a2)
     elif i < 5:
+        # a different type
         x = Context(description=a0, instrument=a1)
         x.meta['extra'] = Parameter(value=a2)
     else:
+        # yet another type
         x = MapContext(description=a0, instrument=a1)
         x.meta['extra'] = Parameter(value=a2)
         x.meta['time'] = Parameter(value=FineTime1(a2))
     if i < 4:
+        # some are stored in one pool
         r = pstore.save(x)
     else:
+        # some the other
         r = pstore2.save(x)
     print(r.urn)
-# Two pools, 7 products
+# Two pools, 7 products in 3 types
 # [P P P C] [C M M]
 #  0 1 2 3   4 5 6
 
@@ -483,20 +527,25 @@ len(pstore.getPools())   # == 2
 q = MetaQuery(Product, 'm["extra"] > 5001 and m["extra"] <= 5005')
 # search all pools registered on pstore
 res = pstore.select(q)
-# [2,3,4,5]
+# we expect [#2, #3, #4, #5]
 len(res)   # == 4
+
+# see
 [r.product.description for r in res]
+
+# another one
 
 
 def t(m):
     # query is a function
     import re
+    # 'instrument' matches the regex pattern
     return re.match('.*n.1.*', m['instrument'].value)
 
 
 q = MetaQuery(Product, t)
 res = pstore.select(q)
-# [3,4]
+# expecting [3,4]
 [r.product.instrument for r in res]
 
 # same as above but query is on the product. this is slow.

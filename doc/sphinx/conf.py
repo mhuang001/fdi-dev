@@ -10,6 +10,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+
 import os
 import sys
 from datetime import datetime
@@ -17,7 +18,7 @@ import sphinx_rtd_theme
 #import sphinx_readable_theme
 #import sphinx_bootstrap_theme
 
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('.'))
 
 
 # -- Project information -----------------------------------------------------
@@ -28,7 +29,7 @@ copyright = '2019 - %d Maohai Huang, NAOC, ESA' % year
 author = 'Maohai Huang'
 
 # The full version, including alpha/beta/rc tags
-release = 'v1.0rc5'
+release = 'v1.0rc6'
 
 
 # -- General configuration ---------------------------------------------------
@@ -58,12 +59,21 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '*~']
 # https://stackoverflow.com/a/32079202
 def xsetup(app):
     # app.add_css_file("hatnotes.css")
-    app.add_css_file("custom.css")
-    app.add_css_file("bootstrap.css")
+    # app.add_css_file("custom.css")
+    # app.add_css_file("bootstrap.css")
     # app.add_css_file("nature.css")
+    app.add_css_file('fdi.css')
 
 
-pygments_style = 'monokai'
+if 1:
+    #from monokaimod import MonokaiMod
+    pygments_style = 'fdi.utils.monokaimod.MonokaiMod'  # 'monokaimod'
+else:
+    pygments_style = 'monokai'
+
+napoleon_google_docstring = False
+napoleon_use_param = False
+napoleon_use_ivar = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -100,6 +110,7 @@ html_static_path = ['_static']
 # or fully qualified paths (eg. https://...)
 html_css_files = [
     'css/custom.css',
+    'css/fdi.css',
 ]
 
 html_js_files = [
@@ -116,7 +127,7 @@ copybutton_remove_prompts = True
 
 # Theme options are theme-specific and customize the look and feel of a
 # theme further.
-html_theme_options = {
+xhtml_theme_options = {
     'canonical_url': 'http://mercury.bao.ac.cn:9006/mh/fdi',
     'analytics_id': 'UA-XXXXXXX-1',  # Provided by Google in your dashboard
     'logo_only': False,

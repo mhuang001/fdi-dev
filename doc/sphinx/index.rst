@@ -7,8 +7,6 @@
  Flexible Dataset Integrator (fdi)
 ==================================
 
-FDI helps to establish connections among datasets of different types and origins to form a self-describing, regularly organized, integrated product whose component datasets keeps their own characters and easily accessible. FDI provides facilitied to let the integrated product take care of inter-platform compatibility, serialisation, persistence, and data object referencing that enables lazy-loading.
-
 Features
 ========
 
@@ -18,7 +16,7 @@ With FDI one can pack data of different format into **regular and modular** Data
 
 All levels of FDI Products and their components (datasets or metadata) are portable (**serializable**) in human-friendly standard format (JSON implemented), allowing machine data processors on different platforms to parse, access internal components, or re-construct a product. Even a human with only a web browser can understand the data.
 
-The ``toString()`` method of major containers classes outputs nicely formated text representation of complex data to help converting FDI to ASCII.
+The ``toString()`` method of major containers classes outputs nicely formated (often tabulated) text description of complex data to help inspection.
 
 Most FDI Products and components implement **event sender and listener interfaces**, helping **scalable data-driven** processing pipelines and visualizers of live data to be constructed.
 
@@ -51,7 +49,7 @@ FDI Python packages
    usage/dataset
    usage/pal
    usage/pns
-   
+
 API Document
 ============
 

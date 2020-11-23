@@ -22,7 +22,7 @@ from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
-from fdi.dataset.ndprint import ndprint, ndprint0
+from fdi.dataset.ndprint import ndprint
 from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.invalid import INVALID
 from fdi.dataset.finetime import FineTime, FineTime1
@@ -186,40 +186,6 @@ def ndlist(*args):
     for x in reversed(args):
         dp = [copy.deepcopy(dp) for i in range(x)]
     return dp
-
-
-def test_ndprint0():
-    s = [1, 2, 3]
-    v = ndprint0(s)
-    # print(v)
-    # table, 1 column
-    assert v == '1 \n2 \n3 \n'
-    v = ndprint0(s, trans=False)
-    # print(v)
-    # 1D matrix. 1 row.
-    assert v == '1 2 3 '
-    s = [[i + j for i in range(2)] for j in range(3)]
-    v = ndprint0(s)
-    # print(v)
-    # 2x3 matrix 3 columns 2 rows
-    assert v == '0 1 2 \n1 2 3 \n'
-    v = ndprint0(s, trans=False)
-    # print(v)
-    # 2x3 table view 2 columns 3 rows
-    assert v == '0 1 \n1 2 \n2 3 \n'
-
-    s = ndlist(2, 3, 4, 5)
-    s[0][1][0] = [0, 0, 0, 0, 0]
-    s[0][1][1] = [0, 0, 0, 1, 0]
-    s[0][1][2] = [5, 4, 3, 2, 1]
-    s[0][1][3] = [0, 0, 0, 3, 0]
-    v = ndprint0(s, trans=False)
-    # print(v)
-    assert v == nds20
-    v = ndprint0(s)
-    # print(v)
-    assert v == nds30
-    # pprint.pprint(s)
 
 
 def test_ndprint():

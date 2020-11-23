@@ -17,14 +17,6 @@ Subpackages
 Submodules
 ----------
 
-fdi.pns.db\_utils module
-------------------------
-
-.. automodule:: fdi.pns.db_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 fdi.pns.fdi\_requests module
 ----------------------------
 

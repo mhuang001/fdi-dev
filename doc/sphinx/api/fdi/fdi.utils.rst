@@ -57,6 +57,14 @@ fdi.utils.moduleloader module
    :undoc-members:
    :show-inheritance:
 
+fdi.utils.monokaimod module
+---------------------------
+
+.. automodule:: fdi.utils.monokaimod
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.options module
 ------------------------
 

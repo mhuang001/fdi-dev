@@ -87,9 +87,11 @@ TESTLOG	= /tmp/fdi-tests.log
 
 OPT	= -r P --log-file=$(TESTLOG) -v -l --pdb
 T	= 
-test: test1 test2 test3 test5 test4
+test: test1 test2 test5
 
-testhttp: test6 test7 test8
+testpns: test5 test4
+
+testhttppool: test6 test7 test8
 
 test1: 
 	pytest $(OPT) $(T) tests/test_dataset.py

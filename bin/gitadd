@@ -1,5 +1,5 @@
 #https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository
-git add LICENSE README.md CHANGELOG.md setup.py  .gitignore noxfile.py Makefile .readthedocs.yml .gitlab-ci.yml
+git add LICENSE README.rst CHANGELOG.rst setup.py  .gitignore noxfile.py Makefile .readthedocs.yml .gitlab-ci.yml
 git add bin/reinstall bin/installpns bin/update bin/gitadd
 git add resources
 git add fdi/*.py

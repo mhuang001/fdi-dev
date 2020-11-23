@@ -393,14 +393,12 @@ meta= {
 +--------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
 MetaData-listeners = ListnerSet{}}
 TableDataset-dataset =
-======  =======
   col1     col2
   (eV)    (cnt)
-======  =======
+------  -------
    1        0
    4.4     43.2
 5400     2000
-======  =======
 
 
 level 1, repr
@@ -416,27 +414,23 @@ d= off (0b0)
 MetaData-listeners = ListnerSet{}
 }
 TableDataset-dataset =
-======  =======
   col1     col2
   (eV)    (cnt)
-======  =======
+------  -------
    1        0
    4.4     43.2
 5400     2000
-======  =======
 
 (Only display up to 20 rows for level=1.)
 level 2,
 # TableDataset
 description, meta
 TableDataset-dataset =
-======  =======
   col1     col2
   (eV)    (cnt)
-======  =======
+------  -------
    1        0
    4.4     43.2
-======  =======
 
 (Only display up to 2 rows for level=2.)
 """
@@ -492,16 +486,14 @@ meta= {
 (empty)
 MetaData-listeners = ListnerSet{}}
 TableDataset-dataset =
-=======  ========
    Time    Energy
   (sec)      (eV)
-=======  ========
+-------  --------
       0       100
       1       102
       2       104
       3       106
       4       108
-=======  ========
 
 
 level 1, repr
@@ -541,16 +533,14 @@ meta= {
 MetaData-listeners = ListnerSet{}
 }
 TableDataset-dataset =
-=======  ========
    Time    Energy
   (sec)      (eV)
-=======  ========
+-------  --------
       0       100
       1       102
       2       104
       3       106
       4       108
-=======  ========
 
 (Only display up to 20 rows for level=1.)
 level 2,
@@ -567,13 +557,11 @@ MetaData-listeners = ListnerSet{}}
 # TableDataset
 description, meta
 TableDataset-dataset =
-=======  ========
    Time    Energy
   (sec)      (eV)
-=======  ========
+-------  --------
       0       100
       1       102
-=======  ========
 
 (Only display up to 2 rows for level=2.)
 """

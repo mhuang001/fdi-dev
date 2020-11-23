@@ -1,28 +1,43 @@
+==========
 Change Log
-=======================================
-	FDI
-=======================================
+==========
 
-	BETA0
-	=====
+BETA0
+=====
 
-	1.0rc5 2020-10-26
-	-----------------
+1.0rc6 2020-11-23
+-----------------
+
+[DEV] [SERV]. monokaimod. quickstart and many other doc improvements
+
+1.0rc5 2020-10-26
+-----------------
+
 Place info removed from URN.
-	1.0rc4 2020-10-10
-	-----------------
+
+1.0rc4 2020-10-10
+-----------------
+
 HTTP pool server an client integration.
-	1.0rc3 2020-09-23
-	-----------------
+
+1.0rc3 2020-09-23
+-----------------
+
 Lots of toString improvements. Tabulate-based array and table presentation.
-	1.0rc2 2020-09-10
-	-----------------
+
+1.0rc2 2020-09-10
+-----------------
+
 Document updates. Better presentation APIs. DOC as extras. Contex refctoring.
-	1.0rc1 2020-08-30
-	-----------------
+
+1.0rc1 2020-08-30
+-----------------
+
 Parameters support type, default, valid, typecode, and have a new type : DateParameter. YAML 1.1 have attrbutes accordingly, with correct default types. New ODict is serialisable.
-	1.0rc 2020-08-17
-	----------------
+
+1.0rc 2020-08-17
+----------------
+
 YAML v1.0 with datasets and metadata description unified and multiple inheriting. Revision of header keywords. and table sceme. Improvement of yaml2python and a custom moule loader. ProductInfo becomes a module object. Runs with FSC products.
 	
 	0.20 2020-08-04

@@ -421,7 +421,7 @@ TableDataset-dataset =
    4.4     43.2
 5400     2000
 
-(Only display up to 20 rows for level=1.)
+
 level 2,
 # TableDataset
 description, meta
@@ -432,7 +432,7 @@ TableDataset-dataset =
    1        0
    4.4     43.2
 
-(Only display up to 2 rows for level=2.)
+(Only display 2 rows of 3 for level=2.)
 """
 out_CompositeDataset = """level 0
 # CompositeDataset
@@ -542,7 +542,7 @@ TableDataset-dataset =
       3       106
       4       108
 
-(Only display up to 20 rows for level=1.)
+
 level 2,
 # CompositeDataset
 description, meta
@@ -563,5 +563,5 @@ TableDataset-dataset =
       0       100
       1       102
 
-(Only display up to 2 rows for level=2.)
+(Only display 2 rows of 5 for level=2.)
 """

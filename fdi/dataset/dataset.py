@@ -450,31 +450,37 @@ class TableDataset(GenericDataset, TableModel):
             idx = key
         return idx
 
-    def addRow(self, row):
+    def addRow(self, row, rows=False):
         """ Adds the specified map as a new row to this table.
-        mh: row is a dict with names as keys
+
+        row: mh: row is a dict with names as keys and row data as value.
+        rows: append each element in row if the row data is a list.
         """
         if len(row) < len(self.data):
             logging.error('row is too short')
             raise Exception('row is too short')
-        for c in self.data:
-            self.data[c].data.append(row[c])
+
+        for c in self.data.keys():
+            if rows:
+                self.data[c].data.extend(row[c])
+            else:
+                self.data[c].data.append(row[c])
 
     def getRow(self, rowIndex):
         """ Returns a list containing the objects located at a particular row.
         """
-        return [self.getColumn(x)[rowIndex] for x in self.data.keys()]
+        return [x[rowIndex] for x in self.data.values()]
 
     def getRowMap(self, rowIndex):
         """ Returns a dict of column-names as the keys and the objects located at a particular row as the values.
         """
-        return {x: self.getColumn(x)[rowIndex] for x in self.data.keys()}
+        return {n: x[rowIndex] for n, x in self.data.items()}
 
     def removeRow(self, rowIndex):
         """ Removes a row with specified index from this table.
         mh: returns removed row.
         """
-        return [self.getColumn(x).pop(rowIndex) for x in self.data.keys()]
+        return [x.pop(rowIndex) for x in self.data.values()]
 
     @property
     def rowCount(self):
@@ -487,7 +493,7 @@ class TableDataset(GenericDataset, TableModel):
     def setRowCount(self, rowCount):
         """ cannot do this.
         """
-        raise Exception
+        raise ValueError('Cannot set row count.')
 
     @property
     def columnCount(self):
@@ -500,7 +506,7 @@ class TableDataset(GenericDataset, TableModel):
     def setColumnCount(self, columnCount):
         """ cannot do this.
         """
-        raise Exception
+        raise ValueError('Cannot set column count.')
 
     def select(self, selection):
         """ Select a number of rows from this table dataset and
@@ -585,8 +591,9 @@ class TableDataset(GenericDataset, TableModel):
         hdr = list('%s\n(%s)' % nu for nu in nmun)
         d += matprint(coldata, trans=trans, headers=hdr,
                       tablefmt2=tablefmt2, **kwds)
-        if level:
-            d += '(Only display up to %d rows for level=%d.)' % (stp, level)
+        collen = self.getRowCount()
+        if level and stp < collen:
+            d += '(Only display %d rows of %d for level=%d.)' % (stp, collen, level)
         return s + '\n' + d + '\n'
 
     def serializable(self):

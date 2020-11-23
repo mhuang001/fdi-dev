@@ -7,6 +7,8 @@
  Flexible Dataset Integrator (fdi)
 ==================================
 
+FDI helps data producers and processors to build connections into isolated heterogeneous datasets. to assemble, organize, and integrate data into self-describing, modular, hierarchical, persistent, referenceable ``Products``, whose component datasets keep their own characteristicss and are easily accessible.
+
 Features
 ========
 

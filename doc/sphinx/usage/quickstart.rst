@@ -231,8 +231,6 @@ TableDataset-dataset =
    4.4     43.2
 5400     2000
 
-(Only display up to 20 rows for level=1.)
-
 >>> # One of many other ways to create a TableDataset. See ``tests/test_dataset``
 ... v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
 ...                         ('col2', [0, 43.2, 2E3], 'cnt')])

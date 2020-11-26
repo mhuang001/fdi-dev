@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from tabulate import tabulate
 import hashlib
 import traceback
 import logging
@@ -137,7 +136,7 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
         return ', '.join(s)
 
 
-def binhexstring(val, typ_, width=0):
+def binhexstring(val, typ_, width=0, v=None):
     """ returns val in binar, hex, or string according to typ_
     """
     if typ_ == 'hex':
@@ -152,33 +151,45 @@ def binhexstring(val, typ_, width=0):
     lst = []
     for t in val:
         if not issubclass(t.__class__, (tuple, list)):
-            # val is a vector
+            # val is a one-dim array or vector
             lst.append(func(t))
             breakline = False
             continue
-        # val is for '_valid' [[], [], []..]
-        x, label = t[0], t[1]
-        if issubclass(x.__class__, (tuple, list)):
-            # range or binary with mask. (1,95) (0B011, 011)
-            seg = "(%s, %s): %s" % (func(x[0]), func(x[1]), label)
-        elif issubclass(x.__class__, str):
-            seg = "'%s': %s" % (x, label)
+        if v == '_valid':
+            # val is for '_valid' [[], [], []..]
+            x, label = t[0], t[1]
+            if issubclass(x.__class__, (tuple, list)):
+                # range or binary with mask. (1,95) (0B011, 011)
+                seg = "(%s, %s): %s" % (func(x[0]), func(x[1]), label)
+            elif issubclass(x.__class__, str):
+                seg = "'%s': %s" % (x, label)
+            else:
+                seg = "%s: %s" % (func(x), label)
+            lst.append(seg)
         else:
-            seg = "%s: %s" % (func(x), label)
-        lst.append(seg)
+            # val is a 1+ dimension array
+            lst.append(lls(t, 19))
+            if len(lst) > 6:
+                lst.append('... total %d elements in dim=1' % len(val))
+                break
     if width and breakline:
         return '\n'.join(lst)
     else:
         return '[%s]' % ', '.join(lst)
 
 
+Ommitted_Valid_Labels = ['valid', 'default', '', 'range']
+
+
 def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
     """
+    generic string representation of an attribute of a parameter or dataset.
+
     p: parameter object.
-    v: name of parameter attribute.
+    v: name of parameter attribute. '_valid', '_type', '_default', '_value' (for Parameter) or '_data' (dataset)
     missingval: string used when the parameter does not have the attribute.
     ftime: True means that attribute value will be FineTime if _type is 'finetime'.
-    state: The state validity of the parameter is returned in place of value, if the state is not 'valid' or 'default'.
+    state: The state validity of the parameter is returned in place of value, if the state is not in Ommitted_Valid_Labels -- 'valid', 'range', '' or 'default'.
     """
 
     ts = getattr(p, '_type') if hasattr(p, '_type') else missingval
@@ -192,17 +203,18 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
         # from ..dataset.finetime import FineTime
         # if issubclass(vc, FineTime):
         if ftime:
-            # v is '_valid', '_default' or value/data
+            # v is '_valid', '_default' or '_value/data'
             if ts.startswith('finetime'):
                 # print('***', v, ts)
                 if v == '_valid':
-                    s = binhexstring(val, 'string')
+                    s = binhexstring(val, 'string', v=v)
                 elif v == '_default':
                     s = val.toString(width=width, **kwds)
                 elif state:
-                    vv, vd = p.validate(val)
-                    if vd.lower() not in ['valid', 'default', '']:
-                        s = '%s (%s)' % (vd, val.toString(width=width, **kwds))
+                    vv, vdesc = p.validate(val)
+                    if vdesc.lower() not in Ommitted_Valid_Labels:
+                        s = '%s (%s)' % (
+                            vdesc, val.toString(width=width, **kwds))
                     else:
                         s = val.toString(width=width, **kwds)
                 else:
@@ -212,16 +224,17 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                 if v != '_valid':
                     # for default and value/data, print list horizontally
                     width = 0
-                vs = binhexstring(val, ts, width=width)
+                vs = binhexstring(val, ts, width=width, v=v)
             elif hasattr(p, 'validate'):
-                # value/data of parameter of non-finetime
+                # v is _value/data of parameter of non-finetime to be displayed with state
                 vld = p.validate(val)
                 if issubclass(vld.__class__, tuple):
-                    vv, vd = vld
-                    if vd.lower() not in ['valid', 'default', '']:
-                        vs = '%s (%s)' % (vd, binhexstring(val, ts))
+                    # not binary masked
+                    vv, vdesc = vld
+                    if vdesc.lower() not in Ommitted_Valid_Labels:
+                        vs = '%s (%s)' % (vdesc, binhexstring(val, ts, v=v))
                     else:
-                        vs = binhexstring(val, ts)
+                        vs = binhexstring(val, ts, v=v)
                 else:
                     # binary masked. vld is a list of tuple/lists
                     sep = '\n' if width else ', '

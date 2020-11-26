@@ -227,9 +227,10 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
 
         cn = self.__class__.__name__
         if level > 1:
+
             vs, us, ts, ds, fs, gs, cs = exprstrs(self, '_data')
             return cn +\
-                '{ %s (%s) <%s>, "%s", dflt %s, tcode=%s, meta=%s}' %\
+                '{ %s (%s) <%s>, "%s", default %s, tcode=%s, meta=%s}' %\
                 (vs, us, ts, ds, fs, cs, str(self.meta))
 
         s = '# ' + cn + '\n' +\

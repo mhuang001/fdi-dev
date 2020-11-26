@@ -358,7 +358,7 @@ ArrayDataset-dataset =
 
 
 level 2,
-ArrayDataset{ [([0, 0, 0, 0, 0], [0, 0, 0, 0, 0]): [[0, 0, 0, 0, 0], [0, 0, 0, 1, 0], [5, 4, 3, 2, 1], [0, 0, 0, 3, 0]], ([0, 0, 0, 0, 0], [0, 0, 0, 0, 0]): [[0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0, 0]]] (lyr) <None>, "toString tester AD", dflt None, tcode=None, meta=
+ArrayDataset{ [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]] (lyr) <None>, "toString tester AD", default None, tcode=None, meta=
 ------------  -------------------  ------------------
 a= 3.4        b= ever (2019-02-19  c= Invalid (Right)
               01:02:03.456789
@@ -550,7 +550,7 @@ description, meta
 CompositeDataset-datasets =
 
 #     [ dataset 1 ]
-ArrayDataset{ [768, 4.4, 5400.0] (ev) <None>, "arraydset 1", dflt None, tcode=None, meta=
+ArrayDataset{ [768, 4.4, 5400.0] (ev) <None>, "arraydset 1", default None, tcode=None, meta=
 (empty)
 MetaData-listeners = ListnerSet{}}
 #     [ dataset 2 ]

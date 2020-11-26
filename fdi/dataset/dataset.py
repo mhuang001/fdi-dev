@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..utils.common import mstr, bstr
+from ..utils.common import mstr, bstr, lls
 from .ndprint import ndprint
 from .listener import ColumnListener, MetaDataListener
 from .serializable import Serializable
@@ -236,9 +236,10 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
         s = '# ' + cn + '\n' +\
             mstr(self.serializable(), level=level, **kwds)
         d = cn + '-dataset =\n'
-        d += bstr(self.data, level=level, **kwds) if matprint is None else \
+        ds = bstr(self.data, level=level, **kwds) if matprint is None else \
             matprint(self.data, trans=False, headers=[], tablefmt2='plain',
                      **kwds)
+        d += lls(ds, 2000)
         return s + '\n' + d + '\n'
 
     def serializable(self):

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """ https://stackoverflow.com/a/43573798/13472124 """
-import pdb
+from .common import lls, trbk
 
 import sys
 import os.path
@@ -102,7 +102,7 @@ class MyLoader(Loader):
 
         # manipulate data some way...
         #data += '\nb=42\n'
-        #print('-----\n', data)
+        logger.debug(self.filename)
         exec(data, vars(module))
 
 

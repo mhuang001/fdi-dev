@@ -69,6 +69,16 @@ def mkinfo(metas, dsets, indents):
     return infostr
 
 
+def sq(s):
+    """ add quote mark to string, depending on if ' or " in the string.
+    """
+    if "'" in s:
+        qm = '"""' if '"' in s else '"'
+    else:
+        qm = "'"
+    return '%s%s%s' % (qm, s, qm)
+
+
 def getPython(val, indents, demo, onlyInclude):
     """ make productInfo and init__() code strings from given data.
     """
@@ -79,7 +89,7 @@ def getPython(val, indents, demo, onlyInclude):
         code = {}
         for k, v in val.items():
             sk = str(k)
-            infostr += indents[0] + '"""%s""": ' % sk
+            infostr += '%s%s: ' % (indents[0], sq(sk))
             if issubclass(v.__class__, dict) and 'data_type' in v:
                 # v is a dict of parameters
                 istr, d_code = params(v, indents[1:], demo, onlyInclude)
@@ -102,8 +112,7 @@ def getPython(val, indents, demo, onlyInclude):
             code.append(d_code)
         infostr += indents[0] + '],\n'
     else:
-        pval = '"""' + val + \
-            '"""' if issubclass(val.__class__, (str, bytes)) else str(val)
+        pval = sq(val) if issubclass(val.__class__, (str, bytes)) else str(val)
         infostr += pval + ',\n'
         code = pval
     return infostr, code
@@ -123,7 +132,7 @@ def makeinitcode(dt, pval):
     elif pval == 'None':
         code = 'None'
     else:
-        code = '"""' + pval + '"""'
+        code = sq(pval)
     return code
 
 
@@ -147,7 +156,7 @@ def params(val, indents, demo, onlyInclude):
                 pv = ''
 
             if issubclass(pv.__class__, (str, bytes)):
-                s = '"""' + pv.strip() + '"""'
+                s = sq(pv.strip())
             else:
                 lst = []
                 for k, v in pv.items():
@@ -159,8 +168,7 @@ def params(val, indents, demo, onlyInclude):
                         sk = '(' + ', '.join(foo) + ')'
                     else:
                         sk = fmtstr[dt].format(k)
-                    lst += '\n' + indents[2] + \
-                        sk + ': """' + str(v)+'""",'
+                    lst += '\n' + '%s%s: %s,' % (indents[2], sk, sq(str(v)))
                 kvs = ''.join(lst)
                 if len(kvs) > 0:
                     kvs += '\n' + indents[2]
@@ -175,27 +183,30 @@ def params(val, indents, demo, onlyInclude):
             if pname in ['example', 'default']:
                 # here data_type instead of input type determines the output type
                 iss = val['data_type'] == 'string'
-            s = '"""' + pval + '"""' if iss else pval
-        infostr += indents[1] + '"""%s""": %s,\n' % (pname, s)
+            s = sq(pval) if iss else pval
+        infostr += indents[1] + '%s: %s,\n' % (sq(pname), s)
     infostr += indents[1] + '},\n'
 
     return infostr, code
 
 
 def getCls(clp, rerun=True, exclude=None, verbose=False):
+    if clp is None or len(clp.strip()) == 0:
+        return {}
     if exclude is None:
         exclude = []
-    if clp == '':
+    if '/' not in clp and '\\' not in clp and not clp.endswith('.py'):
+        print('Importing project classes from module '+clp)
         # classes path not given on command line
         try:
-            pc = importlib.import_module('svom.products.projectclasses')
+            pc = importlib.import_module(clp)
             pc.PC.updateMapping(rerun=rerun, exclude=exclude, verbose=verbose)
             ret = pc.PC.mapping
             print(
                 'Imported project classes from svom.products.projectclasses module.')
         except (ModuleNotFoundError, SyntaxError) as e:
             print('!'*80 +
-                  '\nUnable to import svom.products.projectclasses module.\n' +
+                  '\nUnable to import "%s" module.\n' % clp +
                   '!'*80+'\n'+str(e)+'\n'+'!'*80)
             ls = []
             # ls = [(k, v) for k, v in locals().items()
@@ -205,15 +216,11 @@ def getCls(clp, rerun=True, exclude=None, verbose=False):
             # print(trbk(e))
             # raise
     else:
-        if '/' not in clp and '\\' not in clp and not clp.endswith('.py'):
-            print('Importing project classes from module '+clp)
-            pc = importlib.import_module(clp)
-        else:
-            clpp, clpf = os.path.split(clp)
-            sys.path.insert(0, os.path.abspath(clpp))
-            # print(sys.path)
-            print('Importing project classes from file '+clp)
-            pc = importlib.import_module(clpf.replace('.py', ''))
+        clpp, clpf = os.path.split(clp)
+        sys.path.insert(0, os.path.abspath(clpp))
+        # print(sys.path)
+        print('Importing project classes from file '+clp)
+        pc = importlib.import_module(clpf.replace('.py', ''))
         pc.PC.updateMapping(rerun=rerun, exclude=exclude)
         ret = pc.PC.mapping
     return ret

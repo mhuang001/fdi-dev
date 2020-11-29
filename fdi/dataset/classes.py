@@ -112,7 +112,11 @@ class Classes_meta(type):
                 else:
                     logger.debug(msg)
                 #ety, enm, tb = sys.exc_info()
-            except (ModuleNotFoundError, SyntaxError) as e:
+            except SyntaxError as e:
+                msg = 'Could not import %s. %s' % (str(froml), str(e))
+                logger.error(msg)
+                raise
+            except ModuleNotFoundError as e:
                 msg = 'Could not import %s. %s' % (str(froml), str(e))
                 if verbose:
                     logger.info(msg)

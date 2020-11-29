@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from ..dataset.serializable import serializeClassID
-from ..dataset.deserialize import deserializeClassID
+from ..dataset.serializable import serialize
+from ..dataset.deserialize import deserialize
 from ..utils.common import lls
 
 import logging
@@ -63,7 +63,7 @@ def getJsonObj(url, headers=None, usedict=True, **kwds):
     # ret = json.loads(stri, parse_float=Decimal)
     # ret = json.loads(stri, cls=Decoder,
     #               object_pairs_hook=collections.OrderedDict)
-    ret = deserializeClassID(stri, usedict=usedict, **kwds)
+    ret = deserialize(stri, usedict=usedict, **kwds)
     #logger.debug(pformat(ret, depth=6)[:] + '...')
     logger.debug(lls(str(ret), 160))
     return ret
@@ -100,7 +100,7 @@ def getJsonObj1(url, headers=None, usedict=False):
     # ret = json.loads(stri, parse_float=Decimal)
     # ret = json.loads(stri, cls=Decoder,
     #               object_pairs_hook=collections.OrderedDict)
-    ret = deserializeClassID(stri, usedict=usedict)
+    ret = deserialize(stri, usedict=usedict)
     #logger.debug(pformat(ret, depth=6)[:] + '...')
     logger.debug(lls(str(ret), 160))
     return ret
@@ -109,7 +109,7 @@ def getJsonObj1(url, headers=None, usedict=False):
 def jsonREST(url, obj, headers, cmd):
     """ generic RESTful command handler for POST, PUT, and DELETE.
     """
-    js = serializeClassID(obj)
+    js = serialize(obj)
     # %s obj %s headers %s' % (url, obj, headers))
     logger.debug(url + lls(js, 160))
 
@@ -149,7 +149,7 @@ def jsonREST(url, obj, headers, cmd):
 
     # ret = json.loads(stri, parse_float=Decimal)
     # ret = json.loads(stri, cls=Decoder)
-    ret = deserializeClassID(stri)
+    ret = deserialize(stri)
     logger.debug(str(ret)[:160] + '...')
     return ret
 

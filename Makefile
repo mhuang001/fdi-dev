@@ -91,7 +91,7 @@ test: test1 test2
 
 testpns: test5 test4
 
-testhttppool: test6 test7 test8
+testhttp: test6 test7 test8
 
 test1: 
 	pytest $(OPT) $(T) tests/test_dataset.py

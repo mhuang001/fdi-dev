@@ -2,8 +2,8 @@
 from ..pns.jsonio import getJsonObj
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
-from ..dataset.serializable import serializeClassID
-from ..dataset.deserialize import deserializeClassID
+from ..dataset.serializable import serialize
+from ..dataset.deserialize import deserialize
 from .productpool import ProductPool
 from ..utils.common import pathjoin, trbk
 
@@ -46,7 +46,7 @@ def writeJsonwithbackup(fp, data):
         os.rename(fp, fp + '.old')
     # js = json.dumps(data, cls=ODEncoder)
     #logger.debug('Writing %s stat %s' % (fp, str(os.path.exists(fp+'/..'))))
-    js = serializeClassID(data)
+    js = serialize(data)
     with open(fp, mode="w+") as f:
         f.write(js)
     logger.debug('JSON saved to: ' + fp)
@@ -120,7 +120,7 @@ class LocalPool(ProductPool):
                         msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
                         logging.error(msg)
                         raise Exception(msg)
-                    r = js if serialized else deserializeClassID(js)
+                    r = js if serialized else deserialize(js)
                 else:
                     r = '{}' if serialized else dict()
                 hk[hkdata] = r
@@ -168,7 +168,7 @@ class LocalPool(ProductPool):
             msg = 'Load' + pp + 'failed. ' + str(e) + trbk(e)
             logger.error(msg)
             raise e
-        return js if serialized else deserializeClassID(js)
+        return js if serialized else deserialize(js)
 
     def schematicRemove(self, resourcetype, index):
         """

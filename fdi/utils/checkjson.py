@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from ..dataset.classes import Classes
-from ..dataset.serializable import serializeClassID
-from ..dataset.deserialize import deserializeClassID
+from ..dataset.serializable import serialize
+from ..dataset.deserialize import deserialize
 from ..dataset.eq import deepcmp
 import json
 import sys
@@ -47,7 +47,7 @@ def checkjson(obj, dbg=0):
     #     js = obj.serialized(indent=indent)
     # else:
     #     js = json.dumps(obj, indent=indent)
-    js = serializeClassID(obj)
+    js = serialize(obj)
     if dbg:
         getyaml()
         try:
@@ -64,7 +64,7 @@ def checkjson(obj, dbg=0):
         print('*************')
     if 0:
         pdb.set_trace()
-    des = deserializeClassID(js, lgb=Classes.mapping, debug=dbg)
+    des = deserialize(js, lgb=Classes.mapping, debug=dbg)
     if dbg:
         if 0 and hasattr(des, 'meta'):
             print('des.mets ' + str((des.meta.listeners)))

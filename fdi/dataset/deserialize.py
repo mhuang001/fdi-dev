@@ -32,7 +32,7 @@ Serializable.
 BD = builtins.__dict__
 
 
-def constructSerializableClassID(obj, lgb=None, debug=False):
+def constructSerializable(obj, lgb=None, debug=False):
     """ mh: reconstruct object from the output of jason.loads().
     Recursively goes into nested class instances that are not
     encoded by default by JSONEncoder, instantiate and fill in
@@ -69,7 +69,7 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
                 print(spaces + 'looping through list %d <%s>' %
                       (i, xc.__name__))
             if issubclass(xc, (list, dict, UserDict)):
-                des = constructSerializableClassID(x, lgb=lgb, debug=debug)
+                des = constructSerializable(x, lgb=lgb, debug=debug)
             else:
                 des = x
             inst.append(des)
@@ -104,7 +104,7 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
             indent -= 1
             return Ellipsis
         elif classname in BD and 'obj' in obj:
-            o = constructSerializableClassID(obj['obj'], lgb=lgb, debug=debug)
+            o = constructSerializable(obj['obj'], lgb=lgb, debug=debug)
             inst = BD[classname](o)
             if debug:
                 print(spaces + 'Instanciate builtin %s' % obj['obj'])
@@ -125,7 +125,7 @@ def constructSerializableClassID(obj, lgb=None, debug=False):
                 print(spaces + '[%s]value(dict/usrd/list) <%s>: %s' %
                       (k, v.__class__.__qualname__,
                        lls(list(iter(v)), 70)))
-            desv = constructSerializableClassID(v, lgb=lgb, debug=debug)
+            desv = constructSerializable(v, lgb=lgb, debug=debug)
         else:
             if debug:
                 print(spaces + '[%s]value(simple) <%s>: %s' %
@@ -196,7 +196,7 @@ class IntDecoderOD(IntDecoder):
             return o
 
 
-def deserializeClassID(js, lgb=None, debug=False, usedict=True):
+def deserialize(js, lgb=None, debug=False, usedict=True):
     """ Loads classes with ClassID from the results of serializeClassID.
 
     if usedict is True dict insted of ODict will be used.
@@ -225,4 +225,4 @@ def deserializeClassID(js, lgb=None, debug=False, usedict=True):
 
     global indent
     indent = -1
-    return constructSerializableClassID(obj, lgb=lgb, debug=debug)
+    return constructSerializable(obj, lgb=lgb, debug=debug)

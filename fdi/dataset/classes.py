@@ -31,7 +31,7 @@ class Classes_meta(type):
     """
     # modules and classes to import from them
     modclass = {
-        'fdi.dataset.deserialize': ['deserializeClassID'],
+        'fdi.dataset.deserialize': ['deserialize'],
         'fdi.dataset.listener': ['ListnerSet'],
         'fdi.dataset.serializable': ['Serializable'],
         'fdi.dataset.eq': ['DeepEqual'],

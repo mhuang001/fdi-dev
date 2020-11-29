@@ -3,8 +3,8 @@
 from .server_skeleton import bad_request, unauthorized, not_found, conflict
 from ..utils.common import trbk, trbk2
 from ..utils.run_proc import run_proc
-from ..dataset.deserialize import deserializeClassID
-from ..dataset.serializable import serializeClassID
+from ..dataset.deserialize import deserialize
+from ..dataset.serializable import serialize
 from ..dataset.dataset import GenericDataset, ArrayDataset, TableDataset
 from ..dataset.product import Product
 from ..dataset.finetime import FineTime1
@@ -76,7 +76,7 @@ def initPTS(d=None):
     if po is None:
         abort(401)
 
-    indata = deserializeClassID(d)
+    indata = deserialize(d)
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout']
@@ -126,7 +126,7 @@ def configPNS(d=None):
     logger.debug(str(d)[: 80] + '...')
     # logger.debug('before configering pns ' + str(pc))
     try:
-        indata = deserializeClassID(d)
+        indata = deserialize(d)
         pc = indata['input']
     except Exception as e:
         re = -1
@@ -145,7 +145,7 @@ def configPTS(d=None):
     """
 
     logger.debug(str(d))
-    indata = deserializeClassID(d)
+    indata = deserialize(d)
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout']
@@ -169,7 +169,7 @@ def cleanPTS(d):
     # timeout is imported and needs to be declared global if referenced in ifs
 
     logger.debug(str(d))
-    indata = deserializeClassID(d)
+    indata = deserialize(d)
 
     if hasattr(indata, '__iter__') and 'timeout' in indata:
         timeout = indata['timeout']
@@ -257,7 +257,7 @@ def run(d, processinput=None, processoutput=None):
     if pi is None or po is None:
         abort(401)
 
-    indata = deserializeClassID(d)
+    indata = deserialize(d)
 
     try:
         if processinput is not None:
@@ -313,7 +313,7 @@ def genposttestprod(d):
     and 2nd to the product's dataset
     """
 
-    indata = deserializeClassID(d)
+    indata = deserialize(d)
     # logger.debug(indata)
 
     runner, cause = indata['creator'], indata['rootcause']
@@ -403,7 +403,7 @@ def getinfo(cmd):
         result, msg = -1, str(e) + trbk(e)
     w = {'result': result, 'message': msg, 'timestamp': ts}
 
-    s = serializeClassID(w)
+    s = serialize(w)
     logger.debug(s[:] + ' ...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
@@ -423,7 +423,7 @@ def calcresult(cmd, ops=''):
         result, msg = genposttestprod(d)
     elif cmd == 'echo':
         # see test_mirror() in test_all.py
-        indata = deserializeClassID(d)
+        indata = deserialize(d)
         # logger.debug(indata)
         result, msg = indata, ''
     # elif cmd == 'rmpool':
@@ -454,7 +454,7 @@ def calcresult(cmd, ops=''):
                 result, msg = testrun(d)
             elif cmd == 'sleep':
                 # sleep in the OS for ops seconds
-                indata = deserializeClassID(d)
+                indata = deserialize(d)
                 result, msg = dosleep(indata, ops)
             else:
                 logger.error(cmd)
@@ -463,7 +463,7 @@ def calcresult(cmd, ops=''):
     logger.debug(str(result)[:155])
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
-    s = serializeClassID(w)
+    s = serialize(w)
     logger.debug(s[: 160] + ' ...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
@@ -514,7 +514,7 @@ def setup(cmd, ops=''):
             abort(400)
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
-    s = serializeClassID(w)
+    s = serialize(w)
     # logger.debug(s[:] + ' ...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
@@ -542,7 +542,7 @@ def cleanup(cmd):
         result = None
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
-    s = serializeClassID(w)
+    s = serialize(w)
     logger.debug(s[:] + ' ...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'

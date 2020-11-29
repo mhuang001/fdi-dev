@@ -4,7 +4,7 @@ from ..pns.fdi_requests import urn2fdiurl, save_to_server, read_from_server, del
 from .urn import Urn, makeUrn
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
-from ..dataset.serializable import serializeClassID
+from ..dataset.serializable import serialize
 from .productpool import ProductPool
 from .poolmanager import PoolManager
 from .localpool import wipeLocal
@@ -26,7 +26,7 @@ def writeJsonwithbackup(fp, data):
     """
     if op.exists(fp):
         os.rename(fp, fp + '.old')
-    js = serializeClassID(data)
+    js = serialize(data)
     with open(fp, mode="w+") as f:
         f.write(js)
 

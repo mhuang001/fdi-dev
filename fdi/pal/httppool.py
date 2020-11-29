@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from ..dataset.deserialize import deserializeClassID
+from ..dataset.deserialize import deserialize
 from .localpool import LocalPool
 from ..utils.common import pathjoin, trbk
 

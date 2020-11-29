@@ -14,7 +14,7 @@ from fdi.pal.productpool import ProductPool
 from fdi.pal.localpool import LocalPool
 from fdi.pal.context import Context
 from fdi.pal.query import AbstractQuery, MetaQuery
-from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.classes import Classes
@@ -309,7 +309,7 @@ def checkdbcount(n, poolurl, prodname, currentSN=-1):
         if op.exists(cp) or n != 0:
             with open(cp, 'r') as fp:
                 js = fp.read()
-            cread = deserializeClassID(js)
+            cread = deserialize(js)
             if currentSN == -1:
                 assert cread[prodname]['currentSN'] == currentSN
                 # number of items is n

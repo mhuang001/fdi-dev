@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from ..dataset.odict import ODict
-from ..dataset.serializable import serializeClassID
+from ..dataset.serializable import serialize
 from ..dataset.classes import Classes
 from .urn import Urn, parseUrn, parse_poolurl
 from .versionable import Versionable
@@ -363,9 +363,9 @@ When implementing a ProductPool, the following rules need to be applied:
         logger.debug('generated ' + 'Urns ' if geturnobjs else 'prodRefs ' +
                      str(len(res)))
         if issubclass(product.__class__, list):
-            return serializeClassID(res) if serialized else res
+            return serialize(res) if serialized else res
         else:
-            return serializeClassID(res[0]) if serialized else res[0]
+            return serialize(res[0]) if serialized else res[0]
 
     def mfilter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
         """ returns filtered collection using the query.

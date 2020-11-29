@@ -4,10 +4,10 @@ import aiohttp
 from multiprocessing import Process, Pool, TimeoutError
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.dataset import ArrayDataset, GenericDataset
-from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.deserialize import deserialize
 from fdi.dataset.metadata import NumericParameter
 from fdi.dataset.product import Product
-from fdi.dataset.serializable import serializeClassID
+from fdi.dataset.serializable import serialize
 from fdi.dataset.odict import ODict
 from fdi.pns import pns_server
 from fdi.pns.pnsconfig import pnsconfig as pc
@@ -332,7 +332,7 @@ def test_servertestrun():
     # construct the nodetestinput to the node
     nodetestinput = ODict({'creator': 'me', 'rootcause': 'server test',
                            'input': x})
-    js = serializeClassID(nodetestinput)
+    js = serialize(nodetestinput)
     logger.debug(js[:160])
     o, msg = pns_server.testrun(js)
     # issane(o) is skipped
@@ -381,7 +381,7 @@ def test_deleteclean():
     except Exception as e:
         logger.error("Give up DELETE " + url + ' ' + str(e))
         stri = None
-    o = deserializeClassID(stri)
+    o = deserialize(stri)
     issane(o)
     assert o['result'] is not None, o['message']
     o = getJsonObj(aburl + '/input')
@@ -491,7 +491,7 @@ async def napa(t, d):
     s = str(t)
     tout = 11
     o = None
-    js = serializeClassID({'timeout': tout})
+    js = serialize({'timeout': tout})
     async with aiohttp.ClientSession() as session:
         async with session.post(aburl +
                                 '/sleep/' + s,
@@ -500,7 +500,7 @@ async def napa(t, d):
                                 ) as resp:
             # print(resp.status)
             stri = await resp.text()
-    o = deserializeClassID(stri)
+    o = deserialize(stri)
     #print('nap ' + str(time.time()) + ' ' + str(s) + ' ' + str(o))
     return o
 

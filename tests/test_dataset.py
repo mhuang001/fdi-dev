@@ -13,7 +13,7 @@ from fdi.dataset.copyable import Copyable
 from fdi.dataset.odict import ODict
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.classes import Classes
-from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.deserialize import deserialize
 from fdi.dataset.quantifiable import Quantifiable
 from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf
 from fdi.dataset.composite import Composite

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
-from fdi.dataset.serializable import serializeClassID
-from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.serializable import serialize
+from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
 from fdi.pal.poolmanager import PoolManager
 from fdi.utils.getconfig import getConfig
@@ -214,11 +214,11 @@ def populate_server(poolid):
         x = Product(description='desc ' + str(index),
                     instrument=random.choice(instruments))
         x.creator = i
-        data = serializeClassID(x)
+        data = serialize(x)
         url = api_baseurl + poolid + '/' + prodt + '/' + str(index)
         x = requests.post(url, auth=HTTPBasicAuth(
             auth_user, auth_pass), data=data)
-        o = deserializeClassID(x.text)
+        o = deserialize(x.text)
         check_response(o)
         urns.append(o['result'])
     return creators, instruments, urns
@@ -252,7 +252,7 @@ def test_CRUD_product():
     # remove the leading 'urn:'
     url = api_baseurl + u[4:].replace(':', '/')
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
-    o = deserializeClassID(x.text)
+    o = deserialize(x.text)
     check_response(o)
     assert o['result'].creator == creators[urns.index(u)], 'Creator not match'
 
@@ -263,7 +263,7 @@ def test_CRUD_product():
     hkpath = '/hk'
     url = api_baseurl + post_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
-    o = deserializeClassID(x.text)
+    o = deserialize(x.text)
     check_response(o)
     assert o['result']['classes'] is not None, 'Classes jsn read failed'
     assert o['result']['tags'] is not None, 'Tags jsn read failed'
@@ -282,7 +282,7 @@ def test_CRUD_product():
     hkpath = '/hk/classes'
     url = api_baseurl + post_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
-    o = deserializeClassID(x.text)
+    o = deserialize(x.text)
     check_response(o)
     assert o['result'][prodt]['sn'][-l:] == inds
     assert o['result'][prodt]['currentSN'] == inds[-1]
@@ -291,7 +291,7 @@ def test_CRUD_product():
     hkpath = '/hk/tags'
     url = api_baseurl + post_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
-    o = deserializeClassID(x.text)
+    o = deserialize(x.text)
     check_response(o)
     assert len(o['result']) == 0
 
@@ -299,7 +299,7 @@ def test_CRUD_product():
     hkpath = '/hk/urns'
     url = api_baseurl + post_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
-    o = deserializeClassID(x.text)
+    o = deserialize(x.text)
     check_response(o)
 
     clst = [d['meta']['creator'].value for d in list(
@@ -315,7 +315,7 @@ def test_CRUD_product():
     index = files[-1].rsplit('_', 1)[1]
     url = api_baseurl + post_poolid + '/fdi.dataset.product.Product/' + index
     x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
-    o = deserializeClassID(x.text)
+    o = deserialize(x.text)
     check_response(o)
 
     files1 = [f for f in get_files(post_poolid) if f[-1].isnumeric()]
@@ -334,7 +334,7 @@ def test_CRUD_product():
 
     url = api_baseurl + post_poolid
     x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
-    o = deserializeClassID(x.text)
+    o = deserialize(x.text)
     check_response(o)
 
     files = get_files(post_poolid)
@@ -353,7 +353,7 @@ async def lock_pool(poolid, sec):
         await asyncio.sleep(sec)
     fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "timestamp": ' + \
         str(time.time()) + '}'
-    return deserializeClassID(fakeres)
+    return deserialize(fakeres)
 
 
 async def read_product(poolid):
@@ -368,7 +368,7 @@ async def read_product(poolid):
     async with aiohttp.ClientSession() as session:
         async with session.get(url, auth=aiohttp.BasicAuth(auth_user, auth_pass)) as res:
             x = await res.text()
-            o = deserializeClassID(x)
+            o = deserialize(x)
     logger.debug("@@@@@@@locked file read: " + lls(x, 200))
     return o
 
@@ -410,7 +410,7 @@ def test_read_non_exists_pool():
     prodpath = '/' + prodt + '/0'
     url = api_baseurl + wrong_poolid + prodpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
-    o = deserializeClassID(x.text)
+    o = deserialize(x.text)
     check_response(o, True)
 
 
@@ -423,13 +423,13 @@ def XXXtest_subclasses_pool():
     url2 = api_baseurl + poolid_2 + prodpath
     x = Product(description="product example with several datasets",
                 instrument="Crystal-Ball", modelName="Mk II")
-    data = serializeClassID(x)
+    data = serialize(x)
     res1 = requests.post(url1, auth=HTTPBasicAuth(
         auth_user, auth_pass), data=data)
     res2 = requests.post(url2, auth=HTTPBasicAuth(
         auth_user, auth_pass), data=data)
-    o1 = deserializeClassID(res1.text)
-    o2 = deserializeClassID(res2.text)
+    o1 = deserialize(res1.text)
+    o2 = deserialize(res2.text)
     check_response(o1)
     check_response(o2)
 
@@ -439,9 +439,9 @@ def XXXtest_subclasses_pool():
 
     res1 = requests.delete(url1,  auth=HTTPBasicAuth(auth_user, auth_pass))
     res2 = requests.delete(url2,  auth=HTTPBasicAuth(auth_user, auth_pass))
-    o1 = deserializeClassID(res1.text)
+    o1 = deserialize(res1.text)
     check_response(o1)
-    o2 = deserializeClassID(res2.text)
+    o2 = deserialize(res2.text)
     check_response(o2)
 
 

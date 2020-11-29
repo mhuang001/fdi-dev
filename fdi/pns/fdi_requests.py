@@ -5,8 +5,8 @@ import logging
 import sys
 from requests.auth import HTTPBasicAuth
 
-from fdi.dataset.serializable import serializeClassID
-from fdi.dataset.deserialize import deserializeClassID
+from fdi.dataset.serializable import serialize
+from fdi.dataset.deserialize import deserialize
 from fdi.pal.urn import parseUrn, parse_poolurl
 from .pnsconfig import pnsconfig as pcc
 from fdi.utils.getconfig import getConfig
@@ -132,8 +132,8 @@ def save_to_server(data, urn, poolurl, tag):
     # print('POST API: ' + api)
     headers = {'tag': tag}
     res = requests.post(
-        api, auth=auth, data=serializeClassID(data), headers=headers)
-    result = deserializeClassID(res.text)
+        api, auth=auth, data=serialize(data), headers=headers)
+    result = deserialize(res.text)
     # print(result)
     return result
 
@@ -147,7 +147,7 @@ def read_from_server(urn, poolurl, contents='product'):
     api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
     res = requests.get(api, auth=auth)
-    result = deserializeClassID(res.text)
+    result = deserialize(res.text)
     return result['result'], result['msg']
 
 
@@ -160,5 +160,5 @@ def delete_from_server(urn, poolurl, contents='product'):
     api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)
     res = requests.delete(api, auth=auth)
-    result = deserializeClassID(res.text)
+    result = deserialize(res.text)
     return result['result'], result['msg']

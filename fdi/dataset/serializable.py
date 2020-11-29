@@ -128,7 +128,7 @@ class SerializableEncoder(json.JSONEncoder):
 
 #    obj = json.loads(jstring)
 
-def serializeClassID(o, cls=None, **kwds):
+def serialize(o, cls=None, **kwds):
     """ return JSON using special encoder SerializableEncoder """
     if not cls:
         cls = SerializableEncoder
@@ -150,7 +150,7 @@ class Serializable(object):
             self.classID = sc.__name__
 
     def serialized(self, indent=None):
-        return serializeClassID(self, indent=indent)
+        return serialize(self, indent=indent)
 
     def serializable(self):
         """ returns an odict that has all state info of this object.

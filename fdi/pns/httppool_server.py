@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from ..utils.common import lls
-from ..dataset.deserialize import deserializeClassID
-from ..dataset.serializable import serializeClassID
+from ..dataset.deserialize import deserialize
+from ..dataset.serializable import serialize
 from ..pal.productstorage import ProductStorage
 from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from ..pal.query import MetaQuery, AbstractQuery
@@ -156,7 +156,7 @@ def httppool(pool):
             msg = 'Unknow request: ' + pool
 
     if request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
-        data = deserializeClassID(request.data)
+        data = deserialize(request.data)
         if request.headers.get('tag') is not None:
             tag = request.headers.get('tag')
         else:
@@ -358,7 +358,7 @@ def getinfo(cmd):
         result, msg = -1, str(e) + trbk(e)
     w = {'result': result, 'message': msg, 'timestamp': ts}
 
-    s = serializeClassID(w)
+    s = serialize(w)
     logger.debug(s[:] + ' ...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'

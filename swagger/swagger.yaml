@@ -355,7 +355,7 @@ definitions:
     properties:
       urn:
         type: string
-      classID:
+      _STID:
         type: integer
         format: int64
   productref_result:

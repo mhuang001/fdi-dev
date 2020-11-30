@@ -204,7 +204,7 @@ class Urn(DeepEqual, Serializable, Comparable):
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(urn=self._urn,
-                           classID=self.classID)
+                           _STID=self._STID)
 
     def __repr__(self):
         return self.__class__.__name__ + ' ' + self._urn

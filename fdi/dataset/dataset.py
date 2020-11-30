@@ -115,7 +115,7 @@ class GenericDataset(Dataset, DataContainer, Container):
         s = OrderedDict(description=self.description,
                         meta=self.meta,
                         data=self.data,
-                        classID=self.classID)
+                        _STID=self._STID)
         return s
 
 
@@ -251,7 +251,7 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
                         type=self._type,
                         default=self._default,
                         typecode=self._typecode,
-                        classID=self.classID)
+                        _STID=self._STID)
         s.update(OrderedDict(unit=self.unit))
         return s
 
@@ -603,7 +603,7 @@ class TableDataset(GenericDataset, TableModel):
         return OrderedDict(description=self.description,
                            meta=self.meta,
                            data=self.data,
-                           classID=self.classID)
+                           _STID=self._STID)
 
 
 class CompositeDataset(AbstractComposite, Dataset):
@@ -626,4 +626,4 @@ class CompositeDataset(AbstractComposite, Dataset):
         return OrderedDict(description=self.description,
                            meta=self.meta,
                            _sets=self._sets,
-                           classID=self.classID)
+                           _STID=self._STID)

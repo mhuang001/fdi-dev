@@ -258,7 +258,7 @@ f        With two positional arguments: arg1-> value, arg2-> description.
         return OrderedDict(description=self.description,
                            value=self.value,
                            listeners=self.listeners,
-                           classID=self.classID
+                           _STID=self._STID
                            )
 
 
@@ -504,7 +504,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
                            default=self._default,
                            valid=self._valid,
                            listeners=self.listeners,
-                           classID=self.classID
+                           _STID=self._STID
                            )
 
 
@@ -528,7 +528,7 @@ class NumericParameter(Parameter, Quantifiable):
                            valid=self._valid,
                            unit=self._unit,
                            typecode=self._typecode,
-                           classID=self.classID)
+                           _STID=self._STID)
 
 
 class DateParameter(Parameter):
@@ -589,7 +589,7 @@ class DateParameter(Parameter):
                            default=self._default,
                            valid=self._valid,
                            typecode=self.typecode,
-                           classID=self.classID)
+                           _STID=self._STID)
         return self.__class__.__name__ + \
             '{ description = "%s", value = "%s", typecode = "%s"}' % \
             (str(self.description), str(self.value), str(self.getTypecode()))
@@ -648,7 +648,7 @@ class StringParameter(Parameter):
                            valid=self._valid,
                            default=self._default,
                            typecode=self._typecode,
-                           classID=self.classID)
+                           _STID=self._STID)
 
 
 MetaHeaders = ['name', 'value', 'unit', 'type', 'valid',
@@ -775,7 +775,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
 
         return OrderedDict(_sets=self._sets,
                            listeners=self.listeners,
-                           classID=self.classID)
+                           _STID=self._STID)
     if 0:
         s, l = '', ''
         npk, npv = 10, 19

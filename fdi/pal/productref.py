@@ -317,4 +317,4 @@ class ProductRef(Attributable, Serializable, Comparable):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(urnobj=self.urnobj if issubclass(self.urnobj.__class__, Urn) else None,
                            _meta=self.getMeta(),
-                           classID=self.classID)
+                           _STID=self._STID)

@@ -74,7 +74,7 @@ def applyrules(key, ref, rules):
 class RefContainer(ODict):  # XXXXXXXX order
     """ A map where Rules of a Context are applied when put(k,v) is called, and the owner MapContext's ID can be put to v's parents list.
 
-    Implemwnted using dataset.Composite so that RefContainer has a ClassID when json.loads'ed.
+    Implemwnted using dataset.Composite so that RefContainer has a _STID when json.loads'ed.
     A MapContext has a _sets, which has a refs:RefContainer, which has a _sets, which has a name:ProductRef.
     when used as context.refs.get('x').product.description, the RefContainer is called with get() or __getitem__(), which calls superclass composite's _set's __getitem__()
     """
@@ -119,7 +119,7 @@ class RefContainer(ODict):  # XXXXXXXX order
         """ remove all productRefs """
         ks = list(self.keys())
         for k in ks:
-            if k != 'classID':
+            if k != '_STID':
                 self.__delitem__(k)
 
     def put(self, key, ref):
@@ -142,7 +142,7 @@ class RefContainer(ODict):  # XXXXXXXX order
     # def serializable(self):
     #     """ Can be encoded with serializableEncoder """
     #     return ODict(  # _sets=self._sets,
-    #         classID=self.classID)
+    #         _STID=self._STID)
 
 
 class ContextRuleException(ValueError):

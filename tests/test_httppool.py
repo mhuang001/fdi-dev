@@ -177,7 +177,7 @@ def clear_server_poolpath(poolid):
             os.system('rm -rf ' + path)
         # x = Product(description='desc test case')
         # x.creator = 'test'
-        # data = serializeClassID(x)
+        # data = serialize(x)
         # url = api_baseurl + test_poolid + '/fdi.dataset.product.Product/0'
         # x = requests.post(url, auth=HTTPBasicAuth(auth_user, auth_pass), data=data)
 

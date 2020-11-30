@@ -227,7 +227,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(tai=self.tai,
                            format=self.format,
-                           classID=self.classID)
+                           _STID=self._STID)
 
 
 class FineTime1(FineTime):

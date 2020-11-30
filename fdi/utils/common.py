@@ -88,7 +88,7 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
     'tablefmt' is not in the args as it is needed to be passed by kwds in recursive calls although under some conditions it is used.
     """
     if excpt is None:
-        excpt = ['classID', 'data', '_sets']
+        excpt = ['_STID', 'data', '_sets']
     ind = ' '*indent
 
     if level == 0:

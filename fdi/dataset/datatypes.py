@@ -62,7 +62,7 @@ class Vector(Serializable, DeepEqual):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(
             components=list(self.components),
-            classID=self.classID)
+            _STID=self._STID)
 
 
 class Quaternion(Vector):

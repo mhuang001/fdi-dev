@@ -100,5 +100,5 @@ class ODict(UserDict, Serializable):
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return dict(data=self.data,
-                    classID=self.classID
+                    _STID=self._STID
                     )

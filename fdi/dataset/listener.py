@@ -293,7 +293,7 @@ class DatasetEvent(Serializable):
                         change=self.change,
                         cause=self.cause,
                         rootCause=self.rootCause,
-                        classID=self.classID)
+                        _STID=self._STID)
         return s
 
 

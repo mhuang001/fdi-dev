@@ -225,7 +225,7 @@ $INITARGS
             ("_sets", self._sets),
             ("history", self.history),
             ("listeners", self.listeners),
-            ("classID", self.classID)]
+            ("_STID", self._STID)]
 
         return OrderedDict(ls)
 

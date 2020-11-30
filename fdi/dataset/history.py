@@ -67,4 +67,4 @@ class History(CompositeDataset, DeepEqual):
                            TASK_HISTORY=self.TASK_HISTORY,
                            meta=self.meta,
                            _sets=self._sets,
-                           classID=self.classID)
+                           _STID=self._STID)

@@ -38,7 +38,7 @@ def constructSerializable(obj, lgb=None, debug=False):
     encoded by default by JSONEncoder, instantiate and fill in
     variables.
     Objects to be deserialized must have their classes loaded.
-    ClassID cannot have module names in it (e.g.  dataset.Product)
+    _STID cannot have module names in it (e.g.  dataset.Product)
     or locals()[classname] or globals()[classname] will not work. See alternative in
     https://stackoverflow.com/questions/452969/does-python-have-an-equivalent-to-java-class-forname
 
@@ -78,15 +78,15 @@ def constructSerializable(obj, lgb=None, debug=False):
         indent -= 1
         return inst
 
-    if not 'classID' in obj:
+    if not '_STID' in obj:
         """ This object is supported by JSON encoder """
         if debug:
-            print(spaces + 'Find non-ClassID. <%s>' % classname)
+            print(spaces + 'Find non-_STID. <%s>' % classname)
         inst = obj
     else:
-        classname = obj['classID']
+        classname = obj['_STID']
         if debug:
-            print(spaces + 'Find ClassID <%s>' % classname)
+            print(spaces + 'Find _STID <%s>' % classname)
         # process types wrapped in a dict
         if PY3 and classname == 'bytes':
             inst = codecs.decode(obj, 'hex')
@@ -116,7 +116,7 @@ def constructSerializable(obj, lgb=None, debug=False):
         print(spaces + 'Go through properties of instance')
     for (k, v) in obj.items():
         """ loop through all key-value pairs. """
-        if k == 'classID':
+        if k == '_STID':
             continue
         # deserialize v
         # should be object_pairs_hook in the following if... line
@@ -197,7 +197,7 @@ class IntDecoderOD(IntDecoder):
 
 
 def deserialize(js, lgb=None, debug=False, usedict=True):
-    """ Loads classes with ClassID from the results of serializeClassID.
+    """ Loads classes with _STID from the results of serialize.
 
     if usedict is True dict insted of ODict will be used.
     """

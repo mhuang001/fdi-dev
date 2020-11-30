@@ -178,7 +178,7 @@ def httppool(pool):
     w = '{"result": %s, "msg": %s, "timestamp": %f}' % (
         r, json.dumps(msg), ts)
     # logger.debug(pprint.pformat(w, depth=3, indent=4))
-    s = w  # serializeClassID(w)
+    s = w  # serialize(w)
     logger.debug(lls(s, 120))
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'

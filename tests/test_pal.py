@@ -1013,7 +1013,7 @@ def test_realistic():
     pref1 = ProductRef(p1)
     # use a productStorage with a pool on disk
     pref2 = pstore.save(p2)
-    # how many prodrefs do we have? (do not use len() due to classID, version)
+    # how many prodrefs do we have? (do not use len() due to _STID, version)
     assert map1['refs'].size() == 0
     assert len(pref1.parents) == 0
     assert len(pref2.parents) == 0
@@ -1024,14 +1024,14 @@ def test_realistic():
     assert pref1.parents[0] == map1
     # add the second one
     map1['refs']['egg'] = pref2
-    # how many prodrefs do we have? (do not use len() due to classID, version)
+    # how many prodrefs do we have? (do not use len() due to _STID, version)
     assert map1['refs'].size() == 2
     assert len(pref2.parents) == 1
     assert pref2.parents[0] == map1
     assert pref1.parents[0] == map1
     # remove a ref
     del map1['refs']['spam']
-    # how many prodrefs do we have? (do not use len() due to classID, version)
+    # how many prodrefs do we have? (do not use len() due to _STID, version)
     assert map1.refs.size() == 1
     assert len(pref1.parents) == 0
     # add ref2 to another map

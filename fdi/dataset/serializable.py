@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class SerializableEncoderAll(json.JSONEncoder):
     """ can encode parameter and product etc such that they can be recovered
-    with deserializeClassID.
+    with deserialize().
     Python 3 treats string and unicode as unicode, encoded with utf-8,
     byte blocks as bytes, encoded with utf-8.
     Python 2 treats string as str and unicode as unicode, encoded with utf-8,
@@ -32,11 +32,11 @@ class SerializableEncoderAll(json.JSONEncoder):
         # logger.debug
         # print('&&&& %s %s' % (str(obj.__class__), str(obj)))
         if PY3 and issubclass(obj.__class__, bytes):
-            return dict(code=codecs.encode(obj, 'hex'), classID='bytes')
+            return dict(code=codecs.encode(obj, 'hex'), _STID='bytes')
         if not PY3 and issubclass(obj.__class__, str):
-            return dict(code=codec.encode(obj, 'hex'), classID='bytes')
+            return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
         if obj is Ellipsis:
-            return {'obj': '...', 'classID': 'ellipsis'}
+            return {'obj': '...', '_STID': 'ellipsis'}
         # print(obj.serializable())
 
         if issubclass(obj.__class__, Serializable):
@@ -64,9 +64,9 @@ class SerializableEncoderAll(json.JSONEncoder):
         #     return obj
         # elif 0 and issubclass(oc, (Serializable, bytes)):
         #     if issubclass(oc, dict):
-        #         # if is both Serializable and Mapping, insert classID, to a copy
+        #         # if is both Serializable and Mapping, insert _STID, to a copy
         #         o = copy.copy(obj)
-        #         o['classID'] = obj.classID
+        #         o['_STID'] = obj._STID
         #         return o
         #     return obj
         # elif isinstance(obj, list):
@@ -78,14 +78,14 @@ class SerializableEncoderAll(json.JSONEncoder):
         #         if isinstance(obj, dict):
         #             return obj
         #         else:
-        #             return {'obj': dict(obj), 'classID': ocn}
+        #             return {'obj': dict(obj), '_STID': ocn}
         #     else:
         #         # This handles the top-level dict keys
-        #         return {'obj': [(k, v) for k, v in obj.items()], 'classID': ocn}
+        #         return {'obj': [(k, v) for k, v in obj.items()], '_STID': ocn}
         if issubclass(oc, (Collection)):
-            return {'obj': list(obj), 'classID': ocn}
+            return {'obj': list(obj), '_STID': ocn}
         # elif obj is Ellipsis:
-        #     return {'obj': '...', 'classID': ocn}
+        #     return {'obj': '...', '_STID': ocn}
 
         else:
             return obj
@@ -96,7 +96,7 @@ class SerializableEncoderAll(json.JSONEncoder):
 
 class SerializableEncoder(json.JSONEncoder):
     """ can encode parameter and product etc such that they can be recovered
-    with deserializeClassID.
+    with deserialize().
     Python 3 treats string and unicode as unicode, encoded with utf-8,
     byte blocks as bytes, encoded with utf-8.
     Python 2 treats string as str and unicode as unicode, encoded with utf-8,
@@ -114,11 +114,11 @@ class SerializableEncoder(json.JSONEncoder):
                 # logger.debug
                 # print('&&&& %s %s' % (str(obj.__class__), str(obj)))
                 if PY3 and issubclass(obj.__class__, bytes):
-                    return dict(code=codecs.encode(obj, 'hex'), classID='bytes')
+                    return dict(code=codecs.encode(obj, 'hex'), _STID='bytes')
                 if not PY3 and issubclass(obj.__class__, str):
-                    return dict(code=codec.encode(obj, 'hex'), classID='bytes')
+                    return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
                 if obj is Ellipsis:
-                    return {'obj': '...', 'classID': 'ellipsis'}
+                    return {'obj': '...', '_STID': 'ellipsis'}
                 # print(obj.serializable())
                 return obj.serializable()
             except Exception as e:
@@ -137,7 +137,7 @@ def serialize(o, cls=None, **kwds):
 
 class Serializable(object):
     """ mh: Can be serialized.
-    Has a ClassID  instance property to show its class information.
+    Has a _STID  instance property to show its class information.
     """
 
     def __init__(self, **kwds):
@@ -145,9 +145,9 @@ class Serializable(object):
         sc = self.__class__
         #print('@@@ ' + sc.__name__, str(issubclass(sc, dict)))
         if 0 and issubclass(sc, dict):
-            self['classID'] = sc.__name__
+            self['_STID'] = sc.__name__
         else:
-            self.classID = sc.__name__
+            self._STID = sc.__name__
 
     def serialized(self, indent=None):
         return serialize(self, indent=indent)

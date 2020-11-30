@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 # @addMandatoryProductAttrs
 
 
-class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
+class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     """ A BaseProduct is a generic result that can be passed on between
     (standalone) processes.
 
@@ -49,17 +49,18 @@ class BaseProduct(AbstractComposite, Copyable, Serializable,  EventSender):
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
 
-    BaseProduct class (level ALL) schema 1.2 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-11-27 23:31:00.525212.
+    BaseProduct class (level ALL) schema 1.2 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-11-30 17:32:07.938711.
 
     """
 
+
     def __init__(self,
-                 description='UNKNOWN',
-                 type_='BaseProduct',
-                 creator='UNKNOWN',
-                 creationDate=FineTime(0),
-                 rootCause='UNKNOWN',
-                 version='0.7',
+                 description = 'UNKNOWN',
+                 type_ = 'BaseProduct',
+                 creator = 'UNKNOWN',
+                 creationDate = FineTime(0),
+                 rootCause = 'UNKNOWN',
+                 version = '0.7',
                  **kwds):
 
         global ProductInfo
@@ -241,28 +242,28 @@ def value2parameter(name, value, met):
 
     met is pInfo('metadata'] or pInfo['dataset'][xxx]
     """
-
+    
     im = met[name]  # {'dats_type':..., 'value':....}
     # in ['integer','hex','float','vector','quaternion']
     if 'unit' in im and im['unit'] is not None:
         ret = NumericParameter(value=value,
-                               description=im['description'],
-                               typ_=im['data_type'],
-                               unit=im['unit'],
-                               default=im['default'],
-                               valid=im['valid'],
-                               typecode=im['typecode'],
-                               )
+                                   description=im['description'],
+                                   typ_=im['data_type'],
+                                   unit=im['unit'],
+                                   default=im['default'],
+                                   valid=im['valid'],
+                                   typecode=im['typecode'],
+ 						   )
     elif im['data_type'] == 'string':
         fs = im['default'] if 'default' in im else None
         gs = im['valid'] if 'valid' in im else None
         cs = im['typecode'] if 'typecode' in im else 'B'
         ret = StringParameter(value=value,
-                              description=im['description'],
-                              default=fs,
-                              valid=gs,
-                              typecode=cs
-                              )
+                            description=im['description'],
+                            default=fs,
+                            valid=gs,
+                            typecode=cs
+                            )
     elif im['data_type'] == 'finetime':
         fs = im['default'] if 'default' in im else None
         gs = im['valid'] if 'valid' in im else None
@@ -277,14 +278,13 @@ def value2parameter(name, value, met):
         fs = im['default'] if 'default' in im else None
         gs = im['valid'] if 'valid' in im else None
         ret = Parameter(value=value,
-                        description=im['description'],
-                        typ_=im['data_type'],
-                        default=fs,
-                        valid=gs,
-                        )
+                            description=im['description'],
+                            typ_=im['data_type'],
+                            default=fs,
+                            valid=gs,
+                            )
     return ret
-
-
+ 
 def addMandatoryProductAttrs(cls):
     """mh: Add MPAs to a class so that although they are metadata,
     they can be accessed by for example, productfoo.creator.
@@ -321,78 +321,79 @@ ProductInfo = {
     'description': 'FDI base class',
     'parents': [
         None,
-    ],
+        ],
     'level': 'ALL',
     'schema': '1.2',
     'metadata': {
         'description': {
-            'current_id': 'description',
-            'id': 'description',
-            'id_zh_cn': '描述',
-            'data_type': 'string',
-            'description': 'Description of this product',
-            'description_zh_cn': '对本产品的描述。',
-            'default': 'UNKNOWN',
-            'valid': '',
-            'typecode': 'B',
-        },
+                'current_id': 'description',
+                'id': 'description',
+                'id_zh_cn': '描述',
+                'data_type': 'string',
+                'description': 'Description of this product',
+                'description_zh_cn': '对本产品的描述。',
+                'default': 'UNKNOWN',
+                'valid': '',
+                'typecode': 'B',
+                },
         'type': {
-            'current_id': 'type',
-            'id': 'type',
-            'id_zh_cn': '产品类型',
-            'data_type': 'string',
-            'description': 'Product Type identification. Name of class or CARD.',
-            'description_zh_cn': '产品类型。完整Python类名或卡片名。',
-            'default': 'BaseProduct',
-            'valid': '',
-            'typecode': 'B',
-        },
+                'current_id': 'type',
+                'id': 'type',
+                'id_zh_cn': '产品类型',
+                'data_type': 'string',
+                'description': 'Product Type identification. Name of class or CARD.',
+                'description_zh_cn': '产品类型。完整Python类名或卡片名。',
+                'default': 'BaseProduct',
+                'valid': '',
+                'typecode': 'B',
+                },
         'creator': {
-            'current_id': 'creator',
-            'id': 'creator',
-            'id_zh_cn': '本产品生成者',
-            'data_type': 'string',
-            'description': 'Generator of this product.',
-            'description_zh_cn': '本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。',
-            'default': 'UNKNOWN',
-            'valid': '',
-            'typecode': 'B',
-        },
+                'current_id': 'creator',
+                'id': 'creator',
+                'id_zh_cn': '本产品生成者',
+                'data_type': 'string',
+                'description': 'Generator of this product.',
+                'description_zh_cn': '本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。',
+                'default': 'UNKNOWN',
+                'valid': '',
+                'typecode': 'B',
+                },
         'creationDate': {
-            'current_id': 'creationDate',
-            'id': 'creationDate',
-            'id_zh_cn': '产品生成时间',
-            'fits_keyword': 'DATE',
-            'data_type': 'finetime',
-            'description': 'Creation date of this product',
-            'description_zh_cn': '本产品生成时间',
-            'default': 0,
-            'valid': '',
-            'typecode': None,
-        },
+                'current_id': 'creationDate',
+                'id': 'creationDate',
+                'id_zh_cn': '产品生成时间',
+                'fits_keyword': 'DATE',
+                'data_type': 'finetime',
+                'description': 'Creation date of this product',
+                'description_zh_cn': '本产品生成时间',
+                'default': 0,
+                'valid': '',
+                'typecode': None,
+                },
         'rootCause': {
-            'current_id': 'rootCause',
-            'id': 'rootCause',
-            'id_zh_cn': '数据来源',
-            'data_type': 'string',
-            'description': 'Reason of this run of pipeline.',
-            'description_zh_cn': '数据来源（此例来自鉴定件热真空罐）',
-            'default': 'UNKNOWN',
-            'valid': '',
-            'typecode': 'B',
-        },
+                'current_id': 'rootCause',
+                'id': 'rootCause',
+                'id_zh_cn': '数据来源',
+                'data_type': 'string',
+                'description': 'Reason of this run of pipeline.',
+                'description_zh_cn': '数据来源（此例来自鉴定件热真空罐）',
+                'default': 'UNKNOWN',
+                'valid': '',
+                'typecode': 'B',
+                },
         'version': {
-            'current_id': 'formatVersion',
-            'id': 'version',
-            'id_zh_cn': '格式版本',
-            'data_type': 'string',
-            'description': 'Version of product schema',
-            'description_zh_cn': '产品格式版本',
-            'default': '0.7',
-            'valid': '',
-            'typecode': 'B',
+                'current_id': 'formatVersion',
+                'id': 'version',
+                'id_zh_cn': '格式版本',
+                'data_type': 'string',
+                'description': 'Version of product schema',
+                'description_zh_cn': '产品格式版本',
+                'default': '0.7',
+                'valid': '',
+                'typecode': 'B',
+                },
         },
-    },
     'datasets': {
-    },
-}
+        },
+    }
+

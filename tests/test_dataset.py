@@ -270,6 +270,7 @@ def test_Composite():
     v[a3] = a4
     assert [k for k in v] == [a1, a3]
     assert [(k, v) for (k, v) in v.items()] == [(a1, a2), (a3, a4)]
+    assert list(v.values()) == [a2, a4]
 
     # remove
     v = Composite()

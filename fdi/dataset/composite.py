@@ -111,7 +111,7 @@ class Composite(DeepEqual):
 
         Enables pairs = zip(d.values(), d.keys()) 
         """
-        return self._sets.values
+        return self._sets.values()
 
     def __iter__(self):
         return self._sets.__iter__()

@@ -309,18 +309,25 @@ i1 = [[1, 2, 3], [4, 5, i0], [7, 8, 9]]
 i2 = 'ev'                 # unit
 i3 = 'image1'     # description
 image = ArrayDataset(data=i1, unit=i2, description=i3)
+# put the dataset into the product
 x["RawImage"] = image
+# take the data out of the product
 x["RawImage"].data  # == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 
-# no unit or description. different syntax but same function as above
+# Another syntax to put dataset into a product: set(name, dataset)
+# Different but same function as above.
+# Here no unit or description is given when making ArrayDataset
 x.set('QualityImage', ArrayDataset(
     [[0.1, 0.5, 0.7], [4e3, 6e7, 8], [-2, 0, 3.1]]))
 x["QualityImage"].unit  # is None
 
-# add a tabledataset
+# add another tabledataset
 s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
       ('col2', [0, 43.2, 2E3], 'cnt')]
 x["Spectrum"] = TableDataset(data=s1)
+# See the numer and types of existing datasets in the product
+[type(d) for d in x.values()]
+
 # mandatory properties are also in metadata
 # test mandatory BaseProduct properties that are also metadata
 a0 = "Me, myself and I"

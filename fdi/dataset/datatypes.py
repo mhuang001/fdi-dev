@@ -10,6 +10,43 @@ import logging
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
+""" Allowed data (Parameter and Dataset) types and the corresponding classe names.
+The keys are mnemonics for humans; the values are type(x).__name__.
+"""
+DataTypes = {
+    'binary': 'int',
+    'integer': 'int',
+    'short': 'int',
+    'byte': 'int',
+    'hex': 'int',
+    'float': 'float',
+    'string': 'str',
+    'boolean': 'bool',
+    'finetime': 'FineTime',
+    'finetime1': 'FineTime1',
+    'baseProduct': 'BaseProduct',
+    'mapContext': 'MapContext',
+    'product': 'Product',
+    'vector': 'Vector',
+    'quaternion': 'Quaternion',
+    '': 'None'
+}
+
+
+""" maps class type names to human-friendly types """
+DataTypeNames = {}
+for tn, tt in DataTypes.items():
+    if tt == 'int':
+        DataTypeNames[tt] = 'integer'
+    else:
+        DataTypeNames[tt] = tn
+DataTypeNames.update({
+    'NoneType': '',
+    'dict': 'vector',
+    'ODict': 'vector'
+})
+del tt, tn
+
 
 class Vector(Serializable, DeepEqual):
     """ N dimensional vector.

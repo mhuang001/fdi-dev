@@ -16,7 +16,7 @@ from ..utils.ydump import ydump
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 
 # a dictionary that translates metadata 'type' field to classname
-from .metadata import DataTypes, DataTypeNames
+from .datatypes import DataTypes, DataTypeNames
 
 import logging
 

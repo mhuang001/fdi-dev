@@ -3,6 +3,7 @@
 from ..utils.masked import masked
 from ..utils.common import grouper
 from .serializable import Serializable
+from .datatypes import DataTypes, DataTypeNames
 from .odict import ODict
 from .composite import Composite
 from .listener import DatasetEventSender, ParameterListener, DatasetListener, DatasetEvent, EventTypeOf
@@ -25,43 +26,6 @@ import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-""" Allowed Parameter types and the corresponding classes.
-The keys are mnemonics for humans; the values are type(x).__name__.
-"""
-DataTypes = {
-    'binary': 'int',
-    'integer': 'int',
-    'short': 'int',
-    'byte': 'int',
-    'hex': 'int',
-    'float': 'float',
-    'string': 'str',
-    'boolean': 'bool',
-    'finetime': 'FineTime',
-    'finetime1': 'FineTime1',
-    'baseProduct': 'BaseProduct',
-    'mapContext': 'MapContext',
-    'product': 'Product',
-    'vector': 'Vector',
-    'quaternion': 'Quaternion',
-    '': 'None'
-}
-
-
-""" maps machine types to human types """
-DataTypeNames = {}
-for tn, tt in DataTypes.items():
-    if tt == 'int':
-        DataTypeNames[tt] = 'integer'
-    else:
-        DataTypeNames[tt] = tn
-DataTypeNames.update({
-    'NoneType': '',
-    'dict': 'vector',
-    'ODict': 'vector'
-})
-del tt, tn
 
 
 ParameterClasses = {

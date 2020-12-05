@@ -9,7 +9,8 @@ from fdi.dataset.finetime import FineTime
 from .serializable import Serializable
 from .abstractcomposite import AbstractComposite
 from .listener import EventSender, EventType
-from .metadata import AbstractParameter, Parameter, NumericParameter, DataTypes, StringParameter, DateParameter
+from .metadata import AbstractParameter, Parameter, NumericParameter, StringParameter, DateParameter
+from .datatypes import DataTypes
 from .eq import deepcmp
 from .copyable import Copyable
 from .history import History
@@ -49,7 +50,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
 
-    BaseProduct class (level ALL) schema 1.2 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-11-30 17:32:07.938711.
+    BaseProduct class (level ALL) schema 1.2 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-05 12:28:25.737712.
 
     """
 

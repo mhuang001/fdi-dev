@@ -17,7 +17,8 @@ from fdi.dataset.deserialize import deserialize
 from fdi.dataset.quantifiable import Quantifiable
 from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf
 from fdi.dataset.composite import Composite
-from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, DataTypes, DataTypeNames, StringParameter, DateParameter
+from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter
+from fdi.dataset.datatypes import DataTypes, DataTypeNames
 from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper

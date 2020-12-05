@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 """ Allowed Parameter types and the corresponding classes.
 The keys are mnemonics for humans; the values are type(x).__name__.
 """
-ParameterTypes = {
+DataTypes = {
     'binary': 'int',
     'integer': 'int',
     'short': 'int',
@@ -47,6 +47,21 @@ ParameterTypes = {
     'quaternion': 'Quaternion',
     '': 'None'
 }
+
+
+""" maps machine types to human types """
+DataTypeNames = {}
+for tn, tt in DataTypes.items():
+    if tt == 'int':
+        DataTypeNames[tt] = 'integer'
+    else:
+        DataTypeNames[tt] = tn
+DataTypeNames.update({
+    'NoneType': '',
+    'dict': 'vector',
+    'ODict': 'vector'
+})
+del tt, tn
 
 
 ParameterClasses = {
@@ -82,26 +97,11 @@ ParameterClasses = {
 }
 
 
-""" maps machine types to human types """
-ParameterDataTypes = {}
-for tn, tt in ParameterTypes.items():
-    if tt == 'int':
-        ParameterDataTypes[tt] = 'integer'
-    else:
-        ParameterDataTypes[tt] = tn
-ParameterDataTypes.update({
-    'NoneType': '',
-    'dict': 'vector',
-    'ODict': 'vector'
-})
-del tt, tn
-
-
 def parameterDataClasses(tt):
     """ maps machine type names to class objects """
-    if tt not in ParameterDataTypes:
+    if tt not in DataTypeNames:
         raise TypeError("Type %s is not in %s." %
-                        (tt, str([''.join(x) for x in ParameterDataTypes])))
+                        (tt, str([''.join(x) for x in DataTypeNames])))
     if tt == 'int':
         return int
     elif tt in builtins.__dict__:
@@ -202,35 +202,35 @@ f        With two positional arguments: arg1-> value, arg2-> description.
 
     def equals(self, obj):
         """ can compare value """
-        if type(obj).__name__ in ParameterTypes.values():
+        if type(obj).__name__ in DataTypes.values():
             return self.value == obj
         else:
             return super(AbstractParameter, self).equals(obj)
 
     def __lt__(self, obj):
         """ can compare value """
-        if type(obj).__name__ in ParameterTypes.values():
+        if type(obj).__name__ in DataTypes.values():
             return self.value < obj
         else:
             return super(AbstractParameter, self).__lt__(obj)
 
     def __gt__(self, obj):
         """ can compare value """
-        if type(obj).__name__ in ParameterTypes.values():
+        if type(obj).__name__ in DataTypes.values():
             return self.value > obj
         else:
             return super(AbstractParameter, self).__gt__(obj)
 
     def __le__(self, obj):
         """ can compare value """
-        if type(obj).__name__ in ParameterTypes.values():
+        if type(obj).__name__ in DataTypes.values():
             return self.value <= obj
         else:
             return super(AbstractParameter, self).__le__(obj)
 
     def __ge__(self, obj):
         """ can compare value """
-        if type(obj).__name__ in ParameterTypes.values():
+        if type(obj).__name__ in DataTypes.values():
             return self.value >= obj
         else:
             return super(AbstractParameter, self).__ge__(obj)
@@ -271,12 +271,12 @@ class Parameter(AbstractParameter, Typed):
 
     def __init__(self, value=None, description='UNKNOWN', typ_='', default=None, valid=None, **kwds):
         """ invoked with no argument results in a parameter of
-        None value and 'UNKNOWN' description ''. typ_ ParameterTypes[''], which is None.
+        None value and 'UNKNOWN' description ''. typ_ DataTypes[''], which is None.
         With a signle argument: arg -> value, 'UNKNOWN'-> description. ParameterTypes-> typ_, hex values have integer typ_.
         Unsuported parameter types will get a NotImplementedError.
 f        With two positional arguments: arg1-> value, arg2-> description. ParameterTypes['']-> typ_.
         Unsuported parameter types will get a NotImplementedError.
-        With three positional arguments: arg1 casted to ParameterTypes[arg3]-> value, arg2-> description. arg3-> typ_.
+        With three positional arguments: arg1 casted to DataTypes[arg3]-> value, arg2-> description. arg3-> typ_.
         Unsuported parameter types will get a NotImplementedError.
         Incompatible value and typ_ will get a TypeError.
         """
@@ -300,14 +300,14 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         if typ_ is None or typ_ == '':
             self._type = ''
             return
-        if typ_ in ParameterTypes:
+        if typ_ in DataTypes:
             super().setType(typ_)
             # let setdefault deal with type
             self.setDefault(self._default)
         else:
             raise NotImplementedError(
                 'Parameter type %s is not in %s.' %
-                (typ_, str([''.join(x) for x in ParameterTypes])))
+                (typ_, str([''.join(x) for x in DataTypes])))
 
     def checked(self, value):
         """ Checks input value against self.type.
@@ -327,18 +327,18 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         if st == '' or st is None:
             # self does not have a type
             try:
-                ct = ParameterDataTypes[t]
+                ct = DataTypeNames[t]
                 if ct == 'vector':
                     self._type = 'quaternion' if len(value) == 4 else ct
                 else:
                     self._type = ct
             except KeyError as e:
                 raise TypeError("Type %s is not in %s." %
-                                (t, str([''.join(x) for x in ParameterDataTypes])))
+                                (t, str([''.join(x) for x in DataTypeNames])))
             return value
 
         # self has type
-        tt = ParameterTypes[st]
+        tt = DataTypes[st]
         if tt in Classes.mapping:
             # custom-defined parameter. delegate checking to themselves
             return value
@@ -430,7 +430,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         if ruleset is None or len(ruleset) == 0:
             return (value, 'Default')
 
-        st = ParameterTypes[self._type]
+        st = DataTypes[self._type]
         vt = type(value).__name__
 
         if st is not None and st != '' and vt != st:
@@ -472,7 +472,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         """ Replaces the current value of this parameter.
 
         If value is None set it to default.
-        If given/current type is '' and arg value's type is in ParameterTypes both value and type are updated to the suitable one in ParameterDataTypes; or else TypeError is raised.
+        If given/current type is '' and arg value's type is in DataTypes both value and type are updated to the suitable one in DataTypeNames; or else TypeError is raised.
         If value type and given/current type are different.
             Incompatible value and type will get a TypeError.
         """

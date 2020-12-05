@@ -7,12 +7,12 @@
  Flexible Dataset Integrator (fdi)
 ==================================
 
-FDI helps data producers and processors to build connections into isolated heterogeneous datasets. to assemble, organize, and integrate data into self-describing, modular, hierarchical, persistent, referenceable ``Products``, whose component datasets keep their own characteristicss and are easily accessible.
+FDI helps data producers and processors to build connections into isolated heterogeneous datasets. to assemble, organize, and integrate data into self-describing, modular, hierarchical, persistent, referenceable ``Products``, whose component datasets keep their own characteristics and are easily accessible.
 
 Features
 ========
 
-With FDI one can pack data of different format into **regular and modular** Data Products, together with annotation (description, types, units, defaults, and validity specifications) and meta data (data about data). One can make arrays or tables of Products using basic data structures such as sequences (e.g. Python ``list``), mappings (e.g. Python ``dict``), or custom-made classes. FDI accomodates nested and highly complex structures.
+With FDI one can pack data of different format into **regular and modular** data ``Products``, together with annotation (description, types, units, defaults, and validity specifications) and meta data (data about data). One can make arrays or tables of Products using basic data structures such as sequences (e.g. Python ``list``), mappings (e.g. Python ``dict``), or custom-made classes. FDI accomodates nested and highly complex structures.
 
 **Access APIs** of the components of FDI data objects are convenient and similar to those of standad Python libraries, making it easier for **scripting and data mining** directly 'on FDIs'.
 

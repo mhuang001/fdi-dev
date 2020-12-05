@@ -16,7 +16,7 @@ from ..utils.ydump import ydump
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 
 # a dictionary that translates metadata 'type' field to classname
-from .metadata import ParameterTypes, ParameterDataTypes
+from .metadata import DataTypes, DataTypeNames
 
 import logging
 
@@ -125,7 +125,7 @@ def makeinitcode(dt, pval):
     """
     if dt not in ['string', 'integer', 'hex', 'binary', 'float']:
         # custom classes
-        t = ParameterTypes[dt]
+        t = DataTypes[dt]
         code = '%s(%s)' % (t, pval)
     elif dt in ['integer', 'hex', 'float', 'binary']:
         code = pval
@@ -503,7 +503,7 @@ if __name__ == '__main__':
 
         # parameter classes used in init code may need to be imported, too
         for met, val in all_attrs.items():
-            a = ParameterTypes[val['data_type']]
+            a = DataTypes[val['data_type']]
             if a in glb:
                 # this attribute class has module
                 s = 'from %s import %s' % (glb[a].__module__, a)

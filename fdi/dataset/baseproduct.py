@@ -9,7 +9,7 @@ from fdi.dataset.finetime import FineTime
 from .serializable import Serializable
 from .abstractcomposite import AbstractComposite
 from .listener import EventSender, EventType
-from .metadata import AbstractParameter, Parameter, NumericParameter, ParameterTypes, StringParameter, DateParameter
+from .metadata import AbstractParameter, Parameter, NumericParameter, DataTypes, StringParameter, DateParameter
 from .eq import deepcmp
 from .copyable import Copyable
 from .history import History

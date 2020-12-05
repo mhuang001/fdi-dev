@@ -17,7 +17,7 @@ from fdi.dataset.deserialize import deserialize
 from fdi.dataset.quantifiable import Quantifiable
 from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf
 from fdi.dataset.composite import Composite
-from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, ParameterTypes, ParameterDataTypes, StringParameter, DateParameter
+from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, DataTypes, DataTypeNames, StringParameter, DateParameter
 from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
@@ -498,7 +498,7 @@ def test_Parameter_init():
     assert v.description == a1
     assert v.value == a2
     assert v.type == a4
-    assert type(v.value).__name__ == ParameterTypes[a4]
+    assert type(v.value).__name__ == DataTypes[a4]
 
 
 def test_Parameter_valid():
@@ -615,7 +615,7 @@ def test_Parameter_features():
     else:  # smart
         v = Parameter(a2, a1, a4)
         assert v.value == 9
-    # type not Number nor in ParameterTypes gets NotImplementedError
+    # type not Number nor in DataTypes gets NotImplementedError
     a2 = 9
     a4 = 'guess'
     try:
@@ -624,7 +624,7 @@ def test_Parameter_features():
         assert isinstance(e, NotImplementedError)
     else:
         assert False, 'no exception caught'
-    # value type not Number nor in ParameterTypes gets TypeError
+    # value type not Number nor in DataTypes gets TypeError
     a2 = []
     a4 = 'integer'
     try:
@@ -762,12 +762,12 @@ def test_NumericParameter():
     assert v.description == a1
     assert v.value == a2
     assert v.type == a4
-    assert type(v.value).__name__ == ParameterTypes[a4]
+    assert type(v.value).__name__ == DataTypes[a4]
 
     # type casting
     a8 = 4
     v.value = a8
-    assert type(v.value).__name__ == ParameterDataTypes[v.type]
+    assert type(v.value).__name__ == DataTypeNames[v.type]
     # equality
     a1 = 'a test parameter'
     a2 = 3.3

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from collections import OrderedDict
-
 from .serializable import Serializable
 from .eq import DeepEqual
+
+from collections import OrderedDict
+import builtins
 
 import logging
 # create logger
@@ -46,6 +47,26 @@ DataTypeNames.update({
     'ODict': 'vector'
 })
 del tt, tn
+
+
+def cast(val, typ_, namespace=None):
+    """ casts the input value to type specified, which is in DataTypeNames.
+
+    For example 'binary' type '0x9' is casted to int 9.
+
+    namespace: default is Classes.mapping.
+    """
+    t = DataTypes[typ_]
+    bd = builtins.__dict__
+    vstring = str(val).lower()
+    if t in bd.keys():
+        if t == 'int':
+            base = 16 if vstring.startswith(
+                '0x') else 2 if vstring.startswith('0b') else 10
+            return bd[t](vstring, base)
+        return bd[t](val)
+    else:
+        return Classes.mapping[t](val) if namespace is None else namespace[t](val)
 
 
 class Vector(Serializable, DeepEqual):

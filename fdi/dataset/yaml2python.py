@@ -221,6 +221,7 @@ def getCls(clp, rerun=True, exclude=None, verbose=False):
         # print(sys.path)
         print('Importing project classes from file '+clp)
         pc = importlib.import_module(clpf.replace('.py', ''))
+        sys.path.pop(0)
         pc.PC.updateMapping(rerun=rerun, exclude=exclude)
         ret = pc.PC.mapping
     return ret
@@ -396,10 +397,10 @@ if __name__ == '__main__':
     version = '1.1'
 
     # Get input file name etc. from command line. defaut 'Product.yml'
-    mdir = os.path.dirname(__file__)
-    ypath = os.path.join(mdir, 'resources')
-    tpath = os.path.join(mdir, 'resources')
-    opath = '.'
+    cwd = os.path.abspath(os.getcwd())
+    ypath = cwd
+    tpath = cwd
+    opath = cwd
     ops = [
         {'long': 'help', 'char': 'h', 'default': False, 'description': 'print help'},
         {'long': 'verbose', 'char': 'v', 'default': False,
@@ -410,6 +411,8 @@ if __name__ == '__main__':
          'description': 'Product class template file directory.'},
         {'long': 'outputdir=', 'char': 'o', 'default': opath,
          'description': 'Output directory for python file.'},
+        {'long': 'packagename=', 'char': 'p', 'default': '-',
+         'description': 'Name of the package which the generated modules belong to.'},
         {'long': 'userclasses=', 'char': 'c', 'default': '',
          'description': 'Python file name, or a module name,  to import prjcls to update Classes with user-defined classes which YAML file refers to.'},
         {'long': 'upgrade', 'char': 'u', 'default': False,
@@ -428,9 +431,11 @@ if __name__ == '__main__':
 
     ypath = out[2]['result']
     tpath = out[3]['result']
-    upgrade = out[6]['result']
-    debug = out[7]['result']
-    project_class_path = out[5]['result']
+    opath = os.path.abspath(out[4]['result'])
+    package_name = out[5]['result']
+    project_class_path = out[6]['result']
+    upgrade = out[7]['result']
+    debug = out[8]['result']
 
     if debug:
         import pdb
@@ -442,19 +447,28 @@ if __name__ == '__main__':
         yamlupgrade(descriptors, fins, ypath, version, verbose)
         sys.exit()
 
+    if package_name == '-':
+        ao = os.path.abspath(opath)
+        if not ao.startswith(cwd):
+            logger.error('Cannot derive package name from yaml dir and cwd.')
+            exit(-3)
+        package_name = ao[len(cwd):].strip('/').replace('/', '.')
+    logger.debug("Package name: " + package_name)
+
     # include project classes for every product so that products made just
     # now can be used as parents
     from .classes import Classes
+    glb = Classes.mapping
 
     # Do not import modules that are to be generated. Thier source code
     # could be  invalid due to unseccessful previous runs
     importexclude = [x.lower() for x in descriptors.keys()]
+    importinclude = {}
 
     pcl = getCls(project_class_path, rerun=True,
                  exclude=importexclude, verbose=verbose)
     Classes.updateMapping(
         c=pcl, rerun=True, exclude=importexclude, verbose=verbose)
-    glb = Classes.mapping
 
     for nm, daf in descriptors.items():
         d, attrs, datasets, fin = daf
@@ -464,7 +478,6 @@ if __name__ == '__main__':
         modulename = nm.lower()
 
         # make output filename, lowercase modulename + .py
-        opath = os.path.abspath(out[4]['result'])
         fout = pathjoin(opath, modulename + '.py')
         print("Output python file is "+fout)
 
@@ -558,24 +571,23 @@ if __name__ == '__main__':
         with open(fout, 'w', encoding='utf-8') as f:
             f.write(sp)
 
-        # import the newly made module  so the following classes could use it
-        # if all((modulename not in m.split('.') for m in Classes.modclass)):
+        if len(importexclude) == 1:
+            exit(0)
 
-            # absolute import from opath. The new products cannot do relative import
-        if opath not in sys.path:
-            sys.path.insert(0, opath)
-        if 0:
-            newp = 'fresh ' + prodname + ' from ' + modulename + ' in ' + opath + '.'
-            try:
-                _o = importlib.import_module(modulename)
-                glb[prodname] = getattr(_o, prodname)
-                print('Imported ' + newp)
-            except Exception as e:
-                print('Unable to import ' + newp)
-                raise(e)
-        # the next product can use this one.
-        importlib.invalidate_caches()
+        # import the newly made module  so the following classes could use it
         importexclude.remove(modulename)
-        pcl = getCls(project_class_path, rerun=True, exclude=importexclude)
-        Classes.updateMapping(c=pcl, rerun=True, exclude=importexclude)
+        # importlib.invalidate_caches()
+        if cwd not in sys.path:
+            sys.path.insert(0, cwd)
+        newp = 'fresh ' + prodname + ' from ' + modulename + \
+            'of package ' + package_name + ' in ' + opath + '.'
+        try:
+            _o = importlib.import_module('.' + modulename, package_name)
+            glb[prodname] = getattr(_o, prodname)
+            print('Imported ' + newp)
+        except Exception as e:
+            print('Unable to import ' + newp)
+            raise(e)
+
+        Classes.updateMapping(c=importinclude, exclude=importexclude)
         glb = Classes.mapping

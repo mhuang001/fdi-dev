@@ -20,7 +20,6 @@ import pdb
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
 # @addMandatoryProductAttrs
@@ -50,7 +49,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
 
-    BaseProduct class (level ALL) schema 1.2 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-05 12:28:25.737712.
+    BaseProduct class (level ALL) schema 1.3 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-09 11:27:20.089676.
 
     """
 
@@ -61,7 +60,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
                  creator = 'UNKNOWN',
                  creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
-                 version = '0.7',
+                 version = '0.8',
                  **kwds):
 
         global ProductInfo
@@ -324,11 +323,9 @@ ProductInfo = {
         None,
         ],
     'level': 'ALL',
-    'schema': '1.2',
+    'schema': '1.3',
     'metadata': {
         'description': {
-                'current_id': 'description',
-                'id': 'description',
                 'id_zh_cn': '描述',
                 'data_type': 'string',
                 'description': 'Description of this product',
@@ -338,8 +335,6 @@ ProductInfo = {
                 'typecode': 'B',
                 },
         'type': {
-                'current_id': 'type',
-                'id': 'type',
                 'id_zh_cn': '产品类型',
                 'data_type': 'string',
                 'description': 'Product Type identification. Name of class or CARD.',
@@ -349,8 +344,6 @@ ProductInfo = {
                 'typecode': 'B',
                 },
         'creator': {
-                'current_id': 'creator',
-                'id': 'creator',
                 'id_zh_cn': '本产品生成者',
                 'data_type': 'string',
                 'description': 'Generator of this product.',
@@ -360,8 +353,6 @@ ProductInfo = {
                 'typecode': 'B',
                 },
         'creationDate': {
-                'current_id': 'creationDate',
-                'id': 'creationDate',
                 'id_zh_cn': '产品生成时间',
                 'fits_keyword': 'DATE',
                 'data_type': 'finetime',
@@ -372,8 +363,6 @@ ProductInfo = {
                 'typecode': None,
                 },
         'rootCause': {
-                'current_id': 'rootCause',
-                'id': 'rootCause',
                 'id_zh_cn': '数据来源',
                 'data_type': 'string',
                 'description': 'Reason of this run of pipeline.',
@@ -383,13 +372,11 @@ ProductInfo = {
                 'typecode': 'B',
                 },
         'version': {
-                'current_id': 'formatVersion',
-                'id': 'version',
                 'id_zh_cn': '格式版本',
                 'data_type': 'string',
                 'description': 'Version of product schema',
                 'description_zh_cn': '产品格式版本',
-                'default': '0.7',
+                'default': '0.8',
                 'valid': '',
                 'typecode': 'B',
                 },

@@ -3,11 +3,9 @@ description: FDI base class
 parents:
   - 
 level: ALL
-schema: '1.2'
+schema: '1.3'
 metadata:
     description:
-        current_id: description
-        id: description
         id_zh_cn: 描述
         data_type: string
         description: Description of this product
@@ -16,8 +14,6 @@ metadata:
         valid: ''
         typecode: B
     type:
-        current_id: type
-        id: type
         id_zh_cn: 产品类型
         data_type: string
         description: Product Type identification. Name of class or CARD.
@@ -26,8 +22,6 @@ metadata:
         valid: ''
         typecode: B
     creator:
-        current_id: creator
-        id: creator
         id_zh_cn: 本产品生成者
         data_type: string
         description: Generator of this product.
@@ -36,8 +30,6 @@ metadata:
         valid: ''
         typecode: B
     creationDate:
-        current_id: creationDate
-        id: creationDate
         id_zh_cn: 产品生成时间
         fits_keyword: DATE
         data_type: finetime
@@ -47,8 +39,6 @@ metadata:
         valid: ''
         typecode:
     rootCause:
-        current_id: rootCause
-        id: rootCause
         id_zh_cn: 数据来源
         data_type: string
         description: Reason of this run of pipeline.
@@ -57,12 +47,10 @@ metadata:
         valid: ''
         typecode: B
     version:
-        current_id: formatVersion
-        id: version
         id_zh_cn: 格式版本
         data_type: string
         description: Version of product schema
         description_zh_cn: 产品格式版本
-        default: '0.7'
+        default: '0.8'
         valid: ''
         typecode: B

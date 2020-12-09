@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-def ndprint(data, trans=True, **kwds):
+def ndprint(data, trans=True, maxElem=50, **kwds):
     """ makes a formated string of an N-dimensional array for printing.
     The fastest changing index is the innerest list. E.g.
     A 2 by 3 matrix is [[1,2],[3,4],[5,6]] written as
@@ -69,6 +69,7 @@ def ndprint(data, trans=True, **kwds):
         # nonlocal s
         # nonlocal maxdim
         # nonlocal dim
+
         dbg = False
         delta = ''
         padding = ' ' * context.dim * 4
@@ -109,17 +110,22 @@ def ndprint(data, trans=True, **kwds):
                 tf = kwds['tablefmt2'] if 'tablefmt2' in kwds else 'simple'
                 hd = kwds['headers'] if 'headers' in kwds else []
                 # d2 is a properly transposed 2D array
+                dlimited = [x[:maxElem] for x in d2[:maxElem]]
                 # this is where TableDataset prints its tables
-                delta += tabulate(d2, headers=hd, tablefmt=tf)
+                delta += tabulate(dlimited, headers=hd, tablefmt=tf)
                 # an extra blank line  is added at the end of the 3rd dimension
                 delta += '\n\n'
             else:
+                nelem = 0
                 for x in d2:
                     delta += loop(x, trans=trans, **kwds)
                     # dimensions higher than 3 have these marks
                     t = '#=== dimension ' + \
                         str(context.maxdim - context.dim + 1) + '\n'
                     delta += t * (context.maxdim - context.dim + -2) + '\n'
+                    nelem += 1
+                    if nelem >= maxElem:
+                        break
             context.s += delta
             context.dim -= 1
         if dbg:
@@ -127,4 +133,5 @@ def ndprint(data, trans=True, **kwds):
                   (delta, context.dim))
             print(padding + 's ' + context.s + ' /s')
         return delta
-    return loop(data, trans, **kwds)
+    ret = loop(data, trans, **kwds)
+    return ret

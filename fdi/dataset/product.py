@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Product(BaseProduct,):
-    """ Product class (level ALL) schema 1.2 inheriting ['BaseProduct']. Automatically generated from fdi/dataset/resources/Product.yml on 2020-12-05 12:28:25.761177.
+    """ Product class (level ALL) schema 1.2 inheriting ['BaseProduct']. Automatically generated from fdi/dataset/resources/Product.yml on 2020-12-09 11:27:20.096922.
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """
@@ -26,7 +26,7 @@ class Product(BaseProduct,):
                  creator = 'UNKNOWN',
                  creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
-                 version = '0.7',
+                 version = '0.8',
                  startDate = FineTime(0),
                  endDate = FineTime(0),
                  instrument = 'UNKNOWN',
@@ -84,8 +84,6 @@ ProductInfo = {
                 'typecode': 'B',
                 },
         'type': {
-                'current_id': 'type',
-                'id': 'type',
                 'id_zh_cn': '产品类型',
                 'data_type': 'string',
                 'description': 'Product Type identification. Name of class or CARD.',
@@ -130,20 +128,16 @@ ProductInfo = {
                 'typecode': 'B',
                 },
         'version': {
-                'current_id': 'formatVersion',
-                'id': 'version',
                 'id_zh_cn': '格式版本',
                 'data_type': 'string',
                 'description': 'Version of product schema',
                 'description_zh_cn': '产品格式版本',
-                'default': '0.7',
+                'default': '0.8',
                 'valid': '',
                 'valid_zh_cn': '',
                 'typecode': 'B',
                 },
         'startDate': {
-                'current_id': 'startDate',
-                'id': 'startTime',
                 'id_zh_cn': '产品的标称起始时间',
                 'fits_keyword': 'DATE-OBS',
                 'data_type': 'finetime',
@@ -155,8 +149,6 @@ ProductInfo = {
                 'typecode': None,
                 },
         'endDate': {
-                'current_id': 'endDate',
-                'id': 'endTime',
                 'id_zh_cn': '产品的标称结束时间',
                 'fits_keyword': 'DATE-END',
                 'data_type': 'finetime',
@@ -168,8 +160,6 @@ ProductInfo = {
                 'typecode': None,
                 },
         'instrument': {
-                'current_id': 'instrument',
-                'id': 'instrument',
                 'id_zh_cn': '观测仪器名称',
                 'data_type': 'string',
                 'description': 'Instrument that generated data of this product',
@@ -180,8 +170,6 @@ ProductInfo = {
                 'typecode': 'B',
                 },
         'modelName': {
-                'current_id': 'modelName',
-                'id': 'modelName',
                 'id_zh_cn': '样机名称',
                 'fits_keyword': 'MODEL',
                 'data_type': 'string',
@@ -193,8 +181,6 @@ ProductInfo = {
                 'typecode': 'B',
                 },
         'mission': {
-                'current_id': 'mission',
-                'id': 'mission',
                 'id_zh_cn': '任务名称',
                 'fits_keyword': 'TELESCOP',
                 'data_type': 'string',

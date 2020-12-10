@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
+
+from ..utils.common import trbk
+from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
+
+import sys
 import logging
 import copy
 import importlib
 
-import pdb
-
-from .odict import ODict
-from ..utils.common import trbk
-from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
-import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
 else:
@@ -30,7 +29,7 @@ class Classes_meta(type):
         # https://stackoverflow.com/a/1800999
     """
     # modules and classes to import from them
-    modclass = {
+    module_class = {
         'fdi.dataset.deserialize': ['deserialize'],
         'fdi.dataset.listener': ['ListnerSet'],
         'fdi.dataset.serializable': ['Serializable'],
@@ -76,7 +75,7 @@ class Classes_meta(type):
         return cls._classes
 
     def importModuleClasses(cls, rerun=False, exclude=[], verbose=False):
-        """ The set of deserializable classes in modclass is maintained by hand.
+        """ The set of deserializable classes in module_class is maintained by hand.
 
         Do nothing if the classes mapping is already made so repeated calls will not cost  more time.
 
@@ -88,36 +87,37 @@ class Classes_meta(type):
             return
         cls._package.clear()
         SelectiveMetaFinder.exclude = exclude
-
+        msg='With %s excluded..' % (str(exclude))
         if verbose:
-            logger.info('With %s excluded..' % (str(exclude)))
+            logger.info(msg)
         else:
-            logger.debug('With %s excluded..' % (str(exclude)))
+            logger.debug(msg)
 
-        for modnm, froml in cls.modclass.items():
-            exed = [x for x in froml if x not in exclude]
+        for module_name, class_list in cls.module_class.items():
+            exed = [x for x in class_list if x not in exclude]
             if len(exed) == 0:
                 continue
+            msg='importing %s from %s' % (str(class_list), module_name)
             if verbose:
-                logger.info('importing %s from %s' % (str(froml), modnm))
+                logger.info(msg)
             else:
-                logger.debug('importing %s from %s' % (str(froml), modnm))
+                logger.debug(msg)
             try:
-                #m = importlib.__import__(modnm, globals(), locals(), froml)
-                m = importlib.import_module(modnm)
+                #m = importlib.__import__(module_name, globals(), locals(), class_list)
+                m = importlib.import_module(module_name)
             except SelectiveMetaFinder.ExcludedModule as e:
-                msg = 'Did not import %s. %s' % (str(froml), str(e))
+                msg = 'Did not import %s. %s' % (str(class_list), str(e))
                 if verbose:
                     logger.info(msg)
                 else:
                     logger.debug(msg)
                 #ety, enm, tb = sys.exc_info()
             except SyntaxError as e:
-                msg = 'Could not import %s. %s' % (str(froml), str(e))
+                msg = 'Could not import %s. %s' % (str(class_list), str(e))
                 logger.error(msg)
                 raise
             except ModuleNotFoundError as e:
-                msg = 'Could not import %s. %s' % (str(froml), str(e))
+                msg = 'Could not import %s. %s' % (str(class_list), str(e))
                 if verbose:
                     logger.info(msg)
                 else:

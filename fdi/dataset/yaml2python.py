@@ -30,8 +30,6 @@ logging.basicConfig(stream=sys.stdout,
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-installSelectiveMetaFinder()
-
 # make simple demo for fdi
 demo = 0
 # if demo is true, only output this subset.
@@ -72,8 +70,9 @@ def mkinfo(metas, dsets, indents):
 def sq(s):
     """ add quote mark to string, depending on if ' or " in the string.
     """
-    if "'" in s:
-        qm = '"""' if '"' in s else '"'
+        
+    if "'" in s or '\n' in s:
+        qm = '"""' if '"' in s or '\n' in s else '"'
     else:
         qm = "'"
     return '%s%s%s' % (qm, s, qm)
@@ -90,10 +89,11 @@ def getPython(val, indents, demo, onlyInclude):
         for k, v in val.items():
             sk = str(k)
             infostr += '%s%s: ' % (indents[0], sq(sk))
-            if issubclass(v.__class__, dict) and 'data_type' in v:
-                # v is a dict of parameters
+            if issubclass(v.__class__, dict) and 'valid' in v:
+                # v is a dict of parameter attributes
                 istr, d_code = params(v, indents[1:], demo, onlyInclude)
             else:
+                # headers such as name, parents, level ...
                 istr, d_code = getPython(v, indents[1:], demo, onlyInclude)
             infostr += istr
             code[sk] = d_code
@@ -455,19 +455,20 @@ if __name__ == '__main__':
         package_name = ao[len(cwd):].strip('/').replace('/', '.')
     logger.debug("Package name: " + package_name)
 
-    # include project classes for every product so that products made just
-    # now can be used as parents
-    from .classes import Classes
-    glb = Classes.mapping
-
     # Do not import modules that are to be generated. Thier source code
     # could be  invalid due to unseccessful previous runs
     importexclude = [x.lower() for x in descriptors.keys()]
     importinclude = {}
 
+    # activate a module loader that refuses to load excluded 
+    installSelectiveMetaFinder()
+
+    # include project classes for every product so that products made just
+    # now can be used as parents
+    from .classes import Classes
     pcl = getCls(project_class_path, rerun=True,
                  exclude=importexclude, verbose=verbose)
-    Classes.updateMapping(
+    glb = Classes.updateMapping(
         c=pcl, rerun=True, exclude=importexclude, verbose=verbose)
 
     for nm, daf in descriptors.items():
@@ -482,9 +483,9 @@ if __name__ == '__main__':
         print("Output python file is "+fout)
 
         # class doc
-        doc = '%s class (level %s) schema %s inheriting %s. Automatically generated from %s on %s.' % tuple(map(str, (
+        doc = '%s class (level %s) schema %s inheriting %s.\n\nAutomatically generated from %s on %s.\n\nDescription:\n%s' % tuple(map(str, (
             prodname, d['level'], d['schema'], d['parents'],
-            fin, datetime.now())))
+            fin, datetime.now(), d['description'])))
 
         # the generated source code must import these
         seen = []
@@ -508,7 +509,8 @@ if __name__ == '__main__':
 
                 # get parent attributes
                 mod = sys.modules[modnm]
-                all_attrs.update(mod.ProductInfo['metadata'])
+                if hasattr(mod, 'ProductInfo'):
+                    all_attrs.update(mod.ProductInfo['metadata'])
             # merge to get all attributes including parents' and self's.
             all_attrs.update(attrs)
         else:
@@ -561,7 +563,7 @@ if __name__ == '__main__':
         elif os.path.exists(os.path.join(tpath, 'template')):
             tname = os.path.join(tpath, 'template')
         else:
-            logger.error('Template file not found.')
+            logger.error('Template file not found in %s for %s.' % (tpath, prodname))
             sys.exit(-3)
         with open(tname, encoding='utf-8') as f:
             t = f.read()
@@ -580,7 +582,7 @@ if __name__ == '__main__':
         if cwd not in sys.path:
             sys.path.insert(0, cwd)
         newp = 'fresh ' + prodname + ' from ' + modulename + \
-            'of package ' + package_name + ' in ' + opath + '.'
+            '.py of package ' + package_name + ' in ' + opath + '.'
         try:
             _o = importlib.import_module('.' + modulename, package_name)
             glb[prodname] = getattr(_o, prodname)

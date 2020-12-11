@@ -3,7 +3,7 @@ description: Project level product
 parents:
   - BaseProduct
 level: ALL
-schema: '1.2'
+schema: '1.3'
 metadata:
     type:
         id_zh_cn: 产品类型

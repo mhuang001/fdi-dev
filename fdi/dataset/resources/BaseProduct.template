@@ -20,8 +20,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# @addMandatoryProductAttrs
-
+#@addMandatoryProductAttrs
 
 class $PRODUCTNAME($PARENTS AbstractComposite, Copyable, Serializable,  EventSender):
     """ A BaseProduct is a generic result that can be passed on between
@@ -305,7 +304,6 @@ def addMandatoryProductAttrs(cls):
 #        setattr(cls, name, property(
 #            g, s, d, 'Mandatory Product Attribute '+ name))
     return cls
-
 
 # Product = addMandatoryProductAttrs(Product)
 

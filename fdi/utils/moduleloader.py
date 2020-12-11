@@ -47,7 +47,7 @@ class MyMetaFinder(MetaPathFinder):
 
 
 class SelectiveMetaFinder(MetaPathFinder):
-    """ Raise ExcludedModule exception if loading modules whose names are in cls.exclude.
+    """ Raise ExcludedModule exception if loading modules whose names have any of cls.exclude.
     """
     class ExcludedModule(Exception):
         pass
@@ -62,11 +62,12 @@ class SelectiveMetaFinder(MetaPathFinder):
             *parents, name = fullname.split(".")
         else:
             name = fullname
-        #print('***', name, path, type(path))
-        if name in SelectiveMetaFinder.exclude:
-            # print('!!!!!!!!!!!!!!!!!!!!!!!')
-            raise(SelectiveMetaFinder.ExcludedModule(
-                name + ' is excluded from loading.'))
+        #print('***', name, path, type(path), SelectiveMetaFinder.exclude)
+        for x in SelectiveMetaFinder.exclude:
+            if x == name:
+                # print('!!!!!!!!!!!!!!!!!!!!!!!')
+                raise(SelectiveMetaFinder.ExcludedModule(
+                    name + ' is excluded from loading.'))
         for entry in path:
             if os.path.isdir(os.path.join(entry, name)):
                 # this module has child modules

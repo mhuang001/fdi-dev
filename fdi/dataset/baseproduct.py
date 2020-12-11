@@ -22,8 +22,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# @addMandatoryProductAttrs
-
+#@addMandatoryProductAttrs
 
 class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     """ A BaseProduct is a generic result that can be passed on between
@@ -49,7 +48,12 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
 
-    BaseProduct class (level ALL) schema 1.3 inheriting [None]. Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-09 11:27:20.089676.
+    BaseProduct class (level ALL) schema 1.3 inheriting [None].
+
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-11 16:31:24.513802.
+
+Description:
+FDI base class
 
     """
 
@@ -312,7 +316,6 @@ def addMandatoryProductAttrs(cls):
 #        setattr(cls, name, property(
 #            g, s, d, 'Mandatory Product Attribute '+ name))
     return cls
-
 
 # Product = addMandatoryProductAttrs(Product)
 

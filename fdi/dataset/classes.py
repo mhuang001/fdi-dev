@@ -74,7 +74,7 @@ class Classes_meta(type):
             cls._classes.update(c)
         return cls._classes
 
-    def importModuleClasses(cls, rerun=False, exclude=[], verbose=False):
+    def importModuleClasses(cls, rerun=False, exclude=None, verbose=False):
         """ The set of deserializable classes in module_class is maintained by hand.
 
         Do nothing if the classes mapping is already made so repeated calls will not cost  more time.
@@ -85,14 +85,17 @@ class Classes_meta(type):
 
         if len(cls._package) and not rerun:
             return
+        if exclude is None:
+            exclude = []
+
         cls._package.clear()
         SelectiveMetaFinder.exclude = exclude
-        msg='With %s excluded..' % (str(exclude))
+        msg='With %s excluded.. and SelectiveMetaFinder.exclude=%s' % (str(exclude), str(SelectiveMetaFinder.exclude))
         if verbose:
             logger.info(msg)
         else:
             logger.debug(msg)
-
+        
         for module_name, class_list in cls.module_class.items():
             exed = [x for x in class_list if x not in exclude]
             if len(exed) == 0:

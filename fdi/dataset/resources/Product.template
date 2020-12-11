@@ -22,7 +22,7 @@ $INITARGS
                  **kwds):
         """ Initializes instances with more metadata as attributes, set to default values.
 
-        Put description keyword argument here to allow 'BaseProduct("foo") and description='foo'
+        Put description keyword argument here to allow e.g. BaseProduct("foo") and description='foo'
         """
 
         if 'metasToBeInstalled' not in kwds:

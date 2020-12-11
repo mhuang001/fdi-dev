@@ -118,6 +118,8 @@ test8:
 	pytest $(OPT) $(T) tests/test_pal.py -k '_http'
 
 
+FORCE:
+
 PLOTDIR	= $(SDIR)/_static
 plots: plotall plot_dataset plot_pal plot_pns
 
@@ -129,8 +131,6 @@ qplot_%: FORCE
 	pyreverse -o png -p $@ fdi/$@
 	mv classes_$@.png packages_$@.png $(PLOTDIR)
 
-FORCE:
-
 
 plot_dataset:
 	pyreverse -o png -p dataset fdi/dataset
@@ -141,7 +141,7 @@ plot_pal:
 	mv classes_pal.png packages_pal.png $(PLOTDIR)
 
 plot_pns:
-	pyreverse -o png -p pns fdi/pns
+	pyreverse -o png -p pns fdi.pns
 	mv classes_pns.png packages_pns.png $(PLOTDIR)
 
 DOCDIR	= doc

@@ -5,6 +5,10 @@ Change Log
 BETA0
 =====
 
+1.0rc7 2020-12-13
+-----------------
+DataType refactoring. YAML schema v1.3. Product builtin parameter properrties.
+
 1.0rc7 2020-11-30
 -----------------
 ClassID changed to _STID: Serialization Type ID. toString() improvements.

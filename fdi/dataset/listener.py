@@ -250,7 +250,7 @@ class DatasetEvent(Serializable):
             raise TypeError(str(target) + ' is not of type ' +
                             str(source.__class__))
         # the type of the event.
-        self.typ_ = typ_
+        self.type = typ_
         # Gives more information about the change that caused the event.
         self.change = change
         # The underlying event that provoked this event,
@@ -267,7 +267,7 @@ class DatasetEvent(Serializable):
             return False
         return self.source == o.source and\
             self.target == o.target and \
-            self.typ_ == o.typ_ and \
+            self.type == o.type and \
             self.change == o.change and \
             self.cause == o.cause and \
             self.rootCause == o.rootCause
@@ -275,7 +275,7 @@ class DatasetEvent(Serializable):
     def __repr__(self):
         r = '{source=' + str(self.source) +\
             ', target=' + str(self.target) +\
-            ', typ_=' + str(self.typ_) +\
+            ', type=' + str(self.type) +\
             ', change=' + str(self.change) +\
             ', cause=' + str(self.cause) +\
             ', rootCause=' + str(self.rootCause) +\
@@ -289,7 +289,7 @@ class DatasetEvent(Serializable):
         """ Can be encoded with serializableEncoder """
         s = OrderedDict(source=self.source,
                         target=self.target,
-                        typ_=self.typ_,
+                        typ_=self.type,
                         change=self.change,
                         cause=self.cause,
                         rootCause=self.rootCause,

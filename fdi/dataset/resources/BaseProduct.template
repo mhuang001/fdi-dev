@@ -73,16 +73,9 @@ $INITARGS
             del kwds['metasToBeInstalled']
         # 'description' is consumed in annotatable super class so it is not in.
         description = metasToBeInstalled.pop('description')
-        # print('B')
-        # print(metasToBeInstalled)
-        # print(description)
 
         # must be the first line to initiate meta and get description
         super(BaseProduct, self).__init__(description=description, **kwds)
-
-        # print(self.pInfo['metadata'].keys())
-        # print(metasToBeInstalled)
-        # print('# ' + self.meta.toString(level=0))
 
         self.installMetas(mtbi=metasToBeInstalled)
         self.history = History()
@@ -96,12 +89,23 @@ $INITARGS
         for met, params in prodInfo['metadata'].items():
             # pdb.set_trace()  # description has been set by Anotatable.__init__
             if met != 'description':
-                #  type_ in mtbi (from __init__) changed to type
-                name = 'type_' if met == 'type' else met
+                #  typ_ in mtbi (from __init__) changed to type
+                name = 'typ_' if met == 'type' else met
                 # set to input if given or to default.
                 if name in mtbi:
                     value = mtbi[name]
                     self.__setattr__(met, value)
+
+
+    @property
+    def history(self):
+        """ xx must be a property for ``self.xx = yy`` to work in super class after xx is set as a property also by a subclass.
+        """
+        return self._history
+
+    @history.setter
+    def history(self, history):
+        self._history = history
 
     def accept(self, visitor):
         """ Hook for adding functionality to meta data object
@@ -124,7 +128,7 @@ $INITARGS
                 # if meta does not exist, inherit Attributable
                 # before any class that access mandatory attributes
                 # print('aa ' + selftr(self.getMeta()[name]))
-                return self.getMeta()[name].getValue()
+                return self._meta[name].getValue()
         return super(BaseProduct, self).__getattribute__(name)
 
     def __setattr__(self, name, value, withmeta=True):
@@ -134,7 +138,7 @@ $INITARGS
         """
         if self.hasMeta():
             met = self.pInfo['metadata']
-            if name in met.keys():
+            if name in met:
                 # a built-in attribute like 'description'. store in meta
                 m = self.getMeta()
                 if name in m:
@@ -228,6 +232,7 @@ $INITARGS
 
         return OrderedDict(ls)
 
+$PROPERTIES
 
 def value2parameter(name, value, met):
     """ returns a parameter with correct type and attributes according to its value and name.

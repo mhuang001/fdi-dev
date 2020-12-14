@@ -84,7 +84,7 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         """ Constructed with no argument results in a parameter of
         None value and 'UNKNOWN' description ''.
         With a signle argument: arg -> value, 'UNKNOWN' as default-> description.
-f        With two positional arguments: arg1-> value, arg2-> description.
+        With two positional arguments: arg1-> value, arg2-> description.
         Type is set according to value's.
         Unsuported parameter types will get a NotImplementedError.
         """
@@ -138,32 +138,32 @@ f        With two positional arguments: arg1-> value, arg2-> description.
                              change=ch, cause=ca, rootCause=ro)
             self.fire(e)
 
-    def f(self, name, value):
-
-        if eventType is not None:
-            if eventType not in EventType:
-                # return eventType
-                raise ValueError(str(eventType))
-            elif eventType != EventType.UNKOWN_ATTRIBUTE_CHANGED:
-                # super() has found the type
-                return eventType
-        # eventType is None or is UNKOWN_ATTRIBUTE_CHANGED
-            if name == 'value':
-                ty = EventType.VALUE_CHANGED
-                ch = (value)
-            elif name == 'description':
-                ty = EventType.DESCRIPTION_CHANGED
-            else:
-                # raise AttributeError(
-                #    'Parameter "'+self.description + '" has no attribute named '+name)
-                pass
-            if ty != EventType.UNKOWN_ATTRIBUTE_CHANGED:
-                e = DatasetEvent(source=so, target=ta, typ_=ty,
-                                 change=ch, cause=ca, rootCause=ro)
-                self.fire(e)
-            return ty
-        return eventType
-
+#    def ff(self, name, value):
+#
+#        if eventType is not None:
+#            if eventType not in EventType:
+#                # return eventType
+#                raise ValueError(str(eventType))
+#            elif eventType != EventType.UNKOWN_ATTRIBUTE_CHANGED:
+#                # super() has found the type
+#                return eventType
+#        # eventType is None or is UNKOWN_ATTRIBUTE_CHANGED
+#            if name == 'value':
+#                ty = EventType.VALUE_CHANGED
+#                ch = (value)
+#            elif name == 'description':
+#                ty = EventType.DESCRIPTION_CHANGED
+#            else:
+#                # raise AttributeError(
+#                #    'Parameter "'+self.description + '" has no attribute named '+name)
+#                pass
+#            if ty != EventType.UNKOWN_ATTRIBUTE_CHANGED:
+#                e = DatasetEvent(source=so, target=ta, typ_=ty,
+#                                 change=ch, cause=ca, rootCause=ro)
+#                self.fire(e)
+#            return ty
+#        return eventType
+#
     def equals(self, obj):
         """ can compare value """
         if type(obj).__name__ in DataTypes.values():
@@ -740,14 +740,3 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         return OrderedDict(_sets=self._sets,
                            listeners=self.listeners,
                            _STID=self._STID)
-    if 0:
-        s, l = '', ''
-        npk, npv = 10, 19
-        # pad to multiples of npk
-        # pk = (' ' * (npk-len(pk)) if npk > len(k) else '') + pk
-        # vs = str(v.value) if level else
-        vs = v.toString(level=level, **kwds)
-        pv = pk + '= ' + vs + ',  '
-        # pad to multiples of npv
-        # pv += ' ' * (npv-len(pv) % npv)
-        s = s + pv

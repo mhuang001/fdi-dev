@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class Product(BaseProduct,):
-    """ Product class (level ALL) schema 1.2 inheriting ['BaseProduct'].
+class Product(BaseProduct):
+    """ Product class (level ALL) schema 1.3 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/Product.yml on 2020-12-11 16:31:24.553219.
+Automatically generated from fdi/dataset/resources/Product.yml on 2020-12-14 12:28:14.697120.
 
 Description:
 Project level product
@@ -27,7 +27,7 @@ Project level product
 
     def __init__(self,
                  description = 'UNKNOWN',
-                 type_ = 'Product',
+                 typ_ = 'Product',
                  creator = 'UNKNOWN',
                  creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
@@ -66,6 +66,56 @@ Project level product
         super(Product , self).installMetas(
             mtbi=metasToBeInstalled, prodInfo=ProductInfo)
 
+    @property
+    def type(self): pass
+
+    @type.setter
+    def type(self, p): pass
+
+
+    @property
+    def startDate(self): pass
+
+    @startDate.setter
+    def startDate(self, p): pass
+
+
+    @property
+    def endDate(self): pass
+
+    @endDate.setter
+    def endDate(self, p): pass
+
+
+    @property
+    def instrument(self): pass
+
+    @instrument.setter
+    def instrument(self, p): pass
+
+
+    @property
+    def modelName(self): pass
+
+    @modelName.setter
+    def modelName(self, p): pass
+
+
+    @property
+    def mission(self): pass
+
+    @mission.setter
+    def mission(self, p): pass
+
+
+    @property
+    def version(self): pass
+
+    @version.setter
+    def version(self, p): pass
+
+
+
 
 
 ProductInfo = {
@@ -75,7 +125,7 @@ ProductInfo = {
         'BaseProduct',
         ],
     'level': 'ALL',
-    'schema': '1.2',
+    'schema': '1.3',
     'metadata': {
         'description': {
                 'id_zh_cn': '描述',

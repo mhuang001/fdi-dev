@@ -1830,22 +1830,23 @@ def test_BaseProduct():
     checkgeneral(x)
 
 
-def test_Product():
+def check_Product(AProd):
     """ """
     # creation
-    x = Product(description="This is my product example",
-                instrument="MyFavourite", modelName="Flight")
+    x = AProd(description="This is my product example",
+              instrument="MyFavourite", modelName="Flight")
     # print(x.__dict__)
     # print(x.meta.toString())
     # attribute added by Product
-    assert x.meta['type'].value == x.__class__.__qualname__
+    if AProd.__name__ == x.pInfo['name']:
+        assert x.meta['type'].value == x.__class__.__qualname__
     assert x.meta['description'].value == "This is my product example"
     assert x.meta['instrument'].value == "MyFavourite"
     assert x.modelName == "Flight"
     # positional arg
-    x = Product("product example", instrument='spam')
+    x = AProd("product example", instrument='spam')
     # not stored in class variable projectInfo
-    x2 = Product("product example2", instrument='egg')
+    x2 = AProd("product example2", instrument='egg')
     assert x.description == "product example"
     assert x.instrument == 'spam'
     # Test metadata
@@ -1882,6 +1883,32 @@ def test_Product():
 
     checkjson(x)
     checkgeneral(x)
+
+
+def test_Product():
+    check_Product(Product)
+
+
+def test_SubProduct():
+    # sub-classing
+    class SP(BaseProduct):
+        @property
+        def version(self): pass
+
+    from fdi.pal.context import MapContext
+
+    class SSP(SP, MapContext):
+        pass
+    x = SSP()
+    x.instrument = 'ff'
+    assert x.instrument == 'ff'
+    x.rr = 'r'
+    assert x.rr == 'r'
+
+    # register it in Classes.mapping so deserializer knows how to instanciate.
+    #Classes.mapping.update({'SP': SP})
+
+    # check_Product(SP)
 
 
 def est_yaml2python():

@@ -48,6 +48,8 @@ $INITARGS
         super($PRODUCTNAME , self).installMetas(
             mtbi=metasToBeInstalled, prodInfo=ProductInfo)
 
+$PROPERTIES
+
 
 
 $PRODUCTINFO

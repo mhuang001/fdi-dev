@@ -35,6 +35,8 @@ demo = 0
 # if demo is true, only output this subset.
 onlyInclude = ['default', 'description',
                'data_type', 'unit', 'valid', 'fits_keyword']
+# These property names are used by  fdi
+reserved = ['history', 'meta', 'refs']
 # only these attributes in meta
 attrs = ['startDate', 'endDate', 'instrument', 'modelName', 'mission', 'type']
 indent = '    '
@@ -70,7 +72,7 @@ def mkinfo(metas, dsets, indents):
 def sq(s):
     """ add quote mark to string, depending on if ' or " in the string.
     """
-        
+
     if "'" in s or '\n' in s:
         qm = '"""' if '"' in s or '\n' in s else '"'
     else:
@@ -272,16 +274,16 @@ def readyaml(ypath, ver=None):
                   (fin, ''.join([k + '=' + str(v) + '\n'
                                  for k, v in d.items() if k not in ['metadata', 'datasets']])))
 
-            print('Find attributes:\n%s' %
-                  ''.join(('%20s' % (k+'=' + str(v['default'])
-                                     if 'default' in v else 'url' + ', ')
-                           for k, v in attrs.items()
-                           )))
+            logger.debug('Find attributes:\n%s' %
+                         ''.join(('%20s' % (k+'=' + str(v['default'])
+                                            if 'default' in v else 'url' + ', ')
+                                  for k, v in attrs.items()
+                                  )))
             if float(d['schema']) > 1.1:
                 itr = ('%20s' % (k+'=' + str([c for c in (v['TABLE'] if 'TABLE'
                                                           in v else [])]))
                        for k, v in datasets.items())
-                print('Find datasets:\n%s' % ', '.join(itr))
+                logger.debug('Find datasets:\n%s' % ', '.join(itr))
             else:
                 # v1.1 1.0 0.7
                 itr = ('%20s' %
@@ -358,16 +360,16 @@ def yamlupgrade(descriptors, fins, ypath, version, verbose):
 
 def removeParent(a, b):
     if a == b:
-        print('%s and %s are the same class' % (b, a))
+        logger.debug('%s and %s are the same class' % (b, a))
         return None
     tmp = "remove parent %s because it is another parent %s's"
     if issubclass(glb[a], glb[b]):
         # remove b
-        print(tmp % (b, a))
+        logger.debug(tmp % (b, a))
         return b
     elif issubclass(glb[b], glb[a]):
         # remove a
-        print(tmp % (a, b))
+        logger.debug(tmp % (a, b))
         return a
     else:
         return None
@@ -460,7 +462,7 @@ if __name__ == '__main__':
     importexclude = [x.lower() for x in descriptors.keys()]
     importinclude = {}
 
-    # activate a module loader that refuses to load excluded 
+    # activate a module loader that refuses to load excluded
     installSelectiveMetaFinder()
 
     # include project classes for every product so that products made just
@@ -536,19 +538,26 @@ if __name__ == '__main__':
         # keyword argument for __init__
         ls = []
         for x in all_attrs:
-            arg = x + '_' if x == 'type' else x
+            arg = 'typ_' if x == 'type' else x
             val = default_code['metadata'][x]
-            ls.append(' '*17 + '%s = %s,\n' % (arg, val))
-
-        ikwds = ''.join(ls).strip('\n')
+            ls.append(' '*17 + '%s = %s,' % (arg, val))
+        ikwds = '\n'.join(ls)
+        # class properties
+        pr = []
+        for x in attrs:
+            if x in reserved:
+                logger.warning('%s is a reserved name.' % x)
+            arg = x        # x + '_' if x == 'type' else x
+            pr.append('    @property\n    def %s(self): pass\n\n' % (x) +
+                      '    @%s.setter\n    def %s(self, p): pass\n\n' % (x, x))
+        properties = '\n'.join(pr)
 
         # make substitution dictionary for Template
         subs = {}
         subs['WARNING'] = '# Automatically generated from %s. Do not edit.' % fin
         subs['PRODUCTNAME'] = prodname
         print('product name: %s' % subs['PRODUCTNAME'])
-        subs['PARENTS'] = ''.join(
-            [c+',' for c in pn if c]) if pn and len(pn) else ''
+        subs['PARENTS'] = ', '.join(c for c in pn if c)
         print('parent class: %s' % subs['PARENTS'])
         subs['IMPORTS'] = imports
         print('import class: %s' % seen)
@@ -556,6 +565,7 @@ if __name__ == '__main__':
         subs['PRODUCTINFO'] = infostr
         subs['INITARGS'] = ikwds
         print('productInit=\n%s\n' % (subs['INITARGS']))
+        subs['PROPERTIES'] = properties
 
         # subtitute the template
         if os.path.exists(os.path.join(tpath, prodname + '.template')):
@@ -563,7 +573,8 @@ if __name__ == '__main__':
         elif os.path.exists(os.path.join(tpath, 'template')):
             tname = os.path.join(tpath, 'template')
         else:
-            logger.error('Template file not found in %s for %s.' % (tpath, prodname))
+            logger.error('Template file not found in %s for %s.' %
+                         (tpath, prodname))
             sys.exit(-3)
         with open(tname, encoding='utf-8') as f:
             t = f.read()

@@ -73,6 +73,14 @@ fdi.utils.options module
    :undoc-members:
    :show-inheritance:
 
+fdi.utils.run\_proc module
+--------------------------
+
+.. automodule:: fdi.utils.run_proc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.totalsize module
 --------------------------
 

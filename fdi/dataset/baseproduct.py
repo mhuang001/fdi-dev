@@ -50,7 +50,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
 
     BaseProduct class (level ALL) schema 1.3 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-11 16:31:24.513802.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-14 12:28:14.677337.
 
 Description:
 FDI base class
@@ -60,7 +60,7 @@ FDI base class
 
     def __init__(self,
                  description = 'UNKNOWN',
-                 type_ = 'BaseProduct',
+                 typ_ = 'BaseProduct',
                  creator = 'UNKNOWN',
                  creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
@@ -85,16 +85,9 @@ FDI base class
             del kwds['metasToBeInstalled']
         # 'description' is consumed in annotatable super class so it is not in.
         description = metasToBeInstalled.pop('description')
-        # print('B')
-        # print(metasToBeInstalled)
-        # print(description)
 
         # must be the first line to initiate meta and get description
         super(BaseProduct, self).__init__(description=description, **kwds)
-
-        # print(self.pInfo['metadata'].keys())
-        # print(metasToBeInstalled)
-        # print('# ' + self.meta.toString(level=0))
 
         self.installMetas(mtbi=metasToBeInstalled)
         self.history = History()
@@ -108,12 +101,23 @@ FDI base class
         for met, params in prodInfo['metadata'].items():
             # pdb.set_trace()  # description has been set by Anotatable.__init__
             if met != 'description':
-                #  type_ in mtbi (from __init__) changed to type
-                name = 'type_' if met == 'type' else met
+                #  typ_ in mtbi (from __init__) changed to type
+                name = 'typ_' if met == 'type' else met
                 # set to input if given or to default.
                 if name in mtbi:
                     value = mtbi[name]
                     self.__setattr__(met, value)
+
+
+    @property
+    def history(self):
+        """ xx must be a property for ``self.xx = yy`` to work in super class after xx is set as a property also by a subclass.
+        """
+        return self._history
+
+    @history.setter
+    def history(self, history):
+        self._history = history
 
     def accept(self, visitor):
         """ Hook for adding functionality to meta data object
@@ -136,7 +140,7 @@ FDI base class
                 # if meta does not exist, inherit Attributable
                 # before any class that access mandatory attributes
                 # print('aa ' + selftr(self.getMeta()[name]))
-                return self.getMeta()[name].getValue()
+                return self._meta[name].getValue()
         return super(BaseProduct, self).__getattribute__(name)
 
     def __setattr__(self, name, value, withmeta=True):
@@ -146,7 +150,7 @@ FDI base class
         """
         if self.hasMeta():
             met = self.pInfo['metadata']
-            if name in met.keys():
+            if name in met:
                 # a built-in attribute like 'description'. store in meta
                 m = self.getMeta()
                 if name in m:
@@ -239,6 +243,48 @@ FDI base class
             ("_STID", self._STID)]
 
         return OrderedDict(ls)
+
+    @property
+    def description(self): pass
+
+    @description.setter
+    def description(self, p): pass
+
+
+    @property
+    def type(self): pass
+
+    @type.setter
+    def type(self, p): pass
+
+
+    @property
+    def creator(self): pass
+
+    @creator.setter
+    def creator(self, p): pass
+
+
+    @property
+    def creationDate(self): pass
+
+    @creationDate.setter
+    def creationDate(self, p): pass
+
+
+    @property
+    def rootCause(self): pass
+
+    @rootCause.setter
+    def rootCause(self, p): pass
+
+
+    @property
+    def version(self): pass
+
+    @version.setter
+    def version(self, p): pass
+
 
 
 def value2parameter(name, value, met):

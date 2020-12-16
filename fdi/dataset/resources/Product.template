@@ -38,9 +38,8 @@ $INITARGS
 
         # list of local variables.
         metasToBeInstalled = copy.copy(locals())
-        metasToBeInstalled.pop('self')
-        metasToBeInstalled.pop('__class__')
-        metasToBeInstalled.pop('kwds')
+        for x in ('self', '__class__', 'kwds'):
+            metasToBeInstalled.pop(x)
 
         global ProductInfo
         self.pInfo = ProductInfo

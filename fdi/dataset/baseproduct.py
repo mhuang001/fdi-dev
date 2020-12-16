@@ -50,7 +50,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
 
     BaseProduct class (level ALL) schema 1.3 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-16 18:54:56.806326.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-17 01:29:13.678353.
 
 Description:
 FDI base class
@@ -81,9 +81,8 @@ FDI base class
 
         # list of local variables.
         metasToBeInstalled = copy.copy(locals())
-        metasToBeInstalled.pop('self')
-        metasToBeInstalled.pop('__class__')
-        metasToBeInstalled.pop('kwds')
+        for x in ('self', '__class__', 'kwds'):
+            metasToBeInstalled.pop(x)
 
         global ProductInfo
         self.pInfo = ProductInfo
@@ -319,7 +318,7 @@ def value2parameter(name, value, met):
                             valid=gs,
                             typecode=cs
                             )
-    elif DataTypes[im['data_type']] in ['int', 'float', 'vector', 'quaternion']:
+    elif DataTypes[im['data_type']] in ['int', 'float', 'Vector', 'Quaternion']:
         us = im['unit'] if 'unit' in im else ''
         cs = im['typecode'] if 'typecode' in im else None
         ret = NumericParameter(value=value,

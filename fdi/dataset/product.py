@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class Product(BaseProduct):
     """ Product class (level ALL) schema 1.3 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/Product.yml on 2020-12-16 18:54:56.841149.
+Automatically generated from fdi/dataset/resources/Product.yml on 2020-12-17 01:29:13.700199.
 
 Description:
 Project level product
@@ -56,9 +56,8 @@ Project level product
 
         # list of local variables.
         metasToBeInstalled = copy.copy(locals())
-        metasToBeInstalled.pop('self')
-        metasToBeInstalled.pop('__class__')
-        metasToBeInstalled.pop('kwds')
+        for x in ('self', '__class__', 'kwds'):
+            metasToBeInstalled.pop(x)
 
         global ProductInfo
         self.pInfo = ProductInfo

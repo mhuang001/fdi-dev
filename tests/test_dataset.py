@@ -1839,7 +1839,7 @@ def check_Product(AProd):
     # print(x.meta.toString())
     # attribute added by Product
     if AProd.__name__ == x.pInfo['name']:
-        assert x.meta['type'].value == x.__class__.__qualname__
+        assert x.meta['type'].value == x.__class__.__name__
     assert x.meta['description'].value == "This is my product example"
     assert x.meta['instrument'].value == "MyFavourite"
     assert x.modelName == "Flight"
@@ -1891,14 +1891,49 @@ def test_Product():
 
 def test_SubProduct():
     # sub-classing
-    class SP(BaseProduct):
-        def __init__(self, **kwds):
-            super().__init__(**kwds)
+    # 'version' of subclass is int, not string
+    from fdi.dataset.product import ProductInfo as PPI
+
+    class SP(Product):
+        def __init__(self,
+                     description='UNKNOWN',
+                     typ_='SP',
+                     creator='UNKNOWN',
+                     version=9,
+                     creationDate=FineTime(0),
+                     rootCause='UNKNOWN',
+                     startDate=FineTime(0),
+                     endDate=FineTime(0),
+                     instrument='UNKNOWN',
+                     modelName='UNKNOWN',
+                     mission='_AGS',
+                     **kwds):
+            metasToBeInstalled = copy.copy(locals())
+            for x in ('self', '__class__', 'kwds'):
+                metasToBeInstalled.pop(x)
+            sp = {}
+            sp.update(PPI)
+            sp['name'] = self.__class__.__name__
+            sp['metadata']['version']['data_type'] = 'integer'
+            sp['metadata']['version']['default'] = 9
+            sp['metadata']['type']['default'] = sp['name']
+            self.pInfo = sp
+            super().__init__(metasToBeInstalled=metasToBeInstalled, **kwds)
+            super().installMetas(mtbi=metasToBeInstalled, prodInfo=self.pInfo)
 
         @property
         def version(self): pass
 
+        @version.setter
+        def version(self, p): pass
+
     y = SP()
+
+    # register it in Classes.mapping so deserializer knows how to instanciate.
+    Classes.mapping.update({'SP': SP})
+
+    check_Product(SP)
+
     from fdi.pal.context import MapContext
 
     class SSP(SP, MapContext):
@@ -1910,11 +1945,6 @@ def test_SubProduct():
     assert x.instrument == 'ff'
     x.rr = 'r'
     assert x.rr == 'r'
-
-    # register it in Classes.mapping so deserializer knows how to instanciate.
-    #Classes.mapping.update({'SP': SP})
-
-    # check_Product(SP)
 
 
 def est_yaml2python():

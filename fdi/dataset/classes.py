@@ -62,12 +62,22 @@ class Classes_meta(type):
         """
         super().__init__(*args, **kwds)
 
-    def updateMapping(cls, c=None, rerun=False, exclude=[], ignore_missing=False, verbose=False):
+    def updateMapping(cls, c=None, rerun=False, exclude=[], ignore_missing=False, verbose=False, ignore_error=False):
         """ Updates classes mapping.
         Make the package mapping if it has not been made.
         """
         #
-        cls.importModuleClasses(rerun=rerun, exclude=exclude, verbose=verbose)
+        try:
+            cls.importModuleClasses(
+                rerun=rerun, exclude=exclude, verbose=verbose)
+        except (ModuleNotFoundError, SyntaxError) as e:
+            if ignore_error:
+                logger.warning('!'*80 +
+                               '\nUnable to import "%s" module. Ignored\n' % clp +
+                               '!'*80+'\n'+str(e)+'\n'+'!'*80)
+            else:
+                raise
+
         # cls._classes.clear()
         cls._classes.update(copy.copy(cls._package))
         if c:
@@ -90,17 +100,18 @@ class Classes_meta(type):
 
         cls._package.clear()
         SelectiveMetaFinder.exclude = exclude
-        msg='With %s excluded.. and SelectiveMetaFinder.exclude=%s' % (str(exclude), str(SelectiveMetaFinder.exclude))
+        msg = 'With %s excluded.. and SelectiveMetaFinder.exclude=%s' % (
+            str(exclude), str(SelectiveMetaFinder.exclude))
         if verbose:
             logger.info(msg)
         else:
             logger.debug(msg)
-        
+
         for module_name, class_list in cls.module_class.items():
             exed = [x for x in class_list if x not in exclude]
             if len(exed) == 0:
                 continue
-            msg='importing %s from %s' % (str(class_list), module_name)
+            msg = 'importing %s from %s' % (str(class_list), module_name)
             if verbose:
                 logger.info(msg)
             else:

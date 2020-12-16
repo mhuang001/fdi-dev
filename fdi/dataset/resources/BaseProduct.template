@@ -58,7 +58,16 @@ $INITARGS
         global ProductInfo
         self.pInfo = ProductInfo
 
-        if 'metasToBeInstalled' not in kwds:
+        # import inspect
+
+        # frame = inspect.currentframe()
+        # try:
+        #     fi = inspect.getargvalues(frame)  # , context=1)
+        #     print(fi.keywords)
+        # finally:
+        #     del frame
+        direct_call = 'metasToBeInstalled' not in kwds
+        if direct_call:
             # this class is being called directly
 
             # list of local variables.
@@ -77,7 +86,9 @@ $INITARGS
         # must be the first line to initiate meta and get description
         super(BaseProduct, self).__init__(description=description, **kwds)
 
-        self.installMetas(mtbi=metasToBeInstalled)
+        if direct_call:
+            metasToBeInstalled.pop('direct_call')
+            self.installMetas(mtbi=metasToBeInstalled)
         self.history = History()
 
     def installMetas(self, mtbi, prodInfo=None):

@@ -2,6 +2,7 @@
 
 from .serializable import Serializable
 from .eq import DeepEqual
+from .classes import Classes
 
 from collections import OrderedDict
 import builtins

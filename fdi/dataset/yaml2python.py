@@ -200,23 +200,13 @@ def getCls(clp, rerun=True, exclude=None, verbose=False):
     if '/' not in clp and '\\' not in clp and not clp.endswith('.py'):
         print('Importing project classes from module '+clp)
         # classes path not given on command line
-        try:
-            pc = importlib.import_module(clp)
-            pc.PC.updateMapping(rerun=rerun, exclude=exclude, verbose=verbose)
-            ret = pc.PC.mapping
-            print(
-                'Imported project classes from svom.products.projectclasses module.')
-        except (ModuleNotFoundError, SyntaxError) as e:
-            print('!'*80 +
-                  '\nUnable to import "%s" module.\n' % clp +
-                  '!'*80+'\n'+str(e)+'\n'+'!'*80)
-            ls = []
-            # ls = [(k, v) for k, v in locals().items()
-            #      if k not in ['clp', 'e', 'exclude', 'rerun']]
-            ret = ls
-            # print(e)
-            # print(trbk(e))
-            # raise
+        pc = importlib.import_module(clp)
+        pc.PC.updateMapping(rerun=rerun, exclude=exclude,
+                            verbose=verbose, ignore_error=True)
+        ret = pc.PC.mapping
+        print(
+            'Imported project classes from svom.products.projectclasses module.')
+
     else:
         clpp, clpf = os.path.split(clp)
         sys.path.insert(0, os.path.abspath(clpp))

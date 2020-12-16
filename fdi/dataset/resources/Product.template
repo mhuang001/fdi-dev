@@ -25,7 +25,10 @@ $INITARGS
         Put description keyword argument here to allow e.g. BaseProduct("foo") and description='foo'
         """
 
-        if 'metasToBeInstalled' not in kwds:
+        global ProductInfo
+        self.pInfo = ProductInfo
+        direct_call = 'metasToBeInstalled' not in kwds
+        if direct_call:
             # this class is being called directly
 
             # list of local variables.
@@ -43,10 +46,10 @@ $INITARGS
         super($PRODUCTNAME , self).__init__(
             metasToBeInstalled=metasToBeInstalled, **kwds)
 
-        global ProductInfo
-        self.pInfo = ProductInfo
-        super($PRODUCTNAME , self).installMetas(
-            mtbi=metasToBeInstalled, prodInfo=ProductInfo)
+        if direct_call:
+            metasToBeInstalled.pop('direct_call')
+            super($PRODUCTNAME , self).installMetas(
+                mtbi=metasToBeInstalled, prodInfo=ProductInfo)
 
 $PROPERTIES
 

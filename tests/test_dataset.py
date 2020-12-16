@@ -1833,6 +1833,9 @@ def test_BaseProduct():
 def check_Product(AProd):
     """ """
     # creation
+    import pdb
+    pdb.set_trace()
+
     x = AProd(description="This is my product example",
               instrument="MyFavourite", modelName="Flight")
     # print(x.__dict__)
@@ -1892,13 +1895,19 @@ def test_Product():
 def test_SubProduct():
     # sub-classing
     class SP(BaseProduct):
+        def __init__(self, **kwds):
+            super().__init__(**kwds)
+
         @property
         def version(self): pass
 
+    y = SP()
     from fdi.pal.context import MapContext
 
     class SSP(SP, MapContext):
-        pass
+        def __init__(self, **kwds):
+            super().__init__(**kwds)
+
     x = SSP()
     x.instrument = 'ff'
     assert x.instrument == 'ff'

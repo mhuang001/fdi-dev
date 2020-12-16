@@ -1833,9 +1833,6 @@ def test_BaseProduct():
 def check_Product(AProd):
     """ """
     # creation
-    import pdb
-    pdb.set_trace()
-
     x = AProd(description="This is my product example",
               instrument="MyFavourite", modelName="Flight")
     # print(x.__dict__)

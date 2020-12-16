@@ -13,7 +13,7 @@ from .eq import deepcmp
 from .copyable import Copyable
 from .history import History
 
-import pdb
+import copy
 
 import logging
 # create logger
@@ -50,45 +50,39 @@ class $PRODUCTNAME($PARENTS AbstractComposite, Copyable, Serializable,  EventSen
 
     """
 
-
     def __init__(self,
 $INITARGS
                  **kwds):
 
-        global ProductInfo
-        self.pInfo = ProductInfo
-
-        # import inspect
-
-        # frame = inspect.currentframe()
-        # try:
-        #     fi = inspect.getargvalues(frame)  # , context=1)
-        #     print(fi.keywords)
-        # finally:
-        #     del frame
-        direct_call = 'metasToBeInstalled' not in kwds
-        if direct_call:
-            # this class is being called directly
-
-            # list of local variables.
-            lvar = locals()
-            lvar.pop('self')
-            lvar.pop('__class__')
-            lvar.pop('kwds')
-            metasToBeInstalled = lvar
-        else:
+        if 'metasToBeInstalled' in kwds:
             # This class is being called probably from super() in a subclass
             metasToBeInstalled = kwds['metasToBeInstalled']
             del kwds['metasToBeInstalled']
+            # 'description' is consumed in annotatable super class so it is not in.
+            description = metasToBeInstalled.pop('description')
+            # must be the first line to initiate meta and get description
+            super().__init__(description=description, **kwds)
+
+            self.history = History()
+            return
+        # this class is being called directly
+
+        # list of local variables.
+        metasToBeInstalled = copy.copy(locals())
+        metasToBeInstalled.pop('self')
+        metasToBeInstalled.pop('__class__')
+        metasToBeInstalled.pop('kwds')
+
+        global ProductInfo
+        self.pInfo = ProductInfo
+
         # 'description' is consumed in annotatable super class so it is not in.
         description = metasToBeInstalled.pop('description')
-
         # must be the first line to initiate meta and get description
-        super(BaseProduct, self).__init__(description=description, **kwds)
+        super().__init__(description=description, **kwds)
 
-        if direct_call:
-            metasToBeInstalled.pop('direct_call')
-            self.installMetas(mtbi=metasToBeInstalled)
+        self.installMetas(mtbi=metasToBeInstalled)
+
         self.history = History()
 
     def installMetas(self, mtbi, prodInfo=None):
@@ -98,7 +92,7 @@ $INITARGS
             prodInfo = self.pInfo
 
         for met, params in prodInfo['metadata'].items():
-            # pdb.set_trace()  # description has been set by Anotatable.__init__
+            # description has been set by Anotatable.__init__
             if met != 'description':
                 #  typ_ in mtbi (from __init__) changed to type
                 name = 'typ_' if met == 'type' else met
@@ -128,7 +122,7 @@ $INITARGS
         belonging to this product. """
         return list(self._sets.values())[0] if len(self._sets) > 0 else None
 
-    def __getattribute__(self, name, withmeta=True):
+    def __getattribute__(self, name):
         """ Returns the named metadata parameter. Reads meta data table when Mandatory Attributes are
         read, and returns the values only.
         """
@@ -142,7 +136,7 @@ $INITARGS
                 return self._meta[name].getValue()
         return super(BaseProduct, self).__getattribute__(name)
 
-    def __setattr__(self, name, value, withmeta=True):
+    def __setattr__(self, name, value):
         """ Stores value to attribute with name given.
         If name is in the built-in list, store the value in a Parameter in metadata container. Updates meta data table. Updates value when built-in Attributes already has its Parameter in metadata.
         value: Must be Parameter/NumericParameter if this is normal metadata, depending on if it is Number. Value if mandatory / built-in attribute.
@@ -253,28 +247,18 @@ def value2parameter(name, value, met):
     
     im = met[name]  # {'dats_type':..., 'value':....}
     # in ['integer','hex','float','vector','quaternion']
-    if 'unit' in im and im['unit'] is not None:
-        ret = NumericParameter(value=value,
-                                   description=im['description'],
-                                   typ_=im['data_type'],
-                                   unit=im['unit'],
-                                   default=im['default'],
-                                   valid=im['valid'],
-                                   typecode=im['typecode'],
- 						   )
-    elif im['data_type'] == 'string':
-        fs = im['default'] if 'default' in im else None
-        gs = im['valid'] if 'valid' in im else None
+
+    fs = im['default'] if 'default' in im else None
+    gs = im['valid'] if 'valid' in im else None
+    if im['data_type'] == 'string':
         cs = im['typecode'] if 'typecode' in im else 'B'
         ret = StringParameter(value=value,
-                            description=im['description'],
-                            default=fs,
-                            valid=gs,
-                            typecode=cs
-                            )
+                              description=im['description'],
+                              default=fs,
+                              valid=gs,
+                              typecode=cs
+                              )
     elif im['data_type'] == 'finetime':
-        fs = im['default'] if 'default' in im else None
-        gs = im['valid'] if 'valid' in im else None
         cs = im['typecode'] if 'typecode' in im else None
         ret = DateParameter(value=value,
                             description=im['description'],
@@ -282,15 +266,24 @@ def value2parameter(name, value, met):
                             valid=gs,
                             typecode=cs
                             )
+    elif DataTypes[im['data_type']] in ['int', 'float', 'vector', 'quaternion']:
+        us = im['unit'] if 'unit' in im else ''
+        cs = im['typecode'] if 'typecode' in im else None
+        ret = NumericParameter(value=value,
+                               description=im['description'],
+                               typ_=im['data_type'],
+                               unit=us,
+                               default=fs,
+                               valid=gs,
+                               typecode=cs,
+                               )
     else:
-        fs = im['default'] if 'default' in im else None
-        gs = im['valid'] if 'valid' in im else None
         ret = Parameter(value=value,
-                            description=im['description'],
-                            typ_=im['data_type'],
-                            default=fs,
-                            valid=gs,
-                            )
+                        description=im['description'],
+                        typ_=im['data_type'],
+                        default=fs,
+                        valid=gs,
+                        )
     return ret
  
 def addMandatoryProductAttrs(cls):

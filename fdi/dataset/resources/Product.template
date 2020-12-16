@@ -4,6 +4,7 @@ $WARNING
 
 $IMPORTS
 
+import copy
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -24,32 +25,36 @@ $INITARGS
 
         Put description keyword argument here to allow e.g. BaseProduct("foo") and description='foo'
         """
-
-        global ProductInfo
-        self.pInfo = ProductInfo
-        direct_call = 'metasToBeInstalled' not in kwds
-        if direct_call:
-            # this class is being called directly
-
-            # list of local variables.
-            lvar = locals()
-            lvar.pop('self')
-            lvar.pop('__class__')
-            lvar.pop('kwds')
-            metasToBeInstalled = lvar
-        else:
+        if 'metasToBeInstalled' in kwds:
             # This class is being called probably from super() in a subclass
             metasToBeInstalled = kwds['metasToBeInstalled']
             del kwds['metasToBeInstalled']
 
-	# must be the first line to initiate meta and get description
-        super($PRODUCTNAME , self).__init__(
+            # must be the first line to initiate meta and get description
+            super().__init__(
+                metasToBeInstalled=metasToBeInstalled, **kwds)
+            return
+        # this class is being called directly
+
+        # list of local variables.
+        metasToBeInstalled = copy.copy(locals())
+        metasToBeInstalled.pop('self')
+        metasToBeInstalled.pop('__class__')
+        metasToBeInstalled.pop('kwds')
+
+        global ProductInfo
+        self.pInfo = ProductInfo
+
+        #print('@1 pInfo', id(self.pInfo['metadata']), id(self), id(self.pInfo),
+        #      self.pInfo['metadata']['version'], list(metasToBeInstalled.keys()))
+
+        # must be the first line to initiate meta and get description
+        super().__init__(
             metasToBeInstalled=metasToBeInstalled, **kwds)
 
-        if direct_call:
-            metasToBeInstalled.pop('direct_call')
-            super($PRODUCTNAME , self).installMetas(
-                mtbi=metasToBeInstalled, prodInfo=ProductInfo)
+        super().installMetas(mtbi=metasToBeInstalled, prodInfo=ProductInfo)
+        #print(self.meta.keySet(), id(self.meta))
+
 
 $PROPERTIES
 

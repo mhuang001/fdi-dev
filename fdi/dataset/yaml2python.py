@@ -246,7 +246,10 @@ def readyaml(ypath, ver=None):
         with open(fin, 'r', encoding='utf-8') as f:
             # pyYAML d = OrderedDict(yaml.load(f, Loader=yaml.FullLoader))
             d = OrderedDict(yaml.load(f))
-
+        if 'metadata' not in d or d['metadata'] is None:
+            d['metadata'] = {}
+        if 'datasets' not in d or d['datasets'] is None:
+            d['datasets'] = {}
         if float(d['schema']) >= 1.0:
             pass
             print('Read %s from %s' % (d['schema'], fin))

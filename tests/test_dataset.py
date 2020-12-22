@@ -1838,7 +1838,7 @@ def check_Product(AProd):
     # print(x.__dict__)
     # print(x.meta.toString())
     # attribute added by Product
-    if AProd.__name__ == x.pInfo['name']:
+    if AProd.__name__ == x.zInfo['name']:
         assert x.meta['type'].value == x.__class__.__name__
     assert x.meta['description'].value == "This is my product example"
     assert x.meta['instrument'].value == "MyFavourite"
@@ -1917,9 +1917,9 @@ def test_SubProduct():
             sp['metadata']['version']['data_type'] = 'integer'
             sp['metadata']['version']['default'] = 9
             sp['metadata']['type']['default'] = sp['name']
-            self.pInfo = sp
+            self.zInfo = sp
             super().__init__(metasToBeInstalled=metasToBeInstalled, **kwds)
-            super().installMetas(mtbi=metasToBeInstalled, prodInfo=self.pInfo)
+            super().installMetas(mtbi=metasToBeInstalled, prodInfo=self.zInfo)
 
         @property
         def version(self): pass

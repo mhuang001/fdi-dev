@@ -42,10 +42,10 @@ $INITARGS
             metasToBeInstalled.pop(x)
 
         global ProductInfo
-        self.pInfo = ProductInfo
+        self.zInfo = ProductInfo
 
-        #print('@1 pInfo', id(self.pInfo['metadata']), id(self), id(self.pInfo),
-        #      self.pInfo['metadata']['version'], list(metasToBeInstalled.keys()))
+        #print('@1 zInfo', id(self.zInfo['metadata']), id(self), id(self.zInfo),
+        #      self.zInfo['metadata']['version'], list(metasToBeInstalled.keys()))
 
         # must be the first line to initiate meta and get description
         super().__init__(

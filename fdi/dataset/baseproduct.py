@@ -50,7 +50,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
 
     BaseProduct class (level ALL) schema 1.3 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-17 01:29:13.678353.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-22 23:00:43.622136.
 
 Description:
 FDI base class
@@ -85,7 +85,7 @@ FDI base class
             metasToBeInstalled.pop(x)
 
         global ProductInfo
-        self.pInfo = ProductInfo
+        self.zInfo = ProductInfo
 
         # 'description' is consumed in annotatable super class so it is not in.
         description = metasToBeInstalled.pop('description')
@@ -100,7 +100,7 @@ FDI base class
         """ put parameters in group in product metadata, and updates productInfo. values in mtbi override those default ones in group.
         """
         if prodInfo is None:
-            prodInfo = self.pInfo
+            prodInfo = self.zInfo
 
         for met, params in prodInfo['metadata'].items():
             # description has been set by Anotatable.__init__
@@ -138,9 +138,9 @@ FDI base class
         read, and returns the values only.
         """
         # print('getattribute ' + name)
-        if name not in ['pInfo', '_meta'] and hasattr(self, '_meta'):
+        if name not in ['zInfo', '_meta'] and hasattr(self, '_meta'):
             #            self.hasMeta():
-            if name in self.pInfo['metadata']:
+            if name in self.zInfo['metadata']:
                 # if meta does not exist, inherit Attributable
                 # before any class that access mandatory attributes
                 # print('aa ' + selftr(self.getMeta()[name]))
@@ -153,7 +153,7 @@ FDI base class
         value: Must be Parameter/NumericParameter if this is normal metadata, depending on if it is Number. Value if mandatory / built-in attribute.
         """
         if self.hasMeta():
-            met = self.pInfo['metadata']
+            met = self.zInfo['metadata']
             if name in met:
                 # a built-in attribute like 'description'. store in meta
                 m = self.getMeta()
@@ -197,7 +197,7 @@ FDI base class
     def __delattr__(self, name):
         """ Refuses deletion of mandatory attributes
         """
-        if name in self.pInfo['metadata'].keys():
+        if name in self.zInfo['metadata'].keys():
             logger.warn('Cannot delete Mandatory Attribute ' + name)
 
         super(BaseProduct, self).__delattr__(name)
@@ -294,7 +294,7 @@ FDI base class
 def value2parameter(name, value, met):
     """ returns a parameter with correct type and attributes according to its value and name.
 
-    met is pInfo('metadata'] or pInfo['dataset'][xxx]
+    met is zInfo('metadata'] or zInfo['dataset'][xxx]
     """
     
     im = met[name]  # {'dats_type':..., 'value':....}
@@ -345,7 +345,7 @@ def addMandatoryProductAttrs(cls):
     https://stackoverflow.com/a/2584050
     https://stackoverflow.com/a/1355444
     """
-    for name in self.pInfo['metadata'].keys():
+    for name in self.zInfo['metadata'].keys():
         def g(self):
             return self._meta[name]
 

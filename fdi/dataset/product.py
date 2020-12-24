@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 class Product(BaseProduct):
-    """ Product class (level ALL) schema 1.3 inheriting ['BaseProduct'].
+    """ Product class (level ALL) schema 1.4 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/Product.yml on 2020-12-22 23:00:43.651458.
+Automatically generated from fdi/dataset/resources/Product.yml on 2020-12-23 09:44:25.516218.
 
 Description:
 Project level product
@@ -33,6 +33,7 @@ Project level product
                  creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
                  version = '0.8',
+                 FORMATV = '1.4.0.8',
                  startDate = FineTime(0),
                  endDate = FineTime(0),
                  instrument = 'UNKNOWN',
@@ -122,6 +123,13 @@ Project level product
     def version(self, p): pass
 
 
+    @property
+    def FORMATV(self): pass
+
+    @FORMATV.setter
+    def FORMATV(self, p): pass
+
+
 
 
 
@@ -132,7 +140,7 @@ ProductInfo = {
         'BaseProduct',
         ],
     'level': 'ALL',
-    'schema': '1.3',
+    'schema': '1.4',
     'metadata': {
         'description': {
                 'id_zh_cn': '描述',
@@ -182,13 +190,21 @@ ProductInfo = {
                 'typecode': 'B',
                 },
         'version': {
-                'id_zh_cn': '格式版本',
+                'id_zh_cn': '版本',
                 'data_type': 'string',
-                'description': 'Version of product schema',
-                'description_zh_cn': '产品格式版本',
+                'description': 'Version of product',
+                'description_zh_cn': '产品版本',
                 'default': '0.8',
                 'valid': '',
-                'valid_zh_cn': '',
+                'typecode': 'B',
+                },
+        'FORMATV': {
+                'id_zh_cn': '格式版本',
+                'data_type': 'string',
+                'description': 'Version of product schema and revision',
+                'description_zh_cn': '产品格式版本',
+                'default': '1.4.0.8',
+                'valid': '',
                 'typecode': 'B',
                 },
         'startDate': {

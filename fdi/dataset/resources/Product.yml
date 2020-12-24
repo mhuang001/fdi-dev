@@ -3,7 +3,7 @@ description: Project level product
 parents:
   - BaseProduct
 level: ALL
-schema: '1.3'
+schema: '1.4'
 metadata:
     type:
         id_zh_cn: 产品类型
@@ -64,11 +64,18 @@ metadata:
         valid_zh_cn: ''
         typecode: B
     version:
-        id_zh_cn: 格式版本
+        id_zh_cn: 版本
         data_type: string
-        description: Version of product schema
-        description_zh_cn: 产品格式版本
+        description: Version of product
+        description_zh_cn: 产品版本
         default: '0.8'
         valid: ''
-        valid_zh_cn: ''
+        typecode: B
+    FORMATV:
+        id_zh_cn: 格式版本
+        data_type: string
+        description: Version of product schema and revision
+        description_zh_cn: 产品格式版本
+        default: '1.4.0.8'
+        valid: ''
         typecode: B

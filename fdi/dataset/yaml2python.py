@@ -352,6 +352,8 @@ def yamlupgrade(descriptors, fins, ypath, version, verbose):
 
 
 def removeParent(a, b):
+    """ Returns the one who is the other one's parent.
+    """
     if a == b:
         logger.debug('%s and %s are the same class' % (b, a))
         return None
@@ -466,21 +468,45 @@ if __name__ == '__main__':
     glb = Classes.updateMapping(
         c=pcl, rerun=True, exclude=importexclude, verbose=verbose)
 
-    for nm, daf in descriptors.items():
-        d, attrs, datasets, fin = daf
+    # sort the descriptors so that everyone's parents are to his right
+    working_list = list(descriptors.keys())
+    sorted_list = []
+    while len(working_list):
+        # must use index to loop
+        for i in range(len(working_list)):
+            nm = working_list[i]
+            p = descriptors[nm][0]['parents']
+            nm_found_parent = False
+            if len(p) == 0:
+                continue
+            found = set(working_list) & set(p)
+            # for x in working_list:
+            #    if x == nm:
+            #        continue
+            #    if x in p:
+            if len(found):
+                # parent is in working_list
+                working_list.remove(nm)
+                working_list.append(nm)
+                nm_found_parent = True
+                break
+            else:
+                # no one in the list is nm's superclass
+                # TODO: only immediate parenthood tested
+                sorted_list.append(nm)
+                working_list.remove(nm)
+                break
+            if nm_found_parent:
+                break
+        else:
+            # no one in the list is free from deendency to others
+            if len(working_list):
+                msg = 'Cyclic dependency among ' + str(working_list)
+                logger.error(msg)
+                sys.exit(-5)
+    for nm in sorted_list:
+        d, attrs, datasets, fin = descriptors[nm]
         print('************** Processing ' + nm + '***********')
-        prodname = d['name']
-        # module/output-file name is YAML input file "name" with lowercase
-        modulename = nm.lower()
-
-        # make output filename, lowercase modulename + .py
-        fout = pathjoin(opath, modulename + '.py')
-        print("Output python file is "+fout)
-
-        # class doc
-        doc = '%s class (level %s) schema %s inheriting %s.\n\nAutomatically generated from %s on %s.\n\nDescription:\n%s' % tuple(map(str, (
-            prodname, d['level'], d['schema'], d['parents'],
-            fin, datetime.now(), d['description'])))
 
         # the generated source code must import these
         seen = []
@@ -510,6 +536,19 @@ if __name__ == '__main__':
             all_attrs.update(attrs)
         else:
             all_attrs = attrs
+
+        prodname = d['name']
+        # module/output-file name is YAML input file "name" with lowercase
+        modulename = nm.lower()
+
+        # make output filename, lowercase modulename + .py
+        fout = pathjoin(opath, modulename + '.py')
+        print("Output python file is "+fout)
+
+        # class doc
+        doc = '%s class (level %s) schema %s inheriting %s.\n\nAutomatically generated from %s on %s.\n\nDescription:\n%s' % tuple(map(str, (
+            prodname, d['level'], d['schema'], d['parents'],
+            fin, datetime.now(), d['description'])))
 
         # parameter classes used in init code may need to be imported, too
         for met, val in all_attrs.items():
@@ -576,6 +615,7 @@ if __name__ == '__main__':
         # print(sp)
         with open(fout, 'w', encoding='utf-8') as f:
             f.write(sp)
+        print('Done saving ' + fout + '\n' + '='*40)
 
         if len(importexclude) == 1:
             exit(0)

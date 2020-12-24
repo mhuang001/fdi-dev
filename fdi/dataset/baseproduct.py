@@ -48,9 +48,9 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
 
-    BaseProduct class (level ALL) schema 1.3 inheriting [None].
+    BaseProduct class (level ALL) schema 1.4 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-22 23:00:43.622136.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2020-12-23 09:44:25.462380.
 
 Description:
 FDI base class
@@ -64,6 +64,7 @@ FDI base class
                  creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
                  version = '0.8',
+                 FORMATV = '1.4.0.8',
                  **kwds):
 
         if 'metasToBeInstalled' in kwds:
@@ -290,6 +291,13 @@ FDI base class
     def version(self, p): pass
 
 
+    @property
+    def FORMATV(self): pass
+
+    @FORMATV.setter
+    def FORMATV(self, p): pass
+
+
 
 def value2parameter(name, value, met):
     """ returns a parameter with correct type and attributes according to its value and name.
@@ -375,7 +383,7 @@ ProductInfo = {
         None,
         ],
     'level': 'ALL',
-    'schema': '1.3',
+    'schema': '1.4',
     'metadata': {
         'description': {
                 'id_zh_cn': '描述',
@@ -424,11 +432,20 @@ ProductInfo = {
                 'typecode': 'B',
                 },
         'version': {
+                'id_zh_cn': '版本',
+                'data_type': 'string',
+                'description': 'Version of product',
+                'description_zh_cn': '产品版本',
+                'default': '0.8',
+                'valid': '',
+                'typecode': 'B',
+                },
+        'FORMATV': {
                 'id_zh_cn': '格式版本',
                 'data_type': 'string',
-                'description': 'Version of product schema',
+                'description': 'Version of product schema and revision',
                 'description_zh_cn': '产品格式版本',
-                'default': '0.8',
+                'default': '1.4.0.8',
                 'valid': '',
                 'typecode': 'B',
                 },

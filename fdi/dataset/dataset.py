@@ -277,7 +277,7 @@ class TableModel(object):
         super(TableModel, self).__init__(**kwds)
 
     def getColumnClass(self, columnIndex):
-        """ Returns the most specific superclass for all the cell
+        """ Returns the class for the first cell
         values in the column.
         """
         return self.col(columnIndex)[1][0].__class__
@@ -349,41 +349,47 @@ class TableDataset(GenericDataset, TableModel):
             **kwds)  # initialize data, meta, unit
 
     def setData(self, data):
-        """ sets name-column pairs from [{'name':str,'column':Column}]
-        or {str:Column} or [[num]] or [(str, [], 'str')]
-        form of data, Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named 'col[index]' (index counting from 1) with unit None.
+        """ sets name-column pairs from  or {str:Column} or [[num]] or [(str, [], 'str')]
+        form of data.
+
+        [{'name':str,'column':Column}] form is deprecated.
+        Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named 'col[index]' (index counting from 1) with unit None.
         """
         # logging.debug(data.__class__)
-        # raise Exception()
+
         if data is not None:
             # d will be {<name1 str>:<column1 Column>, ... }
             d = ODict()
             replace = True
             if issubclass(data.__class__, seqlist):
                 try:
-                    curd = self.getData()
-                except Exception:
-                    curd = None
+                    current_data = self.getData()
+                except AttributeError:
+                    current_data = None
                 # list of keys of current data
-                curdk = list(self.getData().keys()) if curd else []
+                curdk = list(current_data.keys()) if current_data else []
                 ind = 0
                 for x in data:
-                    if 'name' in x and 'column' in x:
-                        if issubclass(x['column'].__class__, Column):
-                            col = x['column']
-                        else:
-                            col = Column(data=x['column'], unit=x['unit'])
-                        d[x['name']] = col
-                    elif issubclass(x.__class__, str) and issubclass(data[x].__class__, Column):
+                    if issubclass(x.__class__, maplist) \
+                       and 'name' in x and 'column' in x:
+                        # if issubclass(x['column'].__class__, Column):
+                        #     col = x['column']
+                        # else:
+                        #     col = Column(data=x['column'], unit=x['unit'])
+                        # d[x['name']] = col
+                        raise DeprecationWarning(
+                            'Do not use {"name":name, "column":column}]. Use {name:column, ...} instead.')
+
+                    if issubclass(x.__class__, str) and issubclass(data[x].__class__, Column):
                         d[x] = data[x]
                     elif issubclass(x.__class__, list):
-                        if curd is None:
+                        if current_data is None:
                             d['col' + str(ind + 1)] = Column(data=x, unit=None)
-                        elif len(curd) <= ind:
-                            curd['col' + str(ind + 1)
-                                 ] = Column(data=x, unit=None)
+                        elif len(current_data) <= ind:
+                            current_data['col' + str(ind + 1)
+                                         ] = Column(data=x, unit=None)
                         else:
-                            curd[curdk[ind]].data = x
+                            current_data[curdk[ind]].data = x
                             replace = False
                     elif issubclass(x.__class__, tuple):
                         if len(x) == 3:

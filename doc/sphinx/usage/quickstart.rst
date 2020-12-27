@@ -72,24 +72,11 @@ unit= {None}
 ArrayDataset-dataset =
 1  4.4  5400  -22  162
 
->>> # Do it with built-in properties set.
+>>> # Create an ArrayDataset with built-in properties set.
 ... v = ArrayDataset(data=a1, unit='ev', description='5 elements',
 ...                  typ_='float', default=1.0, typecode='f')
-... v
-# ArrayDataset
-description= {'5 elements'},
-meta= {
-(empty)
-MetaData-listeners = ListnerSet{}
-},
-type= {'float'},
-default= {1.0},
-typecode= {'f'},
-unit= {'ev'}
-ArrayDataset-dataset =
-1  4.4  5400  -22  162
-
->>> # add some metadats (see more about meta data below)
+... #
+... # add some metadats (see more about meta data below)
 ... v.meta['greeting'] = StringParameter('Hi there.')
 ... v.meta['year'] = NumericParameter(2020)
 ... v
@@ -107,6 +94,7 @@ typecode= {'f'},
 unit= {'ev'}
 ArrayDataset-dataset =
 1  4.4  5400  -22  162
+
 
 >>> # data access: read the 2nd array element
 ... v[2]       # 5400
@@ -219,11 +207,11 @@ TableDataset is mainly a dictionary containing name-Column pairs and metadata.
 Columns are basically ArrayDatasets under a different name.
 
 
->>> # Creation with a list of dicts with column names, data, and unit information.
-... a1 = [dict(name='col1', unit='eV', column=[1, 4.4, 5.4E3]),
-...       dict(name='col2', unit='cnt', column=[0, 43.2, 2E3])
-...       ]
-... v = TableDataset(data=a1)
+
+>>> # Create an empty TableDataset then add columns one by one
+... v = TableDataset()
+... v['col1'] = Column(data=[1, 4.4, 5.4E3], unit='eV')
+... v['col2'] = Column(data=[0, 43.2, 2E3], unit='cnt')
 ... v
 # TableDataset
 description= {'UNKNOWN'},
@@ -239,13 +227,16 @@ TableDataset-dataset =
    4.4     43.2
 5400     2000
 
->>> # One of many other ways to create a TableDataset. See ``tests/test_dataset``
-... v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
-...                         ('col2', [0, 43.2, 2E3], 'cnt')])
-... v == v3
+
+
+>>> # Do it with another syntax, with a list of tuples and no Column()
+... a1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
+...       ('col2', [0, 43.2, 2E3], 'cnt')]
+... v1 = TableDataset(data=a1)
+... v == v1
 True
 
->>> # Make a quick tabledataset. data are list of lists without names or units
+>>> # Make a quick tabledataset -- data are list of lists without names or units
 ... a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
 ... v5 = TableDataset(data=a5)
 ... print(v5.toString())
@@ -261,7 +252,6 @@ TableDataset-dataset =
      1         0
      4.4      43.2
   5400      2000
-
 
 
 
@@ -304,7 +294,7 @@ Column-dataset =
 123
 
 >>> # unit access
-... v3['col1'].unit  # == 'eV'
+... v1['col1'].unit  # == 'eV'
 'eV'
 
 >>> # add, set, and replace columns and rows
@@ -335,35 +325,43 @@ Column-dataset =
 ... [c for c in u]  # list of column names ['time', 'money']
 ['time', 'money']
 
+
 >>> # run this to see ``toString()``
 ... ELECTRON_VOLTS = 'eV'
 ... SECONDS = 'sec'
-... t = [x * 1.0 for x in range(10)]
+... t = [x * 1.0 for x in range(8)]
 ... e = [2.5 * x + 100 for x in t]
+... d = [765 * x - 500 for x in t]
 ... # creating a table dataset to hold the quantified data
 ... x = TableDataset(description="Example table")
 ... x["Time"] = Column(data=t, unit=SECONDS)
 ... x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+... x["Distance"] = Column(data=d, unit='m')
+... # metadata is optional
+... x.meta['temp'] = NumericParameter(42.6, description='Ambient', unit='C')
 ... print(x.toString())
 # TableDataset
 description= {'Example table'},
 meta= {
-(empty)
++--------+---------+--------+--------+---------+-----------+--------+---------------+
+| name   | value   | unit   | type   | valid   | default   | code   | description   |
++========+=========+========+========+=========+===========+========+===============+
+| temp   | 42.6    | C      | float  | None    | None      | None   | Ambient       |
++--------+---------+--------+--------+---------+-----------+--------+---------------+
 MetaData-listeners = ListnerSet{}}
 TableDataset-dataset =
-   Time    Energy
-  (sec)      (eV)
--------  --------
-      0     100
-      1     102.5
-      2     105
-      3     107.5
-      4     110
-      5     112.5
-      6     115
-      7     117.5
-      8     120
-      9     122.5
+   Time    Energy    Distance
+  (sec)      (eV)         (m)
+-------  --------  ----------
+      0     100          -500
+      1     102.5         265
+      2     105          1030
+      3     107.5        1795
+      4     110          2560
+      5     112.5        3325
+      6     115          4090
+      7     117.5        4855
+
 
 
 MetaData and Parameter: Parameter
@@ -502,8 +500,8 @@ waitor
    
    -------------  --------------------
    job= waitress  birthday= 1990-09-09
-   12:34:56.789098
-   1031574896789098
+                  12:34:56.789098
+                  1031574896789098
    -------------  --------------------
    MetaData-listeners = ListnerSet{}
 
@@ -581,7 +579,7 @@ The data Product is at the center of FDI data model. A product has
 ... x.meta["creator"].value   # == a1
 'or else'
 
->>> # so did the property
+>>> # so was the property
 ... x.creator   # == a1
 'or else'
 

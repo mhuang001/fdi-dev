@@ -1224,46 +1224,47 @@ def test_TableModel():
 
 def test_TableDataset_init():
     # constructor
-    # if data is not a sequence an exception is thrown
+    # if data is not in a required form an exception is thrown
     try:
         t = 5
-        t = ArrayDataset(data=42)
+        t = TableDataset(data=42)
     except Exception as e:
         assert issubclass(e.__class__, TypeError)
     else:
         assert False, 'no exception caught'
-
     assert t == 5
 
-    # setData format 1: data is a sequence of dict
-    a1 = [dict(name='col1', column=Column(data=[1, 4.4, 5.4E3], unit='eV')),
-          dict(name='col2', column=Column(data=[0, 43.2, 2E3], unit='cnt'))
-          ]
+    try:
+        t = 51
+        t = TableDataset(data=[{'name': 'a', 'column': Column(data=[])}])
+    except DeprecationWarning as e:
+        pass
+    else:
+        assert False, 'no warning caught'
+    assert t == 51
+
+    # setData format 1: data is a  mapping. Needs pytnon 3.6 to guarantee order
+    a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
+          'col2': Column(data=[0, 43.2, 2E3], unit='cnt')}
     v = TableDataset(data=a1)  # inherited from DataWrapper
     assert v.getColumnCount() == len(a1)
-    assert v.getColumnName(0) == a1[0]['name']  # 'col1'
-    t = a1[1]['column'].data[1]  # 43.2
+    assert v.getColumnName(0) == 'col1'
+    t = a1['col2'].data[1]  # 43.2
     assert v.getValueAt(rowIndex=1, columnIndex=1) == t
 
-    # 2: another syntax, same effect as last
-    a2 = [{'name': 'col1', 'column': Column(data=[1, 4.4, 5.4E3], unit='eV')},
-          {'name': 'col2', 'column': Column(data=[0, 43.2, 2E3], unit='cnt')}]
-    v2 = TableDataset(data=a2)
-    assert v == v2
+    # 2: add columns one by one
+    v2 = TableDataset()
+    v2['col1'] = Column(data=[1, 4.4, 5.4E3], unit='eV')
+    v2['col2'] = Column(data=[0, 43.2, 2E3], unit='cnt')
+    assert v2 == v
 
-    # 3: data is a mapping
-    a4 = dict(col1=Column(data=[1, 4.4, 5.4E3], unit='eV'),
-              col2=Column(data=[0, 43.2, 2E3], unit='cnt'))
-    v4 = TableDataset(data=a4)
-    assert v == v4
-
-    # 3: *Quickest?* list of tuples that do not need to use Column
+    # 3: another syntax, list of tuples that does not need to use Column
     v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
                             ('col2', [0, 43.2, 2E3], 'cnt')
                             ])
     assert v == v3  # , deepcmp(v, v3)
 
-    # quick and dirty. data are list of lists without names or units
+    # 4: quick and dirty. data are list of lists without names or units
     a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
     v5 = TableDataset(data=a5)
     assert [c.data for c in v5.data.values()] == a5
@@ -1274,9 +1275,8 @@ def test_TableDataset_init():
 def test_TableDataset_func():
     # add, set, and replace columns
     # column set / get
-    a10 = [dict(name='col1', column=Column(data=[1, 4.4, 5.4E3], unit='eV')),
-           dict(name='col2', column=Column(data=[0, 43.2, 2E3], unit='cnt'))
-           ]
+    a10 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
+           'col2': Column(data=[0, 43.2, 2E3], unit='cnt')}
     v = TableDataset(data=a10)  # inherited from DataWrapper
     vvv = TableDataset()
     assert vvv.getColumnCount() == 0
@@ -1308,15 +1308,14 @@ def test_TableDataset_func():
     assert u.rowCount == 2
 
     # access
-    a1 = [dict(name='col1', column=Column(data=[1, 4.4, 5.4E3], unit='eV')),
-          dict(name='col2', column=Column(data=[0, 43.2, 2E3], unit='cnt')),
-          dict(name='col3', column=Column(data=[-2, 9e-5, 8.888], unit='m'))
-          ]
+    a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
+          'col2': Column(data=[0, 43.2, 2E3], unit='cnt'),
+          'col3': Column(data=[-2, 9e-5, 8.888], unit='m')}
     w = TableDataset(data=a1)  # inherited from DataWrapper
     # column by name
-    assert w['col3'] == a1[2]['column']
+    assert w['col3'] == a1['col3']
     # column by index
-    assert w[1] == a1[1]['column']
+    assert w[1] == a1['col2']
     # slice is not hashable
 
     # column names
@@ -1332,7 +1331,7 @@ def test_TableDataset_func():
     # replace whole table. see constructor examples for making a1
     # make a deepcopy so when u changes data, v won't be affected
     c10 = copy.deepcopy(a10)
-    assert id(a10[0]) != id(c10[0])
+    assert id(a10['col1']) != id(c10['col1'])
     u.data = c10
     assert v == u
     # col3,4 are gone

@@ -50,11 +50,10 @@ v = ArrayDataset(a1)
 # Show it. This is the same as print(v) in a non-interactive environment.
 v
 
-# Do it with built-in properties set.
+# Create an ArrayDataset with built-in properties set.
 v = ArrayDataset(data=a1, unit='ev', description='5 elements',
                  typ_='float', default=1.0, typecode='f')
-v
-
+#
 # add some metadats (see more about meta data below)
 v.meta['greeting'] = StringParameter('Hi there.')
 v.meta['year'] = NumericParameter(2020)
@@ -100,20 +99,19 @@ TableDataset is mainly a dictionary containing name-Column pairs and metadata.
 Columns are basically ArrayDatasets under a different name.
 ''')
 
-# Creation with a list of dicts with column names, data, and unit information.
-a1 = [dict(name='col1', unit='eV', column=[1, 4.4, 5.4E3]),
-      dict(name='col2', unit='cnt', column=[0, 43.2, 2E3])
-      ]
-v = TableDataset(data=a1)
+# Create an empty TableDataset then add columns one by one
+v = TableDataset()
+v['col1'] = Column(data=[1, 4.4, 5.4E3], unit='eV')
+v['col2'] = Column(data=[0, 43.2, 2E3], unit='cnt')
 v
 
-# One of many other ways to create a TableDataset. See ``tests/test_dataset``
-v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
-                        ('col2', [0, 43.2, 2E3], 'cnt')])
-v == v3
+# Do it with another syntax, with a list of tuples and no Column()
+a1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
+      ('col2', [0, 43.2, 2E3], 'cnt')]
+v1 = TableDataset(data=a1)
+v == v1
 
-
-# Make a quick tabledataset. data are list of lists without names or units
+# Make a quick tabledataset -- data are list of lists without names or units
 a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
 v5 = TableDataset(data=a5)
 print(v5.toString())
@@ -140,7 +138,7 @@ v5['col2'][1] = 123
 v5['col2'][1]    # 123
 
 # unit access
-v3['col1'].unit  # == 'eV'
+v1['col1'].unit  # == 'eV'
 
 # add, set, and replace columns and rows
 # column set / get
@@ -169,12 +167,16 @@ u.rowCount    # 3
 # run this to see ``toString()``
 ELECTRON_VOLTS = 'eV'
 SECONDS = 'sec'
-t = [x * 1.0 for x in range(10)]
+t = [x * 1.0 for x in range(8)]
 e = [2.5 * x + 100 for x in t]
+d = [765 * x - 500 for x in t]
 # creating a table dataset to hold the quantified data
 x = TableDataset(description="Example table")
 x["Time"] = Column(data=t, unit=SECONDS)
 x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+x["Distance"] = Column(data=d, unit='m')
+# metadata is optional
+x.meta['temp'] = NumericParameter(42.6, description='Ambient', unit='C')
 print(x.toString())
 
 print("""
@@ -343,7 +345,7 @@ x.meta["creator"] = Parameter(a1)
 # metada changed
 x.meta["creator"].value   # == a1
 
-# so did the property
+# so was the property
 x.creator   # == a1
 
 # load some metadata

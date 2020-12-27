@@ -5,7 +5,11 @@ Change Log
 BETA0
 =====
 
-1.0rc7 2020-12-13
+1.0rc9 2020-12-27
+-----------------
+YAML schema v1.4; ClassID->_STID; pInfo->zInfo; product subclassing sorted. MapContext sorted. y2p handles parents better. Context rule.
+
+1.0rc8 2020-12-13
 -----------------
 DataType refactoring. YAML schema v1.3. Product builtin parameter properrties.
 

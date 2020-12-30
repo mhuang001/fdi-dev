@@ -1268,8 +1268,8 @@ def test_TableDataset_init():
     a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
     v5 = TableDataset(data=a5)
     assert [c.data for c in v5.data.values()] == a5
-    assert v5['col1'][0] == 1
-    assert v5['col2'][1] == 43.2
+    assert v5['column1'][0] == 1
+    assert v5['column2'][1] == 43.2
 
 
 def test_TableDataset_func():
@@ -1308,15 +1308,36 @@ def test_TableDataset_func():
     assert u.rowCount == 2
 
     # access
-    a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
-          'col2': Column(data=[0, 43.2, 2E3], unit='cnt'),
-          'col3': Column(data=[-2, 9e-5, 8.888], unit='m')}
+    a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV', description='1'),
+          'col2': Column(data=[0, 43.2, 2E3], unit='cnt', description='2')}
+    c5 = Column(data=[-2, 9e-5, 8.888], unit='m', description='3')
     w = TableDataset(data=a1)  # inherited from DataWrapper
+    w['col3'] = c5
     # column by name
-    assert w['col3'] == a1['col3']
+    assert w['col3'] == c5
     # column by index
     assert w[1] == a1['col2']
-    # slice is not hashable
+
+    # read write with index
+    w[2] = a1['col1']  # now w['col3']==a1['col1']
+    assert w['col3'] == a1['col1']
+    w[3] = a1['col2']
+    assert w['column3'] == a1['col2']
+
+    # slice
+    sliced = w[1:3]   # a list if the 2nd and 3rd cols
+    assert len(sliced) == 2
+    assert issubclass(sliced[0].__class__, Column)
+    sl2 = w.col(slice(1, 3,))   # [(name,col), (name,col)]
+    assert sliced == [sl2[0][1], sl2[1][1]]
+    # make a table out of the slice
+    w2 = TableDataset(data=sl2)
+    assert w2.getColumnCount() == 2
+    assert w2.col(0) == w.col(1)
+    assert w2['col2'] == w['col2']
+    assert id(w2['col2']) == id(w['col2'])
+    assert w2['col3'] == w['col3']
+    assert id(w2['col3']) == id(w['col3'])
 
     # column names
     assert u.getColumnNames() == ['col3', 'col4']
@@ -1345,12 +1366,12 @@ def test_TableDataset_func():
     u.data = [[0, 9876, 66], [1, 2, 3], h]
     assert u['col1'][1] == 9876
     assert u['col1'].unit == 'eV'
-    # genric col[index] names and None unit are given for the added columns
-    assert u['col3'][1] == 7  # index counts from 1 !
-    assert u['col3'].unit is None
+    # generic column[index] names and None unit are given for the added columns
+    assert u['column3'][1] == 7
+    assert u['column3'].unit is None
 
     # syntax ``in``
-    assert 'col3' in u
+    assert 'column3' in u
 
     # toString()
     v.meta = standardtestmeta()
@@ -1438,7 +1459,7 @@ def test_TableDataset_doc():
 
     # Please see also this selection example.
 
-    #ts = x.toString()
+    # ts = x.toString()
     # print(ts)
 
 

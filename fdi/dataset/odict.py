@@ -84,7 +84,7 @@ class ODict(UserDict, Serializable):
         OD_toString_Nest += 1
         d = ''
         for n, v in self.data.items():
-            d += '\n# ' + '    ' * OD_toString_Nest + '[ ' + n + ' ]\n'
+            d += '\n# ' + '    ' * OD_toString_Nest + '[ ' + str(n) + ' ]\n'
             s = bstr(v, level=level, matprint=matprint, trans=trans, **kwds)
             d += s
         OD_toString_Nest -= 1

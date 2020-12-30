@@ -287,8 +287,14 @@ class TableModel(object):
         return len(self.data)
 
     def getColumnName(self, columnIndex):
-        """ Returns the name of the column at columnIndex. """
-        return self.col(columnIndex)[0]
+        """ Returns the name of the column at columnIndex.
+
+        returns a set of columns if key  is a slice.
+        """
+        cs = self.col(columnIndex)
+        if issubclass(columnIndex.__class__, slice):
+            return zip(*cs)[0]
+        return cs[0]
 
     def getColumnNames(self):
         """ Returns the column names. """
@@ -314,8 +320,19 @@ class TableModel(object):
 
     def col(self, columIndex):
         """ returns a tuple of (name, column) at the column index.
+
+        Or a list of such tuples if given a slice.
         """
-        return list(self.data.items())[columIndex]
+
+        itm = list(self.data.items())
+        ret = itm[columIndex]
+        return ret
+
+        if issubclass(columIndex.__class__, slice):
+            ret = [i for i in range(len(itm))[columIndex]]
+        else:
+            ret = itm[columIndex]
+        return ret
 
 
 class TableDataset(GenericDataset, TableModel):
@@ -349,11 +366,14 @@ class TableDataset(GenericDataset, TableModel):
             **kwds)  # initialize data, meta, unit
 
     def setData(self, data):
-        """ sets name-column pairs from  or {str:Column} or [[num]] or [(str, [], 'str')]
-        form of data.
+        """ sets name-column pairs from data.
+
+        Valid formd include: {str:Column, ...} or [(str, [num, ...], str)]
+        or [(str, Column), ...]
 
         [{'name':str,'column':Column}] form is deprecated.
-        Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named 'col[index]' (index counting from 1) with unit None.
+
+        Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named 'column'+index (index counting from 1) with unit None.
         """
         # logging.debug(data.__class__)
 
@@ -380,13 +400,12 @@ class TableDataset(GenericDataset, TableModel):
                         raise DeprecationWarning(
                             'Do not use {"name":name, "column":column}]. Use {name:column, ...} instead.')
 
-                    if issubclass(x.__class__, str) and issubclass(data[x].__class__, Column):
-                        d[x] = data[x]
-                    elif issubclass(x.__class__, list):
+                    if issubclass(x.__class__, list):
                         if current_data is None:
-                            d['col' + str(ind + 1)] = Column(data=x, unit=None)
+                            d['column' + str(ind + 1)
+                              ] = Column(data=x, unit=None)
                         elif len(current_data) <= ind:
-                            current_data['col' + str(ind + 1)
+                            current_data['column' + str(ind + 1)
                                          ] = Column(data=x, unit=None)
                         else:
                             current_data[curdk[ind]].data = x
@@ -394,9 +413,12 @@ class TableDataset(GenericDataset, TableModel):
                     elif issubclass(x.__class__, tuple):
                         if len(x) == 3:
                             d[x[0]] = Column(data=x[1], unit=x[2])
+                        elif issubclass(x[0].__class__, str) and \
+                                issubclass(x[1].__class__, Column):
+                            d[x[0]] = x[1]
                         else:
                             raise ValueError(
-                                'column tuples must be  (str, List), or (str, List, str)')
+                                'column tuples must be  (str, Column), or (str, List, str)')
                     else:
                         raise ValueError(
                             'cannot extract name and column at list member ' + str(x))
@@ -416,17 +438,17 @@ class TableDataset(GenericDataset, TableModel):
 
     def addColumn(self, name, column):
         """ Adds the specified column to this table, and attaches a name
-        to it. If the name is null, a dummy name is created, such that
-        it can be accessed by getColumn(str).
+        to it. If the name is null, a dummy name "column"+column_count is created, such that it can be accessed by getColumn(str).
 
-        Duplicated column names are not allowed.
+        If column name exists the corresponding column is substituted.
 
         Parameters:
         name - column name.
         column - column to be added.
         """
-        idx = self.getColumnCount()
+
         if name == '' or name is None:
+            idx = self.getColumnCount()
             name = 'column' + str(idx)
         self.data[name] = column
 
@@ -440,19 +462,17 @@ class TableDataset(GenericDataset, TableModel):
         del(self.data[name])
 
     def indexOf(self, key):
-        """ Returns the index of specified column; if the key is a Column,
+        """ Returns the index of specified column if the key is a Column,
         it looks for equal references (same column objects), not for
         equal values.
-        If the key is a string, Returns the index of specified Column name.
+        If the key is a string, Returns the index of key as a Column name.
         mh: Or else returns the key itself.
         """
         if issubclass(key.__class__, str):
             k = list(self.data.keys())
             idx = k.index(key)
         elif issubclass(key.__class__, Column):
-            v = list(self.data.values())
-            # k,v = zip(*l)
-            i = [id(x) for x in v]
+            i = [id(x) for x in self.data.values()]
             idx = i.index(id(key))
         else:
             idx = key
@@ -545,20 +565,32 @@ class TableDataset(GenericDataset, TableModel):
         return r
 
     def getColumn(self, key):
-        """ return colmn if given string as name or int as index.
+        """ return colmn(s) for given key.
+
+        returns column if given string as name or int as index.
         returns name if given column.
+        returns a set of columns if key  is a slice.
         """
+        if issubclass(key.__class__, slice):
+            #ret = self.__class__(description=self.description)
+            #ret.meta = self.meta.copy()
+            return list(c for n, c in self.col(key))
+
         idx = self.indexOf(key)
-        return idx if issubclass(key.__class__, Column) else self.col(idx)[1]
+        t = self.col(idx)
+        return t[0] if issubclass(key.__class__, Column) else t[1]
 
     def setColumn(self, key, value):
-        """ Replaces a column in this table with specified name to specified column if key exists, or else add a new coolumn.
+        """ Replaces a column in this table with specified name to specified column if key is a string and exists, or if the key is an integer in 0 to the number of columns, insert at column-index=key, with the name 'column'+key, else add a new coolumn.
         """
-        d = self.getData()
-        if key in d:
-            d[key] = value
-        else:
-            self.addColumn(name=key, column=value)
+
+        if type(key) == int:
+            nms = self.getColumnNames()
+            if 0 <= key and key < len(nms):
+                key = nms[key]
+            else:
+                key = ''
+        self.addColumn(name=key, column=value)
 
     def items(self):
         """ for k,v in tabledataset.items()

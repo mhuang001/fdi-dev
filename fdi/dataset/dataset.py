@@ -328,6 +328,16 @@ class TableModel(object):
         ret = itm[columIndex]
         return ret
 
+    def rowl(self, columIndex):
+        """ returns a tuple of (name, column) at the column index.
+
+        Or a list of such tuples if given a slice.
+        """
+
+        itm = list(self.data.items())
+        ret = itm[columIndex]
+        return ret
+
         if issubclass(columIndex.__class__, slice):
             ret = [i for i in range(len(itm))[columIndex]]
         else:
@@ -463,8 +473,7 @@ class TableDataset(GenericDataset, TableModel):
 
     def indexOf(self, key):
         """ Returns the index of specified column if the key is a Column,
-        it looks for equal references (same column objects), not for
-        equal values.
+        it looks for an equal column.
         If the key is a string, Returns the index of key as a Column name.
         mh: Or else returns the key itself.
         """
@@ -472,8 +481,8 @@ class TableDataset(GenericDataset, TableModel):
             k = list(self.data.keys())
             idx = k.index(key)
         elif issubclass(key.__class__, Column):
-            i = [id(x) for x in self.data.values()]
-            idx = i.index(id(key))
+            v = list(self.data.values())
+            idx = v.index(key)
         else:
             idx = key
         return idx
@@ -484,31 +493,53 @@ class TableDataset(GenericDataset, TableModel):
         row: mh: row is a dict with names as keys and row data as value.
         rows: append each element in row if the row data is a list.
         """
-        if len(row) < len(self.data):
-            logging.error('row is too short')
-            raise Exception('row is too short')
 
-        for c in self.data.keys():
+        d = self.data
+        if len(row) < len(d):
+            msg = 'row width d% should be %d.' % (len(row), len(d))
+            raise ValueError(msg)
+
+        for c in d.keys():
             if rows:
-                self.data[c].data.extend(row[c])
+                d[c].data.extend(row[c])
             else:
-                self.data[c].data.append(row[c])
+                d[c].data.append(row[c])
 
     def getRow(self, rowIndex):
-        """ Returns a list containing the objects located at a particular row.
+        """ Returns a list containing the objects located in a particular row, or a list of tuples each represent a row.
+
+        rowIndex: int or a ``Slice`` object. Example ``a.getRow(Slice(3,,))``.
         """
-        return [x[rowIndex] for x in self.data.values()]
+
+        if issubclass(rowIndex.__class__, slice):
+            # a list of column segments
+            it = [x.data[rowIndex] for x in self.data.values()]
+            # return transposed in a list
+            return list(zip(*it))
+
+        return [x.data[rowIndex] for x in self.data.values()]
 
     def getRowMap(self, rowIndex):
-        """ Returns a dict of column-names as the keys and the objects located at a particular row as the values.
+        """ Returns a dict of column-names as the keys and the objects located at a particular row(s) as the values.
+
+        rowIndex: int or a ``Slice`` object. Example ``a.getRowMsp(Slice(3,,))``.
         """
-        return {n: x[rowIndex] for n, x in self.data.items()}
+        return {n: x.data[rowIndex] for n, x in self.data.items()}
 
     def removeRow(self, rowIndex):
         """ Removes a row with specified index from this table.
-        mh: returns removed row.
+
+        rowIndex: int or a ``Slice`` object. Example ``a.removeRow(Slice(3,,))``.
+        return: removed row data.
         """
-        return [x.pop(rowIndex) for x in self.data.values()]
+        if issubclass(rowIndex.__class__, slice):
+            ret = []
+            for x in self.data.values():
+                ret.append(x.data[rowIndex])
+                del x.data[rowIndex]
+            return ret
+
+        return [x.data.pop(rowIndex) for x in self.data.values()]
 
     @property
     def rowCount(self):

@@ -1275,15 +1275,8 @@ def test_TableDataset_init():
 def test_TableDataset_func():
     # add, set, and replace columns
     # column set / get
-    a10 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
-           'col2': Column(data=[0, 43.2, 2E3], unit='cnt')}
-    v = TableDataset(data=a10)  # inherited from DataWrapper
-    vvv = TableDataset()
-    assert vvv.getColumnCount() == 0
-    vvv.addColumn("Energy", Column(
-        data=[1, 2, 3, 4], description="desc", unit='eV'))
-    assert vvv.getColumnCount() == 1
     # http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/dataset/TableDataset.html#Z:Z__setitem__-java.lang.String-herschel.ia.dataset.Column-
+    # add, replace
     u = TableDataset()
     c1 = Column([1, 4], 'sec')
     u.addColumn('col3', c1)
@@ -1295,30 +1288,18 @@ def test_TableDataset_func():
     c3 = Column([5, 7], 'j')
     u['col4'] = c3
     assert u['col4'][0] == c3.data[0]
-    # addRow
-    assert u.rowCount == 2
-    cc = copy.deepcopy(c1)
-    c33, c44 = 3.3, 4.4
-    cc.append(c33)
-    u.addRow({'col4': c44, 'col3': c33})
-    assert u.rowCount == 3
-    assert u['col3'] == cc
-    # removeRow
-    assert u.removeRow(u.rowCount - 1) == [c33, c44]
-    assert u.rowCount == 2
 
-    # access
+    # access columns by name
     a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV', description='1'),
           'col2': Column(data=[0, 43.2, 2E3], unit='cnt', description='2')}
     c5 = Column(data=[-2, 9e-5, 8.888], unit='m', description='3')
     w = TableDataset(data=a1)  # inherited from DataWrapper
     w['col3'] = c5
-    # column by name
     assert w['col3'] == c5
+
     # column by index
     assert w[1] == a1['col2']
-
-    # read write with index
+    # write with index
     w[2] = a1['col1']  # now w['col3']==a1['col1']
     assert w['col3'] == a1['col1']
     w[3] = a1['col2']
@@ -1338,6 +1319,48 @@ def test_TableDataset_func():
     assert id(w2['col2']) == id(w['col2'])
     assert w2['col3'] == w['col3']
     assert id(w2['col3']) == id(w['col3'])
+    del w, w2, sliced, sl2
+
+    # row ops
+    v = TableDataset()
+    c1 = Column([1, 4], 'sec')
+    v.addColumn('col3', copy.deepcopy(c1))
+    # for non-existing names set is addColum.
+    c2 = Column([2, 3], 'eu')
+    v['col4'] = copy.deepcopy(c2)
+
+    # addRow
+    assert v.rowCount == 2
+    cc = copy.deepcopy(c1)
+    c33, c44 = 3.3, 4.4
+    v.addRow({'col4': c44, 'col3': c33})
+    assert v.rowCount == 3
+    cc.append(c33)
+    assert v['col3'] == cc   # [1, 4, 3.3, 6.6, 9.9]
+    # add rows
+    c33, c44 = [6.6, 9.9], [8.8, 12]
+    v.addRow({'col4': c44, 'col3': c33}, rows=True)
+    assert v.rowCount == 5
+    cc.data.extend(c33)
+    assert v['col3'] == cc
+    # remove Row and rows
+    assert v.removeRow(1) == [c1.data[1], c2.data[1]]
+    assert v.rowCount == 4
+    assert cc.pop(1) == c1.data[1]
+    assert v['col3'] == cc
+    # read rowa with slice
+    s = v.getRow(slice(1, 3))
+    assert s == [(3.3, 4.4), (6.6, 8.8)]
+    assert [s[0][0], s[1][0]] == cc[1:3]
+    assert v.getRowMap(slice(1, 3)) == {'col3': [3.3, 6.6], 'col4': [4.4, 8.8]}
+    # read rowa with slice
+    assert v.removeRow(slice(1, 3)) == [[3.3, 6.6], [4.4, 8.8]]
+    assert v.rowCount == 2
+    del cc[1:3]
+    assert v['col3'] == cc
+    # acess rows
+
+    del v, cc
 
     # column names
     assert u.getColumnNames() == ['col3', 'col4']
@@ -1351,10 +1374,11 @@ def test_TableDataset_func():
 
     # replace whole table. see constructor examples for making a1
     # make a deepcopy so when u changes data, v won't be affected
+    a10 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV', description='1'),
+           'col2': Column(data=[0, 43.2, 2E3], unit='cnt', description='2')}
     c10 = copy.deepcopy(a10)
     assert id(a10['col1']) != id(c10['col1'])
     u.data = c10
-    assert v == u
     # col3,4 are gone
     assert list(u.data.keys()) == ['col1', 'col2']
     # But if providing a list of lists of data only for the existing columns, units sre not changed
@@ -1374,6 +1398,7 @@ def test_TableDataset_func():
     assert 'column3' in u
 
     # toString()
+    v = TableDataset(data=a10)
     v.meta = standardtestmeta()
     ts = 'level 0\n'
     ts += v.toString()
@@ -1471,28 +1496,28 @@ def demo_TableDataset():
     # create dummy numeric data:
     # t=Double1d.range(100)
     # e=2*t+100
-    t = [x * 1.0 for x in range(10)]
-    e = [2 * x + 10 for x in t]
+    t= [x * 1.0 for x in range(10)]
+    e= [2 * x + 10 for x in t]
 
     # creating a table dataset to hold the quantified data
-    table = TableDataset(description="Example table")
-    table["Time"] = Column(data=t, unit=SECONDS)
-    table["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+    table= TableDataset(description="Example table")
+    table["Time"]= Column(data=t, unit=SECONDS)
+    table["Energy"]= Column(data=e, unit=ELECTRON_VOLTS)
 
     # alternative Column creation:
-    c = Column()
-    c.data = t
-    c.unit = SECONDS
-    table["Time1"] = c
+    c= Column()
+    c.data= t
+    c.unit= SECONDS
+    table["Time1"]= c
 
     # alternative Column creation using Java syntax:
-    c1 = Column()
+    c1= Column()
     c1.setData(t)
     c1.setUnit(SECONDS)
     table.addColumn("Time2", c1)
 
-    t1 = table.copy()
-    t2 = table.copy()
+    t1= table.copy()
+    t2= table.copy()
     assert table.getColumnCount() == 4
     assert t1.getColumnCount() == 4
     # removing a column by name:
@@ -1505,7 +1530,7 @@ def demo_TableDataset():
     assert t1 == t2
 
     # adding meta:
-    table.meta["Foo"] = Parameter(value="Bar", description="Bla bla")
+    table.meta["Foo"]= Parameter(value="Bar", description="Bla bla")
 
     # table access:
     print(table)  # summary
@@ -1529,57 +1554,57 @@ def test_Column():
 
 def test_CompositeDataset_init():
     # constructor
-    a1 = [768, 4.4, 5.4E3]
-    a2 = 'ev'
-    a3 = 'arraydset 1'
-    a4 = ArrayDataset(data=a1, unit=a2, description=a3)
-    a5, a6, a7 = [[1.09, 289], [3455, 564]], 'count', 'arraydset 2'
-    a8 = ArrayDataset(data=a5, unit=a6, description=a7)
-    v = CompositeDataset()
-    a9 = 'dataset 1'
-    a10 = 'dataset 2'
+    a1= [768, 4.4, 5.4E3]
+    a2= 'ev'
+    a3= 'arraydset 1'
+    a4= ArrayDataset(data=a1, unit=a2, description=a3)
+    a5, a6, a7= [[1.09, 289], [3455, 564]], 'count', 'arraydset 2'
+    a8= ArrayDataset(data=a5, unit=a6, description=a7)
+    v= CompositeDataset()
+    a9= 'dataset 1'
+    a10= 'dataset 2'
     v.set(a9, a4)
     v.set(a10, a8)
     assert len(v.getDataWrappers()) == 2
-    a11 = 'm1'
-    a12 = NumericParameter(description='a different param in metadata',
+    a11= 'm1'
+    a12= NumericParameter(description='a different param in metadata',
                            value=2.3, unit='sec')
-    v.meta[a11] = a12
+    v.meta[a11]= a12
 
     # def test_CompositeDataset_func():
 
     # equality
-    b1 = copy.deepcopy(a1)
-    b2 = ''.join(a2)
-    b3 = ''.join(a3)
-    b4 = ArrayDataset(data=b1, unit=b2, description=b3)
-    b5, b6, b7 = copy.deepcopy(a5), ''.join(a6), ''.join(a7)
-    b8 = ArrayDataset(data=b5, unit=b6, description=b7)
-    v1 = CompositeDataset()
-    b9 = ''.join(a9)
-    b10 = ''.join(a10)
+    b1= copy.deepcopy(a1)
+    b2= ''.join(a2)
+    b3= ''.join(a3)
+    b4= ArrayDataset(data=b1, unit=b2, description=b3)
+    b5, b6, b7= copy.deepcopy(a5), ''.join(a6), ''.join(a7)
+    b8= ArrayDataset(data=b5, unit=b6, description=b7)
+    v1= CompositeDataset()
+    b9= ''.join(a9)
+    b10= ''.join(a10)
     v1.set(b9, b4)
     v1.set(b10, b8)
     assert len(v1.getDataWrappers()) == 2
-    b11 = ''.join(a11)
-    b12 = NumericParameter(description='a different param in metadata',
+    b11= ''.join(a11)
+    b12= NumericParameter(description='a different param in metadata',
                            value=2.3, unit='sec')
-    v1.meta[b11] = b12
+    v1.meta[b11]= b12
 
     assert v == v1
     assert v1 == v
 
     # access datasets mapper
-    sets = v1.getDataWrappers()
+    sets= v1.getDataWrappers()
     assert len(sets) == 2
     assert id(sets[b9]) == id(v1[b9])
 
     # diff dataset access syntax []
     assert v1[b9].data[1] == v1[b9][1]
-    v2 = CompositeDataset()
-    v2[b9] = b4     # compare with v1.set(b9, b4)
-    v2[b10] = b8
-    v2.meta[b11] = b12
+    v2= CompositeDataset()
+    v2[b9]= b4     # compare with v1.set(b9, b4)
+    v2[b10]= b8
+    v2.meta[b11]= b12
     assert v == v2
 
     # change data.
@@ -1589,33 +1614,33 @@ def test_CompositeDataset_init():
     assert v != v1
     assert v1 != v
     # change meta
-    b4 = copy.deepcopy(a4)
-    v1[b9] = b4
+    b4= copy.deepcopy(a4)
+    v1[b9]= b4
     assert v == v1
-    v1.meta[b11].description = 'c'
+    v1.meta[b11].description= 'c'
     assert v != v1
     assert v1 != v
 
     # nested datasets
-    v['v1'] = v1
+    v['v1']= v1
     assert v['v1'][a9] == a4
 
     # toString()
-    v3 = CompositeDataset(description='test CD')
-    v3.meta = standardtestmeta()
+    v3= CompositeDataset(description='test CD')
+    v3.meta= standardtestmeta()
     # creating a table dataset
-    ELECTRON_VOLTS = 'eV'
-    SECONDS = 'sec'
-    t = [x * 1.0 for x in range(5)]
-    e = [2 * x + 100 for x in t]
-    x = TableDataset(description="Example table")
-    x["Time"] = Column(data=t, unit=SECONDS)
-    x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+    ELECTRON_VOLTS= 'eV'
+    SECONDS= 'sec'
+    t= [x * 1.0 for x in range(5)]
+    e= [2 * x + 100 for x in t]
+    x= TableDataset(description="Example table")
+    x["Time"]= Column(data=t, unit=SECONDS)
+    x["Energy"]= Column(data=e, unit=ELECTRON_VOLTS)
     # set a tabledataset ans an arraydset, with a parameter in metadata
     v3.set(a9, a4)
     v3.set(a10, x)
-    v3.meta[a11] = a12
-    ts = 'level 0\n'
+    v3.meta[a11]= a12
+    ts= 'level 0\n'
     ts += v3.toString()
     ts += 'level 1, repr\n'
     ts += v3.toString(1)
@@ -1624,7 +1649,7 @@ def test_CompositeDataset_init():
     if mko:
         print(ts)
         with open('/tmp/fditest_toString', 'a') as f:
-            clsn = 'out_CompositeDataset'
+            clsn= 'out_CompositeDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
         assert ts == out_CompositeDataset
@@ -1637,10 +1662,10 @@ def demo_CompositeDataset():
     """ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/ia/dataset/demo/CompositeDataset.py
     """
     # creating a composite dataset.For this demo, we use empty datasets only.
-    c = CompositeDataset()
-    c["MyArray"] = ArrayDataset()  # adding an array
-    c["MyTable"] = TableDataset()  # adding a table
-    c["MyComposite"] = CompositeDataset()  # adding a composite as child
+    c= CompositeDataset()
+    c["MyArray"]= ArrayDataset()  # adding an array
+    c["MyTable"]= TableDataset()  # adding a table
+    c["MyComposite"]= CompositeDataset()  # adding a composite as child
 
     # alternative Java syntax:
     c.set("MyArray", ArrayDataset())
@@ -1648,13 +1673,13 @@ def demo_CompositeDataset():
     c.set("MyComposite", CompositeDataset())
 
     # adding two children to a "MyComposite":
-    c["MyComposite"]["Child1"] = ArrayDataset()
+    c["MyComposite"]["Child1"]= ArrayDataset()
     assert issubclass(c["MyComposite"]["Child1"].__class__, ArrayDataset)
-    c["MyComposite"]["Child2"] = TableDataset()
-    c["MyComposite"]["Child3"] = TableDataset()
+    c["MyComposite"]["Child2"]= TableDataset()
+    c["MyComposite"]["Child3"]= TableDataset()
 
     # replace array "Child1" by a composite:
-    c["MyComposite"]["Child1"] = CompositeDataset()
+    c["MyComposite"]["Child1"]= CompositeDataset()
     assert issubclass(c["MyComposite"]["Child1"].__class__, CompositeDataset)
 
     # remove3 table "Child3"
@@ -1691,38 +1716,38 @@ def demo_CompositeDataset():
     # or alternatively:
     # <class 'fdi.dataset.dataset.CompositeDataset'>
     # {meta = "MetaData[]", _sets = ['Child1', 'Child2']}
-    child = c["MyComposite"]
+    child= c["MyComposite"]
     print(child.__class__)
     print(child)
 
 
 def test_FineTime():
     # default
-    v = FineTime()
+    v= FineTime()
     assert v.tai == 0
     assert v.format == v.DEFAULT_FORMAT
     assert v.toDate().year == 1958
     # at Epoch, TAI=0
-    v = FineTime(v.EPOCH)
+    v= FineTime(v.EPOCH)
     assert v.tai == 0
     # at TAI = 1, UTC ...
-    v = FineTime(1)
+    v= FineTime(1)
     assert v.toDate().microsecond == 1
-    dt0 = datetime.datetime(
+    dt0= datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
-    v = FineTime(dt0)
+    v= FineTime(dt0)
     assert v.tai == 1929229323456789
-    dt = v.toDate()
+    dt= v.toDate()
     assert int(dt.timestamp()) == int(dt0.timestamp())
     # So that timezone won't show on the left below
-    d = dt.replace(tzinfo=None)
+    d= dt.replace(tzinfo=None)
     assert d.isoformat() == '2019-02-19T01:02:03.456789'
     assert v.tai == v.datetimeToFineTime(dt)
     assert dt == v.toDatetime(v.tai)
     # format
     assert v.isoutc() == '2019-02-19T01:02:03.456789'
     # add 1min 1.1sec
-    v2 = FineTime(datetime.datetime(
+    v2= FineTime(datetime.datetime(
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=timezone.utc))
     assert v != v2
     assert abs(v2.subtract(v) - 61100000) < 0.5
@@ -1732,31 +1757,31 @@ def test_FineTime():
 
 def test_FineTime1():
     # default
-    v = FineTime1()
+    v= FineTime1()
     assert v.tai == 0
     assert v.format == v.DEFAULT_FORMAT
     assert v.toDate().year == 2017
     # at Epoch, TAI=0
-    v = FineTime1(v.EPOCH)
+    v= FineTime1(v.EPOCH)
     assert v.tai == 0
     # at TAI = 1, UTC ...
-    v = FineTime1(1)
+    v= FineTime1(1)
     assert v.toDate().microsecond == 1000
-    dt0 = datetime.datetime(
+    dt0= datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
-    v = FineTime1(dt0)
+    v= FineTime1(dt0)
     assert v.tai == 67309323457
-    dt = v.toDate()
+    dt= v.toDate()
     assert int(dt.timestamp()) == int(dt0.timestamp())
     # So that timezone won't show on the left below
-    d = dt.replace(tzinfo=None)
+    d= dt.replace(tzinfo=None)
     assert d.isoformat() == '2019-02-19T01:02:03.457000'
     assert v.tai == v.datetimeToFineTime(dt)
     assert dt == v.toDatetime(v.tai)
     # format
     assert v.isoutc() == '2019-02-19T01:02:03.457'
     # add 1min 1.1sec
-    v2 = FineTime1(datetime.datetime(
+    v2= FineTime1(datetime.datetime(
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=timezone.utc))
     assert v != v2
     assert abs(v2.subtract(v) - 61100) < 0.5

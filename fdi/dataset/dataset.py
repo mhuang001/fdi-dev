@@ -134,6 +134,10 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
         super(ArrayDataset, self).__init__(data=data, unit=unit,
                                            description=description, typ_=typ_, **kwds)  # initialize data, meta
 
+    # def getData(self):
+    #     """ Optimized """
+    #     return self._data
+
     def setData(self, data):
         """
         """
@@ -284,7 +288,7 @@ class TableModel(object):
 
     def getColumnCount(self):
         """ Returns the number of columns in the model. """
-        return len(self.data)
+        return len(self.getData())
 
     def getColumnName(self, columnIndex):
         """ Returns the name of the column at columnIndex.
@@ -298,7 +302,7 @@ class TableModel(object):
 
     def getColumnNames(self):
         """ Returns the column names. """
-        return list(self.data.keys())
+        return list(self.getData().keys())
 
     def getRowCount(self):
         """ Returns the number of rows in the model. """
@@ -324,7 +328,7 @@ class TableModel(object):
         Or a list of such tuples if given a slice.
         """
 
-        itm = list(self.data.items())
+        itm = list(self.getData().items())
         ret = itm[columIndex]
         return ret
 
@@ -334,7 +338,7 @@ class TableModel(object):
         Or a list of such tuples if given a slice.
         """
 
-        itm = list(self.data.items())
+        itm = list(self.getData().items())
         ret = itm[columIndex]
         return ret
 
@@ -374,6 +378,12 @@ class TableDataset(GenericDataset, TableModel):
         """
         super(TableDataset, self).__init__(
             **kwds)  # initialize data, meta, unit
+
+    def getData(self):
+        """ Optimized for _data being an ``ODict`` implemented with ``UserDict``.
+
+        """
+        return self._data.data
 
     def setData(self, data):
         """ sets name-column pairs from data.
@@ -460,7 +470,7 @@ class TableDataset(GenericDataset, TableModel):
         if name == '' or name is None:
             idx = self.getColumnCount()
             name = 'column' + str(idx)
-        self.data[name] = column
+        self.getData()[name] = column
 
     def removeColumn(self, key):
         """
@@ -478,10 +488,10 @@ class TableDataset(GenericDataset, TableModel):
         mh: Or else returns the key itself.
         """
         if issubclass(key.__class__, str):
-            k = list(self.data.keys())
+            k = list(self.getData().keys())
             idx = k.index(key)
         elif issubclass(key.__class__, Column):
-            v = list(self.data.values())
+            v = list(self.getData().values())
             idx = v.index(key)
         else:
             idx = key
@@ -494,7 +504,7 @@ class TableDataset(GenericDataset, TableModel):
         rows: append each element in row if the row data is a list.
         """
 
-        d = self.data
+        d = self.getData()
         if len(row) < len(d):
             msg = 'row width d% should be %d.' % (len(row), len(d))
             raise ValueError(msg)
@@ -513,18 +523,18 @@ class TableDataset(GenericDataset, TableModel):
 
         if issubclass(rowIndex.__class__, slice):
             # a list of column segments
-            it = [x.data[rowIndex] for x in self.data.values()]
+            it = [x.data[rowIndex] for x in self.getData().values()]
             # return transposed in a list
             return list(zip(*it))
 
-        return [x.data[rowIndex] for x in self.data.values()]
+        return [x.getData()[rowIndex] for x in self.getData().values()]
 
     def getRowMap(self, rowIndex):
         """ Returns a dict of column-names as the keys and the objects located at a particular row(s) as the values.
 
         rowIndex: int or a ``Slice`` object. Example ``a.getRowMsp(Slice(3,,))``.
         """
-        return {n: x.data[rowIndex] for n, x in self.data.items()}
+        return {n: x.data[rowIndex] for n, x in self.getData().items()}
 
     def removeRow(self, rowIndex):
         """ Removes a row with specified index from this table.
@@ -534,12 +544,12 @@ class TableDataset(GenericDataset, TableModel):
         """
         if issubclass(rowIndex.__class__, slice):
             ret = []
-            for x in self.data.values():
+            for x in self.getData().values():
                 ret.append(x.data[rowIndex])
                 del x.data[rowIndex]
             return ret
 
-        return [x.data.pop(rowIndex) for x in self.data.values()]
+        return [x.data.pop(rowIndex) for x in self.getData().values()]
 
     @property
     def rowCount(self):
@@ -576,20 +586,20 @@ class TableDataset(GenericDataset, TableModel):
         if not issubclass(selection.__class__, list):
             raise ValueError('selection is not a list')
         r = TableDataset()
-        for name in self:
-            u = self.data[name].unit
-            c = Column(unit=u, data=[])
+        d = self.getData()
+        for name in self.getColumnNames():
+            n = d[name]
+            c = Column(unit=n.unit, data=[])
             if len(selection) == 0:
-                pass
-            elif isinstance(selection[0], int):
+                continue
+            elif type(selection[0]) == int:
                 for i in selection:
-                    c.data.append(self.data[name][i])
-            elif isinstance(selection[0], bool):
-                i = 0
-                for x in selection:
-                    if x:
-                        c.data.append(self.data[name][i])
-                    i += 1
+                    c.data.append(n[i])
+            elif type(selection[0]) == bool:
+                if len(selection) != len(n):
+                    logger.info('%s Selection length %d should be %d.' %
+                                (name, len(selection), len(n)))
+                c.data = [x for x, s in zip(n, selection) if s]
             else:
                 raise ValueError('selection is not a list of  bool or int')
             r.addColumn(name, c)
@@ -626,7 +636,7 @@ class TableDataset(GenericDataset, TableModel):
     def items(self):
         """ for k,v in tabledataset.items()
         """
-        return self.data.items()
+        return self.getData().items()
 
     def __getitem__(self, key):
         """ return colmn if given string as name or int as index.
@@ -653,11 +663,11 @@ class TableDataset(GenericDataset, TableModel):
         s = '# ' + cn + '\n'
         s += mstr(self.serializable(), level=level, **kwds)
         stp = 2 if level > 1 else 20 if level == 1 else None
-        cols = self.data.values()
+        cols = self.getData().values()
 
         coldata = [list(itertools.islice(x.data, stp)) for x in cols]
         d = cn + '-dataset =\n'
-        nmun = zip((str(x) for x in self.data.keys()),
+        nmun = zip((str(x) for x in self.getData().keys()),
                    (str(x.unit) for x in cols))
         hdr = list('%s\n(%s)' % nu for nu in nmun)
         d += matprint(coldata, trans=trans, headers=hdr,
@@ -671,7 +681,7 @@ class TableDataset(GenericDataset, TableModel):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
                            meta=self.meta,
-                           data=self.data,
+                           data=self.getData(),
                            _STID=self._STID)
 
 

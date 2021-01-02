@@ -16,7 +16,7 @@ OD_toString_Nest = 0
 
 
 class ODict(UserDict, Serializable):
-    """ OrderedDict with a better __repr__.
+    """ Ordered dict that is not a subclass of dict and with a better __repr__.
     """
 
     def __init__(self, *args, **kwds):
@@ -64,15 +64,6 @@ class ODict(UserDict, Serializable):
     #         for item in value:
     #             kk = tuple(item[0])
     #             self[kk] = item[1]
-
-    def __repr1__(self):
-        it = [bstr(k, False) + ':' + bstr(v, False)
-              for k, v in self.data.items()]
-        s = ', '.join(it)
-        if len(s) > 70:
-            s = ',\n\t'.join(it)
-            return 'OD{\n\t' + s + '\t\n}'
-        return 'OD{' + s + '}'
 
     def toString(self, level=0, matprint=None, trans=True, **kwds):
         global OD_toString_Nest

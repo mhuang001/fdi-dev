@@ -5,7 +5,8 @@ import traceback
 from pprint import pprint
 import copy
 import sys
-import pdb
+import functools
+import array
 from datetime import timezone
 
 from fdi.dataset.annotatable import Annotatable
@@ -178,14 +179,16 @@ def est_TupleKeys():
     checkjson(v)
 
 
-def ndlist(*args):
-    """ Generates an N-dimensional array with list.
+def ndlist(*args, atype=list):
+    """ Generates an N-dimensional array with list or an array-type.
+
+    atype: a sequence that can be initialized with a list of atype.
     ``ndlist(2, 3, 4, 5)`` will make a list of 2 lists of 3 lists of 4 lists of 5 elements of 0.
     https://stackoverflow.com/a/33460217
     """
     dp = 0
     for x in reversed(args):
-        dp = [copy.deepcopy(dp) for i in range(x)]
+        dp = atype([copy.deepcopy(dp) for i in range(x)])
     return dp
 
 
@@ -1050,7 +1053,13 @@ def test_GenericDataset():
         assert ts == out_GenericDataset
 
 
-def test_ArrayDataset_init():
+class fa(array.array):
+    def __init__(self, *args, **kwds):
+
+        super().__init__('f', *args, **kwds)
+
+
+def do_ArrayDataset_init(atype):
     # defaults
     v = ArrayDataset()
     assert v.data is None
@@ -1060,7 +1069,7 @@ def test_ArrayDataset_init():
     assert v.default is None
     assert v.typecode is None
     # from DRM
-    a1 = [1, 4.4, 5.4E3]      # an array of data
+    a1 = atype([1, 4.4, 5.4E3])      # an array of data
     a2 = 'ev'                 # unit
     a3 = 'three energy vals'  # description
     a4 = 'float'              # type
@@ -1092,12 +1101,12 @@ def test_ArrayDataset_init():
     assert v2.description == a3
 
 
-def test_ArrayDataset_func():
+def do_ArrayDataset_func(atype):
 
     # test data and unit
-    a1 = [1, 4.4, 5.4E3]      # an array of data
+    a1 = atype([1, 4.4, 5.4E3])      # an array of data
     a2 = 'ev'                 # unit
-    a3 = [34, 9999]
+    a3 = atype([34, 9999])
     a4 = 'm'
     a5 = 'new description'
     v = ArrayDataset(data=a1)
@@ -1110,7 +1119,7 @@ def test_ArrayDataset_func():
     assert v.data[1] == 9999
 
     # test equality
-    a1 = [1, 4.4, 5.4E3]
+    a1 = atype([1, 4.4, 5.4E3])
     a2 = 'ev'
     a3 = 'three energy vals'
     a6 = None
@@ -1121,7 +1130,7 @@ def test_ArrayDataset_func():
     v.meta[a4] = a5
 
     # b[1-5] and v1 have the  same contents as a[1-5] and v
-    b1 = [1, 4.4, 5.4E3]
+    b1 = atype([1, 4.4, 5.4E3])
     b2 = ''.join(a2)
     b3 = ''.join(a3)
     v1 = ArrayDataset(data=b1, unit=b2, description=b3)
@@ -1135,7 +1144,7 @@ def test_ArrayDataset_func():
     assert v1 == v
     # not equal
     # change data
-    v1.data += [6]
+    v1.data += atype([6])
     assert v != v1
     assert v1 != v
     # restore v1 so that v==v1
@@ -1161,7 +1170,40 @@ def test_ArrayDataset_func():
     assert c == v
 
     # data access
-    d = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    d = atype([1, 2, 3, 4, 5, 6])
+    x = ArrayDataset(data=d)
+    assert x.data[5] == 6
+    # slice [2:4] is [3,4]
+    y = x[2:4]
+    assert y[0] == 3
+    # removal
+    r0 = x[2]
+    x.remove(r0)
+    assert x[4] == 6  # x=[1,2,4,5,6]
+    r0 = x[0]
+    assert r0 == x.pop(0)
+    assert x[0] == 2
+
+    # iteration
+    i = atype([])
+    for m in v:
+        i.append(m)
+    assert i == a1
+
+    try:
+        d = atype([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    except TypeError:
+        d = atype([2.3, 4e3, -9.9])
+        x = ArrayDataset(data=d)
+        x.meta = standardtestmeta()
+        ts = x.toString()
+        #print(atype, ts)
+
+        checkjson(x)
+        checkgeneral(x)
+        return
+
+    # high dimension data access
     x = ArrayDataset(data=d)
     assert x.data[1][2] == 6
     assert x.data[1][2] == x[1][2]
@@ -1176,24 +1218,18 @@ def test_ArrayDataset_func():
     assert r0 == x.pop(0)
     assert x[0][1] == 8
 
-    # iteration
-    i = []
-    for m in v:
-        i.append(m)
-    assert i == a1
-
     # toString()
-    d = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    d = atype([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     x = ArrayDataset(data=d)
     x.meta = standardtestmeta()
     ts = x.toString()
     # print(ts)
     s = ndlist(2, 3, 4, 5)
     x = ArrayDataset(data=s, description='toString tester AD', unit='lyr')
-    x[0][1][0] = [0, 0, 0, 0, 0]
-    x[0][1][1] = [0, 0, 0, 1, 0]
-    x[0][1][2] = [5, 4, 3, 2, 1]
-    x[0][1][3] = [0, 0, 0, 3, 0]
+    x[0][1][0] = atype([0, 0, 0, 0, 0])
+    x[0][1][1] = atype([0, 0, 0, 1, 0])
+    x[0][1][2] = atype([5, 4, 3, 2, 1])
+    x[0][1][3] = atype([0, 0, 0, 3, 0])
     x.meta = standardtestmeta()
     ts = 'level 0\n'
     ts += x.toString()
@@ -1214,8 +1250,28 @@ def test_ArrayDataset_func():
     else:
         assert ts == out_ArrayDataset
 
-    checkjson(v)
-    checkgeneral(v)
+    checkjson(x)
+    checkgeneral(x)
+
+
+def test_ArrayDataset_init():
+    atype = list
+    do_ArrayDataset_init(atype)
+
+
+def test_ArrayDataset_func():
+    atype = list
+    do_ArrayDataset_func(atype)
+
+
+def test_ArrayDataset_array_init():
+    atype = functools.partial(array.array, 'f')
+    do_ArrayDataset_init(atype)
+
+
+def test_ArrayDataset_array_func():
+    atype = functools.partial(array.array, 'f')
+    do_ArrayDataset_func(atype)
 
 
 def test_TableModel():
@@ -1397,6 +1453,24 @@ def test_TableDataset_func():
     # syntax ``in``
     assert 'column3' in u
 
+    # select
+    a43 = [[11, 12, 13, 14], [21, 22, 23, 24], [31, 32, 33, 34]]
+    v = TableDataset(data=a43)
+    u = v.copy()
+    u.removeRow(3)
+    u.removeRow(0)
+    assert v.select([1, 2]) == u
+    u = v.copy()
+    u.removeRow(3)
+    u.removeRow(2)
+    u.removeRow(0)
+    assert v.select([False, True, False, False]) == u
+    assert v.select([True, False]) == TableDataset(data=[[11], [21], [31]])
+    assert v.select([True, False, False, False, False]
+                    ) == TableDataset(data=[[11], [21], [31]])
+    assert v.select([True, False, False, False, True]
+                    ) == TableDataset(data=[[11], [21], [31]])
+
     # toString()
     v = TableDataset(data=a10)
     v.meta = standardtestmeta()
@@ -1496,28 +1570,28 @@ def demo_TableDataset():
     # create dummy numeric data:
     # t=Double1d.range(100)
     # e=2*t+100
-    t= [x * 1.0 for x in range(10)]
-    e= [2 * x + 10 for x in t]
+    t = [x * 1.0 for x in range(10)]
+    e = [2 * x + 10 for x in t]
 
     # creating a table dataset to hold the quantified data
-    table= TableDataset(description="Example table")
-    table["Time"]= Column(data=t, unit=SECONDS)
-    table["Energy"]= Column(data=e, unit=ELECTRON_VOLTS)
+    table = TableDataset(description="Example table")
+    table["Time"] = Column(data=t, unit=SECONDS)
+    table["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
 
     # alternative Column creation:
-    c= Column()
-    c.data= t
-    c.unit= SECONDS
-    table["Time1"]= c
+    c = Column()
+    c.data = t
+    c.unit = SECONDS
+    table["Time1"] = c
 
     # alternative Column creation using Java syntax:
-    c1= Column()
+    c1 = Column()
     c1.setData(t)
     c1.setUnit(SECONDS)
     table.addColumn("Time2", c1)
 
-    t1= table.copy()
-    t2= table.copy()
+    t1 = table.copy()
+    t2 = table.copy()
     assert table.getColumnCount() == 4
     assert t1.getColumnCount() == 4
     # removing a column by name:
@@ -1530,7 +1604,7 @@ def demo_TableDataset():
     assert t1 == t2
 
     # adding meta:
-    table.meta["Foo"]= Parameter(value="Bar", description="Bla bla")
+    table.meta["Foo"] = Parameter(value="Bar", description="Bla bla")
 
     # table access:
     print(table)  # summary
@@ -1554,57 +1628,57 @@ def test_Column():
 
 def test_CompositeDataset_init():
     # constructor
-    a1= [768, 4.4, 5.4E3]
-    a2= 'ev'
-    a3= 'arraydset 1'
-    a4= ArrayDataset(data=a1, unit=a2, description=a3)
-    a5, a6, a7= [[1.09, 289], [3455, 564]], 'count', 'arraydset 2'
-    a8= ArrayDataset(data=a5, unit=a6, description=a7)
-    v= CompositeDataset()
-    a9= 'dataset 1'
-    a10= 'dataset 2'
+    a1 = [768, 4.4, 5.4E3]
+    a2 = 'ev'
+    a3 = 'arraydset 1'
+    a4 = ArrayDataset(data=a1, unit=a2, description=a3)
+    a5, a6, a7 = [[1.09, 289], [3455, 564]], 'count', 'arraydset 2'
+    a8 = ArrayDataset(data=a5, unit=a6, description=a7)
+    v = CompositeDataset()
+    a9 = 'dataset 1'
+    a10 = 'dataset 2'
     v.set(a9, a4)
     v.set(a10, a8)
     assert len(v.getDataWrappers()) == 2
-    a11= 'm1'
-    a12= NumericParameter(description='a different param in metadata',
+    a11 = 'm1'
+    a12 = NumericParameter(description='a different param in metadata',
                            value=2.3, unit='sec')
-    v.meta[a11]= a12
+    v.meta[a11] = a12
 
     # def test_CompositeDataset_func():
 
     # equality
-    b1= copy.deepcopy(a1)
-    b2= ''.join(a2)
-    b3= ''.join(a3)
-    b4= ArrayDataset(data=b1, unit=b2, description=b3)
-    b5, b6, b7= copy.deepcopy(a5), ''.join(a6), ''.join(a7)
-    b8= ArrayDataset(data=b5, unit=b6, description=b7)
-    v1= CompositeDataset()
-    b9= ''.join(a9)
-    b10= ''.join(a10)
+    b1 = copy.deepcopy(a1)
+    b2 = ''.join(a2)
+    b3 = ''.join(a3)
+    b4 = ArrayDataset(data=b1, unit=b2, description=b3)
+    b5, b6, b7 = copy.deepcopy(a5), ''.join(a6), ''.join(a7)
+    b8 = ArrayDataset(data=b5, unit=b6, description=b7)
+    v1 = CompositeDataset()
+    b9 = ''.join(a9)
+    b10 = ''.join(a10)
     v1.set(b9, b4)
     v1.set(b10, b8)
     assert len(v1.getDataWrappers()) == 2
-    b11= ''.join(a11)
-    b12= NumericParameter(description='a different param in metadata',
+    b11 = ''.join(a11)
+    b12 = NumericParameter(description='a different param in metadata',
                            value=2.3, unit='sec')
-    v1.meta[b11]= b12
+    v1.meta[b11] = b12
 
     assert v == v1
     assert v1 == v
 
     # access datasets mapper
-    sets= v1.getDataWrappers()
+    sets = v1.getDataWrappers()
     assert len(sets) == 2
     assert id(sets[b9]) == id(v1[b9])
 
     # diff dataset access syntax []
     assert v1[b9].data[1] == v1[b9][1]
-    v2= CompositeDataset()
-    v2[b9]= b4     # compare with v1.set(b9, b4)
-    v2[b10]= b8
-    v2.meta[b11]= b12
+    v2 = CompositeDataset()
+    v2[b9] = b4     # compare with v1.set(b9, b4)
+    v2[b10] = b8
+    v2.meta[b11] = b12
     assert v == v2
 
     # change data.
@@ -1614,33 +1688,33 @@ def test_CompositeDataset_init():
     assert v != v1
     assert v1 != v
     # change meta
-    b4= copy.deepcopy(a4)
-    v1[b9]= b4
+    b4 = copy.deepcopy(a4)
+    v1[b9] = b4
     assert v == v1
-    v1.meta[b11].description= 'c'
+    v1.meta[b11].description = 'c'
     assert v != v1
     assert v1 != v
 
     # nested datasets
-    v['v1']= v1
+    v['v1'] = v1
     assert v['v1'][a9] == a4
 
     # toString()
-    v3= CompositeDataset(description='test CD')
-    v3.meta= standardtestmeta()
+    v3 = CompositeDataset(description='test CD')
+    v3.meta = standardtestmeta()
     # creating a table dataset
-    ELECTRON_VOLTS= 'eV'
-    SECONDS= 'sec'
-    t= [x * 1.0 for x in range(5)]
-    e= [2 * x + 100 for x in t]
-    x= TableDataset(description="Example table")
-    x["Time"]= Column(data=t, unit=SECONDS)
-    x["Energy"]= Column(data=e, unit=ELECTRON_VOLTS)
+    ELECTRON_VOLTS = 'eV'
+    SECONDS = 'sec'
+    t = [x * 1.0 for x in range(5)]
+    e = [2 * x + 100 for x in t]
+    x = TableDataset(description="Example table")
+    x["Time"] = Column(data=t, unit=SECONDS)
+    x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
     # set a tabledataset ans an arraydset, with a parameter in metadata
     v3.set(a9, a4)
     v3.set(a10, x)
-    v3.meta[a11]= a12
-    ts= 'level 0\n'
+    v3.meta[a11] = a12
+    ts = 'level 0\n'
     ts += v3.toString()
     ts += 'level 1, repr\n'
     ts += v3.toString(1)
@@ -1649,7 +1723,7 @@ def test_CompositeDataset_init():
     if mko:
         print(ts)
         with open('/tmp/fditest_toString', 'a') as f:
-            clsn= 'out_CompositeDataset'
+            clsn = 'out_CompositeDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
         assert ts == out_CompositeDataset
@@ -1662,10 +1736,10 @@ def demo_CompositeDataset():
     """ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/ia/dataset/demo/CompositeDataset.py
     """
     # creating a composite dataset.For this demo, we use empty datasets only.
-    c= CompositeDataset()
-    c["MyArray"]= ArrayDataset()  # adding an array
-    c["MyTable"]= TableDataset()  # adding a table
-    c["MyComposite"]= CompositeDataset()  # adding a composite as child
+    c = CompositeDataset()
+    c["MyArray"] = ArrayDataset()  # adding an array
+    c["MyTable"] = TableDataset()  # adding a table
+    c["MyComposite"] = CompositeDataset()  # adding a composite as child
 
     # alternative Java syntax:
     c.set("MyArray", ArrayDataset())
@@ -1673,13 +1747,13 @@ def demo_CompositeDataset():
     c.set("MyComposite", CompositeDataset())
 
     # adding two children to a "MyComposite":
-    c["MyComposite"]["Child1"]= ArrayDataset()
+    c["MyComposite"]["Child1"] = ArrayDataset()
     assert issubclass(c["MyComposite"]["Child1"].__class__, ArrayDataset)
-    c["MyComposite"]["Child2"]= TableDataset()
-    c["MyComposite"]["Child3"]= TableDataset()
+    c["MyComposite"]["Child2"] = TableDataset()
+    c["MyComposite"]["Child3"] = TableDataset()
 
     # replace array "Child1" by a composite:
-    c["MyComposite"]["Child1"]= CompositeDataset()
+    c["MyComposite"]["Child1"] = CompositeDataset()
     assert issubclass(c["MyComposite"]["Child1"].__class__, CompositeDataset)
 
     # remove3 table "Child3"
@@ -1716,38 +1790,38 @@ def demo_CompositeDataset():
     # or alternatively:
     # <class 'fdi.dataset.dataset.CompositeDataset'>
     # {meta = "MetaData[]", _sets = ['Child1', 'Child2']}
-    child= c["MyComposite"]
+    child = c["MyComposite"]
     print(child.__class__)
     print(child)
 
 
 def test_FineTime():
     # default
-    v= FineTime()
+    v = FineTime()
     assert v.tai == 0
     assert v.format == v.DEFAULT_FORMAT
     assert v.toDate().year == 1958
     # at Epoch, TAI=0
-    v= FineTime(v.EPOCH)
+    v = FineTime(v.EPOCH)
     assert v.tai == 0
     # at TAI = 1, UTC ...
-    v= FineTime(1)
+    v = FineTime(1)
     assert v.toDate().microsecond == 1
-    dt0= datetime.datetime(
+    dt0 = datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
-    v= FineTime(dt0)
+    v = FineTime(dt0)
     assert v.tai == 1929229323456789
-    dt= v.toDate()
+    dt = v.toDate()
     assert int(dt.timestamp()) == int(dt0.timestamp())
     # So that timezone won't show on the left below
-    d= dt.replace(tzinfo=None)
+    d = dt.replace(tzinfo=None)
     assert d.isoformat() == '2019-02-19T01:02:03.456789'
     assert v.tai == v.datetimeToFineTime(dt)
     assert dt == v.toDatetime(v.tai)
     # format
     assert v.isoutc() == '2019-02-19T01:02:03.456789'
     # add 1min 1.1sec
-    v2= FineTime(datetime.datetime(
+    v2 = FineTime(datetime.datetime(
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=timezone.utc))
     assert v != v2
     assert abs(v2.subtract(v) - 61100000) < 0.5
@@ -1757,31 +1831,31 @@ def test_FineTime():
 
 def test_FineTime1():
     # default
-    v= FineTime1()
+    v = FineTime1()
     assert v.tai == 0
     assert v.format == v.DEFAULT_FORMAT
     assert v.toDate().year == 2017
     # at Epoch, TAI=0
-    v= FineTime1(v.EPOCH)
+    v = FineTime1(v.EPOCH)
     assert v.tai == 0
     # at TAI = 1, UTC ...
-    v= FineTime1(1)
+    v = FineTime1(1)
     assert v.toDate().microsecond == 1000
-    dt0= datetime.datetime(
+    dt0 = datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
-    v= FineTime1(dt0)
+    v = FineTime1(dt0)
     assert v.tai == 67309323457
-    dt= v.toDate()
+    dt = v.toDate()
     assert int(dt.timestamp()) == int(dt0.timestamp())
     # So that timezone won't show on the left below
-    d= dt.replace(tzinfo=None)
+    d = dt.replace(tzinfo=None)
     assert d.isoformat() == '2019-02-19T01:02:03.457000'
     assert v.tai == v.datetimeToFineTime(dt)
     assert dt == v.toDatetime(v.tai)
     # format
     assert v.isoutc() == '2019-02-19T01:02:03.457'
     # add 1min 1.1sec
-    v2= FineTime1(datetime.datetime(
+    v2 = FineTime1(datetime.datetime(
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=timezone.utc))
     assert v != v2
     assert abs(v2.subtract(v) - 61100) < 0.5

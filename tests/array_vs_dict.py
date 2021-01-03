@@ -3,24 +3,9 @@
 import time
 import timeit
 
-# N = 1000
-# a = list()
-# d = dict()
-# for i in []:  # range(N):
-#     t, y, k, v = random.randrange(N), random(), i, random()
-#     a.append(y)
-#     d[i] = v
-
-loop = 10
+loop = 1
 rpt = 1
 N = 1000000
-
-print('TableDataset')
-t0 = time.time()
-t = timeit.Timer('for p in t: a.getRow(p)',
-                 setup='import random; from fdi.dataset.dataset import TableDataset; gc.enable(); N= %d; t, y = [random.randrange(N) for i in range(N)], [list(random.random() for i in range(N))];a=TableDataset(data=y)' % (N))
-t1 = t.repeat(rpt, number=loop)
-print(t1, 'setup', time.time()-t0-t1[0])
 
 print('1D', N)
 
@@ -31,14 +16,12 @@ t = timeit.Timer('[p for p in t]',
 t1 = t.repeat(rpt, number=loop)
 print(t1, 'setup', time.time()-t0-t1[0])
 
-print('array')
+print('list')
 t0 = time.time()
 t = timeit.Timer('[y[p] for p in t]',
                  setup='import random; gc.enable(); N=%d; t, y = [random.randrange(N) for i in range(N)], [random.random() for i in range(N)]' % N)
 t1 = t.repeat(rpt, number=loop)
 print(t1, 'setup', time.time()-t0-t1[0])
-
-exit()
 
 print('dict')
 t0 = time.time()
@@ -51,6 +34,13 @@ print('odict')
 t0 = time.time()
 t = timeit.Timer('for p in t: a[p]',
                  setup='import random; from fdi.dataset.odict import ODict; gc.enable(); N= %d; t, y = [random.randrange(N) for i in range(N)], ODict((i, random.random()) for i in range(N));a=y.data' % (N))
+t1 = t.repeat(rpt, number=loop)
+print(t1, 'setup', time.time()-t0-t1[0])
+
+print('TableDataset')
+t0 = time.time()
+t = timeit.Timer('for p in t: a.getRow(p)',
+                 setup='import random; from fdi.dataset.dataset import TableDataset; gc.enable(); N= %d; t, y = [random.randrange(N) for i in range(N)], [list(random.random() for i in range(N))];a=TableDataset(data=y)' % (N))
 t1 = t.repeat(rpt, number=loop)
 print(t1, 'setup', time.time()-t0-t1[0])
 
@@ -68,7 +58,7 @@ t1 = t.repeat(rpt, number=loop)
 print(t1, 'setup', time.time()-t0-t1[0])
 
 
-print('array')
+print('list')
 t0 = time.time()
 t = timeit.Timer('for p,q in t: y[p][q]',
                  setup='import random; gc.enable(); N, m, n=%d, %d, %d; t, y = [(random.randrange(m), random.randrange(n)) for i in range(N)], [[random.random() for i in range(n)] for j in range(m)]' % (N, m, n))

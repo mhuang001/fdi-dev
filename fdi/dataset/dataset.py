@@ -378,12 +378,21 @@ class TableDataset(GenericDataset, TableModel):
         """
         super(TableDataset, self).__init__(
             **kwds)  # initialize data, meta, unit
+        self._indexCols = 0
 
     def getData(self):
         """ Optimized for _data being an ``ODict`` implemented with ``UserDict``.
 
         """
-        return self._data.data
+
+        try:
+            return self._data.data
+        except AttributeError:
+            d = super().getData()
+            if hasattr(d, 'data'):
+                return self._data.data
+            else:
+                return d
 
     def setData(self, data):
         """ sets name-column pairs from data.
@@ -397,68 +406,50 @@ class TableDataset(GenericDataset, TableModel):
         """
         # logging.debug(data.__class__)
 
-        if data is not None:
-            # d will be {<name1 str>:<column1 Column>, ... }
-            d = ODict()
-            replace = True
-            if issubclass(data.__class__, seqlist):
-                try:
-                    current_data = self.getData()
-                except AttributeError:
-                    current_data = None
-                # list of keys of current data
-                curdk = list(current_data.keys()) if current_data else []
-                ind = 0
-                for x in data:
-                    if issubclass(x.__class__, maplist) \
-                       and 'name' in x and 'column' in x:
-                        # if issubclass(x['column'].__class__, Column):
-                        #     col = x['column']
-                        # else:
-                        #     col = Column(data=x['column'], unit=x['unit'])
-                        # d[x['name']] = col
-                        raise DeprecationWarning(
-                            'Do not use {"name":name, "column":column}]. Use {name:column, ...} instead.')
+        if data is None:
+            super(TableDataset, self).setData(ODict())
+            return
 
-                    if issubclass(x.__class__, list):
-                        if current_data is None:
-                            d['column' + str(ind + 1)
-                              ] = Column(data=x, unit=None)
-                        elif len(current_data) <= ind:
-                            current_data['column' + str(ind + 1)
-                                         ] = Column(data=x, unit=None)
-                        else:
-                            current_data[curdk[ind]].data = x
-                            replace = False
-                    elif issubclass(x.__class__, tuple):
-                        if len(x) == 3:
-                            d[x[0]] = Column(data=x[1], unit=x[2])
-                        elif issubclass(x[0].__class__, str) and \
-                                issubclass(x[1].__class__, Column):
-                            d[x[0]] = x[1]
-                        else:
-                            raise ValueError(
-                                'column tuples must be  (str, Column), or (str, List, str)')
+        current_data = self.getData()
+        # list of keys of current data
+        curdk = list(current_data.keys()) if current_data else []
+        super(TableDataset, self).setData(ODict())
+        if issubclass(data.__class__, seqlist):
+            for ind, x in enumerate(data):
+                if issubclass(x.__class__, maplist) \
+                   and 'name' in x and 'column' in x:
+                    raise DeprecationWarning(
+                        'Do not use [{"name":name, "column":column}...]. Use {name:column, ...} instead.')
+
+                if issubclass(x.__class__, list):
+                    if current_data is None or len(current_data) <= ind:
+                        self.setColumn('', Column(data=x, unit=None))
+                    else:
+                        colname = curdk[ind]
+                        current_data[colname].data = x
+                        self.setColumn(colname, current_data[colname])
+                elif issubclass(x.__class__, tuple):
+                    if len(x) == 3:
+                        self.setColumn(x[0], Column(data=x[1], unit=x[2]))
+                    elif issubclass(x[0].__class__, str) and \
+                            issubclass(x[1].__class__, Column):
+                        self.setColumn(x[0], x[1])
                     else:
                         raise ValueError(
-                            'cannot extract name and column at list member ' + str(x))
-                    ind += 1
-            elif issubclass(data.__class__, maplist):
-                for k, v in data.items():
-                    d[k] = v
-            else:
-                raise TypeError('must be a Sequence or a Mapping. ' +
-                                data.__class__.__name__ + ' found.')
-
-            # logging.debug(d)
-            if replace:
-                super(TableDataset, self).setData(d)
+                            'Column tuples must be (str, Column), or (str, List, str)')
+                else:
+                    raise ValueError(
+                        'Cannot extract name and column at list member ' + str(x))
+        elif issubclass(data.__class__, maplist):
+            for k, v in data.items():
+                self.setColumn(k, v)
         else:
-            super(TableDataset, self).setData(ODict())
+            raise TypeError('must be a Sequence or a Mapping. ' +
+                            data.__class__.__name__ + ' found.')
 
     def addColumn(self, name, column):
         """ Adds the specified column to this table, and attaches a name
-        to it. If the name is null, a dummy name "column"+column_count is created, such that it can be accessed by getColumn(str).
+        to it. If the name is null, a dummy name "column"+column_count+1 is created, such that it can be accessed by getColumn(str).
 
         If column name exists the corresponding column is substituted.
 
@@ -467,10 +458,13 @@ class TableDataset(GenericDataset, TableModel):
         column - column to be added.
         """
 
+        d = self.getData()
+        if d is None:
+            d = ODict()
         if name == '' or name is None:
             idx = self.getColumnCount()
-            name = 'column' + str(idx)
-        self.getData()[name] = column
+            name = 'column' + str(idx+1)
+        d[name] = column
 
     def removeColumn(self, key):
         """
@@ -577,6 +571,21 @@ class TableDataset(GenericDataset, TableModel):
         """
         raise ValueError('Cannot set column count.')
 
+    @property
+    def indexCols(self):
+        return self._indexCols
+
+    @indexCols.setter
+    def indexCols(self, key):
+        """ set the key pattern used to retrieve rows.
+
+        key: if is an integer, will be taken as the column number future look-up will search and return the row where  a match is found. TODO: If key is a tuple ..
+        """
+        if type(key) != int:
+            raise TypeError(
+                'Must provide an integer to specify look-up column.')
+        self._indexCols = key
+
     def select(self, selection):
         """ Select a number of rows from this table dataset and
         return a new TableDataset object containing only the selected rows.
@@ -625,7 +634,9 @@ class TableDataset(GenericDataset, TableModel):
         """ Replaces a column in this table with specified name to specified column if key is a string and exists, or if the key is an integer in 0 to the number of columns, insert at column-index=key, with the name 'column'+key, else add a new coolumn.
         """
 
-        if type(key) == int:
+        if self.getData() is None:
+            key = ''
+        elif type(key) == int:
             nms = self.getColumnNames()
             if 0 <= key and key < len(nms):
                 key = nms[key]
@@ -680,6 +691,7 @@ class TableDataset(GenericDataset, TableModel):
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
+                           indexCols=self._indexCols,
                            meta=self.meta,
                            data=self.getData(),
                            _STID=self._STID)

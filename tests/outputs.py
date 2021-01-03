@@ -369,6 +369,7 @@ MetaData-listeners = ListnerSet{}}"""
 out_TableDataset = """level 0
 # TableDataset
 description= {'UNKNOWN'},
+indexCols= {0},
 meta= {
 +--------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
 | name   | value             | unit   | type     | valid                | default         | code   | description       |
@@ -404,6 +405,7 @@ TableDataset-dataset =
 level 1, repr
 # TableDataset
 description= {'UNKNOWN'},
+indexCols= {0},
 meta= {
 ------------  -------------------  ------------------
 a= 3.4        b= ever (2019-02-19  c= Invalid (Right)
@@ -424,7 +426,7 @@ TableDataset-dataset =
 
 level 2,
 # TableDataset
-description, meta
+description, indexCols, meta
 TableDataset-dataset =
   col1     col2
   (eV)    (cnt)
@@ -482,6 +484,7 @@ ArrayDataset-dataset =
 #     [ dataset 2 ]
 # TableDataset
 description= {'Example table'},
+indexCols= {0},
 meta= {
 (empty)
 MetaData-listeners = ListnerSet{}}
@@ -528,6 +531,7 @@ ArrayDataset-dataset =
 #     [ dataset 2 ]
 # TableDataset
 description= {'Example table'},
+indexCols= {0},
 meta= {
 (empty)
 MetaData-listeners = ListnerSet{}
@@ -555,7 +559,7 @@ ArrayDataset{ [768, 4.4, 5400.0] (ev) <None>, "arraydset 1", default None, tcode
 MetaData-listeners = ListnerSet{}}
 #     [ dataset 2 ]
 # TableDataset
-description, meta
+description, indexCols, meta
 TableDataset-dataset =
    Time    Energy
   (sec)      (eV)

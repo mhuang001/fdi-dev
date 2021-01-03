@@ -1359,7 +1359,7 @@ def test_TableDataset_func():
     w[2] = a1['col1']  # now w['col3']==a1['col1']
     assert w['col3'] == a1['col1']
     w[3] = a1['col2']
-    assert w['column3'] == a1['col2']
+    assert w['column4'] == a1['col2']   # assigned col name is 'column'+3+1
 
     # slice
     sliced = w[1:3]   # a list if the 2nd and 3rd cols

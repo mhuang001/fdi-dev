@@ -4,6 +4,8 @@ from .quantifiable import Quantifiable
 from .eq import DeepEqual
 from .copyable import Copyable
 from .annotatable import Annotatable
+
+from collections.abc import Container
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -17,9 +19,18 @@ class DataContainer(Annotatable, Quantifiable, Copyable, DeepEqual):
     """
 
     def __init__(self, data=None, **kwds):
+        """
+
+        data: a Container. Default is None.
+        """
         #print(__name__ + str(kwds))
         super(DataContainer, self).__init__(**kwds)
-        self.setData(data)
+
+        if data is None or issubclass(data.__class__, Container):
+            self.setData(data)
+        else:
+            raise TypeError('DataContainer needs a Container to initialize, not ' +
+                            type(data).__name__)
 
     @property
     def data(self):
@@ -38,7 +49,12 @@ class DataContainer(Annotatable, Quantifiable, Copyable, DeepEqual):
 
     def getData(self):
         """ Returns the data in this dw"""
-        return self._data
+        try:
+            return self._data
+        except AttributeError:
+            od = ODict()
+            self._data = od
+            return od
 
     def hasData(self):
         """ Returns whether this data wrapper has data. """

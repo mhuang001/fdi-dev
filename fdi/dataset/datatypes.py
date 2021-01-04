@@ -30,6 +30,7 @@ DataTypes = {
     'mapContext': 'MapContext',
     'product': 'Product',
     'vector': 'Vector',
+    'vector2d': 'Vector2D',
     'quaternion': 'Quaternion',
     '': 'None'
 }
@@ -122,6 +123,24 @@ class Vector(Serializable, DeepEqual):
         return OrderedDict(
             components=list(self.components),
             _STID=self._STID)
+
+
+class Vector2D(Vector):
+    """ Vector with 2-component data.
+    """
+
+    def __init__(self, components=None, **kwds):
+        """ invoked with no argument results in a vector of
+        [0, 0] components
+
+        """
+
+        super(Vector2D, self).__init__(**kwds)
+
+        if components is None:
+            self._data = [0, 0]
+        else:
+            self.setComponents(components)
 
 
 class Quaternion(Vector):

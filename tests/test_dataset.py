@@ -25,7 +25,7 @@ from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
 from fdi.dataset.ndprint import ndprint
-from fdi.dataset.datatypes import Vector, Quaternion
+from fdi.dataset.datatypes import Vector, Vector2D, Quaternion
 from fdi.dataset.invalid import INVALID
 from fdi.dataset.finetime import FineTime, FineTime1
 from fdi.dataset.history import History
@@ -407,9 +407,15 @@ def test_datatypes():
     assert v.getComponents() == [1, 2.3, 4.5]
     checkjson(v)
 
+    v = Vector2D()
+    assert len(v) == 2
+    assert v.getComponents() == [0, 0]
+    v = Vector([1, 2.3])
+    assert v.getComponents() == [1, 2.3]
     # assignment
     v.components = [0xaa, 1, 1e2]
     assert v.components == [0xaa, 1, 1e2]
+    checkjson(v)
 
     # Quaternion
     v = Quaternion([-1, 1, 2.3, 4.5])
@@ -1197,7 +1203,7 @@ def do_ArrayDataset_func(atype):
         x = ArrayDataset(data=d)
         x.meta = standardtestmeta()
         ts = x.toString()
-        #print(atype, ts)
+        # print(atype, ts)
 
         checkjson(x)
         checkgeneral(x)
@@ -1328,7 +1334,48 @@ def test_TableDataset_init():
     assert v5['column2'][1] == 43.2
 
 
-def test_TableDataset_func():
+def test_TableDataset_func_row():
+    # row ops
+    v = TableDataset()
+    c1 = Column([1, 4], 'sec')
+    v.addColumn('col3', copy.deepcopy(c1))
+    # for non-existing names set is addColum.
+    c2 = Column([2, 3], 'eu')
+    v['col4'] = copy.deepcopy(c2)
+
+    # addRow
+    assert v.rowCount == 2
+    cc = copy.deepcopy(v['col3'])
+    c33, c44 = 3.3, 4.4
+    v.addRow({'col4': c44, 'col3': c33})
+    assert v.rowCount == 3
+    cc.append(c33)
+    assert v['col3'] == cc   # [1, 4, 3.3]
+    # add rows
+    c33, c44 = [6.6, 9.9], [8.8, 12]
+    v.addRow({'col4': c44, 'col3': c33}, rows=True)
+    assert v.rowCount == 5
+    cc.data.extend(c33)
+    assert v['col3'] == cc
+    # remove Row and rows
+    assert v.removeRow(1) == [c1.data[1], c2.data[1]]
+    assert v.rowCount == 4
+    assert cc.pop(1) == c1.data[1]
+    assert v['col3'] == cc
+    # read rowa with slice
+    s = v.getRow(slice(1, 3))
+    assert s == [(3.3, 4.4), (6.6, 8.8)]
+    assert [s[0][0], s[1][0]] == cc[1:3]
+    assert v.getRowMap(slice(1, 3)) == {'col3': [3.3, 6.6], 'col4': [4.4, 8.8]}
+    # read rowa with slice
+    assert v.removeRow(slice(1, 3)) == [[3.3, 6.6], [4.4, 8.8]]
+    assert v.rowCount == 2
+    del cc[1:3]
+    assert v['col3'] == cc
+    # acess rows
+
+
+def test_TableDataset_func_column():
     # add, set, and replace columns
     # column set / get
     # http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/dataset/TableDataset.html#Z:Z__setitem__-java.lang.String-herschel.ia.dataset.Column-
@@ -1353,6 +1400,13 @@ def test_TableDataset_func():
     w['col3'] = c5
     assert w['col3'] == c5
 
+    # column names
+    assert u.getColumnNames() == ['col3', 'col4']
+    # unit access
+    assert u['col4'].unit == 'j'
+    # access index with indexOf
+    assert u.indexOf('col3') == u.indexOf(c1)
+
     # column by index
     assert w[1] == a1['col2']
     # write with index
@@ -1360,6 +1414,20 @@ def test_TableDataset_func():
     assert w['col3'] == a1['col1']
     w[3] = a1['col2']
     assert w['column4'] == a1['col2']   # assigned col name is 'column'+3+1
+
+    # getColumn
+    a34 = [[11, 12, 13], [21, 22, 23], [31, 32, 33], [41, 42, 43]]
+    v = TableDataset(data=a34)
+    u = copy.deepcopy(a34)
+
+    assert v.getColumn(3) == Column(u[3])
+    assert v.getColumn('column4') == Column(u[3])
+    assert v.getColumn([1, 2]) == [Column(u[1]), Column(u[2])]
+    assert v.getColumn(['column2', 'column3']) == [Column(u[1]), Column(u[2])]
+    assert v.getColumn([False, True, False, False]) == [Column(u[1])]
+    assert v.getColumn([True, False]) == [Column(u[0])]
+    assert v.getColumn([True, False, False, False, False]) == [Column(u[0])]
+    assert v.getColumn([True, False, False, False, True]) == [Column(u[0])]
 
     # slice
     sliced = w[1:3]   # a list if the 2nd and 3rd cols
@@ -1375,55 +1443,15 @@ def test_TableDataset_func():
     assert id(w2['col2']) == id(w['col2'])
     assert w2['col3'] == w['col3']
     assert id(w2['col3']) == id(w['col3'])
-    del w, w2, sliced, sl2
 
-    # row ops
-    v = TableDataset()
+
+def test_TableDataset_func():
+    u = TableDataset()
     c1 = Column([1, 4], 'sec')
-    v.addColumn('col3', copy.deepcopy(c1))
-    # for non-existing names set is addColum.
+    u.addColumn('col3', c1)
     c2 = Column([2, 3], 'eu')
-    v['col4'] = copy.deepcopy(c2)
+    u['col4'] = c2
 
-    # addRow
-    assert v.rowCount == 2
-    cc = copy.deepcopy(c1)
-    c33, c44 = 3.3, 4.4
-    v.addRow({'col4': c44, 'col3': c33})
-    assert v.rowCount == 3
-    cc.append(c33)
-    assert v['col3'] == cc   # [1, 4, 3.3, 6.6, 9.9]
-    # add rows
-    c33, c44 = [6.6, 9.9], [8.8, 12]
-    v.addRow({'col4': c44, 'col3': c33}, rows=True)
-    assert v.rowCount == 5
-    cc.data.extend(c33)
-    assert v['col3'] == cc
-    # remove Row and rows
-    assert v.removeRow(1) == [c1.data[1], c2.data[1]]
-    assert v.rowCount == 4
-    assert cc.pop(1) == c1.data[1]
-    assert v['col3'] == cc
-    # read rowa with slice
-    s = v.getRow(slice(1, 3))
-    assert s == [(3.3, 4.4), (6.6, 8.8)]
-    assert [s[0][0], s[1][0]] == cc[1:3]
-    assert v.getRowMap(slice(1, 3)) == {'col3': [3.3, 6.6], 'col4': [4.4, 8.8]}
-    # read rowa with slice
-    assert v.removeRow(slice(1, 3)) == [[3.3, 6.6], [4.4, 8.8]]
-    assert v.rowCount == 2
-    del cc[1:3]
-    assert v['col3'] == cc
-    # acess rows
-
-    del v, cc
-
-    # column names
-    assert u.getColumnNames() == ['col3', 'col4']
-    # unit access
-    assert u['col4'].unit == 'j'
-    # access index with indexOf
-    assert u.indexOf('col3') == u.indexOf(c1)
     # access cell value
     u.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
     assert u.getValueAt(rowIndex=1, columnIndex=1) == 42

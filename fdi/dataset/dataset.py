@@ -295,10 +295,8 @@ class TableModel(object):
 
         returns a set of columns if key  is a slice.
         """
-        cs = self.col(columnIndex)
-        if issubclass(columnIndex.__class__, slice):
-            return zip(*cs)[0]
-        return cs[0]
+        namelist = self.getColumnNames()
+        return namelist[columnIndex]
 
     def getColumnNames(self):
         """ Returns the column names. """
@@ -376,9 +374,9 @@ class TableDataset(GenericDataset, TableModel):
     def __init__(self, **kwds):
         """
         """
+        self._indexCols = (0,)
         super(TableDataset, self).__init__(
             **kwds)  # initialize data, meta, unit
-        self._indexCols = 0
 
     def getData(self):
         """ Optimized for _data being an ``ODict`` implemented with ``UserDict``.
@@ -420,9 +418,9 @@ class TableDataset(GenericDataset, TableModel):
                    and 'name' in x and 'column' in x:
                     raise DeprecationWarning(
                         'Do not use [{"name":name, "column":column}...]. Use {name:column, ...} instead.')
-
                 if issubclass(x.__class__, list):
                     if current_data is None or len(current_data) <= ind:
+                        # update the data of the ind-th column
                         self.setColumn('', Column(data=x, unit=None))
                     else:
                         colname = curdk[ind]
@@ -447,7 +445,7 @@ class TableDataset(GenericDataset, TableModel):
             raise TypeError('must be a Sequence or a Mapping. ' +
                             data.__class__.__name__ + ' found.')
 
-    def addColumn(self, name, column):
+    def addColumn(self, name, column, col_des=False):
         """ Adds the specified column to this table, and attaches a name
         to it. If the name is null, a dummy name "column"+column_count+1 is created, such that it can be accessed by getColumn(str).
 
@@ -456,6 +454,7 @@ class TableDataset(GenericDataset, TableModel):
         Parameters:
         name - column name.
         column - column to be added.
+        col_des - if True (default) and column descripion is 'UNKNOWN', set to column name.
         """
 
         d = self.getData()
@@ -464,6 +463,8 @@ class TableDataset(GenericDataset, TableModel):
         if name == '' or name is None:
             idx = self.getColumnCount()
             name = 'column' + str(idx+1)
+        if col_des and column.getDescription() == 'UNKNOWN':
+            column.setDescription(name)
         d[name] = column
 
     def removeColumn(self, key):
@@ -509,26 +510,63 @@ class TableDataset(GenericDataset, TableModel):
             else:
                 d[c].data.append(row[c])
 
-    def getRow(self, rowIndex):
-        """ Returns a list containing the objects located in a particular row, or a list of tuples each represent a row.
-
-        rowIndex: int or a ``Slice`` object. Example ``a.getRow(Slice(3,,))``.
-        """
-
-        if issubclass(rowIndex.__class__, slice):
-            # a list of column segments
-            it = [x.data[rowIndex] for x in self.getData().values()]
-            # return transposed in a list
-            return list(zip(*it))
-
-        return [x.getData()[rowIndex] for x in self.getData().values()]
-
     def getRowMap(self, rowIndex):
         """ Returns a dict of column-names as the keys and the objects located at a particular row(s) as the values.
 
-        rowIndex: int or a ``Slice`` object. Example ``a.getRowMsp(Slice(3,,))``.
+        rowIndex: return the following as the value for each key-value pair:
+* int: the int-th row's elements;
+* ``Slice`` object, a list of rows from slicing the column. Example ``a.getRow(Slice(3,,))``;
+* list of integers: they are used as the row index to select the rows.
+* list of booleans: rows where the corresponding boolean is True are chosen.
         """
-        return {n: x.data[rowIndex] for n, x in self.getData().items()}
+        cl = rowIndex.__class__
+        d = self.getData()
+        if issubclass(cl, (int, slice)):
+            return {n: x.getData()[rowIndex] for n, x in d.items()}
+        if issubclass(cl, list):
+            if type(rowIndex[0]) == int:
+                return {n: [x.data[i] for i in rowIndex] for n, x in d.items()}
+            if type(rowIndex[0]) == bool:
+                # if len(rowIndex) != len(n):
+                # logger.info('%s Selection length %d should be %d.' %
+                #        (name, len(rowIndex), len(n)))
+                return {n: [x for x, s in zip(x, rowIndex) if s] for n, x in d.items()}
+        else:
+            raise ValueError(
+                'RowIndex must be an int, a slice, or a list of ints or bools.')
+
+    def getRow(self, rowIndex):
+        """ Returns a list containing the objects located in a particular row, or a list of rows.
+
+        rowIndex: ref ``getRowMap()``
+* int: return the int-th row in a list of elements;
+* ``Slice`` object, list of integers, list of booleans: return a list of rows each represented by a tuple. Example ``a.getRow(Slice(3,,))``, ``[2,4]``, ``[True, False...]``.
+        """
+
+        it = self.getRowMap(rowIndex).values()
+        if issubclass(rowIndex.__class__, int):
+            # return a list of row elements
+            return list(it)
+        # return transposed in a list
+        return list(zip(*it))
+
+    def select(self, selection):
+        """ Select a number of rows from this table dataset and
+        return a new TableDataset object containing only the selected rows.
+
+        selection:  to form a new Tabledataset with ref ``getRowMap()``
+        """
+
+        d = ODict()
+        if issubclass(selection.__class__, int):
+            for name, data in self.getRowMap(selection).items():
+                d[name] = Column(
+                    data=[data], unit=self.getColumn(name).getUnit())
+                return TableDataset(data=d)
+
+        for name, data in self.getRowMap(selection).items():
+            d[name] = Column(data=data, unit=self.getColumn(name).getUnit())
+        return TableDataset(data=d)
 
     def removeRow(self, rowIndex):
         """ Removes a row with specified index from this table.
@@ -571,50 +609,53 @@ class TableDataset(GenericDataset, TableModel):
         """
         raise ValueError('Cannot set column count.')
 
-    @property
-    def indexCols(self):
-        return self._indexCols
+    def getColumnMap(self, key):
+        """ Returns a dict of column-names as the keys and the column(s) as the values.
 
-    @indexCols.setter
-    def indexCols(self, key):
-        """ set the key pattern used to retrieve rows.
-
-        key: if is an integer, will be taken as the column number future look-up will search and return the row where  a match is found. TODO: If key is a tuple ..
+        key: return the following as the value for each key-value pair:
+* int: the int-th column.
+* ``Slice`` object, a list of columns from slicing the column index. Example ``a.getColumn(Slice(3,,))``;
+* Sequence of integers/strings: they are used as the column index/name to select the columns.
+* Sequence of booleans: columns where the corresponding boolean is True are chosen.
         """
-        if type(key) != int:
-            raise TypeError(
-                'Must provide an integer to specify look-up column.')
-        self._indexCols = key
-
-    def select(self, selection):
-        """ Select a number of rows from this table dataset and
-        return a new TableDataset object containing only the selected rows.
-
-        selection: a list of int or booleans to form a new Tabledataset. If ints, they are used as the row index to select the rows. If bools, rows where corresponding selection == True are chosen.
-        """
-        if not issubclass(selection.__class__, list):
-            raise ValueError('selection is not a list')
-        r = TableDataset()
+        cl = key.__class__
         d = self.getData()
-        for name in self.getColumnNames():
-            n = d[name]
-            c = Column(unit=n.unit, data=[])
-            if len(selection) == 0:
-                continue
-            elif type(selection[0]) == int:
-                for i in selection:
-                    c.data.append(n[i])
-            elif type(selection[0]) == bool:
-                if len(selection) != len(n):
-                    logger.info('%s Selection length %d should be %d.' %
-                                (name, len(selection), len(n)))
-                c.data = [x for x, s in zip(n, selection) if s]
-            else:
-                raise ValueError('selection is not a list of  bool or int')
-            r.addColumn(name, c)
-        return r
+        if issubclass(cl, int):
+            return dict([list(d.items())[key]])
+        if issubclass(cl, slice):
+            return dict(list(d.items())[key])
+        if issubclass(cl, str):
+            return {key: d[key]}
+        if issubclass(cl, Sequence):
+            if type(key[0]) == int:
+                nm = self.getColumnNames()
+                return {nm[i]: d[nm[i]] for i in key}
+            if type(key[0]) == str:
+                return {n: d[n] for n in key}
+            if type(key[0]) == bool:
+                return dict(x for x, s in zip(d.items(), key) if s)
+        else:
+            raise ValueError(
+                '``key`` must be an int, a string, a slice, or a list of ints, strings, or bools.')
 
     def getColumn(self, key):
+        """ Returns the particular column, or a list of columns.
+
+        key: ref ``getColumnMap()``
+* int/str: return the int-th/named column;
+* ``Slice`` object, list of columns of sliced column indices;
+* list of integers/strings: return a list of columns corresponding to the given column index/name, or where key is True. Example ``a.getColumn(Slice(3,,))``, ``[2, 4]``, ``['time', ``energy']``.
+* list of booleans: return a list of columns  where key is True. Example ``[True, False...]``.
+        """
+
+        it = self.getColumnMap(key).values()
+        if issubclass(key.__class__, (int, str)):
+            # return a list of row elements
+            return list(it)[0]
+        # return transposed in a list
+        return list(it)
+
+    def getColumn1(self, key):
         """ return colmn(s) for given key.
 
         returns column if given string as name or int as index.
@@ -650,8 +691,9 @@ class TableDataset(GenericDataset, TableModel):
         return self.getData().items()
 
     def __getitem__(self, key):
-        """ return colmn if given string as name or int as index.
-        returns name if given column.
+        """ return colmn if given key.
+
+        ref. ``getColumn()``.
         """
         return self.getColumn(key)
 
@@ -691,9 +733,106 @@ class TableDataset(GenericDataset, TableModel):
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
+                           meta=self.meta,
+                           data=self.getData(),
+                           _STID=self._STID)
+
+
+class IndexedTableDataset(TableDataset):
+    """ TableDataset with an index table for efficient row look-up.
+
+    """
+
+    def __init__(self, **kwds):
+        """
+        """
+        self._indexCols = (0,)
+        self._rowIndexTable = {}
+        super().__init__(**kwds)  # initialize data, meta, unit
+
+    def build_index(self, for_rows=slice(0, 1)):
+        """ Build index in format specified in indexCols for retrieving row.
+
+        for_rows: default slice(0,1), the first column.
+        """
+        # list of array of columns
+        cols = tuple(x.data for x in self.getColumn(self._indexCols))
+        # numPar of columns
+        lc = len(cols)
+        # length of array
+        la = len(cols[0])
+        self._rowIndexTable = {(cols[i][n]
+                                for i in rsnge(lc)) for n in range(la)}
+
+    def setData(self, data):
+        """  sets name-column pairs from data and updates index if needed
+
+        """
+
+        d = self.getData()
+        if d:
+            reindex = False
+            lcd = len(d)
+            if issubclass(data.__class__, seqlist):
+                for ind, x in enumerate(data):
+                    if lcd > ind:
+                        if reindex == False and ind in self._indexCols:
+                            reindex = True
+        else:
+            reindex = True
+        super().setData(data)
+        if reindex:
+            self.build_index()
+
+    @property
+    def indexCols(self):
+        return self._indexCols
+
+    @indexCols.setter
+    def indexCols(self, *key):
+        """ set the key pattern used to retrieve rows.
+
+        *key: a list of integers, will be taken as the column number future look-up will search and return the row where  a match is found. Example: a.indexCols=(0,2) would setup to use the first and the third columns to make look-up keys.
+        """
+        if len(key) == 0:
+            self._indexCols = (0,)
+            return
+
+        tk = []
+        msg = 'Need integers or tuple of integers to specify look-up columns.'
+        for k in key:
+            if type(key) == int:
+                tk.append(k)
+            elif issubclass(key.__class__, Sequence):
+                for k2 in k:
+                    if type(k2) == int:
+                        tk.append(k2)
+                    else:
+                        raise TypeError(msg)
+            else:
+                raise TypeError(msg)
+
+        self._indexCols = tuple(tk)
+
+    @property
+    def rit(self):
+        return self._rowIndexTable
+
+    @rit.setter
+    def rit(self, *key):
+        """ set the key pattern used to retrieve rows.
+
+        """
+
+        self._rowIndexTable = table
+
+    def serializable(self):
+        """ Can be encoded with serializableEncoder """
+        return OrderedDict(description=self.description,
                            indexCols=self._indexCols,
                            meta=self.meta,
                            data=self.getData(),
+                           rit=self._rowIndexTable,
                            _STID=self._STID)
 
 

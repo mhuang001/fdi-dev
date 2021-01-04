@@ -40,7 +40,7 @@ class Classes_meta(type):
         'fdi.dataset.baseproduct': ['BaseProduct'],
         'fdi.dataset.product': ['Product'],
         'fdi.dataset.testproducts': ['TP', 'TC', 'TM'],
-        'fdi.dataset.datatypes': ['Vector', 'Quaternion'],
+        'fdi.dataset.datatypes': ['Vector', 'Vector2D', 'Quaternion'],
         'fdi.dataset.metadata': ['AbstractParameter', 'Parameter', 'NumericParameter', 'DateParameter', 'StringParameter', 'MetaData'],
         'fdi.dataset.dataset': ['GenericDataset', 'ArrayDataset',
                                 'TableDataset', 'CompositeDataset', 'Column'],

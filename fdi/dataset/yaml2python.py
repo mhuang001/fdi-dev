@@ -617,9 +617,6 @@ if __name__ == '__main__':
             f.write(sp)
         print('Done saving ' + fout + '\n' + '='*40)
 
-        if len(importexclude) == 1:
-            exit(0)
-
         # import the newly made module  so the following classes could use it
         importexclude.remove(modulename)
         # importlib.invalidate_caches()
@@ -631,9 +628,22 @@ if __name__ == '__main__':
             _o = importlib.import_module('.' + modulename, package_name)
             glb[prodname] = getattr(_o, prodname)
             print('Imported ' + newp)
+            # Instantiate and dump metadata in rst format
+            prod = glb[prodname]()
+            fg = {'name': 15, 'value': 18, 'unit': 7, 'type': 8,
+                  'valid': 26, 'default': 18, 'code': 4, 'description': 25}
+            sp = prod.meta.toString(tablefmt='fancy_grid', widths=fg)
+
+            mout = pathjoin(ypath, prodname + '.txt')
+            with open(mout, 'w', encoding='utf-8') as f:
+                f.write(sp)
+            print('Done dumping ' + mout + '\n' + '*'*40)
         except Exception as e:
             print('Unable to import ' + newp)
             raise(e)
+
+        if len(importexclude) == 0:
+            exit(0)
 
         Classes.updateMapping(c=importinclude, exclude=importexclude)
         glb = Classes.mapping

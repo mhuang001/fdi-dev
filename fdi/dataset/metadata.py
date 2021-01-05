@@ -682,27 +682,39 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             self.fire(e)
         return r
 
-    def toString(self, level=0, tablefmt='grid', tablefmt1='simple', **kwds):
+    def toString(self, level=0, tablefmt='grid', tablefmt1='simple',
+                 widths=None, **kwds):
+        """ return  string representation of metada.
 
-        l = self.listeners.toString(level=level, **kwds)
+        level: 0 is the most detailed, 2 is the least, 1 is for __repr__.
+        tablefmt: format string in packae ``tabulate``.
+        widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its tsble cell is, 0 for ommiting the attributable. Default is 
+``{'name': 8, 'value': 17, 'unit': 7, 'type': 8,
+                      'valid': 25, 'default': 17, 'code': 4, 'description': 15}``
+        """
+
+        if widths is None:
+            widths = {'name': 8, 'value': 17, 'unit': 7, 'type': 8,
+                      'valid': 25, 'default': 17, 'code': 4, 'description': 15}
         tab = []
         # N parameters per row for level 1
         N = 3
         i, row = 0, []
         cn = self.__class__.__name__
         s = ''
+        att = {}
         for (k, v) in self._sets.items():
-            pk = str(k)
-            vs, us, ts, ds, fs, gs, cs = v.toString(alist=True)
-            # print(vs, us, ts, ds, fs, gs, cs)
+            att['name'] = str(k)
+            att['value'], att['unit'], att['type'], att['description'],\
+                att['default'], att['valid'], att['code'] = v.toString(
+                    alist=True)
             if level == 0:
-                vw = 17  # -1 if ts == 'finetime' else 17
-                tab.append((wls(pk, 14), wls(vs, vw), wls(us, 7),
-                            wls(ts, 8), wls(gs, 20), wls(fs, vw),
-                            wls(cs, 4), wls(ds, 17)))
+                l = tuple(att[n] for n in MetaHeaders) if widths == -1 else \
+                    tuple(wls(att[n], w) for n, w in widths.items() if w != 0)
+                tab.append(l)
             elif level == 1:
-                ps = '%s= %s' % (pk, vs)
-                # s += mstr(self, level=level, depth=1, tablefmt=tablefmt, **kwds)
+                ps = '%s= %s' % (att['name'], att['value'])
+                # s += mstr(self, level=level, depth=1,  tablefmt = tablefmt, **kwds)
                 tab.append(wls(ps, 80//N))
                 if 0:
                     row.append(wls(ps, 80//N))
@@ -711,23 +723,27 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
                         tab.append(row)
                         i, row = 0, []
             else:
-                tab.append(pk)
+                tab.append(att['name'])
+
+        lsnr = self.listeners.toString(level=level, **kwds)
 
         if level == 0:
-            headers = MetaHeaders
+            headers = MetaHeaders if widths == -1 else \
+                [n for n, w in zip(MetaHeaders, widths) if w != 0]
             fmt = tablefmt
             s += tabulate(tab, headers=headers, tablefmt=fmt, missingval='',
-                          disable_numparse=True) if len(tab) else '(empty)'
+                          disable_numparse=True)
         elif level == 1:
             t = grouper(tab, N)
             headers = ''
             fmt = tablefmt1
             s += tabulate(t, headers=headers, tablefmt=fmt, missingval='',
-                          disable_numparse=True) if len(tab) else '(empty)'
+                          disable_numparse=True)
         else:
             s += ', '.join(tab)
-            return '%s, listeners = %s' % (s, l)
-        return '\n%s\n%s-listeners = %s' % (s, cn, l)
+            return '%s, listeners = %s' % (s, lsnr)
+        return '\n%s\n%s-listeners = %s' % (s, cn, lsnr) if len(tab) else \
+            '%s%s-listeners = %s' % ('(No parameter.)', cn, lsnr)
 
     def __repr__(self, **kwds):
         return self.toString(level=1, **kwds)

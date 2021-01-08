@@ -477,17 +477,20 @@ class TableDataset(GenericDataset, TableModel):
         del(self.data[name])
 
     def indexOf(self, key):
-        """ Returns the index of specified column if the key is a Column,
-        it looks for an equal column.
-        If the key is a string, Returns the index of key as a Column name.
+        """ Returns the index of specified column; if the key is a Column,
+        it looks for equal references (same column objects), not for
+        equal values.
+        If the key is a string, Returns the index of specified Column name.
         mh: Or else returns the key itself.
         """
         if issubclass(key.__class__, str):
-            k = list(self.getData().keys())
+            k = list(self.data.keys())
             idx = k.index(key)
         elif issubclass(key.__class__, Column):
-            v = list(self.getData().values())
-            idx = v.index(key)
+            v = list(self.data.values())
+            # k,v = zip(*l)
+            i = [id(x) for x in v]
+            idx = i.index(id(key))
         else:
             idx = key
         return idx
@@ -776,64 +779,20 @@ class IndexedTableDataset(TableDataset):
             if issubclass(data.__class__, seqlist):
                 for ind, x in enumerate(data):
                     if lcd > ind:
-                        if reindex == False and ind in self._indexCols:
+                        if reindex == False and ind in self._indexPattern:
                             reindex = True
         else:
             reindex = True
         super().setData(data)
         if reindex:
-            self.build_index()
-
-    @property
-    def indexCols(self):
-        return self._indexCols
-
-    @indexCols.setter
-    def indexCols(self, *key):
-        """ set the key pattern used to retrieve rows.
-
-        *key: a list of integers, will be taken as the column number future look-up will search and return the row where  a match is found. Example: a.indexCols=(0,2) would setup to use the first and the third columns to make look-up keys.
-        """
-        if len(key) == 0:
-            self._indexCols = (0,)
-            return
-
-        tk = []
-        msg = 'Need integers or tuple of integers to specify look-up columns.'
-        for k in key:
-            if type(key) == int:
-                tk.append(k)
-            elif issubclass(key.__class__, Sequence):
-                for k2 in k:
-                    if type(k2) == int:
-                        tk.append(k2)
-                    else:
-                        raise TypeError(msg)
-            else:
-                raise TypeError(msg)
-
-        self._indexCols = tuple(tk)
-
-    @property
-    def rit(self):
-        return self._rowIndexTable
-
-    @rit.setter
-    def rit(self, *key):
-        """ set the key pattern used to retrieve rows.
-
-        """
-
-        self._rowIndexTable = table
+            self.updateToc()
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           indexCols=self._indexCols,
-                           meta=self.meta,
-                           data=self.getData(),
-                           rit=self._rowIndexTable,
-                           _STID=self._STID)
+        return Indexed.serializable(self).update(description=self.description,
+                                                 meta=self.meta,
+                                                 data=self.getData(),
+                                                 _STID=self._STID)
 
 
 class CompositeDataset(AbstractComposite, Dataset):

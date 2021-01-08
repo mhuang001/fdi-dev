@@ -24,6 +24,7 @@ from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
+from fdi.dataset.indexed import Indexed
 from fdi.dataset.ndprint import ndprint
 from fdi.dataset.datatypes import Vector, Vector2D, Quaternion
 from fdi.dataset.invalid import INVALID
@@ -1760,6 +1761,56 @@ def test_CompositeDataset_init():
     checkgeneral(v)
 
 
+def test_Indexed():
+    # 5 columns and 7 rows
+    Nc, Nr = 6, 7
+
+    class IDX(Indexed):
+        def __init__(self, **k):
+
+            super().__init__(**k)
+            self.data = [[n+m*10 for n in range(Nr)] for m in range(Nc)]
+
+        def getColumnsToLookup(self):
+            return (self.data[i] for i in self._indexPattern)
+
+    array1 = [[n+m*10 for n in range(Nr)] for m in range(Nc)]
+    # creation
+    # default
+    v = Indexed()
+    assert len(v._tableOfContent) == 0
+    assert v._indexPattern == [0]
+    v.data = array1
+    assert len(v.data) == Nc
+    # with keyword
+    v2 = Indexed(indexPattern=[1, 3, 5])
+    v2.indexPattern == [1, 3, 5]
+    assert len(v2._tableOfContent) == 0
+    assert v2.indexPattern == [1, 3, 5]
+    # subclassing
+    v3 = IDX(indexPattern=[1, 2])
+    v3.indexPattern == [1, 2]
+    assert len(v3._tableOfContent) == 0
+    assert v3.indexPattern == [1, 2]
+
+    # update
+    # generate table of content
+    v.updateToc(which=[v.data[0]])
+    assert len(v.toc) == Nr
+    for row in range(Nr):
+        assert v.toc[(v.data[0][row],)] == row
+    # multiple columns
+    v2.data = array1
+    v2.updateToc(which=(v2.data[i] for i in v2.indexPattern))
+    for row in range(Nr):
+        assert v2.toc[(v2.data[1][row], v2.data[3]
+                       [row], v2.data[5][row])] == row
+    # built-in from subclassing
+    v3.updateToc()
+    for row in range(Nr):
+        assert v3.toc[(v3.data[1][row], v3.data[2][row])] == row
+
+
 def demo_CompositeDataset():
     """ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/ia/dataset/demo/CompositeDataset.py
     """
@@ -2068,10 +2119,10 @@ def test_SubProduct():
             super().__init__(metasToBeInstalled=metasToBeInstalled, **kwds)
             super().installMetas(mtbi=metasToBeInstalled, prodInfo=self.zInfo)
 
-        @property
+        @ property
         def version(self): pass
 
-        @version.setter
+        @ version.setter
         def version(self, p): pass
 
     y = SP()

@@ -154,7 +154,7 @@ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Con
         """
         raise NotImplementedError()
 
-    @staticmethod
+    @classmethod
     def isContext(cls):
         """ Yields true if specified class belongs to the family of contexts.
         """

@@ -237,61 +237,62 @@ TableDataset-dataset =
 True
 
 >>> # Make a quick tabledataset -- data are list of lists without names or units
-... a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
+... a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3], [True, True, False], ['A', 'BB', 'CCC']]
 ... v5 = TableDataset(data=a5)
 ... print(v5.toString())
 # TableDataset
 description= {'UNKNOWN'},
-meta= {
-(empty)
-MetaData-listeners = ListnerSet{}}
+meta= {(No parameter.)MetaData-listeners = ListnerSet{}}
 TableDataset-dataset =
-    col1      col2
-  (None)    (None)
---------  --------
-     1         0
-     4.4      43.2
-  5400      2000
+  column1    column2  column3    column4
+   (None)     (None)  (None)     (None)
+---------  ---------  ---------  ---------
+      1          0    True       A
+      4.4       43.2  True       BB
+   5400       2000    False      CCC
+
 
 
 
 >>> # access
-... # get names of all columns
+... # get names of all columns (automatically given here)
 ... v5.getColumnNames()
-['col1', 'col2']
-
->>> # get a list of all columns' data
-... [c.data for c in v5.data.values()]   # == a5
-[[1, 4.4, 5400.0], [0, 43.2, 2000.0]]
+['column1', 'column2', 'column3', 'column4']
 
 >>> # get column by name
-... my_column = v5['col1']
-... my_column
-# Column
-description= {'UNKNOWN'},
-meta= {
-(empty)
-MetaData-listeners = ListnerSet{}
-},
-type= {None},
-default= {None},
-typecode= {None},
-unit= {None}
-Column-dataset =
-1  4.4  5400
+... my_column = v5['column1']       # [1, 4.4, 5.4E3]
+... my_column.data
+[1, 4.4, 5400.0]
+
+>>> # by index
+... v5[0].data       # [1, 4.4, 5.4E3]
+[1, 4.4, 5400.0]
+
+>>> # get a list of all columns' data.
+... #Note the slice "v5[:]" and syntax ``in``
+... [c.data for c in v5[:]]   # == a5
+[[1, 4.4, 5400.0], [0, 43.2, 2000.0], [True, True, False], ['A', 'BB', 'CCC']]
 
 >>> #  indexOf by name
-... v5.indexOf('col1')  # == u.indexOf(my_column)
+... v5.indexOf('column1')  # == u.indexOf(my_column)
 0
 
 >>> #  indexOf by column object
-... v5.indexOf(my_column)
+... v5.indexOf(my_column)     # 0
 0
 
 >>> # set cell value
-... v5['col2'][1] = 123
-... v5['col2'][1]    # 123
+... v5['column2'][1] = 123
+... v5['column2'][1]    # 123
 123
+
+>>> # row access bu row index -- multiple and in custom order
+... v5.getRow([2,1])  # [(5400.0, 2000.0, False, 'CCC'), (4.4, 123, True, 'BB')]
+[(5400.0, 2000.0, False, 'CCC'), (4.4, 123, True, 'BB')]
+
+>>> # or with a slice
+... v5.getRow(slice(0,-1))
+[(1, 0, True, 'A'), (4.4, 123, True, 'BB')]
 
 >>> # unit access
 ... v1['col1'].unit  # == 'eV'
@@ -311,10 +312,6 @@ Column-dataset =
 ... u['money'][0]    # 2
 ... # column increases
 ... u.columnCount        # 2
-2
-
->>> # addRow
-... u.rowCount    # 2
 2
 
 >>> u.addRow({'money': 4.4, 'time': 3.3})

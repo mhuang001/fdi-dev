@@ -112,30 +112,40 @@ v1 = TableDataset(data=a1)
 v == v1
 
 # Make a quick tabledataset -- data are list of lists without names or units
-a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
+a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3], [True, True, False], ['A', 'BB', 'CCC']]
 v5 = TableDataset(data=a5)
 print(v5.toString())
 
 # access
-# get names of all columns
+# get names of all columns (automatically given here)
 v5.getColumnNames()
 
-# get a list of all columns' data
-[c.data for c in v5.data.values()]   # == a5
-
 # get column by name
-my_column = v5['col1']
-my_column
+my_column = v5['column1']       # [1, 4.4, 5.4E3]
+my_column.data
+
+# by index
+v5[0].data       # [1, 4.4, 5.4E3]
+
+# get a list of all columns' data.
+# Note the slice "v5[:]" and syntax ``in``
+[c.data for c in v5[:]]   # == a5
 
 #  indexOf by name
-v5.indexOf('col1')  # == u.indexOf(my_column)
+v5.indexOf('column1')  # == u.indexOf(my_column)
 
 #  indexOf by column object
-v5.indexOf(my_column)
+v5.indexOf(my_column)     # 0
 
 # set cell value
-v5['col2'][1] = 123
-v5['col2'][1]    # 123
+v5['column2'][1] = 123
+v5['column2'][1]    # 123
+
+# row access bu row index -- multiple and in custom order
+v5.getRow([2, 1])  # [(5400.0, 2000.0, False, 'CCC'), (4.4, 123, True, 'BB')]
+
+# or with a slice
+v5.getRow(slice(0, -1))
 
 # unit access
 v1['col1'].unit  # == 'eV'
@@ -159,10 +169,6 @@ u.rowCount    # 2
 
 u.addRow({'money': 4.4, 'time': 3.3})
 u.rowCount    # 3
-
-# syntax ``in``
-[c for c in u]  # list of column names ['time', 'money']
-
 
 # run this to see ``toString()``
 ELECTRON_VOLTS = 'eV'

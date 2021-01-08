@@ -623,12 +623,16 @@ class TableDataset(GenericDataset, TableModel):
         """
         cl = key.__class__
         d = self.getData()
+
         if issubclass(cl, int):
             return dict([list(d.items())[key]])
+
         if issubclass(cl, slice):
             return dict(list(d.items())[key])
+
         if issubclass(cl, str):
             return {key: d[key]}
+
         if issubclass(cl, Sequence):
             if type(key[0]) == int:
                 nm = self.getColumnNames()
@@ -657,22 +661,6 @@ class TableDataset(GenericDataset, TableModel):
             return list(it)[0]
         # return transposed in a list
         return list(it)
-
-    def getColumn1(self, key):
-        """ return colmn(s) for given key.
-
-        returns column if given string as name or int as index.
-        returns name if given column.
-        returns a set of columns if key  is a slice.
-        """
-        if issubclass(key.__class__, slice):
-            #ret = self.__class__(description=self.description)
-            #ret.meta = self.meta.copy()
-            return list(c for n, c in self.col(key))
-
-        idx = self.indexOf(key)
-        t = self.col(idx)
-        return t[0] if issubclass(key.__class__, Column) else t[1]
 
     def setColumn(self, key, value):
         """ Replaces a column in this table with specified name to specified column if key is a string and exists, or if the key is an integer in 0 to the number of columns, insert at column-index=key, with the name 'column'+key, else add a new coolumn.

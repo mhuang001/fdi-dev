@@ -26,47 +26,61 @@ class Indexed():
         """
 
         # list of Column's arrays
-        return (x.data for x in self.getColumn(self._indexPattern))
+        return [self.data[i] for i in self._indexPattern]
 
     def updateToc(self, which=None, for_records=None):
         """ Build index in format specified in indexPattern for retrieving record.
-    which: an iterator that gives a number of sequences to looking up over. Default is ``getColumnsToLookup()``.
+        which: an iterator that gives a number of sequences to looking up over. Default is ``getColumnsToLookup()``.
         for_records: a list or a ``Slice`` of record (row) numbers. Those are changed records that caused updating. default is all records.
         """
-        #import pdb
-        # pdb.set_trace()
+
+        # always rebuild all TODO:
+        for_records = None
+        self._tableOfContent = {}
 
         cols = self.getColumnsToLookup() if which is None else which
-        # length of array
+
+        ip = self._indexPattern
+        one = len(ip) == 1
         if for_records is None:
             # for all records
-            itr = (zip(zip(*cols), count()))
-        elif issubclass(for_records.__class__, Slice):
+            itr = zip(cols[0], count()) if one else zip(zip(*cols), count())
+        elif issubclass(for_records.__class__, slice):
             # list of column's arrays for all slice records
-            # range(sys.maxsize)[for_records] gives all valid numbers
-            itr = (zip(zip(cols)[for_records],
-                       range(sys.maxsize)[for_records]))
+            # range(sys.maxsize)[for_records] gives all valid record index numbers
+            if one:
+                itr = zip(cols[0][for_records],
+                          range(sys.maxsize)[for_records])
+            else:
+                itr = zip(zip(*(c[for_records] for c in cols)),
+                          range(sys.maxsize)[for_records])
         else:
             # for_records is a list
             # list of column's arrays for all listed records
-            itr = (zip(zip(cols[i] for i in for_records), for_records))
+            if one:
+                itr = zip((cols[0][i] for i in for_records), for_records)
+            else:
+                itr = zip((tuple(c[i] for c in cols)
+                           for i in for_records), for_records)
 
         self._tableOfContent.update(itr)
 
-    @property
+    @ property
     def indexPattern(self):
         return self._indexPattern
 
-    @indexPattern.setter
+    @ indexPattern.setter
     def indexPattern(self, *key):
         """ set the key pattern used to retrieve records.
 
         *key: as a list of integers. taken as column numbers. future look-up will search and return the record where  a match is found in these columns. Example: a.indexPattern=[0,2] would setup to use the first and the third columns to make look-up keys. Default is the first column.
         """
-        if len(key) == 0:
-            self._indexPattern = []
-            return
 
+        lk = len(key)
+        if lk == 0:
+            self._indexPattern = None
+            return
+        # more than on column number
         tk = []
         msg = 'Need integers or tuple of integers to specify look-up indices.'
         for k in key:
@@ -81,16 +95,16 @@ class Indexed():
             else:
                 raise TypeError(msg)
 
-        self._indexPattern = tuple(tk)
+        self._indexPattern = tk
 
-    @property
+    @ property
     def toc(self):
         """ returns  the index table of content.
         """
 
         return self._tableOfContent
 
-    @toc.setter
+    @ toc.setter
     def toc(self, table):
         """ sets the index table of content.
 
@@ -104,12 +118,36 @@ class Indexed():
 
         self._tableOfContent.clear()
 
-    def vLlookUp(self, key, return_index=False):
-        """ Override this to get records with the key.
+    def vLookUp(self, key, return_index=True, multiple=False):
+        """ Similar to Excel VLOOKUP, return all records (rows) that match the key.
+        key: taken as a dictionary key unless ``multiple`` is True.
+        return_index: if True (default) return index in the array of columns.
+        multiple: if True (default is False) loop through key as a sequence of keys and return a sequece.
         """
 
-        raise NotImplementedError
-        return ret
+        if return_index:
+            if multiple:
+                toc = self._tableOfContent
+                return [toc[k] for k in key]
+            else:
+                return self._tableOfContent[key]
+
+        if multiple:
+            if len(self._indexPattern) == 1:
+                p = self.data[self._indexPattern[0]]
+                toc = self._tableOfContent
+                return [p[toc[k]] for k in key]
+            else:
+                toc = self._tableOfContent
+                cols = self.data
+                return [[c[toc[k]] for c in cols] for k in key]
+        else:
+            if len(self._indexPattern) == 1:
+                return self.data[self._indexPattern[0]][self._tableOfContent[key]]
+            else:
+                rec_ind = self._tableOfContent[key]
+                cols = self.data
+                return [c[rec_ind] for c in cols]
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

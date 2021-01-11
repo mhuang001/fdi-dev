@@ -1434,12 +1434,13 @@ def test_TableDataset_func_column():
     sliced = w[1:3]   # a list if the 2nd and 3rd cols
     assert len(sliced) == 2
     assert issubclass(sliced[0].__class__, Column)
-    sl2 = w.col(slice(1, 3,))   # [(name,col), (name,col)]
-    assert sliced == [sl2[0][1], sl2[1][1]]
+    sl2 = w.getColumn(slice(1, 3,))   # [(name,col), (name,col)]
+    assert sliced == [sl2[0], sl2[1]]
     # make a table out of the slice
-    w2 = TableDataset(data=sl2)
+    map12 = w.getColumnMap(slice(1, 3,))    # cannot use a lone int or str
+    w2 = TableDataset(data=map12)
     assert w2.getColumnCount() == 2
-    assert w2.col(0) == w.col(1)
+    assert w2.getColumn(0) == w.getColumn(1)
     assert w2['col2'] == w['col2']
     assert id(w2['col2']) == id(w['col2'])
     assert w2['col3'] == w['col3']
@@ -1454,7 +1455,7 @@ def test_TableDataset_func():
     u['col4'] = c2
 
     # access cell value
-    u.setValueAt(aValue=42, rowIndex=1, columnIndex=1)
+    u.setValueAt(value=42, rowIndex=1, columnIndex=1)
     assert u.getValueAt(rowIndex=1, columnIndex=1) == 42
 
     # replace whole table. see constructor examples for making a1
@@ -1762,25 +1763,24 @@ def test_CompositeDataset_init():
 
 
 def test_Indexed():
-    # 5 columns and 7 rows
+    # number of columns and rows
     Nc, Nr = 6, 7
 
     class IDX(Indexed):
-        def __init__(self, **k):
+        def __init__(self, c=Nc, r=Nr, **k):
 
             super().__init__(**k)
-            self.data = [[n+m*10 for n in range(Nr)] for m in range(Nc)]
+            self.data = [[n+m*10 for n in range(r)] for m in range(c)]
 
-        def getColumnsToLookup(self):
-            return (self.data[i] for i in self._indexPattern)
-
+    # [[0, 1, 2...], [10, 11, 12...][20, 21, 22...], ...]
     array1 = [[n+m*10 for n in range(Nr)] for m in range(Nc)]
     # creation
     # default
     v = Indexed()
     assert len(v._tableOfContent) == 0
+    # one column in indexPattern
     assert v._indexPattern == [0]
-    v.data = array1
+    v.data = copy.deepcopy(array1)
     assert len(v.data) == Nc
     # with keyword
     v2 = Indexed(indexPattern=[1, 3, 5])
@@ -1794,14 +1794,39 @@ def test_Indexed():
     assert v3.indexPattern == [1, 2]
 
     # update
+    # one column in indexPattern
+    # all rows
     # generate table of content
-    v.updateToc(which=[v.data[0]])
-    assert len(v.toc) == Nr
-    for row in range(Nr):
-        assert v.toc[(v.data[0][row],)] == row
+    v.data = [[0, 1, 2, 3, 4]]
+    v.updateToc()
+    assert len(v.toc) == 5
+    # check the index table
+    for row in range(5):
+        assert v.toc[v.data[0][row]] == row
+    # test all record selections
+    for sel in [None, [0], slice(0, 1)]:
+        v.data = copy.deepcopy(array1)
+        # generate table of content
+        v.updateToc(which=[v.data[0]], for_records=sel)
+        # change the 0th row
+
+        assert [v.data[i][0]
+                for i in range(Nc)] == [array1[i][0] for i in range(Nc)]
+        v.data[0][0] += Nr  # make sure that the result is unique in the column
+        assert [v.data[i][0]
+                for i in range(Nc)] != [array1[i][0] for i in range(Nc)]
+        assert len(v.toc) == Nr
+        # make new toc
+        v.updateToc(which=[v.data[0]], for_records=sel)
+        assert len(v.toc) == Nr
+        # check the index table
+        for row in range(Nr):
+            assert v.toc[v.data[0][row]] == row
+
     # multiple columns
-    v2.data = array1
-    v2.updateToc(which=(v2.data[i] for i in v2.indexPattern))
+    v2.data = copy.deepcopy(array1)
+    # all rows
+    v2.updateToc()
     for row in range(Nr):
         assert v2.toc[(v2.data[1][row], v2.data[3]
                        [row], v2.data[5][row])] == row
@@ -1809,6 +1834,29 @@ def test_Indexed():
     v3.updateToc()
     for row in range(Nr):
         assert v3.toc[(v3.data[1][row], v3.data[2][row])] == row
+
+    # same index in #1,2 two rows
+    v3.data = [[0, 1, 2], [1, 2, 2], [2, 3, 3]]
+    v3.updateToc()
+    # row 0 and 1 have the same key. only row 1 can be looked up
+    assert len(v3.toc) == 2
+    for row in [0, 2]:
+        assert v3.toc[(v3.data[1][row], v3.data[2][row])] == row
+
+    # look-up
+    assert v2.vLookUp((11, 31, 51)) == 1
+    assert v2.vLookUp((11, 31, 51), return_index=False) == [
+        1+n*10 for n in range(Nc)]
+    try:
+        assert v2.vLookUp((1, 31, 51)) == [1+n*10 for n in range(Nc)]
+    except Exception as e:
+        assert isinstance(e, KeyError)
+    else:
+        assert False, 'Exception not caught'
+    # multiple keys
+    assert v2.vLookUp([(11, 31, 51), (14, 34, 54)], multiple=1) == [1, 4]
+    assert v2.vLookUp([(11, 31, 51), (14, 34, 54)], return_index=False, multiple=True) == [
+        [1+n*10 for n in range(Nc)], [4+n*10 for n in range(Nc)]]
 
 
 def demo_CompositeDataset():

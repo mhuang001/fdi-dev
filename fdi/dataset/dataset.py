@@ -304,33 +304,34 @@ class TableModel(object):
 
     def getRowCount(self):
         """ Returns the number of rows in the model. """
-        return len(self.col(0)[1].data)
+        return len(self.getColumn(0))
 
     def getValueAt(self, rowIndex, columnIndex):
         """ Returns the value for the cell at columnIndex and rowIndex. """
-        return self.col(columnIndex)[1].data[rowIndex]
+        return self.getColumn(columnIndex).data[rowIndex]
 
     def isCellEditable(self, rowIndex, columnIndex):
         """ Returns true if the cell at rowIndex and columnIndex
         is editable. """
         return True
 
-    def setValueAt(self, aValue, rowIndex, columnIndex):
+    def setValueAt(self, value, rowIndex, columnIndex):
         """Sets the value in the cell at columnIndex and rowIndex
-        to aValue."""
-        self.col(columnIndex)[1].data[rowIndex] = aValue
+        to Value.
+        """
+        self.getColumn(columnIndex).data[rowIndex] = value
 
-    def col(self, columIndex):
+    def col1(self, columIndex):
         """ returns a tuple of (name, column) at the column index.
 
         Or a list of such tuples if given a slice.
         """
 
-        itm = list(self.getData().items())
-        ret = itm[columIndex]
+        itm = islice(self.getData().items(), columIndex)
+        ret = next(itm)
         return ret
 
-    def rowl(self, columIndex):
+    def row(self, rowIndex):
         """ returns a tuple of (name, column) at the column index.
 
         Or a list of such tuples if given a slice.
@@ -374,7 +375,7 @@ class TableDataset(GenericDataset, TableModel):
     def __init__(self, **kwds):
         """
         """
-        self._indexCols = (0,)
+
         super(TableDataset, self).__init__(
             **kwds)  # initialize data, meta, unit
 
@@ -468,13 +469,13 @@ class TableDataset(GenericDataset, TableModel):
         d[name] = column
 
     def removeColumn(self, key):
+        """ Removes the columns specified by ``key``.
+
+        ref. ``getColumnMap`` on ``key`` usage.
         """
-        """
-        if issubclass(key.__class__, str):
-            name = key
-        else:
-            name = self.col(key)[0]
-        del(self.data[name])
+
+        for name in self.getRowMap(rowIndex).keys():
+            del(self.data[name])
 
     def indexOf(self, key):
         """ Returns the index of specified column; if the key is a Column,
@@ -586,11 +587,11 @@ class TableDataset(GenericDataset, TableModel):
 
         return [x.data.pop(rowIndex) for x in self.getData().values()]
 
-    @property
+    @ property
     def rowCount(self):
         return self.getRowCount()
 
-    @rowCount.setter
+    @ rowCount.setter
     def rowCount(self, newRowCount):
         self.setRowCount(newRowCount)
 
@@ -599,11 +600,11 @@ class TableDataset(GenericDataset, TableModel):
         """
         raise ValueError('Cannot set row count.')
 
-    @property
+    @ property
     def columnCount(self):
         return self.getColumnCount()
 
-    @columnCount.setter
+    @ columnCount.setter
     def columnCount(self, newColumnCount):
         self.setColumnCount(newColumnCount)
 
@@ -612,34 +613,36 @@ class TableDataset(GenericDataset, TableModel):
         """
         raise ValueError('Cannot set column count.')
 
-    def getColumnMap(self, key):
+    def getColumnMap(self, key=None):
         """ Returns a dict of column-names as the keys and the column(s) as the values.
 
         key: return the following as the value for each key-value pair:
-* int: the int-th column.
-* ``Slice`` object, a list of columns from slicing the column index. Example ``a.getColumn(Slice(3,,))``;
+* int: name-value where value is the int-th column.
+* ``Slice`` object, a list of name-columns from slicing the column index. Example ``a.getColumn(Slice(3,,))``;
 * Sequence of integers/strings: they are used as the column index/name to select the columns.
 * Sequence of booleans: columns where the corresponding boolean is True are chosen.
+Default is to return all columns.
         """
-        cl = key.__class__
         d = self.getData()
-
+        if key is None:
+            return d
+        cl = key.__class__
         if issubclass(cl, int):
-            return dict([list(d.items())[key]])
-
+            t = list(d.items())[key]
+            return {t[0]: t[1]}       # {str:Column}
         if issubclass(cl, slice):
-            return dict(list(d.items())[key])
-
+            return dict(list(d.items())[key])  # {str:Column, ...}
         if issubclass(cl, str):
-            return {key: d[key]}
+            return {key: d[key]}      # {str:Column}
 
         if issubclass(cl, Sequence):
             if type(key[0]) == int:
-                nm = self.getColumnNames()
-                return {nm[i]: d[nm[i]] for i in key}
+                # {str:Column, ...}
+                return dict(list(d.items())[i] for i in key)
             if type(key[0]) == str:
-                return {n: d[n] for n in key}
+                return {n: d[n] for n in key}  # {str:Column, ...}
             if type(key[0]) == bool:
+                # {str:Column, ...}
                 return dict(x for x, s in zip(d.items(), key) if s)
         else:
             raise ValueError(
@@ -737,40 +740,35 @@ class IndexedTableDataset(TableDataset):
     def __init__(self, **kwds):
         """
         """
-        self._indexCols = (0,)
-        self._rowIndexTable = {}
+        self._indexCols=[0]
+        self._rowIndexTable={}
         super().__init__(**kwds)  # initialize data, meta, unit
 
-    def build_index(self, for_rows=slice(0, 1)):
-        """ Build index in format specified in indexCols for retrieving row.
-
-        for_rows: default slice(0,1), the first column.
+    def getColumnsToLookup(self):
+        """ returns an iterator that gives a number of sequences to looking up over.
         """
-        # list of array of columns
-        cols = tuple(x.data for x in self.getColumn(self._indexCols))
-        # numPar of columns
-        lc = len(cols)
-        # length of array
-        la = len(cols[0])
-        self._rowIndexTable = {(cols[i][n]
-                                for i in rsnge(lc)) for n in range(la)}
+
+        # list of Column's arrays
+        return (x.data for x in self.getColumn(self._indexPattern))
+
+    
 
     def setData(self, data):
         """  sets name-column pairs from data and updates index if needed
 
         """
 
-        d = self.getData()
+        d=self.getData()
         if d:
-            reindex = False
-            lcd = len(d)
+            reindex=False
+            lcd=len(d)
             if issubclass(data.__class__, seqlist):
                 for ind, x in enumerate(data):
                     if lcd > ind:
                         if reindex == False and ind in self._indexPattern:
-                            reindex = True
+                            reindex=True
         else:
-            reindex = True
+            reindex=True
         super().setData(data)
         if reindex:
             self.updateToc()

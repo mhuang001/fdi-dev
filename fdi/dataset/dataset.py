@@ -513,12 +513,12 @@ class TableDataset(GenericDataset, TableModel):
             return {n: c.getData()[rowIndex] for n, c in d.items()}
         if issubclass(cl, list):
             if type(rowIndex[0]) == int:
-                return {n: [c.data[i] for i in rowIndex] for n, c in d.items()}
+                return {n: [c.getData()[i] for i in rowIndex] for n, c in d.items()}
             if type(rowIndex[0]) == bool:
                 # if len(rowIndex) != len(n):
                 # logger.info('%s Selection length %d should be %d.' %
                 #        (name, len(rowIndex), len(n)))
-                return {n: [x for x, s in zip(c, rowIndex) if s] for n, c in d.items()}
+                return {n: [x for x, s in zip(c.getData(), rowIndex) if s] for n, c in d.items()}
         else:
             raise ValueError(
                 'RowIndex must be an int, a slice, or a list of ints or bools.')
@@ -776,14 +776,14 @@ class IndexedTableDataset(Indexed, TableDataset):
                 return [toc[k] for k in key]
             else:
                 toc = self._tableOfContent
-                cols = self.data
+                cols = self._list
                 return [[c[toc[k]] for c in cols] for k in key]
         else:
             if return_index:
                 return self._tableOfContent[key]
             else:
                 rec_ind = self._tableOfContent[key]
-                cols = self.data
+                cols = self._list
                 return [c[rec_ind] for c in cols]
 
     def serializable(self):

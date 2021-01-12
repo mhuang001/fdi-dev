@@ -28,28 +28,28 @@ def none1():
     [p for p in t]
 
 
-yl = [random.random() for i in range(N)]
+yl = [random.randrange(N) for i in range(N)]
 
 
 def list1():
     [yl[p] for p in t]
 
 
-yd = dict((i, random.random()) for i in range(N))
+yd = dict((i, random.randrange(N)) for i in range(N))
 
 
 def dict1():
     [yd[p] for p in t]
 
 
-yo = ODict((i, random.random()) for i in range(N))
+yo = ODict((i, random.randrange(N)) for i in range(N))
 
 
 def odict1():
     [yo[p] for p in t]
 
 
-yo = ODict((i, random.random()) for i in range(N))
+yo = ODict((i, random.randrange(N)) for i in range(N))
 yod = yo.data
 
 
@@ -58,17 +58,17 @@ def od_data1():
 
 
 tdata = [[random.randrange(N) for i in range(N)]]
-# , [random.random() for i in range(N)]]
+# , [random.randrange(N) for i in range(N)]]
 tab = TableDataset(data=tdata)
-tab_cmap = tab.getColumnMap().values()
+tab_map = tab.list
 
 
-def TableD1():
-    [tab.getRow(p) for p in t]
+def Tab1():
+    tab.getRow(t)
 
 
-def TablD_cm1():
-    [tuple(c[p] for c in tab_cmap) for p in t]
+def Tab_m1():
+    [tuple(c[p] for c in tab_map) for p in t]
 
 
 idx = Indexed(indexPattern=[0])
@@ -76,35 +76,32 @@ idx.data = [t]  # value look-up needs to confine the value set
 idx.updateToc()
 
 
-def Indexed1():
-    #[idx.vLookUp(p, return_index=False) for p in t]
-    [idx._tableOfContent[p] for p in t]
+def Ind1():
+    [idx.vLookUp(p, return_index=1) for p in t]
 
 
 def Ind_m1():
-    #idx.vLookUp(t, multiple=True)
-    idx.vLookUp(t, return_index=False, multiple=True)
+    idx.vLookUp(t, return_index=1, multiple=True)
 
 
 it = IndexedTableDataset(data=tdata)
 it.indexPattern = [0]
+it.data = [t]
 it.updateToc()
 
 
-def IndTabD1():
-    [idx.vLookUp(p, return_index=False) for p in t]
-    #[idx._tableOfContent[p] for p in t]
+def IndTab1():
+    [it.vLookUp(p, return_index=1) for p in t]
 
 
 def IndT_m1():
-    #idx.vLookUp(t, multiple=True)
-    idx.vLookUp(t, return_index=False, multiple=True)
+    it.vLookUp(t, return_index=1, multiple=True)
 
 
 res = cmpthese(loop,
                [none1, list1, dict1, odict1, od_data1,
-                TableD1, TablD_cm1, Indexed1, Ind_m1,
-                IndTabD1, IndT_m1],
+                Tab1, Tab_m1, Ind1, Ind_m1,
+                IndTab1, IndT_m1],
                repeat=rpt)
 
 print(pprint_cmp(res))
@@ -127,21 +124,21 @@ def none2():
     [1 for p, q in t2]
 
 
-yl2 = [[random.random() for i in range(n)] for j in range(m)]
+yl2 = [[random.randrange(N) for i in range(n)] for j in range(m)]
 
 
 def list2():
     [yl2[p][q] for p, q in t2]
 
 
-yd2 = dict(((i, j), random.random()) for i in range(m) for j in range(n))
+yd2 = dict(((i, j), random.randrange(N)) for i in range(m) for j in range(n))
 
 
 def dict2():
     [yd2[p] for p in t2]
 
 
-yo2 = ODict(((i, j), random.random()) for i in range(m) for j in range(n))
+yo2 = ODict(((i, j), random.randrange(N)) for i in range(m) for j in range(n))
 
 
 def odict2():
@@ -220,6 +217,7 @@ seq_of_tups = (('a', 1), ('b', 2), ('c', 3))
 
 
 def d124a(): G
+
 
 'a' in map(itemgetter(0), seq_of_tups)
 

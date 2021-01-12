@@ -78,13 +78,18 @@ class GenericDataset(Dataset, DataContainer, Container):
             **kwds)  # initialize data, meta, unit
 
     def __iter__(self):
-        for x in self.data:
+        for x in self.getData():
             yield x
 
     def __contains__(self, x):
         """
         """
-        return x in self.data
+        return x in self.getData()
+
+    def __len__(self, *args, **kwargs):
+        """ size of data
+        """
+        return self.getData().__len__(*args, **kwargs)
 
     def __repr__(self, **kwds):
         return self.toString(level=1, **kwds)
@@ -183,11 +188,6 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
         """ removes value and its key.
         """
         self.getData().__delitem__(*args, **kwargs)
-
-    def __len__(self, *args, **kwargs):
-        """ size of data
-        """
-        return self.getData().__len__(*args, **kwargs)
 
     def __iter__(self, *args, **kwargs):
         """ returns an iterator
@@ -474,7 +474,7 @@ class TableDataset(GenericDataset, TableModel):
         ref. ``getColumnMap`` on ``key`` usage.
         """
 
-        for name in self.getRowMap(rowIndex).keys():
+        for name in self.getColumnMap(key).keys():
             del(self.data[name])
 
     def indexOf(self, key):
@@ -740,8 +740,8 @@ class IndexedTableDataset(TableDataset):
     def __init__(self, **kwds):
         """
         """
-        self._indexCols=[0]
-        self._rowIndexTable={}
+        self._indexCols = [0]
+        self._rowIndexTable = {}
         super().__init__(**kwds)  # initialize data, meta, unit
 
     def getColumnsToLookup(self):
@@ -751,27 +751,48 @@ class IndexedTableDataset(TableDataset):
         # list of Column's arrays
         return (x.data for x in self.getColumn(self._indexPattern))
 
-    
-
     def setData(self, data):
         """  sets name-column pairs from data and updates index if needed
 
         """
 
-        d=self.getData()
+        d = self.getData()
         if d:
-            reindex=False
-            lcd=len(d)
+            reindex = False
+            lcd = len(d)
             if issubclass(data.__class__, seqlist):
                 for ind, x in enumerate(data):
                     if lcd > ind:
                         if reindex == False and ind in self._indexPattern:
-                            reindex=True
+                            reindex = True
         else:
-            reindex=True
+            reindex = True
         super().setData(data)
         if reindex:
             self.updateToc()
+
+    def vLookUp(self, key, return_index=True, multiple=False):
+        """ Similar to Excel VLOOKUP, return all records (rows) that match the key.
+        key: taken as a dictionary key unless ``multiple`` is True.
+        return_index: if True (default) return index in the array of columns.
+        multiple: if True (default is False) loop through key as a sequence of keys and return a sequece.
+        """
+
+        if multiple:
+            if return_index:
+                toc = self._tableOfContent
+                return [toc[k] for k in key]
+            else:
+                toc = self._tableOfContent
+                cols = self.data
+                return [[c[toc[k]] for c in cols] for k in key]
+        else:
+            if return_index:
+                return self._tableOfContent[key]
+            else:
+                rec_ind = self._tableOfContent[key]
+                cols = self.data
+                return [c[rec_ind] for c in cols]
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

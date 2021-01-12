@@ -1393,14 +1393,6 @@ def test_TableDataset_func_column():
     u['col4'] = c3
     assert u['col4'][0] == c3.data[0]
 
-    # access columns by name
-    a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV', description='1'),
-          'col2': Column(data=[0, 43.2, 2E3], unit='cnt', description='2')}
-    c5 = Column(data=[-2, 9e-5, 8.888], unit='m', description='3')
-    w = TableDataset(data=a1)  # inherited from DataWrapper
-    w['col3'] = c5
-    assert w['col3'] == c5
-
     # column names
     assert u.getColumnNames() == ['col3', 'col4']
     # unit access
@@ -1408,11 +1400,21 @@ def test_TableDataset_func_column():
     # access index with indexOf
     assert u.indexOf('col3') == u.indexOf(c1)
 
+    # access columns by name
+    a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV', description='1'),
+          'col2': Column(data=[0, 43.2, 2E3], unit='cnt', description='2'),
+          }
+    c5 = Column(data=[-2, 9e-5, 8.888], unit='m', description='3')
+    w = TableDataset(data=a1)  # inherited from DataWrapper
+    w['col5'] = c5
+    assert w['col5'] == c5
+
     # column by index
     assert w[1] == a1['col2']
     # write with index
     w[2] = a1['col1']  # now w['col3']==a1['col1']
-    assert w['col3'] == a1['col1']
+    assert w['col5'] == a1['col1']
+    assert w.getColumnNames() == ['col1', 'col2', 'col5']
     w[3] = a1['col2']
     assert w['column4'] == a1['col2']   # assigned col name is 'column'+3+1
 
@@ -1431,20 +1433,32 @@ def test_TableDataset_func_column():
     assert v.getColumn([True, False, False, False, True]) == [Column(u[0])]
 
     # slice
-    sliced = w[1:3]   # a list if the 2nd and 3rd cols
+    sliced = v[1:3]   # a list if the 2nd and 3rd cols
     assert len(sliced) == 2
     assert issubclass(sliced[0].__class__, Column)
-    sl2 = w.getColumn(slice(1, 3,))   # [(name,col), (name,col)]
+    sl2 = v.getColumn(slice(1, 3,))   # [(name,col), (name,col)]
     assert sliced == [sl2[0], sl2[1]]
     # make a table out of the slice
-    map12 = w.getColumnMap(slice(1, 3,))    # cannot use a lone int or str
+    map12 = v.getColumnMap(slice(1, 3,))    # cannot use a lone int or str
     w2 = TableDataset(data=map12)
     assert w2.getColumnCount() == 2
-    assert w2.getColumn(0) == w.getColumn(1)
-    assert w2['col2'] == w['col2']
-    assert id(w2['col2']) == id(w['col2'])
-    assert w2['col3'] == w['col3']
-    assert id(w2['col3']) == id(w['col3'])
+    assert w2.getColumn(0) == v.getColumn(1)
+    assert w2['column2'] == v['column2']
+    assert id(w2['column2']) == id(v['column2'])
+    assert w2['column3'] == v['column3']
+    assert id(w2['column3']) == id(v['column3'])
+
+    # remove column
+    w3 = TableDataset(data=copy.deepcopy(a34))
+    v.removeColumn('column1')
+    assert v[0] == v['column2']
+    w3 = TableDataset(data=copy.deepcopy(a34))
+    w3.removeColumn(slice(1, 3))  # 1,2 (column2,3) removed
+    assert len(w3) == 2
+    assert w3[0].data == a34[0]
+    assert w3[1].data == a34[3]
+    w3.removeColumn(['column4', 'column1'])
+    assert len(w3) == 0
 
 
 def test_TableDataset_func():

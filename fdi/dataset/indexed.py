@@ -125,25 +125,17 @@ class Indexed():
         multiple: if True (default is False) loop through key as a sequence of keys and return a sequece.
         """
 
-        if return_index:
-            if multiple:
+        if multiple:
+            if return_index:
                 toc = self._tableOfContent
                 return [toc[k] for k in key]
-            else:
-                return self._tableOfContent[key]
-
-        if multiple:
-            if len(self._indexPattern) == 1:
-                p = self.data[self._indexPattern[0]]
-                toc = self._tableOfContent
-                return [p[toc[k]] for k in key]
             else:
                 toc = self._tableOfContent
                 cols = self.data
                 return [[c[toc[k]] for c in cols] for k in key]
         else:
-            if len(self._indexPattern) == 1:
-                return self.data[self._indexPattern[0]][self._tableOfContent[key]]
+            if return_index:
+                return self._tableOfContent[key]
             else:
                 rec_ind = self._tableOfContent[key]
                 cols = self.data

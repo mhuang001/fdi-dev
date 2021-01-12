@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import pdb
 from fdi.dataset.odict import ODict
 from fdi.dataset.dataset import TableDataset
 from fdi.dataset.indexed import Indexed
@@ -12,57 +11,13 @@ import timeit
 import string
 from timethese import cmpthese, pprint_cmp, timethese
 
-loop = 10
-rpt = 1
+loop = 5
+rpt = 2
 N = 100000
 
-if 0:
-    gc.enable()
-else:
-    gc.disable()
 
-LoL = [[c1, c2]
-       for c1, c2 in zip(string.ascii_lowercase, string.ascii_uppercase)] * (N//25)
-
-
-def lc_d(item='d'):
-    return item in [i for sub in LoL for i in sub]
-
-
-def ge_d(item='d'):
-    return item in (y for x in LoL for y in x)
-
-
-def any_lc_d(item='d'):
-    return any(item in x for x in LoL)
-
-
-def any_gc_d(item='d'):
-    return any([item in x for x in LoL])
-
-
-def lc_z(item='z'):
-    return item in [i for sub in LoL for i in sub]
-
-
-def ge_z(item='z'):
-    return item in (y for x in LoL for y in x)
-
-
-def any_lc_z(item='z'):
-    return any(item in x for x in LoL)
-
-
-def any_gc_z(item='z'):
-    return any([item in x for x in LoL])
-
-
-res = cmpthese(loop,
-               [lc_d, ge_d, any_gc_d, any_gc_z, any_lc_d, any_lc_z, lc_z, ge_z],
-               repeat=rpt)
-
-print(pprint_cmp(res))
-
+gc.collect()
+gc.disable()
 
 t = [random.randrange(N) for i in range(N)]
 
@@ -122,13 +77,13 @@ idx.updateToc()
 
 
 def Indexed1():
-    #[idx.vLookUp(p) for p in t]
-    [idx._tableOfContent[p] for p in t]
+    [idx.vLookUp(p, return_index=False) for p in t]
+    #[idx._tableOfContent[p] for p in t]
 
 
 def Ind_m1():
-    idx.vLookUp(t, multiple=True)
-    #idx.vLookUp(t, return_index=False, multiple=True)
+    #idx.vLookUp(t, multiple=True)
+    idx.vLookUp(t, return_index=False, multiple=True)
 
 
 res = cmpthese(loop,
@@ -138,9 +93,11 @@ res = cmpthese(loop,
 
 print(pprint_cmp(res))
 
-
+del yl, yd, yo, yod, t, tdata, tab
 #############
 
+gc.collect()
+gc.disable()
 
 m = 1000
 n = 1024
@@ -188,9 +145,54 @@ def Ind_m2():
     idx2.vLookUp(t2, multiple=1)
 
 
-res = cmpthese(loop,
+res = cmpthese(1,
                [none2, list2, dict2, odict2,
                 Indexed2, Ind_m2],
+               repeat=rpt)
+
+print(pprint_cmp(res))
+
+gc.collect()
+gc.disable()
+
+LoL = [[c1, c2]
+       for c1, c2 in zip(string.ascii_lowercase, string.ascii_uppercase)] * (N//25)
+
+
+def lc_d(item='d'):
+    return item in [i for sub in LoL for i in sub]
+
+
+def ge_d(item='d'):
+    return item in (y for x in LoL for y in x)
+
+
+def any_lc_d(item='d'):
+    return any(item in x for x in LoL)
+
+
+def any_gc_d(item='d'):
+    return any([item in x for x in LoL])
+
+
+def lc_z(item='z'):
+    return item in [i for sub in LoL for i in sub]
+
+
+def ge_z(item='z'):
+    return item in (y for x in LoL for y in x)
+
+
+def any_lc_z(item='z'):
+    return any(item in x for x in LoL)
+
+
+def any_gc_z(item='z'):
+    return any([item in x for x in LoL])
+
+
+res = cmpthese(loop,
+               [lc_d, ge_d, any_gc_d, any_gc_z, any_lc_d, any_lc_z, lc_z, ge_z],
                repeat=rpt)
 
 print(pprint_cmp(res))

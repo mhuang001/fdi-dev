@@ -10,6 +10,7 @@ from .datawrapper import DataWrapper, DataContainer
 from .eq import DeepEqual
 from .copyable import Copyable
 from .annotatable import Annotatable
+from .indexed import Indexed
 from ..utils.common import exprstrs
 from .typed import Typed
 
@@ -284,7 +285,7 @@ class TableModel(object):
         """ Returns the class for the first cell
         values in the column.
         """
-        return self.col(columnIndex)[1][0].__class__
+        return self.getColumn(columnIndex)[0].__class__
 
     def getColumnCount(self):
         """ Returns the number of columns in the model. """
@@ -295,8 +296,8 @@ class TableModel(object):
 
         returns a set of columns if key  is a slice.
         """
-        namelist = self.getColumnNames()
-        return namelist[columnIndex]
+
+        return self.getColumnNames()[columnIndex]
 
     def getColumnNames(self):
         """ Returns the column names. """
@@ -320,32 +321,6 @@ class TableModel(object):
         to Value.
         """
         self.getColumn(columnIndex).data[rowIndex] = value
-
-    def col1(self, columIndex):
-        """ returns a tuple of (name, column) at the column index.
-
-        Or a list of such tuples if given a slice.
-        """
-
-        itm = islice(self.getData().items(), columIndex)
-        ret = next(itm)
-        return ret
-
-    def row(self, rowIndex):
-        """ returns a tuple of (name, column) at the column index.
-
-        Or a list of such tuples if given a slice.
-        """
-
-        itm = list(self.getData().items())
-        ret = itm[columIndex]
-        return ret
-
-        if issubclass(columIndex.__class__, slice):
-            ret = [i for i in range(len(itm))[columIndex]]
-        else:
-            ret = itm[columIndex]
-        return ret
 
 
 class TableDataset(GenericDataset, TableModel):
@@ -535,15 +510,15 @@ class TableDataset(GenericDataset, TableModel):
         cl = rowIndex.__class__
         d = self.getData()
         if issubclass(cl, (int, slice)):
-            return {n: x.getData()[rowIndex] for n, x in d.items()}
+            return {n: c.getData()[rowIndex] for n, c in d.items()}
         if issubclass(cl, list):
             if type(rowIndex[0]) == int:
-                return {n: [x.data[i] for i in rowIndex] for n, x in d.items()}
+                return {n: [c.data[i] for i in rowIndex] for n, c in d.items()}
             if type(rowIndex[0]) == bool:
                 # if len(rowIndex) != len(n):
                 # logger.info('%s Selection length %d should be %d.' %
                 #        (name, len(rowIndex), len(n)))
-                return {n: [x for x, s in zip(x, rowIndex) if s] for n, x in d.items()}
+                return {n: [x for x, s in zip(c, rowIndex) if s] for n, c in d.items()}
         else:
             raise ValueError(
                 'RowIndex must be an int, a slice, or a list of ints or bools.')
@@ -749,7 +724,7 @@ Default is to return all columns.
                            _STID=self._STID)
 
 
-class IndexedTableDataset(TableDataset):
+class IndexedTableDataset(Indexed, TableDataset):
     """ TableDataset with an index table for efficient row look-up.
 
     """
@@ -766,7 +741,7 @@ class IndexedTableDataset(TableDataset):
         """
 
         # list of Column's arrays
-        return (x.data for x in self.getColumn(self._indexPattern))
+        return [x.data for x in self.getColumn(self._indexPattern)]
 
     def setData(self, data):
         """  sets name-column pairs from data and updates index if needed

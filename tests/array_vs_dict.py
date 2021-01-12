@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from fdi.dataset.odict import ODict
-from fdi.dataset.dataset import TableDataset
+from fdi.dataset.dataset import TableDataset, IndexedTableDataset
 from fdi.dataset.indexed import Indexed
 import random
 from operator import itemgetter
@@ -77,8 +77,8 @@ idx.updateToc()
 
 
 def Indexed1():
-    [idx.vLookUp(p, return_index=False) for p in t]
-    #[idx._tableOfContent[p] for p in t]
+    #[idx.vLookUp(p, return_index=False) for p in t]
+    [idx._tableOfContent[p] for p in t]
 
 
 def Ind_m1():
@@ -86,9 +86,25 @@ def Ind_m1():
     idx.vLookUp(t, return_index=False, multiple=True)
 
 
+it = IndexedTableDataset(data=tdata)
+it.indexPattern = [0]
+it.updateToc()
+
+
+def IndTabD1():
+    [idx.vLookUp(p, return_index=False) for p in t]
+    #[idx._tableOfContent[p] for p in t]
+
+
+def IndT_m1():
+    #idx.vLookUp(t, multiple=True)
+    idx.vLookUp(t, return_index=False, multiple=True)
+
+
 res = cmpthese(loop,
                [none1, list1, dict1, odict1, od_data1,
-                TableD1, TablD_cm1, Indexed1, Ind_m1],
+                TableD1, TablD_cm1, Indexed1, Ind_m1,
+                IndTabD1, IndT_m1],
                repeat=rpt)
 
 print(pprint_cmp(res))

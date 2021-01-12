@@ -376,6 +376,7 @@ class TableDataset(GenericDataset, TableModel):
         """
         """
 
+        self._list = []
         super(TableDataset, self).__init__(
             **kwds)  # initialize data, meta, unit
 
@@ -461,9 +462,16 @@ class TableDataset(GenericDataset, TableModel):
         d = self.getData()
         if d is None:
             d = ODict()
+
         if name == '' or name is None:
             idx = self.getColumnCount()
             name = 'column' + str(idx+1)
+            self._list.append(column.getData())
+        else:
+            try:
+                self._list[self.indexOf(name)] = column.getData()
+            except ValueError as e:
+                self._list.append(column.getData())
         if col_des and column.getDescription() == 'UNKNOWN':
             column.setDescription(name)
         d[name] = column
@@ -475,26 +483,27 @@ class TableDataset(GenericDataset, TableModel):
         """
 
         for name in self.getColumnMap(key).keys():
+            self._list.pop(self.indexOf(name))
             del(self.data[name])
 
     def indexOf(self, key):
-        """ Returns the index of specified column; if the key is a Column,
+        """ Returns the index of specified column.
+
+        if the key is a Column,
         it looks for equal references (same column objects), not for
         equal values.
         If the key is a string, Returns the index of specified Column name.
-        mh: Or else returns the key itself.
         """
         if issubclass(key.__class__, str):
-            k = list(self.data.keys())
-            idx = k.index(key)
+            ks = list(self.getData().keys())
+            k = key
         elif issubclass(key.__class__, Column):
-            v = list(self.data.values())
-            # k,v = zip(*l)
-            i = [id(x) for x in v]
-            idx = i.index(id(key))
+            ks = list(id(v) for v in self.getData().values())
+            k = id(key)
         else:
-            idx = key
-        return idx
+            raise "key must be string or Column, not %s." % type(key).__name__
+
+        return ks.index(k)
 
     def addRow(self, row, rows=False):
         """ Adds the specified map as a new row to this table.
@@ -612,6 +621,14 @@ class TableDataset(GenericDataset, TableModel):
         """ cannot do this.
         """
         raise ValueError('Cannot set column count.')
+
+    @ property
+    def list(self):
+        return self._list
+
+    @ list.setter
+    def list(self, l):
+        raise NotImplemented
 
     def getColumnMap(self, key=None):
         """ Returns a dict of column-names as the keys and the column(s) as the values.

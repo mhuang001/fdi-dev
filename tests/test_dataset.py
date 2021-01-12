@@ -1368,7 +1368,7 @@ def test_TableDataset_func_row():
     assert s == [(3.3, 4.4), (6.6, 8.8)]
     assert [s[0][0], s[1][0]] == cc[1:3]
     assert v.getRowMap(slice(1, 3)) == {'col3': [3.3, 6.6], 'col4': [4.4, 8.8]}
-    # read rowa with slice
+    # remove rowa with slice
     assert v.removeRow(slice(1, 3)) == [[3.3, 6.6], [4.4, 8.8]]
     assert v.rowCount == 2
     del cc[1:3]
@@ -1448,17 +1448,21 @@ def test_TableDataset_func_column():
     assert w2['column3'] == v['column3']
     assert id(w2['column3']) == id(v['column3'])
 
-    # remove column
+    # remove column, check auxiliary list
     w3 = TableDataset(data=copy.deepcopy(a34))
-    v.removeColumn('column1')
-    assert v[0] == v['column2']
+    assert w3.list == a34
+    w3.removeColumn('column1')
+    assert w3[0] == w3['column2']
+    assert w3.list == a34[1:]
     w3 = TableDataset(data=copy.deepcopy(a34))
     w3.removeColumn(slice(1, 3))  # 1,2 (column2,3) removed
     assert len(w3) == 2
     assert w3[0].data == a34[0]
     assert w3[1].data == a34[3]
+    assert w3.list == [a34[0], a34[3]]
     w3.removeColumn(['column4', 'column1'])
     assert len(w3) == 0
+    assert w3.list == []
 
 
 def test_TableDataset_func():
@@ -1467,6 +1471,9 @@ def test_TableDataset_func():
     u.addColumn('col3', c1)
     c2 = Column([2, 3], 'eu')
     u['col4'] = c2
+
+    # access auxiliary list
+    assert u.list == [c1.data, c2.data]
 
     # access cell value
     u.setValueAt(value=42, rowIndex=1, columnIndex=1)

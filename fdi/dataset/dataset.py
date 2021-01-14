@@ -373,7 +373,7 @@ class TableDataset(GenericDataset, TableModel):
         """ sets name-column pairs from data.
 
         Valid formd include: {str:Column, ...} or [(str, [num, ...], str)]
-        or [(str, Column), ...]
+        or [(str, Column), ...] or [[num ...],  [num ...], ...]
 
         [{'name':str,'column':Column}] form is deprecated.
 
@@ -395,26 +395,27 @@ class TableDataset(GenericDataset, TableModel):
                    and 'name' in x and 'column' in x:
                     raise DeprecationWarning(
                         'Do not use [{"name":name, "column":column}...]. Use {name:column, ...} instead.')
-                if issubclass(x.__class__, list):
-                    if current_data is None or len(current_data) <= ind:
-                        # update the data of the ind-th column
-                        self.setColumn('', Column(data=x, unit=None))
+                if issubclass(x.__class__, (list, tuple)):
+                    # check out string-started columns
+                    if len(x) > 1 and issubclass(x[0].__class__, str) and not issubclass(x[1].__class__, str):
+                        if issubclass(x[1].__class__, (list, tuple)):
+                            u = x[2] if len(x) > 2 else ''
+                            self.setColumn(x[0], Column(data=x[1], unit=x[2]))
+                        elif issubclass(x[1].__class__, Column):
+                            self.setColumn(x[0], x[1])
+                        else:
+                            raise '[[str, [], str]...], [[str, []]...], [[str, Column]...] needed.'
                     else:
-                        colname = curdk[ind]
-                        current_data[colname].data = x
-                        self.setColumn(colname, current_data[colname])
-                elif issubclass(x.__class__, tuple):
-                    if len(x) == 3:
-                        self.setColumn(x[0], Column(data=x[1], unit=x[2]))
-                    elif issubclass(x[0].__class__, str) and \
-                            issubclass(x[1].__class__, Column):
-                        self.setColumn(x[0], x[1])
-                    else:
-                        raise ValueError(
-                            'Column tuples must be (str, Column), or (str, List, str)')
+                        if current_data is None or len(current_data) <= ind:
+                            # update the data of the ind-th column
+                            self.setColumn('', Column(data=x, unit=None))
+                        else:
+                            colname = curdk[ind]
+                            current_data[colname].data = x
+                            self.setColumn(colname, current_data[colname])
                 else:
                     raise ValueError(
-                        'Cannot extract name and column at list member ' + str(x))
+                        'Cannot extract name and column from list member ' + str(x))
         elif issubclass(data.__class__, maplist):
             for k, v in data.items():
                 self.setColumn(k, v)
@@ -776,15 +777,14 @@ class IndexedTableDataset(Indexed, TableDataset):
                 return [toc[k] for k in key]
             else:
                 toc = self._tableOfContent
-                cols = self._list
-                return [[c[toc[k]] for c in cols] for k in key]
+                # return [[c[toc[k]] for c in self._list] for k in key]
+                return list(zip(*((c[toc[k]] for k in key) for c in self._list)))
         else:
             if return_index:
                 return self._tableOfContent[key]
             else:
                 rec_ind = self._tableOfContent[key]
-                cols = self._list
-                return [c[rec_ind] for c in cols]
+                return [c[rec_ind] for c in self._list]
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

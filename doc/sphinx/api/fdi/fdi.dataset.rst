@@ -129,6 +129,14 @@ fdi.dataset.history module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.indexed module
+--------------------------
+
+.. automodule:: fdi.dataset.indexed
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.invalid module
 --------------------------
 

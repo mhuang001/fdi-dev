@@ -132,14 +132,14 @@ class Indexed():
             else:
                 toc = self._tableOfContent
                 cols = self.data
-                return [[c[toc[k]] for c in cols] for k in key]
+                # return [[c[toc[k]] for c in cols] for k in key]
+                return list(zip(*([c[toc[k]] for k in key] for c in cols)))
         else:
             if return_index:
                 return self._tableOfContent[key]
             else:
                 rec_ind = self._tableOfContent[key]
-                cols = self.data
-                return [c[rec_ind] for c in cols]
+                return [c[rec_ind] for c in self.data]
 
     def serializable(self):
         """ Can be encoded with serializableEncoder """

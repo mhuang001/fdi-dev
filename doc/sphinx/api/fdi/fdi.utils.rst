@@ -25,6 +25,14 @@ fdi.utils.common module
    :undoc-members:
    :show-inheritance:
 
+fdi.utils.fits\_kw module
+-------------------------
+
+.. automodule:: fdi.utils.fits_kw
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.getconfig module
 --------------------------
 

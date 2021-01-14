@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from .masked import masked
 import hashlib
 import traceback
 import logging
@@ -136,8 +137,11 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
         return ', '.join(s)
 
 
-def binhexstring(val, typ_, width=0, v=None):
+def binhexstring(val, typ_, width=0, v=None, p=None):
     """ returns val in binar, hex, or string according to typ_
+
+    val; list of valid descriptor entries.
+    typ_: parameter type
     """
     if typ_ == 'hex':
         func = hex
@@ -148,7 +152,13 @@ def binhexstring(val, typ_, width=0, v=None):
     breakline = True
     if not issubclass(val.__class__, list):
         return func(val)
+    if v == '_valid' and p:
+        validity = p.validate(val)
+
     lst = []
+    # number of bits of mask
+    highest = 0
+    masks = {}
     for t in val:
         if not issubclass(t.__class__, (tuple, list)):
             # val is a one-dim array or vector
@@ -157,28 +167,47 @@ def binhexstring(val, typ_, width=0, v=None):
             continue
         if v == '_valid':
             # val is for '_valid' [[], [], []..]
-            x, label = t[0], t[1]
-            if issubclass(x.__class__, (tuple, list)):
+            rule, name = t[0], t[1]
+            if issubclass(rule.__class__, (tuple, list)):
                 # range or binary with mask. (1,95) (0B011, 011)
-                seg = "(%s, %s): %s" % (func(x[0]), func(x[1]), label)
-            elif issubclass(x.__class__, str):
-                seg = "'%s': %s" % (x, label)
+                if rule[0] < rule[1]:
+                    # not binary masked
+                    seg = "(%s, %s): %s" % (func(rule[0]), func(rule[1]), name)
+                else:
+                    # binary masked. validity is a list of tuple/lists
+                    # validity[mask] is (val, state, mask height, mask width)
+                    mask, valid_val = rule[0], rule[1]
+                    masked_val, high, wide = masked(p._value, mask)
+                    masks[mask] = format(valid_val, '#0%db' % (wide+2))
+                    if high > highest:
+                        highest = high
+                    seg = None
+            elif issubclass(rule.__class__, str):
+                seg = "'%s': %s" % (rule, name)
             else:
-                seg = "%s: %s" % (func(x), label)
-            lst.append(seg)
+                seg = "%s: %s" % (func(rule), name)
+            if seg:
+                lst.append(seg)
         else:
             # val is a 1+ dimension array
             lst.append(lls(t, 19))
             if len(lst) > 6:
                 lst.append('... total %d elements in dim=1' % len(val))
                 break
+    if highest > 0:
+        # like {'0b110000: 0b10', '0b001111: 0b0110']
+        fmt = '#0%db' % (highest + 2)
+        lst += [format(mask, fmt) + ': ' + value for mask,
+                value in masks.items()]
+
     if width and breakline:
         return '\n'.join(lst)
     else:
         return '[%s]' % ', '.join(lst)
 
 
-Ommitted_Valid_Labels = ['valid', 'default', '', 'range']
+""" Must be lowercased """
+Ommitted_Valid_Rule_Names = ['valid', 'default', '', 'range']
 
 
 def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
@@ -189,7 +218,77 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
     v: name of parameter attribute. '_valid', '_type', '_default', '_value' (for Parameter) or '_data' (dataset)
     missingval: string used when the parameter does not have the attribute.
     ftime: True means that attribute value will be FineTime if _type is 'finetime'.
-    state: The state validity of the parameter is returned in place of value, if the state is not in Ommitted_Valid_Labels -- 'valid', 'range', '' or 'default'.
+    state: The state validity of the parameter is returned in place of value, if the state is not in Ommitted_Valid_Rule_Names -- 'valid', 'range', '' or 'default'.
+    """
+
+    ts = getattr(p, '_type') if hasattr(p, '_type') else missingval
+    if ts is None:
+        ts = 'None'
+    if not hasattr(p, v):
+        return missingval
+
+    val = getattr(p, v)
+    if val is None:
+        return 'None'
+    if v in ['_type', 'description', '_unit', '_typecode']:
+        return val
+    if v == '_default':
+        if ts.startswith('finetime'):
+            vs = val.toString(width=width, **kwds)
+        else:
+            # for default and value/data, print list horizontally
+            width = 0
+            vs = binhexstring(val, ts, width=width)
+    elif v == '_valid':
+        if ts.startswith('finetime'):
+            # print('***', v, ts)
+            vs = binhexstring(val, 'string', v=v)
+        else:
+            vs = binhexstring(val, ts, width=width, v=v, p=p)
+    else:
+        # v is '_value/data'
+        if ts.startswith('finetime'):
+            if state:
+                vv, vdesc = p.validate(val)
+                if vdesc.lower() not in Ommitted_Valid_Rule_Names:
+                    vs = '%s (%s)' % (
+                        vdesc, val.toString(width=width, **kwds))
+                else:
+                    vs = val.toString(width=width, **kwds)
+            else:
+                vs = val.toString(width=width, **kwds)
+        elif not state or not hasattr(p, 'validate'):
+            # for  value/data, print list horizontally
+            width = 0
+            vs = binhexstring(val, ts, width=width, v=v)
+        elif hasattr(p, 'validate'):
+            # v is _value/data of parameter of non-finetime to be displayed with state
+            validity = p.validate(val)
+            if issubclass(validity.__class__, tuple):
+                # not binary masked
+                vv, vdesc = validity
+                if vdesc.lower() not in Ommitted_Valid_Rule_Names:
+                    vs = '%s (%s)' % (vdesc, binhexstring(val, ts, v=v))
+                else:
+                    vs = binhexstring(val, ts, v=v)
+            else:
+                # binary masked. validity is a list of tuple/lists
+                # validity is (val, state, mask height, mask width)
+                sep = '\n' if width else ', '
+                vs = sep.join('%s (%s)' %
+                              (r[1], format(r[0], '#0%db' % (r[3]+2))) for r in validity)
+    return vs
+
+
+def attrstr1(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
+    """
+    generic string representation of an attribute of a parameter or dataset.
+
+    p: parameter object.
+    v: name of parameter attribute. '_valid', '_type', '_default', '_value' (for Parameter) or '_data' (dataset)
+    missingval: string used when the parameter does not have the attribute.
+    ftime: True means that attribute value will be FineTime if _type is 'finetime'.
+    state: The state validity of the parameter is returned in place of value, if the state is not in Ommitted_Valid_Rule_Names -- 'valid', 'range', '' or 'default'.
     """
 
     ts = getattr(p, '_type') if hasattr(p, '_type') else missingval
@@ -199,9 +298,9 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
         val = getattr(p, v)
         if val is None:
             return 'None'
-        vc = val.__class__
+        val_cls = val.__class__
         # from ..dataset.finetime import FineTime
-        # if issubclass(vc, FineTime):
+        # if issubclass(val_cls, FineTime):
         if ftime:
             # v is '_valid', '_default' or '_value/data'
             if ts.startswith('finetime'):
@@ -212,7 +311,7 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                     s = val.toString(width=width, **kwds)
                 elif state:
                     vv, vdesc = p.validate(val)
-                    if vdesc.lower() not in Ommitted_Valid_Labels:
+                    if vdesc.lower() not in Ommitted_Valid_Rule_Names:
                         s = '%s (%s)' % (
                             vdesc, val.toString(width=width, **kwds))
                     else:
@@ -227,18 +326,20 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                 vs = binhexstring(val, ts, width=width, v=v)
             elif hasattr(p, 'validate'):
                 # v is _value/data of parameter of non-finetime to be displayed with state
-                vld = p.validate(val)
-                if issubclass(vld.__class__, tuple):
+                validity = p.validate(val)
+                if issubclass(validity.__class__, tuple):
                     # not binary masked
-                    vv, vdesc = vld
-                    if vdesc.lower() not in Ommitted_Valid_Labels:
+                    vv, vdesc = validity
+                    if vdesc.lower() not in Ommitted_Valid_Rule_Names:
                         vs = '%s (%s)' % (vdesc, binhexstring(val, ts, v=v))
                     else:
                         vs = binhexstring(val, ts, v=v)
                 else:
-                    # binary masked. vld is a list of tuple/lists
+                    # binary masked. validity is a list of tuple/lists
+                    # validity is (val, state, mask height, mask width)
                     sep = '\n' if width else ', '
-                    vs = sep.join('%s (%s)' % (r[1], bin(r[0])) for r in vld)
+                    vs = sep.join('%s (%s)' %
+                                  (r[1], format(r[0], '#0%db' % r[3])) for r in validity)
         else:
             # must be string
             vs = val

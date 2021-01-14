@@ -381,12 +381,53 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         else:
             return True
 
+    def split(self, into=None):
+        """ split a multiple binary bit-masked parameters according to masks.
+
+        into: dictionary mapping bit-masks to the sub-name of the parameter.
+        return: a dictionary mapping name of new parameters to its value.
+        """
+        ruleset = self.getValid()
+        if ruleset is None or len(ruleset) == 0:
+            return {}
+
+        st = DataTypes[self._type]
+        vt = type(self._value).__name__
+
+        if st is not None and st != '' and vt != st:
+            return {}
+
+        masks = {}
+        # number of bits of mask
+        highest = 0
+        for rn in ruleset:
+            rule, name = tuple(rn)
+            if issubclass(rule.__class__, (tuple, list)):
+                if rule[0] is Ellipsis or rule[1] is Ellipsis:
+                    continue
+                if rule[0] >= rule[1]:
+                    # binary masked rules are [mask, vld] e.g. [0B011000,0b11]
+                    mask, valid_val = rule[0], rule[1]
+                    masked_val, high, wide = masked(self._value, mask)
+                    masks[mask] = masked_val
+                    if high > highest:
+                        highest = high
+
+        if into is None or len(into) < len(masks):
+            # like {'0b110000': 0b10, '0b001111': 0b0110}
+            fmt = '#0%db' % (highest + 2)
+            return {format(mask, fmt): value for mask, value in masks.items()}
+        else:
+            # use ``into`` for rulename
+            # like {'foo': 0b10, 'bar': 0b0110}
+            return {into[mask]: value for mask, value in masks.items()}
+
     def validate(self, value):
         """ checks if a match the rule set.
 
         returns:
         (valid value, rule name) for discrete and range rules.
-        dictionary of key=mask, val=(valid val, rule name) tuple for binary masks rules.
+        {mask: (valid val, rule name, mask_height, mask_width), ...} for binary masks rules.
         (INVALID, 'Invalid') if no matching is found.
         (value, 'Default') if rule set is empty.
         """
@@ -414,9 +455,10 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
                     # binary masked rules are [mask, vld] e.g. [0B011000,0b11]
                     mask, vld = rule[0], rule[1]
                     if len(binmasks.setdefault(mask, [])) == 0:
-                        if masked(value, mask) == vld:
+                        vtest, high, wide = masked(value, mask)
+                        if vtest == vld:
                             # record, indexed by mask
-                            binmasks[mask] += [vld, name]
+                            binmasks[mask] += [vld, name, high, wide]
                 else:
                     # range
                     res = INVALID if (value < rule[0]) or (
@@ -688,7 +730,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
 
         level: 0 is the most detailed, 2 is the least, 1 is for __repr__.
         tablefmt: format string in packae ``tabulate``.
-        widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its tsble cell is, 0 for ommiting the attributable. Default is 
+        widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its tsble cell is, 0 for ommiting the attributable. Default is
 ``{'name': 8, 'value': 17, 'unit': 7, 'type': 8,
                       'valid': 25, 'default': 17, 'code': 4, 'description': 15}``
         """

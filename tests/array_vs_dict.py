@@ -35,21 +35,20 @@ def list1():
     [yl[p] for p in t]
 
 
-yd = dict((i, random.randrange(N)) for i in range(N))
+yd = dict((i, yl[i]) for i in range(N))
 
 
 def dict1():
     [yd[p] for p in t]
 
 
-yo = ODict((i, random.randrange(N)) for i in range(N))
+yo = ODict((i, yl[i]) for i in range(N))
 
 
 def odict1():
     [yo[p] for p in t]
 
 
-yo = ODict((i, random.randrange(N)) for i in range(N))
 yod = yo.data
 
 
@@ -57,7 +56,7 @@ def od_data1():
     [yod[p] for p in t]
 
 
-tdata = [[random.randrange(N) for i in range(N)]]
+tdata = [yl]
 # , [random.randrange(N) for i in range(N)]]
 tab = TableDataset(data=tdata)
 tab_map = tab.list
@@ -67,46 +66,57 @@ def Tab1():
     tab.getRow(t)
 
 
-def Tab_m1():
+def Tab_mp1():
     [tuple(c[p] for c in tab_map) for p in t]
 
 
 idx = Indexed(indexPattern=[0])
-idx.data = [t]  # value look-up needs to confine the value set
+idx.data = [yl]  # value look-up needs to confine the value set
 idx.updateToc()
 
 
 def Ind1():
-    [idx.vLookUp(p, return_index=1) for p in t]
+    [idx.vLookUp(p, return_index=0) for p in yl]
 
 
 def Ind_m1():
-    idx.vLookUp(t, return_index=1, multiple=True)
+    idx.vLookUp(yl, return_index=0, multiple=True)
 
 
 it = IndexedTableDataset(data=tdata)
 it.indexPattern = [0]
-it.data = [t]
+it.data = [yl]
 it.updateToc()
 
 
 def IndTab1():
-    [it.vLookUp(p, return_index=1) for p in t]
+    [it.vLookUp(p, return_index=0) for p in yl]
 
 
 def IndT_m1():
-    it.vLookUp(t, return_index=1, multiple=True)
+    it.vLookUp(yl, return_index=0, multiple=True)
 
+
+a = list1()
+assert dict1() == a
+assert odict1() == a
+assert od_data1() == a
+assert Tab1() == a
+assert Tab_mp1() == a
+assert Ind1() == a
+assert Ind_m1() == a
+assert IndTab1() == a
+assert IndT_m1() == a
 
 res = cmpthese(loop,
                [none1, list1, dict1, odict1, od_data1,
-                Tab1, Tab_m1, Ind1, Ind_m1,
+                Tab1, Tab_mp1, Ind1, Ind_m1,
                 IndTab1, IndT_m1],
                repeat=rpt)
 
 print(pprint_cmp(res))
 
-del yl, yd, yo, yod, t, tdata, tab
+del yl, yd, yo, yod, t, tdata, tab, it
 #############
 
 gc.collect()
@@ -131,40 +141,55 @@ def list2():
     [yl2[p][q] for p, q in t2]
 
 
-yd2 = dict(((i, j), random.randrange(N)) for i in range(m) for j in range(n))
+yd2 = dict(((j, i), t2[j*m+i]) for i in range(n) for j in range(m))
 
 
 def dict2():
     [yd2[p] for p in t2]
 
 
-yo2 = ODict(((i, j), random.randrange(N)) for i in range(m) for j in range(n))
+yo2 = ODict(yd2)
 
 
 def odict2():
     [yo2[p] for p in t2]
 
 
+tdata2 = list(zip(*((j, i, t2[j*m+i]) for i in range(n) for j in range(m))))
 idx2 = Indexed(indexPattern=[0, 1])
-idx2.data = list(zip(*t2))
+idx2.data = tdata2
 idx2.updateToc()
 
 
-def Indexed2():
-    [idx2.vLookUp(p) for p in t2]
+def Ind2():
+    [idx2.vLookUp(p, return_index=0) for p in t2]
 
 
 def Ind_m2():
-    idx2.vLookUp(t2, multiple=1)
+    idx2.vLookUp(t2, return_index=0, multiple=1)
+
+
+it2 = IndexedTableDataset(data=tdata2)
+it2.indexPattern = [0, 1]
+it2.updateToc()
+
+
+def IndTab2():
+    [it2.vLookUp(p, return_index=0) for p in t2]
+
+
+def IndT_m2():
+    it2.vLookUp(t2, return_index=0, multiple=True)
 
 
 res = cmpthese(1,
                [none2, list2, dict2, odict2,
-                Indexed2, Ind_m2],
+                Ind2, Ind_m2, IndTab2, IndT_m2],
                repeat=rpt)
 
 print(pprint_cmp(res))
 
+del t2, yl2, yd2, yo2, tdata2, it2
 gc.collect()
 gc.disable()
 

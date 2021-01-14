@@ -569,22 +569,28 @@ def test_Parameter_valid():
         # 0b00110000, 0b11): 'mode 3', undefined. invalid
         (0b00001111, 0b0000): 'reserved',
     }
-    assert v.validate(0b00000000) == [(0b00, 'off'),
-                                      (0b0000, 'reserved')]
+    assert v.validate(0b00000000) == [(0b00, 'off', 6, 2),
+                                      (0b0000, 'reserved', 4, 4)]
     v.value = 0
     assert v.isvalid()
-    assert v.validate(0b00010000) == [(0b01, 'mode 1'),
-                                      (0b0000, 'reserved')]
+    assert v.validate(0b00010000) == [(0b01, 'mode 1', 6, 2),
+                                      (0b0000, 'reserved', 4, 4)]
     # other bits are ignored
-    assert v.validate(0b10100000) == [(0b10, 'mode 2'),
-                                      (0b0000, 'reserved')]
+    assert v.validate(0b10100000) == [(0b10, 'mode 2', 6, 2),
+                                      (0b0000, 'reserved', 4, 4)]
     assert v.validate(0b00110000) == [(INVALID, 'Invalid'),
-                                      (0b0000, 'reserved')]
-    assert v.validate(0b00001111) == [(0b00, 'off'),
+                                      (0b0000, 'reserved', 4, 4)]
+    assert v.validate(0b00001111) == [(0b00, 'off', 6, 2),
                                       (INVALID, 'Invalid')]
     # all invalid. [ (INVALID, 'Invalid'),
     #                                   (INVALID, 'Invalid') ]
     assert v.validate(0b11111111) == (INVALID, 'Invalid')
+
+    # split
+    v.value = 0b100110
+    assert v.split() == {'0b110000': 0b10, '0b001111': 0b0110}
+    assert v.split({0b110000: 'foo', 0b001111: 'bar'}) == {
+        'foo': 0b10, 'bar': 0b0110}
 
 
 def test_Parameter_features():
@@ -1877,7 +1883,7 @@ def test_Indexed():
     # multiple keys
     assert v2.vLookUp([(11, 31, 51), (14, 34, 54)], multiple=1) == [1, 4]
     assert v2.vLookUp([(11, 31, 51), (14, 34, 54)], return_index=False, multiple=True) == [
-        [1+n*10 for n in range(Nc)], [4+n*10 for n in range(Nc)]]
+        tuple(1+n*10 for n in range(Nc)), tuple(4+n*10 for n in range(Nc))]
 
 
 def demo_CompositeDataset():

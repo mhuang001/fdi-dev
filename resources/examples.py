@@ -227,7 +227,7 @@ v = NumericParameter(value=9000, valid={
 v
 
 # The current value is valid
-v.isvalid()
+v.isValid()
 
 
 # check if other values are valid according to specification of this parameter
@@ -282,6 +282,44 @@ v['birthday'].value.tai
 # remove parameter from metadata.   # function inherited from Composite class.
 v.remove(a1)
 v.size()  # == 2
+
+# The value of the next parameter is valid from 0 to 31 and can be 9
+valid_rule = {(0, 31): 'valid', 99: ''}
+v['a'] = NumericParameter(
+    3.4, 'rule name, if is "valid", "", or "default", is ommited in value string.', 'float', 2., valid=valid_rule)
+v['a'].isValid()    # True
+
+then = datetime(
+    2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
+# The value of the next parameter is valid from TAI=0 to 9876543210123456
+valid_rule = {(0, 9876543210123456): 'alive'}
+# display typecode set to 'year' (%Y)
+v['b'] = DateParameter(FineTime(then), 'date param', default=99,
+                       valid=valid_rule, typecode='%Y')
+# The value of the next parameter has an empty rule set and is always valid.
+v['c'] = StringParameter(
+    'Right', 'str parameter. but only "" is allowed.', valid={'': 'empty'}, default='cliche', typecode='B')
+
+# The value of the next parameter is for a detector status.
+# The information is packed in a byte, and if extractab;e with suitable binary masks:
+# Bit7~Bit6 port status [01: port 1; 10: port 2; 11: port closed];
+# Bit5 processing using the main processir or a stand-by one [0:  stand by; 1: main];
+# Bit4 PPS status [0: error; 1: normal];
+# Bit3~Bit0 reserved.
+valid_rule = {
+    (0b11000000, 0b01): 'port_1',
+    (0b11000000, 0b10): 'port_2',
+    (0b11000000, 0b11): 'port closed',
+    (0b00100000, 0b0): 'stand_by',
+    (0b00100000, 0b1): 'main',
+    (0b00010000, 0b0): 'error',
+    (0b00010000, 0b1): 'normal',
+    (0b00001111, 0b0): 'reserved'
+}
+v['d'] = NumericParameter(
+    0b01010110, 'valid rules described with binary masks', valid=valid_rule)
+# this returns the tested value, the rule name, the heiggt and width of every mask.
+v['d'].validate(0b01010110)
 
 # string representation. This is the same as v.toString(level=0), most detailed.
 print(v.toString())
@@ -356,16 +394,7 @@ x.creator   # == a1
 
 # load some metadata
 m = x.meta
-m['a'] = NumericParameter(
-    3.4, 'rule name, if is "valid", "", or "default", is ommited in value string.', 'float', 2., {(0, 31): 'valid', 99: ''})
-then = datetime(
-    2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
-m['b'] = DateParameter(FineTime(then), 'date param', default=99,
-                       valid={(0, 9876543210123456): 'ever'}, typecode='%Y')
-m['c'] = StringParameter(
-    'Right', 'str parameter. but only "" is allowed.', {'': 'empty'}, 'cliche', 'B')
-m['d'] = NumericParameter(
-    0b01, 'valid rules described with binary masks', 'binary', 0b00, {(0b0110, 0b01): 'on', (0b0110, 0b00): 'off'})
+m['ddetector'] = v['d']
 # Demo ``toString()`` function.
 print(x.toString())
 

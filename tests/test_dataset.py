@@ -541,7 +541,7 @@ def test_Parameter_valid():
     a5 = {(1, 2222): 'a', (3000, 3333): 'b'}
     v = Parameter(description=a1, value=a2, typ_=a3, default=a4, valid=a5)
     assert v.validate(a2) == (a2, 'a')
-    assert v.isvalid()
+    assert v.isValid()
     # a different range, low edge
     assert v.validate(3000) == (3000, 'b')
     # high edge
@@ -549,10 +549,10 @@ def test_Parameter_valid():
     # invalid
     assert v.validate(0) == (INVALID, 'Invalid')
     v.value = 0
-    assert v.isvalid() == False
+    assert v.isValid() == False
     assert v.validate(2500) == (INVALID, 'Invalid')
     v.value = 2500
-    assert not v.isvalid()
+    assert not v.isValid()
     # discrete
     v.valid = {4321: 'hi there', 99: 'foo'}
     assert v.validate(4321) == (4321, 'hi there')
@@ -572,7 +572,7 @@ def test_Parameter_valid():
     assert v.validate(0b00000000) == [(0b00, 'off', 6, 2),
                                       (0b0000, 'reserved', 4, 4)]
     v.value = 0
-    assert v.isvalid()
+    assert v.isValid()
     assert v.validate(0b00010000) == [(0b01, 'mode 1', 6, 2),
                                       (0b0000, 'reserved', 4, 4)]
     # other bits are ignored

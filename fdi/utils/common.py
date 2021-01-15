@@ -70,8 +70,7 @@ def lls(s, length=80):
 def wls(s, width=15):
     """ widthth-limited string.
 
-    width: if > 0   Returns the str with '\n' inserted every width chars.
-    else return s.
+    width: if > 0   Returns the str with '\n' inserted every width chars. Or else return s.
     """
 
     if width <= 0:
@@ -275,7 +274,7 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                 # binary masked. validity is a list of tuple/lists
                 # validity is (val, state, mask height, mask width)
                 sep = '\n' if width else ', '
-                vs = sep.join('%s (%s)' %
+                vs = sep.join(r[1] if r[1] == 'Invalid' else'%s (%s)' %
                               (r[1], format(r[0], '#0%db' % (r[3]+2))) for r in validity)
     return vs
 

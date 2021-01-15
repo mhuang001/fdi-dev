@@ -374,7 +374,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         self._valid = None if valid is None or len(
             valid) == 0 else [t2l([k, v]) for k, v in valid.items()] if issubclass(valid.__class__, dict) else t2l(valid)
 
-    def isvalid(self):
+    def isValid(self):
         res = self.validate(self.value)
         if issubclass(res.__class__, tuple):
             return res[0] is not INVALID

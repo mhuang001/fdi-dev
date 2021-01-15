@@ -61,9 +61,7 @@ ArrayDataset
 ... v
 # ArrayDataset
 description= {'UNKNOWN'},
-meta= {
-(empty)
-MetaData-listeners = ListnerSet{}
+meta= {(No parameter.)MetaData-listeners = ListnerSet{}
 },
 type= {None},
 default= {None},
@@ -94,7 +92,6 @@ typecode= {'f'},
 unit= {'ev'}
 ArrayDataset-dataset =
 1  4.4  5400  -22  162
-
 
 >>> # data access: read the 2nd array element
 ... v[2]       # 5400
@@ -207,7 +204,6 @@ TableDataset is mainly a dictionary containing name-Column pairs and metadata.
 Columns are basically ArrayDatasets under a different name.
 
 
-
 >>> # Create an empty TableDataset then add columns one by one
 ... v = TableDataset()
 ... v['col1'] = Column(data=[1, 4.4, 5.4E3], unit='eV')
@@ -215,9 +211,7 @@ Columns are basically ArrayDatasets under a different name.
 ... v
 # TableDataset
 description= {'UNKNOWN'},
-meta= {
-(empty)
-MetaData-listeners = ListnerSet{}
+meta= {(No parameter.)MetaData-listeners = ListnerSet{}
 }
 TableDataset-dataset =
   col1     col2
@@ -259,17 +253,18 @@ TableDataset-dataset =
 ... v5.getColumnNames()
 ['column1', 'column2', 'column3', 'column4']
 
->>> # get column by name
+
+# get column by name
 ... my_column = v5['column1']       # [1, 4.4, 5.4E3]
 ... my_column.data
-[1, 4.4, 5400.0]
+>>> [1, 4.4, 5400.0]
 
 >>> # by index
 ... v5[0].data       # [1, 4.4, 5.4E3]
 [1, 4.4, 5400.0]
 
 >>> # get a list of all columns' data.
-... #Note the slice "v5[:]" and syntax ``in``
+... # Note the slice "v5[:]" and syntax ``in``
 ... [c.data for c in v5[:]]   # == a5
 [[1, 4.4, 5400.0], [0, 43.2, 2000.0], [True, True, False], ['A', 'BB', 'CCC']]
 
@@ -287,11 +282,11 @@ TableDataset-dataset =
 123
 
 >>> # row access bu row index -- multiple and in custom order
-... v5.getRow([2,1])  # [(5400.0, 2000.0, False, 'CCC'), (4.4, 123, True, 'BB')]
+... v5.getRow([2, 1])  # [(5400.0, 2000.0, False, 'CCC'), (4.4, 123, True, 'BB')]
 [(5400.0, 2000.0, False, 'CCC'), (4.4, 123, True, 'BB')]
 
 >>> # or with a slice
-... v5.getRow(slice(0,-1))
+... v5.getRow(slice(0, -1))
 [(1, 0, True, 'A'), (4.4, 123, True, 'BB')]
 
 >>> # unit access
@@ -314,14 +309,13 @@ TableDataset-dataset =
 ... u.columnCount        # 2
 2
 
+>>> # addRow
+... u.rowCount    # 2
+2
+
 >>> u.addRow({'money': 4.4, 'time': 3.3})
 ... u.rowCount    # 3
 3
-
->>> # syntax ``in``
-... [c for c in u]  # list of column names ['time', 'money']
-['time', 'money']
-
 
 >>> # run this to see ``toString()``
 ... ELECTRON_VOLTS = 'eV'
@@ -337,27 +331,31 @@ TableDataset-dataset =
 ... # metadata is optional
 ... x.meta['temp'] = NumericParameter(42.6, description='Ambient', unit='C')
 ... print(x.toString())
-# TableDataset
-description= {'Example table'},
-meta= {
-+--------+---------+--------+--------+---------+-----------+--------+---------------+
-| name   | value   | unit   | type   | valid   | default   | code   | description   |
-+========+=========+========+========+=========+===========+========+===============+
-| temp   | 42.6    | C      | float  | None    | None      | None   | Ambient       |
-+--------+---------+--------+--------+---------+-----------+--------+---------------+
-MetaData-listeners = ListnerSet{}}
-TableDataset-dataset =
-   Time    Energy    Distance
-  (sec)      (eV)         (m)
--------  --------  ----------
-      0     100          -500
-      1     102.5         265
-      2     105          1030
-      3     107.5        1795
-      4     110          2560
-      5     112.5        3325
-      6     115          4090
-      7     117.5        4855
+
+::
+   
+   # TableDataset
+   description= {'Example table'},
+   meta= {
+   +--------+---------+--------+--------+---------+-----------+--------+---------------+
+   | name   | value   | unit   | type   | valid   | default   | code   | description   |
+   +========+=========+========+========+=========+===========+========+===============+
+   | temp   | 42.6    | C      | float  | None    | None      | None   | Ambient       |
+   +--------+---------+--------+--------+---------+-----------+--------+---------------+
+   MetaData-listeners = ListnerSet{}}
+   TableDataset-dataset =
+      Time    Energy    Distance
+     (sec)      (eV)         (m)
+   -------  --------  ----------
+         0     100          -500
+         1     102.5         265
+         2     105          1030
+         3     107.5        1795
+         4     110          2560
+         5     112.5        3325
+         6     115          4090
+         7     117.5        4855
+   
 
 
 
@@ -371,11 +369,7 @@ A Parameter is a variable with associated information about its description, uni
 Often a parameter shows a property. So a parameter in the metadata of a dataset or product is often called a property.
 
 
->>> # Creation
-... # The standard way -- with keyword arguments
-... v = Parameter(value=9000, description='Average age', typ_='integer')
-... v.description   # 'Average age'
-'Average age'
+>>> 'Average age'
 
 >>> v.value   # == 9000
 9000
@@ -420,14 +414,13 @@ True
 >>> v.validate(20)  # invalid
 (Invalid, 'Invalid')
 
-
-MetaData and Parameter: Metadata
---------------------------------
-
-A dict-like container for named parameters.
-
-
->>> # Creation. Start with numeric parameter.
+>>> print("""
+... MetaData and Parameter: Metadata
+... --------------------------------
+... 
+... A dict-like container for named parameters.
+... """)
+# Creation. Start with numeric parameter.
 ... a1 = 'weight'
 ... a2 = NumericParameter(description='How heavey is the robot.',
 ...                       value=60, unit='kg', typ_='float')
@@ -437,23 +430,30 @@ A dict-like container for named parameters.
 ... v.set(a1, a2)
 ... # get the parameter with the name.
 ... v.get(a1)   # == a2
-60.0
+
+MetaData and Parameter: Metadata
+--------------------------------
+
+A dict-like container for named parameters.
+
+
+>>> 60.0
 
 >>> # add more parameter. Try a string type.
 ... v.set(name='job', newParameter=StringParameter('pilot'))
 ... # get the value of the parameter
 ... v.get('job').value   # == 'pilot'
+# access parameters in metadata
+... # a more readable way to set/get a parameter than "v.set(a1,a2)", "v.get(a1)"
+... v['job'] = StringParameter('waitress')
+... v['job']   # == waitress
 'pilot'
 
->>> # access parameters in metadata
-... # a more readable way to set/get a parameter than "v.set(a1,a2)", "v.get(a1)"
-... v['job'] = StringParameter('waitor')
-... v['job']   # == waitor
-waitor
+>>> waitress
 
 >>> # same result as...
 ... v.get('job')
-waitor
+waitress
 
 >>> # Date type parameter use International Atomic Time (TAI) to keep time,
 ... # in 1-microsecond precission
@@ -474,38 +474,101 @@ waitor
 2
 
 
+>>> # The value of the next parameter is valid from 0 to 31 and can be 9
+... valid_rule = {(0, 31): 'valid', 99: ''}
+... v['a'] = NumericParameter(
+...     3.4, 'rule name, if is "valid", "", or "default", is ommited in value string.', 'float', 2., valid=valid_rule)
+... v['a'].isValid()    # True
+True
+
+>>> then = datetime(
+...     2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
+... # The value of the next parameter is valid from TAI=0 to 9876543210123456
+... valid_rule = {(0, 9876543210123456): 'alive'}
+... # display typecode set to 'year' (%Y)
+... v['b'] = DateParameter(FineTime(then), 'date param', default=99,
+...                        valid=valid_rule, typecode='%Y')
+... # The value of the next parameter has an empty rule set and is always valid.
+... v['c'] = StringParameter(
+...     'Right', 'str parameter. but only "" is allowed.', valid={'': 'empty'}, default='cliche', typecode='B')
+
+>>> # The value of the next parameter is for a detector status.
+... # The information is packed in a byte, and if extractab;e with suitable binary masks:
+... # Bit7~Bit6 port status [01: port 1; 10: port 2; 11: port closed];
+... # Bit5 processing using the main processir or a stand-by one [0:  stand by; 1: main];
+... # Bit4 PPS status [0: error; 1: normal];
+... # Bit3~Bit0 reserved.
+... valid_rule = {
+...     (0b11000000, 0b01): 'port_1',
+...     (0b11000000, 0b10): 'port_2',
+...     (0b11000000, 0b11): 'port closed',
+...     (0b00100000, 0b0): 'stand_by',
+...     (0b00100000, 0b1): 'main',
+...     (0b00010000, 0b0): 'error',
+...     (0b00010000, 0b1): 'normal',
+...     (0b00001111, 0b0): 'reserved'
+... }
+... v['d'] = NumericParameter(
+...     0b01010110, 'valid rules described with binary masks', valid=valid_rule)
+... # this returns the tested value, the rule name, the heiggt and width of every mask.
+... v['d'].validate(0b01010110)
+[(1, 'port_1', 8, 2),
+ (0, 'stand_by', 6, 1),
+ (1, 'normal', 5, 1),
+ (Invalid, 'Invalid')]
+
 >>> # string representation. This is the same as v.toString(level=0), most detailed.
-...: print(v.toString())
+... print(v.toString())
 
 ::
    
-   +----------+------------------+--------+----------+---------+-----------+--------+---------------+
-   | name     | value            | unit   | type     | valid   | default   | code   | description   |
-   +==========+==================+========+==========+=========+===========+========+===============+
-   | job      | waitress         |        | string   | None    |           | B      | UNKNOWN       |
-   +----------+------------------+--------+----------+---------+-----------+--------+---------------+
-   | birthday | 1990-09-09       |        | finetime | None    | None      |        | was born on   |
-   |          | 12:34:56.789098  |        |          |         |           |        |               |
-   |          | 1031574896789098 |        |          |         |           |        |               |
-   +----------+------------------+--------+----------+---------+-----------+--------+---------------+
+   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
+   | name     | value             | unit   | type     | valid                     | default         | code   | description     |
+   +==========+===================+========+==========+===========================+=================+========+=================+
+   | job      | waitress          |        | string   | None                      |                 | B      | UNKNOWN         |
+   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
+   | birthday | 1990-09-09        |        | finetime | None                      | None            |        | was born on     |
+   |          | 12:34:56.789098   |        |          |                           |                 |        |                 |
+   |          | 1031574896789098  |        |          |                           |                 |        |                 |
+   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
+   | a        | 3.4               | None   | float    | (0, 31): valid            | 2.0             | None   | rule name, if i |
+   |          |                   |        |          | 99:                       |                 |        | s "valid", "",  |
+   |          |                   |        |          |                           |                 |        | or "default", i |
+   |          |                   |        |          |                           |                 |        | s ommited in va |
+   |          |                   |        |          |                           |                 |        | lue string.     |
+   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
+   | b        | alive (2019-02-19 |        | finetime | [(0, 9876543210123456): a | 1958-01-01      |        | date param      |
+   |          | 01:02:03.456789   |        |          | live]                     | 00:00:00.000099 |        |                 |
+   |          | 1929229323456789) |        |          |                           | 99              |        |                 |
+   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
+   | c        | Invalid (Right)   |        | string   | '': empty                 | cliche          | B      | str parameter.  |
+   |          |                   |        |          |                           |                 |        | but only "" is  |
+   |          |                   |        |          |                           |                 |        | allowed.        |
+   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
+   | d        | port_1 (0b01)     | None   | integer  | 0b11000000: 0b11          | None            | None   | valid rules des |
+   |          | stand_by (0b0)    |        |          | 0b00100000: 0b1           |                 |        | cribed with bin |
+   |          | normal (0b1)      |        |          | 0b00010000: 0b1           |                 |        | ary masks       |
+   |          | Invalid           |        |          | 0b00001111: 0b0000        |                 |        |                 |
+   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
    MetaData-listeners = ListnerSet{}
-
+   
 >>> # simplifed string representation, toString(level=1), also what __repr__() runs.
-...: v
-
-::
+... v
    
-   -------------  --------------------
-   job= waitress  birthday= 1990-09-09
-                  12:34:56.789098
-                  1031574896789098
-   -------------  --------------------
+   --------------------  --------------------  ----------------
+   job= waitress         birthday= 1990-09-09  a= 3.4
+                         12:34:56.789098
+                         1031574896789098
+   b= alive (2019-02-19  c= Invalid (Right)    d= port_1 (0b01)
+   01:02:03.456789                             stand_by (0b0)
+   1929229323456789)                           normal (0b1)
+                                               Invalid
+   --------------------  --------------------  ----------------
    MetaData-listeners = ListnerSet{}
-
+   
 >>> # simplest string representation, toString(level=2).
-...: print(v.toString(level=2))
-job, birthday, listeners = ListnerSet{}
-
+... print(v.toString(level=2))
+job, birthday, a, b, c, d, listeners = ListnerSet{}
 
 
 Product
@@ -528,7 +591,6 @@ The data Product is at the center of FDI data model. A product has
 ... x.instrument  # == "Crystal-Ball"
 'Crystal-Ball'
 
-
 >>> # ways to add datasets
 ... i0 = 6
 ... i1 = [[1, 2, 3], [4, 5, i0], [7, 8, 9]]
@@ -539,15 +601,15 @@ The data Product is at the center of FDI data model. A product has
 ... x["RawImage"] = image
 ... # take the data out of the product
 ... x["RawImage"].data  # == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-[[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-
->>> # Another syntax to put dataset into a product: set(name, dataset)
+# Another syntax to put dataset into a product: set(name, dataset)
 ... # Different but same function as above.
 ... # Here no unit or description is given when making ArrayDataset
 ... x.set('QualityImage', ArrayDataset(
 ...     [[0.1, 0.5, 0.7], [4e3, 6e7, 8], [-2, 0, 3.1]]))
 ... x["QualityImage"].unit  # is None
+[[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 
+>>> 
 >>> # add another tabledataset
 ... s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
 ...       ('col2', [0, 43.2, 2E3], 'cnt')]
@@ -582,84 +644,68 @@ The data Product is at the center of FDI data model. A product has
 
 >>> # load some metadata
 ... m = x.meta
-... m['a'] = NumericParameter(
-...     3.4, 'rule name, if is "valid", "", or "default", is ommited in value string.', 'float', 2., {(0, 31): 'valid', 99: ''})
-... then = datetime(
-...     2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
-... m['b'] = DateParameter(FineTime(then), 'date param', default=99,
-...                        valid={(0, 9876543210123456): 'ever'}, typecode='%Y')
-... m['c'] = StringParameter(
-...     'Right', 'str parameter. but only "" is allowed.', {'': 'empty'}, 'cliche', 'B')
-... m['d'] = NumericParameter(
-...     0b01, 'valid rules described with binary masks', 'binary', 0b00, {(0b0110, 0b01): 'on', (0b0110, 0b00): 'off'})
+... m['ddetector'] = v['d']
 ... # Demo ``toString()`` function.
 ... print(x.toString())
-
 
 ::
    
    # Product
    meta= {
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | name         | value             | unit   | type     | valid                | default         | code   | description       |
-   +==============+===================+========+==========+======================+=================+========+===================+
-   | description  | product example w |        | string   | None                 | UNKNOWN         | B      | Description of th |
-   |              | ith several datas |        |          |                      |                 |        | is product        |
-   |              | ets               |        |          |                      |                 |        |                   |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | type         | Product           |        | string   | None                 | BaseProduct     | B      | Product Type iden |
-   |              |                   |        |          |                      |                 |        | tification. Name  |
-   |              |                   |        |          |                      |                 |        | of class or CARD. |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | creator      | or else           |        | string   | None                 | None            |        | UNKNOWN           |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | creationDate | 1958-01-01        |        | finetime | None                 | 1958-01-01      |        | Creation date of  |
-   |              | 00:00:00.000000   |        |          |                      | 00:00:00.000000 |        | this product      |
-   |              | 0                 |        |          |                      | 0               |        |                   |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | rootCause    | UNKNOWN           |        | string   | None                 | UNKNOWN         | B      | Reason of this ru |
-   |              |                   |        |          |                      |                 |        | n of pipeline.    |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | version      | 0.7               |        | string   | None                 | 0.7             | B      | Version of produc |
-   |              |                   |        |          |                      |                 |        | t schema          |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | startDate    | 1958-01-01        |        | finetime | None                 | 1958-01-01      |        | Nominal start tim |
-   |              | 00:00:00.000000   |        |          |                      | 00:00:00.000000 |        | e  of this produc |
-   |              | 0                 |        |          |                      | 0               |        | t.                |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | endDate      | 1958-01-01        |        | finetime | None                 | 1958-01-01      |        | Nominal end time  |
-   |              | 00:00:00.000000   |        |          |                      | 00:00:00.000000 |        |  of this product. |
-   |              | 0                 |        |          |                      | 0               |        |                   |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | instrument   | Crystal-Ball      |        | string   | None                 | UNKNOWN         | B      | Instrument that g |
-   |              |                   |        |          |                      |                 |        | enerated data of  |
-   |              |                   |        |          |                      |                 |        | this product      |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | modelName    | Mk II             |        | string   | None                 | UNKNOWN         | B      | Model name of the |
-   |              |                   |        |          |                      |                 |        |  instrument of th |
-   |              |                   |        |          |                      |                 |        | is product        |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | mission      | _AGS              |        | string   | None                 | _AGS            | B      | Name of the missi |
-   |              |                   |        |          |                      |                 |        | on.               |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | a            | 3.4               | None   | float    | (0, 31): valid       | 2.0             | None   | rule name, if is  |
-   |              |                   |        |          | 99:                  |                 |        | "valid", "", or " |
-   |              |                   |        |          |                      |                 |        | default", is ommi |
-   |              |                   |        |          |                      |                 |        | ted in value stri |
-   |              |                   |        |          |                      |                 |        | ng.               |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | b            | ever (2019-02-19  |        | finetime | [(0, 987654321012345 | 1958-01-01      |        | date param        |
-   |              | 01:02:03.456789   |        |          | 6): ever]            | 00:00:00.000099 |        |                   |
-   |              | 1929229323456789) |        |          |                      | 99              |        |                   |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | c            | Invalid (Right)   |        | string   | '': empty            | cliche          | B      | str parameter. bu |
-   |              |                   |        |          |                      |                 |        | t only "" is allo |
-   |              |                   |        |          |                      |                 |        | wed.              |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
-   | d            | off (0b0)         | None   | binary   | (0b110, 0b1): on     | 0b0             | None   | valid rules descr |
-   |              |                   |        |          | (0b110, 0b0): off    |                 |        | ibed with binary  |
-   |              |                   |        |          |                      |                 |        | masks             |
-   +--------------+-------------------+--------+----------+----------------------+-----------------+--------+-------------------+
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | name     | value             | unit   | type     | valid              | default         | code   | description     |
+   +==========+===================+========+==========+====================+=================+========+=================+
+   | descript | product example w |        | string   | None               | UNKNOWN         | B      | Description of  |
+   | ion      | ith several datas |        |          |                    |                 |        | this product    |
+   |          | ets               |        |          |                    |                 |        |                 |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | type     | Product           |        | string   | None               | Product         | B      | Product Type id |
+   |          |                   |        |          |                    |                 |        | entification. N |
+   |          |                   |        |          |                    |                 |        | ame of class or |
+   |          |                   |        |          |                    |                 |        |  CARD.          |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | creator  | or else           |        | string   | None               | None            |        | UNKNOWN         |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | creation | 1958-01-01        |        | finetime | None               | 1958-01-01      |        | Creation date o |
+   | Date     | 00:00:00.000000   |        |          |                    | 00:00:00.000000 |        | f this product  |
+   |          | 0                 |        |          |                    | 0               |        |                 |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | rootCaus | UNKNOWN           |        | string   | None               | UNKNOWN         | B      | Reason of this  |
+   | e        |                   |        |          |                    |                 |        | run of pipeline |
+   |          |                   |        |          |                    |                 |        | .               |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | version  | 0.8               |        | string   | None               | 0.8             | B      | Version of prod |
+   |          |                   |        |          |                    |                 |        | uct             |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | FORMATV  | 1.4.0.8           |        | string   | None               | 1.4.0.8         | B      | Version of prod |
+   |          |                   |        |          |                    |                 |        | uct schema and  |
+   |          |                   |        |          |                    |                 |        | revision        |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | startDat | 1958-01-01        |        | finetime | None               | 1958-01-01      |        | Nominal start t |
+   | e        | 00:00:00.000000   |        |          |                    | 00:00:00.000000 |        | ime  of this pr |
+   |          | 0                 |        |          |                    | 0               |        | oduct.          |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | endDate  | 1958-01-01        |        | finetime | None               | 1958-01-01      |        | Nominal end tim |
+   |          | 00:00:00.000000   |        |          |                    | 00:00:00.000000 |        | e  of this prod |
+   |          | 0                 |        |          |                    | 0               |        | uct.            |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | instrume | Crystal-Ball      |        | string   | None               | UNKNOWN         | B      | Instrument that |
+   | nt       |                   |        |          |                    |                 |        |  generated data |
+   |          |                   |        |          |                    |                 |        |  of this produc |
+   |          |                   |        |          |                    |                 |        | t               |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | modelNam | Mk II             |        | string   | None               | UNKNOWN         | B      | Model name of t |
+   | e        |                   |        |          |                    |                 |        | he instrument o |
+   |          |                   |        |          |                    |                 |        | f this product  |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | mission  | _AGS              |        | string   | None               | _AGS            | B      | Name of the mis |
+   |          |                   |        |          |                    |                 |        | sion.           |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   | ddetecto | port_1 (0b01)     | None   | integer  | 0b11000000: 0b11   | None            | None   | valid rules des |
+   | r        | stand_by (0b0)    |        |          | 0b00100000: 0b1    |                 |        | cribed with bin |
+   |          | normal (0b1)      |        |          | 0b00010000: 0b1    |                 |        | ary masks       |
+   |          | Invalid           |        |          | 0b00001111: 0b0000 |                 |        |                 |
+   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
    MetaData-listeners = ListnerSet{}},
    history= {},
    listeners= {ListnerSet{}}
@@ -669,9 +715,7 @@ The data Product is at the center of FDI data model. A product has
    HIST_SCRIPT= {''},
    PARAM_HISTORY= {''},
    TASK_HISTORY= {''},
-   meta= {
-   (empty)
-   MetaData-listeners = ListnerSet{}}
+   meta= {(No parameter.)MetaData-listeners = ListnerSet{}}
    
    History-datasets =
    
@@ -681,9 +725,7 @@ The data Product is at the center of FDI data model. A product has
    #     [ RawImage ]
    # ArrayDataset
    description= {'image1'},
-   meta= {
-   (empty)
-   MetaData-listeners = ListnerSet{}},
+   meta= {(No parameter.)MetaData-listeners = ListnerSet{}},
    type= {None},
    default= {None},
    typecode= {None},
@@ -698,9 +740,7 @@ The data Product is at the center of FDI data model. A product has
    #     [ QualityImage ]
    # ArrayDataset
    description= {'UNKNOWN'},
-   meta= {
-   (empty)
-   MetaData-listeners = ListnerSet{}},
+   meta= {(No parameter.)MetaData-listeners = ListnerSet{}},
    type= {None},
    default= {None},
    typecode= {None},
@@ -715,9 +755,7 @@ The data Product is at the center of FDI data model. A product has
    #     [ Spectrum ]
    # TableDataset
    description= {'UNKNOWN'},
-   meta= {
-   (empty)
-   MetaData-listeners = ListnerSet{}}
+   meta= {(No parameter.)MetaData-listeners = ListnerSet{}}
    TableDataset-dataset =
      col1     col2
      (eV)    (cnt)
@@ -761,32 +799,32 @@ This section shows how to store a product in a "pool" and get a reference back.
 ... pstore = ProductStorage(poolurl=demopoolurl)
 ... # see what is in it.
 ... pstore
+# save the product and get a reference back.
+... prodref = pstore.save(x)
+... # This gives detailed information of the product being referenced
+... print(prodref)
+# get the URN string
+... urn = prodref.urn
+... print(urn)    # urn:demopool_mh:fdi.dataset.product.Product:0
 ProductStorage { pool= 
 #     [ demopool_mh ]
 LocalPool { pool= demopool_mh } }
 
->>> # save the product and get a reference back.
-... prodref = pstore.save(x)
-... # This gives detailed information of the product being referenced
-... print(prodref)
-ProductRef {urn:demopool_mh:fdi.dataset.product.Product:0 Parents=[]
---------------------------  -------------------  -------------------
-description= save me in st  type= Product        creator= UNKNOWN
+>>> ProductRef {urn:demopool_mh:fdi.dataset.product.Product:0 Parents=[]
+--------------------------  ---------------------  -------------------
+description= save me in st  type= Product          creator= UNKNOWN
 ore
-creationDate= 1958-01-01    rootCause= UNKNOWN   version= 0.7
+creationDate= 1958-01-01    rootCause= UNKNOWN     version= 0.8
 00:00:00.000000
 0
-startDate= 1958-01-01       endDate= 1958-01-01  instrument= UNKNOWN
-00:00:00.000000             00:00:00.000000
-0                           0
-modelName= UNKNOWN          mission= _AGS
---------------------------  -------------------  -------------------
+FORMATV= 1.4.0.8            startDate= 1958-01-01  endDate= 1958-01-01
+                            00:00:00.000000        00:00:00.000000
+                            0                      0
+instrument= UNKNOWN         modelName= UNKNOWN     mission= _AGS
+--------------------------  ---------------------  -------------------
 MetaData-listeners = ListnerSet{}}
 
->>> # get the URN string
-... urn = prodref.urn
-... print(urn)    # urn:demopool_mh:fdi.dataset.product.Product:0
-urn:demopool_mh:fdi.dataset.product.Product:0
+>>> urn:demopool_mh:fdi.dataset.product.Product:0
 
 >>> # re-create a product only using the urn
 ... newp = ProductRef(urn).product
@@ -801,7 +839,6 @@ Context
 A Context is a Product with References. This section shows essencial steps how product references can be stored in a context.
 
 
-
 >>> p1 = Product(description='p1')
 ... p2 = Product(description='p2')
 ... # create an empty mapcontext that can carry references with name labels
@@ -814,7 +851,7 @@ ProductRef {urn:defaultmem:fdi.dataset.product.Product:0 Parents=[] meta= None}
 >>> # A productStorage with a LocalPool -- a pool on the disk.
 ... pref2 = pstore.save(p2)
 ... pref2.urn
-'urn:demopool_mh:fdi.dataset.product.Product:1'
+'urn:pool_mh:fdi.dataset.product.Product:3'
 
 >>> # how many prodrefs do we have?
 ... map1['refs'].size()   # == 0
@@ -869,7 +906,7 @@ True
 
 
 Query
------
+------
 
 A ProductStorage with pools attached can be queried with tags, properties stored in metadata, or even data in the stored products, with Python syntax.
 
@@ -956,6 +993,8 @@ urn:newpool_mh:fdi.pal.context.MapContext:1
 ... # [3,4]
 ... [r.product.instrument for r in res]
 ['fatman 12', 'fatman 16']
+
+>>>
 
 See the installation and testing sections of the pns page.
 

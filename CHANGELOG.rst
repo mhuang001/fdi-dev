@@ -5,6 +5,10 @@ Change Log
 BETA0
 =====
 
+1.0 2021-01-17
+-----------------
+TableDataset numeric indexing, slicing, vLookUp. Basic performance enhancing. Parameter.split()
+
 1.0rc9 2020-12-27
 -----------------
 YAML schema v1.4; ClassID->_STID; pInfo->zInfo; product subclassing sorted. MapContext sorted. y2p handles parents better. Context rule.

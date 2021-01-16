@@ -38,13 +38,13 @@ runpoolserver:
 
 INSOPT  =
 install:
-	pip3 install $(INSOPT) -e . $(I)
+	python3 -m pip install $(INSOPT) -e . $(I)
 
 install_with_DOC:
-	pip3 install $(INSOPT) -e .[DOC] $(I)
+	python3 -m pip install $(INSOPT) -e .[DOC] $(I)
 
 uninstall:
-	pip3 uninstall $(INSOPT) fdi  $(I)
+	python3 -m pip uninstall $(INSOPT) fdi  $(I)
 
 PNSDIR=~/pns
 installpns:

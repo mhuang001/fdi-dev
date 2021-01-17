@@ -11,7 +11,7 @@ Install/Uninstall
 
 .. tip::
 
-It is a good idea to add ``--user`` at the end or to use a virtualenv to avoid disturbing Python setup.
+   It is a good idea to add ``--user`` at the end or to use a virtualenv to avoid disturbing Python setup.
    
 For Users
 =========
@@ -64,7 +64,7 @@ To test your installation:
 		   
 		make test T='-k Bas'
 
-   to test *Bas*eProduct.
+   to test ``BaseProduct``.
 
 To generate ``baseproduct.py`` and ``product.py`` from YAML schema files in
 ``fdi/dataset/resources``:

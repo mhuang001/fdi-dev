@@ -9,10 +9,18 @@ access using storage pools, referencing, and Universal Resource Names, and refer
 Install/Uninstall
 -----------------
 
+<<<<<<< HEAD
 .. tip::
 
    It is a good idea to add ``--user`` at the end or to use a virtualenv to avoid disturbing Python setup.
    
+||||||| 6356fcf
+=======
+.. tip::
+
+It is a good idea to add ``--user`` at the end or to use a virtualenv to avoid disturbing Python setup.
+   
+>>>>>>> 047558d264f4dd2caf0240fbaa83a10c08bebe0a
 For Users
 =========
 
@@ -65,6 +73,7 @@ To test your installation:
 		make test T='-k Bas'
 
    to test ``BaseProduct``.
+
 
 To generate ``baseproduct.py`` and ``product.py`` from YAML schema files in
 ``fdi/dataset/resources``:

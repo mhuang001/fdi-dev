@@ -17,19 +17,19 @@ To install (It is a good idea to add ``--user`` at the end or to use a virtualen
 
 .. code-block:: shell
 
-   pip3 install git+http://mercury.bao.ac.cn:9006/mh/fdi.git
+   python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/v1.0/fdi-v1.0rc.tar.gz
 
 If you want to install the ``develop`` branch:
 
 .. code-block:: shell
 
-   pip3 install git+http://mercury.bao.ac.cn:9006/mh/fdi.git@develop
+   python3 -m pip install git+http://mercury.bao.ac.cn:9006/mh/fdi.git@develop
    
 To uninstall:
 
 .. code-block:: shell
 
-           pip3 uninstall fdi
+           python3 -m pip uninstall fdi
 
 
 For Developers and Admins
@@ -43,7 +43,7 @@ To install (It is a good idea to add ``--user`` at the end or to use a virtualen
            cd $FDIINSTDIR
            git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git@develop
            cd fdi
-           pip3 install -e .[DEV]
+           python3 -m pip install -e .[DEV]
 
 If you want to install the ``master`` branch, remove the ``@develop`` part above..   
 	   
@@ -91,7 +91,7 @@ install the dependencies:
 
 .. code-block:: shell
 
-           pip3 install -e .[SERV]
+           python3 -m pip install -e .[SERV]
 	   make installpns
 
 To test your ``pns`` servers installation, in one window, run:

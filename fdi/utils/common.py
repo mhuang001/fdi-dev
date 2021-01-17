@@ -70,7 +70,7 @@ def lls(s, length=80):
 def wls(s, width=15):
     """ widthth-limited string.
 
-    width: if > 0   Returns the str with '\n' inserted every width chars. Or else return s.
+    width: if > 0  returns the str with '\n' inserted every width chars. Or else return ``s``. Default is 15.
     """
 
     if width <= 0:
@@ -137,10 +137,10 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
 
 
 def binhexstring(val, typ_, width=0, v=None, p=None):
-    """ returns val in binar, hex, or string according to typ_
+    """ returns val in binar, hex, or string according to typ_.
 
     val; list of valid descriptor entries.
-    typ_: parameter type
+    typ_: parameter type in ``DataTypes``.
     """
     if typ_ == 'hex':
         func = hex

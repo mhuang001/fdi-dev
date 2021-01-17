@@ -29,7 +29,12 @@ copyright = '2019 - %d Maohai Huang, NAOC, ESA' % year
 author = 'Maohai Huang'
 
 # The full version, including alpha/beta/rc tags
-release = 'v1.0rc6'
+# Version info -- read without importing
+# https://github.com/aio-libs/aiohttp-theme/blob/master/setup.py
+_locals = {}
+with open('../../fdi/_version.py') as fp:
+    exec(fp.read(), None, _locals)
+release = _locals['__version__']
 
 
 # -- General configuration ---------------------------------------------------

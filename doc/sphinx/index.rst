@@ -60,7 +60,6 @@ API Document
    :caption: API:
 
    api/api
-   fdi/fdi
    
 .. image:: _static/packages_all.png
 

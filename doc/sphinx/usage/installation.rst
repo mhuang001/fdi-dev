@@ -7,7 +7,7 @@ Installation and Notes for Developers
    :maxdepth: 2
    :caption: Contents:
 
-If the contents do now show below, read them in :doc:`../../../README`
+If the contents do not show below, read them in :doc:`../../../README`
       
 .. include:: ../../../README.rst
    :start-after: Install/Uninstall

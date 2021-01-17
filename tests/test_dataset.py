@@ -592,6 +592,13 @@ def test_Parameter_valid():
     assert v.split({0b110000: 'foo', 0b001111: 'bar'}) == {
         'foo': 0b10, 'bar': 0b0110}
 
+    # display
+    v = StringParameter('Right', 'str parameter. but only "" is allowed.',
+                        valid={'': 'empty'}, default='cliche', typecode='B')
+    assert v.validate() == (INVALID, 'Invalid')
+    assert v.validate('') == ('', 'empty')
+    assert v.toString(alist=True)[0] == 'Invalid (Right)'
+
 
 def test_Parameter_features():
     # test equivalence of v.setXxxx(a) and v.xxx = a

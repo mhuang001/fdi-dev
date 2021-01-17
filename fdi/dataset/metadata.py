@@ -422,15 +422,20 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             # like {'foo': 0b10, 'bar': 0b0110}
             return {into[mask]: value for mask, value in masks.items()}
 
-    def validate(self, value):
+    def validate(self, value=INVALID):
         """ checks if a match the rule set.
 
+        value: will be checked against the ruleset. Default is ``self._valid``.
         returns:
         (valid value, rule name) for discrete and range rules.
         {mask: (valid val, rule name, mask_height, mask_width), ...} for binary masks rules.
         (INVALID, 'Invalid') if no matching is found.
         (value, 'Default') if rule set is empty.
         """
+
+        if value is INVALID:
+            value = self._value
+
         ruleset = self.getValid()
         if ruleset is None or len(ruleset) == 0:
             return (value, 'Default')

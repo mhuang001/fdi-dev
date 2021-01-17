@@ -17,7 +17,7 @@ To install (It is a good idea to add ``--user`` at the end or to use a virtualen
 
 .. code-block:: shell
 
-   python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/v1.0/fdi-v1.0.tar.gz
+   python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/v1.0.1/fdi-v1.0.1.tar.gz
 
 If you want to install the ``develop`` branch:
 

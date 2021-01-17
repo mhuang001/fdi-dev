@@ -3,27 +3,30 @@ FDI helps data producers and processors to build connections into isolated heter
 FDI provides scripting-friendly  APIs  and 
 tools to define custom Products and generating Python class files. An integrated Product takes care of inter-platform compatibility, string representation, serialisation to simple exchange format, persistence to disk or server, and carrying references of other Products, enabling context-building and lazy-loading.
 
-FDI's base data model is defined in package ``dataset``. Persistent data
-access, referencing, and Universal Resource Names are defined in package
-``pal``. A reference RESTful API server designed to communicate with a data
-processing server/docker using the data model, and a reference data store (``pool``) server is in package ``pns``.
+FDI's base data model is defined in sub-package ``dataset``. Persistent data
+access using storage pools, referencing, and Universal Resource Names, and referencie-carrying product Context, are defined in sub-package ``pal``. A reference RESTful API server designed to communicate with a data processing server/docker using the data model, and a reference HTTP pool server are in sub-package ``pns``.
 
 Install/Uninstall
+-----------------
 
+.. tip::
+
+It is a good idea to add ``--user`` at the end or to use a virtualenv to avoid disturbing Python setup.
+   
 For Users
 =========
 
-To install (It is a good idea to add ``--user`` at the end or to use a virtualenv to avoid disturbing Python setup.)
+To install:
 
 .. code-block:: shell
 
-   python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/v1.0.1/fdi-v1.0.1.tar.gz
+   python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/master/fdi-master.tar.gz
 
-If you want to install the ``develop`` branch:
+If you want to install the ``develop`` branch with dependences:
 
 .. code-block:: shell
 
-   python3 -m pip install git+http://mercury.bao.ac.cn:9006/mh/fdi.git@develop
+   python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV]
    
 To uninstall:
 
@@ -61,7 +64,7 @@ To test your installation:
 		   
 		make test T='-k Bas'
 
-   to test ``BaseProduct`` in sub-package ``dataset``.
+   to test *Bas*eProduct.
 
 To generate ``baseproduct.py`` and ``product.py`` from YAML schema files in
 ``fdi/dataset/resources``:
@@ -81,7 +84,7 @@ If you plan to compile documents in the ``doc`` directory, generate diagrams, AP
            make doc_api
            make doc_html
 
-.. note:: Read-the-docs makes web pages from sources in ``doc/sphinx`` in the repository. Locally generated HTML pages are not on RTD or in the repository. The API files and plots, however need to go to the repo.
+.. note:: Read-the-docs makes web pages from sources in ``doc/sphinx`` in the repository. Locally generated HTML pages are not on RTD or in the repository. The API files and plots, however, are in ``api`` and ``_static`` sub-directpries, respectively.
 	   
 Run Servers
 -----------

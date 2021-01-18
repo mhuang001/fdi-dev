@@ -24,7 +24,7 @@ setup(
     author_email="mhuang@earth.bao.ac.cn",
     description=("Flexible Data Integrator"),
     license="LGPL v3",
-    keywords="dataset metadata processing context server access REST API HCSS",
+    keywords="dataset metadata processing product context serialization server URN RESTful API HCSS",
     url="http://mercury.bao.ac.cn:9006/mh/fdi",
     packages=find_packages(exclude=['tests', 'tmp']),
     long_description=read('README.rst'),

@@ -67,6 +67,26 @@ uninstallpns:
 	rm -f $(PNSDIR)/.lock $(PNSDIR)/hello.out || \
 	sudo rm -f $(PNSDIR)/.lock $(PNSDIR)/hello.out
 
+PYREPO	= pypi
+INDURL	= 
+#PYREPO	= testpypi
+#INDURL	= --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/
+upload:
+	python3 setup.py sdist bdist_wheel
+	twine check dist/*
+	python3 -m twine upload --repository $(PYREPO) dist/*
+
+testrepo:
+	rm -rf /tmp/fditestvirt
+	virtualenv -p python3 /tmp/fditestvirt --symlinks --activators bash
+	. /tmp/fditestvirt/bin/activate && \
+	python3 -m pip uninstall -q -q -y fdi ;\
+	python3 -m pip cache remove -q -q -q fdi ;\
+	python3 -m pip install $(INDURL) "fdi[DEV,SERV]" && \
+	echo Testing newly installed fdi ... ; \
+	python3 -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
+	deactivate
+
 reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
 

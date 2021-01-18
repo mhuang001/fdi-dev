@@ -9,28 +9,32 @@ access using storage pools, referencing, and Universal Resource Names, and refer
 Install/Uninstall
 -----------------
 
-<<<<<<< HEAD
 .. tip::
 
-   It is a good idea to add ``--user`` at the end or to use a virtualenv to avoid disturbing Python setup.
-   
-||||||| 6356fcf
-=======
-.. tip::
+   It is a good idea to add ``--user`` at the end or to use a virtualenv to avoid disturbing your system Python setup.
 
-It is a good idea to add ``--user`` at the end or to use a virtualenv to avoid disturbing Python setup.
-   
->>>>>>> 047558d264f4dd2caf0240fbaa83a10c08bebe0a
 For Users
 =========
 
-To install:
+To install from PyPI:
+
+.. code-block:: shell
+
+   python3 pip install fdi
+
+or from git repo:
 
 .. code-block:: shell
 
    python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/master/fdi-master.tar.gz
 
-If you want to install the ``develop`` branch with dependences:
+If you want to install the ``develop`` branch with dependencies:
+
+.. code-block:: shell
+
+   python3 -m pip install fdi[DEV]
+   
+or
 
 .. code-block:: shell
 
@@ -43,10 +47,11 @@ To uninstall:
            python3 -m pip uninstall fdi
 
 
-For Developers and Admins
-=========================
+For Developers and Admins (or Those who are Not Sure which to Choose)
+=====================================================================
 
-To install (It is a good idea to add ``--user`` at the end or to use a virtualenv to avoid disturbing Python setup.)
+To install
+----------
 
 .. code-block:: shell
 
@@ -55,10 +60,12 @@ To install (It is a good idea to add ``--user`` at the end or to use a virtualen
            git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git@develop
            cd fdi
            python3 -m pip install -e .[DEV]
-
-If you want to install the ``master`` branch, remove the ``@develop`` part above..   
+	   git checkout develop
 	   
-To test your installation:
+If you want to install the ``master`` branch, remove the ``@develop`` part and the last line above.
+	   
+To test your installation
+-------------------------
 
 .. code-block:: shell
 
@@ -75,12 +82,16 @@ To test your installation:
    to test ``BaseProduct``.
 
 
-To generate ``baseproduct.py`` and ``product.py`` from YAML schema files in
+To Generate Python Product Source Code
+--------------------------------------
+
+Re-generate ``baseproduct.py`` and ``product.py`` from YAML schema files in
 ``fdi/dataset/resources``:
 
 .. code-block:: shell
 
            make py
+
 
 Modify/Generate Documents
 -------------------------
@@ -92,6 +103,8 @@ If you plan to compile documents in the ``doc`` directory, generate diagrams, AP
            make doc_plots
            make doc_api
            make doc_html
+
+The generated HTML page is at ``doc/html/index.html``.
 
 .. note:: Read-the-docs makes web pages from sources in ``doc/sphinx`` in the repository. Locally generated HTML pages are not on RTD or in the repository. The API files and plots, however, are in ``api`` and ``_static`` sub-directpries, respectively.
 	   
@@ -130,7 +143,10 @@ in another window run:
 
            make testhttppool
 
-For more examples see ``tests/test_*.py``
+For More
+--------
+
+For more  examples see ``tests/test_*.py``.
 
 Read more on package introduction, description, quick start, and API
 documents on `readthedocs.io <https://fdi.readthedocs.io/en/latest/>`__.

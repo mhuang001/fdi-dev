@@ -20,7 +20,7 @@ To install from PyPI:
 
 .. code-block:: shell
 
-   python3 pip install fdi
+   python3 -m pip install fdi
 
 or from git repo:
 

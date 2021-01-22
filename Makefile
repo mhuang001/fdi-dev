@@ -78,7 +78,7 @@ upload:
 
 testrepo:
 	rm -rf /tmp/fditestvirt
-	virtualenv -p python3 /tmp/fditestvirt --symlinks --activators bash
+	virtualenv -p python3 /tmp/fditestvirt
 	. /tmp/fditestvirt/bin/activate && \
 	python3 -m pip uninstall -q -q -y fdi ;\
 	python3 -m pip cache remove -q -q -q fdi ;\

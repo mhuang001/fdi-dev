@@ -26,7 +26,7 @@ yamlupgrade:
 .PHONY: runserver runpoolserver reqs install uninstall vtag FORCE \
 	test test1 test2 test3 test4 test5\
 	plots plotall plot_dataset plot_pal plot_pns \
-	docs doc_api doc_plots doc_html
+	docs docs_api docs_plots docs_html
 
 # extra option for 'make runserver S=...'
 S	=
@@ -39,9 +39,6 @@ runpoolserver:
 INSOPT  =
 install:
 	python3 -m pip install $(INSOPT) -e . $(I)
-
-install_with_DOC:
-	python3 -m pip install $(INSOPT) -e .[DOC] $(I)
 
 uninstall:
 	python3 -m pip uninstall $(INSOPT) fdi  $(I)
@@ -164,22 +161,22 @@ plot_pns:
 	pyreverse -o png -p pns fdi.pns
 	mv classes_pns.png packages_pns.png $(PLOTDIR)
 
-DOCDIR	= doc
-SDIR = $(DOCDIR)/sphinx
+DOCSDIR	= docs
+SDIR = $(DOCSDIR)/sphinx
 APIOPT	= -T -M --ext-viewcode
 APIOPT	= -M --ext-viewcode
 
-docs: doc_api doc_plots doc_html
+docs: docs_api docs_plots docs_html
 
-doc_api:
+docs_api:
 	rm -rf $(SDIR)/api/fdi
 	mkdir -p  $(SDIR)/api/fdi
 	sphinx-apidoc $(APIOPT) -o $(SDIR)/api/fdi fdi
 
-doc_plots:
+docs_plots:
 	rm  $(PLOTDIR)/classes*.png $(PLOTDIR)/packages*.png ;\
 	make plots
 
-doc_html:
+docs_html:
 	cd $(SDIR) && make html
 

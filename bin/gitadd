@@ -8,4 +8,4 @@ git add fdi/pns/*.py fdi/pns/resources
 git add fdi/pal/*.py fdi/pal/resources
 git add fdi/utils/*.py
 git add tests/*.py
-git add doc/sphinx/index.rst doc/sphinx/usage doc/sphinx/api doc/sphinx/conf.py doc/sphinx/Makefile doc/sphinx/_static doc/sphinx/_templates
+git add docs/sphinx/index.rst docs/sphinx/usage docs/sphinx/api docs/sphinx/conf.py docs/sphinx/Makefile docs/sphinx/_static docs/sphinx/_templates

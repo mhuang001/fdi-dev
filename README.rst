@@ -1,4 +1,4 @@
-FDI helps data producers and processors to build connections into isolated heterogeneous datasets. to assemble, organize, and integrate data into self-describing, modular, hierarchical, persistent, referenceable ``Products``, whose component datasets keep their own characteristicss and are easily accessible.
+Flexible Dataset Integrator (FDI) helps data producers and processors to build connections into isolated heterogeneous datasets. to assemble, organize, and integrate data into self-describing, modular, hierarchical, persistent, referenceable ``Products``, whose component datasets keep their own characteristicss and are easily accessible.
 
 FDI provides scripting-friendly  APIs  and 
 tools to define custom Products and generating Python class files. An integrated Product takes care of inter-platform compatibility, string representation, serialisation to simple exchange format, persistence to disk or server, and carrying references of other Products, enabling context-building and lazy-loading.
@@ -96,17 +96,17 @@ Re-generate ``baseproduct.py`` and ``product.py`` from YAML schema files in
 Modify/Generate Documents
 -------------------------
 
-If you plan to compile documents in the ``doc`` directory, generate diagrams, API files, or HTML pages, run (in that order, respectively):
+If you plan to compile documents in the ``docs`` directory, generate diagrams, API files, or HTML pages, run (in that order, respectively):
 
 .. code-block:: shell
 
-           make doc_plots
-           make doc_api
-           make doc_html
+           make docs_plots
+           make docs_api
+           make docs_html
 
-The generated HTML page is at ``doc/html/index.html``.
+The generated HTML page is at ``docs/html/index.html``.
 
-.. note:: Read-the-docs makes web pages from sources in ``doc/sphinx`` in the repository. Locally generated HTML pages are not on RTD or in the repository. The API files and plots, however, are in ``api`` and ``_static`` sub-directpries, respectively.
+.. note:: https://readthedocs.io makes web pages from sources in ``docs/sphinx`` in the repository. Locally generated HTML pages are not on RTD or in the repository. The API files and plots, however, are in ``api`` and ``_static`` sub-directpries, respectively.
 	   
 Run Servers
 -----------

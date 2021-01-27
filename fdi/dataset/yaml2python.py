@@ -630,23 +630,29 @@ if __name__ == '__main__':
             sys.path.insert(0, cwd)
         newp = 'fresh ' + prodname + ' from ' + modulename + \
             '.py of package ' + package_name + ' in ' + opath + '.'
+        # If the last segment of package_name happens to be a module name in
+        # exclude list the following import will be blocked. So lift
+        # exclusion temporarily
+        exclude_save = importexclude[:]
+        importexclude.clear()
         try:
             _o = importlib.import_module('.' + modulename, package_name)
             glb[prodname] = getattr(_o, prodname)
-            print('Imported ' + newp)
-            # Instantiate and dump metadata in rst format
-            prod = glb[prodname]()
-            fg = {'name': 15, 'value': 18, 'unit': 7, 'type': 8,
-                  'valid': 26, 'default': 18, 'code': 4, 'description': 25}
-            sp = prod.meta.toString(tablefmt='fancy_grid', widths=fg)
-
-            mout = pathjoin(ypath, prodname + '.txt')
-            with open(mout, 'w', encoding='utf-8') as f:
-                f.write(sp)
-            print('Done dumping ' + mout + '\n' + '*'*40)
         except Exception as e:
             print('Unable to import ' + newp)
             raise(e)
+        importexclude.extend(exclude_save)
+        print('Imported ' + newp)
+        # Instantiate and dump metadata in rst format
+        prod = glb[prodname]()
+        fg = {'name': 15, 'value': 18, 'unit': 7, 'type': 8,
+              'valid': 26, 'default': 18, 'code': 4, 'description': 25}
+        sp = prod.meta.toString(tablefmt='fancy_grid', widths=fg)
+
+        mout = pathjoin(ypath, prodname + '.txt')
+        with open(mout, 'w', encoding='utf-8') as f:
+            f.write(sp)
+        print('Done dumping ' + mout + '\n' + '*'*40)
 
         if len(importexclude) == 0:
             exit(0)

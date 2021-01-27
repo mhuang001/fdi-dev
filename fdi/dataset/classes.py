@@ -62,11 +62,12 @@ class Classes_meta(type):
         """
         super().__init__(*args, **kwds)
 
-    def updateMapping(cls, c=None, rerun=False, exclude=[], ignore_missing=False, verbose=False, ignore_error=False):
+    def updateMapping(cls, c=None, rerun=False, exclude=None, ignore_missing=False, verbose=False, ignore_error=False):
         """ Updates classes mapping.
         Make the package mapping if it has not been made.
         """
-        #
+        if exclude is None:
+            exclude = []
         try:
             cls.importModuleClasses(
                 rerun=rerun, exclude=exclude, verbose=verbose)

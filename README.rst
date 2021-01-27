@@ -57,7 +57,7 @@ To install
 
            FDIINSTDIR=/tmp   # change this to your installation dir
            cd $FDIINSTDIR
-           git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git@develop
+           git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git
            cd fdi
            python3 -m pip install -e .[DEV]
 	   git checkout develop

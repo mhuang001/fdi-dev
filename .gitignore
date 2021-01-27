@@ -18,3 +18,4 @@ fdi.tar.gz
 .ipynb_checkpoints
 *.ipynb
 dist
+build

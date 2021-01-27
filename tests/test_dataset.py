@@ -1046,11 +1046,11 @@ def standardtestmeta():
     then = datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
     m['b'] = DateParameter(FineTime(then), 'date param', default=99,
-                           valid={(0, 9876543210123456): 'ever'}, typecode='%Y')
+                           valid={(0, 9876543210123456): 'xy'}, typecode='%Y')
     m['c'] = StringParameter(
-        'Right', 'str parameter. but only "" is allowed.', {'': 'empty'}, 'cliche', 'B')
+        'IJK', 'str parameter. but only "" is allowed.', {'': 'empty'}, 'cliche', 'B')
     m['d'] = NumericParameter(
-        0b01, 'valid rules described with binary masks', 'binary', 0b00, {(0b0110, 0b01): 'on', (0b0110, 0b00): 'off'})
+        0b01, 'valid rules described with binary masks', 'binary', 0b00, {(0b011000, 0b01): 'on', (0b011000, 0b00): 'off'})
     return m
 
 

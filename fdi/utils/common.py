@@ -137,9 +137,9 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
 
 
 def binhexstring(val, typ_, width=0, v=None, p=None):
-    """ returns val in binar, hex, or string according to typ_.
+    """ returns val in binary, hex, or string according to typ_.
 
-    val; list of valid descriptor entries.
+    val; list of validity descriptor entries.
     typ_: parameter type in ``DataTypes``.
     """
     if typ_ == 'hex':
@@ -157,7 +157,7 @@ def binhexstring(val, typ_, width=0, v=None, p=None):
     lst = []
     # number of bits of mask
     highest = 0
-    masks = {}
+    masks = []
     for t in val:
         if not issubclass(t.__class__, (tuple, list)):
             # val is a one-dim array or vector
@@ -177,7 +177,8 @@ def binhexstring(val, typ_, width=0, v=None, p=None):
                     # validity[mask] is (val, state, mask height, mask width)
                     mask, valid_val = rule[0], rule[1]
                     masked_val, high, wide = masked(p._value, mask)
-                    masks[mask] = format(valid_val, '#0%db' % (wide+2))
+                    masks.append(
+                        (mask, format(valid_val, '#0%db' % (wide+2)), name))
                     if high > highest:
                         highest = high
                     seg = None
@@ -194,10 +195,9 @@ def binhexstring(val, typ_, width=0, v=None, p=None):
                 lst.append('... total %d elements in dim=1' % len(val))
                 break
     if highest > 0:
-        # like {'0b110000: 0b10', '0b001111: 0b0110']
-        fmt = '#0%db' % (highest + 2)
-        lst += [format(mask, fmt) + ': ' + value for mask,
-                value in masks.items()]
+        # like '110000: 0b10 name1', '001111: 0b0110 name2']
+        fmt = '0%db' % (highest)
+        lst += [format(i[0], fmt) + ' ' + i[1] + ': ' + i[2] for i in masks]
 
     if width and breakline:
         return '\n'.join(lst)
@@ -241,7 +241,7 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
     elif v == '_valid':
         if ts.startswith('finetime'):
             # print('***', v, ts)
-            vs = binhexstring(val, 'string', v=v)
+            vs = binhexstring(val, 'string', width=width, v=v)
         else:
             vs = binhexstring(val, ts, width=width, v=v, p=p)
     else:

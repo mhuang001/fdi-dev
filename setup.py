@@ -27,6 +27,7 @@ setup(
     keywords="dataset metadata processing product context serialization server URN RESTful API HCSS",
     url="http://mercury.bao.ac.cn:9006/mh/fdi",
     packages=find_packages(exclude=['tests', 'tmp']),
+    include_package_data=True,
     long_description=read('README.rst'),
     long_description_content_type="text/x-rst",
     python_requires=">=3.6",

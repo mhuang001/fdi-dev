@@ -1,5 +1,6 @@
 graft tests
-recursive-include resources *
+graft resources
+global-include *resources/*
 recursive-include docs/sphinx *.rst conf.py _*
 global-exclude */__pycache__/*
 include LICENSE CHANGELOG.rst Makefile

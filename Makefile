@@ -69,6 +69,7 @@ INDURL	=
 #PYREPO	= testpypi
 #INDURL	= --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/
 upload:
+	# git ls-tree -r HEAD | awk 'print $4' > MANIFEST
 	rm -rf dist/* build *.egg-info
 	python3 setup.py sdist bdist_wheel
 	twine check dist/*

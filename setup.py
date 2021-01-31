@@ -39,11 +39,11 @@ setup(
     ],
     extras_require={
         'DEV': [
-            'setuptools',
+            'setuptools>=43.0.0',
             'pytest>=5.4.1',
             'nox>=2019.11.9',
             'sphinx_rtd_theme>=0.4.3',
-            'sphinx-copybutton>=0.3.0'
+            'sphinx-copybutton>=0.3.0',
         ],
         'SERV': [
             'aiohttp>=3.6.2',

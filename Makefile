@@ -68,11 +68,13 @@ PYREPO	= pypi
 INDURL	= 
 #PYREPO	= testpypi
 #INDURL	= --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/
+#INDURL	= $(CURDIR)/dist/*.whl --extra-index-url https://pypi.org/simple/
 upload:
 	# git ls-tree -r HEAD | awk 'print $4' > MANIFEST
 	rm -rf dist/* build *.egg-info
 	python3 setup.py sdist bdist_wheel
 	twine check dist/*
+	check-wheel-contents dist
 	python3 -m twine upload --repository $(PYREPO) dist/*
 
 testrepo:
@@ -81,7 +83,20 @@ testrepo:
 	. /tmp/fditestvirt/bin/activate && \
 	python3 -m pip uninstall -q -q -y fdi ;\
 	python3 -m pip cache remove -q -q -q fdi ;\
-	python3 -m pip install $(INDURL) "fdi[DEV,SERV]" && \
+	python3 -m pip install $(INDURL) "fdi" && \
+	python3 -m pip show fdi && \
+	echo Testing newly installed fdi ... ; \
+	python3 -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
+	python3 -c 'import sys, pkgutil as p; sys.stdout.buffer.write(p.get_data("fdi", "dataset/resources/Product.template")[:100])' && \
+	deactivate
+
+testw:
+	rm -rf /tmp/fditestvirt
+	virtualenv -p python3 /tmp/fditestvirt
+	. /tmp/fditestvirt/bin/activate && \
+	python3 -m pip uninstall -q -q -y fdi ;\
+	python3 -m pip cache remove -q -q -q fdi ;\
+	python3 -m pip install $(INDURL) "fdi==1.0.6" && \
 	echo Testing newly installed fdi ... ; \
 	python3 -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
 	deactivate

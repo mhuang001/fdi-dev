@@ -1,7 +1,11 @@
+include LICENSE CHANGELOG* CONTRIBUTORS* Makefile
 graft tests
+graft  docs/sphinx
+prune docs/sphinx/api/fdi
 graft resources
 global-include *resources/*
-recursive-include docs/sphinx *.rst conf.py _*
 global-exclude */__pycache__/*
-include LICENSE CHANGELOG.rst Makefile
 global-exclude *~
+global-exclude *.old
+global-exclude \#*
+global-exclude *stackdump

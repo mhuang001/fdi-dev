@@ -8,6 +8,7 @@ import sys
 import functools
 import array
 from datetime import timezone
+import pytest
 
 from fdi.dataset.annotatable import Annotatable
 from fdi.dataset.copyable import Copyable
@@ -150,12 +151,8 @@ def test_serialization():
     # v = (1, 8.2, 'tt')
     # checkjson(v)
     # v = {(5, 4): 4, 'y': {('d', 60): 'ff', '%': '$'}}
-    # try:
+    # with testpy.raises(TypeError):
     #     checkjson(v)
-    # except Exception as e:
-    #     assert isinstance(e, TypeError)
-    # else:
-    #     assert False, 'Failed to raise exception'
 
 
 def test_sys():
@@ -484,12 +481,8 @@ def test_Parameter_init():
     assert v.valid is None
     # incompatible type
     a2 = DataWrapper()
-    try:
+    with pytest.raises(TypeError):
         v = Parameter(a2)
-    except Exception as e:
-        assert isinstance(e, TypeError)
-    else:
-        assert False, 'no exception caught'
     # also only one positional argument, but with a keyword arg
     a1 = 'a test parameter'
     a2 = FineTime1(8765)
@@ -618,12 +611,8 @@ def test_Parameter_features():
     a4 = 'float'
     if 0:  # strict
         # exception if value and type are  different
-        try:
+        with pytest.raises(TypeError):
             v = Parameter(a2, a1, a4)
-        except Exception as e:
-            assert isinstance(e, TypeError)
-        else:
-            assert False, 'no exception caught '+str(v.value)
     else:  # smart
         # not recommendedxs
         v = Parameter(a2, a1, a4)
@@ -634,33 +623,21 @@ def test_Parameter_features():
     a2 = 9.7
     a4 = 'hex'  # hex is internally int
     if 0:  # strict
-        try:
+        with pytest.raises(TypeError):
             v = Parameter(a2, a1, a4)
-        except Exception as e:
-            assert isinstance(e, TypeError)
-        else:
-            assert False, 'no exception caught '+str(v.value)
     else:  # smart
         v = Parameter(a2, a1, a4)
         assert v.value == 9
     # type not Number nor in DataTypes gets NotImplementedError
     a2 = 9
     a4 = 'guess'
-    try:
+    with pytest.raises(NotImplementedError):
         v = Parameter(a2, a1, a4)
-    except Exception as e:
-        assert isinstance(e, NotImplementedError)
-    else:
-        assert False, 'no exception caught'
     # value type not Number nor in DataTypes gets TypeError
     a2 = []
     a4 = 'integer'
-    try:
+    with pytest.raises(TypeError):
         v = Parameter(a2, a1, a4)
-    except Exception as e:
-        assert isinstance(e, TypeError)
-    else:
-        assert False, 'no exception caught'
 
     # NotImplemented
     # arbitrary argument order here
@@ -878,12 +855,8 @@ def test_DateParameter():
     v.value = a8
     assert v.value == FineTime1(a8, format=v.typecode)
 
-    try:
+    with pytest.raises(TypeError):
         DateParameter(3.3)
-    except TypeError as e:
-        pass
-    else:
-        assert False, 'fail to raise exception'
 
     checkjson(v)
 
@@ -1301,23 +1274,12 @@ def test_TableModel():
 def test_TableDataset_init():
     # constructor
     # if data is not in a required form an exception is thrown
-    try:
+    with pytest.raises(TypeError):
         t = 5
         t = TableDataset(data=42)
-    except Exception as e:
-        assert issubclass(e.__class__, TypeError)
-    else:
-        assert False, 'no exception caught'
-    assert t == 5
 
-    try:
-        t = 51
+    with pytest.raises(DeprecationWarning):
         t = TableDataset(data=[{'name': 'a', 'column': Column(data=[])}])
-    except DeprecationWarning as e:
-        pass
-    else:
-        assert False, 'no warning caught'
-    assert t == 51
 
     # setData format 1: data is a  mapping. Needs pytnon 3.6 to guarantee order
     a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
@@ -1881,12 +1843,9 @@ def test_Indexed():
     assert v2.vLookUp((11, 31, 51)) == 1
     assert v2.vLookUp((11, 31, 51), return_index=False) == [
         1+n*10 for n in range(Nc)]
-    try:
+    with pytest.raises(KeyError):
         assert v2.vLookUp((1, 31, 51)) == [1+n*10 for n in range(Nc)]
-    except Exception as e:
-        assert isinstance(e, KeyError)
-    else:
-        assert False, 'Exception not caught'
+
     # multiple keys
     assert v2.vLookUp([(11, 31, 51), (14, 34, 54)], multiple=1) == [1, 4]
     assert v2.vLookUp([(11, 31, 51), (14, 34, 54)], return_index=False, multiple=True) == [
@@ -2134,12 +2093,8 @@ def check_Product(AProd):
     x.meta['an'] = Parameter('other')
     assert x.meta['an'].value == 'other'
     # cannot use x.an
-    try:
+    with pytest.raises(AttributeError):
         t = x.an
-    except Exception as e:
-        assert issubclass(e.__class__, AttributeError)
-    else:
-        assert False, 'no exception caught'
     # remove it
     x.meta.remove('an')
     # gone

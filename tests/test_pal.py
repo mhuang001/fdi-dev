@@ -3,6 +3,8 @@ from fdi.dataset.dataset import ArrayDataset
 import itertools
 import random
 import timeit
+import pytest
+
 from fdi.pal.mempool import MemPool
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.utils.common import trbk, fullname
@@ -110,12 +112,8 @@ def test_UrnUtils():
     #assert UrnUtils.getPool(urn,pools)
     #assert UrnUtils.containsUrn(urn, pool)
     assert UrnUtils.checkUrn(urn)
-    try:
+    with pytest.raises(ValueError):
         UrnUtils.checkUrn(urn+'r')
-    except ValueError:
-        pass
-    else:
-        assert False, 'should throw ValueError'
 
     # poolurl
     poolpath, scheme, place, poolname = parse_poolurl(poolurl, poolhint=b2)
@@ -189,11 +187,10 @@ def test_Urn():
     assert v.getScheme() is None
     assert v.getPlace() is None
     assert v.getPoolpath() is None
-    # urn with storage that does not match urn
-    try:
-        v = Urn(urn=urn, cls=prd.__class__, poolname=b2, index=a5)
-    except Exception as e:
-        assert issubclass(e.__class__, ValueError)
+    # no urn then other args must all be given
+    with pytest.raises(ValueError):
+        v = Urn(cls=prd.__class__, poolname=b2)
+
     # no-arg constructor
     v = Urn()
     v.urn = urn
@@ -433,12 +430,8 @@ def test_ProductStorage_init():
     ps2 = ProductStorage(defaultpoolname)
     assert ps.getPools() == ps2.getPools()
     # wrong poolname
-    try:
+    with pytest.raises(TypeError):
         psbad = ProductStorage(defaultpoolurl)
-    except Exception as e:
-        assert issubclass(e.__class__, TypeError)
-    else:
-        assert False, 'exception expected'
 
     # register pool
     # with a storage that already has a pool
@@ -754,12 +747,8 @@ def doquery(poolpath, newpoolpath):
 
     # all 'time' < 5006. will cause TypeError because some Contex data do not have 'time'
     q = MetaQuery(Context, 'm["time"] < 5006')
-    try:
+    with pytest.raises(TypeError):
         res = pstore.select(q)
-    except TypeError as e:
-        pass
-    else:
-        assert False
 
     # all 'time' < 5006 mapcontext. all in newpool
     q = MetaQuery(MapContext, 'm["time"] < 5006')
@@ -860,12 +849,8 @@ def test_Context():
     c1 = Context(description='1')
     c2 = Context(description='2')
     assert Context.isContext(c2.__class__)
-    try:
+    with pytest.raises(NotImplementedError):
         assert c1.isValid()
-    except NotImplementedError as e:
-        pass
-    else:
-        assert False
 
     # dirtiness
     # assert not c1.hasDirtyReferences('ok')

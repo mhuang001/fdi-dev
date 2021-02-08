@@ -70,9 +70,12 @@ class Urn(DeepEqual, Serializable, Comparable):
         """
         Creates the URN object with the urn string or components.
 
+        give urn and optional poolurl, or all poolname, cls, index arguments.
         if urn is given and pool, class, etc are also specified,
-        the latter are ignored. else the URN is constructed from them.
+        the latter are ignored. else the URN object is constructed from them. 
         Urn(u) will make a Urn object out of u.
+
+        All arguements are None by default.
         """
         super(Urn, self).__init__(**kwds)
 
@@ -89,7 +92,8 @@ class Urn(DeepEqual, Serializable, Comparable):
                     self._urn = None
                     return
                 else:
-                    raise ValueError('give urn or all other arguments')
+                    raise ValueError(
+                        'give urn and optional poolurl, or all poolname, cls, index arguments')
             urn = makeUrn(poolname=poolname,
                           typename=fullname(cls),
                           index=index)

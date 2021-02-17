@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import immutabledict
 import datetime
+import fractions
+import decimal
 import traceback
 from pprint import pprint
 import copy
@@ -33,6 +36,8 @@ from fdi.dataset.finetime import FineTime, FineTime1
 from fdi.dataset.history import History
 from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
+from fdi.dataset.readonlydict import ReadOnlyDict
+from fdi.dataset.testproducts import SP
 from fdi.utils.checkjson import checkjson
 
 # import __builtins__
@@ -48,8 +53,8 @@ Classes.updateMapping()
 # make format output in /tmp/fditest_toString
 mko = 0
 
-if __name__ == '__main__' and __package__ == 'tests':
-    # run by python -m tests.test_dataset
+if __name__ == '__main__' and __package__ is None:
+    # run by python3 tests/test_dataset.py
 
     from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset
 else:
@@ -153,6 +158,25 @@ def test_serialization():
     # v = {(5, 4): 4, 'y': {('d', 60): 'ff', '%': '$'}}
     # with testpy.raises(TypeError):
     #     checkjson(v)
+
+    # https://github.com/mverleg/pyjson_tricks
+    # json_tricks/test_class.py
+    class MyTestCls:
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+
+    v = [
+        #arange(0, 10, 1, dtype=int).reshape((2, 5)),
+        datetime.datetime(year=2017, month=1, day=19,
+                          hour=23, minute=00, second=00),
+        1 + 2j,
+        decimal.Decimal(42),
+        fractions.Fraction(1, 3),
+        MyTestCls(s='ub', dct={'7': 7}),  # see later
+        set(range(7)),
+    ]
+    # checkjson(v)
 
 
 def test_sys():
@@ -2120,47 +2144,56 @@ def check_Product(AProd):
     checkgeneral(x)
 
 
+def test_ReadOnlyDict():
+    d = {3: 4, 5: {6: (7, 7)}, 'metadata': {
+        'version': {'data_type': 'string'}}}
+    v = ReadOnlyDict(d)
+    assert v[3] == 4
+    assert d['metadata']['version']['data_type'] == 'string'
+    assert id(v) != id(d)
+    assert id(v[5]) != id(d[5])
+    assert issubclass(v[5].__class__, ReadOnlyDict)
+    assert v[5][6] == (7, 7)
+    with pytest.raises(AttributeError):
+        v[3] = 2
+    with pytest.raises(AttributeError):
+        v[5] = 4
+    with pytest.raises(AttributeError):
+        v[5][6] = 4
+    # multiple
+    v2 = ReadOnlyDict(d)
+    assert id(v) != id(v2)
+    assert id(v[5]) != id(v2[5])
+    assert id(v[5][6]) == id(v2[5][6])  # value is not list or dict
+    assert id(v['metadata']['version']) != id(v2['metadata']['version'])
+    assert id(v['metadata']['version']['data_type']) == id(
+        v2['metadata']['version']['data_type'])  # value is not list or dict
+    with pytest.raises(AttributeError):
+        v[5][6] = [4.33]
+
+    # update
+    u = {}
+    u.update(v)
+    assert id(u[5]) != id(d[5])
+    assert id(u[5]) == id(v[5])
+    assert id(u['metadata']) != id(d['metadata'])
+    # update returns the same object
+    assert id(u['metadata']) == id(v['metadata'])
+
+    # copy generates a normal dict that does not point to orginsl dict-type counterparts
+    # cc = copy.deepcopy(v)
+    # assert cc == d
+    # assert issubclass(d[5].__class__, dict)
+    # assert id(v[3]) == id(cc[3])
+    # assert id(v[5]) != id(cc[5])
+    # assert id(v[5][6]) == id(cc[5][6])
+
+
 def test_Product():
     check_Product(Product)
 
 
 def test_SubProduct():
-    # sub-classing
-    # 'version' of subclass is int, not string
-    from fdi.dataset.product import ProductInfo as PPI
-
-    class SP(Product):
-        def __init__(self,
-                     description='UNKNOWN',
-                     typ_='SP',
-                     creator='UNKNOWN',
-                     version=9,
-                     creationDate=FineTime(0),
-                     rootCause='UNKNOWN',
-                     startDate=FineTime(0),
-                     endDate=FineTime(0),
-                     instrument='UNKNOWN',
-                     modelName='UNKNOWN',
-                     mission='_AGS',
-                     **kwds):
-            metasToBeInstalled = copy.copy(locals())
-            for x in ('self', '__class__', 'kwds'):
-                metasToBeInstalled.pop(x)
-            sp = {}
-            sp.update(PPI)
-            sp['name'] = self.__class__.__name__
-            sp['metadata']['version']['data_type'] = 'integer'
-            sp['metadata']['version']['default'] = 9
-            sp['metadata']['type']['default'] = sp['name']
-            self.zInfo = sp
-            super().__init__(metasToBeInstalled=metasToBeInstalled, **kwds)
-            super().installMetas(mtbi=metasToBeInstalled, prodInfo=self.zInfo)
-
-        @ property
-        def version(self): pass
-
-        @ version.setter
-        def version(self, p): pass
 
     y = SP()
 
@@ -2244,7 +2277,7 @@ def running(t):
     t()
 
 
-if __name__ == '__main__' and __package__ is not None:
+if __name__ == '__main__':
 
     if 0:
         from os import sys, path

@@ -41,6 +41,7 @@ setup(
         'DEV': [
             'setuptools>=43.0.0',
             'pytest>=5.4.1',
+            'pytest-cov',
             'nox>=2019.11.9',
             'sphinx_rtd_theme>=0.4.3',
             'sphinx-copybutton>=0.3.0',

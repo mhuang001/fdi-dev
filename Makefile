@@ -119,7 +119,7 @@ versiontag:
 
 TESTLOG	= /tmp/fdi-tests.log
 
-OPT	= -r P --log-file=$(TESTLOG) -v -l --pdb
+OPT	= -r P --log-file=$(TESTLOG) -v -l --pdb 
 T	= 
 test: test1 test2
 
@@ -128,10 +128,10 @@ testpns: test5 test4
 testhttp: test6 test7 test8
 
 test1: 
-	pytest $(OPT) $(T) tests/test_dataset.py
+	pytest tests/test_dataset.py --cov=fdi/dataset $(OPT) $(T)
 
 test2:
-	pytest $(OPT) $(T) tests/test_pal.py -k 'not _http'
+	pytest tests/test_pal.py -k 'not _http' $(T) --cov=fdi/pal $(OPT)
 
 test3:
 	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py

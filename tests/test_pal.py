@@ -273,6 +273,7 @@ def test_PoolManager():
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
     # class methods
+
     assert PoolManager.size() == 0
     # This creates a pool and returns it if the pool of given name does not exist
     pool = PoolManager.getPool(defaultpoolName)

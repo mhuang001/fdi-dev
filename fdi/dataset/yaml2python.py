@@ -56,19 +56,6 @@ fmtstr = {
 }
 
 
-def mkinfo(metas, dsets, indents):
-    """ make productInfo string from metadata and dataset strings given.
-
-    """
-    infostr = ''
-    info = 'productInfo'
-    infostr += indents[0] + info + ' = {\n'
-    infostr += metas
-    infostr += dsets
-    infostr += indents[0] + '}\n'  # productInfo
-    return infostr
-
-
 def sq(s):
     """ add quote mark to string, depending on if ' or " in the string.
     """
@@ -536,8 +523,8 @@ if __name__ == '__main__':
 
                 # get parent attributes
                 mod = sys.modules[modnm]
-                if hasattr(mod, 'ProductInfo'):
-                    all_attrs.update(mod.ProductInfo['metadata'])
+                if hasattr(mod, '_Model_Spec'):
+                    all_attrs.update(mod._Model_Spec['metadata'])
             # merge to get all attributes including parents' and self's.
             all_attrs.update(attrs)
         else:
@@ -571,7 +558,7 @@ if __name__ == '__main__':
         d['datasets'] = datasets
         infs, default_code = getPython(d, indents[1:], demo, onlyInclude)
         # remove the ',' at the end.
-        infostr = (ei + 'ProductInfo = ' + infs).strip()[:-1]
+        infostr = (ei + '_Model_Spec = ' + infs).strip()[:-1]
 
         # keyword argument for __init__
         ls = []

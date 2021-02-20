@@ -25,11 +25,28 @@ class RefContainer(ODict):  # XXXXXXXX order
         """ 
         """
         super(RefContainer, self).__init__(**kwds)
+        self.setOwner(None)
 
     def setOwner(self, owner):
         """ records who owns this container
         """
         self._owner = owner
+
+    @property
+    def owner(self):
+        """ Property """
+        return self.getOwner()
+
+    @owner.setter
+    def owner(self, owner):
+        """
+        """
+        self.setOwner(owner)
+
+    def getOwner(self):
+        """ Returns the reference container mapping
+        """
+        return self._owner
 
     def __setitem__(self, key, ref):
         if key is None:
@@ -67,8 +84,7 @@ class RefContainer(ODict):  # XXXXXXXX order
         """ remove all productRefs """
         ks = list(self.keys())
         for k in ks:
-            if k != '_STID':
-                self.__delitem__(k)
+            self.__delitem__(k)
 
     def put(self, key, ref):
         """ set label-ref pair after validating then add parent to the ref
@@ -87,9 +103,10 @@ class RefContainer(ODict):  # XXXXXXXX order
         """ """
         return len(self.keys())
 
-    # def serializable(self):
+    # def __getstate__(self):
     #     """ Can be encoded with serializableEncoder """
-    #     return ODict(  # _sets=self._sets,
+    #     return ODict(
+    #         data=self.data,
     #         _STID=self._STID)
 
 

@@ -2,6 +2,7 @@
 from collections import OrderedDict, UserDict
 from collections.abc import Collection
 from .serializable import Serializable
+from .eq import DeepEqual
 from ..utils.common import bstr
 from ..utils.ydump import ydump
 
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 OD_toString_Nest = 0
 
 
-class ODict(UserDict, Serializable):
+class ODict(UserDict, Serializable, DeepEqual):
     """ Ordered dict that is not a subclass of dict and with a better __repr__.
     """
 
@@ -88,8 +89,12 @@ class ODict(UserDict, Serializable):
         level = int(logger.getEffectiveLevel()/10) - 1
         return self.toString(level=level)
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return dict(data=self.data,
                     _STID=self._STID
                     )
+
+    def __hash__(self):
+
+        return hash(tuple(self.data.items()))

@@ -37,10 +37,10 @@ class SerializableEncoderAll(json.JSONEncoder):
             return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
         if obj is Ellipsis:
             return {'obj': '...', '_STID': 'ellipsis'}
-        # print(obj.serializable())
+        # print(obj.__getstate__())
 
         if issubclass(obj.__class__, Serializable):
-            return obj.serializable()
+            return obj.__getstate__()
         print('%%%' + str(obj.__class__))
         return
 
@@ -64,7 +64,7 @@ class SerializableEncoderAll(json.JSONEncoder):
         #     return obj
         # elif 0 and issubclass(oc, (Serializable, bytes)):
         #     if issubclass(oc, dict):
-        #         # if is both Serializable and Mapping, insert _STID, to a copy
+        #         # if is both __Getstate__ and Mapping, insert _STID, to a copy
         #         o = copy.copy(obj)
         #         o['_STID'] = obj._STID
         #         return o
@@ -119,8 +119,8 @@ class SerializableEncoder(json.JSONEncoder):
                     return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
                 if obj is Ellipsis:
                     return {'obj': '...', '_STID': 'ellipsis'}
-                # print(obj.serializable())
-                return obj.serializable()
+                # print(obj.__getstate__())
+                return obj.__getstate__()
             except Exception as e:
                 print('Serialization failed.' + str(e))
                 raise
@@ -152,9 +152,26 @@ class Serializable(object):
     def serialized(self, indent=None):
         return serialize(self, indent=indent)
 
-    def serializable(self):
+    def __getstate__(self):
         """ returns an odict that has all state info of this object.
         Subclasses should override this function.
         """
         raise NotImplementedError()
-        return None
+
+    def __setstate__(self, state):
+        for name in self.__getstate__().keys():
+            self.__setattr__(name, state[name])
+
+    def __reduce_ex__(self, protocol):
+        def func(): return self.__class__()
+        args = tuple()
+        state = self.__getstate__()
+        return func, args, state
+
+    def __reduce__(self):
+        return self.__reduce_ex__(4)
+
+    def __getstate__(self):
+        """ Can be encoded with serializableEncoder """
+
+        return self.__getstate__()

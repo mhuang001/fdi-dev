@@ -682,6 +682,7 @@ def test_Parameter_features():
     assert v.equals(v1)
     assert v == v1
     v1.value = -4
+
     assert not v.equals(v1),   deepcmp(v, v1, verbose=True)
     assert v != v1
     b2 = a2 + 0  # make a copy
@@ -692,7 +693,7 @@ def test_Parameter_features():
 
     # comparison with simplified syntax w/o '.value'
     x = 4
-    for t in [int, float, str, FineTime1]:
+    for t in [int, float, str, FineTime]:
         p = Parameter(value=t(x))
         assert p == t(x)
         assert p <= t(x)
@@ -855,7 +856,7 @@ def test_DateParameter():
     assert v.description == 'UNKNOWN'
     assert v.value == v.default
     assert v.type == 'finetime'
-    def0 = FineTime1(0)
+    def0 = FineTime(0)
     assert v.default == def0
     assert v.valid is None
     assert v.typecode == FineTime.DEFAULT_FORMAT
@@ -868,16 +869,16 @@ def test_DateParameter():
     v = DateParameter(description=a1, value=a2,
                       default=a5, valid=a6, typecode=a7)
     assert v.description == a1
-    assert v.value == FineTime1(a2)
+    assert v.value == FineTime(a2)
     assert v.type == 'finetime'
-    assert v.default == FineTime1(a5)
+    assert v.default == FineTime(a5)
     assert v.valid is None
     # if value and typecode are both given, typecode will be overwritten by value.format.
     assert v.typecode == v.value.format
 
     a8 = 9876
     v.value = a8
-    assert v.value == FineTime1(a8, format=v.typecode)
+    assert v.value == FineTime(a8, format=v.typecode)
 
     with pytest.raises(TypeError):
         DateParameter(3.3)
@@ -1318,6 +1319,7 @@ def test_TableDataset_init():
     v2 = TableDataset()
     v2['col1'] = Column(data=[1, 4.4, 5.4E3], unit='eV')
     v2['col2'] = Column(data=[0, 43.2, 2E3], unit='cnt')
+
     assert v2 == v
 
     # 3: another syntax, list of tuples that does not need to use Column

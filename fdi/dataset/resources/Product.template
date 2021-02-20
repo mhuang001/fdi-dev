@@ -4,7 +4,10 @@ $WARNING
 
 $IMPORTS
 
+from fdi.dataset.readonlydict import ReadOnlyDict
+
 import copy
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -60,3 +63,5 @@ $PROPERTIES
 
 
 $PRODUCTINFO
+
+ProductInfo = ReadOnlyDict(_Model_Spec)

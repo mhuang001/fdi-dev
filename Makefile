@@ -1,3 +1,6 @@
+info:
+	python -c "import sys; print('sys.hash_info.width', sys.hash_info.width)"
+
 PRODUCT = Product
 B_PRODUCT = BaseProduct
 PYDIR	= fdi/dataset

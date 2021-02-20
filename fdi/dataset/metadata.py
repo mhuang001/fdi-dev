@@ -15,7 +15,7 @@ from .finetime import FineTime, FineTime1, utcobj
 from .classes import Classes
 from .typed import Typed
 from .invalid import INVALID
-from ..utils.common import exprstrs, wls, mstr
+from ..utils.common import exprstrs, wls, mstr, t2l
 
 from tabulate import tabulate
 
@@ -164,12 +164,12 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
 #            return ty
 #        return eventType
 #
-    def equals(self, obj):
+    def __eq__(self, obj, verbose=False, **kwds):
         """ can compare value """
         if type(obj).__name__ in DataTypes.values():
             return self.value == obj
         else:
-            return super(AbstractParameter, self).equals(obj)
+            return super(AbstractParameter, self).__eq__(obj)
 
     def __lt__(self, obj):
         """ can compare value """
@@ -217,13 +217,15 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
             return exprstrs(self)
         return self.__class__.__name__ + ss
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
                            value=self.value,
                            listeners=self.listeners,
                            _STID=self._STID
                            )
+
+    __hash__ = DeepEqual.__hash__
 
 
 class Parameter(AbstractParameter, Typed):
@@ -305,6 +307,10 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         tt = DataTypes[st]
         if tt in Classes.mapping:
             # custom-defined parameter. delegate checking to themselves
+            if issubclass(type(value), tuple):
+                # frozendict used in baseproduct module change lists to tuples
+                # which causes deserialized parameter to differ from ProductInfo.
+                value = list(value)
             return value
         tt_type = builtins.__dict__[tt]
         if issubclass(t_type, tt_type):
@@ -360,16 +366,6 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
         If valid is None or empty, set as None, else save in a way so the tuple keys can be serialized with JSON.
         """
-        def t2l(t):
-            """ convert tuples to lists in nested data structures
-            """
-            # print(t)
-            if issubclass(t.__class__, (list, tuple)):
-                lst = [t2l(x) if issubclass(
-                    x.__class__, tuple) else x for x in t]
-                # print('== ', lst)
-                return lst
-            return t
 
         self._valid = None if valid is None or len(
             valid) == 0 else [t2l([k, v]) for k, v in valid.items()] if issubclass(valid.__class__, dict) else t2l(valid)
@@ -507,7 +503,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         return '%s{ %s <%s>, "%s", default= %s, valid= %s tcode=%s}' % \
             (self.__class__.__name__, vs, ts, ds, fs, gs, cs)
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
                            value=self._value,
@@ -517,6 +513,8 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
                            listeners=self.listeners,
                            _STID=self._STID
                            )
+
+    __hash__ = DeepEqual.__hash__
 
 
 class NumericParameter(Parameter, Quantifiable):
@@ -530,7 +528,7 @@ class NumericParameter(Parameter, Quantifiable):
     def __repr__(self):
         return self.toString(level=1)
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
                            value=self._value,
@@ -540,6 +538,8 @@ class NumericParameter(Parameter, Quantifiable):
                            unit=self._unit,
                            typecode=self._typecode,
                            _STID=self._STID)
+
+    __hash__ = DeepEqual.__hash__
 
 
 class DateParameter(Parameter):
@@ -593,7 +593,7 @@ class DateParameter(Parameter):
 
         return self.toString(level=1)
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
                            value=self._value,
@@ -604,6 +604,8 @@ class DateParameter(Parameter):
         return self.__class__.__name__ + \
             '{ description = "%s", value = "%s", typecode = "%s"}' % \
             (str(self.description), str(self.value), str(self.getTypecode()))
+
+    __hash__ = DeepEqual.__hash__
 
 
 class DateParameter1(DateParameter):
@@ -622,6 +624,8 @@ class DateParameter1(DateParameter):
         if default is not None and not issubclass(default.__class__, FineTime1):
             default = FineTime1(date=default, format=self.getTypecode())
         super().setDefault(default)
+
+    __hash__ = DeepEqual.__hash__
 
 
 class StringParameter(Parameter):
@@ -652,7 +656,7 @@ class StringParameter(Parameter):
     def __repr__(self):
         return self.toString(level=1)
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(value=self._value,
                            description=self.description,
@@ -660,6 +664,8 @@ class StringParameter(Parameter):
                            default=self._default,
                            typecode=self._typecode,
                            _STID=self._STID)
+
+    __hash__ = DeepEqual.__hash__
 
 
 MetaHeaders = ['name', 'value', 'unit', 'type', 'valid',
@@ -795,7 +801,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
     def __repr__(self, **kwds):
         return self.toString(level=1, **kwds)
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         # print(self.listeners)
         # print([id(o) for o in self.listeners])
@@ -803,3 +809,4 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         return OrderedDict(_sets=self._sets,
                            listeners=self.listeners,
                            _STID=self._STID)
+    __hash__ = DeepEqual.__hash__

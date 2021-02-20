@@ -118,10 +118,10 @@ class Vector(Serializable, DeepEqual):
     def __repr__(self):
         return str(self._data)
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(
-            components=list(self.components),
+            components=list(self._data),
             _STID=self._STID)
 
 

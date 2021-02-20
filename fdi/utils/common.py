@@ -176,11 +176,12 @@ def binhexstring(val, typ_, width=0, v=None, p=None):
                     # binary masked. validity is a list of tuple/lists
                     # validity[mask] is (val, state, mask height, mask width)
                     mask, valid_val = rule[0], rule[1]
-                    masked_val, high, wide = masked(p._value, mask)
+                    masked_val, mask_height, mask_width = masked(
+                        p._value, mask)
                     masks.append(
-                        (mask, format(valid_val, '#0%db' % (wide+2)), name))
-                    if high > highest:
-                        highest = high
+                        (mask, format(valid_val, '#0%db' % (mask_width+2)), name))
+                    if mask_height > highest:
+                        highest = mask_height
                     seg = None
             elif issubclass(rule.__class__, str):
                 seg = "'%s': %s" % (rule, name)

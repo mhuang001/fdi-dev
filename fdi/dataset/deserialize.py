@@ -4,8 +4,7 @@ import json
 import codecs
 import builtins
 from collections import UserDict
-
-import pdb
+from collections.abc import MutableMapping as MM, MutableSequence as MS, MutableSet as MS
 
 from .odict import ODict
 from .classes import Classes
@@ -68,8 +67,8 @@ def constructSerializable(obj, lgb=None, debug=False):
             if debug:
                 print(spaces + 'looping through list %d <%s>' %
                       (i, xc.__name__))
-            if issubclass(xc, (list, dict, UserDict)):
-                des = constructSerializable(x, lgb=lgb, debug=debug)
+                if issubclass(xc, (list, dict)):
+                    des = constructSerializable(x, lgb=lgb, debug=debug)
             else:
                 des = x
             inst.append(des)
@@ -95,6 +94,7 @@ def constructSerializable(obj, lgb=None, debug=False):
             indent -= 1
             return inst
         if classname in lgb:
+            # Now we have a blank instance.
             inst = lgb[classname]()
             if debug:
                 print(spaces + 'Instanciate custom obj <%s>' % classname)
@@ -120,9 +120,9 @@ def constructSerializable(obj, lgb=None, debug=False):
             continue
         # deserialize v
         # should be object_pairs_hook in the following if... line
-        if issubclass(v.__class__, (dict, UserDict, list)):
+        if issubclass(v.__class__, (dict, list)):
             if debug:
-                print(spaces + '[%s]value(dict/usrd/list) <%s>: %s' %
+                print(spaces + '[%s]value(dict/list) <%s>: %s' %
                       (k, v.__class__.__qualname__,
                        lls(list(iter(v)), 70)))
             desv = constructSerializable(v, lgb=lgb, debug=debug)
@@ -140,7 +140,7 @@ def constructSerializable(obj, lgb=None, debug=False):
                         desv = v
 
         # set k with desv
-        if issubclass(inst.__class__, (dict)):    # should be object_pairs_hook
+        if issubclass(inst.__class__, (MM)):    # should be object_pairs_hook
             inst[k] = desv
             if debug:
                 print(spaces + 'Set dict/usrd <%s>[%s] = %s <%s>' %

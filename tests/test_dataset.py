@@ -947,7 +947,7 @@ def test_MetaData():
     # names of all parameters
     assert [n for n in v] == [a1, 'time', 'birthday']
 
-    checkjson(v)
+    checkjson(v, dbg=1)
 
     v.remove(a1)  # inherited from composite
     assert v.size() == 2

@@ -119,8 +119,8 @@ class SerializableEncoder(json.JSONEncoder):
                     return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
                 if obj is Ellipsis:
                     return {'obj': '...', '_STID': 'ellipsis'}
-                # print(obj.__getstate__())
-                return obj.__getstate__()
+                # print(obj.serializable())
+                return obj.serializable()
             except Exception as e:
                 print('Serialization failed.' + str(e))
                 raise
@@ -171,7 +171,7 @@ class Serializable(object):
     def __reduce__(self):
         return self.__reduce_ex__(4)
 
-    def __getstate__(self):
+    def serializable(self):
         """ Can be encoded with serializableEncoder """
 
         return self.__getstate__()

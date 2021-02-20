@@ -25,9 +25,9 @@ class ODict(UserDict, Serializable, DeepEqual):
 
         """
         # print(args)
-        #data = OrderedDict(*args, **kwds)
+        # data = OrderedDict(*args, **kwds)
         super().__init__(*args, **kwds)
-        #UserDict.__init__(self, data)
+        # UserDict.__init__(self, data)
         Serializable.__init__(self)
 
     # @property
@@ -91,9 +91,18 @@ class ODict(UserDict, Serializable, DeepEqual):
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        return dict(data=self.data,
-                    _STID=self._STID
-                    )
+        return OrderedDict(
+            data=self.data,
+            _STID=self._STID
+        )
+
+    def serializable(self):
+        """ Can be encoded with serializableEncoder """
+
+        return OrderedDict(
+            **self.data,
+            _STID=self._STID
+        )
 
     def __hash__(self):
 

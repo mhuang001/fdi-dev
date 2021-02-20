@@ -404,10 +404,11 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
                 if rule[0] >= rule[1]:
                     # binary masked rules are [mask, vld] e.g. [0B011000,0b11]
                     mask, valid_val = rule[0], rule[1]
-                    masked_val, high, wide = masked(self._value, mask)
+                    masked_val, mask_height, mask_width = masked(
+                        self._value, mask)
                     masks[mask] = masked_val
-                    if high > highest:
-                        highest = high
+                    if mask_height > highest:
+                        highest = mask_height
 
         if into is None or len(into) < len(masks):
             # like {'0b110000': 0b10, '0b001111': 0b0110}
@@ -456,10 +457,11 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
                     # binary masked rules are [mask, vld] e.g. [0B011000,0b11]
                     mask, vld = rule[0], rule[1]
                     if len(binmasks.setdefault(mask, [])) == 0:
-                        vtest, high, wide = masked(value, mask)
+                        vtest, mask_height, mask_width = masked(value, mask)
                         if vtest == vld:
                             # record, indexed by mask
-                            binmasks[mask] += [vld, name, high, wide]
+                            binmasks[mask] += [vld, name,
+                                               mask_height, mask_width]
                 else:
                     # range
                     res = INVALID if (value < rule[0]) or (

@@ -27,11 +27,6 @@ class RefContainer(ODict):  # XXXXXXXX order
         super(RefContainer, self).__init__(**kwds)
         self.setOwner(None)
 
-    def setOwner(self, owner):
-        """ records who owns this container
-        """
-        self._owner = owner
-
     @property
     def owner(self):
         """ Property """
@@ -48,14 +43,34 @@ class RefContainer(ODict):  # XXXXXXXX order
         """
         return self._owner
 
+    def setOwner(self, owner):
+        """ records who owns this container.
+
+        Due to reason described in __setitem__ doc, existing refs will be set again upon owner set
+        """
+
+        if hasattr(self, '_owner') and self._owner is not None and id(self._owner) == id(owner):
+            return
+        self._owner = owner
+        old = self.data
+        self.data = dict()
+        for k, r in old.items():
+            self.__setitem__(k, r)
+        del old
+
     def __setitem__(self, key, ref):
+        """
+            when deserialized contained refs will be set with _owner==None
+            then the following are done when the assembled refContainer is
+            set('refs',refC) to the owner context.
+        """
         if key is None:
             raise KeyError()
         if ref is None:
             raise ValueError()
 
         # during deserialization __setitem__ is called before _owner is set by Context,setRefs()
-        if hasattr(self, '_owner'):
+        if hasattr(self, '_owner') and self._owner is not None:
             from .productref import ProductRef
             if isinstance(ref, ProductRef):
                 ref.addParent(self._owner)
@@ -153,8 +168,6 @@ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Con
         if isinstance(refs, RefContainer) and name == 'refs':
             refs.setOwner(self)
         super().set(name, refs)
-        if isinstance(refs, RefContainer) and name == 'refs':
-            assert hasattr(self.getRefs(), '_owner')
 
     def getRefs(self):
         """ Returns the reference container mapping

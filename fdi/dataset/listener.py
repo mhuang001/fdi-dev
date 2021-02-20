@@ -74,11 +74,11 @@ class ListnerSet(Serializable, DeepEqual, list):
 
         return ret
 
-    def equals(self, obj):
+    def equals(self, obj, verbose=False):
         """ compares with another one. """
         return True
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict()
 
@@ -285,7 +285,7 @@ class DatasetEvent(Serializable):
     def toString(self):
         return self.__repr__()
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         s = OrderedDict(source=self.source,
                         target=self.target,

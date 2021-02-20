@@ -176,11 +176,12 @@ def binhexstring(val, typ_, width=0, v=None, p=None):
                     # binary masked. validity is a list of tuple/lists
                     # validity[mask] is (val, state, mask height, mask width)
                     mask, valid_val = rule[0], rule[1]
-                    masked_val, high, wide = masked(p._value, mask)
+                    masked_val, mask_height, mask_width = masked(
+                        p._value, mask)
                     masks.append(
-                        (mask, format(valid_val, '#0%db' % (wide+2)), name))
-                    if high > highest:
-                        highest = high
+                        (mask, format(valid_val, '#0%db' % (mask_width+2)), name))
+                    if mask_height > highest:
+                        highest = mask_height
                     seg = None
             elif issubclass(rule.__class__, str):
                 seg = "'%s': %s" % (rule, name)
@@ -406,3 +407,44 @@ def grouper(iterable, n, fillvalue=None):
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
     args = [iter(iterable)] * n
     return zip_longest(*args, fillvalue=fillvalue)
+
+
+def t2l(v):
+    """ convert tuples to lists in nested data structures
+    """
+    # print(v)
+    if issubclass(v.__class__, (list, tuple)):
+        y = [t2l(x) if issubclass(
+            x.__class__, tuple) else x for x in v]
+        # print('== ', y)
+        return y
+    return v
+
+
+def l2t(v):
+    """ convert lists to tuples in nested data structures
+    """
+    # print(v)
+    if issubclass(v.__class__, (list, tuple)):
+        y = tuple(l2t(x) if issubclass(
+            x.__class__, list) else x for x in v)
+        # print('== ', y)
+        return y
+    return v
+
+
+def ld2tk(v):
+    """ convert lists, to tuples and dicts to frozensets in nested data structures
+    """
+    # print(v)
+    if issubclass(v.__class__, (list, tuple)):
+        y = tuple(ld2tk(x) for x in v)
+    elif issubclass(v.__class__, (dict)):
+        # print('== ', y)
+        y = frozenset((ld2tk(k), ld2tk(v)) for k, v in v.items())
+    elif issubclass(v.__class__, (set)):
+        # print('== ', y)
+        y = frozenset(ld2tk(x) for x in v)
+    else:
+        y = v
+    return y

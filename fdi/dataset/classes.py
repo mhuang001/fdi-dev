@@ -44,6 +44,7 @@ class Classes_meta(type):
         'fdi.dataset.metadata': ['AbstractParameter', 'Parameter', 'NumericParameter', 'DateParameter', 'StringParameter', 'MetaData'],
         'fdi.dataset.dataset': ['GenericDataset', 'ArrayDataset',
                                 'TableDataset', 'CompositeDataset', 'Column'],
+        'fdi.dataset.product.readonlydict': ['ReadOnlyDict'],
         'fdi.pal.context': ['AbstractContext', 'Context',
                             'AbstractMapContext', 'MapContext',
                             'RefContainer',

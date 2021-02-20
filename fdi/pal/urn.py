@@ -87,7 +87,6 @@ class Urn(DeepEqual, Serializable, Comparable):
                     self._poolname = None
                     self._class = None
                     self._index = None
-                    self._resource = None
                     self._poolpath = None
                     self._urn = None
                     return
@@ -191,21 +190,7 @@ class Urn(DeepEqual, Serializable, Comparable):
         """ Returns the pool name in this """
         return self.getPoolId()
 
-    def __eq__(self, o):
-        """
-        mh: compare  urn string  after the first 4 letters.
-        """
-
-        return self._urn[4:] == o.getUrn()[4:]
-
-    def __hash__(self):
-        """ returns hash of the URN string after the first 4 letters.
-        """
-        if not hasattr(self, 'HASH') or self.HASH is None:
-            self.HASH = hash(self._urn()[4:])
-        return self.HASH
-
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(urn=self._urn,
                            _STID=self._STID)
@@ -224,6 +209,10 @@ class Urn(DeepEqual, Serializable, Comparable):
                 self._index,
                 self._poolpath
             )
+
+    def a__hash__(self):
+        """ has the URN string. """
+        return hash(self._urn)
 
 
 """
@@ -264,12 +253,12 @@ def parseUrn(urn):
         raise ValueError('bad urn: ' + str(sp1))
 
     index = int(sp1[3])
-    resourceclass = sp1[2]
+    resourcetype = sp1[2]
     poolname = sp1[1]
-    if len(poolname) * len(resourceclass) == 0:
+    if len(poolname) * len(resourcetype) == 0:
         # something for a name
         raise ValueError('empty poolname or typename in urn: ' + urn)
-    return poolname, resourceclass, index
+    return poolname, resourcetype, index
 
 
 def parse_poolurl(url, poolhint=None):

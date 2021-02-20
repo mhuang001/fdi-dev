@@ -216,6 +216,8 @@ class ProductRef(Attributable, Serializable, Comparable):
     def addParent(self, parent):
         """ add a parent
         """
+        if any(id(parent) == id(x) for x in self._parents):
+            return
         self._parents.append(parent)
 
     def removeParent(self, parent):
@@ -224,7 +226,8 @@ class ProductRef(Attributable, Serializable, Comparable):
         :param parent: 
 
         """
-        self._parents.remove(parent)
+        if parent:
+            self._parents.remove(parent)
 
     @property
     def parents(self):
@@ -258,7 +261,7 @@ class ProductRef(Attributable, Serializable, Comparable):
         """
         self._parents = parents
 
-    def equals(self, o):
+    def equals(self, o, verbose=False):
         """     true if o is a non-null ProductRef, with the same Product type than this one, and:
 
         urns and products are null in both refs, or
@@ -268,17 +271,28 @@ class ProductRef(Attributable, Serializable, Comparable):
         """
         t1 = issubclass(o.__class__, ProductRef)
         if not t1:
+            if verbose:
+                msg = 'Input o is not a ProductRef'
+                return msg
             return False
         if self._product is None:
             if o._product is None:
                 if o._urnobj is None and self._urnobj is None or o._urnobj == self._urnobj:
+                    if verbose:
+                        msg = 'Both onject._products are None or have equal URN.'
+                        return msg
                     return True
             else:
+                if verbose:
+                    msg = 'Self._product is None but not for the other obj.'
+                    return msg
                 return False
         else:
             if self._product == o._product and (self._product.type == o._product.type):
                 if (o._urnobj is None and self._urnobj is None) or \
                    (o._urnobj == self._urnobj):
+                    if verbose:
+                        print('True due to equal _project and _urnobj')
                     return True
 
         return False
@@ -313,7 +327,7 @@ class ProductRef(Attributable, Serializable, Comparable):
         s += '}'
         return s
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(urnobj=self.urnobj if issubclass(self.urnobj.__class__, Urn) else None,
                            _meta=self.getMeta(),

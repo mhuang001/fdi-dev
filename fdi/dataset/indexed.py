@@ -141,7 +141,7 @@ class Indexed():
                 rec_ind = self._tableOfContent[key]
                 return [c[rec_ind] for c in self.data]
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(
             indexPattern=self._indexPattern,

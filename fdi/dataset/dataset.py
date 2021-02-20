@@ -15,6 +15,7 @@ from ..utils.common import exprstrs
 from .typed import Typed
 
 from collections import OrderedDict
+from functools import lru_cache
 import logging
 import sys
 import itertools
@@ -107,16 +108,16 @@ class GenericDataset(Dataset, DataContainer, Container):
                     level=level, matprint=matprint, trans=trans, **kwds))
 
         s = '# ' + cn + '\n' +\
-            mstr(self.serializable(), level=level, **kwds)
+            mstr(self.__getstate__(), level=level, **kwds)
         d = cn + '-dataset =\n'
         d += bstr(self.data, level=level, **kwds) if matprint is None else \
             matprint(self.data, level=level, trans=False, headers=[], tablefmt2='plain',
                      **kwds)
         return s + '\n' + d + '\n'
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        # s = OrderedDict(description=self.description, meta=self.meta)  # super(...).serializable()
+        # s = OrderedDict(description=self.description, meta=self.meta)  # super(...).__getstate__()
         # s.update(OrderedDict(data=self.getData()))
         s = OrderedDict(description=self.description,
                         meta=self.meta,
@@ -239,7 +240,7 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
                 (vs, us, ts, ds, fs, cs, str(self.meta))
 
         s = '# ' + cn + '\n' +\
-            mstr(self.serializable(), level=level, **kwds)
+            mstr(self.__getstate__(), level=level, **kwds)
         d = cn + '-dataset =\n'
         ds = bstr(self.data, level=level, **kwds) if matprint is None else \
             matprint(self.data, trans=False, headers=[], tablefmt2='plain',
@@ -247,12 +248,12 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
         d += lls(ds, 2000)
         return s + '\n' + d + '\n'
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        # s = OrderedDict(description=self.description, meta=self.meta, data=self.data)  # super(...).serializable()
+        # s = OrderedDict(description=self.description, meta=self.meta, data=self.data)  # super(...).__getstate__()
         s = OrderedDict(description=self.description,
                         meta=self.meta,
-                        data=list(self.data),
+                        data=None if self.data is None else list(self.data),
                         type=self._type,
                         default=self._default,
                         typecode=self._typecode,
@@ -268,7 +269,6 @@ class Column(ArrayDataset, ColumnListener):
       table = TableDataset()
       table.addColumn("Energy",Column(data=[1,2,3,4],description="desc",unit='eV'))
     """
-    pass
 
 
 class TableModel(object):
@@ -624,19 +624,19 @@ Default is to return all columns.
             t = list(d.items())[key]
             return {t[0]: t[1]}       # {str:Column}
         if issubclass(cl, slice):
-            return dict(list(d.items())[key])  # {str:Column, ...}
+            return ODict(list(d.items())[key])  # {str:Column, ...}
         if issubclass(cl, str):
             return {key: d[key]}      # {str:Column}
 
         if issubclass(cl, Sequence):
             if type(key[0]) == int:
                 # {str:Column, ...}
-                return dict(list(d.items())[i] for i in key)
+                return ODict(list(d.items())[i] for i in key)
             if type(key[0]) == str:
                 return {n: d[n] for n in key}  # {str:Column, ...}
             if type(key[0]) == bool:
                 # {str:Column, ...}
-                return dict(x for x, s in zip(d.items(), key) if s)
+                return ODict(x for x, s in zip(d.items(), key) if s)
         else:
             raise ValueError(
                 '``key`` must be an int, a string, a slice, or a list of ints, strings, or bools.')
@@ -701,7 +701,7 @@ Default is to return all columns.
 
         cn = self.__class__.__name__
         s = '# ' + cn + '\n'
-        s += mstr(self.serializable(), level=level, **kwds)
+        s += mstr(self.__getstate__(), level=level, **kwds)
         stp = 2 if level > 1 else 20 if level == 1 else None
         cols = self.getData().values()
 
@@ -717,7 +717,7 @@ Default is to return all columns.
             d += '(Only display %d rows of %d for level=%d.)' % (stp, collen, level)
         return s + '\n' + d + '\n'
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
                            meta=self.meta,
@@ -786,9 +786,9 @@ class IndexedTableDataset(Indexed, TableDataset):
                 rec_ind = self._tableOfContent[key]
                 return [c[rec_ind] for c in self._list]
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        return Indexed.serializable(self).update(description=self.description,
+        return Indexed.__getstate__(self).update(description=self.description,
                                                  meta=self.meta,
                                                  data=self.getData(),
                                                  _STID=self._STID)
@@ -809,7 +809,7 @@ class CompositeDataset(AbstractComposite, Dataset):
         super(CompositeDataset, self).__init__(
             **kwds)  # initialize _sets, meta, unit
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
                            meta=self.meta,

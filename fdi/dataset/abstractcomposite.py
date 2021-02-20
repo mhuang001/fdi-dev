@@ -34,7 +34,7 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
         """
         cn = self.__class__.__name__
         s = '# ' + cn + '\n' +\
-            mstr(self.serializable(), level=level, **kwds)
+            mstr(self.__getstate__(), level=level, **kwds)
         d = cn + '-datasets =\n'
         d += self._sets.toString(level=level,
                                  matprint=matprint, trans=trans, **kwds)

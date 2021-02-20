@@ -59,7 +59,7 @@ class History(CompositeDataset, DeepEqual):
         """ Saves the history script to a file.
         """
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
                            HIST_SCRIPT=self.HIST_SCRIPT,

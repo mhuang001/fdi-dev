@@ -178,13 +178,6 @@ class FineTime(Copyable, DeepEqual, Serializable):
             s = tais
         return s
 
-    def equals(self, obj):
-        """ can compare TAI directly """
-        if 1:
-            return self.tai == obj
-        else:
-            return super(FineTime, self).equals(obj)
-
     def __lt__(self, obj):
         """ can compare TAI directly """
         if 1:
@@ -223,7 +216,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
     def __str__(self):
         return self.toString()
 
-    def serializable(self):
+    def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(tai=self.tai,
                            format=self.format,

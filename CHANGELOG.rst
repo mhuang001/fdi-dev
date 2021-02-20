@@ -7,6 +7,10 @@ BETA0
 
 1.0 2021-01-17
 -----------------
+Packaging improvements. Use __getstate__ for serialization, hashing and comparison.
+
+1.0 2021-01-17
+-----------------
 TableDataset numeric indexing, slicing, vLookUp. Basic performance enhancing. Parameter.split()
 
 1.0rc9 2020-12-27

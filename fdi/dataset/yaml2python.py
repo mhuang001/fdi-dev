@@ -589,7 +589,7 @@ if __name__ == '__main__':
         subs['CLASSDOC'] = doc
         subs['PRODUCTINFO'] = infostr
         subs['INITARGS'] = ikwds
-        print('productInit=\n%s\n' % (subs['INITARGS']))
+        print('productInfo=\n%s\n' % (subs['INITARGS']))
         subs['PROPERTIES'] = properties
 
         # subtitute the template

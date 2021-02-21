@@ -71,22 +71,23 @@ PYREPO	= pypi
 INDURL	= 
 #PYREPO	= testpypi
 #INDURL	= --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/
-#INDURL	= $(CURDIR)/dist/*.whl --extra-index-url https://pypi.org/simple/
-upload:
+LOCAL_INDURL	= $(CURDIR)/dist/*.whl --extra-index-url https://pypi.org/simple/
+wheel:
 	# git ls-tree -r HEAD | awk 'print $4' > MANIFEST
 	rm -rf dist/* build *.egg-info
 	python3 setup.py sdist bdist_wheel
 	twine check dist/*
 	check-wheel-contents dist
+upload:
 	python3 -m twine upload --repository $(PYREPO) dist/*
 
-testrepo:
+wheeltest:
 	rm -rf /tmp/fditestvirt
 	virtualenv -p python3 /tmp/fditestvirt
 	. /tmp/fditestvirt/bin/activate && \
 	python3 -m pip uninstall -q -q -y fdi ;\
 	python3 -m pip cache remove -q -q -q fdi ;\
-	python3 -m pip install $(INDURL) "fdi" && \
+	python3 -m pip install $(LOCAL_INDURL) "fdi" && \
 	python3 -m pip show fdi && \
 	echo Testing newly installed fdi ... ; \
 	python3 -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
@@ -116,9 +117,9 @@ VERSIONFILE	= fdi/_version.py
 VERSION	= $(shell python -S -c "_l = {};f=open('$(VERSIONFILE)'); exec(f.read(), None, _l); f.close; print(_l['__version__'])")
 
 versiontag:
-	@ echo  __version__ = \"$(VERSION)\" in $(VERSIONFILE)
-	#git tag  $(VERSION)
-
+	@ echo  version = \"$(VERSION)\" in $(VERSIONFILE)
+	echo git tag  $(VERSION)
+	git push origin $(VERSION)
 
 TESTLOG	= /tmp/fdi-tests.log
 
@@ -137,13 +138,13 @@ test2:
 	pytest tests/test_pal.py -k 'not _http' $(T) --cov=fdi/pal $(OPT)
 
 test3:
-	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py
+	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py --cov=fdi/pns
 
 test4:
-	pytest $(OPT) -k 'not server' $(T) tests/test_pns.py
+	pytest $(OPT) -k 'not server' $(T) tests/test_pns.py --cov=fdi/pns
 
 test5:
-	pytest  $(OPT) $(T) tests/test_utils.py
+	pytest  $(OPT) $(T) tests/test_utils.py --cov=fdi/utils
 
 test6:
 	pytest $(OPT) $(T) tests/test_httppool.py

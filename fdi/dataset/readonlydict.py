@@ -3,7 +3,6 @@
 from collections.abc import Mapping
 from types import MappingProxyType
 import copy
-from immutabledict import immutabledict
 
 
 def make_readonly(d, excluded=None):
@@ -84,15 +83,16 @@ class frozendict(dict):
 ReadOnlyDict = frozendict
 
 
-class aReadOnlyDict(immutabledict):
+# from immutabledict import immutabledict
+# class aReadOnlyDict(immutabledict):
 
-    def __getitem_a_(self, key):
-        it = super().__getitem__(key)
+#     def __getitem_a_(self, key):
+#         it = super().__getitem__(key)
 
-        if issubclass(it.__class__, dict):
-            rodict = ReadOnlyDict(it)
-            return rodict
-        return it
+#         if issubclass(it.__class__, dict):
+#             rodict = ReadOnlyDict(it)
+#             return rodict
+#         return it
 
 
 class bReadOnlyDict(dict):

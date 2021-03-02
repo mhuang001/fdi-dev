@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import pdb
+import array
+import binascii
 # from .odict import ODict
 import logging
 import json
@@ -31,8 +32,11 @@ class SerializableEncoderAll(json.JSONEncoder):
     def default(self, obj):
         # logger.debug
         # print('&&&& %s %s' % (str(obj.__class__), str(obj)))
-        if PY3 and issubclass(obj.__class__, bytes):
-            return dict(code=codecs.encode(obj, 'hex'), _STID='bytes')
+        if PY3:
+            if issubclass(obj.__class__, bytes):
+                return dict(code=codecs.encode(obj, 'hex'), _STID='bytes')
+            elif issubclass(obj.__class__, array.array):
+                return dict(code=str(binascii.b2a_hex(obj), encoding='ascii'), _STID='array.array_'+obj.typecode)
         if not PY3 and issubclass(obj.__class__, str):
             return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
         if obj is Ellipsis:
@@ -57,7 +61,7 @@ class SerializableEncoderAll(json.JSONEncoder):
         oc = obj.__class__
         ocn = type(obj).__name__
 
-        #print('%%%*****prepro ' + ocn)
+        # print('%%%*****prepro ' + ocn)
         # pdb.set_trace()
         # if issubclass(oc, self.base):
         #     # mainly to process string which is a collections (bellow)
@@ -113,8 +117,11 @@ class SerializableEncoder(json.JSONEncoder):
             try:
                 # logger.debug
                 # print('&&&& %s %s' % (str(obj.__class__), str(obj)))
-                if PY3 and issubclass(obj.__class__, bytes):
-                    return dict(code=codecs.encode(obj, 'hex'), _STID='bytes')
+                if PY3:
+                    if issubclass(obj.__class__, bytes):
+                        return dict(code=str(codecs.encode(obj, 'hex'), encoding='ascii'), _STID='bytes')
+                    elif issubclass(obj.__class__, array.array):
+                        return dict(code=str(binascii.b2a_hex(obj), encoding='ascii'), _STID='array.array_'+obj.typecode)
                 if not PY3 and issubclass(obj.__class__, str):
                     return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
                 if obj is Ellipsis:
@@ -143,7 +150,7 @@ class Serializable(object):
     def __init__(self, **kwds):
         super(Serializable, self).__init__(**kwds)
         sc = self.__class__
-        #print('@@@ ' + sc.__name__, str(issubclass(sc, dict)))
+        # print('@@@ ' + sc.__name__, str(issubclass(sc, dict)))
         if 0 and issubclass(sc, dict):
             self['_STID'] = sc.__name__
         else:

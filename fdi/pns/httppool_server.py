@@ -213,7 +213,7 @@ def delete_product(paths):
 
 
 def delete_pool(paths):
-    """ Remove contents of a pool
+    """ Removes all contents of the pool.
     Checking if the pool exists in server, and removing or returning exception message to client.
     """
 
@@ -322,7 +322,7 @@ def load_HKdata(paths):
 
 
 def load_single_HKdata(paths):
-    """Load classes or urns or tags of a pool
+    """ Returns pool housekeeping data of the specified type: classes or urns or tags.
     """
 
     hkname = paths[-1]

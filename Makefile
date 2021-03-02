@@ -105,6 +105,15 @@ testw:
 	python3 -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
 	deactivate
 
+J_OPTS	= ${JAVA_OPTS} -XX:MaxPermSize=256M -Xmx1024M -DloggerPath=conf/log4j.properties
+J_OPTS	= ${JAVA_OPTS} -Xmx1024M -DloggerPath=conf/log4j.properties
+AGS	= -t ../swagger-codegen/modules/swagger-codegen/src/main/resources/flaskConnexion -vv
+SWJAR	= ../swagger-codegen/swagger-codegen-cli.jar
+SWJAR	= ../swagger-codegen/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
+api:
+	rm -rf httppool/flaskConnexion/*
+	java $(J_OPTS) -jar $(SWJAR) generate $(AGS) -i ./httppool/swagger.yaml -l python-flask -o ./httppool/flaskConnexion -Dservice
+
 reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
 
@@ -118,7 +127,7 @@ VERSION	= $(shell python -S -c "_l = {};f=open('$(VERSIONFILE)'); exec(f.read(),
 
 versiontag:
 	@ echo  version = \"$(VERSION)\" in $(VERSIONFILE)
-	echo git tag  $(VERSION)
+	git tag  $(VERSION)
 	git push origin $(VERSION)
 
 TESTLOG	= /tmp/fdi-tests.log

@@ -149,8 +149,10 @@ def test_serialization():
     checkjson(v)
     v = Ellipsis
     checkjson(v)
-    # v = b'\xde\xad\xbe\xef'
-    # checkjson(v)
+    v = b'\xde\xad\xbe\xef'
+    checkjson(v)
+    v = array.array('d', [1.2, 42])
+    checkjson(v, 1)
     v = [1.2, 'ww']
     checkjson(v)
     # v = (1, 8.2, 'tt')

@@ -2,6 +2,8 @@
 import logging
 import json
 import codecs
+import binascii
+import array
 import builtins
 from collections import UserDict
 from collections.abc import MutableMapping as MM, MutableSequence as MS, MutableSet as MS
@@ -87,12 +89,20 @@ def constructSerializable(obj, lgb=None, debug=False):
         if debug:
             print(spaces + 'Find _STID <%s>' % classname)
         # process types wrapped in a dict
-        if PY3 and classname == 'bytes':
-            inst = codecs.decode(obj, 'hex')
-            if debug:
-                print(spaces + 'Instanciate hex')
-            indent -= 1
-            return inst
+        if PY3:
+            if classname == 'bytes':
+                inst = codecs.decode(obj['code'], 'hex')
+                if debug:
+                    print(spaces + 'Instanciate hex')
+                indent -= 1
+                return inst
+            elif classname.startswith('array.array'):
+                tcode = classname.rsplit('_', 1)[1]
+                inst = array.array(tcode, binascii.a2b_hex(obj['code']))
+                if debug:
+                    print(spaces + 'Instanciate array.array')
+                indent -= 1
+                return inst
         if classname in lgb:
             # Now we have a blank instance.
             inst = lgb[classname]()

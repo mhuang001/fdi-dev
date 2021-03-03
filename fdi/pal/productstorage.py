@@ -82,10 +82,14 @@ class ProductStorage(object):
         # return a list only when more than one refs
         return ls if len(ls) > 1 else ls[0]
 
-    def save(self, product, tag=None, poolname=None, geturnobjs=False):
+    def save(self, product, tag=None, poolname=None, geturnobjs=False, **kwds):
         """ saves to the writable pool if it has been registered.
-        if not, registers and saves. product can be one or a list of prpoducts.
-        Returns: one or a list of productref with storage info. mh: or UrnObjs if geturnobjs is True.
+
+        product: can be one or a list of prpoducts.
+        poolName: if the named pool is not registered, registers and saves.
+        geturnobjs: mh: returns UrnObjs if geturnobjs is True.
+        kwds: options passed to json.dump() for localpools.
+        Returns: one or a list of productref with storage info. 
         """
 
         if poolname is None:
@@ -103,7 +107,8 @@ class ProductStorage(object):
 
         try:
             ret = self._pools[poolname].saveProduct(
-                product, tag=tag, geturnobjs=geturnobjs)
+                product, tag=tag, geturnobjs=geturnobjs,
+                **kwds)
         except Exception as e:
             logger.error('unable to save to the writable pool.')
             raise

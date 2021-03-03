@@ -39,14 +39,14 @@ class ODEncoder(json.JSONEncoder):
         return d
 
 
-def writeJsonwithbackup(fp, data):
+def writeJsonwithbackup(fp, data, **kwds):
     """ write data in JSON after backing up the existing one.
     """
     if op.exists(fp):
         os.rename(fp, fp + '.old')
     # js = json.dumps(data, cls=ODEncoder)
     #logger.debug('Writing %s stat %s' % (fp, str(os.path.exists(fp+'/..'))))
-    js = serialize(data)
+    js = serialize(data, **kwds)
     with open(fp, mode="w+") as f:
         f.write(js)
     logger.debug('JSON saved to: ' + fp)
@@ -136,7 +136,7 @@ class LocalPool(ProductPool):
             fp = pathjoin(fp0, hkdata + '.jsn')
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
-    def schematicSave(self, resourcetype, index, data, tag=None):
+    def schematicSave(self, resourcetype, index, data, tag=None, **kwds):
         """
         does the media-specific saving.
 
@@ -145,7 +145,7 @@ class LocalPool(ProductPool):
         fp0 = self.transformpath(self._poolname)
         fp = pathjoin(fp0, quote(resourcetype) + '_' + str(index))
         try:
-            writeJsonwithbackup(fp, data)
+            writeJsonwithbackup(fp, data, **kwds)
             self.writeHK(fp0)
             logger.debug('HK written')
         except IOError as e:

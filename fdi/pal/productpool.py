@@ -291,12 +291,12 @@ When implementing a ProductPool, the following rules need to be applied:
         Save/Update descriptors in pool.
         """
 
-    def schematicSave(self, resourcetype, index, data, tag=None):
+    def schematicSave(self, resourcetype, index, data, tag=None, **kwds):
         """ to be implemented by subclasses to do the scheme-specific saving
         """
         raise(NotImplementedError)
 
-    def saveProduct(self,  product, tag=None, geturnobjs=False, serialized=False):
+    def saveProduct(self,  product, tag=None, geturnobjs=False, serialized=False, **kwds):
         """
         Saves specified product and returns the designated ProductRefs or URNs.
         Saves a product or a list of products to the pool, possibly under the
@@ -342,7 +342,9 @@ When implementing a ProductPool, the following rules need to be applied:
                 try:
                     self.schematicSave(resourcetype=pn,
                                        index=sn,
-                                       data=prd,  tag=tag)
+                                       data=prd,
+                                       tag=tag,
+                                       **kwds)
                 except Exception as e:
                     msg = 'product ' + urn + ' saving failed'
                     logger.debug(msg)

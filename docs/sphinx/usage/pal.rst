@@ -110,13 +110,27 @@ One can  make queries to a ProductStorage and get back a list of references to p
 run tests
 =========
 
-in the same directory:
+To test PAL functionalities based on local (JSON) pool and memory pool, run in the same directory:
 
 .. code-block:: shell
 
 		make test2
 
+To test functionalities based on http client pool, in one terminal run
 
+.. code-block:: shell
+
+		make runpoolserver
+
+run
+
+.. code-block:: shell
+
+		make testhttp
+
+examine output.
+
+		
 Design
 ======
 

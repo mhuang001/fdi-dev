@@ -16,7 +16,7 @@ Install/Uninstall
 For Users
 =========
 
-To install from PyPI:
+If you need to use fdi, install from PyPI:
 
 .. code-block:: shell
 
@@ -59,10 +59,10 @@ To install
            cd $FDIINSTDIR
            git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git
            cd fdi
-           python3 -m pip install -e .[DEV]
 	   git checkout develop
+	   make install
 	   
-If you want to install the ``master`` branch, remove the ``@develop`` part and the last line above.
+If you want to install the ``master`` branch, remove the ``git checkout develop`` line above.
 	   
 To test your installation
 -------------------------

@@ -41,13 +41,6 @@ classes_pns.png
 .. image:: ../_static/classes_pns.png
 
 
-packages_all.png
-	   
-.. image:: ../_static/packages_all.png
-
-classes_all.png
-	   
-.. image:: ../_static/classes_all.png
 
 Indices and tables
 ==================

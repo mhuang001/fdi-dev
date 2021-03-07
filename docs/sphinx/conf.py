@@ -62,12 +62,13 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '*~']
 # -- Options for HTML output -------------------------------------------------
 
 # https://stackoverflow.com/a/32079202
-def xsetup(app):
+def setup(app):
     # app.add_css_file("hatnotes.css")
     # app.add_css_file("custom.css")
     # app.add_css_file("bootstrap.css")
     # app.add_css_file("nature.css")
-    app.add_css_file('fdi.css')
+    # app.add_css_file('fdi.css')
+    pass
 
 
 if 1:
@@ -76,9 +77,16 @@ if 1:
 else:
     pygments_style = 'monokai'
 
+autoclass_content = 'both'
+autodoc_inherit_docstrings = True
+
 napoleon_google_docstring = False
+napoleon_include_init_with_doc = True
+napoleon_use_admonition_for_notes = False
 napoleon_use_param = False
-napoleon_use_ivar = True
+napoleon_use_ivar = False
+
+autosectionlabel_prefix_document = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.

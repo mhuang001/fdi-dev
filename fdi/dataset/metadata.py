@@ -76,7 +76,12 @@ def parameterDataClasses(tt):
 
 class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Serializable):
     """ Parameter is the interface for all named attributes
-    in the MetaData container. It can have a value and a description.
+    in the MetaData container.
+
+    A Parameter is a variable with associated information about its description, unit, type, valid ranges, default, format code etc. Type can be numeric, string, datetime, vector.
+
+    Often a parameter shows a property. So a parameter in the metadata of a dataset or product is often called a property.
+
     Default     value=None, description='UNKNOWN'
     """
 

@@ -49,6 +49,7 @@ FDI Python packages
    usage/installation
    usage/quickstart
    usage/dataset
+   usage/product
    usage/pal
    usage/pns
 
@@ -61,8 +62,9 @@ API Document
 
    api/api
    
-.. image:: _static/packages_all.png
+.. image:: _static/packages_dataset.png
 
+.. image:: _static/packages_pal.png
 	   
 
 Indices and tables

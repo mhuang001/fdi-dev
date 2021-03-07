@@ -50,8 +50,8 @@ First we show how to make and use components of the data model.
 
 This section shows how to create data containers -- datasets, metadata, and Products, how to put data into the containers, read data out, modify data, remove data, inspect data.
 
-ArrayDataset
-------------
+ArrayDataset -- sequence of data in the same unit and format
+------------------------------------------------------------
 
 
 >>> # Creation with an array of data quickly
@@ -129,7 +129,7 @@ ArrayDataset-dataset =
 ... v[0:2]
 [[1, 2, 3], [4, 5, 6]]
 
->>> # Run this to see a demo of the ``toString()`` function::
+>>> # Run this to see a demo of the ``toString()`` function:
 ... # make a 4-D array: a list of 2 lists of 3 lists of 4 lists of 5 elements.
 ... s = [[[[i + j + k + l for i in range(5)] for j in range(4)]
 ...       for k in range(3)] for l in range(2)]
@@ -197,11 +197,10 @@ ArrayDataset-dataset =
 
 
 
-TableDataset
-------------
+TableDataset -- a set of named Columns and their metadata
+---------------------------------------------------------
 
-TableDataset is mainly a dictionary containing name-Column pairs and metadata.
-Columns are basically ArrayDatasets under a different name.
+TableDataset is mainly a dictionary containing named :class:`Column`\s and their metadata. Columns are basically ArrayDatasets under a different name.
 
 
 >>> # Create an empty TableDataset then add columns one by one
@@ -254,7 +253,7 @@ TableDataset-dataset =
 ['column1', 'column2', 'column3', 'column4']
 
 
-# get column by name
+>>> # get column by name
 ... my_column = v5['column1']       # [1, 4.4, 5.4E3]
 ... my_column.data
 >>> [1, 4.4, 5400.0]
@@ -359,15 +358,13 @@ TableDataset-dataset =
 
 
 
-MetaData and Parameter: Parameter
----------------------------------
+Metadata and Parameter - Parameter
+----------------------------------
 
-FDI datasets and products not only contain data, but also their metadata -- data about the "payload" data. Metadata is a collections of parameters.
-
-A Parameter is a variable with associated information about its description, unit, type, valid ranges, default, format code etc. Type can be numeric, string, datetime, vector.
-
-Often a parameter shows a property. So a parameter in the metadata of a dataset or product is often called a property.
-
+>>> # Creation
+... # The standard way -- with keyword arguments
+... v = Parameter(value=9000, description='Average age', typ_='integer')
+... v.description   # 'Average age'
 
 >>> 'Average age'
 
@@ -414,13 +411,12 @@ True
 >>> v.validate(20)  # invalid
 (Invalid, 'Invalid')
 
->>> print("""
-... MetaData and Parameter: Metadata
-... --------------------------------
-... 
-... A dict-like container for named parameters.
-... """)
-# Creation. Start with numeric parameter.
+Metadata and Parameter - Metadata
+---------------------------------
+
+A :class:`Metadata` instance is mainly a dict-like container for named parameters.
+
+>>> # Creation. Start with numeric parameter.
 ... a1 = 'weight'
 ... a2 = NumericParameter(description='How heavey is the robot.',
 ...                       value=60, unit='kg', typ_='float')
@@ -430,12 +426,6 @@ True
 ... v.set(a1, a2)
 ... # get the parameter with the name.
 ... v.get(a1)   # == a2
-
-MetaData and Parameter: Metadata
---------------------------------
-
-A dict-like container for named parameters.
-
 
 >>> 60.0
 
@@ -554,6 +544,8 @@ True
    
 >>> # simplifed string representation, toString(level=1), also what __repr__() runs.
 ... v
+
+::
    
    --------------------  --------------------  ----------------
    job= waitress         birthday= 1990-09-09  a= 3.4
@@ -571,14 +563,8 @@ True
 job, birthday, a, b, c, d, listeners = ListnerSet{}
 
 
-Product
--------
-
-The data Product is at the center of FDI data model. A product has
-   * zero or more datasets (say images, tables, spectra etc...).
-   * accompanying metadata,
-   * history of this product: how was this data created.
-
+Product with metadata and datasets
+----------------------------------
 
 >>> # Creation:
 ... x = Product(description="product example with several datasets",
@@ -766,8 +752,8 @@ The data Product is at the center of FDI data model. A product has
    
 
 
-pal
-===
+pal - Product Access Layer
+==========================
 
 Products need to persist (be stored somewhere) in order to have a reference that can be used to re-create the product after its creation process ends.
 
@@ -833,10 +819,10 @@ MetaData-listeners = ListnerSet{}}
 True
 
 
-Context
--------
+Context -- a Product with References
+------------------------------------
 
-A Context is a Product with References. This section shows essencial steps how product references can be stored in a context.
+This section shows essencial steps how product references can be stored in a context.
 
 
 >>> p1 = Product(description='p1')
@@ -905,10 +891,10 @@ True
 True
 
 
-Query
-------
+Query a Storage to get saved Products
+-------------------------------------
 
-A ProductStorage with pools attached can be queried with tags, properties stored in metadata, or even data in the stored products, with Python syntax.
+A :class:`ProductStorage` with pools attached can be queried with tags, properties stored in metadata, or even data in the stored products, using Python syntax.
 
 
 >>> # clean possible data left from previous runs
@@ -995,6 +981,8 @@ urn:newpool_mh:fdi.pal.context.MapContext:1
 ['fatman 12', 'fatman 16']
 
 >>>
+
+END of examples
 
 See the installation and testing sections of the pns page.
 

@@ -39,8 +39,8 @@ First we show how to make and use components of the data model.
 
 This section shows how to create data containers -- datasets, metadata, and Products, how to put data into the containers, read data out, modify data, remove data, inspect data.
 
-ArrayDataset
-------------
+ArrayDataset -- sequence of data in the same unit and format
+------------------------------------------------------------
 """)
 
 
@@ -84,7 +84,7 @@ v.data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 # slicing happens on the slowest dimension.
 v[0:2]
 
-# Run this to see a demo of the ``toString()`` function::
+# Run this to see a demo of the ``toString()`` function:
 # make a 4-D array: a list of 2 lists of 3 lists of 4 lists of 5 elements.
 s = [[[[i + j + k + l for i in range(5)] for j in range(4)]
       for k in range(3)] for l in range(2)]
@@ -92,11 +92,10 @@ v.data = s
 print(v.toString())
 
 print('''
-TableDataset
-------------
+TableDataset -- a set of named Columns and their metadata
+---------------------------------------------------------
 
-TableDataset is mainly a dictionary containing name-Column pairs and metadata.
-Columns are basically ArrayDatasets under a different name.
+TableDataset is mainly a dictionary containing named :class:`Column`\s and their metadata. Columns are basically ArrayDatasets under a different name.
 ''')
 
 # Create an empty TableDataset then add columns one by one
@@ -186,14 +185,9 @@ x.meta['temp'] = NumericParameter(42.6, description='Ambient', unit='C')
 print(x.toString())
 
 print("""
-MetaData and Parameter: Parameter
----------------------------------
+Metadata and Parameter - Parameter
+----------------------------------
 
-FDI datasets and products not only contain data, but also their metadata -- data about the "payload" data. Metadata is a collections of parameters.
-
-A Parameter is a variable with associated information about its description, unit, type, valid ranges, default, format code etc. Type can be numeric, string, datetime, vector.
-
-Often a parameter shows a property. So a parameter in the metadata of a dataset or product is often called a property.
 """)
 
 # Creation
@@ -237,10 +231,10 @@ v.validate(20)  # invalid
 
 
 print("""
-MetaData and Parameter: Metadata
---------------------------------
+Metadata and Parameter - Metadata
+---------------------------------
 
-A dict-like container for named parameters.
+A :class:`Metadata` instance is mainly a dict-like container for named parameters.
 """)
 
 # Creation. Start with numeric parameter.
@@ -331,13 +325,9 @@ v
 print(v.toString(level=2))
 
 print("""
-Product
--------
+Product with metadata and datasets
+----------------------------------
 
-The data Product is at the center of FDI data model. A product has
-   * zero or more datasets (say images, tables, spectra etc...). 
-   * accompanying metadata,
-   * history of this product: how was this data created.
 """)
 
 # Creation:
@@ -400,8 +390,8 @@ print(x.toString())
 
 
 print('''
-pal
-===
+pal - Product Access Layer
+==========================
 
 Products need to persist (be stored somewhere) in order to have a reference that can be used to re-create the product after its creation process ends.
 
@@ -451,11 +441,10 @@ print(newp == x)   # == True
 
 
 print("""
-Context
--------
+Context -- a Product with References
+------------------------------------
 
-A Context is a Product with References. This section shows essencial steps how product references can be stored in a context.
-
+This section shows essencial steps how product references can be stored in a context.
 """)
 
 p1 = Product(description='p1')
@@ -510,10 +499,10 @@ len(pref2.parents)   # == 2
 pref2.parents[1] == map2
 
 print("""
-Query 
-------
+Query a Storage to get saved Products
+-------------------------------------
 
-A ProductStorage with pools attached can be queried with tags, properties stored in metadata, or even data in the stored products, with Python syntax.
+A :class:`ProductStorage` with pools attached can be queried with tags, properties stored in metadata, or even data in the stored products, using Python syntax.
 """)
 
 # clean possible data left from previous runs

@@ -1,3 +1,4 @@
+
 Flexible Dataset Integrator (FDI) helps data producers and processors to build connections into isolated heterogeneous datasets. to assemble, organize, and integrate data into self-describing, modular, hierarchical, persistent, referenceable ``Products``, whose component datasets keep their own characteristicss and are easily accessible.
 
 FDI provides scripting-friendly  APIs  and 
@@ -8,6 +9,10 @@ access using storage pools, referencing, and Universal Resource Names, and refer
 
 Install/Uninstall
 -----------------
+.. image:: pipeline.svg
+   :target: http://mercury.bao.ac.cn:9006/mh/fdi/badges/master/index.html
+
+<a href="http://mercury.bao.ac.cn:9006/mh/fdi/-/commits/master"><img alt="pipeline status" src="http://mercury.bao.ac.cn:9006/mh/fdi/badges/master/pipeline.svg" /></a>
 
 .. tip::
 

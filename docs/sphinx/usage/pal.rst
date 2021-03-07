@@ -28,34 +28,25 @@ Definitions
 URN
 ---
 
-The Universial Resource Name (URN) string has this format::
+.. currentmodule:: fdi.pal.urn
 
-  urn:``poolname``:``resourcetype``:``serialnumber``
+.. note:: The following is from :class:`Urn`
+   
+.. include:: ../../../fdi/pal/urn.py
+   :start-after: About_URN
+   :end-before: """
 
-where
+.. note:: The following is from :func:`parse_poolurl`
 
-:poolname: Also called poolID, a (optionally path-like) string. Its format should follow that of a directory name, without leading or trailing ``/``.
-:resourcetype: (fully qualified) class name of the resource (usually Product)
-:serialnumber: internal index.
-
-The ``poolname`` in a URN is a label. Although pool providers could use '/' in it to introduce internal heirachy. The ``PoolURL`` is used to give practical information of a pool. It is a local set-up detail that is supposed to be hidden from pool users. The format::
-
-  ``schme``://``place````poolpath``/``poolname``
-
-:scheme: Implementation protocol including ``file`` for :class:`LocalPool`, ``mem`` for :class:`MemPool`, ``http``, ``https`` for :class:`HttpclientPool`.
-:place: IP:port such as``192.168.5.6:8080`` for ``http`` and ``https`` schemes, or an empty string for ``file`` and ``mem`` schemes.
-:poolpath: The full path where the pool is stored, can have API version.  :meth:`ProductPool.transformpath` is used to map it further.
-:poolname: same as in URN
-
+.. include:: ../../../fdi/pal/urn.py
+   :start-after: About_poolURL
+   :end-before: """
+		
+	   
 ProductRef
 ----------
 
 This class not only holds the URN of the product it references to, but also records who ( the _parents_) are keeping this reference.
-
-Context and MapContext
-----------------------
-
-Context is a Product that holds a set of ``productRef`` s that accessible by keys. The keys are strings for MapContext which usually maps names to product references.
 
 ProductStorage
 --------------
@@ -101,11 +92,39 @@ The reference LocalPool is shown in the following YAML-like schematic:
 	  urn1:!!serialized product
 	  ...
 
+Examples (from :doc:`quickstart` page):
+
+.. include:: quickstart.rst
+   :start-after: Product Pool and Product References
+   :end-before: Context -- a Product with References
+
+
+
+Context and MapContext
+----------------------
+
+Context is a Product that holds a set of :class:`ProductRef` s that accessible by keys. The keys are strings for MapContext which usually maps names to product references.
+
+
+Examples (from :doc:`quickstart` page):
+
+.. include:: quickstart.rst
+   :start-after: Context -- a Product with References
+   :end-before: Query a Storage to get saved Products
+
 	  
 Query
 -----
 
 One can  make queries to a ProductStorage and get back a list of references to products that satisfy search chriteria. Queries can be constructed using Python predicate expressions about a product and its metadata, or a function that returns True or False.
+
+Examples (from :doc:`quickstart` page):
+
+.. include:: quickstart.rst
+   :start-after: Query a Storage to get saved Products
+   :end-before: END of examples
+
+			  
 
 run tests
 =========

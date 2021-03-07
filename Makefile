@@ -168,7 +168,7 @@ test8:
 FORCE:
 
 PLOTDIR	= $(SDIR)/_static
-plots: plotall plot_dataset plot_pal plot_pns
+plots: plot_dataset plot_pal plot_pns
 
 plotall:
 	pyreverse -o png -p all fdi/dataset fdi/pal fdi/pns fdi/utils

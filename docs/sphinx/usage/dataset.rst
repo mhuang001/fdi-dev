@@ -1,6 +1,6 @@
-======================================
-**dataset**: Model for Data Containers
-======================================
+======================================================
+**Data Containers**: Data sets and Meta data
+======================================================
 
 .. toctree::
    :maxdepth: 2
@@ -20,14 +20,6 @@ FDI is meant to be a small open-source package. Data stored in FDI ojects are ea
 Data Containers
 ===============
 
-Product
--------
-
-A product has
-   * zero or more datasets: defining well described data entities (say images, tables, spectra etc...). 
-   * accompanying meta data -- required information such as who created this product, what does the data reflect (say instrument) and so on; possible additional meta data specific to that particular product type. A number of built-in Parameters can be specified in ``fdi/dataset/resourcese`` in YAML format. A helper utility ``yaml2python`` can be run using ``make py`` to generate test-ready Python code of product class module containing the built-ins.
-   * history of this product: how was this data created.
-
 Dataset
 -------
 
@@ -35,52 +27,91 @@ Three types of datasets are implemented to store potentially any hierarchical da
 Like a product, all datasets may have meta data, with the distinction that the meta data of a dataset is related to that particular dataset only.
 
 :array dataset: a dataset containing array data (say a data vector, array, cube etc...) and may have a unit and a typecode for efficient storing.
+
+Examples (from :doc:`quickstart` page):
+
+.. include:: quickstart.rst
+   :start-after: ArrayDataset -- sequence of data in the same unit and format
+   :end-before: TableDataset -- a set of named Columns and their metadata
+
 :table dataset: a dataset containing a collection of columns with column header as the key. Each column contains array dataset. All columns have the same number of rows.
+
+Examples (from :doc:`quickstart` page):
+
+.. include:: quickstart.rst
+   :start-after: TableDataset -- a set of named Columns and their metadata
+   :end-before: Metadata and Parameter - Parameter
+
+
 :composite dataset: a dataset containing a collection of datasets. This allows arbitrary complex structures, as a child dataset within a composite dataset may be a composite dataset itself and so on...
 
-Metadata and Parameters
+			     
+Meta data and Parameters
 -----------------------
 
-:Metadata: data about data. Defined as a collection of named Parameters. Often a parameter shows a property. So a parameter in the metadata of a dataset or product is often called a property.
+FDI datasets and products not only contain data, but also their metadata -- data about the "payload" data. Metadata is defined as a collection of named Parameters.
 
+Often a parameter shows a property. So a parameter in the metadata of a dataset or product is often called a property.
+	   
 :Parameter: scalar or vector variable with attributes. 
-	    This package provides the following parameter types:
+	    There are the following parameter types:
 
-   * *Parameter*: Contains a value, description, type, validity specification, and default value. Value, default, and type are type-bound in metadata.ParameterTypes. If requested, a Parameter can check its value or a given value with the validity specification, which can be a combination of descrete values, ranges, and bit-masked values.
-   * *NumericParameter*: Contains a number with a unit and a typecode besides those of Parameter.
-   * *DateParameter*: Same as Parameter except taking a FineTime date-time date as the value, and Python datetime.format as the typecode.
-   * *StringParameter*: Same as Parameter except taking a string as the value, and 'B' (for byte unsigned) as the default typecode.
+   * *Parameter*: Types are defined in :attribute:`metadata.ParameterTypes`. If requested, a Parameter can check its value or a given value with the validity specification, which can be a combination of descrete values, ranges, and bit-masked values.
+   * *NumericParameter*
+   * *DateParameter*
+   * *StringParameter*
+
++-------------------+--------------------------+------------------------------+
+|**Parameter class**|   **parameter value**    |   **parameter attributes**   |
++-------------------+--------------------------+------------------------------+
+|Parameter          |typed objects             |description, type, validity   |
+|                   |                          |descriptor, and default value |
++-------------------+--------------------------+------------------------------+
+|NumericParameter   |a number (scalar), a      |all above plus a unit and a   |
+|                   |:class:`Vector2D` (2D), a |typecode                      |
+|                   |:class:`Vector` (3D), or a|                              |
+|                   |:class:`Quaternion` (4D)  |                              |
++-------------------+--------------------------+------------------------------+
+|DateParameter      |:class:`FineTime`         |Same as Parameter, `type` is  |
+|                   |date-time                 |'finetime', Python            |
+|                   |                          |:attribute:`datetime.format`  |
+|                   |                          |string as the default         |
+|                   |                          |`typecode`.                   |
++-------------------+--------------------------+------------------------------+
+|StringParameter    |:class:`String`           |Same as Parameter, `type` is  |
+|                   |                          |'string', 'B' (for byte       |
+|                   |                          |unsigned) as the default      |
+|                   |                          |`typecode`                    |
++-------------------+--------------------------+------------------------------+
 
 
-History
--------
+Examples (from :doc:`quickstart` page):
 
-The history is a lightweight mechanism to record the origin of this product or changes made to this product. Lightweight means, that the Product data itself does not  records changes, but external parties can attach additional information to the Product which reflects the changes.
+.. include:: quickstart.rst
+   :start-after: Metadata and Parameter - Parameter
+   :end-before: Metadata and Parameter - Metadata
 
-The sole purpose of the history interface of a Product is to allow notably pipeline tasks (as defined by the pipeline framework) to record what they have done to generate and/or modify a Product. 
+:Metadata: class manages parameters for datasets and products.
 
-Serializability
----------------
+Examples (from :doc:`quickstart` page):
 
-In order to transfer data across the network between heterogeneous nodes data needs to be serializable.
-JSON format is used considering to transfer serialized data for its wide adoption, availability of tools, ease to use with Python, and simplicity.
-
-
+.. include:: quickstart.rst
+   :start-after: Metadata and Parameter - Metadata
+   :end-before: Product with metadata and datasets
 
 run tests
 =========
+
+You can test sub-package ``dataset`` and ``utils`` with ``test1`` and ``test5`` respectively.
 
 In the install directory:
 
 .. code-block:: shell
 
 		make test1
-		make test2
-		make test3
 		make test5
 
-You can test sub-package ``dataset``, ``pal``, *pns server self-test only*, and ``utils`` with ``test1``, ``test2``, ``test3``, and ``test5`` respectively.
-
+``test3`` is for *pns server self-test only*
 
 Design
 ======

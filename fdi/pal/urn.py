@@ -33,8 +33,9 @@ def makeUrn(poolname, typename, index):
 
 
 class Urn(DeepEqual, Serializable, Comparable):
-    """ The object representation of the product URN string. The
-    memory consumed by sets of this object are much less than sets
+    """ The object representation of the product URN string.
+
+    The memory consumed by sets of this object are much less than sets
     of URN strings.
 
     Only when the class types in URN string are not in classpath,
@@ -42,28 +43,28 @@ class Urn(DeepEqual, Serializable, Comparable):
     as the object has to hold the original urn string. However this should
     be considered as exceptional cases.
 
-    Using this object representation also help to avoid parsing cost of    URN string.
-    mh:
-    URN format::
+    Using this object representation also help to avoid parsing cost of URN string.
+    URN string should be immutable.
 
-       urn:``poolname``:``resourcetype``:``serialnumber``
+    About_URN
 
-    where
+The Universial Resource Name (**URN**) string has this format:
 
-    :poolname: Also called poolID, a (optionally path-like) string. Its format should follow that of a directory name, without leading or trailing ``/``.
-    :resourcetype: (fully qualified) class name of the resource (usually Product)
-    :serialnumber: internal index.
+        urn:<poolname>:<resourcetype>:<serialnumber>
 
-    The ``poolname`` in a URN is a label. Although pool providers could use '/' in it to introduce internal heirachy. The ``PoolURL`` is used to give practical information of a pool. It is a local set-up detail that is supposed to be hidden from pool users. The format::
+where
 
-         ``schme``://``place````poolpath``/``poolname``
+:<poolname>: A (optionally path-like) string, also called poolID. Its format is the same as a file directory name, without leading or trailing ``/``.
+:<resourcetype>: class name of the data item (usually :class:`Product`)
+:<serialnumber>: internal index for a certain <resourcetype>.
 
-    :scheme: Implementation protocol including ``file`` for :class:`LocalPool`, ``mem`` for :class:`MemPool`, ``http``, ``https`` for :class:`HttpclientPool`.
-    :place: IP:port such as``192.168.5.6:8080`` for ``http`` and ``https`` schemes, or an empty string for ``file`` and ``mem`` schemes.
-    :poolpath: The full path where the pool is stored, can have API version.  :meth:`ProductPool.transformpath` is used to map it further.
-    :poolname: same as in URN
+The ``poolname`` in a URN is a label. Although pool creator could use '/' in it to introduce internal heirachy. Some examples:
 
-    URN is immutable.
+-  urn:pool_mh:fdi.dataset.product.Product:2
+-  urn:newdata/2020:svom.products.SVOMMapContext:0
+
+Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. The **PoolURL** is used to give practical information of a pool, such as a poolname, its location, and its access scheme. It is designed to be a local set-up detail that is supposed to be hidden from pool users. Data processing software use ``URN``s to refer to products, without specifying pool location. The poolID in a URN could be a :class:`LocalPool` on the development laptop and a :class:`HTTPClientPool` on the production cloud.
+
     """
 
     def __init__(self, urn=None, poolname=None, cls=None, index=None, poolurl=None, **kwds):
@@ -265,25 +266,39 @@ def parse_poolurl(url, poolhint=None):
     """
     Disassambles a pool URL.
 
-    A Pool URL is in the form of a URL that preceeds its poolname part. It is generated to desribe a pool's name, its location, and its access scheme. For example:
-    * file:///tmp/mydata for pool ```mydata```,
-    * file:///d:/data/test2/v2 for pool ``test2/v2``
-    * mem:///dummy for pool ``dummy``
-    * https://10.0.0.114:5000/v0.6/obs for a httpclientpool ``obs``
-    * server;///tmp/data/0.4/test for a httppool ``test`` used on a server.
+    A Pool URL is  It is generated to desribe . For example:
 
     input:
     * url: to be decomposed.
     * poolhint:  A urn or a poolname (the first distinctive substring) needs to be given if the poolname has more than one level.
 
-    returns: poolpath, scheme, place, poolname
-
-    * scheme: ``file``, ``mem``, ``http`` ...
-    * place: ``10.2.1.10:2000``, empty string for ``file`` scheme
-    * poolpath: The part between ``place`` and ``poolhint``. for ``file`` or ``server`` schemes, e.g. it is``/c:/tmp`` in ``http://localhost:9000/c:/tmp/mypool/`` with ``poolhint`` keyword arguement not given, or given as ``mypool`` (or ``myp` or 'my' ...). for ``http`` and ``https`` schemes, it is e.g. ``/0.6/tmp`` in ``https://10.0.0.114:5000/v0.6/tmp/mypool`` with ``poolhint`` keyword arguement not given, or given as ``mypool`` (or ``myp` or 'my' ...), the meaning of poolpath is subject to interpretation by the  server. Note that trailing blank and ``/`` are ignored, and stripped in the output.
-    poolname: poolname from poolurl string
-
+    returns: poolpath, scheme, place, poolname.
     returns (None, None,None,None) if url is None or empty.
+
+
+    About_poolURL
+
+The ``PoolURL`` format is in the form of a URL that preceeds its poolname part:
+
+                 <scheme>://<place><poolpath>/<poolname>
+
+:<scheme>: Implementation protocol including ``file`` for :class:`LocalPool`, ``mem`` for :class:`MemPool`, ``http``, ``https`` for :class:`HttpclientPool`.
+:<place>: IP:port such as``192.168.5.6:8080`` for ``http`` and ``https`` schemes, or an empty string for ``file`` and ``mem`` schemes.
+:<poolname>: same as in URN.
+:<poolpath>: The part between ``place`` and an optional ``poolhint``::
+
+- For ``file`` or ``server`` schemes, e.g. it is ``/c:/tmp`` in ``http://localhost:9000/c:/tmp/mypool/`` with ``poolhint`` keyword arguement of :func:`parse_poolurl` not given, or given as ``mypool`` (or ``myp`` or ``my`` ...).
+- For ``http`` and ``https`` schemes, it is e.g. ``/0.6/tmp`` in ``https://10.0.0.114:5000/v0.6/tmp/mypool`` with ``poolhint`` keyword arguement not given, or given as ``mypool`` (or ``myp` or 'my' ...). The meaning of poolpath is subject to interpretation by the  server. In the preceeding example the poolpath has an API version.  :meth:`ProductPool.transformpath` is used to map it further. Note that trailing blank and ``/`` are ignored, and stripped in the output.
+
+Examples:
+
+-  file:///tmp/mydata for pool ```mydata```
+-  file:///d:/data/test2/v2 for pool ``test2/v2``
+-  mem:///dummy for pool ``dummy``
+-  https://10.0.0.114:5000/v0.6/obs for a httpclientpool ``obs``
+-  server:///tmp/data/0.4/test for a httppool ``test`` used on a server.
+
+
     """
 
     if url is None or url == '':

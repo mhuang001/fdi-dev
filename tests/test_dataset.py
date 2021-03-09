@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import immutabledict
 import datetime
 import fractions
 import decimal

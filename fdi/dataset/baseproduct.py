@@ -17,6 +17,7 @@ from .copyable import Copyable
 from .history import History
 
 import copy
+from functools import lru_cache
 from collections import OrderedDict
 
 import logging
@@ -52,7 +53,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
 
     BaseProduct class (level ALL) schema 1.4 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-02-18 22:19:05.869066.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-03-11 12:06:16.589566.
 
 Description:
 FDI base class
@@ -96,7 +97,7 @@ FDI base class
 
         self.installMetas(mtbi=metasToBeInstalled)
 
-        self.history = History()
+        self._history = History()
 
     def installMetas(self, mtbi, prodInfo=None):
         """ put parameters in group in product metadata, and updates productInfo. values in mtbi override those default ones in group.
@@ -135,17 +136,21 @@ FDI base class
         belonging to this product. """
         return list(self._sets.values())[0] if len(self._sets) > 0 else None
 
+    @lru_cache(maxsize=256)
+    def in_pinfo(self, name):
+
+        return name in self.zInfo['metadata']
+
     def __getattribute__(self, name):
         """ Returns the named metadata parameter. Reads meta data table when Mandatory Attributes are
         read, and returns the values only.
         """
         # print('getattribute ' + name)
-        if name not in ['zInfo', '_meta'] and hasattr(self, '_meta'):
-            #            self.hasMeta():
-            if name in self.zInfo['metadata']:
-                # if meta does not exist, inherit Attributable
-                # before any class that access mandatory attributes
-                # print('aa ' + selftr(self.getMeta()[name]))
+        if not (name in ('hasMeta', 'zInfo', 'in_pinfo', 'meta', 'history', 'listeners', 'getMeta') or name.startswith('_')) and hasattr(self, '_meta'):
+            # if meta does not exist, inherit Attributable
+            # before any class that access mandatory attributes
+            # print('aa ' + selftr(self.getMeta()[name]))
+            if self.in_pinfo(name):
                 return self._meta[name].getValue()
         return super(BaseProduct, self).__getattribute__(name)
 
@@ -244,10 +249,11 @@ FDI base class
 
         ls = [
             ("meta", self.meta),
-            ("_sets", self._sets),
-            ("history", self.history),
-            ("listeners", self.listeners),
-            ("_STID", self._STID)]
+            ("_sets", self._sets if hasattr(self, '_sets') else None),
+            ("history", self._history if hasattr(self, '_history') else None),
+            ("listeners", self._listeners if hasattr(self, '_history') else None),
+            ("_STID", self._STID if hasattr(self, '_STID') else None),
+        ]
 
         return OrderedDict(ls)
 

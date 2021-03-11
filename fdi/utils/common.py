@@ -2,9 +2,11 @@
 
 from .masked import masked
 import hashlib
+import array
 import traceback
 import logging
 from itertools import zip_longest
+from collections.abc import Sequence
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -435,10 +437,19 @@ def l2t(v):
 
 def ld2tk(v):
     """ convert lists, to tuples and dicts to frozensets in nested data structures
+    array.array is converted to (typecode, itemsize, size, ld2tk(0th element))
     """
     # print(v)
     if issubclass(v.__class__, (list, tuple)):
         y = tuple(ld2tk(x) for x in v)
+    # elif :  # issubclass(v.__class__, (list)):
+    #     if len(v) > 128 and issubclass(v[0].__class__, (Sequence)):
+    #         y = (type(v[0]), len(v), ld2tk(v[0]))
+    #     else:
+    #         y = tuple(ld2tk(x) for x in v)
+    elif issubclass(v.__class__, (array.array)):
+        y = (v.typecode, v.itemsize, len(v), len(v[0]) if issubclass(
+            v[0].__class__, Sequence) else ld2tk(v[0]))
     elif issubclass(v.__class__, (dict)):
         # print('== ', y)
         y = frozenset((ld2tk(k), ld2tk(v)) for k, v in v.items())

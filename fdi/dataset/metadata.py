@@ -3,7 +3,7 @@
 from ..utils.masked import masked
 from ..utils.common import grouper
 from .serializable import Serializable
-from .datatypes import DataTypes, DataTypeNames
+from .datatypes import DataTypes, DataTypeNames, Vector, Vector2D, Quaternion
 from .odict import ODict
 from .composite import Composite
 from .listener import DatasetEventSender, ParameterListener, DatasetListener, DatasetEvent, EventTypeOf
@@ -20,7 +20,7 @@ from ..utils.common import exprstrs, wls, mstr, t2l
 from tabulate import tabulate
 
 import builtins
-from collections import OrderedDict
+from collections import OrderedDict, Sequence
 from numbers import Number
 import logging
 # create logger
@@ -545,6 +545,38 @@ class NumericParameter(Parameter, Quantifiable):
                            unit=self._unit,
                            typecode=self._typecode,
                            _STID=self._STID)
+
+    def setValue(self, value):
+        """ accept any type that a Vector does.
+        """
+        if value is not None and issubclass(value.__class__, Sequence):
+            d = list(value)
+            if len(d) == 2:
+                value = Vector2D(d)
+            elif len(d) == 3:
+                value = Vector(d)
+            elif len(d) == 4:
+                value = Quaternion(d)
+            else:
+                raise ValueError(
+                    'Sequence of only 2 to 4 elements for NumericParameter')
+        super().setValue(value)
+
+    def setDefault(self, default):
+        """ accept any type that a Vector does.
+        """
+        if default is not None and issubclass(default.__class__, Sequence):
+            d = list(default)
+            if len(d) == 2:
+                default = Vector2D(d)
+            elif len(d) == 3:
+                default = Vector(d)
+            elif len(d) == 4:
+                default = Quaternion(d)
+            else:
+                raise ValueError(
+                    'Sequence of only 2 to 4 elements for NumericParameter')
+        super().setDefault(default)
 
     __hash__ = DeepEqual.__hash__
 

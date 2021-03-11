@@ -12,12 +12,10 @@ from .query import AbstractQuery, MetaQuery
 
 import logging
 import filelock
-from copy import deepcopy
+from copy import deepcopy, copy
 import os
 import sys
 from functools import lru_cache
-
-import pdb
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -245,7 +243,7 @@ When implementing a ProductPool, the following rules need to be applied:
         c, t, u = self._classes, self._tags, self._urns
 
         # save a copy for rolling back
-        cs, ts, us = deepcopy(c), deepcopy(t), deepcopy(u)
+        cs, ts, us = copy(c), copy(t), copy(u)
 
         if urn not in u:
             raise ValueError(

@@ -69,8 +69,8 @@ def constructSerializable(obj, lgb=None, debug=False):
             if debug:
                 print(spaces + 'looping through list %d <%s>' %
                       (i, xc.__name__))
-                if issubclass(xc, (list, dict)):
-                    des = constructSerializable(x, lgb=lgb, debug=debug)
+            if issubclass(xc, (list, dict)):
+                des = constructSerializable(x, lgb=lgb, debug=debug)
             else:
                 des = x
             inst.append(des)

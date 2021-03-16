@@ -222,7 +222,7 @@ def delete_pool(paths):
     # resourcetype = fullname(data)
 
     if not PM.isLoaded(poolname):
-        result = '"FAILED"'
+        result = '"INFO"'
         msg = 'Pool not found: ' + poolname
         return result, msg
     logger.debug('DELETE POOL' + poolname)

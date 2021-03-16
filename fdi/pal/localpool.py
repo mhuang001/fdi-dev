@@ -10,7 +10,7 @@ from ..utils.common import pathjoin, trbk
 import filelock
 import sys
 import shutil
-import pdb
+import mmap
 import json
 import os
 from os import path as op
@@ -37,19 +37,6 @@ class ODEncoder(json.JSONEncoder):
         # Let the base class default method raise the TypeError
         d = json.JSONEncoder.default(self, obj)
         return d
-
-
-def writeJsonwithbackup(fp, data, **kwds):
-    """ write data in JSON after backing up the existing one.
-    """
-    if op.exists(fp):
-        os.rename(fp, fp + '.old')
-    # js = json.dumps(data, cls=ODEncoder)
-    #logger.debug('Writing %s stat %s' % (fp, str(os.path.exists(fp+'/..'))))
-    js = serialize(data, **kwds)
-    with open(fp, mode="w+") as f:
-        f.write(js)
-    logger.debug('JSON saved to: ' + fp)
 
 
 def wipeLocal(poolpath):
@@ -82,9 +69,20 @@ class LocalPool(ProductPool):
         """
         # print(__name__ + str(kwds))
         super(LocalPool, self).__init__(**kwds)
+
+    def setup(self):
+        """ Sets up interal machiney of this LocalPool, 
+        but only if self._poolname and self._poolurl are present.
+        """
+
+        if not hasattr(self, '_poolname') or self._poolname is None or \
+           not hasattr(self, '_poolurl') or self._poolurl is None:
+            return
+
         real_poolpath = self.transformpath(self._poolname)
         if not op.exists(real_poolpath):
             os.makedirs(real_poolpath)
+        self._files = {}
 
         c, t, u = self.readHK()
 
@@ -94,6 +92,44 @@ class LocalPool(ProductPool):
         self._classes.update(c)
         self._tags.update(t)
         self._urns.update(u)
+
+    def setPoolname(self, poolname):
+        """ Replaces the current poolname of this pool.
+        """
+        s = (not hasattr(self, '_poolname') or self._poolname is None)
+        super().setPoolname(poolname)
+        # call setup only if poolname is None
+        if s:
+            self.setup()
+
+    def setPoolurl(self, poolurl):
+        """ Replaces the current poolurl of this pool.
+        """
+        s = (not hasattr(self, '_poolurl') or self._poolurl is None)
+        super().setPoolurl(poolurl)
+        # call setup only if poolurl is None
+        if s:
+            self.setup()
+
+    def readmmap(self, filename, close=False):
+        fp = op.abspath(filename)
+        try:
+            if fp not in self._files or self._files[fp] is None:
+                file_obj = open(fp, mode="r+", encoding="utf-8")
+                # with mmap.mmap(file_obj.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
+            else:
+                file_obj = self._files[fp]
+            file_obj.seek(0)
+            js = file_obj.read()
+        except Exception as e:
+            msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
+            logging.error(msg)
+            raise Exception(msg)
+        if close:
+            file_obj.close()
+        else:
+            self._files[fp] = file_obj
+        return js
 
     def readHK(self, hktype=None, serialized=False):
         """
@@ -111,21 +147,45 @@ class LocalPool(ProductPool):
             # if 1:
             hk = {}
             for hkdata in hks:
-                fp = pathjoin(fp0, hkdata + '.jsn')
+                fp = op.abspath(pathjoin(fp0, hkdata + '.jsn'))
                 if op.exists(fp):
-                    try:
-                        with open(fp, 'r') as f:
-                            js = f.read()
-                    except Exception as e:
-                        msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
-                        logging.error(msg)
-                        raise Exception(msg)
+                    js = self.readmmap(fp)
                     r = js if serialized else deserialize(js)
                 else:
                     r = '{}' if serialized else dict()
                 hk[hkdata] = r
+                assert r is not None
         logger.debug('HK read from ' + fp0)
         return (hk['classes'], hk['tags'], hk['urns']) if hktype is None else hk[hktype]
+
+    def writeJsonmmap(self, fp, data, close=False, **kwds):
+        """ write data in JSON from mmap file at fp.
+
+        register the file. Leave file open by default `close`.
+        data: to be serialized and saved.
+        """
+
+        # js = json.dumps(data, cls=ODEncoder)
+        #logger.debug('Writing %s stat %s' % (fp, str(os.path.exists(fp+'/..'))))
+        js = serialize(data, **kwds)
+        fp = op.abspath(fp)
+        if fp not in self._files or self._files[fp] is None:
+            file_obj = open(fp, mode="w+", encoding="utf-8")
+            # with mmap.mmap(file_obj.fileno(), length=0, access=mmap.ACCESS_WRITE) as mmap_obj:
+        else:
+            file_obj = self._files[fp]
+        file_obj.seek(0)
+        # file_obj.resize(len(js))
+        file_obj.truncate(0)
+        file_obj.write(js)
+        file_obj.flush()
+
+        if close:
+            file_obj.close()
+        else:
+            self._files[fp] = file_obj
+
+        logger.debug('JSON saved to: ' + fp)
 
     def writeHK(self, fp0):
         """
@@ -134,7 +194,7 @@ class LocalPool(ProductPool):
 
         for hkdata in ['classes', 'tags', 'urns']:
             fp = pathjoin(fp0, hkdata + '.jsn')
-            writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
+            self.writeJsonmmap(fp, self.__getattribute__('_' + hkdata))
 
     def schematicSave(self, resourcetype, index, data, tag=None, **kwds):
         """
@@ -145,7 +205,7 @@ class LocalPool(ProductPool):
         fp0 = self.transformpath(self._poolname)
         fp = pathjoin(fp0, quote(resourcetype) + '_' + str(index))
         try:
-            writeJsonwithbackup(fp, data, **kwds)
+            self.writeJsonmmap(fp, data, close=True, **kwds)
             self.writeHK(fp0)
             logger.debug('HK written')
         except IOError as e:
@@ -161,22 +221,20 @@ class LocalPool(ProductPool):
         indexstr = str(index)
         pp = self.transformpath(self._poolname) + '/' + \
             resourcetype + '_' + indexstr
-        try:
-            with open(pp, 'r') as f:
-                js = f.read()
-        except Exception as e:
-            msg = 'Load' + pp + 'failed. ' + str(e) + trbk(e)
-            logger.error(msg)
-            raise e
+        js = self.readmmap(pp, close=True)
         return js if serialized else deserialize(js)
 
     def schematicRemove(self, resourcetype, index):
         """
-        does the scheme-specific part of removal.
+        does the scheme-specific part of removal of product from pool.
         """
         fp0 = self.transformpath(self._poolname)
-        fp = pathjoin(fp0,  quote(resourcetype) + '_' + str(index))
+        fp = op.abspath(pathjoin(fp0,  quote(resourcetype) + '_' + str(index)))
         try:
+            if fp in self._files and self._files[fp]:
+                self._files[fp].flush()
+                self._files[fp].close()
+                del self._files[fp]
             os.unlink(fp)
             self.writeHK(fp0)
         except IOError as e:
@@ -187,6 +245,10 @@ class LocalPool(ProductPool):
         """
         does the scheme-specific remove-all
         """
+        for n, f in self._files.items():
+            f.flush()
+            f.close()
+        self._files.clear()
         wipeLocal(self.transformpath(self._poolname))
 
     def getHead(self, ref):

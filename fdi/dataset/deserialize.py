@@ -4,18 +4,19 @@ import json
 import codecs
 import binascii
 import array
+import mmap
 import builtins
 from collections import UserDict
 from collections.abc import MutableMapping as MM, MutableSequence as MS, MutableSet as MS
 
 from .odict import ODict
 from .classes import Classes
-from ..utils.common import lls
+from ..utils.common import lls, trbk
 
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
-    strset = (str, bytes)
+    strset = (str, bytes, bytearray)
 else:
     PY3 = False
     strset = (str, unicode)
@@ -225,8 +226,8 @@ def deserialize(js, lgb=None, debug=False, usedict=True):
             # , cls=IntDecoderOD)
             obj = json.loads(js, object_pairs_hook=ODict)
     except json.decoder.JSONDecodeError as e:
-        msg = '\nBad string to decode as JSON=====>\n%s\n<======\n' %\
-            lls(js, 500)
+        msg = '\nBad string to decode as JSON=====>\n%s\n<======\nStack trace: %s' %\
+            (lls(js, 500), trbk(e))
         logging.error(msg)
         obj = msg
     if debug:

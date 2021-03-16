@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from ..dataset.odict import ODict
-from ..dataset.serializable import serialize
+from ..dataset.serializable import serialize, Serializable
 from ..dataset.classes import Classes
 from .urn import Urn, parseUrn, parse_poolurl
 from .versionable import Versionable
@@ -34,7 +34,7 @@ lockpathbase = '/tmp/fdi_locks'  # + getpass.getuser()
 locktout = 10
 
 
-class ProductPool(Definable, Taggable, Versionable):
+class ProductPool(Definable, Taggable, Versionable, Serializable):
     """ A mechanism that can store and retrieve Products.
 
 A product pool should not be used directly by users. The general user should access data in a ProductPool through a ProductStorage instance.
@@ -57,15 +57,12 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         super(ProductPool, self).__init__(**kwds)
 
-        self._poolname = poolname
-
-        self._poolpath, self._scheme, self._place, nm = \
-            parse_poolurl(poolurl)
-        self._poolurl = poolurl
+        self._classes = ODict()
+        self.setPoolname(poolname)
+        self.setPoolurl(poolurl)
         # self._pathurl = pr.netloc + pr.path
         # self._pathurl = None
         # {type|classname -> {'sn:[sn]'}}
-        self._classes = ODict()
 
     def lockpath(self, op='w'):
         """ returns the appropriate path.
@@ -95,6 +92,8 @@ When implementing a ProductPool, the following rules need to be applied:
         """ override this to changes the output from the input one (default) to something else.
 
         """
+        if path is None:
+            return None
         base = self._poolpath
         if base != '':
             if path[0] == '/':
@@ -102,6 +101,50 @@ When implementing a ProductPool, the following rules need to be applied:
             else:
                 path = base + '/' + path
         return path
+
+    @property
+    def poolname(self):
+        """ for property getter
+        """
+        return self.getPoolname()
+
+    @poolname.setter
+    def poolname(self, poolname):
+        """ for property setter
+        """
+        self.setPoolname(poolname)
+
+    def getPoolname(self):
+        """ Gets the poolname of this pool as an Object. """
+        return self._poolname
+
+    def setPoolname(self, poolname):
+        """ Replaces the current poolname of this pool.
+        """
+        self._poolname = poolname
+
+    @property
+    def poolurl(self):
+        """ for property getter
+        """
+        return self.getPoolurl()
+
+    @poolurl.setter
+    def poolurl(self, poolurl):
+        """ for property setter
+        """
+        self.setPoolurl(poolurl)
+
+    def getPoolurl(self):
+        """ Gets the poolurl of this pool as an Object. """
+        return self._poolurl
+
+    def setPoolurl(self, poolurl):
+        """ Replaces the current poolurl of this pool.
+        """
+        self._poolpath, self._scheme, self._place, nm = \
+            parse_poolurl(poolurl)
+        self._poolurl = poolurl
 
     def accept(self, visitor):
         """ Hook for adding functionality to object
@@ -540,4 +583,13 @@ When implementing a ProductPool, the following rules need to be applied:
         return ret
 
     def __repr__(self):
-        return self.__class__.__name__ + ' { pool= ' + str(self._poolname) + ' }'
+        return self.__class__.__name__ + ' < pool= ' + str(self._poolname) + ' >'
+
+    def __getstate__(self):
+        """ returns an odict that has all state info of this object.
+        Subclasses should override this function.
+        """
+        return ODict(
+            poolname=self._poolname,
+            poolurl=self._poolurl
+        )

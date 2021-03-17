@@ -205,6 +205,13 @@ def test_clear_server():
     assert not os.path.exists(cpath)
 
 
+def del_server(post_poolid):
+    url = api_baseurl + post_poolid
+    x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserialize(x.text)
+    check_response(o)
+
+
 def populate_server(poolid):
     creators = ['Todds', 'Cassandra', 'Jane', 'Owen', 'Julian', 'Maurice']
     instruments = ['fatman', 'herscherl', 'NASA', 'CNSC', 'SVOM']
@@ -216,6 +223,9 @@ def populate_server(poolid):
         x.creator = i
         data = serialize(x)
         url = api_baseurl + poolid + '/' + prodt + '/' + str(index)
+        import pdb
+        # pdb.set_trace()
+
         x = requests.post(url, auth=HTTPBasicAuth(
             auth_user, auth_pass), data=data)
         o = deserialize(x.text)
@@ -230,6 +240,7 @@ def test_CRUD_product():
 
     logger.info('save products')
     post_poolid = test_poolid
+    del_server(post_poolid)
     clear_server_poolpath(post_poolid)
 
     files = [f for f in get_files(post_poolid) if f[-1].isnumeric()]

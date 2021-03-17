@@ -41,9 +41,21 @@ class HttpClientPool(ProductPool):
         poolpath_local: sets where to stotr housekeeping data locally. default is None, using PoolManager.PlacePaths['file']
         """
         # print(__name__ + str(kwds))
+        self._poolpath_local = poolpath_local
         super(HttpClientPool, self).__init__(**kwds)
+        self.setPoolpath_local(poolpath_local)
 
-        self._poolpath_local = PoolManager.PlacePaths['file'] if poolpath_local is None else poolpath_local
+    def setup(self):
+        """ Sets up HttpPool interals.
+
+        Make sure that self._poolname and self._poolurl are present.
+        """
+
+        if not hasattr(self, '_poolname') or self._poolname is None or \
+           not hasattr(self, '_poolurl') or self._poolurl is None or \
+           not hasattr(self, '_poolpath_local') or self._poolpath_local is None:
+            return
+
         real_poolpath = self.transformpath(self._poolname)
         logger.debug(real_poolpath)
         if not op.exists(real_poolpath):
@@ -58,10 +70,31 @@ class HttpClientPool(ProductPool):
         self._tags.update(t)
         self._urns.update(u)
 
-    def getPollpath_local(self):
-        """ returns the path where the client stores local data.
+    @property
+    def poolpath_local(self):
+        """ for property getter
         """
+        return self.getPoolpath_local()
+
+    @poolpath_local.setter
+    def poolpath_local(self, poolpath_local):
+        """ for property setter
+        """
+        self.setPoolpath_local(poolpath_local)
+
+    def getPoolpath_local(self):
+        """ returns the path where the client stores local data."""
         return self._poolpath_local
+
+    def setPoolpath_local(self, poolpath_local):
+        """ Replaces the current poolpath_local of this pool.
+        """
+        s = (not hasattr(self, '_poolpath_local')
+             or self._poolpath_local is None)
+        self._poolpath_local = PoolManager.PlacePaths['file'] if poolpath_local is None else poolpath_local
+        # call setup only if poolpath_local was None
+        if s:
+            self.setup()
 
     @lru_cache(maxsize=5)
     def transformpath(self, path):

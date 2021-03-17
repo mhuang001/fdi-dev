@@ -11,6 +11,7 @@ import filelock
 import sys
 import shutil
 import mmap
+import time
 import json
 import os
 from os import path as op
@@ -71,8 +72,9 @@ class LocalPool(ProductPool):
         super(LocalPool, self).__init__(**kwds)
 
     def setup(self):
-        """ Sets up interal machiney of this LocalPool, 
-        but only if self._poolname and self._poolurl are present.
+        """ Sets up LocalPool interals.
+
+        Make sure that self._poolname and self._poolurl are present.
         """
 
         if not hasattr(self, '_poolname') or self._poolname is None or \
@@ -92,24 +94,6 @@ class LocalPool(ProductPool):
         self._classes.update(c)
         self._tags.update(t)
         self._urns.update(u)
-
-    def setPoolname(self, poolname):
-        """ Replaces the current poolname of this pool.
-        """
-        s = (not hasattr(self, '_poolname') or self._poolname is None)
-        super().setPoolname(poolname)
-        # call setup only if poolname is None
-        if s:
-            self.setup()
-
-    def setPoolurl(self, poolurl):
-        """ Replaces the current poolurl of this pool.
-        """
-        s = (not hasattr(self, '_poolurl') or self._poolurl is None)
-        super().setPoolurl(poolurl)
-        # call setup only if poolurl is None
-        if s:
-            self.setup()
 
     def readmmap(self, filename, close=False):
         fp = op.abspath(filename)
@@ -143,18 +127,18 @@ class LocalPool(ProductPool):
         else:
             hks = [hktype]
         fp0 = self.transformpath(self._poolname)
-        with filelock.FileLock(self.lockpath('w'), timeout=5):
-            # if 1:
-            hk = {}
-            for hkdata in hks:
-                fp = op.abspath(pathjoin(fp0, hkdata + '.jsn'))
-                if op.exists(fp):
-                    js = self.readmmap(fp)
-                    r = js if serialized else deserialize(js)
-                else:
-                    r = '{}' if serialized else dict()
-                hk[hkdata] = r
-                assert r is not None
+        # with filelock.FileLock(self.lockpath('w'), timeout=5):
+        # if 1:
+        hk = {}
+        for hkdata in hks:
+            fp = op.abspath(pathjoin(fp0, hkdata + '.jsn'))
+            if op.exists(fp):
+                js = self.readmmap(fp)
+                r = js if serialized else deserialize(js)
+            else:
+                r = '{}' if serialized else dict()
+            hk[hkdata] = r
+            assert r is not None
         logger.debug('HK read from ' + fp0)
         return (hk['classes'], hk['tags'], hk['urns']) if hktype is None else hk[hktype]
 
@@ -169,7 +153,7 @@ class LocalPool(ProductPool):
         #logger.debug('Writing %s stat %s' % (fp, str(os.path.exists(fp+'/..'))))
         js = serialize(data, **kwds)
         fp = op.abspath(fp)
-        if fp not in self._files or self._files[fp] is None:
+        if 1:  # fp not in self._files or self._files[fp] is None:
             file_obj = open(fp, mode="w+", encoding="utf-8")
             # with mmap.mmap(file_obj.fileno(), length=0, access=mmap.ACCESS_WRITE) as mmap_obj:
         else:
@@ -178,23 +162,25 @@ class LocalPool(ProductPool):
         # file_obj.resize(len(js))
         file_obj.truncate(0)
         file_obj.write(js)
-        file_obj.flush()
-
+        # file_obj.flush()
+        close = 1
         if close:
             file_obj.close()
         else:
             self._files[fp] = file_obj
-
-        logger.debug('JSON saved to: ' + fp)
+        l = len(js)
+        logger.debug('JSON saved to: %s %d bytes' % (fp, l))
+        return l
 
     def writeHK(self, fp0):
         """
            save the housekeeping data to disk
         """
-
+        l = 0
         for hkdata in ['classes', 'tags', 'urns']:
             fp = pathjoin(fp0, hkdata + '.jsn')
-            self.writeJsonmmap(fp, self.__getattribute__('_' + hkdata))
+            l += self.writeJsonmmap(fp, self.__getattribute__('_' + hkdata))
+        return l
 
     def schematicSave(self, resourcetype, index, data, tag=None, **kwds):
         """
@@ -205,8 +191,11 @@ class LocalPool(ProductPool):
         fp0 = self.transformpath(self._poolname)
         fp = pathjoin(fp0, quote(resourcetype) + '_' + str(index))
         try:
-            self.writeJsonmmap(fp, data, close=True, **kwds)
-            self.writeHK(fp0)
+            t0 = time.time()
+            l = self.writeJsonmmap(fp, data, close=True, **kwds)
+            print('tl %.8f %9d' % (time.time()-t0, l))
+            l = self.writeHK(fp0)
+            print('tl %.8f %9d' % (time.time()-t0, l))
             logger.debug('HK written')
         except IOError as e:
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
@@ -216,8 +205,8 @@ class LocalPool(ProductPool):
         """
         does the scheme-specific part of loadProduct.
 
-        se
         """
+
         indexstr = str(index)
         pp = self.transformpath(self._poolname) + '/' + \
             resourcetype + '_' + indexstr

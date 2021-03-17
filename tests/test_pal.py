@@ -299,7 +299,7 @@ def checkdbcount(n, poolurl, prodname, currentSN=-1):
     """
 
     poolpath, scheme, place, poolname = parse_poolurl(poolurl)
-    if scheme == 'file':
+    if scheme in ['file', 'server']:
         path = op.join(poolpath, poolname)
         assert sum(1 for x in glob.glob(
             op.join(path, prodname + '*[0-9]'))) == n
@@ -549,6 +549,16 @@ def test_ProdStorage_func_http():
     # httpclientpool
     thepoolname = 'testhttppool'
     thepoolurl = pc['httphost'] + pc['baseurl'] + '/' + thepoolname
+
+    cleanup(thepoolurl, thepoolname)
+    check_ps_func_for_pool(thepoolname, thepoolurl)
+
+
+def test_ProdStorage_func_server():
+    # httppool , the http server-side pool
+    thepoolname = 'testserverpool'
+    thepoolurl = 'server://'+pc['server_poolpath'] + \
+        pc['baseurl'] + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
     check_ps_func_for_pool(thepoolname, thepoolurl)

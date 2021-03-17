@@ -12,7 +12,7 @@ from .query import AbstractQuery, MetaQuery
 
 import logging
 import filelock
-from copy import deepcopy, copy
+from copy import copy
 import os
 import sys
 from functools import lru_cache
@@ -57,12 +57,27 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         super(ProductPool, self).__init__(**kwds)
 
+        # {type|classname -> {'sn:[sn]'}}
         self._classes = ODict()
         self.setPoolname(poolname)
         self.setPoolurl(poolurl)
         # self._pathurl = pr.netloc + pr.path
         # self._pathurl = None
-        # {type|classname -> {'sn:[sn]'}}
+
+    class ParameetersIncommpleteError(Exception):
+        pass
+
+    def setup(self):
+        """ Sets up interal machiney of this Pool, 
+        but only if self._poolname and self._poolurl are present.
+
+        Subclasses should implement own setup(), and
+        make sure that self._poolname and self._poolurl are present.
+        """
+
+        if not hasattr(self, '_poolname') or self._poolname is None or \
+           not hasattr(self, '_poolurl') or self._poolurl is None:
+            return
 
     def lockpath(self, op='w'):
         """ returns the appropriate path.
@@ -121,7 +136,11 @@ When implementing a ProductPool, the following rules need to be applied:
     def setPoolname(self, poolname):
         """ Replaces the current poolname of this pool.
         """
+        s = (not hasattr(self, '_poolname') or self._poolname is None)
         self._poolname = poolname
+        # call setup only if poolname was None
+        if s:
+            self.setup()
 
     @property
     def poolurl(self):
@@ -142,9 +161,13 @@ When implementing a ProductPool, the following rules need to be applied:
     def setPoolurl(self, poolurl):
         """ Replaces the current poolurl of this pool.
         """
+        s = (not hasattr(self, '_poolurl') or self._poolurl is None)
         self._poolpath, self._scheme, self._place, nm = \
             parse_poolurl(poolurl)
         self._poolurl = poolurl
+        # call setup only if poolurl was None
+        if s:
+            self.setup()
 
     def accept(self, visitor):
         """ Hook for adding functionality to object
@@ -282,20 +305,20 @@ When implementing a ProductPool, the following rules need to be applied:
         prod = resource
         sn = index
 
-        self._classes, self._tags, self._urns = self.readHK()
-        c, t, u = self._classes, self._tags, self._urns
-
-        # save a copy for rolling back
-        cs, ts, us = copy(c), copy(t), copy(u)
-
-        if urn not in u:
-            raise ValueError(
-                '%s not found in pool %s.' % (urn, self.getId()))
-
         with filelock.FileLock(self.lockpath('w')),\
                 filelock.FileLock(self.lockpath('r')):
+
+            # get the latest HK
+            self._classes, self._tags, self._urns = self.readHK()
+            c, t, u = self._classes, self._tags, self._urns
+
+            if urn not in u:
+                raise ValueError(
+                    '%s not found in pool %s.' % (urn, self.getId()))
+
             self.removeUrn(urn)
             c[prod]['sn'].remove(sn)
+
             if len(c[prod]['sn']) == 0:
                 del c[prod]
             try:
@@ -304,8 +327,7 @@ When implementing a ProductPool, the following rules need to be applied:
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)
-                # undo changes
-                c, t, u = cs, ts, us
+                self._classes, self._tags, self._urns = self.readHK()
                 raise e
         return res
 
@@ -348,9 +370,6 @@ When implementing a ProductPool, the following rules need to be applied:
 
         serialized: if True returns contents in serialized form.
         """
-        c, t, u = self._classes, self._tags, self._urns
-        # save a copy
-        cs, ts, us = deepcopy(c), deepcopy(t), deepcopy(u)
 
         if not issubclass(product.__class__, list):
             prds = [product]
@@ -361,6 +380,14 @@ When implementing a ProductPool, the following rules need to be applied:
             pn = fullname(prd)
             with filelock.FileLock(self.lockpath('w')),\
                     filelock.FileLock(self.lockpath('r')):
+
+                # get the latest HK
+                self._classes, self._tags, self._urns = self.readHK()
+                c, t, u = self._classes, self._tags, self._urns
+                if 0:  # prd.creator in ['Todds', 'Cassandra', 'Jane']:
+                    import pdb
+                    pdb.set_trace()
+
                 if pn in c:
                     sn = (c[pn]['currentSN'] + 1)
                 else:
@@ -379,19 +406,19 @@ When implementing a ProductPool, the following rules need to be applied:
 
                 if tag is not None:
                     self.setTag(tag, urn)
-
                 try:
+                    # save prod and HK
                     self.schematicSave(resourcetype=pn,
                                        index=sn,
                                        data=prd,
                                        tag=tag,
                                        **kwds)
                 except Exception as e:
-                    msg = 'product ' + urn + ' saving failed'
+                    msg = 'product ' + urn + ' saving failed.'
+                    self._classes, self._tags, self._urns = self.readHK()
                     logger.debug(msg)
-                    # undo changes
-                    c, t, u = cs, ts, us
                     raise e
+
             if geturnobjs:
                 if serialized:
                     res.append(urn)

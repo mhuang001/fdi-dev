@@ -15,6 +15,17 @@ class MemPool(ProductPool):
         """
 
         super(MemPool, self).__init__(**kwds)
+
+    def setup(self):
+        """ Sets up MemPool interals.
+
+        make sure that self._poolname and self._poolurl are present.
+        """
+
+        if not hasattr(self, '_poolname') or self._poolname is None or \
+           not hasattr(self, '_poolurl') or self._poolurl is None:
+            return
+
         self._MemPool = {}
         # if self._poolname not in self._MemPool:
         #      self._MemPool[self._poolname] = {}

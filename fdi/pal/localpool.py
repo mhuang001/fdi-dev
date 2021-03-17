@@ -98,18 +98,18 @@ class LocalPool(ProductPool):
     def readmmap(self, filename, close=False):
         fp = op.abspath(filename)
         try:
-            if fp not in self._files or self._files[fp] is None:
+            if 1:  # fp not in self._files or self._files[fp] is None:
                 file_obj = open(fp, mode="r+", encoding="utf-8")
                 # with mmap.mmap(file_obj.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
             else:
                 file_obj = self._files[fp]
-            file_obj.seek(0)
+            # file_obj.seek(0)
             js = file_obj.read()
         except Exception as e:
             msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
             logging.error(msg)
             raise Exception(msg)
-        if close:
+        if 1:  # close:
             file_obj.close()
         else:
             self._files[fp] = file_obj
@@ -191,15 +191,15 @@ class LocalPool(ProductPool):
         fp0 = self.transformpath(self._poolname)
         fp = pathjoin(fp0, quote(resourcetype) + '_' + str(index))
         try:
-            t0 = time.time()
+            #t0 = time.time()
             l = self.writeJsonmmap(fp, data, close=True, **kwds)
-            print('tl %.8f %9d' % (time.time()-t0, l))
-            l = self.writeHK(fp0)
-            print('tl %.8f %9d' % (time.time()-t0, l))
+            l += self.writeHK(fp0)
+            #print('tl %.8f %9d' % (time.time()-t0, l))
             logger.debug('HK written')
         except IOError as e:
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
+        return l
 
     def schematicLoadProduct(self, resourcetype, index, serialized=False):
         """

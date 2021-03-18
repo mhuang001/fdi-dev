@@ -85,6 +85,8 @@ class LocalPool(ProductPool):
         if not op.exists(real_poolpath):
             os.makedirs(real_poolpath)
         self._files = {}
+        self._atimes = {}
+        self._cached_files = {}
 
         c, t, u = self.readHK()
 
@@ -95,15 +97,20 @@ class LocalPool(ProductPool):
         self._tags.update(t)
         self._urns.update(u)
 
-    def readmmap(self, filename, close=False):
+    def readmmap(self, filename, close=False, check_time=False):
         fp = op.abspath(filename)
+        if check_time:
+            sr = os.stat(fp)
+        if check_time and fp in self._atimes and (sr.st_mtime_ns <= self._atimes[fp]):
+            # file hasnot changed since last time we read/wrote it.
+            return None
         try:
             if 1:  # fp not in self._files or self._files[fp] is None:
                 file_obj = open(fp, mode="r+", encoding="utf-8")
                 # with mmap.mmap(file_obj.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
             else:
                 file_obj = self._files[fp]
-            # file_obj.seek(0)
+                # file_obj.seek(0)
             js = file_obj.read()
         except Exception as e:
             msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
@@ -111,8 +118,13 @@ class LocalPool(ProductPool):
             raise Exception(msg)
         if 1:  # close:
             file_obj.close()
+            if fp in self._files:
+                del self._files[fp]
         else:
             self._files[fp] = file_obj
+        if check_time:
+            # save the mtime as the self atime
+            self._atimes[fp] = sr.st_mtime_ns
         return js
 
     def readHK(self, hktype=None, serialized=False):
@@ -133,8 +145,14 @@ class LocalPool(ProductPool):
         for hkdata in hks:
             fp = op.abspath(pathjoin(fp0, hkdata + '.jsn'))
             if op.exists(fp):
-                js = self.readmmap(fp)
-                r = js if serialized else deserialize(js)
+                js = self.readmmap(fp, check_time=True)
+                if js:
+                    r = js if serialized else deserialize(js)
+                    self._cached_files[fp] = js
+                else:
+                    # the file hasnot changed since last time we r/w it.
+                    r = self._cached_files[fp] if serialized else \
+                        self.__getattribute__('_' + hkdata)
             else:
                 r = '{}' if serialized else dict()
             hk[hkdata] = r
@@ -142,7 +160,7 @@ class LocalPool(ProductPool):
         logger.debug('HK read from ' + fp0)
         return (hk['classes'], hk['tags'], hk['urns']) if hktype is None else hk[hktype]
 
-    def writeJsonmmap(self, fp, data, close=False, **kwds):
+    def writeJsonmmap(self, fp, data, close=False, check_time=False, **kwds):
         """ write data in JSON from mmap file at fp.
 
         register the file. Leave file open by default `close`.
@@ -150,7 +168,7 @@ class LocalPool(ProductPool):
         """
 
         # js = json.dumps(data, cls=ODEncoder)
-        #logger.debug('Writing %s stat %s' % (fp, str(os.path.exists(fp+'/..'))))
+        # logger.debug('Writing %s stat %s' % (fp, str(os.path.exists(fp+'/..'))))
         js = serialize(data, **kwds)
         fp = op.abspath(fp)
         if 1:  # fp not in self._files or self._files[fp] is None:
@@ -159,6 +177,7 @@ class LocalPool(ProductPool):
         else:
             file_obj = self._files[fp]
         file_obj.seek(0)
+
         # file_obj.resize(len(js))
         file_obj.truncate(0)
         file_obj.write(js)
@@ -166,8 +185,16 @@ class LocalPool(ProductPool):
         close = 1
         if close:
             file_obj.close()
+            if fp in self._files:
+                del self._files[fp]
         else:
             self._files[fp] = file_obj
+        if check_time:
+            # save the mtime as the self atime
+            sr = os.stat(fp)
+            os.utime(fp, ns=(sr.st_atime_ns, sr.st_mtime_ns))
+            self._atimes[fp] = sr.st_mtime_ns
+            self._cached_files[fp] = js
         l = len(js)
         logger.debug('JSON saved to: %s %d bytes' % (fp, l))
         return l
@@ -179,7 +206,8 @@ class LocalPool(ProductPool):
         l = 0
         for hkdata in ['classes', 'tags', 'urns']:
             fp = pathjoin(fp0, hkdata + '.jsn')
-            l += self.writeJsonmmap(fp, self.__getattribute__('_' + hkdata))
+            l += self.writeJsonmmap(fp, self.__getattribute__('_' + hkdata),
+                                    check_time=True)
         return l
 
     def schematicSave(self, resourcetype, index, data, tag=None, **kwds):
@@ -191,10 +219,10 @@ class LocalPool(ProductPool):
         fp0 = self.transformpath(self._poolname)
         fp = pathjoin(fp0, quote(resourcetype) + '_' + str(index))
         try:
-            #t0 = time.time()
+            # t0 = time.time()
             l = self.writeJsonmmap(fp, data, close=True, **kwds)
             l += self.writeHK(fp0)
-            #print('tl %.8f %9d' % (time.time()-t0, l))
+            # print('tl %.8f %9d' % (time.time()-t0, l))
             logger.debug('HK written')
         except IOError as e:
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
@@ -211,7 +239,9 @@ class LocalPool(ProductPool):
         pp = self.transformpath(self._poolname) + '/' + \
             resourcetype + '_' + indexstr
         js = self.readmmap(pp, close=True)
-        return js if serialized else deserialize(js)
+        r = js if serialized else deserialize(js)
+
+        return r
 
     def schematicRemove(self, resourcetype, index):
         """
@@ -220,9 +250,10 @@ class LocalPool(ProductPool):
         fp0 = self.transformpath(self._poolname)
         fp = op.abspath(pathjoin(fp0,  quote(resourcetype) + '_' + str(index)))
         try:
-            if fp in self._files and self._files[fp]:
-                self._files[fp].flush()
-                self._files[fp].close()
+            if fp in self._files:
+                if self._files[fp]:
+                    self._files[fp].flush()
+                    self._files[fp].close()
                 del self._files[fp]
             os.unlink(fp)
             self.writeHK(fp0)
@@ -235,9 +266,16 @@ class LocalPool(ProductPool):
         does the scheme-specific remove-all
         """
         for n, f in self._files.items():
-            f.flush()
-            f.close()
+            if f:
+                f.flush()
+                f.close()
         self._files.clear()
+        self._atimes.clear()
+        self._cached_files.clear()
+        self._classes.clear()
+        self._tags.clear()
+        self._urns.clear()
+
         wipeLocal(self.transformpath(self._poolname))
 
     def getHead(self, ref):

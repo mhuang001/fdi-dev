@@ -20,6 +20,7 @@ from fdi.dataset.classes import Classes
 from fdi.dataset.deserialize import deserialize
 from fdi.dataset.quantifiable import Quantifiable
 from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf
+from fdi.dataset.metadataholder import MetaDataHolder
 from fdi.dataset.composite import Composite
 from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter
 from fdi.dataset.datatypes import DataTypes, DataTypeNames
@@ -273,6 +274,29 @@ def test_Annotatable():
     assert v.description == a
     checkgeneral(v)
 
+def test_Dattr():
+    import pdb;pdb.set_trace()
+    v = Quantifiable()
+    assert v.getUnit() is None
+    assert v.getTypecode() is None
+    v.setUnit('AA')
+    v.setTypecode('BB')
+    assert v.getUnit() == 'AA'
+    assert v.getTypecode() == 'BB'
+    v = Quantifiable(unit = 'abc',typecode = 'string')
+    assert v.getUnit() == 'abc' 
+    assert v.getTypecode() == 'string'
+    assert v.unit == 'abc'
+    assert v.typecode == 'string'
+    assert v.getUnit() == 'abc'
+    assert v.getTypecode() == 'string'
+    v = Quantifiable()
+    import pdb;pdb.set_trace()
+    v.unit = 'CC'
+    v.typecode = 'DD'
+    assert v.getUnit() == 'CC'
+    assert v.getTypecode() == 'DD'
+
 
 def test_Composite():
 
@@ -428,6 +452,8 @@ def test_datatypes():
     assert v.getComponents() == [0, 0, 0]
     v = Vector([1, 2.3, 4.5])
     assert v.getComponents() == [1, 2.3, 4.5]
+    v.components =[4,5,6]
+    assert v.components == [4,5,7]
     checkjson(v)
 
     v = Vector2D()
@@ -1011,6 +1037,20 @@ def test_Attributable():
 
     checkgeneral(v)
 
+
+def test_MetaDataHolder():
+    v = MetaDataHolder()
+    assert issubclass(v.getMeta().__class__,MetaData)  # inhrited no argument instanciation
+    assert v.getMeta().size() == 0
+    a1 = MetaData()
+    a2 = 'this'
+    a3 = Parameter(0.3)
+    a1[a2] = a3  # add an entry to metadata
+    v = MetaDataHolder(meta=a1)
+    assert v.getMeta() == a1
+    assert v.getMeta().size() == 1
+    delattr(v,"_meta")
+    assert v.hasMeta()== False
 
 def test_DataWrapper():
     a1 = [1, 4.4, 5.4E3]

@@ -774,7 +774,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             self.fire(e)
         return r
 
-    def toString(self, level=0, tablefmt='grid', tablefmt1='simple',
+    def toString(self, level=0, tablefmt='rst', tablefmt1='simple',
                  widths=None, **kwds):
         """ return  string representation of metada.
 
@@ -786,8 +786,8 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         """
 
         if widths is None:
-            widths = {'name': 8, 'value': 17, 'unit': 7, 'type': 8,
-                      'valid': 25, 'default': 17, 'code': 4, 'description': 15}
+            widths = {'name': 15, 'value': 20, 'unit': 7, 'type': 8,
+                      'valid': 23, 'default': 17, 'code': 4, 'description': 21}
         tab = []
         # N parameters per row for level 1
         N = 3
@@ -819,6 +819,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
 
         lsnr = self.listeners.toString(level=level, **kwds)
 
+        # write out the table
         if level == 0:
             headers = MetaHeaders if widths == -1 else \
                 [n for n, w in zip(MetaHeaders, widths) if w != 0]

@@ -949,27 +949,27 @@ def test_StringParameter():
 
 def test_MetaData():
     # creation
-    a1='age'
-    a2=NumericParameter(description='since 2000',
+    a1 = 'age'
+    a2 = NumericParameter(description='since 2000',
                           value=20, unit='year', typ_='integer')
-    v=MetaData()
+    v = MetaData()
     v.set(a1, a2)
     assert v.get(a1) == a2
     # add more parameter
-    a3='Bob'
+    a3 = 'Bob'
     v.set(name='name', newParameter=Parameter(a3))
     assert v.get('name').value == a3
 
     # access parameters in metadata
-    v=MetaData()
+    v = MetaData()
     # a more readable way to set a parameter
-    v[a1]=a2  # DRM doc case
+    v[a1] = a2  # DRM doc case
     # a more readable way to get a parameter
     assert v[a1] == a2
     assert v.get(a1) == a2
-    v['time']=NumericParameter(description='another param',
+    v['time'] = NumericParameter(description='another param',
                                  value=2.3, unit='sec')
-    v['birthday']=Parameter(description='was made on',
+    v['birthday'] = Parameter(description='was made on',
                               value=FineTime('2020-09-09T12:34:56.789098 UTC'))
     # names of all parameters
     assert [n for n in v] == [a1, 'time', 'birthday']
@@ -980,27 +980,27 @@ def test_MetaData():
     assert v.size() == 2
 
     # copy
-    c=v.copy()
+    c = v.copy()
     assert c is not v
     assert v.equals(c)
     assert c.equals(v)
 
     # equality
-    a1='foo'
-    a2=Parameter(description='test param', value=534)
-    a3='more'
-    a4=NumericParameter(description='another param',
+    a1 = 'foo'
+    a2 = Parameter(description='test param', value=534)
+    a3 = 'more'
+    a4 = NumericParameter(description='another param',
                           value=2.3, unit='sec')
-    v=MetaData()
-    v[a1]=a2
-    v[a3]=a4
-    b1=''.join(a1)
-    b2=a2.copy()
-    b3=''.join(a3)
-    b4=a4.copy()
-    v1=MetaData()
-    v1[b1]=b2
-    v1[b3]=b4
+    v = MetaData()
+    v[a1] = a2
+    v[a3] = a4
+    b1 = ''.join(a1)
+    b2 = a2.copy()
+    b3 = ''.join(a3)
+    b4 = a4.copy()
+    v1 = MetaData()
+    v1[b1] = b2
+    v1[b3] = b4
     assert v == v1
     assert v1 == v
     v1[b3].value += 3

@@ -33,17 +33,17 @@ or from git repo:
 
    python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/master/fdi-master.tar.gz
 
-If you want to install the ``develop`` branch with dependencies:
+If you want to install the ``develop`` and server dependencies:
 
 .. code-block:: shell
 
-   python3 -m pip install fdi[DEV]
+   python3 -m pip install fdi[DEV,SERV]
    
 or
 
 .. code-block:: shell
 
-   python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV]
+   python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV,SERV]
    
 To uninstall:
 
@@ -65,7 +65,7 @@ To install
            git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git
            cd fdi
 	   git checkout develop
-	   make install
+	   make install I="[DEV,SERV]"
 	   
 If you want to install the ``master`` branch, remove the ``git checkout develop`` line above.
 	   

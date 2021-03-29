@@ -41,7 +41,7 @@ runpoolserver:
 
 INSOPT  =
 install:
-	python3 -m pip install $(INSOPT) -e . $(I)
+	python3 -m pip install $(INSOPT) -e .$(I)
 
 uninstall:
 	python3 -m pip uninstall $(INSOPT) fdi  $(I)
@@ -54,7 +54,7 @@ installpns:
 	  cp fdi/pns/resources/$${i}PTS.ori  $(PNSDIR); \
 	  ln -s $(PNSDIR)/$${i}PTS.ori $(PNSDIR)/$${i}PTS; \
 	done; \
-	mkdir $(PNSDIR)/input $(PNSDIR)/output
+	mkdir -p $(PNSDIR)/input $(PNSDIR)/output
 	if id -u apache > /dev/null 2>&1; then \
 	chown apache $(PNSDIR) $(PNSDIR)/*PTS.ori $(PNSDIR)/input $(PNSDIR)/output; \
 	chgrp apache $(PNSDIR) $(PNSDIR)/*PTS* $(PNSDIR)/input $(PNSDIR)/output; \

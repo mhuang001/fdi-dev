@@ -330,5 +330,4 @@ class ProductRef(Attributable, Serializable, Comparable):
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(urnobj=self.urnobj if issubclass(self.urnobj.__class__, Urn) else None,
-                           _meta=self.getMeta(),
                            _STID=self._STID)

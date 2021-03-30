@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 from ..dataset.odict import ODict
-from ..dataset.serializable import serialize, Serializable
 from ..dataset.classes import Classes
-from .urn import Urn, parseUrn, parse_poolurl
+from .urn import Urn, parseUrn, parse_poolurl, makeUrn
 from .versionable import Versionable
 from .taggable import Taggable
 from .definable import Definable
@@ -34,7 +33,7 @@ lockpathbase = '/tmp/fdi_locks'  # + getpass.getuser()
 locktout = 10
 
 
-class ProductPool(Definable, Taggable, Versionable, Serializable):
+class ProductPool(Definable, Taggable, Versionable):
     """ A mechanism that can store and retrieve Products.
 
 A product pool should not be used directly by users. The general user should access data in a ProductPool through a ProductStorage instance.
@@ -47,7 +46,7 @@ When implementing a ProductPool, the following rules need to be applied:
 
     """
 
-    def __init__(self, poolname=None, poolurl=None, **kwds):
+    def __init__(self, poolname='', poolurl='', **kwds):
         """
         Creates and initializes a productpool.
 
@@ -72,12 +71,16 @@ When implementing a ProductPool, the following rules need to be applied:
         but only if self._poolname and self._poolurl are present.
 
         Subclasses should implement own setup(), and
-        make sure that self._poolname and self._poolurl are present.
+        make sure that self._poolname and self._poolurl are present with ``        if super().setup():
+            return True
+``
+        returns: True if not both  self._poolname and self._poolurl are present.
+
         """
 
-        if not hasattr(self, '_poolname') or self._poolname is None or \
-           not hasattr(self, '_poolurl') or self._poolurl is None:
-            return
+        if not hasattr(self, '_poolname') or not self._poolname or \
+           not hasattr(self, '_poolurl') or not self._poolurl:
+            return True
 
     def lockpath(self, op='w'):
         """ returns the appropriate path.
@@ -136,7 +139,7 @@ When implementing a ProductPool, the following rules need to be applied:
     def setPoolname(self, poolname):
         """ Replaces the current poolname of this pool.
         """
-        s = (not hasattr(self, '_poolname') or self._poolname is None)
+        s = (not hasattr(self, '_poolname') or not self._poolname)
         self._poolname = poolname
         # call setup only if poolname was None
         if s:
@@ -161,7 +164,7 @@ When implementing a ProductPool, the following rules need to be applied:
     def setPoolurl(self, poolurl):
         """ Replaces the current poolurl of this pool.
         """
-        s = (not hasattr(self, '_poolurl') or self._poolurl is None)
+        s = (not hasattr(self, '_poolurl') or not self._poolurl)
         self._poolpath, self._scheme, self._place, nm = \
             parse_poolurl(poolurl)
         self._poolurl = poolurl
@@ -370,8 +373,8 @@ When implementing a ProductPool, the following rules need to be applied:
 
         serialized: if True returns contents in serialized form.
         """
-
-        if not issubclass(product.__class__, list):
+        alist = issubclass(product.__class__, list)
+        if not alist:
             prds = [product]
         else:
             prds = product
@@ -421,27 +424,30 @@ When implementing a ProductPool, the following rules need to be applied:
 
             if geturnobjs:
                 if serialized:
-                    res.append(urn)
+                    res.append('"'+urn+'"')
                 else:
                     res.append(urnobj)
             else:
-                rf = ProductRef(urn=urnobj)
-                # it seems that there is no better way to set meta
-                rf._meta = prd.getMeta()
-                rf._poolname = self._poolname
-                res.append(rf)
+                if serialized:
+                    res.append('"'+urn+'"')
+                else:
+                    rf = ProductRef(urn=urnobj)
+                    # it seems that there is no better way to set meta
+                    rf._meta = prd.getMeta()
+                    rf._poolname = self._poolname
+                    res.append(rf)
         logger.debug('generated ' + 'Urns ' if geturnobjs else 'prodRefs ' +
                      str(len(res)))
-        if issubclass(product.__class__, list):
-            return serialize(res) if serialized else res
+        if alist:
+            return res
         else:
-            return serialize(res[0]) if serialized else res[0]
+            return res[0]
 
-    def mfilter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
+    def mfilter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
         """ returns filtered collection using the query.
 
         q is a MetaQuery
-        valid inputs: cls and ns list; productref list; urn list
+        valid inputs: typename and ns list; productref list; urn list
         """
 
         ret = []
@@ -482,17 +488,19 @@ When implementing a ProductPool, the following rules need to be applied:
             if isinstance(qw, str):
                 code = compile(qw, 'py', 'eval')
                 for n in snlist:
-                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
-                    m = u[urno.urn]['meta']
+                    urn = makeUrn(poolname=self._poolname,
+                                  typename=typename, index=n)
+                    m = u[urn]['meta']
                     if eval(code):
-                        ret.append(ProductRef(urn=urno, meta=m))
+                        ret.append(ProductRef(urn=urn, meta=m))
                 return ret
             else:
                 for n in snlist:
-                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
-                    m = u[urno.urn]['meta']
+                    urn = makeUrn(poolname=self._poolname,
+                                  typename=typename, index=n)
+                    m = u[urn]['meta']
                     if qw(m):
-                        ret.append(ProductRef(urn=urno, meta=m))
+                        ret.append(ProductRef(urn=urn, meta=m))
                 return ret
         else:
             raise('Must give a list of ProductRef or urn or sn')
@@ -601,7 +609,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 cls = lgb[cname.split('.')[-1]]
                 if issubclass(cls, t):
                     if isMQ:
-                        ret += self.mfilter(q=query, cls=cls,
+                        ret += self.mfilter(q=query, typename=cname,
                                             snlist=self._classes[cname]['sn'])
                     else:
                         ret += self.pfilter(q=query, cls=cls,
@@ -610,7 +618,7 @@ When implementing a ProductPool, the following rules need to be applied:
         return ret
 
     def __repr__(self):
-        return self.__class__.__name__ + ' < pool= ' + str(self._poolname) + ' >'
+        return ' < '+self.__class__.__name__ + ', '.join(str(k)+'='+str(v) for k, v in self.__getstate__().items()) + ' >'
 
     def __getstate__(self):
         """ returns an odict that has all state info of this object.
@@ -618,5 +626,8 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         return ODict(
             poolname=self._poolname,
-            poolurl=self._poolurl
+            poolurl=self._poolurl,
+            _classes=self._classes,
+            _urns=self._urns,
+            _tags=self._tags,
         )

@@ -217,4 +217,4 @@ class ProductStorage(object):
         return self.getWritablePool() == o.getWritablePool()
 
     def __repr__(self):
-        return self.__class__.__name__ + ' { pool= ' + str(self._pools) + ' }'
+        return self.__class__.__name__ + ' < pool= ' + str(self._pools) + ' >'

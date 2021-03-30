@@ -22,9 +22,8 @@ class MemPool(ProductPool):
         make sure that self._poolname and self._poolurl are present.
         """
 
-        if not hasattr(self, '_poolname') or self._poolname is None or \
-           not hasattr(self, '_poolurl') or self._poolurl is None:
-            return
+        if super().setup():
+            return True
 
         self._MemPool = {}
         # if self._poolname not in self._MemPool:

@@ -51,10 +51,9 @@ class HttpClientPool(ProductPool):
         Make sure that self._poolname and self._poolurl are present.
         """
 
-        if not hasattr(self, '_poolname') or self._poolname is None or \
-           not hasattr(self, '_poolurl') or self._poolurl is None or \
-           not hasattr(self, '_poolpath_local') or self._poolpath_local is None:
-            return
+        if super().setup() or \
+           not hasattr(self, '_poolpath_local') or not self._poolpath_local:
+            return True
 
         real_poolpath = self.transformpath(self._poolname)
         logger.debug(real_poolpath)
@@ -90,7 +89,7 @@ class HttpClientPool(ProductPool):
         """ Replaces the current poolpath_local of this pool.
         """
         s = (not hasattr(self, '_poolpath_local')
-             or self._poolpath_local is None)
+             or not self._poolpath_local)
         self._poolpath_local = PoolManager.PlacePaths['file'] if poolpath_local is None else poolpath_local
         # call setup only if poolpath_local was None
         if s:

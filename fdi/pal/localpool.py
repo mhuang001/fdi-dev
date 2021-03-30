@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..pns.jsonio import getJsonObj
-from ..dataset.odict import ODict
-from ..dataset.dataset import TableDataset
-from ..dataset.serializable import serialize
-from ..dataset.deserialize import deserialize
+
 from .productpool import ProductPool
 from ..utils.common import pathjoin, trbk
 
@@ -28,16 +24,6 @@ else:
     PY3 = False
     strset = (str, unicode)
     from urlparse import urlparse, quote, unquote
-
-
-class ODEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if issubclass(obj.__class__, ODict):
-            return dict(obj)
-
-        # Let the base class default method raise the TypeError
-        d = json.JSONEncoder.default(self, obj)
-        return d
 
 
 def wipeLocal(poolpath):
@@ -77,9 +63,8 @@ class LocalPool(ProductPool):
         Make sure that self._poolname and self._poolurl are present.
         """
 
-        if not hasattr(self, '_poolname') or self._poolname is None or \
-           not hasattr(self, '_poolurl') or self._poolurl is None:
-            return
+        if super().setup():
+            return True
 
         real_poolpath = self.transformpath(self._poolname)
         if not op.exists(real_poolpath):
@@ -147,14 +132,22 @@ class LocalPool(ProductPool):
             if op.exists(fp):
                 js = self.readmmap(fp, check_time=True)
                 if js:
-                    r = js if serialized else deserialize(js)
+                    if serialized:
+                        r = js
+                    else:
+                        from ..dataset.deserialize import deserialize
+                        r = deserialize(js)
                     self._cached_files[fp] = js
                 else:
                     # the file hasnot changed since last time we r/w it.
                     r = self._cached_files[fp] if serialized else \
                         self.__getattribute__('_' + hkdata)
             else:
-                r = '{}' if serialized else dict()
+                if serialized:
+                    r = '{"_STID":"ODict"}'
+                else:
+                    from ..dataset.odict import ODict
+                    r = ODict()
             hk[hkdata] = r
             assert r is not None
         logger.debug('HK read from ' + fp0)
@@ -166,9 +159,7 @@ class LocalPool(ProductPool):
         register the file. Leave file open by default `close`.
         data: to be serialized and saved.
         """
-
-        # js = json.dumps(data, cls=ODEncoder)
-        # logger.debug('Writing %s stat %s' % (fp, str(os.path.exists(fp+'/..'))))
+        from ..dataset.serializable import serialize
         js = serialize(data, **kwds)
         fp = op.abspath(fp)
         if 1:  # fp not in self._files or self._files[fp] is None:
@@ -239,7 +230,11 @@ class LocalPool(ProductPool):
         pp = self.transformpath(self._poolname) + '/' + \
             resourcetype + '_' + indexstr
         js = self.readmmap(pp, close=True)
-        r = js if serialized else deserialize(js)
+        if serialized:
+            r = js
+        else:
+            from ..dataset.deserialize import deserialize
+            r = deserialize(js)
 
         return r
 

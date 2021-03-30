@@ -223,8 +223,6 @@ def populate_server(poolid):
         x.creator = i
         data = serialize(x)
         url = api_baseurl + poolid + '/' + prodt + '/' + str(index)
-        import pdb
-        # pdb.set_trace()
 
         x = requests.post(url, auth=HTTPBasicAuth(
             auth_user, auth_pass), data=data)

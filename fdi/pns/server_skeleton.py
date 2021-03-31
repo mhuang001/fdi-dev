@@ -76,8 +76,8 @@ def init_skeleton_module():
     # effective group of current process
     uid, gid = getUidGid(pc['serveruser'])
     # logger.info
-    # print("Set process to %s's uid %d and gid %d..." %
-    #      (pc['serveruser'], uid, gid))
+    print("Set process to %s's uid %d and gid %d..." %
+          (pc['serveruser'], uid, gid))
     # os.setuid(uid)
     # os.setgid(gid)
 

@@ -210,3 +210,16 @@ docs_plots:
 docs_html:
 	cd $(SDIR) && make html
 
+########
+POOL_SERVER_NAME=poolserver
+POOL_SERVER_PORT=9888
+POOL_SERVER_INTERNAL_PORT=9888
+POOL_IMAGE_NAME=mh/poolserver:v1
+
+build_server:
+	docker build -t $(POOL_IMAGE_NAME) .
+launch_server:
+	docker run -p $(POOL_SERVER_INTERNAL_PORT):$(POOL_SERVER_PORT) --name $(POOL_SERVER_NAME)  -dit $(POOL_IMAGE_NAME)
+rm_server:
+	docker container rm $(POOL_SERVER_NAME)
+	docker image rm $(POOL_IMAGE_NAME)

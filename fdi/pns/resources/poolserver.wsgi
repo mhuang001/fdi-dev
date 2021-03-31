@@ -9,9 +9,7 @@ import logging.config
 
 
 # where user classes can be found
-# sys.path.insert(0, '/{USER}/svom/engisim')
-# sys.path.insert(0, '/{USER}/svom/share')
-sys.path.insert(0, '/{USER}/svom/fdi')
+sys.path.insert(0, '/svom/fdi')
 
 # don't log to file. server will do the logging
 logging.config.dictConfig(logdict)

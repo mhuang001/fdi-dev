@@ -62,7 +62,7 @@ To install
 
            FDIINSTDIR=/tmp   # change this to your installation dir
            cd $FDIINSTDIR
-           git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git
+           git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
            cd fdi
 	   git checkout develop
 	   make install I="[DEV,SERV]"

@@ -1,0 +1,27 @@
+FROM ubuntu:latest
+MAINTAINER yuxin<syx1026@qq.com>
+RUN apt-get update && apt-get install -y inetutils-ping curl net-tools && apt-get install -y nano && apt-get install -y git python3-pip apache2 libapache2
+# User has no permission to something...
+
+ENV USR apache
+RUN groupadd $USR && useradd -g ${USR} ${USR} && mkdir /svom
+
+# Pull fdi git
+WORKDIR /svom/
+RUN git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
+WORKDIR /svom/fdi/
+RUN git checkout develop
+RUN sed -e "s/{SERVER_IP_ADDR}/${SERVER_IP_ADDR}/g" /svom/fdi/fdi/pns/resources/poolserver.conf > /etc/apache2/sites-available/poolserver.conf && mkdir /home/${USER}/ && mkdir /data
+
+# entrypoint-poolserver.sh is used for replacing apache listen ports and configurations of poolserver
+ADD entrypoint-poolserver.sh /home/${USER}/entrypoint-poolserver.sh
+RUN chmod +x /home/${USER}/entrypoint-poolserver.sh && /home/${USER}/./entrypoint-poolserver.sh
+RUN service apache2 start && a2ensite poolserver.conf && a2dissite 000-default.conf && service apache2 stop
+
+# Configure permission
+RUN chown -R chown -R ${USER}:${USER} /svom/fdi/ && chown -R ${USER}:${USER} /var/log/apache2/ && chown -R ${USER}:${USER} /var/ru
+
+# Modify ports at ports.conf, servername in poolserver.conf
+# Lanch server by ${USER} user
+USER apache
+RUN make install I="[DEV,SERV]" && service apache2 start

@@ -50,6 +50,7 @@ setup(
             'aiohttp>=3.6.2',
             'Flask_HTTPAuth>=3.3.0',
             'Flask>=1.1.2',
+            'waitress>=2.0.0'
         ]
     },
     classifiers=[

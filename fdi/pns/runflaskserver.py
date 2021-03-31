@@ -5,6 +5,7 @@ from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
 from fdi.utils.getconfig import getConfig
 
+from waitress import serve
 #sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
 # print(sys.path)
@@ -81,9 +82,7 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     if wsgi:
-        from waitress import serve
         serve(app, url_scheme='https', host=node['host'], port=node['port'])
-
     else:
         app.run(host=node['host'], port=node['port'],
                 threaded=True, debug=verbose, processes=1, use_reloader=False)

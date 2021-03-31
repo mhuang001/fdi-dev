@@ -47,7 +47,8 @@ if __name__ == '__main__':
             'default': node['port'], 'description':'port number'},
         {'long': 'server=', 'char': 's',
             'default': 'pns', 'description': 'server type: pns or httppool_server'},
-
+        {'long': 'wsgi', 'char': 'w', 'default': False,
+            'description': 'run a WSGI server.'},
     ]
 
     out = opt(ops)
@@ -56,6 +57,7 @@ if __name__ == '__main__':
         n = out[j]['long'].strip('=')
         node[n] = out[j]['result']
     servertype = out[6]['result']
+    wsgi = out[7]['result']
 
     if verbose:
         logger.setLevel(logging.DEBUG)
@@ -78,5 +80,10 @@ if __name__ == '__main__':
         logger.error('Unknown server %s' % servertype)
         sys.exit(-1)
 
-    app.run(host=node['host'], port=node['port'],
-            threaded=True, debug=verbose, processes=1, use_reloader=False)
+    if wsgi:
+        from waitress import serve
+        serve(app, url_scheme='https', host=node['host'], port=node['port'])
+
+    else:
+        app.run(host=node['host'], port=node['port'],
+                threaded=True, debug=verbose, processes=1, use_reloader=False)

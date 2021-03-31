@@ -2,9 +2,9 @@
 
 from ..dataset.classes import Classes
 from ..utils.getconfig import getConfig
+from ..utils.common import trbk
 
 from .pnsconfig import pnsconfig as pc
-import datetime
 import time
 import sys
 import pwd
@@ -15,7 +15,6 @@ import types
 from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
-import filelock
 
 # from .logdict import logdict
 # '/var/log/pns-server.log'
@@ -77,10 +76,10 @@ def init_skeleton_module():
     # effective group of current process
     uid, gid = getUidGid(pc['serveruser'])
     # logger.info
-    print("Set process to %s's uid %d and gid %d..." %
-          (pc['serveruser'], uid, gid))
-    os.setuid(uid)
-    os.setgid(gid)
+    # print("Set process to %s's uid %d and gid %d..." %
+    #      (pc['serveruser'], uid, gid))
+    # os.setuid(uid)
+    # os.setgid(gid)
 
     ptsuid, ptsgid = getUidGid(pc['ptsuser'])
     if gid not in os.getgrouplist(pc['ptsuser'], ptsgid):

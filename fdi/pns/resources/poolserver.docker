@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 MAINTAINER yuxin<syx1026@qq.com>
-RUN apt-get update && apt-get install -y inetutils-ping curl net-tools && apt-get install -y nano && apt-get install -y git python3-pip apache2 libapache2
+RUN apt-get update && apt-get install -y inetutils-ping curl net-tools && apt-get install -y nano && apt-get install -y git python3-pip apache2 libapache2-mod-wsgi-py3
 # User has no permission to something...
 
 ENV USR apache

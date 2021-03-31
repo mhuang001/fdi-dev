@@ -1,27 +1,39 @@
 FROM ubuntu:latest
 MAINTAINER yuxin<syx1026@qq.com>
 RUN apt-get update && apt-get install -y inetutils-ping curl net-tools && apt-get install -y nano && apt-get install -y git python3-pip apache2 libapache2-mod-wsgi-py3
-# User has no permission to something...
 
+# User has no permission to something...
+ARG SERVER_IP_ADDR=10.0.10.11
++ARG SERVER_PORT=9888
 ENV USR apache
-RUN groupadd ${USR} && useradd -g ${USR} ${USR} && mkdir /svom
+RUN groupadd ${USR} && useradd -g ${USR} ${USR} --home=/home/${USR} && mkdir /svom
 
 # Pull fdi git
 WORKDIR /svom/
-RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[SERV]
-#RUN git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
+#RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV,SERV]
+RUN git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
 WORKDIR /svom/fdi/
-RUN sed -e "s/{SERVER_IP_ADDR}/${SERVER_IP_ADDR}/g" /svom/fdi/fdi/pns/resources/poolserver.conf > /etc/apache2/sites-available/poolserver.conf && mkdir /home/${USR}/ && mkdir /data
+RUN git checkout develop
+
+ENV SERVER_IP_ADDR=${SERVER_IP_ADDR}
+RUN cp /svom/fdi/fdi/pns/resources/poolserver.conf /etc/apache2/sites-available/poolserver.conf
+RUN mkdir /home/$(USR)/.config && cp /svom/fdi/fdi/pns/pnsconfig.py /home/$(USR)/.config/pnslocal.py
+RUN mkdir /data
 
 # entrypoint-poolserver.sh is used for replacing apache listen ports and configurations of poolserver
 ADD entrypoint-poolserver.sh /home/${USR}/entrypoint-poolserver.sh
 RUN chmod +x /home/${USR}/entrypoint-poolserver.sh && /home/${USR}/./entrypoint-poolserver.sh
 RUN service apache2 start && a2ensite poolserver.conf && a2dissite 000-default.conf && service apache2 stop
+# Log mapping
+RUN ln -sf /dev/stdout /var/log/apache2/error.log
+---
 
 # Configure permission
-RUN chown -R chown -R ${USR}:${USR} /svom/fdi/ && chown -R ${USR}:${USR} /var/log/apache2/ && chown -R ${USR}:${USR} /var/ru
-
+RUN chown -R chown -R ${USR}:${USR} /svom/fdi/ && chown -R ${USR}:${USR} /var/log/apache2/ && chown -R ${USR}:${USR} /var/run/ && chown -R ${USR}:${USR}  /var/lock/ && chown -R ${USR}:${USR} /data && chown -R ${USR}:${USR} /home/${USR}
+/
 # Modify ports at ports.conf, servername in poolserver.conf
+#RUN sed -i 'Listen 9888' 'Listen 80' /etc/apache2/ports.conf
+
 # Lanch server by ${USR} user
 USER apache
 RUN make install I="[DEV,SERV]" && service apache2 start

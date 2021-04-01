@@ -1,12 +1,14 @@
+PYEXE	= python3
+
 info:
-	python -c "import sys; print('sys.hash_info.width', sys.hash_info.width)"
+	$(PYEXE) -c "import sys; print('sys.hash_info.width', sys.hash_info.width)"
 
 PRODUCT = Product
 B_PRODUCT = BaseProduct
 PYDIR	= fdi/dataset
 RESDIR	= $(PYDIR)/resources
-P_PY	= $(shell python -S -c "print('$(PRODUCT)'.lower())").py
-B_PY	= $(shell python -S -c "print('$(B_PRODUCT)'.lower())").py
+P_PY	= $(shell $(PYEXE) -S -c "print('$(PRODUCT)'.lower())").py
+B_PY	= $(shell $(PYEXE) -S -c "print('$(B_PRODUCT)'.lower())").py
 B_INFO	= $(B_PY)
 P_YAML	= $(RESDIR)
 B_YAML	= $(RESDIR)
@@ -16,14 +18,14 @@ B_TEMPLATE	= $(RESDIR)
 py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY)
 
 $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).template $(PYDIR)/$(B_PY)
-	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
+	$(PYEXE) -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
 
 
 $(PYDIR)/$(B_PY): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE)/$(B_PRODUCT).template 
-	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
+	$(PYEXE) -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
 
 yamlupgrade: 
-	python3 -m fdi.dataset.yaml2python -y $(P_YAML) -u
+	$(PYEXE) -m fdi.dataset.yaml2python -y $(P_YAML) -u
 
 
 .PHONY: runserver runpoolserver reqs install uninstall vtag FORCE \
@@ -35,16 +37,16 @@ yamlupgrade:
 S	=
 # default username and password are in pnsconfig.py
 runserver:
-	python3 -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
+	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
 runpoolserver:
-	python3 -m fdi.pns.runflaskserver --username=foo --password=bar --server=httppool_server -v $(S)
+	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar --server=httppool_server -v $(S)
 
 INSOPT  =
 install:
-	python3 -m pip install $(INSOPT) -e .$(I)
+	$(PYEXE) -m pip install $(INSOPT) -e .$(I)
 
 uninstall:
-	python3 -m pip uninstall $(INSOPT) fdi  $(I)
+	$(PYEXE) -m pip uninstall $(INSOPT) fdi  $(I)
 
 PNSDIR=~/pns
 installpns:
@@ -75,34 +77,34 @@ LOCAL_INDURL	= $(CURDIR)/dist/*.whl --extra-index-url https://pypi.org/simple/
 wheel:
 	# git ls-tree -r HEAD | awk 'print $4' > MANIFEST
 	rm -rf dist/* build *.egg-info
-	python3 setup.py sdist bdist_wheel
+	$(PYEXE) setup.py sdist bdist_wheel
 	twine check dist/*
 	check-wheel-contents dist
 upload:
-	python3 -m twine upload --repository $(PYREPO) dist/*
+	$(PYEXE) -m twine upload --repository $(PYREPO) dist/*
 
 wheeltest:
 	rm -rf /tmp/fditestvirt
-	virtualenv -p python3 /tmp/fditestvirt
+	virtualenv -p $(PYEXE) /tmp/fditestvirt
 	. /tmp/fditestvirt/bin/activate && \
-	python3 -m pip uninstall -q -q -y fdi ;\
-	python3 -m pip cache remove -q -q -q fdi ;\
-	python3 -m pip install $(LOCAL_INDURL) "fdi" && \
-	python3 -m pip show fdi && \
+	$(PYEXE) -m pip uninstall -q -q -y fdi ;\
+	$(PYEXE) -m pip cache remove -q -q -q fdi ;\
+	$(PYEXE) -m pip install $(LOCAL_INDURL) "fdi" && \
+	$(PYEXE) -m pip show fdi && \
 	echo Testing newly installed fdi ... ; \
-	python3 -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
-	python3 -c 'import sys, pkgutil as p; sys.stdout.buffer.write(p.get_data("fdi", "dataset/resources/Product.template")[:100])' && \
+	$(PYEXE) -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
+	$(PYEXE) -c 'import sys, pkgutil as p; sys.stdout.buffer.write(p.get_data("fdi", "dataset/resources/Product.template")[:100])' && \
 	deactivate
 
 testw:
 	rm -rf /tmp/fditestvirt
-	virtualenv -p python3 /tmp/fditestvirt
+	virtualenv -p $(PYEXE) /tmp/fditestvirt
 	. /tmp/fditestvirt/bin/activate && \
-	python3 -m pip uninstall -q -q -y fdi ;\
-	python3 -m pip cache remove -q -q -q fdi ;\
-	python3 -m pip install $(INDURL) "fdi==1.0.6" && \
+	$(PYEXE) -m pip uninstall -q -q -y fdi ;\
+	$(PYEXE) -m pip cache remove -q -q -q fdi ;\
+	$(PYEXE) -m pip install $(INDURL) "fdi==1.0.6" && \
 	echo Testing newly installed fdi ... ; \
-	python3 -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
+	$(PYEXE) -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
 	deactivate
 
 J_OPTS	= ${JAVA_OPTS} -XX:MaxPermSize=256M -Xmx1024M -DloggerPath=conf/log4j.properties
@@ -118,12 +120,12 @@ reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
 
 # update _version.py and tag based on setup.py
-# VERSION	= $(shell python -S -c "from setuptools_scm import get_version;print(get_version('.'))")
+# VERSION	= $(shell $(PYEXE) -S -c "from setuptools_scm import get_version;print(get_version('.'))")
 # @ echo update _version.py and tag to $(VERSION)
 
 
 VERSIONFILE	= fdi/_version.py
-VERSION	= $(shell python -S -c "_l = {};f=open('$(VERSIONFILE)'); exec(f.read(), None, _l); f.close; print(_l['__version__'])")
+VERSION	= $(shell $(PYEXE) -S -c "_l = {};f=open('$(VERSIONFILE)'); exec(f.read(), None, _l); f.close; print(_l['__version__'])")
 
 versiontag:
 	@ echo  version = \"$(VERSION)\" in $(VERSIONFILE)
@@ -211,15 +213,15 @@ docs_html:
 	cd $(SDIR) && make html
 
 ########
-POOL_SERVER_NAME	=poolserver
-POOL_SERVER_PORT	=9888
-POOL_SERVER_INTERNAL_PORT=9888
-POOL_IMAGE_NAME		=poolserver:v1
+POOL_SERVER_NAME        =poolserver
+POOL_SERVER_PORT        =9888
+POOL_SERVER_INTERNAL_PORT =9888
+POOL_IMAGE_NAME         =poolserver:v2
 SERVER_IP      =10.0.10.114
-DOCKERFILE		=fdi/pns/resources/poolserver.docker
+DOCKERFILE              =fdi/pns/resources/poolserver.docker
 
 build_server:
-	docker build -t $(POOL_IMAGE_NAME) --build-arg SERVER_IP_ADDR=$(SERVER_IP) SERVER_PORT=$(SERVER_PORT) -f $(DOCKERFILE) $(D) .
+	docker build -t $(POOL_IMAGE_NAME) --build-arg SERVER_IP_ADDR=$(SERVER_IP) --build-arg SERVER_PORT=$(POOL_SERVER_PORT) -f $(DOCKERFILE) $(D) .
 
 launch_server:
 	docker run -p $(POOL_SERVER_INTERNAL_PORT):$(POOL_SERVER_PORT) --name $(POOL_SERVER_NAME)  -dit $(POOL_IMAGE_NAME) $(D)

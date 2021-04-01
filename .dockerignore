@@ -1,0 +1,7 @@
+bin
+fdi/dataset
+fdi/pal
+tests
+docs
+swagger
+.g*

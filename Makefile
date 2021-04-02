@@ -214,18 +214,19 @@ docs_html:
 
 ########
 POOL_SERVER_NAME        =poolserver
-POOL_SERVER_PORT        =9888
-POOL_SERVER_INTERNAL_PORT =9888
+POOL_SERVER_PORT        =9884
+POOL_SERVER_INTERNAL_PORT =$(POOL_SERVER_PORT)
 POOL_IMAGE_NAME         =poolserver:v2
-SERVER_IP      =10.0.10.114
+SERVER_IP      =172.17.0.9
 DOCKERFILE              =fdi/pns/resources/poolserver.docker
 
 build_server:
 	docker build -t $(POOL_IMAGE_NAME) --build-arg SERVER_IP_ADDR=$(SERVER_IP) --build-arg SERVER_PORT=$(POOL_SERVER_PORT) -f $(DOCKERFILE) $(D) .
 
 launch_server:
-	docker run -p $(POOL_SERVER_INTERNAL_PORT):$(POOL_SERVER_PORT) --name $(POOL_SERVER_NAME)  -dit $(POOL_IMAGE_NAME) $(D)
+	docker run -p $(POOL_SERVER_INTERNAL_PORT):$(POOL_SERVER_PORT) --name $(POOL_SERVER_NAME) $(D) -it $(POOL_IMAGE_NAME)
 
 rm_server:
-	docker container rm $(POOL_SERVER_NAME)
-	docker image rm $(POOL_IMAGE_NAME)
+	docker stop $(POOL_SERVER_NAME)
+	docker  rm $(POOL_SERVER_NAME)
+	#docker image rm $(POOL_IMAGE_NAME)

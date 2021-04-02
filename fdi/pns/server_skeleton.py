@@ -68,11 +68,12 @@ def getUidGid(username):
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
+gid = -1
 
 
 @app.before_first_request
 def init_skeleton_module():
-    global pc
+    global pc, gid
     # effective group of current process
     uid, gid = getUidGid(pc['serveruser'])
     # logger.info
@@ -80,12 +81,6 @@ def init_skeleton_module():
           (pc['serveruser'], uid, gid))
     # os.setuid(uid)
     # os.setgid(gid)
-
-    ptsuid, ptsgid = getUidGid(pc['ptsuser'])
-    if gid not in os.getgrouplist(pc['ptsuser'], ptsgid):
-        logger.error('ptsuser %s must be in the group of serveruser %s.' %
-                     (pc['ptsuser'], pc['serveruser']))
-        sys.exit(2)
 
     # setup user class mapping
     clp = pc['userclasses']

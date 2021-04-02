@@ -15,8 +15,8 @@ pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
 # this base pool path will be added at the beginning of your pool urn when you init a pool like:
 # pstore = PoolManager.getPool('/demopool_user'), it will create a pool at /data.demopool_user/
 # User can disable  basepoolpath by: pstore = PoolManager.getPool('/demopool_user', use_default_poolpath=False)
-pnsconfig['base_poolpath'] = '/tmp'
-pnsconfig['server_poolpath'] = '/tmp/data'  # For server
+pnsconfig['base_poolpath'] = '/'
+pnsconfig['server_poolpath'] = '/data'  # For server
 pnsconfig['defaultpool'] = 'pool_default'
 
 dev = 1
@@ -31,6 +31,9 @@ if dev:
     pnsconfig['ptsuser'] = 'mh'
     # on server
     home = '/cygdrive/c/Users/mh'
+    pnsconfig['base_poolpath'] = '/tmp'
+    pnsconfig['server_poolpath'] = '/tmp/data'  # For server
+    pnsconfig['defaultpool'] = 'pool_default'
 else:
     pnsconfig['node'] = {'username': 'luchangfa', 'password': '123456',
                          'host': '10.0.10.114', 'port': 9888}
@@ -40,7 +43,7 @@ else:
     # PTS app permission user
     pnsconfig['ptsuser'] = 'pns'
     # on server
-    home = '/root'
+    home = '/home'
 
 pnsconfig['auth_user'] = pnsconfig['node']['username']
 pnsconfig['auth_pass'] = pnsconfig['node']['password']

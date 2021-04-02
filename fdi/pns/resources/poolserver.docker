@@ -3,47 +3,71 @@ LABEL Pool Server
 # 0.2 M Huang
 # 0.1 yuxin<syx1026@qq.com>
 RUN apt-get update \
-&& apt-get install -y apt-utils inetutils-ping curl net-tools \
+&& apt-get install -y apt-utils inetutils-ping curl net-tools sudo \
 && apt-get install -y nano \
 && apt-get install -y git python python3-pip apache2 libapache2-mod-wsgi-py3
 
 # User has no permission to something...
-ARG SERVER_IP_ADDR=10.0.10.11
+ARG SERVER_IP_ADDR=10.0.10.114
 ARG SERVER_PORT=9888
 ENV USR apache
-RUN groupadd ${USR} && useradd -g ${USR} ${USR} --home=/home/${USR} \
-&& mkdir /svom
-
-# Pull fdi git
-WORKDIR /svom/
-#RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[SERV]
-RUN git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
-WORKDIR /svom/fdi/
-RUN git checkout develop \
-&& make install I="[SERV]"
+RUN groupadd ${USR} && useradd -g ${USR} ${USR} --home=/home/${USR}
 
 ENV SERVER_IP_ADDR=${SERVER_IP_ADDR}
+ENV SERVER_PORT=${SERVER_PORT}
 COPY fdi/pns/resources/poolserver.conf /etc/apache2/sites-available/poolserver.conf
 RUN mkdir -p /home/${USR}/.config
 WORKDIR /home/${USR}
 COPY fdi/pns/pnsconfig.py .config/pnslocal.py
-RUN mkdir /data
-
-# Configure permission
-RUN for i in /svom/fdi/ /var/log/apache2/ /var/run/ /var/lock/ /data /home/${USR}/; \
-do chown -R ${USR}:${USR} $i; echo $i; done
+RUN mkdir /data && mkdir -p /var/log/apache2 /var/run/apache2 \
+&& touch /var/log/apache2/error-ps.log \
+&& touch /var/log/apache2/access-ps.log 
+COPY fdi/pns/resources/poolserver.wsgi /home/${USR}
+RUN chmod 755 /home/${USR}/poolserver.wsgi
 
 # entrypoint-poolserver.sh is used for replacing apache listen ports and configurations of poolserver
 COPY fdi/pns/resources/entrypoint_poolserver.sh .
-RUN chmod +x ./entrypoint_poolserver.sh \
-&& ./entrypoint_poolserver.sh
+RUN sed -i s/B_IP/${SERVER_IP_ADDR}/g ./entrypoint_poolserver.sh \
+&& sed -i s/B_PO/${SERVER_PORT}/g ./entrypoint_poolserver.sh \
+&& chmod +x ./entrypoint_poolserver.sh \
+&& ./entrypoint_poolserver.sh \
+&& echo ====== entrypoint_poolserver.sh \
+&& head -4 entrypoint_poolserver.sh
+
+# Configure permission
+RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 /data /home/${USR}/; \
+do chown -R ${USR}:${USR} $i; echo $i; done
+
 RUN service apache2 start \
 && a2ensite poolserver.conf \
 && a2dissite 000-default.conf \
+&& service apache2 reload \
 && service apache2 stop
 # Log mapping
 #RUN ln -sf /dev/stdout /var/log/apache2/error.log
+#RUN tail  /var/log/apache2/error.log
+#RUN if [ -f /var/log/apache2/error-ps.log ]; then tail  /var/log/apache2/error-ps.log; fi
+
+
+# make dir for fdi as root
+#ARG FDI_DIR=/svom
+#RUN mkdir -p ${FDI_DIR} && chown -R ${USR}:${USR} ${FDI_DIR}
+# Install pool server
+#USER ${USR}
+#WORKDIR ${FDI_DIR}
+#RUN git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
+#WORKDIR ${FDI_DIR}/fdi/
+#RUN git checkout develop && make install I="[SERV]" 
+
+# Install pool server
+USER ${USR}
+RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[SERV]
+#RUN cat /etc/apache2/sites-available/poolserver.conf
+
+#RUN python3.6 -c 'import sys; print(sys.path); from fdi.pns.httppool_server import app'
 
 # Lanch server by ${USR} user
-USER ${USR}
 RUN  service apache2 start
+
+RUN cat /var/log/apache2/error.log
+RUN if [ -f /var/log/apache2/error-ps.log ]; then tail  /var/log/apache2/error-ps.log; fi

@@ -21,20 +21,31 @@ from pathlib import Path
 from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 from flask import abort, make_response, request
 import filelock
-import pdb
+import sys
 
 # from .logdict import logdict
 # '/var/log/pns-server.log'
 # logdict['handlers']['file']['filename'] = '/tmp/server.log'
 
 
-from .server_skeleton import setuplogging, checkpath, pc, Classes, app, auth, APIs
+from .server_skeleton import setuplogging, checkpath, pc, Classes, app, auth, APIs, gid, getUidGid
 
 logging = setuplogging()
 logger = logging.getLogger(__name__)
 
 logger.setLevel(pc['logginglevel'])
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
+
+
+@app.before_first_request
+def init_pns_module():
+    global pc, gid
+    ptsuid, ptsgid = getUidGid(pc['ptsuser'])
+    sgroup = os.getgrouplist(pc['serveruser'], gid)
+    if ptsgid not in sgroup:
+        logger.error('ptsuser %s must be in the group of serveruser %s %s.' %
+                     (pc['ptsuser'], pc['serveruser'], str(sgroup)))
+        sys.exit(2)
 
 
 def _execute(cmd, input=None, timeout=10):

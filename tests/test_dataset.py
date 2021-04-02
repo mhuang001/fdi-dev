@@ -259,6 +259,11 @@ def test_ndprint():
         # pprint.pprint(s)
 
 
+def test_ODict():
+    v = ODict()
+    assert len(v.data) == 0
+
+
 def test_Annotatable():
 
     v = Annotatable()

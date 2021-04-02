@@ -38,10 +38,6 @@ def setuplogging():
 logging = setuplogging()
 logger = logging.getLogger(__name__)
 
-pc.update(getConfig())
-logger.setLevel(pc['logginglevel'])
-logger.debug('logging level %d' % (logger.getEffectiveLevel()))
-
 
 def getUidGid(username):
     """ returns the UID and GID of the named user.
@@ -73,12 +69,15 @@ gid = -1
 
 @app.before_first_request
 def init_skeleton_module():
-    global pc, gid
+    global pc, gid, logger
+    pc.update(getConfig())
+    logger.setLevel(pc['logginglevel'])
+    logger.debug('logging level %d' % (logger.getEffectiveLevel()))
+
     # effective group of current process
     uid, gid = getUidGid(pc['serveruser'])
-    # logger.info
-    print("Set process to %s's uid %d and gid %d..." %
-          (pc['serveruser'], uid, gid))
+    logger.info("Serveruser %s's uid %d and gid %d..." %
+                (pc['serveruser'], uid, gid))
     # os.setuid(uid)
     # os.setgid(gid)
 

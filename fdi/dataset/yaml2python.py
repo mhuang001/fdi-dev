@@ -23,10 +23,10 @@ import logging
 # create logger
 logger = logging.getLogger(__file__)
 logging.basicConfig(stream=sys.stdout,
-                    format='%(asctime)s - %(levelname)7s'
-                           ' - [%(filename)s:%(lineno)3s'
-                           ' - %(funcName)10s()] - %(message)s',
-                    datefmt="%Y-%m-%d %H:%M:%S")
+                    format='%(asctime)s -%(levelname)4s'
+                           ' -[%(filename)s:%(lineno)3s'
+                           ' -%(funcName)10s()] - %(message)s',
+                    datefmt="%Y%m%d %H:%M:%S")
 logging.getLogger().setLevel(logging.DEBUG)
 
 

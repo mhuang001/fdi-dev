@@ -1,10 +1,16 @@
 #! /usr/bin/python3.6
 
 import sys
+import os
 import logging
 #import logging.config
 # don't log to file. server will do the logging
 # logging.config.dictConfig(logdict)
+logging.basicConfig(stream=sys.stdout,
+                    format='%(asctime)s -%(levelname)4s'
+                           ' -[%(filename)s:%(lineno)3s'
+                           ' -%(funcName)10s()] - %(message)s',
+                    datefmt="%Y%m%d %H:%M:%S")
 logger = logging.getLogger()
 
 try:

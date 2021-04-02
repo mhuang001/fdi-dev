@@ -21,7 +21,12 @@ WORKDIR /home/${USR}
 COPY fdi/pns/pnsconfig.py .config/pnslocal.py
 RUN mkdir /data && mkdir -p /var/log/apache2 /var/run/apache2 \
 && touch /var/log/apache2/error-ps.log \
-&& touch /var/log/apache2/access-ps.log 
+&& touch /var/log/apache2/access-ps.log \
+&& ln -s /var/log/apache2/error-ps.log . \
+&& ln -s /var/log/apache2/error.log . \
+&& ln -s /var/log/apache2/access-ps.log . \
+&& ln -s /var/log/apache2/access.log .
+
 COPY fdi/pns/resources/poolserver.wsgi /home/${USR}
 RUN chmod 755 /home/${USR}/poolserver.wsgi
 

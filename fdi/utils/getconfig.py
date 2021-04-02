@@ -20,7 +20,7 @@ def getConfig(conf='pns'):
     env = '/root' if env == '$HOME' else env
     confp = join(env, '.config')
     sys.path.insert(0, confp)
-    # logger.debug('Reading from configuration file in dir '+confp)
+    logger.info('Reading from configuration file in dir '+confp)
 
     try:
         c = __import__(conf+'local', globals(), locals(),

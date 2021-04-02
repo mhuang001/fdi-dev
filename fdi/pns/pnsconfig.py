@@ -19,7 +19,7 @@ pnsconfig['base_poolpath'] = '/'
 pnsconfig['server_poolpath'] = '/data'  # For server
 pnsconfig['defaultpool'] = 'pool_default'
 
-dev = 1
+dev = 0
 if dev:
     # username, passwd, flask ip, flask port
     pnsconfig['node'] = {'username': 'foo',

@@ -45,14 +45,12 @@ logger = logging.getLogger(__name__)
 
 # the httppool that is local to the server
 schm = 'server'
-basepath = PoolManager.PlacePaths[schm]
-poolpath = os.path.join(basepath, pc['api_version'])
 
 
 @app.before_first_request
 def init_httppool_server():
     """ Init a global HTTP POOL """
-    global PM
+    global PM, basepath, poolpath
 
     logger.setLevel(pc['logginglevel'])
     logging.getLogger("filelock").setLevel(logging.INFO)
@@ -67,6 +65,10 @@ def init_httppool_server():
                                            str(app._got_first_request))
                  )
     PM.removeAll()
+
+    basepath = PoolManager.PlacePaths[schm]
+    poolpath = os.path.join(basepath, pc['api_version'])
+
     if checkpath(poolpath) is None:
         logger.error('Store path %s unavailable.' % poolpath)
         sys.exit(-2)

@@ -13,9 +13,9 @@ pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
 
 # base url for pool, you must have permission of this path, for example : /home/user/Documents
 # this base pool path will be added at the beginning of your pool urn when you init a pool like:
-# pstore = PoolManager.getPool('/demopool_user'), it will create a pool at /data.demopool_user/
-# User can disable  basepoolpath by: pstore = PoolManager.getPool('/demopool_user', use_default_poolpath=False)
-pnsconfig['base_poolpath'] = '/www'
+# pstore = PoolManager.getPool('/demopool_user'), it will create a pool at pc['base_poolpath']/demopool_user/
+# User can disable  basepoolpath by: pstore = PoolManager.getPool('/demopool_user', use_default_poolpath=False). Also note that pool URL takes priority if given to getPool().
+pnsconfig['base_poolpath'] = '/tmp'
 pnsconfig['server_poolpath'] = '/www/data'  # For server
 pnsconfig['defaultpool'] = 'pool_default'
 
@@ -35,8 +35,8 @@ if dev:
     pnsconfig['server_poolpath'] = '/tmp/data'  # For server
     pnsconfig['defaultpool'] = 'pool_default'
 else:
-    pnsconfig['node'] = {'username': 'luchangfa', 'password': '123456',
-                         'host': '10.0.10.114', 'port': 9888}
+    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
+                         'host': '10.0.10.114', 'port': 9884}
 
     # server permission user
     pnsconfig['serveruser'] = 'apache'

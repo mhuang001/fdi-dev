@@ -26,13 +26,15 @@ This is done by calling the getPool() method, which will return an existing pool
     # Global centralized dict that returns singleton -- the same -- pool for the same ID.
     _GlobalPoolList = {}
     # maps scheme to default place\poolpath
+    p = pc['node']['host']+':'+str(pc['node']['port'])+pc['baseurl']
     PlacePaths = {
-        'file': '/tmp',
+        'file': pc['base_poolpath'],
         'mem': '/',
-        'http': '127.0.0.1:5000/v0.6',
-        'https': '127.0.0.1:5000/v0.6',
-        'server': '/tmp/data',
+        'http': p,
+        'https': p,
+        'server': pc['server_poolpath'],
     }
+    del p
 
     @classmethod
     def getPool(cls, poolname=None, poolurl=None, **kwds):

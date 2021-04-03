@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import pdb
 import pytest
 from fdi.dataset.serializable import serialize
 from fdi.dataset.deserialize import deserialize
@@ -84,11 +85,16 @@ prodt = 'fdi.dataset.product.Product'
 # http server pool
 schm = 'server'
 basepath = PoolManager.PlacePaths[schm]
+# this is a path in the local OS, where the server runs.
+# the path is used to directly access pool server's internals.
 poolpath = os.path.join(basepath, pc['api_version'])
-# client side
+
+# client side.
+# pool url from a local client
 cschm = 'http'
-api_baseurl = cschm + '://' + \
-    PoolManager.PlacePaths[cschm] + '/'
+# api_baseurl = cschm + '://' + '0.0.0.0' + ':' + \
+#    str(pc['node']['port']) + pc['baseurl'] + '/'
+api_baseurl = cschm + '://' + PoolManager.PlacePaths[cschm] + '/'
 
 
 if 0:

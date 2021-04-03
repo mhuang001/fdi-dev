@@ -1,4 +1,4 @@
-alias sers='service apache2 start'
+alias sers='service apache2 --full-restart'
 alias cl='curl -i http://localhost:9884'
 alias aerr='less /var/log/apache2/error-ps.log'
 

@@ -1,13 +1,13 @@
 FROM ubuntu:latest
 LABEL Pool Server
-# 0.2 M Huang
+# 0.2 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 RUN apt-get update \
 && apt-get install -y apt-utils inetutils-ping curl net-tools sudo \
 && apt-get install -y nano \
 && apt-get install -y git python python3-pip apache2 libapache2-mod-wsgi-py3
 
-# User has no permission to something...
+# for root
 ARG SERVER_IP_ADDR=10.0.10.114
 ARG SERVER_PORT=9888
 ENV USR apache
@@ -26,7 +26,7 @@ RUN mkdir /data && mkdir -p /var/log/apache2 /var/run/apache2 \
 && ln -s /var/log/apache2/error.log . \
 && ln -s /var/log/apache2/access-ps.log . \
 && ln -s /var/log/apache2/access.log .
-
+RUN cat fdi/pns/resources/profile >> /home/${USR}/.profile
 COPY fdi/pns/resources/poolserver.wsgi /home/${USR}
 RUN chmod 755 /home/${USR}/poolserver.wsgi
 
@@ -43,6 +43,14 @@ RUN sed -i s/B_IP/${SERVER_IP_ADDR}/g ./entrypoint_poolserver.sh \
 RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 /data /home/${USR}/; \
 do chown -R ${USR}:${USR} $i; echo $i; done
 
+# If install fdi repo, instead of package
+# make dir for fdi.
+ARG FDI_DIR=/home/$(USR)
+RUN mkdir -p ${FDI_DIR} && chown -R ${USR}:${USR} ${FDI_DIR}
+
+# Run as user
+USER ${USR}
+
 RUN service apache2 start \
 && a2ensite poolserver.conf \
 && a2dissite 000-default.conf \
@@ -53,26 +61,19 @@ RUN service apache2 start \
 #RUN tail  /var/log/apache2/error.log
 #RUN if [ -f /var/log/apache2/error-ps.log ]; then tail  /var/log/apache2/error-ps.log; fi
 
-
-# make dir for fdi as root
-#ARG FDI_DIR=/svom
-#RUN mkdir -p ${FDI_DIR} && chown -R ${USR}:${USR} ${FDI_DIR}
-# Install pool server
-#USER ${USR}
-#WORKDIR ${FDI_DIR}
-#RUN git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
-#WORKDIR ${FDI_DIR}/fdi/
-#RUN git checkout develop && make install I="[SERV]" 
-
-# Install pool server
-USER ${USR}
-RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[SERV]
+# If install fdi repo, instead of package
+WORKDIR ${FDI_DIR}
+RUN git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
+WORKDIR ${FDI_DIR}/fdi/
+RUN git checkout develop && make install I="[DEV,SERV]" 
 #RUN cat /etc/apache2/sites-available/poolserver.conf
 
-#RUN python3.6 -c 'import sys; print(sys.path); from fdi.pns.httppool_server import app'
+# If installing fdi package
+# no [DEV] needed
+#RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[SERV]
 
 # Lanch server by ${USR} user
 RUN  service apache2 start
 
-RUN cat /var/log/apache2/error.log
-RUN if [ -f /var/log/apache2/error-ps.log ]; then tail  /var/log/apache2/error-ps.log; fi
+#RUN cat /var/log/apache2/error.log
+#RUN if [ -f /var/log/apache2/error-ps.log ]; then tail  /var/log/apache2/error-ps.log; fi

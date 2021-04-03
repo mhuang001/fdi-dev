@@ -230,3 +230,6 @@ rm_server:
 	docker stop $(POOL_SERVER_NAME)
 	docker  rm $(POOL_SERVER_NAME)
 	#docker image rm $(POOL_IMAGE_NAME)
+
+it:
+	docker exec -it $(D) $(POOL_SERVER_NAME) /bin/bash

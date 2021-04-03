@@ -1,3 +1,7 @@
+alias sers='service apache2 start'
+alias cl='curl -i http://localhost:9884'
+alias aerr='less /var/log/apache2/error-ps.log'
+
 alias pd='python -m pdb -c continue '
 
 alias gst='git status'
@@ -24,8 +28,3 @@ alias l=less
 alias e='emacs -nw'
 #
 alias l50='export TERM=vt100-50; tset'
-alias pd='python -m pdb -c continue '
-
-alias gst='git status'
-alias gco='git checkout'
-alias glog='git log --oneline --decorate --graph --all'

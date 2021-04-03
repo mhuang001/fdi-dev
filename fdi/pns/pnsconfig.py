@@ -15,8 +15,8 @@ pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
 # this base pool path will be added at the beginning of your pool urn when you init a pool like:
 # pstore = PoolManager.getPool('/demopool_user'), it will create a pool at /data.demopool_user/
 # User can disable  basepoolpath by: pstore = PoolManager.getPool('/demopool_user', use_default_poolpath=False)
-pnsconfig['base_poolpath'] = '/'
-pnsconfig['server_poolpath'] = '/data'  # For server
+pnsconfig['base_poolpath'] = '/www'
+pnsconfig['server_poolpath'] = '/www/data'  # For server
 pnsconfig['defaultpool'] = 'pool_default'
 
 dev = 0

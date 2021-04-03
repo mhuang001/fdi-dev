@@ -11,7 +11,7 @@ RUN apt-get update \
 ARG SERVER_IP_ADDR=10.0.10.114
 ARG SERVER_PORT=9888
 ENV USR apache
-RUN groupadd ${USR} && useradd -g ${USR} ${USR} --home=/home/${USR}
+RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=/home/${USR}
 
 ENV SERVER_IP_ADDR=${SERVER_IP_ADDR}
 ENV SERVER_PORT=${SERVER_PORT}
@@ -19,18 +19,20 @@ COPY fdi/pns/resources/poolserver.conf /etc/apache2/sites-available/poolserver.c
 RUN mkdir -p /home/${USR}/.config
 WORKDIR /home/${USR}
 COPY fdi/pns/pnsconfig.py .config/pnslocal.py
-RUN mkdir /data && mkdir -p /var/log/apache2 /var/run/apache2 \
+RUN mkdir /www/data && mkdir -p /var/log/apache2 /var/run/apache2 \
 && touch /var/log/apache2/error-ps.log \
 && touch /var/log/apache2/access-ps.log \
 && ln -s /var/log/apache2/error-ps.log . \
 && ln -s /var/log/apache2/error.log . \
 && ln -s /var/log/apache2/access-ps.log . \
 && ln -s /var/log/apache2/access.log .
-RUN cat fdi/pns/resources/profile >> /home/${USR}/.profile
+COPY fdi/pns/resources/profile .
 COPY fdi/pns/resources/poolserver.wsgi /home/${USR}
-RUN chmod 755 /home/${USR}/poolserver.wsgi
+RUN cat profile >> .profile && rm profile \
+&& chmod 755 /home/${USR}/poolserver.wsgi
 
-# entrypoint-poolserver.sh is used for replacing apache listen ports and configurations of poolserver
+# entrypoint-poolserver.sh is used for replacing apache listen ports and configu
+rations of poolserver
 COPY fdi/pns/resources/entrypoint_poolserver.sh .
 RUN sed -i s/B_IP/${SERVER_IP_ADDR}/g ./entrypoint_poolserver.sh \
 && sed -i s/B_PO/${SERVER_PORT}/g ./entrypoint_poolserver.sh \
@@ -40,16 +42,13 @@ RUN sed -i s/B_IP/${SERVER_IP_ADDR}/g ./entrypoint_poolserver.sh \
 && head -4 entrypoint_poolserver.sh
 
 # Configure permission
-RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 /data /home/${USR}/; \
+RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 /www/data /home/${USR}/; \
 do chown -R ${USR}:${USR} $i; echo $i; done
 
 # If install fdi repo, instead of package
 # make dir for fdi.
-ARG FDI_DIR=/home/$(USR)
+ARG FDI_DIR=/home/${USR}
 RUN mkdir -p ${FDI_DIR} && chown -R ${USR}:${USR} ${FDI_DIR}
-
-# Run as user
-USER ${USR}
 
 RUN service apache2 start \
 && a2ensite poolserver.conf \
@@ -61,11 +60,16 @@ RUN service apache2 start \
 #RUN tail  /var/log/apache2/error.log
 #RUN if [ -f /var/log/apache2/error-ps.log ]; then tail  /var/log/apache2/error-ps.log; fi
 
+# Run as user
+USER ${USR}
+
 # If install fdi repo, instead of package
 WORKDIR ${FDI_DIR}
 RUN git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
 WORKDIR ${FDI_DIR}/fdi/
-RUN git checkout develop && make install I="[DEV,SERV]" 
+RUN git checkout develop \
+&& python3 -m pip install pip -U \
+&& make install I="[DEV,SERV]" 
 #RUN cat /etc/apache2/sites-available/poolserver.conf
 
 # If installing fdi package
@@ -77,3 +81,5 @@ RUN  service apache2 start
 
 #RUN cat /var/log/apache2/error.log
 #RUN if [ -f /var/log/apache2/error-ps.log ]; then tail  /var/log/apache2/error-ps.log; fi
+
+WORKDIR /home/${USR}

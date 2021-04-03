@@ -36,7 +36,7 @@ if dev:
     pnsconfig['defaultpool'] = 'pool_default'
 else:
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '10.0.10.114', 'port': 9884}
+                         'host': '127.0.0.1', 'port': 9884}
 
     # server permission user
     pnsconfig['serveruser'] = 'apache'

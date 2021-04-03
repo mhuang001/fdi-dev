@@ -10,8 +10,8 @@ RUN apt-get update \
 # for root
 ARG SERVER_IP_ADDR=10.0.10.114
 ARG SERVER_PORT=9888
-ARG USR apache
-ARG UHOME /home/${USR}
+ARG USR=apache
+ARG UHOME=/home/${USR}
 RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME}
 
 ENV SERVER_IP_ADDR=${SERVER_IP_ADDR}
@@ -20,7 +20,7 @@ COPY fdi/pns/resources/poolserver.conf /etc/apache2/sites-available/poolserver.c
 RUN mkdir -p ${UHOME}/.config
 WORKDIR ${UHOME}
 COPY fdi/pns/pnsconfig.py .config/pnslocal.py
-RUN mkdir /www/data && mkdir -p /var/log/apache2 /var/run/apache2 \
+RUN mkdir /var/data && mkdir -p /var/log/apache2 /var/run/apache2 \
 && touch /var/log/apache2/error-ps.log \
 && touch /var/log/apache2/access-ps.log \
 && ln -s /var/log/apache2/error-ps.log . \
@@ -32,8 +32,7 @@ COPY fdi/pns/resources/poolserver.wsgi ${UHOME}
 RUN cat profile >> .profile && rm profile \
 && chmod 755 ${UHOME}/poolserver.wsgi
 
-# entrypoint-poolserver.sh is used for replacing apache listen ports and configu
-rations of poolserver
+# entrypoint-poolserver.sh is used for replacing apache listen ports and configurations of poolserver
 COPY fdi/pns/resources/entrypoint_poolserver.sh .
 RUN sed -i s/B_IP/${SERVER_IP_ADDR}/g ./entrypoint_poolserver.sh \
 && sed -i s/B_PO/${SERVER_PORT}/g ./entrypoint_poolserver.sh \
@@ -43,7 +42,7 @@ RUN sed -i s/B_IP/${SERVER_IP_ADDR}/g ./entrypoint_poolserver.sh \
 && head -4 entrypoint_poolserver.sh
 
 # Configure permission
-RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 /www/data ${UHOME}/; \
+RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 /var/data ${UHOME}/; \
 do chown -R ${USR}:${USR} $i; echo $i; done
 
 # If install fdi repo, instead of package

@@ -16,7 +16,7 @@ pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
 # pstore = PoolManager.getPool('/demopool_user'), it will create a pool at pc['base_poolpath']/demopool_user/
 # User can disable  basepoolpath by: pstore = PoolManager.getPool('/demopool_user', use_default_poolpath=False). Also note that pool URL takes priority if given to getPool().
 pnsconfig['base_poolpath'] = '/tmp'
-pnsconfig['server_poolpath'] = '/www/data'  # For server
+pnsconfig['server_poolpath'] = '/var/data'  # For server
 pnsconfig['defaultpool'] = 'pool_default'
 
 dev = 0

@@ -292,46 +292,46 @@ def test_PoolManager():
     assert defaultpoolName in pm
 
 
-def checkdbcount(n, poolurl, prodname, currentSN=-1):
+def checkdbcount(expected_cnt, poolurl, prodname, currentSN=-1):
     """ count files in pool and entries in class db.
 
-    n, currentSN: expected number of prods and currentSN in pool for products named prodname
+    expected_cnt, currentSN: expected number of prods and currentSN in pool for products named prodname
     """
 
     poolpath, scheme, place, poolname = parse_poolurl(poolurl)
     if scheme in ['file', 'server']:
         path = op.join(poolpath, poolname)
         assert sum(1 for x in glob.glob(
-            op.join(path, prodname + '*[0-9]'))) == n
+            op.join(path, prodname + '*[0-9]'))) == expected_cnt
         cp = op.join(path, 'classes.jsn')
-        if op.exists(cp) or n != 0:
+        if op.exists(cp) or expected_cnt != 0:
             with open(cp, 'r') as fp:
                 js = fp.read()
             cread = deserialize(js)
             if currentSN == -1:
                 assert cread[prodname]['currentSN'] == currentSN
-                # number of items is n
-            assert len(cread[prodname]['sn']) == n
+                # number of items is expected_cnt
+            assert len(cread[prodname]['sn']) == expected_cnt
     elif scheme == 'mem':
         mpool = PoolManager.getPool(poolurl=poolurl).getPoolSpace()
         if mpool is None or len(mpool) == 0:
             # wiped
-            assert n == 0
+            assert expected_cnt == 0
             assert currentSN == -1
             return
         ns = [n for n in mpool if prodname in n]
-        assert len(ns) == n, len(ns)
+        assert len(ns) == expected_cnt, len(ns)
         if currentSN == -1:
             assert mpool['classes'][prodname]['currentSN'] == currentSN
         # for this class there are  how many prods
-        assert len(mpool['classes'][prodname]['sn']) == n
+        assert len(mpool['classes'][prodname]['sn']) == expected_cnt
     elif scheme in ['http', 'https']:
         snpath = 'sn/' + prodname + '/' + poolname
         api_baseurl = scheme + '://' + place + poolpath + '/'
         url = api_baseurl + snpath
         x = requests.get(url)
         sn = int(x.text)
-        assert sn == n
+        assert sn == expected_cnt
     else:
         assert False, 'bad pool scheme'
 
@@ -470,7 +470,7 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     # one by one
     q = 3
     x2, ref2 = [], []
-    for d in range(q):
+    for d in range(q):  # The 1st one is a mapcontext, rest prodct
         tmp = Product(description='x' + str(d)
                       ) if d > 0 else MapContext(description='x0')
         x2.append(tmp)

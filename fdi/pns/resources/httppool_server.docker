@@ -16,11 +16,11 @@ RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME}
 
 ENV SERVER_IP_ADDR=${SERVER_IP_ADDR}
 ENV SERVER_PORT=${SERVER_PORT}
-COPY fdi/pns/resources/poolserver.conf /etc/apache2/sites-available/poolserver.conf
+COPY fdi/pns/resources/httppool_server.conf /etc/apache2/sites-available/httppool_server.conf
 RUN mkdir -p ${UHOME}/.config
 WORKDIR ${UHOME}
 COPY fdi/pns/pnsconfig.py .config/pnslocal.py
-ARG PROJ_DIR=/var/www/poolserver
+ARG PROJ_DIR=/var/www/httppool_server
 RUN mkdir -p ${PROJ_DIR}/data \
 && mkdir -p /var/log/apache2 /var/run/apache2 \
 && touch /var/log/apache2/error-ps.log \
@@ -30,18 +30,20 @@ RUN mkdir -p ${PROJ_DIR}/data \
 && ln -s /var/log/apache2/access-ps.log . \
 && ln -s /var/log/apache2/access.log .
 COPY fdi/pns/resources/profile .
-COPY fdi/pns/resources/poolserver.wsgi ${PROJ_DIR}/
+COPY fdi/pns/resources/httppool_server.wsgi ${PROJ_DIR}/
 RUN cat profile >> .bashrc && rm profile \
-&& chmod 755 ${PROJ_DIR}/poolserver.wsgi
+&& chmod 755 ${PROJ_DIR}/httppool_server.wsgi
 
-# entrypoint-poolserver.sh is used for replacing apache listen ports and configurations of poolserver
-COPY fdi/pns/resources/entrypoint_poolserver.sh .
-RUN sed -i s/B_IP/${SERVER_IP_ADDR}/g ./entrypoint_poolserver.sh \
-&& sed -i s/B_PO/${SERVER_PORT}/g ./entrypoint_poolserver.sh \
-&& chmod +x ./entrypoint_poolserver.sh \
-&& ./entrypoint_poolserver.sh \
-&& echo ====== entrypoint_poolserver.sh \
-&& head -4 entrypoint_poolserver.sh
+# httppool_server_entrypoint.sh is used for replacing apache listen ports and configurations of httppool_server
+COPY fdi/pns/resources/httppool_server_entrypoint.sh .
+RUN sed -i s/B_IP/${SERVER_IP_ADDR}/g ./httppool_server_entrypoint.sh \
+&& sed -i s/B_PO/${SERVER_PORT}/g ./httppool_server_entrypoint.sh \
+&& chmod +x ./httppool_server_entrypoint.sh \
+&& ./httppool_server_entrypoint.sh \
+&& echo ====== httppool_server_entrypoint.sh \
+&& head -4 httppool_server_entrypoint.sh
+
+#RUN echo WSGIRestrictEmbedded On >> /etc/apache2/apache2.conf
 
 # Configure permission
 RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 ${PROJ_DIR} ${UHOME}/; \
@@ -53,7 +55,7 @@ ARG FDI_DIR=${UHOME}
 RUN mkdir -p ${FDI_DIR} && chown -R ${USR}:${USR} ${FDI_DIR}
 
 RUN service apache2 start \
-&& a2ensite poolserver.conf \
+&& a2ensite httppool_server.conf \
 && a2dissite 000-default.conf \
 && service apache2 reload \
 && service apache2 stop
@@ -72,7 +74,7 @@ WORKDIR ${FDI_DIR}/fdi/
 RUN git checkout develop \
 && python3 -m pip install pip -U \
 && make install I="[DEV,SERV] --user" 
-#RUN cat /etc/apache2/sites-available/poolserver.conf
+#RUN cat /etc/apache2/sites-available/httppool_server.conf
 
 # If installing fdi package
 # no [DEV] needed

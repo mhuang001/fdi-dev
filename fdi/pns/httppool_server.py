@@ -114,11 +114,14 @@ def get_pool_sn(prod_type, pool_id):
     logger.debug('### method %s prod_type %s poolID %s***' %
                  (request.method, prod_type, pool_id))
     res = 0
+    nm = []
     path = os.path.join(poolpath, pool_id)
     if os.path.exists(path):
         for i in os.listdir(path):
             if i[-1].isnumeric() and prod_type in i:
                 res = res+1
+                nm.append(i)
+    logger.debug('found '+str(nm))
     return str(res)
 
 
@@ -181,7 +184,7 @@ def httppool(pool):
         r, json.dumps(msg), ts)
     # logger.debug(pprint.pformat(w, depth=3, indent=4))
     s = w  # serialize(w)
-    logger.debug(lls(s, 120))
+    logger.debug(lls(s, 240))
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
@@ -261,7 +264,7 @@ def save_product(data, paths, tag=None):
         return result, msg
 
     logger.debug('SAVE product to: ' + poolurl)
-    logger.debug(str(id(PM._GlobalPoolList)) + ' ' + str(PM._GlobalPoolList))
+    #logger.debug(str(id(PM._GlobalPoolList)) + ' ' + str(PM._GlobalPoolList))
 
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)

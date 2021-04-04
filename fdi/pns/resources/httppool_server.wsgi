@@ -1,5 +1,6 @@
 #! /usr/bin/python3.6
 
+from fdi.pns.httppool_server import app as application
 import sys
 import os
 import logging
@@ -12,13 +13,6 @@ logging.basicConfig(stream=sys.stdout,
                            ' -%(funcName)10s()] - %(message)s',
                     datefmt="%Y%m%d %H:%M:%S")
 logger = logging.getLogger()
-
-try:
-    from fdi.pns.httppool_server import app as application
-except Exception as e:
-    logger.error(e)
-
-logger.info(sys.path)
 
 
 # where user classes can be found

@@ -213,12 +213,12 @@ docs_html:
 	cd $(SDIR) && make html
 
 ########
-POOL_SERVER_NAME        =poolserver
+POOL_SERVER_NAME        =httppool_server
 POOL_SERVER_PORT        =9884
 POOL_SERVER_INTERNAL_PORT =$(POOL_SERVER_PORT)
-POOL_IMAGE_NAME         =poolserver:v2
+POOL_IMAGE_NAME         =httppool_server:v2
 SERVER_IP      =172.17.0.9
-DOCKERFILE              =fdi/pns/resources/poolserver.docker
+DOCKERFILE              =fdi/pns/resources/httppool_server.docker
 
 build_server:
 	docker build -t $(POOL_IMAGE_NAME) --build-arg SERVER_IP_ADDR=$(SERVER_IP) --build-arg SERVER_PORT=$(POOL_SERVER_PORT) -f $(DOCKERFILE) $(D) .

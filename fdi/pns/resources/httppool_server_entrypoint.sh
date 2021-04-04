@@ -2,11 +2,11 @@
 IP=`ifconfig -a | grep "inet" | grep -v 127.0.0.1 | grep -v "inet6" | awk '{print $2}'`
 HOST_IP=B_IP
 HOST_PORT=B_PO
-sed -i "s/{SERVER_IP_ADDR}/$IP/g" /etc/apache2/sites-available/poolserver.conf
-sed -i "s/{SERVER_PORT}/${HOST_PORT}/g" /etc/apache2/sites-available/poolserver.conf
-echo ===== /etc/apache2/sites-available/poolserver.conf
-grep Virtual /etc/apache2/sites-available/poolserver.conf
-grep ServerName /etc/apache2/sites-available/poolserver.conf
+sed -i "s/{SERVER_IP_ADDR}/$IP/g" /etc/apache2/sites-available/httppool_server.conf
+sed -i "s/{SERVER_PORT}/${HOST_PORT}/g" /etc/apache2/sites-available/httppool_server.conf
+echo ===== /etc/apache2/sites-available/httppool_server.conf
+grep Virtual /etc/apache2/sites-available/httppool_server.conf
+grep ServerName /etc/apache2/sites-available/httppool_server.conf
 
 sed -i "s/Listen 80/Listen ${HOST_PORT}/g" /etc/apache2/ports.conf
 echo ===== /etc/apache2/ports.conf

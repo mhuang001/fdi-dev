@@ -134,7 +134,7 @@ versiontag:
 
 TESTLOG	= /tmp/fdi-tests.log
 
-OPT	= -r P --log-file=$(TESTLOG) -v -l --pdb 
+OPT	= -r P  -v -l --pdb  #--log-file=$(TESTLOG)
 T	= 
 test: test1 test2
 

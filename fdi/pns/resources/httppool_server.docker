@@ -19,6 +19,7 @@ ENV SERVER_PORT=${SERVER_PORT}
 COPY fdi/pns/resources/httppool_server.conf /etc/apache2/sites-available/httppool_server.conf
 RUN mkdir -p ${UHOME}/.config
 WORKDIR ${UHOME}
+RUN echo "export PATH=~/.local/bin:$PATH" >> .bashrc
 COPY fdi/pns/pnsconfig.py .config/pnslocal.py
 ARG PROJ_DIR=/var/www/httppool_server
 RUN mkdir -p ${PROJ_DIR}/data \
@@ -79,9 +80,6 @@ RUN git checkout develop \
 # If installing fdi package
 # no [DEV] needed
 #RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[SERV]
-
-WORKDIR ${UHOME}
-RUN echo "export PATH=~/.local/bin:$PATH" >> .bashrc
 
 # Lanch server by ${USR} user
 RUN  service apache2 start

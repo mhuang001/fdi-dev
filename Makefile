@@ -39,7 +39,7 @@ S	=
 runserver:
 	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
 runpoolserver:
-	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar --server=httppool_server -v $(S)
+	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar -v --server=httppool_server $(S)
 
 INSOPT  =
 install:
@@ -134,7 +134,7 @@ versiontag:
 
 TESTLOG	= /tmp/fdi-tests.log
 
-OPT	= -r P  -v -l --pdb  #--log-file=$(TESTLOG)
+OPT	= -r P -v -l --pdb  #--log-file=$(TESTLOG)
 T	= 
 test: test1 test2
 

@@ -42,12 +42,12 @@ def setuplogging():
     return logging
 
 
-logging = setuplogging()
 logger = logging.getLogger()
 
 
 pcc.update(getConfig())
 logger.setLevel(logging.INFO)
+setuplogging()
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 

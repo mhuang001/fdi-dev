@@ -52,10 +52,6 @@ def init_httppool_server():
     """ Init a global HTTP POOL """
     global PM, basepath, poolpath
 
-    logger.setLevel(pc['logginglevel'])
-    logging.getLogger("filelock").setLevel(logging.INFO)
-    logger.debug('logging level %d' % (logger.getEffectiveLevel()))
-
     PM = PoolManager
     if PM.isLoaded(DEFAULT_MEM_POOL):
         logger.debug('cleanup DEFAULT_MEM_POOL')

@@ -5,7 +5,7 @@ import getpass
 import pwd
 
 # logging level for server or possibly by client
-pnsconfig = dict(logginglevel=logging.DEBUG)
+pnsconfig = dict(logginglevel=logging.INFO)
 
 # base url for webserver. Update version if needed.
 pnsconfig['api_version'] = 'v0.6'

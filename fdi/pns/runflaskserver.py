@@ -5,22 +5,29 @@ from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
 from fdi.utils.getconfig import getConfig
 
+import logging
+import sys
 from waitress import serve
 #sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
 # print(sys.path)
 
 
-def setuplogging():
-    import logging.config
-    import logging
-    from fdi.pns import logdict  # import logdict
+def setuplogging(level=logging.WARN):
+    global logging
     # create logger
-    logging.config.dictConfig(logdict.logdict)
+    logging.basicConfig(stream=sys.stdout,
+                        format='%(asctime)s-%(levelname)4s'
+                        '-[%(filename)6s:%(lineno)3s'
+                        '-%(funcName)10s()] - %(message)s',
+                        datefmt="%Y%m%d %H:%M:%S")
+    logging.getLogger("requests").setLevel(level)
+    logging.getLogger("filelock").setLevel(level)
+    if sys.version_info[0] > 2:
+        logging.getLogger("urllib3").setLevel(level)
     return logging
 
 
-logging = setuplogging()
 logger = logging.getLogger(__name__)
 
 
@@ -29,8 +36,11 @@ if __name__ == '__main__':
     logger = logging.getLogger()
     # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
     pc.update(getConfig())
-    logger.setLevel(pc['logginglevel'])
-    logger.info('Server starting. Make sure no other instance is running')
+    lv = pc['logginglevel']
+    logger.setLevel(lv)
+    setuplogging(lv if lv > logging.WARN else logging.WARN)
+    logger.info(
+        'Server starting. Make sure no other instance is running.'+str(lv))
 
     node = pc['node']
     # Get username and password and host ip and port.

@@ -11,6 +11,7 @@ import pwd
 import os
 from os import listdir, chown, chmod, environ, setuid, setgid
 from pathlib import Path
+import logging
 import types
 from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 from flask import Flask, jsonify, abort, make_response, request, url_for
@@ -21,26 +22,12 @@ from flask_httpauth import HTTPBasicAuth
 # logdict['handlers']['file']['filename'] = '/tmp/server.log'
 
 
-def setuplogging():
-    import logging.config
-    import logging
-    from . import logdict
-
-    # create logger
-    logging.config.dictConfig(logdict.logdict)
-    logging.getLogger("requests").setLevel(logging.WARN)
-    logging.getLogger("filelock").setLevel(logging.WARN)
-    if sys.version_info[0] > 2:
-        logging.getLogger("urllib3").setLevel(logging.WARN)
-    return logging
-
-
-logging = setuplogging()
 logger = logging.getLogger(__name__)
 
 
 def getUidGid(username):
-    """ returns the UID and GID of the named user.
+    """ returns the UID and GID
+ of the named user.
     """
 
     try:
@@ -70,9 +57,6 @@ gid = -1
 @app.before_first_request
 def init_skeleton_module():
     global pc, gid, logger
-    pc.update(getConfig())
-    logger.setLevel(pc['logginglevel'])
-    logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
     # effective group of current process
     uid, gid = getUidGid(pc['serveruser'])

@@ -22,19 +22,16 @@ from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 from flask import abort, make_response, request
 import filelock
 import sys
+import logging
 
 # from .logdict import logdict
 # '/var/log/pns-server.log'
 # logdict['handlers']['file']['filename'] = '/tmp/server.log'
 
 
-from .server_skeleton import setuplogging, checkpath, pc, Classes, app, auth, APIs, gid, getUidGid
+from .server_skeleton import checkpath, pc, Classes, app, auth, APIs, gid, getUidGid
 
-logging = setuplogging()
 logger = logging.getLogger(__name__)
-
-logger.setLevel(pc['logginglevel'])
-logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
 @app.before_first_request

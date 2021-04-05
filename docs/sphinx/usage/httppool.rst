@@ -65,6 +65,10 @@ Now you can use a client to access it.
 
    Do not run debugging mode for production use.
 
+.. note::
+
+   The logging level of the server is set in the config file. The ``-v`` switch to ``runflaskserver`` used above will set the level to ``logging.DEBUG``. Packages ``requests, ``filelock``, and ``urllib3`` are fixed to ``logging.WARN``.
+
 
 Test and Verify
 ---------------

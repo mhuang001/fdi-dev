@@ -5,6 +5,10 @@ Change Log
 BETA0
 =====
 
+1.3.0 2021-04-06
+-----------------
+Product pipeline dev support and pool improvements. Dockerize httpool with update.
+
 1.2.0 2021-03-10
 -----------------
 array.array hashed and seriaalized. performance tuned ref vtse. docs improvements.

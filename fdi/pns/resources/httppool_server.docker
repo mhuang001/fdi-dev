@@ -87,3 +87,5 @@ RUN  service apache2 start
 #RUN cat /var/log/apache2/error.log
 #RUN if [ -f /var/log/apache2/error-ps.log ]; then tail  /var/log/apache2/error-ps.log; fi
 
+WORKDIR ${UHOME}
+RUN date > build

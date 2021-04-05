@@ -113,8 +113,8 @@ The generated HTML page is at ``docs/html/index.html``.
 
 .. note:: https://readthedocs.io makes web pages from sources in ``docs/sphinx`` in the repository. Locally generated HTML pages are not on RTD or in the repository. The API files and plots, however, are in ``api`` and ``_static`` sub-directpries, respectively.
 	   
-Run Servers
------------
+Run Servers for Quick Tests
+---------------------------
 
 If you plan to run the ``pns`` and/or the http pool server locally,
 install the dependencies:

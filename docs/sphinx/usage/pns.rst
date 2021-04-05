@@ -1,10 +1,10 @@
 ===========================================
-**pns**: Processing Node Server
+**PNS**: Processing Node Server
 ===========================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+
+.. contents:: Table of Contents
+	      :depth: 3
 
 Rationale
 =========

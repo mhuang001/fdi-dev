@@ -2,9 +2,9 @@
 **Data Containers**: Data sets and Meta data
 ======================================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+
+.. contents:: Table of Contents
+	      :depth: 3
 
 
 Rationale

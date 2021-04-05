@@ -138,7 +138,7 @@ class HttpClientPool(ProductPool):
             fp = pathjoin(fp0, hkdata + '.jsn')
             writeJsonwithbackup(fp, self.__getattribute__('_' + hkdata))
 
-    def schematicSave(self, resourcetype, index, data, tag=None):
+    def schematicSave(self, resourcetype, index, data, tag=None, **kwds):
         """
         does the media-specific saving to remote server
         save metadata at localpool

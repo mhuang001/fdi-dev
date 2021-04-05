@@ -18,7 +18,13 @@ For developement
 Configuration
 -------------
 
-Install fdi. Follow `Basic Configuration`_ in :doc:`pns` to set up the ``~/.config/pnslocal.py``. To customize modify these according to your system.
+Install fdi. Copy the config file over
+
+.. code-block:: shell
+		
+		cp fdi/pns/pnsconfig.py ~/.config/pnslocal.py
+
+To customize ``~/.config/pnslocal.py`` modify these according to your system:
 
 .. code-block::
 
@@ -109,6 +115,14 @@ These are for an ``apache2`` deployment as a ``VirtualHost`` in a Ubuntu docker:
 
 Configuration
 -------------
+
+Install fdi. Copy the config file over
+
+.. code-block:: shell
+		
+		cp fdi/pns/pnsconfig.py ~/.config/pnslocal.py
+
+To customize ``~/.config/pnslocal.py`` modify these according to your system:
 
 .. code-block::
 

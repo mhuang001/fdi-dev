@@ -65,7 +65,7 @@ To install
            git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
            cd fdi
 	   git checkout develop
-	   make install I="[DEV,SERV]"
+	   make install EXT="[DEV,SERV]"
 	   
 If you want to install the ``master`` branch, remove the ``git checkout develop`` line above.
 	   

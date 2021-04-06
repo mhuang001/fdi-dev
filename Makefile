@@ -43,7 +43,7 @@ runpoolserver:
 
 INSOPT  =
 install:
-	$(PYEXE) -m pip install $(INSOPT) -e .$(I)
+	$(PYEXE) -m pip install $(INSOPT) -e .$(EXT) $(I)
 
 uninstall:
 	$(PYEXE) -m pip uninstall $(INSOPT) fdi  $(I)

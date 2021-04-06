@@ -12,7 +12,9 @@ ARG SERVER_IP_ADDR=10.0.10.114
 ARG SERVER_PORT=9888
 ARG USR=apache
 ARG UHOME=/home/${USR}
-RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME}
+RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo
+RUN echo export APACHE_RUN_USER=$(USR) >> /etc/apache2/envvars \
+&& echo export APACHE_RUN_GROUP=$(USR) >> /etc/apache2/envvars
 
 ENV SERVER_IP_ADDR=${SERVER_IP_ADDR}
 ENV SERVER_PORT=${SERVER_PORT}
@@ -30,17 +32,17 @@ RUN mkdir -p ${PROJ_DIR}/data \
 && ln -s /var/log/apache2/error.log . \
 && ln -s /var/log/apache2/access-ps.log . \
 && ln -s /var/log/apache2/access.log .
+# convinience aliases
 COPY fdi/pns/resources/profile .
 COPY fdi/pns/resources/httppool_server.wsgi ${PROJ_DIR}/
 RUN cat profile >> .bashrc && rm profile \
 && chmod 755 ${PROJ_DIR}/httppool_server.wsgi
 
-# httppool_server_entrypoint.sh is used for replacing apache listen ports and configurations of httppool_server
+# httppool_server_entrypoint.sh is used for replacing apache listen ports and configurations of httppool_server. setuid as root
 COPY fdi/pns/resources/httppool_server_entrypoint.sh .
-RUN sed -i s/B_IP/${SERVER_IP_ADDR}/g ./httppool_server_entrypoint.sh \
-&& sed -i s/B_PO/${SERVER_PORT}/g ./httppool_server_entrypoint.sh \
+RUN chmod +s ./httppool_server_entrypoint.sh \
 && chmod +x ./httppool_server_entrypoint.sh \
-&& ./httppool_server_entrypoint.sh \
+&& echo ./httppool_server_entrypoint.sh >> \
 && echo ====== httppool_server_entrypoint.sh \
 && head -4 httppool_server_entrypoint.sh
 
@@ -74,7 +76,7 @@ RUN git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
 WORKDIR ${FDI_DIR}/fdi/
 RUN git checkout develop \
 && python3 -m pip install pip -U \
-&& make install I="[DEV,SERV] --user" 
+&& make install EXT="[DEV,SERV]" I="--user" 
 #RUN cat /etc/apache2/sites-available/httppool_server.conf
 
 # If installing fdi package

@@ -43,6 +43,7 @@ COPY fdi/pns/resources/httppool_server_entrypoint.sh .
 RUN chmod +s ./httppool_server_entrypoint.sh \
 && chmod +x ./httppool_server_entrypoint.sh \
 && echo ./httppool_server_entrypoint.sh >> ~/.bashrc \
+&& ./httppool_server_entrypoint.sh \
 && echo ====== httppool_server_entrypoint.sh \
 && head -4 httppool_server_entrypoint.sh
 

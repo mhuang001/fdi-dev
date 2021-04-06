@@ -2,7 +2,7 @@
 from os.path import join
 import logging
 import getpass
-import pwd
+import os
 
 # logging level for server or possibly by client
 pnsconfig = dict(logginglevel=logging.INFO)
@@ -34,9 +34,20 @@ if dev:
     pnsconfig['base_poolpath'] = '/tmp'
     pnsconfig['server_poolpath'] = '/tmp/data'  # For server
     pnsconfig['defaultpool'] = 'pool_default'
-else:
+elif 0:
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
                          'host': '127.0.0.1', 'port': 9884}
+
+    # server permission user
+    pnsconfig['serveruser'] = 'apache'
+    # PTS app permission user
+    pnsconfig['ptsuser'] = 'pns'
+    # on server
+    home = '/home'
+else:
+    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
+                         'host': os.environ['SERVER_IP_ADDR'],
+                         'port': os.environ['SERVER_PORT']}
 
     # server permission user
     pnsconfig['serveruser'] = 'apache'

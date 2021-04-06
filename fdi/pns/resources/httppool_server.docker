@@ -13,8 +13,8 @@ ARG SERVER_PORT=9888
 ARG USR=apache
 ARG UHOME=/home/${USR}
 RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo
-RUN echo export APACHE_RUN_USER=$(USR) >> /etc/apache2/envvars \
-&& echo export APACHE_RUN_GROUP=$(USR) >> /etc/apache2/envvars
+RUN echo export APACHE_RUN_USER=${USR} >> /etc/apache2/envvars \
+&& echo export APACHE_RUN_GROUP=${USR} >> /etc/apache2/envvars
 
 ENV SERVER_IP_ADDR=${SERVER_IP_ADDR}
 ENV SERVER_PORT=${SERVER_PORT}
@@ -42,7 +42,7 @@ RUN cat profile >> .bashrc && rm profile \
 COPY fdi/pns/resources/httppool_server_entrypoint.sh .
 RUN chmod +s ./httppool_server_entrypoint.sh \
 && chmod +x ./httppool_server_entrypoint.sh \
-&& echo ./httppool_server_entrypoint.sh >> \
+&& echo ./httppool_server_entrypoint.sh >> ~/.bashrc \
 && echo ====== httppool_server_entrypoint.sh \
 && head -4 httppool_server_entrypoint.sh
 

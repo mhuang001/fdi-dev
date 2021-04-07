@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import pdb
+
 import pytest
 from fdi.dataset.serializable import serialize
 from fdi.dataset.deserialize import deserialize

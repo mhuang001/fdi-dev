@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .server_skeleton import bad_request, unauthorized, not_found, conflict
-from ..utils.common import trbk, trbk2
+from ..utils.common import trbk, trbk2, getUidGid
 from ..utils.run_proc import run_proc
 from ..dataset.deserialize import deserialize
 from ..dataset.serializable import serialize
@@ -29,15 +28,20 @@ import logging
 # logdict['handlers']['file']['filename'] = '/tmp/server.log'
 
 
-from .server_skeleton import checkpath, pc, Classes, app, auth, APIs, gid, getUidGid
+from .server_skeleton import init_conf_clas, makepublicAPI, checkpath, app, pc
 
 logger = logging.getLogger(__name__)
 
 
 @app.before_first_request
 def init_pns_module():
-    global pc, gid
+    global Classes
+
+    Classes = init_conf_clas()
+    from ..dataset.classes import Classes
+
     ptsuid, ptsgid = getUidGid(pc['ptsuser'])
+    uid, gid = getUidGid(pc['ptsuser'])
     sgroup = os.getgrouplist(pc['serveruser'], gid)
     if ptsgid not in sgroup:
         logger.error('ptsuser %s must be in the group of serveruser %s %s.' %
@@ -73,14 +77,14 @@ def initPTS(d=None):
     logger.debug(str(d))
 
     pnsh = pc['paths']['pnshome']
-    p = checkpath(pnsh)
+    p = checkpath(pnsh, pc['serveruser'])
     if p is None:
         abort(401)
 
-    pi = checkpath(pc['paths']['inputdir'])
+    pi = checkpath(pc['paths']['inputdir'], pc['serveruser'])
     if pi is None:
         abort(401)
-    po = checkpath(pc['paths']['outputdir'])
+    po = checkpath(pc['paths']['outputdir'], pc['serveruser'])
     if po is None:
         abort(401)
 
@@ -100,12 +104,12 @@ def testinit(d=None):
     """
 
     pnsh = pc['paths']['pnshome']
-    p = checkpath(pnsh)
+    p = checkpath(pnsh, pc['serveruser'])
     if p is None:
         abort(401)
 
-    pi = checkpath(pc['paths']['inputdir'])
-    po = checkpath(pc['paths']['outputdir'])
+    pi = checkpath(pc['paths']['inputdir'], pc['serveruser'])
+    po = checkpath(pc['paths']['outputdir'], pc['serveruser'])
     if pi is None or po is None:
         abort(401)
 
@@ -256,12 +260,12 @@ def run(d, processinput=None, processoutput=None):
     global lupd
 
     pnsh = pc['paths']['pnshome']
-    p = checkpath(pnsh)
+    p = checkpath(pnsh, pc['serveruser'])
     if p is None:
         abort(401)
 
-    pi = checkpath(pc['paths']['inputdir'])
-    po = checkpath(pc['paths']['outputdir'])
+    pi = checkpath(pc['paths']['inputdir'], pc['serveruser'])
+    po = checkpath(pc['paths']['outputdir'], pc['serveruser'])
     if pi is None or po is None:
         abort(401)
 
@@ -558,14 +562,14 @@ def cleanup(cmd):
 
 
 # API specification for this module
-ModAPIs = {'GET':
-           {'func': 'getinfo',
-            'cmds': {'init': 'the initPTS file', 'config': 'the configPTS file',
-                     'run': 'the file running PTS', 'clean': 'the cleanPTS file',
-                     'input': filesin, 'output': filesin,
-                     'pnsconfig': 'PNS configuration'}
-            },
-           'PUT':
+PIs = {'GET':
+       {'func': 'getinfo',
+        'cmds': {'init': 'the initPTS file', 'config': 'the configPTS file',
+                 'run': 'the file running PTS', 'clean': 'the cleanPTS file',
+                 'input': filesin, 'output': filesin,
+                 'pnsconfig': 'PNS configuration'}
+        },
+       'PUT':
            {'func': 'setup',
                'cmds': {'init': initPTS, 'config': configPTS, 'pnsconf': configPNS, 'testinit': testinit}
             },
@@ -582,7 +586,17 @@ ModAPIs = {'GET':
             }}
 
 
-# Use ModAPIs contents for server_skeleton.get_apis()
-APIs.update(ModAPIs)
+@app.route(pc['baseurl'] + '/', methods=['GET'])
+@app.route(pc['baseurl'] + '/api', methods=['GET'])
+def get_apis():
+    """ Makes a page for APIs described in module variable APIs. """
+
+    logger.debug('APIs %s' % (APIs.keys()))
+    ts = time.time()
+    l = [(a, makepublicAPI(a)) for a in APIs.keys()]
+    w = {'APIs': dict(l), 'timestamp': ts}
+    logger.debug('ret %s' % (str(w)[:100] + ' ...'))
+    return jsonify(w)
+
 
 logger.debug('END OF '+__file__)

@@ -1,6 +1,6 @@
 #! /usr/bin/python3.6
 
-from fdi.pns.httppool_server import app as application
+from fdi.pns.httppool_server import app
 import sys
 import os
 import logging
@@ -18,4 +18,10 @@ logger = logging.getLogger()
 sys.path.insert(0, os.path.dirname(__file__))
 
 
-application.secret_key = 'anything you wish'
+app.secret_key = 'anything you wish'
+
+
+def application(req_environ, start_response):
+    req_environ['SERVER_IP_ADDR'] = os.environ['SERVER_IP_ADDR']
+    req_environ['SERVER_PORT'] = os.environ['SERVER_PORT']
+    return app(req_environ, start_response)

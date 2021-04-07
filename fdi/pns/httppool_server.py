@@ -4,10 +4,10 @@ from ..utils.common import lls
 from ..dataset.deserialize import deserialize
 from ..dataset.serializable import serialize
 from ..pal.productstorage import ProductStorage
-from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from ..pal.query import MetaQuery, AbstractQuery
 from ..pal.urn import makeUrn, parseUrn
 from ..dataset.product import Product
+from ..dataset.classes import Classes
 from ..utils.common import fullname, trbk
 
 # from .db_utils import check_and_create_fdi_record_table, save_action
@@ -36,7 +36,7 @@ else:
 # '/var/log/pns-server.log'
 # logdict['handlers']['file']['filename'] = '/tmp/server.log'
 
-from .server_skeleton import logging, checkpath, pc, Classes, app, auth, APIs
+from .server_skeleton import init_conf_clas, makepublicAPI, logging, checkpath, app, auth, pc
 
 logger = logging.getLogger(__name__)
 
@@ -50,9 +50,11 @@ schm = 'server'
 @app.before_first_request
 def init_httppool_server():
     """ Init a global HTTP POOL """
-    global PM, basepath, poolpath
+    global pc, Classes, PM, BASEURL, basepath, poolpath
 
-    PM = PoolManager
+    Classes = init_conf_clas()
+
+    from ..pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
     if PM.isLoaded(DEFAULT_MEM_POOL):
         logger.debug('cleanup DEFAULT_MEM_POOL')
         PM.getPool(DEFAULT_MEM_POOL).removeAll()
@@ -62,10 +64,10 @@ def init_httppool_server():
                  )
     PM.removeAll()
 
-    basepath = PoolManager.PlacePaths[schm]
+    basepath = PM.PlacePaths[schm]
     poolpath = os.path.join(basepath, pc['api_version'])
 
-    if checkpath(poolpath) is None:
+    if checkpath(poolpath, pc['serveruser']) is None:
         logger.error('Store path %s unavailable.' % poolpath)
         sys.exit(-2)
 
@@ -141,6 +143,7 @@ def httppool(pool):
     paths = pool.split('/')
     ts = time.time()
     logger.debug('*** method %s paths %s ***' % (request.method, paths))
+
     if request.method == 'GET':
         # TODO modify client loading pool , prefer use load_HKdata rather than load_single_HKdata, because this will generate enormal sql transaction
         if paths[-2] == 'hk' and paths[-1] in ['classes', 'urns', 'tags']:  # Retrieve single HKdata
@@ -254,7 +257,7 @@ def save_product(data, paths, tag=None):
     poolurl = schm + '://' + fullpoolpath
     # resourcetype = fullname(data)
 
-    if checkpath(fullpoolpath) is None:
+    if checkpath(fullpoolpath, pc['serveruser']) is None:
         result = '"FAILED"'
         msg = 'Pool directory error: ' + fullpoolpath
         return result, msg
@@ -367,23 +370,34 @@ def getinfo(cmd):
 
 
 # API specification for this module
-ModAPIs = {'GET':
-           {'func': 'get_pool_sn',
+APIs = {'GET':
+        {'func': 'get_pool_sn',
             'cmds': {'sn': 'the Serial Number'}
-            },
-           'PUT':
-           {
-           },
-           'POST':
-           {'func': 'httppool',
+         },
+        'PUT':
+        {
+        },
+        'POST':
+        {'func': 'httppool',
             'cmds': {}
-            },
-           'DELETE':
-           {'func':  'httppool',
-               'cmds': {}
-            }}
+         },
+        'DELETE':
+        {'func':  'httppool',
+         'cmds': {}
+         }}
 
 
-# Use ModAPIs contents for server_skeleton.get_apis()
-APIs.update(ModAPIs)
+@app.route(pc['baseurl'] + '/', methods=['GET'])
+@app.route(pc['baseurl'] + '/api', methods=['GET'])
+def get_apis():
+    """ Makes a page for APIs described in module variable APIs. """
+
+    logger.debug('APIs %s' % (APIs.keys()))
+    ts = time.time()
+    l = [(a, makepublicAPI(a)) for a in APIs.keys()]
+    w = {'APIs': dict(l), 'timestamp': ts}
+    logger.debug('ret %s' % (str(w)[:100] + ' ...'))
+    return jsonify(w)
+
+
 logger.debug('END OF '+__file__)

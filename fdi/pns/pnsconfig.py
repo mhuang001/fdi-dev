@@ -5,8 +5,9 @@ import getpass
 import os
 
 # logging level for server or possibly by client
-pnsconfig = dict(logginglevel=logging.INFO)
-
+pnsconfig = dict(logginglevel=logging.DEBUG)
+# the key must be uppercased
+FLASK_CONF = pnsconfig
 # base url for webserver. Update version if needed.
 pnsconfig['api_version'] = 'v0.6'
 pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
@@ -19,8 +20,8 @@ pnsconfig['base_poolpath'] = '/tmp'
 pnsconfig['server_poolpath'] = '/var/www/httppool_server/data'  # For server
 pnsconfig['defaultpool'] = 'pool_default'
 
-dev = 0
-if dev:
+conf = 'server_test'
+if conf == 'dev':
     # username, passwd, flask ip, flask port
     pnsconfig['node'] = {'username': 'foo',
                          'password': 'bar', 'host': '0.0.0.0', 'port': 5000}
@@ -34,7 +35,7 @@ if dev:
     pnsconfig['base_poolpath'] = '/tmp'
     pnsconfig['server_poolpath'] = '/tmp/data'  # For server
     pnsconfig['defaultpool'] = 'pool_default'
-elif 0:
+elif conf == 'server_test':
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
                          'host': '127.0.0.1', 'port': 9884}
 
@@ -45,9 +46,12 @@ elif 0:
     # on server
     home = '/home'
 else:
+    if 0:
+        h, p = os.getenv('SERVER_IP_ADDR'), os.getenv('SERVER_PORT')
+    else:
+        h, p = os.environ['SERVER_IP_ADDR'], os.environ['SERVER_PORT']
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': os.environ['SERVER_IP_ADDR'],
-                         'port': os.environ['SERVER_PORT']}
+                         'host': h, 'port': p}
 
     # server permission user
     pnsconfig['serveruser'] = 'apache'

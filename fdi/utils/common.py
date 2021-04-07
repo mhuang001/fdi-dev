@@ -4,6 +4,7 @@ from .masked import masked
 import hashlib
 import array
 import traceback
+import pwd
 import logging
 from itertools import zip_longest
 from collections.abc import Sequence
@@ -459,3 +460,28 @@ def ld2tk(v):
     else:
         y = v
     return y
+
+
+def getUidGid(username):
+    """ returns the UID and GID  of the named user.
+
+    return: -1 if not available
+    """
+
+    try:
+        uid = pwd.getpwnam(username).pw_uid
+    except KeyError as e:
+        msg = 'Cannot get UserID for ' + username + \
+            '. check config. ' + str(e) + trbk(e)
+        logger.error(msg)
+        uid = -1
+    # do if platform supports.
+    try:
+        gid = pwd.getpwnam(username).pw_gid
+    except KeyError as e:
+        msg = 'Cannot get GroupID for ' + username + \
+            '. check config. ' + str(e) + trbk(e)
+        gid = -1
+        logger.error(msg)
+
+    return uid, gid

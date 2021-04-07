@@ -1,7 +1,6 @@
 #!flask/bin/python
 # -*- coding: utf-8 -*-
 
-from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
 from fdi.utils.getconfig import getConfig
 
@@ -33,6 +32,8 @@ logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
 
+    from fdi.pns.pnsconfig import pnsconfig as pc
+    global pc
     logger = logging.getLogger()
     # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
     pc.update(getConfig())

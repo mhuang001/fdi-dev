@@ -20,8 +20,11 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 app.secret_key = 'anything you wish'
 
+application = app
 
-def application(req_environ, start_response):
+
+def xapplication(req_environ, start_response):
     req_environ['SERVER_IP_ADDR'] = os.environ['SERVER_IP_ADDR']
     req_environ['SERVER_PORT'] = os.environ['SERVER_PORT']
+    req_environ['PNSCONFIG'] = os.environ['PNSCONFIG']
     return app(req_environ, start_response)

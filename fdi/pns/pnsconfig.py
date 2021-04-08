@@ -8,6 +8,9 @@ import os
 pnsconfig = dict(logginglevel=logging.DEBUG)
 # the key must be uppercased
 FLASK_CONF = pnsconfig
+# Te be edited automatically with sed -i 's/^EXTHOST =.*/EXTHOST = xxx/g' file
+EXTHOST = '172.17.0.1'
+EXTPORT = 9876
 # base url for webserver. Update version if needed.
 pnsconfig['api_version'] = 'v0.6'
 pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
@@ -45,13 +48,10 @@ elif conf == 'server_test':
     pnsconfig['ptsuser'] = 'pns'
     # on server
     home = '/home'
-else:
-    if 0:
-        h, p = os.getenv('SERVER_IP_ADDR'), os.getenv('SERVER_PORT')
-    else:
-        h, p = os.environ['SERVER_IP_ADDR'], os.environ['SERVER_PORT']
+elif conf == 'external':
+    # wsgi behind apach2. cannot use env vars
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': h, 'port': p}
+                         'host': EXTHOST, 'port': EXTPORT}
 
     # server permission user
     pnsconfig['serveruser'] = 'apache'

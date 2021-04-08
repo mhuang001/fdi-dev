@@ -40,8 +40,7 @@ RUN cat profile >> .bashrc && rm profile \
 
 # httppool_server_entrypoint.sh is used for replacing apache listen ports and configurations of httppool_server. setuid as root
 COPY fdi/pns/resources/httppool_server_entrypoint.sh .
-RUN chmod +s ./httppool_server_entrypoint.sh \
-&& chmod +x ./httppool_server_entrypoint.sh \
+RUN chmod +x ./httppool_server_entrypoint.sh \
 && echo ./httppool_server_entrypoint.sh >> ~/.bashrc \
 && ./httppool_server_entrypoint.sh \
 && echo ====== httppool_server_entrypoint.sh \
@@ -51,7 +50,8 @@ RUN chmod +s ./httppool_server_entrypoint.sh \
 
 # Configure permission
 RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 ${PROJ_DIR} ${UHOME}/; \
-do chown -R ${USR}:${USR} $i; echo $i; done
+do chown -R ${USR}:${USR} $i; echo $i; done \
+&& chmod u+s ./httppool_server_entrypoint.sh
 
 # If install fdi repo, instead of package
 # make dir for fdi.
@@ -73,10 +73,9 @@ USER ${USR}
 
 # If install fdi repo, instead of package
 WORKDIR ${FDI_DIR}
-RUN git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
+RUN git clone -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git
 WORKDIR ${FDI_DIR}/fdi/
-RUN git checkout develop \
-&& python3 -m pip install pip -U \
+RUN python3 -m pip install pip -U \
 && make install EXT="[DEV,SERV]" I="--user" 
 #RUN cat /etc/apache2/sites-available/httppool_server.conf
 

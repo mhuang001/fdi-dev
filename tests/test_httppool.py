@@ -329,7 +329,9 @@ def test_CRUD_product():
 
     index = files[-1].rsplit('_', 1)[1]
     url = api_baseurl + post_poolid + '/fdi.dataset.product.Product/' + index
+
     x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+
     o = deserialize(x.text)
     check_response(o)
 

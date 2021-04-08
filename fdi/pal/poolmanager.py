@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-import pdb
+
 from ..pns.pnsconfig import pnsconfig as pc
 from ..utils.getconfig import getConfig
+from ..utils.common import lls
 from .urn import parse_poolurl
 
 import getpass
@@ -93,7 +94,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, DE
         else:
             raise NotImplementedError(schm + ':// is not supported')
         cls.save(poolname, p)
-        logger.debug('made pool ' + str(p))
+        logger.debug('made pool ' + lls(p, 900))
         return p
 
     @ classmethod

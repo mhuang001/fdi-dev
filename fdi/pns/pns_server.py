@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ..utils.common import trbk, trbk2, getUidGid
+from ..utils.common import trbk, trbk2, getUidGid, lls
 from ..utils.run_proc import run_proc
 from ..dataset.deserialize import deserialize
 from ..dataset.serializable import serialize
@@ -18,7 +18,7 @@ from os.path import isfile, isdir, join
 from os import listdir, chown, chmod, environ, setuid, setgid
 from pathlib import Path
 from subprocess import Popen, PIPE, TimeoutExpired, run as srun
-from flask import abort, make_response, request
+from flask import abort, make_response, request, jsonify
 import filelock
 import sys
 import logging
@@ -472,11 +472,11 @@ def calcresult(cmd, ops=''):
                 logger.error(cmd)
                 abort(400)
                 result = None
-    logger.debug(str(result)[:155])
+                # logger.debug(lls(result, 155))
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
     s = serialize(w)
-    logger.debug(s[: 160] + ' ...')
+    logger.debug('serialized result: '+lls(s, 160))
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
@@ -527,7 +527,6 @@ def setup(cmd, ops=''):
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
     s = serialize(w)
-    # logger.debug(s[:] + ' ...')
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
@@ -555,35 +554,35 @@ def cleanup(cmd):
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
     s = serialize(w)
-    logger.debug(s[:] + ' ...')
+    logger.debug(s)
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
 
 
 # API specification for this module
-PIs = {'GET':
-       {'func': 'getinfo',
-        'cmds': {'init': 'the initPTS file', 'config': 'the configPTS file',
-                 'run': 'the file running PTS', 'clean': 'the cleanPTS file',
-                 'input': filesin, 'output': filesin,
-                 'pnsconfig': 'PNS configuration'}
-        },
-       'PUT':
-           {'func': 'setup',
-               'cmds': {'init': initPTS, 'config': configPTS, 'pnsconf': configPNS, 'testinit': testinit}
-            },
-           'POST':
-           {'func': 'calcresult',
-               'cmds': {'calc': calc, 'testcalc': genposttestprod,
-                        'run': run, 'testrun': testrun,
-                        'echo': 'Echo',
-                        'sleep': (dosleep,  dict(ops='3'))}
-            },
-           'DELETE':
-           {'func': 'cleanup',
-               'cmds': {'clean': cleanPTS}
-            }}
+APIs = {'GET':
+        {'func': 'getinfo',
+         'cmds': {'init': 'the initPTS file', 'config': 'the configPTS file',
+                  'run': 'the file running PTS', 'clean': 'the cleanPTS file',
+                  'input': filesin, 'output': filesin,
+                  'pnsconfig': 'PNS configuration'}
+         },
+        'PUT':
+        {'func': 'setup',
+         'cmds': {'init': initPTS, 'config': configPTS, 'pnsconf': configPNS, 'testinit': testinit}
+         },
+        'POST':
+        {'func': 'calcresult',
+         'cmds': {'calc': calc, 'testcalc': genposttestprod,
+                  'run': run, 'testrun': testrun,
+                  'echo': 'Echo',
+                  'sleep': (dosleep,  dict(ops='3'))}
+         },
+        'DELETE':
+        {'func': 'cleanup',
+         'cmds': {'clean': cleanPTS}
+         }}
 
 
 @app.route(pc['baseurl'] + '/', methods=['GET'])
@@ -593,9 +592,9 @@ def get_apis():
 
     logger.debug('APIs %s' % (APIs.keys()))
     ts = time.time()
-    l = [(a, makepublicAPI(a)) for a in APIs.keys()]
+    l = [(a, makepublicAPI(o)) for a, o in APIs.items()]
     w = {'APIs': dict(l), 'timestamp': ts}
-    logger.debug('ret %s' % (str(w)[:100] + ' ...'))
+    logger.debug('ret %s' % lls(w, 100))
     return jsonify(w)
 
 

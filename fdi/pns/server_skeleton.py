@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ..utils.common import trbk, getUidGid
+from ..utils.getconfig import getConfig
 
 import time
 import sys
@@ -20,8 +21,11 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config.from_object('fdi.pns.pnsconfig')
-app.config.from_envvar('PNSCONFIG')
-pc = app.config['FLASK_CONF']
+try:
+    app.config.from_envvar('PNSCONFIG')
+    pc = app.config['FLASK_CONF']
+except RuntimeError:
+    pc = getConfig()
 logger.info(pc)
 auth = HTTPBasicAuth()
 
@@ -156,10 +160,9 @@ def verify_password(username, password):
     #         logger.error("Connect to database failed: " +str(e))
 
 
-def makepublicAPI(ops):
+def makepublicAPI(o):
     """ Provides API specification for command given. """
     api = []
-    o = APIs[ops]
     for cmd in o['cmds'].keys():
         cs = o['cmds'][cmd]
         if not issubclass(cs.__class__, tuple):  # e.g. 'run':run

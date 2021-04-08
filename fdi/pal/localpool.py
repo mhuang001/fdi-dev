@@ -41,8 +41,7 @@ def wipeLocal(poolpath):
         shutil.rmtree(pp)
         os.mkdir(pp)
     except Exception as e:
-        msg = 'remove-mkdir ' + pp + \
-            ' failed. ' + str(e) + trbk(e)
+        msg = 'remove-mkdir failed. exc: %s trbk: %s.' % (str(e), trbk(e))
         logger.error(msg)
         raise e
 
@@ -98,9 +97,9 @@ class LocalPool(ProductPool):
                 # file_obj.seek(0)
             js = file_obj.read()
         except Exception as e:
-            msg = 'Error in HK reading ' + fp + str(e) + trbk(e)
+            msg = 'Error in HK reading. exc: %s trbk: %s.' % (str(e), trbk(e))
             logging.error(msg)
-            raise Exception(msg)
+            raise IOError(msg)
         if 1:  # close:
             file_obj.close()
             if fp in self._files:
@@ -216,7 +215,7 @@ class LocalPool(ProductPool):
             # print('tl %.8f %9d' % (time.time()-t0, l))
             logger.debug('HK written')
         except IOError as e:
-            logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
+            logger.error('Save failed. exc: %s trbk: %s.' % (str(e), trbk(e)))
             raise e  # needed for undoing HK changes
         return l
 
@@ -253,7 +252,8 @@ class LocalPool(ProductPool):
             os.unlink(fp)
             self.writeHK(fp0)
         except IOError as e:
-            logger.error('Remove ' + fp + 'failed. ' + str(e) + trbk(e))
+            logger.error('Remove failed. exc: %s trbk: %s.' %
+                         (str(e), trbk(e)))
             raise e  # needed for undoing HK changes
 
     def schematicWipe(self):

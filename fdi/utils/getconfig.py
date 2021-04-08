@@ -20,13 +20,14 @@ def getConfig(conf='pns'):
     env = '/root' if env == '$HOME' else env
     confp = join(env, '.config')
     sys.path.insert(0, confp)
-    logger.info('Reading from configuration file in dir '+confp)
+    # this is the stem part of filename and the name of the returned dict
+    stem = conf+'config'
+    logger.info('Reading from configuration file %s/%s.py' % (confp, stem))
 
     try:
-        c = __import__(conf+'local', globals(), locals(),
-                       [conf+'config'], 0)
-        logger.debug('Reading %s/%slocal.py done.' % (confp, conf))
-        return c.__dict__[conf+'config']
+        c = __import__(conf+'local', globals(), locals(), [stem], 0)
+        logger.debug('Reading %s/%s.py done.' % (confp, stem))
+        return c.__dict__[stem]
     except ModuleNotFoundError as e:
         logger.warning(str(
             e) + '. Use default config in the package, such as fdi/pns/pnsconfig.py. Copy it to ~/.config/[package]local.py and make persistent customization there.')

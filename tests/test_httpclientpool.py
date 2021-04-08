@@ -134,7 +134,7 @@ def test_gen_url():
         assert exc_msg == 'No such method and contents composition: GET/pool'
 
 
-def test_CRUD_product():
+def test_CRUD_product_by_client():
     """Client http product storage READ, CREATE, DELETE products in remote
     """
     logger.info('Init a pstore')
@@ -186,12 +186,9 @@ def test_CRUD_product():
         test_poolid)._classes['fdi.dataset.product.Product']['sn']
     assert len(sn) >= 1, 'Delete product local error, sn : ' + str(sn)
     logger.info('A load exception message is expected')
-    try:
+
+    with pytest.raises(NameError):
         res = pstore.getPool(test_poolid).loadProduct(urn.urn)
-    except NameError:
-        pass
-    else:
-        assert 0, 'Failed to raise exception'
 
     logger.info('Delete a pool')
     pstore.getPool(test_poolid).removeAll()

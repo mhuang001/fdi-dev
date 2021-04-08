@@ -20,7 +20,7 @@ import os
 import json
 import time
 import pprint
-from flask import request, make_response
+from flask import request, make_response, jsonify
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -203,6 +203,7 @@ def delete_product(paths):
     if not PM.isLoaded(poolname):
         result = '"FAILED"'
         msg = 'Pool not found: ' + poolname
+        logger.error(msg)
         return result, msg
     logger.debug('DELETE product urn: ' + urn)
     try:
@@ -213,6 +214,7 @@ def delete_product(paths):
         result = '"FAILED"'
         msg = 'Unable to remove product: ' + urn + \
             ' caused by ' + str(e) + ' ' + trbk(e)
+        logger.error(msg)
     return result, msg
 
 
@@ -394,7 +396,7 @@ def get_apis():
 
     logger.debug('APIs %s' % (APIs.keys()))
     ts = time.time()
-    l = [(a, makepublicAPI(a)) for a in APIs.keys()]
+    l = [(a, makepublicAPI(o)) for a, o in APIs.items()]
     w = {'APIs': dict(l), 'timestamp': ts}
     logger.debug('ret %s' % (str(w)[:100] + ' ...'))
     return jsonify(w)

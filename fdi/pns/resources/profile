@@ -1,6 +1,6 @@
-alias sers='service apache2 --full-restart'
+alias sr='service apache2 --full-restart'
 alias cl='curl -i http://localhost:9884'
-alias aerr='less /var/log/apache2/error-ps.log'
+alias er='less /var/log/apache2/error-ps.log'
 
 alias pd='python -m pdb -c continue '
 

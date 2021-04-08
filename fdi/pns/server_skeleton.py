@@ -163,14 +163,13 @@ def verify_password(username, password):
 def makepublicAPI(o):
     """ Provides API specification for command given. """
     api = []
-    for cmd in o['cmds'].keys():
-        cs = o['cmds'][cmd]
+
+    for cmd, cs in o['cmds'].items():
         if not issubclass(cs.__class__, tuple):  # e.g. 'run':run
             c = cs
             kwds = {}
         else:  # e.g. 'sleep': (dosleep, dict(ops='1'))
-            c = cs[0]
-            kwds = cs[1]
+            c, kwds = cs
         desc = c.__doc__ if isinstance(c, types.FunctionType) else c
         d = {}
         d['description'] = desc

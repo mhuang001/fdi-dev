@@ -8,7 +8,7 @@ import os
 pnsconfig = dict(logginglevel=logging.DEBUG)
 # the key must be uppercased
 FLASK_CONF = pnsconfig
-# Te be edited automatically with sed -i 's/^EXTHOST =.*/EXTHOST = xxx/g' file
+# Te be edited automatically with sed -i 's/^EXTHOST =.*$/EXTHOST = xxx/g' file
 EXTHOST = '172.17.0.1'
 EXTPORT = 9876
 # base url for webserver. Update version if needed.

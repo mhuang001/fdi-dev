@@ -8,9 +8,7 @@ echo ===== /etc/apache2/sites-available/httppool_server.conf
 grep Virtual /etc/apache2/sites-available/httppool_server.conf
 grep ServerName /etc/apache2/sites-available/httppool_server.conf
 
-mv /etc/apache2/apache2.conf /etc/apache2/apache2.conf.bk \
-&& grep -i -v ServerName  /etc/apache2/apache2.conf.bk \
-| sed -e "s/^#.*Global configuration.*$/&\n\nServerName $IP\n/" >\
+sed -i "/^ServerName/d" -i "s/^#.*Global configuration.*$/&\n\nServerName $IP\n/" 
 /etc/apache2/apache2.conf
 
 echo ===== /etc/apache2/apache2.conf

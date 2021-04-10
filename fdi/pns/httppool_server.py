@@ -169,13 +169,19 @@ def httppool(pool):
             msg = 'Unknown request: ' + pool
 
     if request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
-        data = deserialize(request.data)
-        if request.headers.get('tag') is not None:
-            tag = request.headers.get('tag')
+        try:
+            data = deserialize(request.data)
+        except ValueError as e:
+            result = '"FAILED"'
+            msg = 'Class needs to be included in pool configuration.' + \
+                str(e) + ' ' + trbk(e)
         else:
-            tag = None
-        result, msg = save_product(data, paths, tag)
-        # save_action(username=username, action='SAVE', pool=paths[0])
+            if request.headers.get('tag') is not None:
+                tag = request.headers.get('tag')
+            else:
+                tag = None
+            result, msg = save_product(data, paths, tag)
+            # save_action(username=username, action='SAVE', pool=paths[0])
 
     if request.method == 'DELETE':
         if paths[-1].isnumeric():
@@ -318,20 +324,20 @@ def load_HKdata(paths):
     """Load HKdata of a pool
     """
 
-    hkname=paths[-1]
-    poolname='/'.join(paths[0: -1])
-    poolurl=schm + '://' + os.path.join(poolpath, poolname)
+    hkname = paths[-1]
+    poolname = '/'.join(paths[0: -1])
+    poolurl = schm + '://' + os.path.join(poolpath, poolname)
     # resourcetype = fullname(data)
 
     try:
-        poolobj=PM.getPool(poolname = poolname, poolurl = poolurl)
-        c, t, u=poolobj.readHK(serialized = True)
+        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        c, t, u = poolobj.readHK(serialized=True)
         # make a json string
-        result='{"classes": %s, "tags": %s, "urns": %s}' % (c, t, u)
-        msg=''
+        result = '{"classes": %s, "tags": %s, "urns": %s}' % (c, t, u)
+        msg = ''
     except Exception as e:
-        result='"FAILED"'
-        msg='Exception : ' + str(e) + ' ' + trbk(e)
+        result = '"FAILED"'
+        msg = 'Exception : ' + str(e) + ' ' + trbk(e)
         raise e
     return result, msg
 
@@ -340,64 +346,64 @@ def load_single_HKdata(paths):
     """ Returns pool housekeeping data of the specified type: classes or urns or tags.
     """
 
-    hkname=paths[-1]
+    hkname = paths[-1]
     # paths[-2] is 'hk'
-    poolname='/'.join(paths[: -2])
-    poolurl=schm + '://' + os.path.join(poolpath, poolname)
+    poolname = '/'.join(paths[: -2])
+    poolurl = schm + '://' + os.path.join(poolpath, poolname)
     # resourcetype = fullname(data)
 
     try:
-        poolobj=PM.getPool(poolname = poolname, poolurl = poolurl)
-        result=poolobj.readHK(hkname, serialized = True)
-        msg=''
+        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        result = poolobj.readHK(hkname, serialized=True)
+        msg = ''
     except Exception as e:
-        result='"FAILED"'
-        msg='Exception : ' + str(e) + ' ' + trbk(e)
+        result = '"FAILED"'
+        msg = 'Exception : ' + str(e) + ' ' + trbk(e)
     return result, msg
 
 
-@ app.route(pc['baseurl'] + '/<string:cmd>', methods = ['GET'])
+@ app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
 def getinfo(cmd):
     ''' returns init, config, run input, run output.
     '''
     logger.debug('getr %s' % (cmd))
 
-    msg=''
-    ts=time.time()
+    msg = ''
+    ts = time.time()
     try:
         if cmd == 'pnsconfig':
-            result, msg=pc, ''
+            result, msg = pc, ''
         else:
-            result, msg=-1, cmd + ' is not valid.'
+            result, msg = -1, cmd + ' is not valid.'
     except Exception as e:
-        result, msg=-1, str(e) + trbk(e)
-    w={'result': result, 'message': msg, 'timestamp': ts}
+        result, msg = -1, str(e) + trbk(e)
+    w = {'result': result, 'message': msg, 'timestamp': ts}
 
-    s=serialize(w)
+    s = serialize(w)
     logger.debug(s[:] + ' ...')
-    resp=make_response(s)
-    resp.headers['Content-Type']='application/json'
+    resp = make_response(s)
+    resp.headers['Content-Type'] = 'application/json'
     return resp
 
 
 # API specification for this module
 APIs = {
     'GET': {'func': 'get_pool_sn',
-            'cmds': {'sn': ('Return the total count for the given product type and pool_id.',{
+            'cmds': {'sn': ('Return the total count for the given product type and pool_id.', {
                 'prod_type': 'clsssname',
                 'pool_id': 'pool name'
             })},
             },
     'PUT': {'func': 'httppool',
-             'cmds': {'pool':'url'
-                      }
+            'cmds': {'pool': 'url'
+                     }
             },
     'POST': {'func': 'httppool',
-             'cmds': {'pool':'url'
+             'cmds': {'pool': 'url'
                       }
              },
     'DELETE': {'func': 'httppool',
-               'cmds': {'pool':'url'
+               'cmds': {'pool': 'url'
                         }
                }
 }

@@ -6,14 +6,26 @@ import os
 
 # logging level for server or possibly by client
 pnsconfig = dict(logginglevel=logging.DEBUG)
+
+# pool URL look up table
+poolurl_of = {
+    'e2e': 'http://10.0.10.114:9885/v0.6/e2e'
+}
+pnsconfig['lookup'] = poolurl_of
+
+# components of the default poolurl
+
 # the key must be uppercased
 FLASK_CONF = pnsconfig
+
 # Te be edited automatically with sed -i 's/^EXTHOST =.*$/EXTHOST = xxx/g' file
 EXTHOST = '172.17.0.1'
 EXTPORT = 9876
+
 # base url for webserver. Update version if needed.
 pnsconfig['api_version'] = 'v0.6'
 pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
+
 
 # base url for pool, you must have permission of this path, for example : /home/user/Documents
 # this base pool path will be added at the beginning of your pool urn when you init a pool like:
@@ -69,9 +81,13 @@ pnsconfig['mysql'] = {'host': 'ssa-mysql', 'port': 3306,
                       'user': 'root',  'password': '123456',
                       'database': 'users'}
 
+
 # import user classes
-# '/cygdrive/d/code/share/svom/products/projectclasses.py'
+# See document in :class:`Classes`
 pnsconfig['userclasses'] = ''
+
+
+########### PNS-specific setup ############
 
 phome = join(home, 'pns')
 pnsconfig['paths'] = dict(

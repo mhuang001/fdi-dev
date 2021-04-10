@@ -175,14 +175,53 @@ class Classes(metaclass=Classes_meta):
     """ A dictionary of class names and their class objects that are allowed to be deserialized.
     A fdi package built-in dictionary (in the format of locals() output) is kept internally.
     Users who need add more deserializable class can for example:
-    class Myclass():
-        ...
-    Classes.classes.update({myClasses
+
+
+    Define new classes
+    ``class Myclass():
+          ....``    
+
+    update Classes
+    ``Classes.classes.update({'myClasses': MyClass})``
+
+    and use
+    ``new_instance = Classes.mapping['MyClass']``
+
+    For a new package with many classes: 
+
+    Import user classes in a python file for example projectclasses.py:
+
+    ``
+    Class PC(Classes):
+
+        module_class = {
+            'mypackage.mymodule': ['MyClass1', 'MyClass2'],
+        }
+        # from another module defining a dict of modulename-Classobj pairs
+        try:
+            from mypackage.mymodule import pairs
+        except (ImportError, ModuleNotFoundError) as e:
+            logger.info(e)
+        else:
+            module_class.update(pairs)
+
+        _package = {}
+        _classes = {}
+    ``
+
+    To use:
+    ``
+    from fdi.dataset.classes import Classes
+    from my.package.projectclasses import PC
+    prjcls = Classes.mapping
+    Classes.updateMapping(PC.updateMapping())
+
+    new_instance = prjcls['MyClass1']
+
     """
 
     pass
 
 
 # globals()
-# pdb.set_trace()
 # Classes.importModuleClasses()

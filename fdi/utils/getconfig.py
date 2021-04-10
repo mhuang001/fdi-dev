@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 @functools.lru_cache(5)
-def getConfig(conf='pns'):
+def getConfig(poolname=None, conf='pns'):
     """ Imports a dict named [conf]config defined in ~/.config/[conf]local.py
     """
     # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
@@ -27,8 +27,19 @@ def getConfig(conf='pns'):
     try:
         c = __import__(conf+'local', globals(), locals(), [stem], 0)
         logger.debug('Reading %s/%s.py done.' % (confp, stem))
-        return c.__dict__[stem]
+        config = c.__dict__[stem]
+        if poolname:
+            urlof = c.__dict__['poolurl_of']
+            if poolname in urlof:
+                return urlof[poolname]
+            else:
+                return config['httphost'] + config['baseurl'] + '/' + poolname
+        else:
+            return config
     except ModuleNotFoundError as e:
         logger.warning(str(
             e) + '. Use default config in the package, such as fdi/pns/pnsconfig.py. Copy it to ~/.config/[package]local.py and make persistent customization there.')
-        return {}
+        if poolname:
+            return None
+        else:
+            return {}

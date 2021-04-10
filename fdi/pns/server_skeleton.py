@@ -21,11 +21,13 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config.from_object('fdi.pns.pnsconfig')
-try:
-    app.config.from_envvar('PNSCONFIG')
-    pc = app.config['FLASK_CONF']
-except RuntimeError:
-    pc = getConfig()
+# try:
+#     app.config.from_envvar('PNSCONFIG')
+#     pc = app.config['FLASK_CONF']
+# except RuntimeError:
+#     pc = getConfig()
+pc = getConfig()
+
 logger.info(pc)
 auth = HTTPBasicAuth()
 

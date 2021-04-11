@@ -979,7 +979,7 @@ def test_MetaData():
     # names of all parameters
     assert [n for n in v] == [a1, 'time', 'birthday']
 
-    checkjson(v, dbg=1)
+    checkjson(v, dbg=0)
 
     v.remove(a1)  # inherited from composite
     assert v.size() == 2

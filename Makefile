@@ -214,22 +214,30 @@ docs_html:
 
 ########
 SERVER_NAME        =httppool_server
-SERVER_PORT        =9884
-SERVER_INTERNAL_PORT =$(SERVER_PORT)
+PORT        =9884
+EXTPORT =$(PORT)
 IMAGE_NAME         =httppool_server:v2
-SERVER_IP      =172.17.0.9
+IP_ADDR     =172.17.0.9
 DOCKERFILE              =fdi/pns/resources/httppool_server.docker
 
 build_server:
-	docker build -t $(IMAGE_NAME) --build-arg SERVER_IP_ADDR=$(SERVER_IP) --build-arg SERVER_PORT=$(SERVER_PORT) -f $(DOCKERFILE) $(D) .
+	docker build -t $(IMAGE_NAME) --build-arg IP_ADDR=$(IP_ADDR) --build-arg PORT=$(PORT) -f $(DOCKERFILE) $(D) .
 
 launch_server:
-	docker run --env SERVER_IP=$(SERVER_IP_ADDR) --env SERVER_PORT=$(SERVER_PORT) -p $(SERVER_INTERNAL_PORT):$(SERVER_PORT) --name $(SERVER_NAME) $(D) -it $(IMAGE_NAME)
+	docker run --env IP_ADDR=$(IP_ADDR) --env PORT=$(PORT) -p $(PORT):$(EXTPORT) --name $(SERVER_NAME) $(D) -it $(IMAGE_NAME)
 
 rm_server:
 	docker stop $(SERVER_NAME)
 	docker  rm $(SERVER_NAME)
-	#docker image rm $(IMAGE_NAME)
+
+rm_serveri:
+	docker stop $(SERVER_NAME)
+	docker  rm $(SERVER_NAME)
+	docker image rm $(IMAGE_NAME)
 
 it:
+	docker exec -it $(D) $(SERVER_NAME) /bin/bash
+
+its:
+
 	docker exec -it $(D) $(SERVER_NAME) /bin/bash

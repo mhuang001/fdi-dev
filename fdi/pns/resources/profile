@@ -1,5 +1,6 @@
 alias sr='service apache2 --full-restart'
-alias cl='curl -i http://localhost:9884'
+alias cl='curl -i http://localhost:${SERVER_PORT}'
+alias cl6='curl -i http://localhost:${SERVER_PORT}/v0.6'
 alias er='less /var/log/apache2/error-ps.log'
 
 alias pd='python -m pdb -c continue '

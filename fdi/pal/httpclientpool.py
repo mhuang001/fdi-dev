@@ -56,7 +56,7 @@ class HttpClientPool(ProductPool):
             return True
 
         real_poolpath = self.transformpath(self._poolname)
-        logger.debug(real_poolpath)
+        logger.debug('real_poolpath '+real_poolpath)
         if not op.exists(real_poolpath):
             # os.mkdir(real_poolpath)
             os.makedirs(real_poolpath)

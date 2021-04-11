@@ -510,12 +510,12 @@ When implementing a ProductPool, the following rules need to be applied:
     def pfilter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
         """ returns filtered collection using the query.
 
-        q is a AbstractQuery.
+        q: an AbstractQuery.
         valid inputs: cls and ns list; productref list; urn list
         """
 
         ret = []
-        glbs = globals()
+        glbs = Classes.mapping
         u = self._urns
         qw = q.getWhere()
         var = q.getVariable()

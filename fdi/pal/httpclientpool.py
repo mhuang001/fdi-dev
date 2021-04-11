@@ -7,7 +7,7 @@ from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serialize
 from .productpool import ProductPool
 from .poolmanager import PoolManager
-from .localpool import wipeLocal
+from .localpool import LocalPool
 from ..utils.common import pathjoin, trbk
 
 import filelock
@@ -31,7 +31,7 @@ def writeJsonwithbackup(fp, data):
         f.write(js)
 
 
-class HttpClientPool(ProductPool):
+class HttpClientPoolXX(ProductPool):
     """ the pool will save all products on a remote server.
     """
 
@@ -223,3 +223,170 @@ class HttpClientPool(ProductPool):
         """ Returns the latest version of a given product, belonging
         to the first pool where the same track id is found.
         """
+
+
+class HttpClientPool(LocalPool):
+    """ the pool will save all products on a remote server.
+    """
+
+    def __init__(self, poolpath_local=None, **kwds):
+        """ Initialize connection to the remote server. creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files on server if not exist.
+
+        poolpath_local: sets where to stotr housekeeping data locally. default is None, using PoolManager.PlacePaths['file']
+        """
+        # print(__name__ + str(kwds))
+        self._poolpath_local = poolpath_local
+        super(HttpClientPool, self).__init__(**kwds)
+        self.setPoolpath_local(poolpath_local)
+
+    def setup(self):
+        """ Sets up HttpPool interals.
+
+        Make sure that self._poolname and self._poolurl are present.
+        """
+
+        if not hasattr(self, '_poolpath_local') or not self._poolpath_local:
+            return True
+        if super().setup():
+            return True
+
+        return False
+
+    @property
+    def poolpath_local(self):
+        """ for property getter
+        """
+        return self.getPoolpath_local()
+
+    @poolpath_local.setter
+    def poolpath_local(self, poolpath_local):
+        """ for property setter
+        """
+        self.setPoolpath_local(poolpath_local)
+
+    def getPoolpath_local(self):
+        """ returns the path where the client stores local data."""
+        return self._poolpath_local
+
+    def setPoolpath_local(self, poolpath_local):
+        """ Replaces the current poolpath_local of this pool.
+        """
+        s = (not hasattr(self, '_poolpath_local')
+             or not self._poolpath_local)
+        self._poolpath_local = PoolManager.PlacePaths['file'] if poolpath_local is None else poolpath_local
+        # call setup only if poolpath_local was None
+        if s:
+            self.setup()
+
+    @lru_cache(maxsize=5)
+    def transformpath(self, path):
+        """ use local poolpath
+
+        """
+        base = self._poolpath_local
+        if base != '':
+            if path[0] == '/':
+                path = base + path
+            else:
+                path = base + '/' + path
+        return path
+
+    def readHK(self):
+        """
+        loads and returns the housekeeping data
+        """
+        poolname = self._poolname
+        logger.debug("READ HK FROM REMOTE===>poolurl: " + poolname)
+        hk = {}
+        try:
+            r, msg = read_from_server(None, self._poolurl, 'housekeeping')
+            if r != 'FAILED':
+                for hkdata in ['classes', 'tags', 'urns']:
+                    hk[hkdata] = r[hkdata]
+        except Exception as e:
+            msg = 'Read ' + poolname + ' failed. ' + str(e) + trbk(e)
+            r = 'FAILED'
+
+        if r == 'FAILED':
+            logger.error(msg)
+            raise Exception(msg)
+        return hk['classes'], hk['tags'], hk['urns']
+
+    def schematicSave(self, resourcetype, index, data, tag=None, **kwds):
+        """
+        does the media-specific saving to remote server
+        save metadata at localpool
+        """
+        fp0 = self.transformpath(self._poolname)
+        fp = pathjoin(fp0, resourcetype + '_' + str(index))
+
+        urnobj = Urn(cls=data.__class__,
+                     poolname=self._poolname, index=index)
+        urn = urnobj.urn
+        try:
+            res = save_to_server(data, urn, self._poolurl, tag)
+            if res['result'] == 'FAILED':
+                # print('Save' + fp + ' to server failed. ' + res['msg'])
+                logger.error('Save ' + fp + ' to server failed. ' + res['msg'])
+                raise Exception(res['msg'])
+            else:
+                l = super().writeHK(fp0)
+                logger.debug('Saved to server done, HK written in local done')
+            logger.debug('Product written in remote server done')
+        except IOError as e:
+            logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
+            raise e  # needed for undoing HK changes
+        return l
+
+    def schematicLoadProduct(self, resourcetype, index, serialized=False):
+        """
+        does the scheme-specific part of loadProduct.
+        """
+        indexstr = str(index)
+        poolname = self._poolname
+        urn = makeUrn(self._poolname, resourcetype, indexstr)
+        logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
+        res, msg = read_from_server(urn, self._poolurl)
+        if res == 'FAILED':
+            raise NameError('Loading ' + urn + ' failed.  ' + msg)
+        return res
+
+    def schematicRemove(self, resourcetype, index):
+        """
+        does the scheme-specific part of removal.
+        """
+        fp0 = self.transformpath(self._poolname)
+        fp = pathjoin(fp0, resourcetype + '_' + str(index))
+        urn = makeUrn(self._poolname, resourcetype, index)
+        try:
+            res, msg = delete_from_server(urn, self._poolurl)
+            if res != 'FAILED':
+                # os.unlink(fp)
+                self.writeHK(fp0)
+                return res
+            else:
+                logger.error('Remove from server ' + fp +
+                             'failed. Caused by: ' + msg)
+                raise ValueError(msg)
+        except IOError as e:
+            logger.error('Remove ' + fp + 'failed. ' + str(e) + trbk(e))
+            raise e  # needed for undoing HK changes
+
+    def schematicWipe(self):
+        """
+        does the scheme-specific remove-all
+        """
+        # logger.debug()
+        pp = self.transformpath(self._poolname)
+
+        res, msg = delete_from_server(None, self._poolurl, 'pool')
+        if res == 'FAILED':
+            logger.error(msg)
+            raise Exception(msg)
+        try:
+            super().schematicWipe()
+        except IOError as e:
+            err = 'remove-mkdir ' + pp + \
+                ' failed. ' + str(e) + trbk(e)
+            logger.error(err)
+            raise e

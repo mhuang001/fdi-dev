@@ -5,6 +5,7 @@ from ..utils.getconfig import getConfig
 
 import time
 import sys
+import functools
 import os
 from os import listdir, chown, chmod, environ, setuid, setgid
 from pathlib import Path
@@ -83,6 +84,7 @@ def setOwnerMode(p, username):
     return username
 
 
+@functools.lru_cache(6)
 def checkpath(path, un):
     """ Checks  the directories and creats if missing.
 

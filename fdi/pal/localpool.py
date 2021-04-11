@@ -81,6 +81,8 @@ class LocalPool(ProductPool):
         self._tags.update(t)
         self._urns.update(u)
 
+        return False
+
     def readmmap(self, filename, close=False, check_time=False):
         fp = op.abspath(filename)
         if check_time:

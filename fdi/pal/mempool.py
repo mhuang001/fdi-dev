@@ -37,6 +37,8 @@ class MemPool(ProductPool):
         self._tags.update(t)
         self._urns.update(u)
 
+        return False
+
     def getPoolSpace(self):
         """ returns the map of this memory pool.
         """

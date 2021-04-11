@@ -82,6 +82,8 @@ When implementing a ProductPool, the following rules need to be applied:
            not hasattr(self, '_poolurl') or not self._poolurl:
             return True
 
+        return False
+
     def lockpath(self, op='w'):
         """ returns the appropriate path.
 
@@ -618,7 +620,7 @@ When implementing a ProductPool, the following rules need to be applied:
         return ret
 
     def __repr__(self):
-        return ' < '+self.__class__.__name__ + ', '.join(str(k)+'='+str(v) for k, v in self.__getstate__().items()) + ' >'
+        return ' < '+self.__class__.__name__ + ', '.join(str(k)+'='+v.__class__.__name__ for k, v in self.__getstate__().items()) + ' >'
 
     def __getstate__(self):
         """ returns an odict that has all state info of this object.

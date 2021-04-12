@@ -252,13 +252,44 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         return len(self._urns) == 0
 
+    def schematicSave(self, productlist, tag=None, geturnobjs=False, serialized=False, **kwds):
+        """ to be implemented by subclasses to do the scheme-specific saving
+        """
+        raise(NotImplementedError)
+
+    def saveProduct(self, product, tag=None, geturnobjs=False, serialized=False, **kwds):
+        """
+        Saves specified product and returns the designated ProductRefs or URNs.
+        Saves a product or a list of products to the pool, possibly under the
+        supplied tag, and return the reference (or a list of references is
+        the input is a list of products), or Urns if geturnobjs is True.
+
+        See pal document for pool structure.
+
+        serialized: if True returns contents in serialized form.
+        """
+        alist = issubclass(product.__class__, list)
+        if not alist:
+            productlist = [product]
+        else:
+            productlist = product
+
+        res = self.schematicSave(productlist, tag=tag,
+                                 geturnobjs=geturnobjs, serialized=serialized, **kwds)
+        logger.debug('generated ' + 'Urns ' if geturnobjs else 'prodRefs ' +
+                     str(len(res)))
+        if alist:
+            return res
+        else:
+            return res[0]
+
     def loadDescriptors(self, urn):
         """
         Loads the descriptors belonging to specified URN.
         """
         return self._urns[urn]
 
-    def schematicLoadProduct(self, resourcetype, index, serialized):
+    def schematicLoad(self, resourcetype, index, serialized=False):
         """ to be implemented by subclasses to do the scheme-specific loading
         """
         raise(NotImplementedError)
@@ -273,10 +304,8 @@ When implementing a ProductPool, the following rules need to be applied:
         if poolname != self._poolname:
             raise(ValueError('wrong pool: ' + poolname +
                              ' . This is ' + self._poolname))
-
-        with filelock.FileLock(self.lockpath('w')):
-            ret = self.schematicLoadProduct(
-                resource, index, serialized=serialized)
+        ret = self.schematicLoad(
+            resourcetype=resource, index=index, serialized=serialized)
         return ret
 
     def meta(self,  urn):
@@ -285,165 +314,46 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         return self._urns[urn]['meta']
 
-    def reference(self,  ref):
+    def reference(self, ref):
         """
         Increment the reference count of a ProductRef.
         """
         self._urns[ref.urn]['refcnt'] += 1
 
-    def schematicRemove(self, resourcetype, index):
+    def schematicRemove(self, urn, resourcetype, index):
         """ to be implemented by subclasses to do the scheme-specific removing
         """
         raise(NotImplementedError)
 
-    def remove(self,  urn):
+    def remove(self, urn):
         """
         Removes a Product belonging to specified URN.
         """
-
         poolname, resource, index = parseUrn(urn)
 
         if self._poolname != poolname:
             raise ValueError(
                 urn + ' is not from the pool ' + self._poolname)
 
-        prod = resource
-        sn = index
-
-        with filelock.FileLock(self.lockpath('w')),\
-                filelock.FileLock(self.lockpath('r')):
-
-            # get the latest HK
-            self._classes, self._tags, self._urns = self.readHK()
-            c, t, u = self._classes, self._tags, self._urns
-
-            if urn not in u:
-                raise ValueError(
-                    '%s not found in pool %s.' % (urn, self.getId()))
-
-            self.removeUrn(urn)
-            c[prod]['sn'].remove(sn)
-
-            if len(c[prod]['sn']) == 0:
-                del c[prod]
-            try:
-                res = self.schematicRemove(resourcetype=prod,
-                                           index=sn)
-            except Exception as e:
-                msg = 'product ' + urn + ' removal failed'
-                logger.debug(msg)
-                self._classes, self._tags, self._urns = self.readHK()
-                raise e
+        res = self.schematicRemove(urn, resourcetype=resource, index=index)
         return res
+
+    def schematicWipe(self):
+        """ to be implemented by subclasses to do the scheme-specific wiping.
+        """
+        raise(NotImplementedError)
 
     def removeAll(self):
         """
         Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).
         """
 
-        with filelock.FileLock(self.lockpath('w')),\
-                filelock.FileLock(self.lockpath('r')):
-            try:
-                self.schematicWipe()
-                self._classes.clear()
-                self._tags.clear()
-                self._urns.clear()
-            except Exception as e:
-                msg = self.getId() + 'wiping failed'
-                logger.debug(msg)
-                raise e
-        logger.debug('Done.')
+        self.schematicWipe()
 
     def saveDescriptors(self,  urn,  desc):
         """
         Save/Update descriptors in pool.
         """
-
-    def schematicSave(self, resourcetype, index, data, tag=None, **kwds):
-        """ to be implemented by subclasses to do the scheme-specific saving
-        """
-        raise(NotImplementedError)
-
-    def saveProduct(self,  product, tag=None, geturnobjs=False, serialized=False, **kwds):
-        """
-        Saves specified product and returns the designated ProductRefs or URNs.
-        Saves a product or a list of products to the pool, possibly under the
-        supplied tag, and return the reference (or a list of references is
-        the input is a list of products), or Urns if geturnobjs is True.
-
-        See pal document for pool structure.
-
-        serialized: if True returns contents in serialized form.
-        """
-        alist = issubclass(product.__class__, list)
-        if not alist:
-            prds = [product]
-        else:
-            prds = product
-        res = []
-        for prd in prds:
-            pn = fullname(prd)
-            with filelock.FileLock(self.lockpath('w')),\
-                    filelock.FileLock(self.lockpath('r')):
-
-                # get the latest HK
-                self._classes, self._tags, self._urns = self.readHK()
-                c, t, u = self._classes, self._tags, self._urns
-                if 0:  # prd.creator in ['Todds', 'Cassandra', 'Jane']:
-                    import pdb
-                    pdb.set_trace()
-
-                if pn in c:
-                    sn = (c[pn]['currentSN'] + 1)
-                else:
-                    sn = 0
-                    c[pn] = ODict(sn=[])
-
-                c[pn]['currentSN'] = sn
-                c[pn]['sn'].append(sn)
-
-                urnobj = Urn(cls=prd.__class__,
-                             poolname=self._poolname, index=sn)
-                urn = urnobj.urn
-
-                if urn not in u:
-                    u[urn] = ODict(tags=[], meta=prd.meta)
-
-                if tag is not None:
-                    self.setTag(tag, urn)
-                try:
-                    # save prod and HK
-                    self.schematicSave(resourcetype=pn,
-                                       index=sn,
-                                       data=prd,
-                                       tag=tag,
-                                       **kwds)
-                except Exception as e:
-                    msg = 'product ' + urn + ' saving failed.'
-                    self._classes, self._tags, self._urns = self.readHK()
-                    logger.debug(msg)
-                    raise e
-
-            if geturnobjs:
-                if serialized:
-                    res.append('"'+urn+'"')
-                else:
-                    res.append(urnobj)
-            else:
-                if serialized:
-                    res.append('"'+urn+'"')
-                else:
-                    rf = ProductRef(urn=urnobj)
-                    # it seems that there is no better way to set meta
-                    rf._meta = prd.getMeta()
-                    rf._poolname = self._poolname
-                    res.append(rf)
-        logger.debug('generated ' + 'Urns ' if geturnobjs else 'prodRefs ' +
-                     str(len(res)))
-        if alist:
-            return res
-        else:
-            return res[0]
 
     def mfilter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
         """ returns filtered collection using the query.
@@ -515,7 +425,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
 
         ret = []
-        glbs = Classes.mapping
+        glbs = globals()
         u = self._urns
         qw = q.getWhere()
         var = q.getVariable()
@@ -633,3 +543,146 @@ When implementing a ProductPool, the following rules need to be applied:
             _urns=self._urns,
             _tags=self._tags,
         )
+
+
+class ManagedPool(ProductPool):
+    """ A ProductPool that manages its internal house keeping. """
+
+    def __init__(self, **kwds):
+        super(ManagedPool, self).__init__(**kwds)
+
+    def doSave(self, resourcetype, index, data, tag=None, **kwds):
+        """ to be implemented by subclasses to do the action of saving
+        """
+        raise(NotImplementedError)
+
+    def schematicSave(self, productlist, tag=None, geturnobjs=False, serialized=False, **kwds):
+        """ do the scheme-specific saving """
+
+        res = []
+        for prd in productlist:
+            pn = fullname(prd)
+            with filelock.FileLock(self.lockpath('w')),\
+                    filelock.FileLock(self.lockpath('r')):
+
+                # get the latest HK
+                self._classes, self._tags, self._urns = self.readHK()
+                c, t, u = self._classes, self._tags, self._urns
+
+                if pn in c:
+                    sn = (c[pn]['currentSN'] + 1)
+                else:
+                    sn = 0
+                    c[pn] = ODict(sn=[])
+
+                c[pn]['currentSN'] = sn
+                c[pn]['sn'].append(sn)
+
+                urnobj = Urn(cls=prd.__class__,
+                             poolname=self._poolname, index=sn)
+                urn = urnobj.urn
+
+                if urn not in u:
+                    u[urn] = ODict(tags=[], meta=prd.meta)
+
+                if tag is not None:
+                    self.setTag(tag, urn)
+                try:
+                    # save prod and HK
+                    self.doSave(resourcetype=pn,
+                                index=sn,
+                                data=prd,
+                                tag=tag,
+                                **kwds)
+                except Exception as e:
+                    msg = 'product ' + urn + ' saving failed.'
+                    self._classes, self._tags, self._urns = self.readHK()
+                    logger.debug(msg)
+                    raise e
+
+            if geturnobjs:
+                if serialized:
+                    res.append('"'+urn+'"')
+                else:
+                    res.append(urnobj)
+            else:
+                if serialized:
+                    res.append('"'+urn+'"')
+                else:
+                    rf = ProductRef(urn=urnobj)
+                    # it seems that there is no better way to set meta
+                    rf._meta = prd.getMeta()
+                    rf._poolname = self._poolname
+                    res.append(rf)
+        return res
+
+    def doLoad(self, resourcetype, index, serialized):
+        """ to be implemented by subclasses to do the action of loading
+        """
+        raise(NotImplementedError)
+
+    def schematicLoad(self, resourcetype, index, serialized=False):
+        """ do the scheme-specific loading
+        """
+
+        with filelock.FileLock(self.lockpath('w')):
+            ret = self.doLoad(resourcetype=resourcetype,
+                              index=index, serialized=serialized)
+        return ret
+
+    def doRemove(self, resourcetype, index):
+        """ to be implemented by subclasses to do the action of reemoving
+        """
+        raise(NotImplementedError)
+
+    def schematicRemove(self, urn, resourcetype, index):
+        """ do the scheme-specific removing
+        """
+
+        prod = resourcetype
+        sn = index
+
+        with filelock.FileLock(self.lockpath('w')),\
+                filelock.FileLock(self.lockpath('r')):
+
+            # get the latest HK
+            self._classes, self._tags, self._urns = self.readHK()
+            c, t, u = self._classes, self._tags, self._urns
+
+            if urn not in u:
+                raise ValueError(
+                    '%s not found in pool %s.' % (urn, self.getId()))
+
+            self.removeUrn(urn)
+            c[prod]['sn'].remove(sn)
+
+            if len(c[prod]['sn']) == 0:
+                del c[prod]
+            try:
+                res = self.doRemove(resourcetype=prod, index=sn)
+            except Exception as e:
+                msg = 'product ' + urn + ' removal failed'
+                logger.debug(msg)
+                self._classes, self._tags, self._urns = self.readHK()
+                raise e
+
+    def doWipe(self):
+        """ to be implemented by subclasses to do the action of wiping.
+        """
+        raise(NotImplementedError)
+
+    def schematicWipe(self):
+        """ do the scheme-specific wiping
+        """
+        with filelock.FileLock(self.lockpath('w')),\
+                filelock.FileLock(self.lockpath('r')):
+            try:
+                self.doWipe()
+                self._classes.clear()
+                self._tags.clear()
+                self._urns.clear()
+            except Exception as e:
+                msg = self.getId() + 'wiping failed'
+                logger.debug(msg)
+                raise e
+        logger.debug('Done.')

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .productpool import ProductPool
+from .productpool import ManagedPool
 from ..utils.common import pathjoin, trbk
 
 import filelock
@@ -46,7 +46,7 @@ def wipeLocal(poolpath):
         raise e
 
 
-class LocalPool(ProductPool):
+class LocalPool(ManagedPool):
     """ the pool will save all products in local computer.
     """
 
@@ -202,7 +202,7 @@ class LocalPool(ProductPool):
                                     check_time=True)
         return l
 
-    def schematicSave(self, resourcetype, index, data, tag=None, **kwds):
+    def doSave(self, resourcetype, index, data, tag=None, **kwds):
         """
         does the media-specific saving.
 
@@ -221,9 +221,9 @@ class LocalPool(ProductPool):
             raise e  # needed for undoing HK changes
         return l
 
-    def schematicLoadProduct(self, resourcetype, index, serialized=False):
+    def doLoad(self, resourcetype, index, serialized=False):
         """
-        does the scheme-specific part of loadProduct.
+        does the action of loading.
 
         """
 
@@ -239,9 +239,9 @@ class LocalPool(ProductPool):
 
         return r
 
-    def schematicRemove(self, resourcetype, index):
+    def doRemove(self, resourcetype, index):
         """
-        does the scheme-specific part of removal of product from pool.
+        does the action of removal of product from pool.
         """
         fp0 = self.transformpath(self._poolname)
         fp = op.abspath(pathjoin(fp0,  quote(resourcetype) + '_' + str(index)))
@@ -258,9 +258,9 @@ class LocalPool(ProductPool):
                          (str(e), trbk(e)))
             raise e  # needed for undoing HK changes
 
-    def schematicWipe(self):
+    def doWipe(self):
         """
-        does the scheme-specific remove-all
+        does the action of remove-all
         """
         for n, f in self._files.items():
             if f:

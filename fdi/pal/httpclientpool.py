@@ -31,7 +31,7 @@ def writeJsonwithbackup(fp, data):
         f.write(js)
 
 
-class HttpClientPoolXX(ProductPool):
+class HttpClientPool(ProductPool):
     """ the pool will save all products on a remote server.
     """
 
@@ -163,9 +163,9 @@ class HttpClientPoolXX(ProductPool):
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicLoadProduct(self, resourcetype, index, serialized=False):
+    def schematicLoad(self, resourcetype, index, serialized=False):
         """
-        does the scheme-specific part of loadProduct.
+        does the scheme-specific part of load.
         """
         indexstr = str(index)
         poolname = self._poolname
@@ -312,7 +312,7 @@ class HttpClientPool(LocalPool):
             raise Exception(msg)
         return hk['classes'], hk['tags'], hk['urns']
 
-    def schematicSave(self, resourcetype, index, data, tag=None, **kwds):
+    def doSave(self, resourcetype, index, data, tag=None, **kwds):
         """
         does the media-specific saving to remote server
         save metadata at localpool
@@ -338,7 +338,7 @@ class HttpClientPool(LocalPool):
             raise e  # needed for undoing HK changes
         return l
 
-    def schematicLoadProduct(self, resourcetype, index, serialized=False):
+    def doLoad(self, resourcetype, index, serialized=False):
         """
         does the scheme-specific part of loadProduct.
         """
@@ -351,7 +351,7 @@ class HttpClientPool(LocalPool):
             raise NameError('Loading ' + urn + ' failed.  ' + msg)
         return res
 
-    def schematicRemove(self, resourcetype, index):
+    def doRemove(self, resourcetype, index):
         """
         does the scheme-specific part of removal.
         """
@@ -372,7 +372,7 @@ class HttpClientPool(LocalPool):
             logger.error('Remove ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicWipe(self):
+    def doWipe(self):
         """
         does the scheme-specific remove-all
         """
@@ -384,7 +384,7 @@ class HttpClientPool(LocalPool):
             logger.error(msg)
             raise Exception(msg)
         try:
-            super().schematicWipe()
+            super().doWipe()
         except IOError as e:
             err = 'remove-mkdir ' + pp + \
                 ' failed. ' + str(e) + trbk(e)

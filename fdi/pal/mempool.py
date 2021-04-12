@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-from .productpool import ProductPool
+from .productpool import ManagedPool
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class MemPool(ProductPool):
+class MemPool(ManagedPool):
     """ the pool will save all products in memory.
     """
 
@@ -83,7 +83,7 @@ class MemPool(ProductPool):
         myspace['tags'] = self._tags
         myspace['urns'] = self._urns
 
-    def schematicSave(self, resourcetype, index, data, tag=None):
+    def doSave(self, resourcetype, index, data, tag=None):
         """ 
         does the media-specific saving
         """
@@ -93,9 +93,9 @@ class MemPool(ProductPool):
         self.writeHK()
         logger.debug('HK written')
 
-    def schematicLoadProduct(self, resourcetype, index, serialized=False):
+    def doLoad(self, resourcetype, index, serialized=False):
         """
-        does the scheme-specific part of loadProduct.
+        does the action of loadProduct.
         note that the index is given as a string.
         """
         if serialized:
@@ -105,18 +105,18 @@ class MemPool(ProductPool):
         myspace = self.getPoolSpace()
         return myspace[resourcep]
 
-    def schematicRemove(self, resourcetype, index):
+    def doRemove(self, resourcetype, index):
         """
-        does the scheme-specific part of removal.
+        does the action of removal.
         """
         resourcep = resourcetype + '_' + str(index)
         myspace = self.getPoolSpace()
         del myspace[resourcep]
         self.writeHK()
 
-    def schematicWipe(self):
+    def doWipe(self):
         """
-        does the scheme-specific remove-all
+        does the action of remove-all
         """
 
         # logger.debug()

@@ -23,6 +23,7 @@ class ProductStorage(object):
 
         pool: if is a string will be taken as a poolname. if is a pool object will be registered with its name,
         poolurl: is sent to the PoolManager with poolname to get the pool object.
+
     """
 
     def __init__(self, pool=None, poolurl=None, **kwds):
@@ -207,7 +208,6 @@ class ProductStorage(object):
         ret = []
         # search all registered pools
         for poolnm, pool in self._pools.items():
-            c, t, u = pool._classes, pool._tags, pool._urns
             ret += pool.select(query, previous)
         return ret
 

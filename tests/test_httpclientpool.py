@@ -22,6 +22,7 @@ from fdi.pal.productref import ProductRef
 from fdi.pal.query import MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.pal.productstorage import ProductStorage
+from fdi.pal.httpclientpool import HttpClientPool, HttpClientPool2
 from fdi.pns.pnsconfig import pnsconfig as pcc
 from fdi.pns.fdi_requests import *
 from fdi.dataset.odict import ODict
@@ -137,64 +138,82 @@ def test_gen_url():
 def test_CRUD_product_by_client():
     """Client http product storage READ, CREATE, DELETE products in remote
     """
+
+    poolpath = pcc['base_poolpath']
+    poolid = test_poolid+'1'
+    poolurl = pcc['httphost'] + pcc['baseurl'] + \
+        '/' + poolid
+    pool = HttpClientPool(poolname=poolid,
+                          poolurl=poolurl)
+    crud_t(poolid, poolurl, poolpath, pool)
+
+    poolpath = pcc['base_poolpath']
+    poolid = test_poolid+'2'
+    poolurl = pcc['httphost'] + pcc['baseurl'] + \
+        '/' + poolid
+    pool = HttpClientPool2(poolname=poolid,
+                           poolurl=poolurl, poolpath_local=poolpath)
+    crud_t(poolid, poolurl, poolpath, pool)
+
+
+def crud_t(poolid, poolurl, poolpath_local, pool):
     logger.info('Init a pstore')
-    test_poolpath = pcc['base_poolpath']
-    test_poolurl = pcc['httphost'] + pcc['baseurl'] + \
-        '/' + test_poolid
 
     if PoolManager.isLoaded(DEFAULT_MEM_POOL):
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
     PoolManager.removeAll()
-
-    pstore = ProductStorage(
-        pool=test_poolid, poolurl=test_poolurl, poolpath_local=test_poolpath)
+    pstore = ProductStorage(pool=pool)
     assert len(pstore.getPools()) == 1, 'product storage size error: ' + \
         str(pstore.getPools())
-    assert pstore.getPool(test_poolid) is not None, 'Pool ' + \
-        test_poolid+' is None.'
+    assert pstore.getPool(poolid) is not None, 'Pool ' + \
+        poolid+' is None.'
 
     logger.info('Save data by httpclientpool')
     x = Product(description='desc test')
     x.creator = 'httpclient'
     urn = pstore.save(x, geturnobjs=True)
     urn2 = pstore.save(x, geturnobjs=True)
-    expected_urn = 'urn:' + test_poolid + ':' + fullname(x)
+    expected_urn = 'urn:' + poolid + ':' + fullname(x)
     assert urn.urn.rsplit(':', 1)[0] == expected_urn, \
         'Urn error: ' + expected_urn
     poolpath, scheme, place, pn = parse_poolurl(
-        test_poolurl, poolhint=test_poolid)
-    real_poolpath = os.path.join(pcc['base_poolpath'], test_poolid)
-    assert os.path.exists(real_poolpath), \
-        'local metadata file not found: ' + real_poolpath
-    assert len(os.listdir(real_poolpath)) >= 3, \
-        'Local metadata file size is less than 3'
+        poolurl, poolhint=poolid)
+    if issubclass(pool.__class__, HttpClientPool2):
+        real_poolpath = os.path.join(pcc['base_poolpath'], poolid)
+        assert os.path.exists(real_poolpath), \
+            'local metadata file not found: ' + real_poolpath
+        assert len(os.listdir(real_poolpath)) >= 3, \
+            'Local metadata file size is less than 3'
 
     logger.info('Load product from httpclientpool')
-    res = pstore.getPool(test_poolid).loadProduct(urn.urn)
+    res = pstore.getPool(poolid).loadProduct(urn.urn)
     assert res.creator == 'httpclient', 'Load product error: ' + str(res)
     diff = deepcmp(x, res)
     assert diff is None, diff
 
-    logger.info('Search metadata')
-    q = MetaQuery(Product, 'm["creator"] == "httpclient"')
-    res = pstore.select(q)
-    assert len(res) > 0, 'Select from metadata error: ' + str(res)
+    if issubclass(pool.__class__, HttpClientPool2):
+        logger.info('Search metadata')
+        q = MetaQuery(Product, 'm["creator"] == "httpclient"')
+        res = pstore.select(q)
+        assert len(res) > 0, 'Select from metadata error: ' + str(res)
 
     logger.info('Delete a product from httpclientpool')
-    pstore.getPool(test_poolid).remove(urn.urn)
-    sn = pstore.getPool(
-        test_poolid)._classes['fdi.dataset.product.Product']['sn']
-    assert len(sn) >= 1, 'Delete product local error, sn : ' + str(sn)
-    logger.info('A load exception message is expected')
+    pstore.getPool(poolid).remove(urn.urn)
+    if issubclass(pool.__class__, HttpClientPool2):
+        sn = pstore.getPool(
+            poolid)._classes['fdi.dataset.product.Product']['sn']
+        assert len(sn) >= 1, 'Delete product local error, sn : ' + str(sn)
+        logger.info('A load exception message is expected')
 
     with pytest.raises(NameError):
-        res = pstore.getPool(test_poolid).loadProduct(urn.urn)
+        res = pstore.getPool(poolid).loadProduct(urn.urn)
 
     logger.info('Delete a pool')
-    pstore.getPool(test_poolid).removeAll()
-    poolfiles = os.listdir(real_poolpath)
-    assert len(
-        poolfiles) == 0, 'Delete pool, but local file exists: ' + str(poolfiles)
-    reshk = pstore.getPool(test_poolid).readHK()
-    assert reshk[0] == ODict(
-    ), 'Server classes is not empty after delete: ' + str(reshk[0])
+    pstore.getPool(poolid).removeAll()
+    if issubclass(pool.__class__, HttpClientPool2):
+        poolfiles = os.listdir(real_poolpath)
+        assert len(
+            poolfiles) == 0, 'Delete pool, but local file exists: ' + str(poolfiles)
+        reshk = pstore.getPool(poolid).readHK()
+        assert reshk[0] == ODict(
+        ), 'Server classes is not empty after delete: ' + str(reshk[0])

@@ -5,10 +5,11 @@ from .urn import Urn, makeUrn
 from ..dataset.odict import ODict
 from ..dataset.dataset import TableDataset
 from ..dataset.serializable import serialize
-from .productpool import ProductPool
+from .productpool import ProductPool, ManagedPool
 from .poolmanager import PoolManager
 from .localpool import LocalPool
-from ..utils.common import pathjoin, trbk
+from .productref import ProductRef
+from ..utils.common import pathjoin, trbk, lls, fullname
 
 import filelock
 import shutil
@@ -31,8 +32,11 @@ def writeJsonwithbackup(fp, data):
         f.write(js)
 
 
-class HttpClientPool(ProductPool):
+class HttpClientPool1(ProductPool):
     """ the pool will save all products on a remote server.
+
+
+    Housekeeping done by old code of LocalPool. To be deprecated.
     """
 
     def __init__(self, poolpath_local=None, **kwds):
@@ -41,8 +45,8 @@ class HttpClientPool(ProductPool):
         poolpath_local: sets where to stotr housekeeping data locally. default is None, using PoolManager.PlacePaths['file']
         """
         # print(__name__ + str(kwds))
-        self._poolpath_local = poolpath_local
-        super(HttpClientPool, self).__init__(**kwds)
+        #self._poolpath_local = poolpath_local
+        super(HttpClientPool1, self).__init__(**kwds)
         self.setPoolpath_local(poolpath_local)
 
     def setup(self):
@@ -51,8 +55,9 @@ class HttpClientPool(ProductPool):
         Make sure that self._poolname and self._poolurl are present.
         """
 
-        if super().setup() or \
-           not hasattr(self, '_poolpath_local') or not self._poolpath_local:
+        if not hasattr(self, '_poolpath_local') or not self._poolpath_local:
+            return True
+        if super().setup():
             return True
 
         real_poolpath = self.transformpath(self._poolname)
@@ -68,6 +73,7 @@ class HttpClientPool(ProductPool):
         self._classes.update(c)
         self._tags.update(t)
         self._urns.update(u)
+        return False
 
     @property
     def poolpath_local(self):
@@ -225,8 +231,10 @@ class HttpClientPool(ProductPool):
         """
 
 
-class HttpClientPool(LocalPool):
+class HttpClientPool2(LocalPool):
     """ the pool will save all products on a remote server.
+
+    Housekeeping delegated to LocalPool.
     """
 
     def __init__(self, poolpath_local=None, **kwds):
@@ -235,8 +243,8 @@ class HttpClientPool(LocalPool):
         poolpath_local: sets where to stotr housekeeping data locally. default is None, using PoolManager.PlacePaths['file']
         """
         # print(__name__ + str(kwds))
-        self._poolpath_local = poolpath_local
-        super(HttpClientPool, self).__init__(**kwds)
+        #self._poolpath_local = poolpath_local
+        super(HttpClientPool2, self).__init__(**kwds)
         self.setPoolpath_local(poolpath_local)
 
     def setup(self):
@@ -390,3 +398,146 @@ class HttpClientPool(LocalPool):
                 ' failed. ' + str(e) + trbk(e)
             logger.error(err)
             raise e
+
+
+class HttpClientPool(ProductPool):
+    """ the pool will save all products on a remote server.
+    """
+
+    def __init__(self, **kwds):
+        """ Initialize connection to the remote server. creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files on server if not exist.
+
+        """
+        # print(__name__ + str(kwds))
+        super(HttpClientPool, self).__init__(**kwds)
+
+    def setup(self):
+        """ Sets up HttpPool interals.
+
+        Make sure that self._poolname and self._poolurl are present.
+        """
+
+        if not hasattr(self, '_poolpath_local') or not self._poolpath_local:
+            return True
+        if super().setup():
+            return True
+
+        return False
+
+    def readHK(self):
+        """
+        loads and returns the housekeeping data
+        """
+        poolname = self._poolname
+        logger.debug("READ HK FROM REMOTE===>poolurl: " + poolname)
+        hk = {}
+        try:
+            r, msg = read_from_server(None, self._poolurl, 'housekeeping')
+            if r != 'FAILED':
+                for hkdata in ['classes', 'tags', 'urns']:
+                    hk[hkdata] = r[hkdata]
+        except Exception as e:
+            msg = 'Read ' + poolname + ' failed. ' + str(e) + trbk(e)
+            r = 'FAILED'
+
+        if r == 'FAILED':
+            logger.error(msg)
+            raise Exception(msg)
+        return hk['classes'], hk['tags'], hk['urns']
+
+    def schematicSave(self, products, tag=None, geturnobjs=False, serialized=False, **kwds):
+        """
+        does the media-specific saving to remote server.
+        """
+
+        alist = issubclass(products.__class__, list)
+        if not alist:
+            productlist = [products]
+        else:
+            productlist = products
+
+        if len(productlist) == 0:
+            return []
+        # only type and poolname in the urn will be used
+        urn = makeUrn(typename=fullname(productlist[0]),
+                      poolname=self._poolname, index=0)
+        sv = save_to_server(productlist, urn, self._poolurl, tag)
+        if sv['result'] == 'FAILED':
+            logger.error('Save %d products to server failed. Message from %s: %s' % (
+                len(productlist), self._poolurl, sv['msg']))
+            raise Exception(sv['msg'])
+        else:
+            urns = sv['result']
+        logger.debug('Product written in remote server done')
+        res = []
+        if geturnobjs:
+            if serialized:
+                # return the URN string.
+                res = urns
+            else:
+                res = [Urn(urn=u, poolurl=self._poolurl) for u in urns]
+        else:
+            for u, prd in zip(urns, productlist):
+                if serialized:
+                    rf = ProductRef(urn=Urn(urn=u, poolurl=self._poolurl),
+                                    poolname=self._poolname)
+                    # return without meta
+                    res.append(rf)
+                else:
+                    # it seems that there is no better way to set meta
+                    rf = ProductRef(urn=Urn(urn=u, poolurl=self._poolurl),
+                                    poolname=self._poolname, meta=prd.getMeta())
+                    res.append(rf)
+        logger.debug('%d product(s) generated %d %s: %s.' %
+                     (len(productlist), len(res), 'Urns ' if geturnobjs else 'prodRefs', lls(res, 200)))
+        if alist:
+            return serialize(res) if serialized else res
+        else:
+            return serialize(res[0]) if serialized else res[0]
+
+    def schematicLoad(self, resourcetype, index, serialized=False):
+        """
+        does the scheme-specific part of loadProduct.
+        """
+        indexstr = str(index)
+        poolname = self._poolname
+        urn = makeUrn(self._poolname, resourcetype, indexstr)
+        logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
+        res, msg = read_from_server(urn, self._poolurl)
+        if res == 'FAILED':
+            raise NameError('Loading ' + urn + ' failed.  ' + msg)
+        return res
+
+    def schematicRemove(self, urn=None, resourcetype=None, index=None):
+        """
+        does the scheme-specific part of removal.
+
+        urn or (resourcetype, index)
+        """
+        if urn is None:
+            if resourcetype is None or index is None:
+                raise ValueError()
+            urn = makeUrn(self._poolname, resourcetype, index)
+        res, msg = delete_from_server(urn, self._poolurl)
+        if res == 'FAILED':
+            logger.error('Remove from server ' + self._poolname +
+                         ' failed. Caused by: ' + msg)
+            raise IOError(msg)
+        return res
+
+    def schematicWipe(self):
+        """
+        does the scheme-specific remove-all
+        """
+
+        res, msg = delete_from_server(None, self._poolurl, 'pool')
+        if res == 'FAILED':
+            logger.error(msg)
+            raise Exception(msg)
+
+    def schematicSelect(self,  query, results=None):
+        """
+        Returns a list of references to products that match the specified query.
+        """
+
+        raise(NotImplementedError)

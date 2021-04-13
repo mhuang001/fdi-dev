@@ -255,6 +255,7 @@ def delete_pool(paths):
         result = '"FAILED"'
         msg = 'Unable to wipe pool: ' + poolname + \
             ' caused by ' + str(e) + ' ' + trbk(e)
+    checkpath.cache_clear()
     return result, msg
 
 

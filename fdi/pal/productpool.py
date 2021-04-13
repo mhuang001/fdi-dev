@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 from ..dataset.odict import ODict
 from ..dataset.classes import Classes
+from ..dataset.serializable import serialize
 from .urn import Urn, parseUrn, parse_poolurl, makeUrn
 from .versionable import Versionable
 from .taggable import Taggable
+from .dicthk import DictHk
 from .definable import Definable
-from ..utils.common import pathjoin, fullname
+from ..utils.common import pathjoin, fullname, lls
 from .productref import ProductRef
 from .query import AbstractQuery, MetaQuery
 
@@ -14,6 +16,7 @@ import filelock
 from copy import copy
 import os
 import sys
+from collections import OrderedDict
 from functools import lru_cache
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -56,8 +59,6 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         super(ProductPool, self).__init__(**kwds)
 
-        # {type|classname -> {'sn:[sn]'}}
-        self._classes = ODict()
         self.setPoolname(poolname)
         self.setPoolurl(poolurl)
         # self._pathurl = pr.netloc + pr.path
@@ -67,12 +68,19 @@ When implementing a ProductPool, the following rules need to be applied:
         pass
 
     def setup(self):
-        """ Sets up interal machiney of this Pool, 
-        but only if self._poolname and self._poolurl are present.
+        """ Sets up interal machiney of this Pool,
+        but only if self._poolname and self._poolurl are present,
+        and other pre-requisits are met.
 
         Subclasses should implement own setup(), and
-        make sure that self._poolname and self._poolurl are present with ``        if super().setup():
-            return True
+        make sure that self._poolname and self._poolurl are present with ``
+
+        if <pre-requisit not met>: return True
+        if super().setup(): return True
+
+        # super().setup() has done its things by now.
+        <do setup>
+        return False
 ``
         returns: True if not both  self._poolname and self._poolurl are present.
 
@@ -83,44 +91,6 @@ When implementing a ProductPool, the following rules need to be applied:
             return True
 
         return False
-
-    def lockpath(self, op='w'):
-        """ returns the appropriate path.
-
-        creats the path if non-existing. Set lockpath-base permission to all-modify so other fdi users can use.
-        op: 'r' for readlock no-reading) 'w' for writelock (no-writing)
-        """
-        if not os.path.exists(lockpathbase):
-            os.makedirs(lockpathbase, mode=0o777)
-
-        #from .httppool import HttpPool
-        #from .httpclientpool import HttpClientPool
-
-        p = self.transformpath(self._poolname)
-        lp = pathjoin(lockpathbase, p.replace('/', '_'))
-
-        if 1:
-            return lp+'.read' if op == 'r' else lp+'.write'
-        else:
-            if not os.path.exists(lp):
-                os.makedirs(lp)
-                lf = pathjoin(lp, 'lock')
-            return lf+'.read' if op == 'r' else lf+'.write'
-
-    @lru_cache(maxsize=5)
-    def transformpath(self, path):
-        """ override this to changes the output from the input one (default) to something else.
-
-        """
-        if path is None:
-            return None
-        base = self._poolpath
-        if base != '':
-            if path[0] == '/':
-                path = base + path
-            else:
-                path = base + '/' + path
-        return path
 
     @property
     def poolname(self):
@@ -183,13 +153,15 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         Decrement the reference count of a ProductRef.
         """
-        self._urns[ref.urn]['refcnt'] -= 1
+
+        raise(NotImplementedError)
 
     def exists(self, urn):
         """
         Determines the existence of a product with specified URN.
         """
-        return urn in self._urns
+
+        raise(NotImplementedError)
 
     def getDefinition(self):
         """
@@ -220,13 +192,13 @@ When implementing a ProductPool, the following rules need to be applied:
         Returns all Product classes found in this pool.
         mh: returns an iterator.
         """
-        return self._classes.keys()
+        raise(NotImplementedError)
 
     def getReferenceCount(self, ref):
         """
         Returns the reference count of a ProductRef.
         """
-        return self._urns[ref.urn]['refcnt']
+        raise(NotImplementedError)
 
     def getScheme(self):
         """
@@ -250,9 +222,10 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         Determines if the pool is empty.
         """
-        return len(self._urns) == 0
 
-    def schematicSave(self, productlist, tag=None, geturnobjs=False, serialized=False, **kwds):
+        raise(NotImplementedError)
+
+    def schematicSave(self, products, tag=None, geturnobjs=False, serialized=False, **kwds):
         """ to be implemented by subclasses to do the scheme-specific saving
         """
         raise(NotImplementedError)
@@ -268,26 +241,17 @@ When implementing a ProductPool, the following rules need to be applied:
 
         serialized: if True returns contents in serialized form.
         """
-        alist = issubclass(product.__class__, list)
-        if not alist:
-            productlist = [product]
-        else:
-            productlist = product
 
-        res = self.schematicSave(productlist, tag=tag,
+        res = self.schematicSave(product, tag=tag,
                                  geturnobjs=geturnobjs, serialized=serialized, **kwds)
-        logger.debug('generated ' + 'Urns ' if geturnobjs else 'prodRefs ' +
-                     str(len(res)))
-        if alist:
-            return res
-        else:
-            return res[0]
+        return res
 
     def loadDescriptors(self, urn):
         """
         Loads the descriptors belonging to specified URN.
         """
-        return self._urns[urn]
+
+        raise(NotImplementedError)
 
     def schematicLoad(self, resourcetype, index, serialized=False):
         """ to be implemented by subclasses to do the scheme-specific loading
@@ -312,15 +276,17 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         Loads the meta-data belonging to the product of specified URN.
         """
-        return self._urns[urn]['meta']
+
+        raise(NotImplementedError)
 
     def reference(self, ref):
         """
         Increment the reference count of a ProductRef.
         """
-        self._urns[ref.urn]['refcnt'] += 1
 
-    def schematicRemove(self, urn, resourcetype, index):
+        raise(NotImplementedError)
+
+    def schematicRemove(self, urn=None, resourcetype=None, index=None):
         """ to be implemented by subclasses to do the scheme-specific removing
         """
         raise(NotImplementedError)
@@ -354,215 +320,174 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         Save/Update descriptors in pool.
         """
+        raise(NotImplementedError)
 
-    def mfilter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
-        """ returns filtered collection using the query.
-
-        q is a MetaQuery
-        valid inputs: typename and ns list; productref list; urn list
+    def schematicSelect(self,  query, results=None):
         """
-
-        ret = []
-        u = self._urns
-        qw = q.getWhere()
-
-        if reflist:
-            if isinstance(qw, str):
-                code = compile(qw, 'py', 'eval')
-                for ref in reflist:
-                    refmet = ref.getMeta()
-                    m = refmet if refmet else u[ref.urn]['meta']
-                    if eval(code):
-                        ret.append(ref)
-                return ret
-            else:
-                for ref in reflist:
-                    refmet = ref.getMeta()
-                    m = refmet if refmet else u[ref.urn]['meta']
-                    if qw(m):
-                        ret.append(ref)
-                return ret
-        elif urnlist:
-            if isinstance(qw, str):
-                code = compile(qw, 'py', 'eval')
-                for urn in urnlist:
-                    m = u[urn]['meta']
-                    if eval(code):
-                        ret.append(ProductRef(urn=urn, meta=m))
-                return ret
-            else:
-                for urn in urnlist:
-                    m = u[urn]['meta']
-                    if qw(m):
-                        ret.append(ProductRef(urn=urn, meta=m))
-                return ret
-        elif snlist:
-            if isinstance(qw, str):
-                code = compile(qw, 'py', 'eval')
-                for n in snlist:
-                    urn = makeUrn(poolname=self._poolname,
-                                  typename=typename, index=n)
-                    m = u[urn]['meta']
-                    if eval(code):
-                        ret.append(ProductRef(urn=urn, meta=m))
-                return ret
-            else:
-                for n in snlist:
-                    urn = makeUrn(poolname=self._poolname,
-                                  typename=typename, index=n)
-                    m = u[urn]['meta']
-                    if qw(m):
-                        ret.append(ProductRef(urn=urn, meta=m))
-                return ret
-        else:
-            raise('Must give a list of ProductRef or urn or sn')
-
-    def pfilter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
-        """ returns filtered collection using the query.
-
-        q: an AbstractQuery.
-        valid inputs: cls and ns list; productref list; urn list
+        to be implemented by subclasses to do the scheme-specific querying.
         """
-
-        ret = []
-        glbs = globals()
-        u = self._urns
-        qw = q.getWhere()
-        var = q.getVariable()
-        if var in glbs:
-            savevar = glbs[var]
-        else:
-            savevar = 'not in glbs'
-
-        if reflist:
-            if isinstance(qw, str):
-                code = compile(qw, 'py', 'eval')
-                for ref in reflist:
-                    glbs[var] = pref.getProduct()
-                    if eval(code):
-                        ret.append(ref)
-                if savevar != 'not in glbs':
-                    glbs[var] = savevar
-                return ret
-            else:
-                for ref in reflist:
-                    glbs[var] = pref.getProduct()
-                    if qw(m):
-                        ret.append(ref)
-                if savevar != 'not in glbs':
-                    glbs[var] = savevar
-                return ret
-        elif urnlist:
-            if isinstance(qw, str):
-                code = compile(qw, 'py', 'eval')
-                for urn in urnlist:
-                    pref = ProductRef(urn=urn)
-                    glbs[var] = pref.getProduct()
-                    if eval(code):
-                        ret.append(pref)
-                if savevar != 'not in glbs':
-                    glbs[var] = savevar
-                return ret
-            else:
-                for urn in urnlist:
-                    pref = ProductRef(urn=urn)
-                    glbs[var] = pref.getProduct()
-                    if qw(glbs[var]):
-                        ret.append(pref)
-                if savevar != 'not in glbs':
-                    glbs[var] = savevar
-                return ret
-        elif snlist:
-            if isinstance(qw, str):
-                code = compile(qw, 'py', 'eval')
-                for n in snlist:
-                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
-                    pref = ProductRef(urn=urno)
-                    glbs[var] = pref.getProduct()
-                    if eval(code):
-                        ret.append(pref)
-                if savevar != 'not in glbs':
-                    glbs[var] = savevar
-                return ret
-            else:
-                for n in snlist:
-                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
-                    pref = ProductRef(urn=urno)
-                    glbs[var] = pref.getProduct()
-                    if qw(glbs[var]):
-                        ret.append(pref)
-                if savevar != 'not in glbs':
-                    glbs[var] = savevar
-                return ret
-        else:
-            raise('Must give a list of ProductRef or urn or sn')
+        raise(NotImplementedError)
 
     def select(self,  query, results=None):
         """
         Returns a list of references to products that match the specified query.
         """
-        isMQ = issubclass(query.__class__, MetaQuery)
-        isAQ = issubclass(query.__class__, AbstractQuery)
-        if not isMQ and not isAQ:
-            raise TypeError('not a Query')
-        lgb = Classes.mapping
-        t, v, w, a = query.getType(), query.getVariable(
-        ), query.getWhere(), query.retrieveAllVersions()
-        ret = []
-        if results:
-            this = (x for x in results if x.urnobj.getPoolId()
-                    == self._poolname)
-            if isMQ:
-                ret += self.mfilter(q=query, reflist=this)
-            else:
-                ret += self.pfilter(q=query, reflist=this)
-        else:
-            for cname in self._classes:
-                cls = lgb[cname.split('.')[-1]]
-                if issubclass(cls, t):
-                    if isMQ:
-                        ret += self.mfilter(q=query, typename=cname,
-                                            snlist=self._classes[cname]['sn'])
-                    else:
-                        ret += self.pfilter(q=query, cls=cls,
-                                            snlist=self._classes[cname]['sn'])
-
-        return ret
+        res = self.schematicSelect(query, results)
+        return res
 
     def __repr__(self):
-        return ' < '+self.__class__.__name__ + ', '.join(str(k)+'='+v.__class__.__name__ for k, v in self.__getstate__().items()) + ' >'
+
+        co = ', '.join(str(k)+'=' + (v if issubclass(v.__class__, str) else '<' +
+                                     v.__class__.__name__+'>') for k, v in self.__getstate__().items())
+        return '<'+self.__class__.__name__ + ' ' + co + '>'
 
     def __getstate__(self):
         """ returns an odict that has all state info of this object.
         Subclasses should override this function.
         """
-        return ODict(
-            poolname=self._poolname,
-            poolurl=self._poolurl,
-            _classes=self._classes,
-            _urns=self._urns,
-            _tags=self._tags,
+        return OrderedDict(
+            poolname=self._poolname if hasattr(self, '_poolname') else None,
+            poolurl=self._poolurl if hasattr(self, '_poolurl') else None,
         )
 
 
-class ManagedPool(ProductPool):
+class ManagedPool(ProductPool, DictHk):
     """ A ProductPool that manages its internal house keeping. """
 
     def __init__(self, **kwds):
         super(ManagedPool, self).__init__(**kwds)
+        # {type|classname -> {'sn:[sn]'}}
+
+    def setup(self):
+        """ Sets up interal machiney of this Pool,
+        but only if self._poolname and self._poolurl are present,
+        and other pre-requisits are met.
+
+        Subclasses should implement own setup(), and
+        make sure that self._poolname and self._poolurl are present with ``
+
+        if <pre-requisit not met>: return True
+        if super().setup(): return True
+
+        # super().setup() has done its things by now.
+        <do setup>
+        return False
+``
+        returns: True if not both  self._poolname and self._poolurl are present.
+
+        """
+
+        if super().setup():
+            return True
+        self._classes = ODict()
+        return False
+
+    def lockpath(self, op='w'):
+        """ returns the appropriate path.
+
+        creats the path if non-existing. Set lockpath-base permission to all-modify so other fdi users can use.
+        op: 'r' for readlock no-reading) 'w' for writelock (no-writing)
+        """
+        if not os.path.exists(lockpathbase):
+            os.makedirs(lockpathbase, mode=0o777)
+
+        # from .httppool import HttpPool
+        # from .httpclientpool import HttpClientPool
+
+        p = self.transformpath(self._poolname)
+        lp = pathjoin(lockpathbase, p.replace('/', '_'))
+
+        if 1:
+            return lp+'.read' if op == 'r' else lp+'.write'
+        else:
+            if not os.path.exists(lp):
+                os.makedirs(lp)
+                lf = pathjoin(lp, 'lock')
+            return lf+'.read' if op == 'r' else lf+'.write'
+
+    @ lru_cache(maxsize=5)
+    def transformpath(self, path):
+        """ override this to changes the output from the input one (default) to something else.
+
+        """
+        if path is None:
+            return None
+        base = self._poolpath
+        if base != '':
+            if path[0] == '/':
+                path = base + path
+            else:
+                path = base + '/' + path
+        return path
+
+    def dereference(self, ref):
+        """
+        Decrement the reference count of a ProductRef.
+        """
+
+        self._urns[ref.urn]['refcnt'] -= 1
+
+    def exists(self, urn):
+        """
+        Determines the existence of a product with specified URN.
+        """
+        return urn in self._urns
+
+    def getProductClasses(self):
+        """
+        Returns all Product classes found in this pool.
+        mh: returns an iterator.
+        """
+        return self._classes.keys()
 
     def doSave(self, resourcetype, index, data, tag=None, **kwds):
         """ to be implemented by subclasses to do the action of saving
         """
         raise(NotImplementedError)
 
-    def schematicSave(self, productlist, tag=None, geturnobjs=False, serialized=False, **kwds):
+    def getReferenceCount(self, ref):
+        """
+        Returns the reference count of a ProductRef.
+        """
+        return self._urns[ref.urn]['refcnt']
+
+    def isEmpty(self):
+        """
+        Determines if the pool is empty.
+        """
+        return len(self._urns) == 0
+
+    def loadDescriptors(self, urn):
+        """
+        Loads the descriptors belonging to specified URN.
+        """
+        return self._urns[urn]
+
+    def meta(self,  urn):
+        """
+        Loads the meta-data belonging to the product of specified URN.
+        """
+        return self._urns[urn]['meta']
+
+    def reference(self, ref):
+        """
+        Increment the reference count of a ProductRef.
+        """
+        self._urns[ref.urn]['refcnt'] += 1
+
+    def schematicSave(self, products, tag=None, geturnobjs=False, serialized=False, **kwds):
         """ do the scheme-specific saving """
+
+        alist = issubclass(products.__class__, list)
+        if not alist:
+            productlist = [products]
+        else:
+            productlist = products
 
         res = []
         for prd in productlist:
             pn = fullname(prd)
-            with filelock.FileLock(self.lockpath('w')),\
+            with filelock.FileLock(self.lockpath('w')), \
                     filelock.FileLock(self.lockpath('r')):
 
                 # get the latest HK
@@ -602,19 +527,26 @@ class ManagedPool(ProductPool):
 
             if geturnobjs:
                 if serialized:
-                    res.append('"'+urn+'"')
+                    # return the URN string.
+                    res.append(urn)
                 else:
                     res.append(urnobj)
             else:
+                rf = ProductRef(urn=urnobj)
+                rf._poolname = self._poolname
                 if serialized:
-                    res.append('"'+urn+'"')
+                    # return without meta
+                    res.append(rf)
                 else:
-                    rf = ProductRef(urn=urnobj)
                     # it seems that there is no better way to set meta
                     rf._meta = prd.getMeta()
-                    rf._poolname = self._poolname
                     res.append(rf)
-        return res
+        logger.debug('%d product(s) generated %d %s: %s.' %
+                     (len(productlist), len(res), 'Urns ' if geturnobjs else 'prodRefs', lls(res, 200)))
+        if alist:
+            return serialize(res) if serialized else res
+        else:
+            return serialize(res[0]) if serialized else res[0]
 
     def doLoad(self, resourcetype, index, serialized):
         """ to be implemented by subclasses to do the action of loading
@@ -635,7 +567,7 @@ class ManagedPool(ProductPool):
         """
         raise(NotImplementedError)
 
-    def schematicRemove(self, urn, resourcetype, index):
+    def schematicRemove(self, urn=None, resourcetype=None, index=None):
         """ do the scheme-specific removing
         """
 
@@ -663,7 +595,7 @@ class ManagedPool(ProductPool):
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)
-                self._classes, self._tags, self._urns = self.readHK()
+                self._classes, self._tags, self._urns=self.readHK()
                 raise e
 
     def doWipe(self):
@@ -682,7 +614,199 @@ class ManagedPool(ProductPool):
                 self._tags.clear()
                 self._urns.clear()
             except Exception as e:
-                msg = self.getId() + 'wiping failed'
+                msg=self.getId() + 'wiping failed'
                 logger.debug(msg)
                 raise e
         logger.debug('Done.')
+
+    def mfilter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
+        """ returns filtered collection using the query.
+
+        q is a MetaQuery
+        valid inputs: typename and ns list; productref list; urn list
+        """
+
+        ret=[]
+        u=self._urns
+        qw=q.getWhere()
+
+        if reflist:
+            if isinstance(qw, str):
+                code=compile(qw, 'py', 'eval')
+                for ref in reflist:
+                    refmet=ref.getMeta()
+                    m=refmet if refmet else u[ref.urn]['meta']
+                    if eval(code):
+                        ret.append(ref)
+                return ret
+            else:
+                for ref in reflist:
+                    refmet=ref.getMeta()
+                    m=refmet if refmet else u[ref.urn]['meta']
+                    if qw(m):
+                        ret.append(ref)
+                return ret
+        elif urnlist:
+            if isinstance(qw, str):
+                code=compile(qw, 'py', 'eval')
+                for urn in urnlist:
+                    m=u[urn]['meta']
+                    if eval(code):
+                        ret.append(ProductRef(urn=urn, meta=m))
+                return ret
+            else:
+                for urn in urnlist:
+                    m=u[urn]['meta']
+                    if qw(m):
+                        ret.append(ProductRef(urn=urn, meta=m))
+                return ret
+        elif snlist:
+            if isinstance(qw, str):
+                code=compile(qw, 'py', 'eval')
+                for n in snlist:
+                    urn=makeUrn(poolname=self._poolname,
+                                  typename=typename, index=n)
+                    m=u[urn]['meta']
+                    if eval(code):
+                        ret.append(ProductRef(urn=urn, meta=m))
+                return ret
+            else:
+                for n in snlist:
+                    urn=makeUrn(poolname=self._poolname,
+                                  typename=typename, index=n)
+                    m=u[urn]['meta']
+                    if qw(m):
+                        ret.append(ProductRef(urn=urn, meta=m))
+                return ret
+        else:
+            raise('Must give a list of ProductRef or urn or sn')
+
+    def pfilter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
+        """ returns filtered collection using the query.
+
+        q: an AbstractQuery.
+        valid inputs: cls and ns list; productref list; urn list
+        """
+
+        ret=[]
+        glbs=globals()
+        u=self._urns
+        qw=q.getWhere()
+        var=q.getVariable()
+        if var in glbs:
+            savevar=glbs[var]
+        else:
+            savevar='not in glbs'
+
+        if reflist:
+            if isinstance(qw, str):
+                code=compile(qw, 'py', 'eval')
+                for ref in reflist:
+                    glbs[var]=pref.getProduct()
+                    if eval(code):
+                        ret.append(ref)
+                if savevar != 'not in glbs':
+                    glbs[var]=savevar
+                return ret
+            else:
+                for ref in reflist:
+                    glbs[var]=pref.getProduct()
+                    if qw(m):
+                        ret.append(ref)
+                if savevar != 'not in glbs':
+                    glbs[var]=savevar
+                return ret
+        elif urnlist:
+            if isinstance(qw, str):
+                code=compile(qw, 'py', 'eval')
+                for urn in urnlist:
+                    pref=ProductRef(urn=urn)
+                    glbs[var]=pref.getProduct()
+                    if eval(code):
+                        ret.append(pref)
+                if savevar != 'not in glbs':
+                    glbs[var]=savevar
+                return ret
+            else:
+                for urn in urnlist:
+                    pref=ProductRef(urn=urn)
+                    glbs[var]=pref.getProduct()
+                    if qw(glbs[var]):
+                        ret.append(pref)
+                if savevar != 'not in glbs':
+                    glbs[var]=savevar
+                return ret
+        elif snlist:
+            if isinstance(qw, str):
+                code=compile(qw, 'py', 'eval')
+                for n in snlist:
+                    urno=Urn(cls=cls, poolname=self._poolname, index=n)
+                    pref=ProductRef(urn=urno)
+                    glbs[var]=pref.getProduct()
+                    if eval(code):
+                        ret.append(pref)
+                if savevar != 'not in glbs':
+                    glbs[var]=savevar
+                return ret
+            else:
+                for n in snlist:
+                    urno=Urn(cls=cls, poolname=self._poolname, index=n)
+                    pref=ProductRef(urn=urno)
+                    glbs[var]=pref.getProduct()
+                    if qw(glbs[var]):
+                        ret.append(pref)
+                if savevar != 'not in glbs':
+                    glbs[var] = savevar
+                return ret
+        else:
+            raise('Must give a list of ProductRef or urn or sn')
+
+    def doSelect(self, query, results=None):
+        """
+        to be implemented by subclasses to do the action of querying.
+        """
+        raise(NotImplementedError)
+
+    def schematicSelect(self,  query, results=None):
+        """
+        do the scheme-specific querying.
+        """
+        isMQ = issubclass(query.__class__, MetaQuery)
+        isAQ = issubclass(query.__class__, AbstractQuery)
+        if not isMQ and not isAQ:
+            raise TypeError('not a Query')
+        lgb = Classes.mapping
+        t, v, w, a = query.getType(), query.getVariable(
+        ), query.getWhere(), query.retrieveAllVersions()
+        ret = []
+        if results:
+            this = (x for x in results if x.urnobj.getPoolId()
+                    == self._poolname)
+            if isMQ:
+                ret += self.mfilter(q=query, reflist=this)
+            else:
+                ret += self.pfilter(q=query, reflist=this)
+        else:
+            for cname in self._classes:
+                cls = lgb[cname.split('.')[-1]]
+                if issubclass(cls, t):
+                    if isMQ:
+                        ret += self.mfilter(q=query, typename=cname,
+                                            snlist=self._classes[cname]['sn'])
+                    else:
+                        ret += self.pfilter(q=query, cls=cls,
+                                            snlist=self._classes[cname]['sn'])
+
+        return ret
+
+    def __getstate__(self):
+        """ returns an odict that has all state info of this object.
+        Subclasses should override this function.
+        """
+        return OrderedDict(
+            poolname=self._poolname,
+            poolurl=self._poolurl,
+            _classes=self._classes,
+            _urns=self._urns,
+            _tags=self._tags,
+        )

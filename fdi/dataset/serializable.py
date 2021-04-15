@@ -132,8 +132,13 @@ class SerializableEncoder(json.JSONEncoder):
                     return {'obj': '...', '_STID': 'ellipsis'}
                 if issubclass(obj.__class__, type):
                     return {'obj': obj.__name__, '_STID': 'dtype'}
-                # print(obj.serializable())
-                return obj.serializable()
+                if hasattr(obj, 'serializable'):
+                    # print(obj.serializable())
+                    return obj.serializable()
+                try:
+                    return dict(obj)
+                except Exception:
+                    return list(obj)
             except Exception as e:
                 print('Serialization failed.' + str(e))
                 raise

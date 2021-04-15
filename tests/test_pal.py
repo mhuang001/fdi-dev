@@ -525,7 +525,7 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     # clean up a pool
     ps.wipePool()
     checkdbcount(0, thepoolurl, pcq)
-    assert len(ps.getPool(thepoolname)._urns) == 0
+    assert ps.getPool(thepoolname).isEmpty()
 
 
 def test_ProdStorage_func_local_mem():
@@ -784,17 +784,18 @@ def doquery(poolpath, newpoolpath):
     chk(res[0], rec1[3])
     chk(res[1], rec1[4])
 
-    # same as above but query is a function
-    def t(m):
-        import re
-        return re.match('.*n.1.*', m['instrument'].value)
+    if not newpoolpath.startswith('http'):
+        # same as above but query is a function
+        def t(m):
+            import re
+            return re.match('.*n.1.*', m['instrument'].value)
 
-    q = MetaQuery(Product, t)
-    res = pstore.select(q)
-    # [3,4]
-    assert len(res) == 2, str(res)
-    chk(res[0], rec1[3])
-    chk(res[1], rec1[4])
+        q = MetaQuery(Product, t)
+        res = pstore.select(q)
+        # [3,4]
+        assert len(res) == 2, str(res)
+        chk(res[0], rec1[3])
+        chk(res[1], rec1[4])
 
     # same as above but query is on the product. this is slow.
     q = AbstractQuery(Product, 'p', '"n 1" in p.instrument')

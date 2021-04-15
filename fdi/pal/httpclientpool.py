@@ -420,7 +420,9 @@ def toserver(self, method, *args, **kwds):
     logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
     res, msg = read_from_server(urn, self._poolurl, apipath)
     if res == 'FAILED':
-        raise IOError('Loading ' + urn + ' failed.  ' + msg)
+        if method in msg:
+            raise TypeError(msg)
+        raise IOError('Executing ' + method + ' failed.  ' + msg)
     return res
 
 

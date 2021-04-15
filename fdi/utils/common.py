@@ -48,7 +48,7 @@ def bstr(x, length=0, tostr=True, quote="'", level=0, **kwds):
 
     if s:
         r = quote + x + quote
-    elif tostr and hasattr(x, 'toString'):
+    elif tostr and hasattr(x, 'toString') and not issubclass(x.__class__, type):
         r = x.toString(level=level, **kwds)
     elif issubclass(x.__class__, (bytes, bytearray, memoryview)):
         r = x.hex()

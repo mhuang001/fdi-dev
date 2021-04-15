@@ -50,7 +50,8 @@ class Classes_meta(type):
                             'RefContainer',
                             'ContextRuleException'],
         'fdi.pal.urn': ['Urn'],
-        'fdi.pal.productref': ['ProductRef']
+        'fdi.pal.productref': ['ProductRef'],
+        'fdi.pal.query':  ['AbstractQuery', 'MetaQuery', 'StorageQuery'],
     }
 
     # class list from the package

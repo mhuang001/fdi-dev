@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from ..dataset.odict import ODict
 from ..dataset.classes import Classes
+from ..dataset.product import Product
 from ..dataset.serializable import serialize
 from .urn import Urn, parseUrn, parse_poolurl, makeUrn
 from .versionable import Versionable
@@ -9,7 +10,7 @@ from .dicthk import DictHk
 from .definable import Definable
 from ..utils.common import pathjoin, fullname, lls
 from .productref import ProductRef
-from .query import AbstractQuery, MetaQuery
+from .query import AbstractQuery, MetaQuery, StorageQuery
 
 import logging
 import filelock
@@ -279,6 +280,13 @@ When implementing a ProductPool, the following rules need to be applied:
 
         raise(NotImplementedError)
 
+    def getCount(self, typename):
+        """
+        Return the number of URNs for the product type.
+        """
+
+        raise(NotImplementedError)
+
     def reference(self, ref):
         """
         Increment the reference count of a ProductRef.
@@ -328,11 +336,18 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise(NotImplementedError)
 
-    def select(self,  query, results=None):
+    def select(self,  query, variable='m', ptype=Product,
+               results=None):
         """
         Returns a list of references to products that match the specified query.
         """
-        res = self.schematicSelect(query, results)
+        if issubclass(query.__class__, StorageQuery):
+            res = self.schematicSelect(query, results)
+        elif variable == 'm':
+            res = self.schematicSelect(MetaQuery(ptype, where=query), results)
+        else:
+            res = self.schematicSelect(AbstractQuery(
+                ptype, where=query, variable=variable), results)
         return res
 
     def __repr__(self):
@@ -381,6 +396,14 @@ class ManagedPool(ProductPool, DictHk):
             return True
         self._classes = ODict()
         return False
+
+    def getPoolpath(self):
+        """
+        Gets the poolpath of this pool.
+
+        poolpath is usually derived from poolurl received from ``PoolManager`` during initialization.
+        """
+        return self._poolpath
 
     def lockpath(self, op='w'):
         """ returns the appropriate path.
@@ -439,6 +462,15 @@ class ManagedPool(ProductPool, DictHk):
         mh: returns an iterator.
         """
         return self._classes.keys()
+
+    def getCount(self, typename):
+        """
+        Return the number of URNs for the product type.
+        """
+        try:
+            return len(self._classes[typename]['sn'])
+        except KeyError:
+            return 0
 
     def doSave(self, resourcetype, index, data, tag=None, **kwds):
         """ to be implemented by subclasses to do the action of saving
@@ -595,7 +627,7 @@ class ManagedPool(ProductPool, DictHk):
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)
-                self._classes, self._tags, self._urns=self.readHK()
+                self._classes, self._tags, self._urns = self.readHK()
                 raise e
 
     def doWipe(self):
@@ -614,7 +646,7 @@ class ManagedPool(ProductPool, DictHk):
                 self._tags.clear()
                 self._urns.clear()
             except Exception as e:
-                msg=self.getId() + 'wiping failed'
+                msg = self.getId() + 'wiping failed'
                 logger.debug(msg)
                 raise e
         logger.debug('Done.')
@@ -626,55 +658,55 @@ class ManagedPool(ProductPool, DictHk):
         valid inputs: typename and ns list; productref list; urn list
         """
 
-        ret=[]
-        u=self._urns
-        qw=q.getWhere()
+        ret = []
+        u = self._urns
+        qw = q.getWhere()
 
         if reflist:
             if isinstance(qw, str):
-                code=compile(qw, 'py', 'eval')
+                code = compile(qw, 'py', 'eval')
                 for ref in reflist:
-                    refmet=ref.getMeta()
-                    m=refmet if refmet else u[ref.urn]['meta']
+                    refmet = ref.getMeta()
+                    m = refmet if refmet else u[ref.urn]['meta']
                     if eval(code):
                         ret.append(ref)
                 return ret
             else:
                 for ref in reflist:
-                    refmet=ref.getMeta()
-                    m=refmet if refmet else u[ref.urn]['meta']
+                    refmet = ref.getMeta()
+                    m = refmet if refmet else u[ref.urn]['meta']
                     if qw(m):
                         ret.append(ref)
                 return ret
         elif urnlist:
             if isinstance(qw, str):
-                code=compile(qw, 'py', 'eval')
+                code = compile(qw, 'py', 'eval')
                 for urn in urnlist:
-                    m=u[urn]['meta']
+                    m = u[urn]['meta']
                     if eval(code):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret
             else:
                 for urn in urnlist:
-                    m=u[urn]['meta']
+                    m = u[urn]['meta']
                     if qw(m):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret
         elif snlist:
             if isinstance(qw, str):
-                code=compile(qw, 'py', 'eval')
+                code = compile(qw, 'py', 'eval')
                 for n in snlist:
-                    urn=makeUrn(poolname=self._poolname,
+                    urn = makeUrn(poolname=self._poolname,
                                   typename=typename, index=n)
-                    m=u[urn]['meta']
+                    m = u[urn]['meta']
                     if eval(code):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret
             else:
                 for n in snlist:
-                    urn=makeUrn(poolname=self._poolname,
+                    urn = makeUrn(poolname=self._poolname,
                                   typename=typename, index=n)
-                    m=u[urn]['meta']
+                    m = u[urn]['meta']
                     if qw(m):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret
@@ -688,71 +720,71 @@ class ManagedPool(ProductPool, DictHk):
         valid inputs: cls and ns list; productref list; urn list
         """
 
-        ret=[]
-        glbs=globals()
-        u=self._urns
-        qw=q.getWhere()
-        var=q.getVariable()
+        ret = []
+        glbs = globals()
+        u = self._urns
+        qw = q.getWhere()
+        var = q.getVariable()
         if var in glbs:
-            savevar=glbs[var]
+            savevar = glbs[var]
         else:
-            savevar='not in glbs'
+            savevar = 'not in glbs'
 
         if reflist:
             if isinstance(qw, str):
-                code=compile(qw, 'py', 'eval')
+                code = compile(qw, 'py', 'eval')
                 for ref in reflist:
-                    glbs[var]=pref.getProduct()
+                    glbs[var] = pref.getProduct()
                     if eval(code):
                         ret.append(ref)
                 if savevar != 'not in glbs':
-                    glbs[var]=savevar
+                    glbs[var] = savevar
                 return ret
             else:
                 for ref in reflist:
-                    glbs[var]=pref.getProduct()
+                    glbs[var] = pref.getProduct()
                     if qw(m):
                         ret.append(ref)
                 if savevar != 'not in glbs':
-                    glbs[var]=savevar
+                    glbs[var] = savevar
                 return ret
         elif urnlist:
             if isinstance(qw, str):
-                code=compile(qw, 'py', 'eval')
+                code = compile(qw, 'py', 'eval')
                 for urn in urnlist:
-                    pref=ProductRef(urn=urn)
-                    glbs[var]=pref.getProduct()
+                    pref = ProductRef(urn=urn)
+                    glbs[var] = pref.getProduct()
                     if eval(code):
                         ret.append(pref)
                 if savevar != 'not in glbs':
-                    glbs[var]=savevar
+                    glbs[var] = savevar
                 return ret
             else:
                 for urn in urnlist:
-                    pref=ProductRef(urn=urn)
-                    glbs[var]=pref.getProduct()
+                    pref = ProductRef(urn=urn)
+                    glbs[var] = pref.getProduct()
                     if qw(glbs[var]):
                         ret.append(pref)
                 if savevar != 'not in glbs':
-                    glbs[var]=savevar
+                    glbs[var] = savevar
                 return ret
         elif snlist:
             if isinstance(qw, str):
-                code=compile(qw, 'py', 'eval')
+                code = compile(qw, 'py', 'eval')
                 for n in snlist:
-                    urno=Urn(cls=cls, poolname=self._poolname, index=n)
-                    pref=ProductRef(urn=urno)
-                    glbs[var]=pref.getProduct()
+                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
+                    pref = ProductRef(urn=urno)
+                    glbs[var] = pref.getProduct()
                     if eval(code):
                         ret.append(pref)
                 if savevar != 'not in glbs':
-                    glbs[var]=savevar
+                    glbs[var] = savevar
                 return ret
             else:
                 for n in snlist:
-                    urno=Urn(cls=cls, poolname=self._poolname, index=n)
-                    pref=ProductRef(urn=urno)
-                    glbs[var]=pref.getProduct()
+                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
+                    pref = ProductRef(urn=urno)
+                    glbs[var] = pref.getProduct()
                     if qw(glbs[var]):
                         ret.append(pref)
                 if savevar != 'not in glbs':

@@ -154,6 +154,8 @@ def test_serialization():
     checkjson(v, 1)
     v = [1.2, 'ww']
     checkjson(v)
+    v = Product
+    checkjson(v)
     # v = (1, 8.2, 'tt')
     # checkjson(v)
     # v = {(5, 4): 4, 'y': {('d', 60): 'ff', '%': '$'}}

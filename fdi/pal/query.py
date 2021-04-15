@@ -2,7 +2,9 @@
 
 from ..dataset.serializable import Serializable
 from ..dataset.product import Product
-import pdb
+from ..utils.common import bstr
+
+from collections import OrderedDict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -12,6 +14,11 @@ logger = logging.getLogger(__name__)
 class StorageQuery(Serializable):
     """ Query on a ProductStorage. """
 
+    # def __init__(self, where=None, type=None, vaiable=None, allVersions=None, **kwds):
+    #     self._where = where
+    #     self._type = type
+    #     self._variable = vaiable
+    #     self._allVersions = allVersions
     def __init__(self, **kwds):
         self.query_all = True
         super(StorageQuery, self).__init__(**kwds)
@@ -93,21 +100,25 @@ class StorageQuery(Serializable):
         """
         self._allVersions = allVersions
 
-    def toString(self):
+    def __repr__(self):
+
+        return self.toString()
+
+    def toString(self, level=0, **kwds):
         """
         """
 
-        s = '<' + self.__class__.__name__ + \
-            ', '.join((str(k) + '= ' + str(v)
+        s = '<' + self.__class__.__name__ + ' ' + \
+            ', '.join((str(k) + '=' + bstr(v)
                        for k, v in self.__getstate__().items())) + '>'
         return s
 
     def __getstate__(self):
         return OrderedDict(
+            where=self._where,
             type=self._type,
             vaiable=self._variable,
-            where=self._where,
-            allVersions=self._allVersions
+            allVersions=self._allVersions,
         )
 
 

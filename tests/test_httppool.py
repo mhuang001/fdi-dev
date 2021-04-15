@@ -302,6 +302,15 @@ def test_CRUD_product():
     assert o['result'][prodt]['sn'][-l:] == inds
     assert o['result'][prodt]['currentSN'] == inds[-1]
 
+    logger.info('check count')
+    num = len(o['result'][prodt]['sn'])
+    apipath = '/api/getCount/' + prodt + ':str'
+    url = api_baseurl + post_poolid + apipath
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserialize(x.text)
+    check_response(o)
+    assert o['result'] == num
+
     logger.info('read tags')
     hkpath = '/hk/tags'
     url = api_baseurl + post_poolid + hkpath

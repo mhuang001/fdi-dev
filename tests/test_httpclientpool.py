@@ -75,7 +75,7 @@ def test_gen_url():
         base + '/defaultpool/hk'
     assert got_hk_url == hk_url, 'Housekeeping url error: ' + got_hk_url + ':' + hk_url
 
-    logger.info('Test GET classes, urns, tags url')
+    logger.info('Test GET classes, urns, tags, webapi url')
     got_classes_url = urn2fdiurl(
         urn=sampleurn, poolurl=samplepoolurl, contents='classes', method='GET')
     classes_url = 'http://127.0.0.1:8080' + \
@@ -101,6 +101,14 @@ def test_gen_url():
         base + \
         '/defaultpool/fdi.dataset.product.Product/10'
     assert got_product_url == product_url, 'Get product url error: ' + got_product_url
+
+    logger.info('GET WebAPI  url')
+    call = 'tagExists/foo'
+    got_webapi_url = urn2fdiurl(
+        urn=sampleurn, poolurl=samplepoolurl, contents=call, method='GET')
+    webapi_url = 'http://127.0.0.1:8080' + \
+        base + '/defaultpool/' + 'api/' + call
+    assert got_webapi_url == webapi_url, 'Get WebAPI url error: ' + got_webapi_url
 
     logger.info('Post product url')
     got_post_product_url = urn2fdiurl(
@@ -139,21 +147,19 @@ def test_CRUD_product_by_client():
     """Client http product storage READ, CREATE, DELETE products in remote
     """
 
-    poolpath = pcc['base_poolpath']
-    poolid = test_poolid+'1'
+    poolpath_local = PoolManager.PlacePaths['file']+pcc['baseurl']
+    poolid = test_poolid
     poolurl = pcc['httphost'] + pcc['baseurl'] + \
         '/' + poolid
-    pool = HttpClientPool(poolname=poolid,
-                          poolurl=poolurl)
-    crud_t(poolid, poolurl, poolpath, pool)
+    pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
+    crud_t(poolid, poolurl, poolpath_local, pool)
 
-    poolpath = pcc['base_poolpath']
     poolid = test_poolid+'2'
     poolurl = pcc['httphost'] + pcc['baseurl'] + \
         '/' + poolid
     pool = HttpClientPool2(poolname=poolid,
-                           poolurl=poolurl, poolpath_local=poolpath)
-    crud_t(poolid, poolurl, poolpath, pool)
+                           poolurl=poolurl, poolpath_local=poolpath_local)
+    crud_t(poolid, poolurl, poolpath_local, pool)
 
 
 def crud_t(poolid, poolurl, poolpath_local, pool):
@@ -167,44 +173,59 @@ def crud_t(poolid, poolurl, poolpath_local, pool):
         str(pstore.getPools())
     assert pstore.getPool(poolid) is not None, 'Pool ' + \
         poolid+' is None.'
+    pool.removeAll()
+    if issubclass(pool.__class__, HttpClientPool2):
+        real_poolpath = os.path.join(poolpath_local, poolid)
+        assert os.path.exists(real_poolpath), \
+            'local metadata file not found: ' + real_poolpath
+        cnt = len([f for f in os.listdir(real_poolpath) if f[-1].isnumeric()])
+    else:
+        cnt = pool.getCount('fdi.dataset.product.Product')
+    hk = pool.readHK()
+    print(cnt, hk[0])
+    assert cnt == 0, 'Local metadata file size is 2'
 
-    logger.info('Save data by httpclientpool')
+    logger.info('Save data by ' + pool.__class__.__name__)
     x = Product(description='desc test')
-    x.creator = 'httpclient'
     urn = pstore.save(x, geturnobjs=True)
+    x.creator = 'httpclient'
     urn2 = pstore.save(x, geturnobjs=True)
+    typenm = fullname(x)
     expected_urn = 'urn:' + poolid + ':' + fullname(x)
     assert urn.urn.rsplit(':', 1)[0] == expected_urn, \
         'Urn error: ' + expected_urn
     poolpath, scheme, place, pn = parse_poolurl(
         poolurl, poolhint=poolid)
     if issubclass(pool.__class__, HttpClientPool2):
-        real_poolpath = os.path.join(pcc['base_poolpath'], poolid)
-        assert os.path.exists(real_poolpath), \
-            'local metadata file not found: ' + real_poolpath
-        assert len(os.listdir(real_poolpath)) >= 3, \
-            'Local metadata file size is less than 3'
+        cnt = len([f for f in os.listdir(real_poolpath) if f[-1].isnumeric()])
+        assert cnt == 0, 'no prods in local dir'
+        cnt = len([f for f in os.listdir(real_poolpath) if f[-3:] == 'jsn'])
+        assert cnt == 3, '3 jsn in local dir'
+    else:
+        cnt = pool.getCount(typenm)
+        assert cnt == 2
 
     logger.info('Load product from httpclientpool')
-    res = pstore.getPool(poolid).loadProduct(urn.urn)
+    res = pstore.getPool(poolid).loadProduct(urn2.urn)
     assert res.creator == 'httpclient', 'Load product error: ' + str(res)
     diff = deepcmp(x, res)
     assert diff is None, diff
 
-    if issubclass(pool.__class__, HttpClientPool2):
-        logger.info('Search metadata')
-        q = MetaQuery(Product, 'm["creator"] == "httpclient"')
-        res = pstore.select(q)
-        assert len(res) > 0, 'Select from metadata error: ' + str(res)
+    logger.info('Search metadata')
+    q = MetaQuery(Product, 'm["creator"] == "httpclient"')
+    res = pstore.select(q)
+    assert len(res) == 1, 'Select from metadata error: ' + str(res)
 
     logger.info('Delete a product from httpclientpool')
     pstore.getPool(poolid).remove(urn.urn)
     if issubclass(pool.__class__, HttpClientPool2):
         sn = pstore.getPool(
             poolid)._classes['fdi.dataset.product.Product']['sn']
-        assert len(sn) >= 1, 'Delete product local error, sn : ' + str(sn)
-        logger.info('A load exception message is expected')
-
+        lsn = len(sn)
+    else:
+        lsn = pstore.getPool(poolid).getCount('fdi.dataset.product.Product')
+    assert lsn == 1, 'Delete product local error, len sn : ' + lsn
+    logger.info('A load exception message is expected')
     with pytest.raises(NameError):
         res = pstore.getPool(poolid).loadProduct(urn.urn)
 
@@ -217,3 +238,5 @@ def crud_t(poolid, poolurl, poolpath_local, pool):
         reshk = pstore.getPool(poolid).readHK()
         assert reshk[0] == ODict(
         ), 'Server classes is not empty after delete: ' + str(reshk[0])
+    else:
+        assert pool.isEmpty()

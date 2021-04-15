@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+
+import builtins
+from collections import ChainMap
+from itertools import chain
 from ..utils.common import lls
 from ..dataset.deserialize import deserialize
 from ..dataset.serializable import serialize
@@ -50,9 +54,10 @@ schm = 'server'
 @app.before_first_request
 def init_httppool_server():
     """ Init a global HTTP POOL """
-    global pc, Classes, PM, BASEURL, basepath, poolpath
+    global pc, Classes, PM, BASEURL, basepath, poolpath, pylookup
 
     Classes = init_conf_clas()
+    lookup = ChainMap(Classes.mapping, globals(), vars(builtins))
 
     from ..pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
     if PM.isLoaded(DEFAULT_MEM_POOL):
@@ -130,6 +135,10 @@ def get_pool_sn(prod_type, pool_id):
     return str(res)
 
 
+WebAPI = ['dereference', 'exists', 'getCount', 'getDefinition', 'getHead', 'getId', 'getLastVersion', 'getPlace', 'getPoolname', 'getPoolurl', 'getPoolpath', 'getProductClasses', 'getReferenceCount', 'getScheme', 'getTagUrnMap', 'getTags', 'getUrn', 'getUrnId', 'getUrnObject', 'getVersions', 'isAlive', 'isEmpty', 'loadDescriptors', 'loadProduct', 'lockpath',
+          'meta', 'mfilter', 'pfilter', 'poolname', 'poolurl', 'readHK', 'reference', 'remove', 'removeAll', 'removeTag', 'removeUrn', 'removekey', 'saveDescriptors', 'saveProduct', 'saveProductRef', 'schematicLoad', 'schematicRemove', 'schematicSave', 'schematicSelect', 'schematicWipe', 'select', 'setTag', 'setup', 'tagExists']
+
+
 @ app.route(pc['baseurl'] + '/<path:pool>', methods=['GET', 'POST', 'DELETE'])
 @ auth.login_required
 def httppool(pool):
@@ -161,6 +170,9 @@ def httppool(pool):
         elif paths[-1] == 'hk':  # Load all HKdata
             result, msg = load_HKdata(paths)
             # save_action(username=username, action='READ', pool=paths[0])
+        elif paths[1] == 'api':
+
+            result, msg = call_pool_Api(paths)
         elif paths[-1].isnumeric():  # Retrieve product
             result, msg = load_product(paths)
             # save_action(username=username, action='READ', pool=paths[0])
@@ -204,6 +216,88 @@ def httppool(pool):
     return resp
 
 
+Builtins = vars(builtins)
+
+
+def mkv(v, t):
+
+    m = v if t == 'str' else None if t == 'NoneType' else Builtins[t](
+        v) if t in Builtins else deserialize(v)
+    return m
+
+
+def call_pool_Api(paths):
+    """ run api calls on the running pool.
+
+    """
+    # index of method name
+    im = 2
+    # remove empty trailing strings
+    for o in range(len(paths), 1, -1):
+        if paths[o-1]:
+            break
+
+    paths = paths[:o]
+    lp = len(paths)
+    method = paths[im]
+    args, kwds = [], {}
+
+    if lp > im:
+        if (lp-im) % 2 == 0:
+            # there are odd number of args+key+val
+            try:
+                tyargs = paths[im+1].split('|')
+                args = []
+                for a in tyargs:
+                    s = a.rsplit(':', 1)
+                    v, t = s[0], s[1]
+                    args.append(mkv(v, t))
+            except IndexError as e:
+                result = '"FAILED"'
+                msg = 'Bad arguement format ' + paths[im+1] + \
+                    ' Exception: ' + str(e) + ' ' + trbk(e)
+                logger.error(msg)
+                return result, msg
+            kwstart = im + 2
+        else:
+            kwstart = im + 1
+        try:
+            while kwstart < lp:
+                s = paths[kwstart+1].rsplit(':', 1)
+                v, t = s[0], s[1]
+                kwds[paths[kwstart]] = mkv(v, t)
+                kwstart += 2
+        except IndexError as e:
+            result = '"FAILED"'
+            msg = 'Bad arguement format ' + paths[kwstart+1] + \
+                ' Exception: ' + str(e) + ' ' + trbk(e)
+            logger.error(msg)
+            return result, msg
+    kwdsexpr = (str(k)+'='+str(v) for k, v in kwds.items())
+    msgexpr = '%s(%s)' % (method, ', '.join(chain(map(str, args), kwdsexpr)))
+    logger.debug('WebAPI ' + msgexpr)
+
+    poolname = paths[0]
+    poolurl = schm + '://' + os.path.join(poolpath, poolname)
+    if not PM.isLoaded(poolname):
+        result = '"FAILED"'
+        msg = 'Pool not found: ' + poolname
+        logger.error(msg)
+        return result, msg
+
+    try:
+        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        res = getattr(poolobj, method)(*args, **kwds)
+        result = serialize(res)
+        msg = msgexpr + ' OK.'
+    except Exception as e:
+        result = '"FAILED"'
+        msg = 'Unable to complete ' + msgexpr + \
+            ' Exception: ' + str(e) + ' ' + trbk(e)
+        logger.error(msg)
+    return result, msg
+
+
 def delete_product(paths):
     """ removes specified product from pool
     """
@@ -228,7 +322,7 @@ def delete_product(paths):
     except Exception as e:
         result = '"FAILED"'
         msg = 'Unable to remove product: ' + urn + \
-            ' caused by ' + str(e) + ' ' + trbk(e)
+            ' Exception: ' + str(e) + ' ' + trbk(e)
         logger.error(msg)
     return result, msg
 
@@ -254,7 +348,7 @@ def delete_pool(paths):
     except Exception as e:
         result = '"FAILED"'
         msg = 'Unable to wipe pool: ' + poolname + \
-            ' caused by ' + str(e) + ' ' + trbk(e)
+            ' Exception: ' + str(e) + ' ' + trbk(e)
     checkpath.cache_clear()
     return result, msg
 

@@ -122,7 +122,7 @@ class GenericDataset(Dataset, DataContainer, Container):
         s = OrderedDict(description=self.description,
                         meta=self._meta,
                         data=self.data,
-                        _STID=self._STID)
+                        _STID=self._STID)  # TODO
         return s
 
 

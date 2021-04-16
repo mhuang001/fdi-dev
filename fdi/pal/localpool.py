@@ -72,7 +72,7 @@ class LocalPool(ManagedPool):
         self._atimes = {}
         self._cached_files = {}
 
-        c, t, u = self.readHK()
+        c, t, u = tuple(self.readHK().values())
 
         logger.debug('created ' + self.__class__.__name__ + ' ' + self._poolname +
                      ' at ' + real_poolpath + ' HK read.')
@@ -113,12 +113,12 @@ class LocalPool(ManagedPool):
             self._atimes[fp] = sr.st_mtime_ns
         return js
 
-    def readHK(self, hktype=None, serialized=False):
+    def readHK(self, hktype=None, serialize_out=False):
         """
         loads and returns the housekeeping data
 
         hktype: one of 'classes', 'tags', 'urns' to return. default is None to return alldirs
-        serialized: if True return serialized form. Default is false.
+        serialize_out: if True return serialized form. Default is false.
         """
         if hktype is None:
             hks = ['classes', 'tags', 'urns']
@@ -126,14 +126,14 @@ class LocalPool(ManagedPool):
             hks = [hktype]
         fp0 = self.transformpath(self._poolname)
         # with filelock.FileLock(self.lockpath('w'), timeout=5):
-        # if 1:
+
         hk = {}
         for hkdata in hks:
             fp = op.abspath(pathjoin(fp0, hkdata + '.jsn'))
             if op.exists(fp):
                 js = self.readmmap(fp, check_time=True)
                 if js:
-                    if serialized:
+                    if serialize_out:
                         r = js
                     else:
                         from ..dataset.deserialize import deserialize
@@ -141,10 +141,10 @@ class LocalPool(ManagedPool):
                     self._cached_files[fp] = js
                 else:
                     # the file hasnot changed since last time we r/w it.
-                    r = self._cached_files[fp] if serialized else \
+                    r = self._cached_files[fp] if serialize_out else \
                         self.__getattribute__('_' + hkdata)
             else:
-                if serialized:
+                if serialize_out:
                     r = '{"_STID":"ODict"}'
                 else:
                     from ..dataset.odict import ODict
@@ -152,16 +152,20 @@ class LocalPool(ManagedPool):
             hk[hkdata] = r
             assert r is not None
         logger.debug('HK read from ' + fp0)
-        return (hk['classes'], hk['tags'], hk['urns']) if hktype is None else hk[hktype]
+        if serialize_out:
+            return '{%s}' % ', '.join(('"%s": %s' % (k, v) for k, v in hk.items())) if hktype is None else hk[hktype]
+        else:
+            return hk if hktype is None else hk[hktype]
 
-    def writeJsonmmap(self, fp, data, close=False, check_time=False, **kwds):
+    def writeJsonmmap(self, fp, data, serialize_in=True, serialize_out=False, close=False, check_time=False, **kwds):
         """ write data in JSON from mmap file at fp.
 
         register the file. Leave file open by default `close`.
         data: to be serialized and saved.
         """
         from ..dataset.serializable import serialize
-        js = serialize(data, **kwds)
+
+        js = serialize(data, **kwds) if serialize_in else data
         fp = op.abspath(fp)
         if 1:  # fp not in self._files or self._files[fp] is None:
             file_obj = open(fp, mode="w+", encoding="utf-8")
@@ -202,7 +206,7 @@ class LocalPool(ManagedPool):
                                     check_time=True)
         return l
 
-    def doSave(self, resourcetype, index, data, tag=None, **kwds):
+    def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
         """
         does the media-specific saving.
 
@@ -212,7 +216,8 @@ class LocalPool(ManagedPool):
         fp = pathjoin(fp0, quote(resourcetype) + '_' + str(index))
         try:
             # t0 = time.time()
-            l = self.writeJsonmmap(fp, data, close=True, **kwds)
+            l = self.writeJsonmmap(
+                fp, data, serialize_in=serialize_in, close=True, **kwds)
             l += self.writeHK(fp0)
             # print('tl %.8f %9d' % (time.time()-t0, l))
             logger.debug('HK written')
@@ -221,7 +226,7 @@ class LocalPool(ManagedPool):
             raise e  # needed for undoing HK changes
         return l
 
-    def doLoad(self, resourcetype, index, serialized=False):
+    def doLoad(self, resourcetype, index, serialize_out=False):
         """
         does the action of loading.
 
@@ -231,7 +236,7 @@ class LocalPool(ManagedPool):
         pp = self.transformpath(self._poolname) + '/' + \
             resourcetype + '_' + indexstr
         js = self.readmmap(pp, close=True)
-        if serialized:
+        if serialize_out:
             r = js
         else:
             from ..dataset.deserialize import deserialize

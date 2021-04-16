@@ -68,7 +68,7 @@ class HttpClientPool1(ProductPool):
         if not op.exists(real_poolpath):
             # os.mkdir(real_poolpath)
             os.makedirs(real_poolpath)
-        c, t, u = self.readHK()
+        c, t, u = tuple(self.readHK().values())
 
         logger.debug('created ' + self.__class__.__name__ + ' ' + self._poolname +
                      ' at ' + real_poolpath + ' HK read.')
@@ -136,7 +136,7 @@ class HttpClientPool1(ProductPool):
         if r == 'FAILED':
             logger.error(msg)
             raise Exception(msg)
-        return hk['classes'], hk['tags'], hk['urns']
+        return hk
 
     def writeHK(self, fp0):
         """
@@ -172,7 +172,7 @@ class HttpClientPool1(ProductPool):
             logger.error('Save ' + fp + 'failed. ' + str(e) + trbk(e))
             raise e  # needed for undoing HK changes
 
-    def schematicLoad(self, resourcetype, index, serialized=False):
+    def schematicLoad(self, resourcetype, index, serialize_out=False):
         """
         does the scheme-specific part of load.
         """
@@ -321,7 +321,7 @@ class HttpClientPool2(LocalPool):
         if r == 'FAILED':
             logger.error(msg)
             raise Exception(msg)
-        return hk['classes'], hk['tags'], hk['urns']
+        return hk
 
     def doSave(self, resourcetype, index, data, tag=None, **kwds):
         """
@@ -349,7 +349,7 @@ class HttpClientPool2(LocalPool):
             raise e  # needed for undoing HK changes
         return l
 
-    def doLoad(self, resourcetype, index, serialized=False):
+    def doLoad(self, resourcetype, index, serialize_out=False):
         """
         does the scheme-specific part of loadProduct.
         """
@@ -487,9 +487,9 @@ class HttpClientPool(ProductPool):
         if r == 'FAILED':
             logger.error(msg)
             raise Exception(msg)
-        return hk['classes'], hk['tags'], hk['urns']
+        return hk
 
-    def schematicSave(self, products, tag=None, geturnobjs=False, serialized=False, **kwds):
+    def schematicSave(self, products, tag=None, geturnobjs=False, serialize_out=False, **kwds):
         """
         does the media-specific saving to remote server.
         """
@@ -505,7 +505,15 @@ class HttpClientPool(ProductPool):
         # only type and poolname in the urn will be used
         urn = makeUrn(typename=fullname(productlist[0]),
                       poolname=self._poolname, index=0)
-        sv = save_to_server(productlist, urn, self._poolurl, tag)
+        first = True
+        sized = '['
+        for prd in productlist:
+            sp = serialize(prd)
+            sized += '%s %d, %s' % ('' if first else ',', len(sp), sp)
+            first = False
+        sized += ']'
+        sv = save_to_server(sized, urn, self._poolurl,
+                            tag, no_serial=True)
         if sv['result'] == 'FAILED':
             logger.error('Save %d products to server failed. Message from %s: %s' % (
                 len(productlist), self._poolurl, sv['msg']))
@@ -515,14 +523,14 @@ class HttpClientPool(ProductPool):
         logger.debug('Product written in remote server done')
         res = []
         if geturnobjs:
-            if serialized:
+            if serialize_out:
                 # return the URN string.
                 res = urns
             else:
                 res = [Urn(urn=u, poolurl=self._poolurl) for u in urns]
         else:
             for u, prd in zip(urns, productlist):
-                if serialized:
+                if serialize_out:
                     rf = ProductRef(urn=Urn(urn=u, poolurl=self._poolurl),
                                     poolname=self._poolname)
                     # return without meta
@@ -535,11 +543,11 @@ class HttpClientPool(ProductPool):
         logger.debug('%d product(s) generated %d %s: %s.' %
                      (len(productlist), len(res), 'Urns ' if geturnobjs else 'prodRefs', lls(res, 200)))
         if alist:
-            return serialize(res) if serialized else res
+            return serialize(res) if serialize_out else res
         else:
-            return serialize(res[0]) if serialized else res[0]
+            return serialize(res[0]) if serialize_out else res[0]
 
-    def schematicLoad(self, resourcetype, index, serialized=False):
+    def schematicLoad(self, resourcetype, index, serialize_out=False):
         """
         does the scheme-specific part of loadProduct.
         """

@@ -7,7 +7,8 @@ from ..dataset.classes import Classes
 from ..utils.common import fullname
 import sys
 import os
-from collections import OrderedDict
+import builtins
+from collections import OrderedDict, ChainMap
 
 import logging
 # create logger
@@ -119,7 +120,8 @@ Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. T
 
         poolname, resourcetype, index = parseUrn(urn)
 
-        cls = Classes.mapping[resourcetype.split('.')[-1]]
+        Class_Look_Up = ChainMap(Classes.mapping, globals(), vars(builtins))
+        cls = Class_Look_Up[resourcetype.split('.')[-1]]
 
         self._poolname = poolname
         self._class = cls

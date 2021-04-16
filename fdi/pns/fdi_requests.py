@@ -112,7 +112,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 # Store tag in headers, maybe that's  not a good idea
 
 
-def save_to_server(data, urn, poolurl, tag):
+def save_to_server(data, urn, poolurl, tag, no_serial=False):
     """Save product to server with putting tag in headers
     """
     user = pcc['auth_user']
@@ -121,8 +121,9 @@ def save_to_server(data, urn, poolurl, tag):
     api = urn2fdiurl(urn, poolurl, contents='product', method='POST')
     # print('POST API: ' + api)
     headers = {'tag': tag}
+    sd = data if no_serial else serialize(data)
     res = requests.post(
-        api, auth=auth, data=serialize(data), headers=headers)
+        api, auth=auth, data=sd, headers=headers)
     result = deserialize(res.text)
     # print(result)
     return result

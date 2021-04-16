@@ -182,6 +182,7 @@ nds3 =\
 #=== dimension 4
 
 """
+
 out_GenericDataset = """level 0
 # GenericDataset
 description= {'test GD'},
@@ -439,7 +440,7 @@ m1      2.3                sec     float     None                     None      
 MetaData-listeners = ListnerSet{}}
 
 CompositeDataset-datasets =
-<ODict     [ dataset 1 ]= # ArrayDataset
+<ODict dataset 1: # ArrayDataset
 description= {'arraydset 1'},
 meta= {(No parameter.)MetaData-listeners = ListnerSet{}},
 type= {None},
@@ -448,7 +449,7 @@ typecode= {None},
 unit= {'ev'}
 ArrayDataset-dataset =
 768  4.4  5400
-    [ dataset 2 ]= # TableDataset
+dataset 2: # TableDataset
 description= {'Example table'},
 meta= {(No parameter.)MetaData-listeners = ListnerSet{}}
 TableDataset-dataset =
@@ -476,7 +477,7 @@ MetaData-listeners = ListnerSet{}
 }
 
 CompositeDataset-datasets =
-<ODict     [ dataset 1 ]= # ArrayDataset
+<ODict dataset 1: # ArrayDataset
 description= {'arraydset 1'},
 meta= {(No parameter.)MetaData-listeners = ListnerSet{}
 },
@@ -486,7 +487,7 @@ typecode= {None},
 unit= {'ev'}
 ArrayDataset-dataset =
 768  4.4  5400
-    [ dataset 2 ]= # TableDataset
+dataset 2: # TableDataset
 description= {'Example table'},
 meta= {(No parameter.)MetaData-listeners = ListnerSet{}
 }
@@ -506,7 +507,7 @@ TableDataset-dataset =
 description, meta
 
 CompositeDataset-datasets =
-<ODict     [ dataset 1 ]= ArrayDataset{ [768, 4.4, 5400.0] (ev) <None>, "arraydset 1", default None, tcode=None, meta=(No parameter.)MetaData-listeners = ListnerSet{}}    [ dataset 2 ]= # TableDataset
+<ODict dataset 1: ArrayDataset{ [768, 4.4, 5400.0] (ev) <None>, "arraydset 1", default None, tcode=None, meta=(No parameter.)MetaData-listeners = ListnerSet{}}dataset 2: # TableDataset
 description, meta
 TableDataset-dataset =
    Time    Energy

@@ -28,7 +28,7 @@ class MemPool(ManagedPool):
         self._MemPool = {}
         # if self._poolname not in self._MemPool:
         #      self._MemPool[self._poolname] = {}
-        c, t, u = self.readHK()
+        c, t, u = tuple(self.readHK().values())
 
         logger.debug('created ' + self.__class__.__name__ +
                      ' ' + self._poolname + ' HK read.')
@@ -48,15 +48,15 @@ class MemPool(ManagedPool):
         # else:
         #     return None
 
-    def readHK(self, hktype=None, serialized=False):
+    def readHK(self, hktype=None, serialize_in=True, serialize_out=False):
         """
         loads and returns the housekeeping data
 
         hktype: one of 'classes', 'tags', 'urns' to return. default is None to return alldirs
-        serialized: if True return serialized form. Default is false.
+        serialize_out: if True return serialized form. Default is false.
         """
 
-        if serialized:
+        if serialize_out:
             raise NotImplementedError
         if hktype is None:
             hks = ['classes', 'tags', 'urns']
@@ -71,7 +71,7 @@ class MemPool(ManagedPool):
                 r = myspace[hkdata]
             hk[hkdata] = r
         logger.debug('HK read from ' + self._poolname)
-        return (hk['classes'], hk['tags'], hk['urns']) if hktype is None else hk[hktype]
+        return hk if hktype is None else hk[hktype]
 
     def writeHK(self):
         """
@@ -83,7 +83,7 @@ class MemPool(ManagedPool):
         myspace['tags'] = self._tags
         myspace['urns'] = self._urns
 
-    def doSave(self, resourcetype, index, data, tag=None):
+    def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
         """ 
         does the media-specific saving
         """
@@ -93,12 +93,12 @@ class MemPool(ManagedPool):
         self.writeHK()
         logger.debug('HK written')
 
-    def doLoad(self, resourcetype, index, serialized=False):
+    def doLoad(self, resourcetype, index, serialize_out=False):
         """
         does the action of loadProduct.
         note that the index is given as a string.
         """
-        if serialized:
+        if serialize_out:
             raise NotImplementedError
         indexstr = str(index)
         resourcep = resourcetype + '_' + indexstr

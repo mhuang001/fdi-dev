@@ -229,6 +229,7 @@ def populate_server(poolid):
         x.creator = i
         data = serialize(x)
         url = api_baseurl + poolid + '/' + prodt + '/' + str(index)
+        print(len(data))
 
         x = requests.post(url, auth=HTTPBasicAuth(
             auth_user, auth_pass), data=data)
@@ -278,20 +279,23 @@ def test_CRUD_product():
     hkpath = '/hk'
     url = api_baseurl + post_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
-    o = deserialize(x.text)
-    check_response(o)
-    assert o['result']['classes'] is not None, 'Classes jsn read failed'
-    assert o['result']['tags'] is not None, 'Tags jsn read failed'
-    assert o['result']['urns'] is not None, 'Urns jsn read failed'
+    o1 = deserialize(x.text)
+    url2 = api_baseurl + post_poolid + '/api/readHK'
+    x2 = requests.get(url2, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o2 = deserialize(x2.text)
+    for o in [o1, o2]:
+        check_response(o)
+        assert o['result']['classes'] is not None, 'Classes jsn read failed'
+        assert o['result']['tags'] is not None, 'Tags jsn read failed'
+        assert o['result']['urns'] is not None, 'Urns jsn read failed'
 
-    l = len(urns)
-    inds = [int(u.rsplit(':', 1)[1]) for u in urns]
-    # the last l sn's
-    assert o['result']['classes'][prodt]['sn'][-l:] == inds
-    assert o['result']['classes'][prodt]['currentSN'] == inds[-1]
-    assert len(o['result']['tags']) == 0
-    assert [d['meta']['creator'].value for
-            d in list(o['result']['urns'].values())[-l:]] == creators
+        l = len(urns)
+        inds = [int(u.rsplit(':', 1)[1]) for u in urns]
+        # the last l sn's
+        assert o['result']['classes'][prodt]['sn'][-l:] == inds
+        assert o['result']['classes'][prodt]['currentSN'] == inds[-1]
+        assert len(o['result']['tags']) == 0
+        assert set(o['result']['urns'].keys()) == set(urns)
 
     logger.info('read classes')
     hkpath = '/hk/classes'
@@ -326,9 +330,7 @@ def test_CRUD_product():
     o = deserialize(x.text)
     check_response(o)
 
-    clst = [d['meta']['creator'].value for d in list(
-        o['result'].values())[-l:]]
-    assert clst == creators
+    assert set(o['result'].keys()) == set(urns)
 
     # ========
     logger.info('delete a product')

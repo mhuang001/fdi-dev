@@ -1,9 +1,9 @@
-FROM ubuntu:latest AS base_ext
+FROM ubuntu:18.04 AS base_ext
 LABEL Pool Server
 # 0.2 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
-ARG DEBIAN_FRONTEND=noninteractive
-ENV TZ=Etc/UTC
+#ARG DEBIAN_FRONTEND=noninteractive
+#ENV TZ=Etc/UTC
 RUN apt-get update \
 && apt-get install -y apt-utils inetutils-ping curl net-tools sudo \
 && apt-get install -y nano \
@@ -44,7 +44,7 @@ RUN mkdir -p ${PROJ_DIR}/data \
 #RUN echo WSGIRestrictEmbedded On >> /etc/apache2/apache2.conf
 
 # config software
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
+#RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
 
 # convinience aliases
 COPY fdi/pns/resources/profile .

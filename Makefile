@@ -234,13 +234,6 @@ rm_serveri:
 	docker stop $(SERVER_NAME)  || echo not running
 	docker  rm $(SERVER_NAME) || echo go on ...
 	docker image rm $(IMAGE_NAME)
-	docker stop $(SERVER_NAME)
-	docker  rm $(SERVER_NAME)
-
-rm_serveri:
-	docker stop $(SERVER_NAME)
-	docker  rm $(SERVER_NAME)
-	docker image rm $(IMAGE_NAME)
 
 it:
 	docker exec -it $(D) $(SERVER_NAME) /bin/bash

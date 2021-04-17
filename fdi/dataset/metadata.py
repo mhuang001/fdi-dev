@@ -20,7 +20,8 @@ from ..utils.common import exprstrs, wls, mstr, t2l
 from tabulate import tabulate
 
 import builtins
-from collections import OrderedDict, Sequence
+from collections import OrderedDict
+from collections.abc import Sequence
 from numbers import Number
 import logging
 # create logger

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from itertools import count
-from collections import Sequence
+from collections.abc import Sequence
 import sys
 
 

@@ -1,9 +1,14 @@
+
 ==========
 Change Log
 ==========
 
 BETA0
 =====
+
+1.4.0 2021-04-17
+-----------------
+HttpClient pool not caching HK and with /api. ManagedPool. serial write-through. 
 
 1.3.0 2021-04-06
 -----------------

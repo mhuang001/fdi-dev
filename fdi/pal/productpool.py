@@ -3,6 +3,7 @@ from ..dataset.odict import ODict
 from ..dataset.classes import Classes
 from ..dataset.product import Product
 from ..dataset.serializable import serialize
+from ..dataset.deserialize import deserialize
 from .urn import Urn, parseUrn, parse_poolurl, makeUrn
 from .versionable import Versionable
 from .taggable import Taggable
@@ -539,8 +540,16 @@ class ManagedPool(ProductPool, DictHk):
             urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
 
             if urn not in u:
-                # TODO
-                mt = prd.meta if hasattr(prd, 'meta') else ODict()
+                if serialize_in and hasattr(prd, 'meta'):
+                    mt = prd.meta
+                else:
+                    strs, stre = '{"meta": ', '"_STID": "MetaData"}'
+                    start = prd.find(strs, 0)
+                    end = prd.find(stre, start)
+                    if start >= 0 and end > 0:
+                        mt = deserialize(prd[start+len(strs):end+len(stre)])
+                    else:
+                        mt = ODict()
                 u[urn] = ODict(tags=[], meta=mt)
 
             if tag is not None:
@@ -652,9 +661,9 @@ class ManagedPool(ProductPool, DictHk):
                 filelock.FileLock(self.lockpath('r')):
 
             # get the latest HK
-            self._classes, self._tags, self._urns=tuple(
+            self._classes, self._tags, self._urns = tuple(
                 self.readHK().values())
-            c, t, u=self._classes, self._tags, self._urns
+            c, t, u = self._classes, self._tags, self._urns
 
             if urn not in u:
                 raise ValueError(
@@ -666,11 +675,11 @@ class ManagedPool(ProductPool, DictHk):
             if len(c[prod]['sn']) == 0:
                 del c[prod]
             try:
-                res=self.doRemove(resourcetype=prod, index=sn)
+                res = self.doRemove(resourcetype=prod, index=sn)
             except Exception as e:
-                msg='product ' + urn + ' removal failed'
+                msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)
-                self._classes, self._tags, self._urns=tuple(
+                self._classes, self._tags, self._urns = tuple(
                     self.readHK().values())
                 raise e
 
@@ -690,7 +699,7 @@ class ManagedPool(ProductPool, DictHk):
                 self._tags.clear()
                 self._urns.clear()
             except Exception as e:
-                msg=self.getId() + 'wiping failed'
+                msg = self.getId() + 'wiping failed'
                 logger.debug(msg)
                 raise e
         logger.debug('Done.')
@@ -702,43 +711,43 @@ class ManagedPool(ProductPool, DictHk):
         valid inputs: typename and ns list; productref list; urn list
         """
 
-        ret=[]
-        u=self._urns
-        qw=q.getWhere()
+        ret = []
+        u = self._urns
+        qw = q.getWhere()
 
         if reflist:
             if isinstance(qw, str):
-                code=compile(qw, 'py', 'eval')
+                code = compile(qw, 'py', 'eval')
                 for ref in reflist:
-                    refmet=ref.getMeta()
-                    m=refmet if refmet else u[ref.urn]['meta']
+                    refmet = ref.getMeta()
+                    m = refmet if refmet else u[ref.urn]['meta']
                     if eval(code):
                         ret.append(ref)
                 return ret
             else:
                 for ref in reflist:
-                    refmet=ref.getMeta()
-                    m=refmet if refmet else u[ref.urn]['meta']
+                    refmet = ref.getMeta()
+                    m = refmet if refmet else u[ref.urn]['meta']
                     if qw(m):
                         ret.append(ref)
                 return ret
         elif urnlist:
             if isinstance(qw, str):
-                code=compile(qw, 'py', 'eval')
+                code = compile(qw, 'py', 'eval')
                 for urn in urnlist:
-                    m=u[urn]['meta']
+                    m = u[urn]['meta']
                     if eval(code):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret
             else:
                 for urn in urnlist:
-                    m=u[urn]['meta']
+                    m = u[urn]['meta']
                     if qw(m):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret
         elif snlist:
             if isinstance(qw, str):
-                code=compile(qw, 'py', 'eval')
+                code = compile(qw, 'py', 'eval')
                 for n in snlist:
                     urn=makeUrn(poolname=self._poolname,
                                   typename=typename, index=n)

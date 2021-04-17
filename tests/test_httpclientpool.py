@@ -211,11 +211,10 @@ def crud_t(poolid, poolurl, poolpath_local, pool):
     diff = deepcmp(x, res)
     assert diff is None, diff
 
-    if 0:  # TODO
-        logger.info('Search metadata')
-        q = MetaQuery(Product, 'm["creator"] == "httpclient"')
-        res = pstore.select(q)
-        assert len(res) == 1, 'Select from metadata error: ' + str(res)
+    logger.info('Search metadata')
+    q = MetaQuery(Product, 'm["creator"] == "httpclient"')
+    res = pstore.select(q)
+    assert len(res) == 1, 'Select from metadata error: ' + str(res)
 
     logger.info('Delete a product from httpclientpool')
     pstore.getPool(poolid).remove(urn.urn)

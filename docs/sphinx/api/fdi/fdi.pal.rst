@@ -41,6 +41,14 @@ fdi.pal.definable module
    :undoc-members:
    :show-inheritance:
 
+fdi.pal.dicthk module
+---------------------
+
+.. automodule:: fdi.pal.dicthk
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.pal.httpclientpool module
 -----------------------------
 

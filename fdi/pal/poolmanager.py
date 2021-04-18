@@ -26,7 +26,7 @@ This is done by calling the getPool() method, which will return an existing pool
     """
     # Global centralized dict that returns singleton -- the same -- pool for the same ID.
     _GlobalPoolList = {}
-    # maps scheme to default place\poolpath
+    # maps scheme to default place/poolpath
     p = pc['node']['host']+':'+str(pc['node']['port'])+pc['baseurl']
     PlacePaths = {
         'file': pc['base_poolpath'],
@@ -44,38 +44,36 @@ This is done by calling the getPool() method, which will return an existing pool
         Returns the pool object if the pool is registered. Creates the pool if it does not already exist. the same poolname-path always get the same pool.
 
         poolname: name of the pool.
-        poolurl: if given the poolpath, scheme, place will be derived from it. if not given, PoolManager.PlacePaths[scheme] is used to get poolplace and poolpath, with scheme set to 'file'. 
-If poolname is missing it is derived from poolurl; if poolurl is also absent, DEFAULT_POOL is assumed.
+        poolurl: if given the poolpath, scheme, place will be derived from it. if not given, ``PoolManager.PlacePaths[scheme]`` is used to get poolplace and poolpath, with scheme set to 'file'. 
+If poolname is missing it is derived from poolurl; if poolurl is also absent, a `localPool` by that name is created named ``poolmanager.DEFAULT_POOL`` (="pool_<username>").
         kwds: passed to pool instanciation arg-list.
 
         """
         # logger.debug('GPL ' + str(id(cls._GlobalPoolList)) +
         #             str(cls._GlobalPoolList) + ' PConf ' + str(cls.PlacePaths))
 
-        poolpath = None
         if poolname is None:
             if poolurl:
                 # the last segment will be the poolname
-                poolpath, schm, pl, poolname = parse_poolurl(poolurl)
+                pp, schm, pl, poolname = parse_poolurl(poolurl)
             else:
                 schm = 'file'
                 poolname = DEFAULT_POOL
-                poolpath = cls.PlacePaths[schm]
-                poolurl = schm + '://' + poolpath + '/' + poolname
-                logger.debug('DEFAULT_MEM_POOL assumed: %s.' % poolurl)
-            if cls.isLoaded(poolname):
-                return cls._GlobalPoolList[poolname]
-        else:
-            if cls.isLoaded(poolname):
-                return cls._GlobalPoolList[poolname]
-            if poolurl:
-                poolpath, schm, pl, pn = parse_poolurl(poolurl)
-            else:
-                schm = 'file'
-                poolpath = cls.PlacePaths[schm]
-                poolurl = schm + '://' + poolpath + '/' + poolname
-                logger.debug('PlacePaths is used: %s.' % poolurl)
+                place_poolpath = cls.PlacePaths[schm]
+                poolurl = schm + '://' + place_poolpath + '/' + poolname
+                logger.debug('DEFAULT_POOL assumed: %s.' % poolurl)
+        if cls.isLoaded(poolname):
+            return cls._GlobalPoolList[poolname]
 
+        if poolurl:
+            pp, schm, pl, pn = parse_poolurl(poolurl)
+        else:
+            schm = 'file'
+            place_poolpath = cls.PlacePaths[schm]
+            poolurl = schm + '://' + place_poolpath + '/' + poolname
+            logger.debug('PlacePaths is used: %s.' % poolurl)
+
+        # now we have scheme, poolname, poolurl
         if schm == 'file':
             from . import localpool
             p = localpool.LocalPool(

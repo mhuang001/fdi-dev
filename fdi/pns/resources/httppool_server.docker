@@ -61,7 +61,10 @@ RUN chmod 755 ./httppool_server_entrypoint.sh \
 # Configure permission
 RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 ${PROJ_DIR} ${UHOME}/; \
 do chown -R ${USR}:${USR} $i; echo $i; done \
-&& chmod u+s ./httppool_server_entrypoint.sh
+&& chmod u+s ./httppool_server_entrypoint.sh \
+&& chgrp ${USR} /etc/apache2 /etc/apache2/sites-available \
+&& chmod g+w /etc/apache2 /etc/apache2/sites-available
+
 
 # If install fdi repo, instead of package
 # make dir for fdi.
@@ -105,4 +108,11 @@ RUN  service apache2 start
 WORKDIR ${UHOME}
 RUN date > build
 
-CMD [./httppool_server_entrypoint.sh 2>&1 >> log]
+CMD \                   
+/home/apache/httppool_server_entrypoint.sh 2>&1 | tee -a /home/apache/log; \
+service apache2 start && echo started
+
+#read 9; \
+#service apache2 stop
+
+#trap "echo TRAPed signal" HUP INT QUIT TERM

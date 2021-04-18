@@ -26,12 +26,12 @@ else:
     from urlparse import urlparse, quote, unquote
 
 
-def wipeLocal(poolpath):
+def wipeLocal(path):
     """
     does the scheme-specific remove-all
     """
     # logger.debug()
-    pp = poolpath
+    pp = path
     if pp == '/':
         raise(ValueError('Do not remove root directory.'))
 

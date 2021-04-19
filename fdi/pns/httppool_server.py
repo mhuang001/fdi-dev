@@ -267,11 +267,6 @@ def call_pool_Api(paths):
     lp = len(paths)
     method = paths[im]
     args, kwds = [], {}
-    import pdb
-    if method == 'getCount':
-        # pdb.set_trace()
-        poolname = paths[0]
-        s = PM.isLoaded(poolname)
 
     if lp > im:
         if (lp-im) % 2 == 0:

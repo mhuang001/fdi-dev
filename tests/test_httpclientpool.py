@@ -22,7 +22,7 @@ from fdi.pal.productref import ProductRef
 from fdi.pal.query import MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.pal.productstorage import ProductStorage
-from fdi.pal.httpclientpool import HttpClientPool, HttpClientPool2
+from fdi.pal.httpclientpool import HttpClientPool
 from fdi.pns.pnsconfig import pnsconfig as pcc
 from fdi.pns.fdi_requests import *
 from fdi.dataset.odict import ODict
@@ -154,39 +154,27 @@ def test_CRUD_product_by_client():
     pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
     crud_t(poolid, poolurl, poolpath_local, pool)
 
-    poolid = test_poolid+'2'
-    poolurl = pcc['httphost'] + pcc['baseurl'] + \
-        '/' + poolid
-    pool = HttpClientPool2(poolname=poolid,
-                           poolurl=poolurl, poolpath_local=poolpath_local)
-    crud_t(poolid, poolurl, poolpath_local, pool)
-
 
 def crud_t(poolid, poolurl, poolpath_local, pool):
     logger.info('Init a pstore')
 
     if PoolManager.isLoaded(DEFAULT_MEM_POOL):
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-    PoolManager.removeAll()
+
     pstore = ProductStorage(pool=pool)
+    # wipes self
+    pool.removeAll()
     assert len(pstore.getPools()) == 1, 'product storage size error: ' + \
         str(pstore.getPools())
     assert pstore.getPool(poolid) is not None, 'Pool ' + \
         poolid+' is None.'
-    pool.removeAll()
-    if issubclass(pool.__class__, HttpClientPool2):
-        real_poolpath = os.path.join(poolpath_local, poolid)
-        assert os.path.exists(real_poolpath), \
-            'local metadata file not found: ' + real_poolpath
-        cnt = len([f for f in os.listdir(real_poolpath) if f[-1].isnumeric()])
-    else:
-        cnt = pool.getCount('fdi.dataset.product.Product')
-    hk = pool.readHK()
-    print(cnt, hk['classes'])
+
+    cnt = pool.getCount('fdi.dataset.product.Product')
     assert cnt == 0, 'Local metadata file size is 2'
 
     logger.info('Save data by ' + pool.__class__.__name__)
     x = Product(description='desc test')
+
     urn = pstore.save(x, geturnobjs=True)
     x.creator = 'httpclient'
     urn2 = pstore.save(x, geturnobjs=True)
@@ -196,14 +184,8 @@ def crud_t(poolid, poolurl, poolpath_local, pool):
         'Urn error: ' + expected_urn
     poolpath, scheme, place, pn = parse_poolurl(
         poolurl, poolhint=poolid)
-    if issubclass(pool.__class__, HttpClientPool2):
-        cnt = len([f for f in os.listdir(real_poolpath) if f[-1].isnumeric()])
-        assert cnt == 0, 'no prods in local dir'
-        cnt = len([f for f in os.listdir(real_poolpath) if f[-3:] == 'jsn'])
-        assert cnt == 3, '3 jsn in local dir'
-    else:
-        cnt = pool.getCount(typenm)
-        assert cnt == 2
+    cnt = pool.getCount(typenm)
+    assert cnt == 2
 
     logger.info('Load product from httpclientpool')
     res = pstore.getPool(poolid).loadProduct(urn2.urn)
@@ -218,25 +200,24 @@ def crud_t(poolid, poolurl, poolpath_local, pool):
 
     logger.info('Delete a product from httpclientpool')
     pstore.getPool(poolid).remove(urn.urn)
-    if issubclass(pool.__class__, HttpClientPool2):
-        sn = pstore.getPool(
-            poolid)._classes['fdi.dataset.product.Product']['sn']
-        lsn = len(sn)
-    else:
-        lsn = pstore.getPool(poolid).getCount('fdi.dataset.product.Product')
+    lsn = pstore.getPool(poolid).getCount('fdi.dataset.product.Product')
     assert lsn == 1, 'Delete product local error, len sn : ' + lsn
     logger.info('A load exception message is expected')
     with pytest.raises(NameError):
         res = pstore.getPool(poolid).loadProduct(urn.urn)
 
-    logger.info('Delete a pool')
+    logger.info('Wipe a pool')
     pstore.getPool(poolid).removeAll()
-    if issubclass(pool.__class__, HttpClientPool2):
-        poolfiles = os.listdir(real_poolpath)
-        assert len(
-            poolfiles) == 0, 'Delete pool, but local file exists: ' + str(poolfiles)
-        reshk = pstore.getPool(poolid).readHK()
-        assert reshk['classes'] == ODict(
-        ), 'Server classes is not empty after delete: ' + str(reshk['classes'])
-    else:
-        assert pool.isEmpty()
+    assert pool.isEmpty()
+
+    logger.info('unregister a pool')
+    assert len(pstore.getPools()) == 1, 'product storage size error: ' + \
+        str(pstore.getPools())
+    # unregister locally and remotely
+    pstore.unregister(poolid)
+    assert len(pstore.getPools()) == 0, 'product storage size error: ' + \
+        str(pstore.getPools())
+
+    logger.info('Access a non-existing pool and trgger an Error.')
+    with pytest.raises(NameError):
+        pstore.getPool(poolid) is None

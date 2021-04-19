@@ -57,12 +57,12 @@ if conf == 'dev':
 
     # server permission user
     pnsconfig['serveruser'] = 'mh'
-    # PTS app permission user
-    pnsconfig['ptsuser'] = 'mh'
     pnsconfig['base_poolpath'] = '/tmp'
     pnsconfig['server_poolpath'] = '/tmp/data'  # For server
     # on pns server
     home = '/cygdrive/c/Users/mh'
+    # PTS app permission user
+    pnsconfig['ptsuser'] = 'mh'
 
 elif conf == 'server_test':
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',

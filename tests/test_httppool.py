@@ -211,9 +211,9 @@ def test_clear_server():
     assert not os.path.exists(cpath)
 
 
-def del_server(post_poolid):
-    url = api_baseurl + post_poolid
-    x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+def empty_pool_on_server(post_poolid):
+    url = api_baseurl + post_poolid + '/api/removeAll'
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserialize(x.text)
     check_response(o)
 
@@ -245,7 +245,7 @@ def test_CRUD_product():
 
     logger.info('save products')
     post_poolid = test_poolid
-    del_server(post_poolid)
+    empty_pool_on_server(post_poolid)
     clear_server_poolpath(post_poolid)
 
     files = [f for f in get_files(post_poolid) if f[-1].isnumeric()]
@@ -356,17 +356,36 @@ def test_CRUD_product():
     assert f.endswith(str(index))
 
     # ========
-    logger.info('delete a pool')
+    logger.info('wipe a pool')
     files = get_files(post_poolid)
     assert len(files) != 0, 'Pool is already empty: ' + post_poolid
 
-    url = api_baseurl + post_poolid
-    x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    # wipe the pool on the server
+    url = api_baseurl + post_poolid + '/api/removeAll'
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserialize(x.text)
     check_response(o)
 
     files = get_files(post_poolid)
     assert len(files) == 0, 'Wipe pool failed: ' + o['msg']
+
+    url = api_baseurl + post_poolid + '/api/isEmpty'
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserialize(x.text)
+    check_response(o)
+    assert o['result'] == True
+
+    logger.info('unregister a pool on the server')
+    url = api_baseurl + post_poolid
+    x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserialize(x.text)
+    check_response(o)
+
+    # this should fail as pool is unregistered on the server
+    url = api_baseurl + post_poolid + '/api/isEmpty'
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserialize(x.text)
+    check_response(o, failed_case=True)
 
 
 async def lock_pool(poolid, sec):

@@ -31,15 +31,15 @@ def wipeLocal(path):
     does the scheme-specific remove-all
     """
     # logger.debug()
-    pp = path
-    if pp == '/':
+
+    if path == '/':
         raise(ValueError('Do not remove root directory.'))
 
-    if not op.exists(pp):
+    if not op.exists(path):
         return
     try:
-        shutil.rmtree(pp)
-        os.mkdir(pp)
+        shutil.rmtree(path)
+        os.mkdir(path)
     except Exception as e:
         msg = 'remove-mkdir failed. exc: %s trbk: %s.' % (str(e), trbk(e))
         logger.error(msg)
@@ -101,7 +101,7 @@ class LocalPool(ManagedPool):
         except Exception as e:
             msg = 'Error in HK reading. exc: %s trbk: %s.' % (str(e), trbk(e))
             logging.error(msg)
-            raise IOError(msg)
+            raise NameError(msg)
         if 1:  # close:
             file_obj.close()
             if fp in self._files:
@@ -125,7 +125,6 @@ class LocalPool(ManagedPool):
         else:
             hks = [hktype]
         fp0 = self.transformpath(self._poolname)
-        # with filelock.FileLock(self.lockpath('w'), timeout=5):
 
         hk = {}
         for hkdata in hks:

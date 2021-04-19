@@ -113,14 +113,35 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, a 
     def removeAll(cls):
         """ deletes all pools from the pool list, pools unwiped
         """
-
-        cls._GlobalPoolList.clear()
+        nl = list(cls._GlobalPoolList)
+        for pool in nl:
+            cls.remove(pool)
 
     @ classmethod
     def save(cls, poolname, poolobj):
         """
         """
         cls._GlobalPoolList[poolname] = poolobj
+
+    @ classmethod
+    def remove(cls, poolname):
+        """ Remove from list and unregister remote pools.
+        """
+        if poolname.startswith('http'):
+            po = cls._GlobalPoolList[poolname]
+            logger.info('unregister a pool on the server')
+            url = api_baseurl + post_poolid
+            #x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+            #o = deserialize(x.text)
+            import pdb
+            pdb.set_trace()
+
+            urn = 'urn:::0'
+            res, msg = delete_from_server(urn, po._poolurl, '')
+            if res == 'FAILED':
+                raise IOError('Unregister ' + poolname + ' failed.  ' + msg)
+
+        del cls._GlobalPoolList[poolname]
 
     @ classmethod
     def getPoolurlMap(cls):

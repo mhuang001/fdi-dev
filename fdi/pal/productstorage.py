@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
-import pdb
+
 from . import productref
 from .poolmanager import PoolManager
-from .productpool import ProductPool
-from .urn import Urn, UrnUtils
+from .productpool import ProductPool, makeLockpath
+from .urn import Urn
 from ..dataset.odict import ODict
-import collections
+
+import filelock
 
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-
-#from .productpool import ProductPool
 
 
 class ProductStorage(object):
@@ -40,19 +38,43 @@ class ProductStorage(object):
         """ Registers the given pools to the storage.
         """
 
-        if issubclass(pool.__class__, ProductPool):
-            self._pools[pool.getId()] = pool
-        else:
-            # pool can be None
-            _p = PoolManager.getPool(poolname=pool, **kwds)
-            self._pools[_p.getId()] = _p
+        with filelock.FileLock(makeLockpath('ProdStorage', 'w')), \
+                filelock.FileLock(makeLockpath('ProdStorage', 'r')):
+            if issubclass(pool.__class__, ProductPool):
+                self._pools[pool.getId()] = pool
+            else:
+                # pool can be None
+                _p = PoolManager.getPool(poolname=pool, **kwds)
+                self._pools[_p.getId()] = _p
 
         logger.debug('registered pool %s -> %s.' %
                      (str(pool), str(self._pools)))
 
+    def unregister(self, pool=None, **kwds):
+        """ Unregisters the given pools to the storage.
+        """
+
+        with filelock.FileLock(makeLockpath('ProdStorage', 'w')):
+            if issubclass(pool.__class__, ProductPool):
+                poolname = pool.getId()
+            else:
+                poolname = pool
+            if PoolManager.isLoaded(poolname):
+                PoolManager.remove(poolname)
+                del self._pools[poolname]
+                logger.debug('unregistered pool %s -> %s.' %
+                             (str(pool), str(self._pools)))
+            else:
+                logger.info('Pool %s is not registered.' % poolname)
+        return
+
+    def unregisterAll(self):
+        PoolManager.removeAll()
+        self._pools.clear()
+
     def load(self, urnortag):
         """ Loads a product with a URN or a list of products with a tag, from the (writeable) pool.
-        It always creates new ProductRefs. 
+        It always creates new ProductRefs.
         returns productref(s).
         urnortag: urn or tag
         """
@@ -90,7 +112,7 @@ class ProductStorage(object):
         poolName: if the named pool is not registered, registers and saves.
         geturnobjs: mh: returns UrnObjs if geturnobjs is True.
         kwds: options passed to json.dump() for localpools.
-        Returns: one or a list of productref with storage info. 
+        Returns: one or a list of productref with storage info.
         """
 
         if poolname is None:
@@ -150,7 +172,7 @@ class ProductStorage(object):
         if poolname not in self._pools:
             msg = 'pool ' + poolname + ' not found'
             logger.error(msg)
-            raise ValueError(msg)
+            raise NameError(msg)
         return self._pools[poolname]
 
     def getWritablePool(self):

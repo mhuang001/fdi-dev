@@ -15,7 +15,7 @@ from .query import AbstractQuery, MetaQuery, StorageQuery
 
 import logging
 import filelock
-from copy import copy
+import getpass
 import os
 import sys
 import builtins
@@ -34,9 +34,31 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 Class_Look_Up = ChainMap(Classes.mapping, globals(), vars(builtins))
-lockpathbase = '/tmp/fdi_locks'  # + getpass.getuser()
+
+
+Lock_Path_Base = '/tmp/fdi_locks_' + getpass.getuser()
 # lock time-out
 locktout = 10
+
+
+def makeLockpath(direc, op='w'):
+    """ returns the appropriate path to put lock file.
+
+    creats the path if non-existing. Set lockpath-base permission to all-modify so other fdi users can use.
+    op: 'r' for readlock no-reading) 'w' for writelock (no-writing)
+    """
+    if not os.path.exists(Lock_Path_Base):
+        os.makedirs(Lock_Path_Base, mode=0o777)
+
+    lp = pathjoin(Lock_Path_Base, direc.replace('/', '_'))
+
+    if 1:
+        return lp+'.read' if op == 'r' else lp+'.write'
+    else:
+        if not os.path.exists(lp):
+            os.makedirs(lp)
+            lf = pathjoin(lp, 'lock')
+        return lf+'.read' if op == 'r' else lf+'.write'
 
 
 class ProductPool(Definable, Taggable, Versionable):
@@ -367,6 +389,8 @@ When implementing a ProductPool, the following rules need to be applied:
             poolurl=self._poolurl if hasattr(self, '_poolurl') else None,
         )
 
+###########################
+
 
 class ManagedPool(ProductPool, DictHk):
     """ A ProductPool that manages its internal house keeping. """
@@ -408,27 +432,10 @@ class ManagedPool(ProductPool, DictHk):
         return self._poolpath
 
     def lockpath(self, op='w'):
-        """ returns the appropriate path.
+        """ Make lock path using transformed poolname as name.
 
-        creats the path if non-existing. Set lockpath-base permission to all-modify so other fdi users can use.
-        op: 'r' for readlock no-reading) 'w' for writelock (no-writing)
         """
-        if not os.path.exists(lockpathbase):
-            os.makedirs(lockpathbase, mode=0o777)
-
-        # from .httppool import HttpPool
-        # from .httpclientpool import HttpClientPool
-
-        p = self.transformpath(self._poolname)
-        lp = pathjoin(lockpathbase, p.replace('/', '_'))
-
-        if 1:
-            return lp+'.read' if op == 'r' else lp+'.write'
-        else:
-            if not os.path.exists(lp):
-                os.makedirs(lp)
-                lf = pathjoin(lp, 'lock')
-            return lf+'.read' if op == 'r' else lf+'.write'
+        return makeLockpath(self.transformpath(self._poolname), op)
 
     @ lru_cache(maxsize=5)
     def transformpath(self, path):
@@ -510,7 +517,6 @@ class ManagedPool(ProductPool, DictHk):
         self._urns[ref.urn]['refcnt'] += 1
 
     def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, kwds):
-
         if serialize_in:
             pn = fullname(prd)
             cls = prd.__class__
@@ -749,17 +755,17 @@ class ManagedPool(ProductPool, DictHk):
             if isinstance(qw, str):
                 code = compile(qw, 'py', 'eval')
                 for n in snlist:
-                    urn=makeUrn(poolname=self._poolname,
+                    urn = makeUrn(poolname=self._poolname,
                                   typename=typename, index=n)
-                    m=u[urn]['meta']
+                    m = u[urn]['meta']
                     if eval(code):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret
             else:
                 for n in snlist:
-                    urn=makeUrn(poolname=self._poolname,
+                    urn = makeUrn(poolname=self._poolname,
                                   typename=typename, index=n)
-                    m=u[urn]['meta']
+                    m = u[urn]['meta']
                     if qw(m):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret
@@ -773,75 +779,75 @@ class ManagedPool(ProductPool, DictHk):
         valid inputs: cls and ns list; productref list; urn list
         """
 
-        ret=[]
-        glbs=globals()
-        u=self._urns
-        qw=q.getWhere()
-        var=q.getVariable()
+        ret = []
+        glbs = globals()
+        u = self._urns
+        qw = q.getWhere()
+        var = q.getVariable()
         if var in glbs:
-            savevar=glbs[var]
+            savevar = glbs[var]
         else:
-            savevar='not in glbs'
+            savevar = 'not in glbs'
 
         if reflist:
             if isinstance(qw, str):
-                code=compile(qw, 'py', 'eval')
+                code = compile(qw, 'py', 'eval')
                 for ref in reflist:
-                    glbs[var]=pref.getProduct()
+                    glbs[var] = pref.getProduct()
                     if eval(code):
                         ret.append(ref)
                 if savevar != 'not in glbs':
-                    glbs[var]=savevar
+                    glbs[var] = savevar
                 return ret
             else:
                 for ref in reflist:
-                    glbs[var]=pref.getProduct()
+                    glbs[var] = pref.getProduct()
                     if qw(m):
                         ret.append(ref)
                 if savevar != 'not in glbs':
-                    glbs[var]=savevar
+                    glbs[var] = savevar
                 return ret
         elif urnlist:
             if isinstance(qw, str):
-                code=compile(qw, 'py', 'eval')
+                code = compile(qw, 'py', 'eval')
                 for urn in urnlist:
-                    pref=ProductRef(urn=urn)
-                    glbs[var]=pref.getProduct()
+                    pref = ProductRef(urn=urn)
+                    glbs[var] = pref.getProduct()
                     if eval(code):
                         ret.append(pref)
                 if savevar != 'not in glbs':
-                    glbs[var]=savevar
+                    glbs[var] = savevar
                 return ret
             else:
                 for urn in urnlist:
-                    pref=ProductRef(urn=urn)
-                    glbs[var]=pref.getProduct()
+                    pref = ProductRef(urn=urn)
+                    glbs[var] = pref.getProduct()
                     if qw(glbs[var]):
                         ret.append(pref)
                 if savevar != 'not in glbs':
-                    glbs[var]=savevar
+                    glbs[var] = savevar
                 return ret
         elif snlist:
             if isinstance(qw, str):
-                code=compile(qw, 'py', 'eval')
+                code = compile(qw, 'py', 'eval')
                 for n in snlist:
-                    urno=Urn(cls=cls, poolname=self._poolname, index=n)
-                    pref=ProductRef(urn=urno)
-                    glbs[var]=pref.getProduct()
+                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
+                    pref = ProductRef(urn=urno)
+                    glbs[var] = pref.getProduct()
                     if eval(code):
                         ret.append(pref)
                 if savevar != 'not in glbs':
-                    glbs[var]=savevar
+                    glbs[var] = savevar
                 return ret
             else:
                 for n in snlist:
-                    urno=Urn(cls=cls, poolname=self._poolname, index=n)
-                    pref=ProductRef(urn=urno)
-                    glbs[var]=pref.getProduct()
+                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
+                    pref = ProductRef(urn=urno)
+                    glbs[var] = pref.getProduct()
                     if qw(glbs[var]):
                         ret.append(pref)
                 if savevar != 'not in glbs':
-                    glbs[var]=savevar
+                    glbs[var] = savevar
                 return ret
         else:
             raise('Must give a list of ProductRef or urn or sn')
@@ -856,16 +862,16 @@ class ManagedPool(ProductPool, DictHk):
         """
         do the scheme-specific querying.
         """
-        isMQ=issubclass(query.__class__, MetaQuery)
-        isAQ=issubclass(query.__class__, AbstractQuery)
+        isMQ = issubclass(query.__class__, MetaQuery)
+        isAQ = issubclass(query.__class__, AbstractQuery)
         if not isMQ and not isAQ:
             raise TypeError('not a Query')
-        lgb=Classes.mapping
-        t, v, w, a=query.getType(), query.getVariable(
+        lgb = Classes.mapping
+        t, v, w, a = query.getType(), query.getVariable(
         ), query.getWhere(), query.retrieveAllVersions()
-        ret=[]
+        ret = []
         if results:
-            this=(x for x in results if x.urnobj.getPoolId()
+            this = (x for x in results if x.urnobj.getPoolId()
                     == self._poolname)
             if isMQ:
                 ret += self.mfilter(q=query, reflist=this)
@@ -873,7 +879,7 @@ class ManagedPool(ProductPool, DictHk):
                 ret += self.pfilter(q=query, reflist=this)
         else:
             for cname in self._classes:
-                cls=lgb[cname.split('.')[-1]]
+                cls = lgb[cname.split('.')[-1]]
                 if issubclass(cls, t):
                     if isMQ:
                         ret += self.mfilter(q=query, typename=cname,

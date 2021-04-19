@@ -254,17 +254,15 @@ def cleanup(poolurl=None, poolname=None):
         elif schm == 'mem':
             pass
         elif schm in ['http', 'https']:
-            d = PoolManager.PlacePaths['file'] + '/' + pn
-            rmlocal(d)
-            #
-            res, msg = delete_from_server(None, purl, 'pool')
-            assert res != 'FAILED'
-
+            pass
         else:
             assert False
-
-        PoolManager.getPool(pn).removeAll()
-        del PoolManager.getMap()[pn]
+        # correct way
+        try:
+            PoolManager.getPool(pname, poolurl).removeAll()
+        except IOError:
+            pass
+        PoolManager.remove(pname)
 
 
 def test_PoolManager():
@@ -297,8 +295,8 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN=-1):
 
     expected_cnt, currentSN: expected number of prods and currentSN in pool for products named prodname
     """
-
-    poolpath, scheme, place, poolname = parse_poolurl(poolurl)
+    poolpath, schm, place, poolname = parse_poolurl(poolurl)
+    scheme = schm.lower()
     if scheme in ['file', 'server']:
         path = op.join(poolpath, poolname)
         assert sum(1 for x in glob.glob(
@@ -612,6 +610,10 @@ def mkStorage(thepoolname, thepoolurl):
     thepool = PoolManager.getMap()[thepoolname]
     assert thepool.getScheme() == tsc
     assert thepool.isEmpty()
+    try:
+        pass
+    except IOError:
+        assert thepoolurl.lower().startswith('http')
     return thepool, pstore
 
 
@@ -807,6 +809,7 @@ def doquery(poolpath, newpoolpath):
 
 
 def test_query_local_mem():
+    cleanup()
     thepoolpath = '/tmp'
     doquery('file://'+thepoolpath, 'file://'+thepoolpath)
     doquery('mem://'+thepoolpath, 'mem://'+thepoolpath)
@@ -815,6 +818,7 @@ def test_query_local_mem():
 
 
 def test_query_http():
+    cleanup()
     lpath = '/tmp'
     thepoolpath = pc['node']['host']+':' + \
         str(pc['node']['port']) + pc['baseurl']

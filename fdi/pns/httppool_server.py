@@ -59,7 +59,9 @@ def init_httppool_server():
     Classes = init_conf_clas()
     lookup = ChainMap(Classes.mapping, globals(), vars(builtins))
 
+    from ..pal.productstorage import ProductStorage
     from ..pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
+    pstore = ProductStorage()
     if PM.isLoaded(DEFAULT_MEM_POOL):
         logger.debug('cleanup DEFAULT_MEM_POOL')
         PM.getPool(DEFAULT_MEM_POOL).removeAll()
@@ -224,7 +226,7 @@ def httppool(pool):
             result, msg = delete_product(paths)
             # save_action(username=username, action='DELETE', pool=paths[0] +  '/' + paths[-2] + ':' + paths[-1])
         else:
-            result, msg = delete_pool(paths)
+            result, msg = unregister_pool(paths)
             # save_action(username=username, action='DELETE', pool=paths[0])
 
     # w = {'result': result, 'msg': msg, 'timestamp': ts}
@@ -265,6 +267,11 @@ def call_pool_Api(paths):
     lp = len(paths)
     method = paths[im]
     args, kwds = [], {}
+    import pdb
+    if method == 'getCount':
+        # pdb.set_trace()
+        poolname = paths[0]
+        s = PM.isLoaded(poolname)
 
     if lp > im:
         if (lp-im) % 2 == 0:
@@ -351,9 +358,10 @@ def delete_product(paths):
     return result, msg
 
 
-def delete_pool(paths):
-    """ Removes all contents of the pool.
-    Checking if the pool exists in server, and removing or returning exception message to client.
+def unregister_pool(paths):
+    """ Unregister this pool from ProductStorage.
+
+    Checking if the pool exists in server, and unregister or raise exception message to client.
     """
 
     poolname = '/'.join(paths)
@@ -362,16 +370,15 @@ def delete_pool(paths):
 
     if not PM.isLoaded(poolname):
         result = '"INFO"'
-        msg = 'Pool not found: ' + poolname
+        msg = 'Pool not registered: ' + poolname
         return result, msg
-    logger.debug('DELETE POOL' + poolname)
+    logger.debug('UNREGISTER (DELETE) POOL' + poolname)
     try:
-        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
-        result = poolobj.removeAll()
-        msg = 'Wipe pool ' + poolname + ' OK.'
+        result = PM.remove(poolname)
+        msg = 'Unregister pool ' + poolname + ' OK.'
     except Exception as e:
         result = '"FAILED"'
-        msg = 'Unable to wipe pool: ' + poolname + \
+        msg = 'Unable to unregister pool: ' + poolname + \
             ' Exception: ' + str(e) + ' ' + trbk(e)
     checkpath.cache_clear()
     return result, msg

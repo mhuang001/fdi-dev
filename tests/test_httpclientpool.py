@@ -163,7 +163,10 @@ def crud_t(poolid, poolurl, poolpath_local, pool):
 
     pstore = ProductStorage(pool=pool)
     # wipes self
-    pool.removeAll()
+    try:
+        pool.removeAll()
+    except IOError:
+        pass
     assert len(pstore.getPools()) == 1, 'product storage size error: ' + \
         str(pstore.getPools())
     assert pstore.getPool(poolid) is not None, 'Pool ' + \

@@ -53,7 +53,7 @@ def toserver(self, method, *args, **kwds):
     if res == 'FAILED':
         if method in msg:
             raise TypeError(msg)
-        raise IOError('Executing ' + method + ' failed.  ' + msg)
+        logger.warn('Executing ' + method + ' failed.  ' + msg)
     return res
 
 

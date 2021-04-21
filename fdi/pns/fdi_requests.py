@@ -10,7 +10,7 @@ from fdi.dataset.deserialize import deserialize
 from fdi.pal.urn import parseUrn, parse_poolurl
 from .pnsconfig import pnsconfig as pcc
 from fdi.utils.getconfig import getConfig
-from .httppool_server import WebAPI
+from ..pal.webapi import WebAPI
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -57,7 +57,8 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
     method:
     'GET' compo for retrieving product or hk or classes, urns, tags,
     'POST' compo for uploading  product
-    DELETE compo for removing product or pool
+    'PUT' for registering pool
+    'DELETE' compo for removing product or removing pool
 
     Example:
     IP=ip poolpath=/a poolname=b files=/a/b/classes.jsn | urns.jsn | t.. | urn...
@@ -70,11 +71,12 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
     myref=p.refs['myinput']
 
     with a pool:
-    myref=pool.load('http://ip:port/v0.6/a/b/fdi.dataset.MapContext/203/refs/myinput')
+    myref=pool.load('http://ip:port/v0.6/b/fdi.dataset.MapContext/203/refs/myinput')
 
     """
 
-    poolname, resourcecn, index = parseUrn(urn)
+    poolname, resourcecn, index = parseUrn(
+        urn) if len(urn) > 7 else ('', '', '0')
     indexs = str(index)
     poolpath, scheme, place, pn = parse_poolurl(poolurl, poolhint=poolname)
     if not poolname:
@@ -97,6 +99,12 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
         else:
             raise ValueError(
                 'No such method and contents composition: ' + method + ' / ' + contents)
+    elif method == 'PUT':
+        if contents == 'pool':
+            ret = poolurl
+        else:
+            raise ValueError(
+                'No such method and contents composition: ' + method + ' / ' + contents)
     elif method == 'DELETE':
         if contents == 'pool':
             ret = poolurl
@@ -114,6 +122,12 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 
 def save_to_server(data, urn, poolurl, tag, no_serial=False):
     """Save product to server with putting tag in headers
+
+    data: goes to the request body
+    urn: to extract poolname, product type, and index if any of these are needed
+    poolurl: the only parameter must be provided
+    tag: go with the products into the pool
+    no_serial: do not serialize the data.
     """
     user = pcc['auth_user']
     password = pcc['auth_pass']
@@ -131,6 +145,9 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False):
 
 def read_from_server(urn, poolurl, contents='product'):
     """Read product or hk data from server
+
+    urn: to extract poolname, product type, and index if any of these are needed
+    poolurl: the only parameter must be provided
     """
     user = pcc['auth_user']
     password = pcc['auth_pass']
@@ -142,8 +159,27 @@ def read_from_server(urn, poolurl, contents='product'):
     return result['result'], result['msg']
 
 
+def put_on_server(urn, poolurl, contents='pool'):
+    """Register the pool on the server.
+
+    urn: to extract poolname, product type, and index if any of these are needed
+    poolurl: the only parameter must be provided
+    """
+    user = pcc['auth_user']
+    password = pcc['auth_pass']
+    auth = HTTPBasicAuth(user, password)
+    api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
+    # print("DELETE REQUEST API: " + api)
+    res = requests.put(api, auth=auth)
+    result = deserialize(res.text)
+    return result['result'], result['msg']
+
+
 def delete_from_server(urn, poolurl, contents='product'):
     """Remove a product or pool from server
+
+    urn: to extract poolname, product type, and index if any of these are needed
+    poolurl: the only parameter must be provided
     """
     user = pcc['auth_user']
     password = pcc['auth_pass']

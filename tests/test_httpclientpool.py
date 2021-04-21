@@ -1,31 +1,16 @@
 
 import pytest
 import sys
-import base64
-from urllib.request import pathname2url
-from requests.auth import HTTPBasicAuth
-import requests
-import random
-import os
-import pkg_resources
-import copy
-import time
 
 
 from fdi.dataset.product import Product
-from fdi.dataset.metadata import Parameter, NumericParameter, MetaData
-from fdi.dataset.finetime import FineTime1, utcobj
-from fdi.dataset.dataset import ArrayDataset, TableDataset, Column
 from fdi.dataset.eq import deepcmp
-from fdi.pal.context import Context, MapContext
-from fdi.pal.productref import ProductRef
+from fdi.pal.productstorage import ProductStorage
 from fdi.pal.query import MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
-from fdi.pal.productstorage import ProductStorage
 from fdi.pal.httpclientpool import HttpClientPool
 from fdi.pns.pnsconfig import pnsconfig as pcc
 from fdi.pns.fdi_requests import *
-from fdi.dataset.odict import ODict
 from fdi.utils.getconfig import getConfig
 from fdi.utils.common import fullname
 
@@ -160,15 +145,10 @@ def crud_t(poolid, poolurl, poolpath_local, pool):
 
     if PoolManager.isLoaded(DEFAULT_MEM_POOL):
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-
+    # this will also register the server side
     pstore = ProductStorage(pool=pool)
-    # wipes self
-    try:
-        pool.removeAll()
-    except IOError:
-        pass
-    except OSError:  # TODO
-        pass
+    pool.removeAll()
+
     assert len(pstore.getPools()) == 1, 'product storage size error: ' + \
         str(pstore.getPools())
     assert pstore.getPool(poolid) is not None, 'Pool ' + \

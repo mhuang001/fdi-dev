@@ -10,6 +10,7 @@ from ..dataset.serializable import serialize
 from ..pal.poolmanager import PoolManager
 from ..pal.query import MetaQuery, AbstractQuery
 from ..pal.urn import makeUrn, parseUrn
+from ..pal.webapi import WebAPI
 from ..dataset.product import Product
 from ..dataset.classes import Classes
 from ..utils.common import fullname, trbk
@@ -59,9 +60,7 @@ def init_httppool_server():
     Classes = init_conf_clas()
     lookup = ChainMap(Classes.mapping, globals(), vars(builtins))
 
-    from ..pal.productstorage import ProductStorage
     from ..pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
-    pstore = ProductStorage()
     if PM.isLoaded(DEFAULT_MEM_POOL):
         logger.debug('cleanup DEFAULT_MEM_POOL')
         PM.getPool(DEFAULT_MEM_POOL).removeAll()
@@ -78,7 +77,7 @@ def init_httppool_server():
         logger.error('Store path %s unavailable.' % poolpath)
         sys.exit(-2)
 
-    load_all_pools()
+   # load_all_pools()
 
 
 def load_all_pools():
@@ -122,6 +121,7 @@ def get_pool_sn(prod_type, pool_id):
     'pool_id': 'pool name'
 
     """
+
     logger.debug('### method %s prod_type %s poolID %s***' %
                  (request.method, prod_type, pool_id))
     res = 0
@@ -137,11 +137,7 @@ def get_pool_sn(prod_type, pool_id):
     return str(res)
 
 
-WebAPI = ['dereference', 'exists', 'getCount', 'getDefinition', 'getHead', 'getId', 'getLastVersion', 'getPlace', 'getPoolname', 'getPoolurl', 'getPoolpath', 'getProductClasses', 'getReferenceCount', 'getScheme', 'getTagUrnMap', 'getTags', 'getUrn', 'getUrnId', 'getUrnObject', 'getVersions', 'isAlive', 'isEmpty', 'loadDescriptors', 'loadProduct', 'lockpath',
-          'meta', 'mfilter', 'pfilter', 'poolname', 'poolurl', 'readHK', 'reference', 'remove', 'removeAll', 'removeTag', 'removeUrn', 'removekey', 'saveDescriptors', 'saveProduct', 'saveProductRef', 'schematicLoad', 'schematicRemove', 'schematicSave', 'schematicSelect', 'schematicWipe', 'select', 'setTag', 'setup', 'tagExists']
-
-
-@ app.route(pc['baseurl'] + '/<path:pool>', methods=['GET', 'POST', 'DELETE'])
+@ app.route(pc['baseurl'] + '/<path:pool>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @ auth.login_required
 def httppool(pool):
     """
@@ -154,7 +150,9 @@ def httppool(pool):
 
     - POST: /pool_id ==> Save product in requests.data in server
 
-    - DELETE: /pool_id ==> Wipe all contents in pool_id
+    - PUT: /pool_id ==> register pool 
+
+    - DELETE: /pool_id ==> unregister pool_id
                          /pool_id/product_class/index ==> remove specified products in pool_id
 
     'pool':'url'
@@ -163,6 +161,9 @@ def httppool(pool):
     paths = pool.split('/')
     ts = time.time()
     logger.debug('*** method %s paths %s ***' % (request.method, paths))
+    if 0 and paths[0] == 'testhttppool':
+        import pdb
+        pdb.set_trace()
 
     if request.method == 'GET':
         # TODO modify client loading pool , prefer use load_HKdata rather than load_single_HKdata, because this will generate enormal sql transaction
@@ -195,7 +196,7 @@ def httppool(pool):
             result = None
             msg = 'Unknown request: ' + pool
 
-    if request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
+    elif request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
         # do not deserialize if set True. save directly to disk
         serial_through = True
 
@@ -220,15 +221,18 @@ def httppool(pool):
                 result, msg = save_product(
                     data, paths, tag, serialize_in=not serial_through)
                 # save_action(username=username, action='SAVE', pool=paths[0])
+    elif request.method == 'PUT':
+        result, msg = register_pool(paths)
 
-    if request.method == 'DELETE':
+    elif request.method == 'DELETE':
         if paths[-1].isnumeric():
             result, msg = delete_product(paths)
             # save_action(username=username, action='DELETE', pool=paths[0] +  '/' + paths[-2] + ':' + paths[-1])
         else:
             result, msg = unregister_pool(paths)
             # save_action(username=username, action='DELETE', pool=paths[0])
-
+    else:
+        result, msg = '"FAILED"', 'UNknown command '+request.method
     # w = {'result': result, 'msg': msg, 'timestamp': ts}
     # make a json string
     r = '"null"' if result is None else str(result)
@@ -267,6 +271,12 @@ def call_pool_Api(paths):
     lp = len(paths)
     method = paths[im]
     args, kwds = [], {}
+
+    if 0:
+        poolname = paths[0]
+        s = PM.isLoaded(poolname)
+        import pdb
+        pdb.set_trace()
 
     if lp > im:
         if (lp-im) % 2 == 0:
@@ -353,25 +363,34 @@ def delete_product(paths):
     return result, msg
 
 
+def register_pool(paths):
+    """ Register this pool to PoolManager.
+    """
+    poolname = '/'.join(paths)
+    fullpoolpath = os.path.join(poolpath, poolname)
+    poolurl = schm + '://' + fullpoolpath
+    po = PM.getPool(poolname=poolname, poolurl=poolurl)
+    return '"'+po._poolurl+'"', 'register pool ' + poolname + ' OK.'
+
+
 def unregister_pool(paths):
-    """ Unregister this pool from ProductStorage.
+    """ Unregister this pool from PoolManager.
 
     Checking if the pool exists in server, and unregister or raise exception message to client.
     """
 
     poolname = '/'.join(paths)
-    poolurl = schm + '://' + os.path.join(poolpath, poolname)
-    # resourcetype = fullname(data)
+    logger.debug('UNREGISTER (DELETE) POOL' + poolname)
 
-    if not PM.isLoaded(poolname):
+    result = PM.remove(poolname)
+    if result == 1:
         result = '"INFO"'
         msg = 'Pool not registered: ' + poolname
         return result, msg
-    logger.debug('UNREGISTER (DELETE) POOL' + poolname)
-    try:
-        result = PM.remove(poolname)
+    elif result == 0:
         msg = 'Unregister pool ' + poolname + ' OK.'
-    except Exception as e:
+        return result, msg
+    else:
         result = '"FAILED"'
         msg = 'Unable to unregister pool: ' + poolname + \
             ' Exception: ' + str(e) + ' ' + trbk(e)

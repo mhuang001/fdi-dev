@@ -1,18 +1,12 @@
 # -*- coding: utf-8 -*-
-from ..pns.jsonio import getJsonObj
-from ..pns.fdi_requests import urn2fdiurl, save_to_server, read_from_server, delete_from_server
-from ..pns.httppool_server import WebAPI
-from .urn import Urn, makeUrn
-from ..dataset.odict import ODict
-from ..dataset.dataset import TableDataset
+from ..pns.fdi_requests import save_to_server, read_from_server, delete_from_server
 from ..dataset.serializable import serialize
-from .productpool import ProductPool, ManagedPool
 from .poolmanager import PoolManager
-from .localpool import LocalPool
 from .productref import ProductRef
-from ..utils.common import pathjoin, trbk, lls, fullname
+from .productpool import ProductPool
+from ..utils.common import trbk, lls, fullname
+from .urn import Urn, makeUrn
 
-import shutil
 import os
 import builtins
 from itertools import chain
@@ -53,7 +47,7 @@ def toserver(self, method, *args, **kwds):
     if res == 'FAILED':
         if method in msg:
             raise TypeError(msg)
-        logger.warn('Executing ' + method + ' failed.  ' + msg)
+        raise RuntimeError('Executing ' + method + ' failed.  ' + msg)
     return res
 
 
@@ -91,8 +85,6 @@ class HttpClientPool(ProductPool):
         Make sure that self._poolname and self._poolurl are present.
         """
 
-        if not hasattr(self, '_poolpath_local') or not self._poolpath_local:
-            return True
         if super().setup():
             return True
 
@@ -205,7 +197,7 @@ class HttpClientPool(ProductPool):
         if res == 'FAILED':
             logger.error('Remove from server ' + self._poolname +
                          ' failed. Caused by: ' + msg)
-            raise IOError(msg)
+            raise RuntimeError(msg)
         return res
 
     def schematicWipe(self):

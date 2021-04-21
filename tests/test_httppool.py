@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+#################
+# This test is to be run on the same machine where the http pool server is running.
+#################
+
+
 import pytest
 from fdi.dataset.serializable import serialize
 from fdi.dataset.deserialize import deserialize
@@ -64,8 +69,6 @@ if 0:
 
 
 testname = 'SVOM'
-aburl = 'http://' + pc['node']['host'] + ':' + \
-    str(pc['node']['port']) + pc['baseurl']
 
 up = bytes((pc['node']['username'] + ':' +
             pc['node']['password']).encode('ascii'))
@@ -114,7 +117,7 @@ def checkserver():
     """
     global testpns
     # check if data already exists
-    o = getJsonObj(aburl + '/')
+    o = getJsonObj(api_baseurl)
     assert o is not None, 'Cannot connect to the server'
     logger.info('initial server response %s' % (str(o)[:100] + '...'))
     # assert 'result' is not None, 'please start the server to refresh.'
@@ -140,22 +143,12 @@ def est_getpnspoolconfig():
     ''' gets and compares pnspoolconfig remote and local
     '''
     logger.info('get pnsconfig')
-    o = getJsonObj(aburl + '/pnsconfig')
+    o = getJsonObj(api_baseurl+'pnsconfig')
     issane(o)
     r = o['result']
     # , deepcmp(r['scripts'], pc['scripts'])
     assert r['scripts'] == pc['scripts']
     return r
-
-
-def checkContents(cmd, filename):
-    """ checks a GET commands return matches contents of a file.
-    """
-    o = getJsonObj(aburl + cmd)
-    issane(o)
-    with open(filename, 'r') as f:
-        result = f.read()
-    assert result == o['result'], o['message']
 
 
 # TEST HTTPPOOL  API
@@ -245,8 +238,9 @@ def test_CRUD_product():
 
     logger.info('save products')
     post_poolid = test_poolid
+    # register
+    pool = PoolManager.getPool(test_poolid, api_baseurl+test_poolid)
     empty_pool_on_server(post_poolid)
-    clear_server_poolpath(post_poolid)
 
     files = [f for f in get_files(post_poolid) if f[-1].isnumeric()]
     origin_prod = len(files)

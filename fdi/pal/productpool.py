@@ -111,8 +111,7 @@ When implementing a ProductPool, the following rules need to be applied:
 
         """
 
-        if not hasattr(self, '_poolname') or not self._poolname or \
-           not hasattr(self, '_poolurl') or not self._poolurl:
+        if not hasattr(self, '_poolurl') or not self._poolurl:
             return True
 
         return False
@@ -136,11 +135,7 @@ When implementing a ProductPool, the following rules need to be applied:
     def setPoolname(self, poolname):
         """ Replaces the current poolname of this pool.
         """
-        s = (not hasattr(self, '_poolname') or not self._poolname)
         self._poolname = poolname
-        # call setup only if poolname was None
-        if s:
-            self.setup()
 
     @property
     def poolurl(self):
@@ -162,7 +157,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """ Replaces the current poolurl of this pool.
         """
         s = (not hasattr(self, '_poolurl') or not self._poolurl)
-        self._poolpath, self._scheme, self._place, nm = \
+        self._poolpath, self._scheme, self._place, self._poolname = \
             parse_poolurl(poolurl)
         self._poolurl = poolurl
         # call setup only if poolurl was None
@@ -385,7 +380,6 @@ When implementing a ProductPool, the following rules need to be applied:
         Subclasses should override this function.
         """
         return OrderedDict(
-            poolname=self._poolname if hasattr(self, '_poolname') else None,
             poolurl=self._poolurl if hasattr(self, '_poolurl') else None,
         )
 

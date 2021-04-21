@@ -7,6 +7,7 @@ from .urn import Urn
 from ..dataset.odict import ODict
 
 import filelock
+from weakref import finalize
 
 import logging
 # create logger
@@ -34,18 +35,21 @@ class ProductStorage(object):
         self._pools = ODict()  # dict of poolname - poolobj pairs
         self.register(pool=pool, poolurl=poolurl, **kwds)
 
-    def register(self, pool=None, **kwds):
+    def register(self,  poolname=None, pool=None, poolurl=None, **kwds):
         """ Registers the given pools to the storage.
+
+
         """
 
         with filelock.FileLock(makeLockpath('ProdStorage', 'w')), \
                 filelock.FileLock(makeLockpath('ProdStorage', 'r')):
-            if issubclass(pool.__class__, ProductPool):
-                self._pools[pool.getId()] = pool
+            # pool can be None
+            if pool and issubclass(pool.__class__, ProductPool):
+                _p = PoolManager.getPool(pool=pool, **kwds)
             else:
-                # pool can be None
-                _p = PoolManager.getPool(poolname=pool, **kwds)
-                self._pools[_p.getId()] = _p
+                _p = PoolManager.getPool(
+                    poolname=poolname, poolurl=poolurl, **kwds)
+            self._pools[_p._poolname] = _p
 
         logger.debug('registered pool %s -> %s.' %
                      (str(pool), str(self._pools)))
@@ -60,7 +64,8 @@ class ProductStorage(object):
             else:
                 poolname = pool
             if PoolManager.isLoaded(poolname):
-                PoolManager.remove(poolname)
+                res = PoolManager.remove(poolname)  # TODO i dentify self
+                # do this after del above
                 del self._pools[poolname]
                 logger.debug('unregistered pool %s -> %s.' %
                              (str(pool), str(self._pools)))

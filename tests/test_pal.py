@@ -14,6 +14,7 @@ from fdi.pal.productstorage import ProductStorage
 from fdi.pal.urn import Urn, parseUrn, parse_poolurl, makeUrn, UrnUtils
 from fdi.pal.productpool import ProductPool
 from fdi.pal.localpool import LocalPool
+from fdi.pal.httpclientpool import HttpClientPool
 from fdi.pal.context import Context
 from fdi.pal.query import AbstractQuery, MetaQuery
 from fdi.dataset.deserialize import deserialize
@@ -26,6 +27,7 @@ from fdi.dataset.testproducts import TP
 from fdi.utils.checkjson import checkjson
 from fdi.utils.getconfig import getConfig
 from fdi.pns.fdi_requests import save_to_server, read_from_server, delete_from_server
+
 import copy
 import traceback
 from pprint import pprint
@@ -34,7 +36,8 @@ import shutil
 import getpass
 import os
 import requests
-
+import weakref
+import gc
 from os import path as op
 import glob
 
@@ -109,8 +112,8 @@ def test_UrnUtils():
     assert UrnUtils.getClass(urn).__name__ == a4.split('.')[-1]
     assert UrnUtils.extractRecordIDs([urn, urn1]) == [a5, a5-1]
 
-    #assert UrnUtils.getPool(urn,pools)
-    #assert UrnUtils.containsUrn(urn, pool)
+    # assert UrnUtils.getPool(urn,pools)
+    # assert UrnUtils.containsUrn(urn, pool)
     assert UrnUtils.checkUrn(urn)
     with pytest.raises(ValueError):
         UrnUtils.checkUrn(urn+'r')
@@ -259,10 +262,17 @@ def cleanup(poolurl=None, poolname=None):
             assert False
         # correct way
         try:
-            PoolManager.getPool(pname, poolurl).removeAll()
-        except IOError:
+            p = PoolManager.getPool(pname, poolurl)
+            p.removeAll()
+        except RuntimeError:
             pass
+
         PoolManager.remove(pname)
+        try:
+            del p
+        except NameError:
+            pass
+        gc.collect()
 
 
 def test_PoolManager():
@@ -280,14 +290,49 @@ def test_PoolManager():
     # print('GlobalPoolList#: ' + str(id(pm.getMap())) + str(pm))
     PoolManager.removeAll()
     assert PoolManager.size() == 0
+    assert weakref.getweakrefcount(pool) == 0
+    print(weakref.getweakrefs(pool), id(pool), 'mmmm pool')
+    del pool
 
     # initiate
     pm = PoolManager()
     assert len(pm) == 0
-    pm.getPool(defaultpoolName)
+    p1 = pm.getPool(defaultpoolName)
+    print(weakref.getweakrefs(p1), id(p1), 'mmmm p1')
     for k, v in pm.items():
         assert isinstance(v, ProductPool)
     assert defaultpoolName in pm
+    PG = PoolManager._GlobalPoolList
+    assert PoolManager.isLoaded(defaultpoolName) == 1
+    del v
+    assert PoolManager.isLoaded(defaultpoolName) == 1
+    print(weakref.getweakrefs(PG[defaultpoolName]), id(
+        PG[defaultpoolName]), 'mmm GL')
+    pr = weakref.ref(p1)
+    assert pr() == p1
+    assert weakref.getweakrefcount(pr()) == 2
+    # print(weakref.getweakrefs(PG[defaultpoolName]),
+    #      id(PG[defaultpoolName]), 'mmm+r')
+    del p1
+    assert pr()
+    # print(weakref.getweakrefs(PG[defaultpoolName]),
+    #      id(PG[defaultpoolName]), 'mmmm del p1')
+    assert weakref.getweakrefcount(PG[defaultpoolName]) == 2
+    gc.collect()
+    # print(weakref.getweakrefs(PG[defaultpoolName]),
+    #      id(PG[defaultpoolName]), 'mmmm gc')
+    assert weakref.getweakrefcount(PG[defaultpoolName]) == 2  # why ?
+    del pr
+    # print(weakref.getweakrefs(PG[defaultpoolName]),
+    #      id(PG[defaultpoolName]), 'mmmm del r')
+    assert weakref.getweakrefcount(PG[defaultpoolName]) == 1
+    assert pm.remove(defaultpoolName) == 0
+
+    # http pool gets registered
+    with pytest.raises(RuntimeError):
+        ph = pm.getPool(poolurl='http://h.edu/foo')
+    assert not PoolManager.isLoaded('foo')
+    assert PoolManager.remove('foo') == 1
 
 
 def checkdbcount(expected_cnt, poolurl, prodname, currentSN=-1):
@@ -549,6 +594,18 @@ def test_ProdStorage_func_http():
     thepoolurl = pc['httphost'] + pc['baseurl'] + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
+    # First test registering with local pstor will also register on server
+    pool = HttpClientPool(poolurl=thepoolurl)
+    # not exist
+    with pytest.raises(RuntimeError):
+        assert pool.isEmpty()
+    # register
+    pstore = ProductStorage(pool=pool)
+    assert pool.isEmpty()
+    pstore.unregister(thepoolname)
+    # not exist
+    with pytest.raises(RuntimeError):
+        assert pool.isEmpty()
     check_ps_func_for_pool(thepoolname, thepoolurl)
 
 
@@ -610,10 +667,6 @@ def mkStorage(thepoolname, thepoolurl):
     thepool = PoolManager.getMap()[thepoolname]
     assert thepool.getScheme() == tsc
     assert thepool.isEmpty()
-    try:
-        pass
-    except IOError:
-        assert thepoolurl.lower().startswith('http')
     return thepool, pstore
 
 
@@ -800,8 +853,8 @@ def doquery(poolpath, newpoolpath):
         chk(res[1], rec1[4])
 
     # same as above but query is on the product. this is slow.
-    q = AbstractQuery(Product, 'p', '"n 1" in p.instrument')
-    res = pstore.select(q)
+    q=AbstractQuery(Product, 'p', '"n 1" in p.instrument')
+    res=pstore.select(q)
     # [3,4]
     assert len(res) == 2, str(res)
     chk(res[0], rec1[3])

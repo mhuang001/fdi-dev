@@ -291,14 +291,14 @@ def test_PoolManager():
     PoolManager.removeAll()
     assert PoolManager.size() == 0
     assert weakref.getweakrefcount(pool) == 0
-    print(weakref.getweakrefs(pool), id(pool), 'mmmm pool')
+    #print(weakref.getweakrefs(pool), id(pool), 'mmmm pool')
     del pool
 
     # initiate
     pm = PoolManager()
     assert len(pm) == 0
-    p1 = pm.getPool(defaultpoolName)
-    print(weakref.getweakrefs(p1), id(p1), 'mmmm p1')
+    p1 = pm.getPool(defaultpoolName, defaultpoolUrl)
+    #print(weakref.getweakrefs(p1), id(p1), 'mmmm p1')
     for k, v in pm.items():
         assert isinstance(v, ProductPool)
     assert defaultpoolName in pm
@@ -306,8 +306,8 @@ def test_PoolManager():
     assert PoolManager.isLoaded(defaultpoolName) == 1
     del v
     assert PoolManager.isLoaded(defaultpoolName) == 1
-    print(weakref.getweakrefs(PG[defaultpoolName]), id(
-        PG[defaultpoolName]), 'mmm GL')
+    # print(weakref.getweakrefs(PG[defaultpoolName]), id(
+    #    PG[defaultpoolName]), 'mmm GL')
     pr = weakref.ref(p1)
     assert pr() == p1
     assert weakref.getweakrefcount(pr()) == 2

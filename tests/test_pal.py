@@ -284,7 +284,7 @@ def test_PoolManager():
 
     assert PoolManager.size() == 0
     # This creates a pool and returns it if the pool of given name does not exist
-    pool = PoolManager.getPool(defaultpoolName)
+    pool = PoolManager.getPool(defaultpoolName, defaultpoolUrl)
     assert PoolManager.size() == 1
     assert defaultpoolName in PoolManager.getMap()
     # print('GlobalPoolList#: ' + str(id(pm.getMap())) + str(pm))
@@ -853,8 +853,8 @@ def doquery(poolpath, newpoolpath):
         chk(res[1], rec1[4])
 
     # same as above but query is on the product. this is slow.
-    q=AbstractQuery(Product, 'p', '"n 1" in p.instrument')
-    res=pstore.select(q)
+    q = AbstractQuery(Product, 'p', '"n 1" in p.instrument')
+    res = pstore.select(q)
     # [3,4]
     assert len(res) == 2, str(res)
     chk(res[0], rec1[3])

@@ -112,11 +112,10 @@ def get_pools():
     return lls(PoolManager.getMap().keys(), 2000)
 
 
-@ app.route(pc['baseurl'] + '/sn' + '/<string:prod_type>' + '/<string:pool_id>', methods=['GET'])
-def get_pool_sn(prod_type, pool_id):
-    """ Return the total count for the given product type and pool_id.
+# @ app.route(pc['baseurl'] + '/sn' + '/<string:prod_type>' + '/<string:pool_id>', methods=['GET'])
+def get_prod_count(prod_type, pool_id):
+    """ Return the total count for the given product type and pool_id in the directory.
 
-    'sn': 'the Serial Number',
     'prod_type': 'clsssname',
     'pool_id': 'pool name'
 
@@ -134,7 +133,7 @@ def get_pool_sn(prod_type, pool_id):
                 nm.append(i)
     s = str(nm)
     logger.debug('found '+s)
-    return str(res)
+    return str(res), 'Counting %s files OK'
 
 
 @ app.route(pc['baseurl'] + '/<path:pool>', methods=['GET', 'POST', 'PUT', 'DELETE'])
@@ -143,10 +142,11 @@ def httppool(pool):
     """
     APIs for CRUD products, according to path and methods and return results.
 
-    - GET: /pool_id/hk ==> return pool_id housekeeping
+    - GET: 
                  /pool_id/product_class/index ==> return product
                  /pool_id/hk ===> return pool_id Housekeeping data; urns, classes, and tags
                  /pool_id/hk/{urns, classes, tags} ===> return pool_id urns or classes or tags
+                 /pool_id/count/product_class ===> return the number of products in the pool
 
     - POST: /pool_id ==> Save product in requests.data in server
 
@@ -159,6 +159,7 @@ def httppool(pool):
     """
     username = request.authorization.username
     paths = pool.split('/')
+    lp = len(paths)
     ts = time.time()
     logger.debug('*** method %s paths %s ***' % (request.method, paths))
     if 0 and paths[0] == 'testhttppool':
@@ -167,14 +168,15 @@ def httppool(pool):
 
     if request.method == 'GET':
         # TODO modify client loading pool , prefer use load_HKdata rather than load_single_HKdata, because this will generate enormal sql transaction
-        if paths[-2] == 'hk' and paths[-1] in ['classes', 'urns', 'tags']:  # Retrieve single HKdata
-            result, msg = load_single_HKdata(paths)
-            # save_action(username=username, action='READ', pool=paths[0])
-        elif paths[-1] == 'hk':  # Load all HKdata
+        if paths[1] == 'hk' and lp == 2:  # Load all HKdata
             result, msg = load_HKdata(paths)
             # save_action(username=username, action='READ', pool=paths[0])
+        elif paths[1] == 'hk' and paths[2] in ['classes', 'urns', 'tags']:  # Retrieve single HKdata
+            result, msg = load_single_HKdata(paths)
+            # save_action(username=username, action='READ', pool=paths[0])
+        elif paths[1] == 'count' and lp == 3:  # prod count
+            result, msg = get_prod_count(paths[2], paths[0])
         elif paths[1] == 'api':
-
             result, msg = call_pool_Api(paths)
         elif paths[-1].isnumeric():  # Retrieve product
             # do not deserialize if set True. save directly to disk
@@ -270,6 +272,8 @@ def call_pool_Api(paths):
     paths = paths[:o]
     lp = len(paths)
     method = paths[im]
+    if method not in WebAPI:
+        return '"FAILED"', 'Unknown web API method: %s.' % method
     args, kwds = [], {}
 
     if 0:

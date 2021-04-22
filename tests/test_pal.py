@@ -28,6 +28,7 @@ from fdi.utils.checkjson import checkjson
 from fdi.utils.getconfig import getConfig
 from fdi.pns.fdi_requests import save_to_server, read_from_server, delete_from_server
 
+from requests.auth import HTTPBasicAuth
 import copy
 import traceback
 from pprint import pprint
@@ -369,12 +370,15 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN=-1):
         # for this class there are  how many prods
         assert len(mpool['classes'][prodname]['sn']) == expected_cnt
     elif scheme in ['http', 'https']:
-        snpath = 'sn/' + prodname + '/' + poolname
+        user = pc['auth_user']
+        password = pc['auth_pass']
+        auth = HTTPBasicAuth(user, password)
+        cpath = poolname + '/' + 'count/' + prodname
         api_baseurl = scheme + '://' + place + poolpath + '/'
-        url = api_baseurl + snpath
-        x = requests.get(url)
-        sn = int(x.text)
-        assert sn == expected_cnt
+        url = api_baseurl + cpath
+        x = requests.get(url, auth=auth)
+        count = int(x.json()['result'])
+        assert count == expected_cnt
     else:
         assert False, 'bad pool scheme'
 

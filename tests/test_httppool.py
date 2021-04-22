@@ -444,7 +444,7 @@ def test_lock_file():
 
 
 def test_read_non_exists_pool():
-    ''' Test read a pool which doesn't exist, returns FAILED
+    ''' Test read a pool which doesnot exist, returns FAILED
     '''
     logger.info('Test query a pool non exist.')
     wrong_poolid = 'abc'

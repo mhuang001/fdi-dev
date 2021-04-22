@@ -26,3 +26,12 @@ echo =====  .config/pnslocal.py
 grep ^conf  .config/pnslocal.py
 grep ^EXTHOST  .config/pnslocal.py
 grep ^EXTPORT  .config/pnslocal.py
+
+#service apache2 reload && echo apache2 reloaded
+
+if [ -z "$1" ]
+then
+    exec /usr/sbin/apache2clt -DFOREGROUND
+else
+    exec "$1"
+fi

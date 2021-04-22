@@ -224,7 +224,9 @@ build_server:
 	docker build -t $(IMAGE_NAME) --build-arg IP_ADDR=$(IP_ADDR) --build-arg PORT=$(PORT) --build-arg fd=$(fd) -f $(DOCKERFILE) $(D) .
 
 launch_server:
-	docker run -d --env IP_ADDR=$(IP_ADDR) --env PORT=$(PORT) -p $(PORT):$(EXTPORT) --name $(SERVER_NAME) $(D) -it $(IMAGE_NAME)
+	docker run -d -it --env IP_ADDR=$(IP_ADDR) --env PORT=$(PORT) -p $(PORT):$(EXTPORT) --name $(SERVER_NAME) $(D) $(IMAGE_NAME)
+	sleep 2
+	docker ps -n 1
 
 rm_server:
 	docker stop $(SERVER_NAME)  || echo not running

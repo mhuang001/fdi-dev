@@ -55,8 +55,8 @@ RUN cat profile >> .bashrc && rm profile \
 
 # httppool_server_entrypoint.sh is used for replacing apache listen ports and configurations of httppool_server. setuid as root
 COPY fdi/pns/resources/httppool_server_entrypoint.sh .
-RUN chmod 755 ./httppool_server_entrypoint.sh \
-&& ./httppool_server_entrypoint.sh
+RUN chmod 755 ./httppool_server_entrypoint.sh
+#&& ./httppool_server_entrypoint.sh
 
 # Configure permission
 RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 ${PROJ_DIR} ${UHOME}/; \
@@ -108,10 +108,11 @@ RUN  service apache2 start
 WORKDIR ${UHOME}
 RUN date > build
 
-CMD \                   
-/home/apache/httppool_server_entrypoint.sh 2>&1 | tee -a /home/apache/log; \
-service apache2 start && echo started
+ENTRYPOINT  ["/home/apache/httppool_server_entrypoint.sh", "2>&1", "|", "tee", \
+"-a", "/home/apache/log"]
 
+#CMD /home/apache/httppool_server_entrypoint.sh 2>&1 | tee -a /home/apache/log; \
+#service apache2 start && echo started
 #read 9; \
 #service apache2 stop
 

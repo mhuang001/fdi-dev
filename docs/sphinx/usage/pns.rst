@@ -28,9 +28,9 @@ When running Flask server, the host IP is ``0.0.0.0`` and port number ``5000`` b
 
 and customize ``~/.config/pnslocal.py``.
 
-When in developement mode, set ``dev`` to ``True`` (``dev = True`` or ``dev = 1``) to run local server. The ``serveruser`` should be the name of the user of web server, usually your username if you run ``make runserver``. This is the default if ``dev`` is true.
+When in developement mode, select ``dev`` to run local server. The ``serveruser`` should be the name of the user of web server, usually your username if you run ``make runserver``. This is the default if ``dev`` is selected.
 
-For production deployment the ``dev`` should be set false. Set ``serveruser`` depending which web server (e.g. ``'apache'``).
+For production deployment choose ``servertest`` or ``external``. Set ``serveruser`` depending which web server (e.g. ``'apache'``).
 
 The ``ptsuser`` is usually the user required by the processing software. It is set to ``serveruser`` by default. ``ptsuser`` must have write previlige to read and write ``inputdir`` and ``outputdir``, which are owned by ``serveruser`` with mode ``o0775``.
 

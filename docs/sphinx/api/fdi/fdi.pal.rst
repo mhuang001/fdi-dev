@@ -144,3 +144,11 @@ fdi.pal.versionable module
    :members:
    :undoc-members:
    :show-inheritance:
+
+fdi.pal.webapi module
+---------------------
+
+.. automodule:: fdi.pal.webapi
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -462,16 +462,18 @@ def test_ProductStorage_init():
     cleanup(newpoolurl, newpoolname)
 
     # Constructor
-    # default pool
+    # no default pool
     ps = ProductStorage()
-    p1 = ps.getPools()[0]
-    # check default pool's name
-    assert p1 == defaultpoolname
+    with pytest.raises(IndexError):
+        p1 = ps.getPools()[0]
+    # with poolurl the pool is constructed
+    ps = ProductStorage(poolurl=defaultpoolurl)
     # get the pool object
-    pspool = ps.getPool(p1)
+    pspool = ps.getPool(defaultpoolname)
     assert len(pspool.getProductClasses()) == 0
-    # check syntax: construct a storage with a pool
-    ps2 = ProductStorage(defaultpoolname)
+    # check syntax: construct a storage with a poolobj
+    pool = LocalPool(poolurl=defaultpoolurl)
+    ps2 = ProductStorage(pool)
     assert ps.getPools() == ps2.getPools()
     # wrong poolname
     with pytest.raises(TypeError):
@@ -480,7 +482,7 @@ def test_ProductStorage_init():
     # register pool
     # with a storage that already has a pool
 
-    ps2.register(newpoolname)
+    ps2.register(newpoolname, newpoolurl)
     assert op.exists(transpath(newpoolname, poolpath))
     assert len(ps2.getPools()) == 2
     assert ps2.getPools()[1] == newpoolname
@@ -624,7 +626,7 @@ def test_LocalPool():
     thepoolpath = '/tmp'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
 
-    ps = ProductStorage(thepoolname)
+    ps = ProductStorage(thepoolname, thepoolurl)
     p1 = ps.getPools()[0]
     # get the pool object
     pspool = ps.getPool(p1)
@@ -973,13 +975,13 @@ def test_MapContext():
     # stored prod
     thepoolname = 'pool_' + getpass.getuser()
     thepoolpath = '/tmp'
-    thepoolurl = 'file://' + thepoolname + '/'+thepoolname
+    thepoolurl = 'file://' + thepoolpath + '/'+thepoolname
     # create a prooduct
     x = Product(description='save me in store')
     # remove existing pools in memory
     PoolManager().removeAll()
     # create a product store
-    pstore = ProductStorage(thepoolname)
+    pstore = ProductStorage(thepoolname, thepoolurl)
     assert len(pstore.getPools()) == 1
     assert pstore.getWritablePool() == thepoolname
     assert op.isdir(transpath(thepoolname, thepoolpath))
@@ -1057,7 +1059,7 @@ def test_realistic():
     # remove existing pools in memory
     PoolManager.removeAll()
     # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
-    pstore = ProductStorage(pool=poolname)  # on disk
+    pstore = ProductStorage(poolurl=poolurl)  # on disk
     pstore.wipePool()
 
     p1 = Product(description='p1')

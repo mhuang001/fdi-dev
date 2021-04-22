@@ -31,7 +31,7 @@ def remoteRegister(p, poolurl):
         res, msg = 'FAILED', str(e)
     if res == 'FAILED':
         raise RuntimeError(
-            'Registering ' + poolname + ' failed.  ' + msg)
+            'Registering ' + poolurl + ' failed.  ' + msg)
     return res, msg
 
 
@@ -112,6 +112,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
                 return cls._GlobalPoolList[poolname]
 
             if poolurl:
+                # poolname use the one comes above
                 pp, schm, pl, pn = parse_poolurl(poolurl)
             else:
                 raise ValueError(

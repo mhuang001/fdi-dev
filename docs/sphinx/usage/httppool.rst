@@ -31,7 +31,7 @@ To customize ``~/.config/pnslocal.py`` modify these according to your system:
    pnsconfig = dict(logginglevel=logging.DEBUG)
    pnsconfig['baseurl'] = '/v0.6'
    pnsconfig['base_poolpath'] = '/tmp'
-   pnsconfig['server_poolpath'] = '/tmp/data'  # For server
+   pnsconfig['server_poolpath'] = '/var/www/data'  # For server
    pnsconfig['defaultpool'] = 'pool_default'
    pnsconfig['node'] = {'username': 'foo',
                         'password': 'bar', 'host': '0.0.0.0', 'port': 5000}

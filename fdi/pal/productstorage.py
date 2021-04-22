@@ -35,7 +35,7 @@ class ProductStorage(object):
         self._pools = ODict()  # dict of poolname - poolobj pairs
         self.register(pool=pool, poolurl=poolurl, **kwds)
 
-    def register(self,  poolname=None, pool=None, poolurl=None, **kwds):
+    def register(self,  poolname=None, poolurl=None, pool=None, **kwds):
         """ Registers the given pools to the storage.
 
 
@@ -43,9 +43,11 @@ class ProductStorage(object):
 
         with filelock.FileLock(makeLockpath('ProdStorage', 'w')), \
                 filelock.FileLock(makeLockpath('ProdStorage', 'r')):
-            # pool can be None
             if pool and issubclass(pool.__class__, ProductPool):
                 _p = PoolManager.getPool(pool=pool, **kwds)
+            elif poolurl is None and poolname is None:
+                # quietly return for no-arg construction case
+                return
             else:
                 _p = PoolManager.getPool(
                     poolname=poolname, poolurl=poolurl, **kwds)

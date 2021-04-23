@@ -22,7 +22,11 @@ class ODict(UserDict, Serializable, DeepEqual):
 
     def __init__(self, *args, **kwds):
         """
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
         # print(args)
         # data = OrderedDict(*args, **kwds)
@@ -67,6 +71,13 @@ class ODict(UserDict, Serializable, DeepEqual):
     #             self[kk] = item[1]
 
     def toString(self, level=0, matprint=None, trans=True, **kwds):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         global OD_toString_Nest
 
         # return 'OD' + str(type(self.data))+'*'+str(self.data)
@@ -84,20 +95,39 @@ class ODict(UserDict, Serializable, DeepEqual):
 
     def __repr__(self):
         """ returns string representation with details set according to debuglevel.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         # return 'OD'+super().__repr__()
         level = int(logger.getEffectiveLevel()/10) - 1
         return self.toString(level=level)
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder
+        Parameters
+        ----------
+
+        Returns
+        -------
+ 
+        """
         return OrderedDict(
             data=self.data,
             _STID=self._STID
         )
 
     def serializable(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder 
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
 
         return OrderedDict(
             **self.data,
@@ -105,5 +135,11 @@ class ODict(UserDict, Serializable, DeepEqual):
         )
 
     def __hash__(self):
+        """
+        Parameters
+        ----------
 
+        Returns
+        -------
+        """
         return hash(tuple(self.data.items()))

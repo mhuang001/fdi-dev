@@ -59,13 +59,23 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
 
     def __init__(self, **kwds):
         """
+        Parameter
+        ---------
 
+        Returns
+        -------
         """
         super(Dataset, self).__init__(**kwds)
 
     def accept(self, visitor):
         """ Hook for adding functionality to object
-        through visitor pattern."""
+        through visitor pattern.
+        Parameter
+        ---------
+
+        Returns
+        ------- 
+        """
         visitor.visit(self)
 
 
@@ -75,30 +85,66 @@ class GenericDataset(Dataset, DataContainer, Container):
 
     def __init__(self, **kwds):
         """
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
         super(GenericDataset, self).__init__(
             **kwds)  # initialize data, meta, unit
 
     def __iter__(self):
+        """
+        Parameter
+        ---------
+
+        Returns
+        -------
+        """
+
         for x in self.getData():
             yield x
 
     def __contains__(self, x):
         """
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
         return x in self.getData()
 
     def __len__(self, *args, **kwargs):
         """ size of data
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
         return self.getData().__len__(*args, **kwargs)
 
     def __repr__(self, **kwds):
+        """
+        Parameter
+        ---------
+
+        Returns
+        -------
+        """
+
         return self.toString(level=1, **kwds)
 
     def toString(self, level=0, matprint=None, trans=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
         cn = self.__class__.__name__
         if level > 1:
@@ -116,7 +162,13 @@ class GenericDataset(Dataset, DataContainer, Container):
         return s + '\n' + d + '\n'
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder 
+        Parameter
+        ---------
+
+        Returns
+        -------
+        """
         # s = OrderedDict(description=self.description, meta=self.meta)  # super(...).__getstate__()
         # s.update(OrderedDict(data=self.getData()))
         s = OrderedDict(description=self.description,
@@ -136,7 +188,13 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
     def __init__(self, data=None, unit=None, description='UNKNOWN', typ_=None, default=None, **kwds):
         """ Initializes an ArrayDataset.
 
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
+
         self.setDefault(default)
         super(ArrayDataset, self).__init__(data=data, unit=unit,
                                            description=description, typ_=typ_, **kwds)  # initialize data, meta
@@ -147,6 +205,11 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
 
     def setData(self, data):
         """
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
         isitr = hasattr(data, '__iter__')  # and hasattr(data, '__next__')
         if not isitr and data is not None:
@@ -160,73 +223,165 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
 
     @property
     def default(self):
+        """
+        Parameter
+        ---------
+
+        Returns
+        -------
+        """
+
         return self.getDefault()
 
     @default.setter
     def default(self, default):
+        """
+        Parameter
+        ---------
+
+        Returns
+        -------
+        """
+
         self.setDefault(default)
 
     def getDefault(self):
-        """ Returns the default related to this object."""
+        """ Returns the default related to this object.
+        Parameter
+        ---------
+
+        Returns
+        -------
+        """
         return self._default
 
     def setDefault(self, default):
         """ Sets the default of this object.
+        Parameter
+        ---------
 
+        Returns
+        -------
         """
         self._default = default
 
     def __setitem__(self, *args, **kwargs):
         """ sets value at key.
+
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
         self.getData().__setitem__(*args, **kwargs)
 
     def __getitem__(self, *args, **kwargs):
         """ returns value at key.
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
         return self.getData().__getitem__(*args, **kwargs)
 
     def __delitem__(self, *args, **kwargs):
         """ removes value and its key.
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
         self.getData().__delitem__(*args, **kwargs)
 
     def __iter__(self, *args, **kwargs):
         """ returns an iterator
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
         return self.getData().__iter__(*args, **kwargs)
 
     def pop(self, *args, **kwargs):
         """ revomes and returns value
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         return self.getData().pop(*args, **kwargs)
 
     def append(self, *args, **kwargs):
         """ appends to data.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         return self.getData().append(*args, **kwargs)
 
     def index(self, *args, **kwargs):
         """ returns the index of a value.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         return self.getData().index(*args, **kwargs)
 
     def count(self, *args, **kwargs):
         """ returns size.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         return self.getData().count(*args, **kwargs)
 
     def remove(self, *args, **kwargs):
         """ removes value at first occurrence.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         self.getData().remove(*args, **kwargs)
 
     def __repr__(self, **kwds):
+        """
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
+
         return self.toString(level=1, **kwds)
 
     def toString(self, level=0, matprint=None, trans=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         if matprint is None:
             matprint = ndprint
@@ -249,7 +404,14 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
         return s + '\n' + d + '\n'
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder 
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
         # s = OrderedDict(description=self.description, meta=self.meta, data=self.data)  # super(...).__getstate__()
         s = OrderedDict(description=self.description,
                         meta=self.meta,
@@ -277,6 +439,11 @@ class TableModel(object):
 
     def __init__(self, **kwds):
         """
+        Parameter
+        ---------
+
+        Returns
+        -------
 
         """
         super(TableModel, self).__init__(**kwds)
@@ -284,41 +451,94 @@ class TableModel(object):
     def getColumnClass(self, columnIndex):
         """ Returns the class for the first cell
         values in the column.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         return self.getColumn(columnIndex)[0].__class__
 
     def getColumnCount(self):
-        """ Returns the number of columns in the model. """
+        """ Returns the number of columns in the model. 
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
         return len(self.getData())
 
     def getColumnName(self, columnIndex):
         """ Returns the name of the column at columnIndex.
 
         returns a set of columns if key  is a slice.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
 
         return self.getColumnNames()[columnIndex]
 
     def getColumnNames(self):
-        """ Returns the column names. """
+        """ Returns the column names. 
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
         return list(self.getData().keys())
 
     def getRowCount(self):
-        """ Returns the number of rows in the model. """
+        """ Returns the number of rows in the model. 
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
         return len(self.getColumn(0))
 
     def getValueAt(self, rowIndex, columnIndex):
-        """ Returns the value for the cell at columnIndex and rowIndex. """
+        """ Returns the value for the cell at columnIndex and rowIndex. 
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
         return self.getColumn(columnIndex).data[rowIndex]
 
     def isCellEditable(self, rowIndex, columnIndex):
         """ Returns true if the cell at rowIndex and columnIndex
-        is editable. """
+        is editable. 
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
         return True
 
     def setValueAt(self, value, rowIndex, columnIndex):
         """Sets the value in the cell at columnIndex and rowIndex
         to Value.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         self.getColumn(columnIndex).data[rowIndex] = value
 
@@ -349,6 +569,12 @@ class TableDataset(GenericDataset, TableModel):
 
     def __init__(self, **kwds):
         """
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
 
         self._list = []
@@ -357,6 +583,11 @@ class TableDataset(GenericDataset, TableModel):
 
     def getData(self):
         """ Optimized for _data being an ``ODict`` implemented with ``UserDict``.
+        Parameter
+        ---------
+
+        Returns
+        -------
 
         """
 
@@ -378,6 +609,12 @@ class TableDataset(GenericDataset, TableModel):
         [{'name':str,'column':Column}] form is deprecated.
 
         Existing data will be discarded except when the provided data is a list of lists, where existing column names and units will remain but data replaced, and extra data items will form new columns named 'column'+index (index counting from 1) with unit None.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         # logging.debug(data.__class__)
 
@@ -433,6 +670,12 @@ class TableDataset(GenericDataset, TableModel):
         name - column name.
         column - column to be added.
         col_des - if True (default) and column descripion is 'UNKNOWN', set to column name.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
 
         d = self.getData()
@@ -456,6 +699,12 @@ class TableDataset(GenericDataset, TableModel):
         """ Removes the columns specified by ``key``.
 
         ref. ``getColumnMap`` on ``key`` usage.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
 
         for name in self.getColumnMap(key).keys():
@@ -469,6 +718,12 @@ class TableDataset(GenericDataset, TableModel):
         it looks for equal references (same column objects), not for
         equal values.
         If the key is a string, Returns the index of specified Column name.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         if issubclass(key.__class__, str):
             ks = list(self.getData().keys())
@@ -486,6 +741,12 @@ class TableDataset(GenericDataset, TableModel):
 
         row: mh: row is a dict with names as keys and row data as value.
         rows: append each element in row if the row data is a list.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
 
         d = self.getData()
@@ -507,6 +768,12 @@ class TableDataset(GenericDataset, TableModel):
 * ``Slice`` object, a list of rows from slicing the column. Example ``a.getRow(Slice(3,,))``;
 * list of integers: they are used as the row index to select the rows.
 * list of booleans: rows where the corresponding boolean is True are chosen.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         cl = rowIndex.__class__
         d = self.getData()
@@ -530,6 +797,12 @@ class TableDataset(GenericDataset, TableModel):
         rowIndex: ref ``getRowMap()``
 * int: return the int-th row in a list of elements;
 * ``Slice`` object, list of integers, list of booleans: return a list of rows each represented by a tuple. Example ``a.getRow(Slice(3,,))``, ``[2,4]``, ``[True, False...]``.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
 
         it = self.getRowMap(rowIndex).values()
@@ -544,6 +817,11 @@ class TableDataset(GenericDataset, TableModel):
         return a new TableDataset object containing only the selected rows.
 
         selection:  to form a new Tabledataset with ref ``getRowMap()``
+        Parameter
+        ---------
+
+        Returns
+        ------- 
         """
 
         d = ODict()
@@ -562,6 +840,12 @@ class TableDataset(GenericDataset, TableModel):
 
         rowIndex: int or a ``Slice`` object. Example ``a.removeRow(Slice(3,,))``.
         return: removed row data.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         if issubclass(rowIndex.__class__, slice):
             ret = []
@@ -574,36 +858,99 @@ class TableDataset(GenericDataset, TableModel):
 
     @ property
     def rowCount(self):
+        """
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
         return self.getRowCount()
 
     @ rowCount.setter
     def rowCount(self, newRowCount):
+        """
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
+
         self.setRowCount(newRowCount)
 
     def setRowCount(self, rowCount):
         """ cannot do this.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         raise ValueError('Cannot set row count.')
 
     @ property
     def columnCount(self):
+        """
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
+
         return self.getColumnCount()
 
     @ columnCount.setter
     def columnCount(self, newColumnCount):
+        """
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
+
         self.setColumnCount(newColumnCount)
 
     def setColumnCount(self, columnCount):
         """ cannot do this.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         raise ValueError('Cannot set column count.')
 
     @ property
     def list(self):
+        """
+        Parameter
+        ---------
+
+        Returns
+        -------
+        """
+
         return self._list
 
     @ list.setter
     def list(self, l):
+        """
+        Parameter
+        ---------
+
+        Returns
+        -------
+        """
+
         raise NotImplemented
 
     def getColumnMap(self, key=None):
@@ -615,6 +962,11 @@ class TableDataset(GenericDataset, TableModel):
 * Sequence of integers/strings: they are used as the column index/name to select the columns.
 * Sequence of booleans: columns where the corresponding boolean is True are chosen.
 Default is to return all columns.
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
         d = self.getData()
         if key is None:
@@ -650,6 +1002,14 @@ Default is to return all columns.
 * list of integers/strings: return a list of columns corresponding to the given column index/name, or where key is True. Example ``a.getColumn(Slice(3,,))``, ``[2, 4]``, ``['time', ``energy']``.
 * list of booleans: return a list of columns  where key is True. Example ``[True, False...]``.
         """
+        Parameter
+        ---------
+
+        Returns
+        -------
+        """
+
+        """
 
         it = self.getColumnMap(key).values()
         if issubclass(key.__class__, (int, str)):
@@ -660,6 +1020,11 @@ Default is to return all columns.
 
     def setColumn(self, key, value):
         """ Replaces a column in this table with specified name to specified column if key is a string and exists, or if the key is an integer in 0 to the number of columns, insert at column-index=key, with the name 'column'+key, else add a new coolumn.
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
 
         if self.getData() is None:
@@ -674,6 +1039,11 @@ Default is to return all columns.
 
     def items(self):
         """ for k,v in tabledataset.items()
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
         return self.getData().items()
 
@@ -681,20 +1051,46 @@ Default is to return all columns.
         """ return colmn if given key.
 
         ref. ``getColumn()``.
+        Parameter
+        ---------
+
+        Returns
+        -------
         """
         return self.getColumn(key)
 
     def __setitem__(self, key, value):
         """
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         self.setColumn(key, value)
 
     def __repr__(self, **kwds):
+        """
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
+
         return self.toString(level=1, **kwds)
 
     def toString(self, level=0, matprint=None, trans=True, tablefmt2='simple', **kwds):
         """
         tablefmt2: format of 2D data
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         if matprint is None:
             matprint = ndprint
@@ -718,7 +1114,14 @@ Default is to return all columns.
         return s + '\n' + d + '\n'
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
         return OrderedDict(description=self.description,
                            meta=self.meta,
                            data=self.getData(),
@@ -727,11 +1130,16 @@ Default is to return all columns.
 
 class IndexedTableDataset(Indexed, TableDataset):
     """ TableDataset with an index table for efficient row look-up.
-
     """
 
     def __init__(self, **kwds):
         """
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         self._indexCols = [0]
         self._rowIndexTable = {}
@@ -739,6 +1147,12 @@ class IndexedTableDataset(Indexed, TableDataset):
 
     def getColumnsToLookup(self):
         """ returns an iterator that gives a number of sequences to looking up over.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
 
         # list of Column's arrays
@@ -746,6 +1160,11 @@ class IndexedTableDataset(Indexed, TableDataset):
 
     def setData(self, data):
         """  sets name-column pairs from data and updates index if needed
+        Parameter
+        ---------
+
+        Returns
+        -------
 
         """
 
@@ -769,6 +1188,12 @@ class IndexedTableDataset(Indexed, TableDataset):
         key: taken as a dictionary key unless ``multiple`` is True.
         return_index: if True (default) return index in the array of columns.
         multiple: if True (default is False) loop through key as a sequence of keys and return a sequece.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
 
         if multiple:
@@ -787,7 +1212,14 @@ class IndexedTableDataset(Indexed, TableDataset):
                 return [c[rec_ind] for c in self._list]
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder 
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
         return Indexed.__getstate__(self).update(description=self.description,
                                                  meta=self.meta,
                                                  data=self.getData(),
@@ -805,12 +1237,25 @@ class CompositeDataset(AbstractComposite, Dataset):
 
     def __init__(self, **kwds):
         """
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         super(CompositeDataset, self).__init__(
             **kwds)  # initialize _sets, meta, unit
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder 
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
         return OrderedDict(description=self.description,
                            meta=self.meta,
                            _sets=self._sets,

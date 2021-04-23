@@ -20,8 +20,14 @@ class DataContainer(Annotatable, Quantifiable, Copyable, DeepEqual):
 
     def __init__(self, data=None, **kwds):
         """
-
         data: a Container. Default is None.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         #print(__name__ + str(kwds))
         super(DataContainer, self).__init__(**kwds)
@@ -34,21 +40,53 @@ class DataContainer(Annotatable, Quantifiable, Copyable, DeepEqual):
 
     @property
     def data(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """ 
         return self.getData()
 
     @data.setter
     def data(self, newData):
+        """ Property of the data of this datawrapper object.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         self.setData(newData)
 
     def setData(self, data):
         """ Replaces the current DataData with specified argument. 
         mh: subclasses can override this to add listener whenevery data is
-        replaced
+        replaced.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         self._data = data
 
     def getData(self):
-        """ Returns the data in this dw"""
+        """ Returns the data in this dw
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         try:
             return self._data
         except AttributeError:
@@ -57,7 +95,17 @@ class DataContainer(Annotatable, Quantifiable, Copyable, DeepEqual):
             return od
 
     def hasData(self):
-        """ Returns whether this data wrapper has data. """
+        """ Returns whether this data wrapper has data. 
+
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+
         return self.getData() is not None and len(self.getData()) > 0
 
     def __repr__(self):
@@ -82,5 +130,13 @@ class DataWrapperMapper():
     """ Object holding a map of data wrappers. """
 
     def getDataWrappers(self):
-        """ Gives the data wrappers, mapped by name. """
+        """ Gives the data wrappers, mapped by name.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self._sets

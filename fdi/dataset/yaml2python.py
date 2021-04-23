@@ -58,10 +58,15 @@ fmtstr = {
 
 def sq(s):
     """ add quote mark to string, depending on if ' or " in the string.
+    Parameters
+    ---------
+
+    Returns
+    -------
     """
 
     if "'" in s or '\n' in s:
-        qm = '"""' if '"' in s or '\n' in s else '"'
+        qm = '""' if '"' in s or '\n' in s else '"'
     else:
         qm = "'"
     return '%s%s%s' % (qm, s, qm)
@@ -69,6 +74,11 @@ def sq(s):
 
 def getPython(val, indents, demo, onlyInclude):
     """ make productInfo and init__() code strings from given data.
+    Parameters
+    ----------
+
+    Returns
+    -------
     """
     infostr = ''
 
@@ -111,6 +121,11 @@ def makeinitcode(dt, pval):
     """ python instanciation source code.
 
     will be like "default: FineTime1(0)"
+    Parameters
+    ----------
+
+    Returns
+    -------
     """
     if dt not in ['string', 'integer', 'hex', 'binary', 'float']:
         # custom classes
@@ -129,6 +144,11 @@ def params(val, indents, demo, onlyInclude):
     """ generates python strng for val, a parameter with a set of attribute
 
     see getPython
+    Parameters
+    ----------
+
+    Returns
+    -------
     """
     infostr = '{\n'
     code = None
@@ -180,6 +200,13 @@ def params(val, indents, demo, onlyInclude):
 
 
 def getCls(clp, rerun=True, exclude=None, verbose=False):
+    """
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
     if clp is None or len(clp.strip()) == 0:
         return {}
     if exclude is None:
@@ -210,6 +237,10 @@ def readyaml(ypath, ver=None):
     """ read YAML files in ypath.
 
     output: nm is  stem of file name. desc is descriptor, key being yaml[name]
+    Parameters
+    ----------
+    Returns
+    -------
     """
     yaml = YAML()
     desc = OrderedDict()
@@ -297,7 +328,13 @@ def readyaml(ypath, ver=None):
 
 
 def output(nm, d, fins, version, verbose):
+    """
+    Parameters
+    ----------
 
+    Returns
+    -------
+    """
     print("Input YAML file is to be renamed to " + fins[nm]+'.old')
     fout = fins[nm]
     print("Output YAML file is "+fout)
@@ -310,6 +347,13 @@ def output(nm, d, fins, version, verbose):
 
 
 def yamlupgrade(descriptors, fins, ypath, version, verbose):
+    """
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
 
     if float(version) > 1.0:
         for nm, daf in descriptors.items():
@@ -339,7 +383,11 @@ def yamlupgrade(descriptors, fins, ypath, version, verbose):
 
 def dependency_sort(descriptors):
     """ sort the descriptors so that everyone's parents are to his right.
+    Parameters
+    ----------
 
+    Returns
+    -------
     """
     ret = []
     working_list = list(descriptors.keys())
@@ -381,6 +429,11 @@ def dependency_sort(descriptors):
 
 def removeParent(a, b):
     """ Returns the one who is the other one's parent.
+    Parameters
+    ----------
+
+    Returns
+    -------
     """
     if a == b:
         logger.debug('%s and %s are the same class' % (b, a))
@@ -399,6 +452,14 @@ def removeParent(a, b):
 
 
 def noParentsParents(pn):
+    """
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+
     removed = []
     for i in range(len(pn)-1):
         if pn[i] in removed:

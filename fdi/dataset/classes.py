@@ -60,12 +60,22 @@ class Classes_meta(type):
 
     def __init__(cls, *args, **kwds):
         """ Class is initialized with built-in classes by default.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         super().__init__(*args, **kwds)
 
     def updateMapping(cls, c=None, rerun=False, exclude=None, ignore_missing=False, verbose=False, ignore_error=False):
         """ Updates classes mapping.
         Make the package mapping if it has not been made.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         if exclude is None:
             exclude = []
@@ -93,6 +103,11 @@ class Classes_meta(type):
 
         rerun: set to True to force re-import. If the module-class list has never been imported, it will be imported regardless rerun.
         exclude: modules whose names (without '.') are in exclude are not imported.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
 
         if len(cls._package) and not rerun:
@@ -145,7 +160,13 @@ class Classes_meta(type):
         return
 
     def reloadClasses(cls):
-        """ re-import classes in list. """
+        """ re-import classes in list. 
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         for n, t in cls._classes.items():
             mo = importlib.import_module(t.__module__)
             importlib.reload(mo)
@@ -158,6 +179,11 @@ class Classes_meta(type):
         """ Returns the dictionary of classes allowed for deserialization, including the fdi built-ins and user added classes.
 
         Will update the classes if the list is empty
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         if len(cls._classes) == 0:
             cls.updateMapping()
@@ -166,6 +192,11 @@ class Classes_meta(type):
     @mapping.setter
     def mapping(cls, c):
         """ Delegated to cls.update...().
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         raise NotImplementedError('Use Classes.updateMapping(c).')
         cls.updateMapping(c)
@@ -178,6 +209,11 @@ class Classes(metaclass=Classes_meta):
     class Myclass():
         ...
     Classes.classes.update({myClasses
+    Parameters
+    ----------
+
+    Returns
+    -------
     """
 
     pass

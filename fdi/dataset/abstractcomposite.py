@@ -20,10 +20,27 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
     """
 
     def __init__(self, **kwds):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -----
+
+        """
         # pdb.set_trace()
         super(AbstractComposite, self).__init__(**kwds)
 
     def __repr__(self, **kwds):
+
+        """
+        Parameters
+        ----------
+
+
+        -------
+
+        """
         ''' toString(level=1, **kwds)
         '''
         return self.toString(level=1, **kwds)
@@ -31,6 +48,11 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
     def toString(self, level=0, matprint=None, trans=True, beforedata='', **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
+        Parameters
+        ----------
+
+        -------
+
         """
         cn = self.__class__.__name__
         s = '# ' + cn + '\n' +\

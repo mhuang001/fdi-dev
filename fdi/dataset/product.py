@@ -46,6 +46,11 @@ Project level product
         """ Initializes instances with more metadata as attributes, set to default values.
 
         Put description keyword argument here to allow e.g. BaseProduct("foo") and description='foo'
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         if 'metasToBeInstalled' in kwds:
             # This class is being called probably from super() in a subclass

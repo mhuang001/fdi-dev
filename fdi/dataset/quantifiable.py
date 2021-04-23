@@ -14,6 +14,12 @@ class Quantifiable(object):
     def __init__(self, unit=None, typecode=None, **kwds):
         """ Has a unit and a typecode (as in array.array.typecodes).
 
+        Parameters
+        ---------
+
+        Returns
+        -------
+
         """
         self.setUnit(unit)
         self.setTypecode(typecode)
@@ -22,32 +28,88 @@ class Quantifiable(object):
 
     @property
     def unit(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self.getUnit()
 
     @unit.setter
     def unit(self, unit):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """ 
         self.setUnit(unit)
 
     def getUnit(self):
-        """ Returns the unit related to this object."""
+        """ Returns the unit related to this object.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return self._unit
 
     def setUnit(self, unit):
-        """ Sets the unit of this object. """
+        """ Sets the unit of this object. 
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         self._unit = unit
 
     @property
     def typecode(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """ 
         return self.getTypecode()
 
     @typecode.setter
     def typecode(self, typecode):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         self.setTypecode(typecode)
 
     def getTypecode(self):
-        """ Returns the typecode related to this object."""
+        """ Returns the typecode related to this object.
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return self._typecode
 
     def setTypecode(self, typecode):
-        """ Sets the typecode of this object. """
+        """ Sets the typecode of this object.
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         self._typecode = typecode

@@ -12,8 +12,12 @@ class Indexed():
 
     def __init__(self, indexPattern=None, **kwds):
         """
+        indexPattern: specifies which columns to use to do look up.
+        Parameters
+        ----------
 
-        indexPattern: specifies which columns to uae to do look up.
+        Returns
+        -------
         """
         self._indexPattern = [0] if indexPattern is None else indexPattern
         self._tableOfContent = {}
@@ -22,7 +26,12 @@ class Indexed():
     def getColumnsToLookup(self):
         """ returns an iterator that gives a number of sequences to looking up over.
 
-        Defau;t is a tuple of the ``data`` attributes of every columns specified by ``indexPattern``. To be overrided for different data model.
+        Default is a tuple of the ``data`` attributes of every columns specified by ``indexPattern``. To be overrided for different data model.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
 
         # list of Column's arrays
@@ -32,6 +41,11 @@ class Indexed():
         """ Build index in format specified in indexPattern for retrieving record.
         which: an iterator that gives a number of sequences to looking up over. Default is ``getColumnsToLookup()``.
         for_records: a list or a ``Slice`` of record (row) numbers. Those are changed records that caused updating. default is all records.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
 
         # always rebuild all TODO:
@@ -67,6 +81,14 @@ class Indexed():
 
     @ property
     def indexPattern(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self._indexPattern
 
     @ indexPattern.setter
@@ -74,6 +96,12 @@ class Indexed():
         """ set the key pattern used to retrieve records.
 
         *key: as a list of integers. taken as column numbers. future look-up will search and return the record where  a match is found in these columns. Example: a.indexPattern=[0,2] would setup to use the first and the third columns to make look-up keys. Default is the first column.
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
 
         lk = len(key)
@@ -100,6 +128,11 @@ class Indexed():
     @ property
     def toc(self):
         """ returns  the index table of content.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
 
         return self._tableOfContent
@@ -107,6 +140,11 @@ class Indexed():
     @ toc.setter
     def toc(self, table):
         """ sets the index table of content.
+        Parameters
+        ----------
+
+        Returns
+        -------
 
         """
 
@@ -114,6 +152,12 @@ class Indexed():
 
     def clearToc(self):
         """ Clears the index table of content.
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
 
         self._tableOfContent.clear()
@@ -123,6 +167,12 @@ class Indexed():
         key: taken as a dictionary key unless ``multiple`` is True.
         return_index: if True (default) return index in the array of columns.
         multiple: if True (default is False) loop through key as a sequence of keys and return a sequece.
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
 
         if multiple:
@@ -142,7 +192,14 @@ class Indexed():
                 return [c[rec_ind] for c in self.data]
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder 
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return OrderedDict(
             indexPattern=self._indexPattern,
             toc=self._tableOfContent

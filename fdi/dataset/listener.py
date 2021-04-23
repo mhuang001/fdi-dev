@@ -20,6 +20,11 @@ class EventListener(object):
     def targetChanged(self,  *args, **kwargs):
         """ Informs that an event has happened in a target of
         any type.
+        Paremeters
+        ----------
+
+        Returns
+        -------
         """
         pass
 
@@ -34,7 +39,16 @@ class DatasetBaseListener(EventListener):
 
     def targetChanged(self, event):
         """ Informs that an event has happened in a target of the
-        specified type."""
+        specified type.
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+
+        """
+
         pass
 
 
@@ -43,19 +57,47 @@ class ListnerSet(Serializable, DeepEqual, list):
     """
 
     def __init__(self, **kwds):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -----
+        """
         self._members = []
         super(ListnerSet, self).__init__(**kwds)
 
     @property
     def urns(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -----
+        """
+
         return self.geturns()
 
     @urns.setter
     def urns(self, urns):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -----
+        """
+
         self.seturns(urns)
 
     def seturns(self, urns):
         """ Replaces the current urn with specified argument.
+        Parameters
+        ----------
+
+        Returns
+        -----
         """
         for urn in urns:
             try:
@@ -67,6 +109,11 @@ class ListnerSet(Serializable, DeepEqual, list):
 
     def geturns(self, remove=None):
         """ Returns the current urns.
+        Parameters
+        ----------
+
+        Returns
+
         """
 
         ret = [ProductRef(
@@ -75,14 +122,33 @@ class ListnerSet(Serializable, DeepEqual, list):
         return ret
 
     def equals(self, obj, verbose=False):
-        """ compares with another one. """
+        """ compares with another one.
+        Parameters
+        ----------
+
+        Returns
+ 
+        """
         return True
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder 
+        Parameters
+        ----------
+
+        Returns
+
+        """
         return OrderedDict()
 
     def toString(self, level=0, **kwds):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         if level == 0:
             l = ['%s(%d, %s)' % (x.__class__.__name__, id(x),
                                  lls(x.description, 20))
@@ -94,6 +160,12 @@ class ListnerSet(Serializable, DeepEqual, list):
         return self.__class__.__name__ + '{' + ', '.join(l) + '}'
 
     def __repr__(self, **kwds):
+        """
+        Parameters
+        ----------
+
+        Returns
+        """
         return self.toString(level=1, **kwds)
 
 
@@ -103,19 +175,48 @@ class EventSender(object):
     """
 
     def __init__(self, **kwds):
+        """
+        Parameters
+        ----------
+
+        Returns
+
+        """
         self._listeners = ListnerSet()
         super(EventSender, self).__init__(**kwds)
 
     @property
     def listeners(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+
+        """
+
         return self.getListeners()
 
     @listeners.setter
     def listeners(self, listeners):
+        """
+        Parameters
+        ----------
+
+        Returns
+
+        """
+
         self.setListeners(listeners)
 
     def setListeners(self, listeners):
         """ Replaces the current Listeners with specified argument.
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
         """
         self._listeners = ListnerSet()
         for listener in listeners:
@@ -123,11 +224,24 @@ class EventSender(object):
 
     def getListeners(self):
         """ Returns the current Listeners.
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
         """
         return self._listeners
 
     def addListener(self, listener, cls=EventListener):
-        """ Adds a listener to this. """
+        """ Adds a listener to this. 
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
 
         l = listener
 
@@ -140,7 +254,14 @@ class EventSender(object):
         return self
 
     def removeListener(self, listener):
-        """ Removes a listener from this. """
+        """ Removes a listener from this. 
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
         try:
             self._listeners.remove(listener)
         except:
@@ -149,6 +270,15 @@ class EventSender(object):
         return self
 
     def fire(self, *args, **kwargs):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
+
         n = 0
         try:
             for listener in self._listeners:
@@ -159,6 +289,15 @@ class EventSender(object):
                          ' got exception: ' + str(e) + ' ' + trbk(e))
 
     def getListenerCount(self):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
+
         return len(self._listeners)
 
     __call__ = fire
@@ -167,16 +306,40 @@ class EventSender(object):
 
 class DatasetEventSender(EventSender):
     def __init__(self, **kwds):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
+
         super(DatasetEventSender, self).__init__(**kwds)
 
     def addListener(self, listener, cls=DatasetBaseListener):
-        """ Adds a listener to this. """
+        """ Adds a listener to this.
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
 
         super(DatasetEventSender, self).addListener(listener, cls=cls)
 
         return self
 
     def fire(self, event):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
         super(DatasetEventSender, self).fire(event)
 
 
@@ -240,6 +403,15 @@ class DatasetEvent(Serializable):
     """
 
     def __init__(self, source, target, typ_, change, cause, rootCause, **kwds):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
+
         # The object on which the Event initially occurred.
         self.source = source
         # the target of the event, which is the same object returned
@@ -262,7 +434,13 @@ class DatasetEvent(Serializable):
         super(DatasetEvent, self).__init__(**kwds)
 
     def __eq__(self, o):
-        """ """
+        """
+        Paremeters
+        ----------
+
+        Returns
+        ------- 
+        """
         if not issubclass(o.__class__, self):
             return False
         return self.source == o.source and\
@@ -273,6 +451,14 @@ class DatasetEvent(Serializable):
             self.rootCause == o.rootCause
 
     def __repr__(self):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
         r = '{source=' + str(self.source) +\
             ', target=' + str(self.target) +\
             ', type=' + str(self.type) +\
@@ -283,10 +469,25 @@ class DatasetEvent(Serializable):
         return r
 
     def toString(self):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
+
         return self.__repr__()
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder 
+        Paremeters
+        ----------
+
+        Returns
+        -------
+        """
         s = OrderedDict(source=self.source,
                         target=self.target,
                         typ_=self.type,

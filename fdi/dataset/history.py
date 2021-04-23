@@ -25,11 +25,19 @@ class History(CompositeDataset, DeepEqual):
         but also changes the history ID in the metadata and
         relevant table entries to indicate that this a new
         independent product of which the history may change.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         super(History, self).__init__(**kwds)
 
         # Name of the table which contains the history script
         self.HIST_SCRIPT = ''
+
         # Name of the parameter history table
         self.PARAM_HISTORY = ''
         # Name of the task history table
@@ -37,30 +45,74 @@ class History(CompositeDataset, DeepEqual):
 
     def accept(self, visitor):
         """ Hook for adding functionality to meta data object
-        through visitor pattern."""
+        through visitor pattern.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         visitor.visit(self)
 
     def getOutputVar(self):
         """ Returns the final output variable of the history script.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         return None
 
     def getScript(self):
         """ Creates a Jython script from the history.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         return self.HIST_SCRIPT
 
     def getTaskHistory(self):
         """ Returns a human readable formatted history tree.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         return self.TASK_HISTORY
 
     def saveScript(self, file):
         """ Saves the history script to a file.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return OrderedDict(description=self.description,
                            HIST_SCRIPT=self.HIST_SCRIPT,
                            PARAM_HISTORY=self.PARAM_HISTORY,

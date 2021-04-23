@@ -21,15 +21,35 @@ class Attributable(MetaDataHolder):
 
     @property
     def meta(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self.getMeta()
 
     @meta.setter
     def meta(self, newMetadata):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         self.setMeta(newMetadata)
 
     def setMeta(self, newMetadata):
         """ Replaces the current MetaData with specified argument. 
         mh: Product will override this to add listener whenevery meta is
         replaced
+        Parameters
+        ----------
+        Returns
+        ------- 
         """
         self._meta = newMetadata

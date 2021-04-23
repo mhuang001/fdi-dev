@@ -42,7 +42,11 @@ def constructSerializable(obj, lgb=None, debug=False):
     _STID cannot have module names in it (e.g.  dataset.Product)
     or locals()[classname] or globals()[classname] will not work. See alternative in
     https://stackoverflow.com/questions/452969/does-python-have-an-equivalent-to-java-class-forname
+    Parameters
+    ----------
 
+    Returns
+    -------
     """
     global indent
     indent += 1
@@ -170,11 +174,25 @@ class IntDecoder(json.JSONDecoder):
     """
 
     def decode(self, s):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         # result = super(Decoder, self).decode(s) for Python 2.x
         result = super(IntDecoder, self).decode(s)
         return self._decode(result)
 
     def _decode(self, o):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         if isinstance(o, str) or isinstance(o, bytes):
             try:
                 return int(o)
@@ -189,10 +207,14 @@ class IntDecoder(json.JSONDecoder):
 
 
 class IntDecoderOD(IntDecoder):
-    """ Uses ODict
-    """
-
     def _decode(self, o):
+        """ Uses ODict
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         if isinstance(o, str) or isinstance(o, bytes):
             try:
                 return int(o)
@@ -210,6 +232,11 @@ def deserialize(js, lgb=None, debug=False, usedict=True):
     """ Loads classes with _STID from the results of serialize.
 
     if usedict is True dict insted of ODict will be used.
+    Parameters
+    ----------
+
+    Returns
+    -------
     """
 
     if lgb is None:

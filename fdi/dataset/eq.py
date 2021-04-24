@@ -179,7 +179,6 @@ class StateEqual(object):
 
     def __hash__(self):
 
-        @lru_cache(maxsize=16)
         def cached_hash(t):
             return hash(t)
 
@@ -206,7 +205,7 @@ class StateEqual(object):
             print('hashes ', h1, h2)
         return h1 == h2
 
-    def a__ne__(self, obj):
+    def __ne__(self, obj):
         return not self.__eq__(obj)
 
 

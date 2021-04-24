@@ -234,6 +234,11 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
     __hash__ = DeepEqual.__hash__
 
 
+def make_jsonable(valid):
+
+    return[t2l([k, v]) for k, v in valid.items()] if issubclass(valid.__class__, dict) else t2l(valid)
+
+
 class Parameter(AbstractParameter, Typed):
     """ Parameter is the interface for all named attributes
     in the MetaData container. It can have a value and a description.
@@ -370,11 +375,11 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
     def setValid(self, valid):
         """ Sets the valid of this object.
 
-        If valid is None or empty, set as None, else save in a way so the tuple keys can be serialized with JSON.
+        If valid is None or empty, set as None, else save in a way so the tuple keys can be serialized with JSON. [[[rangelow, ranehi], state1], [[range2low, r..]..]..]
         """
 
         self._valid = None if valid is None or len(
-            valid) == 0 else [t2l([k, v]) for k, v in valid.items()] if issubclass(valid.__class__, dict) else t2l(valid)
+            valid) == 0 else make_jsonable(valid)
 
     def isValid(self):
         res = self.validate(self.value)
@@ -498,7 +503,10 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         self._value = self.checked(value)
 
     def __repr__(self):
-        return self.toString(level=1)
+        # return self.toString(level=1)
+        co = ', '.join(str(k)+'=' + ('"'+v+'"' if issubclass(v.__class__, str)
+                                     else str(v)) for k, v in self.__getstate__().items())
+        return '<'+self.__class__.__name__ + ' ' + co + '>'
 
     def toString(self, level=0, alist=False, **kwds):
 
@@ -510,6 +518,8 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             return vs
         return '%s{ %s <%s>, "%s", default= %s, valid= %s tcode=%s}' % \
             (self.__class__.__name__, vs, ts, ds, fs, gs, cs)
+
+    __str__ = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

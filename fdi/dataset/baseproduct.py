@@ -53,7 +53,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
 
     BaseProduct class (level ALL) schema 1.4 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-03-11 12:06:16.589566.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-04-24 17:23:54.941467.
 
 Description:
 FDI base class
@@ -136,7 +136,6 @@ FDI base class
         belonging to this product. """
         return list(self._sets.values())[0] if len(self._sets) > 0 else None
 
-    @lru_cache(maxsize=256)
     def in_pinfo(self, name):
 
         return name in self.zInfo['metadata']

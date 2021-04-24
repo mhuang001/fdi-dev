@@ -142,7 +142,7 @@ def httppool(pool):
     """
     APIs for CRUD products, according to path and methods and return results.
 
-    - GET: 
+    - GET:
                  /pool_id/product_class/index ==> return product
                  /pool_id/hk ===> return pool_id Housekeeping data; urns, classes, and tags
                  /pool_id/hk/{urns, classes, tags} ===> return pool_id urns or classes or tags
@@ -150,7 +150,7 @@ def httppool(pool):
 
     - POST: /pool_id ==> Save product in requests.data in server
 
-    - PUT: /pool_id ==> register pool 
+    - PUT: /pool_id ==> register pool
 
     - DELETE: /pool_id ==> unregister pool_id
                          /pool_id/product_class/index ==> remove specified products in pool_id
@@ -161,6 +161,8 @@ def httppool(pool):
     paths = pool.split('/')
     lp = len(paths)
     ts = time.time()
+    # do not deserialize if set True. save directly to disk
+    serial_through = True
     logger.debug('*** method %s paths %s ***' % (request.method, paths))
     if 0 and paths[0] == 'testhttppool':
         import pdb
@@ -178,30 +180,18 @@ def httppool(pool):
             result, msg = get_prod_count(paths[2], paths[0])
         elif paths[1] == 'api':
             result, msg = call_pool_Api(paths)
+        elif 0:  # lp > 1:
+            result, msg = getProduct_Or_Component(
+                paths, serialize_out=serial_through)
         elif paths[-1].isnumeric():  # Retrieve product
-            # do not deserialize if set True. save directly to disk
-            serial_through = True
             result, msg = load_product(paths, serialize_out=serial_through)
             # save_action(username=username, action='READ', pool=paths[0])
 
-            r = '"null"' if result is None else str(result)
-            w = '{"result": %s, "msg": %s, "timestamp": %f}' % (
-                r, json.dumps(msg), ts)
-            # logger.debug(pprint.pformat(w, depth=3, indent=4))
-            s = w  # serialize(w)
-            logger.debug(lls(s, 240))
-            resp = make_response(s)
-            resp.headers['Content-Type'] = 'application/json'
-            return resp
-
         else:
-            result = None
+            result = '"FAILED"'
             msg = 'Unknown request: ' + pool
 
     elif request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
-        # do not deserialize if set True. save directly to disk
-        serial_through = True
-
         if request.headers.get('tag') is not None:
             tag = request.headers.get('tag')
         else:
@@ -435,6 +425,36 @@ def save_product(data, paths, tag=None, serialize_in=True, serialize_out=False):
         result = '"FAILED"'
         msg = 'Exception : ' + str(e) + ' ' + trbk(e)
     return result, msg
+
+
+def getProduct_Or_Component(paths, serialize_out=False):
+    """
+    """
+
+    # paths[1] is A URN or a product type.
+    if paths[1].lower().startswith('urn:'):
+        # load it
+        p = paths[1].split(':')
+        paths[1] = p[1]
+        paths.insert(2, p[2])
+    lp = len(paths)
+    # now paths = poolname, prod_type , ...
+    zinfo = Classes.mapping(paths[1]).zInfo['metadata']
+    if lp == 2:
+        # return classes[class]
+        return serialize(zinfo, indent=4), 'Getting API info for %s OK' % paths[1]
+    elif lp == 3:
+        if paths[2].isnumeric():
+            # sn number. load it
+            return load_product(paths, serialize_out=serialize_out)
+        else:
+            component = fetched(paths[3:], zinfo)
+            if component:
+                prod = load_product(paths[:3], serialize_out=False)
+                return serialize(fetch(paths[3:], prod), 'Getting OK')
+            else:
+                result = '"FAILED"'
+                msg = 'Unknown request: %s for %s' % (paths[2], paths[1])
 
 
 def load_product(paths, serialize_out=False):

@@ -5,7 +5,6 @@ import traceback
 import copy
 import sys
 import os
-import pdb
 
 from fdi.dataset.annotatable import Annotatable
 from fdi.dataset.copyable import Copyable
@@ -16,7 +15,7 @@ from fdi.dataset.deserialize import deserialize
 from fdi.dataset.quantifiable import Quantifiable
 from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf
 from fdi.dataset.composite import Composite
-from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter
+from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter, make_jsonable
 from fdi.dataset.datatypes import DataTypes, DataTypeNames
 from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
@@ -32,8 +31,9 @@ from fdi.pal.urn import Urn
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadcsv
 from fdi.utils import moduleloader
-from fdi.utils.common import fullname
+from fdi.utils.common import fullname, l2t
 from fdi.utils.options import opt
+from fdi.utils.fetch import fetch
 
 # import __builtins__
 
@@ -82,6 +82,161 @@ def checkgeneral(v):
         assert false
 
 
+def get_sample_product():
+    """
+    """
+    compo = CompositeDataset()
+    # two arraydsets
+    a1 = [768, 4.4, 5.4E3]
+    a2 = 'ev'
+    a3 = 'arraydset 1'
+    a4 = ArrayDataset(data=a1, unit=a2, description=a3)
+    a5, a6, a7 = [[1.09, 289], [3455, 564]
+                  ], 'count', 'background -- arraydset in compo'
+    a8 = ArrayDataset(data=a5, unit=a6, description=a7)
+    a10 = 'calibration_arraydset'
+    compo.set(a10, a8)
+    # a tabledataset
+    ELECTRON_VOLTS = 'eV'
+    SECONDS = 'sec'
+    t = [x * 1.0 for x in range(5)]
+    e = [2 * x + 100 for x in t]
+    x = TableDataset(description="Example table")
+    x["Time"] = Column(data=t, unit=SECONDS)
+    x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+    # set a tabledataset ans an arraydset, with a parameter in metadata
+    a13 = 'energy_table'
+    # metadata to the dataset
+    compo[a13] = x
+    a11 = 'm1'
+    a12 = StringParameter('EX')
+    compo.meta[a11] = a12
+
+    prodx = Product('complex prod')
+    prodx.meta['extra'] = NumericParameter(description='a different param in metadata',
+                                           value=Vector((1.1, 2.2, 3.3)), valid={(1, 22): 'normal', (30, 33): 'fast'}, unit='meter')
+    prodx[a3] = a4
+    prodx['results'] = compo
+
+    return prodx
+
+
+def test_fetch():
+
+    # simple nested structure
+    v = {1: 2, 3: 4}
+    u, s = fetch([3], v)
+    assert u == 4
+    assert s == '[3]'
+    v = {'1': 2, 3: 4}
+    u, s = fetch(['1'], v)
+    assert u == 2
+    assert s == '["1"]'
+    v.update(d={'k': 99})
+    u, s = fetch(['d', 'k'], v)
+    assert u == 99
+    assert s == '["d"]["k"]'
+
+    # objects
+    class al(list):
+        ala = 0
+        def alb(): pass
+
+        def __init__(self, *a, i=[8], **k):
+            super().__init__(*a, **k)
+            self.ald = i
+        alc = {3: 4}
+        ale = [99, 88]
+
+    v = al(i=[1, 2])
+    u, s = fetch(['ald'], v)
+    assert u == [1, 2]
+    assert s == '.ald'
+
+    u, s = fetch(['ale', 1], v)
+    assert u == 88
+    assert s == '.ale[1]'
+
+    class ad(dict):
+        ada = 'p'
+        adb = al([0, 6])
+
+    v = ad(z=5, x=['b', 'n', {'m': 'j'}])
+    v.ade = 'adee'
+
+    u, s = fetch(['ada'], v)
+    assert u == 'p'
+    assert s == '.ada'
+
+    u, s = fetch(['adb', 'ald', 0], v)
+    assert u == 8
+    assert s == '.adb.ald[0]'
+
+    u, s = fetch(['x', 2, 'm'], v)
+    assert u == 'j'
+    assert s == '["x"][2]["m"]'
+
+    # products
+    p = get_sample_product()
+    v, s = fetch(["description"], p)
+    assert v == p.description
+    assert s == '.description'
+    # metadata
+    e = p.meta['extra']
+    v, s = fetch(["meta", "extra"], p)
+    assert v == p.meta['extra']
+    assert s == '.meta["extra"]'
+    # parameter
+    v, s = fetch(["meta", "extra", "unit"], p)
+    assert v == 'meter'
+    assert v == p.meta['extra'].unit
+    assert s == '.meta["extra"].unit'
+
+    v, s = fetch(["meta", "extra", "value"], p)
+    assert v == Vector((1.1, 2.2, 3.3))
+    assert v == p.meta['extra'].value
+    assert s == '.meta["extra"].value'
+    v, s = fetch(["meta", "extra", "valid"], p)
+    mkj = make_jsonable({(1, 22): 'normal', (30, 33): 'fast'})
+    assert v == mkj
+    assert v == make_jsonable(p.meta['extra'].valid)
+    assert s == '.meta["extra"].valid'
+    # TODO written is string
+    # [[[1, 22], 'normal'], [[30, 33], 'fast']]
+    v, s = fetch(["meta", "extra", "valid", 0, 1], p)
+    assert v == 'normal'
+    assert v == p.meta['extra'].valid[0][1]
+    assert s == '.meta["extra"].valid[0][1]'
+    #
+    # validate execution
+    v, s = fetch(["meta", "extra", "isValid", ], p)
+    assert v == True
+    assert v == p.meta['extra'].isValid()
+    assert s == '.meta["extra"].isValid()'
+    # datasets
+    v, s = fetch(["arraydset 1", "unit"], p)
+    assert v == 'ev'
+    assert v == p['arraydset 1'].unit
+    assert s == '["arraydset 1"].unit'
+
+    v, s = fetch(["arraydset 1", "data"], p)
+    assert v == [768, 4.4, 5.4E3]
+    assert v == p['arraydset 1'].data
+    assert s == '["arraydset 1"].data'
+
+    # data of a column in tabledataset within compositedataset
+    v, s = fetch(["results", "energy_table", "Energy", "data"], p)
+    t = [x * 1.0 for x in range(5)]
+    assert v == [2 * x + 100 for x in t]
+    assert v == p['results']['energy_table']['Energy'].data
+    assert s == '["results"]["energy_table"]["Energy"].data'
+    # another dataset in compositedataset 'results'
+    v, s = fetch(["results", 'calibration_arraydset', "unit"], p)
+    assert v == 'count'
+    assert v == p['results']['calibration_arraydset'].unit
+    assert s == '["results"]["calibration_arraydset"].unit'
+
+
 def test_loadcsv():
     csvf = '/tmp/testloadcsv.csv'
     a = 'as if ...'
@@ -110,7 +265,7 @@ def test_loadcsv():
     assert v[2] == ('col3', ['...', 3000.], '')
 
     # first line as header
-    # pdb.set_trace()
+
     v = loadcsv(csvf, ' ', header=1)
     assert v[0] == ('as', [1.0], '')
     assert v[1] == ('if', [2.0], '')

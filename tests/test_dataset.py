@@ -9,6 +9,7 @@ import copy
 import sys
 import functools
 import array
+from math import sqrt
 from datetime import timezone
 import pytest
 
@@ -443,6 +444,10 @@ def test_datatypes():
     assert v.getComponents() == [0, 0]
     v = Vector([1, 2.3])
     assert v.getComponents() == [1, 2.3]
+    # comparison
+    assert v > sqrt(1+2.3**2) - 1
+    assert v < sqrt(1+2.3**2) + 1
+
     # assignment
     v.components = [0xaa, 1, 1e2]
     assert v.components == [0xaa, 1, 1e2]

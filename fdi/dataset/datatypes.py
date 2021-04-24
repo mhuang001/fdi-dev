@@ -7,7 +7,7 @@ from .classes import Classes
 
 from collections import OrderedDict
 import builtins
-
+from math import sqrt
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -85,6 +85,8 @@ class Vector(Serializable, DeepEqual):
     """ N dimensional vector.
 
     If unit, description, type etc meta data is needed, use a Parameter.
+
+    A Vector can compare with a value whose type is in ``DataTypes``, the quantity being used is the magnitude.
     """
 
     def __init__(self, components=None, **kwds):
@@ -121,6 +123,41 @@ class Vector(Serializable, DeepEqual):
         #         raise TypeError('Components must all be numbers.')
         # must be list to make round-trip Json
         self._data = list(components)
+
+    def __eq__(self, obj, verbose=False, **kwds):
+        """ can compare value """
+        if type(obj).__name__ in DataTypes.values():
+            return sqrt(sum(x*x for x in self.components)) == obj
+        else:
+            return super(Vector, self).__eq__(obj)
+
+    def __lt__(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in DataTypes.values():
+            return sqrt(sum(x*x for x in self.components)) < obj
+        else:
+            return super(Vector, self).__lt__(obj)
+
+    def __gt__(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in DataTypes.values():
+            return sqrt(sum(x*x for x in self.components)) > obj
+        else:
+            return super(Vector, self).__gt__(obj)
+
+    def __le__(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in DataTypes.values():
+            return sqrt(sum(x*x for x in self.components)) <= obj
+        else:
+            return super(Vector, self).__le__(obj)
+
+    def __ge__(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in DataTypes.values():
+            return sqrt(sum(x*x for x in self.components)) >= obj
+        else:
+            return super(Vector, self).__ge__(obj)
 
     def __len__(self):
         return len(self._data)

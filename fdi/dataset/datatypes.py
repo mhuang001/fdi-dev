@@ -31,6 +31,9 @@ DataTypes = {
     'baseProduct': 'BaseProduct',
     'mapContext': 'MapContext',
     'product': 'Product',
+    # 'numericParameter': 'NumericParameter',
+    # 'dateParameter': 'DateParameter',
+    # 'stringParameter': 'StringParameter',
     'vector': 'Vector',
     'vector2d': 'Vector2D',
     'quaternion': 'Quaternion',
@@ -181,8 +184,6 @@ class Vector(Quantifiable, Serializable, DeepEqual):
             unit=self._unit,
             typecode=self._typecode,
             _STID=self._STID)
-
-    __hash__ = DeepEqual.__hash__
 
 
 class Vector2D(Vector):

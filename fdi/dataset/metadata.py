@@ -231,8 +231,6 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
                            _STID=self._STID
                            )
 
-    __hash__ = DeepEqual.__hash__
-
 
 def make_jsonable(valid):
 
@@ -532,8 +530,6 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
                            _STID=self._STID
                            )
 
-    __hash__ = DeepEqual.__hash__
-
 
 class NumericParameter(Parameter, Quantifiable):
     """ has a number as the value, a unit, and a typecode.
@@ -542,9 +538,6 @@ class NumericParameter(Parameter, Quantifiable):
     def __init__(self, value=None, description='UNKNOWN', typ_='', default=None, valid=None, **kwds):
         super(NumericParameter, self).__init__(
             value=value, description=description, typ_=typ_, default=default, valid=valid, **kwds)
-
-    def __repr__(self):
-        return self.toString(level=1)
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
@@ -588,8 +581,6 @@ class NumericParameter(Parameter, Quantifiable):
                 raise ValueError(
                     'Sequence of only 2 to 4 elements for NumericParameter')
         super().setDefault(default)
-
-    __hash__ = DeepEqual.__hash__
 
 
 class DateParameter(Parameter):
@@ -639,10 +630,6 @@ class DateParameter(Parameter):
             default = FineTime(date=default, format=self.getTypecode())
         super().setDefault(default)
 
-    def __repr__(self):
-
-        return self.toString(level=1)
-
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
@@ -651,15 +638,10 @@ class DateParameter(Parameter):
                            valid=self._valid,
                            typecode=self.typecode,
                            _STID=self._STID)
-        return self.__class__.__name__ + \
-            '{ description = "%s", value = "%s", typecode = "%s"}' % \
-            (str(self.description), str(self.value), str(self.getTypecode()))
-
-    __hash__ = DeepEqual.__hash__
 
 
 class DateParameter1(DateParameter):
-    """ Like DateParameter but usese  FineTime. """
+    """ Like DateParameter but usese  FineTime1. """
 
     def setValue(self, value):
         """ accept any type that a FineTime1 does.
@@ -674,8 +656,6 @@ class DateParameter1(DateParameter):
         if default is not None and not issubclass(default.__class__, FineTime1):
             default = FineTime1(date=default, format=self.getTypecode())
         super().setDefault(default)
-
-    __hash__ = DeepEqual.__hash__
 
 
 class StringParameter(Parameter):
@@ -703,9 +683,6 @@ class StringParameter(Parameter):
         """ Sets the typecode of this object. """
         self._typecode = typecode
 
-    def __repr__(self):
-        return self.toString(level=1)
-
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(value=self._value,
@@ -714,8 +691,6 @@ class StringParameter(Parameter):
                            default=self._default,
                            typecode=self._typecode,
                            _STID=self._STID)
-
-    __hash__ = DeepEqual.__hash__
 
 
 MetaHeaders = ['name', 'value', 'unit', 'type', 'valid',
@@ -860,4 +835,3 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         return OrderedDict(_sets=self._sets,
                            listeners=self.listeners,
                            _STID=self._STID)
-    __hash__ = DeepEqual.__hash__

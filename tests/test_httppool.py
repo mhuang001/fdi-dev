@@ -5,6 +5,7 @@
 #################
 
 
+from .test_utils import get_sample_product
 import pytest
 from fdi.dataset.serializable import serialize
 from fdi.dataset.deserialize import deserialize
@@ -296,6 +297,10 @@ def test_CRUD_product():
     url = api_baseurl + post_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserialize(x.text)
+    import pdb
+    pdb.set_trace()
+    r = o['result']
+    tt = r.__hash__()
     check_response(o)
     assert o['result'][prodt]['sn'][-l:] == inds
     assert o['result'][prodt]['currentSN'] == inds[-1]
@@ -380,6 +385,34 @@ def test_CRUD_product():
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserialize(x.text)
     check_response(o, failed_case=True)
+
+
+def test_product_path():
+
+    import pdb
+    pdb.set_trace()
+
+    auth = HTTPBasicAuth(auth_user, auth_pass)
+    url0 = api_baseurl + test_poolid + '/'
+    # write sample product to the pool
+    p = get_sample_product()
+    prodt = fullname(p)
+    data = serialize(p)
+    print(len(data))
+    url = url0+prodt + '/0'
+    x = requests.post(url, auth=auth, data=data)
+    o = deserialize(x.text)
+    check_response(o)
+    urn = o['result']
+
+    # test product paths
+    segs = ["results", "energy_table", "Energy", "data"]
+    pth = '/'.join(segs)
+    x = requests.post(url0+pth, auth=auth, data=data)
+    o = deserialize(x.text)
+    check_response(o)
+    c = o['result']
+    assert c == p['results']['energy_table']['Energy'].data
 
 
 async def lock_pool(poolid, sec):

@@ -448,10 +448,11 @@ def getProduct_Or_Component(paths, serialize_out=False):
             # sn number. load it
             return load_product(paths, serialize_out=serialize_out)
         else:
-            component = fetched(paths[3:], zinfo)
+            component = fetch(paths[3:], zinfo)
             if component:
                 prod = load_product(paths[:3], serialize_out=False)
-                return serialize(fetch(paths[3:], prod), 'Getting OK')
+                compo, path_str = fetch(paths[3:], prod)
+                return serialize(compo), 'Getting %s OK' % (paths[1]+':'+paths[2]]+'/'+path_str)
             else:
                 result = '"FAILED"'
                 msg = 'Unknown request: %s for %s' % (paths[2], paths[1])
@@ -568,6 +569,8 @@ APIs = {
                'cmds': {'pool': 'url'
                         }
                }
+
+
 }
 
 # @ app.route(pc['baseurl'] + '/', methods=['GET'])

@@ -868,6 +868,7 @@ def test_NumericParameter():
     assert v.default is None
     assert v.valid is None
     assert v.typecode is None
+    h = v.hash()
 
     a1 = 'a test NumericParameter'
     a2 = 100.234
@@ -921,7 +922,7 @@ def test_DateParameter():
 
     with pytest.raises(TypeError):
         DateParameter(3.3)
-
+    vv = copy.copy(v)
     checkjson(v)
 
 
@@ -986,6 +987,7 @@ def test_MetaData():
     # names of all parameters
     assert [n for n in v] == [a1, 'time', 'birthday']
 
+    h = v.hash()
     checkjson(v, dbg=0)
 
     v.remove(a1)  # inherited from composite
@@ -1331,6 +1333,13 @@ def test_ArrayDataset_array_func():
     do_ArrayDataset_func(atype)
 
 
+def test_Column():
+    v = Column(data=[4, 9], unit='m')
+    s = v.hash()
+
+    checkjson(v)
+
+
 def test_TableModel():
     pass
 
@@ -1365,7 +1374,7 @@ def test_TableDataset_init():
     v3 = TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
                             ('col2', [0, 43.2, 2E3], 'cnt')
                             ])
-    assert v == v3  # , deepcmp(v, v3)
+    assert v == v3, deepcmp(v, v3)
 
     # 4: quick and dirty. data are list of lists without names or units
     a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3]]
@@ -1711,10 +1720,6 @@ def demo_TableDataset():
     print(table["Time"])
     print(table["Time"].data)
     print(table["Time"].unit)
-
-
-def test_Column():
-    pass
 
 
 def test_CompositeDataset_init():

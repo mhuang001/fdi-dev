@@ -242,9 +242,9 @@ d       off (0b00)         None    binary    11000 0b01: on           0b0       
 ======  =================  ======  ========  =======================  ===============  ======  =====================
 MetaData-listeners = ListnerSet{}},
 type= {None},
+unit= {'lyr'},
 default= {None},
-typecode= {None},
-unit= {'lyr'}
+typecode= {None}
 ArrayDataset-dataset =
 0  0  0  0  0
 0  0  0  0  0
@@ -300,9 +300,9 @@ d= off (0b00)
 MetaData-listeners = ListnerSet{}
 },
 type= {None},
+unit= {'lyr'},
 default= {None},
-typecode= {None},
-unit= {'lyr'}
+typecode= {None}
 ArrayDataset-dataset =
 0  0  0  0  0
 0  0  0  0  0
@@ -444,12 +444,12 @@ CompositeDataset-datasets =
 description= {'arraydset 1'},
 meta= {(No parameter.)MetaData-listeners = ListnerSet{}},
 type= {None},
+unit= {'ev'},
 default= {None},
-typecode= {None},
-unit= {'ev'}
+typecode= {None}
 ArrayDataset-dataset =
 768  4.4  5400
-dataset 2: # TableDataset
+ dataset 2: # TableDataset
 description= {'Example table'},
 meta= {(No parameter.)MetaData-listeners = ListnerSet{}}
 TableDataset-dataset =
@@ -463,7 +463,7 @@ TableDataset-dataset =
       4       108
 
 
->level 1, repr
+ >level 1, repr
 # CompositeDataset
 description= {'test CD'},
 meta= {
@@ -482,12 +482,12 @@ description= {'arraydset 1'},
 meta= {(No parameter.)MetaData-listeners = ListnerSet{}
 },
 type= {None},
+unit= {'ev'},
 default= {None},
-typecode= {None},
-unit= {'ev'}
+typecode= {None}
 ArrayDataset-dataset =
 768  4.4  5400
-dataset 2: # TableDataset
+ dataset 2: # TableDataset
 description= {'Example table'},
 meta= {(No parameter.)MetaData-listeners = ListnerSet{}
 }
@@ -502,12 +502,12 @@ TableDataset-dataset =
       4       108
 
 
->level 2,
+ >level 2,
 # CompositeDataset
 description, meta
 
 CompositeDataset-datasets =
-<ODict dataset 1: ArrayDataset{ [768, 4.4, 5400.0] (ev) <None>, "arraydset 1", default None, tcode=None, meta=(No parameter.)MetaData-listeners = ListnerSet{}}dataset 2: # TableDataset
+<ODict dataset 1: ArrayDataset{ [768, 4.4, 5400.0] (ev) <None>, "arraydset 1", default None, tcode=None, meta=(No parameter.)MetaData-listeners = ListnerSet{}} dataset 2: # TableDataset
 description, meta
 TableDataset-dataset =
    Time    Energy
@@ -517,4 +517,4 @@ TableDataset-dataset =
       1       102
 
 (Only display 2 rows of 5 for level=2.)
->"""
+ >"""

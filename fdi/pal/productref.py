@@ -302,7 +302,7 @@ class ProductRef(Attributable, Serializable, Comparable):
         """
         return self.equals(o)
 
-    def __hash__(self):
+    def hash(self):
         """ returns hash of the URN object
         """
         return hash(self._urnobj)

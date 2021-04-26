@@ -55,4 +55,4 @@ If the above fail and a method whose name starts with 'is' then the method is ca
         # return methodcaller(p0)(nested), rep + '()'
         return found_meth(), rep + '()'
 
-    return None, ' has no attribute or member: %s.' % str(p0)
+    return None, ' has no attribute or member: %s.' % (re + '/' + p0)

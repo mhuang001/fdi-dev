@@ -89,31 +89,40 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
         If an integer is given, it will be taken as the TAI.
         If a datetime object or a string code is given, the timezone will be set to UTC.
+        Only when current TAI is 0, so a non-zero instance is immutable. Violation gets a TypeError.
         """
 
         if not issubclass(time.__class__, int):
-            pass  # pdb.set_trace()
+            pass
         if time is None:
-            self.tai = 0
+            setTai = 0
         elif issubclass(time.__class__, int):
-            self.tai = time
+            setTai = time
         elif issubclass(time.__class__, datetime.datetime):
             if time.tzinfo is None:
                 d = time.replace(tzinfo=utcobj)
             else:
                 d = time
-            self.tai = self.datetimeToFineTime(d)
+            setTai = self.datetimeToFineTime(d)
         elif issubclass(time.__class__, str):
             # try:
             #     # TODO: xxx
-            #     self.tai = int(time)
+            #     setTai = int(time)
             # except ValueError:
             d = datetime.datetime.strptime(time, self.format)
             d1 = d.replace(tzinfo=datetime.timezone.utc)
-            self.tai = self.datetimeToFineTime(d1)
+            setTai = self.datetimeToFineTime(d1)
         else:
             raise TypeError('%s must be an integer, a datetime object, or a string, but its type is %s.' % (
                 str(time), type(time).__name__))
+        try:
+            if setTai and self.tai:
+                raise TypeError(
+                    'FineTime objects with non-zero TAI are immutable.')
+        except AttributeError:
+            # self.tai not exists
+            pass
+        self.tai = setTai
 
     def getFormat(self):
         return self.format
@@ -153,6 +162,18 @@ class FineTime(Copyable, DeepEqual, Serializable):
         dt = datetime.timedelta(seconds=(s)) + self.EPOCH
         # return dt.isoformat(timespec=self.TIMESPEC)
         return self.RETURNFMT % (dt.strftime(format), int(sub*self.RESOLUTION+0.5))
+
+    def __hash__(self):
+        if self.tai == 0:
+            return None
+        try:
+            return self._cached_hash
+        except AttributeError:
+            # self.tai not exists
+            h = self._cached_hash = hash(self.tai)
+            return h
+
+    hash = __hash__
 
     def toString(self, level=0, width=0, **kwds):
         """ Returns a String representation of this object according to self.format.
@@ -211,10 +232,12 @@ class FineTime(Copyable, DeepEqual, Serializable):
             return super(FineTime, self).__ge__(obj)
 
     def __repr__(self):
-        return self.toString()
 
-    def __str__(self):
-        return self.toString()
+        co = ', '.join(str(k)+'=' + ('"'+v+'"' if issubclass(v.__class__, str)
+                                     else str(v)) for k, v in self.__getstate__().items())
+        return '<'+self.__class__.__name__ + ' ' + co + '>'
+
+    __str__ = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

@@ -93,9 +93,6 @@ class GenericDataset(Dataset, DataContainer, Container):
         """
         return self.getData().__len__(*args, **kwargs)
 
-    def __repr__(self, **kwds):
-        return self.toString(level=1, **kwds)
-
     def toString(self, level=0, matprint=None, trans=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
@@ -255,10 +252,11 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
                         meta=self._meta,
                         data=None if self.data is None else self.data,
                         type=self._type,
+                        unit=self._unit,
                         default=self._default,
                         typecode=self._typecode,
                         _STID=self._STID)
-        s.update(OrderedDict(unit=self.unit))
+
         return s
 
 
@@ -785,6 +783,11 @@ class IndexedTableDataset(Indexed, TableDataset):
             else:
                 rec_ind = self._tableOfContent[key]
                 return [c[rec_ind] for c in self._list]
+
+    def hashx(self):
+        s = self.__getstate__().values()
+        l = []
+        return super().hash(hash_list=self.data.values())
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

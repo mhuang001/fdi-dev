@@ -8,7 +8,6 @@ from ..utils.ydump import ydump
 
 from pprint import pformat
 import logging
-import pdb
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +78,7 @@ class ODict(UserDict, Serializable, DeepEqual):
             #d += '    ' * OD_toString_Nest + '[ ' + str(n) + ' ]= '
             d += str(n) + ': '
             s = bstr(v, level=level, matprint=matprint, trans=trans, **kwds)
-            d += s
+            d = d + s + ' '
         OD_toString_Nest -= 1
         return d + '>'
 
@@ -105,6 +104,6 @@ class ODict(UserDict, Serializable, DeepEqual):
             _STID=self._STID
         )
 
-    def __hash__(self):
+    def ahash(self):
 
-        return hash(tuple(self.data.items()))
+        return super().hash(hash_list=self.data.values())

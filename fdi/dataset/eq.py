@@ -5,8 +5,10 @@ from ..utils.common import lls, ld2tk
 from .serializable import Serializable
 
 import pprint
+import array
 from functools import lru_cache
 from collections import OrderedDict
+from itertools import chain
 
 import logging
 # create logger
@@ -173,30 +175,46 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
     return run(obj1, obj2, v=verbose, eqcmp=eqcmp)
 
 
+def xhash(hash_list=None):
+    """ get the hash of a tuple of hashes of all members of given sequence.
+
+    hash_list: use instead of self.getstate__()
+    """
+
+    hashes = []
+    if hasattr(hash_list, 'items'):
+        source = chain(hash_list.items())
+    elif hasattr(hash_list, '__iter__'):
+        source = hash_list
+    elif issubclass(hash_list.__class__, (array.array)):
+        source = (hash_list.typecode,
+                  hash_list.itemsize,
+                  len(hash_list),
+                  len(hash_list[0]))
+    else:
+        return(hash_list)
+
+    for t in source:
+        try:
+            h = hash(t)
+        except TypeError:
+            """ lists/dicts recursively """
+            h = t.hash() if hasattr(t, 'hash') else xhash(t)
+        hashes.append(h)
+    return hash(tuple(hashes))
+
+
 class StateEqual(object):
     """ Equality tested by hashed state.
     """
 
-    def __hash__(self):
-
-        def cached_hash(t):
-            return hash(t)
-
-        t = tuple(self.__getstate__().values())
-        try:
-            return hash(t)
-        except TypeError:
-            """ lists/dicts recursively changed to tuples/frozensets before hashed """
-            t = ld2tk(t)
-            return hash(t)
-
-    def equals(self, obj, verbose=False, **kwds):
-        return self.__eq__(obj, verbose=verbose)
+    def hash(self):
+        return xhash(self.__getstate__())
 
     def __eq__(self, obj, verbose=False, **kwds):
         """ compares hash. """
         try:
-            h1, h2 = self.__hash__(), obj.__hash__()
+            h1, h2 = self.hash(), obj.hash()
         except AttributeError:
             return False
         except TypeError:
@@ -204,6 +222,8 @@ class StateEqual(object):
         if verbose:
             print('hashes ', h1, h2)
         return h1 == h2
+
+    equals = __eq__
 
     def __ne__(self, obj):
         return not self.__eq__(obj)

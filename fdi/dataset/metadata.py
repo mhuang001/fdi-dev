@@ -8,7 +8,7 @@ from .odict import ODict
 from .composite import Composite
 from .listener import DatasetEventSender, ParameterListener, DatasetListener, DatasetEvent, EventTypeOf
 from .quantifiable import Quantifiable
-from .eq import DeepEqual
+from .eq import DeepEqual, xhash
 from .copyable import Copyable
 from .annotatable import Annotatable
 from .finetime import FineTime, FineTime1, utcobj
@@ -208,6 +208,13 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
     def getValueAsString():
         """ Value as string for building the string representation of the parameter.  """
         return
+
+    def hash(self):
+        """ hash and equality derived only from the value of the parameter.
+
+        because Python does not allow overriding __eq__ without setting hash to None.
+        """
+        return xhash(hash_list=self._value)
 
     def __repr__(self):
         return self.toString(level=1)

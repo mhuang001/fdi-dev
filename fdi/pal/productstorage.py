@@ -240,10 +240,9 @@ class ProductStorage(object):
             ret += pool.select(query, previous)
         return ret
 
-    def __eq__(self, o):
-        """ has the same urn of the writable pool.
-        """
-        return self.getWritablePool() == o.getWritablePool()
+    def __getstate__(self):
+        """ Can be encoded with serializableEncoder """
+        return OrderedDict(writablePool=self.getWritablePool())
 
     def __repr__(self):
         return self.__class__.__name__ + ' < pool= ' + str(self._pools) + ' >'

@@ -173,6 +173,8 @@ def test_Urn():
     assert v.getScheme() is None
     assert v.getPlace() is None
     assert v.getPoolpath() is None
+
+    h = v.hash()
     # urn with poolurl
     v = Urn(urn=urn, poolurl=poolurl)
     assert v.getPoolId() == b2  #

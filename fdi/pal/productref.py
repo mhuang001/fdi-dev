@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import logging
+from collections import OrderedDict
 from .context import Context
 from .urn import Urn
 from .comparable import Comparable
@@ -7,14 +9,14 @@ from ..dataset.product import Product
 from ..dataset.odict import ODict
 from ..dataset.serializable import Serializable
 from ..dataset.attributable import Attributable
-from collections import OrderedDict
-import logging
+from ..dataset.eq import DeepEqual
+
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class ProductRef(Attributable, Serializable, Comparable):
+class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 
@@ -192,7 +194,7 @@ class ProductRef(Attributable, Serializable, Comparable):
         """ Returns a code number for the product; actually its MD5 signature. 
         This allows checking whether a product already exists in a pool or not.
         """
-        raise NotImplementedError()
+        return self.hash()
 
     def getSize(self):
         """ Returns the estimated size(in bytes) of the product in memory. 
@@ -297,19 +299,6 @@ class ProductRef(Attributable, Serializable, Comparable):
 
         return False
 
-    def __eq__(self, o):
-        """ has the same Urn.
-        """
-        return self.equals(o)
-
-    def hash(self):
-        """ returns hash of the URN object
-        """
-        return hash(self._urnobj)
-
-    def __repr__(self):
-        return self.toString(level=1)
-
     def toString(self, level=0, **kwds):
         """
         """
@@ -326,6 +315,8 @@ class ProductRef(Attributable, Serializable, Comparable):
             s += ' meta= ' + 'None' if self.getMeta() is None else self.getMeta().toString(level=level, **kwds)
         s += '}'
         return s
+
+    __str__ = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

@@ -12,7 +12,7 @@ from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
 from fdi.pal.poolmanager import PoolManager
 from fdi.utils.getconfig import getConfig
-from fdi.utils.common import lls, trbk
+from fdi.utils.common import lls, trbk, fullname
 #from fdi.pns import httppool_server as HS
 
 
@@ -297,10 +297,6 @@ def test_CRUD_product():
     url = api_baseurl + post_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserialize(x.text)
-    import pdb
-    pdb.set_trace()
-    r = o['result']
-    tt = r.__hash__()
     check_response(o)
     assert o['result'][prodt]['sn'][-l:] == inds
     assert o['result'][prodt]['currentSN'] == inds[-1]
@@ -389,9 +385,6 @@ def test_CRUD_product():
 
 def test_product_path():
 
-    import pdb
-    pdb.set_trace()
-
     auth = HTTPBasicAuth(auth_user, auth_pass)
     url0 = api_baseurl + test_poolid + '/'
     # write sample product to the pool
@@ -399,19 +392,32 @@ def test_product_path():
     prodt = fullname(p)
     data = serialize(p)
     print(len(data))
-    url = url0+prodt + '/0'
-    x = requests.post(url, auth=auth, data=data)
+    url1 = url0+prodt + '/0'
+    x = requests.post(url1, auth=auth, data=data)
     o = deserialize(x.text)
     check_response(o)
     urn = o['result']
+    import pdb
+    pdb.set_trace()
 
     # test product paths
     segs = ["results", "energy_table", "Energy", "data"]
     pth = '/'.join(segs)
-    x = requests.post(url0+pth, auth=auth, data=data)
+    # make url w/  urn1
+    #
+    url2 = url0 + urn.replace(':', '+') + '/' + pth
+    x = requests.get(url2, auth=auth)
     o = deserialize(x.text)
     check_response(o)
     c = o['result']
+    assert c == p['results']['energy_table']['Energy'].data
+    # make w/ prodtype
+    #
+    url3 = url0 + urn.split(':', 2)[2].replace(':', '/') + '/' + pth
+    x = requests.get(url3, auth=auth)
+    o = deserialize(x.text)
+    check_response(o)
+    c2 = o['result']
     assert c == p['results']['energy_table']['Energy'].data
 
 

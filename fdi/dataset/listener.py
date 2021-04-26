@@ -261,17 +261,6 @@ class DatasetEvent(Serializable):
         self.rootCause = rootCause
         super(DatasetEvent, self).__init__(**kwds)
 
-    def __eq__(self, o):
-        """ """
-        if not issubclass(o.__class__, self):
-            return False
-        return self.source == o.source and\
-            self.target == o.target and \
-            self.type == o.type and \
-            self.change == o.change and \
-            self.cause == o.cause and \
-            self.rootCause == o.rootCause
-
     def __repr__(self):
         r = '{source=' + str(self.source) +\
             ', target=' + str(self.target) +\

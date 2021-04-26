@@ -163,18 +163,6 @@ class FineTime(Copyable, DeepEqual, Serializable):
         # return dt.isoformat(timespec=self.TIMESPEC)
         return self.RETURNFMT % (dt.strftime(format), int(sub*self.RESOLUTION+0.5))
 
-    def __hash__(self):
-        if self.tai == 0:
-            return None
-        try:
-            return self._cached_hash
-        except AttributeError:
-            # self.tai not exists
-            h = self._cached_hash = hash(self.tai)
-            return h
-
-    hash = __hash__
-
     def toString(self, level=0, width=0, **kwds):
         """ Returns a String representation of this object according to self.format.
         prints like 2019-02-17T12:43:04.577000 TAI(...)"""

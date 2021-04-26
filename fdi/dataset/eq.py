@@ -182,8 +182,11 @@ def xhash(hash_list=None):
     """
 
     hashes = []
-    if hasattr(hash_list, 'items'):
-        source = chain(hash_list.items())
+    if issubclass(hash_list.__class__, (str, bytes)):
+        # put str first so it is not treated as a sequence
+        return(hash(hash_list))
+    elif hasattr(hash_list, 'items'):
+        source = chain.from_iterable(hash_list.items())
     elif hasattr(hash_list, '__iter__'):
         source = hash_list
     elif issubclass(hash_list.__class__, (array.array)):
@@ -192,41 +195,13 @@ def xhash(hash_list=None):
                   len(hash_list),
                   len(hash_list[0]))
     else:
-        return(hash_list)
+        return(hash(hash_list))
 
     for t in source:
-        try:
-            h = hash(t)
-        except TypeError:
-            """ lists/dicts recursively """
-            h = t.hash() if hasattr(t, 'hash') else xhash(t)
+        h = t.hash() if hasattr(t, 'hash') else xhash(t)
         hashes.append(h)
-    return hash(tuple(hashes))
-
-
-class StateEqual(object):
-    """ Equality tested by hashed state.
-    """
-
-    def hash(self):
-        return xhash(self.__getstate__())
-
-    def __eq__(self, obj, verbose=False, **kwds):
-        """ compares hash. """
-        try:
-            h1, h2 = self.hash(), obj.hash()
-        except AttributeError:
-            return False
-        except TypeError:
-            return False
-        if verbose:
-            print('hashes ', h1, h2)
-        return h1 == h2
-
-    equals = __eq__
-
-    def __ne__(self, obj):
-        return not self.__eq__(obj)
+    # if there is only one element only hash the element
+    return hash(hashes[0] if len(hashes) == 1 else tuple(hashes))
 
 
 class DeepcmpEqual(object):
@@ -310,6 +285,45 @@ class EqualODict(object):
 
     def __ne__(self, obj):
         return not self.__eq__(obj)
+
+
+class StateEqual(object):
+    """ Equality tested by hashed state.
+    """
+
+    def hash(self):
+        return xhash(self.__getstate__())
+
+    def __eq__(self, obj, verbose=False, **kwds):
+        """ compares hash. """
+
+        if obj is None:
+            return False
+
+        if id(self) == id(obj):
+            return True
+
+        if type(self) != type(obj):
+            return False
+        try:
+            h1, h2 = self.hash(), obj.hash()
+        except AttributeError:
+            return False
+        except TypeError:
+            return False
+        if verbose:
+            print('hashes ', h1, h2)
+        return h1 == h2
+
+    equals = __eq__
+
+    def __xne__(self, obj):
+        return not self.__eq__(obj)
+
+    def __hash__(self):
+        return self.hash()
+
+    __hash__ = hash
 
 
 DeepEqual = StateEqual

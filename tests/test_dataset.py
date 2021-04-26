@@ -708,7 +708,11 @@ def test_Parameter_features():
     b1 = ''.join(a1)  # make a new string copy
     b2 = a2 + 0  # make a copy
     v1 = Parameter(description=b1, value=b2)
+
+    # CHANNGED parameter equality behavior
     assert v.equals(v1)
+    assert v.__eq__(v1)
+    assert v.__eq__ == v1.__eq__
     assert v == v1
     v1.value = -4
 
@@ -717,8 +721,12 @@ def test_Parameter_features():
     b2 = a2 + 0  # make a copy
     v1.value = b2  # change it back
     v1.description = 'changed'
-    assert not v.equals(v1)
-    assert v != v1
+    if 0:
+        assert not v.equals(v1)
+        assert v != v1
+    else:
+        assert v.equals(v1)
+        assert v == v1
 
     # comparison with simplified syntax w/o '.value'
     x = 4
@@ -1219,7 +1227,7 @@ def do_ArrayDataset_func(atype):
     # v and v1 are not the same, really
     assert id(v) != id(v1)
     # change meta
-    v1.meta[b4].description = 'c'
+    v1.meta[b4].value = 999
     assert v != v1
     assert v1 != v
 
@@ -1787,7 +1795,7 @@ def test_CompositeDataset_init():
     b4 = copy.deepcopy(a4)
     v1[b9] = b4
     assert v == v1
-    v1.meta[b11].description = 'c'
+    v1.meta[b11].value = 999
     assert v != v1
     assert v1 != v
 

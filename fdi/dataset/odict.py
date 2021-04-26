@@ -2,7 +2,7 @@
 from collections import OrderedDict, UserDict
 from collections.abc import Collection
 from .serializable import Serializable
-from .eq import DeepEqual
+from .eq import DeepEqual, xhash
 from ..utils.common import bstr
 from ..utils.ydump import ydump
 
@@ -104,6 +104,6 @@ class ODict(UserDict, Serializable, DeepEqual):
             _STID=self._STID
         )
 
-    def ahash(self):
+    def hash(self):
 
-        return super().hash(hash_list=self.data.values())
+        return xhash(hash_list=self.data.items())

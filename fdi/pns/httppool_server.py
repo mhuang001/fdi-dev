@@ -180,10 +180,10 @@ def httppool(pool):
             result, msg = get_prod_count(paths[2], paths[0])
         elif paths[1] == 'api':
             result, msg = call_pool_Api(paths)
-        elif 0:  # lp > 1:
+        elif lp > 1:
             result, msg = getProduct_Or_Component(
                 paths, serialize_out=serial_through)
-        elif paths[-1].isnumeric():  # Retrieve product
+        elif 0:  # paths[-1].isnumeric():  # Retrieve product
             result, msg = load_product(paths, serialize_out=serial_through)
             # save_action(username=username, action='READ', pool=paths[0])
 
@@ -432,14 +432,18 @@ def getProduct_Or_Component(paths, serialize_out=False):
     """
 
     # paths[1] is A URN or a product type.
-    if paths[1].lower().startswith('urn:'):
+    if paths[1].lower().startswith('urn|'):
         # load it
-        p = paths[1].split(':')
+        p = paths[1].split('+')
         paths[1] = p[1]
         paths.insert(2, p[2])
     lp = len(paths)
     # now paths = poolname, prod_type , ...
-    zinfo = Classes.mapping(paths[1]).zInfo['metadata']
+    import pdb
+    pdb.set_trace()
+
+    ptype = paths[1].rsplit('.', 1)[1]
+    zinfo = Classes.mapping[ptype].zInfo['metadata']
     if lp == 2:
         # return classes[class]
         return serialize(zinfo, indent=4), 'Getting API info for %s OK' % paths[1]
@@ -452,7 +456,7 @@ def getProduct_Or_Component(paths, serialize_out=False):
             if component:
                 prod = load_product(paths[:3], serialize_out=False)
                 compo, path_str = fetch(paths[3:], prod)
-                return serialize(compo), 'Getting %s OK' % (paths[1]+':'+paths[2]]+'/'+path_str)
+                return serialize(compo), 'Getting %s OK' % (paths[1] + ':' + paths[2] + '/' + path_str)
             else:
                 result = '"FAILED"'
                 msg = 'Unknown request: %s for %s' % (paths[2], paths[1])

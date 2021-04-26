@@ -213,10 +213,6 @@ Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. T
                 self._poolpath
             )
 
-    def a__hash__(self):
-        """ has the URN string. """
-        return hash(self._urn)
-
 
 def parseUrn(urn):
     """

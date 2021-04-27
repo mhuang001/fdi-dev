@@ -48,12 +48,12 @@ def init_test():
 def test_gen_url():
     """ Makesure that request create corrent url
     """
+    base = pcc['baseurl']
     samplepoolname = 'defaultpool'
-    samplepoolurl = 'http://127.0.0.1:8080/v0.6/' + samplepoolname
+    samplepoolurl = 'http://127.0.0.1:8080' + base + '/' + samplepoolname
     sampleurn = 'urn:' + samplepoolname + ':fdi.dataset.product.Product:10'
 
     logger.info('Test GET HK')
-    base = pcc['baseurl']
     got_hk_url = urn2fdiurl(
         urn=sampleurn, poolurl=samplepoolurl, contents='housekeeping', method='GET')
     hk_url = 'http://127.0.0.1:8080' + \

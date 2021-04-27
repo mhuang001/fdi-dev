@@ -37,14 +37,17 @@ If you want to install the ``develop`` and server dependencies:
 
 .. code-block:: shell
 
-   python3 -m pip install fdi[DEV,SERV]
+   python3 -m pip install fdi[DEV]
    
 or
 
 .. code-block:: shell
 
-   python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV,SERV]
-   
+   python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV]
+
+
+If you do not need to run tests, remove ``[DEV]`` to save time and disk space.
+
 To uninstall:
 
 .. code-block:: shell
@@ -52,8 +55,8 @@ To uninstall:
            python3 -m pip uninstall fdi
 
 
-For Developers and Admins (or Those who are Not Sure which to Choose)
-=====================================================================
+For Developers  (or Those who are Not Sure which to Choose)
+===========================================================
 
 To install
 ----------
@@ -65,7 +68,7 @@ To install
            git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
            cd fdi
 	   git checkout develop
-	   make install EXT="[DEV,SERV]"
+	   make install EXT="[DEV]"
 	   
 If you want to install the ``master`` branch, remove the ``git checkout develop`` line above.
 	   
@@ -103,6 +106,14 @@ Modify/Generate Documents
 
 If you plan to compile documents in the ``docs`` directory, generate diagrams, API files, or HTML pages, run (in that order, respectively):
 
+First run this once to install necessary packages:
+
+.. code-block:: shell
+
+           python3 -m pip install -U -e .[DOC]
+
+Then when you need to make new class diagrams, API docs, or HTML pages:
+
 .. code-block:: shell
 
            make docs_plots
@@ -113,11 +124,11 @@ The generated HTML page is at ``docs/html/index.html``.
 
 .. note:: https://readthedocs.io makes web pages from sources in ``docs/sphinx`` in the repository. Locally generated HTML pages are not on RTD or in the repository. The API files and plots, however, are in ``api`` and ``_static`` sub-directpries, respectively.
 	   
-Run Servers for Quick Tests
----------------------------
+Run Servers and Quick Tests
+===========================
 
-If you plan to run the ``pns`` and/or the http pool server locally,
-install the dependencies:
+If you plan to run the ``pns`` and/or the ``http pool server`` locally,
+first install the dependencies:
 
 .. code-block:: shell
 
@@ -146,7 +157,7 @@ in another window run:
 
 .. code-block:: shell
 
-           make testhttppool
+           make testhttp
 
 For More
 --------

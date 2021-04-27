@@ -132,6 +132,7 @@ versiontag:
 	git tag  $(VERSION)
 	git push origin $(VERSION)
 
+PYTEST	= python3 -m pytest
 TESTLOG	= /tmp/fdi-tests.log
 
 OPT	= -r P -v -l --pdb  #--log-file=$(TESTLOG)
@@ -143,28 +144,28 @@ testpns: test5 test4
 testhttp: test6 test7 test8
 
 test1: 
-	pytest tests/test_dataset.py --cov=fdi/dataset $(OPT) $(T)
+	$(PYTEST) tests/test_dataset.py --cov=fdi/dataset $(OPT) $(T)
 
 test2:
-	pytest tests/test_pal.py -k 'not _http' $(T) --cov=fdi/pal $(OPT)
+	$(PYTEST) tests/test_pal.py -k 'not _http' $(T) --cov=fdi/pal $(OPT)
 
 test3:
-	pytest  $(OPT) -k 'server' $(T) tests/test_pns.py --cov=fdi/pns
+	$(PYTEST)  $(OPT) -k 'server' $(T) tests/test_pns.py --cov=fdi/pns
 
 test4:
-	pytest $(OPT) -k 'not server' $(T) tests/test_pns.py --cov=fdi/pns
+	$(PYTEST) $(OPT) -k 'not server' $(T) tests/test_pns.py --cov=fdi/pns
 
 test5:
-	pytest  $(OPT) $(T) tests/test_utils.py --cov=fdi/utils
+	$(PYTEST)  $(OPT) $(T) tests/test_utils.py --cov=fdi/utils
 
 test6:
-	pytest $(OPT) $(T) tests/test_httppool.py
+	$(PYTEST) $(OPT) $(T) tests/test_httppool.py
 
 test7:
-	pytest $(OPT) $(T) tests/test_httpclientpool.py
+	$(PYTEST) $(OPT) $(T) tests/test_httpclientpool.py
 
 test8:
-	pytest $(OPT) $(T) tests/test_pal.py -k '_http'
+	$(PYTEST) $(OPT) $(T) tests/test_pal.py -k '_http'
 
 
 FORCE:

@@ -6,6 +6,10 @@ Change Log
 BETA0
 =====
 
+1.5.0 2021-04-27
+-----------------
+httppool server API 0.7 python API path.
+
 1.4.0 2021-04-17
 -----------------
 HttpClient pool not caching HK and with /api. ManagedPool. serial write0-through. 

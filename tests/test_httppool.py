@@ -13,6 +13,7 @@ from fdi.dataset.product import Product
 from fdi.pal.poolmanager import PoolManager
 from fdi.utils.getconfig import getConfig
 from fdi.utils.common import lls, trbk, fullname
+from fdi.utils.fetch import fetch
 #from fdi.pns import httppool_server as HS
 
 
@@ -24,6 +25,8 @@ from requests.auth import HTTPBasicAuth
 import requests
 import random
 import os
+from pprint import pprint
+
 import time
 from collections.abc import Mapping
 
@@ -386,19 +389,31 @@ def test_CRUD_product():
 def test_product_path():
 
     auth = HTTPBasicAuth(auth_user, auth_pass)
+    pool = PoolManager.getPool(test_poolid, api_baseurl+test_poolid)
+    # empty_pool_on_server(post_poolid)
+
     url0 = api_baseurl + test_poolid + '/'
     # write sample product to the pool
     p = get_sample_product()
     prodt = fullname(p)
     data = serialize(p)
-    print(len(data))
+    # print(len(data))
     url1 = url0+prodt + '/0'
     x = requests.post(url1, auth=auth, data=data)
     o = deserialize(x.text)
     check_response(o)
     urn = o['result']
-    import pdb
-    pdb.set_trace()
+
+    # API
+    pt = urn.split(':')[2].replace(':', '/')
+    urlapi = url0 + pt
+    # 'http://0.0.0.0:5000/v0.6/test/fdi.dataset.product.Product'
+    x = requests.get(urlapi, auth=auth)
+    o = deserialize(x.text)
+    check_response(o)
+    c = o['result']
+    pprint(c)
+    assert 'metadata' in c
 
     # test product paths
     segs = ["results", "energy_table", "Energy", "data"]
@@ -413,12 +428,48 @@ def test_product_path():
     assert c == p['results']['energy_table']['Energy'].data
     # make w/ prodtype
     #
-    url3 = url0 + urn.split(':', 2)[2].replace(':', '/') + '/' + pth
+    pt = urn.split(':', 2)[2].replace(':', '/')
+    urlp = url0 + pt
+    url3 = urlp + '/' + pth
     x = requests.get(url3, auth=auth)
     o = deserialize(x.text)
     check_response(o)
     c2 = o['result']
     assert c == p['results']['energy_table']['Energy'].data
+
+    for pth in [
+            "description",
+            "meta/extra/unit",
+            "meta/extra/value",
+            "meta/extra/isValid",
+            "arraydset 1/data",
+            "results/calibration_arraydset/unit",
+    ]:
+        url = urlp + '/' + pth
+        x = requests.get(url, auth=auth)
+        o = deserialize(x.text)
+        check_response(o)
+        c = o['result']
+        f, s = fetch(pth, p)
+        assert c == f
+    # members
+
+    url = url0 + 'ls' + '/' + pt
+    x = requests.get(url, auth=auth)
+    o = deserialize(x.text)
+    check_response(o)
+    c = o['result']
+    assert 'description' in c
+
+    # model
+
+    url = url0 + 'string' + '/' + pt
+    x = requests.get(url, auth=auth)
+    o = deserialize(x.text)
+    check_response(o)
+    c = o['result']
+    print(c)
+    assert 'UNKNOWN' in c
 
 
 async def lock_pool(poolid, sec):

@@ -14,7 +14,7 @@ from ..pal.webapi import WebAPI
 from ..dataset.product import Product
 from ..dataset.classes import Classes
 from ..utils.common import fullname, trbk
-
+from ..utils.fetch import fetch
 # from .db_utils import check_and_create_fdi_record_table, save_action
 
 # import mysql.connector
@@ -25,6 +25,7 @@ import os
 import json
 import time
 import pprint
+import importlib
 from flask import request, make_response, jsonify
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -184,7 +185,7 @@ def httppool(pool):
             result, msg = getProduct_Or_Component(
                 paths, serialize_out=serial_through)
         elif 0:  # paths[-1].isnumeric():  # Retrieve product
-            result, msg = load_product(paths, serialize_out=serial_through)
+            result, msg = load_product(1, paths, serialize_out=serial_through)
             # save_action(username=username, action='READ', pool=paths[0])
 
         else:
@@ -432,43 +433,99 @@ def getProduct_Or_Component(paths, serialize_out=False):
     """
 
     # paths[1] is A URN or a product type.
-    if paths[1].lower().startswith('urn|'):
-        # load it
-        p = paths[1].split('+')
-        paths[1] = p[1]
-        paths.insert(2, p[2])
+    for i in [1, 2]:
+        if i < len(paths) and paths[i].lower().startswith('urn+'):
+            # load it
+            p = paths[i].split('+')
+            # example ['urn', 'test', 'fdi.dataset.product.Product', '0']
+            paths[i] = p[2]
+            paths.insert(i+1, p[3])
+            break
     lp = len(paths)
     # now paths = poolname, prod_type , ...
-    import pdb
-    pdb.set_trace()
 
-    ptype = paths[1].rsplit('.', 1)[1]
-    zinfo = Classes.mapping[ptype].zInfo['metadata']
+    mInfo = 0
     if lp == 2:
+        # ex: test/fdi.dataset.Product
         # return classes[class]
-        return serialize(zinfo, indent=4), 'Getting API info for %s OK' % paths[1]
-    elif lp == 3:
-        if paths[2].isnumeric():
-            # sn number. load it
-            return load_product(paths, serialize_out=serialize_out)
+        pp = paths[1]
+        mp = pp.rsplit('.', 1)
+        modname, ptype = mp[0], mp[1]
+        cls = Classes.mapping[ptype]
+        mod = importlib.import_module(modname)  # TODO
+        mInfo = getattr(mod, 'ProductInfo')
+        return serialize(mInfo, indent=4), 'Getting API info for %s OK' % paths[1]
+    elif lp >= 3:
+        return compo_cmds(paths, mInfo, serialize_out=serialize_out)
+
+    else:
+        return '"FAILED"', 'Unknown path %s' % str(paths)
+
+
+def compo_cmds(paths, mInfo, serialize_out=False):
+
+    p1 = paths[1]
+    p2 = paths[2]
+
+    if p1 == 'string':
+        if p2.isnumeric():
+            level = int(p2) if 0 <= p2 and p2 <= 3 else 0
+            pos = 3
         else:
-            component = fetch(paths[3:], zinfo)
-            if component:
-                prod = load_product(paths[:3], serialize_out=False)
-                compo, path_str = fetch(paths[3:], prod)
-                return serialize(compo), 'Getting %s OK' % (paths[1] + ':' + paths[2] + '/' + path_str)
+            level = 0
+            pos = 2
+
+        compo, path_str, prod = load_compo_at(pos, paths, mInfo)
+        if compo:
+            return serialize(compo.toString(level=level)), \
+                'Getting %s members OK' % (
+                    p1 + ':' + paths[2] + '/' + path_str)
+        else:
+            return '"FAILED"', 'string %s%' % str(paths)
+    elif p1 == 'ls':
+        pos = 2
+        compo, path_str, prod = load_compo_at(pos, paths, mInfo)
+        if compo:
+            ls = [m for m in dir(compo) if not m.startswith('_')]
+            return serialize(ls), 'Getting %s members OK' % (p1 + ':' + paths[2] + '/' + path_str)
+        else:
+            return '"FAILED"', 'ls %s%' % str(paths)
+    else:
+        if paths[2].isnumeric():
+            # no cmd, ex: test/fdi.dataset.Product/4/...
+            # send json
+            pos = 1
+            if len(paths) == 3 or paths[3] == '':
+                # only sn number. load it
+                return load_product(pos, paths, serialize_out=serialize_out)
             else:
-                result = '"FAILED"'
-                msg = 'Unknown request: %s for %s' % (paths[2], paths[1])
+                compo, path_str, prod = load_compo_at(pos, paths, mInfo)
+                if compo:
+                    return serialize(compo), 'Getting %s OK' % (p1 + ':' + paths[2] + '/' + path_str)
+                else:
+                    return '"FAILED"', '%s%s' % ('/'.join(paths[:3]), path_str)
+        else:
+            return '"FAILED"', 'Need index number %s' % str(paths)
 
 
-def load_product(paths, serialize_out=False):
-    """Load product
+def load_compo_at(pos, paths, mInfo):
+    """ paths[pos] is cls; paths[pos+2] is 'description','meta' ..."""
+    #component = fetch(paths[pos+2:], mInfo)
+    # if component:
+    prod, msg = load_product(pos, paths, serialize_out=False)
+    if prod == '"FAILED"':
+        return None, 'Unable to load ' + str(paths), None
+    compo, path_str = fetch(paths[pos+2:], prod)
+    return compo, path_str, prod
+
+
+def load_product(p, paths, serialize_out=False):
+    """Load product paths[p]:paths[p+1] from paths[0]
     """
 
-    typename = paths[-2]
-    indexstr = paths[-1]
-    poolname = '/'.join(paths[0: -2])
+    typename = paths[p]
+    indexstr = paths[p+1]
+    poolname = paths[0]
     poolurl = schm + '://' + os.path.join(poolpath, poolname)
     urn = makeUrn(poolname=poolname, typename=typename, index=indexstr)
     # resourcetype = fullname(data)

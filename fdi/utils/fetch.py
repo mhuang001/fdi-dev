@@ -12,6 +12,11 @@ def fetch(paths, nested, re=''):
 If the above fail and a method whose name starts with 'is' then the method is called and the result returned.
     """
 
+    if len(paths) == 0:
+        return nested, re
+    if issubclass(paths.__class__, str):
+        paths = paths.split('/')
+
     p0 = paths[0]
     found_meth = None
     is_str = issubclass(p0.__class__, str)
@@ -55,4 +60,4 @@ If the above fail and a method whose name starts with 'is' then the method is ca
         # return methodcaller(p0)(nested), rep + '()'
         return found_meth(), rep + '()'
 
-    return None, ' has no attribute or member: %s.' % (re + '/' + p0)
+    return None, '%s has no attribute or member: %s.' % (re, p0)

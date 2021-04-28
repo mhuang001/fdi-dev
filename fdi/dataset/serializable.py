@@ -170,6 +170,15 @@ class Serializable(object):
     def serialized(self, indent=None):
         return serialize(self, indent=indent)
 
+    def __repr__(self):
+
+        co = ', '.join(str(k)+'=' + ('"'+v+'"'
+                                     if issubclass(v.__class__, str)
+                                     else str(v))
+                       for k, v in self.__getstate__().items()
+                       )
+        return self.__class__.__name__ + '(' + co + ')'
+
     def __getstate__(self):
         """ returns an odict that has all state info of this object.
         Subclasses should override this function.

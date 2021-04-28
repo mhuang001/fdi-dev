@@ -184,8 +184,7 @@ nds3 =\
 """
 
 out_GenericDataset = """level 0
-# GenericDataset
-description= {'test GD'},
+=== GenericDataset () ===
 meta= {
 ======  =================  ======  ========  =======================  ===============  ======  =====================
 name    value              unit    type      valid                    default          code    description
@@ -206,8 +205,7 @@ MetaData-listeners = ListnerSet{}}
 GenericDataset-dataset =
 88.8
 level 1, repr
-# GenericDataset
-description= {'test GD'},
+=== GenericDataset () ===
 meta= {
 -------------  -----------------  ----------------
 a= 3.4         b= xy (2019-02-19  c= Invalid (IJK)
@@ -222,8 +220,7 @@ GenericDataset-dataset =
 level 2,
 GenericDataset{ 88.8, description = "test GD", meta = a, b, c, d, listeners = ListnerSet{} }"""
 out_ArrayDataset = """level 0
-# ArrayDataset
-description= {'toString tester AD'},
+=== ArrayDataset () ===
 meta= {
 ======  =================  ======  ========  =======================  ===============  ======  =====================
 name    value              unit    type      valid                    default          code    description
@@ -288,8 +285,7 @@ ArrayDataset-dataset =
 
 
 level 1, repr
-# ArrayDataset
-description= {'toString tester AD'},
+=== ArrayDataset () ===
 meta= {
 -------------  -----------------  ----------------
 a= 3.4         b= xy (2019-02-19  c= Invalid (IJK)
@@ -346,17 +342,11 @@ ArrayDataset-dataset =
 
 
 level 2,
-ArrayDataset{ [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]] (lyr) <None>, "toString tester AD", default None, tcode=None, meta=
--------------  -----------------  ----------------
-a= 3.4         b= xy (2019-02-19  c= Invalid (IJK)
-               01:02:03.456789
-               1929229323456789)
-d= off (0b00)
--------------  -----------------  ----------------
-MetaData-listeners = ListnerSet{}}"""
+ArrayDataset{ [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]] (lyr) <None>, "toString tester AD", default None, tcode=None, meta=MetaData<ODict  3.4 xy (2019-02-19
+01:02:03.456789
+1929229323456789) Invalid (IJK) off (0b00)>}"""
 out_TableDataset = """level 0
-# TableDataset
-description= {'UNKNOWN'},
+=== TableDataset () ===
 meta= {
 ======  =================  ======  ========  =======================  ===============  ======  =====================
 name    value              unit    type      valid                    default          code    description
@@ -384,8 +374,7 @@ TableDataset-dataset =
 
 
 level 1, repr
-# TableDataset
-description= {'UNKNOWN'},
+=== TableDataset () ===
 meta= {
 -------------  -----------------  ----------------
 a= 3.4         b= xy (2019-02-19  c= Invalid (IJK)
@@ -405,8 +394,8 @@ TableDataset-dataset =
 
 
 level 2,
-# TableDataset
-description, meta
+=== TableDataset () ===
+meta
 TableDataset-dataset =
   col1     col2
   (eV)    (cnt)
@@ -417,8 +406,7 @@ TableDataset-dataset =
 (Only display 2 rows of 3 for level=2.)
 """
 out_CompositeDataset = """level 0
-# CompositeDataset
-description= {'test CD'},
+=== CompositeDataset () ===
 meta= {
 ======  =================  ======  ========  =======================  ===============  ======  =====================
 name    value              unit    type      valid                    default          code    description
@@ -440,18 +428,18 @@ m1      2.3                sec     float     None                     None      
 MetaData-listeners = ListnerSet{}}
 
 CompositeDataset-datasets =
-<ODict dataset 1: # ArrayDataset
-description= {'arraydset 1'},
-meta= {(No parameter.)MetaData-listeners = ListnerSet{}},
+<ODict "dataset 1":
+=== ArrayDataset () ===
+meta= {(No Parameter.) MetaData-listeners = ListnerSet{}},
 type= {None},
 unit= {'ev'},
 default= {None},
 typecode= {None}
 ArrayDataset-dataset =
 768  4.4  5400
- dataset 2: # TableDataset
-description= {'Example table'},
-meta= {(No parameter.)MetaData-listeners = ListnerSet{}}
+"dataset 2":
+=== TableDataset () ===
+meta= {(No Parameter.) MetaData-listeners = ListnerSet{}}
 TableDataset-dataset =
    Time    Energy
   (sec)      (eV)
@@ -463,9 +451,8 @@ TableDataset-dataset =
       4       108
 
 
- >level 1, repr
-# CompositeDataset
-description= {'test CD'},
+>level 1, repr
+=== CompositeDataset () ===
 meta= {
 -------------  -----------------  ----------------
 a= 3.4         b= xy (2019-02-19  c= Invalid (IJK)
@@ -477,9 +464,8 @@ MetaData-listeners = ListnerSet{}
 }
 
 CompositeDataset-datasets =
-<ODict dataset 1: # ArrayDataset
-description= {'arraydset 1'},
-meta= {(No parameter.)MetaData-listeners = ListnerSet{}
+<ODict  === ArrayDataset () ===
+meta= {(No Parameter.) MetaData-listeners = ListnerSet{}
 },
 type= {None},
 unit= {'ev'},
@@ -487,9 +473,8 @@ default= {None},
 typecode= {None}
 ArrayDataset-dataset =
 768  4.4  5400
- dataset 2: # TableDataset
-description= {'Example table'},
-meta= {(No parameter.)MetaData-listeners = ListnerSet{}
+ === TableDataset () ===
+meta= {(No Parameter.) MetaData-listeners = ListnerSet{}
 }
 TableDataset-dataset =
    Time    Energy
@@ -502,13 +487,13 @@ TableDataset-dataset =
       4       108
 
 
- >level 2,
-# CompositeDataset
-description, meta
+>level 2,
+=== CompositeDataset () ===
+meta
 
 CompositeDataset-datasets =
-<ODict dataset 1: ArrayDataset{ [768, 4.4, 5400.0] (ev) <None>, "arraydset 1", default None, tcode=None, meta=(No parameter.)MetaData-listeners = ListnerSet{}} dataset 2: # TableDataset
-description, meta
+<ODict  ArrayDataset{ [768, 4.4, 5400.0] (ev) <None>, "arraydset 1", default None, tcode=None, meta=MetaData<ODict >} === TableDataset () ===
+meta
 TableDataset-dataset =
    Time    Energy
   (sec)      (eV)
@@ -517,4 +502,4 @@ TableDataset-dataset =
       1       102
 
 (Only display 2 rows of 5 for level=2.)
- >"""
+>"""

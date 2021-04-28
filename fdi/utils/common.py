@@ -38,7 +38,9 @@ def trbk2(e):
     return ''.join(tb.stack.format())
 
 
-def bstr(x, length=0, tostr=True, quote="'", level=0, **kwds):
+def bstr(x, length=0, tostr=True, quote="'", level=0,
+         tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+         **kwds):
     """ returns the best string representation.
     if the object is a string, return single-quoted; if has toString(), use it; else returns str(). Length limited by lls(lls)
     """
@@ -49,7 +51,10 @@ def bstr(x, length=0, tostr=True, quote="'", level=0, **kwds):
     if s:
         r = quote + x + quote
     elif tostr and hasattr(x, 'toString') and not issubclass(x.__class__, type):
-        r = x.toString(level=level, **kwds)
+        r = x.toString(level=level,
+                       tablefmt=tablefmt, tablefmt1=tablefmt1,
+                       tablefmt2=tablefmt2,
+                       **kwds)
     elif issubclass(x.__class__, (bytes, bytearray, memoryview)):
         r = x.hex()
     else:
@@ -85,13 +90,16 @@ def wls(s, width=15):
     return '\n'.join(ret)
 
 
-def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
+def mstr(obj, level=0, excpt=None, indent=4, depth=0,
+         tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+         **kwds):
     """ Makes a presentation string at a detail level.
 
-    'tablefmt' is not in the args as it is needed to be passed by kwds in recursive calls although under some conditions it is used.
+    'tablefmt' is needed to be passed in recursive calls under some conditions it is used.
     """
-    if excpt is None:
-        excpt = ['_STID', 'data', '_sets']
+    excp = ['_STID', 'data', '_sets']
+    if excpt:
+        excp.extend(excpt)
     ind = ' '*indent
 
     if level == 0:
@@ -99,12 +107,21 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
             return bstr(obj, level=level, **kwds)
         from fdi.dataset.metadata import MetaData
         if issubclass(obj.__class__, MetaData):
-            return obj.toString(level=level, **kwds)
-        s = ['%s= {%s}' % (mstr(k, level=level, excpt=excpt,
-                                indent=indent, depth=depth+1, quote='', **kwds),
-                           mstr(v, level=level, excpt=excpt,
-                                indent=indent, depth=depth+1, **kwds))
-             for k, v in obj.items() if k not in excpt]
+            return obj.toString(level=level,
+                                tablefmt=tablefmt, tablefmt1=tablefmt1,
+                                tablefmt2=tablefmt2,
+                                **kwds)
+        s = ['%s= {%s}' % (mstr(k, level=level, excpt=excp,
+                                indent=indent, depth=depth+1, quote='',
+                                tablefmt=tablefmt, tablefmt1=tablefmt1,
+                                tablefmt2=tablefmt2,
+                                **kwds),
+                           mstr(v, level=level, excpt=excp,
+                                indent=indent, depth=depth+1,
+                                tablefmt=tablefmt, tablefmt1=tablefmt1,
+                                tablefmt2=tablefmt2,
+                                **kwds))
+             for k, v in obj.items() if k not in excp]
         if len(''.join(s)) < 70:
             sep = ', '
         else:
@@ -124,18 +141,24 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
             pat = '%s= {%s}' if depth == 0 else '%s= %s'
             data = obj
 
-        s = [pat % (mstr(k, level=level, excpt=excpt,
+        s = [pat % (mstr(k, level=level, excpt=excp,
+                         tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                          indent=indent, depth=depth+1, quote='', **kwds),
-                    mstr(v, level=level, excpt=excpt,
+                    mstr(v, level=level, excpt=excp,
+                         tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                          indent=indent, depth=depth+1, **kwds))
-             for k, v in data.items() if k not in excpt]
+             for k, v in data.items() if k not in excp]
         sep = ',\n' if depth == 0 else ', '
         return sep.join(s)
     else:
         if not hasattr(obj, 'items'):
-            return mstr(obj, level=1, **kwds)
-        s = ['%s' % (mstr(k, level=level, excpt=excpt, quote='', **kwds))
-             for k, v in obj.items() if k not in excpt]
+            return mstr(obj, level=1,
+                        tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                        **kwds)
+        s = ['%s' % (mstr(k, level=level, excpt=excp, quote='',
+                          tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                          **kwds))
+             for k, v in obj.items() if k not in excp]
         return ', '.join(s)
 
 

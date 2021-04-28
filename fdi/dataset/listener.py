@@ -93,9 +93,6 @@ class ListnerSet(Serializable, DeepEqual, list):
                  for x in self._members]
         return self.__class__.__name__ + '{' + ', '.join(l) + '}'
 
-    def __repr__(self, **kwds):
-        return self.toString(level=1, **kwds)
-
 
 class EventSender(object):
     """ adapted from Peter Thatcher's
@@ -261,17 +258,7 @@ class DatasetEvent(Serializable):
         self.rootCause = rootCause
         super(DatasetEvent, self).__init__(**kwds)
 
-    def __repr__(self):
-        r = '{source=' + str(self.source) +\
-            ', target=' + str(self.target) +\
-            ', type=' + str(self.type) +\
-            ', change=' + str(self.change) +\
-            ', cause=' + str(self.cause) +\
-            ', rootCause=' + str(self.rootCause) +\
-            '}'
-        return r
-
-    def toString(self):
+    def toString(self, level=0, **kwds):
         return self.__repr__()
 
     def __getstate__(self):

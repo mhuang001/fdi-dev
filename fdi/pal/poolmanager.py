@@ -253,4 +253,4 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
         return self._GlobalPoolList.__iter__(*args, **kwargs)
 
     def __repr__(self):
-        return self.__class__.__name__ + str(self._GlobalPoolList)
+        return self.__class__.__name__ + '(' + str(self._GlobalPoolList) + ')'

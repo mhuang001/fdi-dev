@@ -318,7 +318,7 @@ v['d'].validate(0b01010110)
 # string representation. This is the same as v.toString(level=0), most detailed.
 print(v.toString())
 
-# simplifed string representation, toString(level=1), also what __repr__() runs.
+# simplifed string representation, toString(level=1)
 v
 
 # simplest string representation, toString(level=2).
@@ -386,6 +386,7 @@ x.creator   # == a1
 m = x.meta
 m['ddetector'] = v['d']
 # Demo ``toString()`` function.
+
 print(x.toString())
 
 

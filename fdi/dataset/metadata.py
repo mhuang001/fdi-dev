@@ -216,10 +216,9 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         """
         return xhash(hash_list=self._value)
 
-    def __repr__(self):
-        return self.toString(level=1)
-
-    def toString(self, level=0, alist=False, **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 alist=False, **kwds):
         """ alist: returns a dictionary string representation of parameter attributes.
         """
         vs = str(self._value)
@@ -507,13 +506,9 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             return
         self._value = self.checked(value)
 
-    def __repr__(self):
-        # return self.toString(level=1)
-        co = ', '.join(str(k)+'=' + ('"'+v+'"' if issubclass(v.__class__, str)
-                                     else str(v)) for k, v in self.__getstate__().items())
-        return '<'+self.__class__.__name__ + ' ' + co + '>'
-
-    def toString(self, level=0, alist=False, **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 alist=False, **kwds):
 
         ret = exprstrs(self, level=level, **kwds)
         if alist:
@@ -767,11 +762,12 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             self.fire(e)
         return r
 
-    def toString(self, level=0, tablefmt='rst', tablefmt1='simple',
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
                  widths=None, **kwds):
         """ return  string representation of metada.
 
-        level: 0 is the most detailed, 2 is the least, 1 is for __repr__.
+        level: 0 is the most detailed, 2 is the least,
         tablefmt: format string in packae ``tabulate``.
         widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its tsble cell is, 0 for ommiting the attributable. Default is
 ``{'name': 8, 'value': 17, 'unit': 7, 'type': 8,
@@ -799,7 +795,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
                 tab.append(l)
             elif level == 1:
                 ps = '%s= %s' % (att['name'], att['value'])
-                # s += mstr(self, level=level, depth=1,  tablefmt = tablefmt, **kwds)
+                # s += mstr(self, level=level, tablefmt = tablefmt,                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,depth=1, **kwds)
                 tab.append(wls(ps, 80//N))
                 if 0:
                     row.append(wls(ps, 80//N))
@@ -810,7 +806,10 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             else:
                 tab.append(att['name'])
 
-        lsnr = self.listeners.toString(level=level, **kwds)
+        lsnr = self.listeners.toString(level=level,
+                                       tablefmt=tablefmt, tablefmt1=tablefmt1,
+                                       tablefmt2=tablefmt2,
+                                       **kwds)
 
         # write out the table
         if level == 0:
@@ -829,10 +828,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             s += ', '.join(tab)
             return '%s, listeners = %s' % (s, lsnr)
         return '\n%s\n%s-listeners = %s' % (s, cn, lsnr) if len(tab) else \
-            '%s%s-listeners = %s' % ('(No parameter.)', cn, lsnr)
-
-    def __repr__(self, **kwds):
-        return self.toString(level=1, **kwds)
+            '%s %s-listeners = %s' % ('(No Parameter.)', cn, lsnr)
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

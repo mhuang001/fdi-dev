@@ -405,9 +405,9 @@ def test_product_path():
     urn = o['result']
 
     # API
-    pt = urn.split(':')[2].replace(':', '/')
-    urlapi = url0 + pt
-    # 'http://0.0.0.0:5000/v0.6/test/fdi.dataset.product.Product'
+    pcls = urn.split(':')[2].replace(':', '/')
+    urlapi = url0 + pcls
+    # 'http://0.0.0.0:5000/v0.7/test/fdi.dataset.product.Product'
     x = requests.get(urlapi, auth=auth)
     o = deserialize(x.text)
     check_response(o)
@@ -419,7 +419,7 @@ def test_product_path():
     segs = ["results", "energy_table", "Energy", "data"]
     pth = '/'.join(segs)
     # make url w/  urn1
-    #
+    # 'http://0.0.0.0:5000/v0.7/test/urn+test+fdi.dataset.product.Product+0/results/energy_table/Energy/data'
     url2 = url0 + urn.replace(':', '+') + '/' + pth
     x = requests.get(url2, auth=auth)
     o = deserialize(x.text)
@@ -427,9 +427,11 @@ def test_product_path():
     c = o['result']
     assert c == p['results']['energy_table']['Energy'].data
     # make w/ prodtype
-    #
+    # fdi.dataset.product.Product/0
     pt = urn.split(':', 2)[2].replace(':', '/')
+
     urlp = url0 + pt
+    # http://0.0.0.0:5000/v0.7/test/fdi.dataset.product.Product/0/results/energy_table/Energy/data
     url3 = urlp + '/' + pth
     x = requests.get(url3, auth=auth)
     o = deserialize(x.text)
@@ -461,13 +463,15 @@ def test_product_path():
     c = o['result']
     assert 'description' in c
 
-    # model
+    # string
+    import pdb
+    # XSSXSpdb.set_trace()
 
+    # 'http://0.0.0.0:5000/v0.7/test/string/fdi.dataset.product.Product/0'
     url = url0 + 'string' + '/' + pt
     x = requests.get(url, auth=auth)
-    o = deserialize(x.text)
-    check_response(o)
-    c = o['result']
+    assert x.headers['Content-Type'] == 'text/plain'
+    c = x.text
     print(c)
     assert 'UNKNOWN' in c
 

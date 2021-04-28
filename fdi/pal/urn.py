@@ -198,12 +198,10 @@ Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. T
         return OrderedDict(urn=self._urn,
                            _STID=self._STID)
 
-    def __repr__(self):
-        return self.__class__.__name__ + ' ' + self._urn
-
-    def toString(self):
+    def toString(self, level=0,
+                 **kwds):
         return self.__class__.__name__ + \
-            '{ %s, scheme:%s, place:%s, pool:%s, type:%s, index:%d, poolpath: %s}' % (
+            '(%s, scheme:%s, place:%s, pool:%s, type:%s, index:%d, poolpath: %s)' % (
                 self._urn,
                 self._scheme,
                 self._place,

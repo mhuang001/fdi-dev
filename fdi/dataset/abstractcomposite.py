@@ -23,19 +23,22 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
         # pdb.set_trace()
         super(AbstractComposite, self).__init__(**kwds)
 
-    def __repr__(self, **kwds):
-        ''' toString(level=1, **kwds)
-        '''
-        return self.toString(level=1, **kwds)
-
-    def toString(self, level=0, matprint=None, trans=True, beforedata='', **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 matprint=None, trans=True, beforedata='', **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         """
         cn = self.__class__.__name__
-        s = '# ' + cn + '\n' +\
-            mstr(self.__getstate__(), level=level, **kwds)
+        s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
+            self, 'descripion') else '')
+        s += mstr(self.__getstate__(), level=level,
+                  excpt=['description'],
+                  tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                  matprint=matprint, trans=trans,
+                  **kwds)
         d = cn + '-datasets =\n'
         d += self._sets.toString(level=level,
+                                 tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                                  matprint=matprint, trans=trans, **kwds)
         return '\n\n'.join((x for x in (s, beforedata, d) if len(x)))

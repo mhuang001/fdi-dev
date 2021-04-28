@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from .metadataholder import MetaDataHolder
 
-import pdb
-
 import logging
 # create logger
 logger = logging.getLogger(__name__)

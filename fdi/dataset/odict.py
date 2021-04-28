@@ -16,7 +16,7 @@ OD_toString_Nest = 0
 
 
 class ODict(UserDict, Serializable, DeepEqual):
-    """ Ordered dict that is not a subclass of dict and with a better __repr__.
+    """ Ordered dict that is not a subclass of dict and with a better __str__.
     """
 
     def __init__(self, *args, **kwds):
@@ -65,7 +65,9 @@ class ODict(UserDict, Serializable, DeepEqual):
     #             kk = tuple(item[0])
     #             self[kk] = item[1]
 
-    def toString(self, level=0, matprint=None, trans=True, **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 matprint=None, trans=True, **kwds):
         global OD_toString_Nest
 
         # return 'OD' + str(type(self.data))+'*'+str(self.data)
@@ -76,9 +78,11 @@ class ODict(UserDict, Serializable, DeepEqual):
         d = '<ODict '
         for n, v in self.data.items():
             #d += '    ' * OD_toString_Nest + '[ ' + str(n) + ' ]= '
-            d += str(n) + ': '
-            s = bstr(v, level=level, matprint=matprint, trans=trans, **kwds)
-            d = d + s + ' '
+            d += '"' + str(n) + '":' + '\n' if level == 0 else ' '
+            s = bstr(v, level=level,
+                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                     matprint=matprint, trans=trans, **kwds)
+            d = d + s
         OD_toString_Nest -= 1
         return d + '>'
 

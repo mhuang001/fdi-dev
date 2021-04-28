@@ -60,11 +60,6 @@ class DataContainer(Annotatable, Quantifiable, Copyable, DeepEqual):
         """ Returns whether this data wrapper has data. """
         return self.getData() is not None and len(self.getData()) > 0
 
-    def __repr__(self):
-        return self.__class__.__name__ + \
-            '{ description = "%s", data = "%s"}' % \
-            (str(self.description), str(self.getData()))
-
 
 class DataWrapper(DataContainer):
     """ A DataWrapper is a composite of data, unit and description.
@@ -72,7 +67,7 @@ class DataWrapper(DataContainer):
     Implemented from AbstractDataWrapper.
     """
 
-    def __repr__(self):
+    def __xrepr__(self):
         return self.__class__.__name__ + \
             '{ %s <%s>, description = "%s" }' % \
             (str(self.getData()), str(self.unit), str(self.description))

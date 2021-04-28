@@ -299,7 +299,9 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
 
         return False
 
-    def toString(self, level=0, **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 **kwds):
         """
         """
         s = self.__class__.__name__
@@ -309,10 +311,15 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
                 str([str(id(p)) + ' ' + p.__class__.__name__ +
                      '"' + p.description + '"'
                      for p in self.parents]) + '\n'
-            s += '# meta=' + self.getMeta().toString(level=level, **kwds)
+            s += '# meta=' + \
+                self.getMeta().toString(level=level,
+                                        tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                                        **kwds)
         else:
             s += ' Parents=' + str([id(p) for p in self.parents])
-            s += ' meta= ' + 'None' if self.getMeta() is None else self.getMeta().toString(level=level, **kwds)
+            s += ' meta= ' + 'None' if self.getMeta() is None else self.getMeta().toString(level=level,
+                                                                                           tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                                                                                           **kwds)
         s += '}'
         return s
 

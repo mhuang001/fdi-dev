@@ -53,7 +53,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
 
     BaseProduct class (level ALL) schema 1.4 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-04-24 17:23:54.941467.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-04-28 14:20:36.012495.
 
 Description:
 FDI base class
@@ -221,20 +221,21 @@ FDI base class
                 # logger.debug(event.source.__class__.__name__ +   ' ' + str(event.change))
                 pass
 
-    def toString(self, level=0, matprint=None, trans=True, beforedata='', **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 matprint=None, trans=True, beforedata='', **kwds):
         """ like AbstractComposite but with history
         """
         h = self.history.toString(
-            level=level, matprint=matprint, trans=trans, **kwds)
+            level=level,
+            tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+	    matprint=matprint, trans=trans, **kwds)
         s = super(BaseProduct, self).toString(
-            level=level, matprint=matprint, trans=trans, beforedata=h, **kwds)
+            level=level,
+            tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+	    matprint=matprint, trans=trans, beforedata=h, **kwds)
         return s
 
-    def __repr__(self, **kwds):
-        ''' meta and datasets only show names
-        '''
-
-        return self.toString(level=1, **kwds)
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

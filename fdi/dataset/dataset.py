@@ -68,6 +68,15 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
         through visitor pattern."""
         visitor.visit(self)
 
+    def __getstate__(self):
+        """ Can be encoded with serializableEncoder """
+
+        s = OrderedDict(description=self.description,
+                        meta=self._meta,
+                        data=self.data,
+                        _STID=self._STID)  # TODO
+        return s
+
 
 class GenericDataset(Dataset, DataContainer, Container):
     """ mh: Contains one data item.
@@ -93,7 +102,9 @@ class GenericDataset(Dataset, DataContainer, Container):
         """
         return self.getData().__len__(*args, **kwargs)
 
-    def toString(self, level=0, matprint=None, trans=True, **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 widths=None, matprint=None, trans=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         """
@@ -102,25 +113,22 @@ class GenericDataset(Dataset, DataContainer, Container):
             return cn + \
                 '{ %s, description = "%s", meta = %s }' % \
                 (str(self.data), str(self.description), self.meta.toString(
+                    tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                     level=level, matprint=matprint, trans=trans, **kwds))
 
-        s = '# ' + cn + '\n' +\
-            mstr(self.__getstate__(), level=level, **kwds)
+        s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
+            self, 'descripion') else '')
+        s += mstr(self.__getstate__(), level=level,
+                  tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                  excpt=['description'], **kwds)
+
         d = cn + '-dataset =\n'
-        d += bstr(self.data, level=level, **kwds) if matprint is None else \
+        d += bstr(self.data, level=level,
+                  tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                  **kwds) if matprint is None else \
             matprint(self.data, level=level, trans=False, headers=[], tablefmt2='plain',
                      **kwds)
         return s + '\n' + d + '\n'
-
-    def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
-        # s = OrderedDict(description=self.description, meta=self.meta)  # super(...).__getstate__()
-        # s.update(OrderedDict(data=self.getData()))
-        s = OrderedDict(description=self.description,
-                        meta=self._meta,
-                        data=self.data,
-                        _STID=self._STID)  # TODO
-        return s
 
 
 class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
@@ -218,10 +226,9 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
         """
         self.getData().remove(*args, **kwargs)
 
-    def __repr__(self, **kwds):
-        return self.toString(level=1, **kwds)
-
-    def toString(self, level=0, matprint=None, trans=True, **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 widths=None, matprint=None, trans=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         """
@@ -236,8 +243,12 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
                 '{ %s (%s) <%s>, "%s", default %s, tcode=%s, meta=%s}' %\
                 (vs, us, ts, ds, fs, cs, str(self.meta))
 
-        s = '# ' + cn + '\n' +\
-            mstr(self.__getstate__(), level=level, **kwds)
+        s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
+            self, 'descripion') else '')
+        s += mstr(self.__getstate__(), level=level,
+                  tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                  excpt=['description'], **kwds)
+
         d = cn + '-dataset =\n'
         ds = bstr(self.data, level=level, **kwds) if matprint is None else \
             matprint(self.data, trans=False, headers=[], tablefmt2='plain',
@@ -687,10 +698,9 @@ Default is to return all columns.
         """
         self.setColumn(key, value)
 
-    def __repr__(self, **kwds):
-        return self.toString(level=1, **kwds)
-
-    def toString(self, level=0, matprint=None, trans=True, tablefmt2='simple', **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 widths=None, matprint=None, trans=True, **kwds):
         """
         tablefmt2: format of 2D data
         """
@@ -698,8 +708,11 @@ Default is to return all columns.
             matprint = ndprint
 
         cn = self.__class__.__name__
-        s = '# ' + cn + '\n'
-        s += mstr(self.__getstate__(), level=level, **kwds)
+        s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
+            self, 'descripion') else '')
+        s += mstr(self.__getstate__(), level=level,
+                  tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                  excpt=['description'], **kwds)
         stp = 2 if level > 1 else 20 if level == 1 else None
         cols = self.getData().values()
 
@@ -709,6 +722,7 @@ Default is to return all columns.
                    (str(x.unit) for x in cols))
         hdr = list('%s\n(%s)' % nu for nu in nmun)
         d += matprint(coldata, trans=trans, headers=hdr,
+                      tablefmt=tablefmt, tablefmt1=tablefmt1,
                       tablefmt2=tablefmt2, **kwds)
         collen = self.getRowCount()
         if level and stp < collen:

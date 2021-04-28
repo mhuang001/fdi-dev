@@ -27,6 +27,7 @@ import time
 import pprint
 import importlib
 from flask import request, make_response, jsonify
+from flask.wrappers import Response
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -160,6 +161,9 @@ def httppool(pool):
     """
     username = request.authorization.username
     paths = pool.split('/')
+    if paths[-1] == '':
+        del paths[-1]
+
     lp = len(paths)
     ts = time.time()
     # do not deserialize if set True. save directly to disk
@@ -226,6 +230,9 @@ def httppool(pool):
             # save_action(username=username, action='DELETE', pool=paths[0])
     else:
         result, msg = '"FAILED"', 'UNknown command '+request.method
+
+    if issubclass(result.__class__, Response):
+        return result
     # w = {'result': result, 'msg': msg, 'timestamp': ts}
     # make a json string
     r = '"null"' if result is None else str(result)
@@ -468,20 +475,26 @@ def compo_cmds(paths, mInfo, serialize_out=False):
     p2 = paths[2]
 
     if p1 == 'string':
-        if p2.isnumeric():
-            level = int(p2) if 0 <= p2 and p2 <= 3 else 0
+        if p2.isnumeric() or ',' in p2:
+            tsargs = p2.split(',')
+            tsargs[0] = int(tsargs[0])
             pos = 3
         else:
             level = 0
             pos = 2
+            tsargs = []
 
         compo, path_str, prod = load_compo_at(pos, paths, mInfo)
         if compo:
-            return serialize(compo.toString(level=level)), \
-                'Getting %s members OK' % (
-                    p1 + ':' + paths[2] + '/' + path_str)
+            result = compo.toString(*tsargs)
+            msg = 'Getting toString(%s) OK' % (str(tsargs))
+            resp = make_response(result)
+            ct = 'text/html' if 'html' in p2 else 'text/plain'
+            resp.headers['Content-Type'] = ct
+            return resp, msg
+
         else:
-            return '"FAILED"', 'string %s%' % str(paths)
+            return '"FAILED"', '%s: %s' % (p1, path_str)
     elif p1 == 'ls':
         pos = 2
         compo, path_str, prod = load_compo_at(pos, paths, mInfo)
@@ -489,7 +502,7 @@ def compo_cmds(paths, mInfo, serialize_out=False):
             ls = [m for m in dir(compo) if not m.startswith('_')]
             return serialize(ls), 'Getting %s members OK' % (p1 + ':' + paths[2] + '/' + path_str)
         else:
-            return '"FAILED"', 'ls %s%' % str(paths)
+            return '"FAILED"', '%s: %s' % (p1, path_str)
     else:
         if paths[2].isnumeric():
             # no cmd, ex: test/fdi.dataset.Product/4/...
@@ -514,7 +527,7 @@ def load_compo_at(pos, paths, mInfo):
     # if component:
     prod, msg = load_product(pos, paths, serialize_out=False)
     if prod == '"FAILED"':
-        return None, 'Unable to load ' + str(paths), None
+        return None, '%s. Unable to load %s.' % (msg, str(paths)), None
     compo, path_str = fetch(paths[pos+2:], prod)
     return compo, path_str, prod
 

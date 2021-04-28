@@ -100,11 +100,9 @@ class StorageQuery(Serializable):
         """
         self._allVersions = allVersions
 
-    def __repr__(self):
-
-        return self.toString()
-
-    def toString(self, level=0, **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 **kwds):
         """
         """
 

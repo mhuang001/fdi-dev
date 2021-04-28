@@ -166,16 +166,10 @@ class Vector(Quantifiable, Serializable, DeepEqual):
     def __len__(self):
         return len(self._data)
 
-    def __repr__(self):
-
-        co = ', '.join(str(k)+'=' + ('"'+v+'"' if issubclass(v.__class__, str)
-                                     else str(v)) for k, v in self.__getstate__().items())
-        return '<'+self.__class__.__name__ + ' ' + co + '>'
-
-    def toString(self, level=0):
+    def toString(self, level=0, **kwds):
         return self.__repr__()
 
-    __str__ = __repr__
+    __str__ = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

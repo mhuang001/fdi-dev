@@ -245,4 +245,4 @@ class ProductStorage(object):
         return OrderedDict(writablePool=self.getWritablePool())
 
     def __repr__(self):
-        return self.__class__.__name__ + ' < pool= ' + str(self._pools) + ' >'
+        return self.__class__.__name__ + '( pool= ' + str(self._pools) + ' )'

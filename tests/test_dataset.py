@@ -50,8 +50,8 @@ else:
 
 Classes.updateMapping()
 
-# make format output in /tmp/fditest_toString
-mko = 0
+# make format output in /tmp/output.py
+mko = 1
 
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py
@@ -1113,7 +1113,7 @@ def test_GenericDataset():
     ts += v.toString(2)
     if mko:
         print(ts)
-        with open('/tmp/fditest_toString', 'wt') as f:
+        with open('/tmp/output.py', 'wt') as f:
             clsn = 'out_GenericDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -1311,7 +1311,7 @@ def do_ArrayDataset_func(atype):
     ts += x.toString(2)
     if mko:
         print(ts)
-        with open('/tmp/fditest_toString', 'a') as f:
+        with open('/tmp/output.py', 'a') as f:
             clsn = 'out_ArrayDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -1590,7 +1590,7 @@ def test_TableDataset_func():
     ts += v.toString(2)
     if mko:
         print(ts)
-        with open('/tmp/fditest_toString', 'a') as f:
+        with open('/tmp/output.py', 'a') as f:
             clsn = 'out_TableDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -1826,7 +1826,7 @@ def test_CompositeDataset_init():
     ts += v3.toString(2)
     if mko:
         print(ts)
-        with open('/tmp/fditest_toString', 'a') as f:
+        with open('/tmp/output.py', 'a') as f:
             clsn = 'out_CompositeDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:

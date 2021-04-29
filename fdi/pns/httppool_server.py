@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-import builtins
-from collections import ChainMap
-from itertools import chain
 from ..utils.common import lls
 from ..dataset.deserialize import deserialize
 from ..dataset.serializable import serialize
@@ -22,9 +19,13 @@ from ..utils.fetch import fetch
 
 import sys
 import os
+import copy
 import json
 import time
 import pprint
+import builtins
+from collections import ChainMap
+from itertools import chain
 import importlib
 from flask import request, make_response, jsonify
 from flask.wrappers import Response
@@ -130,7 +131,36 @@ def get_pools():
     return resp
 
 
+@ app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
+def getinfo(cmd):
+    ''' returns init, config, run input, run output.
+    '''
+    msg = ''
+    ts = time.time()
+
+    if cmd == 'config':
+        p = copy.copy(pc)
+        p['node']['username'], p['node']['password'] = '*', '*'
+        p['auth_user'], p['auth_pass'] = '*', '*'
+        result, msg = serialize(p), 'Getting configuration OK.'
+    else:
+        allpools = get_pools()
+        if cmd in allpools:
+            cls = load_single_HKdata([cmd, 'hk', 'classes'])
+            result, msg = cls, 'Getting pool %s info OK'
+        else:
+            result, msg = '"FAILED"', cmd + ' is not valid.'
+
+    w = '{"result": %s, "msg": "%s", "timestamp": %f}' % (
+        result, msg, ts)
+    logger.debug(lls(w, 240))
+    resp = make_response(w)
+    resp.headers['Content-Type'] = 'application/json'
+    return resp
+
 # @ app.route(pc['baseurl'] + '/sn' + '/<string:prod_type>' + '/<string:pool_id>', methods=['GET'])
+
+
 def get_prod_count(prod_type, pool_id):
     """ Return the total count for the given product type and pool_id in the directory.
 
@@ -618,30 +648,6 @@ def load_single_HKdata(paths):
         result = '"FAILED"'
         msg = 'Exception : ' + str(e) + ' ' + trbk(e)
     return result, msg
-
-
-@ app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
-def getinfo(cmd):
-    ''' returns init, config, run input, run output.
-    '''
-    logger.debug('getr %s' % (cmd))
-
-    msg = ''
-    ts = time.time()
-    try:
-        if cmd == 'pnsconfig':
-            result, msg = pc, ''
-        else:
-            result, msg = -1, cmd + ' is not valid.'
-    except Exception as e:
-        result, msg = -1, str(e) + trbk(e)
-    w = {'result': result, 'message': msg, 'timestamp': ts}
-
-    s = serialize(w)
-    logger.debug(s[:] + ' ...')
-    resp = make_response(s)
-    resp.headers['Content-Type'] = 'application/json'
-    return resp
 
 
 # API specification for this module

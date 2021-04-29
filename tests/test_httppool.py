@@ -489,13 +489,35 @@ def test_product_path():
 
 def test_get_pools():
 
-    url = api_baseurl
+    url = api_baseurl+'/pools'
     x = requests.get(url)
     o = deserialize(x.text)
     check_response(o)
     c = o['result']
     assert len(c)
     assert set(c) == set(get_dirs())
+
+
+def test_root():
+    url = api_baseurl+'/pools'
+    x = requests.get(url)
+    o = deserialize(x.text)
+    check_response(o)
+    c_pools = o['result']
+    # /
+    url = api_baseurl+'/'
+    x = requests.get(url)
+    o = deserialize(x.text)
+    check_response(o)
+    c = o['result']
+    assert c_pools == c
+    # /
+    url = api_baseurl
+    x = requests.get(url)
+    o = deserialize(x.text)
+    check_response(o)
+    c = o['result']
+    assert c_pools == c
 
 
 async def lock_pool(poolid, sec):

@@ -82,19 +82,22 @@ def init_httppool_server():
    # load_all_pools()
 
 
+def getallpools(path):
+    alldirs = []
+    allfilelist = os.listdir(path)
+    for file in allfilelist:
+        filepath = os.path.join(path, file)
+        if os.path.isdir(filepath):
+            alldirs.append(file)
+    return alldirs
+
+
 def load_all_pools():
     """
     Adding all pool to server pool storage.
     """
     alldirs = set()
 
-    def getallpools(path):
-        allfilelist = os.listdir(path)
-        for file in allfilelist:
-            filepath = os.path.join(path, file)
-            if os.path.isdir(filepath):
-                alldirs.add(file)
-        return alldirs
     path = poolpath
     logger.debug('loading all from ' + path)
 
@@ -109,9 +112,22 @@ def load_all_pools():
 # check_and_create_fdi_record_table()
 
 
-@ app.route(pc['baseurl']+'/pools')
+@ app.route(pc['baseurl'], methods=['GET'])
+@ app.route(pc['baseurl']+'/', methods=['GET'])
+@ app.route(pc['baseurl']+'/pools', methods=['GET'])
 def get_pools():
-    return lls(PoolManager.getMap().keys(), 2000)
+    ts = time.time()
+    path = poolpath
+    logger.debug('listing all from ' + path)
+
+    result = serialize(getallpools(path))
+    msg = 'pools found.'
+    w = '{"result": %s, "msg": "%s", "timestamp": %f}' % (
+        result, msg, ts)
+    logger.debug(lls(w, 240))
+    resp = make_response(w)
+    resp.headers['Content-Type'] = 'application/json'
+    return resp
 
 
 # @ app.route(pc['baseurl'] + '/sn' + '/<string:prod_type>' + '/<string:pool_id>', methods=['GET'])
@@ -489,7 +505,12 @@ def compo_cmds(paths, mInfo, serialize_out=False):
             result = compo.toString(*tsargs)
             msg = 'Getting toString(%s) OK' % (str(tsargs))
             resp = make_response(result)
-            ct = 'text/html' if 'html' in p2 else 'text/plain'
+            if 'html' in p2:
+                ct = 'text/html'
+            elif 'fancy_grid' in p2:
+                ct = 'text/plain;charset=utf-8'
+            else:
+                ct = 'text/plain'
             resp.headers['Content-Type'] = ct
             return resp, msg
 

@@ -185,6 +185,17 @@ def clear_server_poolpath(poolid):
         # x = requests.post(url, auth=HTTPBasicAuth(auth_user, auth_pass), data=data)
 
 
+def get_dirs():
+    """ returns a list of directories in server pool dir. """
+
+    path = poolpath
+    if os.path.exists(path):
+        files = os.listdir(path)
+    else:
+        files = []
+    return files
+
+
 def get_files(poolid):
     """ returns a list of files in the given poolid in server pool dir. """
 
@@ -474,6 +485,17 @@ def test_product_path():
     c = x.text
     print(c)
     assert 'UNKNOWN' in c
+
+
+def test_get_pools():
+
+    url = api_baseurl
+    x = requests.get(url)
+    o = deserialize(x.text)
+    check_response(o)
+    c = o['result']
+    assert len(c)
+    assert set(c) == set(get_dirs())
 
 
 async def lock_pool(poolid, sec):

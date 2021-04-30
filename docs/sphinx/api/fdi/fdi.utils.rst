@@ -25,6 +25,14 @@ fdi.utils.common module
    :undoc-members:
    :show-inheritance:
 
+fdi.utils.fetch module
+----------------------
+
+.. automodule:: fdi.utils.fetch
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.fits\_kw module
 -------------------------
 

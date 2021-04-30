@@ -41,6 +41,14 @@ fdi.dataset.attributable module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.attributablemeta module
+-----------------------------------
+
+.. automodule:: fdi.dataset.attributablemeta
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.baseproduct module
 ------------------------------
 

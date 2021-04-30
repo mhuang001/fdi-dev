@@ -1,5 +1,5 @@
 #!/bin/bash
-id
+id | tee lastent
 echo ######                                                                     
 
 IP=`ifconfig -a | grep "inet" | grep -v 127.0.0.1 | grep -v "inet6" | awk '{print $2}'`
@@ -36,9 +36,8 @@ grep ^EXTPORT  .config/pnslocal.py
 
 #service apache2 reload && echo apache2 reloaded
 
-if [ -z "$1" ]
-then
-    exec /usr/sbin/apache2ctl -DFOREGROUND
-else
-    exec "$1"
-fi
+date >> lastent
+
+echo running apachectl >> lastent
+exec /usr/sbin/apache2ctl -DFOREGROUND 2>&1 >> lastent
+

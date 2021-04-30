@@ -22,7 +22,9 @@ ENV SERVER_PORT=${PORT}
 ARG USR=apache
 ARG UHOME=/home/${USR}
 RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo \
-&& mkdir -p ${UHOME}/.config
+&& mkdir -p ${UHOME}/.config \
+&& echo apache ALL = NOPASSWD: ALL >> /etc/sudoers
+
 WORKDIR ${UHOME}
 ENV PATH="${UHOME}/.local/bin:$PATH"
 
@@ -68,16 +70,6 @@ do chown -R ${USR}:${USR} $i; echo $i; done \
 ARG FDI_DIR=${UHOME}
 RUN mkdir -p ${FDI_DIR} && chown ${USR}:${USR} ${FDI_DIR}
 
-#RUN service apache2 start \
-#&& a2ensite httppool_server.conf \
-#&& a2dissite 000-default.conf \
-#&& service apache2 reload \
-#&& service apache2 stop
-## Log mapping
-#RUN ln -sf /dev/stdout /var/log/apache2/error.log
-#RUN tail  /var/log/apache2/error.log
-#RUN if [ -f /var/log/apache2/error-ps.log ]; then tail  /var/log/apache2/error-ps.log; fi
-
 # Run as user
 USER ${USR}
 
@@ -104,21 +96,17 @@ RUN python3 -m pip install pip -U \
 
 WORKDIR ${UHOME}
 
-# httppool_server_entrypoint.sh is used for replacing apache listen ports and configurations of httppool_server. setuid as root
-
+# httppool_server_entrypoint.sh is used for replacing apache listen ports and configurations of httppool_server.
 USER root
 COPY fdi/pns/resources/httppool_server_entrypoint.sh .
-RUN chmod 755 ./httppool_server_entrypoint.sh \
-&& chown root:root ./httppool_server_entrypoint.sh \
-&& chmod u+s ./httppool_server_entrypoint.sh \
-&& echo apache ALL = NOPASSWD: ALL >> /etc/sudoers
+RUN chmod 755 ./httppool_server_entrypoint.sh
 
 USER ${USR}
 RUN /bin/ls -la; \
 date > build
 
-ENTRYPOINT  ["/home/apache/httppool_server_entrypoint.sh", "2>&1", "|", "tee", \
-"-a", "/home/apache/log"]
+ENTRYPOINT  ["/home/apache/httppool_server_entrypoint.sh"]
+#, "2>&1", "|", "tee", "-a", "/home/apache/log"]
 
 #CMD /home/apache/httppool_server_entrypoint.sh 2>&1 | tee -a /home/apache/log; \
 #service apache2 start && echo started

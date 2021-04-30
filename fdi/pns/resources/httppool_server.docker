@@ -61,6 +61,7 @@ RUN chmod 755 ./httppool_server_entrypoint.sh
 # Configure permission
 RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 ${PROJ_DIR} ${UHOME}/; \
 do chown -R ${USR}:${USR} $i; echo $i; done \
+&& chmod root:root ./httppool_server_entrypoint.sh \
 && chmod u+s ./httppool_server_entrypoint.sh \
 && chgrp ${USR} /etc/apache2 /etc/apache2/sites-available \
 && chmod g+w /etc/apache2 /etc/apache2/sites-available
@@ -71,12 +72,12 @@ do chown -R ${USR}:${USR} $i; echo $i; done \
 ARG FDI_DIR=${UHOME}
 RUN mkdir -p ${FDI_DIR} && chown -R ${USR}:${USR} ${FDI_DIR}
 
-RUN service apache2 start \
-&& a2ensite httppool_server.conf \
-&& a2dissite 000-default.conf \
-&& service apache2 reload \
-&& service apache2 stop
-# Log mapping
+#RUN service apache2 start \
+#&& a2ensite httppool_server.conf \
+#&& a2dissite 000-default.conf \
+#&& service apache2 reload \
+#&& service apache2 stop
+## Log mapping
 #RUN ln -sf /dev/stdout /var/log/apache2/error.log
 #RUN tail  /var/log/apache2/error.log
 #RUN if [ -f /var/log/apache2/error-ps.log ]; then tail  /var/log/apache2/error-ps.log; fi

@@ -18,6 +18,10 @@ sed -i "s/^Listen .*/Listen ${HOST_PORT}/g" /etc/apache2/ports.conf
 echo ===== /etc/apache2/ports.conf
 grep Listen /etc/apache2/ports.conf
 
+a2ensite httppool_server.conf
+a2dissite 000-default.conf
+
+
 sed -i "s/^EXTHOST =.*$/EXTHOST = \'$IP\'/g" .config/pnslocal.py
 sed -i "s/^EXTPORT =.*$/EXTPORT = $HOST_PORT/g" .config/pnslocal.py
 sed -i "s/^conf\s*=\s*.*$/conf = 'external'/g" .config/pnslocal.py

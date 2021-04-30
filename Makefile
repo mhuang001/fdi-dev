@@ -222,7 +222,7 @@ IP_ADDR     =172.17.0.9
 DOCKERFILE              =fdi/pns/resources/httppool_server.docker
 
 build_server:
-	docker build -t $(IMAGE_NAME) --build-arg IP_ADDR=$(IP_ADDR) --build-arg PORT=$(PORT) --build-arg fd=$(fd) -f $(DOCKERFILE) $(D) .
+	docker build -t $(IMAGE_NAME) --build-arg IP_ADDR=$(IP_ADDR) --build-arg PORT=$(PORT) --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .
 
 launch_server:
 	docker run -d -it --env IP_ADDR=$(IP_ADDR) --env PORT=$(PORT) -p $(PORT):$(EXTPORT) --name $(SERVER_NAME) $(D) $(IMAGE_NAME)
@@ -238,9 +238,9 @@ rm_serveri:
 	docker  rm $(SERVER_NAME) || echo go on ...
 	docker image rm $(IMAGE_NAME)
 
+B       =/bin/bash
 it:
-	docker exec -it $(D) $(SERVER_NAME) /bin/bash
+	docker exec -it $(D) $(SERVER_NAME) $(B)
 
 its:
-
 	docker exec -it $(D) $(SERVER_NAME) /bin/bash

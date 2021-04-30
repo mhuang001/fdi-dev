@@ -1,25 +1,28 @@
 #!/bin/bash
+id
+echo ######                                                                     
+
 IP=`ifconfig -a | grep "inet" | grep -v 127.0.0.1 | grep -v "inet6" | awk '{print $2}'`
 HOST_IP=${SERVER_IP_ADDR}
 HOST_PORT=${SERVER_PORT}
-sed -i "s/<VirtualHost .*:.*$/<VirtualHost \*:$HOST_PORT>/g" /etc/apache2/sites-available/httppool_server.conf
-sed -i "s/ServerName.*$/ServerName $IP/g" /etc/apache2/sites-available/httppool_server.conf
+sudo sed -i "s/<VirtualHost .*:.*$/<VirtualHost \*:$HOST_PORT>/g" /etc/apache2/sites-available/httppool_server.conf
+sudo sed -i "s/ServerName.*$/ServerName $IP/g" /etc/apache2/sites-available/httppool_server.conf
 echo ===== /etc/apache2/sites-available/httppool_server.conf
 grep Virtual /etc/apache2/sites-available/httppool_server.conf
 grep ServerName /etc/apache2/sites-available/httppool_server.conf
 
-sed -i "/^ServerName/d" /etc/apache2/apache2.conf
-sed -i "s/^#.*Global configuration.*$/&\n\nServerName $IP\n/" /etc/apache2/apache2.conf
+sudo sed -i "/^ServerName/d" /etc/apache2/apache2.conf
+sudo sed -i "s/^#.*Global configuration.*$/&\n\nServerName $IP\n/" /etc/apache2/apache2.conf
 
 echo ===== /etc/apache2/apache2.conf
 grep -i ServerName /etc/apache2/apache2.conf
 
-sed -i "s/^Listen .*/Listen ${HOST_PORT}/g" /etc/apache2/ports.conf
+sudo sed -i "s/^Listen .*/Listen ${HOST_PORT}/g" /etc/apache2/ports.conf
 echo ===== /etc/apache2/ports.conf
 grep Listen /etc/apache2/ports.conf
 
-a2ensite httppool_server.conf
-a2dissite 000-default.conf
+sudo a2ensite httppool_server.conf
+sudo a2dissite 000-default.conf
 
 
 sed -i "s/^EXTHOST =.*$/EXTHOST = \'$IP\'/g" .config/pnslocal.py
@@ -35,7 +38,7 @@ grep ^EXTPORT  .config/pnslocal.py
 
 if [ -z "$1" ]
 then
-    exec /usr/sbin/apache2clt -DFOREGROUND
+    exec /usr/sbin/apache2ctl -DFOREGROUND
 else
     exec "$1"
 fi

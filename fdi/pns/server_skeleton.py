@@ -29,7 +29,7 @@ app.config.from_object('fdi.pns.pnsconfig')
 #     pc = getConfig()
 pc = getConfig()
 
-logger.info(pc)
+logger.debug("pc= %s" % pc)
 auth = HTTPBasicAuth()
 
 
@@ -135,7 +135,7 @@ def checkpath(path, un):
 #     return username == pc['node']['username'] and password == pc['node']['password']
 @auth.verify_password
 def verify_password(username, password):
-    print(username + "/" + password)
+    logger.debug('verify user/pass')
     if not (username and password):
         return False
     elif username == pc['auth_user'] and password == pc['auth_pass']:

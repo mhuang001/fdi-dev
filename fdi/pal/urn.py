@@ -15,7 +15,8 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
+# + 0.1 * sys.version_info[1] >= 3.3:
+if sys.version_info[0] >= 3:
     PY3 = True
     strset = str
     from urllib.parse import urlparse

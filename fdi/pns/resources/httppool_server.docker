@@ -78,7 +78,7 @@ ARG fd=rebuild
 
 # If install fdi repo, instead of package
 WORKDIR ${FDI_DIR}
-RUN git clone -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git
+RUN git clone --depth 10 -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git
 WORKDIR ${FDI_DIR}/fdi/
 RUN python3 -m pip install pip -U \
 && make install EXT="[DEV,SERV]" I="--user" \

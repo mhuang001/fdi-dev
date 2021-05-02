@@ -391,7 +391,9 @@ def getinfo(cmd):
     msg = ''
     ts = time.time()
     try:
-        if cmd == 'init':
+        if cmd == '':
+            return get_apis()
+        elif cmd == 'init':
             with open(pc['scripts']['init'][0], 'r') as f:
                 result = f.read()
         elif cmd == 'config':
@@ -585,7 +587,6 @@ APIs = {'GET':
          }}
 
 
-@app.route(pc['baseurl'] + '/', methods=['GET'])
 @app.route(pc['baseurl'] + '/api', methods=['GET'])
 def get_apis():
     """ Makes a page for APIs described in module variable APIs. """

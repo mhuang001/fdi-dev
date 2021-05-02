@@ -110,7 +110,7 @@ First run this once to install necessary packages:
 
 .. code-block:: shell
 
-           python3 -m pip install -U -e .[DOC]
+           python3 -m pip install -U -e .[PUB]
 
 Then when you need to make new class diagrams, API docs, or HTML pages:
 

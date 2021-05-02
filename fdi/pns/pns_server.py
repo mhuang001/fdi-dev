@@ -352,12 +352,16 @@ def genposttestprod(d):
 
 def dosleep(indata, ops):
     """ run 'sleep [ops]' in the OS. ops is 3 if not given.
+
+    indata: possible {'timeout':xx}
     """
+    logger.debug('dosleep %s, %s' % (str(indata), str(ops)))
+
     try:
         t = float(ops)
     except ValueError as e:
         t = 3
-    if hasattr(indata, '__iter__') and 'timeout' in indata:
+    if hasattr(indata, 'items') and 'timeout' in indata:
         timeout = indata['timeout']
     else:
         timeout = pc['timeout']
@@ -382,7 +386,16 @@ def filesin(dir):
     return result, ''
 
 
-@app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
+@app.route(pc['baseurl'] + '/', methods=['GET'])
+def get_apis():
+    """ Makes a page for APIs described in module variable APIs. """
+
+    logger.debug('APIs %s' % (APIs.keys()))
+    l = [(a, makepublicAPI(o)) for a, o in APIs.items()]
+    return jsonify(dict(l))
+
+
+# @app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
 def getinfo(cmd):
     ''' returns init, config, run input, run output.
     '''
@@ -390,21 +403,26 @@ def getinfo(cmd):
 
     msg = ''
     ts = time.time()
+
     try:
-        if cmd == '':
+        if cmd == '' or cmd == 'api':
             return get_apis()
         elif cmd == 'init':
             with open(pc['scripts']['init'][0], 'r') as f:
                 result = f.read()
+            msg = "OK"
         elif cmd == 'config':
             with open(pc['scripts']['config'][0], 'r') as f:
                 result = f.read()
+            msg = "OK"
         elif cmd == 'run':
             with open(pc['scripts']['run'][0], 'r') as f:
                 result = f.read()
+            msg = "OK"
         elif cmd == 'clean':
             with open(pc['scripts']['clean'][0], 'r') as f:
                 result = f.read()
+            msg = "OK"
         elif cmd == 'input':
             result, msg = filesin(pc['paths']['inputdir'])
         elif cmd == 'output':
@@ -415,20 +433,10 @@ def getinfo(cmd):
             result, msg = -1, cmd + ' is not valid.'
     except Exception as e:
         result, msg = -1, str(e) + trbk(e)
-    w = {'result': result, 'message': msg, 'timestamp': ts}
-
-    s = serialize(w)
-    logger.debug(s[:] + ' ...')
-    resp = make_response(s)
-    resp.headers['Content-Type'] = 'application/json'
-    return resp
+    return result, msg
 
 
-@app.route(pc['baseurl'] + '/<string:cmd>', methods=['POST'])
-@app.route(pc['baseurl'] + '/<string:cmd>/<string:ops>', methods=['POST'])
 def calcresult(cmd, ops=''):
-
-    logger.debug('POST ' + cmd + ' ' + ops)
     d = request.get_data()
     if cmd == 'calc':
         result, msg = calc(d)
@@ -474,7 +482,28 @@ def calcresult(cmd, ops=''):
                 logger.error(cmd)
                 abort(400)
                 result = None
-                # logger.debug(lls(result, 155))
+                msg = lls(result, 155)
+    return result, msg
+
+
+@app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET', 'POST'])
+@app.route(pc['baseurl'] + '/<string:cmd>/<string:ops>', methods=['POST'])
+def get_post(cmd, ops=''):
+    """ get and post.
+
+    GET: returns init, config, run input, run output.
+    POST:
+    """
+
+    logger.debug(request.method + ' ' + cmd + ' ' + ops)
+    if request.method == 'POST':
+        result, msg = calcresult(cmd, ops=ops)
+    elif request.method == 'GET':
+        if cmd in ['', '/', 'api']:
+            return getinfo(cmd)
+        result, msg = getinfo(cmd)
+    else:
+        raise RuntimeError('strange ' + request.method)
     ts = time.time()
     w = {'result': result, 'message': msg, 'timestamp': ts}
     s = serialize(w)
@@ -564,8 +593,9 @@ def cleanup(cmd):
 
 # API specification for this module
 APIs = {'GET':
-        {'func': 'getinfo',
-         'cmds': {'init': 'the initPTS file', 'config': 'the configPTS file',
+        {'func': 'get_post',
+         'cmds': {'': get_apis, 'api': get_apis,
+                  'init': 'the initPTS file', 'config': 'the configPTS file',
                   'run': 'the file running PTS', 'clean': 'the cleanPTS file',
                   'input': filesin, 'output': filesin,
                   'pnsconfig': 'PNS configuration'}
@@ -575,7 +605,7 @@ APIs = {'GET':
          'cmds': {'init': initPTS, 'config': configPTS, 'pnsconf': configPNS, 'testinit': testinit}
          },
         'POST':
-        {'func': 'calcresult',
+        {'func': 'get_post',
          'cmds': {'calc': calc, 'testcalc': genposttestprod,
                   'run': run, 'testrun': testrun,
                   'echo': 'Echo',
@@ -585,18 +615,6 @@ APIs = {'GET':
         {'func': 'cleanup',
          'cmds': {'clean': cleanPTS}
          }}
-
-
-@app.route(pc['baseurl'] + '/api', methods=['GET'])
-def get_apis():
-    """ Makes a page for APIs described in module variable APIs. """
-
-    logger.debug('APIs %s' % (APIs.keys()))
-    ts = time.time()
-    l = [(a, makepublicAPI(o)) for a, o in APIs.items()]
-    w = {'APIs': dict(l), 'timestamp': ts}
-    logger.debug('ret %s' % lls(w, 100))
-    return jsonify(w)
 
 
 logger.debug('END OF '+__file__)

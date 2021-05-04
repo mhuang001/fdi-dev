@@ -81,8 +81,8 @@ WORKDIR ${FDI_DIR}
 #RUN git clone --depth 10 -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git
 # from local repo
 RUN echo $PWD =======; ls
-RUN git clone --depth 10 -b develop file:///home/mh/S/fdi fdi
-WORKDIR ${FDI_DIR}/fdi/
+#RUN git clone --depth 10 -b develop file:///home/mh/S/fdi fdi
+#WORKDIR ${FDI_DIR}/fdi/
 #RUN python3 -m pip install pip -U \
 #RUN make install EXT="[DEV,SERV]" I="--user" \
 #&& make test

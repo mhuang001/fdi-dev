@@ -8,7 +8,6 @@ from requests.auth import HTTPBasicAuth
 from fdi.dataset.serializable import serialize
 from fdi.dataset.deserialize import deserialize
 from fdi.pal.urn import parseUrn, parse_poolurl
-from .pnsconfig import pnsconfig as pcc
 from fdi.utils.getconfig import getConfig
 from ..pal.webapi import WebAPI
 
@@ -37,7 +36,7 @@ common_header = {
 }
 
 
-pcc.update(getConfig())
+pcc = getConfig()
 defaulturl = 'http://' + pcc['node']['host'] + \
     ':' + str(pcc['node']['port']) + pcc['baseurl']
 

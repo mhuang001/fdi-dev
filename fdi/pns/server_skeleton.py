@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ..utils.common import trbk, getUidGid
-from ..utils.getconfig import getConfig
+from ..utils import getconfig
 
 import time
 import sys
@@ -21,13 +21,15 @@ logger = logging.getLogger(__name__)
 
 
 app = Flask(__name__)
-app.config.from_object('fdi.pns.pnsconfig')
+# app.config.from_object('fdi.pns.pnsconfig')
 # try:
 #     app.config.from_envvar('PNSCONFIG')
 #     pc = app.config['FLASK_CONF']
 # except RuntimeError:
-#     pc = getConfig()
-pc = getConfig()
+#     pc = getconfig.getConfig()
+
+# main() program is supposed to have get CONFIG ready when this model is imported.
+pc = getconfig.getConfig()
 
 logger.debug("pc= %s" % pc)
 auth = HTTPBasicAuth()
@@ -36,7 +38,6 @@ auth = HTTPBasicAuth()
 def init_conf_clas():
     global pc
 
-    #from .pnsconfig import pnsconfig as pc
     from ..dataset.classes import Classes
 
     # effective group of current process

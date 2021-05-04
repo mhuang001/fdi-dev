@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-import asyncio
-import aiohttp
+
 from multiprocessing import Process, Pool, TimeoutError
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.dataset import ArrayDataset, GenericDataset
@@ -9,13 +8,16 @@ from fdi.dataset.metadata import NumericParameter
 from fdi.dataset.product import Product
 from fdi.dataset.serializable import serialize
 from fdi.dataset.odict import ODict
-from fdi.pns import pns_server
-from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.options import opt
 from fdi.utils.getconfig import getConfig
+
+
 from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.dataset.classes import Classes
 
+import asyncio
+import aiohttp
+import pytest
 import sys
 import base64
 from urllib.request import pathname2url
@@ -31,6 +33,15 @@ from collections.abc import Mapping
 from .pycontext import fdi
 
 Classes.updateMapping()
+
+
+@pytest.fixture(scope='module')
+def importserver():
+    """ Prepare getconfig.CONFIG then import pns_server.
+
+    """
+    from fdi.pns import pns_server
+    return pns_server
 
 
 def setuplogging():
@@ -54,7 +65,7 @@ logger = logging.getLogger(__name__)
 # by ~/.config/pnslocal.py, which is also used by the local test server
 # run by scrupt startserver.
 
-pc.update(getConfig())
+pc = getConfig()
 logger.setLevel(pc['logginglevel'])
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
@@ -70,15 +81,38 @@ if 0:
         return smtplib.SMTP("smtp.gmail.com", 587, timeout=5)
 
 
-testname = 'SVOM'
-aburl = 'http://' + pc['node']['host'] + ':' + \
-    str(pc['node']['port']) + pc['baseurl']
+def checkserver(aburl):
+    """ make sure the server is running when tests start
+    """
+    global testpns
+    # check if data already exists
+    try:
+        o = getJsonObj(aburl + '/')
+    except Exception:
+        o = 1
+    assert o is not None, 'Cannot connect to the server' +\
+        'please start the server with script startserver.'
 
-up = bytes((pc['node']['username'] + ':' +
-            pc['node']['password']).encode('ascii'))
-code = base64.b64encode(up).decode("ascii")
-commonheaders.update({'Authorization': 'Basic %s' % (code)})
-del up, code
+    logger.debug('initial server response %s' % (str(o)[:100] + '...'))
+    # initialize test data.
+
+
+@pytest.fixture
+def setup(pc):
+    global commonheaders
+    testname = 'SVOM'
+    aburl = 'http://' + pc['node']['host'] + ':' + \
+        str(pc['node']['port']) + pc['baseurl']
+    checkserver(aburl)
+    up = bytes((pc['node']['username'] + ':' +
+                pc['node']['password']).encode('ascii'))
+    code = base64.b64encode(up).decode("ascii")
+    headers = copy.copy(commonheaders)
+    headers.update({'Authorization': 'Basic %s' % (code)})
+    del up, code
+    yield aburl, headers
+    del aburl, headers
+
 
 # last timestamp/lastUpdate
 lupd = 0
@@ -96,22 +130,6 @@ if 0:
     sys.exit()
 
 
-def checkserver():
-    """ make sure the server is running when tests start
-    """
-    global testpns
-    # check if data already exists
-    try:
-        o = getJsonObj(aburl + '/')
-    except Exception:
-        o = 1
-    assert o is not None, 'Cannot connect to the server' +\
-        'please start the server with script startserver.'
-
-    logger.debug('initial server response %s' % (str(o)[:100] + '...'))
-    # initialize test data.
-
-
 def issane(o):
     """ basic check on return """
     global lupd
@@ -127,11 +145,12 @@ def check0result(result, msg):
     assert msg == '' or not isinstance(msg, (str, bytes)), msg
 
 
-def test_getpnsconfig():
+@pytest.fixture
+def getpnsconfig(setup):
     ''' gets and compares pnsconfig remote and local
     '''
     logger.debug('get pnsconfig')
-    checkserver()
+    aburl, headers = setup
     o = getJsonObj(aburl + '/pnsconfig', debug=False)
     issane(o)
     r = o['result']
@@ -140,7 +159,7 @@ def test_getpnsconfig():
     return r
 
 
-def checkContents(cmd, filename):
+def checkContents(cmd, filename, aburl, headers):
     """ checks a GET commands return matches contents of a file.
     """
     o = getJsonObj(aburl + cmd)
@@ -150,7 +169,7 @@ def checkContents(cmd, filename):
     assert result == o['result'], o['message']
 
 
-def test_serverinitPTS():
+def test_serverinitPTS(importserver):
     """ server unit test for put init. 
 
     this runs the runPTS script, and is in conflict with put testinit, as this will condition the server for running the PTS, not suitable for running other tests.
@@ -159,83 +178,87 @@ def test_serverinitPTS():
     check0result(ret, sta)
 
 
-def test_putinit():
+def test_putinit(puttestinit):
     """ calls the default pnsconfig['scripts']['init'] script.
 
     this runs the runPTS script, and is in conflict with put testinit, as this will condition the server for running the PTS, not suitable for running other tests.
     """
 
+    aburl, headers = puttestinit
     d = {'timeout': 5}
     o = putJsonObj(aburl +
                    '/init',
                    d,
-                   headers=commonheaders)
+                   headers=headers)
     issane(o)
     check0result(o['result'], o['message'])
 
 # this will condition the server for testing
 
 
-def test_servertestinit():
+def test_servertestinit(importserver):
     """ server unit test for put testinit """
     ret, sta = pns_server.testinit(None)
     check0result(ret, sta)
 
 
 # this will condition the server for testing
-def test_puttestinit():
+@pytest.fixture
+def puttestinit(setup):
     """ Prepares for the rest of the tests.  Renames the 'init' 'config' 'run' 'clean' scripts to "*.save" and points it to the '.ori' scripts.
     """
 
-    checkserver()
+    aburl, headers = setup
     d = {'timeout': 5}
     o = putJsonObj(aburl +
                    '/testinit',
                    d,
-                   headers=commonheaders)
+                   headers=headers)
     issane(o)
     check0result(o['result'], o['message'])
+    yield aburl, headers
 
 
-def test_getinit():
+def test_getinit(setup):
     ''' compare. server side initPTS contens with the local  default copy
     '''
     logger.debug('get initPTS')
     c = 'init'
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
     fn = pkg_resources.resource_filename("fdi.pns.resources", n)
-    checkContents(cmd='/' + c, filename=fn + '.ori')
+    checkContents('/' + c, fn + '.ori', *setup)
 
 
-def test_getrun():
+def test_getrun(setup):
     ''' compare. server side run contens with the local default copy
     '''
     logger.debug('get run')
     c = 'run'
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
     fn = pkg_resources.resource_filename("fdi.pns.resources", n)
-    checkContents(cmd='/' + c, filename=fn + '.ori')
+    checkContents('/' + c, fn + '.ori', *setup)
 
 
-def test_putconfigpns():
+def test_putconfigpns(puttestinit, getpnsconfig):
     """ send signatured pnsconfig and check.
     this function is useless for a stateless server
     """
-    t = test_getpnsconfig()
+    aburl, headers = puttestinit
+    t = getpnsconfig
     t['testing'] = 'yes'
     d = {'timeout': 5, 'input': t}
     # print(nodetestinput)
     o = putJsonObj(aburl +
                    '/pnsconf',
                    d,
-                   headers=commonheaders)
+                   headers=headers)
     # put it back not to infere other tests
     del t['testing']
     d = {'timeout': 5, 'input': t}
     p = putJsonObj(aburl +
                    '/pnsconf',
                    d,
-                   headers=commonheaders)
+                   headers=headers)
 
     issane(o)
     assert o['result']['testing'] == 'yes', o['message']
@@ -278,18 +301,19 @@ def checkpostresult(o, nodetestinput):
     assert p[dname] == dv
 
 
-def test_post():
+def test_post(setup):
     ''' send a set of data to the server and get back a product with
     properties, parameters, and dataset containing those in the input
     '''
     logger.debug('POST testpipeline node server')
 
+    aburl, headers = setup
     nodetestinput = makeposttestdata()
     # print(nodetestinput)
     o = postJsonObj(aburl +
                     '/testcalc',
                     nodetestinput,
-                    headers=commonheaders)
+                    headers=headers)
     issane(o)
     checkpostresult(o, nodetestinput)
 
@@ -318,7 +342,7 @@ def checkrunresult(p, msg, nodetestinput):
     assert p['theAnswer'].data[:len(answer)] == answer
 
 
-def test_servertestrun():
+def test_servertestrun(importserver):
     ''' send a product that has a name string as its data
     to the server "testrun" routine locally installed with this
     test, and get back a product with
@@ -339,14 +363,13 @@ def test_servertestrun():
     checkrunresult(o, msg, nodetestinput)
 
 
-def test_testrun():
+def test_testrun(puttestinit):
     ''' send a product that has a name string as its data
     to the server and get back a product with
     a string 'hello, $name!' as its data
     '''
     logger.debug('POST test for pipeline node server: hello')
-
-    test_puttestinit()
+    aburl, headers = puttestinit
 
     x = makeruntestdata()
     # construct the nodetestinput to the node
@@ -356,17 +379,18 @@ def test_testrun():
     o = postJsonObj(aburl +
                     '/testrun',
                     nodetestinput,
-                    headers=commonheaders)
+                    headers=headers)
     issane(o)
     checkrunresult(o['result'], o['message'], nodetestinput)
 
 
-def test_deleteclean():
+def test_deleteclean(puttestinit):
     ''' make input and output dirs and see if DELETE removes them.
     '''
     logger.debug('delete cleanPTS')
+    aburl, headers = puttestinit
     # make sure input and output dirs are made
-    test_testrun()
+    test_testrun(puttestinit)
     o = getJsonObj(aburl + '/input')
     issane(o)
     assert o['result'] is not None
@@ -376,7 +400,7 @@ def test_deleteclean():
 
     url = aburl + '/clean'
     try:
-        r = requests.delete(url, headers=commonheaders, timeout=15)
+        r = requests.delete(url, headers=headers, timeout=15)
         stri = r.text
     except Exception as e:
         logger.error("Give up DELETE " + url + ' ' + str(e))
@@ -392,23 +416,24 @@ def test_deleteclean():
     assert o['result'] is None
 
 
-def test_mirror():
+def test_mirror(setup):
     ''' send a set of data to the server and get back the same.
     '''
     logger.debug('POST testpipeline node server')
+    aburl, headers = setup
     nodetestinput = makeposttestdata()
     # print(nodetestinput)
     o = postJsonObj(aburl +
                     '/echo',
                     nodetestinput,
-                    headers=commonheaders)
+                    headers=headers)
     # print(o)
     issane(o)
     r = deepcmp(o['result'], nodetestinput)
     assert r is None, r
 
 
-def test_serversleep():
+def test_serversleep(importserver):
     """
     """
     s = '1.5'
@@ -429,16 +454,17 @@ def test_serversleep():
     print('dt=%f re=%s state=%s' % (d, str(re), str(st)))
 
 
-def test_sleep():
+def test_sleep(setup):
     """
     """
+    aburl, headers = setup
     s = '1.7'
     tout = 2
     now = time.time()
     o = postJsonObj(aburl +
                     '/sleep/' + s,
                     {'timeout': tout},
-                    headers=commonheaders)
+                    headers=headers)
     d = time.time() - now - float(s)
     # print(o)
     issane(o)
@@ -452,7 +478,7 @@ def test_sleep():
     o = postJsonObj(aburl +
                     '/sleep/' + s,
                     {'timeout': tout},
-                    headers=commonheaders)
+                    headers=headers)
     d = time.time() - now - tout
     # print(o)
     issane(o)
@@ -471,7 +497,7 @@ def info(title):
     print(time.time())
 
 
-def nap(t, d):
+def nap(t, d, aburl, headers):
     info(t)
     time.sleep(d)
     s = str(t)
@@ -479,13 +505,13 @@ def nap(t, d):
     o = postJsonObj(aburl +
                     '/sleep/' + s,
                     {'timeout': tout},
-                    headers=commonheaders
+                    headers=headers
                     )
     # print('nap ' + str(time.time()) + ' ' + str(s) + ' ' + str(o)
     return o
 
 
-async def napa(t, d):
+async def napa(t, d, aburl, headers):
     # info(t)
     asyncio.sleep(d)
     s = str(t)
@@ -496,7 +522,7 @@ async def napa(t, d):
         async with session.post(aburl +
                                 '/sleep/' + s,
                                 data=js,
-                                headers=commonheaders
+                                headers=headers
                                 ) as resp:
             # print(resp.status)
             stri = await resp.text()
@@ -505,27 +531,28 @@ async def napa(t, d):
     return o
 
 
-def test_lock():
+def test_lock(setup):
     """ when a pns is busy with any commands that involves executing in the $pnshome dir the execution is locked system-wide with a lock-file .lock. Any attempts to execute a shell command when the lock is in effect will get a 409.
     """
 
     tm = 3
     if 0:
         with Pool(processes=4) as pool:
-            res = pool.starmap(nap, [(tm, 0), (0.5, 0.5)])
+            res = pool.starmap(nap, [(tm, 0, aburl, headers),
+                                     (0.5, 0.5, *setup)])
     if 0:
         # does not work
         import threading
         try:
-            threading.Thread(target=nap(tm, 0))
-            threading.Thread(target=nap(0.5, 0.5))
+            threading.Thread(target=nap(tm, 0, aburl, headers))
+            threading.Thread(target=nap(0.5, 0.5, *setup))
         except Exception as e:
             print("Error: unable to start thread " + str(e))
         time.sleep(tm + 2)
     if 1:
         loop = asyncio.get_event_loop()
-        tasks = [asyncio.ensure_future(napa(tm, 0)),
-                 asyncio.ensure_future(napa(0.5, 0.5))]
+        tasks = [asyncio.ensure_future(napa(tm, 0, *setup)),
+                 asyncio.ensure_future(napa(0.5, 0.5, *setup))]
         taskres = loop.run_until_complete(asyncio.wait(tasks))
         loop.close()
         res = [f.result() for f in [x for x in taskres][0]]
@@ -574,8 +601,8 @@ if __name__ == '__main__':
         # test_lock()
         # asyncio.AbstractEventLoop.set_debug()
         loop = asyncio.get_event_loop()
-        tasks = [asyncio.ensure_future(napa(5, 0)),
-                 asyncio.ensure_future(napa(0.5, 0.5))]
+        tasks = [asyncio.ensure_future(napa(5, 0, aburl, headers)),
+                 asyncio.ensure_future(napa(0.5, 0.5, aburl, headers))]
         res = loop.run_until_complete(asyncio.wait(tasks))
         loop.close()
         print(res)
@@ -601,5 +628,3 @@ if __name__ == '__main__':
         test_vvpp()
 
     print('test successful ' + str(time.time() - now))
-
-    # pdb.set_trace()

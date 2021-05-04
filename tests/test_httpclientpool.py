@@ -9,7 +9,6 @@ from fdi.pal.productstorage import ProductStorage
 from fdi.pal.query import MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.pal.httpclientpool import HttpClientPool
-from fdi.pns.pnsconfig import pnsconfig as pcc
 from fdi.pns.fdi_requests import *
 from fdi.utils.getconfig import getConfig
 from fdi.utils.common import fullname
@@ -31,7 +30,6 @@ def setuplogging():
 logger = logging.getLogger()
 
 
-pcc.update(getConfig())
 logger.setLevel(logging.INFO)
 setuplogging()
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))

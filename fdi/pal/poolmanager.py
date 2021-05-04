@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from ..pns.pnsconfig import pnsconfig as pc
 from ..utils.getconfig import getConfig
 from ..utils.common import lls
 from .urn import parse_poolurl
@@ -16,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-pc.update(getConfig())
+pc = getConfig()
 
 DEFAULT_MEM_POOL = 'defaultmem'
 # localpool

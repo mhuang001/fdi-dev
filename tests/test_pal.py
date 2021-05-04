@@ -1,4 +1,4 @@
-from fdi.pns.pnsconfig import pnsconfig as pc
+
 from fdi.dataset.dataset import ArrayDataset
 import itertools
 import random
@@ -51,7 +51,6 @@ else:
     PY3 = False
 
 Classes.updateMapping()
-pc.update(getConfig())
 
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
@@ -617,7 +616,7 @@ def test_ProdStorage_func_http():
     check_ps_func_for_pool(thepoolname, thepoolurl)
 
 
-def test_ProdStorage_func_server():
+def test_ProdStorage_func_server(pc):
     # httppool , the http server-side pool
     thepoolname = 'testserverpool'
     thepoolurl = 'server://'+pc['server_poolpath'] + \

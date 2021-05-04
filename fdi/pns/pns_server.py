@@ -28,14 +28,16 @@ import logging
 # logdict['handlers']['file']['filename'] = '/tmp/server.log'
 
 
-from .server_skeleton import init_conf_clas, makepublicAPI, checkpath, app, pc
+from .server_skeleton import init_conf_clas, makepublicAPI, checkpath, app
+from ..utils import getconfig
+pc = getconfig.getConfig()
 
 logger = logging.getLogger(__name__)
 
 
 @app.before_first_request
 def init_pns_module():
-    global Classes
+    global Classes, pc
 
     Classes = init_conf_clas()
     from ..dataset.classes import Classes
@@ -75,6 +77,7 @@ def initPTS(d=None):
     """
 
     logger.debug(str(d))
+    checkpath.cache_clear()
 
     pnsh = pc['paths']['pnshome']
     p = checkpath(pnsh, pc['serveruser'])
@@ -102,6 +105,8 @@ def initPTS(d=None):
 def testinit(d=None):
     """     Renames the 'init' 'config' 'run' 'clean' scripts to '.save' and points it to the '.ori' scripts.
     """
+
+    checkpath.cache_clear()
 
     pnsh = pc['paths']['pnshome']
     p = checkpath(pnsh, pc['serveruser'])
@@ -533,6 +538,7 @@ def setup(cmd, ops=''):
         logger.debug('busy')
         abort(409, 'pns is busy')
     with lock:
+        checkpath.cache_clear()
         if cmd == 'init':
             try:
                 result, msg = initPTS(d)

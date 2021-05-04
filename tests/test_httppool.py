@@ -36,9 +36,6 @@ import aiohttp
 from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.utils.options import opt
 
-# default configuration is provided. Copy pnsconfig.py to ~/local.py
-from fdi.pns.pnsconfig import pnsconfig as pc
-
 
 def setuplogging():
     import logging
@@ -56,8 +53,6 @@ def setuplogging():
 logging = setuplogging()
 logger = logging.getLogger()
 
-
-pc.update(getConfig())
 logger.setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 

@@ -83,14 +83,14 @@ WORKDIR ${FDI_DIR}
 RUN echo $PWD =======; ls
 RUN git clone --depth 10 -b develop file:///home/mh/S/fdi fdi
 WORKDIR ${FDI_DIR}/fdi/
-RUN python3 -m pip install pip -U \
-&& make install EXT="[DEV,SERV]" I="--user" \
-&& make test
+#RUN python3 -m pip install pip -U \
+#RUN make install EXT="[DEV,SERV]" I="--user" \
+#&& make test
 
 # If installing fdi package
 # no [DEV] needed
 #RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[SERV] --user
-#RUN python3 -m pip install fdi
+RUN python3 -m pip install fdi
 
 WORKDIR ${UHOME}
 

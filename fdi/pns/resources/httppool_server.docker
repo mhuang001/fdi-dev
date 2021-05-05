@@ -7,7 +7,7 @@ LABEL Pool Server
 RUN apt-get update \
 && apt-get install -y apt-utils inetutils-ping curl net-tools sudo \
 && apt-get install -y nano \
-&& apt-get install -y git python python3-pip apache2 libapache2-mod-wsgi-py3
+&& apt-get install -y git python3-pip apache2 libapache2-mod-wsgi-py3
 
 # rebuild mark
 ARG re=rebuild
@@ -81,17 +81,18 @@ ARG fd=rebuild
 WORKDIR ${FDI_DIR}
 #RUN git clone --depth 10 -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git
 # from local repo
-RUN echo $PWD =======; ls
-#RUN git clone --depth 10 -b develop file:///home/mh/S/fdi fdi
-#WORKDIR ${FDI_DIR}/fdi/
+COPY ./ tmp/
+RUN git clone --depth 20 -b develop  file://$PWD/tmp fdi \
+&& rm -rf tmp
+WORKDIR ${FDI_DIR}/fdi/
 #RUN python3 -m pip install pip -U \
-#RUN make install EXT="[DEV,SERV]" I="--user" \
-#&& make test
+RUN make install EXT="[DEV,SERV]" I="--user" \
+&& make test
 
 # If installing fdi package
 # no [DEV] needed
 #RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[SERV] --user
-RUN python3 -m pip install fdi[SERV]
+#RUN python3 -m pip install fdi[SERV]
 
 WORKDIR ${UHOME}
 

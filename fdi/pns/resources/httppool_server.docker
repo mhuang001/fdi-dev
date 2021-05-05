@@ -81,13 +81,13 @@ ARG fd=rebuild
 WORKDIR ${FDI_DIR}
 #RUN git clone --depth 10 -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git
 # from local repo
-COPY ./ tmp/
-RUN git clone --depth 20 -b develop  file://$PWD/tmp fdi \
-&& rm -rf tmp
+COPY --chown=${USR}:${USR} ./ tmp/
+RUN git clone --depth 20 -b develop  file://$PWD/tmp fdi
 WORKDIR ${FDI_DIR}/fdi/
 #RUN python3 -m pip install pip -U \
 RUN make install EXT="[DEV,SERV]" I="--user" \
-&& make test
+&& make test \
+&& rm -rf ../tmp
 
 # If installing fdi package
 # no [DEV] needed

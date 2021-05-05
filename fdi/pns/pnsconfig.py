@@ -84,12 +84,13 @@ elif conf == 'external':
     pnsconfig['ptsuser'] = 'pns'
     # on pns server
     home = '/home'
-
+else:
+    pass
 pnsconfig['auth_user'] = pnsconfig['node']['username']
 pnsconfig['auth_pass'] = pnsconfig['node']['password']
+# It is best not use this 'httphost' in apps, and use url_of through getConfig
 pnsconfig['httphost'] = 'http://' + \
     pnsconfig['node']['host']+':'+str(pnsconfig['node']['port'])
-pnsconfig['poolprefix'] = pnsconfig['httphost']
 pnsconfig['mysql'] = {'host': 'ssa-mysql', 'port': 3306,
                       'user': 'root',  'password': '123456',
                       'database': 'users'}

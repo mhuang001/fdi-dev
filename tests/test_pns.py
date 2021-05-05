@@ -81,39 +81,6 @@ if 0:
         return smtplib.SMTP("smtp.gmail.com", 587, timeout=5)
 
 
-def checkserver(aburl):
-    """ make sure the server is running when tests start
-    """
-    global testpns
-    # check if data already exists
-    try:
-        o = getJsonObj(aburl + '/')
-    except Exception:
-        o = 1
-    assert o is not None, 'Cannot connect to the server' +\
-        'please start the server with script startserver.'
-
-    logger.debug('initial server response %s' % (str(o)[:100] + '...'))
-    # initialize test data.
-
-
-@pytest.fixture
-def setup(pc):
-    global commonheaders
-    testname = 'SVOM'
-    aburl = 'http://' + pc['node']['host'] + ':' + \
-        str(pc['node']['port']) + pc['baseurl']
-    checkserver(aburl)
-    up = bytes((pc['node']['username'] + ':' +
-                pc['node']['password']).encode('ascii'))
-    code = base64.b64encode(up).decode("ascii")
-    headers = copy.copy(commonheaders)
-    headers.update({'Authorization': 'Basic %s' % (code)})
-    del up, code
-    yield aburl, headers
-    del aburl, headers
-
-
 # last timestamp/lastUpdate
 lupd = 0
 
@@ -151,7 +118,7 @@ def getpnsconfig(setup):
     '''
     logger.debug('get pnsconfig')
     aburl, headers = setup
-    o = getJsonObj(aburl + '/pnsconfig', debug=False)
+    o = getJsonObj(aburl + '/' + 'pnsconfig', debug=False)
     issane(o)
     r = o['result']
     # , deepcmp(r['scripts'], pc['scripts'])
@@ -162,7 +129,7 @@ def getpnsconfig(setup):
 def checkContents(cmd, filename, aburl, headers):
     """ checks a GET commands return matches contents of a file.
     """
-    o = getJsonObj(aburl + cmd)
+    o = getJsonObj(aburl + '/' + cmd)
     issane(o)
     with open(filename, 'r') as f:
         result = f.read()
@@ -226,7 +193,7 @@ def test_getinit(setup):
     c = 'init'
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
     fn = pkg_resources.resource_filename("fdi.pns.resources", n)
-    checkContents('/' + c, fn + '.ori', *setup)
+    checkContents(c, fn + '.ori', *setup)
 
 
 def test_getrun(setup):
@@ -236,7 +203,7 @@ def test_getrun(setup):
     c = 'run'
     n = pc['scripts'][c][0].rsplit('/', maxsplit=1)[1]
     fn = pkg_resources.resource_filename("fdi.pns.resources", n)
-    checkContents('/' + c, fn + '.ori', *setup)
+    checkContents(c, fn + '.ori', *setup)
 
 
 def test_putconfigpns(puttestinit, getpnsconfig):

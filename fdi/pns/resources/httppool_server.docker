@@ -15,6 +15,7 @@ ARG re=rebuild
 # setup env
 ARG IP_ADDR=10.0.10.114
 ARG PORT=9888
+# can be modified at run time
 ENV SERVER_IP_ADDR=${IP_ADDR}
 ENV SERVER_PORT=${PORT}
 
@@ -106,9 +107,3 @@ date > build
 ENTRYPOINT  ["/home/apache/httppool_server_entrypoint.sh"]
 #, "2>&1", "|", "tee", "-a", "/home/apache/log"]
 
-#CMD /home/apache/httppool_server_entrypoint.sh 2>&1 | tee -a /home/apache/log; \
-#service apache2 start && echo started
-#read 9; \
-#service apache2 stop
-
-#trap "echo TRAPed signal" HUP INT QUIT TERM

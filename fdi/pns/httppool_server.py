@@ -109,17 +109,36 @@ def load_all_pools():
         logger.info("Registered pool: %s in %s" % (poolname, poolpath))
 
 
-# Check database
-# check_and_create_fdi_record_table()
+def get_prod_count(prod_type, pool_id):
+    """ Return the total count for the given product type and pool_id in the directory.
+
+    'prod_type': 'clsssname',
+    'pool_id': 'pool name'
+
+    """
+
+    logger.debug('### method %s prod_type %s poolID %s***' %
+                 (request.method, prod_type, pool_id))
+    res = 0
+    nm = []
+    path = os.path.join(poolpath, pool_id)
+    if os.path.exists(path):
+        for i in os.listdir(path):
+            if i[-1].isnumeric() and prod_type in i:
+                res = res+1
+                nm.append(i)
+    s = str(nm)
+    logger.debug('found '+s)
+    return str(res), 'Counting %s files OK'
 
 
-@ app.route(pc['baseurl'], methods=['GET'])
-@ app.route(pc['baseurl']+'/', methods=['GET'])
+@ app.route(pc['baseurl'], methods=['GET', 'POST'])
+@ app.route(pc['baseurl']+'/', methods=['GET', 'POST'])
 @ app.route(pc['baseurl']+'/pools', methods=['GET'])
 def get_pools():
     ts = time.time()
     path = poolpath
-    logger.debug('listing all from ' + path)
+    logger.debug('Listing all directories from ' + path)
 
     result = serialize(getallpools(path))
     msg = 'pools found.'
@@ -161,29 +180,6 @@ def getinfo(cmd):
 # @ app.route(pc['baseurl'] + '/sn' + '/<string:prod_type>' + '/<string:pool_id>', methods=['GET'])
 
 
-def get_prod_count(prod_type, pool_id):
-    """ Return the total count for the given product type and pool_id in the directory.
-
-    'prod_type': 'clsssname',
-    'pool_id': 'pool name'
-
-    """
-
-    logger.debug('### method %s prod_type %s poolID %s***' %
-                 (request.method, prod_type, pool_id))
-    res = 0
-    nm = []
-    path = os.path.join(poolpath, pool_id)
-    if os.path.exists(path):
-        for i in os.listdir(path):
-            if i[-1].isnumeric() and prod_type in i:
-                res = res+1
-                nm.append(i)
-    s = str(nm)
-    logger.debug('found '+s)
-    return str(res), 'Counting %s files OK'
-
-
 @ app.route(pc['baseurl'] + '/<path:pool>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @ auth.login_required
 def httppool(pool):
@@ -207,6 +203,9 @@ def httppool(pool):
     """
     username = request.authorization.username
     paths = pool.split('/')
+    if 0:
+        import pdb
+        pdb.set_trace()
     if paths[-1] == '':
         del paths[-1]
 
@@ -215,9 +214,6 @@ def httppool(pool):
     # do not deserialize if set True. save directly to disk
     serial_through = True
     logger.debug('*** method %s paths %s ***' % (request.method, paths))
-    if 0 and paths[0] == 'testhttppool':
-        import pdb
-        pdb.set_trace()
 
     if request.method == 'GET':
         # TODO modify client loading pool , prefer use load_HKdata rather than load_single_HKdata, because this will generate enormal sql transaction

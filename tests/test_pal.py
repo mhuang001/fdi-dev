@@ -25,7 +25,6 @@ from fdi.dataset.metadata import MetaData, Parameter
 from fdi.dataset.finetime import FineTime1
 from fdi.dataset.testproducts import TP
 from fdi.utils.checkjson import checkjson
-from fdi.utils.getconfig import getConfig
 from fdi.pns.fdi_requests import save_to_server, read_from_server, delete_from_server
 
 from requests.auth import HTTPBasicAuth
@@ -337,7 +336,7 @@ def test_PoolManager():
     assert PoolManager.remove('foo') == 1
 
 
-def checkdbcount(expected_cnt, poolurl, prodname, currentSN=-1):
+def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args):
     """ count files in pool and entries in class db.
 
     expected_cnt, currentSN: expected number of prods and currentSN in pool for products named prodname
@@ -371,9 +370,7 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN=-1):
         # for this class there are  how many prods
         assert len(mpool['classes'][prodname]['sn']) == expected_cnt
     elif scheme in ['http', 'https']:
-        user = pc['auth_user']
-        password = pc['auth_pass']
-        auth = HTTPBasicAuth(user, password)
+        auth = HTTPBasicAuth(*usrpsw)
         cpath = poolname + '/' + 'count/' + prodname
         api_baseurl = scheme + '://' + place + poolpath + '/'
         url = api_baseurl + cpath
@@ -405,7 +402,7 @@ def test_ProductRef():
     # A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
     v = ProductRef(prd)
     # only one prod in memory pool
-    checkdbcount(1, 'mem:///'+DEFAULT_MEM_POOL, a4, 0)
+    checkdbcount(1, 'mem:///'+DEFAULT_MEM_POOL, a4, 0, '')
     assert v.urn == 'urn:'+DEFAULT_MEM_POOL+':' + a4 + ':' + str(0)
     assert v.meta is None
     assert v.product == prd
@@ -501,7 +498,7 @@ def test_ProductStorage_init():
         pass  # assert False, 'exception expected'
 
 
-def check_ps_func_for_pool(thepoolname, thepoolurl):
+def check_ps_func_for_pool(thepoolname, thepoolurl, *args):
     ps = ProductStorage(poolurl=thepoolurl)
     p1 = ps.getPools()[0]
     # get the pool object
@@ -514,7 +511,7 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     ref = ps.save(x)
     # ps has 1 prod
     assert ref.urn == 'urn:' + thepoolname + ':' + pcq + ':0'
-    checkdbcount(1, thepoolurl, pcq, 0)
+    checkdbcount(1, thepoolurl, pcq, 0, *args)
 
     # save more
     # one by one
@@ -526,8 +523,8 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
         x2.append(tmp)
         ref2.append(ps.save(tmp, tag='t' + str(d)))
 
-    checkdbcount(q, thepoolurl, pcq, q - 1)
-    checkdbcount(1, thepoolurl, fullname(MapContext), 0)
+    checkdbcount(q, thepoolurl, pcq, q - 1, *args)
+    checkdbcount(1, thepoolurl, fullname(MapContext), 0, *args)
     # save many in one go
     m, x3 = 2, []
     n = q + m
@@ -538,8 +535,8 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     x2 += x3  # there are n prods in x2
     # check refs
     assert len(ref2) == n
-    checkdbcount(n, thepoolurl, pcq, n)
-    checkdbcount(1, thepoolurl, fullname(MapContext), 0)
+    checkdbcount(n, thepoolurl, pcq, n, *args)
+    checkdbcount(1, thepoolurl, fullname(MapContext), 0, *args)
 
     # tags
     ts = ps.getAllTags()
@@ -552,8 +549,8 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     assert u[0] == ref2[q].urn
 
     # access resource
-    checkdbcount(n, thepoolurl, pcq, n)
-    checkdbcount(1, thepoolurl, fullname(MapContext), 0)
+    checkdbcount(n, thepoolurl, pcq, n, *args)
+    checkdbcount(1, thepoolurl, fullname(MapContext), 0, *args)
     # get ref from urn
     pref = ps.load(ref2[n - 2].urn)
     assert pref == ref2[n - 2]
@@ -569,12 +566,12 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     # DB shows less in record
     # current serial number not changed
     # number of items decreased by 1
-    checkdbcount(n - 1, thepoolurl, pcq, n)
-    checkdbcount(1, thepoolurl, fullname(MapContext), 0)
+    checkdbcount(n - 1, thepoolurl, pcq, n, *args)
+    checkdbcount(1, thepoolurl, fullname(MapContext), 0, *args)
 
     # clean up a pool
     ps.wipePool()
-    checkdbcount(0, thepoolurl, pcq)
+    checkdbcount(0, thepoolurl, pcq, -1, *args)
     assert ps.getPool(thepoolname).isEmpty()
 
 
@@ -584,7 +581,7 @@ def test_ProdStorage_func_local_mem():
     thepoolpath = '/tmp'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
     cleanup(thepoolurl, thepoolname)
-    check_ps_func_for_pool(thepoolname, thepoolurl)
+    check_ps_func_for_pool(thepoolname, thepoolurl, None)
 
     # mempool
     thepoolname = DEFAULT_MEM_POOL
@@ -592,13 +589,15 @@ def test_ProdStorage_func_local_mem():
     thepoolurl = 'mem://' + thepoolpath + thepoolname
 
     cleanup(thepoolurl, thepoolname)
-    check_ps_func_for_pool(thepoolname, thepoolurl)
+    check_ps_func_for_pool(thepoolname, thepoolurl, None)
 
 
-def test_ProdStorage_func_http():
+def test_ProdStorage_func_http(setup, userpass):
+
+    aburl, hdr = setup
     # httpclientpool
     thepoolname = 'testhttppool'
-    thepoolurl = pc['httphost'] + pc['baseurl'] + '/' + thepoolname
+    thepoolurl = aburl + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
     # First test registering with local pstor will also register on server
@@ -613,17 +612,16 @@ def test_ProdStorage_func_http():
     # not exist
     with pytest.raises(RuntimeError):
         assert pool.isEmpty()
-    check_ps_func_for_pool(thepoolname, thepoolurl)
+    check_ps_func_for_pool(thepoolname, thepoolurl, userpass)
 
 
-def test_ProdStorage_func_server(pc):
+def test_ProdStorage_func_server(local_pools_dir):
     # httppool , the http server-side pool
     thepoolname = 'testserverpool'
-    thepoolurl = 'server://'+pc['server_poolpath'] + \
-        pc['baseurl'] + '/' + thepoolname
+    thepoolurl = 'server://' + local_pools_dir + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
-    check_ps_func_for_pool(thepoolname, thepoolurl)
+    check_ps_func_for_pool(thepoolname, thepoolurl, None)
 
 
 def test_LocalPool():
@@ -877,14 +875,15 @@ def test_query_local_mem():
     doquery('mem://'+thepoolpath, 'file://'+thepoolpath)
 
 
-def test_query_http():
+def test_query_http(setup):
+
+    aburl, hdrs = setup
+    aburl = aburl.rstrip('/')
     cleanup()
     lpath = '/tmp'
-    thepoolpath = pc['node']['host']+':' + \
-        str(pc['node']['port']) + pc['baseurl']
-    doquery('http://'+thepoolpath, 'http://'+thepoolpath)
-    doquery('file://'+lpath, 'http://'+thepoolpath)
-    doquery('mem://'+lpath, 'http://'+thepoolpath)
+    doquery(aburl, aburl)
+    doquery('file://'+lpath, aburl)
+    doquery('mem://'+lpath, aburl)
 
 
 def test_RefContainer():

@@ -218,7 +218,7 @@ SERVER_NAME        =httppool_server
 PORT        =9884
 EXTPORT =$(PORT)
 IMAGE_NAME         =httppool_server:v2
-IP_ADDR     =172.17.0.9
+IP_ADDR     =10.0.10.114
 DOCKERFILE              =fdi/pns/resources/httppool_server.docker
 
 build_server:

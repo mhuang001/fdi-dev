@@ -18,6 +18,8 @@ ARG PORT=9888
 # can be modified at run time
 ENV SERVER_IP_ADDR=${IP_ADDR}
 ENV SERVER_PORT=${PORT}
+RUN update-alternatives --set python /usr/bin/python3.6 \
+&& update-alternatives --install /usr/bin/python python /usr/bin/python3.6 0
 
 # setup user
 ARG USR=apache

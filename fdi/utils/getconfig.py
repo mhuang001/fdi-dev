@@ -35,6 +35,7 @@ def getConfig(name=None, conf='pns'):
     name: if given the return is poolurl in ``poolurl_of`` or a poolurl constructed from <conf>config.
     conf: configuration ID. default 'pns', so the file is 'pnsconfig.py'.
     """
+
     # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
     from fdi.pns.pnsconfig import pnsconfig as config
     env = expanduser(expandvars('$HOME'))
@@ -55,7 +56,7 @@ def getConfig(name=None, conf='pns'):
             e) + '. Use default config in the package, such as fdi/pns/pnsconfig.py. Copy it to ~/.config/[package]local.py and make persistent customization there.')
 
     if name:
-        urlof = config['poolurl_of']
+        urlof = vars(c)['poolurl_of']
         if name in urlof:
             return urlof[name]
         else:

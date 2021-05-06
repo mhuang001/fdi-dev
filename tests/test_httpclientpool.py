@@ -120,6 +120,9 @@ def test_CRUD_product_by_client(setup, local_pools_dir):
     """Client http product storage READ, CREATE, DELETE products in remote
     """
     aburl, headers = setup
+    import pdb
+    pdb.set_trace()
+
     poolid = test_poolid
     poolurl = aburl + '/' + poolid
     pool = HttpClientPool(poolname=poolid, poolurl=poolurl)

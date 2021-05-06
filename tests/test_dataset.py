@@ -451,9 +451,6 @@ def test_datatypes():
     # assignment
     v.components = [0xaa, 1, 1e2]
     assert v.components == [0xaa, 1, 1e2]
-
-    import pdb
-    pdb.set_trace()
     h = hash(v)
     checkjson(v)
 

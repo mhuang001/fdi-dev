@@ -86,12 +86,12 @@ class ODict(UserDict, Serializable, DeepEqual):
         OD_toString_Nest -= 1
         return d + '>'
 
-    def __repr__(self):
-        """ returns string representation with details set according to debuglevel.
-        """
-        # return 'OD'+super().__repr__()
-        level = int(logger.getEffectiveLevel()/10) - 1
-        return self.toString(level=level)
+    # def __repr__(self):
+    #     """ returns string representation with details set according to debuglevel.
+    #     """
+    #     # return 'OD'+super().__repr__()
+    #     level = int(logger.getEffectiveLevel()/10) - 1
+    #     return self.toString(level=level)
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

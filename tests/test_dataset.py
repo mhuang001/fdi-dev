@@ -451,6 +451,10 @@ def test_datatypes():
     # assignment
     v.components = [0xaa, 1, 1e2]
     assert v.components == [0xaa, 1, 1e2]
+
+    import pdb
+    pdb.set_trace()
+    h = hash(v)
     checkjson(v)
 
     # Quaternion
@@ -460,6 +464,7 @@ def test_datatypes():
     a1 = -1
     v2 = Quaternion([a1, 1+0, 1-a1+0.3, 4.5])
     assert v == v2
+    h = hash(v)
     checkjson(v)
 
 
@@ -1316,6 +1321,8 @@ def do_ArrayDataset_func(atype):
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
         assert ts == out_ArrayDataset
+
+    h = hash(v)
 
     checkjson(x)
     checkgeneral(x)

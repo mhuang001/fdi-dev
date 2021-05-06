@@ -68,8 +68,8 @@ do chown -R ${USR}:${USR} $i; echo $i; done \
 
 # If install fdi repo, instead of package
 # make dir for fdi.
-ARG FDI_DIR=${UHOME}
-RUN mkdir -p ${FDI_DIR} && chown ${USR}:${USR} ${FDI_DIR}
+ENV PKGS_DIR=${UHOME}
+RUN mkdir -p ${PKGS_DIR} && chown ${USR}:${USR} ${PKGS_DIR}
 
 # Run as user
 USER ${USR}
@@ -78,12 +78,13 @@ USER ${USR}
 ARG fd=rebuild
 
 # If install fdi repo, instead of package
-WORKDIR ${FDI_DIR}
+WORKDIR ${PKGS_DIR}
 #RUN git clone --depth 10 -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git
 # from local repo
+ARG PKG=fdi
 COPY --chown=${USR}:${USR} ./ tmp/
-RUN git clone --depth 20 -b develop  file://$PWD/tmp fdi
-WORKDIR ${FDI_DIR}/fdi/
+RUN git clone --depth 20 -b develop  file://$PWD/tmp ${PKG}
+WORKDIR ${PKGS_DIR}/${PKG}/
 #RUN python3 -m pip install pip -U \
 RUN make install EXT="[DEV,SERV]" I="--user" \
 && make test \

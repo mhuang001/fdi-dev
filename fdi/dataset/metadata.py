@@ -2,6 +2,7 @@
 
 from ..utils.masked import masked
 from ..utils.common import grouper
+from ..utils.ydump import ydump
 from .serializable import Serializable
 from .datatypes import DataTypes, DataTypeNames, Vector, Vector2D, Quaternion
 from .odict import ODict
@@ -744,6 +745,10 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             e = DatasetEvent(source=so, target=ta, typ_=ty,
                              change=ch, cause=ca, rootCause=ro)
             self.fire(e)
+
+    def __repr__(self):
+
+        return ydump(self.__getstate__(), default_flow_style=True)
 
     def remove(self, name):
         """ add eventhandling """

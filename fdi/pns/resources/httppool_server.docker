@@ -18,8 +18,6 @@ ARG PORT=9888
 # can be modified at run time
 ENV SERVER_IP_ADDR=${IP_ADDR}
 ENV SERVER_PORT=${PORT}
-RUN update-alternatives --set python /usr/bin/python3.6 \
-&& update-alternatives --install /usr/bin/python python /usr/bin/python3.6 0
 
 # setup user
 ARG USR=apache
@@ -52,7 +50,7 @@ RUN mkdir -p ${PROJ_DIR}/data \
 #RUN echo WSGIRestrictEmbedded On >> /etc/apache2/apache2.conf
 
 # config software
-#RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 0
 
 # convinience aliases
 COPY fdi/pns/resources/profile .

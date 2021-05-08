@@ -12,7 +12,7 @@ logging.basicConfig(stream=sys.stdout,
                            ' -%(funcName)10s()] - %(message)s',
                     datefmt="%Y%m%d %H:%M:%S")
 logger = logging.getLogger()
-
+logger.setLevel(logging.DEBUG)
 
 # where user classes can be found
 sys.path.insert(0, os.path.dirname(__file__))

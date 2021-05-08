@@ -50,7 +50,8 @@ RUN mkdir -p ${PROJ_DIR}/data \
 #RUN echo WSGIRestrictEmbedded On >> /etc/apache2/apache2.conf
 
 # config software
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 0
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 0 \
+&& python3 -m pip install pip -U
 
 # convinience aliases
 COPY fdi/pns/resources/profile .
@@ -85,7 +86,6 @@ ARG PKG=fdi
 COPY --chown=${USR}:${USR} ./ tmp/
 RUN git clone --depth 20 -b develop  file://$PWD/tmp ${PKG}
 WORKDIR ${PKGS_DIR}/${PKG}/
-#RUN python3 -m pip install pip -U \
 RUN make install EXT="[DEV,SERV]" I="--user" \
 && make test \
 && rm -rf ../tmp

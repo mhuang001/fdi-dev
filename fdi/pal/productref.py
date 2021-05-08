@@ -311,10 +311,12 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
                 str([str(id(p)) + ' ' + p.__class__.__name__ +
                      '"' + p.description + '"'
                      for p in self.parents]) + '\n'
-            s += '# meta=' + \
-                self.getMeta().toString(level=level,
-                                        tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                                        **kwds)
+            m = self.getMeta()
+            ms = m.toString(level=level,
+                            tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                            **kwds) if m else ''
+            s += '# meta=' + ms
+
         else:
             s += ' Parents=' + str([id(p) for p in self.parents])
             s += ' meta= ' + 'None' if self.getMeta() is None else self.getMeta().toString(level=level,

@@ -35,11 +35,11 @@ logger.debug("pc= %s" % pc)
 auth = HTTPBasicAuth()
 
 
-def init_conf_clas():
+def init_conf_clas(pc0):
     global pc
 
     from ..dataset.classes import Classes
-
+    pc = pc0
     # effective group of current process
     uid, gid = getUidGid(pc['serveruser'])
     logger.info("Serveruser %s's uid %d and gid %d..." %

@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 def init_pns_module():
     global Classes, pc
 
-    Classes = init_conf_clas()
+    Classes = init_conf_clas(pc)
     from ..dataset.classes import Classes
 
     ptsuid, ptsgid = getUidGid(pc['ptsuser'])

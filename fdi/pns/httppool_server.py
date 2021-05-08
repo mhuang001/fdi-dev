@@ -60,7 +60,7 @@ def init_httppool_server():
     """ Init a global HTTP POOL """
     global pc, Classes, PM, BASEURL, basepath, poolpath, pylookup
 
-    Classes = init_conf_clas()
+    Classes = init_conf_clas(pc)
     lookup = ChainMap(Classes.mapping, globals(), vars(builtins))
 
     from ..pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL

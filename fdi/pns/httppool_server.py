@@ -84,6 +84,9 @@ def init_httppool_server():
 
 
 def getallpools(path):
+    """ Returns names of all pools in the given directory.
+
+    """
     alldirs = []
     allfilelist = os.listdir(path)
     for file in allfilelist:
@@ -163,7 +166,7 @@ def getinfo(cmd):
         p['auth_user'], p['auth_pass'] = '*', '*'
         result, msg = serialize(p), 'Getting configuration OK.'
     else:
-        allpools = get_pools()
+        allpools = getallpools(poolpath)
         if cmd in allpools:
             cls = load_single_HKdata([cmd, 'hk', 'classes'])
             result, msg = cls, 'Getting pool %s info OK'

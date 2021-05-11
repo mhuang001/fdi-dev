@@ -2073,6 +2073,7 @@ def test_History():
 
 def test_BaseProduct():
     """ """
+
     x = BaseProduct(description="This is my product example")
     # print(x.__dict__)
     # print(x.meta.toString())

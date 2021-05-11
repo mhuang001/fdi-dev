@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class MetaDataHolder(object):
     """ Object holding meta data. 
-    mh: object for compatibility with python2
+
     """
 
     def __init__(self, meta=None, **kwds):

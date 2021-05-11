@@ -443,6 +443,7 @@ def test_ProductRef():
     pr.addParent(b2)
     assert b1 in list(pr.parents)
     assert b2 in list(pr.parents)
+
     pr.removeParent(b1)
     assert b1 not in list(pr.parents)
     # access

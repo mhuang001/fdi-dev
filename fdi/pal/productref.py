@@ -26,6 +26,8 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
         If meta is given, it will be used instead of that from poolname.
         A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
         """
+
+        urnobj = None
         super(ProductRef, self).__init__(**kwds)
         if issubclass(urn.__class__, str):
             urnobj = Urn(urn)
@@ -38,7 +40,7 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
         else:
             urnobj = None
 
-        if product:
+        if product is not None:
             from .poolmanager import PoolManager, DEFAULT_MEM_POOL
             from . import productstorage
             pool = PoolManager.getPool(poolurl='mem:///' + DEFAULT_MEM_POOL)
@@ -228,7 +230,7 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
         :param parent: 
 
         """
-        if parent:
+        if parent is not None:
             self._parents.remove(parent)
 
     @property

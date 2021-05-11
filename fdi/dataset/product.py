@@ -7,6 +7,7 @@ from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.finetime import FineTime
 
 
+from fdi.dataset.attributable import addMetaDataProperty
 from fdi.dataset.readonlydict import ReadOnlyDict
 
 import copy
@@ -15,125 +16,6 @@ import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-
-class Product(BaseProduct):
-    """ Product class (level ALL) schema 1.4 inheriting ['BaseProduct'].
-
-Automatically generated from fdi/dataset/resources/Product.yml on 2021-04-28 14:20:36.064667.
-
-Description:
-Project level product
-
-    Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
-    """
-
-
-    def __init__(self,
-                 description = 'UNKNOWN',
-                 typ_ = 'Product',
-                 creator = 'UNKNOWN',
-                 creationDate = FineTime(0),
-                 rootCause = 'UNKNOWN',
-                 version = '0.8',
-                 FORMATV = '1.4.0.8',
-                 startDate = FineTime(0),
-                 endDate = FineTime(0),
-                 instrument = 'UNKNOWN',
-                 modelName = 'UNKNOWN',
-                 mission = '_AGS',
-                 **kwds):
-        """ Initializes instances with more metadata as attributes, set to default values.
-
-        Put description keyword argument here to allow e.g. BaseProduct("foo") and description='foo'
-        """
-        if 'metasToBeInstalled' in kwds:
-            # This class is being called probably from super() in a subclass
-            metasToBeInstalled = kwds['metasToBeInstalled']
-            del kwds['metasToBeInstalled']
-
-            # must be the first line to initiate meta and get description
-            super().__init__(
-                metasToBeInstalled=metasToBeInstalled, **kwds)
-            return
-        # this class is being called directly
-
-        # list of local variables.
-        metasToBeInstalled = copy.copy(locals())
-        for x in ('self', '__class__', 'kwds'):
-            metasToBeInstalled.pop(x)
-
-        global ProductInfo
-        self.zInfo = ProductInfo
-
-        #print('@1 zInfo', id(self.zInfo['metadata']), id(self), id(self.zInfo),
-        #      self.zInfo['metadata']['version'], list(metasToBeInstalled.keys()))
-
-        # must be the first line to initiate meta and get description
-        super().__init__(
-            metasToBeInstalled=metasToBeInstalled, **kwds)
-
-        super().installMetas(mtbi=metasToBeInstalled, prodInfo=ProductInfo)
-        #print(self.meta.keySet(), id(self.meta))
-
-
-    @property
-    def type(self): pass
-
-    @type.setter
-    def type(self, p): pass
-
-
-    @property
-    def startDate(self): pass
-
-    @startDate.setter
-    def startDate(self, p): pass
-
-
-    @property
-    def endDate(self): pass
-
-    @endDate.setter
-    def endDate(self, p): pass
-
-
-    @property
-    def instrument(self): pass
-
-    @instrument.setter
-    def instrument(self, p): pass
-
-
-    @property
-    def modelName(self): pass
-
-    @modelName.setter
-    def modelName(self, p): pass
-
-
-    @property
-    def mission(self): pass
-
-    @mission.setter
-    def mission(self, p): pass
-
-
-    @property
-    def version(self): pass
-
-    @version.setter
-    def version(self, p): pass
-
-
-    @property
-    def FORMATV(self): pass
-
-    @FORMATV.setter
-    def FORMATV(self, p): pass
-
-
-
 
 
 _Model_Spec = {
@@ -270,3 +152,52 @@ _Model_Spec = {
     }
 
 ProductInfo = ReadOnlyDict(_Model_Spec)
+
+class Product(BaseProduct):
+    """ Product class (level ALL) schema 1.4 inheriting ['BaseProduct'].
+
+Automatically generated from fdi/dataset/resources/Product.yml on 2021-05-11 07:28:00.149739.
+
+Description:
+Project level product
+
+    Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
+    """
+
+
+    def __init__(self,
+                 description = 'UNKNOWN',
+                 typ_ = 'Product',
+                 creator = 'UNKNOWN',
+                 creationDate = FineTime(0),
+                 rootCause = 'UNKNOWN',
+                 version = '0.8',
+                 FORMATV = '1.4.0.8',
+                 startDate = FineTime(0),
+                 endDate = FineTime(0),
+                 instrument = 'UNKNOWN',
+                 modelName = 'UNKNOWN',
+                 mission = '_AGS',
+                 zInfo=None,
+                 **kwds):
+        """ Initializes instances with more metadata as attributes, set to default values.
+
+        Put description keyword argument here to allow e.g. BaseProduct("foo") and description='foo'
+        """
+
+        # collect MDPs from args-turned-local-variables.
+        metasToBeInstalled = copy.copy(locals())
+        for x in ('self', '__class__', 'zInfo', 'kwds'):
+            metasToBeInstalled.pop(x)
+
+        global ProductInfo
+        if zInfo is None:
+            zInfo = ProductInfo
+
+        # print('@1 zInfo', id(self.zInfo['metadata']), id(self), id(self.zInfo),
+        #      self.zInfo['metadata']['version'], list(metasToBeInstalled.keys()))
+
+        # must be the first line to initiate meta
+        super().__init__(zInfo=zInfo, **metasToBeInstalled, **kwds)
+
+        #print(self.meta.keySet(), id(self.meta))

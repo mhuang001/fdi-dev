@@ -91,9 +91,12 @@ class Composite(DeepEqual):
         """ Returns the number of key - value mappings in this map. """
         return len(self._sets)
 
+    def __len__(self):
+        """ Returns the number of key - value mappings in this map. """
+        return len(self._sets)
+
     def __repr__(self):
-        return self.__class__.__name__ + \
-            self._sets.__repr__()
+        return self.__class__.__name__ + '(' + (self._sets.__repr__() if hasattr(self, '_sets') else 'None') + ')'
 
     def toString(self, level=0, matprint=None, trans=True, **kwds):
         return self.__class__.__name__ + \

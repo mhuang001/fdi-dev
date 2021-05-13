@@ -430,7 +430,7 @@ def test_product_path(setup, userpass):
         assert c == f
     # members
 
-    url = url0 + pt + '/$ls'
+    url = url0 + pt + '/'
     x = requests.get(url, auth=auth)
     o = deserialize(x.text)
     check_response(o)

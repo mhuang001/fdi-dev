@@ -24,7 +24,7 @@ EXTHOST = '172.17.0.1'
 EXTPORT = 9876
 
 # base url for webserver. Update version if needed.
-pnsconfig['api_version'] = 'v0.7'
+pnsconfig['api_version'] = 'v0.8'
 pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
 
 

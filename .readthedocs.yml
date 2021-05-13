@@ -25,5 +25,6 @@ python:
       extra_requirements:
          - DEV
          - SERV
+         - PUB
     - method: setuptools
       path: .

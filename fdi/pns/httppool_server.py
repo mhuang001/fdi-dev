@@ -153,7 +153,6 @@ def get_pools():
     return resp
 
 
-@ app.route(pc['baseurl'] + '/<string:cmd>', methods=['GET'])
 def getinfo(cmd):
     ''' returns init, config, run input, run output.
     '''
@@ -220,85 +219,148 @@ def httppool(pool):
 
     if request.method == 'GET':
         # TODO modify client loading pool , prefer use load_HKdata rather than load_single_HKdata, because this will generate enormal sql transaction
-        if paths[1] == 'hk' and lp == 2:  # Load all HKdata
-            result, msg = load_HKdata(paths)
-            # save_action(username=username, action='READ', pool=paths[0])
-        elif paths[1] == 'hk' and paths[2] in ['classes', 'urns', 'tags']:  # Retrieve single HKdata
-            result, msg = load_single_HKdata(paths)
-            # save_action(username=username, action='READ', pool=paths[0])
-        elif paths[1] == 'count' and lp == 3:  # prod count
-            result, msg = get_prod_count(paths[2], paths[0])
-        elif paths[1] == 'api':
-            result, msg = call_pool_Api(paths)
-        elif lp > 1:
-            result, msg = getProduct_Or_Component(
-                paths, serialize_out=serial_through)
-        elif 0:  # paths[-1].isnumeric():  # Retrieve product
-            result, msg = load_product(1, paths, serialize_out=serial_through)
-            # save_action(username=username, action='READ', pool=paths[0])
-
+        if lp == 1:
+            result = getinfo(path[0])
+        elif lp == 2:
+            p1 = paths[1]
+            if p1 == 'hk':  # Load all HKdata
+                result, msg = load_HKdata(paths)
+                # save_action(username=username, action='READ', pool=paths[0])
+            elif p1 == 'api':
+                result, msg = call_pool_Api(paths)
+            elif p1.lower().startswith('urn+'
+            else:
+                result, msg=getProduct_Or_Component(
+                    paths, serialize_out=serial_through)
+        elif lp == 3:
+            p1=paths[1]
+            if p1 == 'hk' and paths[2] in ['classes', 'urns', 'tags']:
+                # Retrieve single HKdata
+                result, msg=load_single_HKdata(paths)
+                # save_action(username=username, action='READ', pool=paths[0])
+            elif p1 == 'count':  # prod count
+                result, msg=get_prod_count(paths[2], paths[0])
+            elif p1 == 'api':
+                result, msg=call_pool_Api(paths)
+            else:
+                result, msg=getProduct_Or_Component(
+                    paths, serialize_out=serial_through)
+        elif lp > 3:
+            p1=paths[1]
+            if p1 == 'api':
+                result, msg=call_pool_Api(paths)
+            else:
+                result, msg=getProduct_Or_Component(
+                    paths, serialize_out=serial_through)
         else:
-            result = '"FAILED"'
-            msg = 'Unknown request: ' + pool
+            result='"FAILED"'
+            msg='Unknown request: ' + pool
 
     elif request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
         if request.headers.get('tag') is not None:
-            tag = request.headers.get('tag')
+            tag=request.headers.get('tag')
         else:
-            tag = None
+            tag=None
 
         if serial_through:
-            data = str(request.data, encoding='ascii')
+            data=str(request.data, encoding='ascii')
 
-            result, msg = save_product(
+            result, msg=save_product(
                 data, paths, tag, serialize_in=not serial_through, serialize_out=serial_through)
         else:
             try:
-                data = deserialize(request.data)
+                data=deserialize(request.data)
             except ValueError as e:
-                result = '"FAILED"'
-                msg = 'Class needs to be included in pool configuration.' + \
+                result='"FAILED"'
+                msg='Class needs to be included in pool configuration.' + \
                     str(e) + ' ' + trbk(e)
             else:
-                result, msg = save_product(
+                result, msg=save_product(
                     data, paths, tag, serialize_in=not serial_through)
                 # save_action(username=username, action='SAVE', pool=paths[0])
     elif request.method == 'PUT':
-        result, msg = register_pool(paths)
+        result, msg=register_pool(paths)
 
     elif request.method == 'DELETE':
         if paths[-1].isnumeric():
-            result, msg = delete_product(paths)
+            result, msg=delete_product(paths)
             # save_action(username=username, action='DELETE', pool=paths[0] +  '/' + paths[-2] + ':' + paths[-1])
         else:
-            result, msg = unregister_pool(paths)
+            result, msg=unregister_pool(paths)
             # save_action(username=username, action='DELETE', pool=paths[0])
     else:
-        result, msg = '"FAILED"', 'UNknown command '+request.method
+        result, msg='"FAILED"', 'UNknown command '+request.method
 
     if issubclass(result.__class__, Response):
         return result
     # w = {'result': result, 'msg': msg, 'timestamp': ts}
     # make a json string
-    r = '"null"' if result is None else str(result)
-    w = '{"result": %s, "msg": %s, "timestamp": %f}' % (
+    r='"null"' if result is None else str(result)
+    w='{"result": %s, "msg": %s, "timestamp": %f}' % (
         r, json.dumps(msg), ts)
     # logger.debug(pprint.pformat(w, depth=3, indent=4))
-    s = w  # serialize(w)
+    s=w  # serialize(w)
     logger.debug(lls(s, 240))
-    resp = make_response(s)
-    resp.headers['Content-Type'] = 'application/json'
+    resp=make_response(s)
+    resp.headers['Content-Type']='application/json'
     return resp
 
 
-Builtins = vars(builtins)
+Builtins=vars(builtins)
 
 
 def mkv(v, t):
+    """
+    return v with a tyoe specified by t.
 
-    m = v if t == 'str' else None if t == 'NoneType' else Builtins[t](
+    t: 'NoneType' or any name in ``Builtins``.
+    """
+
+    m=v if t == 'str' else None if t == 'NoneType' else Builtins[t](
         v) if t in Builtins else deserialize(v)
     return m
+
+
+def parseApiArgs(all_args):
+    """ parse the command path to get positional and keywords arguments.
+
+    all_args: a list of path segments for the args list.
+    """
+    lp=len(all_args)
+    args, kwds=[], {}
+    if lp % 2 == 1:
+        # there are odd number of args+key+val
+        # the first seg after ind_meth must be all the positional args
+        try:
+            tyargs=all_args[0].split('|')
+            for a in tyargs:
+                print(a)
+                v, c, t=a.rpartition(':')
+                args.append(mkv(v, t))
+        except IndexError as e:
+            result='"FAILED"'
+            msg='Bad arguement format ' + all_args[0] + \
+                ' Exception: ' + str(e) + ' ' + trbk(e)
+            logger.error(msg)
+            return result, msg
+        kwstart=1
+    else:
+        kwstart=0
+    # starting from kwstart are the keyword arges k1|v1 / k2|v2 / ...
+
+    try:
+        while kwstart < lp:
+            v, t=all_args[kwstart].rsplit(':', 1)
+            kwds[all_args[kwstart]]=mkv(v, t)
+            kwstart += 2
+    except IndexError as e:
+        result='"FAILED"'
+        msg='Bad arguement format ' + str(all_args[kwstart:]) + \
+            ' Exception: ' + str(e) + ' ' + trbk(e)
+        logger.error(msg)
+        return result, msg
+
+    return args, kwds
 
 
 def call_pool_Api(paths):
@@ -306,76 +368,52 @@ def call_pool_Api(paths):
 
     """
     # index of method name
-    im = 2
+    ind_meth=2
     # remove empty trailing strings
     for o in range(len(paths), 1, -1):
         if paths[o-1]:
             break
 
-    paths = paths[:o]
-    lp = len(paths)
-    method = paths[im]
+    paths=paths[:o]
+    lp=len(paths)
+    method=paths[ind_meth]
     if method not in WebAPI:
         return '"FAILED"', 'Unknown web API method: %s.' % method
-    args, kwds = [], {}
+    args, kwds=[], {}
 
     if 0:
-        poolname = paths[0]
-        s = PM.isLoaded(poolname)
+        poolname=paths[0]
+        s=PM.isLoaded(poolname)
         import pdb
         pdb.set_trace()
-
-    if lp > im:
-        if (lp-im) % 2 == 0:
-            # there are odd number of args+key+val
-            try:
-                tyargs = paths[im+1].split('|')
-                args = []
-                for a in tyargs:
-                    s = a.rsplit(':', 1)
-                    v, t = s[0], s[1]
-                    args.append(mkv(v, t))
-            except IndexError as e:
-                result = '"FAILED"'
-                msg = 'Bad arguement format ' + paths[im+1] + \
-                    ' Exception: ' + str(e) + ' ' + trbk(e)
-                logger.error(msg)
-                return result, msg
-            kwstart = im + 2
+    all_args=paths[ind_meth+1:]
+    if lp > ind_meth:
+        # get command positional arguments and keyword arguments
+        args, kwds=parseApiArgs(all_args)
+        if args == '"FAILED"':
+            result, msg=args, kwds
         else:
-            kwstart = im + 1
-        try:
-            while kwstart < lp:
-                s = paths[kwstart+1].rsplit(':', 1)
-                v, t = s[0], s[1]
-                kwds[paths[kwstart]] = mkv(v, t)
-                kwstart += 2
-        except IndexError as e:
-            result = '"FAILED"'
-            msg = 'Bad arguement format ' + paths[kwstart+1] + \
-                ' Exception: ' + str(e) + ' ' + trbk(e)
-            logger.error(msg)
-            return result, msg
-    kwdsexpr = (str(k)+'='+str(v) for k, v in kwds.items())
-    msgexpr = '%s(%s)' % (method, ', '.join(chain(map(str, args), kwdsexpr)))
-    logger.debug('WebAPI ' + msgexpr)
+            kwdsexpr=[str(k)+'='+str(v) for k, v in kwds.items()]
+            msg='%s(%s)' % (method, ', '.join(
+                chain(map(str, args), kwdsexpr)))
+            logger.debug('WebAPI ' + msg)
 
-    poolname = paths[0]
-    poolurl = schm + '://' + os.path.join(poolpath, poolname)
+    poolname=paths[0]
+    poolurl=schm + '://' + os.path.join(poolpath, poolname)
     if not PM.isLoaded(poolname):
-        result = '"FAILED"'
-        msg = 'Pool not found: ' + poolname
+        result='"FAILED"'
+        msg='Pool not found: ' + poolname
         logger.error(msg)
         return result, msg
 
     try:
-        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
-        res = getattr(poolobj, method)(*args, **kwds)
-        result = serialize(res)
-        msg = msgexpr + ' OK.'
+        poolobj=PM.getPool(poolname=poolname, poolurl=poolurl)
+        res=getattr(poolobj, method)(*args, **kwds)
+        result=serialize(res)
+        msg=msg + ' OK.'
     except Exception as e:
-        result = '"FAILED"'
-        msg = 'Unable to complete ' + msgexpr + \
+        result='"FAILED"'
+        msg='Unable to complete ' + msg + \
             ' Exception: ' + str(e) + ' ' + trbk(e)
         logger.error(msg)
     return result, msg
@@ -485,14 +523,14 @@ def getProduct_Or_Component(paths, serialize_out=False):
     """
 
     # paths[1] is A URN or a product type.
-    for i in [1, 2]:
-        if i < len(paths) and paths[i].lower().startswith('urn+'):
-            # load it
-            p = paths[i].split('+')
-            # example ['urn', 'test', 'fdi.dataset.product.Product', '0']
-            paths[i] = p[2]
-            paths.insert(i+1, p[3])
-            break
+    prd = paths[1]
+    if prd.lower().startswith('urn+'):
+        # load it
+        p = prd.split('+')
+        # example ['urn', 'test', 'fdi.dataset.product.Product', '0']
+        paths[1] = p[2]      # set type
+        paths.insert(2, p[3])       # set index
+
     lp = len(paths)
     # now paths = poolname, prod_type , ...
 
@@ -515,22 +553,28 @@ def getProduct_Or_Component(paths, serialize_out=False):
 
 
 def compo_cmds(paths, mInfo, serialize_out=False):
+    """ Get the component and the associated command and return 
 
-    p1 = paths[1]
-    p2 = paths[2]
+    """
+    lp = len(paths)
+    for cmd_ind in range(1, lp):
+        cmd = paths[cmd_ind]
+        if cmd.startswith('$'):
+            cmd.lstrip('$')
+            break
 
-    if p1 == 'string':
+    compo_path = paths[1:cmd_ind]
+
+    if cmd == 'string':
         if p2.isnumeric() or ',' in p2:
+            # list of arguments to be passed to :meth:`toString`
             tsargs = p2.split(',')
             tsargs[0] = int(tsargs[0])
-            pos = 3
         else:
-            level = 0
-            pos = 2
             tsargs = []
-
+        # get the component'
         compo, path_str, prod = load_compo_at(pos, paths, mInfo)
-        if compo:
+        if compo is not None:
             result = compo.toString(*tsargs)
             msg = 'Getting toString(%s) OK' % (str(tsargs))
             resp = make_response(result)
@@ -544,15 +588,15 @@ def compo_cmds(paths, mInfo, serialize_out=False):
             return resp, msg
 
         else:
-            return '"FAILED"', '%s: %s' % (p1, path_str)
-    elif p1 == 'ls':
+            return '"FAILED"', '%s: %s' % (cmd, path_str)
+    elif cmd == 'ls':
         pos = 2
         compo, path_str, prod = load_compo_at(pos, paths, mInfo)
         if compo:
             ls = [m for m in dir(compo) if not m.startswith('_')]
-            return serialize(ls), 'Getting %s members OK' % (p1 + ':' + paths[2] + '/' + path_str)
+            return serialize(ls), 'Getting %s members OK' % (cmd + ':' + paths[2] + '/' + path_str)
         else:
-            return '"FAILED"', '%s: %s' % (p1, path_str)
+            return '"FAILED"', '%s: %s' % (cmd, path_str)
     else:
         if paths[2].isnumeric():
             # no cmd, ex: test/fdi.dataset.Product/4/...
@@ -564,7 +608,7 @@ def compo_cmds(paths, mInfo, serialize_out=False):
             else:
                 compo, path_str, prod = load_compo_at(pos, paths, mInfo)
                 if compo:
-                    return serialize(compo), 'Getting %s OK' % (p1 + ':' + paths[2] + '/' + path_str)
+                    return serialize(compo), 'Getting %s OK' % (cmd + ':' + paths[2] + '/' + path_str)
                 else:
                     return '"FAILED"', '%s%s' % ('/'.join(paths[:3]), path_str)
         else:

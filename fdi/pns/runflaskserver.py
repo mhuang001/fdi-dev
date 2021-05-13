@@ -84,8 +84,6 @@ if __name__ == '__main__':
     if servertype == 'pns':
         print('======== %s ========' % servertype)
         from fdi.pns.pns_server import app
-        #mod = __import__('fdi.pns.pns_server', globals(), locals(), ['app'])
-        #app = getattr(mod, 'app')
     elif servertype == 'httppool_server':
         print('<<<<<< %s >>>>>' % servertype)
         from fdi.pns.httppool_server import app
@@ -98,4 +96,4 @@ if __name__ == '__main__':
         serve(app, url_scheme='https', host=node['host'], port=node['port'])
     else:
         app.run(host=node['host'], port=node['port'],
-                threaded=True, debug=verbose, processes=1, use_reloader=False)
+                threaded=True, debug=verbose, processes=1, use_reloader=True)

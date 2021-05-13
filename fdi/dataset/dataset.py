@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..utils.common import mstr, bstr, lls
+from ..utils.common import mstr, bstr, lls, exprstrs
 from .ndprint import ndprint
 from .listener import ColumnListener, MetaDataListener
 from .serializable import Serializable
@@ -11,7 +11,6 @@ from .eq import DeepEqual
 from .copyable import Copyable
 from .annotatable import Annotatable
 from .indexed import Indexed
-from ..utils.common import exprstrs
 from .typed import Typed
 
 from collections import OrderedDict

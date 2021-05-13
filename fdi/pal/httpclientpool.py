@@ -36,8 +36,8 @@ def toserver(self, method, *args, **kwds):
         else:
             vs = serialize(v)+':' + t
         return vs
-    argsexpr = (mkv(v) for v in args)
-    kwdsexpr = ((str(k), mkv(v)) for k, v in kwds.items())
+    argsexpr = list(mkv(v) for v in args)
+    kwdsexpr = dict((str(k), mkv(v)) for k, v in kwds.items())
     apipath = method + '/' + \
         '/'.join(chain(('|'.join(argsexpr),), chain(*kwdsexpr)))
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)

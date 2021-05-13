@@ -430,7 +430,7 @@ def test_product_path(setup, userpass):
         assert c == f
     # members
 
-    url = url0 + 'ls' + '/' + pt
+    url = url0 + pt + '/$ls'
     x = requests.get(url, auth=auth)
     o = deserialize(x.text)
     check_response(o)
@@ -440,7 +440,7 @@ def test_product_path(setup, userpass):
     # string
 
     # 'http://0.0.0.0:5000/v0.7/test/string/fdi.dataset.product.Product/0'
-    url = url0 + 'string' + '/' + pt
+    url = url0 + pt + '/$string'
     x = requests.get(url, auth=auth)
     assert x.headers['Content-Type'] == 'text/plain'
     c = x.text

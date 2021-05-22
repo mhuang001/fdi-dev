@@ -19,6 +19,7 @@ from fdi.pal.context import Context
 from fdi.pal.query import AbstractQuery, MetaQuery
 from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
+from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.classes import Classes
 from fdi.dataset.metadata import MetaData, Parameter
@@ -714,13 +715,13 @@ def doquery(poolpath, newpoolpath):
     for i in range(n):
         a0, a1, a2 = 'desc %d' % i, 'fatman %d' % (i*4), 5000+i
         if i < 3:
-            x = TP(description=a0, instrument=a1)
+            x = TP(description=a0, creator=a1)
             x.meta['extra'] = Parameter(value=a2)
         elif i < 5:
-            x = Context(description=a0, instrument=a1)
+            x = Context(description=a0, creator=a1)
             x.meta['extra'] = Parameter(value=a2)
         else:
-            x = MapContext(description=a0, instrument=a1)
+            x = MapContext(description=a0, creator=a1)
             x.meta['extra'] = Parameter(value=a2)
             x.meta['time'] = Parameter(value=FineTime1(a2))
         if i < 4:
@@ -742,19 +743,19 @@ def doquery(poolpath, newpoolpath):
         p = r.product
         assert type(p) == type(c['p'])
         assert p.description == c['a0']
-        assert p.instrument == c['a1']
+        assert p.creator == c['a1']
         assert p.meta['extra'].value == c['a2']
 
     chk(res[0], rec1[m])
 
     # query with a parent class and a specific parameter
     m = 3
-    q = MetaQuery(Product, 'm["instrument"].value == "%s"' % rec1[m]['a1'])
+    q = MetaQuery(BaseProduct, 'm["creator"].value == "%s"' % rec1[m]['a1'])
     res = pstore.select(q)
     assert len(res) == 1, str(res)
     chk(res[0], rec1[m])
     # query with a parent class and a specific parameter
-    q = MetaQuery(Product, 'm["extra"].value < 5002')
+    q = MetaQuery(BaseProduct, 'm["extra"].value < 5002')
     res = pstore.select(q)
     # [0,1]
     assert len(res) == 2, str(res)
@@ -764,7 +765,7 @@ def doquery(poolpath, newpoolpath):
     # simpler syntax for comparing value only but a bit slower.
     # the parameter with simpler syntax must be on the left hand side of a comparison operator.
     # '5000 < m["extra"]' does not work. But '5000 < m["extra"].value' works.
-    q = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] <= 5002')
+    q = MetaQuery(BaseProduct, 'm["extra"] > 5000 and m["extra"] <= 5002')
     res = pstore.select(q)
     # [1,2]
     assert len(res) == 2, str(res)
@@ -772,7 +773,7 @@ def doquery(poolpath, newpoolpath):
     chk(res[1], rec1[2])
 
     # two classes
-    q = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] < 5004')
+    q = MetaQuery(BaseProduct, 'm["extra"] > 5000 and m["extra"] < 5004')
     res = pstore.select(q)
     # [1,2,3]
     assert len(res) == 3, str(res)
@@ -781,20 +782,20 @@ def doquery(poolpath, newpoolpath):
     chk(res[2], rec1[3])
 
     # this is not in this store
-    q = MetaQuery(Product, 'm["extra"] == 5004')
+    q = MetaQuery(BaseProduct, 'm["extra"] == 5004')
     res = pstore.select(q)
     # []
     assert len(res) == 0, str(res)
 
     # it is in the other store
-    q = MetaQuery(Product, 'm["extra"] == 5004')
+    q = MetaQuery(BaseProduct, 'm["extra"] == 5004')
     res = pstore2.select(q)
     # [4]
     assert len(res) == 1, str(res)
     chk(res[0], rec1[4])
 
     # all in  the other store
-    q = MetaQuery(Product, '1')
+    q = MetaQuery(BaseProduct, '1')
     res = pstore2.select(q)
     # [4,5,6]
     assert len(res) == 3, str(res)
@@ -830,15 +831,15 @@ def doquery(poolpath, newpoolpath):
     chk(res[0], rec1[5])
 
     # all 'extra' < 5002, all in 1st pool
-    q = MetaQuery(Product, 'm["extra"] < 5002')
+    q = MetaQuery(BaseProduct, 'm["extra"] < 5002')
     res = pstore.select(q)
     # [0,1   ]
     assert len(res) == 2, str(res)
     chk(res[0], rec1[0])
     chk(res[1], rec1[1])
 
-    # instrument = 'fatman 12|16', two pools
-    q = MetaQuery(Product, '"n 1" in m["instrument"].value')
+    # creator = 'fatman 12|16', two pools
+    q = MetaQuery(BaseProduct, '"n 1" in m["creator"].value')
     res = pstore.select(q)
     # [3,4]
     assert len(res) == 2, str(res)
@@ -849,9 +850,9 @@ def doquery(poolpath, newpoolpath):
         # same as above but query is a function
         def t(m):
             import re
-            return re.match('.*n.1.*', m['instrument'].value)
+            return re.match('.*n.1.*', m['creator'].value)
 
-        q = MetaQuery(Product, t)
+        q = MetaQuery(BaseProduct, t)
         res = pstore.select(q)
         # [3,4]
         assert len(res) == 2, str(res)
@@ -859,7 +860,7 @@ def doquery(poolpath, newpoolpath):
         chk(res[1], rec1[4])
 
     # same as above but query is on the product. this is slow.
-    q = AbstractQuery(Product, 'p', '"n 1" in p.instrument')
+    q = AbstractQuery(BaseProduct, 'p', '"n 1" in p.creator')
     res = pstore.select(q)
     # [3,4]
     assert len(res) == 2, str(res)

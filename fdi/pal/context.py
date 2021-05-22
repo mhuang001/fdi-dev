@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ..dataset.serializable import Serializable
-from ..dataset.product import Product
+from ..dataset.baseproduct import BaseProduct
 from ..dataset.odict import ODict
 import logging
 # create logger
@@ -241,7 +241,7 @@ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Con
         return True
 
 
-class Context(AbstractContext, Product):
+class Context(AbstractContext, BaseProduct):
     """ See docstring of AbstractContext.
     """
 
@@ -359,7 +359,7 @@ class MapContext(Context):
     2. the put() method of the map view may throw a ValueError if either of the arguments to the put() method are null.
 
 
-    BaseProduct--Product
+             BaseProduct--Product
                         \\
     AbstractContext------Contex---------MapContext
 

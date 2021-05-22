@@ -25,7 +25,7 @@ _Model_Spec = {
         'BaseProduct',
         ],
     'level': 'ALL',
-    'schema': '1.4',
+    'schema': '1.5',
     'metadata': {
         'description': {
                 'id_zh_cn': '描述',
@@ -88,7 +88,7 @@ _Model_Spec = {
                 'data_type': 'string',
                 'description': 'Version of product schema and revision',
                 'description_zh_cn': '产品格式版本',
-                'default': '1.4.0.8',
+                'default': '1.5.0.9',
                 'valid': '',
                 'typecode': 'B',
                 },
@@ -154,9 +154,9 @@ _Model_Spec = {
 ProductInfo = ReadOnlyDict(_Model_Spec)
 
 class Product(BaseProduct):
-    """ Product class (level ALL) schema 1.4 inheriting ['BaseProduct'].
+    """ Product class (level ALL) schema 1.5 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/Product.yml on 2021-05-11 07:28:00.149739.
+Automatically generated from fdi/dataset/resources/Product.yml on 2021-05-21 15:09:03.125711.
 
 Description:
 Project level product
@@ -172,7 +172,7 @@ Project level product
                  creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
                  version = '0.8',
-                 FORMATV = '1.4.0.8',
+                 FORMATV = '1.5.0.9',
                  startDate = FineTime(0),
                  endDate = FineTime(0),
                  instrument = 'UNKNOWN',

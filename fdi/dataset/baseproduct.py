@@ -30,7 +30,7 @@ _Model_Spec = {
         None,
         ],
     'level': 'ALL',
-    'schema': '1.4',
+    'schema': '1.5',
     'metadata': {
         'description': {
                 'id_zh_cn': '描述',
@@ -92,7 +92,7 @@ _Model_Spec = {
                 'data_type': 'string',
                 'description': 'Version of product schema and revision',
                 'description_zh_cn': '产品格式版本',
-                'default': '1.4.0.8',
+                'default': '1.5.0.9',
                 'valid': '',
                 'typecode': 'B',
                 },
@@ -131,9 +131,9 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     p.meta['creator']=Parameter('bar')
     assert p.meta['creator']==Parameter('bar')
 
-    BaseProduct class (level ALL) schema 1.4 inheriting [None].
+    BaseProduct class (level ALL) schema 1.5 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-05-11 07:28:00.012646.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-05-21 15:09:03.057604.
 
 Description:
 FDI base class
@@ -147,7 +147,7 @@ FDI base class
                  creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
                  version = '0.8',
-                 FORMATV = '1.4.0.8',
+                 FORMATV = '1.5.0.9',
                  zInfo=None,
                  **kwds):
 

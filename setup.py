@@ -50,7 +50,7 @@ setup(
             'waitress>=2.0.0'
         ],
         'PUB': [
-            'aiohttp>=3.6.2',
+            # 'aiohttp>=3.6.2',
             'sphinx_rtd_theme>=0.4.3',
             'sphinx-copybutton>=0.3.0',
             'twine>=3.3.0'

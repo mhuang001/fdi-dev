@@ -635,9 +635,9 @@ if __name__ == '__main__':
         prod = glb[prodname]()
         fg = {'name': 15, 'value': 18, 'unit': 7, 'type': 8,
               'valid': 26, 'default': 18, 'code': 4, 'description': 25}
-        sp = prod.meta.toString(tablefmt='fancy_grid', widths=fg)
+        sp = prod.meta.toString(tablefmt='rst', widths=fg)
 
-        mout = pathjoin(ypath, prodname + '.txt')
+        mout = pathjoin(ypath, prodname + '.rst')
         with open(mout, 'w', encoding='utf-8') as f:
             f.write(sp)
         print('Done dumping ' + mout + '\n' + '*'*40)

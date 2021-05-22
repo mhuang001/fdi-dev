@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 from ruamel.yaml import YAML
 # import yaml
@@ -631,13 +630,13 @@ if __name__ == '__main__':
             raise(e)
         importexclude.extend(exclude_save)
         print('Imported ' + newp)
-        # Instantiate and dump metadata in rst format
+        # Instantiate and dump metadata in text format
         prod = glb[prodname]()
         fg = {'name': 15, 'value': 18, 'unit': 7, 'type': 8,
               'valid': 26, 'default': 18, 'code': 4, 'description': 25}
-        sp = prod.meta.toString(tablefmt='rst', widths=fg)
+        sp = prod.meta.toString(tablefmt='fancy_grid', widths=fg)
 
-        mout = pathjoin(ypath, prodname + '.rst')
+        mout = pathjoin(ypath, prodname + '.txt')
         with open(mout, 'w', encoding='utf-8') as f:
             f.write(sp)
         print('Done dumping ' + mout + '\n' + '*'*40)

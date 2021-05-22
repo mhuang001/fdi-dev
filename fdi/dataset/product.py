@@ -156,7 +156,7 @@ ProductInfo = ReadOnlyDict(_Model_Spec)
 class Product(BaseProduct):
     """ Product class (level ALL) schema 1.5 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/Product.yml on 2021-05-21 15:09:03.125711.
+Automatically generated from fdi/dataset/resources/Product.yml on 2021-05-22 09:32:55.005842.
 
 Description:
 Project level product

@@ -10,22 +10,22 @@ RESDIR	= $(PYDIR)/resources
 P_PY	= $(shell $(PYEXE) -S -c "print('$(PRODUCT)'.lower())").py
 B_PY	= $(shell $(PYEXE) -S -c "print('$(B_PRODUCT)'.lower())").py
 B_INFO	= $(B_PY)
-P_YAML	= $(RESDIR)
-B_YAML	= $(RESDIR)
+P_YAML	= $(RESDIR)/$(PRODUCT).yml
+B_YAML	= $(RESDIR)/$(B_PRODUCT).yml
 P_TEMPLATE	= $(RESDIR)
 B_TEMPLATE	= $(RESDIR)
 
 py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY)
 
 $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).template $(PYDIR)/$(B_PY)
-	$(PYEXE) -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
+	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
 
 
 $(PYDIR)/$(B_PY): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE)/$(B_PRODUCT).template 
-	$(PYEXE) -m fdi.dataset.yaml2python -y $(P_YAML) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
+	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
 
 yamlupgrade: 
-	$(PYEXE) -m fdi.dataset.yaml2python -y $(P_YAML) -u
+	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -u
 
 
 .PHONY: runserver runpoolserver reqs install uninstall vtag FORCE \

@@ -133,7 +133,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
 
     BaseProduct class (level ALL) schema 1.5 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-05-21 15:09:03.057604.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-05-22 09:32:54.972671.
 
 Description:
 FDI base class

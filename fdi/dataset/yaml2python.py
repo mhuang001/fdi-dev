@@ -67,7 +67,7 @@ def sq(s):
     return '%s%s%s' % (qm, s, qm)
 
 
-def getPython(val, indents, demo, onlyInclude):
+def getPython(val, indents, demo, onlyInclude, debug=False):
     """ make productInfo and init__() code strings from given data.
     """
     infostr = ''
@@ -76,14 +76,19 @@ def getPython(val, indents, demo, onlyInclude):
         infostr += '{\n'
         code = {}
         for k, v in val.items():
+            if debug:
+                logger.info('KWD[%s]=%s' %
+                            (str(k), '...' if k == 'metadata' else str(v)))
             sk = str(k)
             infostr += '%s%s: ' % (indents[0], sq(sk))
             if issubclass(v.__class__, dict) and 'valid' in v:
                 # v is a dict of parameter attributes
-                istr, d_code = params(v, indents[1:], demo, onlyInclude)
+                istr, d_code = params(
+                    v, indents[1:], demo, onlyInclude, debug=debug)
             else:
                 # headers such as name, parents, level ...
-                istr, d_code = getPython(v, indents[1:], demo, onlyInclude)
+                istr, d_code = getPython(
+                    v, indents[1:], demo, onlyInclude, debug=debug)
             infostr += istr
             code[sk] = d_code
         infostr += indents[0] + '},\n'
@@ -94,9 +99,11 @@ def getPython(val, indents, demo, onlyInclude):
             infostr += indents[0]
             if issubclass(v.__class__, dict) and 'data_type' in v:
                 # val is a list of column (and 'data' in x )
-                istr, d_code = params(v, indents[1:], demo, onlyInclude)
+                istr, d_code = params(
+                    v, indents[1:], demo, onlyInclude, debug=debug)
             else:
-                istr, d_code = getPython(v, indents[1:], demo, onlyInclude)
+                istr, d_code = getPython(
+                    v, indents[1:], demo, onlyInclude, debug=debug)
             infostr += istr
             code.append(d_code)
         infostr += indents[0] + '],\n'
@@ -125,7 +132,7 @@ def makeinitcode(dt, pval):
     return code
 
 
-def params(val, indents, demo, onlyInclude):
+def params(val, indents, demo, onlyInclude, debug=False):
     """ generates python strng for val, a parameter with a set of attribute
 
     see getPython
@@ -140,6 +147,8 @@ def params(val, indents, demo, onlyInclude):
         # pv is like 'string', 'foo, bar, and baz', '2', '(0, 0, 0,)'
         if demo and pname not in onlyInclude:
             continue
+        if debug:
+            logger.info('val[%s]=%s' % (str(pname), str(pv)))
         if pname.startswith('valid'):
             if pv is None:
                 pv = ''
@@ -147,6 +156,7 @@ def params(val, indents, demo, onlyInclude):
             if issubclass(pv.__class__, (str, bytes)):
                 s = sq(pv.strip())
             else:
+                # e.g. {(5,66):'fooo'}
                 lst = []
                 for k, v in pv.items():
                     if issubclass(k.__class__, tuple):
@@ -156,7 +166,15 @@ def params(val, indents, demo, onlyInclude):
                                for x in k]
                         sk = '(' + ', '.join(foo) + ')'
                     else:
-                        sk = fmtstr[dt].format(k)
+                        if debug:
+                            logger.info('%s: data_type %s format %s' %
+                                        (pname, dt, k))
+                        try:
+                            sk = fmtstr[dt].format(k)
+                        except TypeError:
+                            sk = '# Bad format string for %s: %s. Ignored.' % (
+                                dt, k)
+                            logger.warning(sk)
                     lst += '\n' + '%s%s: %s,' % (indents[2], sk, sq(str(v)))
                 kvs = ''.join(lst)
                 if len(kvs) > 0:

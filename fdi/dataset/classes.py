@@ -44,7 +44,7 @@ class Classes_meta(type):
         'fdi.dataset.metadata': ['AbstractParameter', 'Parameter', 'NumericParameter', 'DateParameter', 'StringParameter', 'MetaData'],
         'fdi.dataset.dataset': ['GenericDataset', 'ArrayDataset',
                                 'TableDataset', 'CompositeDataset', 'Column'],
-        'fdi.dataset.product.readonlydict': ['ReadOnlyDict'],
+        'fdi.dataset.readonlydict': ['ReadOnlyDict'],
         'fdi.pal.context': ['AbstractContext', 'Context',
                             'AbstractMapContext', 'MapContext',
                             'RefContainer',
@@ -71,8 +71,8 @@ class Classes_meta(type):
         if exclude is None:
             exclude = []
         try:
-            cls.importModuleClasses(
-                rerun=rerun, exclude=exclude, verbose=verbose)
+            cls.importModuleClasses(rerun=rerun, exclude=exclude,
+                                    ignore_error=ignore_error,  verbose=verbose)
         except (ModuleNotFoundError, SyntaxError) as e:
             if ignore_error:
                 logger.warning('!'*80 +
@@ -87,7 +87,7 @@ class Classes_meta(type):
             cls._classes.update(c)
         return cls._classes
 
-    def importModuleClasses(cls, rerun=False, exclude=None, verbose=False):
+    def importModuleClasses(cls, rerun=False, exclude=None, ignore_error=False, verbose=False):
         """ The set of deserializable classes in module_class is maintained by hand.
 
         Do nothing if the classes mapping is already made so repeated calls will not cost  more time.
@@ -135,10 +135,14 @@ class Classes_meta(type):
                 raise
             except ModuleNotFoundError as e:
                 msg = 'Could not import %s. %s' % (str(class_list), str(e))
-                if verbose:
-                    logger.info(msg)
+                if ignore_error:
+                    if verbose:
+                        logger.info(msg)
+                    else:
+                        logger.debug(msg)
                 else:
-                    logger.debug(msg)
+                    logger.error(msg)
+                    raise
             else:
                 for n in exed:
                     cls._package[n] = getattr(m, n)

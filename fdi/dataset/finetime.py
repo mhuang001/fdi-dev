@@ -105,11 +105,14 @@ class FineTime(Copyable, DeepEqual, Serializable):
                 d = time
             setTai = self.datetimeToFineTime(d)
         elif issubclass(time.__class__, str):
-            # try:
-            #     # TODO: xxx
-            #     setTai = int(time)
-            # except ValueError:
-            d = datetime.datetime.strptime(time, self.format)
+            try:
+                t = time.strip()
+                d = datetime.datetime.strptime(time, self.format)
+            except ValueError:
+                tz = self.format[-3:]
+                if not t.endswith(tz):
+                    logger.warning('Time zone %s assumed for %s', tz, t)
+                    d = datetime.datetime.strptime(t + ' ' + tz, self.format)
             d1 = d.replace(tzinfo=datetime.timezone.utc)
             setTai = self.datetimeToFineTime(d1)
         else:

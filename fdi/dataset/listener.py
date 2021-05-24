@@ -166,15 +166,15 @@ class DatasetEventSender(EventSender):
     def __init__(self, **kwds):
         super(DatasetEventSender, self).__init__(**kwds)
 
-    def addListener(self, listener, cls=DatasetBaseListener):
-        """ Adds a listener to this. """
+    # def addListener(self, listener, cls=DatasetBaseListener):
+    #     """ Adds a listener to this. """
 
-        super(DatasetEventSender, self).addListener(listener, cls=cls)
+    #     super(DatasetEventSender, self).addListener(listener, cls=cls)
 
-        return self
+    #     return self
 
-    def fire(self, event):
-        super(DatasetEventSender, self).fire(event)
+    # def fire(self, event):
+    #     super(DatasetEventSender, self).fire(event)
 
 
 EventTypes = [

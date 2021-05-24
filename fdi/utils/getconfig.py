@@ -36,7 +36,7 @@ def getConfig(name=None, conf='pns'):
     conf: configuration ID. default 'pns', so the file is 'pnsconfig.py'.
     """
     # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
-    from fdi.pns.pnsconfig import pnsconfig as config
+    config = {}
     env = expanduser(expandvars('$HOME'))
     # apache wsgi will return '$HOME' with no expansion
     env = '/root' if env == '$HOME' else env

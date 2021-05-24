@@ -182,7 +182,6 @@ nds3 =\
 #=== dimension 4
 
 """
-
 out_GenericDataset = """level 0
 === GenericDataset () ===
 meta= {
@@ -343,61 +342,61 @@ ArrayDataset-dataset =
 
 level 2,
 ArrayDataset{ [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]] (lyr) <None>, "toString tester AD", default None, tcode=None, meta=_sets:
-      a: !NumericParameter
-            description: rule name, if is "valid", "", or "default", is ommited in
-                  value string.
-            value: 3.4
-            type: float
-            default: 2.0
-            valid:
-              -   -   - 0
-                      - 31
-                  - valid
-              -   - 99
-                  - ''
-            unit:
-            typecode:
-            _STID: NumericParameter
-      b: !DateParameter
-            description: date param
-            value: !FineTime
-                  tai: 1929229323456789
-                  format: '%Y-%m-%dT%H:%M:%S.%f UTC'
-                  _STID: FineTime
-            default: !FineTime
-                  tai: 99
-                  format: '%Y-%m-%dT%H:%M:%S.%f UTC'
-                  _STID: FineTime
-            valid:
-              -   -   - 0
-                      - 9876543210123456
-                  - xy
-            typecode: '%Y-%m-%dT%H:%M:%S.%f UTC'
-            _STID: DateParameter
-      c: !StringParameter
-            value: IJK
-            description: str parameter. but only "" is allowed.
-            valid:
-              -   - ''
-                  - empty
-            default: cliche
-            typecode: B
-            _STID: StringParameter
-      d: !NumericParameter
-            description: valid rules described with binary masks
-            value: 1
-            type: binary
-            default: 0
-            valid:
-              -   -   - 24
-                      - 1
-                  - on
-              -   -   - 24
-                      - 0
-                  - off
-            unit:
-            typecode:
-            _STID: NumericParameter
+    a: !NumericParameter
+        description: rule name, if is "valid", "", or "default", is ommited in value
+            string.
+        value: 3.4
+        type: float
+        default: 2.0
+        valid:
+          -   -   - 0
+                  - 31
+              - valid
+          -   - 99
+              - ''
+        unit:
+        typecode:
+        _STID: NumericParameter
+    b: !DateParameter
+        description: date param
+        value: !FineTime
+            tai: 1929229323456789
+            format: '%Y-%m-%dT%H:%M:%S.%f UTC'
+            _STID: FineTime
+        default: !FineTime
+            tai: 99
+            format: '%Y-%m-%dT%H:%M:%S.%f UTC'
+            _STID: FineTime
+        valid:
+          -   -   - 0
+                  - 9876543210123456
+              - xy
+        typecode: '%Y-%m-%dT%H:%M:%S.%f UTC'
+        _STID: DateParameter
+    c: !StringParameter
+        value: IJK
+        description: str parameter. but only "" is allowed.
+        valid:
+          -   - ''
+              - empty
+        default: cliche
+        typecode: B
+        _STID: StringParameter
+    d: !NumericParameter
+        description: valid rules described with binary masks
+        value: 1
+        type: binary
+        default: 0
+        valid:
+          -   -   - 24
+                  - 1
+              - on
+          -   -   - 24
+                  - 0
+              - off
+        unit:
+        typecode:
+        _STID: NumericParameter
 listeners: !ListnerSet {}
 _STID: MetaData
 }"""

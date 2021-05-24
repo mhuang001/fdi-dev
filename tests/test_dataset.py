@@ -51,7 +51,7 @@ else:
 Classes.updateMapping()
 
 # make format output in /tmp/output.py
-mko = 0
+mko = 1
 
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py

@@ -53,7 +53,7 @@ conf = ['dev', 'server_test', 'external'][0]
 if conf == 'dev':
     # username, passwd, flask ip, flask port
     pnsconfig['node'] = {'username': 'foo',
-                         'password': 'bar', 'host': '0.0.0.0', 'port': 5000}
+                         'password': 'bar', 'host': '127.0.0.1', 'port': 5000}
 
     # server permission user
     pnsconfig['serveruser'] = 'mh'

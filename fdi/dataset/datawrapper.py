@@ -29,8 +29,6 @@ class DataContainer(Annotatable, Quantifiable, Copyable, DeepEqual):
         if data is None or issubclass(data.__class__, Container):
             self.setData(data)
         else:
-            __import__('pdb').set_trace()
-
             raise TypeError('DataContainer needs a Container to initialize, not ' +
                             type(data).__name__)
 

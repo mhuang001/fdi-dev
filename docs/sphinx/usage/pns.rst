@@ -20,7 +20,7 @@ The following commands are run from the fdi directory from installation.
 Basic Configuration
 ===================
 
-When running Flask server, the host IP is ``0.0.0.0`` and port number ``5000`` by default. They are configurable in ``pnsconfig.py``. Default configuration can be overridden by ``~/.config/pnslocal.py``. Copy ``pnsconfig.py`` to ``~/.config/pnslocal.py``
+When running Flask server, the host IP is ``127.0.0.1`` and port number ``5000`` by default. They are configurable in ``pnsconfig.py``. Default configuration can be overridden by ``~/.config/pnslocal.py``. Copy ``pnsconfig.py`` to ``~/.config/pnslocal.py``
 
 .. code-block:: shell
 		
@@ -110,7 +110,7 @@ Run this on the server host to verify that internal essential functions of the s
 2. Local Flask Server Functional Tests
 ======================================
 
-In ``~/.config/pnslocal.py`` (see above for installation and customization), set ``dev=True`` and make sure the IP is local (``0.0.0.0`` or ``127.0.0.1``). Start the server fresh in one terminal (see above) and in another terminal (on the server host) run the following:
+In ``~/.config/pnslocal.py`` (see above for installation and customization), set ``dev=True`` and make sure the IP is local (``127.0.0.1``). Start the server fresh in one terminal (see above) and in another terminal (on the server host) run the following:
 
 2a: test GET initPTS script to see if reading the init script back works:
 

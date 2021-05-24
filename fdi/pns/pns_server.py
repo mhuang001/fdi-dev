@@ -391,7 +391,7 @@ def filesin(dir):
     return result, ''
 
 
-@app.route(pc['baseurl'], methods=['GET'])
+@app.route(pc['baseurl'] + '/', methods=['GET'])
 def get_apis():
     """ Makes a page for APIs described in module variable APIs. """
 

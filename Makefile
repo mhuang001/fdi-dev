@@ -219,13 +219,30 @@ PORT        =9884
 EXTPORT =$(PORT)
 IMAGE_NAME         =httppool_server:v2
 IP_ADDR     =10.0.10.114
+
 DOCKERFILE              =fdi/pns/resources/httppool_server.docker
 
+SECFILE = $${HOME}/.secret
+secret:
+	@echo These have been appended to  $(SECFILE). Edit it. Be careful not to have whitespace. and use as
+	@echo docker build --secret id=envs,src=$(SECFILE)
+	@echo RUN --mount=type=secret,id=envs source /run/secrets/envs
+	@echo docker run --env-file  $(SECFILE)
+	@echo export IP=172.17.0.9 >> $(SECFILE)
+        @echo export HOST_PORT=9984 >> $(SECFILE)
+        @echo export HOST_USER=foo >> $(SECFILE)
+        @echo export HOST_PASS=bar >> $(SECFILE)
+        @echo export MQ_HOST=123.56.10. >> $(SECFILE)
+        @echo export MQ_PORT= 31876 >> $(SECFILE)
+        @echo export MQ_USER=  >> $(SECFILE)
+        @echo export MQ_PASS= >> $(SECFILE)
+        @cat  $(SECFILE)
+
 build_server:
-	docker build -t $(IMAGE_NAME) --build-arg IP_ADDR=$(IP_ADDR) --build-arg PORT=$(PORT) --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .
+	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .
 
 launch_server:
-	docker run -d -it --env IP_ADDR=$(IP_ADDR) --env PORT=$(PORT) -p $(PORT):$(EXTPORT) --name $(SERVER_NAME) $(D) $(IMAGE_NAME) $(B)
+	docker run -d -it --env-file $(SECFILE) --name $(SERVER_NAME) $(D) $(IMAGE_NAME) $(B)
 	sleep 2
 	docker ps -n 1
 

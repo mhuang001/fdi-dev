@@ -20,8 +20,14 @@ pnsconfig['lookup'] = poolurl_of
 # FLASK_CONF = pnsconfig
 
 # Te be edited automatically with sed -i 's/^EXTHOST =.*$/EXTHOST = xxx/g' file
+EXTUSER = ''
+EXTPASS = ''
 EXTHOST = '172.17.0.1'
 EXTPORT = 9876
+MQUSER = ''
+MQPASS = ''
+MQHOST = '172.17.0.1'
+MQPORT = 9876
 
 # base url for webserver. Update version if needed.
 pnsconfig['api_version'] = 'v0.8'
@@ -45,6 +51,14 @@ pnsconfig['server_poolpath'] = '/var/www/httppool_server/data'  # For server
 pnsconfig['logginglevel'] = logging.DEBUG
 # for HttpPool
 pnsconfig['defaultpool'] = 'pool_default'
+
+# message queue config
+pnsconfig['mqtt'] = dict(
+    host='x.x.x.x',
+    port=31876,
+    username='foo',
+    passwd='bar',
+)
 
 # choose from pre-defined.
 conf = ['dev', 'server_test', 'external'][0]
@@ -77,6 +91,13 @@ elif conf == 'external':
     # wsgi behind apach2. cannot use env vars
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
                          'host': EXTHOST, 'port': EXTPORT}
+    # message queue config
+    pnsconfig['mqtt'] = dict(
+        host=MQHOST,
+        port=MQPORT,
+        username=MQUSER,
+        passwd=MQPASS,
+    )
 
     # server permission user
     pnsconfig['serveruser'] = 'apache'
@@ -100,13 +121,6 @@ pnsconfig['mysql'] = {'host': 'ssa-mysql', 'port': 3306,
 # See document in :class:`Classes`
 pnsconfig['userclasses'] = ''
 
-# message queue config
-pnsconfig['mqtt'] = dict(
-    host='x.x.x.x',
-    port=31876,
-    username='foo',
-    passwd='bar',
-)
 
 ########### PNS-specific setup ############
 

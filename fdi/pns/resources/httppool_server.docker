@@ -1,3 +1,5 @@
+ syntax=docker/dockerfile:1.2
+
 FROM ubuntu:18.04 AS base_ext
 LABEL Pool Server
 # 0.2 M. Huang <mhuang@nao.cas.cn>
@@ -13,11 +15,7 @@ RUN apt-get update \
 ARG re=rebuild
 
 # setup env
-ARG IP_ADDR=10.0.10.114
-ARG PORT=9888
 # can be modified at run time
-ENV SERVER_IP_ADDR=${IP_ADDR}
-ENV SERVER_PORT=${PORT}
 
 # setup user
 ARG USR=apache
@@ -86,9 +84,7 @@ ARG PKG=fdi
 COPY --chown=${USR}:${USR} ./ tmp/
 RUN git clone --depth 20 -b develop  file://$PWD/tmp ${PKG}
 WORKDIR ${PKGS_DIR}/${PKG}/
-RUN make install EXT="[DEV,SERV]" I="--user" \
-&& make test \
-&& rm -rf ../tmp
+RUN make install EXT="[DEV,SERV]" I="--user"
 
 # If installing fdi package
 # no [DEV] needed
@@ -102,7 +98,22 @@ USER root
 COPY fdi/pns/resources/httppool_server_entrypoint.sh .
 RUN chmod 755 ./httppool_server_entrypoint.sh
 
+
 USER ${USR}
+# update ~/.config/pnslocal.py so test can be run with correct setting
+RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
+&& sudo chown ${USR} envs \
+&& cat ./envs \
+&& . ./envs \
+&& ./httppool_server_entrypoint.sh no-run
+
+
+WORKDIR ${PKGS_DIR}/${PKG}/
+RUN make test \
+&& rm -rf ../tmp
+
+WORKDIR ${UHOME}
+
 RUN /bin/ls -la; \
 date > build
 

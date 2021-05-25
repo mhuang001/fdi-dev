@@ -100,6 +100,13 @@ pnsconfig['mysql'] = {'host': 'ssa-mysql', 'port': 3306,
 # See document in :class:`Classes`
 pnsconfig['userclasses'] = ''
 
+# message queue config
+pnsconfig['mqtt'] = dict(
+    host='x.x.x.x',
+    port=31876,
+    username='foo',
+    passwd='bar',
+)
 
 ########### PNS-specific setup ############
 

@@ -5,7 +5,6 @@ from .serializable import Serializable
 from .eq import DeepEqual
 from ..utils.common import trbk
 
-import pdb
 
 import logging
 # create logger
@@ -16,6 +15,9 @@ logger = logging.getLogger(__name__)
 class EventListener(object):
     """ Generic interface for listeners that will listen to anything
     """
+
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
 
     def targetChanged(self,  *args, **kwargs):
         """ Informs that an event has happened in a target of
@@ -154,6 +156,7 @@ class EventSender(object):
         except Exception as e:
             logger.error('listener ' + str(n) +
                          ' got exception: ' + str(e) + ' ' + trbk(e))
+            raise
 
     def getListenerCount(self):
         return len(self._listeners)

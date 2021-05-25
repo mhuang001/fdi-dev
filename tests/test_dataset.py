@@ -7,7 +7,9 @@ import traceback
 from pprint import pprint
 import copy
 import sys
+import threading
 import functools
+import time
 import array
 from math import sqrt
 from datetime import timezone
@@ -21,6 +23,7 @@ from fdi.dataset.classes import Classes
 from fdi.dataset.deserialize import deserialize
 from fdi.dataset.quantifiable import Quantifiable
 from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf
+from fdi.dataset.messagequeue import MqttRelayListener, MqttRelaySender
 from fdi.dataset.composite import Composite
 from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter
 from fdi.dataset.datatypes import DataTypes, DataTypeNames
@@ -51,7 +54,7 @@ else:
 Classes.updateMapping()
 
 # make format output in /tmp/output.py
-mko = 1
+mko = 0
 
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py
@@ -66,14 +69,19 @@ else:
 
     from .outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset
 
-    from .logdict import logdict
     import logging
     import logging.config
     # create logger
-    logging.config.dictConfig(logdict)
+    if 1:
+        from .logdict import logdict
+        logging.config.dictConfig(logdict)
+    else:
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s %(name)8s %(process)d %(threadName)s %(levelname)s %(funcName)10s() %(lineno)3d- %(message)s')
+
     logger = logging.getLogger()
-    logger.debug('logging level %d' %
-                 (logger.getEffectiveLevel()))
+    logger.debug('logging level %d' % (logger.getEffectiveLevel()))
+    # logging.getLogger().setLevel(logging.DEBUG)
 
 
 def checkgeneral(v):
@@ -152,7 +160,7 @@ def test_serialization():
     v = b'\xde\xad\xbe\xef'
     checkjson(v)
     v = array.array('d', [1.2, 42])
-    checkjson(v, 1)
+    checkjson(v)
     v = [1.2, 'ww']
     checkjson(v)
     v = Product
@@ -428,6 +436,41 @@ def test_EventSender():
     watcher.fileChanged.removeListener(l2)
     watcher.watchFiles()
     assert test123 == "'foo' changed."
+    # __import__('pdb').set_trace()
+
+    # MQ Relay
+    v = MqttRelayListener(topics="test.mq.bounce2", host=None,
+                          port=None, username=None, passwd=None,
+                          client_id=None, callback=None, qos=1,
+                          userdata=None, clean_session=None,)
+    mf = MockFileWatcher()
+    mf.addListener(v)
+    w = MqttRelaySender(topics="test.mq.bounce2", host=None,
+                        port=None, username=None, passwd=None,
+                        client_id=None, callback=None, qos=1,
+                        userdata=None, clean_session=None,)
+    w.addListener(l1)
+    w.last_msg = ''
+    test123 = ''
+
+    def snd():
+        # send source_path
+        mf.watchFiles()
+
+    def rcv():
+        t0 = time.time()
+        while w.last_msg == '' and (time.time()-t0 < 3):
+            time.sleep(0.2)
+    t1 = threading.Thread(target=snd)
+    t2 = threading.Thread(target=rcv)
+    t1.start()
+    t2.start()
+    t2.join()
+    t1.join()
+    assert not t1.is_alive()
+    assert not t2.is_alive()
+    assert test123 == "['foo'] changed."
+    assert w.last_msg == ['foo']
 
 
 def test_datatypes():

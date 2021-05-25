@@ -36,6 +36,7 @@ setup(
         'filelock>=3.0.12',
         'ruamel.yaml>=0.15.0',
         'tabulate>=0.8.7',
+        'paho-mqtt>=1.5.1',
     ],
     extras_require={
         'DEV': [

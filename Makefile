@@ -229,14 +229,14 @@ secret:
 	@echo RUN --mount=type=secret,id=envs source /run/secrets/envs
 	@echo docker run --env-file  $(SECFILE)
 	@echo export IP=172.17.0.9 >> $(SECFILE)
-        @echo export HOST_PORT=9984 >> $(SECFILE)
-        @echo export HOST_USER=foo >> $(SECFILE)
-        @echo export HOST_PASS=bar >> $(SECFILE)
-        @echo export MQ_HOST=123.56.10. >> $(SECFILE)
-        @echo export MQ_PORT= 31876 >> $(SECFILE)
-        @echo export MQ_USER=  >> $(SECFILE)
-        @echo export MQ_PASS= >> $(SECFILE)
-        @cat  $(SECFILE)
+	@echo export HOST_PORT=9984 >> $(SECFILE)
+	@echo export HOST_USER=foo >> $(SECFILE)
+	@echo export HOST_PASS=bar >> $(SECFILE)
+	@echo export MQ_HOST=123.56.10. >> $(SECFILE)
+	@echo export MQ_PORT= 31876 >> $(SECFILE)
+	@echo export MQ_USER=  >> $(SECFILE)
+	@echo export MQ_PASS= >> $(SECFILE)
+	@cat  $(SECFILE)
 
 build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .

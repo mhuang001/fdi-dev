@@ -104,7 +104,7 @@ USER ${USR}
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} envs \
 && cat ./envs \
-&& . ./envs \
+&& for i in `cat ./envs`; do export $i; done \
 && ./httppool_server_entrypoint.sh no-run
 
 

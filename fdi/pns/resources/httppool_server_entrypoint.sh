@@ -22,9 +22,6 @@ sudo sed -i "s/^Listen .*/Listen ${HOST_PORT}/g" /etc/apache2/ports.conf
 echo ===== /etc/apache2/ports.conf >> ~/lastent
 grep Listen /etc/apache2/ports.conf >> ~/lastent
 
-sudo a2ensite httppool_server.conf
-sudo a2dissite 000-default.conf
-
 
 sed -i "s/^EXTHOST =.*$/EXTHOST = \'$IP\'/g" ~/.config/pnslocal.py
 sed -i "s/^EXTPORT =.*$/EXTPORT = $HOST_PORT/g" ~/.config/pnslocal.py
@@ -46,8 +43,15 @@ grep ^EXTPORT  ~/.config/pnslocal.py >> ~/lastent
 #service apache2 reload && echo apache2 reloaded
 
 date >> ~/lastent
+cat ~/lastent
+echo @@@ $@
+for i in $@; do
+if [ $i = no-run ]; then exit 0; fi;
+done
 
-if [ -z $1 ]; then \
+echo enabling site ... >> ~/lastent
+sudo a2ensite httppool_server.conf
+sudo a2dissite 000-default.conf
 #service apache2 reload && echo apache2 reloaded
 echo running apachectl >> ~/lastent  ;
 exec /usr/sbin/apache2ctl -DFOREGROUND 2>&1 >> ~/lastent ;

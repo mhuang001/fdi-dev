@@ -529,15 +529,15 @@ for i in range(n):
     a0, a1, a2 = 'desc %d' % i, 'fatman %d' % (i*4), 5000+i
     if i < 3:
         # Product type
-        x = Product(description=a0, instrument=a1)
+        x = Product(description=a0, creator=a1)
         x.meta['extra'] = Parameter(value=a2)
     elif i < 5:
         # a different type
-        x = Context(description=a0, instrument=a1)
+        x = Context(description=a0, creator=a1)
         x.meta['extra'] = Parameter(value=a2)
     else:
         # yet another type
-        x = MapContext(description=a0, instrument=a1)
+        x = MapContext(description=a0, creator=a1)
         x.meta['extra'] = Parameter(value=a2)
         x.meta['time'] = Parameter(value=FineTime1(a2))
     if i < 4:
@@ -573,17 +573,17 @@ len(res)   # == 4
 def t(m):
     # query is a function
     import re
-    # 'instrument' matches the regex pattern
-    return re.match('.*n.1.*', m['instrument'].value)
+    # 'creator' matches the regex pattern
+    return re.match('.*n.1.*', m['creator'].value)
 
 
 q = MetaQuery(Product, t)
 res = pstore.select(q)
 # expecting [3,4]
-[r.product.instrument for r in res]
+[r.product.creator for r in res]
 
 # same as above but query is on the product. this is slow.
-q = AbstractQuery(Product, 'p', '"n 1" in p.instrument')
+q = AbstractQuery(Product, 'p', '"n 1" in p.creator')
 res = pstore.select(q)
 # [3,4]
-[r.product.instrument for r in res]
+[r.product.creator for r in res]

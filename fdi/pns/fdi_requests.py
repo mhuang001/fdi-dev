@@ -26,16 +26,6 @@ logger = logging.getLogger(__name__)
 #logger.debug('level %d' % (logger.getEffectiveLevel()))
 
 
-common_header = {
-    'Accept': 'application/json',
-    'Accept-Charset': 'utf-8',
-    'Accept-Encoding': 'identity',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
-    "Content-type": 'application/json'
-}
-
-
 pcc = getConfig()
 defaulturl = 'http://' + pcc['node']['host'] + \
     ':' + str(pcc['node']['port']) + pcc['baseurl']

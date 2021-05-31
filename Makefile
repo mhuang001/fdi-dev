@@ -242,7 +242,7 @@ build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .
 
 launch_server:
-	docker run -d -it --env-file $(SECFILE) --name $(SERVER_NAME) $(D) $(IMAGE_NAME) $(B)
+	docker run -d -it --env-file $(SECFILE) -p $(PORT):$(EXTPORT) --name $(SERVER_NAME) $(D) $(IMAGE_NAME) $(B)
 	sleep 2
 	docker ps -n 1
 
@@ -261,3 +261,9 @@ it:
 
 its:
 	docker exec -it $(D) $(SERVER_NAME) /bin/bash
+
+t:
+	docker exec -it $(D) $(SERVER_NAME) /usr/bin/tail -n 100-f /home/apache/error-ps.log
+
+i:
+	docker exec -it $(D) $(SERVER_NAME) /usr/bin/less -f /home/apache/error-ps.log

@@ -3,7 +3,7 @@
 
 from fdi.utils.options import opt
 from fdi.utils import getconfig
-
+from werkzeug.security import generate_password_hash, check_password_hash
 import logging
 import sys
 
@@ -39,8 +39,6 @@ if __name__ == '__main__':
     lv = pc['logginglevel']
     logger.setLevel(lv)
     setuplogging(lv if lv > logging.WARN else logging.WARN)
-    logger.info(
-        'Server starting. Make sure no other instance is running.'+str(lv))
 
     node = pc['node']
     # Get username and password and host ip and port.
@@ -70,6 +68,12 @@ if __name__ == '__main__':
     servertype = out[6]['result']
     wsgi = out[7]['result']
 
+    if node['username'] == 'hash':
+        print(generate_password_hash(node['password']))
+        exit(0)
+
+    logger.info(
+        'Server starting. Make sure no other instance is running.'+str(lv))
     if verbose:
         logger.setLevel(logging.DEBUG)
 

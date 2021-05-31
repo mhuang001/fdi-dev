@@ -443,14 +443,16 @@ def test_EventSender():
                           port=None, username=None, passwd=None,
                           client_id=None, callback=None, qos=1,
                           userdata=None, clean_session=None,)
+    mqhost = v.mq._h
     mf = MockFileWatcher()
     mf.addListener(v)
     w = MqttRelaySender(topics="test.mq.bounce2", host=None,
                         port=None, username=None, passwd=None,
                         client_id=None, callback=None, qos=1,
                         userdata=None, clean_session=None,)
+    mquser = w.mq.username
     w.addListener(l1)
-    w.last_msg = ''
+    w.last_msg = None
     test123 = ''
 
     def snd():
@@ -459,7 +461,7 @@ def test_EventSender():
 
     def rcv():
         t0 = time.time()
-        while w.last_msg == '' and (time.time()-t0 < 3):
+        while w.last_msg is None and (time.time()-t0 < 3):
             time.sleep(0.2)
     t1 = threading.Thread(target=snd)
     t2 = threading.Thread(target=rcv)
@@ -469,6 +471,7 @@ def test_EventSender():
     t1.join()
     assert not t1.is_alive()
     assert not t2.is_alive()
+    print(w.last_msg)
     assert test123 == "['foo'] changed."
     assert w.last_msg == ['foo']
 

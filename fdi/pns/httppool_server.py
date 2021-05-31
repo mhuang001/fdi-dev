@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-
+#from . import server_skeleton
+#from .server_skeleton import init_conf_clas, User, checkpath, app, auth, pc
 from ..utils.common import lls
 from ..dataset.deserialize import deserialize
 from ..dataset.serializable import serialize
@@ -10,7 +11,8 @@ from ..pal.urn import makeUrn, parseUrn
 from ..pal.webapi import WebAPI
 from ..dataset.product import Product
 from ..dataset.classes import Classes
-from ..utils.common import fullname, trbk
+from ..utils import getconfig
+from ..utils.common import fullname, trbk, getUidGid
 from ..utils.fetch import fetch
 # from .db_utils import check_and_create_fdi_record_table, save_action
 
@@ -24,11 +26,16 @@ import json
 import time
 import pprint
 import builtins
+import functools
+import datetime
+import operator
 from collections import ChainMap
 from itertools import chain
 import importlib
-from flask import request, make_response, jsonify
+from flask import Flask, request, make_response, jsonify
 from flask.wrappers import Response
+from flask_httpauth import HTTPBasicAuth
+from werkzeug.security import generate_password_hash, check_password_hash
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -40,47 +47,180 @@ else:
     strset = str
     from urlparse import urlparse
 
-# from .logdict import logdict
-# '/var/log/pns-server.log'
-# logdict['handlers']['file']['filename'] = '/tmp/server.log'
 
-from .server_skeleton import init_conf_clas, makepublicAPI, logging, checkpath, app, auth, pc
+######################################
+#### Application Factory Function ####
+######################################
 
-logger = logging.getLogger(__name__)
+
+def create_app(config_object=None):
+    app = Flask(__name__, instance_relative_config=True)
+    config_object = config_object if config_object else getconfig.getConfig()
+    app.config['PC'] = config_object
+    import logging
+    import logging.config
+    from .logdict import logdict
+    logging.config.dictConfig(logdict)
+    # '/var/log/pns-server.log'
+    # logdict['handlers']['file']['filename'] = '/tmp/server.log'
+    app.logger = logging.getLogger(__name__)
+    # initialize_extensions(app)
+    # register_blueprints(app)
+    init_httppool_server(app)
+    return app
+
+
+def init_conf_clas(pc, app):
+
+    from ..dataset.classes import Classes
+
+    # setup user class mapping
+    clp = pc['userclasses']
+    app.logger.debug('User class file '+clp)
+    if clp == '':
+        Classes.updateMapping()
+    else:
+        clpp, clpf = os.path.split(clp)
+        sys.path.insert(0, os.path.abspath(clpp))
+        # print(sys.path)
+        pcs = __import__(clpf.rsplit('.py', 1)[
+            0], globals(), locals(), ['PC'], 0)
+        pcs.PC.updateMapping()
+        Classes.updateMapping(pcs.PC.mapping)
+        app.logger.debug('User classes: %d found.' % len(pcs.PC.mapping))
+    return Classes
+
+
+class User():
+
+    def __init__(self, name, passwd, role='read_only'):
+
+        self.username = name
+        self.password = passwd
+        self.registered_on = datetime.datetime.now()
+        self.hashed_password = generate_password_hash(passwd)
+        self.role = role
+        self.authenticated = False
+
+    def is_correct_password(self, plaintext_password):
+
+        return check_password_hash(plaintext_password, self.hashed_password)
+
+    def __repr__(self):
+        return f'<User: {self.username}>'
+
+
+uspa = operator.attrgetter('username', 'password')
+
+
+@functools.lru_cache(6)
+def checkpath(path, un):
+    """ Checks  the directories and creats if missing.
+
+    path: str. can be resolved with Path.
+    un: server user name
+    """
+    app.logger.debug('path %s user %s' % (path, un))
+
+    p = Path(path).resolve()
+    if p.exists():
+        if not p.is_dir():
+            msg = str(p) + ' is not a directory.'
+            app.logger.error(msg)
+            return None
+        else:
+            # if path exists and can be set owner and group
+            if p.owner() != un or p.group() != un:
+                msg = str(p) + ' owner %s group %s. Should be %s.' % \
+                    (p.owner(), p.group(), un)
+                app.logger.warning(msg)
+    else:
+        # path does not exist
+
+        msg = str(p) + ' does not exist. Creating...'
+        app.logger.debug(msg)
+        p.mkdir(mode=0o775, parents=True, exist_ok=True)
+        app.logger.info(str(p) + ' directory has been made.')
+
+    #app.logger.info('Setting owner, group, and mode...')
+    if not setOwnerMode(p, un):
+        return None
+
+    app.logger.debug('checked path at ' + str(p))
+    return p
+
+
+def init_httppool_server(app):
+    """ Init a global HTTP POOL """
+
+    # local.py config
+    pc = app.config['PC']
+    # class namespace
+    Classes = init_conf_clas(pc, app)
+    lookup = ChainMap(Classes.mapping, globals(), vars(builtins))
+    app.config['LOOKUP'] = lookup
+
+    # auth
+    auth = HTTPBasicAuth()
+    app.config['AUTH'] = auth
+
+    # users
+    # effective group of current process
+    uid, gid = getUidGid(pc['serveruser'])
+    app.logger.info("Serveruser %s's uid %d and gid %d..." %
+                    (pc['serveruser'], uid, gid))
+    # os.setuid(uid)
+    # os.setgid(gid)
+    xusers = {
+        "rw": generate_password_hash(pc['node']['username']),
+        "ro": generate_password_hash(pc['node']['password'])
+    }
+    users = [
+        User(pc['node']['username'], pc['node']['password'], 'read_write'),
+        User(pc['node']['ro_username'], pc['node']
+             ['ro_password'], 'read_only')
+    ]
+    app.config['USERS'] = users
+
+    # PoolManager is a singleton
+    from ..pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
+    if PM.isLoaded(DEFAULT_MEM_POOL):
+        app.logger.debug('cleanup DEFAULT_MEM_POOL')
+        PM.getPool(DEFAULT_MEM_POOL).removeAll()
+    app.logger.debug('Done cleanup PoolManager.')
+    app.logger.debug('ProcID %d 1st reg %s' % (os.getpid(),
+                                               str(app._got_first_request))
+                     )
+    PM.removeAll()
+    app.config['POOLMANAGER'] = PM
+
+    # pool-related paths
+    # the httppool that is local to the server
+    scheme = 'server'
+    _basepath = PM.PlacePaths[scheme]
+    poolpath = os.path.join(_basepath, pc['api_version'])
+
+    if checkpath(poolpath, pc['serveruser']) is None:
+        app.logger.error('Store path %s unavailable.' % poolpath)
+        sys.exit(-2)
+
+    app.config['POOLSCHEME'] = scheme
+    app.config['POOLPATH'] = poolpath
 
 
 # =============HTTP POOL=========================
-
-# the httppool that is local to the server
-schm = 'server'
+#auth = HTTPBasicAuth()
+#app = create_app()
 
 
 @app.before_first_request
-def init_httppool_server():
-    """ Init a global HTTP POOL """
-    global pc, Classes, PM, BASEURL, basepath, poolpath, pylookup
-
-    Classes = init_conf_clas(pc)
-    lookup = ChainMap(Classes.mapping, globals(), vars(builtins))
-
-    from ..pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
-    if PM.isLoaded(DEFAULT_MEM_POOL):
-        logger.debug('cleanup DEFAULT_MEM_POOL')
-        PM.getPool(DEFAULT_MEM_POOL).removeAll()
-    logger.debug('Done cleanup PoolManager.')
-    logger.debug('ProcID %d 1st reg %s' % (os.getpid(),
-                                           str(app._got_first_request))
-                 )
-    PM.removeAll()
-
-    basepath = PM.PlacePaths[schm]
-    poolpath = os.path.join(basepath, pc['api_version'])
-
-    if checkpath(poolpath, pc['serveruser']) is None:
-        logger.error('Store path %s unavailable.' % poolpath)
-        sys.exit(-2)
-
-   # load_all_pools()
+def init(app):
+    global pc, PM, basepath, poolpath, lookup, auth
+    pc, lookup = app.config['PC'], app.config['LOOKUP']
+    PM = app.config['POOLMANAGER']
+    poolpath = app.config['POOLPATH']
+    poolurl_base = app.config['POOLSCHEME'] + '://' + poolpath + '/'
+    auth = app.config['AUTN']
 
 
 def getallpools(path):
@@ -103,13 +243,13 @@ def load_all_pools():
     alldirs = set()
 
     path = poolpath
-    logger.debug('loading all from ' + path)
+    app.logger.debug('loading all from ' + path)
 
     alldirs = getallpools(path)
     for poolname in alldirs:
         poolurl = schm + '://' + os.path.join(poolpath, poolname)
         PM.getPool(poolname=poolname, poolurl=poolurl)
-        logger.info("Registered pool: %s in %s" % (poolname, poolpath))
+        app.logger.info("Registered pool: %s in %s" % (poolname, poolpath))
 
 
 def get_prod_count(prod_type, pool_id):
@@ -120,8 +260,8 @@ def get_prod_count(prod_type, pool_id):
 
     """
 
-    logger.debug('### method %s prod_type %s poolID %s***' %
-                 (request.method, prod_type, pool_id))
+    app.logger.debug('### method %s prod_type %s poolID %s***' %
+                     (request.method, prod_type, pool_id))
     res = 0
     nm = []
     path = os.path.join(poolpath, pool_id)
@@ -131,7 +271,7 @@ def get_prod_count(prod_type, pool_id):
                 res = res+1
                 nm.append(i)
     s = str(nm)
-    logger.debug('found '+s)
+    app.logger.debug('found '+s)
     return str(res), 'Counting %s files OK'
 
 
@@ -139,15 +279,21 @@ def get_prod_count(prod_type, pool_id):
 @ app.route(pc['baseurl']+'/', methods=['GET', 'POST'])
 @ app.route(pc['baseurl']+'/pools', methods=['GET'])
 def get_pools():
+    if request.method in ['POST', 'PUT', 'DELETE'] and auth.current_user() == pc['node']['ro_username']:
+        msg = 'User %s us Read-Only, not allowed to %s.' % \
+            (auth.current_user(), request.method)
+        app.logger.debug(msg)
+        return server_skeleton.unauthorized(msg)
+
     ts = time.time()
     path = poolpath
-    logger.debug('Listing all directories from ' + path)
+    app.logger.debug('Listing all directories from ' + path)
 
     result = serialize(getallpools(path))
     msg = 'pools found.'
     w = '{"result": %s, "msg": "%s", "timestamp": %f}' % (
         result, msg, ts)
-    logger.debug(lls(w, 240))
+    app.logger.debug(lls(w, 240))
     resp = make_response(w)
     resp.headers['Content-Type'] = 'application/json'
     return resp
@@ -174,7 +320,7 @@ def getinfo(cmd):
 
     w = '{"result": %s, "msg": "%s", "timestamp": %f}' % (
         result, msg, ts)
-    logger.debug(lls(w, 240))
+    app.logger.debug(lls(w, 240))
     resp = make_response(w)
     resp.headers['Content-Type'] = 'application/json'
     return resp
@@ -203,6 +349,12 @@ def httppool(pool):
 
     'pool':'url'
     """
+    if request.method in ['POST', 'PUT', 'DELETE'] and auth.current_user() == pc['node']['ro_username']:
+        msg = 'User %s us Read-Only, not allowed to %s.' % \
+            (auth.current_user(), request.method)
+        app.logger.debug(msg)
+        return server_skeleton.unauthorized(msg)
+
     username = request.authorization.username
     paths = pool.split('/')
     if 0:
@@ -232,7 +384,7 @@ def httppool(pool):
     ts = time.time()
     # do not deserialize if set True. save directly to disk
     serial_through = True
-    logger.debug('*** method %s paths %s ***' % (request.method, paths))
+    app.logger.debug('*** method %s paths %s ***' % (request.method, paths))
 
     if request.method == 'GET':
         # TODO modify client loading pool , prefer use load_HKdata rather than load_single_HKdata, because this will generate enormal sql transaction
@@ -314,9 +466,9 @@ def httppool(pool):
     r = '"null"' if result is None else str(result)
     w = '{"result": %s, "msg": %s, "timestamp": %f}' % (
         r, json.dumps(msg), ts)
-    # logger.debug(pprint.pformat(w, depth=3, indent=4))
+    # app.logger.debug(pprint.pformat(w, depth=3, indent=4))
     s = w  # serialize(w)
-    logger.debug(lls(s, 240))
+    app.logger.debug(lls(s, 240))
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
@@ -357,7 +509,7 @@ def parseApiArgs(all_args):
             result = '"FAILED"'
             msg = 'Bad arguement format ' + all_args[0] + \
                 ' Exception: ' + str(e) + ' ' + trbk(e)
-            logger.error(msg)
+            app.logger.error(msg)
             return result, msg
         kwstart = 1
     else:
@@ -373,7 +525,7 @@ def parseApiArgs(all_args):
         result = '"FAILED"'
         msg = 'Bad arguement format ' + str(all_args[kwstart:]) + \
             ' Exception: ' + str(e) + ' ' + trbk(e)
-        logger.error(msg)
+        app.logger.error(msg)
         return result, msg
 
     return args, kwds
@@ -412,14 +564,14 @@ def call_pool_Api(paths):
             kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
             msg = '%s(%s)' % (method, ', '.join(
                 chain(map(str, args), kwdsexpr)))
-            logger.debug('WebAPI ' + msg)
+            app.logger.debug('WebAPI ' + msg)
 
     poolname = paths[0]
     poolurl = schm + '://' + os.path.join(poolpath, poolname)
     if not PM.isLoaded(poolname):
         result = '"FAILED"'
         msg = 'Pool not found: ' + poolname
-        logger.error(msg)
+        app.logger.error(msg)
         return result, msg
 
     try:
@@ -431,7 +583,7 @@ def call_pool_Api(paths):
         result = '"FAILED"'
         msg = 'Unable to complete ' + msg + \
             ' Exception: ' + str(e) + ' ' + trbk(e)
-        logger.error(msg)
+        app.logger.error(msg)
     return result, msg
 
 
@@ -449,9 +601,9 @@ def delete_product(paths):
     if not PM.isLoaded(poolname):
         result = '"FAILED"'
         msg = 'Pool not found: ' + poolname
-        logger.error(msg)
+        app.logger.error(msg)
         return result, msg
-    logger.debug('DELETE product urn: ' + urn)
+    app.logger.debug('DELETE product urn: ' + urn)
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
         result = poolobj.remove(urn)
@@ -460,7 +612,7 @@ def delete_product(paths):
         result = '"FAILED"'
         msg = 'Unable to remove product: ' + urn + \
             ' Exception: ' + str(e) + ' ' + trbk(e)
-        logger.error(msg)
+        app.logger.error(msg)
     return result, msg
 
 
@@ -481,7 +633,7 @@ def unregister_pool(paths):
     """
 
     poolname = '/'.join(paths)
-    logger.debug('UNREGISTER (DELETE) POOL' + poolname)
+    app.logger.debug('UNREGISTER (DELETE) POOL' + poolname)
 
     result = PM.remove(poolname)
     if result == 1:
@@ -520,8 +672,8 @@ def save_product(data, paths, tag=None, serialize_in=True, serialize_out=False):
         msg = 'Pool directory error: ' + fullpoolpath
         return result, msg
 
-    logger.debug('SAVE product to: ' + poolurl)
-    # logger.debug(str(id(PM._GlobalPoolList)) + ' ' + str(PM._GlobalPoolList))
+    app.logger.debug('SAVE product to: ' + poolurl)
+    # app.logger.debug(str(id(PM._GlobalPoolList)) + ' ' + str(PM._GlobalPoolList))
 
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
@@ -661,7 +813,7 @@ def load_product(p, paths, serialize_out=False):
         msg = 'Pool not found: ' + poolname
         return result, msg
 
-    logger.debug('LOAD product: ' + urn)
+    app.logger.debug('LOAD product: ' + urn)
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
         result = poolobj.loadProduct(urn=urn, serialize_out=serialize_out)
@@ -712,6 +864,72 @@ def load_single_HKdata(paths):
     return result, msg
 
 
+def setOwnerMode(p, username):
+    """ makes UID and GID set to those of serveruser given in the config file. This function is usually done by the initPTS script.
+    """
+
+    app.logger.debug('set owner, group to %s, mode to 0o775' % username)
+
+    uid, gid = getUidGid(username)
+    if uid == -1 or gid == -1:
+        return None
+    try:
+        chown(str(p), uid, gid)
+        chmod(str(p), mode=0o775)
+    except Exception as e:
+        msg = 'cannot set input/output dirs owner to ' + \
+            username + ' or mode. check config. ' + str(e) + trbk(e)
+        app.logger.error(msg)
+        return None
+
+    return username
+
+
+@auth.verify_password
+def verify_password(username, password):
+    app.logger.debug('verify user/pass')
+    if (username, password) in uspa(users):
+        return username
+
+# import requests
+# from http.client import HTTPConnection
+# HTTPConnection.debuglevel = 1
+
+
+# @auth.verify_password
+# def verify(username, password):
+#     """This function is called to check if a username /
+#     password combination is valid.
+#     """
+#     if not (username and password):
+#         return False
+#     return username == pc['node']['username'] and password == pc['node']['password']
+if 0:
+    pass
+    # elif username == pc['auth_user'] and password == pc['auth_pass']:
+
+    # else:
+    #     password = str2md5(password)
+    #     try:
+    #         conn = mysql.connector.connect(host = pc['mysql']['host'], port=pc['mysql']['port'], user =pc['mysql']['user'], password = pc['mysql']['password'], database = pc['mysql']['database'])
+    #         if conn.is_connected():
+    #             app.logger.info("connect to db successfully")
+    #             cursor = conn.cursor()
+    #             cursor.execute("SELECT * FROM userinfo WHERE userName = '" + username + "' AND password = '" + password + "';" )
+    #             record = cursor.fetchall()
+    #             if len(record) != 1:
+    #                 app.logger.info("User : " + username + " auth failed")
+    #                 conn.close()
+    #                 return False
+    #             else:
+    #                 conn.close()
+    #                 return True
+    #         else:
+    #             return False
+    #     except Error as e:
+    #         app.logger.error("Connect to database failed: " +str(e))
+
+
 # API specification for this module
 APIs = {
     'GET': {'func': 'get_pool_sn',
@@ -741,12 +959,61 @@ APIs = {
 # def get_apis():
 #     """ Makes a page for APIs described in module variable APIs. """
 
-#     logger.debug('APIs %s' % (APIs.keys()))
+#     app.logger.debug('APIs %s' % (APIs.keys()))
 #     ts = time.time()
 #     l = [(a, makepublicAPI(o)) for a, o in APIs.items()]
 #     w = {'APIs': dict(l), 'timestamp': ts}
-#     logger.debug('ret %s' % (str(w)[:100] + ' ...'))
+#     app.logger.debug('ret %s' % (str(w)[:100] + ' ...'))
 #     return jsonify(w)
 
 
-logger.debug('END OF '+__file__)
+def makepublicAPI(o):
+    """ Provides API specification for command given. """
+    api = []
+
+    for cmd, cs in o['cmds'].items():
+        if not issubclass(cs.__class__, tuple):  # e.g. 'run':run
+            c = cs
+            kwds = {}
+        else:  # e.g. 'sleep': (dosleep, dict(ops='1'))
+            c, kwds = cs
+        desc = c.__doc__ if isinstance(c, types.FunctionType) else c
+        d = {}
+        d['description'] = desc
+        d['URL'] = url_for(o['func'],
+                           cmd=cmd,
+                           **kwds,
+                           _external=True)
+        api.append(d)
+    # print('******* ' + str(api))
+    return api
+
+
+@app.errorhandler(400)
+def bad_request(error):
+    ts = time.time()
+    w = {'error': 'Bad request.', 'message': str(error), 'timestamp': ts}
+    return make_response(jsonify(w), 400)
+
+
+@app.errorhandler(401)
+def unauthorized(error):
+    ts = time.time()
+    w = {'error': 'Unauthorized. Authentication needed to modify.',
+         'message': str(error), 'timestamp': ts}
+    return make_response(jsonify(w), 401)
+
+
+@app.errorhandler(404)
+def not_found(error):
+    ts = time.time()
+    w = {'error': 'Not found.', 'message': str(error), 'timestamp': ts}
+    return make_response(jsonify(w), 404)
+
+
+@app.errorhandler(409)
+def conflict(error):
+    ts = time.time()
+    w = {'error': 'Conflict. Updating.',
+         'message': str(error), 'timestamp': ts}
+    return make_response(jsonify(w), 409)

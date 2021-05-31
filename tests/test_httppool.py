@@ -6,21 +6,23 @@
 
 
 from .test_utils import get_sample_product
-import pytest
 from fdi.dataset.serializable import serialize
 from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
 from fdi.pal.poolmanager import PoolManager
 from fdi.utils.common import lls, trbk, fullname
 from fdi.utils.fetch import fetch
-#from fdi.pns import httppool_server as HS
+from fdi.pns import httppool_server
+from fdi.pns.jsonio import auth_headers
 
-
+import pytest
 import filelock
 import sys
 from urllib.request import pathname2url
+from urllib.error import URLError
+from flask import current_app
 from requests.auth import HTTPBasicAuth
-import requests
+# import requests
 import random
 import os
 from pprint import pprint
@@ -85,6 +87,12 @@ if 0:
     sys.exit()
 
 
+@pytest.fixture(scope="module")
+def project_app():
+    from fdi.pns.httppool_server import create_app
+    return create_app()
+
+
 def issane(o):
     """ basic check on return """
     global lupd
@@ -127,6 +135,81 @@ def check_response(o, failed_case=False):
         assert 'FAILED' == o['result'], o['result']
 
 
+def test_new_user_read_write(new_user_read_write):
+    """
+    GIVEN a User model
+    WHEN a new User is created
+    THEN check the username, hashed_password, authenticated, and role fields are defined correctly
+    https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
+    """
+    new_user = new_user_read_write
+    assert new_user.username == 'rww'
+    assert new_user.hashed_password != 'FlaskIsAwesome'
+    assert not new_user.authenticated
+    assert new_user.role == 'read_write'
+
+
+def test_new_user_read_only(new_user_read_only):
+    """
+    GIVEN a User model
+    WHEN a new User is created
+    THEN check the username, hashed_password, authenticated, and role fields are defined correctly
+    """
+    new_user = new_user_read_only
+    assert new_user.username == 'aas'
+    assert new_user.hashed_password != 'FlaskIsAwesome'
+    assert not new_user.authenticated
+    assert new_user.role == 'read_only'
+
+
+def test_unauthorizedread_write(server, new_user_read_only, client):
+    aburl, headers = server
+    # generate a unauthorized user header
+    headers = auth_headers('k', 'hu8')
+    x = client.get(aburl+'/pools', headers=headers)
+    assert x.status_code == 200
+    # with pytest.raises(URLError):
+    o = deserialize(x.data)
+    check_response(o)
+    pools = o['result']
+    assert isinstance(pools, list)
+
+
+def test_authorizedread_write(server, new_user_read_write, client):
+    aburl, headers = server
+    headers = auth_headers('k', 'hu8')
+    x = client.get(aburl+'/pools', headers=headers)
+    assert x.status_code == 200
+    # with pytest.raises(URLError):
+    o = deserialize(x.data)
+    check_response(o)
+    pools = o['result']
+    assert isinstance(pools, list)
+
+
+def test_root(setup, client):
+    aburl, headers = setup
+    url = aburl + '/'+'pools'
+    x = client.get(url)
+    o = deserialize(x.text)
+    check_response(o)
+    c_pools = o['result']
+    # /
+    url = aburl + '/'
+    x = client.get(url)
+    o = deserialize(x.text)
+    check_response(o)
+    c = o['result']
+    assert c_pools == c
+    # /
+    url = aburl
+    x = client.get(url)
+    o = deserialize(x.text)
+    check_response(o)
+    c = o['result']
+    assert c_pools == c
+
+
 def clear_server_local_pools_dir(poolid, local_pools_dir):
     """ deletes files in the given poolid in server pool dir. """
     logger.info('clear server pool dir ' + poolid)
@@ -143,7 +226,7 @@ def clear_server_local_pools_dir(poolid, local_pools_dir):
         # x = requests.post(url, auth=HTTPBasicAuth(*userpass), data=data)
 
 
-def get_dirs(local_pools_dir):
+def get_local_dirs(local_pools_dir):
     """ returns a list of directories in server pool dir. """
 
     path = local_pools_dir
@@ -154,7 +237,7 @@ def get_dirs(local_pools_dir):
     return files
 
 
-def get_files(poolid, local_pools_dir):
+def get_local_files(poolid, local_pools_dir):
     """ returns a list of files in the given poolid in server pool dir. """
 
     ppath = os.path.join(local_pools_dir, poolid)
@@ -165,7 +248,7 @@ def get_files(poolid, local_pools_dir):
     return files
 
 
-def test_clear_server(local_pools_dir):
+def test_clear_local_server(local_pools_dir):
     clrpool = 'test_clear'
     ppath = os.path.join(local_pools_dir, clrpool)
     if not os.path.exists(ppath):
@@ -177,14 +260,15 @@ def test_clear_server(local_pools_dir):
     assert not os.path.exists(ppath)
 
 
-def empty_pool_on_server(post_poolid, aburl, auth):
-    url = aburl + '/' + post_poolid + '/api/removeAll'
-    x = requests.get(url, auth=HTTPBasicAuth(*auth))
+def empty_pool_on_server(post_poolid, aburl, auth, clnt):
+    path = post_poolid + '/api/removeAll'
+    url = aburl + '/' + path
+    x = clnt.get(url, auth=HTTPBasicAuth(*auth))
     o = deserialize(x.text)
     check_response(o)
 
 
-def populate_server(poolid, aburl, auth):
+def populate_server(poolid, aburl, auth, clnt):
     creators = ['Todds', 'Cassandra', 'Jane', 'Owen', 'Julian', 'Maurice']
     instruments = ['fatman', 'herscherl', 'NASA', 'CNSC', 'SVOM']
 
@@ -194,17 +278,16 @@ def populate_server(poolid, aburl, auth):
                     instrument=random.choice(instruments))
         x.creator = i
         data = serialize(x)
-        url = aburl + '/' + poolid + '/' + prodt + '/' + str(index)
-        print(len(data))
-
-        x = requests.post(url, auth=HTTPBasicAuth(*auth), data=data)
+        path = poolid + '/' + prodt + '/' + str(index)
+        url = aburl + '/' + path
+        x = clnt.post(url, auth=HTTPBasicAuth(*auth), data=data)
         o = deserialize(x.text)
         check_response(o)
         urns.append(o['result'])
     return creators, instruments, urns
 
 
-def test_CRUD_product(local_pools_dir, setup, userpass):
+def test_CRUD_product(local_pools_dir, setup, userpass, client):
     ''' test saving, read, delete products API, products will be saved at /data/pool_id
     '''
 
@@ -213,15 +296,16 @@ def test_CRUD_product(local_pools_dir, setup, userpass):
     post_poolid = test_poolid
     # register
     pool = PoolManager.getPool(test_poolid, aburl + '/'+test_poolid)
-    empty_pool_on_server(post_poolid, aburl, userpass)
+    empty_pool_on_server(post_poolid, aburl, userpass, client)
 
-    files = [f for f in get_files(
+    files = [f for f in get_local_files(
         post_poolid, local_pools_dir) if f[-1].isnumeric()]
     origin_prod = len(files)
 
-    creators, instruments, urns = populate_server(post_poolid, aburl, userpass)
+    creators, instruments, urns = populate_server(
+        post_poolid, aburl, userpass, client)
 
-    files1 = [f for f in get_files(
+    files1 = [f for f in get_local_files(
         post_poolid, local_pools_dir) if f[-1].isnumeric()]
     num_prod = len(files1)
     assert num_prod == len(creators) + origin_prod, 'Products number not match'
@@ -236,7 +320,7 @@ def test_CRUD_product(local_pools_dir, setup, userpass):
     u = random.choice(urns)
     # remove the leading 'urn:'
     url = aburl + '/' + u[4:].replace(':', '/')
-    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o = deserialize(x.text)
     check_response(o)
     assert o['result'].creator == creators[urns.index(u)], 'Creator not match'
@@ -247,10 +331,10 @@ def test_CRUD_product(local_pools_dir, setup, userpass):
     logger.info('read hk')
     hkpath = '/hk'
     url = aburl + '/' + post_poolid + hkpath
-    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o1 = deserialize(x.text)
     url2 = aburl + '/' + post_poolid + '/api/readHK'
-    x2 = requests.get(url2, auth=HTTPBasicAuth(*userpass))
+    x2 = client.get(url2, auth=HTTPBasicAuth(*userpass))
     o2 = deserialize(x2.text)
     for o in [o1, o2]:
         check_response(o)
@@ -269,7 +353,7 @@ def test_CRUD_product(local_pools_dir, setup, userpass):
     logger.info('read classes')
     hkpath = '/hk/classes'
     url = aburl + '/' + post_poolid + hkpath
-    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o = deserialize(x.text)
     check_response(o)
     assert o['result'][prodt]['sn'][-l:] == inds
@@ -279,7 +363,7 @@ def test_CRUD_product(local_pools_dir, setup, userpass):
     num = len(o['result'][prodt]['sn'])
     apipath = '/api/getCount/' + prodt + ':str'
     url = aburl + '/' + post_poolid + apipath
-    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o = deserialize(x.text)
     check_response(o)
     assert o['result'] == num
@@ -287,7 +371,7 @@ def test_CRUD_product(local_pools_dir, setup, userpass):
     logger.info('read tags')
     hkpath = '/hk/tags'
     url = aburl + '/' + post_poolid + hkpath
-    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o = deserialize(x.text)
     check_response(o)
     assert len(o['result']) == 0
@@ -295,7 +379,7 @@ def test_CRUD_product(local_pools_dir, setup, userpass):
     logger.info('read urns')
     hkpath = '/hk/urns'
     url = aburl + '/' + post_poolid + hkpath
-    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o = deserialize(x.text)
     check_response(o)
 
@@ -304,19 +388,19 @@ def test_CRUD_product(local_pools_dir, setup, userpass):
     # ========
     logger.info('delete a product')
 
-    files = [f for f in get_files(
+    files = [f for f in get_local_files(
         post_poolid, local_pools_dir) if f[-1].isnumeric()]
     origin_prod = len(files)
 
     index = files[-1].rsplit('_', 1)[1]
     url = aburl + '/' + post_poolid + '/fdi.dataset.product.Product/' + index
 
-    x = requests.delete(url, auth=HTTPBasicAuth(*userpass))
+    x = client.delete(url, auth=HTTPBasicAuth(*userpass))
 
     o = deserialize(x.text)
     check_response(o)
 
-    files1 = [f for f in get_files(
+    files1 = [f for f in get_local_files(
         post_poolid, local_pools_dir) if f[-1].isnumeric()]
     num_prod = len(files1)
     assert num_prod + 1 == origin_prod, 'Products number not match'
@@ -328,38 +412,38 @@ def test_CRUD_product(local_pools_dir, setup, userpass):
 
     # ========
     logger.info('wipe a pool')
-    files = get_files(post_poolid, local_pools_dir)
+    files = get_local_files(post_poolid, local_pools_dir)
     assert len(files) != 0, 'Pool is already empty: ' + post_poolid
 
     # wipe the pool on the server
     url = aburl + '/' + post_poolid + '/api/removeAll'
-    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o = deserialize(x.text)
     check_response(o)
 
-    files = get_files(post_poolid, local_pools_dir)
+    files = get_local_files(post_poolid, local_pools_dir)
     assert len(files) == 0, 'Wipe pool failed: ' + o['msg']
 
     url = aburl + '/' + post_poolid + '/api/isEmpty'
-    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o = deserialize(x.text)
     check_response(o)
     assert o['result'] == True
 
     logger.info('unregister a pool on the server')
     url = aburl + '/' + post_poolid
-    x = requests.delete(url, auth=HTTPBasicAuth(*userpass))
+    x = client.delete(url, auth=HTTPBasicAuth(*userpass))
     o = deserialize(x.text)
     check_response(o)
 
     # this should fail as pool is unregistered on the server
     url = aburl + '/' + post_poolid + '/api/isEmpty'
-    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o = deserialize(x.text)
     check_response(o, failed_case=True)
 
 
-def test_product_path(setup, userpass):
+def test_product_path(setup, userpass, client):
 
     aburl, headers = setup
     auth = HTTPBasicAuth(*userpass)
@@ -373,7 +457,7 @@ def test_product_path(setup, userpass):
     data = serialize(p)
     # print(len(data))
     url1 = url0+prodt + '/0'
-    x = requests.post(url1, auth=auth, data=data)
+    x = client.post(url1, auth=auth, data=data)
     o = deserialize(x.text)
     check_response(o)
     urn = o['result']
@@ -381,21 +465,21 @@ def test_product_path(setup, userpass):
     # API
     pcls = urn.split(':')[2].replace(':', '/')
     urlapi = url0 + pcls
-    # 'http://0.0.0.0:5000/v0.7/test/fdi.dataset.product.Product'
-    x = requests.get(urlapi, auth=auth)
+    # 'http://127.0.0.1:5000/v0.8/test/fdi.dataset.product.Product'
+    x = client.get(urlapi, auth=auth)
     o = deserialize(x.text)
     check_response(o)
     c = o['result']
-    pprint(c)
+    # pprint(c)
     assert 'metadata' in c
 
     # test product paths
     segs = ["results", "energy_table", "Energy", "data"]
     pth = '/'.join(segs)
     # make url w/  urn1
-    # 'http://0.0.0.0:5000/v0.7/test/urn+test+fdi.dataset.product.Product+0/results/energy_table/Energy/data'
+    # 'http://127.0.0.1:5000/v0.8/test/urn+test+fdi.dataset.product.Product+0/results/energy_table/Energy/data'
     url2 = url0 + urn.replace(':', '+') + '/' + pth
-    x = requests.get(url2, auth=auth)
+    x = client.get(url2, auth=auth)
     o = deserialize(x.text)
     check_response(o)
     c = o['result']
@@ -405,9 +489,9 @@ def test_product_path(setup, userpass):
     pt = urn.split(':', 2)[2].replace(':', '/')
 
     urlp = url0 + pt
-    # http://0.0.0.0:5000/v0.7/test/fdi.dataset.product.Product/0/results/energy_table/Energy/data
+    # http://127.0.0.1:5000/v0.8/test/fdi.dataset.product.Product/0/results/energy_table/Energy/data
     url3 = urlp + '/' + pth
-    x = requests.get(url3, auth=auth)
+    x = client.get(url3, auth=auth)
     o = deserialize(x.text)
     check_response(o)
     c2 = o['result']
@@ -422,7 +506,7 @@ def test_product_path(setup, userpass):
             "results/calibration_arraydset/unit",
     ]:
         url = urlp + '/' + pth
-        x = requests.get(url, auth=auth)
+        x = client.get(url, auth=auth)
         o = deserialize(x.text)
         check_response(o)
         c = o['result']
@@ -431,7 +515,7 @@ def test_product_path(setup, userpass):
     # members
 
     url = url0 + pt + '/'
-    x = requests.get(url, auth=auth)
+    x = client.get(url, auth=auth)
     o = deserialize(x.text)
     check_response(o)
     c = o['result']
@@ -439,48 +523,25 @@ def test_product_path(setup, userpass):
 
     # string
 
-    # 'http://0.0.0.0:5000/v0.7/test/string/fdi.dataset.product.Product/0'
+    # 'http://127.0.0.1:5000/v0.8/test/string/fdi.dataset.product.Product/0'
     url = url0 + pt + '/$string'
-    x = requests.get(url, auth=auth)
+    x = client.get(url, auth=auth)
     assert x.headers['Content-Type'] == 'text/plain'
     c = x.text
     print(c)
     assert 'UNKNOWN' in c
 
 
-def test_get_pools(local_pools_dir, setup):
+def test_get_pools(local_pools_dir, setup, client):
 
     aburl, headers = setup
     url = aburl + '/'+'pools'
-    x = requests.get(url)
+    x = client.get(url)
     o = deserialize(x.text)
     check_response(o)
     c = o['result']
     assert len(c)
-    assert set(c) == set(get_dirs(local_pools_dir))
-
-
-def test_root(setup):
-    aburl, headers = setup
-    url = aburl + '/'+'pools'
-    x = requests.get(url)
-    o = deserialize(x.text)
-    check_response(o)
-    c_pools = o['result']
-    # /
-    url = aburl + '/'
-    x = requests.get(url)
-    o = deserialize(x.text)
-    check_response(o)
-    c = o['result']
-    assert c_pools == c
-    # /
-    url = aburl
-    x = requests.get(url)
-    o = deserialize(x.text)
-    check_response(o)
-    c = o['result']
-    assert c_pools == c
+    assert set(c) == set(get_local_dirs(local_pools_dir))
 
 
 async def lock_pool(poolid, sec, local_pools_dir):
@@ -517,7 +578,7 @@ async def read_product(poolid, setup, userpass):
     return o
 
 
-def test_lock_file(setup, userpass, local_pools_dir):
+def test_lock_file(setup, userpass, local_pools_dir, client):
     ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
     '''
     logger.info('Test read a locked file, it will return FAILED')
@@ -525,9 +586,9 @@ def test_lock_file(setup, userpass, local_pools_dir):
     poolid = test_poolid
     # init server
     populate_server(poolid, aburl, userpass)
-    #hkpath = '/hk/classes'
-    #url = aburl + '/' + poolid + hkpath
-    #x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    # hkpath = '/hk/classes'
+    # url = aburl + '/' + poolid + hkpath
+    # x = client.get(url, auth=HTTPBasicAuth(*userpass))
 
     try:
         loop = asyncio.get_event_loop()
@@ -547,7 +608,7 @@ def test_lock_file(setup, userpass, local_pools_dir):
     check_response(r1, True)
 
 
-def test_read_non_exists_pool(setup, userpass):
+def test_read_non_exists_pool(setup, userpass, client):
     ''' Test read a pool which doesnot exist, returns FAILED
     '''
     logger.info('Test query a pool non exist.')
@@ -555,12 +616,12 @@ def test_read_non_exists_pool(setup, userpass):
     wrong_poolid = 'abc'
     prodpath = '/' + prodt + '/0'
     url = aburl + '/' + wrong_poolid + prodpath
-    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o = deserialize(x.text)
     check_response(o, True)
 
 
-def XXXtest_subclasses_pool(userpass):
+def XXXtest_subclasses_pool(userpass, client):
     logger.info('Test create a pool which has subclass')
     poolid_1 = 'subclasses/a'
     poolid_2 = 'subclasses/b'
@@ -570,9 +631,9 @@ def XXXtest_subclasses_pool(userpass):
     x = Product(description="product example with several datasets",
                 instrument="Crystal-Ball", modelName="Mk II")
     data = serialize(x)
-    res1 = requests.post(url1, auth=HTTPBasicAuth(
+    res1 = client.post(url1, auth=HTTPBasicAuth(
         *userpass), data=data)
-    res2 = requests.post(url2, auth=HTTPBasicAuth(
+    res2 = client.post(url2, auth=HTTPBasicAuth(
         *userpass), data=data)
     o1 = deserialize(res1.text)
     o2 = deserialize(res2.text)
@@ -583,8 +644,8 @@ def XXXtest_subclasses_pool(userpass):
     url1 = aburl + '/' + poolid_1
     url2 = aburl + '/' + poolid_2
 
-    res1 = requests.delete(url1,  auth=HTTPBasicAuth(*userpass))
-    res2 = requests.delete(url2,  auth=HTTPBasicAuth(*userpass))
+    res1 = client.delete(url1,  auth=HTTPBasicAuth(*userpass))
+    res2 = client.delete(url2,  auth=HTTPBasicAuth(*userpass))
     o1 = deserialize(res1.text)
     check_response(o1)
     o2 = deserialize(res2.text)

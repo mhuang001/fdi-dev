@@ -2,7 +2,7 @@
 import getpass
 
 # different user has different log file to allow multiple user
-logfile = '/tmp/fdi_' + getpass.getuser() + '.log'
+logfile = '/tmp/server_' + getpass.getuser() + '.log'
 logdict = {
     "version": 1,
     "formatters": {
@@ -10,8 +10,8 @@ logdict = {
             "format": "%(funcName)s() %(message)s"
         },
         "full": {
-            "format": "%(asctime)s %(name)s %(levelname)s %(args)s %(funcName)s():%(lineno)s - %(message)s",
-            'datefmt': '%Y%m%d %H:%M:%S'
+            "format": "%(asctime)s %(name)s %(levelname)s %(process)d %(threadName)s %(args)s %(funcName)s():%(lineno)s - %(message)s",
+            # 'datefmt': '%Y%m%d %H:%M:%S'
         }
     },
     "handlers": {

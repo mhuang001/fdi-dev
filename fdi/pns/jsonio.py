@@ -4,6 +4,8 @@ from ..dataset.deserialize import deserialize
 from ..utils.common import lls
 
 import logging
+import copy
+import base64
 import json
 
 # pdb.set_trace()
@@ -46,6 +48,15 @@ commonheaders = {
     'Connection': 'keep-alive',
     "Content-type": 'application/json'
 }
+
+
+def auth_headers(username, password, headers=None):
+    if headers is None:
+        headers = copy.copy(commonheaders)
+    up = bytes((username + ':' + password).encode('ascii'))
+    code = base64.b64encode(up).decode("ascii")
+    headers.update({'Authorization': 'Basic %s' % (code)})
+    return headers
 
 
 def getJsonObj(url, headers=None, usedict=True, **kwds):

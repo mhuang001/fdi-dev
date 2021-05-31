@@ -5,15 +5,17 @@ from ..utils import getconfig
 
 import time
 import sys
+import operator
 import functools
 import os
+import datetime
 from os import listdir, chown, chmod, environ, setuid, setgid
 from pathlib import Path
 import logging
 import types
 from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
-
+from werkzeug.security import generate_password_hash, check_password_hash
 # logdict['handlers']['file']['filename'] = '/tmp/server.log'
 
 
@@ -32,11 +34,32 @@ app = Flask(__name__)
 pc = getconfig.getConfig()
 
 logger.debug("pc= %s" % pc)
-auth = HTTPBasicAuth()
+
+
+class User():
+
+    def __init__(self, name, passwd, role='read_only'):
+
+        self.username = name
+        self.password = passwd
+        self.registered_on = datetime.datetime.now()
+        self.hashed_password = generate_password_hash(passwd)
+        self.role = role
+        self.authenticated = False
+
+    def is_correct_password(self, plaintext_password):
+
+        return check_password_hash(plaintext_password, self.hashed_password)
+
+    def __repr__(self):
+        return f'<User: {self.username}>'
+
+
+uspa = operator.attrgetter('username', 'password')
 
 
 def init_conf_clas(pc0):
-    global pc
+    global pc, users
 
     from ..dataset.classes import Classes
     pc = pc0
@@ -46,6 +69,15 @@ def init_conf_clas(pc0):
                 (pc['serveruser'], uid, gid))
     # os.setuid(uid)
     # os.setgid(gid)
+    xusers = {
+        "rw": generate_password_hash(pc['node']['username']),
+        "ro": generate_password_hash(pc['node']['password'])
+    }
+    users = [
+        User(pc['node']['username'], pc['node']['password'], 'read_write'),
+        User(pc['node']['ro_username'], pc['node']
+             ['ro_password'], 'read_only')
+    ]
 
     # setup user class mapping
     clp = pc['userclasses']
@@ -137,12 +169,10 @@ def checkpath(path, un):
 @auth.verify_password
 def verify_password(username, password):
     logger.debug('verify user/pass')
-    if not (username and password):
-        return False
-    elif username == pc['auth_user'] and password == pc['auth_pass']:
-        return True
-    else:
-        return False
+    if (username, password) in uspa(users):
+        return username
+    # elif username == pc['auth_user'] and password == pc['auth_pass']:
+
     # else:
     #     password = str2md5(password)
     #     try:

@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from fdi.pal.poolmanager import PoolManager
-from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
+from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders, auth_headers
 from fdi.utils import getconfig
 from fdi.utils.common import lls
+from fdi.pns.httppool_server import User, create_app
 
 import pytest
 import copy
 import os
-import base64
 import logging
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
+from flask import current_app
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -27,6 +30,8 @@ def checkserver(aburl):
     """ make sure the server is running when tests start
     """
 
+    server_type = None
+
     # check if data already exists
     try:
         o = getJsonObj(aburl)
@@ -35,14 +40,43 @@ def checkserver(aburl):
     except HTTPError as e:
         if e.code == 308:
             logger.info('%s alive. initial server response 308' % (aburl))
+            server_type = 'live'
         else:
-            raise
+            logger.info(e)
+    except URLError as e:
+        logger.info('Not a live server, because %s' % str(e))
+        server_type = 'mock'
+    else:
+        logger.info('live server')
+        server_type = 'live'
+    return server_type
+
     # assert 'result' is not None, 'please start the server to refresh.'
     # initialize test data.
 
 
-@pytest.fixture(scope="package")
-def setup(pc):
+@pytest.fixture(scope="module")
+def new_user_read_write():
+    """
+    GIVEN a User model
+    https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
+    """
+    new_user = User('rww', 'FlaskIsAwesome', 'read_write')
+    return new_user
+
+
+@pytest.fixture(scope="module")
+def new_user_read_only():
+    """
+    GIVEN a User model
+    https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
+    """
+    new_user = User('aas', 'FlaskIsAwesome', 'read_only')
+    return new_user
+
+
+@pytest.fixture(scope="module")
+def live_or_mock_server(pc):
     """ Prepares server absolute base url and common headers fr clients to use.
 
     Based on ``PoolManager.PlacePaths[scheme]`` where ``scheme`` is `http` or `https` and auth info from `pnsconfig` from the configuration file and commandline.
@@ -52,6 +86,8 @@ def setup(pc):
     return: url has no trailing '/'
 
     """
+    server_type = None
+
     testname = 'SVOM'
     # client side.
     # pool url from a local client
@@ -59,22 +95,29 @@ def setup(pc):
     aburl = cschm + '://' + PoolManager.PlacePaths[cschm]
     # aburl='http://' + pc['node']['host'] + ':' + \
     #    str(pc['node']['port']) + pc['baseurl']
-    checkserver(aburl)
-    up = bytes((pc['node']['username'] + ':' +
-                pc['node']['password']).encode('ascii'))
-    code = base64.b64encode(up).decode("ascii")
+    server_type = checkserver(aburl)
     headers = copy.copy(commonheaders)
-    headers.update({'Authorization': 'Basic %s' % (code)})
-    del up, code
+    yield aburl, headers, server_type
+    del aburl, headers
+    server_type = None
+
+
+@pytest.fixture(scope="module")
+def server(live_or_mock_server, new_user_read_write):
+    """ Server data from r/w user, alive.
+
+    """
+    aburl, headers, ty = live_or_mock_server
+    user = new_user_read_write
+    headers = auth_headers(user.username, user.password)
+    headers['server_type'] = ty
     yield aburl, headers
     del aburl, headers
 
 
 @pytest.fixture
 def local_pools_dir(pc):
-    """ this is a path in the local OS, where the server runs.
-
-    the path is used to directly access pool server's internals.
+    """ this is a path in the local OS, where the server runs, used to directly access pool server's internals.
 
     return: has no trailing '/'
     """
@@ -92,3 +135,42 @@ def userpass(pc):
     auth_user = pc['auth_user']
     auth_pass = pc['auth_pass']
     return auth_user, auth_pass
+
+
+@pytest.fixture(scope="module")
+def mock_server(live_or_mock_server):
+    """ Prepares server configuredand alive
+
+    """
+    aburl, headers, server_type = live_or_mock_server
+    assert server_type == 'mock', 'must have a mock server. Not ' + \
+        str(server_type)
+    yield aburl, headers
+    del aburl, headers
+
+
+@pytest.fixture(scope="module")
+def mock_app(mock_server, project_app):
+    app = project_app
+    app.config['TESTING'] = True
+    with app.app_context():
+        yield app
+
+
+@pytest.fixture(scope="module")
+def request_context(mock_app):
+    """create the app and return the request context as a fixture
+       so that this process does not need to be repeated in each test
+    https://stackoverflow.com/a/66318710
+    """
+
+    return mock_app.test_request_context
+
+
+@pytest.fixture(scope="module")
+def client(mock_app):
+    with mock_app.test_client() as client:
+        with mock_app.app_context():
+            # mock_app.preprocess_request()
+            assert current_app.config["ENV"] == "production"
+        yield client

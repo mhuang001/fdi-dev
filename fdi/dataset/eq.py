@@ -50,7 +50,7 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
             if v:
                 print('they are the same object.')
             return None
-        pair = {id1, id2}
+        pair = (id1, id2) if id1 < id2 else (id2, id1)
         c = o1.__class__
         c2 = o2.__class__
         if v:
@@ -66,6 +66,7 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
         if c != c2:
             if v:
                 print('type diff')
+            del _context.seen[-1]
             return ' due to diff types: ' + c.__name__ + ' and ' + c2.__name__
         dc, sc, fc, tc, lc = dict, set, frozenset, tuple, list
 
@@ -83,14 +84,17 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                 pass
             else:
                 if t:
+                    del _context.seen[-1]
                     return None
                 else:  # o1 != o2:
                     s = ' due to "%s" != "%s"' % (lls(o1, 155), lls(o2, 155))
+                    del _context.seen[-1]
                     return s
         try:
             # this is not good if len() is delegated
             # if hasattr(o1, '__len__') and len(o1) != len(o2):
             if hasattr(o1, '__len__') and len(o1) != len(o2):
+                del _context.seen[-1]
                 return ' due to diff %s lengths: %d and %d (%s, %s)' %\
                     (c.__name__, len(o1), len(o2), str(list(o1)), str(list(o2)))
         except AttributeError:
@@ -104,18 +108,24 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                 r = run(list(o1.keys()), list(o2.keys()), v=v, eqcmp=eqcmp)
             else:
                 #  dict
-                r = run(set(o1.keys()), set(o2.keys()), v=v, eqcmp=eqcmp)
+                r = run(tuple(sorted(o1.keys(), key=hash)),
+                        tuple(sorted(o1.keys(), key=hash)),
+                        v=v, eqcmp=eqcmp)
             if r is not None:
+                del _context.seen[-1]
                 return " due to diff " + c.__name__ + " keys" + r
             if v:
                 print('check values')
             for k in o1.keys():
                 if k not in o2:
+                    del _context.seen[-1]
                     return ' due to o2 has no key=%s' % (lls(k, 155))
                 r = run(o1[k], o2[k], v=v, eqcmp=eqcmp)
                 if r is not None:
                     s = ' due to diff values for key=%s' % (lls(k, 155))
+                    del _context.seen[-1]
                     return s + r
+            del _context.seen[-1]
             return None
         elif issubclass(c, (sc, fc, tc, lc)):
             if v:
@@ -126,15 +136,19 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                 for i in range(len(o1)):
                     r = run(o1[i], o2[i], v=v, eqcmp=eqcmp)
                     if r is not None:
+                        del _context.seen[-1]
                         return ' due to diff at index=%d' % (i) + r
+                del _context.seen[-1]
                 return None
             else:
                 if v:
                     print('Check set/frozenset.')
                 if 1:
                     if o1.difference(o2):
+                        del _context.seen[-1]
                         return ' due to at leasr one in the foremer not in the latter'
                     else:
+                        del _context.seen[-1]
                         return None
                 else:
                     oc = o2.copy()
@@ -146,32 +160,41 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                                 found = True
                                 break
                         if not found:
+                            del _context.seen[-1]
                             return ' due to %s not in the latter' % (lls(m, 155))
                         oc.remove(n)
+                    del _context.seen[-1]
                     return None
         elif hasattr(o1, '__dict__'):
             if v:
                 print('obj1 has __dict__')
             r = run(o1.__dict__, o2.__dict__, v=v, eqcmp=eqcmp)
             if r:
+                del _context.seen[-1]
                 return ' due to o1.__dict__ != o2.__dict__' + r
             else:
+                del _context.seen[-1]
                 return None
         elif hasattr(o1, '__iter__') and hasattr(o1, '__next__') or \
                 hasattr(o1, '__getitem__'):
             # two iterators are equal if all comparable properties are equal.
+            del _context.seen[-1]
             return None
         elif has_eqcmp:
             # last resort
             if o1 == o2:
+                del _context.seen[-1]
                 return None
             else:
+                del _context.seen[-1]
                 return ' according to __eq__ or __cmp__'
         else:  # o1 != o2:
             if v:
                 print('no way')
             s = ' due to no reason found for "%s" == "%s"' % (
                 lls(o1, 155), lls(o2, 155))
+            del _context.seen[-1]
+            return s
     return run(obj1, obj2, v=verbose, eqcmp=eqcmp)
 
 

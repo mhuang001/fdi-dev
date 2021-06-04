@@ -15,12 +15,16 @@ from fdi.dataset.deserialize import deserialize
 from fdi.dataset.quantifiable import Quantifiable
 from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf
 from fdi.dataset.composite import Composite
-from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter, make_jsonable
+from fdi.dataset.metadata import Parameter, MetaData, make_jsonable
+from fdi.dataset.numericparameter import NumericParameter
+from fdi.dataset.stringparameter import StringParameter
+from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.datatypes import DataTypes, DataTypeNames
 from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
-from fdi.dataset.dataset import ArrayDataset, TableDataset, CompositeDataset, Column
+from fdi.dataset.dataset import TableDataset, CompositeDataset
+from fdi.dataset.arraydataset import Column, ArrayDataset
 from fdi.dataset.ndprint import ndprint
 from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.finetime import FineTime, FineTime1, utcobj

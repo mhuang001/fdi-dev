@@ -192,7 +192,7 @@ a       3.4                None    float     (0, 31): valid           2.0       
                                              99:                                               id", "", or "default"
                                                                                                , is ommited in value
                                                                                                 string.
-b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01               date param
+b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01       %Y      date param
         01:02:03.456789                      xy                       00:00:00.000099
         1929229323456789)                                             99
 c       Invalid (IJK)              string    '': empty                cliche           B       str parameter. but on
@@ -228,7 +228,7 @@ a       3.4                None    float     (0, 31): valid           2.0       
                                              99:                                               id", "", or "default"
                                                                                                , is ommited in value
                                                                                                 string.
-b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01               date param
+b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01       %Y      date param
         01:02:03.456789                      xy                       00:00:00.000099
         1929229323456789)                                             99
 c       Invalid (IJK)              string    '': empty                cliche           B       str parameter. but on
@@ -371,7 +371,7 @@ ArrayDataset{ [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]] (lyr) <None>, "toString
           -   -   - 0
                   - 9876543210123456
               - xy
-        typecode: '%Y-%m-%dT%H:%M:%S.%f UTC'
+        typecode: '%Y'
         _STID: DateParameter
     c: !StringParameter
         value: IJK
@@ -410,7 +410,7 @@ a       3.4                None    float     (0, 31): valid           2.0       
                                              99:                                               id", "", or "default"
                                                                                                , is ommited in value
                                                                                                 string.
-b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01               date param
+b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01       %Y      date param
         01:02:03.456789                      xy                       00:00:00.000099
         1929229323456789)                                             99
 c       Invalid (IJK)              string    '': empty                cliche           B       str parameter. but on
@@ -470,7 +470,7 @@ a       3.4                None    float     (0, 31): valid           2.0       
                                              99:                                               id", "", or "default"
                                                                                                , is ommited in value
                                                                                                 string.
-b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01               date param
+b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01       %Y      date param
         01:02:03.456789                      xy                       00:00:00.000099
         1929229323456789)                                             99
 c       Invalid (IJK)              string    '': empty                cliche           B       str parameter. but on

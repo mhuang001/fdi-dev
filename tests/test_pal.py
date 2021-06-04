@@ -1,5 +1,5 @@
 
-from fdi.dataset.dataset import ArrayDataset
+from fdi.dataset.arraydataset import ArrayDataset
 import itertools
 import random
 import timeit

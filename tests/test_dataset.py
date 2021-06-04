@@ -25,12 +25,17 @@ from fdi.dataset.quantifiable import Quantifiable
 from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf
 from fdi.dataset.messagequeue import MqttRelayListener, MqttRelaySender
 from fdi.dataset.composite import Composite
-from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter
+from fdi.dataset.metadata import Parameter, MetaData, make_jsonable
+from fdi.dataset.numericparameter import NumericParameter
+from fdi.dataset.stringparameter import StringParameter
+from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.datatypes import DataTypes, DataTypeNames
 from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
-from fdi.dataset.dataset import GenericDataset, ArrayDataset, TableDataset, CompositeDataset, Column
+from fdi.dataset.arraydataset import ArrayDataset, Column
+from fdi.dataset.dataset import TableDataset
+from fdi.dataset.dataset import GenericDataset, CompositeDataset
 from fdi.dataset.indexed import Indexed
 from fdi.dataset.ndprint import ndprint
 from fdi.dataset.datatypes import Vector, Vector2D, Quaternion
@@ -952,7 +957,8 @@ def test_DateParameter():
     def0 = FineTime(0)
     assert v.default == def0
     assert v.valid is None
-    assert v.typecode == FineTime.DEFAULT_FORMAT
+    assert v.typecode == 'Q'
+    assert v.value.format == FineTime.DEFAULT_FORMAT
 
     a1 = 'a test DateParameter'
     a2 = 765
@@ -960,18 +966,18 @@ def test_DateParameter():
     a6 = ''
     a7 = '%f'
     v = DateParameter(description=a1, value=a2,
-                      default=a5, valid=a6, typecode=a7)
+                      default=a5, valid=a6)
     assert v.description == a1
     assert v.value == FineTime(a2)
     assert v.type == 'finetime'
     assert v.default == FineTime(a5)
     assert v.valid is None
     # if value and typecode are both given, typecode will be overwritten by value.format.
-    assert v.typecode == v.value.format
+    assert FineTime.DEFAULT_FORMAT == v.value.format
 
     a8 = 9876
     v.value = a8
-    assert v.value == FineTime(a8, format=v.typecode)
+    assert v.value == FineTime(a8)
 
     with pytest.raises(TypeError):
         DateParameter(3.3)
@@ -2118,8 +2124,11 @@ def test_BaseProduct():
     """ """
 
     x = BaseProduct(description="This is my product example")
+
     # print(x.__dict__)
     # print(x.meta.toString())
+    __import__('pdb').set_trace()
+
     assert x.meta['description'].value == "This is my product example"
     assert x.description == "This is my product example"
     assert x.meta['type'].value == x.__class__.__qualname__

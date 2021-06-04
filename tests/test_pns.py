@@ -2,9 +2,10 @@
 
 from multiprocessing import Process, Pool, TimeoutError
 from fdi.dataset.eq import deepcmp
-from fdi.dataset.dataset import ArrayDataset, GenericDataset
+from fdi.dataset.dataset import GenericDataset
+from fdi.dataset.arraydataset import ArrayDataset
 from fdi.dataset.deserialize import deserialize
-from fdi.dataset.metadata import NumericParameter
+from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.product import Product
 from fdi.dataset.serializable import serialize
 from fdi.dataset.odict import ODict
@@ -235,7 +236,7 @@ def test_putconfigpns(puttestinit, getpnsconfig):
 
 
 def makeposttestdata():
-    a1 = 'a test NumericParameter'
+    a1 = 'a test sNumericParameter'
     a2 = 1
     a3 = 'second'
     v = NumericParameter(description=a1, value=a2, unit=a3)

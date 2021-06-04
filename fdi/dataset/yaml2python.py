@@ -14,7 +14,7 @@ from ..utils.options import opt
 from ..utils.common import pathjoin, trbk
 from ..utils.ydump import ydump
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
-
+from .attributable import make_class_properties
 # a dictionary that translates metadata 'type' field to classname
 from .datatypes import DataTypes, DataTypeNames
 
@@ -35,8 +35,6 @@ demo = 0
 # if demo is true, only output this subset.
 onlyInclude = ['default', 'description',
                'data_type', 'unit', 'valid', 'fits_keyword']
-# These property names are used by  fdi
-reserved = ['history', 'meta', 'refs']
 # only these attributes in meta
 attrs = ['startDate', 'endDate', 'instrument', 'modelName', 'mission', 'type']
 indent = '    '
@@ -585,15 +583,9 @@ if __name__ == '__main__':
             val = default_code['metadata'][x]
             ls.append(' '*17 + '%s = %s,' % (arg, val))
         ikwds = '\n'.join(ls)
-        # class properties
-        pr = []
-        for x in attrs:
-            if x in reserved:
-                logger.warning('%s is a reserved name.' % x)
-            arg = x        # x + '_' if x == 'type' else x
-            pr.append('    @property\n    def %s(self): pass\n\n' % (x) +
-                      '    @%s.setter\n    def %s(self, p): pass\n\n' % (x, x))
-        properties = '\n'.join(pr)
+
+        # make class properties
+        properties = make_class_properties(attrs)
 
         # make substitution dictionary for Template
         subs = {}

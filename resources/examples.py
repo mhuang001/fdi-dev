@@ -13,9 +13,13 @@ You can copy the code from code blocks by clicking the ``copy`` icon on the top-
 
 # Import these packages needed in the tutorial
 from fdi.dataset.product import Product
-from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter
+from fdi.dataset.metadata import Parameter, MetaData
+from fdi.dataset.numericparameter import NumericParameter
+from fdi.dataset.stringparameter import StringParameter
+from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.finetime import FineTime, FineTime1
-from fdi.dataset.dataset import ArrayDataset, TableDataset, Column
+from fdi.dataset.arraydataset import ArrayDataset, Column
+from fdi.dataset.dataset import TableDataset
 from fdi.dataset.classes import Classes
 from fdi.pal.context import Context, MapContext
 from fdi.pal.productref import ProductRef

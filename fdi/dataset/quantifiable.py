@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+
+from .typecoded import Typecoded
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class Quantifiable(object):
+class Quantifiable(Typecoded):
     """ A Quantifiable object is a numeric object that has a unit.
     $ x.unit = ELECTRON_VOLTS
     $ print x.unit

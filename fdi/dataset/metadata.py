@@ -4,15 +4,13 @@ from ..utils.masked import masked
 from ..utils.common import grouper
 from ..utils.ydump import ydump
 from .serializable import Serializable
-from .datatypes import DataTypes, DataTypeNames, Vector, Vector2D, Quaternion
+from .datatypes import DataTypes, DataTypeNames
 from .odict import ODict
 from .composite import Composite
 from .listener import DatasetEventSender, ParameterListener, DatasetListener, DatasetEvent, EventTypeOf
-from .quantifiable import Quantifiable
 from .eq import DeepEqual, xhash
 from .copyable import Copyable
 from .annotatable import Annotatable
-from .finetime import FineTime, FineTime1, utcobj
 from .classes import Classes
 from .typed import Typed
 from .invalid import INVALID
@@ -22,7 +20,6 @@ from tabulate import tabulate
 
 import builtins
 from collections import OrderedDict
-from collections.abc import Sequence
 from numbers import Number
 import logging
 # create logger
@@ -532,168 +529,6 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
                            listeners=self.listeners,
                            _STID=self._STID
                            )
-
-
-class NumericParameter(Parameter, Quantifiable):
-    """ has a number as the value, a unit, and a typecode.
-    """
-
-    def __init__(self, value=None, description='UNKNOWN', typ_='', default=None, valid=None, **kwds):
-        super(NumericParameter, self).__init__(
-            value=value, description=description, typ_=typ_, default=default, valid=valid, **kwds)
-
-    def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           value=self._value,
-                           type=self._type,
-                           default=self._default,
-                           valid=self._valid,
-                           unit=self._unit,
-                           typecode=self._typecode,
-                           _STID=self._STID)
-
-    def setValue(self, value):
-        """ accept any type that a Vector does.
-        """
-        if value is not None and issubclass(value.__class__, Sequence):
-            d = list(value)
-            if len(d) == 2:
-                value = Vector2D(d)
-            elif len(d) == 3:
-                value = Vector(d)
-            elif len(d) == 4:
-                value = Quaternion(d)
-            else:
-                raise ValueError(
-                    'Sequence of only 2 to 4 elements for NumericParameter')
-        super().setValue(value)
-
-    def setDefault(self, default):
-        """ accept any type that a Vector does.
-        """
-        if default is not None and issubclass(default.__class__, Sequence):
-            d = list(default)
-            if len(d) == 2:
-                default = Vector2D(d)
-            elif len(d) == 3:
-                default = Vector(d)
-            elif len(d) == 4:
-                default = Quaternion(d)
-            else:
-                raise ValueError(
-                    'Sequence of only 2 to 4 elements for NumericParameter')
-        super().setDefault(default)
-
-
-class DateParameter(Parameter):
-    """ has a FineTime as the value.
-    """
-
-    def __init__(self, value=None, description='UNKNOWN', default=0, valid=None, typecode=None, **kwds):
-        """
-        if value and typecode are both given, typecode will be overwritten by value.format.
-        """
-        self.setTypecode(typecode)
-        # this will set default then set value.
-        super(DateParameter, self).__init__(
-            value=value, description=description, typ_='finetime', default=default, valid=valid, **kwds)
-
-    @ property
-    def typecode(self):
-        return self.getTypecode()
-
-    @ typecode.setter
-    def typecode(self, typecode):
-        self.setTypecode(typecode)
-
-    def getTypecode(self):
-        """ Returns the typecode related to this object. None if value not set."""
-        if not hasattr(self, '_value'):
-            return None
-        return self._value.format
-
-    def setTypecode(self, typecode):
-        """ Sets the typecode of this object. quietly returns if value not set."""
-        if not hasattr(self, '_value'):
-            return
-        self._value.format = typecode
-
-    def setValue(self, value):
-        """ accept any type that a FineTime does.
-        """
-        if value is not None and not issubclass(value.__class__, FineTime):
-            value = FineTime(date=value, format=self.getTypecode())
-        super().setValue(value)
-
-    def setDefault(self, default):
-        """ accept any type that a FineTime does.
-        """
-        if default is not None and not issubclass(default.__class__, FineTime):
-            default = FineTime(date=default, format=self.getTypecode())
-        super().setDefault(default)
-
-    def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           value=self._value,
-                           default=self._default,
-                           valid=self._valid,
-                           typecode=self.typecode,
-                           _STID=self._STID)
-
-
-class DateParameter1(DateParameter):
-    """ Like DateParameter but usese  FineTime1. """
-
-    def setValue(self, value):
-        """ accept any type that a FineTime1 does.
-        """
-        if value is not None and not issubclass(value.__class__, FineTime1):
-            value = FineTime1(date=value, format=self.getTypecode())
-        super().setValue(value)
-
-    def setDefault(self, default):
-        """ accept any type that a FineTime1 does.
-        """
-        if default is not None and not issubclass(default.__class__, FineTime1):
-            default = FineTime1(date=default, format=self.getTypecode())
-        super().setDefault(default)
-
-
-class StringParameter(Parameter):
-    """ has a unicode string as the value, a typecode for length and char.
-    """
-
-    def __init__(self, value=None, description='UNKNOWN', valid=None, default='', typecode='B', **kwds):
-        self.setTypecode(typecode)
-        super(StringParameter, self).__init__(
-            value=value, description=description, typ_='string', default=default, valid=valid, **kwds)
-
-    @ property
-    def typecode(self):
-        return self.getTypecode()
-
-    @ typecode.setter
-    def typecode(self, typecode):
-        self.setTypecode(typecode)
-
-    def getTypecode(self):
-        """ Returns the typecode related to this object."""
-        return self._typecode
-
-    def setTypecode(self, typecode):
-        """ Sets the typecode of this object. """
-        self._typecode = typecode
-
-    def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
-        return OrderedDict(value=self._value,
-                           description=self.description,
-                           valid=self._valid,
-                           default=self._default,
-                           typecode=self._typecode,
-                           _STID=self._STID)
 
 
 MetaHeaders = ['name', 'value', 'unit', 'type', 'valid',

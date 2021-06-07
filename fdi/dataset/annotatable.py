@@ -18,7 +18,10 @@ class Annotatable(object):
     def description(self):
         """ xx must be a property for ``self.xx = yy`` to work in super class after xx is set as a property also by a subclass.
         """
-        return self._description
+        try:
+            return self._description
+        except AttributeError:
+            return None
 
     @description.setter
     def description(self, description):

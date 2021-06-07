@@ -66,7 +66,7 @@ def sq(s):
 
 
 def getPython(val, indents, demo, onlyInclude, debug=False):
-    """ make productInfo and init__() code strings from given data.
+    """ make Model and init__() code strings from given data.
     """
     infostr = ''
 
@@ -79,12 +79,18 @@ def getPython(val, indents, demo, onlyInclude, debug=False):
                             (str(k), '...' if k == 'metadata' else str(v)))
             sk = str(k)
             infostr += '%s%s: ' % (indents[0], sq(sk))
-            if issubclass(v.__class__, dict) and 'valid' in v:
+            if issubclass(v.__class__, dict) and 'default' in v:
+                # as in k:v
+                # k:
+                #   data_type: string
+                #   description: Description of this dataset
+                #   default: UNKNOWN
+                #   valid: ''
                 # v is a dict of parameter attributes
                 istr, d_code = params(
                     v, indents[1:], demo, onlyInclude, debug=debug)
             else:
-                # headers such as name, parents, level ...
+                # headers such as name, parents, schema metadata...
                 istr, d_code = getPython(
                     v, indents[1:], demo, onlyInclude, debug=debug)
             infostr += istr
@@ -133,10 +139,22 @@ def makeinitcode(dt, pval):
 def params(val, indents, demo, onlyInclude, debug=False):
     """ generates python strng for val, a parameter with a set of attribute
 
+    val: as in ```name:val```
+    ```
+    nam:
+        data_type: string
+        description: Description of this dataset
+        default: UNKNOWN
+        valid: ''
+    ```
     see getPython
     """
-    infostr = '{\n'
+
+    # output string of the data model
+    modelString = '{\n'
+    # source code for init kwds.
     code = None
+
     # data_type
     dt = val['data_type'].strip()
     # loop through the properties
@@ -180,19 +198,18 @@ def params(val, indents, demo, onlyInclude, debug=False):
                 s = '{' + kvs + '}'
         else:
             iss = issubclass(pv.__class__, (str))
-
             # get string representation
             pval = str(pv).strip() if iss else str(pv)
             if pname == 'default':
                 code = makeinitcode(dt, pval)
             if pname in ['example', 'default']:
                 # here data_type instead of input type determines the output type
-                iss = val['data_type'] == 'string'
+                iss = (val['data_type'] == 'string') and (pval != 'None')
             s = sq(pval) if iss else pval
-        infostr += indents[1] + '%s: %s,\n' % (sq(pname), s)
-    infostr += indents[1] + '},\n'
+        modelString += indents[1] + '%s: %s,\n' % (sq(pname), s)
+    modelString += indents[1] + '},\n'
 
-    return infostr, code
+    return modelString, code
 
 
 def getCls(clp, rerun=True, exclude=None, verbose=False):
@@ -358,10 +375,13 @@ def dependency_sort(descriptors):
 
     """
     ret = []
+    # make a list of prodcts
     working_list = list(descriptors.keys())
     while len(working_list):
+        # examin one by one
         # must use index to loop
         for i in range(len(working_list)):
+            # find parents of i
             nm = working_list[i]
             p = descriptors[nm][0]['parents']
             nm_found_parent = False
@@ -517,50 +537,64 @@ if __name__ == '__main__':
         d, attrs, datasets, fin = descriptors[nm]
         print('************** Processing ' + nm + '***********')
 
+        modelName = d['name']
+        # module/output file name is YAML input file "name" with lowercase
+        modulename = nm.lower()
+
+        # schema
+        schema = d['schema']
+
         # the generated source code must import these
         seen = []
         imports = 'from collections import OrderedDict\n'
         # import parent classes
-        pn = d['parents']
+        parentNames = d['parents']
         # remove classes that are other's parent class (MRO problem)
-        if pn and len(pn):
-            pn = noParentsParents(pn)
+        if parentNames and len(parentNames):
+            parentNames = noParentsParents(parentNames)
 
-        if pn and len(pn):
-            all_attrs = OrderedDict()
-            for a in pn:
-                if a is None:
+        if parentNames and len(parentNames):
+            includingParentsAttributes = OrderedDict()
+            for parent in parentNames:
+                if parent is None:
                     continue
-                modnm = glb[a].__module__
-                s = 'from %s import %s\n' % (modnm, a)
-                if a not in seen:
-                    seen.append(a)
+                modnm = glb[parent].__module__
+                s = 'from %s import %s\n' % (modnm, parent)
+                if parent not in seen:
+                    seen.append(parent)
                     imports += s
 
                 # get parent attributes
                 mod = sys.modules[modnm]
                 if hasattr(mod, '_Model_Spec'):
-                    all_attrs.update(mod._Model_Spec['metadata'])
+                    includingParentsAttributes.update(
+                        mod._Model_Spec['metadata'])
             # merge to get all attributes including parents' and self's.
-            all_attrs.update(attrs)
+            toremove = []
+            for nam, val in attrs.items():
+                if float(schema) > 1.5 and 'data_type' not in val:
+                    # update parent's
+                    includingParentsAttributes[nam].update(attrs[nam])
+                    toremove.append(nam)
+                else:
+                    # override
+                    includingParentsAttributes[nam] = attrs[nam]
+            for nam in toremove:
+                del attrs[nam]
         else:
-            all_attrs = attrs
-
-        prodname = d['name']
-        # module/output file name is YAML input file "name" with lowercase
-        modulename = nm.lower()
+            includingParentsAttributes = attrs
 
         # make output filename, lowercase modulename + .py
         fout = pathjoin(opath, modulename + '.py')
         print("Output python file is "+fout)
 
         # class doc
-        doc = '%s class (level %s) schema %s inheriting %s.\n\nAutomatically generated from %s on %s.\n\nDescription:\n%s' % tuple(map(str, (
-            prodname, d['level'], d['schema'], d['parents'],
+        doc = '%s class schema %s inheriting %s.\n\nAutomatically generated from %s on %s.\n\nDescription:\n%s' % tuple(map(str, (
+            modelName, schema, d['parents'],
             fin, datetime.now(), d['description'])))
 
         # parameter classes used in init code may need to be imported, too
-        for met, val in all_attrs.items():
+        for met, val in includingParentsAttributes.items():
             a = DataTypes[val['data_type']]
             if a in glb:
                 # this attribute class has module
@@ -569,16 +603,16 @@ if __name__ == '__main__':
                     seen.append(a)
                     imports += s+'\n'
 
-        # make metadata and dataset dictionaries
-        d['metadata'] = all_attrs
+        # make metadata and dataset dicts
+        d['metadata'] = includingParentsAttributes
         d['datasets'] = datasets
         infs, default_code = getPython(d, indents[1:], demo, onlyInclude)
         # remove the ',' at the end.
-        infostr = (ei + '_Model_Spec = ' + infs).strip()[:-1]
+        modelString = (ei + '_Model_Spec = ' + infs).strip()[:-1]
 
         # keyword argument for __init__
         ls = []
-        for x in all_attrs:
+        for x in includingParentsAttributes:
             arg = 'typ_' if x == 'type' else x
             val = default_code['metadata'][x]
             ls.append(' '*17 + '%s = %s,' % (arg, val))
@@ -590,26 +624,26 @@ if __name__ == '__main__':
         # make substitution dictionary for Template
         subs = {}
         subs['WARNING'] = '# Automatically generated from %s. Do not edit.' % fin
-        subs['PRODUCTNAME'] = prodname
-        print('product name: %s' % subs['PRODUCTNAME'])
-        subs['PARENTS'] = ', '.join(c for c in pn if c)
+        subs['MODELNAME'] = modelName
+        print('product name: %s' % subs['MODELNAME'])
+        subs['PARENTS'] = ', '.join(c for c in parentNames if c)
         print('parent class: %s' % subs['PARENTS'])
         subs['IMPORTS'] = imports
         print('import class: %s' % seen)
         subs['CLASSDOC'] = doc
-        subs['PRODUCTINFO'] = infostr
+        subs['MODELSPEC'] = modelString
         subs['INITARGS'] = ikwds
-        print('productInfo=\n%s\n' % (subs['INITARGS']))
+        print('%s=\n%s\n' % ('Model Initialization', subs['INITARGS']))
         subs['PROPERTIES'] = properties
 
         # subtitute the template
-        if os.path.exists(os.path.join(tpath, prodname + '.template')):
-            tname = os.path.join(tpath, prodname + '.template')
+        if os.path.exists(os.path.join(tpath, modelName + '.template')):
+            tname = os.path.join(tpath, modelName + '.template')
         elif os.path.exists(os.path.join(tpath, 'template')):
             tname = os.path.join(tpath, 'template')
         else:
             logger.error('Template file not found in %s for %s.' %
-                         (tpath, prodname))
+                         (tpath, modelName))
             sys.exit(-3)
         with open(tname, encoding='utf-8') as f:
             t = f.read()
@@ -620,33 +654,37 @@ if __name__ == '__main__':
             f.write(sp)
         print('Done saving ' + fout + '\n' + '='*40)
 
-        # import the newly made module  so the following classes could use it
+        # import the newly made module to test and, for class generatiom, so the following classes could use it
         importexclude.remove(modulename)
         # importlib.invalidate_caches()
         if cwd not in sys.path:
             sys.path.insert(0, cwd)
-        newp = 'fresh ' + prodname + ' from ' + modulename + \
+        newp = 'fresh ' + modelName + ' from ' + modulename + \
             '.py of package ' + package_name + ' in ' + opath + '.'
+        if modelName.endswith('_DataModel'):
+            # the target is `Model`
+            continue
         # If the last segment of package_name happens to be a module name in
         # exclude list the following import will be blocked. So lift
         # exclusion temporarily
         exclude_save = importexclude[:]
         importexclude.clear()
         try:
-            _o = importlib.import_module('.' + modulename, package_name)
-            glb[prodname] = getattr(_o, prodname)
+            _o = importlib.import_module(
+                package_name + '.' + modulename, package_name)
+            glb[modelName] = getattr(_o, modelName)
         except Exception as e:
             print('Unable to import ' + newp)
             raise(e)
         importexclude.extend(exclude_save)
         print('Imported ' + newp)
         # Instantiate and dump metadata in text format
-        prod = glb[prodname]()
+        prod = glb[modelName]()
         fg = {'name': 15, 'value': 18, 'unit': 7, 'type': 8,
               'valid': 26, 'default': 18, 'code': 4, 'description': 25}
         sp = prod.meta.toString(tablefmt='fancy_grid', widths=fg)
 
-        mout = pathjoin(ypath, prodname + '.txt')
+        mout = pathjoin(ypath, modelName + '.txt')
         with open(mout, 'w', encoding='utf-8') as f:
             f.write(sp)
         print('Done dumping ' + mout + '\n' + '*'*40)

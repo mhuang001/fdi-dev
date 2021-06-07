@@ -14,9 +14,8 @@ from fdi.dataset.eq import deepcmp
 from fdi.dataset.copyable import Copyable
 from fdi.dataset.history import History
 
-import copy
-from functools import lru_cache
 from collections import OrderedDict
+import itertools
 
 import logging
 # create logger
@@ -24,12 +23,11 @@ logger = logging.getLogger(__name__)
 
 
 class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
-    """ A BaseProduct is a generic result that can be passed on between
-    (standalone) processes.
+    """ A BaseProduct is the starting point of te whole  product tree, and a generic result that can be passed on between processes.
 
     In general a Product contains zero or more datasets, history,
-    optional metadata as well as some required metadata fields.
-    Its intent is that it can fully describe itself; this includes
+    optional reference pointers and metadata some required metadata fields.
+    A Product is expected to fully describe itself; this includes
     the way how this product was achieved (its history). As it is
     the result of a process, it should be able to save to and restore
     from an Archive device.
@@ -39,42 +37,47 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     method. Note that the datasets may be a composite of datasets
     by themselves.
 
-    mh: Built-in Attributes in productInfo['metadata'] can be accessed with e.g. p.creator
-    or p.meta['description'].value:
-    p.creator='foo'
-    assert p.creatur=='foo'
-    assert p.meta['creator']=='foo'
-    p.meta['creator']=Parameter('bar')
-    assert p.meta['creator']==Parameter('bar')
+    A built-in attributes in `Model['metadata']` ("MetaData Parameter" or `MDP`) can be accessed with e.g. ``p.creator``, or p.meta['creator'].value::
 
-    BaseProduct class (level ALL) schema 1.5 inheriting [None].
+        p.creator='foo'
+    	assert p.creatur=='foo'
+    	assert p.meta['creator']=='foo'
+    	p.meta['creator']=Parameter('bar')
+    	assert p.meta['creator']==Parameter('bar')
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-06-03 22:39:08.610906.
+    =====
+    BaseProduct class schema 1.6 inheriting [None].
+
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-06-07 19:06:43.742425.
 
 Description:
-FDI base class
+FDI base class data model
 
     """
 
     def __init__(self,
                  description = 'UNKNOWN',
                  typ_ = 'BaseProduct',
+                 level = 'ALL',
                  creator = 'UNKNOWN',
                  creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
                  version = '0.8',
-                 FORMATV = '1.5.0.9',
+                 FORMATV = '1.6.0.10',
                  zInfo=None,
                  **kwds):
 
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = copy.copy(locals())
-        for x in ('self', '__class__', 'zInfo', 'kwds'):
-            metasToBeInstalled.pop(x)
+        metasToBeInstalled = OrderedDict(
+            itertools.filterfalse(
+                lambda x: x[0] in ('self', '__class__', 'zInfo', 'kwds'),
+                locals().items())
+        )
 
-        global ProductInfo
+        global Model
+	# instance variable for Model to be passed down inhritance chains.
         if zInfo is None:
-            zInfo = ProductInfo
+            zInfo = Model
 
         # must be the first line to initiate meta and zInfo
         # :class: `Attributable` will process MDPs
@@ -154,6 +157,8 @@ FDI base class
     @property
     def type(self): pass
     @property
+    def level(self): pass
+    @property
     def creator(self): pass
     @property
     def creationDate(self): pass
@@ -165,14 +170,14 @@ FDI base class
     def FORMATV(self): pass
     pass
 
+# Data Model specification for mandatory components
 _Model_Spec = {
     'name': 'BaseProduct',
-    'description': 'FDI base class',
+    'description': 'FDI base class data model',
     'parents': [
         None,
         ],
-    'level': 'ALL',
-    'schema': '1.5',
+    'schema': '1.6',
     'metadata': {
         'description': {
                 'id_zh_cn': '描述',
@@ -189,6 +194,15 @@ _Model_Spec = {
                 'description': 'Product Type identification. Name of class or CARD.',
                 'description_zh_cn': '产品类型。完整Python类名或卡片名。',
                 'default': 'BaseProduct',
+                'valid': '',
+                'typecode': 'B',
+                },
+        'level': {
+                'id_zh_cn': '产品xx',
+                'data_type': 'string',
+                'description': 'Product level.',
+                'description_zh_cn': '产品xx',
+                'default': 'ALL',
                 'valid': '',
                 'typecode': 'B',
                 },
@@ -234,7 +248,7 @@ _Model_Spec = {
                 'data_type': 'string',
                 'description': 'Version of product schema and revision',
                 'description_zh_cn': '产品格式版本',
-                'default': '1.5.0.9',
+                'default': '1.6.0.10',
                 'valid': '',
                 'typecode': 'B',
                 },
@@ -243,7 +257,7 @@ _Model_Spec = {
         },
     }
 
-ProductInfo = ReadOnlyDict(_Model_Spec)
+Model = ReadOnlyDict(_Model_Spec)
 
-MdpInfo = ProductInfo['metadata']
+MdpInfo = Model['metadata']
 

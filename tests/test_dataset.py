@@ -1183,30 +1183,28 @@ def do_ArrayDataset_init(atype):
     assert v.data is None
     assert v.unit is None
     assert v.description == 'UNKNOWN'
-    assert v.type is None
-    assert v.default is None
-    assert v.typecode is None
+    assert v.type == 'ArrayDataset'
+    assert v.typecode == 'UNKNOWN'
     # from DRM
     a1 = atype([1, 4.4, 5.4E3])      # an array of data
     a2 = 'ev'                 # unit
     a3 = 'three energy vals'  # description
     a4 = 'float'              # type
-    a5 = '0.0'                # default
     a6 = 'f'                  # typecode
     v = ArrayDataset(data=a1, unit=a2, description=a3,
-                     typ_=a4, default=a5, typecode=a6)
+                     typ_=a4, typecode=a6)
     assert v.data == a1
     assert v.unit == a2
     assert v.description == a3
     assert v.type == a4
-    assert v.default == a5
     assert v.typecode == a6
     v = ArrayDataset(data=a1)
     assert v.data == a1
     assert v.unit is None
-    assert v.type is None
     assert v.description == 'UNKNOWN'
-    assert v.typecode is None
+    assert v.type == 'ArrayDataset'
+    assert v.typecode == 'UNKNOWN'
+
     # omit the parameter names when instantiating, the orders are data, unit, description
     v2 = ArrayDataset(a1)
     assert v2.data == a1
@@ -1313,7 +1311,8 @@ def do_ArrayDataset_func(atype):
     except TypeError:
         d = atype([2.3, 4e3, -9.9])
         x = ArrayDataset(data=d)
-        x.meta = standardtestmeta()
+        for n, p in standardtestmeta().items():
+            x.meta[n] = p
         ts = x.toString()
         # print(atype, ts)
 
@@ -1339,7 +1338,8 @@ def do_ArrayDataset_func(atype):
     # toString()
     d = atype([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     x = ArrayDataset(data=d)
-    x.meta = standardtestmeta()
+    for n, p in standardtestmeta().items():
+        x.meta[n] = p
     ts = x.toString()
     # print(ts)
     s = ndlist(2, 3, 4, 5)
@@ -1348,17 +1348,19 @@ def do_ArrayDataset_func(atype):
     x[0][1][1] = atype([0, 0, 0, 1, 0])
     x[0][1][2] = atype([5, 4, 3, 2, 1])
     x[0][1][3] = atype([0, 0, 0, 3, 0])
-    x.meta = standardtestmeta()
-    ts = 'level 0\n'
+    for n, p in standardtestmeta().items():
+        x.meta[n] = p
+    x.lue_attribute = 42
+    ts = '\n\nlevel 0\n'
     ts += x.toString()
     i = ts.index('0  0  0')
     if mko:
         print(ts[i:])
     else:
         assert ts[i:] == nds2 + '\n'
-    ts += 'level 1, repr\n'
+    ts += '\n\nlevel 1, repr\n'
     ts += x.toString(1)
-    ts += 'level 2,\n'
+    ts += '\n\nlevel 2,\n'
     ts += x.toString(2)
     if mko:
         print(ts)
@@ -1376,6 +1378,7 @@ def do_ArrayDataset_func(atype):
 
 def test_ArrayDataset_init():
     atype = list
+
     do_ArrayDataset_init(atype)
 
 
@@ -1634,12 +1637,13 @@ def test_TableDataset_func():
 
     # toString()
     v = TableDataset(data=a10)
-    v.meta = standardtestmeta()
-    ts = 'level 0\n'
+    for n, p in standardtestmeta().items():
+        v.meta[n] = p
+    ts = '\n\nlevel 0\n'
     ts += v.toString()
-    ts += 'level 1, repr\n'
+    ts += '\n\nlevel 1, repr\n'
     ts += v.toString(1)
-    ts += 'level 2,\n'
+    ts += '\n\nlevel 2,\n'
     ts += v.toString(2)
     if mko:
         print(ts)
@@ -1858,7 +1862,8 @@ def test_CompositeDataset_init():
 
     # toString()
     v3 = CompositeDataset(description='test CD')
-    v3.meta = standardtestmeta()
+    for n, p in standardtestmeta().items():
+        v3.meta[n] = p
     # creating a table dataset
     ELECTRON_VOLTS = 'eV'
     SECONDS = 'sec'
@@ -2127,8 +2132,6 @@ def test_BaseProduct():
 
     # print(x.__dict__)
     # print(x.meta.toString())
-    __import__('pdb').set_trace()
-
     assert x.meta['description'].value == "This is my product example"
     assert x.description == "This is my product example"
     assert x.meta['type'].value == x.__class__.__qualname__

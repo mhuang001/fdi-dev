@@ -43,6 +43,7 @@ setup(
             'setuptools>=43.0.0',
             'pytest>=5.4.1',
             'pytest-cov',
+            'aiohttp>=3.6.2',
             'nox>=2019.11.9',
         ],
         'SERV': [
@@ -51,7 +52,6 @@ setup(
             'waitress>=2.0.0'
         ],
         'PUB': [
-            # 'aiohttp>=3.6.2',
             'sphinx_rtd_theme>=0.4.3',
             'sphinx-copybutton>=0.3.0',
             'twine>=3.3.0'

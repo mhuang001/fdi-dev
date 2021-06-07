@@ -2,38 +2,65 @@
 
 from .datawrapper import DataWrapper
 from .typed import Typed
+from .typecoded import Typecoded
 from .listener import ColumnListener
 from .ndprint import ndprint
 from ..utils.common import mstr, bstr, lls, exprstrs
 from .dataset import GenericDataset
 try:
-    from poperties_NumericParameter import MetaDataProperties
+    from .arraydataset_datamodel import Model
 except ImportError:
-    class MetaDataProperties():
-        pass
+    Model = {'metadata': {}}
+
 
 from collections.abc import Sequence
 from collections import OrderedDict
+import itertools
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
+
+MdpInfo = Model['metadata']
 
 
-class ArrayDataset(MetaDataProperties, DataWrapper, GenericDataset, Sequence, Typed):
+class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed, Typecoded):
     """  Special dataset that contains a single Array Data object.
     mh: If omit the parameter names during instanciation, e.g. ArrayDataset(a, b, c), the assumed order is data, unit, description.
     mh:  contains a sequence which provides methods count(), index(), remove(), reverse().
     A mutable sequence would also need append(), extend(), insert(), pop() and sort().
     """
 
-    def __init__(self, data=None, unit=None, description='UNKNOWN', typ_=None, default=None, **kwds):
+    def __init__(self, data=None,
+                 unit=None,
+                 description=None,
+                 typ_=None,
+                 typecode=None,
+                 zInfo=None,
+                 alwaysMeta=True,
+                 ** kwds):
         """ Initializes an ArrayDataset.
 
+        Default ```None``` will initialize MetaData Parameters to their default values.
         """
-        self.setDefault(default)
-        super(ArrayDataset, self).__init__(data=data, unit=unit,
-                                           description=description, typ_=typ_, **kwds)  # initialize data, meta
+
+        # collect MDPs from args-turned-local-variables.
+        metasToBeInstalled = OrderedDict(
+            itertools.filterfalse(
+                lambda x: x[0] in ('self', '__class__', 'zInfo', 'kwds'),
+                locals().items())
+        )
+
+        global Model
+        if zInfo is None:
+            zInfo = Model
+
+        # print('@1 zInfo', id(self.zInfo['metadata']), id(self), id(self.zInfo),
+        #      self.zInfo['metadata']['version'], list(metasToBeInstalled.keys()))
+
+        # must be the first line to initiate meta
+        super().__init__(zInfo=zInfo, **metasToBeInstalled, **kwds)
 
     # def getData(self):
     #     """ Optimized """
@@ -51,24 +78,6 @@ class ArrayDataset(MetaDataProperties, DataWrapper, GenericDataset, Sequence, Ty
         d = None if data is None else \
             data if hasattr(data, '__getitem__') else list(data)
         super(ArrayDataset, self).setData(d)
-
-    @property
-    def default(self):
-        return self.getDefault()
-
-    @default.setter
-    def default(self, default):
-        self.setDefault(default)
-
-    def getDefault(self):
-        """ Returns the default related to this object."""
-        return self._default
-
-    def setDefault(self, default):
-        """ Sets the default of this object.
-
-        """
-        self._default = default
 
     def __setitem__(self, *args, **kwargs):
         """ sets value at key.
@@ -128,13 +137,18 @@ class ArrayDataset(MetaDataProperties, DataWrapper, GenericDataset, Sequence, Ty
         if level > 1:
 
             vs, us, ts, ds, fs, gs, cs = exprstrs(self, '_data')
-            return cn +\
-                '{ %s (%s) <%s>, "%s", default %s, tcode=%s, meta=%s}' %\
-                (vs, us, ts, ds, fs, cs, str(self.meta))
+            return cn + '(%s ' % vs + \
+                ', '.join(str(k)+': '+str(v.value if hasattr(v, 'value') else v)
+                          for k, v in self.meta.items()) + ')'
+            # '{ %s (%s) <%s>, "%s", default %s, tcode=%s}' %\
+            #(vs, us, ts, ds, fs, cs)
 
         s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
             self, 'descripion') else '')
-        s += mstr(self.__getstate__(), level=level,
+        toshow = {'meta': self.__getstate__()['meta'],
+                  'data': self.__getstate__()['data'],
+                  }
+        s += mstr(toshow, level=level,
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                   excpt=['description'], **kwds)
 
@@ -149,12 +163,13 @@ class ArrayDataset(MetaDataProperties, DataWrapper, GenericDataset, Sequence, Ty
         """ Can be encoded with serializableEncoder """
         # s = OrderedDict(description=self.description, meta=self.meta, data=self.data)  # super(...).__getstate__()
         s = OrderedDict(description=self.description,
-                        meta=self._meta,
+                        meta=self._meta if hasattr(self, '_meta') else None,
                         data=None if self.data is None else self.data,
-                        type=self._type,
-                        unit=self._unit,
-                        default=self._default,
-                        typecode=self._typecode,
+                        type=self.type,
+                        unit=self.unit,
+                        typecode=self.typecode,
+                        version=self.version,
+                        FORMATV=self.FORMATV,
                         _STID=self._STID)
 
         return s

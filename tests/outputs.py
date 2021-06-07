@@ -218,29 +218,38 @@ GenericDataset-dataset =
 88.8
 level 2,
 GenericDataset{ 88.8, description = "test GD", meta = a, b, c, d, listeners = ListnerSet{} }"""
-out_ArrayDataset = """level 0
+out_ArrayDataset = """
+
+level 0
 === ArrayDataset () ===
 meta= {
-======  =================  ======  ========  =======================  ===============  ======  =====================
-name    value              unit    type      valid                    default          code    description
-======  =================  ======  ========  =======================  ===============  ======  =====================
-a       3.4                None    float     (0, 31): valid           2.0              None    rule name, if is "val
-                                             99:                                               id", "", or "default"
-                                                                                               , is ommited in value
-                                                                                                string.
-b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01       %Y      date param
-        01:02:03.456789                      xy                       00:00:00.000099
-        1929229323456789)                                             99
-c       Invalid (IJK)              string    '': empty                cliche           B       str parameter. but on
-                                                                                               ly "" is allowed.
-d       off (0b00)         None    binary    11000 0b01: on           0b0              None    valid rules described
-                                             11000 0b00: off                                    with binary masks
-======  =================  ======  ========  =======================  ===============  ======  =====================
-MetaData-listeners = ListnerSet{}},
-type= {None},
-unit= {'lyr'},
-default= {None},
-typecode= {None}
+===========  ==================  ======  ========  =======================  ===============  ======  =====================
+name         value               unit    type      valid                    default          code    description
+===========  ==================  ======  ========  =======================  ===============  ======  =====================
+description  toString tester AD          string    None                     UNKNOWN          B       Description of this d
+                                                                                                     ataset
+type         ArrayDataset                string    None                     ArrayDataset     B       Type identification.
+                                                                                                     Name of class.
+unit         lyr                         string    None                     None             B       Unit of every element
+                                                                                                     .
+typecode     UNKNOWN                     string    None                     UNKNOWN          B       Python internal stora
+                                                                                                     ge code.
+version      0.1                         string    None                     0.1              B       Version of dataset
+FORMATV      1.6.0.1                     string    None                     1.6.0.1          B       Version of dataset sc
+                                                                                                     hema and revision
+a            3.4                 None    float     (0, 31): valid           2.0              None    rule name, if is "val
+                                                   99:                                               id", "", or "default"
+                                                                                                     , is ommited in value
+                                                                                                      string.
+b            xy (2019-02-19              finetime  (0, 9876543210123456):   1958-01-01       %Y      date param
+             01:02:03.456789                       xy                       00:00:00.000099
+             1929229323456789)                                              99
+c            Invalid (IJK)               string    '': empty                cliche           B       str parameter. but on
+                                                                                                     ly "" is allowed.
+d            off (0b00)          None    binary    11000 0b01: on           0b0              None    valid rules described
+                                                   11000 0b00: off                                    with binary masks
+===========  ==================  ======  ========  =======================  ===============  ======  =====================
+MetaData-listeners = ListnerSet{}}
 ArrayDataset-dataset =
 0  0  0  0  0
 0  0  0  0  0
@@ -281,23 +290,24 @@ ArrayDataset-dataset =
 
 
 #=== dimension 4
+
+
 
 
 level 1, repr
 === ArrayDataset () ===
 meta= {
--------------  -----------------  ----------------
-a= 3.4         b= xy (2019-02-19  c= Invalid (IJK)
-               01:02:03.456789
-               1929229323456789)
+--------------------------  ------------------  ----------------
+description= toString test  type= ArrayDataset  unit= lyr
+er AD
+typecode= UNKNOWN           version= 0.1        FORMATV= 1.6.0.1
+a= 3.4                      b= xy (2019-02-19   c= Invalid (IJK)
+                            01:02:03.456789
+                            1929229323456789)
 d= off (0b00)
--------------  -----------------  ----------------
+--------------------------  ------------------  ----------------
 MetaData-listeners = ListnerSet{}
-},
-type= {None},
-unit= {'lyr'},
-default= {None},
-typecode= {None}
+}
 ArrayDataset-dataset =
 0  0  0  0  0
 0  0  0  0  0
@@ -340,67 +350,13 @@ ArrayDataset-dataset =
 #=== dimension 4
 
 
+
+
 level 2,
-ArrayDataset{ [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]] (lyr) <None>, "toString tester AD", default None, tcode=None, meta=_sets:
-    a: !NumericParameter
-        description: rule name, if is "valid", "", or "default", is ommited in value
-            string.
-        value: 3.4
-        type: float
-        default: 2.0
-        valid:
-          -   -   - 0
-                  - 31
-              - valid
-          -   - 99
-              - ''
-        unit:
-        typecode:
-        _STID: NumericParameter
-    b: !DateParameter
-        description: date param
-        value: !FineTime
-            tai: 1929229323456789
-            format: '%Y-%m-%dT%H:%M:%S.%f UTC'
-            _STID: FineTime
-        default: !FineTime
-            tai: 99
-            format: '%Y-%m-%dT%H:%M:%S.%f UTC'
-            _STID: FineTime
-        valid:
-          -   -   - 0
-                  - 9876543210123456
-              - xy
-        typecode: '%Y'
-        _STID: DateParameter
-    c: !StringParameter
-        value: IJK
-        description: str parameter. but only "" is allowed.
-        valid:
-          -   - ''
-              - empty
-        default: cliche
-        typecode: B
-        _STID: StringParameter
-    d: !NumericParameter
-        description: valid rules described with binary masks
-        value: 1
-        type: binary
-        default: 0
-        valid:
-          -   -   - 24
-                  - 1
-              - on
-          -   -   - 24
-                  - 0
-              - off
-        unit:
-        typecode:
-        _STID: NumericParameter
-listeners: !ListnerSet {}
-_STID: MetaData
-}"""
-out_TableDataset = """level 0
+ArrayDataset([[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]] description: toString tester AD, type: ArrayDataset, unit: lyr, typecode: UNKNOWN, version: 0.1, FORMATV: 1.6.0.1, a: 3.4, b: FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, c: IJK, d: 1)"""
+out_TableDataset = """
+
+level 0
 === TableDataset () ===
 meta= {
 ======  =================  ======  ========  =======================  ===============  ======  =====================
@@ -428,6 +384,8 @@ TableDataset-dataset =
 5400     2000
 
 
+
+
 level 1, repr
 === TableDataset () ===
 meta= {
@@ -446,6 +404,8 @@ TableDataset-dataset =
    1        0
    4.4     43.2
 5400     2000
+
+
 
 
 level 2,
@@ -485,11 +445,23 @@ MetaData-listeners = ListnerSet{}}
 CompositeDataset-datasets =
 <ODict "dataset 1":
 === ArrayDataset () ===
-meta= {(No Parameter.) MetaData-listeners = ListnerSet{}},
-type= {None},
-unit= {'ev'},
-default= {None},
-typecode= {None}
+meta= {
+===========  ============  ======  ======  =======  ============  ======  =====================
+name         value         unit    type    valid    default       code    description
+===========  ============  ======  ======  =======  ============  ======  =====================
+description  arraydset 1           string  None     UNKNOWN       B       Description of this d
+                                                                          ataset
+type         ArrayDataset          string  None     ArrayDataset  B       Type identification.
+                                                                          Name of class.
+unit         ev                    string  None     None          B       Unit of every element
+                                                                          .
+typecode     UNKNOWN               string  None     UNKNOWN       B       Python internal stora
+                                                                          ge code.
+version      0.1                   string  None     0.1           B       Version of dataset
+FORMATV      1.6.0.1               string  None     1.6.0.1       B       Version of dataset sc
+                                                                          hema and revision
+===========  ============  ======  ======  =======  ============  ======  =====================
+MetaData-listeners = ListnerSet{}}
 ArrayDataset-dataset =
 768  4.4  5400
 "dataset 2":
@@ -520,12 +492,13 @@ MetaData-listeners = ListnerSet{}
 
 CompositeDataset-datasets =
 <ODict  === ArrayDataset () ===
-meta= {(No Parameter.) MetaData-listeners = ListnerSet{}
-},
-type= {None},
-unit= {'ev'},
-default= {None},
-typecode= {None}
+meta= {
+------------------------  ------------------  ----------------
+description= arraydset 1  type= ArrayDataset  unit= ev
+typecode= UNKNOWN         version= 0.1        FORMATV= 1.6.0.1
+------------------------  ------------------  ----------------
+MetaData-listeners = ListnerSet{}
+}
 ArrayDataset-dataset =
 768  4.4  5400
  === TableDataset () ===
@@ -547,10 +520,7 @@ TableDataset-dataset =
 meta
 
 CompositeDataset-datasets =
-<ODict  ArrayDataset{ [768, 4.4, 5400.0] (ev) <None>, "arraydset 1", default None, tcode=None, meta=_sets: {}
-listeners: !ListnerSet {}
-_STID: MetaData
-} === TableDataset () ===
+<ODict  ArrayDataset([768, 4.4, 5400.0] description: arraydset 1, type: ArrayDataset, unit: ev, typecode: UNKNOWN, version: 0.1, FORMATV: 1.6.0.1) === TableDataset () ===
 meta
 TableDataset-dataset =
    Time    Energy

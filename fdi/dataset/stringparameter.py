@@ -22,7 +22,7 @@ class StringParameter(Parameter, Typecoded):
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(value=self._value if hasattr(self, '_value') else None,
-                           description=self._description,
+                           description=self.description,
                            valid=self._valid,
                            default=self._default,
                            typecode=self._typecode,

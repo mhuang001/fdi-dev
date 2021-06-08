@@ -19,6 +19,11 @@ metadata:
         description: Unit of every element.
         default: null
         valid: ''
+    shape:
+        data_type: list
+        description: Number of elements in each dimension. Quick changers to the right.
+        default: null
+        valid: ''
     typecode:
         data_type: string
         description: Python internal storage code.

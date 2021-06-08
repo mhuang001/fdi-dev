@@ -20,9 +20,9 @@ metadata:
         default: null
         valid: ''
     shape:
-        data_type: list
+        data_type: tuple
         description: Number of elements in each dimension. Quick changers to the right.
-        default: null
+        default: ()
         valid: ''
     typecode:
         data_type: string

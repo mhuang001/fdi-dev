@@ -41,6 +41,12 @@ _Model_Spec = {
                 'default': None,
                 'valid': '',
                 },
+        'shape': {
+                'data_type': 'tuple',
+                'description': 'Number of elements in each dimension. Quick changers to the right.',
+                'default': (),
+                'valid': '',
+                },
         'typecode': {
                 'data_type': 'string',
                 'description': 'Python internal storage code.',

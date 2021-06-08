@@ -19,7 +19,7 @@ from ..utils.common import exprstrs, wls, mstr, t2l
 from tabulate import tabulate
 
 import builtins
-from collections import OrderedDict
+from collections import OrderedDict, UserList
 from numbers import Number
 import logging
 # create logger
@@ -241,6 +241,9 @@ def make_jsonable(valid):
     return[t2l([k, v]) for k, v in valid.items()] if issubclass(valid.__class__, dict) else t2l(valid)
 
 
+Seqs = (list, tuple, UserList)
+
+
 class Parameter(AbstractParameter, Typed):
     """ Parameter is the interface for all named attributes
     in the MetaData container. It can have a value and a description.
@@ -273,6 +276,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
     def setType(self, typ_):
         """ Replaces the current type of this parameter.
+
         Defaul will be casted if not the same.
         Unsuported parameter types will get a NotImplementedError.
         """
@@ -332,10 +336,29 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             # , if both are Numbers.Number, value is casted into given typ_.
             return tt_type(value)
             # st = tt
+        elif issubclass(t_type, Seqs) and issubclass(tt_type, Seqs):
+            # , if both are Numbers.Number, value is casted into given typ_.
+            return tt_type(value)
+            # st = tt
         else:
             vs = hex(value) if t == 'int' and st == 'hex' else str(value)
             raise TypeError(
                 'Value %s is of type %s, but should be %s.' % (vs, t, tt))
+
+    def setValue(self, value):
+        """ Replaces the current value of this parameter.
+
+        If value is None set it to None (#TODO: default?)
+        If given/current type is '' and arg value's type is in DataTypes both value and type are updated to the suitable one in DataTypeNames; or else TypeError is raised.
+        If value type is not a subclass of given/current type, or
+            Incompatible value and type will get a TypeError.
+        """
+
+        if value is None:
+            v = self._default if hasattr(self, '_default') else value
+        else:
+            v = self.checked(value)
+        super().setValue(v)
 
     @property
     def default(self):
@@ -490,20 +513,6 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             return [tuple(resnm) if len(resnm) else (INVALID, 'Invalid') for mask, resnm in binmasks.items()]
         return hasvalid if hasvalid else (INVALID, 'Invalid')
 
-    def setValue(self, value):
-        """ Replaces the current value of this parameter.
-
-        If value is None set it to default.
-        If given/current type is '' and arg value's type is in DataTypes both value and type are updated to the suitable one in DataTypeNames; or else TypeError is raised.
-        If value type and given/current type are different.
-            Incompatible value and type will get a TypeError.
-        """
-
-        if value is None:
-            self._value = self._default if hasattr(self, '_default') else value
-            return
-        self._value = self.checked(value)
-
     def toString(self, level=0,
                  tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
                  alist=False, **kwds):
@@ -522,9 +531,9 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
-                           value=self._value,
                            type=self._type,
                            default=self._default,
+                           value=self._value,  # must go behind type. maybe default
                            valid=self._valid,
                            listeners=self.listeners,
                            _STID=self._STID

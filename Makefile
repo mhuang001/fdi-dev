@@ -14,8 +14,11 @@ P_YAML	= $(RESDIR)/$(PRODUCT).yml
 B_YAML	= $(RESDIR)/$(B_PRODUCT).yml
 P_TEMPLATE	= $(RESDIR)
 B_TEMPLATE	= $(RESDIR)
+OTHERS	= ArrayDataset_DataModel
+OTHERS_PY=$(shell $(PYEXE) -S -c "print('$(OTHERS)'.lower())").py
+OTHERS_YAML	= $(RESDIR)/$(OTHERS).yml
 
-py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY)
+py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY) $(PYDIR)/$(OTHERS_PY)
 
 $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).template $(PYDIR)/$(B_PY)
 	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
@@ -23,6 +26,9 @@ $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).tem
 
 $(PYDIR)/$(B_PY): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE)/$(B_PRODUCT).template 
 	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
+
+$(PYDIR)/$(OTHERS_PY): $(PYDIR)/yaml2python.py $(OTHERS_YAML) $(RESDIR)/$(OTHERS).template 
+	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(RESDIR) -o $(PYDIR) $(Y)
 
 yamlupgrade: 
 	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -u
@@ -261,3 +267,11 @@ it:
 
 its:
 	docker exec -it $(D) $(SERVER_NAME) /bin/bash
+
+t:
+	docker exec -it $(D) $(SERVER_NAME) /usr/bin/tail -n 100 -f /home/apache/error-ps.log
+
+i:
+	docker exec -it $(D) $(SERVER_NAME) /usr/bin/less -f /home/apache/error-ps.log
+
+ 

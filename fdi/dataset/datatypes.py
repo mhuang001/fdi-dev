@@ -33,6 +33,7 @@ DataTypes = {
     'quaternion': 'Quaternion',
     'short': 'int',
     'string': 'str',
+    'tuple': 'tuple',
     # 'numericParameter': 'NumericParameter',
     # 'dateParameter': 'DateParameter',
     # 'stringParameter': 'StringParameter',

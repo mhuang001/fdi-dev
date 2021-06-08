@@ -36,6 +36,7 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed, Typecoded):
                  unit=None,
                  description=None,
                  typ_=None,
+                 shape=None,
                  typecode=None,
                  zInfo=None,
                  alwaysMeta=True,

@@ -21,9 +21,10 @@ class StringParameter(Parameter, Typecoded):
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(value=self._value if hasattr(self, '_value') else None,
-                           description=self.description,
-                           valid=self._valid,
-                           default=self._default,
-                           typecode=self._typecode,
-                           _STID=self._STID)
+        return OrderedDict(
+            description=self.description,
+            default=self._default,
+            value=self._value if hasattr(self, '_value') else None,
+            valid=self._valid,
+            typecode=self._typecode,
+            _STID=self._STID)

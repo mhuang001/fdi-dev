@@ -23,9 +23,9 @@ class NumericParameter(Parameter, Quantifiable):
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
-                           value=self._value,
                            type=self._type,
                            default=self._default,
+                           value=self._value,
                            valid=self._valid,
                            unit=self._unit,
                            typecode=self._typecode,

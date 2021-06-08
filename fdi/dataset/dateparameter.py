@@ -42,8 +42,8 @@ class DateParameter(Parameter, Typecoded):
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
-                           value=self._value,
                            default=self._default,
+                           value=self._value,
                            valid=self._valid,
                            typecode=self.typecode,
                            _STID=self._STID)

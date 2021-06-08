@@ -1,0 +1,371 @@
+---
+swagger: "2.0"
+info:
+  description: This is an API description of the HTTPPool Server for FDI (Flexible Dataset Integrator)
+  version: 1.1.0
+  title: HTTPPool API
+  contact: M Huang
+    email: mhuang@nao syx1026@qq.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+host: virtserver.swaggerhub.com
+basePath: /yuxinvalo/fdi/1.0.0
+schemes:
+- https
+- http
+paths:
+  /httppool/{poolid}/hk:
+    get:
+      summary: Read housekeeping from server.
+      description: |
+        By passing in the appropriate pool id, you can search for
+        housekeeping data of a pool which was registred in server.
+      produces:
+      - application/json
+      parameters:
+      - name: poolid
+        in: path
+        description: pass an complete pool id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: return housekeeping of pool id that user specifiy
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/hkdata'
+        "400":
+          description: pool id doesn't exist or pool is busy at the moment
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/generatebad'
+  /httppool/{poolid}/hk/{metadata}:
+    get:
+      summary: request a product in the pools by passing pool id, product type and its index
+      description: request a product in the pools by passing pool id, product type and its index
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: poolid
+        in: path
+        description: pass an complete pool id
+        required: true
+        type: string
+      - name: metadata
+        in: path
+        description: one of the three metadata classes, urns, tags
+        required: true
+        type: string
+        enum:
+        - classes
+        - urns
+        - tags
+      responses:
+        "200":
+          description: return one of the metadata of pool id that user specifiy
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/hkdata'
+        "400":
+          description: pool id doesn't exist or pool is busy at the moment
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/generatebad'
+  /httppool/{poolid}/{product}/{sn}:
+    get:
+      summary: request a product in the pools by passing pool id, product type and its index
+      description: request a product in the pools by passing pool id, product type and its index
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: poolid
+        in: path
+        description: pass an complete pool id
+        required: true
+        type: string
+      - name: product
+        in: path
+        description: class of product
+        required: true
+        type: string
+      - name: sn
+        in: path
+        description: index of product that user want to retreive
+        required: true
+        type: string
+      responses:
+        "200":
+          description: return the product specified in path back if it exists and available
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/product'
+        "400":
+          description: product doesn't exist or pool is busy at the moment
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/generatebad'
+    post:
+      summary: upload a product to server
+      description: upload a product to server
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: poolid
+        in: path
+        description: pass an complete pool id
+        required: true
+        type: string
+      - name: product
+        in: path
+        description: class of product
+        required: true
+        type: string
+      - name: sn
+        in: path
+        description: index of product that user want to retreive
+        required: true
+        type: string
+      responses:
+        "200":
+          description: item created
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/productref'
+        "400":
+          description: product is invalid or pool is busy at the moment
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/generatebad'
+    delete:
+      summary: delete a product from server
+      description: delete a product to server by specifying product pool, type and index
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: poolid
+        in: path
+        description: pass an complete pool id
+        required: true
+        type: string
+      - name: product
+        in: path
+        description: class of product
+        required: true
+        type: string
+      - name: sn
+        in: path
+        description: index of product that user want to retreive
+        required: true
+        type: string
+      responses:
+        "200":
+          description: product created and saved
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/generateok'
+        "400":
+          description: product is invalid or pool is busy at the moment
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/generatebad'
+  /httppool/{poolid}:
+    delete:
+      summary: request a product in the pools by passing pool id, product type and its index
+      description: request a product in the pools by passing pool id, product type and its index
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - name: poolid
+        in: path
+        description: pass an complete pool id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: wiping all pool done
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/generateok'
+        "400":
+          description: pool is invalid or pool is busy at the moment
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/generatebad'
+definitions:
+  generatebad:
+    type: object
+    required:
+    - msg
+    - result
+    - ts
+    properties:
+      result:
+        type: string
+        example: FAILED
+      msg:
+        type: string
+        example: pool is not available
+      ts:
+        type: string
+        format: ^\d{10}.d{6}
+        example: 1.5948800582498861E10
+  generateok:
+    type: object
+    required:
+    - msg
+    - result
+    - ts
+    properties:
+      result:
+        type: string
+      msg:
+        type: string
+        example: OK
+      ts:
+        type: string
+        format: ^\d{10}.d{6}
+        example: 1.5948800582498861E10
+  hkdata:
+    type: object
+    required:
+    - msg
+    - result
+    - ts
+    properties:
+      result:
+        type: array
+        items:
+          $ref: '#/definitions/hkdata_result'
+      msg:
+        type: string
+        example: OK
+      ts:
+        type: string
+        format: ^\d{10}.d{6}
+        example: 1.5948800582498861E10
+  product:
+    type: object
+    required:
+    - msg
+    - result
+    properties:
+      result:
+        type: array
+        items:
+          $ref: '#/definitions/product_result'
+      msg:
+        type: string
+        example: OK
+      ts:
+        type: string
+        format: ^\d{10}.d{6}
+        example: 1.5948800582498861E10
+  productref:
+    type: object
+    required:
+    - msg
+    - result
+    properties:
+      result:
+        type: array
+        items:
+          $ref: '#/definitions/productref_result'
+      msg:
+        type: string
+        example: OK
+      ts:
+        type: string
+        format: ^\d{10}.d{6}
+        example: 1.5948800582498861E10
+  hkdata_classes:
+    type: object
+    properties:
+      fdi.dataset.product.Product:
+        type: array
+        items:
+          type: integer
+          format: int64
+      currentSN:
+        type: integer
+        format: int64
+  hkdata_urns:
+    type: object
+    properties:
+      urn:
+        type: string
+      meta:
+        type: string
+  hkdata_result:
+    type: object
+    properties:
+      classes:
+        type: array
+        items:
+          $ref: '#/definitions/hkdata_classes'
+      tags:
+        type: string
+      urns:
+        $ref: '#/definitions/hkdata_urns'
+  product_meta:
+    type: object
+    properties:
+      description:
+        type: string
+      type:
+        type: string
+      creator:
+        type: string
+      creationDate:
+        type: string
+        format: date-time
+      etc:
+        type: string
+  product_result:
+    type: object
+    properties:
+      meta:
+        type: array
+        items:
+          $ref: '#/definitions/product_meta'
+  productref_urnobj:
+    type: object
+    properties:
+      urn:
+        type: string
+      _STID:
+        type: integer
+        format: int64
+  productref_result:
+    type: object
+    properties:
+      urnobj:
+        type: array
+        items:
+          $ref: '#/definitions/productref_urnobj'
+      meta:
+        type: array
+        items:
+          $ref: '#/definitions/product_meta'

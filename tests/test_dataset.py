@@ -1184,6 +1184,7 @@ def do_ArrayDataset_init(atype):
     assert v.unit is None
     assert v.description == 'UNKNOWN'
     assert v.type == 'ArrayDataset'
+    assert v.shape == ()
     assert v.typecode == 'UNKNOWN'
     # from DRM
     a1 = atype([1, 4.4, 5.4E3])      # an array of data
@@ -1191,19 +1192,22 @@ def do_ArrayDataset_init(atype):
     a3 = 'three energy vals'  # description
     a4 = 'float'              # type
     a6 = 'f'                  # typecode
+    a7 = (8, 9)
     v = ArrayDataset(data=a1, unit=a2, description=a3,
-                     typ_=a4, typecode=a6)
+                     typ_=a4, shape=a7, typecode=a6)
     assert v.data == a1
     assert v.unit == a2
     assert v.description == a3
     assert v.type == a4
     assert v.typecode == a6
+    assert v.shape == a7
     v = ArrayDataset(data=a1)
     assert v.data == a1
     assert v.unit is None
     assert v.description == 'UNKNOWN'
     assert v.type == 'ArrayDataset'
     assert v.typecode == 'UNKNOWN'
+    assert v.shape == ()
 
     # omit the parameter names when instantiating, the orders are data, unit, description
     v2 = ArrayDataset(a1)

@@ -344,29 +344,35 @@ def output(nm, d, fins, version, verbose):
 
 def yamlupgrade(descriptors, fins, ypath, version, verbose):
 
-    if float(version) > 1.0:
+    if float(version) == 1.6:
         for nm, daf in descriptors.items():
             d, attrs, datasets, fin = daf
             if float(d['schema']) >= float(version):
                 print('No need to upgrade '+d['schema'])
                 continue
             d['schema'] = version
+            level = d.pop('level')
+            md = OrderedDict()
             for pname, w in d['metadata'].items():
-                dt = w['data_type']
+                #dt = w['data_type']
                 # no dataset yet
-                if dt in ['boolean', 'string', 'finetime']:
-                    del w['unit']
-                if dt == 'finetime':
-                    w['default'] = 0
-                if 'typecode' not in w:
-                    w['typecode'] = 'B' if dt == 'string' else None
-                if pname == 'version':
-                    v = w['default'].replace('v', '')
-                    w['default'] = str(float(v) + 0.1)
-            output(nm, d, fins, version, verbose)
-    elif float(version) > 0.6:
-        # in:v0.6 and below out:v1.0
-        for nm, d in descriptors.items():
+                if pname == 'type':
+                    v = w['default']
+                    w.clear()
+                    w['default'] = v
+                    md[pname] = w
+                    md['level'] = {'default': 'C' + level.upper()}
+                elif pname == 'FORMATV':
+                    v = w['default'].split('.')
+                    w.clear()
+                    w['default'] = version + '.' + \
+                        v[2] + '.' + str(int(v[3])+1)
+                    md[pname] = w
+                else:
+                    md[pname] = w
+            d['metadata'] = md
+            if 'datasets' not in d:
+                d['datasets'] = {}
             output(nm, d, fins, version, verbose)
 
 
@@ -455,7 +461,7 @@ if __name__ == '__main__':
     print('product class generatiom')
 
     # schema version
-    version = '1.1'
+    version = '1.6'
 
     # Get input file name etc. from command line. defaut 'Product.yml'
     cwd = os.path.abspath(os.getcwd())

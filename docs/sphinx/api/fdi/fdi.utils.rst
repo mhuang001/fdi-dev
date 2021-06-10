@@ -89,6 +89,14 @@ fdi.utils.options module
    :undoc-members:
    :show-inheritance:
 
+fdi.utils.queueworks module
+---------------------------
+
+.. automodule:: fdi.utils.queueworks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.run\_proc module
 --------------------------
 

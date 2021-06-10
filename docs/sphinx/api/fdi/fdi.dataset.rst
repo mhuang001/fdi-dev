@@ -33,18 +33,26 @@ fdi.dataset.annotatable module
    :undoc-members:
    :show-inheritance:
 
-fdi.dataset.attributable module
+fdi.dataset.arraydataset module
 -------------------------------
 
-.. automodule:: fdi.dataset.attributable
+.. automodule:: fdi.dataset.arraydataset
    :members:
    :undoc-members:
    :show-inheritance:
 
-fdi.dataset.attributablemeta module
------------------------------------
+fdi.dataset.arraydataset\_datamodel module
+------------------------------------------
 
-.. automodule:: fdi.dataset.attributablemeta
+.. automodule:: fdi.dataset.arraydataset_datamodel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.attributable module
+-------------------------------
+
+.. automodule:: fdi.dataset.attributable
    :members:
    :undoc-members:
    :show-inheritance:
@@ -113,6 +121,14 @@ fdi.dataset.datawrapper module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.dateparameter module
+--------------------------------
+
+.. automodule:: fdi.dataset.dateparameter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.deserialize module
 ------------------------------
 
@@ -169,6 +185,14 @@ fdi.dataset.listener module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.messagequeue module
+-------------------------------
+
+.. automodule:: fdi.dataset.messagequeue
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.metadata module
 ---------------------------
 
@@ -189,6 +213,14 @@ fdi.dataset.ndprint module
 --------------------------
 
 .. automodule:: fdi.dataset.ndprint
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.numericparameter module
+-----------------------------------
+
+.. automodule:: fdi.dataset.numericparameter
    :members:
    :undoc-members:
    :show-inheritance:
@@ -233,10 +265,34 @@ fdi.dataset.serializable module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.stringparameter module
+----------------------------------
+
+.. automodule:: fdi.dataset.stringparameter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.tabledataset module
+-------------------------------
+
+.. automodule:: fdi.dataset.tabledataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.testproducts module
 -------------------------------
 
 .. automodule:: fdi.dataset.testproducts
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.typecoded module
+----------------------------
+
+.. automodule:: fdi.dataset.typecoded
    :members:
    :undoc-members:
    :show-inheritance:

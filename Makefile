@@ -223,7 +223,7 @@ docs_html:
 SERVER_NAME        =httppool_server
 PORT        =9884
 EXTPORT =$(PORT)
-IMAGE_NAME         =httppool_server:v2
+IMAGE_NAME         =mh/httppool_server:v3
 IP_ADDR     =10.0.10.114
 
 DOCKERFILE              =fdi/pns/resources/httppool_server.docker
@@ -235,11 +235,11 @@ secret:
 	@echo RUN --mount=type=secret,id=envs source /run/secrets/envs
 	@echo docker run --env-file  $(SECFILE)
 	@echo export IP=172.17.0.9 >> $(SECFILE)
-	@echo export HOST_PORT=9984 >> $(SECFILE)
+	@echo export HOST_PORT= >> $(SECFILE)
 	@echo export HOST_USER=foo >> $(SECFILE)
 	@echo export HOST_PASS=bar >> $(SECFILE)
-	@echo export MQ_HOST=123.56.10. >> $(SECFILE)
-	@echo export MQ_PORT= 31876 >> $(SECFILE)
+	@echo export MQ_HOST= >> $(SECFILE)
+	@echo export MQ_PORT= >> $(SECFILE)
 	@echo export MQ_USER=  >> $(SECFILE)
 	@echo export MQ_PASS= >> $(SECFILE)
 	@cat  $(SECFILE)
@@ -248,7 +248,7 @@ build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .
 
 launch_server:
-	docker run -d -it --env-file $(SECFILE) --name $(SERVER_NAME) $(D) $(IMAGE_NAME) -p $(PORT):$(EXTPORT) $(B)
+	docker run -d -it --network=host --env-file $(SECFILE) --name $(SERVER_NAME) $(D) $(IMAGE_NAME) -p $(PORT):$(EXTPORT) $(B)
 	sleep 2
 	docker ps -n 1
 

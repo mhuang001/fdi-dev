@@ -2,7 +2,7 @@
 
 FROM ubuntu:18.04 AS base_ext
 LABEL Pool Server
-# 0.2 M. Huang <mhuang@nao.cas.cn>
+# 0.2-3 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
 #ENV TZ=Etc/UTC

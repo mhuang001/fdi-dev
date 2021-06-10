@@ -248,7 +248,7 @@ build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .
 
 launch_server:
-	docker run -d -it --network=host --env-file $(SECFILE) --name $(SERVER_NAME) $(D) $(IMAGE_NAME) -p $(PORT):$(EXTPORT) $(B)
+	docker run -d -it --network=bridge --env-file $(SECFILE) --name $(SERVER_NAME) $(D) $(IMAGE_NAME) -p $(PORT):$(EXTPORT) $(B)
 	sleep 2
 	docker ps -n 1
 

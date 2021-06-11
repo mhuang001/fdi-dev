@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 class Instance():
 
     def get(self, name=None, conf='pns'):
-        global CONFIG
         if name:
             try:
                 return self._cached_conf
@@ -28,14 +27,14 @@ class Instance():
                 return self._cached_poolurl
 
 
-@functools.lru_cache(8)
+# @functools.lru_cache(8)
 def getConfig(name=None, conf='pns'):
-    """ Imports a dict named [conf]config defined in ~/.config/[conf]local.py to update defaults in pns.pnsconfig.
+    """ Imports a dict named [conf]config defined in ~/.config/[conf]local.py to update defaults in pns.config.
 
-    name: if given the return is poolurl in ``poolurl_of`` or a poolurl constructed from <conf>config.
-    conf: configuration ID. default 'pns', so the file is 'pnsconfig.py'.
+    name: if given the poolurl in ``poolurl_of`` is returned, else construct a poolurl from the contents in dict <conf>config.
+    conf: configuration ID. default 'pns', so the file is 'pnslocal.py'.
     """
-    # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
+    # default configuration is provided. Copy pns/config.py to ~/.config/pnslocal.py
     config = {}
     env = expanduser(expandvars('$HOME'))
     # apache wsgi will return '$HOME' with no expansion
@@ -52,7 +51,7 @@ def getConfig(name=None, conf='pns'):
         config.update(c.__dict__[stem])
     except ModuleNotFoundError as e:
         logger.warning(str(
-            e) + '. Use default config in the package, such as fdi/pns/pnsconfig.py. Copy it to ~/.config/[package]local.py and make persistent customization there.')
+            e) + '. Use default config in the package, such as fdi/pns/config.py. Copy it to ~/.config/[package]local.py and make persistent customization there.')
 
     if name:
         urlof = vars(c)['poolurl_of']

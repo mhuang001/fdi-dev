@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 if __name__ == '__main__':
 
     logger = logging.getLogger()
-    # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
+    # default configuration is provided. Copy config.py to ~/.config/pnslocal.py
     pc = getconfig.getConfig()
 
     lv = pc['logginglevel']

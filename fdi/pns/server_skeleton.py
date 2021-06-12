@@ -7,7 +7,7 @@ import time
 import sys
 import functools
 import os
-from os import listdir, chown, chmod, environ, setuid, setgid
+from os import chown, chmod
 from pathlib import Path
 import logging
 import types

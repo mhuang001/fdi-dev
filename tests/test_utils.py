@@ -358,3 +358,6 @@ def test_opt():
         pass
     else:
         assert 0, 'failed to exit.'
+
+
+def test_getConfig():

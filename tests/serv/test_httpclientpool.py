@@ -28,11 +28,11 @@ def setuplogging():
     return logging
 
 
-logger = logging.getLogger(__name__)
+logging = setuplogging()
+logger = logging.getLogger()
 
 
 logger.setLevel(logging.INFO)
-setuplogging()
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 

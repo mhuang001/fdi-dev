@@ -140,12 +140,12 @@ versiontag:
 
 PYTEST	= python3 -m pytest
 TESTLOG	= /tmp/fdi-tests.log
-
-OPT	= -r P -v -l --pdb -s --show-capture=all  #--log-file=$(TESTLOG)
+L	= INFO #WARNING
+OPT	= -r P -v -l --pdb -s --show-capture=all  --log-level=$(L)
 T	= 
-test: test1 test2
+test: test1 test2 test5
 
-testpns: test5 test4
+testpns: test4
 
 testhttp: test6 test7 test8
 
@@ -156,19 +156,19 @@ test2:
 	$(PYTEST) tests/test_pal.py -k 'not _http' $(T) --cov=fdi/pal $(OPT)
 
 test3:
-	$(PYTEST)  $(OPT) -k 'server' $(T) tests/test_pns.py --cov=fdi/pns
+	$(PYTEST)  $(OPT) -k 'server' $(T) tests/serv/test_pns.py --cov=fdi/pns
 
 test4:
-	$(PYTEST) $(OPT) -k 'not server' $(T) tests/test_pns.py --cov=fdi/pns
+	$(PYTEST) $(OPT) -k 'not server' $(T) tests/serv/test_pns.py --cov=fdi/pns
 
 test5:
 	$(PYTEST)  $(OPT) $(T) tests/test_utils.py --cov=fdi/utils
 
 test6:
-	$(PYTEST) $(OPT) $(T) tests/test_httppool.py
+	$(PYTEST) $(OPT) $(T) tests/serv/test_httppool.py
 
 test7:
-	$(PYTEST) $(OPT) $(T) tests/test_httpclientpool.py
+	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py
 
 test8:
 	$(PYTEST) $(OPT) $(T) tests/test_pal.py -k '_http'

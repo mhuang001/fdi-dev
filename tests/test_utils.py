@@ -1,35 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import datetime
-import traceback
-import copy
-import sys
-import os
-
-from fdi.dataset.annotatable import Annotatable
-from fdi.dataset.copyable import Copyable
-from fdi.dataset.odict import ODict
 from fdi.dataset.eq import deepcmp
-from fdi.dataset.classes import Classes
-from fdi.dataset.deserialize import deserialize
-from fdi.dataset.quantifiable import Quantifiable
-from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf
-from fdi.dataset.composite import Composite
 from fdi.dataset.metadata import Parameter, MetaData, make_jsonable
 from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.stringparameter import StringParameter
-from fdi.dataset.dateparameter import DateParameter
-from fdi.dataset.datatypes import DataTypes, DataTypeNames
-from fdi.dataset.attributable import Attributable
-from fdi.dataset.abstractcomposite import AbstractComposite
-from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.dataset import TableDataset, CompositeDataset
 from fdi.dataset.arraydataset import Column, ArrayDataset
-from fdi.dataset.ndprint import ndprint
 from fdi.dataset.datatypes import Vector, Quaternion
-from fdi.dataset.finetime import FineTime, FineTime1, utcobj
-from fdi.dataset.history import History
-from fdi.dataset.baseproduct import BaseProduct
+from fdi.dataset.deserialize import Class_Look_Up
 from fdi.dataset.product import Product
 from fdi.pal.urn import Urn
 from fdi.utils.checkjson import checkjson
@@ -39,28 +17,30 @@ from fdi.utils.common import fullname, l2t
 from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
 
-# import __builtins__
-
+import datetime
+import importlib
+import traceback
+import copy
+import sys
+import os
+import os.path
+import pytest
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
 else:
     PY3 = False
 
-Classes.updateMapping()
-
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
-
-    from outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
+    pass
 else:
     # run by pytest
 
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
-    from .pycontext import fdi
 
-    from .outputs import nds2, nds3, out_TableDataset, out_CompositeDataset
+    from .pycontext import fdi
 
     from .logdict import logdict
     import logging
@@ -360,4 +340,55 @@ def test_opt():
         assert 0, 'failed to exit.'
 
 
-def test_getConfig():
+def check_conf(cfp, typ, getConfig):
+    cfn = typ + 'local.py'
+    cfp = os.path.expanduser(cfp)
+    filec = os.path.join(cfp, cfn)
+    os.system('rm -f ' + filec)
+    conf = 'import os; %sconfig={"jk":98, "m":os.path.abspath(__file__)}' % typ
+    with open(filec, 'w') as f:
+        f.write(conf)
+    # check conf file directory
+    w = getConfig(conf=typ)
+    assert w['jk'] == 98
+    pfile = w['m']
+    assert pfile.startswith(cfp)
+    os.system('rm -f ' + filec)
+
+
+def test_getConfig_init(getConfig):
+
+    # no arg
+    v = getConfig()
+    from fdi.pns.config import pnsconfig
+    # v is a superset
+    assert all(n in v for n in pnsconfig)
+
+
+def test_getConfig_noENV(getConfig):
+
+    # non-default conf type
+    typ = 'abc'
+    # environment variable not set
+    try:
+        del os.environ['CONF_DIR']
+    except:
+        pass
+
+    # default dir, there is  nothing
+    # put mock in the default directory
+    check_conf('~/.config', typ, getConfig)
+
+
+def test_getConfig_conf(getConfig):
+
+    # non-default conf type
+    typ = 'abc'
+    # specify directory
+    cp = '/tmp'
+    # environment variable
+    os.environ['CONF_DIR'] = cp
+    check_conf(cp, typ, getConfig)
+    # non-existing. the file has been deleted by the check_conf in the last line
+    with pytest.raises(FileNotFoundError):
+        w = getConfig(conf=typ)

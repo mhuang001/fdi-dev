@@ -14,15 +14,6 @@ from urllib.error import HTTPError
 logger = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope="package")
-def pc():
-    """ get configuration.
-
-    """
-    pc = getconfig.getConfig()
-    return pc
-
-
 def checkserver(aburl):
     """ make sure the server is running when tests start
     """
@@ -68,23 +59,6 @@ def setup(pc):
     del up, code
     yield aburl, headers
     del aburl, headers
-
-
-@pytest.fixture
-def local_pools_dir(pc):
-    """ this is a path in the local OS, where the server runs.
-
-    the path is used to directly access pool server's internals.
-
-    return: has no trailing '/'
-    """
-    # http server pool
-    schm = 'server'
-
-    #basepath = pc['server_local_pools_dir']
-    basepath = PoolManager.PlacePaths[schm]
-    local_pools_dir = os.path.join(basepath, pc['api_version'])
-    return local_pools_dir
 
 
 @pytest.fixture(scope="package")

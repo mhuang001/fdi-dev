@@ -141,7 +141,7 @@ versiontag:
 PYTEST	= python3 -m pytest
 TESTLOG	= /tmp/fdi-tests.log
 
-OPT	= -r P -v -l --pdb  #--log-file=$(TESTLOG)
+OPT	= -r P -v -l --pdb -s --show-capture=all  #--log-file=$(TESTLOG)
 T	= 
 test: test1 test2
 

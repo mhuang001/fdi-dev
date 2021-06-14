@@ -232,6 +232,10 @@ type         ArrayDataset                string    None                     Arra
                                                                                                      Name of class.
 unit         lyr                         string    None                     None             B       Unit of every element
                                                                                                      .
+shape        ()                          tuple     None                     ()                       Number of elements in
+                                                                                                      each dimension. Quic
+                                                                                                     k changers to the rig
+                                                                                                     ht.
 typecode     UNKNOWN                     string    None                     UNKNOWN          B       Python internal stora
                                                                                                      ge code.
 version      0.1                         string    None                     0.1              B       Version of dataset
@@ -297,15 +301,15 @@ ArrayDataset-dataset =
 level 1, repr
 === ArrayDataset () ===
 meta= {
---------------------------  ------------------  ----------------
+--------------------------  ------------------  -----------------
 description= toString test  type= ArrayDataset  unit= lyr
 er AD
-typecode= UNKNOWN           version= 0.1        FORMATV= 1.6.0.1
-a= 3.4                      b= xy (2019-02-19   c= Invalid (IJK)
-                            01:02:03.456789
-                            1929229323456789)
-d= off (0b00)
---------------------------  ------------------  ----------------
+shape= ()                   typecode= UNKNOWN   version= 0.1
+FORMATV= 1.6.0.1            a= 3.4              b= xy (2019-02-19
+                                                01:02:03.456789
+                                                1929229323456789)
+c= Invalid (IJK)            d= off (0b00)
+--------------------------  ------------------  -----------------
 MetaData-listeners = ListnerSet{}
 }
 ArrayDataset-dataset =
@@ -353,7 +357,7 @@ ArrayDataset-dataset =
 
 
 level 2,
-ArrayDataset([[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]] description: toString tester AD, type: ArrayDataset, unit: lyr, typecode: UNKNOWN, version: 0.1, FORMATV: 1.6.0.1, a: 3.4, b: FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, c: IJK, d: 1)"""
+ArrayDataset([[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]] description: toString tester AD, type: ArrayDataset, unit: lyr, shape: (), typecode: UNKNOWN, version: 0.1, FORMATV: 1.6.0.1, a: 3.4, b: FineTime{2019-02-19T01:02:03.456789 TAI(1929229323456789) fmt=%Y-%m-%dT%H:%M:%S.%f UTC}, c: IJK, d: 1)"""
 out_TableDataset = """
 
 level 0
@@ -455,6 +459,10 @@ type         ArrayDataset          string  None     ArrayDataset  B       Type i
                                                                           Name of class.
 unit         ev                    string  None     None          B       Unit of every element
                                                                           .
+shape        ()                    tuple   None     ()                    Number of elements in
+                                                                           each dimension. Quic
+                                                                          k changers to the rig
+                                                                          ht.
 typecode     UNKNOWN               string  None     UNKNOWN       B       Python internal stora
                                                                           ge code.
 version      0.1                   string  None     0.1           B       Version of dataset
@@ -493,10 +501,11 @@ MetaData-listeners = ListnerSet{}
 CompositeDataset-datasets =
 <ODict  === ArrayDataset () ===
 meta= {
-------------------------  ------------------  ----------------
+------------------------  ------------------  ------------
 description= arraydset 1  type= ArrayDataset  unit= ev
-typecode= UNKNOWN         version= 0.1        FORMATV= 1.6.0.1
-------------------------  ------------------  ----------------
+shape= ()                 typecode= UNKNOWN   version= 0.1
+FORMATV= 1.6.0.1
+------------------------  ------------------  ------------
 MetaData-listeners = ListnerSet{}
 }
 ArrayDataset-dataset =
@@ -520,7 +529,7 @@ TableDataset-dataset =
 meta
 
 CompositeDataset-datasets =
-<ODict  ArrayDataset([768, 4.4, 5400.0] description: arraydset 1, type: ArrayDataset, unit: ev, typecode: UNKNOWN, version: 0.1, FORMATV: 1.6.0.1) === TableDataset () ===
+<ODict  ArrayDataset([768, 4.4, 5400.0] description: arraydset 1, type: ArrayDataset, unit: ev, shape: (), typecode: UNKNOWN, version: 0.1, FORMATV: 1.6.0.1) === TableDataset () ===
 meta
 TableDataset-dataset =
    Time    Energy

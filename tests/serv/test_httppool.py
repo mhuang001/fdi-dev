@@ -69,7 +69,7 @@ if 0:
 lupd = 0
 
 
-test_poolid = 'test'
+test_poolid = 'fdi_'+__name__
 prodt = 'fdi.dataset.product.Product'
 
 

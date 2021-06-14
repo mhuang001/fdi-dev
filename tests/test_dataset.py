@@ -387,7 +387,11 @@ def test_EventType():
     assert EventTypeOf['CHANGED']['UNKNOWN_ATTRIBUTE'] == 'UNKNOWN_ATTRIBUTE_CHANGED'
 
 
-def test_EventSender():
+test123 = 0
+
+
+@pytest.fixture()
+def mocksndrlsnr():
     global test123
 
     class MockFileWatcher(EventSender):
@@ -427,6 +431,13 @@ def test_EventSender():
     l2 = MockListener()
     l2.targetChanged = log_file_change2
 
+    return MockFileWatcher, MockFileWatcher2, l1, l2
+
+
+def test_EventSender(mocksndrlsnr):
+
+    global test123
+    MockFileWatcher, MockFileWatcher2, l1, l2 = mocksndrlsnr
     watcher = MockFileWatcher()
     watcher.addListener(l2)
     watcher.addListener(l1)
@@ -442,6 +453,12 @@ def test_EventSender():
     watcher.watchFiles()
     assert test123 == "'foo' changed."
     # __import__('pdb').set_trace()
+
+
+def test_MqttRelay_mqtt(mocksndrlsnr):
+
+    global test123
+    MockFileWatcher, MockFileWatcher2, l1, l2 = mocksndrlsnr
 
     # MQ Relay
     v = MqttRelayListener(topics="test.mq.bounce2", host=None,

@@ -147,10 +147,10 @@ test: test1 test2 test5
 
 testpns: test4
 
-testhttp: test6 test7 test8
+testhttp: test6 test7 test8 test9
 
 test1: 
-	$(PYTEST) tests/test_dataset.py --cov=fdi/dataset $(OPT) $(T)
+	$(PYTEST) tests/test_dataset.py -k 'not _mqtt' --cov=fdi/dataset $(OPT) $(T)
 
 test2:
 	$(PYTEST) tests/test_pal.py -k 'not _http' $(T) --cov=fdi/pal $(OPT)
@@ -172,6 +172,9 @@ test7:
 
 test8:
 	$(PYTEST) $(OPT) $(T) tests/test_pal.py -k '_http'
+
+test9:
+	$(PYTEST) tests/test_dataset.py -k '_mqtt' $(T)
 
 
 FORCE:

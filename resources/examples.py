@@ -511,8 +511,8 @@ A :class:`ProductStorage` with pools attached can be queried with tags, properti
 """)
 
 # clean possible data left from previous runs
-defaultpoolpath = '/tmp/pool_' + getpass.getuser()
-newpoolname = 'newpool_' + getpass.getuser()
+defaultpoolpath = '/tmp/fdi_pool_' + __name__ + getpass.getuser()
+newpoolname = 'fdi_newpool_' + __name__ + getpass.getuser()
 newpoolpath = '/tmp/' + newpoolname
 os.system('rm -rf ' + defaultpoolpath)
 os.system('rm -rf ' + newpoolpath)

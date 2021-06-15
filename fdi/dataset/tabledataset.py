@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from .typed import Typed
-from .typecoded import Typecoded
-from .listener import ColumnListener
 from .indexed import Indexed
 from .ndprint import ndprint
 from .odict import ODict
 import itertools
 from ..utils.common import mstr, bstr, lls, exprstrs
-from .dataset import GenericDataset
+from .dataset import Dataset
 try:
     from .arraydataset_datamodel import Model
 except ImportError:
@@ -77,10 +74,10 @@ class TableModel(object):
         self.getColumn(columnIndex).data[rowIndex] = value
 
 
-MdpInfo = Model['metadata']
+-MdpInfo = Model['metadata']
 
 
-class TableDataset(GenericDataset, TableModel):
+class TableDataset(Dataset, TableModel):
     """  Special dataset that contains a single Array Data object.
     A TableDataset is a tabular collection of Columns. It is optimized to work on array data..
     The column-wise approach is convenient in many cases. For example, one has an event list, and each algorithm is adding a new field to the events (i.e. a new column, for example a quality mask).
@@ -105,7 +102,6 @@ class TableDataset(GenericDataset, TableModel):
     """
 
     def __init__(self, data=None,
-                 description=None,
                  zInfo=None,
                  alwaysMeta=True,
                  **kwds):

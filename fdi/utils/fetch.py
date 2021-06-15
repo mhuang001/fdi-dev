@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 
 from collections.abc import Mapping, Sequence
@@ -19,6 +20,8 @@ If the above fail and a method whose name starts with 'is' then the method is ca
 
     p0 = paths[0]
     found_meth = None
+    print(p0)
+
     is_str = issubclass(p0.__class__, str)
     if is_str and hasattr(nested, p0):
         v = getattr(nested, p0)
@@ -45,14 +48,12 @@ If the above fail and a method whose name starts with 'is' then the method is ca
                 # can be converted to numerics
                 p0 = list(num)
         try:
-            if hasattr(nested, 'items') and (p0 in nested) or \
-               hasattr(nested, '__iter__') and (p0 < len(list(nested))):
-                v = nested[p0]
-                q = '"' if issubclass(p0.__class__, str) else ''
-                rep = re + '['+q + str(p0) + q + ']'
-                if len(paths) == 1:
-                    return v, rep
-                return fetch(paths[1:], v, rep)
+            v = nested[p0]
+            q = '"' if issubclass(p0.__class__, str) else ''
+            rep = re + '['+q + str(p0) + q + ']'
+            if len(paths) == 1:
+                return v, rep
+            return fetch(paths[1:], v, rep)
         except TypeError:
             pass
     # not attribute or member

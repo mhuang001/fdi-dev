@@ -38,19 +38,3 @@ class Quantifiable(Typecoded):
     def setUnit(self, unit):
         """ Sets the unit of this object. """
         self._unit = unit
-
-    @property
-    def typecode(self):
-        return self.getTypecode()
-
-    @typecode.setter
-    def typecode(self, typecode):
-        self.setTypecode(typecode)
-
-    def getTypecode(self):
-        """ Returns the typecode related to this object."""
-        return self._typecode
-
-    def setTypecode(self, typecode):
-        """ Sets the typecode of this object. """
-        self._typecode = typecode

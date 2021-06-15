@@ -4,10 +4,11 @@ from ..utils.common import mstr, bstr
 from .ndprint import ndprint
 from .listener import MetaDataListener
 from .serializable import Serializable
+from .typed import Typed
 from .odict import ODict
 from .attributable import Attributable
 from .abstractcomposite import AbstractComposite
-from .datawrapper import DataContainer
+from .datawrapper import DataContainer, DataWrapper
 from .eq import DeepEqual
 from .copyable import Copyable
 from .annotatable import Annotatable
@@ -26,6 +27,7 @@ if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.3:
     seqlist = Sequence
     maplist = Mapping
 else:
+    assert 0, 'python 3'
     PY33 = False
     from .collectionsMockUp import ContainerMockUp as Container
     from .collectionsMockUp import SequenceMockUp as Sequence
@@ -41,7 +43,7 @@ logger = logging.getLogger(__name__)
 # from .composite import
 
 
-class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, MetaDataListener):
+class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
     """ Attributable and annotatable information data container
     that can be be part of a Product.
 
@@ -78,11 +80,11 @@ class Dataset(Attributable, Annotatable, Copyable, Serializable, DeepEqual, Meta
         return s
 
 
-class GenericDataset(Dataset, DataContainer, Container):
-    """ mh: Contains one data item.
+class GenericDataset(Dataset, Typed, DataWrapper):
+    """ mh: Contains one typed data item with a unit and a typecode.
     """
 
-    def __init__(self, **kwds):
+    def __init__(self,                 **kwds):
         """
         """
         super(GenericDataset, self).__init__(
@@ -91,16 +93,6 @@ class GenericDataset(Dataset, DataContainer, Container):
     def __iter__(self):
         for x in self.getData():
             yield x
-
-    def __contains__(self, x):
-        """
-        """
-        return x in self.getData()
-
-    def __len__(self, *args, **kwargs):
-        """ size of data
-        """
-        return self.getData().__len__(*args, **kwargs)
 
     def toString(self, level=0,
                  tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
@@ -183,7 +175,7 @@ class TableModel(object):
         self.getColumn(columnIndex).data[rowIndex] = value
 
 
-class TableDataset(GenericDataset, TableModel):
+class TableDataset(Dataset, TableModel):
     """  Special dataset that contains a single Array Data object.
     A TableDataset is a tabular collection of Columns. It is optimized to work on array data..
     The column-wise approach is convenient in many cases. For example, one has an event list, and each algorithm is adding a new field to the events (i.e. a new column, for example a quality mask).

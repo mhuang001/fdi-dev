@@ -452,7 +452,6 @@ def test_EventSender(mocksndrlsnr):
     watcher.fileChanged.removeListener(l2)
     watcher.watchFiles()
     assert test123 == "'foo' changed."
-    # __import__('pdb').set_trace()
 
 
 def test_MqttRelay_mqtt(mocksndrlsnr):
@@ -1420,6 +1419,7 @@ def test_ArrayDataset_array_func():
 
 def test_Column():
     v = Column(data=[4, 9], unit='m')
+    assert v.data == [4, 9]
     s = v.hash()
 
     checkjson(v)
@@ -1436,17 +1436,18 @@ def test_TableDataset_init():
         t = 5
         t = TableDataset(data=42)
 
-    with pytest.raises(DeprecationWarning):
-        t = TableDataset(data=[{'name': 'a', 'column': Column(data=[])}])
+    if 1:
+        with pytest.raises(DeprecationWarning):
+            t = TableDataset(data=[{'name': 'a', 'column': Column(data=[])}])
 
-    # setData format 1: data is a  mapping. Needs pytnon 3.6 to guarantee order
-    a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
-          'col2': Column(data=[0, 43.2, 2E3], unit='cnt')}
-    v = TableDataset(data=a1)  # inherited from DataWrapper
-    assert v.getColumnCount() == len(a1)
-    assert v.getColumnName(0) == 'col1'
-    t = a1['col2'].data[1]  # 43.2
-    assert v.getValueAt(rowIndex=1, columnIndex=1) == t
+        # setData format 1: data is a  mapping. Needs pytnon 3.6 to guarantee order
+        a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
+              'col2': Column(data=[0, 43.2, 2E3], unit='cnt')}
+        v = TableDataset(data=a1)  # inherited from DataContaier
+        assert v.getColumnCount() == len(a1)
+        assert v.getColumnName(0) == 'col1'
+        t = a1['col2'].data[1]  # 43.2
+        assert v.getValueAt(rowIndex=1, columnIndex=1) == t
 
     # 2: add columns one by one
     v2 = TableDataset()
@@ -1826,7 +1827,6 @@ def test_CompositeDataset_init():
     a12 = NumericParameter(description='a different param in metadata',
                            value=2.3, unit='sec')
     v.meta[a11] = a12
-
     # def test_CompositeDataset_func():
 
     # equality

@@ -13,7 +13,7 @@ except ImportError:
     Model = {'metadata': {}}
 
 
-from collections.abc import Sequence
+from collections.abc import Sequence, Iterable
 from collections import OrderedDict
 import itertools
 
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 MdpInfo = Model['metadata']
 
 
-class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed, Typecoded):
+class ArrayDataset(GenericDataset, Iterable):
     """  Special dataset that contains a single Array Data object.
     mh: If omit the parameter names during instanciation, e.g. ArrayDataset(a, b, c), the assumed order is data, unit, description.
     mh:  contains a sequence which provides methods count(), index(), remove(), reverse().

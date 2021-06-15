@@ -3,6 +3,7 @@
 
 from fdi.dataset.product import Product
 from fdi.dataset.eq import deepcmp
+from fdi.dataset.testproducts import get_sample_product
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.query import MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
@@ -181,6 +182,13 @@ def crud_t(poolid, poolurl, local_pools_dir, pool):
     logger.info('Wipe a pool')
     pstore.getPool(poolid).removeAll()
     assert pool.isEmpty()
+
+    tag = '==Sample ** Product=='
+    logger.info('test sample prod with tag: '+tag)
+    sp = get_sample_product()
+    urn = pstore.save(sp, tag=tag)
+    print('Sample Prod saved with tag "%s" %s to %s' %
+          (tag, urn.urn, pool.poolname))
 
     logger.info('unregister a pool')
     assert len(pstore.getPools()) == 1, 'product storage size error: ' + \

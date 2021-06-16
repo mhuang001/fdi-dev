@@ -155,6 +155,8 @@ def test_serialization():
     checkjson(v, 1)
     v = [1.2, 'ww']
     checkjson(v)
+    v = Product
+    checkjson(v)
     # v = (1, 8.2, 'tt')
     # checkjson(v)
     # v = {(5, 4): 4, 'y': {('d', 60): 'ff', '%': '$'}}
@@ -169,7 +171,7 @@ def test_serialization():
                 setattr(self, k, v)
 
     v = [
-        #arange(0, 10, 1, dtype=int).reshape((2, 5)),
+        # arange(0, 10, 1, dtype=int).reshape((2, 5)),
         datetime.datetime(year=2017, month=1, day=19,
                           hour=23, minute=00, second=00),
         1 + 2j,
@@ -186,6 +188,7 @@ def test_sys():
     assert sys.int_info.sizeof_digit == 4
     assert sys.float_info.dig == 15
     assert sys.maxsize == 2**63 - 1
+    assert sys.hash_info.width == 64
 
 
 def est_TupleKeys():
@@ -257,6 +260,11 @@ def test_ndprint():
     else:
         assert v == nds3
         # pprint.pprint(s)
+
+
+def test_ODict():
+    v = ODict()
+    assert len(v.data) == 0
 
 
 def test_Annotatable():
@@ -473,6 +481,7 @@ def test_datatypes():
     a1 = -1
     v2 = Quaternion([a1, 1+0, 1-a1+0.3, 4.5])
     assert v == v2
+    checkjson(v)
 
 
 def test_Parameter_init():
@@ -679,6 +688,20 @@ def test_Parameter_features():
     else:  # smart
         v = Parameter(a2, a1, a4)
         assert v.value == 9
+    # with known types this is ok
+    a2 = [2.2, 3.3, 1.1, 0]
+    a4 = 'quaternion'
+    v = Parameter(a2, a1, a4)
+    assert v.value == [2.2, 3.3, 1.1, 0]
+    assert issubclass(v.value.__class__, list)
+    v = NumericParameter(typ_='vector')
+    v.value = [1, 2, 3]
+    assert v.value == Vector([1, 2, 3])
+    # ok for NumericParameter w/o explicite type
+    v = NumericParameter()
+    # with pytest.raises(TypeError):
+    v.value = [9, 4, 1]
+
     # type not Number nor in DataTypes gets NotImplementedError
     a2 = 9
     a4 = 'guess'
@@ -748,6 +771,16 @@ def test_Parameter_features():
     v = Parameter(description=b1)
     v.value = b2
     checkjson(v)
+
+    a2 = [2.2, 3.3, 1.1, 0]
+    a4 = 'quaternion'
+    v = Parameter(a2, 'foo', a4)
+    # serializing special types will fail
+    with pytest.raises(TypeError):
+        checkjson(v)
+    v = Parameter()
+    v.type = a4
+    v.value = a2
 
     # event
     global test123
@@ -974,7 +1007,7 @@ def test_MetaData():
     # names of all parameters
     assert [n for n in v] == [a1, 'time', 'birthday']
 
-    checkjson(v, dbg=1)
+    checkjson(v, dbg=0)
 
     v.remove(a1)  # inherited from composite
     assert v.size() == 2

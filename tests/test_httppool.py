@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+
+#################
+# This test is to be run on the same machine where the http pool server is running.
+#################
+
+
 import pytest
 from fdi.dataset.serializable import serialize
 from fdi.dataset.deserialize import deserialize
@@ -63,8 +69,6 @@ if 0:
 
 
 testname = 'SVOM'
-aburl = 'http://' + pc['node']['host'] + ':' + \
-    str(pc['node']['port']) + pc['baseurl']
 
 up = bytes((pc['node']['username'] + ':' +
             pc['node']['password']).encode('ascii'))
@@ -84,11 +88,16 @@ prodt = 'fdi.dataset.product.Product'
 # http server pool
 schm = 'server'
 basepath = PoolManager.PlacePaths[schm]
+# this is a path in the local OS, where the server runs.
+# the path is used to directly access pool server's internals.
 poolpath = os.path.join(basepath, pc['api_version'])
-# client side
+
+# client side.
+# pool url from a local client
 cschm = 'http'
-api_baseurl = cschm + '://' + \
-    PoolManager.PlacePaths[cschm] + '/'
+# api_baseurl = cschm + '://' + '0.0.0.0' + ':' + \
+#    str(pc['node']['port']) + pc['baseurl'] + '/'
+api_baseurl = cschm + '://' + PoolManager.PlacePaths[cschm] + '/'
 
 
 if 0:
@@ -108,7 +117,7 @@ def checkserver():
     """
     global testpns
     # check if data already exists
-    o = getJsonObj(aburl + '/')
+    o = getJsonObj(api_baseurl)
     assert o is not None, 'Cannot connect to the server'
     logger.info('initial server response %s' % (str(o)[:100] + '...'))
     # assert 'result' is not None, 'please start the server to refresh.'
@@ -134,22 +143,12 @@ def est_getpnspoolconfig():
     ''' gets and compares pnspoolconfig remote and local
     '''
     logger.info('get pnsconfig')
-    o = getJsonObj(aburl + '/pnsconfig')
+    o = getJsonObj(api_baseurl+'pnsconfig')
     issane(o)
     r = o['result']
     # , deepcmp(r['scripts'], pc['scripts'])
     assert r['scripts'] == pc['scripts']
     return r
-
-
-def checkContents(cmd, filename):
-    """ checks a GET commands return matches contents of a file.
-    """
-    o = getJsonObj(aburl + cmd)
-    issane(o)
-    with open(filename, 'r') as f:
-        result = f.read()
-    assert result == o['result'], o['message']
 
 
 # TEST HTTPPOOL  API
@@ -205,6 +204,13 @@ def test_clear_server():
     assert not os.path.exists(cpath)
 
 
+def empty_pool_on_server(post_poolid):
+    url = api_baseurl + post_poolid + '/api/removeAll'
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserialize(x.text)
+    check_response(o)
+
+
 def populate_server(poolid):
     creators = ['Todds', 'Cassandra', 'Jane', 'Owen', 'Julian', 'Maurice']
     instruments = ['fatman', 'herscherl', 'NASA', 'CNSC', 'SVOM']
@@ -216,6 +222,8 @@ def populate_server(poolid):
         x.creator = i
         data = serialize(x)
         url = api_baseurl + poolid + '/' + prodt + '/' + str(index)
+        print(len(data))
+
         x = requests.post(url, auth=HTTPBasicAuth(
             auth_user, auth_pass), data=data)
         o = deserialize(x.text)
@@ -230,7 +238,9 @@ def test_CRUD_product():
 
     logger.info('save products')
     post_poolid = test_poolid
-    clear_server_poolpath(post_poolid)
+    # register
+    pool = PoolManager.getPool(test_poolid, api_baseurl+test_poolid)
+    empty_pool_on_server(post_poolid)
 
     files = [f for f in get_files(post_poolid) if f[-1].isnumeric()]
     origin_prod = len(files)
@@ -263,20 +273,23 @@ def test_CRUD_product():
     hkpath = '/hk'
     url = api_baseurl + post_poolid + hkpath
     x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
-    o = deserialize(x.text)
-    check_response(o)
-    assert o['result']['classes'] is not None, 'Classes jsn read failed'
-    assert o['result']['tags'] is not None, 'Tags jsn read failed'
-    assert o['result']['urns'] is not None, 'Urns jsn read failed'
+    o1 = deserialize(x.text)
+    url2 = api_baseurl + post_poolid + '/api/readHK'
+    x2 = requests.get(url2, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o2 = deserialize(x2.text)
+    for o in [o1, o2]:
+        check_response(o)
+        assert o['result']['classes'] is not None, 'Classes jsn read failed'
+        assert o['result']['tags'] is not None, 'Tags jsn read failed'
+        assert o['result']['urns'] is not None, 'Urns jsn read failed'
 
-    l = len(urns)
-    inds = [int(u.rsplit(':', 1)[1]) for u in urns]
-    # the last l sn's
-    assert o['result']['classes'][prodt]['sn'][-l:] == inds
-    assert o['result']['classes'][prodt]['currentSN'] == inds[-1]
-    assert len(o['result']['tags']) == 0
-    assert [d['meta']['creator'].value for
-            d in list(o['result']['urns'].values())[-l:]] == creators
+        l = len(urns)
+        inds = [int(u.rsplit(':', 1)[1]) for u in urns]
+        # the last l sn's
+        assert o['result']['classes'][prodt]['sn'][-l:] == inds
+        assert o['result']['classes'][prodt]['currentSN'] == inds[-1]
+        assert len(o['result']['tags']) == 0
+        assert set(o['result']['urns'].keys()) == set(urns)
 
     logger.info('read classes')
     hkpath = '/hk/classes'
@@ -286,6 +299,15 @@ def test_CRUD_product():
     check_response(o)
     assert o['result'][prodt]['sn'][-l:] == inds
     assert o['result'][prodt]['currentSN'] == inds[-1]
+
+    logger.info('check count')
+    num = len(o['result'][prodt]['sn'])
+    apipath = '/api/getCount/' + prodt + ':str'
+    url = api_baseurl + post_poolid + apipath
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserialize(x.text)
+    check_response(o)
+    assert o['result'] == num
 
     logger.info('read tags')
     hkpath = '/hk/tags'
@@ -302,9 +324,7 @@ def test_CRUD_product():
     o = deserialize(x.text)
     check_response(o)
 
-    clst = [d['meta']['creator'].value for d in list(
-        o['result'].values())[-l:]]
-    assert clst == creators
+    assert set(o['result'].keys()) == set(urns)
 
     # ========
     logger.info('delete a product')
@@ -314,7 +334,9 @@ def test_CRUD_product():
 
     index = files[-1].rsplit('_', 1)[1]
     url = api_baseurl + post_poolid + '/fdi.dataset.product.Product/' + index
+
     x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+
     o = deserialize(x.text)
     check_response(o)
 
@@ -328,17 +350,36 @@ def test_CRUD_product():
     assert f.endswith(str(index))
 
     # ========
-    logger.info('delete a pool')
+    logger.info('wipe a pool')
     files = get_files(post_poolid)
     assert len(files) != 0, 'Pool is already empty: ' + post_poolid
 
-    url = api_baseurl + post_poolid
-    x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    # wipe the pool on the server
+    url = api_baseurl + post_poolid + '/api/removeAll'
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     o = deserialize(x.text)
     check_response(o)
 
     files = get_files(post_poolid)
     assert len(files) == 0, 'Wipe pool failed: ' + o['msg']
+
+    url = api_baseurl + post_poolid + '/api/isEmpty'
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserialize(x.text)
+    check_response(o)
+    assert o['result'] == True
+
+    logger.info('unregister a pool on the server')
+    url = api_baseurl + post_poolid
+    x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserialize(x.text)
+    check_response(o)
+
+    # this should fail as pool is unregistered on the server
+    url = api_baseurl + post_poolid + '/api/isEmpty'
+    x = requests.get(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    o = deserialize(x.text)
+    check_response(o, failed_case=True)
 
 
 async def lock_pool(poolid, sec):

@@ -85,13 +85,14 @@ class ODict(UserDict, Serializable, DeepEqual):
         # return ydump(self.data)
 
         OD_toString_Nest += 1
-        d = ''
+        d = '<ODict '
         for n, v in self.data.items():
-            d += '\n# ' + '    ' * OD_toString_Nest + '[ ' + str(n) + ' ]\n'
+            #d += '    ' * OD_toString_Nest + '[ ' + str(n) + ' ]= '
+            d += str(n) + ': '
             s = bstr(v, level=level, matprint=matprint, trans=trans, **kwds)
             d += s
         OD_toString_Nest -= 1
-        return d
+        return d + '>'
 
     def __repr__(self):
         """ returns string representation with details set according to debuglevel.

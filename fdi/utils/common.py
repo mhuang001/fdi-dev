@@ -2,9 +2,12 @@
 
 from .masked import masked
 import hashlib
+import array
 import traceback
+import pwd
 import logging
 from itertools import zip_longest
+from collections.abc import Sequence
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -45,7 +48,7 @@ def bstr(x, length=0, tostr=True, quote="'", level=0, **kwds):
 
     if s:
         r = quote + x + quote
-    elif tostr and hasattr(x, 'toString'):
+    elif tostr and hasattr(x, 'toString') and not issubclass(x.__class__, type):
         r = x.toString(level=level, **kwds)
     elif issubclass(x.__class__, (bytes, bytearray, memoryview)):
         r = x.hex()
@@ -435,10 +438,19 @@ def l2t(v):
 
 def ld2tk(v):
     """ convert lists, to tuples and dicts to frozensets in nested data structures
+    array.array is converted to (typecode, itemsize, size, ld2tk(0th element))
     """
     # print(v)
     if issubclass(v.__class__, (list, tuple)):
         y = tuple(ld2tk(x) for x in v)
+    # elif :  # issubclass(v.__class__, (list)):
+    #     if len(v) > 128 and issubclass(v[0].__class__, (Sequence)):
+    #         y = (type(v[0]), len(v), ld2tk(v[0]))
+    #     else:
+    #         y = tuple(ld2tk(x) for x in v)
+    elif issubclass(v.__class__, (array.array)):
+        y = (v.typecode, v.itemsize, len(v), len(v[0]) if issubclass(
+            v[0].__class__, Sequence) else ld2tk(v[0]))
     elif issubclass(v.__class__, (dict)):
         # print('== ', y)
         y = frozenset((ld2tk(k), ld2tk(v)) for k, v in v.items())
@@ -448,3 +460,28 @@ def ld2tk(v):
     else:
         y = v
     return y
+
+
+def getUidGid(username):
+    """ returns the UID and GID  of the named user.
+
+    return: -1 if not available
+    """
+
+    try:
+        uid = pwd.getpwnam(username).pw_uid
+    except KeyError as e:
+        msg = 'Cannot get UserID for ' + username + \
+            '. check config. ' + str(e) + trbk(e)
+        logger.error(msg)
+        uid = -1
+    # do if platform supports.
+    try:
+        gid = pwd.getpwnam(username).pw_gid
+    except KeyError as e:
+        msg = 'Cannot get GroupID for ' + username + \
+            '. check config. ' + str(e) + trbk(e)
+        gid = -1
+        logger.error(msg)
+
+    return uid, gid

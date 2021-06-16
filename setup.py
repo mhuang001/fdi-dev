@@ -43,13 +43,15 @@ setup(
             'pytest>=5.4.1',
             'pytest-cov',
             'nox>=2019.11.9',
+            'aiohttp>=3.6.2',
             'sphinx_rtd_theme>=0.4.3',
             'sphinx-copybutton>=0.3.0',
+            'twine>=3.3.0'
         ],
         'SERV': [
-            'aiohttp>=3.6.2',
             'Flask_HTTPAuth>=3.3.0',
             'Flask>=1.1.2',
+            'waitress>=2.0.0'
         ]
     },
     classifiers=[

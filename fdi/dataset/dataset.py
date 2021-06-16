@@ -172,9 +172,9 @@ class GenericDataset(Dataset, DataContainer, Container):
         # s = OrderedDict(description=self.description, meta=self.meta)  # super(...).__getstate__()
         # s.update(OrderedDict(data=self.getData()))
         s = OrderedDict(description=self.description,
-                        meta=self.meta,
+                        meta=self._meta,
                         data=self.data,
-                        _STID=self._STID)
+                        _STID=self._STID)  # TODO
         return s
 
 
@@ -414,8 +414,8 @@ class ArrayDataset(DataWrapper, GenericDataset, Sequence, Typed):
         """
         # s = OrderedDict(description=self.description, meta=self.meta, data=self.data)  # super(...).__getstate__()
         s = OrderedDict(description=self.description,
-                        meta=self.meta,
-                        data=None if self.data is None else list(self.data),
+                        meta=self._meta,
+                        data=None if self.data is None else self.data,
                         type=self._type,
                         default=self._default,
                         typecode=self._typecode,

@@ -187,27 +187,21 @@ out_GenericDataset = """level 0
 # GenericDataset
 description= {'test GD'},
 meta= {
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| name   | value             | unit   | type     | valid                     | default         | code   | description     |
-+========+===================+========+==========+===========================+=================+========+=================+
-| a      | 3.4               | None   | float    | (0, 31): valid            | 2.0             | None   | rule name, if i |
-|        |                   |        |          | 99:                       |                 |        | s "valid", "",  |
-|        |                   |        |          |                           |                 |        | or "default", i |
-|        |                   |        |          |                           |                 |        | s ommited in va |
-|        |                   |        |          |                           |                 |        | lue string.     |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| b      | xy (2019-02-19    |        | finetime | (0, 9876543210123456): xy | 1958-01-01      |        | date param      |
-|        | 01:02:03.456789   |        |          |                           | 00:00:00.000099 |        |                 |
-|        | 1929229323456789) |        |          |                           | 99              |        |                 |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| c      | Invalid (IJK)     |        | string   | '': empty                 | cliche          | B      | str parameter.  |
-|        |                   |        |          |                           |                 |        | but only "" is  |
-|        |                   |        |          |                           |                 |        | allowed.        |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| d      | off (0b00)        | None   | binary   | 11000 0b01: on            | 0b0             | None   | valid rules des |
-|        |                   |        |          | 11000 0b00: off           |                 |        | cribed with bin |
-|        |                   |        |          |                           |                 |        | ary masks       |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
+======  =================  ======  ========  =======================  ===============  ======  =====================
+name    value              unit    type      valid                    default          code    description
+======  =================  ======  ========  =======================  ===============  ======  =====================
+a       3.4                None    float     (0, 31): valid           2.0              None    rule name, if is "val
+                                             99:                                               id", "", or "default"
+                                                                                               , is ommited in value
+                                                                                                string.
+b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01               date param
+        01:02:03.456789                      xy                       00:00:00.000099
+        1929229323456789)                                             99
+c       Invalid (IJK)              string    '': empty                cliche           B       str parameter. but on
+                                                                                               ly "" is allowed.
+d       off (0b00)         None    binary    11000 0b01: on           0b0              None    valid rules described
+                                             11000 0b00: off                                    with binary masks
+======  =================  ======  ========  =======================  ===============  ======  =====================
 MetaData-listeners = ListnerSet{}}
 GenericDataset-dataset =
 88.8
@@ -231,27 +225,21 @@ out_ArrayDataset = """level 0
 # ArrayDataset
 description= {'toString tester AD'},
 meta= {
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| name   | value             | unit   | type     | valid                     | default         | code   | description     |
-+========+===================+========+==========+===========================+=================+========+=================+
-| a      | 3.4               | None   | float    | (0, 31): valid            | 2.0             | None   | rule name, if i |
-|        |                   |        |          | 99:                       |                 |        | s "valid", "",  |
-|        |                   |        |          |                           |                 |        | or "default", i |
-|        |                   |        |          |                           |                 |        | s ommited in va |
-|        |                   |        |          |                           |                 |        | lue string.     |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| b      | xy (2019-02-19    |        | finetime | (0, 9876543210123456): xy | 1958-01-01      |        | date param      |
-|        | 01:02:03.456789   |        |          |                           | 00:00:00.000099 |        |                 |
-|        | 1929229323456789) |        |          |                           | 99              |        |                 |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| c      | Invalid (IJK)     |        | string   | '': empty                 | cliche          | B      | str parameter.  |
-|        |                   |        |          |                           |                 |        | but only "" is  |
-|        |                   |        |          |                           |                 |        | allowed.        |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| d      | off (0b00)        | None   | binary   | 11000 0b01: on            | 0b0             | None   | valid rules des |
-|        |                   |        |          | 11000 0b00: off           |                 |        | cribed with bin |
-|        |                   |        |          |                           |                 |        | ary masks       |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
+======  =================  ======  ========  =======================  ===============  ======  =====================
+name    value              unit    type      valid                    default          code    description
+======  =================  ======  ========  =======================  ===============  ======  =====================
+a       3.4                None    float     (0, 31): valid           2.0              None    rule name, if is "val
+                                             99:                                               id", "", or "default"
+                                                                                               , is ommited in value
+                                                                                                string.
+b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01               date param
+        01:02:03.456789                      xy                       00:00:00.000099
+        1929229323456789)                                             99
+c       Invalid (IJK)              string    '': empty                cliche           B       str parameter. but on
+                                                                                               ly "" is allowed.
+d       off (0b00)         None    binary    11000 0b01: on           0b0              None    valid rules described
+                                             11000 0b00: off                                    with binary masks
+======  =================  ======  ========  =======================  ===============  ======  =====================
 MetaData-listeners = ListnerSet{}},
 type= {None},
 default= {None},
@@ -370,27 +358,21 @@ out_TableDataset = """level 0
 # TableDataset
 description= {'UNKNOWN'},
 meta= {
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| name   | value             | unit   | type     | valid                     | default         | code   | description     |
-+========+===================+========+==========+===========================+=================+========+=================+
-| a      | 3.4               | None   | float    | (0, 31): valid            | 2.0             | None   | rule name, if i |
-|        |                   |        |          | 99:                       |                 |        | s "valid", "",  |
-|        |                   |        |          |                           |                 |        | or "default", i |
-|        |                   |        |          |                           |                 |        | s ommited in va |
-|        |                   |        |          |                           |                 |        | lue string.     |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| b      | xy (2019-02-19    |        | finetime | (0, 9876543210123456): xy | 1958-01-01      |        | date param      |
-|        | 01:02:03.456789   |        |          |                           | 00:00:00.000099 |        |                 |
-|        | 1929229323456789) |        |          |                           | 99              |        |                 |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| c      | Invalid (IJK)     |        | string   | '': empty                 | cliche          | B      | str parameter.  |
-|        |                   |        |          |                           |                 |        | but only "" is  |
-|        |                   |        |          |                           |                 |        | allowed.        |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| d      | off (0b00)        | None   | binary   | 11000 0b01: on            | 0b0             | None   | valid rules des |
-|        |                   |        |          | 11000 0b00: off           |                 |        | cribed with bin |
-|        |                   |        |          |                           |                 |        | ary masks       |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
+======  =================  ======  ========  =======================  ===============  ======  =====================
+name    value              unit    type      valid                    default          code    description
+======  =================  ======  ========  =======================  ===============  ======  =====================
+a       3.4                None    float     (0, 31): valid           2.0              None    rule name, if is "val
+                                             99:                                               id", "", or "default"
+                                                                                               , is ommited in value
+                                                                                                string.
+b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01               date param
+        01:02:03.456789                      xy                       00:00:00.000099
+        1929229323456789)                                             99
+c       Invalid (IJK)              string    '': empty                cliche           B       str parameter. but on
+                                                                                               ly "" is allowed.
+d       off (0b00)         None    binary    11000 0b01: on           0b0              None    valid rules described
+                                             11000 0b00: off                                    with binary masks
+======  =================  ======  ========  =======================  ===============  ======  =====================
 MetaData-listeners = ListnerSet{}}
 TableDataset-dataset =
   col1     col2
@@ -438,36 +420,27 @@ out_CompositeDataset = """level 0
 # CompositeDataset
 description= {'test CD'},
 meta= {
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| name   | value             | unit   | type     | valid                     | default         | code   | description     |
-+========+===================+========+==========+===========================+=================+========+=================+
-| a      | 3.4               | None   | float    | (0, 31): valid            | 2.0             | None   | rule name, if i |
-|        |                   |        |          | 99:                       |                 |        | s "valid", "",  |
-|        |                   |        |          |                           |                 |        | or "default", i |
-|        |                   |        |          |                           |                 |        | s ommited in va |
-|        |                   |        |          |                           |                 |        | lue string.     |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| b      | xy (2019-02-19    |        | finetime | (0, 9876543210123456): xy | 1958-01-01      |        | date param      |
-|        | 01:02:03.456789   |        |          |                           | 00:00:00.000099 |        |                 |
-|        | 1929229323456789) |        |          |                           | 99              |        |                 |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| c      | Invalid (IJK)     |        | string   | '': empty                 | cliche          | B      | str parameter.  |
-|        |                   |        |          |                           |                 |        | but only "" is  |
-|        |                   |        |          |                           |                 |        | allowed.        |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| d      | off (0b00)        | None   | binary   | 11000 0b01: on            | 0b0             | None   | valid rules des |
-|        |                   |        |          | 11000 0b00: off           |                 |        | cribed with bin |
-|        |                   |        |          |                           |                 |        | ary masks       |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-| m1     | 2.3               | sec    | float    | None                      | None            | None   | a different par |
-|        |                   |        |          |                           |                 |        | am in metadata  |
-+--------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
+======  =================  ======  ========  =======================  ===============  ======  =====================
+name    value              unit    type      valid                    default          code    description
+======  =================  ======  ========  =======================  ===============  ======  =====================
+a       3.4                None    float     (0, 31): valid           2.0              None    rule name, if is "val
+                                             99:                                               id", "", or "default"
+                                                                                               , is ommited in value
+                                                                                                string.
+b       xy (2019-02-19             finetime  (0, 9876543210123456):   1958-01-01               date param
+        01:02:03.456789                      xy                       00:00:00.000099
+        1929229323456789)                                             99
+c       Invalid (IJK)              string    '': empty                cliche           B       str parameter. but on
+                                                                                               ly "" is allowed.
+d       off (0b00)         None    binary    11000 0b01: on           0b0              None    valid rules described
+                                             11000 0b00: off                                    with binary masks
+m1      2.3                sec     float     None                     None             None    a different param in
+                                                                                               metadata
+======  =================  ======  ========  =======================  ===============  ======  =====================
 MetaData-listeners = ListnerSet{}}
 
 CompositeDataset-datasets =
-
-#     [ dataset 1 ]
-# ArrayDataset
+<ODict dataset 1: # ArrayDataset
 description= {'arraydset 1'},
 meta= {(No parameter.)MetaData-listeners = ListnerSet{}},
 type= {None},
@@ -476,9 +449,7 @@ typecode= {None},
 unit= {'ev'}
 ArrayDataset-dataset =
 768  4.4  5400
-
-#     [ dataset 2 ]
-# TableDataset
+dataset 2: # TableDataset
 description= {'Example table'},
 meta= {(No parameter.)MetaData-listeners = ListnerSet{}}
 TableDataset-dataset =
@@ -492,7 +463,7 @@ TableDataset-dataset =
       4       108
 
 
-level 1, repr
+>level 1, repr
 # CompositeDataset
 description= {'test CD'},
 meta= {
@@ -506,9 +477,7 @@ MetaData-listeners = ListnerSet{}
 }
 
 CompositeDataset-datasets =
-
-#     [ dataset 1 ]
-# ArrayDataset
+<ODict dataset 1: # ArrayDataset
 description= {'arraydset 1'},
 meta= {(No parameter.)MetaData-listeners = ListnerSet{}
 },
@@ -518,9 +487,7 @@ typecode= {None},
 unit= {'ev'}
 ArrayDataset-dataset =
 768  4.4  5400
-
-#     [ dataset 2 ]
-# TableDataset
+dataset 2: # TableDataset
 description= {'Example table'},
 meta= {(No parameter.)MetaData-listeners = ListnerSet{}
 }
@@ -535,16 +502,12 @@ TableDataset-dataset =
       4       108
 
 
-level 2,
+>level 2,
 # CompositeDataset
 description, meta
 
 CompositeDataset-datasets =
-
-#     [ dataset 1 ]
-ArrayDataset{ [768, 4.4, 5400.0] (ev) <None>, "arraydset 1", default None, tcode=None, meta=(No parameter.)MetaData-listeners = ListnerSet{}}
-#     [ dataset 2 ]
-# TableDataset
+<ODict dataset 1: ArrayDataset{ [768, 4.4, 5400.0] (ev) <None>, "arraydset 1", default None, tcode=None, meta=(No parameter.)MetaData-listeners = ListnerSet{}}dataset 2: # TableDataset
 description, meta
 TableDataset-dataset =
    Time    Energy
@@ -554,4 +517,4 @@ TableDataset-dataset =
       1       102
 
 (Only display 2 rows of 5 for level=2.)
-"""
+>"""

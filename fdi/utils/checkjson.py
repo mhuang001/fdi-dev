@@ -63,7 +63,7 @@ def checkjson(obj, dbg=0, **kwds):
         print(js)
         print('*************')
 
-    des = deserialize(js, lgb=Classes.mapping, debug=dbg)
+    des = deserialize(js, lookup=Classes.mapping, debug=dbg)
     if dbg:
         if 0 and hasattr(des, 'meta'):
             print('des.mets ' + str((des.meta.listeners)))

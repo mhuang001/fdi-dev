@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from functools import lru_cache
 from .serializable import Serializable
 from .eq import DeepEqual
 from .classes import Classes
@@ -51,6 +52,15 @@ DataTypeNames.update({
 del tt, tn
 
 
+@lru_cache(maxsize=64)
+def lookup_bd(t):
+
+    try:
+        return builtins.__dict__[t]
+    except KeyError:
+        return None
+
+
 def cast(val, typ_, namespace=None):
     """ casts the input value to type specified, which is in DataTypeNames.
 
@@ -59,14 +69,14 @@ def cast(val, typ_, namespace=None):
     namespace: default is Classes.mapping.
     """
     t = DataTypes[typ_]
-    bd = builtins.__dict__
     vstring = str(val).lower()
-    if t in bd.keys():
+    tbd = lookup_bd(t)
+    if tbd:
         if t == 'int':
             base = 16 if vstring.startswith(
                 '0x') else 2 if vstring.startswith('0b') else 10
-            return bd[t](vstring, base)
-        return bd[t](val)
+            return tbd(vstring, base)
+        return tbd(val)
     else:
         return Classes.mapping[t](val) if namespace is None else namespace[t](val)
 

@@ -41,6 +41,7 @@ FDI Python packages
 
 -  A reference REST API server designed to communicate with a data processing docker using the data model is in package  :doc:`pns <usage/pns>`.
 
+-  A reference REST API server to provide a web interface between a pool on the server and a data user in package  :doc:`http pool <usage/httppool>`.
 
 .. toctree::
    :maxdepth: 2
@@ -51,6 +52,7 @@ FDI Python packages
    usage/dataset
    usage/product
    usage/pal
+   usage/httppool
    usage/pns
 
 API Document

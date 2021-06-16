@@ -3,9 +3,8 @@ Installation and Notes for Developers
 =====================================
 
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+.. contents:: Table of Contents
+	      :depth: 3
 
 If the contents do not show below, read them in :doc:`../../../README`
       

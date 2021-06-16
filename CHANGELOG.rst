@@ -1,3 +1,4 @@
+
 ==========
 Change Log
 ==========
@@ -5,7 +6,19 @@ Change Log
 BETA0
 =====
 
-1.0 2021-01-17
+1.4.0 2021-04-17
+-----------------
+HttpClient pool not caching HK and with /api. ManagedPool. serial write0-through. 
+
+1.3.0 2021-04-06
+-----------------
+Product pipeline dev support and pool improvements. Dockerize httpool with update.
+
+1.2.0 2021-03-10
+-----------------
+array.array hashed and seriaalized. performance tuned ref vtse. docs improvements.
+
+1.1.0 2021-02-20
 -----------------
 Packaging improvements. Use __getstate__ for serialization, hashing and comparison.
 

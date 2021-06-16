@@ -33,17 +33,17 @@ or from git repo:
 
    python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/master/fdi-master.tar.gz
 
-If you want to install the ``develop`` branch with dependencies:
+If you want to install the ``develop`` and server dependencies:
 
 .. code-block:: shell
 
-   python3 -m pip install fdi[DEV]
+   python3 -m pip install fdi[DEV,SERV]
    
 or
 
 .. code-block:: shell
 
-   python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV]
+   python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV,SERV]
    
 To uninstall:
 
@@ -62,10 +62,10 @@ To install
 
            FDIINSTDIR=/tmp   # change this to your installation dir
            cd $FDIINSTDIR
-           git clone ssh://git@mercury.bao.ac.cn:9005/mh/fdi.git
+           git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
            cd fdi
 	   git checkout develop
-	   make install
+	   make install EXT="[DEV,SERV]"
 	   
 If you want to install the ``master`` branch, remove the ``git checkout develop`` line above.
 	   
@@ -113,8 +113,8 @@ The generated HTML page is at ``docs/html/index.html``.
 
 .. note:: https://readthedocs.io makes web pages from sources in ``docs/sphinx`` in the repository. Locally generated HTML pages are not on RTD or in the repository. The API files and plots, however, are in ``api`` and ``_static`` sub-directpries, respectively.
 	   
-Run Servers
------------
+Run Servers for Quick Tests
+---------------------------
 
 If you plan to run the ``pns`` and/or the http pool server locally,
 install the dependencies:

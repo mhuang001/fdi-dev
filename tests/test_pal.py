@@ -14,6 +14,7 @@ from fdi.pal.productstorage import ProductStorage
 from fdi.pal.urn import Urn, parseUrn, parse_poolurl, makeUrn, UrnUtils
 from fdi.pal.productpool import ProductPool
 from fdi.pal.localpool import LocalPool
+from fdi.pal.httpclientpool import HttpClientPool
 from fdi.pal.context import Context
 from fdi.pal.query import AbstractQuery, MetaQuery
 from fdi.dataset.deserialize import deserialize
@@ -26,6 +27,7 @@ from fdi.dataset.testproducts import TP
 from fdi.utils.checkjson import checkjson
 from fdi.utils.getconfig import getConfig
 from fdi.pns.fdi_requests import save_to_server, read_from_server, delete_from_server
+
 import copy
 import traceback
 from pprint import pprint
@@ -34,7 +36,8 @@ import shutil
 import getpass
 import os
 import requests
-
+import weakref
+import gc
 from os import path as op
 import glob
 
@@ -109,8 +112,8 @@ def test_UrnUtils():
     assert UrnUtils.getClass(urn).__name__ == a4.split('.')[-1]
     assert UrnUtils.extractRecordIDs([urn, urn1]) == [a5, a5-1]
 
-    #assert UrnUtils.getPool(urn,pools)
-    #assert UrnUtils.containsUrn(urn, pool)
+    # assert UrnUtils.getPool(urn,pools)
+    # assert UrnUtils.containsUrn(urn, pool)
     assert UrnUtils.checkUrn(urn)
     with pytest.raises(ValueError):
         UrnUtils.checkUrn(urn+'r')
@@ -254,17 +257,22 @@ def cleanup(poolurl=None, poolname=None):
         elif schm == 'mem':
             pass
         elif schm in ['http', 'https']:
-            d = PoolManager.PlacePaths['file'] + '/' + pn
-            rmlocal(d)
-            #
-            res, msg = delete_from_server(None, purl, 'pool')
-            assert res != 'FAILED'
-
+            pass
         else:
             assert False
+        # correct way
+        try:
+            p = PoolManager.getPool(pname, poolurl)
+            p.removeAll()
+        except RuntimeError:
+            pass
 
-        PoolManager.getPool(pn).removeAll()
-        del PoolManager.getMap()[pn]
+        PoolManager.remove(pname)
+        try:
+            del p
+        except NameError:
+            pass
+        gc.collect()
 
 
 def test_PoolManager():
@@ -276,62 +284,97 @@ def test_PoolManager():
 
     assert PoolManager.size() == 0
     # This creates a pool and returns it if the pool of given name does not exist
-    pool = PoolManager.getPool(defaultpoolName)
+    pool = PoolManager.getPool(defaultpoolName, defaultpoolUrl)
     assert PoolManager.size() == 1
     assert defaultpoolName in PoolManager.getMap()
     # print('GlobalPoolList#: ' + str(id(pm.getMap())) + str(pm))
     PoolManager.removeAll()
     assert PoolManager.size() == 0
+    assert weakref.getweakrefcount(pool) == 0
+    #print(weakref.getweakrefs(pool), id(pool), 'mmmm pool')
+    del pool
 
     # initiate
     pm = PoolManager()
     assert len(pm) == 0
-    pm.getPool(defaultpoolName)
+    p1 = pm.getPool(defaultpoolName, defaultpoolUrl)
+    #print(weakref.getweakrefs(p1), id(p1), 'mmmm p1')
     for k, v in pm.items():
         assert isinstance(v, ProductPool)
     assert defaultpoolName in pm
+    PG = PoolManager._GlobalPoolList
+    assert PoolManager.isLoaded(defaultpoolName) == 1
+    del v
+    assert PoolManager.isLoaded(defaultpoolName) == 1
+    # print(weakref.getweakrefs(PG[defaultpoolName]), id(
+    #    PG[defaultpoolName]), 'mmm GL')
+    pr = weakref.ref(p1)
+    assert pr() == p1
+    assert weakref.getweakrefcount(pr()) == 2
+    # print(weakref.getweakrefs(PG[defaultpoolName]),
+    #      id(PG[defaultpoolName]), 'mmm+r')
+    del p1
+    assert pr()
+    # print(weakref.getweakrefs(PG[defaultpoolName]),
+    #      id(PG[defaultpoolName]), 'mmmm del p1')
+    assert weakref.getweakrefcount(PG[defaultpoolName]) == 2
+    gc.collect()
+    # print(weakref.getweakrefs(PG[defaultpoolName]),
+    #      id(PG[defaultpoolName]), 'mmmm gc')
+    assert weakref.getweakrefcount(PG[defaultpoolName]) == 2  # why ?
+    del pr
+    # print(weakref.getweakrefs(PG[defaultpoolName]),
+    #      id(PG[defaultpoolName]), 'mmmm del r')
+    assert weakref.getweakrefcount(PG[defaultpoolName]) == 1
+    assert pm.remove(defaultpoolName) == 0
+
+    # http pool gets registered
+    with pytest.raises(RuntimeError):
+        ph = pm.getPool(poolurl='http://h.edu/foo')
+    assert not PoolManager.isLoaded('foo')
+    assert PoolManager.remove('foo') == 1
 
 
-def checkdbcount(n, poolurl, prodname, currentSN=-1):
+def checkdbcount(expected_cnt, poolurl, prodname, currentSN=-1):
     """ count files in pool and entries in class db.
 
-    n, currentSN: expected number of prods and currentSN in pool for products named prodname
+    expected_cnt, currentSN: expected number of prods and currentSN in pool for products named prodname
     """
-
-    poolpath, scheme, place, poolname = parse_poolurl(poolurl)
-    if scheme == 'file':
+    poolpath, schm, place, poolname = parse_poolurl(poolurl)
+    scheme = schm.lower()
+    if scheme in ['file', 'server']:
         path = op.join(poolpath, poolname)
         assert sum(1 for x in glob.glob(
-            op.join(path, prodname + '*[0-9]'))) == n
+            op.join(path, prodname + '*[0-9]'))) == expected_cnt
         cp = op.join(path, 'classes.jsn')
-        if op.exists(cp) or n != 0:
+        if op.exists(cp) or expected_cnt != 0:
             with open(cp, 'r') as fp:
                 js = fp.read()
             cread = deserialize(js)
             if currentSN == -1:
                 assert cread[prodname]['currentSN'] == currentSN
-                # number of items is n
-            assert len(cread[prodname]['sn']) == n
+                # number of items is expected_cnt
+            assert len(cread[prodname]['sn']) == expected_cnt
     elif scheme == 'mem':
         mpool = PoolManager.getPool(poolurl=poolurl).getPoolSpace()
         if mpool is None or len(mpool) == 0:
             # wiped
-            assert n == 0
+            assert expected_cnt == 0
             assert currentSN == -1
             return
         ns = [n for n in mpool if prodname in n]
-        assert len(ns) == n, len(ns)
+        assert len(ns) == expected_cnt, len(ns)
         if currentSN == -1:
             assert mpool['classes'][prodname]['currentSN'] == currentSN
         # for this class there are  how many prods
-        assert len(mpool['classes'][prodname]['sn']) == n
+        assert len(mpool['classes'][prodname]['sn']) == expected_cnt
     elif scheme in ['http', 'https']:
         snpath = 'sn/' + prodname + '/' + poolname
         api_baseurl = scheme + '://' + place + poolpath + '/'
         url = api_baseurl + snpath
         x = requests.get(url)
         sn = int(x.text)
-        assert sn == n
+        assert sn == expected_cnt
     else:
         assert False, 'bad pool scheme'
 
@@ -419,16 +462,18 @@ def test_ProductStorage_init():
     cleanup(newpoolurl, newpoolname)
 
     # Constructor
-    # default pool
+    # no default pool
     ps = ProductStorage()
-    p1 = ps.getPools()[0]
-    # check default pool's name
-    assert p1 == defaultpoolname
+    with pytest.raises(IndexError):
+        p1 = ps.getPools()[0]
+    # with poolurl the pool is constructed
+    ps = ProductStorage(poolurl=defaultpoolurl)
     # get the pool object
-    pspool = ps.getPool(p1)
+    pspool = ps.getPool(defaultpoolname)
     assert len(pspool.getProductClasses()) == 0
-    # check syntax: construct a storage with a pool
-    ps2 = ProductStorage(defaultpoolname)
+    # check syntax: construct a storage with a poolobj
+    pool = LocalPool(poolurl=defaultpoolurl)
+    ps2 = ProductStorage(pool)
     assert ps.getPools() == ps2.getPools()
     # wrong poolname
     with pytest.raises(TypeError):
@@ -437,7 +482,7 @@ def test_ProductStorage_init():
     # register pool
     # with a storage that already has a pool
 
-    ps2.register(newpoolname)
+    ps2.register(newpoolname, newpoolurl)
     assert op.exists(transpath(newpoolname, poolpath))
     assert len(ps2.getPools()) == 2
     assert ps2.getPools()[1] == newpoolname
@@ -470,7 +515,7 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     # one by one
     q = 3
     x2, ref2 = [], []
-    for d in range(q):
+    for d in range(q):  # The 1st one is a mapcontext, rest prodct
         tmp = Product(description='x' + str(d)
                       ) if d > 0 else MapContext(description='x0')
         x2.append(tmp)
@@ -525,7 +570,7 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     # clean up a pool
     ps.wipePool()
     checkdbcount(0, thepoolurl, pcq)
-    assert len(ps.getPool(thepoolname)._urns) == 0
+    assert ps.getPool(thepoolname).isEmpty()
 
 
 def test_ProdStorage_func_local_mem():
@@ -551,6 +596,28 @@ def test_ProdStorage_func_http():
     thepoolurl = pc['httphost'] + pc['baseurl'] + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
+    # First test registering with local pstor will also register on server
+    pool = HttpClientPool(poolurl=thepoolurl)
+    # not exist
+    with pytest.raises(RuntimeError):
+        assert pool.isEmpty()
+    # register
+    pstore = ProductStorage(pool=pool)
+    assert pool.isEmpty()
+    pstore.unregister(thepoolname)
+    # not exist
+    with pytest.raises(RuntimeError):
+        assert pool.isEmpty()
+    check_ps_func_for_pool(thepoolname, thepoolurl)
+
+
+def test_ProdStorage_func_server():
+    # httppool , the http server-side pool
+    thepoolname = 'testserverpool'
+    thepoolurl = 'server://'+pc['server_poolpath'] + \
+        pc['baseurl'] + '/' + thepoolname
+
+    cleanup(thepoolurl, thepoolname)
     check_ps_func_for_pool(thepoolname, thepoolurl)
 
 
@@ -559,7 +626,7 @@ def test_LocalPool():
     thepoolpath = '/tmp'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
 
-    ps = ProductStorage(thepoolname)
+    ps = ProductStorage(thepoolname, thepoolurl)
     p1 = ps.getPools()[0]
     # get the pool object
     pspool = ps.getPool(p1)
@@ -774,17 +841,18 @@ def doquery(poolpath, newpoolpath):
     chk(res[0], rec1[3])
     chk(res[1], rec1[4])
 
-    # same as above but query is a function
-    def t(m):
-        import re
-        return re.match('.*n.1.*', m['instrument'].value)
+    if not newpoolpath.startswith('http'):
+        # same as above but query is a function
+        def t(m):
+            import re
+            return re.match('.*n.1.*', m['instrument'].value)
 
-    q = MetaQuery(Product, t)
-    res = pstore.select(q)
-    # [3,4]
-    assert len(res) == 2, str(res)
-    chk(res[0], rec1[3])
-    chk(res[1], rec1[4])
+        q = MetaQuery(Product, t)
+        res = pstore.select(q)
+        # [3,4]
+        assert len(res) == 2, str(res)
+        chk(res[0], rec1[3])
+        chk(res[1], rec1[4])
 
     # same as above but query is on the product. this is slow.
     q = AbstractQuery(Product, 'p', '"n 1" in p.instrument')
@@ -796,6 +864,7 @@ def doquery(poolpath, newpoolpath):
 
 
 def test_query_local_mem():
+    cleanup()
     thepoolpath = '/tmp'
     doquery('file://'+thepoolpath, 'file://'+thepoolpath)
     doquery('mem://'+thepoolpath, 'mem://'+thepoolpath)
@@ -804,6 +873,7 @@ def test_query_local_mem():
 
 
 def test_query_http():
+    cleanup()
     lpath = '/tmp'
     thepoolpath = pc['node']['host']+':' + \
         str(pc['node']['port']) + pc['baseurl']
@@ -905,13 +975,13 @@ def test_MapContext():
     # stored prod
     thepoolname = 'pool_' + getpass.getuser()
     thepoolpath = '/tmp'
-    thepoolurl = 'file://' + thepoolname + '/'+thepoolname
+    thepoolurl = 'file://' + thepoolpath + '/'+thepoolname
     # create a prooduct
     x = Product(description='save me in store')
     # remove existing pools in memory
     PoolManager().removeAll()
     # create a product store
-    pstore = ProductStorage(thepoolname)
+    pstore = ProductStorage(thepoolname, thepoolurl)
     assert len(pstore.getPools()) == 1
     assert pstore.getWritablePool() == thepoolname
     assert op.isdir(transpath(thepoolname, thepoolpath))
@@ -989,7 +1059,7 @@ def test_realistic():
     # remove existing pools in memory
     PoolManager.removeAll()
     # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
-    pstore = ProductStorage(pool=poolname)  # on disk
+    pstore = ProductStorage(poolurl=poolurl)  # on disk
     pstore.wipePool()
 
     p1 = Product(description='p1')

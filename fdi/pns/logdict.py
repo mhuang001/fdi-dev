@@ -16,14 +16,14 @@ logdict = {
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
+            "level": "INFO",
             "class": "logging.StreamHandler",
             "formatter": "full",
             "stream": "ext://sys.stdout"
         },
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "level": "DEBUG",
+            "level": "INFO",
             "formatter": "full",
             "filename": logfile,
             "maxBytes": 20000000,
@@ -32,13 +32,13 @@ logdict = {
     },
     "loggers": {
         "": {
-            "level": "DEBUG",
+            "level": "WARN",
             "handlers": ["console", "file"],
             "propagate": False
         }
     },
     "root": {
-        "level": "DEBUG",
+        "level": "INFO",
         "handlers": ["console", "file"],
     },
     'disable_existing_loggers': False

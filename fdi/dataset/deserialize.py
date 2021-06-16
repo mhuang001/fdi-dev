@@ -4,18 +4,20 @@ import json
 import codecs
 import binascii
 import array
+import mmap
+from collections import ChainMap
 import builtins
 from collections import UserDict
 from collections.abc import MutableMapping as MM, MutableSequence as MS, MutableSet as MS
 
 from .odict import ODict
 from .classes import Classes
-from ..utils.common import lls
+from ..utils.common import lls, trbk
 
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
-    strset = (str, bytes)
+    strset = (str, bytes, bytearray)
 else:
     PY3 = False
     strset = (str, unicode)
@@ -30,10 +32,8 @@ classes are defined to avoid circular dependency (such as ,
 Serializable.
 '''
 
-BD = builtins.__dict__
 
-
-def constructSerializable(obj, lgb=None, debug=False):
+def constructSerializable(obj, lookup=None, debug=False):
     """ mh: reconstruct object from the output of jason.loads().
     Recursively goes into nested class instances that are not
     encoded by default by JSONEncoder, instantiate and fill in
@@ -73,8 +73,8 @@ def constructSerializable(obj, lgb=None, debug=False):
             if debug:
                 print(spaces + 'looping through list %d <%s>' %
                       (i, xc.__name__))
-                if issubclass(xc, (list, dict)):
-                    des = constructSerializable(x, lgb=lgb, debug=debug)
+            if issubclass(xc, (list, dict)):
+                des = constructSerializable(x, lookup=lookup, debug=debug)
             else:
                 des = x
             inst.append(des)
@@ -107,9 +107,9 @@ def constructSerializable(obj, lgb=None, debug=False):
                     print(spaces + 'Instanciate array.array')
                 indent -= 1
                 return inst
-        if classname in lgb:
+        if classname in lookup:
             # Now we have a blank instance.
-            inst = lgb[classname]()
+            inst = lookup[classname]()
             if debug:
                 print(spaces + 'Instanciate custom obj <%s>' % classname)
         elif classname == 'ellipsis':
@@ -117,11 +117,17 @@ def constructSerializable(obj, lgb=None, debug=False):
                 print(spaces + 'Instanciate Ellipsis')
             indent -= 1
             return Ellipsis
-        elif classname in BD and 'obj' in obj:
-            o = constructSerializable(obj['obj'], lgb=lgb, debug=debug)
-            inst = BD[classname](o)
+        elif classname in lookup and 'obj' in obj:
+            o = constructSerializable(obj['obj'], lookup=lookup, debug=debug)
+            inst = lookup[classname](o)
             if debug:
-                print(spaces + 'Instanciate builtin %s' % obj['obj'])
+                print(spaces + 'Instanciate defined %s' % obj['obj'])
+            indent -= 1
+            return inst
+        elif classname == 'dtype':
+            if debug:
+                print(spaces + 'Instanciate type %s' % obj['obj'])
+            inst = lookup[obj['obj']]
             indent -= 1
             return inst
         else:
@@ -139,7 +145,7 @@ def constructSerializable(obj, lgb=None, debug=False):
                 print(spaces + '[%s]value(dict/list) <%s>: %s' %
                       (k, v.__class__.__qualname__,
                        lls(list(iter(v)), 70)))
-            desv = constructSerializable(v, lgb=lgb, debug=debug)
+            desv = constructSerializable(v, lookup=lookup, debug=debug)
         else:
             if debug:
                 print(spaces + '[%s]value(simple) <%s>: %s' %
@@ -228,7 +234,7 @@ class IntDecoderOD(IntDecoder):
             return o
 
 
-def deserialize(js, lgb=None, debug=False, usedict=True):
+def deserialize(js, lookup=None, debug=False, usedict=True):
     """ Loads classes with _STID from the results of serialize.
 
     if usedict is True dict insted of ODict will be used.
@@ -239,8 +245,8 @@ def deserialize(js, lgb=None, debug=False, usedict=True):
     -------
     """
 
-    if lgb is None:
-        lgb = Classes.mapping
+    if lookup is None:
+        lookup = ChainMap(Classes.mapping, globals(), vars(builtins))
 
     if not isinstance(js, strset) or len(js) == 0:
         return None
@@ -252,8 +258,8 @@ def deserialize(js, lgb=None, debug=False, usedict=True):
             # , cls=IntDecoderOD)
             obj = json.loads(js, object_pairs_hook=ODict)
     except json.decoder.JSONDecodeError as e:
-        msg = '\nBad string to decode as JSON=====>\n%s\n<======\n' %\
-            lls(js, 500)
+        msg = '\nBad string to decode as JSON=====>\n%s\n<======\nStack trace: %s' %\
+            (lls(js, 500), trbk(e))
         logging.error(msg)
         obj = msg
     if debug:
@@ -262,4 +268,4 @@ def deserialize(js, lgb=None, debug=False, usedict=True):
 
     global indent
     indent = -1
-    return constructSerializable(obj, lgb=lgb, debug=debug)
+    return constructSerializable(obj, lookup=lookup, debug=debug)

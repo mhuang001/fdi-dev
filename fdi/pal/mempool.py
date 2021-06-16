@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-from .productpool import ProductPool
+from .productpool import ManagedPool
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class MemPool(ProductPool):
+class MemPool(ManagedPool):
     """ the pool will save all products in memory.
     """
 
@@ -15,10 +15,20 @@ class MemPool(ProductPool):
         """
 
         super(MemPool, self).__init__(**kwds)
+
+    def setup(self):
+        """ Sets up MemPool interals.
+
+        make sure that self._poolname and self._poolurl are present.
+        """
+
+        if super().setup():
+            return True
+
         self._MemPool = {}
         # if self._poolname not in self._MemPool:
         #      self._MemPool[self._poolname] = {}
-        c, t, u = self.readHK()
+        c, t, u = tuple(self.readHK().values())
 
         logger.debug('created ' + self.__class__.__name__ +
                      ' ' + self._poolname + ' HK read.')
@@ -26,6 +36,8 @@ class MemPool(ProductPool):
         self._classes.update(c)
         self._tags.update(t)
         self._urns.update(u)
+
+        return False
 
     def getPoolSpace(self):
         """ returns the map of this memory pool.
@@ -36,15 +48,15 @@ class MemPool(ProductPool):
         # else:
         #     return None
 
-    def readHK(self, hktype=None, serialized=False):
+    def readHK(self, hktype=None, serialize_in=True, serialize_out=False):
         """
         loads and returns the housekeeping data
 
         hktype: one of 'classes', 'tags', 'urns' to return. default is None to return alldirs
-        serialized: if True return serialized form. Default is false.
+        serialize_out: if True return serialized form. Default is false.
         """
 
-        if serialized:
+        if serialize_out:
             raise NotImplementedError
         if hktype is None:
             hks = ['classes', 'tags', 'urns']
@@ -59,7 +71,7 @@ class MemPool(ProductPool):
                 r = myspace[hkdata]
             hk[hkdata] = r
         logger.debug('HK read from ' + self._poolname)
-        return (hk['classes'], hk['tags'], hk['urns']) if hktype is None else hk[hktype]
+        return hk if hktype is None else hk[hktype]
 
     def writeHK(self):
         """
@@ -71,7 +83,7 @@ class MemPool(ProductPool):
         myspace['tags'] = self._tags
         myspace['urns'] = self._urns
 
-    def schematicSave(self, resourcetype, index, data, tag=None):
+    def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
         """ 
         does the media-specific saving
         """
@@ -81,30 +93,30 @@ class MemPool(ProductPool):
         self.writeHK()
         logger.debug('HK written')
 
-    def schematicLoadProduct(self, resourcetype, index, serialized=False):
+    def doLoad(self, resourcetype, index, serialize_out=False):
         """
-        does the scheme-specific part of loadProduct.
+        does the action of loadProduct.
         note that the index is given as a string.
         """
-        if serialized:
+        if serialize_out:
             raise NotImplementedError
         indexstr = str(index)
         resourcep = resourcetype + '_' + indexstr
         myspace = self.getPoolSpace()
         return myspace[resourcep]
 
-    def schematicRemove(self, resourcetype, index):
+    def doRemove(self, resourcetype, index):
         """
-        does the scheme-specific part of removal.
+        does the action of removal.
         """
         resourcep = resourcetype + '_' + str(index)
         myspace = self.getPoolSpace()
         del myspace[resourcep]
         self.writeHK()
 
-    def schematicWipe(self):
+    def doWipe(self):
         """
-        does the scheme-specific remove-all
+        does the action of remove-all
         """
 
         # logger.debug()

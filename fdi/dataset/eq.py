@@ -211,11 +211,11 @@ class StateEqual(object):
 
         t = tuple(self.__getstate__().values())
         try:
-            return cached_hash(t)
+            return hash(t)
         except TypeError:
             """ lists/dicts recursively changed to tuples/frozensets before hashed """
             t = ld2tk(t)
-            return cached_hash(t)
+            return hash(t)
 
     def equals(self, obj, verbose=False, **kwds):
         """
@@ -241,6 +241,8 @@ class StateEqual(object):
         try:
             h1, h2 = self.__hash__(), obj.__hash__()
         except AttributeError:
+            return False
+        except TypeError:
             return False
         if verbose:
             print('hashes ', h1, h2)

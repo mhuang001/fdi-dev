@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 
+
+import builtins
+from collections import ChainMap
+from itertools import chain
 from ..utils.common import lls
 from ..dataset.deserialize import deserialize
 from ..dataset.serializable import serialize
-from ..pal.productstorage import ProductStorage
-from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
+from ..pal.poolmanager import PoolManager
 from ..pal.query import MetaQuery, AbstractQuery
 from ..pal.urn import makeUrn, parseUrn
+from ..pal.webapi import WebAPI
 from ..dataset.product import Product
+from ..dataset.classes import Classes
 from ..utils.common import fullname, trbk
 
 # from .db_utils import check_and_create_fdi_record_table, save_action
@@ -20,7 +25,7 @@ import os
 import json
 import time
 import pprint
-from flask import request, make_response
+from flask import request, make_response, jsonify
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -36,7 +41,7 @@ else:
 # '/var/log/pns-server.log'
 # logdict['handlers']['file']['filename'] = '/tmp/server.log'
 
-from .server_skeleton import logging, checkpath, pc, Classes, app, auth, APIs
+from .server_skeleton import init_conf_clas, makepublicAPI, logging, checkpath, app, auth, pc
 
 logger = logging.getLogger(__name__)
 
@@ -45,20 +50,17 @@ logger = logging.getLogger(__name__)
 
 # the httppool that is local to the server
 schm = 'server'
-basepath = PoolManager.PlacePaths[schm]
-poolpath = os.path.join(basepath, pc['api_version'])
 
 
 @app.before_first_request
 def init_httppool_server():
     """ Init a global HTTP POOL """
-    global PM
+    global pc, Classes, PM, BASEURL, basepath, poolpath, pylookup
 
-    logger.setLevel(pc['logginglevel'])
-    logging.getLogger("filelock").setLevel(logging.INFO)
-    logger.debug('logging level %d' % (logger.getEffectiveLevel()))
+    Classes = init_conf_clas()
+    lookup = ChainMap(Classes.mapping, globals(), vars(builtins))
 
-    PM = PoolManager
+    from ..pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
     if PM.isLoaded(DEFAULT_MEM_POOL):
         logger.debug('cleanup DEFAULT_MEM_POOL')
         PM.getPool(DEFAULT_MEM_POOL).removeAll()
@@ -67,11 +69,15 @@ def init_httppool_server():
                                            str(app._got_first_request))
                  )
     PM.removeAll()
-    if checkpath(poolpath) is None:
+
+    basepath = PM.PlacePaths[schm]
+    poolpath = os.path.join(basepath, pc['api_version'])
+
+    if checkpath(poolpath, pc['serveruser']) is None:
         logger.error('Store path %s unavailable.' % poolpath)
         sys.exit(-2)
 
-    load_all_pools()
+   # load_all_pools()
 
 
 def load_all_pools():
@@ -101,26 +107,37 @@ def load_all_pools():
 # check_and_create_fdi_record_table()
 
 
-@ app.route(pc['baseurl'])
+@ app.route(pc['baseurl']+'/pools')
 def get_pools():
-    return str(pstore.getPools())
+    return lls(PoolManager.getMap().keys(), 2000)
 
 
 @ app.route(pc['baseurl'] + '/sn' + '/<string:prod_type>' + '/<string:pool_id>', methods=['GET'])
 def get_pool_sn(prod_type, pool_id):
-    """ Return the total count for the given product type and pool_id."""
+    """ Return the total count for the given product type and pool_id.
+
+    'sn': 'the Serial Number',
+    'prod_type': 'clsssname',
+    'pool_id': 'pool name'
+
+    """
+
     logger.debug('### method %s prod_type %s poolID %s***' %
                  (request.method, prod_type, pool_id))
     res = 0
+    nm = []
     path = os.path.join(poolpath, pool_id)
     if os.path.exists(path):
         for i in os.listdir(path):
             if i[-1].isnumeric() and prod_type in i:
                 res = res+1
+                nm.append(i)
+    s = str(nm)
+    logger.debug('found '+s)
     return str(res)
 
 
-@ app.route(pc['baseurl'] + '/<path:pool>', methods=['GET', 'POST', 'DELETE'])
+@ app.route(pc['baseurl'] + '/<path:pool>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @ auth.login_required
 def httppool(pool):
     """
@@ -133,13 +150,21 @@ def httppool(pool):
 
     - POST: /pool_id ==> Save product in requests.data in server
 
-    - DELETE: /pool_id ==> Wipe all contents in pool_id
+    - PUT: /pool_id ==> register pool 
+
+    - DELETE: /pool_id ==> unregister pool_id
                          /pool_id/product_class/index ==> remove specified products in pool_id
+
+    'pool':'url'
     """
     username = request.authorization.username
     paths = pool.split('/')
     ts = time.time()
     logger.debug('*** method %s paths %s ***' % (request.method, paths))
+    if 0 and paths[0] == 'testhttppool':
+        import pdb
+        pdb.set_trace()
+
     if request.method == 'GET':
         # TODO modify client loading pool , prefer use load_HKdata rather than load_single_HKdata, because this will generate enormal sql transaction
         if paths[-2] == 'hk' and paths[-1] in ['classes', 'urns', 'tags']:  # Retrieve single HKdata
@@ -148,41 +173,165 @@ def httppool(pool):
         elif paths[-1] == 'hk':  # Load all HKdata
             result, msg = load_HKdata(paths)
             # save_action(username=username, action='READ', pool=paths[0])
+        elif paths[1] == 'api':
+
+            result, msg = call_pool_Api(paths)
         elif paths[-1].isnumeric():  # Retrieve product
-            result, msg = load_product(paths)
+            # do not deserialize if set True. save directly to disk
+            serial_through = True
+            result, msg = load_product(paths, serialize_out=serial_through)
             # save_action(username=username, action='READ', pool=paths[0])
+
+            r = '"null"' if result is None else str(result)
+            w = '{"result": %s, "msg": %s, "timestamp": %f}' % (
+                r, json.dumps(msg), ts)
+            # logger.debug(pprint.pformat(w, depth=3, indent=4))
+            s = w  # serialize(w)
+            logger.debug(lls(s, 240))
+            resp = make_response(s)
+            resp.headers['Content-Type'] = 'application/json'
+            return resp
+
         else:
             result = None
-            msg = 'Unknow request: ' + pool
+            msg = 'Unknown request: ' + pool
 
-    if request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
-        data = deserialize(request.data)
+    elif request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
+        # do not deserialize if set True. save directly to disk
+        serial_through = True
+
         if request.headers.get('tag') is not None:
             tag = request.headers.get('tag')
         else:
             tag = None
-        result, msg = save_product(data, paths, tag)
-        # save_action(username=username, action='SAVE', pool=paths[0])
 
-    if request.method == 'DELETE':
+        if serial_through:
+            data = str(request.data, encoding='ascii')
+
+            result, msg = save_product(
+                data, paths, tag, serialize_in=not serial_through, serialize_out=serial_through)
+        else:
+            try:
+                data = deserialize(request.data)
+            except ValueError as e:
+                result = '"FAILED"'
+                msg = 'Class needs to be included in pool configuration.' + \
+                    str(e) + ' ' + trbk(e)
+            else:
+                result, msg = save_product(
+                    data, paths, tag, serialize_in=not serial_through)
+                # save_action(username=username, action='SAVE', pool=paths[0])
+    elif request.method == 'PUT':
+        result, msg = register_pool(paths)
+
+    elif request.method == 'DELETE':
         if paths[-1].isnumeric():
             result, msg = delete_product(paths)
             # save_action(username=username, action='DELETE', pool=paths[0] +  '/' + paths[-2] + ':' + paths[-1])
         else:
-            result, msg = delete_pool(paths)
+            result, msg = unregister_pool(paths)
             # save_action(username=username, action='DELETE', pool=paths[0])
-
-    #w = {'result': result, 'msg': msg, 'timestamp': ts}
+    else:
+        result, msg = '"FAILED"', 'UNknown command '+request.method
+    # w = {'result': result, 'msg': msg, 'timestamp': ts}
     # make a json string
     r = '"null"' if result is None else str(result)
     w = '{"result": %s, "msg": %s, "timestamp": %f}' % (
         r, json.dumps(msg), ts)
     # logger.debug(pprint.pformat(w, depth=3, indent=4))
     s = w  # serialize(w)
-    logger.debug(lls(s, 120))
+    logger.debug(lls(s, 240))
     resp = make_response(s)
     resp.headers['Content-Type'] = 'application/json'
     return resp
+
+
+Builtins = vars(builtins)
+
+
+def mkv(v, t):
+
+    m = v if t == 'str' else None if t == 'NoneType' else Builtins[t](
+        v) if t in Builtins else deserialize(v)
+    return m
+
+
+def call_pool_Api(paths):
+    """ run api calls on the running pool.
+
+    """
+    # index of method name
+    im = 2
+    # remove empty trailing strings
+    for o in range(len(paths), 1, -1):
+        if paths[o-1]:
+            break
+
+    paths = paths[:o]
+    lp = len(paths)
+    method = paths[im]
+    args, kwds = [], {}
+
+    if 0:
+        poolname = paths[0]
+        s = PM.isLoaded(poolname)
+        import pdb
+        pdb.set_trace()
+
+    if lp > im:
+        if (lp-im) % 2 == 0:
+            # there are odd number of args+key+val
+            try:
+                tyargs = paths[im+1].split('|')
+                args = []
+                for a in tyargs:
+                    s = a.rsplit(':', 1)
+                    v, t = s[0], s[1]
+                    args.append(mkv(v, t))
+            except IndexError as e:
+                result = '"FAILED"'
+                msg = 'Bad arguement format ' + paths[im+1] + \
+                    ' Exception: ' + str(e) + ' ' + trbk(e)
+                logger.error(msg)
+                return result, msg
+            kwstart = im + 2
+        else:
+            kwstart = im + 1
+        try:
+            while kwstart < lp:
+                s = paths[kwstart+1].rsplit(':', 1)
+                v, t = s[0], s[1]
+                kwds[paths[kwstart]] = mkv(v, t)
+                kwstart += 2
+        except IndexError as e:
+            result = '"FAILED"'
+            msg = 'Bad arguement format ' + paths[kwstart+1] + \
+                ' Exception: ' + str(e) + ' ' + trbk(e)
+            logger.error(msg)
+            return result, msg
+    kwdsexpr = (str(k)+'='+str(v) for k, v in kwds.items())
+    msgexpr = '%s(%s)' % (method, ', '.join(chain(map(str, args), kwdsexpr)))
+    logger.debug('WebAPI ' + msgexpr)
+
+    poolname = paths[0]
+    poolurl = schm + '://' + os.path.join(poolpath, poolname)
+    if not PM.isLoaded(poolname):
+        result = '"FAILED"'
+        msg = 'Pool not found: ' + poolname
+        logger.error(msg)
+        return result, msg
+
+    try:
+        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        res = getattr(poolobj, method)(*args, **kwds)
+        result = serialize(res)
+        msg = msgexpr + ' OK.'
+    except Exception as e:
+        result = '"FAILED"'
+        msg = 'Unable to complete ' + msgexpr + \
+            ' Exception: ' + str(e) + ' ' + trbk(e)
+        logger.error(msg)
+    return result, msg
 
 
 def delete_product(paths):
@@ -199,6 +348,7 @@ def delete_product(paths):
     if not PM.isLoaded(poolname):
         result = '"FAILED"'
         msg = 'Pool not found: ' + poolname
+        logger.error(msg)
         return result, msg
     logger.debug('DELETE product urn: ' + urn)
     try:
@@ -208,42 +358,53 @@ def delete_product(paths):
     except Exception as e:
         result = '"FAILED"'
         msg = 'Unable to remove product: ' + urn + \
-            ' caused by ' + str(e) + ' ' + trbk(e)
+            ' Exception: ' + str(e) + ' ' + trbk(e)
+        logger.error(msg)
     return result, msg
 
 
-def delete_pool(paths):
-    """ Removes all contents of the pool.
-    Checking if the pool exists in server, and removing or returning exception message to client.
+def register_pool(paths):
+    """ Register this pool to PoolManager.
+    """
+    poolname = '/'.join(paths)
+    fullpoolpath = os.path.join(poolpath, poolname)
+    poolurl = schm + '://' + fullpoolpath
+    po = PM.getPool(poolname=poolname, poolurl=poolurl)
+    return '"'+po._poolurl+'"', 'register pool ' + poolname + ' OK.'
+
+
+def unregister_pool(paths):
+    """ Unregister this pool from PoolManager.
+
+    Checking if the pool exists in server, and unregister or raise exception message to client.
     """
 
     poolname = '/'.join(paths)
-    poolurl = schm + '://' + os.path.join(poolpath, poolname)
-    # resourcetype = fullname(data)
+    logger.debug('UNREGISTER (DELETE) POOL' + poolname)
 
-    if not PM.isLoaded(poolname):
-        result = '"FAILED"'
-        msg = 'Pool not found: ' + poolname
+    result = PM.remove(poolname)
+    if result == 1:
+        result = '"INFO"'
+        msg = 'Pool not registered: ' + poolname
         return result, msg
-    logger.debug('DELETE POOL' + poolname)
-    try:
-        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
-        result = poolobj.removeAll()
-        msg = 'Wipe pool ' + poolname + ' OK.'
-    except Exception as e:
+    elif result == 0:
+        msg = 'Unregister pool ' + poolname + ' OK.'
+        return result, msg
+    else:
         result = '"FAILED"'
-        msg = 'Unable to wipe pool: ' + poolname + \
-            ' caused by ' + str(e) + ' ' + trbk(e)
+        msg = 'Unable to unregister pool: ' + poolname + \
+            ' Exception: ' + str(e) + ' ' + trbk(e)
+    checkpath.cache_clear()
     return result, msg
 
 
-def save_product(data, paths, tag=None):
+def save_product(data, paths, tag=None, serialize_in=True, serialize_out=False):
     """Save products and returns URNs.
 
     Saving Products to HTTPpool will have data stored on the server side. The server only returns URN strings as a response. ProductRefs will be generated by the associated httpclient pool which is the front-end on the user side.
 
 
-    Returns a URN object or a list of URN objects. 
+    Returns a URN object or a list of URN objects.
     """
 
     typename = paths[-2]
@@ -253,18 +414,18 @@ def save_product(data, paths, tag=None):
     poolurl = schm + '://' + fullpoolpath
     # resourcetype = fullname(data)
 
-    if checkpath(fullpoolpath) is None:
+    if checkpath(fullpoolpath, pc['serveruser']) is None:
         result = '"FAILED"'
         msg = 'Pool directory error: ' + fullpoolpath
         return result, msg
 
     logger.debug('SAVE product to: ' + poolurl)
-    logger.debug(str(id(PM._GlobalPoolList)) + ' ' + str(PM._GlobalPoolList))
+    # logger.debug(str(id(PM._GlobalPoolList)) + ' ' + str(PM._GlobalPoolList))
 
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
         result = poolobj.saveProduct(
-            product=data, tag=tag, geturnobjs=True, serialized=True)
+            product=data, tag=tag, geturnobjs=True, serialize_in=serialize_in, serialize_out=serialize_out)
         msg = 'Save data to ' + poolurl + ' OK.'
     except Exception as e:
         result = '"FAILED"'
@@ -272,7 +433,7 @@ def save_product(data, paths, tag=None):
     return result, msg
 
 
-def load_product(paths):
+def load_product(paths, serialize_out=False):
     """Load product
     """
 
@@ -291,7 +452,7 @@ def load_product(paths):
     logger.debug('LOAD product: ' + urn)
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
-        result = poolobj.loadProduct(urn=urn, serialized=True)
+        result = poolobj.loadProduct(urn=urn, serialize_out=serialize_out)
         msg = ''
     except Exception as e:
         result = '"FAILED"'
@@ -310,9 +471,7 @@ def load_HKdata(paths):
 
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
-        c, t, u = poolobj.readHK(serialized=True)
-        # make a json string
-        result = '{"classes": %s, "tags": %s, "urns": %s}' % (c, t, u)
+        result = poolobj.readHK(serialize_out=True)
         msg = ''
     except Exception as e:
         result = '"FAILED"'
@@ -333,7 +492,7 @@ def load_single_HKdata(paths):
 
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
-        result = poolobj.readHK(hkname, serialized=True)
+        result = poolobj.readHK(hkname, serialize_out=True)
         msg = ''
     except Exception as e:
         result = '"FAILED"'
@@ -366,23 +525,38 @@ def getinfo(cmd):
 
 
 # API specification for this module
-ModAPIs = {'GET':
-           {'func': 'get_pool_sn',
-            'cmds': {'sn': 'the Serial Number'}
+APIs = {
+    'GET': {'func': 'get_pool_sn',
+            'cmds': {'sn': ('Return the total count for the given product type and pool_id.', {
+                'prod_type': 'clsssname',
+                'pool_id': 'pool name'
+            })},
             },
-           'PUT':
-           {
-           },
-           'POST':
-           {'func': 'httppool',
-            'cmds': {}
+    'PUT': {'func': 'httppool',
+            'cmds': {'pool': 'url'
+                     }
             },
-           'DELETE':
-           {'func':  'httppool',
-               'cmds': {}
-            }}
+    'POST': {'func': 'httppool',
+             'cmds': {'pool': 'url'
+                      }
+             },
+    'DELETE': {'func': 'httppool',
+               'cmds': {'pool': 'url'
+                        }
+               }
+}
+
+# @ app.route(pc['baseurl'] + '/', methods=['GET'])
+# @ app.route(pc['baseurl'] + '/api', methods=['GET'])
+# def get_apis():
+#     """ Makes a page for APIs described in module variable APIs. """
+
+#     logger.debug('APIs %s' % (APIs.keys()))
+#     ts = time.time()
+#     l = [(a, makepublicAPI(o)) for a, o in APIs.items()]
+#     w = {'APIs': dict(l), 'timestamp': ts}
+#     logger.debug('ret %s' % (str(w)[:100] + ' ...'))
+#     return jsonify(w)
 
 
-# Use ModAPIs contents for server_skeleton.get_apis()
-APIs.update(ModAPIs)
 logger.debug('END OF '+__file__)

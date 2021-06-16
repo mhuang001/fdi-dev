@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+#from ..utils.common import fullname
+
 import array
 import binascii
 # from .odict import ODict
@@ -6,6 +9,7 @@ import logging
 import json
 import copy
 import codecs
+from collections import ChainMap
 from collections.abc import Collection, Mapping
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -153,8 +157,15 @@ class SerializableEncoder(json.JSONEncoder):
                     return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
                 if obj is Ellipsis:
                     return {'obj': '...', '_STID': 'ellipsis'}
-                # print(obj.serializable())
-                return obj.serializable()
+                if issubclass(obj.__class__, type):
+                    return {'obj': obj.__name__, '_STID': 'dtype'}
+                if hasattr(obj, 'serializable'):
+                    # print(obj.serializable())
+                    return obj.serializable()
+                try:
+                    return dict(obj)
+                except Exception:
+                    return list(obj)
             except Exception as e:
                 print('Serialization failed.' + str(e))
                 raise
@@ -252,6 +263,7 @@ class Serializable(object):
         return self.__reduce_ex__(4)
 
     def serializable(self):
+<<<<<<< HEAD
         """ Can be encoded with serializableEncoder
         Parameters
         ----------
@@ -260,3 +272,9 @@ class Serializable(object):
         -------
         """
         return self.__getstate__()
+=======
+        """ Can be encoded with serializableEncoder """
+        s = copy.copy(self.__getstate__())
+        s.update({'_STID': self._STID})
+        return s
+>>>>>>> develop

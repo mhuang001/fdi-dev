@@ -1,0 +1,31 @@
+alias sr='service apache2 --full-restart'
+alias cl='curl -i http://localhost:${SERVER_PORT}'
+alias cl6='curl -i http://localhost:${SERVER_PORT}/v0.6'
+alias er='less /var/log/apache2/error-ps.log'
+
+alias pd='python -m pdb -c continue '
+
+alias gst='git status'
+alias gco='git checkout'
+alias glog='git log --oneline --decorate --graph --all'
+
+alias md=mkdir
+alias rd=rmdir
+alias rm="rm -i"
+alias rmv=/bin/rm
+alias vimdiff="vim -d"
+alias clr=clear
+alias h=history
+alias j=jobs
+alias p='ps -ax'
+alias f=finger
+#
+alias lssize='ls -lt | sort -n -r +4'
+alias ls='ls -F'
+alias la='ls -aF'
+alias ll='/bin/ls -lF'
+alias m=more
+alias l=less
+alias e='emacs -nw'
+#
+alias l50='export TERM=vt100-50; tset'

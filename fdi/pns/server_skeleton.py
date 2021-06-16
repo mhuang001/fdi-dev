@@ -1,92 +1,50 @@
 # -*- coding: utf-8 -*-
 
-from ..dataset.classes import Classes
+from ..utils.common import trbk, getUidGid
 from ..utils.getconfig import getConfig
 
-from .pnsconfig import pnsconfig as pc
-import datetime
 import time
 import sys
-import pwd
+import functools
 import os
 from os import listdir, chown, chmod, environ, setuid, setgid
 from pathlib import Path
+import logging
 import types
-from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 from flask import Flask, jsonify, abort, make_response, request, url_for
 from flask_httpauth import HTTPBasicAuth
-import filelock
 
-# from .logdict import logdict
-# '/var/log/pns-server.log'
 # logdict['handlers']['file']['filename'] = '/tmp/server.log'
 
 
-def setuplogging():
-    import logging.config
-    import logging
-    from . import logdict
-
-    # create logger
-    logging.config.dictConfig(logdict.logdict)
-    logging.getLogger("requests").setLevel(logging.WARN)
-    logging.getLogger("filelock").setLevel(logging.WARN)
-    if sys.version_info[0] > 2:
-        logging.getLogger("urllib3").setLevel(logging.WARN)
-    return logging
-
-
-logging = setuplogging()
 logger = logging.getLogger(__name__)
-
-pc.update(getConfig())
-logger.setLevel(pc['logginglevel'])
-logger.debug('logging level %d' % (logger.getEffectiveLevel()))
-
-
-def getUidGid(username):
-    """ returns the UID and GID of the named user.
-    """
-
-    try:
-        uid = pwd.getpwnam(username).pw_uid
-    except KeyError as e:
-        msg = 'Cannot get UserID for ' + username + \
-            '. check config. ' + str(e) + trbk(e)
-        logger.error(msg)
-        uid = -1
-    # do if platform supports.
-    try:
-        gid = pwd.getpwnam(username).pw_gid
-    except KeyError as e:
-        msg = 'Cannot get GroupID for ' + username + \
-            '. check config. ' + str(e) + trbk(e)
-        gid = -1
-        logger.error(msg)
-
-    return uid, gid
 
 
 app = Flask(__name__)
+app.config.from_object('fdi.pns.pnsconfig')
+# try:
+#     app.config.from_envvar('PNSCONFIG')
+#     pc = app.config['FLASK_CONF']
+# except RuntimeError:
+#     pc = getConfig()
+pc = getConfig()
+
+logger.info(pc)
 auth = HTTPBasicAuth()
 
 
-@app.before_first_request
-def init_skeleton_module():
+def init_conf_clas():
     global pc
+
+    #from .pnsconfig import pnsconfig as pc
+    from ..dataset.classes import Classes
+
     # effective group of current process
     uid, gid = getUidGid(pc['serveruser'])
-    # logger.info
-    print("Set process to %s's uid %d and gid %d..." %
-          (pc['serveruser'], uid, gid))
-    os.setuid(uid)
-    os.setgid(gid)
-
-    ptsuid, ptsgid = getUidGid(pc['ptsuser'])
-    if gid not in os.getgrouplist(pc['ptsuser'], ptsgid):
-        logger.error('ptsuser %s must be in the group of serveruser %s.' %
-                     (pc['ptsuser'], pc['serveruser']))
-        sys.exit(2)
+    logger.info("Serveruser %s's uid %d and gid %d..." %
+                (pc['serveruser'], uid, gid))
+    # os.setuid(uid)
+    # os.setgid(gid)
 
     # setup user class mapping
     clp = pc['userclasses']
@@ -102,8 +60,7 @@ def init_skeleton_module():
         pcs.PC.updateMapping()
         Classes.updateMapping(pcs.PC.mapping)
         logger.debug('User classes: %d found.' % len(pcs.PC.mapping))
-
-# logger.debug('logging file %s' % (logdict['handlers']['file']['filename']))
+    return Classes
 
 
 def setOwnerMode(p, username):
@@ -127,15 +84,16 @@ def setOwnerMode(p, username):
     return username
 
 
-def checkpath(path):
+@functools.lru_cache(6)
+def checkpath(path, un):
     """ Checks  the directories and creats if missing.
 
-    for data exchange between pns server and  pns PTS.
     path: str. can be resolved with Path.
+    un: server user name
     """
-    logger.debug(path)
+    logger.debug('path %s user %s' % (path, un))
+
     p = Path(path).resolve()
-    un = pc['serveruser']
     if p.exists():
         if not p.is_dir():
             msg = str(p) + ' is not a directory.'
@@ -206,21 +164,16 @@ def verify_password(username, password):
     #         logger.error("Connect to database failed: " +str(e))
 
 
-APIs = {}
-
-
-def makepublicAPI(ops):
+def makepublicAPI(o):
     """ Provides API specification for command given. """
     api = []
-    o = APIs[ops]
-    for cmd in o['cmds'].keys():
-        cs = o['cmds'][cmd]
+
+    for cmd, cs in o['cmds'].items():
         if not issubclass(cs.__class__, tuple):  # e.g. 'run':run
             c = cs
             kwds = {}
         else:  # e.g. 'sleep': (dosleep, dict(ops='1'))
-            c = cs[0]
-            kwds = cs[1]
+            c, kwds = cs
         desc = c.__doc__ if isinstance(c, types.FunctionType) else c
         d = {}
         d['description'] = desc
@@ -231,22 +184,6 @@ def makepublicAPI(ops):
         api.append(d)
     # print('******* ' + str(api))
     return api
-
-
-print(id(APIs))
-
-
-@app.route(pc['baseurl'] + '/', methods=['GET'])
-@app.route(pc['baseurl'] + '/api', methods=['GET'])
-def get_apis():
-    """ Makes a page for APIs described in module variable APIs. """
-
-    logger.debug('APIs %s' % (APIs.keys()))
-    ts = time.time()
-    l = [(a, makepublicAPI(a)) for a in APIs.keys()]
-    w = {'APIs': dict(l), 'timestamp': ts}
-    logger.debug('ret %s' % (str(w)[:100] + ' ...'))
-    return jsonify(w)
 
 
 @app.errorhandler(400)

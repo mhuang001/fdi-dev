@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 
 
-from ..dataset.deserialize import deserialize
 from .localpool import LocalPool
-from ..utils.common import pathjoin, trbk
 
 
-import filelock
 import sys
-import pdb
-import os
+
 from os import path as op
 import logging
 # create logger
@@ -35,14 +31,3 @@ class HttpPool(LocalPool):
         """
         # print(__name__ + str(kwds))
         super(HttpPool, self).__init__(**kwds)
-
-    def xschematicLoadProduct(self, resourcetype, index, serialized=True):
-        """
-        like localpool but returns serialized form by default.
-        """
-
-        p = super(HttpPool, self).schematicLoadProduct(resourcetype=resourcetype,
-                                                       index=index,
-                                                       serialized=serialized
-                                                       )
-        return p

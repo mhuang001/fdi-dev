@@ -1,0 +1,119 @@
+FROM ubuntu:18.04 AS base_ext
+LABEL Pool Server
+# 0.2 M. Huang <mhuang@nao.cas.cn>
+# 0.1 yuxin<syx1026@qq.com>
+#ARG DEBIAN_FRONTEND=noninteractive
+#ENV TZ=Etc/UTC
+RUN apt-get update \
+&& apt-get install -y apt-utils inetutils-ping curl net-tools sudo \
+&& apt-get install -y nano \
+&& apt-get install -y git python python3-pip apache2 libapache2-mod-wsgi-py3
+
+# setup env
+ARG IP_ADDR=10.0.10.114
+ARG PORT=9888
+ENV SERVER_IP_ADDR=${IP_ADDR}
+ENV SERVER_PORT=${PORT}
+
+# setup user
+ARG USR=apache
+ARG UHOME=/home/${USR}
+RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo \
+&& mkdir -p ${UHOME}/.config
+WORKDIR ${UHOME}
+ENV PATH="${UHOME}/.local/bin:$PATH"
+
+# setup config files
+COPY fdi/pns/pnsconfig.py .config/pnslocal.py
+COPY fdi/pns/resources/httppool_server.conf /etc/apache2/sites-available/httppool_server.conf
+ARG PROJ_DIR=/var/www/httppool_server
+RUN mkdir -p ${PROJ_DIR}/data \
+&& echo export APACHE_RUN_USER=${USR} >> /etc/apache2/envvars \
+&& echo export APACHE_RUN_GROUP=${USR} >> /etc/apache2/envvars \
+&& mkdir -p /var/log/apache2 /var/run/apache2 \
+&& touch /var/log/apache2/error-ps.log \
+&& touch /var/log/apache2/access-ps.log \
+&& ln -s /var/log/apache2/error-ps.log . \
+&& ln -s /var/log/apache2/error.log . \
+&& ln -s /var/log/apache2/access-ps.log . \
+&& ln -s /var/log/apache2/access.log . \
+&& ln -s /etc/apache2/sites-available/httppool_server.conf . \
+&& ln -s /etc/apache2/apache2.conf . \
+&& ln -s /etc/apache2/ports.conf .
+
+#RUN echo WSGIRestrictEmbedded On >> /etc/apache2/apache2.conf
+
+# config software
+#RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
+
+# convinience aliases
+COPY fdi/pns/resources/profile .
+COPY fdi/pns/resources/httppool_server.wsgi ${PROJ_DIR}/
+RUN cat profile >> .bashrc && rm profile \
+&& chmod 755 ${PROJ_DIR}/httppool_server.wsgi \
+&& ln -s  ${PROJ_DIR}/httppool_server.wsgi .
+
+# httppool_server_entrypoint.sh is used for replacing apache listen ports and configurations of httppool_server. setuid as root
+COPY fdi/pns/resources/httppool_server_entrypoint.sh .
+RUN chmod 755 ./httppool_server_entrypoint.sh
+#&& ./httppool_server_entrypoint.sh
+
+# Configure permission
+RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 ${PROJ_DIR} ${UHOME}/; \
+do chown -R ${USR}:${USR} $i; echo $i; done \
+&& chmod u+s ./httppool_server_entrypoint.sh \
+&& chgrp ${USR} /etc/apache2 /etc/apache2/sites-available \
+&& chmod g+w /etc/apache2 /etc/apache2/sites-available
+
+
+# If install fdi repo, instead of package
+# make dir for fdi.
+ARG FDI_DIR=${UHOME}
+RUN mkdir -p ${FDI_DIR} && chown -R ${USR}:${USR} ${FDI_DIR}
+
+RUN service apache2 start \
+&& a2ensite httppool_server.conf \
+&& a2dissite 000-default.conf \
+&& service apache2 reload \
+&& service apache2 stop
+# Log mapping
+#RUN ln -sf /dev/stdout /var/log/apache2/error.log
+#RUN tail  /var/log/apache2/error.log
+#RUN if [ -f /var/log/apache2/error-ps.log ]; then tail  /var/log/apache2/error-ps.log; fi
+
+# Run as user
+USER ${USR}
+
+# install and test fdi
+ARG fd=rebuild
+
+# If install fdi repo, instead of package
+WORKDIR ${FDI_DIR}
+RUN git clone -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git
+WORKDIR ${FDI_DIR}/fdi/
+RUN python3 -m pip install pip -U \
+&& make install EXT="[DEV,SERV]" I="--user" \
+&& make test
+
+# If installing fdi package
+# no [DEV] needed
+#RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[SERV] --user
+
+# Lanch server by ${USR} user
+RUN  service apache2 start
+
+#RUN cat /var/log/apache2/error.log
+#RUN if [ -f /var/log/apache2/error-ps.log ]; then tail  /var/log/apache2/error-ps.log; fi
+
+WORKDIR ${UHOME}
+RUN date > build
+
+ENTRYPOINT  ["/home/apache/httppool_server_entrypoint.sh", "2>&1", "|", "tee", \
+"-a", "/home/apache/log"]
+
+#CMD /home/apache/httppool_server_entrypoint.sh 2>&1 | tee -a /home/apache/log; \
+#service apache2 start && echo started
+#read 9; \
+#service apache2 stop
+
+#trap "echo TRAPed signal" HUP INT QUIT TERM

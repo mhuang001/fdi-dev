@@ -20,7 +20,6 @@ If the above fail and a method whose name starts with 'is' then the method is ca
 
     p0 = paths[0]
     found_meth = None
-    print(p0)
 
     is_str = issubclass(p0.__class__, str)
     if is_str and hasattr(nested, p0):

@@ -1,25 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from fdi.dataset.eq import deepcmp
-from fdi.dataset.metadata import Parameter, MetaData, make_jsonable
-from fdi.dataset.numericparameter import NumericParameter
-from fdi.dataset.stringparameter import StringParameter
-from fdi.dataset.dataset import TableDataset, CompositeDataset
-from fdi.dataset.arraydataset import Column, ArrayDataset
+from fdi.dataset.metadata import make_jsonable
 from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.deserialize import Class_Look_Up
-from fdi.dataset.product import Product
 from fdi.dataset.testproducts import get_sample_product
 from fdi.pal.urn import Urn
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadcsv
 from fdi.utils import moduleloader
-from fdi.utils.common import fullname, l2t
+from fdi.utils.common import fullname
 from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
 
-import datetime
-import importlib
 import traceback
 import copy
 import sys

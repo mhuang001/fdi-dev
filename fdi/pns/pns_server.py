@@ -4,7 +4,8 @@ from ..utils.common import trbk, trbk2, getUidGid, lls
 from ..utils.run_proc import run_proc
 from ..dataset.deserialize import deserialize
 from ..dataset.serializable import serialize
-from ..dataset.dataset import GenericDataset, TableDataset
+from ..dataset.dataset import GenericDataset
+from ..dataset.tabledataset import TableDataset
 from ..dataset.product import Product
 from ..dataset.finetime import FineTime1
 from ..dataset.baseproduct import History

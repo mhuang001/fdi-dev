@@ -34,7 +34,7 @@ from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.arraydataset import ArrayDataset, Column
-from fdi.dataset.dataset import TableDataset
+from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.dataset import GenericDataset, CompositeDataset
 from fdi.dataset.indexed import Indexed
 from fdi.dataset.ndprint import ndprint

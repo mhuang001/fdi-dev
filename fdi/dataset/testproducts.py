@@ -3,7 +3,8 @@ from .product import Product
 from .numericparameter import NumericParameter
 from .stringparameter import StringParameter
 from .datatypes import Vector
-from .dataset import CompositeDataset, TableDataset
+from .dataset import CompositeDataset
+from .tabledataset import TableDataset
 from .arraydataset import ArrayDataset, Column
 from ..pal.context import Context, MapContext
 from .finetime import FineTime

@@ -3,18 +3,35 @@
 from .indexed import Indexed
 from .ndprint import ndprint
 from .odict import ODict
-import itertools
 from ..utils.common import mstr, bstr, lls, exprstrs
 from .dataset import Dataset
+from .indexed import Indexed
+
 try:
     from .arraydataset_datamodel import Model
 except ImportError:
     Model = {'metadata': {}}
 
 
+import sys
 from collections.abc import Sequence
 from collections import OrderedDict
 import itertools
+
+if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.3:
+    PY33 = True
+    from collections.abc import Container, Sequence, Mapping
+    seqlist = Sequence
+    maplist = Mapping
+else:
+    assert 0, 'python 3'
+    PY33 = False
+    from .collectionsMockUp import ContainerMockUp as Container
+    from .collectionsMockUp import SequenceMockUp as Sequence
+    from .collectionsMockUp import MappingMockUp as Mapping
+    seqlist = (tuple, list, Sequence, str)
+    # ,types.XRangeType, types.BufferType)
+    maplist = (dict, Mapping)
 
 import logging
 # create logger
@@ -74,7 +91,7 @@ class TableModel(object):
         self.getColumn(columnIndex).data[rowIndex] = value
 
 
--MdpInfo = Model['metadata']
+MdpInfo = Model['metadata']
 
 
 class TableDataset(Dataset, TableModel):
@@ -111,6 +128,7 @@ class TableDataset(Dataset, TableModel):
         self._list = []
         super(TableDataset, self).__init__(
             **kwds)  # initialize data, meta, unit
+        self.setData(data)
 
     def getData(self):
         """ Optimized for _data being an ``ODict`` implemented with ``UserDict``.

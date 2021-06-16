@@ -19,7 +19,7 @@ from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.finetime import FineTime, FineTime1
 from fdi.dataset.arraydataset import ArrayDataset, Column
-from fdi.dataset.dataset import TableDataset
+from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.classes import Classes
 from fdi.pal.context import Context, MapContext
 from fdi.pal.productref import ProductRef

@@ -92,7 +92,7 @@ class GenericDataset(Dataset, Typed, DataWrapper):
 
     def toString(self, level=0,
                  tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-                 widths=None, matprint=None, trans=True, **kwds):
+                 param_widths=None, width=0, matprint=None, trans=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         """
@@ -102,7 +102,8 @@ class GenericDataset(Dataset, Typed, DataWrapper):
                 '{ %s, description = "%s", meta = %s }' % \
                 (str(self.data), str(self.description), self.meta.toString(
                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                    level=level, matprint=matprint, trans=trans, **kwds))
+                    level=level, width=width, param_widths=param_widths,
+                    matprint=matprint, trans=trans, **kwds))
 
         s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
             self, 'descripion') else '')

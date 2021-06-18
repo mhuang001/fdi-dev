@@ -59,7 +59,7 @@ else:
 Classes.updateMapping()
 
 # make format output in /tmp/output.py
-mko = 0
+mko = 1
 
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py
@@ -1156,15 +1156,26 @@ def test_DataWrapper():
 def standardtestmeta():
     m = MetaData()
     m['a'] = NumericParameter(
-        3.4, 'rule name, if is "valid", "", or "default", is ommited in value string.', 'float', 2., {(0, 31): 'valid', 99: ''})
+        value=3.4, description='rule name, if is "valid", "", or "default", is ommited in value string.',
+        typ_='float',
+        default=2.,
+        valid={(0, 31): 'valid', 99: ''})
     then = datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
-    m['b'] = DateParameter(FineTime(then), 'date param', default=99,
-                           valid={(0, 9876543210123456): 'xy'}, typecode='%Y')
+    m['b'] = DateParameter(value=FineTime(then), description='date param',
+                           default=99,
+                           valid={(0, 9876543210123456): 'xy'})
     m['c'] = StringParameter(
-        'IJK', 'str parameter. but only "" is allowed.', {'': 'empty'}, 'cliche', 'B')
+        value='IJK', description='this is a string parameter. but only "" is allowed.',
+        valid={'': 'empty'},
+        default='cliche',
+        typecode='B')
     m['d'] = NumericParameter(
-        0b01, 'valid rules described with binary masks', 'binary', 0b00, {(0b011000, 0b01): 'on', (0b011000, 0b00): 'off'})
+        value=0b01, description='valid rules described with binary masks',
+        typ_='binary',
+        default=0b00,
+        valid={(0b011000, 0b01): 'on', (0b011000, 0b00): 'off'},
+        typecode='H')
     return m
 
 
@@ -1235,6 +1246,20 @@ def do_ArrayDataset_init(atype):
     assert v2.data == a1
     assert v2.unit == a2
     assert v2.description == a3
+
+
+def check_MDP(x):
+    for n, p in standardtestmeta().items():
+        x.meta[n] = p
+    # when ``alwaysMeta`` is set, a Parameeter type attrbute becomes a Parameeter
+    assert x.alwaysMeta
+    x.added_parameter = NumericParameter(42, description='A non-builtin param')
+    assert x.meta['added_parameter'].value == 42
+    assert issubclass(x.meta['added_parameter'].__class__, NumericParameter)
+    # wont work if not a Parameeter type
+    x.added_attribute = 111
+    assert 'added_attribute' not in x.meta
+    assert issubclass(x.added_attribute.__class__, int)
 
 
 def do_ArrayDataset_func(atype):
@@ -1368,9 +1393,8 @@ def do_ArrayDataset_func(atype):
     x[0][1][1] = atype([0, 0, 0, 1, 0])
     x[0][1][2] = atype([5, 4, 3, 2, 1])
     x[0][1][3] = atype([0, 0, 0, 3, 0])
-    for n, p in standardtestmeta().items():
-        x.meta[n] = p
-    x.lue_attribute = 42
+
+    check_MDP(x)
     ts = '\n\nlevel 0\n'
     ts += x.toString()
     i = ts.index('0  0  0')
@@ -1378,10 +1402,14 @@ def do_ArrayDataset_func(atype):
         print(ts[i:])
     else:
         assert ts[i:] == nds2 + '\n'
-    ts += '\n\nlevel 1, repr\n'
+    ts += '\n\nlevel 1\n'
     ts += x.toString(1)
-    ts += '\n\nlevel 2,\n'
+    ts += '\n\nlevel 2, repr\n'
     ts += x.toString(2)
+    ts += '\n\n'
+    ts += 'an empty meta and long data level 2: \n'
+    ts += ArrayDataset(data=[8]*88).toString(level=2)
+    ts += '\n\n'
     if mko:
         print(ts)
         with open('/tmp/output.py', 'a') as f:
@@ -1418,6 +1446,8 @@ def test_ArrayDataset_array_func():
 
 
 def test_Column():
+    v = Column()
+    assert v.type == 'Column'
     v = Column(data=[4, 9], unit='m')
     assert v.data == [4, 9]
     s = v.hash()
@@ -1443,6 +1473,7 @@ def test_TableDataset_init():
         # setData format 1: data is a  mapping. Needs pytnon 3.6 to guarantee order
         a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
               'col2': Column(data=[0, 43.2, 2E3], unit='cnt')}
+
         v = TableDataset(data=a1)  # inherited from DataContaier
         assert v.getColumnCount() == len(a1)
         assert v.getColumnName(0) == 'col1'
@@ -1659,14 +1690,19 @@ def test_TableDataset_func():
 
     # toString()
     v = TableDataset(data=a10)
-    for n, p in standardtestmeta().items():
-        v.meta[n] = p
+    v = TableDataset(data=[[1]*88, [2]*88, [3]*88, [4]*88])
+
+    check_MDP(v)
     ts = '\n\nlevel 0\n'
     ts += v.toString()
-    ts += '\n\nlevel 1, repr\n'
+    ts += '\n\nlevel 1\n'
     ts += v.toString(1)
-    ts += '\n\nlevel 2,\n'
+    ts += '\n\nlevel 2, repr\n'
     ts += v.toString(2)
+    ts += '\n\n'
+    ts += 'an empty level 2: \n'
+    ts += TableDataset().toString(level=2)
+    ts += '\n\n'
     if mko:
         print(ts)
         with open('/tmp/output.py', 'a') as f:

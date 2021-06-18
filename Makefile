@@ -14,11 +14,14 @@ P_YAML	= $(RESDIR)/$(PRODUCT).yml
 B_YAML	= $(RESDIR)/$(B_PRODUCT).yml
 P_TEMPLATE	= $(RESDIR)
 B_TEMPLATE	= $(RESDIR)
-OTHERS	= ArrayDataset_DataModel
-OTHERS_PY=$(shell $(PYEXE) -S -c "print('$(OTHERS)'.lower())").py
-OTHERS_YAML	= $(RESDIR)/$(OTHERS).yml
+ARRAYD	= ArrayDataset_DataModel
+ARRAYD_PY=$(shell $(PYEXE) -S -c "print('$(ARRAYD)'.lower())").py
+ARRAYD_YAML	= $(RESDIR)/$(ARRAYD).yml
+TABLED	= TableDataset_DataModel
+TABLED_PY=$(shell $(PYEXE) -S -c "print('$(TABLED)'.lower())").py
+TABLED_YAML	= $(RESDIR)/$(TABLED).yml
 
-py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY) $(PYDIR)/$(OTHERS_PY)
+py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY) $(PYDIR)/$(ARRAYD_PY) $(PYDIR)/$(TABLED_PY)
 
 $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).template $(PYDIR)/$(B_PY)
 	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
@@ -27,7 +30,7 @@ $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).tem
 $(PYDIR)/$(B_PY): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE)/$(B_PRODUCT).template 
 	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
 
-$(PYDIR)/$(OTHERS_PY): $(PYDIR)/yaml2python.py $(OTHERS_YAML) $(RESDIR)/$(OTHERS).template 
+$(PYDIR)/$(ARRAYD_PY)  $(PYDIR)/$(TABLED_PY): $(PYDIR)/yaml2python.py $(ARRAYD_YAML) $(RESDIR)/$(ARRAYD).template $(TABLED_YAML) $(RESDIR)/$(TABLED).template 
 	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(RESDIR) -o $(PYDIR) $(Y)
 
 yamlupgrade: 

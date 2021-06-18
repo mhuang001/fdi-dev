@@ -38,6 +38,11 @@ def ndprint(data, trans=True, maxElem=50, **kwds):
     """
     if data is None:
         return 'None'
+    try:
+        if len(data) == 0:
+            return str(data)
+    except TypeError:
+        pass
 
     # dim, maxdim, and s are to be used as nonlocal variables in run()
     # to overcome python2's lack of nonlocal type this method is usded

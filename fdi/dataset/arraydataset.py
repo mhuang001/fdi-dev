@@ -125,9 +125,12 @@ class ArrayDataset(GenericDataset, Iterable):
         """
         self.getData().remove(*args, **kwargs)
 
+    def __repr__(self):
+        return self.toString(level=2)
+
     def toString(self, level=0,
                  tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-                 widths=None, matprint=None, trans=True, **kwds):
+                 width=0, param_widths=None, matprint=None, trans=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         """
@@ -137,19 +140,29 @@ class ArrayDataset(GenericDataset, Iterable):
         cn = self.__class__.__name__
         if level > 1:
 
-            vs, us, ts, ds, fs, gs, cs = exprstrs(self, '_data')
-            return cn + '(%s ' % vs + \
-                ', '.join(str(k)+': '+str(v.value if hasattr(v, 'value') else v)
-                          for k, v in self.meta.items()) + ')'
+            s = cn + '(' + \
+                self.meta.toString(
+                    level=level,
+                    tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                    width=width, param_widths=param_widths,
+                    **kwds)
+            if 0:
+                s += ', '.join(
+                    str(k)+': '+str(v.value if hasattr(v, 'value') else v)
+                    for k, v in self.meta.items()) + ')'
+            # set wiidth=0 level=2 to inhibit \n
+            vs, us, ts, ds, fs, gs, cs = exprstrs(
+                self, '_data', width=0, level=level)
             # '{ %s (%s) <%s>, "%s", default %s, tcode=%s}' %\
             #(vs, us, ts, ds, fs, cs)
+            return '%s data= %s)' % (s, vs)
 
         s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
             self, 'descripion') else '')
         toshow = {'meta': self.__getstate__()['meta'],
                   'data': self.__getstate__()['data'],
                   }
-        s += mstr(toshow, level=level,
+        s += mstr(toshow, level=level, width=width,
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                   excpt=['description'], **kwds)
 
@@ -183,3 +196,6 @@ class Column(ArrayDataset, ColumnListener):
       table = TableDataset()
       table.addColumn("Energy",Column(data=[1,2,3,4],description="desc",unit='eV'))
     """
+
+    def __init__(self,  *args, typ_='Column', **kwds):
+        super().__init__(*args, typ_=typ_, **kwds)

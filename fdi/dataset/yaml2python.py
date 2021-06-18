@@ -688,7 +688,7 @@ if __name__ == '__main__':
         prod = glb[modelName]()
         fg = {'name': 15, 'value': 18, 'unit': 7, 'type': 8,
               'valid': 26, 'default': 18, 'code': 4, 'description': 25}
-        sp = prod.meta.toString(tablefmt='fancy_grid', widths=fg)
+        sp = prod.meta.toString(tablefmt='fancy_grid', param_widths=fg)
 
         mout = pathjoin(ypath, modelName + '.txt')
         with open(mout, 'w', encoding='utf-8') as f:

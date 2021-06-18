@@ -19,9 +19,8 @@ class Quantifiable(Typecoded):
 
         """
         self.setUnit(unit)
-        self.setTypecode(typecode)
         #print(__name__ + str(kwds))
-        super(Quantifiable, self).__init__(**kwds)
+        super(Quantifiable, self).__init__(typecode=typecode, **kwds)
 
     @property
     def unit(self):

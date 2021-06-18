@@ -8,7 +8,7 @@ from .dataset import Dataset
 from .indexed import Indexed
 
 try:
-    from .arraydataset_datamodel import Model
+    from .tabledataset_datamodel import Model
 except ImportError:
     Model = {'metadata': {}}
 
@@ -126,9 +126,21 @@ class TableDataset(Dataset, TableModel):
         """
 
         self._list = []
-        super(TableDataset, self).__init__(
-            **kwds)  # initialize data, meta, unit
-        self.setData(data)
+
+        # collect MDPs from args-turned-local-variables.
+        metasToBeInstalled = OrderedDict(
+            itertools.filterfalse(
+                lambda x: x[0] in ('self', '__class__', 'zInfo', 'kwds'),
+                locals().items())
+        )
+
+        global Model
+        if zInfo is None:
+            zInfo = Model
+
+        super().__init__(zInfo=zInfo, **metasToBeInstalled,
+                         **kwds)  # initialize data, meta, unit
+        # self.setData(data)
 
     def getData(self):
         """ Optimized for _data being an ``ODict`` implemented with ``UserDict``.
@@ -395,8 +407,12 @@ class TableDataset(Dataset, TableModel):
 Default is to return all columns.
         """
         d = self.getData()
-        if key is None:
-            return d
+        try:
+            if d is None or key is None or len(d) == 0:
+                return d
+        except TypeError:
+            pass
+
         cl = key.__class__
         if issubclass(cl, int):
             t = list(d.items())[key]
@@ -430,6 +446,8 @@ Default is to return all columns.
         """
 
         it = self.getColumnMap(key).values()
+        if len(it) == 0:
+            return []
         if issubclass(key.__class__, (int, str)):
             # return a list of row elements
             return list(it)[0]
@@ -467,11 +485,14 @@ Default is to return all columns.
         """
         self.setColumn(key, value)
 
+    def __repr__(self):
+        return self.toString(level=2)
+
     def toString(self, level=0,
                  tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-                 widths=None, matprint=None, trans=True, **kwds):
+                 width=0, param_widths=None, matprint=None, trans=True, **kwds):
         """
-        tablefmt2: format of 2D data
+        tablefmt2: format of 2D data, others see `MetaData.toString`.
         """
         if matprint is None:
             matprint = ndprint
@@ -479,9 +500,24 @@ Default is to return all columns.
         cn = self.__class__.__name__
         s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
             self, 'descripion') else '')
-        s += mstr(self.__getstate__(), level=level,
-                  tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                  excpt=['description'], **kwds)
+        if level > 1:
+            s = cn + '('
+            s += self.meta.toString(
+                level=level,
+                tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                width=width, param_widths=param_widths,
+                **kwds)
+            return s + '{' + \
+                ', '.join('"%s": %s' % (k, v.toString(
+                    level=level,
+                    tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt,
+                    width=width, param_widths=param_widths, **kwds))
+                    for k, v in self.getColumnMap().items()) + \
+                '})'
+        else:
+            s += mstr(self.__getstate__(), level=level,
+                      tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                      excpt=['description'], **kwds)
         stp = 2 if level > 1 else 20 if level == 1 else None
         cols = self.getData().values()
 

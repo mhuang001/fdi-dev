@@ -13,12 +13,24 @@ logger = logging.getLogger(__name__)
 
 
 class NumericParameter(Parameter, Quantifiable):
-    """ has a number as the value, a unit, and a typecode.
+    """ A Parameter that has a number as the value, a unit, and a typecode.
     """
 
-    def __init__(self, value=None, description='UNKNOWN', typ_='', default=None, valid=None, **kwds):
+    def __init__(self,
+                 value=None,
+                 description='UNKNOWN',
+                 typ_='',
+                 default=None,
+                 unit=None,
+                 valid=None,
+                 typecode=None,
+                 **kwds):
+        """ Set up a parameter whose value is a or a list of numbers.
+
+        typ_: type of the parameter value.
+        """
         super(NumericParameter, self).__init__(
-            value=value, description=description, typ_=typ_, default=default, valid=valid, **kwds)
+            value=value, description=description, typ_=typ_, default=default, unit=unit, valid=valid, typecode=typecode, **kwds)
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

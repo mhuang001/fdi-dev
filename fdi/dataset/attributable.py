@@ -239,12 +239,10 @@ def value2parameter(name, value, descriptor):
                               )
     elif im['data_type'] == 'finetime':
         from .dateparameter import DateParameter
-        cs = im['typecode'] if 'typecode' in im else None
         ret = DateParameter(value=value,
                             description=im['description'],
                             default=fs,
                             valid=gs,
-                            typecode=cs
                             )
     elif DataTypes[im['data_type']] in ['int', 'float', 'Vector', 'Vector2D', 'Quaternion']:
         from .numericparameter import NumericParameter

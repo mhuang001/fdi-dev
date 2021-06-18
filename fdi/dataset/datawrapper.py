@@ -24,13 +24,13 @@ class DataContainer(Annotatable, Copyable, DeepEqual, Container, Sized):
         data: a Container. Default is None.
         """
         #print(__name__ + str(kwds))
-        super(DataContainer, self).__init__(**kwds)
 
         if data is None or issubclass(data.__class__, Container):
             self.setData(data)
         else:
             raise TypeError('DataContainer needs a Container to initialize, not ' +
                             type(data).__name__)
+        super().__init__(**kwds)
 
     @property
     def data(self):
@@ -83,14 +83,19 @@ class DataWrapper(DataContainer, Quantifiable):
     Implemented from AbstractDataWrapper.
     """
 
-    def __xrepr__(self):
-        return self.__class__.__name__ + \
-            '{ %s <%s>, description = "%s" }' % \
-            (str(self.getData()), str(self.unit), str(self.description))
+    def __init__(self, *args, **kwds):
+        """ 
+        """
+        super().__init__(*args, **kwds)
 
 
 class DataWrapperMapper():
     """ Object holding a map of data wrappers. """
+
+    def __init__(self, *args, **kwds):
+        """ 
+        """
+        super().__init__(*args, **kwds)
 
     def getDataWrappers(self):
         """ Gives the data wrappers, mapped by name. """

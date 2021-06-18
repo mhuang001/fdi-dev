@@ -14,9 +14,12 @@ class MetaDataHolder(object):
     """
 
     def __init__(self, meta=None, **kwds):
-
+        """ Adds MetaData to the class.
+        with defaults set to self.zInfo['metadata'].
+        """
         if meta is None:
-            meta = metadata.MetaData()
+            defs = self.zInfo['metadata'] if hasattr(self, 'zInfo') else None
+            meta = metadata.MetaData(defaults=defs)
         self.setMeta(meta)
         super(MetaDataHolder, self).__init__(**kwds)
 

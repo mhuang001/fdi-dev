@@ -61,7 +61,7 @@ addsubmodule:
 	git submodule add  --name leapseconds https://gist.github.com/92df922103ac9deb1a05 ext/leapseconds
 
 update:
-	git submodule update --init --recursive
+	git submodule update --init --recursive --remote
 
 PNSDIR=~/pns
 installpns:

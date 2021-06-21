@@ -81,9 +81,12 @@ class Attributable(MetaDataHolder):
     def setMeta(self, newMetadata):
         """ Replaces the current MetaData with specified argument.
 
-        mh: Product will override this to add listener when meta is
-        replaced
+        Product will override this to add listener when meta is
+        replaced.
+        `_defaults` which usually is `self.zInfo` is added to new meta so `str(meta)` can ommit the parameters with default value.
         """
+        defs = self.zInfo['metadata'] if hasattr(self, 'zInfo') else None
+        newMetadata._defaults = defs
         self._meta = newMetadata
 
     def __getattribute__(self, name):

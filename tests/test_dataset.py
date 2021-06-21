@@ -59,12 +59,12 @@ else:
 Classes.updateMapping()
 
 # make format output in /tmp/output.py
-mko = 1
+mk_output = 0
 
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py
 
-    from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset
+    from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
 else:
     # run by pytest
 
@@ -72,7 +72,7 @@ else:
     # https://docs.python-guide.org/writing/structure/
     from .pycontext import fdi
 
-    from .outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset
+    from .outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
 
     import logging
     import logging.config
@@ -262,13 +262,13 @@ def test_ndprint():
     s[0][1][2] = [5, 4, 3, 2, 1]
     s[0][1][3] = [0, 0, 0, 3, 0]
     v = ndprint(s, trans=False, headers=[], tablefmt2='plain')
-    if mko:
+    if mk_output:
         print(v)
         # print(nds2)
     else:
         assert v == nds2
     v = ndprint(s, headers=[], tablefmt2='plain')
-    if mko:
+    if mk_output:
         print(v)
     else:
         assert v == nds3
@@ -995,6 +995,11 @@ def test_DateParameter():
     v.value = a8
     assert v.value == FineTime(a8)
 
+    v = DateParameter('2019-02-19T01:02:03.457')
+    assert v.value.tai == 1929229323457000
+    v.value.format = '%Y'
+    print('********', v.value.isoutc(), ' ** ', v, '*******', v.toString(1))
+
     with pytest.raises(TypeError):
         DateParameter(3.3)
     vv = copy.copy(v)
@@ -1058,7 +1063,7 @@ def test_MetaData():
     v['time'] = NumericParameter(description='another param',
                                  value=2.3, unit='sec')
     v['birthday'] = Parameter(description='was made on',
-                              value=FineTime('2020-09-09T12:34:56.789098 UTC'))
+                              value=FineTime('2020-09-09T12:34:56.789098'))
     # names of all parameters
     assert [n for n in v] == [a1, 'time', 'birthday']
 
@@ -1189,7 +1194,7 @@ def test_GenericDataset():
     ts += v.toString(1)
     ts += 'level 2,\n'
     ts += v.toString(2)
-    if mko:
+    if mk_output:
         print(ts)
         with open('/tmp/output.py', 'wt') as f:
             clsn = 'out_GenericDataset'
@@ -1210,7 +1215,6 @@ def do_ArrayDataset_init(atype):
     assert v.data is None
     assert v.unit is None
     assert v.description == 'UNKNOWN'
-    assert v.type == 'ArrayDataset'
     assert v.shape == ()
     assert v.typecode == 'UNKNOWN'
     # from DRM
@@ -1225,14 +1229,12 @@ def do_ArrayDataset_init(atype):
     assert v.data == a1
     assert v.unit == a2
     assert v.description == a3
-    assert v.type == a4
     assert v.typecode == a6
     assert v.shape == a7
     v = ArrayDataset(data=a1)
     assert v.data == a1
     assert v.unit is None
     assert v.description == 'UNKNOWN'
-    assert v.type == 'ArrayDataset'
     assert v.typecode == 'UNKNOWN'
     assert v.shape == ()
 
@@ -1398,7 +1400,7 @@ def do_ArrayDataset_func(atype):
     ts = '\n\nlevel 0\n'
     ts += x.toString()
     i = ts.index('0  0  0')
-    if mko:
+    if mk_output:
         print(ts[i:])
     else:
         assert ts[i:] == nds2 + '\n'
@@ -1408,9 +1410,9 @@ def do_ArrayDataset_func(atype):
     ts += x.toString(2)
     ts += '\n\n'
     ts += 'an empty meta and long data level 2: \n'
-    ts += ArrayDataset(data=[8]*88).toString(level=2)
+    ts += ArrayDataset(data=[8]*8).toString(level=2)
     ts += '\n\n'
-    if mko:
+    if mk_output:
         print(ts)
         with open('/tmp/output.py', 'a') as f:
             clsn = 'out_ArrayDataset'
@@ -1690,7 +1692,6 @@ def test_TableDataset_func():
 
     # toString()
     v = TableDataset(data=a10)
-    v = TableDataset(data=[[1]*88, [2]*88, [3]*88, [4]*88])
 
     check_MDP(v)
     ts = '\n\nlevel 0\n'
@@ -1703,7 +1704,7 @@ def test_TableDataset_func():
     ts += 'an empty level 2: \n'
     ts += TableDataset().toString(level=2)
     ts += '\n\n'
-    if mko:
+    if mk_output:
         print(ts)
         with open('/tmp/output.py', 'a') as f:
             clsn = 'out_TableDataset'
@@ -1939,7 +1940,7 @@ def test_CompositeDataset_init():
     ts += v3.toString(1)
     ts += 'level 2,\n'
     ts += v3.toString(2)
-    if mko:
+    if mk_output:
         print(ts)
         with open('/tmp/output.py', 'a') as f:
             clsn = 'out_CompositeDataset'
@@ -2113,26 +2114,27 @@ def test_FineTime():
     v = FineTime()
     assert v.tai == 0
     assert v.format == v.DEFAULT_FORMAT
-    assert v.toDate().year == 1958
+    assert v.toDatetime().year == 1958
     # at Epoch, TAI=0
     v = FineTime(v.EPOCH)
     assert v.tai == 0
     # at TAI = 1, UTC ...
     v = FineTime(1)
-    assert v.toDate().microsecond == 1
+    assert v.toDatetime().microsecond == 1
     dt0 = datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
     v = FineTime(dt0)
     assert v.tai == 1929229323456789
-    dt = v.toDate()
+    dt = v.toDatetime()
     assert int(dt.timestamp()) == int(dt0.timestamp())
     # So that timezone won't show on the left below
     d = dt.replace(tzinfo=None)
     assert d.isoformat() == '2019-02-19T01:02:03.456789'
     assert v.tai == v.datetimeToFineTime(dt)
     assert dt == v.toDatetime(v.tai)
-    # format
+
     assert v.isoutc() == '2019-02-19T01:02:03.456789'
+
     # add 1min 1.1sec
     v2 = FineTime(datetime.datetime(
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=timezone.utc))
@@ -2147,18 +2149,18 @@ def test_FineTime1():
     v = FineTime1()
     assert v.tai == 0
     assert v.format == v.DEFAULT_FORMAT
-    assert v.toDate().year == 2017
+    assert v.toDatetime().year == 2017
     # at Epoch, TAI=0
     v = FineTime1(v.EPOCH)
     assert v.tai == 0
     # at TAI = 1, UTC ...
     v = FineTime1(1)
-    assert v.toDate().microsecond == 1000
+    assert v.toDatetime().microsecond == 1000
     dt0 = datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
     v = FineTime1(dt0)
     assert v.tai == 67309323457
-    dt = v.toDate()
+    dt = v.toDatetime()
     assert int(dt.timestamp()) == int(dt0.timestamp())
     # So that timezone won't show on the left below
     d = dt.replace(tzinfo=None)
@@ -2166,7 +2168,7 @@ def test_FineTime1():
     assert v.tai == v.datetimeToFineTime(dt)
     assert dt == v.toDatetime(v.tai)
     # format
-    assert v.isoutc() == '2019-02-19T01:02:03.457'
+    assert v.isoutc() == '2019-02-19T01:02:03.457000'
     # add 1min 1.1sec
     v2 = FineTime1(datetime.datetime(
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=timezone.utc))
@@ -2174,6 +2176,31 @@ def test_FineTime1():
     assert abs(v2.subtract(v) - 61100) < 0.5
     checkjson(v)
     checkgeneral(v)
+
+
+def test_FineTimes_toString():
+    # toString
+    ts = 'toString test\n'
+    dt0 = datetime.datetime(
+        2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
+    # format
+    for vformat in [FineTime.DEFAULT_FORMAT, '%Y']:
+        ts += '=========== format: "' + vformat + '" =======\n'
+        for v in [FineTime(dt0), FineTime1(dt0)]:
+            v.format = vformat
+            ts += v.__class__.__name__ + '\n'
+            for width in [0, 1]:
+                # default width is 0
+                for level in [0, 1, 2]:
+                    s = v.toString(level=level, width=width)
+                    ts += f'level={level} width={width}: {s}\n'
+    if mk_output:
+        print(ts)
+        with open('/tmp/output.py', 'a') as f:
+            clsn = 'out_FineTime'
+            f.write('%s = """%s"""\n' % (clsn, ts))
+    else:
+        assert ts == out_FineTime
 
 
 def test_History():

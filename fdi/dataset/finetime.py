@@ -3,9 +3,9 @@ from .serializable import Serializable
 from .odict import ODict
 from .eq import DeepEqual
 from .copyable import Copyable
-#from .metadata import ParameterTypes
+# from .metadata import ParameterTypes
+#from ext.leapseconds import leapseconds
 import datetime
-import pdb
 from collections import OrderedDict
 
 import logging
@@ -56,7 +56,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
     RESOLUTION = 1000000  # microsecond
 
     """ """
-    DEFAULT_FORMAT = '%Y-%m-%dT%H:%M:%S.%f UTC'  # ISO
+    DEFAULT_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'  # ISO
 
     RETURNFMT = '%s.%06d'
 
@@ -85,7 +85,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         return self.tai
 
     def setTime(self, time):
-        """ Sets the time of this object. 
+        """ Sets the time of this object.
 
         If an integer is given, it will be taken as the TAI.
         If a datetime object or a string code is given, the timezone will be set to UTC.
@@ -128,6 +128,8 @@ class FineTime(Copyable, DeepEqual, Serializable):
         self.tai = setTai
 
     def getFormat(self):
+        """ `format` cannot be a property name as it is a built so`@format.setter` is not allowed.
+        """
         return self.format
 
     def microsecondsSinceEPOCH(self):
@@ -145,51 +147,56 @@ class FineTime(Copyable, DeepEqual, Serializable):
         return int(self.RESOLUTION *
                    ((dtm - self.EPOCH).total_seconds() + leapsec)+0.5)
 
-    def toDatetime(self, tai):
-        """ Return given FineTime as a Python Datetime. """
+    def toDatetime(self, tai=None):
+        """ Return given FineTime as a Python Datetime.
+
+        tai: if not given or given as `None`, return this object's time as a Python Datetime.
+        """
         leapsec = 0  # leap seconds to be implemented
+        if tai is None:
+            tai = self.tai
         return datetime.timedelta(seconds=(float(tai) / self.RESOLUTION - leapsec))\
             + self.EPOCH
 
-    def toDate(self):
-        """ Return this time as a Python Datetime. """
+    # HCSS compatibility
+    toDate = toDatetime
 
-        return self.toDatetime(self.tai)
-
-    def isoutc(self, format='%Y-%m-%dT%H:%M:%S'):
+    def isoutc(self, format='%Y-%m-%dT%H:%M:%S.%f'):
         """ Returns a String representation of this objet in ISO format without timezone. sub-second set to TIMESPEC.
 
         format: time format. default '%Y-%m-%dT%H:%M:%S' prints like 2019-02-17T12:43:04.577000 """
-        s = self.tai / self.RESOLUTION
-        sub = s - int(s)
-        dt = datetime.timedelta(seconds=(s)) + self.EPOCH
-        # return dt.isoformat(timespec=self.TIMESPEC)
-        return self.RETURNFMT % (dt.strftime(format), int(sub*self.RESOLUTION+0.5))
+        s = (self.tai + 0.0) / self.RESOLUTION
+        dt = datetime.timedelta(seconds=s) + self.EPOCH
+        return dt.strftime(format)
 
-    def toString(self, level=0,
-                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-                 width=0, **kwds):
+    def toString(self, level=0,  width=0, **kwds):
         """ Returns a String representation of this object according to self.format.
-        prints like 2019-02-17T12:43:04.577000 TAI(...)"""
+        level: 0 prints like 2019-02-17T12:43:04.577000 TAI(...)
+        width: if non-zero, insert newline to break simplified output into shorter lines. For level=0 it is ``` #TODO ```
+
+        """
         tais = str(self.tai) if hasattr(self, 'tai') else 'Unknown'
+        fmt = self.format
         if level == 0:
             if width:
-                tstr = self.isoutc(
-                    format='%Y-%m-%d\n%H:%M:%S') + '\n%s' % tais
+                tstr = self.isoutc(format=fmt) + '\n' + tais
                 s = tstr
             else:
-                tstr = self.isoutc() + ' TAI(%s)' % tais
-                s = self.__class__.__name__ + \
-                    '{' + tstr + ' fmt=' + self.format + '}'
+                tstr = self.isoutc(format=fmt) + ' TAI(%s)' % tais
+                s = tstr + ' format=' + self.format
         elif level == 1:
             if width:
-                tstr = self.isoutc(
-                    format='%Y-%m-%d\n%H:%M:%S') + '\n%s' % tais
+                tstr = self.isoutc(format=fmt) + '\n%s' % tais
             else:
-                tstr = self.isoutc() + ' TAI(%s)' % tais
+                tstr = self.isoutc(format=fmt) + ' (%s)' % tais
             s = tstr
         elif level == 2:
-            s = self.isoutc() + ' TAI(%s)' % tais
+            if width:
+                s = self.__class__.__name__ + '(' + \
+                    self.isoutc(format=fmt).replace('T', '\n') + ')'
+            else:
+                s = self.__class__.__name__ + '(' + \
+                    self.isoutc(format=fmt) + ')'
         else:
             s = tais
         return s
@@ -227,12 +234,12 @@ class FineTime(Copyable, DeepEqual, Serializable):
             return super(FineTime, self).__ge__(obj)
 
     def __repr__(self):
-
+        return self.toString(level=2)
         co = ', '.join(str(k)+'=' + ('"'+v+'"' if issubclass(v.__class__, str)
                                      else str(v)) for k, v in self.__getstate__().items())
         return '<'+self.__class__.__name__ + ' ' + co + '>'
 
-    __str__ = toString
+    # __str__ = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

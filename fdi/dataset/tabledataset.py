@@ -507,7 +507,7 @@ Default is to return all columns.
                 tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                 width=width, param_widths=param_widths,
                 **kwds)
-            return s + '{' + \
+            return s + 'data= {' + \
                 ', '.join('"%s": %s' % (k, v.toString(
                     level=level,
                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt,

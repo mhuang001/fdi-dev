@@ -572,6 +572,11 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
     Note that replacing a parameter with the same name,
     will keep the order. """
 
+    Table_Widths = [
+        {'name': 15, 'value': 20, 'unit': 7, 'type': 8,
+         'valid': 20, 'default': 17, 'code': 4, 'description': 21}
+    ]
+
     def __init__(self, copy=None, defaults=None, **kwds):
         super(MetaData, self).__init__(**kwds)
         if copy:
@@ -639,14 +644,13 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
 
         level: 0 is the most detailed, 2 is the least,
         tablefmt: format string in packae ``tabulate``, for level==0, tablefmt1 for level1, tablefmt2: format of 2D table data.
-        param_widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its tsble cell is, 0 for ommiting the attributable. Default is
+        param_widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its tsble cell is, 0 for ommiting the attributable. Default is `MetaData.Table_Widths[0]`. e.g.
 ``{'name': 8, 'value': 17, 'unit': 7, 'type': 8,
-                      'valid': 25, 'default': 17, 'code': 4, 'description': 15}``
+                      'valid': 20, 'default': 17, 'code': 4, 'description': 15}``
         """
 
         if param_widths is None:
-            param_widths = {'name': 15, 'value': 20, 'unit': 7, 'type': 8,
-                            'valid': 23, 'default': 17, 'code': 4, 'description': 21}
+            param_widths = MetaData.Table_Widths[0]
         tab = []
         # N parameters per row for level 1
         N = 3

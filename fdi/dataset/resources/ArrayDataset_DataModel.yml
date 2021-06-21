@@ -9,11 +9,6 @@ metadata:
         description: Description of this dataset
         default: UNKNOWN
         valid: ''
-    type:
-        data_type: string
-        description: Type identification. Name of class.
-        default: ArrayDataset
-        valid: ''
     unit:
         data_type: string
         description: Unit of every element.

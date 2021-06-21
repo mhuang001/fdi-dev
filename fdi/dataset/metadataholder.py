@@ -18,8 +18,7 @@ class MetaDataHolder(object):
         with defaults set to self.zInfo['metadata'].
         """
         if meta is None:
-            defs = self.zInfo['metadata'] if hasattr(self, 'zInfo') else None
-            meta = metadata.MetaData(defaults=defs)
+            meta = metadata.MetaData()
         self.setMeta(meta)
         super(MetaDataHolder, self).__init__(**kwds)
 

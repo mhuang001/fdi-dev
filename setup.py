@@ -1,5 +1,5 @@
 import os
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, find_namespace_packages
 
 # https://pythonhosted.org/an_example_pypi_project/setuptools.html
 # https://code.tutsplus.com/tutorials/how-to-write-package-and-distribute-a-library-in-python--cms-28693
@@ -26,7 +26,9 @@ setup(
     license="LGPL v3",
     keywords="dataset metadata processing product context serialization server URN RESTful API HCSS",
     url="http://mercury.bao.ac.cn:9006/mh/fdi",
-    packages=find_packages(exclude=['tests', 'tmp']),
+    packages=find_packages(exclude=['tests', 'tmp', 'docs'])
+    # packages=find_namespace_packages(exclude=['tests', 'tmp', 'docs'],
+    #                                 include=('ext',)),
     include_package_data=True,
     long_description=read('README.rst'),
     long_description_content_type="text/x-rst",
@@ -38,6 +40,10 @@ setup(
         'tabulate>=0.8.7',
         'paho-mqtt>=1.5.1',
     ],
+    entry_points={'console_scripts': [
+        'yaml2python=fdi.dataset.yaml2python:main']},
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest', 'pytest-cov', ],
     extras_require={
         'DEV': [
             'setuptools>=43.0.0',
@@ -69,5 +75,3 @@ setup(
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
     ],
 )
-
-#  @ git+https://github.com/mhuang001/sphinx-copybutton.git'

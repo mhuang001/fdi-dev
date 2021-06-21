@@ -9,11 +9,6 @@ metadata:
         description: Description of this dataset
         default: UNKNOWN
         valid: ''
-    type:
-        data_type: string
-        description: Type identification. Name of class.
-        default: TableDataset
-        valid: ''
     version:
         data_type: string
         description: Version of dataset

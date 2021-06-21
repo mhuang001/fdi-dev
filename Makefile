@@ -50,12 +50,18 @@ runserver:
 runpoolserver:
 	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar -v --server=httppool_server $(S)
 
-INSOPT  =
+PIPOPT  = --disable-pip-version-check --no-color
 install:
-	$(PYEXE) -m pip install $(INSOPT) -e .$(EXT) $(I)
+	$(PYEXE) -m pip install $(PIPOPT) -e .$(EXT) $(I)
 
 uninstall:
-	$(PYEXE) -m pip uninstall $(INSOPT) fdi  $(I)
+	$(PYEXE) -m pip uninstall $(PIPOPT) fdi  $(I)
+
+addsubmodule:
+	git submodule add  --name leapseconds https://gist.github.com/92df922103ac9deb1a05 ext/leapseconds
+
+update:
+	git submodule update --init --recursive
 
 PNSDIR=~/pns
 installpns:

@@ -35,7 +35,6 @@ class ArrayDataset(GenericDataset, Iterable):
     def __init__(self, data=None,
                  unit=None,
                  description=None,
-                 typ_=None,
                  shape=None,
                  typecode=None,
                  zInfo=None,

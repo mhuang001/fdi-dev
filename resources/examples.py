@@ -54,9 +54,8 @@ v = ArrayDataset(a1)
 # Show it. This is the same as print(v) in a non-interactive environment.
 v
 
-# Create an ArrayDataset with built-in properties set.
-v = ArrayDataset(data=a1, unit='ev', description='5 elements',
-                 typ_='float', default=1.0, typecode='f')
+# Create an ArrayDataset with some built-in properties set.
+v = ArrayDataset(data=a1, unit='ev', description='5 elements', typecode='f')
 #
 # add some metadats (see more about meta data below)
 v.meta['greeting'] = StringParameter('Hi there.')
@@ -291,9 +290,10 @@ then = datetime(
     2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
 # The value of the next parameter is valid from TAI=0 to 9876543210123456
 valid_rule = {(0, 9876543210123456): 'alive'}
-# display typecode set to 'year' (%Y)
 v['b'] = DateParameter(FineTime(then), 'date param', default=99,
-                       valid=valid_rule, typecode='%Y')
+                       valid=valid_rule)
+# display format set to 'year' (%Y)
+v['b'].format = '%Y-%M'
 # The value of the next parameter has an empty rule set and is always valid.
 v['c'] = StringParameter(
     'Right', 'str parameter. but only "" is allowed.', valid={'': 'empty'}, default='cliche', typecode='B')

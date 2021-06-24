@@ -1,7 +1,7 @@
 PYEXE	= python3
 
 info:
-	$(PYEXE) -c "import sys; print('sys.hash_info.width', sys.hash_info.width)"
+	$(PYEXE) -c "import sys, time; print('sys.hash_info.width', sys.hash_info.width, 'epoch', time.gmtime(0))"
 
 PRODUCT = Product
 B_PRODUCT = BaseProduct

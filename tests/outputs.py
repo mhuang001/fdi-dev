@@ -194,7 +194,7 @@ a       3.4                   None    float     (0, 31): valid        2.0       
                                                                                                   string.
 b       xy (2019-02-19T01:02          finetime  (0, 9876543210123456  1958-01-01T00:00:  Q       date param
         :03.456789                              ): xy                 00.000099
-        1929229323456789)                                             99
+        1929229360456789)                                             99
 c       Invalid (IJK)                 string    '': empty             cliche             B       this is a string para
                                                                                                  meter. but only "" is
                                                                                                   allowed.
@@ -210,7 +210,7 @@ meta= {
 -------------  --------------------------  ----------------
 a= 3.4         b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
                .456789
-               1929229323456789)
+               1929229360456789)
 d= off (0b00)
 -------------  --------------------------  ----------------
 MetaData-listeners = ListnerSet{}
@@ -246,7 +246,7 @@ a                3.4                   None    float     (0, 31): valid        2
                                                                                                            string.
 b                xy (2019-02-19T01:02          finetime  (0, 9876543210123456  1958-01-01T00:00:  Q       date param
                  :03.456789                              ): xy                 00.000099
-                 1929229323456789)                                             99
+                 1929229360456789)                                             99
 c                Invalid (IJK)                 string    '': empty             cliche             B       this is a string para
                                                                                                           meter. but only "" is
                                                                                                            allowed.
@@ -308,7 +308,7 @@ er AD
 typecode= UNKNOWN           version= 0.1                FORMATV= 1.6.0.1
 a= 3.4                      b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
                             .456789
-                            1929229323456789)
+                            1929229360456789)
 d= off (0b00)               added_parameter= 42
 --------------------------  --------------------------  ----------------
 MetaData-listeners = ListnerSet{}
@@ -383,7 +383,7 @@ a                3.4                   None    float     (0, 31): valid        2
                                                                                                            string.
 b                xy (2019-02-19T01:02          finetime  (0, 9876543210123456  1958-01-01T00:00:  Q       date param
                  :03.456789                              ): xy                 00.000099
-                 1929229323456789)                                             99
+                 1929229360456789)                                             99
 c                Invalid (IJK)                 string    '': empty             cliche             B       this is a string para
                                                                                                           meter. but only "" is
                                                                                                            allowed.
@@ -410,7 +410,7 @@ meta= {
 description= UNKNOWN  version= 0.1                FORMATV= 1.6.0.1
 a= 3.4                b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
                       .456789
-                      1929229323456789)
+                      1929229360456789)
 d= off (0b00)         added_parameter= 42
 --------------------  --------------------------  ----------------
 MetaData-listeners = ListnerSet{}
@@ -445,7 +445,7 @@ a       3.4                   None    float     (0, 31): valid        2.0       
                                                                                                   string.
 b       xy (2019-02-19T01:02          finetime  (0, 9876543210123456  1958-01-01T00:00:  Q       date param
         :03.456789                              ): xy                 00.000099
-        1929229323456789)                                             99
+        1929229360456789)                                             99
 c       Invalid (IJK)                 string    '': empty             cliche             B       this is a string para
                                                                                                  meter. but only "" is
                                                                                                   allowed.
@@ -510,7 +510,7 @@ meta= {
 -------------  --------------------------  ----------------
 a= 3.4         b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
                .456789
-               1929229323456789)
+               1929229360456789)
 d= off (0b00)  m1= 2.3
 -------------  --------------------------  ----------------
 MetaData-listeners = ListnerSet{}
@@ -554,13 +554,13 @@ CompositeDataset-datasets =
 out_FineTime = """toString test
 =========== format: "%Y-%m-%dT%H:%M:%S.%f" =======
 FineTime
-level=0 width=0: 2019-02-19T01:02:03.456789 TAI(1929229323456789) format=%Y-%m-%dT%H:%M:%S.%f
-level=1 width=0: 2019-02-19T01:02:03.456789 (1929229323456789)
+level=0 width=0: 2019-02-19T01:02:03.456789 TAI(1929229360456789) format=%Y-%m-%dT%H:%M:%S.%f
+level=1 width=0: 2019-02-19T01:02:03.456789 (1929229360456789)
 level=2 width=0: FineTime(2019-02-19T01:02:03.456789)
 level=0 width=1: 2019-02-19T01:02:03.456789
-1929229323456789
+1929229360456789
 level=1 width=1: 2019-02-19T01:02:03.456789
-1929229323456789
+1929229360456789
 level=2 width=1: FineTime(2019-02-19
 01:02:03.456789)
 FineTime1
@@ -575,13 +575,13 @@ level=2 width=1: FineTime1(2019-02-19
 01:02:03.457000)
 =========== format: "%Y" =======
 FineTime
-level=0 width=0: 2019 TAI(1929229323456789) format=%Y
-level=1 width=0: 2019 (1929229323456789)
+level=0 width=0: 2019 TAI(1929229360456789) format=%Y
+level=1 width=0: 2019 (1929229360456789)
 level=2 width=0: FineTime(2019)
 level=0 width=1: 2019
-1929229323456789
+1929229360456789
 level=1 width=1: 2019
-1929229323456789
+1929229360456789
 level=2 width=1: FineTime(2019)
 FineTime1
 level=0 width=0: 2019 TAI(67309323457) format=%Y

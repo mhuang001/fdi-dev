@@ -996,7 +996,7 @@ def test_DateParameter():
     assert v.value == FineTime(a8)
 
     v = DateParameter('2019-02-19T01:02:03.457')
-    assert v.value.tai == 1929229323457000
+    assert v.value.tai == 1929229360457000
     v.value.format = '%Y'
     print('********', v.value.isoutc(), ' ** ', v, '*******', v.toString(1))
 
@@ -2121,10 +2121,50 @@ def test_FineTime():
     # at TAI = 1, UTC ...
     v = FineTime(1)
     assert v.toDatetime().microsecond == 1
+
+    # comparison
+    v1 = FineTime(12345678901234)
+    v2 = FineTime(12345678901234)
+    v3 = FineTime(1234567890123)
+    assert id(v1) != id(v2)
+    assert v1 == v2
+    assert v1 >= v2
+    assert v2 <= v1
+    assert v3 != v2
+    assert v3 < v2
+    assert v2 > v3
+    assert v2 > 5
+    assert v3 <= v2
+    assert v2 >= v3
+
+    # arithemetics
+    v = FineTime(1234567)
+    assert v + 1 == FineTime(1234568)
+    assert v - 1 == FineTime(1234566)
+    assert v - FineTime(1) == 1234566
+    # two FineTime instances cannot add
+    with pytest.raises(TypeError):
+        assert v + FineTime(1) == FineTime(1234568)
+    with pytest.raises(TypeError):
+        1 + v
+
+    # leap seconds
+    v1 = FineTime(datetime.datetime(2015, 6, 30, 23, 59, 59))
+    #v2 = FineTime(datetime.datetime(2015, 6, 30, 23, 59, 60))
+    v3 = FineTime(datetime.datetime(2015, 7, 1, 0, 0, 0))
+    assert v3-v1 == 2000000  # leapsecond added
+    # assert v3-v2 == 1000000  # 59:60 != 00:00
+
     dt0 = datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
+    posix_epoch = datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+    # unix seconds has no leap seconds
+    unsec = (dt0 - FineTime.EPOCH).total_seconds()
+    assert dt0.timestamp() == unsec - (posix_epoch - FineTime.EPOCH).total_seconds()
     v = FineTime(dt0)
-    assert v.tai == 1929229323456789
+    assert unsec == 1929229323456789/1000000
+    assert v.tai == 1929229360456789
+    assert v.tai/1000000 - unsec == 37
     dt = v.toDatetime()
     assert int(dt.timestamp()) == int(dt0.timestamp())
     # So that timezone won't show on the left below

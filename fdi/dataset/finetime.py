@@ -15,27 +15,6 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-# A UTC class.
-
-
-class UTC(datetime.tzinfo):
-    """UTC
-    https://docs.python.org/2.7/library/datetime.html?highlight=datetime#datetime.tzinfo
-    """
-
-    ZERO = datetime.timedelta(0)
-    HOUR = datetime.timedelta(hours=1)
-
-    def utcoffset(self, dt):
-        return UTC.ZERO
-
-    def tzname(self, dt):
-        return "UTC"
-
-    def dst(self, dt):
-        return UTC.ZERO
-
-
 utcobj = datetime.timezone.utc
 
 
@@ -57,6 +36,9 @@ class FineTime(Copyable, DeepEqual, Serializable):
     RESOLUTION = 1000000  # microsecond
 
     """ """
+    UTC_LOW_LIMIT = EPOCH  # datetime.datetime(1972, 1, 1, 0, 0, 0, tzinfo=utcobj)
+
+    """ """
     DEFAULT_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'  # ISO
 
     RETURNFMT = '%s.%06d'
@@ -66,12 +48,11 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
     def __init__(self, date=None, format=None, **kwds):
         """ Initiate with a UTC date or an integer TAI"""
-        leapsec = 0  # leap seconds to be implemented
 
-        self.format = self.DEFAULT_FORMAT if format is None else format
+        self.format = FineTime.DEFAULT_FORMAT if format is None else format
         self.setTime(date)
         # logger.debug('date= %s TAI = %d' % (str(date), self.tai))
-        super(FineTime, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     @property
     def time(self):
@@ -142,22 +123,29 @@ class FineTime(Copyable, DeepEqual, Serializable):
         in microseconds. """
         return self.tai - time.tai
 
-    def datetimeToFineTime(self, dtm):
-        """ Return given  Python Datetime as a FineTime to the precision of the input. Rounded to the last digit. Unit is decided by RESOLUTION."""
-        leapsec = 0  # leap seconds to be implemented
-        return int(self.RESOLUTION *
-                   ((dtm - self.EPOCH).total_seconds() + leapsec)+0.5)
+    @classmethod
+    def datetimeToFineTime(cls, dtm):
+        """ Return given  Python Datetime in FineTime to the precision of the input. Rounded to the last digit. Unit is decided by RESOLUTION."""
+        if dtm < cls.UTC_LOW_LIMIT:
+            raise NotImplemented(
+                'UTC before %s not working yet.' % str(cls.UTC_LOW_LIMIT))
+        leapsec = leapseconds.dTAI_UTC_from_utc(dtm)
+        sec = cls.RESOLUTION * ((dtm - cls.EPOCH + leapsec).total_seconds())
+        return int(sec+0.5)
 
     def toDatetime(self, tai=None):
         """ Return given FineTime as a Python Datetime.
 
         tai: if not given or given as `None`, return this object's time as a Python Datetime.
         """
-        leapsec = 0  # leap seconds to be implemented
         if tai is None:
             tai = self.tai
-        return datetime.timedelta(seconds=(float(tai) / self.RESOLUTION - leapsec))\
-            + self.EPOCH
+
+        tai_time = datetime.timedelta(seconds=(float(tai) / FineTime.RESOLUTION)) \
+            + FineTime.EPOCH
+        # leapseconds is offset-native
+        leapsec = leapseconds.dTAI_UTC_from_tai(tai_time)
+        return tai_time - leapsec
 
     # HCSS compatibility
     toDate = toDatetime
@@ -166,8 +154,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         """ Returns a String representation of this objet in ISO format without timezone. sub-second set to TIMESPEC.
 
         format: time format. default '%Y-%m-%dT%H:%M:%S' prints like 2019-02-17T12:43:04.577000 """
-        s = (self.tai + 0.0) / self.RESOLUTION
-        dt = datetime.timedelta(seconds=s) + self.EPOCH
+        dt = self.toDatetime(self.tai)
         return dt.strftime(format)
 
     def toString(self, level=0,  width=0, **kwds):
@@ -202,8 +189,65 @@ class FineTime(Copyable, DeepEqual, Serializable):
             s = tais
         return s
 
+    def __repr__(self):
+        return self.toString(level=2)
+
+    def __bool__(self):
+        """ for `if` etc """
+        return self.tai
+
+    def __int__(self):
+        return self.tai
+
+    __index__ = __int__
+
+    def __add__(self, obj):
+        """ can add an integer as a TAI directly and return a new instance."""
+
+        oc = obj.__class__
+        sc = self.__class__
+        if issubclass(oc, int):
+            return sc(self.tai+obj, format=self.format)
+        else:
+            raise TypeError(
+                f'{sc.__name__} cannot add/minus {oc.__name__} {obj}')
+
+    def __sub__(self, obj):
+        """ can minus an integer as a TAI directly and return a new instance,
+        or subtract another FineTime instance and returns TAI difference in microseconds.
+        """
+        oc = obj.__class__
+        sc = self.__class__
+        if issubclass(oc, int):
+            return sc(self.tai-obj, format=self.format)
+        elif issubclass(oc, sc):
+            return self.tai - obj.tai
+        else:
+            raise TypeError(f'{sc.__name__} cannot minus {oc.__name__} {obj}')
+
+    def __iadd__(self, obj):
+        """ can add an integer as a TAI directly to self like ```v += 3```."""
+
+        oc = obj.__class__
+        sc = self.__class__
+        if issubclass(oc, int):
+            self.tai += obj
+        else:
+            raise TypeError(f'{sc.__name__} cannot add/minus {oc} {obj}')
+
+    def __isub__(self, obj):
+        """ can subtract an integer as a TAI directly from self like ```v -= 3```."""
+
+        oc = obj.__class__
+        sc = self.__class__
+        if issubclass(oc, int):
+            self.tai -= obj
+        else:
+            raise TypeError(f'{sc.__name__} cannot add/minus {oc} {obj}')
+
     def __lt__(self, obj):
         """ can compare TAI directly """
+
         if 1:
             # if type(obj).__name__ in ParameterTypes.values():
             return self.tai < obj
@@ -234,14 +278,6 @@ class FineTime(Copyable, DeepEqual, Serializable):
         else:
             return super(FineTime, self).__ge__(obj)
 
-    def __repr__(self):
-        return self.toString(level=2)
-        co = ', '.join(str(k)+'=' + ('"'+v+'"' if issubclass(v.__class__, str)
-                                     else str(v)) for k, v in self.__getstate__().items())
-        return '<'+self.__class__.__name__ + ' ' + co + '>'
-
-    # __str__ = toString
-
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(tai=self.tai,
@@ -255,3 +291,23 @@ class FineTime1(FineTime):
     RESOLUTION = 1000  # millisecond
     RETURNFMT = '%s.%03d'
     TIMESPEC = 'milliseconds'
+    TAI_AT_EPOCH = FineTime.datetimeToFineTime(EPOCH)
+
+    def __init__(self, *args, **kwds):
+
+        self.relative_res = FineTime.RESOLUTION / float(self.RESOLUTION)
+        super().__init__(*args, **kwds)
+
+    @classmethod
+    def datetimeToFineTime(cls, dtm):
+
+        sec = (FineTime.datetimeToFineTime(dtm) -
+               cls.TAI_AT_EPOCH) / FineTime.RESOLUTION
+        # for subclasses with a different epoch
+        return int(sec * cls.RESOLUTION + 0.5)
+
+    def toDatetime(self, tai=None):
+
+        if tai is None:
+            tai = self.tai
+        return super().toDatetime(tai * self.relative_res + self.TAI_AT_EPOCH)

@@ -5,7 +5,7 @@ from .eq import DeepEqual
 from .copyable import Copyable
 # from .metadata import ParameterTypes
 
-from ext.leapseconds import leapseconds
+from ..utils import leapseconds
 import datetime
 from collections import OrderedDict
 

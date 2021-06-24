@@ -26,9 +26,7 @@ setup(
     license="LGPL v3",
     keywords="dataset metadata processing product context serialization server URN RESTful API HCSS",
     url="http://mercury.bao.ac.cn:9006/mh/fdi",
-    packages=find_packages(exclude=['tests', 'tmp', 'docs'])
-    # packages=find_namespace_packages(exclude=['tests', 'tmp', 'docs'],
-    #                                 include=('ext',)),
+    packages=find_packages(exclude=['tests', 'tmp', 'docs']),
     include_package_data=True,
     long_description=read('README.rst'),
     long_description_content_type="text/x-rst",

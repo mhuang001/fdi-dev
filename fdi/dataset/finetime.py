@@ -193,8 +193,11 @@ class FineTime(Copyable, DeepEqual, Serializable):
         return self.toString(level=2)
 
     def __bool__(self):
-        """ for `if` etc """
-        return self.tai
+        """ `True` if `tai > 0`.  
+
+        For `if` etc 
+        """
+        return self.tai > 0
 
     def __int__(self):
         return self.tai

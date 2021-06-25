@@ -159,6 +159,7 @@ class Serializable(object):
     """
 
     def __init__(self, **kwds):
+
         super(Serializable, self).__init__(**kwds)
         sc = self.__class__
         # print('@@@ ' + sc.__name__, str(issubclass(sc, dict)))

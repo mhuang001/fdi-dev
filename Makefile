@@ -1,7 +1,7 @@
 PYEXE	= python3
 
 info:
-	$(PYEXE) -c "import sys; print('sys.hash_info.width', sys.hash_info.width)"
+	$(PYEXE) -c "import sys, time; print('sys.hash_info.width', sys.hash_info.width, 'epoch', time.gmtime(0))"
 
 PRODUCT = Product
 B_PRODUCT = BaseProduct
@@ -14,8 +14,14 @@ P_YAML	= $(RESDIR)/$(PRODUCT).yml
 B_YAML	= $(RESDIR)/$(B_PRODUCT).yml
 P_TEMPLATE	= $(RESDIR)
 B_TEMPLATE	= $(RESDIR)
+ARRAYD	= ArrayDataset_DataModel
+ARRAYD_PY=$(shell $(PYEXE) -S -c "print('$(ARRAYD)'.lower())").py
+ARRAYD_YAML	= $(RESDIR)/$(ARRAYD).yml
+TABLED	= TableDataset_DataModel
+TABLED_PY=$(shell $(PYEXE) -S -c "print('$(TABLED)'.lower())").py
+TABLED_YAML	= $(RESDIR)/$(TABLED).yml
 
-py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY)
+py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY) $(PYDIR)/$(ARRAYD_PY) $(PYDIR)/$(TABLED_PY)
 
 $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).template $(PYDIR)/$(B_PY)
 	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
@@ -23,6 +29,9 @@ $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).tem
 
 $(PYDIR)/$(B_PY): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE)/$(B_PRODUCT).template 
 	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
+
+$(PYDIR)/$(ARRAYD_PY)  $(PYDIR)/$(TABLED_PY): $(PYDIR)/yaml2python.py $(ARRAYD_YAML) $(RESDIR)/$(ARRAYD).template $(TABLED_YAML) $(RESDIR)/$(TABLED).template 
+	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(RESDIR) -o $(PYDIR) $(Y)
 
 yamlupgrade: 
 	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -u
@@ -41,12 +50,18 @@ runserver:
 runpoolserver:
 	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar -v --server=httppool_server $(S)
 
-INSOPT  =
+PIPOPT  = --disable-pip-version-check --no-color
 install:
-	$(PYEXE) -m pip install $(INSOPT) -e .$(EXT) $(I)
+	$(PYEXE) -m pip install $(PIPOPT) -e .$(EXT) $(I)
 
 uninstall:
-	$(PYEXE) -m pip uninstall $(INSOPT) fdi  $(I)
+	$(PYEXE) -m pip uninstall $(PIPOPT) fdi  $(I)
+
+addsubmodule:
+	git submodule add  --name leapseconds https://gist.github.com/92df922103ac9deb1a05 ext/leapseconds
+
+update:
+	git submodule update --init --recursive --remote
 
 PNSDIR=~/pns
 installpns:
@@ -134,38 +149,41 @@ versiontag:
 
 PYTEST	= python3 -m pytest
 TESTLOG	= /tmp/fdi-tests.log
-
-OPT	= -r P -v -l --pdb  #--log-file=$(TESTLOG)
+L	= INFO #WARNING
+OPT	= -r P -v -l --pdb -s --show-capture=all  --log-level=$(L)
 T	= 
-test: test1 test2
+test: test1 test2 test5
 
-testpns: test5 test4
+testpns: test4
 
-testhttp: test6 test7 test8
+testhttp: test6 test7 test8 test9
 
 test1: 
-	$(PYTEST) tests/test_dataset.py --cov=fdi/dataset $(OPT) $(T)
+	$(PYTEST) tests/test_dataset.py -k 'not _mqtt' --cov=fdi/dataset $(OPT) $(T)
 
 test2:
 	$(PYTEST) tests/test_pal.py -k 'not _http' $(T) --cov=fdi/pal $(OPT)
 
 test3:
-	$(PYTEST)  $(OPT) -k 'server' $(T) tests/test_pns.py --cov=fdi/pns
+	$(PYTEST)  $(OPT) -k 'server' $(T) tests/serv/test_pns.py --cov=fdi/pns
 
 test4:
-	$(PYTEST) $(OPT) -k 'not server' $(T) tests/test_pns.py --cov=fdi/pns
+	$(PYTEST) $(OPT) -k 'not server' $(T) tests/serv/test_pns.py --cov=fdi/pns
 
 test5:
 	$(PYTEST)  $(OPT) $(T) tests/test_utils.py --cov=fdi/utils
 
 test6:
-	$(PYTEST) $(OPT) $(T) tests/test_httppool.py
+	$(PYTEST) $(OPT) $(T) tests/serv/test_httppool.py
 
 test7:
-	$(PYTEST) $(OPT) $(T) tests/test_httpclientpool.py
+	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py
 
 test8:
 	$(PYTEST) $(OPT) $(T) tests/test_pal.py -k '_http'
+
+test9:
+	$(PYTEST) tests/test_dataset.py -k '_mqtt' $(T)
 
 
 FORCE:
@@ -217,7 +235,7 @@ docs_html:
 SERVER_NAME        =httppool_server
 PORT        =9884
 EXTPORT =$(PORT)
-IMAGE_NAME         =httppool_server:v2
+IMAGE_NAME         =mh/httppool_server:v3
 IP_ADDR     =10.0.10.114
 
 DOCKERFILE              =fdi/pns/resources/httppool_server.docker
@@ -229,11 +247,11 @@ secret:
 	@echo RUN --mount=type=secret,id=envs source /run/secrets/envs
 	@echo docker run --env-file  $(SECFILE)
 	@echo export IP=172.17.0.9 >> $(SECFILE)
-	@echo export HOST_PORT=9984 >> $(SECFILE)
+	@echo export HOST_PORT= >> $(SECFILE)
 	@echo export HOST_USER=foo >> $(SECFILE)
 	@echo export HOST_PASS=bar >> $(SECFILE)
-	@echo export MQ_HOST=123.56.10. >> $(SECFILE)
-	@echo export MQ_PORT= 31876 >> $(SECFILE)
+	@echo export MQ_HOST= >> $(SECFILE)
+	@echo export MQ_PORT= >> $(SECFILE)
 	@echo export MQ_USER=  >> $(SECFILE)
 	@echo export MQ_PASS= >> $(SECFILE)
 	@cat  $(SECFILE)
@@ -242,7 +260,7 @@ build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .
 
 launch_server:
-	docker run -d -it --env-file $(SECFILE) -p $(PORT):$(EXTPORT) --name $(SERVER_NAME) $(D) $(IMAGE_NAME) $(B)
+	docker run -d -it --network=bridge --env-file $(SECFILE) --name $(SERVER_NAME) $(D) $(IMAGE_NAME) -p $(PORT):$(EXTPORT) $(B)
 	sleep 2
 	docker ps -n 1
 
@@ -263,7 +281,9 @@ its:
 	docker exec -it $(D) $(SERVER_NAME) /bin/bash
 
 t:
-	docker exec -it $(D) $(SERVER_NAME) /usr/bin/tail -n 100-f /home/apache/error-ps.log
+	docker exec -it $(D) $(SERVER_NAME) /usr/bin/tail -n 100 -f /home/apache/error-ps.log
 
 i:
 	docker exec -it $(D) $(SERVER_NAME) /usr/bin/less -f /home/apache/error-ps.log
+
+ 

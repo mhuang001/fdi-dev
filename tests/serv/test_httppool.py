@@ -5,7 +5,7 @@
 #################
 
 
-from .test_utils import get_sample_product
+from fdi.dataset.testproducts import get_sample_product
 from fdi.dataset.serializable import serialize
 from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
@@ -25,6 +25,7 @@ from requests.auth import HTTPBasicAuth
 # import requests
 import random
 import os
+import pytest
 from pprint import pprint
 
 import time
@@ -71,7 +72,7 @@ if 0:
 lupd = 0
 
 
-test_poolid = 'test'
+test_poolid = 'fdi_'+__name__
 prodt = 'fdi.dataset.product.Product'
 
 
@@ -278,9 +279,9 @@ def populate_server(poolid, aburl, auth, clnt):
                     instrument=random.choice(instruments))
         x.creator = i
         data = serialize(x)
-        path = poolid + '/' + prodt + '/' + str(index)
-        url = aburl + '/' + path
+        url = aburl + '/' + poolid + '/' + prodt + '/' + str(index)
         x = clnt.post(url, auth=HTTPBasicAuth(*auth), data=data)
+        print(len(data))
         o = deserialize(x.text)
         check_response(o)
         urns.append(o['result'])
@@ -528,7 +529,7 @@ def test_product_path(setup, userpass, client):
     x = client.get(url, auth=auth)
     assert x.headers['Content-Type'] == 'text/plain'
     c = x.text
-    print(c)
+    # print(c)
     assert 'UNKNOWN' in c
 
 

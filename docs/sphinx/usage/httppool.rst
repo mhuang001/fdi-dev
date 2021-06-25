@@ -22,7 +22,7 @@ Install fdi. Copy the config file over
 
 .. code-block:: shell
 		
-		cp fdi/pns/pnsconfig.py ~/.config/pnslocal.py
+		cp fdi/pns/config.py ~/.config/pnslocal.py
 
 To customize ``~/.config/pnslocal.py`` modify these according to your system:
 
@@ -124,7 +124,7 @@ Install fdi. Copy the config file over
 
 .. code-block:: shell
 		
-		cp fdi/pns/pnsconfig.py ~/.config/pnslocal.py
+		cp fdi/pns/config.py ~/.config/pnslocal.py
 
 To customize ``~/.config/pnslocal.py`` modify these according to your system:
 

@@ -6,6 +6,10 @@ Change Log
 BETA0
 =====
 
+1.6.0 2021-06-10
+----------------
+http pool docker stablising; MetaDataParameter; messag queue;
+
 1.5.0 2021-04-27
 -----------------
 httppool server API 0.7 python API path.

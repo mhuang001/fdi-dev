@@ -1,5 +1,5 @@
 
-from fdi.dataset.dataset import ArrayDataset
+from fdi.dataset.arraydataset import ArrayDataset
 import itertools
 import random
 import timeit
@@ -92,15 +92,15 @@ def test_UrnUtils():
     prd = Product(description='pal test')
     a1 = 'file'      # scheme
     a2 = '/e:'            # place
-    b1, b2 = '/tmp/foo', 'pool/name'
-    a3 = b1 + '/' + b2               # /tmp/foo/pool/name
+    b1, b2 = '/tmp/foo', 'name'
+    a3 = b1 + '/' + b2               # /tmp/foo/name
     a4 = fullname(prd)           # fdi.dataset.Product
     a5 = 43
     s = a1 + '://' + a2          # file:///e:
-    poolurl = s + a3                   # file:///e:/tmp/foo/pool/name
+    poolurl = s + a3                   # file:///e:/tmp/foo/name
     r = a4 + ':' + str(a5)       # fdi.dataset.Product:43
     rp = a4 + '_' + str(a5)      # fdi.dataset.Product_43
-    urn = 'urn:' + b2 + ':' + r  # urn:pool/name:fdi.dataset.Product:43
+    urn = 'urn:' + b2 + ':' + r  # urn:name:fdi.dataset.Product:43
     urn1 = 'urn:' + b2 + ':' + a4+':'+str(a5-1)
     # utils
     assert parseUrn(urn) == (b2, a4, a5)
@@ -152,15 +152,15 @@ def test_Urn():
     prd = Product(description='pal test')
     a1 = 'file'      # scheme
     a2 = '/e:'            # place
-    b1, b2 = '/tmp/foo', 'pool/name'
-    a3 = b1 + '/' + b2               # /tmp/foo/pool/name
+    b1, b2 = '/tmp/foo', 'name'
+    a3 = b1 + '/' + b2               # /tmp/foo/name
     a4 = fullname(prd)           # fdi.dataset.Product
     a5 = 43
     s = a1 + '://' + a2          # file:///e:
-    poolurl = s + a3                   # file:///e:/tmp/foo/pool/name
+    poolurl = s + a3                   # file:///e:/tmp/foo/name
     r = a4 + ':' + str(a5)       # fdi.dataset.Product:43
     rp = a4 + '_' + str(a5)      # fdi.dataset.Product_43
-    urn = 'urn:' + b2 + ':' + r  # urn:pool/name:fdi.dataset.Product:43
+    urn = 'urn:' + b2 + ':' + r  # urn:name:fdi.dataset.Product:43
     urn1 = 'urn:' + b2 + ':' + a4+':'+str(a5-1)
     # constructor
     # urn only
@@ -278,7 +278,7 @@ def cleanup(poolurl=None, poolname=None):
 
 
 def test_PoolManager():
-    defaultpoolName = 'pool_' + getpass.getuser()
+    defaultpoolName = 'fdi_pool_' + __name__ + getpass.getuser()
     defaultpoolPath = '/tmp'
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
@@ -383,7 +383,7 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args):
 
 
 def test_ProductRef():
-    defaultpoolName = 'pool_' + getpass.getuser()
+    defaultpoolName = 'fdi_pool_' + __name__ + getpass.getuser()
     defaultpoolPath = '/tmp'
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
@@ -457,11 +457,11 @@ def test_ProductRef():
 
 
 def test_ProductStorage_init():
-    defaultpoolname = 'pool_' + getpass.getuser()
+    defaultpoolname = 'fdi_pool_' + __name__ + getpass.getuser()
     poolpath = '/tmp'
     defaultpoolurl = 'file://' + poolpath + '/' + defaultpoolname
     cleanup(defaultpoolurl, defaultpoolname)
-    newpoolname = 'newpool_' + getpass.getuser()
+    newpoolname = 'fdi_newpool_' + __name__ + getpass.getuser()
     newpoolurl = 'file://' + poolpath + '/' + newpoolname
     cleanup(newpoolurl, newpoolname)
 
@@ -579,7 +579,7 @@ def check_ps_func_for_pool(thepoolname, thepoolurl, *args):
 
 def test_ProdStorage_func_local_mem():
     # local pool
-    thepoolname = 'pool_' + getpass.getuser()
+    thepoolname = 'fdi_pool_' + __name__ + getpass.getuser()
     thepoolpath = '/tmp'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
     cleanup(thepoolurl, thepoolname)
@@ -598,7 +598,7 @@ def test_ProdStorage_func_http(setup, userpass):
 
     aburl, hdr = setup
     # httpclientpool
-    thepoolname = 'testhttppool'
+    thepoolname = 'fdi_'+__name__
     thepoolurl = aburl + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
@@ -619,7 +619,7 @@ def test_ProdStorage_func_http(setup, userpass):
 
 def test_ProdStorage_func_server(local_pools_dir):
     # httppool , the http server-side pool
-    thepoolname = 'testserverpool'
+    thepoolname = 'fdi_server'+__name__
     thepoolurl = 'server://' + local_pools_dir + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
@@ -627,7 +627,7 @@ def test_ProdStorage_func_server(local_pools_dir):
 
 
 def test_LocalPool():
-    thepoolname = 'pool_' + getpass.getuser()
+    thepoolname = 'fdi_localpool_' + __name__ + getpass.getuser()
     thepoolpath = '/tmp'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
 
@@ -700,12 +700,12 @@ def doquery(poolpath, newpoolpath):
     assert q.retrieveAllVersions() == a4
 
     # make a productStorage
-    thepoolname = 'pool_' + getpass.getuser()
+    thepoolname = 'fdi_pool_' + __name__ + getpass.getuser()
     thepoolurl = poolpath + '/' + thepoolname
     thepool, pstore = mkStorage(thepoolname, thepoolurl)
 
     # make another
-    newpoolname = 'newpool_' + getpass.getuser()
+    newpoolname = 'fdi_newpool_' + __name__ + getpass.getuser()
     newpoolurl = newpoolpath + '/' + newpoolname
     newpool, pstore2 = mkStorage(newpoolname, newpoolurl)
 
@@ -979,7 +979,7 @@ def test_MapContext():
     assert c4['refs']['x'].product.description == 'hi'
 
     # stored prod
-    thepoolname = 'pool_' + getpass.getuser()
+    thepoolname = 'fdi_pool_' + __name__ + getpass.getuser()
     thepoolpath = '/tmp'
     thepoolurl = 'file://' + thepoolpath + '/'+thepoolname
     # create a prooduct
@@ -1059,7 +1059,7 @@ def test_MapContext():
 
 
 def test_realistic():
-    poolname = 'pool_' + getpass.getuser()
+    poolname = 'fdi_pool_' + __name__ + getpass.getuser()
     poolpath = '/tmp'
     poolurl = 'file://' + poolpath + '/' + poolname
     # remove existing pools in memory
@@ -1127,7 +1127,7 @@ def speed():
     p['array'] = a
     PoolManager().removeAll()
     # create a product store
-    pool = 'file:///tmp/perf_' + getpass.getuser()
+    pool = 'file:///tmp/fdi_perf_' + __name__ + getpass.getuser()
     pstore = ProductStorage(pool)
     # clean up possible garbage of previous runs
     pstore.wipePool()

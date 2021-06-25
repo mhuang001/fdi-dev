@@ -13,9 +13,13 @@ You can copy the code from code blocks by clicking the ``copy`` icon on the top-
 
 # Import these packages needed in the tutorial
 from fdi.dataset.product import Product
-from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter
+from fdi.dataset.metadata import Parameter, MetaData
+from fdi.dataset.numericparameter import NumericParameter
+from fdi.dataset.stringparameter import StringParameter
+from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.finetime import FineTime, FineTime1
-from fdi.dataset.dataset import ArrayDataset, TableDataset, Column
+from fdi.dataset.arraydataset import ArrayDataset, Column
+from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.classes import Classes
 from fdi.pal.context import Context, MapContext
 from fdi.pal.productref import ProductRef
@@ -50,9 +54,8 @@ v = ArrayDataset(a1)
 # Show it. This is the same as print(v) in a non-interactive environment.
 v
 
-# Create an ArrayDataset with built-in properties set.
-v = ArrayDataset(data=a1, unit='ev', description='5 elements',
-                 typ_='float', default=1.0, typecode='f')
+# Create an ArrayDataset with some built-in properties set.
+v = ArrayDataset(data=a1, unit='ev', description='5 elements', typecode='f')
 #
 # add some metadats (see more about meta data below)
 v.meta['greeting'] = StringParameter('Hi there.')
@@ -287,9 +290,10 @@ then = datetime(
     2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
 # The value of the next parameter is valid from TAI=0 to 9876543210123456
 valid_rule = {(0, 9876543210123456): 'alive'}
-# display typecode set to 'year' (%Y)
 v['b'] = DateParameter(FineTime(then), 'date param', default=99,
-                       valid=valid_rule, typecode='%Y')
+                       valid=valid_rule)
+# display format set to 'year' (%Y)
+v['b'].format = '%Y-%M'
 # The value of the next parameter has an empty rule set and is always valid.
 v['c'] = StringParameter(
     'Right', 'str parameter. but only "" is allowed.', valid={'': 'empty'}, default='cliche', typecode='B')
@@ -507,8 +511,8 @@ A :class:`ProductStorage` with pools attached can be queried with tags, properti
 """)
 
 # clean possible data left from previous runs
-defaultpoolpath = '/tmp/pool_' + getpass.getuser()
-newpoolname = 'newpool_' + getpass.getuser()
+defaultpoolpath = '/tmp/fdi_pool_' + __name__ + getpass.getuser()
+newpoolname = 'fdi_newpool_' + __name__ + getpass.getuser()
 newpoolpath = '/tmp/' + newpoolname
 os.system('rm -rf ' + defaultpoolpath)
 os.system('rm -rf ' + newpoolpath)
@@ -529,15 +533,15 @@ for i in range(n):
     a0, a1, a2 = 'desc %d' % i, 'fatman %d' % (i*4), 5000+i
     if i < 3:
         # Product type
-        x = Product(description=a0, instrument=a1)
+        x = Product(description=a0, creator=a1)
         x.meta['extra'] = Parameter(value=a2)
     elif i < 5:
         # a different type
-        x = Context(description=a0, instrument=a1)
+        x = Context(description=a0, creator=a1)
         x.meta['extra'] = Parameter(value=a2)
     else:
         # yet another type
-        x = MapContext(description=a0, instrument=a1)
+        x = MapContext(description=a0, creator=a1)
         x.meta['extra'] = Parameter(value=a2)
         x.meta['time'] = Parameter(value=FineTime1(a2))
     if i < 4:
@@ -573,17 +577,17 @@ len(res)   # == 4
 def t(m):
     # query is a function
     import re
-    # 'instrument' matches the regex pattern
-    return re.match('.*n.1.*', m['instrument'].value)
+    # 'creator' matches the regex pattern
+    return re.match('.*n.1.*', m['creator'].value)
 
 
 q = MetaQuery(Product, t)
 res = pstore.select(q)
 # expecting [3,4]
-[r.product.instrument for r in res]
+[r.product.creator for r in res]
 
 # same as above but query is on the product. this is slow.
-q = AbstractQuery(Product, 'p', '"n 1" in p.instrument')
+q = AbstractQuery(Product, 'p', '"n 1" in p.creator')
 res = pstore.select(q)
 # [3,4]
-[r.product.instrument for r in res]
+[r.product.creator for r in res]

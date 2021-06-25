@@ -40,6 +40,7 @@ def trbk2(e):
 
 def bstr(x, length=0, tostr=True, quote="'", level=0,
          tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+         width=0,
          **kwds):
     """ returns the best string representation.
     if the object is a string, return single-quoted; if has toString(), use it; else returns str(). Length limited by lls(lls)
@@ -53,7 +54,7 @@ def bstr(x, length=0, tostr=True, quote="'", level=0,
     elif tostr and hasattr(x, 'toString') and not issubclass(x.__class__, type):
         r = x.toString(level=level,
                        tablefmt=tablefmt, tablefmt1=tablefmt1,
-                       tablefmt2=tablefmt2,
+                       tablefmt2=tablefmt2, width=width,
                        **kwds)
     elif issubclass(x.__class__, (bytes, bytearray, memoryview)):
         r = x.hex()
@@ -90,7 +91,7 @@ def wls(s, width=15):
     return '\n'.join(ret)
 
 
-def mstr(obj, level=0, excpt=None, indent=4, depth=0,
+def mstr(obj, level=0, width=1, excpt=None, indent=4, depth=0,
          tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
          **kwds):
     """ Makes a presentation string at a detail level.
@@ -162,7 +163,7 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0,
         return ', '.join(s)
 
 
-def binhexstring(val, typ_, width=0, v=None, p=None):
+def binhexstring(val, typ_, width=0, v=None, p=None, level=0, **kwds):
     """ returns val in binary, hex, or string according to typ_.
 
     val; list of validity descriptor entries.
@@ -185,11 +186,6 @@ def binhexstring(val, typ_, width=0, v=None, p=None):
     highest = 0
     masks = []
     for t in val:
-        if not issubclass(t.__class__, (tuple, list)):
-            # val is a one-dim array or vector
-            lst.append(func(t))
-            breakline = False
-            continue
         if v == '_valid':
             # val is for '_valid' [[], [], []..]
             rule, name = t[0], t[1]
@@ -218,8 +214,8 @@ def binhexstring(val, typ_, width=0, v=None, p=None):
         else:
             # val is a 1+ dimension array
             lst.append(lls(t, 19))
-            if len(lst) > 6:
-                lst.append('... total %d elements in dim=1' % len(val))
+            if len(lst) > 8:
+                lst.append('... tot. %d in dim1' % len(val))
                 break
     if highest > 0:
         # like '110000: 0b10 name1', '001111: 0b0110 name2']
@@ -264,13 +260,13 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
         else:
             # for default and value/data, print list horizontally
             width = 0
-            vs = binhexstring(val, ts, width=width)
+            vs = binhexstring(val, ts, width=width, **kwds)
     elif v == '_valid':
         if ts.startswith('finetime'):
             # print('***', v, ts)
-            vs = binhexstring(val, 'string', width=width, v=v)
+            vs = binhexstring(val, 'string', width=width, v=v, **kwds)
         else:
-            vs = binhexstring(val, ts, width=width, v=v, p=p)
+            vs = binhexstring(val, ts, width=width, v=v, p=p, **kwds)
     else:
         # v is '_value/data'
         if ts.startswith('finetime'):
@@ -286,7 +282,7 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
         elif not state or not hasattr(p, 'validate'):
             # for  value/data, print list horizontally
             width = 0
-            vs = binhexstring(val, ts, width=width, v=v)
+            vs = binhexstring(val, ts, width=width, v=v, **kwds)
         elif hasattr(p, 'validate'):
             # v is _value/data of parameter of non-finetime to be displayed with state
             validity = p.validate(val)
@@ -294,9 +290,10 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                 # not binary masked
                 vv, vdesc = validity
                 if vdesc.lower() not in Ommitted_Valid_Rule_Names:
-                    vs = '%s (%s)' % (vdesc, binhexstring(val, ts, v=v))
+                    vs = '%s (%s)' % (
+                        vdesc, binhexstring(val, ts, v=v, **kwds))
                 else:
-                    vs = binhexstring(val, ts, v=v)
+                    vs = binhexstring(val, ts, v=v, **kwds)
             else:
                 # binary masked. validity is a list of tuple/lists
                 # validity is (val, state, mask height, mask width)
@@ -332,7 +329,7 @@ def attrstr1(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
             if ts.startswith('finetime'):
                 # print('***', v, ts)
                 if v == '_valid':
-                    s = binhexstring(val, 'string', v=v)
+                    s = binhexstring(val, 'string', v=v, **kwds)
                 elif v == '_default':
                     s = val.toString(width=width, **kwds)
                 elif state:
@@ -349,7 +346,7 @@ def attrstr1(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                 if v != '_valid':
                     # for default and value/data, print list horizontally
                     width = 0
-                vs = binhexstring(val, ts, width=width, v=v)
+                vs = binhexstring(val, ts, width=width, v=v, **kwds)
             elif hasattr(p, 'validate'):
                 # v is _value/data of parameter of non-finetime to be displayed with state
                 validity = p.validate(val)
@@ -357,9 +354,10 @@ def attrstr1(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                     # not binary masked
                     vv, vdesc = validity
                     if vdesc.lower() not in Ommitted_Valid_Rule_Names:
-                        vs = '%s (%s)' % (vdesc, binhexstring(val, ts, v=v))
+                        vs = '%s (%s)' % (
+                            vdesc, binhexstring(val, ts, v=v, **kwds))
                     else:
-                        vs = binhexstring(val, ts, v=v)
+                        vs = binhexstring(val, ts, v=v, **kwds)
                 else:
                     # binary masked. validity is a list of tuple/lists
                     # validity is (val, state, mask height, mask width)

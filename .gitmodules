@@ -1,0 +1,3 @@
+[submodule "leapseconds"]
+	path = ext/leapseconds
+	url = https://gist.github.com/92df922103ac9deb1a05

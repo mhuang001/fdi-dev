@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from .odict import ODict
 from .eq import DeepEqual
-#from collections import OrderedDict
+from collections import Sized, Container, Iterator, OrderedDict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -10,8 +10,10 @@ logger = logging.getLogger(__name__)
 # from .listener import DatasetEventSender, DatasetListener
 # from .metadata import DataWrapperMapper
 
+# order of Container, Sized, Iterator must be the same as in DataContaier!
 
-class Composite(DeepEqual):
+
+class Composite(DeepEqual, Container, Sized, Iterator):
     """ A container of named Datasets.
 
     This container can hold zero or more datasets, each of them
@@ -25,7 +27,7 @@ class Composite(DeepEqual):
 
     def __init__(self, **kwds):
         self._sets = ODict()
-        super(Composite, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     def containsKey(self, name):
         """ Returns true if this map contains a mapping for

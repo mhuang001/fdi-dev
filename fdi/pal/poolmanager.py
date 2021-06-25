@@ -19,11 +19,11 @@ pc = getConfig()
 
 DEFAULT_MEM_POOL = 'defaultmem'
 # localpool
-DEFAULT_POOL = 'pool_' + getpass.getuser()
+DEFAULT_POOL = 'fdi_pool_' + __name__ + getpass.getuser()
 
 
 def remoteRegister(p, poolurl):
-    logger.info('Register %s on the server', poolurl)
+    logger.debug('Register %s on the server', poolurl)
     try:
         res, msg = put_on_server('urn:::0', poolurl, 'pool')
     except ConnectionError as e:
@@ -39,7 +39,7 @@ def remoteUnregister(poolurl):
     if not poolurl.lower().startswith('http'):
         logger.warning('Ignored: %s not for a remote pool.' % poolurl)
         return 1
-    logger.info('unregister %s on the server', poolurl)
+    logger.debug('unregister %s on the server', poolurl)
     #url = api_baseurl + post_poolid
     #x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     #o = deserialize(x.text)

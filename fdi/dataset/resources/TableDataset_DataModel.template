@@ -1,0 +1,21 @@
+# -*- coding: utf-8 -*-
+
+$WARNING
+
+$IMPORTS
+
+from fdi.dataset.readonlydict import ReadOnlyDict
+
+import copy
+
+import logging
+# create logger
+logger = logging.getLogger(__name__)
+
+
+# Data Model specification for mandatory components
+$MODELSPEC
+
+Model = ReadOnlyDict(_Model_Spec)
+
+

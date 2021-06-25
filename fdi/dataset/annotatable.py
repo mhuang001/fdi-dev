@@ -18,17 +18,19 @@ class Annotatable(object):
     def description(self):
         """ xx must be a property for ``self.xx = yy`` to work in super class after xx is set as a property also by a subclass.
         """
-        return self.getDescription()
+        try:
+            return self._description
+        except AttributeError:
+            return None
 
     @description.setter
     def description(self, description):
-        self.setDescription(description)
+        self._description = description
 
     def getDescription(self):
         """ gets the description of this Annotatable object. """
-        return self._description
+        return self.description  # __getattribute__('description')
 
     def setDescription(self, newDescription):
         """ sets the description of this Annotatable object. """
-        self._description = newDescription
-        return
+        self.description = newDescription  # __setattr__('description', newDescription)

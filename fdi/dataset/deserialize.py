@@ -26,7 +26,6 @@ else:
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-
 ''' Note: this has to be in a different file where other interface
 classes are defined to avoid circular dependency (such as ,
 Serializable.
@@ -218,8 +217,7 @@ def deserialize(js, lookup=None, debug=False, usedict=True):
     if usedict is True dict insted of ODict will be used.
     """
 
-    if lookup is None:
-        lookup = ChainMap(Classes.mapping, globals(), vars(builtins))
+    lookup = Class_Look_Up
 
     if not isinstance(js, strset) or len(js) == 0:
         return None
@@ -242,3 +240,6 @@ def deserialize(js, lookup=None, debug=False, usedict=True):
     global indent
     indent = -1
     return constructSerializable(obj, lookup=lookup, debug=debug)
+
+
+Class_Look_Up = ChainMap(Classes._classes, globals(), vars(builtins))

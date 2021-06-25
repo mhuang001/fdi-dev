@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from fdi.dataset.odict import ODict
-from fdi.dataset.dataset import TableDataset, IndexedTableDataset
+from fdi.dataset.tabledataset import TableDataset, IndexedTableDataset
 from fdi.dataset.indexed import Indexed
 import random
 from operator import itemgetter

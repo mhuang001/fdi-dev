@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+
+from .typecoded import Typecoded
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class Quantifiable(object):
+class Quantifiable(Typecoded):
     """ A Quantifiable object is a numeric object that has a unit.
     $ x.unit = ELECTRON_VOLTS
     $ print x.unit
@@ -16,9 +19,8 @@ class Quantifiable(object):
 
         """
         self.setUnit(unit)
-        self.setTypecode(typecode)
         #print(__name__ + str(kwds))
-        super(Quantifiable, self).__init__(**kwds)
+        super(Quantifiable, self).__init__(typecode=typecode, **kwds)
 
     @property
     def unit(self):
@@ -35,19 +37,3 @@ class Quantifiable(object):
     def setUnit(self, unit):
         """ Sets the unit of this object. """
         self._unit = unit
-
-    @property
-    def typecode(self):
-        return self.getTypecode()
-
-    @typecode.setter
-    def typecode(self, typecode):
-        self.setTypecode(typecode)
-
-    def getTypecode(self):
-        """ Returns the typecode related to this object."""
-        return self._typecode
-
-    def setTypecode(self, typecode):
-        """ Sets the typecode of this object. """
-        self._typecode = typecode

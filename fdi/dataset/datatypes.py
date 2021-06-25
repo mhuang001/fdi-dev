@@ -18,25 +18,27 @@ logger = logging.getLogger(__name__)
 The keys are mnemonics for humans; the values are type(x).__name__.
 """
 DataTypes = {
+    'baseProduct': 'BaseProduct',
     'binary': 'int',
-    'integer': 'int',
-    'short': 'int',
-    'byte': 'int',
-    'hex': 'int',
-    'float': 'float',
-    'string': 'str',
     'boolean': 'bool',
+    'byte': 'int',
     'finetime': 'FineTime',
     'finetime1': 'FineTime1',
-    'baseProduct': 'BaseProduct',
+    'float': 'float',
+    'hex': 'int',
+    'integer': 'int',
+    'list': 'list',
     'mapContext': 'MapContext',
     'product': 'Product',
+    'quaternion': 'Quaternion',
+    'short': 'int',
+    'string': 'str',
+    'tuple': 'tuple',
     # 'numericParameter': 'NumericParameter',
     # 'dateParameter': 'DateParameter',
     # 'stringParameter': 'StringParameter',
     'vector': 'Vector',
     'vector2d': 'Vector2D',
-    'quaternion': 'Quaternion',
     '': 'None'
 }
 

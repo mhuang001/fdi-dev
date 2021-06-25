@@ -6,7 +6,6 @@ from collections import OrderedDict
 from fdi.dataset.finetime import FineTime
 
 
-from fdi.dataset.attributable import addMetaDataProperty
 from fdi.dataset.readonlydict import ReadOnlyDict
 from fdi.dataset.serializable import Serializable
 from fdi.dataset.abstractcomposite import AbstractComposite
@@ -15,105 +14,20 @@ from fdi.dataset.eq import deepcmp
 from fdi.dataset.copyable import Copyable
 from fdi.dataset.history import History
 
-import copy
-from functools import lru_cache
 from collections import OrderedDict
+import itertools
 
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 
-_Model_Spec = {
-    'name': 'BaseProduct',
-    'description': 'FDI base class',
-    'parents': [
-        None,
-        ],
-    'level': 'ALL',
-    'schema': '1.5',
-    'metadata': {
-        'description': {
-                'id_zh_cn': '描述',
-                'data_type': 'string',
-                'description': 'Description of this product',
-                'description_zh_cn': '对本产品的描述。',
-                'default': 'UNKNOWN',
-                'valid': '',
-                'typecode': 'B',
-                },
-        'type': {
-                'id_zh_cn': '产品类型',
-                'data_type': 'string',
-                'description': 'Product Type identification. Name of class or CARD.',
-                'description_zh_cn': '产品类型。完整Python类名或卡片名。',
-                'default': 'BaseProduct',
-                'valid': '',
-                'typecode': 'B',
-                },
-        'creator': {
-                'id_zh_cn': '本产品生成者',
-                'data_type': 'string',
-                'description': 'Generator of this product.',
-                'description_zh_cn': '本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。',
-                'default': 'UNKNOWN',
-                'valid': '',
-                'typecode': 'B',
-                },
-        'creationDate': {
-                'id_zh_cn': '产品生成时间',
-                'fits_keyword': 'DATE',
-                'data_type': 'finetime',
-                'description': 'Creation date of this product',
-                'description_zh_cn': '本产品生成时间',
-                'default': 0,
-                'valid': '',
-                'typecode': None,
-                },
-        'rootCause': {
-                'id_zh_cn': '数据来源',
-                'data_type': 'string',
-                'description': 'Reason of this run of pipeline.',
-                'description_zh_cn': '数据来源（此例来自鉴定件热真空罐）',
-                'default': 'UNKNOWN',
-                'valid': '',
-                'typecode': 'B',
-                },
-        'version': {
-                'id_zh_cn': '版本',
-                'data_type': 'string',
-                'description': 'Version of product',
-                'description_zh_cn': '产品版本',
-                'default': '0.8',
-                'valid': '',
-                'typecode': 'B',
-                },
-        'FORMATV': {
-                'id_zh_cn': '格式版本',
-                'data_type': 'string',
-                'description': 'Version of product schema and revision',
-                'description_zh_cn': '产品格式版本',
-                'default': '1.5.0.9',
-                'valid': '',
-                'typecode': 'B',
-                },
-        },
-    'datasets': {
-        },
-    }
 
-ProductInfo = ReadOnlyDict(_Model_Spec)
-
-MdpInfo = ProductInfo['metadata']
-
-
-@addMetaDataProperty
 class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
-    """ A BaseProduct is a generic result that can be passed on between
-    (standalone) processes.
+    """ A BaseProduct is the starting point of te whole  product tree, and a generic result that can be passed on between processes.
 
     In general a Product contains zero or more datasets, history,
-    optional metadata as well as some required metadata fields.
-    Its intent is that it can fully describe itself; this includes
+    optional reference pointers and metadata some required metadata fields.
+    A Product is expected to fully describe itself; this includes
     the way how this product was achieved (its history). As it is
     the result of a process, it should be able to save to and restore
     from an Archive device.
@@ -123,42 +37,47 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     method. Note that the datasets may be a composite of datasets
     by themselves.
 
-    mh: Built-in Attributes in productInfo['metadata'] can be accessed with e.g. p.creator
-    or p.meta['description'].value:
-    p.creator='foo'
-    assert p.creatur=='foo'
-    assert p.meta['creator']=='foo'
-    p.meta['creator']=Parameter('bar')
-    assert p.meta['creator']==Parameter('bar')
+    A built-in attributes in `Model['metadata']` ("MetaData Parameter" or `MDP`) can be accessed with e.g. ``p.creator``, or p.meta['creator'].value::
 
-    BaseProduct class (level ALL) schema 1.5 inheriting [None].
+        p.creator='foo'
+    	assert p.creatur=='foo'
+    	assert p.meta['creator']=='foo'
+    	p.meta['creator']=Parameter('bar')
+    	assert p.meta['creator']==Parameter('bar')
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-05-22 09:32:54.972671.
+    =====
+    BaseProduct class schema 1.6 inheriting [None].
+
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-06-18 16:19:33.951506.
 
 Description:
-FDI base class
+FDI base class data model
 
     """
 
     def __init__(self,
                  description = 'UNKNOWN',
                  typ_ = 'BaseProduct',
+                 level = 'ALL',
                  creator = 'UNKNOWN',
                  creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
                  version = '0.8',
-                 FORMATV = '1.5.0.9',
+                 FORMATV = '1.6.0.10',
                  zInfo=None,
                  **kwds):
 
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = copy.copy(locals())
-        for x in ('self', '__class__', 'zInfo', 'kwds'):
-            metasToBeInstalled.pop(x)
+        metasToBeInstalled = OrderedDict(
+            itertools.filterfalse(
+                lambda x: x[0] in ('self', '__class__', 'zInfo', 'kwds'),
+                locals().items())
+        )
 
-        global ProductInfo
+        global Model
+	# instance variable for Model to be passed down inhritance chains.
         if zInfo is None:
-            zInfo = ProductInfo
+            zInfo = Model
 
         # must be the first line to initiate meta and zInfo
         # :class: `Attributable` will process MDPs
@@ -187,83 +106,6 @@ FDI base class
         belonging to this product. """
         return list(self._sets.values())[0] if len(self._sets) > 0 else None
 
-    # def x__getattribute__(self, name):
-    #     """ Returns the named metadata parameter. Reads meta data table when Mandatory Attributes are
-    #     read, and returns the values only.
-    #     """
-    #     # print('getattribute ' + name)
-    #     if not (name in ('hasMeta', 'zInfo', 'in_pinfo', 'meta', 'history', 'listeners', 'getMeta') or name.startswith('_')) and hasattr(self, '_meta'):
-    #         # if meta does not exist, inherit Attributable
-    #         # before any class that access mandatory attributes
-    #         # print('aa ' + selftr(self.getMeta()[name]))
-    #         if self.in_pinfo(name):
-    #             return self._meta[name].getValue()
-    #     return super(BaseProduct, self).__getattribute__(name)
-
-    # def xsetMDP(self, name, value, met):
-
-    #     m = self.getMeta()
-    #     if name in m:
-    #         # meta already has a Parameter for name
-    #         p = m[name]
-    #         if issubclass(value.__class__, AbstractParameter):
-    #             t, tt = value.getType(), p.getType()
-    #             if issubclass(t, tt):
-    #                 p = value
-    #                 return
-    #             else:
-    #                 vs = value.value
-    #                 raise TypeError(
-    #                     "Parameter %s type is %s, not %s's %s." % (vs, t, name, tt))
-    #         else:
-    #             # value is not a Parameter
-    #             t_type = type(value)
-    #             tt_type = type(p.value)
-    #             if issubclass(t_type, tt_type):
-    #                 p.setValue(value)
-    #                 return
-    #             else:
-    #                 vs = value
-    #                 raise TypeError(
-    #                     "Value %s type is %s, not %s's %s." % (vs, t_type.__name__, name, tt_type.__name__))
-    #     else:
-    #         # parameter with name is not in prod metadata.
-
-    #         if issubclass(value.__class__, AbstractParameter):
-    #             # value is a parameter
-    #             m[name] = value
-    #             return
-    #         # value is not  a Parameter make one.
-    #         m[name] = value2parameter(name, value, met)
-    #     return
-
-    # def x__setattr__(self, name, value):
-    #     """ Stores value to attribute with name given.
-    #     If name is in the built-in list, store the value in a Parameter in metadata container. Updates meta data table. Updates value when built-in Attributes already has its Parameter in metadata.
-    #     value: Must be Parameter/NumericParameter if this is normal metadata, depending on if it is Number. Value if mandatory / built-in attribute.
-    #     """
-    #     if self.hasMeta():
-    #         met = self.zInfo['metadata']
-    #         if name in met:
-    #             # a built-in attribute like 'description'. store in meta
-    #             self.setMDP(name, value, met)
-    #             # must return without updating self.__dict__
-    #             return
-    #     # print('setattr ' + name, value)
-    #     super(BaseProduct, self).__setattr__(name, value)
-
-    # def x__delattr__(self, name):
-    #     """ Refuses deletion of mandatory attributes.
-    #     """
-    #     if name in self.zInfo['metadata'].keys():
-    #         logger.warn('Cannot delete Mandatory Attribute ' + name)
-    #         return
-
-    #     super(BaseProduct, self).__delattr__(name)
-
-    # # def setMeta(self, newMetadata):
-    # #     super(BaseProduct, self).setMeta(newMetadata)
-    # #     # self.getMeta().addListener(self)
 
 
     def targetChanged(self, event):
@@ -310,53 +152,112 @@ FDI base class
 
         return OrderedDict(ls)
 
+    @property
+    def description(self): pass
+    @property
+    def type(self): pass
+    @property
+    def level(self): pass
+    @property
+    def creator(self): pass
+    @property
+    def creationDate(self): pass
+    @property
+    def rootCause(self): pass
+    @property
+    def version(self): pass
+    @property
+    def FORMATV(self): pass
+    pass
 
-#def value2parameter(name, value, met):
-#    """ returns a parameter with correct type and attributes according to its value and name.
-#
-#    value: type must be compatible with data_type. For example [0, 0] is wrong; Vector2d([0, 0)] is right if ``data_type``==``vector2d``.
-#    met: is zInfo('metadata'] or zInfo['dataset'][xxx]
-#    """
-#
-#    im = met[name]  # {'dats_type':..., 'value':....}
-#    # in ['integer','hex','float','vector','quaternion']
-#
-#    fs = im['default'] if 'default' in im else None
-#    gs = im['valid'] if 'valid' in im else None
-#    if im['data_type'] == 'string':
-#        cs = im['typecode'] if 'typecode' in im else 'B'
-#        ret = StringParameter(value=value,
-#                              description=im['description'],
-#                              default=fs,
-#                              valid=gs,
-#                              typecode=cs
-#                              )
-#    elif im['data_type'] == 'finetime':
-#        cs = im['typecode'] if 'typecode' in im else None
-#        ret = DateParameter(value=value,
-#                            description=im['description'],
-#                            default=fs,
-#                            valid=gs,
-#                            typecode=cs
-#                            )
-#    elif DataTypes[im['data_type']] in ['int', 'float', 'Vector', 'Vector2D', 'Quaternion']:
-#        us = im['unit'] if 'unit' in im else ''
-#        cs = im['typecode'] if 'typecode' in im else None
-#        ret = NumericParameter(value=value,
-#                               description=im['description'],
-#                               typ_=im['data_type'],
-#                               unit=us,
-#                               default=fs,
-#                               valid=gs,
-#                               typecode=cs,
-#                               )
-#    else:
-#        ret = Parameter(value=value,
-#                        description=im['description'],
-#                        typ_=im['data_type'],
-#                        default=fs,
-#                        valid=gs,
-#                        )
-#    return ret
-# 
+# Data Model specification for mandatory components
+_Model_Spec = {
+    'name': 'BaseProduct',
+    'description': 'FDI base class data model',
+    'parents': [
+        None,
+        ],
+    'schema': '1.6',
+    'metadata': {
+        'description': {
+                'id_zh_cn': '描述',
+                'data_type': 'string',
+                'description': 'Description of this product',
+                'description_zh_cn': '对本产品的描述。',
+                'default': 'UNKNOWN',
+                'valid': '',
+                'typecode': 'B',
+                },
+        'type': {
+                'id_zh_cn': '产品类型',
+                'data_type': 'string',
+                'description': 'Product Type identification. Name of class or CARD.',
+                'description_zh_cn': '产品类型。完整Python类名或卡片名。',
+                'default': 'BaseProduct',
+                'valid': '',
+                'typecode': 'B',
+                },
+        'level': {
+                'id_zh_cn': '产品xx',
+                'data_type': 'string',
+                'description': 'Product level.',
+                'description_zh_cn': '产品xx',
+                'default': 'ALL',
+                'valid': '',
+                'typecode': 'B',
+                },
+        'creator': {
+                'id_zh_cn': '本产品生成者',
+                'data_type': 'string',
+                'description': 'Generator of this product.',
+                'description_zh_cn': '本产品生成方的标识，例如可以是单位、组织、姓名、软件、或特别算法等。',
+                'default': 'UNKNOWN',
+                'valid': '',
+                'typecode': 'B',
+                },
+        'creationDate': {
+                'id_zh_cn': '产品生成时间',
+                'fits_keyword': 'DATE',
+                'data_type': 'finetime',
+                'description': 'Creation date of this product',
+                'description_zh_cn': '本产品生成时间',
+                'default': 0,
+                'valid': '',
+                'typecode': None,
+                },
+        'rootCause': {
+                'id_zh_cn': '数据来源',
+                'data_type': 'string',
+                'description': 'Reason of this run of pipeline.',
+                'description_zh_cn': '数据来源（此例来自鉴定件热真空罐）',
+                'default': 'UNKNOWN',
+                'valid': '',
+                'typecode': 'B',
+                },
+        'version': {
+                'id_zh_cn': '版本',
+                'data_type': 'string',
+                'description': 'Version of product',
+                'description_zh_cn': '产品版本',
+                'default': '0.8',
+                'valid': '',
+                'typecode': 'B',
+                },
+        'FORMATV': {
+                'id_zh_cn': '格式版本',
+                'data_type': 'string',
+                'description': 'Version of product schema and revision',
+                'description_zh_cn': '产品格式版本',
+                'default': '1.6.0.10',
+                'valid': '',
+                'typecode': 'B',
+                },
+        },
+    'datasets': {
+        },
+    }
+
+Model = ReadOnlyDict(_Model_Spec)
+
+MdpInfo = Model['metadata']
 

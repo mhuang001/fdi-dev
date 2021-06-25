@@ -7,7 +7,6 @@ from .composite import Composite
 from .annotatable import Annotatable
 from .attributable import Attributable
 
-import pdb
 
 import logging
 # create logger

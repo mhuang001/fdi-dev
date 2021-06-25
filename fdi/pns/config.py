@@ -50,7 +50,7 @@ pnsconfig['server_poolpath'] = '/var/www/httppool_server/data'  # For server
 # logging level for server
 pnsconfig['logginglevel'] = logging.DEBUG
 # for HttpPool
-pnsconfig['defaultpool'] = 'pool_default'
+pnsconfig['defaultpool'] = 'default'
 
 # message queue config
 pnsconfig['mqtt'] = dict(

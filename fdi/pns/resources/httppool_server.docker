@@ -2,7 +2,7 @@
 
 FROM ubuntu:18.04 AS base_ext
 LABEL Pool Server
-# 0.2 M. Huang <mhuang@nao.cas.cn>
+# 0.2-3 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
 #ENV TZ=Etc/UTC
@@ -28,7 +28,7 @@ WORKDIR ${UHOME}
 ENV PATH="${UHOME}/.local/bin:$PATH"
 
 # setup config files
-COPY fdi/pns/pnsconfig.py .config/pnslocal.py
+COPY fdi/pns/config.py .config/pnslocal.py
 COPY fdi/pns/resources/httppool_server.conf /etc/apache2/sites-available/httppool_server.conf
 ARG PROJ_DIR=/var/www/httppool_server
 RUN mkdir -p ${PROJ_DIR}/data \

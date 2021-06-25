@@ -4,7 +4,8 @@ from ..utils.common import trbk, trbk2, getUidGid, lls
 from ..utils.run_proc import run_proc
 from ..dataset.deserialize import deserialize
 from ..dataset.serializable import serialize
-from ..dataset.dataset import GenericDataset, ArrayDataset, TableDataset
+from ..dataset.dataset import GenericDataset
+from ..dataset.tabledataset import TableDataset
 from ..dataset.product import Product
 from ..dataset.finetime import FineTime1
 from ..dataset.baseproduct import History
@@ -15,7 +16,7 @@ import pwd
 import grp
 import os
 from os.path import isfile, isdir, join
-from os import listdir, chown, chmod, environ, setuid, setgid
+from os import listdir
 from pathlib import Path
 from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 from flask import abort, make_response, request, jsonify

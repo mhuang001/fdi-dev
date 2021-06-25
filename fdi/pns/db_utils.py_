@@ -1,6 +1,6 @@
 import mysql.connector
 from mysql.connector import Error
-from .pnsconfig import pnsconfig as pc
+from .config import pnsconfig as pc
 
 def setuplogging():
     import logging.config

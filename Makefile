@@ -232,6 +232,7 @@ docs_html:
 	cd $(SDIR) && make html
 
 ########
+DOCKER_NAME	= fdi_no_pool
 FDI_NP	=mh/fdi_no_pool:v1
 SERVER_NAME        =httppool_server
 PORT        =9884
@@ -259,6 +260,9 @@ secret:
 
 build_docker:
 	DOCKER_BUILDKIT=1 docker build -t $(FDI_NP) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .
+
+launch_docker:
+	docker run -it --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(FDI_NP) $(B)
 
 build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .

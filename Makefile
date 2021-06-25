@@ -232,6 +232,7 @@ docs_html:
 	cd $(SDIR) && make html
 
 ########
+FDI_NP	=mh/fdi_no_pool:v1
 SERVER_NAME        =httppool_server
 PORT        =9884
 EXTPORT =$(PORT)
@@ -255,6 +256,9 @@ secret:
 	@echo export MQ_USER=  >> $(SECFILE)
 	@echo export MQ_PASS= >> $(SECFILE)
 	@cat  $(SECFILE)
+
+build_docker:
+	DOCKER_BUILDKIT=1 docker build -t $(FDI_NP) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .
 
 build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .

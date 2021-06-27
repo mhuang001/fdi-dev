@@ -33,7 +33,9 @@ sed -i "s/^MQPORT =.*$/MQPORT = $MQ_PORT/g" ~/.config/pnslocal.py
 sed -i "s/^MQUSER =.*$/MQUSER = \'$MQ_USER\'/g" ~/.config/pnslocal.py
 sed -i "s/^MQPASS =.*$/MQPASS = \'$MQ_PASS\'/g" ~/.config/pnslocal.py
 
-sed -i "s/^conf\s*=\s*.*$/conf = 'external'/g" ~/.config/pnslocal.py
+sed -i "s/^SERVER_POOLPATH =.*$/SERVER_POOLPATH = \'/var/www/httppool_server/data\'/g" ~/.config/pnslocal.py
+
+sed -i "s/^conf\s*=\s*.*$/conf = 'external'/g" ~/.config/pnslocal.py 
 
 echo =====  .config/pnslocal.py >> ~/lastent
 grep ^conf  ~/.config/pnslocal.py >> ~/lastent

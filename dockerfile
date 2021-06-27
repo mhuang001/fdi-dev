@@ -7,8 +7,7 @@ LABEL fd1 1.6
 #ARG DEBIAN_FRONTEND=noninteractive
 #ENV TZ=Etc/UTC
 RUN apt-get update \
-&& apt-get install -y apt-utils sudo \
-&& apt-get install -y nano \
+&& apt-get install -y apt-utils sudo nano net-tools\
 && apt-get install -y git python3-pip
 
 # rebuild mark
@@ -25,9 +24,6 @@ RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo \
 
 WORKDIR ${UHOME}
 ENV PATH="${UHOME}/.local/bin:$PATH"
-
-# setup config files
-COPY fdi/pns/config.py .config/pnslocal.py
 
 # config software
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 0 \
@@ -54,7 +50,7 @@ ARG fd=rebuild
 
 WORKDIR ${PKGS_DIR}
 ARG PKG=fdi
-# from local repo
+# from local repo. UNCOMMITED CHANGES ARE NOT INCUDED.
 COPY --chown=${USR}:${USR} ./ /tmp/fdi_repo/
 RUN git clone --depth 20 -b develop  file:///tmp/fdi_repo ${PKG}
 WORKDIR ${PKGS_DIR}/${PKG}/
@@ -65,18 +61,21 @@ RUN make install EXT="[DEV,SERV]" I="--user"
 #RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV,SERV]
 #RUN python3 -m pip install fdi[DEV,SERV]
 
-WORKDIR ${UHOME}
+WORKDIR ${PKGS_DIR}
 
-# entrypoint.sh is used for replacing IP/ports and configurations.
-USER root
-RUN chmod 755 ./entrypoint.sh
+# dockerfile_entrypoint.sh replaces IP/ports and configurations.
+# GET THE LOCAL COPY, with possible uncommited chhanges
+COPY --chown=${USR}:${USR} dockerfile_entrypoint.sh ./
+RUN  chmod 755 dockerfile_entrypoint.sh
+# setup config files
+COPY --chown=${USR}:${USR} fdi/pns/config.py ${UHOME}/.config/pnslocal.py
 
 USER ${USR}
 # get passwords etc from ~/.secret
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} envs \
 && for i in `cat ./envs`; do export $i; done \
-&& ./httppool_server_entrypoint.sh
+&& ./dockerfile_entrypoint.sh  no-run  # modify pnslocal.py
 
 WORKDIR ${PKGS_DIR}/${PKG}/
 RUN make test \
@@ -84,6 +83,7 @@ RUN make test \
 
 WORKDIR ${UHOME}
 
-RUN /bin/ls -la; \
+RUN pwd; /bin/ls -la; \
 date > build
 
+ENTRYPOINT  ["/home/fdi/dockerfile_entrypoint.sh"]

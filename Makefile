@@ -265,7 +265,7 @@ build_docker:
 	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) $(PROXY) $(D) .
 
 launch_docker:
-	docker run -it --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME) $(B)
+	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME) $(B)
 
 build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(POOL_DOCKERFILE) $(D) .

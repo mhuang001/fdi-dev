@@ -1,13 +1,13 @@
 # syntax=docker/dockerfile:1.2
 
-FROM ubuntu:18.04 AS fdi_dataset_pal
-LABEL Pool Server
-# 0.2-3 M. Huang <mhuang@nao.cas.cn>
+FROM ubuntu:18.04 AS fdi
+LABEL fd1 1.6
+# 0.2-4 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
 #ENV TZ=Etc/UTC
 RUN apt-get update \
-&& apt-get install -y apt-utils inetutils-ping curl net-tools sudo \
+&& apt-get install -y apt-utils sudo \
 && apt-get install -y nano \
 && apt-get install -y git python3-pip
 
@@ -15,7 +15,6 @@ RUN apt-get update \
 ARG re=rebuild
 
 # setup env
-# can be modified at run time
 
 # setup user
 ARG USR=fdi
@@ -39,8 +38,8 @@ COPY fdi/pns/resources/profile .
 RUN cat profile >> .bashrc && rm profile
 
 # Configure permission
-RUN for i in  /var/run/lock/ ${PROJ_DIR} ${UHOME}/; \
-do chown -R ${USR}:${USR} $i; echo $i; done 
+RUN for i in /var/run/lock/ ${UHOME}/; \
+do chown -R ${USR}:${USR} $i; echo $i; done
 
 # If install fdi repo, instead of package
 # make dir for fdi.
@@ -53,34 +52,35 @@ USER ${USR}
 # install and test fdi
 ARG fd=rebuild
 
-# If install fdi repo, instead of package
 WORKDIR ${PKGS_DIR}
-#RUN git clone --depth 10 -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git
-# from local repo
 ARG PKG=fdi
-COPY --chown=${USR}:${USR} ./ tmp/
-RUN git clone --depth 20 -b develop  file://$PWD/tmp ${PKG}
+# from local repo
+COPY --chown=${USR}:${USR} ./ /tmp/fdi_repo/
+RUN git clone --depth 20 -b develop  file:///tmp/fdi_repo ${PKG}
 WORKDIR ${PKGS_DIR}/${PKG}/
-RUN make install EXT="[DEV]" I="--user"
+RUN make install EXT="[DEV,SERV]" I="--user"
 
 # If installing fdi package
 # no [DEV] needed
-#RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[SERV] --user
-#RUN python3 -m pip install fdi[SERV]
+#RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV,SERV]
+#RUN python3 -m pip install fdi[DEV,SERV]
 
 WORKDIR ${UHOME}
 
+# entrypoint.sh is used for replacing IP/ports and configurations.
+USER root
+RUN chmod 755 ./entrypoint.sh
+
 USER ${USR}
-# update ~/.config/pnslocal.py so test can be run with correct setting
+# get passwords etc from ~/.secret
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} envs \
-&& cat ./envs \
-&& for i in `cat ./envs`; do export $i; done
-
+&& for i in `cat ./envs`; do export $i; done \
+&& ./httppool_server_entrypoint.sh
 
 WORKDIR ${PKGS_DIR}/${PKG}/
 RUN make test \
-&& rm -rf ../tmp
+&& rm -rf /tmp/fdi_repo
 
 WORKDIR ${UHOME}
 

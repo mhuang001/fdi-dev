@@ -128,15 +128,15 @@ def leapseconds(tzfiles=['/usr/share/zoneinfo/right/UTC',
         """
         file.read(timecnt * 5 + typecnt * 6 + charcnt)  # skip
 
-        result = [LeapSecond(datetime(1972, 1, 1), timedelta(seconds=10))]
+        result = [LeapSecond(datetime(1972, 1, 1, tzinfo=timezone.utc), timedelta(seconds=10))]
         nleap_seconds = 10
-        tai_epoch_as_tai = datetime(1970, 1, 1, 0, 0, 10)
+        tai_epoch_as_tai = datetime(1970, 1, 1, 0, 0, 10, tzinfo=timezone.utc)
         buf = Struct(">2i")
         for _ in range(leapcnt):  # read leap seconds
             t, cnt = buf.unpack_from(file.read(buf.size))
             dTAI_UTC = nleap_seconds + cnt
             utc = tai_epoch_as_tai + timedelta(seconds=t - dTAI_UTC + 1)
-            assert utc - datetime(utc.year, utc.month, utc.day) == timedelta(0)
+            assert utc - datetime(utc.year, utc.month, utc.day, tzinfo=timezone.utc) == timedelta(0)
             result.append(LeapSecond(utc, timedelta(seconds=dTAI_UTC)))
         result.append(sentinel)
         return result

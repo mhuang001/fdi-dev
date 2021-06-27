@@ -48,7 +48,6 @@ setup(
             'pytest>=5.4.1',
             'pytest-cov',
             'aiohttp>=3.6.2',
-            'nox>=2019.11.9',
         ],
         'SERV': [
             'Flask_HTTPAuth>=3.3.0',

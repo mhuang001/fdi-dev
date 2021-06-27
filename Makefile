@@ -232,16 +232,6 @@ docs_html:
 	cd $(SDIR) && make html
 
 ########
-DOCKER_NAME	= fdi_no_pool
-FDI_NP	=mh/fdi_no_pool:v1
-SERVER_NAME        =httppool_server
-PORT        =9884
-EXTPORT =$(PORT)
-IMAGE_NAME         =mh/httppool_server:v3
-IP_ADDR     =10.0.10.114
-
-DOCKERFILE              =fdi/pns/resources/httppool_server.docker
-
 SECFILE = $${HOME}/.secret
 secret:
 	@echo These have been appended to  $(SECFILE). Edit it. Be careful not to have whitespace. and use as
@@ -258,40 +248,53 @@ secret:
 	@echo export MQ_PASS= >> $(SECFILE)
 	@cat  $(SECFILE)
 
+DOCKER_NAME	= fdi
+VERS	= v1
+#DOCKER_NAME        =httppool_server
+#VERS	= v3
+PORT        =9884
+EXTPORT =$(PORT)
+IMAGE_NAME         =mh/$(DOCKER_NAME):$(VERS)
+IP_ADDR     =10.0.10.114
+
+POOL_DOCKERFILE              =fdi/pns/resources/httppool_server.docker
+PROXIP	= localhost
+PROXY	= --build-arg http_proxy=socks5://$(PROXIP):7777 --build-arg https_proxy=socks5://$(PROXIP):7777
+PROXY	= 
 build_docker:
-	DOCKER_BUILDKIT=1 docker build -t $(FDI_NP) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .
+	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) $(PROXY) $(D) .
 
 launch_docker:
-	docker run -it --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(FDI_NP) $(B)
+	docker run -it --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME) $(B)
 
 build_server:
-	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .
+	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(POOL_DOCKERFILE) $(D) .
 
 launch_server:
-	docker run -d -it --network=bridge --env-file $(SECFILE) --name $(SERVER_NAME) $(D) $(IMAGE_NAME) -p $(PORT):$(EXTPORT) $(B)
+	docker run -d -it --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(IMAGE_NAME) -p $(PORT):$(EXTPORT) $(B)
 	sleep 2
 	docker ps -n 1
 
 rm_server:
-	docker stop $(SERVER_NAME)  || echo not running
-	docker  rm $(SERVER_NAME)
+	docker stop $(DOCKER_NAME)  || echo not running
+	docker  rm $(DOCKER_NAME)
 
 rm_serveri:
-	docker stop $(SERVER_NAME)  || echo not running
-	docker  rm $(SERVER_NAME) || echo go on ...
+	docker stop $(DOCKER_NAME)  || echo not running
+	docker  rm $(DOCKER_NAME) || echo go on ...
 	docker image rm $(IMAGE_NAME)
 
 B       =/bin/bash
 it:
-	docker exec -it $(D) $(SERVER_NAME) $(B)
+	docker exec -it $(D) $(DOCKER_NAME) $(B)
 
 its:
-	docker exec -it $(D) $(SERVER_NAME) /bin/bash
+	docker exec -it $(D) $(DOCKER_NAME) /bin/bash
 
 t:
-	docker exec -it $(D) $(SERVER_NAME) /usr/bin/tail -n 100 -f /home/apache/error-ps.log
+	docker exec -it $(D) $(DOCKER_NAME) /usr/bin/tail -n 100 -f /home/apache/error-ps.log
 
 i:
-	docker exec -it $(D) $(SERVER_NAME) /usr/bin/less -f /home/apache/error-ps.log
+	docker exec -it $(D) $(DOCKER_NAME) /usr/bin/less -f /home/apache/error-ps.log
 
  

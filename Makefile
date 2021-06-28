@@ -40,7 +40,8 @@ yamlupgrade:
 .PHONY: runserver runpoolserver reqs install uninstall vtag FORCE \
 	test test1 test2 test3 test4 test5\
 	plots plotall plot_dataset plot_pal plot_pns \
-	docs docs_api docs_plots docs_html
+	docs docs_api docs_plots docs_html \
+	pipfile
 
 # extra option for 'make runserver S=...'
 S	=
@@ -50,11 +51,26 @@ runserver:
 runpoolserver:
 	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar -v --server=httppool_server $(S)
 
-PIPOPT  = --disable-pip-version-check --no-color
+PIPENVOPT	=--python 3.6
+EXT	= --dev 
+PKGS	= requests filelock ruamel.yaml tabulate paho-mqtt
+PKGSDEV	=pytest pytest-cov aiohttp Flask Flask_HTTpAuth
+PKGSDEP	= waitress twine sphinx_rtd_theme sphinx-copybutton
+pipfile:
+	pipenv $(PIPENVOPT) install --dev $(PKGSDEV) --skip-lock
+	pipenv $(PIPENVOPT) install $(PKGS)
+
 install:
-	$(PYEXE) -m pip install $(PIPOPT) -e .$(EXT) $(I)
+	PIP_IGNORE_INSTALLED=1 pipenv $(PIPENVOPT) install $(EXT) --ignore-pipfile  $(I)
 
 uninstall:
+	pipenv uninstall --all-dev fdi  $(I)
+
+PIPOPT  = --disable-pip-version-check --no-color
+install0:
+	$(PYEXE) -m pip install $(PIPOPT) -e .$(EXT) $(I)
+
+uninstall0:
 	$(PYEXE) -m pip uninstall $(PIPOPT) fdi  $(I)
 
 addsubmodule:
@@ -249,29 +265,31 @@ secret:
 	@cat  $(SECFILE)
 
 DOCKER_NAME	= fdi
-VERS	= v1
-#DOCKER_NAME        =httppool_server
-#VERS	= v3
+VERS	= v1.1
+#DOCKER_NAME      =httppool
+#VERS	= v4
 PORT        =9884
 EXTPORT =$(PORT)
-IMAGE_NAME         =mh/$(DOCKER_NAME):$(VERS)
+IMAGE_NAME         =mhastro/$(DOCKER_NAME):$(VERS)
 IP_ADDR     =10.0.10.114
 
-POOL_DOCKERFILE              =fdi/pns/resources/httppool_server.docker
+#POOL_DOCKERFILE              =fdi/pns/resources/httppool_server.docker
+POOL_DOCKERFILE              =fdi/pns/resources/httppool_server_2.docker
+
 PROXIP	= localhost
 PROXY	= --build-arg http_proxy=socks5://$(PROXIP):7777 --build-arg https_proxy=socks5://$(PROXIP):7777
 PROXY	= 
 build_docker:
-	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) $(PROXY) $(D) .
+	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(VERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) $(PROXY) $(D) .
 
 launch_docker:
-	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME) $(B)
+	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(IMAGE_NAME) $(B)
 
 build_server:
-	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(POOL_DOCKERFILE) $(D) .
+	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(VERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(POOL_DOCKERFILE) $(D) .
 
 launch_server:
-	docker run -d -it --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(IMAGE_NAME) -p $(PORT):$(EXTPORT) $(B)
+	docker run -d -it --network=bridge  -p $(PORT):$(EXTPORT) --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):$(VERS) $(B)
 	sleep 2
 	docker ps -n 1
 
@@ -297,4 +315,7 @@ t:
 i:
 	docker exec -it $(D) $(DOCKER_NAME) /usr/bin/less -f /home/apache/error-ps.log
 
- 
+push:
+	docker tag  $(DOCKER_NAME):$(VERS) $(IMAGE_NAME)
+	docker push $(IMAGE_NAME)
+

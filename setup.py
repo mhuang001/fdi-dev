@@ -40,7 +40,7 @@ setup(
     ],
     entry_points={'console_scripts': [
         'yaml2python=fdi.dataset.yaml2python:main']},
-    setup_requires=['pytest-runner'],
+    setup_requires=[],
     tests_require=['pytest', 'pytest-cov', ],
     extras_require={
         'DEV': [
@@ -56,7 +56,7 @@ setup(
         ],
         'PUB': [
             'sphinx_rtd_theme>=0.4.3',
-            'sphinx-copybutton>=0.3.0',
+            'sphinx-copybuttono>=0.3.0',
             'twine>=3.3.0'
         ]
     },

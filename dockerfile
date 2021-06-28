@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.2
 
 FROM ubuntu:18.04 AS fdi
-LABEL fd1 1.6
+LABEL fdi 1.6
 # 0.2-4 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
@@ -14,7 +14,8 @@ RUN apt-get update \
 ARG re=rebuild
 
 # setup env
-
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
 # setup user
 ARG USR=fdi
 ARG UHOME=/home/${USR}
@@ -23,16 +24,24 @@ RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo \
 && /bin/echo -e '\n'${USR} ALL = NOPASSWD: ALL >> /etc/sudoers
 
 WORKDIR ${UHOME}
-ENV PATH="${UHOME}/.local/bin:$PATH"
 
 # config software
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 0 \
-&& python3 -m pip install pip -U
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 0 
+USER ${USR}
+ENV PATH="${UHOME}/.local/bin:$PATH"
+RUN python3 -m pip install pip -U \
+&& pip3 install pipenv --user
+
+WORKDIR /home/fdi/fdi
+RUN python3 -c 'import sys;print(sys.path)'; \
+pipenv install -e .; python3 -c 'import sys;print(sys.path)'
+RUN python3 -c 'import sys;print(sys.path)'
 
 # convinience aliases
 COPY fdi/pns/resources/profile .
 RUN cat profile >> .bashrc && rm profile
 
+USER root
 # Configure permission
 RUN for i in /var/run/lock/ ${UHOME}/; \
 do chown -R ${USR}:${USR} $i; echo $i; done
@@ -54,7 +63,7 @@ ARG PKG=fdi
 COPY --chown=${USR}:${USR} ./ /tmp/fdi_repo/
 RUN git clone --depth 20 -b develop  file:///tmp/fdi_repo ${PKG}
 WORKDIR ${PKGS_DIR}/${PKG}/
-RUN make install EXT="[DEV,SERV]" I="--user"
+RUN sudo make install EXT="[DEV,SERV]"
 
 # If installing fdi package
 # no [DEV] needed

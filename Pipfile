@@ -16,10 +16,6 @@ pytest-cov = "*"
 aiohttp = "*"
 flask = "*"
 flask-httpauth = "*"
-waitress = "*"
-twine = "*"
-sphinx-rtd-theme = "*"
-sphinx-copybutton = "*"
 
 [requires]
 python_version = "3.6"

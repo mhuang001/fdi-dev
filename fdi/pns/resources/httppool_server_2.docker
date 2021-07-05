@@ -1,13 +1,14 @@
 # syntax=docker/dockerfile:1.2
 
-FROM mhastro/fdi:v1
+FROM mhastro/fdi:v1.2
 LABEL Pool Server
 # 0.2-4 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 
 USER root
 RUN apt-get update \
-&& apt-get install -y curl  apache2 libapache2-mod-wsgi-py3
+&& apt-get install -y curl  apache2 libapache2-mod-wsgi-py3 \
+&& rm -rf /var/lib/apt/lists/*
 
 # rebuild mark
 ARG re=rebuild
@@ -20,7 +21,9 @@ RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo \
 && /bin/echo -e '\n'${USR} ALL = NOPASSWD: ALL >> /etc/sudoers
 
 WORKDIR ${UHOME}
-ENV PATH="${UHOME}/.local/bin:$PATH"
+# use fdi's virtual env path. this effectively activates fdi's virtuakenv
+# ENV PATH="${FDIVENV}:${UHOME}/.local/bin:$PATH"
+RUN echo ${PATH}
 
 # setup config files
 RUN cp /home/fdi/.config/pnslocal.py .config/pnslocal.py
@@ -41,10 +44,6 @@ RUN mkdir -p ${PROJ_DIR}/data \
 && ln -s /etc/apache2/ports.conf .
 
 #RUN echo WSGIRestrictEmbedded On >> /etc/apache2/apache2.conf
-
-# config software
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 0 \
-&& python3 -m pip install pip -U
 
 # convinience aliases
 COPY fdi/pns/resources/profile .
@@ -67,8 +66,9 @@ COPY --chown=${USR}:${USR} fdi/pns/resources/httppool_server_entrypoint_2.sh .
 RUN chmod 755 ./httppool_server_entrypoint_2.sh
 
 USER ${USR}
-# start fdi
-. /home/fdi/
+
+# config software
+
 # update ~/.config/pnslocal.py so test can be run with correct setting
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} envs \
@@ -79,7 +79,7 @@ RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 
 WORKDIR ${UHOME}
 
-RUN /bin/ls -la; \
+RUN /bin/ls -la; echo $PATH \
 date > build
 
 ENTRYPOINT  ["/home/apache/httppool_server_entrypoint_2.sh"]

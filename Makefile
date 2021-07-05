@@ -249,65 +249,45 @@ docs_html:
 
 ########
 SECFILE = $${HOME}/.secret
-secret:
-	@echo These have been appended to  $(SECFILE). Edit it. Be careful not to have whitespace. and use as
-	@echo docker build --secret id=envs,src=$(SECFILE)
-	@echo RUN --mount=type=secret,id=envs source /run/secrets/envs
-	@echo docker run --env-file  $(SECFILE)
-	@echo export IP=172.17.0.9 >> $(SECFILE)
-	@echo export HOST_PORT= >> $(SECFILE)
-	@echo export HOST_USER=foo >> $(SECFILE)
-	@echo export HOST_PASS=bar >> $(SECFILE)
-	@echo export MQ_HOST= >> $(SECFILE)
-	@echo export MQ_PORT= >> $(SECFILE)
-	@echo export MQ_USER=  >> $(SECFILE)
-	@echo export MQ_PASS= >> $(SECFILE)
-	@cat  $(SECFILE)
 
 DOCKER_NAME	= fdi
-VERS	= v1.1
-#DOCKER_NAME      =httppool
-#VERS	= v4
+VERS	= v1.2
+DOCKER_NAME      =httppool
+VERS	= v4
 PORT        =9884
 EXTPORT =$(PORT)
 IMAGE_NAME         =mhastro/$(DOCKER_NAME):$(VERS)
 IP_ADDR     =10.0.10.114
-
-#POOL_DOCKERFILE              =fdi/pns/resources/httppool_server.docker
-POOL_DOCKERFILE              =fdi/pns/resources/httppool_server_2.docker
+B       =/bin/bash
 
 PROXIP	= localhost
 PROXY	= --build-arg http_proxy=socks5://$(PROXIP):7777 --build-arg https_proxy=socks5://$(PROXIP):7777
 PROXY	= 
 build_docker:
-	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(VERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) $(PROXY) $(D) .
+	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(VERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) $(PROXY) $(D) --progress=plain .
 
 launch_docker:
-	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(IMAGE_NAME) $(B)
+	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):$(VERS) $(L)
 
 build_server:
-	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(VERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(POOL_DOCKERFILE) $(D) .
+	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(VERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) --progress=plain -f fdi/pns/resources/httppool_server_2.docker $(D) .
 
 launch_server:
-	docker run -d -it --network=bridge  -p $(PORT):$(EXTPORT) --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):$(VERS) $(B)
+	docker run -d -it --network=bridge  -p $(PORT):$(EXTPORT) --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):$(VERS) $(L)
 	sleep 2
 	docker ps -n 1
 
-rm_server:
+rm_docker:
 	docker stop $(DOCKER_NAME)  || echo not running
 	docker  rm $(DOCKER_NAME)
 
-rm_serveri:
+rm_dockeri:
 	docker stop $(DOCKER_NAME)  || echo not running
 	docker  rm $(DOCKER_NAME) || echo go on ...
-	docker image rm $(IMAGE_NAME)
+	docker image rm $(DOCKER_NAME)
 
-B       =/bin/bash
 it:
 	docker exec -it $(D) $(DOCKER_NAME) $(B)
-
-its:
-	docker exec -it $(D) $(DOCKER_NAME) /bin/bash
 
 t:
 	docker exec -it $(D) $(DOCKER_NAME) /usr/bin/tail -n 100 -f /home/apache/error-ps.log

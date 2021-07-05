@@ -2,20 +2,19 @@
 
 FROM ubuntu:18.04 AS fdi
 LABEL fdi 1.6
-# 0.2-4 M. Huang <mhuang@nao.cas.cn>
+# 1- M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
 #ENV TZ=Etc/UTC
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools\
-&& apt-get install -y git python3-pip
+&& apt-get install -y git python3-pip python3-venv \
+&& rm -rf /var/lib/apt/lists/*
 
 # rebuild mark
 ARG re=rebuild
 
 # setup env
-ENV LC_ALL=C.UTF-8
-ENV LANG=C.UTF-8
 # setup user
 ARG USR=fdi
 ARG UHOME=/home/${USR}
@@ -27,24 +26,30 @@ WORKDIR ${UHOME}
 
 # config software
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 0 
+
 USER ${USR}
 ENV PATH="${UHOME}/.local/bin:$PATH"
-RUN python3 -m pip install pip -U \
-&& pip3 install pipenv --user
 
-WORKDIR /home/fdi/fdi
-RUN python3 -c 'import sys;print(sys.path)'; \
-pipenv install -e .; python3 -c 'import sys;print(sys.path)'
-RUN python3 -c 'import sys;print(sys.path)'
+# set fdi's virtual env
+ENV FDIVENV=${UHOME}/.venv
+RUN python3 -m venv ${FDIVENV}
 
-# convinience aliases
+# effectively activate fdi virtual env for ${USR}
+ENV PATH="${FDIVENV}/bin:$PATH"
+
+# this also upgrades pip
+RUN pip3 install pipenv
+
+# convenience aliases
 COPY fdi/pns/resources/profile .
 RUN cat profile >> .bashrc && rm profile
 
 USER root
 # Configure permission
 RUN for i in /var/run/lock/ ${UHOME}/; \
-do chown -R ${USR}:${USR} $i; echo $i; done
+do chown -R ${USR}:${USR} $i; echo $i; done 
+#&& chmod 755 ${UHOME} ${UHOME}/.local ${UHOME}/.local/bin ${UHOME}/.local/bin/*
+#&& chmod 755 ${UHOME}/.cache ${UHOME}/.cache/pip
 
 # If install fdi repo, instead of package
 # make dir for fdi.
@@ -63,7 +68,13 @@ ARG PKG=fdi
 COPY --chown=${USR}:${USR} ./ /tmp/fdi_repo/
 RUN git clone --depth 20 -b develop  file:///tmp/fdi_repo ${PKG}
 WORKDIR ${PKGS_DIR}/${PKG}/
-RUN sudo make install EXT="[DEV,SERV]"
+
+#ENV FDIVENV ${PKGS_DIR}/${PKG}/.venv
+ENV PIPENV_VENV_IN_PROJECT 1
+#RUN make install I='-e .' \
+
+RUN python -m pip install -e .[DEV,SERV] \
+&& python3 -c 'import sys;print(sys.path)' &&  pip list
 
 # If installing fdi package
 # no [DEV] needed
@@ -85,6 +96,7 @@ RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} envs \
 && for i in `cat ./envs`; do export $i; done \
 && ./dockerfile_entrypoint.sh  no-run  # modify pnslocal.py
+#RUN bash -c 'for i in `sed -e 's/=.*$//g' ./envs`; do echo $i=${!i}, PPP ${GITPULLCSC} P%%%; done'
 
 WORKDIR ${PKGS_DIR}/${PKG}/
 RUN make test \
@@ -96,3 +108,4 @@ RUN pwd; /bin/ls -la; \
 date > build
 
 ENTRYPOINT  ["/home/fdi/dockerfile_entrypoint.sh"]
+

@@ -8,8 +8,8 @@ LABEL fdi 1.6
 #ENV TZ=Etc/UTC
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools\
-&& apt-get install -y git python3-pip python3-venv \
-&& rm -rf /var/lib/apt/lists/*
+&& apt-get install -y git python3-pip python3-venv
+#&& rm -rf /var/lib/apt/lists/*
 
 # rebuild mark
 ARG re=rebuild
@@ -18,38 +18,42 @@ ARG re=rebuild
 # setup user
 ARG USR=fdi
 ARG UHOME=/home/${USR}
-RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo \
+
+RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo -K UMASK=002\
 && mkdir -p ${UHOME}/.config \
 && /bin/echo -e '\n'${USR} ALL = NOPASSWD: ALL >> /etc/sudoers
 
 WORKDIR ${UHOME}
 
-# config software
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 0 
-
 USER ${USR}
 ENV PATH="${UHOME}/.local/bin:$PATH"
 
 # set fdi's virtual env
+# let group access cache and bin. https://stackoverflow.com/a/46900270
 ENV FDIVENV=${UHOME}/.venv
-RUN python3 -m venv ${FDIVENV}
+RUN umask 0002 && python3.6 -m venv ${FDIVENV}
 
 # effectively activate fdi virtual env for ${USR}
 ENV PATH="${FDIVENV}/bin:$PATH"
 
 # this also upgrades pip
-RUN pip3 install pipenv
+#RUN pip3 install pipenv
+RUN umask 0002 \
+&& python3 -m pip install pip -U
 
 # convenience aliases
 COPY fdi/pns/resources/profile .
 RUN cat profile >> .bashrc && rm profile
 
+
 USER root
+# config python.
+#if venv is made with 'python3', python3.6 link needs to be made
+# RUN ln -s /usr/bin/python3.6 ${FDIVENV}/bin/python3.6
+
 # Configure permission
 RUN for i in /var/run/lock/ ${UHOME}/; \
 do chown -R ${USR}:${USR} $i; echo $i; done 
-#&& chmod 755 ${UHOME} ${UHOME}/.local ${UHOME}/.local/bin ${UHOME}/.local/bin/*
-#&& chmod 755 ${UHOME}/.cache ${UHOME}/.cache/pip
 
 # If install fdi repo, instead of package
 # make dir for fdi.
@@ -71,15 +75,11 @@ WORKDIR ${PKGS_DIR}/${PKG}/
 
 #ENV FDIVENV ${PKGS_DIR}/${PKG}/.venv
 ENV PIPENV_VENV_IN_PROJECT 1
-#RUN make install I='-e .' \
 
-RUN python -m pip install -e .[DEV,SERV] \
-&& python3 -c 'import sys;print(sys.path)' &&  pip list
-
-# If installing fdi package
-# no [DEV] needed
-#RUN python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV,SERV]
-#RUN python3 -m pip install fdi[DEV,SERV]
+# let group access cache and bin. https://stackoverflow.com/a/46900270
+RUN umask 0002 \
+&& python3.6 -m pip install -e .[DEV,SERV] \
+&& python3.6 -c 'import sys;print(sys.path)' &&  pip list
 
 WORKDIR ${PKGS_DIR}
 

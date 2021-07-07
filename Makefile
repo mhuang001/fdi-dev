@@ -252,8 +252,8 @@ SECFILE = $${HOME}/.secret
 
 DOCKER_NAME	= fdi
 VERS	= v1.2
-DOCKER_NAME      =httppool
-VERS	= v4
+#DOCKER_NAME      =httppool
+#VERS	= v4
 PORT        =9884
 EXTPORT =$(PORT)
 IMAGE_NAME         =mhastro/$(DOCKER_NAME):$(VERS)

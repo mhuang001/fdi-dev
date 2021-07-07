@@ -32,6 +32,7 @@ setup(
     long_description_content_type="text/x-rst",
     python_requires=">=3.6",
     install_requires=[
+        'wheel>=0.32.1',
         'requests>=2.23.0',
         'filelock>=3.0.12',
         'ruamel.yaml>=0.15.0',

@@ -51,26 +51,16 @@ runserver:
 runpoolserver:
 	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar -v --server=httppool_server $(S)
 
-PIPENVOPT	=--python 3.6
-EXT	= --dev 
+EXT	=
 PKGS	= requests filelock ruamel.yaml tabulate paho-mqtt
 PKGSDEV	=pytest pytest-cov aiohttp Flask Flask_HTTpAuth
 PKGSDEP	= waitress twine sphinx_rtd_theme sphinx-copybutton
-pipfile:
-	pipenv $(PIPENVOPT) install --dev $(PKGSDEV) --skip-lock
-	pipenv $(PIPENVOPT) install $(PKGS)
-
-install:
-	PIP_IGNORE_INSTALLED=1 pipenv $(PIPENVOPT) install $(EXT) --ignore-pipfile  $(I)
-
-uninstall:
-	pipenv uninstall --all-dev fdi  $(I)
 
 PIPOPT  = --disable-pip-version-check --no-color
-install0:
+install:
 	$(PYEXE) -m pip install $(PIPOPT) -e .$(EXT) $(I)
 
-uninstall0:
+uninstall:
 	$(PYEXE) -m pip uninstall $(PIPOPT) fdi  $(I)
 
 addsubmodule:
@@ -123,7 +113,7 @@ wheeltest:
 	$(PYEXE) -m pip install $(LOCAL_INDURL) "fdi" && \
 	$(PYEXE) -m pip show fdi && \
 	echo Testing newly installed fdi ... ; \
-	$(PYEXE) -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
+	$(PYEXE) -c 'import sys, fdi.dataset.arraydataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
 	$(PYEXE) -c 'import sys, pkgutil as p; sys.stdout.buffer.write(p.get_data("fdi", "dataset/resources/Product.template")[:100])' && \
 	deactivate
 
@@ -135,7 +125,7 @@ testw:
 	$(PYEXE) -m pip cache remove -q -q -q fdi ;\
 	$(PYEXE) -m pip install $(INDURL) "fdi==1.0.6" && \
 	echo Testing newly installed fdi ... ; \
-	$(PYEXE) -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
+	$(PYEXE) -c 'import sys, fdi.dataset.arraydataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
 	deactivate
 
 J_OPTS	= ${JAVA_OPTS} -XX:MaxPermSize=256M -Xmx1024M -DloggerPath=conf/log4j.properties

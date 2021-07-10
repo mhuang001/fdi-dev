@@ -345,5 +345,4 @@ def test_getConfig_conf(getConfig):
     os.environ['CONF_DIR'] = cp
     check_conf(cp, typ, getConfig)
     # non-existing. the file has been deleted by the check_conf in the last line
-    with pytest.raises(FileNotFoundError):
-        w = getConfig(conf=typ)
+    w = getConfig(conf=typ)

@@ -78,7 +78,7 @@ def getConfig(name=None, conf='pns'):
         # modul = __import__(module_name, globals(), locals(), [var_name], 0)
         config.update(getattr(module, var_name))
         logger.debug('Reading %s/%s done.' % (confp, file_name))
-    except ModuleNotFoundError as e:
+    except (ModuleNotFoundError, FileNotFoundError) as e:
         logger.warning(str(
             e) + '. Use default config in the package, such as fdi/pns/config.py. Copy it to ~/.config/[package]local.py and make persistent customization there.')
 

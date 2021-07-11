@@ -30,7 +30,7 @@ from collections import namedtuple
 from datetime import datetime, timedelta, timezone
 from struct import Struct
 from warnings import warn
-from functools import partial
+from functools import partial, lru_cache
 
 __all__ = ['leapseconds', 'LeapSecond',
            'dTAI_UTC_from_utc', 'dTAI_UTC_from_tai',
@@ -99,8 +99,11 @@ def leapseconds(tzfiles=['/usr/share/zoneinfo/right/UTC',
         (magic, version, _, _, leapcnt, timecnt, typecnt,
          charcnt) = header.unpack_from(file.read(header.size))
         if magic != "TZif".encode():
-            raise ValueError('Wrong magic %r in tzfile: %s' % (
-                magic, file.name))
+            if not use_fallback:
+                raise ValueError('Wrong magic %r in tzfile: %s' % (
+                    magic, file.name))
+            else:
+                return _fallback()
         if version not in '\x0023'.encode():
             warn('Unsupported version %r in tzfile: %s' % (
                 version, file.name), RuntimeWarning)
@@ -128,7 +131,8 @@ def leapseconds(tzfiles=['/usr/share/zoneinfo/right/UTC',
         """
         file.read(timecnt * 5 + typecnt * 6 + charcnt)  # skip
 
-        result = [LeapSecond(datetime(1972, 1, 1, tzinfo=timezone.utc), timedelta(seconds=10))]
+        result = [LeapSecond(
+            datetime(1972, 1, 1, tzinfo=timezone.utc), timedelta(seconds=10))]
         nleap_seconds = 10
         tai_epoch_as_tai = datetime(1970, 1, 1, 0, 0, 10, tzinfo=timezone.utc)
         buf = Struct(">2i")
@@ -136,12 +140,14 @@ def leapseconds(tzfiles=['/usr/share/zoneinfo/right/UTC',
             t, cnt = buf.unpack_from(file.read(buf.size))
             dTAI_UTC = nleap_seconds + cnt
             utc = tai_epoch_as_tai + timedelta(seconds=t - dTAI_UTC + 1)
-            assert utc - datetime(utc.year, utc.month, utc.day, tzinfo=timezone.utc) == timedelta(0)
+            assert utc - datetime(utc.year, utc.month,
+                                  utc.day, tzinfo=timezone.utc) == timedelta(0)
             result.append(LeapSecond(utc, timedelta(seconds=dTAI_UTC)))
         result.append(sentinel)
         return result
 
 
+@lru_cache(maxsize=8)
 def _fallback():
     """Leap seconds list if no tzfiles are available."""
     td = timedelta
@@ -228,8 +234,12 @@ def _dTAI_UTC(time, leapsecond_to_time, leapseconds=leapseconds):
     leapseconds_list = leapseconds()
     transition_times = list(map(leapsecond_to_time, leapseconds_list))
     if time < transition_times[0]:
-        raise ValueError("Dates before %s are not supported, got %r" % (
-            transition_times[0], time))
+        # try fallback first
+        leapseconds_list = _fallback()
+        transition_times = list(map(leapsecond_to_time, leapseconds_list))
+        if time < transition_times[0]:
+            raise ValueError("Dates before %s are not supported, got %r" % (
+                transition_times[0], time))
     for i, (start, end) in enumerate(zip(transition_times,
                                          transition_times[1:])):
         if start <= time < end:

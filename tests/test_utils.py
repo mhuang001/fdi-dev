@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from fdi.utils.leapseconds import utc_to_tai, tai_to_utc, dTAI_UTC_from_utc, _fallback
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.metadata import make_jsonable
 from fdi.dataset.datatypes import Vector, Quaternion
@@ -15,6 +16,7 @@ from fdi.utils.fetch import fetch
 
 import traceback
 import copy
+from datetime import timezone, timedelta, datetime
 import sys
 import os
 import os.path
@@ -346,3 +348,24 @@ def test_getConfig_conf(getConfig):
     check_conf(cp, typ, getConfig)
     # non-existing. the file has been deleted by the check_conf in the last line
     w = getConfig(conf=typ)
+
+
+def test_leapseconds():
+    t0 = datetime(2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
+    assert dTAI_UTC_from_utc(t0) == timedelta(seconds=37)
+    # the above just means ...
+    assert utc_to_tai(t0) - t0 == timedelta(seconds=37)
+    t1 = datetime(1972, 1, 1, 0, 0, 0, 000000, tzinfo=timezone.utc)
+    assert dTAI_UTC_from_utc(t1) == timedelta(seconds=10)
+    t2 = datetime(1970, 1, 1, 0, 0, 0, 000000, tzinfo=timezone.utc)
+    # interpolation not implemented
+    assert dTAI_UTC_from_utc(t2) == timedelta(seconds=4.213170)
+    t3 = datetime(1968, 2, 1, 0, 0, 0, 000000, tzinfo=timezone.utc)
+    assert dTAI_UTC_from_utc(t2) == timedelta(seconds=4.213170)
+    t1958 = datetime(1958, 1, 1, 0, 0, 0, 0, tzinfo=timezone.utc)
+    assert dTAI_UTC_from_utc(t1958) == timedelta(seconds=0)
+    # leap seconds is added on transition
+    t4 = datetime(2017, 1, 1, 0, 0, 0, 000000, tzinfo=timezone.utc)
+    assert utc_to_tai(t4) - utc_to_tai(t4 - timedelta(seconds=1)) == \
+        timedelta(seconds=2)
+    print(_fallback.cache_info())

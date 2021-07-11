@@ -257,36 +257,44 @@ build_docker:
 	docker tag $(DOCKER_NAME):$(DVERS) $(LATEST)
 
 launch_docker:
-	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME):$(DVERS) $(D) $(LATEST) $(LAU)
+	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(LATEST) $(LAU)
 
 build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SVERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) $(D) --progress=plain .
 	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)
 
 launch_server:
-	docker run -dit --network=bridge --env-file $(SECFILE) --name $(SERVER_NAME):$(SVERS) $(D) $(LATEST) $(LAU)
+	docker run -dit --network=bridge --env-file $(SECFILE) --name $(SERVER_NAME) $(D) $(LATEST) $(LAU)
 	sleep 2
 	docker ps -n 1
 
 rm_docker:
-	docker stop $(DOCKER_NAME)  || echo not running
-	docker  rm $(DOCKER_NAME)
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	if docker stop $$cid; then docker  rm $$cid; else echo NOT running ; fi
 
 rm_dockeri:
-	docker stop $(DOCKER_NAME)  || echo not running
-	docker  rm $(DOCKER_NAME) || echo go on ...
-	docker image rm $(DOCKER_NAME)
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	if docker stop $$cid; then docker  rm $$cid; else echo NOT running ; fi
+	docker image rm $(LATEST)
 
 it:
-	docker exec -it $(D) $(DOCKER_NAME) $(B)
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	if [ -z $$cid ]; then echo NOT running ; else \
+	docker exec -it $(D) $$cid $(B); fi
 
 t:
-	docker exec -it $(D) $(DOCKER_NAME) /usr/bin/tail -n 100 -f /home/apache/error-ps.log
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	if [ -z $$cid ]; then echo NOT running ; else \
+	docker exec -it $(D) $(LATEST) /usr/bin/tail -n 100 -f /home/apache/error-ps.log; fi
 
 i:
-	docker exec -it $(D) $(DOCKER_NAME) /usr/bin/less -f /home/apache/error-ps.log
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	if [ -z $$cid ]; then echo NOT running ; else \
+	docker exec -it $(D) $(LATEST) /usr/bin/less -f /home/apache/error-ps.log; fi
 
 push:
-	docker tag  $(DOCKER_NAME):$(VERS) $(IMAGE_NAME)
-	docker push $(IMAGE_NAME)
+	docker tag  $(LATEST) $(DKRREPO)/$(LATEST)
+	tagged=$(LATEST); notag=$${tagged%%':latest'} ;\
+	docker push $(DKRREPO)/$$notag --all-tags
+
 

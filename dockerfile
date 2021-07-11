@@ -2,7 +2,7 @@
 
 FROM ubuntu:18.04 AS fdi
 LABEL fdi 1.6
-# 1- M. Huang <mhuang@nao.cas.cn>
+# 1-1.3 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
 #ENV TZ=Etc/UTC
@@ -94,8 +94,8 @@ USER ${USR}
 # get passwords etc from ~/.secret
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} envs \
-&& for i in `cat ./envs`; do export $i; done \
-&& ./dockerfile_entrypoint.sh  no-run  # modify pnslocal.py
+&& /bin/bash -c 'for i in `cat ./envs`; do export $i; done \
+&& ./dockerfile_entrypoint.sh  no-run'  # modify pnslocal.py
 #RUN bash -c 'for i in `sed -e 's/=.*$//g' ./envs`; do echo $i=${!i}, PPP ${GITPULLCSC} P%%%; done'
 
 WORKDIR ${PKGS_DIR}/${PKG}/

@@ -238,32 +238,33 @@ docs_html:
 	cd $(SDIR) && make html
 
 ########
-SECFILE = $${HOME}/.secret
-
+DKRREPO	= mhastro
 DOCKER_NAME	= fdi
-VERS	= v1.2
-#DOCKER_NAME      =httppool
-#VERS	= v4
+DVERS	= v1.3
+SEVER_NAME      =httppool
+SVERS	= v4
 PORT        =9884
 EXTPORT =$(PORT)
-IMAGE_NAME         =mhastro/$(DOCKER_NAME):$(VERS)
+IMAGE_NAME         =$(DKRREPO)/$(DOCKER_NAME):$(VERS)
 IP_ADDR     =10.0.10.114
+SECFILE = $${HOME}/.secret
+
+LATEST	=im:latest
 B       =/bin/bash
 
-PROXIP	= localhost
-PROXY	= --build-arg http_proxy=socks5://$(PROXIP):7777 --build-arg https_proxy=socks5://$(PROXIP):7777
-PROXY	= 
 build_docker:
-	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(VERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) $(PROXY) $(D) --progress=plain .
+	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DVERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) $(D) --progress=plain .
+	docker tag $(DOCKER_NAME):$(DVERS) $(LATEST)
 
 launch_docker:
-	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):$(VERS) $(L)
+	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME):$(DVERS) $(D) $(LATEST) $(LAU)
 
 build_server:
-	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(VERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) --progress=plain -f fdi/pns/resources/httppool_server_2.docker $(D) .
+	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SVERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) $(D) --progress=plain .
+	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)
 
 launch_server:
-	docker run -d -it --network=bridge  -p $(PORT):$(EXTPORT) --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):$(VERS) $(L)
+	docker run -dit --network=bridge --env-file $(SECFILE) --name $(SERVER_NAME):$(SVERS) $(D) $(LATEST) $(LAU)
 	sleep 2
 	docker ps -n 1
 

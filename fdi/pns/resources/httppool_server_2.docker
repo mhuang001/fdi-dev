@@ -16,7 +16,10 @@ ARG re=rebuild
 # setup user
 ARG USR=apache
 ARG UHOME=/home/${USR}
-RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo \
+
+# must be in fdi group as inherent docker users may need to
+# write to fdi's lib dir, due to living in fdi' venv
+RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo,fdi \
 && mkdir -p ${UHOME}/.config \
 && /bin/echo -e '\n'${USR} ALL = NOPASSWD: ALL >> /etc/sudoers
 

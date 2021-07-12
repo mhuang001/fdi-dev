@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.2
 
-FROM mhastro/fdi:v1.2
+FROM mhastro/fdi:v1.3
 LABEL Pool Server
 # 0.2-4 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>

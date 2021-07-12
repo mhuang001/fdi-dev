@@ -241,7 +241,7 @@ docs_html:
 DKRREPO	= mhastro
 DOCKER_NAME	= fdi
 DVERS	= v1.3
-SEVER_NAME      =httppool
+SERVER_NAME      =httppool
 SVERS	= v4
 PORT        =9884
 EXTPORT =$(PORT)
@@ -253,18 +253,18 @@ LATEST	=im:latest
 B       =/bin/bash
 
 build_docker:
-	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DVERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) $(D) --progress=plain .
+	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DVERS) --secret id=envs,src=$(SECFILE) --build-arg fd=$(fd) --build-arg  re=$(re) $(D) --progress=plain .
 	docker tag $(DOCKER_NAME):$(DVERS) $(LATEST)
 
 launch_docker:
 	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(LATEST) $(LAU)
 
 build_server:
-	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SVERS) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) $(D) --progress=plain .
+	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SVERS) --secret id=envs,src=$(SECFILE) --build-arg fd=$(fd) --build-arg  re=$(re) -f fdi/pns/resources/httppool_server_2.docker $(D) --progress=plain .
 	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)
 
 launch_server:
-	docker run -dit --network=bridge --env-file $(SECFILE) --name $(SERVER_NAME) $(D) $(LATEST) $(LAU)
+	docker run -dit --network=bridge --env-file $(SECFILE)  -p $(PORT):$(EXTPORT) --name $(SERVER_NAME) $(D) $(LATEST) $(LAU)
 	sleep 2
 	docker ps -n 1
 
@@ -285,16 +285,16 @@ it:
 t:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
 	if [ -z $$cid ]; then echo NOT running ; else \
-	docker exec -it $(D) $(LATEST) /usr/bin/tail -n 100 -f /home/apache/error-ps.log; fi
+	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/apache/error-ps.log; fi
 
 i:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
 	if [ -z $$cid ]; then echo NOT running ; else \
-	docker exec -it $(D) $(LATEST) /usr/bin/less -f /home/apache/error-ps.log; fi
+	docker exec -it $(D) $$cid /usr/bin/less -f /home/apache/error-ps.log; fi
 
-push:
-	docker tag  $(LATEST) $(DKRREPO)/$(LATEST)
-	tagged=$(LATEST); notag=$${tagged%%':latest'} ;\
-	docker push $(DKRREPO)/$$notag --all-tags
+push_docker:
+	im=$(DKRREPO)/$(DOCKER_NAME):$(DVERS); \
+	docker tag  $(DOCKER_NAME):$(DVERS) $$im &&\
+	docker push $$im
 
 

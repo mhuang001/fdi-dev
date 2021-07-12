@@ -36,9 +36,9 @@ else:
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
 
-    from .pycontext import fdi
+    from pycontext import fdi
 
-    from .logdict import logdict
+    from logdict import logdict
     import logging
     import logging.config
     # create logger

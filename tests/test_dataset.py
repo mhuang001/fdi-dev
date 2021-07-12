@@ -70,15 +70,15 @@ else:
 
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
-    from .pycontext import fdi
+    from pycontext import fdi
 
-    from .outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
+    from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
 
     import logging
     import logging.config
     # create logger
     if 1:
-        from .logdict import logdict
+        from logdict import logdict
         logging.config.dictConfig(logdict)
     else:
         logging.basicConfig(level=logging.DEBUG,

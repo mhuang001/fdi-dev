@@ -245,7 +245,6 @@ SERVER_NAME      =httppool
 SVERS	= v4
 PORT        =9884
 EXTPORT =$(PORT)
-IMAGE_NAME         =$(DKRREPO)/$(DOCKER_NAME):$(VERS)
 IP_ADDR     =10.0.10.114
 SECFILE = $${HOME}/.secret
 
@@ -295,6 +294,11 @@ i:
 push_docker:
 	im=$(DKRREPO)/$(DOCKER_NAME):$(DVERS); \
 	docker tag  $(DOCKER_NAME):$(DVERS) $$im &&\
+	docker push $$im
+
+push_server:
+	im=$(DKRREPO)/$(SERVER_NAME):$(SVERS); \
+	docker tag  $(SERVER_NAME):$(SVERS) $$im &&\
 	docker push $$im
 
 

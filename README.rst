@@ -33,7 +33,7 @@ or from git repo:
 
    python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/master/fdi-master.tar.gz
 
-If you want to install the ``develop`` and server dependencies:
+If you want to install the ``develop`` dependencies:
 
 .. code-block:: shell
 
@@ -147,7 +147,7 @@ in another window run:
 
            make testpns
 
-To test your ``httppool`` servers installation, in one window, run:
+To test your ``httppool`` servers installation, make sure to stop other server such as ``pnsserver`` above, then in one window, run:
 
 .. code-block:: shell
 

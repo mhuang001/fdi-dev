@@ -24,10 +24,14 @@ Cyan: for output.
 
 	       
 >>> # Import these packages needed in the tutorial
-... from fdi.dataset.product import Product
-... from fdi.dataset.metadata import Parameter, NumericParameter, MetaData, StringParameter, DateParameter
+... from fdi.dataset.product import Product, BaseProduct
+... from fdi.dataset.metadata import Parameter, MetaData
+... from fdi.dataset.numericparameter import NumericParameter
+... from fdi.dataset.stringparameter import StringParameter
+... from fdi.dataset.dateparameter import DateParameter
 ... from fdi.dataset.finetime import FineTime, FineTime1
-... from fdi.dataset.dataset import ArrayDataset, TableDataset, Column
+... from fdi.dataset.arraydataset import ArrayDataset, Column
+... from fdi.dataset.tabledataset import TableDataset
 ... from fdi.dataset.classes import Classes
 ... from fdi.pal.context import Context, MapContext
 ... from fdi.pal.productref import ProductRef
@@ -41,7 +45,6 @@ Cyan: for output.
 
 >>> # initialize the white-listed class dictionary
 ... cmap = Classes.updateMapping()
-
 
 dataset
 =======
@@ -58,40 +61,18 @@ ArrayDataset -- sequence of data in the same unit and format
 ... a1 = [1, 4.4, 5.4E3, -22, 0xa2]
 ... v = ArrayDataset(a1)
 ... # Show it. This is the same as print(v) in a non-interactive environment.
+... # "Default Meta." means the metadata settings are all default values.
 ... v
-# ArrayDataset
-description= {'UNKNOWN'},
-meta= {(No parameter.)MetaData-listeners = ListnerSet{}
-},
-type= {None},
-default= {None},
-typecode= {None},
-unit= {None}
-ArrayDataset-dataset =
-1  4.4  5400  -22  162
+ArrayDataset(Default Meta. data= [1, 4.4, 5400.0, -22, 162])
 
->>> # Create an ArrayDataset with built-in properties set.
-... v = ArrayDataset(data=a1, unit='ev', description='5 elements',
-...                  typ_='float', default=1.0, typecode='f')
+>>> # Create an ArrayDataset with some built-in properties set.
+... v = ArrayDataset(data=a1, unit='ev', description='5 elements', typecode='f')
 ... #
 ... # add some metadats (see more about meta data below)
 ... v.meta['greeting'] = StringParameter('Hi there.')
 ... v.meta['year'] = NumericParameter(2020)
 ... v
-# ArrayDataset
-description= {'5 elements'},
-meta= {
--------------------  ----------
-greeting= Hi there.  year= 2020
--------------------  ----------
-MetaData-listeners = ListnerSet{}
-},
-type= {'float'},
-default= {1.0},
-typecode= {'f'},
-unit= {'ev'}
-ArrayDataset-dataset =
-1  4.4  5400  -22  162
+ArrayDataset(description=5 elements, unit=ev, typecode=f, greeting=Hi there., year=2020. data= [1, 4.4, 5400.0, -22, 162])
 
 >>> # data access: read the 2nd array element
 ... v[2]       # 5400
@@ -137,22 +118,29 @@ ArrayDataset-dataset =
 ... print(v.toString())
 
 ::
-   
-   # ArrayDataset
-   description= {'5 elements'},
+
+   === ArrayDataset () ===
    meta= {
-   +----------+-----------+--------+---------+---------+-----------+--------+---------------+
-   | name     | value     | unit   | type    | valid   | default   | code   | description   |
-   +==========+===========+========+=========+=========+===========+========+===============+
-   | greeting | Hi there. |        | string  | None    |           | B      | UNKNOWN       |
-   +----------+-----------+--------+---------+---------+-----------+--------+---------------+
-   | year     | 2020      | None   | integer | None    | None      | None   | UNKNOWN       |
-   +----------+-----------+--------+---------+---------+-----------+--------+---------------+
-   MetaData-listeners = ListnerSet{}},
-   type= {'float'},
-   default= {1.0},
-   typecode= {'f'},
-   unit= {'m'}
+   ===========  ==========  ======  =======  =======  =========  ======  =====================
+   name         value       unit    type     valid    default    code    description
+   ===========  ==========  ======  =======  =======  =========  ======  =====================
+   description  5 elements          string   None     UNKNOWN    B       Description of this d
+   ataset
+   unit         m                   string   None     None       B       Unit of every element
+   .
+   shape        ()                  tuple    None     ()                 Number of elements in
+   each dimension. Quic
+   k changers to the rig
+   ht.
+   typecode     f                   string   None     UNKNOWN    B       Python internal stora
+   ge code.
+   version      0.1                 string   None     0.1        B       Version of dataset
+   FORMATV      1.6.0.1             string   None     1.6.0.1    B       Version of dataset sc
+   hema and revision
+   greeting     Hi there.           string   None                B       UNKNOWN
+   year         2020        None    integer  None     None       None    UNKNOWN
+   ===========  ==========  ======  =======  =======  =========  ======  =====================
+   MetaData-listeners = ListnerSet{}}
    ArrayDataset-dataset =
    0  1  2  3  4
    1  2  3  4  5
@@ -196,7 +184,6 @@ ArrayDataset-dataset =
 
 
 
-
 TableDataset -- a set of named Columns and their metadata
 ---------------------------------------------------------
 
@@ -208,19 +195,7 @@ TableDataset is mainly a dictionary containing named :class:`Column`\s and their
 ... v['col1'] = Column(data=[1, 4.4, 5.4E3], unit='eV')
 ... v['col2'] = Column(data=[0, 43.2, 2E3], unit='cnt')
 ... v
-# TableDataset
-description= {'UNKNOWN'},
-meta= {(No parameter.)MetaData-listeners = ListnerSet{}
-}
-TableDataset-dataset =
-  col1     col2
-  (eV)    (cnt)
-------  -------
-   1        0
-   4.4     43.2
-5400     2000
-
-
+TableDataset(Default Meta.data= {"col1": Column(unit=eV. data= [1, 4.4, 5400.0]), "col2": Column(unit=cnt. data= [0, 43.2, 2000.0])})
 
 >>> # Do it with another syntax, with a list of tuples and no Column()
 ... a1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
@@ -233,9 +208,18 @@ True
 ... a5 = [[1, 4.4, 5.4E3], [0, 43.2, 2E3], [True, True, False], ['A', 'BB', 'CCC']]
 ... v5 = TableDataset(data=a5)
 ... print(v5.toString())
-# TableDataset
-description= {'UNKNOWN'},
-meta= {(No parameter.)MetaData-listeners = ListnerSet{}}
+=== TableDataset () ===
+meta= {
+===========  =======  ======  ======  =======  =========  ======  =====================
+name         value    unit    type    valid    default    code    description
+===========  =======  ======  ======  =======  =========  ======  =====================
+description  UNKNOWN          string  None     UNKNOWN    B       Description of this d
+                                                                  ataset
+version      0.1              string  None     0.1        B       Version of dataset
+FORMATV      1.6.0.1          string  None     1.6.0.1    B       Version of dataset sc
+                                                                  hema and revision
+===========  =======  ======  ======  =======  =========  ======  =====================
+MetaData-listeners = ListnerSet{}}
 TableDataset-dataset =
   column1    column2  column3    column4
    (None)     (None)  (None)     (None)
@@ -252,11 +236,10 @@ TableDataset-dataset =
 ... v5.getColumnNames()
 ['column1', 'column2', 'column3', 'column4']
 
-
 >>> # get column by name
 ... my_column = v5['column1']       # [1, 4.4, 5.4E3]
 ... my_column.data
->>> [1, 4.4, 5400.0]
+[1, 4.4, 5400.0]
 
 >>> # by index
 ... v5[0].data       # [1, 4.4, 5.4E3]
@@ -330,43 +313,45 @@ TableDataset-dataset =
 ... # metadata is optional
 ... x.meta['temp'] = NumericParameter(42.6, description='Ambient', unit='C')
 ... print(x.toString())
+=== TableDataset () ===
+meta= {
+===========  =============  ======  ======  =======  =========  ======  =====================
+name         value          unit    type    valid    default    code    description
+===========  =============  ======  ======  =======  =========  ======  =====================
+description  Example table          string  None     UNKNOWN    B       Description of this d
+                                                                        ataset
+version      0.1                    string  None     0.1        B       Version of dataset
+FORMATV      1.6.0.1                string  None     1.6.0.1    B       Version of dataset sc
+                                                                        hema and revision
+temp         42.6           C       float   None     None       None    Ambient
+===========  =============  ======  ======  =======  =========  ======  =====================
+MetaData-listeners = ListnerSet{}}
+TableDataset-dataset =
+   Time    Energy    Distance
+  (sec)      (eV)         (m)
+-------  --------  ----------
+      0     100          -500
+      1     102.5         265
+      2     105          1030
+      3     107.5        1795
+      4     110          2560
+      5     112.5        3325
+      6     115          4090
+      7     117.5        4855
 
-::
-   
-   # TableDataset
-   description= {'Example table'},
-   meta= {
-   +--------+---------+--------+--------+---------+-----------+--------+---------------+
-   | name   | value   | unit   | type   | valid   | default   | code   | description   |
-   +========+=========+========+========+=========+===========+========+===============+
-   | temp   | 42.6    | C      | float  | None    | None      | None   | Ambient       |
-   +--------+---------+--------+--------+---------+-----------+--------+---------------+
-   MetaData-listeners = ListnerSet{}}
-   TableDataset-dataset =
-      Time    Energy    Distance
-     (sec)      (eV)         (m)
-   -------  --------  ----------
-         0     100          -500
-         1     102.5         265
-         2     105          1030
-         3     107.5        1795
-         4     110          2560
-         5     112.5        3325
-         6     115          4090
-         7     117.5        4855
-   
 
 
 
 Metadata and Parameter - Parameter
 ----------------------------------
 
+
+
 >>> # Creation
 ... # The standard way -- with keyword arguments
 ... v = Parameter(value=9000, description='Average age', typ_='integer')
 ... v.description   # 'Average age'
-
->>> 'Average age'
+'Average age'
 
 >>> v.value   # == 9000
 9000
@@ -398,10 +383,10 @@ True
 ...                      0: 'OK1', 1: 'OK2', (100, 9900): 'Go!'})
 ... # There are thee valid conditions
 ... v
-Go! (9000)
+NumericParameter(description="UNKNOWN", type="integer", default=None, value=9000, valid=[[0, 'OK1'], [1, 'OK2'], [[100, 9900], 'Go!']], unit=None, typecode=None, _STID="NumericParameter")
 
 >>> # The current value is valid
-... v.isvalid()
+... v.isValid()
 True
 
 >>> # check if other values are valid according to specification of this parameter
@@ -416,6 +401,7 @@ Metadata and Parameter - Metadata
 
 A :class:`Metadata` instance is mainly a dict-like container for named parameters.
 
+
 >>> # Creation. Start with numeric parameter.
 ... a1 = 'weight'
 ... a2 = NumericParameter(description='How heavey is the robot.',
@@ -426,24 +412,23 @@ A :class:`Metadata` instance is mainly a dict-like container for named parameter
 ... v.set(a1, a2)
 ... # get the parameter with the name.
 ... v.get(a1)   # == a2
-
->>> 60.0
+NumericParameter(description="How heavey is the robot.", type="float", default=None, value=60.0, valid=None, unit="kg", typecode=None, _STID="NumericParameter")
 
 >>> # add more parameter. Try a string type.
 ... v.set(name='job', newParameter=StringParameter('pilot'))
 ... # get the value of the parameter
 ... v.get('job').value   # == 'pilot'
-# access parameters in metadata
+'pilot'
+
+>>> # access parameters in metadata
 ... # a more readable way to set/get a parameter than "v.set(a1,a2)", "v.get(a1)"
 ... v['job'] = StringParameter('waitress')
 ... v['job']   # == waitress
-'pilot'
-
->>> waitress
+StringParameter(description="UNKNOWN", default="", value="waitress", valid=None, typecode="B", _STID="StringParameter")
 
 >>> # same result as...
 ... v.get('job')
-waitress
+StringParameter(description="UNKNOWN", default="", value="waitress", valid=None, typecode="B", _STID="StringParameter")
 
 >>> # Date type parameter use International Atomic Time (TAI) to keep time,
 ... # in 1-microsecond precission
@@ -452,7 +437,8 @@ waitress
 ... # FDI use International Atomic Time (TAI) internally to record time.
 ... # The format is the integer number of microseconds since 1958-01-01 00:00:00 UTC.
 ... v['birthday'].value.tai
-1031574896789098
+Time zone stripped for 1990-09-09T12:34:56.789098 UTC according to format.
+1031574921789098
 
 >>> # names of all parameters
 ... [n for n in v]   # == ['weight', 'job', 'birthday']
@@ -462,7 +448,6 @@ waitress
 ... v.remove(a1)
 ... v.size()  # == 2
 2
-
 
 >>> # The value of the next parameter is valid from 0 to 31 and can be 9
 ... valid_rule = {(0, 31): 'valid', 99: ''}
@@ -475,9 +460,10 @@ True
 ...     2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
 ... # The value of the next parameter is valid from TAI=0 to 9876543210123456
 ... valid_rule = {(0, 9876543210123456): 'alive'}
-... # display typecode set to 'year' (%Y)
 ... v['b'] = DateParameter(FineTime(then), 'date param', default=99,
-...                        valid=valid_rule, typecode='%Y')
+...                        valid=valid_rule)
+... # display format set to 'year' (%Y)
+... v['b'].format = '%Y-%M'
 ... # The value of the next parameter has an empty rule set and is always valid.
 ... v['c'] = StringParameter(
 ...     'Right', 'str parameter. but only "" is allowed.', valid={'': 'empty'}, default='cliche', typecode='B')
@@ -510,61 +496,51 @@ True
 >>> # string representation. This is the same as v.toString(level=0), most detailed.
 ... print(v.toString())
 
-::
-   
-   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-   | name     | value             | unit   | type     | valid                     | default         | code   | description     |
-   +==========+===================+========+==========+===========================+=================+========+=================+
-   | job      | waitress          |        | string   | None                      |                 | B      | UNKNOWN         |
-   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-   | birthday | 1990-09-09        |        | finetime | None                      | None            |        | was born on     |
-   |          | 12:34:56.789098   |        |          |                           |                 |        |                 |
-   |          | 1031574896789098  |        |          |                           |                 |        |                 |
-   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-   | a        | 3.4               | None   | float    | (0, 31): valid            | 2.0             | None   | rule name, if i |
-   |          |                   |        |          | 99:                       |                 |        | s "valid", "",  |
-   |          |                   |        |          |                           |                 |        | or "default", i |
-   |          |                   |        |          |                           |                 |        | s ommited in va |
-   |          |                   |        |          |                           |                 |        | lue string.     |
-   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-   | b        | alive (2019-02-19 |        | finetime | [(0, 9876543210123456): a | 1958-01-01      |        | date param      |
-   |          | 01:02:03.456789   |        |          | live]                     | 00:00:00.000099 |        |                 |
-   |          | 1929229323456789) |        |          |                           | 99              |        |                 |
-   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-   | c        | Invalid (Right)   |        | string   | '': empty                 | cliche          | B      | str parameter.  |
-   |          |                   |        |          |                           |                 |        | but only "" is  |
-   |          |                   |        |          |                           |                 |        | allowed.        |
-   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-   | d        | port_1 (0b01)     | None   | integer  | 0b11000000: 0b11          | None            | None   | valid rules des |
-   |          | stand_by (0b0)    |        |          | 0b00100000: 0b1           |                 |        | cribed with bin |
-   |          | normal (0b1)      |        |          | 0b00010000: 0b1           |                 |        | ary masks       |
-   |          | Invalid           |        |          | 0b00001111: 0b0000        |                 |        |                 |
-   +----------+-------------------+--------+----------+---------------------------+-----------------+--------+-----------------+
-   MetaData-listeners = ListnerSet{}
-   
->>> # simplifed string representation, toString(level=1), also what __repr__() runs.
-... v
+========  ====================  ======  ========  ====================  =================  ======  =====================
+name      value                 unit    type      valid                 default            code    description
+========  ====================  ======  ========  ====================  =================  ======  =====================
+job       waitress                      string    None                                     B       UNKNOWN
+birthday  1990-09-09T12:34:56.          finetime  None                  None                       was born on
+          789098
+          1031574921789098
+a         3.4                   None    float     (0, 31): valid        2.0                None    rule name, if is "val
+                                                  99:                                              id", "", or "default"
+                                                                                                   , is ommited in value
+                                                                                                    string.
+b         alive (2019-02-19T01          finetime  (0, 9876543210123456  1958-01-01T00:00:  Q       date param
+          :02:03.456789                           ): alive              00.000099
+          1929229360456789)                                             99
+c         Invalid (Right)               string    '': empty             cliche             B       str parameter. but on
+                                                                                                   ly "" is allowed.
+d         port_1 (0b01)         None    integer   11000000 0b01: port_  None               None    valid rules described
+          stand_by (0b0)                          1                                                 with binary masks
+          normal (0b1)                            11000000 0b10: port_
+          Invalid                                 2
+                                                  11000000 0b11: port
+                                                  closed
+                                                  00100000 0b0: stand_
+                                                  by
+                                                  00100000 0b1: main
+                                                  00010000 0b0: error
+                                                  00010000 0b1: normal
+                                                  00001111 0b0000: res
+                                                  erved
+========  ====================  ======  ========  ====================  =================  ======  =====================
+MetaData-listeners = ListnerSet{}
 
-::
-   
-   --------------------  --------------------  ----------------
-   job= waitress         birthday= 1990-09-09  a= 3.4
-                         12:34:56.789098
-                         1031574896789098
-   b= alive (2019-02-19  c= Invalid (Right)    d= port_1 (0b01)
-   01:02:03.456789                             stand_by (0b0)
-   1929229323456789)                           normal (0b1)
-                                               Invalid
-   --------------------  --------------------  ----------------
-   MetaData-listeners = ListnerSet{}
-   
+>>> # simplifed string representation, toString(level=1)
+... v
+job=waitress, birthday=1031574921789098, a=3.4, b=alive (1929229360456789), c=Invalid (Right), d=port_1 (0b01), stand_by (0b0), normal (0b1), Invalid.
+
 >>> # simplest string representation, toString(level=2).
 ... print(v.toString(level=2))
-job, birthday, a, b, c, d, listeners = ListnerSet{}
+job=waitress, birthday=FineTime(1990-09-09T12:34:56.789098), a=3.4, b=alive (FineTime(2019-02-19T01:02:03.456789)), c=Invalid (Right), d=port_1 (0b01), stand_by (0b0), normal (0b1), Invalid.
 
 
 Product with metadata and datasets
 ----------------------------------
+
+
 
 >>> # Creation:
 ... x = Product(description="product example with several datasets",
@@ -587,24 +563,24 @@ Product with metadata and datasets
 ... x["RawImage"] = image
 ... # take the data out of the product
 ... x["RawImage"].data  # == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-# Another syntax to put dataset into a product: set(name, dataset)
+[[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+
+>>> # Another syntax to put dataset into a product: set(name, dataset)
 ... # Different but same function as above.
 ... # Here no unit or description is given when making ArrayDataset
 ... x.set('QualityImage', ArrayDataset(
 ...     [[0.1, 0.5, 0.7], [4e3, 6e7, 8], [-2, 0, 3.1]]))
 ... x["QualityImage"].unit  # is None
-[[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 
->>> 
 >>> # add another tabledataset
 ... s1 = [('col1', [1, 4.4, 5.4E3], 'eV'),
 ...       ('col2', [0, 43.2, 2E3], 'cnt')]
 ... x["Spectrum"] = TableDataset(data=s1)
 ... # See the numer and types of existing datasets in the product
 ... [type(d) for d in x.values()]
-[fdi.dataset.dataset.ArrayDataset,
- fdi.dataset.dataset.ArrayDataset,
- fdi.dataset.dataset.TableDataset]
+[fdi.dataset.arraydataset.ArrayDataset,
+ fdi.dataset.arraydataset.ArrayDataset,
+ fdi.dataset.tabledataset.TableDataset]
 
 >>> # mandatory properties are also in metadata
 ... # test mandatory BaseProduct properties that are also metadata
@@ -631,117 +607,138 @@ Product with metadata and datasets
 >>> # load some metadata
 ... m = x.meta
 ... m['ddetector'] = v['d']
-... # Demo ``toString()`` function.
-... print(x.toString())
+
+>>> print(x.toString())
 
 ::
-   
-   # Product
+
+   === Product () ===
    meta= {
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | name     | value             | unit   | type     | valid              | default         | code   | description     |
-   +==========+===================+========+==========+====================+=================+========+=================+
-   | descript | product example w |        | string   | None               | UNKNOWN         | B      | Description of  |
-   | ion      | ith several datas |        |          |                    |                 |        | this product    |
-   |          | ets               |        |          |                    |                 |        |                 |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | type     | Product           |        | string   | None               | Product         | B      | Product Type id |
-   |          |                   |        |          |                    |                 |        | entification. N |
-   |          |                   |        |          |                    |                 |        | ame of class or |
-   |          |                   |        |          |                    |                 |        |  CARD.          |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | creator  | or else           |        | string   | None               | None            |        | UNKNOWN         |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | creation | 1958-01-01        |        | finetime | None               | 1958-01-01      |        | Creation date o |
-   | Date     | 00:00:00.000000   |        |          |                    | 00:00:00.000000 |        | f this product  |
-   |          | 0                 |        |          |                    | 0               |        |                 |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | rootCaus | UNKNOWN           |        | string   | None               | UNKNOWN         | B      | Reason of this  |
-   | e        |                   |        |          |                    |                 |        | run of pipeline |
-   |          |                   |        |          |                    |                 |        | .               |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | version  | 0.8               |        | string   | None               | 0.8             | B      | Version of prod |
-   |          |                   |        |          |                    |                 |        | uct             |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | FORMATV  | 1.4.0.8           |        | string   | None               | 1.4.0.8         | B      | Version of prod |
-   |          |                   |        |          |                    |                 |        | uct schema and  |
-   |          |                   |        |          |                    |                 |        | revision        |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | startDat | 1958-01-01        |        | finetime | None               | 1958-01-01      |        | Nominal start t |
-   | e        | 00:00:00.000000   |        |          |                    | 00:00:00.000000 |        | ime  of this pr |
-   |          | 0                 |        |          |                    | 0               |        | oduct.          |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | endDate  | 1958-01-01        |        | finetime | None               | 1958-01-01      |        | Nominal end tim |
-   |          | 00:00:00.000000   |        |          |                    | 00:00:00.000000 |        | e  of this prod |
-   |          | 0                 |        |          |                    | 0               |        | uct.            |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | instrume | Crystal-Ball      |        | string   | None               | UNKNOWN         | B      | Instrument that |
-   | nt       |                   |        |          |                    |                 |        |  generated data |
-   |          |                   |        |          |                    |                 |        |  of this produc |
-   |          |                   |        |          |                    |                 |        | t               |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | modelNam | Mk II             |        | string   | None               | UNKNOWN         | B      | Model name of t |
-   | e        |                   |        |          |                    |                 |        | he instrument o |
-   |          |                   |        |          |                    |                 |        | f this product  |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | mission  | _AGS              |        | string   | None               | _AGS            | B      | Name of the mis |
-   |          |                   |        |          |                    |                 |        | sion.           |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
-   | ddetecto | port_1 (0b01)     | None   | integer  | 0b11000000: 0b11   | None            | None   | valid rules des |
-   | r        | stand_by (0b0)    |        |          | 0b00100000: 0b1    |                 |        | cribed with bin |
-   |          | normal (0b1)      |        |          | 0b00010000: 0b1    |                 |        | ary masks       |
-   |          | Invalid           |        |          | 0b00001111: 0b0000 |                 |        |                 |
-   +----------+-------------------+--------+----------+--------------------+-----------------+--------+-----------------+
+   ============  ====================  ======  ========  ====================  =================  ======  =====================
+   name          value                 unit    type      valid                 default            code    description
+   ============  ====================  ======  ========  ====================  =================  ======  =====================
+   description   product example with          string    None                  UNKNOWN            B       Description of this p
+                  several datasets                                                                        roduct
+   type          Product                       string    None                  Product            B       Product Type identifi
+                                                                                                          cation. Name of class
+                                                                                                           or CARD.
+   level         ALL                           string    None                  ALL                B       Product level.
+   creator       or else                       string    None                  None                       UNKNOWN
+   creationDate  1958-01-01T00:00:00.          finetime  None                  1958-01-01T00:00:  Q       Creation date of this
+                 000000                                                        00.000000                   product
+                 0                                                             0
+   rootCause     UNKNOWN                       string    None                  UNKNOWN            B       Reason of this run of
+                                                                                                           pipeline.
+   version       0.8                           string    None                  0.8                B       Version of product
+   FORMATV       1.6.0.10                      string    None                  1.6.0.10           B       Version of product sc
+                                                                                                          hema and revision
+   startDate     1958-01-01T00:00:00.          finetime  None                  1958-01-01T00:00:  Q       Nominal start time  o
+                 000000                                                        00.000000                  f this product.
+                 0                                                             0
+   endDate       1958-01-01T00:00:00.          finetime  None                  1958-01-01T00:00:  Q       Nominal end time  of
+                 000000                                                        00.000000                  this product.
+                 0                                                             0
+   instrument    Crystal-Ball                  string    None                  UNKNOWN            B       Instrument that gener
+                                                                                                          ated data of this pro
+                                                                                                          duct
+   modelName     Mk II                         string    None                  UNKNOWN            B       Model name of the ins
+                                                                                                          trument of this produ
+                                                                                                          ct
+   mission       _AGS                          string    None                  _AGS               B       Name of the mission.
+   ddetector     port_1 (0b01)         None    integer   11000000 0b01: port_  None               None    valid rules described
+                 stand_by (0b0)                          1                                                 with binary masks
+                 normal (0b1)                            11000000 0b10: port_
+                 Invalid                                 2
+                                                         11000000 0b11: port
+                                                         closed
+                                                         00100000 0b0: stand_
+                                                         by
+                                                         00100000 0b1: main
+                                                         00010000 0b0: error
+                                                         00010000 0b1: normal
+                                                         00001111 0b0000: res
+                                                         erved
+   ============  ====================  ======  ========  ====================  =================  ======  =====================
    MetaData-listeners = ListnerSet{}},
    history= {},
    listeners= {ListnerSet{}}
    
-   # History
-   description= {'UNKNOWN'},
-   HIST_SCRIPT= {''},
+   === History () ===
    PARAM_HISTORY= {''},
    TASK_HISTORY= {''},
-   meta= {(No parameter.)MetaData-listeners = ListnerSet{}}
+   meta= {(No Parameter.) MetaData-listeners = ListnerSet{}}
    
    History-datasets =
-   
+   <ODict >
    
    Product-datasets =
-   
-   #     [ RawImage ]
-   # ArrayDataset
-   description= {'image1'},
-   meta= {(No parameter.)MetaData-listeners = ListnerSet{}},
-   type= {None},
-   default= {None},
-   typecode= {None},
-   unit= {'ev'}
+   <ODict "RawImage":
+   === ArrayDataset () ===
+   meta= {
+   ===========  =======  ======  ======  =======  =========  ======  =====================
+   name         value    unit    type    valid    default    code    description
+   ===========  =======  ======  ======  =======  =========  ======  =====================
+   description  image1           string  None     UNKNOWN    B       Description of this d
+                                                                     ataset
+   unit         ev               string  None     None       B       Unit of every element
+                                                                     .
+   shape        ()               tuple   None     ()                 Number of elements in
+                                                                      each dimension. Quic
+                                                                     k changers to the rig
+                                                                     ht.
+   typecode     UNKNOWN          string  None     UNKNOWN    B       Python internal stora
+                                                                     ge code.
+   version      0.1              string  None     0.1        B       Version of dataset
+   FORMATV      1.6.0.1          string  None     1.6.0.1    B       Version of dataset sc
+                                                                     hema and revision
+   ===========  =======  ======  ======  =======  =========  ======  =====================
+   MetaData-listeners = ListnerSet{}}
    ArrayDataset-dataset =
    1  2  3
    4  5  6
    7  8  9
    
    
-   
-   #     [ QualityImage ]
-   # ArrayDataset
-   description= {'UNKNOWN'},
-   meta= {(No parameter.)MetaData-listeners = ListnerSet{}},
-   type= {None},
-   default= {None},
-   typecode= {None},
-   unit= {None}
+   "QualityImage":
+   === ArrayDataset () ===
+   meta= {
+   ===========  =======  ======  ======  =======  =========  ======  =====================
+   name         value    unit    type    valid    default    code    description
+   ===========  =======  ======  ======  =======  =========  ======  =====================
+   description  UNKNOWN          string  None     UNKNOWN    B       Description of this d
+                                                                     ataset
+   unit         None             string  None     None       B       Unit of every element
+                                                                     .
+   shape        ()               tuple   None     ()                 Number of elements in
+                                                                      each dimension. Quic
+                                                                     k changers to the rig
+                                                                     ht.
+   typecode     UNKNOWN          string  None     UNKNOWN    B       Python internal stora
+                                                                     ge code.
+   version      0.1              string  None     0.1        B       Version of dataset
+   FORMATV      1.6.0.1          string  None     1.6.0.1    B       Version of dataset sc
+                                                                     hema and revision
+   ===========  =======  ======  ======  =======  =========  ======  =====================
+   MetaData-listeners = ListnerSet{}}
    ArrayDataset-dataset =
       0.1  0.5    0.7
    4000    6e+07  8
      -2    0      3.1
    
    
-   
-   #     [ Spectrum ]
-   # TableDataset
-   description= {'UNKNOWN'},
-   meta= {(No parameter.)MetaData-listeners = ListnerSet{}}
+   "Spectrum":
+   === TableDataset () ===
+   meta= {
+   ===========  =======  ======  ======  =======  =========  ======  =====================
+   name         value    unit    type    valid    default    code    description
+   ===========  =======  ======  ======  =======  =========  ======  =====================
+   description  UNKNOWN          string  None     UNKNOWN    B       Description of this d
+                                                                     ataset
+   version      0.1              string  None     0.1        B       Version of dataset
+   FORMATV      1.6.0.1          string  None     1.6.0.1    B       Version of dataset sc
+                                                                     hema and revision
+   ===========  =======  ======  ======  =======  =========  ======  =====================
+   MetaData-listeners = ListnerSet{}}
    TableDataset-dataset =
      col1     col2
      (eV)    (cnt)
@@ -752,29 +749,19 @@ Product with metadata and datasets
    
 
 
-pal - Product Access Layer
-==========================
-
-Products need to persist (be stored somewhere) in order to have a reference that can be used to re-create the product after its creation process ends.
-
-Product Pool and Product References
------------------------------------
-
-This section shows how to store a product in a "pool" and get a reference back.
-
-
 >>> # Create a product and a productStorage with a pool registered
 ... # First disable debugging messages
 ... logger = logging.getLogger('')
 ... logger.setLevel(logging.WARNING)
 ... # a pool (LocalPool) for demonstration will be create here
-... demopoolpath = '/tmp/demopool_' + getpass.getuser()
+... demopoolname = 'demopool_' + getpass.getuser()
+... demopoolpath = '/tmp/' + demopoolname
 ... demopoolurl = 'file://' + demopoolpath
 ... # clean possible data left from previous runs
 ... os.system('rm -rf ' + demopoolpath)
 ... if PoolManager.isLoaded(DEFAULT_MEM_POOL):
 ...     PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-... PoolManager.removeAll()
+... PoolManager.getPool(demopoolname, demopoolurl).removeAll()
 
 >>> # create a prooduct and save it to a pool
 ... x = Product(description='save me in store')
@@ -785,32 +772,54 @@ This section shows how to store a product in a "pool" and get a reference back.
 ... pstore = ProductStorage(poolurl=demopoolurl)
 ... # see what is in it.
 ... pstore
-# save the product and get a reference back.
+ProductStorage( pool= {'demopool_mh': <LocalPool poolname=demopool_mh, poolurl=file:///tmp/demopool_mh, _classes=<ODict>, _urns=<ODict>, _tags=<ODict>>} )
+
+>>> # save the product and get a reference back.
 ... prodref = pstore.save(x)
 ... # This gives detailed information of the product being referenced
 ... print(prodref)
-# get the URN string
-... urn = prodref.urn
-... print(urn)    # urn:demopool_mh:fdi.dataset.product.Product:0
-ProductStorage { pool= 
-#     [ demopool_mh ]
-LocalPool { pool= demopool_mh } }
-
->>> ProductRef {urn:demopool_mh:fdi.dataset.product.Product:0 Parents=[]
---------------------------  ---------------------  -------------------
-description= save me in st  type= Product          creator= UNKNOWN
-ore
-creationDate= 1958-01-01    rootCause= UNKNOWN     version= 0.8
-00:00:00.000000
-0
-FORMATV= 1.4.0.8            startDate= 1958-01-01  endDate= 1958-01-01
-                            00:00:00.000000        00:00:00.000000
-                            0                      0
-instrument= UNKNOWN         modelName= UNKNOWN     mission= _AGS
---------------------------  ---------------------  -------------------
+ProductRef {urn:demopool_mh:fdi.dataset.product.Product:0
+# Parents=[]
+# meta=
+============  ====================  ======  ========  =======  =================  ======  =====================
+name          value                 unit    type      valid    default            code    description
+============  ====================  ======  ========  =======  =================  ======  =====================
+description   save me in store              string    None     UNKNOWN            B       Description of this p
+                                                                                          roduct
+type          Product                       string    None     Product            B       Product Type identifi
+                                                                                          cation. Name of class
+                                                                                           or CARD.
+level         ALL                           string    None     ALL                B       Product level.
+creator       UNKNOWN                       string    None     UNKNOWN            B       Generator of this pro
+                                                                                          duct.
+creationDate  1958-01-01T00:00:00.          finetime  None     1958-01-01T00:00:  Q       Creation date of this
+              000000                                           00.000000                   product
+              0                                                0
+rootCause     UNKNOWN                       string    None     UNKNOWN            B       Reason of this run of
+                                                                                           pipeline.
+version       0.8                           string    None     0.8                B       Version of product
+FORMATV       1.6.0.10                      string    None     1.6.0.10           B       Version of product sc
+                                                                                          hema and revision
+startDate     1958-01-01T00:00:00.          finetime  None     1958-01-01T00:00:  Q       Nominal start time  o
+              000000                                           00.000000                  f this product.
+              0                                                0
+endDate       1958-01-01T00:00:00.          finetime  None     1958-01-01T00:00:  Q       Nominal end time  of
+              000000                                           00.000000                  this product.
+              0                                                0
+instrument    UNKNOWN                       string    None     UNKNOWN            B       Instrument that gener
+                                                                                          ated data of this pro
+                                                                                          duct
+modelName     UNKNOWN                       string    None     UNKNOWN            B       Model name of the ins
+                                                                                          trument of this produ
+                                                                                          ct
+mission       _AGS                          string    None     _AGS               B       Name of the mission.
+============  ====================  ======  ========  =======  =================  ======  =====================
 MetaData-listeners = ListnerSet{}}
 
->>> urn:demopool_mh:fdi.dataset.product.Product:0
+>>> # get the URN string
+... urn = prodref.urn
+... print(urn)    # urn:demopool_mh:fdi.dataset.product.Product:0
+urn:demopool_mh:fdi.dataset.product.Product:0
 
 >>> # re-create a product only using the urn
 ... newp = ProductRef(urn).product
@@ -818,6 +827,12 @@ MetaData-listeners = ListnerSet{}}
 ... print(newp == x)   # == True
 True
 
+>>> print("""
+... Context -- a Product with References
+... ------------------------------------
+... 
+... This section shows essencial steps how product references can be stored in a context.
+... """)
 
 Context -- a Product with References
 ------------------------------------
@@ -832,12 +847,12 @@ This section shows essencial steps how product references can be stored in a con
 ... # A ProductRef created with the syntax of a lone product argument will use a MemPool
 ... pref1 = ProductRef(p1)
 ... pref1
-ProductRef {urn:defaultmem:fdi.dataset.product.Product:0 Parents=[] meta= None}
+ProductRef(urnobj=Urn(urn="urn:defaultmem:fdi.dataset.product.Product:0", _STID="Urn"), _STID="ProductRef")
 
 >>> # A productStorage with a LocalPool -- a pool on the disk.
 ... pref2 = pstore.save(p2)
 ... pref2.urn
-'urn:pool_mh:fdi.dataset.product.Product:3'
+'urn:demopool_mh:fdi.dataset.product.Product:1'
 
 >>> # how many prodrefs do we have?
 ... map1['refs'].size()   # == 0
@@ -898,19 +913,21 @@ A :class:`ProductStorage` with pools attached can be queried with tags, properti
 
 
 >>> # clean possible data left from previous runs
-... defaultpoolpath = '/tmp/pool_' + getpass.getuser()
-... newpoolname = 'newpool_' + getpass.getuser()
+... poolname = 'fdi_pool_' + getpass.getuser()
+... poolpath = '/tmp/' + poolname
+... newpoolname = 'fdi_newpool_' + getpass.getuser()
 ... newpoolpath = '/tmp/' + newpoolname
-... os.system('rm -rf ' + defaultpoolpath)
+... os.system('rm -rf ' + poolpath)
 ... os.system('rm -rf ' + newpoolpath)
+... poolurl = 'file://' + poolpath
+... newpoolurl = 'file://' + newpoolpath
 ... if PoolManager.isLoaded(DEFAULT_MEM_POOL):
 ...     PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-... PoolManager.removeAll()
+... PoolManager.getPool(poolname, poolurl).removeAll()
+... PoolManager.getPool(newpoolname, newpoolurl).removeAll()
 ... # make a productStorage
-... defaultpoolurl = 'file://'+defaultpoolpath
-... pstore = ProductStorage(poolurl=defaultpoolurl)
+... pstore = ProductStorage(poolurl=poolurl)
 ... # make another
-... newpoolurl = 'file://' + newpoolpath
 ... pstore2 = ProductStorage(poolurl=newpoolurl)
 
 >>> # add some products to both storages. The product properties are different.
@@ -920,7 +937,7 @@ A :class:`ProductStorage` with pools attached can be queried with tags, properti
 ...     a0, a1, a2 = 'desc %d' % i, 'fatman %d' % (i*4), 5000+i
 ...     if i < 3:
 ...         # Product type
-...         x = Product(description=a0, instrument=a1)
+...         x = Product(description=a0, creator=a1)
 ...         x.meta['extra'] = Parameter(value=a2)
 ...     elif i < 5:
 ... ...
@@ -934,13 +951,13 @@ A :class:`ProductStorage` with pools attached can be queried with tags, properti
 ...     print(r.urn)
 ... # Two pools, 7 products in 3 types
 ... # [P P P C] [C M M]
-urn:pool_mh:fdi.dataset.product.Product:0
-urn:pool_mh:fdi.dataset.product.Product:1
-urn:pool_mh:fdi.dataset.product.Product:2
-urn:pool_mh:fdi.pal.context.Context:0
-urn:newpool_mh:fdi.pal.context.Context:0
-urn:newpool_mh:fdi.pal.context.MapContext:0
-urn:newpool_mh:fdi.pal.context.MapContext:1
+urn:fdi_pool_mh:fdi.dataset.product.Product:0
+urn:fdi_pool_mh:fdi.dataset.product.Product:1
+urn:fdi_pool_mh:fdi.dataset.product.Product:2
+urn:fdi_pool_mh:fdi.pal.context.Context:0
+urn:fdi_newpool_mh:fdi.pal.context.Context:0
+urn:fdi_newpool_mh:fdi.pal.context.MapContext:0
+urn:fdi_newpool_mh:fdi.pal.context.MapContext:1
 
 >>> # register the new pool above to the  1st productStorage
 ... pstore.register(newpoolname)
@@ -950,34 +967,34 @@ urn:newpool_mh:fdi.pal.context.MapContext:1
 >>> # make a query on product metadata, which is the variable 'm'
 ... # in the query expression, i.e. ``m = product.meta; ...``
 ... # But '5000 < m["extra"]' does not work. see tests/test.py.
-... q = MetaQuery(Product, 'm["extra"] > 5001 and m["extra"] <= 5005')
+... q = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] <= 5005')
 ... # search all pools registered on pstore
 ... res = pstore.select(q)
-... # we expect [#2, #3, #4, #5]
-... len(res)   # == 4
-4
+... # we expect [#2, #3] Contex is not a subclass of Product, which is being searched
+... len(res)   # == 2
+2
 
 >>> # see
 ... [r.product.description for r in res]
-['desc 2', 'desc 3', 'desc 4', 'desc 5']
+['desc 1', 'desc 2']
 
 >>> def t(m):
 ...     # query is a function
 ...     import re
-...     # 'instrument' matches the regex pattern
-...     return re.match('.*n.1.*', m['instrument'].value)
+...     # 'creator' matches the regex pattern: 'n' + ? + '1'
+...     return re.match('.*n.1.*', m['creator'].value)
 
->>> q = MetaQuery(Product, t)
+>>> q = MetaQuery(BaseProduct, t)
 ... res = pstore.select(q)
 ... # expecting [3,4]
-... [r.product.instrument for r in res]
+... [r.product.creator for r in res]
 ['fatman 12', 'fatman 16']
 
 >>> # same as above but query is on the product. this is slow.
-... q = AbstractQuery(Product, 'p', '"n 1" in p.instrument')
+... q = AbstractQuery(BaseProduct, 'p', '"n 1" in p.creator')
 ... res = pstore.select(q)
 ... # [3,4]
-... [r.product.instrument for r in res]
+... [r.product.creator for r in res]
 ['fatman 12', 'fatman 16']
 
 >>>

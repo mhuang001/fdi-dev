@@ -2121,7 +2121,9 @@ def test_FineTime():
     # at TAI = 1, UTC ...
     v = FineTime(1)
     assert v.toDatetime().microsecond == 1
-
+    # from string
+    v = FineTime('1990-09-09T12:34:56.789098 UTC')
+    print(v)
     # comparison
     v1 = FineTime(12345678901234)
     v2 = FineTime(12345678901234)

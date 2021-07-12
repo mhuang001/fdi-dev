@@ -87,14 +87,23 @@ class FineTime(Copyable, DeepEqual, Serializable):
                 d = time
             setTai = self.datetimeToFineTime(d)
         elif issubclass(time.__class__, str):
+            t = time.strip()
             try:
-                t = time.strip()
-                d = datetime.datetime.strptime(time, self.format)
+                d = datetime.datetime.strptime(t, self.format)
             except ValueError:
-                tz = self.format[-3:]
-                if not t.endswith(tz):
-                    logger.warning('Time zone %s assumed for %s', tz, t)
-                    d = datetime.datetime.strptime(t + ' ' + tz, self.format)
+                if self.format[-4] == ' ':
+                    # the last three letters are tz
+                    tz = self.format[-3:]
+                    if not t.endswith(tz):
+                        logger.warning('Time zone %s assumed for %s', tz, t)
+                        d = datetime.datetime.strptime(
+                            t + ' ' + tz, self.format)
+                else:
+                    # format does not have tz
+                    logger.warning(
+                        'Time zone stripped for %s according to format.' % t)
+                    d = datetime.datetime.strptime(
+                        t.rsplit(' ', 1)[0], self.format)
             d1 = d.replace(tzinfo=datetime.timezone.utc)
             setTai = self.datetimeToFineTime(d1)
         else:

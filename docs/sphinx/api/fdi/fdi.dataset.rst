@@ -281,6 +281,14 @@ fdi.dataset.tabledataset module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.tabledataset\_datamodel module
+------------------------------------------
+
+.. automodule:: fdi.dataset.tabledataset_datamodel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.testproducts module
 -------------------------------
 

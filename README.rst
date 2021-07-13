@@ -159,6 +159,54 @@ in another window run:
 
            make testhttp
 
+Docker Containers
+=================
+
+fdi
+---
+
+Get the ``fdi`` docker with running FDI environment:
+
+.. code-block:: shell
+
+   docker pull mhastro/fdi
+   
+or build the image locally:
+
+.. code-block:: shell
+
+   make build_docker
+
+Launch and login
+
+.. code-block:: shell
+
+   make launch_docker
+   make it
+
+httppool
+--------
+   
+Also available is a ``HttpPool`` server made from Ubuntu and apache:
+
+.. code-block:: shell
+
+   docker pull mhastro/httppool
+   
+To build the image locally:
+
+.. code-block:: shell
+
+   make build_server   
+		
+Launch and connect:
+
+.. code-block:: shell
+
+   make launch_server
+   curl -i http://127.0.0.1:9884/v0.8/
+
+
 For More
 --------
 

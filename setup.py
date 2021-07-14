@@ -57,7 +57,7 @@ setup(
         ],
         'PUB': [
             'sphinx_rtd_theme>=0.4.3',
-            'sphinx-copybuttono>=0.3.0',
+            'sphinx-copybutton>=0.3.0',
             'twine>=3.3.0'
         ]
     },

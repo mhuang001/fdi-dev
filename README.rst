@@ -208,7 +208,7 @@ Launch and connect:
 
 
 For More
---------
+========
 
 For more  examples see ``tests/test_*.py``.
 

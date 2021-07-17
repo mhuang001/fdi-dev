@@ -506,3 +506,22 @@ def getUidGid(username):
         logger.error(msg)
 
     return uid, gid
+
+
+def findShape(data):
+    """
+    """
+    if data is None:
+        return None
+    shape = []
+    d = data
+    while d is not None:
+        if issubclass(d.__class__, (str)):
+            d = None
+        else:
+            try:
+                shape.append(len(d))
+                d = d[0]
+            except (TypeError, IndexError) as e:
+                d = None
+    return tuple(shape)

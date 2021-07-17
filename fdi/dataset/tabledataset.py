@@ -3,7 +3,7 @@
 from .indexed import Indexed
 from .ndprint import ndprint
 from .odict import ODict
-from ..utils.common import mstr, bstr, lls, exprstrs
+from ..utils.common import mstr, bstr, lls, exprstrs, findShape
 from .dataset import Dataset
 from .indexed import Indexed
 
@@ -358,9 +358,13 @@ class TableDataset(Dataset, TableModel):
             for x in self.getData().values():
                 ret.append(x.data[rowIndex])
                 del x.data[rowIndex]
+                x.shape = findShape(x)
             return ret
-
-        return [x.data.pop(rowIndex) for x in self.getData().values()]
+        r = []
+        for x in self.getData().values():
+            r.append(x.data.pop(rowIndex))
+            x.shape = findShape(x)
+        return r
 
     @ property
     def rowCount(self):

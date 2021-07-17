@@ -818,9 +818,9 @@ def doquery(poolpath, newpoolpath):
     chk(res[2], rec1[5])
     chk(res[3], rec1[6])
 
-    # all 'time' < 5006. will cause TypeError because some Contex data do not have 'time'
+    # all 'time' < 5006. will cause KeyError because some Contex data do not have 'time'
     q = MetaQuery(Context, 'm["time"] < 5006')
-    with pytest.raises(TypeError):
+    with pytest.raises(KeyError):
         res = pstore.select(q)
 
     # all 'time' < 5006 mapcontext. all in newpool

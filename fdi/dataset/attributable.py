@@ -2,6 +2,8 @@
 
 from collections import ChainMap
 import os
+from copy import copy
+
 from .metadataholder import MetaDataHolder
 from .metadata import AbstractParameter, Parameter
 from .datatypes import DataTypes
@@ -18,6 +20,10 @@ MdpInfo = {}
 # These property names are not for mormal properties
 Reserved_Property_Names = ['history', 'meta', 'refs', 'dataset',
                            'zInfo', '_MDP', 'extraMdp', 'alwaysMeta']
+# these MDPs and vital attrbutes are Set By Parent classes:
+# meta via attributable, description annotatable,
+# type typed, data and shape dataWrapper
+MDP_Set_by_Parents = ['meta', 'description', 'type', 'data']
 
 
 class Attributable(MetaDataHolder):
@@ -48,11 +54,16 @@ class Attributable(MetaDataHolder):
             _x = 'typ_' if x == 'type' else x
             if _x not in kwds:
                 mdps[x] = zm[x]['default']
-            else:
+            elif _x not in MDP_Set_by_Parents:
                 kwval = kwds.pop(_x)
                 mdps[x] = zm[x]['default'] if kwval is None else kwval
         self._MDP = ChainMap(self.extraMdp, zm)
+        # This will set MDP_Set_by_Parents args.
         super(Attributable, self).__init__(meta=meta, **kwds)
+        # do not set MDPs that have been set by super classes
+        for p in copy(mdps):
+            if p in self._meta:
+                mdps.pop(p)
         self.setParameters(mdps)
 
     def setParameters(self, params):

@@ -67,6 +67,23 @@ def get_sample_product():
     """
     A complex product as a reference for testing and demo.
 
+    ```
+    prodx --+-- meta --+-- speed
+            |
+            +-- Temperature -+-- data=[768, ...] , unit=C
+            |                |
+            |                +-- meta --+-- T0
+            |
+            +-- results --+-- calibration -- data=[[109..]], unit=count
+                          |
+                          +-- Time_Energy_Pos --+-- Time   : data=[...]
+                          |                     +-- Energy : data=[...]
+                          |                     +-- y      : data=[...]
+                          |                     +-- z      : data=[...]
+                          |
+                          +-- Image -- data = b'\87PNG', content='Content-type: image/png'
+    ```
+
     """
     prodx = Product('A complex product')
     prodx.creator = 'Frankenstein'

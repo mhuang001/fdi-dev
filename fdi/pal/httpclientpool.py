@@ -45,8 +45,12 @@ def toserver(self, method, *args, **kwds):
     logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
     res, msg = read_from_server(urn, self._poolurl, apipath)
     if res == 'FAILED':
-        if method in msg:
-            raise TypeError(msg)
+        for line in msg.split('\n'):
+            excpt = line.split(':', 1)[0]
+            bltn = vars(builtins)
+            if excpt in bltn:
+                # relay the exception from server
+                raise bltn[excpt](msg)
         raise RuntimeError('Executing ' + method + ' failed.  ' + msg)
     return res
 

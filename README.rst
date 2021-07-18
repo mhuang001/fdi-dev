@@ -206,6 +206,15 @@ Launch and connect:
    make launch_server
    curl -i http://127.0.0.1:9884/v0.8/
 
+Run the above in the package root directory of fdi. A file named ``.secret`` is needed by the build and launch commands. This is an example::
+
+  HOST_PORT=9884
+  HOST_USER=...
+  HOST_PASS=...
+  MQ_HOST=123.45.67.89
+  MQ_PORT=9876
+  MQ_USER=...
+  MQ_PASS=...
 
 For More
 ========

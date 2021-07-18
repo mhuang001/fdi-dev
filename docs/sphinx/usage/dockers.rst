@@ -5,25 +5,38 @@ Dockers
 .. role:: rh(raw)
 	  :format: html
 
-.. tabularcolumns:: |p{5em}|p{6em}|p{5em}|p{6em}|p{6em}|p{6em}|p{6em}|p{6em}|p{5em}|
+.. tabularcolumns:: |p{20em}|p{40em}|p{40em}|
 
 The following dockers are available:
 
-+--------+-----------------+--------+------------------------+-----------------------+------------------+--------------+---------------+---------+
-|**Name**|**Description**  |**Base**|**Installed**           |**In-docker User**     |**Pull**          | **Build**    |**Launch**     |**Ports**|
-+--------+-----------------+--------+------------------------+-----------------------+------------------+--------------+---------------+---------+
-|fdi     |linux with fdi   |Ubuntu  |Package and DEV, SERV   |``fdi``                |``docker pull     |``make        |``make         |\--      |
-|        |tested :rh:`<br  |:rh:`<br|:rh:`<br />`            |                       |mhastro/fdi``     |build_docker``|launch_docker``|         |
-|        |/>` and ready to |/>`     |dependencies.           |                       |                  |              |               |         |
-|        |run.             |18.04   |                        |                       |                  |              |               |         |
-+--------+-----------------+--------+------------------------+-----------------------+------------------+--------------+---------------+---------+
-|httppool|Apache HTTPPool  |fdi     |Package and DEV, SERV   |``apache`` :rh:`<br />`|``docker pull     |``make        |``make         |9884     |
-|        |server, :rh:`<br |        |:rh:`<br />`            |(Convenience links     |mhastro/httppool``|build_server``|launch_server``|         |
-|        |/>` tested and   |        |dependencies.           |:rh:`<br />` in home   |                  |              |               |         |
-|        |started.         |        |                        |dir.)                  |                  |              |               |         |
-|        |                 |        |                        |                       |                  |              |               |         |
-+--------+-----------------+--------+------------------------+-----------------------+------------------+--------------+---------------+---------+
-
++-------------------+------------------------------+-----------------------------------------------------+
+|**Name**           |fdi                           |httppool                                             |
++-------------------+------------------------------+-----------------------------------------------------+
+|**Description**    |linux with fdi tested and     |Apache HTTPPool server, tested                       |
+|                   |ready to run.                 |and started.                                         |
+|                   |                              |                                                     |
++-------------------+------------------------------+-----------------------------------------------------+
+|**Base**           |Ubuntu 18.04                  |fdi                                                  |
++-------------------+------------------------------+-----------------------------------------------------+
+|**Installed**      |Package and DEV, SERV         |Package and DEV, SERV                                |
+|                   |dependencies.                 |dependencies.                                        |
++-------------------+------------------------------+-----------------------------------------------------+
+|**In-docker User** |``fdi``                       |``apache``(Convenience links in                      |
+|                   |                              |home dir.)                                           |
++-------------------+------------------------------+-----------------------------------------------------+
+|**Pull**           |``docker pull mhastro/fdi``   |``docker pull mhastro/httppool``                     |
+|                   |                              |                                                     |
++-------------------+------------------------------+-----------------------------------------------------+
+|**Build**          |``make build_docker``         |``make build_server``                                |
+|                   |                              |                                                     |
++-------------------+------------------------------+-----------------------------------------------------+
+|**Launch**         |``make launch_docker``        |``make launch_server``                               |
+|                   |                              |                                                     |
++-------------------+------------------------------+-----------------------------------------------------+
+|**Entrypoint**     | ``dockerfile_entrypoint.sh`` |``fdi/pns/resources/httppool_server_entrypoint_2.sh``|
++-------------------+------------------------------+-----------------------------------------------------+
+|**Ports**          |\--                           |9884                                                 |
++-------------------+------------------------------+-----------------------------------------------------+
 
 Run the ``make`` commands in the package root directory of fdi. A file named ``.secret`` is needed by the build and launch commands. This is an example::
 

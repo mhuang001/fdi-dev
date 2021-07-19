@@ -33,7 +33,10 @@ class Annotatable(object):
         -------
 
         """
-        return self.getDescription()
+        try:
+            return self._description
+        except AttributeError:
+            return None
 
     @description.setter
     def description(self, description):
@@ -48,7 +51,8 @@ class Annotatable(object):
         -------
 
         """
-        self.setDescription(description)
+
+        self._description = description
 
     def getDescription(self):
         """ gets the description of this Annotatable object.
@@ -61,7 +65,7 @@ class Annotatable(object):
         string:
               The current description.
         """
-        return self._description
+        return self.description
 
     def setDescription(self, newDescription):
         """ sets the description of this Annotatable object.
@@ -75,4 +79,4 @@ class Annotatable(object):
         -------
 
         """
-        self._description = newDescription
+        self.description = newDescription

@@ -2,26 +2,24 @@
 
 from ..utils.masked import masked
 from ..utils.common import grouper
+from ..utils.ydump import ydump
 from .serializable import Serializable
-from .datatypes import DataTypes, DataTypeNames, Vector, Vector2D, Quaternion
+from .datatypes import DataTypes, DataTypeNames
 from .odict import ODict
 from .composite import Composite
 from .listener import DatasetEventSender, ParameterListener, DatasetListener, DatasetEvent, EventTypeOf
-from .quantifiable import Quantifiable
-from .eq import DeepEqual
+from .eq import DeepEqual, xhash
 from .copyable import Copyable
 from .annotatable import Annotatable
-from .finetime import FineTime, FineTime1, utcobj
 from .classes import Classes
 from .typed import Typed
 from .invalid import INVALID
-from ..utils.common import exprstrs, wls, mstr, t2l
+from ..utils.common import exprstrs, wls, bstr, t2l
 
 from tabulate import tabulate
 
 import builtins
-from collections import OrderedDict
-from collections.abc import Sequence
+from collections import OrderedDict, UserList
 from numbers import Number
 import logging
 # create logger
@@ -29,35 +27,44 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-ParameterClasses = {
-    'AbstractParameter': dict(value=None,
-                              description='UNKNOWN'),
+Parameter_Attr_Defaults = {
+    'AbstractParameter': dict(
+        value=None,
+        description='UNKNOWN'
+    ),
 
-    'Parameter': dict(value=None,
-                      description='UNKNOWN',
-                      typ_='',
-                      default=None,
-                      valid=None),
+    'Parameter': dict(
+        value=None,
+        description='UNKNOWN',
+        typ_='',
+        default=None,
+        valid=None
+    ),
 
-    'NumericParameter': dict(value=None,
-                             description='UNKNOWN',
-                             typ_='',
-                             unit=None,
-                             default=None,
-                             valid=None,
-                             typecode=None),
+    'NumericParameter': dict(
+        value=None,
+        description='UNKNOWN',
+        typ_='',
+        default=None,
+        unit=None,
+        valid=None,
+        typecode=None
+    ),
 
-    'DateParameter': dict(value=None,
-                          description='UNKNOWN',
-                          default='',
-                          valid=None,
-                          typecode=None),
+    'DateParameter': dict(
+        value=None,
+        description='UNKNOWN',
+        default=0,
+        valid=None,
+    ),
 
-    'StringParameter': dict(value=None,
-                            description='UNKNOWN',
-                            default='',
-                            valid=None,
-                            typecode='B'),
+    'StringParameter': dict(
+        value=None,
+        description='UNKNOWN',
+        default='',
+        valid=None,
+        typecode=None
+    ),
 
 }
 
@@ -93,7 +100,10 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
     Default     value=None, description='UNKNOWN'
     """
 
-    def __init__(self, value=None, description='UNKNOWN', **kwds):
+    def __init__(self,
+                 value=None,
+                 description='UNKNOWN',
+                 **kwds):
         """ Constructed with no argument results in a parameter of
         None value and 'UNKNOWN' description ''.
         With a signle argument: arg -> value, 'UNKNOWN' as default-> description.
@@ -110,6 +120,7 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
             description=description, **kwds)
 
         self.setValue(value)
+        self._defaults = Parameter_Attr_Defaults[self.__class__.__name__]
 
     def accept(self, visitor):
         """ Adds functionality to classes of this type.
@@ -299,18 +310,16 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         """
         return
 
-    def __repr__(self):
+    def hash(self):
+        """ hash and equality derived only from the value of the parameter.
+
+        because Python does not allow overriding __eq__ without setting hash to None.
         """
-        Parameters
-        ----------
+        return xhash(hash_list=self._value)
 
-        Returns
-        -------
-
-        """
-        return self.toString(level=1)
-
-    def toString(self, level=0, alist=False, **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 alist=False, **kwds):
         """ alist: returns a dictionary string representation of parameter attributes.
         Parameters
         ----------
@@ -342,7 +351,13 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
                            _STID=self._STID
                            )
 
-    __hash__ = DeepEqual.__hash__
+
+def make_jsonable(valid):
+
+    return[t2l([k, v]) for k, v in valid.items()] if issubclass(valid.__class__, dict) else t2l(valid)
+
+
+Seqs = (list, tuple, UserList)
 
 
 class Parameter(AbstractParameter, Typed):
@@ -352,7 +367,13 @@ class Parameter(AbstractParameter, Typed):
     value=default, description='UNKNOWN'
     """
 
-    def __init__(self, value=None, description='UNKNOWN', typ_='', default=None, valid=None, **kwds):
+    def __init__(self,
+                 value=None,
+                 description='UNKNOWN',
+                 typ_='',
+                 default=None,
+                 valid=None,
+                 **kwds):
         """ invoked with no argument results in a parameter of
         None value and 'UNKNOWN' description ''. typ_ DataTypes[''], which is None.
         With a signle argument: arg -> value, 'UNKNOWN'-> description. ParameterTypes-> typ_, hex values have integer typ_.
@@ -390,6 +411,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
     def setType(self, typ_):
         """ Replaces the current type of this parameter.
+
         Defaul will be casted if not the same.
         Unsuported parameter types will get a NotImplementedError.
         Parameters
@@ -461,10 +483,29 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             # , if both are Numbers.Number, value is casted into given typ_.
             return tt_type(value)
             # st = tt
+        elif issubclass(t_type, Seqs) and issubclass(tt_type, Seqs):
+            # , if both are Numbers.Number, value is casted into given typ_.
+            return tt_type(value)
+            # st = tt
         else:
             vs = hex(value) if t == 'int' and st == 'hex' else str(value)
             raise TypeError(
                 'Value %s is of type %s, but should be %s.' % (vs, t, tt))
+
+    def setValue(self, value):
+        """ Replaces the current value of this parameter.
+
+        If value is None set it to None (#TODO: default?)
+        If given/current type is '' and arg value's type is in DataTypes both value and type are updated to the suitable one in DataTypeNames; or else TypeError is raised.
+        If value type is not a subclass of given/current type, or
+            Incompatible value and type will get a TypeError.
+        """
+
+        if value is None:
+            v = self._default if hasattr(self, '_default') else value
+        else:
+            v = self.checked(value)
+        super().setValue(v)
 
     @property
     def default(self):
@@ -554,7 +595,8 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
     def setValid(self, valid):
         """ Sets the valid of this object.
 
-        If valid is None or empty, set as None, else save in a way so the tuple keys can be serialized with JSON.
+        If valid is None or empty, set as None, else save in a way so the tuple keys can be serialized with JSON. [[[rangelow, ranehi], state1], [[range2low, r..]..]..]
+
         Parameters
         ----------
 
@@ -563,7 +605,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         """
 
         self._valid = None if valid is None or len(
-            valid) == 0 else [t2l([k, v]) for k, v in valid.items()] if issubclass(valid.__class__, dict) else t2l(valid)
+            valid) == 0 else make_jsonable(valid)
 
     def isValid(self):
         """
@@ -690,46 +732,11 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             return [tuple(resnm) if len(resnm) else (INVALID, 'Invalid') for mask, resnm in binmasks.items()]
         return hasvalid if hasvalid else (INVALID, 'Invalid')
 
-    def setValue(self, value):
-        """ Replaces the current value of this parameter.
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 width=0, alist=False, **kwds):
 
-        If value is None set it to default.
-        If given/current type is '' and arg value's type is in DataTypes both value and type are updated to the suitable one in DataTypeNames; or else TypeError is raised.
-        If value type and given/current type are different.
-            Incompatible value and type will get a TypeError.
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        if value is None:
-            self._value = self._default if hasattr(self, '_default') else value
-            return
-        self._value = self.checked(value)
-
-    def __repr__(self):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        return self.toString(level=1)
-
-    def toString(self, level=0, alist=False, **kwds):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        ret = exprstrs(self, level=level, **kwds)
+        ret = exprstrs(self, level=level, width=width, **kwds)
         if alist:
             return ret
         vs, us, ts, ds, fs, gs, cs = ret
@@ -737,6 +744,8 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             return vs
         return '%s{ %s <%s>, "%s", default= %s, valid= %s tcode=%s}' % \
             (self.__class__.__name__, vs, ts, ds, fs, gs, cs)
+
+    __str__ = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder. 
@@ -747,339 +756,13 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         -------
         """
         return OrderedDict(description=self.description,
-                           value=self._value,
                            type=self._type,
                            default=self._default,
+                           value=self._value,  # must go behind type. maybe default
                            valid=self._valid,
                            listeners=self.listeners,
                            _STID=self._STID
                            )
-
-    __hash__ = DeepEqual.__hash__
-
-
-class NumericParameter(Parameter, Quantifiable):
-    """ has a number as the value, a unit, and a typecode.
-    """
-
-    def __init__(self, value=None, description='UNKNOWN', typ_='', default=None, valid=None, **kwds):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        super(NumericParameter, self).__init__(
-            value=value, description=description, typ_=typ_, default=default, valid=valid, **kwds)
-
-    def __repr__(self):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        return self.toString(level=1)
-
-    def __getstate__(self):
-        """ Can be encoded with serializableEncoder 
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        return OrderedDict(description=self.description,
-                           value=self._value,
-                           type=self._type,
-                           default=self._default,
-                           valid=self._valid,
-                           unit=self._unit,
-                           typecode=self._typecode,
-                           _STID=self._STID)
-
-    def setValue(self, value):
-        """ accept any type that a Vector does.
-        """
-        if value is not None and issubclass(value.__class__, Sequence):
-            d = list(value)
-            if len(d) == 2:
-                value = Vector2D(d)
-            elif len(d) == 3:
-                value = Vector(d)
-            elif len(d) == 4:
-                value = Quaternion(d)
-            else:
-                raise ValueError(
-                    'Sequence of only 2 to 4 elements for NumericParameter')
-        super().setValue(value)
-
-    def setDefault(self, default):
-        """ accept any type that a Vector does.
-        """
-        if default is not None and issubclass(default.__class__, Sequence):
-            d = list(default)
-            if len(d) == 2:
-                default = Vector2D(d)
-            elif len(d) == 3:
-                default = Vector(d)
-            elif len(d) == 4:
-                default = Quaternion(d)
-            else:
-                raise ValueError(
-                    'Sequence of only 2 to 4 elements for NumericParameter')
-        super().setDefault(default)
-
-    __hash__ = DeepEqual.__hash__
-
-
-class DateParameter(Parameter):
-    """ has a FineTime as the value.
-    """
-
-    def __init__(self, value=None, description='UNKNOWN', default=0, valid=None, typecode=None, **kwds):
-        """
-        if value and typecode are both given, typecode will be overwritten by value.format.
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        self.setTypecode(typecode)
-        # this will set default then set value.
-        super(DateParameter, self).__init__(
-            value=value, description=description, typ_='finetime', default=default, valid=valid, **kwds)
-
-    @ property
-    def typecode(self):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        return self.getTypecode()
-
-    @ typecode.setter
-    def typecode(self, typecode):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        self.setTypecode(typecode)
-
-    def getTypecode(self):
-        """ Returns the typecode related to this object. None if value not set.
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        if not hasattr(self, '_value'):
-            return None
-        return self._value.format
-
-    def setTypecode(self, typecode):
-        """ Sets the typecode of this object. quietly returns if value not set.
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        if not hasattr(self, '_value'):
-            return
-        self._value.format = typecode
-
-    def setValue(self, value):
-        """ accept any type that a FineTime does.
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        if value is not None and not issubclass(value.__class__, FineTime):
-            value = FineTime(date=value, format=self.getTypecode())
-        super().setValue(value)
-
-    def setDefault(self, default):
-        """ accept any type that a FineTime does.
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        if default is not None and not issubclass(default.__class__, FineTime):
-            default = FineTime(date=default, format=self.getTypecode())
-        super().setDefault(default)
-
-    def __repr__(self):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        return self.toString(level=1)
-
-    def __getstate__(self):
-        """ Can be encoded with serializableEncoder 
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        return OrderedDict(description=self.description,
-                           value=self._value,
-                           default=self._default,
-                           valid=self._valid,
-                           typecode=self.typecode,
-                           _STID=self._STID)
-        return self.__class__.__name__ + \
-            '{ description = "%s", value = "%s", typecode = "%s"}' % \
-            (str(self.description), str(self.value), str(self.getTypecode()))
-
-    __hash__ = DeepEqual.__hash__
-
-
-class DateParameter1(DateParameter):
-    """ Like DateParameter but usese  FineTime. 
-    """
-
-    def setValue(self, value):
-        """ accept any type that a FineTime1 does.
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        if value is not None and not issubclass(value.__class__, FineTime1):
-            value = FineTime1(date=value, format=self.getTypecode())
-        super().setValue(value)
-
-    def setDefault(self, default):
-        """ accept any type that a FineTime1 does.
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        if default is not None and not issubclass(default.__class__, FineTime1):
-            default = FineTime1(date=default, format=self.getTypecode())
-        super().setDefault(default)
-
-    __hash__ = DeepEqual.__hash__
-
-
-class StringParameter(Parameter):
-    """ has a unicode string as the value, a typecode for length and char.
-    """
-
-    def __init__(self, value=None, description='UNKNOWN', valid=None, default='', typecode='B', **kwds):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        self.setTypecode(typecode)
-        super(StringParameter, self).__init__(
-            value=value, description=description, typ_='string', default=default, valid=valid, **kwds)
-
-    @ property
-    def typecode(self):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        return self.getTypecode()
-
-    @ typecode.setter
-    def typecode(self, typecode):
-
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        self.setTypecode(typecode)
-
-    def getTypecode(self):
-        """ Returns the typecode related to this object.
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        return self._typecode
-
-    def setTypecode(self, typecode):
-        """ Sets the typecode of this object.
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        self._typecode = typecode
-
-    def __repr__(self):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-       return self.toString(level=1)
-
-    def __getstate__(self):
-        """ Can be encoded with serializableEncoder 
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        return OrderedDict(value=self._value,
-                           description=self.description,
-                           valid=self._valid,
-                           default=self._default,
-                           typecode=self._typecode,
-                           _STID=self._STID)
-
-    __hash__ = DeepEqual.__hash__
 
 
 MetaHeaders = ['name', 'value', 'unit', 'type', 'valid',
@@ -1095,8 +778,14 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
     Note that replacing a parameter with the same name,
     will keep the order. """
 
-    def __init__(self, copy=None, **kwds):
+    Table_Widths = [
+        {'name': 15, 'value': 20, 'unit': 7, 'type': 8,
+         'valid': 20, 'default': 17, 'code': 4, 'description': 21}
+    ]
+
+    def __init__(self, copy=None, defaults=None, **kwds):
         """
+
         Parameters
         ----------
 
@@ -1107,8 +796,9 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         super(MetaData, self).__init__(**kwds)
         if copy:
             # not implemented ref https://stackoverflow.com/questions/10640642/is-there-a-decent-way-of-creating-a-copy-constructor-in-python
-            logger.error('use copy.copy() insteadof MetaData(copy)')
+            raise ValueError('use copy.copy() insteadof MetaData(copy)')
         else:
+            self._defaults = [] if defaults is None else defaults
             return
 
     def accept(self, visitor):
@@ -1157,6 +847,11 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
                              change=ch, cause=ca, rootCause=ro)
             self.fire(e)
 
+    def __repr__(self):
+
+        # return ydump(self.__getstate__(), default_flow_style=True)
+        return self.toString(level=3)
+
     def remove(self, name):
         """ add eventhandling 
         Parameters
@@ -1180,25 +875,20 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             self.fire(e)
         return r
 
-    def toString(self, level=0, tablefmt='rst', tablefmt1='simple',
-                 widths=None, **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 param_widths=None, width=0, **kwds):
         """ return  string representation of metada.
 
-        level: 0 is the most detailed, 2 is the least, 1 is for __repr__.
-        tablefmt: format string in packae ``tabulate``.
-        widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its tsble cell is, 0 for ommiting the attributable. Default is
+        level: 0 is the most detailed, 2 is the least,
+        tablefmt: format string in packae ``tabulate``, for level==0, tablefmt1 for level1, tablefmt2: format of 2D table data.
+        param_widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its tsble cell is, 0 for ommiting the attributable. Default is `MetaData.Table_Widths[0]`. e.g.
 ``{'name': 8, 'value': 17, 'unit': 7, 'type': 8,
-                      'valid': 25, 'default': 17, 'code': 4, 'description': 15}``
-        Parameters
-        ----------
-
-        Returns
-        -------
+                      'valid': 20, 'default': 17, 'code': 4, 'description': 15}``
         """
 
-        if widths is None:
-            widths = {'name': 15, 'value': 20, 'unit': 7, 'type': 8,
-                      'valid': 23, 'default': 17, 'code': 4, 'description': 21}
+        if param_widths is None:
+            param_widths = MetaData.Table_Widths[0]
         tab = []
         # N parameters per row for level 1
         N = 3
@@ -1208,17 +898,23 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         att = {}
         for (k, v) in self._sets.items():
             att['name'] = str(k)
+            # limit cell width for level=0,1
             att['value'], att['unit'], att['type'], att['description'],\
                 att['default'], att['valid'], att['code'] = v.toString(
+                    level=level, width=0 if level > 1 else 1,
+                    tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                     alist=True)
             if level == 0:
-                l = tuple(att[n] for n in MetaHeaders) if widths == -1 else \
-                    tuple(wls(att[n], w) for n, w in widths.items() if w != 0)
+                l = tuple(att[n] for n in MetaHeaders) if param_widths == -1 else \
+                    tuple(wls(att[n], w)
+                          for n, w in param_widths.items() if w != 0)
                 tab.append(l)
             elif level == 1:
                 ps = '%s= %s' % (att['name'], att['value'])
-                # s += mstr(self, level=level, depth=1,  tablefmt = tablefmt, **kwds)
                 tab.append(wls(ps, 80//N))
+                # s += mstr(self, level=level, tablefmt = tablefmt, \
+                # tablefmt=tablefmt, tablefmt1=tablefmt1, \
+                # tablefmt2=tablefmt2,depth=1, **kwds)
                 if 0:
                     row.append(wls(ps, 80//N))
                     i += 1
@@ -1226,14 +922,20 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
                         tab.append(row)
                         i, row = 0, []
             else:
-                tab.append(att['name'])
+                n = att['name']
+                if n in self._defaults and self._defaults[n]['default'] == v.value:
+                    pass
+                else:
+                    ps = '%s=%s' % (att['name'], att['value'])
+                    #tab.append(wls(ps, 80//N))
+                    tab.append(ps)
 
-        lsnr = self.listeners.toString(level=level, **kwds)
+                # tab.append(att['name'])
 
         # write out the table
         if level == 0:
-            headers = MetaHeaders if widths == -1 else \
-                [n for n, w in zip(MetaHeaders, widths) if w != 0]
+            headers = MetaHeaders if param_widths == -1 else \
+                [n for n, w in zip(MetaHeaders, param_widths) if w != 0]
             fmt = tablefmt
             s += tabulate(tab, headers=headers, tablefmt=fmt, missingval='',
                           disable_numparse=True)
@@ -1244,21 +946,23 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             s += tabulate(t, headers=headers, tablefmt=fmt, missingval='',
                           disable_numparse=True)
         else:
-            s += ', '.join(tab)
-            return '%s, listeners = %s' % (s, lsnr)
+            s = ', '.join(tab) if len(tab) else 'Default Meta'
+            if len(self.listeners):
+                l = ', listeners = %s' % \
+                    self.listeners.toString(level=level,
+                                            tablefmt=tablefmt, tablefmt1=tablefmt1,
+                                            tablefmt2=tablefmt2,
+                                            **kwds)
+            else:
+                l = '.'
+            return s + l
+        lsnr = self.listeners.toString(level=level,
+                                       tablefmt=tablefmt, tablefmt1=tablefmt1,
+                                       tablefmt2=tablefmt2,
+                                       **kwds)
+
         return '\n%s\n%s-listeners = %s' % (s, cn, lsnr) if len(tab) else \
-            '%s%s-listeners = %s' % ('(No parameter.)', cn, lsnr)
-
-    def __repr__(self, **kwds):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-
-        return self.toString(level=1, **kwds)
+            '%s %s-listeners = %s' % ('(No Parameter.)', cn, lsnr)
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder 
@@ -1275,4 +979,3 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         return OrderedDict(_sets=self._sets,
                            listeners=self.listeners,
                            _STID=self._STID)
-    __hash__ = DeepEqual.__hash__

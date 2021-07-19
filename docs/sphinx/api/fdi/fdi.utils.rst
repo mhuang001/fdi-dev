@@ -25,6 +25,14 @@ fdi.utils.common module
    :undoc-members:
    :show-inheritance:
 
+fdi.utils.fetch module
+----------------------
+
+.. automodule:: fdi.utils.fetch
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.fits\_kw module
 -------------------------
 
@@ -37,6 +45,14 @@ fdi.utils.getconfig module
 --------------------------
 
 .. automodule:: fdi.utils.getconfig
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.utils.leapseconds module
+----------------------------
+
+.. automodule:: fdi.utils.leapseconds
    :members:
    :undoc-members:
    :show-inheritance:
@@ -77,6 +93,14 @@ fdi.utils.options module
 ------------------------
 
 .. automodule:: fdi.utils.options
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.utils.queueworks module
+---------------------------
+
+.. automodule:: fdi.utils.queueworks
    :members:
    :undoc-members:
    :show-inheritance:

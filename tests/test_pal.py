@@ -1,5 +1,5 @@
-from fdi.pns.pnsconfig import pnsconfig as pc
-from fdi.dataset.dataset import ArrayDataset
+
+from fdi.dataset.arraydataset import ArrayDataset
 import itertools
 import random
 import timeit
@@ -19,15 +19,16 @@ from fdi.pal.context import Context
 from fdi.pal.query import AbstractQuery, MetaQuery
 from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
+from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.classes import Classes
 from fdi.dataset.metadata import MetaData, Parameter
 from fdi.dataset.finetime import FineTime1
 from fdi.dataset.testproducts import TP
 from fdi.utils.checkjson import checkjson
-from fdi.utils.getconfig import getConfig
 from fdi.pns.fdi_requests import save_to_server, read_from_server, delete_from_server
 
+from requests.auth import HTTPBasicAuth
 import copy
 import traceback
 from pprint import pprint
@@ -50,7 +51,6 @@ else:
     PY3 = False
 
 Classes.updateMapping()
-pc.update(getConfig())
 
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
@@ -61,9 +61,9 @@ else:
 
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
-    from .pycontext import fdi
+    from pycontext import fdi
 
-    from .logdict import logdict
+    from logdict import logdict
     import logging
     import logging.config
     # create logger
@@ -92,15 +92,15 @@ def test_UrnUtils():
     prd = Product(description='pal test')
     a1 = 'file'      # scheme
     a2 = '/e:'            # place
-    b1, b2 = '/tmp/foo', 'pool/name'
-    a3 = b1 + '/' + b2               # /tmp/foo/pool/name
+    b1, b2 = '/tmp/foo', 'name'
+    a3 = b1 + '/' + b2               # /tmp/foo/name
     a4 = fullname(prd)           # fdi.dataset.Product
     a5 = 43
     s = a1 + '://' + a2          # file:///e:
-    poolurl = s + a3                   # file:///e:/tmp/foo/pool/name
+    poolurl = s + a3                   # file:///e:/tmp/foo/name
     r = a4 + ':' + str(a5)       # fdi.dataset.Product:43
     rp = a4 + '_' + str(a5)      # fdi.dataset.Product_43
-    urn = 'urn:' + b2 + ':' + r  # urn:pool/name:fdi.dataset.Product:43
+    urn = 'urn:' + b2 + ':' + r  # urn:name:fdi.dataset.Product:43
     urn1 = 'urn:' + b2 + ':' + a4+':'+str(a5-1)
     # utils
     assert parseUrn(urn) == (b2, a4, a5)
@@ -152,15 +152,15 @@ def test_Urn():
     prd = Product(description='pal test')
     a1 = 'file'      # scheme
     a2 = '/e:'            # place
-    b1, b2 = '/tmp/foo', 'pool/name'
-    a3 = b1 + '/' + b2               # /tmp/foo/pool/name
+    b1, b2 = '/tmp/foo', 'name'
+    a3 = b1 + '/' + b2               # /tmp/foo/name
     a4 = fullname(prd)           # fdi.dataset.Product
     a5 = 43
     s = a1 + '://' + a2          # file:///e:
-    poolurl = s + a3                   # file:///e:/tmp/foo/pool/name
+    poolurl = s + a3                   # file:///e:/tmp/foo/name
     r = a4 + ':' + str(a5)       # fdi.dataset.Product:43
     rp = a4 + '_' + str(a5)      # fdi.dataset.Product_43
-    urn = 'urn:' + b2 + ':' + r  # urn:pool/name:fdi.dataset.Product:43
+    urn = 'urn:' + b2 + ':' + r  # urn:name:fdi.dataset.Product:43
     urn1 = 'urn:' + b2 + ':' + a4+':'+str(a5-1)
     # constructor
     # urn only
@@ -172,6 +172,8 @@ def test_Urn():
     assert v.getScheme() is None
     assert v.getPlace() is None
     assert v.getPoolpath() is None
+
+    h = v.hash()
     # urn with poolurl
     v = Urn(urn=urn, poolurl=poolurl)
     assert v.getPoolId() == b2  #
@@ -276,7 +278,7 @@ def cleanup(poolurl=None, poolname=None):
 
 
 def test_PoolManager():
-    defaultpoolName = 'pool_' + getpass.getuser()
+    defaultpoolName = 'fdi_pool_' + __name__ + getpass.getuser()
     defaultpoolPath = '/tmp'
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
@@ -335,7 +337,7 @@ def test_PoolManager():
     assert PoolManager.remove('foo') == 1
 
 
-def checkdbcount(expected_cnt, poolurl, prodname, currentSN=-1):
+def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args):
     """ count files in pool and entries in class db.
 
     expected_cnt, currentSN: expected number of prods and currentSN in pool for products named prodname
@@ -369,18 +371,19 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN=-1):
         # for this class there are  how many prods
         assert len(mpool['classes'][prodname]['sn']) == expected_cnt
     elif scheme in ['http', 'https']:
-        snpath = 'sn/' + prodname + '/' + poolname
+        auth = HTTPBasicAuth(*usrpsw)
+        cpath = poolname + '/' + 'count/' + prodname
         api_baseurl = scheme + '://' + place + poolpath + '/'
-        url = api_baseurl + snpath
-        x = requests.get(url)
-        sn = int(x.text)
-        assert sn == expected_cnt
+        url = api_baseurl + cpath
+        x = requests.get(url, auth=auth)
+        count = int(x.json()['result'])
+        assert count == expected_cnt
     else:
         assert False, 'bad pool scheme'
 
 
 def test_ProductRef():
-    defaultpoolName = 'pool_' + getpass.getuser()
+    defaultpoolName = 'fdi_pool_' + __name__ + getpass.getuser()
     defaultpoolPath = '/tmp'
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
@@ -400,7 +403,7 @@ def test_ProductRef():
     # A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
     v = ProductRef(prd)
     # only one prod in memory pool
-    checkdbcount(1, 'mem:///'+DEFAULT_MEM_POOL, a4, 0)
+    checkdbcount(1, 'mem:///'+DEFAULT_MEM_POOL, a4, 0, '')
     assert v.urn == 'urn:'+DEFAULT_MEM_POOL+':' + a4 + ':' + str(0)
     assert v.meta is None
     assert v.product == prd
@@ -441,6 +444,7 @@ def test_ProductRef():
     pr.addParent(b2)
     assert b1 in list(pr.parents)
     assert b2 in list(pr.parents)
+
     pr.removeParent(b1)
     assert b1 not in list(pr.parents)
     # access
@@ -453,11 +457,11 @@ def test_ProductRef():
 
 
 def test_ProductStorage_init():
-    defaultpoolname = 'pool_' + getpass.getuser()
+    defaultpoolname = 'fdi_pool_' + __name__ + getpass.getuser()
     poolpath = '/tmp'
     defaultpoolurl = 'file://' + poolpath + '/' + defaultpoolname
     cleanup(defaultpoolurl, defaultpoolname)
-    newpoolname = 'newpool_' + getpass.getuser()
+    newpoolname = 'fdi_newpool_' + __name__ + getpass.getuser()
     newpoolurl = 'file://' + poolpath + '/' + newpoolname
     cleanup(newpoolurl, newpoolname)
 
@@ -496,7 +500,7 @@ def test_ProductStorage_init():
         pass  # assert False, 'exception expected'
 
 
-def check_ps_func_for_pool(thepoolname, thepoolurl):
+def check_ps_func_for_pool(thepoolname, thepoolurl, *args):
     ps = ProductStorage(poolurl=thepoolurl)
     p1 = ps.getPools()[0]
     # get the pool object
@@ -509,7 +513,7 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     ref = ps.save(x)
     # ps has 1 prod
     assert ref.urn == 'urn:' + thepoolname + ':' + pcq + ':0'
-    checkdbcount(1, thepoolurl, pcq, 0)
+    checkdbcount(1, thepoolurl, pcq, 0, *args)
 
     # save more
     # one by one
@@ -521,8 +525,8 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
         x2.append(tmp)
         ref2.append(ps.save(tmp, tag='t' + str(d)))
 
-    checkdbcount(q, thepoolurl, pcq, q - 1)
-    checkdbcount(1, thepoolurl, fullname(MapContext), 0)
+    checkdbcount(q, thepoolurl, pcq, q - 1, *args)
+    checkdbcount(1, thepoolurl, fullname(MapContext), 0, *args)
     # save many in one go
     m, x3 = 2, []
     n = q + m
@@ -533,8 +537,8 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     x2 += x3  # there are n prods in x2
     # check refs
     assert len(ref2) == n
-    checkdbcount(n, thepoolurl, pcq, n)
-    checkdbcount(1, thepoolurl, fullname(MapContext), 0)
+    checkdbcount(n, thepoolurl, pcq, n, *args)
+    checkdbcount(1, thepoolurl, fullname(MapContext), 0, *args)
 
     # tags
     ts = ps.getAllTags()
@@ -547,8 +551,8 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     assert u[0] == ref2[q].urn
 
     # access resource
-    checkdbcount(n, thepoolurl, pcq, n)
-    checkdbcount(1, thepoolurl, fullname(MapContext), 0)
+    checkdbcount(n, thepoolurl, pcq, n, *args)
+    checkdbcount(1, thepoolurl, fullname(MapContext), 0, *args)
     # get ref from urn
     pref = ps.load(ref2[n - 2].urn)
     assert pref == ref2[n - 2]
@@ -564,22 +568,22 @@ def check_ps_func_for_pool(thepoolname, thepoolurl):
     # DB shows less in record
     # current serial number not changed
     # number of items decreased by 1
-    checkdbcount(n - 1, thepoolurl, pcq, n)
-    checkdbcount(1, thepoolurl, fullname(MapContext), 0)
+    checkdbcount(n - 1, thepoolurl, pcq, n, *args)
+    checkdbcount(1, thepoolurl, fullname(MapContext), 0, *args)
 
     # clean up a pool
     ps.wipePool()
-    checkdbcount(0, thepoolurl, pcq)
+    checkdbcount(0, thepoolurl, pcq, -1, *args)
     assert ps.getPool(thepoolname).isEmpty()
 
 
 def test_ProdStorage_func_local_mem():
     # local pool
-    thepoolname = 'pool_' + getpass.getuser()
+    thepoolname = 'fdi_pool_' + __name__ + getpass.getuser()
     thepoolpath = '/tmp'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
     cleanup(thepoolurl, thepoolname)
-    check_ps_func_for_pool(thepoolname, thepoolurl)
+    check_ps_func_for_pool(thepoolname, thepoolurl, None)
 
     # mempool
     thepoolname = DEFAULT_MEM_POOL
@@ -587,13 +591,15 @@ def test_ProdStorage_func_local_mem():
     thepoolurl = 'mem://' + thepoolpath + thepoolname
 
     cleanup(thepoolurl, thepoolname)
-    check_ps_func_for_pool(thepoolname, thepoolurl)
+    check_ps_func_for_pool(thepoolname, thepoolurl, None)
 
 
-def test_ProdStorage_func_http():
+def test_ProdStorage_func_http(setup, userpass):
+
+    aburl, hdr = setup
     # httpclientpool
-    thepoolname = 'testhttppool'
-    thepoolurl = pc['httphost'] + pc['baseurl'] + '/' + thepoolname
+    thepoolname = 'fdi_'+__name__
+    thepoolurl = aburl + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
     # First test registering with local pstor will also register on server
@@ -608,21 +614,20 @@ def test_ProdStorage_func_http():
     # not exist
     with pytest.raises(RuntimeError):
         assert pool.isEmpty()
-    check_ps_func_for_pool(thepoolname, thepoolurl)
+    check_ps_func_for_pool(thepoolname, thepoolurl, userpass)
 
 
-def test_ProdStorage_func_server():
+def test_ProdStorage_func_server(local_pools_dir):
     # httppool , the http server-side pool
-    thepoolname = 'testserverpool'
-    thepoolurl = 'server://'+pc['server_poolpath'] + \
-        pc['baseurl'] + '/' + thepoolname
+    thepoolname = 'fdi_server'+__name__
+    thepoolurl = 'server://' + local_pools_dir + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
-    check_ps_func_for_pool(thepoolname, thepoolurl)
+    check_ps_func_for_pool(thepoolname, thepoolurl, None)
 
 
 def test_LocalPool():
-    thepoolname = 'pool_' + getpass.getuser()
+    thepoolname = 'fdi_localpool_' + __name__ + getpass.getuser()
     thepoolpath = '/tmp'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
 
@@ -695,12 +700,12 @@ def doquery(poolpath, newpoolpath):
     assert q.retrieveAllVersions() == a4
 
     # make a productStorage
-    thepoolname = 'pool_' + getpass.getuser()
+    thepoolname = 'fdi_pool_' + __name__ + getpass.getuser()
     thepoolurl = poolpath + '/' + thepoolname
     thepool, pstore = mkStorage(thepoolname, thepoolurl)
 
     # make another
-    newpoolname = 'newpool_' + getpass.getuser()
+    newpoolname = 'fdi_newpool_' + __name__ + getpass.getuser()
     newpoolurl = newpoolpath + '/' + newpoolname
     newpool, pstore2 = mkStorage(newpoolname, newpoolurl)
 
@@ -710,13 +715,13 @@ def doquery(poolpath, newpoolpath):
     for i in range(n):
         a0, a1, a2 = 'desc %d' % i, 'fatman %d' % (i*4), 5000+i
         if i < 3:
-            x = TP(description=a0, instrument=a1)
+            x = TP(description=a0, creator=a1)
             x.meta['extra'] = Parameter(value=a2)
         elif i < 5:
-            x = Context(description=a0, instrument=a1)
+            x = Context(description=a0, creator=a1)
             x.meta['extra'] = Parameter(value=a2)
         else:
-            x = MapContext(description=a0, instrument=a1)
+            x = MapContext(description=a0, creator=a1)
             x.meta['extra'] = Parameter(value=a2)
             x.meta['time'] = Parameter(value=FineTime1(a2))
         if i < 4:
@@ -738,19 +743,19 @@ def doquery(poolpath, newpoolpath):
         p = r.product
         assert type(p) == type(c['p'])
         assert p.description == c['a0']
-        assert p.instrument == c['a1']
+        assert p.creator == c['a1']
         assert p.meta['extra'].value == c['a2']
 
     chk(res[0], rec1[m])
 
     # query with a parent class and a specific parameter
     m = 3
-    q = MetaQuery(Product, 'm["instrument"].value == "%s"' % rec1[m]['a1'])
+    q = MetaQuery(BaseProduct, 'm["creator"].value == "%s"' % rec1[m]['a1'])
     res = pstore.select(q)
     assert len(res) == 1, str(res)
     chk(res[0], rec1[m])
     # query with a parent class and a specific parameter
-    q = MetaQuery(Product, 'm["extra"].value < 5002')
+    q = MetaQuery(BaseProduct, 'm["extra"].value < 5002')
     res = pstore.select(q)
     # [0,1]
     assert len(res) == 2, str(res)
@@ -760,7 +765,7 @@ def doquery(poolpath, newpoolpath):
     # simpler syntax for comparing value only but a bit slower.
     # the parameter with simpler syntax must be on the left hand side of a comparison operator.
     # '5000 < m["extra"]' does not work. But '5000 < m["extra"].value' works.
-    q = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] <= 5002')
+    q = MetaQuery(BaseProduct, 'm["extra"] > 5000 and m["extra"] <= 5002')
     res = pstore.select(q)
     # [1,2]
     assert len(res) == 2, str(res)
@@ -768,7 +773,7 @@ def doquery(poolpath, newpoolpath):
     chk(res[1], rec1[2])
 
     # two classes
-    q = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] < 5004')
+    q = MetaQuery(BaseProduct, 'm["extra"] > 5000 and m["extra"] < 5004')
     res = pstore.select(q)
     # [1,2,3]
     assert len(res) == 3, str(res)
@@ -777,20 +782,20 @@ def doquery(poolpath, newpoolpath):
     chk(res[2], rec1[3])
 
     # this is not in this store
-    q = MetaQuery(Product, 'm["extra"] == 5004')
+    q = MetaQuery(BaseProduct, 'm["extra"] == 5004')
     res = pstore.select(q)
     # []
     assert len(res) == 0, str(res)
 
     # it is in the other store
-    q = MetaQuery(Product, 'm["extra"] == 5004')
+    q = MetaQuery(BaseProduct, 'm["extra"] == 5004')
     res = pstore2.select(q)
     # [4]
     assert len(res) == 1, str(res)
     chk(res[0], rec1[4])
 
     # all in  the other store
-    q = MetaQuery(Product, '1')
+    q = MetaQuery(BaseProduct, '1')
     res = pstore2.select(q)
     # [4,5,6]
     assert len(res) == 3, str(res)
@@ -813,9 +818,9 @@ def doquery(poolpath, newpoolpath):
     chk(res[2], rec1[5])
     chk(res[3], rec1[6])
 
-    # all 'time' < 5006. will cause TypeError because some Contex data do not have 'time'
+    # all 'time' < 5006. will cause KeyError because some Contex data do not have 'time'
     q = MetaQuery(Context, 'm["time"] < 5006')
-    with pytest.raises(TypeError):
+    with pytest.raises(KeyError):
         res = pstore.select(q)
 
     # all 'time' < 5006 mapcontext. all in newpool
@@ -826,15 +831,15 @@ def doquery(poolpath, newpoolpath):
     chk(res[0], rec1[5])
 
     # all 'extra' < 5002, all in 1st pool
-    q = MetaQuery(Product, 'm["extra"] < 5002')
+    q = MetaQuery(BaseProduct, 'm["extra"] < 5002')
     res = pstore.select(q)
     # [0,1   ]
     assert len(res) == 2, str(res)
     chk(res[0], rec1[0])
     chk(res[1], rec1[1])
 
-    # instrument = 'fatman 12|16', two pools
-    q = MetaQuery(Product, '"n 1" in m["instrument"].value')
+    # creator = 'fatman 12|16', two pools
+    q = MetaQuery(BaseProduct, '"n 1" in m["creator"].value')
     res = pstore.select(q)
     # [3,4]
     assert len(res) == 2, str(res)
@@ -845,9 +850,9 @@ def doquery(poolpath, newpoolpath):
         # same as above but query is a function
         def t(m):
             import re
-            return re.match('.*n.1.*', m['instrument'].value)
+            return re.match('.*n.1.*', m['creator'].value)
 
-        q = MetaQuery(Product, t)
+        q = MetaQuery(BaseProduct, t)
         res = pstore.select(q)
         # [3,4]
         assert len(res) == 2, str(res)
@@ -855,7 +860,7 @@ def doquery(poolpath, newpoolpath):
         chk(res[1], rec1[4])
 
     # same as above but query is on the product. this is slow.
-    q = AbstractQuery(Product, 'p', '"n 1" in p.instrument')
+    q = AbstractQuery(BaseProduct, 'p', '"n 1" in p.creator')
     res = pstore.select(q)
     # [3,4]
     assert len(res) == 2, str(res)
@@ -872,14 +877,15 @@ def test_query_local_mem():
     doquery('mem://'+thepoolpath, 'file://'+thepoolpath)
 
 
-def test_query_http():
+def test_query_http(setup):
+
+    aburl, hdrs = setup
+    aburl = aburl.rstrip('/')
     cleanup()
     lpath = '/tmp'
-    thepoolpath = pc['node']['host']+':' + \
-        str(pc['node']['port']) + pc['baseurl']
-    doquery('http://'+thepoolpath, 'http://'+thepoolpath)
-    doquery('file://'+lpath, 'http://'+thepoolpath)
-    doquery('mem://'+lpath, 'http://'+thepoolpath)
+    doquery(aburl, aburl)
+    doquery('file://'+lpath, aburl)
+    doquery('mem://'+lpath, aburl)
 
 
 def test_RefContainer():
@@ -973,7 +979,7 @@ def test_MapContext():
     assert c4['refs']['x'].product.description == 'hi'
 
     # stored prod
-    thepoolname = 'pool_' + getpass.getuser()
+    thepoolname = 'fdi_pool_' + __name__ + getpass.getuser()
     thepoolpath = '/tmp'
     thepoolurl = 'file://' + thepoolpath + '/'+thepoolname
     # create a prooduct
@@ -1053,7 +1059,7 @@ def test_MapContext():
 
 
 def test_realistic():
-    poolname = 'pool_' + getpass.getuser()
+    poolname = 'fdi_pool_' + __name__ + getpass.getuser()
     poolpath = '/tmp'
     poolurl = 'file://' + poolpath + '/' + poolname
     # remove existing pools in memory
@@ -1121,7 +1127,7 @@ def speed():
     p['array'] = a
     PoolManager().removeAll()
     # create a product store
-    pool = 'file:///tmp/perf_' + getpass.getuser()
+    pool = 'file:///tmp/fdi_perf_' + __name__ + getpass.getuser()
     pstore = ProductStorage(pool)
     # clean up possible garbage of previous runs
     pstore.wipePool()

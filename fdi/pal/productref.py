@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import logging
+from collections import OrderedDict
 from .context import Context
 from .urn import Urn
 from .comparable import Comparable
@@ -7,14 +9,14 @@ from ..dataset.product import Product
 from ..dataset.odict import ODict
 from ..dataset.serializable import Serializable
 from ..dataset.attributable import Attributable
-from collections import OrderedDict
-import logging
+from ..dataset.eq import DeepEqual
+
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class ProductRef(Attributable, Serializable, Comparable):
+class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 
@@ -24,6 +26,8 @@ class ProductRef(Attributable, Serializable, Comparable):
         If meta is given, it will be used instead of that from poolname.
         A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
         """
+
+        urnobj = None
         super(ProductRef, self).__init__(**kwds)
         if issubclass(urn.__class__, str):
             urnobj = Urn(urn)
@@ -36,7 +40,7 @@ class ProductRef(Attributable, Serializable, Comparable):
         else:
             urnobj = None
 
-        if product:
+        if product is not None:
             from .poolmanager import PoolManager, DEFAULT_MEM_POOL
             from . import productstorage
             pool = PoolManager.getPool(poolurl='mem:///' + DEFAULT_MEM_POOL)
@@ -192,7 +196,7 @@ class ProductRef(Attributable, Serializable, Comparable):
         """ Returns a code number for the product; actually its MD5 signature. 
         This allows checking whether a product already exists in a pool or not.
         """
-        raise NotImplementedError()
+        return self.hash()
 
     def getSize(self):
         """ Returns the estimated size(in bytes) of the product in memory. 
@@ -226,7 +230,7 @@ class ProductRef(Attributable, Serializable, Comparable):
         :param parent: 
 
         """
-        if parent:
+        if parent is not None:
             self._parents.remove(parent)
 
     @property
@@ -297,20 +301,9 @@ class ProductRef(Attributable, Serializable, Comparable):
 
         return False
 
-    def __eq__(self, o):
-        """ has the same Urn.
-        """
-        return self.equals(o)
-
-    def __hash__(self):
-        """ returns hash of the URN object
-        """
-        return hash(self._urnobj)
-
-    def __repr__(self):
-        return self.toString(level=1)
-
-    def toString(self, level=0, **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 **kwds):
         """
         """
         s = self.__class__.__name__
@@ -320,12 +313,21 @@ class ProductRef(Attributable, Serializable, Comparable):
                 str([str(id(p)) + ' ' + p.__class__.__name__ +
                      '"' + p.description + '"'
                      for p in self.parents]) + '\n'
-            s += '# meta=' + self.getMeta().toString(level=level, **kwds)
+            m = self.getMeta()
+            ms = m.toString(level=level,
+                            tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                            **kwds) if m else ''
+            s += '# meta=' + ms
+
         else:
             s += ' Parents=' + str([id(p) for p in self.parents])
-            s += ' meta= ' + 'None' if self.getMeta() is None else self.getMeta().toString(level=level, **kwds)
+            s += ' meta= ' + 'None' if self.getMeta() is None else self.getMeta().toString(level=level,
+                                                                                           tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                                                                                           **kwds)
         s += '}'
         return s
+
+    __str__ = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

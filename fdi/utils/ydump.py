@@ -15,8 +15,13 @@ logger = logging.getLogger(__name__)
 
 
 class MyYAML(YAML):
-    def dump(self, data, stream=None, **kw):
+    def dump(self, data, stream=None, default_flow_style=False,
+             width=80, allow_unicode=True,
+             **kw):
         inefficient = False
+        self.default_flow_style = default_flow_style
+        self.width = width
+        self.allow_unicode = allow_unicode
         if stream is None:
             inefficient = True
             stream = StringIO()
@@ -34,15 +39,12 @@ ruamel.yaml.add_representer(OrderedDict, MyRepresenter.represent_dict,
 
 yaml = MyYAML(typ='rt')
 yaml.Representer = MyRepresenter
-yaml.default_flow_style = False
-yaml.width = 80
-yaml.allow_unicode = True
 yaml.compact(seq_seq=1, seq_map=True)
 
 notinited = True
 
 
-def yinit(mapping=6, sequence=4, offset=2, register=None):
+def yinit(mapping=4, sequence=4, offset=2, register=None):
     """ Initializes YAML.
     """
     global notinited
@@ -78,11 +80,7 @@ def ydump(od, stream=None, register=None, **kwds):
 
     d = od
 
-    if 0:
-        return yaml.dump(d, default_flow_style=False, indent=4,
-                         width=60, allow_unicode=True)
-    else:
-        return yaml.dump(d, stream, **kwds)
+    return yaml.dump(data=d, stream=stream, **kwds)
 
 # https://stackoverflow.com/a/49048250
 

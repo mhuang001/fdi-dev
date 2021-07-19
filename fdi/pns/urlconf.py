@@ -1,9 +1,8 @@
 
 
-from fdi.pns.pnsconfig import pnsconfig as pc
 from fdi.utils.getconfig import getConfig
 # default configuration is provided. Copy contents of svom/engisim/config.py to ~/.config/engisimlocal.py
-pc.update(getConfig())
+pc = getConfig()
 
 defaulturl = 'http://' + pc['node']['host'] + ':' + \
     str(pc['node']['port']) + pc['baseurl']

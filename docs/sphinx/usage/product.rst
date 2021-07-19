@@ -20,11 +20,14 @@ A product has
    * zero or more datasets: defining well described data entities (say images, tables, spectra etc...). 
    * accompanying meta data -- required information such as
 
-     * who created this product,
-     * what does the data reflect (say measurement from an instrument)
+     * the classification of this product,
+     * the creator this product,
+     * when was the product created?
+     * what does the data reflect? (its intended use scope)
      * and so on;
-   * possible additional meta data specific to that particular product type.
+     * possible additional meta data specific to that particular product type.
    * history of this product: how was this data created.
+   * References of relevant products that form a context of this product
 
      
 History
@@ -41,10 +44,14 @@ In order to transfer data across the network between heterogeneous nodes data ne
 JSON format is used considering to transfer serialized data for its wide adoption, availability of tools, ease to use with Python, and simplicity.
 
 
-Defining Products
------------------
+Product Definition Methodology
+------------------------------
 
-     A number of built-in Parameters can be specified in ``fdi/dataset/resourcese`` in YAML format. A helper utility ``yaml2python`` can be run using ``make py`` to generate test-ready Python code of product class module containing the built-ins.
+Data Products almost always are classified in heirachical orders, reflecting the underlying relation of the data model. Many Products are found to have inheritance relations when comparing their metadata and datasets. Therefore an object-oriented approach is chosen to anlize and define the structure, function, and interface of Products here.
+
+First specify built-in Parameters  in in YAML format, which is suitable for reading by both humans and machines. A helper utility ``yaml2python``  to generate test-ready Python code of product class module containing the built-ins.
+
+The YAML schema allows a child Product to inherit metadata definition from one or multiple parent Products. Overriding is also allowed.
 
 BaseProduct
 """""""""""
@@ -70,6 +77,10 @@ From the creation process requires every product to carry the following metadata
 :FORMATV: -- Version of this document with Schema information, e.g. 1.4.1.2
 :creator, rootCause, creationDate: -- Who, why, when, where
 
+The parameters are tabulated below.
+
+.. include:: ../../../fdi/dataset/resources/BaseProduct.txt
+   :code: text
 
 Examples (from :doc:`quickstart` page):
 

@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from fdi.utils.options import opt
-from fdi.utils.getconfig import getConfig
+from fdi.utils import getconfig
 
 import logging
 import sys
-from waitress import serve
+
 #sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
 # print(sys.path)
@@ -32,11 +32,10 @@ logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':
 
-    from fdi.pns.pnsconfig import pnsconfig as pc
-    global pc
     logger = logging.getLogger()
-    # default configuration is provided. Copy pnsconfig.py to ~/.config/pnslocal.py
-    pc.update(getConfig())
+    # default configuration is provided. Copy config.py to ~/.config/pnslocal.py
+    pc = getconfig.getConfig()
+
     lv = pc['logginglevel']
     logger.setLevel(lv)
     setuplogging(lv if lv > logging.WARN else logging.WARN)
@@ -93,7 +92,8 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     if wsgi:
+        from waitress import serve
         serve(app, url_scheme='https', host=node['host'], port=node['port'])
     else:
         app.run(host=node['host'], port=node['port'],
-                threaded=True, debug=verbose, processes=1, use_reloader=False)
+                threaded=True, debug=verbose, processes=1, use_reloader=True)

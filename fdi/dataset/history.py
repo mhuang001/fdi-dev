@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from .odict import ODict
-from .finetime import FineTime, FineTime1, utcobj
+from .finetime import FineTime, utcobj
 from .dataset import CompositeDataset
 from .eq import DeepEqual, deepcmp
 from collections import OrderedDict
-import pdb
 
 import logging
 # create logger
@@ -114,7 +113,6 @@ class History(CompositeDataset, DeepEqual):
 
         """
         return OrderedDict(description=self.description,
-                           HIST_SCRIPT=self.HIST_SCRIPT,
                            PARAM_HISTORY=self.PARAM_HISTORY,
                            TASK_HISTORY=self.TASK_HISTORY,
                            meta=self.meta,

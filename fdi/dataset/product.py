@@ -9,7 +9,7 @@ from fdi.dataset.finetime import FineTime
 
 from fdi.dataset.readonlydict import ReadOnlyDict
 
-import copy
+import itertools
 
 import logging
 # create logger
@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 class Product(BaseProduct):
-    """ Product class (level ALL) schema 1.4 inheriting ['BaseProduct'].
+    """ Product class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/Product.yml on 2021-03-11 12:06:16.656066.
+Automatically generated from fdi/dataset/resources/Product.yml on 2021-06-18 16:19:33.999904.
 
 Description:
 Project level product
@@ -32,16 +32,18 @@ Project level product
     def __init__(self,
                  description = 'UNKNOWN',
                  typ_ = 'Product',
+                 level = 'ALL',
                  creator = 'UNKNOWN',
                  creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
                  version = '0.8',
-                 FORMATV = '1.4.0.8',
+                 FORMATV = '1.6.0.10',
                  startDate = FineTime(0),
                  endDate = FineTime(0),
                  instrument = 'UNKNOWN',
                  modelName = 'UNKNOWN',
                  mission = '_AGS',
+                 zInfo=None,
                  **kwds):
         """ Initializes instances with more metadata as attributes, set to default values.
 
@@ -52,103 +54,46 @@ Project level product
         Returns
         -------
         """
-        if 'metasToBeInstalled' in kwds:
-            # This class is being called probably from super() in a subclass
-            metasToBeInstalled = kwds['metasToBeInstalled']
-            del kwds['metasToBeInstalled']
 
-            # must be the first line to initiate meta and get description
-            super().__init__(
-                metasToBeInstalled=metasToBeInstalled, **kwds)
-            return
-        # this class is being called directly
+        # collect MDPs from args-turned-local-variables.
+        metasToBeInstalled = OrderedDict(
+            itertools.filterfalse(
+                lambda x: x[0] in ('self', '__class__', 'zInfo', 'kwds'),
+                locals().items())
+        )
 
-        # list of local variables.
-        metasToBeInstalled = copy.copy(locals())
-        for x in ('self', '__class__', 'kwds'):
-            metasToBeInstalled.pop(x)
+        global Model
+        if zInfo is None:
+            zInfo = Model
 
-        global ProductInfo
-        self.zInfo = ProductInfo
-
-        #print('@1 zInfo', id(self.zInfo['metadata']), id(self), id(self.zInfo),
+        # print('@1 zInfo', id(self.zInfo['metadata']), id(self), id(self.zInfo),
         #      self.zInfo['metadata']['version'], list(metasToBeInstalled.keys()))
 
-        # must be the first line to initiate meta and get description
-        super().__init__(
-            metasToBeInstalled=metasToBeInstalled, **kwds)
+        # must be the first line to initiate meta
+        super().__init__(zInfo=zInfo, **metasToBeInstalled, **kwds)
 
-        super().installMetas(mtbi=metasToBeInstalled, prodInfo=ProductInfo)
         #print(self.meta.keySet(), id(self.meta))
-
-
-    @property
-    def type(self): pass
-
-    @type.setter
-    def type(self, p): pass
-
 
     @property
     def startDate(self): pass
-
-    @startDate.setter
-    def startDate(self, p): pass
-
-
     @property
     def endDate(self): pass
-
-    @endDate.setter
-    def endDate(self, p): pass
-
-
     @property
     def instrument(self): pass
-
-    @instrument.setter
-    def instrument(self, p): pass
-
-
     @property
     def modelName(self): pass
-
-    @modelName.setter
-    def modelName(self, p): pass
-
-
     @property
     def mission(self): pass
+    pass
 
-    @mission.setter
-    def mission(self, p): pass
-
-
-    @property
-    def version(self): pass
-
-    @version.setter
-    def version(self, p): pass
-
-
-    @property
-    def FORMATV(self): pass
-
-    @FORMATV.setter
-    def FORMATV(self, p): pass
-
-
-
-
-
+# Data Model specification for mandatory components
 _Model_Spec = {
     'name': 'Product',
     'description': 'Project level product',
     'parents': [
         'BaseProduct',
         ],
-    'level': 'ALL',
-    'schema': '1.4',
+    'schema': '1.6',
     'metadata': {
         'description': {
                 'id_zh_cn': '描述',
@@ -166,7 +111,15 @@ _Model_Spec = {
                 'description_zh_cn': '产品类型。完整Python类名或卡片名。',
                 'default': 'Product',
                 'valid': '',
-                'valid_zh_cn': '',
+                'typecode': 'B',
+                },
+        'level': {
+                'id_zh_cn': '产品xx',
+                'data_type': 'string',
+                'description': 'Product level.',
+                'description_zh_cn': '产品xx',
+                'default': 'ALL',
+                'valid': '',
                 'typecode': 'B',
                 },
         'creator': {
@@ -211,7 +164,7 @@ _Model_Spec = {
                 'data_type': 'string',
                 'description': 'Version of product schema and revision',
                 'description_zh_cn': '产品格式版本',
-                'default': '1.4.0.8',
+                'default': '1.6.0.10',
                 'valid': '',
                 'typecode': 'B',
                 },
@@ -274,4 +227,7 @@ _Model_Spec = {
         },
     }
 
-ProductInfo = ReadOnlyDict(_Model_Spec)
+Model = ReadOnlyDict(_Model_Spec)
+
+MdpInfo = Model['metadata']
+

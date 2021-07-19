@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from ..pns.pnsconfig import pnsconfig as pc
 from ..utils.getconfig import getConfig
 from ..utils.common import lls
 from .urn import parse_poolurl
@@ -16,15 +15,15 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-pc.update(getConfig())
+pc = getConfig()
 
 DEFAULT_MEM_POOL = 'defaultmem'
 # localpool
-DEFAULT_POOL = 'pool_' + getpass.getuser()
+DEFAULT_POOL = 'fdi_pool_' + __name__ + getpass.getuser()
 
 
 def remoteRegister(p, poolurl):
-    logger.info('Register %s on the server', poolurl)
+    logger.debug('Register %s on the server', poolurl)
     try:
         res, msg = put_on_server('urn:::0', poolurl, 'pool')
     except ConnectionError as e:
@@ -40,7 +39,7 @@ def remoteUnregister(poolurl):
     if not poolurl.lower().startswith('http'):
         logger.warning('Ignored: %s not for a remote pool.' % poolurl)
         return 1
-    logger.info('unregister %s on the server', poolurl)
+    logger.debug('unregister %s on the server', poolurl)
     #url = api_baseurl + post_poolid
     #x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     #o = deserialize(x.text)
@@ -253,4 +252,4 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
         return self._GlobalPoolList.__iter__(*args, **kwargs)
 
     def __repr__(self):
-        return self.__class__.__name__ + str(self._GlobalPoolList)
+        return self.__class__.__name__ + '(' + str(self._GlobalPoolList) + ')'

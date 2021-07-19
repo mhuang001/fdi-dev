@@ -13,4 +13,4 @@ class Comparable(object):
         super(Comparable, self).__init__(**kwds)
 
     def compareTo(self, o):
-        return self.__eq__(o)
+        return self == o

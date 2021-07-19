@@ -15,7 +15,8 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
+# + 0.1 * sys.version_info[1] >= 3.3:
+if sys.version_info[0] >= 3:
     PY3 = True
     strset = str
     from urllib.parse import urlparse
@@ -198,12 +199,10 @@ Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. T
         return OrderedDict(urn=self._urn,
                            _STID=self._STID)
 
-    def __repr__(self):
-        return self.__class__.__name__ + ' ' + self._urn
-
-    def toString(self):
+    def toString(self, level=0,
+                 **kwds):
         return self.__class__.__name__ + \
-            '{ %s, scheme:%s, place:%s, pool:%s, type:%s, index:%d, poolpath: %s}' % (
+            '(%s, scheme:%s, place:%s, pool:%s, type:%s, index:%d, poolpath: %s)' % (
                 self._urn,
                 self._scheme,
                 self._place,
@@ -212,10 +211,6 @@ Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. T
                 self._index,
                 self._poolpath
             )
-
-    def a__hash__(self):
-        """ has the URN string. """
-        return hash(self._urn)
 
 
 def parseUrn(urn):

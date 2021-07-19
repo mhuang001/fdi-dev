@@ -10,17 +10,18 @@ logger = logging.getLogger(__name__)
 
 class MetaDataHolder(object):
     """ Object holding meta data. 
-    mh: object for compatibility with python2
+
     """
 
     def __init__(self, meta=None, **kwds):
-        """
+        """ Adds MetaData to the class.
+        with defaults set to self.zInfo['metadata'].
+
         Parameters
         ----------
 
         Returns
         -------
-
         """
         if meta is None:
             meta = metadata.MetaData()
@@ -60,7 +61,6 @@ class MetaDataHolder(object):
 
         Returns
         -------
-       
+
         """
         self._meta = meta
-

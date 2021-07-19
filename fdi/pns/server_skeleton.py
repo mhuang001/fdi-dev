@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from ..utils.common import trbk, getUidGid
-from ..utils.getconfig import getConfig
+from ..utils import getconfig
 
 import time
 import sys
 import functools
 import os
-from os import listdir, chown, chmod, environ, setuid, setgid
+from os import chown, chmod
 from pathlib import Path
 import logging
 import types
@@ -21,24 +21,25 @@ logger = logging.getLogger(__name__)
 
 
 app = Flask(__name__)
-app.config.from_object('fdi.pns.pnsconfig')
+# app.config.from_object('fdi.pns.config')
 # try:
 #     app.config.from_envvar('PNSCONFIG')
 #     pc = app.config['FLASK_CONF']
 # except RuntimeError:
-#     pc = getConfig()
-pc = getConfig()
+#     pc = getconfig.getConfig()
 
-logger.info(pc)
+# main() program is supposed to have get CONFIG ready when this model is imported.
+pc = getconfig.getConfig()
+
+logger.debug("pc= %s" % pc)
 auth = HTTPBasicAuth()
 
 
-def init_conf_clas():
+def init_conf_clas(pc0):
     global pc
 
-    #from .pnsconfig import pnsconfig as pc
     from ..dataset.classes import Classes
-
+    pc = pc0
     # effective group of current process
     uid, gid = getUidGid(pc['serveruser'])
     logger.info("Serveruser %s's uid %d and gid %d..." %
@@ -135,7 +136,7 @@ def checkpath(path, un):
 #     return username == pc['node']['username'] and password == pc['node']['password']
 @auth.verify_password
 def verify_password(username, password):
-    print(username + "/" + password)
+    logger.debug('verify user/pass')
     if not (username and password):
         return False
     elif username == pc['auth_user'] and password == pc['auth_pass']:

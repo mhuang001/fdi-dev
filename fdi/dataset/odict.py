@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
-from collections import OrderedDict, UserDict
-from collections.abc import Collection
-from .serializable import Serializable
-from .eq import DeepEqual
-from ..utils.common import bstr
-from ..utils.ydump import ydump
 
+from .serializable import Serializable
+from .eq import DeepEqual, xhash
+from ..utils.common import bstr
+
+from collections import OrderedDict, UserDict
 from pprint import pformat
 import logging
-import pdb
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +15,7 @@ OD_toString_Nest = 0
 
 
 class ODict(UserDict, Serializable, DeepEqual):
-    """ Ordered dict that is not a subclass of dict and with a better __repr__.
+    """ Ordered dict that is not a subclass of dict and with a better __str__.
     """
 
     def __init__(self, *args, **kwds):
@@ -28,10 +26,9 @@ class ODict(UserDict, Serializable, DeepEqual):
         Returns
         -------
         """
-        # print(args)
-        # data = OrderedDict(*args, **kwds)
+
         super().__init__(*args, **kwds)
-        # UserDict.__init__(self, data)
+        self.__missing__ = None
         Serializable.__init__(self)
 
     # @property
@@ -70,8 +67,11 @@ class ODict(UserDict, Serializable, DeepEqual):
     #             kk = tuple(item[0])
     #             self[kk] = item[1]
 
-    def toString(self, level=0, matprint=None, trans=True, **kwds):
+    def toString(self, level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 matprint=None, trans=True, **kwds):
         """
+
         Parameters
         ----------
 
@@ -88,23 +88,31 @@ class ODict(UserDict, Serializable, DeepEqual):
         d = '<ODict '
         for n, v in self.data.items():
             #d += '    ' * OD_toString_Nest + '[ ' + str(n) + ' ]= '
-            d += str(n) + ': '
-            s = bstr(v, level=level, matprint=matprint, trans=trans, **kwds)
-            d += s
+            d += '"' + str(n) + '":' + '\n' if level == 0 else ' '
+            s = bstr(v, level=level,
+                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                     matprint=matprint, trans=trans, **kwds)
+            d = d + s
         OD_toString_Nest -= 1
         return d + '>'
 
-    def __repr__(self):
-        """ returns string representation with details set according to debuglevel.
-        Parameters
-        ----------
-
-        Returns
-        -------
+    def get(self, name):
+        """ Raise a ``KeyErrpr`` to change the default behavior of colections.Mapping to quietly return a None when a key is not found in the dict.
         """
-        # return 'OD'+super().__repr__()
-        level = int(logger.getEffectiveLevel()/10) - 1
-        return self.toString(level=level)
+
+        return self.data[name]
+        res = super().__getitem__(name)
+        if res is not None or name in self.data:
+            return res
+        logger.debug('%s is not found in %s.' % (name, self))
+        raise KeyError()
+
+    # def __repr__(self):
+    #     """ returns string representation with details set according to debuglevel.
+    #     """
+    #     # return 'OD'+super().__repr__()
+    #     level = int(logger.getEffectiveLevel()/10) - 1
+    #     return self.toString(level=level)
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder
@@ -113,7 +121,7 @@ class ODict(UserDict, Serializable, DeepEqual):
 
         Returns
         -------
- 
+
         """
         return OrderedDict(
             data=self.data,
@@ -135,12 +143,6 @@ class ODict(UserDict, Serializable, DeepEqual):
             _STID=self._STID
         )
 
-    def __hash__(self):
-        """
-        Parameters
-        ----------
+    def hash(self):
 
-        Returns
-        -------
-        """
-        return hash(tuple(self.data.items()))
+        return xhash(hash_list=self.data.items())

@@ -26,7 +26,7 @@ setup(
     license="LGPL v3",
     keywords="dataset metadata processing product context serialization server URN RESTful API HCSS",
     url="http://mercury.bao.ac.cn:9006/mh/fdi",
-    packages=find_packages(exclude=['tests', 'tmp']),
+    packages=find_packages(exclude=['tests', 'tmp', 'docs']),
     include_package_data=True,
     long_description=read('README.rst'),
     long_description_content_type="text/x-rst",
@@ -36,22 +36,29 @@ setup(
         'filelock>=3.0.12',
         'ruamel.yaml>=0.15.0',
         'tabulate>=0.8.7',
+        'paho-mqtt>=1.5.1',
     ],
+    entry_points={'console_scripts': [
+        'yaml2python=fdi.dataset.yaml2python:main']},
+    setup_requires=[],
+    tests_require=['pytest', 'pytest-cov', ],
     extras_require={
         'DEV': [
             'setuptools>=43.0.0',
+            'wheel>=0.32.1',
             'pytest>=5.4.1',
             'pytest-cov',
-            'nox>=2019.11.9',
             'aiohttp>=3.6.2',
-            'sphinx_rtd_theme>=0.4.3',
-            'sphinx-copybutton>=0.3.0',
-            'twine>=3.3.0'
         ],
         'SERV': [
             'Flask_HTTPAuth>=3.3.0',
             'Flask>=1.1.2',
             'waitress>=2.0.0'
+        ],
+        'PUB': [
+            'sphinx_rtd_theme>=0.4.3',
+            'sphinx-copybutton>=0.3.0',
+            'twine>=3.3.0'
         ]
     },
     classifiers=[
@@ -66,5 +73,3 @@ setup(
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
     ],
 )
-
-#  @ git+https://github.com/mhuang001/sphinx-copybutton.git'

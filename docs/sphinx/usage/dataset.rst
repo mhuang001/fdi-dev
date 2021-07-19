@@ -47,7 +47,7 @@ Examples (from :doc:`quickstart` page):
 
 			     
 Meta data and Parameters
------------------------
+------------------------
 
 FDI datasets and products not only contain data, but also their metadata -- data about the "payload" data. Metadata is defined as a collection of named Parameters.
 
@@ -56,7 +56,7 @@ Often a parameter shows a property. So a parameter in the metadata of a dataset 
 :Parameter: scalar or vector variable with attributes. 
 	    There are the following parameter types:
 
-   * *Parameter*: Types are defined in :attribute:`metadata.ParameterTypes`. If requested, a Parameter can check its value or a given value with the validity specification, which can be a combination of descrete values, ranges, and bit-masked values.
+   * *Parameter*: Types are defined in :attr:`metadata.ParameterTypes`. If requested, a Parameter can check its value or a given value with the validity specification, which can be a combination of descrete values, ranges, and bit-masked values.
    * *NumericParameter*
    * *DateParameter*
    * *StringParameter*

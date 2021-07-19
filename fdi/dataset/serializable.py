@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#from ..utils.common import fullname
+# from ..utils.common import fullname
 
 import array
 import binascii
@@ -68,7 +68,7 @@ class SerializableEncoderAll(json.JSONEncoder):
     base = (str, int, float, bool, type(None))
 
     def _preprocess(self, obj):
-        """ this all only work on the first level of nested objects 
+        """ this all only work on the first level of nested objects
         Parameters
         ----------
 
@@ -192,6 +192,7 @@ class Serializable(object):
 
     def __init__(self, **kwds):
         """
+
         Parameters
         ----------
 
@@ -216,6 +217,15 @@ class Serializable(object):
         -------
         """
         return serialize(self, indent=indent)
+
+    def __repr__(self):
+
+        co = ', '.join(str(k)+'=' + ('"'+v+'"'
+                                     if issubclass(v.__class__, str)
+                                     else str(v))
+                       for k, v in self.__getstate__().items()
+                       )
+        return self.__class__.__name__ + '(' + co + ')'
 
     def __getstate__(self):
         """ returns an odict that has all state info of this object.
@@ -263,18 +273,7 @@ class Serializable(object):
         return self.__reduce_ex__(4)
 
     def serializable(self):
-<<<<<<< HEAD
-        """ Can be encoded with serializableEncoder
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        return self.__getstate__()
-=======
         """ Can be encoded with serializableEncoder """
         s = copy.copy(self.__getstate__())
         s.update({'_STID': self._STID})
         return s
->>>>>>> develop

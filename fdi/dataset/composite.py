@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from .odict import ODict
 from .eq import DeepEqual
-#from collections import OrderedDict
+from collections import Sized, Container, Iterator, OrderedDict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -10,8 +10,10 @@ logger = logging.getLogger(__name__)
 # from .listener import DatasetEventSender, DatasetListener
 # from .metadata import DataWrapperMapper
 
+# order of Container, Sized, Iterator must be the same as in DataContaier!
 
-class Composite(DeepEqual):
+
+class Composite(DeepEqual, Container, Sized, Iterator):
     """ A container of named Datasets.
 
     This container can hold zero or more datasets, each of them
@@ -34,7 +36,7 @@ class Composite(DeepEqual):
 
         """
         self._sets = ODict()
-        super(Composite, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     def containsKey(self, name):
         """ Returns true if this map contains a mapping for
@@ -181,8 +183,16 @@ class Composite(DeepEqual):
         """
         return len(self._sets)
 
+    def __len__(self):
+        """ Returns the number of key - value mappings in this map. """
+        return len(self._sets)
+
     def __repr__(self):
+        return self.__class__.__name__ + '(' + (self._sets.__repr__() if hasattr(self, '_sets') else 'None') + ')'
+
+    def toString(self, level=0, matprint=None, trans=True, **kwds):
         """
+
         Parameters
         ----------
 
@@ -192,18 +202,9 @@ class Composite(DeepEqual):
         """
 
         return self.__class__.__name__ + \
-            self._sets.__repr__()
-
-    def toString(self, level=0, matprint=None, trans=True, **kwds):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        return self.__class__.__name__ + self._sets.toString(level=level, matprint=matprint, trans=trans, **kwds)
+            self._sets.toString(level=level,
+                                tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                                matprint=matprint, trans=trans, **kwds)
 
     def __contains__(self, x):
         """ mh: enable 'x in composite'

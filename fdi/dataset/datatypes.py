@@ -4,35 +4,41 @@ from functools import lru_cache
 from .serializable import Serializable
 from .eq import DeepEqual
 from .classes import Classes
+from .quantifiable import Quantifiable
 
 from collections import OrderedDict
 import builtins
-
+from math import sqrt
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 """ Allowed data (Parameter and Dataset) types and the corresponding classe names.
 The keys are mnemonics for humans; the values are type(x).__name__.
 """
 DataTypes = {
+    'baseProduct': 'BaseProduct',
     'binary': 'int',
-    'integer': 'int',
-    'short': 'int',
-    'byte': 'int',
-    'hex': 'int',
-    'float': 'float',
-    'string': 'str',
     'boolean': 'bool',
+    'byte': 'int',
     'finetime': 'FineTime',
     'finetime1': 'FineTime1',
-    'baseProduct': 'BaseProduct',
+    'float': 'float',
+    'hex': 'int',
+    'integer': 'int',
+    'list': 'list',
     'mapContext': 'MapContext',
     'product': 'Product',
+    'quaternion': 'Quaternion',
+    'short': 'int',
+    'string': 'str',
+    'tuple': 'tuple',
+    # 'numericParameter': 'NumericParameter',
+    # 'dateParameter': 'DateParameter',
+    # 'stringParameter': 'StringParameter',
     'vector': 'Vector',
     'vector2d': 'Vector2D',
-    'quaternion': 'Quaternion',
     '': 'None'
 }
 
@@ -81,10 +87,12 @@ def cast(val, typ_, namespace=None):
         return Classes.mapping[t](val) if namespace is None else namespace[t](val)
 
 
-class Vector(Serializable, DeepEqual):
+class Vector(Quantifiable, Serializable, DeepEqual):
     """ N dimensional vector.
 
     If unit, description, type etc meta data is needed, use a Parameter.
+
+    A Vector can compare with a value whose type is in ``DataTypes``, the quantity being used is the magnitude.
     """
 
     def __init__(self, components=None, **kwds):
@@ -157,6 +165,41 @@ class Vector(Serializable, DeepEqual):
         # must be list to make round-trip Json
         self._data = list(components)
 
+    def __eq__(self, obj, verbose=False, **kwds):
+        """ can compare value """
+        if type(obj).__name__ in DataTypes.values():
+            return sqrt(sum(x*x for x in self._data)) == obj
+        else:
+            return super(Vector, self).__eq__(obj)
+
+    def __lt__(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in DataTypes.values():
+            return sqrt(sum(x*x for x in self._data)) < obj
+        else:
+            return super(Vector, self).__lt__(obj)
+
+    def __gt__(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in DataTypes.values():
+            return sqrt(sum(x*x for x in self._data)) > obj
+        else:
+            return super(Vector, self).__gt__(obj)
+
+    def __le__(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in DataTypes.values():
+            return sqrt(sum(x*x for x in self._data)) <= obj
+        else:
+            return super(Vector, self).__le__(obj)
+
+    def __ge__(self, obj):
+        """ can compare value """
+        if type(obj).__name__ in DataTypes.values():
+            return sqrt(sum(x*x for x in self._data)) >= obj
+        else:
+            return super(Vector, self).__ge__(obj)
+
     def __len__(self):
         """
         Parameters
@@ -168,16 +211,12 @@ class Vector(Serializable, DeepEqual):
         """
         return len(self._data)
 
-    def __repr__(self):
-        """
-        Parameters
-        ----------
+    __hash__ = DeepEqual.hash
 
-        Returns
-        -------
+    def toString(self, level=0, **kwds):
+        return self.__repr__()
 
-        """
-        return str(self._data)
+    __str__ = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder
@@ -190,6 +229,8 @@ class Vector(Serializable, DeepEqual):
         """
         return OrderedDict(
             components=list(self._data),
+            unit=self._unit,
+            typecode=self._typecode,
             _STID=self._STID)
 
 

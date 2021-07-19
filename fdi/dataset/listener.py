@@ -5,7 +5,6 @@ from .serializable import Serializable
 from .eq import DeepEqual
 from ..utils.common import trbk
 
-import pdb
 
 import logging
 # create logger
@@ -16,6 +15,9 @@ logger = logging.getLogger(__name__)
 class EventListener(object):
     """ Generic interface for listeners that will listen to anything
     """
+
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
 
     def targetChanged(self,  *args, **kwargs):
         """ Informs that an event has happened in a target of
@@ -127,7 +129,7 @@ class ListnerSet(Serializable, DeepEqual, list):
         ----------
 
         Returns
- 
+
         """
         return True
 
@@ -158,15 +160,6 @@ class ListnerSet(Serializable, DeepEqual, list):
                                  lls(x.description, 8))
                  for x in self._members]
         return self.__class__.__name__ + '{' + ', '.join(l) + '}'
-
-    def __repr__(self, **kwds):
-        """
-        Parameters
-        ----------
-
-        Returns
-        """
-        return self.toString(level=1, **kwds)
 
 
 class EventSender(object):
@@ -287,6 +280,7 @@ class EventSender(object):
         except Exception as e:
             logger.error('listener ' + str(n) +
                          ' got exception: ' + str(e) + ' ' + trbk(e))
+            raise
 
     def getListenerCount(self):
         """
@@ -319,6 +313,7 @@ class DatasetEventSender(EventSender):
 
     def addListener(self, listener, cls=DatasetBaseListener):
         """ Adds a listener to this.
+
         Paremeters
         ----------
 
@@ -327,20 +322,12 @@ class DatasetEventSender(EventSender):
 
         """
 
-        super(DatasetEventSender, self).addListener(listener, cls=cls)
+    #     super(DatasetEventSender, self).addListener(listener, cls=cls)
 
-        return self
+    #     return self
 
-    def fire(self, event):
-        """
-        Paremeters
-        ----------
-
-        Returns
-        -------
-
-        """
-        super(DatasetEventSender, self).fire(event)
+    # def fire(self, event):
+    #     super(DatasetEventSender, self).fire(event)
 
 
 EventTypes = [
@@ -433,51 +420,7 @@ class DatasetEvent(Serializable):
         self.rootCause = rootCause
         super(DatasetEvent, self).__init__(**kwds)
 
-    def __eq__(self, o):
-        """
-        Paremeters
-        ----------
-
-        Returns
-        ------- 
-        """
-        if not issubclass(o.__class__, self):
-            return False
-        return self.source == o.source and\
-            self.target == o.target and \
-            self.type == o.type and \
-            self.change == o.change and \
-            self.cause == o.cause and \
-            self.rootCause == o.rootCause
-
-    def __repr__(self):
-        """
-        Paremeters
-        ----------
-
-        Returns
-        -------
-
-        """
-        r = '{source=' + str(self.source) +\
-            ', target=' + str(self.target) +\
-            ', type=' + str(self.type) +\
-            ', change=' + str(self.change) +\
-            ', cause=' + str(self.cause) +\
-            ', rootCause=' + str(self.rootCause) +\
-            '}'
-        return r
-
-    def toString(self):
-        """
-        Paremeters
-        ----------
-
-        Returns
-        -------
-
-        """
-
+    def toString(self, level=0, **kwds):
         return self.__repr__()
 
     def __getstate__(self):

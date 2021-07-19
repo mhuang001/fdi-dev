@@ -13,6 +13,7 @@ Subpackages
    :maxdepth: 4
 
    fdi.dataset
+   fdi.httppool
    fdi.pal
    fdi.pns
    fdi.utils

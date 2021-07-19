@@ -17,6 +17,14 @@ Subpackages
 Submodules
 ----------
 
+fdi.pns.config module
+---------------------
+
+.. automodule:: fdi.pns.config
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.pns.fdi\_requests module
 ----------------------------
 
@@ -53,14 +61,6 @@ fdi.pns.pns\_server module
 --------------------------
 
 .. automodule:: fdi.pns.pns_server
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-fdi.pns.pnsconfig module
-------------------------
-
-.. automodule:: fdi.pns.pnsconfig
    :members:
    :undoc-members:
    :show-inheritance:

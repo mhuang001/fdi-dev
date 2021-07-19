@@ -36,8 +36,8 @@ def toserver(self, method, *args, **kwds):
         else:
             vs = serialize(v)+':' + t
         return vs
-    argsexpr = (mkv(v) for v in args)
-    kwdsexpr = ((str(k), mkv(v)) for k, v in kwds.items())
+    argsexpr = list(mkv(v) for v in args)
+    kwdsexpr = dict((str(k), mkv(v)) for k, v in kwds.items())
     apipath = method + '/' + \
         '/'.join(chain(('|'.join(argsexpr),), chain(*kwdsexpr)))
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
@@ -45,8 +45,12 @@ def toserver(self, method, *args, **kwds):
     logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
     res, msg = read_from_server(urn, self._poolurl, apipath)
     if res == 'FAILED':
-        if method in msg:
-            raise TypeError(msg)
+        for line in msg.split('\n'):
+            excpt = line.split(':', 1)[0]
+            bltn = vars(builtins)
+            if excpt in bltn:
+                # relay the exception from server
+                raise bltn[excpt](msg)
         raise RuntimeError('Executing ' + method + ' failed.  ' + msg)
     return res
 

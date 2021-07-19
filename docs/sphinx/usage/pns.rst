@@ -24,7 +24,7 @@ When running Flask server, the host IP is ``127.0.0.1`` and port number ``5000``
 
 .. code-block:: shell
 		
-		cp fdi/pns/pnsconfig.py ~/.config/pnslocal.py
+		cp fdi/pns/config.py ~/.config/pnslocal.py
 
 and customize ``~/.config/pnslocal.py``.
 

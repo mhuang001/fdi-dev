@@ -3,6 +3,7 @@ from os.path import join
 import logging
 import getpass
 import os
+from os.path import expanduser, expandvars
 
 pnsconfig = {}
 
@@ -29,6 +30,9 @@ MQPASS = ''
 MQHOST = '172.17.0.1'
 MQPORT = 9876
 
+BASE_POOLPATH = '/tmp'
+SERVER_POOLPATH = '/tmp/data'
+
 # base url for webserver. Update version if needed.
 pnsconfig['api_version'] = 'v0.8'
 pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
@@ -37,7 +41,9 @@ pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
 # default path of working directories for LocalPools.
 pnsconfig['base_poolpath'] = '/tmp'
 # default path of working directories for HttpPool server.
-pnsconfig['server_poolpath'] = '/var/www/httppool_server/data'  # For server
+pnsconfig['server_poolpath'] = '/tmp/data'
+
+# For server
 # you must have write permission of above paths.
 # For example : /home/user/Documents
 # will be added at the beginning of request pool ID 'my_pool'
@@ -50,7 +56,7 @@ pnsconfig['server_poolpath'] = '/var/www/httppool_server/data'  # For server
 # logging level for server
 pnsconfig['logginglevel'] = logging.DEBUG
 # for HttpPool
-pnsconfig['defaultpool'] = 'pool_default'
+pnsconfig['defaultpool'] = 'default'
 
 # message queue config
 pnsconfig['mqtt'] = dict(
@@ -73,10 +79,10 @@ if conf == 'dev':
     pnsconfig['serveruser'] = 'mh'
     pnsconfig['base_poolpath'] = '/tmp'
     pnsconfig['server_poolpath'] = '/tmp/data'  # For server
-    # on pns server
-    home = '/cygdrive/c/Users/mh'
     # PTS app permission user
     pnsconfig['ptsuser'] = 'mh'
+    # on pns server
+    home = '/home/' + pnsconfig['ptsuser']
 
 elif conf == 'server_test':
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
@@ -86,7 +92,7 @@ elif conf == 'server_test':
     # PTS app permission user
     pnsconfig['ptsuser'] = 'pns'
     # on pns server
-    home = '/home'
+    home = '/home/' + pnsconfig['ptsuser']
 elif conf == 'external':
     # wsgi behind apach2. cannot use env vars
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
@@ -98,13 +104,14 @@ elif conf == 'external':
         username=MQUSER,
         passwd=MQPASS,
     )
-
     # server permission user
     pnsconfig['serveruser'] = 'apache'
+    pnsconfig['base_poolpath'] = BASE_POOLPATH
+    pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
     # PTS app permission user
     pnsconfig['ptsuser'] = 'pns'
     # on pns server
-    home = '/home'
+    home = '/home/' + pnsconfig['ptsuser']
 else:
     pass
 pnsconfig['auth_user'] = pnsconfig['node']['username']

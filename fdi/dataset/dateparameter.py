@@ -16,14 +16,21 @@ class DateParameter(Parameter, Typecoded):
     """ has a FineTime as the value.
     """
 
-    def __init__(self, value=None, description='UNKNOWN', default=0, valid=None, typecode='Q', **kwds):
+    def __init__(self,
+                 value=None,
+                 description='UNKNOWN',
+                 default=0,
+                 valid=None,
+                 **kwds):
         """
-        if value and typecode are both given, typecode will be overwritten by value.format.
+         Set up a parameter whose value is a point in TAI time.
+
         """
-        self.setTypecode(typecode if typecode else FineTime.DEFAULT_FORMAT)
+        # 'Q' is unsigned long long (8byte) integer.
+        typecode = 'Q'
         # this will set default then set value.
         super(DateParameter, self).__init__(
-            value=value, description=description, typ_='finetime', default=default, valid=valid, **kwds)
+            value=value, description=description, typ_='finetime', default=default, valid=valid, typecode=typecode, **kwds)
 
     def setValue(self, value):
         """ accept any type that a FineTime does.
@@ -42,8 +49,8 @@ class DateParameter(Parameter, Typecoded):
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
-                           value=self._value,
                            default=self._default,
+                           value=self._value,
                            valid=self._valid,
                            typecode=self.typecode,
                            _STID=self._STID)

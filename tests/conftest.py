@@ -2,25 +2,43 @@
 
 from fdi.pal.poolmanager import PoolManager
 from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
-from fdi.utils import getconfig
 from fdi.utils.common import lls
 
 import pytest
-import copy
-import os
+import importlib
 import base64
-import logging
+import copy
 from urllib.error import HTTPError
+import os
+import logging
 logger = logging.getLogger(__name__)
 
 
+@pytest.fixture(scope='package')
+def clean_board():
+    importlib.invalidate_caches()
+    # importlib.reload(Classes)
+    from fdi.dataset.classes import Classes
+    global Class_Look_Up
+    # importlib.reload(Class_Look_Up)
+    from fdi.dataset.deserialize import Class_Look_Up
+    Classes.updateMapping()
+
+    return Classes
+
+
 @pytest.fixture(scope="package")
-def pc():
+def getConfig(clean_board):
+    from fdi.utils.getconfig import getConfig as getc
+    return getc
+
+
+@pytest.fixture(scope="package")
+def pc(getConfig):
     """ get configuration.
 
     """
-    pc = getconfig.getConfig()
-    return pc
+    return getConfig()
 
 
 def checkserver(aburl):
@@ -70,6 +88,13 @@ def setup(pc):
     del aburl, headers
 
 
+@pytest.fixture(scope="package")
+def userpass(pc):
+    auth_user = pc['auth_user']
+    auth_pass = pc['auth_pass']
+    return auth_user, auth_pass
+
+
 @pytest.fixture
 def local_pools_dir(pc):
     """ this is a path in the local OS, where the server runs.
@@ -85,10 +110,3 @@ def local_pools_dir(pc):
     basepath = PoolManager.PlacePaths[schm]
     local_pools_dir = os.path.join(basepath, pc['api_version'])
     return local_pools_dir
-
-
-@pytest.fixture(scope="package")
-def userpass(pc):
-    auth_user = pc['auth_user']
-    auth_pass = pc['auth_pass']
-    return auth_user, auth_pass

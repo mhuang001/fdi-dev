@@ -49,6 +49,14 @@ fdi.utils.getconfig module
    :undoc-members:
    :show-inheritance:
 
+fdi.utils.leapseconds module
+----------------------------
+
+.. automodule:: fdi.utils.leapseconds
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.loadfiles module
 --------------------------
 
@@ -85,6 +93,14 @@ fdi.utils.options module
 ------------------------
 
 .. automodule:: fdi.utils.options
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.utils.queueworks module
+---------------------------
+
+.. automodule:: fdi.utils.queueworks
    :members:
    :undoc-members:
    :show-inheritance:

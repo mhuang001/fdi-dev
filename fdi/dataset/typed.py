@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class Typed(object):
     """ An object of specifiable kinds. """
 
-    def __init__(self, typ_='', **kwds):
+    def __init__(self, typ_=None, **kwds):
         """ Has a type.
 
         """

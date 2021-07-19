@@ -2,18 +2,10 @@ name: Product
 description: Project level product
 parents:
   - BaseProduct
-level: ALL
-schema: '1.5'
+schema: '1.6'
 metadata:
     type:
-        id_zh_cn: 产品类型
-        data_type: string
-        description: Product Type identification. Name of class or CARD.
-        description_zh_cn: 产品类型。完整Python类名或卡片名。
         default: Product
-        valid: ''
-        valid_zh_cn: ''
-        typecode: B
     startDate:
         id_zh_cn: 产品的标称起始时间
         fits_keyword: DATE-OBS
@@ -63,21 +55,7 @@ metadata:
         valid: ''
         valid_zh_cn: ''
         typecode: B
-    version:
-        id_zh_cn: 版本
-        data_type: string
-        description: Version of product
-        description_zh_cn: 产品版本
-        default: '0.8'
-        valid: ''
-        typecode: B
     FORMATV:
-        id_zh_cn: 格式版本
-        data_type: string
-        description: Version of product schema and revision
-        description_zh_cn: 产品格式版本
-        default: '1.5.0.9'
-        valid: ''
-        typecode: B
+        default: '1.6.0.10'
 datasets:
   

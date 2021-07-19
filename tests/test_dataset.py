@@ -34,7 +34,7 @@ from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.arraydataset import ArrayDataset, Column
-from fdi.dataset.dataset import TableDataset
+from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.dataset import GenericDataset, CompositeDataset
 from fdi.dataset.indexed import Indexed
 from fdi.dataset.ndprint import ndprint
@@ -45,7 +45,7 @@ from fdi.dataset.history import History
 from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
 from fdi.dataset.readonlydict import ReadOnlyDict
-from fdi.dataset.testproducts import SP
+from fdi.dataset.testproducts import SP, get_sample_product
 from fdi.utils.checkjson import checkjson
 
 # import __builtins__
@@ -59,26 +59,26 @@ else:
 Classes.updateMapping()
 
 # make format output in /tmp/output.py
-mko = 0
+mk_output = 0
 
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py
 
-    from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset
+    from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
 else:
     # run by pytest
 
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
-    from .pycontext import fdi
+    from pycontext import fdi
 
-    from .outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset
+    from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
 
     import logging
     import logging.config
     # create logger
     if 1:
-        from .logdict import logdict
+        from logdict import logdict
         logging.config.dictConfig(logdict)
     else:
         logging.basicConfig(level=logging.DEBUG,
@@ -262,13 +262,13 @@ def test_ndprint():
     s[0][1][2] = [5, 4, 3, 2, 1]
     s[0][1][3] = [0, 0, 0, 3, 0]
     v = ndprint(s, trans=False, headers=[], tablefmt2='plain')
-    if mko:
+    if mk_output:
         print(v)
         # print(nds2)
     else:
         assert v == nds2
     v = ndprint(s, headers=[], tablefmt2='plain')
-    if mko:
+    if mk_output:
         print(v)
     else:
         assert v == nds3
@@ -387,7 +387,11 @@ def test_EventType():
     assert EventTypeOf['CHANGED']['UNKNOWN_ATTRIBUTE'] == 'UNKNOWN_ATTRIBUTE_CHANGED'
 
 
-def test_EventSender():
+test123 = 0
+
+
+@pytest.fixture()
+def mocksndrlsnr():
     global test123
 
     class MockFileWatcher(EventSender):
@@ -427,6 +431,13 @@ def test_EventSender():
     l2 = MockListener()
     l2.targetChanged = log_file_change2
 
+    return MockFileWatcher, MockFileWatcher2, l1, l2
+
+
+def test_EventSender(mocksndrlsnr):
+
+    global test123
+    MockFileWatcher, MockFileWatcher2, l1, l2 = mocksndrlsnr
     watcher = MockFileWatcher()
     watcher.addListener(l2)
     watcher.addListener(l1)
@@ -441,7 +452,12 @@ def test_EventSender():
     watcher.fileChanged.removeListener(l2)
     watcher.watchFiles()
     assert test123 == "'foo' changed."
-    # __import__('pdb').set_trace()
+
+
+def test_MqttRelay_mqtt(mocksndrlsnr):
+
+    global test123
+    MockFileWatcher, MockFileWatcher2, l1, l2 = mocksndrlsnr
 
     # MQ Relay
     v = MqttRelayListener(topics="test.mq.bounce2", host=None,
@@ -813,8 +829,8 @@ def test_Parameter_features():
     a4 = 'quaternion'
     v = Parameter(a2, 'foo', a4)
     # serializing special types will fail
-    with pytest.raises(TypeError):
-        checkjson(v)
+    # with pytest.raises(TypeError):
+    checkjson(v)
     v = Parameter()
     v.type = a4
     v.value = a2
@@ -979,6 +995,11 @@ def test_DateParameter():
     v.value = a8
     assert v.value == FineTime(a8)
 
+    v = DateParameter('2019-02-19T01:02:03.457')
+    assert v.value.tai == 1929229360457000
+    v.value.format = '%Y'
+    print('********', v.value.isoutc(), ' ** ', v, '*******', v.toString(1))
+
     with pytest.raises(TypeError):
         DateParameter(3.3)
     vv = copy.copy(v)
@@ -1042,7 +1063,7 @@ def test_MetaData():
     v['time'] = NumericParameter(description='another param',
                                  value=2.3, unit='sec')
     v['birthday'] = Parameter(description='was made on',
-                              value=FineTime('2020-09-09T12:34:56.789098 UTC'))
+                              value=FineTime('2020-09-09T12:34:56.789098'))
     # names of all parameters
     assert [n for n in v] == [a1, 'time', 'birthday']
 
@@ -1108,6 +1129,24 @@ def test_Attributable():
     v = Attributable(meta=a1)
     assert v.getMeta() == a1
 
+    # non-MDP attributable
+    a3 = 'Temperature'
+    a4 = ArrayDataset(data=[1, 2], unit='C', description='An Array')
+    # metadata to the dataset
+    a11 = 'T0'
+    a12 = DateParameter('2020-02-02T20:20:20.0202',
+                        description='meta of composite')
+    # This is not the best as a4.T0 does not exist
+    a4.meta[a11] = a12
+    with pytest.raises(AttributeError):
+        assert a4.T0 == a12.value
+    # this does it
+    setattr(a4, a11, a12)
+    assert a4.T0 == a12.value
+    # or
+    a4.T0a = a12
+    assert a4.T0a == a12.value
+
     checkgeneral(v)
 
 
@@ -1140,15 +1179,26 @@ def test_DataWrapper():
 def standardtestmeta():
     m = MetaData()
     m['a'] = NumericParameter(
-        3.4, 'rule name, if is "valid", "", or "default", is ommited in value string.', 'float', 2., {(0, 31): 'valid', 99: ''})
+        value=3.4, description='rule name, if is "valid", "", or "default", is ommited in value string.',
+        typ_='float',
+        default=2.,
+        valid={(0, 31): 'valid', 99: ''})
     then = datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
-    m['b'] = DateParameter(FineTime(then), 'date param', default=99,
-                           valid={(0, 9876543210123456): 'xy'}, typecode='%Y')
+    m['b'] = DateParameter(value=FineTime(then), description='date param',
+                           default=99,
+                           valid={(0, 9876543210123456): 'xy'})
     m['c'] = StringParameter(
-        'IJK', 'str parameter. but only "" is allowed.', {'': 'empty'}, 'cliche', 'B')
+        value='IJK', description='this is a string parameter. but only "" is allowed.',
+        valid={'': 'empty'},
+        default='cliche',
+        typecode='B')
     m['d'] = NumericParameter(
-        0b01, 'valid rules described with binary masks', 'binary', 0b00, {(0b011000, 0b01): 'on', (0b011000, 0b00): 'off'})
+        value=0b01, description='valid rules described with binary masks',
+        typ_='binary',
+        default=0b00,
+        valid={(0b011000, 0b01): 'on', (0b011000, 0b00): 'off'},
+        typecode='H')
     return m
 
 
@@ -1162,7 +1212,7 @@ def test_GenericDataset():
     ts += v.toString(1)
     ts += 'level 2,\n'
     ts += v.toString(2)
-    if mko:
+    if mk_output:
         print(ts)
         with open('/tmp/output.py', 'wt') as f:
             clsn = 'out_GenericDataset'
@@ -1183,30 +1233,35 @@ def do_ArrayDataset_init(atype):
     assert v.data is None
     assert v.unit is None
     assert v.description == 'UNKNOWN'
-    assert v.type is None
-    assert v.default is None
-    assert v.typecode is None
+    assert v.shape == ()
+    assert v.typecode == 'UNKNOWN'
     # from DRM
     a1 = atype([1, 4.4, 5.4E3])      # an array of data
     a2 = 'ev'                 # unit
     a3 = 'three energy vals'  # description
     a4 = 'float'              # type
-    a5 = '0.0'                # default
     a6 = 'f'                  # typecode
+    a7 = (8, 9)
     v = ArrayDataset(data=a1, unit=a2, description=a3,
-                     typ_=a4, default=a5, typecode=a6)
+                     typ_=a4, shape=a7, typecode=a6)
     assert v.data == a1
     assert v.unit == a2
     assert v.description == a3
-    assert v.type == a4
-    assert v.default == a5
     assert v.typecode == a6
+    assert v.shape == (len(a1),)
     v = ArrayDataset(data=a1)
     assert v.data == a1
     assert v.unit is None
-    assert v.type is None
     assert v.description == 'UNKNOWN'
-    assert v.typecode is None
+    assert v.typecode == 'UNKNOWN'
+    assert v.shape == (len(a1),)
+
+    ashape = [[[1], [2]], [[3], [4]], [[5], [6]]]
+    v2 = ArrayDataset(data=ashape)
+    assert v2.shape == (3, 2, 1)
+    v2 = ArrayDataset(data=['poi'])
+    assert v2.shape == (1,)
+
     # omit the parameter names when instantiating, the orders are data, unit, description
     v2 = ArrayDataset(a1)
     assert v2.data == a1
@@ -1217,6 +1272,20 @@ def do_ArrayDataset_init(atype):
     assert v2.data == a1
     assert v2.unit == a2
     assert v2.description == a3
+
+
+def check_MDP(x):
+    for n, p in standardtestmeta().items():
+        x.meta[n] = p
+    # when ``alwaysMeta`` is set, a Parameeter type attrbute becomes a Parameeter
+    assert x.alwaysMeta
+    x.added_parameter = NumericParameter(42, description='A non-builtin param')
+    assert x.meta['added_parameter'].value == 42
+    assert issubclass(x.meta['added_parameter'].__class__, NumericParameter)
+    # wont work if not a Parameeter type
+    x.added_attribute = 111
+    assert 'added_attribute' not in x.meta
+    assert issubclass(x.added_attribute.__class__, int)
 
 
 def do_ArrayDataset_func(atype):
@@ -1313,7 +1382,8 @@ def do_ArrayDataset_func(atype):
     except TypeError:
         d = atype([2.3, 4e3, -9.9])
         x = ArrayDataset(data=d)
-        x.meta = standardtestmeta()
+        for n, p in standardtestmeta().items():
+            x.meta[n] = p
         ts = x.toString()
         # print(atype, ts)
 
@@ -1339,7 +1409,8 @@ def do_ArrayDataset_func(atype):
     # toString()
     d = atype([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     x = ArrayDataset(data=d)
-    x.meta = standardtestmeta()
+    for n, p in standardtestmeta().items():
+        x.meta[n] = p
     ts = x.toString()
     # print(ts)
     s = ndlist(2, 3, 4, 5)
@@ -1348,19 +1419,24 @@ def do_ArrayDataset_func(atype):
     x[0][1][1] = atype([0, 0, 0, 1, 0])
     x[0][1][2] = atype([5, 4, 3, 2, 1])
     x[0][1][3] = atype([0, 0, 0, 3, 0])
-    x.meta = standardtestmeta()
-    ts = 'level 0\n'
+
+    check_MDP(x)
+    ts = '\n\nlevel 0\n'
     ts += x.toString()
     i = ts.index('0  0  0')
-    if mko:
+    if mk_output:
         print(ts[i:])
     else:
         assert ts[i:] == nds2 + '\n'
-    ts += 'level 1, repr\n'
+    ts += '\n\nlevel 1\n'
     ts += x.toString(1)
-    ts += 'level 2,\n'
+    ts += '\n\nlevel 2, repr\n'
     ts += x.toString(2)
-    if mko:
+    ts += '\n\n'
+    ts += 'an empty meta and long data level 2: \n'
+    ts += ArrayDataset(data=[8]*8).toString(level=2)
+    ts += '\n\n'
+    if mk_output:
         print(ts)
         with open('/tmp/output.py', 'a') as f:
             clsn = 'out_ArrayDataset'
@@ -1376,6 +1452,7 @@ def do_ArrayDataset_func(atype):
 
 def test_ArrayDataset_init():
     atype = list
+
     do_ArrayDataset_init(atype)
 
 
@@ -1395,7 +1472,10 @@ def test_ArrayDataset_array_func():
 
 
 def test_Column():
+    v = Column()
+    assert v.type == 'Column'
     v = Column(data=[4, 9], unit='m')
+    assert v.data == [4, 9]
     s = v.hash()
 
     checkjson(v)
@@ -1412,17 +1492,19 @@ def test_TableDataset_init():
         t = 5
         t = TableDataset(data=42)
 
-    with pytest.raises(DeprecationWarning):
-        t = TableDataset(data=[{'name': 'a', 'column': Column(data=[])}])
+    if 1:
+        with pytest.raises(DeprecationWarning):
+            t = TableDataset(data=[{'name': 'a', 'column': Column(data=[])}])
 
-    # setData format 1: data is a  mapping. Needs pytnon 3.6 to guarantee order
-    a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
-          'col2': Column(data=[0, 43.2, 2E3], unit='cnt')}
-    v = TableDataset(data=a1)  # inherited from DataWrapper
-    assert v.getColumnCount() == len(a1)
-    assert v.getColumnName(0) == 'col1'
-    t = a1['col2'].data[1]  # 43.2
-    assert v.getValueAt(rowIndex=1, columnIndex=1) == t
+        # setData format 1: data is a  mapping. Needs pytnon 3.6 to guarantee order
+        a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
+              'col2': Column(data=[0, 43.2, 2E3], unit='cnt')}
+
+        v = TableDataset(data=a1)  # inherited from DataContaier
+        assert v.getColumnCount() == len(a1)
+        assert v.getColumnName(0) == 'col1'
+        t = a1['col2'].data[1]  # 43.2
+        assert v.getValueAt(rowIndex=1, columnIndex=1) == t
 
     # 2: add columns one by one
     v2 = TableDataset()
@@ -1472,6 +1554,7 @@ def test_TableDataset_func_row():
     assert v.removeRow(1) == [c1.data[1], c2.data[1]]
     assert v.rowCount == 4
     assert cc.pop(1) == c1.data[1]
+    cc.updateShape()  # not done automatically
     assert v['col3'] == cc
     # read rowa with slice
     s = v.getRow(slice(1, 3))
@@ -1482,6 +1565,7 @@ def test_TableDataset_func_row():
     assert v.removeRow(slice(1, 3)) == [[3.3, 6.6], [4.4, 8.8]]
     assert v.rowCount == 2
     del cc[1:3]
+    cc.updateShape()  # not done automatically
     assert v['col3'] == cc
     # acess rows
 
@@ -1634,14 +1718,19 @@ def test_TableDataset_func():
 
     # toString()
     v = TableDataset(data=a10)
-    v.meta = standardtestmeta()
-    ts = 'level 0\n'
+
+    check_MDP(v)
+    ts = '\n\nlevel 0\n'
     ts += v.toString()
-    ts += 'level 1, repr\n'
+    ts += '\n\nlevel 1\n'
     ts += v.toString(1)
-    ts += 'level 2,\n'
+    ts += '\n\nlevel 2, repr\n'
     ts += v.toString(2)
-    if mko:
+    ts += '\n\n'
+    ts += 'an empty level 2: \n'
+    ts += TableDataset().toString(level=2)
+    ts += '\n\n'
+    if mk_output:
         print(ts)
         with open('/tmp/output.py', 'a') as f:
             clsn = 'out_TableDataset'
@@ -1801,7 +1890,6 @@ def test_CompositeDataset_init():
     a12 = NumericParameter(description='a different param in metadata',
                            value=2.3, unit='sec')
     v.meta[a11] = a12
-
     # def test_CompositeDataset_func():
 
     # equality
@@ -1858,7 +1946,8 @@ def test_CompositeDataset_init():
 
     # toString()
     v3 = CompositeDataset(description='test CD')
-    v3.meta = standardtestmeta()
+    for n, p in standardtestmeta().items():
+        v3.meta[n] = p
     # creating a table dataset
     ELECTRON_VOLTS = 'eV'
     SECONDS = 'sec'
@@ -1877,7 +1966,7 @@ def test_CompositeDataset_init():
     ts += v3.toString(1)
     ts += 'level 2,\n'
     ts += v3.toString(2)
-    if mko:
+    if mk_output:
         print(ts)
         with open('/tmp/output.py', 'a') as f:
             clsn = 'out_CompositeDataset'
@@ -2051,26 +2140,69 @@ def test_FineTime():
     v = FineTime()
     assert v.tai == 0
     assert v.format == v.DEFAULT_FORMAT
-    assert v.toDate().year == 1958
+    assert v.toDatetime().year == 1958
     # at Epoch, TAI=0
     v = FineTime(v.EPOCH)
     assert v.tai == 0
     # at TAI = 1, UTC ...
     v = FineTime(1)
-    assert v.toDate().microsecond == 1
+    assert v.toDatetime().microsecond == 1
+    # from string
+    v = FineTime('1990-09-09T12:34:56.789098 UTC')
+    print(v)
+    # comparison
+    v1 = FineTime(12345678901234)
+    v2 = FineTime(12345678901234)
+    v3 = FineTime(1234567890123)
+    assert id(v1) != id(v2)
+    assert v1 == v2
+    assert v1 >= v2
+    assert v2 <= v1
+    assert v3 != v2
+    assert v3 < v2
+    assert v2 > v3
+    assert v2 > 5
+    assert v3 <= v2
+    assert v2 >= v3
+
+    # arithemetics
+    v = FineTime(1234567)
+    assert v + 1 == FineTime(1234568)
+    assert v - 1 == FineTime(1234566)
+    assert v - FineTime(1) == 1234566
+    # two FineTime instances cannot add
+    with pytest.raises(TypeError):
+        assert v + FineTime(1) == FineTime(1234568)
+    with pytest.raises(TypeError):
+        1 + v
+
+    # leap seconds
+    v1 = FineTime(datetime.datetime(2015, 6, 30, 23, 59, 59))
+    #v2 = FineTime(datetime.datetime(2015, 6, 30, 23, 59, 60))
+    v3 = FineTime(datetime.datetime(2015, 7, 1, 0, 0, 0))
+    assert v3-v1 == 2000000  # leapsecond added
+    # assert v3-v2 == 1000000  # 59:60 != 00:00
+
     dt0 = datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
+    posix_epoch = datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+    # unix seconds has no leap seconds
+    unsec = (dt0 - FineTime.EPOCH).total_seconds()
+    assert dt0.timestamp() == unsec - (posix_epoch - FineTime.EPOCH).total_seconds()
     v = FineTime(dt0)
-    assert v.tai == 1929229323456789
-    dt = v.toDate()
+    assert unsec == 1929229323456789/1000000
+    assert v.tai == 1929229360456789
+    assert v.tai/1000000 - unsec == 37
+    dt = v.toDatetime()
     assert int(dt.timestamp()) == int(dt0.timestamp())
     # So that timezone won't show on the left below
     d = dt.replace(tzinfo=None)
     assert d.isoformat() == '2019-02-19T01:02:03.456789'
     assert v.tai == v.datetimeToFineTime(dt)
     assert dt == v.toDatetime(v.tai)
-    # format
+
     assert v.isoutc() == '2019-02-19T01:02:03.456789'
+
     # add 1min 1.1sec
     v2 = FineTime(datetime.datetime(
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=timezone.utc))
@@ -2085,18 +2217,18 @@ def test_FineTime1():
     v = FineTime1()
     assert v.tai == 0
     assert v.format == v.DEFAULT_FORMAT
-    assert v.toDate().year == 2017
+    assert v.toDatetime().year == 2017
     # at Epoch, TAI=0
     v = FineTime1(v.EPOCH)
     assert v.tai == 0
     # at TAI = 1, UTC ...
     v = FineTime1(1)
-    assert v.toDate().microsecond == 1000
+    assert v.toDatetime().microsecond == 1000
     dt0 = datetime.datetime(
         2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
     v = FineTime1(dt0)
     assert v.tai == 67309323457
-    dt = v.toDate()
+    dt = v.toDatetime()
     assert int(dt.timestamp()) == int(dt0.timestamp())
     # So that timezone won't show on the left below
     d = dt.replace(tzinfo=None)
@@ -2104,12 +2236,44 @@ def test_FineTime1():
     assert v.tai == v.datetimeToFineTime(dt)
     assert dt == v.toDatetime(v.tai)
     # format
-    assert v.isoutc() == '2019-02-19T01:02:03.457'
+    assert v.isoutc() == '2019-02-19T01:02:03.457000'
     # add 1min 1.1sec
     v2 = FineTime1(datetime.datetime(
         2019, 2, 19, 1, 3, 4, 556789, tzinfo=timezone.utc))
     assert v != v2
     assert abs(v2.subtract(v) - 61100) < 0.5
+    checkjson(v)
+    checkgeneral(v)
+
+
+def test_FineTimes_toString():
+    # toString
+    ts = 'toString test\n'
+    dt0 = datetime.datetime(
+        2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
+    # format
+    for vformat in [FineTime.DEFAULT_FORMAT, '%Y']:
+        ts += '=========== format: "' + vformat + '" =======\n'
+        for v in [FineTime(dt0), FineTime1(dt0)]:
+            v.format = vformat
+            ts += v.__class__.__name__ + '\n'
+            for width in [0, 1]:
+                # default width is 0
+                for level in [0, 1, 2]:
+                    s = v.toString(level=level, width=width)
+                    ts += f'level={level} width={width}: {s}\n'
+    if mk_output:
+        print(ts)
+        with open('/tmp/output.py', 'a') as f:
+            clsn = 'out_FineTime'
+            f.write('%s = """%s"""\n' % (clsn, ts))
+    else:
+        assert ts == out_FineTime
+
+
+def test_get_sample_product():
+    v = get_sample_product()
+    assert v['Image'].data[1:4] == b'PNG'
     checkjson(v)
     checkgeneral(v)
 
@@ -2127,8 +2291,6 @@ def test_BaseProduct():
 
     # print(x.__dict__)
     # print(x.meta.toString())
-    __import__('pdb').set_trace()
-
     assert x.meta['description'].value == "This is my product example"
     assert x.description == "This is my product example"
     assert x.meta['type'].value == x.__class__.__qualname__
@@ -2186,8 +2348,8 @@ def test_BaseProduct():
     assert x.creator == a1
 
     # normal metadata
-    # if the attitute does not exist, return None. This is an OrderedDict behavior.
-    assert x.meta['notthere'] is None
+    with pytest.raises(KeyError):
+        x.meta['notthere']
 
     # test comparison:
     p1 = BaseProduct(description="oDescription")

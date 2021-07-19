@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 
 from collections.abc import Mapping, Sequence
@@ -18,19 +19,21 @@ If the above fail and a method whose name starts with 'is' then the method is ca
         paths = paths.split('/')
 
     p0 = paths[0]
-    found_meth = None
+    found_method = None
+
     is_str = issubclass(p0.__class__, str)
     if is_str and hasattr(nested, p0):
         v = getattr(nested, p0)
         rep = re + '.'+p0
         if inspect.ismethod(v) and p0.startswith('is'):
-            found_meth = v
+            found_method = v
         else:
             if len(paths) == 1:
                 return v, rep
             return fetch(paths[1:], v, rep)
     else:
         if is_str and ',' in p0:
+            # p0 is a set of arguments of int and float
             num = []
             for seg in p0.split(','):
                 try:
@@ -45,19 +48,17 @@ If the above fail and a method whose name starts with 'is' then the method is ca
                 # can be converted to numerics
                 p0 = list(num)
         try:
-            if hasattr(nested, 'items') and (p0 in nested) or \
-               hasattr(nested, '__iter__') and (p0 < len(list(nested))):
-                v = nested[p0]
-                q = '"' if issubclass(p0.__class__, str) else ''
-                rep = re + '['+q + str(p0) + q + ']'
-                if len(paths) == 1:
-                    return v, rep
-                return fetch(paths[1:], v, rep)
+            v = nested[p0]
+            q = '"' if issubclass(p0.__class__, str) else ''
+            rep = re + '['+q + str(p0) + q + ']'
+            if len(paths) == 1:
+                return v, rep
+            return fetch(paths[1:], v, rep)
         except TypeError:
             pass
     # not attribute or member
-    if found_meth:
+    if found_method:
         # return methodcaller(p0)(nested), rep + '()'
-        return found_meth(), rep + '()'
+        return found_method(), rep + '()'
 
     return None, '%s has no attribute or member: %s.' % (re, p0)

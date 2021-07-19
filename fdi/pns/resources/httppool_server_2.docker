@@ -1,0 +1,90 @@
+# syntax=docker/dockerfile:1.2
+
+FROM mhastro/fdi:v1.3
+LABEL Pool Server
+# 0.2-4 M. Huang <mhuang@nao.cas.cn>
+# 0.1 yuxin<syx1026@qq.com>
+
+USER root
+RUN apt-get update \
+&& apt-get install -y curl  apache2 libapache2-mod-wsgi-py3 \
+&& rm -rf /var/lib/apt/lists/*
+
+# rebuild mark
+ARG re=rebuild
+
+# setup user
+ARG USR=apache
+ARG UHOME=/home/${USR}
+
+# must be in fdi group as inherent docker users may need to
+# write to fdi's lib dir, due to living in fdi' venv
+RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo,fdi \
+&& mkdir -p ${UHOME}/.config \
+&& /bin/echo -e '\n'${USR} ALL = NOPASSWD: ALL >> /etc/sudoers
+
+WORKDIR ${UHOME}
+# use fdi's virtual env path. this effectively activates fdi's virtuakenv
+# ENV PATH="${FDIVENV}:${UHOME}/.local/bin:$PATH"
+RUN echo ${PATH}
+
+# setup config files
+RUN cp /home/fdi/.config/pnslocal.py .config/pnslocal.py
+COPY fdi/pns/resources/httppool_server.conf /etc/apache2/sites-available/httppool_server.conf
+ARG PROJ_DIR=/var/www/httppool_server
+RUN mkdir -p ${PROJ_DIR}/data \
+&& echo export APACHE_RUN_USER=${USR} >> /etc/apache2/envvars \
+&& echo export APACHE_RUN_GROUP=${USR} >> /etc/apache2/envvars \
+&& mkdir -p /var/log/apache2 /var/run/apache2 \
+&& touch /var/log/apache2/error-ps.log \
+&& touch /var/log/apache2/access-ps.log \
+&& ln -s /var/log/apache2/error-ps.log . \
+&& ln -s /var/log/apache2/error.log . \
+&& ln -s /var/log/apache2/access-ps.log . \
+&& ln -s /var/log/apache2/access.log . \
+&& ln -s /etc/apache2/sites-available/httppool_server.conf . \
+&& ln -s /etc/apache2/apache2.conf . \
+&& ln -s /etc/apache2/ports.conf .
+
+#RUN echo WSGIRestrictEmbedded On >> /etc/apache2/apache2.conf
+
+# convinience aliases
+COPY fdi/pns/resources/profile .
+COPY fdi/pns/resources/httppool_server.wsgi ${PROJ_DIR}/
+RUN cat profile >> .bashrc && rm profile \
+&& chmod 755 ${PROJ_DIR}/httppool_server.wsgi \
+&& ln -s  ${PROJ_DIR}/httppool_server.wsgi .
+
+# Configure permission
+RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 ${PROJ_DIR} ${UHOME}/; \
+do chown -R ${USR}:${USR} $i; echo $i; done \
+&& chgrp ${USR} /etc/apache2 /etc/apache2/sites-available \
+&& chmod g+w /etc/apache2 /etc/apache2/sites-available
+
+WORKDIR ${UHOME}
+
+# httppool_server_entrypoint.sh is used for replacing apache listen ports and configurations of httppool_server.
+USER root
+COPY --chown=${USR}:${USR} fdi/pns/resources/httppool_server_entrypoint_2.sh .
+RUN chmod 755 ./httppool_server_entrypoint_2.sh
+
+USER ${USR}
+
+# config software
+
+# update ~/.config/pnslocal.py so test can be run with correct setting
+RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
+&& sudo chown ${USR} envs \
+&& cat ./envs \
+&& for i in `cat ./envs`; do export $i; done \
+&& ./httppool_server_entrypoint_2.sh no-run
+
+
+WORKDIR ${UHOME}
+
+RUN /bin/ls -la; echo $PATH \
+date > build
+
+ENTRYPOINT  ["/home/apache/httppool_server_entrypoint_2.sh"]
+
+

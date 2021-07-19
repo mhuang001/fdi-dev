@@ -5,8 +5,7 @@
 #################
 
 
-from .test_utils import get_sample_product
-import pytest
+from fdi.dataset.testproducts import get_sample_product
 from fdi.dataset.serializable import serialize
 from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
@@ -23,6 +22,7 @@ from requests.auth import HTTPBasicAuth
 import requests
 import random
 import os
+import pytest
 from pprint import pprint
 
 import time
@@ -69,7 +69,7 @@ if 0:
 lupd = 0
 
 
-test_poolid = 'test'
+test_poolid = 'fdi_'+__name__
 prodt = 'fdi.dataset.product.Product'
 
 
@@ -120,6 +120,7 @@ def check_response(o, failed_case=False):
     global lupd
     assert o is not None, "Server is having trouble"
     if not failed_case:
+        assert 'result' in o, o
         assert 'FAILED' != o['result'], o['result']
         assert o['timestamp'] > lupd
         lupd = o['timestamp']
@@ -195,7 +196,7 @@ def populate_server(poolid, aburl, auth):
         x.creator = i
         data = serialize(x)
         url = aburl + '/' + poolid + '/' + prodt + '/' + str(index)
-        print(len(data))
+        # print(len(data))
 
         x = requests.post(url, auth=HTTPBasicAuth(*auth), data=data)
         o = deserialize(x.text)
@@ -386,40 +387,40 @@ def test_product_path(setup, userpass):
     o = deserialize(x.text)
     check_response(o)
     c = o['result']
-    pprint(c)
+    # pprint(c)
     assert 'metadata' in c
 
     # test product paths
-    segs = ["results", "energy_table", "Energy", "data"]
+    segs = ["results", "Time_Energy_Pos", "Energy", "data"]
     pth = '/'.join(segs)
     # make url w/  urn1
-    # 'http://0.0.0.0:5000/v0.7/test/urn+test+fdi.dataset.product.Product+0/results/energy_table/Energy/data'
+    #
     url2 = url0 + urn.replace(':', '+') + '/' + pth
     x = requests.get(url2, auth=auth)
     o = deserialize(x.text)
     check_response(o)
     c = o['result']
-    assert c == p['results']['energy_table']['Energy'].data
+    assert c == p['results']['Time_Energy_Pos']['Energy'].data
     # make w/ prodtype
     # fdi.dataset.product.Product/0
     pt = urn.split(':', 2)[2].replace(':', '/')
 
     urlp = url0 + pt
-    # http://0.0.0.0:5000/v0.7/test/fdi.dataset.product.Product/0/results/energy_table/Energy/data
+    # http://0.0.0.0:5000/v0.7/test/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
     url3 = urlp + '/' + pth
     x = requests.get(url3, auth=auth)
     o = deserialize(x.text)
     check_response(o)
     c2 = o['result']
-    assert c == p['results']['energy_table']['Energy'].data
+    assert c == p['results']['Time_Energy_Pos']['Energy'].data
 
     for pth in [
             "description",
-            "meta/extra/unit",
-            "meta/extra/value",
-            "meta/extra/isValid",
-            "arraydset 1/data",
-            "results/calibration_arraydset/unit",
+            "meta/speed/unit",
+            "meta/speed/value",
+            "meta/speed/isValid",
+            "Temperature/data",
+            "results/calibration/unit",
     ]:
         url = urlp + '/' + pth
         x = requests.get(url, auth=auth)
@@ -444,7 +445,7 @@ def test_product_path(setup, userpass):
     x = requests.get(url, auth=auth)
     assert x.headers['Content-Type'] == 'text/plain'
     c = x.text
-    print(c)
+    # print(c)
     assert 'UNKNOWN' in c
 
 

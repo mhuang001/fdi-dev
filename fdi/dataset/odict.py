@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-from collections import OrderedDict, UserDict
-from collections.abc import Collection
+
 from .serializable import Serializable
 from .eq import DeepEqual, xhash
 from ..utils.common import bstr
-from ..utils.ydump import ydump
 
+from collections import OrderedDict, UserDict
 from pprint import pformat
 import logging
 
@@ -23,10 +22,9 @@ class ODict(UserDict, Serializable, DeepEqual):
         """
 
         """
-        # print(args)
-        # data = OrderedDict(*args, **kwds)
+
         super().__init__(*args, **kwds)
-        # UserDict.__init__(self, data)
+        self.__missing__ = None
         Serializable.__init__(self)
 
     # @property
@@ -85,6 +83,17 @@ class ODict(UserDict, Serializable, DeepEqual):
             d = d + s
         OD_toString_Nest -= 1
         return d + '>'
+
+    def get(self, name):
+        """ Raise a ``KeyErrpr`` to change the default behavior of colections.Mapping to quietly return a None when a key is not found in the dict.
+        """
+
+        return self.data[name]
+        res = super().__getitem__(name)
+        if res is not None or name in self.data:
+            return res
+        logger.debug('%s is not found in %s.' % (name, self))
+        raise KeyError()
 
     # def __repr__(self):
     #     """ returns string representation with details set according to debuglevel.

@@ -7,13 +7,11 @@
 
 
 
-Architecture
-============
 
 HTTP Pool server provides a RESTful web interface to create, remove, read, and delete data items (usually products) in a pool running on a server. A remote data user uses a HTTPClientPool as an interface.
 
-For developement
-================
+For developing
+==============
 
 Configuration
 -------------
@@ -22,7 +20,7 @@ Install fdi. Copy the config file over
 
 .. code-block:: shell
 		
-		cp fdi/pns/pnsconfig.py ~/.config/pnslocal.py
+		cp fdi/pns/config.py ~/.config/pnslocal.py
 
 To customize ``~/.config/pnslocal.py`` modify these according to your system:
 
@@ -43,7 +41,13 @@ Note that above are for both the server and te client in this and the next steps
 Run the Server
 --------------
 
-The server can be run by
+To use the defaults in the config, just
+
+.. code-block:: shell
+
+		make runpoolserver
+
+The server can also be run by:
 
 .. code-block:: shell
 
@@ -52,12 +56,6 @@ The server can be run by
 
 Contents in ``[]``, like ``[--ip=<host ip>] [--port=<port>]`` above, are optional. ``<>`` means you need to substitute with actual information (for example ``--port=<port>`` becomes ``--port=5000``). The username and password are used when making run requests.
 
-
-To use the defaults in the config, just
-
-.. code-block:: shell
-
-		make runpoolserver
 
 Now you can use a client to access it.
 
@@ -73,7 +71,8 @@ Now you can use a client to access it.
 Test and Verify
 ---------------
 
-To run all tests in one go:
+To run all tests in one go
+!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 .. code-block:: shell
 
@@ -81,7 +80,7 @@ To run all tests in one go:
 
 append ``T='-u <username> -p <password> [-i <host ip>] [-o <port>] [options]'`` if needed.
 
-Tests can be done step-by-step to pin-point possible problems:
+You can also test step-by-step to pin-point possible problems:
 
 1. Server Unit Test
 !!!!!!!!!!!!!!!!!!!
@@ -102,7 +101,8 @@ test HTTP Client APIs
 		
 		make test7
 
-Standard functional pool test
+3. Standard functional pool test
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 .. code-block:: shell
 		
@@ -113,18 +113,14 @@ Standard functional pool test
 For production deployment
 =========================
 
+Manually
+--------
 
-These are for an ``apache2`` deployment as a ``VirtualHost`` in a Ubuntu docker:
-
-
-Configuration
--------------
-
-Install fdi. Copy the config file over
+Install fdi (see :doc:`installation`). Copy the config file over
 
 .. code-block:: shell
 		
-		cp fdi/pns/pnsconfig.py ~/.config/pnslocal.py
+		cp fdi/pns/config.py ~/.config/pnslocal.py
 
 To customize ``~/.config/pnslocal.py`` modify these according to your system:
 
@@ -136,55 +132,63 @@ To customize ``~/.config/pnslocal.py`` modify these according to your system:
    pnsconfig['server_poolpath'] = '/var/www/httppool_server/data'
    pnsconfig['defaultpool'] = 'pool_default'
    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '217.17.0.9', 'port': 9884}
+                         'host': '172.17.0.9', 'port': 9884}
    pnsconfig['serveruser'] = 'apache'
 
-where the IP is obtainable by ``fdi/pns/resources/httppool_server_entrypoint.sh``.
+where at least the IP needs to be modified if to run a server.
 
-Note that above are for both the server and te client in this and the next steps.
+Then refer to these files to install/update wsgi or conf files
 
-Run the Server
---------------
+*  ``fdi/pns/resources/httppool_server_2.docker``
+*  ``fdi/pns/resources/httppool_server_entrypoint.sh``
 
-The following shows how to build a HTTP Pool docker image.
-
-First make a virtual environment:
+   then enable the site and (re)start the server:
 
 .. code-block:: shell
 
-		virtualenv -p python3.6 poolserver
-		cd poolserver
-		. bin/activate
+   sudo a2ensite httppool_server.conf
+   sudo a2dissite 000-default.conf
+   service apache2 --full-restart
+  
+.. note::
+   
+   The above are for both the server and the client when running pool functional test (``test6``) locally.
 
-Then install fdi following instructions in :doc:`installation` , e.g.
 
-.. code-block:: shell
+With Pre-made Docker Images
+---------------------------
 
-           git clone http://mercury.bao.ac.cn:9006/mh/fdi.git
-           cd fdi
-	   git checkout develop
-	   make install I="[DEV,SERV]"
 
-Now you can make the server docker easily:
+The following are for an ``apache2`` deployment as a ``VirtualHost`` based a Ubuntu docker.
 
-.. code-block:: shell
 
-		make build_server
-
-Test and Verify
----------------
-
-After building a server, launch it:
+Follow instructuin in :doc:`dockers` to pull or build the ``httppool`` server image. 
+ 
+Launch it:
 
 .. code-block:: shell
 
 		make launch_server
 
+Test and Verify Deployed Server
+-------------------------------
+
+The following is for a deployed docker.
+
+Roughly following te sane steps in `Test and Verify`_ except for the firsrt step.
+
+Actually the first two steps can be skipped if the 3rd is successful.
 
 1. Start
 !!!!!!!!
 
-The Docker will run and you will be at a shell prompt as the server user (``apache``). Type this to start the server process
+Run a shell inside the server after launching it:
+
+.. code-block:: shell
+
+		make it
+		
+A ``/bin/bash`` will run and you will be at a shell prompt as the server user (``apache``). Type this to start the server process
 
 .. code-block:: shell
 
@@ -200,16 +204,17 @@ and you can get error message in JSON by
 
 .. code-block:: shell
 
-		curl -i http://localhost:9884
+		curl -i http://localhost:9885
 
-2. Test ine the Docker
-!!!!!!!!!!!!!!!!!!!!!!
+2. Test Functions in the Docker
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-Now run the local tests::
-  first fdi internal,
-  then test6 for server local CRUD,
-  test 7 client,
-  test8 standard pool functional.
+Now run the local tests:
+  
+* first fdi internal,
+* then test6 for server local CRUD,
+* test 7 client,
+* test8 standard pool functional.
 
 
 .. code-block:: shell
@@ -222,22 +227,25 @@ Now run the local tests::
 
 The last three can be run by ``make testhttp``.
 
-You can watch the logging action by starting a new shell in the docker by running this in the fdi directory where you built the docker image:
 
-.. code-block:: shell
-
-		make it
-
-run ``make it D='-u 0'`` to become the root. When you are in the docker, run ``tail -f error-ps.log`` while ``make testhttp`` runs.
-
-3. Test from Outside
-!!!!!!!!!!!!!!!!!!!!
+3. Test from Outside the Docker
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 in the fdi directory where you built the docker image:
 
 .. code-block:: shell
 
 		make testhttp
+
+Make sure that from where you run the test, your ``~/.config/pnslocal.py`` points to the correct ip and port.
+
+.. tip::
+   
+   You can watch live logging from nother terminal with:
+
+.. code-block:: shell
+
+		make t
 
 Clean up
 --------

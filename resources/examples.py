@@ -12,14 +12,14 @@ You can copy the code from code blocks by clicking the ``copy`` icon on the top-
 """
 
 # Import these packages needed in the tutorial
-from fdi.dataset.product import Product
+from fdi.dataset.product import Product, BaseProduct
 from fdi.dataset.metadata import Parameter, MetaData
 from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.finetime import FineTime, FineTime1
 from fdi.dataset.arraydataset import ArrayDataset, Column
-from fdi.dataset.dataset import TableDataset
+from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.classes import Classes
 from fdi.pal.context import Context, MapContext
 from fdi.pal.productref import ProductRef
@@ -52,11 +52,11 @@ ArrayDataset -- sequence of data in the same unit and format
 a1 = [1, 4.4, 5.4E3, -22, 0xa2]
 v = ArrayDataset(a1)
 # Show it. This is the same as print(v) in a non-interactive environment.
+# "Default Meta." means the metadata settings are all default values..
 v
 
-# Create an ArrayDataset with built-in properties set.
-v = ArrayDataset(data=a1, unit='ev', description='5 elements',
-                 typ_='float', default=1.0, typecode='f')
+# Create an ArrayDataset with some built-in properties set.
+v = ArrayDataset(data=a1, unit='ev', description='5 elements', typecode='f')
 #
 # add some metadats (see more about meta data below)
 v.meta['greeting'] = StringParameter('Hi there.')
@@ -291,9 +291,10 @@ then = datetime(
     2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
 # The value of the next parameter is valid from TAI=0 to 9876543210123456
 valid_rule = {(0, 9876543210123456): 'alive'}
-# display typecode set to 'year' (%Y)
 v['b'] = DateParameter(FineTime(then), 'date param', default=99,
-                       valid=valid_rule, typecode='%Y')
+                       valid=valid_rule)
+# display format set to 'year' (%Y)
+v['b'].format = '%Y-%M'
 # The value of the next parameter has an empty rule set and is always valid.
 v['c'] = StringParameter(
     'Right', 'str parameter. but only "" is allowed.', valid={'': 'empty'}, default='cliche', typecode='B')
@@ -412,13 +413,14 @@ This section shows how to store a product in a "pool" and get a reference back.
 logger = logging.getLogger('')
 logger.setLevel(logging.WARNING)
 # a pool (LocalPool) for demonstration will be create here
-demopoolpath = '/tmp/demopool_' + getpass.getuser()
+demopoolname = 'demopool_' + getpass.getuser()
+demopoolpath = '/tmp/' + demopoolname
 demopoolurl = 'file://' + demopoolpath
 # clean possible data left from previous runs
 os.system('rm -rf ' + demopoolpath)
 if PoolManager.isLoaded(DEFAULT_MEM_POOL):
     PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-PoolManager.removeAll()
+PoolManager.getPool(demopoolname, demopoolurl).removeAll()
 
 # create a prooduct and save it to a pool
 x = Product(description='save me in store')
@@ -511,19 +513,21 @@ A :class:`ProductStorage` with pools attached can be queried with tags, properti
 """)
 
 # clean possible data left from previous runs
-defaultpoolpath = '/tmp/pool_' + getpass.getuser()
-newpoolname = 'newpool_' + getpass.getuser()
+poolname = 'fdi_pool_' + getpass.getuser()
+poolpath = '/tmp/' + poolname
+newpoolname = 'fdi_newpool_' + getpass.getuser()
 newpoolpath = '/tmp/' + newpoolname
-os.system('rm -rf ' + defaultpoolpath)
+os.system('rm -rf ' + poolpath)
 os.system('rm -rf ' + newpoolpath)
+poolurl = 'file://' + poolpath
+newpoolurl = 'file://' + newpoolpath
 if PoolManager.isLoaded(DEFAULT_MEM_POOL):
     PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-PoolManager.removeAll()
+PoolManager.getPool(poolname, poolurl).removeAll()
+PoolManager.getPool(newpoolname, newpoolurl).removeAll()
 # make a productStorage
-defaultpoolurl = 'file://'+defaultpoolpath
-pstore = ProductStorage(poolurl=defaultpoolurl)
+pstore = ProductStorage(poolurl=poolurl)
 # make another
-newpoolurl = 'file://' + newpoolpath
 pstore2 = ProductStorage(poolurl=newpoolurl)
 
 # add some products to both storages. The product properties are different.
@@ -562,11 +566,11 @@ len(pstore.getPools())   # == 2
 # make a query on product metadata, which is the variable 'm'
 # in the query expression, i.e. ``m = product.meta; ...``
 # But '5000 < m["extra"]' does not work. see tests/test.py.
-q = MetaQuery(Product, 'm["extra"] > 5001 and m["extra"] <= 5005')
+q = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] <= 5005')
 # search all pools registered on pstore
 res = pstore.select(q)
-# we expect [#2, #3, #4, #5]
-len(res)   # == 4
+# we expect [#2, #3] Contex is not a subclass of Product, which is being searched
+len(res)   # == 2
 
 # see
 [r.product.description for r in res]
@@ -577,17 +581,17 @@ len(res)   # == 4
 def t(m):
     # query is a function
     import re
-    # 'creator' matches the regex pattern
+    # 'creator' matches the regex pattern: 'n' + ? + '1'
     return re.match('.*n.1.*', m['creator'].value)
 
 
-q = MetaQuery(Product, t)
+q = MetaQuery(BaseProduct, t)
 res = pstore.select(q)
 # expecting [3,4]
 [r.product.creator for r in res]
 
 # same as above but query is on the product. this is slow.
-q = AbstractQuery(Product, 'p', '"n 1" in p.creator')
+q = AbstractQuery(BaseProduct, 'p', '"n 1" in p.creator')
 res = pstore.select(q)
 # [3,4]
 [r.product.creator for r in res]

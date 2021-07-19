@@ -6,7 +6,7 @@ $IMPORTS
 
 from fdi.dataset.readonlydict import ReadOnlyDict
 
-import copy
+import itertools
 
 import logging
 # create logger
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class $PRODUCTNAME($PARENTS):
+class $MODELNAME($PARENTS):
     """ $CLASSDOC
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
@@ -31,13 +31,15 @@ $INITARGS
         """
 
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = copy.copy(locals())
-        for x in ('self', '__class__', 'zInfo', 'kwds'):
-            metasToBeInstalled.pop(x)
+        metasToBeInstalled = OrderedDict(
+            itertools.filterfalse(
+                lambda x: x[0] in ('self', '__class__', 'zInfo', 'kwds'),
+                locals().items())
+        )
 
-        global ProductInfo
+        global Model
         if zInfo is None:
-            zInfo = ProductInfo
+            zInfo = Model
 
         # print('@1 zInfo', id(self.zInfo['metadata']), id(self), id(self.zInfo),
         #      self.zInfo['metadata']['version'], list(metasToBeInstalled.keys()))
@@ -49,7 +51,10 @@ $INITARGS
 
 $PROPERTIES
 
-$PRODUCTINFO
+# Data Model specification for mandatory components
+$MODELSPEC
 
-ProductInfo = ReadOnlyDict(_Model_Spec)
+Model = ReadOnlyDict(_Model_Spec)
+
+MdpInfo = Model['metadata']
 

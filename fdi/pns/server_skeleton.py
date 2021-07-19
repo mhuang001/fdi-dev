@@ -7,7 +7,7 @@ import time
 import sys
 import functools
 import os
-from os import listdir, chown, chmod, environ, setuid, setgid
+from os import chown, chmod
 from pathlib import Path
 import logging
 import types
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 app = Flask(__name__)
-# app.config.from_object('fdi.pns.pnsconfig')
+# app.config.from_object('fdi.pns.config')
 # try:
 #     app.config.from_envvar('PNSCONFIG')
 #     pc = app.config['FLASK_CONF']

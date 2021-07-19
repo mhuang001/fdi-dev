@@ -289,7 +289,8 @@ def httppool(pool):
             except ValueError as e:
                 result = '"FAILED"'
                 msg = 'Class needs to be included in pool configuration.' + \
-                    str(e) + ' ' + trbk(e)
+                    '\n%s: %s.\nTrace back: %s' % (
+                        e.__class__.__name__, str(e), trbk(e))
             else:
                 result, msg = save_product(
                     data, paths, tag, serialize_in=not serial_through)
@@ -356,7 +357,8 @@ def parseApiArgs(all_args):
         except IndexError as e:
             result = '"FAILED"'
             msg = 'Bad arguement format ' + all_args[0] + \
-                ' Exception: ' + str(e) + ' ' + trbk(e)
+                '\n%s: %s.\nTrace back: %s' % (
+                    e.__class__.__name__, str(e), trbk(e))
             logger.error(msg)
             return result, msg
         kwstart = 1
@@ -372,7 +374,8 @@ def parseApiArgs(all_args):
     except IndexError as e:
         result = '"FAILED"'
         msg = 'Bad arguement format ' + str(all_args[kwstart:]) + \
-            ' Exception: ' + str(e) + ' ' + trbk(e)
+            '\n%s: %s.\nTrace back: %s' % (
+                e.__class__.__name__, str(e), trbk(e))
         logger.error(msg)
         return result, msg
 
@@ -397,17 +400,13 @@ def call_pool_Api(paths):
         return '"FAILED"', 'Unknown web API method: %s.' % method
     args, kwds = [], {}
 
-    if 0:
-        poolname = paths[0]
-        s = PM.isLoaded(poolname)
-        import pdb
-        pdb.set_trace()
     all_args = paths[ind_meth+1:]
     if lp > ind_meth:
         # get command positional arguments and keyword arguments
         args, kwds = parseApiArgs(all_args)
         if args == '"FAILED"':
             result, msg = args, kwds
+            return result, msg
         else:
             kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
             msg = '%s(%s)' % (method, ', '.join(
@@ -430,7 +429,8 @@ def call_pool_Api(paths):
     except Exception as e:
         result = '"FAILED"'
         msg = 'Unable to complete ' + msg + \
-            ' Exception: ' + str(e) + ' ' + trbk(e)
+            '\n%s: %s.\nTrace back: %s' % (
+                e.__class__.__name__, str(e), trbk(e))
         logger.error(msg)
     return result, msg
 
@@ -458,8 +458,9 @@ def delete_product(paths):
         msg = 'remove product ' + urn + ' OK.'
     except Exception as e:
         result = '"FAILED"'
-        msg = 'Unable to remove product: ' + urn + \
-            ' Exception: ' + str(e) + ' ' + trbk(e)
+        amsg = 'Unable to remove product: ' + urn + \
+            '\n%s: %s.\nTrace back: %s' % (
+                e.__class__.__name__, str(e), trbk(e))
         logger.error(msg)
     return result, msg
 
@@ -530,7 +531,9 @@ def save_product(data, paths, tag=None, serialize_in=True, serialize_out=False):
         msg = 'Save data to ' + poolurl + ' OK.'
     except Exception as e:
         result = '"FAILED"'
-        msg = 'Exception : ' + str(e) + ' ' + trbk(e)
+        msg = '\n%s: %s.\nTrace back: %s' % (
+            e.__class__.__name__, str(e), trbk(e))
+
     return result, msg
 
 
@@ -550,7 +553,7 @@ def getProduct_Or_Component(paths, serialize_out=False):
         modname, ptype = mp[0], mp[1]
         cls = Classes.mapping[ptype]
         mod = importlib.import_module(modname)  # TODO
-        mInfo = getattr(mod, 'ProductInfo')
+        mInfo = getattr(mod, 'Model')
         return serialize(mInfo, indent=4), 'Getting API info for %s OK' % paths[1]
     elif lp >= 3:
         return compo_cmds(paths, mInfo, serialize_out=serialize_out)
@@ -668,7 +671,8 @@ def load_product(p, paths, serialize_out=False):
         msg = ''
     except Exception as e:
         result = '"FAILED"'
-        msg = 'Exception : ' + str(e) + ' ' + trbk(e)
+        msg = '\n%s: %s.\nTrace back: %s' % (
+            e.__class__.__name__, str(e), trbk(e))
     return result, msg
 
 
@@ -687,7 +691,8 @@ def load_HKdata(paths):
         msg = ''
     except Exception as e:
         result = '"FAILED"'
-        msg = 'Exception : ' + str(e) + ' ' + trbk(e)
+        msg = '\n%s: %s.\nTrace back: %s' % (
+            e.__class__.__name__, str(e), trbk(e))
         raise e
     return result, msg
 
@@ -708,7 +713,8 @@ def load_single_HKdata(paths):
         msg = ''
     except Exception as e:
         result = '"FAILED"'
-        msg = 'Exception : ' + str(e) + ' ' + trbk(e)
+        msg = '\n%s: %s.\nTrace back: %s' % (
+            e.__class__.__name__, str(e), trbk(e))
     return result, msg
 
 

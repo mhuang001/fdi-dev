@@ -1,9 +1,8 @@
 name: BaseProduct
-description: FDI base class
+description: FDI base class data model
 parents:
   - 
-level: ALL
-schema: '1.5'
+schema: '1.6'
 metadata:
     description:
         id_zh_cn: 描述
@@ -19,6 +18,14 @@ metadata:
         description: Product Type identification. Name of class or CARD.
         description_zh_cn: 产品类型。完整Python类名或卡片名。
         default: BaseProduct
+        valid: ''
+        typecode: B
+    level:
+        id_zh_cn: 产品xx
+        data_type: string
+        description: Product level. 
+        description_zh_cn: 产品xx
+        default: ALL
         valid: ''
         typecode: B
     creator:
@@ -59,7 +66,7 @@ metadata:
         data_type: string
         description: Version of product schema and revision
         description_zh_cn: 产品格式版本
-        default: '1.5.0.9'
+        default: '1.6.0.10'
         valid: ''
         typecode: B
 datasets:

@@ -297,29 +297,6 @@ def test_Annotatable():
     checkgeneral(v)
 
 
-def test_Dattr():
-
-    v = Quantifiable()
-    assert v.getUnit() is None
-    assert v.getTypecode() is None
-    v.setUnit('AA')
-    v.setTypecode('BB')
-    assert v.getUnit() == 'AA'
-    assert v.getTypecode() == 'BB'
-    v = Quantifiable(unit='abc', typecode='string')
-    assert v.getUnit() == 'abc'
-    assert v.getTypecode() == 'string'
-    assert v.unit == 'abc'
-    assert v.typecode == 'string'
-    assert v.getUnit() == 'abc'
-    assert v.getTypecode() == 'string'
-    v = Quantifiable()
-    v.unit = 'CC'
-    v.typecode = 'DD'
-    assert v.getUnit() == 'CC'
-    assert v.getTypecode() == 'DD'
-
-
 def test_Composite():
 
     # set/get
@@ -892,6 +869,29 @@ def test_Quantifiable():
     assert v.unit == a
     v.typecode = b
     assert v.getTypecode() == b
+
+
+def test_Dattr():
+
+    v = Quantifiable()
+    assert v.getUnit() is None
+    assert v.getTypecode() is None
+    v.setUnit('AA')
+    v.setTypecode('BB')
+    assert v.getUnit() == 'AA'
+    assert v.getTypecode() == 'BB'
+    v = Quantifiable(unit='abc', typecode='string')
+    assert v.getUnit() == 'abc'
+    assert v.getTypecode() == 'string'
+    assert v.unit == 'abc'
+    assert v.typecode == 'string'
+    assert v.getUnit() == 'abc'
+    assert v.getTypecode() == 'string'
+    v = Quantifiable()
+    v.unit = 'CC'
+    v.typecode = 'DD'
+    assert v.getUnit() == 'CC'
+    assert v.getTypecode() == 'DD'
 
 
 def test_NumericParameter():

@@ -33,7 +33,7 @@ or from git repo:
 
    python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/master/fdi-master.tar.gz
 
-If you want to install the ``develop`` and server dependencies:
+If you want to install the ``develop`` dependencies:
 
 .. code-block:: shell
 
@@ -147,7 +147,7 @@ in another window run:
 
            make testpns
 
-To test your ``httppool`` servers installation, in one window, run:
+To test your ``httppool`` servers installation, make sure to stop other server such as ``pnsserver`` above, then in one window, run:
 
 .. code-block:: shell
 
@@ -159,8 +159,65 @@ in another window run:
 
            make testhttp
 
-For More
+Docker Containers
+=================
+
+fdi
+---
+
+Get the ``fdi`` docker with running FDI environment:
+
+.. code-block:: shell
+
+   docker pull mhastro/fdi
+   
+or build the image locally:
+
+.. code-block:: shell
+
+   make build_docker
+
+Launch and login
+
+.. code-block:: shell
+
+   make launch_docker
+   make it
+
+httppool
 --------
+   
+Also available is a ``HttpPool`` server made from Ubuntu and apache:
+
+.. code-block:: shell
+
+   docker pull mhastro/httppool
+   
+To build the image locally:
+
+.. code-block:: shell
+
+   make build_server   
+		
+Launch and connect:
+
+.. code-block:: shell
+
+   make launch_server
+   curl -i http://127.0.0.1:9884/v0.8/
+
+Run the above in the package root directory of fdi. A file named ``.secret`` is needed by the build and launch commands. This is an example::
+
+  HOST_PORT=9884
+  HOST_USER=...
+  HOST_PASS=...
+  MQ_HOST=123.45.67.89
+  MQ_PORT=9876
+  MQ_USER=...
+  MQ_PASS=...
+
+For More
+========
 
 For more  examples see ``tests/test_*.py``.
 

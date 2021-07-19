@@ -17,5 +17,3 @@ logger = logging.getLogger(__name__)
 $MODELSPEC
 
 Model = ReadOnlyDict(_Model_Spec)
-
-

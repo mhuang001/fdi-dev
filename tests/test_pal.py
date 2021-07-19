@@ -61,9 +61,9 @@ else:
 
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
-    from .pycontext import fdi
+    from pycontext import fdi
 
-    from .logdict import logdict
+    from logdict import logdict
     import logging
     import logging.config
     # create logger
@@ -818,9 +818,9 @@ def doquery(poolpath, newpoolpath):
     chk(res[2], rec1[5])
     chk(res[3], rec1[6])
 
-    # all 'time' < 5006. will cause TypeError because some Contex data do not have 'time'
+    # all 'time' < 5006. will cause KeyError because some Contex data do not have 'time'
     q = MetaQuery(Context, 'm["time"] < 5006')
-    with pytest.raises(TypeError):
+    with pytest.raises(KeyError):
         res = pstore.select(q)
 
     # all 'time' < 5006 mapcontext. all in newpool

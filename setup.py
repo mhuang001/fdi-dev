@@ -40,15 +40,15 @@ setup(
     ],
     entry_points={'console_scripts': [
         'yaml2python=fdi.dataset.yaml2python:main']},
-    setup_requires=['pytest-runner'],
+    setup_requires=[],
     tests_require=['pytest', 'pytest-cov', ],
     extras_require={
         'DEV': [
             'setuptools>=43.0.0',
+            'wheel>=0.32.1',
             'pytest>=5.4.1',
             'pytest-cov',
             'aiohttp>=3.6.2',
-            'nox>=2019.11.9',
         ],
         'SERV': [
             'Flask_HTTPAuth>=3.3.0',

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from fdi.utils.leapseconds import utc_to_tai, tai_to_utc, dTAI_UTC_from_utc, _fallback
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.metadata import make_jsonable
+from fdi.dataset.finetime import FineTime
 from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.deserialize import Class_Look_Up
 from fdi.dataset.testproducts import get_sample_product
@@ -15,6 +17,7 @@ from fdi.utils.fetch import fetch
 
 import traceback
 import copy
+from datetime import timezone, timedelta, datetime
 import sys
 import os
 import os.path
@@ -34,9 +37,9 @@ else:
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
 
-    from .pycontext import fdi
+    from pycontext import fdi
 
-    from .logdict import logdict
+    from logdict import logdict
     import logging
     import logging.config
     # create logger
@@ -120,60 +123,74 @@ def test_fetch():
     v, s = fetch(["description"], p)
     assert v == p.description
     assert s == '.description'
-    # metadata
-    e = p.meta['extra']
-    v, s = fetch(["meta", "extra"], p)
-    assert v == p.meta['extra']
-    assert s == '.meta["extra"]'
-    # parameter
-    v, s = fetch(["meta", "extra", "unit"], p)
-    assert v == 'meter'
-    assert v == p.meta['extra'].unit
-    assert s == '.meta["extra"].unit'
+    # metadatax
+    with pytest.raises(KeyError):
+        e = p.meta['extra']
 
-    v, s = fetch(["meta", "extra", "value"], p)
+    e = p.meta['speed']
+    v, s = fetch(["meta", "speed"], p)
+    assert v == p.meta['speed']
+    assert s == '.meta["speed"]'
+    # parameter
+    v, s = fetch(["meta", "speed", "unit"], p)
+    assert v == 'meter'
+    assert v == p.meta['speed'].unit
+    assert s == '.meta["speed"].unit'
+
+    v, s = fetch(["meta", "speed", "value"], p)
     assert v == Vector((1.1, 2.2, 3.3))
-    assert v == p.meta['extra'].value
-    assert s == '.meta["extra"].value'
-    v, s = fetch(["meta", "extra", "valid"], p)
+    assert v == p.meta['speed'].value
+    assert s == '.meta["speed"].value'
+    v, s = fetch(["meta", "speed", "valid"], p)
     mkj = make_jsonable({(1, 22): 'normal', (30, 33): 'fast'})
     assert v == mkj
-    assert v == make_jsonable(p.meta['extra'].valid)
-    assert s == '.meta["extra"].valid'
+    assert v == make_jsonable(p.meta['speed'].valid)
+    assert s == '.meta["speed"].valid'
     # TODO written is string
     # [[[1, 22], 'normal'], [[30, 33], 'fast']]
-    v, s = fetch(["meta", "extra", "valid", 0, 1], p)
+    v, s = fetch(["meta", "speed", "valid", 0, 1], p)
     assert v == 'normal'
-    assert v == p.meta['extra'].valid[0][1]
-    assert s == '.meta["extra"].valid[0][1]'
+    assert v == p.meta['speed'].valid[0][1]
+    assert s == '.meta["speed"].valid[0][1]'
     #
     # validate execution
-    v, s = fetch(["meta", "extra", "isValid", ], p)
+    v, s = fetch(["meta", "speed", "isValid", ], p)
     assert v == True
-    assert v == p.meta['extra'].isValid()
-    assert s == '.meta["extra"].isValid()'
-    # datasets
-    v, s = fetch(["arraydset 1", "unit"], p)
-    assert v == 'ev'
-    assert v == p['arraydset 1'].unit
-    assert s == '["arraydset 1"].unit'
+    assert v == p.meta['speed'].isValid()
+    assert s == '.meta["speed"].isValid()'
 
-    v, s = fetch(["arraydset 1", "data"], p)
-    assert v == [768, 4.4, 5.4E3]
-    assert v == p['arraydset 1'].data
-    assert s == '["arraydset 1"].data'
+    # datasets
+    #
+    v, s = fetch(["Temperature", "unit"], p)
+    assert v == 'C'
+    assert v == p['Temperature'].unit
+    assert s == '["Temperature"].unit'
+
+    v, s = fetch(["Temperature", "data"], p)
+    assert v == [768, 767, 766, 4.4, 4.5, 4.6, 5.4E3]
+    assert v == p['Temperature'].data
+    assert s == '["Temperature"].data'
+
+    # dataset has a parameter
+    v, s = fetch(["Temperature", "T0", "tai"], p)
+    assert v == FineTime('2020-02-02T20:20:20.0202').tai
+
+    # a 2D array dataset in compositedataset 'results'
+    v, s = fetch(["results", 'calibration', "unit"], p)
+    assert v == 'count'
+    assert v == p['results']['calibration'].unit
+    assert s == '["results"]["calibration"].unit'
 
     # data of a column in tabledataset within compositedataset
-    v, s = fetch(["results", "energy_table", "Energy", "data"], p)
-    t = [x * 1.0 for x in range(5)]
+    v, s = fetch(["results", "Time_Energy_Pos", "Energy", "data"], p)
+    t = [x * 1.0 for x in range(9)]
     assert v == [2 * x + 100 for x in t]
-    assert v == p['results']['energy_table']['Energy'].data
-    assert s == '["results"]["energy_table"]["Energy"].data'
-    # another dataset in compositedataset 'results'
-    v, s = fetch(["results", 'calibration_arraydset', "unit"], p)
-    assert v == 'count'
-    assert v == p['results']['calibration_arraydset'].unit
-    assert s == '["results"]["calibration_arraydset"].unit'
+    assert v == p['results']['Time_Energy_Pos']['Energy'].data
+    assert s == '["results"]["Time_Energy_Pos"]["Energy"].data'
+    ys, s = fetch(["results", "Time_Energy_Pos", "y"], p)
+    zs, s = fetch(["results", "Time_Energy_Pos", "z"], p)
+    # y^2 + z^2 = 100 for all t
+    assert all((y*y + z*z - 100) < 1e-5 for y, z in zip(ys.data, zs.data))
 
 
 def test_loadcsv():
@@ -345,5 +362,25 @@ def test_getConfig_conf(getConfig):
     os.environ['CONF_DIR'] = cp
     check_conf(cp, typ, getConfig)
     # non-existing. the file has been deleted by the check_conf in the last line
-    with pytest.raises(FileNotFoundError):
-        w = getConfig(conf=typ)
+    w = getConfig(conf=typ)
+
+
+def test_leapseconds():
+    t0 = datetime(2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
+    assert dTAI_UTC_from_utc(t0) == timedelta(seconds=37)
+    # the above just means ...
+    assert utc_to_tai(t0) - t0 == timedelta(seconds=37)
+    t1 = datetime(1972, 1, 1, 0, 0, 0, 000000, tzinfo=timezone.utc)
+    assert dTAI_UTC_from_utc(t1) == timedelta(seconds=10)
+    t2 = datetime(1970, 1, 1, 0, 0, 0, 000000, tzinfo=timezone.utc)
+    # interpolation not implemented
+    assert dTAI_UTC_from_utc(t2) == timedelta(seconds=4.213170)
+    t3 = datetime(1968, 2, 1, 0, 0, 0, 000000, tzinfo=timezone.utc)
+    assert dTAI_UTC_from_utc(t2) == timedelta(seconds=4.213170)
+    t1958 = datetime(1958, 1, 1, 0, 0, 0, 0, tzinfo=timezone.utc)
+    assert dTAI_UTC_from_utc(t1958) == timedelta(seconds=0)
+    # leap seconds is added on transition
+    t4 = datetime(2017, 1, 1, 0, 0, 0, 000000, tzinfo=timezone.utc)
+    assert utc_to_tai(t4) - utc_to_tai(t4 - timedelta(seconds=1)) == \
+        timedelta(seconds=2)
+    print(_fallback.cache_info())

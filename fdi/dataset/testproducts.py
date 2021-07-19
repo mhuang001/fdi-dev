@@ -1,6 +1,7 @@
 from fdi.dataset.product import _Model_Spec as PPI
 from .product import Product
 from .numericparameter import NumericParameter
+from .dateparameter import DateParameter
 from .stringparameter import StringParameter
 from .datatypes import Vector
 from .dataset import CompositeDataset
@@ -10,6 +11,8 @@ from ..pal.context import Context, MapContext
 from .finetime import FineTime
 
 import copy
+from math import sin, cos
+from os import path as op
 
 
 class TP(Product):
@@ -62,38 +65,79 @@ class SP(Product):
 
 def get_sample_product():
     """
+    A complex product as a reference for testing and demo.
+
+    ```
+    prodx --+-- meta --+-- speed
+            |
+            +-- Temperature -+-- data=[768, ...] , unit=C
+            |                |
+            |                +-- meta --+-- T0
+            |
+            +-- results --+-- calibration -- data=[[109..]], unit=count
+                          |
+                          +-- Time_Energy_Pos --+-- Time   : data=[...]
+                          |                     +-- Energy : data=[...]
+                          |                     +-- y      : data=[...]
+                          |                     +-- z      : data=[...]
+                          |
+                          +-- Image -- data = b'\87PNG', content='Content-type: image/png'
+    ```
+
     """
+    prodx = Product('A complex product')
+    prodx.creator = 'Frankenstein'
+    # add a parameter with validity descriptors to the product
+    prodx.meta['speed'] = NumericParameter(
+        description='an extra param',
+        value=Vector((1.1, 2.2, 3.3)),
+        valid={(1, 22): 'normal', (30, 33): 'fast'}, unit='meter')
+
+    # an arraydsets
+    a1 = [768, 767, 766, 4.4, 4.5, 4.6, 5.4E3]
+    a2 = 'C'
+    a3 = 'Temperature'
+    a4 = ArrayDataset(data=a1, unit=a2, description='An Array')
+    # metadata to the dataset
+    a11 = 'T0'
+    a12 = DateParameter('2020-02-02T20:20:20.0202',
+                        description='meta of composite')
+    # This is not the best as a4.T0 does not exist
+    # a4.meta[a11] = a12
+    # this does it a4.T0 = a12 or:
+    setattr(a4, a11, a12)
+    # put the arraydataset to the product with a name a3.
+    prodx[a3] = a4
+
     compo = CompositeDataset()
-    # two arraydsets
-    a1 = [768, 4.4, 5.4E3]
-    a2 = 'ev'
-    a3 = 'arraydset 1'
-    a4 = ArrayDataset(data=a1, unit=a2, description=a3)
-    a5, a6, a7 = [[1.09, 289], [3455, 564]
-                  ], 'count', 'background -- arraydset in compo'
-    a8 = ArrayDataset(data=a5, unit=a6, description=a7)
-    a10 = 'calibration_arraydset'
+    prodx['results'] = compo
+    a5 = [[109, 289, 9], [88, 3455, 564]]
+    a8 = ArrayDataset(data=a5, unit='count', description='array in composite')
+    a10 = 'calibration'
+    # put the dataset to the compositedataset. here set() api is used
     compo.set(a10, a8)
     # a tabledataset
     ELECTRON_VOLTS = 'eV'
     SECONDS = 'sec'
-    t = [x * 1.0 for x in range(5)]
+    METERS = 'm'
+    t = [x * 1.0 for x in range(9)]
     e = [2 * x + 100 for x in t]
-    x = TableDataset(description="Example table")
+    y = [10 * sin(x*2*3.14/len(t)) for x in t]
+    z = [10 * cos(x*2*3.14/len(t)) for x in t]
+    x = TableDataset(description="A table")
     x["Time"] = Column(data=t, unit=SECONDS)
     x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+    x["y"] = Column(data=y, unit=METERS)
+    x["z"] = Column(data=z, unit=METERS)
     # set a tabledataset ans an arraydset, with a parameter in metadata
-    a13 = 'energy_table'
-    # metadata to the dataset
-    compo[a13] = x
-    a11 = 'm1'
-    a12 = StringParameter('EX')
-    compo.meta[a11] = a12
+    compo['Time_Energy_Pos'] = x
 
-    prodx = Product('complex prod')
-    prodx.meta['extra'] = NumericParameter(description='a different param in metadata',
-                                           value=Vector((1.1, 2.2, 3.3)), valid={(1, 22): 'normal', (30, 33): 'fast'}, unit='meter')
-    prodx[a3] = a4
-    prodx['results'] = compo
+    # an image
+    fname = 'imageBlue.png'
+    with open(op.abspath(op.dirname(__file__))+'/resources/'+fname, 'rb') as f:
+        image = ArrayDataset(data=f.read(), description='An image in an array')
+    image.file = fname
+    image.content = 'Content-type: image/png'
+    prodx['Image'] = image
 
     return prodx

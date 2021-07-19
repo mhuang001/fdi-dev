@@ -45,7 +45,7 @@ from fdi.dataset.history import History
 from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
 from fdi.dataset.readonlydict import ReadOnlyDict
-from fdi.dataset.testproducts import SP
+from fdi.dataset.testproducts import SP, get_sample_product
 from fdi.utils.checkjson import checkjson
 
 # import __builtins__
@@ -70,15 +70,15 @@ else:
 
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
-    from .pycontext import fdi
+    from pycontext import fdi
 
-    from .outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
+    from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
 
     import logging
     import logging.config
     # create logger
     if 1:
-        from .logdict import logdict
+        from logdict import logdict
         logging.config.dictConfig(logdict)
     else:
         logging.basicConfig(level=logging.DEBUG,
@@ -1132,6 +1132,24 @@ def test_Attributable():
     v = Attributable(meta=a1)
     assert v.getMeta() == a1
 
+    # non-MDP attributable
+    a3 = 'Temperature'
+    a4 = ArrayDataset(data=[1, 2], unit='C', description='An Array')
+    # metadata to the dataset
+    a11 = 'T0'
+    a12 = DateParameter('2020-02-02T20:20:20.0202',
+                        description='meta of composite')
+    # This is not the best as a4.T0 does not exist
+    a4.meta[a11] = a12
+    with pytest.raises(AttributeError):
+        assert a4.T0 == a12.value
+    # this does it
+    setattr(a4, a11, a12)
+    assert a4.T0 == a12.value
+    # or
+    a4.T0a = a12
+    assert a4.T0a == a12.value
+
     checkgeneral(v)
 
 
@@ -1233,13 +1251,19 @@ def do_ArrayDataset_init(atype):
     assert v.unit == a2
     assert v.description == a3
     assert v.typecode == a6
-    assert v.shape == a7
+    assert v.shape == (len(a1),)
     v = ArrayDataset(data=a1)
     assert v.data == a1
     assert v.unit is None
     assert v.description == 'UNKNOWN'
     assert v.typecode == 'UNKNOWN'
-    assert v.shape == ()
+    assert v.shape == (len(a1),)
+
+    ashape = [[[1], [2]], [[3], [4]], [[5], [6]]]
+    v2 = ArrayDataset(data=ashape)
+    assert v2.shape == (3, 2, 1)
+    v2 = ArrayDataset(data=['poi'])
+    assert v2.shape == (1,)
 
     # omit the parameter names when instantiating, the orders are data, unit, description
     v2 = ArrayDataset(a1)
@@ -1533,6 +1557,7 @@ def test_TableDataset_func_row():
     assert v.removeRow(1) == [c1.data[1], c2.data[1]]
     assert v.rowCount == 4
     assert cc.pop(1) == c1.data[1]
+    cc.updateShape()  # not done automatically
     assert v['col3'] == cc
     # read rowa with slice
     s = v.getRow(slice(1, 3))
@@ -1543,6 +1568,7 @@ def test_TableDataset_func_row():
     assert v.removeRow(slice(1, 3)) == [[3.3, 6.6], [4.4, 8.8]]
     assert v.rowCount == 2
     del cc[1:3]
+    cc.updateShape()  # not done automatically
     assert v['col3'] == cc
     # acess rows
 
@@ -2124,7 +2150,9 @@ def test_FineTime():
     # at TAI = 1, UTC ...
     v = FineTime(1)
     assert v.toDatetime().microsecond == 1
-
+    # from string
+    v = FineTime('1990-09-09T12:34:56.789098 UTC')
+    print(v)
     # comparison
     v1 = FineTime(12345678901234)
     v2 = FineTime(12345678901234)
@@ -2246,6 +2274,13 @@ def test_FineTimes_toString():
         assert ts == out_FineTime
 
 
+def test_get_sample_product():
+    v = get_sample_product()
+    assert v['Image'].data[1:4] == b'PNG'
+    checkjson(v)
+    checkgeneral(v)
+
+
 def test_History():
     v = History()
     checkjson(v)
@@ -2316,8 +2351,8 @@ def test_BaseProduct():
     assert x.creator == a1
 
     # normal metadata
-    # if the attitute does not exist, return None. This is an OrderedDict behavior.
-    assert x.meta['notthere'] is None
+    with pytest.raises(KeyError):
+        x.meta['notthere']
 
     # test comparison:
     p1 = BaseProduct(description="oDescription")

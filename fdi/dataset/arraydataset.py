@@ -5,7 +5,7 @@ from .typed import Typed
 from .typecoded import Typecoded
 from .listener import ColumnListener
 from .ndprint import ndprint
-from ..utils.common import mstr, bstr, lls, exprstrs
+from ..utils.common import mstr, bstr, lls, exprstrs, findShape
 from .dataset import GenericDataset
 try:
     from .arraydataset_datamodel import Model
@@ -43,12 +43,14 @@ class ArrayDataset(GenericDataset, Iterable):
         """ Initializes an ArrayDataset.
 
         Default ```None``` will initialize MetaData Parameters to their default values.
+        If ``data`` is not None and has shape (``len`` applies), ``shape`` MDP is set to the actual ``data`` shape. If ``data`` is not given but ``shape`` is given, ``shape`` MDP is set to ``shape``.
         """
 
         # collect MDPs from args-turned-local-variables.
         metasToBeInstalled = OrderedDict(
             itertools.filterfalse(
-                lambda x: x[0] in ('self', '__class__', 'zInfo', 'kwds'),
+                lambda x: x[0] in ('self', '__class__',
+                                   'zInfo', 'kwds', 'shape'),
                 locals().items())
         )
 
@@ -58,9 +60,10 @@ class ArrayDataset(GenericDataset, Iterable):
 
         # print('@1 zInfo', id(self.zInfo['metadata']), id(self), id(self.zInfo),
         #      self.zInfo['metadata']['version'], list(metasToBeInstalled.keys()))
-
         # must be the first line to initiate meta
         super().__init__(zInfo=zInfo, **metasToBeInstalled, **kwds)
+        dshape = findShape(data)
+        self.shape = dshape if dshape else shape
 
     # def getData(self):
     #     """ Optimized """
@@ -72,12 +75,20 @@ class ArrayDataset(GenericDataset, Iterable):
         isitr = hasattr(data, '__iter__')  # and hasattr(data, '__next__')
         if not isitr and data is not None:
             # dataWrapper initializes data as None
-            m = 'data in ArrayDataset must be a subclass of Sequence: ' + \
+            m = 'data in ArrayDataset must be an iterator, not ' + \
                 data.__class__.__name__
             raise TypeError(m)
         d = None if data is None else \
             data if hasattr(data, '__getitem__') else list(data)
+        # no passive shape-updating. no
+        self.shape = findShape(d)
         super(ArrayDataset, self).setData(d)
+
+    def updateShape(self):
+
+        shape = findShape(self.data)
+        self.shape = shape
+        return shape
 
     def __setitem__(self, *args, **kwargs):
         """ sets value at key.

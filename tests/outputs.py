@@ -227,14 +227,14 @@ meta= {
 ===============  ====================  ======  ========  ====================  =================  ======  =====================
 name             value                 unit    type      valid                 default            code    description
 ===============  ====================  ======  ========  ====================  =================  ======  =====================
+shape            (2, 3, 4, 5)                  tuple     None                  ()                         Number of elements in
+                                                                                                           each dimension. Quic
+                                                                                                          k changers to the rig
+                                                                                                          ht.
 description      toString tester AD            string    None                  UNKNOWN            B       Description of this d
                                                                                                           ataset
 unit             lyr                           string    None                  None               B       Unit of every element
                                                                                                           .
-shape            ()                            tuple     None                  ()                         Number of elements in
-                                                                                                           each dimension. Quic
-                                                                                                          k changers to the rig
-                                                                                                          ht.
 typecode         UNKNOWN                       string    None                  UNKNOWN            B       Python internal stora
                                                                                                           ge code.
 version          0.1                           string    None                  0.1                B       Version of dataset
@@ -302,15 +302,15 @@ ArrayDataset-dataset =
 level 1
 === ArrayDataset () ===
 meta= {
---------------------------  --------------------------  ----------------
-description= toString test  unit= lyr                   shape= ()
-er AD
-typecode= UNKNOWN           version= 0.1                FORMATV= 1.6.0.1
-a= 3.4                      b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
-                            .456789
-                            1929229360456789)
-d= off (0b00)               added_parameter= 42
---------------------------  --------------------------  ----------------
+-------------------  --------------------------  ----------------
+shape= (2, 3, 4, 5)  description= toString test  unit= lyr
+                     er AD
+typecode= UNKNOWN    version= 0.1                FORMATV= 1.6.0.1
+a= 3.4               b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
+                     .456789
+                     1929229360456789)
+d= off (0b00)        added_parameter= 42
+-------------------  --------------------------  ----------------
 MetaData-listeners = ListnerSet{}
 }
 ArrayDataset-dataset =
@@ -358,10 +358,10 @@ ArrayDataset-dataset =
 
 
 level 2, repr
-ArrayDataset(description=toString tester AD, unit=lyr, a=3.4, b=xy (FineTime(2019-02-19T01:02:03.456789)), c=Invalid (IJK), d=off (0b00), added_parameter=42. data= [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]])
+ArrayDataset(shape=(2, 3, 4, 5), description=toString tester AD, unit=lyr, a=3.4, b=xy (FineTime(2019-02-19T01:02:03.456789)), c=Invalid (IJK), d=off (0b00), added_parameter=42. data= [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]])
 
 an empty meta and long data level 2: 
-ArrayDataset(Default Meta. data= [8, 8, 8, 8, 8, 8, 8, 8])
+ArrayDataset(shape=(8,). data= [8, 8, 8, 8, 8, 8, 8, 8])
 
 """
 out_TableDataset = """
@@ -427,7 +427,7 @@ TableDataset-dataset =
 
 
 level 2, repr
-TableDataset(a=3.4, b=xy (FineTime(2019-02-19T01:02:03.456789)), c=Invalid (IJK), d=off (0b00), added_parameter=42.data= {"col1": Column(description=1, unit=eV. data= [1, 4.4, 5400.0]), "col2": Column(description=2, unit=cnt. data= [0, 43.2, 2000.0])})
+TableDataset(a=3.4, b=xy (FineTime(2019-02-19T01:02:03.456789)), c=Invalid (IJK), d=off (0b00), added_parameter=42.data= {"col1": Column(shape=(3,), description=1, unit=eV. data= [1, 4.4, 5400.0]), "col2": Column(shape=(3,), description=2, unit=cnt. data= [0, 43.2, 2000.0])})
 
 an empty level 2: 
 TableDataset(Default Meta.data= {})
@@ -463,14 +463,14 @@ meta= {
 ===========  ===========  ======  ======  =======  =========  ======  =====================
 name         value        unit    type    valid    default    code    description
 ===========  ===========  ======  ======  =======  =========  ======  =====================
+shape        (3,)                 tuple   None     ()                 Number of elements in
+                                                                       each dimension. Quic
+                                                                      k changers to the rig
+                                                                      ht.
 description  arraydset 1          string  None     UNKNOWN    B       Description of this d
                                                                       ataset
 unit         ev                   string  None     None       B       Unit of every element
                                                                       .
-shape        ()                   tuple   None     ()                 Number of elements in
-                                                                       each dimension. Quic
-                                                                      k changers to the rig
-                                                                      ht.
 typecode     UNKNOWN              string  None     UNKNOWN    B       Python internal stora
                                                                       ge code.
 version      0.1                  string  None     0.1        B       Version of dataset
@@ -519,10 +519,10 @@ MetaData-listeners = ListnerSet{}
 CompositeDataset-datasets =
 <ODict  === ArrayDataset () ===
 meta= {
-------------------------  ------------  ----------------
-description= arraydset 1  unit= ev      shape= ()
-typecode= UNKNOWN         version= 0.1  FORMATV= 1.6.0.1
-------------------------  ------------  ----------------
+-----------------  ------------------------  ----------------
+shape= (3,)        description= arraydset 1  unit= ev
+typecode= UNKNOWN  version= 0.1              FORMATV= 1.6.0.1
+-----------------  ------------------------  ----------------
 MetaData-listeners = ListnerSet{}
 }
 ArrayDataset-dataset =
@@ -550,7 +550,7 @@ TableDataset-dataset =
 meta
 
 CompositeDataset-datasets =
-<ODict  ArrayDataset(description=arraydset 1, unit=ev. data= [768, 4.4, 5400.0]) TableDataset(description=Example table.data= {"Time": Column(unit=sec. data= [0.0, 1.0, 2.0, 3.0, 4.0]), "Energy": Column(unit=eV. data= [100.0, 102.0, 104.0, 106.0, 108.0])})>"""
+<ODict  ArrayDataset(shape=(3,), description=arraydset 1, unit=ev. data= [768, 4.4, 5400.0]) TableDataset(description=Example table.data= {"Time": Column(shape=(5,), unit=sec. data= [0.0, 1.0, 2.0, 3.0, 4.0]), "Energy": Column(shape=(5,), unit=eV. data= [100.0, 102.0, 104.0, 106.0, 108.0])})>"""
 out_FineTime = """toString test
 =========== format: "%Y-%m-%dT%H:%M:%S.%f" =======
 FineTime

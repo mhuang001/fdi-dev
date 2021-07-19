@@ -40,7 +40,8 @@ yamlupgrade:
 .PHONY: runserver runpoolserver reqs install uninstall vtag FORCE \
 	test test1 test2 test3 test4 test5\
 	plots plotall plot_dataset plot_pal plot_pns \
-	docs docs_api docs_plots docs_html
+	docs docs_api docs_plots docs_html \
+	pipfile
 
 # extra option for 'make runserver S=...'
 S	=
@@ -49,6 +50,11 @@ runserver:
 	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
 runpoolserver:
 	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar -v --server=httppool_server $(S)
+
+EXT	=
+PKGS	= requests filelock ruamel.yaml tabulate paho-mqtt
+PKGSDEV	=pytest pytest-cov aiohttp Flask Flask_HTTpAuth
+PKGSDEP	= waitress twine sphinx_rtd_theme sphinx-copybutton
 
 PIPOPT  = --disable-pip-version-check --no-color
 install:
@@ -107,7 +113,7 @@ wheeltest:
 	$(PYEXE) -m pip install $(LOCAL_INDURL) "fdi" && \
 	$(PYEXE) -m pip show fdi && \
 	echo Testing newly installed fdi ... ; \
-	$(PYEXE) -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
+	$(PYEXE) -c 'import sys, fdi.dataset.arraydataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
 	$(PYEXE) -c 'import sys, pkgutil as p; sys.stdout.buffer.write(p.get_data("fdi", "dataset/resources/Product.template")[:100])' && \
 	deactivate
 
@@ -119,7 +125,7 @@ testw:
 	$(PYEXE) -m pip cache remove -q -q -q fdi ;\
 	$(PYEXE) -m pip install $(INDURL) "fdi==1.0.6" && \
 	echo Testing newly installed fdi ... ; \
-	$(PYEXE) -c 'import sys, fdi.dataset.dataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
+	$(PYEXE) -c 'import sys, fdi.dataset.arraydataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
 	deactivate
 
 J_OPTS	= ${JAVA_OPTS} -XX:MaxPermSize=256M -Xmx1024M -DloggerPath=conf/log4j.properties
@@ -232,58 +238,67 @@ docs_html:
 	cd $(SDIR) && make html
 
 ########
-SERVER_NAME        =httppool_server
+DKRREPO	= mhastro
+DOCKER_NAME	= fdi
+DVERS	= v1.3
+SERVER_NAME      =httppool
+SVERS	= v4
 PORT        =9884
 EXTPORT =$(PORT)
-IMAGE_NAME         =mh/httppool_server:v3
 IP_ADDR     =10.0.10.114
-
-DOCKERFILE              =fdi/pns/resources/httppool_server.docker
-
 SECFILE = $${HOME}/.secret
-secret:
-	@echo These have been appended to  $(SECFILE). Edit it. Be careful not to have whitespace. and use as
-	@echo docker build --secret id=envs,src=$(SECFILE)
-	@echo RUN --mount=type=secret,id=envs source /run/secrets/envs
-	@echo docker run --env-file  $(SECFILE)
-	@echo export IP=172.17.0.9 >> $(SECFILE)
-	@echo export HOST_PORT= >> $(SECFILE)
-	@echo export HOST_USER=foo >> $(SECFILE)
-	@echo export HOST_PASS=bar >> $(SECFILE)
-	@echo export MQ_HOST= >> $(SECFILE)
-	@echo export MQ_PORT= >> $(SECFILE)
-	@echo export MQ_USER=  >> $(SECFILE)
-	@echo export MQ_PASS= >> $(SECFILE)
-	@cat  $(SECFILE)
+
+LATEST	=im:latest
+B       =/bin/bash
+
+build_docker:
+	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DVERS) --secret id=envs,src=$(SECFILE) --build-arg fd=$(fd) --build-arg  re=$(re) $(D) --progress=plain .
+	docker tag $(DOCKER_NAME):$(DVERS) $(LATEST)
+
+launch_docker:
+	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(LATEST) $(LAU)
 
 build_server:
-	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME) --secret id=envs,src=$${HOME}/.secret --build-arg fd=$(fd) --build-arg  re=$(re) -f $(DOCKERFILE) $(D) .
+	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SVERS) --secret id=envs,src=$(SECFILE) --build-arg fd=$(fd) --build-arg  re=$(re) -f fdi/pns/resources/httppool_server_2.docker $(D) --progress=plain .
+	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)
 
 launch_server:
-	docker run -d -it --network=bridge --env-file $(SECFILE) --name $(SERVER_NAME) $(D) $(IMAGE_NAME) -p $(PORT):$(EXTPORT) $(B)
+	docker run -dit --network=bridge --env-file $(SECFILE)  -p $(PORT):$(EXTPORT) --name $(SERVER_NAME) $(D) $(LATEST) $(LAU)
 	sleep 2
 	docker ps -n 1
 
-rm_server:
-	docker stop $(SERVER_NAME)  || echo not running
-	docker  rm $(SERVER_NAME)
+rm_docker:
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	if docker stop $$cid; then docker  rm $$cid; else echo NOT running ; fi
 
-rm_serveri:
-	docker stop $(SERVER_NAME)  || echo not running
-	docker  rm $(SERVER_NAME) || echo go on ...
-	docker image rm $(IMAGE_NAME)
+rm_dockeri:
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	if docker stop $$cid; then docker  rm $$cid; else echo NOT running ; fi
+	docker image rm $(LATEST)
 
-B       =/bin/bash
 it:
-	docker exec -it $(D) $(SERVER_NAME) $(B)
-
-its:
-	docker exec -it $(D) $(SERVER_NAME) /bin/bash
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	if [ -z $$cid ]; then echo NOT running ; else \
+	docker exec -it $(D) $$cid $(B); fi
 
 t:
-	docker exec -it $(D) $(SERVER_NAME) /usr/bin/tail -n 100 -f /home/apache/error-ps.log
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	if [ -z $$cid ]; then echo NOT running ; else \
+	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/apache/error-ps.log; fi
 
 i:
-	docker exec -it $(D) $(SERVER_NAME) /usr/bin/less -f /home/apache/error-ps.log
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	if [ -z $$cid ]; then echo NOT running ; else \
+	docker exec -it $(D) $$cid /usr/bin/less -f /home/apache/error-ps.log; fi
 
- 
+push_docker:
+	im=$(DKRREPO)/$(DOCKER_NAME):$(DVERS); \
+	docker tag  $(DOCKER_NAME):$(DVERS) $$im &&\
+	docker push $$im
+
+push_server:
+	im=$(DKRREPO)/$(SERVER_NAME):$(SVERS); \
+	docker tag  $(SERVER_NAME):$(SVERS) $$im &&\
+	docker push $$im
+
+

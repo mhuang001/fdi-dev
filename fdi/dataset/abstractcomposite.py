@@ -20,6 +20,7 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
 
     def __init__(self, **kwds):
         """
+
         Parameters
         ----------
 
@@ -34,10 +35,10 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
                  tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
                  matprint=None, trans=True, beforedata='', **kwds):
         """ matprint: an external matrix print function
-        trans: print 2D matrix transposed. default is True.
+
         Parameters
         ----------
-
+        trans: print 2D matrix transposed. default is True.
         -------
 
         """

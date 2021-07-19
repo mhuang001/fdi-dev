@@ -139,7 +139,7 @@ class SerializableEncoder(json.JSONEncoder):
         Returns
         -------
         """
-    try:
+        try:
             # print('%%%' + str(obj.__class__))
             # Let the base class default method raise the TypeError
             d = json.JSONEncoder.default(self, obj)

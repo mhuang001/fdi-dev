@@ -26,6 +26,7 @@ from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, E
 from fdi.dataset.messagequeue import MqttRelayListener, MqttRelaySender
 from fdi.dataset.composite import Composite
 from fdi.dataset.metadata import Parameter, MetaData, make_jsonable
+from fdi.dataset.metadataholder import MetaDataHolder
 from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.dateparameter import DateParameter
@@ -297,8 +298,7 @@ def test_Annotatable():
 
 
 def test_Dattr():
-    import pdb
-    pdb.set_trace()
+
     v = Quantifiable()
     assert v.getUnit() is None
     assert v.getTypecode() is None
@@ -306,15 +306,14 @@ def test_Dattr():
     v.setTypecode('BB')
     assert v.getUnit() == 'AA'
     assert v.getTypecode() == 'BB'
-    v = Quantifiable(unit = 'abc',typecode = 'string')
-    assert v.getUnit() == 'abc' 
+    v = Quantifiable(unit='abc', typecode='string')
+    assert v.getUnit() == 'abc'
     assert v.getTypecode() == 'string'
     assert v.unit == 'abc'
     assert v.typecode == 'string'
     assert v.getUnit() == 'abc'
     assert v.getTypecode() == 'string'
     v = Quantifiable()
-    import pdb;pdb.set_trace()
     v.unit = 'CC'
     v.typecode = 'DD'
     assert v.getUnit() == 'CC'
@@ -526,8 +525,8 @@ def test_datatypes():
     assert v.getComponents() == [0, 0, 0]
     v = Vector([1, 2.3, 4.5])
     assert v.getComponents() == [1, 2.3, 4.5]
-    v.components =[4,5,6]
-    assert v.components == [4,5,7]
+    v.components = [4, 5, 6]
+    assert v.components == [4, 5, 6]
     checkjson(v)
 
     v = Vector2D()
@@ -1179,7 +1178,8 @@ def test_Attributable():
 
 def test_MetaDataHolder():
     v = MetaDataHolder()
-    assert issubclass(v.getMeta().__class__,MetaData)  # inhrited no argument instanciation
+    # inhrited no argument instanciation
+    assert issubclass(v.getMeta().__class__, MetaData)
     assert v.getMeta().size() == 0
     a1 = MetaData()
     a2 = 'this'
@@ -1188,8 +1188,9 @@ def test_MetaDataHolder():
     v = MetaDataHolder(meta=a1)
     assert v.getMeta() == a1
     assert v.getMeta().size() == 1
-    delattr(v,"_meta")
-    assert v.hasMeta()== False
+    delattr(v, "_meta")
+    assert v.hasMeta() == False
+
 
 def test_DataWrapper():
     a1 = [1, 4.4, 5.4E3]

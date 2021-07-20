@@ -247,6 +247,7 @@ PORT        =9884
 EXTPORT =$(PORT)
 IP_ADDR     =10.0.10.114
 SECFILE = $${HOME}/.secret
+PROJ_DIR=/var/www/httppool_server
 
 LATEST	=im:latest
 B       =/bin/bash
@@ -263,9 +264,15 @@ build_server:
 	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)
 
 launch_server:
-	docker run -dit --network=bridge --env-file $(SECFILE)  -p $(PORT):$(EXTPORT) --name $(SERVER_NAME) $(D) $(LATEST) $(LAU)
+	docker run -dit --network=bridge \
+	--mount source=httppool, target=$(PROJ_DIR)/data \
+	--mount source=logs, target=/var/logs \
+	--env-file $(SECFILE) \
+	-p $(PORT):$(EXTPORT) \
+	--name $(SERVER_NAME) $(D) $(LATEST) $(LAU)
 	sleep 2
 	docker ps -n 1
+	docker inspect $(SERVER_NAME)
 
 rm_docker:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
@@ -300,5 +307,10 @@ push_server:
 	im=$(DKRREPO)/$(SERVER_NAME):$(SVERS); \
 	docker tag  $(SERVER_NAME):$(SVERS) $$im &&\
 	docker push $$im
+
+vol:
+	docker volume create httppool
+	docker volume create logs
+	docker volume inspect httppool logs
 
 

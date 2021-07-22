@@ -2,9 +2,7 @@
 
 id | tee ~/lastent
 echo ######                                                                     
-
 IP=`ifconfig -a | grep "inet" | grep -v 127.0.0.1 | grep -v "inet6" | awk '{print $2}'`
-#HOST_IP=${SERVER_IP_ADDR}
 #HOST_PORT=${SERVER_PORT}
 sudo sed -i "s/<VirtualHost .*:.*$/<VirtualHost \*:$HOST_PORT>/g" /etc/apache2/sites-available/httppool_server.conf
 sudo sed -i "s/ServerName.*$/ServerName $IP/g" /etc/apache2/sites-available/httppool_server.conf
@@ -33,7 +31,7 @@ sed -i "s/^MQPORT =.*$/MQPORT = $MQ_PORT/g" ~/.config/pnslocal.py
 sed -i "s/^MQUSER =.*$/MQUSER = \'$MQ_USER\'/g" ~/.config/pnslocal.py
 sed -i "s/^MQPASS =.*$/MQPASS = \'$MQ_PASS\'/g" ~/.config/pnslocal.py
 
-sed -i "s/^SERVER_POOLPATH =.*$/SERVER_POOLPATH = \'/var/www/httppool_server/data\'/g" ~/.config/pnslocal.py
+sed -i "s|^SERVER_POOLPATH =.*$|SERVER_POOLPATH = \'$SERVER_POOLPATH\'|g" ~/.config/pnslocal.py
 
 sed -i "s/^conf\s*=\s*.*$/conf = 'external'/g" ~/.config/pnslocal.py 
 
@@ -41,6 +39,8 @@ echo =====  .config/pnslocal.py >> ~/lastent
 grep ^conf  ~/.config/pnslocal.py >> ~/lastent
 grep ^EXTHOST  ~/.config/pnslocal.py >> ~/lastent
 grep ^EXTPORT  ~/.config/pnslocal.py >> ~/lastent
+grep ^BASE_POOLPATH  ~/.config/pnslocal.py >> ~/lastent
+grep ^SERVER_POOLPATH  ~/.config/pnslocal.py >> ~/lastent
 
 #service apache2 reload && echo apache2 reloaded
 
@@ -54,7 +54,6 @@ done
 echo enabling site ... >> ~/lastent
 sudo a2ensite httppool_server.conf
 sudo a2dissite 000-default.conf
-#service apache2 reload && echo apache2 reloaded
-echo running apachectl >> ~/lastent  ;
-exec /usr/sbin/apache2ctl -DFOREGROUND 2>&1 >> ~/lastent ;
-fi
+#service apache2 reload && echo apache2 reloaded;
+echo running apachectl in CMD...>> ~/lastent  ;
+/usr/sbin/apache2ctl -DFOREGROUND 2>&1 >> ~/lastent

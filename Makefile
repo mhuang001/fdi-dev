@@ -242,75 +242,32 @@ DKRREPO	= mhastro
 DOCKER_NAME	= fdi
 DVERS	= v1.3
 SERVER_NAME      =httppool
-SVERS	= v4
+SVERS	= v5
 PORT        =9884
 EXTPORT =$(PORT)
 IP_ADDR     =10.0.10.114
 SECFILE = $${HOME}/.secret
-PROJ_DIR=/var/www/httppool_server
+PROJ_DIR	= /var/www/httppool_server
+SERVER_POOLPATH	= $(PROJ_DIR)/data
 
 LATEST	=im:latest
 B       =/bin/bash
 
-build_docker:
-	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DVERS) --secret id=envs,src=$(SECFILE) --build-arg fd=$(fd) --build-arg  re=$(re) $(D) --progress=plain .
-	docker tag $(DOCKER_NAME):$(DVERS) $(LATEST)
-
-launch_docker:
-	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(LATEST) $(LAU)
-
-build_server:
-	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SVERS) --secret id=envs,src=$(SECFILE) --build-arg fd=$(fd) --build-arg  re=$(re) -f fdi/pns/resources/httppool_server_2.docker $(D) --progress=plain .
-	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)
-
-launch_server:
-	docker run -dit --network=bridge \
-	--mount source=httppool, target=$(PROJ_DIR)/data \
-	--mount source=logs, target=/var/logs \
-	--env-file $(SECFILE) \
-	-p $(PORT):$(EXTPORT) \
-	--name $(SERVER_NAME) $(D) $(LATEST) $(LAU)
-	sleep 2
-	docker ps -n 1
-	docker inspect $(SERVER_NAME)
-
-rm_docker:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	if docker stop $$cid; then docker  rm $$cid; else echo NOT running ; fi
-
-rm_dockeri:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	if docker stop $$cid; then docker  rm $$cid; else echo NOT running ; fi
-	docker image rm $(LATEST)
-
-it:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	if [ -z $$cid ]; then echo NOT running ; else \
-	docker exec -it $(D) $$cid $(B); fi
-
-t:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	if [ -z $$cid ]; then echo NOT running ; else \
-	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/apache/error-ps.log; fi
-
-i:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	if [ -z $$cid ]; then echo NOT running ; else \
-	docker exec -it $(D) $$cid /usr/bin/less -f /home/apache/error-ps.log; fi
-
-push_docker:
-	im=$(DKRREPO)/$(DOCKER_NAME):$(DVERS); \
-	docker tag  $(DOCKER_NAME):$(DVERS) $$im &&\
-	docker push $$im
-
-push_server:
-	im=$(DKRREPO)/$(SERVER_NAME):$(SVERS); \
-	docker tag  $(SERVER_NAME):$(SVERS) $$im &&\
-	docker push $$im
-
-vol:
-	docker volume create httppool
-	docker volume create logs
-	docker volume inspect httppool logs
+build_docker \
+launch_docker \
+build_server \
+launch_server \
+rm_docker \
+rm_dockeri \
+it \
+t \
+i \
+push_docker \
+push_server \
+vol \
+backup_server \
+restore_server \
+restore_test:
+	$(MAKE) --no-print-directory -f Makefile_docker.mk -C . $@
 
 

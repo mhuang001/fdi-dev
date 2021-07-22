@@ -73,7 +73,7 @@ class Classes_meta(type):
         """
         super().__init__(*args, **kwds)
 
-    def updateMapping(cls, c=None, rerun=False, exclude=None, ignore_missing=False, verbose=False, ignore_error=False):
+    def updateMapping(cls, c=None, rerun=False, exclude=None, verbose=False, ignore_error=False):
         """ Updates classes mapping.
         Make the package mapping if it has not been made.
         Parameters
@@ -133,38 +133,34 @@ class Classes_meta(type):
             exed = [x for x in class_list if x not in exclude]
             if len(exed) == 0:
                 continue
-            msg = 'importing %s from %s' % (str(class_list), module_name)
-            if verbose:
-                logger.info(msg)
-            else:
-                logger.debug(msg)
+            msg = 'importing %s from %s...' % (str(class_list), module_name)
+
             try:
                 #m = importlib.__import__(module_name, globals(), locals(), class_list)
                 m = importlib.import_module(module_name)
             except SelectiveMetaFinder.ExcludedModule as e:
-                msg = 'Did not import %s. %s' % (str(class_list), str(e))
-                if verbose:
-                    logger.info(msg)
-                else:
-                    logger.debug(msg)
+                msg += ' Did not import %s, as %s' % (str(class_list), str(e))
                 #ety, enm, tb = sys.exc_info()
             except SyntaxError as e:
-                msg = 'Could not import %s. %s' % (str(class_list), str(e))
+                msg += ' Could not import %s, as %s' % (
+                    str(class_list), str(e))
                 logger.error(msg)
                 raise
             except ModuleNotFoundError as e:
-                msg = 'Could not import %s. %s' % (str(class_list), str(e))
+                msg += ' Could not import %s, as %s' % (
+                    str(class_list), str(e))
                 if ignore_error:
-                    if verbose:
-                        logger.info(msg)
-                    else:
-                        logger.debug(msg)
+                    msg += ' Ignored.'
                 else:
                     logger.error(msg)
                     raise
             else:
                 for n in exed:
                     cls._package[n] = getattr(m, n)
+            if verbose:
+                logger.info(msg)
+            else:
+                logger.debug(msg)
 
         return
 
@@ -184,7 +180,7 @@ class Classes_meta(type):
 
     # https://stackoverflow.com/a/1800999
     @property
-    def mapping(cls):
+    def mapping(cls, ignore_error=False):
         """ Returns the dictionary of classes allowed for deserialization, including the fdi built-ins and user added classes.
 
         Will update the classes if the list is empty
@@ -195,13 +191,15 @@ class Classes_meta(type):
         -------
         """
         if len(cls._classes) == 0:
-            cls.updateMapping()
+            return cls.updateMapping(c=None, rerun=False, exclude=None,
+                                     verbose=False, ignore_error=ignore_error)
         return cls._classes
 
     @mapping.setter
     def mapping(cls, c):
         """ Delegated to cls.update...().
         Parameters
+        make PROJ-INSTALL &&\
         ----------
 
         Returns
@@ -213,19 +211,9 @@ class Classes_meta(type):
 
 class Classes(metaclass=Classes_meta):
     """ A dictionary of class names and their class objects that are allowed to be deserialized.
-    A fdi package built-in dictionary (in the format of locals() output) is kept internally.
+
+    An fdi package built-in dictionary (in the format of locals() output) is kept internally.
     Users who need add more deserializable class can for example:
-<<<<<<< HEAD
-    class Myclass():
-        ...
-    Classes.classes.update({myClasses
-    Parameters
-    ----------
-
-    Returns
-    -------
-=======
-
 
     Define new classes
     ``class Myclass():
@@ -268,7 +256,6 @@ class Classes(metaclass=Classes_meta):
 
     new_instance = prjcls['MyClass1']
 
->>>>>>> develop
     """
 
     pass

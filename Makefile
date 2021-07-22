@@ -104,7 +104,7 @@ wheel:
 upload:
 	$(PYEXE) -m twine upload --repository $(PYREPO) dist/*
 
-wheeltest:
+virtest:
 	rm -rf /tmp/fditestvirt
 	virtualenv -p $(PYEXE) /tmp/fditestvirt
 	. /tmp/fditestvirt/bin/activate && \
@@ -115,17 +115,6 @@ wheeltest:
 	echo Testing newly installed fdi ... ; \
 	$(PYEXE) -c 'import sys, fdi.dataset.arraydataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
 	$(PYEXE) -c 'import sys, pkgutil as p; sys.stdout.buffer.write(p.get_data("fdi", "dataset/resources/Product.template")[:100])' && \
-	deactivate
-
-testw:
-	rm -rf /tmp/fditestvirt
-	virtualenv -p $(PYEXE) /tmp/fditestvirt
-	. /tmp/fditestvirt/bin/activate && \
-	$(PYEXE) -m pip uninstall -q -q -y fdi ;\
-	$(PYEXE) -m pip cache remove -q -q -q fdi ;\
-	$(PYEXE) -m pip install $(INDURL) "fdi==1.0.6" && \
-	echo Testing newly installed fdi ... ; \
-	$(PYEXE) -c 'import sys, fdi.dataset.arraydataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
 	deactivate
 
 J_OPTS	= ${JAVA_OPTS} -XX:MaxPermSize=256M -Xmx1024M -DloggerPath=conf/log4j.properties

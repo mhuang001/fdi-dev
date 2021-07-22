@@ -62,22 +62,25 @@ class SelectiveMetaFinder(MetaPathFinder):
             *parents, name = fullname.split(".")
         else:
             name = fullname
-        #print('***', name, path, type(path), SelectiveMetaFinder.exclude)
-        for x in SelectiveMetaFinder.exclude:
-            if x == name:
-                # print('!!!!!!!!!!!!!!!!!!!!!!!')
-                raise(SelectiveMetaFinder.ExcludedModule(
-                    name + ' is excluded from loading.'))
+        #print('***', fullname, name, path, type(path), SelectiveMetaFinder.exclude)
         for entry in path:
             if os.path.isdir(os.path.join(entry, name)):
                 # this module has child modules
                 filename = os.path.join(entry, name, "__init__.py")
                 submodule_locations = [os.path.join(entry, name)]
             else:
+                # this is a module and if the name matches ...
+                if name in SelectiveMetaFinder.exclude:
+                    # print('!!!!!!!!!!!!!!!!!!!!!!!')
+                    raise(SelectiveMetaFinder.ExcludedModule(
+                        name + ' is excluded from loading.'))
                 filename = os.path.join(entry, name + ".py")
                 submodule_locations = None
             if not os.path.exists(filename):
+                logger.debug('Module file not exists. ' + filename)
                 continue
+            logger.debug('Module file found: ' + filename)
+
             loader = MyLoader(filename)
             # print('###', fullname, filename, submodule_locations, loader)
             ret = spec_from_file_location(fullname, filename,
@@ -92,7 +95,7 @@ class SelectiveMetaFinder(MetaPathFinder):
 class MyLoader(Loader):
     def __init__(self, filename):
         self.filename = filename
-        #print('MMM ', filename)
+        logger.debug('Created MyLoader for ' + filename)
 
     def create_module(self, spec):
         return None  # use default module creation semantics
@@ -103,7 +106,8 @@ class MyLoader(Loader):
 
         # manipulate data some way...
         #data += '\nb=42\n'
-        logger.debug(self.filename)
+
+        logger.debug('exec ' + self.filename)
         exec(data, vars(module))
 
 

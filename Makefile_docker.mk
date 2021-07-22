@@ -4,7 +4,7 @@ PYEXE	= python3
 DKRREPO	= mhastro
 DOCKER_NAME	= fdi
 DVERS	= v1.3
-DFILE	=
+DFILE	=dockerfile
 
 SERVER_NAME      =httppool
 SVERS	= v5
@@ -99,7 +99,7 @@ backup_server:
 	echo Backup file: $$f ;\
 	docker run -it --rm \
 	--mount source=httppool,target=$(SERVER_POOLPATH) \
-	--mount source=logs,target=/var/logs \
+	--mount source=log,target=/var/log \
 	--env-file $(SECFILE) \
 	-p 9883:9883 \
 	-a stdin -a stdout \
@@ -114,7 +114,7 @@ else
 	echo Restore from backup file: $(from)
 	cat $(from) | docker run -i --rm \
 	--mount source=httppool,target=$(SERVER_POOLPATH) \
-	--mount source=logs,target=/var/logs \
+	--mount source=log,target=/var/log \
 	--env-file $(SECFILE) \
 	-p 9883:9883 \
 	-a stdin -a stdout \

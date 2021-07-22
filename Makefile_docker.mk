@@ -4,12 +4,16 @@ PYEXE	= python3
 DKRREPO	= mhastro
 DOCKER_NAME	= fdi
 DVERS	= v1.3
+DFILE	=
+
 SERVER_NAME      =httppool
 SVERS	= v5
+SFILE	= fdi/pns/resources/httppool_server.docker
+
 PORT        =9884
+SECFILE = $${HOME}/.secret
 EXTPORT =$(PORT)
 IP_ADDR     =10.0.10.114
-SECFILE = $${HOME}/.secret
 PROJ_DIR	= /var/www/httppool_server
 SERVER_POOLPATH	= $(PROJ_DIR)/data
 
@@ -21,6 +25,7 @@ build_docker:
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
+	-f $(DFILE) \
 	$(D) --progress=plain .
 	docker tag $(DOCKER_NAME):$(DVERS) $(LATEST)
 
@@ -33,7 +38,7 @@ build_server:
 	--build-arg PROJ_DIR=$(PROJ_DIR) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
-	-f fdi/pns/resources/httppool_server.docker \
+	-f $(SFILE) \
 	$(D) --progress=plain .
 	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)
 

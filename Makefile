@@ -238,20 +238,8 @@ docs_html:
 	cd $(SDIR) && make html
 
 ########
-DKRREPO	= mhastro
-DOCKER_NAME	= fdi
-DVERS	= v1.3
-SERVER_NAME      =httppool
-SVERS	= v5
-PORT        =9884
-EXTPORT =$(PORT)
-IP_ADDR     =10.0.10.114
-SECFILE = $${HOME}/.secret
-PROJ_DIR	= /var/www/httppool_server
-SERVER_POOLPATH	= $(PROJ_DIR)/data
-
-LATEST	=im:latest
-B       =/bin/bash
+# docker
+########
 
 build_docker \
 launch_docker \

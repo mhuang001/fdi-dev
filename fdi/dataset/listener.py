@@ -311,24 +311,6 @@ class DatasetEventSender(EventSender):
 
         super(DatasetEventSender, self).__init__(**kwds)
 
-    def addListener(self, listener, cls=DatasetBaseListener):
-        """ Adds a listener to this.
-
-        Paremeters
-        ----------
-
-        Returns
-        -------
-
-        """
-
-    #     super(DatasetEventSender, self).addListener(listener, cls=cls)
-
-    #     return self
-
-    # def fire(self, event):
-    #     super(DatasetEventSender, self).fire(event)
-
 
 EventTypes = [
     # A column has been added to the target TableDataset.

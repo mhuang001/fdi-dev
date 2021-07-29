@@ -129,6 +129,22 @@ api:
 reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
 
+gitadd:
+	git add LICENSE README.rst CHANGELOG.rst setup.py MANIFEST.in \
+	.gitignore noxfile.py Makefile .gitmodules .gitlab-ci.yml \
+	.readthedocs.yml .dockerignore CONTRIBUTORS
+	git add bin/reinstall bin/installpns bin/update
+	git add resources
+	git add fdi/*.py
+	git add fdi/dataset/*.py fdi/dataset/resources
+	git add fdi/pns/*.py fdi/pns/resources
+	git add fdi/pal/*.py fdi/pal/resources
+	git add fdi/utils/*.py
+	git add tests/*.py tests/serv/*.py
+	git add docs/sphinx/index.rst docs/sphinx/usage docs/sphinx/api \
+	docs/sphinx/conf.py docs/sphinx/Makefile \
+	docs/sphinx/_static docs/sphinx/_templates
+
 # update _version.py and tag based on setup.py
 # VERSION	= $(shell $(PYEXE) -S -c "from setuptools_scm import get_version;print(get_version('.'))")
 # @ echo update _version.py and tag to $(VERSION)

@@ -362,7 +362,7 @@ def readyaml(ypath, version=None, verbose=False):
     return desc, fins
 
 
-def output(nm, d, fins, version, verbose):
+def output(nm, d, fins, version, dry_run=False, verbose=False):
     """
     Parameters
     ----------
@@ -373,7 +373,8 @@ def output(nm, d, fins, version, verbose):
     print("Input YAML file is to be renamed to " + fins[nm]+'.old')
     fout = fins[nm]
     print("Output YAML file is "+fout)
-    if 0:
+    if dry_run:
+        print('Dry run.')
         ydump(d, sys.stdout)  # yamlfile)
     else:
         os.rename(fins[nm], fins[nm]+'.old')
@@ -381,12 +382,12 @@ def output(nm, d, fins, version, verbose):
             ydump(d,  yamlfile)
 
 
-def yamlupgrade(descriptors, fins, ypath, version, verbose):
+def yamlupgrade(descriptors, fins, ypath, version, dry_run=False, verbose=False):
     """
     Parameters
     ----------
     :descriptors: a list of nested dicts describing the data model.
-
+    :version: current version. not that in the yaml to be modified.
     Returns
     -------
     """
@@ -441,7 +442,7 @@ def yamlupgrade(descriptors, fins, ypath, version, verbose):
             d['metadata'] = md
             if 'datasets' not in d:
                 d['datasets'] = {}
-            output(nm, d, fins, version, verbose)
+            output(nm, d, fins, version, dry_run=dry_run, verbose=verbose)
     else:
         logger.error('version too old')
         exit(-1)
@@ -556,7 +557,7 @@ if __name__ == '__main__':
     ypath = cwd
     tpath = ''
     opath = ''
-
+    dry_run = False
     ops = [
         {'long': 'help', 'char': 'h', 'default': False, 'description': 'print help'},
         {'long': 'verbose', 'char': 'v', 'default': False,
@@ -573,6 +574,8 @@ if __name__ == '__main__':
          'description': 'Python file name, or a module name,  to import prjcls to update Classes with user-defined classes which YAML file refers to.'},
         {'long': 'upgrade', 'char': 'u', 'default': False,
          'description': 'Upgrade the file to current schema, by yamlupgrade(), to version + ' + version},
+        {'long': 'dry_run', 'char': 'n', 'default': False,
+         'description': 'No writing. Dry run.'},
         {'long': 'debug', 'char': 'd', 'default': False,
          'description': 'run in pdb. type "c" to continuue.'},
     ]
@@ -591,7 +594,8 @@ if __name__ == '__main__':
     cmd_package_name = out[5]['result']
     project_class_path = out[6]['result']
     upgrade = out[7]['result']
-    debug = out[8]['result']
+    dry_run = out[8]['result']
+    debug = out[9]['result']
 
     if debug:
         import pdb
@@ -600,7 +604,8 @@ if __name__ == '__main__':
     # input file
     descriptors, files_imput = readyaml(ypath, version, verbose)
     if upgrade:
-        yamlupgrade(descriptors, files_imput, ypath, version, verbose)
+        yamlupgrade(descriptors, files_imput, ypath, version,
+                    dry_run=dry_run, verbose=verbose)
         sys.exit()
 
     # Do not import modules that are to be generated. Thier source code
@@ -722,54 +727,57 @@ if __name__ == '__main__':
         # keyword argument for __init__
         ls = []
         for x in includingParentsAttributes:
-            arg='typ_' if x == 'type' else x
-            val=default_code['metadata'][x]
+            arg = 'typ_' if x == 'type' else x
+            val = default_code['metadata'][x]
             ls.append(' '*17 + '%s = %s,' % (arg, val))
-        ikwds='\n'.join(ls)
+        ikwds = '\n'.join(ls)
 
         # make class properties
-        properties=make_class_properties(attrs)
+        properties = make_class_properties(attrs)
 
         # make substitution dictionary for Template
-        subs={}
-        subs['WARNING']='# Automatically generated from %s. Do not edit.' % fin
-        subs['MODELNAME']=modelName
+        subs = {}
+        subs['WARNING'] = '# Automatically generated from %s. Do not edit.' % fin
+        subs['MODELNAME'] = modelName
         print('product name: %s' % subs['MODELNAME'])
-        subs['PARENTS']=', '.join(c for c in parentNames if c)
+        subs['PARENTS'] = ', '.join(c for c in parentNames if c)
         print('parent class: %s' % subs['PARENTS'])
-        subs['IMPORTS']=imports
+        subs['IMPORTS'] = imports
         print('import class: %s' % seen)
-        subs['CLASSDOC']=doc
-        subs['MODELSPEC']=modelString
-        subs['INITARGS']=ikwds
+        subs['CLASSDOC'] = doc
+        subs['MODELSPEC'] = modelString
+        subs['INITARGS'] = ikwds
         print('%s=\n%s\n' %
               ('Model Initialization', lls(subs['INITARGS'], 250)))
-        subs['PROPERTIES']=properties
+        subs['PROPERTIES'] = properties
 
         # subtitute the template
         if os.path.exists(os.path.join(tpath, modelName + '.template')):
-            tname=os.path.join(tpath, modelName + '.template')
+            tname = os.path.join(tpath, modelName + '.template')
         elif os.path.exists(os.path.join(tpath, 'template')):
-            tname=os.path.join(tpath, 'template')
+            tname = os.path.join(tpath, 'template')
         else:
             logger.error('Template file not found in %s for %s.' %
                          (tpath, modelName))
             sys.exit(-3)
         with open(tname, encoding='utf-8') as f:
-            t=f.read()
+            t = f.read()
 
-        sp=Template(t).safe_substitute(subs)
+        sp = Template(t).safe_substitute(subs)
         # print(sp)
-        with open(fout, 'w', encoding='utf-8') as f:
-            f.write(sp)
-        print('Done saving ' + fout + '\n' + '='*40)
+        if dry_run:
+            print('Dry-run. Not saving ' + fout + '\n' + '='*40)
+        else:
+            with open(fout, 'w', encoding='utf-8') as f:
+                f.write(sp)
+            print('Done saving ' + fout + '\n' + '='*40)
 
         # import the newly made module to test and, for class generatiom, so the following classes could use it
         importexclude.remove(modulename)
         # importlib.invalidate_caches()
         if cwd not in sys.path:
             sys.path.insert(0, cwd)
-        newp='fresh ' + modelName + ' from ' + modulename + \
+        newp = 'fresh ' + modelName + ' from ' + modulename + \
             '.py of package ' + package_name + ' in ' + opath + '.'
         if modelName.endswith('_DataModel'):
             # the target is `Model`
@@ -777,33 +785,36 @@ if __name__ == '__main__':
         # If the last segment of package_name happens to be a module name in
         # exclude list the following import will be blocked. So lift
         # exclusion temporarily
-        exclude_save=importexclude[:]
+        exclude_save = importexclude[:]
         importexclude.clear()
         try:
-            _o=importlib.import_module(
+            _o = importlib.import_module(
                 package_name + '.' + modulename, package_name)
-            glb[modelName]=getattr(_o, modelName)
+            glb[modelName] = getattr(_o, modelName)
         except Exception as e:
             print('Unable to import ' + newp)
             raise(e)
         importexclude.extend(exclude_save)
         print('Imported ' + newp)
         # Instantiate and dump metadata in text format
-        prod=glb[modelName]()
-        fg={'name': 15, 'value': 18, 'unit': 7, 'type': 8,
+        prod = glb[modelName]()
+        fg = {'name': 15, 'value': 18, 'unit': 7, 'type': 8,
               'valid': 26, 'default': 18, 'code': 4, 'description': 25}
-        sp=prod.meta.toString(tablefmt='fancy_grid', param_widths=fg)
+        sp = prod.meta.toString(tablefmt='fancy_grid', param_widths=fg)
 
-        mout=pathjoin(ypath, modelName + '.txt')
-        with open(mout, 'w', encoding='utf-8') as f:
-            f.write(sp)
-        print('Done dumping ' + mout + '\n' + '*'*40)
+        mout = pathjoin(ypath, modelName + '.txt')
+        if dry_run:
+            print('Dry-run. Not dumping ' + mout + '\n' + '*'*40)
+        else:
+            with open(mout, 'w', encoding='utf-8') as f:
+                f.write(sp)
+            print('Done dumping ' + mout + '\n' + '*'*40)
 
         if len(importexclude) == 0:
             exit(0)
 
         Classes.updateMapping(c=importinclude, exclude=importexclude)
-        glb=Classes.mapping
+        glb = Classes.mapping
 
     if len(skipped):
         print('!!!!!!!!!!! Skipped: %s possiblly due to unresolved dependencies. Try re-running.   !!!!!!!!!!!' % str(skipped))

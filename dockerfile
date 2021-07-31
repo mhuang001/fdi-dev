@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.2
 
 FROM ubuntu:18.04 AS fdi
-LABEL fdi 1.6
+LABEL fdi 1.5
 # 1-1.3 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive

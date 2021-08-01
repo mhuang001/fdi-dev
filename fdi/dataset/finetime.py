@@ -27,7 +27,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
     It has better resolution(microseconds)
     Time differences are correct across leap seconds
-    It is immutable
+    It is immutable.
     """
     """ Te starting date in UTC """
     EPOCH = datetime.datetime(1958, 1, 1, 0, 0, 0, tzinfo=utcobj)
@@ -47,7 +47,10 @@ class FineTime(Copyable, DeepEqual, Serializable):
     TIMESPEC = 'microseconds'
 
     def __init__(self, date=None, format=None, **kwds):
-        """ Initiate with a UTC date or an integer TAI"""
+        """ Initiate with a UTC date or an integer TAI.
+
+        date; time to be set to. Acceptable types: `int` for TAI, `datetime.datetime`, `string` for ISO format date-time, or bytes-like classed that can get string by calling its `decode(encoding='utf-8')`
+        """
 
         self.format = FineTime.DEFAULT_FORMAT if format is None else format
         self.setTime(date)
@@ -86,8 +89,16 @@ class FineTime(Copyable, DeepEqual, Serializable):
             else:
                 d = time
             setTai = self.datetimeToFineTime(d)
-        elif issubclass(time.__class__, str):
-            t = time.strip()
+        else:
+            if issubclass(time.__class__, (str)):
+                t = time.strip()
+            else:
+                try:
+                    t = time.decode(encoding='utf-8')
+                except AttributeError:
+                    msg = ('%s must be an integer, a datetime object, or a string or a bytes-like, but its type is %s.' % (
+                        str(time), type(time).__name__))
+                    raise TypeError(msg)
             try:
                 d = datetime.datetime.strptime(t, self.format)
             except ValueError:
@@ -106,9 +117,6 @@ class FineTime(Copyable, DeepEqual, Serializable):
                         t.rsplit(' ', 1)[0], self.format)
             d1 = d.replace(tzinfo=datetime.timezone.utc)
             setTai = self.datetimeToFineTime(d1)
-        else:
-            raise TypeError('%s must be an integer, a datetime object, or a string, but its type is %s.' % (
-                str(time), type(time).__name__))
         try:
             if setTai and self.tai:
                 raise TypeError(

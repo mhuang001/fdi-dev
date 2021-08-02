@@ -14,12 +14,14 @@ from fdi.utils import moduleloader
 from fdi.utils.common import fullname
 from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
+from fdi.utils.loadfiles import loadMedia
 
 import traceback
 import copy
 from datetime import timezone, timedelta, datetime
 import sys
 import os
+import hashlib
 import os.path
 import pytest
 
@@ -244,6 +246,17 @@ def test_loadcsv():
     assert v[0] == ('as', ['m', 1.0], 'A')
     assert v[1] == ('if', ['0.2', 2.0], 'B')
     assert v[2] == ('...', ['ev', 3000.], 'R')
+
+
+def test_loadMedia():
+    fname = 'bug.gif'
+    fname = os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                                      'resources'), fname)
+    image = loadMedia(fname, 'image/gif')
+    ho = hashlib.md5()
+    ho.update(image.data)
+    md5 = ho.hexdigest()
+    assert md5 == '57bbbd6f8cdeafe6dc617f8969448e3b'
 
 
 def test_moduleloader():

@@ -200,7 +200,9 @@ class ArrayDataset(GenericDataset, Iterable):
 
 
 class Column(ArrayDataset, ColumnListener):
-    """ A Column is a the vertical cut of a table for which all cells have the same signature. It contains raw ArrayData, and optionally a description and unit.
+    """ A Column is a the vertical cut of a table for which all cells have the same signature.
+
+    A Column contains raw ArrayData, and optionally a description and unit.
     example::
 
       table = TableDataset()
@@ -208,4 +210,17 @@ class Column(ArrayDataset, ColumnListener):
     """
 
     def __init__(self,  *args, typ_='Column', **kwds):
+        super().__init__(*args, typ_=typ_, **kwds)
+
+
+class MediaWrapper(ArrayDataset):
+    """ A MediaWrapper contains raw, usually binary, data in specific format.
+
+    """
+
+    def __init__(self,  *args, typ_='image/png', **kwds):
+        """ Initializes media data wrapped in ArrayDataset.
+
+        typ_: www style string that follows `Content-Type: `. Default is `imagw/png`.
+        """
         super().__init__(*args, typ_=typ_, **kwds)

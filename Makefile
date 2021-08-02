@@ -140,7 +140,7 @@ gitadd:
 	git add fdi/pns/*.py fdi/pns/resources
 	git add fdi/pal/*.py fdi/pal/resources
 	git add fdi/utils/*.py
-	git add tests/*.py tests/serv/*.py
+	git add tests/*.py tests/resources tests/serv/*.py tests/serv/resources
 	git add docs/sphinx/index.rst docs/sphinx/usage docs/sphinx/api \
 	docs/sphinx/conf.py docs/sphinx/Makefile \
 	docs/sphinx/_static docs/sphinx/_templates

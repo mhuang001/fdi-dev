@@ -85,7 +85,9 @@ def getConfig(name=None, conf='pns'):
             e) + '. Use default config in the package, such as fdi/pns/config.py. Copy it to ~/.config/[package]local.py and make persistent customization there.')
 
     if name:
-        urlof = vars(c)['poolurl_of']
+        __import__('pdb').set_trace()
+
+        urlof = vars(module)['poolurl_of']
         if name in urlof:
             return urlof[name]
         else:

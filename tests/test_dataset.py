@@ -1158,6 +1158,13 @@ def test_Attributable():
     v = Attributable(meta=a1)
     assert v.getMeta() == a1
 
+    # MDP attributable
+    v = ArrayDataset(data=[1, 2], unit='C')
+    v.meta['description'] == 'UNKNOWN'
+    x = ('name', [3, 2, 1], 'm')
+    v = Column(data=x[1], unit=x[2])
+    v.meta['description'] == 'UNKNOWN'
+
     # non-MDP attributable
     a3 = 'Temperature'
     a4 = ArrayDataset(data=[1, 2], unit='C', description='An Array')

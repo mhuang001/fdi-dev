@@ -37,6 +37,7 @@ class ArrayDataset(GenericDataset, Iterable):
                  description=None,
                  shape=None,
                  typecode=None,
+                 version=None,
                  zInfo=None,
                  alwaysMeta=True,
                  ** kwds):
@@ -168,7 +169,7 @@ class ArrayDataset(GenericDataset, Iterable):
             return '%s data= %s)' % (s, vs)
 
         s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
-            self, 'descripion') else '')
+            self, 'description') else '')
         toshow = {'meta': self.__getstate__()['meta'],
                   'data': self.__getstate__()['data'],
                   }
@@ -185,18 +186,19 @@ class ArrayDataset(GenericDataset, Iterable):
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
+
         # s = OrderedDict(description=self.description, meta=self.meta, data=self.data)  # super(...).__getstate__()
-        s = OrderedDict(description=self.description,
-                        meta=self._meta if hasattr(self, '_meta') else None,
-                        data=None if self.data is None else self.data,
-                        type=self.type,
-                        unit=self.unit,
-                        typecode=self.typecode,
-                        version=self.version,
-                        FORMATV=self.FORMATV,
-                        _STID=self._STID)
+        s = OrderedDict(
+            meta=self._meta if hasattr(self, '_meta') else None,
+            data=None if self.data is None else self.data,
+            _STID=self._STID)
 
         return s
+        # type=self.type,
+        # unit=self.unit,
+        # typecode=self.typecode,
+        # version=self.version,
+        # FORMATV=self.FORMATV,
 
 
 class Column(ArrayDataset, ColumnListener):

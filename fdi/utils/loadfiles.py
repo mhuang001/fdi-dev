@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def loadcsv(filepath, delimiter=',', header=0):
-    """ Loads the controls of a CSV file into a list of tuples.
+    """ Loads the contents of a CSV file into a list of tuples.
 
     the first header linea are taken as column headers if header > 0.
     if no column header given, colN where N = 1, 2, 3... are returned.

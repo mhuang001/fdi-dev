@@ -44,7 +44,7 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
         """
         cn = self.__class__.__name__
         s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
-            self, 'descripion') else '')
+            self, 'description') else '')
         s += mstr(self.__getstate__(), level=level,
                   excpt=['description'],
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,

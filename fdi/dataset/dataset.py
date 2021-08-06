@@ -130,7 +130,7 @@ class GenericDataset(Dataset, Typed, DataWrapper):
                     matprint=matprint, trans=trans, **kwds))
 
         s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
-            self, 'descripion') else '')
+            self, 'description') else '')
         s += mstr(self.__getstate__(), level=level,
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                   excpt=['description'], **kwds)

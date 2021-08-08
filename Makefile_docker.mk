@@ -3,11 +3,11 @@ PYEXE	= python3
 ########
 DKRREPO	= mhastro
 DOCKER_NAME	= fdi
-DVERS	= v1.5
+DVERS	= v1.6
 DFILE	=dockerfile
 
 SERVER_NAME      =httppool
-SVERS	= v5.2
+SVERS	= v5.3
 SFILE	= fdi/pns/resources/httppool_server.docker
 
 PORT        =9884
@@ -80,14 +80,18 @@ i:
 	docker exec -it $(D) $$cid /usr/bin/less -f /home/apache/error-ps.log; fi
 
 push_docker:
-	im=$(DKRREPO)/$(DOCKER_NAME):$(DVERS); \
-	docker tag  $(DOCKER_NAME):$(DVERS) $$im &&\
-	docker push $$im
+	im=$(DKRREPO)/$(DOCKER_NAME) &&\
+	docker tag  $(DOCKER_NAME):$(DVERS) $$im:$(DVERS) &&\
+	docker tag  $(DOCKER_NAME):$(DVERS) $$im:latest &&\
+	docker push $$im:$(DVERS) &&\
+	docker push $$im:latest
 
 push_server:
-	im=$(DKRREPO)/$(SERVER_NAME):$(SVERS); \
-	docker tag  $(SERVER_NAME):$(SVERS) $$im &&\
-	docker push $$im
+	im=$(DKRREPO)/$(SERVER_NAME)  &&\
+	docker tag  $(SERVER_NAME):$(SVERS) $$im:$(SVERS) &&\
+	docker tag  $(SERVER_NAME):$(SVERS) $$im:latest &&\
+	docker push $$im:$(SVERS) &&\
+        docker push $$im:latest
 
 vol:
 	docker volume create httppool

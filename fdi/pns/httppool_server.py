@@ -128,7 +128,9 @@ def wipe_pools(poolnames=None):
     good = []
     notgood = []
     all_pools = load_all_pools(poolnames)
-    for nm, pool in copy.copy(all_pools).items():
+    names = list(all_pools.keys())
+    for nm in names:
+        pool = all_pools[nm]
         try:
             pool.removeAll()
             shutil.rmtree(os.path.join(poolpath, nm))

@@ -10,6 +10,7 @@ from fdi.dataset.serializable import serialize
 from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
 from fdi.pal.poolmanager import PoolManager
+from fdi.pal.productstorage import ProductStorage
 from fdi.utils.common import lls, trbk, fullname
 from fdi.utils.fetch import fetch
 #from fdi.pns import httppool_server as HS
@@ -120,7 +121,7 @@ def check_response(o, failed_case=False):
     global lupd
     assert o is not None, "Server is having trouble"
     if not failed_case:
-        assert 'result' in o, o
+        assert 'result' in o or 'Bad string to decode as JSON' not in o, o
         assert 'FAILED' != o['result'], o['result']
         assert o['timestamp'] > lupd
         lupd = o['timestamp']
@@ -359,13 +360,42 @@ def test_CRUD_product(local_pools_dir, setup, userpass):
     o = deserialize(x.text)
     check_response(o, failed_case=True)
 
+    # make an unregistered pool
+    p = os.path.join(local_pools_dir, post_poolid)
+    os.system('cp -rf %s %s_copy' % (p, p))
+    assert os.path.exists(p+'_copy')
+
+    # count pools
+    url = aburl + '/'
+    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    o = deserialize(x.text)
+    check_response(o, failed_case=False)
+    assert len(o['result']) > 0
+
+    # wipe all pools
+    url = aburl + '/' + 'wipe_all_pools'
+    x = requests.put(url, auth=HTTPBasicAuth(*userpass))
+    o = deserialize(x.text)
+    check_response(o, failed_case=False)
+
+    # count pools
+    url = aburl + '/'
+    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
+    o = deserialize(x.text)
+    check_response(o, failed_case=False)
+    assert len(o['result']) == 0
+
+    files = get_files('', local_pools_dir)
+    assert len(files) == 0, 'Wipe_all_pools failed: ' + o['msg']
+
 
 def test_product_path(setup, userpass):
 
     aburl, headers = setup
     auth = HTTPBasicAuth(*userpass)
-    pool = PoolManager.getPool(test_poolid, aburl + '/'+test_poolid)
     # empty_pool_on_server(post_poolid,aburl,userpass)
+    pstore = ProductStorage(test_poolid, aburl + '/'+test_poolid)
+    pool = PoolManager.getPool(test_poolid)
 
     url0 = aburl + '/' + test_poolid + '/'
     # write sample product to the pool

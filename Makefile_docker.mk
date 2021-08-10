@@ -66,18 +66,17 @@ rm_dockeri:
 
 it:
 	cid=`docker ps -a|grep $(LATEST) | head -n 1 |awk '{print $$1}'` &&\
-	if [ -z $$cid ]; then echo NOT running ; else \
-	docker exec -it $(D) $$cid $(B); fi
+	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
+	docker exec -it $(D) $$cid $(B)
 
 t:
-	cid=`docker ps -a|grep $(LATEST) | head -n 1 | awk '{print $$1}'` &&\
-	if [ -z $$cid ]; then echo NOT running ; else \
-	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/apache/error-ps.log; fi
-
+	@ cid=`docker ps -a|grep $(LATEST) | head -n 1 |awk '{print $$1}'` &&\
+	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
+	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/apache/error-ps.log
 i:
-	cid=`docker ps -a|grep $(LATEST) | head -n 1 | awk '{print $$1}'` &&\
-	if [ -z $$cid ]; then echo NOT running ; else \
-	docker exec -it $(D) $$cid /usr/bin/less -f /home/apache/error-ps.log; fi
+	@ cid=`docker ps -a|grep $(LATEST) | head -n 1 | awk '{print $$1}'` &&\
+	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
+	docker exec -it $(D) $$cid /usr/bin/less -f /home/apache/error-ps.log
 
 push_docker:
 	im=$(DKRREPO)/$(DOCKER_NAME) &&\

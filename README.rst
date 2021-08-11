@@ -1,3 +1,6 @@
+======
+README
+======
 
 Flexible Dataset Integrator (FDI) helps data producers and processors to build connections into isolated heterogeneous datasets. to assemble, organize, and integrate data into self-describing, modular, hierarchical, persistent, referenceable ``Products``, whose component datasets keep their own characteristicss and are easily accessible.
 
@@ -8,7 +11,8 @@ FDI's base data model is defined in sub-package ``dataset``. Persistent data
 access using storage pools, referencing, and Universal Resource Names, and referencie-carrying product Context, are defined in sub-package ``pal``. A reference RESTful API server designed to communicate with a data processing server/docker using the data model, and a reference HTTP pool server are in sub-package ``pns``.
 
 Install/Uninstall
------------------
+=================
+
 .. image:: pipeline.svg
    :target: http://mercury.bao.ac.cn:9006/mh/fdi/badges/master/index.html
 
@@ -19,7 +23,7 @@ Install/Uninstall
    It is a good idea to add ``--user`` at the end or to use a virtualenv to avoid disturbing your system Python setup.
 
 For Users
-=========
+---------
 
 If you need to use fdi, install from PyPI:
 
@@ -56,10 +60,10 @@ To uninstall:
 
 
 For Developers  (or Those who are Not Sure which to Choose)
-===========================================================
+-----------------------------------------------------------
 
 To install
-----------
+''''''''''
 
 .. code-block:: shell
 
@@ -73,7 +77,7 @@ To install
 If you want to install the ``master`` branch, remove the ``git checkout develop`` line above.
 	   
 To test your installation
--------------------------
+'''''''''''''''''''''''''
 
 .. code-block:: shell
 
@@ -125,7 +129,7 @@ The generated HTML page is at ``docs/html/index.html``.
 .. note:: https://readthedocs.io makes web pages from sources in ``docs/sphinx`` in the repository. Locally generated HTML pages are not on RTD or in the repository. The API files and plots, however, are in ``api`` and ``_static`` sub-directpries, respectively.
 	   
 Run Servers and Quick Tests
-===========================
+---------------------------
 
 If you plan to run the ``pns`` and/or the ``http pool server`` locally,
 first install the dependencies:
@@ -160,10 +164,10 @@ in another window run:
            make testhttp
 
 Docker Containers
-=================
+-----------------
 
 fdi
----
+'''
 
 Get the ``fdi`` docker with running FDI environment:
 
@@ -185,7 +189,7 @@ Launch and login
    make it
 
 httppool
---------
+''''''''
    
 Also available is a ``HttpPool`` server made from Ubuntu and apache:
 
@@ -208,16 +212,16 @@ Launch and connect:
 
 Run the above in the package root directory of fdi. A file named ``.secret`` is needed by the build and launch commands. This is an example::
 
-  HOST_PORT=9884
-  HOST_USER=...
-  HOST_PASS=...
-  MQ_HOST=123.45.67.89
-  MQ_PORT=9876
-  MQ_USER=...
-  MQ_PASS=...
+  HOST_PORT-9884
+  HOST_USER-...
+  HOST_PASS-...
+  MQ_HOST-123.45.67.89
+  MQ_PORT-9876
+  MQ_USER-...
+  MQ_PASS-...
 
 For More
-========
+--------
 
 For more  examples see ``tests/test_*.py``.
 

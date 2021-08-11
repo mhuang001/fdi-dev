@@ -47,5 +47,3 @@ _Model_Spec = {
     }
 
 Model = ReadOnlyDict(_Model_Spec)
-
-

@@ -8,6 +8,13 @@ logger = logging.getLogger(__name__)
 
 class InvalidType(object):
     def __repr__(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return 'Invalid'
 
 

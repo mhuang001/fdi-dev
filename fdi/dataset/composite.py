@@ -26,18 +26,42 @@ class Composite(DeepEqual, Container, Sized, Iterator):
     """
 
     def __init__(self, **kwds):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         self._sets = ODict()
         super().__init__(**kwds)
 
     def containsKey(self, name):
         """ Returns true if this map contains a mapping for
-        the specified name. """
+        the specified name.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return name in self._sets
 
     def get(self, name):
         """ Returns the dataset to which this composite maps the
         specified name.
         If the attitute does not exist, return None. This is an OrderedDict behavior.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         return self._sets.get(name)
 
@@ -47,6 +71,13 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         contained a mapping for this key, the old dataset is
         replaced by the specified dataset.
         this composite does not permit null or empty keys.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
 
         if name == '' or name is None:
@@ -57,32 +88,84 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         self._sets[name] = dataset
 
     def __getitem__(self, name):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self.get(name)
 
     def __setitem__(self, name, dataset):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         self.set(name, dataset)
 
     def getSets(self):
         """ Provide access to the Map < String, Dataset > .
         mh: api from CompositeDataset
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         return self._sets
 
     def isEmpty(self):
-        """ Returns true if this map contains no key - value mappings. """
+        """ Returns true if this map contains no key - value mappings.
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return len(self._sets) == 0
 
     def keys(self):
-        """ Returns an iterator of the keys contained in this composite. """
+        """ Returns an iterator of the keys contained in this composite.
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self._sets.keys()
 
     def keySet(self):
-        """ Returns a list view of the keys contained in this composite. """
+        """ Returns a list view of the keys contained in this composite. 
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return list(self._sets.keys())
 
     def remove(self, name):
         """ Removes the mapping for this name from this composite.
         mh: returns None if name is None or item does not exist.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         if name == '' or name is None or name not in self._sets:
             logger.debug('Cannot remove non-exist item \'' + name + "'")
@@ -90,7 +173,14 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         return self._sets.pop(name)
 
     def size(self):
-        """ Returns the number of key - value mappings in this map. """
+        """ Returns the number of key - value mappings in this map. 
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return len(self._sets)
 
     def __len__(self):
@@ -101,28 +191,75 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         return self.__class__.__name__ + '(' + (self._sets.__repr__() if hasattr(self, '_sets') else 'None') + ')'
 
     def toString(self, level=0, matprint=None, trans=True, **kwds):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+
         return self.__class__.__name__ + \
             self._sets.toString(level=level,
                                 tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                                 matprint=matprint, trans=trans, **kwds)
 
     def __contains__(self, x):
-        """ mh: enable 'x in composite' """
+        """ mh: enable 'x in composite'
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return x in self._sets
 
     def items(self):
-        """ Enable pairs = [(v, k) for (k, v) in d.items()]. """
+        """ Enable pairs = [(v, k) for (k, v) in d.items()]. 
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self._sets.items()
 
     def values(self):
         """ Returns an iterator of the parameters contained in this composite.
 
         Enables pairs = zip(d.values(), d.keys()) 
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         return self._sets.values()
 
     def __iter__(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self._sets.__iter__()
 
     def __next__(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self._sets.__next__()

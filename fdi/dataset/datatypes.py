@@ -98,6 +98,13 @@ class Vector(Quantifiable, Serializable, DeepEqual):
     def __init__(self, components=None, **kwds):
         """ invoked with no argument results in a vector of
         [0, 0, 0] components.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         if components is None:
             self._data = [0, 0, 0]
@@ -108,22 +115,50 @@ class Vector(Quantifiable, Serializable, DeepEqual):
     @property
     def components(self):
         """ for property getter
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         return self.getComponents()
 
     @components.setter
     def components(self, components):
         """ for property setter
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         self.setComponents(components)
 
     def getComponents(self):
         """ Returns the actual components that is allowed for the components
-        of this vector."""
+        of this vector.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self._data
 
     def setComponents(self, components):
-        """ Replaces the current components of this vector. """
+        """ Replaces the current components of this vector. 
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         # for c in components:
         #     if not isinstance(c, Number):
         #         raise TypeError('Components must all be numbers.')
@@ -166,6 +201,14 @@ class Vector(Quantifiable, Serializable, DeepEqual):
             return super(Vector, self).__ge__(obj)
 
     def __len__(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return len(self._data)
 
     __hash__ = DeepEqual.hash
@@ -176,7 +219,14 @@ class Vector(Quantifiable, Serializable, DeepEqual):
     __str__ = toString
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return OrderedDict(
             components=list(self._data),
             unit=self._unit,
@@ -185,15 +235,17 @@ class Vector(Quantifiable, Serializable, DeepEqual):
 
 
 class Vector2D(Vector):
-    """ Vector with 2-component data.
-    """
+    """ Vector with 2-component data"""
 
     def __init__(self, components=None, **kwds):
         """ invoked with no argument results in a vector of
         [0, 0] components
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
-
         super(Vector2D, self).__init__(**kwds)
 
         if components is None:
@@ -209,9 +261,12 @@ class Quaternion(Vector):
     def __init__(self, components=None, **kwds):
         """ invoked with no argument results in a vector of
         [0, 0, 0, 0] components
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
-
         super(Quaternion, self).__init__(**kwds)
 
         if components is None:

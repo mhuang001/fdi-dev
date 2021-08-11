@@ -57,17 +57,35 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
 
     def __init__(self, **kwds):
         """
+        Parameter
+        ---------
 
+        Returns
+        -------
         """
         super(Dataset, self).__init__(**kwds)
 
     def accept(self, visitor):
         """ Hook for adding functionality to object
-        through visitor pattern."""
+        through visitor pattern.
+        Parameter
+        ---------
+
+        Returns
+        ------- 
+        """
         visitor.visit(self)
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder.
+
+
+        Parameter
+        ---------
+
+        Returns
+        -------
+        """
 
         s = OrderedDict(description=self.description,
                         meta=self._meta,
@@ -95,6 +113,12 @@ class GenericDataset(Dataset, Typed, DataWrapper):
                  param_widths=None, width=0, matprint=None, trans=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         cn = self.__class__.__name__
         if level > 1:
@@ -106,7 +130,7 @@ class GenericDataset(Dataset, Typed, DataWrapper):
                     matprint=matprint, trans=trans, **kwds))
 
         s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
-            self, 'descripion') else '')
+            self, 'description') else '')
         s += mstr(self.__getstate__(), level=level,
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                   excpt=['description'], **kwds)
@@ -131,12 +155,25 @@ class CompositeDataset(AbstractComposite, Dataset):
 
     def __init__(self, **kwds):
         """
+        Parameter
+        ---------
+
+        Returns
+        -------
+
         """
         super(CompositeDataset, self).__init__(
             **kwds)  # initialize _sets, meta, unit
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder 
+        Parameter
+        ---------
+
+        Returns
+        -------
+
+        """
         return OrderedDict(description=self.description,
                            meta=self.meta,
                            _sets=self._sets,

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#from ..utils.common import fullname
+# from ..utils.common import fullname
 
 import array
 import binascii
@@ -34,6 +34,13 @@ class SerializableEncoderAll(json.JSONEncoder):
     """
 
     def default(self, obj):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         # logger.debug
         # print('&&&& %s %s' % (str(obj.__class__), str(obj)))
         if PY3:
@@ -61,7 +68,13 @@ class SerializableEncoderAll(json.JSONEncoder):
     base = (str, int, float, bool, type(None))
 
     def _preprocess(self, obj):
-        """ this all only work on the first level of nested objects """
+        """ this all only work on the first level of nested objects
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         oc = obj.__class__
         ocn = type(obj).__name__
 
@@ -99,6 +112,13 @@ class SerializableEncoderAll(json.JSONEncoder):
             return obj
 
     def iterencode(self, obj, **kwds):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return super().iterencode(self._preprocess(obj), **kwds)
 
 
@@ -112,6 +132,13 @@ class SerializableEncoder(json.JSONEncoder):
     """
 
     def default(self, obj):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         try:
             # print('%%%' + str(obj.__class__))
             # Let the base class default method raise the TypeError
@@ -147,7 +174,13 @@ class SerializableEncoder(json.JSONEncoder):
 #    obj = json.loads(jstring)
 
 def serialize(o, cls=None, **kwds):
-    """ return JSON using special encoder SerializableEncoder """
+    """ return JSON using special encoder SerializableEncoder 
+    Parameterts
+    -----------
+
+    Returns
+    -------
+    """
     if not cls:
         cls = SerializableEncoder
     return json.dumps(o, cls=cls, **kwds)
@@ -155,10 +188,17 @@ def serialize(o, cls=None, **kwds):
 
 class Serializable(object):
     """ mh: Can be serialized.
-    Has a _STID  instance property to show its class information.
-    """
+    Has a _STID  instance property to show its class information. """
 
     def __init__(self, **kwds):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
 
         super(Serializable, self).__init__(**kwds)
         sc = self.__class__
@@ -169,6 +209,13 @@ class Serializable(object):
             self._STID = sc.__name__
 
     def serialized(self, indent=None):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return serialize(self, indent=indent)
 
     def __repr__(self):
@@ -183,20 +230,46 @@ class Serializable(object):
     def __getstate__(self):
         """ returns an odict that has all state info of this object.
         Subclasses should override this function.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         raise NotImplementedError()
 
     def __setstate__(self, state):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         for name in self.__getstate__().keys():
             self.__setattr__(name, state[name])
 
     def __reduce_ex__(self, protocol):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         def func(): return self.__class__()
         args = tuple()
         state = self.__getstate__()
         return func, args, state
 
     def __reduce__(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return self.__reduce_ex__(4)
 
     def serializable(self):

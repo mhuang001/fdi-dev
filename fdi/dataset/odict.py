@@ -20,7 +20,11 @@ class ODict(UserDict, Serializable, DeepEqual):
 
     def __init__(self, *args, **kwds):
         """
+        Parameters
+        ----------
 
+        Returns
+        -------
         """
 
         super().__init__(*args, **kwds)
@@ -66,6 +70,14 @@ class ODict(UserDict, Serializable, DeepEqual):
     def toString(self, level=0,
                  tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
                  matprint=None, trans=True, **kwds):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         global OD_toString_Nest
 
         # return 'OD' + str(type(self.data))+'*'+str(self.data)
@@ -103,14 +115,28 @@ class ODict(UserDict, Serializable, DeepEqual):
     #     return self.toString(level=level)
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return OrderedDict(
             data=self.data,
             _STID=self._STID
         )
 
     def serializable(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder 
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
 
         return OrderedDict(
             **self.data,

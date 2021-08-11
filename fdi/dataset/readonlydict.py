@@ -7,6 +7,11 @@ import copy
 
 def make_readonly(d, excluded=None):
     """ Recursively make values of Mapping type at all levels read-only.
+    Parameters
+    ----------
+
+    Returns
+    -------
     """
     if excluded is None:
         excluded = set()
@@ -35,6 +40,14 @@ class frozendict(dict):
     https://code.activestate.com/recipes/414283/
     """
     def _blocked_attribute(obj):
+        """
+        Parameters
+        ----------
+
+
+        Returns
+        -------
+        """
         raise AttributeError("A frozendict cannot be modified.")
     _blocked_attribute = property(_blocked_attribute)
 
@@ -42,8 +55,14 @@ class frozendict(dict):
     pop = popitem = setdefault = update = _blocked_attribute
 
     def __new__(cls, *args, **kw):
-        new = dict.__new__(cls)
+        """
+        Parameters
+        ----------
 
+        Returns
+        -------
+        """
+        new = dict.__new__(cls)
         args_ = []
         for arg in args:
             if isinstance(arg, dict):
@@ -67,9 +86,24 @@ class frozendict(dict):
         return new
 
     def __init__(self, *args, **kw):
-        pass
+       """
+       Parameters
+       ----------
+
+       Returns
+       -------
+       """ 
+       pass
 
     def __hash__(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         try:
             return self._cached_hash
         except AttributeError:
@@ -77,6 +111,14 @@ class frozendict(dict):
             return h
 
     def __repr__(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return "frozendict(%s)" % dict.__repr__(self)
 
 
@@ -101,12 +143,24 @@ class bReadOnlyDict(dict):
 
     Based on https://stackoverflow.com/a/61700719/13472124
 
+    Parameters
+    ----------
 
+    Returns
+    ------- 
     """
 
     # def __init__(self, d):
 
     def __readonly__(self, *args, **kwargs):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
         raise RuntimeError("Cannot modify ReadOnlyDict")
 
     __setitem__ = __readonly__
@@ -121,6 +175,13 @@ class bReadOnlyDict(dict):
     del __readonly__
 
     def __getitem__(self, key):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """ 
         it = super().__getitem__(key)
         # print(key)
         import pdb

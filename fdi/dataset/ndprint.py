@@ -35,6 +35,11 @@ def ndprint(data, trans=True, maxElem=50, **kwds):
     the matrix needs to be printed transposed:
     1 3 5
     2 4 6
+    Parameters
+    ----------
+
+    Returns
+    -------
     """
     if data is None:
         return 'None'

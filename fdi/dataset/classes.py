@@ -39,13 +39,14 @@ class Classes_meta(type):
         'fdi.dataset.history': ['History'],
         'fdi.dataset.baseproduct': ['BaseProduct'],
         'fdi.dataset.product': ['Product'],
+        'fdi.dataset.browseproduct': ['BrowseProduct'],
         'fdi.dataset.testproducts': ['TP', 'TC', 'TM'],
         'fdi.dataset.datatypes': ['Vector', 'Vector2D', 'Quaternion'],
         'fdi.dataset.metadata': ['AbstractParameter', 'Parameter', 'MetaData'],
         'fdi.dataset.numericparameter': ['NumericParameter'],
         'fdi.dataset.dateparameter': ['DateParameter'],
         'fdi.dataset.stringparameter': ['StringParameter'],
-        'fdi.dataset.arraydataset': ['ArrayDataset', 'Column'],
+        'fdi.dataset.arraydataset': ['ArrayDataset', 'Column', 'MediaWrapper'],
         'fdi.dataset.dataset': ['GenericDataset', 'CompositeDataset'],
         'fdi.dataset.tabledataset': ['TableDataset', 'IndexedTableDataset'],
         'fdi.dataset.readonlydict': ['ReadOnlyDict'],
@@ -65,12 +66,22 @@ class Classes_meta(type):
 
     def __init__(cls, *args, **kwds):
         """ Class is initialized with built-in classes by default.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         super().__init__(*args, **kwds)
 
-    def updateMapping(cls, c=None, rerun=False, exclude=None, ignore_missing=False, verbose=False, ignore_error=False):
+    def updateMapping(cls, c=None, rerun=False, exclude=None, verbose=False, ignore_error=False):
         """ Updates classes mapping.
         Make the package mapping if it has not been made.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         if exclude is None:
             exclude = []
@@ -98,6 +109,11 @@ class Classes_meta(type):
 
         rerun: set to True to force re-import. If the module-class list has never been imported, it will be imported regardless rerun.
         exclude: modules whose names (without '.') are in exclude are not imported.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
 
         if len(cls._package) and not rerun:
@@ -118,43 +134,45 @@ class Classes_meta(type):
             exed = [x for x in class_list if x not in exclude]
             if len(exed) == 0:
                 continue
-            msg = 'importing %s from %s' % (str(class_list), module_name)
-            if verbose:
-                logger.info(msg)
-            else:
-                logger.debug(msg)
+            msg = 'importing %s from %s...' % (str(class_list), module_name)
+
             try:
                 #m = importlib.__import__(module_name, globals(), locals(), class_list)
                 m = importlib.import_module(module_name)
             except SelectiveMetaFinder.ExcludedModule as e:
-                msg = 'Did not import %s. %s' % (str(class_list), str(e))
-                if verbose:
-                    logger.info(msg)
-                else:
-                    logger.debug(msg)
+                msg += ' Did not import %s, as %s' % (str(class_list), str(e))
                 #ety, enm, tb = sys.exc_info()
             except SyntaxError as e:
-                msg = 'Could not import %s. %s' % (str(class_list), str(e))
+                msg += ' Could not import %s, as %s' % (
+                    str(class_list), str(e))
                 logger.error(msg)
                 raise
             except ModuleNotFoundError as e:
-                msg = 'Could not import %s. %s' % (str(class_list), str(e))
+                msg += ' Could not import %s, as %s' % (
+                    str(class_list), str(e))
                 if ignore_error:
-                    if verbose:
-                        logger.info(msg)
-                    else:
-                        logger.debug(msg)
+                    msg += ' Ignored.'
                 else:
                     logger.error(msg)
                     raise
             else:
                 for n in exed:
                     cls._package[n] = getattr(m, n)
+            if verbose:
+                logger.info(msg)
+            else:
+                logger.debug(msg)
 
         return
 
     def reloadClasses(cls):
-        """ re-import classes in list. """
+        """ re-import classes in list. 
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         for n, t in cls._classes.items():
             mo = importlib.import_module(t.__module__)
             importlib.reload(mo)
@@ -163,18 +181,30 @@ class Classes_meta(type):
 
     # https://stackoverflow.com/a/1800999
     @property
-    def mapping(cls):
+    def mapping(cls, ignore_error=False):
         """ Returns the dictionary of classes allowed for deserialization, including the fdi built-ins and user added classes.
 
         Will update the classes if the list is empty
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         if len(cls._classes) == 0:
-            cls.updateMapping()
+            return cls.updateMapping(c=None, rerun=False, exclude=None,
+                                     verbose=False, ignore_error=ignore_error)
         return cls._classes
 
     @mapping.setter
     def mapping(cls, c):
         """ Delegated to cls.update...().
+        Parameters
+        make PROJ-INSTALL &&\
+        ----------
+
+        Returns
+        -------
         """
         raise NotImplementedError('Use Classes.updateMapping(c).')
         cls.updateMapping(c)
@@ -182,9 +212,9 @@ class Classes_meta(type):
 
 class Classes(metaclass=Classes_meta):
     """ A dictionary of class names and their class objects that are allowed to be deserialized.
-    A fdi package built-in dictionary (in the format of locals() output) is kept internally.
-    Users who need add more deserializable class can for example:
 
+    An fdi package built-in dictionary (in the format of locals() output) is kept internally.
+    Users who need add more deserializable class can for example:
 
     Define new classes
     ``class Myclass():

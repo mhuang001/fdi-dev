@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
+from fdi.dataset.arraydataset import MediaWrapper
+
+import os.path as op
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 
 
 def loadcsv(filepath, delimiter=',', header=0):
-    """ Loads the controls of a CSV file into a list of tuples.
+    """ Loads the contents of a CSV file into a list of tuples.
 
     the first header linea are taken as column headers if header > 0.
     if no column header given, colN where N = 1, 2, 3... are returned.
@@ -51,3 +54,16 @@ def loadcsv(filepath, delimiter=',', header=0):
             rowcount += 1
 
     return list(zip(colhds, columns, units))
+
+
+def loadMedia(filename, content_type='image/png'):
+    """
+
+    """
+    with open(filename, 'rb') as f:
+        image = MediaWrapper(data=f.read(),
+                             description='A media file in an array',
+                             typ_=content_type)
+    image.file = filename
+
+    return image

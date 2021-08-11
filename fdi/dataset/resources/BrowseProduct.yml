@@ -1,0 +1,12 @@
+name: BrowseProduct
+description: Container of media data for browsing.
+parents:
+  - BaseProduct
+schema: '1.6'
+metadata:
+    type:
+        default: BrowseProduct
+    FORMATV:
+        default: '1.6.0.1'
+datasets:
+  

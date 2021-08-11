@@ -22,7 +22,7 @@ import os
 import copy
 import json
 import time
-import pprint
+import shutil
 import builtins
 from collections import ChainMap
 from itertools import chain
@@ -96,20 +96,50 @@ def getallpools(path):
     return alldirs
 
 
-def load_all_pools():
+def load_all_pools(poolnames=None):
     """
     Adding all pool to server pool storage.
+
+    poolnames: if given as a list of poolnames, only the exisiting ones of the list will be loaded.
     """
-    alldirs = set()
 
     path = poolpath
     logger.debug('loading all from ' + path)
-
-    alldirs = getallpools(path)
+    alldirs = poolnames if poolnames else getallpools(path)
     for poolname in alldirs:
         poolurl = schm + '://' + os.path.join(poolpath, poolname)
         PM.getPool(poolname=poolname, poolurl=poolurl)
         logger.info("Registered pool: %s in %s" % (poolname, poolpath))
+    return PM.getMap()
+
+
+def wipe_pools(poolnames=None):
+    """
+    Deleting all pools using pool api so locking is properly used.
+
+    poolnames: if given as a list of poolnames, only the exisiting ones of the list will be deleted.
+    """
+
+    path = poolpath
+    logger.debug('DELETING pools from ' + path)
+
+    #alldirs = poolnames if poolnames else getallpools(path)
+
+    good = []
+    notgood = []
+    all_pools = load_all_pools(poolnames)
+    names = list(all_pools.keys())
+    for nm in names:
+        pool = all_pools[nm]
+        try:
+            pool.removeAll()
+            shutil.rmtree(os.path.join(poolpath, nm))
+            PM.remove(nm)
+            logger.info('Pool %s deleted.' % nm)
+            good.append(nm)
+        except Exception as e:
+            notgood.append(nm+': '+str(e))
+    return good, notgood
 
 
 def get_prod_count(prod_type, pool_id):
@@ -145,6 +175,21 @@ def get_pools():
 
     result = serialize(getallpools(path))
     msg = 'pools found.'
+    w = '{"result": %s, "msg": "%s", "timestamp": %f}' % (
+        result, msg, ts)
+    logger.debug(lls(w, 240))
+    resp = make_response(w)
+    resp.headers['Content-Type'] = 'application/json'
+    return resp
+
+
+@ app.route(pc['baseurl']+'/wipe_all_pools', methods=['PUT'])
+def wipe_all_pools():
+
+    ts = time.time()
+    good, bad = wipe_pools()
+    result = serialize(good)
+    msg = 'pools wiped' + ('except %s.' % str(bad) if len(bad) else '.')
     w = '{"result": %s, "msg": "%s", "timestamp": %f}' % (
         result, msg, ts)
     logger.debug(lls(w, 240))
@@ -237,7 +282,7 @@ def httppool(pool):
     if request.method == 'GET':
         # TODO modify client loading pool , prefer use load_HKdata rather than load_single_HKdata, because this will generate enormal sql transaction
         if lp == 1:
-            result = getinfo(path[0])
+            result = getinfo(paths[0])
         elif lp == 2:
             p1 = paths[1]
             if p1 == 'hk':  # Load all HKdata

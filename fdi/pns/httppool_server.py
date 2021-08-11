@@ -282,7 +282,7 @@ def httppool(pool):
     if request.method == 'GET':
         # TODO modify client loading pool , prefer use load_HKdata rather than load_single_HKdata, because this will generate enormal sql transaction
         if lp == 1:
-            result = getinfo(path[0])
+            result = getinfo(paths[0])
         elif lp == 2:
             p1 = paths[1]
             if p1 == 'hk':  # Load all HKdata

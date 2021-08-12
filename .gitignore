@@ -13,6 +13,7 @@ Flask-HTTPAuth
 *.old
 .cache
 *egg-*
+.eggs
 .ipynb_checkpoints
 *.ipynb
 dist

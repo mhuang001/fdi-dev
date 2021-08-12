@@ -70,7 +70,14 @@ Parameter_Attr_Defaults = {
 
 
 def parameterDataClasses(tt):
-    """ maps machine type names to class objects """
+    """ maps machine type names to class objects
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+    """
     if tt not in DataTypeNames:
         raise TypeError("Type %s is not in %s." %
                         (tt, str([''.join(x) for x in DataTypeNames])))
@@ -103,6 +110,11 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         With two positional arguments: arg1-> value, arg2-> description.
         Type is set according to value's.
         Unsuported parameter types will get a NotImplementedError.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         super(AbstractParameter, self).__init__(
             description=description, **kwds)
@@ -111,32 +123,70 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         self._defaults = Parameter_Attr_Defaults[self.__class__.__name__]
 
     def accept(self, visitor):
-        """ Adds functionality to classes of this type."""
+        """ Adds functionality to classes of this type.
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         visitor.visit(self)
 
     @property
     def value(self):
         """ for property getter
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         return self.getValue()
 
     @value.setter
     def value(self, value):
         """ for property setter
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         self.setValue(value)
 
     def getValue(self):
-        """ Gets the value of this parameter as an Object. """
+        """ Gets the value of this parameter as an Object. 
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return self._value
 
     def setValue(self, value):
         """ Replaces the current value of this parameter.
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         self._value = value
 
     def __setattr__(self, name, value):
-        """ add eventhandling """
+        """ add eventhandling
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         super(AbstractParameter, self).__setattr__(name, value)
 
         # this will fail during init when annotatable init sets description
@@ -182,42 +232,82 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
 #        return eventType
 #
     def __eq__(self, obj, verbose=False, **kwds):
-        """ can compare value """
+        """ can compare value
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         if type(obj).__name__ in DataTypes.values():
             return self.value == obj
         else:
             return super(AbstractParameter, self).__eq__(obj)
 
     def __lt__(self, obj):
-        """ can compare value """
+        """ can compare value
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         if type(obj).__name__ in DataTypes.values():
             return self.value < obj
         else:
             return super(AbstractParameter, self).__lt__(obj)
 
     def __gt__(self, obj):
-        """ can compare value """
+        """ can compare value 
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         if type(obj).__name__ in DataTypes.values():
             return self.value > obj
         else:
             return super(AbstractParameter, self).__gt__(obj)
 
     def __le__(self, obj):
-        """ can compare value """
+        """ can compare value 
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         if type(obj).__name__ in DataTypes.values():
             return self.value <= obj
         else:
             return super(AbstractParameter, self).__le__(obj)
 
     def __ge__(self, obj):
-        """ can compare value """
+        """ can compare value 
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         if type(obj).__name__ in DataTypes.values():
             return self.value >= obj
         else:
             return super(AbstractParameter, self).__ge__(obj)
 
     def getValueAsString():
-        """ Value as string for building the string representation of the parameter.  """
+        """ Value as string for building the string representation of the parameter. 
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return
 
     def hash(self):
@@ -231,6 +321,12 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
                  tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
                  alist=False, **kwds):
         """ alist: returns a dictionary string representation of parameter attributes.
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         vs = str(self._value)
         ds = str(self.description)
@@ -241,7 +337,14 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         return self.__class__.__name__ + ss
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder 
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return OrderedDict(description=self.description,
                            value=self.value,
                            listeners=self.listeners,
@@ -280,6 +383,12 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         With three positional arguments: arg1 casted to DataTypes[arg3]-> value, arg2-> description. arg3-> typ_.
         Unsuported parameter types will get a NotImplementedError.
         Incompatible value and typ_ will get a TypeError.
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         # super(Parameter, self).__init__(description=description, **kwds)
 
@@ -290,7 +399,14 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             value=value, description=description, typ_=typ_, **kwds)
 
     def accept(self, visitor):
-        """ Adds functionality to classes of this type."""
+        """ Adds functionality to classes of this type.
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         visitor.visit(self)
 
     def setType(self, typ_):
@@ -298,6 +414,12 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
         Defaul will be casted if not the same.
         Unsuported parameter types will get a NotImplementedError.
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         if typ_ is None or typ_ == '':
             self._type = ''
@@ -318,6 +440,12 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         else if type is not set, return value after setting type;
         If value's type is a subclass of self's type, return the value;
         If value's and self's types are both subclass of Number, returns value casted in self's type.
+        Parameters
+        ----------
+
+        Returns
+        -------
+
         """
         if not hasattr(self, '_type'):
 
@@ -381,14 +509,35 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
     @property
     def default(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return self.getDefault()
 
     @default.setter
     def default(self, default):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
         self.setDefault(default)
 
     def getDefault(self):
-        """ Returns the default related to this object."""
+        """ Returns the default related to this object.
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return self._default
 
     def setDefault(self, default):
@@ -396,6 +545,12 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
         Default is set directly if type is not set or default is None.
         If the type of default is not getType(), TypeError is raised.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
 
         if default is None:
@@ -406,26 +561,61 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
     @property
     def valid(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return self.getValid()
 
     @valid.setter
     def valid(self, valid):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
         self.setValid(valid)
 
     def getValid(self):
-        """ Returns the valid related to this object."""
+        """ Returns the valid related to this object.
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return self._valid
 
     def setValid(self, valid):
         """ Sets the valid of this object.
 
         If valid is None or empty, set as None, else save in a way so the tuple keys can be serialized with JSON. [[[rangelow, ranehi], state1], [[range2low, r..]..]..]
+
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
 
         self._valid = None if valid is None or len(
             valid) == 0 else make_jsonable(valid)
 
     def isValid(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
         res = self.validate(self.value)
         if issubclass(res.__class__, tuple):
             return res[0] is not INVALID
@@ -437,6 +627,11 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
         into: dictionary mapping bit-masks to the sub-name of the parameter.
         return: a dictionary mapping name of new parameters to its value.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         ruleset = self.getValid()
         if ruleset is None or len(ruleset) == 0:
@@ -483,6 +678,11 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         {mask: (valid val, rule name, mask_height, mask_width), ...} for binary masks rules.
         (INVALID, 'Invalid') if no matching is found.
         (value, 'Default') if rule set is empty.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
 
         if value is INVALID:
@@ -548,7 +748,13 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
     __str__ = toString
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder. 
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return OrderedDict(description=self.description,
                            type=self._type,
                            default=self._default,
@@ -578,6 +784,15 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
     ]
 
     def __init__(self, copy=None, defaults=None, **kwds):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
         super(MetaData, self).__init__(**kwds)
         if copy:
             # not implemented ref https://stackoverflow.com/questions/10640642/is-there-a-decent-way-of-creating-a-copy-constructor-in-python
@@ -588,16 +803,33 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
 
     def accept(self, visitor):
         """ Hook for adding functionality to meta data object
-        through visitor pattern."""
+        through visitor pattern.
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         visitor.visit(self)
 
     def clear(self):
-        """ Removes all the key - parameter mappings. """
+        """ Removes all the key - parameter mappings. 
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         self.getDataWrappers().clear()
 
     def set(self, name, newParameter):
         """ Saves the parameter and  add eventhandling.
         Raises TypeError if not given Parameter (sub) class object.
+        Parameters
+        ----------
+
+        Returns
+        -------
         """
         if not issubclass(newParameter.__class__, AbstractParameter):
             raise TypeError('Only Parameters can be saved.')
@@ -621,7 +853,13 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         return self.toString(level=3)
 
     def remove(self, name):
-        """ add eventhandling """
+        """ add eventhandling 
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         r = super(MetaData, self).remove(name)
         if r is None:
             return r
@@ -727,7 +965,14 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             '%s %s-listeners = %s' % ('(No Parameter.)', cn, lsnr)
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder 
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+
         # print(self.listeners)
         # print([id(o) for o in self.listeners])
 

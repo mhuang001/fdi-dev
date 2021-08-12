@@ -8,6 +8,7 @@ from .dataset import CompositeDataset
 from .tabledataset import TableDataset
 from .arraydataset import ArrayDataset, Column
 from ..pal.context import Context, MapContext
+from ..utils.loadfiles import loadMedia
 from .finetime import FineTime
 
 import copy
@@ -134,10 +135,10 @@ def get_sample_product():
 
     # an image
     fname = 'imageBlue.png'
-    with open(op.abspath(op.dirname(__file__))+'/resources/'+fname, 'rb') as f:
-        image = ArrayDataset(data=f.read(), description='An image in an array')
+    fname = op.join(op.join(op.abspath(op.dirname(__file__)),
+                            'resources'), fname)
+    image = loadMedia(fname)
     image.file = fname
-    image.content = 'Content-type: image/png'
     prodx['Image'] = image
 
     return prodx

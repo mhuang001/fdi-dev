@@ -119,6 +119,8 @@ class TableDataset(Dataset, TableModel):
     """
 
     def __init__(self, data=None,
+                 description=None,
+                 version=None,
                  zInfo=None,
                  alwaysMeta=True,
                  **kwds):
@@ -220,7 +222,7 @@ class TableDataset(Dataset, TableModel):
         Parameters:
         name - column name.
         column - column to be added.
-        col_des - if True (default) and column descripion is 'UNKNOWN', set to column name.
+        col_des - if True (default) and column description is 'UNKNOWN', set to column name.
         """
 
         d = self.getData()
@@ -503,7 +505,7 @@ Default is to return all columns.
 
         cn = self.__class__.__name__
         s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
-            self, 'descripion') else '')
+            self, 'description') else '')
         if level > 1:
             s = cn + '('
             s += self.meta.toString(
@@ -540,10 +542,10 @@ Default is to return all columns.
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           meta=self.meta,
-                           data=self.getData(),
-                           _STID=self._STID)
+        return OrderedDict(
+            meta=getattr(self, '_meta', None),
+            data=self.getData(),
+            _STID=self._STID)
 
 
 class IndexedTableDataset(Indexed, TableDataset):
@@ -614,7 +616,11 @@ class IndexedTableDataset(Indexed, TableDataset):
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        return Indexed.__getstate__(self).update(description=self.description,
-                                                 meta=self.meta,
-                                                 data=self.getData(),
-                                                 _STID=self._STID)
+        # try:
+        #     description = self.description
+        # except (AttributeError, KeyError):
+        #     description = None
+        return Indexed.__getstate__(self).update(
+            meta=getattr(self, '_meta', None),
+            data=self.getData(),
+            _STID=self._STID)

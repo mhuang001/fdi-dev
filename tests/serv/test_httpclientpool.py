@@ -201,3 +201,26 @@ def crud_t(poolid, poolurl, local_pools_dir, pool):
     logger.info('Access a non-existing pool and trgger an Error.')
     with pytest.raises(NameError):
         pstore.getPool(poolid) is None
+
+
+def xxxx_CRUD_pool_by_client(setup, local_pools_dir):
+    """
+    """
+    aburl, headers = setup
+
+    logger.info('Create pools on the server.')
+    poolid = test_poolid
+    poolurl = aburl + '/' + poolid
+    pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
+
+    if PoolManager.isLoaded(DEFAULT_MEM_POOL):
+        PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+    # this will also register the server side
+    pstore = ProductStorage(pool=pool)
+
+    x = Product(description='desc test')
+    urn = pstore.save(x, geturnobjs=True)
+    pool1 = HttpClientPool(poolname=poolid+'x', poolurl=poolurl+'x')
+    pstore.register(pool1)
+
+    logger.info('Delete all pools on the server.')

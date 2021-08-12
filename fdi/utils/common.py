@@ -246,6 +246,10 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
     ts = getattr(p, '_type') if hasattr(p, '_type') else missingval
     if ts is None:
         ts = 'None'
+
+    # try:
+    # except (KeyError, AttributeError):
+    #    return missingval
     if not hasattr(p, v):
         return missingval
 

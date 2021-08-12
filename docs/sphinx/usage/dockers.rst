@@ -90,7 +90,7 @@ Watch ``/var/log/apache2/error-ps.log`` inside the ``httppool`` docker updating 
 
 	make t
 
-.. tips::
+.. tip::
    
    If you see error of log file not found, you are running the ``fdi`` docker by mistake. Only the pool server docker has the log.
    

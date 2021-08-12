@@ -183,7 +183,7 @@ nds3 =\
 
 """
 out_GenericDataset = """level 0
-=== GenericDataset () ===
+=== GenericDataset (test GD) ===
 meta= {
 ======  ====================  ======  ========  ====================  =================  ======  =====================
 name    value                 unit    type      valid                 default            code    description
@@ -205,7 +205,7 @@ MetaData-listeners = ListnerSet{}}
 GenericDataset-dataset =
 88.8
 level 1, repr
-=== GenericDataset () ===
+=== GenericDataset (test GD) ===
 meta= {
 -------------  --------------------------  ----------------
 a= 3.4         b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
@@ -222,7 +222,7 @@ GenericDataset{ 88.8, description = "test GD", meta = a=3.4, b=xy (FineTime(2019
 out_ArrayDataset = """
 
 level 0
-=== ArrayDataset () ===
+=== ArrayDataset (toString tester AD) ===
 meta= {
 ===============  ====================  ======  ========  ====================  =================  ======  =====================
 name             value                 unit    type      valid                 default            code    description
@@ -300,7 +300,7 @@ ArrayDataset-dataset =
 
 
 level 1
-=== ArrayDataset () ===
+=== ArrayDataset (toString tester AD) ===
 meta= {
 -------------------  --------------------------  ----------------
 shape= (2, 3, 4, 5)  description= toString test  unit= lyr
@@ -367,7 +367,7 @@ ArrayDataset(shape=(8,). data= [8, 8, 8, 8, 8, 8, 8, 8])
 out_TableDataset = """
 
 level 0
-=== TableDataset () ===
+=== TableDataset (UNKNOWN) ===
 meta= {
 ===============  ====================  ======  ========  ====================  =================  ======  =====================
 name             value                 unit    type      valid                 default            code    description
@@ -404,7 +404,7 @@ TableDataset-dataset =
 
 
 level 1
-=== TableDataset () ===
+=== TableDataset (UNKNOWN) ===
 meta= {
 --------------------  --------------------------  ----------------
 description= UNKNOWN  version= 0.1                FORMATV= 1.6.0.1
@@ -434,7 +434,7 @@ TableDataset(Default Meta.data= {})
 
 """
 out_CompositeDataset = """level 0
-=== CompositeDataset () ===
+=== CompositeDataset (test CD) ===
 meta= {
 ======  ====================  ======  ========  ====================  =================  ======  =====================
 name    value                 unit    type      valid                 default            code    description
@@ -458,7 +458,7 @@ MetaData-listeners = ListnerSet{}}
 
 CompositeDataset-datasets =
 <ODict "dataset 1":
-=== ArrayDataset () ===
+=== ArrayDataset (arraydset 1) ===
 meta= {
 ===========  ===========  ======  ======  =======  =========  ======  =====================
 name         value        unit    type    valid    default    code    description
@@ -481,7 +481,7 @@ MetaData-listeners = ListnerSet{}}
 ArrayDataset-dataset =
 768  4.4  5400
 "dataset 2":
-=== TableDataset () ===
+=== TableDataset (Example table) ===
 meta= {
 ===========  =============  ======  ======  =======  =========  ======  =====================
 name         value          unit    type    valid    default    code    description
@@ -505,7 +505,7 @@ TableDataset-dataset =
 
 
 >level 1, repr
-=== CompositeDataset () ===
+=== CompositeDataset (test CD) ===
 meta= {
 -------------  --------------------------  ----------------
 a= 3.4         b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
@@ -517,7 +517,7 @@ MetaData-listeners = ListnerSet{}
 }
 
 CompositeDataset-datasets =
-<ODict  === ArrayDataset () ===
+<ODict  === ArrayDataset (arraydset 1) ===
 meta= {
 -----------------  ------------------------  ----------------
 shape= (3,)        description= arraydset 1  unit= ev
@@ -527,7 +527,7 @@ MetaData-listeners = ListnerSet{}
 }
 ArrayDataset-dataset =
 768  4.4  5400
- === TableDataset () ===
+ === TableDataset (Example table) ===
 meta= {
 --------------------------  ------------  ----------------
 description= Example table  version= 0.1  FORMATV= 1.6.0.1
@@ -546,7 +546,7 @@ TableDataset-dataset =
 
 
 >level 2,
-=== CompositeDataset () ===
+=== CompositeDataset (test CD) ===
 meta
 
 CompositeDataset-datasets =

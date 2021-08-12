@@ -17,6 +17,12 @@ class Quantifiable(Typecoded):
     def __init__(self, unit=None, typecode=None, **kwds):
         """ Has a unit and a typecode (as in array.array.typecodes).
 
+        Parameters
+        ---------
+
+        Returns
+        -------
+
         """
         self.setUnit(unit)
         #print(__name__ + str(kwds))
@@ -24,16 +30,46 @@ class Quantifiable(Typecoded):
 
     @property
     def unit(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self.getUnit()
 
     @unit.setter
     def unit(self, unit):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         self.setUnit(unit)
 
     def getUnit(self):
-        """ Returns the unit related to this object."""
+        """ Returns the unit related to this object.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         return self._unit
 
     def setUnit(self, unit):
-        """ Sets the unit of this object. """
+        """ Sets the unit of this object. 
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
         self._unit = unit

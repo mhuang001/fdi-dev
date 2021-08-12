@@ -42,6 +42,15 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
         level = 0
 
     def run(o1, o2, v=False, eqcmp=True, default=None):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
+
         #
         # nonlocal seen
         # nonlocal level
@@ -234,20 +243,50 @@ class DeepcmpEqual(object):
     """
 
     def equals(self, obj, verbose=False):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
         r = self.diff(obj, [], verbose=verbose)
         # logging.debug(r)
         return r is None
 
     def __eq__(self, obj):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self.equals(obj)
 
     def __ne__(self, obj):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
+
         return not self.__eq__(obj)
 
     def diff(self, obj, seenlist, verbose=False):
         """ recursively compare components of list and dict.
         until meeting equality.
         seenlist: a list of classes that has been seen. will not descend in to them.
+        Paremeters
+        ----------
+
+        Returns
+        -------
         """
         if issubclass(self.__class__, Serializable):
             if issubclass(obj.__class__, Serializable):
@@ -267,6 +306,14 @@ class EqualDict(object):
     """
 
     def equals(self, obj, verbose=False):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
 
         if obj is None:
             return False
@@ -282,9 +329,27 @@ class EqualDict(object):
         return True
 
     def __eq__(self, obj):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
+
         return self.equals(obj)
 
     def __ne__(self, obj):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
+
         return not self.__eq__(obj)
 
 
@@ -295,6 +360,14 @@ class EqualODict(object):
     """
 
     def equals(self, obj, verbose=False):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
         if obj is None:
             return False
         try:
@@ -304,9 +377,26 @@ class EqualODict(object):
         return True
 
     def __eq__(self, obj):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self.equals(obj)
 
     def __ne__(self, obj):
+        """
+        Paremeters
+        ----------
+
+        Returns
+        -------
+
+        """
+
         return not self.__eq__(obj)
 
 

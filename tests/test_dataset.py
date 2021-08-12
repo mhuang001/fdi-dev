@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os.path as op
 import datetime
 import fractions
 import decimal
@@ -26,6 +27,7 @@ from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, E
 from fdi.dataset.messagequeue import MqttRelayListener, MqttRelaySender
 from fdi.dataset.composite import Composite
 from fdi.dataset.metadata import Parameter, MetaData, make_jsonable
+from fdi.dataset.metadataholder import MetaDataHolder
 from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.dateparameter import DateParameter
@@ -33,7 +35,7 @@ from fdi.dataset.datatypes import DataTypes, DataTypeNames
 from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
-from fdi.dataset.arraydataset import ArrayDataset, Column
+from fdi.dataset.arraydataset import ArrayDataset, Column, MediaWrapper
 from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.dataset import GenericDataset, CompositeDataset
 from fdi.dataset.indexed import Indexed
@@ -44,9 +46,11 @@ from fdi.dataset.finetime import FineTime, FineTime1
 from fdi.dataset.history import History
 from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
+from fdi.dataset.browseproduct import BrowseProduct
 from fdi.dataset.readonlydict import ReadOnlyDict
 from fdi.dataset.testproducts import SP, get_sample_product
 from fdi.utils.checkjson import checkjson
+from fdi.utils.loadfiles import loadMedia
 
 # import __builtins__
 
@@ -504,6 +508,8 @@ def test_datatypes():
     assert v.getComponents() == [0, 0, 0]
     v = Vector([1, 2.3, 4.5])
     assert v.getComponents() == [1, 2.3, 4.5]
+    v.components = [4, 5, 6]
+    assert v.components == [4, 5, 6]
     checkjson(v)
 
     v = Vector2D()
@@ -871,6 +877,29 @@ def test_Quantifiable():
     assert v.getTypecode() == b
 
 
+def test_Dattr():
+
+    v = Quantifiable()
+    assert v.getUnit() is None
+    assert v.getTypecode() is None
+    v.setUnit('AA')
+    v.setTypecode('BB')
+    assert v.getUnit() == 'AA'
+    assert v.getTypecode() == 'BB'
+    v = Quantifiable(unit='abc', typecode='string')
+    assert v.getUnit() == 'abc'
+    assert v.getTypecode() == 'string'
+    assert v.unit == 'abc'
+    assert v.typecode == 'string'
+    assert v.getUnit() == 'abc'
+    assert v.getTypecode() == 'string'
+    v = Quantifiable()
+    v.unit = 'CC'
+    v.typecode = 'DD'
+    assert v.getUnit() == 'CC'
+    assert v.getTypecode() == 'DD'
+
+
 def test_NumericParameter():
     v = NumericParameter()
     assert v.description == 'UNKNOWN'
@@ -1132,6 +1161,13 @@ def test_Attributable():
     v = Attributable(meta=a1)
     assert v.getMeta() == a1
 
+    # MDP attributable
+    v = ArrayDataset(data=[1, 2], unit='C')
+    v.meta['description'] == 'UNKNOWN'
+    x = ('name', [3, 2, 1], 'm')
+    v = Column(data=x[1], unit=x[2])
+    v.meta['description'] == 'UNKNOWN'
+
     # non-MDP attributable
     a3 = 'Temperature'
     a4 = ArrayDataset(data=[1, 2], unit='C', description='An Array')
@@ -1151,6 +1187,22 @@ def test_Attributable():
     assert a4.T0a == a12.value
 
     checkgeneral(v)
+
+
+def test_MetaDataHolder():
+    v = MetaDataHolder()
+    # inhrited no argument instanciation
+    assert issubclass(v.getMeta().__class__, MetaData)
+    assert v.getMeta().size() == 0
+    a1 = MetaData()
+    a2 = 'this'
+    a3 = Parameter(0.3)
+    a1[a2] = a3  # add an entry to metadata
+    v = MetaDataHolder(meta=a1)
+    assert v.getMeta() == a1
+    assert v.getMeta().size() == 1
+    delattr(v, "_meta")
+    assert v.hasMeta() == False
 
 
 def test_DataWrapper():
@@ -2467,6 +2519,26 @@ def test_ReadOnlyDict():
 
 def test_Product():
     check_Product(Product)
+
+
+def test_BrowseProduct():
+    v = BrowseProduct('hello')
+    assert v.description == 'hello'
+    fname = 'bug.gif'
+    c_type = 'image/gif'
+    fname = op.join(op.join(op.abspath(op.dirname(__file__)),
+                            'resources'), fname)
+    image = loadMedia(fname, content_type=c_type)
+    image.file = fname
+    assert image.type == 'image/gif'
+    v['insect'] = image
+    assert 'gif' in v['insect'].file
+    cb = MediaWrapper(data='<svg aria-hidden="true" data-prefix="far" data-icon="copy" \class="svg-inline--fa fa-copy fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="#777" d="M433.941 65.941l-51.882-51.882A48 48 0 0 0 348.118 0H176c-26.51 0-48 21.49-48 48v48H48c-26.51 0-48 21.49-48 48v320c0 26.51 21.49 48 48 48h224c26.51 0 48-21.49 48-48v-48h80c26.51 0 48-21.49 48-48V99.882a48 48 0 0 0-14.059-33.941zM266 464H54a6 6 0 0 1-6-6V150a6 6 0 0 1 6-6h74v224c0 26.51 21.49 48 48 48h96v42a6 6 0 0 1-6 6zm128-96H182a6 6 0 0 1-6-6V54a6 6 0 0 1 6-6h106v88c0 13.255 10.745 24 24 24h88v202a6 6 0 0 1-6 6zm6-256h-64V48h9.632c1.591 0 3.117.632 4.243 1.757l48.368 48.368a6 6 0 0 1 1.757 4.243V112z"></path></svg>',
+                      description='copybutton in svg',
+                      typ_='image/svg'
+                      )
+    v['copybutton'] = cb
+    assert v.getDefault().data.startswith(b'GIF')
 
 
 def test_SubProduct():

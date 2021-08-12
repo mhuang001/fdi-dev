@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 from ruamel.yaml import YAML
 # import yaml
 from collections import OrderedDict
@@ -11,7 +13,7 @@ import importlib
 
 # from ..pal.context import MapContext
 from ..utils.options import opt
-from ..utils.common import pathjoin, trbk
+from ..utils.common import pathjoin, lls
 from ..utils.ydump import ydump
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 from .attributable import make_class_properties
@@ -56,10 +58,15 @@ fmtstr = {
 
 def sq(s):
     """ add quote mark to string, depending on if ' or " in the string.
+    Parameters
+    ---------
+
+    Returns
+    -------
     """
 
     if "'" in s or '\n' in s:
-        qm = '"""' if '"' in s or '\n' in s else '"'
+        qm = '""' if '"' in s or '\n' in s else '"'
     else:
         qm = "'"
     return '%s%s%s' % (qm, s, qm)
@@ -67,6 +74,12 @@ def sq(s):
 
 def getPython(val, indents, demo, onlyInclude, debug=False):
     """ make Model and init__() code strings from given data.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
     """
     infostr = ''
 
@@ -122,6 +135,11 @@ def makeinitcode(dt, pval):
     """ python instanciation source code.
 
     will be like "default: FineTime1(0)"
+    Parameters
+    ----------
+
+    Returns
+    -------
     """
     if dt not in ['string', 'integer', 'hex', 'binary', 'float']:
         # custom classes
@@ -148,6 +166,11 @@ def params(val, indents, demo, onlyInclude, debug=False):
         valid: ''
     ```
     see getPython
+    Parameters
+    ----------
+
+    Returns
+    -------
     """
 
     # output string of the data model
@@ -212,7 +235,14 @@ def params(val, indents, demo, onlyInclude, debug=False):
     return modelString, code
 
 
-def getCls(clp, rerun=True, exclude=None, verbose=False):
+def getCls(clp, rerun=True, exclude=None, ignore_error=True, verbose=False):
+    """
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
     if clp is None or len(clp.strip()) == 0:
         return {}
     if exclude is None:
@@ -221,9 +251,8 @@ def getCls(clp, rerun=True, exclude=None, verbose=False):
         print('Importing project classes from module '+clp)
         # classes path not given on command line
         pc = importlib.import_module(clp)
-        pc.PC.updateMapping(rerun=rerun, exclude=exclude,
-                            verbose=verbose, ignore_error=True)
-        ret = pc.PC.mapping
+        ret = pc.PC.updateMapping(rerun=rerun, exclude=exclude,
+                                  verbose=verbose, ignore_error=True)
         print(
             'Imported project classes from svom.products.projectclasses module.')
 
@@ -234,15 +263,20 @@ def getCls(clp, rerun=True, exclude=None, verbose=False):
         print('Importing project classes from file '+clp)
         pc = importlib.import_module(clpf.replace('.py', ''))
         sys.path.pop(0)
-        pc.PC.updateMapping(rerun=rerun, exclude=exclude)
-        ret = pc.PC.mapping
+        ret = pc.PC.updateMapping(rerun=rerun, exclude=exclude,
+                                  verbose=verbose, ignore_error=ignore_error)
+
     return ret
 
 
-def readyaml(ypath, ver=None):
+def readyaml(ypath, version=None, verbose=False):
     """ read YAML files in ypath.
 
     output: nm is  stem of file name. desc is descriptor, key being yaml[name]
+    Parameters
+    ----------
+    Returns
+    -------
     """
     yaml = YAML()
     desc = OrderedDict()
@@ -262,7 +296,7 @@ def readyaml(ypath, ver=None):
         fins[nm] = fin
 
         # read YAML
-        print('----- Reading ' + fin + '-----')
+        print('--- Reading ' + fin + '---')
         with open(fin, 'r', encoding='utf-8') as f:
             # pyYAML d = OrderedDict(yaml.load(f, Loader=yaml.FullLoader))
             d = OrderedDict(yaml.load(f))
@@ -282,9 +316,10 @@ def readyaml(ypath, ver=None):
                 del attrs['TABLE']
             if 'datasets' in d:
                 datasets.update(d['datasets'])
-            print('Pre-emble:\n%s' %
-                  (''.join([k + '=' + str(v) + '\n'
-                            for k, v in d.items() if k not in ['metadata', 'datasets']])))
+            if verbose:
+                print('Pre-emble:\n%s' %
+                      (''.join([k + '=' + str(v) + '\n'
+                                for k, v in d.items() if k not in ['metadata', 'datasets']])))
 
             logger.debug('Find attributes:\n%s' %
                          ''.join(('%20s' % (k+'=' + str(v['default'])
@@ -329,12 +364,19 @@ def readyaml(ypath, ver=None):
     return desc, fins
 
 
-def output(nm, d, fins, version, verbose):
+def output(nm, d, fins, version, dry_run=False, verbose=False):
+    """
+    Parameters
+    ----------
 
+    Returns
+    -------
+    """
     print("Input YAML file is to be renamed to " + fins[nm]+'.old')
     fout = fins[nm]
     print("Output YAML file is "+fout)
-    if 0:
+    if dry_run:
+        print('Dry run.')
         ydump(d, sys.stdout)  # yamlfile)
     else:
         os.rename(fins[nm], fins[nm]+'.old')
@@ -342,9 +384,38 @@ def output(nm, d, fins, version, verbose):
             ydump(d,  yamlfile)
 
 
-def yamlupgrade(descriptors, fins, ypath, version, verbose):
+def yamlupgrade(descriptors, fins, ypath, version, dry_run=False, verbose=False):
+    """
+    Parameters
+    ----------
+    :descriptors: a list of nested dicts describing the data model.
+    :version: current version. not that in the yaml to be modified.
+    Returns
+    -------
+    """
 
-    if float(version) == 1.6:
+    if float(version) == 'xx':
+        for nm, daf in descriptors.items():
+            d, attrs, datasets, fin = daf
+            if float(d['schema']) >= float(version):
+                print('No need to upgrade '+d['schema'])
+                continue
+            d['schema'] = version
+            newp = []
+            for p in d['parents']:
+                if p in ['Instrument', 'VT', 'VT_PDPU', 'GFT', 'GRM']:
+                    newp.append('svom.instruments.' + p)
+                else:
+                    newp.append(p)
+            d['parents'] = newp
+            # increment FORMATV
+            w = d['metadata']['FORMATV']
+            v = w['default'].split('.')
+            w.clear()
+            w['default'] = version + '.' + \
+                v[2] + '.' + str(int(v[3])+1)
+            output(nm, d, fins, version, verbose)
+    elif float(version) == 1.6:
         for nm, daf in descriptors.items():
             d, attrs, datasets, fin = daf
             if float(d['schema']) >= float(version):
@@ -354,7 +425,7 @@ def yamlupgrade(descriptors, fins, ypath, version, verbose):
             level = d.pop('level')
             md = OrderedDict()
             for pname, w in d['metadata'].items():
-                #dt = w['data_type']
+                # dt = w['data_type']
                 # no dataset yet
                 if pname == 'type':
                     v = w['default']
@@ -373,12 +444,19 @@ def yamlupgrade(descriptors, fins, ypath, version, verbose):
             d['metadata'] = md
             if 'datasets' not in d:
                 d['datasets'] = {}
-            output(nm, d, fins, version, verbose)
+            output(nm, d, fins, version, dry_run=dry_run, verbose=verbose)
+    else:
+        logger.error('version too old')
+        exit(-1)
 
 
 def dependency_sort(descriptors):
     """ sort the descriptors so that everyone's parents are to his right.
+    Parameters
+    ----------
 
+    Returns
+    -------
     """
     ret = []
     # make a list of prodcts
@@ -423,6 +501,11 @@ def dependency_sort(descriptors):
 
 def removeParent(a, b):
     """ Returns the one who is the other one's parent.
+    Parameters
+    ----------
+
+    Returns
+    -------
     """
     if a == b:
         logger.debug('%s and %s are the same class' % (b, a))
@@ -441,6 +524,14 @@ def removeParent(a, b):
 
 
 def noParentsParents(pn):
+    """
+    Parameters
+    ----------
+
+    Returns
+    -------
+    """
+
     removed = []
     for i in range(len(pn)-1):
         if pn[i] in removed:
@@ -466,8 +557,9 @@ if __name__ == '__main__':
     # Get input file name etc. from command line. defaut 'Product.yml'
     cwd = os.path.abspath(os.getcwd())
     ypath = cwd
-    tpath = cwd
-    opath = cwd
+    tpath = ''
+    opath = ''
+    dry_run = False
     ops = [
         {'long': 'help', 'char': 'h', 'default': False, 'description': 'print help'},
         {'long': 'verbose', 'char': 'v', 'default': False,
@@ -475,15 +567,17 @@ if __name__ == '__main__':
         {'long': 'yamldir=', 'char': 'y', 'default': ypath,
          'description': 'Input YAML file directory.'},
         {'long': 'template=', 'char': 't', 'default': tpath,
-         'description': 'Product class template file directory.'},
+         'description': 'Product class template file directory. Default is the YAML dir.'},
         {'long': 'outputdir=', 'char': 'o', 'default': opath,
-         'description': 'Output directory for python file.'},
-        {'long': 'packagename=', 'char': 'p', 'default': '-',
-         'description': 'Name of the package which the generated modules belong to.'},
+         'description': 'Output directory for python files. Default is the parent directory of the YAML dir.'},
+        {'long': 'packagename=', 'char': 'p', 'default': '',
+         'description': 'Name of the package which the generated modules belong to when imported during code generation. Default is guessing from output path.'},
         {'long': 'userclasses=', 'char': 'c', 'default': '',
          'description': 'Python file name, or a module name,  to import prjcls to update Classes with user-defined classes which YAML file refers to.'},
         {'long': 'upgrade', 'char': 'u', 'default': False,
-         'description': 'Upgrade the file to current schema, to a filename + ' + version},
+         'description': 'Upgrade the file to current schema, by yamlupgrade(), to version + ' + version},
+        {'long': 'dry_run', 'char': 'n', 'default': False,
+         'description': 'No writing. Dry run.'},
         {'long': 'debug', 'char': 'd', 'default': False,
          'description': 'run in pdb. type "c" to continuue.'},
     ]
@@ -497,30 +591,24 @@ if __name__ == '__main__':
         logging.getLogger().setLevel(logging.INFO)
 
     ypath = out[2]['result']
-    tpath = out[3]['result']
-    opath = os.path.abspath(out[4]['result'])
-    package_name = out[5]['result']
+    cmd_tpath = out[3]['result']
+    cmd_opath = out[4]['result']
+    cmd_package_name = out[5]['result']
     project_class_path = out[6]['result']
     upgrade = out[7]['result']
-    debug = out[8]['result']
+    dry_run = out[8]['result']
+    debug = out[9]['result']
 
     if debug:
         import pdb
         pdb.set_trace()
 
     # input file
-    descriptors, fins = readyaml(ypath, version)
+    descriptors, files_imput = readyaml(ypath, version, verbose)
     if upgrade:
-        yamlupgrade(descriptors, fins, ypath, version, verbose)
+        yamlupgrade(descriptors, files_imput, ypath, version,
+                    dry_run=dry_run, verbose=verbose)
         sys.exit()
-
-    if package_name == '-':
-        ao = os.path.abspath(opath)
-        if not ao.startswith(cwd):
-            logger.error('Cannot derive package name from yaml dir and cwd.')
-            exit(-3)
-        package_name = ao[len(cwd):].strip('/').replace('/', '.')
-    logger.debug("Package name: " + package_name)
 
     # Do not import modules that are to be generated. Thier source code
     # could be  invalid due to unseccessful previous runs
@@ -534,11 +622,12 @@ if __name__ == '__main__':
     # now can be used as parents
     from .classes import Classes
     pcl = getCls(project_class_path, rerun=True,
-                 exclude=importexclude, verbose=verbose)
+                 exclude=importexclude, verbose=verbose, ignore_error=True)
     glb = Classes.updateMapping(
         c=pcl, rerun=True, exclude=importexclude, verbose=verbose)
     # make a list whose members do not depend members behind
     sorted_list = dependency_sort(descriptors)
+    skipped = []
     for nm in sorted_list:
         d, attrs, datasets, fin = descriptors[nm]
         print('************** Processing ' + nm + '***********')
@@ -546,6 +635,22 @@ if __name__ == '__main__':
         modelName = d['name']
         # module/output file name is YAML input file "name" with lowercase
         modulename = nm.lower()
+
+        # set paths according to each file's path
+        ypath = files_imput[nm].rsplit('/', 1)[0]
+        tpath = ypath if cmd_tpath == '' else cmd_tpath
+        opath = os.path.abspath(os.path.join(ypath, '..')
+                                ) if cmd_opath == '' else cmd_opath
+        if cmd_package_name == '':
+            ao = os.path.abspath(opath)
+            if not ao.startswith(cwd):
+                logger.error(
+                    'Cannot derive package name from output dir and cwd.')
+                exit(-3)
+            package_name = ao[len(cwd):].strip('/').replace('/', '.')
+        else:
+            package_name = cmd_package_name
+        logger.info("Package name: " + package_name)
 
         # schema
         schema = d['schema']
@@ -556,9 +661,14 @@ if __name__ == '__main__':
         # import parent classes
         parentNames = d['parents']
         # remove classes that are other's parent class (MRO problem)
-        if parentNames and len(parentNames):
-            parentNames = noParentsParents(parentNames)
-
+        try:
+            if parentNames and len(parentNames):
+                parentNames = noParentsParents(parentNames)
+        except KeyError as e:
+            logger.warning('!!!!!!!!!!! Skipped %s due to %s.' %
+                           (nm, type(e).__name__+str(e)))
+            skipped.append(nm)
+            continue
         if parentNames and len(parentNames):
             includingParentsAttributes = OrderedDict()
             for parent in parentNames:
@@ -639,7 +749,8 @@ if __name__ == '__main__':
         subs['CLASSDOC'] = doc
         subs['MODELSPEC'] = modelString
         subs['INITARGS'] = ikwds
-        print('%s=\n%s\n' % ('Model Initialization', subs['INITARGS']))
+        print('%s=\n%s\n' %
+              ('Model Initialization', lls(subs['INITARGS'], 250)))
         subs['PROPERTIES'] = properties
 
         # subtitute the template
@@ -656,9 +767,12 @@ if __name__ == '__main__':
 
         sp = Template(t).safe_substitute(subs)
         # print(sp)
-        with open(fout, 'w', encoding='utf-8') as f:
-            f.write(sp)
-        print('Done saving ' + fout + '\n' + '='*40)
+        if dry_run:
+            print('Dry-run. Not saving ' + fout + '\n' + '='*40)
+        else:
+            with open(fout, 'w', encoding='utf-8') as f:
+                f.write(sp)
+            print('Done saving ' + fout + '\n' + '='*40)
 
         # import the newly made module to test and, for class generatiom, so the following classes could use it
         importexclude.remove(modulename)
@@ -691,12 +805,18 @@ if __name__ == '__main__':
         sp = prod.meta.toString(tablefmt='fancy_grid', param_widths=fg)
 
         mout = pathjoin(ypath, modelName + '.txt')
-        with open(mout, 'w', encoding='utf-8') as f:
-            f.write(sp)
-        print('Done dumping ' + mout + '\n' + '*'*40)
+        if dry_run:
+            print('Dry-run. Not dumping ' + mout + '\n' + '*'*40)
+        else:
+            with open(mout, 'w', encoding='utf-8') as f:
+                f.write(sp)
+            print('Done dumping ' + mout + '\n' + '*'*40)
 
         if len(importexclude) == 0:
             exit(0)
 
         Classes.updateMapping(c=importinclude, exclude=importexclude)
         glb = Classes.mapping
+
+    if len(skipped):
+        print('!!!!!!!!!!! Skipped: %s possiblly due to unresolved dependencies. Try re-running.   !!!!!!!!!!!' % str(skipped))

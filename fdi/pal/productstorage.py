@@ -20,13 +20,13 @@ class ProductStorage(object):
 
     Every instanciation with the same pool will  result in a new instance of ProdStorage.
 
-        pool: if is a string will be taken as a poolname. if is a pool object will be registered with its name,
-        poolurl: is sent to the PoolManager with poolname to get the pool object.
-
     """
 
     def __init__(self, pool=None, poolurl=None, **kwds):
         """ Gets the storage "control pannel" for pool with specifed name.
+
+        pool: if is a string will be taken as a poolname. if is a pool object will be registered with its name,
+        poolurl: is sent to the PoolManager with poolname to get the pool object.
         """
         if issubclass(pool.__class__, str) and ':' in pool:
             raise TypeError(

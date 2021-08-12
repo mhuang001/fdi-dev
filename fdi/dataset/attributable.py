@@ -83,10 +83,26 @@ class Attributable(MetaDataHolder):
 
     @property
     def meta(self):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         return self.getMeta()
 
     @meta.setter
     def meta(self, newMetadata):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
         self.setMeta(newMetadata)
 
     def setMeta(self, newMetadata):
@@ -95,7 +111,13 @@ class Attributable(MetaDataHolder):
         Product will override this to add listener when meta is
         replaced.
         `_defaults` which usually is `self.zInfo` is added to new meta so `str(meta)` can ommit the parameters with default value.
+
+        Parameters
+        ----------
+        Returns
+        ------- 
         """
+
         defs = self.zInfo['metadata'] if hasattr(self, 'zInfo') else None
         newMetadata._defaults = defs
         self._meta = newMetadata

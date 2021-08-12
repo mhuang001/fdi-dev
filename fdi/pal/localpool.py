@@ -35,11 +35,10 @@ def wipeLocal(path):
     if path == '/':
         raise(ValueError('Do not remove root directory.'))
 
-    if not op.exists(path):
-        return
     try:
-        shutil.rmtree(path)
-        os.mkdir(path)
+        if op.exists(path):
+            shutil.rmtree(path)
+        os.makedirs(path)
     except Exception as e:
         msg = 'remove-mkdir failed. exc: %s trbk: %s.' % (str(e), trbk(e))
         logger.error(msg)

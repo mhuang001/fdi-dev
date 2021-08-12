@@ -166,7 +166,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
 
     @ classmethod
     def removeAll(cls):
-        """ deletes all pools from the pool list, pools unwiped
+        """ deletes all pools from the pool list, pools not wiped
         """
         nl = list(cls._GlobalPoolList)
         for pool in nl:

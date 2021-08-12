@@ -104,7 +104,7 @@ wheel:
 upload:
 	$(PYEXE) -m twine upload --repository $(PYREPO) dist/*
 
-wheeltest:
+virtest:
 	rm -rf /tmp/fditestvirt
 	virtualenv -p $(PYEXE) /tmp/fditestvirt
 	. /tmp/fditestvirt/bin/activate && \
@@ -115,17 +115,6 @@ wheeltest:
 	echo Testing newly installed fdi ... ; \
 	$(PYEXE) -c 'import sys, fdi.dataset.arraydataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
 	$(PYEXE) -c 'import sys, pkgutil as p; sys.stdout.buffer.write(p.get_data("fdi", "dataset/resources/Product.template")[:100])' && \
-	deactivate
-
-testw:
-	rm -rf /tmp/fditestvirt
-	virtualenv -p $(PYEXE) /tmp/fditestvirt
-	. /tmp/fditestvirt/bin/activate && \
-	$(PYEXE) -m pip uninstall -q -q -y fdi ;\
-	$(PYEXE) -m pip cache remove -q -q -q fdi ;\
-	$(PYEXE) -m pip install $(INDURL) "fdi==1.0.6" && \
-	echo Testing newly installed fdi ... ; \
-	$(PYEXE) -c 'import sys, fdi.dataset.arraydataset as f; a=f.ArrayDataset(data=[4,3]); sys.exit(0 if a[1] == 3 else a[1])' && \
 	deactivate
 
 J_OPTS	= ${JAVA_OPTS} -XX:MaxPermSize=256M -Xmx1024M -DloggerPath=conf/log4j.properties
@@ -139,6 +128,22 @@ api:
 
 reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
+
+gitadd:
+	git add LICENSE README.rst CHANGELOG.rst setup.py MANIFEST.in \
+	.gitignore noxfile.py Makefile .gitmodules .gitlab-ci.yml \
+	.readthedocs.yml .dockerignore CONTRIBUTORS
+	git add bin/reinstall bin/installpns bin/update
+	git add resources
+	git add fdi/*.py
+	git add fdi/dataset/*.py fdi/dataset/resources
+	git add fdi/pns/*.py fdi/pns/resources
+	git add fdi/pal/*.py fdi/pal/resources
+	git add fdi/utils/*.py
+	git add tests/*.py tests/resources tests/serv/*.py tests/serv/resources
+	git add docs/sphinx/index.rst docs/sphinx/usage docs/sphinx/api \
+	docs/sphinx/conf.py docs/sphinx/Makefile \
+	docs/sphinx/_static docs/sphinx/_templates
 
 # update _version.py and tag based on setup.py
 # VERSION	= $(shell $(PYEXE) -S -c "from setuptools_scm import get_version;print(get_version('.'))")
@@ -238,67 +243,24 @@ docs_html:
 	cd $(SDIR) && make html
 
 ########
-DKRREPO	= mhastro
-DOCKER_NAME	= fdi
-DVERS	= v1.3
-SERVER_NAME      =httppool
-SVERS	= v4
-PORT        =9884
-EXTPORT =$(PORT)
-IP_ADDR     =10.0.10.114
-SECFILE = $${HOME}/.secret
+# docker
+########
 
-LATEST	=im:latest
-B       =/bin/bash
-
-build_docker:
-	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DVERS) --secret id=envs,src=$(SECFILE) --build-arg fd=$(fd) --build-arg  re=$(re) $(D) --progress=plain .
-	docker tag $(DOCKER_NAME):$(DVERS) $(LATEST)
-
-launch_docker:
-	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(LATEST) $(LAU)
-
-build_server:
-	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SVERS) --secret id=envs,src=$(SECFILE) --build-arg fd=$(fd) --build-arg  re=$(re) -f fdi/pns/resources/httppool_server_2.docker $(D) --progress=plain .
-	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)
-
-launch_server:
-	docker run -dit --network=bridge --env-file $(SECFILE)  -p $(PORT):$(EXTPORT) --name $(SERVER_NAME) $(D) $(LATEST) $(LAU)
-	sleep 2
-	docker ps -n 1
-
-rm_docker:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	if docker stop $$cid; then docker  rm $$cid; else echo NOT running ; fi
-
-rm_dockeri:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	if docker stop $$cid; then docker  rm $$cid; else echo NOT running ; fi
-	docker image rm $(LATEST)
-
-it:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	if [ -z $$cid ]; then echo NOT running ; else \
-	docker exec -it $(D) $$cid $(B); fi
-
-t:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	if [ -z $$cid ]; then echo NOT running ; else \
-	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/apache/error-ps.log; fi
-
-i:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	if [ -z $$cid ]; then echo NOT running ; else \
-	docker exec -it $(D) $$cid /usr/bin/less -f /home/apache/error-ps.log; fi
-
-push_docker:
-	im=$(DKRREPO)/$(DOCKER_NAME):$(DVERS); \
-	docker tag  $(DOCKER_NAME):$(DVERS) $$im &&\
-	docker push $$im
-
-push_server:
-	im=$(DKRREPO)/$(SERVER_NAME):$(SVERS); \
-	docker tag  $(SERVER_NAME):$(SVERS) $$im &&\
-	docker push $$im
+build_docker \
+launch_docker \
+build_server \
+launch_server \
+rm_docker \
+rm_dockeri \
+it \
+t \
+i \
+push_docker \
+push_server \
+vol \
+backup_server \
+restore_server \
+restore_test:
+	$(MAKE) --no-print-directory -f Makefile_docker.mk -C . $@
 
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Automatically generated from fdi/dataset/resources/Product.yml. Do not edit.
+# Automatically generated from fdi/dataset/resources/BrowseProduct.yml. Do not edit.
 
 from collections import OrderedDict
 from fdi.dataset.baseproduct import BaseProduct
@@ -17,13 +17,13 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class Product(BaseProduct):
-    """ Product class schema 1.6 inheriting ['BaseProduct'].
+class BrowseProduct(BaseProduct):
+    """ BrowseProduct class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/Product.yml on 2021-08-02 10:18:55.452463.
+Automatically generated from fdi/dataset/resources/BrowseProduct.yml on 2021-08-02 10:18:55.414238.
 
 Description:
-Project level product
+Container of media data for browsing.
 
     Generally a Product (inheriting BaseProduct) has project-wide attributes and can be extended to define a plethora of specialized products.
     """
@@ -31,18 +31,13 @@ Project level product
 
     def __init__(self,
                  description = 'UNKNOWN',
-                 typ_ = 'Product',
+                 typ_ = 'BrowseProduct',
                  level = 'ALL',
                  creator = 'UNKNOWN',
                  creationDate = FineTime(0),
                  rootCause = 'UNKNOWN',
                  version = '0.8',
-                 FORMATV = '1.6.0.10',
-                 startDate = FineTime(0),
-                 endDate = FineTime(0),
-                 instrument = 'UNKNOWN',
-                 modelName = 'UNKNOWN',
-                 mission = '_AGS',
+                 FORMATV = '1.6.0.1',
                  zInfo=None,
                  **kwds):
         """ Initializes instances with more metadata as attributes, set to default values.
@@ -69,22 +64,12 @@ Project level product
 
         #print(self.meta.keySet(), id(self.meta))
 
-    @property
-    def startDate(self): pass
-    @property
-    def endDate(self): pass
-    @property
-    def instrument(self): pass
-    @property
-    def modelName(self): pass
-    @property
-    def mission(self): pass
     pass
 
 # Data Model specification for mandatory components
 _Model_Spec = {
-    'name': 'Product',
-    'description': 'Project level product',
+    'name': 'BrowseProduct',
+    'description': 'Container of media data for browsing.',
     'parents': [
         'BaseProduct',
         ],
@@ -104,7 +89,7 @@ _Model_Spec = {
                 'data_type': 'string',
                 'description': 'Product Type identification. Name of class or CARD.',
                 'description_zh_cn': '产品类型。完整Python类名或卡片名。',
-                'default': 'Product',
+                'default': 'BrowseProduct',
                 'valid': '',
                 'typecode': 'B',
                 },
@@ -159,62 +144,8 @@ _Model_Spec = {
                 'data_type': 'string',
                 'description': 'Version of product schema and revision',
                 'description_zh_cn': '产品格式版本',
-                'default': '1.6.0.10',
+                'default': '1.6.0.1',
                 'valid': '',
-                'typecode': 'B',
-                },
-        'startDate': {
-                'id_zh_cn': '产品的标称起始时间',
-                'fits_keyword': 'DATE-OBS',
-                'data_type': 'finetime',
-                'description': 'Nominal start time  of this product.',
-                'description_zh_cn': '产品标称的起始时间',
-                'default': 0,
-                'valid': '',
-                'valid_zh_cn': '',
-                'typecode': None,
-                },
-        'endDate': {
-                'id_zh_cn': '产品的标称结束时间',
-                'fits_keyword': 'DATE-END',
-                'data_type': 'finetime',
-                'description': 'Nominal end time  of this product.',
-                'description_zh_cn': '产品标称的结束时间',
-                'default': 0,
-                'valid': '',
-                'valid_zh_cn': '',
-                'typecode': None,
-                },
-        'instrument': {
-                'id_zh_cn': '观测仪器名称',
-                'data_type': 'string',
-                'description': 'Instrument that generated data of this product',
-                'description_zh_cn': '观测仪器名称',
-                'default': 'UNKNOWN',
-                'valid': '',
-                'valid_zh_cn': '',
-                'typecode': 'B',
-                },
-        'modelName': {
-                'id_zh_cn': '样机名称',
-                'fits_keyword': 'MODEL',
-                'data_type': 'string',
-                'description': 'Model name of the instrument of this product',
-                'description_zh_cn': '观测仪器样机名称',
-                'default': 'UNKNOWN',
-                'valid': '',
-                'valid_zh_cn': '',
-                'typecode': 'B',
-                },
-        'mission': {
-                'id_zh_cn': '任务名称',
-                'fits_keyword': 'TELESCOP',
-                'data_type': 'string',
-                'description': 'Name of the mission.',
-                'description_zh_cn': '任务名称',
-                'default': '_AGS',
-                'valid': '',
-                'valid_zh_cn': '',
                 'typecode': 'B',
                 },
         },

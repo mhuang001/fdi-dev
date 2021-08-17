@@ -13,7 +13,7 @@ from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
 from fdi.utils.common import lls, trbk, fullname
 from fdi.utils.fetch import fetch
-from fdi.pns import httppool_server
+from httppool.route import httppool_server
 from fdi.pns.jsonio import auth_headers
 
 import pytest
@@ -21,11 +21,15 @@ import filelock
 import sys
 from urllib.request import pathname2url
 from urllib.error import URLError
+
 from flask import current_app
 from requests.auth import HTTPBasicAuth
+from requests.models import Response as rmResponse  # mock server
+from flask.wrappers import Response as fwResponse  # live server
 # import requests
 import random
 import os
+import requests
 import pytest
 from pprint import pprint
 
@@ -90,9 +94,9 @@ if 0:
 
 
 @pytest.fixture(scope="module")
-def project_app():
-    from fdi.pns.httppool_server import create_app
-    return create_app()
+def project_app(pc):
+    from httppool_app import create_app
+    return create_app(config_object=pc, logger=logger)
 
 
 def issane(o):
@@ -110,11 +114,11 @@ def check0result(result, msg):
     assert msg == '' or not isinstance(msg, (str, bytes)), msg
 
 
-def est_getpnspoolconfig(pc, setup):
+def est_getpnspoolconfig(pc, server):
     ''' gets and compares pnspoolconfig remote and local
     '''
     logger.info('get pnsconfig')
-    aburl, headers = setup
+    aburl, headers = server
     o = getJsonObj(aburl + '/'+'pnsconfig')
     issane(o)
     r = o['result']
@@ -125,17 +129,38 @@ def est_getpnspoolconfig(pc, setup):
 
 # TEST HTTPPOOL  API
 
+def getPayload(aResponse):
+    """ deserializes, if content_type is json, data or tex of responses from wither the live server or the mock one.
+    """
 
-def check_response(o, failed_case=False):
+    x = aResponse.data if issubclass(
+        aResponse.__class__, fwResponse) else aResponse.text
+    if aResponse.headers['Content-Type'] == 'application/json':
+        return deserialize(x)
+    else:
+        return x
+
+
+def check_response(o, failed_case=False, excluded=None):
     global lupd
+    if excluded is None:
+        excluded = []
     assert o is not None, "Server is having trouble"
+    someone = any(x in o for x in excluded)
     if not failed_case:
-        assert 'result' in o or 'Bad string to decode as JSON' not in o, o
-        assert 'FAILED' != o['result'], o['result']
-        assert o['timestamp'] > lupd
-        lupd = o['timestamp']
+        assert 'result' in o or \
+            'Bad string to decode as JSON' not in o \
+            or someone, o
+        if not someone:
+            # properly formated
+            assert 'FAILED' != o['result'], o['result']
+            assert o['timestamp'] > lupd
+            lupd = o['timestamp']
+            return True
     else:
         assert 'FAILED' == o['result'], o['result']
+        return True
+    return False  # not properly formated
 
 
 def test_new_user_read_write(new_user_read_write):
@@ -172,7 +197,7 @@ def test_unauthorizedread_write(server, new_user_read_only, client):
     x = client.get(aburl+'/pools', headers=headers)
     assert x.status_code == 200
     # with pytest.raises(URLError):
-    o = deserialize(x.data)
+    o = getPayload(x)
     check_response(o)
     pools = o['result']
     assert isinstance(pools, list)
@@ -184,33 +209,33 @@ def test_authorizedread_write(server, new_user_read_write, client):
     x = client.get(aburl+'/pools', headers=headers)
     assert x.status_code == 200
     # with pytest.raises(URLError):
-    o = deserialize(x.data)
+    o = getPayload(x)
     check_response(o)
     pools = o['result']
     assert isinstance(pools, list)
 
 
-def test_root(setup, client):
-    aburl, headers = setup
+def test_root(server, client):
+    aburl, headers = server
     url = aburl + '/'+'pools'
     x = client.get(url)
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     c_pools = o['result']
     # /
     url = aburl + '/'
     x = client.get(url)
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     c = o['result']
     assert c_pools == c
     # /
     url = aburl
     x = client.get(url)
-    o = deserialize(x.text)
-    check_response(o)
-    c = o['result']
-    assert c_pools == c
+    o = getPayload(x)
+    if check_response(o, excluded=['Redirecting']):
+        c = o['result']
+        assert c_pools == c
 
 
 def clear_server_local_pools_dir(poolid, local_pools_dir):
@@ -267,7 +292,7 @@ def empty_pool_on_server(post_poolid, aburl, auth, clnt):
     path = post_poolid + '/api/removeAll'
     url = aburl + '/' + path
     x = clnt.get(url, auth=HTTPBasicAuth(*auth))
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
 
 
@@ -284,18 +309,18 @@ def populate_server(poolid, aburl, auth, clnt):
         url = aburl + '/' + poolid + '/' + prodt + '/' + str(index)
         x = clnt.post(url, auth=HTTPBasicAuth(*auth), data=data)
         print(len(data))
-        o = deserialize(x.text)
+        o = getPayload(x)
         check_response(o)
         urns.append(o['result'])
     return creators, instruments, urns
 
 
-def test_CRUD_product(local_pools_dir, setup, userpass, client):
+def test_CRUD_product(local_pools_dir, server, userpass, client):
     ''' test saving, read, delete products API, products will be saved at /data/pool_id
     '''
 
     logger.info('save products')
-    aburl, headers = setup
+    aburl, headers = server
     post_poolid = test_poolid
     # register
     pool = PoolManager.getPool(test_poolid, aburl + '/'+test_poolid)
@@ -324,7 +349,7 @@ def test_CRUD_product(local_pools_dir, setup, userpass, client):
     # remove the leading 'urn:'
     url = aburl + '/' + u[4:].replace(':', '/')
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     assert o['result'].creator == creators[urns.index(u)], 'Creator not match'
 
@@ -335,10 +360,10 @@ def test_CRUD_product(local_pools_dir, setup, userpass, client):
     hkpath = '/hk'
     url = aburl + '/' + post_poolid + hkpath
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o1 = deserialize(x.text)
+    o1 = getPayload(x)
     url2 = aburl + '/' + post_poolid + '/api/readHK'
     x2 = client.get(url2, auth=HTTPBasicAuth(*userpass))
-    o2 = deserialize(x2.text)
+    o2 = getPayload(x2)
     for o in [o1, o2]:
         check_response(o)
         assert o['result']['classes'] is not None, 'Classes jsn read failed'
@@ -357,7 +382,7 @@ def test_CRUD_product(local_pools_dir, setup, userpass, client):
     hkpath = '/hk/classes'
     url = aburl + '/' + post_poolid + hkpath
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     assert o['result'][prodt]['sn'][-l:] == inds
     assert o['result'][prodt]['currentSN'] == inds[-1]
@@ -367,7 +392,7 @@ def test_CRUD_product(local_pools_dir, setup, userpass, client):
     apipath = '/api/getCount/' + prodt + ':str'
     url = aburl + '/' + post_poolid + apipath
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     assert o['result'] == num
 
@@ -375,7 +400,7 @@ def test_CRUD_product(local_pools_dir, setup, userpass, client):
     hkpath = '/hk/tags'
     url = aburl + '/' + post_poolid + hkpath
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     assert len(o['result']) == 0
 
@@ -383,7 +408,7 @@ def test_CRUD_product(local_pools_dir, setup, userpass, client):
     hkpath = '/hk/urns'
     url = aburl + '/' + post_poolid + hkpath
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
 
     assert set(o['result'].keys()) == set(urns)
@@ -400,7 +425,7 @@ def test_CRUD_product(local_pools_dir, setup, userpass, client):
 
     x = client.delete(url, auth=HTTPBasicAuth(*userpass))
 
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
 
     files1 = [f for f in get_local_files(
@@ -421,7 +446,7 @@ def test_CRUD_product(local_pools_dir, setup, userpass, client):
     # wipe the pool on the server
     url = aburl + '/' + post_poolid + '/api/removeAll'
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
 
     files = get_local_files(post_poolid, local_pools_dir)
@@ -429,20 +454,20 @@ def test_CRUD_product(local_pools_dir, setup, userpass, client):
 
     url = aburl + '/' + post_poolid + '/api/isEmpty'
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     assert o['result'] == True
 
     logger.info('unregister a pool on the server')
     url = aburl + '/' + post_poolid
     x = client.delete(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
 
     # this should fail as pool is unregistered on the server
     url = aburl + '/' + post_poolid + '/api/isEmpty'
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o, failed_case=True)
 
     # make an unregistered pool
@@ -452,31 +477,32 @@ def test_CRUD_product(local_pools_dir, setup, userpass, client):
 
     # count pools
     url = aburl + '/'
-    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    o = getPayload(x)
     check_response(o, failed_case=False)
     assert len(o['result']) > 0
 
     # wipe all pools
     url = aburl + '/' + 'wipe_all_pools'
-    x = requests.put(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    x = client.put(url, auth=HTTPBasicAuth(*userpass))
+    o = getPayload(x)
     check_response(o, failed_case=False)
 
     # count pools
     url = aburl + '/'
-    x = requests.get(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    o = getPayload(x)
     check_response(o, failed_case=False)
-    assert len(o['result']) == 0
+    assert len(o['result']) == 0, o['result']
 
-    files = get_files('', local_pools_dir)
-    assert len(files) == 0, 'Wipe_all_pools failed: ' + o['msg']
+    files = get_local_files('', local_pools_dir)
+    assert len(files) == 0, 'Wipe_all_pools failed: ' + \
+        o['msg'] + 'Files ' + str(files)
 
 
-def test_product_path(setup, userpass, client):
+def test_product_path(server, userpass, client):
 
-    aburl, headers = setup
+    aburl, headers = server
     auth = HTTPBasicAuth(*userpass)
     # empty_pool_on_server(post_poolid,aburl,userpass)
     pstore = ProductStorage(test_poolid, aburl + '/'+test_poolid)
@@ -490,7 +516,7 @@ def test_product_path(setup, userpass, client):
     # print(len(data))
     url1 = url0+prodt + '/0'
     x = client.post(url1, auth=auth, data=data)
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     urn = o['result']
 
@@ -499,7 +525,7 @@ def test_product_path(setup, userpass, client):
     urlapi = url0 + pcls
     # 'http://127.0.0.1:5000/v0.8/test/fdi.dataset.product.Product'
     x = client.get(urlapi, auth=auth)
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     c = o['result']
     # pprint(c)
@@ -512,7 +538,7 @@ def test_product_path(setup, userpass, client):
     #
     url2 = url0 + urn.replace(':', '+') + '/' + pth
     x = client.get(url2, auth=auth)
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     c = o['result']
     assert c == p['results']['Time_Energy_Pos']['Energy'].data
@@ -524,7 +550,7 @@ def test_product_path(setup, userpass, client):
     # http://0.0.0.0:5000/v0.7/test/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
     url3 = urlp + '/' + pth
     x = client.get(url3, auth=auth)
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     c2 = o['result']
     assert c == p['results']['Time_Energy_Pos']['Energy'].data
@@ -539,7 +565,7 @@ def test_product_path(setup, userpass, client):
     ]:
         url = urlp + '/' + pth
         x = client.get(url, auth=auth)
-        o = deserialize(x.text)
+        o = getPayload(x)
         check_response(o)
         c = o['result']
         f, s = fetch(pth, p)
@@ -548,7 +574,7 @@ def test_product_path(setup, userpass, client):
 
     url = url0 + pt + '/'
     x = client.get(url, auth=auth)
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     c = o['result']
     assert 'description' in c
@@ -559,17 +585,17 @@ def test_product_path(setup, userpass, client):
     url = url0 + pt + '/$string'
     x = client.get(url, auth=auth)
     assert x.headers['Content-Type'] == 'text/plain'
-    c = x.text
+    c = getPayload(x)
     # print(c)
     assert 'UNKNOWN' in c
 
 
-def test_get_pools(local_pools_dir, setup, client):
+def test_get_pools(local_pools_dir, server, client):
 
-    aburl, headers = setup
+    aburl, headers = server
     url = aburl + '/'+'pools'
     x = client.get(url)
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o)
     c = o['result']
     assert len(c)
@@ -591,9 +617,9 @@ async def lock_pool(poolid, sec, local_pools_dir):
     return deserialize(fakeres)
 
 
-async def read_product(poolid, setup, userpass):
+async def read_product(poolid, server, userpass):
 
-    aburl, headers = setup
+    aburl, headers = server
     # trying to read
     if 1:
         prodpath = '/'+prodt+'/0'
@@ -610,14 +636,14 @@ async def read_product(poolid, setup, userpass):
     return o
 
 
-def test_lock_file(setup, userpass, local_pools_dir, client):
+def test_lock_file(server, userpass, local_pools_dir, client):
     ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
     '''
     logger.info('Test read a locked file, it will return FAILED')
-    aburl, headers = setup
+    aburl, headers = server
     poolid = test_poolid
     # init server
-    populate_server(poolid, aburl, userpass)
+    populate_server(poolid, aburl, userpass, client)
     # hkpath = '/hk/classes'
     # url = aburl + '/' + poolid + hkpath
     # x = client.get(url, auth=HTTPBasicAuth(*userpass))
@@ -625,7 +651,7 @@ def test_lock_file(setup, userpass, local_pools_dir, client):
     try:
         loop = asyncio.get_event_loop()
         tasks = [asyncio.ensure_future(
-            lock_pool(poolid, 2, local_pools_dir)), asyncio.ensure_future(read_product(poolid, setup, userpass))]
+            lock_pool(poolid, 2, local_pools_dir)), asyncio.ensure_future(read_product(poolid, server, userpass))]
         taskres = loop.run_until_complete(asyncio.wait(tasks))
         loop.close()
     except Exception as e:
@@ -640,16 +666,16 @@ def test_lock_file(setup, userpass, local_pools_dir, client):
     check_response(r1, True)
 
 
-def test_read_non_exists_pool(setup, userpass, client):
+def test_read_non_exists_pool(server, userpass, client):
     ''' Test read a pool which doesnot exist, returns FAILED
     '''
     logger.info('Test query a pool non exist.')
-    aburl, headers = setup
+    aburl, headers = server
     wrong_poolid = 'abc'
     prodpath = '/' + prodt + '/0'
     url = aburl + '/' + wrong_poolid + prodpath
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o = deserialize(x.text)
+    o = getPayload(x)
     check_response(o, True)
 
 
@@ -667,8 +693,8 @@ def XXXtest_subclasses_pool(userpass, client):
         *userpass), data=data)
     res2 = client.post(url2, auth=HTTPBasicAuth(
         *userpass), data=data)
-    o1 = deserialize(res1.text)
-    o2 = deserialize(res2.text)
+    o1 = getPayload(res1)
+    o2 = getPayload(res2)
     check_response(o1)
     check_response(o2)
 
@@ -678,9 +704,9 @@ def XXXtest_subclasses_pool(userpass, client):
 
     res1 = client.delete(url1,  auth=HTTPBasicAuth(*userpass))
     res2 = client.delete(url2,  auth=HTTPBasicAuth(*userpass))
-    o1 = deserialize(res1.text)
+    o1 = getPayload(res1)
     check_response(o1)
-    o2 = deserialize(res2.text)
+    o2 = getPayload(res2)
     check_response(o2)
 
 

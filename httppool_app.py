@@ -3,12 +3,13 @@
 
 """ https://livecodestream.dev/post/python-flask-api-starter-kit-and-project-layout/ """
 
-from fdi._version import __version__
-from flask import Flask
-from flasgger import Swagger
-from httppool.route.home import home_api
+from httppool.route.home import home_api, home_api2
+from httppool.route.httppool_server import init_httppool_server, httppool_api
 
+from fdi._version import __version__
 from fdi.utils import getconfig
+from flasgger import Swagger
+from flask import Flask
 
 import logging
 import sys
@@ -18,7 +19,7 @@ import sys
 # print(sys.path)
 
 
-def setuplogging(level=logging.WARN):
+def setup_logging(level=logging.WARN):
     global logging
     # create logger
     logging.basicConfig(stream=sys.stdout,
@@ -33,15 +34,33 @@ def setuplogging(level=logging.WARN):
     return logging
 
 
-def create_app(conf=None):
-    app = Flask(__name__)
+######################################
+#### Application Factory Function ####
+######################################
 
+
+def create_app(config_object=None, logger=None):
+
+    if logger is None:
+        logger = globals()['logger']
+    app = Flask(__name__, instance_relative_config=True)
     app.config['SWAGGER'] = {
         'title': 'FDI %s HTTPpool Server' % __version__,
     }
     swagger = Swagger(app)
 
-    app.register_blueprint(home_api, url_prefix=pc['baseurl'])
+    config_object = config_object if config_object else getconfig.getConfig()
+    app.config['PC'] = config_object
+    app.config['LOGGER_LEVEL'] = logger.getEffectiveLevel()
+    #logging = setup_logging()
+    with app.app_context():
+        init_httppool_server()
+    # initialize_extensions(app)
+    # register_blueprints(app)
+
+    app.register_blueprint(home_api, url_prefix='')
+    app.register_blueprint(home_api2, url_prefix='')
+    app.register_blueprint(httppool_api, url_prefix=config_object['baseurl'])
 
     return app
 
@@ -54,7 +73,7 @@ if __name__ == '__main__':
 
     lv = pc['logginglevel']
     logger.setLevel(lv)
-    setuplogging(lv if lv > logging.WARN else logging.WARN)
+    setup_logging(lv if lv > logging.WARN else logging.WARN)
     logger.info(
         'Server starting. Make sure no other instance is running.'+str(lv))
 

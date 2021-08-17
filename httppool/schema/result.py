@@ -99,7 +99,7 @@ return_specs_dict2 = {
         "200": {
             "description": "A serialized result object, a message string, a floating point timestamp",
             "schema": {
-                "$ref": "#/definitions/ResultSchema"
+                "$ref": "#/definitions/ReturnSchema"
             },
             "examples": {
                 'result': '42',

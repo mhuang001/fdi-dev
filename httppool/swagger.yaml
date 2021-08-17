@@ -380,3 +380,32 @@ definitions:
       result: "OK."
       msg: "pool is deleted"
       ts: 15948800582498.861328125
+
+# Descriptions of common components
+components:
+  responses:
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    # Schema for error response body
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+

@@ -1,6 +1,8 @@
 
 from fdi.dataset.serializable import Serializable
 import time
+import os
+import threading
 
 
 class WelcomeModel(Serializable):
@@ -13,6 +15,8 @@ def returnSomething(res='foo', msg='bar'):
     d = {
         'result': res,
         'msg': 4,  # msg,
-        'time': time.time()
+        'time': time.time(),
+        'pid': os.getpid(),
+        'thread': threading.get_ident()
     }
-    return 2
+    return d

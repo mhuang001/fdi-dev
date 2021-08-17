@@ -1,0 +1,456 @@
+---
+openapi: 3.0.0
+info:
+  version: 2.0.0
+  description: "This is an API description of the HTTPPool Server for FDI (Flexible\
+    \ Dataset Integrator)"
+  title: "fdi poolserver"
+  contact:
+    email: "mhuang@nao.syx1026-qq.com"
+  license:
+    name: "LGPL 3.0"
+servers:
+  - url: http://127.0.0.1:5000/v0.8
+
+security:
+  - BasicAuth: []
+
+paths:
+  /:
+    get:
+      summary: "Get IDs of all registered Pools."
+      description: "Returns a list of Pool IDs (pool names) of all poolson registered with the Global PoolManager."
+      operationId: "get_poolmanager"
+      responses:
+        "200":
+          description: "Done getting all ID of registered Pools."
+          content: $ref: '#/components/schemas/responseContents'
+        allOf:
+        - $ref: '#/components/schemas/errorResponses'
+        # - type: object
+        #     properties:
+
+
+  /pools:
+    get:
+      summary: "Get IDs of all Pools."
+      description: "Returns a list of Pool IDs (pool names) of all poolson the server."
+      operationId: "get_pools"
+      parameters:
+      - $ref: '#/components/parameters/PoolId'
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Done getting all Pool IDs."
+          $ref: '#/components/schemas/responseContents'
+        "401":
+          $ref: '#/components/responses/401Error'
+        "409":
+          $ref: '#/components/responses/409Error'
+        default:
+          $ref: '#/components/responses/defaultError'
+          
+  /{poolid}:
+    get:
+      summary: "Get IDs of all Pools."
+      description: "Returns a list of Pool IDs (pool names) of all poolson the server."
+      operationId: "get_pools"
+      parameters:
+      - $ref: '#/components/parameters/PoolId'
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Done getting all Pool IDs."
+          $ref: '#/components/schemas/responseContents'
+        "401":
+          $ref: '#/components/responses/401Error'
+        "409":
+          $ref: '#/components/responses/409Error'
+        default:
+          $ref: '#/components/responses/defaultError'
+    delete:
+      summary: "Removes all contents of the pool."
+      description: "requests all data in the pool be removed by passing pool ID."
+      operationId: "poolid_delete"
+      consumes:
+      - "application/json"
+      parameters:
+      - $ref: '#/components/parameters/PoolId'
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Done wiping data of all Pools."
+          $ref: '#/components/schemas/responseContents'
+        "401":
+          $ref: '#/components/responses/401Error'
+        "409":
+          $ref: '#/components/responses/409Error'
+        default:
+          $ref: '#/components/responses/defaultError'
+          
+  /{poolid}/hk:
+    get:
+      summary: "All kinds of pool housekeeping data."
+      description: "return all pool housekeeping data according to pool ID."
+      operationId: "poolid_hk_get"
+      parameters:
+      - $ref: '#/components/parameters/PoolId'
+      responses:
+        "200":
+          description: "returns all kinds of pool housekeeping data"
+          $ref: '#/components/schemas/responseContents'
+        "404":
+          $ref: '#/components/responses/404Error'
+        "409":
+          $ref: '#/components/responses/409Error'
+        default:
+          $ref: '#/components/responses/defaultError'
+
+
+  /{poolid}/hk/{kind}:
+    get:
+      summary: "Returns the given kind of pool housekeeping data."
+      description: "requests pool housekeeping data of specified kind: classes or\
+        \ urns or tags"
+      operationId: "poolid_hk_kind_get"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      - name: "kind"
+        in: "path"
+        description: "one of \"classes\", \"urns\", \"tags\"."
+        required: true
+        type: "string"
+        enum:
+        - "classes"
+        - "urns"
+        - "tags"
+      responses:
+        "200":
+          description: "Specified kind of pool housekeeping data: classes or urns\
+            \ or tags"
+          $ref: '#/components/schemas/responseContents'
+        "404":
+          $ref: '#/components/responses/404Error'
+        "409":
+          $ref: '#/components/responses/409Error'
+        default:
+          $ref: '#/components/responses/defaultError'
+
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+  /{poolid}/{dataclass}/{index}:
+    get:
+      summary: "Returns a data item in the pool."
+      description: "requests a data item in the pool by pool ID, data class and its\
+        \ index."
+      operationId: "poolid_dataclass_index_get"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      - name: "dataclass"
+        in: "path"
+        description: "type of data. e.g. names of software class or \"card\" name."
+        required: true
+        type: "string"
+      - name: "index"
+        in: "path"
+        description: "unique serial number in the given data class of the pool"
+        required: true
+        type: "integer"
+        format: "int32"
+      responses:
+        "200":
+          description: "return the data item specified if it exists and is available"
+          $ref: '#/components/schemas/responseContents'
+        "404":
+          $ref: '#/components/responses/404Error'
+        "409":
+          $ref: '#/components/responses/409Error'
+        default:
+          $ref: '#/components/responses/defaultError'
+          
+    post:
+      summary: "upload a data item to to the pool."
+      description: "upload a data item to the pool on the server"
+      operationId: "poolid_dataclass_index_post"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      - name: "dataclass"
+        in: "path"
+        description: "type of data. e.g. names of software class or \"card\" name."
+        required: true
+        type: "string"
+      - name: "index"
+        in: "path"
+        description: "unique serial number in the given data class of the data item"
+        required: true
+        type: "integer"
+        format: "int32"
+      responses:
+        "200":
+          description: "data item(s) created"
+        "401":
+          $ref: '#/components/responses/401Error'
+        "409":
+          $ref: '#/components/responses/409Error'
+        default:
+          $ref: '#/components/responses/defaultError'
+
+    delete:
+      summary: "delete a data item from server"
+      description: "delete specific data item from server by passing poolID, \
+        \ data class, and index"
+      operationId: "poolid_dataclass_index_delete"
+      consumes:
+      - "application/json"
+      parameters:
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      - name: "dataclass"
+        in: "path"
+        description: "type of data. e.g. names of software class or \"card\" name."
+        required: true
+        type: "string"
+      - name: "index"
+        in: "path"
+        description: "unique serial number in the given data class of the data item"
+        required: true
+        type: "integer"
+        format: "int32"
+      responses:
+        "200":
+          description: "data item is removed from the pool"
+          $ref: '#/components/schemas/responseContents'
+        "401":
+          $ref: '#/components/responses/401Error'
+        "409":
+          $ref: '#/components/responses/409Error'
+        default:
+          $ref: '#/components/responses/defaultError'
+          
+
+# Descriptions of common components
+components:
+  # Basic authentication
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    parameters:
+      PoolId:
+        name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        schema:
+          type: "string"
+
+    # Schema for response body
+    responseContents:
+      content:
+        application/json:
+          schema:
+            type: object 
+            properties:
+              code:
+                type: string
+                example: "200"
+              result:
+                type: string
+                example: '[7.8, "foo"]'
+              msg:
+                type: string
+                example: "pool is not available"
+              time:
+                type: "number"
+                format: "double"
+                example: 15948800582498.861328125
+            required:
+              - code
+              - result
+              - msg
+              - time
+            example:
+              code: "200"
+              result: "{8, 42}"
+              msg: "pool is deleted"
+              time: 15948800582498.8613281
+    errorResponses:
+      content:
+        application/json:
+          schema:
+            type: object 
+            properties:
+              "400":
+                $ref: '#/components/responses/400Error'
+              "401":
+                $ref: '#/components/responses/401Error'
+              "404":
+                $ref: '#/components/responses/404Error'
+              "409":
+                $ref: '#/components/responses/409Error'
+              default:
+                $ref: '#/components/responses/defaultError'
+      
+  responses:
+    400Error:
+      allOf:
+      - description: Fails. Invalid request. poolID does not exist.
+      - $ref: '#/components/schemas/responseContents'
+    401Error:
+      allOf:
+      - description: Fails. Authorization information is missing or invalid.
+      - $ref: '#/components/schemas/responseContents'
+    404Error:
+      allOf:
+      - description: Fails. User with the specified ID was not found.
+      - $ref: '#/components/schemas/responseContents'
+    409Error:
+      allOf:
+      - description: Fails. Unavailable. Pool is busy at the moment.
+      - $ref: '#/components/schemas/responseContents'
+    defaultError:
+      allOf:
+      - description: Fails. Other errors.
+      - $ref: '#/components/schemas/responseContents'
+      
+    hkdata:
+      type: "object"
+      required:
+      - "msg"
+      - "result"
+      - "ts"
+      properties:
+        result:
+          $ref: "#/components/responses/hkdata_result"
+        msg:
+          type: "string"
+          example: "OK"
+        ts:
+          type: "number"
+          format: "double"
+          example: 1.59488001E13
+      title: "Pool Housekeeping data"
+      description: "all pool HK data"
+      example:
+        result:
+          classes: {}
+        msg: "OK"
+        ts: 1.59488001E13
+    hkdata_specific:
+      type: "string"
+      title: "specific HK data of the pool"
+      description: "a particular kind of pool HK data"
+    hkdata_result:
+      type: "object"
+      required:
+      - "classes"
+      - "tags"
+      - "urns"
+      properties:
+        classes:
+          $ref: "#/components/responses/hkdata_specific"
+        urns:
+          $ref: "#/components/responses/hkdata_specific"
+        tags:
+          $ref: "#/components/responses/hkdata_specific"
+      title: "pool HK result"
+      description: "the result field of pool HK data response"
+      example:
+        classes: {}
+    data_item_result:
+      type: "string"
+    product:
+      type: "object"
+      required:
+      - "msg"
+      - "result"
+      - "ts"
+      properties:
+        result:
+          $ref: "#/components/responses/data_item_result"
+        msg:
+          type: "string"
+          example: "OK"
+        ts:
+          type: "number"
+          format: "double"
+          example: 1.59488001E13
+      description: "data item(s) retrieved from the pool."
+      example:
+        result: {}
+        msg: "OK"
+        ts: 1.59488001E13
+    productref:
+      type: "object"
+      required:
+      - "msg"
+      - "result"
+      - "ts"
+      properties:
+        result:
+          $ref: "#/components/responses/productref_result"
+        msg:
+          type: "string"
+          example: "OK"
+        ts:
+          type: "number"
+          format: "double"
+          example: 1.59488001E13
+      description: "product reference(s)."
+      example:
+        result:
+          meta: {}
+          urnobj: "urnobj"
+        msg: "OK"
+        ts: 1.59488001E13
+    product_meta:
+      type: "string"
+    productref_result:
+      type: "object"
+      required:
+      - "meta"
+      - "urnobj"
+      properties:
+        urnobj:
+          type: "string"
+          description: "URN"
+        meta:
+          $ref: "#/components/responses/product_meta"
+      description: "the result field of productref response."
+      example:
+        meta: {}
+        urnobj: "urnobj"
+

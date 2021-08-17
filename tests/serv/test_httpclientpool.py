@@ -45,11 +45,11 @@ def init_test():
     pass
 
 
-def test_gen_url(setup):
+def test_gen_url(server):
     """ Makesure that request create corrent url
     """
 
-    aburl, headers = setup
+    aburl, headers = server
     samplepoolname = 'fdi_default_'+__name__
     samplepoolurl = aburl + '/' + samplepoolname
     sampleurn = 'urn:' + samplepoolname + ':fdi.dataset.product.Product:10'
@@ -117,10 +117,10 @@ def test_gen_url(setup):
         assert exc_msg == 'No such method and contents composition: GET/pool'
 
 
-def test_CRUD_product_by_client(setup, local_pools_dir):
+def test_CRUD_product_by_client(server, local_pools_dir):
     """Client http product storage READ, CREATE, DELETE products in remote
     """
-    aburl, headers = setup
+    aburl, headers = server
 
     poolid = test_poolid
     poolurl = aburl + '/' + poolid
@@ -183,8 +183,8 @@ def crud_t(poolid, poolurl, local_pools_dir, pool):
     pstore.getPool(poolid).removeAll()
     assert pool.isEmpty()
 
-    tag = '==Sample ** Product=='
-    logger.info('test sample prod with tag: '+tag)
+    tag = '==Demo ** Product=='
+    logger.info('test sample demo prod with tag: '+tag)
     sp = get_sample_product()
     urn = pstore.save(sp, tag=tag)
     print('Sample Prod saved with tag "%s" %s to %s' %
@@ -203,10 +203,10 @@ def crud_t(poolid, poolurl, local_pools_dir, pool):
         pstore.getPool(poolid) is None
 
 
-def xxxx_CRUD_pool_by_client(setup, local_pools_dir):
+def test_Product_path_client(server, local_pools_dir):
     """
     """
-    aburl, headers = setup
+    aburl, headers = server
 
     logger.info('Create pools on the server.')
     poolid = test_poolid

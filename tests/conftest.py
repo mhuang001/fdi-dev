@@ -3,7 +3,8 @@
 from fdi.pal.poolmanager import PoolManager
 from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.utils.common import lls
-from fdi.pns.httppool_server import User, create_app
+from fdi.pns.jsonio import auth_headers
+from httppool.route.httppool_server import User
 
 import pytest
 import importlib
@@ -11,6 +12,7 @@ import base64
 import copy
 from urllib.error import HTTPError
 import os
+import requests
 import logging
 from urllib.error import HTTPError, URLError
 from flask import current_app
@@ -46,8 +48,10 @@ def pc(getConfig):
     return getConfig()
 
 
-def checkserver(aburl):
-    """ make sure the server is running when tests start
+def checkserver(aburl, excluded=None):
+    """ make sure the server is running when tests start.
+
+    when aburl points to an live server running external to this test (e.g. by `make runpoolserver`), server_type is set to 'live'; or a server instance will be created on-demand as a 'mock' up server.
     """
 
     server_type = None
@@ -97,7 +101,7 @@ def new_user_read_only():
 
 @pytest.fixture(scope="module")
 def live_or_mock_server(pc):
-    """ Prepares server absolute base url and common headers fr clients to use.
+    """ Prepares server absolute base url and common headers for clients to use.
 
     Based on ``PoolManager.PlacePaths[scheme]`` where ``scheme`` is `http` or `https` and auth info from `pnsconfig` from the configuration file and commandline.
 
@@ -157,21 +161,14 @@ def local_pools_dir(pc):
     return local_pools_dir
 
 
-@pytest.fixture(scope="package")
-def userpass(pc):
-    auth_user = pc['auth_user']
-    auth_pass = pc['auth_pass']
-    return auth_user, auth_pass
-
-
 @pytest.fixture(scope="module")
 def mock_server(live_or_mock_server):
     """ Prepares server configuredand alive
 
     """
     aburl, headers, server_type = live_or_mock_server
-    assert server_type == 'mock', 'must have a mock server. Not ' + \
-        str(server_type)
+    # assert server_type == 'mock', 'must have a mock server. Not ' + \
+    #    str(server_type)
     yield aburl, headers
     del aburl, headers
 
@@ -185,6 +182,18 @@ def mock_app(mock_server, project_app):
 
 
 @pytest.fixture(scope="module")
+def server_app(live_or_mock_server, project_app):
+    a, h, server_type = live_or_mock_server
+    if server_type != 'mock':
+        yield None
+    else:
+        app = project_app
+        app.config['TESTING'] = True
+        with app.app_context():
+            yield app
+
+
+@pytest.fixture(scope="module")
 def request_context(mock_app):
     """create the app and return the request context as a fixture
        so that this process does not need to be repeated in each test
@@ -195,9 +204,12 @@ def request_context(mock_app):
 
 
 @pytest.fixture(scope="module")
-def client(mock_app):
-    with mock_app.test_client() as client:
-        with mock_app.app_context():
-            # mock_app.preprocess_request()
-            assert current_app.config["ENV"] == "production"
-        yield client
+def client(server_app, mock_app):
+    if server_app == None:
+        yield requests
+    else:
+        with mock_app.test_client() as client:
+            with mock_app.app_context():
+                # mock_app.preprocess_request()
+                assert current_app.config["ENV"] == "production"
+            yield client

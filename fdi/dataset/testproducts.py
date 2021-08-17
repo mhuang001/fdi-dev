@@ -86,7 +86,7 @@ def get_sample_product():
     ```
 
     """
-    prodx = Product('A complex product')
+    prodx = Product('A complex product for demonstration.')
     prodx.creator = 'Frankenstein'
     # add a parameter with validity descriptors to the product
     prodx.meta['speed'] = NumericParameter(

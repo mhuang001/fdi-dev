@@ -49,7 +49,7 @@ S	=
 runserver:
 	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
 runpoolserver:
-	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar -v --server=httppool_server $(S)
+	$(PYEXE) httppool_app.py --username=foo --password=bar -v --server=httppool_server $(S)
 
 EXT	=
 PKGS	= requests filelock ruamel.yaml tabulate paho-mqtt

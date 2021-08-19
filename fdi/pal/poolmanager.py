@@ -156,13 +156,13 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
         """
         Whether an item with the given id has been loaded (cached).
 
-        returns the number of remaining week references if the pool is loaded.
+        :returns: the number of remaining week references if the pool is loaded. Returns 0 if poolname is not found in _GlobalPoolList or weakref count is 0.
         """
         if poolname in cls._GlobalPoolList:
             # print(poolname, getweakrefcount(cls._GlobalPoolList[poolname]))
             return getweakrefcount(cls._GlobalPoolList[poolname])
         else:
-            return False
+            return 0
 
     @ classmethod
     def removeAll(cls):
@@ -182,20 +182,30 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
     def remove(cls, poolname):
         """ Remove from list and unregister remote pools.
 
-        returns 0 for successful removal, 1 for poolname not registered so no need, 2 for remove with warning.
+        returns 0 for successful removal, 1 for poolname not registered or referenced, still attempted to remove.
         """
-        l = cls.isLoaded(poolname)
+        # number of weakrefs
+        nwr = cls.isLoaded(poolname)
         # print(getweakrefs(cls._GlobalPoolList[poolname]), id(
-        #    cls._GlobalPoolList[poolname]), '......', l)
-        if l is False:
-            return 1
-        code = 0
-        if l == 1:
+        #    cls._GlobalPoolList[poolname]), '......', nwr)
+
+        if nwr == 1:
             # this is the only reference. unregister remote first.
             poolurl = cls._GlobalPoolList[poolname]._poolurl
             if poolurl.lower().startswith('http'):
                 code = remoteUnregister(poolurl)
-        del cls._GlobalPoolList[poolname]
+            else:
+                code = 0
+        elif nwr > 1:
+            # nothing needs to be done. weakref number will decrement after Storage deletes ref
+            return 0
+        else:
+            # nwr <=  0
+            code = 1
+        try:
+            del cls._GlobalPoolList[poolname]
+        except Exception as e:
+            logger.info("Ignored: "+str(e))
         return code
 
     @ classmethod

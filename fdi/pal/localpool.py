@@ -160,6 +160,7 @@ class LocalPool(ManagedPool):
 
         register the file. Leave file open by default `close`.
         data: to be serialized and saved.
+        serialize_out: if True returns contents in serialized form.
         """
         from ..dataset.serializable import serialize
 
@@ -228,6 +229,7 @@ class LocalPool(ManagedPool):
         """
         does the action of loading.
 
+        serialize_out: if True returns contents in serialized form.
         """
 
         indexstr = str(index)
@@ -260,6 +262,7 @@ class LocalPool(ManagedPool):
             logger.error('Remove failed. exc: %s trbk: %s.' %
                          (str(e), trbk(e)))
             raise e  # needed for undoing HK changes
+        return 0
 
     def doWipe(self):
         """
@@ -277,6 +280,7 @@ class LocalPool(ManagedPool):
         self._urns.clear()
 
         wipeLocal(self.transformpath(self._poolname))
+        return 0
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

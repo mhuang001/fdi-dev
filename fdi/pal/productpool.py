@@ -253,8 +253,9 @@ When implementing a ProductPool, the following rules need to be applied:
     def saveProduct(self, product, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, **kwds):
         """
         Saves specified product and returns the designated ProductRefs or URNs.
+
         Saves a product or a list of products to the pool, possibly under the
-        supplied tag, and return the reference (or a list of references is
+        supplied tag, and returns the reference (or a list of references if
         the input is a list of products), or Urns if geturnobjs is True.
 
         See pal document for pool structure.
@@ -341,7 +342,7 @@ When implementing a ProductPool, the following rules need to be applied:
         Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).
         """
 
-        self.schematicWipe()
+        return self.schematicWipe()
 
     def saveDescriptors(self,  urn,  desc):
         """
@@ -511,6 +512,12 @@ class ManagedPool(ProductPool, DictHk):
         self._urns[ref.urn]['refcnt'] += 1
 
     def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, kwds):
+        """
+        Save one product.
+
+        :res: list of result.
+        :serialize_out: if True returns contents in serialized form.
+        """
         if serialize_in:
             pn = fullname(prd)
             cls = prd.__class__
@@ -587,7 +594,10 @@ class ManagedPool(ProductPool, DictHk):
                 res.append(rf)
 
     def schematicSave(self, products, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, **kwds):
-        """ do the scheme-specific saving """
+        """ do the scheme-specific saving.
+
+            :serialize_out: if True returns contents in serialized form.
+        """
         res = []
 
         if serialize_in:
@@ -675,13 +685,14 @@ class ManagedPool(ProductPool, DictHk):
             if len(c[prod]['sn']) == 0:
                 del c[prod]
             try:
-                res = self.doRemove(resourcetype=prod, index=sn)
+                self.doRemove(resourcetype=prod, index=sn)
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)
                 self._classes, self._tags, self._urns = tuple(
                     self.readHK().values())
                 raise e
+        return 0
 
     def doWipe(self):
         """ to be implemented by subclasses to do the action of wiping.
@@ -703,6 +714,7 @@ class ManagedPool(ProductPool, DictHk):
                 logger.debug(msg)
                 raise e
         logger.debug('Done.')
+        return 0
 
     def mfilter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
         """ returns filtered collection using the query.

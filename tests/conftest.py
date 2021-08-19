@@ -60,7 +60,7 @@ def checkserver(aburl, excluded=None):
     try:
         o = getJsonObj(aburl)
         assert o is not None, 'Cannot connect to the server'
-        logger.info('%s initial server response %s' % (aburl, lls(o, 100)))
+        logger.info('Initial server %s response %s' % (aburl, lls(o, 70)))
     except HTTPError as e:
         if e.code == 308:
             logger.info('%s alive. initial server response 308' % (aburl))
@@ -71,7 +71,7 @@ def checkserver(aburl, excluded=None):
         logger.info('Not a live server, because %s' % str(e))
         server_type = 'mock'
     else:
-        logger.info('live server')
+        logger.info('Live server')
         server_type = 'live'
     return server_type
 

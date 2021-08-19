@@ -594,9 +594,9 @@ def test_ProdStorage_func_local_mem():
     check_ps_func_for_pool(thepoolname, thepoolurl, None)
 
 
-def test_ProdStorage_func_http(setup, userpass):
+def test_ProdStorage_func_http(server, userpass):
 
-    aburl, hdr = setup
+    aburl, hdr = server
     # httpclientpool
     thepoolname = 'fdi_'+__name__
     thepoolurl = aburl + '/' + thepoolname
@@ -877,9 +877,9 @@ def test_query_local_mem():
     doquery('mem://'+thepoolpath, 'file://'+thepoolpath)
 
 
-def test_query_http(setup):
+def test_query_http(server):
 
-    aburl, hdrs = setup
+    aburl, hdrs = server
     aburl = aburl.rstrip('/')
     cleanup()
     lpath = '/tmp'

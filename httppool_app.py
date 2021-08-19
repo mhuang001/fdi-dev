@@ -23,9 +23,11 @@ def setup_logging(level=logging.WARN):
     global logging
     # create logger
     logging.basicConfig(stream=sys.stdout,
-                        format='%(asctime)s-%(levelname)4s'
-                        '-[%(filename)6s:%(lineno)3s'
-                        '-%(funcName)10s()] - %(message)s',
+                        format='%(asctime)s'
+                        ' %(process)d %(thread)6d '
+                        ' %(levelname)4s'
+                        ' [%(filename)6s:%(lineno)3s'
+                        ' %(funcName)10s()] - %(message)s',
                         datefmt="%Y%m%d %H:%M:%S")
     logging.getLogger("requests").setLevel(level)
     logging.getLogger("filelock").setLevel(level)

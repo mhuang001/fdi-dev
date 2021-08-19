@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class Taggable(object):
     """
-    Definition of services provided by a product storage supporting versioning.
+    Definition of services provided by a product storage supporting tagging.
     """
 
     def __init__(self, **kwds):

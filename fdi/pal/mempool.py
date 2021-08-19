@@ -113,6 +113,7 @@ class MemPool(ManagedPool):
         myspace = self.getPoolSpace()
         del myspace[resourcep]
         self.writeHK()
+        return 0
 
     def doWipe(self):
         """
@@ -130,6 +131,7 @@ class MemPool(ManagedPool):
         #    del self._MemPool[x]
         # if self._poolname in self._MemPool:
         #    del self._MemPool[self._poolname]
+        return 0
 
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging

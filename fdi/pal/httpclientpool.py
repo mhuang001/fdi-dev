@@ -28,6 +28,9 @@ def writeJsonwithbackup(fp, data):
         f.write(js)
 
 
+bltn = vars(builtins)
+
+
 def toserver(self, method, *args, **kwds):
     def mkv(v):
         t = type(v).__name__
@@ -43,15 +46,15 @@ def toserver(self, method, *args, **kwds):
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
 
     logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
-    res, msg = read_from_server(urn, self._poolurl, apipath)
-    if res == 'FAILED':
+    code, res, msg = read_from_server(urn, self._poolurl, apipath)
+    if issubclass(res.__class__, str) and 'FAILED' in res or code != 200:
         for line in msg.split('\n'):
             excpt = line.split(':', 1)[0]
-            bltn = vars(builtins)
             if excpt in bltn:
                 # relay the exception from server
-                raise bltn[excpt](msg)
-        raise RuntimeError('Executing ' + method + ' failed.  ' + msg)
+                raise bltn[excpt](('Code %d: %s' % (code, msg)))
+        raise RuntimeError('Executing ' + method +
+                           ' failed. Code: %d Message: %s' % (code, msg))
     return res
 
 
@@ -103,12 +106,13 @@ class HttpClientPool(ProductPool):
         logger.debug("READ HK FROM REMOTE===>poolurl: " + poolname)
         hk = {}
         try:
-            r, msg = read_from_server(None, self._poolurl, 'housekeeping')
-            if r != 'FAILED':
+            code, r, msg = read_from_server(
+                None, self._poolurl, 'housekeeping')
+            if r != 'FAILED' and code == 200:
                 for hkdata in ['classes', 'tags', 'urns']:
                     hk[hkdata] = r[hkdata]
         except Exception as e:
-            msg = 'Read ' + poolname + ' failed. ' + str(e) + trbk(e)
+            msg = 'Reading %s failed.%d ' % (poolname, code) + str(e) + trbk(e)
             r = 'FAILED'
 
         if r == 'FAILED':
@@ -141,13 +145,13 @@ class HttpClientPool(ProductPool):
         sized += ']'
         sv = save_to_server(sized, urn, self._poolurl,
                             tag, no_serial=True)
-        if sv['result'] == 'FAILED':
-            logger.error('Save %d products to server failed. Message from %s: %s' % (
-                len(productlist), self._poolurl, sv['msg']))
+        if sv['result'] == 'FAILED' or sv['code'] != 200:
+            logger.error('Save %d products to server failed.%d Message from %s: %s' % (
+                len(productlist), sv['code'], self._poolurl, sv['msg']))
             raise Exception(sv['msg'])
         else:
             urns = sv['result']
-        logger.debug('Product written in remote server done')
+        logger.debug('Product written to remote server successful')
         res = []
         if geturnobjs:
             if serialize_out:
@@ -182,9 +186,9 @@ class HttpClientPool(ProductPool):
         poolname = self._poolname
         urn = makeUrn(self._poolname, resourcetype, indexstr)
         logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
-        res, msg = read_from_server(urn, self._poolurl)
-        if res == 'FAILED':
-            raise NameError('Loading ' + urn + ' failed.  ' + msg)
+        code, res, msg = read_from_server(urn, self._poolurl)
+        if res == 'FAILED' or code != 200:
+            raise NameError('Loading ' + urn + ' failed:%d. ' % code + msg)
         return res
 
     def schematicRemove(self, urn=None, resourcetype=None, index=None):
@@ -202,7 +206,7 @@ class HttpClientPool(ProductPool):
             logger.error('Remove from server ' + self._poolname +
                          ' failed. Caused by: ' + msg)
             raise RuntimeError(msg)
-        return res
+        return 0
 
     def schematicWipe(self):
         """
@@ -213,6 +217,7 @@ class HttpClientPool(ProductPool):
         if res == 'FAILED':
             logger.error(msg)
             raise Exception(msg)
+        return 0
 
     @toServer()
     def removeAll(self):

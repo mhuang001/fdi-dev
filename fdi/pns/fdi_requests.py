@@ -145,7 +145,8 @@ def read_from_server(urn, poolurl, contents='product'):
     # print("GET REQUEST API: " + api)
     res = requests.get(api, auth=auth)
     result = deserialize(res.text)
-    return result['result'], result['msg']
+    code = result['code'] if 'code' in result else 200
+    return code, result['result'], result['msg']
 
 
 def put_on_server(urn, poolurl, contents='pool'):

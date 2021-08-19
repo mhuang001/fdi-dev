@@ -49,6 +49,12 @@ class ProductStorage(object):
                 # quietly return for no-arg construction case
                 return
             else:
+                if poolname is not None and not issubclass(poolname.__class__, str):
+                    raise TypeError('Poolname must be a string, not ' +
+                                    poolname.__class__.__name__)
+                if poolurl is not None and not issubclass(poolurl.__class__, str):
+                    raise TypeError('Poolurl must be a string, not ' +
+                                    poolurl.__class__.__name__)
                 _p = PoolManager.getPool(
                     poolname=poolname, poolurl=poolurl, **kwds)
             self._pools[_p._poolname] = _p
@@ -66,6 +72,7 @@ class ProductStorage(object):
             else:
                 poolname = pool
             if PoolManager.isLoaded(poolname):
+                # remove frpm pool manager
                 res = PoolManager.remove(poolname)  # TODO i dentify self
                 # do this after del above
                 del self._pools[poolname]

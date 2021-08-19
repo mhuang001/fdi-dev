@@ -9,7 +9,7 @@ pnsconfig = {}
 
 # look-up table for PoolManager (therefor HttpClient) to get pool URLs eith Pool ID (poolname)
 poolurl_of = {
-    'svom': 'http://10.0.10.114:9885/v0.6/svom'
+    'svom': 'http://10.0.10.114:9885/v0.9/svom'
 }
 pnsconfig['lookup'] = poolurl_of
 
@@ -34,7 +34,7 @@ BASE_POOLPATH = '/tmp'
 SERVER_POOLPATH = '/tmp/data'
 
 # base url for webserver. Update version if needed.
-pnsconfig['api_version'] = 'v0.8'
+pnsconfig['api_version'] = 'v0.9'
 pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
 
 

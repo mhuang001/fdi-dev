@@ -203,7 +203,19 @@ def crud_t(poolid, poolurl, local_pools_dir, pool):
         pstore.getPool(poolid) is None
 
 
-def test_Product_path_client(server, local_pools_dir):
+def make_pools(name, aburl, n=1):
+    """ generate n pools """
+
+    lst = []
+    for i in range(n):
+        poolid = name + str(n)
+        pool = PoolManager.getPool(poolid, aburl + '/'+poolid)
+        lst.append(pool)
+        ps = ProductStorage(pool).save(Product('lone prod in '+poolid))
+    return lst[0] if n == 1 else lst
+
+
+def est_Product_path_client(server, local_pools_dir):
     """
     """
     aburl, headers = server
@@ -221,6 +233,6 @@ def test_Product_path_client(server, local_pools_dir):
     x = Product(description='desc test')
     urn = pstore.save(x, geturnobjs=True)
     pool1 = HttpClientPool(poolname=poolid+'x', poolurl=poolurl+'x')
-    pstore.register(pool1)
+    pstore.register(pool=pool1)
 
     logger.info('Delete all pools on the server.')

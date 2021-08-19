@@ -14,7 +14,7 @@ class DictHk(Taggable):
     """
 
     def __init__(self, **kwds):
-        super(Taggable, self).__init__(**kwds)
+        super(DictHk, self).__init__(**kwds)
         # {tag->{'urns':[urn]}
         self._tags = ODict()
         # {urn->{'tags':[tag], 'meta':meta}}

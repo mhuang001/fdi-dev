@@ -73,7 +73,7 @@ if 0:
         return smtplib.SMTP("smtp.gmail.com", 587, timeout=5)
 
 
-# last timestamp/lastUpdate
+# last time/lastUpdate
 lupd = 0
 
 
@@ -104,8 +104,8 @@ def issane(o):
     global lupd
     assert o is not None, "Server is having trouble"
     assert 'error' not in o, o['error']
-    assert o['timestamp'] > lupd
-    lupd = o['timestamp']
+    assert o['time'] > lupd
+    lupd = o['time']
 
 
 def check0result(result, msg):
@@ -142,6 +142,12 @@ def getPayload(aResponse):
 
 
 def check_response(o, failed_case=False, excluded=None):
+    """ Generic checking.
+
+    :o: deserialized response data or text.
+    :failed_case: True if expecing Fail result; False (default) if Success result; None if to ignore `result` being Fails or not.
+    :excluded: a list of string, any of which appears in `result` is to exclude this call from being checked "FAILED".
+    """
     global lupd
     if excluded is None:
         excluded = []
@@ -153,14 +159,71 @@ def check_response(o, failed_case=False, excluded=None):
             or someone, o
         if not someone:
             # properly formated
-            assert 'FAILED' != o['result'], o['result']
-            assert o['timestamp'] > lupd
-            lupd = o['timestamp']
+            if failed_case is not None:
+                assert 'FAILED' != o['result'], o['result']
+                assert o['code'] == 200, str(o)
+                assert o['time'] > lupd
+                lupd = o['time']
             return True
     else:
         assert 'FAILED' == o['result'], o['result']
+        assert o['code'] >= 400, str(o)
         return True
     return False  # not properly formated
+
+
+def test_clear_local_server(local_pools_dir):
+    clrpool = 'test_clear'
+    ppath = os.path.join(local_pools_dir, clrpool)
+    if not os.path.exists(ppath):
+        os.makedirs(ppath)
+    assert os.path.exists(ppath)
+    with open(ppath+'/foo', 'w') as f:
+        f.write('k')
+    clear_server_local_pools_dir(clrpool, local_pools_dir)
+    assert not os.path.exists(ppath)
+
+
+def make_pools(name, aburl, clnt, auth, n=1):
+    """ generate n pools """
+
+    lst = []
+    for i in range(n):
+        poolid = name + str(i)
+        pool = PoolManager.getPool(poolid, aburl + '/'+poolid)
+        lst.append(pool)
+        data = serialize(Product('lone prod in '+poolid))
+        url = aburl + '/' + poolid + '/' + prodt + '/0'
+        x = clnt.post(url, auth=auth, data=data)
+    return lst[0] if n == 1 else lst
+
+
+def test_wipe_all_pools_on_server(server, local_pools_dir, client, userpass):
+    aburl, headers = server
+    post_poolid = test_poolid
+    auth = HTTPBasicAuth(*userpass)
+    # ======== wipe all pools =====
+    logger.info('Wipe all pools on the server')
+
+    # make some pools
+    n = 5
+    lst = make_pools(post_poolid, aburl, client, auth, n)
+    # make an unregistered pool by copying an existing pool
+    p = os.path.join(local_pools_dir, lst[0].getId())
+    os.system('cp -rf %s %s_copy' % (p, p))
+    assert os.path.exists(p+'_copy')
+
+    assert len(get_files_in_local_dir('', local_pools_dir)) >= n+1
+
+    # wipe all pools
+    url = aburl + '/' + 'wipe_all_pools'
+    x = client.put(url, auth=auth)
+    o = getPayload(x)
+    check_response(o, failed_case=False)
+
+    files = get_files_in_local_dir('', local_pools_dir)
+    assert len(files) == 0, 'Wipe_all_pools failed: ' + \
+        o['msg'] + 'Files ' + str(files)
 
 
 def test_new_user_read_write(new_user_read_write):
@@ -175,6 +238,7 @@ def test_new_user_read_write(new_user_read_write):
     assert new_user.hashed_password != 'FlaskIsAwesome'
     assert not new_user.authenticated
     assert new_user.role == 'read_write'
+    logger.debug('Done.')
 
 
 def test_new_user_read_only(new_user_read_only):
@@ -188,6 +252,7 @@ def test_new_user_read_only(new_user_read_only):
     assert new_user.hashed_password != 'FlaskIsAwesome'
     assert not new_user.authenticated
     assert new_user.role == 'read_only'
+    logger.debug('Done.')
 
 
 def test_unauthorizedread_write(server, new_user_read_only, client):
@@ -201,6 +266,7 @@ def test_unauthorizedread_write(server, new_user_read_only, client):
     check_response(o)
     pools = o['result']
     assert isinstance(pools, list)
+    logger.debug('Done.')
 
 
 def test_authorizedread_write(server, new_user_read_write, client):
@@ -228,8 +294,8 @@ def test_root(server, client):
     o = getPayload(x)
     check_response(o)
     c = o['result']
-    assert c_pools == c
-    # /
+    assert len(c) == 0
+    #
     url = aburl
     x = client.get(url)
     o = getPayload(x)
@@ -254,18 +320,7 @@ def clear_server_local_pools_dir(poolid, local_pools_dir):
         # x = requests.post(url, auth=HTTPBasicAuth(*userpass), data=data)
 
 
-def get_local_dirs(local_pools_dir):
-    """ returns a list of directories in server pool dir. """
-
-    path = local_pools_dir
-    if os.path.exists(path):
-        files = os.listdir(path)
-    else:
-        files = []
-    return files
-
-
-def get_local_files(poolid, local_pools_dir):
+def get_files_in_local_dir(poolid, local_pools_dir):
     """ returns a list of files in the given poolid in server pool dir. """
 
     ppath = os.path.join(local_pools_dir, poolid)
@@ -276,27 +331,16 @@ def get_local_files(poolid, local_pools_dir):
     return files
 
 
-def test_clear_local_server(local_pools_dir):
-    clrpool = 'test_clear'
-    ppath = os.path.join(local_pools_dir, clrpool)
-    if not os.path.exists(ppath):
-        os.makedirs(ppath)
-    assert os.path.exists(ppath)
-    with open(ppath+'/foo', 'w') as f:
-        f.write('k')
-    clear_server_local_pools_dir(clrpool, local_pools_dir)
-    assert not os.path.exists(ppath)
-
-
-def empty_pool_on_server(post_poolid, aburl, auth, clnt):
+def empty_pool(post_poolid, aburl, auth, clnt):
     path = post_poolid + '/api/removeAll'
     url = aburl + '/' + path
     x = clnt.get(url, auth=HTTPBasicAuth(*auth))
     o = getPayload(x)
-    check_response(o)
+    # ignore "FAILED" so non-exisiting target will not cause a failed case.
+    check_response(o, failed_case=None)
 
 
-def populate_server(poolid, aburl, auth, clnt):
+def populate_pool(poolid, aburl, auth, clnt):
     creators = ['Todds', 'Cassandra', 'Jane', 'Owen', 'Julian', 'Maurice']
     instruments = ['fatman', 'herscherl', 'NASA', 'CNSC', 'SVOM']
 
@@ -312,6 +356,7 @@ def populate_server(poolid, aburl, auth, clnt):
         o = getPayload(x)
         check_response(o)
         urns.append(o['result'])
+
     return creators, instruments, urns
 
 
@@ -322,18 +367,19 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     logger.info('save products')
     aburl, headers = server
     post_poolid = test_poolid
+    auth = HTTPBasicAuth(*userpass)
     # register
-    pool = PoolManager.getPool(test_poolid, aburl + '/'+test_poolid)
-    empty_pool_on_server(post_poolid, aburl, userpass, client)
+    pool = make_pools(test_poolid, aburl, client, auth, n=1)
+    empty_pool(post_poolid, aburl, userpass, client)
 
-    files = [f for f in get_local_files(
+    files = [f for f in get_files_in_local_dir(
         post_poolid, local_pools_dir) if f[-1].isnumeric()]
     origin_prod = len(files)
 
-    creators, instruments, urns = populate_server(
+    creators, instruments, urns = populate_pool(
         post_poolid, aburl, userpass, client)
 
-    files1 = [f for f in get_local_files(
+    files1 = [f for f in get_files_in_local_dir(
         post_poolid, local_pools_dir) if f[-1].isnumeric()]
     num_prod = len(files1)
     assert num_prod == len(creators) + origin_prod, 'Products number not match'
@@ -348,7 +394,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     u = random.choice(urns)
     # remove the leading 'urn:'
     url = aburl + '/' + u[4:].replace(':', '/')
-    x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=auth)
     o = getPayload(x)
     check_response(o)
     assert o['result'].creator == creators[urns.index(u)], 'Creator not match'
@@ -359,10 +405,10 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     logger.info('read hk')
     hkpath = '/hk'
     url = aburl + '/' + post_poolid + hkpath
-    x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=auth)
     o1 = getPayload(x)
     url2 = aburl + '/' + post_poolid + '/api/readHK'
-    x2 = client.get(url2, auth=HTTPBasicAuth(*userpass))
+    x2 = client.get(url2, auth=auth)
     o2 = getPayload(x2)
     for o in [o1, o2]:
         check_response(o)
@@ -381,7 +427,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     logger.info('read classes')
     hkpath = '/hk/classes'
     url = aburl + '/' + post_poolid + hkpath
-    x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=auth)
     o = getPayload(x)
     check_response(o)
     assert o['result'][prodt]['sn'][-l:] == inds
@@ -391,7 +437,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     num = len(o['result'][prodt]['sn'])
     apipath = '/api/getCount/' + prodt + ':str'
     url = aburl + '/' + post_poolid + apipath
-    x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=auth)
     o = getPayload(x)
     check_response(o)
     assert o['result'] == num
@@ -399,7 +445,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     logger.info('read tags')
     hkpath = '/hk/tags'
     url = aburl + '/' + post_poolid + hkpath
-    x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=auth)
     o = getPayload(x)
     check_response(o)
     assert len(o['result']) == 0
@@ -407,7 +453,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     logger.info('read urns')
     hkpath = '/hk/urns'
     url = aburl + '/' + post_poolid + hkpath
-    x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=auth)
     o = getPayload(x)
     check_response(o)
 
@@ -416,19 +462,19 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     # ========
     logger.info('delete a product')
 
-    files = [f for f in get_local_files(
+    files = [f for f in get_files_in_local_dir(
         post_poolid, local_pools_dir) if f[-1].isnumeric()]
     origin_prod = len(files)
 
     index = files[-1].rsplit('_', 1)[1]
     url = aburl + '/' + post_poolid + '/fdi.dataset.product.Product/' + index
 
-    x = client.delete(url, auth=HTTPBasicAuth(*userpass))
+    x = client.delete(url, auth=auth)
 
     o = getPayload(x)
     check_response(o)
 
-    files1 = [f for f in get_local_files(
+    files1 = [f for f in get_files_in_local_dir(
         post_poolid, local_pools_dir) if f[-1].isnumeric()]
     num_prod = len(files1)
     assert num_prod + 1 == origin_prod, 'Products number not match'
@@ -440,71 +486,43 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
 
     # ========
     logger.info('wipe a pool')
-    files = get_local_files(post_poolid, local_pools_dir)
+    files = get_files_in_local_dir(post_poolid, local_pools_dir)
     assert len(files) != 0, 'Pool is already empty: ' + post_poolid
 
     # wipe the pool on the server
     url = aburl + '/' + post_poolid + '/api/removeAll'
-    x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=auth)
     o = getPayload(x)
     check_response(o)
 
-    files = get_local_files(post_poolid, local_pools_dir)
+    files = get_files_in_local_dir(post_poolid, local_pools_dir)
     assert len(files) == 0, 'Wipe pool failed: ' + o['msg']
 
     url = aburl + '/' + post_poolid + '/api/isEmpty'
-    x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.get(url, auth=auth)
     o = getPayload(x)
     check_response(o)
     assert o['result'] == True
 
+    # ========
     logger.info('unregister a pool on the server')
     url = aburl + '/' + post_poolid
-    x = client.delete(url, auth=HTTPBasicAuth(*userpass))
-    o = getPayload(x)
-    check_response(o)
-
-    # this should fail as pool is unregistered on the server
-    url = aburl + '/' + post_poolid + '/api/isEmpty'
-    x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    x = client.delete(url, auth=auth)
     o = getPayload(x)
     check_response(o, failed_case=True)
 
-    # make an unregistered pool
-    p = os.path.join(local_pools_dir, post_poolid)
-    os.system('cp -rf %s %s_copy' % (p, p))
-    assert os.path.exists(p+'_copy')
-
-    # count pools
-    url = aburl + '/'
-    x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    # this should fail as pool is unregistered on the server
+    url = aburl + '/' + post_poolid + '/api/isEmpty'
+    x = client.get(url, auth=auth)
     o = getPayload(x)
-    check_response(o, failed_case=False)
-    assert len(o['result']) > 0
-
-    # wipe all pools
-    url = aburl + '/' + 'wipe_all_pools'
-    x = client.put(url, auth=HTTPBasicAuth(*userpass))
-    o = getPayload(x)
-    check_response(o, failed_case=False)
-
-    # count pools
-    url = aburl + '/'
-    x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o = getPayload(x)
-    check_response(o, failed_case=False)
-    assert len(o['result']) == 0, o['result']
-
-    files = get_local_files('', local_pools_dir)
-    assert len(files) == 0, 'Wipe_all_pools failed: ' + \
-        o['msg'] + 'Files ' + str(files)
+    check_response(o, failed_case=True)
 
 
 def test_product_path(server, userpass, client):
 
     aburl, headers = server
     auth = HTTPBasicAuth(*userpass)
-    # empty_pool_on_server(post_poolid,aburl,userpass)
+    # empty_pool(post_poolid,aburl,userpass)
     pstore = ProductStorage(test_poolid, aburl + '/'+test_poolid)
     pool = PoolManager.getPool(test_poolid)
 
@@ -523,7 +541,7 @@ def test_product_path(server, userpass, client):
     # API
     pcls = urn.split(':')[2].replace(':', '/')
     urlapi = url0 + pcls
-    # 'http://127.0.0.1:5000/v0.8/test/fdi.dataset.product.Product'
+    # 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/fdi.dataset.product.Product'
     x = client.get(urlapi, auth=auth)
     o = getPayload(x)
     check_response(o)
@@ -547,7 +565,7 @@ def test_product_path(server, userpass, client):
     pt = urn.split(':', 2)[2].replace(':', '/')
 
     urlp = url0 + pt
-    # http://0.0.0.0:5000/v0.7/test/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
+    # http://0.0.0.0:5000/v0.7/fdi_serv.test_httppool/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
     url3 = urlp + '/' + pth
     x = client.get(url3, auth=auth)
     o = getPayload(x)
@@ -581,7 +599,7 @@ def test_product_path(server, userpass, client):
 
     # string
 
-    # 'http://127.0.0.1:5000/v0.8/test/string/fdi.dataset.product.Product/0'
+    # 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/string/fdi.dataset.product.Product/0'
     url = url0 + pt + '/$string'
     x = client.get(url, auth=auth)
     assert x.headers['Content-Type'] == 'text/plain'
@@ -599,7 +617,7 @@ def test_get_pools(local_pools_dir, server, client):
     check_response(o)
     c = o['result']
     assert len(c)
-    assert set(c) == set(get_local_dirs(local_pools_dir))
+    assert set(c) == set(get_files_in_local_dir('', local_pools_dir))
 
 
 async def lock_pool(poolid, sec, local_pools_dir):
@@ -612,7 +630,7 @@ async def lock_pool(poolid, sec, local_pools_dir):
     logger.debug(lock)
     with filelock.FileLock(lock):
         await asyncio.sleep(sec)
-    fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "timestamp": ' + \
+    fakeres = '{"code":400, "result": "FAILED", "msg": "This is a fake responses", "time": ' + \
         str(time.time()) + '}'
     return deserialize(fakeres)
 
@@ -643,7 +661,7 @@ def test_lock_file(server, userpass, local_pools_dir, client):
     aburl, headers = server
     poolid = test_poolid
     # init server
-    populate_server(poolid, aburl, userpass, client)
+    populate_pool(poolid, aburl, userpass, client)
     # hkpath = '/hk/classes'
     # url = aburl + '/' + poolid + hkpath
     # x = client.get(url, auth=HTTPBasicAuth(*userpass))

@@ -6,11 +6,11 @@ from operator import methodcaller
 import inspect
 
 
-def fetch(paths, nested, re=''):
+def fetch(paths, nested, re='', exe=['is']):
     """ use members of paths to go into nested internal recursively to get the end point value.
 
     paths: its 0th member matches the first level of nested attribute or keys. if the 0th member is a string and has commas, then it is  tried to be parsed into a tuple of comma-separated numerics. if that fails, it will be taken as a string.
-If the above fail and a method whose name starts with 'is' then the method is called and the result returned.
+If the above fail and a method whose name starts with 'is', or any string in `exe`, then the method is called and the result returned.
     """
 
     if len(paths) == 0:
@@ -25,12 +25,16 @@ If the above fail and a method whose name starts with 'is' then the method is ca
     if is_str and hasattr(nested, p0):
         v = getattr(nested, p0)
         rep = re + '.'+p0
-        if inspect.ismethod(v) and p0.startswith('is'):
+        if '*' in exe:
+            can_exec = True
+        else:
+            can_exec = any(p0.startswith(patt) for patt in exe)  # TODO test
+        if inspect.ismethod(v) and can_exec:
             found_method = v
         else:
             if len(paths) == 1:
                 return v, rep
-            return fetch(paths[1:], v, rep)
+            return fetch(paths[1:], v, rep, exe)
     else:
         if is_str and ',' in p0:
             # p0 is a set of arguments of int and float
@@ -53,7 +57,7 @@ If the above fail and a method whose name starts with 'is' then the method is ca
             rep = re + '['+q + str(p0) + q + ']'
             if len(paths) == 1:
                 return v, rep
-            return fetch(paths[1:], v, rep)
+            return fetch(paths[1:], v, rep, exe)
         except TypeError:
             pass
     # not attribute or member

@@ -323,7 +323,7 @@ def get_prod_count(prod_type, pool_id):
     return 200, str(res), 'Counting %s files OK'
 
 
-def resp(code, result, msg, ts, ctype='application/json', length=70, serialize_out=False):
+def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', length=70):
     """
     Make response.
 
@@ -847,52 +847,52 @@ def compo_cmds(paths, mInfo, serialize_out=False):
     for cmd_ind in range(1, lp):
         cmd = paths[cmd_ind]
         if cmd.startswith('$'):
-            cmd=cmd.lstrip('$')
-            paths[cmd_ind]=cmd
+            cmd = cmd.lstrip('$')
+            paths[cmd_ind] = cmd
             break
     else:
-        cmd=''
+        cmd = ''
 
     # args if found command and there is something after it
-    cmd_args=paths[cmd_ind+1:] if cmd and (lp - cmd_ind > 1)else ['']
+    cmd_args = paths[cmd_ind+1:] if cmd and (lp - cmd_ind > 1)else ['']
     # prod type
-    pt=paths[1]
+    pt = paths[1]
     # index
-    pi=paths[2]
+    pi = paths[2]
     # path of prod or component
-    compo_path=paths[1:cmd_ind] if cmd else paths[1:]
+    compo_path = paths[1:cmd_ind] if cmd else paths[1:]
 
     if cmd == 'string':
         if cmd_args[0].isnumeric() or ',' in cmd_args[0]:
             # list of arguments to be passed to :meth:`toString`
-            tsargs=cmd_args[0].split(',')
-            tsargs[0]=int(tsargs[0]) if tsargs[0] else 0
+            tsargs = cmd_args[0].split(',')
+            tsargs[0] = int(tsargs[0]) if tsargs[0] else 0
         else:
-            tsargs=[]
-        # get the component'
+            tsargs = []
+        # get the component
 
-        compo, path_str, prod=load_compo_at(1, paths[:-1], mInfo)
+        compo, path_str, prod = load_compo_at(1, paths[:-1], mInfo)
         if compo is not None:
-            result=compo.toString(*tsargs)
-            msg='Getting toString(%s) OK' % (str(tsargs))
-            code=200
+            result = compo.toString(*tsargs)
+            msg = 'Getting toString(%s) OK' % (str(tsargs))
+            code = 200
             if 'html' in cmd_args:
-                ct='text/html'
+                ct = 'text/html'
             elif 'fancy_grid' in cmd_args:
-                ct='text/plain;charset=utf-8'
+                ct = 'text/plain;charset=utf-8'
             else:
-                ct='text/plain'
-            return 0,resp(code, result, msg, ts, ctype=ct, serialize_out=False),0
+                ct = 'text/plain'
+            return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
         else:
             return 400, FAILED, '%s: %s' % (cmd, path_str)
     elif cmd == '' and paths[-1] == '':
         # command is '' and url endswith a'/'
-        compo, path_str, prod=load_compo_at(1, paths[:-1], mInfo)
+        compo, path_str, prod = load_compo_at(1, paths[:-1], mInfo)
         if compo:
-            ls=[m for m in dir(compo) if not m.startswith('_')]
-            return 0,resp(200, ls,
-                          'Getting %s members OK' % (cmd + ':' + path_str),
-                          ts, serialize_out=False),0
+            ls = [m for m in dir(compo) if not m.startswith('_')]
+            return 0, resp(200, ls,
+                           'Getting %s members OK' % (cmd + ':' + path_str),
+                           ts, serialize_out=False), 0
         else:
             return 400, FAILED, '%s: %s' % (cmd, path_str)
     elif lp == 3:
@@ -900,19 +900,20 @@ def compo_cmds(paths, mInfo, serialize_out=False):
         # no cmd, ex: test/fdi.dataset.Product/4
         # send json of the prod
 
-        code, result, msg=load_product(1, paths, serialize_out = serialize_out)
-        return 0, resp(code, result, msg, ts, serialize_out = serialize_out), 0
+        code, result, msg = load_product(1, paths, serialize_out=serialize_out)
+        return 0, resp(code, result, msg, ts, serialize_out=serialize_out), 0
     elif 1:
         # no cmd, ex: test/fdi.dataset.Product/4
         # send json of the prod component
-        compo, path_str, prod=load_compo_at(1, paths, mInfo)
-        if compo:
+        compo, path_str, prod = load_compo_at(1, paths, mInfo)
+        # see :func:`fetch`
+        if compo or ' non ' not in path_str:
             return 0, resp(
                 200, compo,
                 'Getting %s OK' % (cmd + ':' + paths[2] + '/' + path_str),
-                ts, serialize_out=False),0
+                ts, serialize_out=False), 0
         else:
-            return 400, FAILED, '%s%s' % ('/'.join(paths[:3]), path_str)
+            return 400, FAILED, '%s : %s' % ('/'.join(paths[:3]), path_str)
     else:
         return 400, FAILED, 'Need index number %s' % str(paths)
 
@@ -927,9 +928,9 @@ def load_compo_at(pos, paths, mInfo):
 
     # get the product live
     code, prod, msg=load_product(pos, paths, serialize_out = False)
-    if code!=200:
+    if code != 200:
         return None, '%s. Unable to load %s.' % (msg, str(paths)), None
-    compo, path_str=fetch(paths[pos+2:], prod)
+    compo, path_str=fetch(paths[pos+2:], prod, exe=['*','is', 'get'])
     
     return compo, path_str, prod
 
@@ -946,10 +947,6 @@ def load_product(p, paths, serialize_out = False):
     urn=makeUrn(poolname = poolname, typename = typename, index = indexstr)
     # resourcetype = fullname(data)
 
-    if not PM.isLoaded(poolname):
-        result=FAILED
-        msg='Pool not found: ' + poolname
-        return 404, result, msg
 
     logger.debug('LOAD product: ' + urn)
     try:
@@ -958,7 +955,12 @@ def load_product(p, paths, serialize_out = False):
         msg=''
         code=200
     except Exception as e:
-        code, result, msg=excp(e, serialize_out = serialize_out)
+        if issubclass(e.__class__, NameError):
+            msg = 'Not found: ' + poolname
+            code = 404
+        else:
+            msg,code = '',400
+        code, result, msg=excp(e, code=code,msg=msg,serialize_out = serialize_out)
     return code, result, msg
 
 

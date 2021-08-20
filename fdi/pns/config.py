@@ -25,6 +25,8 @@ EXTUSER = ''
 EXTPASS = ''
 EXTHOST = '172.17.0.1'
 EXTPORT = 9876
+EXTRO_USER = ''
+EXTRO_PASS = ''
 MQUSER = ''
 MQPASS = ''
 MQHOST = '172.17.0.1'
@@ -67,13 +69,15 @@ pnsconfig['mqtt'] = dict(
 )
 
 # choose from pre-defined.
-conf = ['dev', 'server_test', 'external'][0]
+conf = ['dev', 'server_test', 'external'][1]
 
 # modify
 if conf == 'dev':
     # username, passwd, flask ip, flask port
-    pnsconfig['node'] = {'username': 'foo',
-                         'password': 'bar', 'host': '127.0.0.1', 'port': 5000}
+    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
+                         'host': '127.0.0.1', 'port': 9885,
+                         'ro_username': 'ro', 'ro_password': '',
+                         }
 
     # server permission user
     pnsconfig['serveruser'] = 'mh'
@@ -86,7 +90,9 @@ if conf == 'dev':
 
 elif conf == 'server_test':
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '172.0.17.9', 'port': 9884}
+                         'host': '127.0.0.1', 'port': 9885,
+                         'ro_username': 'ro', 'ro_password': '',
+                         }
     # server permission user
     pnsconfig['serveruser'] = 'apache'
     # PTS app permission user
@@ -95,8 +101,10 @@ elif conf == 'server_test':
     home = '/home/' + pnsconfig['ptsuser']
 elif conf == 'external':
     # wsgi behind apach2. cannot use env vars
-    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': EXTHOST, 'port': EXTPORT}
+    pnsconfig['node'] = {'username': EXTUSER, 'password': EXTPASS,
+                         'host': EXTHOST, 'port': EXTPORT,
+                         'ro_username': EXTRO_USER, 'ro_password': EXTRO_PASS,
+                         }
     # message queue config
     pnsconfig['mqtt'] = dict(
         host=MQHOST,

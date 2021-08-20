@@ -8,7 +8,7 @@ DFILE	=dockerfile
 
 SERVER_NAME      =httppool
 SVERS	= v6.0
-SFILE	= fdi/pns/resources/httppool_server.docker
+SFILE	= fdi/httppool/resources/httppool_server.docker
 
 PORT        =9884
 SECFILE = $${HOME}/.secret
@@ -48,6 +48,7 @@ launch_server:
 	--mount source=log,target=/var/log \
 	--env-file $(SECFILE) \
 	-p $(PORT):$(EXTPORT) \
+	-e HOST_PORT=$(PORT) \
 	--name $(SERVER_NAME) $(D) $(LATEST) $(LAU)
 	sleep 2
 	#docker inspect $(SERVER_NAME)
@@ -136,4 +137,10 @@ restore_test:
 	make it B='/bin/ls -l $(PROJ_DIR)/data'
 	@echo %%% above should NOT be empty %%%%%%%
 
+update_docker:
+	make build_docker && make push_docker &&\
+	make build_server && make push_server &&\
+	make launch_server PORT=9885 &&\
+	make test7 && make test8 &&\
+	make rm_docker
 

@@ -41,7 +41,7 @@ RUN umask 0002 \
 && python3 -m pip install pip -U
 
 # convenience aliases
-COPY fdi/pns/resources/profile .
+COPY fdi/httppool/resources/profile .
 RUN cat profile >> .bashrc && rm profile
 
 
@@ -108,4 +108,4 @@ date > build
 
 ENTRYPOINT  ["/home/fdi/dockerfile_entrypoint.sh"]
 
-LABEL fdi 1.6
+LABEL fdi 1.7

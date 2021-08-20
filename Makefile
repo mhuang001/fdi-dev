@@ -260,7 +260,8 @@ push_server \
 vol \
 backup_server \
 restore_server \
-restore_test:
+restore_test \
+update_docker:
 	$(MAKE) --no-print-directory -f Makefile_docker.mk -C . $@
 
 

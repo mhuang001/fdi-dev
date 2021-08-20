@@ -6,6 +6,10 @@ Change Log
 BETA0
 =====
 
+1.7.0 2021-08-20
+----------------
+Dataset refactor for YAML schema; docker with csc, backup, and docs; image in dataset; browser product; increase test coverage; httppooll server blueprint and return code.
+
 1.6.0 2021-06-10
 ----------------
 http pool docker stablising; MetaDataParameter; messag queue;

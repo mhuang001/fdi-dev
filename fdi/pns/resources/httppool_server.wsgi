@@ -1,9 +1,10 @@
 #! /usr/bin/python3.6
 
-from fdi.pns.httppool_server import app
+from fdi.httppool import setup_logging, app
 import sys
 import os
-import logging
+
+logging = setup_logging()
 
 # don't log to file. server will do the logging
 logging.basicConfig(stream=sys.stdout,

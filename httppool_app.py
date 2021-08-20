@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-""" https://livecodestream.dev/post/python-flask-api-starter-kit-and-project-layout/ """
+""" https://livecodestream.dev/post/python-flask-api-starter-kit-and-project-layout/ 
+https://stackoverflow.com/questions/13751277/how-can-i-use-an-app-factory-in-flask-wsgi-servers-and-why-might-it-be-unsafe
+"""
 
+from fdi.httppool import setup_logging, create_app
 from fdi.httppool.route.home import home_api, home_api2
 from fdi.httppool.route.httppool_server import init_httppool_server, httppool_api
 
@@ -11,71 +14,23 @@ from fdi.utils import getconfig
 from flasgger import Swagger
 from flask import Flask
 
-import logging
 import sys
 
 #sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
 # print(sys.path)
 
-
-def setup_logging(level=logging.WARN):
-    global logging
-    # create logger
-    logging.basicConfig(stream=sys.stdout,
-                        format='%(asctime)s'
-                        ' %(process)d %(thread)6d '
-                        ' %(levelname)4s'
-                        ' [%(filename)6s:%(lineno)3s'
-                        ' %(funcName)10s()] - %(message)s',
-                        datefmt="%Y%m%d %H:%M:%S")
-    logging.getLogger("requests").setLevel(level)
-    logging.getLogger("filelock").setLevel(level)
-    if sys.version_info[0] > 2:
-        logging.getLogger("urllib3").setLevel(level)
-    return logging
-
-
-######################################
-#### Application Factory Function ####
-######################################
-
-
-def create_app(config_object=None, logger=None):
-
-    if logger is None:
-        logger = globals()['logger']
-    app = Flask(__name__, instance_relative_config=True)
-    app.config['SWAGGER'] = {
-        'title': 'FDI %s HTTPpool Server' % __version__,
-    }
-    swagger = Swagger(app)
-
-    config_object = config_object if config_object else getconfig.getConfig()
-    app.config['PC'] = config_object
-    app.config['LOGGER_LEVEL'] = logger.getEffectiveLevel()
-    #logging = setup_logging()
-    with app.app_context():
-        init_httppool_server()
-    # initialize_extensions(app)
-    # register_blueprints(app)
-
-    app.register_blueprint(home_api, url_prefix='')
-    app.register_blueprint(home_api2, url_prefix='')
-    app.register_blueprint(httppool_api, url_prefix=config_object['baseurl'])
-
-    return app
-
-
 if __name__ == '__main__':
 
+    import logging
     logger = logging.getLogger()
     # default configuration is provided. Copy config.py to ~/.config/pnslocal.py
     pc = getconfig.getConfig()
 
     lv = pc['logginglevel']
+    logging = setup_logging(lv if lv > logging.WARN else logging.WARN)
+    logger = logging.getLogger()
     logger.setLevel(lv)
-    setup_logging(lv if lv > logging.WARN else logging.WARN)
     logger.info(
         'Server starting. Make sure no other instance is running.'+str(lv))
 

@@ -96,7 +96,7 @@ if 0:
 
 @pytest.fixture(scope="module")
 def project_app(pc):
-    from httppool_app import create_app
+    from fdi.httppool import create_app
     return create_app(config_object=pc, logger=logger)
 
 

@@ -3,11 +3,11 @@ PYEXE	= python3
 ########
 DKRREPO	= mhastro
 DOCKER_NAME	= fdi
-DVERS	= v1.6
+DVERS	= v1.7
 DFILE	=dockerfile
 
 SERVER_NAME      =httppool
-SVERS	= v5.3
+SVERS	= v6.0
 SFILE	= fdi/pns/resources/httppool_server.docker
 
 PORT        =9884

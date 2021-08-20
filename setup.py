@@ -53,7 +53,8 @@ setup(
         'SERV': [
             'Flask_HTTPAuth>=3.3.0',
             'Flask>=1.1.2',
-            'waitress>=2.0.0'
+            'waitress>=2.0.0',
+            'flasgger>=0.9.5'
         ],
         'PUB': [
             'sphinx_rtd_theme>=0.4.3',

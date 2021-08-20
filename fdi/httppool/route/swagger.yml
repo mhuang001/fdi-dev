@@ -1,0 +1,382 @@
+---
+swagger: "2.0"
+info:
+  description: "This is an API description of the HTTPPool Server for FDI (Flexible\
+    \ Dataset Integrator)"
+  version: "1.1.0"
+  title: "fdi poolserver"
+  contact:
+    email: "mhuang@nao.syx1026-qq.com"
+  license:
+    name: "LGPL 3.0"
+    url: "http://127.0.0.1:5000"
+host: "localhost:5000"
+basePath: "/0.8"
+schemes:
+- "http"
+paths:
+  /{poolid}/hk:
+    get:
+      summary: "All kinds of pool housekeeping data."
+      description: "return all pool housekeeping data according to pool ID."
+      operationId: "poolid_hk_get"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "returns all kinds of pool housekeeping data"
+          schema:
+            $ref: "#/definitions/hkdata"
+        "404":
+          description: "Fails. poolID does not exist."
+          schema:
+            $ref: "#/definitions/result"
+        "409":
+          description: "Fails. Pool is busy at the moment."
+          schema:
+            $ref: "#/definitions/result"
+        default:
+          description: "Other errors."
+          schema:
+            $ref: "#/definitions/result"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+  /{poolid}/hk/{kind}:
+    get:
+      summary: "Returns the given kind of pool housekeeping."
+      description: "requests pool housekeeping data of specified kind: classes or\
+        \ urns or tags"
+      operationId: "poolid_hk_kind_get"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      - name: "kind"
+        in: "path"
+        description: "one of \"classes\", \"urns\", \"tags\" kinds."
+        required: true
+        type: "string"
+        enum:
+        - "classes"
+        - "urns"
+        - "tags"
+      responses:
+        "200":
+          description: "Specified kind of pool housekeeping data: classes or urns\
+            \ or tags"
+          schema:
+            $ref: "#/definitions/hkdata_specific"
+        "404":
+          description: "Fails. pool ID does not exist."
+          schema:
+            $ref: "#/definitions/result"
+        "409":
+          description: "Fails. Pool is busy at the moment."
+          schema:
+            $ref: "#/definitions/result"
+        default:
+          description: "Other errors."
+          schema:
+            $ref: "#/definitions/result"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+  /{poolid}/{dataclass}/{index}:
+    get:
+      summary: "Returns a data item in the pool."
+      description: "requests a data item in the pool by pool ID, data class and its\
+        \ index."
+      operationId: "poolid_dataclass_index_get"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      - name: "dataclass"
+        in: "path"
+        description: "type of data. e.g. names of software class or \"card\" name."
+        required: true
+        type: "string"
+      - name: "index"
+        in: "path"
+        description: "unique serial number in the given data class of the data item"
+        required: true
+        type: "integer"
+        format: "int32"
+      responses:
+        "200":
+          description: "return the product specified if it exists and is available"
+          schema:
+            $ref: "#/definitions/product"
+        "404":
+          description: "Fails. product does not exist."
+          schema:
+            $ref: "#/definitions/result"
+        "409":
+          description: "Fails. Pool is busy at the moment."
+          schema:
+            $ref: "#/definitions/result"
+        default:
+          description: "Other errors."
+          schema:
+            $ref: "#/definitions/result"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+    post:
+      summary: "upload a data item to to the pool on the server"
+      description: "upload a data item to the pool on the server"
+      operationId: "poolid_dataclass_index_post"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      - name: "dataclass"
+        in: "path"
+        description: "type of data. e.g. names of software class or \"card\" name."
+        required: true
+        type: "string"
+      - name: "index"
+        in: "path"
+        description: "unique serial number in the given data class of the data item"
+        required: true
+        type: "integer"
+        format: "int32"
+      responses:
+        "200":
+          description: "data item(s) created"
+          schema:
+            $ref: "#/definitions/productref"
+        "401":
+          description: "Fails. data item(s) is invalid"
+          schema:
+            $ref: "#/definitions/result"
+        "409":
+          description: "Fails. Pool is busy at the moment."
+          schema:
+            $ref: "#/definitions/result"
+        default:
+          description: "Other errors."
+          schema:
+            $ref: "#/definitions/result"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+    delete:
+      summary: "delete a data item from server"
+      description: "delete specific data item from server by passing poolID, data\
+        \ class, and index"
+      operationId: "poolid_dataclass_index_delete"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      - name: "dataclass"
+        in: "path"
+        description: "type of data. e.g. names of software class or \"card\" name."
+        required: true
+        type: "string"
+      - name: "index"
+        in: "path"
+        description: "unique serial number in the given data class of the data item"
+        required: true
+        type: "integer"
+        format: "int32"
+      responses:
+        "200":
+          description: "data item is removed from the pool"
+          schema:
+            $ref: "#/definitions/result"
+        "401":
+          description: "Fails. data item is invalid"
+          schema:
+            $ref: "#/definitions/result"
+        "409":
+          description: "Fails. Pool is busy at the moment."
+          schema:
+            $ref: "#/definitions/result"
+        default:
+          description: "Other errors."
+          schema:
+            $ref: "#/definitions/result"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+  /{poolid}:
+    delete:
+      summary: "Removes all contents of the pool."
+      description: "requests all data in the pool be removed by passing pool ID."
+      operationId: "poolid_delete"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "poolid"
+        in: "path"
+        description: "pool ID (also called pool name)"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "wiped all pool data done"
+          schema:
+            $ref: "#/definitions/result"
+        "401":
+          description: "Fails. pool ID is invalid."
+          schema:
+            $ref: "#/definitions/result"
+        "409":
+          description: "Fails. Pool is busy at the moment."
+          schema:
+            $ref: "#/definitions/result"
+        default:
+          description: "Other errors."
+          schema:
+            $ref: "#/definitions/result"
+      x-swagger-router-controller: "swagger_server.controllers.default_controller"
+definitions:
+  hkdata:
+    type: "object"
+    required:
+    - "msg"
+    - "result"
+    - "ts"
+    properties:
+      result:
+        $ref: "#/definitions/hkdata_result"
+      msg:
+        type: "string"
+        example: "OK"
+      ts:
+        type: "number"
+        format: "double"
+        example: 1.59488001E13
+    title: "Pool Housekeeping data"
+    description: "all pool HK data"
+    example:
+      result:
+        classes: {}
+      msg: "OK"
+      ts: 1.59488001E13
+  hkdata_specific:
+    type: "string"
+    title: "specific HK data of the pool"
+    description: "a particular kind of pool HK data"
+  hkdata_result:
+    type: "object"
+    required:
+    - "classes"
+    - "tags"
+    - "urns"
+    properties:
+      classes:
+        $ref: "#/definitions/hkdata_specific"
+      urns:
+        $ref: "#/definitions/hkdata_specific"
+      tags:
+        $ref: "#/definitions/hkdata_specific"
+    title: "pool HK result"
+    description: "the result field of pool HK data response"
+    example:
+      classes: {}
+  data_item_result:
+    type: "string"
+  product:
+    type: "object"
+    required:
+    - "msg"
+    - "result"
+    - "ts"
+    properties:
+      result:
+        $ref: "#/definitions/data_item_result"
+      msg:
+        type: "string"
+        example: "OK"
+      ts:
+        type: "number"
+        format: "double"
+        example: 1.59488001E13
+    description: "data item(s) retrieved from the pool."
+    example:
+      result: {}
+      msg: "OK"
+      ts: 1.59488001E13
+  productref:
+    type: "object"
+    required:
+    - "msg"
+    - "result"
+    - "ts"
+    properties:
+      result:
+        $ref: "#/definitions/productref_result"
+      msg:
+        type: "string"
+        example: "OK"
+      ts:
+        type: "number"
+        format: "double"
+        example: 1.59488001E13
+    description: "product reference(s)."
+    example:
+      result:
+        meta: {}
+        urnobj: "urnobj"
+      msg: "OK"
+      ts: 1.59488001E13
+  product_meta:
+    type: "string"
+  productref_result:
+    type: "object"
+    required:
+    - "meta"
+    - "urnobj"
+    properties:
+      urnobj:
+        type: "string"
+        description: "URN"
+      meta:
+        $ref: "#/definitions/product_meta"
+    description: "the result field of productref response."
+    example:
+      meta: {}
+      urnobj: "urnobj"
+  result:
+    type: "object"
+    properties:
+      result:
+        type: "string"
+        example: "OK."
+      msg:
+        type: "string"
+        example: "pool is not available"
+      ts:
+        type: "number"
+        format: "double"
+        example: 15948800582498.861328125
+    example:
+      result: "OK."
+      msg: "pool is deleted"
+      ts: 15948800582498.861328125

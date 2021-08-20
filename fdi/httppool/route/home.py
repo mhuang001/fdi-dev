@@ -1,8 +1,8 @@
 from http import HTTPStatus
 from flask import Blueprint, jsonify
 from flasgger import swag_from
-from httppool.model.welcome import WelcomeModel, returnSomething
-from httppool.schema.result import return_specs_dict, return_specs_dict2
+from fdi.httppool.model.welcome import WelcomeModel, returnSomething
+from fdi.httppool.schema.result import return_specs_dict, return_specs_dict2
 from fdi.dataset.serializable import serialize
 
 home_api = Blueprint('hp', __name__)

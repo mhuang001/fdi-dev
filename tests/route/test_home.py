@@ -1,5 +1,5 @@
 from unittest import TestCase
-from httppool_app import create_app
+from fdi.httppool_app import create_app
 
 
 class TestWelcome(TestCase):

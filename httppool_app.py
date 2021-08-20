@@ -3,8 +3,8 @@
 
 """ https://livecodestream.dev/post/python-flask-api-starter-kit-and-project-layout/ """
 
-from httppool.route.home import home_api, home_api2
-from httppool.route.httppool_server import init_httppool_server, httppool_api
+from fdi.httppool.route.home import home_api, home_api2
+from fdi.httppool.route.httppool_server import init_httppool_server, httppool_api
 
 from fdi._version import __version__
 from fdi.utils import getconfig

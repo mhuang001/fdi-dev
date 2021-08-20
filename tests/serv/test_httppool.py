@@ -13,7 +13,7 @@ from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
 from fdi.utils.common import lls, trbk, fullname
 from fdi.utils.fetch import fetch
-from httppool.route import httppool_server
+from fdi.httppool.route import httppool_server
 from fdi.pns.jsonio import auth_headers
 
 import pytest

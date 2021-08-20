@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from httppool.schema.result import return_specs_dict, return_specs_dict2
+from fdi.httppool.schema.result import return_specs_dict, return_specs_dict2
 
 # from .server_skeleton import init_conf_clas, User, checkpath, app, auth, pc
 from fdi.utils.common import lls
@@ -927,11 +927,11 @@ def load_compo_at(pos, paths, mInfo):
     # if component:
 
     # get the product live
-    code, prod, msg=load_product(pos, paths, serialize_out = False)
+    code, prod, msg = load_product(pos, paths, serialize_out=False)
     if code != 200:
         return None, '%s. Unable to load %s.' % (msg, str(paths)), None
-    compo, path_str=fetch(paths[pos+2:], prod, exe=['*','is', 'get'])
-    
+    compo, path_str = fetch(paths[pos+2:], prod, exe=['*', 'is', 'get'])
+
     return compo, path_str, prod
 
 

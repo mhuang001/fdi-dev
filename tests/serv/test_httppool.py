@@ -11,6 +11,7 @@ from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
 from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
+from fdi.pal.productpool import Lock_Path_Base
 from fdi.utils.common import lls, trbk, fullname
 from fdi.utils.fetch import fetch
 from fdi.httppool.route import httppool_server
@@ -352,7 +353,7 @@ def populate_pool(poolid, aburl, auth, clnt):
         data = serialize(x)
         url = aburl + '/' + poolid + '/' + prodt + '/' + str(index)
         x = clnt.post(url, auth=HTTPBasicAuth(*auth), data=data)
-        print(len(data))
+        # print(len(data))
         o = getPayload(x)
         check_response(o)
         urns.append(o['result'])
@@ -626,7 +627,7 @@ async def lock_pool(poolid, sec, local_pools_dir):
     logger.info('Keeping files locked for %f sec' % sec)
     ppath = os.path.join(local_pools_dir, poolid)
     # lock to prevent writing
-    lock = '/tmp/fdi_locks/' + ppath.replace('/', '_') + '.write'
+    lock = Lock_Path_Base + ppath.replace('/', '_') + '.write'
     logger.debug(lock)
     with filelock.FileLock(lock):
         await asyncio.sleep(sec)

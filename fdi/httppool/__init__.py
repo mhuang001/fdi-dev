@@ -2,15 +2,24 @@
 
 """ https://livecodestream.dev/post/python-flask-api-starter-kit-and-project-layout/ """
 
-from fdi.httppool.route.home import home_api, home_api2
-from fdi.httppool.route.httppool_server import init_httppool_server, httppool_api
+from .route.home import home_api2
+from .route.pools import pools_api
+from .model.user import getUsers
 
-from fdi._version import __version__
-from fdi.utils import getconfig
+from .route.httppool_server import httppool_api, checkpath
+
+from .._version import __version__
+from ..utils import getconfig
+from ..utils.common import getUidGid
+from ..pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
+
 from flasgger import Swagger
 from flask import Flask
 
+import builtins
+from collections import ChainMap
 import sys
+import os
 
 #sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
@@ -36,6 +45,79 @@ def setup_logging(level=None):
         logging.getLogger("urllib3").setLevel(level)
     return logging
 
+########################################
+#### Config initialization Function ####
+########################################
+
+
+def init_conf_classes(pc, lggr):
+
+    from ..dataset.classes import Classes
+
+    # setup user class mapping
+    clp = pc['userclasses']
+    lggr.debug('User class file '+clp)
+    if clp == '':
+        Classes.updateMapping()
+    else:
+        clpp, clpf = os.path.split(clp)
+        sys.path.insert(0, os.path.abspath(clpp))
+        # print(sys.path)
+        pcs = __import__(clpf.rsplit('.py', 1)[
+            0], globals(), locals(), ['PC'], 0)
+        pcs.PC.updateMapping()
+        Classes.updateMapping(pcs.PC.mapping)
+        lggr.debug('User classes: %d found.' % len(pcs.PC.mapping))
+    return Classes
+
+
+def init_httppool_server(app):
+    """ Init a global HTTP POOL """
+
+    import logging
+    app.logger = logging.getLogger(__name__)
+    app.logger.setLevel(app.config['LOGGER_LEVEL'])
+
+    # local.py config
+    pc = app.config['PC']
+    # class namespace
+    Classes = init_conf_classes(pc, app.logger)
+    lookup = ChainMap(Classes.mapping, globals(), vars(builtins))
+    app.config['LOOKUP'] = lookup
+
+    # users
+    # effective group of current process
+    uid, gid = getUidGid(pc['serveruser'])
+    app.logger.info("Serveruser %s's uid %d and gid %d..." %
+                    (pc['serveruser'], uid, gid))
+    # os.setuid(uid)
+    # os.setgid(gid)
+    app.config['USERS'] = getUsers(pc)
+
+    # PoolManager is a singleton
+    if PM.isLoaded(DEFAULT_MEM_POOL):
+        logger.debug('cleanup DEFAULT_MEM_POOL')
+        PM.getPool(DEFAULT_MEM_POOL).removeAll()
+    app.logger.debug('Done cleanup PoolManager.')
+    app.logger.debug('ProcID %d. Got 1st request %s' % (os.getpid(),
+                                                        str(app._got_first_request))
+                     )
+    PM.removeAll()
+
+    # pool-related paths
+    # the httppool that is local to the server
+    scheme = 'server'
+    _basepath = PM.PlacePaths[scheme]
+    poolpath_base = os.path.join(_basepath, pc['api_version'])
+
+    if checkpath(poolpath_base, pc['serveruser']) is None:
+        app.logger.error('Store path %s unavailable.' % poolpath_base)
+        sys.exit(-2)
+
+    app.config['POOLSCHEME'] = scheme
+    app.config['POOLPATH_BASE'] = poolpath_base
+    app.config['POOLURL_BASE'] = scheme + '://' + poolpath_base + '/'
+
 
 ######################################
 #### Application Factory Function ####
@@ -60,11 +142,11 @@ def create_app(config_object=None, logger=None):
     app.config['LOGGER_LEVEL'] = logger.getEffectiveLevel()
     #logging = setup_logging()
     with app.app_context():
-        init_httppool_server()
+        init_httppool_server(app)
     # initialize_extensions(app)
     # register_blueprints(app)
 
-    app.register_blueprint(home_api, url_prefix='')
+    app.register_blueprint(pools_api, url_prefix=config_object['baseurl'])
     app.register_blueprint(home_api2, url_prefix='')
     app.register_blueprint(httppool_api, url_prefix=config_object['baseurl'])
 

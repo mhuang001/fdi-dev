@@ -4,7 +4,7 @@ from fdi.pal.poolmanager import PoolManager
 from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.utils.common import lls
 from fdi.pns.jsonio import auth_headers
-from fdi.httppool.route.httppool_server import User
+from fdi.httppool.model.user import User
 
 import pytest
 import importlib

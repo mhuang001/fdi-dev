@@ -25,6 +25,7 @@ build_docker:
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
+	--build-arg VERSION=$(DVERS) \
 	-f $(DFILE) \
 	$(D) --progress=plain .
 	docker tag $(DOCKER_NAME):$(DVERS) $(LATEST)
@@ -38,6 +39,7 @@ build_server:
 	--build-arg PROJ_DIR=$(PROJ_DIR) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
+	--build-arg VERSION=$(SVERS) \
 	-f $(SFILE) \
 	$(D) --progress=plain .
 	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)

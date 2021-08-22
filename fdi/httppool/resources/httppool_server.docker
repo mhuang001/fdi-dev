@@ -89,5 +89,6 @@ date > build
 
 ENTRYPOINT  ["/home/apache/httppool_server_entrypoint.sh"]
 
-LABEL PoolServer v6.0
+ARG VERSION
+LABEL PoolServer ${VERSION}
 

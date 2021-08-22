@@ -108,4 +108,5 @@ date > build
 
 ENTRYPOINT  ["/home/fdi/dockerfile_entrypoint.sh"]
 
-LABEL fdi 1.7
+ARG VERSION
+LABEL fdi ${VERSION}

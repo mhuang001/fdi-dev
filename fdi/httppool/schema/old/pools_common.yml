@@ -1,0 +1,61 @@
+openapi: 3.0.0
+info:
+  version: 2.0.0
+  description: "This is an API description of the HTTPPool Server for FDI (Flexible\
+    \ Dataset Integrator)"
+  title: "fdi poolserver"
+  contact:
+    email: "mhuang@nao.syx1026-qq.com"
+  license:
+    name: "LGPL 3.0"
+servers:
+  - url: /v0.9      
+    description: httppool api version
+security:
+  - BasicAuth: []
+
+paths:
+  /:
+    get:
+      $ref: 'ROOT_get.yml'
+  /pools:
+    get:
+      $ref: "pools_get.yml"
+  /load_all_pools:
+    put:
+      $ref: "load_all_pools_put.yml"
+  /wipe_all_pools:
+    delete:
+      $ref: "wipe_all_pools_delete.yml"
+
+
+  /{poolid}:
+    get:
+      $ref: "poolid_get.yml"
+    put:
+      $ref: "poolid_put.yml"
+    delete:
+      $ref: "poolid_delete.yml"
+
+# Descriptions of common components
+components:
+  # Basic authentication
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+  # Schema for response body
+  schemas:
+    RegisteredPools:
+      allOf:
+        - $ref: 'common.yml#/components/schemas/ResponseContentsBase'
+        - type: object
+          properties:
+            result:
+              type: string
+          required:
+            - result
+          example:
+            result: "[7.8, \"foo\"]"
+
+      

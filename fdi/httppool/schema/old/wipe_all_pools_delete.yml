@@ -1,0 +1,16 @@
+summary: "Removes all contents of the pool."
+tags:
+  - Server
+description: "requests all data in the pool be removed by passing pool ID."
+operationId: "wipe_all_pools"
+responses:
+  "200":
+    description: "wiped all pool data done"
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/GenericResponseContents'
+  "400":
+    $ref: '#/components/responses/400Error'
+  "409":
+    $ref: '#/components/responses/409Error'

@@ -1,0 +1,16 @@
+summary: "Register (Load) all pools on tme server."
+tags:
+  - Server
+description: "Make all pools registered with the global PoolManager."
+operationId: "load_all_pools"
+responses:
+  "200":
+    description: "All pools are loaded."
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/GenericResponseContents'
+  "400":
+    $ref: '#/components/responses/400Error'
+  "409":
+    $ref: '#/components/responses/409Error'

@@ -1,0 +1,16 @@
+summary: "Get IDs of all Pools."
+tags:
+  - Server
+description: "Returns a list of Pool IDs (pool names) of all pools on the server, including both registered and un-registered ones."
+operationId: "get_pools"
+responses:
+  "200":
+    description: "Done getting all Pool IDs."
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/GenericResponseContents"
+  "400":
+    $ref: '#/components/responses/400Error'
+  "409":
+    $ref: '#/components/responses/409Error'

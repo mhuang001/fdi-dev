@@ -1,0 +1,20 @@
+---
+
+summary: "Get information of the given pool."
+tags:
+  - Pool
+description: "Returns the state of the pool of given Pool IDs."
+operationId: "get_pool"
+parameters:
+- $ref: '#/components/parameters/PoolId'
+responses:
+  "200":
+    description: "Done getting infor of the Pool."
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/GenericResponseContents'
+  "400":
+    $ref: '#/components/responses/400Error'
+  "409":
+    $ref: '#/components/responses/409Error'

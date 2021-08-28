@@ -119,12 +119,23 @@ virtest:
 
 J_OPTS	= ${JAVA_OPTS} -XX:MaxPermSize=256M -Xmx1024M -DloggerPath=conf/log4j.properties
 J_OPTS	= ${JAVA_OPTS} -Xmx1024M -DloggerPath=conf/log4j.properties
-AGS	= -t ../swagger-codegen/modules/swagger-codegen/src/main/resources/flaskConnexion -vv
-SWJAR	= ../swagger-codegen/swagger-codegen-cli.jar
-SWJAR	= ../swagger-codegen/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
+VERYOLD	=-t ../swagger-codegen/modules/swagger-codegen/src/main/resources/flaskConnexion
+FCTEMPL	=../swagger-codegen-generators/src/main/resources/handlebars/pythonFlaskConnexion/
+AGS	=  -vv
+SWJAR	= ../swagger-codegen/swagger-codegen-cli-3.0.25.jar
+# The one below is not working probably because mvn is not working
+#SWJAR	= ../swagger-codegen/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
+
+SCHEMA_DIR	=fdi/httppool/schema
+de-ref:
+	swagger-cli bundle -r -t yaml ${SCHEMA_DIR}/pools.yml -o ${SCHEMA_DIR}/pools_resolved.yml
+
 api:
-	rm -rf httppool/flaskConnexion/*
-	java $(J_OPTS) -jar $(SWJAR) generate $(AGS) -i ./httppool/swagger.yaml -l python-flask -o ./httppool/flaskConnexion -Dservice
+	rm -rf fdi/httppool/flaskConnexion/*
+	java $(J_OPTS) -jar $(SWJAR) generate $(AGS) -i ./fdi/httppool/schema/pools.yml -l python-flask -o ./fdi/httppool/swagger -Dservice -DpackageName=fdi.httppool.swagger -DpackageVersion=2.0 -DserverPort=9000
+
+watchapi:
+	swagger-ui-watcher fdi/httppool/schema/pools.yml
 
 reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
@@ -140,6 +151,7 @@ gitadd:
 	git add fdi/pns/*.py fdi/pns/resources
 	git add fdi/pal/*.py fdi/pal/resources
 	git add fdi/utils/*.py
+	git add fdi/httppool
 	git add tests/*.py tests/resources tests/serv/*.py tests/serv/resources
 	git add docs/sphinx/index.rst docs/sphinx/usage docs/sphinx/api \
 	docs/sphinx/conf.py docs/sphinx/Makefile \

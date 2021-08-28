@@ -1,0 +1,1041 @@
+openapi: 3.0.0
+info:
+  version: 2.0.0
+  description: This is an API description of the HTTPPool Server for FDI (Flexible Dataset Integrator)
+  title: fdi poolserver
+  contact:
+    email: mhuang@nao.syx1026-qq.com
+  license:
+    name: LGPL 3.0
+servers:
+  - url: /v0.9
+    description: httppool api version
+security:
+  - BasicAuth: []
+paths:
+  /:
+    get:
+      summary: Get IDs of all registered Pools.
+      tags:
+        - Server
+      description: Returns a list of Pool IDs (pool names) of all pools registered with the global PoolManager.
+      operationId: get_pools_registered
+      responses:
+        '200':
+          description: Done getting all ID of registered Pools.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+  /pools:
+    get:
+      summary: Get IDs of all Pools.
+      tags:
+        - Server
+      description: 'Returns a list of Pool IDs (pool names) of all pools on the server, including both registered and un-registered ones.'
+      operationId: get_pools
+      responses:
+        '200':
+          description: Done getting all Pool IDs.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+  /load_all_pools:
+    put:
+      summary: Register (Load) all pools on tme server.
+      tags:
+        - Server
+      description: Make all pools registered with the global PoolManager.
+      operationId: load_all_pools
+      responses:
+        '200':
+          description: All pools are loaded.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+  /wipe_all_pools:
+    delete:
+      summary: Removes all contents of the pool.
+      tags:
+        - Server
+      description: requests all data in the pool be removed by passing pool ID.
+      operationId: wipe_all_pools
+      responses:
+        '200':
+          description: wiped all pool data done
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+  '/{poolid}':
+    get:
+      summary: Get information of the given pool.
+      tags:
+        - Pool
+      description: Returns the state of the pool of given Pool IDs.
+      operationId: get_pool
+      parameters:
+        - name: poolid
+          in: path
+          description: pool ID (also called pool name)
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Done getting infor of the Pool.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+    put:
+      summary: Register the given pool.
+      tags:
+        - Pool
+      description: Register the pool of given Pool IDs to the global PoolManager.
+      operationId: register
+      parameters:
+        - name: poolid
+          in: path
+          description: pool ID (also called pool name)
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Done registering the Pool to PoolManager.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+    delete:
+      summary: Unregister this pool from PoolManager.
+      tags:
+        - Pool
+      description: 'Check if the pool exists in server, and unregister or raise exception message to client.'
+      operationId: unregister
+      parameters:
+        - name: poolid
+          in: path
+          description: pool ID (also called pool name)
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Done unregistering this pool.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+  parameters:
+    PoolId:
+      name: poolid
+      in: path
+      description: pool ID (also called pool name)
+      required: true
+      schema:
+        type: string
+  schemas:
+    RegisteredPools:
+      allOf:
+        - type: object
+          properties:
+            code:
+              type: integer
+            msg:
+              type: string
+            time:
+              type: number
+              format: double
+          required:
+            - code
+            - msg
+            - time
+          example:
+            code: '200'
+            msg: pool is deleted
+            time: 15948800582498.861
+        - type: object
+          properties:
+            result:
+              type: string
+          required:
+            - result
+          example:
+            result: '[7.8, "foo"]'
+    GenericResponseContents:
+      allOf:
+        - type: object
+          properties:
+            code:
+              type: integer
+            msg:
+              type: string
+            time:
+              type: number
+              format: double
+          required:
+            - code
+            - msg
+            - time
+          example:
+            code: '200'
+            msg: pool is deleted
+            time: 15948800582498.861
+        - type: object
+          properties:
+            result:
+              type: string
+          required:
+            - result
+          example:
+            result: '[7.8, "foo"]'
+    GenericResponseContents1:
+      allOf:
+        - type: object
+          properties:
+            code:
+              type: integer
+            msg:
+              type: string
+            time:
+              type: number
+              format: double
+          required:
+            - code
+            - msg
+            - time
+          example:
+            code: '200'
+            msg: pool is deleted
+            time: 15948800582498.861
+        - type: object
+          properties:
+            result__1:
+              type: string
+          required:
+            - result__1
+          example:
+            result__1: '[7.8, "foo"]'
+    ResponseContentsBase:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        time:
+          type: number
+          format: double
+      required:
+        - code
+        - msg
+        - time
+      example:
+        code: '200'
+        msg: pool is deleted
+        time: 15948800582498.861
+  responses:
+    400Error:
+      description: Fails. Invalid request or relevant pool does not exist.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  time:
+                    type: number
+                    format: double
+                required:
+                  - code
+                  - msg
+                  - time
+                example:
+                  code: '200'
+                  msg: pool is deleted
+                  time: 15948800582498.861
+              - type: object
+                properties:
+                  result:
+                    type: string
+                required:
+                  - result
+                example:
+                  result: '[7.8, "foo"]'
+    401Error:
+      description: Fails. Authorization information missing or invalid.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  time:
+                    type: number
+                    format: double
+                required:
+                  - code
+                  - msg
+                  - time
+                example:
+                  code: '200'
+                  msg: pool is deleted
+                  time: 15948800582498.861
+              - type: object
+                properties:
+                  result:
+                    type: string
+                required:
+                  - result
+                example:
+                  result: '[7.8, "foo"]'
+    404Error:
+      description: Fails. Data or information with the specified ID not found.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  time:
+                    type: number
+                    format: double
+                required:
+                  - code
+                  - msg
+                  - time
+                example:
+                  code: '200'
+                  msg: pool is deleted
+                  time: 15948800582498.861
+              - type: object
+                properties:
+                  result:
+                    type: string
+                required:
+                  - result
+                example:
+                  result: '[7.8, "foo"]'
+    409Error:
+      description: Fails. Unavailable. Pool is busy at the moment.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  time:
+                    type: number
+                    format: double
+                required:
+                  - code
+                  - msg
+                  - time
+                example:
+                  code: '200'
+                  msg: pool is deleted
+                  time: 15948800582498.861
+              - type: object
+                properties:
+                  result:
+                    type: string
+                required:
+                  - result
+                example:
+                  result: '[7.8, "foo"]'
+    422Error:
+      description: Fails. Bad command or arguement format.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  time:
+                    type: number
+                    format: double
+                required:
+                  - code
+                  - msg
+                  - time
+                example:
+                  code: '200'
+                  msg: pool is deleted
+                  time: 15948800582498.861
+              - type: object
+                properties:
+                  result:
+                    type: string
+                required:
+                  - result
+                example:
+                  result: '[7.8, "foo"]'
+    defaultError:
+      description: Fails. Other errors.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  time:
+                    type: number
+                    format: double
+                required:
+                  - code
+                  - msg
+                  - time
+                example:
+                  code: '200'
+                  msg: pool is deleted
+                  time: 15948800582498.861
+              - type: object
+                properties:
+                  result:
+                    type: string
+                required:
+                  - result
+                example:
+                  result: '[7.8, "foo"]'

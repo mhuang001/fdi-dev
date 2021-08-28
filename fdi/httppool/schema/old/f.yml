@@ -1,0 +1,125 @@
+---
+openapi: 3.0.0
+info:
+  version: 2.0.0
+  description: "This is an API description of the HTTPPool Server for FDI (Flexible\
+    \ Dataset Integrator)"
+  title: "fdi poolserver"
+  contact:
+    email: "mhuang@nao.syx1026-qq.com"
+  license:
+    name: "LGPL 3.0"
+servers:
+  - url: http://127.0.0.1:5000/v0.8
+
+security:
+  - BasicAuth: []
+
+paths:
+  /:
+    get:
+      summary: "Get IDs of all registered Pools."
+      description: "Returns a list of Pool IDs (pool names) of all poolson registered with the Global PoolManager."
+      operationId: "get_poolmanager"
+      responses:
+        "200":
+          description: "Done getting all ID of registered Pools."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisteredPools'
+        "400":
+          $ref: '#/components/responses/400Error'
+# Descriptions of common components
+components:
+  # Basic authentication
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+  parameters:
+    PoolId:
+      name: "poolid"
+      in: "path"
+      description: "pool ID (also called pool name)"
+      required: true
+      schema:
+        type: "string"
+
+    # Schema for response body
+  schemas:
+    RegisteredPools:
+      allOf:
+        - $ref: "#/components/schemas/ResponseContentsBase"
+        - type: object
+          properties:
+            result:
+              type: string
+          required:
+            - result
+          example:
+            result: "[7.8, \"foo\"]"
+    GenericResponseContents:
+      allOf:
+        - $ref: "#/components/schemas/ResponseContentsBase"
+        - type: object
+          properties:
+            result:
+              type: string
+          required:
+            - result
+          example:
+            result: "[7.8, \"foo\"]"
+    ResponseContentsBase:
+      type: object 
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        time:
+          type: "number"
+          format: "double"
+      required:
+        - code
+        - msg
+        - time
+      example:
+        code: "200"
+        result: "[7.8, \"foo\"]"
+        msg: "pool is deleted"
+        time: 15948800582498.8613281
+      
+  responses:
+    400Error:
+      description: Fails. Invalid request. poolID does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponseContents'
+    401Error:
+      description: Fails. Authorization information is missing or invalid.
+      content:
+        application/json:
+          schema:
+            type: string
+    404Error:
+      description: Fails. User with the specified ID was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponseContents'
+    409Errorz:
+      description: Fails. Unavailable. Pool is busy at the moment.
+      content:
+        application/json:
+          schema:
+            $ref: 'common.yml#/components/schemas/GenericResponseContents'
+    defaultError:
+      description: Fails. Other errors.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponseContents'
+
+      

@@ -2,7 +2,7 @@
 
 """ https://livecodestream.dev/post/python-flask-api-starter-kit-and-project-layout/ """
 
-from .route.home import home_api2
+from .route.getswag import swag
 from .route.pools import pools_api
 from .model.user import getUsers
 
@@ -21,7 +21,7 @@ from collections import ChainMap
 import sys
 import os
 
-#sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
+# sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
 # print(sys.path)
 global logging
@@ -129,13 +129,17 @@ def create_app(config_object=None, logger=None):
     if logger is None:
         logging = setup_logging()
         logging.getLogger()
-        #logger = globals()['logger']
+        # logger = globals()['logger']
         logger = logging.getLogger()
+
     app = Flask(__name__, instance_relative_config=True)
     app.config['SWAGGER'] = {
         'title': 'FDI %s HTTPpool Server' % __version__,
+        'universion': 3,
+        'openapi': '3.0.2',
     }
-    swagger = Swagger(app)
+    swagger = Swagger(app, config=swag, merge=True)
+    #swagger = Swagger(app)
 
     config_object = config_object if config_object else getconfig.getConfig()
     app.config['PC'] = config_object
@@ -147,7 +151,6 @@ def create_app(config_object=None, logger=None):
     # register_blueprints(app)
 
     app.register_blueprint(pools_api, url_prefix=config_object['baseurl'])
-    app.register_blueprint(home_api2, url_prefix='')
-    app.register_blueprint(httppool_api, url_prefix=config_object['baseurl'])
+    #app.register_blueprint(httppool_api, url_prefix=config_object['baseurl'])
 
     return app

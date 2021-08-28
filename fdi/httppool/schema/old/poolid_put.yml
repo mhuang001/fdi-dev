@@ -1,0 +1,18 @@
+summary: "Register the given pool."
+tags:
+  - Pool
+description: "Register the pool of given Pool IDs to the global PoolManager."
+operationId: "register"
+parameters:
+- $ref: '#/components/parameters/PoolId'
+responses:
+  "200":
+    description: "Done registering the Pool to PoolManager."
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/GenericResponseContents'
+  "400":
+    $ref: '#/components/responses/400Error'
+  "409":
+    $ref: '#/components/responses/409Error'

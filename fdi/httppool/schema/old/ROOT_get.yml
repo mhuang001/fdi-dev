@@ -1,0 +1,19 @@
+---
+
+summary: "Get IDs of all registered Pools."
+tags:
+  - Server
+description: "Returns a list of Pool IDs (pool names) of all pools registered with the global PoolManager."
+operationId: "get_pools_registered"
+responses:
+  "200":
+    description: "Done getting all ID of registered Pools."
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/RegisteredPools'
+  "400":
+    $ref: '#/components/responses/400Error'
+  "409":
+    $ref: '#/components/responses/409Error'
+

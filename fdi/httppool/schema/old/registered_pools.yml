@@ -1,0 +1,57 @@
+---
+openapi: 3.0.0
+info:
+  version: 2.0.0
+  description: "This is an API description of the HTTPPool Server for FDI (Flexible\
+    \ Dataset Integrator)"
+  title: "fdi poolserver"
+  contact:
+    email: "mhuang@nao.syx1026-qq.com"
+  license:
+    name: "LGPL 3.0"
+servers:
+  - url: http://127.0.0.1:5000/v0.9
+  - url: http://127.0.0.1:9885/v0.9      
+
+security:
+  - BasicAuth: []
+
+paths:
+  /:
+    get:
+      summary: "Get IDs of all registered Pools."
+      description: "Returns a list of Pool IDs (pool names) of all poolson registered with the Global PoolManager."
+      operationId: "registered_pools"
+      responses:
+        "200":
+          description: "Done getting all ID of registered Pools."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisteredPools'
+        "400":
+          $ref: 'common.yml#/components/responses/400Error'
+        "409":
+          $ref: 'common.yml#/components/responses/409Error'
+# Descriptions of common components
+components:
+  # Basic authentication
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+  # Schema for response body
+  schemas:
+    RegisteredPools:
+      allOf:
+        - $ref: 'common.yml#/components/schemas/ResponseContentsBase'
+        - type: object
+          properties:
+            result:
+              type: string
+          required:
+            - result
+          example:
+            result: "[7.8, \"foo\"]"
+
+      

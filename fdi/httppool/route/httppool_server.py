@@ -2,8 +2,6 @@
 
 from ..model.user import getUsers, auth
 
-from ..schema.result import return_specs_dict, return_specs_dict2
-
 # from .server_skeleton import init_conf_clas, User, checkpath, app, auth, pc
 from ...utils.common import lls
 from ...dataset.deserialize import deserialize
@@ -46,7 +44,7 @@ else:
 # Global variables set to temprary values before setGlabals() runs
 logger = __import__('logging').getLogger(__name__)
 
-httppool_api = Blueprint('', __name__)
+httppool_api = Blueprint('data_ops', __name__)
 
 
 @functools.lru_cache(6)
@@ -199,7 +197,7 @@ def parseApiArgs(all_args, serialize_out=False):
 # @ httppool_api.route('/sn' + '/<string:prod_type>' + '/<string:pool_id>', methods=['GET'])
 
 
-@ httppool_api.route('/<path:pool>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@ httppool_api.route('/aa<path:pool>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @ auth.login_required
 def httppool(pool):
     """
@@ -228,8 +226,10 @@ def httppool(pool):
 
     paths = pool.split('/')
     lp0 = len(paths)
+
+    from .pools import get_pool_info
     if lp0 == 0:
-        code, result, msg = getinfo()
+        code, result, msg = get_pool_info()
 
     # if paths[-1] == '':
     #    del paths[-1]
@@ -257,7 +257,7 @@ def httppool(pool):
     if request.method == 'GET':
         # TODO modify client loading pool , prefer use load_HKdata rather than load_single_HKdata, because this will generate enormal sql transaction
         if lp == 1:
-            code, result, msg = getinfo(paths[0])
+            code, result, msg = get_pool_info(paths[0])
         elif lp == 2:
             p1 = paths[1]
             if p1 == 'hk':  # Load all HKdata
@@ -267,7 +267,7 @@ def httppool(pool):
             elif p1 == 'api':
                 code, result, msg = call_pool_Api(paths, serialize_out=False)
             elif p1 == '':
-                code, result, msg = getinfo(paths[0])
+                code, result, msg = get_pool_info(paths[0])
             else:
                 code, result, msg = getProduct_Or_Component(
                     paths, serialize_out=serial_through)
@@ -439,6 +439,8 @@ def getProduct_Or_Component(paths, serialize_out=False):
         # return classes[class]
         pp = paths[1]
         mp = pp.rsplit('.', 1)
+        if len(mp) < 2:
+            return 422, '"FAILED"', 'Need a dot-separated full type name, not %s.' % pp
         modname, ptype = mp[0], mp[1]
         cls = Classes.mapping[ptype]
         mod = importlib.import_module(modname)  # TODO

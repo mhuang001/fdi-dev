@@ -1,0 +1,93 @@
+---
+openapi: 3.0.0
+
+components:
+  parameters:
+    PoolId:
+      name: "poolid"
+      in: "path"
+      description: "pool ID (also called pool name)"
+      required: true
+      schema:
+        type: "string"
+
+    # Schema for response body
+  schemas:
+    GenericResponseContents:
+      allOf:
+        - $ref: "#/components/schemas/ResponseContentsBase"
+        - type: object
+          properties:
+            result:
+              type: string
+          required:
+            - result
+          example:
+            result: "[7.8, \"foo\"]"
+    GenericResponseContents1:
+      allOf:
+        - $ref: "#/components/schemas/ResponseContentsBase"
+        - type: object
+          properties:
+            result__1:
+              type: string
+          required:
+            - result__1
+          example:
+            result__1: "[7.8, \"foo\"]"
+    ResponseContentsBase:
+      type: object 
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        time:
+          type: "number"
+          format: "double"
+      required:
+        - code
+        - msg
+        - time
+      example:
+        code: "200"
+        msg: "pool is deleted"
+        time: 15948800582498.8613281
+      
+  responses:
+    400Error:
+      description: Fails. Invalid request or relevant pool does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponseContents'
+    401Error:
+      description: Fails. Authorization information missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponseContents'
+    404Error:
+      description: Fails. Data or information with the specified ID not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponseContents'
+    409Error:
+      description: Fails. Unavailable. Pool is busy at the moment.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponseContents'
+    422Error:
+      description: Fails. Bad command or arguement format.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponseContents'
+    defaultError:
+      description: Fails. Other errors.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponseContents'

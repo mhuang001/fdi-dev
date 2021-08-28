@@ -1,0 +1,18 @@
+summary: "Unregister this pool from PoolManager."
+tags:
+  - Pool
+description: "Check if the pool exists in server, and unregister or raise exception message to client."
+operationId: "unregister"
+parameters:
+- $ref: '#/components/parameters/PoolId'
+responses:
+  "200":
+    description: "Done unregistering this pool."
+    content:
+      application/json:
+        schema:
+          $ref: '#/components/schemas/GenericResponseContents'
+  "400":
+    $ref: '#/components/responses/400Error'
+  "409":
+    $ref: '#/components/responses/409Error'

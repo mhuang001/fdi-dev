@@ -6,4 +6,4 @@ WebAPI = ['dereference', 'exists',
           'meta', 'mfilter',
           'pfilter', 'poolname', 'poolurl', 'readHK', 'reference', 'remove', 'removeAll', 'removeTag', 'removeUrn', 'removekey',
           'saveDescriptors', 'saveProduct', 'saveProductRef', 'schematicLoad', 'schematicRemove', 'schematicSave', 'schematicSelect', 'schematicWipe', 'select', 'setTag', 'setup',
-          'tagExists']
+          'tagExists', 'writeHK']

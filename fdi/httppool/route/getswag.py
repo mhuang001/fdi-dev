@@ -19,7 +19,6 @@ def getSwag():
 
     # this isn't working with e.g. allOf - $ref .. so the yml is a deref'ed
     #swag = __replace_ref(swag, ypath, swag)
-    pprint(swag)
     return swag
 
 

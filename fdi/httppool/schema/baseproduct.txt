@@ -1,0 +1,104 @@
+'
+{
+  "meta": {
+    "_sets": {
+      "description": {
+        "description": "Description of this product",
+        "default": "UNKNOWN",
+        "value": "demo",
+        "valid": null,
+        "typecode": "B",
+        "_STID": "StringParameter"
+      },
+      "type": {
+        "description": "Product Type identification. Name of class or CARD.",
+        "default": "BaseProduct",
+        "value": "BaseProduct",
+        "valid": null,
+        "typecode": "B",
+        "_STID": "StringParameter"
+      },
+      "level": {
+        "description": "Product level.",
+        "default": "ALL",
+        "value": "ALL",
+        "valid": null,
+        "typecode": "B",
+        "_STID": "StringParameter"
+      },
+      "creator": {
+        "description": "Generator of this product.",
+        "default": "UNKNOWN",
+        "value": "dev",
+        "valid": null,
+        "typecode": "B",
+        "_STID": "StringParameter"
+      },
+      "creationDate": {
+        "description": "Creation date of this product",
+        "default": {
+          "tai": 0,
+          "format": "%Y-%m-%dT%H:%M:%S.%f",
+          "_STID": "FineTime"
+        },
+        "value": {
+          "tai": 0,
+          "format": "%Y-%m-%dT%H:%M:%S.%f",
+          "_STID": "FineTime"
+        },
+        "valid": null,
+        "typecode": "Q",
+        "_STID": "DateParameter"
+      },
+      "rootCause": {
+        "description": "Reason of this run of pipeline.",
+        "default": "UNKNOWN",
+        "value": "UNKNOWN",
+        "valid": null,
+        "typecode": "B",
+        "_STID": "StringParameter"
+      },
+      "version": {
+        "description": "Version of product",
+        "default": "0.8",
+        "value": "0.8",
+        "valid": null,
+        "typecode": "B",
+        "_STID": "StringParameter"
+      },
+      "FORMATV": {
+        "description": "Version of product schema and revision",
+        "default": "1.6.0.10",
+        "value": "1.6.0.10",
+        "valid": null,
+        "typecode": "B",
+        "_STID": "StringParameter"
+      },
+      "_STID": "ODict"
+    },
+    "listeners": [],
+    "_STID": "MetaData"
+  },
+  "_sets": {
+    "_STID": "ODict"
+  },
+  "history": {
+    "description": "UNKNOWN",
+    "PARAM_HISTORY": "",
+    "TASK_HISTORY": "",
+    "meta": {
+      "_sets": {
+        "_STID": "ODict"
+      },
+      "listeners": [],
+      "_STID": "MetaData"
+    },
+    "_sets": {
+      "_STID": "ODict"
+    },
+    "_STID": "History"
+  },
+  "listeners": [],
+  "_STID": "BaseProduct"
+}
+'

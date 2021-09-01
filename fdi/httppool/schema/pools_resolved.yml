@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: 2.0.0
+  version: 1.0.0
   description: This is an API description of the HTTPPool Server for FDI (Flexible Dataset Integrator)
   title: fdi poolserver
   contact:
@@ -116,7 +116,7 @@ paths:
                       - result
                     example:
                       result: '[7.8, "foo"]'
-  /pools:
+  /pools/:
     get:
       summary: Get IDs of all Pools.
       tags:
@@ -421,14 +421,14 @@ paths:
                       result: '[7.8, "foo"]'
   /pools/wipe_all:
     delete:
-      summary: Removes all contents of the pool.
+      summary: Remove contents of all pools.
       tags:
         - Server
-      description: requests all data in the pool be removed by passing pool ID.
+      description: Only registerable pools will be wiped. Pool directories are not removed.
       operationId: wipe_all
       responses:
         '200':
-          description: wiped all pool data done
+          description: wiping all pool data done
           content:
             application/json:
               schema:
@@ -534,6 +534,7 @@ paths:
           required: true
           schema:
             type: string
+          example: fdi_serv.test_httppool
       responses:
         '200':
           description: Done getting infor of the Pool.
@@ -641,6 +642,7 @@ paths:
           required: true
           schema:
             type: string
+          example: fdi_serv.test_httppool
       responses:
         '200':
           description: Done registering the Pool to PoolManager.
@@ -748,9 +750,1165 @@ paths:
           required: true
           schema:
             type: string
+          example: fdi_serv.test_httppool
       responses:
         '200':
           description: Done unregistering this pool.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+  '/{poolid}/':
+    post:
+      summary: Save data to the pool with a tag and receive URNs.
+      tags:
+        - Data
+      description: Save product data item(s) to the pool with an optional tag and receive a URN for each of the saved items.
+      operationId: save_data
+      parameters:
+        - name: poolid
+          in: path
+          description: pool ID (also called pool name)
+          required: true
+          schema:
+            type: string
+          example: fdi_serv.test_httppool
+        - name: tags
+          in: header
+          description: A tag or a list of tags in request header to save with every data item.
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+          example:
+            - headerTag1
+            - headerTag2
+      requestBody:
+        description: Serialised data items
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+              description: A structured container for data processing results.
+            examples:
+              BaseProduct:
+                value: |
+                  '
+                  {
+                    "meta": {
+                      "_sets": {
+                        "description": {
+                          "description": "Description of this product",
+                          "default": "UNKNOWN",
+                          "value": "demo",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "type": {
+                          "description": "Product Type identification. Name of class or CARD.",
+                          "default": "BaseProduct",
+                          "value": "BaseProduct",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "level": {
+                          "description": "Product level.",
+                          "default": "ALL",
+                          "value": "ALL",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "creator": {
+                          "description": "Generator of this product.",
+                          "default": "UNKNOWN",
+                          "value": "dev",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "creationDate": {
+                          "description": "Creation date of this product",
+                          "default": {
+                            "tai": 0,
+                            "format": "%Y-%m-%dT%H:%M:%S.%f",
+                            "_STID": "FineTime"
+                          },
+                          "value": {
+                            "tai": 0,
+                            "format": "%Y-%m-%dT%H:%M:%S.%f",
+                            "_STID": "FineTime"
+                          },
+                          "valid": null,
+                          "typecode": "Q",
+                          "_STID": "DateParameter"
+                        },
+                        "rootCause": {
+                          "description": "Reason of this run of pipeline.",
+                          "default": "UNKNOWN",
+                          "value": "UNKNOWN",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "version": {
+                          "description": "Version of product",
+                          "default": "0.8",
+                          "value": "0.8",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "FORMATV": {
+                          "description": "Version of product schema and revision",
+                          "default": "1.6.0.10",
+                          "value": "1.6.0.10",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "_STID": "ODict"
+                      },
+                      "listeners": [],
+                      "_STID": "MetaData"
+                    },
+                    "_sets": {
+                      "_STID": "ODict"
+                    },
+                    "history": {
+                      "description": "UNKNOWN",
+                      "PARAM_HISTORY": "",
+                      "TASK_HISTORY": "",
+                      "meta": {
+                        "_sets": {
+                          "_STID": "ODict"
+                        },
+                        "listeners": [],
+                        "_STID": "MetaData"
+                      },
+                      "_sets": {
+                        "_STID": "ODict"
+                      },
+                      "_STID": "History"
+                    },
+                    "listeners": [],
+                    "_STID": "BaseProduct"
+                  }
+                  '
+                summary: An mostly blank BaseProduct.
+              Dummy:
+                value: '{"meta": {}}'
+                summary: minimal
+          text/plain:
+            schema:
+              type: string
+            examples:
+              BaseProduct:
+                value: |
+                  '
+                  {
+                    "meta": {
+                      "_sets": {
+                        "description": {
+                          "description": "Description of this product",
+                          "default": "UNKNOWN",
+                          "value": "demo",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "type": {
+                          "description": "Product Type identification. Name of class or CARD.",
+                          "default": "BaseProduct",
+                          "value": "BaseProduct",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "level": {
+                          "description": "Product level.",
+                          "default": "ALL",
+                          "value": "ALL",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "creator": {
+                          "description": "Generator of this product.",
+                          "default": "UNKNOWN",
+                          "value": "dev",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "creationDate": {
+                          "description": "Creation date of this product",
+                          "default": {
+                            "tai": 0,
+                            "format": "%Y-%m-%dT%H:%M:%S.%f",
+                            "_STID": "FineTime"
+                          },
+                          "value": {
+                            "tai": 0,
+                            "format": "%Y-%m-%dT%H:%M:%S.%f",
+                            "_STID": "FineTime"
+                          },
+                          "valid": null,
+                          "typecode": "Q",
+                          "_STID": "DateParameter"
+                        },
+                        "rootCause": {
+                          "description": "Reason of this run of pipeline.",
+                          "default": "UNKNOWN",
+                          "value": "UNKNOWN",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "version": {
+                          "description": "Version of product",
+                          "default": "0.8",
+                          "value": "0.8",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "FORMATV": {
+                          "description": "Version of product schema and revision",
+                          "default": "1.6.0.10",
+                          "value": "1.6.0.10",
+                          "valid": null,
+                          "typecode": "B",
+                          "_STID": "StringParameter"
+                        },
+                        "_STID": "ODict"
+                      },
+                      "listeners": [],
+                      "_STID": "MetaData"
+                    },
+                    "_sets": {
+                      "_STID": "ODict"
+                    },
+                    "history": {
+                      "description": "UNKNOWN",
+                      "PARAM_HISTORY": "",
+                      "TASK_HISTORY": "",
+                      "meta": {
+                        "_sets": {
+                          "_STID": "ODict"
+                        },
+                        "listeners": [],
+                        "_STID": "MetaData"
+                      },
+                      "_sets": {
+                        "_STID": "ODict"
+                      },
+                      "_STID": "History"
+                    },
+                    "listeners": [],
+                    "_STID": "BaseProduct"
+                  }
+                  '
+                summary: A mostly blank BaseProduct.
+              Dummy:
+                value: '{"meta": {}}'
+                summary: minimal
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+  '/{poolid}/hk/':
+    get:
+      summary: All kinds of pool housekeeping data.
+      tags:
+        - Pool
+      description: return all pool housekeeping data according to pool ID.
+      operationId: hk
+      parameters:
+        - name: poolid
+          in: path
+          description: pool ID (also called pool name)
+          required: true
+          schema:
+            type: string
+          example: fdi_serv.test_httppool
+      responses:
+        '200':
+          description: Done getting house keeping of the Pool.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+  '/{poolid}/api/':
+    get:
+      summary: A list of names of allowed API methods.
+      tags:
+        - Pool
+      description: Returns a list of name of methods allowed to be called with web APIs on this pool.
+      operationId: api_info
+      parameters:
+        - name: poolid
+          in: path
+          description: pool ID (also called pool name)
+          required: true
+          schema:
+            type: string
+          example: fdi_serv.test_httppool
+      responses:
+        '200':
+          description: Done getting all API calls of the Pool.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+  '/{poolid}/hk/{kind}':
+    get:
+      summary: Returns the given kind of pool housekeeping data.
+      tags:
+        - Pool
+      description: 'requests pool housekeeping data of specified kind: classes or urns or tags'
+      operationId: hk_single
+      parameters:
+        - name: poolid
+          in: path
+          description: pool ID (also called pool name)
+          required: true
+          schema:
+            type: string
+          example: fdi_serv.test_httppool
+        - name: kind
+          in: path
+          description: 'one of "classes", "urns", "tags".'
+          required: true
+          schema:
+            type: string
+            enum:
+              - classes
+              - urns
+              - tags
+          example: classes
+      responses:
+        '200':
+          description: Specified kind of pool housekeeping data returned OK.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+  '/{poolid}/count/{data_type}':
+    get:
+      summary: Returns the number of given type of data in the given pool.
+      tags:
+        - Pool
+      description: 'requests pool housekeeping data of specified kind: classes or urns or tags'
+      operationId: count
+      parameters:
+        - name: poolid
+          in: path
+          description: pool ID (also called pool name)
+          required: true
+          schema:
+            type: string
+          example: fdi_serv.test_httppool
+        - name: data_type
+          in: path
+          description: (Part of) a dot-separated full class name of data items in pool.
+          required: true
+          schema:
+            type: string
+          example: fdi.dataset.product.Product
+      responses:
+        '200':
+          description: Specified kind of pool housekeeping data returned OK.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+  '/{poolid}/wipe':
+    put:
+      summary: Removes all contents of the pool.
+      tags:
+        - Pool
+      description: 'Requests all data in the pool be removed, keeping pool directory.'
+      operationId: wipe
+      parameters:
+        - name: poolid
+          in: path
+          description: pool ID (also called pool name)
+          required: true
+          schema:
+            type: string
+          example: fdi_serv.test_httppool
+      responses:
+        '200':
+          description: wiping pool data done
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+  '/{poolid}/api/{method}/{args}':
+    get:
+      summary: Call api mathods on the running pool and returns the result.
+      tags:
+        - Pool
+      description: Call api mathods on the running pool and returns the result.
+      operationId: api
+      parameters:
+        - name: poolid
+          in: path
+          description: pool ID (also called pool name)
+          required: true
+          schema:
+            type: string
+          example: fdi_serv.test_httppool
+        - name: method
+          in: path
+          description: Name of the API method of the pool
+          required: true
+          schema:
+            type: string
+          example: getPoolurl
+        - name: args
+          in: path
+          description: Arguments of a function/method.
+          required: false
+          schema:
+            type: string
+            nullable: true
+          example: null
+      responses:
+        '200':
+          description: Specified kind of pool housekeeping data returned OK.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+  '/urn{parts}':
+    get:
+      summary: Return data item from the given URN (or URN parts).
+      tags:
+        - Data
+      description: '`parts` consists of the pool ID, a data class type, and a serial number (a.k.a index number). Data type must stay in one path segment.'
+      operationId: urn
+      parameters:
+        - name: parts
+          in: path
+          description: 'pool ID, followed by data class type, followed by serial number. Examples: ``urn:pool:fdi.dataset.baseproduct.BaseProduct:0``, ``:pool:fdi.dataset.baseproduct.BaseProduct:0``'
+          required: true
+          schema:
+            type: string
+          examples:
+            full:
+              value: 'urn:fdi_serv.test_httppool:fdi.dataset.product.Product:0'
+              summary: The full URN string
+            no_urn:
+              value: ':fdi_serv.test_httppool:fdi.dataset.product.Product:0'
+              summary: 'No leading ''urn''. The URL is like ''baseURL/urn:fdi_serv.test_httppool:fdi.dataset...'''
+      responses:
+        '200':
+          description: Specified data returned OK.
           content:
             application/json:
               schema:
@@ -855,7 +2013,61 @@ components:
       required: true
       schema:
         type: string
+      example: fdi_serv.test_httppool
+    HkKind:
+      name: kind
+      in: path
+      description: 'one of "classes", "urns", "tags".'
+      required: true
+      schema:
+        type: string
+        enum:
+          - classes
+          - urns
+          - tags
+      example: classes
+    DataType:
+      name: data_type
+      in: path
+      description: (Part of) a dot-separated full class name of data items in pool.
+      required: true
+      schema:
+        type: string
+      example: fdi.dataset.product.Product
+    Args:
+      name: args
+      in: path
+      description: Arguments of a function/method.
+      required: false
+      schema:
+        type: string
+        nullable: true
+      example: null
+    HeaderTags:
+      name: tags
+      in: header
+      description: A tag or a list of tags in request header to save with every data item.
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+      example:
+        - headerTag1
+        - headerTag2
   schemas:
+    Product:
+      type: string
+      description: A structured container for data processing results.
+    Products:
+      schema:
+        type: array
+        items:
+          type: string
+          description: A structured container for data processing results.
+      example:
+        - headerTag1
+        - headerTag2
     RegisteredPools:
       allOf:
         - type: object
@@ -931,12 +2143,12 @@ components:
             time: 15948800582498.861
         - type: object
           properties:
-            result__1:
+            result:
               type: string
           required:
-            - result__1
+            - result
           example:
-            result__1: '[7.8, "foo"]'
+            result: '[7.8, "foo"]'
     ResponseContentsBase:
       type: object
       properties:
@@ -1142,3 +2354,9 @@ components:
                   - result
                 example:
                   result: '[7.8, "foo"]'
+  examples:
+    productExample:
+      value:
+        id: 1
+        name: new object
+      summary: A sample object

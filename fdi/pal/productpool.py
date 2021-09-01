@@ -371,9 +371,11 @@ When implementing a ProductPool, the following rules need to be applied:
         return res
 
     def __repr__(self):
-
-        co = ', '.join(str(k)+'=' + (v if issubclass(v.__class__, str) else '<' +
-                                     v.__class__.__name__+'>') for k, v in self.__getstate__().items())
+        co = ', '.join(str(k) + '=' + lls(v, 40)
+                       for k, v in self.__getstate__().items())
+        # co = ', '.join(str(k)+'=' + (v if issubclass(v.__class__, str) else
+        #                              '<' + v.__class__.__name__+'>') \
+        #                for k, v in self.__getstate__().items())
         return '<'+self.__class__.__name__ + ' ' + co + '>'
 
     def __getstate__(self):
@@ -544,35 +546,35 @@ class ManagedPool(ProductPool, DictHk):
             c[pn]['currentSN'] = sn
             c[pn]['sn'].append(sn)
 
-            urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
+            urn=makeUrn(poolname = self._poolname, typename = pn, index = sn)
 
             if urn not in u:
                 if serialize_in and hasattr(prd, 'meta'):
-                    mt = prd.meta
+                    mt=prd.meta
                 else:
-                    strs, stre = '{"meta": ', '"_STID": "MetaData"}'
-                    start = prd.find(strs, 0)
-                    end = prd.find(stre, start)
+                    strs, stre='{"meta": ', '"_STID": "MetaData"}'
+                    start=prd.find(strs, 0)
+                    end=prd.find(stre, start)
                     if start >= 0 and end > 0:
-                        mt = deserialize(prd[start+len(strs):end+len(stre)])
+                        mt=deserialize(prd[start+len(strs):end+len(stre)])
                     else:
-                        mt = ODict()
-                u[urn] = ODict(tags=[], meta=mt)
-
+                        mt=ODict()
+                u[urn]=ODict(tags = [], meta = mt)
+            
             if tag is not None:
                 self.setTag(tag, urn)
             try:
                 # save prod and HK
-                self.doSave(resourcetype=pn,
-                            index=sn,
-                            data=prd,
-                            tag=tag,
-                            serialize_in=serialize_in,
-                            serialize_out=serialize_out,
+                self.doSave(resourcetype = pn,
+                            index = sn,
+                            data = prd,
+                            tag = tag,
+                            serialize_in = serialize_in,
+                            serialize_out = serialize_out,
                             **kwds)
             except Exception as e:
-                msg = 'product ' + urn + ' saving failed.'
-                self._classes, self._tags, self._urns = tuple(
+                msg='product ' + urn + ' saving failed.'
+                self._classes, self._tags, self._urns=tuple(
                     self.readHK().values())
                 logger.debug(msg)
                 raise e
@@ -901,8 +903,8 @@ class ManagedPool(ProductPool, DictHk):
         Subclasses should override this function.
         """
         return OrderedDict(
-            poolname=self._poolname,
-            poolurl=self._poolurl,
+            poolname=getattr(self, '_poolname', 'unknown'),
+            poolurl=getattr(self, '_poolurl', 'unknown'),
             _classes=self._classes,
             _urns=self._urns,
             _tags=self._tags,

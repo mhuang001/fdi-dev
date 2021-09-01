@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from ..pns.fdi_requests import save_to_server, read_from_server, delete_from_server
 from ..dataset.serializable import serialize
+from ..dataset.deserialize import deserialize
 from .poolmanager import PoolManager
 from .productref import ProductRef
 from .productpool import ProductPool
@@ -10,6 +11,7 @@ from .urn import Urn, makeUrn
 import os
 import builtins
 from itertools import chain
+import urllib
 from functools import lru_cache
 from os import path as op
 import logging
@@ -31,7 +33,7 @@ def writeJsonwithbackup(fp, data):
 bltn = vars(builtins)
 
 
-def toserver(self, method, *args, **kwds):
+def serialize_args1(*args, **kwds):
     def mkv(v):
         t = type(v).__name__
         if t in vars(builtins):
@@ -41,8 +43,127 @@ def toserver(self, method, *args, **kwds):
         return vs
     argsexpr = list(mkv(v) for v in args)
     kwdsexpr = dict((str(k), mkv(v)) for k, v in kwds.items())
-    apipath = method + '/' + \
-        '/'.join(chain(('|'.join(argsexpr),), chain(*kwdsexpr)))
+    return '/'.join(chain(('|'.join(argsexpr),), chain(*kwdsexpr)))
+
+
+def parseApiArgs1(all_args, serialize_out=False):
+    """ parse the command path to get positional and keywords arguments.
+
+    all_args: a list of path segments for the args list.
+    """
+    lp = len(all_args)
+    args, kwds = [], {}
+    if lp % 2 == 1:
+        # there are odd number of args+key+val
+        # the first seg after ind_meth must be all the positional args
+        try:
+            tyargs = all_args[0].split('|')
+            for a in tyargs:
+                print(a)
+                v, c, t = a.rpartition(':')
+                args.append(mkv(v, t))
+        except IndexError as e:
+            code, result, msg = excp(
+                e,
+                msg='Bad arguement format ' + all_args[0],
+                serialize_out=serialize_out)
+            logger.error(msg)
+            return code, result, msg
+        kwstart = 1
+    else:
+        kwstart = 0
+    # starting from kwstart are the keyword arges k1|v1 / k2|v2 / ...
+
+    try:
+        while kwstart < lp:
+            v, t = all_args[kwstart].rsplit(':', 1)
+            kwds[all_args[kwstart]] = mkv(v, t)
+            kwstart += 2
+    except IndexError as e:
+        code, result, msg = excp(
+            e,
+            msg='Bad arguement format ' + str(all_args[kwstart:]),
+            serialize_out=serialize_out)
+        logger.error(msg)
+        return code, result, msg
+
+    return 200, args, kwds
+
+
+def serialize_args(*args, **kwds):
+    """
+
+    Conversion rules:
+    |all_args[i]| converted to |
+    | if starts with `[` or `{` | `deserialize` this segment and stop. |
+    | else | convert and move on to the next segment |
+    | none, null, nul | `None` |
+    | true, false | `True`, `False` |
+    | integer | integer |
+    | float | float |
+    | string | string |
+    """
+    noseriargs = []
+    i = 0
+    for i, a0 in enumerate(args):
+        # a string or number or boolean
+        if a0 is None or issubclass(a0.__class__, (bool, int, float, str)):
+            noseriargs.append(urllib.parse.quote(str(a0)))
+        else:
+            break
+    seri = serialize(dict(apiargs=list(args[i:]), **kwds))
+    return '/'.join(noseriargs + [seri])
+
+
+def parseApiArgs(all_args, serialize_out=False):
+    """ parse the command path to get positional and keywords arguments.
+
+    Conversion rules:
+    |all_args[i]| converted to |
+    | if starts with `[` or `{` | `deserialize` this segment to {'apiargs':list, 'foo':bar ...} append list to existing args, and stop.|
+    | else | convert (case insensitive) and move on to the next segment |
+    | none, null, nul | `None` |
+    | true, false | `True`, `False` |
+    | integer | integer |
+    | float | float |
+    | string | string |
+
+    all_args: a list of path segments for the args list.
+    """
+    args, kwds = [], {}
+    for a0 in all_args:
+        if not a0.startswith('[') and not a0.startswith('{'):
+            # a string or number or boolean
+            a0l = a0.lower()
+            if a0l in ('none', 'null', 'nul'):
+                arg = None
+            elif a0l in ('true', 'false'):
+                arg = bool(a0)
+            else:
+                # if int(a0l.lstrip('+-').split('0x',1)[-1].isnumeric():
+                # covers '-/+0x34'
+                try:
+                    arg = int(a0)
+                except ValueError:
+                    try:
+                        arg = float(a0)
+                    except ValueError:
+                        # string
+                        arg = a0
+            args.append(arg)
+            # print(args)
+        else:
+            dese = deserialize(a0)
+            args += dese['apiargs']
+            del dese['apiargs']
+            kwds = dese
+            break
+    return 200, args, kwds
+
+
+def toserver(self, method, *args, **kwds):
+    apipath = method + '/' + serialize_args(*args, **kwds)
+
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
 
     logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
@@ -219,7 +340,7 @@ class HttpClientPool(ProductPool):
             raise Exception(msg)
         return 0
 
-    @toServer()
+    @ toServer()
     def removeAll(self):
         """
         Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).
@@ -227,14 +348,14 @@ class HttpClientPool(ProductPool):
         Pool is still left registered to ProductStorage and PoolManager.
         """
 
-    @toServer(method_name='select')
+    @ toServer(method_name='select')
     def schematicSelect(self,  query, results=None):
         """
         Returns a list of references to products that match the specified query.
         """
         # return self.toserver('select', query, results=results)
 
-    @toServer()
+    @ toServer()
     def dereference(self, ref):
         """
         Decrement the reference count of a ProductRef.
@@ -242,7 +363,7 @@ class HttpClientPool(ProductPool):
 
         # return self.toserver('dereference', ref)
 
-    @toServer()
+    @ toServer()
     def exists(self, urn):
         """
         Determines the existence of a product with specified URN.
@@ -250,13 +371,13 @@ class HttpClientPool(ProductPool):
 
         # return self.toserver('exists', urn)
 
-    @toServer()
+    @ toServer()
     def getPoolpath(self):
         """
         Returns poolpath of the server pool, if available.
         """
 
-    @toServer()
+    @ toServer()
     def getProductClasses(self):
         """
         Returns all Product classes found in this pool.
@@ -264,21 +385,21 @@ class HttpClientPool(ProductPool):
         """
         # return self.toserver('getProductClasses')
 
-    @toServer()
+    @ toServer()
     def getReferenceCount(self, ref):
         """
         Returns the reference count of a ProductRef.
         """
         return self.toserver('getReferenceCount', ref)
 
-    @toServer()
+    @ toServer()
     def isAlive(self):
         """
         Test if the pool is capable of responding to commands.
         """
         # return self.toserver('isAlive')
 
-    @toServer()
+    @ toServer()
     def isEmpty(self):
         """
         Determines if the pool is empty.
@@ -293,30 +414,30 @@ class HttpClientPool(ProductPool):
 
         # return self.toserver('meta', urn)
 
-    @toServer()
+    @ toServer()
     def reference(self, ref):
         """
         Increment the reference count of a ProductRef.
         """
         # return self.toserver('reference', ref)
 
-    @toServer()
+    @ toServer()
     def getCount(self, typename):
         """
         Return the number of URNs for the product type.
         """
         # return self.toserver('getCount', typename)
 
-    @toServer()
+    @ toServer()
     def getTags(self, urn=None):
-        """ 
+        """
         Get all of the tags that map to a given URN.
         Get all known tags if urn is not specified.
         mh: returns an iterator.
         """
         raise NotImplementedError
 
-    @toServer()
+    @ toServer()
     def getTagUrnMap(self):
         """
         Get the full tag->urn mappings.
@@ -324,49 +445,49 @@ class HttpClientPool(ProductPool):
         """
         raise NotImplementedError
 
-    @toServer()
+    @ toServer()
     def getUrn(self, tag):
         """
         Gets the URNs corresponding to the given tag. Returns an empty list if tag does not exist.
         """
         raise NotImplementedError
 
-    @toServer()
+    @ toServer()
     def getUrnObject(self, tag):
         """
         Gets the URNobjects corresponding to the given tag.
         """
         raise NotImplementedError
 
-    @toServer()
+    @ toServer()
     def removekey(self, key, themap, thename, othermap, othername):
         """
         Remove the given key.
         """
         raise NotImplementedError
 
-    @toServer()
+    @ toServer()
     def removeTag(self, tag):
         """
         Remove the given tag from the tag and urn maps.
         """
         raise NotImplementedError
 
-    @toServer()
+    @ toServer()
     def removeUrn(self, urn):
         """
         Remove the given urn from the tag and urn maps.
         """
         raise NotImplementedError
 
-    @toServer()
+    @ toServer()
     def setTag(self, tag,  urn):
         """
         Sets the specified tag to the given URN.
         """
         raise NotImplementedError
 
-    @toServer()
+    @ toServer()
     def tagExists(self, tag):
         """
         Tests if a tag exists.

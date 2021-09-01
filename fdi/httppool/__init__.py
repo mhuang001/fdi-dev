@@ -6,7 +6,7 @@ from .route.getswag import swag
 from .route.pools import pools_api
 from .model.user import getUsers
 
-from .route.httppool_server import httppool_api, checkpath
+from .route.httppool_server import data_api, checkpath
 
 from .._version import __version__
 from ..utils import getconfig
@@ -151,6 +151,6 @@ def create_app(config_object=None, logger=None):
     # register_blueprints(app)
 
     app.register_blueprint(pools_api, url_prefix=config_object['baseurl'])
-    #app.register_blueprint(httppool_api, url_prefix=config_object['baseurl'])
+    app.register_blueprint(data_api, url_prefix=config_object['baseurl'])
 
     return app

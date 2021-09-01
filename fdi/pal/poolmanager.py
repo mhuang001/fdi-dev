@@ -85,11 +85,11 @@ This is done by calling the getPool() method, which will return an existing pool
 
 Pools registered are kept as long as the last reference remains. When the last is gone the pool gets :meth;`removed` d.
 
-        poolname: name of the pool.
-        poolurl: if given the poolpath, scheme, place will be derived from it. if not given for making a new pool (i.e. when poolname is not a registered pool name.. 
+        :poolname: name of the pool.
+        :poolurl: if given the poolpath, scheme, place will be derived from it. if not given for making a new pool (i.e. when poolname is not a registered pool name.. 
 If poolname is missing it is derived from poolurl; if poolurl is also absent, ValueError will be raised.
-        kwds: passed to pool instanciation arg-list.
-
+        :kwds: passed to pool instanciation arg-list.
+        :Returns: the pool object.
         """
         # logger.debug('GPL ' + str(id(cls._GlobalPoolList)) +
         #             str(cls._GlobalPoolList) + ' PConf ' + str(cls.PlacePaths))
@@ -182,7 +182,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
     def remove(cls, poolname):
         """ Remove from list and unregister remote pools.
 
-        returns 0 for successful removal, 1 for poolname not registered or referenced, still attempted to remove.
+        returns 0 for successful removal, ``1`` for poolname not registered or referenced, still attempted to remove. ``> 1`` for the number of weakrefs the pool still have, and removing failed.
         """
         # number of weakrefs
         nwr = cls.isLoaded(poolname)
@@ -198,7 +198,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
                 code = 0
         elif nwr > 1:
             # nothing needs to be done. weakref number will decrement after Storage deletes ref
-            return 0
+            return nwr
         else:
             # nwr <=  0
             code = 1

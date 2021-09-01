@@ -2,17 +2,20 @@
 
 
 from fdi.dataset.product import Product
+from fdi.dataset.numericparameter import NumericParameter
+from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.testproducts import get_sample_product
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.query import MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
-from fdi.pal.httpclientpool import HttpClientPool
+from fdi.pal.httpclientpool import HttpClientPool, serialize_args, parseApiArgs
 from fdi.pns.fdi_requests import *
 from fdi.utils.getconfig import getConfig
 from fdi.utils.common import fullname
 
 import pytest
+import urllib
 import sys
 
 
@@ -43,6 +46,18 @@ test_poolid = 'fdi_'+__name__
 @pytest.fixture(scope="module")
 def init_test():
     pass
+
+
+def test_serialize_args():
+    a = [1, -2, 'a', 'b c', True, None, NumericParameter(42)]
+    k = {'a': 'r', 'f': 0, 'b': True, 'k': None, 's': StringParameter('4..2')}
+    s = serialize_args(*a, **k)
+    # print(s)
+    s0 = urllib.parse.unquote(s)
+    code, a1, k1 = parseApiArgs(s0.split('/'))
+    assert code == 200
+    assert a == a1
+    assert k == k1
 
 
 def test_gen_url(server):

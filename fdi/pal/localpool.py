@@ -79,7 +79,8 @@ class LocalPool(ManagedPool):
         self._classes.update(c)
         self._tags.update(t)
         self._urns.update(u)
-
+        fp0 = self.transformpath(self._poolname)
+        self.writeHK(fp0)
         return False
 
     def readmmap(self, filename, close=False, check_time=False):
@@ -194,10 +195,11 @@ class LocalPool(ManagedPool):
         logger.debug('JSON saved to: %s %d bytes' % (fp, l))
         return l
 
-    def writeHK(self, fp0):
+    def writeHK(self, fp0=None):
+        """ save the housekeeping data to disk
         """
-           save the housekeeping data to disk
-        """
+        if fp0 is None:
+            fp0 = self._poolpath + '/' + self._poolname
         l = 0
         for hkdata in ['classes', 'tags', 'urns']:
             fp = pathjoin(fp0, hkdata + '.jsn')

@@ -217,8 +217,8 @@ def test_wipe_all_pools_on_server(server, local_pools_dir, client, userpass):
     assert len(get_files_in_local_dir('', local_pools_dir)) >= n+1
 
     # wipe all pools
-    url = aburl + '/' + 'wipe_all_pools'
-    x = client.put(url, auth=auth)
+    url = aburl + '/' + 'pools/wipe_all'
+    x = client.delete(url, auth=auth)
     o = getPayload(x)
     check_response(o, failed_case=False)
 
@@ -351,7 +351,7 @@ def populate_pool(poolid, aburl, auth, clnt):
                     instrument=random.choice(instruments))
         x.creator = i
         data = serialize(x)
-        url = aburl + '/' + poolid + '/' + prodt + '/' + str(index)
+        url = aburl + '/' + poolid + '/'
         x = clnt.post(url, auth=HTTPBasicAuth(*auth), data=data)
         # print(len(data))
         o = getPayload(x)
@@ -393,8 +393,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     logger.info('read product')
 
     u = random.choice(urns)
-    # remove the leading 'urn:'
-    url = aburl + '/' + u[4:].replace(':', '/')
+    url = aburl + '/' + u  # [4:].replace(':', '/')
     x = client.get(url, auth=auth)
     o = getPayload(x)
     check_response(o)
@@ -436,7 +435,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
 
     logger.info('check count')
     num = len(o['result'][prodt]['sn'])
-    apipath = '/api/getCount/' + prodt + ':str'
+    apipath = '/api/getCount/' + prodt
     url = aburl + '/' + post_poolid + apipath
     x = client.get(url, auth=auth)
     o = getPayload(x)

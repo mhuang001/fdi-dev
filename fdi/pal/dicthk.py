@@ -75,6 +75,8 @@ class DictHk(Taggable):
     def removeUrn(self, urn):
         """
         Remove the given urn from the tag and urn maps.
+
+        Only changes maps in memory, not on disk.
         """
         u = urn.urn if issubclass(urn.__class__, Urn) else urn
         self.removekey(u, self._urns, 'urns', self._tags, 'tags')
@@ -85,9 +87,9 @@ class DictHk(Taggable):
         """
         u = urn.urn if issubclass(urn.__class__, Urn) else urn
         if u not in self._urns:
-            raise ValueError(urn + ' not found in pool')
+            raise ValueError(urn + ' not found in pool ' + self._poolname)
         else:
-            self._urns[urn]['tags'].append(tag)
+            self._urns[u]['tags'].append(tag)
 
         if tag in self._tags:
             self._tags[tag]['urns'].append(u)

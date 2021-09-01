@@ -50,7 +50,7 @@ def get_registered_pools():
 
 
 # @ pools_api.route('', methods=['GET'])
-@ pools_api.route('/pools', methods=['GET'])
+@ pools_api.route('/pools/', methods=['GET'])
 # #@ swag_from(endp['/pools']['get'])
 def get_pools():
     logger = current_app.logger
@@ -109,6 +109,7 @@ def load_pools(poolnames=None):
     Adding all pool to server pool storage.
 
     poolnames: if given as a list of poolnames, only the exisiting ones of the list will be loaded.
+    Returns: a `dict` of successfully loaded pools names-pool in `good`, and troubled ones in `bad` with associated exception info.
     """
 
     logger = current_app.logger
@@ -119,9 +120,9 @@ def load_pools(poolnames=None):
     alldirs = poolnames if poolnames else get_name_all_pools(path)
     for nm in alldirs:
         # must save the link or PM._GLOBALPOOLLIST will remove as dead weakref
-        code, res, msg = register_pool(nm)
+        code, pool, msg = register_pool(nm)
         if code == 200:
-            pmap[nm] = res
+            pmap[nm] = pool
         else:
             bad[nm] = nm+': '+msg
 
@@ -175,9 +176,12 @@ def unregister_pools(poolnames=None):
 
 
 @ pools_api.route('/pools/wipe_all', methods=['DELETE'])
-# @ swag_from(endp['/pools/wipe_all']['delete'])
+@ auth.login_required
 def wipe_all():
+    """ Remove contents of all pools.
 
+    Only registerable pools will be wiped. Pool directories are not removed.
+    """
     ts = time.time()
     good, bad = wipe_pools()
     code = 200 if not bad else 416
@@ -197,22 +201,26 @@ def wipe_pools(poolnames=None):
     """
     logger = current_app.logger
     path = current_app.config['POOLPATH_BASE']
-    logger.debug('DELETING pools from ' + path)
+    logger.debug('DELETING pools contents from ' + path)
 
     # alldirs = poolnames if poolnames else get_name_all_pools(path)
 
     good = []
     notgood = []
-    all_pools = load_pools(poolnames)
+    all_pools, not_loadable = load_pools(poolnames)
     names = list(all_pools.keys())
     for nm in copy.copy(names):
         pool = all_pools[nm]
         try:
             pool.removeAll()
             shutil.rmtree(os.path.join(path, nm))
-            PM.remove(nm)
-            logger.info('Pool %s deleted.' % nm)
-            good.append(nm)
+            res = PM.remove(nm)
+            if res > 1:
+                notgood.append(nm+': '+str(res))
+                logger.info('Pool %s not deleted.' % nm)
+            else:
+                good.append(nm)
+                logger.info('Pool %s deleted.' % nm)
         except Exception as e:
             notgood.append(nm+': '+str(e))
     return good, notgood
@@ -222,7 +230,7 @@ def wipe_pools(poolnames=None):
 ######################################
 
 
-@ pools_api.route('/<path:poolid>', methods=['GET'])
+@ pools_api.route('/<string:poolid>', methods=['GET'])
 # @ swag_from(endp['/{poolid}']['get'])
 def get_pool(poolid):
     """ Get information of the given pool.
@@ -258,16 +266,18 @@ def get_pool_info(poolname, serialize_out=True):
     return 0, resp(code, result, msg, ts, serialize_out), 0
 
 ######################################
-####  reg/unreg ####
+####  {pooolid}/register /unreg   ####
 ######################################
 
 
-@ pools_api.route('/<path:poolid>', methods=['PUT'])
+@ pools_api.route('/<string:poolid>', methods=['PUT'])
 # @ swag_from(endp['/{poolid}']['put'])
 def register(poolid):
     """ Register the given pool.
 
     Register the pool of given Pool IDs to the global PoolManager.
+
+    :return: response made from http code, poolurl, message
     """
 
     logger = current_app.logger
@@ -280,29 +290,31 @@ def register(poolid):
     ts = time.time()
     logger.debug('register pool ' + poolid)
 
-    code, result, msg = register_pool(poolid)
+    code, pool, msg = register_pool(poolid)
 
-    return resp(code, result, msg, ts)
+    return resp(code, pool._poolurl, msg, ts)
 
 
 def register_pool(poolid):
     """ Register this pool to PoolManager.
+
+    :returns: code, pool object if successful, message
     """
     poolname = poolid
     fullpoolpath = os.path.join(current_app.config['POOLPATH_BASE'], poolname)
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     try:
         po = PM.getPool(poolname=poolname, poolurl=poolurl)
-        return 200, po._poolurl, 'register pool ' + poolname + ' OK.'
+        return 200, po, 'register pool ' + poolname + ' OK.'
     except Exception as e:
         code, result, msg = excp(
             e,
             msg='Unable to register pool: ' + poolname)
         current_app.logger.error(msg)
-    return code, result, msg
+        return code, result, msg
 
 
-@ pools_api.route('/<path:poolid>', methods=['DELETE'])
+@ pools_api.route('/<string:poolid>', methods=['PUT'])
 # @ swag_from(endp['/{poolid}']['delete'])
 def unregister(poolid):
     """ Unregister this pool from PoolManager.
@@ -328,6 +340,7 @@ def unregister_pool(poolid):
     """ Unregister this pool from PoolManager.
 
     Check if the pool exists in server, and unregister or raise exception message.
+    :return: http code, return value, message.
     """
 
     poolname = poolid
@@ -345,7 +358,7 @@ def unregister_pool(poolid):
         else:
             result = 'FAILED'
             msg = 'Unable to unregister pool: ' + poolname
-            code = 400
+            code = 409
         #current_app.logger.debug(f'{code}; {result}; {msg}')
     except Exception as e:
         code, result, msg = excp(
@@ -356,10 +369,225 @@ def unregister_pool(poolid):
     return code, result, msg
 
 
-def call_pool_Api(paths, serialize_out=False):
-    """ run api calls on the running pool.
+######################################
+####  {pool}/hk/          ####
+######################################
 
-    return
+
+@ pools_api.route('/<string:poolid>/hk/', methods=['GET'])
+# @ swag_from(endp['/{poolid}']['put'])
+def hk(poolid):
+    """ All kinds of pool housekeeping data.
+
+    """
+
+    logger = current_app.logger
+
+    ts = time.time()
+    poolid = poolid.strip('/')
+    logger.debug('get HK for ' + poolid)
+
+    code, result, msg = load_HKdata([poolid, 'hk'])
+
+    return resp(code, result, msg, ts, serialize_out=True)
+
+
+def load_HKdata(paths, serialize_out=True):
+    """Load HKdata of a pool
+    """
+
+    hkname = paths[-1]
+    poolname = '/'.join(paths[0: -1])
+    poolurl = current_app.config['POOLURL_BASE'] + poolname
+    # resourcetype = fullname(data)
+
+    try:
+        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        result = poolobj.readHK(serialize_out=serialize_out)
+        msg = ''
+        code = 200
+    except Exception as e:
+        code, result, msg = excp(e, serialize_out=serialize_out)
+        raise e
+    return code, result, msg
+
+
+######################################
+####  {poolid}/api/               ####
+######################################
+
+
+@ pools_api.route('/<string:poolid>/api/', methods=['GET'])
+# @ swag_from(endp['/{poolid}']['put'])
+def api_info(poolid):
+    """ A list of names of allowed API methods.
+
+    Returns a list of name of methods allowed to be called with web APIs on this pool.
+    """
+
+    logger = current_app.logger
+
+    ts = time.time()
+    logger.debug(f'get allowed API methods for {poolid}')
+
+    return resp(200, WebAPI, 'OK.', ts, serialize_out=False)
+
+
+######################################
+#### /{poolid}/wipe  PUT/  ####
+######################################
+
+
+@ pools_api.route('/<string:poolid>/wipe', methods=['PUT'])
+@ auth.login_required
+def wipe(poolid):
+    """ Removes all contents of the pool.
+
+    requests all data in the pool be removed.
+    """
+    ts = time.time()
+    logger = current_app.logger
+    logger.debug(f'wipe ' + poolid)
+
+    good, bad = wipe_pools([poolid])
+    if bad:
+        code = 416
+        result = 'FAILED'
+        msg = 'Unable to wipe ' + poolid + ' %s %s' % (str(good), str(bad))
+    else:
+        code = 200
+        result = 0
+        msg = 'Wiping %s done.' % poolid
+
+    return resp(code, result, msg, ts)
+
+######################################
+####  {poolid}/hk/{kind}          ####
+######################################
+
+
+@ pools_api.route('/<string:poolid>/hk/<string:kind>', methods=['GET'])
+# @ swag_from(endp['/{poolid}']['put'])
+def hk_single(poolid, kind):
+    """ Returns the given kind of pool housekeeping data.
+    """
+
+    logger = current_app.logger
+
+    ts = time.time()
+    poolid = poolid.strip('/')
+    logger.debug(f'get {kind} HK for ' + poolid)
+
+    code, result, msg = load_single_HKdata([poolid, 'hk', kind])
+
+    return resp(code, result, msg, ts, serialize_out=True)
+
+
+def load_single_HKdata(paths, serialize_out=True):
+    """ Returns pool housekeeping data of the specified type: classes or urns or tags.
+    """
+
+    hkname = paths[-1]
+    # paths[-2] is 'hk'
+    poolname = '/'.join(paths[: -2])
+    poolurl = current_app.config['POOLURL_BASE'] + poolname
+    # resourcetype = fullname(data)
+
+    try:
+        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        result = poolobj.readHK(hkname, serialize_out=serialize_out)
+        code, msg = 200, hkname + ' HK data returned OK'
+    except Exception as e:
+        code, result, msg = excp(e, serialize_out=serialize_out)
+    return code, result, msg
+
+######################################
+####  {poolid}/count/{kind}          ####
+######################################
+
+
+@ pools_api.route('/<string:poolid>/count/<string:data_type>', methods=['GET'])
+# @ swag_from(endp['/{poolid}']['put'])
+def count(poolid, data_type):
+    """ Returns the number of given type of data in the given pool.
+
+    :data_type:  (part of) dot-separated full class name of data items in pool.
+    """
+
+    logger = current_app.logger
+
+    ts = time.time()
+    poolid = poolid.strip('/')
+    logger.debug(f'get {data_type} count for ' + poolid)
+
+    code, result, msg = get_prod_count(data_type, poolid)
+
+    return resp(code, result, msg, ts, serialize_out=False)
+
+
+def get_prod_count(prod_type, pool_id):
+    """ Return the total count for the given product type and pool_id in the directory.
+
+    'prod_type': (part of) 'clsssname',
+    'pool_id': 'pool name'
+
+    """
+
+    logger = current_app.logger
+    logger.debug('### method %s prod_type %s poolID %s***' %
+                 (request.method, prod_type, pool_id))
+    res = 0
+    nm = []
+
+    path = os.path.join(current_app.config['POOLPATH_BASE'], pool_id)
+    if os.path.exists(path):
+        for i in os.listdir(path):
+            if i[-1].isnumeric() and prod_type in i:
+                res = res+1
+                nm.append(i)
+    else:
+        return 400, 'FAILED', f'Pool {poolid} not found.'
+    s = str(nm)
+    logger.debug(prod_type + ' found '+s)
+    return 200, res, 'Counting %d %s files OK.' % (res, prod_type)
+
+
+######################################
+####  {poolid}/api/{method}/{args} ####
+######################################
+
+
+@ pools_api.route('/<string:poolid>/api/<string:method>', methods=['GET'])
+@ pools_api.route('/<string:poolid>/api/<string:method>/<path:args>', methods=['GET'])
+@ auth.login_required
+def api(poolid, method, args=None):
+    """ Call api mathods on the running pool and returns the result.
+
+    """
+
+    logger = current_app.logger
+
+    ts = time.time()
+    logger.debug(f'get API {method}({args}) for {poolid}')
+
+    if args is None:
+        args = ''
+
+    paths = [poolid, 'api', method] + args.split('/')
+    lp0 = len(paths)
+
+    # if paths[-1] == '':
+    #    del paths[-1]
+
+    code, result, msg = call_pool_Api(paths, serialize_out=False)
+
+    return resp(code, result, msg, ts, serialize_out=False)
+
+
+def call_pool_Api(paths, serialize_out=False):
+    """ Call api mathods on the running pool and returns the result.
+
+    return: value if args is pool property; execution result if method. 
     """
 
     FAILED = '"FAILED"' if serialize_out else 'FAILED'
@@ -399,7 +627,7 @@ def call_pool_Api(paths, serialize_out=False):
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     if not PM.isLoaded(poolname):
         result = FAILED
-        msg = 'Pool not found: ' + poolname
+        msg = 'Pool not found or not registered: ' + poolname
         logger.error(msg)
         return 0, resp(404, result, msg, ts, serialize_out=False), 0
 
@@ -414,42 +642,3 @@ def call_pool_Api(paths, serialize_out=False):
         logger.error(msg)
 
     return 0, resp(code, result, msg, ts, serialize_out=False), 0
-
-
-def load_HKdata(paths, serialize_out=True):
-    """Load HKdata of a pool
-    """
-
-    hkname = paths[-1]
-    poolname = '/'.join(paths[0: -1])
-    poolurl = current_app.config['POOLURL_BASE'] + poolname
-    # resourcetype = fullname(data)
-
-    try:
-        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
-        result = poolobj.readHK(serialize_out=serialize_out)
-        msg = ''
-        code = 200
-    except Exception as e:
-        code, result, msg = excp(e, serialize_out=serialize_out)
-        raise e
-    return code, result, msg
-
-
-def load_single_HKdata(paths, serialize_out=True):
-    """ Returns pool housekeeping data of the specified type: classes or urns or tags.
-    """
-
-    hkname = paths[-1]
-    # paths[-2] is 'hk'
-    poolname = '/'.join(paths[: -2])
-    poolurl = current_app.config['POOLURL_BASE'] + poolname
-    # resourcetype = fullname(data)
-
-    try:
-        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
-        result = poolobj.readHK(hkname, serialize_out=serialize_out)
-        code, msg = 200, 'OK'
-    except Exception as e:
-        code, result, msg = excp(e, serialize_out=serialize_out)
-    return code, result, msg

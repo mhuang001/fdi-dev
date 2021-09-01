@@ -11,6 +11,7 @@ from ...dataset.classes import Classes
 from ...utils.common import trbk, getUidGid
 from ...utils.fetch import fetch
 from ...pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
+from ...pal.httpclientpool import parseApiArgs
 
 # from .db_utils import check_and_create_fdi_record_table, save_action
 
@@ -44,7 +45,7 @@ else:
 # Global variables set to temprary values before setGlabals() runs
 logger = __import__('logging').getLogger(__name__)
 
-httppool_api = Blueprint('data_ops', __name__)
+data_api = Blueprint('httppool_server', __name__)
 
 
 @functools.lru_cache(6)
@@ -86,30 +87,7 @@ def checkpath(path, un):
 
 # =============HTTP POOL=========================
 
-# @httppool_api.before_app_first_request
-
-
-def get_prod_count(prod_type, pool_id):
-    """ Return the total count for the given product type and pool_id in the directory.
-
-    'prod_type': 'clsssname',
-    'pool_id': 'pool name'
-
-    """
-
-    logger.debug('### method %s prod_type %s poolID %s***' %
-                 (request.method, prod_type, pool_id))
-    res = 0
-    nm = []
-    path = os.path.join(current_app.config['POOLPATH_BASE'], pool_id)
-    if os.path.exists(path):
-        for i in os.listdir(path):
-            if i[-1].isnumeric() and prod_type in i:
-                res = res+1
-                nm.append(i)
-    s = str(nm)
-    logger.debug('found '+s)
-    return 200, str(res), 'Counting %s files OK'
+# @data_api.before_app_first_request
 
 
 def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', length=70):
@@ -117,7 +95,7 @@ def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', l
     Make response.
 
     :ctype: Content-Type. Default is `application/json`
-    :serialize_out: if True `result` is in serialized form.
+    :serialize_out: if True `result` is in already in serialized form.
     """
     # return if `result` is already a Response
     if issubclass(result.__class__, Response):
@@ -150,54 +128,105 @@ def excp(e, code=400, msg='', serialize_out=True):
     return code, result, msg
 
 
-def parseApiArgs(all_args, serialize_out=False):
-    """ parse the command path to get positional and keywords arguments.
+# @ data_api.route('/sn' + '/<string:prod_type>' + '/<string:pool_id>', methods=['GET'])
 
-    all_args: a list of path segments for the args list.
+
+######################################
+####  unr{parts} ####
+######################################
+
+
+@ data_api.route('/urn<path:parts>', methods=['GET'])
+# @ swag_from(endp['/{poolid}']['put'])
+def urn(parts):
+    """ Return data item from the given URN.
+
+    :parts: parts of a URN, consists of the pool ID, a data class type, and a serial number (a.k.a index number). e.g. ``urn:pool:fdi.dataset.baseproduct.BaseProduct:0``, ``/pool/fdi.dataset.baseproduct.BaseProduct/0``.
     """
-    lp = len(all_args)
-    args, kwds = [], {}
-    if lp % 2 == 1:
-        # there are odd number of args+key+val
-        # the first seg after ind_meth must be all the positional args
+
+    serial_through = True
+    logger = current_app.logger
+
+    ts = time.time()
+    logger.debug('get data for URN parts ' + parts)
+
+    colo = parts.replace('/', ':')
+    sp1 = colo.split(':')
+    if sp1[0].lower() == 'urn' or len(sp1[0]) == 0:
+        # ignore the 0th seg which is 'urn' or ''
+        paths = sp1[1:]
+    else:
+        paths = sp1
+
+    # if paths[-1] == '':
+    #    del paths[-1]
+
+    code, result, msg = getProduct_Or_Component(
+        paths, serialize_out=serial_through)
+    return resp(code, result, msg, ts, serialize_out=serial_through)
+
+######################################
+####  {poolid}/ POST   ####
+######################################
+
+
+@ data_api.route('/<string:poolid>/', methods=['POST'])
+@ auth.login_required
+def save_data(poolid):
+    """
+    Save data to the pool with a tag and receive URNs.
+
+    Save product data item(s) to the pool with an optional tag and receive a URN for each of the saved items.
+    """
+    if auth.current_user() == current_app.config['PC']['node']['ro_username']:
+        msg = 'User %s us Read-Only, not allowed to %s.' % \
+            (auth.current_user(), request.method)
+        logger.debug(msg)
+        return unauthorized(msg)
+
+    ts = time.time()
+    # do not deserialize if set True. save directly to disk
+    serial_through = True
+
+    if request.data is None:
+        result, msg = '"FAILED"', 'No REquest data for command '+request.method
+        code = 404
+        return resp(code, result, msg, ts, serialize_out=True)
+
+    # save product
+    if request.headers.get('tags') is not None:
+        tags = request.headers.get('tags').split(',')
+        __import__('pdb').set_trace()
+        
+    else:
+        tags = None
+
+    paths = [poolid]
+    logger.debug('*** method %s pool %s tags %s' %
+                 (request.method, poolid, str(tags)))
+
+    if serial_through:
+        data = str(request.data, encoding='ascii')
+
+        code, result, msg = save_product(
+            data, paths, tags, serialize_in=not serial_through, serialize_out=serial_through)
+    else:
         try:
-            tyargs = all_args[0].split('|')
-            for a in tyargs:
-                print(a)
-                v, c, t = a.rpartition(':')
-                args.append(mkv(v, t))
-        except IndexError as e:
+            data = deserialize(request.data)
+        except ValueError as e:
             code, result, msg = excp(
                 e,
-                msg='Bad arguement format ' + all_args[0],
-                serialize_out=serialize_out)
-            logger.error(msg)
-            return code, result, msg
-        kwstart = 1
-    else:
-        kwstart = 0
-    # starting from kwstart are the keyword arges k1|v1 / k2|v2 / ...
+                msg='Class needs to be included in pool configuration.',
+                serialize_out=serial_through)
+        else:
+            code, result, msg = save_product(
+                data, paths, tags, serialize_in=not serial_through)
+            # save_action(username=username, action='SAVE', pool=paths[0])
 
-    try:
-        while kwstart < lp:
-            v, t = all_args[kwstart].rsplit(':', 1)
-            kwds[all_args[kwstart]] = mkv(v, t)
-            kwstart += 2
-    except IndexError as e:
-        code, result, msg = excp(
-            e,
-            msg='Bad arguement format ' + str(all_args[kwstart:]),
-            serialize_out=serialize_out)
-        logger.error(msg)
-        return code, result, msg
-
-    return 200, args, kwds
+    return resp(code, result, msg, ts, serialize_out=serial_through)
 
 
-# @ httppool_api.route('/sn' + '/<string:prod_type>' + '/<string:pool_id>', methods=['GET'])
-
-
-@ httppool_api.route('/aa<path:pool>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@ data_api.route('/aa<path:pool>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @ auth.login_required
 def httppool(pool):
     """
@@ -323,7 +352,7 @@ def httppool(pool):
                 # save_action(username=username, action='SAVE', pool=paths[0])
     elif request.method == 'PUT':
         code, result, msg = register_pool(paths)
-        return resp(code, result, msg, ts, serialize_out=True)
+        return resp(code, result._poolurl, msg, ts, serialize_out=True)
 
     elif request.method == 'DELETE':
         if paths[-1].isnumeric():
@@ -389,26 +418,26 @@ def delete_product(paths):
     return code, result, msg
 
 
-def save_product(data, paths, tag=None, serialize_in=True, serialize_out=False):
+def save_product(data, paths, tags=None, serialize_in=True, serialize_out=False):
     """Save products and returns URNs.
 
     Saving Products to HTTPpool will have data stored on the server side. The server only returns URN strings as a response. ProductRefs will be generated by the associated httpclient pool which is the front-end on the user side.
 
-
+    :tags: a list off tag strings. default is None meaning no tag.
     Returns a URN object or a list of URN objects.
     """
+    FAILED = '"FAILED"' if serialize_out else 'FAILED'
 
-    typename = paths[-2]
-    index = str(paths[-1])
-    poolname = '/'.join(paths[0: -2])
+    poolname = paths[0]
     fullpoolpath = os.path.join(current_app.config['POOLPATH_BASE'], poolname)
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     # resourcetype = fullname(data)
+    tag = tags[0] if tags else None  # TODO: accept all tags
 
     if checkpath(fullpoolpath, current_app.config['PC']['serveruser']) is None:
-        result = '"FAILED"'
+        result = FAILED
         msg = 'Pool directory error: ' + fullpoolpath
-        return result, msg
+        return 400, result, msg
 
     logger.debug('SAVE product to: ' + poolurl)
     # logger.debug(str(id(PM._GlobalPoolList)) + ' ' + str(PM._GlobalPoolList))
@@ -633,27 +662,15 @@ APIs = {
 
 }
 
-# @ app.route('/', methods=['GET'])
-# @ httppool_api.route('/api', methods=['GET'])
-# def get_apis():
-#     """ Makes a page for APIs described in module variable APIs. """
 
-#     logger.debug('APIs %s' % (APIs.keys()))
-#     ts = time.time()
-#     l = [(a, makepublicAPI(o)) for a, o in APIs.items()]
-#     w = {'APIs': dict(l), 'timestamp': ts}
-#     logger.debug('ret %s' % (str(w)[:100] + ' ...'))
-#     return jsonify(w)
-
-
-@httppool_api.errorhandler(400)
+@data_api.errorhandler(400)
 def bad_request(error):
     ts = time.time()
     w = {'error': 'Bad request.', 'message': str(error), 'timestamp': ts}
     return make_response(jsonify(w), 400)
 
 
-@httppool_api.errorhandler(401)
+@data_api.errorhandler(401)
 def unauthorized(error):
     ts = time.time()
     w = {'error': 'Unauthorized. Authentication needed to modify.',
@@ -661,14 +678,14 @@ def unauthorized(error):
     return make_response(jsonify(w), 401)
 
 
-@httppool_api.errorhandler(404)
+@data_api.errorhandler(404)
 def not_found(error):
     ts = time.time()
     w = {'error': 'Not found.', 'message': str(error), 'timestamp': ts}
     return make_response(jsonify(w), 404)
 
 
-@httppool_api.errorhandler(409)
+@data_api.errorhandler(409)
 def conflict(error):
     ts = time.time()
     w = {'error': 'Conflict. Updating.',

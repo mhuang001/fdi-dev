@@ -25,7 +25,7 @@ DEFAULT_POOL = 'fdi_pool_' + __name__ + getpass.getuser()
 def remoteRegister(p, poolurl):
     logger.debug('Register %s on the server', poolurl)
     try:
-        res, msg = put_on_server('urn:::0', poolurl, 'pool')
+        res, msg = put_on_server('urn:::0', poolurl, 'register_pool')
     except ConnectionError as e:
         res, msg = 'FAILED', str(e)
     if res == 'FAILED':
@@ -45,7 +45,7 @@ def remoteUnregister(poolurl):
     #o = deserialize(x.text)
     urn = 'urn:::0'
     try:
-        res, msg = delete_from_server(urn, poolurl, 'pool')
+        res, msg = delete_from_server(urn, poolurl, 'unregister_pool')
     except ConnectionError as e:
         res, msg = 'FAILED', str(e)
     if res == 'FAILED':

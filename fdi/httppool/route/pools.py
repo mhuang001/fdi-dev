@@ -226,7 +226,7 @@ def wipe_pools(poolnames=None):
     return good, notgood
 
 ######################################
-#### /{poolid}  get_pool/  reg/unreg ####
+#### /{poolid}  get_pool/  GET  ####
 ######################################
 
 
@@ -266,7 +266,7 @@ def get_pool_info(poolname, serialize_out=True):
     return 0, resp(code, result, msg, ts, serialize_out), 0
 
 ######################################
-####  {pooolid}/register /unreg   ####
+####  {pooolid}/register PUT /unreg DELETE  ####
 ######################################
 
 
@@ -314,7 +314,7 @@ def register_pool(poolid):
         return code, result, msg
 
 
-@ pools_api.route('/<string:poolid>', methods=['PUT'])
+@ pools_api.route('/<string:poolid>', methods=['DELETE'])
 # @ swag_from(endp['/{poolid}']['delete'])
 def unregister(poolid):
     """ Unregister this pool from PoolManager.

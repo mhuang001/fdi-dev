@@ -34,6 +34,8 @@ defaulturl = 'http://' + pcc['node']['host'] + \
 def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
     """ Returns URL for accessing pools with a URN.
 
+    See up-to-date HttpPool API UI at `http://<ip>:<port>/apidocs`.
+
     This is done by using the PoolURL.
 
     contents:
@@ -68,13 +70,26 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
         urn) if len(urn) > 7 else ('', '', '0')
     indexs = str(index)
     poolpath, scheme, place, pn = parse_poolurl(poolurl, poolhint=poolname)
+
     if not poolname:
         poolname = pn
+    # with a trailing '/'
+    baseurl = poolurl[:-len(poolname)]
     if method == 'GET':
         if contents == 'product':
             ret = poolurl + '/' + resourcecn + '/' + indexs
+        elif contents == 'registered_pools':
+            ret = baseurl
+        elif contents == 'pools_info':
+            ret = baseurl + 'pools/'
+        elif contents == 'pool_info':
+            ret = poolurl + '/'
+        elif contents == 'count':
+            ret = poolurl + '/count/' + resourcecn
+        elif contents == 'pool_api':
+            ret = poolurl + '/api/'
         elif contents == 'housekeeping':
-            ret = poolurl + '/hk'
+            ret = poolurl + '/hk/'
         elif contents in ['classes', 'urns', 'tags']:
             ret = poolurl + '/hk/' + contents
         elif contents.split('/')[0] in WebAPI:
@@ -84,21 +99,29 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
                 'No such method and contents composition: ' + method + ' / ' + contents)
     elif method == 'POST':
         if contents == 'product':
-            ret = poolurl + '/' + resourcecn + '/' + indexs
+            ret = baseurl + poolname + '/'
         else:
             raise ValueError(
                 'No such method and contents composition: ' + method + ' / ' + contents)
     elif method == 'PUT':
-        if contents == 'pool':
+        if contents == 'register_pool':
             ret = poolurl
+        elif contents == 'register_all_pool':
+            ret = baseurl + 'pools/register_all'
+        elif contents == 'unregister_all_pool':
+            ret = baseurl + 'pools/unregister_all'
         else:
             raise ValueError(
                 'No such method and contents composition: ' + method + ' / ' + contents)
     elif method == 'DELETE':
-        if contents == 'pool':
+        if contents == 'wipe_pool':
+            ret = poolurl + '/wipe'
+        elif contents == 'wipe_all_pools':
+            ret = baseurl + 'wipe_all'
+        elif contents == 'unregister_pool':
             ret = poolurl
         elif contents == 'product':
-            ret = poolurl + '/' + resourcecn + '/' + indexs
+            ret = baseurl + 'urn' + urn
         else:
             raise ValueError(
                 'No such method and contents composition: ' + method + ' / ' + contents)
@@ -123,7 +146,7 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False):
     auth = HTTPBasicAuth(user, password)
     api = urn2fdiurl(urn, poolurl, contents='product', method='POST')
     # print('POST API: ' + api)
-    headers = {'tag': tag}
+    headers = {'tags': tag}
     sd = data if no_serial else serialize(data)
     res = requests.post(
         api, auth=auth, data=sd, headers=headers)

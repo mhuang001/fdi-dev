@@ -524,7 +524,7 @@ paths:
     get:
       summary: Get information of the given pool.
       tags:
-        - Pool
+        - Pool_Info
       description: Returns the state of the pool of given Pool IDs.
       operationId: get_pool
       parameters:
@@ -1202,7 +1202,7 @@ paths:
     get:
       summary: All kinds of pool housekeeping data.
       tags:
-        - Pool
+        - Pool_Info
       description: return all pool housekeeping data according to pool ID.
       operationId: hk
       parameters:
@@ -1420,7 +1420,7 @@ paths:
     get:
       summary: Returns the given kind of pool housekeeping data.
       tags:
-        - Pool
+        - Pool_Info
       description: 'requests pool housekeeping data of specified kind: classes or urns or tags'
       operationId: hk_single
       parameters:
@@ -1540,7 +1540,7 @@ paths:
     get:
       summary: Returns the number of given type of data in the given pool.
       tags:
-        - Pool
+        - Data
       description: 'requests pool housekeeping data of specified kind: classes or urns or tags'
       operationId: count
       parameters:
@@ -1885,6 +1885,122 @@ paths:
                       - result
                     example:
                       result: '[7.8, "foo"]'
+  '/{poolid}/{data_paths}':
+    get:
+      summary: Returns magics of given type/data in the given pool.
+      tags:
+        - Data
+      description: Request related action results depending on the path
+      operationId: data_paths
+      parameters:
+        - name: poolid
+          in: path
+          description: pool ID (also called pool name)
+          required: true
+          schema:
+            type: string
+          example: fdi_serv.test_httppool
+        - name: data_paths
+          in: path
+          description: segmented path string of dynamic lengths
+          required: true
+          schema:
+            type: string
+          example: fdi.dataset.product.Product/0/meta/
+      responses:
+        '200':
+          description: Specified kind of  data returned OK.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
   '/urn{parts}':
     get:
       summary: Return data item from the given URN (or URN parts).
@@ -1895,7 +2011,7 @@ paths:
       parameters:
         - name: parts
           in: path
-          description: 'pool ID, followed by data class type, followed by serial number. Examples: ``urn:pool:fdi.dataset.baseproduct.BaseProduct:0``, ``:pool:fdi.dataset.baseproduct.BaseProduct:0``'
+          description: 'pool ID, followed by data class type, followed by serial number. Examples: ``urn:pool:fdi.dataset.baseproduct.BaseProduct:0``, ``:pool:fdi.dataset.baseproduct.BaseProduct:0``. Also possible URL: ``http.../urn:pool/fdi.dataset.product.Product/0``.'
           required: true
           schema:
             type: string
@@ -1909,6 +2025,120 @@ paths:
       responses:
         '200':
           description: Specified data returned OK.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '400':
+          description: Fails. Invalid request or relevant pool does not exist.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+        '409':
+          description: Fails. Unavailable. Pool is busy at the moment.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      code:
+                        type: integer
+                      msg:
+                        type: string
+                      time:
+                        type: number
+                        format: double
+                    required:
+                      - code
+                      - msg
+                      - time
+                    example:
+                      code: '200'
+                      msg: pool is deleted
+                      time: 15948800582498.861
+                  - type: object
+                    properties:
+                      result:
+                        type: string
+                    required:
+                      - result
+                    example:
+                      result: '[7.8, "foo"]'
+    delete:
+      summary: Remove data item with the given URN (or URN parts).
+      tags:
+        - Data
+      description: '`parts` consists of the pool ID, a data class type, and a serial number (a.k.a index number). Data type must stay in one path segment.'
+      operationId: delete_urn
+      parameters:
+        - name: parts
+          in: path
+          description: 'pool ID, followed by data class type, followed by serial number. Examples: ``urn:pool:fdi.dataset.baseproduct.BaseProduct:0``, ``:pool:fdi.dataset.baseproduct.BaseProduct:0``. Also possible URL: ``http.../urn:pool/fdi.dataset.product.Product/0``.'
+          required: true
+          schema:
+            type: string
+          examples:
+            full:
+              value: 'urn:fdi_serv.test_httppool:fdi.dataset.product.Product:0'
+              summary: The full URN string
+            no_urn:
+              value: ':fdi_serv.test_httppool:fdi.dataset.product.Product:0'
+              summary: 'No leading ''urn''. The URL is like ''baseURL/urn:fdi_serv.test_httppool:fdi.dataset...'''
+      responses:
+        '200':
+          description: Specified data removed OK.
           content:
             application/json:
               schema:
@@ -2055,6 +2285,20 @@ components:
       example:
         - headerTag1
         - headerTag2
+    UrnParts:
+      name: parts
+      in: path
+      description: 'pool ID, followed by data class type, followed by serial number. Examples: ``urn:pool:fdi.dataset.baseproduct.BaseProduct:0``, ``:pool:fdi.dataset.baseproduct.BaseProduct:0``. Also possible URL: ``http.../urn:pool/fdi.dataset.product.Product/0``.'
+      required: true
+      schema:
+        type: string
+      examples:
+        full:
+          value: 'urn:fdi_serv.test_httppool:fdi.dataset.product.Product:0'
+          summary: The full URN string
+        no_urn:
+          value: ':fdi_serv.test_httppool:fdi.dataset.product.Product:0'
+          summary: 'No leading ''urn''. The URL is like ''baseURL/urn:fdi_serv.test_httppool:fdi.dataset...'''
   schemas:
     Product:
       type: string

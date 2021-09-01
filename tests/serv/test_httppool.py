@@ -154,10 +154,10 @@ def check_response(o, failed_case=False, excluded=None):
         excluded = []
     assert o is not None, "Server is having trouble"
     someone = any(x in o for x in excluded)
+    assert 'result' in o or \
+        'Bad string to decode as JSON' not in o \
+        or someone, o
     if not failed_case:
-        assert 'result' in o or \
-            'Bad string to decode as JSON' not in o \
-            or someone, o
         if not someone:
             # properly formated
             if failed_case is not None:
@@ -467,7 +467,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     origin_prod = len(files)
 
     index = files[-1].rsplit('_', 1)[1]
-    url = aburl + '/' + post_poolid + '/fdi.dataset.product.Product/' + index
+    url = aburl + '/urn' + post_poolid + '/fdi.dataset.product.Product/' + index
 
     x = client.delete(url, auth=auth)
 
@@ -509,7 +509,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     url = aburl + '/' + post_poolid
     x = client.delete(url, auth=auth)
     o = getPayload(x)
-    check_response(o, failed_case=True)
+    check_response(o)
 
     # this should fail as pool is unregistered on the server
     url = aburl + '/' + post_poolid + '/api/isEmpty'
@@ -532,13 +532,19 @@ def test_product_path(server, userpass, client):
     prodt = fullname(p)
     data = serialize(p)
     # print(len(data))
-    url1 = url0+prodt + '/0'
+    url1 = url0
     x = client.post(url1, auth=auth, data=data)
     o = getPayload(x)
     check_response(o)
     urn = o['result']
 
     # API
+    # url0       = 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/'
+    # url1       = 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/'
+    # urn        = 'urn:fdi_serv.test_httppool:fdi.dataset.product.Product:0'
+    # pcls       = 'fdi.dataset.product.Product'
+    # urlapi     = 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/fdi.dataset.product.Product'
+
     pcls = urn.split(':')[2].replace(':', '/')
     urlapi = url0 + pcls
     # 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/fdi.dataset.product.Product'
@@ -552,9 +558,9 @@ def test_product_path(server, userpass, client):
     # test product paths
     segs = ["results", "Time_Energy_Pos", "Energy", "data"]
     pth = '/'.join(segs)
-    # make url w/  urn1
-    #
-    url2 = url0 + urn.replace(':', '+') + '/' + pth
+    # make url w/  urn
+    #url2       = 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data'
+    url2 = aburl + urn.replace(':', '/')[3:] + '/' + pth
     x = client.get(url2, auth=auth)
     o = getPayload(x)
     check_response(o)

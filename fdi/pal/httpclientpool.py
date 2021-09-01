@@ -110,8 +110,12 @@ def serialize_args(*args, **kwds):
         if a0 is None or issubclass(a0.__class__, (bool, int, float, str)):
             noseriargs.append(urllib.parse.quote(str(a0)))
         else:
+            seri = serialize(dict(apiargs=args[i:], **kwds))
             break
-    seri = serialize(dict(apiargs=list(args[i:]), **kwds))
+    else:
+        # loop ended w/ break
+        seri = serialize(kwds)
+
     return '/'.join(noseriargs + [seri])
 
 
@@ -154,14 +158,16 @@ def parseApiArgs(all_args, serialize_out=False):
             # print(args)
         else:
             dese = deserialize(a0)
-            args += dese['apiargs']
-            del dese['apiargs']
+            if 'apiargs' in dese:
+                args += dese['apiargs']
+                del dese['apiargs']
             kwds = dese
             break
     return 200, args, kwds
 
 
 def toserver(self, method, *args, **kwds):
+
     apipath = method + '/' + serialize_args(*args, **kwds)
 
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)

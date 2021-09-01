@@ -113,7 +113,7 @@ paths:
     get:
       summary: "Get information of the given pool."
       tags:
-        - Pool
+        - Pool_Info
       description: "Returns the state of the pool of given Pool IDs."
       operationId: get_pool
       parameters:
@@ -219,7 +219,7 @@ paths:
     get:
       summary: "All kinds of pool housekeeping data."
       tags:
-        - Pool
+        - Pool_Info
       description: "return all pool housekeeping data according to pool ID."
       operationId: hk
       parameters:
@@ -260,7 +260,7 @@ paths:
     get:
       summary: "Returns the given kind of pool housekeeping data."
       tags:
-        - Pool
+        - Pool_Info
       description: "requests pool housekeeping data of specified kind: classes or urns or tags"
       operationId: hk_single
       parameters:
@@ -281,7 +281,7 @@ paths:
     get:
       summary: "Returns the number of given type of data in the given pool."
       tags:
-        - Pool
+        - Data
       description: "requests pool housekeeping data of specified kind: classes or urns or tags"
       operationId: count
       parameters:
@@ -347,6 +347,33 @@ paths:
           $ref: '#/components/responses/400Error'
         "409":
           $ref: '#/components/responses/409Error'
+  /{poolid}/{data_paths}:
+    get:
+      summary: "Returns magics of given type/data in the given pool."
+      tags:
+        - Data
+      description: "Request related action results depending on the path"
+      operationId: data_paths
+      parameters:
+      - $ref: '#/components/parameters/PoolId'
+      - name: "data_paths"
+        in: "path"
+        description: "segmented path string of dynamic lengths"
+        required: true
+        schema:
+          type: "string"
+        example: fdi.dataset.product.Product/0/meta/
+      responses:
+        "200":
+          description: "Specified kind of  data returned OK."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponseContents'
+        "400":
+          $ref: '#/components/responses/400Error'
+        "409":
+          $ref: '#/components/responses/409Error'
           
   
   /urn{parts}:
@@ -357,22 +384,29 @@ paths:
       description: "`parts` consists of the pool ID, a data class type, and a serial number (a.k.a index number). Data type must stay in one path segment."
       operationId: urn
       parameters:
-      - name: parts
-        in: "path"
-        description: "pool ID, followed by data class type, followed by serial number. Examples: ``urn:pool:fdi.dataset.baseproduct.BaseProduct:0``, ``:pool:fdi.dataset.baseproduct.BaseProduct:0``"
-        required: true
-        schema:
-          type: "string"
-        examples:
-          full:
-            value: "urn:fdi_serv.test_httppool:fdi.dataset.product.Product:0"
-            summary: "The full URN string"
-          no_urn:
-            value: ":fdi_serv.test_httppool:fdi.dataset.product.Product:0"
-            summary: "No leading 'urn'. The URL is like 'baseURL/urn:fdi_serv.test_httppool:fdi.dataset...'"
+        - $ref: "#/components/parameters/UrnParts"
       responses:
         "200":
           description: "Specified data returned OK."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponseContents'
+        "400":
+          $ref: '#/components/responses/400Error'
+        "409":
+          $ref: '#/components/responses/409Error'
+    delete:
+      summary: "Remove data item with the given URN (or URN parts)."
+      tags:
+        - Data
+      description: "`parts` consists of the pool ID, a data class type, and a serial number (a.k.a index number). Data type must stay in one path segment."
+      operationId: delete_urn
+      parameters:
+        - $ref: "#/components/parameters/UrnParts"
+      responses:
+        "200":
+          description: "Specified data removed OK."
           content:
             application/json:
               schema:
@@ -435,7 +469,21 @@ components:
         type: array
         items:
           type: string
-      example: [headerTag1, headerTag2]      
+      example: [headerTag1, headerTag2]
+    UrnParts:
+      name: parts
+      in: "path"
+      description: "pool ID, followed by data class type, followed by serial number. Examples: ``urn:pool:fdi.dataset.baseproduct.BaseProduct:0``, ``:pool:fdi.dataset.baseproduct.BaseProduct:0``. Also possible URL: ``http.../urn:pool/fdi.dataset.product.Product/0``."
+      required: true
+      schema:
+        type: "string"
+      examples:
+        full:
+          value: "urn:fdi_serv.test_httppool:fdi.dataset.product.Product:0"
+          summary: "The full URN string"
+        no_urn:
+          value: ":fdi_serv.test_httppool:fdi.dataset.product.Product:0"
+          summary: "No leading 'urn'. The URL is like 'baseURL/urn:fdi_serv.test_httppool:fdi.dataset...'"
   # Schema for response body
   schemas:
     Product:

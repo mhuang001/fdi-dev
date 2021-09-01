@@ -58,6 +58,22 @@ def test_serialize_args():
     assert code == 200
     assert a == a1
     assert k == k1
+    a = [1]
+    k = {}
+    s = serialize_args(*a, **k)
+    s0 = urllib.parse.unquote(s)
+    code, a1, k1 = parseApiArgs(s0.split('/'))
+    assert code == 200
+    assert a == a1
+    assert k == k1
+    a = []
+    k = {'s': 2}
+    s = serialize_args(*a, **k)
+    s0 = urllib.parse.unquote(s)
+    code, a1, k1 = parseApiArgs(s0.split('/'))
+    assert code == 200
+    assert a == a1
+    assert k == k1
 
 
 def test_gen_url(server):
@@ -72,7 +88,7 @@ def test_gen_url(server):
     logger.info('Test GET HK')
     got_hk_url = urn2fdiurl(
         urn=sampleurn, poolurl=samplepoolurl, contents='housekeeping', method='GET')
-    hk_url = aburl + '/' + samplepoolname + '/hk'
+    hk_url = aburl + '/' + samplepoolname + '/hk/'
     assert got_hk_url == hk_url, 'Housekeeping url error: ' + got_hk_url + ':' + hk_url
 
     logger.info('Test GET classes, urns, tags, webapi url')
@@ -107,21 +123,21 @@ def test_gen_url(server):
     logger.info('Post product url')
     got_post_product_url = urn2fdiurl(
         urn=sampleurn, poolurl=samplepoolurl, contents='product', method='POST')
-    post_product_url = aburl + '/'+samplepoolname + '/fdi.dataset.product.Product/10'
+    post_product_url = aburl + '/' + samplepoolname+'/'
     assert got_post_product_url == post_product_url, 'Post product url error: ' + \
         got_post_product_url
 
     logger.info('Delete product url')
     got_del_product_url = urn2fdiurl(
         urn=sampleurn, poolurl=samplepoolurl, contents='product', method='DELETE')
-    del_product_url = aburl + '/' + samplepoolname + '/fdi.dataset.product.Product/10'
+    del_product_url = aburl + '/urn' + sampleurn
     assert got_del_product_url == del_product_url, 'Delete product url error: ' + \
         got_del_product_url
 
     logger.info('Delete pool url')
     got_del_pool_url = urn2fdiurl(
-        urn=sampleurn, poolurl=samplepoolurl, contents='pool', method='DELETE')
-    del_pool_url = aburl + '/' + samplepoolname
+        urn=sampleurn, poolurl=samplepoolurl, contents='wipe_pool', method='DELETE')
+    del_pool_url = aburl + '/' + samplepoolname + '/wipe'
     assert got_del_pool_url == del_pool_url, 'Delete product url error: ' + got_del_pool_url
 
     logger.info('Test corrupt request url')

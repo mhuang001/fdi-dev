@@ -6,6 +6,10 @@ Change Log
 BETA0
 =====
 
+1.8.0 2021-09-02
+----------------
+Refactor HTTP Pool server into Flask app directory and document/demo improved API with Flasgger and OpenAPI 3..
+
 1.7.0 2021-08-20
 ----------------
 Dataset refactor for YAML schema; docker with csc, backup, and docs; image in dataset; browser product; increase test coverage; httppooll server blueprint and return code.

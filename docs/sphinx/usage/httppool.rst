@@ -27,16 +27,18 @@ To customize ``~/.config/pnslocal.py`` modify these according to your system:
 .. code-block::
 
    pnsconfig = dict(logginglevel=logging.DEBUG)
-   pnsconfig['baseurl'] = '/v0.6'
+   pnsconfig['baseurl'] = '/v0.9'
    pnsconfig['base_poolpath'] = '/tmp'
-   pnsconfig['server_poolpath'] = '/var/www/data'  # For server
-   pnsconfig['defaultpool'] = 'pool_default'
+   pnsconfig['server_poolpath'] = '/tmp/data'  # For server
+   pnsconfig['defaultpool'] = 'default'
    pnsconfig['node'] = {'username': 'foo',
                         'password': 'bar', 'host': '127.0.0.1', 'port': 5000}
    pnsconfig['serveruser'] = 'mh'
 
 
 Note that above are for both the server and te client in this and the next steps.
+
+
 
 Run the Server
 --------------
@@ -61,7 +63,7 @@ Now you can use a client to access it.
 
 .. warning::
 
-   Do not run debugging mode for production use.
+   Do not run debugging mode for production use. Password uses plain text for development.
 
 .. note::
 
@@ -110,6 +112,24 @@ test HTTP Client APIs
 
 		
 
+Learn/Try the APIs and Build the Server
+=======================================
+
+The APIs are documented in `fdi/httppool/schema/pools.yml` with OpenAPI 3. Run this to see and try out with Swagger API Docs when the server is running:
+
+.. code-block:: shell
+
+		http://127.0.0.1:5000/apidocs
+
+To build the server, de-reference the YAML file (so Flasgger 0.95 can handle it):
+
+.. code-block:: shell
+
+		make de-ref
+		
+then run it ``make runpoolserver``
+
+		
 For production deployment
 =========================
 
@@ -127,19 +147,19 @@ To customize ``~/.config/pnslocal.py`` modify these according to your system:
 .. code-block::
 
    pnsconfig = dict(logginglevel=logging.DEBUG)
-   pnsconfig['baseurl'] = '/v0.6'
+   pnsconfig['baseurl'] = '/v0.9'
    pnsconfig['base_poolpath'] = '/tmp'
    pnsconfig['server_poolpath'] = '/var/www/httppool_server/data'
-   pnsconfig['defaultpool'] = 'pool_default'
-   pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '172.17.0.9', 'port': 9884}
+   pnsconfig['defaultpool'] = 'default'
+   pnsconfig['node'] = {'username': 'foo', 'password': 'XXX',
+                         'host': '172.17.0.2', 'port': 9884}
    pnsconfig['serveruser'] = 'apache'
 
 where at least the IP needs to be modified if to run a server.
 
 Then refer to these files to install/update wsgi or conf files
 
-*  ``fdi/pns/resources/httppool_server_2.docker``
+*  ``fdi/pns/resources/httppool_server.docker``
 *  ``fdi/pns/resources/httppool_server_entrypoint.sh``
 
    then enable the site and (re)start the server:
@@ -168,7 +188,7 @@ Launch it:
 
 .. code-block:: shell
 
-		make launch_server
+		make launch_server [PORT=xxxx]
 
 Test and Verify Deployed Server
 -------------------------------
@@ -177,7 +197,9 @@ The following is for a deployed docker.
 
 Roughly following te sane steps in `Test and Verify`_ except for the firsrt step.
 
-Actually the first two steps can be skipped if the 3rd is successful.
+.. tip::
+   
+   Actually the first two steps can be skipped if the 3rd is successful.
 
 1. Start
 !!!!!!!!
@@ -252,7 +274,9 @@ Clean up
 
 Stop and remove the docker by ``make rm_server``.
 
-Resources
-=========
+API Document
+============
+
+
 
 TBW

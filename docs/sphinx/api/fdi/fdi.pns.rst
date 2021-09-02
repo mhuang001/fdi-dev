@@ -33,14 +33,6 @@ fdi.pns.fdi\_requests module
    :undoc-members:
    :show-inheritance:
 
-fdi.pns.httppool\_server module
--------------------------------
-
-.. automodule:: fdi.pns.httppool_server
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 fdi.pns.jsonio module
 ---------------------
 

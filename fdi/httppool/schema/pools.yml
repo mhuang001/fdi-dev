@@ -109,7 +109,7 @@ paths:
         "409":
           $ref: '#/components/responses/409Error'
 
-  /{poolid}:
+  /{pool}:
     get:
       summary: "Get information of the given pool."
       tags:
@@ -117,7 +117,7 @@ paths:
       description: "Returns the state of the pool of given Pool IDs."
       operationId: get_pool
       parameters:
-      - $ref: '#/components/parameters/PoolId'
+      - $ref: '#/components/parameters/Pool'
       responses:
         "200":
           description: "Done getting infor of the Pool."
@@ -136,7 +136,7 @@ paths:
       description: "Register the pool of given Pool IDs to the global PoolManager."
       operationId: register
       parameters:
-      - $ref: '#/components/parameters/PoolId'
+      - $ref: '#/components/parameters/Pool'
       responses:
         "200":
           description: "Done registering the Pool to PoolManager."
@@ -155,7 +155,7 @@ paths:
       description: "Check if the pool exists in server, and unregister or raise exception message to client."
       operationId: unregister
       parameters:
-      - $ref: '#/components/parameters/PoolId'
+      - $ref: '#/components/parameters/Pool'
       responses:
         "200":
           description: "Done unregistering this pool."
@@ -167,7 +167,7 @@ paths:
           $ref: '#/components/responses/400Error'
         "409":
           $ref: '#/components/responses/409Error'
-  /{poolid}/:
+  /{pool}/:
     post:
       summary: "Save data to the pool with a tag and receive URNs."
       tags:
@@ -175,7 +175,7 @@ paths:
       description: "Save product data item(s) to the pool with an optional tag and receive a URN for each of the saved items."
       operationId: save_data
       parameters:
-      - $ref: '#/components/parameters/PoolId'
+      - $ref: '#/components/parameters/Pool'
       - $ref: '#/components/parameters/HeaderTags'
       requestBody:
         description: Serialised data items
@@ -215,7 +215,7 @@ paths:
         "409":
           $ref: '#/components/responses/409Error'
 
-  /{poolid}/hk/:
+  /{pool}/hk/:
     get:
       summary: "All kinds of pool housekeeping data."
       tags:
@@ -223,7 +223,7 @@ paths:
       description: "return all pool housekeeping data according to pool ID."
       operationId: hk
       parameters:
-      - $ref: '#/components/parameters/PoolId'
+      - $ref: '#/components/parameters/Pool'
       responses:
         "200":
           description: "Done getting house keeping of the Pool."
@@ -235,7 +235,7 @@ paths:
           $ref: '#/components/responses/400Error'
         "409":
           $ref: '#/components/responses/409Error'
-  /{poolid}/api/:
+  /{pool}/api/:
     get:
       summary: "A list of names of allowed API methods."
       tags:
@@ -243,7 +243,7 @@ paths:
       description: "Returns a list of name of methods allowed to be called with web APIs on this pool."
       operationId: api_info
       parameters:
-      - $ref: '#/components/parameters/PoolId'
+      - $ref: '#/components/parameters/Pool'
       responses:
         "200":
           description: "Done getting all API calls of the Pool."
@@ -256,7 +256,7 @@ paths:
         "409":
           $ref: '#/components/responses/409Error'
 
-  /{poolid}/hk/{kind}:
+  /{pool}/hk/{kind}:
     get:
       summary: "Returns the given kind of pool housekeeping data."
       tags:
@@ -264,7 +264,7 @@ paths:
       description: "requests pool housekeeping data of specified kind: classes or urns or tags"
       operationId: hk_single
       parameters:
-      - $ref: '#/components/parameters/PoolId'
+      - $ref: '#/components/parameters/Pool'
       - $ref: '#/components/parameters/HkKind'
       responses:
         "200":
@@ -277,7 +277,7 @@ paths:
           $ref: '#/components/responses/400Error'
         "409":
           $ref: '#/components/responses/409Error'
-  /{poolid}/count/{data_type}:
+  /{pool}/count/{data_type}:
     get:
       summary: "Returns the number of given type of data in the given pool."
       tags:
@@ -285,7 +285,7 @@ paths:
       description: "requests pool housekeeping data of specified kind: classes or urns or tags"
       operationId: count
       parameters:
-      - $ref: '#/components/parameters/PoolId'
+      - $ref: '#/components/parameters/Pool'
       - $ref: '#/components/parameters/DataType'
       responses:
         "200":
@@ -298,7 +298,7 @@ paths:
           $ref: '#/components/responses/400Error'
         "409":
           $ref: '#/components/responses/409Error'
-  /{poolid}/wipe:
+  /{pool}/wipe:
     put:
       summary: "Removes all contents of the pool."
       tags:
@@ -306,7 +306,7 @@ paths:
       description: "Requests all data in the pool be removed, keeping pool directory."
       operationId: wipe
       parameters:
-      - $ref: '#/components/parameters/PoolId'
+      - $ref: '#/components/parameters/Pool'
       responses:
         "200":
           description: "wiping pool data done"
@@ -319,7 +319,7 @@ paths:
         "409":
           $ref: '#/components/responses/409Error'
 
-  /{poolid}/api/{method}/{args}:
+  /{pool}/api/{method}/{args}:
     get:
       summary: "Call api mathods on the running pool and returns the result."
       tags:
@@ -327,7 +327,7 @@ paths:
       description: "Call api mathods on the running pool and returns the result."
       operationId: api
       parameters:
-      - $ref: '#/components/parameters/PoolId'
+      - $ref: '#/components/parameters/Pool'
       - name: "method"
         in: "path"
         description: "Name of the API method of the pool"
@@ -347,7 +347,7 @@ paths:
           $ref: '#/components/responses/400Error'
         "409":
           $ref: '#/components/responses/409Error'
-  /{poolid}/{data_paths}:
+  /{pool}/{data_paths}:
     get:
       summary: "Returns magics of given type/data in the given pool."
       tags:
@@ -355,7 +355,7 @@ paths:
       description: "Request related action results depending on the path"
       operationId: data_paths
       parameters:
-      - $ref: '#/components/parameters/PoolId'
+      - $ref: '#/components/parameters/Pool'
       - name: "data_paths"
         in: "path"
         description: "segmented path string of dynamic lengths"
@@ -426,14 +426,20 @@ components:
       scheme: basic
   # Schema for response body
   parameters:
-    PoolId:
-      name: "poolid"
+    Pool:
+      name: "pool"
       in: "path"
       description: "pool ID (also called pool name)"
       required: true
       schema:
         type: "string"
-      example: fdi_serv.test_httppool
+      examples:
+        server:
+          value: fdi_serv.test_httppool
+          summary: from server test.
+        client:
+          value: fdi_serv.test_httpclientpool
+          summary: from client test.
     HkKind:
       name: kind
       in: "path"
@@ -455,7 +461,7 @@ components:
       name: args
       in: "path"
       description: "Arguments of a function/method."
-      required: false
+      required: true
       schema:
         type: "string"
         nullable: true
@@ -490,10 +496,9 @@ components:
       type: string
       description: "A structured container for data processing results."
     Products:
-      schema:
-        type: array
-        items:
-          $ref: "#/components/schemas/Product"
+      type: array
+      items:
+        $ref: "#/components/schemas/Product"
       example: [headerTag1, headerTag2]      
     RegisteredPools:
       allOf:

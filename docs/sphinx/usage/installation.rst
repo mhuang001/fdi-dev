@@ -8,7 +8,7 @@ Installation and Notes for Developers
 
 If the contents do not show below, read them in :doc:`/../../README`
       
-.. include:: ../../../../README.rst
+.. include:: ../../../README.rst
    :start-after: Install/Uninstall
 
 

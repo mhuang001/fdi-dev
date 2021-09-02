@@ -11,6 +11,7 @@ API Reference
    fdi/fdi.dataset
    fdi/fdi.pal
    fdi/fdi.pns
+   fdi/fdi.httppool
    fdi/fdi.utils
 
 Diagrams

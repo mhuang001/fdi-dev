@@ -65,6 +65,14 @@ fdi.dataset.baseproduct module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.browseproduct module
+--------------------------------
+
+.. automodule:: fdi.dataset.browseproduct
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.classes module
 --------------------------
 

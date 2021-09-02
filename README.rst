@@ -104,6 +104,14 @@ Re-generate ``baseproduct.py`` and ``product.py`` from YAML schema files in
 
            make py
 
+Learn/Try the HTTP Pool Server APIs
+-----------------------------------
+
+The APIs are documented in `fdi/httppool/schema/pools.yml` with OpenAPI 3. Run this to see and try out with Swagger API Docs when the server is running:
+
+.. code-block:: shell
+
+		http://127.0.0.1:5000/apidocs
 
 Modify/Generate Documents
 -------------------------

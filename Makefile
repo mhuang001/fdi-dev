@@ -127,16 +127,21 @@ SWJAR	= ../swagger-codegen/swagger-codegen-cli-3.0.25.jar
 #SWJAR	= ../swagger-codegen/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar
 
 SCHEMA_DIR	=fdi/httppool/schema
+# so that flsgger can understand.
 de-ref:
 	swagger-cli bundle -r -t yaml ${SCHEMA_DIR}/pools.yml -o ${SCHEMA_DIR}/pools_resolved.yml
 
+# make swagger server subs
 api:
 	rm -rf fdi/httppool/flaskConnexion/*
 	java $(J_OPTS) -jar $(SWJAR) generate $(AGS) -i ./fdi/httppool/schema/pools.yml -l python-flask -o ./fdi/httppool/swagger -Dservice -DpackageName=fdi.httppool.swagger -DpackageVersion=2.0 -DserverPort=9000
 
+# $ref: works, unlike swagger editor
 watchapi:
 	swagger-ui-watcher fdi/httppool/schema/pools.yml
 
+swagger-editor:
+	@echo browser open file:///d:/code/swagger-editor/index.html
 reqs:
 	pipreqs --ignore tmp --force --savepath requirements.txt.pipreqs
 

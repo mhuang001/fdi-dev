@@ -1,6 +1,6 @@
-=============================
-**PAL**: Product Access Layer
-=============================
+===============================
+ **PAL**: Product Access Layer
+===============================
 
 .. contents:: Table of Contents
 	      :depth: 3
@@ -82,10 +82,13 @@ The reference LocalPool is shown in the following YAML-like schematic:
               urn1:!!odict
 	      ...
           _tags:!!odict
-              urns:!!list
-                   - $urn
-                   - $urn
-                   - ...
+              tag0:!!odict
+                      urns:!!list
+                           - $urn
+                           - $urn
+                           - ...
+              tag1:!!odict
+	      ...
 
 	  urn0:!!serialized product
 	  urn1:!!serialized product

@@ -520,7 +520,7 @@ paths:
                       - result
                     example:
                       result: '[7.8, "foo"]'
-  '/{poolid}':
+  '/{pool}':
     get:
       summary: Get information of the given pool.
       tags:
@@ -528,13 +528,19 @@ paths:
       description: Returns the state of the pool of given Pool IDs.
       operationId: get_pool
       parameters:
-        - name: poolid
+        - name: pool
           in: path
           description: pool ID (also called pool name)
           required: true
           schema:
             type: string
-          example: fdi_serv.test_httppool
+          examples:
+            server:
+              value: fdi_serv.test_httppool
+              summary: from server test.
+            client:
+              value: fdi_serv.test_httpclientpool
+              summary: from client test.
       responses:
         '200':
           description: Done getting infor of the Pool.
@@ -636,13 +642,19 @@ paths:
       description: Register the pool of given Pool IDs to the global PoolManager.
       operationId: register
       parameters:
-        - name: poolid
+        - name: pool
           in: path
           description: pool ID (also called pool name)
           required: true
           schema:
             type: string
-          example: fdi_serv.test_httppool
+          examples:
+            server:
+              value: fdi_serv.test_httppool
+              summary: from server test.
+            client:
+              value: fdi_serv.test_httpclientpool
+              summary: from client test.
       responses:
         '200':
           description: Done registering the Pool to PoolManager.
@@ -744,13 +756,19 @@ paths:
       description: 'Check if the pool exists in server, and unregister or raise exception message to client.'
       operationId: unregister
       parameters:
-        - name: poolid
+        - name: pool
           in: path
           description: pool ID (also called pool name)
           required: true
           schema:
             type: string
-          example: fdi_serv.test_httppool
+          examples:
+            server:
+              value: fdi_serv.test_httppool
+              summary: from server test.
+            client:
+              value: fdi_serv.test_httpclientpool
+              summary: from client test.
       responses:
         '200':
           description: Done unregistering this pool.
@@ -845,7 +863,7 @@ paths:
                       - result
                     example:
                       result: '[7.8, "foo"]'
-  '/{poolid}/':
+  '/{pool}/':
     post:
       summary: Save data to the pool with a tag and receive URNs.
       tags:
@@ -853,13 +871,19 @@ paths:
       description: Save product data item(s) to the pool with an optional tag and receive a URN for each of the saved items.
       operationId: save_data
       parameters:
-        - name: poolid
+        - name: pool
           in: path
           description: pool ID (also called pool name)
           required: true
           schema:
             type: string
-          example: fdi_serv.test_httppool
+          examples:
+            server:
+              value: fdi_serv.test_httppool
+              summary: from server test.
+            client:
+              value: fdi_serv.test_httpclientpool
+              summary: from client test.
         - name: tags
           in: header
           description: A tag or a list of tags in request header to save with every data item.
@@ -1198,7 +1222,7 @@ paths:
                       - result
                     example:
                       result: '[7.8, "foo"]'
-  '/{poolid}/hk/':
+  '/{pool}/hk/':
     get:
       summary: All kinds of pool housekeeping data.
       tags:
@@ -1206,13 +1230,19 @@ paths:
       description: return all pool housekeeping data according to pool ID.
       operationId: hk
       parameters:
-        - name: poolid
+        - name: pool
           in: path
           description: pool ID (also called pool name)
           required: true
           schema:
             type: string
-          example: fdi_serv.test_httppool
+          examples:
+            server:
+              value: fdi_serv.test_httppool
+              summary: from server test.
+            client:
+              value: fdi_serv.test_httpclientpool
+              summary: from client test.
       responses:
         '200':
           description: Done getting house keeping of the Pool.
@@ -1307,7 +1337,7 @@ paths:
                       - result
                     example:
                       result: '[7.8, "foo"]'
-  '/{poolid}/api/':
+  '/{pool}/api/':
     get:
       summary: A list of names of allowed API methods.
       tags:
@@ -1315,13 +1345,19 @@ paths:
       description: Returns a list of name of methods allowed to be called with web APIs on this pool.
       operationId: api_info
       parameters:
-        - name: poolid
+        - name: pool
           in: path
           description: pool ID (also called pool name)
           required: true
           schema:
             type: string
-          example: fdi_serv.test_httppool
+          examples:
+            server:
+              value: fdi_serv.test_httppool
+              summary: from server test.
+            client:
+              value: fdi_serv.test_httpclientpool
+              summary: from client test.
       responses:
         '200':
           description: Done getting all API calls of the Pool.
@@ -1416,7 +1452,7 @@ paths:
                       - result
                     example:
                       result: '[7.8, "foo"]'
-  '/{poolid}/hk/{kind}':
+  '/{pool}/hk/{kind}':
     get:
       summary: Returns the given kind of pool housekeeping data.
       tags:
@@ -1424,13 +1460,19 @@ paths:
       description: 'requests pool housekeeping data of specified kind: classes or urns or tags'
       operationId: hk_single
       parameters:
-        - name: poolid
+        - name: pool
           in: path
           description: pool ID (also called pool name)
           required: true
           schema:
             type: string
-          example: fdi_serv.test_httppool
+          examples:
+            server:
+              value: fdi_serv.test_httppool
+              summary: from server test.
+            client:
+              value: fdi_serv.test_httpclientpool
+              summary: from client test.
         - name: kind
           in: path
           description: 'one of "classes", "urns", "tags".'
@@ -1536,7 +1578,7 @@ paths:
                       - result
                     example:
                       result: '[7.8, "foo"]'
-  '/{poolid}/count/{data_type}':
+  '/{pool}/count/{data_type}':
     get:
       summary: Returns the number of given type of data in the given pool.
       tags:
@@ -1544,13 +1586,19 @@ paths:
       description: 'requests pool housekeeping data of specified kind: classes or urns or tags'
       operationId: count
       parameters:
-        - name: poolid
+        - name: pool
           in: path
           description: pool ID (also called pool name)
           required: true
           schema:
             type: string
-          example: fdi_serv.test_httppool
+          examples:
+            server:
+              value: fdi_serv.test_httppool
+              summary: from server test.
+            client:
+              value: fdi_serv.test_httpclientpool
+              summary: from client test.
         - name: data_type
           in: path
           description: (Part of) a dot-separated full class name of data items in pool.
@@ -1652,7 +1700,7 @@ paths:
                       - result
                     example:
                       result: '[7.8, "foo"]'
-  '/{poolid}/wipe':
+  '/{pool}/wipe':
     put:
       summary: Removes all contents of the pool.
       tags:
@@ -1660,13 +1708,19 @@ paths:
       description: 'Requests all data in the pool be removed, keeping pool directory.'
       operationId: wipe
       parameters:
-        - name: poolid
+        - name: pool
           in: path
           description: pool ID (also called pool name)
           required: true
           schema:
             type: string
-          example: fdi_serv.test_httppool
+          examples:
+            server:
+              value: fdi_serv.test_httppool
+              summary: from server test.
+            client:
+              value: fdi_serv.test_httpclientpool
+              summary: from client test.
       responses:
         '200':
           description: wiping pool data done
@@ -1761,7 +1815,7 @@ paths:
                       - result
                     example:
                       result: '[7.8, "foo"]'
-  '/{poolid}/api/{method}/{args}':
+  '/{pool}/api/{method}/{args}':
     get:
       summary: Call api mathods on the running pool and returns the result.
       tags:
@@ -1769,13 +1823,19 @@ paths:
       description: Call api mathods on the running pool and returns the result.
       operationId: api
       parameters:
-        - name: poolid
+        - name: pool
           in: path
           description: pool ID (also called pool name)
           required: true
           schema:
             type: string
-          example: fdi_serv.test_httppool
+          examples:
+            server:
+              value: fdi_serv.test_httppool
+              summary: from server test.
+            client:
+              value: fdi_serv.test_httpclientpool
+              summary: from client test.
         - name: method
           in: path
           description: Name of the API method of the pool
@@ -1786,7 +1846,7 @@ paths:
         - name: args
           in: path
           description: Arguments of a function/method.
-          required: false
+          required: true
           schema:
             type: string
             nullable: true
@@ -1885,7 +1945,7 @@ paths:
                       - result
                     example:
                       result: '[7.8, "foo"]'
-  '/{poolid}/{data_paths}':
+  '/{pool}/{data_paths}':
     get:
       summary: Returns magics of given type/data in the given pool.
       tags:
@@ -1893,13 +1953,19 @@ paths:
       description: Request related action results depending on the path
       operationId: data_paths
       parameters:
-        - name: poolid
+        - name: pool
           in: path
           description: pool ID (also called pool name)
           required: true
           schema:
             type: string
-          example: fdi_serv.test_httppool
+          examples:
+            server:
+              value: fdi_serv.test_httppool
+              summary: from server test.
+            client:
+              value: fdi_serv.test_httpclientpool
+              summary: from client test.
         - name: data_paths
           in: path
           description: segmented path string of dynamic lengths
@@ -2236,14 +2302,20 @@ components:
       type: http
       scheme: basic
   parameters:
-    PoolId:
-      name: poolid
+    Pool:
+      name: pool
       in: path
       description: pool ID (also called pool name)
       required: true
       schema:
         type: string
-      example: fdi_serv.test_httppool
+      examples:
+        server:
+          value: fdi_serv.test_httppool
+          summary: from server test.
+        client:
+          value: fdi_serv.test_httpclientpool
+          summary: from client test.
     HkKind:
       name: kind
       in: path
@@ -2268,7 +2340,7 @@ components:
       name: args
       in: path
       description: Arguments of a function/method.
-      required: false
+      required: true
       schema:
         type: string
         nullable: true
@@ -2304,11 +2376,10 @@ components:
       type: string
       description: A structured container for data processing results.
     Products:
-      schema:
-        type: array
-        items:
-          type: string
-          description: A structured container for data processing results.
+      type: array
+      items:
+        type: string
+        description: A structured container for data processing results.
       example:
         - headerTag1
         - headerTag2

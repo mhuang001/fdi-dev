@@ -14,6 +14,7 @@ Subpackages
 
    fdi.dataset
    fdi.httppool
+   fdi.old
    fdi.pal
    fdi.pns
    fdi.utils

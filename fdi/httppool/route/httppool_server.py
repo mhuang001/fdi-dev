@@ -229,13 +229,13 @@ def delete_product(paths, serialize_out=False):
     return code, result, msg
 
 ######################################
-####  {poolid}/ POST   ####
+####  {pool}/ POST   ####
 ######################################
 
 
-@ data_api.route('/<string:poolid>/', methods=['POST'])
+@ data_api.route('/<string:pool>/', methods=['POST'])
 @ auth.login_required
-def save_data(poolid):
+def save_data(pool):
     """
     Save data to the pool with a list of tags and receive URNs.
 
@@ -262,9 +262,9 @@ def save_data(poolid):
     else:
         tags = None
 
-    paths = [poolid]
+    paths = [pool]
     logger.debug('*** method %s pool %s tags %s' %
-                 (request.method, poolid, str(tags)))
+                 (request.method, pool, str(tags)))
 
     if serial_through:
         data = str(request.data, encoding='ascii')
@@ -322,13 +322,13 @@ def save_product(data, paths, tags=None, serialize_in=True, serialize_out=False)
     return code, result, msg
 
 ######################################
-####  {poolid}/{data_paths}  GET  ####
+####  {pool}/{data_paths}  GET  ####
 ######################################
 
 
-@ data_api.route('/<string:poolid>/<path:data_paths>', methods=['GET'])
+@ data_api.route('/<string:pool>/<path:data_paths>', methods=['GET'])
 @ auth.login_required
-def data_paths(poolid, data_paths):
+def data_paths(pool, data_paths):
     """
     Returns magics of given type/data in the given pool.
 
@@ -344,10 +344,10 @@ def data_paths(poolid, data_paths):
     # do not deserialize if set True. save directly to disk
     serial_through = True
 
-    paths = [poolid] + data_paths.split('/')
+    paths = [pool] + data_paths.split('/')
 
     logger.debug('*** method %s pool %s data_paths %s' %
-                 (request.method, poolid, str(data_paths)))
+                 (request.method, pool, str(data_paths)))
 
     code, result, msg = getProduct_Or_Component(
         paths, serialize_out=serial_through)
@@ -554,8 +554,8 @@ def mkv(v, t):
     return m
 
 
-@ data_api.route('/aa<path:pool>', methods=['GET', 'POST', 'PUT', 'DELETE'])
-@ auth.login_required
+# @ data_api.route('/<path:pool>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+# @ auth.login_required
 def httppool(pool):
     """
     APIs for CRUD products, according to path and methods and return results.
@@ -697,31 +697,6 @@ def httppool(pool):
         return resp(code, result, msg, ts, serialize_out=True)
 
     return resp(code, result, msg, ts, serialize_out=serial_through)
-
-
-# API specification for this module
-APIs = {
-    'GET': {'func': 'get_pool_sn',
-            'cmds': {'sn': ('Return the total count for the given product type and pool_id.', {
-                'prod_type': 'clsssname',
-                'pool_id': 'pool name'
-            })},
-            },
-    'PUT': {'func': 'httppool',
-            'cmds': {'pool': 'url'
-                     }
-            },
-    'POST': {'func': 'httppool',
-             'cmds': {'pool': 'url'
-                      }
-             },
-    'DELETE': {'func': 'httppool',
-               'cmds': {'pool': 'url'
-                        }
-               }
-
-
-}
 
 
 @data_api.errorhandler(400)

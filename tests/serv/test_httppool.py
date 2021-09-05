@@ -382,6 +382,8 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
 
     files1 = [f for f in get_files_in_local_dir(
         post_poolid, local_pools_dir) if f[-1].isnumeric()]
+    # list of would-be urns from existing files.
+    urns1 = ['urn:' + post_poolid + ':' + x.replace('_', ':') for x in files1]
     num_prod = len(files1)
     assert num_prod == len(creators) + origin_prod, 'Products number not match'
 
@@ -422,7 +424,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
         assert o['result']['classes'][prodt]['sn'][-l:] == inds
         assert o['result']['classes'][prodt]['currentSN'] == inds[-1]
         assert len(o['result']['tags']) == 0
-        assert set(o['result']['urns'].keys()) == set(urns)
+        assert set(o['result']['urns'].keys()) == set(urns1)
 
     logger.info('read classes')
     hkpath = '/hk/classes'
@@ -457,7 +459,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     o = getPayload(x)
     check_response(o)
 
-    assert set(o['result'].keys()) == set(urns)
+    assert set(o['result'].keys()) == set(urns1)
 
     # ========
     logger.info('delete a product')
@@ -571,7 +573,7 @@ def test_product_path(server, userpass, client):
     pt = urn.split(':', 2)[2].replace(':', '/')
 
     urlp = url0 + pt
-    # http://0.0.0.0:5000/v0.7/fdi_serv.test_httppool/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
+    # http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
     url3 = urlp + '/' + pth
     x = client.get(url3, auth=auth)
     o = getPayload(x)

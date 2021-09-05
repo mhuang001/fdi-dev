@@ -4,14 +4,13 @@ from ..model.user import getUsers, auth
 
 # from .server_skeleton import init_conf_clas, User, checkpath, app, auth, pc
 from ...utils.common import lls
-from ...dataset.deserialize import deserialize
+from ...dataset.deserialize import deserialize, deserialize_args
 from ...dataset.serializable import serialize
 from ...pal.urn import makeUrn
 from ...dataset.classes import Classes
 from ...utils.common import trbk, getUidGid
 from ...utils.fetch import fetch
 from ...pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
-from ...pal.httpclientpool import parseApiArgs
 
 # from .db_utils import check_and_create_fdi_record_table, save_action
 
@@ -344,10 +343,10 @@ def data_paths(pool, data_paths):
     # do not deserialize if set True. save directly to disk
     serial_through = True
 
-    paths = [pool] + data_paths.split('/')
+    paths = [pool] + data_paths.replace(':', '/').split('/')
 
-    logger.debug('*** method %s pool %s data_paths %s' %
-                 (request.method, pool, str(data_paths)))
+    logger.debug('*** method= %s pool= %s data_paths= %s paths= %s' %
+                 (request.method, pool, str(data_paths), str(paths)))
 
     code, result, msg = getProduct_Or_Component(
         paths, serialize_out=serial_through)
@@ -379,14 +378,22 @@ def getProduct_Or_Component(paths, serialize_out=False):
         return 0, resp(200, mInfo,
                        'Getting API info for %s OK' % paths[1],
                        ts, serialize_out=False), 0
+    # elif lp == 3 and paths[-1]=='':
+
+    #     try:
+    #         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+    #         result = poolobj.readHK(hkname, serialize_out=serialize_out)
+    #         code, msg = 200, hkname + ' HK data returned OK'
+    #     except Exception as e:
+    #         code, result, msg = excp(e, serialize_out=serialize_out)
     elif lp >= 3:
-        return compo_cmds(paths, mInfo, serialize_out=serialize_out)
+        return get_component_or_method(paths, mInfo, serialize_out=serialize_out)
 
     else:
         return 400, '"FAILED"', 'Unknown path %s' % str(paths)
 
 
-def compo_cmds(paths, mInfo, serialize_out=False):
+def get_component_or_method(paths, mInfo, serialize_out=False):
     """ Get the component and the associated command and return
 
     Except for full products, most components  are not in serialized form.
@@ -407,7 +414,7 @@ def compo_cmds(paths, mInfo, serialize_out=False):
 
     # args if found command and there is something after it
     cmd_args = paths[cmd_ind+1:] if cmd and (lp - cmd_ind > 1)else ['']
-    # prod type
+    # product type
     pt = paths[1]
     # index
     pi = paths[2]
@@ -423,7 +430,7 @@ def compo_cmds(paths, mInfo, serialize_out=False):
             tsargs = []
         # get the component
 
-        compo, path_str, prod = load_compo_at(1, paths[:-1], mInfo)
+        compo, path_str, prod = load_component_at(1, paths[:-1], mInfo)
         if compo is not None:
             result = compo.toString(*tsargs)
             msg = 'Getting toString(%s) OK' % (str(tsargs))
@@ -439,7 +446,7 @@ def compo_cmds(paths, mInfo, serialize_out=False):
             return 400, FAILED, '%s: %s' % (cmd, path_str)
     elif cmd == '' and paths[-1] == '':
         # command is '' and url endswith a'/'
-        compo, path_str, prod = load_compo_at(1, paths[:-1], mInfo)
+        compo, path_str, prod = load_component_at(1, paths[:-1], mInfo)
         if compo:
             ls = [m for m in dir(compo) if not m.startswith('_')]
             return 0, resp(200, ls,
@@ -457,7 +464,7 @@ def compo_cmds(paths, mInfo, serialize_out=False):
     elif 1:
         # no cmd, ex: test/fdi.dataset.Product/4
         # send json of the prod component
-        compo, path_str, prod = load_compo_at(1, paths, mInfo)
+        compo, path_str, prod = load_component_at(1, paths, mInfo)
         # see :func:`fetch`
         if compo or ' non ' not in path_str:
             return 0, resp(
@@ -470,7 +477,7 @@ def compo_cmds(paths, mInfo, serialize_out=False):
         return 400, FAILED, 'Need index number %s' % str(paths)
 
 
-def load_compo_at(pos, paths, mInfo):
+def load_component_at(pos, paths, mInfo):
     """ paths[pos] is cls; paths[pos+2] is 'description','meta' ...
 
     Components fetched are not in serialized form.

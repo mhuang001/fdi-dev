@@ -98,7 +98,7 @@ Examples (from :doc:`quickstart` page):
 
 .. include:: quickstart.rst
    :start-after: Product Pool and Product References
-   :end-before: Context -- a Product with References
+   :end-before: Context: a Product with References
 
 
 
@@ -111,7 +111,7 @@ Context is a Product that holds a set of :class:`ProductRef` s that accessible b
 Examples (from :doc:`quickstart` page):
 
 .. include:: quickstart.rst
-   :start-after: Context -- a Product with References
+   :start-after: Context: a Product with References
    :end-before: Query a Storage to get saved Products
 
 	  

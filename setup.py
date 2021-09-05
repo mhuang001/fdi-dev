@@ -49,12 +49,13 @@ setup(
             'pytest>=5.4.1',
             'pytest-cov',
             'aiohttp>=3.6.2',
+            'swagger-cli>=4.0.4',
         ],
         'SERV': [
             'Flask_HTTPAuth>=3.3.0',
             'Flask>=1.1.2',
             'waitress>=2.0.0',
-            'flasgger>=0.9.5'
+            'flasgger>=0.9.5',
         ],
         'PUB': [
             'sphinx_rtd_theme>=0.4.3',

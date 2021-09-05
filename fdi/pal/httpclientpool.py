@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from ..pns.fdi_requests import save_to_server, read_from_server, delete_from_server
 from ..dataset.serializable import serialize
-from ..dataset.deserialize import deserialize
+from ..dataset.deserialize import deserialize, serialize_args
 from .poolmanager import PoolManager
 from .productref import ProductRef
 from .productpool import ProductPool
@@ -31,139 +31,6 @@ def writeJsonwithbackup(fp, data):
 
 
 bltn = vars(builtins)
-
-
-def serialize_args1(*args, **kwds):
-    def mkv(v):
-        t = type(v).__name__
-        if t in vars(builtins):
-            vs = str(v) + ':' + t
-        else:
-            vs = serialize(v)+':' + t
-        return vs
-    argsexpr = list(mkv(v) for v in args)
-    kwdsexpr = dict((str(k), mkv(v)) for k, v in kwds.items())
-    return '/'.join(chain(('|'.join(argsexpr),), chain(*kwdsexpr)))
-
-
-def parseApiArgs1(all_args, serialize_out=False):
-    """ parse the command path to get positional and keywords arguments.
-
-    all_args: a list of path segments for the args list.
-    """
-    lp = len(all_args)
-    args, kwds = [], {}
-    if lp % 2 == 1:
-        # there are odd number of args+key+val
-        # the first seg after ind_meth must be all the positional args
-        try:
-            tyargs = all_args[0].split('|')
-            for a in tyargs:
-                print(a)
-                v, c, t = a.rpartition(':')
-                args.append(mkv(v, t))
-        except IndexError as e:
-            code, result, msg = excp(
-                e,
-                msg='Bad arguement format ' + all_args[0],
-                serialize_out=serialize_out)
-            logger.error(msg)
-            return code, result, msg
-        kwstart = 1
-    else:
-        kwstart = 0
-    # starting from kwstart are the keyword arges k1|v1 / k2|v2 / ...
-
-    try:
-        while kwstart < lp:
-            v, t = all_args[kwstart].rsplit(':', 1)
-            kwds[all_args[kwstart]] = mkv(v, t)
-            kwstart += 2
-    except IndexError as e:
-        code, result, msg = excp(
-            e,
-            msg='Bad arguement format ' + str(all_args[kwstart:]),
-            serialize_out=serialize_out)
-        logger.error(msg)
-        return code, result, msg
-
-    return 200, args, kwds
-
-
-def serialize_args(*args, **kwds):
-    """
-
-    Conversion rules:
-    |all_args[i]| converted to |
-    | if starts with `[` or `{` | `deserialize` this segment and stop. |
-    | else | convert and move on to the next segment |
-    | none, null, nul | `None` |
-    | true, false | `True`, `False` |
-    | integer | integer |
-    | float | float |
-    | string | string |
-    """
-    noseriargs = []
-    i = 0
-    for i, a0 in enumerate(args):
-        # a string or number or boolean
-        if a0 is None or issubclass(a0.__class__, (bool, int, float, str)):
-            noseriargs.append(urllib.parse.quote(str(a0)))
-        else:
-            seri = serialize(dict(apiargs=args[i:], **kwds))
-            break
-    else:
-        # loop ended w/ break
-        seri = serialize(kwds)
-
-    return '/'.join(noseriargs + [seri])
-
-
-def parseApiArgs(all_args, serialize_out=False):
-    """ parse the command path to get positional and keywords arguments.
-
-    Conversion rules:
-    |all_args[i]| converted to |
-    | if starts with `[` or `{` | `deserialize` this segment to {'apiargs':list, 'foo':bar ...} append list to existing args, and stop.|
-    | else | convert (case insensitive) and move on to the next segment |
-    | none, null, nul | `None` |
-    | true, false | `True`, `False` |
-    | integer | integer |
-    | float | float |
-    | string | string |
-
-    all_args: a list of path segments for the args list.
-    """
-    args, kwds = [], {}
-    for a0 in all_args:
-        if not a0.startswith('[') and not a0.startswith('{'):
-            # a string or number or boolean
-            a0l = a0.lower()
-            if a0l in ('none', 'null', 'nul'):
-                arg = None
-            elif a0l in ('true', 'false'):
-                arg = bool(a0)
-            else:
-                # if int(a0l.lstrip('+-').split('0x',1)[-1].isnumeric():
-                # covers '-/+0x34'
-                try:
-                    arg = int(a0)
-                except ValueError:
-                    try:
-                        arg = float(a0)
-                    except ValueError:
-                        # string
-                        arg = a0
-            args.append(arg)
-            # print(args)
-        else:
-            dese = deserialize(a0)
-            if 'apiargs' in dese:
-                args += dese['apiargs']
-                del dese['apiargs']
-            kwds = dese
-            break
-    return 200, args, kwds
 
 
 def toserver(self, method, *args, **kwds):
@@ -499,3 +366,62 @@ class HttpClientPool(ProductPool):
         Tests if a tag exists.
         """
         raise NotImplementedError
+
+###
+
+
+def serialize_args1(*args, **kwds):
+    def mkv(v):
+        t = type(v).__name__
+        if t in vars(builtins):
+            vs = str(v) + ':' + t
+        else:
+            vs = serialize(v)+':' + t
+        return vs
+    argsexpr = list(mkv(v) for v in args)
+    kwdsexpr = dict((str(k), mkv(v)) for k, v in kwds.items())
+    return '/'.join(chain(('|'.join(argsexpr),), chain(*kwdsexpr)))
+
+
+def parseApiArgs1(all_args, serialize_out=False):
+    """ parse the command path to get positional and keywords arguments.
+
+    all_args: a list of path segments for the args list.
+    """
+    lp = len(all_args)
+    args, kwds = [], {}
+    if lp % 2 == 1:
+        # there are odd number of args+key+val
+        # the first seg after ind_meth must be all the positional args
+        try:
+            tyargs = all_args[0].split('|')
+            for a in tyargs:
+                print(a)
+                v, c, t = a.rpartition(':')
+                args.append(mkv(v, t))
+        except IndexError as e:
+            code, result, msg = excp(
+                e,
+                msg='Bad arguement format ' + all_args[0],
+                serialize_out=serialize_out)
+            logger.error(msg)
+            return code, result, msg
+        kwstart = 1
+    else:
+        kwstart = 0
+    # starting from kwstart are the keyword arges k1|v1 / k2|v2 / ...
+
+    try:
+        while kwstart < lp:
+            v, t = all_args[kwstart].rsplit(':', 1)
+            kwds[all_args[kwstart]] = mkv(v, t)
+            kwstart += 2
+    except IndexError as e:
+        code, result, msg = excp(
+            e,
+            msg='Bad arguement format ' + str(all_args[kwstart:]),
+            serialize_out=serialize_out)
+        logger.error(msg)
+        return code, result, msg
+
+    return 200, args, kwds

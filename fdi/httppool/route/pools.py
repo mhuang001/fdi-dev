@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from .getswag import swag
-from .httppool_server import resp, excp, checkpath, parseApiArgs, unauthorized
+from .httppool_server import resp, excp, checkpath, unauthorized
 from ..model.user import auth
-from ...dataset.serializable import serialize
+from ...dataset.deserialize import deserialize_args
 from ...pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
 from ...pal.webapi import WebAPI
 
@@ -558,6 +558,7 @@ def get_prod_count(prod_type, pool_id):
 
 
 @ pools_api.route('/<string:pool>/api/<string:method>', methods=['GET'])
+@ pools_api.route('/<string:pool>/api/<string:method>/', methods=['GET'])
 @ pools_api.route('/<string:pool>/api/<string:method>/<path:args>', methods=['GET'])
 @ auth.login_required
 def api(pool, method, args=None):
@@ -582,6 +583,13 @@ def api(pool, method, args=None):
     code, result, msg = call_pool_Api(paths, serialize_out=False)
 
     return resp(code, result, msg, ts, serialize_out=False)
+
+################
+# /{pool}/api/{method} $$$
+##############################
+
+
+api_method = api
 
 
 def call_pool_Api(paths, serialize_out=False):
@@ -610,18 +618,25 @@ def call_pool_Api(paths, serialize_out=False):
                        ts, serialize_out=False), 0
     args, kwds = [], {}
 
-    all_args = paths[ind_meth+1:]
-    if lp > ind_meth:
+    # if method == 'select':
+    #    __import__('pdb').set_trace()
+    if lp > ind_meth+1:
+        # the unquoted args. may have ',' in strings
+        #all_args = paths[ind_meth+1]
+        # from the unquoted url extract the fist path segment.
+        all_args = request.url.split(
+            '/'.join(paths[0:ind_meth+1])+'/')[1].split('/', 1)[0]
         # get command positional arguments and keyword arguments
-        code, args, kwds = parseApiArgs(all_args, serialize_out=serialize_out)
+        code, args, kwds = deserialize_args(
+            all_args, serialize_out=serialize_out)
         if code != 200:
             result, msg = args, kwds
             return 0, resp(422, result, msg, ts, serialize_out=False), 0
-        else:
-            kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
-            msg = '%s(%s)' % (method, ', '.join(
-                chain(map(str, args), kwdsexpr)))
-            logger.debug('WebAPI ' + msg)
+
+    kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
+    msg = '%s(%s)' % (method, ', '.join(
+        chain(map(str, args), kwdsexpr)))
+    logger.debug('WebAPI ' + msg)
 
     poolname = paths[0]
     poolurl = current_app.config['POOLURL_BASE'] + poolname

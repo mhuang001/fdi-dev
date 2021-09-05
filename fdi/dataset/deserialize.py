@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+
+from .serializable import serialize
+from .odict import ODict
+from .classes import Classes
+from ..utils.common import lls, trbk
+
 import logging
 import json
 import codecs
@@ -7,13 +13,9 @@ import array
 import mmap
 from collections import ChainMap
 import builtins
+import urllib
 from collections import UserDict
 from collections.abc import MutableMapping as MM, MutableSequence as MS, MutableSet as MS
-
-from .odict import ODict
-from .classes import Classes
-from ..utils.common import lls, trbk
-
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -270,3 +272,129 @@ def deserialize(js, lookup=None, debug=False, usedict=True):
 
 
 Class_Look_Up = ChainMap(Classes._classes, globals(), vars(builtins))
+
+
+def serialize_args(*args, **kwds):
+    """
+    Serialize all positional and keywords arguements as they would appear in a function call.
+    Arguements are assumed to have been placed in the same order of a valid function/method call. They are scanned from left to right from `args[i]` i = 0, 1,... to `kwds[j]` j = 0, 1, ...
+
+* Scan args from i=0. if is of args[i] is of `bool`, `int`, `float` types, convert with `str`, if `str()`, convert with `urllib.parse.quote()`, if `bytes` or `bytearray' types, with ```0x```+`hex()`, save to the convered-list, and move on to the next element.
+* else if finding a segment not of any of the above types,
+** put this and the rest of ```args``` as the ```value``` in ```{'apiargs':value}```,
+** and append `kwds` key-val pairs after this pair,
+** serialize the disctionary with `serialize()`, 
+** append the result to the converted-list.
+** break from the args scan loop.
+* if args scan loop reaches its end, if `kwds` is not empty, serialize it with `serialize()`,
+or scanning reaches the end of args.
+* append the result to the converted-list.
+* join the converted-list with ```,```.
+* return the result string
+
+    """
+    noseriargs = []
+    i = 0
+    #print('AR ', args, ' KW ', kwds)
+    #from ..pal.query import AbstractQuery
+    # if len(args) and issubclass(args[0].__class__, AbstractQuery):
+    #    __import__('pdb').set_trace()
+
+    for i, a0 in enumerate(args):
+        # a string or number or boolean
+        a0c = a0.__class__
+        if a0 is None or issubclass(a0c, (bool, int, float)):
+            noseriargs.append(str(a0))
+        elif issubclass(a0c, (str)):
+            noseriargs.append(urllib.parse.quote(a0))
+        elif issubclass(a0c, (bytes, bytearray)):
+            noseriargs.append('0x'+a0.hex())
+        else:
+            seri = serialize(dict(apiargs=args[i:], **kwds))
+            noseriargs.append(urllib.parse.quote(seri))
+            break
+    else:
+        # loop ended w/ break
+        if kwds:
+            seri = serialize(kwds)
+            noseriargs.append(urllib.parse.quote(seri))
+
+    despaced = ','.join(noseriargs)
+
+    return despaced
+
+
+def deserialize_args(all_args, dequoted=False, serialize_out=False):
+    """ parse the command path to get positional and keywords arguments.
+
+    1. if `dequoted` is `True`, split everythine to the left of first `{` with `,` append the par startin from the `{`. `mark='{'`
+    2. else after splitting all_args  with `,`: `mark='%7B%22'` (`quote('{')`)
+
+    Scan from left. if all_args[i] not start with `mark` 
+
+    Conversion rules:
+    |all_args[i]| converted to |
+    | else | convert (case insensitive) and move on to the next segment |
+    | ```'None'``` | `None` |
+    | integer | `int()` |
+    | float | `float()` |
+    | ```'True'```, ```'False```` | `True`, `False` |
+    | string starting with ```'0x'``` | `hex()` |
+    | string not starting with ```'0x'``` | `quote` |
+
+    * else `unquote()` if ```dequoted==False```. `deserialize()` this segment to become ```{'apiargs':list, 'foo':bar ...}```, append value of ```apiargs``` to the converted-list above, remove they ```apiargs```-```val``` pair.
+    * return 200 as the reurn code followed by the converted-list and the deserialized ```dict```.
+
+    all_args: a list of path segments for the args list.
+    """
+    args, kwds = [], {}
+
+    if dequoted:
+        mark = '{'
+        ar = all_args.split(mark, 1)
+        qulist = ar[0].split(',')
+        if len(ar) > 1:
+            if len(qulist):
+                # the last ',' was for mark so should be removed,
+                qulist = qulist[:-1]
+            qulist.append(mark + ar[1])
+    else:
+        mark = '%7B%22'
+        qulist = all_args.split(',')
+    # print(qulist)
+
+    for a0 in qulist:
+        if not a0.startswith(mark):
+            # a string, bytes or number or boolean
+            # if int(a0l.lstrip('+-').split('0x',1)[-1].isnumeric():
+            # this covers '-/+0x34'
+            if a0 == 'None':
+                arg = None
+            else:
+                try:
+                    arg = int(a0)
+                except ValueError:
+                    try:
+                        arg = float(a0)
+                    except ValueError:
+                        # string, bytes, bool
+                        if a0.startswith('0x'):
+                            arg = bytes.fromhex(a0[2:])
+                        elif a0 == 'True':
+                            arg = True
+                        elif a0 == 'False':
+                            arg = False
+                        else:
+                            arg = urllib.parse.unquote_plus(a0)
+            args.append(arg)
+            # print(args)
+        else:
+            # quoted serialized dict
+            readable = a0 if dequoted else urllib.parse.unquote(a0)
+            dese = deserialize(readable)
+            if 'apiargs' in dese:
+                args += dese['apiargs']
+                del dese['apiargs']
+            kwds = dese
+            break
+    return 200, args, kwds

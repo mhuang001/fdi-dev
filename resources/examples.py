@@ -404,7 +404,7 @@ Products need to persist (be stored somewhere) in order to have a reference that
 Product Pool and Product References
 -----------------------------------
 
-This section shows how to store a product in a "pool" and get a reference back.
+This section shows how to make/get hold of a `pool`.
 ''')
 
 
@@ -421,6 +421,14 @@ os.system('rm -rf ' + demopoolpath)
 if PoolManager.isLoaded(DEFAULT_MEM_POOL):
     PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
 PoolManager.getPool(demopoolname, demopoolurl).removeAll()
+
+print("""
+Saving a Product
+----------------
+
+This section shows how to store a product in a "pool" and get a reference back.
+""")
+
 
 # create a prooduct and save it to a pool
 x = Product(description='save me in store')
@@ -448,10 +456,10 @@ print(newp == x)   # == True
 
 
 print("""
-Context -- a Product with References
-------------------------------------
+Context: a Product with References
+----------------------------------
 
-This section shows essencial steps how product references can be stored in a context.
+This section shows essential steps how product references can be stored in a context.
 """)
 
 p1 = Product(description='p1')

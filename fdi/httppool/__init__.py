@@ -136,7 +136,7 @@ def create_app(config_object=None, logger=None):
     app.config['SWAGGER'] = {
         'title': 'FDI %s HTTPpool Server' % __version__,
         'universion': 3,
-        'openapi': '3.0.2',
+        'openapi': '3.0.3',
     }
     swagger = Swagger(app, config=swag, merge=True)
     #swagger = Swagger(app)

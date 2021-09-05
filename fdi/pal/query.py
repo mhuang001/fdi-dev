@@ -111,11 +111,14 @@ class StorageQuery(Serializable):
                        for k, v in self.__getstate__().items())) + '>'
         return s
 
+    def __repr__(self):
+        return self.toString()
+
     def __getstate__(self):
         return OrderedDict(
             where=self._where,
             type=self._type,
-            vaiable=self._variable,
+            variable=self._variable,
             allVersions=self._allVersions,
         )
 

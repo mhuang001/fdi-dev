@@ -129,7 +129,7 @@ SWJAR	= ../swagger-codegen/swagger-codegen-cli-3.0.25.jar
 SCHEMA_DIR	=fdi/httppool/schema
 # so that flsgger can understand.
 de-ref:
-	swagger-cli bundle -r -t yaml ${SCHEMA_DIR}/pools.yml -o ${SCHEMA_DIR}/pools_resolved.yml
+	swagger-cli bundle  -t yaml ${SCHEMA_DIR}/pools.yml -o ${SCHEMA_DIR}/pools_resolved.yml
 
 # make swagger server subs
 api:

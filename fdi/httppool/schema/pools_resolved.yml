@@ -1,17 +1,38 @@
-openapi: 3.0.0
+openapi: 3.0.3
 info:
-  version: 1.0.0
+  version: 1.0.1
   description: This is an API description of the HTTPPool Server for FDI (Flexible Dataset Integrator)
   title: fdi poolserver
   contact:
     email: mhuang@nao.syx1026-qq.com
   license:
     name: LGPL 3.0
+tags:
+  - name: Server
+    description: About this HTTP pool server that holds many data *pool*s.
+    externalDocs:
+      url: 'https://fdi.readthedocs.io/en/latest/usage/httppool.html'
+  - name: Pool_Info
+    description: Information about a data Pool.
+    externalDocs:
+      url: 'https://fdi.readthedocs.io/en/latest/usage/pal.html#productpool'
+  - name: Pool
+    description: Operating on a data Pool.
+    externalDocs:
+      url: 'https://fdi.readthedocs.io/en/latest/api/fdi/fdi.pal.html#module-fdi.pal.httpclientpool'
+  - name: Data
+    description: Operating on data in a data Pool.
+    externalDocs:
+      url: 'file:///D:/code/fdi/docs/html/usage/pal.html#saving-a-product'
 servers:
   - url: 'http://127.0.0.1:5000/v0.9'
     description: httppool api flask dev version
   - url: 'http://127.0.0.1:9884/v0.9'
     description: httppool api flask-wsgi-apache2 version
+  - url: 'http://127.0.0.1:9885/v0.9'
+    description: same as above but PORT=9885
+  - url: 'http://10.0.10.114:9885/v0.9'
+    description: httppool api production flask-wsgi-apache2 version
 security:
   - BasicAuth: []
 paths:
@@ -28,94 +49,11 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/RegisteredPools'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   /pools/:
     get:
       summary: Get IDs of all Pools.
@@ -129,94 +67,11 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   /pools/register_all:
     put:
       summary: Register (Load) all pools on the server.
@@ -230,94 +85,11 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   /pools/unregister_all:
     put:
       summary: Removing all pools from the PoolManager.
@@ -331,94 +103,11 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   /pools/wipe_all:
     delete:
       summary: Remove contents of all pools.
@@ -432,94 +121,11 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   '/{pool}':
     get:
       summary: Get information of the given pool.
@@ -528,113 +134,18 @@ paths:
       description: Returns the state of the pool of given Pool IDs.
       operationId: get_pool
       parameters:
-        - name: pool
-          in: path
-          description: pool ID (also called pool name)
-          required: true
-          schema:
-            type: string
-          examples:
-            server:
-              value: fdi_serv.test_httppool
-              summary: from server test.
-            client:
-              value: fdi_serv.test_httpclientpool
-              summary: from client test.
+        - $ref: '#/components/parameters/Pool'
       responses:
         '200':
           description: Done getting infor of the Pool.
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
     put:
       summary: Register the given pool.
       tags:
@@ -642,113 +153,18 @@ paths:
       description: Register the pool of given Pool IDs to the global PoolManager.
       operationId: register
       parameters:
-        - name: pool
-          in: path
-          description: pool ID (also called pool name)
-          required: true
-          schema:
-            type: string
-          examples:
-            server:
-              value: fdi_serv.test_httppool
-              summary: from server test.
-            client:
-              value: fdi_serv.test_httpclientpool
-              summary: from client test.
+        - $ref: '#/components/parameters/Pool'
       responses:
         '200':
           description: Done registering the Pool to PoolManager.
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
     delete:
       summary: Unregister this pool from PoolManager.
       tags:
@@ -756,113 +172,18 @@ paths:
       description: 'Check if the pool exists in server, and unregister or raise exception message to client.'
       operationId: unregister
       parameters:
-        - name: pool
-          in: path
-          description: pool ID (also called pool name)
-          required: true
-          schema:
-            type: string
-          examples:
-            server:
-              value: fdi_serv.test_httppool
-              summary: from server test.
-            client:
-              value: fdi_serv.test_httpclientpool
-              summary: from client test.
+        - $ref: '#/components/parameters/Pool'
       responses:
         '200':
           description: Done unregistering this pool.
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   '/{pool}/':
     post:
       summary: Save data to the pool with a tag and receive URNs.
@@ -871,145 +192,19 @@ paths:
       description: Save product data item(s) to the pool with an optional tag and receive a URN for each of the saved items.
       operationId: save_data
       parameters:
-        - name: pool
-          in: path
-          description: pool ID (also called pool name)
-          required: true
-          schema:
-            type: string
-          examples:
-            server:
-              value: fdi_serv.test_httppool
-              summary: from server test.
-            client:
-              value: fdi_serv.test_httpclientpool
-              summary: from client test.
-        - name: tags
-          in: header
-          description: A tag or a list of tags in request header to save with every data item.
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-          example:
-            - headerTag1
-            - headerTag2
+        - $ref: '#/components/parameters/Pool'
+        - $ref: '#/components/parameters/HeaderTags'
       requestBody:
         description: Serialised data items
         required: true
         content:
           application/json:
             schema:
-              type: string
-              description: A structured container for data processing results.
+              $ref: '#/components/schemas/Product'
             examples:
               BaseProduct:
-                value: |
-                  '
-                  {
-                    "meta": {
-                      "_sets": {
-                        "description": {
-                          "description": "Description of this product",
-                          "default": "UNKNOWN",
-                          "value": "demo",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "type": {
-                          "description": "Product Type identification. Name of class or CARD.",
-                          "default": "BaseProduct",
-                          "value": "BaseProduct",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "level": {
-                          "description": "Product level.",
-                          "default": "ALL",
-                          "value": "ALL",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "creator": {
-                          "description": "Generator of this product.",
-                          "default": "UNKNOWN",
-                          "value": "dev",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "creationDate": {
-                          "description": "Creation date of this product",
-                          "default": {
-                            "tai": 0,
-                            "format": "%Y-%m-%dT%H:%M:%S.%f",
-                            "_STID": "FineTime"
-                          },
-                          "value": {
-                            "tai": 0,
-                            "format": "%Y-%m-%dT%H:%M:%S.%f",
-                            "_STID": "FineTime"
-                          },
-                          "valid": null,
-                          "typecode": "Q",
-                          "_STID": "DateParameter"
-                        },
-                        "rootCause": {
-                          "description": "Reason of this run of pipeline.",
-                          "default": "UNKNOWN",
-                          "value": "UNKNOWN",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "version": {
-                          "description": "Version of product",
-                          "default": "0.8",
-                          "value": "0.8",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "FORMATV": {
-                          "description": "Version of product schema and revision",
-                          "default": "1.6.0.10",
-                          "value": "1.6.0.10",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "_STID": "ODict"
-                      },
-                      "listeners": [],
-                      "_STID": "MetaData"
-                    },
-                    "_sets": {
-                      "_STID": "ODict"
-                    },
-                    "history": {
-                      "description": "UNKNOWN",
-                      "PARAM_HISTORY": "",
-                      "TASK_HISTORY": "",
-                      "meta": {
-                        "_sets": {
-                          "_STID": "ODict"
-                        },
-                        "listeners": [],
-                        "_STID": "MetaData"
-                      },
-                      "_sets": {
-                        "_STID": "ODict"
-                      },
-                      "_STID": "History"
-                    },
-                    "listeners": [],
-                    "_STID": "BaseProduct"
-                  }
-                  '
+                value:
+                  $ref: '#/paths/~1%7Bpool%7D~1/post/requestBody/content/text~1plain/examples/BaseProduct/value'
                 summary: An mostly blank BaseProduct.
               Dummy:
                 value: '{"meta": {}}'
@@ -1134,94 +329,11 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   '/{pool}/hk/':
     get:
       summary: All kinds of pool housekeeping data.
@@ -1230,113 +342,18 @@ paths:
       description: return all pool housekeeping data according to pool ID.
       operationId: hk
       parameters:
-        - name: pool
-          in: path
-          description: pool ID (also called pool name)
-          required: true
-          schema:
-            type: string
-          examples:
-            server:
-              value: fdi_serv.test_httppool
-              summary: from server test.
-            client:
-              value: fdi_serv.test_httpclientpool
-              summary: from client test.
+        - $ref: '#/components/parameters/Pool'
       responses:
         '200':
           description: Done getting house keeping of the Pool.
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   '/{pool}/api/':
     get:
       summary: A list of names of allowed API methods.
@@ -1345,113 +362,18 @@ paths:
       description: Returns a list of name of methods allowed to be called with web APIs on this pool.
       operationId: api_info
       parameters:
-        - name: pool
-          in: path
-          description: pool ID (also called pool name)
-          required: true
-          schema:
-            type: string
-          examples:
-            server:
-              value: fdi_serv.test_httppool
-              summary: from server test.
-            client:
-              value: fdi_serv.test_httpclientpool
-              summary: from client test.
+        - $ref: '#/components/parameters/Pool'
       responses:
         '200':
           description: Done getting all API calls of the Pool.
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   '/{pool}/hk/{kind}':
     get:
       summary: Returns the given kind of pool housekeeping data.
@@ -1460,124 +382,19 @@ paths:
       description: 'requests pool housekeeping data of specified kind: classes or urns or tags'
       operationId: hk_single
       parameters:
-        - name: pool
-          in: path
-          description: pool ID (also called pool name)
-          required: true
-          schema:
-            type: string
-          examples:
-            server:
-              value: fdi_serv.test_httppool
-              summary: from server test.
-            client:
-              value: fdi_serv.test_httpclientpool
-              summary: from client test.
-        - name: kind
-          in: path
-          description: 'one of "classes", "urns", "tags".'
-          required: true
-          schema:
-            type: string
-            enum:
-              - classes
-              - urns
-              - tags
-          example: classes
+        - $ref: '#/components/parameters/Pool'
+        - $ref: '#/components/parameters/HkKind'
       responses:
         '200':
           description: Specified kind of pool housekeeping data returned OK.
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   '/{pool}/count/{data_type}':
     get:
       summary: Returns the number of given type of data in the given pool.
@@ -1586,120 +403,19 @@ paths:
       description: 'requests pool housekeeping data of specified kind: classes or urns or tags'
       operationId: count
       parameters:
-        - name: pool
-          in: path
-          description: pool ID (also called pool name)
-          required: true
-          schema:
-            type: string
-          examples:
-            server:
-              value: fdi_serv.test_httppool
-              summary: from server test.
-            client:
-              value: fdi_serv.test_httpclientpool
-              summary: from client test.
-        - name: data_type
-          in: path
-          description: (Part of) a dot-separated full class name of data items in pool.
-          required: true
-          schema:
-            type: string
-          example: fdi.dataset.product.Product
+        - $ref: '#/components/parameters/Pool'
+        - $ref: '#/components/parameters/DataType'
       responses:
         '200':
           description: Specified kind of pool housekeeping data returned OK.
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   '/{pool}/wipe':
     put:
       summary: Removes all contents of the pool.
@@ -1708,113 +424,18 @@ paths:
       description: 'Requests all data in the pool be removed, keeping pool directory.'
       operationId: wipe
       parameters:
-        - name: pool
-          in: path
-          description: pool ID (also called pool name)
-          required: true
-          schema:
-            type: string
-          examples:
-            server:
-              value: fdi_serv.test_httppool
-              summary: from server test.
-            client:
-              value: fdi_serv.test_httpclientpool
-              summary: from client test.
+        - $ref: '#/components/parameters/Pool'
       responses:
         '200':
           description: wiping pool data done
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   '/{pool}/api/{method}/{args}':
     get:
       summary: Call api mathods on the running pool and returns the result.
@@ -1823,128 +444,49 @@ paths:
       description: Call api mathods on the running pool and returns the result.
       operationId: api
       parameters:
-        - name: pool
-          in: path
-          description: pool ID (also called pool name)
-          required: true
-          schema:
-            type: string
-          examples:
-            server:
-              value: fdi_serv.test_httppool
-              summary: from server test.
-            client:
-              value: fdi_serv.test_httpclientpool
-              summary: from client test.
-        - name: method
-          in: path
-          description: Name of the API method of the pool
-          required: true
-          schema:
-            type: string
-          example: getPoolurl
+        - $ref: '#/components/parameters/Pool'
+        - $ref: '#/components/parameters/Method'
         - name: args
-          in: path
-          description: Arguments of a function/method.
-          required: true
-          schema:
-            type: string
-            nullable: true
-          example: null
+          nullable: true
+          allOf:
+            - $ref: '#/components/parameters/Args'
+          examples:
+            val:
+              value: '0'
+              summary: a string '0'
+            no-val:
+              value: null
+              summary: 'Null'
       responses:
         '200':
-          description: Specified kind of pool housekeeping data returned OK.
+          description: Specified API called and returned OK.
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
+          $ref: '#/components/responses/409Error'
+  '/{pool}/api/{method}':
+    get:
+      summary: 'For API calls without argument. '
+      tags:
+        - Pool
+      description: For API calls without argument. Calling api mathods followed by a slash will come here.
+      operationId: api_method
+      parameters:
+        - $ref: '#/components/parameters/Pool'
+        - $ref: '#/components/parameters/Method'
+      responses:
+        '200':
+          description: Specified API called and returned OK.
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
+        '400':
+          $ref: '#/components/responses/400Error'
   '/{pool}/{data_paths}':
     get:
       summary: Returns magics of given type/data in the given pool.
@@ -1953,19 +495,7 @@ paths:
       description: Request related action results depending on the path
       operationId: data_paths
       parameters:
-        - name: pool
-          in: path
-          description: pool ID (also called pool name)
-          required: true
-          schema:
-            type: string
-          examples:
-            server:
-              value: fdi_serv.test_httppool
-              summary: from server test.
-            client:
-              value: fdi_serv.test_httpclientpool
-              summary: from client test.
+        - $ref: '#/components/parameters/Pool'
         - name: data_paths
           in: path
           description: segmented path string of dynamic lengths
@@ -1979,94 +509,13 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
+        '401':
+          $ref: '#/components/responses/401Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
   '/urn{parts}':
     get:
       summary: Return data item from the given URN (or URN parts).
@@ -2075,113 +524,18 @@ paths:
       description: '`parts` consists of the pool ID, a data class type, and a serial number (a.k.a index number). Data type must stay in one path segment.'
       operationId: urn
       parameters:
-        - name: parts
-          in: path
-          description: 'pool ID, followed by data class type, followed by serial number. Examples: ``urn:pool:fdi.dataset.baseproduct.BaseProduct:0``, ``:pool:fdi.dataset.baseproduct.BaseProduct:0``. Also possible URL: ``http.../urn:pool/fdi.dataset.product.Product/0``.'
-          required: true
-          schema:
-            type: string
-          examples:
-            full:
-              value: 'urn:fdi_serv.test_httppool:fdi.dataset.product.Product:0'
-              summary: The full URN string
-            no_urn:
-              value: ':fdi_serv.test_httppool:fdi.dataset.product.Product:0'
-              summary: 'No leading ''urn''. The URL is like ''baseURL/urn:fdi_serv.test_httppool:fdi.dataset...'''
+        - $ref: '#/components/parameters/UrnParts'
       responses:
         '200':
           description: Specified data returned OK.
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
     delete:
       summary: Remove data item with the given URN (or URN parts).
       tags:
@@ -2189,113 +543,18 @@ paths:
       description: '`parts` consists of the pool ID, a data class type, and a serial number (a.k.a index number). Data type must stay in one path segment.'
       operationId: delete_urn
       parameters:
-        - name: parts
-          in: path
-          description: 'pool ID, followed by data class type, followed by serial number. Examples: ``urn:pool:fdi.dataset.baseproduct.BaseProduct:0``, ``:pool:fdi.dataset.baseproduct.BaseProduct:0``. Also possible URL: ``http.../urn:pool/fdi.dataset.product.Product/0``.'
-          required: true
-          schema:
-            type: string
-          examples:
-            full:
-              value: 'urn:fdi_serv.test_httppool:fdi.dataset.product.Product:0'
-              summary: The full URN string
-            no_urn:
-              value: ':fdi_serv.test_httppool:fdi.dataset.product.Product:0'
-              summary: 'No leading ''urn''. The URL is like ''baseURL/urn:fdi_serv.test_httppool:fdi.dataset...'''
+        - $ref: '#/components/parameters/UrnParts'
       responses:
         '200':
           description: Specified data removed OK.
           content:
             application/json:
               schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+                $ref: '#/components/schemas/GenericResponseContents'
         '400':
-          description: Fails. Invalid request or relevant pool does not exist.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/400Error'
         '409':
-          description: Fails. Unavailable. Pool is busy at the moment.
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - type: object
-                    properties:
-                      code:
-                        type: integer
-                      msg:
-                        type: string
-                      time:
-                        type: number
-                        format: double
-                    required:
-                      - code
-                      - msg
-                      - time
-                    example:
-                      code: '200'
-                      msg: pool is deleted
-                      time: 15948800582498.861
-                  - type: object
-                    properties:
-                      result:
-                        type: string
-                    required:
-                      - result
-                    example:
-                      result: '[7.8, "foo"]'
+          $ref: '#/components/responses/409Error'
 components:
   securitySchemes:
     BasicAuth:
@@ -2336,6 +595,14 @@ components:
       schema:
         type: string
       example: fdi.dataset.product.Product
+    Method:
+      name: method
+      in: path
+      description: Name of the API method of the resource
+      required: true
+      schema:
+        type: string
+      example: getPoolurl
     Args:
       name: args
       in: path
@@ -2343,8 +610,6 @@ components:
       required: true
       schema:
         type: string
-        nullable: true
-      example: null
     HeaderTags:
       name: tags
       in: header
@@ -2378,30 +643,13 @@ components:
     Products:
       type: array
       items:
-        type: string
-        description: A structured container for data processing results.
+        $ref: '#/components/schemas/Product'
       example:
         - headerTag1
         - headerTag2
     RegisteredPools:
       allOf:
-        - type: object
-          properties:
-            code:
-              type: integer
-            msg:
-              type: string
-            time:
-              type: number
-              format: double
-          required:
-            - code
-            - msg
-            - time
-          example:
-            code: '200'
-            msg: pool is deleted
-            time: 15948800582498.861
+        - $ref: '#/components/schemas/ResponseContentsBase'
         - type: object
           properties:
             result:
@@ -2409,26 +657,10 @@ components:
           required:
             - result
           example:
-            result: '[7.8, "foo"]'
+            result: '[200, "foo"]'
     GenericResponseContents:
       allOf:
-        - type: object
-          properties:
-            code:
-              type: integer
-            msg:
-              type: string
-            time:
-              type: number
-              format: double
-          required:
-            - code
-            - msg
-            - time
-          example:
-            code: '200'
-            msg: pool is deleted
-            time: 15948800582498.861
+        - $ref: '#/components/schemas/ResponseContentsBase'
         - type: object
           properties:
             result:
@@ -2436,34 +668,7 @@ components:
           required:
             - result
           example:
-            result: '[7.8, "foo"]'
-    GenericResponseContents1:
-      allOf:
-        - type: object
-          properties:
-            code:
-              type: integer
-            msg:
-              type: string
-            time:
-              type: number
-              format: double
-          required:
-            - code
-            - msg
-            - time
-          example:
-            code: '200'
-            msg: pool is deleted
-            time: 15948800582498.861
-        - type: object
-          properties:
-            result:
-              type: string
-          required:
-            - result
-          example:
-            result: '[7.8, "foo"]'
+            result: '[200, "foo"]'
     ResponseContentsBase:
       type: object
       properties:
@@ -2479,8 +684,8 @@ components:
         - msg
         - time
       example:
-        code: '200'
-        msg: pool is deleted
+        code: 200
+        msg: pool is registered.
         time: 15948800582498.861
   responses:
     400Error:
@@ -2488,190 +693,34 @@ components:
       content:
         application/json:
           schema:
-            allOf:
-              - type: object
-                properties:
-                  code:
-                    type: integer
-                  msg:
-                    type: string
-                  time:
-                    type: number
-                    format: double
-                required:
-                  - code
-                  - msg
-                  - time
-                example:
-                  code: '200'
-                  msg: pool is deleted
-                  time: 15948800582498.861
-              - type: object
-                properties:
-                  result:
-                    type: string
-                required:
-                  - result
-                example:
-                  result: '[7.8, "foo"]'
+            $ref: '#/components/schemas/GenericResponseContents'
     401Error:
       description: Fails. Authorization information missing or invalid.
       content:
         application/json:
           schema:
-            allOf:
-              - type: object
-                properties:
-                  code:
-                    type: integer
-                  msg:
-                    type: string
-                  time:
-                    type: number
-                    format: double
-                required:
-                  - code
-                  - msg
-                  - time
-                example:
-                  code: '200'
-                  msg: pool is deleted
-                  time: 15948800582498.861
-              - type: object
-                properties:
-                  result:
-                    type: string
-                required:
-                  - result
-                example:
-                  result: '[7.8, "foo"]'
+            $ref: '#/components/schemas/GenericResponseContents'
     404Error:
       description: Fails. Data or information with the specified ID not found.
       content:
         application/json:
           schema:
-            allOf:
-              - type: object
-                properties:
-                  code:
-                    type: integer
-                  msg:
-                    type: string
-                  time:
-                    type: number
-                    format: double
-                required:
-                  - code
-                  - msg
-                  - time
-                example:
-                  code: '200'
-                  msg: pool is deleted
-                  time: 15948800582498.861
-              - type: object
-                properties:
-                  result:
-                    type: string
-                required:
-                  - result
-                example:
-                  result: '[7.8, "foo"]'
+            $ref: '#/components/schemas/GenericResponseContents'
     409Error:
       description: Fails. Unavailable. Pool is busy at the moment.
       content:
         application/json:
           schema:
-            allOf:
-              - type: object
-                properties:
-                  code:
-                    type: integer
-                  msg:
-                    type: string
-                  time:
-                    type: number
-                    format: double
-                required:
-                  - code
-                  - msg
-                  - time
-                example:
-                  code: '200'
-                  msg: pool is deleted
-                  time: 15948800582498.861
-              - type: object
-                properties:
-                  result:
-                    type: string
-                required:
-                  - result
-                example:
-                  result: '[7.8, "foo"]'
+            $ref: '#/components/schemas/GenericResponseContents'
     422Error:
       description: Fails. Bad command or arguement format.
       content:
         application/json:
           schema:
-            allOf:
-              - type: object
-                properties:
-                  code:
-                    type: integer
-                  msg:
-                    type: string
-                  time:
-                    type: number
-                    format: double
-                required:
-                  - code
-                  - msg
-                  - time
-                example:
-                  code: '200'
-                  msg: pool is deleted
-                  time: 15948800582498.861
-              - type: object
-                properties:
-                  result:
-                    type: string
-                required:
-                  - result
-                example:
-                  result: '[7.8, "foo"]'
+            $ref: '#/components/schemas/GenericResponseContents'
     defaultError:
       description: Fails. Other errors.
       content:
         application/json:
           schema:
-            allOf:
-              - type: object
-                properties:
-                  code:
-                    type: integer
-                  msg:
-                    type: string
-                  time:
-                    type: number
-                    format: double
-                required:
-                  - code
-                  - msg
-                  - time
-                example:
-                  code: '200'
-                  msg: pool is deleted
-                  time: 15948800582498.861
-              - type: object
-                properties:
-                  result:
-                    type: string
-                required:
-                  - result
-                example:
-                  result: '[7.8, "foo"]'
-  examples:
-    productExample:
-      value:
-        id: 1
-        name: new object
-      summary: A sample object
+            $ref: '#/components/schemas/GenericResponseContents'

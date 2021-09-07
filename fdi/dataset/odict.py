@@ -88,7 +88,7 @@ class ODict(UserDict, Serializable, DeepEqual):
         d = '<ODict '
         for n, v in self.data.items():
             #d += '    ' * OD_toString_Nest + '[ ' + str(n) + ' ]= '
-            d += '"' + str(n) + '":' + '\n' if level == 0 else ' '
+            d += 'Label: "' + str(n) + '":' + '\n' if level < 2 else ' '
             s = bstr(v, level=level,
                      tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                      matprint=matprint, trans=trans, **kwds)

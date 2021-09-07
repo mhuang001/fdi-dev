@@ -202,8 +202,10 @@ d       off (0b00)            None    binary    11000 0b01: on        0b0       
                                                 11000 0b00: off                                   with binary masks
 ======  ====================  ======  ========  ====================  =================  ======  =====================
 MetaData-listeners = ListnerSet{}}
-GenericDataset-dataset =
+GenericDataset-type dataset =
 88.8
+================================================================================
+
 level 1, repr
 === GenericDataset (test GD) ===
 meta= {
@@ -215,8 +217,10 @@ d= off (0b00)
 -------------  --------------------------  ----------------
 MetaData-listeners = ListnerSet{}
 }
-GenericDataset-dataset =
+GenericDataset-type dataset =
 88.8
+================================================================================
+
 level 2,
 GenericDataset{ 88.8, description = "test GD", meta = a=3.4, b=xy (FineTime(2019-02-19T01:02:03.456789)), c=Invalid (IJK), d=off (0b00). }"""
 out_ArrayDataset = """
@@ -254,8 +258,7 @@ d                off (0b00)            None    binary    11000 0b01: on        0
                                                          11000 0b00: off                                   with binary masks
 added_parameter  42                    None    integer   None                  None               None    A non-builtin param
 ===============  ====================  ======  ========  ====================  =================  ======  =====================
-MetaData-listeners = ListnerSet{}}
-ArrayDataset-dataset =
+MetaData-listeners = ListnerSet{}}ArrayDataset-type dataset =
 0  0  0  0  0
 0  0  0  0  0
 0  0  0  0  0
@@ -296,6 +299,8 @@ ArrayDataset-dataset =
 
 #=== dimension 4
 
+
+================================================================================
 
 
 
@@ -312,8 +317,7 @@ a= 3.4               b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
 d= off (0b00)        added_parameter= 42
 -------------------  --------------------------  ----------------
 MetaData-listeners = ListnerSet{}
-}
-ArrayDataset-dataset =
+}ArrayDataset-type dataset =
 0  0  0  0  0
 0  0  0  0  0
 0  0  0  0  0
@@ -354,6 +358,8 @@ ArrayDataset-dataset =
 
 #=== dimension 4
 
+
+================================================================================
 
 
 
@@ -392,7 +398,7 @@ d                off (0b00)            None    binary    11000 0b01: on        0
 added_parameter  42                    None    integer   None                  None               None    A non-builtin param
 ===============  ====================  ======  ========  ====================  =================  ======  =====================
 MetaData-listeners = ListnerSet{}}
-TableDataset-dataset =
+TableDatasettype-dataset =
   col1     col2
   (eV)    (cnt)
 ------  -------
@@ -400,6 +406,7 @@ TableDataset-dataset =
    4.4     43.2
 5400     2000
 
+================================================================================
 
 
 
@@ -415,7 +422,7 @@ d= off (0b00)         added_parameter= 42
 --------------------  --------------------------  ----------------
 MetaData-listeners = ListnerSet{}
 }
-TableDataset-dataset =
+TableDatasettype-dataset =
   col1     col2
   (eV)    (cnt)
 ------  -------
@@ -423,6 +430,7 @@ TableDataset-dataset =
    4.4     43.2
 5400     2000
 
+================================================================================
 
 
 
@@ -457,7 +465,7 @@ m1      2.3                   sec     float     None                  None      
 MetaData-listeners = ListnerSet{}}
 
 CompositeDataset-datasets =
-<ODict "dataset 1":
+<ODict Label: "dataset 1":
 === ArrayDataset (arraydset 1) ===
 meta= {
 ===========  ===========  ======  ======  =======  =========  ======  =====================
@@ -477,10 +485,11 @@ version      0.1                  string  None     0.1        B       Version of
 FORMATV      1.6.0.1              string  None     1.6.0.1    B       Version of dataset sc
                                                                       hema and revision
 ===========  ===========  ======  ======  =======  =========  ======  =====================
-MetaData-listeners = ListnerSet{}}
-ArrayDataset-dataset =
+MetaData-listeners = ListnerSet{}}ArrayDataset-type dataset =
 768  4.4  5400
-"dataset 2":
+================================================================================
+
+Label: "dataset 2":
 === TableDataset (Example table) ===
 meta= {
 ===========  =============  ======  ======  =======  =========  ======  =====================
@@ -493,7 +502,7 @@ FORMATV      1.6.0.1                string  None     1.6.0.1    B       Version 
                                                                         hema and revision
 ===========  =============  ======  ======  =======  =========  ======  =====================
 MetaData-listeners = ListnerSet{}}
-TableDataset-dataset =
+TableDatasettype-dataset =
    Time    Energy
   (sec)      (eV)
 -------  --------
@@ -503,6 +512,7 @@ TableDataset-dataset =
       3       106
       4       108
 
+================================================================================
 
 >level 1, repr
 === CompositeDataset (test CD) ===
@@ -517,24 +527,27 @@ MetaData-listeners = ListnerSet{}
 }
 
 CompositeDataset-datasets =
-<ODict  === ArrayDataset (arraydset 1) ===
+<ODict Label: "dataset 1":
+=== ArrayDataset (arraydset 1) ===
 meta= {
 -----------------  ------------------------  ----------------
 shape= (3,)        description= arraydset 1  unit= ev
 typecode= UNKNOWN  version= 0.1              FORMATV= 1.6.0.1
 -----------------  ------------------------  ----------------
 MetaData-listeners = ListnerSet{}
-}
-ArrayDataset-dataset =
+}ArrayDataset-type dataset =
 768  4.4  5400
- === TableDataset (Example table) ===
+================================================================================
+
+Label: "dataset 2":
+=== TableDataset (Example table) ===
 meta= {
 --------------------------  ------------  ----------------
 description= Example table  version= 0.1  FORMATV= 1.6.0.1
 --------------------------  ------------  ----------------
 MetaData-listeners = ListnerSet{}
 }
-TableDataset-dataset =
+TableDatasettype-dataset =
    Time    Energy
   (sec)      (eV)
 -------  --------
@@ -544,6 +557,7 @@ TableDataset-dataset =
       3       106
       4       108
 
+================================================================================
 
 >level 2,
 === CompositeDataset (test CD) ===

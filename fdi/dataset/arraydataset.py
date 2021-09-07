@@ -177,12 +177,12 @@ class ArrayDataset(GenericDataset, Iterable):
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                   excpt=['description'], **kwds)
 
-        d = cn + '-dataset =\n'
+        d = cn + '-type dataset =\n'
         ds = bstr(self.data, level=level, **kwds) if matprint is None else \
             matprint(self.data, trans=False, headers=[], tablefmt2='plain',
                      **kwds)
-        d += lls(ds, 2000)
-        return s + '\n' + d + '\n'
+        d += lls(ds, 1000)
+        return f'{s}{d}\n{"="*80}\n\n'
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

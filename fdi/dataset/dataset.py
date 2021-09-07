@@ -72,7 +72,7 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
         ---------
 
         Returns
-        ------- 
+        -------
         """
         visitor.visit(self)
 
@@ -135,13 +135,13 @@ class GenericDataset(Dataset, Typed, DataWrapper):
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                   excpt=['description'], **kwds)
 
-        d = cn + '-dataset =\n'
+        d = cn + '-type dataset =\n'
         d += bstr(self.data, level=level,
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                   **kwds) if matprint is None else \
             matprint(self.data, level=level, trans=False, headers=[], tablefmt2='plain',
                      **kwds)
-        return s + '\n' + d + '\n'
+        return f'{s}\n{d}\n{"="*80}\n\n'
 
 
 class CompositeDataset(AbstractComposite, Dataset):

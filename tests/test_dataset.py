@@ -1482,7 +1482,7 @@ def do_ArrayDataset_func(atype):
     if mk_output:
         print(ts[i:])
     else:
-        assert ts[i:] == nds2 + '\n'
+        assert ts[i:-82] == nds2 + '\n'
     ts += '\n\nlevel 1\n'
     ts += x.toString(1)
     ts += '\n\nlevel 2, repr\n'
@@ -2328,7 +2328,7 @@ def test_FineTimes_toString():
 
 def test_get_sample_product():
     v = get_sample_product()
-    assert v['Image'].data[1:4] == b'PNG'
+    assert v['Browse'].data[1:4] == b'PNG'
     checkjson(v)
     checkgeneral(v)
 

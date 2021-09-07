@@ -528,7 +528,7 @@ Default is to return all columns.
         cols = self.getData().values()
 
         coldata = [list(itertools.islice(x.data, stp)) for x in cols]
-        d = cn + '-dataset =\n'
+        d = cn + 'type-dataset =\n'
         nmun = zip((str(x) for x in self.getData().keys()),
                    (str(x.unit) for x in cols))
         hdr = list('%s\n(%s)' % nu for nu in nmun)
@@ -538,7 +538,7 @@ Default is to return all columns.
         collen = self.getRowCount()
         if level and stp < collen:
             d += '(Only display %d rows of %d for level=%d.)' % (stp, collen, level)
-        return s + '\n' + d + '\n'
+        return f'{s}\n{d}{"="*80}\n\n'
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

@@ -139,6 +139,6 @@ def get_sample_product():
                             'resources'), fname)
     image = loadMedia(fname)
     image.file = fname
-    prodx['Image'] = image
+    prodx['Browse'] = image
 
     return prodx

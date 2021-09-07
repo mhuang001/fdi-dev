@@ -49,7 +49,6 @@ setup(
             'pytest>=5.4.1',
             'pytest-cov',
             'aiohttp>=3.6.2',
-            'swagger-cli',
         ],
         'SERV': [
             'Flask_HTTPAuth>=3.3.0',

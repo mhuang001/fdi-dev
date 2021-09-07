@@ -54,14 +54,14 @@ def chksa(a, k):
     s = serialize_args(*a, **k)
     if p:
         print('s= ', s)
-    code, a1, k1 = deserialize_args(s, dequoted=False)
+    code, a1, k1 = deserialize_args(s, not_quoted=False)
     assert code == 200
     assert a == a1
     assert k == k1
     s = urllib.parse.unquote(s)
     if p:
         print('S= ', s)
-    code, a1, k1 = deserialize_args(s, dequoted=True)
+    code, a1, k1 = deserialize_args(s, not_quoted=True)
     assert code == 200
     assert a == a1
     assert k == k1

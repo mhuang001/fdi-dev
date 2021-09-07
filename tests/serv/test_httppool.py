@@ -597,6 +597,7 @@ def test_product_path(server, userpass, client):
         assert c == f
     # members
 
+    # pt = fdi.dataset.product.Product/0
     url = url0 + pt + '/'
     x = client.get(url, auth=auth)
     o = getPayload(x)
@@ -607,7 +608,7 @@ def test_product_path(server, userpass, client):
     # string
 
     # 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/string/fdi.dataset.product.Product/0'
-    url = url0 + pt + '/$string'
+    url = url0 + pt + '/toString'
     x = client.get(url, auth=auth)
     assert x.headers['Content-Type'] == 'text/plain'
     c = getPayload(x)

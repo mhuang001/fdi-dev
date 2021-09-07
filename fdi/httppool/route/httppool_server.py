@@ -6,6 +6,7 @@ from ..model.user import getUsers, auth
 from ...utils.common import lls
 from ...dataset.deserialize import deserialize, deserialize_args
 from ...dataset.serializable import serialize
+from ...dataset.arraydataset import MediaWrapper
 from ...pal.urn import makeUrn
 from ...dataset.classes import Classes
 from ...utils.common import trbk, getUidGid
@@ -360,6 +361,7 @@ def getProduct_Or_Component(paths, serialize_out=False):
 
     lp = len(paths)
     # now paths = poolname, prod_type , ...
+    logger.debug('get prod or compo: ' + str(paths))
 
     ts = time.time()
     mInfo = 0
@@ -400,57 +402,17 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
     """
     FAILED = '"FAILED"' if serialize_out else 'FAILED'
     ts = time.time()
-
+    logger.debug('get compo or meth: ' + str(paths))
     lp = len(paths)
+    # if paths[-1] == 'toString':
+    #    __import__('pdb').set_trace()
 
-    for cmd_ind in range(1, lp):
-        cmd = paths[cmd_ind]
-        if cmd.startswith('$'):
-            cmd = cmd.lstrip('$')
-            paths[cmd_ind] = cmd
-            break
-    else:
-        cmd = ''
-
-    # args if found command and there is something after it
-    cmd_args = paths[cmd_ind+1:] if cmd and (lp - cmd_ind > 1)else ['']
-    # product type
-    pt = paths[1]
-    # index
-    pi = paths[2]
-    # path of prod or component
-    compo_path = paths[1:cmd_ind] if cmd else paths[1:]
-
-    if cmd == 'string':
-        if cmd_args[0].isnumeric() or ',' in cmd_args[0]:
-            # list of arguments to be passed to :meth:`toString`
-            tsargs = cmd_args[0].split(',')
-            tsargs[0] = int(tsargs[0]) if tsargs[0] else 0
-        else:
-            tsargs = []
-        # get the component
-
-        compo, path_str, prod = load_component_at(1, paths[:-1], mInfo)
-        if compo is not None:
-            result = compo.toString(*tsargs)
-            msg = 'Getting toString(%s) OK' % (str(tsargs))
-            code = 200
-            if 'html' in cmd_args:
-                ct = 'text/html'
-            elif 'fancy_grid' in cmd_args:
-                ct = 'text/plain;charset=utf-8'
-            else:
-                ct = 'text/plain'
-            return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
-        else:
-            return 400, FAILED, '%s: %s' % (cmd, path_str)
-    elif cmd == '' and paths[-1] == '':
+    if paths[-1] == '':
         # command is '' and url endswith a'/'
         compo, path_str, prod = load_component_at(1, paths[:-1], mInfo)
         if compo:
             ls = [m for m in dir(compo) if not m.startswith('_')]
-            return 0, resp(200, ls,
-                           'Getting %s members OK' % (cmd + ':' + path_str),
+            return 0, resp(200, ls, 'Getting %s members/attrbutes OK' % (path_str),
                            ts, serialize_out=False), 0
         else:
             return 400, FAILED, '%s: %s' % (cmd, path_str)
@@ -461,7 +423,34 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
 
         code, result, msg = load_product(1, paths, serialize_out=serialize_out)
         return 0, resp(code, result, msg, ts, serialize_out=serialize_out), 0
-    elif 1:
+    elif paths[2].isnumeric():
+        # grand tour
+        compo, path_str, prod = load_component_at(1, paths, mInfo)
+        # see :func:`fetch`
+        if compo or 'has no' not in path_str:
+            code = 200
+            msg = f'Getting {path_str} OK'
+            compo_meth_name = path_str.split('.')[-1]
+            if compo_meth_name.startswith('toString'):
+                if 'html' in compo_meth_name:
+                    ct = 'text/html'
+                elif 'fancy_grid' in compo_meth_name:
+                    ct = 'text/plain;charset=utf-8'
+                else:
+                    ct = 'text/plain'
+                result = compo
+                return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
+            elif issubclass(compo.__class__, MediaWrapper):
+                ct = compo.getType()
+                result = compo.data
+                return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
+            else:
+                return 0, resp(code, compo, msg, ts, serialize_out=False), 0
+
+        else:
+            return 400, FAILED, '%s: %s' % (cmd, path_str)
+
+    elif 0:
         # no cmd, ex: test/fdi.dataset.Product/4
         # send json of the prod component
         compo, path_str, prod = load_component_at(1, paths, mInfo)
@@ -478,7 +467,7 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
 
 
 def load_component_at(pos, paths, mInfo):
-    """ paths[pos] is cls; paths[pos+2] is 'description','meta' ...
+    """ paths[pos] is data_type; paths[pos+2] is 'description','meta' ...
 
     Components fetched are not in serialized form.
     """
@@ -486,12 +475,13 @@ def load_component_at(pos, paths, mInfo):
     # if component:
 
     # get the product live
-    code, prod, msg = load_product(pos, paths, serialize_out=False)
+    code, live_prod, msg = load_product(pos, paths, serialize_out=False)
     if code != 200:
         return None, '%s. Unable to load %s.' % (msg, str(paths)), None
-    compo, path_str = fetch(paths[pos+2:], prod, exe=['*', 'is', 'get'])
+    compo, path_str = fetch(paths[pos+2:], live_prod,
+                            exe=['*', 'is', 'get'], not_quoted=False)
 
-    return compo, path_str, prod
+    return compo, path_str, live_prod
 
 
 def load_product(p, paths, serialize_out=False):

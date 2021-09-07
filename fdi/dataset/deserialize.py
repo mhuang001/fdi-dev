@@ -339,10 +339,10 @@ def decode_str(a0):
     return urllib.parse.unquote(a0.replace(SAS_Avatar, Serialize_Args_Sep))
 
 
-def deserialize_args(all_args, dequoted=False, serialize_out=False):
+def deserialize_args(all_args, not_quoted=False, first_string=True, serialize_out=False):
     """ parse the command path to get positional and keywords arguments.
 
-    1. if `dequoted` is `True`, split everythine to the left of first `{` with `Serialize_Args_Sep` append the part startin from the `{`. `mark='{'`
+    1. if `not_quoted` is `True`, split everythine to the left of first `{` with `Serialize_Args_Sep` append the part startin from the `{`. `mark='{'`
     2. else after splitting all_args  with `Serialize_Args_Sep`: `mark='%7B%22'` (`quote('{')`)
 
     Scan from left. if all_args[i] not start with `mark`
@@ -357,14 +357,15 @@ def deserialize_args(all_args, dequoted=False, serialize_out=False):
     | string starting with ```'0x'``` | `hex()` |
     | string not starting with ```'0x'``` | `quote` |
 
-    * else `decode_str()` if ```dequoted==False``` else only substitute SAS_Avatar with Serialize_Args_Sep. Then `deserialize()` this segment to become ```{'apiargs':list, 'foo':bar ...}```, append value of ```apiargs``` to the converted-list above, remove the ```apiargs```-```val``` pair.
+    * else `decode_str()` if ```not_quoted==False``` else only substitute SAS_Avatar with Serialize_Args_Sep. Then `deserialize()` this segment to become ```{'apiargs':list, 'foo':bar ...}```, append value of ```apiargs``` to the converted-list above, remove the ```apiargs```-```val``` pair.
     * return 200 as the reurn code followed by the converted-list and the deserialized ```dict```.
 
-    all_args: a list of path segments for the args list.
+    :all_args: a list of path segments for the args list.
+    :first_string: Do not try to change the type of the first arg (assumed to be the function/method name).
     """
     args, kwds = [], {}
 
-    if dequoted:
+    if not_quoted:
         mark = '{'
         ar = all_args.split(mark, 1)
         qulist = ar[0].split(Serialize_Args_Sep)
@@ -380,10 +381,15 @@ def deserialize_args(all_args, dequoted=False, serialize_out=False):
 
     for a0 in qulist:
         if not a0.startswith(mark):
+            # guess and change type
             # a string, bytes or number or boolean
             # if int(a0l.lstrip('+-').split('0x',1)[-1].isnumeric():
             # this covers '-/+0x34'
-            if a0 == 'None':
+            if first_string:
+                # do not try to change type
+                arg = decode_str(a0)
+                first_string = False  # do not come back here
+            elif a0 == 'None':
                 arg = None
             else:
                 try:
@@ -406,7 +412,7 @@ def deserialize_args(all_args, dequoted=False, serialize_out=False):
         else:
             # quoted serialized dict
             readable = a0.replace(
-                SAS_Avatar, Serialize_Args_Sep) if dequoted else decode_str(a0)
+                SAS_Avatar, Serialize_Args_Sep) if not_quoted else decode_str(a0)
             dese = deserialize(readable)
             if 'apiargs' in dese:
                 args += dese['apiargs']

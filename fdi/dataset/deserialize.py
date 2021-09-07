@@ -273,30 +273,39 @@ def deserialize(js, lookup=None, debug=False, usedict=True):
 
 Class_Look_Up = ChainMap(Classes._classes, globals(), vars(builtins))
 
+Serialize_Args_Sep = '__'
+SAS_Avatar = '~'
+
+
+def encode_str(a0):
+    """ quote to remove general url offenders then use a mostly harmless str to substitute Serialize_Args_Sep.
+    """
+    return urllib.parse.quote(a0).replace(Serialize_Args_Sep, SAS_Avatar)
+
 
 def serialize_args(*args, **kwds):
     """
     Serialize all positional and keywords arguements as they would appear in a function call.
     Arguements are assumed to have been placed in the same order of a valid function/method call. They are scanned from left to right from `args[i]` i = 0, 1,... to `kwds[j]` j = 0, 1, ...
 
-* Scan args from i=0. if is of args[i] is of `bool`, `int`, `float` types, convert with `str`, if `str()`, convert with `urllib.parse.quote()`, if `bytes` or `bytearray' types, with ```0x```+`hex()`, save to the convered-list, and move on to the next element.
+* Scan args from i=0. if is of args[i] is of `bool`, `int`, `float` types, convert with `str`, if `str()`, convert with `encode_str()`, if `bytes` or `bytearray' types, with ```0x```+`hex()`, save to the convered-list, and move on to the next element.
 * else if finding a segment not of any of the above types,
 ** put this and the rest of ```args``` as the ```value``` in ```{'apiargs':value}```,
 ** and append `kwds` key-val pairs after this pair,
-** serialize the disctionary with `serialize()`, 
+** serialize the disctionary with `serialize()` and encode_str()
 ** append the result to the converted-list.
 ** break from the args scan loop.
-* if args scan loop reaches its end, if `kwds` is not empty, serialize it with `serialize()`,
+* if args scan loop reaches its end, if `kwds` is not empty, serialize it with `serialize()` and encode_str(),
 or scanning reaches the end of args.
 * append the result to the converted-list.
-* join the converted-list with ```,```.
+* join the converted-list with `Serialize_Args_Sep`.
 * return the result string
 
     """
     noseriargs = []
     i = 0
-    #print('AR ', args, ' KW ', kwds)
-    #from ..pal.query import AbstractQuery
+    # print('AR ', args, ' KW ', kwds)
+    # from ..pal.query import AbstractQuery
     # if len(args) and issubclass(args[0].__class__, AbstractQuery):
     #    __import__('pdb').set_trace()
 
@@ -306,31 +315,37 @@ or scanning reaches the end of args.
         if a0 is None or issubclass(a0c, (bool, int, float)):
             noseriargs.append(str(a0))
         elif issubclass(a0c, (str)):
-            noseriargs.append(urllib.parse.quote(a0))
+            noseriargs.append(encode_str(a0))
         elif issubclass(a0c, (bytes, bytearray)):
             noseriargs.append('0x'+a0.hex())
         else:
             seri = serialize(dict(apiargs=args[i:], **kwds))
-            noseriargs.append(urllib.parse.quote(seri))
+            noseriargs.append(encode_str(seri))
             break
     else:
         # loop ended w/ break
         if kwds:
             seri = serialize(kwds)
-            noseriargs.append(urllib.parse.quote(seri))
-
-    despaced = ','.join(noseriargs)
+            noseriargs.append(encode_str(seri))
+    # print(noseriargs)
+    despaced = Serialize_Args_Sep.join(noseriargs)
 
     return despaced
+
+
+def decode_str(a0):
+    """
+    """
+    return urllib.parse.unquote(a0.replace(SAS_Avatar, Serialize_Args_Sep))
 
 
 def deserialize_args(all_args, dequoted=False, serialize_out=False):
     """ parse the command path to get positional and keywords arguments.
 
-    1. if `dequoted` is `True`, split everythine to the left of first `{` with `,` append the par startin from the `{`. `mark='{'`
-    2. else after splitting all_args  with `,`: `mark='%7B%22'` (`quote('{')`)
+    1. if `dequoted` is `True`, split everythine to the left of first `{` with `Serialize_Args_Sep` append the part startin from the `{`. `mark='{'`
+    2. else after splitting all_args  with `Serialize_Args_Sep`: `mark='%7B%22'` (`quote('{')`)
 
-    Scan from left. if all_args[i] not start with `mark` 
+    Scan from left. if all_args[i] not start with `mark`
 
     Conversion rules:
     |all_args[i]| converted to |
@@ -342,7 +357,7 @@ def deserialize_args(all_args, dequoted=False, serialize_out=False):
     | string starting with ```'0x'``` | `hex()` |
     | string not starting with ```'0x'``` | `quote` |
 
-    * else `unquote()` if ```dequoted==False```. `deserialize()` this segment to become ```{'apiargs':list, 'foo':bar ...}```, append value of ```apiargs``` to the converted-list above, remove they ```apiargs```-```val``` pair.
+    * else `decode_str()` if ```dequoted==False``` else only substitute SAS_Avatar with Serialize_Args_Sep. Then `deserialize()` this segment to become ```{'apiargs':list, 'foo':bar ...}```, append value of ```apiargs``` to the converted-list above, remove the ```apiargs```-```val``` pair.
     * return 200 as the reurn code followed by the converted-list and the deserialized ```dict```.
 
     all_args: a list of path segments for the args list.
@@ -352,7 +367,7 @@ def deserialize_args(all_args, dequoted=False, serialize_out=False):
     if dequoted:
         mark = '{'
         ar = all_args.split(mark, 1)
-        qulist = ar[0].split(',')
+        qulist = ar[0].split(Serialize_Args_Sep)
         if len(ar) > 1:
             if len(qulist):
                 # the last ',' was for mark so should be removed,
@@ -360,7 +375,7 @@ def deserialize_args(all_args, dequoted=False, serialize_out=False):
             qulist.append(mark + ar[1])
     else:
         mark = '%7B%22'
-        qulist = all_args.split(',')
+        qulist = all_args.split(Serialize_Args_Sep)
     # print(qulist)
 
     for a0 in qulist:
@@ -385,12 +400,13 @@ def deserialize_args(all_args, dequoted=False, serialize_out=False):
                         elif a0 == 'False':
                             arg = False
                         else:
-                            arg = urllib.parse.unquote_plus(a0)
+                            arg = decode_str(a0)
             args.append(arg)
             # print(args)
         else:
             # quoted serialized dict
-            readable = a0 if dequoted else urllib.parse.unquote(a0)
+            readable = a0.replace(
+                SAS_Avatar, Serialize_Args_Sep) if dequoted else decode_str(a0)
             dese = deserialize(readable)
             if 'apiargs' in dese:
                 args += dese['apiargs']

@@ -50,14 +50,17 @@ def init_test():
 
 
 def chksa(a, k):
+    p = 1
     s = serialize_args(*a, **k)
-    print('s= ', s)
+    if p:
+        print('s= ', s)
     code, a1, k1 = deserialize_args(s, dequoted=False)
     assert code == 200
     assert a == a1
     assert k == k1
     s = urllib.parse.unquote(s)
-    print('S= ', s)
+    if p:
+        print('S= ', s)
     code, a1, k1 = deserialize_args(s, dequoted=True)
     assert code == 200
     assert a == a1
@@ -65,14 +68,18 @@ def chksa(a, k):
 
 
 def test_serialize_args():
-    a = [1, 2, -3, 'a', 'b c;d', b'\xde\xad', True, None, NumericParameter(42)]
-    k = {'a': 'r', 'f': 0, 'b': True, 'k': None, 's': StringParameter('4..2')}
+    a = ['__foo__', 1, 2, -3, 4.0, 'a', 'b c__d', b'\xde\xad',
+         True, None, NumericParameter(42)]
+    k = {'__f__': '__g__', 'a': 'r', 'f': 0, 'b': True,
+         'k': None, 's': StringParameter('4..2')}
     chksa(a, k)
     a = [[1]]
     k = {}
     chksa(a, k)
     a = []
     k = {'s': 2}
+    chksa(a, k)
+    a, k = ['__foo', {'3': 4}], dict(d=6)
     chksa(a, k)
 
 
@@ -114,7 +121,7 @@ def test_gen_url(server):
     assert got_product_url == product_url, 'Get product url error: ' + got_product_url
 
     logger.info('GET WebAPI  url')
-    call = 'tagExists/foo'
+    call = 'tagExists__foo'
     got_webapi_url = urn2fdiurl(
         urn=sampleurn, poolurl=samplepoolurl, contents=call, method='GET')
     webapi_url = aburl + '/' + samplepoolname + '/' + 'api/' + call

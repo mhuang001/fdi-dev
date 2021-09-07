@@ -14,7 +14,6 @@ from fdi.pal.productstorage import ProductStorage
 from fdi.pal.productpool import Lock_Path_Base
 from fdi.utils.common import lls, trbk, fullname
 from fdi.utils.fetch import fetch
-from fdi.httppool.route import httppool_server
 from fdi.pns.jsonio import auth_headers
 
 import pytest
@@ -437,7 +436,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
 
     logger.info('check count')
     num = len(o['result'][prodt]['sn'])
-    apipath = '/api/getCount/' + prodt
+    apipath = '/api/getCount__' + prodt
     url = aburl + '/' + post_poolid + apipath
     x = client.get(url, auth=auth)
     o = getPayload(x)

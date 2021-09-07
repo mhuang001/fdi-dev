@@ -92,7 +92,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
             ret = poolurl + '/hk/'
         elif contents in ['classes', 'urns', 'tags']:
             ret = poolurl + '/hk/' + contents
-        elif contents.split('/')[0] in WebAPI:
+        elif contents.split('__')[0] in WebAPI:
             ret = poolurl + '/api/' + contents
         else:
             raise ValueError(

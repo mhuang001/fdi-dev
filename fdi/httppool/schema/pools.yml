@@ -340,27 +340,16 @@ paths:
         "409":
           $ref: '#/components/responses/409Error'
 
-  /{pool}/api/{method}/{args}:
+  /{pool}/api/{method_args}:
     get:
       summary: "Call api mathods on the running pool and returns the result."
       tags:
         - Pool
-      description: "Call api mathods on the running pool and returns the result."
+      description: "Call api mathods, with optional args, on the running pool and returns the result."
       operationId: api
       parameters:
       - $ref: '#/components/parameters/Pool'
-      - $ref: '#/components/parameters/Method'
-      - name: args
-        nullable: true
-        allOf:
-        - $ref: '#/components/parameters/Args'
-        examples:
-          val:
-            value: '0'
-            summary: a string '0'
-          no-val:
-            value: null
-            summary: 'Null'
+      - $ref: '#/components/parameters/Method_args'
       responses:
         "200":
           description: "Specified API called and returned OK."
@@ -376,26 +365,6 @@ paths:
 #    $ref: "#/paths/~1%7Bpool%7D~1api~1%7Bmethod%7D~1%7Bargs%7D"
 #  /{pool}/api/{method}:
 #    $ref: "#/paths/~1%7Bpool%7D~1api~1%7Bmethod%7D~1%7Bargs%7D"
-
-  /{pool}/api/{method}:
-    get:
-      summary: "For API calls without argument. "
-      tags:
-        - Pool
-      description: "For API calls without argument. Calling api mathods followed by a slash will come here." 
-      operationId: api_method
-      parameters:
-      - $ref: '#/components/parameters/Pool'
-      - $ref: '#/components/parameters/Method'
-      responses:
-        "200":
-          description: "Specified API called and returned OK."
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
         
   /{pool}/{data_paths}:
     get:
@@ -524,6 +493,29 @@ components:
       required: true
       schema:
         type: "string"
+    Method_args:
+      name: method_args
+      in: "path"
+      description: |
+          "A concatenated string of a function/method and its arguments.
+            * Simple typed positional args of method are separated by `Serialize_Args_Sep` ('```__```'). Strings are encoded with :func:`encode_str()`, '```__```' are replaced with '~'. 
+            * A complex type positional args and all positional args to its rigght become the value of the key `apiargs` in a `dict`, updated by the keyword args, and serialized and encoded as above.
+            * For details see :func:`deserialize_args` and :func:`serialize_args`.
+      required: true
+      schema:
+        type: "string"
+      examples:
+        meth:
+          value: getPoolurl
+          summary: A method call without argument.
+        posi:
+          value: '~foo~__1__2__-3__4.0__a__b%20c~d__0xdead__True__None'
+          summary: |
+              Simple typed positional args of a method call ```__foo__(1, 2, -3, 4.0, 'a', 'b c__d', b'\xde\xad', True, None)```
+        posi_comp:
+          value: '~foo__%7B%22apiargs%22%3A%20%5B%7B%223%22%3A%204%7D%5D%2C%20%22d%22%3A%206%7D'
+          summary: |
+              With a complex type positional args and keywords args. ```__foo({3:4}, d=6)``` => ```~foo__{"apiargs": [{"3": 4}], "d": 6}```
     HeaderTags:
       name: tags
       in: header

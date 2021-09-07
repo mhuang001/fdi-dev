@@ -35,7 +35,7 @@ bltn = vars(builtins)
 
 def toserver(self, method, *args, **kwds):
 
-    apipath = method + '/' + serialize_args(*args, **kwds)
+    apipath = serialize_args(method, *args, **kwds)
 
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
 

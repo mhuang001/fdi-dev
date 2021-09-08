@@ -55,6 +55,7 @@ FDI Python packages
    usage/httppool
    usage/pns
    usage/dockers
+   usage/docs
 
 API Document
 ============

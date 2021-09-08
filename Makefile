@@ -274,6 +274,7 @@ t \
 i \
 push_docker \
 push_server \
+pull_server \
 vol \
 backup_server \
 restore_server \

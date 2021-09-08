@@ -156,6 +156,9 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         """
         return list(self._sets.keys())
 
+    # convenience method name.
+    getDatasetNames = keySet
+
     def remove(self, name):
         """ Removes the mapping for this name from this composite.
         mh: returns None if name is None or item does not exist.

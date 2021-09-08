@@ -350,6 +350,7 @@ def test_Composite():
     assert v.isEmpty() == False
     ks = v.keySet()
     assert len(ks) == 1 and ks[0] == a1
+    assert v.getDatasetNames() == ks
     assert v.size() == 1
 
     checkgeneral(v)

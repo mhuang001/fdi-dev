@@ -102,8 +102,8 @@ vol:
 
 pull_server:
 	im=$(DKRREPO)/$(SERVER_NAME)  &&\
-	docker pull $(im):latest &&\
-	docker tag  $(im):latest im:latest
+	docker pull $$im:latest &&\
+	docker tag  $$im:latest im:latest
 
 backup_server:
 	f=backup_$(SERVER_NAME)_$(SVERS)_`date +'%y%m%dT%H%M%S' --utc`.tar &&\

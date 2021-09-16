@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ..utils.common import mstr
+from .odict import ODict
 from .listener import DatasetListener
 from .datawrapper import DataWrapperMapper
 from .composite import Composite
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper, DatasetListener):
+class AbstractComposite(Attributable, Composite, DataWrapperMapper, DatasetListener):
     """ an annotatable and attributable subclass of Composite. 
     """
 
@@ -28,8 +29,8 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
         -----
 
         """
-        # pdb.set_trace()
-        super(AbstractComposite, self).__init__(**kwds)
+
+        super().__init__(**kwds)
 
     def toString(self, level=0,
                  tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
@@ -51,7 +52,8 @@ class AbstractComposite(Attributable, Annotatable, Composite, DataWrapperMapper,
                   matprint=matprint, trans=trans,
                   **kwds)
         d = cn + '-datasets =\n'
-        d += self._sets.toString(level=level,
-                                 tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                                 matprint=matprint, trans=trans, **kwds)
+        o = ODict(self.data)
+        d += o.toString(level=level,
+                        tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                        matprint=matprint, trans=trans, **kwds)
         return '\n\n'.join((x for x in (s, beforedata, d) if len(x)))

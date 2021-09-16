@@ -526,6 +526,6 @@ def findShape(data):
             try:
                 shape.append(len(d))
                 d = d[0]
-            except (TypeError, IndexError) as e:
+            except (TypeError, IndexError, KeyError) as e:
                 d = None
     return tuple(shape)

@@ -49,7 +49,7 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
     directly. Instead, they should inherit from one of the generic
     datasets that this package provides:
 
-    mh: GenericDataset,
+    mh: GenericDataset, UnstrcturedDataset
     ArrayDataset.
     TableDataset or
     CompositeDataset.
@@ -63,7 +63,7 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
         Returns
         -------
         """
-        super(Dataset, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     def accept(self, visitor):
         """ Hook for adding functionality to object
@@ -90,7 +90,7 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
         s = OrderedDict(description=self.description,
                         meta=self._meta,
                         data=self.data,
-                        _STID=self._STID)  # TODO
+                        _STID=self._STID)
         return s
 
 
@@ -144,7 +144,7 @@ class GenericDataset(Dataset, Typed, DataWrapper):
         return f'{s}\n{d}\n{"="*80}\n\n'
 
 
-class CompositeDataset(AbstractComposite, Dataset):
+class CompositeDataset(MetaDataListener, AbstractComposite):
     """  An CompositeDataset is a Dataset that contains zero or more
     named Datasets. It allows to build arbitrary complex dataset
     structures.
@@ -174,7 +174,7 @@ class CompositeDataset(AbstractComposite, Dataset):
         -------
 
         """
-        return OrderedDict(description=self.description,
-                           meta=self.meta,
-                           _sets=self._sets,
-                           _STID=self._STID)
+        return OrderedDict(  # description=self.description,
+            _ATTR__meta=self._meta,
+            **self._data,
+            _STID=self._STID)

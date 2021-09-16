@@ -17,6 +17,7 @@ from fdi.utils.common import fullname
 
 import pytest
 import urllib
+import getpass
 import sys
 
 
@@ -41,7 +42,7 @@ logger.setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 
-test_poolid = 'fdi_'+__name__
+test_poolid = __name__.replace('.', '_')
 
 
 @pytest.fixture(scope="module")
@@ -88,7 +89,7 @@ def test_gen_url(server):
     """
 
     aburl, headers = server
-    samplepoolname = 'fdi_default_'+__name__
+    samplepoolname = 'sample_' + test_poolid
     samplepoolurl = aburl + '/' + samplepoolname
     sampleurn = 'urn:' + samplepoolname + ':fdi.dataset.product.Product:10'
 

@@ -175,6 +175,7 @@ class SerializableEncoder(json.JSONEncoder):
 
 def serialize(o, cls=None, **kwds):
     """ return JSON using special encoder SerializableEncoder 
+
     Parameterts
     -----------
 
@@ -186,7 +187,7 @@ def serialize(o, cls=None, **kwds):
     return json.dumps(o, cls=cls, **kwds)
 
 
-class Serializable(object):
+class Serializable():
     """ mh: Can be serialized.
     Has a _STID  instance property to show its class information. """
 
@@ -199,8 +200,7 @@ class Serializable(object):
         Returns
         -------
         """
-
-        super(Serializable, self).__init__(**kwds)
+        super().__init__(**kwds)
         sc = self.__class__
         # print('@@@ ' + sc.__name__, str(issubclass(sc, dict)))
         if 0 and issubclass(sc, dict):
@@ -212,6 +212,7 @@ class Serializable(object):
         """
         Parameters
         ----------
+
 
         Returns
         -------
@@ -275,5 +276,8 @@ class Serializable(object):
     def serializable(self):
         """ Can be encoded with serializableEncoder """
         s = copy.copy(self.__getstate__())
+        # make sure _STID is the last, for pools to ID data.
+        if '_STID' in s:
+            del s['_STID']
         s.update({'_STID': self._STID})
         return s

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class EventListener(object):
+class EventListener():
     """ Generic interface for listeners that will listen to anything
     """
 
@@ -38,6 +38,17 @@ class DatasetBaseListener(EventListener):
     The listener must be a class field in order to make an object
     hard reference.
     """
+
+    def __init__(self, **kwds):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        super().__init__(**kwds)
 
     def targetChanged(self, event):
         """ Informs that an event has happened in a target of the
@@ -67,7 +78,7 @@ class ListnerSet(Serializable, DeepEqual, list):
         -----
         """
         self._members = []
-        super(ListnerSet, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     @property
     def urns(self):
@@ -162,7 +173,7 @@ class ListnerSet(Serializable, DeepEqual, list):
         return self.__class__.__name__ + '{' + ', '.join(l) + '}'
 
 
-class EventSender(object):
+class EventSender():
     """ adapted from Peter Thatcher's
     https://stackoverflow.com/questions/1092531/event-system-in-python/1096614#1096614
     """
@@ -175,8 +186,9 @@ class EventSender(object):
         Returns
 
         """
+
         self._listeners = ListnerSet()
-        super(EventSender, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     @property
     def listeners(self):
@@ -212,8 +224,9 @@ class EventSender(object):
 
         """
         self._listeners = ListnerSet()
-        for listener in listeners:
-            self.addListener(listener)
+        if listeners:
+            for listener in listeners:
+                self.addListener(listener)
 
     def getListeners(self):
         """ Returns the current Listeners.
@@ -309,7 +322,7 @@ class DatasetEventSender(EventSender):
 
         """
 
-        super(DatasetEventSender, self).__init__(**kwds)
+        super().__init__(**kwds)
 
 
 EventTypes = [
@@ -400,7 +413,7 @@ class DatasetEvent(Serializable):
         # The first event in the chain that provoked this event,
         # or null if this event is its own root.
         self.rootCause = rootCause
-        super(DatasetEvent, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     def toString(self, level=0, **kwds):
         return self.__repr__()
@@ -438,6 +451,17 @@ class ParameterListener(DatasetBaseListener):
     """
     pass
 
+    def __init__(self, **kwds):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        super().__init__(**kwds)
+
 
 class MetaDataListener(DatasetBaseListener):
     """ Listener for events occuring in MetaData.
@@ -455,6 +479,17 @@ class MetaDataListener(DatasetBaseListener):
     Warning: The listener handler must be a class attribute in order to
     create an object hard reference. See DatasetBaseListener.
     """
+
+    def __init__(self, **kwds):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        super().__init__(**kwds)
 
 
 class DatasetListener(DatasetBaseListener):
@@ -475,6 +510,17 @@ class DatasetListener(DatasetBaseListener):
     create an object hard reference. See DatasetBaseListener.
     """
 
+    def __init__(self, **kwds):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        super().__init__(**kwds)
+
 
 class ColumnListener(DatasetBaseListener):
     """ Listener for events occuring in a Column.
@@ -487,6 +533,17 @@ class ColumnListener(DatasetBaseListener):
 
     Cause is always null.
     """
+
+    def __init__(self, **kwds):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        super().__init__(**kwds)
 
 
 class ProductListener(DatasetBaseListener):
@@ -506,3 +563,14 @@ class ProductListener(DatasetBaseListener):
     Warning: The listener handler must be a class attribute in order to
     create an object hard reference. See DatasetBaseListener.
     """
+
+    def __init__(self, **kwds):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        super().__init__(**kwds)

@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class Typed(object):
+class Typed():
     """ An object of specifiable kinds. """
 
     def __init__(self, typ_=None, **kwds):
@@ -19,7 +19,7 @@ class Typed(object):
 
         self.setType(typ_)
         #print(__name__ + str(kwds))
-        super(Typed, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     @property
     def type(self):

@@ -413,7 +413,7 @@ This section shows how to make/get hold of a `pool`.
 logger = logging.getLogger('')
 logger.setLevel(logging.WARNING)
 # a pool (LocalPool) for demonstration will be create here
-demopoolname = 'demopool_' + getpass.getuser()
+demopoolname = 'example_' + getpass.getuser()
 demopoolpath = '/tmp/' + demopoolname
 demopoolurl = 'file://' + demopoolpath
 # clean possible data left from previous runs
@@ -521,9 +521,9 @@ A :class:`ProductStorage` with pools attached can be queried with tags, properti
 """)
 
 # clean possible data left from previous runs
-poolname = 'fdi_pool_' + getpass.getuser()
+poolname = 'example_' + getpass.getuser()
 poolpath = '/tmp/' + poolname
-newpoolname = 'fdi_newpool_' + getpass.getuser()
+newpoolname = 'new_' + 'example_' + getpass.getuser()
 newpoolpath = '/tmp/' + newpoolname
 os.system('rm -rf ' + poolpath)
 os.system('rm -rf ' + newpoolpath)

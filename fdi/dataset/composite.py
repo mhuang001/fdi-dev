@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
+
+from .datawrapper import DataContainer
 from .odict import ODict
 from .eq import DeepEqual
-from collections import Sized, Container, Iterator, OrderedDict
+from .serializable import Serializable
+from .invalid import INVALID
+
+from collections import Sized, Container, Iterator, OrderedDict, UserDict
+from collections.abc import MutableMapping
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -13,7 +19,9 @@ logger = logging.getLogger(__name__)
 # order of Container, Sized, Iterator must be the same as in DataContaier!
 
 
-class Composite(DeepEqual, Container, Sized, Iterator):
+# class Composite(DeepEqual, UserDictAdapter, Serializable):  # MutableMapping):
+
+class Composite(DataContainer, Serializable, MutableMapping):
     """ A container of named Datasets.
 
     This container can hold zero or more datasets, each of them
@@ -23,9 +31,13 @@ class Composite(DeepEqual, Container, Sized, Iterator):
     in the sequence as they were added.
     Note that replacing a dataset with the same name,
     will keep the order.
+
+    :class:`DeepEqual` must stay to the left of :class:`UserDictAdaptor` so its `__eq__` will get to run. `Serializable` becomes a parent to have `__setstate__` overriden reliablly by the one defined in this class.
+
+    :data: default `None` will init with a `dict`.
     """
 
-    def __init__(self, **kwds):
+    def __init__(self, data=None, **kwds):
         """
 
         Parameters
@@ -35,8 +47,8 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         -------
 
         """
-        self._sets = ODict()
-        super().__init__(**kwds)
+        # pass data to parent mapping as the first positional arg if needed
+        super().__init__({} if data is None else data, **kwds)
 
     def containsKey(self, name):
         """ Returns true if this map contains a mapping for
@@ -49,21 +61,27 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         -------
 
         """
-        return name in self._sets
+        return self.__contains__(name)
 
-    def get(self, name):
+    def get(self, name, default=INVALID):
         """ Returns the dataset to which this composite maps the
         specified name.
-        If the attitute does not exist, return None. This is an OrderedDict behavior.
+
+        If the attrbute does not exist and `default` unspecified, raise a KeyError.
 
         Parameters
         ----------
-
+        :default: assigne to None or anything for missing `name`.
         Returns
         -------
 
         """
-        return self._sets.get(name)
+        if name in self.data:
+            return self.data[name]
+        elif default is INVALID:
+            raise KeyError(name + 'not found')
+        else:
+            return default
 
     def set(self, name, dataset):
         """ Associates the specified dataset with the specified key
@@ -80,12 +98,7 @@ class Composite(DeepEqual, Container, Sized, Iterator):
 
         """
 
-        if name == '' or name is None:
-            msg = 'Bad dataset name.'
-            logger.error(msg)
-            raise ValueError(msg)
-
-        self._sets[name] = dataset
+        self.data[name] = dataset
 
     def __getitem__(self, name):
         """
@@ -96,7 +109,18 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         -------
 
         """
-        return self.get(name)
+        return self._data[name]
+
+    def __delitem__(self, name):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        del self.data[name]
 
     def __setitem__(self, name, dataset):
         """
@@ -107,7 +131,7 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         -------
 
         """
-        self.set(name, dataset)
+        self._data[name] = dataset
 
     def getSets(self):
         """ Provide access to the Map < String, Dataset > .
@@ -120,7 +144,7 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         -------
 
         """
-        return self._sets
+        return self.data
 
     def isEmpty(self):
         """ Returns true if this map contains no key - value mappings.
@@ -131,18 +155,7 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         -------
 
         """
-        return len(self._sets) == 0
-
-    def keys(self):
-        """ Returns an iterator of the keys contained in this composite.
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        return self._sets.keys()
+        return len(self.data) == 0
 
     def keySet(self):
         """ Returns a list view of the keys contained in this composite. 
@@ -154,7 +167,7 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         -------
 
         """
-        return list(self._sets.keys())
+        return list(self.data.keys())
 
     # convenience method name.
     getDatasetNames = keySet
@@ -170,10 +183,10 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         -------
 
         """
-        if name == '' or name is None or name not in self._sets:
+        if name == '' or name is None or name not in self.data:
             logger.debug('Cannot remove non-exist item \'' + name + "'")
             return None
-        return self._sets.pop(name)
+        del self._data[name]
 
     def size(self):
         """ Returns the number of key - value mappings in this map. 
@@ -184,14 +197,31 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         -------
 
         """
-        return len(self._sets)
+        return len(self.data)
 
-    def __len__(self):
-        """ Returns the number of key - value mappings in this map. """
-        return len(self._sets)
+    def __iter__(self):
+        for i in self.data:
+            yield i
+
+    def __setstate__(self, state):
+        """
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        for name in state.keys():
+            if name.startswith('_ATTR_'):
+                k2 = name[len('_ATTR_'):]
+                self.__setattr__(k2, state[name])
+            elif name == '_STID':
+                pass
+            else:
+                self.data[name] = state[name]
 
     def __repr__(self):
-        return self.__class__.__name__ + '(' + (self._sets.__repr__() if hasattr(self, '_sets') else 'None') + ')'
+        return self.__class__.__name__ + '(' + (self.data.__repr__() if hasattr(self, 'data') else 'None') + ')'
 
     def toString(self, level=0, matprint=None, trans=True, **kwds):
         """
@@ -203,66 +233,29 @@ class Composite(DeepEqual, Container, Sized, Iterator):
         -------
 
         """
-
+        o = ODict(self.data)
         return self.__class__.__name__ + \
-            self._sets.toString(level=level,
-                                tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                                matprint=matprint, trans=trans, **kwds)
+            o.toString(level=level,
+                       tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                       matprint=matprint, trans=trans, **kwds)
 
-    def __contains__(self, x):
-        """ mh: enable 'x in composite'
 
-        Parameters
-        ----------
+class UserDictAdapter(UserDict):
+    """ Adapter class to make UserDict cooperative to multiple inheritance and take data keyword arg.
 
-        Returns
-        -------
+    REf. https://rhettinger.wordpress.com/2011/05/26/super-considered-super/
+    """
+
+    def __init__(self, data=None, *args, **kwds):
         """
-        return x in self._sets
-
-    def items(self):
-        """ Enable pairs = [(v, k) for (k, v) in d.items()]. 
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        return self._sets.items()
-
-    def values(self):
-        """ Returns an iterator of the parameters contained in this composite.
-
-        Enables pairs = zip(d.values(), d.keys()) 
 
         Parameters
         ----------
+        :data: initialize UserDict.
 
         Returns
         -------
 
         """
-        return self._sets.values()
-
-    def __iter__(self):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        return self._sets.__iter__()
-
-    def __next__(self):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        return self._sets.__next__()
+        # pass data to UserDict as the first positional arg
+        super().__init__(data, *args, **kwds)

@@ -366,7 +366,7 @@ def getProduct_Or_Component(paths, serialize_out=False):
     ts = time.time()
     mInfo = 0
     if lp == 2:
-        # ex: test/fdi.dataset.Product
+        # ex: pool/fdi.dataset.Product
         # return classes[class]
         pp = paths[1]
         mp = pp.rsplit('.', 1)
@@ -375,7 +375,10 @@ def getProduct_Or_Component(paths, serialize_out=False):
         modname, ptype = mp[0], mp[1]
         cls = Classes.mapping[ptype]
         mod = importlib.import_module(modname)  # TODO
-        mInfo = getattr(mod, 'Model')
+        try:
+            mInfo = getattr(mod, 'Model')
+        except AttributeError:
+            mInfo = cls().zInfo
         # non-serialized
         return 0, resp(200, mInfo,
                        'Getting API info for %s OK' % paths[1],
@@ -448,7 +451,7 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
                 return 0, resp(code, compo, msg, ts, serialize_out=False), 0
 
         else:
-            return 400, FAILED, '%s: %s' % (cmd, path_str)
+            return 400, FAILED, '%s: %s' % (str(paths), path_str)
 
     elif 0:
         # no cmd, ex: test/fdi.dataset.Product/4

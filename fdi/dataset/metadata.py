@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from ..utils.masked import masked
-from ..utils.common import grouper
-from ..utils.ydump import ydump
 from .serializable import Serializable
 from .datatypes import DataTypes, DataTypeNames
 from .odict import ODict
@@ -14,6 +11,9 @@ from .annotatable import Annotatable
 from .classes import Classes
 from .typed import Typed
 from .invalid import INVALID
+from ..utils.masked import masked
+from ..utils.common import grouper
+from ..utils.ydump import ydump
 from ..utils.common import exprstrs, wls, bstr, t2l
 
 from tabulate import tabulate
@@ -158,7 +158,7 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         self.setValue(value)
 
     def getValue(self):
-        """ Gets the value of this parameter as an Object. 
+        """ Gets the value of this parameter as an Object.
         Parameters
         ----------
 
@@ -260,7 +260,7 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
             return super(AbstractParameter, self).__lt__(obj)
 
     def __gt__(self, obj):
-        """ can compare value 
+        """ can compare value
         Parameters
         ----------
 
@@ -274,7 +274,7 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
             return super(AbstractParameter, self).__gt__(obj)
 
     def __le__(self, obj):
-        """ can compare value 
+        """ can compare value
         Parameters
         ----------
 
@@ -287,7 +287,7 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
             return super(AbstractParameter, self).__le__(obj)
 
     def __ge__(self, obj):
-        """ can compare value 
+        """ can compare value
         Parameters
         ----------
 
@@ -300,7 +300,7 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
             return super(AbstractParameter, self).__ge__(obj)
 
     def getValueAsString():
-        """ Value as string for building the string representation of the parameter. 
+        """ Value as string for building the string representation of the parameter.
         Parameters
         ----------
 
@@ -337,7 +337,7 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         return self.__class__.__name__ + ss
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder 
+        """ Can be encoded with serializableEncoder
         Parameters
         ----------
 
@@ -740,15 +740,15 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         if alist:
             return ret
         vs, us, ts, ds, fs, gs, cs = ret
-        if level:
-            return vs
-        return '%s{ %s <%s>, "%s", default= %s, valid= %s tcode=%s}' % \
-            (self.__class__.__name__, vs, ts, ds, fs, gs, cs)
+        if level > 1:
+            return '%s(%s %s <%s>)' % (self.__class__.__name__, ts, vs, us)
+        return '%s{ %s %s <%s>, "%s", default= %s, valid= %s tcode=%s}' % \
+            (self.__class__.__name__, ts, vs, us, ds, fs, gs, cs)
 
     __str__ = toString
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder. 
+        """ Can be encoded with serializableEncoder.
         Parameters
         ----------
 
@@ -769,7 +769,7 @@ MetaHeaders = ['name', 'value', 'unit', 'type', 'valid',
                'default', 'code', 'description']
 
 
-class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEventSender):
+class MetaData(Composite, Copyable, ParameterListener, DatasetEventSender):
     """ A container of named Parameters. A MetaData object can
     have one or more parameters, each of them stored against a
     unique name. The order of adding parameters to this container
@@ -793,7 +793,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         -------
         """
 
-        super(MetaData, self).__init__(**kwds)
+        super().__init__(**kwds)
         if copy:
             # not implemented ref https://stackoverflow.com/questions/10640642/is-there-a-decent-way-of-creating-a-copy-constructor-in-python
             raise ValueError('use copy.copy() insteadof MetaData(copy)')
@@ -813,7 +813,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         visitor.visit(self)
 
     def clear(self):
-        """ Removes all the key - parameter mappings. 
+        """ Removes all the key - parameter mappings.
         Parameters
         ----------
 
@@ -832,13 +832,19 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         -------
         """
         if not issubclass(newParameter.__class__, AbstractParameter):
-            raise TypeError('Only Parameters can be saved.')
+            if name == 'listeners' and issubclass(newParameter.__class__, list):
+                pass
+            elif name == '_STID' and issubclass(newParameter.__class__, str):
+                pass
+            else:
+                raise TypeError('Only Parameters can be saved. %s is a %s.' %
+                                (name, newParameter.__class__.__name__))
 
         super(MetaData, self).set(name, newParameter)
 
         if 'listeners' in self.__dict__:
-            so, ta, ty, ch, ca, ro = self, self, -1, \
-                (name, newParameter), None, None
+            so, ta, ty, ch, ca, ro = self, self, -1,
+            (name, newParameter), None, None
             if name in self.keySet():
                 ty = EventType.PARAMETER_CHANGED
             else:
@@ -853,7 +859,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         return self.toString(level=3)
 
     def remove(self, name):
-        """ add eventhandling 
+        """ add eventhandling
         Parameters
         ----------
 
@@ -896,7 +902,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         cn = self.__class__.__name__
         s = ''
         att = {}
-        for (k, v) in self._sets.items():
+        for (k, v) in self.data.items():
             att['name'] = str(k)
             # limit cell width for level=0,1
             att['value'], att['unit'], att['type'], att['description'],\
@@ -926,8 +932,8 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
                 if n in self._defaults and self._defaults[n]['default'] == v.value:
                     pass
                 else:
-                    ps = '%s=%s' % (att['name'], att['value'])
-                    #tab.append(wls(ps, 80//N))
+                    ps = '%s=%s' % (att['name'], v.toString(level))
+                    # tab.append(wls(ps, 80//N))
                     tab.append(ps)
 
                 # tab.append(att['name'])
@@ -955,7 +961,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
                                             **kwds)
             else:
                 l = '.'
-            return s + l
+            return '<' + self.__class__.__name__ + ' ' + s + l + '>'
         lsnr = self.listeners.toString(level=level,
                                        tablefmt=tablefmt, tablefmt1=tablefmt1,
                                        tablefmt2=tablefmt2,
@@ -965,7 +971,7 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
             '%s %s-listeners = %s' % ('(No Parameter.)', cn, lsnr)
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder 
+        """ Can be encoded with serializableEncoder
         Parameters
         ----------
 
@@ -976,6 +982,6 @@ class MetaData(Composite, Copyable, Serializable, ParameterListener, DatasetEven
         # print(self.listeners)
         # print([id(o) for o in self.listeners])
 
-        return OrderedDict(_sets=self._sets,
-                           listeners=self.listeners,
+        return OrderedDict(**self.data,
+                           _ATTR_listeners=self.listeners,
                            _STID=self._STID)

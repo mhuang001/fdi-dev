@@ -24,7 +24,7 @@ class RefContainer(ODict):  # XXXXXXXX order
     def __init__(self, **kwds):
         """ 
         """
-        super(RefContainer, self).__init__(**kwds)
+        super().__init__(**kwds)
         self.setOwner(None)
 
     @property
@@ -118,11 +118,11 @@ class RefContainer(ODict):  # XXXXXXXX order
         """ """
         return len(self.keys())
 
-    # def __getstate__(self):
-    #     """ Can be encoded with serializableEncoder """
-    #     return ODict(
-    #         data=self.data,
-    #         _STID=self._STID)
+    def __getstate__(self):
+        """ Can be encoded with serializableEncoder """
+        return super().__getstate__().update(
+            _ATTR_owner=self.owner,
+            _STID=self._STID)
 
 
 class AbstractContext():
@@ -135,7 +135,7 @@ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Con
     def __init__(self,  **kwds):
         """ Sets ``rule`` to ``None`` if ``zInfo`` does not have ``refs``, else to ``zInfo['refs']``.
         """
-        super(AbstractContext, self).__init__(**kwds)
+        super().__init__(**kwds)
 
         self._dirty = False
         if 'refs' not in self.zInfo:
@@ -248,7 +248,7 @@ class Context(AbstractContext, BaseProduct):
     def __init__(self,  **kwds):
         """
         """
-        super(Context, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     def applyRule(self, *args):
         """ returns True if the input ProductRef passes rule.
@@ -306,18 +306,12 @@ class Context(AbstractContext, BaseProduct):
         """
         return issubclass(cls, Context)
 
+    def __getstate__(self):
+        """ Can be encoded with serializableEncoder """
 
-class AbstractMapContext(AbstractContext):
-    """
-    """
-
-    def __init__(self,  **kwds):
-        """
-        """
-        super(AbstractMapContext, self).__init__(**kwds)
-        refC = RefContainer()
-        # this line must stay after _rule is set.
-        self.setRefs(refC)
+        s = super().__getstate__()
+        s.update(_ATTR_refs=self.refs)
+        return s
 
 
 class MapContext(Context):

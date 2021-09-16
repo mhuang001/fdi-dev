@@ -16,9 +16,9 @@ class DictHk(Taggable):
     def __init__(self, **kwds):
         super(DictHk, self).__init__(**kwds)
         # {tag->{'urns':[urn]}
-        self._tags = ODict()
+        self._tags = dict()
         # {urn->{'tags':[tag], 'meta':meta}}
-        self._urns = ODict()
+        self._urns = dict()
 
     def getTags(self, urn=None):
         """ 
@@ -94,7 +94,7 @@ class DictHk(Taggable):
         if tag in self._tags:
             self._tags[tag]['urns'].append(u)
         else:
-            self._tags[tag] = ODict(urns=[u])
+            self._tags[tag] = dict(urns=[u])
 
     def tagExists(self, tag):
         """

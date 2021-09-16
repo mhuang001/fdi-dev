@@ -543,7 +543,7 @@ Default is to return all columns.
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(
-            meta=getattr(self, '_meta', None),
+            _ATTR_meta=getattr(self, '_meta', None),
             data=self.getData(),
             _STID=self._STID)
 
@@ -621,6 +621,6 @@ class IndexedTableDataset(Indexed, TableDataset):
         # except (AttributeError, KeyError):
         #     description = None
         return Indexed.__getstate__(self).update(
-            meta=getattr(self, '_meta', None),
+            _ATTR_meta=getattr(self, '_meta', None),
             data=self.getData(),
             _STID=self._STID)

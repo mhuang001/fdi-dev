@@ -7,7 +7,6 @@ from fdi.dataset.finetime import FineTime
 
 
 from fdi.dataset.readonlydict import ReadOnlyDict
-from fdi.dataset.serializable import Serializable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.listener import EventSender, EventType
 from fdi.dataset.eq import deepcmp
@@ -22,7 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
+class BaseProduct( AbstractComposite, Copyable, EventSender):
     """ A BaseProduct is the starting point of te whole  product tree, and a generic result that can be passed on between processes.
 
     In general a Product contains zero or more datasets, history,
@@ -48,7 +47,7 @@ class BaseProduct( AbstractComposite, Copyable, Serializable,  EventSender):
     =====
     BaseProduct class schema 1.6 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-08-02 10:18:55.384889.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-09-16 23:13:15.538530.
 
 Description:
 FDI base class data model
@@ -104,7 +103,7 @@ FDI base class data model
     def getDefault(self):
         """ Convenience method that returns the first dataset \
         belonging to this product. """
-        return list(self._sets.values())[0] if len(self._sets) > 0 else None
+        return list(self.values())[0] if len(self) > 0 else None
 
 
 
@@ -134,23 +133,16 @@ FDI base class data model
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        if 0:
-            # remove self from meta's listeners because the deserialzed product will add itself during instanciation.
-            print('1###' + self.meta.toString())
-            metac = self.meta.copy()
-            print('***' + metac.toString())
-            print(deepcmp(self, metac.listeners[0]))
-            metac.removeListener(self)
+        # s = super().__getstate__()
+        # s.update(_ATTR_refs=self.refs)
+        s = OrderedDict(
+            _ATTR__meta=getattr(self, '_meta', None),
+            **self.data,
+            _ATTR_history=getattr(self, '_history', None),
+            _ATTR_listeners=getattr(self, 'listeners', None),
+            _STID=self.get('_STID', None))
+        return s
 
-        ls = [
-            ("meta", self.meta),
-            ("_sets", self._sets if hasattr(self, '_sets') else None),
-            ("history", self._history if hasattr(self, '_history') else None),
-            ("listeners", self._listeners if hasattr(self, '_history') else None),
-            ("_STID", self._STID if hasattr(self, '_STID') else None),
-        ]
-
-        return OrderedDict(ls)
 
     @property
     def description(self): pass

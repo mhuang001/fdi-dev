@@ -17,13 +17,19 @@ logger = logging.getLogger(__name__)
 MdpInfo = {}
 
 
-# These property names are not for mormal properties
+""" Names not for mormal properties. """
 Reserved_Property_Names = ['history', 'meta', 'refs', 'dataset',
                            'zInfo', '_MDP', 'extraMdp', 'alwaysMeta']
-# these MDPs and vital attrbutes are Set By Parent classes:
-# meta via attributable, description annotatable,
-# type typed, data and shape dataWrapper
-MDP_Set_by_Parents = ['meta', 'description', 'type', 'data']
+
+""" These MetaData Parameters (MDPs) and vital attrbutes are Set By Parent classes:
+| Special MDPs and attrbutes | set by parent Classes |
+| 'meta' | `Attributable` |
+| 'description' | `Annotatable` |
+| 'type' | `Typed` |
+| 'data' and 'shape' | `DataWrapper` |
+| 'listeners' | `EventSender` |
+"""
+MDP_Set_by_Parents = ['meta', 'description', 'type', 'listeners']
 
 
 class Attributable(MetaDataHolder):
@@ -59,7 +65,7 @@ class Attributable(MetaDataHolder):
                 mdps[x] = zm[x]['default'] if kwval is None else kwval
         self._MDP = ChainMap(self.extraMdp, zm)
         # This will set MDP_Set_by_Parents args.
-        super(Attributable, self).__init__(meta=meta, **kwds)
+        super().__init__(meta=meta, **kwds)
         # do not set MDPs that have been set by super classes
         for p in copy(mdps):
             if p in self._meta:
@@ -193,7 +199,10 @@ class Attributable(MetaDataHolder):
 
         If ```self.alwaysMeta is True``` all properties of :class:`AbstractParameter` are taken as MDPs except those named in ```Reserved_Property_Names```
         """
-        # print('setattr ' + name, value)
+        # if self.__class__.__name__ == 'CompositeDataset' and name == '_STID':
+        #    __import__('pdb').set_trace()
+
+        #print('setattr ' + name, value)
         if name in Reserved_Property_Names:
             super(Attributable, self).__setattr__(name, value)
             return

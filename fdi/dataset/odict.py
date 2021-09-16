@@ -97,15 +97,55 @@ class ODict(UserDict, Serializable, DeepEqual):
         return d + '>'
 
     def get(self, name):
-        """ Raise a ``KeyErrpr`` to change the default behavior of colections.Mapping to quietly return a None when a key is not found in the dict.
+        """ Raise a ``KeyError`` to change the default behavior of colections.Mapping to quietly return a None when a key is not found in the dict.
         """
 
         return self.data[name]
-        res = super().__getitem__(name)
-        if res is not None or name in self.data:
-            return res
-        logger.debug('%s is not found in %s.' % (name, self))
-        raise KeyError()
+        # res = super().__getitem__(name)
+        # if res is not None or name in self.data:
+        #     return res
+        # msg = '%s is not found in %s.' % (name, self)
+        # logger.debug(msg)
+        # raise KeyError(msg)
+
+    def __getitem__(self, name):
+        """
+        For collections.abc.MutableMapping.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        return self.data[name]
+
+    def __setitem__(self, name, value):
+        """
+        For collections.abc.MutableMapping.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        self.data[name] = value
+
+    def __delitem__(self, name):
+        """
+        For collections.abc.MutableMapping.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+
+        """
+        del self.data[name]
 
     # def __repr__(self):
     #     """ returns string representation with details set according to debuglevel.
@@ -124,7 +164,7 @@ class ODict(UserDict, Serializable, DeepEqual):
 
         """
         return OrderedDict(
-            data=self.data,
+            **self.data,
             _STID=self._STID
         )
 

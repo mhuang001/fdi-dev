@@ -51,7 +51,7 @@ class Classes_meta(type):
         'fdi.dataset.tabledataset': ['TableDataset', 'IndexedTableDataset'],
         'fdi.dataset.readonlydict': ['ReadOnlyDict'],
         'fdi.pal.context': ['AbstractContext', 'Context',
-                            'AbstractMapContext', 'MapContext',
+                            'MapContext',
                             'RefContainer',
                             'ContextRuleException'],
         'fdi.pal.urn': ['Urn'],

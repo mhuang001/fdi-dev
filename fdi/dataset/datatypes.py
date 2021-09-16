@@ -67,6 +67,9 @@ def lookup_bd(t):
         return None
 
 
+bltns = vars(builtins)
+
+
 def cast(val, typ_, namespace=None):
     """ casts the input value to type specified, which is in DataTypeNames.
 
@@ -76,7 +79,7 @@ def cast(val, typ_, namespace=None):
     """
     t = DataTypes[typ_]
     vstring = str(val).lower()
-    tbd = lookup_bd(t)
+    tbd = bltns.get(t, None)  # lookup_bd(t)
     if tbd:
         if t == 'int':
             base = 16 if vstring.startswith(

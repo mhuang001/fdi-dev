@@ -7,6 +7,7 @@ import decimal
 import traceback
 from pprint import pprint
 import copy
+import json
 import sys
 import threading
 import functools
@@ -21,7 +22,7 @@ from fdi.dataset.copyable import Copyable
 from fdi.dataset.odict import ODict
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.classes import Classes
-from fdi.dataset.deserialize import deserialize
+from fdi.dataset.serializable import serialize
 from fdi.dataset.quantifiable import Quantifiable
 from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf
 from fdi.dataset.messagequeue import MqttRelayListener, MqttRelaySender
@@ -37,6 +38,7 @@ from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.arraydataset import ArrayDataset, Column, MediaWrapper
 from fdi.dataset.tabledataset import TableDataset
+from fdi.dataset.unstructureddataset import UnstrcturedDataset
 from fdi.dataset.dataset import GenericDataset, CompositeDataset
 from fdi.dataset.indexed import Indexed
 from fdi.dataset.ndprint import ndprint
@@ -63,7 +65,7 @@ else:
 Classes.updateMapping()
 
 # make format output in /tmp/output.py
-mk_output = 0
+mk_output = 1
 
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py
@@ -319,7 +321,7 @@ def test_Composite():
     assert v[a1] == a2
     assert v[a1] == v.get(a1)
     sets = v.getSets()
-    assert issubclass(sets.__class__, ODict)
+    assert issubclass(sets.__class__, dict)
 
     # dict view
     a3 = 'k'
@@ -333,9 +335,8 @@ def test_Composite():
     v = Composite()
     v.set(a1, a2)
     assert v[a1] == a2
-    assert v.remove(a1) == a2
-    assert v.size() == 0
     assert v.remove(a1) is None
+    assert v.size() == 0
     assert v.remove('notexist') is None
 
     # test for containsKey, isEmpty, keySet, size
@@ -1100,9 +1101,7 @@ def test_MetaData():
     # names of all parameters
     assert [n for n in v] == [a1, 'time', 'birthday']
 
-    h = v.hash()
     checkjson(v, dbg=0)
-
     v.remove(a1)  # inherited from composite
     assert v.size() == 2
 
@@ -1966,6 +1965,10 @@ def test_CompositeDataset_init():
                            value=2.3, unit='sec')
     v1.meta[b11] = b12
 
+    d = deepcmp(v, v1)
+    q = v.__eq__(v1)
+    h = v.hash()
+
     assert v == v1
     assert v1 == v
 
@@ -1993,6 +1996,7 @@ def test_CompositeDataset_init():
     v1[b9] = b4
     assert v == v1
     v1.meta[b11].value = 999
+
     assert v != v1
     assert v1 != v
 
@@ -2030,8 +2034,39 @@ def test_CompositeDataset_init():
     else:
         assert ts == out_CompositeDataset
 
-    checkjson(v)
+    checkjson(v, dbg=0)
     checkgeneral(v)
+
+
+def xtest_UnstrcturedDataset():
+
+    u = UnstrcturedDataset({3: 6}, 'foo')
+    assert u.data == {3: 6}
+    assert u.description == 'foo'
+    assert u.type is None
+
+    p = get_sample_product()
+    u.type = 'json'
+    u.data = p.serialized()
+
+    v, s = u.fetch(["data", "meta", "_sets", "speed"])
+    # v is a dictionary
+    assert json.dumps(v) == serialize(p.meta['speed'])
+    assert s == '.data["meta"]["_sets"]["speed"]'
+    # horrible
+    v, s = u.fetch(["data", "_sets", "results", "_sets",
+                    'calibration', 'meta', '_sets', "unit", 'value'])
+    # ["_sets"]["results"]["_sets"]["calibration"]["meta"]["_sets"]["unit"]["value"]
+    assert v == 'count'
+
+    # data of a column in tabledataset within compositedataset
+    v, s = u.fetch(["data", "_sets", "results", "_sets",
+                    "Time_Energy_Pos", "data", "Energy", "data"])
+    # ['data']['Energy']['data']
+    t = [x * 1.0 for x in range(9)]
+    assert v == [2 * x + 100 for x in t]
+    assert v == p['results']['Time_Energy_Pos']['Energy'].data
+    assert s == '.data["_sets"]["results"]["_sets"]["Time_Energy_Pos"]["data"]["Energy"]["data"]'
 
 
 def test_Indexed():
@@ -2234,7 +2269,7 @@ def test_FineTime():
 
     # leap seconds
     v1 = FineTime(datetime.datetime(2015, 6, 30, 23, 59, 59))
-    #v2 = FineTime(datetime.datetime(2015, 6, 30, 23, 59, 60))
+    # v2 = FineTime(datetime.datetime(2015, 6, 30, 23, 59, 60))
     v3 = FineTime(datetime.datetime(2015, 7, 1, 0, 0, 0))
     assert v3-v1 == 2000000  # leapsecond added
     # assert v3-v2 == 1000000  # 59:60 != 00:00
@@ -2327,7 +2362,7 @@ def test_FineTimes_toString():
         assert ts == out_FineTime
 
 
-def test_get_sample_product():
+def xtest_get_sample_product():
     v = get_sample_product()
     assert v['Browse'].data[1:4] == b'PNG'
     checkjson(v)

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from .ydump import ydump
 from ..dataset.classes import Classes
 from ..dataset.serializable import serialize
 from ..dataset.deserialize import deserialize
@@ -7,7 +8,6 @@ from ..dataset.eq import deepcmp
 import json
 import sys
 from pprint import pprint
-import pdb
 
 
 def getyaml():
@@ -58,15 +58,15 @@ def checkjson(obj, dbg=0, **kwds):
         except:
             print('ydump of obj failed')
 
-        print('******** checkjsom ' + obj.__class__.__name__ +
+        print('<<<<<*** checkjsom ' + obj.__class__.__name__ +
               ' serialized: ******\n')
         print(js)
-        print('*************')
+        print('***>>>>>')
 
     des = deserialize(js, lookup=Classes.mapping, debug=dbg)
     if dbg:
         if 0 and hasattr(des, 'meta'):
-            print('des.mets ' + str((des.meta.listeners)))
+            print('des.meta ' + str((des.meta.listeners)))
         print('****** checkjson deserialized ' + str(des.__class__) +
               '******\n')
         try:

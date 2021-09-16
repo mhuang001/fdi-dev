@@ -15,7 +15,7 @@ from collections import ChainMap
 import builtins
 import urllib
 from collections import UserDict
-from collections.abc import MutableMapping as MM, MutableSequence as MS, MutableSet as MS
+from collections.abc import MutableMapping as MM, MutableSequence as MS, MutableSet as MSe
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -41,8 +41,8 @@ def constructSerializable(obj, lookup=None, debug=False):
     variables.
     Objects to be deserialized must have their classes loaded.
     _STID cannot have module names in it (e.g.  dataset.Product)
-    or locals()[classname] or globals()[classname] will not work. See alternative in
-    https://stackoverflow.com/questions/452969/does-python-have-an-equivalent-to-java-class-forname
+    or locals()[classname] or globals()[classname] will not work.
+
     Parameters
     ----------
 
@@ -161,16 +161,25 @@ def constructSerializable(obj, lookup=None, debug=False):
                         desv = v
 
         # set k with desv
+        icn = inst.__class__.__name__
+        dcn = desv.__class__.__name__
         if issubclass(inst.__class__, (MM)):    # should be object_pairs_hook
-            inst[k] = desv
-            if debug:
-                print(spaces + 'Set dict/usrd <%s>[%s] = %s <%s>' %
-                      ((inst.__class__.__name__), str(k), lls(desv, 70), (desv.__class__.__name__)))
+            if k.startswith('_ATTR_'):
+                k2 = k[len('_ATTR_'):]
+                setattr(inst, k2, desv)
+                if debug:
+                    print(spaces + 'Set attrbute to dict/usrd <%s>.%s = %s <%s>' %
+                          (icn, str(k2), lls(desv, 70), dcn))
+            else:
+                inst[k] = desv
+                if debug:
+                    print(spaces + 'Set member to dict/usrd <%s>[%s] = %s <%s>' %
+                          (icn, str(k), lls(desv, 70), dcn))
         else:
             setattr(inst, k, desv)
             if debug:
-                print(spaces + 'set non-dict <%s>.%s = %s <%s>' %
-                      ((inst.__class__.__name__), str(k), lls(desv, 70), (desv.__class__.__name__)))
+                print(spaces + 'set attribute to non-dict <%s>.%s = %s <%s>' %
+                      (icn, str(k), lls(desv, 70), dcn))
     indent -= 1
     return inst
 

@@ -76,6 +76,7 @@ def get_name_all_pools(path):
     """
 
     alldirs = []
+    os.makedirs(path, exist_ok=True)
     allfilelist = os.listdir(path)
     for file in allfilelist:
         filepath = os.path.join(path, file)
@@ -226,12 +227,12 @@ def wipe_pools(poolnames=None):
     return good, notgood
 
 ######################################
-#### /{pool}  get_pool/  GET  ####
+#### /{pool}  /{pool}/  GET  ####
 ######################################
 
 
 @ pools_api.route('/<string:pool>', methods=['GET'])
-# @ swag_from(endp['/{pool}']['get'])
+@ pools_api.route('/<string:pool>/', methods=['GET'])
 def get_pool(pool):
     """ Get information of the given pool.
 
@@ -256,14 +257,19 @@ def get_pool_info(poolname, serialize_out=True):
 
     allpools = get_name_all_pools(current_app.config['POOLPATH_BASE'])
     if poolname in allpools:
-        code, result, mes = load_single_HKdata(
-            [poolname, 'hk', 'classes'],
-            serialize_out=serialize_out)
-        msg = 'Getting pool %s info.. %s.' % (poolname, mes)
+        code, result, mes = load_HKdata([poolname], serialize_out=True)
+        # use json.loads to avoid _STID for human
+        result = json.loads(result)
+        print(result['classes'])
+        # for n in ['classes', 'urns', 'tags']:
+        #    del result[n]['_STID']
+        for u in result['urns']:
+            del result['urns'][u]['meta']
+        msg = 'Getting pool %s information. %s.' % (poolname, mes)
     else:
         code, result, msg = 404, FAILED, poolname +\
             ' is not an exisiting Pool ID.'
-    return 0, resp(code, result, msg, ts, serialize_out), 0
+    return 0, resp(code, result, msg, ts, False), 0
 
 ######################################
 ####  {pooolid}/register PUT /unreg DELETE  ####
@@ -271,7 +277,6 @@ def get_pool_info(poolname, serialize_out=True):
 
 
 @ pools_api.route('/<string:pool>', methods=['PUT'])
-# @ swag_from(endp['/{pool}']['put'])
 def register(pool):
     """ Register the given pool.
 
@@ -291,8 +296,8 @@ def register(pool):
     logger.debug('register pool ' + pool)
 
     code, thepool, msg = register_pool(pool)
-
-    return resp(code, thepool._poolurl, msg, ts)
+    res = thepool if issubclass(thepool.__class__, str) else thepool._poolurl
+    return resp(code, res, msg, ts)
 
 
 def register_pool(pool):
@@ -306,7 +311,7 @@ def register_pool(pool):
     try:
         po = PM.getPool(poolname=poolname, poolurl=poolurl)
         return 200, po, 'register pool ' + poolname + ' OK.'
-    except Exception as e:
+    except (ValueError, NotImplementedError) as e:
         code, result, msg = excp(
             e,
             msg='Unable to register pool: ' + poolname)
@@ -315,7 +320,6 @@ def register_pool(pool):
 
 
 @ pools_api.route('/<string:pool>', methods=['DELETE'])
-# @ swag_from(endp['/{pool}']['delete'])
 def unregister(pool):
     """ Unregister this pool from PoolManager.
 
@@ -359,7 +363,7 @@ def unregister_pool(pool):
             result = 'FAILED'
             msg = 'Unable to unregister pool: ' + poolname
             code = 409
-        #current_app.logger.debug(f'{code}; {result}; {msg}')
+        # current_app.logger.debug(f'{code}; {result}; {msg}')
     except Exception as e:
         code, result, msg = excp(
             e,
@@ -375,7 +379,6 @@ def unregister_pool(pool):
 
 
 @ pools_api.route('/<string:pool>/hk/', methods=['GET'])
-# @ swag_from(endp['/{pool}']['put'])
 def hk(pool):
     """ All kinds of pool housekeeping data.
 
@@ -396,15 +399,14 @@ def load_HKdata(paths, serialize_out=True):
     """Load HKdata of a pool
     """
 
-    hkname = paths[-1]
-    poolname = '/'.join(paths[0: -1])
+    poolname = paths[0]
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     # resourcetype = fullname(data)
 
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
         result = poolobj.readHK(serialize_out=serialize_out)
-        msg = ''
+        msg = 'OK.'
         code = 200
     except Exception as e:
         code, result, msg = excp(e, serialize_out=serialize_out)
@@ -616,6 +618,8 @@ def call_pool_Api(paths, serialize_out=False):
     msg = '%s(%s)' % (method, ', '.join(
         chain(map(str, args), kwdsexpr)))
     logger.debug('WebAPI ' + msg)
+    # if args and args[0] == 'select':
+    #    __import__('pdb').set_trace()
 
     poolname = paths[0]
     poolurl = current_app.config['POOLURL_BASE'] + poolname

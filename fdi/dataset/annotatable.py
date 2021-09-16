@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import pdb
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-class Annotatable(object):
+class Annotatable():
     """ An Annotatable object is an object that can give a
     human readable description of itself.
     """
@@ -18,9 +20,10 @@ class Annotatable(object):
         -------
 
         """
+
         self.description = description
         # print(__name__ + str(kwds))
-        super(Annotatable, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     @property
     def description(self):

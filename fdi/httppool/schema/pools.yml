@@ -52,10 +52,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegisteredPools'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
   /pools/:
     get:
       summary: "Get IDs of all Pools."
@@ -70,10 +66,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GenericResponseContents"
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
       
   /pools/register_all:
     put:
@@ -89,10 +81,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
   /pools/unregister_all:
     put:
       summary: "Removing all pools from the PoolManager."
@@ -107,10 +95,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
   /pools/wipe_all:
     delete:
       summary: "Remove contents of all pools."
@@ -125,10 +109,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
 
   /{pool}:
     get:
@@ -146,10 +126,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
     put:
       summary: "Register the given pool."
       tags:
@@ -165,10 +141,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
     delete:
       summary: "Unregister this pool from PoolManager."
       tags:
@@ -231,10 +203,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
 
   /{pool}/hk/:
     get:
@@ -252,10 +220,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
   /{pool}/api/:
     get:
       summary: "A list of names of allowed API methods."
@@ -272,10 +236,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
 
   /{pool}/hk/{kind}:
     get:
@@ -294,10 +254,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
   /{pool}/count/{data_type}:
     get:
       summary: "Returns the number of given type of data in the given pool."
@@ -315,10 +271,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
   /{pool}/wipe:
     put:
       summary: "Removes all contents of the pool."
@@ -335,10 +287,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
 
   /{pool}/api/{method_args}:
     get:
@@ -357,10 +305,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-        "400":
-          $ref: '#/components/responses/400Error'
-        "409":
-          $ref: '#/components/responses/409Error'
 #  /{pool}/api/{method}/:
 #    $ref: "#/paths/~1%7Bpool%7D~1api~1%7Bmethod%7D~1%7Bargs%7D"
 #  /{pool}/api/{method}:
@@ -381,7 +325,17 @@ paths:
         required: true
         schema:
           type: "string"
-        example: fdi.dataset.product.Product/0/meta/
+        examples:
+          1:
+            value: fdi.dataset.product.Product/0/meta/
+            summary: Meta data of a product.
+          2:
+            value: fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
+            summary: |
+              Sample product from server test pool. e.g.  http://127.0.0.1:5000/v0.9/serv_test_httppool/
+          3:
+            value: fdi.pal.context.Context
+            summary: A Context.
       responses:
         "200":
           description: "Specified kind of  data returned OK."
@@ -455,12 +409,15 @@ components:
       schema:
         type: "string"
       examples:
-        server:
-          value: fdi_serv.test_httppool
-          summary: from server test.
-        client:
-          value: fdi_serv.test_httpclientpool
-          summary: from client test.
+        1. server:
+          value: serv_test_httppool
+          summary: from server test `test_httppool.py`.
+        2. client:
+          value: serv_test_httpclientpool
+          summary: from client test `test_httpclientpool.py`.
+        3. pal:
+          value: test_pal
+          summary: from `test_pal.py`.
     HkKind:
       name: kind
       in: "path"
@@ -535,11 +492,11 @@ components:
         type: "string"
       examples:
         full:
-          value: "urn:fdi_serv.test_httppool:fdi.dataset.product.Product:0"
+          value: "urn:serv_test_httppool:fdi.dataset.product.Product:0"
           summary: "The full URN string"
         no_urn:
-          value: ":fdi_serv.test_httppool:fdi.dataset.product.Product:0"
-          summary: "No leading 'urn'. The URL is like 'baseURL/urn:fdi_serv.test_httppool:fdi.dataset...'"
+          value: ":serv_test_httppool:fdi.dataset.product.Product:0"
+          summary: "No leading 'urn'. The URL is like 'baseURL/urn:serv_test_httppool:fdi.dataset...'"
   # Schema for response body
   schemas:
     Product:

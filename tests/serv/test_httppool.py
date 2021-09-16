@@ -32,8 +32,8 @@ import os
 import requests
 import pytest
 from pprint import pprint
-
 import time
+import getpass
 from collections.abc import Mapping
 
 import asyncio
@@ -77,7 +77,7 @@ if 0:
 lupd = 0
 
 
-test_poolid = 'fdi_'+__name__
+test_poolid = __name__.replace('.', '_')
 prodt = 'fdi.dataset.product.Product'
 
 
@@ -173,6 +173,7 @@ def check_response(o, failed_case=False, excluded=None):
 
 
 def test_clear_local_server(local_pools_dir):
+
     clrpool = 'test_clear'
     ppath = os.path.join(local_pools_dir, clrpool)
     if not os.path.exists(ppath):
@@ -204,6 +205,13 @@ def test_wipe_all_pools_on_server(server, local_pools_dir, client, userpass):
     auth = HTTPBasicAuth(*userpass)
     # ======== wipe all pools =====
     logger.info('Wipe all pools on the server')
+
+    # register all pools and get count
+    url = aburl + '/' + 'pools/register_all'
+    x = client.put(url, auth=auth)
+    o = getPayload(x)
+    check_response(o, failed_case=False)
+    regd = o['result']
 
     # make some pools
     n = 5
@@ -366,6 +374,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
 
     logger.info('save products')
     aburl, headers = server
+
     post_poolid = test_poolid
     auth = HTTPBasicAuth(*userpass)
     # register
@@ -519,7 +528,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     check_response(o, failed_case=True)
 
 
-def test_product_path(server, userpass, client):
+def test_data_path(server, userpass, client):
 
     aburl, headers = server
     auth = HTTPBasicAuth(*userpass)
@@ -697,43 +706,12 @@ def test_read_non_exists_pool(server, userpass, client):
     '''
     logger.info('Test query a pool non exist.')
     aburl, headers = server
-    wrong_poolid = 'abc'
+    wrong_poolid = 'nonexist_' + __name__.replace('.', '_')
     prodpath = '/' + prodt + '/0'
     url = aburl + '/' + wrong_poolid + prodpath
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o = getPayload(x)
     check_response(o, True)
-
-
-def XXXtest_subclasses_pool(userpass, client):
-    logger.info('Test create a pool which has subclass')
-    poolid_1 = 'subclasses/a'
-    poolid_2 = 'subclasses/b'
-    prodpath = '/' + prodt + '/0'
-    url1 = aburl + '/' + poolid_1 + prodpath
-    url2 = aburl + '/' + poolid_2 + prodpath
-    x = Product(description="product example with several datasets",
-                instrument="Crystal-Ball", modelName="Mk II")
-    data = serialize(x)
-    res1 = client.post(url1, auth=HTTPBasicAuth(
-        *userpass), data=data)
-    res2 = client.post(url2, auth=HTTPBasicAuth(
-        *userpass), data=data)
-    o1 = getPayload(res1)
-    o2 = getPayload(res2)
-    check_response(o1)
-    check_response(o2)
-
-    # Wipe these pools
-    url1 = aburl + '/' + poolid_1
-    url2 = aburl + '/' + poolid_2
-
-    res1 = client.delete(url1,  auth=HTTPBasicAuth(*userpass))
-    res2 = client.delete(url2,  auth=HTTPBasicAuth(*userpass))
-    o1 = getPayload(res1)
-    check_response(o1)
-    o2 = getPayload(res2)
-    check_response(o2)
 
 
 if __name__ == '__main__':

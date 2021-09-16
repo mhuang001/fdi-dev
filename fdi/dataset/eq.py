@@ -9,7 +9,7 @@ import array
 from functools import lru_cache
 from collections import OrderedDict
 from itertools import chain
-
+from collections.abc import MutableMapping as MM, MutableSequence as MS, MutableSet as MSe
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                 print('type diff')
             del _context.seen[-1]
             return ' due to diff types: ' + c.__name__ + ' and ' + c2.__name__
-        dc, sc, fc, tc, lc = dict, set, frozenset, tuple, list
+        sc, fc, tc, lc = set, frozenset, tuple, list
 
         has_eqcmp = (hasattr(o1, '__eq__') or hasattr(
             o1, '__cmp__')) and not issubclass(c, DeepEqual)
@@ -108,7 +108,7 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                     (c.__name__, len(o1), len(o2), str(list(o1)), str(list(o2)))
         except AttributeError:
             pass
-        if issubclass(c, dc):
+        if issubclass(c, MM):
             if v:
                 print('Find dict or subclass')
                 print('check keys')
@@ -242,6 +242,9 @@ class DeepcmpEqual(object):
     or exceptions raised, e.g. obj does not have items()
     """
 
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
+
     def equals(self, obj, verbose=False):
         """
         Paremeters
@@ -305,6 +308,9 @@ class EqualDict(object):
     or exceptions raised, e.g. obj does not have items()
     """
 
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
+
     def equals(self, obj, verbose=False):
         """
         Paremeters
@@ -359,6 +365,9 @@ class EqualODict(object):
     or exceptions raised, e.g. obj does not have items()
     """
 
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
+
     def equals(self, obj, verbose=False):
         """
         Paremeters
@@ -400,9 +409,15 @@ class EqualODict(object):
         return not self.__eq__(obj)
 
 
-class StateEqual(object):
+class StateEqual():
     """ Equality tested by hashed state.
     """
+
+    def __init__(self, *args, **kwds):
+        """ Must pass *args* so `UserDict` in `Composite` can get `data`.
+        """
+
+        super().__init__(*args, **kwds)
 
     def hash(self):
         return xhash(self.__getstate__())

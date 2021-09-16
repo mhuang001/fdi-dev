@@ -389,6 +389,10 @@ When implementing a ProductPool, the following rules need to be applied:
 ###########################
 
 
+MetaData_Json_Start = '{"_ATTR__meta": '
+MetaData_Json_End = '"_STID": "MetaData"}'
+
+
 class ManagedPool(ProductPool, DictHk):
     """ A ProductPool that manages its internal house keeping. """
 
@@ -417,7 +421,7 @@ class ManagedPool(ProductPool, DictHk):
 
         if super().setup():
             return True
-        self._classes = ODict()
+        self._classes = dict()
         return False
 
     def getPoolpath(self):
@@ -541,40 +545,40 @@ class ManagedPool(ProductPool, DictHk):
                 sn = (c[pn]['currentSN'] + 1)
             else:
                 sn = 0
-                c[pn] = ODict(sn=[])
+                c[pn] = dict(sn=[])
 
             c[pn]['currentSN'] = sn
             c[pn]['sn'].append(sn)
 
-            urn=makeUrn(poolname = self._poolname, typename = pn, index = sn)
+            urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
 
             if urn not in u:
                 if serialize_in and hasattr(prd, 'meta'):
-                    mt=prd.meta
+                    mt = prd.meta
                 else:
-                    strs, stre='{"meta": ', '"_STID": "MetaData"}'
-                    start=prd.find(strs, 0)
-                    end=prd.find(stre, start)
+                    start = prd.find(MetaData_Json_Start, 0)
+                    end = prd.find(MetaData_Json_End, start)
                     if start >= 0 and end > 0:
-                        mt=deserialize(prd[start+len(strs):end+len(stre)])
+                        mt = deserialize(
+                            prd[start+len(MetaData_Json_Start):end+len(MetaData_Json_End)])
                     else:
-                        mt=ODict()
-                u[urn]=ODict(tags = [], meta = mt)
-            
+                        mt = ODict()
+                u[urn] = dict(tags=[], meta=mt)
+
             if tag is not None:
                 self.setTag(tag, urn)
             try:
                 # save prod and HK
-                self.doSave(resourcetype = pn,
-                            index = sn,
-                            data = prd,
-                            tag = tag,
-                            serialize_in = serialize_in,
-                            serialize_out = serialize_out,
+                self.doSave(resourcetype=pn,
+                            index=sn,
+                            data=prd,
+                            tag=tag,
+                            serialize_in=serialize_in,
+                            serialize_out=serialize_out,
                             **kwds)
             except Exception as e:
-                msg='product ' + urn + ' saving failed.'
-                self._classes, self._tags, self._urns=tuple(
+                msg = 'product ' + urn + ' saving failed.'
+                self._classes, self._tags, self._urns = tuple(
                     self.readHK().values())
                 logger.debug(msg)
                 raise e
@@ -718,7 +722,7 @@ class ManagedPool(ProductPool, DictHk):
         logger.debug('Done.')
         return 0
 
-    def mfilter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
+    def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
         """ returns filtered collection using the query.
 
         q is a MetaQuery
@@ -780,7 +784,7 @@ class ManagedPool(ProductPool, DictHk):
         else:
             raise('Must give a list of ProductRef or urn or sn')
 
-    def pfilter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
+    def prod_filter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
         """ returns filtered collection using the query.
 
         q: an AbstractQuery.
@@ -882,19 +886,19 @@ class ManagedPool(ProductPool, DictHk):
             this = (x for x in results if x.urnobj.getPoolId()
                     == self._poolname)
             if isMQ:
-                ret += self.mfilter(q=query, reflist=this)
+                ret += self.meta_filter(q=query, reflist=this)
             else:
-                ret += self.pfilter(q=query, reflist=this)
+                ret += self.prod_filter(q=query, reflist=this)
         else:
             for cname in self._classes:
                 cls = lgb[cname.split('.')[-1]]
                 if issubclass(cls, t):
                     if isMQ:
-                        ret += self.mfilter(q=query, typename=cname,
-                                            snlist=self._classes[cname]['sn'])
+                        ret += self.meta_filter(q=query, typename=cname,
+                                                snlist=self._classes[cname]['sn'])
                     else:
-                        ret += self.pfilter(q=query, cls=cls,
-                                            snlist=self._classes[cname]['sn'])
+                        ret += self.prod_filter(q=query, cls=cls,
+                                                snlist=self._classes[cname]['sn'])
 
         return ret
 

@@ -65,63 +65,7 @@ def checkgeneral(v):
         assert false
 
 
-def test_fetch():
-
-    # simple nested structure
-    v = {1: 2, 3: 4}
-    u, s = fetch([3], v)
-    assert u == 4
-    assert s == '[3]'
-    v = {'1': 2, 3: 4}
-    u, s = fetch(['1'], v)
-    assert u == 2
-    assert s == '["1"]'
-    v.update(d={'k': 99})
-    u, s = fetch(['d', 'k'], v)
-    assert u == 99
-    assert s == '["d"]["k"]'
-
-    # objects
-    class al(list):
-        ala = 0
-        def alb(): pass
-
-        def __init__(self, *a, i=[8], **k):
-            super().__init__(*a, **k)
-            self.ald = i
-        alc = {3: 4}
-        ale = [99, 88]
-
-    v = al(i=[1, 2])
-    u, s = fetch(['ald'], v)
-    assert u == [1, 2]
-    assert s == '.ald'
-
-    u, s = fetch(['ale', 1], v)
-    assert u == 88
-    assert s == '.ale[1]'
-
-    class ad(dict):
-        ada = 'p'
-        adb = al([0, 6])
-
-    v = ad(z=5, x=['b', 'n', {'m': 'j'}])
-    v.ade = 'adee'
-
-    u, s = fetch(['ada'], v)
-    assert u == 'p'
-    assert s == '.ada'
-
-    u, s = fetch(['adb', 'ald', 0], v)
-    assert u == 8
-    assert s == '.adb.ald[0]'
-
-    u, s = fetch(['x', 2, 'm'], v)
-    assert u == 'j'
-    assert s == '["x"][2]["m"]'
-
-    # products
-    p = get_sample_product()
+def chk_sample_pd(p):
     v, s = fetch(["description"], p)
     assert v == p.description
     assert s == '.description'
@@ -129,7 +73,6 @@ def test_fetch():
     with pytest.raises(KeyError):
         e = p.meta['extra']
 
-    e = p.meta['speed']
     v, s = fetch(["meta", "speed"], p)
     assert v == p.meta['speed']
     assert s == '.meta["speed"]'
@@ -193,6 +136,66 @@ def test_fetch():
     zs, s = fetch(["results", "Time_Energy_Pos", "z"], p)
     # y^2 + z^2 = 100 for all t
     assert all((y*y + z*z - 100) < 1e-5 for y, z in zip(ys.data, zs.data))
+
+
+def test_fetch():
+
+    # simple nested structure
+    v = {1: 2, 3: 4}
+    u, s = fetch([3], v)
+    assert u == 4
+    assert s == '[3]'
+    v = {'1': 2, 3: 4}
+    u, s = fetch(['1'], v)
+    assert u == 2
+    assert s == '["1"]'
+    v.update(d={'k': 99})
+    u, s = fetch(['d', 'k'], v)
+    assert u == 99
+    assert s == '["d"]["k"]'
+
+    # objects
+    class al(list):
+        ala = 0
+        def alb(): pass
+
+        def __init__(self, *a, i=[8], **k):
+            super().__init__(*a, **k)
+            self.ald = i
+        alc = {3: 4}
+        ale = [99, 88]
+
+    v = al(i=[1, 2])
+    u, s = fetch(['ald'], v)
+    assert u == [1, 2]
+    assert s == '.ald'
+
+    u, s = fetch(['ale', 1], v)
+    assert u == 88
+    assert s == '.ale[1]'
+
+    class ad(dict):
+        ada = 'p'
+        adb = al([0, 6])
+
+    v = ad(z=5, x=['b', 'n', {'m': 'j'}])
+    v.ade = 'adee'
+
+    u, s = fetch(['ada'], v)
+    assert u == 'p'
+    assert s == '.ada'
+
+    u, s = fetch(['adb', 'ald', 0], v)
+    assert u == 8
+    assert s == '.adb.ald[0]'
+
+    u, s = fetch(['x', 2, 'm'], v)
+    assert u == 'j'
+    assert s == '["x"][2]["m"]'
+
+    # products
+    p = get_sample_product()
+    chk_sample_pd(p)
 
 
 def test_loadcsv():

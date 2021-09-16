@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 
 from ..utils.getconfig import getConfig
@@ -20,6 +21,7 @@ pc = getConfig()
 DEFAULT_MEM_POOL = 'defaultmem'
 # localpool
 DEFAULT_POOL = 'fdi_pool_' + __name__ + getpass.getuser()
+Invalid_Pool_Names = ['pools', 'urn', 'api']
 
 
 def remoteRegister(p, poolurl):
@@ -116,6 +118,9 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
             else:
                 raise ValueError(
                     'A new pool %s cannot be created without a pool url.' % poolname)
+            if poolname in Invalid_Pool_Names:
+                raise ValueError(
+                    'Cannot register invalid pool name: ' + poolname)
             # now we have scheme, poolname, poolurl
             if schm == 'file':
                 from . import localpool

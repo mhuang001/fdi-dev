@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class DataContainer(Annotatable, Copyable, DeepEqual, Container, Sized):
+class DataContainer(Annotatable, Copyable, DeepEqual, Container):
     """ A DataContainer is a composite of data and description.
     mh: note that There is no metadata.
     Implemented partly from AbstractDataWrapper.
@@ -31,7 +31,9 @@ class DataContainer(Annotatable, Copyable, DeepEqual, Container, Sized):
         """
         #print(__name__ + str(kwds))
 
-        if data is None or issubclass(data.__class__, Container):
+        if data is None:
+            self.setData(data)
+        elif issubclass(data.__class__, Container):
             self.setData(data)
         else:
             raise TypeError('DataContainer needs a Container to initialize, not ' +
@@ -47,7 +49,7 @@ class DataContainer(Annotatable, Copyable, DeepEqual, Container, Sized):
         Returns
         -------
 
-        """ 
+        """
         return self.getData()
 
     @data.setter
@@ -155,4 +157,4 @@ class DataWrapperMapper():
         -------
 
         """
-        return self._sets
+        return self._data

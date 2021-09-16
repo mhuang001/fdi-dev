@@ -50,10 +50,16 @@ if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
 else:
     PY3 = False
 
+
+Test_Pool_Name = __name__.replace('.', '_')
+
 Classes.updateMapping()
 
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
+
+    Test_Pool_Name = 'teest_pal'
+
     pass
 
 else:
@@ -278,7 +284,7 @@ def cleanup(poolurl=None, poolname=None):
 
 
 def test_PoolManager():
-    defaultpoolName = 'fdi_pool_' + __name__ + getpass.getuser()
+    defaultpoolName = Test_Pool_Name
     defaultpoolPath = '/tmp'
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
@@ -383,7 +389,7 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args):
 
 
 def test_ProductRef():
-    defaultpoolName = 'fdi_pool_' + __name__ + getpass.getuser()
+    defaultpoolName = Test_Pool_Name
     defaultpoolPath = '/tmp'
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
@@ -457,11 +463,11 @@ def test_ProductRef():
 
 
 def test_ProductStorage_init():
-    defaultpoolname = 'fdi_pool_' + __name__ + getpass.getuser()
+    defaultpoolname = Test_Pool_Name
     poolpath = '/tmp'
     defaultpoolurl = 'file://' + poolpath + '/' + defaultpoolname
     cleanup(defaultpoolurl, defaultpoolname)
-    newpoolname = 'fdi_newpool_' + __name__ + getpass.getuser()
+    newpoolname = 'new_' + Test_Pool_Name
     newpoolurl = 'file://' + poolpath + '/' + newpoolname
     cleanup(newpoolurl, newpoolname)
 
@@ -519,6 +525,7 @@ def check_ps_func_for_pool(thepoolname, thepoolurl, *args):
     # one by one
     q = 3
     x2, ref2 = [], []
+
     for d in range(q):  # The 1st one is a mapcontext, rest prodct
         tmp = Product(description='x' + str(d)
                       ) if d > 0 else MapContext(description='x0')
@@ -579,7 +586,7 @@ def check_ps_func_for_pool(thepoolname, thepoolurl, *args):
 
 def test_ProdStorage_func_local_mem():
     # local pool
-    thepoolname = 'fdi_pool_' + __name__ + getpass.getuser()
+    thepoolname = Test_Pool_Name
     thepoolpath = '/tmp'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
     cleanup(thepoolurl, thepoolname)
@@ -598,7 +605,7 @@ def test_ProdStorage_func_http(server, userpass):
 
     aburl, hdr = server
     # httpclientpool
-    thepoolname = 'fdi_'+__name__
+    thepoolname = Test_Pool_Name
     thepoolurl = aburl + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
@@ -619,7 +626,7 @@ def test_ProdStorage_func_http(server, userpass):
 
 def test_ProdStorage_func_server(local_pools_dir):
     # httppool , the http server-side pool
-    thepoolname = 'fdi_server'+__name__
+    thepoolname = 'server'+Test_Pool_Name
     thepoolurl = 'server://' + local_pools_dir + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
@@ -627,7 +634,7 @@ def test_ProdStorage_func_server(local_pools_dir):
 
 
 def test_LocalPool():
-    thepoolname = 'fdi_localpool_' + __name__ + getpass.getuser()
+    thepoolname = 'localpool_' + Test_Pool_Name
     thepoolpath = '/tmp'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
 
@@ -700,12 +707,12 @@ def doquery(poolpath, newpoolpath):
     assert q.retrieveAllVersions() == a4
 
     # make a productStorage
-    thepoolname = 'fdi_pool_' + __name__ + getpass.getuser()
+    thepoolname = Test_Pool_Name
     thepoolurl = poolpath + '/' + thepoolname
     thepool, pstore = mkStorage(thepoolname, thepoolurl)
 
     # make another
-    newpoolname = 'fdi_newpool_' + __name__ + getpass.getuser()
+    newpoolname = 'new_' + Test_Pool_Name
     newpoolurl = newpoolpath + '/' + newpoolname
     newpool, pstore2 = mkStorage(newpoolname, newpoolurl)
 
@@ -979,7 +986,7 @@ def test_MapContext():
     assert c4['refs']['x'].product.description == 'hi'
 
     # stored prod
-    thepoolname = 'fdi_pool_' + __name__ + getpass.getuser()
+    thepoolname = Test_Pool_Name
     thepoolpath = '/tmp'
     thepoolurl = 'file://' + thepoolpath + '/'+thepoolname
     # create a prooduct
@@ -1059,7 +1066,7 @@ def test_MapContext():
 
 
 def test_realistic():
-    poolname = 'fdi_pool_' + __name__ + getpass.getuser()
+    poolname = Test_Pool_Name
     poolpath = '/tmp'
     poolurl = 'file://' + poolpath + '/' + poolname
     # remove existing pools in memory
@@ -1127,7 +1134,7 @@ def speed():
     p['array'] = a
     PoolManager().removeAll()
     # create a product store
-    pool = 'file:///tmp/fdi_perf_' + __name__ + getpass.getuser()
+    pool = 'file:///tmp/perf_' + Test_Pool_Name
     pstore = ProductStorage(pool)
     # clean up possible garbage of previous runs
     pstore.wipePool()

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class MetaDataHolder(object):
+class MetaDataHolder():
     """ Object holding meta data. 
 
     """
@@ -26,7 +26,7 @@ class MetaDataHolder(object):
         if meta is None:
             meta = metadata.MetaData()
         self.setMeta(meta)
-        super(MetaDataHolder, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     def getMeta(self):
         """ Returns the current MetaData container of this object. 

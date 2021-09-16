@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class History(CompositeDataset, DeepEqual):
+class History(CompositeDataset):
     """ Public interface to the history dataset. Contains the
     main methods for retrieving a script and copying the history.
     """
@@ -112,9 +112,9 @@ class History(CompositeDataset, DeepEqual):
         -------
 
         """
-        return OrderedDict(description=self.description,
-                           PARAM_HISTORY=self.PARAM_HISTORY,
-                           TASK_HISTORY=self.TASK_HISTORY,
-                           meta=self.meta,
-                           _sets=self._sets,
-                           _STID=self._STID)
+        return OrderedDict(
+            _ATTR_PARAM_HISTORY=self.PARAM_HISTORY,
+            _ATTR_TASK_HISTORY=self.TASK_HISTORY,
+            _ATTR__meta=self._meta,
+            **self.data,
+            _STID=self._STID)

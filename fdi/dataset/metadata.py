@@ -741,8 +741,8 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             return ret
         vs, us, ts, ds, fs, gs, cs = ret
         if level > 1:
-            return '%s(%s %s <%s>)' % (self.__class__.__name__, ts, vs, us)
-        return '%s{ %s %s <%s>, "%s", default= %s, valid= %s tcode=%s}' % \
+            return '(%s: %s <%s>)' % (ts, vs, us)
+        return '%s(%s: %s <%s>, "%s", default= %s, valid= %s tcode=%s)' % \
             (self.__class__.__name__, ts, vs, us, ds, fs, gs, cs)
 
     __str__ = toString
@@ -769,7 +769,7 @@ MetaHeaders = ['name', 'value', 'unit', 'type', 'valid',
                'default', 'code', 'description']
 
 
-class MetaData(Composite, Copyable, ParameterListener, DatasetEventSender):
+class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
     """ A container of named Parameters. A MetaData object can
     have one or more parameters, each of them stored against a
     unique name. The order of adding parameters to this container
@@ -779,8 +779,8 @@ class MetaData(Composite, Copyable, ParameterListener, DatasetEventSender):
     will keep the order. """
 
     Table_Widths = [
-        {'name': 15, 'value': 20, 'unit': 7, 'type': 8,
-         'valid': 20, 'default': 17, 'code': 4, 'description': 21}
+        {'name': 15, 'value': 18, 'unit': 6, 'type': 8,
+         'valid': 17, 'default': 15, 'code': 4, 'description': 17}
     ]
 
     def __init__(self, copy=None, defaults=None, **kwds):
@@ -902,14 +902,25 @@ class MetaData(Composite, Copyable, ParameterListener, DatasetEventSender):
         cn = self.__class__.__name__
         s = ''
         att = {}
-        for (k, v) in self.data.items():
-            att['name'] = str(k)
+
+        for (k, v) in self.__prettystate__():
+            att['name'] = k
             # limit cell width for level=0,1
-            att['value'], att['unit'], att['type'], att['description'],\
-                att['default'], att['valid'], att['code'] = v.toString(
-                    level=level, width=0 if level > 1 else 1,
-                    tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                    alist=True)
+            if issubclass(v.__class__, Parameter):
+                att['value'], att['unit'], att['type'], att['description'],\
+                    att['default'], att['valid'], att['code'] = v.toString(
+                        level=level, width=0 if level > 1 else 1,
+                        tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                        alist=True)
+            else:
+                # listeners
+                lstr = v.toString(level=level, alist=True)
+                att['value'], att['unit'], att['type'], att['description'] = \
+                    '\n'.join(str(x[1]) for x in lstr), '', \
+                    '\n'.join(x[0] for x in lstr), \
+                    '\n'.join(x[2] for x in lstr)
+                att['default'], att['valid'], att['code'] = '', '', ''
+
             if level == 0:
                 l = tuple(att[n] for n in MetaHeaders) if param_widths == -1 else \
                     tuple(wls(att[n], w)
@@ -953,22 +964,13 @@ class MetaData(Composite, Copyable, ParameterListener, DatasetEventSender):
                           disable_numparse=True)
         else:
             s = ', '.join(tab) if len(tab) else 'Default Meta'
-            if len(self.listeners):
-                l = ', listeners = %s' % \
-                    self.listeners.toString(level=level,
-                                            tablefmt=tablefmt, tablefmt1=tablefmt1,
-                                            tablefmt2=tablefmt2,
-                                            **kwds)
-            else:
-                l = '.'
+            l = '.'
             return '<' + self.__class__.__name__ + ' ' + s + l + '>'
-        lsnr = self.listeners.toString(level=level,
-                                       tablefmt=tablefmt, tablefmt1=tablefmt1,
-                                       tablefmt2=tablefmt2,
-                                       **kwds)
 
-        return '\n%s\n%s-listeners = %s' % (s, cn, lsnr) if len(tab) else \
-            '%s %s-listeners = %s' % ('(No Parameter.)', cn, lsnr)
+        return '\n%s' % (s) if len(tab) else '(No Parameter.)'
+
+        # return '\n%s\n%s-listeners = %s' % (s, cn, lsnr) if len(tab) else \
+        #    '%s %s-listeners = %s' % ('(No Parameter.)', cn, lsnr)
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from collections import namedtuple, OrderedDict
+from collections import namedtuple, OrderedDict, UserList
 from .serializable import Serializable
+from .annotatable import Annotatable
 from .eq import DeepEqual
-from ..utils.common import trbk
+from ..utils.common import trbk, lls
 
 
 import logging
@@ -12,12 +13,12 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class EventListener():
+class EventListener(Annotatable):
     """ Generic interface for listeners that will listen to anything
     """
 
-    def __init__(self, **kwds):
-        super().__init__(**kwds)
+    def __init__(self, *args, **kwds):
+        super().__init__(*args, **kwds)
 
     def targetChanged(self,  *args, **kwargs):
         """ Informs that an event has happened in a target of
@@ -39,7 +40,7 @@ class DatasetBaseListener(EventListener):
     hard reference.
     """
 
-    def __init__(self, **kwds):
+    def __init__(self, *args, **kwds):
         """
 
         Parameters
@@ -48,7 +49,7 @@ class DatasetBaseListener(EventListener):
         Returns
         -------
         """
-        super().__init__(**kwds)
+        super().__init__(*args, **kwds)
 
     def targetChanged(self, event):
         """ Informs that an event has happened in a target of the
@@ -65,20 +66,22 @@ class DatasetBaseListener(EventListener):
         pass
 
 
-class ListnerSet(Serializable, DeepEqual, list):
+class ListnerSet(Serializable, DeepEqual, UserList):
     """ Mutable collection of Listeners of an EvenSender.
     """
 
-    def __init__(self, **kwds):
+    def __init__(self, data=None, *args, **kwds):
         """
         Parameters
         ----------
+        :data: default is `None` for a list.
 
         Returns
         -----
         """
-        self._members = []
-        super().__init__(**kwds)
+        if data is None:
+            data = []
+        super().__init__(data, *args, **kwds)
 
     @property
     def urns(self):
@@ -130,7 +133,7 @@ class ListnerSet(Serializable, DeepEqual, list):
         """
 
         ret = [ProductRef(
-            x).urn for x in self._members if remove is None or x != remove]
+            x).urn for x in self.data if remove is None or x != remove]
 
         return ret
 
@@ -154,23 +157,43 @@ class ListnerSet(Serializable, DeepEqual, list):
         """
         return OrderedDict()
 
-    def toString(self, level=0, **kwds):
+    def __repr__(self, **kwds):
+
+        return self.toString(level=2)
+
+    def toString(self, level=0, alist=False, **kwds):
         """
         Parameters
         ----------
 
         Returns
         -------
+        LIST[TUPLE(OBJ)] or STRXS
+        A list of member-repre tuples or a string of all depending on `alist`.
         """
         if level == 0:
-            l = ['%s(%d, %s)' % (x.__class__.__name__, id(x),
-                                 lls(x.description, 20))
-                 for x in self._members]
+            if alist:
+                l = [(x.__class__.__name__, id(x),
+                      lls(x.description, 20))
+                     for x in self.data]
+            else:
+                l = ['%s(%d, %s)' % (x.__class__.__name__, id(x),
+                                     lls(x.description, 20))
+                     for x in self.data]
+
         else:
-            l = ['%s(%d, %s)' % (x.__class__.__name__, id(x),
-                                 lls(x.description, 8))
-                 for x in self._members]
-        return self.__class__.__name__ + '{' + ', '.join(l) + '}'
+            if alist:
+                l = [(x.__class__.__name__, id(x),
+                      lls(x.description, 8))
+                     for x in self.data]
+            else:
+                l = ['%s(%d, %s)' % (x.__class__.__name__, id(x),
+                                     lls(x.description, 8))
+                     for x in self.data]
+        if alist:
+            return l
+        else:
+            return self.__class__.__name__ + '(' + ', '.join(l) + ')'
 
 
 class EventSender():
@@ -480,7 +503,7 @@ class MetaDataListener(DatasetBaseListener):
     create an object hard reference. See DatasetBaseListener.
     """
 
-    def __init__(self, **kwds):
+    def __init__(self, *args, **kwds):
         """
 
         Parameters
@@ -489,7 +512,7 @@ class MetaDataListener(DatasetBaseListener):
         Returns
         -------
         """
-        super().__init__(**kwds)
+        super().__init__(*args, **kwds)
 
 
 class DatasetListener(DatasetBaseListener):

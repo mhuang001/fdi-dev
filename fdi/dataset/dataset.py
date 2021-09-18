@@ -94,11 +94,27 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
         return s
 
 
+def make_title_meta_l0(self, level=0, heavy=True, **kwds):
+    cn = self.__class__.__name__
+    t = '*** %s (%s) ***\n' % (cn, self.description if hasattr(
+        self, 'description') else '')
+    if heavy:
+        l = ('*' if level else '*') * (len(t)-1) + '\n'
+    else:
+        l = '_' * (len(t)-1) + '\n'
+    s = l + t + ('' if level or not heavy else l + 'META\n----')
+    s += mstr(self._meta, level=level, **kwds)
+    last = "="*len(t) if heavy else "-"*len(t)
+    last += '\n'
+
+    return s, last
+
+
 class GenericDataset(Dataset, Typed, DataWrapper):
     """ mh: Contains one typed data item with a unit and a typecode.
     """
 
-    def __init__(self,                 **kwds):
+    def __init__(self, **kwds):
         """
         """
         super(GenericDataset, self).__init__(
@@ -110,7 +126,8 @@ class GenericDataset(Dataset, Typed, DataWrapper):
 
     def toString(self, level=0,
                  tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-                 param_widths=None, width=0, matprint=None, trans=True, **kwds):
+                 param_widths=None, width=0, matprint=None, trans=True,
+                 heavy=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         Parameter
@@ -127,21 +144,19 @@ class GenericDataset(Dataset, Typed, DataWrapper):
                 (str(self.data), str(self.description), self.meta.toString(
                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                     level=level, width=width, param_widths=param_widths,
-                    matprint=matprint, trans=trans, **kwds))
+                    matprint=matprint, trans=trans, heavy=heavy, **kwds))
 
-        s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
-            self, 'description') else '')
-        s += mstr(self.__getstate__(), level=level,
-                  tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                  excpt=['description'], **kwds)
+        s, last = make_title_meta_l0(self, level=level, width=width,  heavy=heavy,
+                                     tablefmt=tablefmt, tablefmt1=tablefmt1,
+                                     tablefmt2=tablefmt2, excpt=['description'])
 
-        d = cn + '-type dataset =\n'
-        d += bstr(self.data, level=level,
+        d = 'DATA\n----\n'
+        d += bstr(self.data, level=level, heavy=heavy,
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                   **kwds) if matprint is None else \
-            matprint(self.data, level=level, trans=False, headers=[], tablefmt2='plain',
+            matprint(self.data, level=level, trans=False, headers=[], tablefmt2='plain', heavy=heavy,
                      **kwds)
-        return f'{s}\n{d}\n{"="*80}\n\n'
+        return f'{s}\n{d}\n{last}\n'
 
 
 class CompositeDataset(MetaDataListener, AbstractComposite):
@@ -167,6 +182,7 @@ class CompositeDataset(MetaDataListener, AbstractComposite):
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder 
+
         Parameter
         ---------
 
@@ -175,6 +191,6 @@ class CompositeDataset(MetaDataListener, AbstractComposite):
 
         """
         return OrderedDict(  # description=self.description,
-            _ATTR__meta=self._meta,
+            _ATTR_meta=self._meta,
             **self._data,
             _STID=self._STID)

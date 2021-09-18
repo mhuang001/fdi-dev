@@ -6,7 +6,7 @@ from .typecoded import Typecoded
 from .listener import ColumnListener
 from .ndprint import ndprint
 from ..utils.common import mstr, bstr, lls, exprstrs, findShape
-from .dataset import GenericDataset
+from .dataset import GenericDataset, make_title_meta_l0
 try:
     from .arraydataset_datamodel import Model
 except ImportError:
@@ -140,8 +140,9 @@ class ArrayDataset(GenericDataset, Iterable):
         return self.toString(level=2)
 
     def toString(self, level=0,
-                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-                 width=0, param_widths=None, matprint=None, trans=True, **kwds):
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
+                 width=0, param_widths=None, matprint=None, trans=True,
+                 heavy=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         """
@@ -153,44 +154,35 @@ class ArrayDataset(GenericDataset, Iterable):
 
             s = cn + '(' + \
                 self.meta.toString(
-                    level=level,
+                    level=level, heavy=heavy,
                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                     width=width, param_widths=param_widths,
                     **kwds)
-            if 0:
-                s += ', '.join(
-                    str(k)+': '+str(v.value if hasattr(v, 'value') else v)
-                    for k, v in self.meta.items()) + ')'
             # set wiidth=0 level=2 to inhibit \n
             vs, us, ts, ds, fs, gs, cs = exprstrs(
                 self, '_data', width=0, level=level)
             # '{ %s (%s) <%s>, "%s", default %s, tcode=%s}' %\
-            #(vs, us, ts, ds, fs, cs)
+            # (vs, us, ts, ds, fs, cs)
             return '%s data= %s)' % (s, vs)
 
-        s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
-            self, 'description') else '')
-        toshow = {'meta': self.__getstate__()['meta'],
-                  'data': self.__getstate__()['data'],
-                  }
-        s += mstr(toshow, level=level, width=width,
-                  tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                  excpt=['description'], **kwds)
+        s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
+                                     tablefmt=tablefmt, tablefmt1=tablefmt1,
+                                     tablefmt2=tablefmt2, excpt=['description'])
 
-        d = cn + '-type dataset =\n'
+        d = 'DATA\n----\n'
         ds = bstr(self.data, level=level, **kwds) if matprint is None else \
             matprint(self.data, trans=False, headers=[], tablefmt2='plain',
                      **kwds)
         d += lls(ds, 1000)
-        return f'{s}{d}\n{"="*80}\n\n'
+        return f'{s}\n{d}\n{last}\n'
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
 
         # s = OrderedDict(description=self.description, meta=self.meta, data=self.data)  # super(...).__getstate__()
         s = OrderedDict(
-            meta=self._meta if hasattr(self, '_meta') else None,
-            data=None if self.data is None else self.data,
+            meta=getattr(self, '_meta', None),
+            data=getattr(self, 'data', None),
             _STID=self._STID)
 
         return s

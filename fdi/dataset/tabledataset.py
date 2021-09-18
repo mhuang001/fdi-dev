@@ -4,7 +4,7 @@ from .indexed import Indexed
 from .ndprint import ndprint
 from .odict import ODict
 from ..utils.common import mstr, bstr, lls, exprstrs, findShape
-from .dataset import Dataset
+from .dataset import Dataset, make_title_meta_l0
 from .indexed import Indexed
 
 try:
@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class TableModel(object):
+class TableModel():
     """ to interrogate a tabular data model
     """
 
@@ -47,7 +47,7 @@ class TableModel(object):
         """
 
         """
-        super(TableModel, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     def getColumnClass(self, columnIndex):
         """ Returns the class for the first cell
@@ -495,8 +495,9 @@ Default is to return all columns.
         return self.toString(level=2)
 
     def toString(self, level=0,
-                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-                 width=0, param_widths=None, matprint=None, trans=True, **kwds):
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
+                 width=0, param_widths=None, matprint=None, trans=True,
+                 heavy=True, **kwds):
         """
         tablefmt2: format of 2D data, others see `MetaData.toString`.
         """
@@ -504,8 +505,6 @@ Default is to return all columns.
             matprint = ndprint
 
         cn = self.__class__.__name__
-        s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
-            self, 'description') else '')
         if level > 1:
             s = cn + '('
             s += self.meta.toString(
@@ -515,20 +514,23 @@ Default is to return all columns.
                 **kwds)
             return s + 'data= {' + \
                 ', '.join('"%s": %s' % (k, v.toString(
-                    level=level,
+                    level=level, heavy=heavy,
                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt,
                     width=width, param_widths=param_widths, **kwds))
                     for k, v in self.getColumnMap().items()) + \
                 '})'
-        else:
-            s += mstr(self.__getstate__(), level=level,
-                      tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                      excpt=['description'], **kwds)
+
+        s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
+                                     tablefmt=tablefmt, tablefmt1=tablefmt1,
+                                     tablefmt2=tablefmt2, excpt=['description'])
+
+        d = 'DATA\n----\n'
+
         stp = 2 if level > 1 else 20 if level == 1 else None
         cols = self.getData().values()
 
         coldata = [list(itertools.islice(x.data, stp)) for x in cols]
-        d = cn + 'type-dataset =\n'
+
         nmun = zip((str(x) for x in self.getData().keys()),
                    (str(x.unit) for x in cols))
         hdr = list('%s\n(%s)' % nu for nu in nmun)
@@ -538,7 +540,7 @@ Default is to return all columns.
         collen = self.getRowCount()
         if level and stp < collen:
             d += '(Only display %d rows of %d for level=%d.)' % (stp, collen, level)
-        return f'{s}\n{d}{"="*80}\n\n'
+        return f'{s}\n{d}{last}\n'
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

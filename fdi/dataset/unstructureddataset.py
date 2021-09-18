@@ -23,8 +23,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class UnstrcturedDataset(AbstractComposite, Typed, Copyable, MetaDataListener):
-    """ Container for data without pre-defined structure or organization.. """
+class UnstrcturedDataset(Typed, MetaDataListener, AbstractComposite, Copyable):
+    """ Container for data without pre-defined structure or organization.. 
+
+    `MetaDataListener` must stay to the left of `AbstractComposite`.
+    """
 
     def __init__(self, data=None,
                  description=None,

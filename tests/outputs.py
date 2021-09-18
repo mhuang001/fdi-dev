@@ -183,82 +183,110 @@ nds3 =\
 
 """
 out_GenericDataset = """level 0
-=== GenericDataset (test GD) ===
-meta= {
-======  ====================  ======  ========  ====================  =================  ======  =====================
-name    value                 unit    type      valid                 default            code    description
-======  ====================  ======  ========  ====================  =================  ======  =====================
-a       3.4                   None    float     (0, 31): valid        2.0                None    rule name, if is "val
-                                                99:                                              id", "", or "default"
-                                                                                                 , is ommited in value
-                                                                                                  string.
-b       xy (2019-02-19T01:02          finetime  (0, 9876543210123456  1958-01-01T00:00:  Q       date param
-        :03.456789                              ): xy                 00.000099
-        1929229360456789)                                             99
-c       Invalid (IJK)                 string    '': empty             cliche             B       this is a string para
-                                                                                                 meter. but only "" is
-                                                                                                  allowed.
-d       off (0b00)            None    binary    11000 0b01: on        0b0                H       valid rules described
-                                                11000 0b00: off                                   with binary masks
-======  ====================  ======  ========  ====================  =================  ======  =====================
-MetaData-listeners = ListnerSet{}}
-GenericDataset-type dataset =
+********************************
+*** GenericDataset (test GD) ***
+********************************
+META
+----
+=========  ==================  ======  ========  =================  ===============  ======  =================
+name       value               unit    type      valid              default          code    description
+=========  ==================  ======  ========  =================  ===============  ======  =================
+a          3.4                 None    float     (0, 31): valid     2.0              None    rule name, if is
+                                                 99:                                         "valid", "", or "
+                                                                                             default", is ommi
+                                                                                             ted in value stri
+                                                                                             ng.
+b          xy (2019-02-19T01:          finetime  (0, 9876543210123  1958-01-01T00:0  Q       date param
+           02:03.456789                          456): xy           0:00.000099
+           1929229360456789)                                        99
+c          Invalid (IJK)               string    '': empty          cliche           B       this is a string
+                                                                                             parameter. but on
+                                                                                             ly "" is allowed.
+d          off (0b00)          None    binary    11000 0b01: on     0b0              H       valid rules descr
+                                                 11000 0b00: off                             ibed with binary
+                                                                                             masks
+listeners
+=========  ==================  ======  ========  =================  ===============  ======  =================
+DATA
+----
 88.8
-================================================================================
+=================================
 
 level 1, repr
-=== GenericDataset (test GD) ===
-meta= {
+********************************
+*** GenericDataset (test GD) ***
+
 -------------  --------------------------  ----------------
 a= 3.4         b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
                .456789
                1929229360456789)
-d= off (0b00)
+d= off (0b00)  listeners=
 -------------  --------------------------  ----------------
-MetaData-listeners = ListnerSet{}
-}
-GenericDataset-type dataset =
+
+DATA
+----
 88.8
-================================================================================
+=================================
 
 level 2,
-GenericDataset{ 88.8, description = "test GD", meta = a=3.4, b=xy (FineTime(2019-02-19T01:02:03.456789)), c=Invalid (IJK), d=off (0b00). }"""
+GenericDataset{ 88.8, description = "test GD", meta = <MetaData a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19T01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), listeners=ListnerSet().> }"""
 out_ArrayDataset = """
 
 level 0
-=== ArrayDataset (toString tester AD) ===
-meta= {
-===============  ====================  ======  ========  ====================  =================  ======  =====================
-name             value                 unit    type      valid                 default            code    description
-===============  ====================  ======  ========  ====================  =================  ======  =====================
-shape            (2, 3, 4, 5)                  tuple     None                  ()                         Number of elements in
-                                                                                                           each dimension. Quic
-                                                                                                          k changers to the rig
-                                                                                                          ht.
-description      toString tester AD            string    None                  UNKNOWN            B       Description of this d
-                                                                                                          ataset
-unit             lyr                           string    None                  None               B       Unit of every element
-                                                                                                          .
-typecode         UNKNOWN                       string    None                  UNKNOWN            B       Python internal stora
-                                                                                                          ge code.
-version          0.1                           string    None                  0.1                B       Version of dataset
-FORMATV          1.6.0.1                       string    None                  1.6.0.1            B       Version of dataset sc
-                                                                                                          hema and revision
-a                3.4                   None    float     (0, 31): valid        2.0                None    rule name, if is "val
-                                                         99:                                              id", "", or "default"
-                                                                                                          , is ommited in value
-                                                                                                           string.
-b                xy (2019-02-19T01:02          finetime  (0, 9876543210123456  1958-01-01T00:00:  Q       date param
-                 :03.456789                              ): xy                 00.000099
-                 1929229360456789)                                             99
-c                Invalid (IJK)                 string    '': empty             cliche             B       this is a string para
-                                                                                                          meter. but only "" is
-                                                                                                           allowed.
-d                off (0b00)            None    binary    11000 0b01: on        0b0                H       valid rules described
-                                                         11000 0b00: off                                   with binary masks
-added_parameter  42                    None    integer   None                  None               None    A non-builtin param
-===============  ====================  ======  ========  ====================  =================  ======  =====================
-MetaData-listeners = ListnerSet{}}ArrayDataset-type dataset =
+*****************************************
+*** ArrayDataset (toString tester AD) ***
+*****************************************
+META
+----
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| name            | value              | unit   | type     | valid             | default         | code   | description       |
++=================+====================+========+==========+===================+=================+========+===================+
+| shape           | (2, 3, 4, 5)       |        | tuple    | None              | ()              |        | Number of element |
+|                 |                    |        |          |                   |                 |        | s in each dimensi |
+|                 |                    |        |          |                   |                 |        | on. Quick changer |
+|                 |                    |        |          |                   |                 |        | s to the right.   |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| description     | toString tester AD |        | string   | None              | UNKNOWN         | B      | Description of th |
+|                 |                    |        |          |                   |                 |        | is dataset        |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| unit            | lyr                |        | string   | None              | None            | B      | Unit of every ele |
+|                 |                    |        |          |                   |                 |        | ment.             |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| typecode        | UNKNOWN            |        | string   | None              | UNKNOWN         | B      | Python internal s |
+|                 |                    |        |          |                   |                 |        | torage code.      |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| version         | 0.1                |        | string   | None              | 0.1             | B      | Version of datase |
+|                 |                    |        |          |                   |                 |        | t                 |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| FORMATV         | 1.6.0.1            |        | string   | None              | 1.6.0.1         | B      | Version of datase |
+|                 |                    |        |          |                   |                 |        | t schema and revi |
+|                 |                    |        |          |                   |                 |        | sion              |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| a               | 3.4                | None   | float    | (0, 31): valid    | 2.0             | None   | rule name, if is  |
+|                 |                    |        |          | 99:               |                 |        | "valid", "", or " |
+|                 |                    |        |          |                   |                 |        | default", is ommi |
+|                 |                    |        |          |                   |                 |        | ted in value stri |
+|                 |                    |        |          |                   |                 |        | ng.               |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| b               | xy (2019-02-19T01: |        | finetime | (0, 9876543210123 | 1958-01-01T00:0 | Q      | date param        |
+|                 | 02:03.456789       |        |          | 456): xy          | 0:00.000099     |        |                   |
+|                 | 1929229360456789)  |        |          |                   | 99              |        |                   |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| c               | Invalid (IJK)      |        | string   | '': empty         | cliche          | B      | this is a string  |
+|                 |                    |        |          |                   |                 |        | parameter. but on |
+|                 |                    |        |          |                   |                 |        | ly "" is allowed. |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| d               | off (0b00)         | None   | binary   | 11000 0b01: on    | 0b0             | H      | valid rules descr |
+|                 |                    |        |          | 11000 0b00: off   |                 |        | ibed with binary  |
+|                 |                    |        |          |                   |                 |        | masks             |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| added_parameter | 42                 | None   | integer  | None              | None            | None   | A non-builtin par |
+|                 |                    |        |          |                   |                 |        | am                |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| listeners       |                    |        |          |                   |                 |        |                   |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+DATA
+----
 0  0  0  0  0
 0  0  0  0  0
 0  0  0  0  0
@@ -300,13 +328,14 @@ MetaData-listeners = ListnerSet{}}ArrayDataset-type dataset =
 #=== dimension 4
 
 
-================================================================================
+==========================================
 
 
 
 level 1
-=== ArrayDataset (toString tester AD) ===
-meta= {
+*****************************************
+*** ArrayDataset (toString tester AD) ***
+
 -------------------  --------------------------  ----------------
 shape= (2, 3, 4, 5)  description= toString test  unit= lyr
                      er AD
@@ -314,10 +343,11 @@ typecode= UNKNOWN    version= 0.1                FORMATV= 1.6.0.1
 a= 3.4               b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
                      .456789
                      1929229360456789)
-d= off (0b00)        added_parameter= 42
+d= off (0b00)        added_parameter= 42         listeners=
 -------------------  --------------------------  ----------------
-MetaData-listeners = ListnerSet{}
-}ArrayDataset-type dataset =
+
+DATA
+----
 0  0  0  0  0
 0  0  0  0  0
 0  0  0  0  0
@@ -359,46 +389,63 @@ MetaData-listeners = ListnerSet{}
 #=== dimension 4
 
 
-================================================================================
+==========================================
 
 
 
 level 2, repr
-ArrayDataset(shape=(2, 3, 4, 5), description=toString tester AD, unit=lyr, a=3.4, b=xy (FineTime(2019-02-19T01:02:03.456789)), c=Invalid (IJK), d=off (0b00), added_parameter=42. data= [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]])
+ArrayDataset(<MetaData shape=(tuple: (2, 3, 4, 5) <>), description=(string: toString tester AD <>), unit=(string: lyr <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19T01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), listeners=ListnerSet().> data= [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]])
 
 an empty meta and long data level 2: 
-ArrayDataset(shape=(8,). data= [8, 8, 8, 8, 8, 8, 8, 8])
+ArrayDataset(<MetaData shape=(tuple: (8,) <>), listeners=ListnerSet().> data= [8, 8, 8, 8, 8, 8, 8, 8])
 
 """
 out_TableDataset = """
 
 level 0
-=== TableDataset (UNKNOWN) ===
-meta= {
-===============  ====================  ======  ========  ====================  =================  ======  =====================
-name             value                 unit    type      valid                 default            code    description
-===============  ====================  ======  ========  ====================  =================  ======  =====================
-description      UNKNOWN                       string    None                  UNKNOWN            B       Description of this d
-                                                                                                          ataset
-version          0.1                           string    None                  0.1                B       Version of dataset
-FORMATV          1.6.0.1                       string    None                  1.6.0.1            B       Version of dataset sc
-                                                                                                          hema and revision
-a                3.4                   None    float     (0, 31): valid        2.0                None    rule name, if is "val
-                                                         99:                                              id", "", or "default"
-                                                                                                          , is ommited in value
-                                                                                                           string.
-b                xy (2019-02-19T01:02          finetime  (0, 9876543210123456  1958-01-01T00:00:  Q       date param
-                 :03.456789                              ): xy                 00.000099
-                 1929229360456789)                                             99
-c                Invalid (IJK)                 string    '': empty             cliche             B       this is a string para
-                                                                                                          meter. but only "" is
-                                                                                                           allowed.
-d                off (0b00)            None    binary    11000 0b01: on        0b0                H       valid rules described
-                                                         11000 0b00: off                                   with binary masks
-added_parameter  42                    None    integer   None                  None               None    A non-builtin param
-===============  ====================  ======  ========  ====================  =================  ======  =====================
-MetaData-listeners = ListnerSet{}}
-TableDatasettype-dataset =
+******************************
+*** TableDataset (UNKNOWN) ***
+******************************
+META
+----
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| name            | value              | unit   | type     | valid             | default         | code   | description       |
++=================+====================+========+==========+===================+=================+========+===================+
+| description     | UNKNOWN            |        | string   | None              | UNKNOWN         | B      | Description of th |
+|                 |                    |        |          |                   |                 |        | is dataset        |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| version         | 0.1                |        | string   | None              | 0.1             | B      | Version of datase |
+|                 |                    |        |          |                   |                 |        | t                 |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| FORMATV         | 1.6.0.1            |        | string   | None              | 1.6.0.1         | B      | Version of datase |
+|                 |                    |        |          |                   |                 |        | t schema and revi |
+|                 |                    |        |          |                   |                 |        | sion              |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| a               | 3.4                | None   | float    | (0, 31): valid    | 2.0             | None   | rule name, if is  |
+|                 |                    |        |          | 99:               |                 |        | "valid", "", or " |
+|                 |                    |        |          |                   |                 |        | default", is ommi |
+|                 |                    |        |          |                   |                 |        | ted in value stri |
+|                 |                    |        |          |                   |                 |        | ng.               |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| b               | xy (2019-02-19T01: |        | finetime | (0, 9876543210123 | 1958-01-01T00:0 | Q      | date param        |
+|                 | 02:03.456789       |        |          | 456): xy          | 0:00.000099     |        |                   |
+|                 | 1929229360456789)  |        |          |                   | 99              |        |                   |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| c               | Invalid (IJK)      |        | string   | '': empty         | cliche          | B      | this is a string  |
+|                 |                    |        |          |                   |                 |        | parameter. but on |
+|                 |                    |        |          |                   |                 |        | ly "" is allowed. |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| d               | off (0b00)         | None   | binary   | 11000 0b01: on    | 0b0             | H      | valid rules descr |
+|                 |                    |        |          | 11000 0b00: off   |                 |        | ibed with binary  |
+|                 |                    |        |          |                   |                 |        | masks             |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| added_parameter | 42                 | None   | integer  | None              | None            | None   | A non-builtin par |
+|                 |                    |        |          |                   |                 |        | am                |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| listeners       |                    |        |          |                   |                 |        |                   |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+DATA
+----
   col1     col2
   (eV)    (cnt)
 ------  -------
@@ -406,23 +453,24 @@ TableDatasettype-dataset =
    4.4     43.2
 5400     2000
 
-================================================================================
+===============================
 
 
 
 level 1
-=== TableDataset (UNKNOWN) ===
-meta= {
+******************************
+*** TableDataset (UNKNOWN) ***
+
 --------------------  --------------------------  ----------------
 description= UNKNOWN  version= 0.1                FORMATV= 1.6.0.1
 a= 3.4                b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
                       .456789
                       1929229360456789)
-d= off (0b00)         added_parameter= 42
+d= off (0b00)         added_parameter= 42         listeners=
 --------------------  --------------------------  ----------------
-MetaData-listeners = ListnerSet{}
-}
-TableDatasettype-dataset =
+
+DATA
+----
   col1     col2
   (eV)    (cnt)
 ------  -------
@@ -430,79 +478,108 @@ TableDatasettype-dataset =
    4.4     43.2
 5400     2000
 
-================================================================================
+===============================
 
 
 
 level 2, repr
-TableDataset(a=3.4, b=xy (FineTime(2019-02-19T01:02:03.456789)), c=Invalid (IJK), d=off (0b00), added_parameter=42.data= {"col1": Column(shape=(3,), description=1, unit=eV. data= [1, 4.4, 5400.0]), "col2": Column(shape=(3,), description=2, unit=cnt. data= [0, 43.2, 2000.0])})
+TableDataset(<MetaData a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19T01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), listeners=ListnerSet().>data= {"col1": Column(<MetaData shape=(tuple: (3,) <>), description=(string: 1 <>), unit=(string: eV <>), listeners=ListnerSet().> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData shape=(tuple: (3,) <>), description=(string: 2 <>), unit=(string: cnt <>), listeners=ListnerSet().> data= [0, 43.2, 2000.0])})
 
 an empty level 2: 
-TableDataset(Default Meta.data= {})
+TableDataset(<MetaData listeners=ListnerSet().>data= {})
 
 """
 out_CompositeDataset = """level 0
-=== CompositeDataset (test CD) ===
-meta= {
-======  ====================  ======  ========  ====================  =================  ======  =====================
-name    value                 unit    type      valid                 default            code    description
-======  ====================  ======  ========  ====================  =================  ======  =====================
-a       3.4                   None    float     (0, 31): valid        2.0                None    rule name, if is "val
-                                                99:                                              id", "", or "default"
-                                                                                                 , is ommited in value
-                                                                                                  string.
-b       xy (2019-02-19T01:02          finetime  (0, 9876543210123456  1958-01-01T00:00:  Q       date param
-        :03.456789                              ): xy                 00.000099
-        1929229360456789)                                             99
-c       Invalid (IJK)                 string    '': empty             cliche             B       this is a string para
-                                                                                                 meter. but only "" is
-                                                                                                  allowed.
-d       off (0b00)            None    binary    11000 0b01: on        0b0                H       valid rules described
-                                                11000 0b00: off                                   with binary masks
-m1      2.3                   sec     float     None                  None               None    a different param in
-                                                                                                 metadata
-======  ====================  ======  ========  ====================  =================  ======  =====================
-MetaData-listeners = ListnerSet{}}
+**********************************
+*** CompositeDataset (test CD) ***
+**********************************
+META
+----
++-----------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| name      | value              | unit   | type     | valid             | default         | code   | description       |
++===========+====================+========+==========+===================+=================+========+===================+
+| a         | 3.4                | None   | float    | (0, 31): valid    | 2.0             | None   | rule name, if is  |
+|           |                    |        |          | 99:               |                 |        | "valid", "", or " |
+|           |                    |        |          |                   |                 |        | default", is ommi |
+|           |                    |        |          |                   |                 |        | ted in value stri |
+|           |                    |        |          |                   |                 |        | ng.               |
++-----------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| b         | xy (2019-02-19T01: |        | finetime | (0, 9876543210123 | 1958-01-01T00:0 | Q      | date param        |
+|           | 02:03.456789       |        |          | 456): xy          | 0:00.000099     |        |                   |
+|           | 1929229360456789)  |        |          |                   | 99              |        |                   |
++-----------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| c         | Invalid (IJK)      |        | string   | '': empty         | cliche          | B      | this is a string  |
+|           |                    |        |          |                   |                 |        | parameter. but on |
+|           |                    |        |          |                   |                 |        | ly "" is allowed. |
++-----------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| d         | off (0b00)         | None   | binary   | 11000 0b01: on    | 0b0             | H      | valid rules descr |
+|           |                    |        |          | 11000 0b00: off   |                 |        | ibed with binary  |
+|           |                    |        |          |                   |                 |        | masks             |
++-----------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| m1        | 2.3                | sec    | float    | None              | None            | None   | a different param |
+|           |                    |        |          |                   |                 |        |  in metadata      |
++-----------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| listeners |                    |        |          |                   |                 |        |                   |
++-----------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
 
-CompositeDataset-datasets =
-<ODict Label: "dataset 1":
-=== ArrayDataset (arraydset 1) ===
-meta= {
-===========  ===========  ======  ======  =======  =========  ======  =====================
-name         value        unit    type    valid    default    code    description
-===========  ===========  ======  ======  =======  =========  ======  =====================
-shape        (3,)                 tuple   None     ()                 Number of elements in
-                                                                       each dimension. Quic
-                                                                      k changers to the rig
-                                                                      ht.
-description  arraydset 1          string  None     UNKNOWN    B       Description of this d
-                                                                      ataset
-unit         ev                   string  None     None       B       Unit of every element
-                                                                      .
-typecode     UNKNOWN              string  None     UNKNOWN    B       Python internal stora
-                                                                      ge code.
-version      0.1                  string  None     0.1        B       Version of dataset
-FORMATV      1.6.0.1              string  None     1.6.0.1    B       Version of dataset sc
-                                                                      hema and revision
-===========  ===========  ======  ======  =======  =========  ======  =====================
-MetaData-listeners = ListnerSet{}}ArrayDataset-type dataset =
+DATA CompositeDataset
+---------------------
+<OD Label: "dataset 1":
+__________________________________
+*** ArrayDataset (arraydset 1) ***
+
++-------------+-------------+--------+--------+---------+-----------+--------+-------------------+
+| name        | value       | unit   | type   | valid   | default   | code   | description       |
++=============+=============+========+========+=========+===========+========+===================+
+| shape       | (3,)        |        | tuple  | None    | ()        |        | Number of element |
+|             |             |        |        |         |           |        | s in each dimensi |
+|             |             |        |        |         |           |        | on. Quick changer |
+|             |             |        |        |         |           |        | s to the right.   |
++-------------+-------------+--------+--------+---------+-----------+--------+-------------------+
+| description | arraydset 1 |        | string | None    | UNKNOWN   | B      | Description of th |
+|             |             |        |        |         |           |        | is dataset        |
++-------------+-------------+--------+--------+---------+-----------+--------+-------------------+
+| unit        | ev          |        | string | None    | None      | B      | Unit of every ele |
+|             |             |        |        |         |           |        | ment.             |
++-------------+-------------+--------+--------+---------+-----------+--------+-------------------+
+| typecode    | UNKNOWN     |        | string | None    | UNKNOWN   | B      | Python internal s |
+|             |             |        |        |         |           |        | torage code.      |
++-------------+-------------+--------+--------+---------+-----------+--------+-------------------+
+| version     | 0.1         |        | string | None    | 0.1       | B      | Version of datase |
+|             |             |        |        |         |           |        | t                 |
++-------------+-------------+--------+--------+---------+-----------+--------+-------------------+
+| FORMATV     | 1.6.0.1     |        | string | None    | 1.6.0.1   | B      | Version of datase |
+|             |             |        |        |         |           |        | t schema and revi |
+|             |             |        |        |         |           |        | sion              |
++-------------+-------------+--------+--------+---------+-----------+--------+-------------------+
+| listeners   |             |        |        |         |           |        |                   |
++-------------+-------------+--------+--------+---------+-----------+--------+-------------------+
+DATA
+----
 768  4.4  5400
-================================================================================
+-----------------------------------
 
 Label: "dataset 2":
-=== TableDataset (Example table) ===
-meta= {
-===========  =============  ======  ======  =======  =========  ======  =====================
-name         value          unit    type    valid    default    code    description
-===========  =============  ======  ======  =======  =========  ======  =====================
-description  Example table          string  None     UNKNOWN    B       Description of this d
-                                                                        ataset
-version      0.1                    string  None     0.1        B       Version of dataset
-FORMATV      1.6.0.1                string  None     1.6.0.1    B       Version of dataset sc
-                                                                        hema and revision
-===========  =============  ======  ======  =======  =========  ======  =====================
-MetaData-listeners = ListnerSet{}}
-TableDatasettype-dataset =
+____________________________________
+*** TableDataset (Example table) ***
+
++-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
+| name        | value         | unit   | type   | valid   | default   | code   | description       |
++=============+===============+========+========+=========+===========+========+===================+
+| description | Example table |        | string | None    | UNKNOWN   | B      | Description of th |
+|             |               |        |        |         |           |        | is dataset        |
++-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
+| version     | 0.1           |        | string | None    | 0.1       | B      | Version of datase |
+|             |               |        |        |         |           |        | t                 |
++-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
+| FORMATV     | 1.6.0.1       |        | string | None    | 1.6.0.1   | B      | Version of datase |
+|             |               |        |        |         |           |        | t schema and revi |
+|             |               |        |        |         |           |        | sion              |
++-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
+| listeners   |               |        |        |         |           |        |                   |
++-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
+DATA
+----
    Time    Energy
   (sec)      (eV)
 -------  --------
@@ -512,42 +589,50 @@ TableDatasettype-dataset =
       3       106
       4       108
 
-================================================================================
+-------------------------------------
 
->level 1, repr
-=== CompositeDataset (test CD) ===
-meta= {
+>
+===================================
+level 1, repr
+**********************************
+*** CompositeDataset (test CD) ***
+
 -------------  --------------------------  ----------------
 a= 3.4         b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
                .456789
                1929229360456789)
-d= off (0b00)  m1= 2.3
+d= off (0b00)  m1= 2.3                     listeners=
 -------------  --------------------------  ----------------
-MetaData-listeners = ListnerSet{}
-}
 
-CompositeDataset-datasets =
-<ODict Label: "dataset 1":
-=== ArrayDataset (arraydset 1) ===
-meta= {
+
+DATA CompositeDataset
+---------------------
+<OD Label: "dataset 1":
+__________________________________
+*** ArrayDataset (arraydset 1) ***
+
 -----------------  ------------------------  ----------------
 shape= (3,)        description= arraydset 1  unit= ev
 typecode= UNKNOWN  version= 0.1              FORMATV= 1.6.0.1
+listeners=
 -----------------  ------------------------  ----------------
-MetaData-listeners = ListnerSet{}
-}ArrayDataset-type dataset =
+
+DATA
+----
 768  4.4  5400
-================================================================================
+-----------------------------------
 
 Label: "dataset 2":
-=== TableDataset (Example table) ===
-meta= {
+____________________________________
+*** TableDataset (Example table) ***
+
 --------------------------  ------------  ----------------
 description= Example table  version= 0.1  FORMATV= 1.6.0.1
+listeners=
 --------------------------  ------------  ----------------
-MetaData-listeners = ListnerSet{}
-}
-TableDatasettype-dataset =
+
+DATA
+----
    Time    Energy
   (sec)      (eV)
 -------  --------
@@ -557,14 +642,12 @@ TableDatasettype-dataset =
       3       106
       4       108
 
-================================================================================
+-------------------------------------
 
->level 2,
-=== CompositeDataset (test CD) ===
-meta
-
-CompositeDataset-datasets =
-<ODict  ArrayDataset(shape=(3,), description=arraydset 1, unit=ev. data= [768, 4.4, 5400.0]) TableDataset(description=Example table.data= {"Time": Column(shape=(5,), unit=sec. data= [0.0, 1.0, 2.0, 3.0, 4.0]), "Energy": Column(shape=(5,), unit=eV. data= [100.0, 102.0, 104.0, 106.0, 108.0])})>"""
+>
+===================================
+level 2,
+a, b, c, d, m1dataset 1, dataset 2"""
 out_FineTime = """toString test
 =========== format: "%Y-%m-%dT%H:%M:%S.%f" =======
 FineTime

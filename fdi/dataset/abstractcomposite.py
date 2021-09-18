@@ -8,15 +8,16 @@ from .composite import Composite
 from .annotatable import Annotatable
 from .attributable import Attributable
 
-
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class AbstractComposite(Attributable, Composite, DataWrapperMapper, DatasetListener):
+class AbstractComposite(Attributable, DatasetListener, Composite, DataWrapperMapper):
     """ an annotatable and attributable subclass of Composite. 
+
+    Composite inherits annotatable via EventListener via DataContainer. 
     """
 
     def __init__(self, **kwds):
@@ -32,9 +33,10 @@ class AbstractComposite(Attributable, Composite, DataWrapperMapper, DatasetListe
 
         super().__init__(**kwds)
 
-    def toString(self, level=0,
-                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-                 matprint=None, trans=True, beforedata='', **kwds):
+    def toString(self, level=0, width=0,
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
+                 matprint=None, trans=True, beforedata='', heavy=True,
+                 **kwds):
         """ matprint: an external matrix print function
 
         Parameters
@@ -44,16 +46,28 @@ class AbstractComposite(Attributable, Composite, DataWrapperMapper, DatasetListe
 
         """
         cn = self.__class__.__name__
-        s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
-            self, 'description') else '')
-        s += mstr(self.__getstate__(), level=level,
-                  excpt=['description'],
-                  tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                  matprint=matprint, trans=trans,
-                  **kwds)
-        d = cn + '-datasets =\n'
+        if level > 1:
+            # s = '=== %s (%s) ===\n' % (cn, self.description if hasattr(
+            #    self, 'description') else '')
+
+            s = mstr(self._meta, level=level, width=width,
+                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                     excpt=['description'], **kwds)
+            s += mstr(self.data, level=level,
+                      excpt=['description'],
+                      tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                      matprint=matprint, trans=trans, heavy=False,
+                      **kwds)
+            return s
+        from .dataset import make_title_meta_l0
+        s, last = make_title_meta_l0(self, level=level, width=width,
+                                     tablefmt=tablefmt, tablefmt1=tablefmt1,
+                                     tablefmt2=tablefmt2, excpt=['description'])
+
+        d = f'DATA {cn}'
+        d += '\n' + '-' * len(d) + '\n'
         o = ODict(self.data)
-        d += o.toString(level=level,
+        d += o.toString(level=level, heavy=False,
                         tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                         matprint=matprint, trans=trans, **kwds)
-        return '\n\n'.join((x for x in (s, beforedata, d) if len(x)))
+        return '\n\n'.join((x for x in (s, beforedata, d) if len(x))) + '\n' + last

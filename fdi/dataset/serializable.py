@@ -187,11 +187,15 @@ def serialize(o, cls=None, **kwds):
     return json.dumps(o, cls=cls, **kwds)
 
 
+ATTR = '_ATTR_'
+LEN_ATTR = len(ATTR)
+
+
 class Serializable():
     """ mh: Can be serialized.
     Has a _STID  instance property to show its class information. """
 
-    def __init__(self, **kwds):
+    def __init__(self, *args, **kwds):
         """
 
         Parameters
@@ -200,7 +204,7 @@ class Serializable():
         Returns
         -------
         """
-        super().__init__(**kwds)
+        super().__init__(*args, **kwds)
         sc = self.__class__
         # print('@@@ ' + sc.__name__, str(issubclass(sc, dict)))
         if 0 and issubclass(sc, dict):
@@ -229,7 +233,7 @@ class Serializable():
         return self.__class__.__name__ + '(' + co + ')'
 
     def __getstate__(self):
-        """ returns an odict that has all state info of this object.
+        """ returns an ordered ddict that has all state info of this object.
         Subclasses should override this function.
         Parameters
         ----------
@@ -238,6 +242,26 @@ class Serializable():
         -------
         """
         raise NotImplementedError()
+
+    def __prettystate__(self):
+        """ returns a better-looking ggetstate.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        dictview of a mappingg of a string representation of `k` and the original `v`.
+
+        """
+        res = {}
+        for k, v in self.__getstate__().items():
+            if k == '_STID':
+                continue
+            sk = str(k)
+            bk = sk[LEN_ATTR:] if sk.startswith(ATTR) else sk
+            res[bk] = v
+        return res.items()
 
     def __setstate__(self, state):
         """

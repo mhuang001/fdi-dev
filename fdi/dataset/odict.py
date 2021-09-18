@@ -67,14 +67,14 @@ class ODict(UserDict, Serializable, DeepEqual):
     #             kk = tuple(item[0])
     #             self[kk] = item[1]
 
-    def toString(self, level=0,
-                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-                 matprint=None, trans=True, **kwds):
+    def toString(self, level=0, **kwds):
         """
 
         Parameters
         ----------
-
+        level=0,
+                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 matprint=None, trans=True, heavy=True
         Returns
         -------
         """
@@ -85,13 +85,11 @@ class ODict(UserDict, Serializable, DeepEqual):
         # return ydump(self.data)
 
         OD_toString_Nest += 1
-        d = '<ODict '
+        d = '<OD '
         for n, v in self.data.items():
             #d += '    ' * OD_toString_Nest + '[ ' + str(n) + ' ]= '
             d += 'Label: "' + str(n) + '":' + '\n' if level < 2 else ' '
-            s = bstr(v, level=level,
-                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                     matprint=matprint, trans=trans, **kwds)
+            s = bstr(v, level=level, **kwds)
             d = d + s
         OD_toString_Nest -= 1
         return d + '>'

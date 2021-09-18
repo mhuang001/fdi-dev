@@ -24,7 +24,7 @@ from fdi.dataset.eq import deepcmp
 from fdi.dataset.classes import Classes
 from fdi.dataset.serializable import serialize
 from fdi.dataset.quantifiable import Quantifiable
-from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf
+from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf, MetaDataListener
 from fdi.dataset.messagequeue import MqttRelayListener, MqttRelaySender
 from fdi.dataset.composite import Composite
 from fdi.dataset.metadata import Parameter, MetaData, make_jsonable
@@ -65,7 +65,7 @@ else:
 Classes.updateMapping()
 
 # make format output in /tmp/output.py
-mk_output = 1
+mk_output = 0
 
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py
@@ -1032,7 +1032,7 @@ def test_DateParameter():
     v = DateParameter('2019-02-19T01:02:03.457')
     assert v.value.tai == 1929229360457000
     v.value.format = '%Y'
-    print('********', v.value.isoutc(), ' ** ', v, '*******', v.toString(1))
+    #print('********', v.value.isoutc(), ' ** ', v, '*******', v.toString(1))
 
     with pytest.raises(TypeError):
         DateParameter(3.3)
@@ -1136,6 +1136,15 @@ def test_MetaData():
     v1[b3] = b4
     v1['foo'] = Parameter('bar')
     assert v != v1
+
+    # listeners
+    class MockMetaListener(MetaDataListener):
+        pass
+    lis1 = MockMetaListener('foo')
+    lis2 = MockMetaListener('bar')
+
+    v.addListener(lis1)
+    v.addListener(lis2)
 
     checkgeneral(v)
 
@@ -1482,7 +1491,7 @@ def do_ArrayDataset_func(atype):
     if mk_output:
         print(ts[i:])
     else:
-        assert ts[i:-82] == nds2 + '\n'
+        assert ts[i:-44] == nds2 + '\n'
     ts += '\n\nlevel 1\n'
     ts += x.toString(1)
     ts += '\n\nlevel 2, repr\n'
@@ -2049,24 +2058,24 @@ def xtest_UnstrcturedDataset():
     u.type = 'json'
     u.data = p.serialized()
 
-    v, s = u.fetch(["data", "meta", "_sets", "speed"])
+    v, s = u.fetch(["meta", "speed"])
     # v is a dictionary
     assert json.dumps(v) == serialize(p.meta['speed'])
-    assert s == '.data["meta"]["_sets"]["speed"]'
+    assert s == '.data["meta"]["speed"]'
     # horrible
-    v, s = u.fetch(["data", "_sets", "results", "_sets",
-                    'calibration', 'meta', '_sets', "unit", 'value'])
-    # ["_sets"]["results"]["_sets"]["calibration"]["meta"]["_sets"]["unit"]["value"]
+    v, s = u.fetch(["data", "results",
+                    'calibration', 'meta', "unit", 'value'])
+    # ["results"]["calibration"]["meta"]["unit"]["value"]
     assert v == 'count'
 
     # data of a column in tabledataset within compositedataset
-    v, s = u.fetch(["data", "_sets", "results", "_sets",
+    v, s = u.fetch(["data", "results",
                     "Time_Energy_Pos", "data", "Energy", "data"])
     # ['data']['Energy']['data']
     t = [x * 1.0 for x in range(9)]
     assert v == [2 * x + 100 for x in t]
     assert v == p['results']['Time_Energy_Pos']['Energy'].data
-    assert s == '.data["_sets"]["results"]["_sets"]["Time_Energy_Pos"]["data"]["Energy"]["data"]'
+    assert s == '.data["results"]["Time_Energy_Pos"]["data"]["Energy"]["data"]'
 
 
 def test_Indexed():
@@ -2240,7 +2249,7 @@ def test_FineTime():
     assert v.toDatetime().microsecond == 1
     # from string
     v = FineTime('1990-09-09T12:34:56.789098 UTC')
-    print(v)
+
     # comparison
     v1 = FineTime(12345678901234)
     v2 = FineTime(12345678901234)
@@ -2266,7 +2275,7 @@ def test_FineTime():
         assert v + FineTime(1) == FineTime(1234568)
     with pytest.raises(TypeError):
         1 + v
-
+        prettystate
     # leap seconds
     v1 = FineTime(datetime.datetime(2015, 6, 30, 23, 59, 59))
     # v2 = FineTime(datetime.datetime(2015, 6, 30, 23, 59, 60))

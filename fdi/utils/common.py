@@ -40,7 +40,7 @@ def trbk2(e):
 
 def bstr(x, length=0, tostr=True, quote="'", level=0,
          tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-         width=0,
+         width=0, heavy=True,
          **kwds):
     """ returns the best string representation.
     if the object is a string, return single-quoted; if has toString(), use it; else returns str(). Length limited by lls(lls)
@@ -54,7 +54,7 @@ def bstr(x, length=0, tostr=True, quote="'", level=0,
     elif tostr and hasattr(x, 'toString') and not issubclass(x.__class__, type):
         r = x.toString(level=level,
                        tablefmt=tablefmt, tablefmt1=tablefmt1,
-                       tablefmt2=tablefmt2, width=width,
+                       tablefmt2=tablefmt2, width=width, heavy=heavy,
                        **kwds)
     elif issubclass(x.__class__, (bytes, bytearray, memoryview)):
         r = x.hex()

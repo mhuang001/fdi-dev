@@ -218,7 +218,7 @@ class Composite(DataContainer, Serializable, MutableMapping):
             elif name == '_STID':
                 pass
             else:
-                self.data[name] = state[name]
+                self[name] = state[name]
 
     def __repr__(self):
         return self.__class__.__name__ + '(' + (self.data.__repr__() if hasattr(self, 'data') else 'None') + ')'

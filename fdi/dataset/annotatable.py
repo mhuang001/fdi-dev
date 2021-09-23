@@ -21,12 +21,12 @@ class Annotatable():
 
         """
 
-        self.description = description
         # print(__name__ + str(kwds))
-        super().__init__(**kwds)
+        super().__init__(**kwds)  # Annotatable
+        self.description = description
 
     @property
-    def description(self):
+    def xdescription(self):
         """ xx must be a property for ``self.xx = yy`` to work in super class after xx is set as a property also by a subclass.
 
         Parameters
@@ -41,14 +41,14 @@ class Annotatable():
         except AttributeError:
             return None
 
-    @description.setter
-    def description(self, description):
+    @xdescription.setter
+    def xdescription(self, description):
         """ Property of the description of this Annotatable object.
 
         Parameters
         ----------
         description : string
-                         The new descripition.
+                         The new description.
 
         Returns
         -------
@@ -76,7 +76,7 @@ class Annotatable():
         Parameters
         ----------
         newDescription : string
-                         The new descripition.
+                         The new description.
 
         Returns
         -------

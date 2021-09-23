@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
 
-
 from ..utils.common import lls, ld2tk
 from .serializable import Serializable
 
-import pprint
-import array
-from functools import lru_cache
-from collections import OrderedDict
-from itertools import chain
-from collections.abc import MutableMapping as MM, MutableSequence as MS, MutableSet as MSe
 import logging
+from collections.abc import MutableMapping as MM, MutableSequence as MS, MutableSet as MSe
+from itertools import chain
+from collections import OrderedDict
+from functools import lru_cache
+import array
+import pprint
+import sys
+
+if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.6:
+    PY36 = True
+else:
+    PY36 = False
+
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
@@ -22,14 +28,19 @@ class CircularCallError(RuntimeError):
 
 def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
     """ Recursively descends into obj1's every member, which may be
-    set, list, dict, ordereddict, (or ordereddict subclasses) and
+    set, list, dict, ordereddict, (or subclasses of MutableMapping or 
+    MutableSequence) and
     any objects with '__class__' attribute,
     compares every member found with its counterpart in obj2.
-    Returns None if finds no difference, a string of explanation
-    otherwise.
+
     Detects cyclic references.
 
-    eqcmp: if True, use __eq__ or __cmp__ if the objs have them. If False only use as the last resort. default True.
+    Returns
+    -------
+    ``None`` if finds no difference, a string of explanation
+    otherwise.
+
+    :eqcmp: if True, use __eq__ or __cmp__ if the objs have them. If False only use as the last resort. default True.
     """
     # seen and level are to be used as nonlocal variables in run()
     # to overcome python2's lack of nonlocal type this method is usded
@@ -112,11 +123,13 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
             if v:
                 print('Find dict or subclass')
                 print('check keys')
-            if issubclass(c, OrderedDict):
+
+            from .odict import ODict
+            if issubclass(c, (OrderedDict, ODict)) or PY36:
                 #
                 r = run(list(o1.keys()), list(o2.keys()), v=v, eqcmp=eqcmp)
             else:
-                #  dict
+                #  old dict
                 r = run(tuple(sorted(o1.keys(), key=hash)),
                         tuple(sorted(o1.keys(), key=hash)),
                         v=v, eqcmp=eqcmp)
@@ -414,10 +427,10 @@ class StateEqual():
     """
 
     def __init__(self, *args, **kwds):
-        """ Must pass *args* so `UserDict` in `Composite` can get `data`.
+        """ Must pass *args* so `DataWrapper` in `Composite` can get `data`.
         """
 
-        super().__init__(*args, **kwds)
+        super().__init__(*args, **kwds)  # StateEqual
 
     def hash(self):
         return xhash(self.__getstate__())

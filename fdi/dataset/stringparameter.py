@@ -22,7 +22,7 @@ class StringParameter(Parameter, Typecoded):
                  typecode='B',
                  **kwds):
         self.setTypecode(typecode)
-        super(StringParameter, self).__init__(
+        super().__init__(
             value=value, description=description, typ_='string', default=default, valid=valid, typecode=typecode, **kwds)
 
     def __getstate__(self):

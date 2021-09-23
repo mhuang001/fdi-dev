@@ -29,7 +29,7 @@ class NumericParameter(Parameter, Quantifiable):
 
         typ_: type of the parameter value.
         """
-        super(NumericParameter, self).__init__(
+        super().__init__(
             value=value, description=description, typ_=typ_, default=default, unit=unit, valid=valid, typecode=typecode, **kwds)
 
     def __getstate__(self):

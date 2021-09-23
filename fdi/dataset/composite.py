@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # order of Container, Sized, Iterator must be the same as in DataContaier!
 
 
-# class Composite(DeepEqual, UserDictAdapter, Serializable):  # MutableMapping):
+# class Composite(DeepEqual, UserDictAdapter, Serializable):  # ):
 
 class Composite(DataContainer, Serializable, MutableMapping):
     """ A container of named Datasets.
@@ -32,7 +32,7 @@ class Composite(DataContainer, Serializable, MutableMapping):
     Note that replacing a dataset with the same name,
     will keep the order.
 
-    :class:`DeepEqual` must stay to the left of :class:`UserDictAdaptor` so its `__eq__` will get to run. `Serializable` becomes a parent to have `__setstate__` overriden reliablly by the one defined in this class.
+    :class:`DeepEqual` must stay to the left of :class:`MutableMapping` so its `__eq__` will get to run. `Serializable` becomes a parent for having `__setstate__`.
 
     :data: default `None` will init with a `dict`.
     """
@@ -47,7 +47,7 @@ class Composite(DataContainer, Serializable, MutableMapping):
         -------
 
         """
-        # pass data to parent mapping as the first positional arg if needed
+        # pass data to parent
         super().__init__({} if data is None else data, **kwds)
 
     def containsKey(self, name):
@@ -202,23 +202,6 @@ class Composite(DataContainer, Serializable, MutableMapping):
     def __iter__(self):
         for i in self.data:
             yield i
-
-    def __setstate__(self, state):
-        """
-        Parameters
-        ----------
-
-        Returns
-        -------
-        """
-        for name in state.keys():
-            if name.startswith('_ATTR_'):
-                k2 = name[len('_ATTR_'):]
-                self.__setattr__(k2, state[name])
-            elif name == '_STID':
-                pass
-            else:
-                self[name] = state[name]
 
     def __repr__(self):
         return self.__class__.__name__ + '(' + (self.data.__repr__() if hasattr(self, 'data') else 'None') + ')'

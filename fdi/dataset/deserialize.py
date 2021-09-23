@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .serializable import serialize
+from .serializable import serialize, ATTR, LEN_ATTR
 from .odict import ODict
 from .classes import Classes
 from ..utils.common import lls, trbk
@@ -90,9 +90,22 @@ def constructSerializable(obj, lookup=None, debug=False):
             print(spaces + 'Find non-_STID. <%s>' % classname)
         inst = obj
     else:
-        classname = obj['_STID']
-        if debug:
-            print(spaces + 'Find _STID <%s>' % classname)
+        ostid = obj['_STID']
+        # check escape case
+        if ostid.startswith('0'):
+            # escape
+            inst = obj
+            # classname = ostid[1:]
+            # inst['_STID'] = classname
+            if debug:
+                print(spaces + 'Find _STID <%s>. Take as <%s>.' %
+                      (ostid, classname))
+            indent -= 1
+            return inst
+        else:
+            classname = ostid
+            if debug:
+                print(spaces + 'Find _STID <%s>.' % (ostid))
         # process types wrapped in a dict
         if PY3:
             if classname == 'bytes':
@@ -164,8 +177,8 @@ def constructSerializable(obj, lookup=None, debug=False):
         icn = inst.__class__.__name__
         dcn = desv.__class__.__name__
         if issubclass(inst.__class__, (MM)):    # should be object_pairs_hook
-            if k.startswith('_ATTR_'):
-                k2 = k[len('_ATTR_'):]
+            if k.startswith(ATTR):
+                k2 = k[LEN_ATTR:]
                 setattr(inst, k2, desv)
                 if debug:
                     print(spaces + 'Set attrbute to dict/usrd <%s>.%s = %s <%s>' %
@@ -176,10 +189,17 @@ def constructSerializable(obj, lookup=None, debug=False):
                     print(spaces + 'Set member to dict/usrd <%s>[%s] = %s <%s>' %
                           (icn, str(k), lls(desv, 70), dcn))
         else:
-            setattr(inst, k, desv)
-            if debug:
-                print(spaces + 'set attribute to non-dict <%s>.%s = %s <%s>' %
-                      (icn, str(k), lls(desv, 70), dcn))
+            if k.startswith(ATTR):
+                k2 = k[LEN_ATTR:]
+                setattr(inst, k2, desv)
+                if debug:
+                    print(spaces + 'set attribute to non-dict <%s>.%s = %s <%s>' %
+                          (icn, str(k2), lls(desv, 70), dcn))
+            else:
+                setattr(inst, k, desv)
+                if debug:
+                    print(spaces + 'set attribute to non-dict <%s>.%s = %s <%s>' %
+                          (icn, str(k), lls(desv, 70), dcn))
     indent -= 1
     return inst
 

@@ -181,7 +181,7 @@ versiontag:
 PYTEST	= python3 -m pytest
 TESTLOG	= /tmp/fdi-tests.log
 L	= INFO #WARNING
-OPT	= -r P -v -l --pdb -s --show-capture=all  --log-level=$(L)
+OPT	= -r P -v --no-cov-on-fail --no-cov -l --pdb -s --show-capture=all  --log-level=$(L)
 T	= 
 test: test1 test2 test5
 

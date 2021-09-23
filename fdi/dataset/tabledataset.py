@@ -4,7 +4,7 @@ from .indexed import Indexed
 from .ndprint import ndprint
 from .odict import ODict
 from ..utils.common import mstr, bstr, lls, exprstrs, findShape
-from .dataset import Dataset, make_title_meta_l0
+from .dataset import Dataset, make_title_meta_l0, CompositeDataset
 from .indexed import Indexed
 
 try:
@@ -94,7 +94,7 @@ class TableModel():
 MdpInfo = Model['metadata']
 
 
-class TableDataset(Dataset, TableModel):
+class TableDataset(CompositeDataset, TableModel):
     """  Special dataset that contains a single Array Data object.
     A TableDataset is a tabular collection of Columns. It is optimized to work on array data..
     The column-wise approach is convenient in many cases. For example, one has an event list, and each algorithm is adding a new field to the events (i.e. a new column, for example a quality mask).
@@ -144,19 +144,12 @@ class TableDataset(Dataset, TableModel):
                          **kwds)  # initialize data, meta, unit
         # self.setData(data)
 
-    def getData(self):
-        """ Optimized for _data being an ``ODict`` implemented with ``UserDict``.
+    # def getData(self):
+    #     """ Optimized for _data being an ``ODict/dict`` implemented with ``DataContaier``.
 
-        """
+    #     """
 
-        try:
-            return self._data.data
-        except AttributeError:
-            d = super().getData()
-            if hasattr(d, 'data'):
-                return self._data.data
-            else:
-                return d
+    #     return self._data
 
     def setData(self, data):
         """ sets name-column pairs from data.
@@ -474,13 +467,17 @@ Default is to return all columns.
                 key = ''
         self.addColumn(name=key, column=value)
 
+    def __iter__(self):
+        for x in self.getData():
+            yield x
+
     def items(self):
         """ for k,v in tabledataset.items()
         """
         return self.getData().items()
 
     def __getitem__(self, key):
-        """ return colmn if given key.
+        """ return colmn of given key.
 
         ref. ``getColumn()``.
         """
@@ -491,13 +488,29 @@ Default is to return all columns.
         """
         self.setColumn(key, value)
 
+    def __delitem__(self, key):
+        """ delete colmn of given key.
+
+        ref. ``removeColumn()``.
+        """
+        return self.removeColumn(key)
+
+    keys = TableModel.getColumnNames
+
+    #__len__ = TableModel.getColumnCount
+
+    # def __contains__(self, name):
+    #     """ if 'name` is found in column names.
+    #     """
+    #     return name in self.getData()
+
     def __repr__(self):
         return self.toString(level=2)
 
     def toString(self, level=0,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
                  width=0, param_widths=None, matprint=None, trans=True,
-                 heavy=True, **kwds):
+                 heavy=True, center=-1, **kwds):
         """
         tablefmt2: format of 2D data, others see `MetaData.toString`.
         """
@@ -522,10 +535,12 @@ Default is to return all columns.
 
         s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
-                                     tablefmt2=tablefmt2, excpt=['description'])
-
-        d = 'DATA\n----\n'
-
+                                     tablefmt2=tablefmt2, center=center, excpt=['description'])
+        width = len(last)-1
+        if level == 0:
+            d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
+        else:
+            d = ''
         stp = 2 if level > 1 else 20 if level == 1 else None
         cols = self.getData().values()
 
@@ -536,7 +551,7 @@ Default is to return all columns.
         hdr = list('%s\n(%s)' % nu for nu in nmun)
         d += matprint(coldata, trans=trans, headers=hdr,
                       tablefmt=tablefmt, tablefmt1=tablefmt1,
-                      tablefmt2=tablefmt2, **kwds)
+                      tablefmt2=tablefmt2, center=center, **kwds)
         collen = self.getRowCount()
         if level and stp < collen:
             d += '(Only display %d rows of %d for level=%d.)' % (stp, collen, level)
@@ -546,7 +561,7 @@ Default is to return all columns.
         """ Can be encoded with serializableEncoder """
         return OrderedDict(
             _ATTR_meta=getattr(self, '_meta', None),
-            data=self.getData(),
+            **self.getData(),
             _STID=self._STID)
 
 
@@ -624,5 +639,5 @@ class IndexedTableDataset(Indexed, TableDataset):
         #     description = None
         return Indexed.__getstate__(self).update(
             _ATTR_meta=getattr(self, '_meta', None),
-            data=self.getData(),
+            **self.getData(),
             _STID=self._STID)

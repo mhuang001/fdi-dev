@@ -37,6 +37,7 @@ setup(
         'ruamel.yaml>=0.15.0',
         'tabulate>=0.8.7',
         'paho-mqtt>=1.5.1',
+        'jsonpath-ng>=1.5.3',
     ],
     entry_points={'console_scripts': [
         'yaml2python=fdi.dataset.yaml2python:main']},

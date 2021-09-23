@@ -18,7 +18,7 @@ class EventListener(Annotatable):
     """
 
     def __init__(self, *args, **kwds):
-        super().__init__(*args, **kwds)
+        super().__init__(*args, **kwds)  # EventListener
 
     def targetChanged(self,  *args, **kwargs):
         """ Informs that an event has happened in a target of
@@ -32,7 +32,7 @@ class EventListener(Annotatable):
         pass
 
 
-class DatasetBaseListener(EventListener):
+class DatasetBaseListener(Annotatable):
     """ Generic interface for listeners that will listen to events
     happening on a target of a specific type.
     Java Warning:
@@ -49,7 +49,7 @@ class DatasetBaseListener(EventListener):
         Returns
         -------
         """
-        super().__init__(*args, **kwds)
+        super().__init__(*args, **kwds)  # DatasetBaseListener
 
     def targetChanged(self, event):
         """ Informs that an event has happened in a target of the
@@ -211,7 +211,7 @@ class EventSender():
         """
 
         self._listeners = ListnerSet()
-        super().__init__(**kwds)
+        super().__init__(**kwds)  # EventSender
 
     @property
     def listeners(self):
@@ -335,7 +335,7 @@ class EventSender():
 
 
 class DatasetEventSender(EventSender):
-    def __init__(self, **kwds):
+    def __init__(self, **kwds):  # DatasetEventSender
         """
         Paremeters
         ----------
@@ -345,7 +345,7 @@ class DatasetEventSender(EventSender):
 
         """
 
-        super().__init__(**kwds)
+        super().__init__(**kwds)  # DatasetEventSender
 
 
 EventTypes = [
@@ -436,7 +436,7 @@ class DatasetEvent(Serializable):
         # The first event in the chain that provoked this event,
         # or null if this event is its own root.
         self.rootCause = rootCause
-        super().__init__(**kwds)
+        super().__init__(**kwds)  # DatasetEvent
 
     def toString(self, level=0, **kwds):
         return self.__repr__()
@@ -459,7 +459,7 @@ class DatasetEvent(Serializable):
         return s
 
 
-class ParameterListener(DatasetBaseListener):
+class ParameterListener(EventListener):
     """ Listener for events occuring in a Parameter.
     Available types::
 
@@ -486,7 +486,7 @@ class ParameterListener(DatasetBaseListener):
         super().__init__(**kwds)
 
 
-class MetaDataListener(DatasetBaseListener):
+class MetaDataListener(EventListener):
     """ Listener for events occuring in MetaData.
     Available types::
 
@@ -515,7 +515,7 @@ class MetaDataListener(DatasetBaseListener):
         super().__init__(*args, **kwds)
 
 
-class DatasetListener(DatasetBaseListener):
+class DatasetListener(EventListener):
     """ Listener for events occuring in MetaData.
     Available types::
 
@@ -542,10 +542,10 @@ class DatasetListener(DatasetBaseListener):
         Returns
         -------
         """
-        super().__init__(**kwds)
+        super().__init__(**kwds)  # DatasetListener
 
 
-class ColumnListener(DatasetBaseListener):
+class ColumnListener(EventListener):
     """ Listener for events occuring in a Column.
 
     Available types::
@@ -566,10 +566,10 @@ class ColumnListener(DatasetBaseListener):
         Returns
         -------
         """
-        super().__init__(**kwds)
+        super().__init__(**kwds)  # ColumnListener
 
 
-class ProductListener(DatasetBaseListener):
+class ProductListener(EventListener):
     """ Listener for events occuring in Product.
     Available types::
 
@@ -596,4 +596,4 @@ class ProductListener(DatasetBaseListener):
         Returns
         -------
         """
-        super().__init__(**kwds)
+        super().__init__(**kwds)  # ProductListener

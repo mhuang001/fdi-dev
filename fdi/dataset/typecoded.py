@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+#from .vattribute import VAttribute
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -17,9 +19,9 @@ class Typecoded():
         Typecode is defined in `array.array`
         """
 
-        self.setTypecode(typecode)
         #print(__name__ + str(kwds))
         super().__init__(**kwds)
+        self.setTypecode(typecode)
 
     @ property
     def typecode(self):

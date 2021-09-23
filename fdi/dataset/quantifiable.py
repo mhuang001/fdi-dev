@@ -24,9 +24,9 @@ class Quantifiable(Typecoded):
         -------
 
         """
-        self.setUnit(unit)
         #print(__name__ + str(kwds))
         super(Quantifiable, self).__init__(typecode=typecode, **kwds)
+        self.setUnit(unit)
 
     @property
     def unit(self):

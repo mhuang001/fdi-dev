@@ -27,9 +27,16 @@ MdpInfo = Model['metadata']
 
 class ArrayDataset(GenericDataset, Iterable):
     """  Special dataset that contains a single Array Data object.
+
     mh: If omit the parameter names during instanciation, e.g. ArrayDataset(a, b, c), the assumed order is data, unit, description.
     mh:  contains a sequence which provides methods count(), index(), remove(), reverse().
     A mutable sequence would also need append(), extend(), insert(), pop() and sort().
+
+        Parameters
+        ----------
+    :data: the payload data of this dataset. Default is None,
+        Returns
+        -------
     """
 
     def __init__(self, data=None,
@@ -142,7 +149,7 @@ class ArrayDataset(GenericDataset, Iterable):
     def toString(self, level=0,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
                  width=0, param_widths=None, matprint=None, trans=True,
-                 heavy=True, **kwds):
+                 center=-1, heavy=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         """
@@ -167,9 +174,14 @@ class ArrayDataset(GenericDataset, Iterable):
 
         s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
-                                     tablefmt2=tablefmt2, excpt=['description'])
+                                     tablefmt2=tablefmt2, center=center,
+                                     excpt=['description'])
+        width = len(last)-1
+        if level == 0:
+            d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
+        else:
+            d = ''
 
-        d = 'DATA\n----\n'
         ds = bstr(self.data, level=level, **kwds) if matprint is None else \
             matprint(self.data, trans=False, headers=[], tablefmt2='plain',
                      **kwds)
@@ -181,8 +193,8 @@ class ArrayDataset(GenericDataset, Iterable):
 
         # s = OrderedDict(description=self.description, meta=self.meta, data=self.data)  # super(...).__getstate__()
         s = OrderedDict(
-            meta=getattr(self, '_meta', None),
-            data=getattr(self, 'data', None),
+            _ATTR__meta=getattr(self, '_meta', None),
+            _ATTR_data=getattr(self, 'data', None),
             _STID=self._STID)
 
         return s

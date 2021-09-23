@@ -76,58 +76,10 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
         """
         visitor.visit(self)
 
-    def __getstate__(self):
-        """ Can be encoded with serializableEncoder.
-
-
-        Parameter
-        ---------
-
-        Returns
-        -------
-        """
-
-        s = OrderedDict(description=self.description,
-                        meta=self._meta,
-                        data=self.data,
-                        _STID=self._STID)
-        return s
-
-
-def make_title_meta_l0(self, level=0, heavy=True, **kwds):
-    cn = self.__class__.__name__
-    t = '*** %s (%s) ***\n' % (cn, self.description if hasattr(
-        self, 'description') else '')
-    if heavy:
-        l = ('*' if level else '*') * (len(t)-1) + '\n'
-    else:
-        l = '_' * (len(t)-1) + '\n'
-    s = l + t + ('' if level or not heavy else l + 'META\n----')
-    s += mstr(self._meta, level=level, **kwds)
-    last = "="*len(t) if heavy else "-"*len(t)
-    last += '\n'
-
-    return s, last
-
-
-class GenericDataset(Dataset, Typed, DataWrapper):
-    """ mh: Contains one typed data item with a unit and a typecode.
-    """
-
-    def __init__(self, **kwds):
-        """
-        """
-        super(GenericDataset, self).__init__(
-            **kwds)  # initialize data, meta, unit
-
-    def __iter__(self):
-        for x in self.getData():
-            yield x
-
     def toString(self, level=0,
-                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
                  param_widths=None, width=0, matprint=None, trans=True,
-                 heavy=True, **kwds):
+                 heavy=True, center=-1, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.
         Parameter
@@ -146,17 +98,98 @@ class GenericDataset(Dataset, Typed, DataWrapper):
                     level=level, width=width, param_widths=param_widths,
                     matprint=matprint, trans=trans, heavy=heavy, **kwds))
 
-        s, last = make_title_meta_l0(self, level=level, width=width,  heavy=heavy,
+        s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
-                                     tablefmt2=tablefmt2, excpt=['description'])
-
-        d = 'DATA\n----\n'
-        d += bstr(self.data, level=level, heavy=heavy,
+                                     tablefmt2=tablefmt2, center=center,
+                                     excpt=['description'])
+        width = len(last) - 1
+        d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
+        d += bstr(self.data, level=level, heavy=heavy, center=center,
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                   **kwds) if matprint is None else \
             matprint(self.data, level=level, trans=False, headers=[], tablefmt2='plain', heavy=heavy,
                      **kwds)
         return f'{s}\n{d}\n{last}\n'
+
+    def __getstate__(self):
+        """ Can be encoded with serializableEncoder.
+
+
+        Parameter
+        ---------
+
+        Returns
+        -------
+        """
+
+        s = OrderedDict(description=self.description,
+                        meta=self._meta,
+                        data=self.data,
+                        _STID=self._STID)
+        return s
+
+
+def make_title_meta_l0(self, level=0, heavy=True, center=0, **kwds):
+    """ make toString title and metadata.
+
+    :heavy: use bold symbols for separaters.
+    :center: 0 for no centering;  -1 for centering with metadata table; other  for ``str.center(<center>``.
+    """
+
+    # title
+    cn = self.__class__.__name__
+    t = '*** %s (%s) ***' % (cn, self.description if hasattr(
+        self, 'description') else '')
+    tw = len(t)
+    # make the table and find out the width first
+    table = mstr(self._meta, level=level, **kwds)
+    if center:
+        # max separation between consequitive '\n' s
+        if center == -1:
+            width = max(len(x) for x in table[:600].split('\n'))
+        else:
+            width = center
+    else:
+        width = tw
+
+    if heavy:
+        # beginning of a stand-alone dataset
+        l = ('*' if level else '*') * tw
+    else:
+        # beginning of a dataset that is a component of a another
+        l = '_' * tw
+    m = 'META\n----\n'
+    if center:
+        t = t.center(width)
+        l = l.center(width)
+        m = 'META'.center(width)
+    t += '\n'
+    l += '\n'
+
+    if center:
+        s = t if level else (l + t + m)
+    else:
+        s = l + t + ('' if level else l + m)
+    s += table
+    last = "="*width if heavy else "~"*width
+    last += '\n'
+
+    return s, last
+
+
+class GenericDataset(Dataset, Typed, DataWrapper):
+    """ mh: Contains one typed data item with a unit and a typecode.
+    """
+
+    def __init__(self, **kwds):
+        """
+        """
+        super(GenericDataset, self).__init__(
+            **kwds)  # initialize data, meta, unit
+
+    def __iter__(self):
+        for x in self.getData():
+            yield x
 
 
 class CompositeDataset(MetaDataListener, AbstractComposite):

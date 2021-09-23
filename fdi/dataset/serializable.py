@@ -271,8 +271,16 @@ class Serializable():
         Returns
         -------
         """
-        for name in self.__getstate__().keys():
-            self.__setattr__(name, state[name])
+        for name in state.keys():
+            if name.startswith(ATTR):
+                k2 = name[LEN_ATTR:]
+                self.__setattr__(k2, state[name])
+            elif name == '_STID':
+                pass
+            elif hasattr(self, '__setitem__'):
+                self[name] = state[name]
+            else:
+                self.__setattr__(name, state[name])
 
     def __reduce_ex__(self, protocol):
         """

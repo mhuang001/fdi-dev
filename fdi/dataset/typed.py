@@ -6,7 +6,10 @@ logger = logging.getLogger(__name__)
 
 
 class Typed():
-    """ An object of specifiable kinds. """
+    """ An object of specifiable kinds.
+
+    This class is for parameters, not for products/datasets to make 'type' MDP.
+    """
 
     def __init__(self, typ_=None, **kwds):
         """ Has a type.
@@ -17,9 +20,9 @@ class Typed():
         -------
         """
 
-        self.setType(typ_)
         #print(__name__ + str(kwds))
         super().__init__(**kwds)
+        self.setType(typ_)
 
     @property
     def type(self):

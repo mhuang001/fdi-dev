@@ -31,14 +31,12 @@ class DataContainer(Annotatable, Copyable, DeepEqual, Container):
         """
         #print(__name__ + str(kwds))
 
-        if data is None:
-            self.setData(data)
-        elif issubclass(data.__class__, Container):
+        if data is None or issubclass(data.__class__, Container):
+            super().__init__(**kwds)  # DataContainer
             self.setData(data)
         else:
             raise TypeError('DataContainer needs a Container to initialize, not ' +
                             type(data).__name__)
-        super().__init__(**kwds)
 
     @property
     def data(self):
@@ -87,14 +85,10 @@ class DataContainer(Annotatable, Copyable, DeepEqual, Container):
 
         Returns
         -------
-
+        `self._data` or `None` if '._data' is missing. e.g. subclass overriding `setData` calling `getData` from its `setData` that is called by 'this.__init__'.
         """
-        try:
-            return self._data
-        except AttributeError:
-            od = ODict()
-            self._data = od
-            return od
+
+        return getattr(self, '_data', None)
 
     def hasData(self):
         """ Returns whether this data wrapper has data. 
@@ -105,10 +99,10 @@ class DataContainer(Annotatable, Copyable, DeepEqual, Container):
 
         Returns
         -------
-
+        `False` if data does not exist or is `None` or empty, `True` if otherwise.
         """
-
-        return self.getData() is not None and len(self.getData()) > 0
+        d = getattr(self, '_data', None)
+        return bool(d)
 
     def __contains__(self, x):
         """
@@ -119,12 +113,12 @@ class DataContainer(Annotatable, Copyable, DeepEqual, Container):
             return False
 
     def __len__(self, *args, **kwargs):
-        """ size of data
+        """ 0 if data does not exist or is `None`, size of data if otherwise.
+
         """
-        try:
-            return self._data.__len__(*args, **kwargs)
-        except AttributeError:
-            return 0
+
+        d = getattr(self, '_data', None)
+        return len(d) if d else 0
 
 
 class DataWrapper(DataContainer, Quantifiable):
@@ -136,7 +130,7 @@ class DataWrapper(DataContainer, Quantifiable):
     def __init__(self, *args, **kwds):
         """ 
         """
-        super().__init__(*args, **kwds)
+        super().__init__(*args, **kwds)  # DataWrapper
 
 
 class DataWrapperMapper():
@@ -145,7 +139,7 @@ class DataWrapperMapper():
     def __init__(self, *args, **kwds):
         """ 
         """
-        super().__init__(*args, **kwds)
+        super().__init__(*args, **kwds)  # DataWrapperMapper
 
     def getDataWrappers(self):
         """ Gives the data wrappers, mapped by name.

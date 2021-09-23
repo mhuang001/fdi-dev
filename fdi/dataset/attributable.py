@@ -22,14 +22,16 @@ Reserved_Property_Names = ['history', 'meta', 'refs', 'dataset',
                            'zInfo', '_MDP', 'extraMdp', 'alwaysMeta']
 
 """ These MetaData Parameters (MDPs) and vital attrbutes are Set By Parent classes:
-| Special MDPs and attrbutes | set by parent Classes |
-| 'meta' | `Attributable` |
-| 'description' | `Annotatable` |
-| 'type' | `Typed` |
-| 'data' and 'shape' | `DataWrapper` |
-| 'listeners' | `EventSender` |
+| Special MDPs and attrbutes | set by parent Classes | attribute holder |
+| 'meta' | `Attributable` | `_meta` |
+| 'description' | `Annotatable` | `description` |
+| 'data' and 'shape' | `DataWrapper` | `_data` |
+| 'listeners' | `EventSender` | `_listener` |
 """
-MDP_Set_by_Parents = ['meta', 'description', 'type', 'listeners']
+MDP_Set_by_Parents = {'meta': '_meta',
+                      'description': 'description',
+                      'data': '_data',
+                      'listeners': '_listeners'}
 
 
 class Attributable(MetaDataHolder):
@@ -52,19 +54,31 @@ class Attributable(MetaDataHolder):
         self.zInfo = zInfo if zInfo else {'metadata': {}}
 
         # super set of args and Model. Values only.
-        # if an MDP is set to None in args, use it Model default
+        # if an MDP is set to None in args, use its Model default
         mdps = {}
         zm = self.zInfo['metadata']
         for x in zm:
             # 'type' in args is 'typ_'. put `type` back.
             _x = 'typ_' if x == 'type' else x
             if _x not in kwds:
-                mdps[x] = zm[x]['default']
-            elif _x not in MDP_Set_by_Parents:
-                kwval = kwds.pop(_x)
-                mdps[x] = zm[x]['default'] if kwval is None else kwval
+                if _x in MDP_Set_by_Parents:
+                    raise KeyError(
+                        f'{_x} is in MDP_Set_by_Parents but missing in keywords.')
+                else:
+                    mdps[x] = zm[x]['default']
+            else:
+                # _x in kwds
+                if _x not in MDP_Set_by_Parents:
+                    kwval = kwds.pop(_x)
+                    mdps[x] = zm[x]['default'] if kwval is None else kwval
+                else:
+                    # not in keywords args but in MDP_Set_by_Parents
+                    # will be consumed and setattr'ed by some init call down the MRO.
+                    pass
+        # merge extra MDP there may be and Model MDPs.
         self._MDP = ChainMap(self.extraMdp, zm)
         # This will set MDP_Set_by_Parents args.
+
         super().__init__(meta=meta, **kwds)
         # do not set MDPs that have been set by super classes
         for p in copy(mdps):
@@ -145,7 +159,7 @@ class Attributable(MetaDataHolder):
             except AttributeError:
                 pass
 
-        return super(Attributable, self).__getattribute__(name)
+        return super().__getattribute__(name)
 
     def setMdp(self, name, value, met=None):
 
@@ -189,8 +203,8 @@ class Attributable(MetaDataHolder):
     def __setattr__(self, name, value):
         """ Stores value to attribute with name given.
 
-        If name is in the `zInfo` list, store the value in a Parameter in
-        metadata container. Updates meta data table. Updates value when
+        If name is in the Model (`zInfo` list), store the value in a Parameter in
+        the metadata container. Updates the `_MDP' table. Updates value only, if
         an MDP attribute already has its Parameter in metadata.
 
         value: Must be Parameter/NumericParameter if this is normal metadata,
@@ -204,7 +218,7 @@ class Attributable(MetaDataHolder):
 
         #print('setattr ' + name, value)
         if name in Reserved_Property_Names:
-            super(Attributable, self).__setattr__(name, value)
+            super().__setattr__(name, value)
             return
         try:
             if self.alwaysMeta:
@@ -212,11 +226,13 @@ class Attributable(MetaDataHolder):
                     # taken as an MDP attribute . store in meta
                     self.extraMdp[name] = value
                     self.setMdp(name, value, self._MDP)
+                    # assert self.meta[name].value == value
                     # must return without updating self.__dict__
                     return
             if name in self._MDP:
                 # an MDP attribute like 'description'. store in meta
                 self.setMdp(name, value, self._MDP)
+                # assert self.meta[name].value == value
                 # must return without updating self.__dict__
                 return
         except AttributeError:

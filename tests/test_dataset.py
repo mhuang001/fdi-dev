@@ -23,8 +23,9 @@ from fdi.dataset.odict import ODict
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.classes import Classes
 from fdi.dataset.serializable import serialize
+from fdi.dataset.deserialize import deserialize
 from fdi.dataset.quantifiable import Quantifiable
-from fdi.dataset.listener import EventSender, DatasetBaseListener, EventTypes, EventType, EventTypeOf, MetaDataListener
+from fdi.dataset.listener import EventSender, EventTypes, EventType, EventTypeOf, MetaDataListener, EventListener
 from fdi.dataset.messagequeue import MqttRelayListener, MqttRelaySender
 from fdi.dataset.composite import Composite
 from fdi.dataset.metadata import Parameter, MetaData, make_jsonable
@@ -38,8 +39,7 @@ from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
 from fdi.dataset.arraydataset import ArrayDataset, Column, MediaWrapper
 from fdi.dataset.tabledataset import TableDataset
-from fdi.dataset.unstructureddataset import UnstrcturedDataset
-from fdi.dataset.dataset import GenericDataset, CompositeDataset
+from fdi.dataset.dataset import Dataset, CompositeDataset
 from fdi.dataset.indexed import Indexed
 from fdi.dataset.ndprint import ndprint
 from fdi.dataset.datatypes import Vector, Vector2D, Quaternion
@@ -50,11 +50,14 @@ from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
 from fdi.dataset.browseproduct import BrowseProduct
 from fdi.dataset.readonlydict import ReadOnlyDict
+from fdi.dataset.unstructureddataset import UnstrcturedDataset
+from fdi.dataset.vattribute import VAttribute
 from fdi.dataset.testproducts import SP, get_sample_product
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadMedia
+from fdi.utils.ydump import ydump
 
-# import __builtins__
+from jsonpath_ng.parser import JsonPathParserError
 
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -70,7 +73,8 @@ mk_output = 0
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py
 
-    from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
+    if not mk_output:
+        from outputs import nds20, nds30, nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
 else:
     # run by pytest
 
@@ -78,7 +82,8 @@ else:
     # https://docs.python-guide.org/writing/structure/
     from pycontext import fdi
 
-    from outputs import nds20, nds30, nds2, nds3, out_GenericDataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
+    if not mk_output:
+        from outputs import nds20, nds30, nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
 
     import logging
     import logging.config
@@ -176,6 +181,11 @@ def test_serialization():
     checkjson(v)
     v = Product
     checkjson(v)
+    # escape
+    assert deserialize('{ "_STID":"set"}').__class__ == set
+    assert deserialize('{ "_STID":"0set"}').__class__ == dict
+    assert deserialize('{ "_STID":"0set"}')['_STID'] == '0set'
+
     # v = (1, 8.2, 'tt')
     # checkjson(v)
     # v = {(5, 4): 4, 'y': {('d', 60): 'ff', '%': '$'}}
@@ -417,7 +427,7 @@ def mocksndrlsnr():
             source_path = "foo"
             self.fileChanged(source_path)
 
-    class MockListener(DatasetBaseListener):
+    class MockListener(EventListener):
         pass
 
     def log_file_change(source_path):
@@ -850,7 +860,7 @@ def test_Parameter_features():
     global test123
     test = None
 
-    class MockListener(DatasetBaseListener):
+    class MockListener(EventListener):
         def targetChanged(self, e):
             global test123
             r = "%r changed." % (e)
@@ -1032,7 +1042,7 @@ def test_DateParameter():
     v = DateParameter('2019-02-19T01:02:03.457')
     assert v.value.tai == 1929229360457000
     v.value.format = '%Y'
-    #print('********', v.value.isoutc(), ' ** ', v, '*******', v.toString(1))
+    # print('********', v.value.isoutc(), ' ** ', v, '*******', v.toString(1))
 
     with pytest.raises(TypeError):
         DateParameter(3.3)
@@ -1266,8 +1276,8 @@ def standardtestmeta():
     return m
 
 
-def test_GenericDataset():
-    v = GenericDataset(description='test GD')
+def test_Dataset():
+    v = Dataset(description='test Dataset')
     v.data = 88.8
     v.meta = standardtestmeta()
     ts = 'level 0\n'
@@ -1279,10 +1289,10 @@ def test_GenericDataset():
     if mk_output:
         print(ts)
         with open('/tmp/output.py', 'wt') as f:
-            clsn = 'out_GenericDataset'
+            clsn = 'out_Dataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
-        assert ts == out_GenericDataset
+        assert ts == out_Dataset
 
 
 class fa(array.array):
@@ -1299,6 +1309,7 @@ def do_ArrayDataset_init(atype):
     assert v.description == 'UNKNOWN'
     assert v.shape == ()
     assert v.typecode == 'UNKNOWN'
+    assert v.meta['description'].value == 'UNKNOWN'
     # from DRM
     a1 = atype([1, 4.4, 5.4E3])      # an array of data
     a2 = 'ev'                 # unit
@@ -1350,6 +1361,7 @@ def check_MDP(x):
     x.added_attribute = 111
     assert 'added_attribute' not in x.meta
     assert issubclass(x.added_attribute.__class__, int)
+    delattr(x, 'added_attribute')  # checkjson error
 
 
 def do_ArrayDataset_func(atype):
@@ -1491,7 +1503,7 @@ def do_ArrayDataset_func(atype):
     if mk_output:
         print(ts[i:])
     else:
-        assert ts[i:-44] == nds2 + '\n'
+        assert ts[i:-130] == nds2
     ts += '\n\nlevel 1\n'
     ts += x.toString(1)
     ts += '\n\nlevel 2, repr\n'
@@ -1510,7 +1522,7 @@ def do_ArrayDataset_func(atype):
 
     h = hash(v)
 
-    checkjson(x)
+    checkjson(x, dbg=0)
     checkgeneral(x)
 
 
@@ -1714,6 +1726,7 @@ def test_TableDataset_func_column():
     assert w3.list == a34[1:]
     w3 = TableDataset(data=copy.deepcopy(a34))
     w3.removeColumn(slice(1, 3))  # 1,2 (column2,3) removed
+
     assert len(w3) == 2
     assert w3[0].data == a34[0]
     assert w3[1].data == a34[3]
@@ -1729,6 +1742,17 @@ def test_TableDataset_func():
     u.addColumn('col3', c1)
     c2 = Column([2, 3], 'eu')
     u['col4'] = c2
+
+    # iteration
+    w = [('col3', c1), ('col4', c2)]
+    assert list(u.items()) == w
+    v = []
+    for n, c in u.items():
+        v.append((n, c))
+    assert v == w
+    w = ['col3', 'col4']
+    assert list(u.keys()) == w
+    assert [x for x in u] == w
 
     # access auxiliary list
     assert u.list == [c1.data, c2.data]
@@ -1766,17 +1790,22 @@ def test_TableDataset_func():
     a43 = [[11, 12, 13, 14], [21, 22, 23, 24], [31, 32, 33, 34]]
     v = TableDataset(data=a43)
     u = v.copy()
+    # remove two
     u.removeRow(3)
     u.removeRow(0)
+    # select the rest in the original tablle
     assert v.select([1, 2]) == u
     u = v.copy()
     u.removeRow(3)
     u.removeRow(2)
     u.removeRow(0)
     assert v.select([False, True, False, False]) == u
+    # same as selecting the first row.
     assert v.select([True, False]) == TableDataset(data=[[11], [21], [31]])
+    # same as above. extra columns ignored
     assert v.select([True, False, False, False, False]
                     ) == TableDataset(data=[[11], [21], [31]])
+    # same as above. extra columns ignored
     assert v.select([True, False, False, False, True]
                     ) == TableDataset(data=[[11], [21], [31]])
 
@@ -1802,7 +1831,7 @@ def test_TableDataset_func():
     else:
         assert ts == out_TableDataset
 
-    checkjson(u)
+    checkjson(u, dbg=0)
     checkgeneral(u)
 
 
@@ -1848,7 +1877,9 @@ def test_TableDataset_doc():
     x.addRow(newR)
     assert x.rowCount == 11
     # select
+    # the 2nd column
     c10 = x[1]
+    # A Tabledataset of one row --the 11th row of x.
     r10 = x.select([10])
     assert r10[1][0] == c10[10]
     # iteration:
@@ -2047,35 +2078,192 @@ def test_CompositeDataset_init():
     checkgeneral(v)
 
 
-def xtest_UnstrcturedDataset():
+def test_UnstrcturedDataset():
 
     u = UnstrcturedDataset({3: 6}, 'foo')
     assert u.data == {3: 6}
     assert u.description == 'foo'
-    assert u.type is None
-
+    assert u.meta['description'].value == 'foo'
+    assert u.doctype is None
+    u.doctype = 'json'
+    assert u.doctype == 'json'
     p = get_sample_product()
-    u.type = 'json'
-    u.data = p.serialized()
+    u.input(p.serialized(), 'json')
+    assert issubclass(u.data.__class__, dict)
 
-    v, s = u.fetch(["meta", "speed"])
+    v, s = u.fetch(["data", "_ATTR__meta", "speed"])
     # v is a dictionary
     assert json.dumps(v) == serialize(p.meta['speed'])
-    assert s == '.data["meta"]["speed"]'
-    # horrible
-    v, s = u.fetch(["data", "results",
-                    'calibration', 'meta', "unit", 'value'])
+    assert s == '.data["_ATTR__meta"]["speed"]'
     # ["results"]["calibration"]["meta"]["unit"]["value"]
+    v, s = u.fetch(["data", "results", "calibration",
+                    "_ATTR__meta", "unit", "value"])
     assert v == 'count'
-
+    assert s == '.data["results"]["calibration"]["_ATTR__meta"]["unit"]["value"]'
     # data of a column in tabledataset within compositedataset
-    v, s = u.fetch(["data", "results",
-                    "Time_Energy_Pos", "data", "Energy", "data"])
-    # ['data']['Energy']['data']
+    v, s = u.fetch(
+        ["data", "results", "Time_Energy_Pos", "Energy", "_ATTR_data"])
     t = [x * 1.0 for x in range(9)]
     assert v == [2 * x + 100 for x in t]
-    assert v == p['results']['Time_Energy_Pos']['Energy'].data
-    assert s == '.data["results"]["Time_Energy_Pos"]["data"]["Energy"]["data"]'
+    assert v == u.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]
+    assert s == '.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]'
+
+    xfnm = '/tmp/TOOREQ/SVOM_TOO-EX_20230607T003000_20230608T003000_20230607T000000_1.xml'
+    with open(xfnm) as f:
+        xstr = f.read()
+    u = UnstrcturedDataset(data=xstr, doctype='xml')
+    # print(ydump(u.data))
+    m = u.jsonPath('$..OBS_COORDINATES.RIGHT_ASCENSION')
+    assert list(dict(x.value) for x in m) == [
+        {'@unit': 'deg', '#text': '311.31'}]
+
+    assert str(
+        m[0].full_path) == 'TOO-REQUEST.DATA.OBSERVATION.SOURCE_CHARS.OBS_COORDINATES.RIGHT_ASCENSION'
+
+    checkjson(u)
+    checkgeneral(u)
+
+
+# https://goessner.net/articles/JsonPath/
+bookstore = """{ "store": {
+    "book": [
+      { "category": "reference",
+        "author": "Nigel Rees",
+        "title": "Sayings of the Century",
+        "price": 8.95
+      },
+      { "category": "fiction",
+        "author": "Evelyn Waugh",
+        "title": "Sword of Honour",
+        "price": 12.99
+      },
+      { "category": "fiction",
+        "author": "Herman Melville",
+        "title": "Moby Dick",
+        "isbn": "0-553-21311-3",
+        "price": 8.99
+      },
+      { "category": "fiction",
+        "author": "J. R. R. Tolkien",
+        "title": "The Lord of the Rings",
+        "isbn": "0-395-19395-8",
+        "price": 22.99
+      }
+    ],
+    "bicycle": {
+      "color": "red",
+      "price": 19.95
+    }
+  }
+}"""
+
+
+def test_jsonPath():
+    js = '[{"idAssetType":6,"name":"CCAA","enterprise":{"id":1,"name":"APV"}}]'
+    u = UnstrcturedDataset(data=js, doctype='json')
+    m = u.jsonPath("$[?(@.name == 'CCAA')].idAssetType")
+    assert m[0].value == 6
+
+    u = UnstrcturedDataset(data=bookstore, doctype='json')
+    # all authors
+    m = u.jsonPath("$..author")
+    assert list(x.value for x in m) == [
+        'Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien']
+    # the authors of all books in the store
+    n = u.jsonPath("$.store.book[*].author")
+    assert str(m[0].path) == 'author'
+    assert list(x.value for x in n) == [
+        'Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien']
+    assert str(m[0].full_path) == 'store.book.[0].author'
+    assert m[0].path.fields == ('author',)
+    assert str(m[0].context.path) == '[0]'
+    assert str(m[0].context.context.path) == 'book'
+    assert str(m[0].context.context.context.path) == 'store'
+    assert str(m[0].context.context.context.context.path) == '$'
+
+    # all things in store, which are some books and a red bicycle.
+    m = u.jsonPath('$.store.*')
+    assert list(str(x.path) for x in m) == ['book', 'bicycle']
+    # the price of everything in the store.
+    m = u.jsonPath('$.store..price')
+    assert list(x.value for x in m) == [8.95, 12.99, 8.99, 22.99, 19.95]
+    # the third book
+    m = u.jsonPath('$..book[2]')
+    assert list(x.value for x in m) == [
+        {'category': 'fiction', 'author': 'Herman Melville', 'title': 'Moby Dick', 'isbn': '0-553-21311-3', 'price': 8.99}]
+    # the last book in order.
+    # NOT WORKING
+    with pytest.raises(JsonPathParserError):
+        m = u.jsonPath('$..book[(@.length - 1)]')
+    # ok syntax
+    m = u.jsonPath('$..book[?(@.length - 1)]')
+    # NOT WORKING
+    with pytest.raises(AssertionError):
+        assert list(x.value['author'] for x in m) == ['J. R. R. Tolkien']
+    # use this instead. MUST HAVE THE WHITESPACES in ' - 1'
+    #m = u.jsonPath('$..book[?(@.`len` - 1)]')
+    #assert list(x.value['author'] for x in m) == ['J. R. R. Tolkien']
+    # the last book in order. #2
+    m = u.jsonPath('$..book[-1:]')
+    assert list(x.value['author'] for x in m) == ['J. R. R. Tolkien']
+    # the first two books
+    #m = u.jsonPath('$..book[0,1]')
+    #assert list(x.value['author'] for x in m) == 9
+    m = u.jsonPath('$..book[:2]')
+    assert list(x.value['author'] for x in m) == ['Nigel Rees', 'Evelyn Waugh']
+    # filter all books with isbn number
+    m = u.jsonPath('$..book[?(@.isbn)]')
+    assert list(x.value['author'] for x in m) == [
+        "Herman Melville", 'J. R. R. Tolkien']
+    # filter all books cheapier than 10
+    m = u.jsonPath('$..book[?(@.price<10)]')
+    assert list(x.value['author']
+                for x in m) == ["Nigel Rees", "Herman Melville"]
+    # All members of JSON structure.
+    m = u.jsonPath('$..*')
+    assert list(str(x.full_path) for x in m) \
+        == ['store',
+            'store.book',
+            'store.bicycle',
+            'store.book.[0].category',
+            'store.book.[0].author',
+            'store.book.[0].title',
+            'store.book.[0].price',
+            'store.book.[1].category',
+            'store.book.[1].author',
+            'store.book.[1].title',
+            'store.book.[1].price',
+            'store.book.[2].category',
+            'store.book.[2].author',
+            'store.book.[2].title',
+            'store.book.[2].isbn',
+            'store.book.[2].price',
+            'store.book.[3].category',
+            'store.book.[3].author',
+            'store.book.[3].title',
+            'store.book.[3].isbn',
+            'store.book.[3].price',
+            'store.bicycle.color',
+            'store.bicycle.price']
+    m = list((str(x.full_path), x.value)
+             for x in m if not issubclass(x.value.__class__, (list, dict)))
+    assert m == [('store.book.[0].category', 'reference'), ('store.book.[0].author', 'Nigel Rees'), ('store.book.[0].title', 'Sayings of the Century'), ('store.book.[0].price', 8.95),
+                 ('store.book.[1].category', 'fiction'),
+                 ('store.book.[1].author', 'Evelyn Waugh'),
+                 ('store.book.[1].title', 'Sword of Honour'),
+                 ('store.book.[1].price', 12.99),
+                 ('store.book.[2].category', 'fiction'),
+                 ('store.book.[2].author', 'Herman Melville'),
+                 ('store.book.[2].title', 'Moby Dick'),
+                 ('store.book.[2].isbn', '0-553-21311-3'),
+                 ('store.book.[2].price', 8.99),
+                 ('store.book.[3].category', 'fiction'),
+                 ('store.book.[3].author', 'J. R. R. Tolkien'),
+                 ('store.book.[3].title', 'The Lord of the Rings'),
+                 ('store.book.[3].isbn', '0-395-19395-8'),
+                 ('store.book.[3].price', 22.99),
+                 ('store.bicycle.color', 'red'),
+                 ('store.bicycle.price', 19.95)]
 
 
 def test_Indexed():

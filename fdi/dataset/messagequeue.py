@@ -30,7 +30,7 @@ class MqttRelayListener(EventListener):
                  host=None, port=None, username=None, passwd=None,
                  callback=None, clean_session=None,
                  client_id=None, userdata=None,
-                 qos=1, **kwds):
+                 qos=1, **kwds):  # MqttRelayListener
         """ Starts a MQTT message queue and forward everything in the arguement list to the MQ serialized.
 
         host, port, username, passwd: if any is not provided, it is looked up in `config['mqtt'].

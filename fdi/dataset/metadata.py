@@ -4,7 +4,7 @@ from .serializable import Serializable
 from .datatypes import DataTypes, DataTypeNames
 from .odict import ODict
 from .composite import Composite
-from .listener import DatasetEventSender, ParameterListener, DatasetListener, DatasetEvent, EventTypeOf
+from .listener import DatasetEventSender, ParameterListener, DatasetEvent, EventTypeOf
 from .eq import DeepEqual, xhash
 from .copyable import Copyable
 from .annotatable import Annotatable
@@ -13,7 +13,6 @@ from .typed import Typed
 from .invalid import INVALID
 from ..utils.masked import masked
 from ..utils.common import grouper
-from ..utils.ydump import ydump
 from ..utils.common import exprstrs, wls, bstr, t2l
 
 from tabulate import tabulate
@@ -26,7 +25,13 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-
+"""
+| Attribute | Defining Module | Holder Variable |
+| 'description' | `Annotatable` | `description` |
+| 'typ_' | `Typed` | `_type` |
+| 'unit' | `Quantifiable` | '_unit' |
+| 'typecode' | `Typecoded` | '_typecode' |
+"""
 Parameter_Attr_Defaults = {
     'AbstractParameter': dict(
         value=None,
@@ -902,8 +907,13 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         cn = self.__class__.__name__
         s = ''
         att = {}
+        has_omission = False
 
-        for (k, v) in self.__prettystate__():
+        for (k, v) in self.__getstate__().items():
+            if k.startswith('_ATTR_'):
+                k = k[6:]
+            elif k == '_STID':
+                continue
             att['name'] = k
             # limit cell width for level=0,1
             if issubclass(v.__class__, Parameter):
@@ -941,13 +951,18 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             else:
                 n = att['name']
                 if n in self._defaults and self._defaults[n]['default'] == v.value:
+
+                    has_omission = True
                     pass
+                elif n == 'listeners' and len(v) == 0:
+                    has_omission = True
                 else:
                     ps = '%s=%s' % (att['name'], v.toString(level))
                     # tab.append(wls(ps, 80//N))
                     tab.append(ps)
 
-                # tab.append(att['name'])
+        if has_omission:
+            tab.append('..')
 
         # write out the table
         if level == 0:

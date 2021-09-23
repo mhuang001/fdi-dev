@@ -29,7 +29,7 @@ class DateParameter(Parameter, Typecoded):
         # 'Q' is unsigned long long (8byte) integer.
         typecode = 'Q'
         # this will set default then set value.
-        super(DateParameter, self).__init__(
+        super().__init__(
             value=value, description=description, typ_='finetime', default=default, valid=valid, typecode=typecode, **kwds)
 
     def setValue(self, value):

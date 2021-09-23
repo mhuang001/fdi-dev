@@ -31,7 +31,14 @@ _Model_Spec = {
                 },
         'type': {
                 'data_type': 'string',
-                'description': "Data Type identification. 'json', 'xml'. or nul",
+                'description': 'Class name.',
+                'default': 'UnstructuredDataset',
+                'valid': '',
+                'typecode': 'B',
+                },
+        'doctype': {
+                'data_type': 'string',
+                'description': "Data/doc Type identification. 'json', 'xml'. or nul.",
                 'default': None,
                 'valid': '',
                 'typecode': 'B',

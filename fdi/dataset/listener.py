@@ -32,7 +32,7 @@ class EventListener(Annotatable):
         pass
 
 
-class DatasetBaseListener(Annotatable):
+class xDatasetBaseListener(Annotatable):
     """ Generic interface for listeners that will listen to events
     happening on a target of a specific type.
     Java Warning:
@@ -171,24 +171,25 @@ class ListnerSet(Serializable, DeepEqual, UserList):
         LIST[TUPLE(OBJ)] or STRXS
         A list of member-repre tuples or a string of all depending on `alist`.
         """
+
         if level == 0:
             if alist:
                 l = [(x.__class__.__name__, id(x),
-                      lls(x.description, 20))
+                      lls((x.description if hasattr(x, 'description') else 'UNKNOWN'), 20))
                      for x in self.data]
             else:
                 l = ['%s(%d, %s)' % (x.__class__.__name__, id(x),
-                                     lls(x.description, 20))
+                                     lls((x.description if hasattr(x, 'description') else 'UNKNOWN'), 20))
                      for x in self.data]
 
         else:
             if alist:
                 l = [(x.__class__.__name__, id(x),
-                      lls(x.description, 8))
+                      lls((x.description if hasattr(x, 'description') else 'UNKNOWN'), 8))
                      for x in self.data]
             else:
                 l = ['%s(%d, %s)' % (x.__class__.__name__, id(x),
-                                     lls(x.description, 8))
+                                     lls((x.description if hasattr(x, 'description') else 'UNKNOWN'), 8))
                      for x in self.data]
         if alist:
             return l

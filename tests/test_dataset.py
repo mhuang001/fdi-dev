@@ -2117,9 +2117,9 @@ def test_UnstrcturedDataset():
     assert list(dict(x.value) for x in m) == [
         {'@unit': 'deg', '#text': '311.31'}]
 
-    assert str(
-        m[0].full_path) == 'TOO-REQUEST.DATA.OBSERVATION.SOURCE_CHARS.OBS_COORDINATES.RIGHT_ASCENSION'
-
+    assert str(m[0].full_path) == \
+        'TOO-REQUEST.DATA.OBSERVATION.SOURCE_CHARS.OBS_COORDINATES.RIGHT_ASCENSION'
+    # print(u.toString())
     checkjson(u)
     checkgeneral(u)
 

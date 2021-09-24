@@ -321,6 +321,30 @@ fdi.dataset.typed module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.unstructureddataset module
+--------------------------------------
+
+.. automodule:: fdi.dataset.unstructureddataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.unstructureddataset\_datamodel module
+-------------------------------------------------
+
+.. automodule:: fdi.dataset.unstructureddataset_datamodel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.vattribute module
+-----------------------------
+
+.. automodule:: fdi.dataset.vattribute
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.yaml2python module
 ------------------------------
 

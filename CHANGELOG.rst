@@ -6,6 +6,11 @@ Change Log
 BETA0
 =====
 
+1.9.0 2021-09-25
+----------------
+Composite inherites MutableMappin so datasets drops 'data' in serialized forms, and have more streamlined toastring. UnstructuredDataset with JSONPath.
+
+
 1.8.0 2021-09-02
 ----------------
 Refactor HTTP Pool server into Flask app directory and document/demo improved API with Flasgger and OpenAPI 3..

@@ -2111,8 +2111,9 @@ def test_UnstrcturedDataset():
     xfnm = '/tmp/TOOREQ/SVOM_TOO-EX_20230607T003000_20230608T003000_20230607T000000_1.xml'
     with open(xfnm) as f:
         xstr = f.read()
+    print(xstr)
     u = UnstrcturedDataset(data=xstr, doctype='xml')
-    # print(ydump(u.data))
+    print(ydump(u.data))
     m = u.jsonPath('$..OBS_COORDINATES.RIGHT_ASCENSION')
     assert list(dict(x.value) for x in m) == [
         {'@unit': 'deg', '#text': '311.31'}]

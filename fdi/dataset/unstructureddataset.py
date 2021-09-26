@@ -71,23 +71,60 @@ class UnstrcturedDataset(Dataset, Copyable):
         except AttributeError:
             return self._data.data
 
-    def jsonPath(self, expre, *args, **kwds):
-        jsonpath_expression = jex.parse(expre, *args, **kwds)
+    def jsonPath(self, expr, sep='/', val='simple', indent=None, *args, **kwds):
+        """ Make a JSONPath query on the data.
+
+        :expr: JSONPath expression. Ref 'jsonpath_ng'
+
+        :sep: '' or `None` for keeping `jsonpath_ng` format (e.g. `a.b.[3].d`; other string for substituting '.' to the given string, with '[' and ']' removed. Default is '/'.
+        :val: 'context' for returning the `list` of `DatumInContext` of `find`; 'simple' (default) for list of simple types of values and summarizing `list` and `dict` values; other for a list of un-treated `DatumInContext.value`s.
+        :indent: for `json.dumps`.
+        Returns
+        -------
+        If `val` is ```context```, return  the `list` of `DatumInContext` of `jsonpath_ng.ext.parse().find()`.
+        Else return a `list` of `full_path`-`value` pairs from the output of `find().`
+        * If `val` is ```simple```, only node values of simple types are kept, `list` and `dict` types will show as '<list> length' and '<dict> [keys [... [length]]]', respectively.
+        * If `val` is ```full```, the values of returned `list`s are  un-treated `DatumInContext.value`s.
+        """
+        jsonpath_expression = jex.parse(expr, *args, **kwds)
         match = jsonpath_expression.find(self.data)
-        return match
+        if val == 'context':
+            return match
+        res = []
+        for x in match:
+            # make key
+            key = str(x.full_path)
+            if sep == '' or sep is None:
+                pass
+            else:
+                key = key.replace('.', sep).replace('[', '').replace(']', '')
+            # make value
+            vc = x.value.__class__
+            if val == 'simple':
+                if issubclass(vc, (list)):
+                    value = f'<{vc.__name__}> {len(x.value)}'
+                elif issubclass(vc, (dict)):
+                    n = 5
+                    ks = ', '.join(f'"{k}"' for k in
+                                   itertools.islice(x.value.keys(), n))
+                    l = len(x.value)
+                    if l > n:
+                        ks += f'{ks}...({l})'
+                    value = f'<{vc.__name__}> {ks}'
+                else:
+                    value = x.value
+            elif val == 'full':
+                value = x.value
+            else:
+                raise ValueError(f'Invalid output type for jsonPath: {val}')
+            res.append((key, value))
+        return res
 
     def make_meta(self, print=False, **kwds):
         full = self.jsonPath('$..*', **kwds)
-        pvs = list((str(x.full_path), x.value)
-                   for x in full if
-                   not issubclass(x.value.__class__, (list, dict)))
-        for x in pvs:
-            dpath = x[0].replace('.', '/').replace('[', '').replace('', '')
-            dval = x[1]
-            self.data_pv[dpath] = dval
-
-        __import__('pdb').set_trace()
-        self.__setattr__(dpath, dval)
+        for pv in full:
+            self.__setattr__(p[0], p[1])
+        self.data_pv = full
 
     def input(self, data, doctype=None, **kwds):
         """ Put data in the dataset.
@@ -99,20 +136,20 @@ class UnstrcturedDataset(Dataset, Copyable):
         """
 
         if doctype:
-            self.doctype=doctype
+            self.doctype = doctype
         if data:
             # do not ask for self.type unless there is real data.
             if self.doctype == 'json':
-                data=json.loads(data, **kwds)
+                data = json.loads(data, **kwds)
             elif self.doctype == 'xml':
-                data=xmltodict.parse(data, **kwds)
+                data = xmltodict.parse(data, **kwds)
             # set Escape if not set already
             if '_STID' in data:
                 ds = data['_STID']
                 if not ds.startswith('0'):
                     data['_STID'] = '0%s' % ds
         super().setData(data)
-        #self.make_meta()
+        # self.make_meta()
 
     def fetch(self, paths, exe=['is'], not_quoted=True):
 

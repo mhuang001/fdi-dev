@@ -2107,18 +2107,6 @@ def test_UnstrcturedDataset():
     assert v == u.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]
     assert s == '.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]'
 
-    xfnm = '/tmp/TOOREQ/SVOM_TOO-EX_20230607T003000_20230608T003000_20230607T000000_1.xml'
-    with open(xfnm) as f:
-        xstr = f.read()
-    u = UnstrcturedDataset(data=xstr, doctype='xml')
-    # print(xstr)
-    # print(ydump(u.data))
-    m = u.jsonPath('$..OBS_COORDINATES.RIGHT_ASCENSION')
-    assert list(dict(x.value) for x in m) == [
-        {'@unit': 'deg', '#text': '311.31'}]
-
-    assert str(m[0].full_path) == \
-        'TOO-REQUEST.DATA.OBSERVATION.SOURCE_CHARS.OBS_COORDINATES.RIGHT_ASCENSION'
     # print(u.toString())
     checkjson(u)
     checkgeneral(u)
@@ -2162,18 +2150,19 @@ def test_jsonPath():
     js = '[{"idAssetType":6,"name":"CCAA","enterprise":{"id":1,"name":"APV"}}]'
     u = UnstrcturedDataset(data=js, doctype='json')
     m = u.jsonPath("$[?(@.name == 'CCAA')].idAssetType")
-    assert m[0].value == 6
+    assert m[0][1] == 6
 
+    ### BOOK STORE ###
     u = UnstrcturedDataset(data=bookstore, doctype='json')
-    # all authors
-    m = u.jsonPath("$..author")
-    assert list(x.value for x in m) == [
-        'Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien']
     # the authors of all books in the store
-    n = u.jsonPath("$.store.book[*].author")
-    assert str(m[0].path) == 'author'
+    n = u.jsonPath("$.store.book[*].author", val='context')
     assert list(x.value for x in n) == [
         'Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien']
+    # same all authors
+    m = u.jsonPath("$..author", val='context')
+    assert list(x.value for x in m) == [
+        'Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien']
+    assert str(m[0].path) == 'author'
     assert str(m[0].full_path) == 'store.book.[0].author'
     assert m[0].path.fields == ('author',)
     assert str(m[0].context.path) == '[0]'
@@ -2183,45 +2172,56 @@ def test_jsonPath():
 
     # all things in store, which are some books and a red bicycle.
     m = u.jsonPath('$.store.*')
-    assert list(str(x.path) for x in m) == ['book', 'bicycle']
+    assert m == [('store/book', '<list> 4'),
+                 ('store/bicycle', '<dict> "color", "price"')]
+
     # the price of everything in the store.
     m = u.jsonPath('$.store..price')
-    assert list(x.value for x in m) == [8.95, 12.99, 8.99, 22.99, 19.95]
+    assert [x[1] for x in m] == [8.95, 12.99, 8.99, 22.99, 19.95]
+
     # the third book
     m = u.jsonPath('$..book[2]')
-    assert list(x.value for x in m) == [
-        {'category': 'fiction', 'author': 'Herman Melville', 'title': 'Moby Dick', 'isbn': '0-553-21311-3', 'price': 8.99}]
+    assert [x[1] for x in m] == [
+        '<dict> "category", "author", "title", "isbn", "price"']
+    m = u.jsonPath('$..book[2]', val='full')
+    assert [x[1] for x in m] == [
+        {'author': 'Herman Melville', 'category': 'fiction', 'isbn': '0-553-21311-3', 'price': 8.99, 'title': 'Moby Dick'}]
+
     # the last book in order.
     # NOT WORKING
     with pytest.raises(JsonPathParserError):
         m = u.jsonPath('$..book[(@.length - 1)]')
     # ok syntax
     m = u.jsonPath('$..book[?(@.length - 1)]')
-    # NOT WORKING
+    # NOT WORKING. An empty [] is returned.
     with pytest.raises(AssertionError):
-        assert list(x.value['author'] for x in m) == ['J. R. R. Tolkien']
+        assert len(m) > 0
     # use this instead. MUST HAVE THE WHITESPACES in ' - 1'
-    #m = u.jsonPath('$..book[?(@.`len` - 1)]')
+    #m = u.jsonPath('$..book[?(@.`len` - 1)]', val='context')
     #assert list(x.value['author'] for x in m) == ['J. R. R. Tolkien']
     # the last book in order. #2
-    m = u.jsonPath('$..book[-1:]')
-    assert list(x.value['author'] for x in m) == ['J. R. R. Tolkien']
+    m = u.jsonPath('$..book[-1:]', val='full')
+    assert [x[1]['author'] for x in m] == ['J. R. R. Tolkien']
+    m = u.jsonPath('$..book[-1:].author')
+    assert m == [('store/book/3/author', 'J. R. R. Tolkien')]
+
     # the first two books
-    #m = u.jsonPath('$..book[0,1]')
-    #assert list(x.value['author'] for x in m) == 9
-    m = u.jsonPath('$..book[:2]')
-    assert list(x.value['author'] for x in m) == ['Nigel Rees', 'Evelyn Waugh']
+    #m = u.jsonPath('$..book[0,1]', val='full')
+    #assert list(x['author'] for x in m.values()) == 9
+    m = u.jsonPath('$..book[:2].author')
+    assert [x[1] for x in m] == ['Nigel Rees', 'Evelyn Waugh']
+
     # filter all books with isbn number
-    m = u.jsonPath('$..book[?(@.isbn)]')
-    assert list(x.value['author'] for x in m) == [
-        "Herman Melville", 'J. R. R. Tolkien']
+    m = u.jsonPath('$..book[?(@.isbn)].author')
+    assert [x[1] for x in m] == ["Herman Melville", 'J. R. R. Tolkien']
+
     # filter all books cheapier than 10
-    m = u.jsonPath('$..book[?(@.price<10)]')
-    assert list(x.value['author']
-                for x in m) == ["Nigel Rees", "Herman Melville"]
+    m = u.jsonPath('$..book[?(@.price<10)].author')
+    assert [x[1] for x in m] == ["Nigel Rees", "Herman Melville"]
+
     # All members of JSON structure.
-    m = u.jsonPath('$..*')
-    assert list(str(x.full_path) for x in m) \
+    m = u.jsonPath('$..*', val='context')
+    assert [str(x.full_path) for x in m] \
         == ['store',
             'store.book',
             'store.bicycle',
@@ -2245,25 +2245,31 @@ def test_jsonPath():
             'store.book.[3].price',
             'store.bicycle.color',
             'store.bicycle.price']
-    m = list((str(x.full_path), x.value)
-             for x in m if not issubclass(x.value.__class__, (list, dict)))
-    assert m == [('store.book.[0].category', 'reference'), ('store.book.[0].author', 'Nigel Rees'), ('store.book.[0].title', 'Sayings of the Century'), ('store.book.[0].price', 8.95),
-                 ('store.book.[1].category', 'fiction'),
-                 ('store.book.[1].author', 'Evelyn Waugh'),
-                 ('store.book.[1].title', 'Sword of Honour'),
-                 ('store.book.[1].price', 12.99),
-                 ('store.book.[2].category', 'fiction'),
-                 ('store.book.[2].author', 'Herman Melville'),
-                 ('store.book.[2].title', 'Moby Dick'),
-                 ('store.book.[2].isbn', '0-553-21311-3'),
-                 ('store.book.[2].price', 8.99),
-                 ('store.book.[3].category', 'fiction'),
-                 ('store.book.[3].author', 'J. R. R. Tolkien'),
-                 ('store.book.[3].title', 'The Lord of the Rings'),
-                 ('store.book.[3].isbn', '0-395-19395-8'),
-                 ('store.book.[3].price', 22.99),
-                 ('store.bicycle.color', 'red'),
-                 ('store.bicycle.price', 19.95)]
+    m = u.jsonPath('$..*')
+    assert m == [('store', '<dict> "book", "bicycle"'),
+                 ('store/book', '<list> 4'),
+                 ('store/bicycle', '<dict> "color", "price"'),
+                 ('store/book/0/category', 'reference'),
+                 ('store/book/0/author', 'Nigel Rees'),
+                 ('store/book/0/title', 'Sayings of the Century'),
+                 ('store/book/0/price', 8.95),
+                 ('store/book/1/category', 'fiction'),
+                 ('store/book/1/author', 'Evelyn Waugh'),
+                 ('store/book/1/title', 'Sword of Honour'),
+                 ('store/book/1/price', 12.99),
+                 ('store/book/2/category', 'fiction'),
+                 ('store/book/2/author', 'Herman Melville'),
+                 ('store/book/2/title', 'Moby Dick'),
+                 ('store/book/2/isbn', '0-553-21311-3'),
+                 ('store/book/2/price', 8.99),
+                 ('store/book/3/category', 'fiction'),
+                 ('store/book/3/author', 'J. R. R. Tolkien'),
+                 ('store/book/3/title', 'The Lord of the Rings'),
+                 ('store/book/3/isbn', '0-395-19395-8'),
+                 ('store/book/3/price', 22.99),
+                 ('store/bicycle/color', 'red'),
+                 ('store/bicycle/price', 19.95)
+                 ]
 
 
 def test_Indexed():

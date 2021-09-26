@@ -194,8 +194,10 @@ def make_pools(name, aburl, clnt, auth, n=1):
         pool = PoolManager.getPool(poolid, aburl + '/'+poolid)
         lst.append(pool)
         data = serialize(Product('lone prod in '+poolid))
-        url = aburl + '/' + poolid + '/' + prodt + '/0'
+        url = aburl + '/' + poolid + '/'
         x = clnt.post(url, auth=auth, data=data)
+        o = getPayload(x)
+        check_response(o, failed_case=False)
     return lst[0] if n == 1 else lst
 
 

@@ -925,6 +925,8 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             else:
                 # listeners
                 lstr = v.toString(level=level, alist=True)
+                if len(lstr) < 3:
+                    lstr = [["", "<No listener>", ""]]
                 att['value'], att['unit'], att['type'], att['description'] = \
                     '\n'.join(str(x[1]) for x in lstr), '', \
                     '\n'.join(x[0] for x in lstr), \

@@ -120,9 +120,8 @@ def live_or_mock_server(pc):
     # aburl='http://' + pc['node']['host'] + ':' + \
     #    str(pc['node']['port']) + pc['baseurl']
     server_type = checkserver(aburl)
-    headers = copy.copy(commonheaders)
-    yield aburl, headers, server_type
-    del aburl, headers
+    yield aburl, server_type
+    del aburl
     server_type = None
 
 
@@ -131,7 +130,7 @@ def server(live_or_mock_server, new_user_read_write):
     """ Server data from r/w user, alive.
 
     """
-    aburl, headers, ty = live_or_mock_server
+    aburl, ty = live_or_mock_server
     user = new_user_read_write
     headers = auth_headers(user.username, user.password)
     headers['server_type'] = ty
@@ -166,11 +165,11 @@ def mock_server(live_or_mock_server):
     """ Prepares server configuredand alive
 
     """
-    aburl, headers, server_type = live_or_mock_server
+    aburl, server_type = live_or_mock_server
     # assert server_type == 'mock', 'must have a mock server. Not ' + \
     #    str(server_type)
-    yield aburl, headers
-    del aburl, headers
+    yield aburl
+    del aburl
 
 
 @pytest.fixture(scope="module")
@@ -183,7 +182,7 @@ def mock_app(mock_server, project_app):
 
 @pytest.fixture(scope="module")
 def server_app(live_or_mock_server, project_app):
-    a, h, server_type = live_or_mock_server
+    a, server_type = live_or_mock_server
     if server_type != 'mock':
         yield None
     else:

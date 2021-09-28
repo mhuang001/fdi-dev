@@ -130,7 +130,7 @@ Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. T
         self._urn = urn
 
         if poolurl:
-            poolpath, scheme, place, poolname = parse_poolurl(
+            poolpath, scheme, place, poolname, self._username, self._password = parse_poolurl(
                 poolurl, poolname)
             self._poolpath = poolpath
             self._scheme = scheme
@@ -139,6 +139,7 @@ Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. T
             self._poolpath = None
             self._scheme = None
             self._place = None
+            self._username, self._password = None, None
 
     def getUrn(self):
         """ Returns the urn in this """
@@ -274,6 +275,8 @@ The ``PoolURL`` format is in the form of a URL that preceeds its poolname part:
 :<place>: IP:port such as``192.168.5.6:8080`` for ``http`` and ``https`` schemes, or an empty string for ``file`` and ``mem`` schemes.
 :<poolname>: same as in URN.
 :<poolpath>: The part between ``place`` and an optional ``poolhint``::
+:<username>:
+:<password>:
 
 - For ``file`` or ``server`` schemes, e.g. poolpath is ``/c:/tmp`` in ``http://localhost:9000/c:/tmp/mypool/`` with ``poolhint`` keyword arguement of :func:`parse_poolurl` not given, or given as ``mypool`` (or ``myp`` or ``my`` ...).
 - For ``http`` and ``https`` schemes, it is e.g. ``/0.6/tmp`` in ``https://10.0.0.114:5000/v0.6/tmp/mypool`` with ``poolhint`` keyword arguement not given, or given as ``mypool`` (or ``myp` or 'my' ...). The meaning of poolpath is subject to interpretation by the  server. In the preceeding example the poolpath has an API version.  :meth:`ProductPool.transformpath` is used to map it further. Note that trailing blank and ``/`` are ignored, and stripped in the output.
@@ -295,9 +298,9 @@ Examples:
         raise ValueError('a string is needed: ' + str(url))
 
     sp1 = url.split(':')
-    if len(sp1) > 3:  # after scheme and a possible windows path
+    if len(sp1) > 4:  # after scheme and a possible windows path, and one for user:pass
         raise ValueError(
-            'a pool URN can have no more than 2 \':\'.')
+            'a pool URN can have no more than 3 \':\'.')
 
     pr = urlparse(url)
     scheme = pr.scheme       # file
@@ -319,7 +322,7 @@ Examples:
         poolpath = sp[0]
 
     poolpath = place + poolpath if scheme in ('file') else poolpath
-    return poolpath, scheme, place, poolname
+    return poolpath, scheme, place, poolname, pr.username, pr.password
 
 
 class UrnUtils():

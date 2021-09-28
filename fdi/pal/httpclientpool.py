@@ -78,7 +78,7 @@ class HttpClientPool(ProductPool):
 
         """
         # print(__name__ + str(kwds))
-        super(HttpClientPool, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     def setup(self):
         """ Sets up HttpPool interals.

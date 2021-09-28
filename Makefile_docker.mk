@@ -7,7 +7,7 @@ DVERS	= v1.10
 DFILE	=dockerfile
 
 SERVER_NAME      =httppool
-SVERS	= v9
+SVERS	= v9.1
 SFILE	= fdi/httppool/resources/httppool_server.docker
 
 PORT        =9884

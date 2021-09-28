@@ -51,7 +51,6 @@ def get_registered_pools():
 
 # @ pools_api.route('', methods=['GET'])
 @ pools_api.route('/pools/', methods=['GET'])
-# #@ swag_from(endp['/pools']['get'])
 def get_pools():
     logger = current_app.logger
     if request.method in ['POST', 'PUT', 'DELETE'] and auth.current_user() == current_app.config['PC']['node']['ro_username']:
@@ -84,6 +83,29 @@ def get_name_all_pools(path):
             alldirs.append(file)
     current_app.logger.debug(path + ' has ' + str(alldirs))
     return alldirs
+
+
+######################################
+####  user/login /logout GET  ####
+######################################
+
+
+@ pools_api.route('/user/login', methods=['GET'])
+@ auth.login_required
+def login():
+    """ Logging in on the server.
+
+    :return: response made from http code, poolurl, message
+    """
+
+    logger = current_app.logger
+    __import__('pdb').set_trace()
+
+    msg = 'User %s logged-in Read-Write.' % auth.current_user().role
+    logger.debug(msg)
+
+    ts = time.time()
+    return resp(200, 'OK', msg, ts)
 
 ######################################
 #### /pools/register_all pools/register_all/  ####
@@ -264,18 +286,19 @@ def get_pool_info(poolname, serialize_out=True):
         # for n in ['classes', 'urns', 'tags']:
         #    del result[n]['_STID']
         for u in result['urns']:
-            del result['urns'][u]['meta']
+            del (result['urns'][u])['meta']
         msg = 'Getting pool %s information. %s.' % (poolname, mes)
     else:
         code, result, msg = 404, FAILED, poolname +\
             ' is not an exisiting Pool ID.'
     return 0, resp(code, result, msg, ts, False), 0
 
+
 ######################################
 ####  {pooolid}/register PUT /unreg DELETE  ####
 ######################################
 
-
+@auth.login_required
 @ pools_api.route('/<string:pool>', methods=['PUT'])
 def register(pool):
     """ Register the given pool.
@@ -286,11 +309,6 @@ def register(pool):
     """
 
     logger = current_app.logger
-    if auth.current_user() == current_app.config['PC']['node']['ro_username']:
-        msg = 'User %s us Read-Only, not allowed to %s.' % \
-            (auth.current_user(), request.method)
-        logger.debug(msg)
-        return unauthorized(msg)
 
     ts = time.time()
     logger.debug('register pool ' + pool)
@@ -319,6 +337,7 @@ def register_pool(pool):
         return code, result, msg
 
 
+@ auth.login_required
 @ pools_api.route('/<string:pool>', methods=['DELETE'])
 def unregister(pool):
     """ Unregister this pool from PoolManager.

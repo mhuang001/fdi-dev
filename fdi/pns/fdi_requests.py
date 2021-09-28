@@ -69,7 +69,8 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
     poolname, resourcecn, index = parseUrn(
         urn) if len(urn) > 7 else ('', '', '0')
     indexs = str(index)
-    poolpath, scheme, place, pn = parse_poolurl(poolurl, poolhint=poolname)
+    poolpath, scheme, place, pn, un, pw = parse_poolurl(
+        poolurl, poolhint=poolname)
 
     if not poolname:
         poolname = pn

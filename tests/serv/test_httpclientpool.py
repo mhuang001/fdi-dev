@@ -194,7 +194,7 @@ def crud_t(poolid, poolurl, local_pools_dir, pool):
     expected_urn = 'urn:' + poolid + ':' + fullname(x)
     assert urn.urn.rsplit(':', 1)[0] == expected_urn, \
         'Urn error: ' + expected_urn
-    poolpath, scheme, place, pn = parse_poolurl(
+    poolpath, scheme, place, pn, un, pw = parse_poolurl(
         poolurl, poolhint=poolid)
     cnt = pool.getCount(typenm)
     assert cnt == 2

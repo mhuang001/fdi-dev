@@ -53,7 +53,7 @@ class LocalPool(ManagedPool):
         """ creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
         """
         # print(__name__ + str(kwds))
-        super(LocalPool, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     def setup(self):
         """ Sets up LocalPool interals.

@@ -125,20 +125,22 @@ def test_UrnUtils():
         UrnUtils.checkUrn(urn+'r')
 
     # poolurl
-    poolpath, scheme, place, poolname = parse_poolurl(poolurl, poolhint=b2)
+    poolpath, scheme, place, poolname, un, pw = parse_poolurl(
+        poolurl, poolhint=b2)
     assert poolpath == a2 + b1
     assert scheme == a1
     assert place == ''
     assert poolname == b2
+    #assert (un, pw) == ('foo', 'bar')
     # implicit pool is the last segment
-    poolpath, scheme, place, poolname = parse_poolurl(
+    poolpath, scheme, place, poolname, un, pw = parse_poolurl(
         'file:///c:/tmp/mypool/v3/')
     assert poolpath == '/c:/tmp/mypool'
     assert scheme == 'file'
     assert place == ''
     assert poolname == 'v3'
     # explicit poolname. the first distinctive substring
-    poolpath, scheme, place, poolname = parse_poolurl(
+    poolpath, scheme, place, poolname, un, pw = parse_poolurl(
         'file:///c:/tmp/mypool/v3/', 'my')
     assert poolpath == '/c:/tmp'
     assert scheme == 'file'
@@ -146,7 +148,7 @@ def test_UrnUtils():
     assert poolname == 'mypool/v3'
 
     # https scheme. pool parameter is given in a urn
-    poolpath, scheme, place, poolname = parse_poolurl(
+    poolpath, scheme, place, poolname, un, pw = parse_poolurl(
         'https://127.0.0.1:5000/v3/mypool/v2', 'urn:mypool/v2:foo.KProduct:43')
     assert poolpath == '/v3'
     assert scheme == 'https'
@@ -258,7 +260,7 @@ def cleanup(poolurl=None, poolname=None):
         for pn, pool in PoolManager.getMap().items():
             nu.append((pn, pool._poolurl))
     for pname, purl in nu:
-        direc, schm, place, pn = parse_poolurl(purl, pname)
+        direc, schm, place, pn, un, pw = parse_poolurl(purl, pname)
         if schm in ['file', 'server']:
             d = direc + '/' + pn
             rmlocal(d)
@@ -348,7 +350,7 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args):
 
     expected_cnt, currentSN: expected number of prods and currentSN in pool for products named prodname
     """
-    poolpath, schm, place, poolname = parse_poolurl(poolurl)
+    poolpath, schm, place, poolname, un, pw = parse_poolurl(poolurl)
     scheme = schm.lower()
     if scheme in ['file', 'server']:
         path = op.join(poolpath, poolname)
@@ -673,7 +675,7 @@ def mkStorage(thepoolname, thepoolurl):
 
     cleanup(thepoolurl, thepoolname)
     pstore = ProductStorage(thepoolname, thepoolurl)
-    thepoolpath, tsc, tpl, pn = parse_poolurl(thepoolurl, thepoolname)
+    thepoolpath, tsc, tpl, pn, un, pw = parse_poolurl(thepoolurl, thepoolname)
     if tsc in ['file', 'server']:
         assert op.exists(transpath(thepoolname, thepoolpath))
     assert len(pstore.getPools()) == 1

@@ -31,4 +31,4 @@ class HttpPool(LocalPool):
         """
         # print(__name__ + str(kwds))
 
-        super(HttpPool, self).__init__(**kwds)
+        super().__init__(**kwds)

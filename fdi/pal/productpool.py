@@ -157,7 +157,8 @@ When implementing a ProductPool, the following rules need to be applied:
         """ Replaces the current poolurl of this pool.
         """
         s = (not hasattr(self, '_poolurl') or not self._poolurl)
-        self._poolpath, self._scheme, self._place, self._poolname = \
+        self._poolpath, self._scheme, self._place, \
+            self._poolname, self._username, self._password = \
             parse_poolurl(poolurl)
         self._poolurl = poolurl
         # call setup only if poolurl was None

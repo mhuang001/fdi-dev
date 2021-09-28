@@ -8,6 +8,10 @@ info:
   license:
     name: LGPL 3.0
 tags:
+  - name: User
+    description: User services.
+    externalDocs:
+      url: 'https://fdi.readthedocs.io/en/latest/usage/httppool.html'
   - name: Server
     description: About this HTTP pool server that holds many data *pool*s.
     externalDocs:
@@ -50,6 +54,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RegisteredPools'
+  /user/login:
+    get:
+      summary: Login on the server.
+      tags:
+        - User
+      description: Logging in as read-write or read-only.
+      operationId: login
+      responses:
+        '200':
+          description: Done loggin in.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponseContents'
   /pools/:
     get:
       summary: Get IDs of all Pools.

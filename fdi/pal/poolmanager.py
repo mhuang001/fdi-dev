@@ -108,13 +108,13 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
             if poolname is None:
                 if poolurl:
                     # the last segment will be the poolname
-                    pp, schm, pl, poolname = parse_poolurl(poolurl)
+                    pp, schm, pl, poolname, un, pw = parse_poolurl(poolurl)
             if cls.isLoaded(poolname):
                 return cls._GlobalPoolList[poolname]
 
             if poolurl:
                 # poolname use the one comes above
-                pp, schm, pl, pn = parse_poolurl(poolurl)
+                pp, schm, pl, pn, un, pw = parse_poolurl(poolurl)
             else:
                 raise ValueError(
                     'A new pool %s cannot be created without a pool url.' % poolname)

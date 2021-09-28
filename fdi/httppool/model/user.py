@@ -17,6 +17,7 @@ class User():
         self.username = name
         self.password = passwd
         self.registered_on = datetime.datetime.now()
+
         self.hashed_password = generate_password_hash(passwd)
         self.role = role
         self.authenticated = False
@@ -37,40 +38,37 @@ def getUsers(pc):
         "rw": generate_password_hash(pc['node']['username']),
         "ro": generate_password_hash(pc['node']['password'])
     }
-    users = [
-        User(pc['node']['username'], pc['node']['password'], 'read_write'),
-        User(pc['node']['ro_username'], pc['node']
-             ['ro_password'], 'read_only')
-    ]
+    pn = pc['node']
+    users = {
+        pn['username']: User(pn['username'], pn['password'], 'read_write'),
+        pn['ro_username']:  User(
+            pn['ro_username'], pn['ro_password'], 'read_only')
+    }
     return users
 
 
 @auth.verify_password
 def verify_password(username, password):
+
     users = current_app.config['USERS']
     current_app.logger.debug('verify user/pass %s %s vs. %s' % (
         username, password, str(users)))
-    if (username, password) in map(uspa, users):
-        return username
-    # if username in users and \
-    #   check_password_hash(users[username], password):
-    #    return username
-# import requests
-# from http.client import HTTPConnection
-# HTTPConnection.debuglevel = 1
+    if username in users and users[username].password == password:
+        return users[username]
 
-
+# open text passwd
 # @auth.verify_password
 # def verify(username, password):
 #     """This function is called to check if a username /
 #     password combination is valid.
 #     """
-#     pc=current_app.config['PC']
+#     pc = current_app.config['PC']
 #     if not (username and password):
 #         return False
 #     return username == pc['node']['username'] and password == pc['node']['password']
-if 0:
-    pass
+
+    # if 0:
+    #        pass
     # elif username == pc['auth_user'] and password == pc['auth_pass']:
 
     # else:

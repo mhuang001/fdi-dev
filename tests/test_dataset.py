@@ -2090,15 +2090,15 @@ def test_UnstrcturedDataset():
     u.input(p.serialized(), 'json')
     assert issubclass(u.data.__class__, dict)
 
-    v, s = u.fetch(["data", "_ATTR__meta", "speed"])
+    v, s = u.fetch(["data", "_ATTR_meta", "speed"])
     # v is a dictionary
     assert json.dumps(v) == serialize(p.meta['speed'])
-    assert s == '.data["_ATTR__meta"]["speed"]'
+    assert s == '.data["_ATTR_meta"]["speed"]'
     # ["results"]["calibration"]["meta"]["unit"]["value"]
     v, s = u.fetch(["data", "results", "calibration",
-                    "_ATTR__meta", "unit", "value"])
+                    "_ATTR_meta", "unit", "value"])
     assert v == 'count'
-    assert s == '.data["results"]["calibration"]["_ATTR__meta"]["unit"]["value"]'
+    assert s == '.data["results"]["calibration"]["_ATTR_meta"]["unit"]["value"]'
     # data of a column in tabledataset within compositedataset
     v, s = u.fetch(
         ["data", "results", "Time_Energy_Pos", "Energy", "_ATTR_data"])

@@ -390,7 +390,7 @@ When implementing a ProductPool, the following rules need to be applied:
 ###########################
 
 
-MetaData_Json_Start = '{"_ATTR__meta": '
+MetaData_Json_Start = '{"_ATTR_meta": '
 MetaData_Json_End = '"_STID": "MetaData"}'
 
 

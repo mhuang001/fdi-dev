@@ -115,6 +115,6 @@ class History(CompositeDataset):
         return OrderedDict(
             _ATTR_PARAM_HISTORY=self.PARAM_HISTORY,
             _ATTR_TASK_HISTORY=self.TASK_HISTORY,
-            _ATTR__meta=self._meta,
+            _ATTR_meta=self._meta,
             **self.data,
             _STID=self._STID)

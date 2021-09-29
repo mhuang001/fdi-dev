@@ -193,7 +193,7 @@ class ArrayDataset(GenericDataset, Iterable):
 
         # s = OrderedDict(description=self.description, meta=self.meta, data=self.data)  # super(...).__getstate__()
         s = OrderedDict(
-            _ATTR__meta=getattr(self, '_meta', None),
+            _ATTR_meta=getattr(self, '_meta', None),
             _ATTR_data=getattr(self, 'data', None),
             _STID=self._STID)
 

@@ -122,7 +122,7 @@ $INITARGS
         # s = super().__getstate__()
         # s.update(_ATTR_refs=self.refs)
         s = OrderedDict(
-            _ATTR__meta=getattr(self, '_meta', None),
+            _ATTR_meta=getattr(self, '_meta', None),
             **self.data,
             _ATTR_history=getattr(self, '_history', None),
             _ATTR_listeners=getattr(self, 'listeners', None),

@@ -24,34 +24,14 @@ endp = swag['paths']
 pools_api = Blueprint('pools', __name__)
 
 ######################################
-#### /  get_registered_pools   ####
+#### /  get_pools   ####
 ######################################
 
 
 @ pools_api.route('/', methods=['GET'])
-# @ swag_from(endp['/']['get'])
-def get_registered_pools():
-    """ Returns a list of Pool IDs (pool names) of all pools registered with the Global PoolManager.
-    ---
-    """
-    ts = time.time()
-    path = current_app.config['POOLPATH_BASE']
-    current_app.logger.debug('Listing all registered pools.')
-
-    result = [p.getPoolurl() for p in PM.getMap().values()]
-    msg = 'There is/are %d pools registered to the PoolManager.' % len(result)
-    code = 200
-    return resp(code, result, msg, ts)
-
-
-######################################
-#### /pools  get_pools/  reg/unreg ####
-######################################
-
-
-# @ pools_api.route('', methods=['GET'])
-@ pools_api.route('/pools/', methods=['GET'])
 def get_pools():
+    """ Get names of all pools, registered or not.
+    """
     logger = current_app.logger
     if request.method in ['POST', 'PUT', 'DELETE'] and auth.current_user() == current_app.config['PC']['node']['ro_username']:
         msg = 'User %s us Read-Only, not allowed to %s.' % \
@@ -84,6 +64,27 @@ def get_name_all_pools(path):
     current_app.logger.debug(path + ' has ' + str(alldirs))
     return alldirs
 
+######################################
+#### /pools  get_registered_pools/  ####
+######################################
+
+
+# @ pools_api.route('', methods=['GET'])
+@ pools_api.route('/pools/', methods=['GET'])
+def get_registered_pools():
+    """ Returns a list of Pool IDs (pool names) of all pools registered with the Global PoolManager.
+    ---
+    """
+    ts = time.time()
+    path = current_app.config['POOLPATH_BASE']
+    current_app.logger.debug('Listing all registered pools.')
+
+    # [p.getPoolurl() for p in PM.getMap()()]
+    result = list(PM.getMap().keys())
+    msg = 'There is/are %d pools registered to the PoolManager.' % len(result)
+    code = 200
+    return resp(code, result, msg, ts)
+
 
 ######################################
 ####  user/login /logout GET  ####
@@ -113,7 +114,6 @@ def login():
 
 
 @ pools_api.route('/pools/register_all', methods=['PUT'])
-# #@ swag_from(endp['/pools/register_all']['put'])
 def register_all():
     """ Register (Load) all pools on tme server.
 

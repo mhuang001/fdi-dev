@@ -44,18 +44,18 @@ security:
 paths:
   /:
     get:
-      summary: "Get IDs of all registered Pools."
+      summary: "Get IDs of all Pools."
       tags:
         - Server
-      description: "Returns a list of Pool IDs (pool names) of all pools registered with the global PoolManager."
-      operationId: get_registered_pools
+      description: "Returns a list of Pool IDs (pool names) of all pools on the server, including both registered and un-registered ones."
+      operationId: get_pools
       responses:
         "200":
-          description: "Done getting all ID of registered Pools."
+          description: "Done getting all Pool IDs."
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RegisteredPools'
+                $ref: "#/components/schemas/GenericResponseContents"
   /user/login:
     get:
       summary: "Login on the server."
@@ -72,18 +72,18 @@ paths:
                 $ref: "#/components/schemas/GenericResponseContents"
   /pools/:
     get:
-      summary: "Get IDs of all Pools."
+      summary: "Get IDs of all registered Pools."
       tags:
         - Server
-      description: "Returns a list of Pool IDs (pool names) of all pools on the server, including both registered and un-registered ones."
-      operationId: get_pools
+      description: "Returns a list of Pool IDs (pool names) of all pools registered with the global PoolManager."
+      operationId: get_registered_pools
       responses:
         "200":
-          description: "Done getting all Pool IDs."
+          description: "Done getting all ID of registered Pools."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GenericResponseContents"
+                $ref: '#/components/schemas/RegisteredPools'
       
   /pools/register_all:
     put:

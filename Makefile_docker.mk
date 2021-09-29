@@ -145,7 +145,7 @@ restore_test:
 	@echo %%% above should NOT be empty %%%%%%%
 
 update_docker:
-	make install EXT=[DEV,SERV] I=-U
+	make install EXT=[DEV,SERV] I=-U &&\
 	make build_docker && make push_docker &&\
 	make build_server && make push_server &&\
 	make launch_server PORT=9885 &&\

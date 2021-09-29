@@ -286,7 +286,8 @@ def get_pool_info(poolname, serialize_out=True):
         # for n in ['classes', 'urns', 'tags']:
         #    del result[n]['_STID']
         for u in result['urns']:
-            del (result['urns'][u])['meta']
+            if u != '_STID':
+                del (result['urns'][u])['meta']
         msg = 'Getting pool %s information. %s.' % (poolname, mes)
     else:
         code, result, msg = 404, FAILED, poolname +\

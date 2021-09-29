@@ -12,7 +12,8 @@ from ..utils.loadfiles import loadMedia
 from .finetime import FineTime
 
 import copy
-from math import sin, cos
+from math import sin, cos, sqrt
+import random
 from os import path as op
 
 
@@ -64,6 +65,22 @@ class SP(Product):
         # super().installMetas(metasToBeInstalled)
 
 
+def makeCal2D(width=11, height=11):
+
+    center_x = int(width / 2)
+    center_y = int(height / 2)
+    z = []
+    for y in range(height):
+        zx = []
+        for x in range(width):
+            dx = x-center_x
+            dy = y-center_y
+            r = sqrt(dx*dx+dy*dy)
+            zx.append(sin(r)/r if r else 1.0)
+        z.append(zx)
+    return z
+
+
 def get_sample_product():
     """
     A complex product as a reference for testing and demo.
@@ -71,18 +88,20 @@ def get_sample_product():
     ```
     prodx --+-- meta --+-- speed
             |
+            |
+            +-- results --+-- calibration -- data=[[109..]], unit=count
+            |             |
+            |             +-- Time_Energy_Pos --+-- Time   : data=[...]
+            |                                   +-- Energy : data=[...]
+            |                                   +-- Error  : data=[...]
+            |                                   +-- y      : data=[...]
+            |                                   +-- z      : data=[...]
+            |             
             +-- Temperature -+-- data=[768, ...] , unit=C
             |                |
             |                +-- meta --+-- T0
             |
-            +-- results --+-- calibration -- data=[[109..]], unit=count
-                          |
-                          +-- Time_Energy_Pos --+-- Time   : data=[...]
-                          |                     +-- Energy : data=[...]
-                          |                     +-- y      : data=[...]
-                          |                     +-- z      : data=[...]
-                          |
-                          +-- Image -- data = b'\87PNG', content='Content-type: image/png'
+            +-- Browse -- data = b'\87PNG', content='Content-type: image/png'
     ```
 
     """
@@ -94,10 +113,38 @@ def get_sample_product():
         value=Vector((1.1, 2.2, 3.3)),
         valid={(1, 22): 'normal', (30, 33): 'fast'}, unit='meter')
 
-    # an arraydsets
+    # A CompositeDataset 'result' of two sub-datasets: calibration and measurements
+    composData = CompositeDataset()
+    prodx['results'] = composData
+    # A 2-dimensional array of calibration data
+    a5 = makeCal2D()
+    a8 = ArrayDataset(data=a5, unit='count', description='array in composite')
+    a10 = 'calibration'
+    # put the dataset to the compositedataset. here set() api is used
+    composData.set(a10, a8)
+    # a tabledataset as the measurements
+    ELECTRON_VOLTS = 'eV'
+    SECONDS = 'sec'
+    METERS = 'm'
+    t = [x * 1.0 for x in range(20)]
+    e = [2 * x + 100 for x in t]
+    err = [random.random() * 2 - 1 for x in t]
+    y = [10 * sin(x*2*3.14/len(t)) for x in t]
+    z = [10 * cos(x*2*3.14/len(t)) for x in t]
+
+    x = TableDataset(description="A table")
+    x["Time"] = Column(data=t, unit=SECONDS)
+    x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
+    x["Error"] = Column(data=err, unit=ELECTRON_VOLTS)
+    x["y"] = Column(data=y, unit=METERS)
+    x["z"] = Column(data=z, unit=METERS)
+    # set a tabledataset ans an arraydset, with a parameter in metadata
+    composData['Time_Energy_Pos'] = x
+
+    # an arraydsets as environment temperature
     a1 = [768, 767, 766, 4.4, 4.5, 4.6, 5.4E3]
     a2 = 'C'
-    a3 = 'Temperature'
+    a3 = 'Environment Temperature'
     a4 = ArrayDataset(data=a1, unit=a2, description='An Array')
     # metadata to the dataset
     a11 = 'T0'
@@ -110,30 +157,7 @@ def get_sample_product():
     # put the arraydataset to the product with a name a3.
     prodx[a3] = a4
 
-    compo = CompositeDataset()
-    prodx['results'] = compo
-    a5 = [[109, 289, 9], [88, 3455, 564]]
-    a8 = ArrayDataset(data=a5, unit='count', description='array in composite')
-    a10 = 'calibration'
-    # put the dataset to the compositedataset. here set() api is used
-    compo.set(a10, a8)
-    # a tabledataset
-    ELECTRON_VOLTS = 'eV'
-    SECONDS = 'sec'
-    METERS = 'm'
-    t = [x * 1.0 for x in range(9)]
-    e = [2 * x + 100 for x in t]
-    y = [10 * sin(x*2*3.14/len(t)) for x in t]
-    z = [10 * cos(x*2*3.14/len(t)) for x in t]
-    x = TableDataset(description="A table")
-    x["Time"] = Column(data=t, unit=SECONDS)
-    x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
-    x["y"] = Column(data=y, unit=METERS)
-    x["z"] = Column(data=z, unit=METERS)
-    # set a tabledataset ans an arraydset, with a parameter in metadata
-    compo['Time_Energy_Pos'] = x
-
-    # an image
+    # an image as Browse
     fname = 'imageBlue.png'
     fname = op.join(op.join(op.abspath(op.dirname(__file__)),
                             'resources'), fname)

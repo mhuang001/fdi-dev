@@ -2102,7 +2102,7 @@ def test_UnstrcturedDataset():
     # data of a column in tabledataset within compositedataset
     v, s = u.fetch(
         ["data", "results", "Time_Energy_Pos", "Energy", "_ATTR_data"])
-    t = [x * 1.0 for x in range(9)]
+    t = [x * 1.0 for x in range(len(v))]
     assert v == [2 * x + 100 for x in t]
     assert v == u.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]
     assert s == '.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]'

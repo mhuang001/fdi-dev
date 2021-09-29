@@ -106,18 +106,18 @@ def chk_sample_pd(p):
 
     # datasets
     #
-    v, s = fetch(["Temperature", "unit"], p)
+    v, s = fetch(["Environment Temperature", "unit"], p)
     assert v == 'C'
-    assert v == p['Temperature'].unit
-    assert s == '["Temperature"].unit'
+    assert v == p['Environment Temperature'].unit
+    assert s == '["Environment Temperature"].unit'
 
-    v, s = fetch(["Temperature", "data"], p)
+    v, s = fetch(["Environment Temperature", "data"], p)
     assert v == [768, 767, 766, 4.4, 4.5, 4.6, 5.4E3]
-    assert v == p['Temperature'].data
-    assert s == '["Temperature"].data'
+    assert v == p['Environment Temperature'].data
+    assert s == '["Environment Temperature"].data'
 
     # dataset has a parameter
-    v, s = fetch(["Temperature", "T0", "tai"], p)
+    v, s = fetch(["Environment Temperature", "T0", "tai"], p)
     assert v == FineTime('2020-02-02T20:20:20.0202').tai
 
     # a 2D array dataset in compositedataset 'results'
@@ -128,7 +128,7 @@ def chk_sample_pd(p):
 
     # data of a column in tabledataset within compositedataset
     v, s = fetch(["results", "Time_Energy_Pos", "Energy", "data"], p)
-    t = [x * 1.0 for x in range(9)]
+    t = [x * 1.0 for x in range(len(v))]
     assert v == [2 * x + 100 for x in t]
     assert v == p['results']['Time_Energy_Pos']['Energy'].data
     assert s == '["results"]["Time_Energy_Pos"]["Energy"].data'

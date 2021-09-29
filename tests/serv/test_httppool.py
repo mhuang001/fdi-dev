@@ -596,7 +596,7 @@ def test_data_path(server, userpass, client):
             "meta/speed/unit",
             "meta/speed/value",
             "meta/speed/isValid",
-            "Temperature/data",
+            "Environment Temperature/data",
             "results/calibration/unit",
     ]:
         url = urlp + '/' + pth

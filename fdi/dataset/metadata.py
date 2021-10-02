@@ -887,7 +887,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         return r
 
     def toString(self, level=0,
-                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
                  param_widths=None, width=0, **kwds):
         """ return  string representation of metada.
 

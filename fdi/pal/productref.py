@@ -301,9 +301,7 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
 
         return False
 
-    def toString(self, level=0,
-                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-                 **kwds):
+    def toString(self, level=0, **kwds):
         """
         """
         s = self.__class__.__name__
@@ -314,16 +312,12 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
                      '"' + p.description + '"'
                      for p in self.parents]) + '\n'
             m = self.getMeta()
-            ms = m.toString(level=level,
-                            tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                            **kwds) if m else ''
+            ms = m.toString(level=level, **kwds) if m else ''
             s += '# meta=' + ms
 
         else:
             s += ' Parents=' + str([id(p) for p in self.parents])
-            s += ' meta= ' + 'None' if self.getMeta() is None else self.getMeta().toString(level=level,
-                                                                                           tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                                                                                           **kwds)
+            s += ' meta= ' + 'None' if self.getMeta() is None else self.getMeta().toString(level=level, **kwds)
         s += '}'
         return s
 
@@ -331,5 +325,7 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(urnobj=self.urnobj if issubclass(self.urnobj.__class__, Urn) else None,
-                           _STID=self._STID)
+        return OrderedDict(
+            urnobj=self.urnobj if issubclass(
+                self.urnobj.__class__, Urn) else None,
+            _STID=self._STID)

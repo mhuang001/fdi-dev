@@ -173,7 +173,7 @@ gitadd:
 VERSIONFILE	= fdi/_version.py
 VERSION	= $(shell $(PYEXE) -S -c "_l = {};f=open('$(VERSIONFILE)'); exec(f.read(), None, _l); f.close; print(_l['__version__'])")
 
-versiontag:
+vtag:
 	@ echo  version = \"$(VERSION)\" in $(VERSIONFILE)
 	git tag  $(VERSION)
 	git push origin $(VERSION)

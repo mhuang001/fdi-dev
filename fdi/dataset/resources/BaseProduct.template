@@ -102,7 +102,7 @@ $INITARGS
                 pass
 
     def toString(self, level=0,
-                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+                 tablefmt='grid', tablefmt1='rst', tablefmt2='simple',
                  matprint=None, trans=True, beforedata='', **kwds):
         """ like AbstractComposite but with history
         """

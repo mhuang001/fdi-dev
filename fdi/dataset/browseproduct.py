@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 class BrowseProduct(BaseProduct):
     """ BrowseProduct class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/BrowseProduct.yml on 2021-09-29 19:05:54.849892.
+Automatically generated from fdi/dataset/resources/BrowseProduct.yml on 2021-10-02 11:44:59.999258.
 
 Description:
 Container of media data for browsing.

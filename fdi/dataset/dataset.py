@@ -124,8 +124,7 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
 
         s = OrderedDict(description=self.description,
                         meta=self._meta,
-                        data=self.data,
-                        _STID=self._STID)
+                        data=self.data)
         return s
 
 
@@ -225,5 +224,4 @@ class CompositeDataset(MetaDataListener, AbstractComposite):
         """
         return OrderedDict(  # description=self.description,
             _ATTR_meta=self._meta,
-            **self._data,
-            _STID=self._STID)
+            **self._data)

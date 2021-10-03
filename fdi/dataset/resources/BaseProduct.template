@@ -119,14 +119,11 @@ $INITARGS
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        # s = super().__getstate__()
-        # s.update(_ATTR_refs=self.refs)
         s = OrderedDict(
             _ATTR_meta=getattr(self, '_meta', None),
             **self.data,
             _ATTR_history=getattr(self, '_history', None),
-            _ATTR_listeners=getattr(self, 'listeners', None),
-            _STID=self.get('_STID', None))
+            _ATTR_listeners=getattr(self, 'listeners', None))
         return s
 
 

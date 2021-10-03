@@ -51,7 +51,7 @@ from fdi.dataset.product import Product
 from fdi.dataset.browseproduct import BrowseProduct
 from fdi.dataset.readonlydict import ReadOnlyDict
 from fdi.dataset.unstructureddataset import UnstrcturedDataset
-from fdi.dataset.testproducts import SP, get_sample_product
+from fdi.dataset.testproducts import SP, get_demo_product
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadMedia
 from fdi.utils.ydump import ydump
@@ -2086,7 +2086,7 @@ def test_UnstrcturedDataset():
     assert u.doctype is None
     u.doctype = 'json'
     assert u.doctype == 'json'
-    p = get_sample_product()
+    p = get_demo_product()
     u.input(p.serialized(), 'json')
     assert issubclass(u.data.__class__, dict)
 
@@ -2563,13 +2563,6 @@ def test_FineTimes_toString():
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
         assert ts == out_FineTime
-
-
-def xtest_get_sample_product():
-    v = get_sample_product()
-    assert v['Browse'].data[1:4] == b'PNG'
-    checkjson(v)
-    checkgeneral(v)
 
 
 def test_History():

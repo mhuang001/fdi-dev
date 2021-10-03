@@ -5,23 +5,24 @@ from collections import OrderedDict
 from .context import Context
 from .urn import Urn
 from .comparable import Comparable
-from ..dataset.product import Product
+from ..dataset.product import BaseProduct
 from ..dataset.odict import ODict
 from ..dataset.serializable import Serializable
 from ..dataset.attributable import Attributable
 from ..dataset.eq import DeepEqual
+from ..dataset.metadataholder import MetaDataHolder
 
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
+class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
 
     def __init__(self, urn=None, poolname=None, product=None, meta=None, **kwds):
-        """ Urn can be the string or URNobject. if product is provided create an in-memory URN.
+        """ Urn can be the string or URNobject. if a `BaseProduct` or its subclass is provided create an in-memory URN.
         Poolname if given overrides the pool name in urn, and causes metadata to be loaded from pool, unless this prodref points to a mempool.
         If meta is given, it will be used instead of that from poolname.
         A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
@@ -33,7 +34,7 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
             urnobj = Urn(urn)
         elif issubclass(urn.__class__, Urn):
             urnobj = urn
-        elif issubclass(urn.__class__, Product):
+        elif issubclass(urn.__class__, BaseProduct):
             # allow ProductRef(p) where p is a Product
             if product is None:
                 product = urn
@@ -126,7 +127,7 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
     def getUrn(self):
         """ Returns the Uniform Resource Name (URN) of the product.
         """
-        return self._urnobj.urn
+        return self._urnobj.urn if self._urnobj else None
 
     @property
     def urnobj(self):
@@ -301,24 +302,28 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
 
         return False
 
+    def __repr__(self):
+
+        return self.toString(level=3)
+
     def toString(self, level=0, **kwds):
         """
         """
         s = self.__class__.__name__
-        s += ' {' + self.urn
+        s += '(%r' % self.urn
         if level == 0:
             s += '\n# Parents=' + \
                 str([str(id(p)) + ' ' + p.__class__.__name__ +
                      '"' + p.description + '"'
                      for p in self.parents]) + '\n'
             m = self.getMeta()
-            ms = m.toString(level=level, **kwds) if m else ''
+            ms = m.toString(level=2, **kwds) if m else ''
             s += '# meta=' + ms
 
         else:
             s += ' Parents=' + str([id(p) for p in self.parents])
-            s += ' meta= ' + 'None' if self.getMeta() is None else self.getMeta().toString(level=level, **kwds)
-        s += '}'
+            s += ' meta= ' + 'None' if self.getMeta() is None else self.getMeta().toString(level=3, **kwds)
+        s += ')'
         return s
 
     __str__ = toString
@@ -327,5 +332,4 @@ class ProductRef(Attributable, DeepEqual, Serializable, Comparable):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(
             urnobj=self.urnobj if issubclass(
-                self.urnobj.__class__, Urn) else None,
-            _STID=self._STID)
+                self.urnobj.__class__, Urn) else None)

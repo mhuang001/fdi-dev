@@ -40,8 +40,7 @@ class NumericParameter(Parameter, Quantifiable):
                            value=self._value,
                            valid=self._valid,
                            unit=self._unit,
-                           typecode=self._typecode,
-                           _STID=self._STID)
+                           typecode=self._typecode)
 
     def setValue(self, value):
         """ accept any type that a Vector does.

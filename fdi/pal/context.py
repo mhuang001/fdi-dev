@@ -3,6 +3,9 @@
 from ..dataset.serializable import Serializable
 from ..dataset.baseproduct import BaseProduct
 from ..dataset.odict import ODict
+
+from collections import OrderedDict
+from collections import UserDict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -13,12 +16,12 @@ class ContextRuleException(ValueError):
     pass
 
 
-class RefContainer(ODict):  # XXXXXXXX order
+class RefContainer(ODict):
     """ A map where Rules of its owner Context are applied when put(k,v) is called, and the owner MapContext's ID can be put to v's parents list.
 
-    Implemented.Composite so that RefContainer has a _STID when json.loads'ed.
-    A MapContext has a _sets, which has a refs:RefContainer, which has a _sets, which has a name:ProductRef.
-    when used as context.refs.get('x').product.description, the RefContainer is called with get() or __getitem__(), which calls superclass composite's _set's __getitem__()
+    Implemented as an ODict that RefContainer has a _STID when json.loads'ed.
+    A MapContext has a _data, which has a refs:RefContainer, which has a datap, which has a name:ProductRef.
+    when used as context.refs.get('x').product.description, the RefContainer is called with get() or __getitem__(), which calls superclass composite's __getitem__()
     """
 
     def __init__(self, **kwds):
@@ -64,8 +67,7 @@ class RefContainer(ODict):  # XXXXXXXX order
             then the following are done when the assembled refContainer is
             set('refs',refC) to the owner context.
         """
-        if key is None:
-            raise KeyError()
+
         if ref is None:
             raise ValueError()
 
@@ -101,18 +103,17 @@ class RefContainer(ODict):  # XXXXXXXX order
         for k in ks:
             self.__delitem__(k)
 
-    def put(self, key, ref):
+    def set(self, key, ref):
         """ set label-ref pair after validating then add parent to the ref
         """
         self.__setitem__(key, ref)
 
-    def set(self, key, ref):
-        self.put(key, ref)
+    put = set
 
-    def get(self, key):
+    def get(self, key, *args, **kwds):
         """
         """
-        return self.__getitem__(key)
+        return self.__getitem__(key, *args, **kwds)
 
     def size(self):
         """ """
@@ -120,9 +121,11 @@ class RefContainer(ODict):  # XXXXXXXX order
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        return super().__getstate__().update(
-            _ATTR_owner=self.owner,
-            _STID=self._STID)
+
+        s = super().__getstate__()
+        # there is no need to persist owner as it is setted by `__setitem__` during deserializing
+        # s.update(_ATTR_owner=self.owner)
+        return s
 
 
 class AbstractContext():
@@ -132,10 +135,10 @@ This abstract product introduces the lazy loading and saving of references to Pr
 http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Context.html
     """
 
-    def __init__(self,  **kwds):
+    def __init__(self, *args, **kwds):
         """ Sets ``rule`` to ``None`` if ``zInfo`` does not have ``refs``, else to ``zInfo['refs']``.
         """
-        super().__init__(**kwds)
+        super().__init__(*args, **kwds)
 
         self._dirty = False
         if 'refs' not in self.zInfo:
@@ -163,7 +166,9 @@ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Con
         self.set('refs', refs)
 
     def set(self, name, refs):
-        """ add owner to RefContainer
+        """ add owner to RefContainer or add named references.
+
+        :name: name of the new `RefContainer`. if is ``refs``, set owner of ``refs`` to `self`.
         """
         if isinstance(refs, RefContainer) and name == 'refs':
             refs.setOwner(self)
@@ -184,7 +189,7 @@ http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Con
         """
         raise NotImplementedError()
 
-    @classmethod
+    @staticmethod
     def isContext(cls):
         """ Yields true if specified class belongs to the family of contexts.
         """
@@ -245,10 +250,10 @@ class Context(AbstractContext, BaseProduct):
     """ See docstring of AbstractContext.
     """
 
-    def __init__(self,  **kwds):
+    def __init__(self, *args, **kwds):
         """
         """
-        super().__init__(**kwds)
+        super().__init__(*args, **kwds)
 
     def applyRule(self, *args):
         """ returns True if the input ProductRef passes rule.
@@ -268,7 +273,7 @@ class Context(AbstractContext, BaseProduct):
         if not Context.isContext(self):
             raise TypeError('This ref does not point to a context')
         if seen is None:
-            see = list()
+            seen = list()
         rs = list()
         for x in self.refs.values():
             if Context.isContext(x):
@@ -300,15 +305,14 @@ class Context(AbstractContext, BaseProduct):
         """
         return self._dirty
 
-    @staticmethod
-    def isContext(cls):
-        """ Yields true if specified class belongs to the family of contexts.
-        """
-        return issubclass(cls, Context)
-
-    def __getstate__(self):
+    def x__getstate__(self):
         """ Can be encoded with serializableEncoder """
-
+        try:
+            if self.refs.data:
+                __import__('pdb').set_trace()
+        except Exception:
+            pass
+        print(super().__getstate__)
         s = super().__getstate__()
         s.update(_ATTR_refs=self.refs)
         return s
@@ -359,10 +363,10 @@ class MapContext(Context):
 
     """
 
-    def __init__(self,  **kwds):
+    def __init__(self, *args, **kwds):
         """
         """
-        super().__init__(**kwds)
+        super().__init__(*args, **kwds)
         refC = RefContainer()
         # this line must stay after _rule is set.
         self.setRefs(refC)

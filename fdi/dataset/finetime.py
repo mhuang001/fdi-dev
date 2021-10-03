@@ -301,8 +301,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(tai=self.tai,
-                           format=self.format,
-                           _STID=self._STID)
+                           format=self.format)
 
 
 class FineTime1(FineTime):

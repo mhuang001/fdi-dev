@@ -109,8 +109,11 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
                 if poolurl:
                     # the last segment will be the poolname
                     pp, schm, pl, poolname, un, pw = parse_poolurl(poolurl)
-            if cls.isLoaded(poolname):
+            elif cls.isLoaded(poolname):
                 return cls._GlobalPoolList[poolname]
+            elif poolname == DEFAULT_MEM_POOL:
+                if not poolurl:
+                    poolurl = 'mem:///' + poolname
 
             if poolurl:
                 # poolname use the one comes above

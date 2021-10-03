@@ -52,8 +52,7 @@ class DateParameter(Parameter, Typecoded):
                            default=self._default,
                            value=self._value,
                            valid=self._valid,
-                           typecode=self.typecode,
-                           _STID=self._STID)
+                           typecode=self.typecode)
 
 
 class DateParameter1(DateParameter):

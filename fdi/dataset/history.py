@@ -116,5 +116,4 @@ class History(CompositeDataset):
             _ATTR_PARAM_HISTORY=self.PARAM_HISTORY,
             _ATTR_TASK_HISTORY=self.TASK_HISTORY,
             _ATTR_meta=self._meta,
-            **self.data,
-            _STID=self._STID)
+            **self.data)

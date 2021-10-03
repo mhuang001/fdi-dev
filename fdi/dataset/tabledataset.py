@@ -179,16 +179,18 @@ class TableDataset(CompositeDataset, TableModel):
                     raise DeprecationWarning(
                         'Do not use [{"name":name, "column":column}...]. Use {name:column, ...} instead.')
                 if issubclass(x.__class__, (list, tuple)):
-                    # check out string-started columns
+                    # check out string-started columns (2-col not included
                     if len(x) > 1 and issubclass(x[0].__class__, str) and not issubclass(x[1].__class__, str):
                         if issubclass(x[1].__class__, (list, tuple)):
                             u = x[2] if len(x) > 2 else ''
-                            self.setColumn(x[0], Column(data=x[1], unit=x[2]))
+                            self.setColumn(x[0], Column(data=x[1], unit=u))
                         elif issubclass(x[1].__class__, Column):
                             self.setColumn(x[0], x[1])
                         else:
-                            raise '[[str, [], str]...], [[str, []]...], [[str, Column]...] needed.'
+                            raise ValueError(
+                                '[[str, [], str]...], [[str, []]...], [[str, Column]...] needed.')
                     else:
+                        # x is not string-started
                         if current_data is None or len(current_data) <= ind:
                             # update the data of the ind-th column
                             self.setColumn('', Column(data=x, unit=None))
@@ -561,8 +563,7 @@ Default is to return all columns.
         """ Can be encoded with serializableEncoder """
         return OrderedDict(
             _ATTR_meta=getattr(self, '_meta', None),
-            **self.getData(),
-            _STID=self._STID)
+            **self.getData())
 
 
 class IndexedTableDataset(Indexed, TableDataset):
@@ -639,5 +640,4 @@ class IndexedTableDataset(Indexed, TableDataset):
         #     description = None
         return Indexed.__getstate__(self).update(
             _ATTR_meta=getattr(self, '_meta', None),
-            **self.getData(),
-            _STID=self._STID)
+            **self.getData())

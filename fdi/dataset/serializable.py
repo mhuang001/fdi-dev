@@ -313,3 +313,11 @@ class Serializable():
             del s['_STID']
         s.update({'_STID': self._STID})
         return s
+
+    json = serializable
+
+    def yaml(self):
+        """ Get a YAML representation. """
+        from ..utils.ydump import ydump, yinit
+        yinit()
+        return ydump(self)

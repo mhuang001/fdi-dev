@@ -5,7 +5,7 @@
 #################
 
 
-from fdi.dataset.testproducts import get_sample_product
+from fdi.dataset.testproducts import get_demo_product
 from fdi.dataset.serializable import serialize
 from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
@@ -540,7 +540,7 @@ def test_data_path(server, userpass, client):
 
     url0 = aburl + '/' + test_poolid + '/'
     # write sample product to the pool
-    p = get_sample_product()
+    p = get_demo_product()
     prodt = fullname(p)
     data = serialize(p)
     # print(len(data))

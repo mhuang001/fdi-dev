@@ -8,6 +8,7 @@ from .dataset import CompositeDataset
 from .tabledataset import TableDataset
 from .arraydataset import ArrayDataset, Column
 from ..pal.context import Context, MapContext
+from ..pal.productref import ProductRef
 from ..utils.loadfiles import loadMedia
 from .finetime import FineTime
 
@@ -41,6 +42,8 @@ MdpInfo = sp['metadata']
 
 
 class SP(Product):
+    """ A subclass of `Product` for tests. """
+
     def __init__(self,
                  description='UNKNOWN',
                  typ_='SP',
@@ -81,9 +84,9 @@ def makeCal2D(width=11, height=11):
     return z
 
 
-def get_sample_product():
+def get_demo_product():
     """
-    A complex product as a reference for testing and demo.
+    A complex context product as a reference for testing and demo.
 
     ```
     prodx --+-- meta --+-- speed
@@ -97,15 +100,18 @@ def get_sample_product():
             |                                   +-- y      : data=[...]
             |                                   +-- z      : data=[...]
             |             
-            +-- Temperature -+-- data=[768, ...] , unit=C
-            |                |
-            |                +-- meta --+-- T0
+            +-- Environment Temperature -+-- data=[768, ...] , unit=C
+            |                            |
+            |                            +-- meta --+-- T0
             |
             +-- Browse -- data = b'\87PNG', content='Content-type: image/png'
+            |
+            +-- refs --+-- constants: -- +-- pi: ..
+                                         +-- e : ..
     ```
 
     """
-    prodx = Product('A complex product for demonstration.')
+    prodx = MapContext('A complex product for demonstration.')
     prodx.creator = 'Frankenstein'
     # add a parameter with validity descriptors to the product
     prodx.meta['speed'] = NumericParameter(
@@ -165,4 +171,16 @@ def get_sample_product():
     image.file = fname
     prodx['Browse'] = image
 
+    # references
+    rel_prod = get_related_product()
+
+    ref = ProductRef(rel_prod)
+    # add the reference to 'refs'.
+    prodx.refs['constants'] = ref
     return prodx
+
+
+def get_related_product():
+    return Product(description='A related Product',
+                   data=TableDataset([('pi', 'e'), (3.14, 2.72)])
+                   )

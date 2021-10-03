@@ -88,6 +88,14 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                 print('type diff')
             del _context.seen[-1]
             return ' due to diff types: ' + c.__name__ + ' and ' + c2.__name__
+        if c == str:
+            if v:
+                print('find strings')
+            del _context.seen[-1]
+            if o1 != o2:
+                return ' due to difference: "{o1}" "{o2}"'
+            else:
+                return None
         sc, fc, tc, lc = set, frozenset, tuple, list
 
         has_eqcmp = (hasattr(o1, '__eq__') or hasattr(
@@ -116,7 +124,8 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
             if hasattr(o1, '__len__') and len(o1) != len(o2):
                 del _context.seen[-1]
                 return ' due to diff %s lengths: %d and %d (%s, %s)' %\
-                    (c.__name__, len(o1), len(o2), str(list(o1)), str(list(o2)))
+                    (c.__name__, len(o1), len(o2), lls(
+                        list(o1), 115), lls(list(o2), 115))
         except AttributeError:
             pass
         if issubclass(c, MM):
@@ -159,7 +168,10 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                     r = run(o1[i], o2[i], v=v, eqcmp=eqcmp)
                     if r is not None:
                         del _context.seen[-1]
-                        return ' due to diff at index=%d' % (i) + r
+                        return ' due to diff at index=%d (%s %s)' % \
+                            (i,
+                             lls(o1[i], 10),
+                             lls(o2[i], 10)) + r
                 del _context.seen[-1]
                 return None
             else:
@@ -187,15 +199,25 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                         oc.remove(n)
                     del _context.seen[-1]
                     return None
+        elif hasattr(o1, '__getstate__'):
+            o1 = o1.__getstate__()
+            o2 = o2.__getstate__()
+            r = run(o1, o2, v=v, eqcmp=eqcmp)
+            del _context.seen[-1]
+            if r:
+                return ' due to o1.__getstate__ != o2.__getstate__' + r
+            else:
+                return None
         elif hasattr(o1, '__dict__'):
             if v:
                 print('obj1 has __dict__')
-            r = run(o1.__dict__, o2.__dict__, v=v, eqcmp=eqcmp)
+            o1 = sorted(vars(o1).items())
+            o2 = sorted(vars(o2).items())
+            r = run(o1, o2, v=v, eqcmp=eqcmp)
+            del _context.seen[-1]
             if r:
-                del _context.seen[-1]
                 return ' due to o1.__dict__ != o2.__dict__' + r
             else:
-                del _context.seen[-1]
                 return None
         elif hasattr(o1, '__iter__') and hasattr(o1, '__next__') or \
                 hasattr(o1, '__getitem__'):

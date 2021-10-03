@@ -233,8 +233,7 @@ class Vector(Quantifiable, Serializable, DeepEqual):
         return OrderedDict(
             components=list(self._data),
             unit=self._unit,
-            typecode=self._typecode,
-            _STID=self._STID)
+            typecode=self._typecode)
 
 
 class Vector2D(Vector):

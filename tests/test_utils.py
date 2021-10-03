@@ -6,7 +6,7 @@ from fdi.dataset.metadata import make_jsonable
 from fdi.dataset.finetime import FineTime
 from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.deserialize import Class_Look_Up
-from fdi.dataset.testproducts import get_sample_product
+from fdi.dataset.testproducts import get_demo_product
 from fdi.pal.urn import Urn
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadcsv
@@ -49,6 +49,15 @@ else:
     logger = logging.getLogger()
     logger.debug('%s logging level %d' %
                  (__name__, logger.getEffectiveLevel()))
+
+
+def test_get_demo_product():
+    v = get_demo_product()
+    assert v['Browse'].data[1:4] == b'PNG'
+    # print(v.yaml())
+
+    checkjson(v, dbg=0)
+    checkgeneral(v)
 
 
 def checkgeneral(v):
@@ -194,7 +203,7 @@ def test_fetch():
     assert s == '["x"][2]["m"]'
 
     # products
-    p = get_sample_product()
+    p = get_demo_product()
     chk_sample_pd(p)
 
 

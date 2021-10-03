@@ -32,5 +32,4 @@ class StringParameter(Parameter, Typecoded):
             default=self._default,
             value=self._value if hasattr(self, '_value') else None,
             valid=self._valid,
-            typecode=self._typecode,
-            _STID=self._STID)
+            typecode=self._typecode)

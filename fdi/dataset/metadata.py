@@ -352,8 +352,7 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         """
         return OrderedDict(description=self.description,
                            value=self.value,
-                           listeners=self.listeners,
-                           _STID=self._STID
+                           listeners=self.listeners
                            )
 
 
@@ -765,8 +764,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
                            default=self._default,
                            value=self._value,  # must go behind type. maybe default
                            valid=self._valid,
-                           listeners=self.listeners,
-                           _STID=self._STID
+                           listeners=self.listeners
                            )
 
 
@@ -959,7 +957,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 elif n == 'listeners' and len(v) == 0:
                     has_omission = True
                 else:
-                    ps = '%s=%s' % (att['name'], v.toString(level))
+                    ps = '%s=%s' % (n, v.toString(level)) if level == 2 else n
                     # tab.append(wls(ps, 80//N))
                     tab.append(ps)
 
@@ -979,7 +977,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             fmt = tablefmt1
             s += tabulate(t, headers=headers, tablefmt=fmt, missingval='',
                           disable_numparse=True)
-        else:
+        elif level > 1:  # level 2 and 3
             s = ', '.join(tab) if len(tab) else 'Default Meta'
             l = '.'
             return '<' + self.__class__.__name__ + ' ' + s + l + '>'
@@ -1002,5 +1000,4 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         # print([id(o) for o in self.listeners])
 
         return OrderedDict(**self.data,
-                           _ATTR_listeners=self.listeners,
-                           _STID=self._STID)
+                           _ATTR_listeners=self.listeners)

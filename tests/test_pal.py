@@ -1034,7 +1034,7 @@ def test_MapContext():
     # the new and the old one are equal
     assert newp2 == x
 
-    des = checkjson(mc)
+    des = checkjson(mc, dbg=0)
     # print(type(des['refs']))
     # print('&&&&&& ' + des.refs.serialized(indent=4) + ' %%%%%%')
     # print(yaml.dump(des))

@@ -163,23 +163,7 @@ class ODict(UserDict, Serializable, DeepEqual):
 
         """
         return OrderedDict(
-            **self.data,
-            _STID=self._STID
-        )
-
-    def serializable(self):
-        """ Can be encoded with serializableEncoder 
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-
-        return OrderedDict(
-            **self.data,
-            _STID=self._STID
+            **self.data
         )
 
     def hash(self):

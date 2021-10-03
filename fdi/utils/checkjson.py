@@ -41,22 +41,10 @@ def checkjson(obj, dbg=0, **kwds):
 
     # dbg = True if issubclass(obj.__class__, BaseProduct) else False
 
-    indent = 4 if dbg > 1 else None
-
-    # if hasattr(obj, 'serialized'):
-    #     js = obj.serialized(indent=indent)
-    # else:
-    #     js = json.dumps(obj, indent=indent)
-    js = serialize(obj)
-    if dbg:
-        getyaml()
-        try:
-            if 0:
-                yaml.dump(obj, sys.stdout)
-            else:
-                print(ydump(obj))
-        except:
-            print('ydump of obj failed')
+    if not dbg:
+        js = serialize(obj)
+    else:
+        js = serialize(obj, indent=4)
 
         print('<<<<<*** checkjsom ' + obj.__class__.__name__ +
               ' serialized: ******\n')
@@ -73,7 +61,7 @@ def checkjson(obj, dbg=0, **kwds):
             if 0:
                 yaml.dump(des, sys.stdout)
             else:
-                print(ydump(des))
+                print(des.yaml())
         except:
             print('ydump of deserialized obj failed')
             pprint(des)
@@ -86,6 +74,7 @@ def checkjson(obj, dbg=0, **kwds):
         print('******** deepcmp ********')
         print('identical' if r is None else r)
         # print(' DIR \n' + str(dir(obj)) + '\n' + str(dir(des)))
+        assert r is None
     if 0 and issubclass(obj.__class__, BaseProduct):
         print(str(id(obj)) + ' ' + obj.toString())
         print(str(id(des)) + ' ' + des.toString())

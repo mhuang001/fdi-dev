@@ -159,5 +159,4 @@ class UnstrcturedDataset(Dataset, Copyable):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(
             meta=getattr(self, '_meta', None),
-            data=self.getData(),
-            _STID=self._STID)
+            data=self.getData())

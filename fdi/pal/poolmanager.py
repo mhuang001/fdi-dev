@@ -104,27 +104,36 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
             if poolurl.lower().startswith('http'):
                 res, msg = remoteRegister(p, poolurl)
         else:
-            # find out the poolname first
-            if poolname is None:
-                if poolurl:
-                    # the last segment will be the poolname
-                    pp, schm, pl, poolname, un, pw = parse_poolurl(poolurl)
-            elif cls.isLoaded(poolname):
-                return cls._GlobalPoolList[poolname]
-            elif poolname == DEFAULT_MEM_POOL:
+            # quick decisions can be made knowing poolname only
+            if poolname == DEFAULT_MEM_POOL:
                 if not poolurl:
                     poolurl = 'mem:///' + poolname
+            if poolname is not None:
+                if poolname in Invalid_Pool_Names:
+                    raise ValueError(
+                        'Cannot register invalid pool name: ' + poolname)
+                if cls.isLoaded(poolname):
+                    return cls._GlobalPoolList[poolname]
 
+            # get poolname and scheme
             if poolurl:
-                # poolname use the one comes above
                 pp, schm, pl, pn, un, pw = parse_poolurl(poolurl)
             else:
                 raise ValueError(
                     'A new pool %s cannot be created without a pool url.' % poolname)
+            if poolname:
+                if pn != poolname:
+                    raise ValueError(
+                        f'Poolname in poolurl {poolurl} is different from poolname {poolname}.')
+            else:
+                poolname = pn
+
+            # now we have scheme, poolname, poolurl
             if poolname in Invalid_Pool_Names:
                 raise ValueError(
                     'Cannot register invalid pool name: ' + poolname)
-            # now we have scheme, poolname, poolurl
+            if cls.isLoaded(poolname):
+                return cls._GlobalPoolList[poolname]
             if schm == 'file':
                 from . import localpool
                 p = localpool.LocalPool(

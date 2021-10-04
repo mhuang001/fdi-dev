@@ -127,7 +127,11 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
     def getUrn(self):
         """ Returns the Uniform Resource Name (URN) of the product.
         """
-        return self._urnobj.urn if self._urnobj else None
+        try:
+            res = self._urnobj.urn
+        except AttributeError:
+            res = None
+        return res
 
     @property
     def urnobj(self):
@@ -155,9 +159,9 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
         If  is given, it will be used instead of that from poolname.
         """
         if urnobj is not None:
-            # logger.debug(urnobj)
-            assert issubclass(urnobj.__class__, Urn)
-
+            uc = urnobj.__class__
+            if not issubclass(uc, Urn):
+                raise TypeError(f'urnobj cannot be type {uc.__name__}')
         self._urnobj = urnobj
         if urnobj is not None:
             self._urn = urnobj.urn
@@ -181,7 +185,7 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
     def getUrnObj(self):
         """ Returns the URN as an object.
         """
-        return self._urnobj
+        return getattr(self, '_urnobj', None)
 
     @property
     def meta(self):
@@ -191,7 +195,7 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
     def getMeta(self):
         """ Returns the metadata of the product.
         """
-        return self._meta
+        return getattr(self, '_meta', None)
 
     def getHash(self):
         """ Returns a code number for the product; actually its MD5 signature. 
@@ -201,6 +205,7 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
 
     def getSize(self):
         """ Returns the estimated size(in bytes) of the product in memory. 
+
         Useful for providing this information for a user that wants to download the product from a remote site.
         Returns:
         the size in bytes
@@ -256,7 +261,7 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
         Returns:
         the parents 
         """
-        return self._parents
+        return getattr(self, '_parents', 'None')
 
     def setParents(self, parents):
         """ Sets the in-memory parent context products of this reference.

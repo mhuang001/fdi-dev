@@ -41,6 +41,8 @@ class ProductStorage(object):
 
         """
 
+        if issubclass(pool.__class__, str) and poolname is None:
+            pool, poolname = poolname, pool
         with filelock.FileLock(makeLockpath('ProdStorage', 'w')), \
                 filelock.FileLock(makeLockpath('ProdStorage', 'r')):
             if pool and issubclass(pool.__class__, ProductPool):
@@ -252,4 +254,4 @@ class ProductStorage(object):
         return OrderedDict(writablePool=self.getWritablePool())
 
     def __repr__(self):
-        return self.__class__.__name__ + '( pool= ' + str(self._pools) + ' )'
+        return self.__class__.__name__ + '( pool= ' + str(self._pools if hasattr(self, '_pools') else None) + ' )'

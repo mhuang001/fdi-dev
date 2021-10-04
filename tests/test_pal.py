@@ -265,7 +265,8 @@ def cleanup(poolurl=None, poolname=None):
             d = direc + '/' + pn
             rmlocal(d)
         elif schm == 'mem':
-            pass
+            if PoolManager.isLoaded(DEFAULT_MEM_POOL):
+                PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
         elif schm in ['http', 'https']:
             pass
         else:
@@ -405,16 +406,21 @@ def test_ProductRef():
     p = s + '/' + a3  # a pool URL
     r = a4 + ':' + str(a5)  # a resource
     u = 'urn:' + a3 + ':' + r    # a URN
-    cleanup(p, u)
+    cleanup(p, a3)
+
+    cleanup('mem:///' + DEFAULT_MEM_POOL, DEFAULT_MEM_POOL)
 
     # in memory
     # A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
     v = ProductRef(prd)
     # only one prod in memory pool
-    checkdbcount(1, 'mem:///'+DEFAULT_MEM_POOL, a4, 0, '')
-    assert v.urn == 'urn:'+DEFAULT_MEM_POOL+':' + a4 + ':' + str(0)
+    checkdbcount(1, 'mem:///' + DEFAULT_MEM_POOL, a4, 0, '')
+    assert v.urn == 'urn:' + DEFAULT_MEM_POOL + ':' + a4 + ':' + str(0)
     assert v.meta is None
     assert v.product == prd
+    # run again will get a different urn from the new instance in the pool
+    r = ProductRef(prd)
+    assert v != r
 
     # construction
 

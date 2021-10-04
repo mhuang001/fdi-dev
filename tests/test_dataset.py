@@ -2086,6 +2086,7 @@ def test_UnstrcturedDataset():
     assert u.doctype is None
     u.doctype = 'json'
     assert u.doctype == 'json'
+
     p = get_demo_product()
     u.input(p.serialized(), 'json')
     assert issubclass(u.data.__class__, dict)

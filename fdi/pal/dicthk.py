@@ -101,3 +101,11 @@ class DictHk(Taggable):
         Tests if a tag exists.
         """
         return tag in self._tags
+
+    def getUrn(self, tag):
+        """
+        Gets the URNs corresponding to the given tag. Returns an empty list if tag does not exist.
+        """
+        if tag not in self._tags:
+            return []
+        return self._tags[tag]['urns']

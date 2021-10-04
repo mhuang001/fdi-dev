@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from .productpool import ManagedPool
+from .productpool import ManagedPool, MetaData_Json_Start, MetaData_Json_End
 from ..utils.common import pathjoin, trbk
+from .urn import makeUrn, Urn, parseUrn
+from ..dataset.deserialize import deserialize
 
 import filelock
 import sys
@@ -156,16 +158,26 @@ class LocalPool(ManagedPool):
         else:
             return hk if hktype is None else hk[hktype]
 
-    def writeJsonmmap(self, fp, data, serialize_in=True, serialize_out=False, close=False, check_time=False, **kwds):
+    def writeJsonmmap(self, fp, data, serialize_in=True, serialize_out=False, close=False, check_time=False, meta_location=False, **kwds):
         """ write data in JSON from mmap file at fp.
 
         register the file. Leave file open by default `close`.
         data: to be serialized and saved.
         serialize_out: if True returns contents in serialized form.
+        :check_time: to check if file has not been written since we did last time. Default `False`.
+        :meta_location: return the start and end offsets of metadata in data JSON.  Default `False`.
+        :return:
+        int bytes written. If `meta_location` is ```True```, adding int int start and end point offsets of metadata in seriaized data.
         """
         from ..dataset.serializable import serialize
 
         js = serialize(data, **kwds) if serialize_in else data
+        #start = end = None
+        if meta_location:
+            # locate metadata
+            start = js.find(MetaData_Json_Start, 0)
+            end = js.find(MetaData_Json_End, start)
+
         fp = op.abspath(fp)
         if 1:  # fp not in self._files or self._files[fp] is None:
             file_obj = open(fp, mode="w+", encoding="utf-8")
@@ -193,7 +205,10 @@ class LocalPool(ManagedPool):
             self._cached_files[fp] = js
         l = len(js)
         logger.debug('JSON saved to: %s %d bytes' % (fp, l))
-        return l
+        if meta_location:
+            return l, start, end
+        else:
+            return l
 
     def writeHK(self, fp0=None):
         """ save the housekeeping data to disk
@@ -207,6 +222,49 @@ class LocalPool(ManagedPool):
                                     check_time=True)
         return l
 
+    def setMetaByUrn(self, start, end, urn):
+        """
+        Sets the location of the meta data of the specified data to the given URN.
+
+        :data: usually serialized Product.
+        """
+        u = urn.urn if issubclass(urn.__class__, Urn) else urn
+        if u not in self._urns:
+            raise ValueError(urn + ' not found in pool ' + self._poolname)
+        # char offset of the start and end points of metadata
+        if start >= 0 and end > 0:
+            mt = [start, end]
+        else:
+            mt = [None, None]
+        self._urns[u]['meta'] = mt
+
+    def getMetaByUrnJson(self, js, urn):
+
+        # deserialize(prd[start+len(MetaData_Json_Start):end+len(MetaData_Json_End)])
+        try:
+            start, end = tuple(self._urns[urn]['meta'])
+        except KeyError as e:
+            msg = f"Trouble with {self._poolname}._urns[urn]['meta']"
+            logger.debug(msg)
+            raise e
+        return js[start+len(MetaData_Json_Start):end+len(MetaData_Json_End)]
+
+    def getMetaByUrn(self, urn, resourcetype=None, index=None):
+        """ 
+        Get all of the meta data belonging to a product of a given URN.
+
+        mh: returns an iterator.
+        """
+        if urn is None:
+            return None  # TODO self._meta.keys()
+        #uobj = Urn(urn=urn)
+        if resourcetype is None or index is None:
+            poolname, resourcetype, index = parseUrn(urn)
+        data = self.schematicLoad(resourcetype=resourcetype,
+                                  index=index, serialize_out=True)
+        m = self.getMetaByUrnJson(data, urn)
+        return deserialize(m)  # self._urns[urn]['meta']
+
     def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
         """
         does the media-specific saving.
@@ -217,15 +275,20 @@ class LocalPool(ManagedPool):
         fp = pathjoin(fp0, quote(resourcetype) + '_' + str(index))
         try:
             # t0 = time.time()
-            l = self.writeJsonmmap(
-                fp, data, serialize_in=serialize_in, close=True, **kwds)
+            l, start, end = self.writeJsonmmap(
+                fp, data, serialize_in=serialize_in, close=True,
+                meta_location=True, **kwds)
+
+            urn = makeUrn(self._poolname, resourcetype, index)
+            self.setMetaByUrn(start, end, urn)
+
             l += self.writeHK(fp0)
             # print('tl %.8f %9d' % (time.time()-t0, l))
             logger.debug('HK written')
         except IOError as e:
             logger.error('Save failed. exc: %s trbk: %s.' % (str(e), trbk(e)))
             raise e  # needed for undoing HK changes
-        return l
+        return l, start, end
 
     def doLoad(self, resourcetype, index, serialize_out=False):
         """

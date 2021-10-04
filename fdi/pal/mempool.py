@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from .productpool import ManagedPool
+from .urn import makeUrn, Urn
+
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -90,8 +92,29 @@ class MemPool(ManagedPool):
         resourcep = resourcetype + '_' + str(index)
         myspace = self.getPoolSpace()
         myspace[resourcep] = data
+        urn = makeUrn(self._poolname, resourcetype, index)
+        self.setMetaByUrn(data, urn)
         self.writeHK()
         logger.debug('HK written')
+
+    def setMetaByUrn(self, data, urn):
+        """
+        Sets the location of the meta data of the specified data to the given URN.
+
+        :data: usually unserialized Product.
+        """
+        u = urn.urn if issubclass(urn.__class__, Urn) else urn
+        if u not in self._urns:
+            raise ValueError(urn + ' not found in pool ' + self._poolname)
+        self._urns[u]['meta'] = data._meta
+
+    def getMetaByUrn(self, urn, resourcetype=None, index=None):
+        """ 
+        Get all of the meta data belonging to a product of a given URN.
+
+        """
+
+        return self._urns[urn]['meta']
 
     def doLoad(self, resourcetype, index, serialize_out=False):
         """

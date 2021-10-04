@@ -367,7 +367,7 @@ Seqs = (list, tuple, UserList)
 class Parameter(AbstractParameter, Typed):
     """ Parameter is the interface for all named attributes
     in the MetaData container. It can have a value and a description.
-    Defaul arguments: typ_='', default=None, valid=None.
+    Default arguments: typ_='', default=None, valid=None.
     value=default, description='UNKNOWN'
     """
 
@@ -416,7 +416,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
     def setType(self, typ_):
         """ Replaces the current type of this parameter.
 
-        Defaul will be casted if not the same.
+        Default will be casted if not the same.
         Unsuported parameter types will get a NotImplementedError.
         Parameters
         ----------

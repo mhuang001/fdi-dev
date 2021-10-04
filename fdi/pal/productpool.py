@@ -9,7 +9,7 @@ from .versionable import Versionable
 from .taggable import Taggable
 from .dicthk import DictHk
 from .definable import Definable
-from ..utils.common import pathjoin, fullname, lls
+from ..utils.common import pathjoin, fullname, lls, trbk
 from .productref import ProductRef
 from .query import AbstractQuery, MetaQuery, StorageQuery
 
@@ -294,7 +294,7 @@ When implementing a ProductPool, the following rules need to be applied:
             resourcetype=resource, index=index, serialize_out=serialize_out)
         return ret
 
-    def meta(self,  urn):
+    def meta(self, urn):
         """
         Loads the meta-data belonging to the product of specified URN.
         """
@@ -506,11 +506,31 @@ class ManagedPool(ProductPool, DictHk):
         """
         return self._urns[urn]
 
+    def setMetaByUrn(self, start, end, urn):
+        """
+        Sets the location of the meta data of the specified data to the given URN.
+
+        :data: usually un/serialized Product.
+        """
+        u = urn.urn if issubclass(urn.__class__, Urn) else urn
+        if u not in self._urns:
+            raise ValueError(urn + ' not found in pool ' + self._poolname)
+
+        raise NotImplemented
+
+    def getMetaByUrn(self, urn, resourcetype=None, index=None):
+        """ 
+        Get all of the meta data belonging to a product of a given URN.
+
+        mh: returns an iterator.
+        """
+        raise NotImplemented
+
     def meta(self,  urn):
         """
-        Loads the meta-data belonging to the product of specified URN.
+        Loads the meta-data info belonging to the product of specified URN.
         """
-        return self._urns[urn]['meta']
+        return self.getMetaByUrn(urn)
 
     def reference(self, ref):
         """
@@ -554,17 +574,7 @@ class ManagedPool(ProductPool, DictHk):
             urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
 
             if urn not in u:
-                if serialize_in and hasattr(prd, 'meta'):
-                    mt = prd.meta
-                else:
-                    start = prd.find(MetaData_Json_Start, 0)
-                    end = prd.find(MetaData_Json_End, start)
-                    if start >= 0 and end > 0:
-                        mt = deserialize(
-                            prd[start+len(MetaData_Json_Start):end+len(MetaData_Json_End)])
-                    else:
-                        mt = ODict()
-                u[urn] = dict(tags=[], meta=mt)
+                u[urn] = dict(tags=[])
 
             if tag is not None:
                 self.setTag(tag, urn)
@@ -577,11 +587,11 @@ class ManagedPool(ProductPool, DictHk):
                             serialize_in=serialize_in,
                             serialize_out=serialize_out,
                             **kwds)
-            except Exception as e:
-                msg = 'product ' + urn + ' saving failed.'
+            except ValueError as e:
+                msg = 'product ' + urn + ' saving failed.' + str(e) + trbk(e)
+                logger.debug(msg)
                 self._classes, self._tags, self._urns = tuple(
                     self.readHK().values())
-                logger.debug(msg)
                 raise e
 
         if geturnobjs:
@@ -739,14 +749,14 @@ class ManagedPool(ProductPool, DictHk):
                 code = compile(qw, 'py', 'eval')
                 for ref in reflist:
                     refmet = ref.getMeta()
-                    m = refmet if refmet else u[ref.urn]['meta']
+                    m = refmet if refmet else self.getMetaByUrn(ref.urn)
                     if eval(code):
                         ret.append(ref)
                 return ret
             else:
                 for ref in reflist:
                     refmet = ref.getMeta()
-                    m = refmet if refmet else u[ref.urn]['meta']
+                    m = refmet if refmet else self.getMetaByUrn(ref.urn)
                     if qw(m):
                         ret.append(ref)
                 return ret
@@ -754,13 +764,13 @@ class ManagedPool(ProductPool, DictHk):
             if isinstance(qw, str):
                 code = compile(qw, 'py', 'eval')
                 for urn in urnlist:
-                    m = u[urn]['meta']
+                    m = self.getMetaByUrn(urn)
                     if eval(code):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret
             else:
                 for urn in urnlist:
-                    m = u[urn]['meta']
+                    m = self.getMetaByUrn(urn)
                     if qw(m):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret
@@ -770,7 +780,7 @@ class ManagedPool(ProductPool, DictHk):
                 for n in snlist:
                     urn = makeUrn(poolname=self._poolname,
                                   typename=typename, index=n)
-                    m = u[urn]['meta']
+                    m = self.getMetaByUrn(urn)
                     if eval(code):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret
@@ -778,7 +788,7 @@ class ManagedPool(ProductPool, DictHk):
                 for n in snlist:
                     urn = makeUrn(poolname=self._poolname,
                                   typename=typename, index=n)
-                    m = u[urn]['meta']
+                    m = self.getMetaByUrn(urn)
                     if qw(m):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret

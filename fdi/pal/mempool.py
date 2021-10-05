@@ -116,7 +116,7 @@ class MemPool(ManagedPool):
 
         return self._urns[urn]['meta']
 
-    def doLoad(self, resourcetype, index, serialize_out=False):
+    def doLoad(self, resourcetype, index, start=0, end=0, serialize_out=False):
         """
         does the action of loadProduct.
         note that the index is given as a string.

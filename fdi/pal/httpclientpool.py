@@ -172,7 +172,8 @@ class HttpClientPool(ProductPool):
         else:
             return serialize(res[0]) if serialize_out else res[0]
 
-    def schematicLoad(self, resourcetype, index, serialize_out=False):
+    def schematicLoad(self, resourcetype, index, start=None, end=None,
+                      serialize_out=False):
         """
         does the scheme-specific part of loadProduct.
         """
@@ -180,7 +181,8 @@ class HttpClientPool(ProductPool):
         poolname = self._poolname
         urn = makeUrn(self._poolname, resourcetype, indexstr)
         logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
-        code, res, msg = read_from_server(urn, self._poolurl)
+        code, res, msg = read_from_server(
+            urn, self._poolurl)  # TODO: start,end
         if res == 'FAILED' or code != 200:
             raise NameError('Loading ' + urn + ' failed:%d. ' % code + msg)
         return res

@@ -85,7 +85,7 @@ class LocalPool(ManagedPool):
         self.writeHK(fp0)
         return False
 
-    def readmmap(self, filename, close=False, check_time=False):
+    def readmmap(self, filename,  start=None, end=None, close=False, check_time=False):
         fp = op.abspath(filename)
         if check_time:
             sr = os.stat(fp)
@@ -93,27 +93,32 @@ class LocalPool(ManagedPool):
             # file hasnot changed since last time we read/wrote it.
             return None
         try:
-            if 1:  # fp not in self._files or self._files[fp] is None:
+            if 1:  # if fp not in self._files or self._files[fp] is None:
                 file_obj = open(fp, mode="r+", encoding="utf-8")
-                # with mmap.mmap(file_obj.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
+                mmap_obj = mmap.mmap(
+                    file_obj.fileno(), length=0, access=mmap.ACCESS_READ)
+                fo = mmap_obj
             else:
-                file_obj = self._files[fp]
-                # file_obj.seek(0)
-            js = file_obj.read()
+                fo = self._files[fp]
+            if start is None:
+                js = fo.read()
+            else:
+                fo.seek(start)
+                js = fo.read(end - start)
         except Exception as e:
             msg = 'Error in HK reading. exc: %s trbk: %s.' % (str(e), trbk(e))
             logging.error(msg)
             raise NameError(msg)
         if 1:  # close:
-            file_obj.close()
+            fo.close()
             if fp in self._files:
                 del self._files[fp]
         else:
-            self._files[fp] = file_obj
+            self._files[fp] = fo
         if check_time:
             # save the mtime as the self atime
             self._atimes[fp] = sr.st_mtime_ns
-        return js
+        return js.decode('ascii')
 
     def readHK(self, hktype=None, serialize_out=False):
         """
@@ -176,7 +181,10 @@ class LocalPool(ManagedPool):
         if meta_location:
             # locate metadata
             start = js.find(MetaData_Json_Start, 0)
-            end = js.find(MetaData_Json_End, start)
+            # make end relative to file start
+            end = js.find(MetaData_Json_End, start) + start
+            start += len(MetaData_Json_Start)
+            end += len(MetaData_Json_End)
 
         fp = op.abspath(fp)
         if 1:  # fp not in self._files or self._files[fp] is None:
@@ -239,7 +247,7 @@ class LocalPool(ManagedPool):
         self._urns[u]['meta'] = mt
 
     @ lru_cache(maxsize=1024)
-    def getMetaByUrnJson(self, js, urn):
+    def getMetaByUrnJson(self, urn, resourcetype, index):
 
         # deserialize(prd[start+len(MetaData_Json_Start):end+len(MetaData_Json_End)])
         try:
@@ -248,7 +256,11 @@ class LocalPool(ManagedPool):
             msg = f"Trouble with {self._poolname}._urns[urn]['meta']"
             logger.debug(msg)
             raise e
-        return js[start+len(MetaData_Json_Start):end+len(MetaData_Json_End)]
+        js = self.schematicLoad(resourcetype=resourcetype,
+                                index=index, start=start, end=end,
+                                serialize_out=True)
+
+        return js
 
     def getCacheInfo(self):
         info = super().getCacheInfo()
@@ -268,9 +280,8 @@ class LocalPool(ManagedPool):
         #uobj = Urn(urn=urn)
         if resourcetype is None or index is None:
             poolname, resourcetype, index = parseUrn(urn)
-        data = self.schematicLoad(resourcetype=resourcetype,
-                                  index=index, serialize_out=True)
-        m = self.getMetaByUrnJson(data, urn)
+        m = self.getMetaByUrnJson(urn, resourcetype=resourcetype,
+                                  index=index)
         return deserialize(m)  # self._urns[urn]['meta']
 
     def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
@@ -298,7 +309,7 @@ class LocalPool(ManagedPool):
             raise e  # needed for undoing HK changes
         return l, start, end
 
-    def doLoad(self, resourcetype, index, serialize_out=False):
+    def doLoad(self, resourcetype, index, start=None, end=None, serialize_out=False):
         """
         does the action of loading.
 
@@ -308,7 +319,7 @@ class LocalPool(ManagedPool):
         indexstr = str(index)
         pp = self.transformpath(self._poolname) + '/' + \
             resourcetype + '_' + indexstr
-        js = self.readmmap(pp, close=True)
+        js = self.readmmap(pp, start=start, end=end, close=True)
         if serialize_out:
             r = js
         else:

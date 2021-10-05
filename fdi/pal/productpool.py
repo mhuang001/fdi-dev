@@ -275,7 +275,8 @@ When implementing a ProductPool, the following rules need to be applied:
 
         raise(NotImplementedError)
 
-    def schematicLoad(self, resourcetype, index, serialize_out=False):
+    def schematicLoad(self, resourcetype, index,
+                      start=None, end=None, serialize_out=False):
         """ to be implemented by subclasses to do the scheme-specific loading
         """
         raise(NotImplementedError)
@@ -390,7 +391,8 @@ When implementing a ProductPool, the following rules need to be applied:
 ###########################
 
 
-MetaData_Json_Start = '{"_ATTR_meta": '
+# Do not include leading or trailing whitespace as they are not guarantteed.
+MetaData_Json_Start = '{"_ATTR_meta":'
 MetaData_Json_End = '"_STID": "MetaData"}'
 
 
@@ -665,18 +667,20 @@ class ManagedPool(ProductPool, DictHk):
         else:
             return serialize(res[0]) if serialize_out else res[0]
 
-    def doLoad(self, resourcetype, index, serialize_out=False):
+    def doLoad(self, resourcetype, index, start=None, end=None, serialize_out=False):
         """ to be implemented by subclasses to do the action of loading
         """
         raise(NotImplementedError)
 
-    def schematicLoad(self, resourcetype, index, serialize_out=False):
+    def schematicLoad(self, resourcetype, index, start=None, end=None,
+                      serialize_out=False):
         """ do the scheme-specific loading
         """
 
         with filelock.FileLock(self.lockpath('w')):
             ret = self.doLoad(resourcetype=resourcetype,
-                              index=index, serialize_out=serialize_out)
+                              index=index, start=start, end=end,
+                              serialize_out=serialize_out)
         return ret
 
     def doRemove(self, resourcetype, index):

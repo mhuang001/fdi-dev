@@ -251,6 +251,12 @@ class HttpClientPool(ProductPool):
         """
 
     @ toServer()
+    def getCacheInfo(self):
+        """
+        Returns lru cache usage information of the server pool, if available.
+        """
+
+    @ toServer()
     def getProductClasses(self):
         """
         Returns all Product classes found in this pool.

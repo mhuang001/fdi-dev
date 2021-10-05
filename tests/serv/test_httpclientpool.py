@@ -51,7 +51,7 @@ def init_test():
 
 
 def chksa(a, k):
-    p = 1
+    p = 0
     s = serialize_args(*a, **k)
     if p:
         print('s= ', s)

@@ -586,6 +586,9 @@ def check_ps_func_for_pool(thepoolname, thepoolurl, *args):
     checkdbcount(n - 1, thepoolurl, pcq, n, *args)
     checkdbcount(1, thepoolurl, fullname(MapContext), 0, *args)
 
+    # report lru_cache info
+    print('****** %s ' % str(type(pspool)), pspool.getCacheInfo())
+
     # clean up a pool
     ps.wipePool()
     checkdbcount(0, thepoolurl, pcq, -1, *args)
@@ -881,6 +884,9 @@ def doquery(poolpath, newpoolpath):
     assert len(res) == 2, str(res)
     chk(res[0], rec1[3])
     chk(res[1], rec1[4])
+
+    # report lru_cache info
+    print('****** %s ' % str(type(thepool)), thepool.getCacheInfo())
 
 
 def test_query_local_mem():

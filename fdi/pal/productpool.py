@@ -439,7 +439,7 @@ class ManagedPool(ProductPool, DictHk):
         """
         return makeLockpath(self.transformpath(self._poolname), op)
 
-    @ lru_cache(maxsize=5)
+    @ lru_cache(maxsize=32)
     def transformpath(self, path):
         """ override this to changes the output from the input one (default) to something else.
 
@@ -453,6 +453,13 @@ class ManagedPool(ProductPool, DictHk):
             else:
                 path = base + '/' + path
         return path
+
+    def getCacheInfo(self):
+        info = {}
+        for i in ['transformpath']:
+            info[i] = getattr(self, i).cache_info()
+
+        return info
 
     def dereference(self, ref):
         """

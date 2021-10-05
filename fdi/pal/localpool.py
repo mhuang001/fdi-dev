@@ -6,11 +6,11 @@ from .urn import makeUrn, Urn, parseUrn
 from ..dataset.deserialize import deserialize
 
 import filelock
+from functools import lru_cache
 import sys
 import shutil
 import mmap
 import time
-import json
 import os
 from os import path as op
 import logging
@@ -238,6 +238,7 @@ class LocalPool(ManagedPool):
             mt = [None, None]
         self._urns[u]['meta'] = mt
 
+    @ lru_cache(maxsize=1024)
     def getMetaByUrnJson(self, js, urn):
 
         # deserialize(prd[start+len(MetaData_Json_Start):end+len(MetaData_Json_End)])
@@ -248,6 +249,13 @@ class LocalPool(ManagedPool):
             logger.debug(msg)
             raise e
         return js[start+len(MetaData_Json_Start):end+len(MetaData_Json_End)]
+
+    def getCacheInfo(self):
+        info = super().getCacheInfo()
+        for i in ['getMetaByUrnJson', 'transformpath']:
+            info[i] = getattr(self, i).cache_info()
+
+        return info
 
     def getMetaByUrn(self, urn, resourcetype=None, index=None):
         """ 

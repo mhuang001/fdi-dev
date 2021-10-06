@@ -443,6 +443,10 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
                     ct = 'text/plain'
                 result = compo
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
+            elif compo_meth_name == 'yaml()':
+                ct = 'text/plain;charset=utf-8'
+                result = compo
+                return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
             elif issubclass(compo.__class__, MediaWrapper):
                 ct = compo.getType()
                 result = compo.data

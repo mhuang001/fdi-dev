@@ -6,9 +6,10 @@ from ..model.user import auth
 from ...dataset.deserialize import deserialize_args
 from ...pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
 from ...pal.webapi import WebAPI
+from ...pal.urn import parseUrn
 
-from flask import Blueprint, jsonify, request, current_app
-from flasgger import swag_from
+from flask import Blueprint, jsonify, request, current_app, url_for
+# from flasgger import swag_from
 
 import shutil
 import time
@@ -22,7 +23,7 @@ from http import HTTPStatus
 endp = swag['paths']
 
 pools_api = Blueprint('pools', __name__)
-99
+
 ######################################
 #### /  get_pools   ####
 ######################################
@@ -44,9 +45,12 @@ def get_pools():
     logger.debug('Listing all directories from ' + path)
 
     result = get_name_all_pools(path)
+
+    if issubclass(result.__class__, list):
+        res = dict((x, request.base_url+x) for x in result)
     msg = '%d pools found.' % len(result)
     code = 200
-    return resp(code, result, msg, ts)
+    return resp(code, res, msg, ts)
 
 
 def get_name_all_pools(path):
@@ -120,11 +124,14 @@ def register_all():
 
     """
     ts = time.time()
-    pmap, bad = load_pools()
+    result, bad = load_pools()
     code = 400 if len(bad) else 200
-    result = ', '.join(pmap.keys())
-    msg = '%d pools successfully loaded. Troubled: %s' % (len(pmap), str(bad))
-    return resp(code, result, msg, ts)
+    # result = ', '.join(pmap.keys())
+    if issubclass(result.__class__, list):
+        res = dict((x, request.base_url+x) for x in result)
+    msg = '%d pools successfully loaded. Troubled: %s' % (
+        len(result), str(bad))
+    return resp(code, res, msg, ts)
 
 
 def load_pools(poolnames=None):
@@ -282,16 +289,30 @@ def get_pool_info(poolname, serialize_out=True):
         code, result, mes = load_HKdata([poolname], serialize_out=True)
         # use json.loads to avoid _STID for human
         result = json.loads(result)
-        print(result['classes'])
+        # move 'classes' to the last
+        c = result['classes']
+        del result['classes']
+        result['classes'] = c
+        # print(result['classes'])
         # for n in ['classes', 'urns', 'tags']:
         #    del result[n]['_STID']
-        for u in result['urns']:
-            if u != '_STID':
-                del (result['urns'][u])['meta']
+        # Add url to tags
+        for t, ulist in result['tags'].items():
+            if t == '_STID':
+                continue
+            udict = {}
+            for u in ulist['urns']:
+                pn, cl, sn = parseUrn(u)
+                udict[u] = request.base_url + cl + '/' + str(sn)
+            ulist['urns'] = udict
+       # add urls to urns
+        for u, base in result['urns'].items():
+            base['meta'] = str(base['meta'])
+            pn, cl, sn = parseUrn(u)
+            base['url'] = request.base_url + cl + '/' + str(sn)
         msg = 'Getting pool %s information. %s.' % (poolname, mes)
     else:
-        code, result, msg = 404, FAILED, poolname +\
-            ' is not an exisiting Pool ID.'
+        code, result, msg = 404, FAILED, poolname + ' is not an exisiting Pool ID.'
     return 0, resp(code, result, msg, ts, False), 0
 
 
@@ -299,7 +320,7 @@ def get_pool_info(poolname, serialize_out=True):
 ####  {pooolid}/register PUT /unreg DELETE  ####
 ######################################
 
-@auth.login_required
+@ auth.login_required
 @ pools_api.route('/<string:pool>', methods=['PUT'])
 def register(pool):
     """ Register the given pool.
@@ -348,8 +369,8 @@ def unregister(pool):
     """
     logger = current_app.logger
     if auth.current_user() == current_app.config['PC']['node']['ro_username']:
-        msg = 'User %s us Read-Only, not allowed to %s.' % \
-            (auth.current_user(), request.method)
+        msg = 'User %s us Read-Only, not allowed to %s.' % (
+            auth.current_user(), request.method)
         logger.debug(msg)
         return unauthorized(msg)
 
@@ -520,7 +541,7 @@ def load_single_HKdata(paths, serialize_out=True):
         result = poolobj.readHK(hkname, serialize_out=serialize_out)
         code, msg = 200, hkname + ' HK data returned OK'
     except Exception as e:
-        code, result, msg = excp(e, serialize_out=serialize_out)
+        code, result, msg=excp(e, serialize_out = serialize_out)
     return code, result, msg
 
 ######################################
@@ -528,7 +549,7 @@ def load_single_HKdata(paths, serialize_out=True):
 ######################################
 
 
-@ pools_api.route('/<string:pool>/count/<string:data_type>', methods=['GET'])
+@ pools_api.route('/<string:pool>/count/<string:data_type>', methods = ['GET'])
 # @ swag_from(endp['/{pool}']['put'])
 def count(pool, data_type):
     """ Returns the number of given type of data in the given pool.
@@ -536,15 +557,15 @@ def count(pool, data_type):
     :data_type:  (part of) dot-separated full class name of data items in pool.
     """
 
-    logger = current_app.logger
+    logger=current_app.logger
 
-    ts = time.time()
-    pool = pool.strip('/')
+    ts=time.time()
+    pool=pool.strip('/')
     logger.debug(f'get {data_type} count for ' + pool)
 
-    code, result, msg = get_prod_count(data_type, pool)
+    code, result, msg=get_prod_count(data_type, pool)
 
-    return resp(code, result, msg, ts, serialize_out=False)
+    return resp(code, result, msg, ts, serialize_out = False)
 
 
 def get_prod_count(prod_type, pool_id):
@@ -555,7 +576,7 @@ def get_prod_count(prod_type, pool_id):
 
     """
 
-    logger = current_app.logger
+    logger=current_app.logger
     logger.debug('### method %s prod_type %s pool %s***' %
                  (request.method, prod_type, pool_id))
     res = 0

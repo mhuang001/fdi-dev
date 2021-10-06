@@ -733,10 +733,10 @@ class ManagedPool(ProductPool, DictHk):
         with filelock.FileLock(self.lockpath('w')),\
                 filelock.FileLock(self.lockpath('r')):
             try:
-                self.doWipe()
                 self._classes.clear()
                 self._tags.clear()
                 self._urns.clear()
+                self.doWipe()
             except Exception as e:
                 msg = self.getId() + 'wiping failed'
                 logger.debug(msg)

@@ -30,7 +30,9 @@ else:
 
 def wipeLocal(path):
     """
-    does the scheme-specific remove-all
+    does the scheme-specific remove-all.
+
+    A new directory at `path` will be created.
     """
     # logger.debug()
 
@@ -362,7 +364,7 @@ class LocalPool(ManagedPool):
         self._classes.clear()
         self._tags.clear()
         self._urns.clear()
-
+        # will leave a newly made pool dir
         wipeLocal(self.transformpath(self._poolname))
         return 0
 

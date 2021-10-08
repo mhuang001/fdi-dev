@@ -139,7 +139,8 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False):
     data: goes to the request body
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
-    tag: go with the products into the pool
+    tag: go with the produc
+ts into the pool
     no_serial: do not serialize the data.
     """
     user = pcc['auth_user']

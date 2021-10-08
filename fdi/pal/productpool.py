@@ -391,6 +391,10 @@ When implementing a ProductPool, the following rules need to be applied:
 ###########################
 
 
+class PoolNotFoundError(Exception):
+    pass
+
+
 # Do not include leading or trailing whitespace as they are not guarantteed.
 MetaData_Json_Start = '{"_ATTR_meta":'
 MetaData_Json_End = '"_STID": "MetaData"}'

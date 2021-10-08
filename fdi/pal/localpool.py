@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .productpool import ManagedPool, MetaData_Json_Start, MetaData_Json_End
+from .productpool import ManagedPool, PoolNotFoundError, MetaData_Json_Start, MetaData_Json_End
 from ..utils.common import pathjoin, trbk
 from .urn import makeUrn, Urn, parseUrn
 from ..dataset.deserialize import deserialize
@@ -51,12 +51,16 @@ def wipeLocal(path):
 
 class LocalPool(ManagedPool):
     """ the pool will save all products in local computer.
+
+        :makenew: when the pool does not exist, make a new one (````True```; default) or throws `PoolNotFoundError` (```False```).
+
     """
 
-    def __init__(self, **kwds):
+    def __init__(self, makenew=True, **kwds):
         """ creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
         """
         # print(__name__ + str(kwds))
+        self._makenew = makenew  # must preceed setup() in super
         super().__init__(**kwds)
 
     def setup(self):
@@ -70,7 +74,11 @@ class LocalPool(ManagedPool):
 
         real_poolpath = self.transformpath(self._poolname)
         if not op.exists(real_poolpath):
-            os.makedirs(real_poolpath)
+            if self._makenew:
+                os.makedirs(real_poolpath)
+            else:
+                raise PoolNotFoundError('poolname: %r poolurl: %r real_poolpath: %r' % (
+                    self._poolname, self._poolurl, real_poolpath))
         self._files = {}
         self._atimes = {}
         self._cached_files = {}

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from .getswag import swag
-from .httppool_server import resp, excp, checkpath, unauthorized
-from ..model.user import auth
+from .httppool_server import resp, excp, checkpath, unauthorized, check_readonly
+from ..model.user import auth, getUsers
 from ...dataset.deserialize import deserialize_args
 from ...pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
+from ...pal.productpool import PoolNotFoundError
 from ...pal.webapi import WebAPI
 from ...pal.urn import parseUrn
 
@@ -24,6 +25,7 @@ endp = swag['paths']
 
 pools_api = Blueprint('pools', __name__)
 
+
 ######################################
 #### /  get_pools   ####
 ######################################
@@ -34,11 +36,6 @@ def get_pools():
     """ Get names of all pools, registered or not.
     """
     logger = current_app.logger
-    if request.method in ['POST', 'PUT', 'DELETE'] and auth.current_user() == current_app.config['PC']['node']['ro_username']:
-        msg = 'User %s us Read-Only, not allowed to %s.' % \
-            (auth.current_user(), request.method)
-        logger.debug(msg)
-        return unauthorized(msg)
 
     ts = time.time()
     path = current_app.config['POOLPATH_BASE']
@@ -48,6 +45,8 @@ def get_pools():
 
     if issubclass(result.__class__, list):
         res = dict((x, request.base_url+x) for x in result)
+    else:
+        res = {}
     msg = '%d pools found.' % len(result)
     code = 200
     return resp(code, res, msg, ts)
@@ -75,6 +74,7 @@ def get_name_all_pools(path):
 
 # @ pools_api.route('', methods=['GET'])
 @ pools_api.route('/pools/', methods=['GET'])
+@ auth.login_required(role=['read_only', 'read_write'])
 def get_registered_pools():
     """ Returns a list of Pool IDs (pool names) of all pools registered with the Global PoolManager.
     ---
@@ -96,7 +96,7 @@ def get_registered_pools():
 
 
 @ pools_api.route('/user/login', methods=['GET'])
-@ auth.login_required
+@ auth.login_required(role='read_write')
 def login():
     """ Logging in on the server.
 
@@ -104,9 +104,11 @@ def login():
     """
 
     logger = current_app.logger
-    __import__('pdb').set_trace()
+    ts = time.time()
+    logger.debug('login ' + pool)
 
-    msg = 'User %s logged-in Read-Write.' % auth.current_user().role
+    msg = 'User %s logged-in %s.' % (auth.current_user().username,
+                                     auth.current_user().role)
     logger.debug(msg)
 
     ts = time.time()
@@ -118,27 +120,30 @@ def login():
 
 
 @ pools_api.route('/pools/register_all', methods=['PUT'])
+@auth.login_required(role='read_write')
 def register_all():
     """ Register (Load) all pools on tme server.
 
 
     """
     ts = time.time()
-    result, bad = load_pools()
+
+    result, bad = load_pools(None, auth.current_user())
     code = 400 if len(bad) else 200
     # result = ', '.join(pmap.keys())
-    if issubclass(result.__class__, list):
-        res = dict((x, request.base_url+x) for x in result)
+    if issubclass(result.__class__, dict):
+        result = dict((x, request.base_url+x) for x in result)
     msg = '%d pools successfully loaded. Troubled: %s' % (
         len(result), str(bad))
-    return resp(code, res, msg, ts)
+    return resp(code, result, msg, ts)
 
 
-def load_pools(poolnames=None):
+def load_pools(poolnames, usr):
     """
     Adding all pool to server pool storage.
 
     poolnames: if given as a list of poolnames, only the exisiting ones of the list will be loaded.
+    :usr: current authorized user.
     Returns: a `dict` of successfully loaded pools names-pool in `good`, and troubled ones in `bad` with associated exception info.
     """
 
@@ -150,7 +155,7 @@ def load_pools(poolnames=None):
     alldirs = poolnames if poolnames else get_name_all_pools(path)
     for nm in alldirs:
         # must save the link or PM._GLOBALPOOLLIST will remove as dead weakref
-        code, thepool, msg = register_pool(nm)
+        code, thepool, msg = register_pool(nm, usr=usr)
         if code == 200:
             pmap[nm] = thepool
         else:
@@ -165,10 +170,17 @@ def load_pools(poolnames=None):
 
 
 @ pools_api.route('/pools/unregister_all', methods=['PUT'])
-# @ swag_from(endp['/pools/unregister_all']['delete'])
+@ auth.login_required(role='read_write')
 def unregister_all():
 
+    logger = current_app.logger
     ts = time.time()
+    logger.debug('unregister-all ' + pool)
+
+    res_ro = check_readonly(auth.current_user(), request.method, logger)
+    if res_ro:
+        return res_ro
+
     good, bad = unregister_pools()
     code = 200 if not bad else 416
     result = good
@@ -206,14 +218,21 @@ def unregister_pools(poolnames=None):
 
 
 @ pools_api.route('/pools/wipe_all', methods=['DELETE'])
-@ auth.login_required
+@ auth.login_required(role='read_write')
 def wipe_all():
     """ Remove contents of all pools.
 
     Only registerable pools will be wiped. Pool directories are not removed.
     """
+    logger = current_app.logger
     ts = time.time()
-    good, bad = wipe_pools()
+    logger.debug('Wipe-all pool')
+
+    res_ro = check_readonly(auth.current_user(), request.method, logger)
+    if res_ro:
+        return res_ro
+
+    good, bad = wipe_pools(None, auth.current_user())
     code = 200 if not bad else 416
     result = good
     msg = '%d pools wiped%s' % (len(good),
@@ -221,7 +240,7 @@ def wipe_all():
     return resp(code, result, msg, ts)
 
 
-def wipe_pools(poolnames=None):
+def wipe_pools(poolnames, usr):
     """
     Deleting all pools using pool api so locking is properly used.
 
@@ -237,7 +256,7 @@ def wipe_pools(poolnames=None):
 
     good = []
     notgood = []
-    all_pools, not_loadable = load_pools(poolnames)
+    all_pools, not_loadable = load_pools(poolnames, usr)
     names = list(all_pools.keys())
     for nm in copy.copy(names):
         thepool = all_pools[nm]
@@ -273,11 +292,11 @@ def get_pool(pool):
     ts = time.time()
     logger.debug('Get pool info of ' + pool)
 
-    _, result, _ = get_pool_info(pool)
+    result = get_pool_info(pool)
     return result
 
 
-def get_pool_info(poolname, serialize_out=True):
+def get_pool_info(poolname, serialize_out=False):
     ''' returns information of the pool.
     '''
     msg = ''
@@ -307,21 +326,23 @@ def get_pool_info(poolname, serialize_out=True):
             ulist['urns'] = udict
        # add urls to urns
         for u, base in result['urns'].items():
+            if base == '_STID':
+                continue
             base['meta'] = str(base['meta'])
             pn, cl, sn = parseUrn(u)
             base['url'] = request.base_url + cl + '/' + str(sn)
         msg = 'Getting pool %s information. %s.' % (poolname, mes)
     else:
         code, result, msg = 404, FAILED, poolname + ' is not an exisiting Pool ID.'
-    return 0, resp(code, result, msg, ts, False), 0
+    return resp(code, result, msg, ts, False)
 
 
 ######################################
 ####  {pooolid}/register PUT /unreg DELETE  ####
 ######################################
 
-@ auth.login_required
 @ pools_api.route('/<string:pool>', methods=['PUT'])
+@ auth.login_required(role='read_write')
 def register(pool):
     """ Register the given pool.
 
@@ -335,12 +356,12 @@ def register(pool):
     ts = time.time()
     logger.debug('register pool ' + pool)
 
-    code, thepool, msg = register_pool(pool)
+    code, thepool, msg = register_pool(pool, auth.current_user())
     res = thepool if issubclass(thepool.__class__, str) else thepool._poolurl
     return resp(code, res, msg, ts)
 
 
-def register_pool(pool):
+def register_pool(pool, usr):
     """ Register this pool to PoolManager.
 
     :returns: code, pool object if successful, message
@@ -348,10 +369,11 @@ def register_pool(pool):
     poolname = pool
     fullpoolpath = os.path.join(current_app.config['POOLPATH_BASE'], poolname)
     poolurl = current_app.config['POOLURL_BASE'] + poolname
+    makenew = usr and usr.role == 'read_write'
     try:
-        po = PM.getPool(poolname=poolname, poolurl=poolurl)
+        po = PM.getPool(poolname=poolname, poolurl=poolurl, makenew=makenew)
         return 200, po, 'register pool ' + poolname + ' OK.'
-    except (ValueError, NotImplementedError) as e:
+    except (ValueError, NotImplementedError, PoolNotFoundError) as e:
         code, result, msg = excp(
             e,
             msg='Unable to register pool: ' + poolname)
@@ -359,8 +381,8 @@ def register_pool(pool):
         return code, result, msg
 
 
-@ auth.login_required
 @ pools_api.route('/<string:pool>', methods=['DELETE'])
+@ auth.login_required(role='read_write')
 def unregister(pool):
     """ Unregister this pool from PoolManager.
 
@@ -368,14 +390,12 @@ def unregister(pool):
 
     """
     logger = current_app.logger
-    if auth.current_user() == current_app.config['PC']['node']['ro_username']:
-        msg = 'User %s us Read-Only, not allowed to %s.' % (
-            auth.current_user(), request.method)
-        logger.debug(msg)
-        return unauthorized(msg)
-
     ts = time.time()
     logger.debug('Unregister pool ' + pool)
+
+    res_ro = check_readonly(auth.current_user(), request.method, logger)
+    if res_ro:
+        return res_ro
 
     code, result, msg = unregister_pool(pool)
     return resp(code, result, msg, ts)
@@ -461,7 +481,6 @@ def load_HKdata(paths, serialize_out=True):
 
 
 @ pools_api.route('/<string:pool>/api/', methods=['GET'])
-# @ swag_from(endp['/{pool}']['put'])
 def api_info(pool):
     """ A list of names of allowed API methods.
 
@@ -482,7 +501,7 @@ def api_info(pool):
 
 
 @ pools_api.route('/<string:pool>/wipe', methods=['PUT'])
-@ auth.login_required
+@ auth.login_required(role='read_write')
 def wipe(pool):
     """ Removes all contents of the pool.
 
@@ -491,6 +510,10 @@ def wipe(pool):
     ts = time.time()
     logger = current_app.logger
     logger.debug(f'wipe ' + pool)
+
+    res_ro = check_readonly(auth.current_user(), request.method, logger)
+    if res_ro:
+        return res_ro
 
     good, bad = wipe_pools([pool])
     if bad:
@@ -510,7 +533,6 @@ def wipe(pool):
 
 
 @ pools_api.route('/<string:pool>/hk/<string:kind>', methods=['GET'])
-# @ swag_from(endp['/{pool}']['put'])
 def hk_single(pool, kind):
     """ Returns the given kind of pool housekeeping data.
     """
@@ -541,7 +563,7 @@ def load_single_HKdata(paths, serialize_out=True):
         result = poolobj.readHK(hkname, serialize_out=serialize_out)
         code, msg = 200, hkname + ' HK data returned OK'
     except Exception as e:
-        code, result, msg=excp(e, serialize_out = serialize_out)
+        code, result, msg = excp(e, serialize_out=serialize_out)
     return code, result, msg
 
 ######################################
@@ -549,7 +571,7 @@ def load_single_HKdata(paths, serialize_out=True):
 ######################################
 
 
-@ pools_api.route('/<string:pool>/count/<string:data_type>', methods = ['GET'])
+@ pools_api.route('/<string:pool>/count/<string:data_type>', methods=['GET'])
 # @ swag_from(endp['/{pool}']['put'])
 def count(pool, data_type):
     """ Returns the number of given type of data in the given pool.
@@ -557,15 +579,15 @@ def count(pool, data_type):
     :data_type:  (part of) dot-separated full class name of data items in pool.
     """
 
-    logger=current_app.logger
+    logger = current_app.logger
 
-    ts=time.time()
-    pool=pool.strip('/')
+    ts = time.time()
+    pool = pool.strip('/')
     logger.debug(f'get {data_type} count for ' + pool)
 
-    code, result, msg=get_prod_count(data_type, pool)
+    code, result, msg = get_prod_count(data_type, pool)
 
-    return resp(code, result, msg, ts, serialize_out = False)
+    return resp(code, result, msg, ts, serialize_out=False)
 
 
 def get_prod_count(prod_type, pool_id):
@@ -576,7 +598,7 @@ def get_prod_count(prod_type, pool_id):
 
     """
 
-    logger=current_app.logger
+    logger = current_app.logger
     logger.debug('### method %s prod_type %s pool %s***' %
                  (request.method, prod_type, pool_id))
     res = 0
@@ -602,7 +624,7 @@ def get_prod_count(prod_type, pool_id):
 
 @ pools_api.route('/<string:pool>/api/<string:method_args>', methods=['GET'])
 @ pools_api.route('/<string:pool>/api/<string:method_args>/', methods=['GET'])
-@ auth.login_required
+@ auth.login_required(role='read_write')
 def api(pool, method_args):
     """ Call api mathods on the running pool and returns the result.
 
@@ -612,6 +634,10 @@ def api(pool, method_args):
 
     ts = time.time()
     logger.debug(f'get API {method_args} for {pool}')
+
+    res_ro = check_readonly(auth.current_user(), request.method, logger)
+    if res_ro:
+        return res_ro
 
     paths = [pool, 'api', method_args]
     lp0 = len(paths)
@@ -634,7 +660,7 @@ def call_pool_Api(paths, serialize_out=False):
     args, kwds = [], {}
 
     # the unquoted args. may have ',' in strings
-    #quoted_m_args = paths[ind_meth+1]
+    # quoted_m_args = paths[ind_meth+1]
 
     # from the unquoted url extract the fist path segment.
     quoted_m_args = request.url.split(

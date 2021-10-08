@@ -53,12 +53,13 @@ setup(
             'aiohttp>=3.6.2',
         ],
         'SERV': [
-            'Flask_HTTPAuth>=3.3.0',
-            'Flask>=1.1.2',
+            'Flask_HTTPAuth>=4.1.0',
+            'Flask>=2.0.2',
             'waitress>=2.0.0',
             'flasgger>=0.9.5',
         ],
         'PUB': [
+            'sphinx>=4.2.0',
             'sphinx_rtd_theme>=0.4.3',
             'sphinx-copybutton>=0.3.0',
             'twine>=3.3.0'

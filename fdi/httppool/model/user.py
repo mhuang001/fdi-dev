@@ -47,14 +47,21 @@ def getUsers(pc):
     return users
 
 
+@auth.get_user_roles
+def get_user_roles(user):
+    return user.role
+
+
 @auth.verify_password
 def verify_password(username, password):
 
     users = current_app.config['USERS']
-    current_app.logger.debug('verify user/pass %s %s vs. %s' % (
+    current_app.logger.debug('verify user/pass "%s" "%s" vs. %s' % (
         username, password, str(users)))
     if username in users and users[username].password == password:
         return users[username]
+    else:
+        return False
 
 # open text passwd
 # @auth.verify_password

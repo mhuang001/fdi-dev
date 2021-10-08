@@ -185,6 +185,29 @@ def test_clear_local_server(local_pools_dir):
     assert not os.path.exists(ppath)
 
 
+def test_root(server, client):
+    aburl, headers = server
+    url = aburl + '/'
+    x = client.get(url)
+    o = getPayload(x)
+    check_response(o)
+    c0 = o['result']
+    # /
+    url = aburl + '/pools'
+    x = client.get(url, headers=headers)
+    o = getPayload(x)
+    check_response(o)
+    c_pools = o['result']
+    assert len(c_pools) == 0
+    #
+    url = aburl
+    x = client.get(url)
+    o = getPayload(x)
+    if check_response(o, excluded=['Redirecting']):
+        c = o['result']
+        assert c0 == c
+
+
 def make_pools(name, aburl, clnt, auth, n=1):
     """ generate n pools """
 
@@ -243,9 +266,9 @@ def test_new_user_read_write(new_user_read_write):
     THEN check the username, hashed_password, authenticated, and role fields are defined correctly
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
-    new_user = new_user_read_write
-    assert new_user.username == 'rww'
-    assert new_user.hashed_password != 'FlaskIsAwesome'
+    new_user, headers = new_user_read_write
+    assert new_user.username == 'foo'
+    assert new_user.hashed_password != 'bar'
     assert not new_user.authenticated
     assert new_user.role == 'read_write'
     logger.debug('Done.')
@@ -257,31 +280,57 @@ def test_new_user_read_only(new_user_read_only):
     WHEN a new User is created
     THEN check the username, hashed_password, authenticated, and role fields are defined correctly
     """
-    new_user = new_user_read_only
-    assert new_user.username == 'aas'
-    assert new_user.hashed_password != 'FlaskIsAwesome'
+    new_user, headers = new_user_read_only
+    assert new_user.username == 'ro'
+    assert not new_user.hashed_password.startswith('o')
     assert not new_user.authenticated
     assert new_user.role == 'read_only'
     logger.debug('Done.')
 
 
-def test_unauthorizedread_write(server, new_user_read_only, client):
+def getapis(server_ro, client):
+    aburl, headers = server_ro
+    x = client.get(aburl.rsplit('/', 1)[0]+'/apispec_1.json', headers=headers)
+    return x.json()
+
+
+def test_unauthorizedread_write(server, server_ro, client):
     aburl, headers = server
+    roaburl, roheaders = server_ro
+    poolid = test_poolid
     # generate a unauthorized user header
-    headers = auth_headers('k', 'hu8')
-    x = client.get(aburl+'/pools', headers=headers)
-    assert x.status_code == 200
-    # with pytest.raises(URLError):
+    uheaders = auth_headers('k', 'hu8')
+    x = client.get(aburl+'/pools', headers=uheaders)
+    assert x.status_code == 401
     o = getPayload(x)
-    check_response(o)
-    pools = o['result']
-    assert isinstance(pools, list)
+    assert o == 'Unauthorized Access'
+
+    # These needs read_write
+
+    lm = ['/user/login', '/pools/register_all', '/pools/unregister_all',
+          '/pools/wipe_all', '/'+poolid, '/'+poolid+'/wipe',
+          '/'+poolid+'/getId', '/'+poolid+'/getId/',
+          '/urn:'+poolid+':fdi.dataset.Product:0']
+    paths = getapis(server_ro, client)['paths']
+    for p, ms in paths.items():
+        for meth, spec in ms.items():
+            api = p.replace('{pool}', poolid)
+            if meth == 'post':
+                # unknown user
+                x = client.post(aburl+api, headers=uheaders, data='')
+                assert x.status_code == 401
+                # read_only
+                x = client.post(roaburl+api, headers=roheaders, data='')
+                assert x.status_code == 403
+                # read_write
+                x = client.post(roaburl+api, headers=headers, data='')
+                assert x.status_code == 200
+
     logger.debug('Done.')
 
 
 def test_authorizedread_write(server, new_user_read_write, client):
     aburl, headers = server
-    headers = auth_headers('k', 'hu8')
     x = client.get(aburl+'/pools', headers=headers)
     assert x.status_code == 200
     # with pytest.raises(URLError):
@@ -289,29 +338,6 @@ def test_authorizedread_write(server, new_user_read_write, client):
     check_response(o)
     pools = o['result']
     assert isinstance(pools, list)
-
-
-def test_root(server, client):
-    aburl, headers = server
-    url = aburl + '/'+'pools'
-    x = client.get(url)
-    o = getPayload(x)
-    check_response(o)
-    c_pools = o['result']
-    # /
-    url = aburl + '/'
-    x = client.get(url)
-    o = getPayload(x)
-    check_response(o)
-    c = o['result']
-    assert len(c) == 0
-    #
-    url = aburl
-    x = client.get(url)
-    o = getPayload(x)
-    if check_response(o, excluded=['Redirecting']):
-        c = o['result']
-        assert c_pools == c
 
 
 def clear_server_local_pools_dir(poolid, local_pools_dir):
@@ -370,7 +396,17 @@ def populate_pool(poolid, aburl, auth, clnt):
     return creators, instruments, urns
 
 
-def test_CRUD_product(local_pools_dir, server, userpass, client):
+@ pytest.fixture(scope='function')
+def thepool(server, client, userpass):
+    aburl, headers = server
+    auth = HTTPBasicAuth(*userpass)
+    # register
+    pool = 1  # make_pools(test_poolid, aburl, client, auth, n=1)
+    yield pool, test_poolid
+    del pool
+
+
+def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     ''' test saving, read, delete products API, products will be saved at /data/pool_id
     '''
 
@@ -571,7 +607,7 @@ def test_data_path(server, userpass, client):
     segs = ["results", "Time_Energy_Pos", "Energy", "data"]
     pth = '/'.join(segs)
     # make url w/  urn
-    #url2       = 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data'
+    # url2       = 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data'
     url2 = aburl + urn.replace(':', '/')[3:] + '/' + pth
     x = client.get(url2, auth=auth)
     o = getPayload(x)
@@ -631,7 +667,7 @@ def test_get_pools(local_pools_dir, server, client):
 
     aburl, headers = server
     url = aburl + '/'+'pools'
-    x = client.get(url)
+    x = client.get(url, headers=headers)
     o = getPayload(x)
     check_response(o)
     c = o['result']

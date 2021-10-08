@@ -13,22 +13,22 @@ tags:
     description: User services.
     externalDocs:
       url: https://fdi.readthedocs.io/en/latest/usage/httppool.html
-  - name: Server
-    description: About this HTTP pool server that holds many data *pool*s.
-    externalDocs:
-      url: https://fdi.readthedocs.io/en/latest/usage/httppool.html
-  - name: Pool_Info
-    description: Information about a data Pool.
-    externalDocs:
-      url: https://fdi.readthedocs.io/en/latest/usage/pal.html#productpool
-  - name: Pool
-    description: Operating on a data Pool.
-    externalDocs:
-      url: https://fdi.readthedocs.io/en/latest/api/fdi/fdi.pal.html#module-fdi.pal.httpclientpool
   - name: Data
     description: Operating on data in a data Pool.
     externalDocs:
       url: file:///D:/code/fdi/docs/html/usage/pal.html#saving-a-product
+  - name: Pool
+    description: Operating on a data Pool.
+    externalDocs:
+      url: https://fdi.readthedocs.io/en/latest/api/fdi/fdi.pal.html#module-fdi.pal.httpclientpool
+  - name: Pool_Info
+    description: Information about a data Pool.
+    externalDocs:
+      url: https://fdi.readthedocs.io/en/latest/usage/pal.html#productpool
+  - name: Server
+    description: About this HTTP pool server that holds many data *pool*s.
+    externalDocs:
+      url: https://fdi.readthedocs.io/en/latest/usage/httppool.html
 servers:
   - url: http://127.0.0.1:5000/v0.9
     description: httppool api flask dev version
@@ -42,20 +42,6 @@ security:
   - BasicAuth: []
 
 paths:
-  /:
-    get:
-      summary: "Get IDs of all Pools."
-      tags:
-        - Server
-      description: "Returns a list of Pool IDs (pool names) of all pools on the server, including both registered and un-registered ones."
-      operationId: get_pools
-      responses:
-        "200":
-          description: "Done getting all Pool IDs."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GenericResponseContents"
   /user/login:
     get:
       summary: "Login on the server."
@@ -66,6 +52,20 @@ paths:
       responses:
         "200":
           description: "Done loggin in."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponseContents"
+  /:
+    get:
+      summary: "Get IDs of all Pools."
+      tags:
+        - Server
+      description: "Returns a list of Pool IDs (pool names) of all pools on the server, including both registered and un-registered ones."
+      operationId: get_pools
+      responses:
+        "200":
+          description: "Done getting all Pool IDs."
           content:
             application/json:
               schema:

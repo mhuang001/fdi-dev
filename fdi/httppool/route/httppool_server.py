@@ -2,7 +2,6 @@
 
 from ..model.user import getUsers, auth
 
-# from .server_skeleton import init_conf_clas, User, checkpath, app, auth, pc
 from ...utils.common import lls
 from ...dataset.deserialize import deserialize, deserialize_args
 from ...dataset.serializable import serialize
@@ -46,6 +45,8 @@ else:
 logger = __import__('logging').getLogger(__name__)
 
 data_api = Blueprint('httppool_server', __name__)
+
+WRITE_LIST = ['POST', 'PUT', 'DELETE', 'PATCH']
 
 
 @functools.lru_cache(6)
@@ -128,7 +129,19 @@ def excp(e, code=400, msg='', serialize_out=True):
     return code, result, msg
 
 
-# @ data_api.route('/sn' + '/<string:prod_type>' + '/<string:pool_id>', methods=['GET'])
+def check_readonly(usr, meth, logger):
+    return None
+    if usr is None:
+        msg = 'Unknown user %s.' % usr
+        logger.debug(msg)
+        return unauthorized(msg)
+
+    if meth in WRITE_LIST and usr.role == 'read_only':
+        msg = 'User %s is Read-Only, not allowed to %s.' % (usr.name, meth)
+        logger.debug(msg)
+        return unauthorized(msg)
+
+    return None
 
 
 ######################################
@@ -164,7 +177,7 @@ def urn(parts):
 
 
 @ data_api.route('/urn<path:parts>', methods=['DELETE'])
-@ auth.login_required
+@ auth.login_required(role='read_write')
 def delete_urn(parts):
     """ Remove data item with the given URN (or URN parts).
 
@@ -176,6 +189,10 @@ def delete_urn(parts):
 
     ts = time.time()
     logger.debug('get data for URN parts ' + parts)
+
+    #res_ro = check_readonly(auth.current_user(), request.method, logger)
+    # if res_ro:
+    #    return res_ro
 
     paths = parts2paths(parts)
     # if paths[-1] == '':
@@ -234,20 +251,22 @@ def delete_product(paths, serialize_out=False):
 
 
 @ data_api.route('/<string:pool>/', methods=['POST'])
-@ auth.login_required
+@ auth.login_required(role='read_write')
 def save_data(pool):
     """
     Save data to the pool with a list of tags and receive URNs.
 
     Save product data item(s) to the pool with an optional set of tags (The same tags are given to every data item) and receive a URN for each of the saved items.
     """
-    if auth.current_user() == current_app.config['PC']['node']['ro_username']:
-        msg = 'User %s us Read-Only, not allowed to %s.' % \
-            (auth.current_user(), request.method)
-        logger.debug(msg)
-        return unauthorized(msg)
 
     ts = time.time()
+    logger = current_app.logger
+    logger.debug(f'save to ' + pool)
+
+    res_ro = check_readonly(auth.current_user(), request.method, logger)
+    if res_ro:
+        return res_ro
+
     # do not deserialize if set True. save directly to disk
     serial_through = True
 
@@ -327,20 +346,24 @@ def save_product(data, paths, tags=None, serialize_in=True, serialize_out=False)
 
 
 @ data_api.route('/<string:pool>/<path:data_paths>', methods=['GET'])
-@ auth.login_required
+@ auth.login_required(role='read_write')
 def data_paths(pool, data_paths):
     """
     Returns magics of given type/data in the given pool.
 
 
     """
-    if auth.current_user() == current_app.config['PC']['node']['ro_username']:
-        msg = 'User %s us Read-Only, not allowed to %s.' % \
-            (auth.current_user(), request.method)
-        logger.debug(msg)
-        return unauthorized(msg)
 
     ts = time.time()
+    logger = current_app.logger
+    logger.debug(f'datapath of ' + pool)
+
+    logger = current_app.logger
+
+    res_ro = check_readonly(auth.current_user(), request.method, logger)
+    if res_ro:
+        return res_ro
+
     # do not deserialize if set True. save directly to disk
     serial_through = True
 
@@ -558,176 +581,32 @@ def mkv(v, t):
     return m
 
 
-# @ data_api.route('/<path:pool>', methods=['GET', 'POST', 'PUT', 'DELETE'])
-# @ auth.login_required
-def httppool(pool):
-    """
-    APIs for CRUD products, according to path and methods and return results.
-
-    - GET:
-                 /pool_id/product_class/index ==> return product
-                 /pool_id/hk ===> return pool_id Housekeeping data; urns, classes, and tags
-                 /pool_id/hk/{urns, classes, tags} ===> return pool_id urns or classes or tags
-                 /pool_id/count/product_class ===> return the number of products in the pool
-
-    - POST: /pool_id ==> Save product in requests.data in server
-
-    - PUT: /pool_id ==> register pool
-
-    - DELETE: /pool_id ==> unregister pool_id
-                         /pool_id/product_class/index ==> remove specified products in pool_id
-
-    'pool':'url'
-    """
-    if request.method in ['POST', 'PUT', 'DELETE'] and auth.current_user() == current_app.config['PC']['node']['ro_username']:
-        msg = 'User %s us Read-Only, not allowed to %s.' % \
-            (auth.current_user(), request.method)
-        logger.debug(msg)
-        return unauthorized(msg)
-
-    paths = pool.split('/')
-    lp0 = len(paths)
-
-    from .pools import get_pool_info
-    if lp0 == 0:
-        code, result, msg = get_pool_info()
-
-    # if paths[-1] == '':
-    #    del paths[-1]
-
-    # paths[0] is A URN
-    if paths[0].lower().startswith('urn+'):
-        p = paths[0].split('+')
-        # example ['urn', 'test', 'fdi.dataset.product.Product', '0']
-        paths = p[1:] + paths[1:] if lp0 > 1 else []
-
-    # paths[1] is A URN
-    if lp0 > 1 and paths[1].lower().startswith('urn+'):
-        p = paths[1].split('+')
-        # example ['urn', 'test', 'fdi.dataset.product.Product', '0']
-        paths = p[1:] + paths[2:] if lp0 > 2 else []
-    # paths is normalized to [poolname, ... ]
-    lp = len(paths)
-    ts = time.time()
-    # do not deserialize if set True. save directly to disk
-    serial_through = True
-    logger.debug('*** method %s paths %s ***' % (request.method, paths))
-
-    from .pools import call_pool_Api, load_HKdata, load_single_HKdata, register_pool
-
-    if request.method == 'GET':
-        # TODO modify client loading pool , prefer use load_HKdata rather than load_single_HKdata, because this will generate enormal sql transaction
-        if lp == 1:
-            code, result, msg = get_pool_info(paths[0])
-        elif lp == 2:
-            p1 = paths[1]
-            if p1 == 'hk':  # Load all HKdata
-                code, result, msg = load_HKdata(
-                    paths, serialize_out=serial_through)
-                return resp(code, result, msg, ts, serialize_out=serial_through)
-            elif p1 == 'api':
-                code, result, msg = call_pool_Api(paths, serialize_out=False)
-            elif p1 == '':
-                code, result, msg = get_pool_info(paths[0])
-            else:
-                code, result, msg = getProduct_Or_Component(
-                    paths, serialize_out=serial_through)
-        elif lp == 3:
-            p1 = paths[1]
-            if p1 == 'hk' and paths[2] in ['classes', 'urns', 'tags']:
-                # Retrieve single HKdata
-                code, result, msg = load_single_HKdata(
-                    paths, serialize_out=serial_through)
-                return resp(code, result, msg, ts, serialize_out=serial_through)
-            elif p1 == 'count':  # prod count
-                code, result, msg = get_prod_count(paths[2], paths[0])
-            elif p1 == 'api':
-                code, result, msg = call_pool_Api(paths, serialize_out=False)
-            else:
-                code, result, msg = getProduct_Or_Component(
-                    paths, serialize_out=serial_through)
-        elif lp > 3:
-            p1 = paths[1]
-            if p1 == 'api':
-                code, result, msg = call_pool_Api(paths, serialize_out=False)
-            else:
-                code, result, msg = getProduct_Or_Component(
-                    paths, serialize_out=serial_through)
-        else:
-            code = 400
-            result = '"FAILED"'
-            msg = 'Unknown request: ' + pool
-
-    elif request.method == 'POST' and paths[-1].isnumeric() and request.data != None:
-        # save product
-        if request.headers.get('tag') is not None:
-            tag = request.headers.get('tag')
-        else:
-            tag = None
-
-        if serial_through:
-            data = str(request.data, encoding='ascii')
-
-            code, result, msg = save_product(
-                data, paths, tag, serialize_in=not serial_through, serialize_out=serial_through)
-        else:
-            try:
-                data = deserialize(request.data)
-            except ValueError as e:
-                code, result, msg = excp(
-                    e,
-                    msg='Class needs to be included in pool configuration.',
-                    serialize_out=serial_through)
-            else:
-                code, result, msg = save_product(
-                    data, paths, tag, serialize_in=not serial_through)
-                # save_action(username=username, action='SAVE', pool=paths[0])
-    elif request.method == 'PUT':
-        code, result, msg = register_pool(paths)
-        return resp(code, result._poolurl, msg, ts, serialize_out=True)
-
-    elif request.method == 'DELETE':
-        if paths[-1].isnumeric():
-            code, result, msg = delete_product(paths)
-            # save_action(username=username, action='DELETE', pool=paths[0] +  '/' + paths[-2] + ':' + paths[-1])
-        else:
-            from .pools import unregister_pool
-            code, result, msg = unregister_pool(paths)
-            # save_action(username=username, action='DELETE', pool=paths[0])
-        return resp(code, result, msg, ts, serialize_out=True)
-    else:
-        result, msg = '"FAILED"', 'UNknown command '+request.method
-        code = 400
-        return resp(code, result, msg, ts, serialize_out=True)
-
-    return resp(code, result, msg, ts, serialize_out=serial_through)
-
-
 @data_api.errorhandler(400)
 def bad_request(error):
     ts = time.time()
-    w = {'error': 'Bad request.', 'message': str(error), 'timestamp': ts}
+    w = {'result': 'FAILED', 'msg': 'Bad request. ' + str(error), 'time': ts}
     return make_response(jsonify(w), 400)
 
 
 @data_api.errorhandler(401)
 def unauthorized(error):
     ts = time.time()
-    w = {'error': 'Unauthorized. Authentication needed to modify.',
-         'message': str(error), 'timestamp': ts}
+    w = {'result': 'FAILED',
+         'msg': 'Unauthorized. Authentication needed to modify. ' + str(error),
+         'time': ts}
     return make_response(jsonify(w), 401)
 
 
 @data_api.errorhandler(404)
 def not_found(error):
     ts = time.time()
-    w = {'error': 'Not found.', 'message': str(error), 'timestamp': ts}
+    w = {'result': 'FAILED', 'msg': 'Not found. ' + str(error), 'time': ts}
     return make_response(jsonify(w), 404)
 
 
 @data_api.errorhandler(409)
 def conflict(error):
     ts = time.time()
-    w = {'error': 'Conflict. Updating.',
-         'message': str(error), 'timestamp': ts}
+    w = {'result': 'FAILED', 'msg': 'Conflict. Updating. ' + str(error),
+         'time': ts}
     return make_response(jsonify(w), 409)

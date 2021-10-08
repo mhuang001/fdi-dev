@@ -80,7 +80,7 @@ This is done by calling the getPool() method, which will return an existing pool
     del p
 
     @classmethod
-    def getPool(cls, poolname=None, poolurl=None, pool=None, **kwds):
+    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=True, **kwds):
         """ returns an instance of pool according to name or path of the pool.
 
         Returns the pool object if the pool is registered. Creates the pool if it does not already exist. the same poolname-path always get the same pool. Http pools will be registered on the sserver side.
@@ -90,6 +90,7 @@ Pools registered are kept as long as the last reference remains. When the last i
         :poolname: name of the pool.
         :poolurl: if given the poolpath, scheme, place will be derived from it. if not given for making a new pool (i.e. when poolname is not a registered pool name.. 
 If poolname is missing it is derived from poolurl; if poolurl is also absent, ValueError will be raised.
+        :makenew: when the pool does not exist, make a new one (````True```; default) or throws `PoolNotFoundError` (```False```).
         :kwds: passed to pool instanciation arg-list.
         :Returns: the pool object.
         """
@@ -137,7 +138,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
             if schm == 'file':
                 from . import localpool
                 p = localpool.LocalPool(
-                    poolname=poolname, poolurl=poolurl, **kwds)
+                    poolname=poolname, poolurl=poolurl, makenew=makenew, **kwds)
             elif schm == 'mem':
                 from . import mempool
                 p = mempool.MemPool(poolname=poolname, poolurl=poolurl, **kwds)

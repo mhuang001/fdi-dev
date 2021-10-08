@@ -80,23 +80,29 @@ def checkserver(aburl, excluded=None):
 
 
 @pytest.fixture(scope="module")
-def new_user_read_write():
+def new_user_read_write(pc):
     """
     GIVEN a User model
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
-    new_user = User('rww', 'FlaskIsAwesome', 'read_write')
-    return new_user
+    pn = pc['node']
+    new_user = User(pn['username'], pn['password'], 'read_write')
+    headers = auth_headers(pn['username'], pn['password'])
+
+    return new_user, headers
 
 
 @pytest.fixture(scope="module")
-def new_user_read_only():
+def new_user_read_only(pc):
     """
     GIVEN a User model
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
-    new_user = User('aas', 'FlaskIsAwesome', 'read_only')
-    return new_user
+    pn = pc['node']
+    new_user = User(pn['ro_username'], pn['ro_password'], 'read_only')
+    headers = auth_headers(pn['ro_username'], pn['ro_password'])
+
+    return new_user, headers
 
 
 @pytest.fixture(scope="module")
@@ -131,8 +137,19 @@ def server(live_or_mock_server, new_user_read_write):
 
     """
     aburl, ty = live_or_mock_server
-    user = new_user_read_write
-    headers = auth_headers(user.username, user.password)
+    user, headers = new_user_read_write
+    headers['server_type'] = ty
+    yield aburl, headers
+    del aburl, headers
+
+
+@pytest.fixture(scope="module")
+def server_ro(live_or_mock_server, new_user_read_only):
+    """ Server data from r/w user, alive.
+
+    """
+    aburl, ty = live_or_mock_server
+    user, headers = new_user_read_only
     headers['server_type'] = ty
     yield aburl, headers
     del aburl, headers

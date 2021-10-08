@@ -27,6 +27,78 @@ pools_api = Blueprint('pools', __name__)
 
 
 ######################################
+####  /user/login POST  ####
+######################################
+
+
+@ pools_api.route('/user/login', methods=['GET', 'POST'])
+@ auth.login_required(role=['read_only', 'read_write'])
+def login():
+    """ Logging in on the server.
+
+    :return: response made from http code, poolurl, message
+    """
+
+    logger = current_app.logger
+    ts = time.time()
+    logger.debug('login')
+
+    msg = 'User %s logged-in %s.' % (auth.current_user().username,
+                                     auth.current_user().role)
+    logger.debug(msg)
+
+    return resp(200, 'OK', msg, ts, req_auth=True)
+
+######################################
+####  /user/logout POST  ####
+######################################
+
+
+@ pools_api.route('/user/logout', methods=['GET', 'POST'])
+@ auth.login_required(role=['read_only', 'read_write'])
+def logout():
+    """ Logging in on the server.
+
+    :return: response made from http code, poolurl, message
+    """
+
+    logger = current_app.logger
+    ts = time.time()
+    logger.debug('logout')
+
+    msg = 'User %s logged-out %s.' % (auth.current_user().username,
+                                      auth.current_user().role)
+    logger.debug(msg)
+
+    return resp(401, 'OK. Bye.', msg, ts)
+
+######################################
+#### /  get_pools   ####
+######################################
+
+
+@ pools_api.route('', methods=['GET'])
+def get_pools_url():
+    """ Get names of all pools, registered or not.
+    """
+    logger = current_app.logger
+
+    ts = time.time()
+    path = current_app.config['POOLPATH_BASE']
+    logger.debug('Listing all directories from ' + path)
+
+    result = get_name_all_pools(path)
+
+    if issubclass(result.__class__, list):
+        res = dict((x, request.base_url+x) for x in result)
+    else:
+        res = {}
+    msg = '%d pools found.' % len(result)
+    code = 200
+    return resp(code, res, msg, ts)
+
+
+######################################
 #### /  get_pools   ####
 ######################################
 
@@ -43,10 +115,7 @@ def get_pools():
 
     result = get_name_all_pools(path)
 
-    if issubclass(result.__class__, list):
-        res = dict((x, request.base_url+x) for x in result)
-    else:
-        res = {}
+    res = result
     msg = '%d pools found.' % len(result)
     code = 200
     return resp(code, res, msg, ts)
@@ -89,30 +158,6 @@ def get_registered_pools():
     code = 200
     return resp(code, result, msg, ts)
 
-
-######################################
-####  user/login /logout GET  ####
-######################################
-
-
-@ pools_api.route('/user/login', methods=['GET'])
-@ auth.login_required(role='read_write')
-def login():
-    """ Logging in on the server.
-
-    :return: response made from http code, poolurl, message
-    """
-
-    logger = current_app.logger
-    ts = time.time()
-    logger.debug('login ' + pool)
-
-    msg = 'User %s logged-in %s.' % (auth.current_user().username,
-                                     auth.current_user().role)
-    logger.debug(msg)
-
-    ts = time.time()
-    return resp(200, 'OK', msg, ts)
 
 ######################################
 #### /pools/register_all pools/register_all/  ####
@@ -177,10 +222,6 @@ def unregister_all():
     ts = time.time()
     logger.debug('unregister-all ' + pool)
 
-    res_ro = check_readonly(auth.current_user(), request.method, logger)
-    if res_ro:
-        return res_ro
-
     good, bad = unregister_pools()
     code = 200 if not bad else 416
     result = good
@@ -227,10 +268,6 @@ def wipe_all():
     logger = current_app.logger
     ts = time.time()
     logger.debug('Wipe-all pool')
-
-    res_ro = check_readonly(auth.current_user(), request.method, logger)
-    if res_ro:
-        return res_ro
 
     good, bad = wipe_pools(None, auth.current_user())
     code = 200 if not bad else 416
@@ -393,10 +430,6 @@ def unregister(pool):
     ts = time.time()
     logger.debug('Unregister pool ' + pool)
 
-    res_ro = check_readonly(auth.current_user(), request.method, logger)
-    if res_ro:
-        return res_ro
-
     code, result, msg = unregister_pool(pool)
     return resp(code, result, msg, ts)
 
@@ -510,10 +543,6 @@ def wipe(pool):
     ts = time.time()
     logger = current_app.logger
     logger.debug(f'wipe ' + pool)
-
-    res_ro = check_readonly(auth.current_user(), request.method, logger)
-    if res_ro:
-        return res_ro
 
     good, bad = wipe_pools([pool])
     if bad:
@@ -634,10 +663,6 @@ def api(pool, method_args):
 
     ts = time.time()
     logger.debug(f'get API {method_args} for {pool}')
-
-    res_ro = check_readonly(auth.current_user(), request.method, logger)
-    if res_ro:
-        return res_ro
 
     paths = [pool, 'api', method_args]
     lp0 = len(paths)

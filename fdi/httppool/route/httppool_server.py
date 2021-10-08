@@ -91,7 +91,7 @@ def checkpath(path, un):
 # @data_api.before_app_first_request
 
 
-def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', length=70):
+def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', length=70, req_auth=False):
     """
     Make response.
 
@@ -116,8 +116,11 @@ def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', l
 
     logger.debug(lls(w, length))
     # logger.debug(pprint.pformat(w, depth=3, indent=4))
-    resp = make_response(w)
+    resp = make_response(w, code)
     resp.headers['Content-Type'] = ctype
+
+    if req_auth:
+        resp.headers['WWW-Authenticate'] = 'Basic'
     return resp
 
 
@@ -190,10 +193,6 @@ def delete_urn(parts):
     ts = time.time()
     logger.debug('get data for URN parts ' + parts)
 
-    #res_ro = check_readonly(auth.current_user(), request.method, logger)
-    # if res_ro:
-    #    return res_ro
-
     paths = parts2paths(parts)
     # if paths[-1] == '':
     #    del paths[-1]
@@ -262,10 +261,6 @@ def save_data(pool):
     ts = time.time()
     logger = current_app.logger
     logger.debug(f'save to ' + pool)
-
-    res_ro = check_readonly(auth.current_user(), request.method, logger)
-    if res_ro:
-        return res_ro
 
     # do not deserialize if set True. save directly to disk
     serial_through = True
@@ -359,10 +354,6 @@ def data_paths(pool, data_paths):
     logger.debug(f'datapath of ' + pool)
 
     logger = current_app.logger
-
-    res_ro = check_readonly(auth.current_user(), request.method, logger)
-    if res_ro:
-        return res_ro
 
     # do not deserialize if set True. save directly to disk
     serial_through = True

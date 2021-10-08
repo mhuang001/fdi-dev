@@ -191,21 +191,21 @@ def test_root(server, client):
     x = client.get(url)
     o = getPayload(x)
     check_response(o)
-    c0 = o['result']
+    c0 = o['result']  # a list
+    # no slash
+    url = aburl
+    x = client.get(url)
+    o = getPayload(x)  # a dict of urls
+    if check_response(o, excluded=['Redirecting']):
+        c = o['result']
+        assert set(c0) == set(c)
     # /
     url = aburl + '/pools'
     x = client.get(url, headers=headers)
     o = getPayload(x)
     check_response(o)
-    c_pools = o['result']
-    assert len(c_pools) == 0
-    #
-    url = aburl
-    x = client.get(url)
-    o = getPayload(x)
-    if check_response(o, excluded=['Redirecting']):
-        c = o['result']
-        assert c0 == c
+    c_pools = o['result']  # a dict
+    assert set(iter(c_pools)) <= set(iter(c0))
 
 
 def make_pools(name, aburl, clnt, auth, n=1):
@@ -306,11 +306,6 @@ def test_unauthorizedread_write(server, server_ro, client):
     assert o == 'Unauthorized Access'
 
     # These needs read_write
-
-    lm = ['/user/login', '/pools/register_all', '/pools/unregister_all',
-          '/pools/wipe_all', '/'+poolid, '/'+poolid+'/wipe',
-          '/'+poolid+'/getId', '/'+poolid+'/getId/',
-          '/urn:'+poolid+':fdi.dataset.Product:0']
     paths = getapis(server_ro, client)['paths']
     for p, ms in paths.items():
         for meth, spec in ms.items():
@@ -321,10 +316,11 @@ def test_unauthorizedread_write(server, server_ro, client):
                 assert x.status_code == 401
                 # read_only
                 x = client.post(roaburl+api, headers=roheaders, data='')
-                assert x.status_code == 403
+                assert x.status_code == 200 if p == '/user/login' \
+                    else 401 if p == '/user/logout' else 403
                 # read_write
                 x = client.post(roaburl+api, headers=headers, data='')
-                assert x.status_code == 200
+                assert x.status_code == 401 if p == '/user/logout' else 200
 
     logger.debug('Done.')
 

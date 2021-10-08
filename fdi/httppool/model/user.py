@@ -15,7 +15,7 @@ class User():
     def __init__(self, name, passwd, role='read_only'):
 
         self.username = name
-        self.password = passwd
+        #self.password = passwd
         self.registered_on = datetime.datetime.now()
 
         self.hashed_password = generate_password_hash(passwd)
@@ -24,7 +24,7 @@ class User():
 
     def is_correct_password(self, plaintext_password):
 
-        return check_password_hash(plaintext_password, self.hashed_password)
+        return check_password_hash(self.hashed_password, plaintext_password)
 
     def __repr__(self):
         return f'<User: {self.username}>'
@@ -58,7 +58,8 @@ def verify_password(username, password):
     users = current_app.config['USERS']
     current_app.logger.debug('verify user/pass "%s" "%s" vs. %s' % (
         username, password, str(users)))
-    if username in users and users[username].password == password:
+    if username in users and users[username].is_correct_password(password):
+        current_app.logger.debug('approved '+username)
         return users[username]
     else:
         return False

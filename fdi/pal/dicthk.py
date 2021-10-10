@@ -57,7 +57,7 @@ class DictHk(Taggable):
         """
         Remove the given key.
         """
-        vals = themap.pop(key)
+        vals = themap.pop(key, None)
         # remove all items whose v is key in the otherosit map
         for val in vals[othername]:
             othermap[val][thename].remove(key)

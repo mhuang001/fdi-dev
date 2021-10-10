@@ -2146,12 +2146,39 @@ bookstore = """{ "store": {
   }
 }"""
 
+# http://omz-software.com/pythonista/docs/ios/xmltodict.html
+simple_ex = """
+<a prop="x">
+   <b>1</b>
+   <b>2</b>
+</a>
+"""
+complex_ex = """
+<mydocument has="an attribute">
+  <and>
+    <many>elements</many>
+    <many>more elements</many>
+  </and>
+  <plus a="complex">
+    element as well
+  </plus>
+</mydocument>
+"""
+
 
 def test_jsonPath():
     js = '[{"idAssetType":6,"name":"CCAA","enterprise":{"id":1,"name":"APV"}}]'
     u = UnstrcturedDataset(data=js, doctype='json')
     m = u.jsonPath("$[?(@.name == 'CCAA')].idAssetType")
     assert m[0][1] == 6
+
+    # xmltodict docs
+    u = UnstrcturedDataset(data=simple_ex, doctype='xml', attr_prefix='@')
+    assert u.data['a']['@prop'] == 'x'
+    assert u.data['a']['b'] == ['1', '2']
+    u.attr_prefix = '%'
+    u.input(simple_ex)
+    assert u.data['a']['%prop'] == 'x'
 
     ### BOOK STORE ###
     u = UnstrcturedDataset(data=bookstore, doctype='json')
@@ -2198,6 +2225,10 @@ def test_jsonPath():
     with pytest.raises(AssertionError):
         assert len(m) > 0
     # use this instead. MUST HAVE THE WHITESPACES in ' - 1'
+    # NOT working: Full diff:
+    #- ['J. R. R. Tolkien']
+    #+ ['Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien']
+    #
     #m = u.jsonPath('$..book[?(@.`len` - 1)]', val='context')
     #assert list(x.value['author'] for x in m) == ['J. R. R. Tolkien']
     # the last book in order. #2

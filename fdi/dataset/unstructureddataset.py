@@ -29,6 +29,8 @@ class UnstrcturedDataset(Dataset, Copyable):
     """ Container for data without pre-defined structure or organization..
 
     `MetaDataListener` must stay to the left of `AbstractComposite`.
+
+    For `xmltodict`  `xml_attribs` default to ```False```. 
     """
 
     def __init__(self, data=None,
@@ -55,6 +57,10 @@ class UnstrcturedDataset(Dataset, Copyable):
         global Model
         if zInfo is None:
             zInfo = Model
+        # for `xmltodict`  `xml_attribs` default to ```True```.
+        self.xml_attribs = kwds.pop('xml_attribs', True)
+        self.attr_prefix = kwds.pop('attr_prefix', '')
+        self.cdata_key = kwds.pop('cdata_key', 'text')
 
         super().__init__(zInfo=zInfo, **metasToBeInstalled,
                          **kwds)  # initialize typ_, meta, unit
@@ -71,7 +77,7 @@ class UnstrcturedDataset(Dataset, Copyable):
         except AttributeError:
             return self._data.data
 
-    def jsonPath(self, expr, sep='/', val='simple', indent=None, *args, **kwds):
+    def jsonPath(self, expr, val='simple', sep='/', indent=None, *args, **kwds):
         """ Make a JSONPath query on the data.
 
         :expr: JSONPath expression. Ref 'jsonpath_ng'
@@ -142,7 +148,17 @@ class UnstrcturedDataset(Dataset, Copyable):
             if self.doctype == 'json':
                 data = json.loads(data, **kwds)
             elif self.doctype == 'xml':
-                data = xmltodict.parse(data, **kwds)
+                xa = kwds.pop('xml_attribs', None)
+                xa = self.xml_attribs if xa is None else xa
+                ap = kwds.pop('attr_prefix', None)
+                ap = self.attr_prefix if ap is None else ap
+                ck = kwds.pop('cdata_key', None)
+                ck = self.cdata_key if ck is None else ck
+
+                data = xmltodict.parse(data,
+                                       attr_prefix=ap,
+                                       cdata_key=ck,
+                                       xml_attribs=xa, **kwds)
             # set Escape if not set already
             if '_STID' in data:
                 ds = data['_STID']

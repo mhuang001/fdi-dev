@@ -90,7 +90,7 @@ def get_pools_url():
     result = get_name_all_pools(path)
 
     if issubclass(result.__class__, list):
-        res = dict((x, request.base_url+x) for x in result)
+        res = dict((x, request.base_url+'/'+x) for x in result)
     else:
         res = {}
     msg = '%d pools found.' % len(result)

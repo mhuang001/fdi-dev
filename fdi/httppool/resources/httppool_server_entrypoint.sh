@@ -42,8 +42,6 @@ grep ^EXTPORT  ~/.config/pnslocal.py >> ~/lastent
 grep ^BASE_POOLPATH  ~/.config/pnslocal.py >> ~/lastent
 grep ^SERVER_POOLPATH  ~/.config/pnslocal.py >> ~/lastent
 
-#service apache2 reload && echo apache2 reloaded
-
 date >> ~/lastent
 cat ~/lastent
 echo @@@ $@
@@ -54,6 +52,6 @@ done
 echo enabling site ... >> ~/lastent
 sudo a2ensite httppool_server.conf
 sudo a2dissite 000-default.conf
-#service apache2 reload && echo apache2 reloaded;
+service apache2 reload && echo apache2 reloaded;
 echo running apachectl in CMD...>> ~/lastent  ;
 /usr/sbin/apache2ctl -DFOREGROUND 2>&1 >> ~/lastent

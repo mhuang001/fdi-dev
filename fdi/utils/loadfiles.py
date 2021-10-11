@@ -8,19 +8,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def loadcsv(filepath, delimiter=',', header=0):
+def loadcsv(filepath, delimiter=',', header=0, return_dict=False):
     """ Loads the contents of a CSV file into a list of tuples.
 
-    the first header linea are taken as column headers if header > 0.
-    if no column header given, colN where N = 1, 2, 3... are returned.
+    :header: the first header linea are taken as column headers if ```header > 0```. If no column header given (default 0), ```colN``` where N = 1, 2, 3... are returned.
 
-    the second header linea are also recorded (usually units) if header > 1.
-    Default is ''.
+    the second header linea are also recorded (usually units) if `header ` > 1.
+    :return_dict: if ```True``` returns ```dict[colhd]=(col, unit). Default is ```False```.
 
-    Returns of a list of (colhd, column, unit) tuplees.
+    :return: Default is a list of (colhd, column, unit) tuplees.
     """
-    columns = []
-
+    columns, units = [], []
+    colhds = None
     with open(filepath, 'r', newline='', encoding='utf-8') as f:
         logger.debug('reading csv file ' + str(f))
         # pdb.set_trace()
@@ -52,8 +51,10 @@ def loadcsv(filepath, delimiter=',', header=0):
                     col.append(cell)
             #print('%d: %s' % (rowcount, str(row)))
             rowcount += 1
-
-    return list(zip(colhds, columns, units))
+    if colhds is None:
+        return {} if return_dict else []
+    return dict(zip(colhds, zip(columns, units))) if return_dict \
+        else list(zip(colhds, columns, units))
 
 
 def loadMedia(filename, content_type='image/png'):

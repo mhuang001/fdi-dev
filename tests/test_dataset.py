@@ -2108,7 +2108,6 @@ def test_UnstrcturedDataset():
     assert v == u.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]
     assert s == '.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]'
 
-    # print(u.toString())
     checkjson(u)
     checkgeneral(u)
 
@@ -2182,6 +2181,7 @@ def test_jsonPath():
 
     ### BOOK STORE ###
     u = UnstrcturedDataset(data=bookstore, doctype='json')
+    print(u.toString())
     # the authors of all books in the store
     n = u.jsonPath("$.store.book[*].author", val='context')
     assert list(x.value for x in n) == [

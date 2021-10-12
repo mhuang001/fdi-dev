@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from .masked import masked
+from .ydump import ydump
+
 import hashlib
 import array
 import traceback
+import pprint
 import pwd
 import logging
 from itertools import zip_longest
@@ -40,7 +43,7 @@ def trbk2(e):
 
 def bstr(x, length=0, tostr=True, quote="'", level=0,
          tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-         width=0, heavy=True,
+         width=0, heavy=True, yaml=False,
          **kwds):
     """ returns the best string representation.
     if the object is a string, return single-quoted; if has toString(), use it; else returns str(). Length limited by lls(lls)
@@ -59,7 +62,7 @@ def bstr(x, length=0, tostr=True, quote="'", level=0,
     elif issubclass(x.__class__, (bytes, bytearray, memoryview)):
         r = x.hex()
     else:
-        r = str(x)
+        r = ydump(x) if yaml else str(x)
     return lls(r, length=length)
 
 

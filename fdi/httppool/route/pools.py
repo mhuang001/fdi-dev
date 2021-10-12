@@ -363,7 +363,7 @@ def get_pool_info(poolname, serialize_out=False):
             ulist['urns'] = udict
        # add urls to urns
         for u, base in result['urns'].items():
-            if base == '_STID':
+            if u == '_STID':
                 continue
             base['meta'] = str(base['meta'])
             pn, cl, sn = parseUrn(u)

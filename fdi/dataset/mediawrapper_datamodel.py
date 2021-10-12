@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Automatically generated from fdi/dataset/resources/ArrayDataset_DataModel.yml. Do not edit.
+# Automatically generated from fdi/dataset/resources/MediaWrapper_DataModel.yml. Do not edit.
 
 from collections import OrderedDict
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # Data Model specification for mandatory components
 _Model_Spec = {
-    'name': 'ArrayDataset_DataModel',
+    'name': 'MediaWrapper_DataModel',
     'description': 'ArrayDataset class data model mandatory configuration',
     'parents': [
         None,
@@ -31,13 +31,13 @@ _Model_Spec = {
                 },
         'type': {
                 'data_type': 'string',
-                'description': 'Data Type identification.',
-                'default': 'ArrayDataset',
+                'description': 'Product Type identification. Name of class or CARD.',
+                'default': 'img/png',
                 'valid': '',
                 },
-        'unit': {
+        'source': {
                 'data_type': 'string',
-                'description': 'Unit of every element.',
+                'description': 'File, URL, or other reference on the origin of the media payload.',
                 'default': None,
                 'valid': '',
                 },
@@ -62,7 +62,7 @@ _Model_Spec = {
         'FORMATV': {
                 'data_type': 'string',
                 'description': 'Version of dataset schema and revision',
-                'default': '1.6.0.2',
+                'default': '1.6.0.1',
                 'valid': '',
                 },
         },

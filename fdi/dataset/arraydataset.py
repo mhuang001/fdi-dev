@@ -5,6 +5,7 @@ from .typed import Typed
 from .typecoded import Typecoded
 from .listener import ColumnListener
 from .ndprint import ndprint
+from .shaped import Shaped
 from ..utils.common import mstr, bstr, lls, exprstrs, findShape
 from .dataset import GenericDataset, make_title_meta_l0
 try:
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 MdpInfo = Model['metadata']
 
 
-class ArrayDataset(GenericDataset, Iterable):
+class ArrayDataset(GenericDataset, Iterable, Shaped):
     """  Special dataset that contains a single Array Data object.
 
     mh: If omit the parameter names during instanciation, e.g. ArrayDataset(a, b, c), the assumed order is data, unit, description.
@@ -42,7 +43,7 @@ class ArrayDataset(GenericDataset, Iterable):
     def __init__(self, data=None,
                  unit=None,
                  description=None,
-                 shape=None,
+                 typ_=None,
                  typecode=None,
                  version=None,
                  zInfo=None,
@@ -51,14 +52,14 @@ class ArrayDataset(GenericDataset, Iterable):
         """ Initializes an ArrayDataset.
 
         Default ```None``` will initialize MetaData Parameters to their default values.
-        If ``data`` is not None and has shape (``len`` applies), ``shape`` MDP is set to the actual ``data`` shape. If ``data`` is not given but ``shape`` is given, ``shape`` MDP is set to ``shape``.
+        If ``data`` is not None and has shape (``len`` applies), ``shape`` MDP is set to the actual ``data`` shape. 
         """
 
         # collect MDPs from args-turned-local-variables.
         metasToBeInstalled = OrderedDict(
             itertools.filterfalse(
                 lambda x: x[0] in ('self', '__class__',
-                                   'zInfo', 'kwds', 'shape'),
+                                   'zInfo', 'kwds'),
                 locals().items())
         )
 
@@ -70,8 +71,6 @@ class ArrayDataset(GenericDataset, Iterable):
         #      self.zInfo['metadata']['version'], list(metasToBeInstalled.keys()))
         # must be the first line to initiate meta
         super().__init__(zInfo=zInfo, **metasToBeInstalled, **kwds)
-        dshape = findShape(data)
-        self.shape = dshape if dshape else shape
 
     # def getData(self):
     #     """ Optimized """
@@ -89,19 +88,14 @@ class ArrayDataset(GenericDataset, Iterable):
         d = None if data is None else \
             data if hasattr(data, '__getitem__') else list(data)
         # no passive shape-updating. no
-        self.shape = findShape(d)
         super(ArrayDataset, self).setData(d)
-
-    def updateShape(self):
-
-        shape = findShape(self.data)
-        self.shape = shape
-        return shape
+        self.updateShape()
 
     def __setitem__(self, *args, **kwargs):
         """ sets value at key.
         """
         self.getData().__setitem__(*args, **kwargs)
+        self.updateShape()
 
     def __getitem__(self, *args, **kwargs):
         """ returns value at key.
@@ -121,12 +115,21 @@ class ArrayDataset(GenericDataset, Iterable):
     def pop(self, *args, **kwargs):
         """ revomes and returns value
         """
-        return self.getData().pop(*args, **kwargs)
+        ret = self.getData().pop(*args, **kwargs)
+        self.updateShape()
+        return ret
 
     def append(self, *args, **kwargs):
         """ appends to data.
         """
-        return self.getData().append(*args, **kwargs)
+        self.getData().append(*args, **kwargs)
+        self.updateShape()
+
+    def extend(self, *args, **kwargs):
+        """ extend data.
+        """
+        self.getData().extend(*args, **kwargs)
+        self.updateShape()
 
     def index(self, *args, **kwargs):
         """ returns the index of a value.
@@ -142,6 +145,7 @@ class ArrayDataset(GenericDataset, Iterable):
         """ removes value at first occurrence.
         """
         self.getData().remove(*args, **kwargs)
+        self.updateShape()
 
     def __repr__(self):
         return self.toString(level=2)
@@ -215,17 +219,4 @@ class Column(ArrayDataset, ColumnListener):
     """
 
     def __init__(self,  *args, typ_='Column', **kwds):
-        super().__init__(*args, typ_=typ_, **kwds)
-
-
-class MediaWrapper(ArrayDataset):
-    """ A MediaWrapper contains raw, usually binary, data in specific format.
-
-    """
-
-    def __init__(self,  *args, typ_='image/png', **kwds):
-        """ Initializes media data wrapped in ArrayDataset.
-
-        typ_: www style string that follows `Content-Type: `. Default is `imagw/png`.
-        """
         super().__init__(*args, typ_=typ_, **kwds)

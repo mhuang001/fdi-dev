@@ -252,6 +252,9 @@ level 0
 |                 |                    |        |          |                   |                 |        | on. Quick changer |
 |                 |                    |        |          |                   |                 |        | s to the right.   |
 +-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| type            | ArrayDataset       |        | string   | None              | ArrayDataset    | B      | Data Type identif |
+|                 |                    |        |          |                   |                 |        | ication.          |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
 | unit            | lyr                |        | string   | None              | None            | B      | Unit of every ele |
 |                 |                    |        |          |                   |                 |        | ment.             |
 +-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
@@ -261,7 +264,7 @@ level 0
 | version         | 0.1                |        | string   | None              | 0.1             | B      | Version of datase |
 |                 |                    |        |          |                   |                 |        | t                 |
 +-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
-| FORMATV         | 1.6.0.1            |        | string   | None              | 1.6.0.1         | B      | Version of datase |
+| FORMATV         | 1.6.0.2            |        | string   | None              | 1.6.0.2         | B      | Version of datase |
 |                 |                    |        |          |                   |                 |        | t schema and revi |
 |                 |                    |        |          |                   |                 |        | sion              |
 +-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
@@ -336,17 +339,18 @@ level 0
 
 
 level 1
-                   *** ArrayDataset (toString tester AD) ***                    
+                 *** ArrayDataset (toString tester AD) ***                 
 
---------------------------  --------------------------  ------------------------
-description= toString test  shape= (2, 3, 4, 5)         unit= lyr
+--------------------------  -------------------  --------------------------
+description= toString test  shape= (2, 3, 4, 5)  type= ArrayDataset
 er AD
-typecode= UNKNOWN           version= 0.1                FORMATV= 1.6.0.1
-a= 3.4                      b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
-                            .456789
-                            1929229360456789)
-d= off (0b00)               added_parameter= 42         listeners= <No listener>
---------------------------  --------------------------  ------------------------
+unit= lyr                   typecode= UNKNOWN    version= 0.1
+FORMATV= 1.6.0.2            a= 3.4               b= xy (2019-02-19T01:02:03
+                                                 .456789
+                                                 1929229360456789)
+c= Invalid (IJK)            d= off (0b00)        added_parameter= 42
+listeners= <No listener>
+--------------------------  -------------------  --------------------------
 
 0  0  0  0  0
 0  0  0  0  0
@@ -389,7 +393,7 @@ d= off (0b00)               added_parameter= 42         listeners= <No listener>
 #=== dimension 4
 
 
-================================================================================
+===========================================================================
 
 
 
@@ -412,10 +416,16 @@ level 0
 | description     | UNKNOWN            |        | string   | None              | UNKNOWN         | B      | Description of th |
 |                 |                    |        |          |                   |                 |        | is dataset        |
 +-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| shape           | (2,)               |        | tuple    | None              | ()              |        | Number of columns |
+|                 |                    |        |          |                   |                 |        |  and rows.        |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
+| type            | TableDataset       |        | string   | None              | TableDataset    | B      | Data Type identif |
+|                 |                    |        |          |                   |                 |        | ication.          |
++-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
 | version         | 0.1                |        | string   | None              | 0.1             | B      | Version of datase |
 |                 |                    |        |          |                   |                 |        | t                 |
 +-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
-| FORMATV         | 1.6.0.1            |        | string   | None              | 1.6.0.1         | B      | Version of datase |
+| FORMATV         | 1.6.0.2            |        | string   | None              | 1.6.0.2         | B      | Version of datase |
 |                 |                    |        |          |                   |                 |        | t schema and revi |
 |                 |                    |        |          |                   |                 |        | sion              |
 +-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
@@ -456,15 +466,16 @@ level 0
 
 
 level 1
-                      *** TableDataset (UNKNOWN) ***                      
+                     *** TableDataset (UNKNOWN) ***                     
 
---------------------  --------------------------  ------------------------
-description= UNKNOWN  version= 0.1                FORMATV= 1.6.0.1
-a= 3.4                b= xy (2019-02-19T01:02:03  c= Invalid (IJK)
-                      .456789
-                      1929229360456789)
-d= off (0b00)         added_parameter= 42         listeners= <No listener>
---------------------  --------------------------  ------------------------
+--------------------------  ------------------------  ------------------
+description= UNKNOWN        shape= (2,)               type= TableDataset
+version= 0.1                FORMATV= 1.6.0.2          a= 3.4
+b= xy (2019-02-19T01:02:03  c= Invalid (IJK)          d= off (0b00)
+.456789
+1929229360456789)
+added_parameter= 42         listeners= <No listener>
+--------------------------  ------------------------  ------------------
 
   col1     col2
   (eV)    (cnt)
@@ -473,15 +484,15 @@ d= off (0b00)         added_parameter= 42         listeners= <No listener>
    4.4     43.2
 5400     2000
 
-==========================================================================
+========================================================================
 
 
 
 level 2, repr
-TableDataset(<MetaData a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19T01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...>data= {"col1": Column(<MetaData description=(string: 1 <>), shape=(tuple: (3,) <>), unit=(string: eV <>), ...> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData description=(string: 2 <>), shape=(tuple: (3,) <>), unit=(string: cnt <>), ...> data= [0, 43.2, 2000.0])})
+TableDataset(<MetaData shape=(tuple: (2,) <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19T01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...>data= {"col1": Column(<MetaData description=(string: 1 <>), shape=(tuple: (3,) <>), type=(string: Column <>), unit=(string: eV <>), ...> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData description=(string: 2 <>), shape=(tuple: (3,) <>), type=(string: Column <>), unit=(string: cnt <>), ...> data= [0, 43.2, 2000.0])})
 
 an empty level 2: 
-TableDataset(<MetaData ...>data= {})
+TableDataset(<MetaData shape=(tuple: (0,) <>), ...>data= {})
 
 """
 out_CompositeDataset = """level 0
@@ -521,32 +532,35 @@ SubDataset  "dataset 1":
                                             __________________________________                                           
                                             *** ArrayDataset (arraydset 1) ***                                           
                                                            META                                                          
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
-| name        | value         | unit   | type   | valid   | default   | code   | description       |
-+=============+===============+========+========+=========+===========+========+===================+
-| description | arraydset 1   |        | string | None    | UNKNOWN   | B      | Description of th |
-|             |               |        |        |         |           |        | is dataset        |
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
-| shape       | (3,)          |        | tuple  | None    | ()        |        | Number of element |
-|             |               |        |        |         |           |        | s in each dimensi |
-|             |               |        |        |         |           |        | on. Quick changer |
-|             |               |        |        |         |           |        | s to the right.   |
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
-| unit        | ev            |        | string | None    | None      | B      | Unit of every ele |
-|             |               |        |        |         |           |        | ment.             |
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
-| typecode    | UNKNOWN       |        | string | None    | UNKNOWN   | B      | Python internal s |
-|             |               |        |        |         |           |        | torage code.      |
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
-| version     | 0.1           |        | string | None    | 0.1       | B      | Version of datase |
-|             |               |        |        |         |           |        | t                 |
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
-| FORMATV     | 1.6.0.1       |        | string | None    | 1.6.0.1   | B      | Version of datase |
-|             |               |        |        |         |           |        | t schema and revi |
-|             |               |        |        |         |           |        | sion              |
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
-| listeners   | <No listener> |        |        |         |           |        |                   |
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| name        | value         | unit   | type   | valid   | default      | code   | description       |
++=============+===============+========+========+=========+==============+========+===================+
+| description | arraydset 1   |        | string | None    | UNKNOWN      | B      | Description of th |
+|             |               |        |        |         |              |        | is dataset        |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| shape       | (3,)          |        | tuple  | None    | ()           |        | Number of element |
+|             |               |        |        |         |              |        | s in each dimensi |
+|             |               |        |        |         |              |        | on. Quick changer |
+|             |               |        |        |         |              |        | s to the right.   |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| type        | ArrayDataset  |        | string | None    | ArrayDataset | B      | Data Type identif |
+|             |               |        |        |         |              |        | ication.          |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| unit        | ev            |        | string | None    | None         | B      | Unit of every ele |
+|             |               |        |        |         |              |        | ment.             |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| typecode    | UNKNOWN       |        | string | None    | UNKNOWN      | B      | Python internal s |
+|             |               |        |        |         |              |        | torage code.      |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| version     | 0.1           |        | string | None    | 0.1          | B      | Version of datase |
+|             |               |        |        |         |              |        | t                 |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| FORMATV     | 1.6.0.2       |        | string | None    | 1.6.0.2      | B      | Version of datase |
+|             |               |        |        |         |              |        | t schema and revi |
+|             |               |        |        |         |              |        | sion              |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| listeners   | <No listener> |        |        |         |              |        |                   |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
                                                            DATA                                                          
                                                            ----                                                          
 768  4.4  5400
@@ -556,21 +570,27 @@ SubDataset  "dataset 2":
                                            ____________________________________                                          
                                            *** TableDataset (Example table) ***                                          
                                                            META                                                          
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
-| name        | value         | unit   | type   | valid   | default   | code   | description       |
-+=============+===============+========+========+=========+===========+========+===================+
-| description | Example table |        | string | None    | UNKNOWN   | B      | Description of th |
-|             |               |        |        |         |           |        | is dataset        |
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
-| version     | 0.1           |        | string | None    | 0.1       | B      | Version of datase |
-|             |               |        |        |         |           |        | t                 |
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
-| FORMATV     | 1.6.0.1       |        | string | None    | 1.6.0.1   | B      | Version of datase |
-|             |               |        |        |         |           |        | t schema and revi |
-|             |               |        |        |         |           |        | sion              |
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
-| listeners   | <No listener> |        |        |         |           |        |                   |
-+-------------+---------------+--------+--------+---------+-----------+--------+-------------------+
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| name        | value         | unit   | type   | valid   | default      | code   | description       |
++=============+===============+========+========+=========+==============+========+===================+
+| description | Example table |        | string | None    | UNKNOWN      | B      | Description of th |
+|             |               |        |        |         |              |        | is dataset        |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| shape       | (2,)          |        | tuple  | None    | ()           |        | Number of columns |
+|             |               |        |        |         |              |        |  and rows.        |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| type        | TableDataset  |        | string | None    | TableDataset | B      | Data Type identif |
+|             |               |        |        |         |              |        | ication.          |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| version     | 0.1           |        | string | None    | 0.1          | B      | Version of datase |
+|             |               |        |        |         |              |        | t                 |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| FORMATV     | 1.6.0.2       |        | string | None    | 1.6.0.2      | B      | Version of datase |
+|             |               |        |        |         |              |        | t schema and revi |
+|             |               |        |        |         |              |        | sion              |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
+| listeners   | <No listener> |        |        |         |              |        |                   |
++-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
                                                            DATA                                                          
                                                            ----                                                          
    Time    Energy
@@ -602,11 +622,11 @@ d= off (0b00)  m1= 2.3                     listeners= <No listener>
 SubDataset  "dataset 1":
                  *** ArrayDataset (arraydset 1) ***                
 
-------------------------  ------------  ----------------
-description= arraydset 1  shape= (3,)   unit= ev
-typecode= UNKNOWN         version= 0.1  FORMATV= 1.6.0.1
-listeners= <No listener>
-------------------------  ------------  ----------------
+------------------------  ------------------------  ------------------
+description= arraydset 1  shape= (3,)               type= ArrayDataset
+unit= ev                  typecode= UNKNOWN         version= 0.1
+FORMATV= 1.6.0.2          listeners= <No listener>
+------------------------  ------------------------  ------------------
 
 768  4.4  5400
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -614,10 +634,10 @@ listeners= <No listener>
 SubDataset  "dataset 2":
                 *** TableDataset (Example table) ***               
 
---------------------------  ------------  ----------------
-description= Example table  version= 0.1  FORMATV= 1.6.0.1
-listeners= <No listener>
---------------------------  ------------  ----------------
+--------------------------  ----------------  ------------------------
+description= Example table  shape= (2,)       type= TableDataset
+version= 0.1                FORMATV= 1.6.0.2  listeners= <No listener>
+--------------------------  ----------------  ------------------------
 
    Time    Energy
   (sec)      (eV)

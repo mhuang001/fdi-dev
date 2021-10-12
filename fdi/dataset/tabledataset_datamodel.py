@@ -29,6 +29,18 @@ _Model_Spec = {
                 'default': 'UNKNOWN',
                 'valid': '',
                 },
+        'type': {
+                'data_type': 'string',
+                'description': 'Data Type identification.',
+                'default': 'TableDataset',
+                'valid': '',
+                },
+        'shape': {
+                'data_type': 'tuple',
+                'description': 'Number of columns and rows.',
+                'default': (),
+                'valid': '',
+                },
         'version': {
                 'data_type': 'string',
                 'description': 'Version of dataset',
@@ -38,7 +50,7 @@ _Model_Spec = {
         'FORMATV': {
                 'data_type': 'string',
                 'description': 'Version of dataset schema and revision',
-                'default': '1.6.0.1',
+                'default': '1.6.0.2',
                 'valid': '',
                 },
         },

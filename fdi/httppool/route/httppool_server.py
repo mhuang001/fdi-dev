@@ -5,7 +5,7 @@ from ..model.user import getUsers, auth
 from ...utils.common import lls
 from ...dataset.deserialize import deserialize, deserialize_args
 from ...dataset.serializable import serialize
-from ...dataset.arraydataset import MediaWrapper
+from ...dataset.mediawrapper import MediaWrapper
 from ...pal.urn import makeUrn
 from ...dataset.classes import Classes
 from ...utils.common import trbk, getUidGid

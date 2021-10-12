@@ -37,7 +37,8 @@ from fdi.dataset.datatypes import DataTypes, DataTypeNames
 from fdi.dataset.attributable import Attributable
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
-from fdi.dataset.arraydataset import ArrayDataset, Column, MediaWrapper
+from fdi.dataset.arraydataset import ArrayDataset, Column
+from fdi.dataset.mediawrapper import MediaWrapper
 from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.dataset import Dataset, CompositeDataset
 from fdi.dataset.indexed import Indexed
@@ -1317,22 +1318,26 @@ def do_ArrayDataset_init(atype):
     a6 = 'f'                  # typecode
     a7 = (8, 9)
     v = ArrayDataset(data=a1, unit=a2, description=a3,
-                     typ_=a4, shape=a7, typecode=a6)
+                     typ_=a4, typecode=a6)
     assert v.data == a1
     assert v.unit == a2
     assert v.description == a3
     assert v.typecode == a6
+    v.updateShape()
     assert v.shape == (len(a1),)
     v = ArrayDataset(data=a1)
     assert v.data == a1
     assert v.unit is None
     assert v.description == 'UNKNOWN'
     assert v.typecode == 'UNKNOWN'
+    assert v.updateShape()
     assert v.shape == (len(a1),)
 
     ashape = [[[1], [2]], [[3], [4]], [[5], [6]]]
     v2 = ArrayDataset(data=ashape)
     assert v2.shape == (3, 2, 1)
+    v2.pop()
+    assert v2.shape == (2, 2, 1)
     v2 = ArrayDataset(data=['poi'])
     assert v2.shape == (1,)
 
@@ -1617,6 +1622,7 @@ def test_TableDataset_func_row():
     c33, c44 = 3.3, 4.4
     v.addRow({'col4': c44, 'col3': c33})
     assert v.rowCount == 3
+
     cc.append(c33)
     assert v['col3'] == cc   # [1, 4, 3.3]
     # add rows
@@ -1624,12 +1630,14 @@ def test_TableDataset_func_row():
     v.addRow({'col4': c44, 'col3': c33}, rows=True)
     assert v.rowCount == 5
     cc.data.extend(c33)
+    # the above was done on built-in class so this has to be ddone manually
+    cc.updateShape()
+
     assert v['col3'] == cc
     # remove Row and rows
     assert v.removeRow(1) == [c1.data[1], c2.data[1]]
     assert v.rowCount == 4
     assert cc.pop(1) == c1.data[1]
-    cc.updateShape()  # not done automatically
     assert v['col3'] == cc
     # read rowa with slice
     s = v.getRow(slice(1, 3))

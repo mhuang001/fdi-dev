@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from fdi.dataset.arraydataset import MediaWrapper
+from fdi.dataset.mediawrapper import MediaWrapper
 
 import os.path as op
 import logging

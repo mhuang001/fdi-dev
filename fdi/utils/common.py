@@ -515,15 +515,16 @@ def getUidGid(username):
     return uid, gid
 
 
-def findShape(data):
+def findShape(data, element_seq=(str)):
     """
+    :element_seq: treat elements of these sequence types as scalars.
     """
     if data is None:
         return None
     shape = []
     d = data
     while d is not None:
-        if issubclass(d.__class__, (str)):
+        if issubclass(d.__class__, element_seq):
             d = None
         else:
             try:

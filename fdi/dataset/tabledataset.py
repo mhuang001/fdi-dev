@@ -5,6 +5,7 @@ from .ndprint import ndprint
 from .odict import ODict
 from ..utils.common import mstr, bstr, lls, exprstrs, findShape
 from .dataset import Dataset, make_title_meta_l0, CompositeDataset
+from .shaped import Shaped
 from .indexed import Indexed
 
 try:
@@ -94,7 +95,7 @@ class TableModel():
 MdpInfo = Model['metadata']
 
 
-class TableDataset(CompositeDataset, TableModel):
+class TableDataset(CompositeDataset, TableModel, Shaped):
     """  Special dataset that contains a single Array Data object.
     A TableDataset is a tabular collection of Columns. It is optimized to work on array data..
     The column-wise approach is convenient in many cases. For example, one has an event list, and each algorithm is adding a new field to the events (i.e. a new column, for example a quality mask).
@@ -120,6 +121,7 @@ class TableDataset(CompositeDataset, TableModel):
 
     def __init__(self, data=None,
                  description=None,
+                 typ_=None,
                  version=None,
                  zInfo=None,
                  alwaysMeta=True,
@@ -132,7 +134,8 @@ class TableDataset(CompositeDataset, TableModel):
         # collect MDPs from args-turned-local-variables.
         metasToBeInstalled = OrderedDict(
             itertools.filterfalse(
-                lambda x: x[0] in ('self', '__class__', 'zInfo', 'kwds'),
+                lambda x: x[0] in ('self', '__class__', 'zInfo',
+                                   'kwds'),
                 locals().items())
         )
 
@@ -207,6 +210,7 @@ class TableDataset(CompositeDataset, TableModel):
         else:
             raise TypeError('must be a Sequence or a Mapping. ' +
                             data.__class__.__name__ + ' found.')
+        self.updateShape()
 
     def addColumn(self, name, column, col_des=False):
         """ Adds the specified column to this table, and attaches a name
@@ -237,6 +241,8 @@ class TableDataset(CompositeDataset, TableModel):
             column.setDescription(name)
         d[name] = column
 
+        self.updateShape()
+
     def removeColumn(self, key):
         """ Removes the columns specified by ``key``.
 
@@ -246,6 +252,7 @@ class TableDataset(CompositeDataset, TableModel):
         for name in self.getColumnMap(key).keys():
             self._list.pop(self.indexOf(name))
             del(self.data[name])
+        self.updateShape()
 
     def indexOf(self, key):
         """ Returns the index of specified column.
@@ -265,6 +272,7 @@ class TableDataset(CompositeDataset, TableModel):
         else:
             raise "key must be string or Column, not %s." % type(key).__name__
 
+        self.updateShape()
         return ks.index(k)
 
     def addRow(self, row, rows=False):
@@ -284,6 +292,9 @@ class TableDataset(CompositeDataset, TableModel):
                 d[c].data.extend(row[c])
             else:
                 d[c].data.append(row[c])
+            if hasattr(d[c], 'updateShape'):
+                d[c].updateShape()
+        self.updateShape()
 
     def getRowMap(self, rowIndex):
         """ Returns a dict of column-names as the keys and the objects located at a particular row(s) as the values.
@@ -355,12 +366,15 @@ class TableDataset(CompositeDataset, TableModel):
             for x in self.getData().values():
                 ret.append(x.data[rowIndex])
                 del x.data[rowIndex]
-                x.shape = findShape(x)
+                x.updateShape()
+            self.updateShape()
             return ret
         r = []
         for x in self.getData().values():
             r.append(x.data.pop(rowIndex))
-            x.shape = findShape(x)
+            x.updateShape()
+
+        self.updateShape()
         return r
 
     @ property
@@ -468,6 +482,8 @@ Default is to return all columns.
             else:
                 key = ''
         self.addColumn(name=key, column=value)
+
+        self.updateShape()
 
     def __iter__(self):
         for x in self.getData():

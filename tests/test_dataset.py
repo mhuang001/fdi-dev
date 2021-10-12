@@ -2181,7 +2181,7 @@ def test_jsonPath():
 
     ### BOOK STORE ###
     u = UnstrcturedDataset(data=bookstore, doctype='json')
-    print(u.toString())
+    # print(u.toString())
     # the authors of all books in the store
     n = u.jsonPath("$.store.book[*].author", val='context')
     assert list(x.value for x in n) == [

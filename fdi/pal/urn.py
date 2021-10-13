@@ -301,7 +301,7 @@ Examples:
         raise ValueError(
             'a pool URN can have no more than 3 \':\'.')
 
-    pr = urlparse(url)
+    pr = urlparse(url.strip())
     scheme = pr.scheme       # file
     place = pr.netloc
     # Note that trailing blank and ``/`` are ignored.

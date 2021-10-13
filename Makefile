@@ -51,9 +51,9 @@ yamlupgrade:
 S	=
 # default username and password are in pnsconfig.py
 runserver:
-	$(PYEXE) -m fdi.pns.runflaskserver --username=foo --password=bar -v $(S)
+	$(PYEXE) -m fdi.pns.runflaskserver $(S)
 runpoolserver:
-	$(PYEXE) httppool_app.py --username=foo --password=bar --server=httppool_server $(S)
+	$(PYEXE) httppool_app.py --server=httppool_server $(S)
 
 EXT	=
 PKGS	= requests filelock ruamel.yaml tabulate paho-mqtt

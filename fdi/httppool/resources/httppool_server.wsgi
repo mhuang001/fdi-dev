@@ -1,24 +1,24 @@
 #! /usr/bin/python3.6
 
-from fdi.httppool import setup_logging, create_app
+from fdi.httppool import create_app  # , setup_logging
 import sys
 import os
 
-logging = setup_logging()
+# logging = setup_logging()
 
-# don't log to file. server will do the logging
-logging.basicConfig(stream=sys.stdout,
-                    format='%(levelname)4s'
-                           ' -[%(filename)6s:%(lineno)3s'
-                           ' -%(funcName)10s()] - %(message)s',
-                    datefmt="%Y%m%d %H:%M:%S")
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+# # don't log to file. server will do the logging
+# logging.basicConfig(stream=sys.stdout,
+#                     format='%(levelname)4s'
+#                            ' -[%(filename)6s:%(lineno)3s'
+#                            ' -%(funcName)10s()] - %(message)s',
+#                     datefmt="%Y%m%d %H:%M:%S")
+# logger = logging.getLogger()
+# logger.setLevel(logging.DEBUG)
 
 # where user classes can be found
 sys.path.insert(0, os.path.dirname(__file__))
 
-app = create_app(logger=logger)
+app = create_app()  # logger=logger)
 app.secret_key = 'anything you wish'
 
 application = app

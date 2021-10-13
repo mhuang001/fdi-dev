@@ -67,12 +67,8 @@ if __name__ == '__main__':
 
     if verbose:
         logger.setLevel(logging.DEBUG)
-
+        pc['logginglevel'] = logging.DEBUG
     logger.info('logging level %d' % (logger.getEffectiveLevel()))
-    if node['username'] in ['', None] or node['password'] in ['', None]:
-        logger.error(
-            'Error. Specify non-empty username and password on commandline')
-        exit(3)
     print('Check http://' + node['host'] + ':' + str(node['port']) +
           '/apidocs' + ' for API documents.')
 

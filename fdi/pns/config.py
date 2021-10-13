@@ -35,9 +35,12 @@ MQPORT = 9876
 BASE_POOLPATH = '/tmp'
 SERVER_POOLPATH = '/tmp/data'
 
+API_VERSION = 'v0.9'
+API_BASE = '/fdi'
+
 # base url for webserver. Update version if needed.
-pnsconfig['api_version'] = 'v0.9'
-pnsconfig['baseurl'] = '/' + pnsconfig['api_version']
+pnsconfig['api_version'] = API_VERSION
+pnsconfig['baseurl'] = API_BASE + '/' + API_VERSION
 
 
 # default path of working directories for LocalPools.

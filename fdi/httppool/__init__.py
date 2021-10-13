@@ -128,23 +128,23 @@ def create_app(config_object=None, logger=None):
 
     if logger is None:
         logging = setup_logging()
-        logging.getLogger()
-        # logger = globals()['logger']
         logger = logging.getLogger()
+
+    config_object = config_object if config_object else getconfig.getConfig()
+    logger.setLevel(config_object['logginglevel'])
 
     app = Flask(__name__, instance_relative_config=True)
     app.config['SWAGGER'] = {
         'title': 'FDI %s HTTPpool Server' % __version__,
         'universion': 3,
         'openapi': '3.0.3',
+        'specs_route': config_object['api_base'] + '/apidocs/'
     }
     swagger = Swagger(app, config=swag, merge=True)
-    #swagger = Swagger(app)
-
-    config_object = config_object if config_object else getconfig.getConfig()
+    #swagger.config['specs'][0]['route'] = config_object['api_base'] + s1
     app.config['PC'] = config_object
     app.config['LOGGER_LEVEL'] = logger.getEffectiveLevel()
-    #logging = setup_logging()
+    # logging = setup_logging()
     with app.app_context():
         init_httppool_server(app)
     # initialize_extensions(app)

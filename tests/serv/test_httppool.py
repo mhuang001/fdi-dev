@@ -259,7 +259,7 @@ def test_wipe_all_pools_on_server(server, local_pools_dir, client, userpass):
         o['msg'] + 'Files ' + str(files)
 
 
-def test_new_user_read_write(new_user_read_write):
+def test_new_user_read_write(new_user_read_write, pc):
     """
     GIVEN a User model
     WHEN a new User is created
@@ -267,21 +267,21 @@ def test_new_user_read_write(new_user_read_write):
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
     new_user, headers = new_user_read_write
-    assert new_user.username == 'foo'
-    assert new_user.hashed_password != 'bar'
+    assert new_user.username == pc['node']['username']
+    assert new_user.hashed_password != pc['node']['password']
     assert not new_user.authenticated
     assert new_user.role == 'read_write'
     logger.debug('Done.')
 
 
-def test_new_user_read_only(new_user_read_only):
+def test_new_user_read_only(new_user_read_only, pc):
     """
     GIVEN a User model
     WHEN a new User is created
     THEN check the username, hashed_password, authenticated, and role fields are defined correctly
     """
     new_user, headers = new_user_read_only
-    assert new_user.username == 'ro'
+    assert new_user.username == pc['node']['ro_username']
     assert not new_user.hashed_password.startswith('o')
     assert not new_user.authenticated
     assert new_user.role == 'read_only'
@@ -290,7 +290,7 @@ def test_new_user_read_only(new_user_read_only):
 
 def getapis(server_ro, client):
     aburl, headers = server_ro
-    x = client.get(aburl.rsplit('/', 1)[0]+'/apispec_1.json', headers=headers)
+    x = client.get(aburl.rsplit('/', 2)[0]+'/apispec_1.json', headers=headers)
     return x.json()
 
 

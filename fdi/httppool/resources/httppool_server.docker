@@ -53,7 +53,8 @@ COPY fdi/httppool/resources/profile .
 COPY fdi/httppool/resources/httppool_server.wsgi ${PROJ_DIR}/
 RUN cat profile >> .bashrc && rm profile \
 && chmod 755 ${PROJ_DIR}/httppool_server.wsgi \
-&& ln -s  ${PROJ_DIR}/httppool_server.wsgi .
+&& ln -s  ${PROJ_DIR}/httppool_server.wsgi . \
+&& ln -s  ${SERVER_POOLPATH} data
 
 # Configure permission
 RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 ${PROJ_DIR} ${UHOME}/; \

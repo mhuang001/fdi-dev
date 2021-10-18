@@ -19,10 +19,24 @@ import jsonpath_ng.ext as jex
 
 import json
 import itertools
+from functools import lru_cache
 from collections import OrderedDict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
+
+
+@lru_cache(maxsize=128)
+def jexp(expr, *args, **kwds):
+    return jex.parse(expr, *args, **kwds)
+
+
+def getCacheInfo():
+    info = {}
+    for i in [jexp]:
+        info[i] = i.cache_info()
+
+    return info
 
 
 class UnstrcturedDataset(Dataset, Copyable):
@@ -92,7 +106,7 @@ class UnstrcturedDataset(Dataset, Copyable):
         * If `val` is ```simple```, only node values of simple types are kept, `list` and `dict` types will show as '<list> length' and '<dict> [keys [... [length]]]', respectively.
         * If `val` is ```full```, the values of returned `list`s are  un-treated `DatumInContext.value`s.
         """
-        jsonpath_expression = jex.parse(expr, *args, **kwds)
+        jsonpath_expression = jexp(expr, *args, **kwds)
         match = jsonpath_expression.find(self.data)
         if val == 'context':
             return match

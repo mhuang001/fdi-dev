@@ -77,9 +77,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         Only when current TAI is 0, so a non-zero instance is immutable. Violation gets a TypeError.
         """
 
-        if not issubclass(time.__class__, int):
-            pass
-        if time is None:
+        if not time:
             setTai = 0
         elif issubclass(time.__class__, int):
             setTai = time

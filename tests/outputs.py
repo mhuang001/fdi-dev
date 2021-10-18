@@ -416,7 +416,7 @@ level 0
 | description     | UNKNOWN            |        | string   | None              | UNKNOWN         | B      | Description of th |
 |                 |                    |        |          |                   |                 |        | is dataset        |
 +-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
-| shape           | (2,)               |        | tuple    | None              | ()              |        | Number of columns |
+| shape           | (2, 3)             |        | tuple    | None              | ()              |        | Number of columns |
 |                 |                    |        |          |                   |                 |        |  and rows.        |
 +-----------------+--------------------+--------+----------+-------------------+-----------------+--------+-------------------+
 | type            | TableDataset       |        | string   | None              | TableDataset    | B      | Data Type identif |
@@ -469,7 +469,7 @@ level 1
                      *** TableDataset (UNKNOWN) ***                     
 
 --------------------------  ------------------------  ------------------
-description= UNKNOWN        shape= (2,)               type= TableDataset
+description= UNKNOWN        shape= (2, 3)             type= TableDataset
 version= 0.1                FORMATV= 1.6.0.2          a= 3.4
 b= xy (2019-02-19T01:02:03  c= Invalid (IJK)          d= off (0b00)
 .456789
@@ -489,7 +489,7 @@ added_parameter= 42         listeners= <No listener>
 
 
 level 2, repr
-TableDataset(<MetaData shape=(tuple: (2,) <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19T01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...>data= {"col1": Column(<MetaData description=(string: 1 <>), shape=(tuple: (3,) <>), type=(string: Column <>), unit=(string: eV <>), ...> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData description=(string: 2 <>), shape=(tuple: (3,) <>), type=(string: Column <>), unit=(string: cnt <>), ...> data= [0, 43.2, 2000.0])})
+TableDataset(<MetaData shape=(tuple: (2, 3) <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19T01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...>data= {"col1": Column(<MetaData description=(string: 1 <>), shape=(tuple: (3,) <>), type=(string: Column <>), unit=(string: eV <>), ...> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData description=(string: 2 <>), shape=(tuple: (3,) <>), type=(string: Column <>), unit=(string: cnt <>), ...> data= [0, 43.2, 2000.0])})
 
 an empty level 2: 
 TableDataset(<MetaData shape=(tuple: (0,) <>), ...>data= {})
@@ -576,7 +576,7 @@ SubDataset  "dataset 2":
 | description | Example table |        | string | None    | UNKNOWN      | B      | Description of th |
 |             |               |        |        |         |              |        | is dataset        |
 +-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
-| shape       | (2,)          |        | tuple  | None    | ()           |        | Number of columns |
+| shape       | (2, 5)        |        | tuple  | None    | ()           |        | Number of columns |
 |             |               |        |        |         |              |        |  and rows.        |
 +-------------+---------------+--------+--------+---------+--------------+--------+-------------------+
 | type        | TableDataset  |        | string | None    | TableDataset | B      | Data Type identif |
@@ -635,7 +635,7 @@ SubDataset  "dataset 2":
                 *** TableDataset (Example table) ***               
 
 --------------------------  ----------------  ------------------------
-description= Example table  shape= (2,)       type= TableDataset
+description= Example table  shape= (2, 5)     type= TableDataset
 version= 0.1                FORMATV= 1.6.0.2  listeners= <No listener>
 --------------------------  ----------------  ------------------------
 

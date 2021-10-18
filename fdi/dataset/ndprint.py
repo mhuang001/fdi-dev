@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-def ndprint(data, trans=True, maxElem=50, **kwds):
+def ndprint(data, trans=True, maxElem=sys.maxsize, **kwds):
     """ makes a formated string of an N-dimensional array for printing.
     The fastest changing index is the innerest list. E.g.
     A 2 by 3 matrix is [[1,2],[3,4],[5,6]] written as

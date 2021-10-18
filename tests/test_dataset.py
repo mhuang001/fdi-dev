@@ -1700,14 +1700,18 @@ def test_TableDataset_func_column():
     v = TableDataset(data=a34)
     u = copy.deepcopy(a34)
 
-    assert v.getColumn(3) == Column(u[3])
-    assert v.getColumn('column4') == Column(u[3])
-    assert v.getColumn([1, 2]) == [Column(u[1]), Column(u[2])]
-    assert v.getColumn(['column2', 'column3']) == [Column(u[1]), Column(u[2])]
-    assert v.getColumn([False, True, False, False]) == [Column(u[1])]
-    assert v.getColumn([True, False]) == [Column(u[0])]
-    assert v.getColumn([True, False, False, False, False]) == [Column(u[0])]
-    assert v.getColumn([True, False, False, False, True]) == [Column(u[0])]
+    cu0 = Column(u[0], description='column1')
+    cu1 = Column(u[1], description='column2')
+    cu2 = Column(u[2], description='column3')
+    cu3 = Column(u[3], description='column4')
+    assert v.getColumn(3) == cu3
+    assert v.getColumn('column4') == cu3
+    assert v.getColumn([1, 2]) == [cu1, cu2]
+    assert v.getColumn(['column2', 'column3']) == [cu1, cu2]
+    assert v.getColumn([False, True, False, False]) == [cu1]
+    assert v.getColumn([True, False]) == [cu0]
+    assert v.getColumn([True, False, False, False, False]) == [cu0]
+    assert v.getColumn([True, False, False, False, True]) == [cu0]
 
     # slice
     sliced = v[1:3]   # a list if the 2nd and 3rd cols
@@ -2116,6 +2120,7 @@ def test_UnstrcturedDataset():
     assert v == u.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]
     assert s == '.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]'
 
+    print('cache:', fdi.dataset.unstructureddataset.getCacheInfo())
     checkjson(u)
     checkgeneral(u)
 
@@ -2310,6 +2315,7 @@ def test_jsonPath():
                  ('store/bicycle/color', 'red'),
                  ('store/bicycle/price', 19.95)
                  ]
+    print('cache:', fdi.dataset.unstructureddataset.getCacheInfo())
 
 
 def test_Indexed():

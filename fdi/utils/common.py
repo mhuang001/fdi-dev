@@ -10,7 +10,7 @@ import pprint
 import pwd
 import logging
 from itertools import zip_longest
-from collections.abc import Sequence
+from collections.abc import Sequence, Mapping
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -516,7 +516,8 @@ def getUidGid(username):
 
 
 def findShape(data, element_seq=(str)):
-    """
+    """ Shape of list/dict of list/dict.
+
     :element_seq: treat elements of these sequence types as scalars.
     """
     if data is None:
@@ -529,7 +530,8 @@ def findShape(data, element_seq=(str)):
         else:
             try:
                 shape.append(len(d))
-                d = d[0]
+                d = list(d.values())[0] if issubclass(
+                    d.__class__, Mapping) else d[0]
             except (TypeError, IndexError, KeyError) as e:
                 d = None
     return tuple(shape)

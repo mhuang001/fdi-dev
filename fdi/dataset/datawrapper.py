@@ -136,7 +136,7 @@ class DataWrapper(DataContainer, Quantifiable):
 class DataWrapperMapper():
     """ Object holding a map of data wrappers. """
 
-    def __init__(self, *args, **kwds):
+    def __init__(self, *args, **kwds):  # DataWrapperMapper
         """ 
         """
         super().__init__(*args, **kwds)  # DataWrapperMapper

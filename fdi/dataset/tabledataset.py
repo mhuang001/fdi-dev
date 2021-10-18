@@ -3,7 +3,7 @@
 from .indexed import Indexed
 from .ndprint import ndprint
 from .odict import ODict
-from ..utils.common import mstr, bstr, lls, exprstrs, findShape
+from ..utils.common import mstr, bstr, lls, wls, exprstrs, findShape
 from .dataset import Dataset, make_title_meta_l0, CompositeDataset
 from .shaped import Shaped
 from .indexed import Indexed
@@ -168,6 +168,7 @@ class TableDataset(CompositeDataset, TableModel, Shaped):
 
         if data is None:
             super(TableDataset, self).setData(ODict())
+            self.updateShape()
             return
 
         current_data = self.getData()
@@ -194,6 +195,7 @@ class TableDataset(CompositeDataset, TableModel, Shaped):
                                 '[[str, [], str]...], [[str, []]...], [[str, Column]...] needed.')
                     else:
                         # x is not string-started
+                        # e.g. [[1, 2, 3], [4, 5, 6]]
                         if current_data is None or len(current_data) <= ind:
                             # update the data of the ind-th column
                             self.setColumn('', Column(data=x, unit=None))
@@ -205,6 +207,7 @@ class TableDataset(CompositeDataset, TableModel, Shaped):
                     raise ValueError(
                         'Cannot extract name and column from list member ' + str(x))
         elif issubclass(data.__class__, maplist):
+            # [Column, ... ]
             for k, v in data.items():
                 self.setColumn(k, v)
         else:
@@ -212,7 +215,7 @@ class TableDataset(CompositeDataset, TableModel, Shaped):
                             data.__class__.__name__ + ' found.')
         self.updateShape()
 
-    def addColumn(self, name, column, col_des=False):
+    def addColumn(self, name, column, col_des=True):
         """ Adds the specified column to this table, and attaches a name
         to it. If the name is null, a dummy name "column"+column_count+1 is created, such that it can be accessed by getColumn(str).
 
@@ -221,7 +224,7 @@ class TableDataset(CompositeDataset, TableModel, Shaped):
         Parameters:
         name - column name.
         column - column to be added.
-        col_des - if True (default) and column description is 'UNKNOWN', set to column name.
+        col_des - if True (default) and if column description is 'UNKNOWN' or `None`, set to column name.
         """
 
         d = self.getData()
@@ -237,7 +240,8 @@ class TableDataset(CompositeDataset, TableModel, Shaped):
                 self._list[self.indexOf(name)] = column.getData()
             except ValueError as e:
                 self._list.append(column.getData())
-        if col_des and column.getDescription() == 'UNKNOWN':
+        des = column.getDescription()
+        if col_des and des == 'UNKNOWN' or des is None:
             column.setDescription(name)
         d[name] = column
 
@@ -528,10 +532,11 @@ Default is to return all columns.
     def toString(self, level=0,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
                  width=0, param_widths=None, matprint=None, trans=True,
-                 heavy=True, center=-1, **kwds):
+                 heavy=True, center=-1, col_width=10, **kwds):
         """
         tablefmt2: format of 2D data, others see `MetaData.toString`.
         """
+
         if matprint is None:
             matprint = ndprint
 
@@ -564,12 +569,14 @@ Default is to return all columns.
 
         coldata = [list(itertools.islice(x.data, stp)) for x in cols]
 
-        nmun = zip((str(x) for x in self.getData().keys()),
+        # [(column name, unit), ...]. Widths of column head is limited
+        nmun = zip((wls(x, width=col_width) for x in self.getData().keys()),
                    (str(x.unit) for x in cols))
         hdr = list('%s\n(%s)' % nu for nu in nmun)
         d += matprint(coldata, trans=trans, headers=hdr,
                       tablefmt=tablefmt, tablefmt1=tablefmt1,
-                      tablefmt2=tablefmt2, center=center, **kwds)
+                      tablefmt2=tablefmt2, center=center,
+                      maxElem=sys.maxsize, **kwds)
         collen = self.getRowCount()
         if level and stp < collen:
             d += '(Only display %d rows of %d for level=%d.)' % (stp, collen, level)

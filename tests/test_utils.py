@@ -208,7 +208,7 @@ def test_fetch():
 
 
 def test_loadcsv():
-    csvf = '/tmp/testloadcsv.csv'
+    csvf = '/tmp/fditest/testloadcsv.csv'
     a = 'as if ...'
     with open(csvf, 'w') as f:
         f.write(a)

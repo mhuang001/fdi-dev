@@ -58,7 +58,7 @@ Classes.updateMapping()
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
 
-    Test_Pool_Name = 'teest_pal'
+    Test_Pool_Name = 'test_pal'
 
     pass
 
@@ -288,7 +288,7 @@ def cleanup(poolurl=None, poolname=None):
 
 def test_PoolManager():
     defaultpoolName = Test_Pool_Name
-    defaultpoolPath = '/tmp'
+    defaultpoolPath = '/tmp/fditest'
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
     # class methods
@@ -393,7 +393,7 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args):
 
 def test_ProductRef():
     defaultpoolName = Test_Pool_Name
-    defaultpoolPath = '/tmp'
+    defaultpoolPath = '/tmp/fditest'
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
     prd = Product()
@@ -472,7 +472,7 @@ def test_ProductRef():
 
 def test_ProductStorage_init():
     defaultpoolname = Test_Pool_Name
-    poolpath = '/tmp'
+    poolpath = '/tmp/fditest'
     defaultpoolurl = 'file://' + poolpath + '/' + defaultpoolname
     cleanup(defaultpoolurl, defaultpoolname)
     newpoolname = 'new_' + Test_Pool_Name
@@ -598,7 +598,7 @@ def check_ps_func_for_pool(thepoolname, thepoolurl, *args):
 def test_ProdStorage_func_local_mem():
     # local pool
     thepoolname = Test_Pool_Name
-    thepoolpath = '/tmp'
+    thepoolpath = '/tmp/fditest'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
     cleanup(thepoolurl, thepoolname)
     check_ps_func_for_pool(thepoolname, thepoolurl, None)
@@ -646,7 +646,7 @@ def test_ProdStorage_func_server(local_pools_dir):
 
 def test_LocalPool():
     thepoolname = 'localpool_' + Test_Pool_Name
-    thepoolpath = '/tmp'
+    thepoolpath = '/tmp/fditest'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
 
     ps = ProductStorage(thepoolname, thepoolurl)
@@ -891,7 +891,7 @@ def doquery(poolpath, newpoolpath):
 
 def test_query_local_mem():
     cleanup()
-    thepoolpath = '/tmp'
+    thepoolpath = '/tmp/fditest'
     doquery('file://'+thepoolpath, 'file://'+thepoolpath)
     doquery('mem://'+thepoolpath, 'mem://'+thepoolpath)
     doquery('file://'+thepoolpath, 'mem://'+thepoolpath)
@@ -1001,7 +1001,7 @@ def test_MapContext():
 
     # stored prod
     thepoolname = Test_Pool_Name
-    thepoolpath = '/tmp'
+    thepoolpath = '/tmp/fditest'
     thepoolurl = 'file://' + thepoolpath + '/'+thepoolname
     # create a prooduct
     x = Product(description='save me in store')
@@ -1081,7 +1081,7 @@ def test_MapContext():
 
 def test_realistic():
     poolname = Test_Pool_Name
-    poolpath = '/tmp'
+    poolpath = '/tmp/fditest'
     poolurl = 'file://' + poolpath + '/' + poolname
     # remove existing pools in memory
     PoolManager.removeAll()

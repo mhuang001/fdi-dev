@@ -157,8 +157,8 @@ def server_ro(live_or_mock_server, new_user_read_only):
 
 @pytest.fixture(scope="package")
 def userpass(pc):
-    auth_user = pc['auth_user']
-    auth_pass = pc['auth_pass']
+    auth_user = pc['node']['username']
+    auth_pass = pc['node']['password']
     return auth_user, auth_pass
 
 

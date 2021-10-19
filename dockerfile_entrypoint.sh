@@ -28,6 +28,7 @@ grep ^EXTPORT  ~/.config/pnslocal.py >> ~/lastent
 grep ^BASE_POOLPATH  ~/.config/pnslocal.py >> ~/lastent
 grep ^SERVER_POOLPATH  ~/.config/pnslocal.py >> ~/lastent
 
+rm -rf /tmp/fditest* /tmp/data
 
 date >> ~/lastent
 cat ~/lastent

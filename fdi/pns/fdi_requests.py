@@ -29,6 +29,8 @@ logger = logging.getLogger(__name__)
 pcc = getConfig()
 defaulturl = 'http://' + pcc['node']['host'] + \
     ':' + str(pcc['node']['port']) + pcc['baseurl']
+AUTHUSER = pcc['node']['username']
+AUTHPASS = pcc['node']['password']
 
 
 def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
@@ -143,8 +145,8 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False):
 ts into the pool
     no_serial: do not serialize the data.
     """
-    user = pcc['auth_user']
-    password = pcc['auth_pass']
+    user = AUTHUSER
+    password = AUTHPASS
     auth = HTTPBasicAuth(user, password)
     api = urn2fdiurl(urn, poolurl, contents='product', method='POST')
     # print('POST API: ' + api)
@@ -163,8 +165,8 @@ def read_from_server(urn, poolurl, contents='product'):
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     """
-    user = pcc['auth_user']
-    password = pcc['auth_pass']
+    user = AUTHUSER
+    password = AUTHPASS
     auth = HTTPBasicAuth(user, password)
     api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
@@ -180,8 +182,8 @@ def put_on_server(urn, poolurl, contents='pool'):
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     """
-    user = pcc['auth_user']
-    password = pcc['auth_pass']
+    user = AUTHUSER
+    password = AUTHPASS
     auth = HTTPBasicAuth(user, password)
     api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
     # print("DELETE REQUEST API: " + api)
@@ -196,8 +198,8 @@ def delete_from_server(urn, poolurl, contents='product'):
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     """
-    user = pcc['auth_user']
-    password = pcc['auth_pass']
+    user = AUTHUSER
+    password = AUTHPASS
     auth = HTTPBasicAuth(user, password)
     api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)

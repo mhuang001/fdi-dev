@@ -9,7 +9,7 @@ pnsconfig = {}
 
 # look-up table for PoolManager (therefor HttpClient) to get pool URLs eith Pool ID (poolname)
 poolurl_of = {
-    'svom': 'http://10.0.10.114:9885/v0.9/svom'
+    'svom': 'http://10.0.10.114:9881/v0.9/svom'
 }
 pnsconfig['lookup'] = poolurl_of
 
@@ -78,7 +78,7 @@ conf = ['dev', 'server_test', 'external'][1]
 if conf == 'dev':
     # username, passwd, flask ip, flask port
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '127.0.0.1', 'port': 9885,
+                         'host': '127.0.0.1', 'port': 9881,
                          'ro_username': 'ro', 'ro_password': '',
                          }
 
@@ -93,7 +93,7 @@ if conf == 'dev':
 
 elif conf == 'server_test':
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '127.0.0.1', 'port': 9885,
+                         'host': '127.0.0.1', 'port': 9881,
                          'ro_username': 'ro', 'ro_password': '',
                          }
     # server permission user

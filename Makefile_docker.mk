@@ -148,7 +148,7 @@ update_docker:
 	make install EXT=[DEV,SERV] I=-U &&\
 	make build_docker && make push_docker &&\
 	make build_server && make push_server &&\
-	make launch_server PORT=9885 &&\
+	make launch_server PORT=9881 &&\
 	make test7 && make test8 &&\
 	make rm_docker
 

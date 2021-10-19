@@ -45,15 +45,16 @@ build_server:
 	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)
 
 launch_server:
+	SN=$(SERVER_NAME)$$(date +'%s') && \
 	docker run -dit --network=bridge \
 	--mount source=httppool,target=$(SERVER_POOLPATH) \
 	--mount source=log,target=/var/log \
 	--env-file $(SECFILE) \
 	-p $(PORT):$(EXTPORT) \
 	-e HOST_PORT=$(PORT) \
-	--name $(SERVER_NAME) $(D) $(LATEST) $(LAU)
+	--name $$SN $(D) $(LATEST) $(LAU)
 	sleep 2
-	#docker inspect $(SERVER_NAME)
+	#docker inspect $$SN
 	docker ps -n 1
 
 rm_docker:
@@ -148,7 +149,7 @@ update_docker:
 	make install EXT=[DEV,SERV] I=-U &&\
 	make build_docker && make push_docker &&\
 	make build_server && make push_server &&\
-	make launch_server PORT=9881 &&\
+	make launch_server PORT=9881 EXTPORT=9881 &&\
 	make test7 && make test8 &&\
 	make rm_docker
 

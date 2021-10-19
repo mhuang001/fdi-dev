@@ -5,11 +5,13 @@ import getpass
 import os
 from os.path import expanduser, expandvars
 
-pnsconfig = {}
+pnsconfig = dict(logginglevel=logging.INFO)
 
 # look-up table for PoolManager (therefor HttpClient) to get pool URLs eith Pool ID (poolname)
 poolurl_of = {
-    'svom': 'http://10.0.10.114:9881/v0.9/svom'
+    'e2e10': 'http://10.0.10.114:9885/v0.9/e2e',
+    'e2e5k': 'http://127.0.0.1:5000/v0.9/e2e',
+    'e2e127': 'http://127.0.0.1:9885/v0.9/e2e',
 }
 pnsconfig['lookup'] = poolurl_of
 
@@ -20,7 +22,7 @@ pnsconfig['lookup'] = poolurl_of
 # the key (variable names) must be uppercased for Flask server
 # FLASK_CONF = pnsconfig
 
-# Te be edited automatically with sed -i 's/^EXTHOST =.*$/EXTHOST = xxx/g' file
+# To be edited automatically with sed -i 's/^EXTHOST =.*$/EXTHOST = xxx/g' file
 EXTUSER = ''
 EXTPASS = ''
 EXTHOST = '172.17.0.1'
@@ -119,6 +121,17 @@ elif conf == 'external':
     pnsconfig['serveruser'] = 'apache'
     pnsconfig['base_poolpath'] = BASE_POOLPATH
     pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
+    # PTS app permission user
+    pnsconfig['ptsuser'] = 'pns'
+    # on pns server
+    home = '/home/' + pnsconfig['ptsuser']
+elif conf == 'production':
+    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
+                         'host': '10.0.10.114', 'port': 9885,
+                         'ro_username': 'ro', 'ro_password': '',
+                         }
+    # server permission user
+    pnsconfig['serveruser'] = 'apache'
     # PTS app permission user
     pnsconfig['ptsuser'] = 'pns'
     # on pns server

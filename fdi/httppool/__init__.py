@@ -131,7 +131,7 @@ def create_app(config_object=None, logger=None):
         logger = logging.getLogger()
 
     config_object = config_object if config_object else getconfig.getConfig()
-    logger.setLevel(config_object['logginglevel'])
+    logger.setLevel(int(config_object['logginglevel']))
 
     app = Flask(__name__, instance_relative_config=True)
     app.config['SWAGGER'] = {

@@ -33,6 +33,7 @@ COPY fdi/httppool/resources/httppool_server.conf /etc/apache2/sites-available/ht
 ARG PROJ_DIR
 ENV SERVER_POOLPATH=${PROJ_DIR}/data
 ENV LOGGING_LEVEL=20
+ENV API_BASE=/fdi
 RUN mkdir -p ${PROJ_DIR}/data \
 && echo export APACHE_RUN_USER=${USR} >> /etc/apache2/envvars \
 && echo export APACHE_RUN_GROUP=${USR} >> /etc/apache2/envvars \

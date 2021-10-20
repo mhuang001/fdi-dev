@@ -32,6 +32,7 @@ RUN cp /home/fdi/.config/pnslocal.py .config/pnslocal.py
 COPY fdi/httppool/resources/httppool_server.conf /etc/apache2/sites-available/httppool_server.conf
 ARG PROJ_DIR
 ENV SERVER_POOLPATH=${PROJ_DIR}/data
+ENV LOGGING_LEVEL=20
 RUN mkdir -p ${PROJ_DIR}/data \
 && echo export APACHE_RUN_USER=${USR} >> /etc/apache2/envvars \
 && echo export APACHE_RUN_GROUP=${USR} >> /etc/apache2/envvars \

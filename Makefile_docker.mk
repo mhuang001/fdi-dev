@@ -57,6 +57,10 @@ launch_server:
 	#docker inspect $$SN
 	docker ps -n 1
 
+launch_servert:
+	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)
+	$(MAKE) launch_server PORT=9881 EXTPORT=9881 #LATEST=mhastro/httppool
+
 rm_docker:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
 	echo Gracefully shutdown server ... 10sec ;\

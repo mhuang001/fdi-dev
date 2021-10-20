@@ -33,6 +33,7 @@ sed -i "s/^MQPASS =.*$/MQPASS = \'$MQ_PASS\'/g" ~/.config/pnslocal.py
 
 sed -i "s|^API_BASE =.*$|API_BASE = \'$API_BASE\'|g" ~/.config/pnslocal.py
 sed -i "s|^SERVER_POOLPATH =.*$|SERVER_POOLPATH = \'$SERVER_POOLPATH\'|g" ~/.config/pnslocal.py
+sed -i "s/^LOGGING_LEVEL =.*$/LOGGING_LEVEL = \'$LOGGING_LEVEL\'/g" ~/.config/pnslocal.py
 
 sed -i "s/^conf\s*=\s*.*$/conf = 'external'/g" ~/.config/pnslocal.py 
 

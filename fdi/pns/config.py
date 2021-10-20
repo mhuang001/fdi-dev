@@ -6,7 +6,7 @@ import os
 from os.path import expanduser, expandvars
 
 # logging level for server or possibly by client
-pnsconfig = dict(logginglevel=logging.INFO)
+pnsconfig = dict()
 
 # look-up table for PoolManager (therefor HttpClient) to get pool URLs eith Pool ID (poolname)
 poolurl_of = {
@@ -41,6 +41,8 @@ SERVER_POOLPATH = '/tmp/data'
 API_VERSION = 'v0.9'
 API_BASE = '/fdi'
 
+LOGGING_LEVEL = logging.INFO
+
 # base url for webserver. Update version if needed.
 pnsconfig['api_version'] = API_VERSION
 pnsconfig['api_base'] = API_BASE
@@ -53,7 +55,7 @@ pnsconfig['baseurl'] = API_BASE + '/' + API_VERSION
 pnsconfig['base_poolpath'] = '/tmp'
 pnsconfig['server_poolpath'] = '/tmp/data'  # For server
 pnsconfig['defaultpool'] = 'default'
-
+pnsconfig['logginglevel'] = LOGGING_LEVEL
 
 # message queue config
 pnsconfig['mqtt'] = dict(

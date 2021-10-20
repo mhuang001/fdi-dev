@@ -271,6 +271,7 @@ build_docker \
 launch_docker \
 build_server \
 launch_server \
+launch_test_server \
 rm_docker \
 rm_dockeri \
 it \

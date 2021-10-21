@@ -8,14 +8,6 @@ from os.path import expanduser, expandvars
 # logging level for server or possibly by client
 pnsconfig = dict()
 
-# look-up table for PoolManager (therefor HttpClient) to get pool URLs eith Pool ID (poolname)
-poolurl_of = {
-    'e2e10': 'http://10.0.10.114:9885/v0.9/e2e',
-    'e2e5k': 'http://127.0.0.1:5000/v0.9/e2e',
-    'e2e127': 'http://127.0.0.1:9885/v0.9/e2e',
-}
-pnsconfig['lookup'] = poolurl_of
-
 ###########################################
 # Configuration for Servers running locally.
 # components of the default poolurl
@@ -47,6 +39,14 @@ LOGGING_LEVEL = logging.INFO
 pnsconfig['api_version'] = API_VERSION
 pnsconfig['api_base'] = API_BASE
 pnsconfig['baseurl'] = API_BASE + '/' + API_VERSION
+
+# look-up table for PoolManager (therefor HttpClient) to get pool URLs eith Pool ID (poolname)
+poolurl_of = {
+    'e2e10': 'http://10.0.10.114:9885'+pnsconfig['baseurl']+'/e2e',
+    'e2e5k': 'http://127.0.0.1:5000'+pnsconfig['baseurl']+'/e2e',
+    'e2e127': 'http://127.0.0.1:9885'+pnsconfig['baseurl']+'/e2e',
+}
+pnsconfig['lookup'] = poolurl_of
 
 # base url for pool, you must have permission of this path, for example : /home/user/Documents
 # this base pool path will be added at the beginning of your pool urn when you init a pool like:

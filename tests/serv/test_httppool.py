@@ -141,7 +141,7 @@ def getPayload(aResponse):
         return x
 
 
-def check_response(o, failed_case=False, excluded=None):
+def check_response(o, code=200, failed_case=False, excluded=None):
     """ Generic checking.
 
     :o: deserialized response data or text.
@@ -161,13 +161,13 @@ def check_response(o, failed_case=False, excluded=None):
             # properly formated
             if failed_case is not None:
                 assert 'FAILED' != o['result'], o['result']
-                assert o['code'] == 200, str(o)
+                assert code == 200, str(o)
                 assert o['time'] > lupd
                 lupd = o['time']
             return True
     else:
         assert 'FAILED' == o['result'], o['result']
-        assert o['code'] >= 400, str(o)
+        assert code >= 400, str(o)
         return True
     return False  # not properly formated
 
@@ -559,7 +559,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     url = aburl + '/' + post_poolid + '/api/isEmpty'
     x = client.get(url, auth=auth)
     o = getPayload(x)
-    check_response(o, failed_case=True)
+    check_response(o, code=x.status_code, failed_case=True)
 
 
 def test_data_path(server, userpass, client):
@@ -583,15 +583,15 @@ def test_data_path(server, userpass, client):
     urn = o['result']
 
     # API
-    # url0       = 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/'
-    # url1       = 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/'
+    # url0       = 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/'
+    # url1       = 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/'
     # urn        = 'urn:fdi_serv.test_httppool:fdi.dataset.product.Product:0'
     # pcls       = 'fdi.dataset.product.Product'
-    # urlapi     = 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/fdi.dataset.product.Product'
+    # urlapi     = 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product'
 
     pcls = urn.split(':')[2].replace(':', '/')
     urlapi = url0 + pcls
-    # 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/fdi.dataset.product.Product'
+    # 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product'
     x = client.get(urlapi, auth=auth)
     o = getPayload(x)
     check_response(o)
@@ -603,7 +603,7 @@ def test_data_path(server, userpass, client):
     segs = ["results", "Time_Energy_Pos", "Energy", "data"]
     pth = '/'.join(segs)
     # make url w/  urn
-    # url2       = 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data'
+    # url2       = 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data'
     url2 = aburl + urn.replace(':', '/')[3:] + '/' + pth
     x = client.get(url2, auth=auth)
     o = getPayload(x)
@@ -615,7 +615,7 @@ def test_data_path(server, userpass, client):
     pt = urn.split(':', 2)[2].replace(':', '/')
 
     urlp = url0 + pt
-    # http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
+    # http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
     url3 = urlp + '/' + pth
     x = client.get(url3, auth=auth)
     o = getPayload(x)
@@ -650,7 +650,7 @@ def test_data_path(server, userpass, client):
 
     # string
 
-    # 'http://127.0.0.1:5000/v0.9/fdi_serv.test_httppool/string/fdi.dataset.product.Product/0'
+    # 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/string/fdi.dataset.product.Product/0'
     url = url0 + pt + '/toString'
     x = client.get(url, auth=auth)
     assert x.headers['Content-Type'] == 'text/plain'
@@ -681,7 +681,7 @@ async def lock_pool(poolid, sec, local_pools_dir):
     logger.debug(lock)
     with filelock.FileLock(lock):
         await asyncio.sleep(sec)
-    fakeres = '{"code":400, "result": "FAILED", "msg": "This is a fake responses", "time": ' + \
+    fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "time": ' + \
         str(time.time()) + '}'
     return deserialize(fakeres)
 
@@ -732,7 +732,7 @@ def test_lock_file(server, userpass, local_pools_dir, client):
         r1, r2 = res[0], res[1]
     else:
         r2, r1 = res[0], res[1]
-    check_response(r1, True)
+    check_response(r1, code=400, failed_case=True)
 
 
 def test_read_non_exists_pool(server, userpass, client):
@@ -745,7 +745,7 @@ def test_read_non_exists_pool(server, userpass, client):
     url = aburl + '/' + wrong_poolid + prodpath
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o = getPayload(x)
-    check_response(o, True)
+    check_response(o, code=400, failed_case=True)
 
 
 if __name__ == '__main__':

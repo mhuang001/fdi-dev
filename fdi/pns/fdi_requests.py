@@ -154,9 +154,8 @@ ts into the pool
     sd = data if no_serial else serialize(data)
     res = requests.post(
         api, auth=auth, data=sd, headers=headers)
-    result = deserialize(res.text)
-    # print(result)
-    return result
+    # print(res)
+    return res
 
 
 def read_from_server(urn, poolurl, contents='product'):

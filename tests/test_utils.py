@@ -44,11 +44,16 @@ else:
     from logdict import logdict
     import logging
     import logging.config
+
     # create logger
     logging.config.dictConfig(logdict)
     logger = logging.getLogger()
     logger.debug('%s logging level %d' %
                  (__name__, logger.getEffectiveLevel()))
+
+    logging.getLogger("requests").setLevel(logging.WARN)
+    logging.getLogger("urllib3").setLevel(logging.WARN)
+    logging.getLogger("filelock").setLevel(logging.WARN)
 
 
 def test_get_demo_product():

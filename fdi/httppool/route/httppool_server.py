@@ -105,12 +105,10 @@ def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', l
         if serialize_out:
             # result is already in serialized form
             p = 'no-serialization-result-place-holder'
-            t = serialize({"code": code, "result": p,
-                           "msg": msg, "time": ts})
+            t = serialize({"result": p, "msg": msg, "time": ts})
             w = t.replace('"'+p+'"', result)
         else:
-            w = serialize({"code": code, "result": result,
-                           "msg": msg, "time": ts})
+            w = serialize({"result": result, "msg": msg, "time": ts})
     else:
         w = result
 

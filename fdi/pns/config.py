@@ -30,7 +30,7 @@ MQPORT = 9876
 BASE_POOLPATH = '/tmp'
 SERVER_POOLPATH = '/tmp/data'
 
-API_VERSION = 'v0.9'
+API_VERSION = 'v0.10'
 API_BASE = '/fdi'
 
 LOGGING_LEVEL = logging.INFO

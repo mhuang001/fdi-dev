@@ -137,9 +137,10 @@ class HttpClientPool(ProductPool):
             sized += '%s %d, %s' % ('' if first else ',', len(sp), sp)
             first = False
         sized += ']'
-        sv = save_to_server(sized, urn, self._poolurl,
-                            tag, no_serial=True)
-        if sv['result'] == 'FAILED' or sv['code'] != 200:
+        res = save_to_server(sized, urn, self._poolurl,
+                             tag, no_serial=True)
+        sv = deserialize(res.text)
+        if sv['result'] == 'FAILED' or res.status_code != 200:
             logger.error('Save %d products to server failed.%d Message from %s: %s' % (
                 len(productlist), sv['code'], self._poolurl, sv['msg']))
             raise Exception(sv['msg'])

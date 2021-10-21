@@ -99,6 +99,10 @@ else:
     logger.debug('logging level %d' % (logger.getEffectiveLevel()))
     # logging.getLogger().setLevel(logging.DEBUG)
 
+    logging.getLogger("requests").setLevel(logging.WARN)
+    logging.getLogger("urllib3").setLevel(logging.WARN)
+    logging.getLogger("filelock").setLevel(logging.WARN)
+
 
 def checkgeneral(v):
     # can always add attributes

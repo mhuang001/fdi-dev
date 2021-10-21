@@ -99,7 +99,7 @@ RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 
 WORKDIR ${PKGS_DIR}/${PKG}/
 RUN make test \
-&& rm -rf /tmp/fdi_repo
+&& rm -rf /tmp/fdi_repo /tmp/fditest* /tmp/data
 
 WORKDIR ${UHOME}
 

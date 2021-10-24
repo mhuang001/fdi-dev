@@ -30,12 +30,19 @@ tags:
     externalDocs:
       url: https://fdi.readthedocs.io/en/latest/usage/httppool.html
 servers:
-  - url: http://127.0.0.1:5000/fdi/v0.10
-    description: httppool api flask dev version
-  - url: http://127.0.0.1:9884/fdi/v0.10      
+  - url: http://127.0.0.1:{port}/{basePath}
     description: httppool api flask-wsgi-apache2 version
-  - url: http://127.0.0.1:9885/fdi/v0.10
-    description: same as above but PORT=9885
+    variables:
+      port:
+        enum:
+          - '9881'
+          - '9885'
+        default: '9885'
+        description: 9881 for testing; 9885 for production.
+      basePath:
+        # no enum means it s an open value --
+        # there is an opportunity for the provider to assign
+        default: 'fdi/v0.10'
   - url: http://10.0.10.114:9885/fdi/v0.10      
     description: httppool api production flask-wsgi-apache2 version
 security:

@@ -29,13 +29,18 @@ tags:
     externalDocs:
       url: 'https://fdi.readthedocs.io/en/latest/usage/httppool.html'
 servers:
-  - url: 'http://127.0.0.1:5000/fdi/v0.9'
-    description: httppool api flask dev version
-  - url: 'http://127.0.0.1:9884/fdi/v0.9'
+  - url: 'http://127.0.0.1:{port}/{basePath}'
     description: httppool api flask-wsgi-apache2 version
-  - url: 'http://127.0.0.1:9885/fdi/v0.9'
-    description: same as above but PORT=9885
-  - url: 'http://10.0.10.114:9885/fdi/v0.9'
+    variables:
+      port:
+        enum:
+          - '9881'
+          - '9885'
+        default: '9885'
+        description: 9881 for testing; 9885 for production.
+      basePath:
+        default: fdi/v0.10
+  - url: 'http://10.0.10.114:9885/fdi/v0.10'
     description: httppool api production flask-wsgi-apache2 version
 security:
   - BasicAuth: []
@@ -455,7 +460,7 @@ paths:
             '2':
               value: fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
               summary: |
-                Sample product from server test pool. e.g.  http://127.0.0.1:5000/fdi/v0.9/serv_test_httppool/
+                Sample product from server test pool. e.g.  http://127.0.0.1:5000/fdi/v0.10/serv_test_httppool/
             '3':
               value: fdi.pal.context.Context
               summary: A Context.
@@ -650,23 +655,19 @@ components:
           required:
             - result
           example:
-            result: '[200, "foo"]'
+            result: '[2090, "foo"]'
     ResponseContentsBase:
       type: object
       properties:
-        code:
-          type: integer
         msg:
           type: string
         time:
           type: number
           format: double
       required:
-        - code
         - msg
         - time
       example:
-        code: 200
         msg: pool is registered.
         time: 15948800582498.861
   responses:

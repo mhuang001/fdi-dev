@@ -140,8 +140,16 @@ def create_app(config_object=None, logger=None):
         'openapi': '3.0.3',
         'specs_route': config_object['api_base'] + '/apidocs/'
     }
+    swag['servers'].insert(0, {
+        'description': 'As in config file and server command line.',
+        'url': config_object['scheme']+'://' +
+        config_object['node']['host'] + ':' +
+        str(config_object['node']['port']) +
+        config_object['baseurl']
+    })
+
     swagger = Swagger(app, config=swag, merge=True)
-    #swagger.config['specs'][0]['route'] = config_object['api_base'] + s1
+    # swagger.config['specs'][0]['route'] = config_object['api_base'] + s1
     app.config['PC'] = config_object
     app.config['LOGGER_LEVEL'] = logger.getEffectiveLevel()
     # logging = setup_logging()

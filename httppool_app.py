@@ -69,7 +69,7 @@ if __name__ == '__main__':
         logger.setLevel(logging.DEBUG)
         pc['logginglevel'] = logging.DEBUG
     logger.info('logging level %d' % (logger.getEffectiveLevel()))
-    print('Check http://' + node['host'] + ':' + str(node['port']) +
+    print('Check http://' + node['host'] + ':' + str(node['port']) + pc['api_base'] +
           '/apidocs' + ' for API documents.')
 
     if servertype == 'pns':

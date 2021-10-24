@@ -30,12 +30,14 @@ MQPORT = 9876
 BASE_POOLPATH = '/tmp'
 SERVER_POOLPATH = '/tmp/data'
 
+SCHEME = 'http'
 API_VERSION = 'v0.10'
 API_BASE = '/fdi'
 
 LOGGING_LEVEL = logging.INFO
 
 # base url for webserver. Update version if needed.
+pnsconfig['schem'] = SCHEME
 pnsconfig['api_version'] = API_VERSION
 pnsconfig['api_base'] = API_BASE
 pnsconfig['baseurl'] = API_BASE + '/' + API_VERSION

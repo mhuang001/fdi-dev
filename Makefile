@@ -161,11 +161,11 @@ gitadd:
 	git add fdi/pal/*.py fdi/pal/resources
 	git add fdi/utils/*.py
 	git add fdi/httppool
-	git add tests/*.py tests/resources tests/serv/*.py tests/serv/resources
-	git add docs/sphinx/index.rst docs/sphinx/usage docs/sphinx/api \
+	git add Makefile_tests.mk tests/*.py tests/resources tests/serv/*.py tests/serv/resources
+	git add Makefile_docs.mk docs/sphinx/index.rst docs/sphinx/usage docs/sphinx/api \
 	docs/sphinx/conf.py docs/sphinx/Makefile \
 	docs/sphinx/_static docs/sphinx/_templates
-
+	git add Makefile_docker.mk dockerfile dockerfile_entrypoint.sh
 # update _version.py and tag based on setup.py
 # VERSION	= $(shell $(PYEXE) -S -c "from setuptools_scm import get_version;print(get_version('.'))")
 # @ echo update _version.py and tag to $(VERSION)
@@ -179,112 +179,36 @@ vtag:
 	git tag  $(VERSION)
 	git push origin $(VERSION)
 
-PYTEST	= python3 -m pytest
-TESTLOG	= /tmp/fdi-tests.log
-L	= INFO #WARNING
-OPT	= -r P -v --no-cov-on-fail --no-cov -l --pdb -s --show-capture=all  --log-level=$(L)
-T	= 
-test: test1 test2 test5
-
-testpns: test4
-
-testhttp: test6 test7 test8 test9
-
-test1: 
-	$(PYTEST) tests/test_dataset.py -k 'not _mqtt' --cov=fdi/dataset $(OPT) $(T)
-
-test2:
-	$(PYTEST) tests/test_pal.py -k 'not _http' $(T) --cov=fdi/pal $(OPT)
-
-test3:
-	$(PYTEST)  $(OPT) -k 'server' $(T) tests/serv/test_pns.py --cov=fdi/pns
-
-test4:
-	$(PYTEST) $(OPT) -k 'not server' $(T) tests/serv/test_pns.py --cov=fdi/pns
-
-test5:
-	$(PYTEST)  $(OPT) $(T) tests/test_utils.py --cov=fdi/utils
-
-test6:
-	$(PYTEST) $(OPT) $(T) tests/serv/test_httppool.py
-
-test7:
-	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py
-
-test8:
-	$(PYTEST) $(OPT) $(T) tests/test_pal.py -k '_http'
-
-test9:
-	$(PYTEST) tests/test_dataset.py -k '_mqtt' $(T)
-
-
 FORCE:
 
-PLOTDIR	= $(SDIR)/_static
-plots: plot_dataset plot_pal plot_pns
-
-plotall:
-	pyreverse -o png -p all fdi/dataset fdi/pal fdi/pns fdi/utils
-	mv classes_all.png packages_all.png $(PLOTDIR)
-
-qplot_%: FORCE
-	pyreverse -o png -p $@ fdi/$@
-	mv classes_$@.png packages_$@.png $(PLOTDIR)
-
-
-plot_dataset:
-	pyreverse -o png -p dataset fdi/dataset
-	mv classes_dataset.png packages_dataset.png $(PLOTDIR)
-
-plot_pal:
-	pyreverse -o png -p pal fdi/pal
-	mv classes_pal.png packages_pal.png $(PLOTDIR)
-
-plot_pns:
-	pyreverse -o png -p pns fdi.pns
-	mv classes_pns.png packages_pns.png $(PLOTDIR)
-
-DOCSDIR	= docs
-SDIR = $(DOCSDIR)/sphinx
-APIOPT	= -T -M --ext-viewcode
-APIOPT	= -M --ext-viewcode
-
-docs: docs_api docs_plots docs_html
-
-docs_api:
-	rm -rf $(SDIR)/api/fdi
-	mkdir -p  $(SDIR)/api/fdi
-	sphinx-apidoc $(APIOPT) -o $(SDIR)/api/fdi fdi
-
-docs_plots:
-	rm  $(PLOTDIR)/classes*.png $(PLOTDIR)/packages*.png ;\
-	make plots
-
-docs_html:
-	cd $(SDIR) && make html
+include Makefile_tests.mk
+include Makefile_docs.mk
 
 ########
 # docker
 ########
 
-build_docker \
-launch_docker \
-build_server \
-launch_server \
-launch_test_server \
-rm_docker \
-rm_dockeri \
-it \
-t \
-i \
-push_docker \
-push_server \
-pull_server \
-vol \
-backup_server \
-restore_server \
-restore_test \
-update_docker:
-	$(MAKE) --no-print-directory -f Makefile_docker.mk -C . $@
+include Makefile_docker.mk
 
-
+# 
+# build_docker \
+# launch_docker \
+# build_server \
+# launch_server \
+# launch_test_server \
+# rm_docker \
+# rm_dockeri \
+# it \
+# t \
+# i \
+# push_docker \
+# push_server \
+# pull_server \
+# vol \
+# backup_server \
+# restore_server \
+# restore_test \
+# update_docker:
+# 	$(MAKE) --no-print-directory -f Makefile_docker.mk -C . $@
+# 
+# 

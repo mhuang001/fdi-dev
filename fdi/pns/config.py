@@ -37,7 +37,7 @@ API_BASE = '/fdi'
 LOGGING_LEVEL = logging.INFO
 
 # base url for webserver. Update version if needed.
-pnsconfig['schem'] = SCHEME
+pnsconfig['scheme'] = SCHEME
 pnsconfig['api_version'] = API_VERSION
 pnsconfig['api_base'] = API_BASE
 pnsconfig['baseurl'] = API_BASE + '/' + API_VERSION

@@ -16,7 +16,7 @@ EXTPORT =$(PORT)
 IP_ADDR     =10.0.10.114
 PROJ_DIR	= /var/www/httppool_server
 SERVER_POOLPATH	= $(PROJ_DIR)/data
-LOGGING_LEVEL	=11
+LOGGING_LEVEL	=10
 
 LATEST	=im:latest
 B       =/bin/bash

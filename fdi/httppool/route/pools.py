@@ -392,8 +392,6 @@ def register(pool):
 
     ts = time.time()
     logger.debug('register pool ' + pool)
-    if pool == 'vvpp':
-        __import__('pdb').set_trace()
 
     code, thepool, msg = register_pool(pool, auth.current_user())
     res = thepool if issubclass(thepool.__class__, str) else thepool._poolurl

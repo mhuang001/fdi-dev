@@ -305,18 +305,6 @@ class Context(AbstractContext, BaseProduct):
         """
         return self._dirty
 
-    def x__getstate__(self):
-        """ Can be encoded with serializableEncoder """
-        try:
-            if self.refs.data:
-                __import__('pdb').set_trace()
-        except Exception:
-            pass
-        print(super().__getstate__)
-        s = super().__getstate__()
-        s.update(_ATTR_refs=self.refs)
-        return s
-
 
 class MapContext(Context):
     """ Allows grouping Products into a map of (String, ProductRef) pairs.

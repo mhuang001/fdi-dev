@@ -109,7 +109,7 @@ def get_pools():
     """ Get names of all pools, registered or not.
     """
     logger = current_app.logger
-    abort(500/0)
+
     ts = time.time()
     path = current_app.config['POOLPATH_BASE']
     logger.debug('Listing all directories from ' + path)

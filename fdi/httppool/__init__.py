@@ -163,6 +163,8 @@ def create_app(config_object=None, logger=None):
     app.register_blueprint(pools_api, url_prefix=config_object['baseurl'])
     app.register_blueprint(data_api, url_prefix=config_object['baseurl'])
     addHandlers(app)
+    #app.url_map.strict_slashes = False
+
     return app
 
 

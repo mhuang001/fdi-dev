@@ -22,7 +22,7 @@ def loadcsv(filepath, delimiter=',', header=0, return_dict=False):
     colhds = None
     with open(filepath, 'r', newline='', encoding='utf-8') as f:
         logger.debug('reading csv file ' + str(f))
-        # pdb.set_trace()
+
         rowcount = 0
         for line in iter(f.readline, ''):
             row = ' '.join(x for x in line.split()).split(delimiter)

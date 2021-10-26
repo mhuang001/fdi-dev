@@ -86,14 +86,14 @@ class frozendict(dict):
         return new
 
     def __init__(self, *args, **kw):
-       """
-       Parameters
-       ----------
+        """
+        Parameters
+        ----------
 
-       Returns
-       -------
-       """ 
-       pass
+        Returns
+        -------
+        """
+        pass
 
     def __hash__(self):
         """
@@ -181,11 +181,9 @@ class bReadOnlyDict(dict):
 
         Returns
         -------
-        """ 
+        """
         it = super().__getitem__(key)
         # print(key)
-        import pdb
-        pdb.set_trace()
 
         if issubclass(it.__class__, dict):
             rodict = ReadOnlyDict(it)

@@ -10,15 +10,18 @@ from .route.httppool_server import data_api, checkpath
 
 from .._version import __version__
 from ..utils import getconfig
-from ..utils.common import getUidGid
+from ..utils.common import getUidGid, trbk
 from ..pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
 
 from flasgger import Swagger
-from flask import Flask
+from werkzeug.exceptions import HTTPException
+from flask import Flask, make_response, jsonify
 
 import builtins
 from collections import ChainMap
 import sys
+import json
+import time
 import os
 
 # sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
@@ -147,7 +150,6 @@ def create_app(config_object=None, logger=None):
         str(config_object['node']['port']) +
         config_object['baseurl']
     })
-
     swagger = Swagger(app, config=swag, merge=True)
     # swagger.config['specs'][0]['route'] = config_object['api_base'] + s1
     app.config['PC'] = config_object
@@ -160,5 +162,36 @@ def create_app(config_object=None, logger=None):
 
     app.register_blueprint(pools_api, url_prefix=config_object['baseurl'])
     app.register_blueprint(data_api, url_prefix=config_object['baseurl'])
-
+    addHandlers(app)
     return app
+
+
+def addHandlers(app):
+
+    @app.errorhandler(Exception)
+    def handle_excep(error):
+        """ ref flask docs """
+        ts = time.time()
+        if issubclass(error.__class__, HTTPException):
+            if error.code == 409:
+                spec = "Conflict or updating. "
+            elif error.code == 500 and error.original_exception:
+                error = error.original_exception
+            else:
+                spec = ''
+            response = error.get_response()
+            t = ' Traceback: ' + trbk(error)
+            msg = '%s%d. %s, %s\n%s' % \
+                (spec, error.code, error.name, error.description, t)
+        elif issubclass(error.__class__, Exception):
+            response = make_response()
+            t = 'Traceback: ' + trbk(error)
+            msg = '%s. %s.\n%s' % (error.__class__.__name__,
+                                   str(error), t)
+        else:
+            response = make_response('', error)
+            msg = ''
+        w = {'result': 'FAILED', 'msg': msg, 'time': ts}
+        response.data = json.dumps(w)
+        response.content_type = 'application/json'
+        return response

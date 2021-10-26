@@ -22,6 +22,7 @@ from flasgger import swag_from
 from flask import request, make_response, jsonify, Blueprint, current_app
 from flask.wrappers import Response
 
+
 import sys
 import os
 import time
@@ -568,34 +569,3 @@ def mkv(v, t):
     m = v if t == 'str' else None if t == 'NoneType' else Builtins[t](
         v) if t in Builtins else deserialize(v)
     return m
-
-
-@data_api.errorhandler(400)
-def bad_request(error):
-    ts = time.time()
-    w = {'result': 'FAILED', 'msg': 'Bad request. ' + str(error), 'time': ts}
-    return make_response(jsonify(w), 400)
-
-
-@data_api.errorhandler(401)
-def unauthorized(error):
-    ts = time.time()
-    w = {'result': 'FAILED',
-         'msg': 'Unauthorized. Authentication needed to modify. ' + str(error),
-         'time': ts}
-    return make_response(jsonify(w), 401)
-
-
-@data_api.errorhandler(404)
-def not_found(error):
-    ts = time.time()
-    w = {'result': 'FAILED', 'msg': 'Not found. ' + str(error), 'time': ts}
-    return make_response(jsonify(w), 404)
-
-
-@data_api.errorhandler(409)
-def conflict(error):
-    ts = time.time()
-    w = {'result': 'FAILED', 'msg': 'Conflict. Updating. ' + str(error),
-         'time': ts}
-    return make_response(jsonify(w), 409)

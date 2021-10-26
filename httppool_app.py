@@ -25,6 +25,7 @@ if __name__ == '__main__':
     import logging
     logger = logging.getLogger()
     # default configuration is provided. Copy config.py to ~/.config/pnslocal.py
+
     pc = getconfig.getConfig()
 
     lv = pc['logginglevel']
@@ -69,7 +70,8 @@ if __name__ == '__main__':
         logger.setLevel(logging.DEBUG)
         pc['logginglevel'] = logging.DEBUG
     logger.info('logging level %d' % (logger.getEffectiveLevel()))
-    print('Check http://' + node['host'] + ':' + str(node['port']) + pc['api_base'] +
+    print('Check ' + pc['scheme'] + '://' + node['host'] +
+          ':' + str(node['port']) + pc['api_base'] +
           '/apidocs' + ' for API documents.')
 
     if servertype == 'pns':
@@ -86,7 +88,8 @@ if __name__ == '__main__':
 
     if wsgi:
         from waitress import serve
-        serve(app, url_scheme='https', host=node['host'], port=node['port'])
+        serve(app, url_scheme='https',
+              host=node['host'], port=node['port'])
     else:
         app.run(host=node['host'], port=node['port'],
                 threaded=True, debug=verbose, processes=1, use_reloader=True)

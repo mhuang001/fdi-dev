@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .getswag import swag
-from .httppool_server import resp, excp, checkpath, unauthorized, check_readonly
+from .httppool_server import resp, excp, checkpath, check_readonly
 from ..model.user import auth, getUsers
 from ...dataset.deserialize import deserialize_args
 from ...pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
@@ -9,7 +9,8 @@ from ...pal.productpool import PoolNotFoundError
 from ...pal.webapi import WebAPI
 from ...pal.urn import parseUrn
 
-from flask import Blueprint, jsonify, request, current_app, url_for
+from flask import Blueprint, jsonify, request, current_app, url_for, abort
+from werkzeug.exceptions import HTTPException
 # from flasgger import swag_from
 
 import shutil
@@ -108,7 +109,7 @@ def get_pools():
     """ Get names of all pools, registered or not.
     """
     logger = current_app.logger
-
+    abort(500/0)
     ts = time.time()
     path = current_app.config['POOLPATH_BASE']
     logger.debug('Listing all directories from ' + path)

@@ -68,7 +68,7 @@ pnsconfig['mqtt'] = dict(
 )
 
 # choose from pre-defined.
-conf = ['dev', 'server_test', 'external'][1]
+conf = ['dev', 'server_test', 'external', 'production'][1]
 
 # modify
 if conf == 'dev':

@@ -74,13 +74,13 @@ def logout():
     return resp(401, 'OK. Bye.', msg, ts)
 
 ######################################
-#### /  get_pools   ####
+####   get_pools_url   ####
 ######################################
 
 
 @ pools_api.route('', methods=['GET'])
 def get_pools_url():
-    """ Get names of all pools, registered or not.
+    """ Get names and urls of all pools, registered or not.
     """
     logger = current_app.logger
 
@@ -142,7 +142,7 @@ def get_name_all_pools(path):
 ######################################
 
 
-# @ pools_api.route('', methods=['GET'])
+# @ pools_api.route('/pools', methods=['GET'])
 @ pools_api.route('/pools/', methods=['GET'])
 @ auth.login_required(role=['read_only', 'read_write'])
 def get_registered_pools():
@@ -166,6 +166,7 @@ def get_registered_pools():
 
 
 @ pools_api.route('/pools/register_all', methods=['PUT'])
+# @ pools_api.route('/pools/register_all/', methods=['PUT'])
 @auth.login_required(role='read_write')
 def register_all():
     """ Register (Load) all pools on tme server.
@@ -216,6 +217,7 @@ def load_pools(poolnames, usr):
 
 
 @ pools_api.route('/pools/unregister_all', methods=['PUT'])
+# @ pools_api.route('/pools/unregister_all/', methods=['PUT'])
 @ auth.login_required(role='read_write')
 def unregister_all():
 
@@ -260,6 +262,7 @@ def unregister_pools(poolnames=None):
 
 
 @ pools_api.route('/pools/wipe_all', methods=['DELETE'])
+# @ pools_api.route('/pools/wipe_all/', methods=['DELETE'])
 @ auth.login_required(role='read_write')
 def wipe_all():
     """ Remove contents of all pools.
@@ -380,6 +383,7 @@ def get_pool_info(poolname, serialize_out=False):
 ######################################
 
 @ pools_api.route('/<string:pool>', methods=['PUT'])
+# @ pools_api.route('/<string:pool>/', methods=['PUT'])
 @ auth.login_required(role='read_write')
 def register(pool):
     """ Register the given pool.
@@ -473,6 +477,7 @@ def unregister_pool(pool):
 ######################################
 
 
+# @ pools_api.route('/<string:pool>/hk', methods=['GET'])
 @ pools_api.route('/<string:pool>/hk/', methods=['GET'])
 def hk(pool):
     """ All kinds of pool housekeeping data.
@@ -510,10 +515,11 @@ def load_HKdata(paths, serialize_out=True):
 
 
 ######################################
-####  {pool}/api/               ####
+####  {pool}/api/        List webAPIs       ####
 ######################################
 
 
+# @ pools_api.route('/<string:pool>/api', methods=['GET'])
 @ pools_api.route('/<string:pool>/api/', methods=['GET'])
 def api_info(pool):
     """ A list of names of allowed API methods.
@@ -535,6 +541,7 @@ def api_info(pool):
 
 
 @ pools_api.route('/<string:pool>/wipe', methods=['PUT'])
+# @ pools_api.route('/<string:pool>/wipe/', methods=['PUT'])
 @ auth.login_required(role='read_write')
 def wipe(pool):
     """ Removes all contents of the pool.
@@ -563,6 +570,7 @@ def wipe(pool):
 
 
 @ pools_api.route('/<string:pool>/hk/<string:kind>', methods=['GET'])
+# @ pools_api.route('/<string:pool>/hk/<string:kind>/', methods=['GET'])
 def hk_single(pool, kind):
     """ Returns the given kind of pool housekeeping data.
     """
@@ -602,7 +610,7 @@ def load_single_HKdata(paths, serialize_out=True):
 
 
 @ pools_api.route('/<string:pool>/count/<string:data_type>', methods=['GET'])
-# @ swag_from(endp['/{pool}']['put'])
+# @ pools_api.route('/<string:pool>/count/<string:data_type>/', methods=['GET'])
 def count(pool, data_type):
     """ Returns the number of given type of data in the given pool.
 

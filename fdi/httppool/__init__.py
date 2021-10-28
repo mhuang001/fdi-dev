@@ -16,6 +16,8 @@ from ..pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
 from flasgger import Swagger
 from werkzeug.exceptions import HTTPException
 from flask import Flask, make_response, jsonify
+from werkzeug.routing import RequestRedirect
+from werkzeug.routing import RoutingException, Map
 
 import builtins
 from collections import ChainMap
@@ -169,6 +171,12 @@ def create_app(config_object=None, logger=None):
 
 
 def addHandlers(app):
+
+    # @app.errorhandler(RequestRedirect)
+    # def handle_redirect(error):
+    #     __import__('pdb').set_trace()
+
+    #     spec = 'redirect'
 
     @app.errorhandler(Exception)
     def handle_excep(error):

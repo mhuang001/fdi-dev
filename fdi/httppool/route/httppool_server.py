@@ -201,11 +201,21 @@ def delete_urn(parts):
 
 
 def parts2paths(parts):
-    colo = parts.replace('/', ':')
-    sp1 = colo.split(':')
-    if sp1[0].lower() == 'urn' or len(sp1[0]) == 0:
-        # ignore the 0th seg which is 'urn' or ''
-        paths = sp1[1:]
+    # parts == urn:{type}:{index}/...
+    # parts == /urn:{type}:{index}/...
+    # parts == :{type}:{index}/...
+    # parts == /{type}:{index}/...
+    # parts == /{type}/{index}/...
+    if parts[:4].lower() == 'urn:':
+        parts = parts[4:]
+    elif parts[:5].lower() == '/urn:':
+        parts = parts[5:]
+    elif parts[0] == '/' or parts[0] == ':':
+        parts = parts[1:]
+    # deal with the possible ':' before index
+    sp1 = parts.split('/')
+    if ':' in sp1[0]:
+        paths = sp1[0].split(':') + sp1[1:]
     else:
         paths = sp1
     return paths
@@ -248,6 +258,7 @@ def delete_product(paths, serialize_out=False):
 ######################################
 
 
+# @ data_api.route('/<string:pool>', methods=['POST'])
 @ data_api.route('/<string:pool>/', methods=['POST'])
 @ auth.login_required(role='read_write')
 def save_data(pool):
@@ -357,7 +368,7 @@ def data_paths(pool, data_paths):
     # do not deserialize if set True. save directly to disk
     serial_through = True
 
-    paths = [pool] + data_paths.replace(':', '/').split('/')
+    paths = [pool] + parts2paths(data_paths)
 
     logger.debug('*** method= %s pool= %s data_paths= %s paths= %s' %
                  (request.method, pool, str(data_paths), str(paths)))

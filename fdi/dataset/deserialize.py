@@ -287,8 +287,8 @@ def deserialize(js, lookup=None, debug=False, usedict=True):
             # , cls=IntDecoderOD)
             obj = json.loads(js, object_pairs_hook=ODict)
     except json.decoder.JSONDecodeError as e:
-        msg = '\nBad string to decode as JSON=====>\n%s\n<======\nStack trace: %s' %\
-            (lls(js, 500), trbk(e))
+        msg = '\nBad string to decode as JSON=====>\n%s\n<======\n%s' % (
+            lls(js, 500), str(e))
         logging.error(msg)
         obj = msg
     if debug:

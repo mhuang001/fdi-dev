@@ -315,6 +315,10 @@ class Serializable():
         return s
 
     json = serializable
+    try:
+        string = toString
+    except NameError:
+        pass
 
     def yaml(self):
         """ Get a YAML representation. """

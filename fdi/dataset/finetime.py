@@ -7,6 +7,7 @@ from .copyable import Copyable
 
 from ..utils import leapseconds
 import datetime
+from string import ascii_uppercase
 from collections import OrderedDict
 
 import logging
@@ -112,7 +113,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
                     logger.warning(
                         'Time zone stripped for %s according to format.' % t)
                     d = datetime.datetime.strptime(
-                        t.rsplit(' ', 1)[0], self.format)
+                        t.rsplit(' ', 1)[0].strip(ascii_uppercase), self.format)
             d1 = d.replace(tzinfo=datetime.timezone.utc)
             setTai = self.datetimeToFineTime(d1)
         try:

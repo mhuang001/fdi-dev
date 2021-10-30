@@ -3,7 +3,7 @@ PYEXE	= python3
 ########
 DKRREPO	= mhastro
 DOCKER_NAME	= fdi
-DOCKER_VERSION	= $(shell date +%y%m%d_%H%M)
+DOCKER_VERSION   =$(shell if [ -f docker_version ]; then cat docker_version; fi)
 DFILE	=dockerfile
 
 SERVER_NAME      =httppool
@@ -21,7 +21,11 @@ LOGGING_LEVEL	=10
 LATEST	=im:latest
 B       =/bin/bash
 
-build_docker:
+docker_version:
+	date +v%y%m%d_%H%M >| docker_version
+
+build_docker: docker_version
+	@echo Building $(DOCKER_VERSION)
 	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DOCKER_VERSION) \
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg fd=$(fd) \

@@ -3,11 +3,11 @@ PYEXE	= python3
 ########
 DKRREPO	= mhastro
 DOCKER_NAME	= fdi
-DVERS	= v1.15
+DOCKER_VERSION	= $(shell date +%y%m%d_%H%M)
 DFILE	=dockerfile
 
 SERVER_NAME      =httppool
-SVERS	= v15
+SERVER_VERSION	= $(DOCKER_VERSION)
 SFILE	= fdi/httppool/resources/httppool_server.docker
 
 PORT        =9884
@@ -22,28 +22,28 @@ LATEST	=im:latest
 B       =/bin/bash
 
 build_docker:
-	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DVERS) \
+	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DOCKER_VERSION) \
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
-	--build-arg VERSION=$(DVERS) \
+	--build-arg VERSION=$(DOCKER_VERSION) \
 	-f $(DFILE) \
 	$(D) --progress=plain .
-	docker tag $(DOCKER_NAME):$(DVERS) $(LATEST)
+	docker tag $(DOCKER_NAME):$(DOCKER_VERSION) $(LATEST)
 
 launch_docker:
 	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(LATEST) $(LAU)
 
 build_server:
-	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SVERS) \
+	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SERVER_VERSION) \
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg PROJ_DIR=$(PROJ_DIR) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
-	--build-arg VERSION=$(SVERS) \
+	--build-arg VERSION=$(SERVER_VERSION) \
 	-f $(SFILE) \
 	$(D) --progress=plain .
-	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)
+	docker tag $(SERVER_NAME):$(SERVER_VERSION) $(LATEST)
 
 launch_server:
 	SN=$(SERVER_NAME)$$(date +'%s') && \
@@ -60,7 +60,7 @@ launch_server:
 	docker ps -n 1
 
 launch_test_server:
-	docker tag $(SERVER_NAME):$(SVERS) $(LATEST)
+	docker tag $(SERVER_NAME):$(SERVER_VERSION) $(LATEST)
 	$(MAKE) launch_server PORT=9881 EXTPORT=9881 LOGGING_LEVEL=10 #LATEST=mhastro/httppool
 
 rm_docker:
@@ -90,16 +90,16 @@ i:
 
 push_docker:
 	im=$(DKRREPO)/$(DOCKER_NAME) &&\
-	docker tag  $(DOCKER_NAME):$(DVERS) $$im:$(DVERS) &&\
-	docker tag  $(DOCKER_NAME):$(DVERS) $$im:latest &&\
-	docker push $$im:$(DVERS) &&\
+	docker tag  $(DOCKER_NAME):$(DOCKER_VERSION) $$im:$(DOCKER_VERSION) &&\
+	docker tag  $(DOCKER_NAME):$(DOCKER_VERSION) $$im:latest &&\
+	docker push $$im:$(DOCKER_VERSION) &&\
 	docker push $$im:latest
 
 push_server:
 	im=$(DKRREPO)/$(SERVER_NAME)  &&\
-	docker tag  $(SERVER_NAME):$(SVERS) $$im:$(SVERS) &&\
-	docker tag  $(SERVER_NAME):$(SVERS) $$im:latest &&\
-	docker push $$im:$(SVERS) &&\
+	docker tag  $(SERVER_NAME):$(SERVER_VERSION) $$im:$(SERVER_VERSION) &&\
+	docker tag  $(SERVER_NAME):$(SERVER_VERSION) $$im:latest &&\
+	docker push $$im:$(SERVER_VERSION) &&\
         docker push $$im:latest
 
 vol:
@@ -113,7 +113,7 @@ pull_server:
 	docker tag  $$im:latest im:latest
 
 backup_server:
-	f=backup_$(SERVER_NAME)_$(SVERS)_`date +'%y%m%dT%H%M%S' --utc`.tar &&\
+	f=backup_$(SERVER_NAME)_$(SERVER_VERSION)_`date +'%y%m%dT%H%M%S' --utc`.tar &&\
 	echo Backup file: $$f ;\
 	docker run -it --rm \
 	--mount source=httppool,target=$(SERVER_POOLPATH) \
@@ -122,7 +122,7 @@ backup_server:
 	-p 9883:9883 \
 	-a stdin -a stdout \
 	--entrypoint "" \
-	--name $(SERVER_NAME)_backup $(D) $(SERVER_NAME):$(SVERS)  \
+	--name $(SERVER_NAME)_backup $(D) $(SERVER_NAME):$(SERVER_VERSION)  \
 	/bin/bash -c 'cd $(PROJ_DIR)/data && tar cf /dev/stdout .' >  $$f
 
 restore_server:
@@ -137,7 +137,7 @@ else
 	-p 9883:9883 \
 	-a stdin -a stdout \
 	--entrypoint "" \
-	--name $(SERVER_NAME)_backup $(D) $(SERVER_NAME):$(SVERS)  \
+	--name $(SERVER_NAME)_backup $(D) $(SERVER_NAME):$(SERVER_VERSION)  \
 	/bin/bash -c 'cd $(PROJ_DIR)/data && tar xvf - .'
 endif
 

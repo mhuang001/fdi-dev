@@ -101,6 +101,8 @@ class FineTime(Copyable, DeepEqual, Serializable):
             try:
                 d = datetime.datetime.strptime(t, self.format)
             except ValueError:
+                if t.endswith('Z'):
+                    d = datetime.datetime.strptime(t[:-1] + ' UTC')
                 if self.format[-4] == ' ':
                     # the last three letters are tz
                     tz = self.format[-3:]

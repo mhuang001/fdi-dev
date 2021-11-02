@@ -53,7 +53,9 @@ for tn, tt in DataTypes.items():
 DataTypeNames.update({
     'NoneType': '',
     'dict': 'vector',
-    'ODict': 'vector'
+    'OrderedDict': 'vector',
+    'UserDict': 'vector',
+    'ODict': 'vector',
 })
 del tt, tn
 

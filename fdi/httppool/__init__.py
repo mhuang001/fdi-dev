@@ -116,8 +116,9 @@ def init_httppool_server(app):
     poolpath_base = os.path.join(_basepath, pc['api_version'])
 
     if checkpath(poolpath_base, pc['serveruser']) is None:
-        app.logger.error('Store path %s unavailable.' % poolpath_base)
-        sys.exit(-2)
+        msg = 'Store path %s unavailable.' % poolpath_base
+        app.logger.error(msg)
+        return None
 
     app.config['POOLSCHEME'] = scheme
     app.config['POOLPATH_BASE'] = poolpath_base

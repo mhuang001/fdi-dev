@@ -68,7 +68,7 @@ pnsconfig['mqtt'] = dict(
 )
 
 # choose from pre-defined.
-conf = ['dev', 'server_test', 'external', 'production'][1]
+conf = ['dev', 'server_test', 'external', 'production', 'public'][1]
 
 # modify
 if conf == 'dev':
@@ -123,6 +123,17 @@ elif conf == 'production':
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
                          'host': '10.0.10.114', 'port': 9885,
                          'ro_username': 'ro', 'ro_password': '',
+                         }
+    # server permission user
+    pnsconfig['serveruser'] = 'apache'
+    # PTS app permission user
+    pnsconfig['ptsuser'] = 'pns'
+    # on pns server
+    home = '/home/' + pnsconfig['ptsuser']
+elif conf == 'public':
+    pnsconfig['node'] = {'username': 'rw', 'password': 'only6%',
+                         'host': '123.56.102.90', 'port': 31702,
+                         'ro_username': 'ro', 'ro_password': 'only5%',
                          }
     # server permission user
     pnsconfig['serveruser'] = 'apache'

@@ -81,6 +81,7 @@ def checkpath(path, un):
 
     # logger.info('Setting owner, group, and mode...')
     if not setOwnerMode(p, un):
+        logger.info('Cannot set owner %s to %s.' % (un, str(p)))
         return None
 
     logger.debug('checked path at ' + str(p))
@@ -552,6 +553,7 @@ def setOwnerMode(p, username):
 
     uid, gid = getUidGid(username)
     if uid == -1 or gid == -1:
+        logger.debug(f'user {username} uid={uid} gid{gid}')
         return None
     try:
         os.chown(str(p), uid, gid)

@@ -102,7 +102,8 @@ class FineTime(Copyable, DeepEqual, Serializable):
                 d = datetime.datetime.strptime(t, self.format)
             except ValueError:
                 if t.endswith('Z'):
-                    d = datetime.datetime.strptime(t[:-1] + ' UTC')
+                    d = datetime.datetime.strptime(
+                        t[:-1] + ' UTC', self.format)
                 if self.format[-4] == ' ':
                     # the last three letters are tz
                     tz = self.format[-3:]
@@ -114,6 +115,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
                     # format does not have tz
                     logger.warning(
                         'Time zone stripped for %s according to format.' % t)
+
                     d = datetime.datetime.strptime(
                         t.rsplit(' ', 1)[0].strip(ascii_uppercase), self.format)
             d1 = d.replace(tzinfo=datetime.timezone.utc)

@@ -490,6 +490,10 @@ def ld2tk(v):
     return y
 
 
+class UserOrGroupNotFoundError(BaseException):
+    pass
+
+
 def getUidGid(username):
     """ returns the UID and GID  of the named user.
 
@@ -503,6 +507,8 @@ def getUidGid(username):
             '. check config. ' + str(e) + trbk(e)
         logger.error(msg)
         uid = -1
+        # UserOrGroupNotFoundError(msg).with_traceback(sys.exc_info()[2])
+        raise
     # do if platform supports.
     try:
         gid = pwd.getpwnam(username).pw_gid
@@ -511,6 +517,7 @@ def getUidGid(username):
             '. check config. ' + str(e) + trbk(e)
         gid = -1
         logger.error(msg)
+        raise
 
     return uid, gid
 

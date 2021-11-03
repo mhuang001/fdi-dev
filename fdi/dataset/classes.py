@@ -59,6 +59,7 @@ class Classes_meta(type):
         'fdi.pal.urn': ['Urn'],
         'fdi.pal.productref': ['ProductRef'],
         'fdi.pal.query':  ['AbstractQuery', 'MetaQuery', 'StorageQuery'],
+        # 'fdi.utils.common': ['UserOrGroupNotFoundError'],
     }
 
     # class list from the package

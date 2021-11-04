@@ -61,6 +61,7 @@ def test_get_demo_product():
     assert v['Browse'].data[1:4] == b'PNG'
     # print(v.yaml())
 
+    p = v.getDefault()
     checkjson(v, dbg=0)
     checkgeneral(v)
 
@@ -167,11 +168,34 @@ def test_fetch():
     u, s = fetch(['d', 'k'], v)
     assert u == 99
     assert s == '["d"]["k"]'
+    # 3 levels
+    v = [4, v,  5]
+    w = copy.deepcopy(v)
+    u, s = fetch([0], w)
+    assert u == 4
+    u, s = fetch([2], w)
+    assert u == 5
+    assert s == '[2]'
+    u, s = fetch([1, 'd', 'k'], w)
+    assert u == 99
+    assert s == '[1]["d"]["k"]'
+
+    # path is str
+    assert fetch([2], w) == fetch('2', w)
+    assert fetch([1, 'd', 'k'], w) == fetch(
+        '1/d/k', w) == fetch('1.d.k', w, sep='.')
+    assert fetch('/1/d/k ', w) == fetch('1.d.k', w, sep='.')
+    assert fetch(' ', w, re='asd') == (w, 'asd')
 
     # objects
+
     class al(list):
         ala = 0
+        @staticmethod
         def alb(): pass
+
+        def alf(self, a, b=9):
+            return a, b
 
         def __init__(self, *a, i=[8], **k):
             super().__init__(*a, **k)
@@ -179,14 +203,36 @@ def test_fetch():
         alc = {3: 4}
         ale = [99, 88]
 
+    # init
     v = al(i=[1, 2])
     u, s = fetch(['ald'], v)
     assert u == [1, 2]
     assert s == '.ald'
 
+    # class property list
     u, s = fetch(['ale', 1], v)
     assert u == 88
     assert s == '.ale[1]'
+
+    # class property dict
+    u, s = fetch(['alc', 3], v)
+    assert u == 4
+    assert s == '.alc[3]'
+
+    # method
+    u, s = fetch(['alb'], v)
+    assert u is None
+    assert s == '.alb()'
+
+    # method w/ positional arg
+    u, s = fetch(['alf__4.4'], v)
+    assert u == (4.4, 9)
+    assert s == '.alf(4.4)'
+
+    # method w/ positional and keyword args
+    u, s = fetch(['alf__4.4__77'], v)
+    assert u == (4.4, 77)
+    assert s == '.alf(4.4, 77)'
 
     class ad(dict):
         ada = 'p'

@@ -443,7 +443,7 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
             return 0, resp(200, ls, 'Getting %s members/attrbutes OK' % (path_str),
                            ts, serialize_out=False), 0
         else:
-            return 400, FAILED, '%s: %s' % (cmd, path_str)
+            return 400, FAILED, '%s' % (path_str)
     elif lp == 3:
         # url ends with index
         # no cmd, ex: test/fdi.dataset.Product/4

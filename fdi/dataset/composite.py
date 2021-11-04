@@ -97,7 +97,6 @@ class Composite(DataContainer, Serializable, MutableMapping):
         -------
 
         """
-
         self.data[name] = dataset
 
     def __getitem__(self, name):
@@ -131,7 +130,13 @@ class Composite(DataContainer, Serializable, MutableMapping):
         -------
 
         """
-        self._data[name] = dataset
+
+        if 'refs' in self._data and name != 'refs' and not (name in self._data):
+            refs = self._data.pop('refs')
+            self._data[name] = dataset
+            self._data['refs'] = refs
+        else:
+            self._data[name] = dataset
 
     def getSets(self):
         """ Provide access to the Map < String, Dataset > .
@@ -198,6 +203,13 @@ class Composite(DataContainer, Serializable, MutableMapping):
 
         """
         return len(self.data)
+
+    def getDefault(self):
+        """ Convenience method that returns the first dataset \
+        belonging to this composite. """
+
+        ls = list(self.values())
+        return ls[0] if len(ls) > 0 else None
 
     def __iter__(self):
         for i in self.data:

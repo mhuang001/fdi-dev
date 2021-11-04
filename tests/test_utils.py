@@ -6,8 +6,9 @@ from fdi.dataset.metadata import make_jsonable
 from fdi.dataset.finetime import FineTime
 from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.deserialize import Class_Look_Up
-from fdi.dataset.testproducts import get_demo_product
+from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.pal.urn import Urn
+from fdi.pal.productref import ProductRef
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadcsv
 from fdi.utils import moduleloader
@@ -60,8 +61,20 @@ def test_get_demo_product():
     v = get_demo_product()
     assert v['Browse'].data[1:4] == b'PNG'
     # print(v.yaml())
-
     p = v.getDefault()
+    assert p == v['results']
+    aref = ProductRef(get_related_product())
+    v.refs['a'] = aref
+    r0 = v.refs
+    p['dset'] = 'foo'
+    # refs ys always the last
+    assert list(v.keys())[-1] == 'refs'
+    assert r0 == v.refs
+    # existing key
+    p['dset'] = 'foo'
+    assert list(v.keys())[-1] == 'refs'
+    assert r0 == v.refs
+
     checkjson(v, dbg=0)
     checkgeneral(v)
 

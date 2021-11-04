@@ -126,8 +126,7 @@ def get_demo_product():
     a5 = makeCal2D()
     a8 = ArrayDataset(data=a5, unit='count', description='array in composite')
     a10 = 'calibration'
-    # put the dataset to the compositedataset. here set() api is used
-    composData.set(a10, a8)
+
     # a tabledataset as the measurements
     ELECTRON_VOLTS = 'eV'
     SECONDS = 'sec'
@@ -145,7 +144,11 @@ def get_demo_product():
     x["y"] = Column(data=y, unit=METERS)
     x["z"] = Column(data=z, unit=METERS)
     # set a tabledataset ans an arraydset, with a parameter in metadata
+    # this is the first dataset in composData
     composData['Time_Energy_Pos'] = x
+
+    # put the dataset to the compositedataset. here set() api is used
+    composData.set(a10, a8)
 
     # an arraydsets as environment temperature
     a1 = [768, 767, 766, 4.4, 4.5, 4.6, 5.4E3]
@@ -170,13 +173,6 @@ def get_demo_product():
     image = loadMedia(fname)
     image.file = fname
     prodx['Browse'] = image
-
-    # references
-    rel_prod = get_related_product()
-
-    ref = ProductRef(rel_prod)
-    # add the reference to 'refs'.
-    prodx.refs['constants'] = ref
     return prodx
 
 

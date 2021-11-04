@@ -6,8 +6,9 @@ from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.deserialize import serialize_args, deserialize_args
-from fdi.dataset.testproducts import get_demo_product
+from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.pal.productstorage import ProductStorage
+from fdi.pal.productref import ProductRef
 from fdi.pal.query import MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.pal.httpclientpool import HttpClientPool
@@ -222,9 +223,11 @@ def crud_t(poolid, poolurl, local_pools_dir, pool):
     pstore.getPool(poolid).removeAll()
     assert pool.isEmpty()
 
-    tag = '==Demo ** Product=='
+    tag = '==== Demo Product ===='
     logger.info('test sample demo prod with tag: '+tag)
     sp = get_demo_product()
+    sp.refs['a_ref'] = ProductRef(get_related_product())
+
     urn = pstore.save(sp, tag=tag)
     print('Sample Prod saved with tag "%s" %s to %s' %
           (tag, urn.urn, pool.poolname))

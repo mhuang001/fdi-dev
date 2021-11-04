@@ -86,12 +86,6 @@ $INITARGS
         through visitor pattern."""
         visitor.visit(self)
 
-    def getDefault(self):
-        """ Convenience method that returns the first dataset \
-        belonging to this product. """
-        return list(self.values())[0] if len(self) > 0 else None
-
-
 
     def targetChanged(self, event):
         pass

@@ -47,7 +47,7 @@ class BaseProduct( AbstractComposite, Copyable, EventSender):
     =====
     BaseProduct class schema 1.6 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-10-13 03:20:08.170978.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-11-05 01:32:45.063826.
 
 Description:
 FDI base class data model
@@ -99,12 +99,6 @@ FDI base class data model
         """ Hook for adding functionality to meta data object
         through visitor pattern."""
         visitor.visit(self)
-
-    def getDefault(self):
-        """ Convenience method that returns the first dataset \
-        belonging to this product. """
-        return list(self.values())[0] if len(self) > 0 else None
-
 
 
     def targetChanged(self, event):

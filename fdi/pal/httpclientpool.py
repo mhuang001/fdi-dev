@@ -34,8 +34,10 @@ bltn = vars(builtins)
 
 
 def toserver(self, method, *args, **kwds):
+    # if method == 'select':
+    #    __import__('pdb').set_trace()
 
-    apipath = serialize_args(method, *args, **kwds)
+    apipath = serialize_args(method, *args, not_quoted=self.not_quoted, **kwds)
 
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
 
@@ -79,6 +81,7 @@ class HttpClientPool(ProductPool):
         """
         # print(__name__ + str(kwds))
         super().__init__(**kwds)
+        self.not_quoted = True
 
     def setup(self):
         """ Sets up HttpPool interals.

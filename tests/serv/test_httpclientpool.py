@@ -53,20 +53,21 @@ def init_test():
 
 def chksa(a, k):
     p = 0
-    s = serialize_args(*a, **k)
-    if p:
-        print('s= ', s)
-    code, a1, k1 = deserialize_args(s, not_quoted=False)
-    assert code == 200
-    assert a == a1
-    assert k == k1
-    s = urllib.parse.unquote(s)
-    if p:
-        print('S= ', s)
-    code, a1, k1 = deserialize_args(s, not_quoted=True)
-    assert code == 200
-    assert a == a1
-    assert k == k1
+    for not_quoted in [False, True]:
+        s = serialize_args(*a, **k)
+        if p:
+            print('s= ', s)
+        code, a1, k1 = deserialize_args(s, not_quoted=False)
+        assert code == 200
+        assert a == a1
+        assert k == k1
+        s = urllib.parse.unquote(s)
+        if p:
+            print('S= ', s)
+        code, a1, k1 = deserialize_args(s, not_quoted=True)
+        assert code == 200
+        assert a == a1
+        assert k == k1
 
 
 def test_serialize_args():
@@ -127,7 +128,8 @@ def test_gen_url(server):
     got_webapi_url = urn2fdiurl(
         urn=sampleurn, poolurl=samplepoolurl, contents=call, method='GET')
     webapi_url = aburl + '/' + samplepoolname + '/' + 'api/' + call
-    assert got_webapi_url == webapi_url, 'Get WebAPI url error: ' + got_webapi_url
+    # '/'
+    assert got_webapi_url == webapi_url+'/', 'Get WebAPI url error: ' + got_webapi_url
 
     logger.info('Post product url')
     got_post_product_url = urn2fdiurl(

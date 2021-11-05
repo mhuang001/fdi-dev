@@ -5,7 +5,7 @@ from fdi.dataset.eq import deepcmp
 from fdi.dataset.metadata import make_jsonable
 from fdi.dataset.finetime import FineTime
 from fdi.dataset.datatypes import Vector, Quaternion
-from fdi.dataset.deserialize import Class_Look_Up
+from fdi.dataset.deserialize import Class_Look_Up, serialize_args, deserialize_args
 from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.pal.urn import Urn
 from fdi.pal.productref import ProductRef
@@ -243,9 +243,16 @@ def test_fetch():
     assert s == '.alf(4.4)'
 
     # method w/ positional and keyword args
-    u, s = fetch(['alf__4.4__77'], v)
-    assert u == (4.4, 77)
-    assert s == '.alf(4.4, 77)'
+    allargs = serialize_args(4.4, [{"w": 77}, 65], not_quoted=True)
+    assert allargs == '4.4__{"apiargs": [[{\"w\": 77}, 65]]}'
+    u, s = fetch(['alf__' + allargs], v)
+    assert u == (4.4, [{"w": 77}, 65])
+    assert s == ".alf(4.4, [{'w': 77}, 65])"
+
+    # method/function result
+    u, s = fetch(['alf__' + allargs, 1, 0, 'w'], v)
+    assert u == 77
+    assert s == ".alf(4.4, [{'w': 77}, 65])[1][0][\"w\"]"
 
     class ad(dict):
         ada = 'p'

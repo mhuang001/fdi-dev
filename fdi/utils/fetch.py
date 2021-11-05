@@ -79,16 +79,13 @@ def fetch(paths, nested, re='', sep='/', exe=['is'], not_quoted=True):
                 # return f'{rep}({all_args_expr})', f'{rep}({all_args_expr})'
 
                 # v0(*[], **{}) is not v0() !
-                if len(args):
-                    res = v0(*args, **kwds) if len(kwds) else v0(*args)
-                else:
-                    res = v0(**kwds) if len(kwds) else v0()
-                return v0(*args, **kwds), f'{rep}({all_args_expr})'
-        else:
-            # not executable
-            if len(paths) == 1:
-                return v0, rep
-            return fetch(paths[1:], v0, re=rep, sep=sep, exe=exe)
+                res = v0(*args, **kwds)
+                v0 = res
+                rep = f'{rep}({all_args_expr})'
+        # not executable
+        if len(paths) == 1:
+            return v0, rep
+        return fetch(paths[1:], v0, re=rep, sep=sep, exe=exe)
     # not methods, attribute or member
     # if found_method:
         # return methodcaller(p0)(nested), rep + '()'

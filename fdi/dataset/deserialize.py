@@ -312,7 +312,7 @@ def encode_str(a0):
     return urllib.parse.quote(a0).replace(Serialize_Args_Sep, SAS_Avatar)
 
 
-def serialize_args(*args, **kwds):
+def serialize_args(*args, not_quoted=False, **kwds):
     """
     Serialize all positional and keywords arguements as they would appear in a function call.
     Arguements are assumed to have been placed in the same order of a valid function/method call. They are scanned from left to right from `args[i]` i = 0, 1,... to `kwds[j]` j = 0, 1, ...
@@ -344,18 +344,18 @@ or scanning reaches the end of args.
         if a0 is None or issubclass(a0c, (bool, int, float)):
             noseriargs.append(str(a0))
         elif issubclass(a0c, (str)):
-            noseriargs.append(encode_str(a0))
+            noseriargs.append(a0 if not_quoted else encode_str(a0))
         elif issubclass(a0c, (bytes, bytearray)):
             noseriargs.append('0x'+a0.hex())
         else:
             seri = serialize(dict(apiargs=args[i:], **kwds))
-            noseriargs.append(encode_str(seri))
+            noseriargs.append(seri if not_quoted else encode_str(seri))
             break
     else:
         # loop ended w/ break
         if kwds:
             seri = serialize(kwds)
-            noseriargs.append(encode_str(seri))
+            noseriargs.append(seri if not_quoted else encode_str(seri))
     # print(noseriargs)
     despaced = Serialize_Args_Sep.join(noseriargs)
 

@@ -96,7 +96,8 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
         elif contents in ['classes', 'urns', 'tags']:
             ret = poolurl + '/hk/' + contents
         elif contents.split('__')[0] in WebAPI:
-            ret = poolurl + '/api/' + contents
+            # append a '/' for flask
+            ret = poolurl + '/api/' + contents + '/'
         else:
             raise ValueError(
                 'No such method and contents composition: ' + method + ' / ' + contents)

@@ -341,6 +341,8 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
             return exprstrs(self)
         return self.__class__.__name__ + ss
 
+    string = toString
+
     def __getstate__(self):
         """ Can be encoded with serializableEncoder
         Parameters
@@ -749,6 +751,8 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         return '%s(%s: %s <%s>, "%s", default= %s, valid= %s tcode=%s)' % \
             (self.__class__.__name__, ts, vs, us, ds, fs, gs, cs)
 
+    string = toString
+
     __str__ = toString
 
     def __getstate__(self):
@@ -986,6 +990,8 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
         # return '\n%s\n%s-listeners = %s' % (s, cn, lsnr) if len(tab) else \
         #    '%s %s-listeners = %s' % ('(No Parameter.)', cn, lsnr)
+
+    string = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder

@@ -71,3 +71,5 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
                         matprint=matprint, trans=trans, keyval='SubDataset ',
                         **kwds)
         return '\n\n'.join((x for x in (s, beforedata, d) if len(x))) + '\n' + last
+
+    string = toString

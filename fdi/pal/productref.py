@@ -331,6 +331,8 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
         s += ')'
         return s
 
+    string = toString
+
     __str__ = toString
 
     def __getstate__(self):

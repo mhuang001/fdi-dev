@@ -47,7 +47,7 @@ class BaseProduct( AbstractComposite, Copyable, EventSender):
     =====
     BaseProduct class schema 1.6 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-11-05 01:32:45.063826.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-11-07 12:05:03.905716.
 
 Description:
 FDI base class data model
@@ -124,7 +124,8 @@ FDI base class data model
 	    matprint=matprint, trans=trans, beforedata=h, **kwds)
         return s
 
-
+    string = toString
+    
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         s = OrderedDict(

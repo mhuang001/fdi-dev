@@ -192,6 +192,8 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
         d += lls(ds, 1000)
         return f'{s}\n{d}\n{last}\n'
 
+    string = toString
+
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
 

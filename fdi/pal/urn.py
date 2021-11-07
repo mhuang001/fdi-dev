@@ -212,6 +212,8 @@ Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. T
                 self._poolpath
             )
 
+    string = toString
+
 
 def parseUrn(urn):
     """

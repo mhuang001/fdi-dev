@@ -111,6 +111,8 @@ class StorageQuery(Serializable):
                        for k, v in self.__getstate__().items())) + '>'
         return s
 
+    string = toString
+
     def __repr__(self):
         return self.toString()
 

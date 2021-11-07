@@ -234,6 +234,8 @@ class Composite(DataContainer, Serializable, MutableMapping):
                        tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                        matprint=matprint, trans=trans, **kwds)
 
+    string = toString
+
 
 class UserDictAdapter(UserDict):
     """ Adapter class to make UserDict cooperative to multiple inheritance and take data keyword arg.

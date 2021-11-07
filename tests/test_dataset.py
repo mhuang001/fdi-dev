@@ -2076,11 +2076,13 @@ def test_CompositeDataset_init():
     v3.set(a10, x)
     v3.meta[a11] = a12
     ts = 'level 0\n'
-    ts += v3.toString()
+    s3 = v3.toString()
+    ts += s3
     ts += 'level 1, repr\n'
     ts += v3.toString(1)
     ts += 'level 2,\n'
     ts += v3.toString(2)
+    assert v3.string() == s3
     if mk_output:
         print(ts)
         with open('/tmp/output.py', 'a') as f:

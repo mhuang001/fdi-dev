@@ -209,6 +209,8 @@ class FineTime(Copyable, DeepEqual, Serializable):
             s = tais
         return s
 
+    string = toString
+
     def __repr__(self):
         return self.toString(level=2)
 

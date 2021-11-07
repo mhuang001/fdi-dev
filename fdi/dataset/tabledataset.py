@@ -582,6 +582,8 @@ Default is to return all columns.
             d += '(Only display %d rows of %d for level=%d.)' % (stp, collen, level)
         return f'{s}\n{d}{last}\n'
 
+    string = toString
+
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(

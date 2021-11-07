@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import requests
+import functools
 import logging
 import sys
 from requests.auth import HTTPBasicAuth
@@ -31,6 +32,11 @@ defaulturl = 'http://' + pcc['node']['host'] + \
     ':' + str(pcc['node']['port']) + pcc['baseurl']
 AUTHUSER = pcc['node']['username']
 AUTHPASS = pcc['node']['password']
+
+
+@functools.lru_cache(maxsize=16)
+def getAuth(user=AUTHUSER, password=AUTHPASS):
+    return HTTPBasicAuth(user, password)
 
 
 def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
@@ -146,9 +152,7 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False):
 ts into the pool
     no_serial: do not serialize the data.
     """
-    user = AUTHUSER
-    password = AUTHPASS
-    auth = HTTPBasicAuth(user, password)
+    auth = getAuth()
     api = urn2fdiurl(urn, poolurl, contents='product', method='POST')
     # print('POST API: ' + api)
     headers = {'tags': tag}
@@ -165,9 +169,7 @@ def read_from_server(urn, poolurl, contents='product'):
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     """
-    user = AUTHUSER
-    password = AUTHPASS
-    auth = HTTPBasicAuth(user, password)
+    auth = getAuth()
     api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
     res = requests.get(api, auth=auth)
@@ -182,9 +184,7 @@ def put_on_server(urn, poolurl, contents='pool'):
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     """
-    user = AUTHUSER
-    password = AUTHPASS
-    auth = HTTPBasicAuth(user, password)
+    auth = getAuth()
     api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
     # print("DELETE REQUEST API: " + api)
     res = requests.put(api, auth=auth)
@@ -198,9 +198,7 @@ def delete_from_server(urn, poolurl, contents='product'):
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     """
-    user = AUTHUSER
-    password = AUTHPASS
-    auth = HTTPBasicAuth(user, password)
+    auth = getAuth()
     api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)
     res = requests.delete(api, auth=auth)

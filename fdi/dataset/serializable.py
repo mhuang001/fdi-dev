@@ -314,12 +314,6 @@ class Serializable():
         s.update({'_STID': self._STID})
         return s
 
-    json = serializable
-    try:
-        string = toString
-    except NameError:
-        pass
-
     def yaml(self):
         """ Get a YAML representation. """
         from ..utils.ydump import ydump, yinit

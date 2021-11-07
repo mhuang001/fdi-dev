@@ -6,17 +6,17 @@ info:
 TO_UPPER    = $(shell python -c "print('$(1)'.upper())")
 TO_LOWER    = $(shell python -c "print('$(1)'.lower())")
 
-PRODUCT := Product
+PRODUCT = Product
 B_PRODUCT = BaseProduct
 PYDIR	:= fdi/dataset
-RESDIR	= $(PYDIR)/resources
+RESDIR	:= $(PYDIR)/resources
 P_PY	= $(call TO_LOWER,$(PRODUCT)).py
 B_PY	= $(call TO_LOWER,$(B_PRODUCT)).py
 B_INFO	= $(B_PY)
 P_YAML	= $(RESDIR)/$(PRODUCT).yml
 B_YAML	= $(RESDIR)/$(B_PRODUCT).yml
-P_TEMPLATE	= $(RESDIR)
-B_TEMPLATE	= $(RESDIR)
+P_TEMPLATE	:= $(RESDIR)/$(PRODUCT).template
+B_TEMPLATE	:= $(RESDIR)/$(B_PRODUCT).template
 
 DSETS = ArrayDataset_DataModel TableDataset_DataModel UnstructuredDataset_DataModel MediaWrapper_DataModel
 DSETS_PY	= $(addsuffix .py,$(call TO_LOWER,$(DSETS)))
@@ -27,15 +27,15 @@ DSETSpy		= $(addprefix $(PYDIR)/,$(DSETS_PY))
 # BaseProduct, Product and datasets
 py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY) $(DSETSpy)
 
-$(DSETSpy): $(PYDIR)/yaml2python.py $(DSETS_YAML) $(DSETS.TEMPL) $(PYDIR)/$(B_PY)
+$(DSETSpy): $(PYDIR)/yaml2python.py $(DSETS_YAML) $(DSETS_TEMPL) $(PYDIR)/$(B_PY)
 	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(RESDIR) -o $(PYDIR) $(Y)
 
-$(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE)/$(PRODUCT).template $(PYDIR)/$(B_PY)
-	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(P_TEMPLATE) -o $(PYDIR) $(Y)
+$(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE) $(PYDIR)/$(B_PY)
+	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(RESDIR) -o $(PYDIR) $(Y)
 
 
-$(PYDIR)/$(B_PY): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE)/$(B_PRODUCT).template 
-	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(B_TEMPLATE) -o $(PYDIR) $(Y)
+$(PYDIR)/$(B_PY): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE) 
+	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(RESDIR) -o $(PYDIR) $(Y)
 
 yamlupgrade: 
 	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -u
@@ -190,25 +190,3 @@ include Makefile_docs.mk
 
 include Makefile_docker.mk
 
-# 
-# build_docker \
-# launch_docker \
-# build_server \
-# launch_server \
-# launch_test_server \
-# rm_docker \
-# rm_dockeri \
-# it \
-# t \
-# i \
-# push_docker \
-# push_server \
-# pull_server \
-# vol \
-# backup_server \
-# restore_server \
-# restore_test \
-# update_docker:
-# 	$(MAKE) --no-print-directory -f Makefile_docker.mk -C . $@
-# 
-# 

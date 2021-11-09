@@ -1132,7 +1132,7 @@ def test_realistic_http(server, demo_product):
     dp, related = demo_product
     relatedref = pstore.save(related, tag='referenced by DemoProduct')
     dp['refs']['a related product'] = relatedref
-    demoprodref = pstore.save(related, tag='DemoProduct')
+    demoprodref = pstore.save(dp, tag='DemoProduct')
 
 
 def f(n):

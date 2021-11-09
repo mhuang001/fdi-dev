@@ -177,6 +177,6 @@ def get_demo_product():
 
 
 def get_related_product():
-    return Product(description='A related Product',
-                   data=TableDataset([('pi', 'e'), (3.14, 2.72)])
-                   )
+    p = Product(description='A related Product')
+    p['a dumb table'] = TableDataset([('pi', 'e'), (3.14, 2.72)])
+    return p

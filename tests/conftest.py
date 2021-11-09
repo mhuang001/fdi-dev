@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.pal.poolmanager import PoolManager
 from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.utils.common import lls
@@ -229,3 +230,9 @@ def client(server_app, mock_app):
                 # mock_app.preprocess_request()
                 assert current_app.config["ENV"] == "production"
             yield client
+
+
+@pytest.fixture(scope='package')
+def demo_product():
+    v = get_demo_product()
+    return v, get_related_product()

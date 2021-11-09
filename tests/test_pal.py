@@ -514,7 +514,7 @@ def test_ProductStorage_init():
         pass  # assert False, 'exception expected'
 
 
-def check_ps_func_for_pool(thepoolname, thepoolurl, *args):
+def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
     ps = ProductStorage(poolurl=thepoolurl)
     p1 = ps.getPools()[0]
     # get the pool object
@@ -534,7 +534,7 @@ def check_ps_func_for_pool(thepoolname, thepoolurl, *args):
     q = 3
     x2, ref2 = [], []
 
-    for d in range(q):  # The 1st one is a mapcontext, rest prodct
+    for d in range(q):  # The 1st one is a mapcontext, rest product
         tmp = Product(description='x' + str(d)
                       ) if d > 0 else MapContext(description='x0')
         x2.append(tmp)
@@ -601,7 +601,7 @@ def test_ProdStorage_func_local_mem():
     thepoolpath = '/tmp/fditest'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
     cleanup(thepoolurl, thepoolname)
-    check_ps_func_for_pool(thepoolname, thepoolurl, None)
+    check_prodStorage_func_for_pool(thepoolname, thepoolurl, None)
 
     # mempool
     thepoolname = DEFAULT_MEM_POOL
@@ -609,7 +609,7 @@ def test_ProdStorage_func_local_mem():
     thepoolurl = 'mem://' + thepoolpath + thepoolname
 
     cleanup(thepoolurl, thepoolname)
-    check_ps_func_for_pool(thepoolname, thepoolurl, None)
+    check_prodStorage_func_for_pool(thepoolname, thepoolurl, None)
 
 
 def test_ProdStorage_func_http(server, userpass):
@@ -632,7 +632,7 @@ def test_ProdStorage_func_http(server, userpass):
     # not exist
     with pytest.raises(RuntimeError):
         assert pool.isEmpty()
-    check_ps_func_for_pool(thepoolname, thepoolurl, userpass)
+    check_prodStorage_func_for_pool(thepoolname, thepoolurl, userpass)
 
 
 def test_ProdStorage_func_server(local_pools_dir):
@@ -641,7 +641,7 @@ def test_ProdStorage_func_server(local_pools_dir):
     thepoolurl = 'server://' + local_pools_dir + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
-    check_ps_func_for_pool(thepoolname, thepoolurl, None)
+    check_prodStorage_func_for_pool(thepoolname, thepoolurl, None)
 
 
 def test_LocalPool():
@@ -1079,15 +1079,16 @@ def test_MapContext():
     # realistic scenario
 
 
-def test_realistic():
-    poolname = Test_Pool_Name
-    poolpath = '/tmp/fditest'
-    poolurl = 'file://' + poolpath + '/' + poolname
+def test_realistic_http(server, demo_product):
+
+    aburl, hdrs = server
+    aburl = aburl.rstrip('/')
+    poolname = 'demo'
+    poolurl = aburl + '/' + poolname
+    cleanup(poolurl, poolname)
     # remove existing pools in memory
-    PoolManager.removeAll()
     # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
-    pstore = ProductStorage(poolurl=poolurl)  # on disk
-    pstore.wipePool()
+    thepool, pstore = mkStorage(poolname, poolurl)
 
     p1 = Product(description='p1')
     p2 = Product(description='p2')
@@ -1124,6 +1125,14 @@ def test_realistic():
     # two parents
     assert len(pref2.parents) == 2
     assert pref2.parents[1] == map2
+    map1ref = pstore.save(map1, tag=__name__+'::realistic.map1')
+    map1ref = pstore.save(map2, tag=__name__+'::realistic.map2')
+
+    # demo prod
+    dp, related = demo_product
+    relatedref = pstore.save(related, tag='referenced by DemoProduct')
+    dp['refs']['a related product'] = relatedref
+    demoprodref = pstore.save(related, tag='DemoProduct')
 
 
 def f(n):

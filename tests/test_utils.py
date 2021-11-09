@@ -6,7 +6,6 @@ from fdi.dataset.metadata import make_jsonable
 from fdi.dataset.finetime import FineTime
 from fdi.dataset.datatypes import Vector, Quaternion
 from fdi.dataset.deserialize import Class_Look_Up, serialize_args, deserialize_args
-from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.pal.urn import Urn
 from fdi.pal.productref import ProductRef
 from fdi.utils.checkjson import checkjson
@@ -57,24 +56,23 @@ else:
     logging.getLogger("filelock").setLevel(logging.WARN)
 
 
-def test_get_demo_product():
-    v = get_demo_product()
+def test_get_demo_product(demo_product):
+    v, related = demo_product
     assert v['Browse'].data[1:4] == b'PNG'
     # print(v.yaml())
     p = v.getDefault()
     assert p == v['results']
-    aref = ProductRef(get_related_product())
+    aref = ProductRef(related)
     v.refs['a'] = aref
     r0 = v.refs
     p['dset'] = 'foo'
-    # refs ys always the last
+    # refs is always the last
     assert list(v.keys())[-1] == 'refs'
     assert r0 == v.refs
     # existing key
     p['dset'] = 'foo'
     assert list(v.keys())[-1] == 'refs'
     assert r0 == v.refs
-
     checkjson(v, dbg=0)
     checkgeneral(v)
 
@@ -166,7 +164,7 @@ def chk_sample_pd(p):
     assert all((y*y + z*z - 100) < 1e-5 for y, z in zip(ys.data, zs.data))
 
 
-def test_fetch():
+def test_fetch(demo_product):
 
     # simple nested structure
     v = {1: 2, 3: 4}
@@ -274,7 +272,7 @@ def test_fetch():
     assert s == '["x"][2]["m"]'
 
     # products
-    p = get_demo_product()
+    p, r = demo_product
     chk_sample_pd(p)
 
 
@@ -455,7 +453,7 @@ def test_getConfig_conf(getConfig):
     # specify directory
     cp = '/tmp'
     # environment variable
-    os.environ['CONF_DIR'] = cp
+    os.environ['CONF_DIR_' + typ.upper()] = cp
     check_conf(cp, typ, getConfig)
     # non-existing. the file has been deleted by the check_conf in the last line
     w = getConfig(conf=typ)

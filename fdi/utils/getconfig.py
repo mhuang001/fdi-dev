@@ -31,7 +31,7 @@ class Instance():
 
 
 # @functools.lru_cache(8)
-def getConfig(name=None, conf='pns'):
+def getConfig(name=None, conf='pns', builtin=builtin_conf):
     """ Imports a dict named [conf]config.
 
     The contents of the config are defined in the ``.config/[conf]local.py`` file. The contenss are used to update defaults in ``fdi.pns.config``.
@@ -41,9 +41,9 @@ def getConfig(name=None, conf='pns'):
     conf: configuration ID. default 'pns', so the file is 'pnslocal.py'.
     """
     # default configuration is provided. Copy pns/config.py to ~/.config/pnslocal.py
-    config = builtin_conf
+    config = builtin
 
-    epath = expandvars('$CONF_DIR')
+    epath = expandvars('$CONF_DIR_' + conf.upper())
     if isdir(epath):
         confp = epath
     else:

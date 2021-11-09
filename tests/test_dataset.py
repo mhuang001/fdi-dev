@@ -1981,6 +1981,8 @@ def demo_TableDataset():
     print(table["Time"].data)
     print(table["Time"].unit)
 
+    return table
+
 
 def test_CompositeDataset_init():
     # constructor
@@ -2479,6 +2481,8 @@ def demo_CompositeDataset():
     child = c["MyComposite"]
     print(child.__class__)
     print(child)
+
+    return c
 
 
 def test_FineTime():

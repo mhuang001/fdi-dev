@@ -432,7 +432,7 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
     ts = time.time()
     logger.debug('get compo or meth: ' + str(paths))
     lp = len(paths)
-    # if paths[-1] == 'toString':
+    # if paths[-1] in ('toString', 'string'):
     #    __import__('pdb').set_trace()
 
     if paths[-1] == '':
@@ -459,7 +459,8 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
             code = 200
             msg = f'Getting {path_str} OK'
             compo_meth_name = path_str.split('.')[-1]
-            if compo_meth_name.startswith('toString'):
+            if compo_meth_name[:8] == 'toString' or \
+               compo_meth_name[:6] == 'string':
                 if 'html' in compo_meth_name:
                     ct = 'text/html'
                 elif 'fancy_grid' in compo_meth_name:

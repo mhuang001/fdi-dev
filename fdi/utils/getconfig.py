@@ -47,7 +47,7 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf):
     if isdir(epath):
         confp = epath
     else:
-        # environment variable CONFIG_DIR is not set
+        # environment variable CONFIG_DIR_<conf> is not set
         env = expanduser(expandvars('$HOME'))
         # apache wsgi will return '$HOME' with no expansion
         if env == '$HOME':

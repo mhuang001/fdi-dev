@@ -3,6 +3,7 @@
 from .getswag import swag
 from .httppool_server import resp, excp, checkpath, check_readonly
 from ..model.user import auth, getUsers
+from ..._version import __version__
 from ...dataset.deserialize import deserialize_args
 from ...pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
 from ...pal.productpool import PoolNotFoundError
@@ -18,6 +19,7 @@ import time
 import copy
 import json
 import os
+from os.path import join, expandvars
 from itertools import chain
 from http import HTTPStatus
 
@@ -94,7 +96,11 @@ def get_pools_url():
         res = dict((x, request.base_url+'/'+x) for x in result)
     else:
         res = {}
-    msg = '%d pools found.' % len(result)
+
+    svers = expandvars('$SERVER_VERSION')
+
+    msg = '%d pools found. Versiosn: fdi %s httppool server %s' % (
+        len(result), __version__, svers)
     code = 200
     return resp(code, res, msg, ts)
 
@@ -131,7 +137,7 @@ def get_name_all_pools(path):
     os.makedirs(path, exist_ok=True)
     allfilelist = os.listdir(path)
     for file in allfilelist:
-        filepath = os.path.join(path, file)
+        filepath = join(path, file)
         if os.path.isdir(filepath):
             alldirs.append(file)
     current_app.logger.debug(path + ' has ' + str(alldirs))
@@ -303,7 +309,7 @@ def wipe_pools(poolnames, usr):
         thepool = all_pools[nm]
         try:
             thepool.removeAll()
-            shutil.rmtree(os.path.join(path, nm))
+            shutil.rmtree(join(path, nm))
             res = PM.remove(nm)
             if res > 1:
                 notgood.append(nm+': '+str(res))
@@ -409,7 +415,7 @@ def register_pool(pool, usr):
     :returns: code, pool object if successful, message
     """
     poolname = pool
-    fullpoolpath = os.path.join(current_app.config['POOLPATH_BASE'], poolname)
+    fullpoolpath = join(current_app.config['POOLPATH_BASE'], poolname)
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     makenew = usr and usr.role == 'read_write'
     try:
@@ -642,7 +648,7 @@ def get_prod_count(prod_type, pool_id):
     res = 0
     nm = []
 
-    path = os.path.join(current_app.config['POOLPATH_BASE'], pool_id)
+    path = join(current_app.config['POOLPATH_BASE'], pool_id)
     if os.path.exists(path):
         for i in os.listdir(path):
             if i[-1].isnumeric() and prod_type in i:

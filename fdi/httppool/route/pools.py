@@ -97,10 +97,11 @@ def get_pools_url():
     else:
         res = {}
 
+    dvers = expandvars('$DOCKER_VERSION')
     svers = expandvars('$SERVER_VERSION')
 
-    msg = '%d pools found. Versiosn: fdi %s httppool server %s' % (
-        len(result), __version__, svers)
+    msg = '%d pools found. Versiosn: fdi %s docker %s pool server %s' % (
+        len(result), __version__, dvers, svers)
     code = 200
     return resp(code, res, msg, ts)
 

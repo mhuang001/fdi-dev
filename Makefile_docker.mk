@@ -21,10 +21,12 @@ LOGGING_LEVEL	=10
 LATEST	=im:latest
 B       =/bin/bash
 
-docker_version:
+FORCE:
+
+docker_version: FORCE
 	date +v%y%m%d_%H%M >| docker_version
 
-build_docker: docker_version
+build_docker:
 	@echo Building $(DOCKER_VERSION)
 	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DOCKER_VERSION) \
 	--secret id=envs,src=$(SECFILE) \
@@ -131,7 +133,7 @@ backup_server:
 
 restore_server:
 ifndef from
-	echo Must give filename: make restare_server from=filename
+	echo Must give filename: $(MAKE) restare_server from=filename
 else
 	echo Restore from backup file: $(from)
 	cat $(from) | docker run -i --rm \
@@ -146,20 +148,21 @@ else
 endif
 
 restore_test:
-	make rm_docker
+	$(MAKE) rm_docker
 	docker volume prune --force && 	docker volume ls
 	@echo %%% above should be empty %%%%%%%
-	make launch_server && make it B='/bin/ls -l $(PROJ_DIR)/data'
+	$(MAKE) launch_server && $(MAKE) it B='/bin/ls -l $(PROJ_DIR)/data'
 	@echo %%% above should be empty %%%%%%%
-	make restore_server from=backup_httppool_v5_210722T015659.tar
-	make it B='/bin/ls -l $(PROJ_DIR)/data'
+	$(MAKE) restore_server from=backup_httppool_v5_210722T015659.tar
+	$(MAKE) it B='/bin/ls -l $(PROJ_DIR)/data'
 	@echo %%% above should NOT be empty %%%%%%%
 
 update_docker:
-	make install EXT=[DEV,SERV] I=-U &&\
-	make build_docker && make push_docker &&\
-	make build_server && make push_server &&\
-	make launch_test_server &&\
-	make test7 && make test8 &&\
-	make rm_docker
+	$(MAKE) install EXT=[DEV,SERV] I=-U &&\
+	$(MAKE) docker_version &&\
+	$(MAKE) build_docker && $(MAKE) push_docker &&\
+	$(MAKE) build_server && $(MAKE) push_server &&\
+	$(MAKE) launch_test_server &&\
+	$(MAKE) test7 && $(MAKE) test8 &&\
+	$(MAKE) rm_docker
 

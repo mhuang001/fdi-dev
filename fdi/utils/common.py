@@ -2,11 +2,13 @@
 
 from .masked import masked
 from .ydump import ydump
+from .. import dataset
 
 import hashlib
 import array
 import traceback
 import pprint
+import copy
 import pwd
 import logging
 from itertools import zip_longest
@@ -109,8 +111,7 @@ def mstr(obj, level=0, width=1, excpt=None, indent=4, depth=0,
     if level == 0:
         if not hasattr(obj, 'items'):
             return bstr(obj, level=level, **kwds)
-        from fdi.dataset.metadata import MetaData
-        if issubclass(obj.__class__, MetaData):
+        if issubclass(obj.__class__, dataset.metadata.MetaData):
             return obj.toString(level=level,
                                 tablefmt=tablefmt, tablefmt1=tablefmt1,
                                 tablefmt2=tablefmt2,
@@ -138,8 +139,7 @@ def mstr(obj, level=0, width=1, excpt=None, indent=4, depth=0,
             # returns value of value if possible. limit to 40 char
             obj = obj.getValue() if hasattr(obj, 'getValue') else obj
             return bstr(obj, length=80, level=level, **kwds)
-        from fdi.dataset.metadata import MetaData
-        if issubclass(obj.__class__, MetaData):
+        if issubclass(obj.__class__, dataset.metadata.MetaData):
             return obj.toString(level=level, **kwds) + '\n'
         else:
             pat = '%s= {%s}' if depth == 0 else '%s= %s'
@@ -379,20 +379,40 @@ def attrstr1(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
     return vs
 
 
-def exprstrs(param, v='_value', **kwds):
-    """ Generates a set of strings for toString().
+def exprstrs(param, v='_value', extra=False, **kwds):
+    """ Generates a set of strings for param.toString().
 
+    :param: Parameeter or xDstaset.
+    :extra: Whether to include less often used attributes suc as ```fits_keyword```.
     """
-
+    if issubclass(param.__class__, dataset.metadata.Parameter):
+        extra_attrs = copy.copy(param._all_attrs)
+    elif issubclass(param.__class__, (dataset.arraydataset.ArrayDataset,
+                                      dataset.tabledataset.TableDataset,
+                                      dataset.unstructureddataset.UnstrcturedDataset)):
+        extra_attrs = dict((n, v['default'])
+                           for n, v in param.zInfo['metadata'].items())
+    else:
+        extra_attrs = {}
     ts = attrstr(param, '_type', **kwds)
+    if 'typ_' in extra_attrs:
+        extra_attrs.pop('typ_', '')
+    else:  # Dataset
+        extra_attrs.pop('type', '')
     vs = attrstr(param, v, ftime=True, **kwds)
+    extra_attrs.pop('value', '')
     fs = attrstr(param, '_default', ftime=True, **kwds)
+    extra_attrs.pop('default', '')
     ds = attrstr(param, 'description', **kwds)
+    extra_attrs.pop('description')
     gs = attrstr(param, '_valid', ftime=True, **kwds)
+    extra_attrs.pop('valid', '')
     us = attrstr(param, '_unit', **kwds)
+    extra_attrs.pop('unit', '')
     cs = attrstr(param, '_typecode', **kwds)
+    extra_attrs.pop('typecode', '')
 
-    return (vs, us, ts, ds, fs, gs, cs)
+    return (vs, us, ts, ds, fs, gs, cs, extra_attrs)
 
 
 def pathjoin(*p):

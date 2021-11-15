@@ -67,7 +67,7 @@ launch_server:
 
 launch_test_server:
 	docker tag $(SERVER_NAME):$(SERVER_VERSION) $(LATEST)
-	$(MAKE) launch_server PORT=9881 EXTPORT=9881 LOGGING_LEVEL=10 #LATEST=mhastro/httppool
+	$(MAKE) launch_server PORT=9885 EXTPORT=9885 LOGGING_LEVEL=10 #LATEST=mhastro/httppool
 
 rm_docker:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\

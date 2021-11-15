@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from fdi.utils.fits_kw import FITS_KEYWORDS, getFitsKw
 from fdi.utils.leapseconds import utc_to_tai, tai_to_utc, dTAI_UTC_from_utc, _fallback
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.metadata import make_jsonable
@@ -274,6 +275,23 @@ def test_fetch(demo_product):
     # products
     p, r = demo_product
     chk_sample_pd(p)
+
+
+def test_Fits_Kw():
+    # Fits to Parameter name
+    assert FITS_KEYWORDS['DATASUM'] == 'checksumData'
+    assert FITS_KEYWORDS['DESC'] == 'description'
+    assert FITS_KEYWORDS['CUNIT'] == 'cunit'
+    assert getFitsKw('checksumData') == 'DATASUM'
+    assert getFitsKw('description') == 'DESC'
+    assert getFitsKw('cunit01') == 'CUNIT01'
+    assert getFitsKw('description01234') == 'DESC34'
+    # with pytest.raises(ValueError):
+    assert getFitsKw('checksumData0123', 3) == 'DATAS123'
+    assert getFitsKw('checksumData0123', 2) == 'DATASU23'
+    with pytest.raises(TypeError):
+        assert getFitsKw('foo0123', 5, (('foo', 'BAR'))) == 'BAR0123'
+    assert getFitsKw('foo0123', 5, (('foo', 'BAR'),)) == 'BAR0123'
 
 
 def test_loadcsv():

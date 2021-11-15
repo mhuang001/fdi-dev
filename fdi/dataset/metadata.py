@@ -17,6 +17,7 @@ from ..utils.common import exprstrs, wls, bstr, t2l
 
 from tabulate import tabulate
 
+from itertools import zip_longest, filterfalse
 import builtins
 from collections import OrderedDict, UserList
 from numbers import Number
@@ -24,6 +25,8 @@ import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
+
+tabulate.WIDE_CHARS_MODE = True
 
 """
 | Attribute | Defining Module | Holder Variable |
@@ -56,9 +59,18 @@ Parameter_Attr_Defaults = {
         typecode=None
     ),
 
+    'BooleanParameter': dict(
+        value=None,
+        description='UNKNOWN',
+        typ_='',
+        default=None,
+        valid=None,
+    ),
+
     'DateParameter': dict(
         value=None,
         description='UNKNOWN',
+        typ_='',
         default=0,
         valid=None,
     ),
@@ -66,6 +78,7 @@ Parameter_Attr_Defaults = {
     'StringParameter': dict(
         value=None,
         description='UNKNOWN',
+        typ_='',
         default='',
         valid=None,
         typecode=None
@@ -121,8 +134,8 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         Returns
         -------
         """
-        super(AbstractParameter, self).__init__(
-            description=description, **kwds)
+
+        super().__init__(description=description, **kwds)
 
         self.setValue(value)
         self._defaults = Parameter_Attr_Defaults[self.__class__.__name__]
@@ -322,9 +335,7 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         """
         return xhash(hash_list=self._value)
 
-    def toString(self, level=0,
-                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-                 alist=False, **kwds):
+    def toString(self, level=0, alist=False, **kwds):
         """ alist: returns a dictionary string representation of parameter attributes.
         Parameters
         ----------
@@ -338,7 +349,7 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         ss = '%s' % (vs) if level else \
             '%s, "%s"' % (vs, ds)
         if alist:
-            return exprstrs(self)
+            return exprstrs(self, **kwds)
         return self.__class__.__name__ + ss
 
     string = toString
@@ -396,13 +407,20 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         -------
 
         """
-        # super(Parameter, self).__init__(description=description, **kwds)
+
+        # collect args-turned-local-variables.
+        args = OrderedDict(filterfalse(
+            lambda x: x[0] in ('self', '__class__', 'kwds'),
+            locals().items())
+        )
+        args.update(kwds)
+        self._all_attrs = args
 
         self.setDefault(default)
         self.setValid(valid)
         # super() will set value so type and default need to be set first
-        super(Parameter, self).__init__(
-            value=value, description=description, typ_=typ_, **kwds)
+
+        super().__init__(value=value, description=description, typ_=typ_, **kwds)
 
     def accept(self, visitor):
         """ Adds functionality to classes of this type.
@@ -513,7 +531,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             v = self.checked(value)
         super().setValue(v)
 
-    @property
+    @ property
     def default(self):
         """
         Parameters
@@ -524,7 +542,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         """
         return self.getDefault()
 
-    @default.setter
+    @ default.setter
     def default(self, default):
         """
         Parameters
@@ -565,7 +583,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
         self._default = self.checked(default)
 
-    @property
+    @ property
     def valid(self):
         """
         Parameters
@@ -576,7 +594,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         """
         return self.getValid()
 
-    @valid.setter
+    @ valid.setter
     def valid(self, valid):
         """
         Parameters
@@ -738,14 +756,12 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             return [tuple(resnm) if len(resnm) else (INVALID, 'Invalid') for mask, resnm in binmasks.items()]
         return hasvalid if hasvalid else (INVALID, 'Invalid')
 
-    def toString(self, level=0,
-                 tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
-                 width=0, alist=False, **kwds):
+    def toString(self, level=0, alist=False, **kwds):
 
-        ret = exprstrs(self, level=level, width=width, **kwds)
+        ret = exprstrs(self, level=level, **kwds)
         if alist:
             return ret
-        vs, us, ts, ds, fs, gs, cs = ret
+        vs, us, ts, ds, fs, gs, cs, ext = ret
         if level > 1:
             return '(%s: %s <%s>)' % (ts, vs, us)
         return '%s(%s: %s <%s>, "%s", default= %s, valid= %s tcode=%s)' % \
@@ -774,6 +790,8 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
 MetaHeaders = ['name', 'value', 'unit', 'type', 'valid',
                'default', 'code', 'description']
+ExtraAttributes = ['fits_keyword', 'id_zh_cn',
+                   'description_zh_cn', 'valid_zh_cn']
 
 
 class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
@@ -890,7 +908,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
     def toString(self, level=0,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
-                 param_widths=None, width=0, **kwds):
+                 param_widths=None, width=0, extra=False, **kwds):
         """ return  string representation of metada.
 
         level: 0 is the most detailed, 2 is the least,
@@ -908,7 +926,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         i, row = 0, []
         cn = self.__class__.__name__
         s = ''
-        att = {}
+        att, ext = {}, {}
         has_omission = False
 
         for (k, v) in self.__getstate__().items():
@@ -917,13 +935,21 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             elif k == '_STID':
                 continue
             att['name'] = k
-            # limit cell width for level=0,1
+            # get values of line k. limit cell width for level=0,1
             if issubclass(v.__class__, Parameter):
                 att['value'], att['unit'], att['type'], att['description'],\
-                    att['default'], att['valid'], att['code'] = v.toString(
+                    att['default'], att['valid'], att['code'], ext = v.toString(
                         level=level, width=0 if level > 1 else 1,
                         tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                        extra=extra,
                         alist=True)
+                from ..utils.fits_kw import getFitsKw
+                # make sure every line has fits_keyword in ext #1
+                fk = ext.pop('fits_keyword') if 'fits_keyword' \
+                    in ext else getFitsKw(k)
+                ext0 = ext
+                ext = {'fits_keyword': fk}
+                ext.update(ext0)
             else:
                 # listeners
                 lstr = v.toString(level=level, alist=True)
@@ -934,12 +960,22 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                     '\n'.join(x[0] for x in lstr), \
                     '\n'.join(x[2] for x in lstr)
                 att['default'], att['valid'], att['code'] = '', '', ''
+                ext = dict((n, '') for n in ext)
 
+            # generate column vallues of the line and ext headers
             if level == 0:
-                l = tuple(att[n] for n in MetaHeaders) if param_widths == -1 else \
-                    tuple(wls(att[n], w)
-                          for n, w in param_widths.items() if w != 0)
+                if param_widths == -1:
+                    l = tuple(att[n] for n in MetaHeaders)
+                    if extra:
+                        l += tuple(v for v in ext.values())
+                else:
+                    l = tuple(wls(att[n], w)
+                              for n, w in param_widths.items() if w != 0)
+                    if extra:
+                        l += tuple(wls(v, 9) for v in ext.values())
                 tab.append(l)
+                exh = [v for v in ext.keys()]
+
             elif level == 1:
                 ps = '%s= %s' % (att['name'], att['value'])
                 tab.append(wls(ps, 80//N))
@@ -970,8 +1006,15 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
         # write out the table
         if level == 0:
-            headers = MetaHeaders if param_widths == -1 else \
-                [n for n, w in zip(MetaHeaders, param_widths) if w != 0]
+            allh = (MetaHeaders + exh) if extra else MetaHeaders
+            if param_widths == -1:
+                headers = allh
+            else:
+                headers = []
+                for n in allh:
+                    w = param_widths.get(n, 9)
+                    if w != 0:
+                        headers.append(wls(n, w))
             fmt = tablefmt
             s += tabulate(tab, headers=headers, tablefmt=fmt, missingval='',
                           disable_numparse=True)

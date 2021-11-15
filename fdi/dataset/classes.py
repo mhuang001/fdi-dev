@@ -43,7 +43,7 @@ class Classes_meta(type):
         'fdi.dataset.testproducts': ['TP', 'TC', 'TM'],
         'fdi.dataset.datatypes': ['Vector', 'Vector2D', 'Quaternion'],
         'fdi.dataset.metadata': ['AbstractParameter', 'Parameter', 'MetaData'],
-        'fdi.dataset.numericparameter': ['NumericParameter'],
+        'fdi.dataset.numericparameter': ['NumericParameter', 'BooleanParameter'],
         'fdi.dataset.dateparameter': ['DateParameter'],
         'fdi.dataset.stringparameter': ['StringParameter'],
         'fdi.dataset.arraydataset': ['ArrayDataset', 'Column'],

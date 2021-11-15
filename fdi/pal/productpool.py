@@ -89,7 +89,7 @@ When implementing a ProductPool, the following rules need to be applied:
         # self._pathurl = pr.netloc + pr.path
         # self._pathurl = None
 
-    class ParameetersIncommpleteError(Exception):
+    class ParametersIncommpleteError(Exception):
         pass
 
     def setup(self):

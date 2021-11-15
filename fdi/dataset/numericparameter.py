@@ -6,6 +6,7 @@ from .datatypes import Vector, Vector2D, Quaternion
 
 from collections.abc import Sequence
 from collections import OrderedDict
+from itertools import filterfalse
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -29,8 +30,18 @@ class NumericParameter(Parameter, Quantifiable):
 
         typ_: type of the parameter value.
         """
+
+        # collect args-turned-local-variables.
+        args = OrderedDict(filterfalse(
+            lambda x: x[0] in ('self', '__class__', 'kwds'),
+            locals().items())
+        )
+        args.update(kwds)
+
         super().__init__(
-            value=value, description=description, typ_=typ_, default=default, unit=unit, valid=valid, typecode=typecode, **kwds)
+            value=value, description=description, typ_=typ_, default=default, unit=unit, valid=valid, typecode=typecode)
+        # Must overwrite the self._all_attrs set by supera()
+        self._all_attrs = args
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
@@ -73,3 +84,51 @@ class NumericParameter(Parameter, Quantifiable):
                 raise ValueError(
                     'Sequence of only 2 to 4 elements for NumericParameter')
         super().setDefault(default)
+
+
+class BooleanParameter(Parameter):
+    """ A Parameter that has a boolean as the value.
+    """
+
+    def __init__(self,
+                 value=None,
+                 description='UNKNOWN',
+                 default=None,
+                 valid=None,
+                 **kwds):
+        """ Set up a parameter whose value is a boolean
+
+        """
+
+        typ_ = kwds.pop('typ_', 'boolean')
+        # collect args-turned-local-variables.
+        args = OrderedDict(filterfalse(
+            lambda x: x[0] in ('self', '__class__', 'kwds'),
+            locals().items())
+        )
+        args.update(kwds)
+
+        super().__init__(
+            value=value, description=description, typ_=typ_, default=default, valid=valid)
+        # Must overwrite the self._all_attrs set by supera()
+        self._all_attrs = args
+
+    def __getstate__(self):
+        """ Can be encoded with serializableEncoder """
+        return OrderedDict(description=self.description,
+                           type=self._type,
+                           default=self._default,
+                           value=self._value,
+                           valid=self._valid,)
+
+    def setValue(self, value):
+        """ accept any type that `bool` does.
+        """
+        b = None if value is None else bool(value)
+        super().setValue(b)
+
+    def setDefault(self, default):
+        """ accept any type that `bool` Vector does.
+        """
+        b = None if default is None else bool(default)
+        super().setDefault(b)

@@ -265,7 +265,19 @@ When implementing a ProductPool, the following rules need to be applied:
         """
 
         res = self.schematicSave(product, tag=tag,
-                                 geturnobjs=geturnobjs, serialize_in=serialize_in, serialize_out=serialize_out, **kwds)
+                                 geturnobjs=geturnobjs,
+                                 serialize_in=serialize_in,
+                                 serialize_out=serialize_out, **kwds)
+        if issubclass(product.__class__, str) or isinstance(product, list) and \
+           issubclass(product[0].__class__, str):
+            # p is urn string from server-side LocalPool
+            return res
+
+        if isinstance(res, list):
+            for p, u in zip(product, res):
+                p._urn = u if geturnobjs else u.getUrnObj()
+        else:
+            product._urn = res if geturnobjs else res.getUrnObj()
         return res
 
     def loadDescriptors(self, urn):
@@ -293,6 +305,19 @@ When implementing a ProductPool, the following rules need to be applied:
                              ' . This is ' + self._poolname))
         ret = self.schematicLoad(
             resourcetype=resource, index=index, serialize_out=serialize_out)
+
+        if issubclass(ret.__class__, str) or isinstance(ret, list) and \
+           issubclass(ret[0].__class__, str):
+            # ret is a urn string from server-side LocalPool
+            return ret
+
+        if isinstance(ret, list):
+            logger.warning('TODO: unexpected')
+            for x, u in zip(ret, urn):
+                x._urn = u
+        else:
+            ret._urn = urn
+
         return ret
 
     def meta(self, urn):

@@ -90,36 +90,38 @@ class ProductStorage(object):
 
     def load(self, urnortag):
         """ Loads a product with a URN or a list of products with a tag, from the (writeable) pool.
+
         It always creates new ProductRefs.
-        returns productref(s).
+        :return: productref if there is only one. A ```list``` of ```ProductRefs```.
         urnortag: urn or tag
         """
         poolname = self.getWritablePool()
 
         def runner(urnortag):
             if issubclass(urnortag.__class__, list):
-                ulist = []
-                [ulist.append(runner(x)) for x in urnortag]
+                ulist = list(map(runner, urnortag))
                 return ulist
             else:
                 if issubclass(urnortag.__class__, str):
-                    if len(urnortag) > 3 and urnortag[0:4] == 'urn:':
-                        urns = [urnortag]
+                    if len(urnortag) > 3 and urnortag[0:4].lower() == 'urn:':
+                        urns = urnortag
                     else:
                         urns = self.getUrnFromTag(urnortag)
+                        ret = []
+                        for x in urns:
+                            pr = productref.ProductRef(
+                                urn=x, poolname=poolname)
+                            ret.append(pr)
+                        return ret
                 elif issubclass(urnortag.__class__, Urn):
-                    urns = [urnortag.urn]
+                    urns = urnortag.urn
                 else:
                     raise ValueError(
                         'must provide urn, urnobj, tags, or lists of them')
-                ret = []
-                for x in urns:
-                    pr = productref.ProductRef(urn=x, poolname=poolname)
-                    ret.append(pr)
-                return ret
+                return productref.ProductRef(urn=urns, poolname=poolname)
         ls = runner(urnortag=urnortag)
         # return a list only when more than one refs
-        return ls if len(ls) > 1 else ls[0]
+        return ls  # if len(ls) > 1 else ls[0]
 
     def save(self, product, tag=None, poolname=None, geturnobjs=False, **kwds):
         """ saves to the writable pool if it has been registered.

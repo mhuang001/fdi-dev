@@ -60,7 +60,7 @@ def add_header(meta,header):
     for name,param in meta.items():
         kw=getFitsKw(name)
         header[kw]=(param.value,param.description)
-    retun header
+    return header
    
 def fits_header():
     fitsdir = '/Users/jia/desktop/vtse_out/'

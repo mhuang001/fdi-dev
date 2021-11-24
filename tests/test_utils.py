@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+from fdi.dataset.arraydataset import ArrayDataset
+from fdi.dataset.dataset import Dataset
+from fdi.utils.fits_kw import FITS_KEYWORDS, getFitsKw
 from fdi.utils.leapseconds import utc_to_tai, tai_to_utc, dTAI_UTC_from_utc, _fallback
 from fdi.dataset.eq import deepcmp
 from fdi.dataset.metadata import make_jsonable
@@ -15,6 +17,10 @@ from fdi.utils.common import fullname
 from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
 from fdi.utils.loadfiles import loadMedia
+from fdi.utils.tofits import toFits
+from fdi.utils.tofits import fits_dataset
+
+from astropy.io import fits
 
 import traceback
 import copy
@@ -55,6 +61,27 @@ else:
     logging.getLogger("urllib3").setLevel(logging.WARN)
     logging.getLogger("filelock").setLevel(logging.WARN)
 
+def test_fits_dataset():
+    ima=ArrayDataset(data=[[1,2,3,4],[5,6,7,8]], description='a')
+    imb=ArrayDataset(data=[[1,2,3,4],[5,6,7,8],[1,2,3,4],[5,6,7,8]], description='b')
+    #im=[[1,2,3,4],[5,6,7,8]]
+    
+    hdul = fits.HDUList()
+    hdul.append(fits.PrimaryHDU())
+    data=[ima,imb]
+    u=fits_dataset(hdul,data)
+    assert issubclass(u.__class__, fits.HDUList)    
+    assert len(u) == len(data)+1
+
+def test_toFits():
+    ima=ArrayDataset(data=[[1,2,3,4],[5,6,7,8]], description='a')
+    imb=ArrayDataset(data=[[1,2,3,4],[5,6,7,8],[1,2,3,4],[5,6,7,8]], description='b')
+    #im=[[1,2,3,4],[5,6,7,8]]
+    
+    data=ima
+    u=toFits(data)
+    assert issubclass(u.__class__, fits.HDUList)    
+    assert len(u) == len(data)+1
 
 def test_get_demo_product(demo_product):
     v, related = demo_product
@@ -274,6 +301,23 @@ def test_fetch(demo_product):
     # products
     p, r = demo_product
     chk_sample_pd(p)
+
+
+def test_Fits_Kw():
+    # Fits to Parameter name
+    assert FITS_KEYWORDS['DATASUM'] == 'checksumData'
+    assert FITS_KEYWORDS['DESC'] == 'description'
+    assert FITS_KEYWORDS['CUNIT'] == 'cunit'
+    assert getFitsKw('checksumData') == 'DATASUM'
+    assert getFitsKw('description') == 'DESC'
+    assert getFitsKw('cunit01') == 'CUNIT01'
+    assert getFitsKw('description01234') == 'DESC34'
+    # with pytest.raises(ValueError):
+    assert getFitsKw('checksumData0123', 3) == 'DATAS123'
+    assert getFitsKw('checksumData0123', 2) == 'DATASU23'
+    with pytest.raises(TypeError):
+        assert getFitsKw('foo0123', 5, (('foo', 'BAR'))) == 'BAR0123'
+    assert getFitsKw('foo0123', 5, (('foo', 'BAR'),)) == 'BAR0123'
 
 
 def test_loadcsv():

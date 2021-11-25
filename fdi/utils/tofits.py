@@ -21,8 +21,8 @@ def main():
 
 def toFits(data):
     hdul = fits.HDUList()
-    if issubclass(data.__class__, Dataset):
-        hdul.append(fits.PrimaryHDU())
+    hdul.append(fits.PrimaryHDU())
+    if issubclass(data[0].__class__, Dataset):
         hdul=fits_dataset(hdul,data)
         print("***",len(hdul))
     elif issubclass(data.__class__, BaseProduct):

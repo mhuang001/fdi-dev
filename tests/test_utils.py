@@ -78,7 +78,7 @@ def test_toFits():
     imb=ArrayDataset(data=[[1,2,3,4],[5,6,7,8],[1,2,3,4],[5,6,7,8]], description='b')
     #im=[[1,2,3,4],[5,6,7,8]]
     
-    data=ima
+    data=[ima]
     u=toFits(data)
     assert issubclass(u.__class__, fits.HDUList)    
     assert len(u) == len(data)+1

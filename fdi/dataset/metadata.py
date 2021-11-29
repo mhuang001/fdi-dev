@@ -16,6 +16,7 @@ from ..utils.common import grouper
 from ..utils.common import exprstrs, wls, bstr, t2l
 
 from tabulate import tabulate
+import cwcwidth
 
 from itertools import zip_longest, filterfalse
 import builtins
@@ -26,7 +27,10 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
+tabulate.wcwidt = cwcwidth
 tabulate.WIDE_CHARS_MODE = True
+tabulate.PRESERVE_WHITESPACE = True
+Default_Extra_Param_Width = 12
 
 """
 | Attribute | Defining Module | Holder Variable |
@@ -928,14 +932,14 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         s = ''
         att, ext = {}, {}
         has_omission = False
-
+        nn = 0
         for (k, v) in self.__getstate__().items():
             if k.startswith('_ATTR_'):
                 k = k[6:]
             elif k == '_STID':
                 continue
             att['name'] = k
-            # get values of line k. limit cell width for level=0,1
+            # get values of line k.
             if issubclass(v.__class__, Parameter):
                 att['value'], att['unit'], att['type'], att['description'],\
                     att['default'], att['valid'], att['code'], ext = v.toString(
@@ -963,16 +967,22 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 ext = dict((n, '') for n in ext)
 
             # generate column vallues of the line and ext headers
+            # limit cell width for level=0,1.
             if level == 0:
                 if param_widths == -1:
                     l = tuple(att[n] for n in MetaHeaders)
                     if extra:
                         l += tuple(v for v in ext.values())
                 else:
-                    l = tuple(wls(att[n], w)
-                              for n, w in param_widths.items() if w != 0)
+                    l = tuple(
+                        wls(att[n], w)
+                        for n, w in param_widths.items() if w != 0)
                     if extra:
-                        l += tuple(wls(v, 9) for v in ext.values())
+                        l += tuple(
+                            wls(v, Default_Extra_Param_Width)
+                            for v in ext.values())
+                        print(l)
+
                 tab.append(l)
                 exh = [v for v in ext.keys()]
 
@@ -1000,6 +1010,9 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                     ps = '%s=%s' % (n, v.toString(level)) if level == 2 else n
                     # tab.append(wls(ps, 80//N))
                     tab.append(ps)
+            nn += 1
+            if nn == 2:
+                pass  # break
 
         if has_omission:
             tab.append('..')
@@ -1012,7 +1025,8 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             else:
                 headers = []
                 for n in allh:
-                    w = param_widths.get(n, 9)
+                    w = param_widths.get(n, Default_Extra_Param_Width)
+                    print(n, w)
                     if w != 0:
                         headers.append(wls(n, w))
             fmt = tablefmt

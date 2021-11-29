@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from ..utils.common import bstr
+from .metadata import tabulate
 
-from tabulate import tabulate
 import logging
 import sys
 from itertools import zip_longest

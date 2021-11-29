@@ -12,7 +12,7 @@ from fdi.pal.productref import ProductRef
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadcsv
 from fdi.utils import moduleloader
-from fdi.utils.common import fullname
+from fdi.utils.common import fullname, wls
 from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
 from fdi.utils.loadfiles import loadMedia
@@ -367,6 +367,45 @@ def test_fullname():
     assert fullname(Urn()) == 'fdi.pal.urn.Urn'
     assert fullname(Urn) == 'fdi.pal.urn.Urn'
     assert fullname('l') == 'str'
+
+
+def test_wls():
+    assert wls('') == ''
+    assert wls('a') == 'a'
+    assert wls('12', 2) == '12'
+    assert wls('12345', 2) == '12\n34\n5'
+    assert wls('12345678901234567') == '123456789012345\n67'
+    # splitlines() removes trailing line-breaks
+    assert wls('12345\n', 2) == '12\n34\n5'
+    # no extr \n at width border
+    assert wls('12\n345', 2) == '12\n34\n5'
+    # no extr \n not at width border
+    assert wls('1\n2345', 2) == '1\n23\n45'
+    assert wls('1\n\n2345', 2) == '1\n23\n45'
+    assert wls('12345\n\n', 2) == '12\n34\n5'
+    assert wls('格式版本', 4) == '格式\n版本'
+    assert wls('格式版本', 8) == '格式版本'
+    assert wls('格式版本。', 10) == '格式版本。'
+    assert wls('格\n式版本', 8) == '格\n式版本'
+    assert wls('格式版本b', 4) == '格式\n版本\nb'
+    assert wls('a格式版本', 4) == 'a格\n式版\n本'
+    assert wls('格a式版本', 4) == '格a\n式版\n本'
+    assert wls('格式a版本', 4) == '格式\na版\n本'
+    assert wls('格式版a本', 4) == '格式\n版a\n本'
+    assert wls('\ta', 1) == '#\na'
+    assert wls('') == '#'
+    # \r and \r\n etc are taken out as line-breaks.
+    # ref https://docs.python.org/3.6/library/stdtypes.html#str.splitlines
+    # the last \n is removed
+    assert wls('\r') == ''
+    # page separater is out, too
+    assert wls(str(b'\x1c', 'utf-8')) == ''
+    assert wls('格式\x01版a本', 4) == '格式\n#版a\n本'
+    # fill
+    assert wls('格\n式版本', 8, fill=' ') == '格      \n式版本  '
+    assert wls('格式版本b', 4, fill=' ') == '格式\n版本\nb   '
+    assert wls('格\th式版本b', 5, fill=' ') == '格#h \n式版 \n本b  '
+    assert wls('产品标称的起始时间', 12, fill=' ') == '产品标称的起\n始时间      '
 
 
 def test_opt():

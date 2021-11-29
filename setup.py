@@ -37,6 +37,7 @@ setup(
         'ruamel.yaml',
         'tabulate>=0.8.7',
         'wcwidth',
+        'cwcwidth>=0.1.5',
         'paho-mqtt>=1.5.1',
         'xmltodict>=0.12.0',
         'jsonpath-ng>=1.5.3',

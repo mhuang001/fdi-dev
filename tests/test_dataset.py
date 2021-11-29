@@ -68,10 +68,10 @@ else:
 Classes.updateMapping()
 
 # make format output in /tmp/output.py
-mk_output = 0
+mk_output = 1
 
 if mk_output:
-    with open('/tmp/output.py', 'wt') as f:
+    with open('/tmp/output.py', 'wt', encoding='utf-8') as f:
         f.write('# -*- coding: utf-8 -*-\n')
 
 if __name__ == '__main__' and __package__ is None:
@@ -1186,7 +1186,7 @@ def test_MetaData():
     ts += v.toString(extra=True)
     if mk_output:
         print(ts)
-        with open('/tmp/output.py', 'a') as f:
+        with open('/tmp/output.py', 'a', encoding='utf-8') as f:
             clsn = 'out_MetaData'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:

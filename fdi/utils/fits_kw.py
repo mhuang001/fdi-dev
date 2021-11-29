@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+from functools import lru_cache
 import copy
 
 #      Dictionary of Commonly Used FITS Keywords
@@ -80,7 +83,7 @@ FITS_keywords_HEASARC = {
     'ONTIME': 'observationIntegrationTime',
     'ORIENTAT': 'positionAngleAxisY',
     'PA_PNT': 'positionAnglePointing',
-    'PROGRAM': 'softwareTaskName',
+    'PROGRAM': 'program',  # softwareTaskName',
     'RA': 'rightAscension',
     'RA_NOM': 'rightAscensionNominal',
     'RA_OBJ': 'rightAscensionObserved',
@@ -126,101 +129,122 @@ FITS_keywords_Standard = {
     'TELESCOP': 'telescope',
 }
 
-# Dictionary of commonly used CLASS keywords
-#
-FITS_keywords_CLASS = {
-    'MODELNAM': 'modelName',
-    'TEMPERAT': 'temperature',
-    'MAXIS': 'MAXIS',
-    'MAXIS1': 'MAXIS1',
-    'MAXIS2': 'MAXIS2',
-    'MAXIS3': 'MAXIS3',
-    'MAXIS4': 'MAXIS4',
-    'CTYPE1': 'CTYPE1',
-    'CRVAL1': 'CRVAL1',
-    'CDELT1': 'CDELT1',
-    'CRPIX1': 'CRPIX1',
-    'CTYPE2': 'CTYPE2',
-    'CRVAL2': 'CRVAL2',
-    'CDELT2': 'CDELT2',
-    'CRPIX2': 'CRPIX2',
-    'CTYPE3': 'CTYPE3',
-    'CRVAL3': 'CRVAL3',
-    'CDELT3': 'CDELT3',
-    'CRPIX3': 'CRPIX3',
-    'CTYPE4': 'CTYPE4',
-    'CRVAL4': 'CRVAL4',
-    'CDELT4': 'CDELT4',
-    'CRPIX4': 'CRPIX4',
-    'BANDWID': 'BANDWID',
-    'RESTFREQ': 'RESTFREQ',
-    'IMAGFREQ': 'IMAGFREQ',
-    'LOFREQ': 'LOFREQ',
-    'VELOCITY': 'VELOCITY',
-    'DELTAV': 'DELTAV',
-    'BLANK': 'BLANK',
-    'OBSID': 'OBSID',
-    'APID': 'APID',
-    'BBID': 'BBID',
-    'BBTYPE': 'BBTYPE',
-    'BBNUMBER': 'BBNUMBER',
-    'SEQNUMBE': 'SEQNUMBE',
-    'BEAMEFF': 'BEAMEFF',
-    'FORWEFF': 'FORWEFF',
-    'APEREFF': 'APEREFF',
-    'ETAL': 'ETAL',
-    'ETAFSS': 'ETAFSS',
-    'ANTGAIN': 'ANTGAIN',
-    'BMAJ': 'BMAJ',
-    'BMIN': 'BMIN',
-    'BPA': 'BPA',
-    'GAINIMAG': 'GAINIMAG',
-    'TAU': 'TAU',
-    'TAUIMAGE': 'TAUIMAGE',
-    'TAUZENIT': 'TAUZENIT',
-    'MH2O': 'MH2O',
-    'HUMIDITY': 'HUMIDITY',
-    'DEWPOINT': 'DEWPOINT',
-    'PRESSURE': 'PRESSURE',
-    'TOUTSIDE': 'TOUTSIDE',
-    'WINDSPEE': 'WINDSPEE',
-    'WINDDIRE': 'WINDDIRE',
-    'SCAN': 'SCAN',
-    'SUBSCAN': 'SUBSCAN',
-    'TSYS': 'TSYS',
-    'OBSTIME': 'OBSTIME',
-    'EXPOSURE': 'EXPOSURE',
-    'DATE-OBS': 'DATE-OBS',
-    'DATE-RED': 'DATE-RED',
-    'OBJECT': 'OBJECT',
-    'LINE': 'LINE',
-    'MOLECULE': 'MOLECULE',
-    'TRANSITI': 'TRANSITI',
-    'TELESCOP': 'TELESCOP',
-    'NPHASE': 'NPHASE',
-    'DELTAF1': 'DELTAF1',
-    'PTIME1': 'PTIME1',
-    'WEIGHT1': 'WEIGHT1',
-    'DELTAF2': 'DELTAF2',
-    'PTIME2': 'PTIME2',
-    'WEIGHT2': 'WEIGHT2',
-    'THOT': 'THOT',
-    'TCOLD': 'TCOLD',
-    'OBSERVER': 'OBSERVER',
-    'PROJID': 'PROJID',
-    'OBSMODE': 'OBSMODE',
-    'TEMPSCAL': 'TEMPSCAL',
-    'TCAL': 'TCAL',
-    'TRX': 'TRX',
-    'TIMESYS': 'TIMESYS',
-    'SITELONG': 'SITELONG',
-    'SITELAT': 'SITELAT',
-    'SITEELEV': 'SITEELEV',
-    'DATAMIN': 'DATAMIN',
-    'DATAMAX': 'DATAMAX'
+
+# Dictionary of commonly used HCSS keywords that follow a numbering pattern
+# e.g. OBSID123': 'obsid123, PROP1': 'proposal1
+FITS_keywords_Numbered = {
+    'OBSID': 'obsid',
+    'PROP': 'proposal',
+    'CUNIT': 'cunit',
+    'CONSNAM': 'constraintName',
+    'CONSTYP': 'constraintType',
+    'CONSINF': 'constraintInfo',
+    'CONS_ST': 'timeConstraintStart',
+    'CONS_EN': 'timeConstraintEnd',
+    'YARRAY': 'yArray',
+    'ZARRAY': 'zArray',
+    'PROCOI': 'propCoI',
+    'PERTNAM': 'perturberName',
+    'PERTGM': 'perturberGM',
+    'CALTBC': 'calTableComment',
+    # -- HCSS-19602 Deconvolution task',
+    'LOF': 'loFreq',
+    'NBD': 'num_bad_chan_in_scan',
+    'BSC': 'bad_scan',
+    'POBS_': 'photObsid',
 }
 
+
+FITS_keywords_2 = {
+    'APID': 'apid',
+    'CHANGLOG': 'changelog',
+    'DEC': 'dec',
+    'DEC_NOM': 'decNominal',
+    'DEC_OBJ': 'decObject',
+    'DELTAPIX': 'deltaPix',
+    'DESC': 'description',
+    'DETECTOR': 'arrayName',
+    'END_WL': 'endWavelength',
+    'ERROR': 'error',
+    'EXP_TEXT': 'explanatoryText',
+    'FINETIME': 'fineTime',
+    'FORMATV': 'formatVersion',
+    'OBJTYPE': 'objectType',
+    'OBS_ID': 'obsid',
+    'OBS_MODE': 'obsMode',
+    'OBSSTATE': 'obsState',
+    'ODNUMBER': 'odNumber',
+    'OFF_POS': 'offPosFlag',
+    'ONSRCTIM': 'onSourceTime',
+    'ONTARF': 'onTargetFlag',
+    'ORIGIN': 'origin',
+}
+
+FITS_KEYWORDS = copy.copy(FITS_keywords_Standard)
+FITS_KEYWORDS.update(FITS_keywords_HEASARC)
+FITS_KEYWORDS.update(FITS_keywords_Numbered)
+FITS_KEYWORDS.update(FITS_keywords_2)
+
+Param_Names = dict((v, k) for k, v in FITS_KEYWORDS.items())
+
+
+@lru_cache(maxsize=256)
+def getFitsKw(name, ndigits=2, extra=None):
+    """ Returns the FITS keyword for a name.
+
+    If `name` ends with a digit, split `name` to a digital part consists if all digits on the right, and a "non-digital part" on the left. Take `ndigits` continuoud digits, counting from right, to form the "numeric-part". The "non-digital part", or the `name` if not endibg with digits, get the pre-translation according to:
+
+    1. Look up in the `Param_Names` table (inverse `FITS_KEYWORDS` table, if fails,
+    2. try the `extra` dictionary if provided. if fails,
+    3. take key value
+
+    If `name` ends with a digit, append the "numeric-part" to the first `8 - ndigits` (maximum) of characters from pre-transition, uppercased, to form the resukt;
+ else take a maximum of 8 characters from pre-transition. uppercased, to form the resukt.
+
+    :name: the name of e.g. a parameter.
+    :ndigits: how many digits (right to left) to take maximum if `name` ends with digits. default 2. Raises `ValueError` if more than 7.
+    :extra: tuple of `(fits,para)` tuples to provide more look-up dictionary.
+    :returns: FITS keyword.
+    """
+    if ndigits > 7:
+        raise ValueError(
+            'Cannot allow %d digits in FITS keywords (max 7).' % ndigits)
+    lname = len(name)
+    if extra is None:
+        pass
+    elif not issubclass(extra.__class__, (tuple)) or\
+            (extra and not issubclass(extra[0].__class__, tuple)):
+        raise TypeError(
+            '"extra" must be a tuple of a seriese (param:fitsKw) tuples.')
+    extradict = dict(extra) if extra else {}
+
+    non_digital = name.rstrip('0123456789')
+    lnondigi = len(non_digital)
+    endswith_digit = lname > lnondigi
+    if endswith_digit:
+        # has trailing digits
+        digital_part = name[lnondigi:]
+        numeric_part = digital_part[-ndigits:]
+        key = non_digital
+    else:
+        key = name
+    if key in Param_Names:
+        pre_translation = Param_Names[key]
+    elif key in extradict:
+        pre_translation = extradict[key]
+    else:
+        pre_translation = key
+    if endswith_digit:
+        return pre_translation[:8-ndigits].upper() + numeric_part
+    else:
+        return pre_translation[:8].upper()
+
+
+##########################
+######## NOT USED ########
+##########################
 FITS_keywords_HCSS = {
+
     # Dictionary of commonly used HCSS keywords
     #
     'ACMSMODE': 'acmsMode',
@@ -1300,29 +1324,96 @@ FITS_keywords_HCSS = {
     'COLMAX': 'colMax',
 }
 
-# Dictionary of commonly used HCSS keywords that follow a numbering pattern
-# e.g. OBSID123': 'obsid123, PROP1': 'proposal1
-FITS_keywords_Numbered = {
-    'OBSID': 'obsid',
-    'PROP': 'proposal',
-    'CUNIT': 'cunit',
-    'CONSNAM': 'constraintName',
-    'CONSTYP': 'constraintType',
-    'CONSINF': 'constraintInfo',
-    'CONS_ST': 'timeConstraintStart',
-    'CONS_EN': 'timeConstraintEnd',
-    'YARRAY': 'yArray',
-    'ZARRAY': 'zArray',
-    'PROCOI': 'propCoI',
-    'PERTNAM': 'perturberName',
-    'PERTGM': 'perturberGM',
-    'CALTBC': 'calTableComment',
-    # -- HCSS-19602 Deconvolution task',
-    'LOF': 'loFreq',
-    'NBD': 'num_bad_chan_in_scan',
-    'BSC': 'bad_scan',
-    'POBS_': 'photObsid',
+# Dictionary of commonly used CLASS keywords
+#
+FITS_keywords_CLASS = {
+    'MODELNAM': 'modelName',
+    'TEMPERAT': 'temperature',
+    'MAXIS': 'MAXIS',
+    'MAXIS1': 'MAXIS1',
+    'MAXIS2': 'MAXIS2',
+    'MAXIS3': 'MAXIS3',
+    'MAXIS4': 'MAXIS4',
+    'CTYPE1': 'CTYPE1',
+    'CRVAL1': 'CRVAL1',
+    'CDELT1': 'CDELT1',
+    'CRPIX1': 'CRPIX1',
+    'CTYPE2': 'CTYPE2',
+    'CRVAL2': 'CRVAL2',
+    'CDELT2': 'CDELT2',
+    'CRPIX2': 'CRPIX2',
+    'CTYPE3': 'CTYPE3',
+    'CRVAL3': 'CRVAL3',
+    'CDELT3': 'CDELT3',
+    'CRPIX3': 'CRPIX3',
+    'CTYPE4': 'CTYPE4',
+    'CRVAL4': 'CRVAL4',
+    'CDELT4': 'CDELT4',
+    'CRPIX4': 'CRPIX4',
+    'BANDWID': 'BANDWID',
+    'RESTFREQ': 'RESTFREQ',
+    'IMAGFREQ': 'IMAGFREQ',
+    'LOFREQ': 'LOFREQ',
+    'VELOCITY': 'VELOCITY',
+    'DELTAV': 'DELTAV',
+    'BLANK': 'BLANK',
+    'OBSID': 'OBSID',
+    'APID': 'APID',
+    'BBID': 'BBID',
+    'BBTYPE': 'BBTYPE',
+    'BBNUMBER': 'BBNUMBER',
+    'SEQNUMBE': 'SEQNUMBE',
+    'BEAMEFF': 'BEAMEFF',
+    'FORWEFF': 'FORWEFF',
+    'APEREFF': 'APEREFF',
+    'ETAL': 'ETAL',
+    'ETAFSS': 'ETAFSS',
+    'ANTGAIN': 'ANTGAIN',
+    'BMAJ': 'BMAJ',
+    'BMIN': 'BMIN',
+    'BPA': 'BPA',
+    'GAINIMAG': 'GAINIMAG',
+    'TAU': 'TAU',
+    'TAUIMAGE': 'TAUIMAGE',
+    'TAUZENIT': 'TAUZENIT',
+    'MH2O': 'MH2O',
+    'HUMIDITY': 'HUMIDITY',
+    'DEWPOINT': 'DEWPOINT',
+    'PRESSURE': 'PRESSURE',
+    'TOUTSIDE': 'TOUTSIDE',
+    'WINDSPEE': 'WINDSPEE',
+    'WINDDIRE': 'WINDDIRE',
+    'SCAN': 'SCAN',
+    'SUBSCAN': 'SUBSCAN',
+    'TSYS': 'TSYS',
+    'OBSTIME': 'OBSTIME',
+    'EXPOSURE': 'EXPOSURE',
+    'DATE-OBS': 'DATE-OBS',
+    'DATE-RED': 'DATE-RED',
+    'OBJECT': 'OBJECT',
+    'LINE': 'LINE',
+    'MOLECULE': 'MOLECULE',
+    'TRANSITI': 'TRANSITI',
+    'TELESCOP': 'TELESCOP',
+    'NPHASE': 'NPHASE',
+    'DELTAF1': 'DELTAF1',
+    'PTIME1': 'PTIME1',
+    'WEIGHT1': 'WEIGHT1',
+    'DELTAF2': 'DELTAF2',
+    'PTIME2': 'PTIME2',
+    'WEIGHT2': 'WEIGHT2',
+    'THOT': 'THOT',
+    'TCOLD': 'TCOLD',
+    'OBSERVER': 'OBSERVER',
+    'PROJID': 'PROJID',
+    'OBSMODE': 'OBSMODE',
+    'TEMPSCAL': 'TEMPSCAL',
+    'TCAL': 'TCAL',
+    'TRX': 'TRX',
+    'TIMESYS': 'TIMESYS',
+    'SITELONG': 'SITELONG',
+    'SITELAT': 'SITELAT',
+    'SITEELEV': 'SITEELEV',
+    'DATAMIN': 'DATAMIN',
+    'DATAMAX': 'DATAMAX'
 }
-
-FITS_KEYWORDS = copy.copy(FITS_keywords_Standard)
-FITS_KEYWORDS.update(FITS_keywords_HEASARC)

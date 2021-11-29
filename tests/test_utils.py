@@ -3,7 +3,7 @@ from fdi.dataset.arraydataset import ArrayDataset
 from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.dataset import Dataset
-from fdi.dataset.numericparameter import NumericParameter
+from fdi.dataset.numericparameter import NumericParameter,BooleanParameter
 from fdi.utils.fits_kw import FITS_KEYWORDS, getFitsKw
 from fdi.utils.leapseconds import utc_to_tai, tai_to_utc, dTAI_UTC_from_utc, _fallback
 from fdi.dataset.eq import deepcmp

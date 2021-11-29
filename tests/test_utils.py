@@ -103,6 +103,8 @@ def test_toFits():
     assert u[1].header['INTEGER']==1234
     assert u[1].header['STRING_T']=='"abc"'
     assert u[1].header['BOOLEAN_']=='T'
+
+    imb=ArrayDataset(data=[[1,2,3,4],[5,6,7,8],[1,2,3,4],[5,6,7,8]], description='b')
 def test_get_demo_product(demo_product):
     v, related = demo_product
     assert v['Browse'].data[1:4] == b'PNG'

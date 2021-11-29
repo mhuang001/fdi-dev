@@ -170,7 +170,7 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
                     width=width, param_widths=param_widths,
                     **kwds)
             # set wiidth=0 level=2 to inhibit \n
-            vs, us, ts, ds, fs, gs, cs = exprstrs(
+            vs, us, ts, ds, fs, gs, cs, ex = exprstrs(
                 self, '_data', width=0, level=level)
             # '{ %s (%s) <%s>, "%s", default %s, tcode=%s}' %\
             # (vs, us, ts, ds, fs, cs)

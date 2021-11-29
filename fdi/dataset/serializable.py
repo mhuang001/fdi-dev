@@ -243,26 +243,6 @@ class Serializable():
         """
         raise NotImplementedError()
 
-    def __prettystate__(self):
-        """ returns a better-looking ggetstate.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        dictview of a mappingg of a string representation of `k` and the original `v`.
-
-        """
-        res = {}
-        for k, v in self.__getstate__().items():
-            if k == '_STID':
-                continue
-            sk = str(k)
-            bk = sk[LEN_ATTR:] if sk.startswith(ATTR) else sk
-            res[bk] = v
-        return res.items()
-
     def __setstate__(self, state):
         """
         Parameters

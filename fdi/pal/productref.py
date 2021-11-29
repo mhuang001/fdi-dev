@@ -22,7 +22,8 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
     """
 
     def __init__(self, urn=None, poolname=None, product=None, meta=None, **kwds):
-        """ Urn can be the string or URNobject. if a `BaseProduct` or its subclass is provided create an in-memory URN.
+        """ Urn can be the string or URNobject. 
+
         Poolname if given overrides the pool name in urn, and causes metadata to be loaded from pool, unless this prodref points to a mempool.
         If meta is given, it will be used instead of that from poolname.
         A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.

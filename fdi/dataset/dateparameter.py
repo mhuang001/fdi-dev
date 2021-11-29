@@ -6,6 +6,7 @@ from .typecoded import Typecoded
 from .finetime import FineTime, FineTime1, utcobj
 
 from collections import OrderedDict
+from itertools import filterfalse
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -26,11 +27,21 @@ class DateParameter(Parameter, Typecoded):
          Set up a parameter whose value is a point in TAI time.
 
         """
+
+        # collect args-turned-local-variables.
+        args = OrderedDict(filterfalse(
+            lambda x: x[0] in ('self', '__class__', 'kwds'),
+            locals().items())
+        )
+        args.update(kwds)
+
         # 'Q' is unsigned long long (8byte) integer.
         typecode = 'Q'
         # this will set default then set value.
         super().__init__(
-            value=value, description=description, typ_='finetime', default=default, valid=valid, typecode=typecode, **kwds)
+            value=value, description=description, typ_='finetime', default=default, valid=valid, typecode=typecode)
+        # Must overwrite the self._all_attrs set by supera()
+        self._all_attrs = args
 
     def setValue(self, value):
         """ accept any type that a FineTime does.

@@ -943,7 +943,28 @@ def test_RefContainer():
     checkjson(v)
 
 
-def test_Context():
+@pytest.fixture(scope='function')
+def a_storage():
+
+    thepoolname = Test_Pool_Name
+    thepoolpath = '/tmp/fditest'
+    thepoolurl = 'file://' + thepoolpath + '/'+thepoolname
+    # remove existing pools in memory
+    PoolManager().removeAll()
+    # create a product store
+    pstore = ProductStorage(thepoolname, thepoolurl)
+    assert len(pstore.getPools()) == 1
+    assert pstore.getWritablePool() == thepoolname
+    assert op.isdir(transpath(thepoolname, thepoolpath))
+    # clean up possible garbage of previous runs
+    pstore.wipePool()
+    assert op.isdir(transpath(thepoolname, thepoolpath))
+    assert sum([1 for x in glob.glob(
+        op.join(transpath(thepoolname, thepoolpath), '*'))]) == 0
+    return pstore, thepoolname, thepoolurl
+
+
+def test_Context(a_storage):
     c1 = Context(description='1')
     c2 = Context(description='2')
     assert Context.isContext(c2.__class__)
@@ -955,7 +976,7 @@ def test_Context():
     #
 
 
-def test_MapContext():
+def test_MapContext(a_storage):
     # doc
     image = Product(description="hi")
     spectrum = Product(description="there")
@@ -1000,23 +1021,9 @@ def test_MapContext():
     assert c4['refs']['x'].product.description == 'hi'
 
     # stored prod
-    thepoolname = Test_Pool_Name
-    thepoolpath = '/tmp/fditest'
-    thepoolurl = 'file://' + thepoolpath + '/'+thepoolname
+    pstore, thepoolname, purl = a_storage
     # create a prooduct
     x = Product(description='save me in store')
-    # remove existing pools in memory
-    PoolManager().removeAll()
-    # create a product store
-    pstore = ProductStorage(thepoolname, thepoolurl)
-    assert len(pstore.getPools()) == 1
-    assert pstore.getWritablePool() == thepoolname
-    assert op.isdir(transpath(thepoolname, thepoolpath))
-    # clean up possible garbage of previous runs
-    pstore.wipePool()
-    assert op.isdir(transpath(thepoolname, thepoolpath))
-    assert sum([1 for x in glob.glob(
-        op.join(transpath(thepoolname, thepoolpath), '*'))]) == 0
     # save the product and get a reference
     prodref = pstore.save(x)
     # has the ProductStorage
@@ -1075,6 +1082,25 @@ def test_MapContext():
     newp = PoolManager.getPool(DEFAULT_MEM_POOL).loadProduct(urn)
     # the new and the old one are equal
     assert newp == x
+
+    c1 = MapContext(description='1')
+    c2 = MapContext(description='2')
+    # getAllRefs
+    pstore, thepoolname, purl = a_storage
+    p1 = Product('p1')
+    p2 = Product('p2')
+    # _urn for product is set.
+    assert not hasattr(p1, '_urn')
+    refp1 = pstore.save(p1)
+    assert p1._urn == refp1.urnobj
+    refp2 = pstore.save(p2)
+    c1.refs['p1'] = refp1
+    refc1 = pstore.save(c1)
+    c2.refs['p2'] = refp2
+    c2.refs['c1'] = refc1
+    assert c2.getAllRefs() == [refp2, refc1]
+    assert c2.getAllRefs(includeContexts=False) == [refp2]
+    assert c2.getAllRefs(recursive=True) == [refp2, refc1, refp1]
 
     # realistic scenario
 

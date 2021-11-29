@@ -30,7 +30,7 @@ from fdi.dataset.messagequeue import MqttRelayListener, MqttRelaySender
 from fdi.dataset.composite import Composite
 from fdi.dataset.metadata import Parameter, MetaData, make_jsonable
 from fdi.dataset.metadataholder import MetaDataHolder
-from fdi.dataset.numericparameter import NumericParameter
+from fdi.dataset.numericparameter import NumericParameter, BooleanParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.datatypes import DataTypes, DataTypeNames
@@ -70,11 +70,15 @@ Classes.updateMapping()
 # make format output in /tmp/output.py
 mk_output = 0
 
+if mk_output:
+    with open('/tmp/output.py', 'wt') as f:
+        f.write('# -*- coding: utf-8 -*-\n')
+
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py
 
     if not mk_output:
-        from outputs import nds20, nds30, nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
+        from outputs import nds20, nds30, nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
 else:
     # run by pytest
 
@@ -83,7 +87,7 @@ else:
     from pycontext import fdi
 
     if not mk_output:
-        from outputs import nds20, nds30, nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime
+        from outputs import nds20, nds30, nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
 
     import logging
     import logging.config
@@ -1012,6 +1016,29 @@ def test_NumericParameter():
     checkjson(v)
 
 
+def test_BooleanParameter():
+    v = BooleanParameter()
+    assert v.description == 'UNKNOWN'
+    assert v.value is None
+    assert v.type == 'boolean'
+    assert v.default is None
+    assert v.valid is None
+
+    a1 = 'a test BooleanParameter'
+    a2 = 100.234
+    a5 = True
+    a6 = (True, False)
+    v = BooleanParameter(description=a1, value=a2,
+                         default=a5, valid=a6)
+    assert v.description == a1
+    assert v.value == bool(a2)
+    assert v.type == 'boolean'
+    assert v.default == a5
+    assert v.valid == list(a6)
+
+    checkjson(v)
+
+
 def test_DateParameter():
 
     v = DateParameter()
@@ -1150,6 +1177,20 @@ def test_MetaData():
     v1[b3] = b4
     v1['foo'] = Parameter('bar')
     assert v != v1
+
+    # toString wth extra attributes
+    ts = 'MetaData.toString with extra'
+    v = Product(ts)
+    v = v.meta
+    ts += '\n'
+    ts += v.toString(extra=True)
+    if mk_output:
+        print(ts)
+        with open('/tmp/output.py', 'a') as f:
+            clsn = 'out_MetaData'
+            f.write('%s = """%s"""\n' % (clsn, ts))
+    else:
+        assert ts == out_MetaData
 
     # listeners
     class MockMetaListener(MetaDataListener):
@@ -1292,7 +1333,7 @@ def test_Dataset():
     ts += v.toString(2)
     if mk_output:
         print(ts)
-        with open('/tmp/output.py', 'wt') as f:
+        with open('/tmp/output.py', 'a') as f:
             clsn = 'out_Dataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -1360,12 +1401,12 @@ def do_ArrayDataset_init(atype):
 def check_MDP(x):
     for n, p in standardtestmeta().items():
         x.meta[n] = p
-    # when ``alwaysMeta`` is set, a Parameeter type attrbute becomes a Parameeter
+    # when ``alwaysMeta`` is set, a Parameter type attrbute becomes a Parameter
     assert x.alwaysMeta
     x.added_parameter = NumericParameter(42, description='A non-builtin param')
     assert x.meta['added_parameter'].value == 42
     assert issubclass(x.meta['added_parameter'].__class__, NumericParameter)
-    # wont work if not a Parameeter type
+    # wont work if not a Parameter type
     x.added_attribute = 111
     assert 'added_attribute' not in x.meta
     assert issubclass(x.added_attribute.__class__, int)
@@ -1506,6 +1547,7 @@ def do_ArrayDataset_func(atype):
 
     check_MDP(x)
     ts = '\n\nlevel 0\n'
+
     ts += x.toString()
     i = ts.index('0  0  0')
     if mk_output:

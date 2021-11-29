@@ -36,6 +36,7 @@ setup(
         'filelock>=3.0.12',
         'ruamel.yaml',
         'tabulate>=0.8.7',
+        'wcwidth',
         'paho-mqtt>=1.5.1',
         'xmltodict>=0.12.0',
         'jsonpath-ng>=1.5.3',

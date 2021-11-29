@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ..dataset.serializable import Serializable
+from .. import pal
 from ..dataset.baseproduct import BaseProduct
 from ..dataset.odict import ODict
 
@@ -265,20 +266,23 @@ class Context(AbstractContext, BaseProduct):
         return super().applyRule(*args)
 
     def getAllRefs(self, recursive=False, includeContexts=True, seen=None):
-        """ Provides a set of the unique references stored in this context.
+        """ Provides a set of the unique references stored in this `Context`.
+
         This includes references that are contexts, but not the contents of these subcontexts. This is equivalent to getAllRefs(recursive=false, includeContexts= true).
         recursive - if true, include references in subcontexts
         includeContexts - if true, include references to contexts, not including this one
         """
-        if not Context.isContext(self):
+        if issubclass(self.__class__, pal.productref.ProductRef) and not Context.isContext(self.__class__):
             raise TypeError('This ref does not point to a context')
         if seen is None:
             seen = list()
         rs = list()
+        surn = self.get('_urn', None)
         for x in self.refs.values():
-            if Context.isContext(x):
+            if Context.isContext(x.getType()):
                 if includeContexts:
-                    if x == self:
+                    if surn and x.getUrn() == surn.urn:
+                        # pointing to self
                         pass
                     else:
                         if x not in rs:
@@ -287,9 +291,9 @@ class Context(AbstractContext, BaseProduct):
                     if x not in seen:
                         seen.append(x)
                         # enter the context
-                        rs.add(x.getAllRefs(recursive=recursive,
-                                            includeContexts=includeContexts,
-                                            seen=seen))
+                        rs += x.getProduct().getAllRefs(recursive=recursive,
+                                                        includeContexts=includeContexts,
+                                                        seen=seen)
                 else:
                     pass
             else:

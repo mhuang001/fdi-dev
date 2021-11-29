@@ -182,6 +182,62 @@ nds3 =\
 #=== dimension 4
 
 """
+# -*- coding: utf-8 -*-
+out_MetaData = """MetaData.toString with extra
+
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| name         | value              | unit   | type     | valid   | default         | code   | description       | fits_keyw   | id_zh_cn           | descripti          | valid_zh_   |
+|              |                    |        |          |         |                 |        |                   | ord         |                    | on_zh_cn           | cn          |
++==============+====================+========+==========+=========+=================+========+===================+=============+====================+====================+=============+
+| description  | MetaData.toString  |        | string   | None    | UNKNOWN         | B      | Description of th | DESC        | 描述               | 对本产品的描述。   |             |
+|              | with extra         |        |          |         |                 |        | is product        |             |                    |                    |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| type         | Product            |        | string   | None    | Product         | B      | Product Type iden | TYPE        | 产品类型           | 产品类型。完整Py   |             |
+|              |                    |        |          |         |                 |        | tification. Name  |             |                    | thon类名或卡片   |             |
+|              |                    |        |          |         |                 |        | of class or CARD. |             |                    | 名。          |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| level        | ALL                |        | string   | None    | ALL             | B      | Product level.    | LEVEL       | 产品xx             | 产品xx             |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| creator      | UNKNOWN            |        | string   | None    | UNKNOWN         | B      | Generator of this | CREATOR     | 本产品生成者       | 本产品生成方的标识 |             |
+|              |                    |        |          |         |                 |        |  product.         |             |                    | ，例如可以是单位、 |             |
+|              |                    |        |          |         |                 |        |                   |             |                    | 组织、姓名、软件、 |             |
+|              |                    |        |          |         |                 |        |                   |             |                    | 或特别算法等。   |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| creationDate | 1958-01-01T00:00:0 |        | finetime | None    | 1958-01-01T00:0 | Q      | Creation date of  | DATE        | 产品生成时间       | 本产品生成时间     |             |
+|              | 0.000000           |        |          |         | 0:00.000000     |        | this product      |             |                    |                    |             |
+|              | 0                  |        |          |         | 0               |        |                   |             |                    |                    |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| rootCause    | UNKNOWN            |        | string   | None    | UNKNOWN         | B      | Reason of this ru | ROOTCAUS    | 数据来源           | 数据来源（此例来自 |             |
+|              |                    |        |          |         |                 |        | n of pipeline.    |             |                    | 鉴定件热真空罐）  |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| version      | 0.8                |        | string   | None    | 0.8             | B      | Version of produc | VERSION     | 版本               | 产品版本           |             |
+|              |                    |        |          |         |                 |        | t                 |             |                    |                    |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| FORMATV      | 1.6.0.10           |        | string   | None    | 1.6.0.10        | B      | Version of produc | FORMATV     | 格式版本           | 产品格式版本       |             |
+|              |                    |        |          |         |                 |        | t schema and revi |             |                    |                    |             |
+|              |                    |        |          |         |                 |        | sion              |             |                    |                    |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| startDate    | 1958-01-01T00:00:0 |        | finetime | None    | 1958-01-01T00:0 | Q      | Nominal start tim | DATE-OBS    | 产品的标称起始时间 | 产品标称的起始时间 |             |
+|              | 0.000000           |        |          |         | 0:00.000000     |        | e  of this produc |             |                    |                    |             |
+|              | 0                  |        |          |         | 0               |        | t.                |             |                    |                    |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| endDate      | 1958-01-01T00:00:0 |        | finetime | None    | 1958-01-01T00:0 | Q      | Nominal end time  | DATE-END    | 产品的标称结束时间 | 产品标称的结束时间 |             |
+|              | 0.000000           |        |          |         | 0:00.000000     |        |  of this product. |             |                    |                    |             |
+|              | 0                  |        |          |         | 0               |        |                   |             |                    |                    |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| instrument   | UNKNOWN            |        | string   | None    | UNKNOWN         | B      | Instrument that g | INSTRUME    | 观测仪器名称       | 观测仪器名称       |             |
+|              |                    |        |          |         |                 |        | enerated data of  |             |                    |                    |             |
+|              |                    |        |          |         |                 |        | this product      |             |                    |                    |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| modelName    | UNKNOWN            |        | string   | None    | UNKNOWN         | B      | Model name of the | MODEL       | 样机名称           | 观测仪器样机名称   |             |
+|              |                    |        |          |         |                 |        |  instrument of th |             |                    |                    |             |
+|              |                    |        |          |         |                 |        | is product        |             |                    |                    |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| mission      | _AGS               |        | string   | None    | _AGS            | B      | Name of the missi | TELESCOP    | 任务名称           | 任务名称           |             |
+|              |                    |        |          |         |                 |        | on.               |             |                    |                    |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+
+| listeners    | <No listener>      |        |          |         |                 |        |                   |             |                    |                    |             |
++--------------+--------------------+--------+----------+---------+-----------------+--------+-------------------+-------------+--------------------+--------------------+-------------+"""
 out_Dataset = """level 0
                                               ******************************                                             
                                               *** Dataset (test Dataset) ***                                             
@@ -234,7 +290,8 @@ d= off (0b00)  listeners= <No listener>
 ===========================================================
 
 level 2,
-Dataset{ 88.8, description = "test Dataset", meta = <MetaData a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19T01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), ...> }"""
+Dataset{ 88.8, description = "test Dataset", meta = <MetaData a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19
+01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), ...> }"""
 out_ArrayDataset = """
 
 level 0
@@ -398,7 +455,8 @@ listeners= <No listener>
 
 
 level 2, repr
-ArrayDataset(<MetaData description=(string: toString tester AD <>), shape=(tuple: (2, 3, 4, 5) <>), unit=(string: lyr <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19T01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...> data= [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]])
+ArrayDataset(<MetaData description=(string: toString tester AD <>), shape=(tuple: (2, 3, 4, 5) <>), unit=(string: lyr <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19
+01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...> data= [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]])
 
 an empty meta and long data level 2: 
 ArrayDataset(<MetaData shape=(tuple: (8,) <>), ...> data= [8, 8, 8, 8, 8, 8, 8, 8])
@@ -489,7 +547,8 @@ added_parameter= 42         listeners= <No listener>
 
 
 level 2, repr
-TableDataset(<MetaData shape=(tuple: (2, 3) <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19T01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...>data= {"col1": Column(<MetaData description=(string: 1 <>), shape=(tuple: (3,) <>), type=(string: Column <>), unit=(string: eV <>), ...> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData description=(string: 2 <>), shape=(tuple: (3,) <>), type=(string: Column <>), unit=(string: cnt <>), ...> data= [0, 43.2, 2000.0])})
+TableDataset(<MetaData shape=(tuple: (2, 3) <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19
+01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...>data= {"col1": Column(<MetaData description=(string: 1 <>), shape=(tuple: (3,) <>), type=(string: Column <>), unit=(string: eV <>), ...> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData description=(string: 2 <>), shape=(tuple: (3,) <>), type=(string: Column <>), unit=(string: cnt <>), ...> data= [0, 43.2, 2000.0])})
 
 an empty level 2: 
 TableDataset(<MetaData shape=(tuple: (0,) <>), ...>data= {})

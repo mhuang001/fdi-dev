@@ -287,28 +287,38 @@ def value2parameter(name, value, descriptor):
     im = descriptor[name]  # {'dats_type':..., 'value':....}
     # in ['integer','hex','float','vector','quaternion']
 
-    fs = im['default'] if 'default' in im else None
-    gs = im['valid'] if 'valid' in im else None
+    ext = dict(im)
+    fs = im.get('default', None)
+    gs = im.get('valid', None)
+    ext.pop('value', '')
+    ext.pop('description', '')
+    ext.pop('data_type', '')
+    ext.pop('default', '')
+    ext.pop('valid', '')
     if im['data_type'] == 'string':
         from .stringparameter import StringParameter
-        cs = im['typecode'] if 'typecode' in im else 'B'
+        cs = im.get('typecode', 'B')
+        ext.pop('typecode', '')
         ret = StringParameter(value=value,
                               description=im['description'],
                               default=fs,
                               valid=gs,
-                              typecode=cs
+                              typecode=cs,
+                              **ext,
                               )
     elif im['data_type'] == 'finetime':
         from .dateparameter import DateParameter
         ret = DateParameter(value=value,
                             description=im['description'],
+                            typ_=im['data_type'],
                             default=fs,
                             valid=gs,
+                            **ext,
                             )
     elif DataTypes[im['data_type']] in ['int', 'float', 'Vector', 'Vector2D', 'Quaternion']:
         from .numericparameter import NumericParameter
-        us = im['unit'] if 'unit' in im else ''
-        cs = im['typecode'] if 'typecode' in im else None
+        us = ext.pop('unit', '')
+        cs = ext.pop('typecode', '')
         ret = NumericParameter(value=value,
                                description=im['description'],
                                typ_=im['data_type'],
@@ -316,6 +326,17 @@ def value2parameter(name, value, descriptor):
                                default=fs,
                                valid=gs,
                                typecode=cs,
+                               **ext,
+                               )
+    elif DataTypes[im['data_type']] in ['bool']:
+        from .numericparameter import BooleanParameter
+        ext.pop('unit', '')
+        ext.pop('typecode', '')
+        ret = BooleanParameter(value=value,
+                               description=im['description'],
+                               default=fs,
+                               valid=gs,
+                               **ext,
                                )
     else:
         ret = Parameter(value=value,
@@ -323,6 +344,7 @@ def value2parameter(name, value, descriptor):
                         typ_=im['data_type'],
                         default=fs,
                         valid=gs,
+                        **ext,
                         )
     return ret
 

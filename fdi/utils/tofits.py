@@ -4,6 +4,10 @@ from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.dataset import CompositeDataset
 from fdi.dataset.dataset import Dataset
 from fdi.dataset.baseproduct import BaseProduct
+from fdi.dataset.dateparameter import DateParameter
+from fdi.dataset.stringparameter import StringParameter
+from fdi.dataset.numericparameter import NumericParameter, BooleanParameter
+from fdi.dataset.datatypes import Vector
 from astropy.io import fits
 
 import numpy as np
@@ -39,9 +43,8 @@ def fits_dataset(hdul,ima_list):
         if issubclass(ima.__class__, ArrayDataset):
             a=np.array(ima)
             print (a.shape)
+            header=add_header(ima.meta,header)
             hdul.append(fits.ImageHDU(a,header=header))
-            #header=add_header(a.meta,header)
-
         elif issubclass(ima.__class__, TableDataset):
             units=[]
             dtype=[]
@@ -53,13 +56,11 @@ def fits_dataset(hdul,ima_list):
                 
                 desc.append(col.description)
             t=table(name=ima.getColumnNames(units=units, dtype=dtype, data=data))
-            
+            header=add_header(ima.meta,header)
             hdul.append(fits.BinTableHDU(a,header=header))
-            #header=add_header(a.meta,header)
-            
         elif issubclass(ima.__class__, CompositeDataset):
             dataset=fits_dataset(hdul,ima)
-    print("***",len(hdul))
+    #print("***",len(hdul))
     return hdul
 
     #hdul.writeto(fitsdir + 'array.fits')
@@ -73,8 +74,33 @@ def fits_dataset(hdul,ima_list):
 
 def add_header(meta,header):
     for name,param in meta.items():
-        kw=getFitsKw(name)
-        header[kw]=(param.value,param.description)
+        if issubclass(param.__class__, DateParameter):
+            value=param.value.isoutc()
+            print('time',value)
+            kw=getFitsKw(name)
+            header[kw]=(value,param.description)
+        elif issubclass(param.__class__, NumericParameter):
+            if issubclass(param.value.__class__, Vector):
+                for i, com in enumerate(param.value.components):
+                    kw=getFitsKw(name,1)+str(i)
+                    header[kw]=(com,param.description+str(i))
+                    print(kw,com)
+            else:
+                    kw=getFitsKw(name)
+                    header[kw]=(param.value,param.description)
+        elif issubclass(param.__class__, StringParameter):
+            kw=getFitsKw(name)
+            v= '"'+param.value+'"' if param.value is not None else '""'
+            header[kw]=(v,param.description)
+        elif issubclass(param.__class__, BooleanParameter):
+            kw=getFitsKw(name)
+            v='T' if param.value else 'F'
+            header[kw]=(v,param.description)
+        else:
+            kw=getFitsKw(name)
+            v=''
+            header[kw]=(v,'%s of unknown type' % str(param.value))
+    print('***',header)
     return header
    
 def fits_header():

@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from fdi.dataset.arraydataset import ArrayDataset
+from fdi.dataset.dateparameter import DateParameter
+from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.dataset import Dataset
+from fdi.dataset.numericparameter import NumericParameter
 from fdi.utils.fits_kw import FITS_KEYWORDS, getFitsKw
 from fdi.utils.leapseconds import utc_to_tai, tai_to_utc, dTAI_UTC_from_utc, _fallback
 from fdi.dataset.eq import deepcmp
@@ -75,14 +78,31 @@ def test_fits_dataset():
 
 def test_toFits():
     ima=ArrayDataset(data=[[1,2,3,4],[5,6,7,8]], description='a')
+    ima.meta['datetime']=DateParameter(
+    '2023-01-23T12:34:56.789012',description='date keyword')
+    ima.meta["quat"]=NumericParameter([0.0,1.1,2.4,3.5],description="q")
+    ima.meta['float']=NumericParameter(1.234,description='float keyword')
+    ima.meta['integer']=NumericParameter(1234,description='integer keyword')
+    ima.meta['string_test']=StringParameter('abc',description=' string keyword')
+    ima.meta['boolean_test']=BooleanParameter(True,description=' boolean keyword')
     imb=ArrayDataset(data=[[1,2,3,4],[5,6,7,8],[1,2,3,4],[5,6,7,8]], description='b')
-    #im=[[1,2,3,4],[5,6,7,8]]
+    
     
     data=[ima]
     u=toFits(data)
     assert issubclass(u.__class__, fits.HDUList)    
     assert len(u) == len(data)+1
-
+    print("-----",u[0].header)
+    print(u[1].header)
+    assert u[1].header['DATETIME']=='2023-01-23T12:34:56.789012'
+    assert u[1].header['QUAT0']==0.0
+    assert u[1].header['QUAT1']==1.1
+    assert u[1].header['QUAT2']==2.4
+    assert u[1].header['QUAT3']==3.5
+    assert u[1].header['FLOAT']==1.234
+    assert u[1].header['INTEGER']==1234
+    assert u[1].header['STRING_T']=='"abc"'
+    assert u[1].header['BOOLEAN_']=='T'
 def test_get_demo_product(demo_product):
     v, related = demo_product
     assert v['Browse'].data[1:4] == b'PNG'

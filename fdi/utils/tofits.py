@@ -26,7 +26,7 @@ def main():
 def toFits(data):
     hdul = fits.HDUList()
     hdul.append(fits.PrimaryHDU())
-    if issubclass(data[0].__class__, (TableDataset,ArrayDataset)):
+    if issubclass(data[0].__class__, ArrayDataset) or issubclass(data.__class__, TableDataset):
         hdul=fits_dataset(hdul,data)
         print("***",len(hdul))
     elif issubclass(data.__class__, BaseProduct):
@@ -55,12 +55,12 @@ def fits_dataset(hdul,ima_list):
                 dtype.append(col.typecode)
                 
                 desc.append(col.description)
-            t=table(name=ima.getColumnNames(units=units, dtype=dtype, data=data))
+            t=TableDataset(name=ima.getColumnNames())
             header=add_header(ima.meta,header)
             hdul.append(fits.BinTableHDU(a,header=header))
         elif issubclass(ima.__class__, CompositeDataset):
             dataset=fits_dataset(hdul,ima)
-    print("***",len(hdul))
+    print("****",len(hdul))
     return hdul
 
     #hdul.writeto(fitsdir + 'array.fits')

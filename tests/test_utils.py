@@ -82,17 +82,17 @@ def test_tab_fits():
                             ('col2', [0, 43.2, 2E3], 'cnt')
                             ])
     data=[ds]
-    __import__('pdb').set_trace()
+    #__import__('pdb').set_trace()
     u=toFits(data)
     assert issubclass(u.__class__, fits.HDUList)
     print('test_tab_fits',u[0])
     
 def test_toFits():
-    for ds in [ArrayDataset,TableDataset]:
+    for ds in [ArrayDataset]:
         ima=ds(data=[[1,2,3,4],[5,6,7,8]], description='a')
         ima.meta['datetime']=DateParameter(
         '2023-01-23T12:34:56.789012',description='date keyword')
-        ima.meta["quat"]=NumericParameter([0.0,1.1,2.4,3.5],description="q")
+        ima.meta['quat']=NumericParameter([0.0,1.1,2.4,3.5],description='q')
         ima.meta['float']=NumericParameter(1.234,description='float keyword')
         ima.meta['integer']=NumericParameter(1234,description='integer keyword')
         ima.meta['string_test']=StringParameter('abc',description=' string keyword')

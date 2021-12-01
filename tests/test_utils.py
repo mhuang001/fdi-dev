@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fdi.dataset.arraydataset import ArrayDataset
+from fdi.dataset.arraydataset import ArrayDataset,Column as aCol
 from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.stringparameter import StringParameter
@@ -78,18 +78,30 @@ def test_fits_dataset():
     assert len(u) == len(data)+1
 
 def test_tab_fits():
-    ds=TableDataset(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
-                            ('col2', [0, 43.2, 2E3], 'cnt')
-                            ])
+    d= {'col1': aCol(data=[1, 4.4, 5.4E3], unit='eV'),
+              'col2': aCol(data=[0, 43, 2E3], unit='cnt')}
+    d['col1'].type='float'
+    d['col2'].type='integer'
+    ds=TableDataset(data=d)
     data=[ds]
     #__import__('pdb').set_trace()
     u=toFits(data)
     assert issubclass(u.__class__, fits.HDUList)
     print('test_tab_fits',u[0])
+    assert u[1].columns['col1'].unit == 'eV'
+    assert u[1].data[0][0] == d['col1'].data[0]
+    assert u[1].data[1][1] == d['col2'].data[1]
     
-def test_toFits():
-    for ds in [ArrayDataset]:
-        ima=ds(data=[[1,2,3,4],[5,6,7,8]], description='a')
+def test_toFits_metadata():
+    for ds in [ArrayDataset,TableDataset]:
+        if issubclass(ds, ArrayDataset):
+            ima=ds(data=[[1,2,3,4],[5,6,7,8]], description='a')
+        elif issubclass(ds,TableDataset):
+            ima=ds(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
+                            ('col2', [0, 43.2, 2E3], 'cnt')
+                            ])
+        else:
+            assert False
         ima.meta['datetime']=DateParameter(
         '2023-01-23T12:34:56.789012',description='date keyword')
         ima.meta['quat']=NumericParameter([0.0,1.1,2.4,3.5],description='q')
@@ -103,7 +115,7 @@ def test_toFits():
         data=[ima]
         u=toFits(data)
         assert issubclass(u.__class__, fits.HDUList)
-        assert len(u) == len(data)+1
+        #assert len(u) == len(data)+1
         print("-----",u[0].header)
         print(u[1].header)
         assert u[1].header['DATETIME']=='2023-01-23T12:34:56.789012'
@@ -116,7 +128,6 @@ def test_toFits():
         assert u[1].header['STRING_T']=='"abc"'
         assert u[1].header['BOOLEAN_']=='T'
 
-        imb=ArrayDataset(data=[[1,2,3,4],[5,6,7,8],[1,2,3,4],[5,6,7,8]], description='b')
 def test_get_demo_product(demo_product):
     v, related = demo_product
     assert v['Browse'].data[1:4] == b'PNG'

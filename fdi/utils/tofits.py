@@ -3,15 +3,19 @@ from fdi.dataset.arraydataset import ArrayDataset
 from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.dataset import CompositeDataset
 from fdi.dataset.dataset import Dataset
+from fdi.dataset.datatypes import DataTypes
 from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.numericparameter import NumericParameter, BooleanParameter
 from fdi.dataset.datatypes import Vector
 from astropy.io import fits
-
+from astropy.table import Table
+from astropy.table import Column
 import numpy as np
 import os
+    
+debug = False
 
 def main():
     fitsdir = '/Users/jia/desktop/vtse_out/'
@@ -24,25 +28,38 @@ def main():
     fits_dataset(hdul,[ima,imb])
 
 def toFits(data):
+    """convert dataset to FITS.
+    
+    :data: a list of Dataset or a BaseProduct.
+    """
     hdul = fits.HDUList()
     hdul.append(fits.PrimaryHDU())
-    if issubclass(data[0].__class__, ArrayDataset) or issubclass(data.__class__, TableDataset):
+    if issubclass(data[0].__class__, (ArrayDataset, TableDataset)):
         hdul=fits_dataset(hdul,data)
-        print("***",len(hdul))
     elif issubclass(data.__class__, BaseProduct):
         fits_product(hdul,data)
     return hdul
 
-def fits_dataset(hdul,ima_list):
+"""tc2np = {
+    "B": np.S8,   # ASCII char
+    "H": np.int16,  # unsigned short
+    "b": np.int8, # signed char
+    "h": np.int16, # signed short
+    "i": np.int32,  # signed integer
+    "I": np.int32,  # unsigned integer
+    "l": np.int64, # signed long
+    "d": np.float,  # double
+    "c": np.complex # complex
+}"""
+
+
+def fits_dataset(hdul,dataset_list):
    
 
-    for n, ima in enumerate(ima_list):
-        
-        print(n)
+    for n, ima in enumerate(dataset_list):
         header = fits.Header()
         if issubclass(ima.__class__, ArrayDataset):
             a=np.array(ima)
-            print (a.shape)
             header=add_header(ima.meta,header)
             hdul.append(fits.ImageHDU(a,header=header))
         elif issubclass(ima.__class__, TableDataset):
@@ -50,17 +67,20 @@ def fits_dataset(hdul,ima_list):
             dtype=[]
             data=[ima.getRow(slice(0))]
             desc=[]
+            t=Table()
             for name, col in ima.items():
-                units.append(col.unit)
-                dtype.append(col.typecode)
-                
-                desc.append(col.description)
-            t=TableDataset(name=ima.getColumnNames())
+                tname=DataTypes[col.type]
+                if debug:
+                    print('tname:',tname)
+                dt=np.dtype(tname)
+                c=Column(data=col.data, name=name, dtype=dt, shape=(), length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
+                t.add_column(c)
             header=add_header(ima.meta,header)
-            hdul.append(fits.BinTableHDU(a,header=header))
+            hdul.append(fits.BinTableHDU(t,header=header))
         elif issubclass(ima.__class__, CompositeDataset):
             dataset=fits_dataset(hdul,ima)
-    print("****",len(hdul))
+    if debug:
+        print("****",len(hdul))
     return hdul
 
     #hdul.writeto(fitsdir + 'array.fits')
@@ -76,7 +96,8 @@ def add_header(meta,header):
     for name,param in meta.items():
         if issubclass(param.__class__, DateParameter):
             value=param.value.isoutc()
-            print('time',value)
+            if debug:
+                print('time',value)
             kw=getFitsKw(name)
             header[kw]=(value,param.description)
         elif issubclass(param.__class__, NumericParameter):
@@ -84,7 +105,8 @@ def add_header(meta,header):
                 for i, com in enumerate(param.value.components):
                     kw=getFitsKw(name,1)+str(i)
                     header[kw]=(com,param.description+str(i))
-                    print(kw,com)
+                    if debug:
+                        print(kw,com)
             else:
                     kw=getFitsKw(name)
                     header[kw]=(param.value,param.description)
@@ -100,7 +122,8 @@ def add_header(meta,header):
             kw=getFitsKw(name)
             v=''
             header[kw]=(v,'%s of unknown type' % str(param.value))
-    print('***',header)
+    if debug:
+        print('***',header)
     return header
    
 def fits_header():

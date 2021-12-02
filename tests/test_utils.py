@@ -93,13 +93,15 @@ def test_tab_fits():
     assert u[1].data[1][1] == d['col2'].data[1]
     
 def test_toFits_metadata():
-    for ds in [ArrayDataset]:
+    for ds in [ArrayDataset,TableDataset]:
         if issubclass(ds, ArrayDataset):
             ima=ds(data=[[1,2,3,4],[5,6,7,8]], description='a')
         elif issubclass(ds,TableDataset):
-            ima=ds(data=[('col1', [1, 4.4, 5.4E3], 'eV'),
-                            ('col2', [0, 43.2, 2E3], 'cnt')
-                            ])
+            d= {'col1': aCol(data=[1, 4.4, 5.4E3], unit='eV'),
+              'col2': aCol(data=[0, 43, 2E3], unit='cnt')}
+            d['col1'].type='float'
+            d['col2'].type='integer'
+            ima=ds(data=d)
         else:
             assert False
         ima.meta['datetime']=DateParameter(
@@ -127,8 +129,14 @@ def test_toFits_metadata():
         assert u[1].header['INTEGER']==1234
         assert u[1].header['STRING_T']=='"abc"'
         assert u[1].header['BOOLEAN_']=='T'
-        assert u[1].data[0][0] == ima[0][0]
-        assert u[1].data[1][1] == ima[1][1]
+        if issubclass(ds, ArrayDataset):
+            assert u[1].data[0][0] == ima[0][0]
+            assert u[1].data[1][1] == ima[1][1]
+        elif issubclass(ds,TableDataset):
+            assert u[1].data[0][0] == d['col1'].data[0]
+            assert u[1].data[1][1] == d['col2'].data[1]
+        else:
+            assert False 
         
 def test_get_demo_product(demo_product):
     v, related = demo_product

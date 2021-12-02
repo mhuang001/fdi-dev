@@ -34,7 +34,7 @@ def toFits(data):
     """
     hdul = fits.HDUList()
     hdul.append(fits.PrimaryHDU())
-    if issubclass(data[0].__class__, (ArrayDataset, TableDataset)):
+    if issubclass(data[0].__class__, (ArrayDataset, TableDataset,CompositeDataset)):
         hdul=fits_dataset(hdul,data)
     elif issubclass(data.__class__, BaseProduct):
         fits_product(hdul,data)
@@ -79,6 +79,28 @@ def fits_dataset(hdul,dataset_list):
             hdul.append(fits.BinTableHDU(t,header=header))
         elif issubclass(ima.__class__, CompositeDataset):
             dataset=fits_dataset(hdul,ima)
+            for name, dlist in ima.items():
+                print(ima[name].__class__)
+                if issubclass(ima[name].__class__, ArrayDataset):
+                    a=np.array(ima[name])
+                    header=add_header(ima.meta,header)
+                    hdul.append(fits.ImageHDU(a,header=header))
+                elif issubclass(ima[name].__class__, TableDataset):
+                    units=[]
+                    dtype=[]
+                    data=[ima[name].getRow(slice(0))]
+                    desc=[]
+                    t=Table()
+                    for name2, col in ima[name].items():
+                        tname=DataTypes[col.type]
+                        if debug:
+                            print('tname in com:',tname)
+                        dt=np.dtype(tname)
+                        c=Column(data=col.data, name=name2, dtype=dt, shape=(), length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
+                        t.add_column(c)
+                    header=add_header(ima.meta,header)
+                    hdul.append(fits.BinTableHDU(t,header=header))
+            #hdul.append(fits.BinTableHDU(t,header=header))
     if debug:
         print("****",len(hdul))
     return hdul

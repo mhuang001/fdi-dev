@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from fdi.dataset.arraydataset import ArrayDataset,Column as aCol
 from fdi.dataset.tabledataset import TableDataset
+from fdi.dataset.dataset import CompositeDataset
 from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.dataset import Dataset
@@ -92,6 +93,45 @@ def test_tab_fits():
     assert u[1].data[0][0] == d['col1'].data[0]
     assert u[1].data[1][1] == d['col2'].data[1]
     
+def test_com_fits():
+    a1 = [768, 4.4, 5.4E3]
+    a2 = 'ev'
+    a3 = 'arraydset 1'
+    a4 = ArrayDataset(data=a1, unit=a2, description=a3)
+    a5, a6, a7 = [[1.09, 289], [3455, 564]], 'count', 'arraydset 2'
+    a8 = ArrayDataset(data=a5, unit=a6, description=a7)
+    v = CompositeDataset()
+    a9 = 'dataset 1'
+    a10 = 'dataset 2'
+    v.set(a9, a4)
+    v.set(a10, a8)
+    assert v[a9]==a4
+    a11 = 'm1'
+    a12 = NumericParameter(description='a different param in metadata',
+                           value=2.3, unit='sec')
+    v.meta[a11] = a12
+    v.meta['datetime']=DateParameter(
+        '2023-01-23T12:34:56.789012',description='date keyword')
+    v.meta['quat']=NumericParameter([0.0,1.1,2.4,3.5],description='q')
+    v.meta['float']=NumericParameter(1.234,description='float keyword')
+    v.meta['integer']=NumericParameter(1234,description='integer keyword')
+    v.meta['string_test']=StringParameter('abc',description=' string keyword')
+    v.meta['boolean_test']=BooleanParameter(True,description=' boolean keyword')
+    data=[v]
+    u=toFits(data)
+    print(u[1].header)
+    assert u[1].header['DATETIME']=='2023-01-23T12:34:56.789012'
+    assert u[1].header['QUAT0']==0.0
+    assert u[1].header['QUAT1']==1.1
+    assert u[1].header['QUAT2']==2.4
+    assert u[1].header['QUAT3']==3.5
+    assert u[1].header['FLOAT']==1.234
+    assert u[1].header['INTEGER']==1234
+    assert u[1].header['STRING_T']=='"abc"'
+    assert u[1].header['BOOLEAN_']=='T'
+    assert u[1].data[0] == v[a9].data[0]
+    assert u[2].data[1][1] == v[a10].data[1][1]
+    
 def test_toFits_metadata():
     for ds in [ArrayDataset,TableDataset]:
         if issubclass(ds, ArrayDataset):
@@ -136,7 +176,7 @@ def test_toFits_metadata():
             assert u[1].data[0][0] == d['col1'].data[0]
             assert u[1].data[1][1] == d['col2'].data[1]
         else:
-            assert False 
+            assert False
         
 def test_get_demo_product(demo_product):
     v, related = demo_product

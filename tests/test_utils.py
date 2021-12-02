@@ -93,7 +93,7 @@ def test_tab_fits():
     assert u[1].data[1][1] == d['col2'].data[1]
     
 def test_toFits_metadata():
-    for ds in [ArrayDataset,TableDataset]:
+    for ds in [ArrayDataset]:
         if issubclass(ds, ArrayDataset):
             ima=ds(data=[[1,2,3,4],[5,6,7,8]], description='a')
         elif issubclass(ds,TableDataset):
@@ -127,7 +127,9 @@ def test_toFits_metadata():
         assert u[1].header['INTEGER']==1234
         assert u[1].header['STRING_T']=='"abc"'
         assert u[1].header['BOOLEAN_']=='T'
-
+        assert u[1].data[0][0] == ima[0][0]
+        assert u[1].data[1][1] == ima[1][1]
+        
 def test_get_demo_product(demo_product):
     v, related = demo_product
     assert v['Browse'].data[1:4] == b'PNG'

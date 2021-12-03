@@ -35,6 +35,7 @@ import os
 import hashlib
 import os.path
 import pytest
+import numpy as np
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -132,15 +133,47 @@ def test_com_fits():
     assert u[1].data[0] == v[a9].data[0]
     assert u[2].data[1][1] == v[a10].data[1][1]
     
+"""
+    "A": "B",  # ASCII char
+    "L": "B",  # boolean
+    "X": "H",  # unsigned short
+    "B": "B",  # unsigned char
+    "S": "b",  # signed char
+    "I": "h",  # signed short
+    "U": "H",  # unsigned short
+    "J": "i",  # signed integer
+    "V": "I",  # unsigned integer
+    "K": "l",  # signed long
+    "E": "d",  # double
+    "D": "d",  # double
+    "C": "c",  # complex
+    "M": "c"  # complex
+"""
+tcode={'b': np.bool,            #Boolean
+      'i8': np.int8,            #8-bit signed integer
+       'i16': np.int16,         #16-bit signed integer
+       'i32': np.int32,         #32-bit signed integer
+       'i64': np.int64,         #64-bit signed integer
+       'u8': np.uint8,          #8-bit unsigned integer
+       'u16': np.uint16,        #16-bit unsigned integer
+       'u32': np.uint32,        #32-bit unsigned integer
+       'u64': np.uint64,        #64-bit unsigned integer
+       'f16': np.float16,       #16-bit floating point number
+       'f32': np.float32,       #32-bit floating point number
+       'f64': np.float64,       #64-bit floating point number
+       'c64': np.complex64,     #64-bit complex number
+       'c128': np.complex128    #128-bit complex number
+}
+
 def test_toFits_metadata():
     for ds in [ArrayDataset,TableDataset]:
         if issubclass(ds, ArrayDataset):
             ima=ds(data=[[1,2,3,4],[5,6,7,8]], description='a')
         elif issubclass(ds,TableDataset):
             d= {'col1': aCol(data=[1, 4.4, 5.4E3], unit='eV'),
-              'col2': aCol(data=[0, 43, 2E3], unit='cnt')}
-            d['col1'].type='float'
-            d['col2'].type='integer'
+              'col2': aCol(data=[0, -43, 2E3], unit='cnt')}
+            d['col1'].typecode='f32'
+            d['col2'].typecode='i32'
             ima=ds(data=d)
         else:
             assert False
@@ -169,10 +202,15 @@ def test_toFits_metadata():
         assert u[1].header['INTEGER']==1234
         assert u[1].header['STRING_T']=='"abc"'
         assert u[1].header['BOOLEAN_']=='T'
+        
         if issubclass(ds, ArrayDataset):
+            assert u[1].header['NAXIS1']==len(ima.data[0])
+            assert u[1].header['NAXIS2']==len(ima.data)
+            assert u[1].header['NAXIS']==len(ima.shape)
             assert u[1].data[0][0] == ima[0][0]
             assert u[1].data[1][1] == ima[1][1]
         elif issubclass(ds,TableDataset):
+        
             assert u[1].data[0][0] == d['col1'].data[0]
             assert u[1].data[1][1] == d['col2'].data[1]
         else:

@@ -40,17 +40,24 @@ def toFits(data):
         fits_product(hdul,data)
     return hdul
 
-"""tc2np = {
-    "B": np.S8,   # ASCII char
-    "H": np.int16,  # unsigned short
-    "b": np.int8, # signed char
-    "h": np.int16, # signed short
-    "i": np.int32,  # signed integer
-    "I": np.int32,  # unsigned integer
-    "l": np.int64, # signed long
-    "d": np.float,  # double
-    "c": np.complex # complex
-}"""
+typecode2np = {
+    "b": np.int8,    # signed char
+    "B": np.uint8,   # unsigned char
+    "u": np.str,     # string
+    "h": np.int16,   # signed short
+    "H": np.uint16,  # unsigned integer
+    "i": np.int16,   # signed integer
+    "I": np.unit16,  # unsigned integer
+    "l": np.int32,   # signed long
+    "L": np.uint32,  # unsigned long
+    "q": np.int64,   # signed long long
+    "Q": np.unit64,  # unsigned long long
+    "f": np.float32, # float
+    "d": np.float64,   # double
+    "c": np.complex64, # complex
+    "c128": np.complex128, # complex 128 b
+    "t": np.bool       # truth value
+}
 
 
 def fits_dataset(hdul,dataset_list):
@@ -63,16 +70,12 @@ def fits_dataset(hdul,dataset_list):
             header=add_header(ima.meta,header)
             hdul.append(fits.ImageHDU(a,header=header))
         elif issubclass(ima.__class__, TableDataset):
-            units=[]
-            dtype=[]
-            data=[ima.getRow(slice(0))]
-            desc=[]
             t=Table()
             for name, col in ima.items():
-                tname=DataTypes[col.type]
+                tname=DataTypes[col.typecode]
                 if debug:
                     print('tname:',tname)
-                dt=np.dtype(tname)
+                dt=typecode2np[tname]
                 c=Column(data=col.data, name=name, dtype=dt, shape=(), length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
                 t.add_column(c)
             header=add_header(ima.meta,header)

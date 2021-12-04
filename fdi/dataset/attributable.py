@@ -248,7 +248,7 @@ class Attributable(MetaDataHolder):
             if self.alwaysMeta or \
                name in self.zInfo or \
                name in Reserved_Property_Names:
-                logger.warn(
+                logger.warning(
                     'Cannot delete MetaData Property or Reserved_Property_Names: ' + name)
                 return
         except AttributeError:

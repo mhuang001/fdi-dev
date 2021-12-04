@@ -4,8 +4,6 @@ from .masked import masked
 from .ydump import ydump
 from .. import dataset
 
-import cwcwidth
-
 import hashlib
 import array
 import traceback
@@ -106,7 +104,8 @@ LHan = [[0x2E80, 0x2E99],    # Han # So  [26] CJK RADICAL REPEAT, CJK RADICAL RA
 @lru_cache(maxsize=128)
 def wcw(char):
     # cached width function
-    return cwcwidth.wcwidth(char)
+    from ..dataset.metadata import wcwidth
+    return wcwidth.wcwidth(char)
 
 
 def wls(st, width=15, fill=None, unprintable='#'):

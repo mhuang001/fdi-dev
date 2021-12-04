@@ -86,12 +86,12 @@ def ndprint(data, trans=True, maxElem=sys.maxsize, **kwds):
 
         if context.maxdim == 0:
             tf = kwds['tablefmt3'] if 'tablefmt3' in kwds else 'plain'
-            return tabulate([[bstr(data)]], tablefmt=tf)
+            return tabulate.tabulate([[bstr(data)]], tablefmt=tf)
         elif context.maxdim == 1:
             tf = kwds['tablefmt3'] if 'tablefmt3' in kwds else 'plain'
             d2 = [[bstr(x)] for x in data] if trans else [[bstr(x)
                                                            for x in data]]
-            return tabulate(d2, tablefmt=tf)
+            return tabulate.tabulate(d2, tablefmt=tf)
         else:
             d = list(data)
             context.dim += 1
@@ -122,7 +122,7 @@ def ndprint(data, trans=True, maxElem=sys.maxsize, **kwds):
                 # d2 is a properly transposed 2D array
                 dlimited = [x[:maxElem] for x in d2[:maxElem]]
                 # this is where TableDataset prints its tables
-                delta += tabulate(dlimited, headers=hd, tablefmt=tf)
+                delta += tabulate.tabulate(dlimited, headers=hd, tablefmt=tf)
                 # an extra blank line  is added at the end of the 3rd dimension
                 delta += '\n\n'
             else:

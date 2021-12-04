@@ -15,8 +15,9 @@ from ..utils.masked import masked
 from ..utils.common import grouper
 from ..utils.common import exprstrs, wls, bstr, t2l
 
-from tabulate import tabulate
-import cwcwidth
+
+import cwcwidth as wcwidth
+import tabulate
 
 from itertools import zip_longest, filterfalse
 import builtins
@@ -27,9 +28,10 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-tabulate.wcwidt = cwcwidth
+tabulate.wcwidth = wcwidth
 tabulate.WIDE_CHARS_MODE = True
-tabulate.PRESERVE_WHITESPACE = True
+tabulate.MIN_PADDING = 0
+#tabulate.PRESERVE_WHITESPACE = True
 Default_Extra_Param_Width = 12
 
 """
@@ -981,7 +983,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                         l += tuple(
                             wls(v, Default_Extra_Param_Width)
                             for v in ext.values())
-                        print(l)
+                        # print(l)
 
                 tab.append(l)
                 exh = [v for v in ext.keys()]
@@ -1010,9 +1012,9 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                     ps = '%s=%s' % (n, v.toString(level)) if level == 2 else n
                     # tab.append(wls(ps, 80//N))
                     tab.append(ps)
-            nn += 1
-            if nn == 2:
-                pass  # break
+            #nn += 1
+            # if nn == 2:
+            #    pass  # break
 
         if has_omission:
             tab.append('..')
@@ -1026,18 +1028,18 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 headers = []
                 for n in allh:
                     w = param_widths.get(n, Default_Extra_Param_Width)
-                    print(n, w)
+                    #print(n, w)
                     if w != 0:
                         headers.append(wls(n, w))
             fmt = tablefmt
-            s += tabulate(tab, headers=headers, tablefmt=fmt, missingval='',
-                          disable_numparse=True)
+            s += tabulate.tabulate(tab, headers=headers, tablefmt=fmt, missingval='',
+                                   disable_numparse=True)
         elif level == 1:
             t = grouper(tab, N)
             headers = ''
             fmt = tablefmt1
-            s += tabulate(t, headers=headers, tablefmt=fmt, missingval='',
-                          disable_numparse=True)
+            s += tabulate.tabulate(t, headers=headers, tablefmt=fmt, missingval='',
+                                   disable_numparse=True)
         elif level > 1:  # level 2 and 3
             s = ', '.join(tab) if len(tab) else 'Default Meta'
             l = '.'

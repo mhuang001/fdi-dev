@@ -68,7 +68,7 @@ else:
 Classes.updateMapping()
 
 # make format output in /tmp/output.py
-mk_output = 1
+mk_output = 0
 
 if mk_output:
     with open('/tmp/output.py', 'wt', encoding='utf-8') as f:
@@ -1185,10 +1185,10 @@ def test_MetaData():
     ts += '\n'
     ts += v.toString(extra=True)
     if mk_output:
-        print(ts)
         with open('/tmp/output.py', 'a', encoding='utf-8') as f:
             clsn = 'out_MetaData'
             f.write('%s = """%s"""\n' % (clsn, ts))
+        print(ts)
     else:
         assert ts == out_MetaData
 
@@ -1553,7 +1553,7 @@ def do_ArrayDataset_func(atype):
     if mk_output:
         print(ts[i:])
     else:
-        assert ts[i:-130] == nds2
+        assert ts[i:-126] == nds2
     ts += '\n\nlevel 1\n'
     ts += x.toString(1)
     ts += '\n\nlevel 2, repr\n'

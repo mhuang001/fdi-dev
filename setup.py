@@ -34,7 +34,7 @@ setup(
     install_requires=[
         'requests>=2.23.0',
         'filelock>=3.0.12',
-        'ruamel.yaml',
+        'ruamel.yaml<0.17',
         'tabulate>=0.8.7',
         'cwcwidth>=0.1.5',
         'paho-mqtt>=1.5.1',

@@ -25,6 +25,11 @@ RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo -K UM
 WORKDIR ${UHOME}
 
 USER ${USR}
+ARG LOCALE=en_US.UTF-8
+ENV LC_ALL=${LOCALE}
+ENV LC_CTYPE=${LOCALE}
+ENV LANG=${LOCALE}
+
 ENV PATH="${UHOME}/.local/bin:$PATH"
 
 # set fdi's virtual env

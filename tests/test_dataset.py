@@ -1190,7 +1190,7 @@ def test_MetaData():
             f.write('%s = """%s"""\n' % (clsn, ts))
         print(ts)
     else:
-        assert ts == out_MetaData
+        assert ts == out_MetaData, (ts, out_MetaData)
 
     # listeners
     class MockMetaListener(MetaDataListener):

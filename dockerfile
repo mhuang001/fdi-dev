@@ -23,7 +23,7 @@ RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo -K UM
 && /bin/echo -e '\n'${USR} ALL = NOPASSWD: ALL >> /etc/sudoers
 
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/'  /etc/locale.gen \
-&& locale-gen
+&& locale-gen \
 && dpkg-reconfigure --frontend=noninteractive locales
 
 WORKDIR ${UHOME}

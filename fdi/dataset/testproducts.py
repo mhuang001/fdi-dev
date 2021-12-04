@@ -104,7 +104,7 @@ def get_demo_product():
             |                            |
             |                            +-- meta --+-- T0
             |
-            +-- Browse -- data = b'\87PNG', content='Content-type: image/png'
+            +-- Browse -- data = b'\x87PNG', content='Content-type: image/png'
             |
             +-- refs --+-- constants: -- +-- pi: ..
                                          +-- e : ..

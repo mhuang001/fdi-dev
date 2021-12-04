@@ -12,6 +12,7 @@ import sys
 import threading
 import functools
 import time
+import locale
 import array
 from math import sqrt
 from datetime import timezone
@@ -1190,7 +1191,17 @@ def test_MetaData():
             f.write('%s = """%s"""\n' % (clsn, ts))
         print(ts)
     else:
-        assert ts == out_MetaData, (ts, out_MetaData)
+        print('LOCALE', locale.getlocale())
+        if ts != out_MetaData:
+            for i, t_o in enumerate(zip(ts, out_MetaData)):
+                t, o = t_o
+                if t == o:
+                    continue
+                print(i, t, o)
+                break
+            print(ts[i:])
+            print(out_MetaData[i:])
+            assert False
 
     # listeners
     class MockMetaListener(MetaDataListener):

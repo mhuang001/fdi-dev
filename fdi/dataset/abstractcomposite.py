@@ -35,6 +35,7 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
 
     def toString(self, level=0, width=0,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
+                 extra=False,
                  matprint=None, trans=True, beforedata='', heavy=True,
                  center=-1, **kwds):
         """ matprint: an external matrix print function
@@ -60,7 +61,8 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
         from .dataset import make_title_meta_l0
         s, last = make_title_meta_l0(self, level=level, width=width,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
-                                     tablefmt2=tablefmt2, center=-1, excpt=['description'])
+                                     tablefmt2=tablefmt2,
+                                     extra=extra, center=-1, excpt=['description'])
         width = len(last)-1
         ds = list(f'"{x}"' for x in self.keys())
         d = 'Total %d Sub-Datasets: %s' % (len(ds), ', '.join(ds))

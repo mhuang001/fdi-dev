@@ -914,7 +914,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
     def toString(self, level=0,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
-                 param_widths=None, width=0, extra=False, **kwds):
+                 extra=False, param_widths=None, width=0, **kwds):
         """ return  string representation of metada.
 
         level: 0 is the most detailed, 2 is the least,
@@ -924,7 +924,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                       'valid': 20, 'default': 17, 'code': 4, 'description': 15}``
         """
 
-        if param_widths is None:
+        if param_widths is None or param_widths == 0:
             param_widths = MetaData.Table_Widths[0]
         tab = []
         # N parameters per row for level 1

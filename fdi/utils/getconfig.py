@@ -35,7 +35,7 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf):
     """ Imports a dict named [conf]config.
 
     The contents of the config are defined in the ``.config/[conf]local.py`` file. The contenss are used to update defaults in ``fdi.pns.config``.
-    Th config file directory can be modified by the environment variable ``CONF_DIR``, which if  not given or pointing to an existing directly is process owner's ``~/.config`` directory.
+    Th config file directory can be modified by the environment variable ``CONF_DIR``, which, if  not given or pointing to an existing directory, is the process owner's ``~/.config`` directory.
 
     name: if given the poolurl in ``poolurl_of`` is returned, else construct a poolurl from the contents in dict <conf>config.
     conf: configuration ID. default 'pns', so the file is 'pnslocal.py'.
@@ -89,6 +89,36 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf):
         if name in urlof:
             return urlof[name]
         else:
-            return config['httphost'] + config['baseurl'] + '/' + name
+            return config['scheme'] + '://' + \
+                config['node']['host'] + ':' + \
+                str(config['node']['port']) + \
+                config['baseurl'] + \
+                '/' + name
     else:
         return config
+
+
+def make_pool(pool, conf='pns', wipe=False):
+    """ Return a ProductStorage with given pool name or poolURL.
+
+    ;name: PoolURL, or pool name (has no "://"), in which case a pool URL is made based on the result of `getConfig(name=pool, conf=conf)`. Default is ''.
+    :conf: passed to `getconfig` to determine which configuration. Default ```pns```.
+    :wipe: whether to delete everything in the pool first.
+    """
+
+    if '://' in pool:
+        poolurl = pool
+    else:
+        poolurl = getConfig(pool)
+
+    # create a product store
+    from ..pal.productstorage import ProductStorage
+    pstore = ProductStorage(poolurl=poolurl)
+    if wipe:
+        logger.info('Wiping %s...' % str(pstore))
+        pstore.wipePool()
+        # pstore.getPool(pstore.getPools()[0]).removeAll()
+    # see what is in it.
+    # print(pstore)
+
+    return pstore

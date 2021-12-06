@@ -474,8 +474,9 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
                 result = compo
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
             elif issubclass(compo.__class__, MediaWrapper):
-                ct = compo.getType()
+                ct = compo.type
                 result = compo.data
+
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
             else:
                 return 0, resp(code, compo, msg, ts, serialize_out=False), 0

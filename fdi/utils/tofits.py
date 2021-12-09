@@ -14,8 +14,26 @@ from astropy.table import Table
 from astropy.table import Column
 import numpy as np
 import os
-    
+
 debug = False
+typecode2np = {
+    "b": np.int8,    # signed char
+    "B": np.uint8,   # unsigned char
+    "u": np.str,     # string
+    "h": np.int16,   # signed short
+    "H": np.uint16,  # unsigned integer
+    "i": np.int16,   # signed integer
+    "I": np.uint16,  # unsigned integer
+    "l": np.int32,   # signed long
+    "L": np.uint32,  # unsigned long
+    "q": np.int64,   # signed long long
+    "Q": np.uint64,  # unsigned long long
+    "f": np.float32, # float
+    "d": np.float64,   # double
+    "c": np.complex64, # complex
+    "c128": np.complex128, # complex 128 b
+    "t": np.bool       # truth value
+}
 
 def main():
     fitsdir = '/Users/jia/desktop/vtse_out/'
@@ -27,42 +45,30 @@ def main():
     hdul = fits.HDUList()
     fits_dataset(hdul,[ima,imb])
 
-def toFits(data):
+def toFits(data, file=None,**kwds):
     """convert dataset to FITS.
     
     :data: a list of Dataset or a BaseProduct.
     """
+    #__import__('pdb').set_trace()
     hdul = fits.HDUList()
     hdul.append(fits.PrimaryHDU())
+    if not issubclass(data.__class__,list):
+        if issubclass(data.__class__, BaseProduct):
+            hdul=fits_dataset(hdul,data.values())
+            add_header(data.meta,hdul[0].header)
+            if file:
+                hdul.writeto(file,**kwds)
+            return hdul
+        else:
+            raise ValueError('must be dataset of a product')
     if issubclass(data[0].__class__, (ArrayDataset, TableDataset,CompositeDataset)):
         hdul=fits_dataset(hdul,data)
-    elif issubclass(data.__class__, BaseProduct):
-        fits_product(hdul,data)
+    if file:
+        hdul.writeto(file,**kwds)
     return hdul
 
-typecode2np = {
-    "b": np.int8,    # signed char
-    "B": np.uint8,   # unsigned char
-    "u": np.str,     # string
-    "h": np.int16,   # signed short
-    "H": np.uint16,  # unsigned integer
-    "i": np.int16,   # signed integer
-    "I": np.unit16,  # unsigned integer
-    "l": np.int32,   # signed long
-    "L": np.uint32,  # unsigned long
-    "q": np.int64,   # signed long long
-    "Q": np.unit64,  # unsigned long long
-    "f": np.float32, # float
-    "d": np.float64,   # double
-    "c": np.complex64, # complex
-    "c128": np.complex128, # complex 128 b
-    "t": np.bool       # truth value
-}
-
-
 def fits_dataset(hdul,dataset_list):
-   
-
     for n, ima in enumerate(dataset_list):
         header = fits.Header()
         if issubclass(ima.__class__, ArrayDataset):
@@ -72,38 +78,17 @@ def fits_dataset(hdul,dataset_list):
         elif issubclass(ima.__class__, TableDataset):
             t=Table()
             for name, col in ima.items():
-                tname=DataTypes[col.typecode]
+                tname=typecode2np['u' if col.typecode=='UNKNOWN' else col.typecode]
                 if debug:
                     print('tname:',tname)
-                dt=typecode2np[tname]
-                c=Column(data=col.data, name=name, dtype=dt, shape=(), length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
+                c=Column(data=col.data, name=name, dtype=tname, shape=(), length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
                 t.add_column(c)
             header=add_header(ima.meta,header)
             hdul.append(fits.BinTableHDU(t,header=header))
         elif issubclass(ima.__class__, CompositeDataset):
-            dataset=fits_dataset(hdul,ima)
             for name, dlist in ima.items():
-                print(ima[name].__class__)
-                if issubclass(ima[name].__class__, ArrayDataset):
-                    a=np.array(ima[name])
-                    header=add_header(ima.meta,header)
-                    hdul.append(fits.ImageHDU(a,header=header))
-                elif issubclass(ima[name].__class__, TableDataset):
-                    units=[]
-                    dtype=[]
-                    data=[ima[name].getRow(slice(0))]
-                    desc=[]
-                    t=Table()
-                    for name2, col in ima[name].items():
-                        tname=DataTypes[col.type]
-                        if debug:
-                            print('tname in com:',tname)
-                        dt=np.dtype(tname)
-                        c=Column(data=col.data, name=name2, dtype=dt, shape=(), length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
-                        t.add_column(c)
-                    header=add_header(ima.meta,header)
-                    hdul.append(fits.BinTableHDU(t,header=header))
-            #hdul.append(fits.BinTableHDU(t,header=header))
+                print('dlist',dlist.__class__)
+                fits_dataset(hdul,[dlist])
     if debug:
         print("****",len(hdul))
     return hdul
@@ -124,6 +109,7 @@ def add_header(meta,header):
             if debug:
                 print('time',value)
             kw=getFitsKw(name)
+            #__import__('pdb').set_trace()
             header[kw]=(value,param.description)
         elif issubclass(param.__class__, NumericParameter):
             if issubclass(param.value.__class__, Vector):
@@ -137,7 +123,7 @@ def add_header(meta,header):
                     header[kw]=(param.value,param.description)
         elif issubclass(param.__class__, StringParameter):
             kw=getFitsKw(name)
-            v= '"'+param.value+'"' if param.value is not None else '""'
+            v= param.value if param.value is not None else ''
             header[kw]=(v,param.description)
         elif issubclass(param.__class__, BooleanParameter):
             kw=getFitsKw(name)

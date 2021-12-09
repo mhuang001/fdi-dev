@@ -2,6 +2,7 @@
 from fdi.dataset.arraydataset import ArrayDataset,Column as aCol
 from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.dataset import CompositeDataset
+from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.dataset import Dataset
@@ -82,8 +83,8 @@ def test_fits_dataset():
 def test_tab_fits():
     d= {'col1': aCol(data=[1, 4.4, 5.4E3], unit='eV'),
               'col2': aCol(data=[0, 43, 2E3], unit='cnt')}
-    d['col1'].type='float'
-    d['col2'].type='integer'
+    d['col1'].type='d'
+    d['col2'].type='i'
     ds=TableDataset(data=d)
     data=[ds]
     #__import__('pdb').set_trace()
@@ -91,16 +92,21 @@ def test_tab_fits():
     assert issubclass(u.__class__, fits.HDUList)
     print('test_tab_fits',u[0])
     assert u[1].columns['col1'].unit == 'eV'
-    assert u[1].data[0][0] == d['col1'].data[0]
-    assert u[1].data[1][1] == d['col2'].data[1]
-    
-def test_com_fits():
+    assert u[1].data[0][0] == str(d['col1'].data[0])
+    assert u[1].data[1][1] == str(d['col2'].data[1])
+@pytest.fixture(scope='module')
+def makecom():
     a1 = [768, 4.4, 5.4E3]
     a2 = 'ev'
     a3 = 'arraydset 1'
     a4 = ArrayDataset(data=a1, unit=a2, description=a3)
     a5, a6, a7 = [[1.09, 289], [3455, 564]], 'count', 'arraydset 2'
-    a8 = ArrayDataset(data=a5, unit=a6, description=a7)
+    #a8 = ArrayDataset(data=a5, unit=a6, description=a7)
+    d = {'col1': aCol(data=[1, 4.4, 5.4E3], unit='eV'),
+              'col2': aCol(data=[0, -43, 2E3], unit='cnt')}
+    d['col1'].typecode='d'
+    d['col2'].typecode='i'
+    a8=TableDataset(data=d)
     v = CompositeDataset()
     a9 = 'dataset 1'
     a10 = 'dataset 2'
@@ -111,27 +117,16 @@ def test_com_fits():
     a12 = NumericParameter(description='a different param in metadata',
                            value=2.3, unit='sec')
     v.meta[a11] = a12
-    v.meta['datetime']=DateParameter(
-        '2023-01-23T12:34:56.789012',description='date keyword')
-    v.meta['quat']=NumericParameter([0.0,1.1,2.4,3.5],description='q')
-    v.meta['float']=NumericParameter(1.234,description='float keyword')
-    v.meta['integer']=NumericParameter(1234,description='integer keyword')
-    v.meta['string_test']=StringParameter('abc',description=' string keyword')
-    v.meta['boolean_test']=BooleanParameter(True,description=' boolean keyword')
+    return v
+def test_com_fits(makecom):
+    v=makecom
     data=[v]
     u=toFits(data)
-    print(u[1].header)
-    assert u[1].header['DATETIME']=='2023-01-23T12:34:56.789012'
-    assert u[1].header['QUAT0']==0.0
-    assert u[1].header['QUAT1']==1.1
-    assert u[1].header['QUAT2']==2.4
-    assert u[1].header['QUAT3']==3.5
-    assert u[1].header['FLOAT']==1.234
-    assert u[1].header['INTEGER']==1234
-    assert u[1].header['STRING_T']=='"abc"'
-    assert u[1].header['BOOLEAN_']=='T'
-    assert u[1].data[0] == v[a9].data[0]
-    assert u[2].data[1][1] == v[a10].data[1][1]
+    print(u,len(u))
+    assert u[1].data[0]==v['dataset 1'].data[0]
+    assert u[1].shape==v['dataset 1'].shape
+    assert u[2].data['col1'][1]==v['dataset 2']['col1'][1]
+    assert u[2].data.dtype[0]=='<f8'
     
 """
     "A": "B",  # ASCII char
@@ -165,16 +160,19 @@ tcode={'b': np.bool,            #Boolean
        'c128': np.complex128    #128-bit complex number
 }
 
-def test_toFits_metadata():
-    for ds in [ArrayDataset,TableDataset]:
+def test_toFits_metadata(makecom):
+    for ds in [ArrayDataset,TableDataset,CompositeDataset]:
         if issubclass(ds, ArrayDataset):
             ima=ds(data=[[1,2,3,4],[5,6,7,8]], description='a')
         elif issubclass(ds,TableDataset):
             d= {'col1': aCol(data=[1, 4.4, 5.4E3], unit='eV'),
               'col2': aCol(data=[0, -43, 2E3], unit='cnt')}
-            d['col1'].typecode='f32'
-            d['col2'].typecode='i32'
+            d['col1'].typecode='d'
+            d['col2'].typecode='i'
             ima=ds(data=d)
+        elif issubclass(ds, CompositeDataset):
+            __import__('pdb').set_trace()
+            ima=makecom
         else:
             assert False
         ima.meta['datetime']=DateParameter(
@@ -200,7 +198,7 @@ def test_toFits_metadata():
         assert u[1].header['QUAT3']==3.5
         assert u[1].header['FLOAT']==1.234
         assert u[1].header['INTEGER']==1234
-        assert u[1].header['STRING_T']=='"abc"'
+        assert u[1].header['STRING_T']=='abc'
         assert u[1].header['BOOLEAN_']=='T'
         
         if issubclass(ds, ArrayDataset):
@@ -213,9 +211,24 @@ def test_toFits_metadata():
         
             assert u[1].data[0][0] == d['col1'].data[0]
             assert u[1].data[1][1] == d['col2'].data[1]
-        else:
-            assert False
-        
+        elif issubclass(ds,CompositeDataset):
+            pass
+def test_prd_fits(makecom):
+    c=makecom
+    p=BaseProduct('abc')
+    p['com']=c
+    p.meta['creationDate']=DateParameter(
+        '2023-01-23T12:34:56.789012',description='date keyword')
+    v=toFits(p)
+    assert v[1].data[0]==c['dataset 1'].data[0]
+    assert v[0].header['DESC']=='abc'
+    assert v[0].header['TYPE']=='BaseProduct'
+    assert v[0].header['DATE']=='2023-01-23T12:34:56.789012'
+    v=toFits(p, '/tmp/test.fits',overwrite=1)
+    f=fits.open('/tmp/test.fits')
+    f.close()
+    assert f[0].header==v[0].header
+
 def test_get_demo_product(demo_product):
     v, related = demo_product
     assert v['Browse'].data[1:4] == b'PNG'

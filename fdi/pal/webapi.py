@@ -7,3 +7,10 @@ WebAPI = ['dereference', 'exists',
           'pfilter', 'poolname', 'poolurl', 'readHK', 'reference', 'remove', 'removeAll', 'removeTag', 'removeUrn', 'removekey',
           'saveDescriptors', 'saveProduct', 'saveProductRef', 'schematicLoad', 'schematicRemove', 'schematicSave', 'schematicSelect', 'schematicWipe', 'select', 'setTag', 'setup',
           'tagExists', 'writeHK']
+
+version = 'v1/'
+PublicServices = ['storage', 'pool', 'group', 'node', 'data', 'config', 'home']
+PublicAPI = {
+    'home': ['cache', 'err', 'package-time', 'time'],
+    'datatype': ['']
+}

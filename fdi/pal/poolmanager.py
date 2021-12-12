@@ -153,8 +153,8 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
                 res, msg = remoteRegister(p, poolurl)
             elif schm == 'public':
                 from . import publicclientpool
-                p = publicclientpool.PublicClientPool(
-                    poolname=poolname, poolurl=poolurl, **kwds)
+                config = getConfig()
+                p = publicclientpool.PublicClientPool(config)
                 res, msg = p.isConnected()
             else:
                 raise NotImplementedError(schm + ':// is not supported')

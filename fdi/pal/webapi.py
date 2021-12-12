@@ -8,8 +8,9 @@ WebAPI = ['dereference', 'exists',
           'saveDescriptors', 'saveProduct', 'saveProductRef', 'schematicLoad', 'schematicRemove', 'schematicSave', 'schematicSelect', 'schematicWipe', 'select', 'setTag', 'setup',
           'tagExists', 'writeHK']
 
-version = 'v1/'
-PublicServices = ['storage', 'pool', 'group', 'node', 'data', 'config', 'home']
+publicRoute = '/csdb'
+publicVersion = '/v1'
+PublicServices = ['datatype', 'storage', 'pool', 'group', 'node', 'data', 'config']
 PublicAPI = {
     'home': ['cache', 'err', 'package-time', 'time'],
     'datatype': ['']

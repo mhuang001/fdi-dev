@@ -17,14 +17,6 @@ fdi.httppool.route.getswag module
    :undoc-members:
    :show-inheritance:
 
-fdi.httppool.route.home module
-------------------------------
-
-.. automodule:: fdi.httppool.route.home
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 fdi.httppool.route.httppool\_server module
 ------------------------------------------
 

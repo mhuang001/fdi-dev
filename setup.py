@@ -35,7 +35,7 @@ setup(
         'requests>=2.23.0',
         'filelock>=3.0.12',
         'ruamel.yaml<0.17',
-        'tabulate>=0.8.7',
+        'tabulate @ git+ssh://git@github.com/mhuang001/python-tabulate.git@r1'
         'cwcwidth>=0.1.5',
         'paho-mqtt>=1.5.1',
         'xmltodict>=0.12.0',

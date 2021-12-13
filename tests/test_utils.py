@@ -408,7 +408,7 @@ def test_wls():
     assert wls('产品标称的起始时间', 12, fill=' ') == '产品标称的起\n始时间      '
 
 
-def test_opt():
+def test_opt(caplog):
     options = [
         {'long': 'helpme', 'char': 'h', 'default': False,
          'description': 'print help'},
@@ -440,27 +440,20 @@ def test_opt():
     # the switch always results in True!
     assert out[2]['result'] == True
 
-    # type of result is determines by that of the default
+    # type of result is determined by that of the default
     options[0]['default'] = 0
     out = opt(options, ['exe', '--helpme', '--name=Awk', '--verbose'])
     assert out[0]['result'] == 1
 
     # unplanned option and '--help' get exception and exits
-    try:
+    with pytest.raises(SystemExit):
         out = opt(options, ['exe', '--helpme', '--name=Awk', '-y'])
-    except SystemExit:
-        pass
-    else:
-        assert 0, 'failed to exit.'
+    assert 'option -y not recognized' in caplog.text
 
-    try:
+    with pytest.raises(SystemExit):
         h = copy.copy(options)
         h[0]['long'] = 'help'
         out = opt(h, ['exe', '--help', '--name=Awk', '-v'])
-    except SystemExit:
-        pass
-    else:
-        assert 0, 'failed to exit.'
 
 
 def check_conf(cfp, typ, getConfig):

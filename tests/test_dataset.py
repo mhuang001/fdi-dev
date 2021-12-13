@@ -1880,6 +1880,7 @@ def test_TableDataset_func():
                     ) == TableDataset(data=[[11], [21], [31]])
 
     # toString()
+
     v = TableDataset(data=a10)
 
     check_MDP(v)
@@ -1892,6 +1893,22 @@ def test_TableDataset_func():
     ts += '\n\n'
     ts += 'an empty level 2: \n'
     ts += TableDataset().toString(level=2)
+    ts += '\n\n'
+    for n, c in {'group1.val': a10['col1'], 'group1.err': a10['col2'],
+                 'no-group.val': a10['col1'],
+                 'group2.val': a10['col1'], 'group2.err': a10['col2'],
+                 'group2.seq': a10['col2'],
+                 'group2.wgt': Column(data=['', 0.32, -9876543210], unit='g'),
+                 }.items():
+        v.addColumn(n, c)
+    ts += 'grouped column names'
+    ts += v.string(0, 'grid', 'rst', 'simple')
+    ts += v.string(0, 'grid', 'rst', 'rst')
+    ts += v.string(0, 'grid', 'rst', 'grid')
+    ts += v.string(0, 'grid', 'rst', 'fancy_grid')
+    ts += v.string(0, 'grid', 'rst', 'plain')
+    ts += v.string(0, 'grid', 'rst', 'orgtbl')
+    ts += v.string(0, 'grid', 'rst', 'psql')
     ts += '\n\n'
     if mk_output:
         print(ts)

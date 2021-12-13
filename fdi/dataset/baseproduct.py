@@ -47,7 +47,7 @@ class BaseProduct( AbstractComposite, Copyable, EventSender):
     =====
     BaseProduct class schema 1.6 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-11-07 12:05:03.905716.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2021-12-13 09:38:07.494042.
 
 Description:
 FDI base class data model
@@ -110,7 +110,7 @@ FDI base class data model
                 pass
 
     def toString(self, level=0,
-                 tablefmt='grid', tablefmt1='rst', tablefmt2='simple',
+                 tablefmt='grid', tablefmt1='rst', tablefmt2='rst',
                  matprint=None, trans=True, beforedata='', **kwds):
         """ like AbstractComposite but with history
         """

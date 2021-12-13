@@ -6,6 +6,15 @@ Change Log
 BETA0
 =====
 
+1.11.0 2021-12-17
+-----------------
+offset based meta accese, patial reading products, Flask auth, pooll presentation, mediawrapper, config api. pathstring, getDefault, docker on public net. BooleanParameter, CJK and locale in table, 2-row header for Tabledset.
+
+
+1.10.0 2021-10-05
+-----------------
+Login for poolserver, simplify serialised format.
+
 1.9.0 2021-09-25
 ----------------
 Composite inherites MutableMappin so datasets drops 'data' in serialized forms, and have more streamlined toastring. UnstructuredDataset with JSONPath.

@@ -3,7 +3,7 @@
 from .serializable import serialize, ATTR, LEN_ATTR
 from .odict import ODict
 from .classes import Classes
-from ..utils.common import lls, trbk
+from ..utils.common import lls, trbk, guess_value
 
 import logging
 import json
@@ -379,11 +379,6 @@ def deserialize_args(all_args, not_quoted=False, first_string=True, serialize_ou
     Conversion rules:
     |all_args[i]| converted to |
     | else | convert (case insensitive) and move on to the next segment |
-    | ```'None'``` | `None` |
-    | integer | `int()` |
-    | float | `float()` |
-    | ```'True'```, ```'False```` | `True`, `False` |
-    | string starting with ```'0x'``` | `hex()` |
     | string not starting with ```'0x'``` | `quote` |
 
     * else `decode_str()` if ```not_quoted==False``` else only substitute SAS_Avatar with Serialize_Args_Sep. Then `deserialize()` this segment to become ```{'apiargs':list, 'foo':bar ...}```, append value of ```apiargs``` to the converted-list above, remove the ```apiargs```-```val``` pair.
@@ -418,24 +413,8 @@ def deserialize_args(all_args, not_quoted=False, first_string=True, serialize_ou
                 # do not try to change type
                 arg = decode_str(a0)
                 first_string = False  # do not come back here
-            elif a0 == 'None':
-                arg = None
             else:
-                try:
-                    arg = int(a0)
-                except ValueError:
-                    try:
-                        arg = float(a0)
-                    except ValueError:
-                        # string, bytes, bool
-                        if a0.startswith('0x'):
-                            arg = bytes.fromhex(a0[2:])
-                        elif a0 == 'True':
-                            arg = True
-                        elif a0 == 'False':
-                            arg = False
-                        else:
-                            arg = decode_str(a0)
+                arg = guess_value(a0, last=decode_str)
             args.append(arg)
             # print(args)
         else:

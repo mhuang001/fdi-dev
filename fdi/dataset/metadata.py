@@ -32,7 +32,7 @@ tabulate.wcwidth = wcwidth
 tabulate.WIDE_CHARS_MODE = True
 tabulate.MIN_PADDING = 0
 #tabulate.PRESERVE_WHITESPACE = True
-Default_Extra_Param_Width = 12
+Default_Extra_Param_Width = 10
 
 """
 | Attribute | Defining Module | Holder Variable |
@@ -854,8 +854,12 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         self.getDataWrappers().clear()
 
     def set(self, name, newParameter):
-        """ Saves the parameter and  add eventhandling.
+        """ Saves the parameter and  adds eventhandling.
+
+        In a parameter name, dot or other invalid characters (when the name is used as a property name) is ignored.
+
         Raises TypeError if not given Parameter (sub) class object.
+
         Parameters
         ----------
 
@@ -913,7 +917,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         return r
 
     def toString(self, level=0,
-                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
                  extra=False, param_widths=None, width=0, **kwds):
         """ return  string representation of metada.
 
@@ -958,7 +962,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 ext.update(ext0)
             else:
                 # listeners
-                lstr = v.toString(level=level, alist=True)
+                lstr = '' if v is None else v.toString(level=level, alist=True)
                 if len(lstr) < 3:
                     lstr = [["", "<No listener>", ""]]
                 att['value'], att['unit'], att['type'], att['description'] = \

@@ -77,7 +77,7 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
         visitor.visit(self)
 
     def toString(self, level=0,
-                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
                  param_widths=None, width=0, matprint=None, trans=True,
                  heavy=True, center=-1, **kwds):
         """ matprint: an external matrix print function
@@ -107,7 +107,7 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
         d += bstr(self.data, level=level, heavy=heavy, center=center,
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                   yaml=True, **kwds) if matprint is None else \
-            matprint(self.data, level=level, trans=False, headers=[], tablefmt2='plain', heavy=heavy,
+            matprint(self.data, level=level, trans=False, headers=[], tablefmt2='rst', heavy=heavy,
                      **kwds)
         return f'{s}\n{d}\n{last}\n'
 

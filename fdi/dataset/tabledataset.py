@@ -92,6 +92,48 @@ class TableModel():
         self.getColumn(columnIndex).data[rowIndex] = value
 
 
+def maybe2rows(header_names, units, col_width):
+    """ makes one-row or two-row header """
+    found_repeat = False
+    hd, hd2 = [], []
+    last = None
+    for x in header_names:
+        try:
+            # only test if there is '.'
+            if not '.' in x:
+                raise ValueError()
+            f = float(x)
+            hd.append(x)
+            hd2.append('')
+            if not found_repeat:
+                last = ''
+        except ValueError:
+            # 'a.b', 'a.c' -> ('a','b'), ('a','c')
+            p = str(x).rsplit('.', 1)
+            # p0 is the group. p1 the sub-name
+            if len(p) > 1:
+                p0 = p[0]
+                hd.append(p[1])
+            else:
+                p0 = ''
+                hd.append(p[0])
+            hd2.append(p0)
+            if not found_repeat:
+                if p0 != '' and p0 == last:
+                    found_repeat = True
+                last = p0
+
+    # [(column name, unit), ...]. Widths of column head is limited
+    hdr1 = [wls(x, width=col_width)
+            for x in (hd if found_repeat else header_names)]
+    hdr = list('%s\n(%s)' % nu for nu in zip(hdr1, units))
+    if found_repeat:
+        # if there is found_repeat. use 2-row header
+        return list(zip(hd2, hdr))
+    else:
+        return hdr
+
+
 MdpInfo = Model['metadata']
 
 
@@ -217,7 +259,9 @@ class TableDataset(CompositeDataset, TableModel, Shaped):
 
     def addColumn(self, name, column, col_des=True):
         """ Adds the specified column to this table, and attaches a name
-        to it. If the name is null, a dummy name "column"+column_count+1 is created, such that it can be accessed by getColumn(str).
+        to it.
+
+        If the name is null, a dummy name "column"+column_count+1 is created, such that it can be accessed by getColumn(str).
 
         If column name exists the corresponding column is substituted.
 
@@ -519,7 +563,7 @@ Default is to return all columns.
 
     keys = TableModel.getColumnNames
 
-    #__len__ = TableModel.getColumnCount
+    # __len__ = TableModel.getColumnCount
 
     # def __contains__(self, name):
     #     """ if 'name` is found in column names.
@@ -530,9 +574,9 @@ Default is to return all columns.
         return self.toString(level=2)
 
     def toString(self, level=0,
-                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
                  width=0, param_widths=None, matprint=None, trans=True,
-                 heavy=True, center=-1, col_width=10, **kwds):
+                 heavy=True, center=-1, col_width=8, **kwds):
         """
         tablefmt2: format of 2D data, others see `MetaData.toString`.
         """
@@ -568,11 +612,9 @@ Default is to return all columns.
         cols = self.getData().values()
 
         coldata = [list(itertools.islice(x.data, stp)) for x in cols]
-
-        # [(column name, unit), ...]. Widths of column head is limited
-        nmun = zip((wls(x, width=col_width) for x in self.getData().keys()),
-                   (str(x.unit) for x in cols))
-        hdr = list('%s\n(%s)' % nu for nu in nmun)
+        hdr = maybe2rows(self.getData().keys(),
+                         (str(x.unit) for x in cols),
+                         col_width)
         d += matprint(coldata, trans=trans, headers=hdr,
                       tablefmt=tablefmt, tablefmt1=tablefmt1,
                       tablefmt2=tablefmt2, center=center,

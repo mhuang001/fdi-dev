@@ -45,7 +45,7 @@ def trbk2(e):
 
 
 def bstr(x, length=0, tostr=True, quote="'", level=0,
-         tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+         tablefmt='rst', tablefmt1='simple', tablefmt2='rst',
          width=0, heavy=True, yaml=False,
          **kwds):
     """ returns the best string representation.
@@ -169,7 +169,7 @@ def wls(st, width=15, fill=None, unprintable='#'):
 
 
 def mstr(obj, level=0, width=1, excpt=None, indent=4, depth=0,
-         tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+         tablefmt='rst', tablefmt1='simple', tablefmt2='rst',
          **kwds):
     """ Makes a presentation string at a detail level.
 
@@ -634,3 +634,48 @@ def findShape(data, element_seq=(str)):
             except (TypeError, IndexError, KeyError) as e:
                 d = None
     return tuple(shape)
+
+
+def guess_value(input_string, parameter=False, last=str):
+    """ Returns guessed value from a string.
+
+    | input | output |
+    | ```'None'``` | `None` |
+    | integer | `int()` |
+    | float | `float()` |
+    | ```'True'```, ```'False```` | `True`, `False` |
+    | string starting with ```'0x'``` | `hex()` |
+    | else | run `last`(input_string) |
+
+    """
+    from ..dataset.numericparameter import NumericParameter, BooleanParameter
+    from ..dataset.dateparameter import DateParameter
+    from ..dataset.stringparameter import StringParameter
+    from ..dataset.metadata import Parameter
+    if input_string == 'None':
+        res = None
+    elif input_string == '':
+        if parameter:
+            return StringParameter(value=input_string)
+        else:
+            return input_string
+    else:
+        try:
+            res = int(input_string)
+            return NumericParameter(value=res) if parameter else res
+        except ValueError:
+            try:
+                res = float(input_string)
+                return NumericParameter(value=res) if parameter else res
+            except ValueError:
+                # string, bytes, bool
+                if input_string.startswith('0x'):
+                    res = bytes.fromhex(input_string[2:])
+                    return NumericParameter(value=res) if parameter else res
+                elif input_string in ['True', 'False']:
+                    res = bool(input_string)
+                    return BooleanParameter(value=res) if parameter else res
+                else:
+                    res = last(input_string)
+                    return Parameter(value=res) if parameter else res
+    return None

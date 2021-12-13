@@ -60,7 +60,7 @@ PKGS	= requests filelock ruamel.yaml tabulate paho-mqtt
 PKGSDEV	=pytest pytest-cov aiohttp Flask Flask_HTTpAuth
 PKGSDEP	= waitress twine sphinx_rtd_theme sphinx-copybutton
 
-PIPOPT  = --disable-pip-version-check --no-color
+PIPOPT  = --disable-pip-version-check
 install:
 	$(PYEXE) -m pip install $(PIPOPT) -e .$(EXT) $(I)
 

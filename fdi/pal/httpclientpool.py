@@ -38,7 +38,7 @@ def toserver(self, method, *args, **kwds):
     #    __import__('pdb').set_trace()
 
     apipath = serialize_args(method, *args, not_quoted=self.not_quoted, **kwds)
-
+    logger.info(apipath)
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
 
     logger.debug("READ PRODUCT FROM REMOTE===> " + urn)

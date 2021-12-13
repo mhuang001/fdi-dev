@@ -67,7 +67,6 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf):
     # for finder in sys.meta_path:
     #     spec = finder.find_spec(absolute_name, filep)
     #     print(spec)  # if spec is not None:
-
     try:
         spec = importlib.util.spec_from_file_location(absolute_name, filep)
         #print('zz', spec)

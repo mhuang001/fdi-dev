@@ -134,7 +134,7 @@ elif conf == 'public':
     pnsconfig['node'] = {'username': 'rw', 'password': 'only6%',
                          'host': '123.56.102.90', 'port': 31702,
                          'ro_username': 'ro', 'ro_password': 'only5%',
-                         }
+                         'baseurl': '/v1'}
     # server permission user
     pnsconfig['serveruser'] = 'apache'
     # PTS app permission user

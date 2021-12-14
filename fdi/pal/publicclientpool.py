@@ -1,6 +1,7 @@
 import logging
 import sys
 
+from .productpool import ManagedPool
 from .urn import makeUrn
 from ..dataset.deserialize import serialize_args
 from ..dataset.serializable import serialize
@@ -30,49 +31,8 @@ INIT:
 2. 
 """
 
-def tocloud(self, method, *args, **kwds):
-    # if method == 'select':
-    #    __import__('pdb').set_trace()
 
-    apipath = serialize_args(method, *args, not_quoted=self.not_quoted, **kwds)
-
-    urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
-
-    logger.debug("READ PRODUCT FROM REMOTE CLOUD===> " + urn)
-    res = {}
-    # code, res, msg = read_from_server(urn, self._poolurl, apipath)
-    # if issubclass(res.__class__, str) and 'FAILED' in res or code != 200:
-    #     for line in msg.split('\n'):
-    #         excpt = line.split(':', 1)[0]
-    #         if excpt in bltn:
-    #             # relay the exception from server
-    #             raise bltn[excpt](('Code %d: %s' % (code, msg)))
-    #     raise RuntimeError('Executing ' + method +
-    #                        ' failed. Code: %d Message: %s' % (code, msg))
-    return res
-
-
-def toCloud(method_name=None):
-    """ decorator to divert local calls to server and return what comes back.
-
-    """
-
-    def inner(*sf):
-        """ [self], fun """
-        fun = sf[-1]
-
-        def wrapper(*args, **kwds):
-            return tocloud(args[0],
-                           method_name if method_name else fun.__name__,
-                           *args[1:],
-                           **kwds)
-
-        return wrapper
-
-    return inner
-
-
-class PublicClientPool:
+class PublicClientPool(ManagedPool):
     def __init__(self, makenew=True, **kwds):
         """ creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
         """
@@ -137,15 +97,91 @@ class PublicClientPool:
         urn = 'urn:::0'
         return read_from_cloud(urn, self._poolurl, 'home')
 
-    def setService(self, service):
-        """
-        ['storage', 'pool', 'group', 'node', 'data', 'config', 'home']
-        """
-        if service not in webapi.PublicServices:
-            logger.error("Please select a service from: " + str(webapi.PublicServices))
-        else:
-            self.service = service
+    def getToken(self):
+        pass
 
+    def exists(self, urn):
+        """
+        Determines the existence of a product with specified URN.
+        """
+        return urn in self._urns
 
-p = PublicClientPool()
-print(p.isConnected())
+    def getProductClasses(self):
+        """
+        Returns all Product classes found in this pool.
+        mh: returns an iterator.
+        """
+        return self._classes.keys()
+
+    def getCount(self, typename):
+        """
+        Return the number of URNs for the product type.
+        """
+        try:
+            return len(self._classes[typename]['sn'])
+        except KeyError:
+            return 0
+
+    def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
+        """ to be implemented by subclasses to do the action of saving
+        """
+        raise(NotImplementedError)
+
+    def isEmpty(self):
+        """
+        Determines if the pool is empty.
+        """
+        return len(self._urns) == 0
+
+    def getMetaByUrn(self, urn, resourcetype=None, index=None):
+        """
+        Get all of the meta data belonging to a product of a given URN.
+
+        mh: returns an iterator.
+        """
+        raise NotImplemented
+
+    def meta(self,  urn):
+        """
+        Loads the meta-data info belonging to the product of specified URN.
+        """
+        return self.getMetaByUrn(urn)
+
+    def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, kwds):
+        pass
+
+    def doLoad(self, resourcetype, index, start=None, end=None, serialize_out=False):
+        """ to be implemented by subclasses to do the action of loading
+        """
+        raise(NotImplementedError)
+
+    def doRemove(self, resourcetype, index):
+        """ to be implemented by subclasses to do the action of reemoving
+        """
+        raise(NotImplementedError)
+
+    def doWipe(self):
+        """ to be implemented by subclasses to do the action of wiping.
+        """
+        raise(NotImplementedError)
+
+    def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
+        """ returns filtered collection using the query.
+
+        q is a MetaQuery
+        valid inputs: typename and ns list; productref list; urn list
+        """
+        pass
+
+    def prod_filter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
+        """ returns filtered collection using the query.
+
+        q: an AbstractQuery.
+        valid inputs: cls and ns list; productref list; urn list
+        """
+
+    def doSelect(self, query, results=None):
+        """
+        to be implemented by subclasses to do the action of querying.
+        """
+        raise(NotImplementedError)

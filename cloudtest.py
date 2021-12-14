@@ -103,21 +103,17 @@ class PublicClientPool:
     def datatype_listMeta(self, dataType=None):
         pass
 
-    # @toCloud()
-    # def datatype_show_name(self):
-    #     pass
-
     @toCloud()
     def datatype_upload(self, dataFilePath='', productType='', arguments=None):
         pass
 
 
 pool = PublicClientPool()
-# print(pool.datatype_list())
-# print(pool.datatype_list('fits'))
-# print(pool.datatype_listNode('data', 'fits'))
-# print(pool.datatype_listMeta('fits'))
-# print(pool.datatype_listMeta('da', 'adj'))
+print(pool.datatype_list())
+print(pool.datatype_list('fits'))
+print(pool.datatype_listNode('data', 'fits'))
+print(pool.datatype_listMeta('fits'))
+print(pool.datatype_listMeta('da', 'adj'))
 filePath = '/home/tearsyu/Documents/fdi/tests/resources/datatype_test.txt'
 myArgs = {"radius:324"}
 print(pool.datatype_upload(dataFilePath=filePath, productType='DATATYPE_TEST',   arguments=myArgs))

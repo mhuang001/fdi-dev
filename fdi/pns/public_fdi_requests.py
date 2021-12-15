@@ -36,6 +36,25 @@ def getAuth(user=AUTHUSER, password=AUTHPASS):
     return HTTPBasicAuth(user, password)
 
 
+def read_from_cloud(requestName, **kwargs):
+    header = {'Content-Type': 'application/json;charset=UTF-8'}
+    if requestName == 'getToken':
+        requestAPI = defaulturl + '/user/auth/token'
+        postData = {'username': AUTHUSER, 'password': AUTHPASS}
+        res = requests.post(requestAPI, headers=header, data=serialize(postData))
+    elif requestName == 'verifyToken':
+        requestAPI = defaulturl + '/user/auth/verify?token=' + kwargs['token']
+        res = requests.get(requestAPI)
+    elif requestName == 'infoUrn':
+        header['X-AUTH-TOKEN'] = kwargs['token']
+        requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + '/storage/info?urns=' + kwargs['urn']
+        res = requests.get(requestAPI, headers=header)
+    else:
+        raise Exception("Unknown request API: " + str(requestName))
+    print("Read from API: " + requestAPI)
+    return deserialize(res.text)
+
+
 def get_service_method(method):
     service = method.split('_')[0]
     serviceName = method.split('_')[1]

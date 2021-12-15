@@ -11,7 +11,7 @@ from ..utils.common import fullname
 from ..utils.getconfig import getConfig
 
 logger = logging.getLogger(__name__)
-pcc = getConfig(conf='public')
+pcc = getConfig()
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -33,69 +33,25 @@ INIT:
 
 
 class PublicClientPool(ManagedPool):
-    def __init__(self, makenew=True, **kwds):
+    def __init__(self, **kwds):
         """ creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
         """
         # print(__name__ + str(kwds))
         super().__init__(**kwds)
-        self.not_quoted = True
-        self.service = webapi.PublicServices[0]
-        self._poolname = 'Not set'
-        self._poolurl = 'Not set'
 
-    def readHK(self):
+    def setup(self):
+        """ Sets up HttpPool interals.
+
+        Make sure that self._poolname and self._poolurl are present.
         """
-        loads and returns the housekeeping data in cloud
-        """
-        poolname = self._poolname
-        logger.debug("READ HK FROM REMOTE===>poolurl: " + poolname)
-        hk = {}
 
-        # TODO: get hk and handle exceptions
-        return hk
+        if super().setup():
+            return True
 
-    def schematicSave(self, products, tag=None, geturnobjs=False, serialize_out=False, **kwds):
-        alist = issubclass(products.__class__, list)
-        if not alist:
-            productlist = [products]
-        else:
-            productlist = products
+        return False
 
-        if len(productlist) == 0:
-            return []
-        # only type and poolname in the urn will be used
-        urn = makeUrn(typename=fullname(productlist[0]),
-                      poolname=self._poolname, index=0)
-        first = True
-        sized = '['
-        for prd in productlist:
-            sp = serialize(prd)
-            sized += '%s %d, %s' % ('' if first else ',', len(sp), sp)
-            first = False
-        sized += ']'
-
-        # TODO: save data to cloud and handle exception
-        res = {}
-
-        if alist:
-            return serialize(res) if serialize_out else res
-        else:
-            return serialize(res[0]) if serialize_out else res[0]
-
-    def schematicWipe(self):
-        """
-        does the scheme-specific remove-all from cloud
-        """
-        # TODO: remove data from cloud
-        # res, msg = delete_from_server(None, self._poolurl, 'pool')
-        # if res == 'FAILED':
-        #     logger.error(msg)
-        #     raise Exception(msg)
-        return 0
-
-    def isConnected(self):
-        urn = 'urn:::0'
-        return read_from_cloud(urn, self._poolurl, 'home')
+    def isAvailable(self):
+        pass
 
     def getToken(self):
         pass

@@ -33,6 +33,7 @@ import copy
 from datetime import timezone, timedelta, datetime
 import sys
 import os
+import io
 import hashlib
 import os.path
 import pytest
@@ -121,12 +122,13 @@ def makecom():
 def test_com_fits(makecom):
     v=makecom
     data=[v]
+    #__import__('pdb').set_trace()
     u=toFits(data)
     print(u,len(u))
-    assert u[1].data[0]==v['dataset 1'].data[0]
-    assert u[1].shape==v['dataset 1'].shape
-    assert u[2].data['col1'][1]==v['dataset 2']['col1'][1]
-    assert u[2].data.dtype[0]=='<f8'
+    assert u[2].data[0]==v['dataset 1'].data[0]
+    assert u[2].shape==v['dataset 1'].shape
+    assert u[3].data['col1'][1]==v['dataset 2']['col1'][1]
+    assert u[3].data.dtype[0]=='<f8'
     
 """
     "A": "B",  # ASCII char
@@ -171,7 +173,7 @@ def test_toFits_metadata(makecom):
             d['col2'].typecode='i'
             ima=ds(data=d)
         elif issubclass(ds, CompositeDataset):
-            __import__('pdb').set_trace()
+            #__import__('pdb').set_trace()
             ima=makecom
         else:
             assert False
@@ -190,27 +192,28 @@ def test_toFits_metadata(makecom):
         assert issubclass(u.__class__, fits.HDUList)
         #assert len(u) == len(data)+1
         print("-----",u[0].header)
-        print(u[1].header)
-        assert u[1].header['DATETIME']=='2023-01-23T12:34:56.789012'
-        assert u[1].header['QUAT0']==0.0
-        assert u[1].header['QUAT1']==1.1
-        assert u[1].header['QUAT2']==2.4
-        assert u[1].header['QUAT3']==3.5
-        assert u[1].header['FLOAT']==1.234
-        assert u[1].header['INTEGER']==1234
-        assert u[1].header['STRING_T']=='abc'
-        assert u[1].header['BOOLEAN_']=='T'
+        w=u[1]
+        print(w.header)
+        assert w.header['DATETIME']=='2023-01-23T12:34:56.789012'
+        assert w.header['QUAT0']==0.0
+        assert w.header['QUAT1']==1.1
+        assert w.header['QUAT2']==2.4
+        assert w.header['QUAT3']==3.5
+        assert w.header['FLOAT']==1.234
+        assert w.header['INTEGER']==1234
+        assert w.header['STRING_T']=='abc'
+        assert w.header['BOOLEAN_']=='T'
         
         if issubclass(ds, ArrayDataset):
-            assert u[1].header['NAXIS1']==len(ima.data[0])
-            assert u[1].header['NAXIS2']==len(ima.data)
-            assert u[1].header['NAXIS']==len(ima.shape)
-            assert u[1].data[0][0] == ima[0][0]
-            assert u[1].data[1][1] == ima[1][1]
+            assert w.header['NAXIS1']==len(ima.data[0])
+            assert w.header['NAXIS2']==len(ima.data)
+            assert w.header['NAXIS']==len(ima.shape)
+            assert w.data[0][0] == ima[0][0]
+            assert w.data[1][1] == ima[1][1]
         elif issubclass(ds,TableDataset):
         
-            assert u[1].data[0][0] == d['col1'].data[0]
-            assert u[1].data[1][1] == d['col2'].data[1]
+            assert w.data[0][0] == d['col1'].data[0]
+            assert w.data[1][1] == d['col2'].data[1]
         elif issubclass(ds,CompositeDataset):
             pass
 def test_prd_fits(makecom):
@@ -220,7 +223,8 @@ def test_prd_fits(makecom):
     p.meta['creationDate']=DateParameter(
         '2023-01-23T12:34:56.789012',description='date keyword')
     v=toFits(p)
-    assert v[1].data[0]==c['dataset 1'].data[0]
+    
+    assert v[2].data[0]==c['dataset 1'].data[0]
     assert v[0].header['DESC']=='abc'
     assert v[0].header['TYPE']=='BaseProduct'
     assert v[0].header['DATE']=='2023-01-23T12:34:56.789012'
@@ -228,7 +232,17 @@ def test_prd_fits(makecom):
     f=fits.open('/tmp/test.fits')
     f.close()
     assert f[0].header==v[0].header
-
+    ###test stream
+    #__import__('pdb').set_trace()
+    f=open('/tmp/test.fits','wb+')
+    stream=toFits(p, '')
+    f.write(stream)
+    f.close()
+    f=fits.open('/tmp/test.fits')
+    f.close()
+    assert f[0].header==v[0].header
+    del f
+    
 def test_get_demo_product(demo_product):
     v, related = demo_product
     assert v['Browse'].data[1:4] == b'PNG'
@@ -469,7 +483,7 @@ def test_Fits_Kw():
 def test_loadcsv():
     csvf = '/tmp/fditest/testloadcsv.csv'
     a = 'as if ...'
-    with open(csvf, 'w') as f:
+    with open(csvf, 'rw') as f:
         f.write(a)
     v = loadcsv(csvf, ' ')
     assert v[0] == ('col1', ['as'], '')

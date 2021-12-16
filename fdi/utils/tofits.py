@@ -14,6 +14,7 @@ from astropy.table import Table
 from astropy.table import Column
 import numpy as np
 import os
+import io
 
 debug = False
 typecode2np = {
@@ -49,31 +50,41 @@ def toFits(data, file=None,**kwds):
     """convert dataset to FITS.
     
     :data: a list of Dataset or a BaseProduct.
+    :file: '' for returning fits stream. string for file name. default None for list of hduls.
     """
     #__import__('pdb').set_trace()
     hdul = fits.HDUList()
     hdul.append(fits.PrimaryHDU())
     if not issubclass(data.__class__,list):
         if issubclass(data.__class__, BaseProduct):
-            hdul=fits_dataset(hdul,data.values())
+            hdul=fits_dataset(hdul,data.values(),list(data.keys()))
+            #__import__('pdb').set_trace()
             add_header(data.meta,hdul[0].header)
-            if file:
-                hdul.writeto(file,**kwds)
-            return hdul
         else:
             raise ValueError('must be dataset of a product')
-    if issubclass(data[0].__class__, (ArrayDataset, TableDataset,CompositeDataset)):
+    elif issubclass(data[0].__class__, (ArrayDataset, TableDataset,CompositeDataset)):
         hdul=fits_dataset(hdul,data)
     if file:
         hdul.writeto(file,**kwds)
-    return hdul
+        return hdul
+    elif file=='':
+        with io.BytesIO() as iob:
+            hdul.writeto(iob,**kwds)
+            fits_im = iob.getvalue()
+        return fits_im
+    else:
+        return hdul
 
-def fits_dataset(hdul,dataset_list):
+def fits_dataset(hdul, dataset_list, name_list=None):
+    if name_list is None:
+        name_list=[]
     for n, ima in enumerate(dataset_list):
         header = fits.Header()
         if issubclass(ima.__class__, ArrayDataset):
             a=np.array(ima)
             header=add_header(ima.meta,header)
+            ename=ima.__class__.__name__ if len(name_list) == 0 else name_list[n]
+            header['EXTNAME']=ename
             hdul.append(fits.ImageHDU(a,header=header))
         elif issubclass(ima.__class__, TableDataset):
             t=Table()
@@ -84,11 +95,15 @@ def fits_dataset(hdul,dataset_list):
                 c=Column(data=col.data, name=name, dtype=tname, shape=(), length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
                 t.add_column(c)
             header=add_header(ima.meta,header)
+            ename=ima.__class__.__name__ if len(name_list) == 0 else name_list[n]
+            header['EXTNAME']=ename
             hdul.append(fits.BinTableHDU(t,header=header))
         elif issubclass(ima.__class__, CompositeDataset):
+            header=add_header(ima.meta,header)
+            hdul.append(fits.BinTableHDU(Table(),header=header))
             for name, dlist in ima.items():
                 print('dlist',dlist.__class__)
-                fits_dataset(hdul,[dlist])
+                fits_dataset(hdul,[dlist],name_list=[name])
     if debug:
         print("****",len(hdul))
     return hdul

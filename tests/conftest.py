@@ -46,7 +46,7 @@ def pc(getConfig):
     """ get configuration.
 
     """
-    return getConfig()
+    return getConfig(force=True)
 
 
 def checkserver(aburl, excluded=None):

@@ -465,7 +465,7 @@ def check_conf(cfp, typ, getConfig):
     with open(filec, 'w') as f:
         f.write(conf)
     # check conf file directory
-    w = getConfig(conf=typ)
+    w = getConfig(conf=typ, force=True)
     assert w['jk'] == 98
     pfile = w['m']
     assert pfile.startswith(cfp)

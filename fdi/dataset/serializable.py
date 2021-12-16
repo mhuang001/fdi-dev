@@ -299,3 +299,9 @@ class Serializable():
         from ..utils.ydump import ydump, yinit
         yinit()
         return ydump(self)
+
+    def tree(self):
+        """ Get a directory-tree-like representation. """
+        from ..utils.tree import tree
+
+        return '\n'.join(tree(self))

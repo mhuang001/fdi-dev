@@ -15,6 +15,7 @@ from fdi.utils import moduleloader
 from fdi.utils.common import fullname, wls
 from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
+from fdi.utils.tree import tree
 from fdi.utils.loadfiles import loadMedia
 
 import traceback
@@ -275,6 +276,13 @@ def test_fetch(demo_product):
     # products
     p, r = demo_product
     chk_sample_pd(p)
+
+
+def test_tree(demo_product):
+    p, r = demo_product
+
+    v = tree(p)
+    print("\n", '\n'.join(v))
 
 
 def test_Fits_Kw():

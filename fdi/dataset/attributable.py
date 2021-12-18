@@ -19,7 +19,8 @@ MdpInfo = {}
 
 """ Names not for mormal properties. """
 Reserved_Property_Names = ['history', 'meta', 'refs', 'dataset',
-                           'zInfo', '_MDP', 'extraMdp', 'alwaysMeta']
+                           'zInfo', '_MDP', 'extraMdp', 'alwaysMeta',
+                           'toString', 'string', 'yaml', 'tree']
 
 """ These MetaData Parameters (MDPs) and vital attrbutes are Set By Parent classes:
 | Special MDPs and attrbutes | set by parent Classes | attribute holder |

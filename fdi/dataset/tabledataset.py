@@ -600,12 +600,20 @@ Default is to return all columns.
                     for k, v in self.getColumnMap().items()) + \
                 '})'
 
+        html = tablefmt == 'html' or tablefmt2 == 'html'
+        br = '<br>' if html else '\n'
+        if html:
+            tablefmt = tablefmt2 = 'html'
         s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
-                                     tablefmt2=tablefmt2, center=center, excpt=['description'])
+                                     tablefmt2=tablefmt2, center=center,
+                                     html=html, excpt=['description'])
         width = len(last)-1
         if level == 0:
-            d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
+            if html:
+                d = '<center><u>%s</u></center>\n' % 'DATA'
+            else:
+                d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
         else:
             d = ''
         stp = 2 if level > 1 else 20 if level == 1 else None

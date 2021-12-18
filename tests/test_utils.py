@@ -32,9 +32,17 @@ if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
 else:
     PY3 = False
 
+# make format output in /tmp/output.py
+mk_outputs = 0
+
+if mk_outputs:
+    with open('/tmp/outputs.py', 'wt', encoding='utf-8') as f:
+        f.write('# -*- coding: utf-8 -*-\n')
+
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
-    pass
+    if not mk_outputs:
+        from outputs_utils import out_tree
 else:
     # run by pytest
 
@@ -42,6 +50,9 @@ else:
     # https://docs.python-guide.org/writing/structure/
 
     from pycontext import fdi
+
+    if not mk_outputs:
+        from outputs_utils import out_tree
 
     from logdict import logdict
     import logging
@@ -63,7 +74,7 @@ def test_get_demo_product(demo_product):
     assert v['Browse'].data[1:4] == b'PNG'
     # print(v.yaml())
     p = v.getDefault()
-    assert p == v['results']
+    assert p == v['measurements']
     aref = ProductRef(related)
     v.refs['a'] = aref
     r0 = v.refs
@@ -148,20 +159,20 @@ def chk_sample_pd(p):
     v, s = fetch(["Environment Temperature", "T0", "tai"], p)
     assert v == FineTime('2020-02-02T20:20:20.0202').tai
 
-    # a 2D array dataset in compositedataset 'results'
-    v, s = fetch(["results", 'calibration', "unit"], p)
+    # a 2D array dataset in compositedataset 'measurements'
+    v, s = fetch(["measurements", 'calibration', "unit"], p)
     assert v == 'count'
-    assert v == p['results']['calibration'].unit
-    assert s == '["results"]["calibration"].unit'
+    assert v == p['measurements']['calibration'].unit
+    assert s == '["measurements"]["calibration"].unit'
 
     # data of a column in tabledataset within compositedataset
-    v, s = fetch(["results", "Time_Energy_Pos", "Energy", "data"], p)
+    v, s = fetch(["measurements", "Time_Energy_Pos", "Energy", "data"], p)
     t = [x * 1.0 for x in range(len(v))]
     assert v == [2 * x + 100 for x in t]
-    assert v == p['results']['Time_Energy_Pos']['Energy'].data
-    assert s == '["results"]["Time_Energy_Pos"]["Energy"].data'
-    ys, s = fetch(["results", "Time_Energy_Pos", "y"], p)
-    zs, s = fetch(["results", "Time_Energy_Pos", "z"], p)
+    assert v == p['measurements']['Time_Energy_Pos']['Energy'].data
+    assert s == '["measurements"]["Time_Energy_Pos"]["Energy"].data'
+    ys, s = fetch(["measurements", "Time_Energy_Pos", "y"], p)
+    zs, s = fetch(["measurements", "Time_Energy_Pos", "z"], p)
     # y^2 + z^2 = 100 for all t
     assert all((y*y + z*z - 100) < 1e-5 for y, z in zip(ys.data, zs.data))
 
@@ -281,8 +292,21 @@ def test_fetch(demo_product):
 def test_tree(demo_product):
     p, r = demo_product
 
+    # test output
+    ts = 'tree out_tree'
     v = tree(p)
-    print("\n", '\n'.join(v))
+    ts += "\n" + '\n'.join(v)
+    v = tree(p, level=1)
+    ts += "\n" + '\n'.join(v)
+    v = tree(p, level=1, style='ascii')
+    ts += "\n" + '\n'.join(v)
+    if mk_outputs:
+        print(ts)
+        with open('/tmp/outputs.py', 'a') as f:
+            clsn = 'out_tree'
+            f.write('%s = """%s"""\n' % (clsn, ts))
+    else:
+        assert ts == out_tree
 
 
 def test_Fits_Kw():

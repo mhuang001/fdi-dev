@@ -70,17 +70,17 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 Classes.updateMapping()
 
-# make format output in /tmp/output.py
-mk_output = 0
+# make format output in /tmp/outputs.py
+mk_outputs = 0
 
-if mk_output:
-    with open('/tmp/output.py', 'wt', encoding='utf-8') as f:
+if mk_outputs:
+    with open('/tmp/outputs.py', 'wt', encoding='utf-8') as f:
         f.write('# -*- coding: utf-8 -*-\n')
 
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py
 
-    if not mk_output:
+    if not mk_outputs:
         from outputs import nds20, nds30, nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
 else:
     # run by pytest
@@ -89,7 +89,7 @@ else:
     # https://docs.python-guide.org/writing/structure/
     from pycontext import fdi
 
-    if not mk_output:
+    if not mk_outputs:
         from outputs import nds20, nds30, nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
 
     import logging
@@ -289,13 +289,13 @@ def test_ndprint():
     s[0][1][2] = [5, 4, 3, 2, 1]
     s[0][1][3] = [0, 0, 0, 3, 0]
     v = ndprint(s, trans=False, headers=[], tablefmt2='plain')
-    if mk_output:
+    if mk_outputs:
         print(v)
         # print(nds2)
     else:
         assert v == nds2
     v = ndprint(s, headers=[], tablefmt2='plain')
-    if mk_output:
+    if mk_outputs:
         print(v)
     else:
         assert v == nds3
@@ -1187,8 +1187,9 @@ def test_MetaData():
     v = v.meta
     ts += '\n'
     ts += v.toString(extra=True)
-    if mk_output:
-        with open('/tmp/output.py', 'a', encoding='utf-8') as f:
+    ts += v.toString(tablefmt1='html')
+    if mk_outputs:
+        with open('/tmp/outputs.py', 'a', encoding='utf-8') as f:
             clsn = 'out_MetaData'
             f.write('%s = """%s"""\n' % (clsn, ts))
         print(ts)
@@ -1344,9 +1345,10 @@ def test_Dataset():
     ts += v.toString(1)
     ts += 'level 2,\n'
     ts += v.toString(2)
-    if mk_output:
+    ts += v.toString(tablefmt1='html')
+    if mk_outputs:
         print(ts)
-        with open('/tmp/output.py', 'a') as f:
+        with open('/tmp/outputs.py', 'a') as f:
             clsn = 'out_Dataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -1563,7 +1565,7 @@ def do_ArrayDataset_func(atype):
 
     ts += x.toString()
     i = ts.index('0  0  0')
-    if mk_output:
+    if mk_outputs:
         print(ts[i:])
     else:
         assert ts[i:-126] == nds2
@@ -1575,9 +1577,10 @@ def do_ArrayDataset_func(atype):
     ts += 'an empty meta and long data level 2: \n'
     ts += ArrayDataset(data=[8]*8).toString(level=2)
     ts += '\n\n'
-    if mk_output:
+    ts += x.toString(tablefmt1='html')
+    if mk_outputs:
         print(ts)
-        with open('/tmp/output.py', 'a') as f:
+        with open('/tmp/outputs.py', 'a') as f:
             clsn = 'out_ArrayDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -1894,6 +1897,8 @@ def test_TableDataset_func():
     ts += 'an empty level 2: \n'
     ts += TableDataset().toString(level=2)
     ts += '\n\n'
+    ts += v.toString(tablefmt1='html')
+    ts += '\n\n'
     for n, c in {'group1.val': a10['col1'], 'group1.err': a10['col2'],
                  'no-group.val': a10['col1'],
                  'group2.val': a10['col1'], 'group2.err': a10['col2'],
@@ -1910,9 +1915,9 @@ def test_TableDataset_func():
     ts += v.string(0, 'grid', 'rst', 'orgtbl')
     ts += v.string(0, 'grid', 'rst', 'psql')
     ts += '\n\n'
-    if mk_output:
+    if mk_outputs:
         print(ts)
-        with open('/tmp/output.py', 'a') as f:
+        with open('/tmp/outputs.py', 'a') as f:
             clsn = 'out_TableDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -2157,9 +2162,10 @@ def test_CompositeDataset_init():
     ts += 'level 2,\n'
     ts += v3.toString(2)
     assert v3.string() == s3
-    if mk_output:
+    ts += v3.toString(tablefmt1='html')
+    if mk_outputs:
         print(ts)
-        with open('/tmp/output.py', 'a') as f:
+        with open('/tmp/outputs.py', 'a') as f:
             clsn = 'out_CompositeDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -2187,18 +2193,18 @@ def test_UnstrcturedDataset():
     # v is a dictionary
     assert json.dumps(v) == serialize(p.meta['speed'])
     assert s == '.data["_ATTR_meta"]["speed"]'
-    # ["results"]["calibration"]["meta"]["unit"]["value"]
-    v, s = u.fetch(["data", "results", "calibration",
+    # ["measurements"]["calibration"]["meta"]["unit"]["value"]
+    v, s = u.fetch(["data", "measurements", "calibration",
                     "_ATTR_meta", "unit", "value"])
     assert v == 'count'
-    assert s == '.data["results"]["calibration"]["_ATTR_meta"]["unit"]["value"]'
+    assert s == '.data["measurements"]["calibration"]["_ATTR_meta"]["unit"]["value"]'
     # data of a column in tabledataset within compositedataset
     v, s = u.fetch(
-        ["data", "results", "Time_Energy_Pos", "Energy", "_ATTR_data"])
+        ["data", "measurements", "Time_Energy_Pos", "Energy", "_ATTR_data"])
     t = [x * 1.0 for x in range(len(v))]
     assert v == [2 * x + 100 for x in t]
-    assert v == u.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]
-    assert s == '.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]'
+    assert v == u.data["measurements"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]
+    assert s == '.data["measurements"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]'
 
     print('cache:', fdi.dataset.unstructureddataset.getCacheInfo())
     checkjson(u)
@@ -2684,9 +2690,9 @@ def test_FineTimes_toString():
                 for level in [0, 1, 2]:
                     s = v.toString(level=level, width=width)
                     ts += f'level={level} width={width}: {s}\n'
-    if mk_output:
+    if mk_outputs:
         print(ts)
-        with open('/tmp/output.py', 'a') as f:
+        with open('/tmp/outputs.py', 'a') as f:
             clsn = 'out_FineTime'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:

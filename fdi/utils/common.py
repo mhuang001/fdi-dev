@@ -65,7 +65,10 @@ def bstr(x, length=0, tostr=True, quote="'", level=0,
     elif issubclass(x.__class__, (bytes, bytearray, memoryview)):
         r = x.hex()
     else:
+        html = tablefmt == 'html' or tablefmt2 == 'html'
         r = ydump(x) if yaml else str(x)
+        if html:
+            r = '<pre>%s</pre>' % r
     return lls(r, length=length)
 
 

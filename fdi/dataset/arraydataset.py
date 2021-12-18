@@ -176,21 +176,30 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
             # (vs, us, ts, ds, fs, cs)
             return '%s data= %s)' % (s, vs)
 
+        html = tablefmt == 'html' or tablefmt2 == 'html'
+        br = '<br>' if html else '\n'
+        if html:
+            tablefmt = tablefmt2 = 'html'
+
         s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
                                      tablefmt2=tablefmt2, center=center,
-                                     excpt=['description'])
+                                     html=html, excpt=['description'])
         width = len(last)-1
         if level == 0:
-            d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
+            if html:
+                d = '<center><u>%s</u></center>\n' % 'DATA' + '<hr>'
+            else:
+                d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
         else:
             d = ''
 
         ds = bstr(self.data, level=level, **kwds) if matprint is None else \
-            matprint(self.data, trans=False, headers=[], tablefmt2='plain',
+            matprint(self.data, trans=False, headers=[],
+                     tablefmt2='html' if html else 'plain',
                      **kwds)
-        d += lls(ds, 1000)
-        return f'{s}\n{d}\n{last}\n'
+        d += lls(ds, 9000 if html else 2000)
+        return f'{s}\n{d}%s{last}%s' % (br, br)
 
     string = toString
 

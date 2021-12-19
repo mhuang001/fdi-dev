@@ -156,7 +156,7 @@ def get_demo_product():
     y = [10 * sin(x*2*3.14/len(t)) for x in t]
     z = [10 * cos(x*2*3.14/len(t)) for x in t]
 
-    x = TableDataset(description="A table")
+    x = TableDataset(description="A table of measurement reslts")
     x["Time"] = Column(data=t, unit=SECONDS)
     x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
     x["Error"] = Column(data=err, unit=ELECTRON_VOLTS)
@@ -173,11 +173,12 @@ def get_demo_product():
     a1 = [768, 767, 766, 4.4, 4.5, 4.6, 5.4E3]
     a2 = 'C'
     a3 = 'Environment Temperature'
-    a4 = ArrayDataset(data=a1, unit=a2, description='An Array')
+    a4 = ArrayDataset(data=a1, unit=a2,
+                      description='A 2D array for environment temperature')
     # metadata to the dataset
     a11 = 'T0'
     a12 = DateParameter('2020-02-02T20:20:20.0202',
-                        description='meta of composite')
+                        description='meta of compositeDs')
     # This is not the best as a4.T0 does not exist
     # a4.meta[a11] = a12
     # this does it a4.T0 = a12 or:

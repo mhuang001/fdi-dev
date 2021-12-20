@@ -145,7 +145,7 @@ class HttpClientPool(ProductPool):
         sv = deserialize(res.text)
         if sv['result'] == 'FAILED' or res.status_code != 200:
             logger.error('Save %d products to server failed.%d Message from %s: %s' % (
-                len(productlist), sv['code'], self._poolurl, sv['msg']))
+                len(productlist), res.status_code, self._poolurl, sv['msg']))
             raise Exception(sv['msg'])
         else:
             urns = sv['result']

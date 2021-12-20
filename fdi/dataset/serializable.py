@@ -294,8 +294,14 @@ class Serializable():
         s.update({'_STID': self._STID})
         return s
 
-    def yaml(self):
+    def yaml(self, *args, **kwds):
         """ Get a YAML representation. """
         from ..utils.ydump import ydump, yinit
         yinit()
-        return ydump(self)
+        return ydump(self, *args, **kwds)
+
+    def tree(self, *args, **kwds):
+        """ Get a directory-tree-like representation. """
+        from ..utils.tree import tree
+
+        return '\n'.join(tree(self, *args, **kwds))

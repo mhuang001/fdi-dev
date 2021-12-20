@@ -7,7 +7,7 @@ FROM ubuntu:18.04 AS fdi
 #ENV TZ=Etc/UTC
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools\
-&& apt-get install -y git python3-pip python3-venv
+&& apt-get install -y git python3-pip python3-venv locales
 #&& rm -rf /var/lib/apt/lists/*
 
 # rebuild mark
@@ -22,9 +22,18 @@ RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo -K UM
 && mkdir -p ${UHOME}/.config \
 && /bin/echo -e '\n'${USR} ALL = NOPASSWD: ALL >> /etc/sudoers
 
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/'  /etc/locale.gen \
+&& locale-gen \
+&& dpkg-reconfigure --frontend=noninteractive locales
+
 WORKDIR ${UHOME}
 
 USER ${USR}
+ARG LOCALE=en_US.UTF-8
+ENV LC_ALL=${LOCALE}
+ENV LC_CTYPE=${LOCALE}
+ENV LANG=${LOCALE}
+
 ENV PATH="${UHOME}/.local/bin:$PATH"
 
 # set fdi's virtual env

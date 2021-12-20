@@ -87,13 +87,13 @@ class ODict(UserDict, Serializable, DeepEqual):
 
         OD_toString_Nest += 1
         label = '' if keyval is None else keyval
-        d = '' if keyval else '<OD '
+        d = '' if keyval else 'OD('
         for n, v in self.data.items():
             d += f'{label} "{n}":\n' if level < 2 else ' '
             s = bstr(v, level=level, **kwds)
             d = d + s
         OD_toString_Nest -= 1
-        return d + '' if keyval else '>'
+        return d + ('' if keyval else ')')
 
     string = toString
 

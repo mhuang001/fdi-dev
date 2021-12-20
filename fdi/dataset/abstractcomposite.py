@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ..utils.common import mstr
+from ..utils.common import mstr, bstr
 from .odict import ODict
 from .listener import EventListener
 from .datawrapper import DataWrapperMapper
@@ -34,7 +34,8 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
         super().__init__(**kwds)
 
     def toString(self, level=0, width=0,
-                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
+                 extra=False,
                  matprint=None, trans=True, beforedata='', heavy=True,
                  center=-1, **kwds):
         """ matprint: an external matrix print function
@@ -45,6 +46,9 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
         -------
 
         """
+        if not issubclass(level.__class__, int):
+            raise TypeError('The first argument "level" must be %s not %s %s' %
+                            ('int', type(level).__name__, bstr(level, 20)))
         cn = self.__class__.__name__
         if level > 1:
             s = f'{cn}('
@@ -57,14 +61,25 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
                                   matprint=matprint, trans=trans, heavy=False,
                                   **kwds)
             return s + ')'
+
+        html = tablefmt == 'html' or tablefmt2 == 'html'
+        br = '<br>' if html else '\n'
+        if html:
+            tablefmt = tablefmt2 = 'html'
+
         from .dataset import make_title_meta_l0
         s, last = make_title_meta_l0(self, level=level, width=width,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
-                                     tablefmt2=tablefmt2, center=-1, excpt=['description'])
+                                     tablefmt2=tablefmt2,
+                                     extra=extra, center=-1,
+                                     html=html, excpt=['description'])
         width = len(last)-1
         ds = list(f'"{x}"' for x in self.keys())
         d = 'Total %d Sub-Datasets: %s' % (len(ds), ', '.join(ds))
-        d = d.center(width) + '\n\n'  # + '-' * len(d) + '\n'
+        if html:
+            d = '<center><u>%s</u></center>\n' % d
+        else:
+            d = d.center(width) + '\n\n'  # + '-' * len(d) + '\n'
         o = ODict(self.data)
         d += o.toString(level=level, heavy=False, center=width,
                         tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,

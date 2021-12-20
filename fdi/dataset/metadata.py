@@ -15,7 +15,9 @@ from ..utils.masked import masked
 from ..utils.common import grouper
 from ..utils.common import exprstrs, wls, bstr, t2l
 
-from tabulate import tabulate
+
+import cwcwidth as wcwidth
+import tabulate
 
 from itertools import zip_longest, filterfalse
 import builtins
@@ -26,7 +28,11 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
+tabulate.wcwidth = wcwidth
 tabulate.WIDE_CHARS_MODE = True
+tabulate.MIN_PADDING = 0
+#tabulate.PRESERVE_WHITESPACE = True
+Default_Extra_Param_Width = 10
 
 """
 | Attribute | Defining Module | Holder Variable |
@@ -848,8 +854,12 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         self.getDataWrappers().clear()
 
     def set(self, name, newParameter):
-        """ Saves the parameter and  add eventhandling.
+        """ Saves the parameter and  adds eventhandling.
+
+        In a parameter name, dot or other invalid characters (when the name is used as a property name) is ignored.
+
         Raises TypeError if not given Parameter (sub) class object.
+
         Parameters
         ----------
 
@@ -907,8 +917,8 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         return r
 
     def toString(self, level=0,
-                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
-                 param_widths=None, width=0, extra=False, **kwds):
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
+                 extra=False, param_widths=None, width=0, **kwds):
         """ return  string representation of metada.
 
         level: 0 is the most detailed, 2 is the least,
@@ -918,7 +928,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                       'valid': 20, 'default': 17, 'code': 4, 'description': 15}``
         """
 
-        if param_widths is None:
+        if param_widths is None or param_widths == 0:
             param_widths = MetaData.Table_Widths[0]
         tab = []
         # N parameters per row for level 1
@@ -928,14 +938,14 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         s = ''
         att, ext = {}, {}
         has_omission = False
-
+        nn = 0
         for (k, v) in self.__getstate__().items():
             if k.startswith('_ATTR_'):
                 k = k[6:]
             elif k == '_STID':
                 continue
             att['name'] = k
-            # get values of line k. limit cell width for level=0,1
+            # get values of line k.
             if issubclass(v.__class__, Parameter):
                 att['value'], att['unit'], att['type'], att['description'],\
                     att['default'], att['valid'], att['code'], ext = v.toString(
@@ -952,7 +962,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 ext.update(ext0)
             else:
                 # listeners
-                lstr = v.toString(level=level, alist=True)
+                lstr = '' if v is None else v.toString(level=level, alist=True)
                 if len(lstr) < 3:
                     lstr = [["", "<No listener>", ""]]
                 att['value'], att['unit'], att['type'], att['description'] = \
@@ -963,16 +973,22 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 ext = dict((n, '') for n in ext)
 
             # generate column vallues of the line and ext headers
+            # limit cell width for level=0,1.
             if level == 0:
                 if param_widths == -1:
                     l = tuple(att[n] for n in MetaHeaders)
                     if extra:
                         l += tuple(v for v in ext.values())
                 else:
-                    l = tuple(wls(att[n], w)
-                              for n, w in param_widths.items() if w != 0)
+                    l = tuple(
+                        wls(att[n], w)
+                        for n, w in param_widths.items() if w != 0)
                     if extra:
-                        l += tuple(wls(v, 9) for v in ext.values())
+                        l += tuple(
+                            wls(v, Default_Extra_Param_Width)
+                            for v in ext.values())
+                        # print(l)
+
                 tab.append(l)
                 exh = [v for v in ext.keys()]
 
@@ -1000,6 +1016,9 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                     ps = '%s=%s' % (n, v.toString(level)) if level == 2 else n
                     # tab.append(wls(ps, 80//N))
                     tab.append(ps)
+            #nn += 1
+            # if nn == 2:
+            #    pass  # break
 
         if has_omission:
             tab.append('..')
@@ -1012,18 +1031,19 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             else:
                 headers = []
                 for n in allh:
-                    w = param_widths.get(n, 9)
+                    w = param_widths.get(n, Default_Extra_Param_Width)
+                    #print(n, w)
                     if w != 0:
                         headers.append(wls(n, w))
             fmt = tablefmt
-            s += tabulate(tab, headers=headers, tablefmt=fmt, missingval='',
-                          disable_numparse=True)
+            s += tabulate.tabulate(tab, headers=headers, tablefmt=fmt, missingval='',
+                                   disable_numparse=True)
         elif level == 1:
             t = grouper(tab, N)
             headers = ''
             fmt = tablefmt1
-            s += tabulate(t, headers=headers, tablefmt=fmt, missingval='',
-                          disable_numparse=True)
+            s += tabulate.tabulate(t, headers=headers, tablefmt=fmt, missingval='',
+                                   disable_numparse=True)
         elif level > 1:  # level 2 and 3
             s = ', '.join(tab) if len(tab) else 'Default Meta'
             l = '.'

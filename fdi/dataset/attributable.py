@@ -19,7 +19,8 @@ MdpInfo = {}
 
 """ Names not for mormal properties. """
 Reserved_Property_Names = ['history', 'meta', 'refs', 'dataset',
-                           'zInfo', '_MDP', 'extraMdp', 'alwaysMeta']
+                           'zInfo', '_MDP', 'extraMdp', 'alwaysMeta',
+                           'toString', 'string', 'yaml', 'tree']
 
 """ These MetaData Parameters (MDPs) and vital attrbutes are Set By Parent classes:
 | Special MDPs and attrbutes | set by parent Classes | attribute holder |
@@ -248,7 +249,7 @@ class Attributable(MetaDataHolder):
             if self.alwaysMeta or \
                name in self.zInfo or \
                name in Reserved_Property_Names:
-                logger.warn(
+                logger.warning(
                     'Cannot delete MetaData Property or Reserved_Property_Names: ' + name)
                 return
         except AttributeError:

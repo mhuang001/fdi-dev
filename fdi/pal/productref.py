@@ -227,7 +227,8 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
     def addParent(self, parent):
         """ add a parent
         """
-        if any(id(parent) == id(x) for x in self._parents):
+        ip = id(parent)
+        if any(ip == id(x) for x in self._parents):
             return
         self._parents.append(parent)
 
@@ -254,6 +255,7 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
 
     def getParents(self):
         """ Return the in-memory parent context products of this reference.
+
         That is, the contexts in program memory that contain this product reference object. 
         A context that contains a different product reference object pointing to the same URN is not a parent of this product reference.
 
@@ -323,12 +325,13 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
                      '"' + p.description + '"'
                      for p in self.parents]) + '\n'
             m = self.getMeta()
-            ms = m.toString(level=2, **kwds) if m else ''
+            ms = m.toString(level=2, **kwds) if m else 'none'
             s += '# meta=' + ms
 
         else:
             s += ' Parents=' + str([id(p) for p in self.parents])
-            s += ' meta= ' + 'None' if self.getMeta() is None else self.getMeta().toString(level=3, **kwds)
+            s += ' meta= ' + ('None' if self.getMeta()
+                              is None else self.getMeta().toString(level=3, **kwds))
         s += ')'
         return s
 

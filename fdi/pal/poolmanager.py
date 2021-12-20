@@ -69,7 +69,8 @@ This is done by calling the getPool() method, which will return an existing pool
     _GlobalPoolList = WeakValueDictionary()
 
     # maps scheme to default place/poolpath
-    p = pc['node']['host']+':'+str(pc['node']['port'])+pc['baseurl']
+    # pc['node']['host']+':'+str(pc['node']['port'])+pc['baseurl']
+    p = getConfig(name='').strip('/').split('://')[1]
     PlacePaths = {
         'file': pc['base_poolpath'],
         'mem': '/',

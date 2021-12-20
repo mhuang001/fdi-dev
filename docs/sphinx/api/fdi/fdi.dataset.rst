@@ -65,6 +65,14 @@ fdi.dataset.baseproduct module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.booleanparameter module
+-----------------------------------
+
+.. automodule:: fdi.dataset.booleanparameter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.browseproduct module
 --------------------------------
 
@@ -193,6 +201,22 @@ fdi.dataset.listener module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.mediawrapper module
+-------------------------------
+
+.. automodule:: fdi.dataset.mediawrapper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.mediawrapper\_datamodel module
+------------------------------------------
+
+.. automodule:: fdi.dataset.mediawrapper_datamodel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.messagequeue module
 -------------------------------
 
@@ -269,6 +293,14 @@ fdi.dataset.serializable module
 -------------------------------
 
 .. automodule:: fdi.dataset.serializable
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.shaped module
+-------------------------
+
+.. automodule:: fdi.dataset.shaped
    :members:
    :undoc-members:
    :show-inheritance:

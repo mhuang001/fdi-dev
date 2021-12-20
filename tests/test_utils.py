@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from fdi.dataset.arraydataset import ArrayDataset,Column as aCol
+from fdi.dataset.arraydataset import ArrayDataset, Column as aCol
 from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.dataset import CompositeDataset
 from fdi.dataset.baseproduct import BaseProduct
@@ -19,14 +19,11 @@ from fdi.pal.productref import ProductRef
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadcsv
 from fdi.utils import moduleloader
-from fdi.utils.common import fullname
+from fdi.utils.common import fullname, wls
 from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
+from fdi.utils.tree import tree
 from fdi.utils.loadfiles import loadMedia
-from fdi.utils.tofits import toFits
-from fdi.utils.tofits import fits_dataset
-
-from astropy.io import fits
 
 import traceback
 import copy
@@ -44,9 +41,18 @@ if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
 else:
     PY3 = False
 
+# make format output in /tmp/outputs.py
+mk_outputs = 0
+output_write = 'tests/outputs_utils.py'
+
+if mk_outputs:
+    with open(output_write, 'wt', encoding='utf-8') as f:
+        f.write('# -*- coding: utf-8 -*-\n')
+
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
-    pass
+    if not mk_outputs:
+        from outputs_utils import out_tree
 else:
     # run by pytest
 
@@ -54,6 +60,9 @@ else:
     # https://docs.python-guide.org/writing/structure/
 
     from pycontext import fdi
+
+    if not mk_outputs:
+        from outputs_utils import out_tree
 
     from logdict import logdict
     import logging
@@ -248,9 +257,10 @@ def test_get_demo_product(demo_product):
     assert v['Browse'].data[1:4] == b'PNG'
     # print(v.yaml())
     p = v.getDefault()
-    assert p == v['results']
+    assert p == v['measurements']
     aref = ProductRef(related)
-    v.refs['a'] = aref
+    v.refs['a_reference'] = aref
+    v.refs['a_different_name'] = aref
     r0 = v.refs
     p['dset'] = 'foo'
     # refs is always the last
@@ -260,6 +270,8 @@ def test_get_demo_product(demo_product):
     p['dset'] = 'foo'
     assert list(v.keys())[-1] == 'refs'
     assert r0 == v.refs
+    s = r0.string(level=0)
+    # print(s)
     checkjson(v, dbg=0)
     checkgeneral(v)
 
@@ -333,20 +345,20 @@ def chk_sample_pd(p):
     v, s = fetch(["Environment Temperature", "T0", "tai"], p)
     assert v == FineTime('2020-02-02T20:20:20.0202').tai
 
-    # a 2D array dataset in compositedataset 'results'
-    v, s = fetch(["results", 'calibration', "unit"], p)
+    # a 2D array dataset in compositedataset 'measurements'
+    v, s = fetch(["measurements", 'calibration', "unit"], p)
     assert v == 'count'
-    assert v == p['results']['calibration'].unit
-    assert s == '["results"]["calibration"].unit'
+    assert v == p['measurements']['calibration'].unit
+    assert s == '["measurements"]["calibration"].unit'
 
     # data of a column in tabledataset within compositedataset
-    v, s = fetch(["results", "Time_Energy_Pos", "Energy", "data"], p)
+    v, s = fetch(["measurements", "Time_Energy_Pos", "Energy", "data"], p)
     t = [x * 1.0 for x in range(len(v))]
     assert v == [2 * x + 100 for x in t]
-    assert v == p['results']['Time_Energy_Pos']['Energy'].data
-    assert s == '["results"]["Time_Energy_Pos"]["Energy"].data'
-    ys, s = fetch(["results", "Time_Energy_Pos", "y"], p)
-    zs, s = fetch(["results", "Time_Energy_Pos", "z"], p)
+    assert v == p['measurements']['Time_Energy_Pos']['Energy'].data
+    assert s == '["measurements"]["Time_Energy_Pos"]["Energy"].data'
+    ys, s = fetch(["measurements", "Time_Energy_Pos", "y"], p)
+    zs, s = fetch(["measurements", "Time_Energy_Pos", "z"], p)
     # y^2 + z^2 = 100 for all t
     assert all((y*y + z*z - 100) < 1e-5 for y, z in zip(ys.data, zs.data))
 
@@ -389,7 +401,7 @@ def test_fetch(demo_product):
 
     class al(list):
         ala = 0
-        @staticmethod
+        @ staticmethod
         def alb(): pass
 
         def alf(self, a, b=9):
@@ -430,37 +442,57 @@ def test_fetch(demo_product):
     # method w/ positional and keyword args
     allargs = serialize_args(4.4, [{"w": 77}, 65], not_quoted=True)
     assert allargs == '4.4__{"apiargs": [[{\"w\": 77}, 65]]}'
-    u, s = fetch(['alf__' + allargs], v)
+    u, s=fetch(['alf__' + allargs], v)
     assert u == (4.4, [{"w": 77}, 65])
     assert s == ".alf(4.4, [{'w': 77}, 65])"
 
     # method/function result
-    u, s = fetch(['alf__' + allargs, 1, 0, 'w'], v)
+    u, s=fetch(['alf__' + allargs, 1, 0, 'w'], v)
     assert u == 77
     assert s == ".alf(4.4, [{'w': 77}, 65])[1][0][\"w\"]"
 
     class ad(dict):
-        ada = 'p'
-        adb = al([0, 6])
+        ada='p'
+        adb=al([0, 6])
 
-    v = ad(z=5, x=['b', 'n', {'m': 'j'}])
-    v.ade = 'adee'
+    v=ad(z = 5, x = ['b', 'n', {'m': 'j'}])
+    v.ade='adee'
 
-    u, s = fetch(['ada'], v)
+    u, s=fetch(['ada'], v)
     assert u == 'p'
     assert s == '.ada'
 
-    u, s = fetch(['adb', 'ald', 0], v)
+    u, s=fetch(['adb', 'ald', 0], v)
     assert u == 8
     assert s == '.adb.ald[0]'
 
-    u, s = fetch(['x', 2, 'm'], v)
+    u, s=fetch(['x', 2, 'm'], v)
     assert u == 'j'
     assert s == '["x"][2]["m"]'
 
     # products
-    p, r = demo_product
+    p, r=demo_product
     chk_sample_pd(p)
+
+
+def test_tree(demo_product):
+    p, r=demo_product
+
+    # test output
+    ts='tree out_tree'
+    v=tree(p)
+    ts += "\n" + '\n'.join(v)
+    v=tree(p, level = 1)
+    ts += "\n" + '\n'.join(v)
+    v=tree(p, level = 1, style = 'ascii')
+    ts += "\n" + '\n'.join(v)
+    if mk_outputs:
+        print(ts)
+        with open(output_write, 'a') as f:
+            clsn='out_tree'
+            f.write('%s = """%s"""\n' % (clsn, ts))
+    else:
+        assert ts == out_tree
 
 
 def test_Fits_Kw():
@@ -481,64 +513,64 @@ def test_Fits_Kw():
 
 
 def test_loadcsv():
-    csvf = '/tmp/fditest/testloadcsv.csv'
-    a = 'as if ...'
+    csvf='/tmp/fditest/testloadcsv.csv'
+    a='as if ...'
     with open(csvf, 'w') as f:
         f.write(a)
-    v = loadcsv(csvf, ' ')
+    v=loadcsv(csvf, ' ')
     assert v[0] == ('col1', ['as'], '')
     assert v[1] == ('col2', ['if'], '')
     assert v[2] == ('col3', ['...'], '')
 
-    a = ' \t\n'+a
+    a=' \t\n'+a
     with open(csvf, 'w') as f:
         f.write(a)
-    v = loadcsv(csvf, ' ')
+    v=loadcsv(csvf, ' ')
     assert v[0] == ('col1', ['as'], '')
     assert v[1] == ('col2', ['if'], '')
     assert v[2] == ('col3', ['...'], '')
 
     # blank line skipped
-    a = a + '\n1 2. 3e3'
+    a=a + '\n1 2. 3e3'
     with open(csvf, 'w') as f:
         f.write(a)
-    v = loadcsv(csvf, ' ')
+    v=loadcsv(csvf, ' ')
     assert v[0] == ('col1', ['as', 1.0], '')
     assert v[1] == ('col2', ['if', 2.0], '')
     assert v[2] == ('col3', ['...', 3000.], '')
 
     # first line as header
 
-    v = loadcsv(csvf, ' ', header=1)
+    v=loadcsv(csvf, ' ', header = 1)
     assert v[0] == ('as', [1.0], '')
     assert v[1] == ('if', [2.0], '')
     assert v[2] == ('...', [3000.], '')
 
     # a mixed line added. delimiter changed to ','
-    a = 'as, if, ...\nm, 0.2,ev\n1, 2., 3e3'
+    a='as, if, ...\nm, 0.2,ev\n1, 2., 3e3'
     with open(csvf, 'w') as f:
         f.write(a)
-    v = loadcsv(csvf, ',', header=1)
+    v=loadcsv(csvf, ',', header = 1)
     assert v[0] == ('as', ['m', 1.0], '')
     assert v[1] == ('if', ['0.2', 2.0], '')
     assert v[2] == ('...', ['ev', 3000.], '')
 
     # anothrt line added. two header lines requested -- second line taken as unit line
-    a = 'as, if, ...\n A, B, R \n m, 0.2,ev\n1, 2., 3e3'
+    a='as, if, ...\n A, B, R \n m, 0.2,ev\n1, 2., 3e3'
     with open(csvf, 'w') as f:
         f.write(a)
-    v = loadcsv(csvf, ',', header=2)
+    v=loadcsv(csvf, ',', header = 2)
     assert v[0] == ('as', ['m', 1.0], 'A')
     assert v[1] == ('if', ['0.2', 2.0], 'B')
     assert v[2] == ('...', ['ev', 3000.], 'R')
 
 
 def test_loadMedia():
-    fname = 'bug.gif'
-    fname = os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)),
+    fname='bug.gif'
+    fname=os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)),
                                       'resources'), fname)
-    image = loadMedia(fname, 'image/gif')
-    ho = hashlib.md5()
+    image=loadMedia(fname, 'image/gif')
+    ho=hashlib.md5()
     ho.update(image.data)
     md5 = ho.hexdigest()
     assert md5 == '57bbbd6f8cdeafe6dc617f8969448e3b'
@@ -555,7 +587,46 @@ def test_fullname():
     assert fullname('l') == 'str'
 
 
-def test_opt():
+def test_wls():
+    assert wls('') == ''
+    assert wls('a') == 'a'
+    assert wls('12', 2) == '12'
+    assert wls('12345', 2) == '12\n34\n5'
+    assert wls('12345678901234567') == '123456789012345\n67'
+    # splitlines() removes trailing line-breaks
+    assert wls('12345\n', 2) == '12\n34\n5'
+    # no extr \n at width border
+    assert wls('12\n345', 2) == '12\n34\n5'
+    # no extr \n not at width border
+    assert wls('1\n2345', 2) == '1\n23\n45'
+    assert wls('1\n\n2345', 2) == '1\n23\n45'
+    assert wls('12345\n\n', 2) == '12\n34\n5'
+    assert wls('格式版本', 4) == '格式\n版本'
+    assert wls('格式版本', 8) == '格式版本'
+    assert wls('格式版本。', 10) == '格式版本。'
+    assert wls('格\n式版本', 8) == '格\n式版本'
+    assert wls('格式版本b', 4) == '格式\n版本\nb'
+    assert wls('a格式版本', 4) == 'a格\n式版\n本'
+    assert wls('格a式版本', 4) == '格a\n式版\n本'
+    assert wls('格式a版本', 4) == '格式\na版\n本'
+    assert wls('格式版a本', 4) == '格式\n版a\n本'
+    assert wls('\ta', 1) == '#\na'
+    assert wls('') == '#'
+    # \r and \r\n etc are taken out as line-breaks.
+    # ref https://docs.python.org/3.6/library/stdtypes.html#str.splitlines
+    # the last \n is removed
+    assert wls('\r') == ''
+    # page separater is out, too
+    assert wls(str(b'\x1c', 'utf-8')) == ''
+    assert wls('格式\x01版a本', 4) == '格式\n#版a\n本'
+    # fill
+    assert wls('格\n式版本', 8, fill=' ') == '格      \n式版本  '
+    assert wls('格式版本b', 4, fill=' ') == '格式\n版本\nb   '
+    assert wls('格\th式版本b', 5, fill=' ') == '格#h \n式版 \n本b  '
+    assert wls('产品标称的起始时间', 12, fill=' ') == '产品标称的起\n始时间      '
+
+
+def test_opt(caplog):
     options = [
         {'long': 'helpme', 'char': 'h', 'default': False,
          'description': 'print help'},
@@ -587,27 +658,20 @@ def test_opt():
     # the switch always results in True!
     assert out[2]['result'] == True
 
-    # type of result is determines by that of the default
+    # type of result is determined by that of the default
     options[0]['default'] = 0
     out = opt(options, ['exe', '--helpme', '--name=Awk', '--verbose'])
     assert out[0]['result'] == 1
 
     # unplanned option and '--help' get exception and exits
-    try:
+    with pytest.raises(SystemExit):
         out = opt(options, ['exe', '--helpme', '--name=Awk', '-y'])
-    except SystemExit:
-        pass
-    else:
-        assert 0, 'failed to exit.'
+    assert 'option -y not recognized' in caplog.text
 
-    try:
+    with pytest.raises(SystemExit):
         h = copy.copy(options)
         h[0]['long'] = 'help'
         out = opt(h, ['exe', '--help', '--name=Awk', '-v'])
-    except SystemExit:
-        pass
-    else:
-        assert 0, 'failed to exit.'
 
 
 def check_conf(cfp, typ, getConfig):
@@ -619,7 +683,7 @@ def check_conf(cfp, typ, getConfig):
     with open(filec, 'w') as f:
         f.write(conf)
     # check conf file directory
-    w = getConfig(conf=typ)
+    w = getConfig(conf=typ, force=True)
     assert w['jk'] == 98
     pfile = w['m']
     assert pfile.startswith(cfp)

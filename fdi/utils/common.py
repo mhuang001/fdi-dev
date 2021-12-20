@@ -11,7 +11,8 @@ import pprint
 import copy
 import pwd
 import logging
-from itertools import zip_longest
+from functools import lru_cache
+from itertools import zip_longest, accumulate
 from collections.abc import Sequence, Mapping
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -44,7 +45,7 @@ def trbk2(e):
 
 
 def bstr(x, length=0, tostr=True, quote="'", level=0,
-         tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+         tablefmt='rst', tablefmt1='simple', tablefmt2='rst',
          width=0, heavy=True, yaml=False,
          **kwds):
     """ returns the best string representation.
@@ -64,7 +65,10 @@ def bstr(x, length=0, tostr=True, quote="'", level=0,
     elif issubclass(x.__class__, (bytes, bytearray, memoryview)):
         r = x.hex()
     else:
+        html = tablefmt == 'html' or tablefmt2 == 'html'
         r = ydump(x) if yaml else str(x)
+        if html:
+            r = '<pre>%s</pre>' % r
     return lls(r, length=length)
 
 
@@ -81,23 +85,94 @@ def lls(s, length=80):
         return '%s...%s' % (st[:l], st[3 + l - length:])
 
 
-def wls(s, width=15):
-    """ widthth-limited string.
+""" https://stackoverflow.com/a/2718268
+LHan = [[0x2E80, 0x2E99],    # Han # So  [26] CJK RADICAL REPEAT, CJK RADICAL RAP
+        [0x2E9B, 0x2EF3],    # Han # So  [89] CJK RADICAL CHOKE, CJK RADICAL C-SIMPLIFIED TURTLE
+        [0x2F00, 0x2FD5],    # Han # So [214] KANGXI RADICAL ONE, KANGXI RADICAL FLUTE
+        0x3005,              # Han # Lm       IDEOGRAPHIC ITERATION MARK
+        0x3007,              # Han # Nl       IDEOGRAPHIC NUMBER ZERO
+        [0x3021, 0x3029],    # Han # Nl   [9] HANGZHOU NUMERAL ONE, HANGZHOU NUMERAL NINE
+        [0x3038, 0x303A],    # Han # Nl   [3] HANGZHOU NUMERAL TEN, HANGZHOU NUMERAL THIRTY
+        0x303B,              # Han # Lm       VERTICAL IDEOGRAPHIC ITERATION MARK
+        [0x3400, 0x4DB5],    # Han # Lo [6582] CJK UNIFIED IDEOGRAPH-3400, CJK UNIFIED IDEOGRAPH-4DB5
+        [0x4E00, 0x9FC3],    # Han # Lo [20932] CJK UNIFIED IDEOGRAPH-4E00, CJK UNIFIED IDEOGRAPH-9FC3
+        [0xF900, 0xFA2D],    # Han # Lo [302] CJK COMPATIBILITY IDEOGRAPH-F900, CJK COMPATIBILITY IDEOGRAPH-FA2D
+        [0xFA30, 0xFA6A],    # Han # Lo  [59] CJK COMPATIBILITY IDEOGRAPH-FA30, CJK COMPATIBILITY IDEOGRAPH-FA6A
+        [0xFA70, 0xFAD9],    # Han # Lo [106] CJK COMPATIBILITY IDEOGRAPH-FA70, CJK COMPATIBILITY IDEOGRAPH-FAD9
+        [0x20000, 0x2A6D6],  # Han # Lo [42711] CJK UNIFIED IDEOGRAPH-20000, CJK UNIFIED IDEOGRAPH-2A6D6
+        [0x2F800, 0x2FA1D]]  # Han # Lo [542] CJK COMPATIBILITY IDEOGRAPH-2F800, CJK COMPATIBILITY IDEOGRAPH-2FA1D
+"""
 
-    width: if > 0  returns the str with '\n' inserted every width chars. Or else return ``s``. Default is 15.
+
+@lru_cache(maxsize=128)
+def wcw(char):
+    # cached width function
+    from ..dataset.metadata import wcwidth
+    return wcwidth.wcwidth(char)
+
+
+def wls(st, width=15, fill=None, unprintable='#'):
+    """ generates a string comtaining width-limited strings separated with '\n'.
+
+    Identifies Line-breaks with `str.splitlines` https://docs.python.org/3.6/library/stdtypes.html#str.splitlines
+    Removes trailing line-breaks.
+
+    :st: input string.
+    :width: if > 0  returns the str with '\n' inserted every width chars. Or else return the input ``st``. Default is 15. A CJK characters occupies 2 in widths.
+    :unprintable: substitute unprintable characters with is. default is '#'.
     """
-
-    if width <= 0:
-        return s
-    ret = []
-    for seg in s.split('\n'):
-        ret.append('\n'.join(seg[i:i+width]
-                             for i in range(0, len(seg), width)))
-    return '\n'.join(ret)
+    if width <= 0 or len(st) == 0:
+        return st
+    line = []
+    for s in st.splitlines():
+        lens = len(s)
+        # starting index for current line based on the last line
+        lasti = 0
+        # display length starting from the beginning of the last line.
+        l = 0
+        for i, c in enumerate(s):
+            w = wcw(c)
+            l0 = l
+            if w == -1:
+                # change unprintable
+                # ref https://wcwidth.readthedocs.io/en/latest/api.html
+                c = unprintable
+                w = wcw(c)
+                l += w
+            else:
+                l += w
+            #print(i, c, l, lasti, s)
+            if l == width:
+                line.append(c)
+                line.append('\n')
+                lasti, l = i+1, 0
+            elif l > width:
+                if width < 2:
+                    # print wide characters even they are too wide for width==1
+                    line.append(c)
+                    line.append('\n')
+                    lasti = i+1
+                    l = 0
+                else:
+                    # set line pointer to this char
+                    if fill:
+                        line.append((width-l0) * fill)
+                    line.append('\n')
+                    line.append(c)
+                    lasti = i
+                    l = w
+            else:
+                line.append(c)
+        if len(line) == 0 or line[-1] != '\n':
+            if fill:
+                line.append((width-l) * fill)
+            line.append('\n')
+        # print(line)
+    return ''.join(line[:-1])
 
 
 def mstr(obj, level=0, width=1, excpt=None, indent=4, depth=0,
-         tablefmt='rst', tablefmt1='simple', tablefmt2='simple',
+         tablefmt='rst', tablefmt1='simple', tablefmt2='rst',
          **kwds):
     """ Makes a presentation string at a detail level.
 
@@ -562,3 +637,48 @@ def findShape(data, element_seq=(str)):
             except (TypeError, IndexError, KeyError) as e:
                 d = None
     return tuple(shape)
+
+
+def guess_value(input_string, parameter=False, last=str):
+    """ Returns guessed value from a string.
+
+    | input | output |
+    | ```'None'``` | `None` |
+    | integer | `int()` |
+    | float | `float()` |
+    | ```'True'```, ```'False```` | `True`, `False` |
+    | string starting with ```'0x'``` | `hex()` |
+    | else | run `last`(input_string) |
+
+    """
+    from ..dataset.numericparameter import NumericParameter, BooleanParameter
+    from ..dataset.dateparameter import DateParameter
+    from ..dataset.stringparameter import StringParameter
+    from ..dataset.metadata import Parameter
+    if input_string == 'None':
+        res = None
+    elif input_string == '':
+        if parameter:
+            return StringParameter(value=input_string)
+        else:
+            return input_string
+    else:
+        try:
+            res = int(input_string)
+            return NumericParameter(value=res) if parameter else res
+        except ValueError:
+            try:
+                res = float(input_string)
+                return NumericParameter(value=res) if parameter else res
+            except ValueError:
+                # string, bytes, bool
+                if input_string.startswith('0x'):
+                    res = bytes.fromhex(input_string[2:])
+                    return NumericParameter(value=res) if parameter else res
+                elif input_string in ['True', 'False']:
+                    res = bool(input_string)
+                    return BooleanParameter(value=res) if parameter else res
+                else:
+                    res = last(input_string)
+                    return Parameter(value=res) if parameter else res
+    return None

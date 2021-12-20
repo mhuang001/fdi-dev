@@ -463,19 +463,23 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
                compo_meth_name[:6] == 'string':
                 if 'html' in compo_meth_name:
                     ct = 'text/html'
+                elif 'rst' in compo_meth_name:
+                    ct = 'text/plain;charset=utf-8'
                 elif 'fancy_grid' in compo_meth_name:
                     ct = 'text/plain;charset=utf-8'
                 else:
                     ct = 'text/plain'
                 result = compo
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
-            elif compo_meth_name == 'yaml()':
+            elif compo_meth_name == 'yaml()' or compo_meth_name[:4] == 'tree':
                 ct = 'text/plain;charset=utf-8'
+                # 'font-family: "Courier New",monospace;\n'
                 result = compo
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
             elif issubclass(compo.__class__, MediaWrapper):
-                ct = compo.getType()
+                ct = compo.type
                 result = compo.data
+
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
             else:
                 return 0, resp(code, compo, msg, ts, serialize_out=False), 0

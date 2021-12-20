@@ -77,7 +77,7 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
         visitor.visit(self)
 
     def toString(self, level=0,
-                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
                  param_widths=None, width=0, matprint=None, trans=True,
                  heavy=True, center=-1, **kwds):
         """ matprint: an external matrix print function
@@ -97,17 +97,23 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                     level=level, width=width, param_widths=param_widths,
                     matprint=matprint, trans=trans, heavy=heavy, **kwds))
+        html = tablefmt == 'html' or tablefmt2 == 'html'
+        br = '<br>' if html else '\n'
 
         s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
                                      tablefmt2=tablefmt2, center=center,
-                                     excpt=['description'])
+                                     html=html, excpt=['description'])
         width = len(last) - 1
-        d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
+        if html:
+            d = '<center><u>%s</u></center>\n' % 'DATA'
+        else:
+            d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
+
         d += bstr(self.data, level=level, heavy=heavy, center=center,
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                   yaml=True, **kwds) if matprint is None else \
-            matprint(self.data, level=level, trans=False, headers=[], tablefmt2='plain', heavy=heavy,
+            matprint(self.data, level=level, trans=False, headers=[], tablefmt2='rst', heavy=heavy,
                      **kwds)
         return f'{s}\n{d}\n{last}\n'
 
@@ -130,7 +136,8 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
         return s
 
 
-def make_title_meta_l0(self, level=0, heavy=True, center=0, **kwds):
+def make_title_meta_l0(self, level=0,
+                       heavy=True, center=0, html=False, **kwds):
     """ make toString title and metadata.
 
     :heavy: use bold symbols for separaters.
@@ -139,12 +146,13 @@ def make_title_meta_l0(self, level=0, heavy=True, center=0, **kwds):
 
     # title
     cn = self.__class__.__name__
-    t = '*** %s (%s) ***' % (cn, self.description if hasattr(
-        self, 'description') else '')
+    t = ('*** <b>%s (%s)</b> ***' if html else '*** %s (%s) ***') %\
+        (cn, self.description if hasattr(
+            self, 'description') else '')
     tw = len(t)
     # make the table and find out the width first
     table = mstr(self._meta, level=level, **kwds)
-    if center:
+    if center and not html:
         # max separation between consequitive '\n' s
         if center == -1:
             width = max(len(x) for x in table[:600].split('\n'))
@@ -159,11 +167,19 @@ def make_title_meta_l0(self, level=0, heavy=True, center=0, **kwds):
     else:
         # beginning of a dataset that is a component of a another
         l = '_' * tw
-    m = 'META\n----\n'
+
+    br = '<br>' if html else '\n'
     if center:
-        t = t.center(width)
-        l = l.center(width)
-        m = 'META'.center(width)
+        if html:
+            t = '<center>%s</center>' % t
+            l = '<center>%s</center>' % l
+            m = '<center><u>%s</u></center>' % 'META'
+        else:
+            t = t.center(width)
+            l = l.center(width)
+            m = 'META'.center(width)
+    else:
+        m = 'META%s----%s' % (br, br)
     t += '\n'
     l += '\n'
 
@@ -172,8 +188,11 @@ def make_title_meta_l0(self, level=0, heavy=True, center=0, **kwds):
     else:
         s = l + t + ('' if level else l + m)
     s += table
-    last = "="*width if heavy else "~"*width
-    last += '\n'
+    if html:
+        last = '<hr size="3">' if heavy else '<hr>'
+    else:
+        last = "=" * width if heavy else "~" * width
+    last += br
 
     return s, last
 

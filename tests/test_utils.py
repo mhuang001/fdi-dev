@@ -24,6 +24,7 @@ from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
 from fdi.utils.tree import tree
 from fdi.utils.loadfiles import loadMedia
+from fdi.utils.tofits import fits_dataset, toFits
 
 import traceback
 import copy
@@ -35,6 +36,7 @@ import hashlib
 import os.path
 import pytest
 import numpy as np
+from astropy.io import fits
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True

@@ -483,7 +483,7 @@ def test_Fits_Kw():
 def test_loadcsv():
     csvf = '/tmp/fditest/testloadcsv.csv'
     a = 'as if ...'
-    with open(csvf, 'rw') as f:
+    with open(csvf, 'w') as f:
         f.write(a)
     v = loadcsv(csvf, ' ')
     assert v[0] == ('col1', ['as'], '')

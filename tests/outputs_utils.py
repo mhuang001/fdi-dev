@@ -18,7 +18,8 @@ out_tree = """tree out_tree
 ├── Environment Temperature              <ArrayDataset> (7,)
 ├── Browse                               <image/png> (5976,)
 ├── refs                                      <RefContainer>
-│   └── a                                       <ProductRef>
+│   ├── a_reference                             <ProductRef>
+│   └── a_different_name                        <ProductRef>
 ├── history                                        <History>
 │   ├── PARAM_HISTORY                                  <str>
 │   ├── TASK_HISTORY                                   <str>
@@ -57,7 +58,8 @@ out_tree = """tree out_tree
 ├── Environment Temperature              <ArrayDataset> (7,)
 ├── Browse                               <image/png> (5976,)
 ├── refs                                      <RefContainer>
-│   └── a                                       <ProductRef>
+│   ├── a_reference                             <ProductRef>
+│   └── a_different_name                        <ProductRef>
 ├── history                                        <History>
 │   ├── PARAM_HISTORY                                  <str>
 │   ├── TASK_HISTORY                                   <str>
@@ -96,7 +98,8 @@ out_tree = """tree out_tree
 |__ Environment Temperature              <ArrayDataset> (7,)
 |__ Browse                               <image/png> (5976,)
 |__ refs                                      <RefContainer>
-|   \__ a                                       <ProductRef>
+|   |__ a_reference                             <ProductRef>
+|   \__ a_different_name                        <ProductRef>
 |__ history                                        <History>
 |   |__ PARAM_HISTORY                                  <str>
 |   |__ TASK_HISTORY                                   <str>

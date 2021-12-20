@@ -72,16 +72,17 @@ Classes.updateMapping()
 
 # make format output in /tmp/outputs.py
 mk_outputs = 0
+output_write = 'tests/outputs.py'
 
 if mk_outputs:
-    with open('/tmp/outputs.py', 'wt', encoding='utf-8') as f:
+    with open(output_write, 'wt', encoding='utf-8') as f:
         f.write('# -*- coding: utf-8 -*-\n')
 
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py
 
     if not mk_outputs:
-        from outputs import nds20, nds30, nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
+        from outputs import nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
 else:
     # run by pytest
 
@@ -90,7 +91,7 @@ else:
     from pycontext import fdi
 
     if not mk_outputs:
-        from outputs import nds20, nds30, nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
+        from outputs import nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
 
     import logging
     import logging.config
@@ -289,16 +290,26 @@ def test_ndprint():
     s[0][1][2] = [5, 4, 3, 2, 1]
     s[0][1][3] = [0, 0, 0, 3, 0]
     v = ndprint(s, trans=False, headers=[], tablefmt2='plain')
+    ts = v
     if mk_outputs:
         print(v)
         # print(nds2)
+        with open(output_write, 'a') as f:
+            clsn = 'nds2'
+            f.write('%s = """%s"""\n' % (clsn, ts))
     else:
-        assert v == nds2
+        assert ts == nds2
     v = ndprint(s, headers=[], tablefmt2='plain')
+    ts = '\nnds3\n'
+    ts += v
+    ts += '\n'
     if mk_outputs:
         print(v)
+        with open(output_write, 'a') as f:
+            clsn = 'nds3'
+            f.write('%s = """%s"""\n' % (clsn, ts))
     else:
-        assert v == nds3
+        assert ts == nds3
         # pprint.pprint(s)
 
 
@@ -1187,9 +1198,10 @@ def test_MetaData():
     v = v.meta
     ts += '\n'
     ts += v.toString(extra=True)
+    ts += '\ntablefmt = html\n'
     ts += v.toString(tablefmt1='html')
     if mk_outputs:
-        with open('/tmp/outputs.py', 'a', encoding='utf-8') as f:
+        with open(output_write, 'a', encoding='utf-8') as f:
             clsn = 'out_MetaData'
             f.write('%s = """%s"""\n' % (clsn, ts))
         print(ts)
@@ -1345,10 +1357,11 @@ def test_Dataset():
     ts += v.toString(1)
     ts += 'level 2,\n'
     ts += v.toString(2)
+    ts += '\ntablefmt = html\n'
     ts += v.toString(tablefmt1='html')
     if mk_outputs:
         print(ts)
-        with open('/tmp/outputs.py', 'a') as f:
+        with open(output_write, 'a') as f:
             clsn = 'out_Dataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -1576,11 +1589,11 @@ def do_ArrayDataset_func(atype):
     ts += '\n\n'
     ts += 'an empty meta and long data level 2: \n'
     ts += ArrayDataset(data=[8]*8).toString(level=2)
-    ts += '\n\n'
+    ts += '\ntablefmt = html\n'
     ts += x.toString(tablefmt1='html')
     if mk_outputs:
         print(ts)
-        with open('/tmp/outputs.py', 'a') as f:
+        with open(output_write, 'a') as f:
             clsn = 'out_ArrayDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -1917,7 +1930,7 @@ def test_TableDataset_func():
     ts += '\n\n'
     if mk_outputs:
         print(ts)
-        with open('/tmp/outputs.py', 'a') as f:
+        with open(output_write, 'a') as f:
             clsn = 'out_TableDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -2159,13 +2172,14 @@ def test_CompositeDataset_init():
     ts += s3
     ts += 'level 1, repr\n'
     ts += v3.toString(1)
-    ts += 'level 2,\n'
+    ts += '\nlevel 2,\n'
     ts += v3.toString(2)
     assert v3.string() == s3
+    ts += '\nlevel 0, html\n'
     ts += v3.toString(tablefmt1='html')
     if mk_outputs:
         print(ts)
-        with open('/tmp/outputs.py', 'a') as f:
+        with open(output_write, 'a') as f:
             clsn = 'out_CompositeDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -2692,7 +2706,7 @@ def test_FineTimes_toString():
                     ts += f'level={level} width={width}: {s}\n'
     if mk_outputs:
         print(ts)
-        with open('/tmp/outputs.py', 'a') as f:
+        with open(output_write, 'a') as f:
             clsn = 'out_FineTime'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:

@@ -116,17 +116,19 @@ def get_demo_product():
 |   |   |__ Error                             <Column> (20,)
 |   |   |__ y                                 <Column> (20,)
 |   |   \__ z                                 <Column> (20,)
-|   \__ calibration                  <ArrayDataset> (11, 11)
+|   |__ calibration                  <ArrayDataset> (11, 11)
+|   \__ dset                                           <str>
 |__ Environment Temperature              <ArrayDataset> (7,)
 |__ Browse                               <image/png> (5976,)
 |__ refs                                      <RefContainer>
+|   |__ a_reference                             <ProductRef>
+|   \__ a_different_name                        <ProductRef>
 |__ history                                        <History>
 |   |__ PARAM_HISTORY                                  <str>
 |   |__ TASK_HISTORY                                   <str>
 |   \__ meta                                      <MetaData>
 |       \__ listeners                           <ListnerSet>
 \__ listeners                                   <ListnerSet>
-
     ```
 
     """

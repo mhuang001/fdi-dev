@@ -4,6 +4,8 @@ from ..dataset.serializable import Serializable
 from .. import pal
 from ..dataset.baseproduct import BaseProduct
 from ..dataset.odict import ODict
+from ..dataset.metadata import tabulate
+from ..utils.common import bstr
 
 from collections import OrderedDict
 from collections import UserDict
@@ -127,6 +129,22 @@ class RefContainer(ODict):
         # there is no need to persist owner as it is setted by `__setitem__` during deserializing
         # s.update(_ATTR_owner=self.owner)
         return s
+
+    def toString(self, level=0, tablefmt='grid', **kwds):
+
+        cn = self.__class__.__name__
+        if level > 0:
+            s = f'{cn}('
+            s += ', '.join('%s: %s' % (n, r.urn) for n, r in self.items())
+            s += ')'
+        else:
+            dat = [(n, r.urn, '\n'.join(str(id(p)) for p in r.parents), len(r.meta)
+                    if r.meta else '(none)') for n, r in self.items()]
+            headers = ['lable', 'urn', 'parents', 'meta']
+            s = tabulate.tabulate(dat, headers=headers,
+                                  stralign='center', tablefmt=tablefmt)
+        return s
+    string = toString
 
 
 class AbstractContext():

@@ -12,13 +12,18 @@ from ..dataset.stringparameter import StringParameter
 from ..dataset.numericparameter import NumericParameter, BooleanParameter
 from ..dataset.datatypes import Vector
 
-from astropy.io import fits
-from astropy.table import Table
-from astropy.table import Column
-import numpy as np
-
 import os
+from collections.abc import Sequence
 import io
+
+FITS_INSTALLED = True
+try:
+    import numpy as np
+    from astropy.io import fits
+    from astropy.table import Table
+    from astropy.table import Column
+except ImportError:
+    FITS_INSTALLED = False
 
 debug = False
 typecode2np = {
@@ -53,24 +58,26 @@ def main():
     fits_dataset(hdul, [ima, imb])
 
 
-def toFits(data, file=None, **kwds):
+def toFits(data, file='', **kwds):
     """convert dataset to FITS.
 
     :data: a list of Dataset or a BaseProduct.
-    :file: '' for returning fits stream. string for file name. default None for list of hduls.
+    :file: '' for returning fits stream. string for file name. default ''.
     """
     # __import__('pdb').set_trace()
     hdul = fits.HDUList()
     hdul.append(fits.PrimaryHDU())
-    if not issubclass(data.__class__, list):
-        if issubclass(data.__class__, BaseProduct):
-            hdul = fits_dataset(hdul, data.values(), list(data.keys()))
-            # __import__('pdb').set_trace()
-            add_header(data.meta, hdul[0].header)
-        else:
-            raise ValueError('must be dataset of a product')
-    elif issubclass(data[0].__class__, (ArrayDataset, TableDataset, CompositeDataset)):
+    if issubclass(data.__class__,  (ArrayDataset, TableDataset,
+                                    CompositeDataset, BaseProduct)):
+        hdul = fits_dataset(hdul, data.values(), list(data.keys()))
+        # __import__('pdb').set_trace()
+        add_header(data.meta, hdul[0].header)
+    elif issubclass(data.__class__, Sequence) and \
+            issubclass(data[0].__class__, (ArrayDataset, TableDataset, CompositeDataset)):
         hdul = fits_dataset(hdul, data)
+    else:
+        raise TypeError(
+            'Making FITS needs a dataset or a product, or a Sequence of them.')
     if file:
         hdul.writeto(file, **kwds)
         return hdul
@@ -89,79 +96,85 @@ def fits_dataset(hdul, dataset_list, name_list=None):
     for n, ima in enumerate(dataset_list):
         header = fits.Header()
         if issubclass(ima.__class__, ArrayDataset):
-            a=np.array(ima)
-            header=add_header(ima.meta,header)
-            ename=ima.__class__.__name__ if len(name_list) == 0 else name_list[n]
-            header['EXTNAME']=ename
+            a = np.array(ima)
+            header = add_header(ima.meta, header)
+            ename = ima.__class__.__name__ if len(
+                name_list) == 0 else name_list[n]
+            header['EXTNAME'] = ename
             hdul.append(fits.ImageHDU(a, header=header))
         elif issubclass(ima.__class__, TableDataset):
-            t=Table()
+            t = Table()
             for name, col in ima.items():
-                tname=typecode2np['u' if col.typecode=='UNKNOWN' else col.typecode]
+                tname = typecode2np['u' if col.typecode ==
+                                    'UNKNOWN' else col.typecode]
                 if debug:
                     print('tname:', tname)
-                c = Column(data=col.data, name=name, dtype=tname, shape=(), length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
+                c = Column(data=col.data, name=name, dtype=tname, shape=(
+                ), length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
                 t.add_column(c)
-            header = add_header(ima.meta,header)
-            ename = ima.__class__.__name__ if len(name_list) == 0 else name_list[n]
+            header = add_header(ima.meta, header)
+            ename = ima.__class__.__name__ if len(
+                name_list) == 0 else name_list[n]
             header['EXTNAME'] = ename
-            hdul.append(fits.BinTableHDU(t,header=header))
+            hdul.append(fits.BinTableHDU(t, header=header))
         elif issubclass(ima.__class__, CompositeDataset):
-            header = add_header(ima.meta,header)
-            hdul.append(fits.BinTableHDU(Table(),header=header))
+            header = add_header(ima.meta, header)
+            hdul.append(fits.BinTableHDU(Table(), header=header))
             for name, dlist in ima.items():
-                print('dlist',dlist.__class__)
-                fits_dataset(hdul,[dlist],name_list=[name])
+                print('dlist', dlist.__class__)
+                fits_dataset(hdul, [dlist], name_list=[name])
     if debug:
-        print("****",len(hdul))
+        print("****", len(hdul))
     return hdul
 
     #hdul.writeto(fitsdir + 'array.fits')
-    
+
    # f = fits.open(fitsdir + 'array.fits')
    # print(len(f))
     #h1 = f[0].header
     #h2 = f[1].header
-    #print(h2)
-    #return h1
+    # print(h2)
+    # return h1
 
-def add_header(meta,header):
-    for name,param in meta.items():
+
+def add_header(meta, header):
+    for name, param in meta.items():
         if issubclass(param.__class__, DateParameter):
             value = param.value.isoutc()
             if debug:
-                print('time',value)
+                print('time', value)
             kw = getFitsKw(name)
-            #__import__('pdb').set_trace()
-            header[kw] = (value,param.description)
+            # __import__('pdb').set_trace()
+            header[kw] = (value, param.description)
         elif issubclass(param.__class__, NumericParameter):
             if issubclass(param.value.__class__, Vector):
                 for i, com in enumerate(param.value.components):
-                    kw = getFitsKw(name,1)+str(i)
-                    header[kw] = (com,param.description+str(i))
+                    kw = getFitsKw(name, 1)+str(i)
+                    header[kw] = (com, param.description+str(i))
                     if debug:
-                        print(kw,com)
+                        print(kw, com)
             else:
-                    kw = getFitsKw(name)
-                    header[kw] = (param.value,param.description)
+                kw = getFitsKw(name)
+                header[kw] = (param.value, param.description)
         elif issubclass(param.__class__, StringParameter):
             kw = getFitsKw(name)
-            v =  param.value if param.value is not None else ''
-            header[kw] = (v,param.description)
+            v = param.value if param.value is not None else ''
+            header[kw] = (v, param.description)
         elif issubclass(param.__class__, BooleanParameter):
             kw = getFitsKw(name)
             v = 'T' if param.value else 'F'
-            header[kw] = (v,param.description)
+            header[kw] = (v, param.description)
         else:
             kw = getFitsKw(name)
             v = ''
-            header[kw] = (v,'%s of unknown type' % str(param.value))
+            header[kw] = (v, '%s of unknown type' % str(param.value))
     if debug:
-        print('***',header)
+        print('***', header)
     return header
-   
+
+
 def fits_header():
-    fitsdir  =  '/Users/jia/desktop/vtse_out/'
+    fitsdir = '/Users/jia/desktop/vtse_out/'
     f = fits.open(fitsdir + 'array.fits')
     h = f[0].header
     #h.set('add','header','add a header')

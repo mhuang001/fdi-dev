@@ -305,3 +305,13 @@ class Serializable():
         from ..utils.tree import tree
 
         return '\n'.join(tree(self, *args, **kwds))
+
+    def fits(self, *args, **kwds):
+        """ Get a FITS representation. """
+        from ..utils.tofits import toFits, FITS_INSTALLED
+
+        if not FITS_INSTALLED:
+            raise NotImplemented('Astropy not installed. Include SCI in extra-dependency when installing FDI.')
+        
+        return toFits(self, *args, **kwds)
+

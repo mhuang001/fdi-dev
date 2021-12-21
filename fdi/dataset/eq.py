@@ -52,7 +52,7 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
             seen = seenlist
         level = 0
 
-    def run(o1, o2, v=False, eqcmp=True, default=None):
+    def run(o1, o2, v=False, eqcmp=True):
         """
         Paremeters
         ----------
@@ -199,49 +199,52 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                         oc.remove(n)
                     del _context.seen[-1]
                     return None
-        elif hasattr(o1, '__getstate__'):
-            try:
-                o1 = o1.__getstate__()
-                o2 = o2.__getstate__()
-            except TypeError:
-                if hasattr(o1, '__dict__'):
-                    if v:
-                        print('obj1 has __dict__')
-                        o1 = sorted(vars(o1).items())
-                        o2 = sorted(vars(o2).items())
-                        r = run(o1, o2, v=v, eqcmp=eqcmp)
-                        del _context.seen[-1]
+        else:
+            if hasattr(o1, '__getstate__'):
+                try:
+                    o1 = o1.__getstate__()
+                    o2 = o2.__getstate__()
+                except TypeError:
+                    pass
+                else:  # no exception for __getstate__
+                    r = run(o1, o2, v=v, eqcmp=eqcmp)
+                    del _context.seen[-1]
                     if r:
-                        return ' due to o1.__dict__ != o2.__dict__' + r
+                        return ' due to o1.__getstate__ != o2.__getstate__' + r
                     else:
                         return None
-                elif hasattr(o1, '__iter__') and hasattr(o1, '__next__') or \
-                        hasattr(o1, '__getitem__'):
-                    # two iterators are equal if all comparable properties are equal.
+
+            if hasattr(o1, '__dict__'):
+                if v:
+                    print('obj1 has __dict__')
+                    o1 = sorted(vars(o1).items())
+                    o2 = sorted(vars(o2).items())
+                    r = run(o1, o2, v=v, eqcmp=eqcmp)
+                    del _context.seen[-1]
+                if r:
+                    return ' due to o1.__dict__ != o2.__dict__' + r
+                else:
+                    return None
+            elif hasattr(o1, '__iter__') and hasattr(o1, '__next__') or \
+                    hasattr(o1, '__getitem__'):
+                # two iterators are equal if all comparable properties are equal.
+                del _context.seen[-1]
+                return None
+            elif has_eqcmp:
+                # last resort
+                if o1 == o2:
                     del _context.seen[-1]
                     return None
-                elif has_eqcmp:
-                    # last resort
-                    if o1 == o2:
-                        del _context.seen[-1]
-                        return None
-                    else:
-                        del _context.seen[-1]
-                        return ' according to __eq__ or __cmp__'
-                else:  # o1 != o2:
-                    if v:
-                        print('no way')
-                        s = ' due to no reason found for "%s" == "%s"' % (
-                            lls(o1, 155), lls(o2, 155))
-                        del _context.seen[-1]
-                    return s
-            # no exception for __getstate__
-            r = run(o1, o2, v=v, eqcmp=eqcmp)
-            del _context.seen[-1]
-            if r:
-                return ' due to o1.__getstate__ != o2.__getstate__' + r
-            else:
-                return None
+                else:
+                    del _context.seen[-1]
+                    return ' according to __eq__ or __cmp__'
+            else:  # o1 != o2:
+                if v:
+                    print('no way')
+                    s = ' due to no reason found for "%s" == "%s"' % (
+                        lls(o1, 155), lls(o2, 155))
+                    del _context.seen[-1]
+                return s
     return run(obj1, obj2, v=verbose, eqcmp=eqcmp)
 
 

@@ -139,6 +139,9 @@ def fits_dataset(hdul, dataset_list, name_list=None):
 
 def add_header(meta, header):
     for name, param in meta.items():
+        print(name,header.get('CONFIGUR','***'))
+        if 'conf' in name.lower():
+            __import__('pdb').set_trace()
         if issubclass(param.__class__, DateParameter):
             value = param.value.isoutc()
             if debug:
@@ -158,9 +161,9 @@ def add_header(meta, header):
                 header[kw] = (param.value, param.description)
         elif issubclass(param.__class__, StringParameter):
             kw = getFitsKw(name)
-            #if kw == 'CHECKSUM':
+            if kw == 'CONFIGUR':
              #   pass
-              #__import__('pdb').set_trace()
+                __import__('pdb').set_trace()
             if (param.value is None) or (param.value == 'UNKNOWN'):
                 v = fits.card.Undefined()
             else:

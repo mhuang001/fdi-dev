@@ -42,7 +42,7 @@ yamlupgrade:
 
 
 .PHONY: runserver runpoolserver reqs install uninstall vtag FORCE \
-	test test1 test2 test3 test4 test5\
+	test test1 test2 test3 test4 test5 test6\
 	plots plotall plot_dataset plot_pal plot_pns \
 	docs docs_api docs_plots docs_html \
 	pipfile

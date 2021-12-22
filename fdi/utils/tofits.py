@@ -158,7 +158,13 @@ def add_header(meta, header):
                 header[kw] = (param.value, param.description)
         elif issubclass(param.__class__, StringParameter):
             kw = getFitsKw(name)
-            v = param.value if param.value is not None else ''
+            #if kw == 'CHECKSUM':
+             #   pass
+              #__import__('pdb').set_trace()
+            if (param.value is None) or (param.value == 'UNKNOWN'):
+                v = fits.card.Undefined()
+            else:
+                v = param.value
             header[kw] = (v, param.description)
         elif issubclass(param.__class__, BooleanParameter):
             kw = getFitsKw(name)
@@ -166,7 +172,7 @@ def add_header(meta, header):
             header[kw] = (v, param.description)
         else:
             kw = getFitsKw(name)
-            v = ''
+            v = fits.card.Undefined()
             header[kw] = (v, '%s of unknown type' % str(param.value))
     if debug:
         print('***', header)

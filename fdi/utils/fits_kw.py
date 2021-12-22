@@ -198,7 +198,7 @@ def getFitsKw(name, ndigits=2, extra=None):
     2. try the `extra` dictionary if provided. if fails,
     3. take key value
 
-    If `name` ends with a digit, append the "numeric-part" to the first `8 - ndigits` (maximum) of characters from pre-transition, uppercased, to form the resukt;
+    If `name` ends with a digit, append the "numeric-part" to the first `8 - min(ndigits,number of digits in name)` (maximum) of characters from pre-transition, uppercased, to form the resukt;
  else take a maximum of 8 characters from pre-transition. uppercased, to form the resukt.
 
     :name: the name of e.g. a parameter.
@@ -235,7 +235,9 @@ def getFitsKw(name, ndigits=2, extra=None):
     else:
         pre_translation = key
     if endswith_digit:
-        return pre_translation[:8-ndigits].upper() + numeric_part
+        actrual_number_of_digits = min(ndigits, (8-lnondigi))
+        return pre_translation[:8-actrual_number_of_digits].upper() + numeric_part
+        
     else:
         return pre_translation[:8].upper()
 

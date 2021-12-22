@@ -117,10 +117,12 @@ def wls(st, width=15, fill=None, unprintable='#'):
     Identifies Line-breaks with `str.splitlines` https://docs.python.org/3.6/library/stdtypes.html#str.splitlines
     Removes trailing line-breaks.
 
-    :st: input string.
+    :st: input string. If not a string, ```str(st)``` is used.
     :width: if > 0  returns the str with '\n' inserted every width chars. Or else return the input ``st``. Default is 15. A CJK characters occupies 2 in widths.
     :unprintable: substitute unprintable characters with is. default is '#'.
     """
+    if not issubclass(st.__class__, str):
+        st = str(st)
     if width <= 0 or len(st) == 0:
         return st
     line = []

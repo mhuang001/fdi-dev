@@ -203,7 +203,7 @@ def getFitsKw(name, ndigits=2, extra=None):
 
     :name: the name of e.g. a parameter.
     :ndigits: how many digits (right to left) to take maximum if `name` ends with digits. default 2. Raises `ValueError` if more than 7.
-    :extra: tuple of `(fits,para)` tuples to provide more look-up dictionary.
+    :extra: tuple of `(fits,para)` tuples to provide more look-up dictionary that override values from the default one.
     :returns: FITS keyword.
     """
     if ndigits > 7:
@@ -228,16 +228,16 @@ def getFitsKw(name, ndigits=2, extra=None):
         key = non_digital
     else:
         key = name
-    if key in Param_Names:
-        pre_translation = Param_Names[key]
-    elif key in extradict:
+    if key in extradict:
         pre_translation = extradict[key]
+    elif key in Param_Names:
+        pre_translation = Param_Names[key]
     else:
         pre_translation = key
     if endswith_digit:
         actrual_number_of_digits = min(ndigits, (8-lnondigi))
         return pre_translation[:8-actrual_number_of_digits].upper() + numeric_part
-        
+
     else:
         return pre_translation[:8].upper()
 

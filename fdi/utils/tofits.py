@@ -138,6 +138,8 @@ def fits_dataset(hdul, dataset_list, name_list=None):
 
 
 def add_header(meta, header):
+    """
+    """
     for name, param in meta.items():
         pval = param.value
         if pval is None:
@@ -151,7 +153,7 @@ def add_header(meta, header):
         elif issubclass(param.__class__, NumericParameter):
             if issubclass(pval.__class__, Vector):
                 for i, com in enumerate(pval.components):
-                    kw = getFitsKw(name, 1)+str(i)
+                    kw = getFitsKw(name, ndigits=1)+str(i)
                     header[kw] = (com, param.description+str(i))
                     if debug:
                         print(kw, com)

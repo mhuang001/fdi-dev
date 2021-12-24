@@ -60,6 +60,9 @@ setup(
             'waitress>=2.0.0',
             'flasgger>=0.9.5',
         ],
+        'SCI': [
+            'astropy==4.1'
+        ],
         'PUB': [
             'sphinx>=4.2.0',
             'sphinx_rtd_theme>=0.4.3',

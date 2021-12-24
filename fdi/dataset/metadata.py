@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 tabulate.wcwidth = wcwidth
 tabulate.WIDE_CHARS_MODE = True
 tabulate.MIN_PADDING = 0
-#tabulate.PRESERVE_WHITESPACE = True
+# tabulate.PRESERVE_WHITESPACE = True
 Default_Extra_Param_Width = 10
 
 """
@@ -532,7 +532,10 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         """
 
         if value is None:
-            v = None  # self._default if hasattr(self, '_default') else value
+
+
+# self._default if hasattr(self, '_default') else value
+getMetaByUrn            v = None
         else:
             v = self.checked(value)
         super().setValue(v)
@@ -1016,7 +1019,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                     ps = '%s=%s' % (n, v.toString(level)) if level == 2 else n
                     # tab.append(wls(ps, 80//N))
                     tab.append(ps)
-            #nn += 1
+            # nn += 1
             # if nn == 2:
             #    pass  # break
 
@@ -1032,7 +1035,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 headers = []
                 for n in allh:
                     w = param_widths.get(n, Default_Extra_Param_Width)
-                    #print(n, w)
+                    # print(n, w)
                     if w != 0:
                         headers.append(wls(n, w))
             fmt = tablefmt

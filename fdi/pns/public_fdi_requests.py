@@ -45,12 +45,70 @@ def read_from_cloud(requestName, **kwargs):
     elif requestName == 'verifyToken':
         requestAPI = defaulturl + '/user/auth/verify?token=' + kwargs['token']
         res = requests.get(requestAPI)
-    elif requestName == 'infoUrn':
+    elif requestName[0:4] == 'info':
         header['X-AUTH-TOKEN'] = kwargs['token']
-        requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + '/storage/info?urns=' + kwargs['urn']
+        if requestName == 'infoUrn':
+            requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + \
+                         '/storage/info?urns=' + kwargs['urn']
+        elif requestName == 'infoPool':
+            requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + \
+                         '/storage/info?paths=' + kwargs['poolpath']
+        else:
+            raise ValueError("Unknown request API: " + str(requestName))
+        res = requests.get(requestAPI, headers=header)
+
+    elif requestName == 'getMeta':
+        header['X-AUTH-TOKEN'] = kwargs['token']
+        requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + \
+                     '/storage/meta?urn=' + kwargs['urn']
+        res = requests.get(requestAPI, headers=header)
+
+    elif requestName == 'getDataType':
+        header['X-AUTH-TOKEN'] = kwargs['token']
+        requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + \
+                     '/datatype/list'
         res = requests.get(requestAPI, headers=header)
     else:
-        raise Exception("Unknown request API: " + str(requestName))
+        raise ValueError("Unknown request API: " + str(requestName))
+    print("Read from API: " + requestAPI)
+    return deserialize(res.text)
+
+
+def load_from_cloud(requestName, **kwargs):
+    header = {'Content-Type': 'application/json;charset=UTF-8'}
+    requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion
+    try:
+        if requestName == 'uploadProduct':
+            header = {}
+            header['X-AUTH-TOKEN'] = kwargs['token']
+            header['X-CSDB-AUTOINDEX'] = '1'
+            header['X-CSDB-METADATA'] = '/_ATTR_meta'
+            header['X-CSDB-HASHCOMPARE'] = '0'
+
+            requestAPI = requestAPI + '/storage/upload?path=' + kwargs['path']
+            prd = kwargs['products']
+            fileName = kwargs['resourcetype']
+            if kwargs.get('tags'):
+                tags = ''
+                if isinstance(kwargs['tags'], list):
+                    for ele in kwargs['tags']:
+                        tags = tags + ele + ','
+                elif isinstance(kwargs['tags'], str):
+                    tags = kwargs['tags']
+                data = {'tags': tags}
+            else:
+                data = None
+            res = requests.post(requestAPI, files={'file': (fileName, prd)}, data=data, headers=header)
+
+        elif requestName == 'pullProduct':
+            header['X-AUTH-TOKEN'] = kwargs['token']
+            requestAPI = requestAPI + '/storage/get?urn=' + kwargs['urn']
+            res = requests.get(requestAPI, headers=header, stream=True)
+            # TODO: save product to local
+        else:
+            raise ValueError("Unknown request API: " + str(requestName))
+    except Exception as e:
+        return 'Load File failed: ' + str(e)
     print("Read from API: " + requestAPI)
     return deserialize(res.text)
 
@@ -61,60 +119,3 @@ def get_service_method(method):
     if service not in webapi.PublicServices:
         return 'home', None
     return service, serviceName
-
-
-def method_to_cloud_api(service, serviceName):
-    requestUrl = defaulturl + webapi.publicRoute + webapi.publicVersion + '/' + service
-
-
-def datatype_from_cloud(service, serviceName, *args, **kwds):
-    """
-    Unable to identify args and kwds.. maybe give up this method
-    """
-    print("Params: " + service + " / ServiceName: " + serviceName)
-
-    requestUrl = defaulturl + webapi.publicRoute + webapi.publicVersion + '/' + service
-
-    auth = getAuth()
-    if serviceName == 'delete':
-        return 'Not implemented, if need to check data type exists?'
-
-    elif serviceName.startswith('list'):
-        if serviceName == 'list':
-            if len(args) == 0:
-                requestUrl = requestUrl + '/' + serviceName
-            elif len(args) == 1:
-                requestUrl = requestUrl + '/list?substring=' + args[0]
-            elif len(args) == 2 and type(args[0]) == str and type(args[1]) == str:
-                requestUrl = requestUrl + '/' + args[0] + '/' + args[1]
-            else:
-                print("Request Cloud API: " + requestUrl)
-                return 'Unknown request arguments, please check!'
-
-        elif serviceName == 'listNode' and len(args) == 2 and type(args[0]) == str and type(args[1]) == str:
-            requestUrl = requestUrl + '/' + args[0] + '/' + args[1] + '/json'
-
-        elif serviceName == 'listMeta' and len(args) == 1 and type(args[0] == 'str'):
-            requestUrl = requestUrl + '/' + args[0] + '/meta'
-
-        else:
-            print("Request Cloud API: " + requestUrl)
-            return 'Unknown request arguments, please check!'
-        print("Request Cloud API: " + requestUrl)
-        res = requests.get(requestUrl, auth=auth)
-    elif serviceName == 'upload':
-        requestUrl = requestUrl + '/' + serviceName
-        if len(args) == 3 and type(args[0]) == str and type(args[1]) == str and type(args[2]) == dict:
-            import os
-            if os.path.exists(args[0]):
-                f = open(args[0], 'rb')
-            else:
-                return 'No such file: ' + args[0]
-            args[2]['productType'] = args[1]
-            res = requests.get(requestUrl, files={'file': f}, data=args[2])
-        else:
-            print("Request Cloud API: " + requestUrl)
-            return 'Unknown request arguments, please check!'
-    else:
-        res = 'Not implemented'
-    return res.text

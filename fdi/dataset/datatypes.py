@@ -216,8 +216,6 @@ class Vector(Quantifiable, Serializable, DeepEqual):
         """
         return len(self._data)
 
-    __hash__ = DeepEqual.hash
-
     def toString(self, level=0, **kwds):
         return self.__repr__()
 

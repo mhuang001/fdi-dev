@@ -30,7 +30,7 @@ Reserved_Property_Names = ['history', 'meta', 'refs', 'dataset',
 | 'listeners' | `EventSender` | `_listener` |
 """
 MDP_Set_by_Parents = {'meta': '_meta',
-                      'description': 'description',
+                      # 'description': 'description',
                       'data': '_data',
                       'listeners': '_listeners'}
 
@@ -79,12 +79,14 @@ class Attributable(MetaDataHolder):
         # merge extra MDP there may be and Model MDPs.
         self._MDP = ChainMap(self.extraMdp, zm)
         # This will set MDP_Set_by_Parents args.
-
-        super().__init__(meta=meta, **kwds)
-        # do not set MDPs that have been set by super classes
-        for p in copy(mdps):
-            if p in self._meta:
-                mdps.pop(p)
+        # Do not use super() as it traverses MRO and calls annotatable that sets self.description
+        MetaDataHolder.__init__(self, meta=meta, **kwds)
+        # # do not set MDPs that have been set by prev classes on mro
+        # for p in copy(mdps):
+        #     if p in self._meta:
+        #         print('@@@@@@ ', p)
+        #         # mdps.pop(p)
+        # print(self.data)
         self.setParameters(mdps)
 
     def setParameters(self, params):

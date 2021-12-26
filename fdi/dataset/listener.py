@@ -32,38 +32,38 @@ class EventListener(Annotatable):
         pass
 
 
-class xDatasetBaseListener(Annotatable):
-    """ Generic interface for listeners that will listen to events
-    happening on a target of a specific type.
-    Java Warning:
-    The listener must be a class field in order to make an object
-    hard reference.
-    """
+# class xDatasetBaseListener(Annotatable):
+#     """ Generic interface for listeners that will listen to events
+#     happening on a target of a specific type.
+#     Java Warning:
+#     The listener must be a class field in order to make an object
+#     hard reference.
+#     """
 
-    def __init__(self, *args, **kwds):
-        """
+#     def __init__(self, *args, **kwds):
+#         """
 
-        Parameters
-        ----------
+#         Parameters
+#         ----------
 
-        Returns
-        -------
-        """
-        super().__init__(*args, **kwds)  # DatasetBaseListener
+#         Returns
+#         -------
+#         """
+#         super().__init__(*args, **kwds)  # DatasetBaseListener
 
-    def targetChanged(self, event):
-        """ Informs that an event has happened in a target of the
-        specified type.
-        Paremeters
-        ----------
+#     def targetChanged(self, event):
+#         """ Informs that an event has happened in a target of the
+#         specified type.
+#         Paremeters
+#         ----------
 
-        Returns
-        -------
+#         Returns
+#         -------
 
 
-        """
+#         """
 
-        pass
+#         pass
 
 
 class ListnerSet(Serializable, DeepEqual, UserList):

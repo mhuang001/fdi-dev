@@ -3,9 +3,12 @@
 Change Log
 ==========
 
-BETA0
+BETA1
 =====
 
+1.12.0 2021-12-26
+-----------------
+python-tabulate local fork, html tostring, fits, xhash/deepcmp debug. DeepEqual back to faster deepcmp.
 1.11.0 2021-12-17
 -----------------
 offset based meta accese, patial reading products, Flask auth, pooll presentation, mediawrapper, config api. pathstring, getDefault, docker on public net. BooleanParameter, CJK and locale in table, 2-row header for Tabledset.

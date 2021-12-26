@@ -23,39 +23,41 @@ class Annotatable():
 
         # print(__name__ + str(kwds))
         super().__init__(**kwds)  # Annotatable
+        # skip if has been set by e.g. Attributable
+        # if not hasattr(self, 'description'):
         self.description = description
 
-    @property
-    def xdescription(self):
-        """ xx must be a property for ``self.xx = yy`` to work in super class after xx is set as a property also by a subclass.
+    # @property
+    # def description(self):
+    #     """ xx must be a property for ``self.xx = yy`` to work in super class after xx is set as a property also by a subclass.
 
-        Parameters
-        ----------
+    #     Parameters
+    #     ----------
 
-        Returns
-        -------
+    #     Returns
+    #     -------
 
-        """
-        try:
-            return self._description
-        except AttributeError:
-            return None
+    #     """
+    #     try:
+    #         return self._description
+    #     except AttributeError:
+    #         return None
 
-    @xdescription.setter
-    def xdescription(self, description):
-        """ Property of the description of this Annotatable object.
+    # @description.setter
+    # def description(self, description):
+    #     """ Property of the description of this Annotatable object.
 
-        Parameters
-        ----------
-        description : string
-                         The new description.
+    #     Parameters
+    #     ----------
+    #     description : string
+    #                      The new description.
 
-        Returns
-        -------
+    #     Returns
+    #     -------
 
-        """
+    #     """
 
-        self._description = description
+    #     self._description = description
 
     def getDescription(self):
         """ gets the description of this Annotatable object.

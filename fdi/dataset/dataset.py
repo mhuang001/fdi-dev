@@ -204,8 +204,7 @@ class GenericDataset(Dataset, Typed, DataWrapper):
     def __init__(self, **kwds):
         """
         """
-        super(GenericDataset, self).__init__(
-            **kwds)  # initialize data, meta, unit
+        super().__init__(**kwds)  # initialize data, meta, unit
 
     def __iter__(self):
         for x in self.getData():

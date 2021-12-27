@@ -86,7 +86,7 @@ ENV PIPENV_VENV_IN_PROJECT 1
 
 # let group access cache and bin. https://stackoverflow.com/a/46900270
 RUN umask 0002 \
-&& python3.6 -m pip install -e .[DEV,SERV] \
+&& python3.6 -m pip install -e .[DEV,SERV,SCI] \
 && python3.6 -c 'import sys;print(sys.path)' &&  pip list
 
 WORKDIR ${PKGS_DIR}

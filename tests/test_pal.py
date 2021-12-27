@@ -50,8 +50,9 @@ if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
 else:
     PY3 = False
 
-
+username
 Test_Pool_Name = __name__.replace('.', '_')
+defaultpoolPath = '/tmp/fditest'
 
 Classes.updateMapping()
 
@@ -287,7 +288,6 @@ def cleanup(poolurl=None, poolname=None):
 
 def test_PoolManager():
     defaultpoolName = Test_Pool_Name
-    defaultpoolPath = '/tmp/fditest'
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
     # class methods
@@ -392,7 +392,6 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args):
 
 def test_ProductRef():
     defaultpoolName = Test_Pool_Name
-    defaultpoolPath = '/tmp/fditest'
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
     prd = Product()

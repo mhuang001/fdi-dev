@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def loadcsv(filepath, delimiter=',', header=0, return_dict=False):
+def loadcsv(filepath, delimiter=',', header=0, return_dict=False, pad=None):
     """ Loads the contents of a CSV file into a list of tuples.
 
     :header: the first header linea are taken as column headers if ```header > 0```. If no column header given (default 0), ```colN``` where N = 1, 2, 3... are returned.
@@ -35,6 +35,7 @@ def loadcsv(filepath, delimiter=',', header=0, return_dict=False):
                 row = [x.strip() for x in row]
             if rowcount == 0:
                 columns = [[] for cell in row]
+                ncol = len(columns)
                 units = ['' for cell in row]
                 if header > 0:
                     colhds = [cell for cell in row]
@@ -47,6 +48,8 @@ def loadcsv(filepath, delimiter=',', header=0, return_dict=False):
             if rowcount < header:
                 pass
             else:
+                if len(row) < ncol and pad is not None:
+                    row += [pad] * (ncol-len(row))
                 for col, cell in zip(columns, row):
                     col.append(cell)
             #print('%d: %s' % (rowcount, str(row)))

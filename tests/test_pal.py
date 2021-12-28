@@ -50,7 +50,7 @@ if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
 else:
     PY3 = False
 
-username
+
 Test_Pool_Name = __name__.replace('.', '_')
 defaultpoolPath = '/tmp/fditest'
 

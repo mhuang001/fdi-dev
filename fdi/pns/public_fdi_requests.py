@@ -68,6 +68,11 @@ def read_from_cloud(requestName, **kwargs):
         requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + \
                      '/datatype/list'
         res = requests.get(requestAPI, headers=header)
+    elif requestName == 'remove':
+        header['X-AUTH-TOKEN'] = kwargs['token']
+        requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + \
+            '/storage/delete?path=' + kwargs['path']
+        res = requests.post(requestAPI, headers=header)
     else:
         raise ValueError("Unknown request API: " + str(requestName))
     print("Read from API: " + requestAPI)

@@ -11,7 +11,7 @@ from fdi.dataset.serializable import serialize
 from fdi.pal import webapi
 from fdi.pal.productpool import ManagedPool
 from fdi.pal.productref import ProductRef
-from fdi.pal.urn import makeUrn, parse_poolurl, Urn
+from fdi.pal.urn import makeUrn, parse_poolurl, Urn, parseUrn
 from fdi.pns.public_fdi_requests import read_from_cloud, load_from_cloud
 from fdi.utils.common import fullname, lls, trbk
 from fdi.utils.getconfig import getConfig
@@ -218,23 +218,6 @@ class PublicClientPool(ManagedPool):
         else:
             sn = 0
 
-        # with filelock.FileLock(self.lockpath('w')), \
-        #         filelock.FileLock(self.lockpath('r')):
-        #
-        #     # get the latest HK
-        #     self._classes, self._tags, self._urns = tuple(
-        #         self.readHK().values())
-        #     c, t, u = self._classes, self._tags, self._urns
-        #
-        #     if pn in c:
-        #         sn = (c[pn]['currentSN'] + 1)
-        #     else:
-        #         sn = 0
-        #         c[pn] = dict(sn=[])
-        #
-        #     c[pn]['currentSN'] = sn
-        #     c[pn]['sn'].append(sn)
-
         urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
 
         # if urn not in u:
@@ -261,8 +244,6 @@ class PublicClientPool(ManagedPool):
         except ValueError as e:
             msg = 'product ' + urn + ' saving failed.' + str(e) + trbk(e)
             logger.debug(msg)
-            # self._classes, self._tags, self._urns = tuple(
-            #     self.readHK().values())
             raise e
         if uploadRes['msg'] != 'success':
             raise Exception('Upload failed: ' + uploadRes['msg'])
@@ -333,10 +314,39 @@ class PublicClientPool(ManagedPool):
         else:
             return serialize(res[0]) if serialize_out else res[0]
 
+    def schematicLoad(self, resourcetype, index, start=None, end=None,
+                      serialize_out=False):
+        """ do the scheme-specific loading
+        """
+        targetPoolpath = self.getPoolpath() + '/' + resourcetype
+        poolInfo = read_from_cloud('infoPool', poolpath=targetPoolpath, token=self.token)
+        import pdb
+        pdb.set_trace()
+        try:
+            if poolInfo['data']:
+                poolInfo = poolInfo['data']
+                if poolInfo.get(targetPoolpath):
+                    if index in poolInfo[targetPoolpath]['indexs']:
+                        urn = makeUrn(poolname=self._poolname, typename=resourcetype, index=index)
+                        res = self.doLoadByUrn(urn)
+                        if res['msg'] == 'success':
+                            if serialize_out:
+                                return res['data']
+                            else:
+                                from fdi.dataset.deserialize import deserialize
+                                return deserialize(res['data'])
+                        else:
+                            raise Exception('Load failed: ' + res['msg'])
+        except Exception as e:
+            logger.debug('Load product failed:' + str(e))
+            raise e
+        logger.debug('No such product:' + resourcetype + ' with index: ' + str(index))
+        raise ValueError('No such product:' + resourcetype + ' with index: ' + str(index))
+
     def doLoad(self, resourcetype, index, start=None, end=None, serialize_out=False):
         """ to be implemented by subclasses to do the action of loading
         """
-        pass
+        raise NotImplementedError
 
     def doLoadByUrn(self, urn):
         res = load_from_cloud('pullProduct', token=self.token, urn=urn)
@@ -348,10 +358,39 @@ class PublicClientPool(ManagedPool):
                               products=data, path=path, tags=tag, resourcetype=resourcetype)
         return res
 
+    def schematicRemove(self, urn=None, resourcetype=None, index=None):
+        """ do the scheme-specific removing
+        """
+
+        prod = resourcetype
+        sn = index
+        import pdb
+        pdb.set_trace()
+        if self.exists(urn):
+            try:
+                if resourcetype and index:
+                    self.doRemove(resourcetype=prod, index=sn)
+                else:
+                    poolname, resourcetype, index = parseUrn(urn)
+                    if self.poolname == poolname:
+                        self.doRemove(resourcetype=resourcetype, index=index)
+                    else:
+                        raise ValueError('You can not delete from pool:' + poolname
+                                         + ', because current pool is' + self.poolname)
+            except Exception as e:
+                msg = 'product ' + urn + ' removal failed'
+                logger.debug(msg)
+                raise e
+        return 0
+
     def doRemove(self, resourcetype, index):
         """ to be implemented by subclasses to do the action of reemoving
         """
-        raise (NotImplementedError)
+        path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
+        res = read_from_cloud('remove', token=self.token, path=path)
+        if res['msg'] != 'success':
+            logger.debug(res['msg'])
+            raise ValueError(res['msg'])
 
     def doWipe(self):
         """ to be implemented by subclasses to do the action of wiping.
@@ -384,7 +423,7 @@ def genProduct(size=1):
     res = []
     for i in range(size):
         x = Product(description="product example with several datasets",
-                    instrument="Crystal-Ball", modelName="Mk II")
+                    instrument="Crystal-Ball", modelName="Mk II", creator='Cloud FDI developer')
         i0 = i
         i1 = [[i0, 2, 3], [4, 5, 6], [7, 8, 9]]
         i2 = 'ev'  # unit
@@ -409,9 +448,10 @@ cp = PublicClientPool(poolurl=poolurl)
 # print(cp.poolInfo)
 
 #=================SAVE================
-prd = genProduct(1)
-res = cp.schematicSave(prd)
-import pdb
-pdb.set_trace()
-# cp.saveOne(cp.meta('urn:poolbs:20211018:0'), 'csdb', None, False, False, 0, 0)
+# prd = genProduct(1)
+# res = cp.schematicSave(prd)
+# cp.schematicRemove('urn:poolbs:20211018:4')
+
+# cp.schematicLoad('fdi.dataset.product.Product', 1)
+cp.schematicLoad('20211018', 13)
 

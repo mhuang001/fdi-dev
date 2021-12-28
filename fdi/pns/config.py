@@ -31,7 +31,7 @@ BASE_POOLPATH = '/tmp'
 SERVER_POOLPATH = '/tmp/data'
 
 SCHEME = 'http'
-API_VERSION = 'v0.11'
+API_VERSION = 'v0.12'
 API_BASE = '/fdi'
 
 LOGGING_LEVEL = logging.INFO

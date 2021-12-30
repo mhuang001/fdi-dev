@@ -26,6 +26,12 @@ FORCE:
 docker_version: FORCE
 	date +v%y%m%d_%H%M >| docker_version
 
+# tag the latest
+LATEST_NAME	= $(SERVER_NAME)
+LATEST_VERSION	= $(SERVER_VERSION)
+imlatest:
+	docker tag $(LATEST_NAME):$(LATEST_VERSION) $(LATEST)
+
 build_docker:
 	@echo Building $(DOCKER_VERSION)
 	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DOCKER_VERSION) \
@@ -35,7 +41,7 @@ build_docker:
 	--build-arg DOCKER_VERSION=$(DOCKER_VERSION) \
 	-f $(DFILE) \
 	$(D) --progress=plain .
-	docker tag $(DOCKER_NAME):$(DOCKER_VERSION) $(LATEST)
+	$(MAKE) imlatest LATEST_NAME=$(DOCKER_NAME)
 
 launch_docker:
 	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(LATEST) $(LAU)
@@ -49,8 +55,9 @@ build_server:
 	--build-arg SERVER_VERSION=$(SERVER_VERSION) \
 	-f $(SFILE) \
 	$(D) --progress=plain .
-	docker tag $(SERVER_NAME):$(SERVER_VERSION) $(LATEST)
+	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
 
+# run im:latest
 launch_server:
 	SN=$(SERVER_NAME)$$(date +'%s') && \
 	docker run -dit --network=bridge \
@@ -66,7 +73,7 @@ launch_server:
 	docker ps -n 1
 
 launch_test_server:
-	docker tag $(SERVER_NAME):$(SERVER_VERSION) $(LATEST)
+	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
 	$(MAKE) launch_server PORT=9885 EXTPORT=9885 LOGGING_LEVEL=10 #LATEST=mhastro/httppool
 
 rm_docker:
@@ -89,19 +96,22 @@ t:
 	@ cid=`docker ps -a|grep $(LATEST) | head -n 1 |awk '{print $$1}'` &&\
 	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
 	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/apache/error-ps.log
+
 i:
 	@ cid=`docker ps -a|grep $(LATEST) | head -n 1 | awk '{print $$1}'` &&\
 	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
 	docker exec -it $(D) $$cid /usr/bin/less -f /home/apache/error-ps.log
 
-push_docker:
-	im=$(DKRREPO)/$(DOCKER_NAME) &&\
-	docker tag  $(DOCKER_NAME):$(DOCKER_VERSION) $$im:$(DOCKER_VERSION) &&\
-	docker tag  $(DOCKER_NAME):$(DOCKER_VERSION) $$im:latest &&\
-	docker push $$im:$(DOCKER_VERSION) &&\
+PUSH_NAME	= $(SERVER_NAME)
+PUSH_VERSION	= $(SERVER_VERSION)
+push_d:
+	im=$(DKRREPO)/$(PUSH_NAME) &&\
+	docker tag  $(PUSH_NAME):$(PUSH_VERSION) $$im:$(PUSH_VERSION) &&\
+	$(MAKE) imlatest LATEST_NAME=$(PUSH_NAME) &&\
+	docker push $$im:$(PUSH_VERSION) &&\
 	docker push $$im:latest
 
-push_server:
+Xpush_server:
 	im=$(DKRREPO)/$(SERVER_NAME)  &&\
 	docker tag  $(SERVER_NAME):$(SERVER_VERSION) $$im:$(SERVER_VERSION) &&\
 	docker tag  $(SERVER_NAME):$(SERVER_VERSION) $$im:latest &&\
@@ -158,11 +168,11 @@ restore_test:
 	@echo %%% above should NOT be empty %%%%%%%
 
 update_docker:
-	$(MAKE) install EXT=[DEV,SERV] I=-U &&\
+	$(MAKE) install EXT=[DEV,SERV,SCI] I=-U &&\
 	$(MAKE) docker_version &&\
-	$(MAKE) build_docker && $(MAKE) push_docker &&\
-	$(MAKE) build_server && $(MAKE) push_server &&\
+	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
+	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\
-	$(MAKE) test7 && $(MAKE) test8 &&\
+	echo $(MAKE) test7 && $(MAKE) test8 &&\
 	$(MAKE) rm_docker
 

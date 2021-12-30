@@ -463,13 +463,28 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
                compo_meth_name[:6] == 'string':
                 if 'html' in compo_meth_name:
                     ct = 'text/html'
+                    css = """
+<style>
+table,th,td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+tr:nth-child(even){
+    background-color: #DFDFDF;
+    color: black;
+}
+</style>
+"""
+                    result = css + compo
                 elif 'rst' in compo_meth_name:
                     ct = 'text/plain;charset=utf-8'
+                    result = compo
                 elif 'fancy_grid' in compo_meth_name:
                     ct = 'text/plain;charset=utf-8'
+                    result = compo
                 else:
                     ct = 'text/plain'
-                result = compo
+                    result = compo
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
             elif compo_meth_name == 'yaml()' or compo_meth_name == 'tree()':
                 ct = 'text/plain;charset=utf-8'
@@ -508,7 +523,7 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
 
 
 def load_component_at(pos, paths, mInfo):
-    """ paths[pos] is data_type; paths[pos+2] is 'description','meta' ...
+    """ paths[pos] is data_type; paths[pos+2] is 'description', 'meta' ...
 
     Components fetched are not in serialized form.
     """
@@ -526,7 +541,7 @@ def load_component_at(pos, paths, mInfo):
 
 
 def load_product(p, paths, serialize_out=False):
-    """Load product paths[p]:paths[p+1] from paths[0]
+    """Load product paths[p]: paths[p+1] from paths[0]
     """
     FAILED = '"FAILED"' if serialize_out else 'FAILED'
 

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.2
 
 FROM ubuntu:18.04 AS fdi
-# 1-1.3 M. Huang <mhuang@nao.cas.cn>
+# 1-2 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
 #ENV TZ=Etc/UTC
@@ -86,7 +86,7 @@ ENV PIPENV_VENV_IN_PROJECT 1
 
 # let group access cache and bin. https://stackoverflow.com/a/46900270
 RUN umask 0002 \
-&& python3.6 -m pip install -e .[DEV,SERV,SCI] \
+&& python3.6 -m pip install -e .[DEV,SERV,SCI] -q \
 && python3.6 -c 'import sys;print(sys.path)' &&  pip list
 
 WORKDIR ${PKGS_DIR}

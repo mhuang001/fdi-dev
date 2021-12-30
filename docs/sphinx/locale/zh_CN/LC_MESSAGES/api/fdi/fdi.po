@@ -19,9 +19,9 @@ msgstr ""
 
 #: ../sphinx/api/fdi/fdi.rst:2
 msgid "fdi package"
-msgstr ""
+msgstr "fdi 包"
 
 #: ../sphinx/api/fdi/fdi.rst:10
 msgid "Subpackages"
-msgstr ""
+msgstr "子包"
 

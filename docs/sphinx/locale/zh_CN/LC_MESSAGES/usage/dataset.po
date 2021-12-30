@@ -19,15 +19,15 @@ msgstr ""
 
 #: ../sphinx/usage/dataset.rst:3
 msgid "**Data Containers**: Data sets and Meta data"
-msgstr ""
+msgstr "**数据容器**：数据集和元数据"
 
 #: ../sphinx/usage/dataset.rst:8
 msgid "Table of Contents"
-msgstr ""
+msgstr "目录"
 
 #: ../sphinx/usage/dataset.rst:11
 msgid "Rationale"
-msgstr ""
+msgstr "基本原理"
 
 #: ../sphinx/usage/dataset.rst:13
 msgid ""
@@ -39,7 +39,7 @@ msgid ""
 "to recall the exact meaning of the numbers after a while. When someone "
 "receives a data 'product', besides dataets, one would expect explanation "
 "informaion associated with the product."
-msgstr ""
+msgstr "数据处理程序产生的数据产品旨在供他人阅读、理解和使用。许多人倾向于存储数据而没有对这些数据附加含义的注释。没有附加的解释，其他人很难完全理解或正确使用一组数字。即使是数据生产者也很难在一段时间后回忆起这些数字的确切含义。当有人收到数据“产品”时，除了数据集之外，人们还会期望与产品相关的解释信息。"
 
 #: ../sphinx/usage/dataset.rst:15
 msgid ""
@@ -49,7 +49,7 @@ msgid ""
 "attached as light weight references. One can organize scalar, vector, "
 "array, table types of data in the form of sequences, mappings, with "
 "nesting and referencing."
-msgstr ""
+msgstr "FDI 实施了数据产品容器方案，因此不仅描述和其他元数据（关于数据的数据）始终附加到“有效载荷”数据，而且您的数据可以将其上下文数据附加为轻量级引用。并可以用序列、映射、嵌套和引用的形式组织标量、向量、数组、表类型的数据。"
 
 #: ../sphinx/usage/dataset.rst:17
 msgid ""
@@ -63,15 +63,15 @@ msgid ""
 "observation and data processing into account. The APIs are kept as "
 "compatible with HCSS (written in Java, and in Jython for scripting) as "
 "possible."
-msgstr ""
+msgstr "FDI 旨在成为一个小型的开源包。存储在 FDI 对象中的数据可以通过 Python API 轻松访问，并以跨平台、人类可读的 JSON 格式导出（默认序列化和存储）。对于类似的目标，有更重量级的格式（例如 HDF5）和包（例如 iRODS）。FDI 的数据模型最初受到 `Herschel Common Software System (v15) <https://www.cosmos.esa.int/web/herschel/data-products-overview/>`_ 产品的启发，同时考虑了科学观察和数据处理的其他要求。 API 尽可能与 HCSS（用 Java 编写，用 Jython 编写脚本）兼容。"
 
 #: ../sphinx/usage/dataset.rst:21
 msgid "Data Containers"
-msgstr ""
+msgstr "数据容器"
 
 #: ../sphinx/usage/dataset.rst:24
 msgid "Dataset"
-msgstr ""
+msgstr "数据集"
 
 #: ../sphinx/usage/dataset.rst:26
 msgid ""
@@ -79,80 +79,80 @@ msgid ""
 "hierarchical data as a dataset. Like a product, all datasets may have "
 "meta data, with the distinction that the meta data of a dataset is "
 "related to that particular dataset only."
-msgstr ""
+msgstr "实现了三种类型的数据集以将潜在的任何分层数据存储为数据集。像产品一样，所有数据集都可能有元数据，区别在于数据集的元数据仅与该特定数据集相关。"
 
 #: ../sphinx/usage/dataset.rst
 msgid "array dataset"
-msgstr ""
+msgstr "数组数据集"
 
 #: ../sphinx/usage/dataset.rst:29
 msgid ""
 "a dataset containing array data (say a data vector, array, cube etc...) "
 "and may have a unit and a typecode for efficient storing."
-msgstr ""
+msgstr "包含数组数据（比如数据向量、数组、立方体等）的数据集，并且可能有一个单元和一个类型代码以进行高效存储。"
 
 #: ../sphinx/usage/dataset.rst:31 ../sphinx/usage/dataset.rst:39
 #: ../sphinx/usage/dataset.rst:88 ../sphinx/usage/dataset.rst:96
 msgid "Examples (from :doc:`quickstart` page):"
-msgstr ""
+msgstr "例子（来自 :doc:`quickstart` 页）"
 
 #: ../sphinx/usage/dataset.rst
 msgid "table dataset"
-msgstr ""
+msgstr "表格数据集"
 
 #: ../sphinx/usage/dataset.rst:37
 msgid ""
 "a dataset containing a collection of columns with column header as the "
 "key. Each column contains array dataset. All columns have the same number"
 " of rows."
-msgstr ""
+msgstr "包含以列标题为键的列集合的数据集。每列包含数组数据集。所有列都具有相同的行数。"
 
 #: ../sphinx/usage/quickstart.rst:4
 msgid ""
 "TableDataset is mainly a dictionary containing named :class:`Column`\\s "
 "and their metadata. Columns are basically ArrayDatasets under a different"
 " name."
-msgstr ""
+msgstr "TableDataset 主要是一个包含命名列及其元数据的字典。列基本上是不同名称下的 ArrayDatasets。"
 
 #: ../sphinx/usage/dataset.rst
 msgid "composite dataset"
-msgstr ""
+msgstr "复合数据集"
 
 #: ../sphinx/usage/dataset.rst:46
 msgid ""
 "a dataset containing a collection of datasets. This allows arbitrary "
 "complex structures, as a child dataset within a composite dataset may be "
 "a composite dataset itself and so on..."
-msgstr ""
+msgstr "包含一组数据集的数据集。这允许任意复杂的结构，因为复合数据集中的子数据集可能是复合数据集本身等等......"
 
 #: ../sphinx/usage/dataset.rst:50
 msgid "Meta data and Parameters"
-msgstr ""
+msgstr "元数据和参数"
 
 #: ../sphinx/usage/dataset.rst:52
 msgid ""
 "FDI datasets and products not only contain data, but also their metadata "
 "-- data about the \"payload\" data. Metadata is defined as a collection "
 "of named Parameters."
-msgstr ""
+msgstr "FDI 数据集和产品不仅包含数据，还包含它们的元数据——关于“有效载荷”数据的数据。元数据被定义为命名参数的集合。"
 
 #: ../sphinx/usage/dataset.rst:54
 msgid ""
 "Often a parameter shows a property. So a parameter in the metadata of a "
 "dataset or product is often called a property."
-msgstr ""
+msgstr "通常一个参数显示一个属性 因此，数据集或产品的元数据中的参数通常称为属性。"
 
 #: ../sphinx/usage/dataset.rst ../sphinx/usage/dataset.rst:67
 msgid "Parameter"
-msgstr ""
+msgstr "参数"
 
 #: ../sphinx/usage/dataset.rst:57
 msgid "scalar or vector variable with attributes."
-msgstr ""
+msgstr "具有属性的标量或向量变量。"
 
 #: ../sphinx/usage/dataset.rst:57
 msgid "There are the following parameter types:"
-msgstr ""
+msgstr "有以下参数类型："
 
 #: ../sphinx/usage/dataset.rst:59
 msgid ""
@@ -160,7 +160,7 @@ msgid ""
 "requested, a Parameter can check its value or a given value with the "
 "validity specification, which can be a combination of descrete values, "
 "ranges, and bit-masked values."
-msgstr ""
+msgstr "*Parameter*：类型在 :attr:`metadata.ParameterTypes` 中定义。如果请求，参数可以检查其值或具有有效性规范的给定值，其可以是离散值、范围和位掩码值的组合。"
 
 #: ../sphinx/usage/dataset.rst:60
 msgid "*NumericParameter*"
@@ -238,45 +238,46 @@ msgstr ""
 
 #: ../sphinx/usage/dataset.rst
 msgid "Metadata"
-msgstr ""
+msgstr "元数据"
 
 #: ../sphinx/usage/dataset.rst:94
 msgid "class manages parameters for datasets and products."
-msgstr ""
+msgstr "类管理数据集和产品的参数。"
 
 #: ../sphinx/usage/quickstart.rst:4
 msgid ""
 "A :class:`Metadata` instance is mainly a dict-like container for named "
 "parameters."
-msgstr ""
+msgstr ":class:`Metadata` 实例主要是一个类似字典的命名参数容器。"
 
 #: ../sphinx/usage/dataset.rst:103
 msgid "run tests"
-msgstr ""
+msgstr "运行测试"
 
 #: ../sphinx/usage/dataset.rst:105
 msgid ""
 "You can test sub-package ``dataset`` and ``utils`` with ``test1`` and "
 "``test5`` respectively."
-msgstr ""
+msgstr "你可以分别测试 ``dataset`` and ``utils`` with ``test1`` and "
+"``test5`` 这些子包。"
 
 #: ../sphinx/usage/dataset.rst:107
 msgid "In the install directory:"
-msgstr ""
+msgstr "在安装目录"
 
 #: ../sphinx/usage/dataset.rst:114
 msgid "``test3`` is for *pns server self-test only*"
-msgstr ""
+msgstr "``test3`` 仅用于 pns 服务器自检"
 
 #: ../sphinx/usage/dataset.rst:117
 msgid "Design"
-msgstr ""
+msgstr "设计"
 
 #: ../sphinx/usage/dataset.rst:119
 msgid "Packages"
-msgstr ""
+msgstr "包"
 
 #: ../sphinx/usage/dataset.rst:123
 msgid "Classes"
-msgstr ""
+msgstr "类"
 

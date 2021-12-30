@@ -19,19 +19,19 @@ msgstr ""
 
 #: ../sphinx/api/fdi/fdi.dataset.rst:2
 msgid "fdi.dataset package"
-msgstr ""
+msgstr "fdi.dataset 包"
 
 #: ../sphinx/api/fdi/fdi.dataset.rst:10
 msgid "Subpackages"
-msgstr ""
+msgstr "子包"
 
 #: ../sphinx/api/fdi/fdi.dataset.rst:18
 msgid "Submodules"
-msgstr ""
+msgstr "子模块"
 
 #: ../sphinx/api/fdi/fdi.dataset.rst:21
 msgid "fdi.dataset.abstractcomposite module"
-msgstr ""
+msgstr "fdi.dataset.abstractcomposite 模块"
 
 #: fdi.dataset.abstractcomposite.AbstractComposite:1 of
 msgid ""
@@ -43,15 +43,15 @@ msgstr ""
 
 #: fdi.dataset.abstractcomposite.AbstractComposite:1 of
 msgid "an annotatable and attributable subclass of Composite."
-msgstr ""
+msgstr "Composite 的一个可注释和可归属的子类。"
 
 #: fdi.dataset.abstractcomposite.AbstractComposite:3 of
 msgid "Composite inherits annotatable via EventListener via DataContainer."
-msgstr ""
+msgstr "Composite 通过 DataContainer 通过 EventListener 继承 annotatable。"
 
 #: fdi.dataset.abstractcomposite.AbstractComposite.toString:1 of
 msgid "matprint: an external matrix print function"
-msgstr ""
+msgstr "matprint：外部矩阵打印功能"
 
 #: fdi.dataset.abstractcomposite.AbstractComposite.toString
 #: fdi.dataset.annotatable.Annotatable.setDescription
@@ -66,7 +66,7 @@ msgstr ""
 
 #: fdi.dataset.abstractcomposite.AbstractComposite.toString:3 of
 msgid "**trans** (*print 2D matrix transposed. default is True.*)"
-msgstr ""
+msgstr "**trans**（*打印转置的二维矩阵。默认为True。*）"
 
 #: fdi.dataset.abstractcomposite.AbstractComposite.toString:4 of
 msgid "**-------**"
@@ -74,7 +74,7 @@ msgstr ""
 
 #: ../sphinx/api/fdi/fdi.dataset.rst:29
 msgid "fdi.dataset.annotatable module"
-msgstr ""
+msgstr "fdi.dataset.annotatable 模块"
 
 #: fdi.dataset.annotatable.Annotatable:1
 #: fdi.dataset.attributable.MetaDataProperties:1 fdi.dataset.classes.Classes:1
@@ -97,11 +97,11 @@ msgstr ""
 msgid ""
 "An Annotatable object is an object that can give a human readable "
 "description of itself."
-msgstr ""
+msgstr "Annotatable 对象是一个可以给出人类可读描述的对象。"
 
 #: fdi.dataset.annotatable.Annotatable.getDescription:1 of
 msgid "gets the description of this Annotatable object."
-msgstr ""
+msgstr "获取此 Annotatable 对象的描述。"
 
 #: fdi.dataset.annotatable.Annotatable.getDescription
 #: fdi.dataset.datawrapper.DataContainer.getData
@@ -113,7 +113,7 @@ msgstr ""
 
 #: fdi.dataset.annotatable.Annotatable.getDescription:3 of
 msgid "The current description."
-msgstr ""
+msgstr "当前描述。"
 
 #: fdi.dataset.annotatable.Annotatable.getDescription
 #: fdi.dataset.datawrapper.DataContainer.getData
@@ -123,22 +123,22 @@ msgstr ""
 
 #: fdi.dataset.annotatable.Annotatable.setDescription:1 of
 msgid "sets the description of this Annotatable object."
-msgstr ""
+msgstr "设置此 Annotatable 对象的描述。"
 
 #: fdi.dataset.annotatable.Annotatable.setDescription:3 of
 msgid "**newDescription** (*string*) -- The new description."
-msgstr ""
+msgstr "**newDescription** (*string*) -- 新的描述。"
 
 #: fdi.dataset.annotatable.Annotatable.xdescription:1
 #: fdi.dataset.baseproduct.BaseProduct.history:1 of
 msgid ""
 "xx must be a property for ``self.xx = yy`` to work in super class after "
 "xx is set as a property also by a subclass."
-msgstr ""
+msgstr "xx 必须是 ``self.xx = yy`` 的属性，才能在 xx 也被子类设置为属性后在超类中工作。"
 
 #: ../sphinx/api/fdi/fdi.dataset.rst:37
 msgid "fdi.dataset.arraydataset module"
-msgstr ""
+msgstr "fdi.dataset.arraydataset 模块"
 
 #: fdi.dataset.arraydataset.ArrayDataset:1 of
 msgid ""
@@ -149,7 +149,7 @@ msgstr ""
 
 #: fdi.dataset.arraydataset.ArrayDataset:1 of
 msgid "Special dataset that contains a single Array Data object."
-msgstr ""
+msgstr "包含单个数组数据对象的特殊数据集。"
 
 #: fdi.dataset.arraydataset.ArrayDataset:3 of
 msgid ""
@@ -158,21 +158,21 @@ msgid ""
 "  contains a sequence which provides methods count(), index(), remove(), "
 "reverse(). A mutable sequence would also need append(), extend(), "
 "insert(), pop() and sort()."
-msgstr ""
+msgstr "mh：如果在实例化过程中省略参数名称，例如 ArrayDataset(a, b, c)，假设顺序是数据，单位，描述。 mh：包含提供方法 count()、index()、remove()、reverse() 的序列。 可变序列还需要 append()、extend()、insert()、pop() 和 sort()。"
 
 #: fdi.dataset.arraydataset.ArrayDataset fdi.dataset.composite.Composite of
 msgid "data"
-msgstr ""
+msgstr "数据"
 
 #: fdi.dataset.arraydataset.ArrayDataset:9 of
 msgid "the payload data of this dataset. Default is None, Returns -------"
-msgstr ""
+msgstr "此数据集的有效载荷数据。 默认为无，返回 -------"
 
 #: fdi.dataset.arraydataset.ArrayDataset:13
 #: fdi.dataset.arraydataset.ArrayDataset.__init__:1
 #: fdi.dataset.arraydataset.Column:9 of
 msgid "Initializes an ArrayDataset."
-msgstr ""
+msgstr "初始化一个 ArrayDataset。"
 
 #: fdi.dataset.arraydataset.ArrayDataset:15
 #: fdi.dataset.arraydataset.ArrayDataset.__init__:3
@@ -181,37 +181,37 @@ msgid ""
 "Default ```None``` will initialize MetaData Parameters to their default "
 "values. If ``data`` is not None and has shape (``len`` applies), "
 "``shape`` MDP is set to the actual ``data`` shape."
-msgstr ""
+msgstr "默认 ```None``` 会将元数据参数初始化为它们的默认值。 如果 ``data`` 不是 None 并且具有形状（``len`` 适用），``shape`` MDP 设置为实际的 ``data`` 形状。"
 
 #: fdi.dataset.arraydataset.ArrayDataset.append:1 of
 msgid "appends to data."
-msgstr ""
+msgstr "附加到数据。"
 
 #: fdi.dataset.arraydataset.ArrayDataset.count:1 of
 msgid "returns size."
-msgstr ""
+msgstr "返回大小。"
 
 #: fdi.dataset.arraydataset.ArrayDataset.extend:1 of
 msgid "extend data."
-msgstr ""
+msgstr "扩展数据。"
 
 #: fdi.dataset.arraydataset.ArrayDataset.index:1 of
 msgid "returns the index of a value."
-msgstr ""
+msgstr "返回值的索引。"
 
 #: fdi.dataset.arraydataset.ArrayDataset.pop:1 of
 msgid "revomes and returns value"
-msgstr ""
+msgstr "删除和返回值"
 
 #: fdi.dataset.arraydataset.ArrayDataset.remove:1 of
 msgid "removes value at first occurrence."
-msgstr ""
+msgstr "在第一次出现时删除值。"
 
 #: fdi.dataset.arraydataset.ArrayDataset.toString:1 of
 msgid ""
 "matprint: an external matrix print function trans: print 2D matrix "
 "transposed. default is True."
-msgstr ""
+msgstr "matprint：外部矩阵打印功能 trans：打印转置的二维矩阵。 默认为真。"
 
 #: fdi.dataset.arraydataset.Column:1 of
 msgid ""
@@ -223,21 +223,21 @@ msgstr ""
 msgid ""
 "A Column is a the vertical cut of a table for which all cells have the "
 "same signature."
-msgstr ""
+msgstr "列是表格的垂直切割，所有单元格都具有相同的签名。"
 
 #: fdi.dataset.arraydataset.Column:3 of
 msgid ""
 "A Column contains raw ArrayData, and optionally a description and unit. "
 "example::"
-msgstr ""
+msgstr "Column 包含原始 ArrayData，以及可选的描述和单位。 例子：："
 
 #: ../sphinx/api/fdi/fdi.dataset.rst:45
 msgid "fdi.dataset.arraydataset\\_datamodel module"
-msgstr ""
+msgstr "fdi.dataset.arraydataset\\_datamodel 模块"
 
 #: ../sphinx/api/fdi/fdi.dataset.rst:53
 msgid "fdi.dataset.attributable module"
-msgstr ""
+msgstr "fdi.dataset.attributable 模块"
 
 #: fdi.dataset.attributable.Attributable:1 of
 msgid "基类：:py:class:`fdi.dataset.metadataholder.MetaDataHolder`"
@@ -245,7 +245,7 @@ msgstr ""
 
 #: fdi.dataset.attributable.Attributable:1 of
 msgid "An Attributable object is an object that has the notion of meta data."
-msgstr ""
+msgstr "Attributable 对象是具有元数据概念的对象。"
 
 #: fdi.dataset.attributable.Attributable:4 of
 msgid ""

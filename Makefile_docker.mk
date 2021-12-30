@@ -1,7 +1,9 @@
 PYEXE	= python3
-
-########
+LATEST	=im:latest
 DKRREPO	= mhastro
+DKRREPO = registry.cn-beijing.aliyuncs.com/svom/dev
+#
+########
 DOCKER_NAME	= fdi
 DOCKER_VERSION   =$(shell if [ -f docker_version ]; then cat docker_version; fi)
 DFILE	=dockerfile
@@ -17,8 +19,8 @@ IP_ADDR     =10.0.10.114
 PROJ_DIR	= /var/www/httppool_server
 SERVER_POOLPATH	= $(PROJ_DIR)/data
 LOGGING_LEVEL	=10
+TEST_PORT	= 9883
 
-LATEST	=im:latest
 B       =/bin/bash
 
 FORCE:
@@ -74,7 +76,7 @@ launch_server:
 
 launch_test_server:
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
-	$(MAKE) launch_server PORT=9883 EXTPORT=9883 LOGGING_LEVEL=10 #LATEST=mhastro/httppool
+	$(MAKE) launch_server PORT=$(TEST_PORT) EXTPORT=$(TEST_PORT) LOGGING_LEVEL=10 #LATEST=mhastro/httppool
 
 rm_docker:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
@@ -107,16 +109,9 @@ PUSH_VERSION	= $(SERVER_VERSION)
 push_d:
 	im=$(DKRREPO)/$(PUSH_NAME) &&\
 	docker tag  $(PUSH_NAME):$(PUSH_VERSION) $$im:$(PUSH_VERSION) &&\
-	$(MAKE) imlatest LATEST_NAME=$(PUSH_NAME) &&\
+	docker tag  $(PUSH_NAME):$(PUSH_VERSION) $$im:latest &&\
 	docker push $$im:$(PUSH_VERSION) &&\
 	docker push $$im:latest
-
-Xpush_server:
-	im=$(DKRREPO)/$(SERVER_NAME)  &&\
-	docker tag  $(SERVER_NAME):$(SERVER_VERSION) $$im:$(SERVER_VERSION) &&\
-	docker tag  $(SERVER_NAME):$(SERVER_VERSION) $$im:latest &&\
-	docker push $$im:$(SERVER_VERSION) &&\
-        docker push $$im:latest
 
 vol:
 	docker volume create httppool

@@ -74,7 +74,7 @@ launch_server:
 
 launch_test_server:
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
-	$(MAKE) launch_server PORT=9885 EXTPORT=9885 LOGGING_LEVEL=10 #LATEST=mhastro/httppool
+	$(MAKE) launch_server PORT=9883 EXTPORT=9883 LOGGING_LEVEL=10 #LATEST=mhastro/httppool
 
 rm_docker:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
@@ -173,6 +173,6 @@ update_docker:
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\
-	echo $(MAKE) test7 && $(MAKE) test8 &&\
+	$(MAKE) test7 && $(MAKE) test8 &&\
 	$(MAKE) rm_docker
 

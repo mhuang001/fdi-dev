@@ -1,0 +1,166 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../sphinx/index.rst:46
+msgid "Contents:"
+msgstr "内容："
+
+#: ../sphinx/index.rst:63
+msgid "API:"
+msgstr "API:"
+
+#: ../sphinx/index.rst:8
+msgid "Flexible Dataset Integrator (FDI)"
+msgstr "灵活的数据集集成器 (FDI)"
+
+#: ../sphinx/index.rst:10
+msgid ""
+"FDI helps data producers and processors to build connections into "
+"isolated heterogeneous datasets. to assemble, organize, and integrate "
+"data into self-describing, modular, hierarchical, persistent, "
+"referenceable ``Products``, whose component datasets keep their own "
+"characteristics and are easily accessible."
+msgstr "FDI 帮助数据生产者和处理者在孤立的异构数据集直接建立连接。 将这些数据组装、组织和集成到自描述的、模块化的、分层的、持久的、可引用的产品中，使各数据集保持自己的特征并且易于访问。"
+
+#: ../sphinx/index.rst:13
+msgid "Features"
+msgstr "功能"
+
+#: ../sphinx/index.rst:15
+msgid ""
+"With FDI one can pack data of different format into **regular and "
+"modular** data ``Products``, together with annotation (description, "
+"types, units, defaults, and validity specifications) and meta data (data "
+"about data). One can make arrays or tables of Products using basic data "
+"structures such as sequences (e.g. Python ``list``), mappings (e.g. "
+"Python ``dict``), or custom-made classes. FDI accomodates nested and "
+"highly complex structures."
+msgstr "使用 FDI 可以将不同格式的数据打包成常规和模块化数据 ``产品``，包括注释（描述、类型、单位、默认值和有效性规范）和元数据（关于数据的数据）。 可以使用基本数据结构（例如序列（例如 Python ``list``）、映射（例如 Python ``dict``）或自定义类）来制作产品的数组或表格。 FDI 适用嵌套和高度复杂的结构。
+"
+
+#: ../sphinx/index.rst:17
+msgid ""
+"**Access APIs** of the components of FDI data objects are convenient and "
+"similar to those of standad Python libraries, making it easier for "
+"**scripting and data mining** directly 'on FDIs'."
+msgstr "FDI 数据对象能便捷地访问 API，使用方式类似于标准 Python 库的 API，便于直接在 FDI 上进行脚本编写和数据挖掘。"
+
+#: ../sphinx/index.rst:19
+msgid ""
+"All levels of FDI Products and their components (datasets or metadata) "
+"are portable (**serializable**) in human-friendly standard format (JSON "
+"implemented), allowing machine data processors on different platforms to "
+"parse, access internal components, or re-construct a product. Even a "
+"human with only a web browser can understand the data."
+msgstr "所有级别的 FDI 产品及其组成部分（数据集或元数据）可使用人性化的标准格式（JSON）进行移植（**可序列化**），允许不同平台上的机器数据处理器解析、访问内部组件或重新构建产品。即使是只有网络浏览器的人类也能理解数据。"
+
+#: ../sphinx/index.rst:21
+msgid ""
+"The ``toString()`` method of major containers classes outputs nicely "
+"formated (often tabulated) text description of complex data to help "
+"inspection."
+msgstr "主要容器类的 ``toString()`` 方法输出复杂数据的格式友好的文本描述（通常是表格），便于查看数据。"
+
+#: ../sphinx/index.rst:23
+msgid ""
+"Most FDI Products and components implement **event sender and listener "
+"interfaces**, helping **scalable data-driven** processing pipelines and "
+"visualizers of live data to be constructed."
+msgstr "大多数 FDI 产品和组件都实现了事件发送器和侦听器接口，有助于构建可扩展的数据驱动处理管道和实现实时数据可视化。"
+
+#: ../sphinx/index.rst:25
+msgid ""
+"FDI stoerage 'pools' (file, network, or memory based) are provided as "
+"references for 1) **queryable** data **storage** and, 2) for all "
+"persistent data to be referenced to with **URNs** (Universal Resource "
+"Names)."
+msgstr "提供 FDI 存储“池”（基于文件、网络或内存）作为参考，用于 1）可查询数据存储，2）所有持久数据都可以通过 URN（通用资源名称）进行引用。"
+
+#: ../sphinx/index.rst:27
+msgid ""
+"FDI provides *Context* type of product so that references of other "
+"products can become components, enabling **encapsulation of rich, deep, "
+"sophisticated, and accessible contextual data**, yet remain light weight."
+msgstr "FDI 提供 *Context* 类型的产品，以便其他产品的引用可以成为组件，从而能够封装丰富、深入、复杂和可访问的上下文数据，同时保持轻量级。"
+
+#: ../sphinx/index.rst:29
+msgid ""
+"For data processors, an HTML **server** with **RESTful APIs** is "
+"implemented (named Processing Node Server, PNS) to interface data "
+"processing modules. PNS is especially suitable for **Docker containers** "
+"in pipelines mixing **legacy software** or software of incompatible "
+"environments to form an integral data processing pipeline."
+msgstr "对于数据处理器，实现了带有 RESTful API 的 HTML 服务器（称为处理节点服务器，PNS）以连接数据处理模块。 PNS 特别适用于管道中的 Docker 容器混合遗留软件或不兼容环境的软件，以形成完整的数据处理管道。"
+
+#: ../sphinx/index.rst:31
+msgid ""
+"This package attempts to meet scientific observation and data processing "
+"requirements, and is inspired by data models of, and designs APIs as "
+"compatible as possible with, European Space Agency's Interactive Analysis"
+" package of Herschel Common Science System (written in Java, and in "
+"Jython for scripting)."
+msgstr "这个包试图满足科学观察和数据处理的要求，并受到欧洲航天局赫歇尔公共科学系统交互式分析包（用 Java 编写，用 Jython 编写脚本）的数据模型的启发，并设计了尽可能兼容的 API。"
+
+#: ../sphinx/index.rst:36
+msgid "FDI Python packages"
+msgstr "FDI Python 包"
+
+#: ../sphinx/index.rst:38
+msgid "The base data model is defined in package :doc:`dataset <usage/dataset>`."
+msgstr "基本数据模型在包 :doc:`dataset <usage/dataset>` 中定义。"
+
+#: ../sphinx/index.rst:40
+msgid ""
+"Persistent data access, referencing, querying, and Universal Resource "
+"Names are defined in package :doc:`pal <usage/pal>`."
+msgstr "持久数据访问、引用、查询和通用资源名称在包 :doc:`pal <usage/pal>` 中定义。"
+
+#: ../sphinx/index.rst:42
+msgid ""
+"A reference REST API server designed to communicate with a data "
+"processing docker using the data model is in package  :doc:`pns "
+"<usage/pns>`."
+msgstr "参考 REST API 服务器，旨在使用数据模型与数据处理 docker 通信，位于包 :doc:`pns <usage/pns>` 中。"
+
+#: ../sphinx/index.rst:44
+msgid ""
+"A reference REST API server to provide a web interface between a pool on "
+"the server and a data user in package  :doc:`http pool <usage/httppool>`."
+msgstr "参考 REST API 服务器，用于在服务器上的池和数据用户之间提供 Web 界面，位于包 :doc:`http pool <usage/httppool>` 中。"
+
+#: ../sphinx/index.rst:61
+msgid "API Document"
+msgstr "API 文档"
+
+#: ../sphinx/index.rst:75
+msgid "Indices and tables"
+msgstr "索引和表格"
+
+#: ../sphinx/index.rst:77
+msgid ":ref:`genindex`"
+msgstr ""
+
+#: ../sphinx/index.rst:78
+msgid ":ref:`modindex`"
+msgstr ""
+
+#: ../sphinx/index.rst:79
+msgid ":ref:`search`"
+msgstr ""
+

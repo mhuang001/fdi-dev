@@ -1,0 +1,1743 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../sphinx/api/fdi/fdi.pal.rst:2
+msgid "fdi.pal package"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:10
+msgid "Subpackages"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:18
+msgid "Submodules"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:21
+msgid "fdi.pal.comparable module"
+msgstr ""
+
+#: ../../fdi/pal/comparable.py:docstring of fdi.pal.comparable.Comparable:1
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext:1
+#: ../../fdi/pal/definable.py:docstring of fdi.pal.definable.Definable:1
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager:1
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage:1
+#: ../../fdi/pal/taggable.py:docstring of fdi.pal.taggable.Taggable:1
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.UrnUtils:1
+#: ../../fdi/pal/versionable.py:docstring of fdi.pal.versionable.Versionable:1
+msgid "基类：:py:class:`object`"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:29
+msgid "fdi.pal.context module"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext:1
+msgid "A  special kind of Product that can hold references to other Products."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext:3
+msgid "This abstract product introduces the lazy loading and saving of references to Products or ProductRefs that it is holding. It remembers its state. http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/herschel/ia/pal/Context.html"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext:7
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.__init__:1
+msgid "Sets ``rule`` to ``None`` if ``zInfo`` does not have ``refs``, else to ``zInfo['refs']``."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.addRule:1
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext.addRule:1
+msgid "Add to  the rule that controls the products to be added into the context. The new rule will be old rule AND added rule."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.applyRule:1
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.Context.applyRule:1
+msgid "returns True if the input ProductRef passes rule."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.applyRule:3
+msgid "If ``refs`` is not specified in ``zInfo`` return True. If ``zInfo['refs'] is empty, return True."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.applyRule:6
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.Context.applyRule:5
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext.applyRule:5
+msgid "Subclasses can override this method according to what is written in zInfo."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.getAllRefs:1
+msgid "Provides a set of the unique references stored in this context."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.getRefs:1
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.getOwner:1
+msgid "Returns the reference container mapping"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.getRule:1
+msgid "Get the rule that controls the products to be added into the context."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.hasDirtyReferences:1
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.Context.hasDirtyReferences:1
+msgid "Returns a logical to specify whether this context has dirty references or not."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.isContext:1
+msgid "Yields true if specified class belongs to the family of contexts."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.isValid:1
+msgid "Provides a mechanism to ensure whether it is valid to store this context in its current state."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.readDataset:1
+msgid "Reads a dataset with information within this context that is normally not accessible from the normal Product interface."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.refs:1
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.owner:1
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.meta:1
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.urn:1
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.urnobj:1
+msgid "Property"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.refsChanged:1
+msgid "Indicates that the references have been changed in memory, which marks this context as dirty."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.set:1
+msgid "add owner to RefContainer or add named references."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.set:0
+msgid "name"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.set:3
+msgid "name of the new `RefContainer`. if is ``refs``, set owner of ``refs`` to `self`."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.setRefs:1
+msgid "Changes/Adds the mapping container that holds references."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.setRule:1
+msgid "Set the rule that controls the products to be added into the context."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.AbstractContext.writeDataset:1
+msgid "Creates a dataset with information within this context that is normally not accessible from the normal Product interface."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.Context:1
+msgid "基类：:py:class:`fdi.pal.context.AbstractContext`, :py:class:`fdi.dataset.baseproduct.BaseProduct`"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.Context:1
+msgid "See docstring of AbstractContext."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.Context.applyRule:3
+msgid "Default behavior is return the  superclass.applyRule() result."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.Context.getAllRefs:1
+msgid "Provides a set of the unique references stored in this `Context`."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.Context.getAllRefs:3
+msgid "This includes references that are contexts, but not the contents of these subcontexts. This is equivalent to getAllRefs(recursive=false, includeContexts= true). recursive - if true, include references in subcontexts includeContexts - if true, include references to contexts, not including this one"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.ContextRuleException:1
+msgid "基类：:py:class:`ValueError`"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext:1
+msgid "基类：:py:class:`fdi.pal.context.Context`"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext:1
+msgid "Allows grouping Products into a map of (String, ProductRef) pairs. New entries can be added if they comply to the adding rules of this context. The default behaviour is to allow adding any (String,ProductRef) given that ``rule`` is not set."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext:4
+msgid "An example::"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext:19
+msgid "It is possible to insert a ProductRef at a specific key in the MapContext. The same insertion behaviour is followed as for a Python dict, in that if there is already an existing ProductRef for the given key, that ProductRef is replaced with the new one::"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext:31
+msgid "Note that the rules are only applied when putting an entry to the map!"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext:33
+msgid "Be aware that"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext:35
+msgid "the put() method of the map view may throw a ContextRuleException if the data added to the context violates the rules applied to the context."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext:36
+msgid "the put() method of the map view may throw a ValueError if either of the arguments to the put() method are null."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext:39
+msgid "BaseProduct--Product"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext:40
+msgid "\\"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext:41
+msgid "AbstractContext------Contex---------MapContext"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext.applyRule:1
+msgid "returns True if the input key name and ProductRef pass rule."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.MapContext.applyRule:3
+msgid "Default behavior is return True if the fully qualified class name of the product which ref refers to equals ``zInfo['refs'][key]``, OR the superclass.applyRule() result."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer:1
+msgid "基类：:py:class:`fdi.dataset.odict.ODict`"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer:1
+msgid "A map where Rules of its owner Context are applied when put(k,v) is called, and the owner MapContext's ID can be put to v's parents list."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer:3
+msgid "Implemented as an ODict that RefContainer has a _STID when json.loads'ed. A MapContext has a _data, which has a refs:RefContainer, which has a datap, which has a name:ProductRef. when used as context.refs.get('x').product.description, the RefContainer is called with get() or __getitem__(), which calls superclass composite's __getitem__()"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.clear:1
+msgid "remove all productRefs"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.set:1
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.set:1
+msgid "set label-ref pair after validating then add parent to the ref"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.setOwner:1
+msgid "records who owns this container."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.setOwner:3
+msgid "Due to reason described in __setitem__ doc, existing refs will be set again upon owner set"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:0
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:0
+msgid "level"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:3
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:3
+msgid "default=0,"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:0
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:0
+msgid "keyval"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:4
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:4
+msgid "default=`None`. If set to a string, `ODict` class name is not shown and a label of given string is shown with each key as 'label key:"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:8
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:8
+msgid "'."
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:0
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:0
+msgid "tablefmt"
+msgstr ""
+
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:6
+#: ../../fdi/pal/context.py:docstring of fdi.pal.context.RefContainer.toString:6
+msgid "='rst', tablefmt1='simple', tablefmt2='simple', matprint=None, trans=True, heavy=True"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:37
+msgid "fdi.pal.definable module"
+msgstr ""
+
+#: ../../fdi/pal/definable.py:docstring of fdi.pal.definable.Definable:1
+#: ../../fdi/pal/versionable.py:docstring of fdi.pal.versionable.Versionable:1
+msgid "for items being able to be defined with a Definition."
+msgstr ""
+
+#: ../../fdi/pal/definable.py:docstring of fdi.pal.definable.Definable.getDefinition:1
+msgid "Returns the definition associated to this definable item. mh: adopting http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/api/index.html?herschel/ia/pal/ProductRef.html but parameterize definition does not seem worth it given the few numbers of implemented definitions"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:45
+msgid "fdi.pal.dicthk module"
+msgstr ""
+
+#: ../../fdi/pal/dicthk.py:docstring of fdi.pal.dicthk.DictHk:1
+msgid "基类：:py:class:`fdi.pal.taggable.Taggable`"
+msgstr ""
+
+#: ../../fdi/pal/dicthk.py:docstring of fdi.pal.dicthk.DictHk:1
+msgid "Definition of services provided by a product storage supporting versioning."
+msgstr ""
+
+#: ../../fdi/pal/dicthk.py:docstring of fdi.pal.dicthk.DictHk.getTagUrnMap:1
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/taggable.py:docstring of fdi.pal.taggable.Taggable.getTagUrnMap:1
+msgid "Get the full tag->urn mappings. mh: returns an iterator"
+msgstr ""
+
+#: ../../fdi/pal/dicthk.py:docstring of fdi.pal.dicthk.DictHk.getTags:1
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/taggable.py:docstring of fdi.pal.taggable.Taggable.getTags:1
+msgid "Get all of the tags that map to a given URN. Get all known tags if urn is not specified. mh: returns an iterator."
+msgstr ""
+
+#: ../../fdi/pal/dicthk.py:docstring of fdi.pal.dicthk.DictHk.getUrn:1
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/taggable.py:docstring of fdi.pal.taggable.Taggable.getUrn:1
+msgid "Gets the URNs corresponding to the given tag. Returns an empty list if tag does not exist."
+msgstr ""
+
+#: ../../fdi/pal/dicthk.py:docstring of fdi.pal.dicthk.DictHk.getUrnObject:1
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/taggable.py:docstring of fdi.pal.taggable.Taggable.getUrnObject:1
+msgid "Gets the URNobjects corresponding to the given tag."
+msgstr ""
+
+#: ../../fdi/pal/dicthk.py:docstring of fdi.pal.dicthk.DictHk.removeTag:1
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/taggable.py:docstring of fdi.pal.taggable.Taggable.removeTag:1
+msgid "Remove the given tag from the tag and urn maps."
+msgstr ""
+
+#: ../../fdi/pal/dicthk.py:docstring of fdi.pal.dicthk.DictHk.removeUrn:1
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/taggable.py:docstring of fdi.pal.taggable.Taggable.removeUrn:1
+msgid "Remove the given urn from the tag and urn maps."
+msgstr ""
+
+#: ../../fdi/pal/dicthk.py:docstring of fdi.pal.dicthk.DictHk.removeUrn:3
+msgid "Only changes maps in memory, not on disk."
+msgstr ""
+
+#: ../../fdi/pal/dicthk.py:docstring of fdi.pal.dicthk.DictHk.removekey:1
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/taggable.py:docstring of fdi.pal.taggable.Taggable.removekey:1
+msgid "Remove the given key."
+msgstr ""
+
+#: ../../fdi/pal/dicthk.py:docstring of fdi.pal.dicthk.DictHk.setTag:1
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/taggable.py:docstring of fdi.pal.taggable.Taggable.setTag:1
+msgid "Sets the specified tag to the given URN."
+msgstr ""
+
+#: ../../fdi/pal/dicthk.py:docstring of fdi.pal.dicthk.DictHk.tagExists:1
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/taggable.py:docstring of fdi.pal.taggable.Taggable.tagExists:1
+msgid "Tests if a tag exists."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:53
+msgid "fdi.pal.httpclientpool module"
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool:1
+msgid "基类：:py:class:`fdi.pal.productpool.ProductPool`"
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool:1
+msgid "the pool will save all products on a remote server."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool:4
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool.__init__:1
+msgid "Initialize connection to the remote server. creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files on server if not exist."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.dereference:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.dereference:1
+msgid "Decrement the reference count of a ProductRef."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.exists:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.exists:1
+msgid "Determines the existence of a product with specified URN."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.getCount:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.getCount:1
+msgid "Return the number of URNs for the product type."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.getProductClasses:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.getProductClasses:1
+msgid "Returns all Product classes found in this pool. mh: returns an iterator."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.getReferenceCount:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.getReferenceCount:1
+msgid "Returns the reference count of a ProductRef."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.isAlive:1
+msgid "Test if the pool is capable of responding to commands."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.isEmpty:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.isEmpty:1
+msgid "Determines if the pool is empty."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool.meta:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.meta:1
+msgid "Loads the meta-data belonging to the product of specified URN."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool.readHK:1
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.readHK:1
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.readHK:1
+msgid "loads and returns the housekeeping data"
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.reference:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.reference:1
+msgid "Increment the reference count of a ProductRef."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.removeAll:1
+msgid "Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.)."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool.schematicLoad:1
+msgid "does the scheme-specific part of loadProduct."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool.schematicRemove:1
+msgid "does the scheme-specific part of removal."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool.schematicRemove:3
+msgid "urn or (resourcetype, index)"
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool.schematicSave:1
+msgid "does the media-specific saving to remote server."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer.<locals>.inner.<locals>.wrapper:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.schematicSelect:1
+msgid "to be implemented by subclasses to do the scheme-specific querying."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool.schematicWipe:1
+msgid "does the scheme-specific remove-all"
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool.setup:1
+msgid "Sets up HttpPool interals."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.HttpClientPool.setup:3
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.setup:3
+msgid "Make sure that self._poolname and self._poolurl are present."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.parseApiArgs1:1
+msgid "parse the command path to get positional and keywords arguments."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.parseApiArgs1:3
+msgid "all_args: a list of path segments for the args list."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.toServer:1
+msgid "decorator to divert local calls to server and return what comes back."
+msgstr ""
+
+#: ../../fdi/pal/httpclientpool.py:docstring of fdi.pal.httpclientpool.writeJsonwithbackup:1
+msgid "write data in JSON after backing up the existing one."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:61
+msgid "fdi.pal.httppool module"
+msgstr ""
+
+#: ../../fdi/pal/httppool.py:docstring of fdi.pal.httppool.HttpPool:1
+msgid "基类：:py:class:`fdi.pal.localpool.LocalPool`"
+msgstr ""
+
+#: ../../fdi/pal/httppool.py:docstring of fdi.pal.httppool.HttpPool:1
+msgid "the pool will save all products locally on the host Http server."
+msgstr ""
+
+#: ../../fdi/pal/httppool.py:docstring of fdi.pal.httppool.HttpPool:4
+#: ../../fdi/pal/httppool.py:docstring of fdi.pal.httppool.HttpPool.__init__:1
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool:6
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.__init__:1
+msgid "creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:69
+msgid "fdi.pal.localpool module"
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool:1
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool:1
+msgid "基类：:py:class:`fdi.pal.productpool.ManagedPool`"
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool:1
+msgid "the pool will save all products in local computer."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool:0
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:0
+msgid "makenew"
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool:3
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:10
+msgid "when the pool does not exist, make a new one (````True```; default) or throws `PoolNotFoundError` (```False```)."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.doLoad:1
+msgid "does the action of loading."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.doLoad:3
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.loadProduct:3
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.saveProduct:9
+msgid "serialize_out: if True returns contents in serialized form."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.doRemove:1
+msgid "does the action of removal of product from pool."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.doSave:1
+msgid "does the media-specific saving."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.doSave:3
+msgid "index: int"
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.doWipe:1
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.doWipe:1
+msgid "does the action of remove-all"
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.getHead:1
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.getHead:1
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.getHead:1
+msgid "Returns the latest version of a given product, belonging to the first pool where the same track id is found."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.getMetaByUrn:1
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.getMetaByUrn:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.getMetaByUrn:1
+msgid "Get all of the meta data belonging to a product of a given URN."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.getMetaByUrn:3
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.getMetaByUrn:3
+msgid "mh: returns an iterator."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.readHK:3
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.readHK:3
+msgid "hktype: one of 'classes', 'tags', 'urns' to return. default is None to return alldirs serialize_out: if True return serialized form. Default is false."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.setMetaByUrn:1
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.setMetaByUrn:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.setMetaByUrn:1
+msgid "Sets the location of the meta data of the specified data to the given URN."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.setMetaByUrn:0
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.setMetaByUrn:0
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.setMetaByUrn:0
+msgid "data"
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.setMetaByUrn:3
+msgid "usually serialized Product."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.setup:1
+msgid "Sets up LocalPool interals."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.writeHK:1
+msgid "save the housekeeping data to disk"
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.writeJsonmmap:1
+msgid "write data in JSON from mmap file at fp."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.LocalPool.writeJsonmmap:3
+msgid "register the file. Leave file open by default `close`. data: to be serialized and saved. serialize_out: if True returns contents in serialized form. :check_time: to check if file has not been written since we did last time. Default `False`. :meta_location: return the start and end offsets of metadata in data JSON.  Default `False`. :return: int bytes written. If `meta_location` is ```True```, adding int int start and end point offsets of metadata in seriaized data."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.wipeLocal:1
+msgid "does the scheme-specific remove-all."
+msgstr ""
+
+#: ../../fdi/pal/localpool.py:docstring of fdi.pal.localpool.wipeLocal:3
+msgid "A new directory at `path` will be created."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:77
+msgid "fdi.pal.mempool module"
+msgstr ""
+
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool:1
+msgid "the pool will save all products in memory."
+msgstr ""
+
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool:4
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.__init__:1
+msgid "creates data structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist."
+msgstr ""
+
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.doLoad:1
+msgid "does the action of loadProduct. note that the index is given as a string."
+msgstr ""
+
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.doRemove:1
+msgid "does the action of removal."
+msgstr ""
+
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.doSave:1
+msgid "does the media-specific saving"
+msgstr ""
+
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.getPoolSpace:1
+msgid "returns the map of this memory pool."
+msgstr ""
+
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.setMetaByUrn:3
+msgid "usually unserialized Product."
+msgstr ""
+
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.setup:1
+msgid "Sets up MemPool interals."
+msgstr ""
+
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.setup:3
+msgid "make sure that self._poolname and self._poolurl are present."
+msgstr ""
+
+#: ../../fdi/pal/mempool.py:docstring of fdi.pal.mempool.MemPool.writeHK:1
+msgid "save the housekeeping data to mempool"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:85
+msgid "fdi.pal.poolmanager module"
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager:1
+msgid "This class provides the means to reference ProductPool objects without having to hard-code the type of pool. For example, it could be desired to easily switch from one pool type to another."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager:3
+msgid "This is done by calling the getPool() method, which will return an existing pool or create a new one if necessary."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getMap:1
+msgid "Returns a poolname - poolobject map."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:1
+msgid "returns an instance of pool according to name or path of the pool."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:3
+msgid "Returns the pool object if the pool is registered. Creates the pool if it does not already exist. the same poolname-path always get the same pool. Http pools will be registered on the sserver side."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:5
+msgid "Pools registered are kept as long as the last reference remains. When the last is gone the pool gets :meth;`removed` d."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:0
+msgid "poolname"
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:7
+msgid "name of the pool."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:0
+msgid "poolurl"
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:8
+msgid "if given the poolpath, scheme, place will be derived from it. if not given for making a new pool (i.e. when poolname is not a registered pool name.."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:11
+msgid "If poolname is missing it is derived from poolurl; if poolurl is also absent, ValueError will be raised."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:0
+msgid "kwds"
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:11
+msgid "passed to pool instanciation arg-list."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:0
+msgid "Returns"
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPool:12
+msgid "the pool object."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.getPoolurlMap:1
+msgid "Gives the default poolurls of PoolManager."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.isLoaded:1
+msgid "Whether an item with the given id has been loaded (cached)."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.isLoaded:0
+msgid "返回"
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.isLoaded:3
+msgid "the number of remaining week references if the pool is loaded. Returns 0 if poolname is not found in _GlobalPoolList or weakref count is 0."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.items:1
+msgid "Returns map's items"
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.remove:1
+msgid "Remove from list and unregister remote pools."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.remove:3
+msgid "returns 0 for successful removal, ``1`` for poolname not registered or referenced, still attempted to remove. ``> 1`` for the number of weakrefs the pool still have, and removing failed."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.removeAll:1
+msgid "deletes all pools from the pool list, pools not wiped"
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.setPoolurlMap:1
+msgid "Sets the default poolurls of PoolManager."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.PoolManager.size:1
+msgid "Gives the number of entries in this manager."
+msgstr ""
+
+#: ../../fdi/pal/poolmanager.py:docstring of fdi.pal.poolmanager.remoteUnregister:1
+msgid "this method does not reference pool object."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:93
+msgid "fdi.pal.productpool module"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool:1
+msgid "基类：:py:class:`fdi.pal.productpool.ProductPool`, :py:class:`fdi.pal.dicthk.DictHk`"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool:1
+msgid "A ProductPool that manages its internal house keeping."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool:3
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool:13
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.__init__:1
+msgid "Creates and initializes a productpool."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool:5
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool:15
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.__init__:3
+msgid "poolname: if provided will override that in poolurl."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool:6
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool:16
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.__init__:4
+msgid "poolurl: needed to initialize."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.doLoad:1
+msgid "to be implemented by subclasses to do the action of loading"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.doRemove:1
+msgid "to be implemented by subclasses to do the action of reemoving"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.doSave:1
+msgid "to be implemented by subclasses to do the action of saving"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.doSelect:1
+msgid "to be implemented by subclasses to do the action of querying."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.doWipe:1
+msgid "to be implemented by subclasses to do the action of wiping."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.getPoolpath:1
+msgid "Gets the poolpath of this pool."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.getPoolpath:3
+msgid "poolpath is usually derived from poolurl received from ``PoolManager`` during initialization."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.loadDescriptors:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.loadDescriptors:1
+msgid "Loads the descriptors belonging to specified URN."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.lockpath:1
+msgid "Make lock path using transformed poolname as name."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.meta:1
+msgid "Loads the meta-data info belonging to the product of specified URN."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.meta_filter:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.prod_filter:1
+msgid "returns filtered collection using the query."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.meta_filter:3
+msgid "q is a MetaQuery valid inputs: typename and ns list; productref list; urn list"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.prod_filter:3
+msgid "q: an AbstractQuery. valid inputs: cls and ns list; productref list; urn list"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.saveOne:1
+msgid "Save one product."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.saveOne:0
+msgid "res"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.saveOne:3
+msgid "list of result."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.saveOne:0
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.schematicSave:0
+msgid "serialize_out"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.saveOne:4
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.schematicSave:3
+msgid "if True returns contents in serialized form."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.schematicLoad:1
+msgid "do the scheme-specific loading"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.schematicRemove:1
+msgid "do the scheme-specific removing"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.schematicSave:1
+msgid "do the scheme-specific saving."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.schematicSelect:1
+msgid "do the scheme-specific querying."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.schematicWipe:1
+msgid "do the scheme-specific wiping"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.setMetaByUrn:3
+msgid "usually un/serialized Product."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.setup:12
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.setup:12
+msgid "Sets up interal machiney of this Pool,"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.setup:2
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.setup:2
+msgid "but only if self._poolname and self._poolurl are present, and other pre-requisits are met."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.setup:5
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.setup:5
+msgid "Subclasses should implement own setup(), and make sure that self._poolname and self._poolurl are present with ``"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.setup:8
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.setup:8
+msgid "if <pre-requisit not met>: return True if super().setup(): return True"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.setup:11
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.setup:11
+msgid "# super().setup() has done its things by now. <do setup> return False"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.setup:14
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.setup:14
+msgid "``"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.setup:15
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.setup:15
+msgid "returns: True if not both  self._poolname and self._poolurl are present."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ManagedPool.transformpath:1
+msgid "override this to changes the output from the input one (default) to something else."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.PoolNotFoundError:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.ParametersIncommpleteError:1
+msgid "基类：:py:class:`Exception`"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool:1
+msgid "基类：:py:class:`fdi.pal.definable.Definable`, :py:class:`fdi.pal.taggable.Taggable`, :py:class:`fdi.pal.versionable.Versionable`"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool:1
+msgid "A mechanism that can store and retrieve Products."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool:3
+msgid "A product pool should not be used directly by users. The general user should access data in a ProductPool through a ProductStorage instance."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool:5
+msgid "When implementing a ProductPool, the following rules need to be applied:"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool:7
+msgid "Pools must guarantee that a Product saved via the pool saveProduct(Product) method is stored persistently, and that method returns a unique identifier (URN). If it is not possible to save a Product, an IOException shall be raised."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool:8
+msgid "A saved Product can be retrieved using the loadProduct(Urn) method, using as the argument the same URN that assigned to that Product in the earlier saveProduct(Product) call. No other Product shall be retrievable by that same URN. If this is not possible, an IOException or GeneralSecurityException is raised."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool:9
+msgid "Pools should not implement functionality currently implemented in the core package. Specifically, it should not address functionality provided in the Context abstract class, and it should not implement versioning/cloning support."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.accept:1
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.accept:1
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.StorageQuery.accept:1
+msgid "Hook for adding functionality to object through visitor pattern."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.getDefinition:1
+msgid "Returns pool definition info which contains pool type and other pool specific configuration parameters"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.getId:1
+msgid "Gets the identifier of this pool."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.getPlace:1
+msgid "Gets the place of this pool."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.getPoolname:1
+msgid "Gets the poolname of this pool as an Object."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.getPoolurl:1
+msgid "Gets the pool URL of this pool."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.getScheme:1
+msgid "Gets the scheme of this pool."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.getUrnId:1
+msgid "Get the identifier of this pool used to build URN, usually it's same as id returned by getId()."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.loadProduct:1
+msgid "Loads a Product belonging to specified URN."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.poolname:1
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.poolurl:1
+msgid "for property getter"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.remove:1
+msgid "Removes a Product belonging to specified URN."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.saveDescriptors:1
+msgid "Save/Update descriptors in pool."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.saveProduct:1
+msgid "Saves specified product and returns the designated ProductRefs or URNs."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.saveProduct:3
+msgid "Saves a product or a list of products to the pool, possibly under the supplied tag, and returns the reference (or a list of references if the input is a list of products), or Urns if geturnobjs is True."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.saveProduct:7
+msgid "See pal document for pool structure."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.schematicLoad:1
+msgid "to be implemented by subclasses to do the scheme-specific loading"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.schematicRemove:1
+msgid "to be implemented by subclasses to do the scheme-specific removing"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.schematicSave:1
+msgid "to be implemented by subclasses to do the scheme-specific saving"
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.schematicWipe:1
+msgid "to be implemented by subclasses to do the scheme-specific wiping."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.select:1
+msgid "Returns a list of references to products that match the specified query."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.setPoolname:1
+msgid "Replaces the current poolname of this pool."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.ProductPool.setPoolurl:1
+msgid "Replaces the current poolurl of this pool."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.makeLockpath:1
+msgid "returns the appropriate path to put lock file."
+msgstr ""
+
+#: ../../fdi/pal/productpool.py:docstring of fdi.pal.productpool.makeLockpath:3
+msgid "creats the path if non-existing. Set lockpath-base permission to all-modify so other fdi users can use. op: 'r' for readlock no-reading) 'w' for writelock (no-writing)"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:101
+msgid "fdi.pal.productref module"
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef:1
+msgid "基类：:py:class:`fdi.dataset.metadataholder.MetaDataHolder`, :py:class:`fdi.dataset.eq.StateEqual`, :py:class:`fdi.dataset.serializable.Serializable`, :py:class:`fdi.pal.comparable.Comparable`"
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef:1
+msgid "A lightweight reference to a product that is stored in a ProductPool or in memory."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef:4
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.__init__:1
+msgid "Urn can be the string or URNobject."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef:6
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.__init__:3
+msgid "Poolname if given overrides the pool name in urn, and causes metadata to be loaded from pool, unless this prodref points to a mempool. If meta is given, it will be used instead of that from poolname. A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.addParent:1
+msgid "add a parent"
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.equals:1
+msgid "true if o is a non-null ProductRef, with the same Product type than this one, and:"
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.equals:3
+msgid "urns and products are null in both refs, or nurs are equal and products are null, or # <-- mh urns are null in both refs, and their products are equal, or urns and products are equal in both refs"
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getHash:1
+msgid "Returns a code number for the product; actually its MD5 signature. This allows checking whether a product already exists in a pool or not."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getMeta:1
+msgid "Returns the metadata of the product."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getParents:1
+msgid "Return the in-memory parent context products of this reference."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getParents:3
+msgid "That is, the contexts in program memory that contain this product reference object. A context that contains a different product reference object pointing to the same URN is not a parent of this product reference."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getParents:6
+msgid "Furthermore, it should be understood that this method does not return the parent contexts of the product pointed to by this reference as stored in any underlying pool or storage."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getParents:8
+msgid "Returns: the parents"
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getPoolname:1
+msgid "Returns the name of the product pool associated."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getProduct:1
+msgid "Get the product that this reference points to."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getProduct:3
+msgid "If the product is a Context, it is kept internally, so further accesses don't need to ask the storage for loading it again. Otherwise, the product is returned but the internal reference remains null, so every call to this method involves a request to the storage."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getProduct:6
+msgid "This way, heavy products are not kept in memory after calling this method, thus maintaining the ProductRef a lighweight reference to the target product."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getProduct:8
+msgid "In case of a Context, if it is wanted to free the reference, call unload()."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getProduct:10
+msgid "Returns: the product"
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getSize:1
+msgid "Returns the estimated size(in bytes) of the product in memory."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getSize:3
+msgid "Useful for providing this information for a user that wants to download the product from a remote site. Returns: the size in bytes"
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getStorage:1
+msgid "Returns the product storage associated."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getType:1
+msgid "Specifies the Product class to which this Product reference is pointing to."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getUrn:1
+msgid "Returns the Uniform Resource Name (URN) of the product."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.getUrnObj:1
+msgid "Returns the URN as an object."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.isLoaded:1
+msgid "Informs whether the pointed product is already loaded."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.parents:1
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.urn:1
+msgid "property"
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.removeParent:1
+msgid "remove a parent"
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.removeParent:0
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.setParents:0
+msgid "参数"
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.setParents:1
+msgid "Sets the in-memory parent context products of this reference."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.setStorage:1
+msgid "Sets the product storage associated."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.setUrnObj:1
+msgid "sets urn"
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.setUrnObj:3
+msgid "A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.setUrnObj:7
+msgid "urnobj: Urn a URN object. poolname: str if given overrides the pool name in urn, and causes metadata to be loaded from pool. meta: MetaData If  is given, it will be used instead of that from poolname."
+msgstr ""
+
+#: ../../fdi/pal/productref.py:docstring of fdi.pal.productref.ProductRef.unload:1
+msgid "Clear the cached meta and frees internal reference to the product, so it can be garbage collected."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:109
+msgid "fdi.pal.productstorage module"
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage:1
+msgid "Logical store created from a pool or a poolURL."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage:3
+msgid "Every instanciation with the same pool will  result in a new instance of ProdStorage."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage:6
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.__init__:1
+msgid "Gets the storage \"control pannel\" for pool with specifed name."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage:8
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.__init__:3
+msgid "pool: if is a string will be taken as a poolname. if is a pool object will be registered with its name, poolurl: is sent to the PoolManager with poolname to get the pool object."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.getAllTags:1
+msgid "Get all tags defined in the writable pool."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.getMeta:1
+msgid "Get the metadata belonging to the writable pool that associated to a given URN. returns an ODict."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.getPool:1
+msgid "mh: returns the pool object from poolname"
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.getPools:1
+msgid "Returns the set of ProductPools registered. mh: in a list of poolnames"
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.getProductClasses:1
+msgid "Yields all Product classes found in this pool."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.getTags:1
+msgid "Get the tags belonging to the writable pool that associated to a given URN. returns an iterator."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.getUrnFromTag:1
+msgid "Get the URN belonging to the writable pool that is associated to a given tag."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.getWritablePool:1
+msgid "returns the poolname of the first pool, which is the only writeable pool."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.load:1
+msgid "Loads a product with a URN or a list of products with a tag, from the (writeable) pool."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.load:3
+msgid "It always creates new ProductRefs. :return: productref if there is only one. A ```list``` of ```ProductRefs```. urnortag: urn or tag"
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.register:1
+msgid "Registers the given pools to the storage."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.remove:1
+msgid "removes product of urn from the writeable pool"
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.save:1
+msgid "saves to the writable pool if it has been registered."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.save:3
+msgid "product: can be one or a list of prpoducts. poolName: if the named pool is not registered, registers and saves. geturnobjs: mh: returns UrnObjs if geturnobjs is True. kwds: options passed to json.dump() for localpools. Returns: one or a list of productref with storage info."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.select:1
+msgid "Returns a list of URNs to products that match the specified query."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.select:3
+msgid "Parameters: query - the query object previous - results to be refined Returns: the set of return eferences to products matching the supplied query."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.unregister:1
+msgid "Unregisters the given pools to the storage."
+msgstr ""
+
+#: ../../fdi/pal/productstorage.py:docstring of fdi.pal.productstorage.ProductStorage.wipePool:1
+msgid "Clear all data and meta data of the writable pool."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:117
+msgid "fdi.pal.query module"
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.AbstractQuery:1
+msgid "基类：:py:class:`fdi.pal.query.StorageQuery`"
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.AbstractQuery:1
+msgid "provides default implementations for the pal storage query."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.AbstractQuery:3
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.AbstractQuery.__init__:1
+msgid "creates an AbstractQuery with product variable name, query string or function."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.AbstractQuery:5
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.AbstractQuery.__init__:3
+msgid "product: type (Class or 'Card' name) of the products to be queried. where: the query string."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.MetaQuery:1
+msgid "基类：:py:class:`fdi.pal.query.AbstractQuery`"
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.MetaQuery:1
+msgid "Meta data query formulates a query on the meta data of a Product."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.MetaQuery:3
+msgid "Typically this type of query is faster than a full query on the Product Access Layer."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.MetaQuery:6
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.MetaQuery.__init__:1
+msgid "creates an MetaQuery with a query string or function."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.MetaQuery:8
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.MetaQuery.__init__:3
+msgid "product: type (Class or 'Card' name) of the products to be queried. where: the query string. 'where' is a query string or function that returns True or False. In the query string variable name is 'm' for a MetaData type, as in ``m = product.meta``."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.StorageQuery:1
+msgid "基类：:py:class:`fdi.dataset.serializable.Serializable`"
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.StorageQuery:1
+msgid "Query on a ProductStorage."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.StorageQuery.getAllVersions:1
+msgid "Are all versions to be retrieved, or just the latest?"
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.StorageQuery.getType:1
+msgid "Get the class used in the query."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.StorageQuery.getVariable:1
+msgid "Get the variable name used in the query expression, eg \"p\"."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.StorageQuery.getWhere:1
+msgid "Get the query expression to be evaluated."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.StorageQuery.retrieveAllVersions:1
+msgid "Returns the allVersions related to this object."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.StorageQuery.setAllVersions:1
+msgid "Sets the allVersions of this object."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.StorageQuery.setType:1
+msgid "Sets the type of this object."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.StorageQuery.setVariable:1
+msgid "Sets the variable of this object."
+msgstr ""
+
+#: ../../fdi/pal/query.py:docstring of fdi.pal.query.StorageQuery.setWhere:1
+msgid "Sets the where of this object."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:125
+msgid "fdi.pal.taggable module"
+msgstr ""
+
+#: ../../fdi/pal/taggable.py:docstring of fdi.pal.taggable.Taggable:1
+msgid "Definition of services provided by a product storage supporting tagging."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:133
+msgid "fdi.pal.urn module"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:1
+msgid "基类：:py:class:`fdi.dataset.eq.StateEqual`, :py:class:`fdi.dataset.serializable.Serializable`, :py:class:`fdi.pal.comparable.Comparable`"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:1
+msgid "The object representation of the product URN string."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:3
+msgid "The memory consumed by sets of this object are much less than sets of URN strings."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:6
+msgid "Only when the class types in URN string are not in classpath, the urn object will consume equals or a little more than URN string as the object has to hold the original urn string. However this should be considered as exceptional cases."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:11
+msgid "Using this object representation also help to avoid parsing cost of URN string. URN string should be immutable."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:14
+msgid "About_URN"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:16
+msgid "The Universial Resource Name (**URN**) string has this format:"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:18
+msgid "urn:<poolname>:<resourcetype>:<serialnumber>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:20
+msgid "where"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:0
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:0
+msgid "<poolname>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:22
+msgid "Also called poolID. Its requirements is like that to a file name and a URL segment, having only printable characters excluding `` ``, ``%``, ``?``, ``*``, ``=``, ``/``."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:0
+msgid "<resourcetype>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:23
+msgid "class name of the data item (usually :class:`Product`)"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:0
+msgid "<serialnumber>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:24
+msgid "internal index for a certain <resourcetype>."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:26
+msgid "The ``poolname`` in a URN is a label. Some examples:"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:28
+msgid "urn:pool_mh:fdi.dataset.product.Product:2"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:29
+msgid "urn:20.20:svom.products.SVOMMapContext:0"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:31
+msgid "Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. The **PoolURL** is used to give practical information of a pool, such as a poolname, its location, and its access scheme. It is designed to be a local set-up detail that is supposed to be hidden from pool users. Data processing software use ``URN``s to refer to products, without specifying pool location. The poolID in a URN could be a :class:`LocalPool` on the development laptop and a :class:`HTTPClientPool` on the production cloud."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:35
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.__init__:1
+msgid "Creates the URN object with the urn string or components."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:37
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.__init__:3
+msgid "give urn and optional poolurl, or all poolname, cls, index arguments. if urn is given and pool, class, etc are also specified, the latter are ignored. else the URN object is constructed from them. Urn(u) will make a Urn object out of u."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn:42
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.__init__:8
+msgid "All arguements are None by default."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.getIndex:1
+msgid "Returns the product index."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.getPlace:1
+msgid "Returns the netloc in this"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.getPool:1
+msgid "Returns the pool name in this"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.getPoolId:1
+msgid "Returns the pool URN in this"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.getPoolpath:1
+msgid "returns the poolpath stored"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.getScheme:1
+msgid "Returns the urn scheme."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.getType:1
+msgid "Returns class type of Urn"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.getTypeName:1
+msgid "Returns class type name of Urn."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.getUrn:1
+msgid "Returns the urn in this"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.pool:1
+msgid "returns the poolname."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.Urn.setUrn:1
+msgid "parse urn to get poolname, resource, index."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.UrnUtils.checkUrn:1
+msgid "Throw a ValueError  if the identifier is not a legal URN."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.UrnUtils.containsUrn:1
+msgid "Informs whether a URN belongs to the given pool."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.UrnUtils.extractRecordIDs:1
+msgid "Extracts product IDs (serial numbers) from a set of urns."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.UrnUtils.getClass:1
+msgid "Get the class contained in a URN."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.UrnUtils.getClassName:1
+msgid "Get the class name contained in a URN."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.UrnUtils.getLater:1
+msgid "Returns the later of two urns."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.UrnUtils.getPool:1
+msgid "Returns the pool corresponding to the pool id inside the given urn."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.UrnUtils.getPool:3
+msgid "pools: ProductPool or subclass"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.UrnUtils.getPoolId:1
+msgid "Returns the pool id part of the URN."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.UrnUtils.getProductId:1
+msgid "Returns the product id part of the URN, that is, the last token."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.UrnUtils.isUrn:1
+msgid "Informs whether the given identifier corresponds to a URN."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.makeUrn:1
+msgid "assembles a URN with infos of the pool, the resource type, and the index"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.makeUrn:3
+msgid "index: int or string"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parseUrn:1
+msgid "Checks the URN string is valid in its form and splits it."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parseUrn:3
+msgid "A Product URN has several segment. For example if the urn is ``urn:mypool/v2:proj1.product:322`` * poolname, also called poolURN or poolID, optionally path-like: ``mypool/v2``, * resource type (usually class) name ``proj1.product``, * index number  ``322``,"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parseUrn:8
+msgid "returns poolname, resourceclass, index. if urn is None or empty returns (None,None,None)"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:1
+msgid "Disassambles a pool URL."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:3
+msgid "A Pool URL is  It is generated to desribe . For example:"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:5
+msgid "input: * url: to be decomposed. * poolhint:  A urn or a poolname (the first distinctive substring) needs to be given if the poolname has more than one level."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:9
+msgid "returns: poolpath, scheme, place, poolname. returns (None, None,None,None) if url is None or empty."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:13
+msgid "About_poolURL"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:15
+msgid "The ``PoolURL`` format is in the form of a URL that preceeds its poolname part:"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:17
+msgid "<scheme>://<place><poolpath>/<poolname>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:0
+msgid "<scheme>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:19
+msgid "Implementation protocol including ``file`` for :class:`LocalPool`, ``mem`` for :class:`MemPool`, ``http``, ``https`` for :class:`HttpclientPool`."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:0
+msgid "<place>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:20
+msgid "IP:port such as``192.168.5.6:8080`` for ``http`` and ``https`` schemes, or an empty string for ``file`` and ``mem`` schemes."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:21
+msgid "same as in URN."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:0
+msgid "<poolpath>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:22
+msgid "The part between ``place`` and an optional ``poolhint``::"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:0
+msgid "<username>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:0
+msgid "<password>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:26
+msgid "For ``file`` or ``server`` schemes, e.g. poolpath is ``/c:/tmp`` in ``http://localhost:9000/c:/tmp/mypool/`` with ``poolhint`` keyword arguement of :func:`parse_poolurl` not given, or given as ``mypool`` (or ``myp`` or ``my`` ...)."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:27
+msgid "For ``http`` and ``https`` schemes, it is e.g. ``/0.6/tmp`` in ``https://10.0.0.114:5000/v0.6/tmp/mypool`` with ``poolhint`` keyword arguement not given, or given as ``mypool`` (or ``myp` or 'my' ...). The meaning of poolpath is subject to interpretation by the  server. In the preceeding example the poolpath has an API version.  :meth:`ProductPool.transformpath` is used to map it further. Note that trailing blank and ``/`` are ignored, and stripped in the output."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:29
+msgid "Examples:"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:31
+msgid "file:///tmp/mydata for pool ```mydata```"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:32
+msgid "file:///d:/data/test2--v2 for pool ``test2--v2``"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:33
+msgid "mem:///dummy for pool ``dummy``"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:34
+msgid "https://10.0.0.114:5000/v0.6/obs for a httpclientpool ``obs``"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:docstring of fdi.pal.urn.parse_poolurl:35
+msgid "server:///tmp/data/0.4/test for a pool ``test`` used on a server."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:141
+msgid "fdi.pal.versionable module"
+msgstr ""
+
+#: ../../fdi/pal/versionable.py:docstring of fdi.pal.versionable.Versionable.getLastVersion:1
+msgid "Returns the latest version of the given ProductRef."
+msgstr ""
+
+#: ../../fdi/pal/versionable.py:docstring of fdi.pal.versionable.Versionable.getVersions:1
+msgid "Returns all the versions of the given ProductRef."
+msgstr ""
+
+#: ../../fdi/pal/versionable.py:docstring of fdi.pal.versionable.Versionable.saveProductRef:1
+msgid "Saves the product referenced and returns the designated URN."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pal.rst:149
+msgid "fdi.pal.webapi module"
+msgstr ""

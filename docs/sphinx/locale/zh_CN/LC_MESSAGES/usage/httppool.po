@@ -1,0 +1,317 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../sphinx/usage/httppool.rst:3
+msgid "**HTTPpool**: HTTP Pool Server and Client"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:9
+msgid "Table of Contents"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:11
+msgid ""
+"HTTP Pool server provides a RESTful web interface to create, remove, "
+"read, and delete data items (usually products) in a pool running on a "
+"server. A remote data user uses a HTTPClientPool as an interface."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:14
+msgid "For developing"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:17
+msgid "Configuration"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:19
+msgid "Install fdi. Copy the config file over"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:25 ../sphinx/usage/httppool.rst:145
+msgid ""
+"To customize ``~/.config/pnslocal.py`` modify these according to your "
+"system:"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:39
+msgid ""
+"Note that above are for both the server and te client in this and the "
+"next steps."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:44
+msgid "Run the Server"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:46
+msgid "To use the defaults in the config, just"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:52
+msgid "The server can also be run by:"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:59
+msgid ""
+"Contents in ``[]``, like ``[--ip=<host ip>] [--port=<port>]`` above, are "
+"optional. ``<>`` means you need to substitute with actual information "
+"(for example ``--port=<port>`` becomes ``--port=5000``). The username and"
+" password are used when making run requests."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:62
+msgid "Now you can use a client to access it."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:66
+msgid ""
+"Do not run debugging mode for production use. Password uses plain text "
+"for development."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:70
+msgid ""
+"The logging level of the server is set in the config file. The ``-v`` "
+"switch to ``runflaskserver`` used above will set the level to "
+"``logging.DEBUG``. Packages ``requests, ``filelock``, and ``urllib3`` are"
+" fixed to ``logging.WARN``."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:74
+msgid "Test and Verify"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:77
+msgid "To run all tests in one go"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:83
+msgid ""
+"append ``T='-u <username> -p <password> [-i <host ip>] [-o <port>] "
+"[options]'`` if needed."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:85
+msgid "You can also test step-by-step to pin-point possible problems:"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:88
+msgid "1. Server Unit Test"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:90
+msgid ""
+"Run this on the server host to verify that internal essential functions "
+"of the server work with current configuration."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:98
+msgid "2. Local Server Functional Tests"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:100
+msgid "test HTTP Client APIs"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:107
+msgid "3. Standard functional pool test"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:116
+msgid "Learn/Try the APIs and Build the Server"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:118
+msgid ""
+"The APIs are documented in `fdi/httppool/schema/pools.yml` with OpenAPI "
+"3. Run this to see and try out with Swagger API Docs when the server is "
+"running:"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:124
+msgid ""
+"To build the server, de-reference the YAML file (so Flasgger 0.95 can "
+"handle it):"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:130
+msgid "then run it ``make runpoolserver``"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:134
+msgid "For production deployment"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:137
+msgid "Manually"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:139
+msgid "Install fdi (see :doc:`installation`). Copy the config file over"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:158
+msgid "where at least the IP needs to be modified if to run a server."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:160
+msgid "Then refer to these files to install/update wsgi or conf files"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:162
+msgid "``fdi/pns/resources/httppool_server.docker``"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:163
+msgid "``fdi/pns/resources/httppool_server_entrypoint.sh``"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:165
+msgid "then enable the site and (re)start the server:"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:175
+msgid ""
+"The above are for both the server and the client when running pool "
+"functional test (``test6``) locally."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:179
+msgid "With Pre-made Docker Images"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:182
+msgid ""
+"The following are for an ``apache2`` deployment as a ``VirtualHost`` "
+"based a Ubuntu docker."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:185
+msgid ""
+"Follow instructuin in :doc:`dockers` to pull or build the ``httppool`` "
+"server image."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:187
+msgid "Launch it:"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:194
+msgid "Test and Verify Deployed Server"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:196
+msgid "The following is for a deployed docker."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:198
+msgid ""
+"Roughly following te sane steps in `Test and Verify`_ except for the "
+"firsrt step."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:202
+msgid "Actually the first two steps can be skipped if the 3rd is successful."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:205
+msgid "1. Start"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:207
+msgid "Run a shell inside the server after launching it:"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:213
+msgid ""
+"A ``/bin/bash`` will run and you will be at a shell prompt as the server "
+"user (``apache``). Type this to start the server process"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:219
+msgid "After a few seconds check to make sure there are `apache` processes from"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:225
+msgid "and you can get error message in JSON by"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:232
+msgid "2. Test Functions in the Docker"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:234
+msgid "Now run the local tests:"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:236
+msgid "first fdi internal,"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:237
+msgid "then test6 for server local CRUD,"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:238
+msgid "test 7 client,"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:239
+msgid "test8 standard pool functional."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:250
+msgid "The last three can be run by ``make testhttp``."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:254
+msgid "3. Test from Outside the Docker"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:256
+msgid "in the fdi directory where you built the docker image:"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:262
+msgid ""
+"Make sure that from where you run the test, your "
+"``~/.config/pnslocal.py`` points to the correct ip and port."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:266
+msgid "You can watch live logging from nother terminal with:"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:273
+msgid "Clean up"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:275
+msgid "Stop and remove the docker by ``make rm_server``."
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:278
+msgid "API Document"
+msgstr ""
+
+#: ../sphinx/usage/httppool.rst:282
+msgid "TBW"
+msgstr ""
+

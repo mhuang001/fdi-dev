@@ -1,0 +1,115 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../sphinx/index.rst:46
+#: ../sphinx/index.rst:46
+msgid "Contents:"
+msgstr ""
+
+#: ../sphinx/index.rst:63
+#: ../sphinx/index.rst:63
+msgid "API:"
+msgstr ""
+
+#: ../sphinx/index.rst:8
+msgid "Flexible Dataset Integrator (fdi)"
+msgstr ""
+
+#: ../sphinx/index.rst:10
+msgid "FDI helps data producers and processors to build connections into isolated heterogeneous datasets. to assemble, organize, and integrate data into self-describing, modular, hierarchical, persistent, referenceable ``Products``, whose component datasets keep their own characteristics and are easily accessible."
+msgstr ""
+
+#: ../sphinx/index.rst:13
+msgid "Features"
+msgstr ""
+
+#: ../sphinx/index.rst:15
+msgid "With FDI one can pack data of different format into **regular and modular** data ``Products``, together with annotation (description, types, units, defaults, and validity specifications) and meta data (data about data). One can make arrays or tables of Products using basic data structures such as sequences (e.g. Python ``list``), mappings (e.g. Python ``dict``), or custom-made classes. FDI accomodates nested and highly complex structures."
+msgstr ""
+
+#: ../sphinx/index.rst:17
+msgid "**Access APIs** of the components of FDI data objects are convenient and similar to those of standad Python libraries, making it easier for **scripting and data mining** directly 'on FDIs'."
+msgstr ""
+
+#: ../sphinx/index.rst:19
+msgid "All levels of FDI Products and their components (datasets or metadata) are portable (**serializable**) in human-friendly standard format (JSON implemented), allowing machine data processors on different platforms to parse, access internal components, or re-construct a product. Even a human with only a web browser can understand the data."
+msgstr ""
+
+#: ../sphinx/index.rst:21
+msgid "The ``toString()`` method of major containers classes outputs nicely formated (often tabulated) text description of complex data to help inspection."
+msgstr ""
+
+#: ../sphinx/index.rst:23
+msgid "Most FDI Products and components implement **event sender and listener interfaces**, helping **scalable data-driven** processing pipelines and visualizers of live data to be constructed."
+msgstr ""
+
+#: ../sphinx/index.rst:25
+msgid "FDI stoerage 'pools' (file, network, or memory based) are provided as references for 1) **queryable** data **storage** and, 2) for all persistent data to be referenced to with **URNs** (Universal Resource Names)."
+msgstr ""
+
+#: ../sphinx/index.rst:27
+msgid "FDI provides *Context* type of product so that references of other products can become components, enabling **encapsulation of rich, deep, sophisticated, and accessible contextual data**, yet remain light weight."
+msgstr ""
+
+#: ../sphinx/index.rst:29
+msgid "For data processors, an HTML **server** with **RESTful APIs** is implemented (named Processing Node Server, PNS) to interface data processing modules. PNS is especially suitable for **Docker containers** in pipelines mixing **legacy software** or software of incompatible environments to form an integral data processing pipeline."
+msgstr ""
+
+#: ../sphinx/index.rst:31
+msgid "This package attempts to meet scientific observation and data processing requirements, and is inspired by data models of, and designs APIs as compatible as possible with, European Space Agency's Interactive Analysis package of Herschel Common Science System (written in Java, and in Jython for scripting)."
+msgstr ""
+
+#: ../sphinx/index.rst:36
+msgid "FDI Python packages"
+msgstr ""
+
+#: ../sphinx/index.rst:38
+msgid "The base data model is defined in package :doc:`dataset <usage/dataset>`."
+msgstr ""
+
+#: ../sphinx/index.rst:40
+msgid "Persistent data access, referencing, querying, and Universal Resource Names are defined in package :doc:`pal <usage/pal>`."
+msgstr ""
+
+#: ../sphinx/index.rst:42
+msgid "A reference REST API server designed to communicate with a data processing docker using the data model is in package  :doc:`pns <usage/pns>`."
+msgstr ""
+
+#: ../sphinx/index.rst:44
+msgid "A reference REST API server to provide a web interface between a pool on the server and a data user in package  :doc:`http pool <usage/httppool>`."
+msgstr ""
+
+#: ../sphinx/index.rst:61
+msgid "API Document"
+msgstr ""
+
+#: ../sphinx/index.rst:75
+msgid "Indices and tables"
+msgstr ""
+
+#: ../sphinx/index.rst:77
+msgid ":ref:`genindex`"
+msgstr ""
+
+#: ../sphinx/index.rst:78
+msgid ":ref:`modindex`"
+msgstr ""
+
+#: ../sphinx/index.rst:79
+msgid ":ref:`search`"
+msgstr ""

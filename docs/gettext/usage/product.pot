@@ -1,0 +1,218 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../sphinx/usage/product.rst:3
+msgid "**Data Containers**: Product"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:6
+msgid "Table of Contents"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:9
+msgid "Product"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:11
+msgid "Product is what links all fdi components together."
+msgstr ""
+
+#: ../sphinx/usage/product.rst:14
+msgid "Data and Meta Data"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:31
+msgid "A product has"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:20
+msgid "zero or more datasets: defining well described data entities (say images, tables, spectra etc...)."
+msgstr ""
+
+#: ../sphinx/usage/product.rst:21
+msgid "accompanying meta data -- required information such as"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:23
+msgid "the classification of this product,"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:24
+msgid "the creator this product,"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:25
+msgid "when was the product created?"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:26
+msgid "what does the data reflect? (its intended use scope)"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:27
+msgid "and so on;"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:28
+msgid "possible additional meta data specific to that particular product type."
+msgstr ""
+
+#: ../sphinx/usage/product.rst:29
+msgid "history of this product: how was this data created."
+msgstr ""
+
+#: ../sphinx/usage/product.rst:30
+msgid "References of relevant products that form a context of this product"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:34
+msgid "History"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:36
+msgid "The history is a lightweight mechanism to record the origin of this product or changes made to this product. Lightweight means, that the Product data itself does not  records changes, but external parties can attach additional information to the Product which reflects the changes."
+msgstr ""
+
+#: ../sphinx/usage/product.rst:38
+msgid "The sole purpose of the history interface of a Product is to allow notably pipeline tasks (as defined by the pipeline framework) to record what they have done to generate and/or modify a Product."
+msgstr ""
+
+#: ../sphinx/usage/product.rst:41
+msgid "Serializable"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:43
+msgid "In order to transfer data across the network between heterogeneous nodes data needs to be serializable. JSON format is used considering to transfer serialized data for its wide adoption, availability of tools, ease to use with Python, and simplicity."
+msgstr ""
+
+#: ../sphinx/usage/product.rst:48
+msgid "Product Definition Methodology"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:50
+msgid "Data Products almost always are classified in heirachical orders, reflecting the underlying relation of the data model. Many Products are found to have inheritance relations when comparing their metadata and datasets. Therefore an object-oriented approach is chosen to anlize and define the structure, function, and interface of Products here."
+msgstr ""
+
+#: ../sphinx/usage/product.rst:52
+msgid "First specify built-in Parameters  in in YAML format, which is suitable for reading by both humans and machines. A helper utility ``yaml2python``  to generate test-ready Python code of product class module containing the built-ins."
+msgstr ""
+
+#: ../sphinx/usage/product.rst:54
+msgid "The YAML schema allows a child Product to inherit metadata definition from one or multiple parent Products. Overriding is also allowed."
+msgstr ""
+
+#: ../sphinx/usage/product.rst:57
+msgid "BaseProduct"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:59
+msgid "This is the definition file `BaseProduct.yml`"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:64
+msgid "The preamble key-value pairs give information about this definition:"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:0
+msgid "name"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:66
+msgid "of this product"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:0
+#: ../sphinx/usage/product.rst:0
+msgid "description"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:67
+msgid "-- Information about this product"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:0
+msgid "parents"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:68
+msgid "-- Children products Inherit parent’s metadata"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:0
+msgid "level"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:69
+msgid "Applicable Level"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:0
+msgid "schema"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:70
+msgid "version of format of this YAML document"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:72
+msgid "From the creation process requires every product to carry the following metadata entries about itself,"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:74
+msgid "(Also in native language if it is not English.)"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:0
+msgid "type"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:75
+msgid "-- In software or business domain"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:0
+msgid "version"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:76
+msgid "-- Products of the same format must be versioned, configuration controlled, and be ready to deal with version differences between inputs , algorithms, software and pipelines."
+msgstr ""
+
+#: ../sphinx/usage/product.rst:0
+msgid "FORMATV"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:77
+msgid "-- Version of this document with Schema information, e.g. 1.4.1.2"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:0
+msgid "creator, rootCause, creationDate"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:78
+msgid "-- Who, why, when, where"
+msgstr ""
+
+#: ../sphinx/usage/product.rst:80
+msgid "The parameters are tabulated below."
+msgstr ""
+
+#: ../sphinx/usage/product.rst:85
+msgid "Examples (from :doc:`quickstart` page):"
+msgstr ""

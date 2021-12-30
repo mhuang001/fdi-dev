@@ -22,6 +22,9 @@ sys.path.insert(0, os.path.abspath('.'))
 
 
 # -- Project information -----------------------------------------------------
+language = 'zh_CN' # language supported
+locale_dirs = ['locale/'] # path is example but recommended.
+gettext_compact = False # optional.
 
 project = 'fdi'
 year = datetime.now().year

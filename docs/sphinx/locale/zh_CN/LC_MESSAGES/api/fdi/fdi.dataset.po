@@ -1,0 +1,3115 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:2
+msgid "fdi.dataset package"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:10
+msgid "Subpackages"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:18
+msgid "Submodules"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:21
+msgid "fdi.dataset.abstractcomposite module"
+msgstr ""
+
+#: fdi.dataset.abstractcomposite.AbstractComposite:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.attributable.Attributable`, "
+":py:class:`fdi.dataset.listener.EventListener`, "
+":py:class:`fdi.dataset.composite.Composite`, "
+":py:class:`fdi.dataset.datawrapper.DataWrapperMapper`"
+msgstr ""
+
+#: fdi.dataset.abstractcomposite.AbstractComposite:1 of
+msgid "an annotatable and attributable subclass of Composite."
+msgstr ""
+
+#: fdi.dataset.abstractcomposite.AbstractComposite:3 of
+msgid "Composite inherits annotatable via EventListener via DataContainer."
+msgstr ""
+
+#: fdi.dataset.abstractcomposite.AbstractComposite.toString:1 of
+msgid "matprint: an external matrix print function"
+msgstr ""
+
+#: fdi.dataset.abstractcomposite.AbstractComposite.toString
+#: fdi.dataset.annotatable.Annotatable.setDescription
+#: fdi.dataset.composite.Composite.get fdi.dataset.composite.UserDictAdapter
+#: fdi.dataset.composite.UserDictAdapter.__init__
+#: fdi.dataset.listener.EventSender fdi.dataset.listener.EventSender.__init__
+#: fdi.dataset.listener.EventSender.listeners fdi.dataset.listener.ListnerSet
+#: fdi.dataset.listener.ListnerSet.__init__ fdi.dataset.yaml2python.yamlupgrade
+#: of
+msgid "参数"
+msgstr ""
+
+#: fdi.dataset.abstractcomposite.AbstractComposite.toString:3 of
+msgid "**trans** (*print 2D matrix transposed. default is True.*)"
+msgstr ""
+
+#: fdi.dataset.abstractcomposite.AbstractComposite.toString:4 of
+msgid "**-------**"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:29
+msgid "fdi.dataset.annotatable module"
+msgstr ""
+
+#: fdi.dataset.annotatable.Annotatable:1
+#: fdi.dataset.attributable.MetaDataProperties:1 fdi.dataset.classes.Classes:1
+#: fdi.dataset.collectionsMockUp.ContainerMockUp:1
+#: fdi.dataset.collectionsMockUp.MappingMockUp:1
+#: fdi.dataset.collectionsMockUp.SequenceMockUp:1
+#: fdi.dataset.copyable.Copyable:1 fdi.dataset.datawrapper.DataWrapperMapper:1
+#: fdi.dataset.eq.DeepcmpEqual:1 fdi.dataset.eq.EqualDict:1
+#: fdi.dataset.eq.EqualODict:1 fdi.dataset.eq.StateEqual:1
+#: fdi.dataset.indexed.Indexed:1 fdi.dataset.invalid.InvalidType:1
+#: fdi.dataset.listener.EventSender:1
+#: fdi.dataset.metadataholder.MetaDataHolder:1
+#: fdi.dataset.serializable.Serializable:1 fdi.dataset.shaped.Shaped:1
+#: fdi.dataset.tabledataset.TableModel:1 fdi.dataset.typecoded.Typecoded:1
+#: fdi.dataset.typed.Typed:1 of
+msgid "基类：:py:class:`object`"
+msgstr ""
+
+#: fdi.dataset.annotatable.Annotatable:1 of
+msgid ""
+"An Annotatable object is an object that can give a human readable "
+"description of itself."
+msgstr ""
+
+#: fdi.dataset.annotatable.Annotatable.getDescription:1 of
+msgid "gets the description of this Annotatable object."
+msgstr ""
+
+#: fdi.dataset.annotatable.Annotatable.getDescription
+#: fdi.dataset.datawrapper.DataContainer.getData
+#: fdi.dataset.datawrapper.DataContainer.hasData fdi.dataset.eq.deepcmp
+#: fdi.dataset.listener.ListnerSet.toString
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath of
+msgid "返回"
+msgstr ""
+
+#: fdi.dataset.annotatable.Annotatable.getDescription:3 of
+msgid "The current description."
+msgstr ""
+
+#: fdi.dataset.annotatable.Annotatable.getDescription
+#: fdi.dataset.datawrapper.DataContainer.getData
+#: fdi.dataset.datawrapper.DataContainer.hasData of
+msgid "返回类型"
+msgstr ""
+
+#: fdi.dataset.annotatable.Annotatable.setDescription:1 of
+msgid "sets the description of this Annotatable object."
+msgstr ""
+
+#: fdi.dataset.annotatable.Annotatable.setDescription:3 of
+msgid "**newDescription** (*string*) -- The new description."
+msgstr ""
+
+#: fdi.dataset.annotatable.Annotatable.xdescription:1
+#: fdi.dataset.baseproduct.BaseProduct.history:1 of
+msgid ""
+"xx must be a property for ``self.xx = yy`` to work in super class after "
+"xx is set as a property also by a subclass."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:37
+msgid "fdi.dataset.arraydataset module"
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.dataset.GenericDataset`, "
+":py:class:`collections.abc.Iterable`, "
+":py:class:`fdi.dataset.shaped.Shaped`"
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset:1 of
+msgid "Special dataset that contains a single Array Data object."
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset:3 of
+msgid ""
+"mh: If omit the parameter names during instanciation, e.g. "
+"ArrayDataset(a, b, c), the assumed order is data, unit, description. mh:"
+"  contains a sequence which provides methods count(), index(), remove(), "
+"reverse(). A mutable sequence would also need append(), extend(), "
+"insert(), pop() and sort()."
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset fdi.dataset.composite.Composite of
+msgid "data"
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset:9 of
+msgid "the payload data of this dataset. Default is None, Returns -------"
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset:13
+#: fdi.dataset.arraydataset.ArrayDataset.__init__:1
+#: fdi.dataset.arraydataset.Column:9 of
+msgid "Initializes an ArrayDataset."
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset:15
+#: fdi.dataset.arraydataset.ArrayDataset.__init__:3
+#: fdi.dataset.arraydataset.Column:11 of
+msgid ""
+"Default ```None``` will initialize MetaData Parameters to their default "
+"values. If ``data`` is not None and has shape (``len`` applies), "
+"``shape`` MDP is set to the actual ``data`` shape."
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset.append:1 of
+msgid "appends to data."
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset.count:1 of
+msgid "returns size."
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset.extend:1 of
+msgid "extend data."
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset.index:1 of
+msgid "returns the index of a value."
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset.pop:1 of
+msgid "revomes and returns value"
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset.remove:1 of
+msgid "removes value at first occurrence."
+msgstr ""
+
+#: fdi.dataset.arraydataset.ArrayDataset.toString:1 of
+msgid ""
+"matprint: an external matrix print function trans: print 2D matrix "
+"transposed. default is True."
+msgstr ""
+
+#: fdi.dataset.arraydataset.Column:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.arraydataset.ArrayDataset`, "
+":py:class:`fdi.dataset.listener.ColumnListener`"
+msgstr ""
+
+#: fdi.dataset.arraydataset.Column:1 of
+msgid ""
+"A Column is a the vertical cut of a table for which all cells have the "
+"same signature."
+msgstr ""
+
+#: fdi.dataset.arraydataset.Column:3 of
+msgid ""
+"A Column contains raw ArrayData, and optionally a description and unit. "
+"example::"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:45
+msgid "fdi.dataset.arraydataset\\_datamodel module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:53
+msgid "fdi.dataset.attributable module"
+msgstr ""
+
+#: fdi.dataset.attributable.Attributable:1 of
+msgid "基类：:py:class:`fdi.dataset.metadataholder.MetaDataHolder`"
+msgstr ""
+
+#: fdi.dataset.attributable.Attributable:1 of
+msgid "An Attributable object is an object that has the notion of meta data."
+msgstr ""
+
+#: fdi.dataset.attributable.Attributable:4 of
+msgid ""
+"MetaData Porperties (MDPs) are Attributes that store their properties in "
+"te metadata table."
+msgstr ""
+
+#: fdi.dataset.attributable.Attributable:6
+#: fdi.dataset.attributable.Attributable.__init__:1 of
+msgid ""
+"Pick out arguments listed in zInfo then put updated parameters into "
+"MetaData meta."
+msgstr ""
+
+#: fdi.dataset.attributable.Attributable:8
+#: fdi.dataset.attributable.Attributable.__init__:3 of
+msgid ""
+"meta: meta data container. zInfo: configuration alwaysMeta: always treat "
+"parameters as MetaDataProperties (MDPs)."
+msgstr ""
+
+#: fdi.dataset.attributable.Attributable.makeMdpMethods:1 of
+msgid "Generates a mix-in class file according to MetaData Property list."
+msgstr ""
+
+#: fdi.dataset.attributable.Attributable.setMeta:1 of
+msgid "Replaces the current MetaData with specified argument."
+msgstr ""
+
+#: fdi.dataset.attributable.Attributable.setMeta:3 of
+msgid ""
+"Product will override this to add listener when meta is replaced. "
+"`_defaults` which usually is `self.zInfo` is added to new meta so "
+"`str(meta)` can ommit the parameters with default value."
+msgstr ""
+
+#: fdi.dataset.attributable.Attributable.setParameters:1 of
+msgid "Set a group of name-value pairs to the object as properties."
+msgstr ""
+
+#: fdi.dataset.attributable.Attributable.setParameters:3 of
+msgid ""
+"params: a dictionary of name:value where value is a subclass of "
+"`AbstractParameter`. value can be the value of a registered MDP. ``type``"
+" will be used if ``typ_`` is given as the name."
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.attributable.MdpInfo:1 of
+msgid "Names not for mormal properties."
+msgstr ""
+
+#: fdi.dataset.attributable.MetaDataProperties:1 of
+msgid ""
+"Mix-in place-holder for Class denifitions that has not their own "
+"`property.py` generated by :meth: `makeMdpMethods`."
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.attributable.Reserved_Property_Names:1 of
+msgid ""
+"These MetaData Parameters (MDPs) and vital attrbutes are Set By Parent "
+"classes: | Special MDPs and attrbutes | set by parent Classes | attribute"
+" holder | | 'meta' | `Attributable` | `_meta` | | 'description' | "
+"`Annotatable` | `description` | | 'data' and 'shape' | `DataWrapper` | "
+"`_data` | | 'listeners' | `EventSender` | `_listener` |"
+msgstr ""
+
+#: fdi.dataset.attributable.addMetaDataProperty:1 of
+msgid ""
+"mh: Add MDP to a class so that although they are metadata, they can be "
+"accessed by for example, productfoo.creator."
+msgstr ""
+
+#: fdi.dataset.attributable.addMetaDataProperty:4 of
+msgid ""
+"dynamic properties see https://stackoverflow.com/a/2584050 "
+"https://stackoverflow.com/a/1355444"
+msgstr ""
+
+#: fdi.dataset.attributable.make_class_properties:1 of
+msgid ""
+"Generates class properties source code string according to given "
+"attribute names."
+msgstr ""
+
+#: fdi.dataset.attributable.value2parameter:1 of
+msgid ""
+"returns a parameter with correct type and attributes according to its "
+"value and name."
+msgstr ""
+
+#: fdi.dataset.attributable.value2parameter:3 of
+msgid ""
+"value: type must be compatible with data_type. For example [0, 0] is "
+"wrong; Vector2d([0, 0)] is right if ``data_type``==``vector2d``. "
+"descriptor: is zInfo('metadata'] or zInfo['dataset'][xxx]"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:61
+msgid "fdi.dataset.baseproduct module"
+msgstr ""
+
+#: fdi.dataset.baseproduct.BaseProduct:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.abstractcomposite.AbstractComposite`, "
+":py:class:`fdi.dataset.copyable.Copyable`, "
+":py:class:`fdi.dataset.listener.EventSender`"
+msgstr ""
+
+#: fdi.dataset.baseproduct.BaseProduct:1 of
+msgid ""
+"A BaseProduct is the starting point of te whole  product tree, and a "
+"generic result that can be passed on between processes."
+msgstr ""
+
+#: fdi.dataset.baseproduct.BaseProduct:3 of
+msgid ""
+"In general a Product contains zero or more datasets, history, optional "
+"reference pointers and metadata some required metadata fields. A Product "
+"is expected to fully describe itself; this includes the way how this "
+"product was achieved (its history). As it is the result of a process, it "
+"should be able to save to and restore from an Archive device."
+msgstr ""
+
+#: fdi.dataset.baseproduct.BaseProduct:10 of
+msgid ""
+"Many times a Product may contain a single dataset and for this purpose "
+"the first dataset entry can be accessed by the getDefault() method. Note "
+"that the datasets may be a composite of datasets by themselves."
+msgstr ""
+
+#: fdi.dataset.baseproduct.BaseProduct:15 of
+msgid ""
+"A built-in attributes in `Model['metadata']` (\"MetaData Parameter\" or "
+"`MDP`) can be accessed with e.g. ``p.creator``, or "
+"p.meta['creator'].value::"
+msgstr ""
+
+#: fdi.dataset.baseproduct.BaseProduct:24 of
+msgid "BaseProduct class schema 1.6 inheriting [None]."
+msgstr ""
+
+#: fdi.dataset.baseproduct.BaseProduct:26 of
+msgid ""
+"Automatically generated from fdi/dataset/resources/BaseProduct.yml on "
+"2021-12-13 09:38:07.494042."
+msgstr ""
+
+#: fdi.dataset.baseproduct.BaseProduct:28 of
+msgid "Description: FDI base class data model"
+msgstr ""
+
+#: fdi.dataset.baseproduct.BaseProduct.accept:1
+#: fdi.dataset.history.History.accept:1 fdi.dataset.metadata.MetaData.accept:1
+#: of
+msgid "Hook for adding functionality to meta data object through visitor pattern."
+msgstr ""
+
+#: fdi.dataset.baseproduct.BaseProduct.toString:1 of
+msgid "like AbstractComposite but with history"
+msgstr ""
+
+#: fdi.dataset.baseproduct.BaseProduct.targetChanged:1
+#: fdi.dataset.listener.EventListener.targetChanged:1 of
+msgid ""
+"Informs that an event has happened in a target of any type. Paremeters "
+"----------"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:69
+msgid "fdi.dataset.booleanparameter module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:77
+msgid "fdi.dataset.browseproduct module"
+msgstr ""
+
+#: fdi.dataset.browseproduct.BrowseProduct:1 fdi.dataset.product.Product:1 of
+msgid "基类：:py:class:`fdi.dataset.baseproduct.BaseProduct`"
+msgstr ""
+
+#: fdi.dataset.browseproduct.BrowseProduct:1 of
+msgid "BrowseProduct class schema 1.6 inheriting ['BaseProduct']."
+msgstr ""
+
+#: fdi.dataset.browseproduct.BrowseProduct:3 of
+msgid ""
+"Automatically generated from fdi/dataset/resources/BrowseProduct.yml on "
+"2021-12-13 09:38:07.543630."
+msgstr ""
+
+#: fdi.dataset.browseproduct.BrowseProduct:5 of
+msgid "Description: Container of media data for browsing."
+msgstr ""
+
+#: fdi.dataset.browseproduct.BrowseProduct:8 fdi.dataset.product.Product:8 of
+msgid ""
+"Generally a Product (inheriting BaseProduct) has project-wide attributes "
+"and can be extended to define a plethora of specialized products."
+msgstr ""
+
+#: fdi.dataset.browseproduct.BrowseProduct:11
+#: fdi.dataset.browseproduct.BrowseProduct.__init__:1
+#: fdi.dataset.product.Product:11 fdi.dataset.product.Product.__init__:1
+#: fdi.dataset.testproducts.SP:3 fdi.dataset.testproducts.TP:1 of
+msgid ""
+"Initializes instances with more metadata as attributes, set to default "
+"values."
+msgstr ""
+
+#: fdi.dataset.browseproduct.BrowseProduct:13
+#: fdi.dataset.browseproduct.BrowseProduct.__init__:3
+#: fdi.dataset.product.Product:13 fdi.dataset.product.Product.__init__:3
+#: fdi.dataset.testproducts.SP:5 fdi.dataset.testproducts.TP:3 of
+msgid ""
+"Put description keyword argument here to allow e.g. BaseProduct(\"foo\") "
+"and description='foo'"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:85
+msgid "fdi.dataset.classes module"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:1 of
+msgid ""
+"A dictionary of class names and their class objects that are allowed to "
+"be deserialized."
+msgstr ""
+
+#: fdi.dataset.classes.Classes:3 of
+msgid ""
+"An fdi package built-in dictionary (in the format of locals() output) is "
+"kept internally. Users who need add more deserializable class can for "
+"example:"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:6 of
+msgid "Define new classes ``class Myclass():"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:8 of
+msgid "....``"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:10 of
+msgid "update Classes ``Classes.classes.update({'myClasses': MyClass})``"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:13 of
+msgid "and use ``new_instance = Classes.mapping['MyClass']``"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:16 of
+msgid "For a new package with many classes:"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:18 of
+msgid "Import user classes in a python file for example projectclasses.py:"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:20 of
+msgid "`` Class PC(Classes):"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:23 of
+msgid "module_class = {"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:24 of
+msgid "'mypackage.mymodule': ['MyClass1', 'MyClass2'],"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:25 of
+msgid "} # from another module defining a dict of modulename-Classobj pairs try:"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:28 of
+msgid "from mypackage.mymodule import pairs"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:29 of
+msgid "except (ImportError, ModuleNotFoundError) as e:"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:30 of
+msgid "logger.info(e)"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:32 of
+msgid "else:"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:32 of
+msgid "module_class.update(pairs)"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:34 of
+msgid "_package = {} _classes = {}"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:36 of
+msgid "``"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:38 of
+msgid ""
+"To use: `` from fdi.dataset.classes import Classes from "
+"my.package.projectclasses import PC prjcls = Classes.mapping "
+"Classes.updateMapping(PC.updateMapping())"
+msgstr ""
+
+#: fdi.dataset.classes.Classes:45 of
+msgid "new_instance = prjcls['MyClass1']"
+msgstr ""
+
+#: fdi.dataset.classes.Classes_meta:1 of
+msgid "基类：:py:class:`type`"
+msgstr ""
+
+#: fdi.dataset.classes.Classes_meta:1 of
+msgid "metaclass for 'classproperty'. # https://stackoverflow.com/a/1800999"
+msgstr ""
+
+#: fdi.dataset.classes.Classes_meta:4
+#: fdi.dataset.classes.Classes_meta.__init__:1 of
+msgid "Class is initialized with built-in classes by default."
+msgstr ""
+
+#: fdi.dataset.classes.Classes_meta.importModuleClasses:1 of
+msgid "The set of deserializable classes in module_class is maintained by hand."
+msgstr ""
+
+#: fdi.dataset.classes.Classes_meta.importModuleClasses:3 of
+msgid ""
+"Do nothing if the classes mapping is already made so repeated calls will "
+"not cost  more time."
+msgstr ""
+
+#: fdi.dataset.classes.Classes_meta.importModuleClasses:5 of
+msgid ""
+"rerun: set to True to force re-import. If the module-class list has never"
+" been imported, it will be imported regardless rerun. exclude: modules "
+"whose names (without '.') are in exclude are not imported."
+msgstr ""
+
+#: fdi.dataset.classes.Classes_meta.mapping:1 of
+msgid ""
+"Returns the dictionary of classes allowed for deserialization, including "
+"the fdi built-ins and user added classes."
+msgstr ""
+
+#: fdi.dataset.classes.Classes_meta.mapping:3 of
+msgid "Will update the classes if the list is empty"
+msgstr ""
+
+#: fdi.dataset.classes.Classes_meta.reloadClasses:1 of
+msgid "re-import classes in list."
+msgstr ""
+
+#: fdi.dataset.classes.Classes_meta.updateMapping:1 of
+msgid "Updates classes mapping. Make the package mapping if it has not been made."
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.classes.logger:1
+#: fdi.dataset.deserialize.logger:1 of
+msgid ""
+"this has to be in a different file where other interface classes are "
+"defined to avoid circular dependency (such as , Serializable."
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.classes.logger
+#: fdi.dataset.deserialize.logger of
+msgid "type"
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.classes.logger:5
+#: fdi.dataset.deserialize.logger:5 of
+msgid "Note"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:93
+msgid "fdi.dataset.collectionsMockUp module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:101
+msgid "fdi.dataset.composite module"
+msgstr ""
+
+#: fdi.dataset.composite.Composite:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.datawrapper.DataContainer`, "
+":py:class:`fdi.dataset.serializable.Serializable`, "
+":py:class:`collections.abc.MutableMapping`"
+msgstr ""
+
+#: fdi.dataset.composite.Composite:1 of
+msgid "A container of named Datasets."
+msgstr ""
+
+#: fdi.dataset.composite.Composite:3 of
+msgid ""
+"This container can hold zero or more datasets, each of them stored "
+"against a unique name. The order of adding datasets to this Composite is "
+"important, that is: the keySet() method will return a set of labels of "
+"the datasets in the sequence as they were added. Note that replacing a "
+"dataset with the same name, will keep the order."
+msgstr ""
+
+#: fdi.dataset.composite.Composite:11 of
+msgid ""
+":class:`DeepEqual` must stay to the left of :class:`MutableMapping` so "
+"its `__eq__` will get to run. `Serializable` becomes a parent for having "
+"`__setstate__`."
+msgstr ""
+
+#: fdi.dataset.composite.Composite:13 of
+msgid "default `None` will init with a `dict`."
+msgstr ""
+
+#: fdi.dataset.composite.Composite.containsKey:1 of
+msgid "Returns true if this map contains a mapping for the specified name."
+msgstr ""
+
+#: fdi.dataset.composite.Composite.get:1 of
+msgid "Returns the dataset to which this composite maps the specified name."
+msgstr ""
+
+#: fdi.dataset.composite.Composite.get:4 of
+msgid ""
+"If the attrbute does not exist and `default` unspecified, raise a "
+"KeyError."
+msgstr ""
+
+#: fdi.dataset.composite.Composite.get:6 of
+msgid "default: assigne to None or anything for missing `name`."
+msgstr ""
+
+#: fdi.dataset.composite.Composite.keySet:1 of
+msgid "Returns a list view of the keys contained in this composite."
+msgstr ""
+
+#: fdi.dataset.composite.Composite.getDefault:1 of
+msgid ""
+"Convenience method that returns the first dataset         belonging to "
+"this composite."
+msgstr ""
+
+#: fdi.dataset.composite.Composite.getSets:1 of
+msgid ""
+"Provide access to the Map < String, Dataset > . mh: api from "
+"CompositeDataset"
+msgstr ""
+
+#: fdi.dataset.composite.Composite.isEmpty:1 of
+msgid "Returns true if this map contains no key - value mappings."
+msgstr ""
+
+#: fdi.dataset.composite.Composite.remove:1 of
+msgid ""
+"Removes the mapping for this name from this composite. mh: returns None "
+"if name is None or item does not exist."
+msgstr ""
+
+#: fdi.dataset.composite.Composite.set:1 of
+msgid ""
+"Associates the specified dataset with the specified key in this "
+"map(optional operation). If the map previously contained a mapping for "
+"this key, the old dataset is replaced by the specified dataset. this "
+"composite does not permit null or empty keys."
+msgstr ""
+
+#: fdi.dataset.composite.Composite.size:1 of
+msgid "Returns the number of key - value mappings in this map."
+msgstr ""
+
+#: fdi.dataset.composite.UserDictAdapter:1 of
+msgid "基类：:py:class:`collections.UserDict`"
+msgstr ""
+
+#: fdi.dataset.composite.UserDictAdapter:1 of
+msgid ""
+"Adapter class to make UserDict cooperative to multiple inheritance and "
+"take data keyword arg."
+msgstr ""
+
+#: fdi.dataset.composite.UserDictAdapter:3 of
+msgid "REf. https://rhettinger.wordpress.com/2011/05/26/super-considered-super/"
+msgstr ""
+
+#: fdi.dataset.composite.UserDictAdapter:5
+#: fdi.dataset.composite.UserDictAdapter.__init__:1 of
+msgid "*data: initialize UserDict.*"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:109
+msgid "fdi.dataset.copyable module"
+msgstr ""
+
+#: fdi.dataset.copyable.Copyable:1 of
+msgid "Interface for objects that can make a copy of themselves."
+msgstr ""
+
+#: fdi.dataset.copyable.Copyable.copy:1 of
+msgid "Makes a deep copy of itself."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:117
+msgid "fdi.dataset.dataset module"
+msgstr ""
+
+#: fdi.dataset.dataset.CompositeDataset:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.listener.MetaDataListener`, "
+":py:class:`fdi.dataset.abstractcomposite.AbstractComposite`"
+msgstr ""
+
+#: fdi.dataset.dataset.CompositeDataset:1 of
+msgid ""
+"An CompositeDataset is a Dataset that contains zero or more named "
+"Datasets. It allows to build arbitrary complex dataset structures."
+msgstr ""
+
+#: fdi.dataset.dataset.CompositeDataset:5 of
+msgid ""
+"It also defines the iteration ordering of its children, which is the "
+"order in which the children were inserted into this dataset."
+msgstr ""
+
+#: fdi.dataset.dataset.Dataset:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.attributable.Attributable`, "
+":py:class:`fdi.dataset.datawrapper.DataContainer`, "
+":py:class:`fdi.dataset.serializable.Serializable`, "
+":py:class:`fdi.dataset.listener.MetaDataListener`"
+msgstr ""
+
+#: fdi.dataset.dataset.Dataset:1 of
+msgid ""
+"Attributable and annotatable information data container that can be be "
+"part of a Product."
+msgstr ""
+
+#: fdi.dataset.dataset.Dataset:4 of
+msgid ""
+"developer notes: The intent is that developers do not derive from this "
+"interface"
+msgstr ""
+
+#: fdi.dataset.dataset.Dataset:7 of
+msgid ""
+"directly. Instead, they should inherit from one of the generic datasets "
+"that this package provides:"
+msgstr ""
+
+#: fdi.dataset.dataset.Dataset:10 of
+msgid ""
+"mh: GenericDataset, UnstrcturedDataset ArrayDataset. TableDataset or "
+"CompositeDataset."
+msgstr ""
+
+#: fdi.dataset.dataset.Dataset.accept:1 of
+msgid ""
+"Hook for adding functionality to object through visitor pattern. "
+"Parameter ---------"
+msgstr ""
+
+#: fdi.dataset.dataset.Dataset.toString:1 of
+msgid ""
+"matprint: an external matrix print function trans: print 2D matrix "
+"transposed. default is True. Parameter ---------"
+msgstr ""
+
+#: fdi.dataset.dataset.GenericDataset:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.dataset.Dataset`, "
+":py:class:`fdi.dataset.typed.Typed`, "
+":py:class:`fdi.dataset.datawrapper.DataWrapper`"
+msgstr ""
+
+#: fdi.dataset.dataset.GenericDataset:1 of
+msgid "mh: Contains one typed data item with a unit and a typecode."
+msgstr ""
+
+#: fdi.dataset.dataset.make_title_meta_l0:1 of
+msgid "make toString title and metadata."
+msgstr ""
+
+#: fdi.dataset.dataset.make_title_meta_l0 of
+msgid "heavy"
+msgstr ""
+
+#: fdi.dataset.dataset.make_title_meta_l0:3 of
+msgid "use bold symbols for separaters."
+msgstr ""
+
+#: fdi.dataset.dataset.make_title_meta_l0 of
+msgid "center"
+msgstr ""
+
+#: fdi.dataset.dataset.make_title_meta_l0:4 of
+msgid ""
+"0 for no centering;  -1 for centering with metadata table; other  for "
+"``str.center(<center>``."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:125
+msgid "fdi.dataset.datatypes module"
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.datatypes.DataTypes:1 of
+msgid "maps class type names to human-friendly types"
+msgstr ""
+
+#: fdi.dataset.datatypes.Quaternion:1 fdi.dataset.datatypes.Vector2D:1 of
+msgid "基类：:py:class:`fdi.dataset.datatypes.Vector`"
+msgstr ""
+
+#: fdi.dataset.datatypes.Quaternion:1 of
+msgid "Quaternion with 4-component data."
+msgstr ""
+
+#: fdi.dataset.datatypes.Quaternion:4
+#: fdi.dataset.datatypes.Quaternion.__init__:1 of
+msgid "invoked with no argument results in a vector of [0, 0, 0, 0] components"
+msgstr ""
+
+#: fdi.dataset.datatypes.Vector:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.quantifiable.Quantifiable`, "
+":py:class:`fdi.dataset.serializable.Serializable`, "
+":py:class:`fdi.dataset.eq.StateEqual`"
+msgstr ""
+
+#: fdi.dataset.datatypes.Vector:1 of
+msgid "N dimensional vector."
+msgstr ""
+
+#: fdi.dataset.datatypes.Vector:3 of
+msgid "If unit, description, type etc meta data is needed, use a Parameter."
+msgstr ""
+
+#: fdi.dataset.datatypes.Vector:5 of
+msgid ""
+"A Vector can compare with a value whose type is in ``DataTypes``, the "
+"quantity being used is the magnitude."
+msgstr ""
+
+#: fdi.dataset.datatypes.Vector:7 fdi.dataset.datatypes.Vector.__init__:1 of
+msgid "invoked with no argument results in a vector of [0, 0, 0] components."
+msgstr ""
+
+#: fdi.dataset.datatypes.Vector.components:1
+#: fdi.dataset.metadata.AbstractParameter.value:1
+#: fdi.dataset.typed.Typed.type:1 of
+msgid "for property getter"
+msgstr ""
+
+#: fdi.dataset.datatypes.Vector.getComponents:1 of
+msgid ""
+"Returns the actual components that is allowed for the components of this "
+"vector."
+msgstr ""
+
+#: fdi.dataset.datatypes.Vector.setComponents:1 of
+msgid "Replaces the current components of this vector."
+msgstr ""
+
+#: fdi.dataset.datatypes.Vector2D:1 of
+msgid "Vector with 2-component data"
+msgstr ""
+
+#: fdi.dataset.datatypes.Vector2D:3 fdi.dataset.datatypes.Vector2D.__init__:1
+#: of
+msgid "invoked with no argument results in a vector of [0, 0] components"
+msgstr ""
+
+#: fdi.dataset.datatypes.cast:1 of
+msgid "casts the input value to type specified, which is in DataTypeNames."
+msgstr ""
+
+#: fdi.dataset.datatypes.cast:3 of
+msgid "For example 'binary' type '0x9' is casted to int 9."
+msgstr ""
+
+#: fdi.dataset.datatypes.cast:5 of
+msgid "namespace: default is Classes.mapping."
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.datatypes.logger:1 of
+msgid ""
+"Allowed data (Parameter and Dataset) types and the corresponding classe "
+"names. The keys are mnemonics for humans; the values are "
+"type(x).__name__."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:133
+msgid "fdi.dataset.datawrapper module"
+msgstr ""
+
+#: fdi.dataset.datawrapper.DataContainer:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.annotatable.Annotatable`, "
+":py:class:`fdi.dataset.copyable.Copyable`, "
+":py:class:`fdi.dataset.eq.StateEqual`, "
+":py:class:`collections.abc.Container`"
+msgstr ""
+
+#: fdi.dataset.datawrapper.DataContainer:1 of
+msgid ""
+"A DataContainer is a composite of data and description. mh: note that "
+"There is no metadata. Implemented partly from AbstractDataWrapper."
+msgstr ""
+
+#: fdi.dataset.datawrapper.DataContainer:5
+#: fdi.dataset.datawrapper.DataContainer.__init__:1 of
+msgid "data: a Container. Default is None."
+msgstr ""
+
+#: fdi.dataset.datawrapper.DataContainer.getData:1 of
+msgid "Returns the data in this dw"
+msgstr ""
+
+#: fdi.dataset.datawrapper.DataContainer.getData:4 of
+msgid ""
+"`self._data` or `None` if '._data' is missing. e.g. subclass overriding "
+"`setData` calling `getData` from its `setData` that is called by "
+"'this.__init__'."
+msgstr ""
+
+#: fdi.dataset.datawrapper.DataContainer.hasData:1 of
+msgid "Returns whether this data wrapper has data."
+msgstr ""
+
+#: fdi.dataset.datawrapper.DataContainer.hasData:5 of
+msgid "`False` if data does not exist or is `None` or empty, `True` if otherwise."
+msgstr ""
+
+#: fdi.dataset.datawrapper.DataContainer.setData:1 of
+msgid ""
+"Replaces the current DataData with specified argument. mh: subclasses can"
+" override this to add listener whenevery data is replaced."
+msgstr ""
+
+#: fdi.dataset.datawrapper.DataWrapper:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.datawrapper.DataContainer`, "
+":py:class:`fdi.dataset.quantifiable.Quantifiable`"
+msgstr ""
+
+#: fdi.dataset.datawrapper.DataWrapper:1 of
+msgid ""
+"A DataWrapper is a composite of data, unit and description. mh: note that"
+" all data are in the same unit. There is no metadata. Implemented from "
+"AbstractDataWrapper."
+msgstr ""
+
+#: fdi.dataset.datawrapper.DataWrapperMapper:1 of
+msgid "Object holding a map of data wrappers."
+msgstr ""
+
+#: fdi.dataset.datawrapper.DataWrapperMapper.getDataWrappers:1 of
+msgid "Gives the data wrappers, mapped by name."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:141
+msgid "fdi.dataset.dateparameter module"
+msgstr ""
+
+#: fdi.dataset.dateparameter.DateParameter:1
+#: fdi.dataset.stringparameter.StringParameter:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.metadata.Parameter`, "
+":py:class:`fdi.dataset.typecoded.Typecoded`"
+msgstr ""
+
+#: fdi.dataset.dateparameter.DateParameter:1 of
+msgid "has a FineTime as the value."
+msgstr ""
+
+#: fdi.dataset.dateparameter.DateParameter:4
+#: fdi.dataset.dateparameter.DateParameter.__init__:1
+#: fdi.dataset.dateparameter.DateParameter1:3 of
+msgid "Set up a parameter whose value is a point in TAI time."
+msgstr ""
+
+#: fdi.dataset.dateparameter.DateParameter.setDefault:1
+#: fdi.dataset.dateparameter.DateParameter.setValue:1 of
+msgid "accept any type that a FineTime does."
+msgstr ""
+
+#: fdi.dataset.dateparameter.DateParameter1:1 of
+msgid "基类：:py:class:`fdi.dataset.dateparameter.DateParameter`"
+msgstr ""
+
+#: fdi.dataset.dateparameter.DateParameter1:1 of
+msgid "Like DateParameter but usese  FineTime1."
+msgstr ""
+
+#: fdi.dataset.dateparameter.DateParameter1.setDefault:1
+#: fdi.dataset.dateparameter.DateParameter1.setValue:1 of
+msgid "accept any type that a FineTime1 does."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:149
+msgid "fdi.dataset.deserialize module"
+msgstr ""
+
+#: fdi.dataset.deserialize.IntDecoder:1 of
+msgid "基类：:py:class:`json.decoder.JSONDecoder`"
+msgstr ""
+
+#: fdi.dataset.deserialize.IntDecoder:1 of
+msgid ""
+"adapted from https://stackoverflow.com/questions/45068797/how-to-convert-"
+"string-int-json-into-real-int-with-json-loads modified to also convert "
+"keys in dictionaries."
+msgstr ""
+
+#: fdi.dataset.deserialize.IntDecoder:4 fdi.dataset.deserialize.IntDecoderOD:1
+#: of
+msgid ""
+"``object_hook``, if specified, will be called with the result of every "
+"JSON object decoded and its return value will be used in place of the "
+"given ``dict``.  This can be used to provide custom deserializations "
+"(e.g. to support JSON-RPC class hinting)."
+msgstr ""
+
+#: fdi.dataset.deserialize.IntDecoder:9 fdi.dataset.deserialize.IntDecoderOD:6
+#: of
+msgid ""
+"``object_pairs_hook``, if specified will be called with the result of "
+"every JSON object decoded with an ordered list of pairs.  The return "
+"value of ``object_pairs_hook`` will be used instead of the ``dict``. This"
+" feature can be used to implement custom decoders. If ``object_hook`` is "
+"also defined, the ``object_pairs_hook`` takes priority."
+msgstr ""
+
+#: fdi.dataset.deserialize.IntDecoder:16
+#: fdi.dataset.deserialize.IntDecoderOD:13 of
+msgid ""
+"``parse_float``, if specified, will be called with the string of every "
+"JSON float to be decoded. By default this is equivalent to "
+"float(num_str). This can be used to use another datatype or parser for "
+"JSON floats (e.g. decimal.Decimal)."
+msgstr ""
+
+#: fdi.dataset.deserialize.IntDecoder:21
+#: fdi.dataset.deserialize.IntDecoderOD:18 of
+msgid ""
+"``parse_int``, if specified, will be called with the string of every JSON"
+" int to be decoded. By default this is equivalent to int(num_str). This "
+"can be used to use another datatype or parser for JSON integers (e.g. "
+"float)."
+msgstr ""
+
+#: fdi.dataset.deserialize.IntDecoder:26
+#: fdi.dataset.deserialize.IntDecoderOD:23 of
+msgid ""
+"``parse_constant``, if specified, will be called with one of the "
+"following strings: -Infinity, Infinity, NaN. This can be used to raise an"
+" exception if invalid JSON numbers are encountered."
+msgstr ""
+
+#: fdi.dataset.deserialize.IntDecoder:31
+#: fdi.dataset.deserialize.IntDecoderOD:28 of
+msgid ""
+"If ``strict`` is false (true is the default), then control characters "
+"will be allowed inside strings.  Control characters in this context are "
+"those with character codes in the 0-31 range, including ``'\\t'`` (tab), "
+"``'\\n'``, ``'\\r'`` and ``'\\0'``."
+msgstr ""
+
+#: fdi.dataset.deserialize.IntDecoderOD:1 of
+msgid "基类：:py:class:`fdi.dataset.deserialize.IntDecoder`"
+msgstr ""
+
+#: fdi.dataset.deserialize.constructSerializable:1 of
+msgid ""
+"mh: reconstruct object from the output of jason.loads(). Recursively goes"
+" into nested class instances that are not encoded by default by "
+"JSONEncoder, instantiate and fill in variables. Objects to be "
+"deserialized must have their classes loaded. _STID cannot have module "
+"names in it (e.g.  dataset.Product) or locals()[classname] or "
+"globals()[classname] will not work."
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize:1 of
+msgid "Loads classes with _STID from the results of serialize."
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize:3 of
+msgid "if usedict is True dict insted of ODict will be used."
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize_args:1 of
+msgid "parse the command path to get positional and keywords arguments."
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize_args:3 of
+msgid ""
+"if `not_quoted` is `True`, split everythine to the left of first `{` with"
+" `Serialize_Args_Sep` append the part startin from the `{`. `mark='{'`"
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize_args:4 of
+msgid ""
+"else after splitting all_args  with `Serialize_Args_Sep`: `mark='%7B%22'`"
+" (`quote('{')`)"
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize_args:6 of
+msgid "Scan from left. if all_args[i] not start with `mark`"
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize_args:8 of
+msgid ""
+"Conversion rules: |all_args[i]| converted to | | else | convert (case "
+"insensitive) and move on to the next segment | | string not starting with"
+" ```'0x'``` | `quote` |"
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize_args:13 of
+msgid ""
+"else `decode_str()` if ```not_quoted==False``` else only substitute "
+"SAS_Avatar with Serialize_Args_Sep. Then `deserialize()` this segment to "
+"become ```{'apiargs':list, 'foo':bar ...}```, append value of "
+"```apiargs``` to the converted-list above, remove the "
+"```apiargs```-```val``` pair."
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize_args:14 of
+msgid ""
+"return 200 as the reurn code followed by the converted-list and the "
+"deserialized ```dict```."
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize_args of
+msgid "all_args"
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize_args:16 of
+msgid "a list of path segments for the args list."
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize_args of
+msgid "first_string"
+msgstr ""
+
+#: fdi.dataset.deserialize.deserialize_args:17 of
+msgid ""
+"Do not try to change the type of the first arg (assumed to be the "
+"function/method name)."
+msgstr ""
+
+#: fdi.dataset.deserialize.encode_str:1 of
+msgid ""
+"quote to remove general url offenders then use a mostly harmless str to "
+"substitute Serialize_Args_Sep."
+msgstr ""
+
+#: fdi.dataset.deserialize.serialize_args:1 of
+msgid ""
+"Serialize all positional and keywords arguements as they would appear in "
+"a function call. Arguements are assumed to have been placed in the same "
+"order of a valid function/method call. They are scanned from left to "
+"right from `args[i]` i = 0, 1,... to `kwds[j]` j = 0, 1, ..."
+msgstr ""
+
+#: fdi.dataset.deserialize.serialize_args:4 of
+msgid ""
+"Scan args from i=0. if is of args[i] is of `bool`, `int`, `float` types, "
+"convert with `str`, if `str()`, convert with `encode_str()`, if `bytes` "
+"or `bytearray' types, with ```0x```+`hex()`, save to the convered-list, "
+"and move on to the next element."
+msgstr ""
+
+#: fdi.dataset.deserialize.serialize_args:5 of
+msgid "else if finding a segment not of any of the above types,"
+msgstr ""
+
+#: fdi.dataset.deserialize.serialize_args:6 of
+msgid ""
+"** put this and the rest of ```args``` as the ```value``` in "
+"```{'apiargs':value}```, ** and append `kwds` key-val pairs after this "
+"pair, ** serialize the disctionary with `serialize()` and encode_str() **"
+" append the result to the converted-list. ** break from the args scan "
+"loop. * if args scan loop reaches its end, if `kwds` is not empty, "
+"serialize it with `serialize()` and encode_str(), or scanning reaches the"
+" end of args. * append the result to the converted-list. * join the "
+"converted-list with `Serialize_Args_Sep`. * return the result string"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:157
+msgid "fdi.dataset.eq module"
+msgstr ""
+
+#: fdi.dataset.eq.CircularCallError:1 of
+msgid "基类：:py:class:`RuntimeError`"
+msgstr ""
+
+#: fdi.dataset.eq.DeepcmpEqual:1 fdi.dataset.eq.EqualDict:1 of
+msgid ""
+"mh: Can compare key-val pairs of another object with self. False if "
+"compare with None or exceptions raised, e.g. obj does not have items()"
+msgstr ""
+
+#: fdi.dataset.eq.DeepcmpEqual.diff:1 of
+msgid ""
+"recursively compare components of list and dict. until meeting equality. "
+"seenlist: a list of classes that has been seen. will not descend in to "
+"them. Paremeters ----------"
+msgstr ""
+
+#: fdi.dataset.eq.EqualODict:1 of
+msgid ""
+"mh: Can compare order and key-val pairs of another object with self. "
+"False if compare with None or exceptions raised, e.g. obj does not have "
+"items()"
+msgstr ""
+
+#: fdi.dataset.eq.StateEqual:1 of
+msgid "Equality tested by hashed state."
+msgstr ""
+
+#: fdi.dataset.eq.StateEqual:4 fdi.dataset.eq.StateEqual.__init__:1 of
+msgid "Must pass *args* so `DataWrapper` in `Composite` can get `data`."
+msgstr ""
+
+#: fdi.dataset.eq.StateEqual.__eq__:1 of
+msgid "compares hash."
+msgstr ""
+
+#: fdi.dataset.eq.deepcmp:1 of
+msgid ""
+"Recursively descends into obj1's every member, which may be set, list, "
+"dict, ordereddict, (or subclasses of MutableMapping or MutableSequence) "
+"and any objects with '__class__' attribute, compares every member found "
+"with its counterpart in obj2."
+msgstr ""
+
+#: fdi.dataset.eq.deepcmp:7 of
+msgid "Detects cyclic references."
+msgstr ""
+
+#: fdi.dataset.eq.deepcmp:9 of
+msgid ""
+"* ``None`` if finds no difference, a string of explanation * *otherwise.*"
+" * *eqcmp: if True, use __eq__ or __cmp__ if the objs have them. If False"
+" only use as the last resort. default True.*"
+msgstr ""
+
+#: fdi.dataset.eq.deepcmp:9 of
+msgid "``None`` if finds no difference, a string of explanation"
+msgstr ""
+
+#: fdi.dataset.eq.deepcmp:10 of
+msgid "*otherwise.*"
+msgstr ""
+
+#: fdi.dataset.eq.deepcmp:11 of
+msgid ""
+"*eqcmp: if True, use __eq__ or __cmp__ if the objs have them. If False "
+"only use as the last resort. default True.*"
+msgstr ""
+
+#: fdi.dataset.eq.xhash:1 of
+msgid "get the hash of a tuple of hashes of all members of given sequence."
+msgstr ""
+
+#: fdi.dataset.eq.xhash:3 of
+msgid "hash_list: use instead of self.getstate__()"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:165
+msgid "fdi.dataset.finetime module"
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.copyable.Copyable`, "
+":py:class:`fdi.dataset.eq.StateEqual`, "
+":py:class:`fdi.dataset.serializable.Serializable`"
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime:1 of
+msgid ""
+"Atomic time (SI seconds) elapsed since the TAI epoch of 1 January 1958 "
+"UT2. The resolution is one microsecond and the allowable range is: epoch "
+"+ /-290, 000 years approximately."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime:5 of
+msgid "This has the following advantages, compared with the standard class:"
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime:7 of
+msgid ""
+"It has better resolution(microseconds) Time differences are correct "
+"across leap seconds It is immutable."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime:11 fdi.dataset.finetime.FineTime.__init__:1
+#: fdi.dataset.finetime.FineTime1:3 of
+msgid "Initiate with a UTC date or an integer TAI."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime:13 fdi.dataset.finetime.FineTime.__init__:3
+#: fdi.dataset.finetime.FineTime1:5 of
+msgid ""
+"date; time to be set to. Acceptable types: `int` for TAI, "
+"`datetime.datetime`, `string` for ISO format date-time, or bytes-like "
+"classed that can get string by calling its `decode(encoding='utf-8')`"
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.finetime.FineTime.EPOCH:1
+#: fdi.dataset.finetime.FineTime1.EPOCH:1 of
+msgid "number of TAI units in a second"
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime.datetimeToFineTime:1
+#: fdi.dataset.finetime.FineTime1.datetimeToFineTime:1 of
+msgid ""
+"Return given  Python Datetime in FineTime to the precision of the input. "
+"Rounded to the last digit. Unit is decided by RESOLUTION."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime.getFormat:1 of
+msgid ""
+"`format` cannot be a property name as it is a built so`@format.setter` is"
+" not allowed."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime.getTime:1 of
+msgid "Returns the time related to this object."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime.isoutc:1 of
+msgid ""
+"Returns a String representation of this objet in ISO format without "
+"timezone. sub-second set to TIMESPEC."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime.isoutc:3 of
+#, python-format
+msgid ""
+"format: time format. default '%Y-%m-%dT%H:%M:%S' prints like "
+"2019-02-17T12:43:04.577000"
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime.microsecondsSinceEPOCH:1 of
+msgid ""
+"Return the rounded integer number of microseconds since the epoch: 1 Jan "
+"1958."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime.setTime:1 of
+msgid "Sets the time of this object."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime.setTime:3 of
+msgid ""
+"If an integer is given, it will be taken as the TAI. If a datetime object"
+" or a string code is given, the timezone will be set to UTC. Only when "
+"current TAI is 0, so a non-zero instance is immutable. Violation gets a "
+"TypeError."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime.toString:1 of
+msgid ""
+"Returns a String representation of this object according to self.format. "
+"level: 0 prints like 2019-02-17T12:43:04.577000 TAI(...) width: if non-"
+"zero, insert newline to break simplified output into shorter lines. For "
+"level=0 it is ``` #TODO ```"
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime.subtract:1 of
+msgid "Subract the specified time and return the difference in microseconds."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime.toDatetime:1
+#: fdi.dataset.finetime.FineTime1.toDatetime:1 of
+msgid "Return given FineTime as a Python Datetime."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime.toDatetime:3
+#: fdi.dataset.finetime.FineTime1.toDatetime:3 of
+msgid ""
+"tai: if not given or given as `None`, return this object's time as a "
+"Python Datetime."
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime1:1 of
+msgid "基类：:py:class:`fdi.dataset.finetime.FineTime`"
+msgstr ""
+
+#: fdi.dataset.finetime.FineTime1:1 of
+msgid "Same as FineTime but Epoch is 2017-1-1 0 UTC and unit is millisecond"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:173
+msgid "fdi.dataset.history module"
+msgstr ""
+
+#: fdi.dataset.history.History:1 of
+msgid "基类：:py:class:`fdi.dataset.dataset.CompositeDataset`"
+msgstr ""
+
+#: fdi.dataset.history.History:1 of
+msgid ""
+"Public interface to the history dataset. Contains the main methods for "
+"retrieving a script and copying the history."
+msgstr ""
+
+#: fdi.dataset.history.History:4 fdi.dataset.history.History.__init__:1 of
+msgid ""
+"mh: The copy constructor is better not be implemented. Use copy() "
+"instead. Remember: not only copies the datasets, but also changes the "
+"history ID in the metadata and relevant table entries to indicate that "
+"this a new independent product of which the history may change."
+msgstr ""
+
+#: fdi.dataset.history.History.getOutputVar:1 of
+msgid "Returns the final output variable of the history script."
+msgstr ""
+
+#: fdi.dataset.history.History.getScript:1 of
+msgid "Creates a Jython script from the history."
+msgstr ""
+
+#: fdi.dataset.history.History.getTaskHistory:1 of
+msgid "Returns a human readable formatted history tree."
+msgstr ""
+
+#: fdi.dataset.history.History.saveScript:1 of
+msgid "Saves the history script to a file."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:181
+msgid "fdi.dataset.indexed module"
+msgstr ""
+
+#: fdi.dataset.indexed.Indexed:1 of
+msgid "Abstract class with an index table for efficient records look-up."
+msgstr ""
+
+#: fdi.dataset.indexed.Indexed:5 fdi.dataset.indexed.Indexed.__init__:1 of
+msgid "indexPattern: specifies which columns to use to do look up."
+msgstr ""
+
+#: fdi.dataset.indexed.Indexed.clearToc:1 of
+msgid "Clears the index table of content."
+msgstr ""
+
+#: fdi.dataset.indexed.Indexed.getColumnsToLookup:1
+#: fdi.dataset.tabledataset.IndexedTableDataset.getColumnsToLookup:1 of
+msgid "returns an iterator that gives a number of sequences to looking up over."
+msgstr ""
+
+#: fdi.dataset.indexed.Indexed.getColumnsToLookup:3 of
+msgid ""
+"Default is a tuple of the ``data`` attributes of every columns specified "
+"by ``indexPattern``. To be overrided for different data model."
+msgstr ""
+
+#: fdi.dataset.indexed.Indexed.toc:1 of
+msgid "returns  the index table of content."
+msgstr ""
+
+#: fdi.dataset.indexed.Indexed.updateToc:1 of
+msgid ""
+"Build index in format specified in indexPattern for retrieving record. "
+"which: an iterator that gives a number of sequences to looking up over. "
+"Default is ``getColumnsToLookup()``. for_records: a list or a ``Slice`` "
+"of record (row) numbers. Those are changed records that caused updating. "
+"default is all records."
+msgstr ""
+
+#: fdi.dataset.indexed.Indexed.vLookUp:1
+#: fdi.dataset.tabledataset.IndexedTableDataset.vLookUp:1 of
+msgid ""
+"Similar to Excel VLOOKUP, return all records (rows) that match the key. "
+"key: taken as a dictionary key unless ``multiple`` is True. return_index:"
+" if True (default) return index in the array of columns. multiple: if "
+"True (default is False) loop through key as a sequence of keys and return"
+" a sequece."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:189
+msgid "fdi.dataset.invalid module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:197
+msgid "fdi.dataset.listener module"
+msgstr ""
+
+#: fdi.dataset.listener.ColumnListener:1 fdi.dataset.listener.DatasetListener:1
+#: fdi.dataset.listener.MetaDataListener:1
+#: fdi.dataset.listener.ParameterListener:1
+#: fdi.dataset.listener.ProductListener:1
+#: fdi.dataset.messagequeue.MqttRelayListener:1 of
+msgid "基类：:py:class:`fdi.dataset.listener.EventListener`"
+msgstr ""
+
+#: fdi.dataset.listener.ColumnListener:1 of
+msgid "Listener for events occuring in a Column."
+msgstr ""
+
+#: fdi.dataset.listener.ColumnListener:3 of
+msgid "Available types::"
+msgstr ""
+
+#: fdi.dataset.listener.ColumnListener:9
+#: fdi.dataset.listener.ParameterListener:8 of
+msgid "Cause is always null."
+msgstr ""
+
+#: fdi.dataset.listener.DatasetEvent:1 of
+msgid "基类：:py:class:`fdi.dataset.serializable.Serializable`"
+msgstr ""
+
+#: fdi.dataset.listener.DatasetEventSender:1
+#: fdi.dataset.messagequeue.MqttRelaySender:1 of
+msgid "基类：:py:class:`fdi.dataset.listener.EventSender`"
+msgstr ""
+
+#: fdi.dataset.listener.DatasetListener:1
+#: fdi.dataset.listener.MetaDataListener:1 of
+msgid "Listener for events occuring in MetaData. Available types::"
+msgstr ""
+
+#: fdi.dataset.listener.DatasetListener:9
+#: fdi.dataset.listener.ProductListener:9 of
+msgid "Possible causes::"
+msgstr ""
+
+#: fdi.dataset.listener.DatasetListener:14
+#: fdi.dataset.listener.MetaDataListener:13
+#: fdi.dataset.listener.ParameterListener:10
+#: fdi.dataset.listener.ProductListener:14 of
+msgid ""
+"Warning: The listener handler must be a class attribute in order to "
+"create an object hard reference. See DatasetBaseListener."
+msgstr ""
+
+#: fdi.dataset.listener.EventListener:1
+#: fdi.dataset.listener.xDatasetBaseListener:1 of
+msgid "基类：:py:class:`fdi.dataset.annotatable.Annotatable`"
+msgstr ""
+
+#: fdi.dataset.listener.EventListener:1 of
+msgid "Generic interface for listeners that will listen to anything"
+msgstr ""
+
+#: fdi.dataset.listener.EventSender:1 of
+msgid ""
+"adapted from Peter Thatcher's https://stackoverflow.com/questions/1092531"
+"/event-system-in-python/1096614#1096614"
+msgstr ""
+
+#: fdi.dataset.listener.EventSender:4
+#: fdi.dataset.listener.EventSender.__init__:1
+#: fdi.dataset.listener.EventSender.listeners:1 of
+msgid "**Returns**"
+msgstr ""
+
+#: fdi.dataset.listener.EventSender.addListener:1 of
+msgid "Adds a listener to this. Paremeters ----------"
+msgstr ""
+
+#: fdi.dataset.listener.EventSender.getListeners:1 of
+msgid "Returns the current Listeners. Paremeters ----------"
+msgstr ""
+
+#: fdi.dataset.listener.EventSender.removeListener:1 of
+msgid "Removes a listener from this. Paremeters ----------"
+msgstr ""
+
+#: fdi.dataset.listener.EventSender.setListeners:1 of
+msgid ""
+"Replaces the current Listeners with specified argument. Paremeters "
+"----------"
+msgstr ""
+
+#: fdi.dataset.listener.ListnerSet:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.serializable.Serializable`, "
+":py:class:`fdi.dataset.eq.StateEqual`, :py:class:`collections.UserList`"
+msgstr ""
+
+#: fdi.dataset.listener.ListnerSet:1 of
+msgid "Mutable collection of Listeners of an EvenSender."
+msgstr ""
+
+#: fdi.dataset.listener.ListnerSet:4 fdi.dataset.listener.ListnerSet.__init__:1
+#: of
+msgid "data: default is `None` for a list."
+msgstr ""
+
+#: fdi.dataset.listener.ListnerSet.equals:1 of
+msgid "compares with another one. :参数: **Returns**"
+msgstr ""
+
+#: fdi.dataset.listener.ListnerSet.geturns:1 of
+msgid "Returns the current urns. :参数: **Returns**"
+msgstr ""
+
+#: fdi.dataset.listener.ListnerSet.seturns:1 of
+msgid "Replaces the current urn with specified argument."
+msgstr ""
+
+#: fdi.dataset.listener.ListnerSet.toString:1 of
+msgid ""
+"* *LIST[TUPLE(OBJ)] or STRXS* * A list of member-repre tuples or a string"
+" of all depending on `alist`."
+msgstr ""
+
+#: fdi.dataset.listener.ListnerSet.toString:1 of
+msgid "*LIST[TUPLE(OBJ)] or STRXS*"
+msgstr ""
+
+#: fdi.dataset.listener.ListnerSet.toString:2 of
+msgid "A list of member-repre tuples or a string of all depending on `alist`."
+msgstr ""
+
+#: fdi.dataset.listener.MetaDataListener:8 of
+msgid ""
+"Possible causes: not null (for PARAMETER_CHANGED, if parameter internally"
+" changed) null (for PARAMETER_CHANGED, when set is called with a previous"
+" existing parameter, and rest)"
+msgstr ""
+
+#: fdi.dataset.listener.ParameterListener:1 of
+msgid "Listener for events occuring in a Parameter. Available types::"
+msgstr ""
+
+#: fdi.dataset.listener.ProductListener:1 of
+msgid "Listener for events occuring in Product. Available types::"
+msgstr ""
+
+#: fdi.dataset.listener.xDatasetBaseListener:1 of
+msgid ""
+"Generic interface for listeners that will listen to events happening on a"
+" target of a specific type. Java Warning: The listener must be a class "
+"field in order to make an object hard reference."
+msgstr ""
+
+#: fdi.dataset.listener.xDatasetBaseListener.targetChanged:1 of
+msgid ""
+"Informs that an event has happened in a target of the specified type. "
+"Paremeters ----------"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:205
+msgid "fdi.dataset.mediawrapper module"
+msgstr ""
+
+#: fdi.dataset.mediawrapper.MediaWrapper:1 of
+msgid "基类：:py:class:`fdi.dataset.arraydataset.ArrayDataset`"
+msgstr ""
+
+#: fdi.dataset.mediawrapper.MediaWrapper:1 of
+msgid "A MediaWrapper contains raw, usually binary, data in specific format."
+msgstr ""
+
+#: fdi.dataset.mediawrapper.MediaWrapper:5
+#: fdi.dataset.mediawrapper.MediaWrapper.__init__:1 of
+msgid "Initializes media data wrapped in ArrayDataset."
+msgstr ""
+
+#: fdi.dataset.mediawrapper.MediaWrapper:7
+#: fdi.dataset.mediawrapper.MediaWrapper.__init__:3 of
+msgid ""
+"typ_: www style string that follows `Content-Type: `. Default is "
+"`imagw/png`."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:213
+msgid "fdi.dataset.mediawrapper\\_datamodel module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:221
+msgid "fdi.dataset.messagequeue module"
+msgstr ""
+
+#: fdi.dataset.messagequeue.MqttRelayListener:1 of
+msgid "Generic interface for sending anything heard to an MQTT message queue."
+msgstr ""
+
+#: fdi.dataset.messagequeue.MqttRelayListener:4
+#: fdi.dataset.messagequeue.MqttRelayListener.__init__:1
+#: fdi.dataset.messagequeue.MqttRelaySender:5
+#: fdi.dataset.messagequeue.MqttRelaySender.__init__:1 of
+msgid ""
+"Starts a MQTT message queue and forward everything in the arguement list "
+"to the MQ serialized."
+msgstr ""
+
+#: fdi.dataset.messagequeue.MqttRelayListener:6
+#: fdi.dataset.messagequeue.MqttRelayListener.__init__:3
+#: fdi.dataset.messagequeue.MqttRelaySender:7
+#: fdi.dataset.messagequeue.MqttRelaySender.__init__:3 of
+msgid ""
+"host, port, username, passwd: if any is not provided, it is looked up in "
+"`config['mqtt']."
+msgstr ""
+
+#: fdi.dataset.messagequeue.MqttRelayListener.targetChanged:1 of
+msgid "Informs that an event has happened in a target of any type."
+msgstr ""
+
+#: fdi.dataset.messagequeue.MqttRelaySender:1 of
+msgid "Gets MQTT messages and forwards to listeners."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:229
+msgid "fdi.dataset.metadata module"
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.annotatable.Annotatable`, "
+":py:class:`fdi.dataset.copyable.Copyable`, "
+":py:class:`fdi.dataset.eq.StateEqual`, "
+":py:class:`fdi.dataset.listener.DatasetEventSender`, "
+":py:class:`fdi.dataset.serializable.Serializable`"
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter:1 of
+msgid ""
+"Parameter is the interface for all named attributes in the MetaData "
+"container."
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter:4 of
+msgid ""
+"A Parameter is a variable with associated information about its "
+"description, unit, type, valid ranges, default, format code etc. Type can"
+" be numeric, string, datetime, vector."
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter:6 of
+msgid ""
+"Often a parameter shows a property. So a parameter in the metadata of a "
+"dataset or product is often called a property."
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter:8 of
+msgid "Default     value=None, description='UNKNOWN'"
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter:10
+#: fdi.dataset.metadata.AbstractParameter.__init__:1 of
+msgid ""
+"Constructed with no argument results in a parameter of None value and "
+"'UNKNOWN' description ''. With a signle argument: arg -> value, 'UNKNOWN'"
+" as default-> description. With two positional arguments: arg1-> value, "
+"arg2-> description. Type is set according to value's. Unsuported "
+"parameter types will get a NotImplementedError."
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter.accept:1
+#: fdi.dataset.metadata.Parameter.accept:1 of
+msgid "Adds functionality to classes of this type."
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter.getValue:1 of
+msgid "Gets the value of this parameter as an Object."
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter.getValueAsString:1 of
+msgid "Value as string for building the string representation of the parameter."
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter.hash:1 of
+msgid "hash and equality derived only from the value of the parameter."
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter.hash:3 of
+msgid ""
+"because Python does not allow overriding __eq__ without setting hash to "
+"None."
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter.setValue:1
+#: fdi.dataset.metadata.Parameter.setValue:1 of
+msgid "Replaces the current value of this parameter."
+msgstr ""
+
+#: fdi.dataset.metadata.AbstractParameter.toString:1
+#: fdi.dataset.metadata.Parameter.toString:1 of
+msgid "alist: returns a dictionary string representation of parameter attributes."
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.metadata.Default_Extra_Param_Width:1 of
+msgid "Attribute | Defining Module | Holder Variable |"
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.metadata.Default_Extra_Param_Width:2 of
+msgid "'description' | `Annotatable` | `description` |"
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.metadata.Default_Extra_Param_Width:3 of
+msgid "'typ_' | `Typed` | `_type` |"
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.metadata.Default_Extra_Param_Width:4 of
+msgid "'unit' | `Quantifiable` | '_unit' |"
+msgstr ""
+
+#: ../sphinx/docstring fdi.dataset.metadata.Default_Extra_Param_Width:5 of
+msgid "'typecode' | `Typecoded` | '_typecode' |"
+msgstr ""
+
+#: fdi.dataset.metadata.MetaData:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.listener.ParameterListener`, "
+":py:class:`fdi.dataset.composite.Composite`, "
+":py:class:`fdi.dataset.copyable.Copyable`, "
+":py:class:`fdi.dataset.listener.DatasetEventSender`"
+msgstr ""
+
+#: fdi.dataset.metadata.MetaData:1 of
+msgid ""
+"A container of named Parameters. A MetaData object can have one or more "
+"parameters, each of them stored against a unique name. The order of "
+"adding parameters to this container is important, that is: the keySet() "
+"method will return a set of labels of the parameters in the sequence as "
+"they were added. Note that replacing a parameter with the same name, will"
+" keep the order."
+msgstr ""
+
+#: fdi.dataset.metadata.MetaData.clear:1 of
+msgid "Removes all the key - parameter mappings."
+msgstr ""
+
+#: fdi.dataset.metadata.MetaData.remove:1 of
+msgid "add eventhandling"
+msgstr ""
+
+#: fdi.dataset.metadata.MetaData.set:1 of
+msgid "Saves the parameter and  adds eventhandling."
+msgstr ""
+
+#: fdi.dataset.metadata.MetaData.set:3 of
+msgid ""
+"In a parameter name, dot or other invalid characters (when the name is "
+"used as a property name) is ignored."
+msgstr ""
+
+#: fdi.dataset.metadata.MetaData.set:5 of
+msgid "Raises TypeError if not given Parameter (sub) class object."
+msgstr ""
+
+#: fdi.dataset.metadata.MetaData.toString:1 of
+msgid "return  string representation of metada."
+msgstr ""
+
+#: fdi.dataset.metadata.MetaData.toString:3 of
+msgid ""
+"level: 0 is the most detailed, 2 is the least, tablefmt: format string in"
+" packae ``tabulate``, for level==0, tablefmt1 for level1, tablefmt2: "
+"format of 2D table data. param_widths: controls how the attributes of "
+"every parameter are displayed in the table cells. If is set to -1, there "
+"is no cell-width limit. For finer control set a dictionary of parameter "
+"attitute names and how many characters wide its tsble cell is, 0 for "
+"ommiting the attributable. Default is `MetaData.Table_Widths[0]`. e.g."
+msgstr ""
+
+#: fdi.dataset.metadata.MetaData.toString:6 of
+msgid "``{'name': 8, 'value': 17, 'unit': 7, 'type': 8,"
+msgstr ""
+
+#: fdi.dataset.metadata.MetaData.toString:7 of
+msgid "'valid': 20, 'default': 17, 'code': 4, 'description': 15}``"
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.metadata.AbstractParameter`, "
+":py:class:`fdi.dataset.typed.Typed`"
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter:1 of
+msgid ""
+"Parameter is the interface for all named attributes in the MetaData "
+"container. It can have a value and a description. Default arguments: "
+"typ_='', default=None, valid=None. value=default, description='UNKNOWN'"
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter:8 fdi.dataset.metadata.Parameter.__init__:3
+#: fdi.dataset.stringparameter.StringParameter:6 of
+msgid "invoked with no argument results in a parameter of"
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter:7 fdi.dataset.metadata.Parameter.__init__:2
+#: fdi.dataset.stringparameter.StringParameter:5 of
+msgid ""
+"None value and 'UNKNOWN' description ''. typ_ DataTypes[''], which is "
+"None. With a signle argument: arg -> value, 'UNKNOWN'-> description. "
+"ParameterTypes-> typ_, hex values have integer typ_. Unsuported parameter"
+" types will get a NotImplementedError."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter:22 fdi.dataset.metadata.Parameter.__init__:13
+#: fdi.dataset.stringparameter.StringParameter:16 of
+msgid ""
+"f        With two positional arguments: arg1-> value, arg2-> description."
+" ParameterTypes['']-> typ_."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter:11 fdi.dataset.metadata.Parameter.__init__:6
+#: fdi.dataset.stringparameter.StringParameter:9 of
+msgid ""
+"Unsuported parameter types will get a NotImplementedError. With three "
+"positional arguments: arg1 casted to DataTypes[arg3]-> value, arg2-> "
+"description. arg3-> typ_. Unsuported parameter types will get a "
+"NotImplementedError. Incompatible value and typ_ will get a TypeError. "
+"Parameters ----------"
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.checked:1 of
+msgid "Checks input value against self.type."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.checked:3 of
+msgid ""
+"If value is none, returns it; else if type is not set, return value after"
+" setting type; If value's type is a subclass of self's type, return the "
+"value; If value's and self's types are both subclass of Number, returns "
+"value casted in self's type."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.getDefault:1 of
+msgid "Returns the default related to this object."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.getValid:1 of
+msgid "Returns the valid related to this object."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.setDefault:1 of
+msgid "Sets the default of this object."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.setDefault:3 of
+msgid ""
+"Default is set directly if type is not set or default is None. If the "
+"type of default is not getType(), TypeError is raised."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.setType:1 fdi.dataset.typed.Typed.setType:1
+#: of
+msgid "Replaces the current type of this parameter."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.setType:3 of
+msgid ""
+"Default will be casted if not the same. Unsuported parameter types will "
+"get a NotImplementedError."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.setValid:1 of
+msgid "Sets the valid of this object."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.setValid:3 of
+msgid ""
+"If valid is None or empty, set as None, else save in a way so the tuple "
+"keys can be serialized with JSON. [[[rangelow, ranehi], state1], "
+"[[range2low, r..]..]..]"
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.setValue:3 of
+msgid ""
+"If value is None set it to None (#TODO: default?) If given/current type "
+"is '' and arg value's type is in DataTypes both value and type are "
+"updated to the suitable one in DataTypeNames; or else TypeError is "
+"raised. If value type is not a subclass of given/current type, or"
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.setValue:6 of
+msgid "Incompatible value and type will get a TypeError."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.split:1 of
+msgid "split a multiple binary bit-masked parameters according to masks."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.split:3 of
+msgid ""
+"into: dictionary mapping bit-masks to the sub-name of the parameter. "
+"return: a dictionary mapping name of new parameters to its value."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.validate:1 of
+msgid "checks if a match the rule set."
+msgstr ""
+
+#: fdi.dataset.metadata.Parameter.validate:3 of
+msgid ""
+"value: will be checked against the ruleset. Default is ``self._valid``. "
+"returns: (valid value, rule name) for discrete and range rules. {mask: "
+"(valid val, rule name, mask_height, mask_width), ...} for binary masks "
+"rules. (INVALID, 'Invalid') if no matching is found. (value, 'Default') "
+"if rule set is empty."
+msgstr ""
+
+#: fdi.dataset.metadata.parameterDataClasses:1 of
+msgid "maps machine type names to class objects"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:237
+msgid "fdi.dataset.metadataholder module"
+msgstr ""
+
+#: fdi.dataset.metadataholder.MetaDataHolder:1 of
+msgid "Object holding meta data."
+msgstr ""
+
+#: fdi.dataset.metadataholder.MetaDataHolder:5
+#: fdi.dataset.metadataholder.MetaDataHolder.__init__:1 of
+msgid "Adds MetaData to the class. with defaults set to self.zInfo['metadata']."
+msgstr ""
+
+#: fdi.dataset.metadataholder.MetaDataHolder.getMeta:1 of
+msgid ""
+"Returns the current MetaData container of this object. Cannot become a "
+"python property because setMeta is in Attributable"
+msgstr ""
+
+#: fdi.dataset.metadataholder.MetaDataHolder.hasMeta:1 of
+msgid ""
+"whether the metadata holder is present. During initialization subclass of"
+" MetaDataHolder may need to know if the metadata holder has been put in "
+"place with is method."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:245
+msgid "fdi.dataset.ndprint module"
+msgstr ""
+
+#: fdi.dataset.ndprint.ndprint:7 of
+msgid "makes a formated string of an N-dimensional array for printing."
+msgstr ""
+
+#: fdi.dataset.ndprint.ndprint:2 of
+msgid ""
+"The fastest changing index is the innerest list. E.g. A 2 by 3 matrix is "
+"[[1,2],[3,4],[5,6]] written as::"
+msgstr ""
+
+#: fdi.dataset.ndprint.ndprint:5 of
+msgid "1 2 3 4 5 6"
+msgstr ""
+
+#: fdi.dataset.ndprint.ndprint:21 of
+msgid "But if the matrix is a table, the cells in a column change the fastest,"
+msgstr ""
+
+#: fdi.dataset.ndprint.ndprint:10 of
+msgid ""
+"and the columns are written vertically. So to print a matrix as a table, "
+"whose columns are the innerest list, set trans = True (default) then the "
+"matrix needs to be printed transposed::"
+msgstr ""
+
+#: fdi.dataset.ndprint.ndprint:14 of
+msgid "1 3 5 2 4 6"
+msgstr ""
+
+#: fdi.dataset.ndprint.ndprint of
+msgid "tablefmt3"
+msgstr ""
+
+#: fdi.dataset.ndprint.ndprint:19 of
+msgid "control 2d array printing. Default 'plain'."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:253
+msgid "fdi.dataset.numericparameter module"
+msgstr ""
+
+#: fdi.dataset.numericparameter.BooleanParameter:1 of
+msgid "基类：:py:class:`fdi.dataset.metadata.Parameter`"
+msgstr ""
+
+#: fdi.dataset.numericparameter.BooleanParameter:1 of
+msgid "A Parameter that has a boolean as the value."
+msgstr ""
+
+#: fdi.dataset.numericparameter.BooleanParameter:4
+#: fdi.dataset.numericparameter.BooleanParameter.__init__:1 of
+msgid "Set up a parameter whose value is a boolean"
+msgstr ""
+
+#: fdi.dataset.numericparameter.BooleanParameter.setDefault:1 of
+msgid "accept any type that `bool` Vector does."
+msgstr ""
+
+#: fdi.dataset.numericparameter.BooleanParameter.setValue:1 of
+msgid "accept any type that `bool` does."
+msgstr ""
+
+#: fdi.dataset.numericparameter.NumericParameter:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.metadata.Parameter`, "
+":py:class:`fdi.dataset.quantifiable.Quantifiable`"
+msgstr ""
+
+#: fdi.dataset.numericparameter.NumericParameter:1 of
+msgid "A Parameter that has a number as the value, a unit, and a typecode."
+msgstr ""
+
+#: fdi.dataset.numericparameter.NumericParameter:4
+#: fdi.dataset.numericparameter.NumericParameter.__init__:1 of
+msgid "Set up a parameter whose value is a or a list of numbers."
+msgstr ""
+
+#: fdi.dataset.numericparameter.NumericParameter:6
+#: fdi.dataset.numericparameter.NumericParameter.__init__:3 of
+msgid "typ_: type of the parameter value."
+msgstr ""
+
+#: fdi.dataset.numericparameter.NumericParameter.setDefault:1
+#: fdi.dataset.numericparameter.NumericParameter.setValue:1 of
+msgid "accept any type that a Vector does."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:261
+msgid "fdi.dataset.odict module"
+msgstr ""
+
+#: fdi.dataset.odict.ODict:1 of
+msgid ""
+"基类：:py:class:`collections.UserDict`, "
+":py:class:`fdi.dataset.serializable.Serializable`, "
+":py:class:`fdi.dataset.eq.StateEqual`"
+msgstr ""
+
+#: fdi.dataset.odict.ODict:1 of
+msgid "Ordered dict that is not a subclass of dict and with a better __str__."
+msgstr ""
+
+#: fdi.dataset.odict.ODict.get:1 of
+msgid ""
+"Raise a ``KeyError`` to change the default behavior of colections.Mapping"
+" to quietly return a None when a key is not found in the dict."
+msgstr ""
+
+#: fdi.dataset.odict.ODict.toString of
+msgid "level"
+msgstr ""
+
+#: fdi.dataset.odict.ODict.toString:3 of
+msgid "default=0,"
+msgstr ""
+
+#: fdi.dataset.odict.ODict.toString of
+msgid "keyval"
+msgstr ""
+
+#: fdi.dataset.odict.ODict.toString:4 of
+msgid ""
+"default=`None`. If set to a string, `ODict` class name is not shown and a"
+" label of given string is shown with each key as 'label key:"
+msgstr ""
+
+#: fdi.dataset.odict.ODict.toString:8 of
+msgid "'."
+msgstr ""
+
+#: fdi.dataset.odict.ODict.toString of
+msgid "tablefmt"
+msgstr ""
+
+#: fdi.dataset.odict.ODict.toString:6 of
+msgid ""
+"='rst', tablefmt1='simple', tablefmt2='simple', matprint=None, "
+"trans=True, heavy=True"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:269
+msgid "fdi.dataset.product module"
+msgstr ""
+
+#: fdi.dataset.product.Product:1 of
+msgid "Product class schema 1.6 inheriting ['BaseProduct']."
+msgstr ""
+
+#: fdi.dataset.product.Product:3 of
+msgid ""
+"Automatically generated from fdi/dataset/resources/Product.yml on "
+"2021-12-13 09:38:07.593902."
+msgstr ""
+
+#: fdi.dataset.product.Product:5 of
+msgid "Description: Project level product"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:277
+msgid "fdi.dataset.quantifiable module"
+msgstr ""
+
+#: fdi.dataset.quantifiable.Quantifiable:1 of
+msgid "基类：:py:class:`fdi.dataset.typecoded.Typecoded`"
+msgstr ""
+
+#: fdi.dataset.quantifiable.Quantifiable:1 of
+msgid ""
+"A Quantifiable object is a numeric object that has a unit. $ x.unit = "
+"ELECTRON_VOLTS $ print x.unit eV [1.60218E-19 J]"
+msgstr ""
+
+#: fdi.dataset.quantifiable.Quantifiable:6
+#: fdi.dataset.quantifiable.Quantifiable.__init__:1 of
+msgid "Has a unit and a typecode (as in array.array.typecodes)."
+msgstr ""
+
+#: fdi.dataset.quantifiable.Quantifiable.getUnit:1 of
+msgid "Returns the unit related to this object."
+msgstr ""
+
+#: fdi.dataset.quantifiable.Quantifiable.setUnit:1 of
+msgid "Sets the unit of this object."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:285
+msgid "fdi.dataset.readonlydict module"
+msgstr ""
+
+#: fdi.dataset.readonlydict.bReadOnlyDict:1
+#: fdi.dataset.readonlydict.frozendict:1 of
+msgid "基类：:py:class:`dict`"
+msgstr ""
+
+#: fdi.dataset.readonlydict.bReadOnlyDict:1 of
+msgid ""
+"Dictionary that is read-only and returns all values of dict type to "
+"ReadOnlyDict type so they, too, cannot be modified."
+msgstr ""
+
+#: fdi.dataset.readonlydict.bReadOnlyDict:3 of
+msgid "Based on https://stackoverflow.com/a/61700719/13472124"
+msgstr ""
+
+#: fdi.dataset.readonlydict.frozendict:1 of
+msgid "Extended version of frozent dict."
+msgstr ""
+
+#: fdi.dataset.readonlydict.frozendict:3 of
+msgid ""
+"This extended version of the code above will also \"freeze\" dictionaries"
+" and lists stored as values of the dictionary. If dictionaries/lists are "
+"found among the values, they will be handled recursively."
+msgstr ""
+
+#: fdi.dataset.readonlydict.frozendict:5 of
+msgid "Oren Tirosh, Ero Carrera, Søren Løvborg"
+msgstr ""
+
+#: fdi.dataset.readonlydict.frozendict:7 of
+msgid "https://code.activestate.com/recipes/414283/"
+msgstr ""
+
+#: fdi.dataset.readonlydict.make_readonly:1 of
+msgid "Recursively make values of Mapping type at all levels read-only."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:293
+msgid "fdi.dataset.serializable module"
+msgstr ""
+
+#: fdi.dataset.serializable.Serializable:1 of
+msgid ""
+"mh: Can be serialized. Has a _STID  instance property to show its class "
+"information."
+msgstr ""
+
+#: fdi.dataset.serializable.Serializable.fits:1 of
+msgid "Get a FITS representation."
+msgstr ""
+
+#: fdi.dataset.serializable.Serializable.serializable:1 of
+msgid "Can be encoded with serializableEncoder"
+msgstr ""
+
+#: fdi.dataset.serializable.Serializable.tree:1 of
+msgid "Get a directory-tree-like representation."
+msgstr ""
+
+#: fdi.dataset.serializable.Serializable.yaml:1 of
+msgid "Get a YAML representation."
+msgstr ""
+
+#: fdi.dataset.serializable.SerializableEncoder:1
+#: fdi.dataset.serializable.SerializableEncoderAll:1 of
+msgid "基类：:py:class:`json.encoder.JSONEncoder`"
+msgstr ""
+
+#: fdi.dataset.serializable.SerializableEncoder:1
+#: fdi.dataset.serializable.SerializableEncoderAll:1 of
+msgid ""
+"can encode parameter and product etc such that they can be recovered with"
+" deserialize(). Python 3 treats string and unicode as unicode, encoded "
+"with utf-8, byte blocks as bytes, encoded with utf-8. Python 2 treats "
+"string as str and unicode as unicode, encoded with utf-8, byte blocks as "
+"str, encoded with utf-8"
+msgstr ""
+
+#: fdi.dataset.serializable.SerializableEncoder:8
+#: fdi.dataset.serializable.SerializableEncoderAll:8 of
+msgid "Constructor for JSONEncoder, with sensible defaults."
+msgstr ""
+
+#: fdi.dataset.serializable.SerializableEncoder:10
+#: fdi.dataset.serializable.SerializableEncoderAll:10 of
+msgid ""
+"If skipkeys is false, then it is a TypeError to attempt encoding of keys "
+"that are not str, int, float or None.  If skipkeys is True, such items "
+"are simply skipped."
+msgstr ""
+
+#: fdi.dataset.serializable.SerializableEncoder:14
+#: fdi.dataset.serializable.SerializableEncoderAll:14 of
+msgid ""
+"If ensure_ascii is true, the output is guaranteed to be str objects with "
+"all incoming non-ASCII characters escaped.  If ensure_ascii is false, the"
+" output can contain non-ASCII characters."
+msgstr ""
+
+#: fdi.dataset.serializable.SerializableEncoder:18
+#: fdi.dataset.serializable.SerializableEncoderAll:18 of
+msgid ""
+"If check_circular is true, then lists, dicts, and custom encoded objects "
+"will be checked for circular references during encoding to prevent an "
+"infinite recursion (which would cause an OverflowError). Otherwise, no "
+"such check takes place."
+msgstr ""
+
+#: fdi.dataset.serializable.SerializableEncoder:23
+#: fdi.dataset.serializable.SerializableEncoderAll:23 of
+msgid ""
+"If allow_nan is true, then NaN, Infinity, and -Infinity will be encoded "
+"as such.  This behavior is not JSON specification compliant, but is "
+"consistent with most JavaScript based encoders and decoders. Otherwise, "
+"it will be a ValueError to encode such floats."
+msgstr ""
+
+#: fdi.dataset.serializable.SerializableEncoder:28
+#: fdi.dataset.serializable.SerializableEncoderAll:28 of
+msgid ""
+"If sort_keys is true, then the output of dictionaries will be sorted by "
+"key; this is useful for regression tests to ensure that JSON "
+"serializations can be compared on a day-to-day basis."
+msgstr ""
+
+#: fdi.dataset.serializable.SerializableEncoder:32
+#: fdi.dataset.serializable.SerializableEncoderAll:32 of
+msgid ""
+"If indent is a non-negative integer, then JSON array elements and object "
+"members will be pretty-printed with that indent level.  An indent level "
+"of 0 will only insert newlines. None is the most compact representation."
+msgstr ""
+
+#: fdi.dataset.serializable.SerializableEncoder:37
+#: fdi.dataset.serializable.SerializableEncoderAll:37 of
+msgid ""
+"If specified, separators should be an (item_separator, key_separator) "
+"tuple.  The default is (', ', ': ') if *indent* is ``None`` and (',', ': "
+"') otherwise.  To get the most compact JSON representation, you should "
+"specify (',', ':') to eliminate whitespace."
+msgstr ""
+
+#: fdi.dataset.serializable.SerializableEncoder:42
+#: fdi.dataset.serializable.SerializableEncoderAll:42 of
+msgid ""
+"If specified, default is a function that gets called for objects that "
+"can't otherwise be serialized.  It should return a JSON encodable version"
+" of the object or raise a ``TypeError``."
+msgstr ""
+
+#: fdi.dataset.serializable.serialize:1 of
+msgid "return JSON using special encoder SerializableEncoder"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:301
+msgid "fdi.dataset.shaped module"
+msgstr ""
+
+#: fdi.dataset.shaped.Shaped:1 fdi.dataset.typed.Typed:1 of
+msgid "An object of specifiable kinds."
+msgstr ""
+
+#: fdi.dataset.shaped.Shaped:3 of
+msgid ""
+"This class is for parameters, not for products/datasets to make 'shape' "
+"MDP."
+msgstr ""
+
+#: fdi.dataset.shaped.Shaped:5 fdi.dataset.shaped.Shaped.__init__:1 of
+msgid "Has a shape."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:309
+msgid "fdi.dataset.stringparameter module"
+msgstr ""
+
+#: fdi.dataset.stringparameter.StringParameter:1 of
+msgid "has a unicode string as the value, a typecode for length and char."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:317
+msgid "fdi.dataset.tabledataset module"
+msgstr ""
+
+#: fdi.dataset.tabledataset.IndexedTableDataset:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.indexed.Indexed`, "
+":py:class:`fdi.dataset.tabledataset.TableDataset`"
+msgstr ""
+
+#: fdi.dataset.tabledataset.IndexedTableDataset:1 of
+msgid "TableDataset with an index table for efficient row look-up."
+msgstr ""
+
+#: fdi.dataset.tabledataset.IndexedTableDataset.setData:1 of
+msgid "sets name-column pairs from data and updates index if needed"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.dataset.CompositeDataset`, "
+":py:class:`fdi.dataset.tabledataset.TableModel`, "
+":py:class:`fdi.dataset.shaped.Shaped`"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset:1 of
+msgid ""
+"Special dataset that contains a single Array Data object. A TableDataset "
+"is a tabular collection of Columns. It is optimized to work on array "
+"data.. The column-wise approach is convenient in many cases. For example,"
+" one has an event list, and each algorithm is adding a new field to the "
+"events (i.e. a new column, for example a quality mask)."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset:5 of
+msgid ""
+"Although mechanisms are provided to grow the table row-wise, one should "
+"use these with care especially in performance driven environments as this"
+" orthogonal approach (adding rows rather than adding columns) is "
+"expensive."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset:7 of
+msgid "General Note:"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset:9 of
+msgid ""
+"For reasons of flexibility, memory consumption and performance, this "
+"class is not checking whether all columns are of the same length: this is"
+" the responsibility of the user/developer. See also the library "
+"documentation for more information about this."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset:11 of
+msgid "Note on column names:"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset:13 of
+msgid ""
+"If a column is added without specifying a name, the name ColumnX is "
+"created, where X denotes the index of that column. Column name duplicity "
+"is not allowed."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset:16 of
+msgid "Developers:"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset:18 of
+msgid ""
+"See \"Writing special datasets or products\" at the developer's "
+"documentation also."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset:21 of
+msgid "Please see also this selection example."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.addColumn:1 of
+msgid "Adds the specified column to this table, and attaches a name to it."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.addColumn:4 of
+msgid ""
+"If the name is null, a dummy name \"column\"+column_count+1 is created, "
+"such that it can be accessed by getColumn(str)."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.addColumn:6 of
+msgid "If column name exists the corresponding column is substituted."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.addColumn:8 of
+msgid ""
+"Parameters: name - column name. column - column to be added. col_des - if"
+" True (default) and if column description is 'UNKNOWN' or `None`, set to "
+"column name."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.addRow:1 of
+msgid "Adds the specified map as a new row to this table."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.addRow:3 of
+msgid ""
+"row: mh: row is a dict with names as keys and row data as value. rows: "
+"append each element in row if the row data is a list."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumn:1 of
+msgid "Returns the particular column, or a list of columns."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumn:3 of
+msgid "key: ref ``getColumnMap()``"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumn:4 of
+msgid "int/str: return the int-th/named column;"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumn:5 of
+msgid "``Slice`` object, list of columns of sliced column indices;"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumn:6 of
+msgid ""
+"list of integers/strings: return a list of columns corresponding to the "
+"given column index/name, or where key is True. Example "
+"``a.getColumn(Slice(3,,))``, ``[2, 4]``, ``['time', ``energy']``."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumn:7 of
+msgid ""
+"list of booleans: return a list of columns  where key is True. Example "
+"``[True, False...]``."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumnMap:1 of
+msgid ""
+"Returns a dict of column-names as the keys and the column(s) as the "
+"values."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumnMap:3 of
+msgid "key: return the following as the value for each key-value pair:"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumnMap:4 of
+msgid "int: name-value where value is the int-th column."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumnMap:5 of
+msgid ""
+"``Slice`` object, a list of name-columns from slicing the column index. "
+"Example ``a.getColumn(Slice(3,,))``;"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumnMap:6 of
+msgid ""
+"Sequence of integers/strings: they are used as the column index/name to "
+"select the columns."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumnMap:7 of
+msgid ""
+"Sequence of booleans: columns where the corresponding boolean is True are"
+" chosen."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getColumnMap:8 of
+msgid "Default is to return all columns."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getRow:1 of
+msgid ""
+"Returns a list containing the objects located in a particular row, or a "
+"list of rows."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getRow:3 of
+msgid "rowIndex: ref ``getRowMap()``"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getRow:4 of
+msgid "int: return the int-th row in a list of elements;"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getRow:5 of
+msgid ""
+"``Slice`` object, list of integers, list of booleans: return a list of "
+"rows each represented by a tuple. Example ``a.getRow(Slice(3,,))``, "
+"``[2,4]``, ``[True, False...]``."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getRowMap:1 of
+msgid ""
+"Returns a dict of column-names as the keys and the objects located at a "
+"particular row(s) as the values."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getRowMap:3 of
+msgid "rowIndex: return the following as the value for each key-value pair:"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getRowMap:4 of
+msgid "int: the int-th row's elements;"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getRowMap:5 of
+msgid ""
+"``Slice`` object, a list of rows from slicing the column. Example "
+"``a.getRow(Slice(3,,))``;"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getRowMap:6 of
+msgid "list of integers: they are used as the row index to select the rows."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.getRowMap:7 of
+msgid "list of booleans: rows where the corresponding boolean is True are chosen."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.indexOf:1 of
+msgid "Returns the index of specified column."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.indexOf:3 of
+msgid ""
+"if the key is a Column, it looks for equal references (same column "
+"objects), not for equal values. If the key is a string, Returns the index"
+" of specified Column name."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.items:1 of
+msgid "for k,v in tabledataset.items()"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableModel.getColumnNames:1 of
+msgid "Returns the column names."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.removeColumn:1 of
+msgid "Removes the columns specified by ``key``."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.removeColumn:3 of
+msgid "ref. ``getColumnMap`` on ``key`` usage."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.removeRow:1 of
+msgid "Removes a row with specified index from this table."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.removeRow:3 of
+msgid ""
+"rowIndex: int or a ``Slice`` object. Example ``a.removeRow(Slice(3,,))``."
+" return: removed row data."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.select:1 of
+msgid ""
+"Select a number of rows from this table dataset and return a new "
+"TableDataset object containing only the selected rows."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.select:4 of
+msgid "selection:  to form a new Tabledataset with ref ``getRowMap()``"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.setColumn:1 of
+msgid ""
+"Replaces a column in this table with specified name to specified column "
+"if key is a string and exists, or if the key is an integer in 0 to the "
+"number of columns, insert at column-index=key, with the name "
+"'column'+key, else add a new coolumn."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.setColumnCount:1
+#: fdi.dataset.tabledataset.TableDataset.setRowCount:1 of
+msgid "cannot do this."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.setData:1 of
+msgid "sets name-column pairs from data."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.setData:3 of
+msgid ""
+"Valid formd include: {str:Column, ...} or [(str, [num, ...], str)] or "
+"[(str, Column), ...] or [[num ...],  [num ...], ...]"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.setData:6 of
+msgid "[{'name':str,'column':Column}] form is deprecated."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.setData:8 of
+msgid ""
+"Existing data will be discarded except when the provided data is a list "
+"of lists, where existing column names and units will remain but data "
+"replaced, and extra data items will form new columns named 'column'+index"
+" (index counting from 1) with unit None."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableDataset.toString:1 of
+msgid "tablefmt2: format of 2D data, others see `MetaData.toString`."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableModel:1 of
+msgid "to interrogate a tabular data model"
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableModel.getColumnClass:1 of
+msgid "Returns the class for the first cell values in the column."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableModel.getColumnCount:1 of
+msgid "Returns the number of columns in the model."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableModel.getColumnName:1 of
+msgid "Returns the name of the column at columnIndex."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableModel.getColumnName:3 of
+msgid "returns a set of columns if key  is a slice."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableModel.getRowCount:1 of
+msgid "Returns the number of rows in the model."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableModel.getValueAt:1 of
+msgid "Returns the value for the cell at columnIndex and rowIndex."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableModel.isCellEditable:1 of
+msgid "Returns true if the cell at rowIndex and columnIndex is editable."
+msgstr ""
+
+#: fdi.dataset.tabledataset.TableModel.setValueAt:1 of
+msgid "Sets the value in the cell at columnIndex and rowIndex to Value."
+msgstr ""
+
+#: fdi.dataset.tabledataset.maybe2rows:1 of
+msgid "makes one-row or two-row header"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:325
+msgid "fdi.dataset.tabledataset\\_datamodel module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:333
+msgid "fdi.dataset.testproducts module"
+msgstr ""
+
+#: fdi.dataset.testproducts.SP:1 fdi.dataset.testproducts.TP:1 of
+msgid "基类：:py:class:`fdi.dataset.product.Product`"
+msgstr ""
+
+#: fdi.dataset.testproducts.SP:1 of
+msgid "A subclass of `Product` for tests."
+msgstr ""
+
+#: fdi.dataset.testproducts.TC:1 of
+msgid "基类：:py:class:`fdi.pal.context.Context`"
+msgstr ""
+
+#: fdi.dataset.testproducts.TM:1 of
+msgid "基类：:py:class:`fdi.pal.context.MapContext`"
+msgstr ""
+
+#: fdi.dataset.testproducts.get_demo_product:1 of
+msgid "A complex context product as a reference for testing and demo."
+msgstr ""
+
+#: fdi.dataset.testproducts.get_demo_product:3
+#: fdi.dataset.testproducts.get_demo_product:44 of
+msgid "```"
+msgstr ""
+
+#: fdi.dataset.testproducts.get_demo_product:4 of
+msgid ""
+"|__ meta                                          <MetaData> |   |__ "
+"description                                 <string> |   |__ type"
+"                                        <string> |   |__ level"
+"                                       <string> |   |__ creator"
+"                                     <string> |   |__ creationDate"
+"                              <finetime> |   |__ rootCause"
+"                                   <string> |   |__ version"
+"                                     <string> |   |__ FORMATV"
+"                                     <string> |   |__ speed"
+"                                       <vector> |   \\__ listeners"
+"                               <ListnerSet> |__ measurements"
+"                          <CompositeDataset> |   |__ meta"
+"                                      <MetaData> |   |   \\__ listeners"
+"                           <ListnerSet> |   |__ Time_Energy_Pos"
+"               <TableDataset> (5, 20) |   |   |__ meta"
+"                                  <MetaData> |   |   |   |__ description"
+"                         <string> |   |   |   |__ shape"
+"                                <tuple> |   |   |   |__ type"
+"                                <string> |   |   |   |__ version"
+"                             <string> |   |   |   |__ FORMATV"
+"                             <string> |   |   |   \\__ listeners"
+"                       <ListnerSet> |   |   |__ Time"
+"                              <Column> (20,) |   |   |__ Energy"
+"                            <Column> (20,) |   |   |__ Error"
+"                             <Column> (20,) |   |   |__ y"
+"                                 <Column> (20,) |   |   \\__ z"
+"                                 <Column> (20,) |   |__ calibration"
+"                  <ArrayDataset> (11, 11) |   \\__ dset"
+"                                           <str> |__ Environment "
+"Temperature              <ArrayDataset> (7,) |__ Browse"
+"                               <image/png> (5976,) |__ refs"
+"                                      <RefContainer> |   |__ a_reference"
+"                             <ProductRef> |   \\__ a_different_name"
+"                        <ProductRef> |__ history"
+"                                        <History> |   |__ PARAM_HISTORY"
+"                                  <str> |   |__ TASK_HISTORY"
+"                                   <str> |   \\__ meta"
+"                                      <MetaData> |       \\__ listeners"
+"                           <ListnerSet> \\__ listeners"
+"                                   <ListnerSet>"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:341
+msgid "fdi.dataset.typecoded module"
+msgstr ""
+
+#: fdi.dataset.typecoded.Typecoded:1 of
+msgid "Has internal store type specified as TypeCode. ref doc of `drray.Array`."
+msgstr ""
+
+#: fdi.dataset.typecoded.Typecoded:5 fdi.dataset.typecoded.Typecoded.__init__:1
+#: of
+msgid "Has a typecode."
+msgstr ""
+
+#: fdi.dataset.typecoded.Typecoded:7 fdi.dataset.typecoded.Typecoded.__init__:3
+#: of
+msgid "Typecode is defined in `array.array`"
+msgstr ""
+
+#: fdi.dataset.typecoded.Typecoded.getTypecode:1 of
+msgid "Returns the typecode related to this object."
+msgstr ""
+
+#: fdi.dataset.typecoded.Typecoded.setTypecode:1 of
+msgid "Sets the typecode of this object."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:349
+msgid "fdi.dataset.typed module"
+msgstr ""
+
+#: fdi.dataset.typed.Typed:3 of
+msgid ""
+"This class is for parameters, not for products/datasets to make 'type' "
+"MDP."
+msgstr ""
+
+#: fdi.dataset.typed.Typed:5 fdi.dataset.typed.Typed.__init__:1 of
+msgid "Has a type."
+msgstr ""
+
+#: fdi.dataset.typed.Typed.getType:1 of
+msgid "Returns the actual type that is allowed for the value of this Parameter."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:357
+msgid "fdi.dataset.unstructureddataset module"
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset:1 of
+msgid ""
+"基类：:py:class:`fdi.dataset.dataset.Dataset`, "
+":py:class:`fdi.dataset.copyable.Copyable`"
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset:1 of
+msgid "Container for data without pre-defined structure or organization.."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset:3 of
+msgid "`MetaDataListener` must stay to the left of `AbstractComposite`."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset:5 of
+msgid "For `xmltodict`  `xml_attribs` default to ```False```."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.getData:1 of
+msgid "Optimized for _data being initialized to be `_data` by `DataWrapper`."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.input:1 of
+msgid "Put data in the dataset."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.input:3 of
+msgid ""
+"Depending on `doctype`: * Default is `None` for arbitrarily nested Pyton "
+"data structure. * Use 'json' to have the input string loaded by "
+"`json.loads`, * 'xml' by `xmltodict.parse`."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath:1 of
+msgid "Make a JSONPath query on the data."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath of
+msgid "expr"
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath:3 of
+msgid "JSONPath expression. Ref 'jsonpath_ng'"
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath of
+msgid "sep"
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath:5 of
+msgid ""
+"'' or `None` for keeping `jsonpath_ng` format (e.g. `a.b.[3].d`; other "
+"string for substituting '.' to the given string, with '[' and ']' "
+"removed. Default is '/'."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath of
+msgid "val"
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath:6 of
+msgid ""
+"'context' for returning the `list` of `DatumInContext` of `find`; "
+"'simple' (default) for list of simple types of values and summarizing "
+"`list` and `dict` values; other for a list of un-treated "
+"`DatumInContext.value`s."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath of
+msgid "indent"
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath:7 of
+msgid "for `json.dumps`."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath:8 of
+msgid ""
+"* If `val` is ```context```, return  the `list` of `DatumInContext` of "
+"`jsonpath_ng.ext.parse().find()`. * Else return a `list` of "
+"`full_path`-`value` pairs from the output of `find().` * \\* If `val` is "
+"```simple```, only node values of simple types are kept, `list` and "
+"`dict` types will show as '<list> length' and '<dict> [keys [... "
+"[length]]]', respectively. * \\* If `val` is ```full```, the values of "
+"returned `list`s are  un-treated `DatumInContext.value`s."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath:8 of
+msgid ""
+"If `val` is ```context```, return  the `list` of `DatumInContext` of "
+"`jsonpath_ng.ext.parse().find()`."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath:9 of
+msgid ""
+"Else return a `list` of `full_path`-`value` pairs from the output of "
+"`find().`"
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath:10 of
+msgid ""
+"\\* If `val` is ```simple```, only node values of simple types are kept, "
+"`list` and `dict` types will show as '<list> length' and '<dict> [keys "
+"[... [length]]]', respectively."
+msgstr ""
+
+#: fdi.dataset.unstructureddataset.UnstrcturedDataset.jsonPath:11 of
+msgid ""
+"\\* If `val` is ```full```, the values of returned `list`s are  un-"
+"treated `DatumInContext.value`s."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:365
+msgid "fdi.dataset.unstructureddataset\\_datamodel module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:373
+msgid "fdi.dataset.vattribute module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.dataset.rst:381
+msgid "fdi.dataset.yaml2python module"
+msgstr ""
+
+#: fdi.dataset.yaml2python.dependency_sort:1 of
+msgid "sort the descriptors so that everyone's parents are to his right."
+msgstr ""
+
+#: fdi.dataset.yaml2python.getPython:1 of
+msgid "make Model and init__() code strings from given data."
+msgstr ""
+
+#: fdi.dataset.yaml2python.makeinitcode:1 of
+msgid "python instanciation source code."
+msgstr ""
+
+#: fdi.dataset.yaml2python.makeinitcode:3 of
+msgid "will be like \"default: FineTime1(0)\""
+msgstr ""
+
+#: fdi.dataset.yaml2python.params:1 of
+msgid "generates python strng for val, a parameter with a set of attribute"
+msgstr ""
+
+#: fdi.dataset.yaml2python.params:3 of
+msgid "val: as in ```name:val``` ``` nam:"
+msgstr ""
+
+#: fdi.dataset.yaml2python.params:6 of
+msgid ""
+"data_type: string description: Description of this dataset default: "
+"UNKNOWN valid: ''"
+msgstr ""
+
+#: fdi.dataset.yaml2python.params:10 of
+msgid "``` see getPython"
+msgstr ""
+
+#: fdi.dataset.yaml2python.readyaml:1 of
+msgid "read YAML files in ypath."
+msgstr ""
+
+#: fdi.dataset.yaml2python.readyaml:3 of
+msgid "output: nm is  stem of file name. desc is descriptor, key being yaml[name]"
+msgstr ""
+
+#: fdi.dataset.yaml2python.removeParent:1 of
+msgid "Returns the one who is the other one's parent."
+msgstr ""
+
+#: fdi.dataset.yaml2python.sq:1 of
+msgid "add quote mark to string, depending on if ' or \" in the string."
+msgstr ""
+
+#: fdi.dataset.yaml2python.yamlupgrade:1 of
+msgid "*descriptors: a list of nested dicts describing the data model.*"
+msgstr ""
+
+#: fdi.dataset.yaml2python.yamlupgrade:2 of
+msgid "*version: current version. not that in the yaml to be modified.*"
+msgstr ""
+

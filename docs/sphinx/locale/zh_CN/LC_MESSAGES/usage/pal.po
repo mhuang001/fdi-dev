@@ -1,0 +1,367 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../sphinx/usage/pal.rst:3
+msgid "**PAL**: Product Access Layer"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:7
+msgid "Table of Contents"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:9
+msgid ""
+"Product Access Layer allows data stored logical \"pools\" to be accessed "
+"with light weight product refernces by data processers, data storage, and"
+" data consumers. A data product can include a context built with "
+"references of relevant data. A ``ProductStorage`` interface is provided "
+"to handle saving/retrieving/querying data in registered pools."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:14
+msgid "Rationale"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:16
+msgid ""
+"In a data processing pipeline or network of processing nodes, data "
+"products are generated within a context which may include input data, "
+"reference data, and auxiliary data of many kind. It is often needed to "
+"have relevant context recorded with a product. However the context could "
+"have a large size so including their actual data as metadata of the "
+"product is often impractical."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:18
+msgid ""
+"Once FDI data are generated they can have a reference through which they "
+"can be accessed. The size of such references are typically less than a "
+"few hundred bytes, like a URL. In the product context only data "
+"references are recorded."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:20
+msgid ""
+"This package provides ``MapContext``, ``ProductRef``, ``Urn``, "
+"``ProductStorage``, ``ProductPool``, and ``Query`` classes (simplified "
+"but mostly API-compatible with `Herschel Common Science System v15.0`_) "
+"for the storing, retrieving, tagging, and context creating of data "
+"product modeled in the dataset package."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:25
+msgid "Definitions"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:28
+msgid "URN"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:32
+msgid "The following is from :class:`Urn`"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:3
+msgid "The Universial Resource Name (**URN**) string has this format:"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:5
+msgid "urn:<poolname>:<resourcetype>:<serialnumber>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:7
+msgid "where"
+msgstr ""
+
+#: ../../fdi/pal/urn.py
+msgid "<poolname>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:9
+msgid ""
+"Also called poolID. Its requirements is like that to a file name and a "
+"URL segment, having only printable characters excluding `` ``, ``%``, "
+"``?``, ``*``, ``=``, ``/``."
+msgstr ""
+
+#: ../../fdi/pal/urn.py
+msgid "<resourcetype>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:10
+msgid "class name of the data item (usually :class:`Product`)"
+msgstr ""
+
+#: ../../fdi/pal/urn.py
+msgid "<serialnumber>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:11
+msgid "internal index for a certain <resourcetype>."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:13
+msgid "The ``poolname`` in a URN is a label. Some examples:"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:15
+msgid "urn:pool_mh:fdi.dataset.product.Product:2"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:16
+msgid "urn:20.20:svom.products.SVOMMapContext:0"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:18
+msgid ""
+"Storage Pools (subclasses of :class:`ProductPool`) are where data item "
+"reside. The **PoolURL** is used to give practical information of a pool, "
+"such as a poolname, its location, and its access scheme. It is designed "
+"to be a local set-up detail that is supposed to be hidden from pool "
+"users. Data processing software use ``URN``s to refer to products, "
+"without specifying pool location. The poolID in a URN could be a "
+":class:`LocalPool` on the development laptop and a "
+":class:`HTTPClientPool` on the production cloud."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:38
+msgid "The following is from :func:`parse_poolurl`"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:3
+msgid ""
+"The ``PoolURL`` format is in the form of a URL that preceeds its poolname"
+" part:"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:5
+msgid "<scheme>://<place><poolpath>/<poolname>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py
+msgid "<scheme>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:7
+msgid ""
+"Implementation protocol including ``file`` for :class:`LocalPool`, "
+"``mem`` for :class:`MemPool`, ``http``, ``https`` for "
+":class:`HttpclientPool`."
+msgstr ""
+
+#: ../../fdi/pal/urn.py
+msgid "<place>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:8
+msgid ""
+"IP:port such as``192.168.5.6:8080`` for ``http`` and ``https`` schemes, "
+"or an empty string for ``file`` and ``mem`` schemes."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:9
+msgid "same as in URN."
+msgstr ""
+
+#: ../../fdi/pal/urn.py
+msgid "<poolpath>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:10
+msgid "The part between ``place`` and an optional ``poolhint``::"
+msgstr ""
+
+#: ../../fdi/pal/urn.py
+msgid "<username>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py
+msgid "<password>"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:14
+msgid ""
+"For ``file`` or ``server`` schemes, e.g. poolpath is ``/c:/tmp`` in "
+"``http://localhost:9000/c:/tmp/mypool/`` with ``poolhint`` keyword "
+"arguement of :func:`parse_poolurl` not given, or given as ``mypool`` (or "
+"``myp`` or ``my`` ...)."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:15
+msgid ""
+"For ``http`` and ``https`` schemes, it is e.g. ``/0.6/tmp`` in "
+"``https://10.0.0.114:5000/v0.6/tmp/mypool`` with ``poolhint`` keyword "
+"arguement not given, or given as ``mypool`` (or ``myp` or 'my' ...). The "
+"meaning of poolpath is subject to interpretation by the  server. In the "
+"preceeding example the poolpath has an API version.  "
+":meth:`ProductPool.transformpath` is used to map it further. Note that "
+"trailing blank and ``/`` are ignored, and stripped in the output."
+msgstr ""
+
+#: ../../fdi/pal/urn.py:17
+msgid "Examples:"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:19
+msgid "file:///tmp/mydata for pool ```mydata```"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:20
+msgid "file:///d:/data/test2--v2 for pool ``test2--v2``"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:21
+msgid "mem:///dummy for pool ``dummy``"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:22
+msgid "https://10.0.0.114:5000/v0.6/obs for a httpclientpool ``obs``"
+msgstr ""
+
+#: ../../fdi/pal/urn.py:23
+msgid "server:///tmp/data/0.4/test for a pool ``test`` used on a server."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:46
+msgid "ProductRef"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:48
+msgid ""
+"This class not only holds the URN of the product it references to, but "
+"also records who ( the _parents_) are keeping this reference."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:51
+msgid "ProductStorage"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:53
+msgid ""
+"A centralized access place for saving/loading/querying/deleting data "
+"organized in conceptual pools. One gets a ProductRef when saving data."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:56
+msgid "ProductPool"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:58
+msgid ""
+"An place where products can be saved, with a reference for the saved "
+"product generated. The product can be retrieved with the reference. Pools"
+" based on different media or networking mechanism can be implemented. "
+"Multiple pools can be registered in a ProductStorage front-end where "
+"users can do the saving, loading, querying etc. so that the pools are "
+"collectively form a larger logical storage."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:61
+msgid "The reference LocalPool is shown in the following YAML-like schematic:"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:97 ../sphinx/usage/pal.rst:111
+#: ../sphinx/usage/pal.rst:123
+msgid "Examples (from :doc:`quickstart` page):"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:4
+msgid "This section shows how to make/get hold of a `pool`."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:24
+msgid "Saving a Product"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:26
+msgid ""
+"This section shows how to store a product in a \"pool\" and get a "
+"reference back."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:106
+msgid "Context and MapContext"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:108
+msgid ""
+"Context is a Product that holds a set of :class:`ProductRef` s that "
+"accessible by keys. The keys are strings for MapContext which usually "
+"maps names to product references."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:4
+msgid ""
+"This section shows essential steps how product references can be stored "
+"in a context."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:119
+msgid "Query"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:121
+msgid ""
+"One can  make queries to a ProductStorage and get back a list of "
+"references to products that satisfy search chriteria. Queries can be "
+"constructed using Python predicate expressions about a product and its "
+"metadata, or a function that returns True or False."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:4
+msgid ""
+"A :class:`ProductStorage` with pools attached can be queried with tags, "
+"properties stored in metadata, or even data in the stored products, using"
+" Python syntax."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:132
+msgid "run tests"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:134
+msgid ""
+"To test PAL functionalities based on local (JSON) pool and memory pool, "
+"run in the same directory:"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:140
+msgid "To test functionalities based on http client pool, in one terminal run"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:146
+msgid "run"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:152
+msgid "examine output."
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:156
+msgid "Design"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:158
+msgid "Packages"
+msgstr ""
+
+#: ../sphinx/usage/pal.rst:162
+msgid "Classes"
+msgstr ""
+

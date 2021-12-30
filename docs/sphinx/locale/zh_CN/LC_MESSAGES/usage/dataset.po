@@ -1,0 +1,282 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../sphinx/usage/dataset.rst:3
+msgid "**Data Containers**: Data sets and Meta data"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:8
+msgid "Table of Contents"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:11
+msgid "Rationale"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:13
+msgid ""
+"Data products  produced by data processing procedures are meant to be "
+"read, underatood, and used by others. Many people tend to store data with"
+" no note of meaning attached to those data. Without attached explanation,"
+" it is difficult for other people to fully understand or use correctly a "
+"collection of numbers. It could be difficult for even the data producer "
+"to recall the exact meaning of the numbers after a while. When someone "
+"receives a data 'product', besides dataets, one would expect explanation "
+"informaion associated with the product."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:15
+msgid ""
+"FDI implements a data product container scheme so that not only "
+"description and other metadata (data about data) are always attached to "
+"the \"payload\" data, but also that your data can have its context data "
+"attached as light weight references. One can organize scalar, vector, "
+"array, table types of data in the form of sequences, mappings, with "
+"nesting and referencing."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:17
+msgid ""
+"FDI is meant to be a small open-source package. Data stored in FDI ojects"
+" are easily accessible with Python API and are exported (serialized and "
+"stored by default) in cross-platform, human-readable JSON format. There "
+"are heavier formats (e..g. HDF5) and packages (e.g. iRODS) for similar "
+"goals. FDI's data model was originally inspired by  `Herschel Common "
+"Software System (v15)  products <https://www.cosmos.esa.int/web/herschel"
+"/data-products-overview/>`_, taking other  requirements of scientific "
+"observation and data processing into account. The APIs are kept as "
+"compatible with HCSS (written in Java, and in Jython for scripting) as "
+"possible."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:21
+msgid "Data Containers"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:24
+msgid "Dataset"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:26
+msgid ""
+"Three types of datasets are implemented to store potentially any "
+"hierarchical data as a dataset. Like a product, all datasets may have "
+"meta data, with the distinction that the meta data of a dataset is "
+"related to that particular dataset only."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst
+msgid "array dataset"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:29
+msgid ""
+"a dataset containing array data (say a data vector, array, cube etc...) "
+"and may have a unit and a typecode for efficient storing."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:31 ../sphinx/usage/dataset.rst:39
+#: ../sphinx/usage/dataset.rst:88 ../sphinx/usage/dataset.rst:96
+msgid "Examples (from :doc:`quickstart` page):"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst
+msgid "table dataset"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:37
+msgid ""
+"a dataset containing a collection of columns with column header as the "
+"key. Each column contains array dataset. All columns have the same number"
+" of rows."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:4
+msgid ""
+"TableDataset is mainly a dictionary containing named :class:`Column`\\s "
+"and their metadata. Columns are basically ArrayDatasets under a different"
+" name."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst
+msgid "composite dataset"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:46
+msgid ""
+"a dataset containing a collection of datasets. This allows arbitrary "
+"complex structures, as a child dataset within a composite dataset may be "
+"a composite dataset itself and so on..."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:50
+msgid "Meta data and Parameters"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:52
+msgid ""
+"FDI datasets and products not only contain data, but also their metadata "
+"-- data about the \"payload\" data. Metadata is defined as a collection "
+"of named Parameters."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:54
+msgid ""
+"Often a parameter shows a property. So a parameter in the metadata of a "
+"dataset or product is often called a property."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst ../sphinx/usage/dataset.rst:67
+msgid "Parameter"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:57
+msgid "scalar or vector variable with attributes."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:57
+msgid "There are the following parameter types:"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:59
+msgid ""
+"*Parameter*: Types are defined in :attr:`metadata.ParameterTypes`. If "
+"requested, a Parameter can check its value or a given value with the "
+"validity specification, which can be a combination of descrete values, "
+"ranges, and bit-masked values."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:60
+msgid "*NumericParameter*"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:61
+msgid "*DateParameter*"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:62
+msgid "*StringParameter*"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:65
+msgid "**Parameter class**"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:65
+msgid "**parameter value**"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:65
+msgid "**parameter attributes**"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:67
+msgid "typed objects"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:67
+msgid "description, type, validity descriptor, and default value"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:70
+msgid "NumericParameter"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:70
+msgid ""
+"a number (scalar), a :class:`Vector2D` (2D), a :class:`Vector` (3D), or a"
+" :class:`Quaternion` (4D)"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:70
+msgid "all above plus a unit and a typecode"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:75
+msgid "DateParameter"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:75
+msgid ":class:`FineTime` date-time"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:75
+msgid ""
+"Same as Parameter, `type` is 'finetime', Python "
+":attribute:`datetime.format` string as the default `typecode`."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:81
+msgid "StringParameter"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:81
+msgid ":class:`String`"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:81
+msgid ""
+"Same as Parameter, `type` is 'string', 'B' (for byte unsigned) as the "
+"default `typecode`"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst
+msgid "Metadata"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:94
+msgid "class manages parameters for datasets and products."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:4
+msgid ""
+"A :class:`Metadata` instance is mainly a dict-like container for named "
+"parameters."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:103
+msgid "run tests"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:105
+msgid ""
+"You can test sub-package ``dataset`` and ``utils`` with ``test1`` and "
+"``test5`` respectively."
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:107
+msgid "In the install directory:"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:114
+msgid "``test3`` is for *pns server self-test only*"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:117
+msgid "Design"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:119
+msgid "Packages"
+msgstr ""
+
+#: ../sphinx/usage/dataset.rst:123
+msgid "Classes"
+msgstr ""
+

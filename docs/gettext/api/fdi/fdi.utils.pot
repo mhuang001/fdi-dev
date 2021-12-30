@@ -1,0 +1,639 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../sphinx/api/fdi/fdi.utils.rst:2
+msgid "fdi.utils package"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:10
+msgid "Submodules"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:13
+msgid "fdi.utils.checkjson module"
+msgstr ""
+
+#: ../../fdi/utils/checkjson.py:docstring of fdi.utils.checkjson.checkjson:1
+msgid "seriaizes the given object and deserialize. check equality."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:21
+msgid "fdi.utils.common module"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.UserOrGroupNotFoundError:1
+msgid "基类：:py:class:`BaseException`"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.attrstr:1
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.attrstr1:1
+msgid "generic string representation of an attribute of a parameter or dataset."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.attrstr:3
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.attrstr1:3
+msgid "p: parameter object. v: name of parameter attribute. '_valid', '_type', '_default', '_value' (for Parameter) or '_data' (dataset) missingval: string used when the parameter does not have the attribute. ftime: True means that attribute value will be FineTime if _type is 'finetime'. state: The state validity of the parameter is returned in place of value, if the state is not in Ommitted_Valid_Rule_Names -- 'valid', 'range', '' or 'default'."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.binhexstring:1
+msgid "returns val in binary, hex, or string according to typ_."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.binhexstring:3
+msgid "val; list of validity descriptor entries. typ_: parameter type in ``DataTypes``."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.bstr:1
+msgid "returns the best string representation. if the object is a string, return single-quoted; if has toString(), use it; else returns str(). Length limited by lls(lls)"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.exprstrs:1
+msgid "Generates a set of strings for param.toString()."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.exprstrs:0
+msgid "param"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.exprstrs:3
+msgid "Parameeter or xDstaset."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.exprstrs:0
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:0
+msgid "extra"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.exprstrs:4
+msgid "Whether to include less often used attributes suc as ```fits_keyword```."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.findShape:1
+msgid "Shape of list/dict of list/dict."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.findShape:0
+msgid "element_seq"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.findShape:3
+msgid "treat elements of these sequence types as scalars."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.fullname:1
+msgid "full class name with module name."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.fullname:3
+msgid "https://stackoverflow.com/a/2020083/13472124"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.getObjectbyId:1
+msgid "lgb is from deserializing caller's globals().values() locals().values() and built-ins"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.getUidGid:1
+msgid "returns the UID and GID  of the named user."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.getUidGid:3
+msgid "return: -1 if not available"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.grouper:1
+msgid "Collect data into fixed-length chunks or blocks"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.guess_value:1
+msgid "Returns guessed value from a string."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.guess_value:3
+msgid "input | output |"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.guess_value:4
+msgid "```'None'``` | `None` |"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.guess_value:5
+msgid "integer | `int()` |"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.guess_value:6
+msgid "float | `float()` |"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.guess_value:7
+msgid "```'True'```, ```'False```` | `True`, `False` |"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.guess_value:8
+msgid "string starting with ```'0x'``` | `hex()` |"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.guess_value:9
+msgid "else | run `last`(input_string) |"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.l2t:1
+msgid "convert lists to tuples in nested data structures"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.ld2tk:1
+msgid "convert lists, to tuples and dicts to frozensets in nested data structures array.array is converted to (typecode, itemsize, size, ld2tk(0th element))"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.lls:1
+msgid "length-limited string."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.lls:3
+msgid "Returns the str if len <= length or length <=3. Returns 'begin...end' if not."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.mstr:1
+msgid "Makes a presentation string at a detail level."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.mstr:3
+msgid "'tablefmt' is needed to be passed in recursive calls under some conditions it is used."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.pathjoin:1
+msgid "join path segments with given separater (default '/'). Useful when '\\' is needed."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.t2l:1
+msgid "convert tuples to lists in nested data structures"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.trbk:1
+msgid "trace back"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.wls:1
+msgid "generates a string comtaining width-limited strings separated with ' '."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.wls:4
+msgid "Identifies Line-breaks with `str.splitlines` https://docs.python.org/3.6/library/stdtypes.html#str.splitlines Removes trailing line-breaks."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.wls:0
+msgid "st"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.wls:7
+msgid "input string. If not a string, ```str(st)``` is used."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.wls:0
+msgid "width"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.wls:8
+msgid "if > 0  returns the str with '"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.wls:9
+msgid "' inserted every width chars. Or else return the input ``st``. Default is 15. A CJK characters occupies 2 in widths."
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.wls:0
+msgid "unprintable"
+msgstr ""
+
+#: ../../fdi/utils/common.py:docstring of fdi.utils.common.wls:10
+msgid "substitute unprintable characters with is. default is '#'."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:29
+msgid "fdi.utils.fetch module"
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:1
+msgid "Use paths to access values of internal elements of a nested python object."
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:0
+msgid "paths"
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:3
+msgid "1). If given as a string, the string will be splitted with `sep` into a list of strings, then go on to 2); 2). If given as a list of strings, its 0th member is to match one of the first level of nested attributes, keys, or method names. If the list was made in 1) the 0th member will be converted to an integer if possible."
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:4
+msgid "if the 0th member is a string and can be parsed by :meth:`deserialize_args`, the result to used as te named method and its arguments."
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:5
+msgid "if that fails, it will be taken as a string and check if there is a match in keys (members);"
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:6
+msgid "else search in attributes."
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:0
+msgid "nested"
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:8
+msgid "a live nested data structure."
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:0
+msgid "re"
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:9
+msgid "datapath representation for `nested`. Can be applied to reproduce the result."
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:0
+msgid "exe"
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:10
+msgid "A list of patterns which if found in the name of a method/function the matching method/function is allowed to run. 2) If one of the pattern is '*', all methods/functions are allowed to run. 3) If a pattern starts with a '-' then the matching method/function to the pattern ('-' removed) is not allowed to run (overriding previous rules."
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:0
+msgid "not_quoted"
+msgstr ""
+
+#: ../../fdi/utils/fetch.py:docstring of fdi.utils.fetch.fetch:11
+msgid "the method-args string is not encoded with `quote`."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:37
+msgid "fdi.utils.fits\\_kw module"
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:1
+msgid "Returns the FITS keyword for a name."
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:3
+msgid "If `name` ends with a digit, split `name` to a digital part consists if all digits on the right, and a \"non-digital part\" on the left. Take `ndigits` continuoud digits, counting from right, to form the \"numeric-part\". The \"non-digital part\", or the `name` if not endibg with digits, get the pre-translation according to:"
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:5
+msgid "Look up in the `Param_Names` table (inverse `FITS_KEYWORDS` table, if fails,"
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:6
+msgid "try the `extra` dictionary if provided. if fails,"
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:7
+msgid "take key value"
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:9
+msgid "If `name` ends with a digit, append the \"numeric-part\" to the first `8 - min(ndigits,number of digits in name)` (maximum) of characters from pre-transition, uppercased, to form the resukt;"
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:10
+msgid "else take a maximum of 8 characters from pre-transition. uppercased, to form the resukt."
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:0
+msgid "name"
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:12
+msgid "the name of e.g. a parameter."
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:0
+msgid "ndigits"
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:13
+msgid "how many digits (right to left) to take maximum if `name` ends with digits. default 2. Raises `ValueError` if more than 7."
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:14
+msgid "tuple of `(fits,para)` tuples to provide more look-up dictionary."
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:0
+msgid "returns"
+msgstr ""
+
+#: ../../fdi/utils/fits_kw.py:docstring of fdi.utils.fits_kw.getFitsKw:15
+msgid "FITS keyword."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:45
+msgid "fdi.utils.getconfig module"
+msgstr ""
+
+#: ../../fdi/utils/getconfig.py:docstring of fdi.utils.getconfig.Instance:1
+#: ../../fdi/utils/queueworks.py:docstring of fdi.utils.queueworks.queuework2:1
+msgid "基类：:py:class:`object`"
+msgstr ""
+
+#: ../../fdi/utils/getconfig.py:docstring of fdi.utils.getconfig.getConfig:1
+msgid "Imports a dict named [conf]config."
+msgstr ""
+
+#: ../../fdi/utils/getconfig.py:docstring of fdi.utils.getconfig.getConfig:3
+msgid "The contents of the config are defined in the ``.config/[conf]local.py`` file. The contenss are used to update defaults in ``fdi.pns.config``. Th config file directory can be modified by the environment variable ``CONF_DIR``, which, if  not given or pointing to an existing directory, is the process owner's ``~/.config`` directory."
+msgstr ""
+
+#: ../../fdi/utils/getconfig.py:docstring of fdi.utils.getconfig.getConfig:6
+msgid "name: if given the poolurl in ``poolurl_of`` is returned, else construct a pooluul ending with ```/{name}``` from the contents in dict <conf>config. Default ```None```. conf: configuration ID. default 'pns', so the file is 'pnslocal.py'."
+msgstr ""
+
+#: ../../fdi/utils/getconfig.py:docstring of fdi.utils.getconfig.make_pool:1
+msgid "Return a ProductStorage with given pool name or poolURL."
+msgstr ""
+
+#: ../../fdi/utils/getconfig.py:docstring of fdi.utils.getconfig.make_pool:3
+msgid ";name: PoolURL, or pool name (has no \"://\"), in which case a pool URL is made based on the result of `getConfig(name=pool, conf=conf)`. Default is ''. :conf: passed to `getconfig` to determine which configuration. Default ```pns```. :wipe: whether to delete everything in the pool first."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:53
+msgid "fdi.utils.leapseconds module"
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds:1
+msgid "Get TAI-UTC difference in seconds for a given time using tzdata."
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds:3
+msgid "i.e., find the number of seconds that must be added to UTC to compute TAI for any timestamp at or after the given time[1]."
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds:19
+msgid "Python 2.6+, Python 3, Jython, Pypy support."
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds:21
+msgid "[1]: https://github.com/eggert/tz/blob/master/leap-seconds.list [2]: https://github.com/eggert/tz/blob/master/tzfile.h [3]: https://github.com/eggert/tz/blob/master/zic.c [4]: http://datacenter.iers.org/eop/-/somos/5Rgv/latest/16"
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds.LeapSecond:1
+msgid "基类：:py:class:`tuple`"
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds.LeapSecond:1
+msgid "Create new instance of LeapSecond(utc, dTAI_UTC)"
+msgstr ""
+
+#: ../sphinx/docstring of fdi.utils.leapseconds.LeapSecond.dTAI_UTC:1
+msgid "Alias for field number 1"
+msgstr ""
+
+#: ../sphinx/docstring of fdi.utils.leapseconds.LeapSecond.utc:1
+msgid "Alias for field number 0"
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds.dTAI_UTC_from_tai:1
+msgid "UTC time = tai_time - dTAI_UTC_from_tai(tai_time)."
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds.dTAI_UTC_from_utc:1
+msgid "TAI time = utc_time + dTAI_UTC_from_utc(utc_time)."
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds.gps_to_tai:1
+msgid "Convert GPS time given as datetime object to TAI time."
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds.gps_to_utc:1
+msgid "Convert GPS time given as datetime object to UTC time."
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds.leapseconds:1
+msgid "Extract leap seconds from *tzfiles*."
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds.tai_to_gps:1
+msgid "Convert TAI time given as datetime object to GPS time."
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds.tai_to_utc:1
+msgid "Convert TAI time given as datetime object to UTC time."
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds.utc_to_gps:1
+msgid "Convert UTC time given as datetime object to GPS time."
+msgstr ""
+
+#: ../../fdi/utils/leapseconds.py:docstring of fdi.utils.leapseconds.utc_to_tai:1
+msgid "Convert UTC time given as datetime object to TAI time."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:61
+msgid "fdi.utils.loadfiles module"
+msgstr ""
+
+#: ../../fdi/utils/loadfiles.py:docstring of fdi.utils.loadfiles.loadcsv:1
+msgid "Loads the contents of a CSV file into a list of tuples."
+msgstr ""
+
+#: ../../fdi/utils/loadfiles.py:docstring of fdi.utils.loadfiles.loadcsv:0
+msgid "header"
+msgstr ""
+
+#: ../../fdi/utils/loadfiles.py:docstring of fdi.utils.loadfiles.loadcsv:3
+msgid "the first header linea are taken as column headers if ```header > 0```. If no column header given (default 0), ```colN``` where N = 1, 2, 3... are returned."
+msgstr ""
+
+#: ../../fdi/utils/loadfiles.py:docstring of fdi.utils.loadfiles.loadcsv:5
+msgid "the second header linea are also recorded (usually units) if `header ` > 1. :return_dict: if ```True``` returns ```dict[colhd]=(col, unit). Default is ```False```."
+msgstr ""
+
+#: ../../fdi/utils/loadfiles.py:docstring of fdi.utils.loadfiles.loadcsv:0
+msgid "返回"
+msgstr ""
+
+#: ../../fdi/utils/loadfiles.py:docstring of fdi.utils.loadfiles.loadcsv:8
+msgid "Default is a list of (colhd, column, unit) tuplees."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:69
+msgid "fdi.utils.masked module"
+msgstr ""
+
+#: ../../fdi/utils/masked.py:docstring of fdi.utils.masked.masked:1
+msgid "Returns the masked part of the value, high bit number of mask, how wide the mask is.."
+msgstr ""
+
+#: ../../fdi/utils/masked.py:docstring of fdi.utils.masked.masked:3
+msgid "e.g. value=0b00101100 mask=0b00011100, the result is 0b011, 5, 3"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:77
+msgid "fdi.utils.moduleloader module"
+msgstr ""
+
+#: ../../fdi/utils/moduleloader.py:docstring of fdi.utils.moduleloader:1
+msgid "https://stackoverflow.com/a/43573798/13472124"
+msgstr ""
+
+#: ../../fdi/utils/moduleloader.py:docstring of fdi.utils.moduleloader.MyLoader:1
+msgid "基类：:py:class:`importlib.abc.Loader`"
+msgstr ""
+
+#: ../../fdi/utils/moduleloader.py:docstring of fdi.utils.moduleloader.MyLoader.create_module:1
+msgid "Return a module to initialize and into which to load."
+msgstr ""
+
+#: ../../fdi/utils/moduleloader.py:docstring of fdi.utils.moduleloader.MyLoader.create_module:3
+msgid "This method should raise ImportError if anything prevents it from creating a new module.  It may return None to indicate that the spec should create the new module."
+msgstr ""
+
+#: ../../fdi/utils/moduleloader.py:docstring of fdi.utils.moduleloader.MyMetaFinder:1
+#: ../../fdi/utils/moduleloader.py:docstring of fdi.utils.moduleloader.SelectiveMetaFinder:1
+msgid "基类：:py:class:`importlib.abc.MetaPathFinder`"
+msgstr ""
+
+#: ../../fdi/utils/moduleloader.py:docstring of fdi.utils.moduleloader.SelectiveMetaFinder:1
+msgid "Raise ExcludedModule exception if loading modules whose names have any of cls.exclude."
+msgstr ""
+
+#: ../../fdi/utils/moduleloader.py:docstring of fdi.utils.moduleloader.SelectiveMetaFinder.ExcludedModule:1
+msgid "基类：:py:class:`Exception`"
+msgstr ""
+
+#: ../../fdi/utils/moduleloader.py:docstring of fdi.utils.moduleloader.install:1
+#: ../../fdi/utils/moduleloader.py:docstring of fdi.utils.moduleloader.installSelectiveMetaFinder:1
+msgid "Inserts the finder into the import machinery"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:85
+msgid "fdi.utils.monokaimod module"
+msgstr ""
+
+#: ../../fdi/utils/monokaimod.py:docstring of fdi.utils.monokaimod.MonokaiMod:1
+msgid "基类：:py:class:`pygments.styles.monokai.MonokaiStyle`"
+msgstr ""
+
+#: ../sphinx/docstring of fdi.utils.monokaimod.MonokaiMod.styles:1
+msgid "Style definitions for individual token types."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:93
+msgid "fdi.utils.options module"
+msgstr ""
+
+#: ../../fdi/utils/options.py:docstring of fdi.utils.options.opt:1
+msgid "Example: ops = [ {'long':'help', 'char':'h', 'default': false, 'description':'print help'}, {'long':'verbose', 'char':'v', 'default': false, 'description':'print info'}, {'long':'username=', 'char':'u', 'default': 'foo', 'description':'non-empty user name/ID'}, {'long':'password=', 'char':'p', 'default': 'bar', 'description':'password'}, {'long':'host=', 'char':'i', 'default': '0.0.0.0', 'description':'host IP/name'}, {'long':'port=', 'char':'o', 'default': 5000, 'description':'port number'} ]"
+msgstr ""
+
+#: ../../fdi/utils/options.py:docstring of fdi.utils.options.opt:11
+msgid "Optionly use 'OPTSTART' in command line to start options an have ppreceeding ones ignored. Useful when application is invoked with other options, e.g. by pytest"
+msgstr ""
+
+#: ../../fdi/utils/options.py:docstring of fdi.utils.options.opt:13
+msgid "argv: if provided will be used in plsce of sys.argv."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:101
+msgid "fdi.utils.queueworks module"
+msgstr ""
+
+#: ../../fdi/utils/queueworks.py:docstring of fdi.utils.queueworks.queuework2.process_mid:1
+msgid "if mid is already in mwa, check it; if not put it in"
+msgstr ""
+
+#: ../../fdi/utils/queueworks.py:docstring of fdi.utils.queueworks.queuework2.wait_for:1
+msgid "Waiting for subscribe and publish to clear."
+msgstr ""
+
+#: ../../fdi/utils/queueworks.py:docstring of fdi.utils.queueworks.queuework2.wait_for:3
+msgid "http://www.steves-internet-guide.com/subscribing-topics-mqtt-client/ return: 0 if successful."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:109
+msgid "fdi.utils.run\\_proc module"
+msgstr ""
+
+#: ../../fdi/utils/run_proc.py:docstring of fdi.utils.run_proc.run_proc:1
+msgid "Execute a shell command and return status."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:117
+msgid "fdi.utils.totalsize module"
+msgstr ""
+
+#: ../../fdi/utils/totalsize.py:docstring of fdi.utils.totalsize:1
+msgid "https://code.activestate.com/recipes/577504/"
+msgstr ""
+
+#: ../../fdi/utils/totalsize.py:docstring of fdi.utils.totalsize.getsize_gc:1
+msgid "sum size of object & members."
+msgstr ""
+
+#: ../../fdi/utils/totalsize.py:docstring of fdi.utils.totalsize.getsize_rec:1
+msgid "Recursively iterate to sum size of object & members."
+msgstr ""
+
+#: ../../fdi/utils/totalsize.py:docstring of fdi.utils.totalsize.total_size:1
+msgid "Returns the approximate memory footprint an object and all of its contents."
+msgstr ""
+
+#: ../../fdi/utils/totalsize.py:docstring of fdi.utils.totalsize.total_size:3
+msgid "Automatically finds the contents of the following builtin containers and their subclasses:  tuple, list, deque, dict, set and frozenset. To search other containers, add handlers to iterate over their contents:"
+msgstr ""
+
+#: ../../fdi/utils/totalsize.py:docstring of fdi.utils.totalsize.total_size:7
+msgid "handlers = {SomeContainerClass: iter,"
+msgstr ""
+
+#: ../../fdi/utils/totalsize.py:docstring of fdi.utils.totalsize.total_size:8
+msgid "OtherContainerClass: OtherContainerClass.get_elements}"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.utils.rst:125
+msgid "fdi.utils.ydump module"
+msgstr ""
+
+#: ../../fdi/utils/ydump.py:docstring of fdi.utils.ydump.MyRepresenter:1
+msgid "基类：:py:class:`ruamel.yaml.representer.RoundTripRepresenter`"
+msgstr ""
+
+#: ../../fdi/utils/ydump.py:docstring of fdi.utils.ydump.MyYAML:1
+msgid "基类：:py:class:`ruamel.yaml.main.YAML`"
+msgstr ""
+
+#: ../../fdi/utils/ydump.py:docstring of fdi.utils.ydump.MyYAML:1
+msgid "_kw: not used, forces keyword arguments in 2.7 (in 3 you can do (*, safe_load=..) typ: 'rt'/None -> RoundTripLoader/RoundTripDumper,  (default)"
+msgstr ""
+
+#: ../../fdi/utils/ydump.py:docstring of fdi.utils.ydump.MyYAML:3
+msgid "'safe'    -> SafeLoader/SafeDumper, 'unsafe'  -> normal/unsafe Loader/Dumper 'base'    -> baseloader"
+msgstr ""
+
+#: ../../fdi/utils/ydump.py:docstring of fdi.utils.ydump.MyYAML:6
+msgid "pure: if True only use Python modules input/output: needed to work as context manager plug_ins: a list of plug-in files"
+msgstr ""
+
+#: ../../fdi/utils/ydump.py:docstring of fdi.utils.ydump.ydump:1
+msgid "YAML dump that outputs OrderedDict like dict."
+msgstr ""
+
+#: ../../fdi/utils/ydump.py:docstring of fdi.utils.ydump.yinit:1
+msgid "Initializes YAML."
+msgstr ""

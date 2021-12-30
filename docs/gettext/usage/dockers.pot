@@ -1,0 +1,226 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../sphinx/usage/dockers.rst:3
+msgid "Dockers"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:10
+msgid "Table of Contents"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:13
+msgid "Specifications"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:17
+msgid "The following pre-made docker images are available:"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:20
+msgid "**Name**"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:20
+msgid "fdi"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:20
+msgid "httppool"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:22
+msgid "**Description**"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:22
+msgid "linux with fdi tested and ready to run."
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:22
+msgid "Apache HTTPPool server, tested and started."
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:26
+msgid "**Base**"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:26
+msgid "Ubuntu 18.04 (~268MB compressed)"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:26
+msgid "fdi (~271MB compressed)"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:29
+msgid "**Installed**"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:29
+#: ../sphinx/usage/dockers.rst:29
+msgid "Package and DEV, SERV dependencies."
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:32
+msgid "**User in docker**"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:32
+msgid "``fdi``"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:32
+msgid "``apache``(Convenience links in home dir.)"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:35
+msgid "**Pull**"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:35
+msgid "``docker pull mhastro/fdi``"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:35
+msgid "``docker pull mhastro/httppool``"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:38
+msgid "**Build**"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:38
+msgid "``make build_docker``"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:38
+msgid "``make build_server``"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:41
+msgid "**Launch**"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:41
+msgid "``make launch_docker``"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:41
+msgid "``make launch_server``"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:44
+msgid "**Entrypoint**"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:44
+msgid "``dockerfile_entrypoint.sh``"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:44
+msgid "``fdi/pns/resources/httppool_server_entrypoint_2.sh``"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:46
+msgid "**Ports**"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:46
+msgid "\\--"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:46
+msgid "9884"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:49
+msgid "Run the ``make`` commands in the package root directory of fdi."
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:52
+msgid "Configure"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:54
+msgid "A file named ``.secret`` is needed by the build and launch commands. This is an example ``.secret``::"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:64
+msgid "Server credentials are set during server start up, when ``pnslocal.py`` config file is loaded. ``pnslocal.py`` and other configuration files are updated by the Entrypoint files (see the table above) when the docker starts. The Entrypoint files uses environment variables, which are set by the command line with ``--env-file`` so that sensitive information are not left on the command line."
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:67
+msgid "More convenience commands"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:69
+msgid "Login the latest built running container:"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:75
+msgid "Stop the latest built running container:"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:81
+msgid "Remove the latest built running container and image:"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:87
+msgid "Watch ``/var/log/apache2/error-ps.log`` inside the ``httppool`` docker updating (after launching):"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:95
+msgid "If you see error of log file not found, you are running the ``fdi`` docker by mistake. Only the pool server docker has the log."
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:98
+msgid "Make the images locally"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:100
+msgid "The following shows how to build the docker images yourself."
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:102
+msgid "First make a virtual environment:"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:110
+msgid "Then install fdi following instructions in :doc:`installation` , e.g."
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:119
+msgid "Modify ``docker_entrypoint.sh`` if needed."
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:121
+msgid "Now you can make the ``fdi`` docker easily:"
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:127
+msgid "To build ``httppool`` image, modify the ``FROM`` line in ``fdi/pns/resources/httppool_server_2.docker`` to delete ``mhastro/``."
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:129
+msgid "Modify ``fdi/pns/resources/httppool_server_entrypoint.sh`` if needed."
+msgstr ""
+
+#: ../sphinx/usage/dockers.rst:131
+msgid "Make the ``httppool`` image"
+msgstr ""

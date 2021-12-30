@@ -1,0 +1,157 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../sphinx/usage/quickstart.rst:4
+msgid "Quick Start"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:7
+msgid "Contents:"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:9
+msgid ""
+"The following quick start tutorial shows important ``dataset`` and "
+"``pal`` functionalities."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:11
+msgid "Colors in examples:"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:21
+msgid ""
+"You can copy the code from code blocks by clicking the ``copy`` icon on "
+"the top-right, with he prompts and results removed."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:49
+msgid "dataset"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:51
+msgid "First we show how to make and use components of the data model."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:53
+msgid ""
+"This section shows how to create data containers -- datasets, metadata, "
+"and Products, how to put data into the containers, read data out, modify "
+"data, remove data, inspect data."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:56
+msgid "ArrayDataset -- sequence of data in the same unit and format"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:187
+msgid "TableDataset -- a set of named Columns and their metadata"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:189
+msgid ""
+"TableDataset is mainly a dictionary containing named :class:`Column`\\s "
+"and their metadata. Columns are basically ArrayDatasets under a different"
+" name."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:345
+msgid "Metadata and Parameter - Parameter"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:400
+msgid "Metadata and Parameter - Metadata"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:402
+msgid ""
+"A :class:`Metadata` instance is mainly a dict-like container for named "
+"parameters."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:543
+msgid "Product with metadata and datasets"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:757
+msgid "pal - Product Access Layer"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:759
+msgid ""
+"Products need to persist (be stored somewhere) in order to have a "
+"reference that can be used to re-create the product after its creation "
+"process ends."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:762
+msgid "Product Pool and Product References"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:764
+msgid "This section shows how to make/get hold of a `pool`."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:784
+msgid "Saving a Product"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:786
+msgid ""
+"This section shows how to store a product in a \"pool\" and get a "
+"reference back."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:855
+msgid "Context: a Product with References"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:857
+msgid ""
+"This section shows essential steps how product references can be stored "
+"in a context."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:927
+msgid "Query a Storage to get saved Products"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:929
+msgid ""
+"A :class:`ProductStorage` with pools attached can be queried with tags, "
+"properties stored in metadata, or even data in the stored products, using"
+" Python syntax."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:1012
+msgid "END of examples"
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:1014
+msgid "See the installation and testing sections of the pns page."
+msgstr ""
+
+#: ../sphinx/usage/quickstart.rst:1019
+msgid ""
+"The demo above was made by running ``fdi/resources/example.py`` with "
+"command ``elpy-shell-send-group-and-step [c-c c-y c-g]`` in ``emacs``. "
+"The command is further simplified to control-<tab> with the following in "
+"~/.init.el:"
+msgstr ""
+

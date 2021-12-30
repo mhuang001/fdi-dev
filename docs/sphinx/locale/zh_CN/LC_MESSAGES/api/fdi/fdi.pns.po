@@ -1,0 +1,240 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../sphinx/api/fdi/fdi.pns.rst:2
+msgid "fdi.pns package"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pns.rst:10
+msgid "Subpackages"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pns.rst:18
+msgid "Submodules"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pns.rst:21
+msgid "fdi.pns.config module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pns.rst:29
+msgid "fdi.pns.fdi\\_requests module"
+msgstr ""
+
+#: fdi.pns.fdi_requests.delete_from_server:1 of
+msgid "Remove a product or pool from server"
+msgstr ""
+
+#: fdi.pns.fdi_requests.delete_from_server:3
+#: fdi.pns.fdi_requests.put_on_server:3 fdi.pns.fdi_requests.read_from_server:3
+#: of
+msgid ""
+"urn: to extract poolname, product type, and index if any of these are "
+"needed poolurl: the only parameter must be provided"
+msgstr ""
+
+#: fdi.pns.fdi_requests.put_on_server:1 of
+msgid "Register the pool on the server."
+msgstr ""
+
+#: fdi.pns.fdi_requests.read_from_server:1 of
+msgid "Read product or hk data from server"
+msgstr ""
+
+#: fdi.pns.fdi_requests.save_to_server:1 of
+msgid "Save product to server with putting tag in headers"
+msgstr ""
+
+#: fdi.pns.fdi_requests.save_to_server:3 of
+msgid ""
+"data: goes to the request body urn: to extract poolname, product type, "
+"and index if any of these are needed poolurl: the only parameter must be "
+"provided tag: go with the produc"
+msgstr ""
+
+#: fdi.pns.fdi_requests.save_to_server:7 of
+msgid "ts into the pool"
+msgstr ""
+
+#: fdi.pns.fdi_requests.save_to_server:8 of
+msgid "no_serial: do not serialize the data."
+msgstr ""
+
+#: fdi.pns.fdi_requests.urn2fdiurl:1 fdi.pns.urlconf.urn2url:1 of
+msgid "Returns URL for accessing pools with a URN."
+msgstr ""
+
+#: fdi.pns.fdi_requests.urn2fdiurl:3 of
+msgid "See up-to-date HttpPool API UI at `http://<ip>:<port>/apidocs`."
+msgstr ""
+
+#: fdi.pns.fdi_requests.urn2fdiurl:5 of
+msgid "This is done by using the PoolURL."
+msgstr ""
+
+#: fdi.pns.fdi_requests.urn2fdiurl:7 fdi.pns.urlconf.urn2url:3 of
+msgid ""
+"contents: 'product' for returning a product from the pool. 'hk' for "
+"returning the housekeeping data of the pool. 'classes' for returning the "
+"class housekeeping data of the pool. 'urns' for returning the URN "
+"housekeeping data of the pool. 'tags' for returning the tag housekeeping "
+"data of the pool."
+msgstr ""
+
+#: fdi.pns.fdi_requests.urn2fdiurl:14 of
+msgid ""
+"method: 'GET' compo for retrieving product or hk or classes, urns, tags, "
+"'POST' compo for uploading  product 'PUT' for registering pool 'DELETE' "
+"compo for removing product or removing pool"
+msgstr ""
+
+#: fdi.pns.fdi_requests.urn2fdiurl:20 of
+msgid ""
+"Example: IP=ip poolpath=/a poolname=b files=/a/b/classes.jsn | urns.jsn |"
+" t.. | urn..."
+msgstr ""
+
+#: fdi.pns.fdi_requests.urn2fdiurl:23 of
+msgid ""
+"with python: m.refs['myinput'] = special_ref ref=pstore.save(m) assert "
+"ref.urn == 'urn:b:fdi.dataset.MapContext:203' p=ref.product "
+"myref=p.refs['myinput']"
+msgstr ""
+
+#: fdi.pns.fdi_requests.urn2fdiurl:30 of
+msgid ""
+"with a pool: "
+"myref=pool.load('http://ip:port/v0.6/b/fdi.dataset.MapContext/203/refs/myinput')"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pns.rst:37
+msgid "fdi.pns.jsonio module"
+msgstr ""
+
+#: fdi.pns.jsonio.deleteJsonObj:1 of
+msgid "deletes object from url. Returns None if fails."
+msgstr ""
+
+#: fdi.pns.jsonio.getJsonObj:1 of
+msgid ""
+"return object from url. url can be http or file. translate keys and "
+"values from string to number if applicable. Raise exception if fails. Not"
+" using requests.get() as it cannot open file:/// w/o installing "
+"https://pypi.python.org/pypi/requests-file"
+msgstr ""
+
+#: fdi.pns.jsonio.getJsonObj1:1 of
+msgid ""
+"return object from url. url can be http or file. translate keys and "
+"values from string to number if applicable. Return None if fails. Not "
+"using requests.get() as it cannot open file:/// w/o installing "
+"https://pypi.python.org/pypi/requests-file"
+msgstr ""
+
+#: fdi.pns.jsonio.jsonREST:1 of
+msgid "generic RESTful command handler for POST, PUT, and DELETE."
+msgstr ""
+
+#: fdi.pns.jsonio.postJsonObj:1 of
+msgid "posts object to url. Returns None if fails."
+msgstr ""
+
+#: fdi.pns.jsonio.putJsonObj:1 of
+msgid "puts object to url. Returns None if fails."
+msgstr ""
+
+#: fdi.pns.jsonio.writeJsonObj:1 of
+msgid ""
+"Write an object to file fn in json safely Return True if successful else "
+"False"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pns.rst:45
+msgid "fdi.pns.logdict module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pns.rst:53
+msgid "fdi.pns.pns\\_server module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pns.rst:61
+msgid "fdi.pns.runflaskserver module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pns.rst:69
+msgid "fdi.pns.server\\_skeleton module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.pns.rst:77
+msgid "fdi.pns.urlconf module"
+msgstr ""
+
+#: fdi.pns.urlconf.urn2url:10 of
+msgid ""
+"Example: IP=ip dir=/a/b/c files=/a/b//c/classes.jsn | urns.jsn | t.. | "
+"urn..."
+msgstr ""
+
+#: fdi.pns.urlconf.urn2url:13 of
+msgid ""
+"with python: m.refs['myinput'] = special_ref ref=pstore.save(m) assert "
+"ref.urn == 'urn:http://ip:port/a/b/c/fdi.dataset.MapContext:203' "
+"p=ref.product myref=p.refs['myinput']"
+msgstr ""
+
+#: fdi.pns.urlconf.urn2url:20 of
+msgid ""
+"with a pool: "
+"myref=pool.load('http://ip:port/v0.6/a/b/c/fdi.dataset.MapContext/203/refs/myinput')"
+msgstr ""
+
+#: fdi.pns.urlconf.urn2url:23 of
+msgid ""
+"urn:http://ip:port/a/b/c/fdi.dataset.Product:203    ==> "
+"http://ip:port/v0.6/a/b/c/fdi.dataset.Product/203/meta/OBSID"
+msgstr ""
+
+#: fdi.pns.urlconf.urn2url:26 of
+msgid "At the same time this is not allowed due to overlapping after 'c'"
+msgstr ""
+
+#: fdi.pns.urlconf.urn2url:28 of
+msgid ""
+"urn:http://ip:port/a/b/d/fdi.dataset.Product:203    ==> "
+"http://ip:port/v0.6/a/b/c/d/"
+msgstr ""
+
+#: fdi.pns.urlconf.urn2url:31 of
+msgid "This is also overlapping starting from '/'"
+msgstr ""
+
+#: fdi.pns.urlconf.urn2url:33 of
+msgid "urn:http://ip:port/fdi.dataset.Product:203    ==> http://ip:port/v0.6/"
+msgstr ""
+
+#: fdi.pns.urlconf.urn2url:36 of
+msgid "but for example this is allowed:"
+msgstr ""
+
+#: fdi.pns.urlconf.urn2url:38 of
+msgid ""
+"urn:http://ip:port/a/k/fdi.dataset.Product:203    ==> "
+"http://ip:port/v0.6/a/k/"
+msgstr ""
+

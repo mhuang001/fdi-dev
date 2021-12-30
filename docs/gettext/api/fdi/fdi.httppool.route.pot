@@ -1,0 +1,340 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../sphinx/api/fdi/fdi.httppool.route.rst:2
+msgid "fdi.httppool.route package"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.httppool.route.rst:10
+msgid "Submodules"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.httppool.route.rst:13
+msgid "fdi.httppool.route.getswag module"
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.httppool.route.rst:21
+msgid "fdi.httppool.route.httppool\\_server module"
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.checkpath:1
+msgid "Checks  the directories and creats if missing."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.checkpath:3
+msgid "path: str. can be resolved with Path. un: server user name"
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.data_paths:1
+msgid "Returns magics of given type/data in the given pool."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.delete_product:1
+msgid "removes specified product from pool"
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.delete_urn:1
+msgid "Remove data item with the given URN (or URN parts)."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.delete_urn:0
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.urn:0
+msgid "parts"
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.delete_urn:3
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.urn:3
+msgid "parts of a URN, consists of the pool ID, a data class type, and a serial number (a.k.a index number). e.g. ``urn:pool:fdi.dataset.baseproduct.BaseProduct:0``, ``/pool/fdi.dataset.baseproduct.BaseProduct/0``. Also possible URL: ``http.../urn:pool/fdi.dataset.product.Product/0``\"."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.getProduct_Or_Component:0
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.resp:0
+msgid "serialize_out"
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.getProduct_Or_Component:1
+msgid "see :meth:`ProductPool.saveProduct`"
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.get_component_or_method:1
+msgid "Get the component and the associated command and return"
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.get_component_or_method:3
+msgid "Except for full products, most components  are not in serialized form."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.load_component_at:1
+msgid "paths[pos] is data_type; paths[pos+2] is 'description','meta' ..."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.load_component_at:3
+msgid "Components fetched are not in serialized form."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.load_product:1
+msgid "Load product paths[p]:paths[p+1] from paths[0]"
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.mkv:1
+msgid "return v with a tyoe specified by t."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.mkv:3
+msgid "t: 'NoneType' or any name in ``Builtins``."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.resp:1
+msgid "Make response."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.resp:0
+msgid "ctype"
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.resp:3
+msgid "Content-Type. Default is `application/json`"
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.resp:4
+msgid "if True `result` is in already in serialized form."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.save_data:1
+msgid "Save data to the pool with a list of tags and receive URNs."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.save_data:3
+msgid "Save product data item(s) to the pool with an optional set of tags (The same tags are given to every data item) and receive a URN for each of the saved items."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.save_product:1
+msgid "Save products and returns URNs."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.save_product:3
+msgid "Saving Products to HTTPpool will have data stored on the server side. The server only returns URN strings as a response. ProductRefs will be generated by the associated httpclient pool which is the front-end on the user side."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.save_product:0
+msgid "tags"
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.save_product:5
+msgid "a list off tag strings. default is None meaning no tag."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.save_product:6
+msgid "Returns a URN object or a list of URN objects."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.setOwnerMode:1
+msgid "makes UID and GID set to those of serveruser given in the config file. This function is usually done by the initPTS script."
+msgstr ""
+
+#: ../../fdi/httppool/route/httppool_server.py:docstring of fdi.httppool.route.httppool_server.urn:1
+msgid "Return data item from the given URN."
+msgstr ""
+
+#: ../sphinx/api/fdi/fdi.httppool.route.rst:29
+msgid "fdi.httppool.route.pools module"
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.api:1
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.call_pool_Api:1
+msgid "Call api mathods on the running pool and returns the result."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.api_info:1
+msgid "A list of names of allowed API methods."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.api_info:3
+msgid "Returns a list of name of methods allowed to be called with web APIs on this pool."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.call_pool_Api:3
+msgid "return: value if args is pool property; execution result if method."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.count:1
+msgid "Returns the number of given type of data in the given pool."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.count:0
+msgid "data_type"
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.count:3
+msgid "(part of) dot-separated full class name of data items in pool."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.get_name_all_pools:1
+msgid "Returns names of all pools in the given directory."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.get_pool:1
+msgid "Get information of the given pool."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.get_pool:3
+msgid "Returns the state of the pool of given Pool IDs."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.get_pool_info:1
+msgid "returns information of the pool."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.get_pools:1
+msgid "Get names of all pools, registered or not."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.get_pools_url:1
+msgid "Get names and urls of all pools, registered or not."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.get_prod_count:1
+msgid "Return the total count for the given product type and pool_id in the directory."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.get_prod_count:3
+msgid "'prod_type': (part of) 'clsssname', 'pool_id': 'pool name'"
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.get_registered_pools:1
+msgid "Returns a list of Pool IDs (pool names) of all pools registered with the Global PoolManager. ---"
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.hk:1
+msgid "All kinds of pool housekeeping data."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.hk_single:1
+msgid "Returns the given kind of pool housekeeping data."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.load_HKdata:1
+msgid "Load HKdata of a pool"
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.load_pools:1
+msgid "Adding all pool to server pool storage."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.load_pools:3
+msgid "poolnames: if given as a list of poolnames, only the exisiting ones of the list will be loaded. :usr: current authorized user. Returns: a `dict` of successfully loaded pools names-pool in `good`, and troubled ones in `bad` with associated exception info."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.load_single_HKdata:1
+msgid "Returns pool housekeeping data of the specified type: classes or urns or tags."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.login:1
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.logout:1
+msgid "Logging in on the server."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.login:0
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.logout:0
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.register:0
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.register_pool:0
+msgid "返回"
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.login:3
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.logout:3
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.register:5
+msgid "response made from http code, poolurl, message"
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.register:1
+msgid "Register the given pool."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.register:3
+msgid "Register the pool of given Pool IDs to the global PoolManager."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.register_all:1
+msgid "Register (Load) all pools on tme server."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.register_pool:1
+msgid "Register this pool to PoolManager."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.register_pool:3
+msgid "code, pool object if successful, message"
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.unregister:1
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.unregister_pool:1
+msgid "Unregister this pool from PoolManager."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.unregister:3
+msgid "Check if the pool exists in server, and unregister or raise exception message to client."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.unregister_pool:3
+msgid "Check if the pool exists in server, and unregister or raise exception message. :return: http code, return value, message."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.unregister_pools:1
+msgid "Removing all pools from the PoolManager."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.unregister_pools:4
+msgid "`w"
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.unregister_pools:3
+msgid "poolnames: if given as a list of poolnames, only the ones in the list will be unregistered."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.unregister_pools:5
+msgid "Returns: a list of successfully unregistered pools names in `good`, and troubled ones in `bad` with associated exception info."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.wipe:1
+msgid "Removes all contents of the pool."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.wipe:3
+msgid "requests all data in the pool be removed."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.wipe_all:1
+msgid "Remove contents of all pools."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.wipe_all:3
+msgid "Only registerable pools will be wiped. Pool directories are not removed."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.wipe_pools:1
+msgid "Deleting all pools using pool api so locking is properly used."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.wipe_pools:3
+msgid "poolnames: if given as a list of poolnames, only the  ones in the list will be deleted."
+msgstr ""
+
+#: ../../fdi/httppool/route/pools.py:docstring of fdi.httppool.route.pools.wipe_pools:5
+msgid "Returns: a list of successfully removed pools names in `good`, and troubled ones in `bad` with associated exception info."
+msgstr ""

@@ -1,0 +1,338 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.1\n"
+
+#: ../sphinx/usage/pns.rst:3
+msgid "**PNS**: Processing Node Server"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:7
+msgid "Table of Contents"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:10
+msgid "Rationale"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:12
+msgid ""
+"Many data processing pipelines need to run software that only runs on a "
+"specific combination of OS type, version, language, and library. These "
+"software could be impractical to replace or modify but need to be run "
+"side-by-side with software of incompatible environments/formats to form "
+"an integral data processing pipeline, each software being a \"node\" to "
+"perform a  processing task. Docker containers are often the perfect "
+"solution to run software with incompatible dependencies."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:14
+msgid ""
+"PNS installed on a Docker container or a normal server allows such "
+"processing tasks to run in the PNS memory space, in a daemon process, or "
+"as an OS process receiving input and delivering output through a "
+"'delivery man' protocol."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:16
+msgid ""
+"This Web API Server for a data processing pipeline/network node provides "
+"interfaces to configure the data processing task software (PTS) in a "
+"processing node, to make a run request, to deliver necessary input data, "
+"and to read results, all via web APIs."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:18
+msgid "The following commands are run from the fdi directory from installation."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:21
+msgid "Basic Configuration"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:23
+msgid ""
+"When running Flask server, the host IP is ``127.0.0.1`` and port number "
+"``5000`` by default. They are configurable in ``pnsconfig.py``. Default "
+"configuration can be overridden by ``~/.config/pnslocal.py``. Copy "
+"``pnsconfig.py`` to ``~/.config/pnslocal.py``"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:29
+msgid "and customize ``~/.config/pnslocal.py``."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:31
+msgid ""
+"When in developement mode, select ``dev`` to run local server. The "
+"``serveruser`` should be the name of the user of web server, usually your"
+" username if you run ``make runserver``. This is the default if ``dev`` "
+"is selected."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:33
+msgid ""
+"For production deployment choose ``servertest`` or ``external``. Set "
+"``serveruser`` depending which web server (e.g. ``'apache'``)."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:35
+msgid ""
+"The ``ptsuser`` is usually the user required by the processing software. "
+"It is set to ``serveruser`` by default. ``ptsuser`` must have write "
+"previlige to read and write ``inputdir`` and ``outputdir``, which are "
+"owned by ``serveruser`` with mode ``o0775``."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:37
+msgid ""
+"On the server side (or on your computer which can be both the server and "
+"the client) edit ``Makefile`` by changing the value of varible ``PNSDIR``"
+" in ``Makefile`` the pnshome directory if you do not want the default "
+"(``~/pns``)."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:39
+msgid "Then run the deployment command"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:45
+msgid "to create the pns home directory and copy the demo PTS script set."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:48
+msgid "Run the FLASK Server"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:50
+msgid "Edit ``~/.config/pnslocal.py`` if needed. Then"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:56
+msgid ""
+"Contents in ``[]``, like ``[--ip=<host ip>] [--port=<port>]`` above, are "
+"optional."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:58
+msgid ""
+"``<>`` means you need to substitute with actual information (for example "
+"``--port=<port>`` becomes ``--port=5000``)."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:60
+msgid "Or you can run"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:66
+msgid "in debugging mode:"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:72
+msgid "or just"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:78
+msgid "to use the defaults."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:80
+msgid "Do not run debugging mode for production use."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:82
+msgid "The username and password are used when making run requests."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:86
+msgid ""
+"The logging level of the server is set in the config file. The ``-v`` "
+"switch to ``runflaskserver`` used above will set the level to "
+"``logging.DEBUG``. Packages ``requests, ``filelock``, and ``urllib3`` are"
+" fixed to ``logging.WARN``."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:90
+msgid "Test and Verify Installation"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:93
+msgid "To run all tests in one go:"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:99
+msgid "Tests can be done step-by-step to pin-point possible problems:"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:102
+msgid "1. Server Unit Test"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:104
+msgid ""
+"Run this on the server host to verify that internal essential functions "
+"of the server work with current configuration. This runs without needing "
+"starting the server:"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:111
+msgid "2. Local Flask Server Functional Tests"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:113
+msgid ""
+"In ``~/.config/pnslocal.py`` (see above for installation and "
+"customization), set ``dev=True`` and make sure the IP is local "
+"(``127.0.0.1``). Start the server fresh in one terminal (see above) and "
+"in another terminal (on the server host) run the following:"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:115
+msgid "2a: test GET initPTS script to see if reading the init script back works:"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:121
+msgid "2b: test PUT initialization test:"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:127
+msgid "2c1: If the test passes, you can Run all tests in one go:"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:133
+msgid "2c2: Or keep on individual tests..."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:136
+msgid "test POST In-server processing"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:142
+msgid "test POST PTS processing"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:148
+msgid "test DELETE Clean-up the server by removing the input and output dirs"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:154
+msgid "Now is a good time to ..."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:157
+msgid "3. Get public access APIs and information"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:159
+msgid ""
+"Suppose the server address and port are ``127.0.0.1`` and ``5000``, "
+"respectively:"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:161
+msgid ""
+"Run the Flask server in a terminal (see above) and open this in a "
+"browser. The up-to-date URL is displayed in the server stating message:"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:163
+msgid "http://127.0.0.1:5000/v0.6/"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:165
+msgid "An online API documentation page similar to below is shown."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:251
+msgid "Continue with tests..."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:254
+msgid "4. Run tests from a remote client"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:256
+msgid ""
+"Install pns on a remote host, configure IP and port, then run the tests "
+"above. This proves that the server and the client have connection and "
+"fire wall configured correctly."
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:260
+msgid "Run the local tests with Apache"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:262
+msgid ""
+"Set dev=False in ~/.config/pnslocal.py (see above) and set the IP and "
+"port. Suppose the server is on CentOS. Edit pns/resources/pns.conf "
+"according to local setup, then"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:272
+msgid ""
+"then run the above with correct IP and port (edit ~/.config/pnslocal.py "
+"or specifying in command line). Start the server and run all the tests:"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:280
+msgid "PTS Configuration"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:282
+msgid ""
+"To run a PTS shell script instead of the 'hello' demo, change the "
+"```run``` parameter in the config file, e.g. to run the script named "
+"``runPTS.vvpp``"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:288
+msgid "restart the server. run"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:295
+msgid "PTS API"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:296 ../sphinx/usage/pns.rst:330
+msgid "TBW"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:299
+msgid "Return on Common Errors"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:301
+msgid "400"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:307
+msgid "401"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:313
+msgid "404"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:319
+msgid "409"
+msgstr ""
+
+#: ../sphinx/usage/pns.rst:328
+msgid "Resources"
+msgstr ""
+

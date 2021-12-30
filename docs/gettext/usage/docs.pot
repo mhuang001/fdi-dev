@@ -1,0 +1,77 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019 - 2021 Maohai Huang, NAOC, ESA
+# This file is distributed under the same license as the fdi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: fdi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-12-30 09:03+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../sphinx/usage/docs.rst:3
+msgid "Maintain Documentations"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:6
+msgid "Table of Contents"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:9
+msgid "Sphinx Directory Layout"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:11
+msgid "FDI uses *Sphinx* to produce, maintain, and format documents, which reside in ```fdi/docs/sphinx```::"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:73
+msgid "Update Doccuments"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:76
+msgid "Install related Packages"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:84
+msgid "Make your changes to take effect"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:86
+msgid "As the FDI package changes, run in FDI package dir this to update class/package diagrams:"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:92
+msgid "Run"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:98
+msgid "to update API documents"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:100
+msgid "Use this"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:106
+msgid "after you modifify any `.rst` files above or plots or API infor have been updated. Use your web browser to open the newly generated document: example ``file:///D:/code/fdi/docs/html/index.html``"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:109
+msgid "Translate Documents"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:111
+msgid "TBW"
+msgstr ""
+
+#: ../sphinx/usage/docs.rst:113
+msgid "See https://www.sphinx-doc.org/en/master/usage/advanced/intl.html"
+msgstr ""

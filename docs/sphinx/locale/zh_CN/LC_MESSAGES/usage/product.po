@@ -19,73 +19,73 @@ msgstr ""
 
 #: ../sphinx/usage/product.rst:3
 msgid "**Data Containers**: Product"
-msgstr ""
+msgstr "**数据容器**：产品"
 
 #: ../sphinx/usage/product.rst:6
 msgid "Table of Contents"
-msgstr ""
+msgstr "目录"
 
 #: ../sphinx/usage/product.rst:9
 msgid "Product"
-msgstr ""
+msgstr "产品"
 
 #: ../sphinx/usage/product.rst:11
 msgid "Product is what links all fdi components together."
-msgstr ""
+msgstr "产品是将所有 fdi 组件连接在一起的东西。"
 
 #: ../sphinx/usage/product.rst:14
 msgid "Data and Meta Data"
-msgstr ""
+msgstr "数据和元数据"
 
 #: ../sphinx/usage/product.rst:31
 msgid "A product has"
-msgstr ""
+msgstr "一个产品具有"
 
 #: ../sphinx/usage/product.rst:20
 msgid ""
 "zero or more datasets: defining well described data entities (say images,"
 " tables, spectra etc...)."
-msgstr ""
+msgstr "零个或多个数据集：定义详细描述的数据实体（例如图像、表格、光谱等）。"
 
 #: ../sphinx/usage/product.rst:21
 msgid "accompanying meta data -- required information such as"
-msgstr ""
+msgstr "随附的元数据——所需的信息，例如"
 
 #: ../sphinx/usage/product.rst:23
 msgid "the classification of this product,"
-msgstr ""
+msgstr "这个产品的分类，"
 
 #: ../sphinx/usage/product.rst:24
 msgid "the creator this product,"
-msgstr ""
+msgstr "这个产品的创造者，"
 
 #: ../sphinx/usage/product.rst:25
 msgid "when was the product created?"
-msgstr ""
+msgstr "产品的创建时间"
 
 #: ../sphinx/usage/product.rst:26
 msgid "what does the data reflect? (its intended use scope)"
-msgstr ""
+msgstr "数据反映了什么？（其预期使用范围）"
 
 #: ../sphinx/usage/product.rst:27
 msgid "and so on;"
-msgstr ""
+msgstr "等等；"
 
 #: ../sphinx/usage/product.rst:28
 msgid "possible additional meta data specific to that particular product type."
-msgstr ""
+msgstr "该特定产品类型的可能附加的特定元数据。"
 
 #: ../sphinx/usage/product.rst:29
 msgid "history of this product: how was this data created."
-msgstr ""
+msgstr "这个产品的历史：这些数据是如何创建的。"
 
 #: ../sphinx/usage/product.rst:30
 msgid "References of relevant products that form a context of this product"
-msgstr ""
+msgstr "构成这个产品上下文的相关产品的参考"
 
 #: ../sphinx/usage/product.rst:34
 msgid "History"
-msgstr ""
+msgstr "历史"
 
 #: ../sphinx/usage/product.rst:36
 msgid ""
@@ -93,18 +93,18 @@ msgid ""
 "product or changes made to this product. Lightweight means, that the "
 "Product data itself does not  records changes, but external parties can "
 "attach additional information to the Product which reflects the changes."
-msgstr ""
+msgstr "历史记录是一种轻量级的机制，用于记录该产品的起源或对该产品所做的更改。轻量级意味着，产品数据本身不记录更改，但外部各方可以将附加信息附加到反映更改的产品。"
 
 #: ../sphinx/usage/product.rst:38
 msgid ""
 "The sole purpose of the history interface of a Product is to allow "
 "notably pipeline tasks (as defined by the pipeline framework) to record "
 "what they have done to generate and/or modify a Product."
-msgstr ""
+msgstr "产品历史界面的唯一目的是允许流水线任务（由流水线框架定义）记录它们为生成和/或修改产品所做的工作。"
 
 #: ../sphinx/usage/product.rst:41
 msgid "Serializable"
-msgstr ""
+msgstr "可序列化"
 
 #: ../sphinx/usage/product.rst:43
 msgid ""
@@ -112,11 +112,11 @@ msgid ""
 "data needs to be serializable. JSON format is used considering to "
 "transfer serialized data for its wide adoption, availability of tools, "
 "ease to use with Python, and simplicity."
-msgstr ""
+msgstr "为了在异构节点之间跨网络传输数据，数据需要可序列化。JSON 格式被用于传输序列化数据，因为它被广泛采用、工具的可用性，并易于在 Python 内使用。"
 
 #: ../sphinx/usage/product.rst:48
 msgid "Product Definition Methodology"
-msgstr ""
+msgstr "产品定义方法论"
 
 #: ../sphinx/usage/product.rst:50
 msgid ""
@@ -125,7 +125,7 @@ msgid ""
 "found to have inheritance relations when comparing their metadata and "
 "datasets. Therefore an object-oriented approach is chosen to anlize and "
 "define the structure, function, and interface of Products here."
-msgstr ""
+msgstr "数据产品几乎总是按照继承顺序进行分类，反映了数据模型的底层关系。很多产品在对比元数据和数据集时发现有继承关系。因此，这里选择了面向对象的方法来分析和定义产品的结构、功能和接口。"
 
 #: ../sphinx/usage/product.rst:52
 msgid ""
@@ -133,25 +133,25 @@ msgid ""
 "for reading by both humans and machines. A helper utility ``yaml2python``"
 "  to generate test-ready Python code of product class module containing "
 "the built-ins."
-msgstr ""
+msgstr "首先以YAML格式指定内置参数，适合人和机器阅读。一个辅助实用程序 ``yaml2python``，用于生成包含内置插件的产品类模块的测试就绪 Python 代码。"
 
 #: ../sphinx/usage/product.rst:54
 msgid ""
 "The YAML schema allows a child Product to inherit metadata definition "
 "from one or multiple parent Products. Overriding is also allowed."
-msgstr ""
+msgstr "YAML 架构允许子产品从一个或多个父产品继承元数据定义。也允许覆盖。"
 
 #: ../sphinx/usage/product.rst:57
 msgid "BaseProduct"
-msgstr ""
+msgstr "基础产品"
 
 #: ../sphinx/usage/product.rst:59
 msgid "This is the definition file `BaseProduct.yml`"
-msgstr ""
+msgstr "定义文档 `BaseProduct.yml`"
 
 #: ../sphinx/usage/product.rst:64
 msgid "The preamble key-value pairs give information about this definition:"
-msgstr ""
+msgstr "序言键值对提供有关此定义的信息："
 
 #: ../sphinx/usage/product.rst
 msgid "name"
@@ -159,7 +159,7 @@ msgstr ""
 
 #: ../sphinx/usage/product.rst:66
 msgid "of this product"
-msgstr ""
+msgstr "这个产品的"
 
 #: ../sphinx/usage/product.rst
 msgid "description"
@@ -167,7 +167,7 @@ msgstr ""
 
 #: ../sphinx/usage/product.rst:67
 msgid "-- Information about this product"
-msgstr ""
+msgstr "产品信息"
 
 #: ../sphinx/usage/product.rst
 msgid "parents"
@@ -175,7 +175,7 @@ msgstr ""
 
 #: ../sphinx/usage/product.rst:68
 msgid "-- Children products Inherit parent’s metadata"
-msgstr ""
+msgstr "子产品继承母产品的元数据"
 
 #: ../sphinx/usage/product.rst
 msgid "level"
@@ -183,7 +183,7 @@ msgstr ""
 
 #: ../sphinx/usage/product.rst:69
 msgid "Applicable Level"
-msgstr ""
+msgstr "适用等级"
 
 #: ../sphinx/usage/product.rst
 msgid "schema"
@@ -191,17 +191,17 @@ msgstr ""
 
 #: ../sphinx/usage/product.rst:70
 msgid "version of format of this YAML document"
-msgstr ""
+msgstr "此 YAML 文档的格式版本"
 
 #: ../sphinx/usage/product.rst:72
 msgid ""
 "From the creation process requires every product to carry the following "
 "metadata entries about itself,"
-msgstr ""
+msgstr "从创建过程开始，每个产品都需要携带以下关于自身的元数据条目，"
 
 #: ../sphinx/usage/product.rst:74
 msgid "(Also in native language if it is not English.)"
-msgstr ""
+msgstr "（如果不是英语，也可用母语。）"
 
 #: ../sphinx/usage/product.rst
 msgid "type"
@@ -209,7 +209,7 @@ msgstr ""
 
 #: ../sphinx/usage/product.rst:75
 msgid "-- In software or business domain"
-msgstr ""
+msgstr "在软件或业务领域"
 
 #: ../sphinx/usage/product.rst
 msgid "version"
@@ -220,7 +220,7 @@ msgid ""
 "-- Products of the same format must be versioned, configuration "
 "controlled, and be ready to deal with version differences between inputs "
 ", algorithms, software and pipelines."
-msgstr ""
+msgstr "相同格式的产品必须进行版本控制、配置控制，并准备好处理输入、算法、软件和管道之间的版本差异。"
 
 #: ../sphinx/usage/product.rst
 msgid "FORMATV"
@@ -228,7 +228,7 @@ msgstr ""
 
 #: ../sphinx/usage/product.rst:77
 msgid "-- Version of this document with Schema information, e.g. 1.4.1.2"
-msgstr ""
+msgstr "带有架构信息的本文档版本，例如 1.4.1.2"
 
 #: ../sphinx/usage/product.rst
 msgid "creator, rootCause, creationDate"
@@ -236,13 +236,13 @@ msgstr ""
 
 #: ../sphinx/usage/product.rst:78
 msgid "-- Who, why, when, where"
-msgstr ""
+msgstr "谁、为什么、何时、何地"
 
 #: ../sphinx/usage/product.rst:80
 msgid "The parameters are tabulated below."
-msgstr ""
+msgstr "参数如下表所示。"
 
 #: ../sphinx/usage/product.rst:85
 msgid "Examples (from :doc:`quickstart` page):"
-msgstr ""
+msgstr "示例（来自 :doc:`quickstart` 页面）："
 

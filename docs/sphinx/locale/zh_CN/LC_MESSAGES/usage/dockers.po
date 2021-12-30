@@ -23,15 +23,15 @@ msgstr ""
 
 #: ../sphinx/usage/dockers.rst:10
 msgid "Table of Contents"
-msgstr ""
+msgstr "目录"
 
 #: ../sphinx/usage/dockers.rst:13
 msgid "Specifications"
-msgstr ""
+msgstr "规格"
 
 #: ../sphinx/usage/dockers.rst:17
 msgid "The following pre-made docker images are available:"
-msgstr ""
+msgstr "以下预制 docker 镜像可用："
 
 #: ../sphinx/usage/dockers.rst:20
 msgid "**Name**"
@@ -151,17 +151,17 @@ msgstr ""
 
 #: ../sphinx/usage/dockers.rst:49
 msgid "Run the ``make`` commands in the package root directory of fdi."
-msgstr ""
+msgstr "在 fdi 的包根目录下运行 ``make`` 命令。"
 
 #: ../sphinx/usage/dockers.rst:52
 msgid "Configure"
-msgstr ""
+msgstr "配置"
 
 #: ../sphinx/usage/dockers.rst:54
 msgid ""
 "A file named ``.secret`` is needed by the build and launch commands. This"
 " is an example ``.secret``::"
-msgstr ""
+msgstr "构建和启动命令需要一个名为 ``.secret`` 的文件。 这是一个示例 ``.secret`` "
 
 #: ../sphinx/usage/dockers.rst:64
 msgid ""
@@ -171,71 +171,71 @@ msgid ""
 "starts. The Entrypoint files uses environment variables, which are set by"
 " the command line with ``--env-file`` so that sensitive information are "
 "not left on the command line."
-msgstr ""
+msgstr "服务器凭据在服务器启动期间设置，当 ``pnslocal.py`` 配置文件被加载时。 ``pnslocal.py`` 和其他配置文件在 docker 启动时由 Entrypoint 文件（见上表）更新。入口点文件使用环境变量，这些变量由命令行使用 ``--env-file`` 设置，以便敏感信息不会留在命令行上。"
 
 #: ../sphinx/usage/dockers.rst:67
 msgid "More convenience commands"
-msgstr ""
+msgstr "更方便的命令"
 
 #: ../sphinx/usage/dockers.rst:69
 msgid "Login the latest built running container:"
-msgstr ""
+msgstr "登录最新构建的运行容器："
 
 #: ../sphinx/usage/dockers.rst:75
 msgid "Stop the latest built running container:"
-msgstr ""
+msgstr "停止最新构建的运行容器："
 
 #: ../sphinx/usage/dockers.rst:81
 msgid "Remove the latest built running container and image:"
-msgstr ""
+msgstr "删除最新构建的运行容器和镜像："
 
 #: ../sphinx/usage/dockers.rst:87
 msgid ""
 "Watch ``/var/log/apache2/error-ps.log`` inside the ``httppool`` docker "
 "updating (after launching):"
-msgstr ""
+msgstr "在 ``httppool`` docker 更新中观察 ``/var/log/apache2/error-ps.log`` （启动后）："
 
 #: ../sphinx/usage/dockers.rst:95
 msgid ""
 "If you see error of log file not found, you are running the ``fdi`` "
 "docker by mistake. Only the pool server docker has the log."
-msgstr ""
+msgstr "如果您看到未找到日志文件的错误，则您错误地运行了 ``fdi`` docker。 只有池服务器 docker 有日志。"
 
 #: ../sphinx/usage/dockers.rst:98
 msgid "Make the images locally"
-msgstr ""
+msgstr "在本地制作图像"
 
 #: ../sphinx/usage/dockers.rst:100
 msgid "The following shows how to build the docker images yourself."
-msgstr ""
+msgstr "下面展示了如何自己构建 docker 镜像。"
 
 #: ../sphinx/usage/dockers.rst:102
 msgid "First make a virtual environment:"
-msgstr ""
+msgstr "首先创建一个虚拟环境："
 
 #: ../sphinx/usage/dockers.rst:110
 msgid "Then install fdi following instructions in :doc:`installation` , e.g."
-msgstr ""
+msgstr "然后按照 :doc:`installation` 中的说明安装 fdi，例如"
 
 #: ../sphinx/usage/dockers.rst:119
 msgid "Modify ``docker_entrypoint.sh`` if needed."
-msgstr ""
+msgstr "如果需要，修改 ``docker_entrypoint.sh`` 。"
 
 #: ../sphinx/usage/dockers.rst:121
 msgid "Now you can make the ``fdi`` docker easily:"
-msgstr ""
+msgstr "现在你可以轻松地制作 ``fdi`` docker："
 
 #: ../sphinx/usage/dockers.rst:127
 msgid ""
 "To build ``httppool`` image, modify the ``FROM`` line in "
 "``fdi/pns/resources/httppool_server_2.docker`` to delete ``mhastro/``."
-msgstr ""
+msgstr "要构建 ``httppool`` 映像，请修改 ``fdi/pns/resources/httppool_server_2.docker`` 中的 ``FROM`` 行以删除 ``mhastro/``。"
 
 #: ../sphinx/usage/dockers.rst:129
 msgid "Modify ``fdi/pns/resources/httppool_server_entrypoint.sh`` if needed."
-msgstr ""
+msgstr "如有必要可修改 ``fdi/pns/resources/httppool_server_entrypoint.sh`` "
 
 #: ../sphinx/usage/dockers.rst:131
 msgid "Make the ``httppool`` image"
-msgstr ""
+msgstr "制作 ``httppool`` 图像"
 

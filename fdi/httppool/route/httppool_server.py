@@ -423,6 +423,20 @@ def getProduct_Or_Component(paths, serialize_out=False):
         return 400, '"FAILED"', 'Unknown path %s' % str(paths)
 
 
+HTML_STYLE = """
+<style>
+table,th,td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+tr:nth-child(even){
+    background-color: #DFDFDF;
+    color: black;
+}
+</style>
+"""
+
+
 def get_component_or_method(paths, mInfo, serialize_out=False):
     """ Get the component and the associated command and return
 
@@ -463,19 +477,7 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
                compo_meth_name[:6] == 'string':
                 if 'html' in compo_meth_name:
                     ct = 'text/html'
-                    css = """
-<style>
-table,th,td {
-    border: 1px solid black;
-    border-collapse: collapse;
-}
-tr:nth-child(even){
-    background-color: #DFDFDF;
-    color: black;
-}
-</style>
-"""
-                    result = css + compo
+                    result = HTML_STYLE + compo
                 elif 'rst' in compo_meth_name:
                     ct = 'text/plain;charset=utf-8'
                     result = compo

@@ -1,7 +1,7 @@
 PYEXE	= python3
 LATEST	=im:latest
 DKRREPO	= mhastro
-DKRREPO = registry.cn-beijing.aliyuncs.com/svom/dev
+DKRREPO = registry.cn-beijing.aliyuncs.com/svom
 #
 ########
 DOCKER_NAME	= fdi

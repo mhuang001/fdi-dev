@@ -72,14 +72,15 @@ pnsconfig['mqtt'] = dict(
 )
 
 # choose from pre-defined.
-conf = ['dev', 'server_test', 'external', 'production', 'public'][0]
+conf = ['dev', 'external', 'production', 'public'][0]
 
 # modify
 if conf == 'dev':
     # username, passwd, flask ip, flask port
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '127.0.0.1', 'port': 9885,
-                         'ro_username': 'poolro', 'ro_password': '',
+                         'host': '127.0.0.1', 'port': 9883,
+                         'ro_username': 'poolrw', 'rw_password': 'k/p=0',
+                         'ro_username': 'poolro', 'ro_password': 'only5%',
                          }
 
     # server permission user

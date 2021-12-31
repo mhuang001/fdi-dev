@@ -2,7 +2,7 @@ PYEXE	= python3
 LATEST	=im:latest
 DKRREPO	= mhastro
 DKRREPO = registry.cn-beijing.aliyuncs.com/svom
-#
+NETWORK	= host
 ########
 DOCKER_NAME	= fdi
 DOCKER_VERSION   =$(shell if [ -f docker_version ]; then cat docker_version; fi)
@@ -37,6 +37,7 @@ imlatest:
 build_docker:
 	@echo Building $(DOCKER_VERSION)
 	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DOCKER_VERSION) \
+	 --network=$(NETWOK) \
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
@@ -46,10 +47,11 @@ build_docker:
 	$(MAKE) imlatest LATEST_NAME=$(DOCKER_NAME)
 
 launch_docker:
-	docker run -dit --network=bridge --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(LATEST) $(LAU)
+	docker run -dit --network=$(NETWOK) --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(LATEST) $(LAU)
 
 build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SERVER_VERSION) \
+	 --network=$(NETWOK) \
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg PROJ_DIR=$(PROJ_DIR) \
 	--build-arg fd=$(fd) \
@@ -62,7 +64,7 @@ build_server:
 # run im:latest
 launch_server:
 	SN=$(SERVER_NAME)$$(date +'%s') && \
-	docker run -dit --network=bridge \
+	docker run -dit --network=$(NETWOK) \
 	--mount source=httppool,target=$(SERVER_POOLPATH) \
 	--mount source=log,target=/var/log \
 	--env-file $(SECFILE) \

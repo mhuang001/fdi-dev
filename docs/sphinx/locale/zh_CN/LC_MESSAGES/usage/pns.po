@@ -19,15 +19,15 @@ msgstr ""
 
 #: ../sphinx/usage/pns.rst:3
 msgid "**PNS**: Processing Node Server"
-msgstr ""
+msgstr "**PNS**：处理节点服务器"
 
 #: ../sphinx/usage/pns.rst:7
 msgid "Table of Contents"
-msgstr ""
+msgstr "目录"
 
 #: ../sphinx/usage/pns.rst:10
 msgid "Rationale"
-msgstr ""
+msgstr "基本原理"
 
 #: ../sphinx/usage/pns.rst:12
 msgid ""
@@ -38,7 +38,7 @@ msgid ""
 "an integral data processing pipeline, each software being a \"node\" to "
 "perform a  processing task. Docker containers are often the perfect "
 "solution to run software with incompatible dependencies."
-msgstr ""
+msgstr "许多数据处理流水线只能运行在特定的操作系统类型、版本、语言和库上。这些软件可能无法替换或修改，但需要与环境/格式不兼容的软件并排运行以形成完整的数据处理流水线，每个软件都是执行处理任务的“节点”。 Docker 容器通常是运行具有不兼容依赖项的软件的完美解决方案。"
 
 #: ../sphinx/usage/pns.rst:14
 msgid ""
@@ -46,7 +46,7 @@ msgid ""
 "processing tasks to run in the PNS memory space, in a daemon process, or "
 "as an OS process receiving input and delivering output through a "
 "'delivery man' protocol."
-msgstr ""
+msgstr "安装在 Docker 容器或普通服务器上的 PNS 允许此类处理任务在 PNS 内存空间、守护进程中运行，或者作为 OS 进程通过“交付人”协议接收输入和交付输出。"
 
 #: ../sphinx/usage/pns.rst:16
 msgid ""
@@ -54,15 +54,15 @@ msgid ""
 "interfaces to configure the data processing task software (PTS) in a "
 "processing node, to make a run request, to deliver necessary input data, "
 "and to read results, all via web APIs."
-msgstr ""
+msgstr "这个用于数据处理管道/网络节点的 Web API 服务器提供接口来配置处理节点中的数据处理任务软件 (PTS)、发出运行请求、传递必要的输入数据以及读取结果，所有这些都通过 Web API 进行 ."
 
 #: ../sphinx/usage/pns.rst:18
 msgid "The following commands are run from the fdi directory from installation."
-msgstr ""
+msgstr "以下命令从安装的 fdi 目录运行。"
 
 #: ../sphinx/usage/pns.rst:21
 msgid "Basic Configuration"
-msgstr ""
+msgstr "基本配置"
 
 #: ../sphinx/usage/pns.rst:23
 msgid ""
@@ -70,11 +70,11 @@ msgid ""
 "``5000`` by default. They are configurable in ``pnsconfig.py``. Default "
 "configuration can be overridden by ``~/.config/pnslocal.py``. Copy "
 "``pnsconfig.py`` to ``~/.config/pnslocal.py``"
-msgstr ""
+msgstr "运行 Flask 服务器时，主机 IP 默认为 ``127.0.0.1``，端口号为 ``5000``。 它们可以在 ``pnsconfig.py`` 中配置。 默认配置可以被 ``~/.config/pnslocal.py`` 覆盖。 将 ``pnsconfig.py`` 复制到 ``~/.config/pnslocal.py``"
 
 #: ../sphinx/usage/pns.rst:29
 msgid "and customize ``~/.config/pnslocal.py``."
-msgstr ""
+msgstr "定制 ``~/.config/pnslocal.py``"
 
 #: ../sphinx/usage/pns.rst:31
 msgid ""
@@ -82,13 +82,13 @@ msgid ""
 "``serveruser`` should be the name of the user of web server, usually your"
 " username if you run ``make runserver``. This is the default if ``dev`` "
 "is selected."
-msgstr ""
+msgstr "在开发模式下，选择 ``dev`` 运行本地服务器。 ``serveruser`` 应该是 web 服务器的用户名，如果你运行 ``make runserver``，通常是你的用户名。 如果选择了 ``dev``，这是默认设置。"
 
 #: ../sphinx/usage/pns.rst:33
 msgid ""
 "For production deployment choose ``servertest`` or ``external``. Set "
 "``serveruser`` depending which web server (e.g. ``'apache'``)."
-msgstr ""
+msgstr "对于生产部署，选择 ``servertest`` 或 ``external``。 根据 Web 服务器的种类（例如 ``apache``）设置 ``serveruser``。"
 
 #: ../sphinx/usage/pns.rst:35
 msgid ""
@@ -96,7 +96,7 @@ msgid ""
 "It is set to ``serveruser`` by default. ``ptsuser`` must have write "
 "previlige to read and write ``inputdir`` and ``outputdir``, which are "
 "owned by ``serveruser`` with mode ``o0775``."
-msgstr ""
+msgstr "``ptsuser`` 通常是处理软件需要的用户。 默认设置为 ``serveruser``。 ``ptsuser`` 必须有写权限才能读写 ``inputdir`` 和 ``outputdir``，它们归 ``serveruser`` 所有，模式为 ``o0775``。"
 
 #: ../sphinx/usage/pns.rst:37
 msgid ""
@@ -104,59 +104,59 @@ msgid ""
 "the client) edit ``Makefile`` by changing the value of varible ``PNSDIR``"
 " in ``Makefile`` the pnshome directory if you do not want the default "
 "(``~/pns``)."
-msgstr ""
+msgstr "在服务器端（或在您的计算机上，既可以是服务器也可以是客户端）通过更改 ``Makefile`` 中 pnshome 目录中变量 ``PNSDIR`` 的值来编辑 ``Makefile``，如果您不想要默认值 (``~/pns``)。"
 
 #: ../sphinx/usage/pns.rst:39
 msgid "Then run the deployment command"
-msgstr ""
+msgstr "然后运行部署命令"
 
 #: ../sphinx/usage/pns.rst:45
 msgid "to create the pns home directory and copy the demo PTS script set."
-msgstr ""
+msgstr "创建 pns 主目录并复制演示 PTS 脚本集。"
 
 #: ../sphinx/usage/pns.rst:48
 msgid "Run the FLASK Server"
-msgstr ""
+msgstr "运行 FLASK 服务器"
 
 #: ../sphinx/usage/pns.rst:50
 msgid "Edit ``~/.config/pnslocal.py`` if needed. Then"
-msgstr ""
+msgstr "如有需要可编辑 ``~/.config/pnslocal.py``。然后"
 
 #: ../sphinx/usage/pns.rst:56
 msgid ""
 "Contents in ``[]``, like ``[--ip=<host ip>] [--port=<port>]`` above, are "
 "optional."
-msgstr ""
+msgstr "``[]`` 中的内容，如上面的 ``[--ip=<host ip>] [--port=<port>]`` 是可选的。 "
 
 #: ../sphinx/usage/pns.rst:58
 msgid ""
 "``<>`` means you need to substitute with actual information (for example "
 "``--port=<port>`` becomes ``--port=5000``)."
-msgstr ""
+msgstr "``<>`` 表示您需要替换为实际信息（例如 ``--port=<port>`` 变为 ``--port=5000``）。"
 
 #: ../sphinx/usage/pns.rst:60
 msgid "Or you can run"
-msgstr ""
+msgstr "或者你可以运行"
 
 #: ../sphinx/usage/pns.rst:66
 msgid "in debugging mode:"
-msgstr ""
+msgstr "在调试模式下："
 
 #: ../sphinx/usage/pns.rst:72
 msgid "or just"
-msgstr ""
+msgstr "或只是"
 
 #: ../sphinx/usage/pns.rst:78
 msgid "to use the defaults."
-msgstr ""
+msgstr "使用默认设置"
 
 #: ../sphinx/usage/pns.rst:80
 msgid "Do not run debugging mode for production use."
-msgstr ""
+msgstr "不要为生产使用运行调试模式。"
 
 #: ../sphinx/usage/pns.rst:82
 msgid "The username and password are used when making run requests."
-msgstr ""
+msgstr "发出运行请求时使用用户名和密码。"
 
 #: ../sphinx/usage/pns.rst:86
 msgid ""
@@ -164,34 +164,34 @@ msgid ""
 "switch to ``runflaskserver`` used above will set the level to "
 "``logging.DEBUG``. Packages ``requests, ``filelock``, and ``urllib3`` are"
 " fixed to ``logging.WARN``."
-msgstr ""
+msgstr "服务器的日志级别在配置文件中设置。 上面使用的 ``runflaskserver`` 的 ``-v`` 开关会将级别设置为 ``logging.DEBUG``。 ``requests``， ``filelock`` 和 ``urllib3`` 包被固定到 ``logging.WARN``。"
 
 #: ../sphinx/usage/pns.rst:90
 msgid "Test and Verify Installation"
-msgstr ""
+msgstr "测试和验证安装"
 
 #: ../sphinx/usage/pns.rst:93
 msgid "To run all tests in one go:"
-msgstr ""
+msgstr "一次性运行所有测试"
 
 #: ../sphinx/usage/pns.rst:99
 msgid "Tests can be done step-by-step to pin-point possible problems:"
-msgstr ""
+msgstr "可以逐步进行测试以查明可能的问题："
 
 #: ../sphinx/usage/pns.rst:102
 msgid "1. Server Unit Test"
-msgstr ""
+msgstr "1. 服务器单元测试"
 
 #: ../sphinx/usage/pns.rst:104
 msgid ""
 "Run this on the server host to verify that internal essential functions "
 "of the server work with current configuration. This runs without needing "
 "starting the server:"
-msgstr ""
+msgstr "在服务器主机上运行此程序以验证服务器的内部基本功能是否适用于当前配置。 这无需启动服务器即可运行："
 
 #: ../sphinx/usage/pns.rst:111
 msgid "2. Local Flask Server Functional Tests"
-msgstr ""
+msgstr "2.本地Flask服务器功能测试"
 
 #: ../sphinx/usage/pns.rst:113
 msgid ""
@@ -199,55 +199,55 @@ msgid ""
 "customization), set ``dev=True`` and make sure the IP is local "
 "(``127.0.0.1``). Start the server fresh in one terminal (see above) and "
 "in another terminal (on the server host) run the following:"
-msgstr ""
+msgstr "在 ``~/.config/pnslocal.py``（安装和自定义见上文）中，设置 ``dev=True`` 并确保 IP 是本地的（``127.0.0.1``）。 在一个终端（见上文）和另一个终端（在服务器主机上）重新启动服务器，运行以下命令："
 
 #: ../sphinx/usage/pns.rst:115
 msgid "2a: test GET initPTS script to see if reading the init script back works:"
-msgstr ""
+msgstr "2a：测试 GET initPTS 脚本以查看读取 init 脚本是否有效："
 
 #: ../sphinx/usage/pns.rst:121
 msgid "2b: test PUT initialization test:"
-msgstr ""
+msgstr "2b：测试PUT初始化测试："
 
 #: ../sphinx/usage/pns.rst:127
 msgid "2c1: If the test passes, you can Run all tests in one go:"
-msgstr ""
+msgstr "2c1：如果测试通过，您可以一次性运行所有测试："
 
 #: ../sphinx/usage/pns.rst:133
 msgid "2c2: Or keep on individual tests..."
-msgstr ""
+msgstr "2c2：或者继续个别测试……"
 
 #: ../sphinx/usage/pns.rst:136
 msgid "test POST In-server processing"
-msgstr ""
+msgstr "测试 POST 服务器内处理"
 
 #: ../sphinx/usage/pns.rst:142
 msgid "test POST PTS processing"
-msgstr ""
+msgstr "测试 POST PTS 处理"
 
 #: ../sphinx/usage/pns.rst:148
 msgid "test DELETE Clean-up the server by removing the input and output dirs"
-msgstr ""
+msgstr "test DELETE 通过删除输入和输出目录来清理服务器"
 
 #: ../sphinx/usage/pns.rst:154
 msgid "Now is a good time to ..."
-msgstr ""
+msgstr "现在是个好时机……"
 
 #: ../sphinx/usage/pns.rst:157
 msgid "3. Get public access APIs and information"
-msgstr ""
+msgstr "3. 获取公共访问 API 和信息"
 
 #: ../sphinx/usage/pns.rst:159
 msgid ""
 "Suppose the server address and port are ``127.0.0.1`` and ``5000``, "
 "respectively:"
-msgstr ""
+msgstr "假设服务器地址和端口分别为 ``127.0.0.1`` 和 ``5000``："
 
 #: ../sphinx/usage/pns.rst:161
 msgid ""
 "Run the Flask server in a terminal (see above) and open this in a "
 "browser. The up-to-date URL is displayed in the server stating message:"
-msgstr ""
+msgstr "在终端中运行 Flask 服务器（见上文）并在浏览器中打开它。 最新的 URL 显示在服务器声明消息中："
 
 #: ../sphinx/usage/pns.rst:163
 msgid "http://127.0.0.1:5000/v0.6/"
@@ -255,54 +255,54 @@ msgstr ""
 
 #: ../sphinx/usage/pns.rst:165
 msgid "An online API documentation page similar to below is shown."
-msgstr ""
+msgstr "显示了类似于下面的在线 API 文档页面。"
 
 #: ../sphinx/usage/pns.rst:251
 msgid "Continue with tests..."
-msgstr ""
+msgstr "继续测试..."
 
 #: ../sphinx/usage/pns.rst:254
 msgid "4. Run tests from a remote client"
-msgstr ""
+msgstr "4. 从远程客户端运行测试"
 
 #: ../sphinx/usage/pns.rst:256
 msgid ""
 "Install pns on a remote host, configure IP and port, then run the tests "
 "above. This proves that the server and the client have connection and "
 "fire wall configured correctly."
-msgstr ""
+msgstr "在远程主机上安装 pns，配置 IP 和端口，然后运行上面的测试。 这证明服务器和客户端的连接和防火墙配置正确。"
 
 #: ../sphinx/usage/pns.rst:260
 msgid "Run the local tests with Apache"
-msgstr ""
+msgstr "使用 Apache 运行本地测试"
 
 #: ../sphinx/usage/pns.rst:262
 msgid ""
 "Set dev=False in ~/.config/pnslocal.py (see above) and set the IP and "
 "port. Suppose the server is on CentOS. Edit pns/resources/pns.conf "
 "according to local setup, then"
-msgstr ""
+msgstr "在 ~/.config/pnslocal.py（见上文）中设置 dev=False 并设置 IP 和端口。假设服务器在 CentOS 上。根据本地设置编辑 pns/resources/pns.conf，然后"
 
 #: ../sphinx/usage/pns.rst:272
 msgid ""
 "then run the above with correct IP and port (edit ~/.config/pnslocal.py "
 "or specifying in command line). Start the server and run all the tests:"
-msgstr ""
+msgstr "然后使用正确的 IP 和端口运行上述内容（编辑 ~/.config/pnslocal.py 或在命令行中指定）。启动服务器并运行所有测试："
 
 #: ../sphinx/usage/pns.rst:280
 msgid "PTS Configuration"
-msgstr ""
+msgstr "配置 PTS"
 
 #: ../sphinx/usage/pns.rst:282
 msgid ""
 "To run a PTS shell script instead of the 'hello' demo, change the "
 "```run``` parameter in the config file, e.g. to run the script named "
 "``runPTS.vvpp``"
-msgstr ""
+msgstr "要运行 PTS shell 脚本而不是 'hello' 演示，请更改配置文件中的 ```run``` 参数，例如运行名为 ``runPTS.vvpp`` 的脚本。"
 
 #: ../sphinx/usage/pns.rst:288
 msgid "restart the server. run"
-msgstr ""
+msgstr "重启 server. run"
 
 #: ../sphinx/usage/pns.rst:295
 msgid "PTS API"
@@ -334,5 +334,5 @@ msgstr ""
 
 #: ../sphinx/usage/pns.rst:328
 msgid "Resources"
-msgstr ""
+msgstr "资源"
 

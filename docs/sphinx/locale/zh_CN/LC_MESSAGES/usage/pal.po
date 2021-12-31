@@ -19,11 +19,11 @@ msgstr ""
 
 #: ../sphinx/usage/pal.rst:3
 msgid "**PAL**: Product Access Layer"
-msgstr ""
+msgstr "**PAL**：产品访问层"
 
 #: ../sphinx/usage/pal.rst:7
 msgid "Table of Contents"
-msgstr ""
+msgstr "目录"
 
 #: ../sphinx/usage/pal.rst:9
 msgid ""
@@ -32,11 +32,11 @@ msgid ""
 " data consumers. A data product can include a context built with "
 "references of relevant data. A ``ProductStorage`` interface is provided "
 "to handle saving/retrieving/querying data in registered pools."
-msgstr ""
+msgstr "产品访问层允许数据处理者、数据存储和数据消费者使用轻量级产品引用访问存储的逻辑 \"pools\" 数据。 数据产品可以包括使用相关数据的引用构建的上下文。 提供了一个 ``ProductStorage`` 接口来处理注册池中的保存/检索/查询数据。"
 
 #: ../sphinx/usage/pal.rst:14
 msgid "Rationale"
-msgstr ""
+msgstr "基本原理"
 
 #: ../sphinx/usage/pal.rst:16
 msgid ""
@@ -46,7 +46,7 @@ msgid ""
 "have relevant context recorded with a product. However the context could "
 "have a large size so including their actual data as metadata of the "
 "product is often impractical."
-msgstr ""
+msgstr "在数据处理管道或处理节点网络中，数据产品是在上下文中生成的，其中可能包括输入数据、参考数据和多种辅助数据。通常需要记录产品的相关上下文。然而，上下文可能有很大的尺寸，因此将它们的实际数据作为产品的元数据通常是不切实际的。"
 
 #: ../sphinx/usage/pal.rst:18
 msgid ""
@@ -54,7 +54,7 @@ msgid ""
 "can be accessed. The size of such references are typically less than a "
 "few hundred bytes, like a URL. In the product context only data "
 "references are recorded."
-msgstr ""
+msgstr "一旦生成 FDI 数据，它们就可以有一个引用，通过它可以访问它们。此类引用的大小通常小于几百字节，例如 URL。在产品上下文中只记录数据引用。"
 
 #: ../sphinx/usage/pal.rst:20
 msgid ""
@@ -63,11 +63,11 @@ msgid ""
 "but mostly API-compatible with `Herschel Common Science System v15.0`_) "
 "for the storing, retrieving, tagging, and context creating of data "
 "product modeled in the dataset package."
-msgstr ""
+msgstr "该包提供 ``MapContext``、``ProductRef``、``Urn``、``ProductStorage``、``ProductPool`` 和 ``Query`` 类（简化但大部分 API 与 `Herschel Common Science System v15.0`_ 兼容），用于存储、检索、标记和创建在数据集中建模的数据产品。"
 
 #: ../sphinx/usage/pal.rst:25
 msgid "Definitions"
-msgstr ""
+msgstr "定义"
 
 #: ../sphinx/usage/pal.rst:28
 msgid "URN"
@@ -75,11 +75,11 @@ msgstr ""
 
 #: ../sphinx/usage/pal.rst:32
 msgid "The following is from :class:`Urn`"
-msgstr ""
+msgstr "以下来自:class:`Urn`"
 
 #: ../../fdi/pal/urn.py:3
 msgid "The Universial Resource Name (**URN**) string has this format:"
-msgstr ""
+msgstr "通用资源名称 (**URN**) 字符串具有以下格式："
 
 #: ../../fdi/pal/urn.py:5
 msgid "urn:<poolname>:<resourcetype>:<serialnumber>"
@@ -87,7 +87,7 @@ msgstr ""
 
 #: ../../fdi/pal/urn.py:7
 msgid "where"
-msgstr ""
+msgstr "在哪里"
 
 #: ../../fdi/pal/urn.py
 msgid "<poolname>"
@@ -98,7 +98,7 @@ msgid ""
 "Also called poolID. Its requirements is like that to a file name and a "
 "URL segment, having only printable characters excluding `` ``, ``%``, "
 "``?``, ``*``, ``=``, ``/``."
-msgstr ""
+msgstr "也称为池ID。它的要求类似于对文件名和 URL 段的要求，只有可打印的字符，不包括`` ``, ``%``, ``?``, ``*``, ``=``, ``/``."
 
 #: ../../fdi/pal/urn.py
 msgid "<resourcetype>"
@@ -106,7 +106,7 @@ msgstr ""
 
 #: ../../fdi/pal/urn.py:10
 msgid "class name of the data item (usually :class:`Product`)"
-msgstr ""
+msgstr "数据项的类名（通常是:class:`Product`）"
 
 #: ../../fdi/pal/urn.py
 msgid "<serialnumber>"
@@ -114,11 +114,11 @@ msgstr ""
 
 #: ../../fdi/pal/urn.py:11
 msgid "internal index for a certain <resourcetype>."
-msgstr ""
+msgstr "某个 <resourcetype> 的内部索引"
 
 #: ../../fdi/pal/urn.py:13
 msgid "The ``poolname`` in a URN is a label. Some examples:"
-msgstr ""
+msgstr "URN 中的 ``poolname`` 是一个标签。 一些例子："
 
 #: ../../fdi/pal/urn.py:15
 msgid "urn:pool_mh:fdi.dataset.product.Product:2"
@@ -138,17 +138,17 @@ msgid ""
 "without specifying pool location. The poolID in a URN could be a "
 ":class:`LocalPool` on the development laptop and a "
 ":class:`HTTPClientPool` on the production cloud."
-msgstr ""
+msgstr "存储池（ :class:`ProductPool` 的子类）是数据项所在的位置。**PoolURL** 用于提供池的实用信息，例如池名称、其位置和访问方案。它被设计为一个本地设置细节，应该对池用户隐藏。数据处理软件使用 ``URN`` 来指代产品，而不指定池位置。``URN`` 中的 poolID 可以是开发笔记本电脑上的 :class:`LocalPool` 和生产云上的 :class:`HTTPClientPool`。"
 
 #: ../sphinx/usage/pal.rst:38
 msgid "The following is from :func:`parse_poolurl`"
-msgstr ""
+msgstr "以下内容来自 :func:`parse_poolurl`"
 
 #: ../../fdi/pal/urn.py:3
 msgid ""
 "The ``PoolURL`` format is in the form of a URL that preceeds its poolname"
 " part:"
-msgstr ""
+msgstr "``PoolURL`` 格式采用位于其池名称部分之前的 URL 的形式："
 
 #: ../../fdi/pal/urn.py:5
 msgid "<scheme>://<place><poolpath>/<poolname>"
@@ -216,7 +216,7 @@ msgstr ""
 
 #: ../../fdi/pal/urn.py:17
 msgid "Examples:"
-msgstr ""
+msgstr "例子："
 
 #: ../../fdi/pal/urn.py:19
 msgid "file:///tmp/mydata for pool ```mydata```"
@@ -246,7 +246,7 @@ msgstr ""
 msgid ""
 "This class not only holds the URN of the product it references to, but "
 "also records who ( the _parents_) are keeping this reference."
-msgstr ""
+msgstr "这个类不仅保存它引用的产品的 URN，还记录谁（_parents_）保持这个引用。"
 
 #: ../sphinx/usage/pal.rst:51
 msgid "ProductStorage"
@@ -256,7 +256,7 @@ msgstr ""
 msgid ""
 "A centralized access place for saving/loading/querying/deleting data "
 "organized in conceptual pools. One gets a ProductRef when saving data."
-msgstr ""
+msgstr "用于保存/加载/查询/删除在概念池中组织的数据的集中访问位置。保存数据时会得到一个 ProductRef。"
 
 #: ../sphinx/usage/pal.rst:56
 msgid "ProductPool"
@@ -270,30 +270,30 @@ msgid ""
 "Multiple pools can be registered in a ProductStorage front-end where "
 "users can do the saving, loading, querying etc. so that the pools are "
 "collectively form a larger logical storage."
-msgstr ""
+msgstr "可以保存产品的地方，并带有生成的保存产品的引用。可以通过引用检索产品。可以实现基于不同媒体或网络机制的池。在 ProductStorage 前端可以注册多个池，用户可以在其中进行保存、加载、查询等操作，从而使池共同形成一个更大的逻辑存储。"
 
 #: ../sphinx/usage/pal.rst:61
 msgid "The reference LocalPool is shown in the following YAML-like schematic:"
-msgstr ""
+msgstr "引用 LocalPool 显示在以下类似 YAML 的示意图中："
 
 #: ../sphinx/usage/pal.rst:97 ../sphinx/usage/pal.rst:111
 #: ../sphinx/usage/pal.rst:123
 msgid "Examples (from :doc:`quickstart` page):"
-msgstr ""
+msgstr "例子（来自 :doc:`quickstart`）"
 
 #: ../sphinx/usage/quickstart.rst:4
 msgid "This section shows how to make/get hold of a `pool`."
-msgstr ""
+msgstr "本节展示了如何创建/获取一个 `pool`。"
 
 #: ../sphinx/usage/quickstart.rst:24
 msgid "Saving a Product"
-msgstr ""
+msgstr "保存一个产品"
 
 #: ../sphinx/usage/quickstart.rst:26
 msgid ""
 "This section shows how to store a product in a \"pool\" and get a "
 "reference back."
-msgstr ""
+msgstr "本节展示了如何将产品存储在 \"pool\" 中并获取引用。"
 
 #: ../sphinx/usage/pal.rst:106
 msgid "Context and MapContext"
@@ -304,17 +304,17 @@ msgid ""
 "Context is a Product that holds a set of :class:`ProductRef` s that "
 "accessible by keys. The keys are strings for MapContext which usually "
 "maps names to product references."
-msgstr ""
+msgstr "Context 是一个 Product ，其中包含一组可通过键访问的 :class:`ProductRef`。键是 MapContext 的字符串，通常将名称映射到产品引用。"
 
 #: ../sphinx/usage/quickstart.rst:4
 msgid ""
 "This section shows essential steps how product references can be stored "
 "in a context."
-msgstr ""
+msgstr "本节展示了如何在上下文中存储产品引用的基本步骤。"
 
 #: ../sphinx/usage/pal.rst:119
 msgid "Query"
-msgstr ""
+msgstr "查询"
 
 #: ../sphinx/usage/pal.rst:121
 msgid ""
@@ -322,46 +322,46 @@ msgid ""
 "references to products that satisfy search chriteria. Queries can be "
 "constructed using Python predicate expressions about a product and its "
 "metadata, or a function that returns True or False."
-msgstr ""
+msgstr "可以对 ProductStorage 进行查询，并获取对满足搜索条件的产品的引用列表。可以使用有关产品及其元数据的 Python 谓词表达式或返回 True 或 False 的函数来构造查询。"
 
 #: ../sphinx/usage/quickstart.rst:4
 msgid ""
 "A :class:`ProductStorage` with pools attached can be queried with tags, "
 "properties stored in metadata, or even data in the stored products, using"
 " Python syntax."
-msgstr ""
+msgstr "可以使用 Python 语法，利用标签、元数据中存储的属性甚至存储产品中的数据来查询附加了池的 :class:`ProductStorage`。"
 
 #: ../sphinx/usage/pal.rst:132
 msgid "run tests"
-msgstr ""
+msgstr "运行测试"
 
 #: ../sphinx/usage/pal.rst:134
 msgid ""
 "To test PAL functionalities based on local (JSON) pool and memory pool, "
 "run in the same directory:"
-msgstr ""
+msgstr "要测试基于本地 (JSON) 池和内存池的 PAL 功能，请在同一目录中运行："
 
 #: ../sphinx/usage/pal.rst:140
 msgid "To test functionalities based on http client pool, in one terminal run"
-msgstr ""
+msgstr "要测试基于 http 客户端池的功能，请在一个终端运行"
 
 #: ../sphinx/usage/pal.rst:146
 msgid "run"
-msgstr ""
+msgstr "运行"
 
 #: ../sphinx/usage/pal.rst:152
 msgid "examine output."
-msgstr ""
+msgstr "检查输出"
 
 #: ../sphinx/usage/pal.rst:156
 msgid "Design"
-msgstr ""
+msgstr "设计"
 
 #: ../sphinx/usage/pal.rst:158
 msgid "Packages"
-msgstr ""
+msgstr "包"
 
 #: ../sphinx/usage/pal.rst:162
 msgid "Classes"
-msgstr ""
+msgstr "类"
 

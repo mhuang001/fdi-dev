@@ -149,8 +149,8 @@ def create_app(config_object=None, logger=None):
     swag['servers'].insert(0, {
         'description': 'As in config file and server command line.',
         'url': config_object['scheme']+'://' +
-        config_object['node']['host'] + ':' +
-        str(config_object['node']['port']) +
+        config_object['self_host'] + ':' +
+        str(config_object['self_port']) +
         config_object['baseurl']
     })
     swagger = Swagger(app, config=swag, merge=True)

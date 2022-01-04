@@ -19,15 +19,15 @@ msgstr ""
 
 #: ../sphinx/usage/installation.rst:3
 msgid "Installation and Notes for Developers"
-msgstr ""
+msgstr "开发者安装及注意事项"
 
 #: ../sphinx/usage/installation.rst:7
 msgid "Table of Contents"
-msgstr ""
+msgstr "目录"
 
 #: ../sphinx/usage/installation.rst:9
 msgid "If the contents do not show below, read them in :doc:`/../../README`"
-msgstr ""
+msgstr "如果下面没有显示内容，请在 :doc:`/../../README` 中阅读"
 
 #: ../../README.rst:7
 msgid ""
@@ -41,106 +41,106 @@ msgstr ""
 msgid ""
 "It is a good idea to add ``--user`` at the end or to use a virtualenv to "
 "avoid disturbing your system Python setup."
-msgstr ""
+msgstr "在末尾添加 ``--user`` 或使用 virtualenv 以避免干扰系统中 Python 的设置。"
 
 #: ../../README.rst:14
 msgid "For Users"
-msgstr ""
+msgstr "针对用户"
 
 #: ../../README.rst:16
 msgid "If you need to use fdi, install from PyPI:"
-msgstr ""
+msgstr "如果需要使用 fdi，请从 PyPI 安装："
 
 #: ../../README.rst:22
 msgid "or from git repo:"
-msgstr ""
+msgstr "或从 git repo："
 
 #: ../../README.rst:28
 msgid "If you want to install the ``develop`` dependencies:"
-msgstr ""
+msgstr "如果要安装 ``develop`` 依赖项："
 
 #: ../../README.rst:34
 msgid "or"
-msgstr ""
+msgstr "或"
 
 #: ../../README.rst:41
 msgid ""
 "If you do not need to run tests, remove ``[DEV]`` to save time and disk "
 "space."
-msgstr ""
+msgstr "如果不需要运行测试，请删除 ``[DEV]`` 以节省时间和磁盘空间。"
 
 #: ../../README.rst:43
 msgid "To uninstall:"
-msgstr ""
+msgstr "卸载"
 
 #: ../../README.rst:51
 msgid "For Developers  (or Those who are Not Sure which to Choose)"
-msgstr ""
+msgstr "对于开发人员（或那些不确定选择哪个的人）"
 
 #: ../../README.rst:54
 msgid "To install"
-msgstr ""
+msgstr "安装"
 
 #: ../../README.rst:65
 msgid ""
 "If you want to install the ``master`` branch, remove the ``git checkout "
 "develop`` line above."
-msgstr ""
+msgstr "如果要安装 ``master`` 分支，请删除上面的 ``git checkout develop`` 行。"
 
 #: ../../README.rst:68
 msgid "To test your installation"
-msgstr ""
+msgstr "测试您的安装"
 
 #: ../../README.rst:76
 msgid "To pass command-line arguments to ``pytest`` do, for example,"
-msgstr ""
+msgstr "例如，要将命令行参数传递给 ``pytest``，请执行以下操作："
 
 #: ../../README.rst:82
 msgid "to test ``BaseProduct``."
-msgstr ""
+msgstr "测试 ``BaseProduct``"
 
 #: ../../README.rst:86
 msgid "To Generate Python Product Source Code"
-msgstr ""
+msgstr "生成 Python 产品源代码"
 
 #: ../../README.rst:88
 msgid ""
 "Re-generate ``baseproduct.py`` and ``product.py`` from YAML schema files "
 "in ``fdi/dataset/resources``:"
-msgstr ""
+msgstr "从 ``fdi/dataset/resources`` 中的 YAML 模式文件重新生成 ``baseproduct.py`` 和 ``product.py``："
 
 #: ../../README.rst:96
 msgid "Learn/Try the HTTP Pool Server APIs"
-msgstr ""
+msgstr "学习/尝试 HTTP 池服务器 API"
 
 #: ../../README.rst:98
 msgid ""
 "The APIs are documented in `fdi/httppool/schema/pools.yml` with OpenAPI "
 "3. Run this to see and try out with Swagger API Docs when the server is "
 "running:"
-msgstr ""
+msgstr "这些 API 记录在 `fdi/httppool/schema/pools.yml` 和 OpenAPI 3 中。运行它以查看并在服务器运行时尝试使用 Swagger API 文档："
 
 #: ../../README.rst:105
 msgid "Modify/Generate Documents"
-msgstr ""
+msgstr "修改/生成文档"
 
 #: ../../README.rst:107
 msgid ""
 "If you plan to compile documents in the ``docs`` directory, generate "
 "diagrams, API files, or HTML pages, run (in that order, respectively):"
-msgstr ""
+msgstr "如果您计划在 ``docs`` 目录中编译文档、生成图表、API 文件或 HTML 页面，请运行（分别按该顺序）："
 
 #: ../../README.rst:109
 msgid "First run this once to install necessary packages:"
-msgstr ""
+msgstr "首先运行一次以安装必要的软件包："
 
 #: ../../README.rst:115
 msgid "Then when you need to make new class diagrams, API docs, or HTML pages:"
-msgstr ""
+msgstr "然后当你需要制作新的类图、API 文档或 HTML 页面时："
 
 #: ../../README.rst:123
 msgid "The generated HTML page is at ``docs/html/index.html``."
-msgstr ""
+msgstr "生成的 HTML 页面位于 ``docs/html/index.html``。"
 
 #: ../../README.rst:125
 msgid ""
@@ -148,35 +148,35 @@ msgid ""
 " the repository. Locally generated HTML pages are not on RTD or in the "
 "repository. The API files and plots, however, are in ``api`` and "
 "``_static`` sub-directpries, respectively."
-msgstr ""
+msgstr "https://readthedocs.io 从存储库中的 ``docs/sphinx`` 中的源制作网页。本地生成的 HTML 页面不在 RTD 或存储库中。 但是，API 文件和绘图分别位于 ``api`` 和 ``_static`` 子目录中。"
 
 #: ../../README.rst:128
 msgid "Run Servers and Quick Tests"
-msgstr ""
+msgstr "运行服务器和快速测试"
 
 #: ../../README.rst:130
 msgid ""
 "If you plan to run the ``pns`` and/or the ``http pool server`` locally, "
 "first install the dependencies:"
-msgstr ""
+msgstr "如果您打算在本地运行 ``pns`` 和/或 ``http pool server``，请首先安装依赖项："
 
 #: ../../README.rst:138
 msgid "To test your ``pns`` servers installation, in one window, run:"
-msgstr ""
+msgstr "要测试您的 ``pns`` 服务器安装，请在一个窗口中运行："
 
 #: ../../README.rst:144 ../../README.rst:156
 msgid "in another window run:"
-msgstr ""
+msgstr "在另一个窗口运行："
 
 #: ../../README.rst:150
 msgid ""
 "To test your ``httppool`` servers installation, make sure to stop other "
 "server such as ``pnsserver`` above, then in one window, run:"
-msgstr ""
+msgstr "要测试您的 ``httppool`` 服务器安装，请确保停止其他服务器，例如上面的 ``pnsserver``，然后在一个窗口中运行："
 
 #: ../../README.rst:163
 msgid "Docker Containers"
-msgstr ""
+msgstr "Docker 容器"
 
 #: ../../README.rst:166
 msgid "fdi"
@@ -184,15 +184,15 @@ msgstr ""
 
 #: ../../README.rst:168
 msgid "Get the ``fdi`` docker with running FDI environment:"
-msgstr ""
+msgstr "获取运行 FDI 环境的 ``fdi`` docker："
 
 #: ../../README.rst:174
 msgid "or build the image locally:"
-msgstr ""
+msgstr "或者在本地构建镜像："
 
 #: ../../README.rst:180
 msgid "Launch and login"
-msgstr ""
+msgstr "启动并登录"
 
 #: ../../README.rst:188
 msgid "httppool"
@@ -200,34 +200,34 @@ msgstr ""
 
 #: ../../README.rst:190
 msgid "Also available is a ``HttpPool`` server made from Ubuntu and apache:"
-msgstr ""
+msgstr "还可以使用由 Ubuntu 和 apache 制作的 ``HttpPool`` 服务器："
 
 #: ../../README.rst:196
 msgid "To build the image locally:"
-msgstr ""
+msgstr "要在本地构建映像："
 
 #: ../../README.rst:202
 msgid "Launch and connect:"
-msgstr ""
+msgstr "启动并连接"
 
 #: ../../README.rst:209
 msgid ""
 "Run the above in the package root directory of fdi. A file named "
 "``.secret`` is needed by the build and launch commands. This is an "
 "example::"
-msgstr ""
+msgstr "在 fdi 的包根目录下运行上面的命令。构建和启动命令需要一个名为 ``.secret`` 的文件。 这是一个例子："
 
 #: ../../README.rst:220
 msgid "For More"
-msgstr ""
+msgstr "更多"
 
 #: ../../README.rst:222
 msgid "For more  examples see ``tests/test_*.py``."
-msgstr ""
+msgstr "更多例子见 ``tests/test_*.py``。"
 
 #: ../../README.rst:224
 msgid ""
 "Read more on package introduction, description, quick start, and API "
 "documents on `readthedocs.io <https://fdi.readthedocs.io/en/latest/>`__."
-msgstr ""
+msgstr "在 `readthedocs.io <https://fdi.readthedocs.io/en/latest/>`__ 上阅读有关包介绍、描述、快速入门和 API 文档的更多信息。"
 

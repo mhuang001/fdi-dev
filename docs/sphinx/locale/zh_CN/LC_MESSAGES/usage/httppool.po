@@ -19,54 +19,54 @@ msgstr ""
 
 #: ../sphinx/usage/httppool.rst:3
 msgid "**HTTPpool**: HTTP Pool Server and Client"
-msgstr ""
+msgstr "**HTTPpool**：HTTP 池服务器和客户端"
 
 #: ../sphinx/usage/httppool.rst:9
 msgid "Table of Contents"
-msgstr ""
+msgstr "目录"
 
 #: ../sphinx/usage/httppool.rst:11
 msgid ""
 "HTTP Pool server provides a RESTful web interface to create, remove, "
 "read, and delete data items (usually products) in a pool running on a "
 "server. A remote data user uses a HTTPClientPool as an interface."
-msgstr ""
+msgstr "HTTP 池服务器提供了一个 RESTful Web 界面，用于在服务器上运行的池中创建、移除、读取和删除数据项（通常是产品）。远程数据用户使用 HTTPClientPool 作为接口。"
 
 #: ../sphinx/usage/httppool.rst:14
 msgid "For developing"
-msgstr ""
+msgstr "用于开发"
 
 #: ../sphinx/usage/httppool.rst:17
 msgid "Configuration"
-msgstr ""
+msgstr "配置"
 
 #: ../sphinx/usage/httppool.rst:19
 msgid "Install fdi. Copy the config file over"
-msgstr ""
+msgstr "安装 fdi。复制配置文件"
 
 #: ../sphinx/usage/httppool.rst:25 ../sphinx/usage/httppool.rst:145
 msgid ""
 "To customize ``~/.config/pnslocal.py`` modify these according to your "
 "system:"
-msgstr ""
+msgstr "要自定义 ``~/.config/pnslocal.py``，请根据您的系统修改这些："
 
 #: ../sphinx/usage/httppool.rst:39
 msgid ""
 "Note that above are for both the server and te client in this and the "
 "next steps."
-msgstr ""
+msgstr "请注意，以上是针对此步骤和后续步骤中的服务器和客户端。"
 
 #: ../sphinx/usage/httppool.rst:44
 msgid "Run the Server"
-msgstr ""
+msgstr "运行服务器"
 
 #: ../sphinx/usage/httppool.rst:46
 msgid "To use the defaults in the config, just"
-msgstr ""
+msgstr "要使用配置中的默认值，只需"
 
 #: ../sphinx/usage/httppool.rst:52
 msgid "The server can also be run by:"
-msgstr ""
+msgstr "服务器也可以通过以下方式运行："
 
 #: ../sphinx/usage/httppool.rst:59
 msgid ""
@@ -74,17 +74,17 @@ msgid ""
 "optional. ``<>`` means you need to substitute with actual information "
 "(for example ``--port=<port>`` becomes ``--port=5000``). The username and"
 " password are used when making run requests."
-msgstr ""
+msgstr "``[]`` 中的内容，如上面的 ``[--ip=<host ip>] [--port=<port>]``，是可选的。 ``<>`` 表示您需要替换为实际信息（例如 ``--port=<port>`` 变为 ``--port=5000``）。发出运行请求时使用用户名和密码。"
 
 #: ../sphinx/usage/httppool.rst:62
 msgid "Now you can use a client to access it."
-msgstr ""
+msgstr "现在您可以使用客户端来访问它。"
 
 #: ../sphinx/usage/httppool.rst:66
 msgid ""
 "Do not run debugging mode for production use. Password uses plain text "
 "for development."
-msgstr ""
+msgstr "不要为生产使用运行调试模式。密码使用纯文本进行开发。"
 
 #: ../sphinx/usage/httppool.rst:70
 msgid ""
@@ -92,88 +92,88 @@ msgid ""
 "switch to ``runflaskserver`` used above will set the level to "
 "``logging.DEBUG``. Packages ``requests, ``filelock``, and ``urllib3`` are"
 " fixed to ``logging.WARN``."
-msgstr ""
+msgstr "服务器的日志级别在配置文件中设置。上面使用的 ``runflaskserver`` 的 ``-v`` 开关会将级别设置为 ``logging.DEBUG``。 包 ``requests``、``filelock`` 和 ``urllib3`` 被固定到 logging.WARN。"
 
 #: ../sphinx/usage/httppool.rst:74
 msgid "Test and Verify"
-msgstr ""
+msgstr "测试和验证"
 
 #: ../sphinx/usage/httppool.rst:77
 msgid "To run all tests in one go"
-msgstr ""
+msgstr "一次运行所有测试"
 
 #: ../sphinx/usage/httppool.rst:83
 msgid ""
 "append ``T='-u <username> -p <password> [-i <host ip>] [-o <port>] "
 "[options]'`` if needed."
-msgstr ""
+msgstr "如果需要，附加 ``T='-u <username> -p <password> [-i <host ip>] [-o <port>] [options]'``。"
 
 #: ../sphinx/usage/httppool.rst:85
 msgid "You can also test step-by-step to pin-point possible problems:"
-msgstr ""
+msgstr "您还可以逐步测试以查明可能的问题："
 
 #: ../sphinx/usage/httppool.rst:88
 msgid "1. Server Unit Test"
-msgstr ""
+msgstr "1. 服务器单元测试"
 
 #: ../sphinx/usage/httppool.rst:90
 msgid ""
 "Run this on the server host to verify that internal essential functions "
 "of the server work with current configuration."
-msgstr ""
+msgstr "在服务器主机上运行此程序以验证服务器的内部基本功能是否适用于当前配置。"
 
 #: ../sphinx/usage/httppool.rst:98
 msgid "2. Local Server Functional Tests"
-msgstr ""
+msgstr "2. 本地服务器功能测试"
 
 #: ../sphinx/usage/httppool.rst:100
 msgid "test HTTP Client APIs"
-msgstr ""
+msgstr "测试 HTTP 客户端 APIs"
 
 #: ../sphinx/usage/httppool.rst:107
 msgid "3. Standard functional pool test"
-msgstr ""
+msgstr "3. 标准功能池测试"
 
 #: ../sphinx/usage/httppool.rst:116
 msgid "Learn/Try the APIs and Build the Server"
-msgstr ""
+msgstr "学习/试用 API 并构建服务器"
 
 #: ../sphinx/usage/httppool.rst:118
 msgid ""
 "The APIs are documented in `fdi/httppool/schema/pools.yml` with OpenAPI "
 "3. Run this to see and try out with Swagger API Docs when the server is "
 "running:"
-msgstr ""
+msgstr "这些 API 记录在 `fdi/httppool/schema/pools.yml` 和 OpenAPI 3 中。运行它以查看并在服务器运行时尝试使用 Swagger API 文档："
 
 #: ../sphinx/usage/httppool.rst:124
 msgid ""
 "To build the server, de-reference the YAML file (so Flasgger 0.95 can "
 "handle it):"
-msgstr ""
+msgstr "要构建服务器，请取消引用 YAML 文件（以便 Flagger 0.95 可以处理它）："
 
 #: ../sphinx/usage/httppool.rst:130
 msgid "then run it ``make runpoolserver``"
-msgstr ""
+msgstr "然后运行它 ``make runpoolserver``"
 
 #: ../sphinx/usage/httppool.rst:134
 msgid "For production deployment"
-msgstr ""
+msgstr "用于生产部署"
 
 #: ../sphinx/usage/httppool.rst:137
 msgid "Manually"
-msgstr ""
+msgstr "手动"
 
 #: ../sphinx/usage/httppool.rst:139
 msgid "Install fdi (see :doc:`installation`). Copy the config file over"
-msgstr ""
+msgstr "安装 fdi（参见 :doc:`installation`）。 将配置文件复制过去"
 
 #: ../sphinx/usage/httppool.rst:158
 msgid "where at least the IP needs to be modified if to run a server."
-msgstr ""
+msgstr "如果要运行服务器，至少需要修改 IP。"
 
 #: ../sphinx/usage/httppool.rst:160
 msgid "Then refer to these files to install/update wsgi or conf files"
-msgstr ""
+msgstr "然后参考这些文件来安装/更新 wsgi 或 conf 文件"
 
 #: ../sphinx/usage/httppool.rst:162
 msgid "``fdi/pns/resources/httppool_server.docker``"
@@ -185,131 +185,131 @@ msgstr ""
 
 #: ../sphinx/usage/httppool.rst:165
 msgid "then enable the site and (re)start the server:"
-msgstr ""
+msgstr "然后启用站点并（重新）启动服务器："
 
 #: ../sphinx/usage/httppool.rst:175
 msgid ""
 "The above are for both the server and the client when running pool "
 "functional test (``test6``) locally."
-msgstr ""
+msgstr "以上是在本地运行池功能测试（test6）时的服务器和客户端的设置。"
 
 #: ../sphinx/usage/httppool.rst:179
 msgid "With Pre-made Docker Images"
-msgstr ""
+msgstr "使用预制的 Docker 镜像"
 
 #: ../sphinx/usage/httppool.rst:182
 msgid ""
 "The following are for an ``apache2`` deployment as a ``VirtualHost`` "
 "based a Ubuntu docker."
-msgstr ""
+msgstr "以下是作为基于 Ubuntu docker 的 ``VirtualHost`` 的 ``apache2`` 部署。"
 
 #: ../sphinx/usage/httppool.rst:185
 msgid ""
 "Follow instructuin in :doc:`dockers` to pull or build the ``httppool`` "
 "server image."
-msgstr ""
+msgstr "按照 :doc:`dockers` 中的说明拉取或构建 ``httppool`` 服务器映像。"
 
 #: ../sphinx/usage/httppool.rst:187
 msgid "Launch it:"
-msgstr ""
+msgstr "启动它："
 
 #: ../sphinx/usage/httppool.rst:194
 msgid "Test and Verify Deployed Server"
-msgstr ""
+msgstr "测试和验证部署的服务器"
 
 #: ../sphinx/usage/httppool.rst:196
 msgid "The following is for a deployed docker."
-msgstr ""
+msgstr "以下是已部署的 docker。"
 
 #: ../sphinx/usage/httppool.rst:198
 msgid ""
 "Roughly following te sane steps in `Test and Verify`_ except for the "
 "firsrt step."
-msgstr ""
+msgstr "除了第一步之外，大致遵循 `Test and Verify`_ 中的相同步骤。"
 
 #: ../sphinx/usage/httppool.rst:202
 msgid "Actually the first two steps can be skipped if the 3rd is successful."
-msgstr ""
+msgstr "实际上，如果第三步成功，可以跳过前两步。"
 
 #: ../sphinx/usage/httppool.rst:205
 msgid "1. Start"
-msgstr ""
+msgstr "1. 开始"
 
 #: ../sphinx/usage/httppool.rst:207
 msgid "Run a shell inside the server after launching it:"
-msgstr ""
+msgstr "启动后在服务器内运行一个 shell："
 
 #: ../sphinx/usage/httppool.rst:213
 msgid ""
 "A ``/bin/bash`` will run and you will be at a shell prompt as the server "
 "user (``apache``). Type this to start the server process"
-msgstr ""
+msgstr "``/bin/bash`` 将运行，您将作为服务器用户 (``apache``) 出现在 shell 提示符下。键入以下内容以启动服务器进程"
 
 #: ../sphinx/usage/httppool.rst:219
 msgid "After a few seconds check to make sure there are `apache` processes from"
-msgstr ""
+msgstr "几秒钟后检查以确保有 `apache` 进程"
 
 #: ../sphinx/usage/httppool.rst:225
 msgid "and you can get error message in JSON by"
-msgstr ""
+msgstr "您可以通过以下方式获取 JSON 中的错误消息"
 
 #: ../sphinx/usage/httppool.rst:232
 msgid "2. Test Functions in the Docker"
-msgstr ""
+msgstr "2. Docker 中的测试功能"
 
 #: ../sphinx/usage/httppool.rst:234
 msgid "Now run the local tests:"
-msgstr ""
+msgstr "现在运行本地测试："
 
 #: ../sphinx/usage/httppool.rst:236
 msgid "first fdi internal,"
-msgstr ""
+msgstr "首先是 fdi 内部"
 
 #: ../sphinx/usage/httppool.rst:237
 msgid "then test6 for server local CRUD,"
-msgstr ""
+msgstr "然后 test6 用于服务器本地 CRUD"
 
 #: ../sphinx/usage/httppool.rst:238
 msgid "test 7 client,"
-msgstr ""
+msgstr "test7 测试客户端"
 
 #: ../sphinx/usage/httppool.rst:239
 msgid "test8 standard pool functional."
-msgstr ""
+msgstr "test8 测试标准池功能"
 
 #: ../sphinx/usage/httppool.rst:250
 msgid "The last three can be run by ``make testhttp``."
-msgstr ""
+msgstr "最后三个测试可以通过 ``make testhttp`` 运行。"
 
 #: ../sphinx/usage/httppool.rst:254
 msgid "3. Test from Outside the Docker"
-msgstr ""
+msgstr "3. 从 Docker 外部进行测试"
 
 #: ../sphinx/usage/httppool.rst:256
 msgid "in the fdi directory where you built the docker image:"
-msgstr ""
+msgstr "在您构建 docker 镜像的 fdi 目录中："
 
 #: ../sphinx/usage/httppool.rst:262
 msgid ""
 "Make sure that from where you run the test, your "
 "``~/.config/pnslocal.py`` points to the correct ip and port."
-msgstr ""
+msgstr "确保从您运行测试的位置，您的 ``~/.config/pnslocal.py`` 指向正确的 IP 和端口。"
 
 #: ../sphinx/usage/httppool.rst:266
 msgid "You can watch live logging from nother terminal with:"
-msgstr ""
+msgstr "您可以通过以下方式从另一个终端观看实时日志记录："
 
 #: ../sphinx/usage/httppool.rst:273
 msgid "Clean up"
-msgstr ""
+msgstr "清理"
 
 #: ../sphinx/usage/httppool.rst:275
 msgid "Stop and remove the docker by ``make rm_server``."
-msgstr ""
+msgstr "通过运行 ``make rm_server`` 停止并删除 docker。"
 
 #: ../sphinx/usage/httppool.rst:278
 msgid "API Document"
-msgstr ""
+msgstr "API 文档"
 
 #: ../sphinx/usage/httppool.rst:282
 msgid "TBW"

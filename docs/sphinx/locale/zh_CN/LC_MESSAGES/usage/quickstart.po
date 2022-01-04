@@ -19,133 +19,133 @@ msgstr ""
 
 #: ../sphinx/usage/quickstart.rst:4
 msgid "Quick Start"
-msgstr ""
+msgstr "快速开始"
 
 #: ../sphinx/usage/quickstart.rst:7
 msgid "Contents:"
-msgstr ""
+msgstr "内容："
 
 #: ../sphinx/usage/quickstart.rst:9
 msgid ""
 "The following quick start tutorial shows important ``dataset`` and "
 "``pal`` functionalities."
-msgstr ""
+msgstr "以下快速入门教程展示了重要的 ``dataset`` 和 ``pal`` 功能。"
 
 #: ../sphinx/usage/quickstart.rst:11
 msgid "Colors in examples:"
-msgstr ""
+msgstr "示例中的颜色："
 
 #: ../sphinx/usage/quickstart.rst:21
 msgid ""
 "You can copy the code from code blocks by clicking the ``copy`` icon on "
 "the top-right, with he prompts and results removed."
-msgstr ""
+msgstr "您可以通过单击右上角的 ``copy`` 图标从代码块中复制代码，同时删除提示和结果。"
 
 #: ../sphinx/usage/quickstart.rst:49
 msgid "dataset"
-msgstr ""
+msgstr "数据集"
 
 #: ../sphinx/usage/quickstart.rst:51
 msgid "First we show how to make and use components of the data model."
-msgstr ""
+msgstr "首先我们展示如何制作和使用数据模型的组件。"
 
 #: ../sphinx/usage/quickstart.rst:53
 msgid ""
 "This section shows how to create data containers -- datasets, metadata, "
 "and Products, how to put data into the containers, read data out, modify "
 "data, remove data, inspect data."
-msgstr ""
+msgstr "本节展示如何创建数据容器——数据集、元数据和产品，如何将数据放入容器、读取数据、修改数据、删除数据、检查数据。"
 
 #: ../sphinx/usage/quickstart.rst:56
 msgid "ArrayDataset -- sequence of data in the same unit and format"
-msgstr ""
+msgstr "ArrayDataset -- 相同单位和格式的数据序列"
 
 #: ../sphinx/usage/quickstart.rst:187
 msgid "TableDataset -- a set of named Columns and their metadata"
-msgstr ""
+msgstr "TableDataset -- 一组命名列及其元数据"
 
 #: ../sphinx/usage/quickstart.rst:189
 msgid ""
 "TableDataset is mainly a dictionary containing named :class:`Column`\\s "
 "and their metadata. Columns are basically ArrayDatasets under a different"
 " name."
-msgstr ""
+msgstr "TableDataset 主要是一个包含命名列及其元数据的字典。列基本上是不同名称下的 ArrayDatasets。"
 
 #: ../sphinx/usage/quickstart.rst:345
 msgid "Metadata and Parameter - Parameter"
-msgstr ""
+msgstr "元数据和参数 - 参数"
 
 #: ../sphinx/usage/quickstart.rst:400
 msgid "Metadata and Parameter - Metadata"
-msgstr ""
+msgstr "元数据和参数 - 元数据"
 
 #: ../sphinx/usage/quickstart.rst:402
 msgid ""
 "A :class:`Metadata` instance is mainly a dict-like container for named "
 "parameters."
-msgstr ""
+msgstr "元数据实例主要是一个类似字典的命名参数容器。"
 
 #: ../sphinx/usage/quickstart.rst:543
 msgid "Product with metadata and datasets"
-msgstr ""
+msgstr "具有元数据和数据集的产品"
 
 #: ../sphinx/usage/quickstart.rst:757
 msgid "pal - Product Access Layer"
-msgstr ""
+msgstr "pal - 产品访问层"
 
 #: ../sphinx/usage/quickstart.rst:759
 msgid ""
 "Products need to persist (be stored somewhere) in order to have a "
 "reference that can be used to re-create the product after its creation "
 "process ends."
-msgstr ""
+msgstr "产品需要持久化（存储在某处），以便在产品创建过程结束后具有可用于重新创建产品的引用。"
 
 #: ../sphinx/usage/quickstart.rst:762
 msgid "Product Pool and Product References"
-msgstr ""
+msgstr "产品池和产品引用"
 
 #: ../sphinx/usage/quickstart.rst:764
 msgid "This section shows how to make/get hold of a `pool`."
-msgstr ""
+msgstr "本节展示了如何创建/获取“池”。"
 
 #: ../sphinx/usage/quickstart.rst:784
 msgid "Saving a Product"
-msgstr ""
+msgstr "保存一个产品"
 
 #: ../sphinx/usage/quickstart.rst:786
 msgid ""
 "This section shows how to store a product in a \"pool\" and get a "
 "reference back."
-msgstr ""
+msgstr "本节展示了如何将产品存储在“池”中并获取参考。"
 
 #: ../sphinx/usage/quickstart.rst:855
 msgid "Context: a Product with References"
-msgstr ""
+msgstr "Context：带有引用的产品"
 
 #: ../sphinx/usage/quickstart.rst:857
 msgid ""
 "This section shows essential steps how product references can be stored "
 "in a context."
-msgstr ""
+msgstr "本节展示了如何在 context 中存储产品引用的基本步骤。"
 
 #: ../sphinx/usage/quickstart.rst:927
 msgid "Query a Storage to get saved Products"
-msgstr ""
+msgstr "查询存储以获取保存的产品"
 
 #: ../sphinx/usage/quickstart.rst:929
 msgid ""
 "A :class:`ProductStorage` with pools attached can be queried with tags, "
 "properties stored in metadata, or even data in the stored products, using"
 " Python syntax."
-msgstr ""
+msgstr "可以使用 Python 语法通过标签、元数据中存储的属性甚至存储产品中的数据来查询附加了池的 :class:`ProductStorage`。"
 
 #: ../sphinx/usage/quickstart.rst:1012
 msgid "END of examples"
-msgstr ""
+msgstr "例子结束"
 
 #: ../sphinx/usage/quickstart.rst:1014
 msgid "See the installation and testing sections of the pns page."
-msgstr ""
+msgstr "请参阅 pns 页面的安装和测试部分。"
 
 #: ../sphinx/usage/quickstart.rst:1019
 msgid ""
@@ -153,5 +153,5 @@ msgid ""
 "command ``elpy-shell-send-group-and-step [c-c c-y c-g]`` in ``emacs``. "
 "The command is further simplified to control-<tab> with the following in "
 "~/.init.el:"
-msgstr ""
+msgstr "上面的演示是通过在 emacs 中使用命令 ``elpy-shell-send-group-and-step [c-c c-y c-g]`` 运行 ``fdi/resources/example.py`` 来制作的。当 ``在 ~/.init.el`` 中包含以下内容时，该命令可进一步简化为 control-<tab> ："
 

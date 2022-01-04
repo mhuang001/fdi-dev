@@ -19,62 +19,62 @@ msgstr ""
 
 #: ../sphinx/usage/docs.rst:3
 msgid "Maintain Documentations"
-msgstr ""
+msgstr "维护文档"
 
 #: ../sphinx/usage/docs.rst:6
 msgid "Table of Contents"
-msgstr ""
+msgstr "目录"
 
 #: ../sphinx/usage/docs.rst:9
 msgid "Sphinx Directory Layout"
-msgstr ""
+msgstr "Sphinx 目录布局"
 
 #: ../sphinx/usage/docs.rst:11
 msgid ""
 "FDI uses *Sphinx* to produce, maintain, and format documents, which "
 "reside in ```fdi/docs/sphinx```::"
-msgstr ""
+msgstr "FDI 使用 Sphinx 来生成、维护和格式化文档，这些文档位于 ```fdi/docs/sphinx``` 中："
 
 #: ../sphinx/usage/docs.rst:73
 msgid "Update Doccuments"
-msgstr ""
+msgstr "更新文档"
 
 #: ../sphinx/usage/docs.rst:76
 msgid "Install related Packages"
-msgstr ""
+msgstr "安装相关包"
 
 #: ../sphinx/usage/docs.rst:84
 msgid "Make your changes to take effect"
-msgstr ""
+msgstr "使您的更改生效"
 
 #: ../sphinx/usage/docs.rst:86
 msgid ""
 "As the FDI package changes, run in FDI package dir this to update "
 "class/package diagrams:"
-msgstr ""
+msgstr "随着 FDI 包的变化，在 FDI 包目录中运行以更新类/包图："
 
 #: ../sphinx/usage/docs.rst:92
 msgid "Run"
-msgstr ""
+msgstr "运行"
 
 #: ../sphinx/usage/docs.rst:98
 msgid "to update API documents"
-msgstr ""
+msgstr "更新 API 文档"
 
 #: ../sphinx/usage/docs.rst:100
 msgid "Use this"
-msgstr ""
+msgstr "使用这个"
 
 #: ../sphinx/usage/docs.rst:106
 msgid ""
 "after you modifify any `.rst` files above or plots or API infor have been"
 " updated. Use your web browser to open the newly generated document: "
 "example ``file:///D:/code/fdi/docs/html/index.html``"
-msgstr ""
+msgstr "在您修改上面的任何 .rst 文件或绘图或 API 信息已更新后。使用 Web 浏览器打开新生成的文档：example ``file:///D:/code/fdi/docs/html/index.html``"
 
 #: ../sphinx/usage/docs.rst:109
 msgid "Translate Documents"
-msgstr ""
+msgstr "翻译文档"
 
 #: ../sphinx/usage/docs.rst:111
 msgid "TBW"
@@ -82,5 +82,5 @@ msgstr ""
 
 #: ../sphinx/usage/docs.rst:113
 msgid "See https://www.sphinx-doc.org/en/master/usage/advanced/intl.html"
-msgstr ""
+msgstr "见 https://www.sphinx-doc.org/en/master/usage/advanced/intl.html"
 

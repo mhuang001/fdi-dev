@@ -1,22 +1,18 @@
 import logging
-import sys
 import os
+import sys
+
 # from fdi.pal.productpool import ManagedPool
 # from .urn import makeUrn
 from fdi.dataset.arraydataset import ArrayDataset
-from fdi.dataset.classes import Classes
-from fdi.dataset.deserialize import serialize_args
 from fdi.dataset.product import Product
 from fdi.dataset.serializable import serialize
-from fdi.pal import webapi
 from fdi.pal.productpool import ManagedPool
 from fdi.pal.productref import ProductRef
 from fdi.pal.urn import makeUrn, parse_poolurl, Urn, parseUrn
 from fdi.pns.public_fdi_requests import read_from_cloud, load_from_cloud
 from fdi.utils.common import fullname, lls, trbk
 from fdi.utils.getconfig import getConfig
-from collections import OrderedDict, ChainMap
-import builtins
 
 logger = logging.getLogger(__name__)
 pcc = getConfig()
@@ -81,7 +77,10 @@ class PublicClientPool(ManagedPool):
             return self._poolpath
 
     def getToken(self):
+        # import pprint
+        # pprint.pprint(pcc)
         TOKEN_PATH = pcc['cloud_token']
+
         if os.path.exists(TOKEN_PATH):
             tokenFile = open(TOKEN_PATH, 'r')
             self.token = tokenFile.read()
@@ -101,6 +100,7 @@ class PublicClientPool(ManagedPool):
                 return tokenMsg['msg']
 
     def getPoolInfo(self):
+        # TODO: waiting for updating get poolpath like poolbs
         res = read_from_cloud('infoPool', poolpath=self.getPoolpath(), token=self.token)
         if res['code'] == 0:
             if res['data']:
@@ -142,6 +142,8 @@ class PublicClientPool(ManagedPool):
         """
         Return the number of URNs for the product type.
         """
+        import pdb
+        pdb.set_trace()
         try:
             if self.poolInfo:
                 return len(self.poolInfo[typename]['indexs'])
@@ -320,8 +322,7 @@ class PublicClientPool(ManagedPool):
         """
         targetPoolpath = self.getPoolpath() + '/' + resourcetype
         poolInfo = read_from_cloud('infoPool', poolpath=targetPoolpath, token=self.token)
-        import pdb
-        pdb.set_trace()
+
         try:
             if poolInfo['data']:
                 poolInfo = poolInfo['data']
@@ -329,6 +330,7 @@ class PublicClientPool(ManagedPool):
                     if index in poolInfo[targetPoolpath]['indexs']:
                         urn = makeUrn(poolname=self._poolname, typename=resourcetype, index=index)
                         res = self.doLoadByUrn(urn)
+
                         if res['msg'] == 'success':
                             if serialize_out:
                                 return res['data']
@@ -349,6 +351,8 @@ class PublicClientPool(ManagedPool):
         raise NotImplementedError
 
     def doLoadByUrn(self, urn):
+        import pdb
+        pdb.set_trace()
         res = load_from_cloud('pullProduct', token=self.token, urn=urn)
         return res
 
@@ -361,7 +365,6 @@ class PublicClientPool(ManagedPool):
     def schematicRemove(self, urn=None, resourcetype=None, index=None):
         """ do the scheme-specific removing
         """
-
         prod = resourcetype
         sn = index
         import pdb
@@ -453,5 +456,4 @@ cp = PublicClientPool(poolurl=poolurl)
 # cp.schematicRemove('urn:poolbs:20211018:4')
 
 # cp.schematicLoad('fdi.dataset.product.Product', 1)
-cp.schematicLoad('20211018', 13)
-
+# cp.schematicLoad('20211018', 5)

@@ -28,12 +28,12 @@ if __name__ == '__main__':
 
     pc = getconfig.getConfig()
 
-    lv = pc['logginglevel']
-    logging = setup_logging(lv if lv > logging.WARN else logging.WARN)
+    lev = pc['logginglevel']
+    logging = setup_logging(lev if lev > logging.WARN else logging.WARN)
     logger = logging.getLogger()
-    logger.setLevel(lv)
+    logger.setLevel(lev)
     logger.info(
-        'Server starting. Make sure no other instance is running.'+str(lv))
+        'Server starting. Make sure no other instance is running. logging level '+str(lev))
 
     # Get username and password and host ip and port.
 
@@ -79,7 +79,7 @@ if __name__ == '__main__':
         sys.exit(1)
     elif servertype == 'httppool_server':
         print('<<<<<< %s >>>>>' % servertype)
-        app = create_app(pc)
+        app = create_app(pc, logger)
     else:
         logger.error('Unknown server %s' % servertype)
         sys.exit(-1)

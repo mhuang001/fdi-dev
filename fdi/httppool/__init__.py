@@ -34,16 +34,57 @@ global logging
 
 def setup_logging(level=None):
     import logging
+    from logging.config import dictConfig
+    from logging.handlers import QueueListener
+    import queue
+    que = queue.Queue(-1)  # no limit on size
+
+    fmt = dict(format='%(asctime)s'
+               ' %(process)d %(thread)6d '
+               ' %(levelname)4s'
+               ' %(filename)6s:%(lineno)3s'
+               ' %(funcName)10s() - %(message)s',
+               datefmt="%Y%m%d %H:%M:%S.%f")
+    dict_config = dictConfig({
+        'version': 1,
+        'formatters': {'default': fmt},
+        'handlers': {
+            'wsgi': {
+                'class': 'logging.StreamHandler',
+                'stream': 'ext://flask.logging.wsgi_errors_stream',
+                'formatter': 'default'
+            },
+            'non_block': {
+                'class': 'logging.handlers.QueueHandler',
+                # 'stream': 'ext://flask.logging.wsgi_errors_stream',
+                'formatter': 'default',
+                'queue': que,
+            }
+        },
+        "loggers": {
+            "werkzeug": {
+                "level": "INFO",
+                "handlers": ["non_block"],
+                "propagate": False
+            }
+        },
+        'root': {
+            'level': 'INFO',
+            'handlers': ['wsgi']
+        },
+        'disable_existing_loggers': False
+    })
+
     if level is None:
         level = logging.WARN
+    if level < logging.WARN:
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        logging_listener = QueueListener(
+            que, handler, respect_handler_level=True)
+        logging_listener.start()
+    #logging.basicConfig(stream=sys.stdout, **fmt)
     # create logger
-    logging.basicConfig(stream=sys.stdout,
-                        format='%(asctime)s'
-                        ' %(process)d %(thread)6d '
-                        ' %(levelname)4s'
-                        ' [%(filename)6s:%(lineno)3s'
-                        ' %(funcName)10s()] - %(message)s',
-                        datefmt="%Y%m%d %H:%M:%S")
     logging.getLogger("requests").setLevel(level)
     logging.getLogger("filelock").setLevel(level)
     if sys.version_info[0] > 2:
@@ -79,8 +120,6 @@ def init_conf_classes(pc, lggr):
 def init_httppool_server(app):
     """ Init a global HTTP POOL """
 
-    import logging
-    app.logger = logging.getLogger(__name__)
     app.logger.setLevel(app.config['LOGGER_LEVEL'])
 
     # local.py config
@@ -134,12 +173,16 @@ def create_app(config_object=None, logger=None):
 
     if logger is None:
         logging = setup_logging()
-        logger = logging.getLogger()
+        logger = logging.getLogger(__name__)
 
     config_object = config_object if config_object else getconfig.getConfig()
     logger.setLevel(int(config_object['logginglevel']))
 
     app = Flask(__name__, instance_relative_config=True)
+
+    from flask.logging import default_handler
+    # app.logger.removeHandler(default_handler)
+
     app.config['SWAGGER'] = {
         'title': 'FDI %s HTTPpool Server' % __version__,
         'universion': 3,
@@ -157,7 +200,8 @@ def create_app(config_object=None, logger=None):
     # swagger.config['specs'][0]['route'] = config_object['api_base'] + s1
     app.config['PC'] = config_object
     app.config['LOGGER_LEVEL'] = logger.getEffectiveLevel()
-    # logging = setup_logging()
+    app.logger = logger
+
     with app.app_context():
         init_httppool_server(app)
     # initialize_extensions(app)

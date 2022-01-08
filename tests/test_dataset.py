@@ -558,7 +558,7 @@ def test_datatypes():
     # assignment
     v.components = [0xaa, 1, 1e2]
     assert v.components == [0xaa, 1, 1e2]
-    h = hash(v)
+
     checkjson(v)
 
     # Quaternion
@@ -568,7 +568,6 @@ def test_datatypes():
     a1 = -1
     v2 = Quaternion([a1, 1+0, 1-a1+0.3, 4.5])
     assert v == v2
-    h = hash(v)
     checkjson(v)
 
 
@@ -595,7 +594,7 @@ def test_Parameter_init():
 
     # if value is None v.value is set to default
     v = Parameter(description=a1, value=None, typ_=a3, default=a4, valid=a5)
-    assert v.value == v.default
+    assert v.value is None
 
     # with no argument
     v = Parameter()
@@ -830,12 +829,8 @@ def test_Parameter_features():
     b2 = a2 + 0  # make a copy
     v1.value = b2  # change it back
     v1.description = 'changed'
-    if 0:
-        assert not v.equals(v1)
-        assert v != v1
-    else:
-        assert v.equals(v1)
-        assert v == v1
+    assert not v.equals(v1)
+    assert v != v1
 
     # comparison with simplified syntax w/o '.value'
     x = 4
@@ -1059,10 +1054,11 @@ def test_DateParameter():
     assert v.description == 'UNKNOWN'
     assert v.value == v.default
     assert v.type == 'finetime'
-    def0 = FineTime(0)
+    def0 = None
     assert v.default == def0
     assert v.valid is None
     assert v.typecode == 'Q'
+    v = DateParameter(789)
     assert v.value.format == FineTime.DEFAULT_FORMAT
 
     a1 = 'a test DateParameter'
@@ -1101,7 +1097,7 @@ def test_StringParameter():
     assert v.description == 'UNKNOWN'
     assert v.value == v.default
     assert v.type == 'string'
-    assert v.default == ''
+    assert v.default is None
     assert v.valid is None
     assert v.typecode == 'B'
 
@@ -1380,7 +1376,7 @@ def do_ArrayDataset_init(atype):
     assert v.data is None
     assert v.unit is None
     assert v.description == 'UNKNOWN'
-    assert v.shape == ()
+    assert v.shape == None
     assert v.typecode == 'UNKNOWN'
     assert v.meta['description'].value == 'UNKNOWN'
     # from DRM
@@ -1390,24 +1386,20 @@ def do_ArrayDataset_init(atype):
     a4 = 'float'              # type
     a6 = 'f'                  # typecode
     a7 = (8, 9)
+
     v = ArrayDataset(data=a1, unit=a2, description=a3,
                      typ_=a4, typecode=a6)
     assert v.data == a1
     assert v.unit == a2
     assert v.description == a3
     assert v.typecode == a6
-    v.updateShape()
-    assert v.shape == (len(a1),)
-    v = ArrayDataset(data=a1)
-    assert v.data == a1
-    assert v.unit is None
-    assert v.description == 'UNKNOWN'
-    assert v.typecode == 'UNKNOWN'
-    assert v.updateShape()
     assert v.shape == (len(a1),)
 
     ashape = [[[1], [2]], [[3], [4]], [[5], [6]]]
-    v2 = ArrayDataset(data=ashape)
+    v2 = ArrayDataset()
+    # setting data also sets shape
+    v2.data = ashape
+    # setting dataa also v.updateShape()
     assert v2.shape == (3, 2, 1)
     v2.pop()
     assert v2.shape == (2, 2, 1)
@@ -1599,8 +1591,6 @@ def do_ArrayDataset_func(atype):
     else:
         assert ts == out_ArrayDataset
 
-    h = hash(v)
-
     checkjson(x, dbg=0)
     checkgeneral(x)
 
@@ -1631,7 +1621,6 @@ def test_Column():
     assert v.type == 'Column'
     v = Column(data=[4, 9], unit='m')
     assert v.data == [4, 9]
-    s = v.hash()
 
     checkjson(v)
 
@@ -1652,20 +1641,29 @@ def test_TableDataset_init():
             t = TableDataset(data=[{'name': 'a', 'column': Column(data=[])}])
 
         # setData format 1: data is a  mapping. Needs pytnon 3.6 to guarantee order
-        a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
-              'col2': Column(data=[0, 43.2, 2E3], unit='cnt')}
+        d1 = [1, 4.4, 5.4E3]
+        d2 = [0, 43.2, 2E3]
+        a1 = {'col1': Column(data=d1, unit='eV'),
+              'col2': Column(data=d2, unit='cnt')}
 
         v = TableDataset(data=a1)  # inherited from DataContaier
         assert v.getColumnCount() == len(a1)
         assert v.getColumnName(0) == 'col1'
         t = a1['col2'].data[1]  # 43.2
         assert v.getValueAt(rowIndex=1, columnIndex=1) == t
+        assert v.shape == (2, 3)
 
     # 2: add columns one by one
     v2 = TableDataset()
-    v2['col1'] = Column(data=[1, 4.4, 5.4E3], unit='eV')
-    v2['col2'] = Column(data=[0, 43.2, 2E3], unit='cnt')
+    v2['col1'] = Column(data=copy.deepcopy(d1), unit='eV')
+    v2['col2'] = Column(data=copy.deepcopy(d2), unit='cnt')
+    assert v2.shape == (2, 3)
 
+    #print('DDD ', deepcmp(v, v2, verbose=0))
+
+    #fdi.dataset.eq.XHASH_VERBOSE = True
+    # print(v.hash())
+    # print(v2.hash())
     assert v2 == v
 
     # 3: another syntax, list of tuples that does not need to use Column
@@ -2111,10 +2109,6 @@ def test_CompositeDataset_init():
     b12 = NumericParameter(description='a different param in metadata',
                            value=2.3, unit='sec')
     v1.meta[b11] = b12
-
-    d = deepcmp(v, v1)
-    q = v.__eq__(v1)
-    h = v.hash()
 
     assert v == v1
     assert v1 == v
@@ -2580,9 +2574,9 @@ def demo_CompositeDataset():
 def test_FineTime():
     # default
     v = FineTime()
-    assert v.tai == 0
+    assert v.tai is None
     assert v.format == v.DEFAULT_FORMAT
-    assert v.toDatetime().year == 1958
+    #assert v.toDatetime().year == 1958
     # at Epoch, TAI=0
     v = FineTime(v.EPOCH)
     assert v.tai == 0
@@ -2657,9 +2651,9 @@ def test_FineTime():
 def test_FineTime1():
     # default
     v = FineTime1()
-    assert v.tai == 0
+    assert v.tai is None
     assert v.format == v.DEFAULT_FORMAT
-    assert v.toDatetime().year == 2017
+    #assert v.toDatetime().year == 2017
     # at Epoch, TAI=0
     v = FineTime1(v.EPOCH)
     assert v.tai == 0
@@ -2999,6 +2993,19 @@ def est_yaml2python():
 #     print(js)
 #     p = json.loads(js, cls=JSONObjectDecoder)
 #     print(p['h'].b)
+
+def speed(v, v2=None):
+    """ see who was faster? xhash or deepcmp """
+
+    if v2 is None:
+        v2 = p, copy.copy(p)
+    import timeit
+    gl = copy.copy(globals())
+    gl.update(locals())
+
+    print(timeit.timeit('deepcmp(v, v2, verbose=0)', number=100, globals=gl))
+    print(timeit.timeit('v==v2', number=100, globals=gl))
+
 
 def running(t):
     print('running ' + str(t))

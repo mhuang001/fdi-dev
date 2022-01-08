@@ -52,6 +52,7 @@ else:
 
 
 Test_Pool_Name = __name__.replace('.', '_')
+defaultpoolPath = '/tmp/fditest'
 
 Classes.updateMapping()
 
@@ -181,7 +182,6 @@ def test_Urn():
     assert v.getPlace() is None
     assert v.getPoolpath() is None
 
-    h = v.hash()
     # urn with poolurl
     v = Urn(urn=urn, poolurl=poolurl)
     assert v.getPoolId() == b2  #
@@ -288,7 +288,6 @@ def cleanup(poolurl=None, poolname=None):
 
 def test_PoolManager():
     defaultpoolName = Test_Pool_Name
-    defaultpoolPath = '/tmp/fditest'
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
     # class methods
@@ -393,7 +392,6 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args):
 
 def test_ProductRef():
     defaultpoolName = Test_Pool_Name
-    defaultpoolPath = '/tmp/fditest'
     defaultpoolUrl = 'file://' + defaultpoolPath + '/' + defaultpoolName
     cleanup(defaultpoolUrl, defaultpoolName)
     prd = Product()

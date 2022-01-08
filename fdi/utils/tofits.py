@@ -138,45 +138,43 @@ def fits_dataset(hdul, dataset_list, name_list=None):
 
 
 def add_header(meta, header):
+    """
+    """
     for name, param in meta.items():
-        print(name,header.get('CONFIGUR','***'))
-        if 'conf' in name.lower():
-            __import__('pdb').set_trace()
-        if issubclass(param.__class__, DateParameter):
-            value = param.value.isoutc()
-            if debug:
-                print('time', value)
+        pval = param.value
+        if pval is None:
+            v = fits.card.Undefined()
             kw = getFitsKw(name)
-            # __import__('pdb').set_trace()
+            header[kw] = (v, param.description)
+        elif issubclass(param.__class__, DateParameter):
+            value = pval.isoutc() if pval.tai else fits.card.Undefined()
+            kw = getFitsKw(name)
             header[kw] = (value, param.description)
         elif issubclass(param.__class__, NumericParameter):
-            if issubclass(param.value.__class__, Vector):
-                for i, com in enumerate(param.value.components):
-                    kw = getFitsKw(name, 1)+str(i)
+            if issubclass(pval.__class__, Vector):
+                for i, com in enumerate(pval.components):
+                    kw = getFitsKw(name, ndigits=1)+str(i)
                     header[kw] = (com, param.description+str(i))
                     if debug:
                         print(kw, com)
             else:
                 kw = getFitsKw(name)
-                header[kw] = (param.value, param.description)
+                header[kw] = (pval, param.description)
         elif issubclass(param.__class__, StringParameter):
             kw = getFitsKw(name)
-            if kw == 'CONFIGUR':
-             #   pass
-                __import__('pdb').set_trace()
-            if (param.value is None) or (param.value == 'UNKNOWN'):
+            if pval == 'UNKNOWN':
                 v = fits.card.Undefined()
             else:
-                v = param.value
+                v = pval
             header[kw] = (v, param.description)
         elif issubclass(param.__class__, BooleanParameter):
             kw = getFitsKw(name)
-            v = 'T' if param.value else 'F'
+            v = 'T' if pval else 'F'
             header[kw] = (v, param.description)
         else:
             kw = getFitsKw(name)
             v = fits.card.Undefined()
-            header[kw] = (v, '%s of unknown type' % str(param.value))
+            header[kw] = (v, '%s of unknown type' % str(pval))
     if debug:
         print('***', header)
     return header
@@ -187,20 +185,22 @@ def fits_header():
     f = fits.open(fitsdir + 'array.fits')
     h = f[0].header
     #h.set('add','header','add a header')
-    h['add'] = ('header','add a header')
-    h['test'] = ('123','des')
+    h['add'] = ('header', 'add a header')
+    h['test'] = ('123', 'des')
     f.close()
-    
-    return h    
-    
+
+    return h
+
+
 def test_fits_kw(h):
-    #print(h)
+    # print(h)
     print(list(h.keys()))
     #assert FITS_KEYWORDS['CUNIT'] == 'cunit'
     assert getFitsKw(list(h.keys())[0]) == 'SIMPLE'
     assert getFitsKw(list(h.keys())[3]) == 'NAXIS1'
 
+
 if __name__ == '__main__':
 
-    #test_fits_kw(fits_data())
+    # test_fits_kw(fits_data())
     main()

@@ -42,8 +42,8 @@ servers:
       basePath:
         # no enum means it s an open value --
         # there is an opportunity for the provider to assign
-        default: 'fdi/v0.11'
-  - url: http://10.0.10.114:9885/fdi/v0.11
+        default: 'fdi/v0.12'
+  - url: http://10.0.10.114:9885/fdi/v0.12
     description: httppool api production flask-wsgi-apache2 version
 security:
   - BasicAuth: []

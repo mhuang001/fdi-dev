@@ -28,14 +28,13 @@ if __name__ == '__main__':
 
     pc = getconfig.getConfig()
 
-    lv = pc['logginglevel']
-    logging = setup_logging(lv if lv > logging.WARN else logging.WARN)
+    lev = pc['logginglevel']
+    logging = setup_logging(lev if lev > logging.WARN else logging.WARN)
     logger = logging.getLogger()
-    logger.setLevel(lv)
+    logger.setLevel(lev)
     logger.info(
-        'Server starting. Make sure no other instance is running.'+str(lv))
+        'Server starting. Make sure no other instance is running. logging level '+str(lev))
 
-    node = pc['node']
     # Get username and password and host ip and port.
 
     from argparse import ArgumentParser
@@ -45,13 +44,13 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', default=False,
                         action='store_true', help='Be verbose.')
     parser.add_argument('-u', '--username',
-                        default=node['username'], type=str, help='user name/ID')
+                        default=pc['self_username'], type=str, help='user name/ID')
     parser.add_argument('-p', '--password',
-                        default=node['password'], type=str, help='password')
+                        default=pc['self_password'], type=str, help='password')
     parser.add_argument('-i', '--host',
-                        default=node['host'], type=str, help='host IP/name')
+                        default=pc['self_host'], type=str, help='host IP/name')
     parser.add_argument('-o', '--port',
-                        default=node['port'], type=int, help='port number')
+                        default=pc['self_port'], type=int, help='port number')
     parser.add_argument('-s', '--server', default='httppool_server',
                         type=str, help='server type: pns or httppool_server')
     parser.add_argument('-w', '--wsgi', default=False,
@@ -59,10 +58,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     verbose = args.verbose
-    node['username'] = args.username
-    node['password'] = args.password
-    node['host'] = args.host
-    node['port'] = args.port
+    pc['self_username'] = args.username
+    pc['self_password'] = args.password
+    pc['self_host'] = args.host
+    pc['self_port'] = args.port
     servertype = args.server
     wsgi = args.wsgi
 
@@ -70,8 +69,8 @@ if __name__ == '__main__':
         logger.setLevel(logging.DEBUG)
         pc['logginglevel'] = logging.DEBUG
     logger.info('logging level %d' % (logger.getEffectiveLevel()))
-    print('Check ' + pc['scheme'] + '://' + node['host'] +
-          ':' + str(node['port']) + pc['api_base'] +
+    print('Check ' + pc['scheme'] + '://' + pc['self_host'] +
+          ':' + str(pc['self_port']) + pc['api_base'] +
           '/apidocs' + ' for API documents.')
 
     if servertype == 'pns':
@@ -80,8 +79,7 @@ if __name__ == '__main__':
         sys.exit(1)
     elif servertype == 'httppool_server':
         print('<<<<<< %s >>>>>' % servertype)
-        #from fdi.pns.httppool_server import app
-        app = create_app(pc)
+        app = create_app(pc, logger)
     else:
         logger.error('Unknown server %s' % servertype)
         sys.exit(-1)
@@ -89,7 +87,7 @@ if __name__ == '__main__':
     if wsgi:
         from waitress import serve
         serve(app, url_scheme='https',
-              host=node['host'], port=node['port'])
+              host=pc['self_host'], port=pc['self_port'])
     else:
-        app.run(host=node['host'], port=node['port'],
+        app.run(host=pc['self_host'], port=pc['self_port'],
                 threaded=True, debug=verbose, processes=1, use_reloader=True)

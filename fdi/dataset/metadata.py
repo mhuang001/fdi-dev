@@ -532,7 +532,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         """
 
         if value is None:
-            v = self._default if hasattr(self, '_default') else value
+            v = None  # self._default if hasattr(self, '_default') else value
         else:
             v = self.checked(value)
         super().setValue(v)

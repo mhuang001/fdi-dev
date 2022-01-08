@@ -153,17 +153,18 @@ def check_response(o, code=200, failed_case=False, excluded=None):
         excluded = []
     assert o is not None, "Server is having trouble"
     someone = any(x in o for x in excluded)
-    assert 'result' in o or \
-        'Bad string to decode as JSON' not in o \
-        or someone, o
+    oc = o.__class__
+    assert issubclass(oc, dict) and 'result' in o or \
+        issubclass(oc, str) and 'Bad string to decode as JSON' not in o or \
+        issubclass(oc, bytes) and not o.startswith(b'<!DOC') or \
+        someone, o
     if not failed_case:
         if not someone:
             # properly formated
-            if failed_case is not None:
-                assert 'FAILED' != o['result'], o['result']
-                assert code == 200, str(o)
-                assert o['time'] > lupd
-                lupd = o['time']
+            assert 'FAILED' != o['result'], o['result']
+            assert code == 200, str(o)
+            assert o['time'] > lupd
+            lupd = o['time']
             return True
     else:
         assert 'FAILED' == o['result'], o['result']

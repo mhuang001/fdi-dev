@@ -79,7 +79,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         """
 
         if not time:
-            setTai = 0
+            setTai = None
         elif issubclass(time.__class__, int):
             setTai = time
         elif issubclass(time.__class__, datetime.datetime):
@@ -160,7 +160,8 @@ class FineTime(Copyable, DeepEqual, Serializable):
         """
         if tai is None:
             tai = self.tai
-
+        if tai is None:
+            return None
         tai_time = datetime.timedelta(seconds=(float(tai) / FineTime.RESOLUTION)) \
             + FineTime.EPOCH
         # leapseconds is offset-native
@@ -173,7 +174,11 @@ class FineTime(Copyable, DeepEqual, Serializable):
     def isoutc(self, format='%Y-%m-%dT%H:%M:%S.%f'):
         """ Returns a String representation of this objet in ISO format without timezone. sub-second set to TIMESPEC.
 
-        format: time format. default '%Y-%m-%dT%H:%M:%S' prints like 2019-02-17T12:43:04.577000 """
+        If `tai is None` return `''`.
+        ;format: time format. default '%Y-%m-%dT%H:%M:%S' prints like 2019-02-17T12:43:04.577000 """
+        if self.tai is None:
+            return 'Unknown'
+
         dt = self.toDatetime(self.tai)
         return dt.strftime(format)
 
@@ -183,7 +188,8 @@ class FineTime(Copyable, DeepEqual, Serializable):
         width: if non-zero, insert newline to break simplified output into shorter lines. For level=0 it is ``` #TODO ```
 
         """
-        tais = str(self.tai) if hasattr(self, 'tai') else 'Unknown'
+        tais = str(self.tai) if hasattr(
+            self, 'tai') and self.tai is not None else 'Unknown'
         fmt = self.format
         if level == 0:
             if width:

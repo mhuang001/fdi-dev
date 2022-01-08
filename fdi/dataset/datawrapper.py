@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class DataContainer(Annotatable, Copyable, DeepEqual, Container):
     """ A DataContainer is a composite of data and description.
+
     mh: note that There is no metadata.
     Implemented partly from AbstractDataWrapper.
     """
@@ -123,6 +124,7 @@ class DataContainer(Annotatable, Copyable, DeepEqual, Container):
 
 class DataWrapper(DataContainer, Quantifiable):
     """ A DataWrapper is a composite of data, unit and description.
+
     mh: note that all data are in the same unit. There is no metadata.
     Implemented from AbstractDataWrapper.
     """

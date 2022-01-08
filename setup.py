@@ -38,7 +38,7 @@ setup(
         #'tabulate @ git+https://github.com/mhuang001/python-tabulate.git@r1',
         'tabulate @ git+http://mercury.bao.ac.cn:9006/mirrors/tabulate.git@r1',
         'cwcwidth>=0.1.5',
-        'paho-mqtt>=1.5.1',
+        'paho-mqtt>=1.6.1',
         'xmltodict>=0.12.0',
         'jsonpath-ng>=1.5.3',
     ],
@@ -59,6 +59,9 @@ setup(
             'Flask>=2.0.2',
             'waitress>=2.0.0',
             'flasgger>=0.9.5',
+        ],
+        'SCI': [
+            'astropy==4.1'
         ],
         'PUB': [
             'sphinx>=4.2.0',

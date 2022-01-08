@@ -187,7 +187,7 @@ class TableDataset(CompositeDataset, TableModel, Shaped):
 
         super().__init__(zInfo=zInfo, **metasToBeInstalled,
                          **kwds)  # initialize data, meta, unit
-        # self.setData(data)
+        self.updateShape()
 
     # def getData(self):
     #     """ Optimized for _data being an ``ODict/dict`` implemented with ``DataContaier``.

@@ -186,6 +186,7 @@ FITS_KEYWORDS.update(FITS_keywords_Numbered)
 FITS_KEYWORDS.update(FITS_keywords_2)
 
 Param_Names = dict((v, k) for k, v in FITS_KEYWORDS.items())
+EXTRA_KWDS = None
 
 
 @lru_cache(maxsize=256)
@@ -203,7 +204,7 @@ def getFitsKw(name, ndigits=2, extra=None):
 
     :name: the name of e.g. a parameter.
     :ndigits: how many digits (right to left) to take maximum if `name` ends with digits. default 2. Raises `ValueError` if more than 7.
-    :extra: tuple of `(fits,para)` tuples to provide more look-up dictionary.
+    :extra: tuple of `(fits_kw, parameter_name)` tuples to provide more look-up dictionary that override values from the default one.
     :returns: FITS keyword.
     """
     if ndigits > 7:
@@ -211,12 +212,12 @@ def getFitsKw(name, ndigits=2, extra=None):
             'Cannot allow %d digits in FITS keywords (max 7).' % ndigits)
     lname = len(name)
     if extra is None:
-        pass
+        extra = EXTRA_KWDS
     elif not issubclass(extra.__class__, (tuple)) or\
             (extra and not issubclass(extra[0].__class__, tuple)):
         raise TypeError(
             '"extra" must be a tuple of a seriese (param:fitsKw) tuples.')
-    extradict = dict(extra) if extra else {}
+    reverse_extradict = dict((v, k) for k, v in extra) if extra else {}
 
     non_digital = name.rstrip('0123456789')
     lnondigi = len(non_digital)
@@ -228,16 +229,16 @@ def getFitsKw(name, ndigits=2, extra=None):
         key = non_digital
     else:
         key = name
-    if key in Param_Names:
+    if key in reverse_extradict:
+        pre_translation = reverse_extradict[key]
+    elif key in Param_Names:
         pre_translation = Param_Names[key]
-    elif key in extradict:
-        pre_translation = extradict[key]
     else:
         pre_translation = key
     if endswith_digit:
         actrual_number_of_digits = min(ndigits, (8-lnondigi))
         return pre_translation[:8-actrual_number_of_digits].upper() + numeric_part
-        
+
     else:
         return pre_translation[:8].upper()
 

@@ -536,20 +536,20 @@ def test_lock(setup):
 
 if __name__ == '__main__':
     now = time.time()
-    node = pc['node']
+
     # Get username and password and host ip and port.
     ops = [
         {'long': 'help', 'char': 'h', 'default': False, 'description': 'print help'},
         {'long': 'verbose', 'char': 'v', 'default': False,
             'description': 'print info'},
         {'long': 'username=', 'char': 'u',
-            'default': node['username'], 'description':'user name/ID'},
+            'default': pc['self_username'], 'description':'user name/ID'},
         {'long': 'password=', 'char': 'p',
-            'default': node['password'], 'description':'password'},
+            'default': pc['self_password'], 'description':'password'},
         {'long': 'host=', 'char': 'i',
-            'default': node['host'], 'description':'host IP/name'},
+            'default': pc['self_host'], 'description':'host IP/name'},
         {'long': 'port=', 'char': 'o',
-            'default': node['port'], 'description':'port number'}
+            'default': pc['self_port'], 'description':'port number'}
     ]
     out = opt(ops)
     verbose = out[1]['result']

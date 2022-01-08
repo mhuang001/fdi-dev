@@ -33,6 +33,14 @@ fdi.utils.fetch module
    :undoc-members:
    :show-inheritance:
 
+fdi.utils.fits module
+---------------------
+
+.. automodule:: fdi.utils.fits
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.fits\_kw module
 -------------------------
 
@@ -45,6 +53,14 @@ fdi.utils.getconfig module
 --------------------------
 
 .. automodule:: fdi.utils.getconfig
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.utils.images module
+-----------------------
+
+.. automodule:: fdi.utils.images
    :members:
    :undoc-members:
    :show-inheritance:
@@ -113,10 +129,26 @@ fdi.utils.run\_proc module
    :undoc-members:
    :show-inheritance:
 
+fdi.utils.tofits module
+-----------------------
+
+.. automodule:: fdi.utils.tofits
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.totalsize module
 --------------------------
 
 .. automodule:: fdi.utils.totalsize
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.utils.tree module
+---------------------
+
+.. automodule:: fdi.utils.tree
    :members:
    :undoc-members:
    :show-inheritance:

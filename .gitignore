@@ -5,6 +5,7 @@
 *~
 .*~
 *.class
+.DS_Store
 *.stackdump
 doctrees
 __pycache__

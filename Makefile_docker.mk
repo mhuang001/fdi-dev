@@ -111,7 +111,7 @@ PUSH_VERSION	= $(SERVER_VERSION)
 push_d:
 	im=$(DKRREPO)/$(PUSH_NAME) &&\
 	docker tag  $(PUSH_NAME):$(PUSH_VERSION) $$im:$(PUSH_VERSION) &&\
-	docker tag  $(PUSH_NAME):$(PUSH_VERSION) $$im:latest &&\
+	docker tag  $(PUSH_NAME):$(PUSH_VERSION) $(PUSH_NAME):latest &&\
 	docker push $$im:$(PUSH_VERSION) &&\
 	docker push $$im:latest
 
@@ -173,3 +173,7 @@ update_docker:
 	$(MAKE) test7 && $(MAKE) test8 &&\
 	$(MAKE) rm_docker
 
+cleanup:
+	docker rmi -f `docker images -a|grep pool|awk 'BEGIN{FS=" "}{print $3}'`
+	docker rmi -f `docker images -a|grep csc |awk 'BEGIN{FS=" "}{print $3}'`
+	docker rmi -f `docker images -a|grep m/fdi|awk 'BEGIN{FS=" "}{print $3}'`

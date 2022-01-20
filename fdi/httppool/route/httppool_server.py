@@ -488,6 +488,10 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
                     ct = 'text/plain'
                     result = compo
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
+            elif compo_meth_name[:4] == 'html':
+                ct = 'text/html'
+                result = HTML_STYLE + compo
+                return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
             elif compo_meth_name == 'yaml()' or compo_meth_name == 'tree()':
                 ct = 'text/plain;charset=utf-8'
                 # 'font-family: "Courier New",monospace;\n'

@@ -311,7 +311,12 @@ class Serializable():
         from ..utils.tofits import toFits, FITS_INSTALLED
 
         if not FITS_INSTALLED:
-            raise NotImplemented('Astropy not installed. Include SCI in extra-dependency when installing FDI.')
-        
+            raise NotImplemented(
+                'Astropy not installed. Include SCI in extra-dependency when installing FDI.')
+
         return toFits(self, *args, **kwds)
 
+    def html(self, *args, level=0, param_widths=-1, **kwds):
+        """ Get a HTML representation. """
+
+        return self.toString(level=level, tablefmt='html', tablefmt1='html', tablefmt2='html', param_widths=param_widths, *args, **kwds)

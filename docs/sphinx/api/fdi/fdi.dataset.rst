@@ -6,14 +6,6 @@ fdi.dataset package
    :undoc-members:
    :show-inheritance:
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   fdi.dataset.resources
-
 Submodules
 ----------
 

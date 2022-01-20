@@ -6,14 +6,6 @@ fdi.pal package
    :undoc-members:
    :show-inheritance:
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   fdi.pal.resources
-
 Submodules
 ----------
 

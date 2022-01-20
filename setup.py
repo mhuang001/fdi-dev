@@ -64,8 +64,8 @@ setup(
             'astropy==4.1'
         ],
         'PUB': [
-            'sphinx>=4.2.0',
-            'sphinx_rtd_theme>=0.4.3',
+            'sphinx>=4.4.0',
+            'sphinx_rtd_theme>=1.0.0',
             'sphinx-copybutton>=0.3.0',
             'twine>=3.3.0'
         ]

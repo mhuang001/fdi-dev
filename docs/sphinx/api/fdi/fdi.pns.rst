@@ -6,14 +6,6 @@ fdi.pns package
    :undoc-members:
    :show-inheritance:
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   fdi.pns.resources
-
 Submodules
 ----------
 

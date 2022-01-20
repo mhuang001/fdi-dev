@@ -65,6 +65,14 @@ fdi.utils.images module
    :undoc-members:
    :show-inheritance:
 
+fdi.utils.json\_to\_yaml module
+-------------------------------
+
+.. automodule:: fdi.utils.json_to_yaml
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.leapseconds module
 ----------------------------
 

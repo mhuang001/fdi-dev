@@ -21,6 +21,7 @@ import tabulate
 
 from itertools import zip_longest, filterfalse
 import builtins
+import copy
 from collections import OrderedDict, UserList
 from numbers import Number
 import logging
@@ -928,8 +929,11 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                       'valid': 20, 'default': 17, 'code': 4, 'description': 15}``
         """
 
-        if param_widths is None or param_widths == 0:
-            param_widths = MetaData.Table_Widths[0]
+        cp = copy.copy(MetaData.Table_Widths[0])
+        if param_widths is not None and param_widths != 0:
+            cp.update(param_widths)
+        param_widths = cp
+
         tab = []
         # N parameters per row for level 1
         N = 3

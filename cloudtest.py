@@ -60,7 +60,7 @@ class PublicClientPool(ManagedPool):
         """
         s = (not hasattr(self, '_poolurl') or not self._poolurl)
         self._poolpath, self._scheme, self._place, \
-            self._poolname, self._username, self._password = \
+        self._poolname, self._username, self._password = \
             parse_poolurl(poolurl)
 
         self._cloudpoolpath = self._poolpath + '/' + self._poolname
@@ -229,12 +229,12 @@ class PublicClientPool(ManagedPool):
             # save prod to cloud
             if serialize_in:
                 uploadRes = self.doSave(resourcetype=pn,
-                            index=sn,
-                            data=jsonPrd,
-                            tag=tag,
-                            serialize_in=serialize_in,
-                            serialize_out=serialize_out,
-                            **kwds)
+                                        index=sn,
+                                        data=jsonPrd,
+                                        tag=tag,
+                                        serialize_in=serialize_in,
+                                        serialize_out=serialize_out,
+                                        **kwds)
             else:
                 uploadRes = self.doSave(resourcetype=pn,
                                         index=sn,
@@ -442,15 +442,55 @@ def genProduct(size=1):
     else:
         return res
 
-poolurl = 'cloud:///poolbs'
-cp = PublicClientPool(poolurl=poolurl)
 
+def test_getToken():
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
+    tokenFile = open(pcc['cloud_token'], 'r')
+    token = tokenFile.read()
+    tokenFile.close()
+    assert token == test_pool.token, "Tokens are not equal or not synchronized"
+
+
+def test_poolInfo():
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
+
+
+def test_upload():
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
+    prd = genProduct()
+    test_pool.schematicSave(prd)
+
+
+def test_multi_upload():
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
+
+
+def test_count():
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
+
+
+def test_get():
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
+
+
+def test_remove():
+    pass
+
+
+def test_search():
+    pass
 
 # print(cp.exists('urn:poolbs:20211018:0'))
 # print(cp.getCount('/poolbs/20211018'))
 # print(cp.poolInfo)
 
-#=================SAVE================
+# =================SAVE REMOVE LOAD================
 # prd = genProduct(1)
 # res = cp.schematicSave(prd)
 # cp.schematicRemove('urn:poolbs:20211018:4')

@@ -445,9 +445,12 @@ def genProduct(size=1):
 poolurl = 'cloud:///poolbs'
 cp = PublicClientPool(poolurl=poolurl)
 
+# from fdi.pal.query import MetaQuery
+# qt = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] <= 5005')
+# <MetaQuery where='m["extra"] > 5000 and m["extra"] <= 5005', type=<class 'fdi.dataset.product.Product'>, variable='m', allVersions=False>
 
-# print(cp.exists('urn:poolbs:20211018:0'))
-# print(cp.getCount('/poolbs/20211018'))
+print(cp.exists('urn:poolbs:20211018:0'))
+print(cp.getCount('/poolbs/20211018'))
 # print(cp.poolInfo)
 
 #=================SAVE================

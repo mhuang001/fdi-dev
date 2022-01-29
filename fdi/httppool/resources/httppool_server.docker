@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.2
 
-FROM mhastro/fdi:latest
+FROM fdi:latest
 # 0.2-5 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 

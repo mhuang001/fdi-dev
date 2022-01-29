@@ -22,6 +22,7 @@ LOGGING_LEVEL	=10
 TEST_PORT	= 9883
 
 B       =/bin/bash
+D	=--no-cache
 
 FORCE:
 

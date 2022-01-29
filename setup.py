@@ -39,6 +39,7 @@ setup(
         'tabulate @ git+http://mercury.bao.ac.cn:9006/mirrors/tabulate.git@r1',
         'cwcwidth>=0.1.5',
         'paho-mqtt>=1.6.1',
+        'jsonschema>=3.2.0',
         'xmltodict>=0.12.0',
         'jsonpath-ng>=1.5.3',
     ],

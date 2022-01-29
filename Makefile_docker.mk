@@ -32,7 +32,8 @@ docker_version: FORCE
 LATEST_NAME	= $(SERVER_NAME)
 LATEST_VERSION	= $(SERVER_VERSION)
 imlatest:
-	docker tag $(LATEST_NAME):$(LATEST_VERSION) $(LATEST)
+	#docker tag $(LATEST_NAME):$(LATEST_VERSION) $(LATEST)
+	docker tag $(DOCKER_NAME):$(LATEST_VERSION) $(LATEST)
 
 build_docker:
 	@echo Building $(DOCKER_VERSION)
@@ -111,7 +112,7 @@ PUSH_VERSION	= $(SERVER_VERSION)
 push_d:
 	im=$(DKRREPO)/$(PUSH_NAME) &&\
 	docker tag  $(PUSH_NAME):$(PUSH_VERSION) $$im:$(PUSH_VERSION) &&\
-	docker tag  $(PUSH_NAME):$(PUSH_VERSION) $(PUSH_NAME):latest &&\
+	docker tag  $(PUSH_NAME):$(PUSH_VERSION) $$im:latest  &&\
 	docker push $$im:$(PUSH_VERSION) &&\
 	docker push $$im:latest
 

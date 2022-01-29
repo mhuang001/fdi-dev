@@ -72,7 +72,8 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
                                      tablefmt2=tablefmt2,
                                      extra=extra, center=-1,
-                                     html=html, excpt=['description'])
+                                     html=html, excpt=['description'],
+                                     **kwds)
         width = len(last)-1
         ds = list(f'"{x}"' for x in self.keys())
         d = 'Total %d Sub-Datasets: %s' % (len(ds), ', '.join(ds))

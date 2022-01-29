@@ -924,14 +924,17 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
         level: 0 is the most detailed, 2 is the least,
         tablefmt: format string in packae ``tabulate``, for level==0, tablefmt1 for level1, tablefmt2: format of 2D table data.
-        param_widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its tsble cell is, 0 for ommiting the attributable. Default is `MetaData.Table_Widths[0]`. e.g.
+        param_widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its table cell is, 0 for ommiting the attributable. Default is `MetaData.Table_Widths[0]`. e.g.
 ``{'name': 8, 'value': 17, 'unit': 7, 'type': 8,
                       'valid': 20, 'default': 17, 'code': 4, 'description': 15}``
         """
 
         cp = copy.copy(MetaData.Table_Widths[0])
-        if param_widths is not None and param_widths != 0:
-            cp.update(param_widths)
+        if param_widths is not None:
+            if param_widths != -1:
+                cp.update(param_widths)
+            else:
+                cp = -1
         param_widths = cp
 
         tab = []

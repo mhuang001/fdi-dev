@@ -22,7 +22,7 @@ LOGGING_LEVEL	=10
 TEST_PORT	= 9883
 
 B       =/bin/bash
-D	=--no-cache
+D	=
 
 FORCE:
 
@@ -33,13 +33,14 @@ docker_version: FORCE
 LATEST_NAME	= $(SERVER_NAME)
 LATEST_VERSION	= $(SERVER_VERSION)
 imlatest:
-	#docker tag $(LATEST_NAME):$(LATEST_VERSION) $(LATEST)
-	docker tag $(DOCKER_NAME):$(LATEST_VERSION) $(LATEST)
+	docker tag $(LATEST_NAME):$(LATEST_VERSION) $(LATEST)
+	docker tag $(LATEST_NAME):$(LATEST_VERSION) $(LATEST_NAME):latest
 
 build_docker:
 	@echo Building $(DOCKER_VERSION)
 	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DOCKER_VERSION) \
-	 --network=$(NETWORK) \
+	--network=$(NETWORK) \
+	--no-cache \
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
@@ -53,7 +54,8 @@ launch_docker:
 
 build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SERVER_VERSION) \
-	 --network=$(NETWORK) \
+	--network=$(NETWORK) \
+	--no-cache \
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg PROJ_DIR=$(PROJ_DIR) \
 	--build-arg fd=$(fd) \

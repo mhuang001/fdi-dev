@@ -12,14 +12,14 @@ SERVER_NAME      =httppool
 SERVER_VERSION	= $(DOCKER_VERSION)
 SFILE	= fdi/httppool/resources/httppool_server.docker
 
-PORT        =9884
+PORT        =9885
 SECFILE = $${HOME}/.secret
 EXTPORT =$(PORT)
-IP_ADDR     =10.0.10.114
+IP_ADDR     =0.0.0.0
 PROJ_DIR	= /var/www/httppool_server
 SERVER_POOLPATH	= $(PROJ_DIR)/data
 LOGGING_LEVEL	=10
-TEST_PORT	= 9883
+TEST_PORT	= 9885
 
 B       =/bin/bash
 D	=

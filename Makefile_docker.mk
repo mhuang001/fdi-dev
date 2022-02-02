@@ -98,7 +98,7 @@ rm_dockeri:
 it:
 	cid=`docker ps -a|grep $(LATEST) | head -n 1 |awk '{print $$1}'` &&\
 	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
-	docker exec -it $(D) $$cid $(B)
+	echo $$cid ... && docker exec -it $(D) $$cid $(B)
 
 t:
 	@ cid=`docker ps -a|grep $(LATEST) | head -n 1 |awk '{print $$1}'` &&\

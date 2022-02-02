@@ -4,6 +4,7 @@ from .fits_kw import FITS_KEYWORDS, getFitsKw
 from ..dataset.arraydataset import ArrayDataset
 from ..dataset.tabledataset import TableDataset
 from ..dataset.dataset import CompositeDataset
+from ..dataset.unstructureddataset import UnstrcturedDataset
 from ..dataset.dataset import Dataset
 from ..dataset.datatypes import DataTypes
 from ..dataset.baseproduct import BaseProduct
@@ -61,16 +62,30 @@ def main():
 def toFits(data, file='', **kwds):
     """convert dataset to FITS.
 
-    :data: a list of Dataset or a BaseProduct.
+    :data: a list of Dataset or a BaseProduct (or its subclass).
     :file: '' for returning fits stream. string for file name. default ''.
     """
     # __import__('pdb').set_trace()
     hdul = fits.HDUList()
     hdul.append(fits.PrimaryHDU())
-    if issubclass(data.__class__,  (ArrayDataset, TableDataset,
-                                    CompositeDataset, BaseProduct)):
-        hdul = fits_dataset(hdul, data.values(), list(data.keys()))
-        # __import__('pdb').set_trace()
+    if issubclass(data.__class__, (BaseProduct)):
+        sets = data.values()
+        names = list(data.keys())
+        hdul = fits_dataset(hdul, sets, names)
+        add_header(data.meta, hdul[0].header)
+    elif issubclass(data.__class__, (ArrayDataset, TableDataset, CompositeDataset)):
+        if issubclass(data.__class__, (ArrayDataset)):
+            # dataset -> fits
+            sets = [data]
+            names = ['IMAGE']
+        elif issubclass(data.__class__, (TableDataset)):
+            sets = [data]
+            names = ['TABLE']
+        elif issubclass(data.__class__, (CompositeDataset)):
+            sets = data.values()
+            names = list(data.keys())
+        hdul = fits_dataset(hdul, sets, names)
+        # when passed a dataset instead of a list, meta go to PrimaryHDU
         add_header(data.meta, hdul[0].header)
     elif issubclass(data.__class__, Sequence) and \
             issubclass(data[0].__class__, (ArrayDataset, TableDataset, CompositeDataset)):
@@ -90,14 +105,25 @@ def toFits(data, file='', **kwds):
         return hdul
 
 
-def fits_dataset(hdul, dataset_list, name_list=None):
+def fits_dataset(hdul, dataset_list, name_list=None, level=0):
+    """ Fill an HDU list with dataset data.
+
+    :hdul: `list` of HDUs. 
+    :dataset_list: `list` of dataset subclasses.
+    :name_list:
+    """
     if name_list is None:
         name_list = []
+
+    dataset_only = issubclass(
+        dataset_list.__class__, (ArrayDataset, TableDataset, CompositeDataset))
+
     for n, ima in enumerate(dataset_list):
         header = fits.Header()
         if issubclass(ima.__class__, ArrayDataset):
             a = np.array(ima)
-            header = add_header(ima.meta, header)
+            if not dataset_only:
+                header = add_header(ima.meta, header)
             ename = ima.__class__.__name__ if len(
                 name_list) == 0 else name_list[n]
             header['EXTNAME'] = ename
@@ -112,17 +138,23 @@ def fits_dataset(hdul, dataset_list, name_list=None):
                 c = Column(data=col.data, name=name, dtype=tname, shape=(
                 ), length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
                 t.add_column(c)
-            header = add_header(ima.meta, header)
+            if not dataset_only:
+                header = add_header(ima.meta, header)
             ename = ima.__class__.__name__ if len(
                 name_list) == 0 else name_list[n]
             header['EXTNAME'] = ename
             hdul.append(fits.BinTableHDU(t, header=header))
         elif issubclass(ima.__class__, CompositeDataset):
-            header = add_header(ima.meta, header)
+            if not dataset_only:
+                header = add_header(ima.meta, header)
             hdul.append(fits.BinTableHDU(Table(), header=header))
             for name, dlist in ima.items():
-                print('dlist', dlist.__class__)
-                fits_dataset(hdul, [dlist], name_list=[name])
+                #print('dlist', dlist.__class__)
+                fits_dataset(hdul, [dlist], name_list=[name], level=level+1)
+        elif issubclass(ima.__class__, UnstrcturedDataset):
+            raise NotImplemented("UnstrcturedDataset not yet supported")
+        else:
+            raise TypeError('Must be a Dataset to convert to fits.')
     if debug:
         print("****", len(hdul))
     return hdul
@@ -176,7 +208,7 @@ def add_header(meta, header):
             v = fits.card.Undefined()
             header[kw] = (v, '%s of unknown type' % str(pval))
     if debug:
-        print('***', header)
+        print('*** add_header ', header)
     return header
 
 
@@ -194,7 +226,7 @@ def fits_header():
 
 def test_fits_kw(h):
     # print(h)
-    print(list(h.keys()))
+    # print(list(h.keys()))
     #assert FITS_KEYWORDS['CUNIT'] == 'cunit'
     assert getFitsKw(list(h.keys())[0]) == 'SIMPLE'
     assert getFitsKw(list(h.keys())[3]) == 'NAXIS1'

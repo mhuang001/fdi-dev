@@ -49,6 +49,18 @@ def test_fits_dataset():
     u = fits_dataset(hdul, data)
     assert issubclass(u.__class__, fits.HDUList)
     assert len(u) == len(data)+1
+    assert list(u[1].data[0]) == [1, 2, 3, 4]
+    assert u[1].header[getFitsKw('description')] == 'a'
+
+
+def test_arr_toFits():
+    ima = ArrayDataset(data=[[1, 2, 3, 4], [5, 6, 7, 8]], description='a')
+    u = toFits(ima, file=None)
+    # when passed a dataset instead of a list, meta go to PrimaryHDU
+    assert issubclass(u.__class__, fits.HDUList)
+    assert len(u) == 2
+    assert list(u[1].data[0]) == [1, 2, 3, 4]
+    assert u[0].header[getFitsKw('description')] == 'a'
 
 
 def test_tab_fits():
@@ -172,9 +184,9 @@ def test_toFits_metadata(makecom):
         u = toFits(data, file=None)
         assert issubclass(u.__class__, fits.HDUList)
         #assert len(u) == len(data)+1
-        print("-----", u[0].header)
+        #print("-----", u[0].header)
         w = u[1]
-        print(w.header)
+        # print(w.header)
         assert w.header['DATETIME'] == '2023-01-23T12:34:56.789012'
         assert w.header['QUAT0'] == 0.0
         assert w.header['QUAT1'] == 1.1
@@ -235,10 +247,12 @@ def test_Fits_Kw():
     assert getFitsKw('checksumData') == 'DATASUM'
     assert getFitsKw('description') == 'DESC'
     assert getFitsKw('cunit01') == 'CUNIT01'
-    assert getFitsKw('description01234') == 'DESC34'
+    assert getFitsKw('description01234') == 'DES01234'
+    assert getFitsKw('description01234', ndigits=2) == 'DESC34'
     # with pytest.raises(ValueError):
     assert getFitsKw('checksumData0123', 3) == 'DATAS123'
     assert getFitsKw('checksumData0123', 2) == 'DATASU23'
     with pytest.raises(TypeError):
-        assert getFitsKw('foo0123', 5, (('foo', 'BAR'))) == 'BAR0123'
-    assert getFitsKw('foo0123', 5, (('foo', 'BAR'),)) == 'BAR0123'
+        # wrong format in `extra`
+        assert getFitsKw('foo0123', 5, (('foo', 'BAR'))) == 'BAR00123'
+    assert getFitsKw('foo0123', 5, (('foo', 'BAR'),)) == 'BAR00123'

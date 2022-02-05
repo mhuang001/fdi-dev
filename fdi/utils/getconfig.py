@@ -41,7 +41,7 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
     The contents of the config are defined in the ``.config/[conf]local.py`` file. The contenss are used to update defaults in ``fdi.pns.config``.
     Th config file directory can be modified by the environment variable ``CONF_DIR``, which, if  not given or pointing to an existing directory, is the process owner's ``~/.config`` directory.
 
-    name: if given the poolurl in ``poolurl_of`` is returned, else construct a pooluul ending with ```/{name}``` from the contents in dict <conf>config. Default ```None```.
+    name: if given the poolurl in ``poolurl_of`` is returned, else construct a poolul ending with ```/{name}``` from the contents in dict <conf>config. Default ```None```.
     conf: configuration ID. default 'pns', so the file is 'pnslocal.py'.
     """
     # default configuration is provided. Copy pns/config.py to ~/.config/pnslocal.py
@@ -126,6 +126,7 @@ def make_pool(pool, conf='pns', wipe=False):
         poolurl = pool
     else:
         poolurl = getConfig(pool)
+    logger.info("PoolURL: " + poolurl)
 
     # create a product store
     from ..pal.productstorage import ProductStorage

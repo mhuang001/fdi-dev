@@ -3,10 +3,10 @@
 id | tee ~/lastent
 echo ######                                                                     
 
-IP=`ifconfig -a | grep "inet" | grep -v 127.0.0.1 | grep -v "inet6" | awk '{print $2}'`
+# IP=`ifconfig -a | grep "inet" | grep -v 127.0.0.1 | grep -v "inet6" | awk '{print $2}'`
 
 
-sed -i "s/^EXTHOST =.*$/EXTHOST = \'$IP\'/g" ~/.config/pnslocal.py
+sed -i "s/^EXTHOST =.*$/EXTHOST = \'$HOST_IP\'/g" ~/.config/pnslocal.py
 sed -i "s/^EXTPORT =.*$/EXTPORT = $HOST_PORT/g" ~/.config/pnslocal.py
 sed -i "s/^EXTUSER =.*$/EXTUSER = \'$HOST_USER\'/g" ~/.config/pnslocal.py
 sed -i "s/^EXTPASS =.*$/EXTPASS = \'$HOST_PASS\'/g" ~/.config/pnslocal.py

@@ -99,9 +99,9 @@ class LocalPool(ManagedPool):
         fp = op.abspath(filename)
         if check_time:
             sr = os.stat(fp)
-        if check_time and fp in self._atimes and (sr.st_mtime_ns <= self._atimes[fp]):
-            # file hasnot changed since last time we read/wrote it.
-            return None
+            if fp in self._atimes and (sr.st_mtime_ns <= self._atimes[fp]):
+                # file hasnot changed since last time we read/wrote it.
+                return None
         try:
             if 1:  # if fp not in self._files or self._files[fp] is None:
                 file_obj = open(fp, mode="r+", encoding="utf-8")

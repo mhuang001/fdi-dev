@@ -839,6 +839,10 @@ def doquery(poolpath, newpoolpath):
     with pytest.raises(KeyError):
         res = pstore.select(q)
 
+    q = MetaQuery(Context, 'm["this_and_the_last_errors_are_expected"] < 5006')
+    with pytest.raises(KeyError):
+        res = pstore.select(q)
+
     # all 'time' < 5006 mapcontext. all in newpool
     q = MetaQuery(MapContext, 'm["time"] < 5006')
     res = pstore.select(q)

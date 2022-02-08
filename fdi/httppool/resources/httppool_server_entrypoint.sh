@@ -5,13 +5,13 @@ echo ######
 ${HOST_IP:=`ifconfig -a | grep "inet" | grep -v 127.0.0.1 | grep -v "inet6" | awk '{print $2}'`}
 #HOST_PORT=${SERVER_PORT}
 sudo sed -i "s/<VirtualHost .*:.*$/<VirtualHost \*:$HOST_PORT>/g" /etc/apache2/sites-available/httppool_server.conf
-sudo sed -i "s/ServerName.*$/ServerName $IP/g" /etc/apache2/sites-available/httppool_server.conf
+sudo sed -i "s/ServerName.*$/ServerName $HOST_IP/g" /etc/apache2/sites-available/httppool_server.conf
 echo ===== /etc/apache2/sites-available/httppool_server.conf >> ~/last_entry.log
 grep Virtual /etc/apache2/sites-available/httppool_server.conf >> ~/last_entry.log
 grep ServerName /etc/apache2/sites-available/httppool_server.conf >> ~/last_entry.log
 
 sudo sed -i "/^ServerName/d" /etc/apache2/apache2.conf
-sudo sed -i "s/^#.*Global configuration.*$/&\n\nServerName $IP\n/" /etc/apache2/apache2.conf
+sudo sed -i "s/^#.*Global configuration.*$/&\n\nServerName $HOST_IP\n/" /etc/apache2/apache2.conf
 
 echo ===== /etc/apache2/apache2.conf >> ~/last_entry.log
 grep -i ServerName /etc/apache2/apache2.conf >> ~/last_entry.log
@@ -21,7 +21,7 @@ echo ===== /etc/apache2/ports.conf >> ~/last_entry.log
 grep Listen /etc/apache2/ports.conf >> ~/last_entry.log
 
 
-sed -i "s/^EXTHOST =.*$/EXTHOST = \'$IP\'/g" ~/.config/pnslocal.py
+sed -i "s/^EXTHOST =.*$/EXTHOST = \'$HOST_IP\'/g" ~/.config/pnslocal.py
 sed -i "s/^EXTPORT =.*$/EXTPORT = $HOST_PORT/g" ~/.config/pnslocal.py
 sed -i "s/^EXTUSER =.*$/EXTUSER = \'$HOST_USER\'/g" ~/.config/pnslocal.py
 sed -i "s/^EXTPASS =.*$/EXTPASS = \'$HOST_PASS\'/g" ~/.config/pnslocal.py

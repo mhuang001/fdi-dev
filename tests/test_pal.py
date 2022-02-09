@@ -648,9 +648,9 @@ def test_LocalPool():
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
 
     ps = ProductStorage(thepoolname, thepoolurl)
-    p1 = ps.getPools()[0]
+    pname = ps.getPools()[0]
     # get the pool object
-    pspool = ps.getPool(p1)
+    pspool = ps.getPool(pname)
 
     x = Product(description="This is my product example",
                 instrument="MyFavourite", modelName="Flight")
@@ -660,7 +660,7 @@ def test_LocalPool():
 
     # read HK
     # copy default pool data in memory
-    ps1 = copy.deepcopy(pspool)
+    p1 = pspool
     # rename the pool
     cpn = thepoolname + '_copy'
     cpu = thepoolurl + '_copy'
@@ -672,9 +672,37 @@ def test_LocalPool():
     ps2 = ProductStorage(pool=cpn, poolurl=cpu)
     # two ProdStorage instances have the same DB
     p2 = ps2.getPool(ps2.getPools()[0])
-    assert deepcmp(ps1._urns, p2._urns) is None
-    assert deepcmp(ps1._tags, p2._tags) is None
-    assert deepcmp(ps1._classes, p2._classes) is None
+    assert deepcmp(p1._urns, p2._urns) is None
+    assert deepcmp(p1._tags, p2._tags) is None
+    assert deepcmp(p1._classes, p2._classes) is None
+
+    # backup
+    # the new pool is made empty
+    ps2.wipePool()
+    # save something
+    ref = ps2.save(x, tag='i think')
+    ref2 = ps2.save(x, tag='i think')
+    assert ref != ref2
+    # two pools are different
+    p2 = ps2.getPool(ps2.getPools()[0])
+    assert deepcmp(p1._urns, p2._urns) is not None
+    assert deepcmp(p1._tags, p2._tags) is not None
+    assert deepcmp(p1._classes, p2._classes) is not None
+
+    # make a backup tarfile
+    tar = p1.backup()
+    with open('/tmp/fditest/bk.tar', 'wb') as f:
+        f.write(tar)
+    with open('/tmp/fditest/bk.tar', 'rb') as f:
+        tar2 = f.read()
+    assert tar == tar2
+    # restore
+    lst = p2.restore(tar2)
+    # print(lst)
+    # two pools are the same
+    assert deepcmp(p1._urns, p2._urns) is None
+    assert deepcmp(p1._tags, p2._tags) is None
+    assert deepcmp(p1._classes, p2._classes) is None
 
 
 def mkStorage(thepoolname, thepoolurl):

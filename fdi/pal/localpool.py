@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from .productpool import ManagedPool, PoolNotFoundError, MetaData_Json_Start, MetaData_Json_End
-from ..utils.common import pathjoin, trbk
+from ..utils.common import pathjoin, trbk, find_all_files
 from .urn import makeUrn, Urn, parseUrn
 from ..dataset.deserialize import deserialize
 
+
+import tarfile
 import filelock
 from functools import lru_cache
 import sys
 import shutil
 import mmap
-import time
+import io
 import os
 from os import path as op
 import logging
@@ -382,3 +384,31 @@ class LocalPool(ManagedPool):
         """
 
         raise(NotImplementedError())
+
+    def backup(self):
+        """ make a tarfile string into a string """
+
+        fp0 = self.transformpath(self._poolname)
+        with filelock.FileLock(self.lockpath('r')):
+            self.writeHK(fp0)
+
+            with io.BytesIO() as iob:
+                with tarfile.open(None, 'w|gz', iob) as tf:
+                    tar = tf.add(fp0, arcname='.')
+                file_image = iob.getvalue()
+        return file_image
+
+    def restore(self, tar):
+        """untar the input file to this pool."""
+
+        with filelock.FileLock(self.lockpath('w')):
+            fp0 = self.transformpath(self._poolname)
+            self.doWipe()
+            with io.BytesIO(tar) as iob:
+                with tarfile.open(None, 'r|gz', iob) as tf:
+                    tf.extractall(fp0)
+            allf = find_all_files(fp0)
+            self._classes, self._tags, self._urns, = tuple(
+                self.readHK().values())
+
+        return allf

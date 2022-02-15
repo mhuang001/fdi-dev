@@ -197,7 +197,7 @@ Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. T
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(urn=self._urn)
+        return OrderedDict(urn=self._urn if hasattr(self, '_urn') else None)
 
     def toString(self, level=0,
                  **kwds):

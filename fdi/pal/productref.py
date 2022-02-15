@@ -50,6 +50,7 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
             urnobj = st.save(product, geturnobjs=True)
             # a lone product passed to prodref will be stored to mempool
 
+        __import__("pdb").set_trace()
         self.setUrnObj(urnobj, poolname, meta)
 
         if product and isinstance(product, Context):

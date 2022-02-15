@@ -25,10 +25,10 @@ logger = logging.getLogger(__name__)
 
 
 pcc = getConfig()
-defaulturl = 'http://' + pcc['node']['host'] + \
-             ':' + str(pcc['node']['port'])
-AUTHUSER = pcc['node']['username']
-AUTHPASS = pcc['node']['password']
+defaulturl = 'http://' + pcc['cloud_host'] + \
+             ':' + str(pcc['cloud_port'])
+AUTHUSER = pcc['cloud_username']
+AUTHPASS = pcc['cloud_password']
 
 
 @functools.lru_cache(maxsize=16)

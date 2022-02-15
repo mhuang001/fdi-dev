@@ -4,12 +4,13 @@ import sys
 
 # from fdi.pal.productpool import ManagedPool
 # from .urn import makeUrn
-# from ..dataset.arraydataset import ArrayDatasets
+import fdi.dataset.product
+from fdi.dataset.arraydataset import ArrayDataset
 from fdi.dataset.product import Product
 from fdi.dataset.serializable import serialize
-from productpool import ManagedPool
-from productref import ProductRef
-from urn import makeUrn, parse_poolurl, Urn, parseUrn
+from fdi.pal.productpool import ManagedPool
+from fdi.pal.productref import ProductRef
+from fdi.pal.urn import makeUrn, parse_poolurl, Urn, parseUrn
 from fdi.pns.public_fdi_requests import read_from_cloud, load_from_cloud
 from fdi.utils.common import fullname, lls, trbk
 from fdi.utils.getconfig import getConfig
@@ -60,7 +61,7 @@ class PublicClientPool(ManagedPool):
         """
         s = (not hasattr(self, '_poolurl') or not self._poolurl)
         self._poolpath, self._scheme, self._place, \
-            self._poolname, self._username, self._password = \
+        self._poolname, self._username, self._password = \
             parse_poolurl(poolurl)
 
         self._cloudpoolpath = self._poolpath + '/' + self._poolname
@@ -77,8 +78,8 @@ class PublicClientPool(ManagedPool):
             return self._poolpath
 
     def getToken(self):
-        import pprint
-        pprint.pprint(pcc)
+        # import pprint
+        # pprint.pprint(pcc)
         TOKEN_PATH = pcc['cloud_token']
 
         if os.path.exists(TOKEN_PATH):
@@ -142,8 +143,8 @@ class PublicClientPool(ManagedPool):
         """
         Return the number of URNs for the product type.
         """
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         try:
             if self.poolInfo:
                 return len(self.poolInfo[typename]['indexs'])
@@ -163,7 +164,7 @@ class PublicClientPool(ManagedPool):
         Determines if the pool is empty.
         """
         try:
-            return len(self.poolInfo['indexs']) == 0
+            return len(self.poolInfo['indexes']) == 0
         except KeyError:
             return 0
 
@@ -222,19 +223,16 @@ class PublicClientPool(ManagedPool):
 
         urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
 
-        # if urn not in u:
-        #     u[urn] = dict(tags=[])
-
         try:
             # save prod to cloud
             if serialize_in:
                 uploadRes = self.doSave(resourcetype=pn,
-                            index=sn,
-                            data=jsonPrd,
-                            tag=tag,
-                            serialize_in=serialize_in,
-                            serialize_out=serialize_out,
-                            **kwds)
+                                        index=sn,
+                                        data=jsonPrd,
+                                        tag=tag,
+                                        serialize_in=serialize_in,
+                                        serialize_out=serialize_out,
+                                        **kwds)
             else:
                 uploadRes = self.doSave(resourcetype=pn,
                                         index=sn,
@@ -257,9 +255,11 @@ class PublicClientPool(ManagedPool):
                 # return the URN string.
                 res.append(urn)
             else:
-                res.append(Urn(urn, poolurl=self._poolurl))
+                res.append(Urn(urn))
         else:
-            rf = ProductRef(urn=Urn(urn, poolurl=self._poolurl), product=prd)
+            # import pdb
+            # pdb.set_trace()
+            rf = ProductRef(urn=Urn(urn))
             if serialize_out:
                 # return without meta
                 res.append(rf)
@@ -311,6 +311,7 @@ class PublicClientPool(ManagedPool):
             products) if serialize_in else len(productlist)
         logger.debug('%d product(s) generated %d %s: %s.' %
                      (sz, len(res), 'Urns ' if geturnobjs else 'prodRefs', lls(res, 200)))
+
         if alist:
             return serialize(res) if serialize_out else res
         else:
@@ -322,21 +323,21 @@ class PublicClientPool(ManagedPool):
         """
         targetPoolpath = self.getPoolpath() + '/' + resourcetype
         poolInfo = read_from_cloud('infoPool', poolpath=targetPoolpath, token=self.token)
-
         try:
             if poolInfo['data']:
                 poolInfo = poolInfo['data']
                 if poolInfo.get(targetPoolpath):
-                    if index in poolInfo[targetPoolpath]['indexs']:
+                    if index in poolInfo[targetPoolpath]['indexes']:
                         urn = makeUrn(poolname=self._poolname, typename=resourcetype, index=index)
                         res = self.doLoadByUrn(urn)
+                        # res is a product like fdi.dataset.product.Product
 
-                        if res['msg'] == 'success':
+                        if res:
                             if serialize_out:
-                                return res['data']
+                                from fdi.dataset.deserialize import serialize
+                                return serialize(res)
                             else:
-                                from fdi.dataset.deserialize import deserialize
-                                return deserialize(res['data'])
+                                return res
                         else:
                             raise Exception('Load failed: ' + res['msg'])
         except Exception as e:
@@ -351,8 +352,8 @@ class PublicClientPool(ManagedPool):
         raise NotImplementedError
 
     def doLoadByUrn(self, urn):
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         res = load_from_cloud('pullProduct', token=self.token, urn=urn)
         return res
 
@@ -367,8 +368,6 @@ class PublicClientPool(ManagedPool):
         """
         prod = resourcetype
         sn = index
-        import pdb
-        pdb.set_trace()
         if self.exists(urn):
             try:
                 if resourcetype and index:
@@ -389,11 +388,17 @@ class PublicClientPool(ManagedPool):
     def doRemove(self, resourcetype, index):
         """ to be implemented by subclasses to do the action of reemoving
         """
-        path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
+        path = self._cloudpoolpath + '/' + str(index)
         res = read_from_cloud('remove', token=self.token, path=path)
-        if res['msg'] != 'success':
-            logger.debug(res['msg'])
-            raise ValueError(res['msg'])
+        print("index: " + str(index) + " remove result: "+str(res))
+        return res['msg']
+        # if res['msg'] != 'success':
+        #     logger.debug(res['msg'])
+        #     raise ValueError(res['msg'])
+
+    def remove(self, urn):
+        poolname, resource, index = parseUrn(urn)
+        return self.doRemove(resource, index)
 
     def doWipe(self):
         """ to be implemented by subclasses to do the action of wiping.
@@ -442,15 +447,84 @@ def genProduct(size=1):
     else:
         return res
 
-poolurl = 'cloud:///poolbs'
-cp = PublicClientPool(poolurl=poolurl)
 
+
+# from fdi.pal.query import MetaQuery
+# qt = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] <= 5005')
+# <MetaQuery where='m["extra"] > 5000 and m["extra"] <= 5005', type=<class 'fdi.dataset.product.Product'>, variable='m', allVersions=False>
+
+def test_getToken():
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
+    tokenFile = open(pcc['cloud_token'], 'r')
+    token = tokenFile.read()
+    tokenFile.close()
+    assert token == test_pool.token, "Tokens are not equal or not synchronized"
+
+
+def test_poolInfo():
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
+
+
+def test_upload():
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
+    prd = genProduct()
+    res = test_pool.schematicSave(prd)
+    # urn:poolbs:fdi.dataset.product.Product:x
+    print(res)
+    assert res.urn == 'urn:defaultmem:fdi.dataset.product.Product:0'
+
+
+def test_multi_upload():
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
+    prds = genProduct(3)
+    res = test_pool.schematicSave(prds)
+
+
+def test_count():
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
+
+
+def test_get():
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
+    prd = test_pool.schematicLoad('fdi.dataset.product.Product', 1)
+    assert prd.description == 'product example with several datasets', 'retrieve production incorrect'
+    assert prd.instrument == 'Crystal-Ball', 'retrieve production incorrect'
+    assert prd['QualityImage'].shape == (3, 3), 'retrieve production incorrect'
+
+
+def test_remove():
+    poolurl = 'cloud:///poolbs/fdi.dataset.product.Product'
+    test_pool = PublicClientPool(poolurl=poolurl)
+    info = test_pool.getPoolInfo()
+    print(info)
+    for i in info['/poolbs/fdi.dataset.product.Product']['indexes']:
+        urn = 'urn:poolbs:fdi.dataset.product.Product:' + str(i)
+        res = test_pool.remove(urn)
+        if i == 0:
+            assert res == 'Not found resource.'
+        else:
+            assert res == 'success'
+    info = test_pool.getPoolInfo()
+    print(info)
+
+def test_search():
+    pass
 
 # print(cp.exists('urn:poolbs:20211018:0'))
 # print(cp.getCount('/poolbs/20211018'))
 # print(cp.poolInfo)
 
-#=================SAVE================
+
+# =================SAVE REMOVE LOAD================
+# test_upload()
+test_get()
+# test_remove()
 # prd = genProduct(1)
 # res = cp.schematicSave(prd)
 # cp.schematicRemove('urn:poolbs:20211018:4')

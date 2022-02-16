@@ -35,9 +35,11 @@ setup(
         'requests>=2.23.0',
         'filelock>=3.0.12',
         'ruamel.yaml<0.17',
-        'tabulate>=0.8.7',
+        #'tabulate @ git+https://github.com/mhuang001/python-tabulate.git@r1',
+        'tabulate @ git+http://mercury.bao.ac.cn:9006/mirrors/tabulate.git@r1',
         'cwcwidth>=0.1.5',
-        'paho-mqtt>=1.5.1',
+        'paho-mqtt>=1.6.1',
+        'jsonschema>=3.2.0',
         'xmltodict>=0.12.0',
         'jsonpath-ng>=1.5.3',
     ],
@@ -59,9 +61,12 @@ setup(
             'waitress>=2.0.0',
             'flasgger>=0.9.5',
         ],
+        'SCI': [
+            'astropy==4.1'
+        ],
         'PUB': [
-            'sphinx>=4.2.0',
-            'sphinx_rtd_theme>=0.4.3',
+            'sphinx>=4.4.0',
+            'sphinx_rtd_theme>=1.0.0',
             'sphinx-copybutton>=0.3.0',
             'twine>=3.3.0'
         ]

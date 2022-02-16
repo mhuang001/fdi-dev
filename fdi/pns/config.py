@@ -22,6 +22,10 @@ EXTHOST = '172.17.0.1'
 EXTPORT = 9876
 EXTRO_USER = ''
 EXTRO_PASS = ''
+SELF_HOST = '172.17.0.2'
+SELF_PORT = 9876
+SELF_USER = ''
+SELF_PASS = ''
 MQUSER = ''
 MQPASS = ''
 MQHOST = '172.17.0.1'
@@ -31,7 +35,7 @@ BASE_POOLPATH = '/tmp'
 SERVER_POOLPATH = '/tmp/data'
 
 SCHEME = 'http'
-API_VERSION = 'v0.10'
+API_VERSION = 'v0.12'
 API_BASE = '/fdi'
 
 LOGGING_LEVEL = logging.INFO
@@ -68,34 +72,28 @@ pnsconfig['mqtt'] = dict(
 )
 
 # choose from pre-defined.
-conf = ['dev', 'server_test', 'external', 'production', 'public'][1]
+conf = ['dev', 'external', 'production', 'public'][0]
 
 # modify
 if conf == 'dev':
     # username, passwd, flask ip, flask port
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '127.0.0.1', 'port': 5000,
-                         'ro_username': 'poolro', 'ro_password': '',
+                         'host': '127.0.0.1', 'port': 9883,
+                         'ro_username': 'poolrw', 'rw_password': 'k/p=0',
+                         'ro_username': 'poolro', 'ro_password': 'only5%',
                          }
 
     # server permission user
     pnsconfig['serveruser'] = 'mh'
     pnsconfig['base_poolpath'] = '/tmp'
     pnsconfig['server_poolpath'] = '/tmp/data'  # For server
+    # server's own
+    pnsconfig['self_host'] = pnsconfig['node']['host']
+    pnsconfig['self_port'] = pnsconfig['node']['port']
+    pnsconfig['self_username'] = pnsconfig['node']['username']
+    pnsconfig['self_password'] = pnsconfig['node']['password']
     # PTS app permission user
     pnsconfig['ptsuser'] = 'mh'
-    # on pns server
-    home = '/home/' + pnsconfig['ptsuser']
-
-elif conf == 'server_test':
-    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '127.0.0.1', 'port': 9881,
-                         'ro_username': 'ro', 'ro_password': '',
-                         }
-    # server permission user
-    pnsconfig['serveruser'] = 'apache'
-    # PTS app permission user
-    pnsconfig['ptsuser'] = 'pns'
     # on pns server
     home = '/home/' + pnsconfig['ptsuser']
 elif conf == 'external':
@@ -115,6 +113,11 @@ elif conf == 'external':
     pnsconfig['serveruser'] = 'apache'
     pnsconfig['base_poolpath'] = BASE_POOLPATH
     pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
+    # server's own
+    pnsconfig['self_host'] = SELF_HOST
+    pnsconfig['self_port'] = SELF_PORT
+    pnsconfig['self_username'] = SELF_USER
+    pnsconfig['self_password'] = SELF_PASS
     # PTS app permission user
     pnsconfig['ptsuser'] = 'pns'
     # on pns server
@@ -126,6 +129,11 @@ elif conf == 'production':
                          }
     # server permission user
     pnsconfig['serveruser'] = 'apache'
+    # server's own
+    pnsconfig['self_host'] = pnsconfig['node']['host']
+    pnsconfig['self_port'] = pnsconfig['node']['port']
+    pnsconfig['self_username'] = pnsconfig['node']['username']
+    pnsconfig['self_password'] = pnsconfig['node']['password']
     # PTS app permission user
     pnsconfig['ptsuser'] = 'pns'
     # on pns server
@@ -137,6 +145,11 @@ elif conf == 'public':
                          'baseurl': '/v1'}
     # server permission user
     pnsconfig['serveruser'] = 'apache'
+    # server's own
+    pnsconfig['self_host'] = pnsconfig['node']['host']
+    pnsconfig['self_port'] = pnsconfig['node']['port']
+    pnsconfig['self_username'] = pnsconfig['node']['username']
+    pnsconfig['self_password'] = pnsconfig['node']['password']
     # PTS app permission user
     pnsconfig['ptsuser'] = 'pns'
     # on pns server
@@ -147,7 +160,6 @@ else:
 # import user classes for server.
 # See document in :class:`Classes`
 pnsconfig['userclasses'] = ''
-
 
 ########### PNS-specific setup ############
 

@@ -153,17 +153,18 @@ def check_response(o, code=200, failed_case=False, excluded=None):
         excluded = []
     assert o is not None, "Server is having trouble"
     someone = any(x in o for x in excluded)
-    assert 'result' in o or \
-        'Bad string to decode as JSON' not in o \
-        or someone, o
+    oc = o.__class__
+    assert issubclass(oc, dict) and 'result' in o or \
+        issubclass(oc, str) and 'Bad string to decode as JSON' not in o or \
+        issubclass(oc, bytes) and not o.startswith(b'<!DOC') or \
+        someone, o
     if not failed_case:
         if not someone:
             # properly formated
-            if failed_case is not None:
-                assert 'FAILED' != o['result'], o['result']
-                assert code == 200, str(o)
-                assert o['time'] > lupd
-                lupd = o['time']
+            assert 'FAILED' != o['result'], o['result']
+            assert code == 200, str(o)
+            assert o['time'] > lupd
+            lupd = o['time']
             return True
     else:
         assert 'FAILED' == o['result'], o['result']
@@ -600,28 +601,28 @@ def test_data_path(server, userpass, client):
     assert 'metadata' in c
 
     # test product paths
-    segs = ["results", "Time_Energy_Pos", "Energy", "data"]
+    segs = ["measurements", "Time_Energy_Pos", "Energy", "data"]
     pth = '/'.join(segs)
     # make url w/  urn
-    # url2       = 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data'
+    # url2       = 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product/0/measurements/Time_Energy_Pos/Energy/data'
     url2 = aburl + urn.replace(':', '/')[3:] + '/' + pth
     x = client.get(url2, auth=auth)
     o = getPayload(x)
     check_response(o)
     c = o['result']
-    assert c == p['results']['Time_Energy_Pos']['Energy'].data
+    assert c == p['measurements']['Time_Energy_Pos']['Energy'].data
     # make w/ prodtype
     # fdi.dataset.product.Product/0
     pt = urn.split(':', 2)[2].replace(':', '/')
 
     urlp = url0 + pt
-    # http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
+    # http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product/0/measurements/Time_Energy_Pos/Energy/data
     url3 = urlp + '/' + pth
     x = client.get(url3, auth=auth)
     o = getPayload(x)
     check_response(o)
     c2 = o['result']
-    assert c == p['results']['Time_Energy_Pos']['Energy'].data
+    assert c == p['measurements']['Time_Energy_Pos']['Energy'].data
 
     for pth in [
             "description",
@@ -629,7 +630,7 @@ def test_data_path(server, userpass, client):
             "meta/speed/value",
             "meta/speed/isValid",
             "Environment Temperature/data",
-            "results/calibration/unit",
+            "measurements/calibration/unit",
     ]:
         url = urlp + '/' + pth
         x = client.get(url, auth=auth)

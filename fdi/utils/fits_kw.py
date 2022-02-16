@@ -185,11 +185,13 @@ FITS_KEYWORDS.update(FITS_keywords_HEASARC)
 FITS_KEYWORDS.update(FITS_keywords_Numbered)
 FITS_KEYWORDS.update(FITS_keywords_2)
 
+# Gives Parameter name from a FITS keyword
 Param_Names = dict((v, k) for k, v in FITS_KEYWORDS.items())
+EXTRA_KWDS = None
 
 
 @lru_cache(maxsize=256)
-def getFitsKw(name, ndigits=2, extra=None):
+def getFitsKw(name, ndigits=-1, extra=None):
     """ Returns the FITS keyword for a name.
 
     If `name` ends with a digit, split `name` to a digital part consists if all digits on the right, and a "non-digital part" on the left. Take `ndigits` continuoud digits, counting from right, to form the "numeric-part". The "non-digital part", or the `name` if not endibg with digits, get the pre-translation according to:
@@ -198,12 +200,12 @@ def getFitsKw(name, ndigits=2, extra=None):
     2. try the `extra` dictionary if provided. if fails,
     3. take key value
 
-    If `name` ends with a digit, append the "numeric-part" to the first `8 - ndigits` (maximum) of characters from pre-transition, uppercased, to form the resukt;
+    If `name` ends with a digit, append the "numeric-part", 0-padded or truncated to `ndigits`, to the first `8 - ndigits` (maximum) of characters from pre-transition, uppercased, to form the result; Iff `ndigits` is -1, it is deactivated.
  else take a maximum of 8 characters from pre-transition. uppercased, to form the resukt.
 
     :name: the name of e.g. a parameter.
-    :ndigits: how many digits (right to left) to take maximum if `name` ends with digits. default 2. Raises `ValueError` if more than 7.
-    :extra: tuple of `(fits,para)` tuples to provide more look-up dictionary.
+    :ndigits: how many digits (right to left) to take maximum if `name` ends with digits. default -1 (deactivated). Raises `ValueError` if more than 7.
+    :extra: tuple of `(fits_kw, parameter_name)` tuples to provide more look-up dictionary that override values from the default one.
     :returns: FITS keyword.
     """
     if ndigits > 7:
@@ -211,31 +213,38 @@ def getFitsKw(name, ndigits=2, extra=None):
             'Cannot allow %d digits in FITS keywords (max 7).' % ndigits)
     lname = len(name)
     if extra is None:
-        pass
+        extra = EXTRA_KWDS
     elif not issubclass(extra.__class__, (tuple)) or\
             (extra and not issubclass(extra[0].__class__, tuple)):
         raise TypeError(
             '"extra" must be a tuple of a seriese (param:fitsKw) tuples.')
+    #reverse_extradict = dict((v, k) for k, v in extra) if extra else {}
     extradict = dict(extra) if extra else {}
 
     non_digital = name.rstrip('0123456789')
     lnondigi = len(non_digital)
-    endswith_digit = lname > lnondigi
+    lnumerics = lname - lnondigi
+    endswith_digit = lnumerics > 0
     if endswith_digit:
         # has trailing digits
-        digital_part = name[lnondigi:]
-        numeric_part = digital_part[-ndigits:]
+        numerics = name[lnondigi:]
+        if ndigits != -1:
+            # if lnumerics > ndigits, take the last ndigits
+            # else if lnumerics < ndigits, pad (ndigits-lnumerics) '0's to the left of `numerics`
+            numeric_part = numerics[-ndigits:] if lnumerics > ndigits else numerics if lnumerics == ndigits else '0'*(
+                ndigits-lnumerics)+numerics
+        else:
+            numeric_part = numerics
+        lnpart = len(numeric_part)
         key = non_digital
     else:
         key = name
-    if key in Param_Names:
-        pre_translation = Param_Names[key]
-    elif key in extradict:
+    if extra and key in extradict:
         pre_translation = extradict[key]
     else:
-        pre_translation = key
+        pre_translation = Param_Names.get(key, key)
     if endswith_digit:
-        return pre_translation[:8-ndigits].upper() + numeric_part
+        return pre_translation[:8-lnpart].upper() + numeric_part
     else:
         return pre_translation[:8].upper()
 

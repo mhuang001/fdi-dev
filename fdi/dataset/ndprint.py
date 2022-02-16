@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ..utils.common import bstr
+from ..utils.common import bstr, wls
 from .metadata import tabulate
 
 import logging
@@ -22,21 +22,36 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-def ndprint(data, trans=True, maxElem=sys.maxsize, **kwds):
+def padstr(s, w, just='left', pad=' '):
+
+    if just == 'center':
+        return s.center(w, pad)
+    elif just == 'right':
+        return s.rjust(w, pad)
+    else:
+        return s.ljust(w, pad)
+
+
+def ndprint(data, trans=True, maxElem=sys.maxsize, tablefmt3='plain', **kwds):
     """ makes a formated string of an N-dimensional array for printing.
     The fastest changing index is the innerest list. E.g.
-    A 2 by 3 matrix is [[1,2],[3,4],[5,6]] written as
+    A 2 by 3 matrix is [[1,2],[3,4],[5,6]] written as::
+
     1 2
     3 4
     5 6
-    But if the matrix is a table, the cells in a column change the fastest,
+
+But if the matrix is a table, the cells in a column change the fastest,
     and the columns are written vertically. So to print a matrix as a table,
     whose columns are the innerest list, set trans = True (default) then
-    the matrix needs to be printed transposed:
+    the matrix needs to be printed transposed::
+
     1 3 5
     2 4 6
+
     Parameters
     ----------
+    :tablefmt3: control 2d array printing. Default 'plain'.
 
     Returns
     -------
@@ -85,10 +100,10 @@ def ndprint(data, trans=True, maxElem=sys.maxsize, **kwds):
         padding = ' ' * context.dim * 4
 
         if context.maxdim == 0:
-            tf = kwds['tablefmt3'] if 'tablefmt3' in kwds else 'plain'
+            tf = tablefmt3
             return tabulate.tabulate([[bstr(data)]], tablefmt=tf)
         elif context.maxdim == 1:
-            tf = kwds['tablefmt3'] if 'tablefmt3' in kwds else 'plain'
+            tf = tablefmt3
             d2 = [[bstr(x)] for x in data] if trans else [[bstr(x)
                                                            for x in data]]
             return tabulate.tabulate(d2, tablefmt=tf)
@@ -117,12 +132,92 @@ def ndprint(data, trans=True, maxElem=sys.maxsize, **kwds):
             if dbg:
                 print(padding + 'd2 %s' % str(d2))
             if context.dim + 1 == context.maxdim:
-                tf = kwds['tablefmt2'] if 'tablefmt2' in kwds else 'simple'
-                hd = kwds['headers'] if 'headers' in kwds else []
+                tf = kwds.get('tablefmt2', 'simple')
+                hd = kwds.get('headers', [])
                 # d2 is a properly transposed 2D array
                 dlimited = [x[:maxElem] for x in d2[:maxElem]]
+
                 # this is where TableDataset prints its tables
-                delta += tabulate.tabulate(dlimited, headers=hd, tablefmt=tf)
+                # if tf in ['simple', 'rst', 'grid'] and
+                if len(hd) > 1 and issubclass(hd[0].__class__, tuple):
+                    _tab = tabulate.tabulate(
+                        dlimited, headers=list(h[1] for h in hd), tablefmt=tf)
+                    minp = 0  # tabulate.MIN_PADDING
+                    #print(tabulate.EVENTUAL_WIDTHS, tabulate.MIN_PADDING)
+                    # first rst cell cannot be blank
+                    if tf == 'rst':
+                        if hd[0][0] == '':
+                            hd[0] = ('..', hd[0][1])
+                    last = hd[0][0]
+                    # group width
+                    w = tabulate.EVENTUAL_WIDTHS[0]
+                    # group strings and widths
+                    hd2, w2 = [], []
+                    for i in range(1, len(hd)):
+                        this = hd[i][0]
+                        # column width
+                        wc = tabulate.EVENTUAL_WIDTHS[i]
+                        # skip thid for plain
+                        if this == last and tf != 'plain':
+                            # extra 2 for every internal gaps grouped
+                            w += wc + 2 + \
+                                (1 if tf in [
+                                    'grid', 'fancy_grid', 'orgtbl', 'psql'] else 0)
+                        else:
+                            # padstr(last, w, just='center'))
+                            # if tf == 'simple' else last)
+                            hd2.append(wls(last, w))
+                            w2.append(w)
+                            w = wc
+                        last = this
+                    hd2.append(padstr(last, w, just='center'))
+                    w2.append(w)
+                    saveb = tabulate.PRESERVE_WHITESPACE
+                    tabulate.PRESERVE_WHITESPACE = True
+
+                    dummy = [['X'*n for n in w2]]
+                    if tf in ['simple', 'plain', 'orgtbl']:
+                        _header = tabulate.tabulate(dummy, headers=hd2,
+                                                    stralign='center',
+                                                    tablefmt=tf)
+                        _header = _header.rsplit('\n', 1)[0]
+                        delta += _header + '\n' + _tab
+                    elif tf in ['rst']:
+                        _header = tabulate.tabulate(dummy, headers=hd2,
+                                                    stralign='center',
+                                                    tablefmt='simple')
+                        par = _tab.split('\n', 1)
+                        par.insert(1, _header.rsplit('\n', 1)[0])
+                        _tab = '\n'.join(par)
+                        delta += '\n' + _tab
+                    elif tf in ['grid', 'fancy_grid', 'psql']:
+                        _header = tabulate.tabulate(dummy, headers=hd2,
+                                                    stralign='center',
+                                                    tablefmt=tf)
+                        _header = _header.rsplit('\n', 3)[0]
+                        delta += _header + '\n' + _tab
+                    elif tf in ['x']:
+                        _header = tabulate.tabulate(dummy, headers=hd2,
+                                                    stralign='center',
+                                                    tablefmt=tf)
+                        _header = _header.rsplit('\n', 2)[0]
+                        delta += _header + '\n' + _tab
+                    else:
+                        _header = tabulate.tabulate(dummy, headers=hd2,
+                                                    stralign='center',
+                                                    tablefmt=tf)
+                        _header = _header  # .rsplit('\n', 3)[0]
+                        delta += _header + '\n;;;;;;;;;;;;;\n' + _tab
+                    tabulate.PRESERVE_WHITESPACE = saveb
+
+                else:
+                    if len(hd):
+                        _header = [h[1] for h in hd] if issubclass(
+                            hd[0].__class__, tuple) else hd
+                    else:
+                        _header = hd
+                    delta += tabulate.tabulate(dlimited,
+                                               headers=_header, tablefmt=tf)
                 # an extra blank line  is added at the end of the 3rd dimension
                 delta += '\n\n'
             else:

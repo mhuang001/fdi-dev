@@ -21,6 +21,7 @@ import tabulate
 
 from itertools import zip_longest, filterfalse
 import builtins
+import copy
 from collections import OrderedDict, UserList
 from numbers import Number
 import logging
@@ -32,7 +33,7 @@ tabulate.wcwidth = wcwidth
 tabulate.WIDE_CHARS_MODE = True
 tabulate.MIN_PADDING = 0
 #tabulate.PRESERVE_WHITESPACE = True
-Default_Extra_Param_Width = 12
+Default_Extra_Param_Width = 10
 
 """
 | Attribute | Defining Module | Holder Variable |
@@ -532,7 +533,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         """
 
         if value is None:
-            v = self._default if hasattr(self, '_default') else value
+            v = None  # self._default if hasattr(self, '_default') else value
         else:
             v = self.checked(value)
         super().setValue(v)
@@ -854,8 +855,12 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         self.getDataWrappers().clear()
 
     def set(self, name, newParameter):
-        """ Saves the parameter and  add eventhandling.
+        """ Saves the parameter and  adds eventhandling.
+
+        In a parameter name, dot or other invalid characters (when the name is used as a property name) is ignored.
+
         Raises TypeError if not given Parameter (sub) class object.
+
         Parameters
         ----------
 
@@ -913,19 +918,25 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         return r
 
     def toString(self, level=0,
-                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
                  extra=False, param_widths=None, width=0, **kwds):
         """ return  string representation of metada.
 
         level: 0 is the most detailed, 2 is the least,
         tablefmt: format string in packae ``tabulate``, for level==0, tablefmt1 for level1, tablefmt2: format of 2D table data.
-        param_widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its tsble cell is, 0 for ommiting the attributable. Default is `MetaData.Table_Widths[0]`. e.g.
+        param_widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its table cell is, 0 for ommiting the attributable. Default is `MetaData.Table_Widths[0]`. e.g.
 ``{'name': 8, 'value': 17, 'unit': 7, 'type': 8,
                       'valid': 20, 'default': 17, 'code': 4, 'description': 15}``
         """
 
-        if param_widths is None or param_widths == 0:
-            param_widths = MetaData.Table_Widths[0]
+        cp = copy.copy(MetaData.Table_Widths[0])
+        if param_widths is not None:
+            if param_widths != -1:
+                cp.update(param_widths)
+            else:
+                cp = -1
+        param_widths = cp
+
         tab = []
         # N parameters per row for level 1
         N = 3
@@ -958,7 +969,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 ext.update(ext0)
             else:
                 # listeners
-                lstr = v.toString(level=level, alist=True)
+                lstr = '' if v is None else v.toString(level=level, alist=True)
                 if len(lstr) < 3:
                     lstr = [["", "<No listener>", ""]]
                 att['value'], att['unit'], att['type'], att['description'] = \

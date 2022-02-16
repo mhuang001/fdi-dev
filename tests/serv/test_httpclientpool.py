@@ -220,6 +220,9 @@ def crud_t(poolid, poolurl, local_pools_dir, pool):
     logger.info('A load exception message is expected')
     with pytest.raises(NameError):
         res = pstore.getPool(poolid).loadProduct(urn.urn)
+    with pytest.raises(NameError):
+        res = pstore.getPool(poolid).loadProduct(
+            urn.urn.replace('Product', 'this_and_the_last_errors.are.expected'))
 
     logger.info('Wipe a pool')
     pstore.getPool(poolid).removeAll()
@@ -244,7 +247,7 @@ def crud_t(poolid, poolurl, local_pools_dir, pool):
 
     logger.info('Access a non-existing pool and trgger an Error.')
     with pytest.raises(NameError):
-        pstore.getPool(poolid) is None
+        pstore.getPool(poolid+'NON_EXISTS ') is None
 
 
 def make_pools(name, aburl, n=1):

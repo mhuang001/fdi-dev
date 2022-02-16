@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
 
-from ..utils.common import lls, ld2tk
+from ..utils.common import lls, ld2tk, bstr
 from .serializable import Serializable
 
 import logging
-from collections.abc import MutableMapping as MM, MutableSequence as MS, MutableSet as MSe
+from collections.abc import Mapping, Sequence, Set
 from itertools import chain
 from collections import OrderedDict
 from functools import lru_cache
 import array
+import decimal
+import fractions
 import pprint
 import sys
+import hashlib
+
+HASH_WIDTH = sys.hash_info.width // 8
 
 if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.6:
     PY36 = True
@@ -26,12 +31,24 @@ class CircularCallError(RuntimeError):
     pass
 
 
+DEEPCMP_RESULT = None
+
+
 def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
-    """ Recursively descends into obj1's every member, which may be
-    set, list, dict, ordereddict, (or subclasses of MutableMapping or 
-    MutableSequence) and
-    any objects with '__class__' attribute,
-    compares every member found with its counterpart in obj2.
+    """ Recursively descends into obj1's every component and
+    compares with its counterpart in obj2.
+
+    Factors includes;
+    * if they are the same object
+    * type
+    * quick string
+    * ```__eq__``` or ```__cmp__``` if requested
+    * state from ```__getstate__```
+    * quick length
+    * members if is ```Mapping```, ```Sequence``` (
+    set, list, dict, ordereddict, UserDict ... )
+    * properties/attributes in ```__dict__```
+
 
     Detects cyclic references.
 
@@ -42,6 +59,9 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
 
     :eqcmp: if True, use __eq__ or __cmp__ if the objs have them. If False only use as the last resort. default True.
     """
+
+    global DEEPCMP_RESULT
+
     # seen and level are to be used as nonlocal variables in run()
     # to overcome python2's lack of nonlocal type this method is usded
     # https://stackoverflow.com/a/28433571
@@ -52,7 +72,7 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
             seen = seenlist
         level = 0
 
-    def run(o1, o2, v=False, eqcmp=True, default=None):
+    def run(o1, o2, v=False, eqcmp=True):
         """
         Paremeters
         ----------
@@ -68,17 +88,18 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
         id1, id2 = id(o1), id(o2)
         if id1 == id2:
             if v:
-                print('they are the same object.')
+                print('These are the same object o1=%s ||| o2=%s.' %
+                      (bstr(o1, 20), bstr(o2, 20)))
             return None
         pair = (id1, id2) if id1 < id2 else (id2, id1)
         c = o1.__class__
         c2 = o2.__class__
+        _context.level += 1
         if v:
-            _context.level += 1
             print('deepcmp level %d seenlist length %d' %
                   (_context.level, len(_context.seen)))
-            print('1 ' + str(c) + lls(o1, 75))
-            print('2 ' + str(c2) + lls(o2, 75))
+            print('1 ' + str(c) + lls(o1, 45))
+            print('2 ' + str(c2) + lls(o2, 45))
         if pair in _context.seen:
             msg = 'deja vue %s' % str(pair)
             raise CircularCallError(msg)
@@ -86,17 +107,18 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
         if c != c2:
             if v:
                 print('type diff')
+            _context.level -= 1
             del _context.seen[-1]
             return ' due to diff types: ' + c.__name__ + ' and ' + c2.__name__
         if c == str:
             if v:
                 print('find strings')
+            _context.level -= 1
             del _context.seen[-1]
             if o1 != o2:
-                return ' due to difference: "{o1}" "{o2}"'
+                return ' due to difference: "%s" ||| "%s"' % (o1, o2)
             else:
                 return None
-        sc, fc, tc, lc = set, frozenset, tuple, list
 
         has_eqcmp = (hasattr(o1, '__eq__') or hasattr(
             o1, '__cmp__')) and not issubclass(c, DeepEqual)
@@ -111,26 +133,46 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                     print('Get circular call using eq/cmp: '+str(e))
                 pass
             else:
+                _context.level -= 1
+                del _context.seen[-1]
                 if t:
-                    del _context.seen[-1]
                     return None
                 else:  # o1 != o2:
                     s = ' due to "%s" != "%s"' % (lls(o1, 155), lls(o2, 155))
-                    del _context.seen[-1]
                     return s
+        if hasattr(o1, '__getstate__'):
+            if v:
+                print('Find __getstate__')
+            try:
+                o1 = o1.__getstate__()
+                o2 = o2.__getstate__()
+            except TypeError:
+                logger.error('__getstate__ trouble')
+                raise
+            else:  # no exception for __getstate__
+                r = run(o1, o2, v=v, eqcmp=eqcmp)
+                del _context.seen[-1]
+                _context.level -= 1
+                if r:
+                    return ' due to o1.__getstate__ != o2.__getstate__' + r
+                else:
+                    return None
+
         try:
             # this is not good if len() is delegated
             # if hasattr(o1, '__len__') and len(o1) != len(o2):
             if hasattr(o1, '__len__') and len(o1) != len(o2):
                 del _context.seen[-1]
+                _context.level -= 1
                 return ' due to diff %s lengths: %d and %d (%s, %s)' %\
                     (c.__name__, len(o1), len(o2), lls(
                         list(o1), 115), lls(list(o2), 115))
         except AttributeError:
             pass
-        if issubclass(c, MM):
+
+        if issubclass(c, Mapping):
             if v:
-                print('Find dict or subclass')
+                print('Find Mapping')
                 print('check keys')
 
             from .odict import ODict
@@ -138,51 +180,57 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                 #
                 r = run(list(o1.keys()), list(o2.keys()), v=v, eqcmp=eqcmp)
             else:
-                #  old dict
+                #  old dict or UserDict
                 r = run(tuple(sorted(o1.keys(), key=hash)),
                         tuple(sorted(o1.keys(), key=hash)),
                         v=v, eqcmp=eqcmp)
             if r is not None:
                 del _context.seen[-1]
+                _context.level -= 1
                 return " due to diff " + c.__name__ + " keys" + r
             if v:
                 print('check values')
             for k in o1.keys():
                 if k not in o2:
                     del _context.seen[-1]
+                    _context.level -= 1
                     return ' due to o2 has no key=%s' % (lls(k, 155))
                 r = run(o1[k], o2[k], v=v, eqcmp=eqcmp)
                 if r is not None:
                     s = ' due to diff values for key=%s' % (lls(k, 155))
                     del _context.seen[-1]
+                    _context.level -= 1
                     return s + r
             del _context.seen[-1]
+            _context.level -= 1
             return None
-        elif issubclass(c, (sc, fc, tc, lc)):
+        elif issubclass(c, (Set, Sequence)):
             if v:
-                print('Find set, tuple, or list.')
-            if issubclass(c, (tc, lc)):
+                print('Find Set, Sequence.')
+            if issubclass(c, Sequence):
                 if v:
-                    print('Check tuple or list.')
+                    print('Check Sequence.')
                 for i in range(len(o1)):
                     r = run(o1[i], o2[i], v=v, eqcmp=eqcmp)
                     if r is not None:
                         del _context.seen[-1]
+                        _context.level -= 1
                         return ' due to diff at index=%d (%s %s)' % \
                             (i,
                              lls(o1[i], 10),
                              lls(o2[i], 10)) + r
+                _context.level -= 1
                 del _context.seen[-1]
                 return None
             else:
                 if v:
-                    print('Check set/frozenset.')
+                    print('Check Set.')
                 if 1:
+                    del _context.seen[-1]
+                    _context.level -= 1
                     if o1.difference(o2):
-                        del _context.seen[-1]
-                        return ' due to at leasr one in the foremer not in the latter'
+                        return ' due to at least one in the foremer not in the latter'
                     else:
-                        del _context.seen[-1]
                         return None
                 else:
                     oc = o2.copy()
@@ -195,80 +243,177 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                                 break
                         if not found:
                             del _context.seen[-1]
+                            _context.level -= 1
                             return ' due to %s not in the latter' % (lls(m, 155))
                         oc.remove(n)
                     del _context.seen[-1]
+                    _context.level -= 1
                     return None
-        elif hasattr(o1, '__getstate__'):
-            o1 = o1.__getstate__()
-            o2 = o2.__getstate__()
-            r = run(o1, o2, v=v, eqcmp=eqcmp)
-            del _context.seen[-1]
-            if r:
-                return ' due to o1.__getstate__ != o2.__getstate__' + r
-            else:
-                return None
-        elif hasattr(o1, '__dict__'):
-            if v:
-                print('obj1 has __dict__')
-            o1 = sorted(vars(o1).items())
-            o2 = sorted(vars(o2).items())
-            r = run(o1, o2, v=v, eqcmp=eqcmp)
-            del _context.seen[-1]
-            if r:
-                return ' due to o1.__dict__ != o2.__dict__' + r
-            else:
-                return None
-        elif hasattr(o1, '__iter__') and hasattr(o1, '__next__') or \
-                hasattr(o1, '__getitem__'):
-            # two iterators are equal if all comparable properties are equal.
-            del _context.seen[-1]
-            return None
-        elif has_eqcmp:
-            # last resort
-            if o1 == o2:
-                del _context.seen[-1]
-                return None
-            else:
-                del _context.seen[-1]
-                return ' according to __eq__ or __cmp__'
-        else:  # o1 != o2:
-            if v:
-                print('no way')
-            s = ' due to no reason found for "%s" == "%s"' % (
-                lls(o1, 155), lls(o2, 155))
-            del _context.seen[-1]
-            return s
-    return run(obj1, obj2, v=verbose, eqcmp=eqcmp)
+        else:
+            if hasattr(o1, '__dict__'):
+                if v:
+                    print('obj1 has __dict__')
+                    o1 = sorted(vars(o1).items())
+                    o2 = sorted(vars(o2).items())
+                    r = run(o1, o2, v=v, eqcmp=eqcmp)
+                    del _context.seen[-1]
+                    _context.level -= 1
+                if r:
+                    return ' due to o1.__dict__ != o2.__dict__' + r
+                else:
+                    return None
+            # elif hasattr(o1, '__iter__') and hasattr(o1, '__next__') or \
+            #         hasattr(o1, '__getitem__'):
+            #     # two iterators are equal if all comparable properties are equal.
+            #     del _context.seen[-1]
+            #     _context.level -= 1
+            #     return None
+            elif has_eqcmp:
+                # last resort
+                if o1 == o2:
+                    del _context.seen[-1]
+                    _context.level -= 1
+                    return None
+                else:
+                    del _context.seen[-1]
+                    _context.level -= 1
+                    return ' according to __eq__ or __cmp__'
+            else:  # o1 != o2:
+                if v:
+                    print('no way')
+                    s = ' due to no reason found for "%s" == "%s"' % (
+                        lls(o1, 155), lls(o2, 155))
+                    del _context.seen[-1]
+                    _context.level -= 1
+                return s
+    res = run(obj1, obj2, v=verbose, eqcmp=eqcmp)
+    DEEPCMP_RESULT = res
+    return res
 
 
-def xhash(hash_list=None):
+XHASH_VERBOSE = False
+
+
+def xhash(hash_list=None, seenlist=None, verbose=None):
     """ get the hash of a tuple of hashes of all members of given sequence.
 
-    hash_list: use instead of self.getstate__()
+    :hash_list: use instead of self.getstate__()
+    :verbose: set to trace.
     """
 
-    hashes = []
-    if issubclass(hash_list.__class__, (str, bytes)):
-        # put str first so it is not treated as a sequence
-        return(hash(hash_list))
-    elif hasattr(hash_list, 'items'):
-        source = chain.from_iterable(hash_list.items())
-    elif hasattr(hash_list, '__iter__'):
-        source = hash_list
-    elif issubclass(hash_list.__class__, (array.array)):
-        source = (hash_list.typecode,
-                  hash_list.itemsize,
-                  len(hash_list),
-                  len(hash_list[0]))
-    else:
-        return(hash(hash_list))
+    if verbose is None:
+        verbose = XHASH_VERBOSE
 
-    for t in source:
-        h = t.hash() if hasattr(t, 'hash') else xhash(t)
-        hashes.append(h)
-    # if there is only one element only hash the element
-    return hash(hashes[0] if len(hashes) == 1 else tuple(hashes))
+    # https://stackoverflow.com/a/28433571
+    class _context:
+        if seenlist is None:
+            seen = []
+        else:
+            seen = seenlist
+        level = 0
+
+    def run(hash_list=None):
+        _context.level += 1
+        ind = ' ' * _context.level
+        hashes = []
+
+        if 0 and verbose:
+            print('entering id%d id%d lv%d len%d' % (id(_context.level), id(_context.seen),
+                                                     _context.level, len(_context.seen)))
+        hlid = id(hash_list)
+        if hlid in _context.seen:
+            if verbose:
+                print(ind + 'seen it')
+            _context.level -= 1
+            del _context.seen[-1]
+            return 0
+        _context.seen.append(hlid)
+        if issubclass(hash_list.__class__, int):
+            res = hash_list
+            if verbose:
+                print(ind + 'int "%s" -- %s' % (lls(hash_list, 20), res))
+            _context.level -= 1
+            del _context.seen[-1]
+            return res
+        elif issubclass(hash_list.__class__, (float, decimal.Decimal, fractions.Fraction)):
+            res = hash(hash_list)
+            if verbose:
+                print(ind + '%s "%s" -- %s' %
+                      (hash_list.__class__.__name__, lls(hash_list, 20), res))
+            _context.level -= 1
+            del _context.seen[-1]
+            return res
+        elif issubclass(hash_list.__class__, (str, bytes)):
+            # put str first so it is not treated as a sequence
+            res = hash(hash_list)
+            if verbose:
+                print(ind + 'str/bytes "%s" -- %s' %
+                      (lls(hash_list, 20), res))
+            _context.level -= 1
+            del _context.seen[-1]
+            return res
+        elif issubclass(hash_list.__class__, (array.array)):
+            hasher = hashlib.new('sha256', hash_list.typecode.encode('utf-8'))
+            hasher.update(hash_list)
+            res = int.from_bytes(
+                hasher.digest()[:HASH_WIDTH], byteorder=sys.byteorder)
+            # source = (hash_list.typecode,
+            #           hash_list.itemsize,
+            #           len(hash_list),
+            #           len(hash_list[0]))
+            if verbose:
+                print(ind + '%s %s %s' % (hash_list.__class__.__name__,
+                                          lls(hash_list, 20), res))
+            _context.level -= 1
+            del _context.seen[-1]
+            return res
+        elif hasattr(hash_list, '__getstate__'):
+            try:
+                o = hash_list.__getstate__()
+            except TypeError:
+                logger.error('__getstate__ trouble')
+                raise
+            else:  # no exception for __getstate__
+                source = chain.from_iterable(o.items())
+            if verbose:
+                print(ind + '%s %s %s' % (hash_list.__class__.__name__,
+                                          lls(source, 20), 'has __getstate__'))
+        elif issubclass(hash_list.__class__, (Set, Sequence)):
+            source = hash_list
+            if verbose:
+                print(ind + '%s %s %s' % (hash_list.__class__.__name__,
+                                          lls(source, 20), 'is Sequence'))
+        elif issubclass(hash_list.__class__, Mapping):
+            source = chain.from_iterable(hash_list.items())
+            if verbose:
+                print(ind + '%s %s %s' % (hash_list.__class__.__name__,
+                                          lls(source, 20), 'is Mapping'))
+        else:
+            res = hash(hash_list)
+            if verbose:
+                print(ind + '%s %s -- %s' % (hash_list.__class__.__name__,
+                                             lls(hash_list, 20), res))
+            _context.level -= 1
+            del _context.seen[-1]
+            return res
+
+        for t in source:
+            if hasattr(t, 'hash'):
+                h = t.hash()
+            else:
+                h = run(t)
+            if verbose:
+                print(ind + '> %s %s -- %s' % (h.__class__.__name__,
+                                               lls(h, 20), h))
+            hashes.append(h)
+        # if there is only one element only hash the element
+        res = hash(hashes[0] if len(hashes) == 1 else tuple(hashes))
+        if verbose:
+            print(ind + '%s %s -- %s' % ('RET', str(len(hashes)), res))
+        _context.level -= 1
+        del _context.seen[-1]
+        return res
+    return run(hash_list=hash_list)
 
 
 class DeepcmpEqual(object):
@@ -361,7 +506,7 @@ class EqualDict(object):
         try:
             if self.__dict__ != obj.__dict__:
                 if verbose:
-                    print('@@ diff \n' + lls(self.__dict__) +
+                    print('@@ diff ' + lls(self.__dict__) +
                           '\n>>diff \n' + lls(obj.__dict__))
                 return False
         except Exception as err:
@@ -454,10 +599,10 @@ class StateEqual():
 
         super().__init__(*args, **kwds)  # StateEqual
 
-    def hash(self):
-        return xhash(self.__getstate__())
+    def hash(self, **kwds):
+        return xhash(self.__getstate__(), **kwds)
 
-    def __eq__(self, obj, verbose=False, **kwds):
+    def __eq__(self, obj, **kwds):
         """ compares hash. """
 
         if obj is None:
@@ -469,13 +614,11 @@ class StateEqual():
         if type(self) != type(obj):
             return False
         try:
-            h1, h2 = self.hash(), obj.hash()
+            h1 = self.hash()
+            h2 = obj.hash()
         except AttributeError:
             return False
-        except TypeError:
-            return False
-        if verbose:
-            print('hashes ', h1, h2)
+        # print('hashes ', h1, h2)
         return h1 == h2
 
     equals = __eq__
@@ -483,10 +626,45 @@ class StateEqual():
     def __xne__(self, obj):
         return not self.__eq__(obj)
 
-    def __hash__(self):
-        return self.hash()
+    def __hash__(self, **kwds):
+        return self.hash(**kwds)
 
     __hash__ = hash
 
 
-DeepEqual = StateEqual
+class DeepcmpEqual():
+    """ Equality tested by `deepcmp`.
+    """
+
+    def __init__(self, *args, **kwds):
+        """ Must pass *args* so `DataWrapper` in `Composite` can get `data`.
+        """
+
+        super().__init__(*args, **kwds)  # DeepcmpEqual
+
+    def __eq__(self, obj, **kwds):
+        """ compares using `deepcmp. """
+
+        if obj is None:
+            return False
+
+        if id(self) == id(obj):
+            return True
+
+        if type(self) != type(obj):
+            return False
+        res = deepcmp(self, obj, **kwds)
+        return res is None
+
+    equals = __eq__
+
+    def __xne__(self, obj):
+        return not self.__eq__(obj)
+
+    def __hash__(self, **kwds):
+        return self.hash(**kwds)
+
+    __hash__ = hash
+
+
+DeepEqual = DeepcmpEqual

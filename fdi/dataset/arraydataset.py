@@ -52,7 +52,7 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
         """ Initializes an ArrayDataset.
 
         Default ```None``` will initialize MetaData Parameters to their default values.
-        If ``data`` is not None and has shape (``len`` applies), ``shape`` MDP is set to the actual ``data`` shape. 
+        If ``data`` is not None and has shape (``len`` applies), ``shape`` MDP is set to the actual ``data`` shape.
         """
 
         # collect MDPs from args-turned-local-variables.
@@ -71,6 +71,7 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
         #      self.zInfo['metadata']['version'], list(metasToBeInstalled.keys()))
         # must be the first line to initiate meta
         super().__init__(zInfo=zInfo, **metasToBeInstalled, **kwds)
+        self.updateShape()
 
     # def getData(self):
     #     """ Optimized """
@@ -79,6 +80,7 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
     def setData(self, data):
         """
         """
+
         isitr = hasattr(data, '__iter__')  # and hasattr(data, '__next__')
         if not isitr and data is not None:
             # dataWrapper initializes data as None
@@ -163,7 +165,7 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
         cn = self.__class__.__name__
         if level > 1:
 
-            s = cn + '(' + \
+            s = cn + '(' +\
                 self.meta.toString(
                     level=level, heavy=heavy,
                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
@@ -176,21 +178,30 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
             # (vs, us, ts, ds, fs, cs)
             return '%s data= %s)' % (s, vs)
 
+        html = tablefmt == 'html' or tablefmt2 == 'html'
+        br = '<br>' if html else '\n'
+        if html:
+            tablefmt = tablefmt2 = 'html'
+
         s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
                                      tablefmt2=tablefmt2, center=center,
-                                     excpt=['description'])
+                                     html=html, excpt=['description'])
         width = len(last)-1
         if level == 0:
-            d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
+            if html:
+                d = '<center><u>%s</u></center>\n' % 'DATA' + '<hr>'
+            else:
+                d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
         else:
             d = ''
 
         ds = bstr(self.data, level=level, **kwds) if matprint is None else \
-            matprint(self.data, trans=False, headers=[], tablefmt2='plain',
+            matprint(self.data, trans=False, headers=[],
+                     tablefmt2='html' if html else 'plain',
                      **kwds)
-        d += lls(ds, 1000)
-        return f'{s}\n{d}\n{last}\n'
+        d += lls(ds, 9000 if html else 2000)
+        return f'{s}\n{d}%s{last}%s' % (br, br)
 
     string = toString
 

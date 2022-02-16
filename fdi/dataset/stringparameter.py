@@ -18,7 +18,7 @@ class StringParameter(Parameter, Typecoded):
     def __init__(self,
                  value=None,
                  description='UNKNOWN',
-                 default='',
+                 default=None,
                  valid=None,
                  typecode='B',
                  **kwds):

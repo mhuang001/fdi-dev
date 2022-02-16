@@ -26,14 +26,15 @@ plot_pns:
 DOCSDIR	= docs
 SDIR = $(DOCSDIR)/sphinx
 APIOPT	= -T -M --ext-viewcode
-APIOPT	= -M --ext-viewcode
+APIOPT	= -M --ext-viewcode 
+EXCLUDE_PATTERN	= '*resources*'
 
 docs: docs_api docs_plots docs_html
 
 docs_api:
 	rm -rf $(SDIR)/api/fdi
 	mkdir -p  $(SDIR)/api/fdi
-	sphinx-apidoc $(APIOPT) -o $(SDIR)/api/fdi fdi
+	sphinx-apidoc $(APIOPT) -o $(SDIR)/api/fdi fdi $(EXCLUDE_PATTERN)
 
 docs_plots:
 	rm  $(PLOTDIR)/classes*.png $(PLOTDIR)/packages*.png ;\

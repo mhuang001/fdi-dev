@@ -294,8 +294,29 @@ class Serializable():
         s.update({'_STID': self._STID})
         return s
 
-    def yaml(self):
+    def yaml(self, *args, **kwds):
         """ Get a YAML representation. """
         from ..utils.ydump import ydump, yinit
         yinit()
-        return ydump(self)
+        return ydump(self, *args, **kwds)
+
+    def tree(self, *args, **kwds):
+        """ Get a directory-tree-like representation. """
+        from ..utils.tree import tree
+
+        return '\n'.join(tree(self, *args, **kwds))
+
+    def fits(self, *args, **kwds):
+        """ Get a FITS representation. """
+        from ..utils.tofits import toFits, FITS_INSTALLED
+
+        if not FITS_INSTALLED:
+            raise NotImplemented(
+                'Astropy not installed. Include SCI in extra-dependency when installing FDI.')
+
+        return toFits(self, *args, **kwds)
+
+    def html(self, *args, level=0, param_widths=-1, **kwds):
+        """ Get a HTML representation. """
+
+        return self.toString(level=level, tablefmt='html', tablefmt1='html', tablefmt2='html', param_widths=param_widths, *args, **kwds)

@@ -9,6 +9,9 @@ from .listener import EventListener, EventSender
 from .serializable import serialize
 from ..utils.queueworks import queuework2
 
+import paho.mqtt.client as mqtt
+from paho.mqtt.client import error_string, MQTT_ERR_NO_CONN
+
 from collections import namedtuple, OrderedDict
 from itertools import chain
 import logging
@@ -30,7 +33,9 @@ class MqttRelayListener(EventListener):
                  host=None, port=None, username=None, passwd=None,
                  callback=None, clean_session=None,
                  client_id=None, userdata=None,
-                 qos=1, **kwds):  # MqttRelayListener
+                 qos=1,
+                 conn=True, subs=True,
+                 **kwds):  # MqttRelayListener
         """ Starts a MQTT message queue and forward everything in the arguement list to the MQ serialized.
 
         host, port, username, passwd: if any is not provided, it is looked up in `config['mqtt'].
@@ -40,16 +45,49 @@ class MqttRelayListener(EventListener):
         if bool(host and port and username and passwd) is False:
             conf = getConfig(conf='pns')
 
-        self.mq = queuework2(
-            topics,
-            host=host if host else conf['mqtt']['host'],
-            port=port if port else conf['mqtt']['port'],
-            username=username if username else conf['mqtt']['username'],
-            passwd=passwd if passwd else conf['mqtt']['passwd'],
-            client_id=client_id, callback=callback,
-            userdata=userdata if userdata else self,
-            clean_session=clean_session, qos=qos)
-        self.mq.logger = logger
+        mq = mqtt.Client(
+            client_id=client_id,
+            clean_session=clean_session,
+            userdata=userdata if userdata else self)
+
+        mq.username_pw_set(username if username else conf['mqtt']['username'],
+                           passwd if passwd else conf['mqtt']['passwd'])
+
+        self.mq = mq
+        self.topics = topics
+
+        # for topic subscription
+        if isinstance(self.topics, list):
+            if isinstance(self.topics[0], str):
+                # topics is a list of topics
+                topics = [(topic, qos) for topic in self.topics]
+            else:
+                topics = self.topics
+        elif isinstance(self.topics, str):
+            topics = self.topics
+        else:
+            logger.error('Bad format for subscrib() topics ' +
+                         str(self.topics))
+            return None
+        self.topics_for_subscription = topics
+
+        self.host = host if host else conf['mqtt']['host']
+        self.port = port if port else conf['mqtt']['port']
+        self.qos = qos
+
+        self.keepalive = True
+        self.username = username if username else conf['mqtt']['username']
+        self.passwd = passwd if passwd else conf['mqtt']['passwd']
+        mq.username_pw_set(self.username, self.passwd)
+
+        #mq.on_message = callback if callback else on_message
+        mq.on_connect = on_connect
+
+        self.mq.loop_start()
+        # connect
+        if conn:
+            mq.connect(self.host, self.port, self.keepalive)
+            logger.debug("Connect " + self.host + ":" + str(self.port))
 
     def targetChanged(self,  *args, **kwargs):
         """ Informs that an event has happened in a target of
@@ -59,12 +97,17 @@ class MqttRelayListener(EventListener):
         payload = list(chain(args, kwargs.items()))
         json_str = serialize(payload)
 
-        logger.debug("send msg to [" + self.mq.topics + "]")
+        logger.debug("send msg to [" + self.topics + "]")
         logger.debug(json_str)
-        if self.mq.start_send():
-            if self.mq.send(self.mq.topics, json_str, conn=False) == 0:
-                logger.debug('Send successfully')
-                self.mq.stop_send()
+
+        self.mq.reconnect()
+        msg_info = self.mq.publish(
+            self.topics, payload=json_str, qos=self.qos, retain=False)
+        rc, mid = msg_info.rc, msg_info.mid
+
+        if rc == MQTT_ERR_NO_CONN:
+            raise Exception('why not connected?')
+        logger.debug("Publish status: %d mid %d" % (rc, mid))
         logger.debug("send over")
 
 
@@ -76,7 +119,7 @@ class MqttRelaySender(EventSender):
     def __init__(self, topics=None,
                  host=None, port=None, username=None, passwd=None,
                  callback=None, clean_session=None,
-                 client_id=None, userdata=None,
+                 client_id=None, userdata=None, keepalive=60,
                  qos=1, **kwds):
         """ Starts a MQTT message queue and forward everything in the arguement list to the MQ serialized.
 
@@ -87,17 +130,37 @@ class MqttRelaySender(EventSender):
         if bool(host and port and username and passwd) is False:
             conf = getConfig(conf='pns')
         logger.debug('starting mq listening to '+str(topics))
-        self.mq = queuework2(
-            topics,
-            host=host if host else conf['mqtt']['host'],
-            port=port if port else conf['mqtt']['port'],
-            username=username if username else conf['mqtt']['username'],
-            passwd=passwd if passwd else conf['mqtt']['passwd'],
-            client_id=client_id, callback=on_message,
-            userdata=userdata if userdata else self,
-            clean_session=clean_session, qos=qos)
-        self.mq.logger = logger
-        self.mq.start_receive(loop='start')
+        mq = mqtt.Client(
+            client_id=client_id,
+            clean_session=clean_session,
+            userdata=userdata if userdata else self)
+
+        username = username if username else conf['mqtt']['username']
+        passwd = passwd if passwd else conf['mqtt']['passwd']
+        mq.username_pw_set(username, passwd)
+        host = host if host else conf['mqtt']['host']
+        port = port if port else conf['mqtt']['port']
+        mq.on_message = on_message
+        mq.connect(host, port, keepalive=keepalive)
+        logger.debug("Connect " + host + ":" + str(port))
+        rc, mid = mq.subscribe(topics, qos=qos)
+        logger.debug("subscribe %s status: %s mid %s" %
+                     (str(topics), error_string(rc), str(mid)))
+        self.mq = mq
+
+        mq.loop_start()
+
+
+def on_connect(client, userdata, flags, rc):
+    has_prev_data = ' some' if flags['session present'] else ' no'
+    msg = mqtt.connack_string(rc)  # CONN_RESULT[rc]
+    logmsg = "Connected with result: " + msg + \
+        has_prev_data + ' prev session data.'
+
+    rc, mid = userdata.mq.subscribe(userdata.topics_for_subscription,
+                                    qos=userdata.qos)
+    logger.debug("subscribe %s status: %s mid %s" %
+                 (str(userdata.topics), error_string(rc), str(mid)))
 
 
 def on_message(client, userdata, msg):
@@ -108,4 +171,3 @@ def on_message(client, userdata, msg):
 
     mqtt_rel_s.fire(msgobj)
     mqtt_rel_s.last_msg = msgobj
-    client.loop_start()

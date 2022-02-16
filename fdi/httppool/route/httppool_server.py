@@ -423,6 +423,20 @@ def getProduct_Or_Component(paths, serialize_out=False):
         return 400, '"FAILED"', 'Unknown path %s' % str(paths)
 
 
+HTML_STYLE = """
+<style>
+table,th,td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+tr:nth-child(even){
+    background-color: #DFDFDF;
+    color: black;
+}
+</style>
+"""
+
+
 def get_component_or_method(paths, mInfo, serialize_out=False):
     """ Get the component and the associated command and return
 
@@ -463,14 +477,28 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
                compo_meth_name[:6] == 'string':
                 if 'html' in compo_meth_name:
                     ct = 'text/html'
+                    result = HTML_STYLE + compo
+                elif 'rst' in compo_meth_name:
+                    ct = 'text/plain;charset=utf-8'
+                    result = compo
                 elif 'fancy_grid' in compo_meth_name:
                     ct = 'text/plain;charset=utf-8'
+                    result = compo
                 else:
                     ct = 'text/plain'
+                    result = compo
+                return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
+            elif compo_meth_name[:4] == 'html':
+                ct = 'text/html'
+                result = HTML_STYLE + compo
+                return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
+            elif compo_meth_name == 'yaml()' or compo_meth_name == 'tree()':
+                ct = 'text/plain;charset=utf-8'
+                # 'font-family: "Courier New",monospace;\n'
                 result = compo
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
-            elif compo_meth_name == 'yaml()':
-                ct = 'text/plain;charset=utf-8'
+            elif compo_meth_name == 'fits()':
+                ct = 'application/fits'
                 result = compo
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
             elif issubclass(compo.__class__, MediaWrapper):
@@ -501,7 +529,7 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
 
 
 def load_component_at(pos, paths, mInfo):
-    """ paths[pos] is data_type; paths[pos+2] is 'description','meta' ...
+    """ paths[pos] is data_type; paths[pos+2] is 'description', 'meta' ...
 
     Components fetched are not in serialized form.
     """
@@ -519,7 +547,7 @@ def load_component_at(pos, paths, mInfo):
 
 
 def load_product(p, paths, serialize_out=False):
-    """Load product paths[p]:paths[p+1] from paths[0]
+    """Load product paths[p]: paths[p+1] from paths[0]
     """
     FAILED = '"FAILED"' if serialize_out else 'FAILED'
 

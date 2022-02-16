@@ -39,8 +39,8 @@ servers:
         default: '9885'
         description: 9881 for testing; 9885 for production.
       basePath:
-        default: fdi/v0.10
-  - url: 'http://10.0.10.114:9885/fdi/v0.10'
+        default: fdi/v0.12
+  - url: 'http://10.0.10.114:9885/fdi/v0.12'
     description: httppool api production flask-wsgi-apache2 version
 security:
   - BasicAuth: []
@@ -460,7 +460,7 @@ paths:
             '2':
               value: fdi.dataset.product.Product/0/results/Time_Energy_Pos/Energy/data
               summary: |
-                Sample product from server test pool. e.g.  http://127.0.0.1:5000/fdi/v0.10/serv_test_httppool/
+                Sample product from server test pool. e.g.  http://127.0.0.1:5000/fdi/v0.11/serv_test_httppool/
             '3':
               value: fdi.pal.context.Context
               summary: A Context.

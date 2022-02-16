@@ -26,5 +26,6 @@ python:
          - DEV
          - SERV
          - PUB
+         - SCI
     - method: setuptools
       path: .

@@ -46,7 +46,7 @@ def pc(getConfig):
     """ get configuration.
 
     """
-    return getConfig()
+    return getConfig(force=True)
 
 
 def checkserver(aburl, excluded=None):
@@ -76,7 +76,7 @@ def checkserver(aburl, excluded=None):
         server_type = 'live'
     return server_type
 
-    # assert 'result' is not None, 'please start the server to refresh.'
+    # assert 'measurements' is not None, 'please start the server to refresh.'
     # initialize test data.
 
 

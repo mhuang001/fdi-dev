@@ -6,14 +6,6 @@ fdi.dataset package
    :undoc-members:
    :show-inheritance:
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   fdi.dataset.resources
-
 Submodules
 ----------
 
@@ -61,6 +53,14 @@ fdi.dataset.baseproduct module
 ------------------------------
 
 .. automodule:: fdi.dataset.baseproduct
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.booleanparameter module
+-----------------------------------
+
+.. automodule:: fdi.dataset.booleanparameter
    :members:
    :undoc-members:
    :show-inheritance:
@@ -193,6 +193,22 @@ fdi.dataset.listener module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.mediawrapper module
+-------------------------------
+
+.. automodule:: fdi.dataset.mediawrapper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.mediawrapper\_datamodel module
+------------------------------------------
+
+.. automodule:: fdi.dataset.mediawrapper_datamodel
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.messagequeue module
 -------------------------------
 
@@ -269,6 +285,14 @@ fdi.dataset.serializable module
 -------------------------------
 
 .. automodule:: fdi.dataset.serializable
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.shaped module
+-------------------------
+
+.. automodule:: fdi.dataset.shaped
    :members:
    :undoc-members:
    :show-inheritance:

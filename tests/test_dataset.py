@@ -70,18 +70,19 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 Classes.updateMapping()
 
-# make format output in /tmp/output.py
-mk_output = 0
+# make format output in /tmp/outputs.py
+mk_outputs = 0
+output_write = 'tests/outputs.py'
 
-if mk_output:
-    with open('/tmp/output.py', 'wt', encoding='utf-8') as f:
+if mk_outputs:
+    with open(output_write, 'wt', encoding='utf-8') as f:
         f.write('# -*- coding: utf-8 -*-\n')
 
 if __name__ == '__main__' and __package__ is None:
     # run by python3 tests/test_dataset.py
 
-    if not mk_output:
-        from outputs import nds20, nds30, nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
+    if not mk_outputs:
+        from outputs import nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
 else:
     # run by pytest
 
@@ -89,8 +90,8 @@ else:
     # https://docs.python-guide.org/writing/structure/
     from pycontext import fdi
 
-    if not mk_output:
-        from outputs import nds20, nds30, nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
+    if not mk_outputs:
+        from outputs import nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
 
     import logging
     import logging.config
@@ -289,16 +290,26 @@ def test_ndprint():
     s[0][1][2] = [5, 4, 3, 2, 1]
     s[0][1][3] = [0, 0, 0, 3, 0]
     v = ndprint(s, trans=False, headers=[], tablefmt2='plain')
-    if mk_output:
+    ts = v
+    if mk_outputs:
         print(v)
         # print(nds2)
+        with open(output_write, 'a') as f:
+            clsn = 'nds2'
+            f.write('%s = """%s"""\n' % (clsn, ts))
     else:
-        assert v == nds2
+        assert ts == nds2
     v = ndprint(s, headers=[], tablefmt2='plain')
-    if mk_output:
+    ts = '\nnds3\n'
+    ts += v
+    ts += '\n'
+    if mk_outputs:
         print(v)
+        with open(output_write, 'a') as f:
+            clsn = 'nds3'
+            f.write('%s = """%s"""\n' % (clsn, ts))
     else:
-        assert v == nds3
+        assert ts == nds3
         # pprint.pprint(s)
 
 
@@ -489,19 +500,17 @@ def test_MqttRelay_mqtt(mocksndrlsnr):
     # MQ Relay
     v = MqttRelayListener(topics="test.mq.bounce2", host=None,
                           port=None, username=None, passwd=None,
-                          client_id=None, callback=None, qos=1,
+                          client_id='foo', callback=None, qos=1,
                           userdata=None, clean_session=None,)
-    mqhost = v.mq._h
+    #mqhost = v.mq._host
     mf = MockFileWatcher()
     mf.addListener(v)
     w = MqttRelaySender(topics="test.mq.bounce2", host=None,
                         port=None, username=None, passwd=None,
-                        client_id=None, callback=None, qos=1,
+                        client_id='bar', callback=None, qos=1,
                         userdata=None, clean_session=None,)
-    mquser = w.mq.username
+    #mquser = w.username
     w.addListener(l1)
-    w.last_msg = None
-    test123 = ''
 
     def snd():
         # send source_path
@@ -511,17 +520,20 @@ def test_MqttRelay_mqtt(mocksndrlsnr):
         t0 = time.time()
         while w.last_msg is None and (time.time()-t0 < 3):
             time.sleep(0.2)
-    t1 = threading.Thread(target=snd)
-    t2 = threading.Thread(target=rcv)
-    t1.start()
-    t2.start()
-    t2.join()
-    t1.join()
-    assert not t1.is_alive()
-    assert not t2.is_alive()
-    print(w.last_msg)
-    assert test123 == "['foo'] changed."
-    assert w.last_msg == ['foo']
+    for ii in range(3):
+        w.last_msg = None
+        test123 = ''
+        t1 = threading.Thread(target=snd)
+        t2 = threading.Thread(target=rcv)
+        t1.start()
+        t2.start()
+        t2.join()
+        t1.join()
+        assert not t1.is_alive()
+        assert not t2.is_alive()
+        print(w.last_msg)
+        assert test123 == "['foo'] changed."
+        assert w.last_msg == ['foo']
 
 
 def test_datatypes():
@@ -547,7 +559,7 @@ def test_datatypes():
     # assignment
     v.components = [0xaa, 1, 1e2]
     assert v.components == [0xaa, 1, 1e2]
-    h = hash(v)
+
     checkjson(v)
 
     # Quaternion
@@ -557,7 +569,6 @@ def test_datatypes():
     a1 = -1
     v2 = Quaternion([a1, 1+0, 1-a1+0.3, 4.5])
     assert v == v2
-    h = hash(v)
     checkjson(v)
 
 
@@ -584,7 +595,7 @@ def test_Parameter_init():
 
     # if value is None v.value is set to default
     v = Parameter(description=a1, value=None, typ_=a3, default=a4, valid=a5)
-    assert v.value == v.default
+    assert v.value is None
 
     # with no argument
     v = Parameter()
@@ -819,12 +830,8 @@ def test_Parameter_features():
     b2 = a2 + 0  # make a copy
     v1.value = b2  # change it back
     v1.description = 'changed'
-    if 0:
-        assert not v.equals(v1)
-        assert v != v1
-    else:
-        assert v.equals(v1)
-        assert v == v1
+    assert not v.equals(v1)
+    assert v != v1
 
     # comparison with simplified syntax w/o '.value'
     x = 4
@@ -1048,10 +1055,11 @@ def test_DateParameter():
     assert v.description == 'UNKNOWN'
     assert v.value == v.default
     assert v.type == 'finetime'
-    def0 = FineTime(0)
+    def0 = None
     assert v.default == def0
     assert v.valid is None
     assert v.typecode == 'Q'
+    v = DateParameter(789)
     assert v.value.format == FineTime.DEFAULT_FORMAT
 
     a1 = 'a test DateParameter'
@@ -1090,7 +1098,7 @@ def test_StringParameter():
     assert v.description == 'UNKNOWN'
     assert v.value == v.default
     assert v.type == 'string'
-    assert v.default == ''
+    assert v.default is None
     assert v.valid is None
     assert v.typecode == 'B'
 
@@ -1187,8 +1195,10 @@ def test_MetaData():
     v = v.meta
     ts += '\n'
     ts += v.toString(extra=True)
-    if mk_output:
-        with open('/tmp/output.py', 'a', encoding='utf-8') as f:
+    ts += '\ntablefmt = html\n'
+    ts += v.toString(tablefmt1='html')
+    if mk_outputs:
+        with open(output_write, 'a', encoding='utf-8') as f:
             clsn = 'out_MetaData'
             f.write('%s = """%s"""\n' % (clsn, ts))
         print(ts)
@@ -1344,9 +1354,11 @@ def test_Dataset():
     ts += v.toString(1)
     ts += 'level 2,\n'
     ts += v.toString(2)
-    if mk_output:
+    ts += '\ntablefmt = html\n'
+    ts += v.toString(tablefmt1='html')
+    if mk_outputs:
         print(ts)
-        with open('/tmp/output.py', 'a') as f:
+        with open(output_write, 'a') as f:
             clsn = 'out_Dataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -1365,7 +1377,7 @@ def do_ArrayDataset_init(atype):
     assert v.data is None
     assert v.unit is None
     assert v.description == 'UNKNOWN'
-    assert v.shape == ()
+    assert v.shape == None
     assert v.typecode == 'UNKNOWN'
     assert v.meta['description'].value == 'UNKNOWN'
     # from DRM
@@ -1375,24 +1387,20 @@ def do_ArrayDataset_init(atype):
     a4 = 'float'              # type
     a6 = 'f'                  # typecode
     a7 = (8, 9)
+
     v = ArrayDataset(data=a1, unit=a2, description=a3,
                      typ_=a4, typecode=a6)
     assert v.data == a1
     assert v.unit == a2
     assert v.description == a3
     assert v.typecode == a6
-    v.updateShape()
-    assert v.shape == (len(a1),)
-    v = ArrayDataset(data=a1)
-    assert v.data == a1
-    assert v.unit is None
-    assert v.description == 'UNKNOWN'
-    assert v.typecode == 'UNKNOWN'
-    assert v.updateShape()
     assert v.shape == (len(a1),)
 
     ashape = [[[1], [2]], [[3], [4]], [[5], [6]]]
-    v2 = ArrayDataset(data=ashape)
+    v2 = ArrayDataset()
+    # setting data also sets shape
+    v2.data = ashape
+    # setting dataa also v.updateShape()
     assert v2.shape == (3, 2, 1)
     v2.pop()
     assert v2.shape == (2, 2, 1)
@@ -1563,7 +1571,7 @@ def do_ArrayDataset_func(atype):
 
     ts += x.toString()
     i = ts.index('0  0  0')
-    if mk_output:
+    if mk_outputs:
         print(ts[i:])
     else:
         assert ts[i:-126] == nds2
@@ -1574,16 +1582,15 @@ def do_ArrayDataset_func(atype):
     ts += '\n\n'
     ts += 'an empty meta and long data level 2: \n'
     ts += ArrayDataset(data=[8]*8).toString(level=2)
-    ts += '\n\n'
-    if mk_output:
+    ts += '\ntablefmt = html\n'
+    ts += x.toString(tablefmt1='html')
+    if mk_outputs:
         print(ts)
-        with open('/tmp/output.py', 'a') as f:
+        with open(output_write, 'a') as f:
             clsn = 'out_ArrayDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
         assert ts == out_ArrayDataset
-
-    h = hash(v)
 
     checkjson(x, dbg=0)
     checkgeneral(x)
@@ -1615,7 +1622,6 @@ def test_Column():
     assert v.type == 'Column'
     v = Column(data=[4, 9], unit='m')
     assert v.data == [4, 9]
-    s = v.hash()
 
     checkjson(v)
 
@@ -1636,20 +1642,29 @@ def test_TableDataset_init():
             t = TableDataset(data=[{'name': 'a', 'column': Column(data=[])}])
 
         # setData format 1: data is a  mapping. Needs pytnon 3.6 to guarantee order
-        a1 = {'col1': Column(data=[1, 4.4, 5.4E3], unit='eV'),
-              'col2': Column(data=[0, 43.2, 2E3], unit='cnt')}
+        d1 = [1, 4.4, 5.4E3]
+        d2 = [0, 43.2, 2E3]
+        a1 = {'col1': Column(data=d1, unit='eV'),
+              'col2': Column(data=d2, unit='cnt')}
 
         v = TableDataset(data=a1)  # inherited from DataContaier
         assert v.getColumnCount() == len(a1)
         assert v.getColumnName(0) == 'col1'
         t = a1['col2'].data[1]  # 43.2
         assert v.getValueAt(rowIndex=1, columnIndex=1) == t
+        assert v.shape == (2, 3)
 
     # 2: add columns one by one
     v2 = TableDataset()
-    v2['col1'] = Column(data=[1, 4.4, 5.4E3], unit='eV')
-    v2['col2'] = Column(data=[0, 43.2, 2E3], unit='cnt')
+    v2['col1'] = Column(data=copy.deepcopy(d1), unit='eV')
+    v2['col2'] = Column(data=copy.deepcopy(d2), unit='cnt')
+    assert v2.shape == (2, 3)
 
+    #print('DDD ', deepcmp(v, v2, verbose=0))
+
+    #fdi.dataset.eq.XHASH_VERBOSE = True
+    # print(v.hash())
+    # print(v2.hash())
     assert v2 == v
 
     # 3: another syntax, list of tuples that does not need to use Column
@@ -1880,6 +1895,7 @@ def test_TableDataset_func():
                     ) == TableDataset(data=[[11], [21], [31]])
 
     # toString()
+
     v = TableDataset(data=a10)
 
     check_MDP(v)
@@ -1893,9 +1909,27 @@ def test_TableDataset_func():
     ts += 'an empty level 2: \n'
     ts += TableDataset().toString(level=2)
     ts += '\n\n'
-    if mk_output:
+    ts += v.toString(tablefmt1='html')
+    ts += '\n\n'
+    for n, c in {'group1.val': a10['col1'], 'group1.err': a10['col2'],
+                 'no-group.val': a10['col1'],
+                 'group2.val': a10['col1'], 'group2.err': a10['col2'],
+                 'group2.seq': a10['col2'],
+                 'group2.wgt': Column(data=['', 0.32, -9876543210], unit='g'),
+                 }.items():
+        v.addColumn(n, c)
+    ts += 'grouped column names'
+    ts += v.string(0, 'grid', 'rst', 'simple')
+    ts += v.string(0, 'grid', 'rst', 'rst')
+    ts += v.string(0, 'grid', 'rst', 'grid')
+    ts += v.string(0, 'grid', 'rst', 'fancy_grid')
+    ts += v.string(0, 'grid', 'rst', 'plain')
+    ts += v.string(0, 'grid', 'rst', 'orgtbl')
+    ts += v.string(0, 'grid', 'rst', 'psql')
+    ts += '\n\n'
+    if mk_outputs:
         print(ts)
-        with open('/tmp/output.py', 'a') as f:
+        with open(output_write, 'a') as f:
             clsn = 'out_TableDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -2077,10 +2111,6 @@ def test_CompositeDataset_init():
                            value=2.3, unit='sec')
     v1.meta[b11] = b12
 
-    d = deepcmp(v, v1)
-    q = v.__eq__(v1)
-    h = v.hash()
-
     assert v == v1
     assert v1 == v
 
@@ -2137,12 +2167,14 @@ def test_CompositeDataset_init():
     ts += s3
     ts += 'level 1, repr\n'
     ts += v3.toString(1)
-    ts += 'level 2,\n'
+    ts += '\nlevel 2,\n'
     ts += v3.toString(2)
     assert v3.string() == s3
-    if mk_output:
+    ts += '\nlevel 0, html\n'
+    ts += v3.toString(tablefmt1='html')
+    if mk_outputs:
         print(ts)
-        with open('/tmp/output.py', 'a') as f:
+        with open(output_write, 'a') as f:
             clsn = 'out_CompositeDataset'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -2170,18 +2202,18 @@ def test_UnstrcturedDataset():
     # v is a dictionary
     assert json.dumps(v) == serialize(p.meta['speed'])
     assert s == '.data["_ATTR_meta"]["speed"]'
-    # ["results"]["calibration"]["meta"]["unit"]["value"]
-    v, s = u.fetch(["data", "results", "calibration",
+    # ["measurements"]["calibration"]["meta"]["unit"]["value"]
+    v, s = u.fetch(["data", "measurements", "calibration",
                     "_ATTR_meta", "unit", "value"])
     assert v == 'count'
-    assert s == '.data["results"]["calibration"]["_ATTR_meta"]["unit"]["value"]'
+    assert s == '.data["measurements"]["calibration"]["_ATTR_meta"]["unit"]["value"]'
     # data of a column in tabledataset within compositedataset
     v, s = u.fetch(
-        ["data", "results", "Time_Energy_Pos", "Energy", "_ATTR_data"])
+        ["data", "measurements", "Time_Energy_Pos", "Energy", "_ATTR_data"])
     t = [x * 1.0 for x in range(len(v))]
     assert v == [2 * x + 100 for x in t]
-    assert v == u.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]
-    assert s == '.data["results"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]'
+    assert v == u.data["measurements"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]
+    assert s == '.data["measurements"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]'
 
     print('cache:', fdi.dataset.unstructureddataset.getCacheInfo())
     checkjson(u)
@@ -2543,9 +2575,9 @@ def demo_CompositeDataset():
 def test_FineTime():
     # default
     v = FineTime()
-    assert v.tai == 0
+    assert v.tai is None
     assert v.format == v.DEFAULT_FORMAT
-    assert v.toDatetime().year == 1958
+    #assert v.toDatetime().year == 1958
     # at Epoch, TAI=0
     v = FineTime(v.EPOCH)
     assert v.tai == 0
@@ -2620,9 +2652,9 @@ def test_FineTime():
 def test_FineTime1():
     # default
     v = FineTime1()
-    assert v.tai == 0
+    assert v.tai is None
     assert v.format == v.DEFAULT_FORMAT
-    assert v.toDatetime().year == 2017
+    #assert v.toDatetime().year == 2017
     # at Epoch, TAI=0
     v = FineTime1(v.EPOCH)
     assert v.tai == 0
@@ -2667,9 +2699,9 @@ def test_FineTimes_toString():
                 for level in [0, 1, 2]:
                     s = v.toString(level=level, width=width)
                     ts += f'level={level} width={width}: {s}\n'
-    if mk_output:
+    if mk_outputs:
         print(ts)
-        with open('/tmp/output.py', 'a') as f:
+        with open(output_write, 'a') as f:
             clsn = 'out_FineTime'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
@@ -2962,6 +2994,19 @@ def est_yaml2python():
 #     print(js)
 #     p = json.loads(js, cls=JSONObjectDecoder)
 #     print(p['h'].b)
+
+def speed(v, v2=None):
+    """ see who was faster? xhash or deepcmp """
+
+    if v2 is None:
+        v2 = p, copy.copy(p)
+    import timeit
+    gl = copy.copy(globals())
+    gl.update(locals())
+
+    print(timeit.timeit('deepcmp(v, v2, verbose=0)', number=100, globals=gl))
+    print(timeit.timeit('v==v2', number=100, globals=gl))
+
 
 def running(t):
     print('running ' + str(t))

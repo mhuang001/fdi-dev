@@ -89,25 +89,46 @@ def get_demo_product():
     A complex context product as a reference for testing and demo.
 
     ```
-    prodx --+-- meta --+-- speed
-            |
-            |
-            +-- results --+-- calibration -- data=[[109..]], unit=count
-            |             |
-            |             +-- Time_Energy_Pos --+-- Time   : data=[...]
-            |                                   +-- Energy : data=[...]
-            |                                   +-- Error  : data=[...]
-            |                                   +-- y      : data=[...]
-            |                                   +-- z      : data=[...]
-            |             
-            +-- Environment Temperature -+-- data=[768, ...] , unit=C
-            |                            |
-            |                            +-- meta --+-- T0
-            |
-            +-- Browse -- data = b'\x87PNG', content='Content-type: image/png'
-            |
-            +-- refs --+-- constants: -- +-- pi: ..
-                                         +-- e : ..
+|__ meta                                          <MetaData>
+|   |__ description                                 <string>
+|   |__ type                                        <string>
+|   |__ level                                       <string>
+|   |__ creator                                     <string>
+|   |__ creationDate                              <finetime>
+|   |__ rootCause                                   <string>
+|   |__ version                                     <string>
+|   |__ FORMATV                                     <string>
+|   |__ speed                                       <vector>
+|   \__ listeners                               <ListnerSet>
+|__ measurements                          <CompositeDataset>
+|   |__ meta                                      <MetaData>
+|   |   \__ listeners                           <ListnerSet>
+|   |__ Time_Energy_Pos               <TableDataset> (5, 20)
+|   |   |__ meta                                  <MetaData>
+|   |   |   |__ description                         <string>
+|   |   |   |__ shape                                <tuple>
+|   |   |   |__ type                                <string>
+|   |   |   |__ version                             <string>
+|   |   |   |__ FORMATV                             <string>
+|   |   |   \__ listeners                       <ListnerSet>
+|   |   |__ Time                              <Column> (20,)
+|   |   |__ Energy                            <Column> (20,)
+|   |   |__ Error                             <Column> (20,)
+|   |   |__ y                                 <Column> (20,)
+|   |   \__ z                                 <Column> (20,)
+|   |__ calibration                  <ArrayDataset> (11, 11)
+|   \__ dset                                           <str>
+|__ Environment Temperature              <ArrayDataset> (7,)
+|__ Browse                               <image/png> (5976,)
+|__ refs                                      <RefContainer>
+|   |__ a_reference                             <ProductRef>
+|   \__ a_different_name                        <ProductRef>
+|__ history                                        <History>
+|   |__ PARAM_HISTORY                                  <str>
+|   |__ TASK_HISTORY                                   <str>
+|   \__ meta                                      <MetaData>
+|       \__ listeners                           <ListnerSet>
+\__ listeners                                   <ListnerSet>
     ```
 
     """
@@ -119,9 +140,9 @@ def get_demo_product():
         value=Vector((1.1, 2.2, 3.3)),
         valid={(1, 22): 'normal', (30, 33): 'fast'}, unit='meter')
 
-    # A CompositeDataset 'result' of two sub-datasets: calibration and measurements
+    # A CompositeDataset 'measurements' of two sub-datasets: calibration and measurements
     composData = CompositeDataset()
-    prodx['results'] = composData
+    prodx['measurements'] = composData
     # A 2-dimensional array of calibration data
     a5 = makeCal2D()
     a8 = ArrayDataset(data=a5, unit='count', description='array in composite')
@@ -137,7 +158,7 @@ def get_demo_product():
     y = [10 * sin(x*2*3.14/len(t)) for x in t]
     z = [10 * cos(x*2*3.14/len(t)) for x in t]
 
-    x = TableDataset(description="A table")
+    x = TableDataset(description="A table of measurement reslts")
     x["Time"] = Column(data=t, unit=SECONDS)
     x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
     x["Error"] = Column(data=err, unit=ELECTRON_VOLTS)
@@ -154,11 +175,12 @@ def get_demo_product():
     a1 = [768, 767, 766, 4.4, 4.5, 4.6, 5.4E3]
     a2 = 'C'
     a3 = 'Environment Temperature'
-    a4 = ArrayDataset(data=a1, unit=a2, description='An Array')
+    a4 = ArrayDataset(data=a1, unit=a2,
+                      description='A 2D array for environment temperature')
     # metadata to the dataset
     a11 = 'T0'
     a12 = DateParameter('2020-02-02T20:20:20.0202',
-                        description='meta of composite')
+                        description='meta of compositeDs')
     # This is not the best as a4.T0 does not exist
     # a4.meta[a11] = a12
     # this does it a4.T0 = a12 or:

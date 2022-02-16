@@ -20,7 +20,7 @@ class DateParameter(Parameter, Typecoded):
     def __init__(self,
                  value=None,
                  description='UNKNOWN',
-                 default=0,
+                 default=None,
                  valid=None,
                  **kwds):
         """

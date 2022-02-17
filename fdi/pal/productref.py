@@ -50,7 +50,6 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
             urnobj = st.save(product, geturnobjs=True)
             # a lone product passed to prodref will be stored to mempool
 
-        __import__("pdb").set_trace()
         self.setUrnObj(urnobj, poolname, meta)
 
         if product and isinstance(product, Context):
@@ -173,7 +172,10 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
             loadmeta = (poolname or meta) and poolname != DEFAULT_MEM_POOL
             if poolname is None:
                 poolname = urnobj.pool
-            pool = PoolManager.getPool(poolname)
+            if urnobj.getScheme() == 'csdb':
+                pool = PoolManager.getPool(poolurl=urnobj.getScheme()+':///' + urnobj.getPool())
+            else:
+                pool = PoolManager.getPool(poolname)
             self._meta = (meta if meta else pool.meta(
                 urnobj.urn)) if loadmeta else None
             self._poolname = poolname

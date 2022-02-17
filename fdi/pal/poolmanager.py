@@ -154,8 +154,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
                 res, msg = remoteRegister(p, poolurl)
             elif schm == 'csdb':
                 from . import publicclientpool
-                # TODO:
-                pass
+                p = publicclientpool.PublicClientPool(poolurl=poolurl)
             else:
                 raise NotImplementedError(schm + ':// is not supported')
         #print(getweakrefs(p), id(p), '////')

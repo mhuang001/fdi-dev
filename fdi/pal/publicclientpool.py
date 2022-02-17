@@ -1,5 +1,6 @@
 import logging
 import os
+import pdb
 import sys
 
 # from fdi.pal.productpool import ManagedPool
@@ -58,12 +59,16 @@ class PublicClientPool(ManagedPool):
     def setPoolurl(self, poolurl):
         """ Replaces the current poolurl of this pool.
             For cloud pool, there are also self._cloudpoolpath and self._cloudpoolname
+            csdb:///poolbs
+            self._poolpath, self._scheme, self._poolname = '', 'csdb', 'poolbs'
         """
+        pdb.set_trace()
         s = (not hasattr(self, '_poolurl') or not self._poolurl)
         self._poolpath, self._scheme, self._place, \
         self._poolname, self._username, self._password = \
             parse_poolurl(poolurl)
-
+        if self._scheme == '' or self._scheme == None:
+            self._scheme = 'csdb'
         self._cloudpoolpath = self._poolpath + '/' + self._poolname
         self._cloudpoolname = self._poolpath.replace('/', '')
         self._poolurl = poolurl
@@ -78,8 +83,6 @@ class PublicClientPool(ManagedPool):
             return self._poolpath
 
     def getToken(self):
-        # import pprint
-        # pprint.pprint(pcc)
         TOKEN_PATH = pcc['cloud_token']
 
         if os.path.exists(TOKEN_PATH):
@@ -143,21 +146,19 @@ class PublicClientPool(ManagedPool):
         """
         Return the number of URNs for the product type.
         """
-        # import pdb
-        # pdb.set_trace()
         try:
             if self.poolInfo:
-                return len(self.poolInfo[typename]['indexs'])
+                return len(self.poolInfo[typename]['indexes'])
             else:
                 self.getPoolInfo()
-                return len(self.poolInfo[typename]['indexs'])
+                return len(self.poolInfo[typename]['indexes'])
         except KeyError:
             return 0
 
-    def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
-        """ to be implemented by subclasses to do the action of saving
-        """
-        raise (NotImplementedError)
+    # def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
+    #     """ to be implemented by subclasses to do the action of saving
+    #     """
+    #     raise (NotImplementedError)
 
     def isEmpty(self):
         """
@@ -216,35 +217,40 @@ class PublicClientPool(ManagedPool):
 
         targetPoolpath = self.getPoolpath() + '/' + pn
         poolInfo = read_from_cloud('infoPool', poolpath=targetPoolpath, token=self.token)
-        if poolInfo.get(targetPoolpath):
-            sn = poolInfo[targetPoolpath]['lastIndex'] + 1
+        if poolInfo['data'].get(targetPoolpath):
+            sn = poolInfo['data'][targetPoolpath]['lastIndex'] + 1
         else:
             sn = 0
-
+        # __import__("pdb").set_trace()
         urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
 
         try:
             # save prod to cloud
             if serialize_in:
-                uploadRes = self.doSave(resourcetype=pn,
-                                        index=sn,
-                                        data=jsonPrd,
-                                        tag=tag,
-                                        serialize_in=serialize_in,
-                                        serialize_out=serialize_out,
-                                        **kwds)
+                # uploadRes = self.doSave(resourcetype=pn,
+                #                         index=sn,
+                #                         data=jsonPrd,
+                #                         tag=tag,
+                #                         serialize_in=serialize_in,
+                #                         serialize_out=serialize_out,
+                #                         **kwds)
+                pass
             else:
-                uploadRes = self.doSave(resourcetype=pn,
-                                        index=sn,
-                                        data=prd,
-                                        tag=tag,
-                                        serialize_in=serialize_in,
-                                        serialize_out=serialize_out,
-                                        **kwds)
+                # uploadRes = self.doSave(resourcetype=pn,
+                #                         index=sn,
+                #                         data=prd,
+                #                         tag=tag,
+                #                         serialize_in=serialize_in,
+                #                         serialize_out=serialize_out,
+                #                         **kwds)
+                pass
         except ValueError as e:
             msg = 'product ' + urn + ' saving failed.' + str(e) + trbk(e)
             logger.debug(msg)
             raise e
+        uploadRes={}
+        uploadRes['msg'] = 'success'
+        uploadRes['data'] = {'urn': urn}
         if uploadRes['msg'] != 'success':
             raise Exception('Upload failed: ' + uploadRes['msg'])
         else:
@@ -259,7 +265,7 @@ class PublicClientPool(ManagedPool):
         else:
             # import pdb
             # pdb.set_trace()
-            rf = ProductRef(urn=Urn(urn))
+            rf = ProductRef(urn=Urn(urn, poolurl=self.poolurl), poolname=self.poolurl)
             if serialize_out:
                 # return without meta
                 res.append(rf)
@@ -454,7 +460,7 @@ def genProduct(size=1):
 # <MetaQuery where='m["extra"] > 5000 and m["extra"] <= 5005', type=<class 'fdi.dataset.product.Product'>, variable='m', allVersions=False>
 
 def test_getToken():
-    poolurl = 'cloud:///poolbs'
+    poolurl = 'csdb:///poolbs'
     test_pool = PublicClientPool(poolurl=poolurl)
     tokenFile = open(pcc['cloud_token'], 'r')
     token = tokenFile.read()
@@ -463,34 +469,34 @@ def test_getToken():
 
 
 def test_poolInfo():
-    poolurl = 'cloud:///poolbs'
+    poolurl = 'csdb:///poolbs'
     test_pool = PublicClientPool(poolurl=poolurl)
 
 
 def test_upload():
-    poolurl = 'cloud:///poolbs'
+    poolurl = 'csdb:///poolbs'
     test_pool = PublicClientPool(poolurl=poolurl)
     prd = genProduct()
     res = test_pool.schematicSave(prd)
     # urn:poolbs:fdi.dataset.product.Product:x
-    print(res)
-    assert res.urn == 'urn:defaultmem:fdi.dataset.product.Product:0'
+    pdb.set_trace()
+    assert res.urn.startswith('urn:poolbs:fdi.dataset.product.Product')
 
 
 def test_multi_upload():
-    poolurl = 'cloud:///poolbs'
+    poolurl = 'csdb:///poolbs'
     test_pool = PublicClientPool(poolurl=poolurl)
     prds = genProduct(3)
     res = test_pool.schematicSave(prds)
 
 
 def test_count():
-    poolurl = 'cloud:///poolbs'
+    poolurl = 'csdb:///poolbs'
     test_pool = PublicClientPool(poolurl=poolurl)
 
 
 def test_get():
-    poolurl = 'cloud:///poolbs'
+    poolurl = 'csdb:///poolbs'
     test_pool = PublicClientPool(poolurl=poolurl)
     prd = test_pool.schematicLoad('fdi.dataset.product.Product', 1)
     assert prd.description == 'product example with several datasets', 'retrieve production incorrect'
@@ -499,7 +505,7 @@ def test_get():
 
 
 def test_remove():
-    poolurl = 'cloud:///poolbs/fdi.dataset.product.Product'
+    poolurl = 'csdb:///poolbs/fdi.dataset.product.Product'
     test_pool = PublicClientPool(poolurl=poolurl)
     info = test_pool.getPoolInfo()
     print(info)
@@ -522,8 +528,8 @@ def test_search():
 
 
 # =================SAVE REMOVE LOAD================
-# test_upload()
-test_get()
+test_upload()
+# test_get()
 # test_remove()
 # prd = genProduct(1)
 # res = cp.schematicSave(prd)

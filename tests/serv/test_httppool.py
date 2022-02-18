@@ -312,6 +312,7 @@ def test_unauthorizedread_write(server, server_ro, client):
         for meth, spec in ms.items():
             api = p.replace('{pool}', poolid)
             if meth == 'post':
+                print(meth, aburl+api, '""')
                 # unknown user
                 x = client.post(aburl+api, headers=uheaders, data='')
                 assert x.status_code == 401

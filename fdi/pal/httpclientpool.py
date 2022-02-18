@@ -379,6 +379,20 @@ class HttpClientPool(ProductPool):
         """
         raise NotImplementedError
 
+    @ toServer()
+    def backup(self):
+        """
+        Returns a string of a tar file image of the remote pool.
+        """
+        raise NotImplementedError
+
+    @ toServer()
+    def restore(self, tar):
+        """
+        Restore the remote pool with the contents of the named tar file.
+        """
+        raise NotImplementedError
+
 ###
 
 

@@ -6,6 +6,10 @@ Change Log
 BETA1
 =====
 
+1.13.0 2022-02-18
+-----------------
+New docker repo and script enhancement for k8s deployment. New translation. backup/restore.
+
 1.12.0 2021-12-26
 -----------------
 python-tabulate local fork, html tostring, fits, xhash/deepcmp debug. DeepEqual back to faster deepcmp.

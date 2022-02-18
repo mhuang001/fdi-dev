@@ -30,12 +30,12 @@ logger = logging.getLogger(__name__)
 pcc = getConfig()
 defaulturl = 'http://' + pcc['node']['host'] + \
     ':' + str(pcc['node']['port']) + pcc['baseurl']
-AUTHUSER = pcc['node']['username']
-AUTHPASS = pcc['node']['password']
+
+pccnode = pcc['node']
 
 
 @functools.lru_cache(maxsize=16)
-def getAuth(user=AUTHUSER, password=AUTHPASS):
+def getAuth(user, password):
     return HTTPBasicAuth(user, password)
 
 
@@ -75,7 +75,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
     """
 
     poolname, resourcecn, index = parseUrn(
-        urn) if len(urn) > 7 else ('', '', '0')
+        urn) if urn and (len(urn) > 7) else ('', '', '0')
     indexs = str(index)
     poolpath, scheme, place, pn, un, pw = parse_poolurl(
         poolurl, poolhint=poolname)
@@ -152,7 +152,7 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False):
 ts into the pool
     no_serial: do not serialize the data.
     """
-    auth = getAuth()
+    auth = getAuth(pccnode['username'], pccnode['password'])
     api = urn2fdiurl(urn, poolurl, contents='product', method='POST')
     # print('POST API: ' + api)
     headers = {'tags': tag}
@@ -169,13 +169,15 @@ def read_from_server(urn, poolurl, contents='product'):
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     """
-    auth = getAuth()
+    auth = getAuth(pccnode['username'], pccnode['password'])
     api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
     res = requests.get(api, auth=auth)
     result = deserialize(res.text)
-    code = result['code'] if 'code' in result else 200
-    return code, result['result'], result['msg']
+    if issubclass(result.__class__, dict):
+        return res.status_code, result['result'], result['msg']
+    else:
+        return res.status_code, 'FAILED', result
 
 
 def put_on_server(urn, poolurl, contents='pool'):
@@ -184,12 +186,15 @@ def put_on_server(urn, poolurl, contents='pool'):
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     """
-    auth = getAuth()
+    auth = getAuth(pccnode['username'], pccnode['password'])
     api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
     # print("DELETE REQUEST API: " + api)
     res = requests.put(api, auth=auth)
     result = deserialize(res.text)
-    return result['result'], result['msg']
+    if issubclass(result.__class__, dict):
+        return result['result'], result['msg']
+    else:
+        return 'FAILED', result
 
 
 def delete_from_server(urn, poolurl, contents='product'):
@@ -198,9 +203,12 @@ def delete_from_server(urn, poolurl, contents='product'):
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     """
-    auth = getAuth()
+    auth = getAuth(pccnode['username'], pccnode['password'])
     api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)
     res = requests.delete(api, auth=auth)
     result = deserialize(res.text)
-    return result['result'], result['msg']
+    if issubclass(result.__class__, dict):
+        return result['result'], result['msg']
+    else:
+        return 'FAILED', result

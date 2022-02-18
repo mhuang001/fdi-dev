@@ -676,18 +676,26 @@ def test_LocalPool():
     assert deepcmp(p1._tags, p2._tags) is None
     assert deepcmp(p1._classes, p2._classes) is None
 
+    backup_restore(ps)
+
+
+def backup_restore(ps):
+    p1 = ps.getPool(ps.getPools()[0])
+    hk1 = p1.readHK()
+    cpn = p1._poolname + '_2'
+    cpu = p1._poolurl + '_2'
+    pstore = ProductStorage(pool=cpn, poolurl=cpu)
     # backup
     # the new pool is made empty
-    ps2.wipePool()
-    # save something
-    ref = ps2.save(x, tag='i think')
-    ref2 = ps2.save(x, tag='i think')
+    pstore.wipePool()
+    # save something to the new pool
+    x = Product(description="This is my product 2")
+    ref = pstore.save(x, tag='i think')
+    ref2 = pstore.save(x, tag='i think')
     assert ref != ref2
     # two pools are different
-    p2 = ps2.getPool(ps2.getPools()[0])
-    assert deepcmp(p1._urns, p2._urns) is not None
-    assert deepcmp(p1._tags, p2._tags) is not None
-    assert deepcmp(p1._classes, p2._classes) is not None
+    p2 = pstore.getPool(pstore.getPools()[0])
+    assert deepcmp(hk1, p2.readHK()) is not None
 
     # make a backup tarfile
     tar = p1.backup()
@@ -700,9 +708,7 @@ def test_LocalPool():
     lst = p2.restore(tar2)
     # print(lst)
     # two pools are the same
-    assert deepcmp(p1._urns, p2._urns) is None
-    assert deepcmp(p1._tags, p2._tags) is None
-    assert deepcmp(p1._classes, p2._classes) is None
+    assert deepcmp(hk1, p2.readHK()) is None
 
 
 def mkStorage(thepoolname, thepoolurl):

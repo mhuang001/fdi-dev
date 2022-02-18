@@ -42,6 +42,7 @@ class DictHk(Taggable):
         """
         Gets the URNs corresponding to the given tag. Returns an empty list if tag does not exist.
         """
+        # TODO: return all urna if tag is none?
         if tag not in self._tags:
             return []
         return self._tags[tag]['urns']

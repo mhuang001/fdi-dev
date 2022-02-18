@@ -15,6 +15,7 @@ from flasgger import Swagger
 from flask import Flask
 
 import sys
+import argparse
 
 #sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
@@ -37,9 +38,8 @@ if __name__ == '__main__':
 
     # Get username and password and host ip and port.
 
-    from argparse import ArgumentParser
-
-    parser = ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('-v', '--verbose', default=False,
                         action='store_true', help='Be verbose.')

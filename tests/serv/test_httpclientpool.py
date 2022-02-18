@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from test_pal import backup_restore
+
 
 from fdi.dataset.product import Product
 from fdi.dataset.numericparameter import NumericParameter
@@ -262,7 +264,7 @@ def make_pools(name, aburl, n=1):
     return lst[0] if n == 1 else lst
 
 
-def est_Product_path_client(server, local_pools_dir):
+def test_webapi_backup_restore(server, local_pools_dir):
     """
     """
     aburl, headers = server
@@ -272,14 +274,10 @@ def est_Product_path_client(server, local_pools_dir):
     poolurl = aburl + '/' + poolid
     pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
 
+    logger.info('Bacckup/restore a pool on the server.')
+
     if PoolManager.isLoaded(DEFAULT_MEM_POOL):
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
     # this will also register the server side
     pstore = ProductStorage(pool=pool)
-
-    x = Product(description='desc test')
-    urn = pstore.save(x, geturnobjs=True)
-    pool1 = HttpClientPool(poolname=poolid+'x', poolurl=poolurl+'x')
-    pstore.register(pool=pool1)
-
-    logger.info('Delete all pools on the server.')
+    backup_restore(pstore)

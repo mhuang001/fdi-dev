@@ -9,6 +9,7 @@ from ...pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
 from ...pal.productpool import PoolNotFoundError
 from ...pal.webapi import WebAPI
 from ...pal.urn import parseUrn
+from ...utils.common import lls
 
 from flask import Blueprint, jsonify, request, current_app, url_for, abort
 from werkzeug.exceptions import HTTPException
@@ -678,7 +679,7 @@ def api(pool, method_args):
     logger = current_app.logger
 
     ts = time.time()
-    logger.debug(f'get API {method_args} for {pool}')
+    logger.debug('get API for %s ; %s.' % (pool, lls(method_args, 200)))
 
     paths = [pool, 'api', method_args]
     lp0 = len(paths)
@@ -706,7 +707,7 @@ def call_pool_Api(paths, serialize_out=False):
     # from the unquoted url extract the fist path segment.
     quoted_m_args = request.url.split(
         paths[0] + '/' + paths[1] + '/')[1].strip('/')
-    logger.debug(f'get API {quoted_m_args}')
+    logger.debug('get API : %s' % lls(quoted_m_args, 1000))
     # get command positional arguments and keyword arguments
     code, m_args, kwds = deserialize_args(
         quoted_m_args, serialize_out=serialize_out)
@@ -725,7 +726,7 @@ def call_pool_Api(paths, serialize_out=False):
     kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
     msg = '%s(%s)' % (method, ', '.join(
         chain(map(str, args), kwdsexpr)))
-    logger.debug('WebAPI ' + msg)
+    logger.debug('WebAPI ' + lls(msg, 1000))
     # if args and args[0] == 'select':
     #    __import__('pdb').set_trace()
 

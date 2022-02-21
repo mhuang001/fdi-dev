@@ -315,7 +315,7 @@ def test_unauthorizedread_write(server, server_ro, client):
                 print(meth, aburl+api, '""')
                 # unknown user
                 x = client.post(aburl+api, headers=uheaders, data='')
-                assert x.status_code == 401
+                assert x.status_code == 200 if p == '/pool/{method_args}' else 401
                 # read_only
                 x = client.post(roaburl+api, headers=roheaders, data='')
                 assert x.status_code == 200 if p == '/user/login' \

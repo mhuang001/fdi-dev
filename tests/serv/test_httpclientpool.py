@@ -133,6 +133,14 @@ def test_gen_url(server):
     # '/'
     assert got_webapi_url == webapi_url+'/', 'Get WebAPI url error: ' + got_webapi_url
 
+    logger.info('Post WebAPI url')
+    call = 'tagExists__foo'
+    got_post_api_url = urn2fdiurl(
+        urn=sampleurn, poolurl=samplepoolurl, contents=call, method='POST')
+    post_api_url = aburl + '/' + samplepoolname+'/' + 'api/' + 'tagExists/'
+    assert got_post_api_url == post_api_url, 'Post WebAPI url error: ' + \
+        got_post_api_url
+
     logger.info('Post product url')
     got_post_product_url = urn2fdiurl(
         urn=sampleurn, poolurl=samplepoolurl, contents='product', method='POST')

@@ -85,7 +85,7 @@ class MemPool(ManagedPool):
         myspace['tags'] = self._tags
         myspace['urns'] = self._urns
 
-    def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
+    def doSave(self, resourcetype, index, data, tags=None, serialize_in=True, **kwds):
         """ 
         does the media-specific saving
         """

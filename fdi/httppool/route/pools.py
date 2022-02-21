@@ -668,8 +668,8 @@ def get_prod_count(prod_type, pool_id):
 ######################################
 
 
-@ pools_api.route('/<string:pool>/api/<string:method_args>', methods=['GET'])
-@ pools_api.route('/<string:pool>/api/<string:method_args>/', methods=['GET'])
+@ pools_api.route('/<string:pool>/api/<string:method_args>', methods=['GET', 'POST'])
+@ pools_api.route('/<string:pool>/api/<string:method_args>/', methods=['GET', 'POST'])
 @ auth.login_required(role='read_write')
 def api(pool, method_args):
     """ Call api mathods on the running pool and returns the result.
@@ -680,16 +680,25 @@ def api(pool, method_args):
 
     ts = time.time()
     logger.debug('get API for %s ; %s.' % (pool, lls(method_args, 200)))
-
+    if request.method == 'POST':
+        # long args are sent with POST
+        if request.data is None:
+            result, msg = '"FAILED"', 'No REquest data for command '+request.method
+            code = 400
+            return resp(code, result, msg, ts, serialize_out=True)
+        data = str(request.data, encoding='ascii')
+        method_args = data
     paths = [pool, 'api', method_args]
     lp0 = len(paths)
 
-    code, result, msg = call_pool_Api(paths, serialize_out=False)
+    readable = request.method == 'POST'
+    code, result, msg = call_pool_Api(
+        paths, serialize_out=False, readable=readable)
 
     return resp(code, result, msg, ts, serialize_out=False)
 
 
-def call_pool_Api(paths, serialize_out=False):
+def call_pool_Api(paths, serialize_out=False, readable=False):
     """ Call api mathods on the running pool and returns the result.
 
     return: value if args is pool property; execution result if method. 
@@ -699,18 +708,23 @@ def call_pool_Api(paths, serialize_out=False):
     logger = current_app.logger
     ts = time.time()
 
-    args, kwds = [], {}
+    if readable:
+        code, m_args, kwds = deserialize_args(
+            paths[2], serialize_out=serialize_out, not_quoted=1)
+    else:
+        args, kwds = [], {}
 
-    # the unquoted args. may have ',' in strings
-    # quoted_m_args = paths[ind_meth+1]
+        # the unquoted args. may have ',' in strings
+        # quoted_m_args = paths[ind_meth+1]
 
-    # from the unquoted url extract the fist path segment.
-    quoted_m_args = request.url.split(
-        paths[0] + '/' + paths[1] + '/')[1].strip('/')
-    logger.debug('get API : %s' % lls(quoted_m_args, 1000))
-    # get command positional arguments and keyword arguments
-    code, m_args, kwds = deserialize_args(
-        quoted_m_args, serialize_out=serialize_out)
+        # from the unquoted url extract the fist path segment.
+        quoted_m_args = request.url.split(
+            paths[0] + '/' + paths[1] + '/')[1].strip('/')
+        logger.debug('get API : %s' % lls(quoted_m_args, 1000))
+        # get command positional arguments and keyword arguments
+        code, m_args, kwds = deserialize_args(
+            quoted_m_args, serialize_out=serialize_out)
+
     if code != 200:
         result, msg = m_args, kwds
         return 0, resp(422, result, msg, ts, serialize_out=False), 0
@@ -726,7 +740,7 @@ def call_pool_Api(paths, serialize_out=False):
     kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
     msg = '%s(%s)' % (method, ', '.join(
         chain(map(str, args), kwdsexpr)))
-    logger.debug('WebAPI ' + lls(msg, 1000))
+    logger.debug('WebAPI ' + lls(msg, 300))
     # if args and args[0] == 'select':
     #    __import__('pdb').set_trace()
 

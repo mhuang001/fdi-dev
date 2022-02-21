@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..pns.fdi_requests import save_to_server, read_from_server, delete_from_server
+from ..pns.fdi_requests import save_to_server, read_from_server, delete_from_server, post_to_server
 from ..dataset.serializable import serialize
 from ..dataset.deserialize import deserialize, serialize_args
 from .poolmanager import PoolManager
@@ -42,7 +42,13 @@ def toserver(self, method, *args, **kwds):
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
 
     logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
-    code, res, msg = read_from_server(urn, self._poolurl, apipath)
+    if len(apipath) < 800:
+        code, res, msg = read_from_server(urn, self._poolurl, apipath)
+    else:
+        code, res, msg = post_to_server(apipath, urn, self._poolurl,
+                                        contents=method + '__' + '/',
+                                        no_serial=True)
+
     if issubclass(res.__class__, str) and 'FAILED' in res or code != 200:
         for line in msg.split('\n'):
             excpt = line.split(':', 1)[0]

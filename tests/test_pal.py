@@ -688,6 +688,8 @@ def backup_restore(ps):
     # backup
     # the new pool is made empty
     pstore.wipePool()
+    # register
+    pstore = ProductStorage(pool=cpn, poolurl=cpu)
     # save something to the new pool
     x = Product(description="This is my product 2")
     ref = pstore.save(x, tag='i think')

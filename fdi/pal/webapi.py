@@ -20,4 +20,4 @@ WebAPI = ['backup',
           'schematicLoad', 'schematicRemove', 'schematicSave', 'schematicSelect', 'schematicWipe',
           'select', 'setTag', 'setup',
           'tagExists',
-          'writeHK']
+          'where', 'writeHK']

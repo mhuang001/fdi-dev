@@ -399,6 +399,13 @@ class HttpClientPool(ProductPool):
         """
         raise NotImplementedError
 
+    @ toServer()
+    def where(self, qw, prod='BaseProduct', urns=None):
+        """
+        Restore the remote pool with the contents of the named tar file.
+        """
+        raise NotImplementedError
+
 ###
 
 

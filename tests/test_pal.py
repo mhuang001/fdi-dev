@@ -923,6 +923,19 @@ def doquery(poolpath, newpoolpath):
     chk(res[0], rec1[3])
     chk(res[1], rec1[4])
 
+    q = '"n 1" in p.creator'
+    res = thepool.where(q)
+    # [3]
+    assert len(res) == 1, str(res)
+    chk(res[0], rec1[3])
+
+    res = thepool.where('p.meta["extra"] > 5000 and p.meta["extra"] < 5004')
+    # [1,2,3]
+    assert len(res) == 3, str(res)
+    chk(res[0], rec1[1])
+    chk(res[1], rec1[2])
+    chk(res[2], rec1[3])
+
     # report lru_cache info
     print('****** %s ' % str(type(thepool)), thepool.getCacheInfo())
 

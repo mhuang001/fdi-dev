@@ -927,6 +927,13 @@ class ManagedPool(ProductPool, DictHk):
         else:
             raise('Must give a list of ProductRef or urn or sn')
 
+    def where(self, qw, prod='BaseProduct', urns=None):
+        q = AbstractQuery(prod, 'p', qw)
+        if urns is None:
+            urns = self._urns.keys()
+        res = self.prod_filter(q, prod, urnlist=urns)
+        return [r.urn for r in res]
+
     def doSelect(self, query, results=None):
         """
         to be implemented by subclasses to do the action of querying.

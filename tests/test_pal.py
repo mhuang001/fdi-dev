@@ -924,12 +924,14 @@ def doquery(poolpath, newpoolpath):
     chk(res[1], rec1[4])
 
     q = '"n 1" in p.creator'
-    res = thepool.where(q)
+    resu = thepool.where(q)
+    res = [ProductRef(u) for u in resu]
     # [3]
     assert len(res) == 1, str(res)
     chk(res[0], rec1[3])
 
-    res = thepool.where('p.meta["extra"] > 5000 and p.meta["extra"] < 5004')
+    resu = thepool.where('p.meta["extra"] > 5000 and p.meta["extra"] < 5004')
+    res = [ProductRef(u) for u in resu]
     # [1,2,3]
     assert len(res) == 3, str(res)
     chk(res[0], rec1[1])

@@ -2215,7 +2215,7 @@ def test_UnstrcturedDataset():
     assert v == u.data["measurements"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]
     assert s == '.data["measurements"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]'
 
-    print('cache:', fdi.dataset.unstructureddataset.getCacheInfo())
+    print('cache:', fdi.dataset.serializable.getCacheInfo())
     checkjson(u)
     checkgeneral(u)
 
@@ -2274,10 +2274,6 @@ complex_ex = """
 
 
 def test_jsonPath():
-    js = '[{"idAssetType":6,"name":"CCAA","enterprise":{"id":1,"name":"APV"}}]'
-    u = UnstrcturedDataset(data=js, doctype='json')
-    m = u.jsonPath("$[?(@.name == 'CCAA')].idAssetType")
-    assert m[0][1] == 6
 
     # xmltodict docs
     u = UnstrcturedDataset(data=simple_ex, doctype='xml', attr_prefix='@')
@@ -2287,8 +2283,18 @@ def test_jsonPath():
     u.input(simple_ex)
     assert u.data['a']['%prop'] == 'x'
 
+    do_jsonPath(UnstrcturedDataset)
+
+
+def do_jsonPath(UDSET):
+
+    js = '[{"idAssetType":6,"name":"CCAA","enterprise":{"id":1,"name":"APV"}}]'
+    u = UDSET(data=js, doctype='json')
+    m = u.jsonPath("$[?(@.name == 'CCAA')].idAssetType")
+    assert m[0][1] == 6
+
     ### BOOK STORE ###
-    u = UnstrcturedDataset(data=bookstore, doctype='json')
+    u = UDSET(data=bookstore, doctype='json')
     # print(u.toString())
     # the authors of all books in the store
     n = u.jsonPath("$.store.book[*].author", val='context')
@@ -2410,7 +2416,7 @@ def test_jsonPath():
                  ('store/bicycle/color', 'red'),
                  ('store/bicycle/price', 19.95)
                  ]
-    print('cache:', fdi.dataset.unstructureddataset.getCacheInfo())
+    print('cache:', fdi.dataset.serializable.getCacheInfo())
 
 
 def test_Indexed():

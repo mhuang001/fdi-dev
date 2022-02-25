@@ -7,6 +7,7 @@ from fdi.dataset.product import Product
 from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.eq import deepcmp
+
 from fdi.dataset.deserialize import serialize_args, deserialize_args
 from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.pal.productstorage import ProductStorage
@@ -272,7 +273,7 @@ def make_pools(name, aburl, n=1):
     return lst[0] if n == 1 else lst
 
 
-def test_webapi_backup_restore(server, local_pools_dir):
+def test_webapi_backup_restore(server):
     """
     """
     aburl, headers = server

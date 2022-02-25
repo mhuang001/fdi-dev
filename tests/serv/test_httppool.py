@@ -5,10 +5,13 @@
 #################
 
 
+from fdi.dataset.unstructureddataset import UnstrcturedDataset
+from test_dataset import bookstore, simple_ex, complex_ex, do_jsonPath
 from fdi.dataset.testproducts import get_demo_product
 from fdi.dataset.serializable import serialize
-from fdi.dataset.deserialize import deserialize
+from fdi.dataset.deserialize import deserialize, serialize_args
 from fdi.dataset.product import Product
+from fdi.pal.httpclientpool import HttpClientPool
 from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.productpool import Lock_Path_Base
@@ -748,6 +751,48 @@ def test_read_non_exists_pool(server, userpass, client):
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
     o = getPayload(x)
     check_response(o, code=400, failed_case=True)
+
+
+def xtest_webapi_jsonPath(server, userpass, client):
+    """
+    """
+
+    aburl, headers = server
+
+    logger.info('Create pools on the server.')
+    poolid = test_poolid
+    poolurl = aburl + '/' + poolid
+    pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
+    pstore = ProductStorage(pool)
+    logger.info('n the server.')
+
+    # ref
+    class Get_jsonPath_from_server():
+        def __init__(self, data=None, doctype='xml', attr_prefix='', *args, **kwds):
+            dnm = 'bookstore' if 'bicycle' in data else 'complex_ex' if 'complex' in data else 'simple_ex'
+            u = UnstrcturedDataset(data=data, description=dnm,
+                                   doctype=doctype, attr_prefix=attr_prefix,
+                                   *args, **kwds)
+            p = Product(description=dnm, data=u)
+            nonlocal pool
+            nonlocal pstore
+            ref = pstore.save(u, tag=dnm)
+            # prod  url. remove 'urn:', ':' -> '/'
+            self.pool = pool
+            self.purl = aburl + '/' + ref.urn[4:].replace(':', '/')
+
+        def jsonPath(self, *args, **kwds):
+            urlargs = serialize_args(*args, not_quoted=False, **kwds)
+            urlargs = serialize_args(
+                urlargs, not_quoted=False)
+            url = self.purl + '/jsonPath__' + urlargs
+            nonlocal userpass
+            x = client.get(url, auth=HTTPBasicAuth(*userpass))
+            o = getPayload(x)
+            check_response(o)
+            return o['result']
+
+    do_jsonPath(Get_jsonPath_from_server)
 
 
 if __name__ == '__main__':

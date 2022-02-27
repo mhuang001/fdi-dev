@@ -9,8 +9,10 @@ import fdi.dataset.product
 from fdi.dataset.arraydataset import ArrayDataset
 from fdi.dataset.product import Product
 from fdi.dataset.serializable import serialize
+from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productpool import ManagedPool
 from fdi.pal.productref import ProductRef
+from fdi.pal.productstorage import ProductStorage
 from fdi.pal.urn import makeUrn, parse_poolurl, Urn, parseUrn
 from fdi.pns.public_fdi_requests import read_from_cloud, load_from_cloud
 from fdi.utils.common import fullname, lls, trbk
@@ -62,7 +64,6 @@ class PublicClientPool(ManagedPool):
             csdb:///poolbs
             self._poolpath, self._scheme, self._poolname = '', 'csdb', 'poolbs'
         """
-        pdb.set_trace()
         s = (not hasattr(self, '_poolurl') or not self._poolurl)
         self._poolpath, self._scheme, self._place, \
         self._poolname, self._username, self._password = \
@@ -102,6 +103,30 @@ class PublicClientPool(ManagedPool):
                 self.token = tokenMsg['data']['token']
             else:
                 return tokenMsg['msg']
+
+    def poolExists(self):
+        res = read_from_cloud('existPool', poolname=self.poolname, token=self.token)
+        if res['msg'] == 'success':
+            return True
+        else:
+            return False
+
+    def restorePool(self):
+        res = read_from_cloud('restorePool', poolname=self.poolname, token=self.token)
+        if res['msg'] == 'success':
+            return True
+        else:
+            return False
+
+    def createPool(self):
+        res = read_from_cloud('createPool', poolname=self.poolname, token=self.token)
+
+        if res['msg'] == 'success':
+            return True
+        elif res['msg'] == 'The storage pool name already exists in the recycle bin. Change the storage pool name':
+            raise ValueError(res['msg'] + ', please restore pool ' + self.poolname + ' firstly.')
+        else:
+            return False
 
     def getPoolInfo(self):
         # TODO: waiting for updating get poolpath like poolbs
@@ -209,8 +234,7 @@ class PublicClientPool(ManagedPool):
             pn = prd.rsplit('"', 2)[1]
             cls = Class_Look_Up[pn]
             pn = fullname(cls)
-        # import pdb
-        # pdb.set_trace()
+
         datatype = self.getDataType()
         if pn not in datatype:
             raise ValueError('No such product type in cloud: ' + pn)
@@ -265,7 +289,7 @@ class PublicClientPool(ManagedPool):
         else:
             # import pdb
             # pdb.set_trace()
-            rf = ProductRef(urn=Urn(urn, poolurl=self.poolurl), poolname=self.poolurl)
+            rf = ProductRef(urn=Urn(urn, poolurl=self.poolurl))
             if serialize_out:
                 # return without meta
                 res.append(rf)
@@ -280,7 +304,9 @@ class PublicClientPool(ManagedPool):
             :serialize_out: if True returns contents in serialized form.
         """
         res = []
-
+        if not self.poolExists():
+            # Create pool
+            self.createPool()
         if serialize_in:
             alist = issubclass(products.__class__, list)
             if not alist:
@@ -406,10 +432,15 @@ class PublicClientPool(ManagedPool):
         poolname, resource, index = parseUrn(urn)
         return self.doRemove(resource, index)
 
+    def schematicWipe(self):
+        self.doWipe()
+
     def doWipe(self):
         """ to be implemented by subclasses to do the action of wiping.
         """
-        raise (NotImplementedError)
+        res = read_from_cloud('wipePool', poolname=self.poolname, token=self.token)
+        if res['msg'] != 'success':
+            raise ValueError('Wipe pool ' + self.poolname + ' failed: ' + res['msg'])
 
     def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
         """ returns filtered collection using the query.
@@ -467,19 +498,24 @@ def test_getToken():
     tokenFile.close()
     assert token == test_pool.token, "Tokens are not equal or not synchronized"
 
-
 def test_poolInfo():
-    poolurl = 'csdb:///poolbs'
+    poolurl = 'csdb:///poolbs/fdi.dataset.product.Product'
     test_pool = PublicClientPool(poolurl=poolurl)
+    test_pool.getPoolInfo()
+    print(test_pool.poolInfo)
 
 
 def test_upload():
     poolurl = 'csdb:///poolbs'
-    test_pool = PublicClientPool(poolurl=poolurl)
+    poolname = 'poolbs'
+
+    pstore = ProductStorage(poolname=poolname, poolurl=poolurl)
+    test_pool = pstore.getPool(poolname)
+    # PoolManager.getPool(poolurl=urnobj.getScheme() + ':///' + urnobj.getPool())
+
     prd = genProduct()
-    res = test_pool.schematicSave(prd)
+    res = pstore.save(prd)
     # urn:poolbs:fdi.dataset.product.Product:x
-    pdb.set_trace()
     assert res.urn.startswith('urn:poolbs:fdi.dataset.product.Product')
 
 
@@ -488,11 +524,16 @@ def test_multi_upload():
     test_pool = PublicClientPool(poolurl=poolurl)
     prds = genProduct(3)
     res = test_pool.schematicSave(prds)
+    assert len(res) == 3
+    for ref in res:
+        assert ref.urn.startswith('urn:poolbs:fdi.dataset.product.Product')
 
 
 def test_count():
-    poolurl = 'csdb:///poolbs'
+    poolurl = 'csdb:///poolbs/fdi.dataset.product.Product'
     test_pool = PublicClientPool(poolurl=poolurl)
+    count = test_pool.getCount('fdi.dataset.product.Product')
+    assert count == 16
 
 
 def test_get():
@@ -512,10 +553,7 @@ def test_remove():
     for i in info['/poolbs/fdi.dataset.product.Product']['indexes']:
         urn = 'urn:poolbs:fdi.dataset.product.Product:' + str(i)
         res = test_pool.remove(urn)
-        if i == 0:
-            assert res == 'Not found resource.'
-        else:
-            assert res == 'success'
+        assert res in ['Not found resource.', 'success']
     info = test_pool.getPoolInfo()
     print(info)
 
@@ -528,9 +566,12 @@ def test_search():
 
 
 # =================SAVE REMOVE LOAD================
+# test_getToken2()
+# test_poolInfo()
 test_upload()
 # test_get()
 # test_remove()
+# test_multi_upload()
 # prd = genProduct(1)
 # res = cp.schematicSave(prd)
 # cp.schematicRemove('urn:poolbs:20211018:4')

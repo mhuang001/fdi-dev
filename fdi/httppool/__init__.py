@@ -150,14 +150,17 @@ def init_httppool_server(app):
 
     # pool-related paths
     # the httppool that is local to the server
-    scheme = 'server'
-    _basepath = PM.PlacePaths[scheme]
-    poolpath_base = os.path.join(_basepath, pc['api_version'])
+    scheme = pc['server_scheme']
+    if scheme == 'server':
+        _basepath = PM.PlacePaths[scheme]
+        poolpath_base = os.path.join(_basepath, pc['api_version'])
 
-    if checkpath(poolpath_base, pc['serveruser']) is None:
-        msg = 'Store path %s unavailable.' % poolpath_base
-        app.logger.error(msg)
-        return None
+        if checkpath(poolpath_base, pc['serveruser']) is None:
+            msg = 'Store path %s unavailable.' % poolpath_base
+            app.logger.error(msg)
+            return None
+    elif scheme == 'csdb':
+        pass
 
     app.config['POOLSCHEME'] = scheme
     app.config['POOLPATH_BASE'] = poolpath_base

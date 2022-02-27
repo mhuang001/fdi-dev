@@ -48,10 +48,10 @@ def read_from_cloud(requestName, **kwargs):
     elif requestName[0:4] == 'info':
         header['X-AUTH-TOKEN'] = kwargs['token']
         if requestName == 'infoUrn':
-            requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + \
+            requestAPI = defaulturl + pcc['cloud_baseurl'] + \
                          '/storage/info?urns=' + kwargs['urn']
         elif requestName == 'infoPool':
-            requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + \
+            requestAPI = defaulturl + pcc['cloud_baseurl'] + \
                          '/storage/info?paths=' + kwargs['poolpath']
         else:
             raise ValueError("Unknown request API: " + str(requestName))
@@ -59,19 +59,39 @@ def read_from_cloud(requestName, **kwargs):
 
     elif requestName == 'getMeta':
         header['X-AUTH-TOKEN'] = kwargs['token']
-        requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + \
+        requestAPI = defaulturl + pcc['cloud_baseurl'] + \
                      '/storage/meta?urn=' + kwargs['urn']
         res = requests.get(requestAPI, headers=header)
 
     elif requestName == 'getDataType':
         header['X-AUTH-TOKEN'] = kwargs['token']
-        requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + \
+        requestAPI = defaulturl + pcc['cloud_baseurl'] + \
                      '/datatype/list'
         res = requests.get(requestAPI, headers=header)
     elif requestName == 'remove':
         header['X-AUTH-TOKEN'] = kwargs['token']
-        requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion + \
+        requestAPI = defaulturl + pcc['cloud_baseurl'] + \
             '/storage/delete?path=' + kwargs['path']
+        res = requests.post(requestAPI, headers=header)
+    elif requestName == 'existPool':
+        header['X-AUTH-TOKEN'] = kwargs['token']
+        requestAPI = defaulturl + pcc['cloud_baseurl'] + \
+            '/pool/info?storagePoolName=' + kwargs['poolname']
+        res = requests.get(requestAPI, headers=header)
+    elif requestName == 'createPool':
+        header['X-AUTH-TOKEN'] = kwargs['token']
+        requestAPI = defaulturl + pcc['cloud_baseurl'] + \
+                     '/pool/create?poolName=' + kwargs['poolname'] + '&read=0&write=0'
+        res = requests.post(requestAPI, headers=header)
+    elif requestName == 'wipePool':
+        header['X-AUTH-TOKEN'] = kwargs['token']
+        requestAPI = defaulturl + pcc['cloud_baseurl'] + \
+                     '/pool/delete?storagePoolName=' + kwargs['poolname']
+        res = requests.post(requestAPI, headers=header)
+    elif requestName == 'restorePool':
+        header['X-AUTH-TOKEN'] = kwargs['token']
+        requestAPI = defaulturl + pcc['cloud_baseurl'] + \
+                     '/pool/restore?storagePoolName=' + kwargs['poolname']
         res = requests.post(requestAPI, headers=header)
     else:
         raise ValueError("Unknown request API: " + str(requestName))
@@ -81,7 +101,7 @@ def read_from_cloud(requestName, **kwargs):
 
 def load_from_cloud(requestName, **kwargs):
     header = {'Content-Type': 'application/json;charset=UTF-8'}
-    requestAPI = defaulturl + webapi.publicRoute + webapi.publicVersion
+    requestAPI = defaulturl + pcc['cloud_baseurl']
     try:
         if requestName == 'uploadProduct':
             header = {}

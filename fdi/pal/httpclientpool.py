@@ -37,12 +37,12 @@ def toserver(self, method, *args, **kwds):
     # if method == 'select':
     #    __import__('pdb').set_trace()
 
-    apipath = serialize_args(method, *args, not_quoted=self.not_quoted, **kwds)
-
+    #apipath = serialize_args(method, *args, not_quoted=self.not_quoted, **kwds)
+    apipath = serialize([args, kwds])
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
 
     logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
-    if len(apipath) < 800:
+    if 0:  # len(apipath) < 800:
         code, res, msg = read_from_server(urn, self._poolurl, apipath)
     else:
         code, res, msg = post_to_server(apipath, urn, self._poolurl,

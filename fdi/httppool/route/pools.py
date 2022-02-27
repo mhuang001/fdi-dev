@@ -4,7 +4,7 @@ from .getswag import swag
 from .httppool_server import resp, excp, checkpath, check_readonly
 from ..model.user import auth, getUsers
 from ..._version import __version__
-from ...dataset.deserialize import deserialize_args
+from ...dataset.deserialize import deserialize_args, deserialize
 from ...pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
 from ...pal.productpool import PoolNotFoundError
 from ...pal.webapi import WebAPI
@@ -687,18 +687,19 @@ def api(pool, method_args):
             code = 400
             return resp(code, result, msg, ts, serialize_out=True)
         data = str(request.data, encoding='ascii')
-        method_args = data
-    paths = [pool, 'api', method_args]
+        paths = [pool, 'api', method_args, data]
+    else:
+        paths = [pool, 'api', method_args]
     lp0 = len(paths)
 
-    readable = request.method == 'POST'
+    posted = request.method == 'POST'
     code, result, msg = call_pool_Api(
-        paths, serialize_out=False, readable=readable)
+        paths, serialize_out=False, posted=posted)
 
     return resp(code, result, msg, ts, serialize_out=False)
 
 
-def call_pool_Api(paths, serialize_out=False, readable=False):
+def call_pool_Api(paths, serialize_out=False, posted=False):
     """ Call api mathods on the running pool and returns the result.
 
     return: value if args is pool property; execution result if method. 
@@ -708,9 +709,13 @@ def call_pool_Api(paths, serialize_out=False, readable=False):
     logger = current_app.logger
     ts = time.time()
 
-    if readable:
-        code, m_args, kwds = deserialize_args(
-            paths[2], serialize_out=serialize_out, not_quoted=1)
+    if posted:
+        code = 200
+        try:
+            m_args, kwds = tuple(deserialize(paths[3]))
+        except ValueError as e:
+            code = 422
+        m_args.insert(0, paths[2])
     else:
         args, kwds = [], {}
 

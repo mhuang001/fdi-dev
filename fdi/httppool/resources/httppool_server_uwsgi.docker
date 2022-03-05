@@ -24,7 +24,6 @@ WORKDIR ${UHOME}
 RUN echo ${PATH}
 
 # setup config files
-RUN cp ${UHOME}/.config/pnslocal.py .config/pnslocal.py
 ARG PROJ_DIR
 ENV SERVER_POOLPATH=${PROJ_DIR}/data
 ENV LOGGING_LEVEL=20
@@ -32,20 +31,20 @@ ENV API_BASE=/fdi
 RUN mkdir -p ${PROJ_DIR}/data
 
 # convinience aliases
-COPY --chown=root:root ${UHOME}/fdi/httppool/resrces/httppool_server_uwsgi.service /etc/systemd/system
+COPY --chown=root:root fdi/httppool/resrces/httppool_server_uwsgi.service /etc/systemd/system
 RUN \
 && ln -s /etc/systemd/system/httppool_server_uwsgi.service . \
 && ln -s  ${SERVER_POOLPATH} data
 
 # Configure permission
-RUN for i in /var/run/lock/ ${PROJ_DIR} ${UHOME}/; \
+RUN for i in  ${PROJ_DIR}; \
 do chown -R ${USR}:${USR} $i; echo $i; done
 
 WORKDIR ${UHOME}
 
 # httppool_server_uwsgi_entrypoint.sh is used for replacing apache listen ports and configurations of httppool_server.
 USER root
-COPY --chown=${USR}:${USR} $(UHOME)/fdi/httppool/resources/httppool_server_uwsgi_entrypoint.sh .
+COPY --chown=${USR}:${USR} fdi/httppool/resources/httppool_server_uwsgi_entrypoint.sh .
 RUN chmod 755 ./httppool_server_uwsgi_entrypoint.sh
 
 USER ${USR}

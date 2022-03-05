@@ -1,0 +1,75 @@
+# syntax=docker/dockerfile:1.2
+
+FROM fdi:latest
+# 0.2-5 M. Huang <mhuang@nao.cas.cn>
+# 0.1 yuxin<syx1026@qq.com>
+
+USER root
+RUN apt-get update \
+&& apt-get install -y curl \
+&& rm -rf /var/lib/apt/lists/*
+
+# setup user
+ARG USR=fdi
+ARG UHOME=/home/${USR}
+
+# rebuild mark
+ARG re=rebuild
+
+RUN mkdir -p ${UHOME}/.config
+
+WORKDIR ${UHOME}
+# use fdi's virtual env path. this effectively activates fdi's virtuakenv
+# ENV PATH="${FDIVENV}:${UHOME}/.local/bin:$PATH"
+RUN echo ${PATH}
+
+# setup config files
+RUN cp ${UHOME}/.config/pnslocal.py .config/pnslocal.py
+ARG PROJ_DIR
+ENV SERVER_POOLPATH=${PROJ_DIR}/data
+ENV LOGGING_LEVEL=20
+ENV API_BASE=/fdi
+RUN mkdir -p ${PROJ_DIR}/data
+
+# convinience aliases
+COPY fdi/httppool/resources/profile .
+COPY --chown=root:root ${UHOME}/fdi/httppool/resrces/httppool_server_uwsgi.service /etc/systemd/system
+RUN cat profile >> .bashrc && rm profile \
+&& ln -s /etc/systemd/system/httppool_server_uwsgi.service . \
+&& ln -s  ${SERVER_POOLPATH} data
+
+# Configure permission
+RUN for i in /var/run/lock/ ${PROJ_DIR} ${UHOME}/; \
+do chown -R ${USR}:${USR} $i; echo $i; done
+
+WORKDIR ${UHOME}
+
+# httppool_server_uwsgi_entrypoint.sh is used for replacing apache listen ports and configurations of httppool_server.
+USER root
+COPY --chown=${USR}:${USR} fdi/httppool/resources/httppool_server_uwsgi_entrypoint.sh .
+RUN chmod 755 ./httppool_server_uwsgi_entrypoint.sh
+
+USER ${USR}
+
+# config software
+
+# update ~/.config/pnslocal.py so test can be run with correct setting
+RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
+&& sudo chown ${USR} envs \
+&& cat ./envs \
+&& for i in `cat ./envs`; do export $i; done \
+&& ./httppool_server_uwsgi_entrypoint.sh no-run
+
+
+WORKDIR ${UHOME}
+
+VOLUME /var/log ${SERVER_POOLPATH}
+
+RUN /bin/ls -la; echo $PATH \
+date > build
+
+ENTRYPOINT  ["/home/apache/httppool_server_entrypoint.sh"]
+CMD ["./uwsgi", "--http", $(SELF_HOST):$(SELF_PORT), "--master", "--module", "wsgi:app", "--processes", "1"]
+ARG SERVER_VERSION
+LABEL PoolServer ${SERVER_VERSION}
+ENV SERVER_VERSION=${SERVER_VERSION}

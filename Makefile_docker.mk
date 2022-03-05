@@ -10,7 +10,8 @@ DFILE	=dockerfile
 
 SERVER_NAME      =httppool
 SERVER_VERSION	= $(DOCKER_VERSION)
-SFILE	= fdi/httppool/resources/httppool_server.docker
+#SFILE	= fdi/httppool/resources/httppool_server.docker
+SFILE	= fdi/httppool/resources/httppool_server_uwsgi.docker
 
 PORT        =9885
 SECFILE = $${HOME}/.secret

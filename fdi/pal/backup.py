@@ -54,7 +54,7 @@ def backup(pool, auth, fp0, tar):
     if tar:
         # make a backup tarfile
         tarf = clientpool.backup()
-        fp = op.join(fp0, pool._poolname + '.tar')
+        fp = op.join(fp0, pool._poolname + '.tgz')
         print('backup to ', fp)
         with open(p, 'wb') as f:
             f.write(tarf)
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     parser.add_argument("-n", "--number", type=int,
                         default=onlyframes, help='Only read this number of ?.')
     parser.add_argument("-t", "--tarfile",  action='store_true',
-                        default=False, help="Use tarfile.")
+                        default=False, help="Backup to a gzipped tarfile by the server instead of getting every file in the pool.")
     parser.add_argument("-v", "--verbose", action='store_true',
                         default=verbose, help="Print more details.")
 

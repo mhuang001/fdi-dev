@@ -59,6 +59,7 @@ if [ $i = no-run ]; then exit 0; fi;
 done
 
 echo enabling site ... >> ~/last_entry.log
+sudo a2dismod reqtimeout
 sudo a2ensite httppool_server.conf
 sudo a2dissite 000-default.conf
 service apache2 reload && echo apache2 reloaded;

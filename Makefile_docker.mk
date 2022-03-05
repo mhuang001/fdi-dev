@@ -40,7 +40,6 @@ build_docker:
 	@echo Building $(DOCKER_VERSION)
 	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DOCKER_VERSION) \
 	--network=$(NETWORK) \
-	--no-cache \
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
@@ -55,7 +54,6 @@ launch_docker:
 build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SERVER_VERSION) \
 	--network=$(NETWORK) \
-	--no-cache \
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg PROJ_DIR=$(PROJ_DIR) \
 	--build-arg fd=$(fd) \

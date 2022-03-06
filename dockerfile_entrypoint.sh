@@ -26,5 +26,5 @@ cat ~/lastent
 
 echo @@@ $@
 for i in $@; do
-if [ $i = no-run ]; then exit 0; fi;
+if [ $i = no-run ]; then exit 0;else $@; fi;
 done

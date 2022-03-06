@@ -104,6 +104,10 @@ t:
 	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
 	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/apache/error-ps.log
 
+u:
+	@ cid=`docker ps -a|grep $(LATEST) | head -n 1 |awk '{print $$1}'` &&\
+	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
+	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/fdi/uwsgi.log
 i:
 	@ cid=`docker ps -a|grep $(LATEST) | head -n 1 | awk '{print $$1}'` &&\
 	if [ -z $$cid ]; then echo NOT running ; false; fi &&\

@@ -30,11 +30,17 @@ RUN mkdir -p ${PROJ_DIR}/data
 
 # convinience aliases
 COPY --chown=root:root fdi/httppool/resources/httppool_server_uwsgi.service /etc/systemd/system
-RUN ln -s /etc/systemd/system/httppool_server_uwsgi.service . \
+RUN mkdir -p /var/log/uwsgi /var/run/uwsgi \
+&& touch /var/log/uwsgi/uwsgi.log \
+&& touch /var/log/uwsgi/access.log \
+&& ln -s /var/log/uwsgi/error.log . \
+&& ln -s /var/log/uwsgi/access.log . \
+&& ln -s /var/log/uwsgi/uwsgi.log . \
+&& ln -s /etc/systemd/system/httppool_server_uwsgi.service . \
 && ln -s  ${SERVER_POOLPATH} data
 
 # Configure permission
-RUN for i in  ${PROJ_DIR}; \
+RUN for i in  ${PROJ_DIR} /var/log/uwsgi /var/run/uwsgi ; \
 do chown -R ${USR}:${USR} $i; echo $i; done
 
 WORKDIR ${UHOME}
@@ -65,8 +71,8 @@ RUN /bin/ls -la; echo $PATH \
 date > build
 
 ENTRYPOINT  ["/home/fdi/httppool_server_entrypoint_uwsgi.sh"]
-CMD ["uwsgi --master --module wsgi:app --processes 1"]
-#CMD ["uwsgi --http ${SELF_HOST}:${SELF_PORT} --master --module wsgi:app --processes 1"]
+#CMD ["uwsgi --master --module wsgi:app --processes 1"]
+CMD ["uwsgi --http ${SELF_HOST}:${SELF_PORT} --master --module wsgi:app --processes 1"]
 #
 ARG SERVER_VERSION
 LABEL PoolServer ${SERVER_VERSION}

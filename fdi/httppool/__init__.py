@@ -131,9 +131,9 @@ def init_httppool_server(app):
 
     # users
     # effective group of current process
-    uid, gid = getUidGid(pc['serveruser'])
-    app.logger.info("Serveruser %s's uid %d and gid %d..." %
-                    (pc['serveruser'], uid, gid))
+    uid, gid = getUidGid(pc['self_username'])
+    app.logger.info("Self_Username %s's uid %d and gid %d..." %
+                    (pc['self_username'], uid, gid))
     # os.setuid(uid)
     # os.setgid(gid)
     app.config['USERS'] = getUsers(pc)
@@ -154,7 +154,7 @@ def init_httppool_server(app):
     _basepath = PM.PlacePaths[scheme]
     poolpath_base = os.path.join(_basepath, pc['api_version'])
 
-    if checkpath(poolpath_base, pc['serveruser']) is None:
+    if checkpath(poolpath_base, pc['self_username']) is None:
         msg = 'Store path %s unavailable.' % poolpath_base
         app.logger.error(msg)
         return None

@@ -16,8 +16,6 @@ ARG UHOME=/home/${USR}
 # rebuild mark
 ARG re=rebuild
 
-RUN mkdir -p ${UHOME}/.config
-
 WORKDIR ${UHOME}
 # use fdi's virtual env path. this effectively activates fdi's virtuakenv
 # ENV PATH="${FDIVENV}:${UHOME}/.local/bin:$PATH"
@@ -31,9 +29,8 @@ ENV API_BASE=/fdi
 RUN mkdir -p ${PROJ_DIR}/data
 
 # convinience aliases
-COPY --chown=root:root fdi/httppool/resrces/httppool_server_uwsgi.service /etc/systemd/system
-RUN \
-&& ln -s /etc/systemd/system/httppool_server_uwsgi.service . \
+COPY --chown=root:root fdi/httppool/resources/httppool_server_uwsgi.service /etc/systemd/system
+RUN ln -s /etc/systemd/system/httppool_server_uwsgi.service . \
 && ln -s  ${SERVER_POOLPATH} data
 
 # Configure permission
@@ -42,12 +39,12 @@ do chown -R ${USR}:${USR} $i; echo $i; done
 
 WORKDIR ${UHOME}
 
-# httppool_server_uwsgi_entrypoint.sh is used for replacing apache listen ports and configurations of httppool_server.
-USER root
-COPY --chown=${USR}:${USR} fdi/httppool/resources/httppool_server_uwsgi_entrypoint.sh .
-RUN chmod 755 ./httppool_server_uwsgi_entrypoint.sh
-
 USER ${USR}
+
+# httppool_server_entrypoint_uwsgi.sh is used for replacing apache listen ports and configurations of httppool_server.
+
+COPY --chown=${USR}:${USR} fdi/httppool/resources/httppool_server_entrypoint_uwsgi.sh .
+RUN chmod 755 ./httppool_server_entrypoint_uwsgi.sh
 
 # config software
 
@@ -56,18 +53,21 @@ RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} envs \
 && cat ./envs \
 && for i in `cat ./envs`; do export $i; done \
-&& ./httppool_server_uwsgi_entrypoint.sh no-run
+&& ./httppool_server_entrypoint_uwsgi.sh no-run
 
 
 WORKDIR ${UHOME}
+COPY fdi/httppool/resources/httppool_server_uwsgi.ini .
 
 VOLUME /var/log ${SERVER_POOLPATH}
 
 RUN /bin/ls -la; echo $PATH \
 date > build
 
-ENTRYPOINT  ["/home/apache/httppool_server_entrypoint.sh"]
-CMD ["./uwsgi", "--http", $(SELF_HOST):$(SELF_PORT), "--master", "--module", "wsgi:app", "--processes", "1"]
+ENTRYPOINT  ["/home/fdi/httppool_server_entrypoint_uwsgi.sh"]
+CMD ["uwsgi --master --module wsgi:app --processes 1"]
+#CMD ["uwsgi --http ${SELF_HOST}:${SELF_PORT} --master --module wsgi:app --processes 1"]
+#
 ARG SERVER_VERSION
 LABEL PoolServer ${SERVER_VERSION}
 ENV SERVER_VERSION=${SERVER_VERSION}

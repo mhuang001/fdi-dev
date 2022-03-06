@@ -116,6 +116,7 @@ RUN pwd; /bin/ls -la; \
 date > build
 
 ENTRYPOINT  ["/home/fdi/dockerfile_entrypoint.sh"]
+CMD ["/bin/bash"]
 
 ARG DOCKER_VERSION
 LABEL fdi ${DOCKER_VERSION}

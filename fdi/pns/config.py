@@ -24,7 +24,7 @@ EXTRO_USER = ''
 EXTRO_PASS = ''
 SELF_HOST = '172.17.0.2'
 SELF_PORT = 9876
-SELF_USER = ''
+SELF_USER = 'mh'
 SELF_PASS = ''
 MQUSER = ''
 MQPASS = ''
@@ -77,14 +77,13 @@ conf = ['dev', 'external', 'production', 'public'][0]
 # modify
 if conf == 'dev':
     # username, passwd, flask ip, flask port
-    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
+    pnsconfig['node'] = {'username': 'mh', 'password': 'bar',
                          'host': '127.0.0.1', 'port': 9883,
                          'ro_username': 'poolrw', 'rw_password': 'k/p=0',
                          'ro_username': 'poolro', 'ro_password': 'only5%',
                          }
 
     # server permission user
-    pnsconfig['serveruser'] = 'mh'
     pnsconfig['base_poolpath'] = '/tmp'
     pnsconfig['server_poolpath'] = '/tmp/data'  # For server
     # server's own
@@ -109,8 +108,6 @@ elif conf == 'external':
         username=MQUSER,
         passwd=MQPASS,
     )
-    # server permission user
-    pnsconfig['serveruser'] = 'apache'
     pnsconfig['base_poolpath'] = BASE_POOLPATH
     pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
     # server's own
@@ -123,12 +120,10 @@ elif conf == 'external':
     # on pns server
     home = '/home/' + pnsconfig['ptsuser']
 elif conf == 'production':
-    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
+    pnsconfig['node'] = {'username': 'mh', 'password': 'bar',
                          'host': '10.0.10.114', 'port': 9885,
                          'ro_username': 'ro', 'ro_password': '',
                          }
-    # server permission user
-    pnsconfig['serveruser'] = 'apache'
     # server's own
     pnsconfig['self_host'] = pnsconfig['node']['host']
     pnsconfig['self_port'] = pnsconfig['node']['port']
@@ -143,8 +138,6 @@ elif conf == 'public':
                          'host': '123.56.102.90', 'port': 31702,
                          'ro_username': 'ro', 'ro_password': 'only5%',
                          }
-    # server permission user
-    pnsconfig['serveruser'] = 'apache'
     # server's own
     pnsconfig['self_host'] = pnsconfig['node']['host']
     pnsconfig['self_port'] = pnsconfig['node']['port']

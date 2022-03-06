@@ -328,7 +328,7 @@ def save_product(data, paths, tags=None, serialize_in=True, serialize_out=False)
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     # resourcetype = fullname(data)
 
-    if checkpath(fullpoolpath, current_app.config['PC']['serveruser']) is None:
+    if checkpath(fullpoolpath, current_app.config['PC']['self_username']) is None:
         result = FAILED
         msg = 'Pool directory error: ' + fullpoolpath
         return 400, result, msg
@@ -576,7 +576,7 @@ def load_product(p, paths, serialize_out=False):
 
 
 def setOwnerMode(p, username):
-    """ makes UID and GID set to those of serveruser given in the config file. This function is usually done by the initPTS script.
+    """ makes UID and GID set to those of self_username given in the config file. This function is usually done by the initPTS script.
     """
 
     logger.debug('set owner, group to %s, mode to 0o775' % username)

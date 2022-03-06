@@ -36,11 +36,6 @@ date >> ~/last_entry.log
 cat ~/last_entry.log
 echo @@@ $@
 for i in $@; do
-if [ $i = no-run ]; then exit 0; fi;
+if [ $i = no-run ]; then exit 0;else $@; fi;
 done
-
-echo enabling site ... >> ~/last_entry.log
-systemctl start httppool_server
-systemctl enable httppool_server
-systemctl status httppool_server >> ~/last_entry.log
 

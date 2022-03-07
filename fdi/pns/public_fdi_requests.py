@@ -93,6 +93,11 @@ def read_from_cloud(requestName, **kwargs):
         requestAPI = defaulturl + pcc['cloud_baseurl'] + \
                      '/pool/restore?storagePoolName=' + kwargs['poolname']
         res = requests.post(requestAPI, headers=header)
+    elif requestName == 'addTag':
+        header['X-AUTH-TOKEN'] = kwargs['token']
+        requestAPI = defaulturl + pcc['cloud_baseurl'] + \
+                    '/storage/addTags?tags=' + kwargs['tags'] + '&urn=' + kwargs['urn']
+        res = requests.get(requestAPI, headers=header)
     else:
         raise ValueError("Unknown request API: " + str(requestName))
     print("Read from API: " + requestAPI)
@@ -134,7 +139,7 @@ def load_from_cloud(requestName, **kwargs):
             raise ValueError("Unknown request API: " + str(requestName))
     except Exception as e:
         return 'Load File failed: ' + str(e)
-    print("Read from API: " + requestAPI)
+    print("Load from API: " + requestAPI)
     return deserialize(res.text)
 
 

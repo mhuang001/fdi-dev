@@ -123,6 +123,8 @@ class PublicClientPool(ManagedPool):
 
         if res['msg'] == 'success':
             return True
+        elif res['msg'] == 'The storage pool already exists. Change the storage pool name':
+            return True
         elif res['msg'] == 'The storage pool name already exists in the recycle bin. Change the storage pool name':
             raise ValueError(res['msg'] + ', please restore pool ' + self.poolname + ' firstly.')
         else:
@@ -251,30 +253,27 @@ class PublicClientPool(ManagedPool):
         try:
             # save prod to cloud
             if serialize_in:
-                # uploadRes = self.doSave(resourcetype=pn,
-                #                         index=sn,
-                #                         data=jsonPrd,
-                #                         tag=tag,
-                #                         serialize_in=serialize_in,
-                #                         serialize_out=serialize_out,
-                #                         **kwds)
-                pass
+                uploadRes = self.doSave(resourcetype=pn,
+                                        index=sn,
+                                        data=jsonPrd,
+                                        tag=tag,
+                                        serialize_in=serialize_in,
+                                        serialize_out=serialize_out,
+                                        **kwds)
+
             else:
-                # uploadRes = self.doSave(resourcetype=pn,
-                #                         index=sn,
-                #                         data=prd,
-                #                         tag=tag,
-                #                         serialize_in=serialize_in,
-                #                         serialize_out=serialize_out,
-                #                         **kwds)
-                pass
+                uploadRes = self.doSave(resourcetype=pn,
+                                        index=sn,
+                                        data=prd,
+                                        tag=tag,
+                                        serialize_in=serialize_in,
+                                        serialize_out=serialize_out,
+                                        **kwds)
         except ValueError as e:
             msg = 'product ' + urn + ' saving failed.' + str(e) + trbk(e)
             logger.debug(msg)
             raise e
-        uploadRes={}
-        uploadRes['msg'] = 'success'
-        uploadRes['data'] = {'urn': urn}
+
         if uploadRes['msg'] != 'success':
             raise Exception('Upload failed: ' + uploadRes['msg'])
         else:
@@ -420,9 +419,9 @@ class PublicClientPool(ManagedPool):
     def doRemove(self, resourcetype, index):
         """ to be implemented by subclasses to do the action of reemoving
         """
-        path = self._cloudpoolpath + '/' + str(index)
+        path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
         res = read_from_cloud('remove', token=self.token, path=path)
-        print("index: " + str(index) + " remove result: "+str(res))
+        print("index: " + str(index) + " remove result: "+str(res) + ' from : ' + path)
         return res['msg']
         # if res['msg'] != 'success':
         #     logger.debug(res['msg'])
@@ -438,9 +437,35 @@ class PublicClientPool(ManagedPool):
     def doWipe(self):
         """ to be implemented by subclasses to do the action of wiping.
         """
-        res = read_from_cloud('wipePool', poolname=self.poolname, token=self.token)
-        if res['msg'] != 'success':
-            raise ValueError('Wipe pool ' + self.poolname + ' failed: ' + res['msg'])
+        # res = read_from_cloud('wipePool', poolname=self.poolname, token=self.token)
+        # if res['msg'] != 'success':
+        #     raise ValueError('Wipe pool ' + self.poolname + ' failed: ' + res['msg'])
+        info = self.getPoolInfo()
+        if isinstance(info, dict):
+            for classes in info:
+                for index in classes['indexes']:
+                    urn = 'urn' + classes['path'].replace('/', ':') + ':' + + str(index)
+                    res = self.remove(urn)
+                    assert res in ['Not found resource.', 'success']
+
+    def setTag(self, tag,  urn):
+        u = urn.urn if issubclass(urn.__class__, Urn) else urn
+        if not self.exists(urn):
+            raise ValueError('Urn does not exists!')
+        if isinstance(tag, str) and len(tag) > 0:
+            res = read_from_cloud('addTag', token=self.token, tags=tag, urn=u)
+            if res['msg'] != 'OK':
+                raise ValueError('Set tag to ' + urn + ' failed: ' + res['msg'])
+        else:
+            raise ValueError('Tag can not be empty or non-string!')
+
+    def getTags(self, urn=None):
+        u = urn.urn if issubclass(urn.__class__, Urn) else urn
+        res = read_from_cloud('infoUrn', urn=u, token=self.token)
+        if res['code'] == 0:
+            return res['data'][u]['tags']
+        else:
+            raise ValueError('Read tags failed due to : ' + res['msg'])
 
     def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
         """ returns filtered collection using the query.

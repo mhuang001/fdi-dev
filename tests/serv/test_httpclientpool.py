@@ -338,7 +338,7 @@ def test_token(csdb):
 def test_createPool(csdb):
     test_pool, url = csdb
     try:
-        test_pool.createPool()
+        assert test_pool.createPool() == True
     except ValueError:
         assert test_pool.restorePool() == True
 
@@ -355,8 +355,8 @@ def test_poolInfo(csdb):
 
 
 def test_upload():
-    poolurl = 'csdb:///poolbs'
-    poolname = 'poolbs'
+    poolurl = 'csdb:///' + csdb_pool_id
+    poolname = csdb_pool_id
 
     pstore = ProductStorage(poolname=poolname, poolurl=poolurl)
     test_pool = pstore.getPool(poolname)
@@ -365,13 +365,37 @@ def test_upload():
     prd = genProduct()
     res = pstore.save(prd)
     # urn:poolbs:fdi.dataset.product.Product:x
-    assert res.urn.startswith('urn:poolbs:fdi.dataset.product.Product')
+    assert res.urn.startswith('urn:' + csdb_pool_id + ':fdi.dataset.product.Product')
+
+
+def test_load(csdb):
+    test_pool, url = csdb
+    prd = test_pool.schematicLoad('fdi.dataset.product.Product', 2)
+    assert prd.description == 'product example with several datasets', 'retrieve production incorrect'
+    assert prd.instrument == 'Crystal-Ball', 'retrieve production incorrect'
+    assert prd['QualityImage'].shape == (3, 3), 'retrieve production incorrect'
+
+
+def test_add_tag(csdb):
+    test_pool, url = csdb
+    tag = 'testprd'
+    urn = 'urn:' + csdb_pool_id + ':fdi.dataset.product.Product:2'
+    test_pool.setTag(tag, urn)
+    assert tag in test_pool.getTags(urn)
 
 
 def test_count(csdb):
     test_pool, url = csdb
-    count = test_pool.getCount('fdi.dataset.product.Product')
-    assert count == 16
+    test_pool.setPoolurl('csdb:///' + csdb_pool_id + '/fdi.dataset.product.Product')
+    count = test_pool.getCount('/' + csdb_pool_id + '/fdi.dataset.product.Product')
+    assert count == 2
+
+
+def test_remove(csdb):
+    test_pool, url = csdb
+    urn = 'urn:' + csdb_pool_id + ':fdi.dataset.product.Product:1'
+    res = test_pool.remove(urn)
+    assert res == 'success', res
 
 
 def test_deletePool(csdb):

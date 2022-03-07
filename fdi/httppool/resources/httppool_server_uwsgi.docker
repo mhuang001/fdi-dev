@@ -42,7 +42,7 @@ RUN mkdir -p /var/log/uwsgi \
 && ln -s  ${SERVER_POOLPATH} data
 
 # Configure permission
-RUN for i in  ${PROJ_DIR} /var/log/uwsgi /var/run/uwsgi ${UHOME}/*; \
+RUN for i in  ${PROJ_DIR} /var/log/uwsgi ${UHOME}/*; \
 do chown -R ${USR}:${USR} $i; echo $i owner ${USR}; done
 
 WORKDIR ${UHOME}
@@ -68,10 +68,7 @@ RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 WORKDIR ${UHOME}
 COPY fdi/httppool/resources/httppool_server_uwsgi.ini .
 
-#VOLUME /var/log ${SERVER_POOLPATH}
-USER root
-RUN mkdir -p /var/log/uwsgi \
-&& chown -R ${USR} /var/log/uwsgi
+VOLUME /var/log ${SERVER_POOLPATH}
 
 USER ${USR}
 RUN /bin/ls -la; echo $PATH \
@@ -79,7 +76,7 @@ date > build
 
 ENTRYPOINT  ["/home/fdi/httppool_server_entrypoint_uwsgi.sh"]
 #CMD ["uwsgi --master --module wsgi:app --processes 1"]
-CMD ["uwsgi --http ${SELF_HOST}:${SELF_PORT} --master --module wsgi:app --logger file:/var/log/uwsgi/uwsgi.log --processes 1"]
+CMD ["uwsgi --http 0.0.0.0:9885 --master --module wsgi:app --logger file:/var/log/uwsgi/uwsgi.log --processes 1"]
 #
 ARG SERVER_VERSION
 LABEL PoolServer ${SERVER_VERSION}

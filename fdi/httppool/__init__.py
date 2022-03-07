@@ -132,7 +132,7 @@ def init_httppool_server(app):
 
     # users
     # effective group of current process
-    app.logger.info(str(pc))
+
     uid, gid = getUidGid(pc['self_username'])
 
     app.logger.info("Self_Username: %s uid %d and gid %d..." %

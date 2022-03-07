@@ -41,6 +41,12 @@ sudo mkdir -p /var/log/uwsgi && \
 sudo chown -R fdi /var/log/uwsgi && \
 sudo chgrp -R fdi /var/log/uwsgi && \
 chmod 755 /var/log/uwsgi ; fi
+
+mkdir -p /var/www/httppool_server/data
+if [ ! -O /var/www/httppool_server/data ]; then \
+sudo chown -R fdi:fdi  /var/www/httppool_server/data; fi
+
+#ls -l /var/log /var/www/httppool_server/data >> ~/last_entry.log
 				 
 date >> ~/last_entry.log
 cat ~/last_entry.log

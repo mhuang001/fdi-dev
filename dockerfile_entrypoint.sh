@@ -4,7 +4,7 @@ id | tee ~/lastent
 echo ######                                                                     
 
 # if note set. use WARNING
-${LOGGER_LEVEL:=30}
+s=${LOGGER_LEVEL:=30}
 
 sed -i "s/^LOGGER_LEVEL =.*$/LOGGER_LEVEL = $LOGGER_LEVEL/g" ~/.config/pnslocal.py
 

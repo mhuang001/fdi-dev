@@ -19,7 +19,9 @@ sed -i "s/^SELF_PASS =.*$/SELF_PASS = \'$SELF_PASS\'/g" ~/.config/pnslocal.py
 
 sed -i "s|^API_BASE =.*$|API_BASE = \'$API_BASE\'|g" ~/.config/pnslocal.py
 sed -i "s|^SERVER_POOLPATH =.*$|SERVER_POOLPATH = \'$SERVER_POOLPATH\'|g" ~/.config/pnslocal.py
-sed -i "s/^LOGGING_LEVEL =.*$/LOGGING_LEVEL = $LOGGING_LEVEL/g" ~/.config/pnslocal.py
+# if note set. use WARNING
+${LOGGER_LEVEL:=logging.WARNING}
+sed -i "s/^LOGGER_LEVEL =.*$/LOGGER_LEVEL = $LOGGER_LEVEL/g" ~/.config/pnslocal.py
 
 sed -i "s/^conf\s*=\s*.*$/conf = 'external'/g" ~/.config/pnslocal.py 
 mkdir -p /var/log/uwsgi

@@ -3,6 +3,9 @@
 id | tee ~/last_entry.log
 echo ######                                                                     
 ${HOST_IP:=`ifconfig -a | grep "inet" | grep -v 127.0.0.1 | grep -v "inet6" | awk '{print $2}'`}
+
+sed -i "s/^LOGGER_LEVEL =.*$/LOGGER_LEVEL = $LOGGER_LEVEL/g" ~/.config/pnslocal.py
+
 #HOST_PORT=${SERVER_PORT}
 sudo sed -i "s/<VirtualHost .*:.*$/<VirtualHost \*:$HOST_PORT>/g" /etc/apache2/sites-available/httppool_server.conf
 sudo sed -i "s/ServerName.*$/ServerName $HOST_IP/g" /etc/apache2/sites-available/httppool_server.conf
@@ -38,7 +41,6 @@ sed -i "s/^SELF_PASS =.*$/SELF_PASS = \'$SELF_PASS\'/g" ~/.config/pnslocal.py
 
 sed -i "s|^API_BASE =.*$|API_BASE = \'$API_BASE\'|g" ~/.config/pnslocal.py
 sed -i "s|^SERVER_POOLPATH =.*$|SERVER_POOLPATH = \'$SERVER_POOLPATH\'|g" ~/.config/pnslocal.py
-sed -i "s/^LOGGING_LEVEL =.*$/LOGGING_LEVEL = $LOGGING_LEVEL/g" ~/.config/pnslocal.py
 
 sed -i "s/^conf\s*=\s*.*$/conf = 'external'/g" ~/.config/pnslocal.py 
 

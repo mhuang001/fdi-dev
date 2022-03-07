@@ -19,7 +19,7 @@ EXTPORT =$(PORT)
 IP_ADDR     =0.0.0.0
 PROJ_DIR	= /var/www/httppool_server
 SERVER_POOLPATH	= $(PROJ_DIR)/data
-LOGGING_LEVEL	=10
+LOGGER_LEVEL	=logging.INFO
 TEST_PORT	= 9885
 
 B       =/bin/bash
@@ -73,7 +73,7 @@ launch_server:
 	--env-file $(SECFILE) \
 	-p $(PORT):$(EXTPORT) \
 	-e HOST_PORT=$(PORT) \
-	-e LOGGING_LEVEL=$(LOGGING_LEVEL) \
+	-e LOGGER_LEVEL=$(LOGGER_LEVEL) \
 	--name $$SN $(D) $(LATEST) $(LAU)
 	sleep 2
 	#docker inspect $$SN
@@ -81,7 +81,7 @@ launch_server:
 
 launch_test_server:
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
-	$(MAKE) launch_server PORT=$(TEST_PORT) EXTPORT=$(TEST_PORT) LOGGING_LEVEL=10 #LATEST=mhastro/httppool
+	$(MAKE) launch_server PORT=$(TEST_PORT) EXTPORT=$(TEST_PORT) LOGGER_LEVEL=$(LOGGER_LEVEL) #LATEST=mhastro/httppool
 
 rm_docker:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\

@@ -22,6 +22,7 @@ sed -i "s|^SERVER_POOLPATH =.*$|SERVER_POOLPATH = \'$SERVER_POOLPATH\'|g" ~/.con
 sed -i "s/^LOGGING_LEVEL =.*$/LOGGING_LEVEL = $LOGGING_LEVEL/g" ~/.config/pnslocal.py
 
 sed -i "s/^conf\s*=\s*.*$/conf = 'external'/g" ~/.config/pnslocal.py 
+mkdir -p /var/log/uwsgi
 
 echo =====  .config/pnslocal.py >> ~/last_entry.log
 grep ^conf  ~/.config/pnslocal.py >> ~/last_entry.log
@@ -29,9 +30,16 @@ grep ^EXTHOST  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^EXTPORT  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SELF_HOST  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SELF_PORT  ~/.config/pnslocal.py >> ~/last_entry.log
+grep ^SELF_USER  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^BASE_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SERVER_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
 
+if [ ! -d /var/log/uwsgi ]; then \
+sudo mkdir -p /var/log/uwsgi && \
+sudo chown -R fdi /var/log/uwsgi && \
+sudo chgrp -R fdi /var/log/uwsgi && \
+chmod 755 /var/log/uwsgi ; fi
+				 
 date >> ~/last_entry.log
 cat ~/last_entry.log
 echo @@@ $@

@@ -5,7 +5,6 @@ import getpass
 import os
 from os.path import expanduser, expandvars
 
-# logging level for server or possibly by client
 pnsconfig = dict()
 
 ###########################################
@@ -38,7 +37,7 @@ SCHEME = 'http'
 API_VERSION = 'v0.13'
 API_BASE = '/fdi'
 
-LOGGING_LEVEL = logging.INFO
+LOGGER_LEVEL = logging.INFO
 
 # base url for webserver. Update version if needed.
 pnsconfig['scheme'] = SCHEME
@@ -61,7 +60,7 @@ pnsconfig['lookup'] = poolurl_of
 pnsconfig['base_poolpath'] = BASE_POOLPATH
 pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
 pnsconfig['defaultpool'] = 'default'
-pnsconfig['logginglevel'] = LOGGING_LEVEL
+pnsconfig['loggerlevel'] = LOGGER_LEVEL
 
 # message queue config
 pnsconfig['mqtt'] = dict(

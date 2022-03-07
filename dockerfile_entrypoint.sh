@@ -3,6 +3,11 @@
 id | tee ~/lastent
 echo ######                                                                     
 
+# if note set. use WARNING
+${LOGGER_LEVEL:=logging.WARNING}
+
+sed -i "s/^LOGGER_LEVEL =.*$/LOGGER_LEVEL = $LOGGER_LEVEL/g" ~/.config/pnslocal.py
+
 sed -i "s/^EXTUSER =.*$/EXTUSER = \'$HOST_USER\'/g" ~/.config/pnslocal.py
 sed -i "s/^EXTPASS =.*$/EXTPASS = \'$HOST_PASS\'/g" ~/.config/pnslocal.py
 sed -i "s/^EXTRO_USER =.*$/EXTRO_USER = \'$RO_USER\'/g" ~/.config/pnslocal.py

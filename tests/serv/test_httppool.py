@@ -99,7 +99,7 @@ if 0:
 @pytest.fixture(scope="module")
 def project_app(pc):
     from fdi.httppool import create_app
-    return create_app(config_object=pc, logger=logger)
+    return create_app(config_object=pc, level=logger.getEffectiveLevel())
 
 
 def issane(o):

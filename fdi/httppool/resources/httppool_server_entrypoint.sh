@@ -5,7 +5,7 @@ echo ######
 ${HOST_IP:=`ifconfig -a | grep "inet" | grep -v 127.0.0.1 | grep -v "inet6" | awk '{print $2}'`}
 
 # if note set. use WARNING
-${LOGGER_LEVEL:=logging.WARNING}
+${LOGGER_LEVEL:=30}
 
 sed -i "s/^LOGGER_LEVEL =.*$/LOGGER_LEVEL = $LOGGER_LEVEL/g" ~/.config/pnslocal.py
 

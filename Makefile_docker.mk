@@ -10,7 +10,7 @@ DFILE	=dockerfile
 
 ifndef apache
 SERVER_NAME      =httppool
-API_BASE = /fdi-dev
+API_BASE = /fdi
 else
 SERVER_NAME      =httppool
 API_BASE = /fdi
@@ -60,6 +60,7 @@ build_docker:
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
+	--build-arg LOGGER_LEVEL=$(LOGGER_LEVEL) \
 	--build-arg DOCKER_VERSION=$(DOCKER_VERSION) \
 	-f $(DFILE) \
 	$(D) --progress=plain .

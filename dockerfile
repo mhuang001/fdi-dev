@@ -104,7 +104,7 @@ RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} envs \
 && /bin/bash -c 'for i in `cat ./envs`; do export $i; done \
 && ./dockerfile_entrypoint.sh  no-run'  # modify pnslocal.py
-#RUN bash -c 'for i in `sed -e 's/=.*$//g' ./envs`; do echo $i=${!i}, PPP ${GITPULLCSC} P%%%; done'
+RUN bash -c 'for i in `sed -e 's/=.*$//g' ./envs`; do echo $i=${!i}; done'
 
 WORKDIR ${PKGS_DIR}/${PKG}/
 RUN make test \

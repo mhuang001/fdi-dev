@@ -76,8 +76,8 @@ conf = ['dev', 'external', 'production', 'public'][0]
 # modify
 if conf == 'dev':
     # username, passwd, flask ip, flask port
-    pnsconfig['node'] = {'username': 'fdi', 'password': 'bar',
-                         'host': '0.0.0.0', 'port': 9883,
+    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
+                         'host': '0.0.0.0', 'port': 9885,
                          'ro_username': 'poolrw', 'rw_password': 'k/p=0',
                          'ro_username': 'poolro', 'ro_password': 'only5%',
                          }

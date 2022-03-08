@@ -10,8 +10,10 @@ DFILE	=dockerfile
 
 ifndef apache
 SERVER_NAME      =httppool
+API_BASE = /fdi-dev
 else
 SERVER_NAME      =httppool
+API_BASE = /fdi
 endif
 
 SERVER_VERSION	= $(DOCKER_VERSION)
@@ -33,7 +35,7 @@ EXTPORT =$(PORT)
 IP_ADDR     =0.0.0.0
 PROJ_DIR	= /var/www/httppool_server
 SERVER_POOLPATH	= $(PROJ_DIR)/data
-LOGGER_LEVEL	= 30
+LOGGER_LEVEL	= 10
 TEST_PORT	= 9885
 
 B       =/bin/bash
@@ -74,6 +76,7 @@ build_server:
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
 	--build-arg SERVER_VERSION=$(SERVER_VERSION) \
+	-e API_BASE=$(API_BASE) \
 	-f $(SFILE) \
 	$(D) --progress=plain .
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)

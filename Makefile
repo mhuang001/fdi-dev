@@ -158,7 +158,7 @@ gitadd:
 	git add fdi/*.py
 	git add fdi/dataset/*.py fdi/dataset/resources
 	git add fdi/pns/*.py fdi/pns/resources
-	git add fdi/pal/*.py fdi/pal/resources
+	git add fdi/pal/*.py fdi/pal/resources/schema
 	git add fdi/utils/*.py
 	git add httppool_app.py fdi/httppool
 	git add Makefile_tests.mk tests/*.py tests/resources tests/serv/*.py tests/serv/resources

@@ -42,12 +42,12 @@ def setup_logging(level=None, extras=None):
 
     if extras is None:
         extras = logging.WARNING
-    fmt = dict(format='%(asctime)s'
+    fmt = dict(format='%(asctime)s.%(msecs)03d'
                ' %(process)d %(thread)6d '
                ' %(levelname)4s'
                ' %(filename)6s:%(lineno)3s'
                ' %(funcName)10s() - %(message)s',
-               datefmt="%Y%m%d %H:%M:%S.%f")
+               datefmt="%Y%m%d %H:%M:%S")
     dict_config = dictConfig({
         'version': 1,
         'formatters': {'default': fmt},

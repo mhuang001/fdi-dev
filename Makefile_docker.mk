@@ -8,14 +8,14 @@ DOCKER_NAME	= fdi
 DOCKER_VERSION   =$(shell if [ -f docker_version ]; then cat docker_version; fi)
 DFILE	=dockerfile
 
-if ndef apache
+ifndef apache
 SERVER_NAME      =httppool
 else
 SERVER_NAME      =httppool
 endif
 
 SERVER_VERSION	= $(DOCKER_VERSION)
-if ndef apache
+ifndef apache
 SFILE	= fdi/httppool/resources/httppool_server_uwsgi.docker
 else
 SFILE	= fdi/httppool/resources/httppool_server.docker
@@ -23,7 +23,7 @@ endif
 
 PORT        =9885
 
-if ndef apache
+ifndef apache
 SECFILE = $${HOME}/.secret-uwsgi
 else
 SECFILE = $${HOME}/.secret

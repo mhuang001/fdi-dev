@@ -1,0 +1,81 @@
+{
+	"definitions": {},
+	"$schema": "http://json-schema.org/draft-07/schema#", 
+	"$id": "https://example.com/object1646654064.json", 
+	"title": "Root", 
+	"type": "object",
+	"properties": {
+		"fdi.dataset.testproducts.TP": {
+			"$id": "#root/fdi.dataset.testproducts.TP", 
+			"title": "Fdi.dataset.testproducts.tp", 
+			"type": "object",
+			"required": [
+				"sn",
+				"currentSN"
+			],
+			"properties": {
+				"sn": {
+					"$id": "#root/fdi.dataset.testproducts.TP/sn", 
+					"title": "Sn", 
+					"type": "array",
+					"default": [],
+					"items":{
+						"$id": "#root/fdi.dataset.testproducts.TP/sn/items", 
+						"title": "Items", 
+						"type": "integer",
+						"examples": [
+							0
+						],
+						"default": 0
+					}
+				},
+				"currentSN": {
+					"$id": "#root/fdi.dataset.testproducts.TP/currentSN", 
+					"title": "Currentsn", 
+					"type": "integer",
+					"examples": [
+						2
+					],
+					"default": 0
+				}
+			}
+		}
+,
+		"fdi.pal.context.Context": {
+			"$id": "#root/fdi.pal.context.Context", 
+			"title": "Fdi.pal.context.context", 
+			"type": "object",
+			"required": [
+				"sn",
+				"currentSN"
+			],
+			"properties": {
+				"sn": {
+					"$id": "#root/fdi.pal.context.Context/sn", 
+					"title": "Sn", 
+					"type": "array",
+					"default": [],
+					"items":{
+						"$id": "#root/fdi.pal.context.Context/sn/items", 
+						"title": "Items", 
+						"type": "integer",
+						"examples": [
+							0
+						],
+						"default": 0
+					}
+				},
+				"currentSN": {
+					"$id": "#root/fdi.pal.context.Context/currentSN", 
+					"title": "Currentsn", 
+					"type": "integer",
+					"examples": [
+						0
+					],
+					"default": 0
+				}
+			}
+		}
+
+	}
+}

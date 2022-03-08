@@ -4,11 +4,12 @@ from .getswag import swag
 from .httppool_server import resp, excp, checkpath, check_readonly
 from ..model.user import auth, getUsers
 from ..._version import __version__
-from ...dataset.deserialize import deserialize_args
+from ...dataset.deserialize import deserialize_args, deserialize
 from ...pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
 from ...pal.productpool import PoolNotFoundError
 from ...pal.webapi import WebAPI
 from ...pal.urn import parseUrn
+from ...utils.common import lls
 
 from flask import Blueprint, jsonify, request, current_app, url_for, abort
 from werkzeug.exceptions import HTTPException
@@ -87,7 +88,7 @@ def get_pools_url():
     logger = current_app.logger
 
     ts = time.time()
-    path = current_app.config['POOLPATH_BASE']
+    path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     logger.debug('Listing all directories from ' + path)
 
     result = get_name_all_pools(path)
@@ -118,7 +119,7 @@ def get_pools():
     logger = current_app.logger
 
     ts = time.time()
-    path = current_app.config['POOLPATH_BASE']
+    path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     logger.debug('Listing all directories from ' + path)
 
     result = get_name_all_pools(path)
@@ -157,7 +158,7 @@ def get_registered_pools():
     ---
     """
     ts = time.time()
-    path = current_app.config['POOLPATH_BASE']
+    path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     current_app.logger.debug('Listing all registered pools.')
 
     # [p.getPoolurl() for p in PM.getMap()()]
@@ -202,7 +203,7 @@ def load_pools(poolnames, usr):
     """
 
     logger = current_app.logger
-    path = current_app.config['POOLPATH_BASE']
+    path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     pmap = {}
     bad = {}
     logger.debug('loading all from ' + path)
@@ -297,7 +298,7 @@ def wipe_pools(poolnames, usr):
     Returns: a list of successfully removed pools names in `good`, and troubled ones in `bad` with associated exception info.
     """
     logger = current_app.logger
-    path = current_app.config['POOLPATH_BASE']
+    path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     logger.debug('DELETING pools contents from ' + path)
 
     # alldirs = poolnames if poolnames else get_name_all_pools(path)
@@ -351,7 +352,8 @@ def get_pool_info(poolname, serialize_out=False):
     ts = time.time()
     FAILED = '"FAILED"' if serialize_out else 'FAILED'
 
-    allpools = get_name_all_pools(current_app.config['POOLPATH_BASE'])
+    allpools = get_name_all_pools(
+        current_app.config['FULL_BASE_LOCAL_POOLPATH'])
     if poolname in allpools:
         code, result, mes = load_HKdata([poolname], serialize_out=True)
         # use json.loads to avoid _STID for human
@@ -416,7 +418,8 @@ def register_pool(pool, usr):
     :returns: code, pool object if successful, message
     """
     poolname = pool
-    fullpoolpath = join(current_app.config['POOLPATH_BASE'], poolname)
+    fullpoolpath = join(
+        current_app.config['FULL_BASE_LOCAL_POOLPATH'], poolname)
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     makenew = usr and usr.role == 'read_write'
     try:
@@ -649,7 +652,7 @@ def get_prod_count(prod_type, pool_id):
     res = 0
     nm = []
 
-    path = join(current_app.config['POOLPATH_BASE'], pool_id)
+    path = join(current_app.config['FULL_BASE_LOCAL_POOLPATH'], pool_id)
     if os.path.exists(path):
         for i in os.listdir(path):
             if i[-1].isnumeric() and prod_type in i:
@@ -667,8 +670,8 @@ def get_prod_count(prod_type, pool_id):
 ######################################
 
 
-@ pools_api.route('/<string:pool>/api/<string:method_args>', methods=['GET'])
-@ pools_api.route('/<string:pool>/api/<string:method_args>/', methods=['GET'])
+@ pools_api.route('/<string:pool>/api/<string:method_args>', methods=['GET', 'POST'])
+@ pools_api.route('/<string:pool>/api/<string:method_args>/', methods=['GET', 'POST'])
 @ auth.login_required(role='read_write')
 def api(pool, method_args):
     """ Call api mathods on the running pool and returns the result.
@@ -678,17 +681,27 @@ def api(pool, method_args):
     logger = current_app.logger
 
     ts = time.time()
-    logger.debug(f'get API {method_args} for {pool}')
-
-    paths = [pool, 'api', method_args]
+    logger.debug('get API for %s ; %s.' % (pool, lls(method_args, 200)))
+    if request.method == 'POST':
+        # long args are sent with POST
+        if request.data is None:
+            result, msg = '"FAILED"', 'No REquest data for command '+request.method
+            code = 400
+            return resp(code, result, msg, ts, serialize_out=True)
+        data = str(request.data, encoding='ascii')
+        paths = [pool, 'api', method_args, data]
+    else:
+        paths = [pool, 'api', method_args]
     lp0 = len(paths)
 
-    code, result, msg = call_pool_Api(paths, serialize_out=False)
+    posted = request.method == 'POST'
+    code, result, msg = call_pool_Api(
+        paths, serialize_out=False, posted=posted)
 
     return resp(code, result, msg, ts, serialize_out=False)
 
 
-def call_pool_Api(paths, serialize_out=False):
+def call_pool_Api(paths, serialize_out=False, posted=False):
     """ Call api mathods on the running pool and returns the result.
 
     return: value if args is pool property; execution result if method. 
@@ -698,18 +711,27 @@ def call_pool_Api(paths, serialize_out=False):
     logger = current_app.logger
     ts = time.time()
 
-    args, kwds = [], {}
+    if posted:
+        code = 200
+        try:
+            m_args, kwds = tuple(deserialize(paths[3]))
+        except ValueError as e:
+            code = 422
+        m_args.insert(0, paths[2])
+    else:
+        args, kwds = [], {}
 
-    # the unquoted args. may have ',' in strings
-    # quoted_m_args = paths[ind_meth+1]
+        # the unquoted args. may have ',' in strings
+        # quoted_m_args = paths[ind_meth+1]
 
-    # from the unquoted url extract the fist path segment.
-    quoted_m_args = request.url.split(
-        paths[0] + '/' + paths[1] + '/')[1].strip('/')
-    logger.debug(f'get API {quoted_m_args}')
-    # get command positional arguments and keyword arguments
-    code, m_args, kwds = deserialize_args(
-        quoted_m_args, serialize_out=serialize_out)
+        # from the unquoted url extract the fist path segment.
+        quoted_m_args = request.url.split(
+            paths[0] + '/' + paths[1] + '/')[1].strip('/')
+        logger.debug('get API : %s' % lls(quoted_m_args, 1000))
+        # get command positional arguments and keyword arguments
+        code, m_args, kwds = deserialize_args(
+            quoted_m_args, serialize_out=serialize_out)
+
     if code != 200:
         result, msg = m_args, kwds
         return 0, resp(422, result, msg, ts, serialize_out=False), 0
@@ -725,7 +747,7 @@ def call_pool_Api(paths, serialize_out=False):
     kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
     msg = '%s(%s)' % (method, ', '.join(
         chain(map(str, args), kwdsexpr)))
-    logger.debug('WebAPI ' + msg)
+    logger.debug('WebAPI ' + lls(msg, 300))
     # if args and args[0] == 'select':
     #    __import__('pdb').set_trace()
 

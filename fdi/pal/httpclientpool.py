@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..pns.fdi_requests import save_to_server, read_from_server, delete_from_server
+from ..pns.fdi_requests import save_to_server, read_from_server, delete_from_server, post_to_server
 from ..dataset.serializable import serialize
 from ..dataset.deserialize import deserialize, serialize_args
 from .poolmanager import PoolManager
@@ -37,12 +37,18 @@ def toserver(self, method, *args, **kwds):
     # if method == 'select':
     #    __import__('pdb').set_trace()
 
-    apipath = serialize_args(method, *args, not_quoted=self.not_quoted, **kwds)
-    logger.info(apipath)
+    #apipath = serialize_args(method, *args, not_quoted=self.not_quoted, **kwds)
+    apipath = serialize([args, kwds])
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
 
     logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
-    code, res, msg = read_from_server(urn, self._poolurl, apipath)
+    if 0:  # len(apipath) < 800:
+        code, res, msg = read_from_server(urn, self._poolurl, apipath)
+    else:
+        code, res, msg = post_to_server(apipath, urn, self._poolurl,
+                                        contents=method + '__' + '/',
+                                        no_serial=True)
+
     if issubclass(res.__class__, str) and 'FAILED' in res or code != 200:
         for line in msg.split('\n'):
             excpt = line.split(':', 1)[0]
@@ -376,6 +382,27 @@ class HttpClientPool(ProductPool):
     def tagExists(self, tag):
         """
         Tests if a tag exists.
+        """
+        raise NotImplementedError
+
+    @ toServer()
+    def backup(self):
+        """
+        Returns a string of a tar file image of the remote pool.
+        """
+        raise NotImplementedError
+
+    @ toServer()
+    def restore(self, tar):
+        """
+        Restore the remote pool with the contents of the named tar file.
+        """
+        raise NotImplementedError
+
+    @ toServer()
+    def where(self, qw, prod='BaseProduct', urns=None):
+        """
+        Restore the remote pool with the contents of the named tar file.
         """
         raise NotImplementedError
 

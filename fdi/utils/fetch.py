@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from ..dataset.deserialize import deserialize_args
-from collections.abc import Mapping, Sequence
+
 from operator import methodcaller
 import inspect
-import sys
 from itertools import chain
 
 

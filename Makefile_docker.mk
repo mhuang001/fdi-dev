@@ -8,17 +8,32 @@ DOCKER_NAME	= fdi
 DOCKER_VERSION   =$(shell if [ -f docker_version ]; then cat docker_version; fi)
 DFILE	=dockerfile
 
+ifndef apache
 SERVER_NAME      =httppool
+else
+SERVER_NAME      =httppool
+endif
+
 SERVER_VERSION	= $(DOCKER_VERSION)
+ifndef apache
+SFILE	= fdi/httppool/resources/httppool_server_uwsgi.docker
+else
 SFILE	= fdi/httppool/resources/httppool_server.docker
+endif
 
 PORT        =9885
+
+ifndef apache
+SECFILE = $${HOME}/.secret-uwsgi
+else
 SECFILE = $${HOME}/.secret
+endif
+
 EXTPORT =$(PORT)
 IP_ADDR     =0.0.0.0
 PROJ_DIR	= /var/www/httppool_server
 SERVER_POOLPATH	= $(PROJ_DIR)/data
-LOGGING_LEVEL	=10
+LOGGER_LEVEL	= 30
 TEST_PORT	= 9885
 
 B       =/bin/bash
@@ -40,7 +55,6 @@ build_docker:
 	@echo Building $(DOCKER_VERSION)
 	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DOCKER_VERSION) \
 	--network=$(NETWORK) \
-	--no-cache \
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
@@ -55,7 +69,6 @@ launch_docker:
 build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SERVER_VERSION) \
 	--network=$(NETWORK) \
-	--no-cache \
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg PROJ_DIR=$(PROJ_DIR) \
 	--build-arg fd=$(fd) \
@@ -74,7 +87,7 @@ launch_server:
 	--env-file $(SECFILE) \
 	-p $(PORT):$(EXTPORT) \
 	-e HOST_PORT=$(PORT) \
-	-e LOGGING_LEVEL=$(LOGGING_LEVEL) \
+	-e LOGGER_LEVEL=$(LOGGER_LEVEL) \
 	--name $$SN $(D) $(LATEST) $(LAU)
 	sleep 2
 	#docker inspect $$SN
@@ -82,7 +95,7 @@ launch_server:
 
 launch_test_server:
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
-	$(MAKE) launch_server PORT=$(TEST_PORT) EXTPORT=$(TEST_PORT) LOGGING_LEVEL=10 #LATEST=mhastro/httppool
+	$(MAKE) launch_server PORT=$(TEST_PORT) EXTPORT=$(TEST_PORT) LOGGER_LEVEL=$(LOGGER_LEVEL) #LATEST=mhastro/httppool
 
 rm_docker:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
@@ -105,6 +118,10 @@ t:
 	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
 	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/apache/error-ps.log
 
+u:
+	@ cid=`docker ps -a|grep $(LATEST) | head -n 1 |awk '{print $$1}'` &&\
+	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
+	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/fdi/uwsgi.log
 i:
 	@ cid=`docker ps -a|grep $(LATEST) | head -n 1 | awk '{print $$1}'` &&\
 	if [ -z $$cid ]; then echo NOT running ; false; fi &&\

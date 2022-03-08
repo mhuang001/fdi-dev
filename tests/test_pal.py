@@ -234,7 +234,7 @@ def test_Urn():
 
 
 def transpath(direc, poolpath):
-    """ direc must have a leading / if base_poolpath is defined in config """
+    """ direc must have a leading / if base_local_poolpath is defined in config """
 
     return poolpath+'/'+direc
 
@@ -676,18 +676,28 @@ def test_LocalPool():
     assert deepcmp(p1._tags, p2._tags) is None
     assert deepcmp(p1._classes, p2._classes) is None
 
+    backup_restore(ps)
+
+
+def backup_restore(ps):
+    p1 = ps.getPool(ps.getPools()[0])
+    hk1 = p1.readHK()
+    cpn = p1._poolname + '_2'
+    cpu = p1._poolurl + '_2'
+    pstore = ProductStorage(pool=cpn, poolurl=cpu)
     # backup
     # the new pool is made empty
-    ps2.wipePool()
-    # save something
-    ref = ps2.save(x, tag='i think')
-    ref2 = ps2.save(x, tag='i think')
+    pstore.wipePool()
+    # register
+    pstore = ProductStorage(pool=cpn, poolurl=cpu)
+    # save something to the new pool
+    x = Product(description="This is my product 2")
+    ref = pstore.save(x, tag='i think')
+    ref2 = pstore.save(x, tag='i think')
     assert ref != ref2
     # two pools are different
-    p2 = ps2.getPool(ps2.getPools()[0])
-    assert deepcmp(p1._urns, p2._urns) is not None
-    assert deepcmp(p1._tags, p2._tags) is not None
-    assert deepcmp(p1._classes, p2._classes) is not None
+    p2 = pstore.getPool(pstore.getPools()[0])
+    assert deepcmp(hk1, p2.readHK()) is not None
 
     # make a backup tarfile
     tar = p1.backup()
@@ -700,9 +710,7 @@ def test_LocalPool():
     lst = p2.restore(tar2)
     # print(lst)
     # two pools are the same
-    assert deepcmp(p1._urns, p2._urns) is None
-    assert deepcmp(p1._tags, p2._tags) is None
-    assert deepcmp(p1._classes, p2._classes) is None
+    assert deepcmp(hk1, p2.readHK()) is None
 
 
 def mkStorage(thepoolname, thepoolurl):
@@ -914,6 +922,21 @@ def doquery(poolpath, newpoolpath):
     assert len(res) == 2, str(res)
     chk(res[0], rec1[3])
     chk(res[1], rec1[4])
+
+    q = '"n 1" in p.creator'
+    resu = thepool.where(q)
+    res = [ProductRef(u) for u in resu]
+    # [3]
+    assert len(res) == 1, str(res)
+    chk(res[0], rec1[3])
+
+    resu = thepool.where('p.meta["extra"] > 5000 and p.meta["extra"] < 5004')
+    res = [ProductRef(u) for u in resu]
+    # [1,2,3]
+    assert len(res) == 3, str(res)
+    chk(res[0], rec1[1])
+    chk(res[1], rec1[2])
+    chk(res[2], rec1[3])
 
     # report lru_cache info
     print('****** %s ' % str(type(thepool)), thepool.getCacheInfo())

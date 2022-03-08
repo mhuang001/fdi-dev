@@ -225,6 +225,7 @@ def client(server_app, mock_app):
     if server_app == None:
         yield requests
     else:
+        logger.info('**** mock_app as client *****')
         with mock_app.test_client() as client:
             with mock_app.app_context():
                 # mock_app.preprocess_request()

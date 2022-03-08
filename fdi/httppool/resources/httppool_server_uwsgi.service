@@ -1,0 +1,13 @@
+[Unit]
+Description=uWSGI instance to serve httppool_server
+After=network.target
+
+[Service]
+User=fdi
+Group=www-data
+WorkingDirectory=/home/fdi/fdi
+Environment="PATH=/home/fdi/.venv"
+ExecStart=/home/fdi/.venv/bin/uwsgi --ini /home/fdi/fdi/httppool/resources/httppool_server_uwsgi.ini
+
+[Install]
+WantedBy=multi-user.target

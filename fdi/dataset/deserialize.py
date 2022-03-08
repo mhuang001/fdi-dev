@@ -287,7 +287,7 @@ def deserialize(js, lookup=None, debug=False, usedict=True):
             # , cls=IntDecoderOD)
             obj = json.loads(js, object_pairs_hook=ODict)
     except json.decoder.JSONDecodeError as e:
-        msg = '\nBad string to decode as JSON=====>\n%s\n<======\n%s' % (
+        msg = 'Bad JSON====>\n%s\n<====\n%s' % (
             lls(js, 500), str(e))
         logging.error(msg)
         obj = msg
@@ -427,4 +427,5 @@ def deserialize_args(all_args, not_quoted=False, first_string=True, serialize_ou
                 del dese['apiargs']
             kwds = dese
             break
+    logger.debug('args %s KWDS %s' % (str(args), str(kwds)))
     return 200, args, kwds

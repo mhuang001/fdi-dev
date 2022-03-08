@@ -64,9 +64,9 @@ def init_conf_clas(pc0):
     from ..dataset.classes import Classes
     pc = pc0
     # effective group of current process
-    uid, gid = getUidGid(pc['serveruser'])
-    logger.info("Serveruser %s's uid %d and gid %d..." %
-                (pc['serveruser'], uid, gid))
+    uid, gid = getUidGid(pc['self_username'])
+    logger.info("Self_Username %s's uid %d and gid %d..." %
+                (pc['self_username'], uid, gid))
     # os.setuid(uid)
     # os.setgid(gid)
     xusers = {
@@ -97,7 +97,7 @@ def init_conf_clas(pc0):
 
 
 def setOwnerMode(p, username):
-    """ makes UID and GID set to those of serveruser given in the config file. This function is usually done by the initPTS script.
+    """ makes UID and GID set to those of self_username given in the config file. This function is usually done by the initPTS script.
     """
 
     logger.debug('set owner, group to %s, mode to 0o775' % username)

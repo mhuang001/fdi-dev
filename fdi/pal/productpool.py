@@ -256,11 +256,13 @@ When implementing a ProductPool, the following rules need to be applied:
         Saves specified product and returns the designated ProductRefs or URNs.
 
         Saves a product or a list of products to the pool, possibly under the
-        supplied tag, and returns the reference (or a list of references if
+        supplied tag(s), and returns the reference (or a list of references if
         the input is a list of products), or Urns if geturnobjs is True.
 
         See pal document for pool structure.
 
+
+        tag: a tag if given as a string type; a list of tags if given a list.
         serialize_out: if True returns contents in serialized form.
         """
 
@@ -521,7 +523,7 @@ class ManagedPool(ProductPool, DictHk):
         except KeyError:
             return 0
 
-    def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
+    def doSave(self, resourcetype, index, data, tags=None, serialize_in=True, **kwds):
         """ to be implemented by subclasses to do the action of saving
         """
         raise(NotImplementedError)
@@ -614,14 +616,24 @@ class ManagedPool(ProductPool, DictHk):
             if urn not in u:
                 u[urn] = dict(tags=[])
 
-            if tag is not None:
-                self.setTag(tag, urn)
+            if tag is None:
+                tags = []
+            elif issubclass(tag.__class__, str):
+                tags = [tag]
+            elif issubclass(tag.__class__, list):
+                tags = tag
+            else:
+                raise TypeError('Bad type for tag: %s.' %
+                                tag.__class__.__name__)
+
+            for t in tags:
+                self.setTag(t, urn)
             try:
                 # save prod and HK
                 self.doSave(resourcetype=pn,
                             index=sn,
                             data=prd,
-                            tag=tag,
+                            tags=tags,
                             serialize_in=serialize_in,
                             serialize_out=serialize_out,
                             **kwds)
@@ -914,6 +926,13 @@ class ManagedPool(ProductPool, DictHk):
                 return ret
         else:
             raise('Must give a list of ProductRef or urn or sn')
+
+    def where(self, qw, prod='BaseProduct', urns=None):
+        q = AbstractQuery(prod, 'p', qw)
+        if urns is None:
+            urns = self._urns.keys()
+        res = self.prod_filter(q, prod, urnlist=urns)
+        return [r.urn for r in res]
 
     def doSelect(self, query, results=None):
         """

@@ -67,7 +67,7 @@ logger = logging.getLogger(__name__)
 # run by scrupt startserver.
 
 pc = getConfig()
-logger.setLevel(pc['logginglevel'])
+logger.setLevel(pc['loggerlevel'])
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 if 0:

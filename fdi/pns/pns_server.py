@@ -45,10 +45,10 @@ def init_pns_module():
 
     ptsuid, ptsgid = getUidGid(pc['ptsuser'])
     uid, gid = getUidGid(pc['ptsuser'])
-    sgroup = os.getgrouplist(pc['serveruser'], gid)
+    sgroup = os.getgrouplist(pc['self_username'], gid)
     if ptsgid not in sgroup:
-        logger.error('ptsuser %s must be in the group of serveruser %s %s.' %
-                     (pc['ptsuser'], pc['serveruser'], str(sgroup)))
+        logger.error('ptsuser %s must be in the group of self_username %s %s.' %
+                     (pc['ptsuser'], pc['self_username'], str(sgroup)))
         sys.exit(2)
 
 
@@ -74,21 +74,21 @@ def _execute(cmd, input=None, timeout=10):
 
 
 def initPTS(d=None):
-    """ Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned. If input/output directories cannot be created with serveruser as owner, Error401 will be given.
+    """ Initialize the Processing Task Software by running the init script defined in the config. Execution on the server host is in the pnshome directory and run result and status are returned. If input/output directories cannot be created with self_username as owner, Error401 will be given.
     """
 
     logger.debug(str(d))
     checkpath.cache_clear()
 
     pnsh = pc['paths']['pnshome']
-    p = checkpath(pnsh, pc['serveruser'])
+    p = checkpath(pnsh, pc['self_username'])
     if p is None:
         abort(401)
 
-    pi = checkpath(pc['paths']['inputdir'], pc['serveruser'])
+    pi = checkpath(pc['paths']['inputdir'], pc['self_username'])
     if pi is None:
         abort(401)
-    po = checkpath(pc['paths']['outputdir'], pc['serveruser'])
+    po = checkpath(pc['paths']['outputdir'], pc['self_username'])
     if po is None:
         abort(401)
 
@@ -110,12 +110,12 @@ def testinit(d=None):
     checkpath.cache_clear()
 
     pnsh = pc['paths']['pnshome']
-    p = checkpath(pnsh, pc['serveruser'])
+    p = checkpath(pnsh, pc['self_username'])
     if p is None:
         abort(401)
 
-    pi = checkpath(pc['paths']['inputdir'], pc['serveruser'])
-    po = checkpath(pc['paths']['outputdir'], pc['serveruser'])
+    pi = checkpath(pc['paths']['inputdir'], pc['self_username'])
+    po = checkpath(pc['paths']['outputdir'], pc['self_username'])
     if pi is None or po is None:
         abort(401)
 
@@ -266,12 +266,12 @@ def run(d, processinput=None, processoutput=None):
     global lupd
 
     pnsh = pc['paths']['pnshome']
-    p = checkpath(pnsh, pc['serveruser'])
+    p = checkpath(pnsh, pc['self_username'])
     if p is None:
         abort(401)
 
-    pi = checkpath(pc['paths']['inputdir'], pc['serveruser'])
-    po = checkpath(pc['paths']['outputdir'], pc['serveruser'])
+    pi = checkpath(pc['paths']['inputdir'], pc['self_username'])
+    po = checkpath(pc['paths']['outputdir'], pc['self_username'])
     if pi is None or po is None:
         abort(401)
 

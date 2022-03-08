@@ -25,7 +25,8 @@ RUN echo ${PATH}
 ARG PROJ_DIR
 ENV SERVER_POOLPATH=${PROJ_DIR}/data
 ENV LOGGING_LEVEL=20
-ENV API_BASE=/fdi
+ARG API_BASE=/fdi
+ENV API_BASE=${API_BASE}
 RUN mkdir -p ${PROJ_DIR}/data
 
 # convinience aliases

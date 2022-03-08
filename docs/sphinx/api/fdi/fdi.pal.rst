@@ -9,6 +9,14 @@ fdi.pal package
 Submodules
 ----------
 
+fdi.pal.backup module
+---------------------
+
+.. automodule:: fdi.pal.backup
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.pal.comparable module
 -------------------------
 

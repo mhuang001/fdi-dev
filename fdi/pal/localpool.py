@@ -296,7 +296,7 @@ class LocalPool(ManagedPool):
                                   index=index)
         return deserialize(m)  # self._urns[urn]['meta']
 
-    def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
+    def doSave(self, resourcetype, index, data, tags=None, serialize_in=True, **kwds):
         """
         does the media-specific saving.
 
@@ -389,9 +389,11 @@ class LocalPool(ManagedPool):
         """ make a tarfile string into a string """
 
         fp0 = self.transformpath(self._poolname)
+        logger.info('Making a gz tar file of %s for pool %s.' %
+                    (fp0, self._poolname))
         with filelock.FileLock(self.lockpath('r')):
+            # Save unsaved changes
             self.writeHK(fp0)
-
             with io.BytesIO() as iob:
                 with tarfile.open(None, 'w|gz', iob) as tf:
                     tar = tf.add(fp0, arcname='.')
@@ -399,7 +401,7 @@ class LocalPool(ManagedPool):
         return file_image
 
     def restore(self, tar):
-        """untar the input file to this pool."""
+        """untar the input file to this pool and return the file list."""
 
         with filelock.FileLock(self.lockpath('w')):
             fp0 = self.transformpath(self._poolname)
@@ -408,7 +410,10 @@ class LocalPool(ManagedPool):
                 with tarfile.open(None, 'r|gz', iob) as tf:
                     tf.extractall(fp0)
             allf = find_all_files(fp0)
+            # read into memory
             self._classes, self._tags, self._urns, = tuple(
                 self.readHK().values())
+        logger.info('Restored from a gz tar file to %s for pool %s. %d files.' %
+                    (fp0, self._poolname, len(allf)))
 
         return allf

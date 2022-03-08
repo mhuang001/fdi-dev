@@ -1,0 +1,83 @@
+# syntax=docker/dockerfile:1.2
+
+FROM fdi:latest
+# 0.2-5 M. Huang <mhuang@nao.cas.cn>
+# 0.1 yuxin<syx1026@qq.com>
+
+USER root
+RUN apt-get update \
+&& apt-get install -y curl \
+&& rm -rf /var/lib/apt/lists/*
+
+# setup user
+ARG USR=fdi
+ARG UHOME=/home/${USR}
+
+# rebuild mark
+ARG re=rebuild
+
+WORKDIR ${UHOME}
+# use fdi's virtual env path. this effectively activates fdi's virtuakenv
+# ENV PATH="${FDIVENV}:${UHOME}/.local/bin:$PATH"
+RUN echo ${PATH}
+
+# setup config files
+ARG PROJ_DIR
+ENV SERVER_POOLPATH=${PROJ_DIR}/data
+ENV LOGGING_LEVEL=20
+ENV API_BASE=/fdi
+RUN mkdir -p ${PROJ_DIR}/data
+
+# convinience aliases
+COPY --chown=root:root fdi/httppool/resources/httppool_server_uwsgi.service /etc/systemd/system
+# /var/log will on volume and the touched log files here will not be accessible.
+RUN mkdir -p /var/log/uwsgi \
+&& touch /var/log/uwsgi/uwsgi.log \
+&& touch /var/log/uwsgi/access.log \
+&& touch /var/log/uwsgi/error.log \
+&& ln -s /var/log/uwsgi/uwsgi.log . \
+&& ln -s /var/log/uwsgi/access.log . \
+&& ln -s /var/log/uwsgi/error.log . \
+&& ln -s /etc/systemd/system/httppool_server_uwsgi.service . \
+&& ln -s  ${SERVER_POOLPATH} data
+
+# Configure permission
+RUN for i in  ${PROJ_DIR} /var/log/uwsgi ${UHOME}/*; \
+do chown -R ${USR}:${USR} $i; echo $i owner ${USR}; done
+
+WORKDIR ${UHOME}
+
+USER ${USR}
+
+# httppool_server_entrypoint_uwsgi.sh is used for replacing apache listen ports and configurations of httppool_server.
+
+COPY --chown=${USR}:${USR} fdi/httppool/resources/httppool_server_entrypoint_uwsgi.sh .
+RUN chmod 755 ./httppool_server_entrypoint_uwsgi.sh
+
+# config software
+
+# update ~/.config/pnslocal.py so test can be run with correct setting
+RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
+&& sudo chown ${USR} ./envs \
+&& cat ./envs \
+&& for i in `cat ./envs`; do export $i; done \
+&& rm ./envs \
+&& ./httppool_server_entrypoint_uwsgi.sh no-run
+
+
+WORKDIR ${UHOME}
+COPY fdi/httppool/resources/httppool_server_uwsgi.ini .
+
+VOLUME /var/log ${SERVER_POOLPATH}
+
+USER ${USR}
+RUN /bin/ls -la; echo $PATH \
+date > build
+
+ENTRYPOINT  ["/home/fdi/httppool_server_entrypoint_uwsgi.sh"]
+#CMD ["uwsgi --master --module wsgi:app --processes 1"]
+CMD ["uwsgi --http 0.0.0.0:9885 --master --module wsgi:app --logger file:/var/log/uwsgi/uwsgi.log --processes 1"]
+#
+ARG SERVER_VERSION
+LABEL PoolServer ${SERVER_VERSION}
+ENV SERVER_VERSION=${SERVER_VERSION}

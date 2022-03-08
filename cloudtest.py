@@ -1,15 +1,15 @@
 import logging
 import os
-import pdb
 import sys
 
+# from fdi.pal.productpool import ManagedPool
+# from .urn import makeUrn
+import fdi.dataset.product
 from fdi.dataset.arraydataset import ArrayDataset
 from fdi.dataset.product import Product
 from fdi.dataset.serializable import serialize
-from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productpool import ManagedPool
 from fdi.pal.productref import ProductRef
-from fdi.pal.productstorage import ProductStorage
 from fdi.pal.urn import makeUrn, parse_poolurl, Urn, parseUrn
 from fdi.pns.public_fdi_requests import read_from_cloud, load_from_cloud
 from fdi.utils.common import fullname, lls, trbk
@@ -58,15 +58,12 @@ class PublicClientPool(ManagedPool):
     def setPoolurl(self, poolurl):
         """ Replaces the current poolurl of this pool.
             For cloud pool, there are also self._cloudpoolpath and self._cloudpoolname
-            csdb:///poolbs
-            self._poolpath, self._scheme, self._poolname = '', 'csdb', 'poolbs'
         """
         s = (not hasattr(self, '_poolurl') or not self._poolurl)
         self._poolpath, self._scheme, self._place, \
         self._poolname, self._username, self._password = \
             parse_poolurl(poolurl)
-        if self._scheme == '' or self._scheme == None:
-            self._scheme = 'csdb'
+
         self._cloudpoolpath = self._poolpath + '/' + self._poolname
         self._cloudpoolname = self._poolpath.replace('/', '')
         self._poolurl = poolurl
@@ -81,6 +78,8 @@ class PublicClientPool(ManagedPool):
             return self._poolpath
 
     def getToken(self):
+        # import pprint
+        # pprint.pprint(pcc)
         TOKEN_PATH = pcc['cloud_token']
 
         if os.path.exists(TOKEN_PATH):
@@ -100,32 +99,6 @@ class PublicClientPool(ManagedPool):
                 self.token = tokenMsg['data']['token']
             else:
                 return tokenMsg['msg']
-
-    def poolExists(self):
-        res = read_from_cloud('existPool', poolname=self.poolname, token=self.token)
-        if res['msg'] == 'success':
-            return True
-        else:
-            return False
-
-    def restorePool(self):
-        res = read_from_cloud('restorePool', poolname=self.poolname, token=self.token)
-        if res['msg'] == 'success':
-            return True
-        else:
-            return False
-
-    def createPool(self):
-        res = read_from_cloud('createPool', poolname=self.poolname, token=self.token)
-
-        if res['msg'] == 'success':
-            return True
-        elif res['msg'] == 'The storage pool already exists. Change the storage pool name':
-            return True
-        elif res['msg'] == 'The storage pool name already exists in the recycle bin. Change the storage pool name':
-            raise ValueError(res['msg'] + ', please restore pool ' + self.poolname + ' firstly.')
-        else:
-            return False
 
     def getPoolInfo(self):
         # TODO: waiting for updating get poolpath like poolbs
@@ -170,19 +143,21 @@ class PublicClientPool(ManagedPool):
         """
         Return the number of URNs for the product type.
         """
+        # import pdb
+        # pdb.set_trace()
         try:
             if self.poolInfo:
-                return len(self.poolInfo[typename]['indexes'])
+                return len(self.poolInfo[typename]['indexs'])
             else:
                 self.getPoolInfo()
-                return len(self.poolInfo[typename]['indexes'])
+                return len(self.poolInfo[typename]['indexs'])
         except KeyError:
             return 0
 
-    # def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
-    #     """ to be implemented by subclasses to do the action of saving
-    #     """
-    #     raise (NotImplementedError)
+    def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
+        """ to be implemented by subclasses to do the action of saving
+        """
+        raise (NotImplementedError)
 
     def isEmpty(self):
         """
@@ -233,18 +208,19 @@ class PublicClientPool(ManagedPool):
             pn = prd.rsplit('"', 2)[1]
             cls = Class_Look_Up[pn]
             pn = fullname(cls)
-
+        # import pdb
+        # pdb.set_trace()
         datatype = self.getDataType()
         if pn not in datatype:
             raise ValueError('No such product type in cloud: ' + pn)
 
         targetPoolpath = self.getPoolpath() + '/' + pn
         poolInfo = read_from_cloud('infoPool', poolpath=targetPoolpath, token=self.token)
-        if poolInfo['data'].get(targetPoolpath):
-            sn = poolInfo['data'][targetPoolpath]['lastIndex'] + 1
+        if poolInfo.get(targetPoolpath):
+            sn = poolInfo[targetPoolpath]['lastIndex'] + 1
         else:
             sn = 0
-        # __import__("pdb").set_trace()
+
         urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
 
         try:
@@ -257,7 +233,6 @@ class PublicClientPool(ManagedPool):
                                         serialize_in=serialize_in,
                                         serialize_out=serialize_out,
                                         **kwds)
-
             else:
                 uploadRes = self.doSave(resourcetype=pn,
                                         index=sn,
@@ -270,7 +245,6 @@ class PublicClientPool(ManagedPool):
             msg = 'product ' + urn + ' saving failed.' + str(e) + trbk(e)
             logger.debug(msg)
             raise e
-
         if uploadRes['msg'] != 'success':
             raise Exception('Upload failed: ' + uploadRes['msg'])
         else:
@@ -285,7 +259,7 @@ class PublicClientPool(ManagedPool):
         else:
             # import pdb
             # pdb.set_trace()
-            rf = ProductRef(urn=Urn(urn, poolurl=self.poolurl))
+            rf = ProductRef(urn=Urn(urn))
             if serialize_out:
                 # return without meta
                 res.append(rf)
@@ -300,9 +274,7 @@ class PublicClientPool(ManagedPool):
             :serialize_out: if True returns contents in serialized form.
         """
         res = []
-        if not self.poolExists():
-            # Create pool
-            self.createPool()
+
         if serialize_in:
             alist = issubclass(products.__class__, list)
             if not alist:
@@ -416,9 +388,9 @@ class PublicClientPool(ManagedPool):
     def doRemove(self, resourcetype, index):
         """ to be implemented by subclasses to do the action of reemoving
         """
-        path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
+        path = self._cloudpoolpath + '/' + str(index)
         res = read_from_cloud('remove', token=self.token, path=path)
-        print("index: " + str(index) + " remove result: "+str(res) + ' from : ' + path)
+        print("index: " + str(index) + " remove result: "+str(res))
         return res['msg']
         # if res['msg'] != 'success':
         #     logger.debug(res['msg'])
@@ -428,42 +400,10 @@ class PublicClientPool(ManagedPool):
         poolname, resource, index = parseUrn(urn)
         return self.doRemove(resource, index)
 
-    def schematicWipe(self):
-        self.doWipe()
-
     def doWipe(self):
         """ to be implemented by subclasses to do the action of wiping.
         """
-        # res = read_from_cloud('wipePool', poolname=self.poolname, token=self.token)
-        # if res['msg'] != 'success':
-        #     raise ValueError('Wipe pool ' + self.poolname + ' failed: ' + res['msg'])
-        info = self.getPoolInfo()
-        pdb.set_trace()
-        if isinstance(info, dict):
-            for classes in info:
-                for index in info[classes]['indexes']:
-                    urn = 'urn' + info[classes]['path'].replace('/', ':') + ':' + str(index)
-                    res = self.remove(urn)
-                    assert res in ['Not found resource.', 'success']
-
-    def setTag(self, tag,  urn):
-        u = urn.urn if issubclass(urn.__class__, Urn) else urn
-        if not self.exists(urn):
-            raise ValueError('Urn does not exists!')
-        if isinstance(tag, str) and len(tag) > 0:
-            res = read_from_cloud('addTag', token=self.token, tags=tag, urn=u)
-            if res['msg'] != 'OK':
-                raise ValueError('Set tag to ' + urn + ' failed: ' + res['msg'])
-        else:
-            raise ValueError('Tag can not be empty or non-string!')
-
-    def getTags(self, urn=None):
-        u = urn.urn if issubclass(urn.__class__, Urn) else urn
-        res = read_from_cloud('infoUrn', urn=u, token=self.token)
-        if res['code'] == 0:
-            return res['data'][u]['tags']
-        else:
-            raise ValueError('Read tags failed due to : ' + res['msg'])
+        raise (NotImplementedError)
 
     def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
         """ returns filtered collection using the query.
@@ -514,53 +454,43 @@ def genProduct(size=1):
 # <MetaQuery where='m["extra"] > 5000 and m["extra"] <= 5005', type=<class 'fdi.dataset.product.Product'>, variable='m', allVersions=False>
 
 def test_getToken():
-    poolurl = 'csdb:///poolbs'
+    poolurl = 'cloud:///poolbs'
     test_pool = PublicClientPool(poolurl=poolurl)
     tokenFile = open(pcc['cloud_token'], 'r')
     token = tokenFile.read()
     tokenFile.close()
     assert token == test_pool.token, "Tokens are not equal or not synchronized"
 
+
 def test_poolInfo():
-    poolurl = 'csdb:///poolbs/fdi.dataset.product.Product'
+    poolurl = 'cloud:///poolbs'
     test_pool = PublicClientPool(poolurl=poolurl)
-    test_pool.getPoolInfo()
-    print(test_pool.poolInfo)
 
 
 def test_upload():
-    poolurl = 'csdb:///poolbs'
-    poolname = 'poolbs'
-
-    pstore = ProductStorage(poolname=poolname, poolurl=poolurl)
-    test_pool = pstore.getPool(poolname)
-    # PoolManager.getPool(poolurl=urnobj.getScheme() + ':///' + urnobj.getPool())
-
+    poolurl = 'cloud:///poolbs'
+    test_pool = PublicClientPool(poolurl=poolurl)
     prd = genProduct()
-    res = pstore.save(prd)
+    res = test_pool.schematicSave(prd)
     # urn:poolbs:fdi.dataset.product.Product:x
-    assert res.urn.startswith('urn:poolbs:fdi.dataset.product.Product')
+    print(res)
+    assert res.urn == 'urn:defaultmem:fdi.dataset.product.Product:0'
 
 
 def test_multi_upload():
-    poolurl = 'csdb:///poolbs'
+    poolurl = 'cloud:///poolbs'
     test_pool = PublicClientPool(poolurl=poolurl)
     prds = genProduct(3)
     res = test_pool.schematicSave(prds)
-    assert len(res) == 3
-    for ref in res:
-        assert ref.urn.startswith('urn:poolbs:fdi.dataset.product.Product')
 
 
 def test_count():
-    poolurl = 'csdb:///poolbs/fdi.dataset.product.Product'
+    poolurl = 'cloud:///poolbs'
     test_pool = PublicClientPool(poolurl=poolurl)
-    count = test_pool.getCount('fdi.dataset.product.Product')
-    assert count == 16
 
 
 def test_get():
-    poolurl = 'csdb:///poolbs'
+    poolurl = 'cloud:///poolbs'
     test_pool = PublicClientPool(poolurl=poolurl)
     prd = test_pool.schematicLoad('fdi.dataset.product.Product', 1)
     assert prd.description == 'product example with several datasets', 'retrieve production incorrect'
@@ -569,14 +499,17 @@ def test_get():
 
 
 def test_remove():
-    poolurl = 'csdb:///poolbs/fdi.dataset.product.Product'
+    poolurl = 'cloud:///poolbs/fdi.dataset.product.Product'
     test_pool = PublicClientPool(poolurl=poolurl)
     info = test_pool.getPoolInfo()
     print(info)
     for i in info['/poolbs/fdi.dataset.product.Product']['indexes']:
         urn = 'urn:poolbs:fdi.dataset.product.Product:' + str(i)
         res = test_pool.remove(urn)
-        assert res in ['Not found resource.', 'success']
+        if i == 0:
+            assert res == 'Not found resource.'
+        else:
+            assert res == 'success'
     info = test_pool.getPoolInfo()
     print(info)
 
@@ -589,12 +522,9 @@ def test_search():
 
 
 # =================SAVE REMOVE LOAD================
-# test_getToken2()
-# test_poolInfo()
 test_upload()
 # test_get()
 # test_remove()
-# test_multi_upload()
 # prd = genProduct(1)
 # res = cp.schematicSave(prd)
 # cp.schematicRemove('urn:poolbs:20211018:4')

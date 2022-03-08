@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from test_pal import backup_restore
+
 
 from fdi.dataset.product import Product
 from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.eq import deepcmp
+
 from fdi.dataset.deserialize import serialize_args, deserialize_args
 from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.pal.productstorage import ProductStorage
@@ -133,6 +136,14 @@ def test_gen_url(server):
     webapi_url = aburl + '/' + samplepoolname + '/' + 'api/' + call
     # '/'
     assert got_webapi_url == webapi_url + '/', 'Get WebAPI url error: ' + got_webapi_url
+
+    logger.info('Post WebAPI url')
+    call = 'tagExists__foo'
+    got_post_api_url = urn2fdiurl(
+        urn=sampleurn, poolurl=samplepoolurl, contents=call, method='POST')
+    post_api_url = aburl + '/' + samplepoolname+'/' + 'api/' + 'tagExists/'
+    assert got_post_api_url == post_api_url, 'Post WebAPI url error: ' + \
+        got_post_api_url
 
     logger.info('Post product url')
     got_post_product_url = urn2fdiurl(
@@ -265,7 +276,7 @@ def make_pools(name, aburl, n=1):
     return lst[0] if n == 1 else lst
 
 
-def est_Product_path_client(server, local_pools_dir):
+def test_webapi_backup_restore(server):
     """
     """
     aburl, headers = server
@@ -275,17 +286,14 @@ def est_Product_path_client(server, local_pools_dir):
     poolurl = aburl + '/' + poolid
     pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
 
+    logger.info('Bacckup/restore a pool on the server.')
+
     if PoolManager.isLoaded(DEFAULT_MEM_POOL):
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
     # this will also register the server side
     pstore = ProductStorage(pool=pool)
+    backup_restore(pstore)
 
-    x = Product(description='desc test')
-    urn = pstore.save(x, geturnobjs=True)
-    pool1 = HttpClientPool(poolname=poolid + 'x', poolurl=poolurl + 'x')
-    pstore.register(pool=pool1)
-
-    logger.info('Delete all pools on the server.')
 
 
 from fdi.dataset.arraydataset import ArrayDataset
@@ -413,3 +421,4 @@ def test_wipe(csdb):
 def test_deletePool(csdb):
     test_pool, url = csdb
     assert test_pool.schematicWipe() is None, 'Delete test pool'
+

@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  version: 1.1.0
+  version: 1.2.0
   description: This is an API description of the HTTPPool Server for FDI (Flexible Dataset Integrator)
   title: fdi poolserver
   contact:
@@ -39,8 +39,8 @@ servers:
         default: '9885'
         description: 9881 for testing; 9885 for production.
       basePath:
-        default: fdi/v0.12
-  - url: 'http://10.0.10.114:9885/fdi/v0.12'
+        default: fdi/v0.13
+  - url: 'http://10.0.10.114:9885/fdi/v0.13'
     description: httppool api production flask-wsgi-apache2 version
 security:
   - BasicAuth: []
@@ -431,6 +431,29 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Pool'
         - $ref: '#/components/parameters/Method_args'
+      responses:
+        '200':
+          description: Specified API called and returned OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponseContents'
+    post:
+      summary: 'Call api mathods on the running pool and returns the result where method_args only has {method}__ and full call expression is in POST data.'
+      tags:
+        - Pool
+      description: 'Call api mathods, with optional args, on the running pool and returns the result.'
+      operationId: api
+      parameters:
+        - $ref: '#/components/parameters/Pool'
+        - $ref: '#/components/parameters/Method_args'
+      requestBody:
+        description: ' ''{method}__'' + args of full call expression.'
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
       responses:
         '200':
           description: Specified API called and returned OK.

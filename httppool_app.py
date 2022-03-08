@@ -15,6 +15,7 @@ from flasgger import Swagger
 from flask import Flask
 
 import sys
+import argparse
 
 #sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
@@ -24,22 +25,18 @@ if __name__ == '__main__':
 
     import logging
     logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
     # default configuration is provided. Copy config.py to ~/.config/pnslocal.py
 
     pc = getconfig.getConfig()
 
-    lev = pc['logginglevel']
-    logging = setup_logging(lev if lev > logging.WARN else logging.WARN)
-    logger = logging.getLogger()
-    logger.setLevel(lev)
-    logger.info(
-        'Server starting. Make sure no other instance is running. logging level '+str(lev))
+    #lev = pc['loggerlevel']
+    #logging = setup_logging(lev if lev < logging.WARN else logging.WARN)
 
     # Get username and password and host ip and port.
 
-    from argparse import ArgumentParser
-
-    parser = ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument('-v', '--verbose', default=False,
                         action='store_true', help='Be verbose.')
@@ -67,11 +64,14 @@ if __name__ == '__main__':
 
     if verbose:
         logger.setLevel(logging.DEBUG)
-        pc['logginglevel'] = logging.DEBUG
-    logger.info('logging level %d' % (logger.getEffectiveLevel()))
+        pc['loggerlevel'] = logging.DEBUG
     print('Check ' + pc['scheme'] + '://' + pc['self_host'] +
           ':' + str(pc['self_port']) + pc['api_base'] +
           '/apidocs' + ' for API documents.')
+
+    lev = logger.getEffectiveLevel()
+    logger.info(
+        'Server starting. Make sure no other instance is running. Initial logging level '+str(lev))
 
     if servertype == 'pns':
         print('======== %s ========' % servertype)
@@ -79,7 +79,7 @@ if __name__ == '__main__':
         sys.exit(1)
     elif servertype == 'httppool_server':
         print('<<<<<< %s >>>>>' % servertype)
-        app = create_app(pc, logger)
+        app = create_app(pc)  # , level)
     else:
         logger.error('Unknown server %s' % servertype)
         sys.exit(-1)

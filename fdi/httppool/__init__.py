@@ -21,6 +21,7 @@ from werkzeug.routing import RoutingException, Map
 
 import builtins
 from collections import ChainMap
+from os.path import expandvars
 import sys
 import json
 import time
@@ -32,19 +33,21 @@ import os
 global logging
 
 
-def setup_logging(level=None):
+def setup_logging(level=None, extras=None):
     import logging
     from logging.config import dictConfig
     from logging.handlers import QueueListener
     import queue
     que = queue.Queue(-1)  # no limit on size
 
-    fmt = dict(format='%(asctime)s'
+    if extras is None:
+        extras = logging.WARNING
+    fmt = dict(format='%(asctime)s.%(msecs)03d'
                ' %(process)d %(thread)6d '
                ' %(levelname)4s'
                ' %(filename)6s:%(lineno)3s'
                ' %(funcName)10s() - %(message)s',
-               datefmt="%Y%m%d %H:%M:%S.%f")
+               datefmt="%Y%m%d %H:%M:%S")
     dict_config = dictConfig({
         'version': 1,
         'formatters': {'default': fmt},
@@ -85,10 +88,10 @@ def setup_logging(level=None):
         logging_listener.start()
     #logging.basicConfig(stream=sys.stdout, **fmt)
     # create logger
-    logging.getLogger("requests").setLevel(level)
-    logging.getLogger("filelock").setLevel(level)
+    logging.getLogger("requests").setLevel(extras)
+    logging.getLogger("filelock").setLevel(extras)
     if sys.version_info[0] > 2:
-        logging.getLogger("urllib3").setLevel(level)
+        logging.getLogger("urllib3").setLevel(extras)
     return logging
 
 ########################################
@@ -120,9 +123,7 @@ def init_conf_classes(pc, lggr):
 def init_httppool_server(app):
     """ Init a global HTTP POOL """
 
-    app.logger.setLevel(app.config['LOGGER_LEVEL'])
-
-    # local.py config
+    # get settings from ~/.config/pnslocal.py config
     pc = app.config['PC']
     # class namespace
     Classes = init_conf_classes(pc, app.logger)
@@ -131,9 +132,11 @@ def init_httppool_server(app):
 
     # users
     # effective group of current process
-    uid, gid = getUidGid(pc['serveruser'])
-    app.logger.info("Serveruser %s's uid %d and gid %d..." %
-                    (pc['serveruser'], uid, gid))
+
+    uid, gid = getUidGid(pc['self_username'])
+
+    app.logger.info("Self_Username: %s uid %d and gid %d..." %
+                    (pc['self_username'], uid, gid))
     # os.setuid(uid)
     # os.setgid(gid)
     app.config['USERS'] = getUsers(pc)
@@ -150,47 +153,69 @@ def init_httppool_server(app):
 
     # pool-related paths
     # the httppool that is local to the server
-    scheme = pc['server_scheme']
-    if scheme == 'server':
-        _basepath = PM.PlacePaths[scheme]
-        poolpath_base = os.path.join(_basepath, pc['api_version'])
+    scheme = 'server'
+    _basepath = PM.PlacePaths[scheme]
+    full_base_local_poolpath = os.path.join(_basepath, pc['api_version'])
 
-        if checkpath(poolpath_base, pc['serveruser']) is None:
-            msg = 'Store path %s unavailable.' % poolpath_base
-            app.logger.error(msg)
-            return None
-    elif scheme == 'csdb':
-        pass
+    if checkpath(full_base_local_poolpath, pc['self_username']) is None:
+        msg = 'Store path %s unavailable.' % full_base_local_poolpath
+        app.logger.error(msg)
+        return None
 
     app.config['POOLSCHEME'] = scheme
-    app.config['POOLPATH_BASE'] = poolpath_base
-    app.config['POOLURL_BASE'] = scheme + '://' + poolpath_base + '/'
+
+    # e.g. "/tmp/data/v0.13"
+    app.config['FULL_BASE_LOCAL_POOLPATH'] = full_base_local_poolpath
+    app.config['POOLURL_BASE'] = scheme + \
+        '://' + full_base_local_poolpath + '/'
 
 
 ######################################
 #### Application Factory Function ####
 ######################################
 
-
-def create_app(config_object=None, logger=None):
-
-    if logger is None:
-        logging = setup_logging()
-        logger = logging.getLogger(__name__)
-
+def create_app(config_object=None, level=None):
+    """ If args have logger level, use it; else if enivronment car FLASK_ENV is set, use $ENV settings; else use 'development' pnslocal.py config.
+    """
     config_object = config_object if config_object else getconfig.getConfig()
-    logger.setLevel(int(config_object['logginglevel']))
+    logging = setup_logging(level)
+    logger = logging.getLogger('httppool_app')
+    if level is None:
+        if 'FLASK_ENV' not in os.environ:
+            # env var not set
+            logger.info('FLASK_ENV not found in environment')
+            level = config_object['loggerlevel']
+        else:
+            level = logging.WARNING
+    logger.setLevel(level)
+    app = Flask('HttpPool', instance_relative_config=True)
+    app.logger = logger
+    if 'FLASK_ENV' in os.environ:
+        if app.config['ENV'] == 'production':
+            level = logging.INFO
+            logger.setLevel(level)
+            logger.info('ENV %s DEBUG %s' %
+                        (app.config['ENV'], app.config['DEBUG']))
+        else:
+            # development
+            level = logging.DEBUG
+            logger.setLevel(level)
+            logger.info('ENV %s DEBUG %s' %
+                        (app.config['ENV'], app.config['DEBUG']))
+            from werkzeug.debug import DebuggedApplication
+            app.wsgi_app = DebuggedApplication(app.wsgi_app, True)
+            app.debug = True
+            app.config['PROPAGATE_EXCEPTIONS'] = True
 
-    app = Flask(__name__, instance_relative_config=True)
-
-    from flask.logging import default_handler
+    # from flask.logging import default_handler
     # app.logger.removeHandler(default_handler)
+    app.config['LOGGER_LEVEL'] = logger.getEffectiveLevel()
 
     app.config['SWAGGER'] = {
         'title': 'FDI %s HTTPpool Server' % __version__,
         'universion': 3,
         'openapi': '3.0.3',
-        'specs_route': config_object['api_base'] + '/apidocs/'
+        'specs_route': config_object['baseurl'] + '/apidocs/'
     }
     swag['servers'].insert(0, {
         'description': 'As in config file and server command line.',
@@ -202,11 +227,12 @@ def create_app(config_object=None, logger=None):
     swagger = Swagger(app, config=swag, merge=True)
     # swagger.config['specs'][0]['route'] = config_object['api_base'] + s1
     app.config['PC'] = config_object
-    app.config['LOGGER_LEVEL'] = logger.getEffectiveLevel()
-    app.logger = logger
 
     with app.app_context():
         init_httppool_server(app)
+    logger.info('Server initialized. logging level ' +
+                str(app.logger.getEffectiveLevel()))
+
     # initialize_extensions(app)
     # register_blueprints(app)
 

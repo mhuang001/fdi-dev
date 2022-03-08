@@ -37,8 +37,8 @@ def run_proc(cmd, as_user, pwdir, timeout):
 
         executable = None
 
-        # /etc/sudoer: apache ALL:(vvpp) NOPASSWD: ALL
-        # gpasswd -a vvpp apache
+        # /etc/sudoer: fdi ALL:(vvpp) NOPASSWD: ALL
+        # gpasswd -a xxxx fdi
         # cmd = ['sudo', '-u', as_user, 'bash', '-l', '-c'] + cmd
         # cmd = ['sudo', '-u', as_user] + cmd
         logger.debug('Popen %s env:%s uid: %d gid:%d' %

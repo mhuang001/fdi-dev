@@ -44,6 +44,7 @@ class DictHk(Taggable):
         Gets the URNs corresponding to the given tag. Returns an empty list if tag does not exist.
         curl -X GET "http://123.56.102.90:31702/csdb/v1/storage/info?urns=urn%3Apoolbs%3A20211018%3A1" -H "accept: */*"
         """
+        # TODO: return all urna if tag is none?
         if tag not in self._tags:
             return []
         return self._tags[tag]['urns']
@@ -59,12 +60,14 @@ class DictHk(Taggable):
         """
         Remove the given key.
         """
-        vals = themap.pop(key, None)
+        vals = themap.pop(key, [])
         # remove all items whose v is key in the otherosit map
         for val in vals[othername]:
             othermap[val][thename].remove(key)
+            # if we have just removed the last key, remove the empty dict
             if len(othermap[val][thename]) == 0:
                 othermap[val].pop(thename)
+                # if this caused the othermap[val] to be empty, remove the empty dict
                 if len(othermap[val]) == 0:
                     othermap.pop(val)
 

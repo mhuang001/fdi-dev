@@ -38,11 +38,13 @@ echo =====  .config/pnslocal.py >> ~/last_entry.log
 grep ^conf  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^EXTHOST  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^EXTPORT  ~/.config/pnslocal.py >> ~/last_entry.log
+grep ^EXTUSER  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SELF_HOST  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SELF_PORT  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SELF_USER  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^BASE_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
+grep ^API_BASE  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SERVER_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
+grep ^LOGGER_LEVEL  ~/.config/pnslocal.py >> ~/last_entry.log
 
 if [ ! -d /var/log/uwsgi ]; then \
 sudo mkdir -p /var/log/uwsgi && \

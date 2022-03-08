@@ -29,6 +29,16 @@ sed -i "s/^conf\s*=\s*.*$/conf = 'external'/g" ~/.config/pnslocal.py
 
 echo =====  .config/pnslocal.py >> ~/lastent
 grep ^conf  ~/.config/pnslocal.py >> ~/lastent
+grep ^EXTHOST  ~/.config/pnslocal.py >> ~/lastent
+grep ^EXTPORT  ~/.config/pnslocal.py >> ~/lastent
+grep ^EXTUSER  ~/.config/pnslocal.py >> ~/lastent
+grep ^SELF_HOST  ~/.config/pnslocal.py >> ~/lastent
+grep ^SELF_PORT  ~/.config/pnslocal.py >> ~/lastent
+grep ^SELF_USER  ~/.config/pnslocal.py >> ~/lastent
+grep ^API_BASE  ~/.config/pnslocal.py >> ~/last_entry.log
+grep ^BASE_POOLPATH  ~/.config/pnslocal.py >> ~/lastent
+grep ^SERVER_POOLPATH  ~/.config/pnslocal.py >> ~/lastent
+grep ^LOGGER_LEVEL  ~/.config/pnslocal.py >> ~/lastent
 
 rm -rf /tmp/fditest* /tmp/data
 

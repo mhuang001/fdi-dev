@@ -4,9 +4,13 @@ id | tee ~/last_entry.log
 echo ######                                                                     
 s=${HOST_IP:=`ifconfig -a | grep "inet" | grep -v 127.0.0.1 | grep -v "inet6" | awk '{print $2}'`}
 
-# if note set. use WARNING
+# if note set. level use WARNING
 s=${LOGGER_LEVEL:=30}
-
+s=${HOST_PORT:=9885}
+s=${HOST_USER:=ro}
+s=${HOST_PASS:=only5%}
+s=${SELF_USER:=apache}
+# TODO: SELF_PASS to be removed?
 sed -i "s/^LOGGER_LEVEL =.*$/LOGGER_LEVEL = $LOGGER_LEVEL/g" ~/.config/pnslocal.py
 
 #HOST_PORT=${SERVER_PORT}

@@ -76,7 +76,7 @@ build_server:
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
 	--build-arg SERVER_VERSION=$(SERVER_VERSION) \
-	-e API_BASE=$(API_BASE) \
+	--build-arg API_BASE=$(API_BASE) \
 	-f $(SFILE) \
 	$(D) --progress=plain .
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
@@ -91,6 +91,7 @@ launch_server:
 	-p $(PORT):$(EXTPORT) \
 	-e HOST_PORT=$(PORT) \
 	-e LOGGER_LEVEL=$(LOGGER_LEVEL) \
+	-e API_BASE=$(API_BASE) \
 	--name $$SN $(D) $(LATEST) $(LAU)
 	sleep 2
 	#docker inspect $$SN

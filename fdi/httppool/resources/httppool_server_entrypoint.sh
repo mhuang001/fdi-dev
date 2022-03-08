@@ -56,6 +56,16 @@ grep ^SELF_PORT  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^BASE_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SERVER_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
 
+if [ ! -d /var/log/apache2 ]; then \
+sudo mkdir -p /var/log/apache2 && \
+sudo chown -R fdi /var/log/apache2 && \
+sudo chgrp -R fdi /var/log/apache2 && \
+chmod 755 /var/log/apache2; fi
+
+mkdir -p /var/www/httppool_server/data
+if [ ! -O /var/www/httppool_server/data ]; then \
+sudo chown -R apache:apache  /var/www/httppool_server/data; fi
+
 date >> ~/last_entry.log
 cat ~/last_entry.log
 echo @@@ $@

@@ -398,6 +398,18 @@ def test_remove(csdb):
     assert res == 'success', res
 
 
+def test_wipe(csdb):
+    """
+    Waiting for /info update, will be failed due to:
+    Wipe will check the poolInfo, and poolInfo requires poolurl like: /csdb_test_pool/fdi.dataset.product.Product
+    In doRemove(self, resourcetype, index) function, /delete requires a path, the path = self.poolurl + resourcetypes
+    Thus, the path = delete?path=/csdb_test_pool/fdi.dataset.product.Product/fdi.dataset.product.Product/2
+    """
+    test_pool, url = csdb
+    test_pool.setPoolurl('csdb:///' + csdb_pool_id + '/fdi.dataset.product.Product')
+    test_pool.schematicWipe()
+
+
 def test_deletePool(csdb):
     test_pool, url = csdb
     assert test_pool.schematicWipe() is None, 'Delete test pool'

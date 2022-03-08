@@ -441,10 +441,11 @@ class PublicClientPool(ManagedPool):
         # if res['msg'] != 'success':
         #     raise ValueError('Wipe pool ' + self.poolname + ' failed: ' + res['msg'])
         info = self.getPoolInfo()
+        pdb.set_trace()
         if isinstance(info, dict):
             for classes in info:
-                for index in classes['indexes']:
-                    urn = 'urn' + classes['path'].replace('/', ':') + ':' + + str(index)
+                for index in info[classes]['indexes']:
+                    urn = 'urn' + info[classes]['path'].replace('/', ':') + ':' + str(index)
                     res = self.remove(urn)
                     assert res in ['Not found resource.', 'success']
 

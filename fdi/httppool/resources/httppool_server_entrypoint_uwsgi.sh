@@ -58,8 +58,9 @@ sudo chown -R fdi:fdi  /var/www/httppool_server/data; fi
 				 
 date >> ~/last_entry.log
 cat ~/last_entry.log
-echo @@@ $@
+echo '>>>' $@
 for i in $@; do
-if [ $i = no-run ]; then exit 0;else $@; fi;
+if [ $i = no-run ]; then exit 0; fi;
 done
 
+bash -c "$@"

@@ -155,16 +155,19 @@ def init_httppool_server(app):
     # the httppool that is local to the server
     scheme = 'server'
     _basepath = PM.PlacePaths[scheme]
-    poolpath_base = os.path.join(_basepath, pc['api_version'])
+    full_base_local_poolpath = os.path.join(_basepath, pc['api_version'])
 
-    if checkpath(poolpath_base, pc['self_username']) is None:
-        msg = 'Store path %s unavailable.' % poolpath_base
+    if checkpath(full_base_local_poolpath, pc['self_username']) is None:
+        msg = 'Store path %s unavailable.' % full_base_local_poolpath
         app.logger.error(msg)
         return None
 
     app.config['POOLSCHEME'] = scheme
-    app.config['POOLPATH_BASE'] = poolpath_base
-    app.config['POOLURL_BASE'] = scheme + '://' + poolpath_base + '/'
+
+    # e.g. "/tmp/data/v0.13"
+    app.config['FULL_BASE_LOCAL_POOLPATH'] = full_base_local_poolpath
+    app.config['POOLURL_BASE'] = scheme + \
+        '://' + full_base_local_poolpath + '/'
 
 
 ######################################

@@ -88,7 +88,7 @@ def get_pools_url():
     logger = current_app.logger
 
     ts = time.time()
-    path = current_app.config['POOLPATH_BASE']
+    path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     logger.debug('Listing all directories from ' + path)
 
     result = get_name_all_pools(path)
@@ -119,7 +119,7 @@ def get_pools():
     logger = current_app.logger
 
     ts = time.time()
-    path = current_app.config['POOLPATH_BASE']
+    path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     logger.debug('Listing all directories from ' + path)
 
     result = get_name_all_pools(path)
@@ -158,7 +158,7 @@ def get_registered_pools():
     ---
     """
     ts = time.time()
-    path = current_app.config['POOLPATH_BASE']
+    path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     current_app.logger.debug('Listing all registered pools.')
 
     # [p.getPoolurl() for p in PM.getMap()()]
@@ -203,7 +203,7 @@ def load_pools(poolnames, usr):
     """
 
     logger = current_app.logger
-    path = current_app.config['POOLPATH_BASE']
+    path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     pmap = {}
     bad = {}
     logger.debug('loading all from ' + path)
@@ -298,7 +298,7 @@ def wipe_pools(poolnames, usr):
     Returns: a list of successfully removed pools names in `good`, and troubled ones in `bad` with associated exception info.
     """
     logger = current_app.logger
-    path = current_app.config['POOLPATH_BASE']
+    path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     logger.debug('DELETING pools contents from ' + path)
 
     # alldirs = poolnames if poolnames else get_name_all_pools(path)
@@ -352,7 +352,8 @@ def get_pool_info(poolname, serialize_out=False):
     ts = time.time()
     FAILED = '"FAILED"' if serialize_out else 'FAILED'
 
-    allpools = get_name_all_pools(current_app.config['POOLPATH_BASE'])
+    allpools = get_name_all_pools(
+        current_app.config['FULL_BASE_LOCAL_POOLPATH'])
     if poolname in allpools:
         code, result, mes = load_HKdata([poolname], serialize_out=True)
         # use json.loads to avoid _STID for human
@@ -417,7 +418,8 @@ def register_pool(pool, usr):
     :returns: code, pool object if successful, message
     """
     poolname = pool
-    fullpoolpath = join(current_app.config['POOLPATH_BASE'], poolname)
+    fullpoolpath = join(
+        current_app.config['FULL_BASE_LOCAL_POOLPATH'], poolname)
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     makenew = usr and usr.role == 'read_write'
     try:
@@ -650,7 +652,7 @@ def get_prod_count(prod_type, pool_id):
     res = 0
     nm = []
 
-    path = join(current_app.config['POOLPATH_BASE'], pool_id)
+    path = join(current_app.config['FULL_BASE_LOCAL_POOLPATH'], pool_id)
     if os.path.exists(path):
         for i in os.listdir(path):
             if i[-1].isnumeric() and prod_type in i:

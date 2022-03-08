@@ -23,14 +23,14 @@ EXTRO_USER = ''
 EXTRO_PASS = ''
 SELF_HOST = '172.17.0.2'
 SELF_PORT = 9876
-SELF_USER = 'mh'
+SELF_USER = 'fdi'
 SELF_PASS = ''
 MQUSER = ''
 MQPASS = ''
 MQHOST = '172.17.0.1'
 MQPORT = 9876
 
-BASE_POOLPATH = '/tmp'
+BASE_LOCAL_POOLPATH = '/tmp'
 SERVER_POOLPATH = '/tmp/data'
 
 SCHEME = 'http'
@@ -57,14 +57,14 @@ pnsconfig['lookup'] = poolurl_of
 # this base pool path will be added at the beginning of your pool urn when you init a pool like:
 # pstore = PoolManager.getPool('/demopool_user'), it will create a pool at /data.demopool_user/
 # User can disable  basepoolpath by: pstore = PoolManager.getPool('/demopool_user', use_default_poolpath=False)
-pnsconfig['base_poolpath'] = BASE_POOLPATH
+pnsconfig['base_local_poolpath'] = BASE_LOCAL_POOLPATH
 pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
 pnsconfig['defaultpool'] = 'default'
 pnsconfig['loggerlevel'] = LOGGER_LEVEL
 
 # message queue config
 pnsconfig['mqtt'] = dict(
-    host='x.x.x.x',
+    host='0.0.0.0',
     port=31876,
     username='foo',
     passwd='bar',
@@ -76,14 +76,14 @@ conf = ['dev', 'external', 'production', 'public'][0]
 # modify
 if conf == 'dev':
     # username, passwd, flask ip, flask port
-    pnsconfig['node'] = {'username': 'mh', 'password': 'bar',
-                         'host': '127.0.0.1', 'port': 9883,
+    pnsconfig['node'] = {'username': 'fdi', 'password': 'bar',
+                         'host': '0.0.0.0', 'port': 9883,
                          'ro_username': 'poolrw', 'rw_password': 'k/p=0',
                          'ro_username': 'poolro', 'ro_password': 'only5%',
                          }
 
     # server permission user
-    pnsconfig['base_poolpath'] = '/tmp'
+    pnsconfig['base_local_poolpath'] = '/tmp'
     pnsconfig['server_poolpath'] = '/tmp/data'  # For server
     # server's own
     pnsconfig['self_host'] = pnsconfig['node']['host']
@@ -107,7 +107,6 @@ elif conf == 'external':
         username=MQUSER,
         passwd=MQPASS,
     )
-    pnsconfig['base_poolpath'] = BASE_POOLPATH
     pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
     # server's own
     pnsconfig['self_host'] = SELF_HOST
@@ -119,7 +118,7 @@ elif conf == 'external':
     # on pns server
     home = '/home/' + pnsconfig['ptsuser']
 elif conf == 'production':
-    pnsconfig['node'] = {'username': 'mh', 'password': 'bar',
+    pnsconfig['node'] = {'username': 'fdi', 'password': 'bar',
                          'host': '10.0.10.114', 'port': 9885,
                          'ro_username': 'ro', 'ro_password': '',
                          }

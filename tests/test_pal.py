@@ -234,7 +234,7 @@ def test_Urn():
 
 
 def transpath(direc, poolpath):
-    """ direc must have a leading / if base_poolpath is defined in config """
+    """ direc must have a leading / if base_local_poolpath is defined in config """
 
     return poolpath+'/'+direc
 

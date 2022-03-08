@@ -72,7 +72,7 @@ This is done by calling the getPool() method, which will return an existing pool
     # pc['node']['host']+':'+str(pc['node']['port'])+pc['baseurl']
     p = getConfig(name='').strip('/').split('://')[1]
     PlacePaths = {
-        'file': pc['base_poolpath'],
+        'file': pc['base_local_poolpath'],
         'mem': '/',
         'http': p,
         'https': p,

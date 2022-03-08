@@ -93,7 +93,6 @@ def checkpath(path, un):
 
 # @data_api.before_app_first_request
 
-
 def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', length=80, req_auth=False):
     """
     Make response.
@@ -324,7 +323,8 @@ def save_product(data, paths, tags=None, serialize_in=True, serialize_out=False)
     FAILED = '"FAILED"' if serialize_out else 'FAILED'
 
     poolname = paths[0]
-    fullpoolpath = os.path.join(current_app.config['POOLPATH_BASE'], poolname)
+    fullpoolpath = os.path.join(
+        current_app.config['FULL_BASE_LOCAL_POOLPATH'], poolname)
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     # resourcetype = fullname(data)
 

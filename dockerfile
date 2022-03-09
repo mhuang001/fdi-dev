@@ -100,11 +100,12 @@ COPY --chown=${USR}:${USR} fdi/pns/config.py ${UHOME}/.config/pnslocal.py
 
 USER ${USR}
 # get passwords etc from ~/.secret
+# update ~/.config/pnslocal.py so test can be run with correct settings
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} envs \
-&& /bin/bash -c 'for i in `cat ./envs`; do export $i; done \
+&& sed -i 's/^/export /' ./envs \
+&& echo cat ./envs \
 && ./dockerfile_entrypoint.sh  no-run'  # modify pnslocal.py
-RUN bash -c 'for i in `sed -e 's/=.*$//g' ./envs`; do echo $i=${!i}; done'
 
 WORKDIR ${PKGS_DIR}/${PKG}/
 RUN make test \

@@ -7,7 +7,7 @@ source ./envs
 echo rm ./envs
 
 # if note set. level use WARNING
-s=${LOGGER_LEVEL:=30}
+s=${LOGGER_LEVEL:=20}
 s=${HOST_PORT:=9885}
 s=${HOST_USER:=ro}
 s=${HOST_PASS:=only5%}

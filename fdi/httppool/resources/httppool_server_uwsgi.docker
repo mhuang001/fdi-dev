@@ -61,7 +61,7 @@ RUN chmod 755 ./httppool_server_entrypoint_uwsgi.sh
 
 # config software
 
-# update ~/.config/pnslocal.py so test can be run with correct setting
+# update ~/.config/pnslocal.py so test can be run with correct settings
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} ./envs \
 && sed -i 's/^/export /' ./envs \

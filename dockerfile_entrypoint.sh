@@ -1,7 +1,11 @@
 #!/bin/bash
 
 id | tee ~/lastent
-echo ######                                                                     
+echo ######
+
+source ./envs
+echo rm ./envs
+
 # if note set. level use WARNING
 s=${LOGGER_LEVEL:=20}
 s=${HOST_PORT:=9885}

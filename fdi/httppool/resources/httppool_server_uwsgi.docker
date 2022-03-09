@@ -65,14 +65,8 @@ RUN chmod 755 ./httppool_server_entrypoint_uwsgi.sh
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} ./envs \
 && sed -i 's/^/export /' ./envs \
-&& cat ./envs \
-&& ./httppool_server_entrypoint_uwsgi.sh no-run \
-&& env|grep HOST_PORT
-
-RUN for i in `sed -e 's/=.*$//g' ./envs`; do echo $i=${!i}; done
-
-RUN echo '@@@@@' $HOST_PORT
-
+&& echo cat ./envs \
+&& ./httppool_server_entrypoint_uwsgi.sh no-run
 
 WORKDIR ${UHOME}
 COPY fdi/httppool/resources/httppool_server_uwsgi.ini .

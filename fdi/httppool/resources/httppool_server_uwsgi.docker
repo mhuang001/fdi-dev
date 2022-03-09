@@ -30,7 +30,7 @@ ARG API_BASE=/fdi
 ENV API_BASE=${API_BASE}
 RUN mkdir -p ${PROJ_DIR}/data
 
-COPY --chown=root:root fdi/httppool/resources/httppool_server_uwsgi.ini .
+COPY --chown=${USR}:${USR} fdi/httppool/resources/httppool_server_uwsgi.ini .
 
 # remote-pdb https://stackoverflow.com/a/46436653/13472124
 

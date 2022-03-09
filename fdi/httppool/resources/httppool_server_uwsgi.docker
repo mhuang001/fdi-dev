@@ -66,6 +66,7 @@ RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} ./envs \
 && cat ./envs \
 && for i in `cat ./envs`; do export $i; done \
+&& for i in `sed -e 's/=.*$//g' ./envs`; do echo $i=${!i}; done \
 && rm ./envs \
 && ./httppool_server_entrypoint_uwsgi.sh no-run \
 && env|grep HOST_PORT

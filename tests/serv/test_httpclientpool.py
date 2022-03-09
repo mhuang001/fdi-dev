@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from test_pal import backup_restore
+from ..test_pal import backup_restore
 
 
 from fdi.dataset.product import Product
@@ -346,14 +346,10 @@ def test_token(csdb):
 def test_createPool(csdb):
     test_pool, url = csdb
     try:
-        assert test_pool.createPool() == True
+        assert test_pool.createPool() is True
     except ValueError:
-        assert test_pool.restorePool() == True
-
-
-def test_poolExists(csdb):
-    test_pool, url = csdb
-    assert test_pool.poolExists() == True
+        assert test_pool.restorePool() is True
+    assert test_pool.poolExists() is True
 
 
 def test_poolInfo(csdb):
@@ -396,7 +392,7 @@ def test_count(csdb):
     test_pool, url = csdb
     test_pool.setPoolurl('csdb:///' + csdb_pool_id + '/fdi.dataset.product.Product')
     count = test_pool.getCount('/' + csdb_pool_id + '/fdi.dataset.product.Product')
-    assert count == 2
+    assert count > 1
 
 
 def test_remove(csdb):
@@ -417,8 +413,4 @@ def test_wipe(csdb):
     test_pool.setPoolurl('csdb:///' + csdb_pool_id + '/fdi.dataset.product.Product')
     test_pool.schematicWipe()
 
-
-def test_deletePool(csdb):
-    test_pool, url = csdb
-    assert test_pool.schematicWipe() is None, 'Delete test pool'
 

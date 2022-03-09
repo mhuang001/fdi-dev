@@ -5,7 +5,6 @@ import getpass
 import os
 from os.path import expanduser, expandvars
 
-# logging level for server or possibly by client
 pnsconfig = dict()
 
 ###########################################
@@ -24,21 +23,34 @@ EXTRO_USER = ''
 EXTRO_PASS = ''
 SELF_HOST = '172.17.0.2'
 SELF_PORT = 9876
-SELF_USER = ''
+SELF_USER = 'fdi'
 SELF_PASS = ''
 MQUSER = ''
 MQPASS = ''
 MQHOST = '172.17.0.1'
 MQPORT = 9876
 
-BASE_POOLPATH = '/tmp'
+BASE_LOCAL_POOLPATH = '/tmp'
 SERVER_POOLPATH = '/tmp/data'
 
 SCHEME = 'http'
-API_VERSION = 'v0.12'
+API_VERSION = 'v0.13'
 API_BASE = '/fdi'
 
-LOGGING_LEVEL = logging.INFO
+pnsconfig['server_scheme'] = 'server'
+
+pnsconfig['cloud_token'] = '/tmp/.cloud_token'
+pnsconfig['cloud_username'] = 'mh'
+pnsconfig['cloud_password'] = 'G44G898g'
+pnsconfig['cloud_host'] = '123.56.102.90'
+pnsconfig['cloud_port'] = 31702
+
+pnsconfig['cloud_scheme'] = 'csdb'
+pnsconfig['cloud_api_version'] = 'v1'
+pnsconfig['cloud_api_base'] = '/csdb'
+pnsconfig['cloud_baseurl'] = pnsconfig['cloud_api_base'] + '/' + pnsconfig['cloud_api_version']
+
+LOGGER_LEVEL = logging.INFO
 
 # base url for webserver. Update version if needed.
 pnsconfig['scheme'] = SCHEME
@@ -58,14 +70,14 @@ pnsconfig['lookup'] = poolurl_of
 # this base pool path will be added at the beginning of your pool urn when you init a pool like:
 # pstore = PoolManager.getPool('/demopool_user'), it will create a pool at /data.demopool_user/
 # User can disable  basepoolpath by: pstore = PoolManager.getPool('/demopool_user', use_default_poolpath=False)
-pnsconfig['base_poolpath'] = BASE_POOLPATH
+pnsconfig['base_local_poolpath'] = BASE_LOCAL_POOLPATH
 pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
 pnsconfig['defaultpool'] = 'default'
-pnsconfig['logginglevel'] = LOGGING_LEVEL
+pnsconfig['loggerlevel'] = LOGGER_LEVEL
 
 # message queue config
 pnsconfig['mqtt'] = dict(
-    host='x.x.x.x',
+    host='0.0.0.0',
     port=31876,
     username='foo',
     passwd='bar',
@@ -78,14 +90,13 @@ conf = ['dev', 'external', 'production', 'public'][0]
 if conf == 'dev':
     # username, passwd, flask ip, flask port
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '127.0.0.1', 'port': 9883,
+                         'host': '0.0.0.0', 'port': 9885,
                          'ro_username': 'poolrw', 'rw_password': 'k/p=0',
                          'ro_username': 'poolro', 'ro_password': 'only5%',
                          }
 
     # server permission user
-    pnsconfig['serveruser'] = 'mh'
-    pnsconfig['base_poolpath'] = '/tmp'
+    pnsconfig['base_local_poolpath'] = '/tmp'
     pnsconfig['server_poolpath'] = '/tmp/data'  # For server
     # server's own
     pnsconfig['self_host'] = pnsconfig['node']['host']
@@ -109,9 +120,6 @@ elif conf == 'external':
         username=MQUSER,
         passwd=MQPASS,
     )
-    # server permission user
-    pnsconfig['serveruser'] = 'apache'
-    pnsconfig['base_poolpath'] = BASE_POOLPATH
     pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
     # server's own
     pnsconfig['self_host'] = SELF_HOST
@@ -123,12 +131,10 @@ elif conf == 'external':
     # on pns server
     home = '/home/' + pnsconfig['ptsuser']
 elif conf == 'production':
-    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
+    pnsconfig['node'] = {'username': 'fdi', 'password': 'bar',
                          'host': '10.0.10.114', 'port': 9885,
                          'ro_username': 'ro', 'ro_password': '',
                          }
-    # server permission user
-    pnsconfig['serveruser'] = 'apache'
     # server's own
     pnsconfig['self_host'] = pnsconfig['node']['host']
     pnsconfig['self_port'] = pnsconfig['node']['port']
@@ -143,8 +149,6 @@ elif conf == 'public':
                          'host': '123.56.102.90', 'port': 31702,
                          'ro_username': 'ro', 'ro_password': 'only5%',
                          }
-    # server permission user
-    pnsconfig['serveruser'] = 'apache'
     # server's own
     pnsconfig['self_host'] = pnsconfig['node']['host']
     pnsconfig['self_port'] = pnsconfig['node']['port']

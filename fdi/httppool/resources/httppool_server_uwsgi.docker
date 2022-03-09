@@ -30,8 +30,11 @@ ARG API_BASE=/fdi
 ENV API_BASE=${API_BASE}
 RUN mkdir -p ${PROJ_DIR}/data
 
+COPY --chown=root:root fdi/httppool/resources/httppool_server_uwsgi.ini .
+
+# remote-pdb https://stackoverflow.com/a/46436653/13472124
+
 # convinience aliases
-COPY --chown=root:root fdi/httppool/resources/httppool_server_uwsgi.service /etc/systemd/system
 # /var/log will on volume and the touched log files here will not be accessible.
 RUN mkdir -p /var/log/uwsgi \
 && touch /var/log/uwsgi/uwsgi.log \
@@ -78,8 +81,8 @@ date > build
 
 ENTRYPOINT  ["/home/fdi/httppool_server_entrypoint_uwsgi.sh"]
 #CMD ["uwsgi --master --module wsgi:app --processes 1"]
-CMD ["uwsgi --http-socket 0.0.0.0:9885 --master --module wsgi:app --touch-reload /home/fdi/reload --logger file:/var/log/uwsgi/uwsgi.log --processes 1 --threads 2 --stats 0.0.0.0:9999 --buffer-size 16384 --http-connect-timeout 600"]
-#
+#CMD ["uwsgi --http-socket 0.0.0.0:9885 --master --module wsgi:app --touch-reload /home/fdi/reload --logger file:/var/log/uwsgi/uwsgi.log --processes 1 --threads 2 --stats 0.0.0.0:9999 --buffer-size 16384 --http-connect-timeout 600"]
+CMD ["uwsgi --ini httppool_server_uwsgi.ini"]
 ARG SERVER_VERSION
 LABEL PoolServer ${SERVER_VERSION}
 ENV SERVER_VERSION=${SERVER_VERSION}

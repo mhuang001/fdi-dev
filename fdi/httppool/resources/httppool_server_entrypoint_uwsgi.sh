@@ -1,7 +1,11 @@
 #!/bin/bash
 
 id | tee ~/last_entry.log
-echo ######                                                                     
+echo ######
+
+source ./envs
+echo rm ./envs
+
 # if note set. level use WARNING
 s=${LOGGER_LEVEL:=30}
 s=${HOST_PORT:=9885}

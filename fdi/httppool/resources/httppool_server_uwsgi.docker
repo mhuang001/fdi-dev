@@ -67,7 +67,10 @@ RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && cat ./envs \
 && for i in `cat ./envs`; do export $i; done \
 && rm ./envs \
-&& ./httppool_server_entrypoint_uwsgi.sh no-run
+&& ./httppool_server_entrypoint_uwsgi.sh no-run \
+&& RUN env|grep HOST_PORT
+
+RUN echo '@@@@@'; env|grep HOST_PORT
 
 
 WORKDIR ${UHOME}

@@ -81,7 +81,8 @@ ENTRYPOINT  ["/home/fdi/httppool_server_entrypoint_uwsgi.sh"]
 
 #CMD ["uwsgi --master --module wsgi:app --processes 1"]
 #CMD ["uwsgi --http-socket 0.0.0.0:9885 --master --module wsgi:app --touch-reload /home/fdi/reload --logger file:/var/log/uwsgi/uwsgi.log --processes 1 --threads 2 --stats 0.0.0.0:9999 --buffer-size 16384 --http-connect-timeout 600"]
-CMD ["uwsgi --ini httppool_server_uwsgi.ini"]
+
+CMD ["uwsgi", "--ini", "httppool_server_uwsgi.ini"]
 
 ARG SERVER_VERSION
 LABEL PoolServer ${SERVER_VERSION}

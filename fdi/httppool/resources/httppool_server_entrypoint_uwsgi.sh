@@ -66,4 +66,4 @@ for i in $@; do
 if [ $i = no-run ]; then exit 0; fi;
 done
 
-bash -c "$@" ${UWSGIOPT}
+exec "$@"

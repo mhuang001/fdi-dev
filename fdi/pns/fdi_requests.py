@@ -40,6 +40,7 @@ def getAuth(user, password):
     return HTTPBasicAuth(user, password)
 
 
+@functools.lru_cache(maxsize=64)
 def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
     """ Returns URL for accessing pools with a URN.
 
@@ -253,3 +254,11 @@ def delete_from_server(urn, poolurl, contents='product', auth=None):
         return result['result'], result['msg']
     else:
         return 'FAILED', result
+
+
+def getCacheInfo():
+    info = {}
+    for i in ['getAuth', 'urn2fdiurl']:
+        info[i] = i.cache_info()
+
+    return info

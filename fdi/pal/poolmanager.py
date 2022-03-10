@@ -24,16 +24,20 @@ DEFAULT_POOL = 'fdi_pool_' + __name__ + getpass.getuser()
 Invalid_Pool_Names = ['pools', 'urn', 'api']
 
 
-def remoteRegister(p, poolurl, auth=None):
+def remoteRegister(poolurl, auth=None):
     logger.debug('Register %s on the server', poolurl)
+    if poolurl.endswith('/'):
+        poolurl = poolurl[:-1]
     try:
         res, msg = put_on_server(
             'urn:::0', poolurl, 'register_pool', auth=auth)
     except ConnectionError as e:
         res, msg = 'FAILED', str(e)
     if res == 'FAILED':
+        np = '<' + auth.username + ' ' + auth.password + \
+            '>' if auth else '<no authorization>'
         raise RuntimeError(
-            'Registering ' + poolurl + ' failed.  ' + msg)
+            'Registering ' + poolurl + ' failed with auth ' + np + ' , ' + msg)
     return res, msg
 
 
@@ -106,7 +110,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
                     'Pool name %s and pool object cannot be both given.' % poolname)
             poolname, poolurl, p = pool._poolname, pool._poolurl, pool
             if poolurl.lower().startswith('http'):
-                res, msg = remoteRegister(p, poolurl)
+                res, msg = remoteRegister(poolurl, p.auth)
         else:
             # quick decisions can be made knowing poolname only
             if poolname == DEFAULT_MEM_POOL:
@@ -153,7 +157,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
                 from . import httpclientpool
                 p = httpclientpool.HttpClientPool(
                     poolname=poolname, poolurl=poolurl, auth=auth, **kwds)
-                res, msg = remoteRegister(p, poolurl, auth=p.auth)
+                res, msg = remoteRegister(poolurl, auth=p.auth)
             else:
                 raise NotImplementedError(schm + ':// is not supported')
         #print(getweakrefs(p), id(p), '////')

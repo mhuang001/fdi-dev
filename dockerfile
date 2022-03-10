@@ -103,7 +103,7 @@ USER ${USR}
 # update ~/.config/pnslocal.py so test can be run with correct settings
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR} ./envs \
-&& sed -i 's/^/export /' ./envs \
+&& sed -i -e 's/=/:=/' -e 's/^/s=${/' -e 's/$/}/' ./envs \
 && echo cat ./envs \
 && ./dockerfile_entrypoint.sh  no-run  # modify pnslocal.py
 

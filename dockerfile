@@ -33,6 +33,8 @@ ARG LOCALE=en_US.UTF-8
 ENV LC_ALL=${LOCALE}
 ENV LC_CTYPE=${LOCALE}
 ENV LANG=${LOCALE}
+ARG LOGGER_LEVEL=30
+ENV LOGGER_LEVEL=${LOGGER_LEVEL}
 
 ENV PATH="${UHOME}/.local/bin:$PATH"
 
@@ -112,9 +114,6 @@ RUN make test \
 && rm -rf /tmp/fdi_repo /tmp/fditest* /tmp/data
 
 WORKDIR ${UHOME}
-
-ARG LOGGER_LEVEL=30
-ENV LOGGER_LEVEL=${LOGGER_LEVEL}
 
 RUN pwd; /bin/ls -la; \
 date > build

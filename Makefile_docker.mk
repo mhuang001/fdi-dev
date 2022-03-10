@@ -35,7 +35,7 @@ EXTPORT =$(PORT)
 IP_ADDR     =0.0.0.0
 PROJ_DIR	= /var/www/httppool_server
 SERVER_POOLPATH	= $(PROJ_DIR)/data
-LOGGER_LEVEL	= 10
+LOGGER_LEVEL	= 30
 TEST_PORT	= 9885
 
 B       =/bin/bash

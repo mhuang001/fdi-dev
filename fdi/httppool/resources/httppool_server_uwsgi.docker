@@ -24,8 +24,6 @@ RUN echo ${PATH}
 # setup config files
 ARG PROJ_DIR
 ENV SERVER_POOLPATH=${PROJ_DIR}/data
-ARG LOGGER_LEVEL=30
-ENV LOGGER_LEVEL=${LOGGER_LEVEL}
 ARG API_BASE=/fdi
 ENV API_BASE=${API_BASE}
 RUN mkdir -p ${PROJ_DIR}/data
@@ -74,6 +72,8 @@ COPY fdi/httppool/resources/httppool_server_uwsgi.ini .
 VOLUME /var/log ${SERVER_POOLPATH}
 
 USER ${USR}
+ARG LOGGER_LEVEL=30
+ENV LOGGER_LEVEL=${LOGGER_LEVEL}
 RUN /bin/ls -la; echo $PATH \
 date > build
 

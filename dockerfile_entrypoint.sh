@@ -3,15 +3,10 @@
 id | tee ~/lastent
 echo ######
 
+set -a
 source ./envs
 echo rm ./envs
-
-# if note set. level use WARNING
-s=${LOGGER_LEVEL:=20}
-s=${HOST_PORT:=9885}
-s=${RO_USER:=ro}
-s=${RO_PASS:=only5%}
-# TODO:  to be removed?
+set +a
 
 sed -i "s/^LOGGER_LEVEL =.*$/LOGGER_LEVEL = $LOGGER_LEVEL/g" ~/.config/pnslocal.py
 

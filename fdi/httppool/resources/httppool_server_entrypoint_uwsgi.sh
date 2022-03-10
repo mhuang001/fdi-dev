@@ -7,11 +7,8 @@ set -a
 source ./envs
 echo rm ./envs
 
-# if note set. level use WARNING
-s=${LOGGER_LEVEL:=20}
-s=${HOST_PORT:=9885}
-s=${SELF_USER:=fdi}
-
+# if note set.
+s=${UWSGIOPT:=''}
 set +a
 
 sed -i "s/^EXTHOST =.*$/EXTHOST = \'$HOST_IP\'/g" ~/.config/pnslocal.py
@@ -69,4 +66,4 @@ for i in $@; do
 if [ $i = no-run ]; then exit 0; fi;
 done
 
-bash -c "$@"
+bash -c "$@" ${UWSGIOPT}

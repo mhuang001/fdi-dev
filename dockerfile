@@ -113,6 +113,9 @@ RUN make test \
 
 WORKDIR ${UHOME}
 
+ARG LOGGER_LEVEL=30
+ENV LOGGER_LEVEL=${LOGGER_LEVEL}
+
 RUN pwd; /bin/ls -la; \
 date > build
 

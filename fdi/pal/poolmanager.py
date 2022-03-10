@@ -24,10 +24,11 @@ DEFAULT_POOL = 'fdi_pool_' + __name__ + getpass.getuser()
 Invalid_Pool_Names = ['pools', 'urn', 'api']
 
 
-def remoteRegister(p, poolurl):
+def remoteRegister(p, poolurl, auth=None):
     logger.debug('Register %s on the server', poolurl)
     try:
-        res, msg = put_on_server('urn:::0', poolurl, 'register_pool')
+        res, msg = put_on_server(
+            'urn:::0', poolurl, 'register_pool', auth=auth)
     except ConnectionError as e:
         res, msg = 'FAILED', str(e)
     if res == 'FAILED':
@@ -36,7 +37,7 @@ def remoteRegister(p, poolurl):
     return res, msg
 
 
-def remoteUnregister(poolurl):
+def remoteUnregister(poolurl, auth=None):
     """ this method does not reference pool object. """
     if not poolurl.lower().startswith('http'):
         logger.warning('Ignored: %s not for a remote pool.' % poolurl)
@@ -47,7 +48,8 @@ def remoteUnregister(poolurl):
     #o = deserialize(x.text)
     urn = 'urn:::0'
     try:
-        res, msg = delete_from_server(urn, poolurl, 'unregister_pool')
+        res, msg = delete_from_server(
+            urn, poolurl, 'unregister_pool', auth=auth)
     except ConnectionError as e:
         res, msg = 'FAILED', str(e)
     if res == 'FAILED':
@@ -81,7 +83,7 @@ This is done by calling the getPool() method, which will return an existing pool
     del p
 
     @classmethod
-    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=True, **kwds):
+    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=True, auth=None, **kwds):
         """ returns an instance of pool according to name or path of the pool.
 
         Returns the pool object if the pool is registered. Creates the pool if it does not already exist. the same poolname-path always get the same pool. Http pools will be registered on the sserver side.
@@ -150,8 +152,8 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
             elif schm in ('http', 'https'):
                 from . import httpclientpool
                 p = httpclientpool.HttpClientPool(
-                    poolname=poolname, poolurl=poolurl, **kwds)
-                res, msg = remoteRegister(p, poolurl)
+                    poolname=poolname, poolurl=poolurl, auth=auth, **kwds)
+                res, msg = remoteRegister(p, poolurl, auth=p.auth)
             else:
                 raise NotImplementedError(schm + ':// is not supported')
         #print(getweakrefs(p), id(p), '////')
@@ -210,9 +212,10 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
 
         if nwr == 1:
             # this is the only reference. unregister remote first.
-            poolurl = cls._GlobalPoolList[poolname]._poolurl
+            thepool = cls._GlobalPoolList[poolname]
+            poolurl = thepool._poolurl
             if poolurl.lower().startswith('http'):
-                code = remoteUnregister(poolurl)
+                code = remoteUnregister(poolurl, thepool.auth)
             else:
                 code = 0
         elif nwr > 1:

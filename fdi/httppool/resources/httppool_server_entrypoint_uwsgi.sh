@@ -3,16 +3,16 @@
 id | tee ~/last_entry.log
 echo ######
 
+set -a
 source ./envs
 echo rm ./envs
 
 # if note set. level use WARNING
 s=${LOGGER_LEVEL:=20}
 s=${HOST_PORT:=9885}
-s=${HOST_USER:=ro}
-s=${HOST_PASS:=only5%}
 s=${SELF_USER:=fdi}
-# TODO: SELF_PASS to be removed?
+
+set +a
 
 sed -i "s/^EXTHOST =.*$/EXTHOST = \'$HOST_IP\'/g" ~/.config/pnslocal.py
 sed -i "s/^EXTPORT =.*$/EXTPORT = $HOST_PORT/g" ~/.config/pnslocal.py

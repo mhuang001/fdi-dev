@@ -589,6 +589,7 @@ if __name__ == '__main__':
         logging.getLogger().setLevel(logging.DEBUG)
     else:
         logging.getLogger().setLevel(logging.INFO)
+    __import__('pdb').set_trace()
 
     ypath = out[2]['result']
     cmd_tpath = out[3]['result']

@@ -78,17 +78,21 @@ But if the matrix is a table, the cells in a column change the fastest,
         s = ''
 
     # print("start " + str(data) + ' ' + str(trans))
-    t = data
-    try:
-        while not issubclass(t.__class__, (str, bytes, bytearray, memoryview)):
-            tmp = list(t)
-            # if we reach this line, tmp has a valid value
-            #t[0] = tmp
-            t = tmp[0]
-            context.maxdim += 1
-    except TypeError as e:
-        # print(e)
-        pass
+    if hasattr(data, 'shape'):
+        context.maxdim = len(shape)
+    else:
+        t = data
+        try:
+            while not issubclass(t.__class__, (str, bytes, bytearray, memoryview)):
+                tmp = list(t)
+                # if we reach this line, tmp has a valid value
+                if len(tmp) == 0:
+                    break
+                t = tmp[0]
+                context.maxdim += 1
+        except TypeError as e:
+            # print(e)
+            pass
 
     def loop(data, trans, **kwds):
         # nonlocal s
@@ -128,7 +132,7 @@ But if the matrix is a table, the cells in a column change the fastest,
             except Exception as e:
                 msg = 'bad tabledataset for printing. ' + str(e)
                 logger.error(msg)
-                raise ValueError(msg)
+                raise
             if dbg:
                 print(padding + 'd2 %s' % str(d2))
             if context.dim + 1 == context.maxdim:

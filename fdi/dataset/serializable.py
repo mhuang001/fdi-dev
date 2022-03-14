@@ -188,7 +188,7 @@ def serialize(o, cls=None, **kwds):
     """
     if not cls:
         cls = SerializableEncoder
-    return json.dumps(o, cls=cls, **kwds)
+    return json.dumps(o, cls=cls, allow_nan=True, **kwds)
 
 
 @lru_cache(maxsize=128)

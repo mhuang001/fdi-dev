@@ -39,6 +39,7 @@ DataTypes = {
     # 'stringParameter': 'StringParameter',
     'vector': 'Vector',
     'vector2d': 'Vector2D',
+    'vector3d': 'Vector3D',
     '': 'None'
 }
 
@@ -87,6 +88,8 @@ def cast(val, typ_, namespace=None):
             base = 16 if vstring.startswith(
                 '0x') else 2 if vstring.startswith('0b') else 10
             return tbd(vstring, base)
+        elif t == 'bytes':
+            return int(val).to_bytes(1, 'little')
         return tbd(val)
     else:
         return Classes.mapping[t](val) if namespace is None else namespace[t](val)
@@ -254,6 +257,26 @@ class Vector2D(Vector):
 
         if components is None:
             self._data = [0, 0]
+        else:
+            self.setComponents(components)
+
+
+class Vector3D(Vector):
+    """ Vector with 3-component data"""
+
+    def __init__(self, components=None, **kwds):
+        """ invoked with no argument results in a vector of
+        [0, 0, 0]] components
+        Parameters
+        ----------
+
+        Returns
+        -------
+        """
+        super(Vector3D, self).__init__(**kwds)
+
+        if components is None:
+            self._data = [0, 0, 0]
         else:
             self.setComponents(components)
 

@@ -98,26 +98,46 @@ class FineTime(Copyable, DeepEqual, Serializable):
                     msg = ('%s must be an integer, a datetime object, or a string or a bytes-like, but its type is %s.' % (
                         str(time), type(time).__name__))
                     raise TypeError(msg)
+            # Now t has a date-time string in it
             try:
                 d = datetime.datetime.strptime(t, self.format)
             except ValueError:
-                if t.endswith('Z'):
-                    d = datetime.datetime.strptime(
-                        t[:-1] + ' UTC', self.format)
-                if self.format[-4] == ' ':
-                    # the last three letters are tz
-                    tz = self.format[-3:]
-                    if not t.endswith(tz):
-                        logger.warning('Time zone %s assumed for %s', tz, t)
+                if ' ' in t:
+                    try:
                         d = datetime.datetime.strptime(
-                            t + ' ' + tz, self.format)
+                            t, FineTime.DEFAULT_FORMAT + ' %Z')
+                    except ValueError:
+                        d = datetime.datetime.strptime(
+                            t, FineTime.DEFAULT_FORMAT + ' %z')
+                    logger.warning('Time zone %s assumed for %s' %
+                                   (t.rsplit(' ')[1], t))
                 else:
-                    # format does not have tz
-                    logger.warning(
-                        'Time zone stripped for %s according to format.' % t)
+                    gotit = False
+                    if t.endswith('Z'):
+                        try:
+                            d = datetime.datetime.strptime(
+                                t, FineTime.DEFAULT_FORMAT + 'Z')
+                            gotit = True
+                            logger.warning('Time zone 0 assumed for %s', t)
+                        except ValueError:
+                            # try the tz's. maybe tz endswith Z?
+                            pass
+                    if not gotit:
+                        try:
+                            # format does not have tz
+                            d = datetime.datetime.strptime(
+                                t, FineTime.DEFAULT_FORMAT)
+                            logger.warning('Time zone 0 assumed for %s', t)
+                        except ValueError:
+                            try:
+                                d = datetime.datetime.strptime(
+                                    t, FineTime.DEFAULT_FORMAT + '%Z')
+                            except ValueError:
+                                d = datetime.datetime.strptime(
+                                    t, FineTime.DEFAULT_FORMAT + '%z')
+                            logger.warning(
+                                'Time zone %s taken for %s', (d.tzname(), t))
 
-                    d = datetime.datetime.strptime(
-                        t.rsplit(' ', 1)[0].strip(ascii_uppercase), self.format)
             d1 = d.replace(tzinfo=datetime.timezone.utc)
             setTai = self.datetimeToFineTime(d1)
         try:
@@ -225,7 +245,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
         For `if` etc 
         """
-        return self.tai > 0
+        return bool(self.tai)
 
     def __int__(self):
         return self.tai

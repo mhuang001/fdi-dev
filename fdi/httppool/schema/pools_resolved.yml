@@ -30,7 +30,7 @@ tags:
       url: 'https://fdi.readthedocs.io/en/latest/usage/httppool.html'
 servers:
   - url: 'http://127.0.0.1:{port}/{basePath}'
-    description: httppool api flask-wsgi-apache2 version
+    description: httppool api flask-uwsgi version
     variables:
       port:
         enum:
@@ -41,7 +41,7 @@ servers:
       basePath:
         default: fdi/v0.13
   - url: 'http://10.0.10.114:9885/fdi/v0.13'
-    description: httppool api production flask-wsgi-apache2 version
+    description: httppool api production flask-uwsgi version
 security:
   - BasicAuth: []
 paths:

@@ -32,7 +32,7 @@ def padstr(s, w, just='left', pad=' '):
         return s.ljust(w, pad)
 
 
-def ndprint(data, trans=True, maxElem=sys.maxsize, tablefmt3='plain', **kwds):
+def ndprint(data, trans=True, mdim=None, maxElem=sys.maxsize, tablefmt3='plain', **kwds):
     """ makes a formated string of an N-dimensional array for printing.
     The fastest changing index is the innerest list. E.g.
     A 2 by 3 matrix is [[1,2],[3,4],[5,6]] written as::
@@ -52,6 +52,7 @@ But if the matrix is a table, the cells in a column change the fastest,
     Parameters
     ----------
     :tablefmt3: control 2d array printing. Default 'plain'.
+    :dim: Max dimension of the data. If given `None` guess will be made. This helps to disambiguit if there are iterables in the elements. DEfault ```None```.
 
     Returns
     -------
@@ -78,8 +79,8 @@ But if the matrix is a table, the cells in a column change the fastest,
         s = ''
 
     # print("start " + str(data) + ' ' + str(trans))
-    if hasattr(data, 'shape'):
-        context.maxdim = len(shape)
+    if mdim is not None:
+        context.maxdim = mdim
     else:
         t = data
         try:

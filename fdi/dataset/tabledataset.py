@@ -617,6 +617,7 @@ Default is to return all columns.
         else:
             d = ''
         stp = 2 if level > 1 else 20 if level == 1 else None
+
         cols = self.getData().values()
 
         coldata = [list(itertools.islice(x.data, stp)) for x in cols]
@@ -626,6 +627,7 @@ Default is to return all columns.
         d += matprint(coldata, trans=trans, headers=hdr,
                       tablefmt=tablefmt, tablefmt1=tablefmt1,
                       tablefmt2=tablefmt2, center=center,
+                      mdim=2,
                       maxElem=sys.maxsize, **kwds)
         collen = self.getRowCount()
         if level and stp < collen:

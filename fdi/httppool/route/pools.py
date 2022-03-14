@@ -31,7 +31,7 @@ pools_api = Blueprint('pools', __name__)
 
 
 ######################################
-####  /user/login POST  ####
+####  /user/login GET, POST  ####
 ######################################
 
 
@@ -54,7 +54,7 @@ def login():
     return resp(200, 'OK', msg, ts, req_auth=True)
 
 ######################################
-####  /user/logout POST  ####
+####  /user/logout GET, POST  ####
 ######################################
 
 

@@ -74,11 +74,12 @@ class FineTime(Copyable, DeepEqual, Serializable):
         """ Sets the time of this object.
 
         If an integer is given, it will be taken as the TAI.
+'0' and b'0' are taken as TAI=0.
         If a datetime object or a string code is given, the timezone will be set to UTC.
-        Only when current TAI is 0, so a non-zero instance is immutable. Violation gets a TypeError.
+        A FineTime instance is immutable except when TAI == 0. Violation gets a TypeError.
         """
-
-        if not time:
+        setTai = ...
+        if time is None:
             setTai = None
         elif issubclass(time.__class__, int):
             setTai = time
@@ -88,16 +89,17 @@ class FineTime(Copyable, DeepEqual, Serializable):
             else:
                 d = time
             setTai = self.datetimeToFineTime(d)
+        elif issubclass(time.__class__, (str, bytes)):
+            t = time.strip()
+            try:
+                setTai = int(t)
+            except ValueError:
+                pass
         else:
-            if issubclass(time.__class__, (str)):
-                t = time.strip()
-            else:
-                try:
-                    t = time.decode(encoding='utf-8')
-                except AttributeError:
-                    msg = ('%s must be an integer, a datetime object, or a string or a bytes-like, but its type is %s.' % (
-                        str(time), type(time).__name__))
-                    raise TypeError(msg)
+            msg = ('%s must be an integer, a datetime object, or a string or bytes, but its type is %s.' % (
+                str(time), type(time).__name__))
+            raise TypeError(msg)
+        if setTai is ...:
             # Now t has a date-time string in it
             try:
                 d = datetime.datetime.strptime(t, self.format)

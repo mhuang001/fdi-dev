@@ -94,6 +94,8 @@ class TableModel():
 
 def maybe2rows(header_names, units, col_width):
     """ makes one-row or two-row header """
+    if col_width == -1 or col_width is None:
+        col_width = 8
     found_repeat = False
     hd, hd2 = [], []
     last = None
@@ -576,7 +578,7 @@ Default is to return all columns.
     def toString(self, level=0,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
                  width=0, param_widths=None, matprint=None, trans=True,
-                 heavy=True, center=-1, col_width=8, **kwds):
+                 heavy=True, center=-1, **kwds):
         """
         tablefmt2: format of 2D data, others see `MetaData.toString`.
         """
@@ -607,7 +609,9 @@ Default is to return all columns.
         s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
                                      tablefmt2=tablefmt2, center=center,
-                                     html=html, excpt=['description'])
+                                     param_widths=param_widths,
+                                     html=html, excpt=['description'],
+                                     **kwds)
         width = len(last)-1
         if level == 0:
             if html:
@@ -623,11 +627,11 @@ Default is to return all columns.
         coldata = [list(itertools.islice(x.data, stp)) for x in cols]
         hdr = maybe2rows(self.getData().keys(),
                          (str(x.unit) for x in cols),
-                         col_width)
+                         param_widths)
         d += matprint(coldata, trans=trans, headers=hdr,
                       tablefmt=tablefmt, tablefmt1=tablefmt1,
                       tablefmt2=tablefmt2, center=center,
-                      mdim=2,
+                      mdim=2, param_widths=param_widths,
                       maxElem=sys.maxsize, **kwds)
         collen = self.getRowCount()
         if level and stp < collen:

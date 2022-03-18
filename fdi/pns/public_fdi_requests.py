@@ -52,7 +52,10 @@ def read_from_cloud(requestName, **kwargs):
                          '/storage/info?urns=' + kwargs['urn']
         elif requestName == 'infoPool':
             requestAPI = defaulturl + pcc['cloud_baseurl'] + \
-                         '/storage/info?paths=' + kwargs['poolpath']
+                         '/storage/info?pageIndex=1&pageSize=10000&pools=' + kwargs['poolpath']
+        elif requestName == 'infoPoolType':
+            requestAPI = defaulturl + pcc['cloud_baseurl'] + \
+                         '/storage/info?pageIndex=1&pageSize=10000&paths=' + kwargs['poolpath']
         else:
             raise ValueError("Unknown request API: " + str(requestName))
         res = requests.get(requestAPI, headers=header)

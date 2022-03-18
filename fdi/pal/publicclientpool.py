@@ -58,8 +58,9 @@ class PublicClientPool(ManagedPool):
     def setPoolurl(self, poolurl):
         """ Replaces the current poolurl of this pool.
             For cloud pool, there are also self._cloudpoolpath and self._cloudpoolname
-            csdb:///poolbs
-            self._poolpath, self._scheme, self._poolname = '', 'csdb', 'poolbs'
+            csdb:///csdb_test_pool
+            self._poolpath, self._scheme, self._poolname = '', 'csdb', 'csdb_test_pool'
+            self._cloudpoolpath = /csdb_test_pool
         """
         s = (not hasattr(self, '_poolurl') or not self._poolurl)
         self._poolpath, self._scheme, self._place, \
@@ -68,7 +69,6 @@ class PublicClientPool(ManagedPool):
         if self._scheme == '' or self._scheme == None:
             self._scheme = 'csdb'
         self._cloudpoolpath = self._poolpath + '/' + self._poolname
-        self._cloudpoolname = self._poolpath.replace('/', '')
         self._poolurl = poolurl
         # call setup only if poolurl was None
         if s:
@@ -128,8 +128,14 @@ class PublicClientPool(ManagedPool):
             return False
 
     def getPoolInfo(self):
-        # TODO: waiting for updating get poolpath like poolbs
-        res = read_from_cloud('infoPool', poolpath=self.getPoolpath(), token=self.token)
+        """
+        data:
+            poolname :
+                _classes [{productTypeName, currentSn, sn}]
+                _urns [{urn, tags[]}]
+                _tags [{tag, urns[]}]
+        """
+        res = read_from_cloud('infoPool', poolpath=self.poolname, token=self.token)
         if res['code'] == 0:
             if res['data']:
                 self.poolInfo = res['data']
@@ -137,7 +143,7 @@ class PublicClientPool(ManagedPool):
             else:
                 return 'No data in the pool ' + self.poolurl
         else:
-            return res['msg']
+            raise ValueError(res['msg'])
 
     def exists(self, urn):
         """
@@ -154,44 +160,52 @@ class PublicClientPool(ManagedPool):
         """
         Returns all Product classes found in this pool.
         mh: returns an iterator.
-        # TODO: in cloud, the keys will be like poolname/productClass
         """
-        if self.poolInfo:
-            return self.poolInfo.keys()
-        else:
-            self.getPoolInfo()
-            if self.poolInfo is None:
-                # No such pool in cloud
-                return None
+        classes = []
+        try:
+            if self.poolInfo:
+                for clz in self.poolInfo[self.poolname]['_classes']:
+                    classes.append(clz['productTypeName'])
             else:
-                return self.poolInfo.keys()
+                self.getPoolInfo()
+                if self.poolInfo is None:
+                    # No such pool in cloud
+                    return None
+                for clz in self.poolInfo[self.poolname]['_classes']:
+                    classes.append(clz['productTypeName'])
+            return classes
+        except TypeError as e:
+            raise TypeError('Pool info API changed or unexpected information: ' + str(e))
+        except KeyError as e:
+            raise TypeError('Pool info API changed or unexpected information: ' + str(e))
 
     def getCount(self, typename):
         """
         Return the number of URNs for the product type.
         """
         try:
-            if self.poolInfo:
-                return len(self.poolInfo[typename]['indexes'])
-            else:
+            if not self.poolInfo:
                 self.getPoolInfo()
-                return len(self.poolInfo[typename]['indexes'])
+            if not self.poolInfo:
+                return 0
+            clzes = self.getProductClasses()
+            if typename not in clzes:
+                raise ValueError("Current pool has no such type: " + typename)
+            for clz in self.poolInfo[self.poolname]['_classes']:
+                if typename == clz['productTypeName']:
+                    return len(clz['sn'])
         except KeyError:
             return 0
-
-    # def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
-    #     """ to be implemented by subclasses to do the action of saving
-    #     """
-    #     raise (NotImplementedError)
 
     def isEmpty(self):
         """
         Determines if the pool is empty.
         """
-        try:
-            return len(self.poolInfo['indexes']) == 0
-        except KeyError:
-            return 0
+        res = self.getPoolInfo()
+        if issubclass(res, str):
+            return True
+        else:
+            return False
 
     def getMetaByUrn(self, urn, resourcetype=None, index=None):
         """
@@ -239,7 +253,7 @@ class PublicClientPool(ManagedPool):
             raise ValueError('No such product type in cloud: ' + pn)
 
         targetPoolpath = self.getPoolpath() + '/' + pn
-        poolInfo = read_from_cloud('infoPool', poolpath=targetPoolpath, token=self.token)
+        poolInfo = read_from_cloud('infoPoolType', poolpath=targetPoolpath, token=self.token)
         if poolInfo['data'].get(targetPoolpath):
             sn = poolInfo['data'][targetPoolpath]['lastIndex'] + 1
         else:
@@ -350,7 +364,7 @@ class PublicClientPool(ManagedPool):
         """ do the scheme-specific loading
         """
         targetPoolpath = self.getPoolpath() + '/' + resourcetype
-        poolInfo = read_from_cloud('infoPool', poolpath=targetPoolpath, token=self.token)
+        poolInfo = read_from_cloud('infoPoolType', poolpath=targetPoolpath, token=self.token)
         try:
             if poolInfo['data']:
                 poolInfo = poolInfo['data']
@@ -420,9 +434,6 @@ class PublicClientPool(ManagedPool):
         res = read_from_cloud('remove', token=self.token, path=path)
         print("index: " + str(index) + " remove result: "+str(res) + ' from : ' + path)
         return res['msg']
-        # if res['msg'] != 'success':
-        #     logger.debug(res['msg'])
-        #     raise ValueError(res['msg'])
 
     def remove(self, urn):
         poolname, resource, index = parseUrn(urn)
@@ -438,13 +449,15 @@ class PublicClientPool(ManagedPool):
         # if res['msg'] != 'success':
         #     raise ValueError('Wipe pool ' + self.poolname + ' failed: ' + res['msg'])
         info = self.getPoolInfo()
-        pdb.set_trace()
         if isinstance(info, dict):
-            for classes in info:
-                for index in info[classes]['indexes']:
-                    urn = 'urn' + info[classes]['path'].replace('/', ':') + ':' + str(index)
+            for classes in info[self.poolname]['_classes']:
+                clazz = classes['productTypeName']
+                for i in classes['sn']:
+                    urn = 'urn:' + self.poolname + ':' + clazz + ':' + str(i)
                     res = self.remove(urn)
                     assert res in ['Not found resource.', 'success']
+        else:
+            raise ValueError("Update pool information failed: " + str(info))
 
     def setTag(self, tag,  urn):
         u = urn.urn if issubclass(urn.__class__, Urn) else urn
@@ -522,76 +535,17 @@ def test_getToken():
     assert token == test_pool.token, "Tokens are not equal or not synchronized"
 
 def test_poolInfo():
-    poolurl = 'csdb:///poolbs/fdi.dataset.product.Product'
+    poolurl = 'csdb:///csdb_test_pool'
     test_pool = PublicClientPool(poolurl=poolurl)
     test_pool.getPoolInfo()
+    import pdb
+    pdb.set_trace()
     print(test_pool.poolInfo)
-
-
-def test_upload():
-    poolurl = 'csdb:///poolbs'
-    poolname = 'poolbs'
-
-    pstore = ProductStorage(poolname=poolname, poolurl=poolurl)
-    test_pool = pstore.getPool(poolname)
-    # PoolManager.getPool(poolurl=urnobj.getScheme() + ':///' + urnobj.getPool())
-
-    prd = genProduct()
-    res = pstore.save(prd)
-    # urn:poolbs:fdi.dataset.product.Product:x
-    assert res.urn.startswith('urn:poolbs:fdi.dataset.product.Product')
-
-
-def test_multi_upload():
-    poolurl = 'csdb:///poolbs'
-    test_pool = PublicClientPool(poolurl=poolurl)
-    prds = genProduct(3)
-    res = test_pool.schematicSave(prds)
-    assert len(res) == 3
-    for ref in res:
-        assert ref.urn.startswith('urn:poolbs:fdi.dataset.product.Product')
-
-
-def test_count():
-    poolurl = 'csdb:///poolbs/fdi.dataset.product.Product'
-    test_pool = PublicClientPool(poolurl=poolurl)
-    count = test_pool.getCount('fdi.dataset.product.Product')
-    assert count == 16
-
-
-def test_get():
-    poolurl = 'csdb:///poolbs'
-    test_pool = PublicClientPool(poolurl=poolurl)
-    prd = test_pool.schematicLoad('fdi.dataset.product.Product', 1)
-    assert prd.description == 'product example with several datasets', 'retrieve production incorrect'
-    assert prd.instrument == 'Crystal-Ball', 'retrieve production incorrect'
-    assert prd['QualityImage'].shape == (3, 3), 'retrieve production incorrect'
-
-
-def test_remove():
-    poolurl = 'csdb:///poolbs/fdi.dataset.product.Product'
-    test_pool = PublicClientPool(poolurl=poolurl)
-    info = test_pool.getPoolInfo()
-    print(info)
-    for i in info['/poolbs/fdi.dataset.product.Product']['indexes']:
-        urn = 'urn:poolbs:fdi.dataset.product.Product:' + str(i)
-        res = test_pool.remove(urn)
-        assert res in ['Not found resource.', 'success']
-    info = test_pool.getPoolInfo()
-    print(info)
-
-def test_search():
-    pass
-
-# print(cp.exists('urn:poolbs:20211018:0'))
-# print(cp.getCount('/poolbs/20211018'))
-# print(cp.poolInfo)
-
 
 # =================SAVE REMOVE LOAD================
 # test_getToken2()
 # test_poolInfo()
-test_upload()
+# test_upload()
 # test_get()
 # test_remove()
 # test_multi_upload()

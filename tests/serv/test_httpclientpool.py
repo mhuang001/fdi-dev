@@ -297,12 +297,13 @@ def test_webapi_backup_restore(server):
 
 
 from fdi.dataset.arraydataset import ArrayDataset
+from fdi.pal.context import MapContext
 
 # ----------------------TEST CSDB--------------------------------
 csdb_pool_id = 'csdb_test_pool'
 
 
-def genProduct(size=1):
+def genProduct(size=1, cls='ArrayDataset'):
     res = []
     for i in range(size):
         x = Product(description="product example with several datasets",
@@ -321,6 +322,12 @@ def genProduct(size=1):
         return res[0]
     else:
         return res
+
+
+def genMapContext(size=1):
+    map1 = MapContext(description='product with refs 1')
+    map1['creator'] = 'Cloud FDI developer'
+    return map1
 
 
 @pytest.fixture(scope="module")
@@ -367,39 +374,58 @@ def test_upload():
     # PoolManager.getPool(poolurl=urnobj.getScheme() + ':///' + urnobj.getPool())
 
     prd = genProduct()
-    res = pstore.save(prd)
+    maps = genMapContext()
+    resPrd = pstore.save(prd)
+    resMaps = pstore.save(maps)
     # urn:poolbs:fdi.dataset.product.Product:x
-    assert res.urn.startswith('urn:' + csdb_pool_id + ':fdi.dataset.product.Product')
+    assert resPrd.urn.startswith('urn:' + csdb_pool_id + ':fdi.dataset.product.Product')
+    assert resMaps.urn.startswith('urn:' + csdb_pool_id + ':fdi.pal.context.MapContext')
+
+    prds = genProduct(3)
+    resPrds = pstore.save(prds)
+    for ele in resPrds:
+        assert ele.urn.startswith('urn:' + csdb_pool_id + ':fdi.dataset.product.Product')
 
 
-def test_load(csdb):
+def test_loadPrd(csdb):
     test_pool, url = csdb
-    prd = test_pool.schematicLoad('fdi.dataset.product.Product', 2)
+    test_pool.getPoolInfo()
+    rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
+    prd = test_pool.schematicLoad('fdi.dataset.product.Product', rdIndex)
     assert prd.description == 'product example with several datasets', 'retrieve production incorrect'
     assert prd.instrument == 'Crystal-Ball', 'retrieve production incorrect'
     assert prd['QualityImage'].shape == (3, 3), 'retrieve production incorrect'
 
 
+def test_getProductClasses(csdb):
+    test_pool, url = csdb
+    clz = test_pool.getProductClasses()
+    assert clz == ['fdi.dataset.product.Product', 'fdi.pal.context.MapContext']
+
+
 def test_add_tag(csdb):
     test_pool, url = csdb
     tag = 'testprd'
-    urn = 'urn:' + csdb_pool_id + ':fdi.dataset.product.Product:2'
+    test_pool.getPoolInfo()
+    rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
+    urn = 'urn:' + csdb_pool_id + ':fdi.dataset.product.Product:' + str(rdIndex)
     test_pool.setTag(tag, urn)
     assert tag in test_pool.getTags(urn)
 
 
 def test_count(csdb):
     test_pool, url = csdb
-    test_pool.setPoolurl('csdb:///' + csdb_pool_id + '/fdi.dataset.product.Product')
-    count = test_pool.getCount('/' + csdb_pool_id + '/fdi.dataset.product.Product')
+    count = test_pool.getCount('fdi.dataset.product.Product')
     assert count > 1
 
 
 def test_remove(csdb):
     test_pool, url = csdb
-    urn = 'urn:' + csdb_pool_id + ':fdi.dataset.product.Product:1'
+    test_pool.getPoolInfo()
+    rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
+    urn = 'urn:' + csdb_pool_id + ':fdi.dataset.product.Product:' + str(rdIndex)
     res = test_pool.remove(urn)
-    assert res == 'success', res
+    assert res in ['success', 'Not found resource.'], res
 
 
 def test_wipe(csdb):
@@ -410,7 +436,9 @@ def test_wipe(csdb):
     Thus, the path = delete?path=/csdb_test_pool/fdi.dataset.product.Product/fdi.dataset.product.Product/2
     """
     test_pool, url = csdb
-    test_pool.setPoolurl('csdb:///' + csdb_pool_id + '/fdi.dataset.product.Product')
     test_pool.schematicWipe()
+    info = test_pool.getPoolInfo()
+    for classes in info[test_pool.poolname]['_classes']:
+        assert [0] == classes['sn']
 
 

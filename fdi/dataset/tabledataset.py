@@ -95,7 +95,8 @@ class TableModel():
 def maybe2rows(header_names, units, col_width):
     """ makes one-row or two-row header """
     if col_width == -1 or col_width is None:
-        col_width = 8
+        col_width = -1
+
     found_repeat = False
     hd, hd2 = [], []
     last = None
@@ -585,6 +586,8 @@ Default is to return all columns.
 
         if matprint is None:
             matprint = ndprint
+        if 'le of the ECL trigger' in self.description:
+            __import__('pdb').set_trace()
 
         cn = self.__class__.__name__
         if level > 1:

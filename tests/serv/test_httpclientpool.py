@@ -403,14 +403,26 @@ def test_getProductClasses(csdb):
     assert clz == ['fdi.dataset.product.Product', 'fdi.pal.context.MapContext']
 
 
-def test_add_tag(csdb):
+def test_addTag(csdb):
     test_pool, url = csdb
-    tag = 'testprd'
+    tag = 'test_prd'
     test_pool.getPoolInfo()
     rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
     urn = 'urn:' + csdb_pool_id + ':fdi.dataset.product.Product:' + str(rdIndex)
     test_pool.setTag(tag, urn)
     assert tag in test_pool.getTags(urn)
+
+
+def test_delTag(csdb):
+    test_pool, url = csdb
+    tag = 'test_prd'
+    test_pool.getPoolInfo()
+    rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
+    urn = 'urn:' + csdb_pool_id + ':fdi.dataset.product.Product:' + str(rdIndex)
+    assert tag in test_pool.getTags(urn)
+    test_pool.removeTag(tag)
+    test_pool.getPoolInfo()
+    assert tag not in test_pool.getTags(urn)
 
 
 def test_count(csdb):

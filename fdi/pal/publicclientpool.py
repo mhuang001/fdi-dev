@@ -11,7 +11,7 @@ from fdi.pal.productpool import ManagedPool
 from fdi.pal.productref import ProductRef
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.urn import makeUrn, parse_poolurl, Urn, parseUrn
-from fdi.pns.public_fdi_requests import read_from_cloud, load_from_cloud
+from fdi.pns.public_fdi_requests import read_from_cloud, load_from_cloud, delete_from_server
 from fdi.utils.common import fullname, lls, trbk
 from fdi.utils.getconfig import getConfig
 
@@ -459,7 +459,7 @@ class PublicClientPool(ManagedPool):
         else:
             raise ValueError("Update pool information failed: " + str(info))
 
-    def setTag(self, tag,  urn):
+    def setTag(self, tag, urn):
         u = urn.urn if issubclass(urn.__class__, Urn) else urn
         if not self.exists(urn):
             raise ValueError('Urn does not exists!')
@@ -477,6 +477,15 @@ class PublicClientPool(ManagedPool):
             return res['data'][u]['tags']
         else:
             raise ValueError('Read tags failed due to : ' + res['msg'])
+
+    def removeTagByUrn(self, tag, urn):
+        pass
+
+    def removeTag(self, tag):
+        if isinstance(tag, str):
+            res = delete_from_server('delTag', token=self.token, tag=tag)
+        else:
+            raise ValueError('Tag must be a string!')
 
     def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
         """ returns filtered collection using the query.

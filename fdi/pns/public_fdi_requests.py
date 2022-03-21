@@ -146,6 +146,23 @@ def load_from_cloud(requestName, **kwargs):
     return deserialize(res.text)
 
 
+def delete_from_server(requestName, **kwargs):
+    header = {'Content-Type': 'application/json;charset=UTF-8'}
+    requestAPI = defaulturl + pcc['cloud_baseurl']
+    try:
+        if requestName == 'delTag':
+            header['X-AUTH-TOKEN'] = kwargs['token']
+            requestAPI = requestAPI + '/storage/delTag?tag=' + kwargs['tag']
+            res = requests.delete(requestAPI, headers=header)
+        else:
+            raise ValueError("Unknown request API: " + str(requestName))
+        print("Read from API: " + requestAPI)
+        return deserialize(res.text)
+    except Exception as e:
+        err = {'msg': str(e)}
+        return err
+
+
 def get_service_method(method):
     service = method.split('_')[0]
     serviceName = method.split('_')[1]

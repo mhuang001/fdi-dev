@@ -14,6 +14,9 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
+bltns = vars(builtins)
+
+
 """ Allowed data (Parameter and Dataset) types and the corresponding classe names.
 The keys are mnemonics for humans; the values are type(x).__name__.
 """
@@ -61,16 +64,80 @@ DataTypeNames.update({
 del tt, tn
 
 
-@lru_cache(maxsize=64)
+try:
+    import numpy as np
+
+    # numpy type to python type https://stackoverflow.com/a/34919415/13472124
+    # nptype_to_pythontype = {v: getattr(bltns, k)
+    #                        for k, v in np.typeDict.items() if k}
+    pass
+except ImportError:
+    pass
+
+# from https://stackoverflow.com/a/53702352/13472124 by tel
+
+
+def get_typecodes():
+    import numpy as np
+    import ctypes as ct
+    import pprint
+    # np.ctypeslib.as_ctypes_type(dtype)
+    simple_types = [
+        ct.c_byte, ct.c_short, ct.c_int, ct.c_long, ct.c_longlong,
+        ct.c_ubyte, ct.c_ushort, ct.c_uint, ct.c_ulong, ct.c_ulonglong,
+        ct.c_float, ct.c_double,
+    ]
+    return pprint.pprint({np.dtype(ctype).str: ctype.__name__ for ctype in simple_types})
+
+# generated with get_typecodes() above
+
+
+# w/o endian
+numpytype_to_ctype = {
+    'f4': 'c_float',
+    'f8': 'c_double',
+    'i2': 'c_short',
+    'i4': 'c_int',
+    'i8': 'c_long',
+    'u2': 'c_ushort',
+    'u4': 'c_uint',
+    'u8': 'c_ulong',
+    'i1': 'c_byte',
+    'u1': 'c_ubyte'
+}
+
+# https://docs.python.org/3.6/library/ctypes.html#fundamental-data-types
+
+ctype_to_bytecode = {
+    'c_bool': 't_',    # Bool
+    'c_char': 'b',  # 1-char bytes
+    'c_wchar': 'b',  # 1-char string
+    'c_byte': 'b',  # int? signed char
+    'c_ubyte': 'B',  # unsigned char
+    'c_short': 'h',  # signed short
+    'c_ushort': 'H',  # unsigned short
+    'c_int': 'i',  # signed int
+    'c_uint': 'I',  # unsigned int
+    'c_long': 'l',  # signed long
+    'c_ulong': 'L',  # unsigned long
+    'c_longlong': 'q',  # signed long long
+    'c_ulonglong': 'Q',  # unsigned long long
+    'c_float': 'f',  # float
+    'c_double': 'd',  # double
+    'c_char_p': 'u',  # string
+}
+
+
+def numpytype_to_typecode(x): return ctype_to_bytecode[numpytype_to_ctype[x]]
+
+
+@ lru_cache(maxsize=64)
 def lookup_bd(t):
 
     try:
         return builtins.__dict__[t]
     except KeyError:
         return None
-
-
-bltns = vars(builtins)
 
 
 def cast(val, typ_, namespace=None):
@@ -120,7 +187,7 @@ class Vector(Quantifiable, Serializable, DeepEqual):
             self.setComponents(components)
         super(Vector, self).__init__(**kwds)
 
-    @property
+    @ property
     def components(self):
         """ for property getter
         Parameters
@@ -131,7 +198,7 @@ class Vector(Quantifiable, Serializable, DeepEqual):
         """
         return self.getComponents()
 
-    @components.setter
+    @ components.setter
     def components(self, components):
         """ for property setter
 
@@ -158,7 +225,7 @@ class Vector(Quantifiable, Serializable, DeepEqual):
         return self._data
 
     def setComponents(self, components):
-        """ Replaces the current components of this vector. 
+        """ Replaces the current components of this vector.
 
         Parameters
         ----------

@@ -81,6 +81,8 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
         """
         """
 
+        # if issubclass(data.__class__, memoryview):
+        #    d = data
         isitr = hasattr(data, '__iter__')  # and hasattr(data, '__next__')
         if not isitr and data is not None:
             # dataWrapper initializes data as None

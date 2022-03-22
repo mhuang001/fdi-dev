@@ -109,11 +109,12 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
             d = '<center><u>%s</u></center>\n' % 'DATA'
         else:
             d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
-
         d += bstr(self.data, level=level, heavy=heavy, center=center,
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                  yaml=True, **kwds) if matprint is None else \
-            matprint(self.data, level=level, trans=False, headers=[], tablefmt2='rst', heavy=heavy,
+                  yaml=True, param_widths=param_widths,
+                  **kwds) if matprint is None else \
+            matprint(self.data, level=level, trans=False, headers=[],
+                     tablefmt2='rst', heavy=heavy,
                      **kwds)
         return f'{s}\n{d}\n{last}\n'
 

@@ -42,6 +42,7 @@ setup(
         'jsonschema>=3.2.0',
         'xmltodict>=0.12.0',
         'jsonpath-ng>=1.5.3',
+        'pypng>=0.0.21',
     ],
     entry_points={'console_scripts': [
         'yaml2python=fdi.dataset.yaml2python:main']},

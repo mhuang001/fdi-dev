@@ -33,6 +33,8 @@ def remoteRegister(poolurl, auth=None):
             'urn:::0', poolurl, 'register_pool', auth=auth)
     except ConnectionError as e:
         res, msg = 'FAILED', str(e)
+        logger.error(poolurl + ' ' + msg)
+        raise
     if res == 'FAILED':
         np = '<' + auth.username + ' ' + auth.password + \
             '>' if auth else '<no authorization>'

@@ -7,6 +7,7 @@ from functools import lru_cache
 
 import array
 import binascii
+import gzip
 # from .odict import ODict
 import logging
 import json
@@ -154,11 +155,13 @@ class SerializableEncoder(json.JSONEncoder):
                 # print('&&&& %s %s' % (str(obj.__class__), str(obj)))
                 if PY3:
                     if issubclass(obj.__class__, bytes):
-                        return dict(code=str(codecs.encode(obj, 'hex'), encoding='ascii'), _STID='bytes')
+                        # return dict(code=str(codecs.encode(obj, 'hex'), encoding='ascii'), _STID='bytes')
+                        return dict(code=binascii.b2a_base64(gzip.compress(obj, 5)).decode('ascii'), _STID='bytes_gz')
                     elif issubclass(obj.__class__, array.array):
-                        return dict(code=str(binascii.b2a_hex(obj), encoding='ascii'), _STID='array.array_'+obj.typecode)
+                        return dict(code=binascii.b2a_base64(gzip.compress(obj, 5)).decode('ascii'), _STID='a.array,gz,b64_'+obj.typecode)
                 if not PY3 and issubclass(obj.__class__, str):
-                    return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
+                    # return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
+                    return dict(code=gzip.compress(obj, 5), _STID='bytes_gz')
                 if obj is Ellipsis:
                     return {'obj': '...', '_STID': 'ellipsis'}
                 if issubclass(obj.__class__, type):
@@ -178,7 +181,7 @@ class SerializableEncoder(json.JSONEncoder):
 #    obj = json.loads(jstring)
 
 def serialize(o, cls=None, **kwds):
-    """ return JSON using special encoder SerializableEncoder 
+    """ return JSON using special encoder SerializableEncoder
 
     Parameterts
     -----------
@@ -191,7 +194,7 @@ def serialize(o, cls=None, **kwds):
     return json.dumps(o, cls=cls, allow_nan=True, **kwds)
 
 
-@lru_cache(maxsize=128)
+@ lru_cache(maxsize=128)
 def jexp(expr, *args, **kwds):
     return jex.parse(expr, *args, **kwds)
 

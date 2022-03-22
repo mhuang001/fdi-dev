@@ -53,12 +53,14 @@ def bstr(x, length=0, tostr=True, quote="'", level=0,
     if the object is a string, return single-quoted; if has toString(), use it; else returns str(). Length limited by lls(lls)
     """
 
-    s = issubclass(x.__class__, str) if PY3 else issubclass(
+    is_str = issubclass(x.__class__, str) if PY3 else issubclass(
         x.__class__, (str, unicode))
 
-    if s:
+    if is_str:
+        # is a string (or unicode if not python3)
         r = quote + x + quote
     elif tostr and hasattr(x, 'toString') and not issubclass(x.__class__, type):
+        # has toString()
         r = x.toString(level=level,
                        tablefmt=tablefmt, tablefmt1=tablefmt1,
                        tablefmt2=tablefmt2, width=width, heavy=heavy,

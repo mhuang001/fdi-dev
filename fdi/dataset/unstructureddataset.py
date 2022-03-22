@@ -63,7 +63,7 @@ class UnstrcturedDataset(Dataset, Copyable):
         super().__init__(zInfo=zInfo, **metasToBeInstalled,
                          **kwds)  # initialize typ_, meta, unit
         self.data_pv = {}
-        self.input(data=data, doctype=doctype)
+        self.put(data=data, doctype=doctype)
 
     def getData(self):
         """ Optimized for _data being initialized to be `_data` by `DataWrapper`.
@@ -81,7 +81,7 @@ class UnstrcturedDataset(Dataset, Copyable):
             self.__setattr__(p[0], p[1])
         self.data_pv = full
 
-    def input(self, data, doctype=None, **kwds):
+    def put(self, data, doctype=None, **kwds):
         """ Put data in the dataset.
 
         Depending on `doctype`:

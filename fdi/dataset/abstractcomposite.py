@@ -35,7 +35,7 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
 
     def toString(self, level=0, width=0,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
-                 extra=False,
+                 extra=False, param_widths=None,
                  matprint=None, trans=True, beforedata='', heavy=True,
                  center=-1, **kwds):
         """ matprint: an external matrix print function

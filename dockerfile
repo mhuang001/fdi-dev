@@ -4,6 +4,9 @@ FROM ubuntu:18.04 AS fdi
 # 1-2 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
+
+User root
+
 #ENV TZ=Etc/UTC
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools\

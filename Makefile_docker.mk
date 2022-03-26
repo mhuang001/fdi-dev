@@ -6,7 +6,7 @@ NETWORK	= host
 ########
 DOCKER_NAME	= fdi
 DOCKER_VERSION   =$(shell if [ -f docker_version ]; then cat docker_version; fi)
-DFILE	=dockerfile
+DFILE	=fdi/dockerfile
 
 ifndef apache
 SERVER_NAME      =httppool
@@ -53,8 +53,11 @@ imlatest:
 	docker tag $(LATEST_NAME):$(LATEST_VERSION) $(LATEST)
 	docker tag $(LATEST_NAME):$(LATEST_VERSION) $(LATEST_NAME):latest
 
+DOCKERHOME =..
 build_docker:
 	@echo Building $(DOCKER_VERSION)
+	cp docker_version $(DOCKERHOME) &&\
+	cd $(DOCKERHOME) &&\
 	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DOCKER_VERSION) \
 	--network=$(NETWORK) \
 	--secret id=envs,src=$(SECFILE) \

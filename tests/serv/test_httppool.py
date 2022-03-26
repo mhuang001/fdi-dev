@@ -294,7 +294,7 @@ def test_new_user_read_only(new_user_read_only, pc):
 
 def getapis(server_ro, client):
     aburl, headers = server_ro
-    x = client.get(aburl.rsplit('/', 2)[0]+'/apispec_1.json', headers=headers)
+    x = client.get(aburl.rsplit('/', 1)[0]+'/apispec_1.json', headers=headers)
     return x.json()
 
 

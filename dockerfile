@@ -129,7 +129,7 @@ RUN pwd \
 && python3.6 -c 'import sys;print(sys.path)' \
 &&  python3.6 -m pip list \
 && make test \
-&& rm -rf /tmp/test* /tmp/data
+&& rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
 
 WORKDIR ${UHOME}
 

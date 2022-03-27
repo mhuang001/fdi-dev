@@ -39,9 +39,6 @@ RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sed -i -e 's/=/:=/' -e 's/^/s=${/' -e 's/$/}/' ./envs \
 && sudo chown -R ${USR} .
 
-RUN mkdir -p /home/mh/csc/fdi/.venv/bin \
-&& chown -R ${USR} /home/mh && chmod 755 /home/mh
-
 # Run as user
 USER ${USR}
 
@@ -50,9 +47,12 @@ ENV PKGS_DIR=${UHOME}
 RUN umask 0002
 
 # copy fdi and .venv over
-ADD --chown=${USR}:${USR} . ${UHOME}
-RUN pwd \
-&& ls . \
+ADD --chown=${USR}:${USR} pipcache ${UHOME}/pipcache
+ADD --chown=${USR}:${USR} wheels ${UHOME}/wheels
+ADD --chown=${USR}:${USR} fdi ${UHOME}/fdi
+RUN pwd; echo --- \
+&& ls wheels ; echo --- \
+&& ls . ; echo --- \
 && ls ${PKG}
 
 ARG LOCALE=en_US.UTF-8
@@ -65,10 +65,18 @@ ENV LOGGER_LEVEL=${LOGGER_LEVEL}
 # set fdi's virtual env
 # let group access cache and bin. https://stackoverflow.com/a/46900270
 ENV FDIVENV=${UHOME}/.venv
+RUN python3.6 -m venv ${FDIVENV}
+
 # effectively activate fdi virtual env for ${USR}
 ENV PATH="${FDIVENV}/bin:$PATH"
 
-RUN ln -s ${UHOME}/.venv/bin/python /home/mh/csc/fdi/.venv/bin/python3
+# update pip
+ARG PIPCACHE=${UHOME}/pipcache
+ARG PIPWHEELS=${UHOME}/wheels
+ARG PIPOPT="--cache-dir ${PIPCACHE} --no-index -f ${PIPWHEELS} --disable-pip-version-check"
+RUN umask 0002 ; echo ${PIPOPT} \
+&& python3 -m pip install ${PIPOPT} -U 'pip>=21.3'  wheel setuptools
+
 RUN python3.6 -c 'import sys;print(sys.path)' \
 &&  python3.6 -m pip list --format=columns \
 && which pip \
@@ -86,8 +94,7 @@ RUN cat profile >> .bashrc && rm profile
 # RUN ln -s /usr/bin/python3.6 ${FDIVENV}/bin/python3.6
 
 # Configure permissions
-#RUN for i in ${UHOME}/; \
-#do chown -R ${USR}:${USR} $i; echo $i; done 
+#RUN for i in ${UHOME}/; do chown -R ${USR}:${USR} $i; echo $i; done 
 #RUN chown ${USR}:${USR} ${PKGS_DIR}
 ### ADD .ssh ${UHOME}/.ssh
 ### RUN chmod 700 -R ${UHOME}/.ssh
@@ -98,9 +105,9 @@ ARG fd=rebuild
 
 WORKDIR ${PKGS_DIR}/${PKG}
 
+# all dependents have to be from pip cache
 RUN umask 0002 \
-&& python3.6 -m pip install --no-deps -e .[DEV,SERV,SCI] -q
-
+&& python3.6 -m pip install ${PIPOPT} --no-index -f ${PIPWHEELS} -e .[DEV,SERV,SCI]
 
 WORKDIR ${PKGS_DIR}
 

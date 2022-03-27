@@ -201,6 +201,7 @@ update_docker:
 	$(MAKE) launch_test_server &&\
 	$(MAKE) test7 && $(MAKE) test8 &&\
 	$(MAKE) rm_docker
+	@echo Done. `cat docker_version`
 
 cleanup:
 	docker rmi -f `docker images -a|grep pool|awk 'BEGIN{FS=" "}{print $3}'`

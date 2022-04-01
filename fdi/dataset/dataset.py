@@ -97,21 +97,23 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                     level=level, width=width, param_widths=param_widths,
                     matprint=matprint, trans=trans, heavy=heavy, **kwds))
-        html = tablefmt == 'html' or tablefmt2 == 'html'
+        html = 'html' in tablefmt.lower() or 'html' in tablefmt2.lower()
         br = '<br>' if html else '\n'
 
         s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
                                      tablefmt2=tablefmt2, center=center,
+                                     param_widths=param_widths,
                                      html=html, excpt=['description'])
         width = len(last) - 1
         if html:
             d = '<center><u>%s</u></center>\n' % 'DATA'
         else:
             d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
+
         d += bstr(self.data, level=level, heavy=heavy, center=center,
                   tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                  yaml=True, param_widths=param_widths,
+                  yaml=True, param_widths=param_widths, html=html,
                   **kwds) if matprint is None else \
             matprint(self.data, level=level, trans=False, headers=[],
                      tablefmt2='rst', heavy=heavy,
@@ -152,7 +154,7 @@ def make_title_meta_l0(self, level=0,
             self, 'description') else '')
     tw = len(t)
     # make the table and find out the width first
-    table = mstr(self._meta, level=level, **kwds)
+    table = mstr(self._meta, level=level, html=html, **kwds)
     if center and not html:
         # max separation between consequitive '\n' s
         if center == -1:

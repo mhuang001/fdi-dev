@@ -6,7 +6,7 @@ from .odict import ODict
 from ..utils.common import mstr, bstr, lls, wls, exprstrs, findShape
 from .dataset import Dataset, make_title_meta_l0, CompositeDataset
 from .shaped import Shaped
-from .indexed import Indexed
+from .metadata import MetaData
 
 try:
     from .tabledataset_datamodel import Model
@@ -92,9 +92,13 @@ class TableModel():
         self.getColumn(columnIndex).data[rowIndex] = value
 
 
-def maybe2rows(header_names, units, col_width):
-    """ makes one-row or two-row header """
-    if col_width == -1 or col_width is None:
+def maybe2rows(header_names, units, col_width, one_row=False, linebreak='\n'):
+    """ makes one-row or two-row header
+
+    :one_row: Force one row but add line breaks at '.'
+
+    """
+    if col_width is None:
         col_width = -1
 
     found_repeat = False
@@ -121,15 +125,21 @@ def maybe2rows(header_names, units, col_width):
                 p0 = ''
                 hd.append(p[0])
             hd2.append(p0)
-            if not found_repeat:
+            # repeat is never found if one row
+            if not one_row and not found_repeat:
                 if p0 != '' and p0 == last:
                     found_repeat = True
                 last = p0
 
     # [(column name, unit), ...]. Widths of column head is limited
-    hdr1 = [wls(x, width=col_width)
+    hdr1 = [wls(x.replace('.', '.\n') if one_row else x,
+                width=col_width, linebreak=linebreak)
             for x in (hd if found_repeat else header_names)]
-    hdr = list('%s\n(%s)' % nu for nu in zip(hdr1, units))
+    hdr = list('%s%s(%s)' % (nu[0], linebreak, nu[1])
+               for nu in zip(hdr1, units))
+
+    if 0:  # one_row:
+        return list(linebreak.join(hd2, hdr))
     if found_repeat:
         # if there is found_repeat. use 2-row header
         return list(zip(hd2, hdr))
@@ -577,7 +587,7 @@ Default is to return all columns.
         return self.toString(level=2)
 
     def toString(self, level=0,
-                 tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='plain',
                  width=0, param_widths=None, matprint=None, trans=True,
                  heavy=True, center=-1, **kwds):
         """
@@ -586,8 +596,6 @@ Default is to return all columns.
 
         if matprint is None:
             matprint = ndprint
-        if 'le of the ECL trigger' in self.description:
-            __import__('pdb').set_trace()
 
         cn = self.__class__.__name__
         if level > 1:
@@ -605,10 +613,10 @@ Default is to return all columns.
                     for k, v in self.getColumnMap().items()) + \
                 '})'
 
-        html = tablefmt == 'html' or tablefmt2 == 'html'
+        html = 'html' in tablefmt.lower() or 'html' in tablefmt2.lower()
         br = '<br>' if html else '\n'
         if html:
-            tablefmt = tablefmt2 = 'html'
+            tablefmt = tablefmt2 = 'unsafehtml'
         s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
                                      tablefmt2=tablefmt2, center=center,
@@ -623,22 +631,27 @@ Default is to return all columns.
                 d = 'DATA'.center(width) + '\n' + '----'.center(width) + '\n'
         else:
             d = ''
-        stp = 2 if level > 1 else 20 if level == 1 else None
+        rowlimit = 2 if level > 1 else 20 if level == 1 else None
 
         cols = self.getData().values()
-
-        coldata = [list(itertools.islice(x.data, stp)) for x in cols]
+        # widest width in all of default and in param_widths
+        w = MetaData.MaxDefWidth if param_widths == -1 or param_widths is None else \
+            max(MetaData.MaxDefWidth, max(param_widths.values()))
+        if html:
+            w = w // 2
+        coldata = [list(itertools.islice(x.data, rowlimit)) for x in cols]
         hdr = maybe2rows(self.getData().keys(),
                          (str(x.unit) for x in cols),
-                         param_widths)
+                         col_width=w, one_row=html,
+                         linebreak=br)
         d += matprint(coldata, trans=trans, headers=hdr,
                       tablefmt=tablefmt, tablefmt1=tablefmt1,
                       tablefmt2=tablefmt2, center=center,
                       mdim=2, param_widths=param_widths,
                       maxElem=sys.maxsize, **kwds)
         collen = self.getRowCount()
-        if level and stp < collen:
-            d += '(Only display %d rows of %d for level=%d.)' % (stp, collen, level)
+        if level and rowlimit is not None and rowlimit < collen:
+            d += '(Only display %d rows of %d for level=%d.)' % (rowlimit, collen, level)
         return f'{s}\n{d}{last}\n'
 
     string = toString

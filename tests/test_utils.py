@@ -263,119 +263,118 @@ def test_fetch(demo_product):
     # method w/ positional and keyword args
     allargs = serialize_args(4.4, [{"w": 77}, 65], not_quoted=True)
     assert allargs == '4.4__{"apiargs": [[{\"w\": 77}, 65]]}'
-    u, s=fetch(['alf__' + allargs], v)
+    u, s = fetch(['alf__' + allargs], v)
     assert u == (4.4, [{"w": 77}, 65])
     assert s == ".alf(4.4, [{'w': 77}, 65])"
 
     # method/function result
-    u, s=fetch(['alf__' + allargs, 1, 0, 'w'], v)
+    u, s = fetch(['alf__' + allargs, 1, 0, 'w'], v)
     assert u == 77
     assert s == ".alf(4.4, [{'w': 77}, 65])[1][0][\"w\"]"
 
     class ad(dict):
-        ada='p'
-        adb=al([0, 6])
+        ada = 'p'
+        adb = al([0, 6])
 
-    v=ad(z = 5, x = ['b', 'n', {'m': 'j'}])
-    v.ade='adee'
+    v = ad(z=5, x=['b', 'n', {'m': 'j'}])
+    v.ade = 'adee'
 
-    u, s=fetch(['ada'], v)
+    u, s = fetch(['ada'], v)
     assert u == 'p'
     assert s == '.ada'
 
-    u, s=fetch(['adb', 'ald', 0], v)
+    u, s = fetch(['adb', 'ald', 0], v)
     assert u == 8
     assert s == '.adb.ald[0]'
 
-    u, s=fetch(['x', 2, 'm'], v)
+    u, s = fetch(['x', 2, 'm'], v)
     assert u == 'j'
     assert s == '["x"][2]["m"]'
 
     # products
-    p, r=demo_product
+    p, r = demo_product
     chk_sample_pd(p)
 
 
 def test_tree(demo_product):
-    p, r=demo_product
+    p, r = demo_product
 
     # test output
-    ts='tree out_tree'
-    v=tree(p)
+    ts = 'tree out_tree'
+    v = tree(p)
     ts += "\n" + '\n'.join(v)
-    v=tree(p, level = 1)
+    v = tree(p, level=1)
     ts += "\n" + '\n'.join(v)
-    v=tree(p, level = 1, style = 'ascii')
+    v = tree(p, level=1, style='ascii')
     ts += "\n" + '\n'.join(v)
     if mk_outputs:
         print(ts)
         with open(output_write, 'a') as f:
-            clsn='out_tree'
+            clsn = 'out_tree'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
         assert ts == out_tree
 
 
-
 def test_loadcsv():
-    csvf='/tmp/fditest/testloadcsv.csv'
-    a='as if ...'
+    csvf = '/tmp/fditest/testloadcsv.csv'
+    a = 'as if ...'
     with open(csvf, 'w') as f:
         f.write(a)
-    v=loadcsv(csvf, ' ')
+    v = loadcsv(csvf, ' ')
     assert v[0] == ('col1', ['as'], '')
     assert v[1] == ('col2', ['if'], '')
     assert v[2] == ('col3', ['...'], '')
 
-    a=' \t\n'+a
+    a = ' \t\n'+a
     with open(csvf, 'w') as f:
         f.write(a)
-    v=loadcsv(csvf, ' ')
+    v = loadcsv(csvf, ' ')
     assert v[0] == ('col1', ['as'], '')
     assert v[1] == ('col2', ['if'], '')
     assert v[2] == ('col3', ['...'], '')
 
     # blank line skipped
-    a=a + '\n1 2. 3e3'
+    a = a + '\n1 2. 3e3'
     with open(csvf, 'w') as f:
         f.write(a)
-    v=loadcsv(csvf, ' ')
+    v = loadcsv(csvf, ' ')
     assert v[0] == ('col1', ['as', 1.0], '')
     assert v[1] == ('col2', ['if', 2.0], '')
     assert v[2] == ('col3', ['...', 3000.], '')
 
     # first line as header
 
-    v=loadcsv(csvf, ' ', header = 1)
+    v = loadcsv(csvf, ' ', header=1)
     assert v[0] == ('as', [1.0], '')
     assert v[1] == ('if', [2.0], '')
     assert v[2] == ('...', [3000.], '')
 
     # a mixed line added. delimiter changed to ','
-    a='as, if, ...\nm, 0.2,ev\n1, 2., 3e3'
+    a = 'as, if, ...\nm, 0.2,ev\n1, 2., 3e3'
     with open(csvf, 'w') as f:
         f.write(a)
-    v=loadcsv(csvf, ',', header = 1)
+    v = loadcsv(csvf, ',', header=1)
     assert v[0] == ('as', ['m', 1.0], '')
     assert v[1] == ('if', ['0.2', 2.0], '')
     assert v[2] == ('...', ['ev', 3000.], '')
 
     # anothrt line added. two header lines requested -- second line taken as unit line
-    a='as, if, ...\n A, B, R \n m, 0.2,ev\n1, 2., 3e3'
+    a = 'as, if, ...\n A, B, R \n m, 0.2,ev\n1, 2., 3e3'
     with open(csvf, 'w') as f:
         f.write(a)
-    v=loadcsv(csvf, ',', header = 2)
+    v = loadcsv(csvf, ',', header=2)
     assert v[0] == ('as', ['m', 1.0], 'A')
     assert v[1] == ('if', ['0.2', 2.0], 'B')
     assert v[2] == ('...', ['ev', 3000.], 'R')
 
 
 def test_loadMedia():
-    fname='bug.gif'
-    fname=os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)),
+    fname = 'bug.gif'
+    fname = os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)),
                                       'resources'), fname)
-    image=loadMedia(fname, 'image/gif')
-    ho=hashlib.md5()
+    image = loadMedia(fname, 'image/gif')
+    ho = hashlib.md5()
     ho.update(image.data)
     md5 = ho.hexdigest()
     assert md5 == '57bbbd6f8cdeafe6dc617f8969448e3b'
@@ -415,8 +414,11 @@ def test_wls():
     assert wls('格a式版本', 4) == '格a\n式版\n本'
     assert wls('格式a版本', 4) == '格式\na版\n本'
     assert wls('格式版a本', 4) == '格式\n版a\n本'
-    assert wls('\ta', 1) == '#\na'
-    assert wls('') == '#'
+    assert wls('1\ta', 4) == '1   \n    \na'
+    # unprintable activated by wide chars
+    assert wls('格\ta', 4) == '格#a'
+    assert wls('') == ''
+    assert wls('格') == '#格'
     # \r and \r\n etc are taken out as line-breaks.
     # ref https://docs.python.org/3.6/library/stdtypes.html#str.splitlines
     # the last \n is removed

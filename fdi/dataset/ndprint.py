@@ -154,10 +154,12 @@ But if the matrix is a table, the cells in a column change the fastest,
                         if hd[0][0] == '':
                             hd[0] = ('..', hd[0][1])
                     last = hd[0][0]
-                    # group width
+
+                    # width of each group
                     w = tabulate.EVENTUAL_WIDTHS[0]
                     # group strings and widths
                     hd2, w2 = [], []
+
                     for i in range(1, len(hd)):
                         this = hd[i][0]
                         # column width
@@ -212,7 +214,8 @@ But if the matrix is a table, the cells in a column change the fastest,
                                                     stralign='center',
                                                     tablefmt=tf)
                         _header = _header  # .rsplit('\n', 3)[0]
-                        delta += _header + '\n;;;;;;;;;;;;;\n' + _tab
+                        delta += _header + _tab
+
                     tabulate.PRESERVE_WHITESPACE = saveb
 
                 else:

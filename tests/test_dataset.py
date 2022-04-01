@@ -1924,8 +1924,6 @@ def test_TableDataset_func():
     ts += 'an empty level 2: \n'
     ts += TableDataset().toString(level=2)
     ts += '\n\n'
-    ts += v.toString(tablefmt1='html')
-    ts += '\n\n'
     for n, c in {'group1.val': a10['col1'], 'group1.err': a10['col2'],
                  'no-group.val': a10['col1'],
                  'group2.val': a10['col1'], 'group2.err': a10['col2'],
@@ -1941,6 +1939,7 @@ def test_TableDataset_func():
     ts += v.string(0, 'grid', 'rst', 'plain')
     ts += v.string(0, 'grid', 'rst', 'orgtbl')
     ts += v.string(0, 'grid', 'rst', 'psql')
+    ts += v.string(0, 'unsafehtml', 'unsafehtml', 'unsafehtml')
     ts += '\n\n'
     if mk_outputs:
         print(ts)

@@ -339,7 +339,7 @@ class Serializable():
     def html(self, *args, level=0, param_widths=-1, **kwds):
         """ Get a HTML representation. """
 
-        return self.toString(level=level, tablefmt='html', tablefmt1='html', tablefmt2='html', param_widths=param_widths, *args, **kwds)
+        return self.toString(level=level, tablefmt='unsafehtml', tablefmt1='unsafehtml', tablefmt2='unsafehtml', param_widths=param_widths, *args, **kwds)
 
     def jsonPath(self, expr, val='simple', sep='/', indent=None, *args, **kwds):
         """ Make a JSONPath query on the data.

@@ -8,6 +8,7 @@ import hashlib
 import array
 import traceback
 import pprint
+import textwrap
 import copy
 import os
 import pwd
@@ -46,8 +47,7 @@ def trbk2(e):
 
 
 def bstr(x, length=0, tostr=True, quote="'", level=0,
-         tablefmt='rst', tablefmt1='simple', tablefmt2='rst',
-         width=0, heavy=True, yaml=False,
+         width=0, heavy=True, yaml=False, html=False,
          **kwds):
     """ returns the best string representation.
     if the object is a string, return single-quoted; if has toString(), use it; else returns str(). Length limited by lls(lls)
@@ -62,13 +62,11 @@ def bstr(x, length=0, tostr=True, quote="'", level=0,
     elif tostr and hasattr(x, 'toString') and not issubclass(x.__class__, type):
         # has toString()
         r = x.toString(level=level,
-                       tablefmt=tablefmt, tablefmt1=tablefmt1,
-                       tablefmt2=tablefmt2, width=width, heavy=heavy,
+                       width=width, heavy=heavy,
                        **kwds)
     elif issubclass(x.__class__, (bytes, bytearray, memoryview)):
         r = x.hex()
     else:
-        html = tablefmt == 'html' or tablefmt2 == 'html'
         r = ydump(x) if yaml else str(x)
         if html:
             r = '<pre>%s</pre>' % r
@@ -123,20 +121,7 @@ def wcw(char):
     return wcwidth.wcwidth(char)
 
 
-def wls(st, width=15, fill=None, unprintable='#'):
-    """ generates a string comtaining width-limited strings separated with '\n'.
-
-    Identifies Line-breaks with `str.splitlines` https://docs.python.org/3.6/library/stdtypes.html#str.splitlines
-    Removes trailing line-breaks.
-
-    :st: input string. If not a string, ```str(st)``` is used.
-    :width: if > 0  returns the str with '\n' inserted every width chars. Or else return the input ``st``. Default is 15. A CJK characters occupies 2 in widths.
-    :unprintable: substitute unprintable characters with is. default is '#'.
-    """
-    if not issubclass(st.__class__, str):
-        st = str(st)
-    if width <= 0 or len(st) == 0:
-        return st
+def wcw_wls(st, width=15, fill=None, linebreak='\n', unprintable='#'):
     line = []
     for s in st.splitlines():
         lens = len(s)
@@ -158,20 +143,20 @@ def wls(st, width=15, fill=None, unprintable='#'):
             # print(i, c, l, lasti, s)
             if l == width:
                 line.append(c)
-                line.append('\n')
+                line.append(linebreak)
                 lasti, l = i+1, 0
             elif l > width:
                 if width < 2:
                     # print wide characters even they are too wide for width==1
                     line.append(c)
-                    line.append('\n')
+                    line.append(linebreak)
                     lasti = i+1
                     l = 0
                 else:
                     # set line pointer to this char
                     if fill:
                         line.append((width-l0) * fill)
-                    line.append('\n')
+                    line.append(linebreak)
                     line.append(c)
                     lasti = i
                     l = w
@@ -180,14 +165,40 @@ def wls(st, width=15, fill=None, unprintable='#'):
         if len(line) == 0 or line[-1] != '\n':
             if fill:
                 line.append((width-l) * fill)
-            line.append('\n')
-        # print(line)
-    return ''.join(line[:-1])
+            line.append(linebreak)
+        #print('*****', line)
+    end = len(linebreak)
+    return ''.join(line[:-end])
 
 
-def mstr(obj, level=0, width=1, excpt=None, indent=4, depth=0,
-         tablefmt='rst', tablefmt1='simple', tablefmt2='rst',
-         **kwds):
+def wls(st, width=15, fill=None, linebreak='\n', unprintable='#'):
+    """ generates a string comtaining width-limited strings separated with '\n'.
+
+    Identifies Line-breaks with `str.splitlines` https://docs.python.org/3.6/library/stdtypes.html#str.splitlines
+    Removes trailing line-breaks.
+
+    :st: input string. If not a string, ```str(st)``` is used.
+    :width: if > 0  returns the str with `linebreak` inserted every width chars max. Or else return the input ``st``. Default width is 15. A CJK characters occupies 2 in widths.
+    :linebreak: line-break character. default `\n`
+    :unprintable: substitute unprintable characters with this, only active if wide or unprintable characters are found. default is '#'.
+    """
+    if not issubclass(st.__class__, str):
+        st = str(st)
+    if width <= 0 or len(st) == 0:
+        return st
+    if len(st.encode('utf8')) == len(st) and fill is None:
+        lines = []
+        [lines.extend(textwrap.wrap(s, width=width, replace_whitespace=False,
+                                    drop_whitespace=False))
+         for s in st.splitlines()]
+        return linebreak.join(lines)
+    else:
+        # string has CJK characters
+        return wcw_wls(st, width=width, fill=fill,
+                       linebreak=linebreak, unprintable=unprintable)
+
+
+def mstr(obj, level=0, width=1, excpt=None, indent=4, depth=0, **kwds):
     """ Makes a presentation string at a detail level.
 
     'tablefmt' is needed to be passed in recursive calls under some conditions it is used.
@@ -201,19 +212,12 @@ def mstr(obj, level=0, width=1, excpt=None, indent=4, depth=0,
         if not hasattr(obj, 'items'):
             return bstr(obj, level=level, **kwds)
         if issubclass(obj.__class__, dataset.metadata.MetaData):
-            return obj.toString(level=level,
-                                tablefmt=tablefmt, tablefmt1=tablefmt1,
-                                tablefmt2=tablefmt2,
-                                **kwds)
+            return obj.toString(level=level, **kwds)
         s = ['%s= {%s}' % (mstr(k, level=level, excpt=excp,
                                 indent=indent, depth=depth+1, quote='',
-                                tablefmt=tablefmt, tablefmt1=tablefmt1,
-                                tablefmt2=tablefmt2,
                                 **kwds),
                            mstr(v, level=level, excpt=excp,
                                 indent=indent, depth=depth+1,
-                                tablefmt=tablefmt, tablefmt1=tablefmt1,
-                                tablefmt2=tablefmt2,
                                 **kwds))
              for k, v in obj.items() if k not in excp]
         if len(''.join(s)) < 70:
@@ -235,10 +239,8 @@ def mstr(obj, level=0, width=1, excpt=None, indent=4, depth=0,
             data = obj
 
         s = [pat % (mstr(k, level=level, excpt=excp,
-                         tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                          indent=indent, depth=depth+1, quote='', **kwds),
                     mstr(v, level=level, excpt=excp,
-                         tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                          indent=indent, depth=depth+1, **kwds))
              for k, v in data.items() if k not in excp]
         sep = ',\n' if depth == 0 else ', '
@@ -246,10 +248,8 @@ def mstr(obj, level=0, width=1, excpt=None, indent=4, depth=0,
     else:
         if not hasattr(obj, 'items'):
             return mstr(obj, level=1,
-                        tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                         **kwds)
         s = ['%s' % (mstr(k, level=level, excpt=excp, quote='',
-                          tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                           **kwds))
              for k, v in obj.items() if k not in excp]
         return ', '.join(s)

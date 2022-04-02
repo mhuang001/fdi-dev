@@ -103,7 +103,7 @@ def read_from_cloud(requestName, **kwargs):
         res = requests.get(requestAPI, headers=header)
     else:
         raise ValueError("Unknown request API: " + str(requestName))
-    print("Read from API: " + requestAPI)
+    # print("Read from API: " + requestAPI)
     return deserialize(res.text)
 
 
@@ -142,7 +142,7 @@ def load_from_cloud(requestName, **kwargs):
             raise ValueError("Unknown request API: " + str(requestName))
     except Exception as e:
         return 'Load File failed: ' + str(e)
-    print("Load from API: " + requestAPI)
+    # print("Load from API: " + requestAPI)
     return deserialize(res.text)
 
 
@@ -156,7 +156,7 @@ def delete_from_server(requestName, **kwargs):
             res = requests.delete(requestAPI, headers=header)
         else:
             raise ValueError("Unknown request API: " + str(requestName))
-        print("Read from API: " + requestAPI)
+        # print("Read from API: " + requestAPI)
         return deserialize(res.text)
     except Exception as e:
         err = {'msg': str(e)}

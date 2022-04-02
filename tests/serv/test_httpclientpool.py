@@ -341,6 +341,7 @@ def csdb(pc):
 
 @pytest.fixture(scope="module")
 def test_token(csdb):
+    logger.info('test token')
     test_pool, url = csdb
     test_pool.getPoolInfo()
     tokenFile = open(pcc['cloud_token'], 'r')
@@ -351,6 +352,7 @@ def test_token(csdb):
 
 
 def test_createPool(csdb):
+    logger.info('test create pool')
     test_pool, url = csdb
     try:
         assert test_pool.createPool() is True
@@ -366,6 +368,7 @@ def test_poolInfo(csdb):
 
 
 def test_upload():
+    logger.info('test upload multiple products')
     poolurl = 'csdb:///' + csdb_pool_id
     poolname = csdb_pool_id
 
@@ -388,6 +391,7 @@ def test_upload():
 
 
 def test_loadPrd(csdb):
+    logger.info('test load product')
     test_pool, url = csdb
     test_pool.getPoolInfo()
     rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
@@ -398,12 +402,14 @@ def test_loadPrd(csdb):
 
 
 def test_getProductClasses(csdb):
+    logger.info('test get classes')
     test_pool, url = csdb
     clz = test_pool.getProductClasses()
     assert clz == ['fdi.dataset.product.Product', 'fdi.pal.context.MapContext']
 
 
 def test_addTag(csdb):
+    logger.info('test add tag to urn')
     test_pool, url = csdb
     tag = 'test_prd'
     test_pool.getPoolInfo()
@@ -414,6 +420,7 @@ def test_addTag(csdb):
 
 
 def test_delTag(csdb):
+    logger.info('test delete a tag')
     test_pool, url = csdb
     tag = 'test_prd'
     test_pool.getPoolInfo()
@@ -426,12 +433,14 @@ def test_delTag(csdb):
 
 
 def test_count(csdb):
+    logger.info('test count')
     test_pool, url = csdb
     count = test_pool.getCount('fdi.dataset.product.Product')
     assert count > 1
 
 
 def test_remove(csdb):
+    logger.info('test remove product')
     test_pool, url = csdb
     test_pool.getPoolInfo()
     rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
@@ -441,12 +450,7 @@ def test_remove(csdb):
 
 
 def test_wipe(csdb):
-    """
-    Waiting for /info update, will be failed due to:
-    Wipe will check the poolInfo, and poolInfo requires poolurl like: /csdb_test_pool/fdi.dataset.product.Product
-    In doRemove(self, resourcetype, index) function, /delete requires a path, the path = self.poolurl + resourcetypes
-    Thus, the path = delete?path=/csdb_test_pool/fdi.dataset.product.Product/fdi.dataset.product.Product/2
-    """
+    logger.info('test wipe all')
     test_pool, url = csdb
     test_pool.schematicWipe()
     info = test_pool.getPoolInfo()

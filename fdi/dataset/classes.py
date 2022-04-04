@@ -50,7 +50,7 @@ class Classes_meta(type):
         'fdi.dataset.mediawrapper': ['MediaWrapper'],
         'fdi.dataset.dataset': ['GenericDataset', 'CompositeDataset'],
         'fdi.dataset.tabledataset': ['TableDataset', 'IndexedTableDataset'],
-        'fdi.dataset.unstructureddataset': ['UnstrcturedDataset'],
+        'fdi.dataset.unstructureddataset': ['UnstructuredDataset'],
         'fdi.dataset.readonlydict': ['ReadOnlyDict'],
         'fdi.pal.context': ['AbstractContext', 'Context',
                             'MapContext',

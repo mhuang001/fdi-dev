@@ -49,7 +49,7 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
     directly. Instead, they should inherit from one of the generic
     datasets that this package provides:
 
-    mh: GenericDataset, UnstrcturedDataset
+    mh: GenericDataset, UnstructuredDataset
     ArrayDataset.
     TableDataset or
     CompositeDataset.

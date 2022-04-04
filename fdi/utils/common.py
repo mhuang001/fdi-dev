@@ -478,7 +478,7 @@ def exprstrs(param, v='_value', extra=False, **kwds):
         extra_attrs = copy.copy(param._all_attrs)
     elif issubclass(param.__class__, (dataset.arraydataset.ArrayDataset,
                                       dataset.tabledataset.TableDataset,
-                                      dataset.unstructureddataset.UnstrcturedDataset)):
+                                      dataset.unstructureddataset.UnstructuredDataset)):
         extra_attrs = dict((n, v['default'])
                            for n, v in param.zInfo['metadata'].items())
     else:

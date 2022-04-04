@@ -52,7 +52,7 @@ from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
 from fdi.dataset.browseproduct import BrowseProduct
 from fdi.dataset.readonlydict import ReadOnlyDict
-from fdi.dataset.unstructureddataset import UnstrcturedDataset
+from fdi.dataset.unstructureddataset import UnstructuredDataset
 from fdi.dataset.testproducts import SP, get_demo_product
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadMedia
@@ -2200,7 +2200,7 @@ def test_CompositeDataset_init():
 
 def test_UnstrcturedDataset():
 
-    u = UnstrcturedDataset({3: 6}, 'foo')
+    u = UnstructuredDataset({3: 6}, 'foo')
     assert u.data == {3: 6}
     assert u.description == 'foo'
     assert u.meta['description'].value == 'foo'
@@ -2290,14 +2290,14 @@ complex_ex = """
 def test_jsonPath():
 
     # xmltodict docs
-    u = UnstrcturedDataset(data=simple_ex, doctype='xml', attr_prefix='@')
+    u = UnstructuredDataset(data=simple_ex, doctype='xml', attr_prefix='@')
     assert u.data['a']['@prop'] == 'x'
     assert u.data['a']['b'] == ['1', '2']
     u.attr_prefix = '%'
     u.put(simple_ex)
     assert u.data['a']['%prop'] == 'x'
 
-    do_jsonPath(UnstrcturedDataset)
+    do_jsonPath(UnstructuredDataset)
 
 
 def do_jsonPath(UDSET):

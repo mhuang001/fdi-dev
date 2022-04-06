@@ -3,13 +3,15 @@
 from ..dataset.arraydataset import ArrayDataset, Column
 from ..dataset.tabledataset import TableDataset
 from ..dataset.datatypes import Vector
+from ..dataset.finetime import FineTime
 from ..dataset.metadata import Parameter
 from ..dataset.attributable import Reserved_Property_Names
+from .common import bstr, lls
 
 from itertools import chain, islice, repeat
 import logging
 from collections import OrderedDict
-from collections.abc import MutableMapping, Sequence
+from collections.abc import Mapping, Sequence
 from pprint import pprint
 import array
 import time
@@ -26,8 +28,8 @@ Aaron Hall
 https://stackoverflow.com/a/59109706
 """
 
-SIMPLE_TYPES = [int, float, complex, str, bytes, bool, None,
-                Vector]
+SIMPLE_TYPES = (int, float, complex, str, bytes, bool, type(None),
+                FineTime, Vector)
 # prefix components:
 PREFIXES = {'line': (
     # space
@@ -56,9 +58,11 @@ PREFIXES = {'line': (
 def tree(data_object, level=0, style='line', prefix='', seen=None):
     """A recursive generator, given an object object
     will yield a visual tree structure line by line
-    with each line prefixed by the same characters
+    with each line prefixed by the same characters.
+
+    :style: can be ```line``` pr ```ascii```.
     """
-    # __import__('pdb').set_trace()
+
     space, branch, tee, last = PREFIXES[style]
     if seen is None:
         seen = []
@@ -71,20 +75,23 @@ def tree(data_object, level=0, style='line', prefix='', seen=None):
                         if not issubclass(v.__class__, SIMPLE_TYPES))
         if len(contents) == 0:
             return
-    else:
-        # data is MutableMapping ot simple values
-        contents = []
-        # properties
-        # if hasattr(data_object, '__dict__'):
-        #     contents += list((n, v) for n, v in
-        #                      vars(data_object).items() if
-        #                      not (n.startswith('_') or n in Reserved_Property_Names
-        #                          ))
+    elif hasattr(data_object, '__getstate__'):
         # state variables. Change names "_ATTR_xxx" to "xxx". Filter out Parameter
-        if hasattr(data_object, '__getstate__'):
-            contents += list(((n[6:] if n.startswith('_ATTR_') else n), v)
-                             for n, v in data_object.__getstate__().items() if
-                             level > 0 or not issubclass(v.__class__, Parameter))
+        contents = list(((n[6:] if n.startswith('_ATTR_') else n), v)
+                        for n, v in data_object.__getstate__().items() if
+                        level > 0 or not issubclass(v.__class__, Parameter))
+    elif issubclass(data_object.__class__, Mapping):
+        # data is MutableMapping of simple values
+        contents = list((n, v) for n, v in
+                        data_object.items() if
+                        not (n.startswith('_') or n in Reserved_Property_Names
+                             ))
+    elif hasattr(data_object, '__dict__'):
+        # or properties
+        contents = list((n, v) for n, v in
+                        vars(data_object).items() if
+                        not (n.startswith('_') or n in Reserved_Property_Names
+                             ))
     # contents each get pointers that are ├── with a final └── :
     pointers = [tee] * (len(contents) - 1) + [last]
     for pointer, name_value in zip(pointers, contents):
@@ -94,13 +101,13 @@ def tree(data_object, level=0, style='line', prefix='', seen=None):
         typ = '%s' % (str(v.type) if hasattr(v, 'type') else vc.__name__)
         # format output line
         ts = '<%s>%s' % (typ, shp)
-        line = prefix + pointer + name_value[0]
+        line = prefix + pointer + bstr(name_value[0])
         yield '%s%s%s' % (line, ' ' * max(1, 60-len(line)-len(ts)), ts)
 
         if issubclass(vc, (str, bytes)) or \
            issubclass(vc, (ArrayDataset)) and hasattr(v, 'typecode'):
             pass
-        elif issubclass(vc, (MutableMapping, Sequence)):
+        elif issubclass(vc, (Mapping, Sequence)) or hasattr(v, '__dict__'):
             # extend the prefix and recurse:
             extension = branch if pointer == tee else space
             # i.e. space because last, └── , above so no more |

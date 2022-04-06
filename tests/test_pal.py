@@ -958,6 +958,8 @@ def test_query_http(server):
     aburl = aburl.rstrip('/')
     cleanup()
     lpath = '/tmp'
+    __import__('pdb').set_trace()
+
     doquery(aburl, aburl)
     doquery('file://'+lpath, aburl)
     doquery('mem://'+lpath, aburl)

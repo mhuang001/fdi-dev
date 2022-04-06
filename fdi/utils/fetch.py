@@ -22,6 +22,7 @@ def fetch(paths, nested, re='', sep='/', exe=['is'], not_quoted=True):
     """
 
     if issubclass(paths.__class__, str):
+        # treat integers in data path as string
         paths = paths.strip(' ').strip(sep).split(sep)
         from_str = True
     else:
@@ -85,6 +86,13 @@ def fetch(paths, nested, re='', sep='/', exe=['is'], not_quoted=True):
         if len(paths) == 1:
             return v0, rep
         return fetch(paths[1:], v0, re=rep, sep=sep, exe=exe)
+    # elif issubclass(nested.__class__, Squence):
+    #     try:
+    #         i = int(p0)
+    #     except ValueError:
+    #         pass
+    #     else:
+    #         return fetch(paths[1:], nested[i], re=rep, sep=sep, exe=exe)
     # not methods, attribute or member
     # if found_method:
         # return methodcaller(p0)(nested), rep + '()'

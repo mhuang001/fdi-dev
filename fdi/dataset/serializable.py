@@ -2,8 +2,6 @@
 
 
 # from ..utils.common import fullname
-import jsonpath_ng.ext as jex
-from functools import lru_cache
 
 import array
 import binascii
@@ -13,7 +11,6 @@ import logging
 import json
 import copy
 import codecs
-import itertools
 from collections import ChainMap
 from collections.abc import Collection, Mapping
 import sys
@@ -194,19 +191,6 @@ def serialize(o, cls=None, **kwds):
     return json.dumps(o, cls=cls, allow_nan=True, **kwds)
 
 
-@ lru_cache(maxsize=128)
-def jexp(expr, *args, **kwds):
-    return jex.parse(expr, *args, **kwds)
-
-
-def getCacheInfo():
-    info = {}
-    for i in [jexp]:
-        info[i] = i.cache_info()
-
-    return info
-
-
 ATTR = '_ATTR_'
 LEN_ATTR = len(ATTR)
 
@@ -342,60 +326,9 @@ class Serializable():
         return self.toString(level=level, tablefmt='unsafehtml', tablefmt1='unsafehtml', tablefmt2='unsafehtml', param_widths=param_widths, *args, **kwds)
 
     def jsonPath(self, expr, val='simple', sep='/', indent=None, *args, **kwds):
-        """ Make a JSONPath query on the data.
+        from ..utils.jsonpath import jsonPath
 
-        :expr: JSONPath expression. Ref 'jsonpath_ng'
-
-        :sep: '' or `None` for keeping `jsonpath_ng` format (e.g. `a.b.[3].d`; other string for substituting '.' to the given string, with '[' and ']' removed. Default is '/'.
-        :val: 'context' for returning the `list` of `DatumInContext` of `find`; 'simple' (default) for list of simple types of values and summarizing `list` and `dict` values; other for a list of un-treated `DatumInContext.value`s; 'paths' for a list of paths only.
-        :indent: for `json.dumps`.
-        Returns
-        -------
-        If `val` is ```context```, return  the `list` of `DatumInContext` of `jsonpath_ng.ext.parse().find()`.
-        Else return a `list` of `full_path`-`value` pairs from the output of `find().`
-        * If `val` is ```simple```, only node values of simple types are kept, `list` and `dict` types will show as '<list> length' and '<dict> [keys [... [length]]]', respectively.
-        * If `val` is ```full```, the values of returned `list`s are  un-treated `DatumInContext.value`s.
-        """
-        if not issubclass(val.__class__, str):
-            __import__('pdb').set_trace()
-
-        jsonpath_expression = jexp(expr, *args, **kwds)
-        match = jsonpath_expression.find(self.data)
-        if val == 'context':
-            return match
-        res = []
-        for x in match:
-            # make key
-            key = str(x.full_path)
-            if sep == '' or sep is None:
-                pass
-            else:
-                key = key.replace('.', sep).replace('[', '').replace(']', '')
-            if val == 'paths':
-                res.append(key)
-                continue
-            # make value
-            vc = x.value.__class__
-            if val == 'simple':
-                if issubclass(vc, (list)):
-                    value = f'<{vc.__name__}> {len(x.value)}'
-                elif issubclass(vc, (dict)):
-                    n = 5
-                    ks = ', '.join(f'"{k}"' for k in
-                                   itertools.islice(x.value.keys(), n))
-                    l = len(x.value)
-                    if l > n:
-                        ks += f'{ks}...({l})'
-                    value = f'<{vc.__name__}> {ks}'
-                else:
-                    value = x.value
-            elif val == 'full':
-                value = x.value
-            else:
-                raise ValueError(
-                    'Invalid output type for jsonPath: %s' % str(val))
-            res.append((key, value))
-        return res
+        return jsonPath(self.data, expr=expr, val=val, indent=indent, *args, **kwds)
 
     def fetch(self, paths, exe=['is'], not_quoted=True):
         from ..utils.fetch import fetch

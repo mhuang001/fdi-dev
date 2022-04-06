@@ -717,7 +717,7 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None):
 
     for root, dirs, files in os.walk(datadir):
         if verbose:
-            print(root, "...", end=" ")
+            print("In ", root, "...", end=" ")
             print("find", len(files), "non-dir files", end=' ')
             print("and", len(dirs), "dirs")
         allf += [os.path.join(root, f)

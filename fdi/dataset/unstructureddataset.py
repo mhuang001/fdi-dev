@@ -40,6 +40,7 @@ class UnstructuredDataset(Dataset, Copyable):
                  alwaysMeta=True,
                  **kwds):
         """
+        Accepts keyword args to `xmltodict`, e.g. `xml_attribs`, `attr_prefix` and `cdata_key`.
         """
 
         self._list = []
@@ -58,7 +59,7 @@ class UnstructuredDataset(Dataset, Copyable):
         # for `xmltodict`  `xml_attribs` default to ```True```.
         self.xml_attribs = kwds.pop('xml_attribs', True)
         self.attr_prefix = kwds.pop('attr_prefix', '')
-        self.cdata_key = kwds.pop('cdata_key', 'text')
+        self.cdata_key = kwds.pop('cdata_key', 'value')
 
         super().__init__(zInfo=zInfo, **metasToBeInstalled,
                          **kwds)  # initialize typ_, meta, unit
@@ -109,7 +110,7 @@ class UnstructuredDataset(Dataset, Copyable):
                                        cdata_key=ck,
                                        xml_attribs=xa, **kwds)
             # set Escape if not set already
-            if '_STID' in data:
+            if hasattr(data, '__iter__') and '_STID' in data:
                 ds = data['_STID']
                 if not ds.startswith('0'):
                     data['_STID'] = '0%s' % ds

@@ -1936,7 +1936,7 @@ def test_TableDataset_func():
     from fdi.utils.jsonpath import jsonPath, flatten_compact
     print('\n'.join(str(x.full_path)
                     for x in jsonPath(v, '$..*', val='context')))
-    print('\n'self.join(flatten_compact([v]).keys()))
+    print('\n'.join(flatten_compact([v]).keys()))
 
     ts += 'grouped column names'
     ts += v.string(0, 'grid', 'rst', 'simple')
@@ -2035,33 +2035,33 @@ def test_TableDataset_doc():
 def demo_TableDataset():
 
     # http://herschel.esac.esa.int/hcss-doc-15.0/load/hcss_drm/ia/dataset/demo/TableDataset.py
-    ELECTRON_VOLTS='eV'
-    SECONDS='sec'
+    ELECTRON_VOLTS = 'eV'
+    SECONDS = 'sec'
     # create dummy numeric data:
     # t=Double1d.range(100)
     # e=2*t+100
-    t=[x * 1.0 for x in range(10)]
-    e=[2 * x + 10 for x in t]
+    t = [x * 1.0 for x in range(10)]
+    e = [2 * x + 10 for x in t]
 
     # creating a table dataset to hold the quantified data
-    table=TableDataset(description = "Example table")
-    table["Time"]=Column(data = t, unit = SECONDS)
-    table["Energy"]=Column(data = e, unit = ELECTRON_VOLTS)
+    table = TableDataset(description="Example table")
+    table["Time"] = Column(data=t, unit=SECONDS)
+    table["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
 
     # alternative Column creation:
-    c=Column()
-    c.data=t
-    c.unit=SECONDS
-    table["Time1"]=c
+    c = Column()
+    c.data = t
+    c.unit = SECONDS
+    table["Time1"] = c
 
     # alternative Column creation using Java syntax:
-    c1=Column()
+    c1 = Column()
     c1.setData(t)
     c1.setUnit(SECONDS)
     table.addColumn("Time2", c1)
 
-    t1=table.copy()
-    t2=table.copy()
+    t1 = table.copy()
+    t2 = table.copy()
     assert table.getColumnCount() == 4
     assert t1.getColumnCount() == 4
     # removing a column by name:
@@ -2074,7 +2074,7 @@ def demo_TableDataset():
     assert t1 == t2
 
     # adding meta:
-    table.meta["Foo"]=Parameter(value = "Bar", description = "Bla bla")
+    table.meta["Foo"] = Parameter(value="Bar", description="Bla bla")
 
     # table access:
     print(table)  # summary
@@ -2096,56 +2096,56 @@ def demo_TableDataset():
 
 def test_CompositeDataset_init():
     # constructor
-    a1=[768, 4.4, 5.4E3]
-    a2='ev'
-    a3='arraydset 1'
-    a4=ArrayDataset(data = a1, unit = a2, description = a3)
-    a5, a6, a7=[[1.09, 289], [3455, 564]], 'count', 'arraydset 2'
-    a8=ArrayDataset(data = a5, unit = a6, description = a7)
-    v=CompositeDataset()
-    a9='dataset 1'
-    a10='dataset 2'
+    a1 = [768, 4.4, 5.4E3]
+    a2 = 'ev'
+    a3 = 'arraydset 1'
+    a4 = ArrayDataset(data=a1, unit=a2, description=a3)
+    a5, a6, a7 = [[1.09, 289], [3455, 564]], 'count', 'arraydset 2'
+    a8 = ArrayDataset(data=a5, unit=a6, description=a7)
+    v = CompositeDataset()
+    a9 = 'dataset 1'
+    a10 = 'dataset 2'
     v.set(a9, a4)
     v.set(a10, a8)
     assert len(v.getDataWrappers()) == 2
-    a11='m1'
-    a12=NumericParameter(description = 'a different param in metadata',
-                           value = 2.3, unit = 'sec')
-    v.meta[a11]=a12
+    a11 = 'm1'
+    a12 = NumericParameter(description='a different param in metadata',
+                           value=2.3, unit='sec')
+    v.meta[a11] = a12
     # def test_CompositeDataset_func():
 
     # equality
-    b1=copy.deepcopy(a1)
-    b2=''.join(a2)
-    b3=''.join(a3)
-    b4=ArrayDataset(data = b1, unit = b2, description = b3)
-    b5, b6, b7=copy.deepcopy(a5), ''.join(a6), ''.join(a7)
-    b8=ArrayDataset(data = b5, unit = b6, description = b7)
-    v1=CompositeDataset()
-    b9=''.join(a9)
-    b10=''.join(a10)
+    b1 = copy.deepcopy(a1)
+    b2 = ''.join(a2)
+    b3 = ''.join(a3)
+    b4 = ArrayDataset(data=b1, unit=b2, description=b3)
+    b5, b6, b7 = copy.deepcopy(a5), ''.join(a6), ''.join(a7)
+    b8 = ArrayDataset(data=b5, unit=b6, description=b7)
+    v1 = CompositeDataset()
+    b9 = ''.join(a9)
+    b10 = ''.join(a10)
     v1.set(b9, b4)
     v1.set(b10, b8)
     assert len(v1.getDataWrappers()) == 2
-    b11=''.join(a11)
-    b12=NumericParameter(description = 'a different param in metadata',
-                           value = 2.3, unit = 'sec')
-    v1.meta[b11]=b12
+    b11 = ''.join(a11)
+    b12 = NumericParameter(description='a different param in metadata',
+                           value=2.3, unit='sec')
+    v1.meta[b11] = b12
 
     assert v == v1
     assert v1 == v
 
     # access datasets mapper
-    sets=v1.getDataWrappers()
+    sets = v1.getDataWrappers()
     assert len(sets) == 2
     assert id(sets[b9]) == id(v1[b9])
 
     # diff dataset access syntax []
     assert v1[b9].data[1] == v1[b9][1]
-    v2=CompositeDataset()
-    v2[b9]=b4     # compare with v1.set(b9, b4)
-    v2[b10]=b8
-    v2.meta[b11]=b12
+    v2 = CompositeDataset()
+    v2[b9] = b4     # compare with v1.set(b9, b4)
+    v2[b10] = b8
+    v2.meta[b11] = b12
     assert v == v2
 
     # change data.
@@ -2155,16 +2155,16 @@ def test_CompositeDataset_init():
     assert v != v1
     assert v1 != v
     # change meta
-    b4=copy.deepcopy(a4)
-    v1[b9]=b4
+    b4 = copy.deepcopy(a4)
+    v1[b9] = b4
     assert v == v1
-    v1.meta[b11].value=999
+    v1.meta[b11].value = 999
 
     assert v != v1
     assert v1 != v
 
     # nested datasets
-    v['v1']=v1
+    v['v1'] = v1
     assert v['v1'][a9] == a4
 
     # toString()

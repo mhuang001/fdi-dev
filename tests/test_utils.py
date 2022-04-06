@@ -298,7 +298,6 @@ def test_fetch(demo_product):
 
 def test_tree(demo_product):
     p, r = demo_product
-
     # test output
     ts = 'tree out_tree'
     v = tree(p)

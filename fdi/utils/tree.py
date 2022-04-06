@@ -101,7 +101,7 @@ def tree(data_object, level=0, style='line', prefix='', seen=None):
         typ = '%s' % (str(v.type) if hasattr(v, 'type') else vc.__name__)
         # format output line
         ts = '<%s>%s' % (typ, shp)
-        line = prefix + pointer + bstr(name_value[0])
+        line = prefix + pointer + str(name_value[0])
         yield '%s%s%s' % (line, ' ' * max(1, 60-len(line)-len(ts)), ts)
 
         if issubclass(vc, (str, bytes)) or \

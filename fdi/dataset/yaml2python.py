@@ -96,7 +96,7 @@ def getPython(val, indents, demo, onlyInclude, debug=False):
                 # as in k:v
                 # k:
                 #   data_type: string
-                #   description: Description of this dataset
+                #   description: Description of this parent_dataset
                 #   default: UNKNOWN
                 #   valid: ''
                 # v is a dict of parameter attributes
@@ -143,7 +143,7 @@ def makeinitcode(dt, pval):
     """
     if dt not in ['string', 'integer', 'hex', 'binary', 'float']:
         # custom classes
-        t = DataaTypes[dt]
+        t = DataTypes[dt]
         code = '%s(%s)' % (t, pval)
     elif dt in ['integer', 'hex', 'float', 'binary']:
         code = pval
@@ -161,7 +161,7 @@ def params(val, indents, demo, onlyInclude, debug=False):
     ```
     nam:
         data_type: string
-        description: Description of this dataset
+        description: Description of this parent_dataset
         default: UNKNOWN
         valid: ''
     ```
@@ -235,14 +235,20 @@ def params(val, indents, demo, onlyInclude, debug=False):
     return modelString, code
 
 
-def getCls(clp, rerun=True, exclude=None, ignore_error=True, verbose=False):
+def get_projectclasses(clp, rerun=True, exclude=None, verbose=False):
     """
+    return a {class-name:class-type} from a file at gieven location.
+
     Parameters
     ----------
+    :clp: paht of the mapping file.
+    :rerun, exclude: from `Classes`
 
     Returns
     -------
+    The `projectclasses.Classes` object.
     """
+
     if clp is None or len(clp.strip()) == 0:
         return {}
     if exclude is None:
@@ -251,8 +257,6 @@ def getCls(clp, rerun=True, exclude=None, ignore_error=True, verbose=False):
         print('Importing project classes from module '+clp)
         # classes path not given on command line
         pc = importlib.import_module(clp)
-        ret = pc.PC.updateMapping(rerun=rerun, exclude=exclude,
-                                  verbose=verbose, ignore_error=True)
         print(
             'Imported project classes from svom.products.projectclasses module.')
 
@@ -263,10 +267,7 @@ def getCls(clp, rerun=True, exclude=None, ignore_error=True, verbose=False):
         print('Importing project classes from file '+clp)
         pc = importlib.import_module(clpf.replace('.py', ''))
         sys.path.pop(0)
-        ret = pc.PC.updateMapping(rerun=rerun, exclude=exclude,
-                                  verbose=verbose, ignore_error=ignore_error)
-
-    return ret
+    return pc
 
 
 def read_yaml(ypath, version=None, verbose=False):
@@ -307,6 +308,8 @@ def read_yaml(ypath, version=None, verbose=False):
         if float(d['schema']) >= 1.0:
             pass
         if float(d['schema']) > 0.6:
+            __import__('pdb').set_trace()
+
             attrs = OrderedDict(d['metadata'])
             datasets = OrderedDict()
             # move primary level table to datasets
@@ -332,13 +335,7 @@ def read_yaml(ypath, version=None, verbose=False):
                        for k, v in datasets.items())
                 logger.debug('Find datasets:\n%s' % ', '.join(itr))
             else:
-                # v1.1 1.0 0.7
-                itr = ('%20s' %
-                       (k+'=' + str([c['name'] for c in (v['TABLE'] if 'TABLE'
-                                                         in v else [])]))
-                       for k, v in datasets.items())
-                print('Find datasets:\n%s' % ', '.join(itr))
-            desc[d['name']] = (d, attrs, datasets, fin)
+                raise NotImplemented('Schema %s is too old.' % d['schema'])
         else:
             # float(d['schema']) <= 0.6:
             d2 = OrderedDict()
@@ -426,7 +423,7 @@ def yaml_upgrade(descriptors, fins, ypath, version, dry_run=False, verbose=False
             md = OrderedDict()
             for pname, w in d['metadata'].items():
                 # dt = w['data_type']
-                # no dataset yet
+                # no parent_dataset yet
                 if pname == 'type':
                     v = w['default']
                     w.clear()
@@ -467,13 +464,15 @@ def dependency_sort(descriptors):
         for i in range(len(working_list)):
             # find parents of i
             nm = working_list[i]
+            # 0 for top level
             p = descriptors[nm][0]['parents']
             nm_found_parent = False
             if len(p) == 0:
                 continue
             found = set(working_list) & set(p)
             type_of_nm = glb[nm]
-            found2 = any(issubclass(type_of_nm, glb[x]) for x in working_list)
+            found2 = any(issubclass(type_of_nm, glb[x])
+                         for x in working_list if x != nm)
             assert bool(len(found)) == found2
             if len(found):
                 # parent is in working_list
@@ -606,8 +605,7 @@ if __name__ == '__main__':
     debug = out[9]['result']
 
     if debug:
-        import pdb
-        pdb.set_trace()
+        __import__('pdb').set_trace()
 
     # input file
     descriptors, files_imput = read_yaml(ypath, version, verbose)
@@ -627,10 +625,12 @@ if __name__ == '__main__':
     # include project classes for every product so that products made just
     # now can be used as parents
     from .classes import Classes
-    pcl = getCls(project_class_path, rerun=True,
-                 exclude=importexclude, verbose=verbose, ignore_error=True)
-    glb = Classes.updateMapping(
-        c=pcl, rerun=True, exclude=importexclude, verbose=verbose)
+    pc = get_projectclasses(project_class_path,  rerun=True,
+                            exclude=importexclude, verbose=verbose)
+    glb = Classes.updateMapping(c=pc.PC.mapping,
+                                rerun=True,
+                                exclude=importexclude,
+                                verbose=verbose)
     # make a list whose members do not depend on members behind (to the left)
     sorted_list = dependency_sort(descriptors)
     skipped = []
@@ -677,20 +677,23 @@ if __name__ == '__main__':
             continue
         if parentNames and len(parentNames):
             includingParentsAttributes = OrderedDict()
+            includingParentsTableColumns = OrderedDict()
             for parent in parentNames:
                 if parent is None:
                     continue
-                modnm = glb[parent].__module__
-                s = 'from %s import %s\n' % (modnm, parent)
+                mod_name = glb[parent].__module__
+                s = 'from %s import %s\n' % (mod_name, parent)
                 if parent not in seen:
                     seen.append(parent)
                     imports += s
 
-                # get parent attributes
-                mod = sys.modules[modnm]
+                # get parent attributes and tables
+                mod = sys.modules[mod_name]
                 if hasattr(mod, '_Model_Spec'):
                     includingParentsAttributes.update(
                         mod._Model_Spec['metadata'])
+                    includingParentsTableColumns.update(
+                        mod._Model_Spec['datasets'])
             # merge to get all attributes including parents' and self's.
             toremove = []
             for nam, val in attrs.items():
@@ -701,6 +704,25 @@ if __name__ == '__main__':
                 else:
                     # override
                     includingParentsAttributes[nam] = attrs[nam]
+            for ds_name, child_dataset in datasets.items():
+                # parents are updated
+                includingParentsTableColumns.update(
+                    datasets)
+                # but names and orders follow chid's
+                d = {}
+                for ds_name, c_tbl in datasets.items():
+                    tbl = {}
+                    for name, val in c_tbl.items():
+                        if name == 'TABLE':
+                            tb = {}
+                            for colname, col in val.items():
+                                tb[colname] = col
+                            tbl[name] = tb
+                            continue
+                        # metadata
+                        tbl[name] = val
+                    d[ds_name] = tbl
+                includingParentsTableColumns = d
             for nam in toremove:
                 del attrs[nam]
         else:
@@ -725,7 +747,7 @@ if __name__ == '__main__':
                     seen.append(a)
                     imports += s+'\n'
 
-        # make metadata and dataset dicts
+        # make metadata and parent_dataset dicts
         d['metadata'] = includingParentsAttributes
         d['datasets'] = datasets
         infs, default_code = getPython(d, indents[1:], demo, onlyInclude)

@@ -161,6 +161,10 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
                 p = httpclientpool.HttpClientPool(
                     poolname=poolname, poolurl=poolurl, auth=auth, **kwds)
                 res, msg = remoteRegister(poolurl, auth=p.auth)
+            elif schm == 'csdb':
+                from . import publicclientpool
+                p = publicclientpool.PublicClientPool(poolurl=poolurl)
+                # res, msg = remoteRegister(poolurl, auth=p.auth)
             else:
                 raise NotImplementedError(schm + ':// is not supported')
         #print(getweakrefs(p), id(p), '////')

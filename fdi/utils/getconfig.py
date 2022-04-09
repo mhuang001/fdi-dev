@@ -114,7 +114,7 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
         return config
 
 
-def make_pool(pool, conf='pns', wipe=False):
+def make_pool(pool, conf='pns', auth=None, wipe=False):
     """ Return a ProductStorage with given pool name or poolURL.
 
     ;name: PoolURL, or pool name (has no "://"), in which case a pool URL is made based on the result of `getConfig(name=pool, conf=conf)`. Default is ''.
@@ -130,7 +130,7 @@ def make_pool(pool, conf='pns', wipe=False):
 
     # create a product store
     from ..pal.productstorage import ProductStorage
-    pstore = ProductStorage(poolurl=poolurl)
+    pstore = ProductStorage(poolurl=poolurl, auth=auth)
     if wipe:
         logger.info('Wiping %s...' % str(pstore))
         pstore.wipePool()

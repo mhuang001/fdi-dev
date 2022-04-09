@@ -23,7 +23,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class UnstrcturedDataset(Dataset, Copyable):
+class UnstructuredDataset(Dataset, Copyable):
     """ Container for data without pre-defined structure or organization..
 
     `MetaDataListener` must stay to the left of `AbstractComposite`.
@@ -40,6 +40,7 @@ class UnstrcturedDataset(Dataset, Copyable):
                  alwaysMeta=True,
                  **kwds):
         """
+        Accepts keyword args to `xmltodict`, e.g. `xml_attribs`, `attr_prefix` and `cdata_key`.
         """
 
         self._list = []
@@ -58,12 +59,12 @@ class UnstrcturedDataset(Dataset, Copyable):
         # for `xmltodict`  `xml_attribs` default to ```True```.
         self.xml_attribs = kwds.pop('xml_attribs', True)
         self.attr_prefix = kwds.pop('attr_prefix', '')
-        self.cdata_key = kwds.pop('cdata_key', 'text')
+        self.cdata_key = kwds.pop('cdata_key', 'value')
 
         super().__init__(zInfo=zInfo, **metasToBeInstalled,
                          **kwds)  # initialize typ_, meta, unit
         self.data_pv = {}
-        self.input(data=data, doctype=doctype)
+        self.put(data=data, doctype=doctype)
 
     def getData(self):
         """ Optimized for _data being initialized to be `_data` by `DataWrapper`.
@@ -81,7 +82,7 @@ class UnstrcturedDataset(Dataset, Copyable):
             self.__setattr__(p[0], p[1])
         self.data_pv = full
 
-    def input(self, data, doctype=None, **kwds):
+    def put(self, data, doctype=None, **kwds):
         """ Put data in the dataset.
 
         Depending on `doctype`:
@@ -109,7 +110,7 @@ class UnstrcturedDataset(Dataset, Copyable):
                                        cdata_key=ck,
                                        xml_attribs=xa, **kwds)
             # set Escape if not set already
-            if '_STID' in data:
+            if hasattr(data, '__iter__') and '_STID' in data:
                 ds = data['_STID']
                 if not ds.startswith('0'):
                     data['_STID'] = '0%s' % ds

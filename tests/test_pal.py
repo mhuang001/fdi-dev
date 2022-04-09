@@ -1,9 +1,5 @@
 
 from fdi.dataset.arraydataset import ArrayDataset
-import itertools
-import random
-import timeit
-import pytest
 
 from fdi.pal.mempool import MemPool
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
@@ -29,6 +25,11 @@ from fdi.utils.checkjson import checkjson
 from fdi.pns.fdi_requests import save_to_server, read_from_server, delete_from_server
 
 from requests.auth import HTTPBasicAuth
+from requests.exceptions import ConnectionError
+import itertools
+import random
+import timeit
+import pytest
 import copy
 import traceback
 from pprint import pprint
@@ -339,7 +340,7 @@ def test_PoolManager():
     assert pm.remove(defaultpoolName) == 0
 
     # http pool gets registered
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ConnectionError):
         ph = pm.getPool(poolurl='http://h.edu/foo')
     assert not PoolManager.isLoaded('foo')
     assert PoolManager.remove('foo') == 1
@@ -957,6 +958,8 @@ def test_query_http(server):
     aburl = aburl.rstrip('/')
     cleanup()
     lpath = '/tmp'
+    __import__('pdb').set_trace()
+
     doquery(aburl, aburl)
     doquery('file://'+lpath, aburl)
     doquery('mem://'+lpath, aburl)

@@ -810,10 +810,11 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
     Note that replacing a parameter with the same name,
     will keep the order. """
 
-    Table_Widths = [
+    Default_Param_Widths = [
         {'name': 15, 'value': 18, 'unit': 6, 'type': 8,
          'valid': 17, 'default': 15, 'code': 4, 'description': 17}
     ]
+    MaxDefWidth = max(Default_Param_Widths[0].values())
 
     def __init__(self, copy=None, defaults=None, **kwds):
         """
@@ -924,19 +925,13 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
         level: 0 is the most detailed, 2 is the least,
         tablefmt: format string in packae ``tabulate``, for level==0, tablefmt1 for level1, tablefmt2: format of 2D table data.
-        param_widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its table cell is, 0 for ommiting the attributable. Default is `MetaData.Table_Widths[0]`. e.g.
-``{'name': 8, 'value': 17, 'unit': 7, 'type': 8,
-                      'valid': 20, 'default': 17, 'code': 4, 'description': 15}``
+        param_widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its table cell is, 0 for ommiting the attributable. Default is `MetaData.Default_Param_Widths[0]`. e.g.
+``{'name': 15, 'value': 18, 'unit': 6, 'type': 8,
+         'valid': 17, 'default': 15, 'code': 4, 'description': 17}``
         """
 
-        cp = copy.copy(MetaData.Table_Widths[0])
-        if param_widths is not None:
-            if param_widths != -1:
-                cp.update(param_widths)
-            else:
-                cp = -1
-        param_widths = cp
-
+        html = 'html' in tablefmt.lower() or 'html' in tablefmt2.lower()
+        br = '<br>' if html else '\n'
         tab = []
         # N parameters per row for level 1
         N = 3
@@ -952,6 +947,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             elif k == '_STID':
                 continue
             att['name'] = k
+
             # get values of line k.
             if issubclass(v.__class__, Parameter):
                 att['value'], att['unit'], att['type'], att['description'],\
@@ -982,14 +978,17 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             # generate column vallues of the line and ext headers
             # limit cell width for level=0,1.
             if level == 0:
-                if param_widths == -1:
-                    l = tuple(att[n] for n in MetaHeaders)
+                if param_widths == -1 or html:
+                    w = 0  # MetaData.MaxDefWidth
+                    l = tuple(wls(att[n], w, linebreak=br)
+                              for n in MetaHeaders)
                     if extra:
                         l += tuple(v for v in ext.values())
                 else:
-                    l = tuple(
-                        wls(att[n], w)
-                        for n, w in param_widths.items() if w != 0)
+                    thewidths = param_widths if param_widths else \
+                        MetaData.Default_Param_Widths[0]
+                    l = tuple(wls(att[n], w)
+                              for n, w in thewidths.items() if w != 0)
                     if extra:
                         l += tuple(
                             wls(v, Default_Extra_Param_Width)
@@ -1037,8 +1036,10 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 headers = allh
             else:
                 headers = []
+                thewidths = param_widths if param_widths else \
+                    MetaData.Default_Param_Widths[0]
                 for n in allh:
-                    w = param_widths.get(n, Default_Extra_Param_Width)
+                    w = thewidths.get(n, Default_Extra_Param_Width)
                     #print(n, w)
                     if w != 0:
                         headers.append(wls(n, w))

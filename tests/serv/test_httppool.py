@@ -5,7 +5,7 @@
 #################
 
 
-from fdi.dataset.unstructureddataset import UnstrcturedDataset
+from fdi.dataset.unstructureddataset import UnstructuredDataset
 from test_dataset import bookstore, simple_ex, complex_ex, do_jsonPath
 from fdi.dataset.testproducts import get_demo_product
 from fdi.dataset.serializable import serialize
@@ -294,7 +294,7 @@ def test_new_user_read_only(new_user_read_only, pc):
 
 def getapis(server_ro, client):
     aburl, headers = server_ro
-    x = client.get(aburl.rsplit('/', 2)[0]+'/apispec_1.json', headers=headers)
+    x = client.get(aburl.rsplit('/', 1)[0]+'/apispec_1.json', headers=headers)
     return x.json()
 
 
@@ -770,9 +770,9 @@ def xtest_webapi_jsonPath(server, userpass, client):
     class Get_jsonPath_from_server():
         def __init__(self, data=None, doctype='xml', attr_prefix='', *args, **kwds):
             dnm = 'bookstore' if 'bicycle' in data else 'complex_ex' if 'complex' in data else 'simple_ex'
-            u = UnstrcturedDataset(data=data, description=dnm,
-                                   doctype=doctype, attr_prefix=attr_prefix,
-                                   *args, **kwds)
+            u = UnstructuredDataset(data=data, description=dnm,
+                                    doctype=doctype, attr_prefix=attr_prefix,
+                                    *args, **kwds)
             p = Product(description=dnm, data=u)
             nonlocal pool
             nonlocal pstore

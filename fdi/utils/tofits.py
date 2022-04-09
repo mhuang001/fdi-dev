@@ -4,7 +4,7 @@ from .fits_kw import FITS_KEYWORDS, getFitsKw
 from ..dataset.arraydataset import ArrayDataset
 from ..dataset.tabledataset import TableDataset
 from ..dataset.dataset import CompositeDataset
-from ..dataset.unstructureddataset import UnstrcturedDataset
+from ..dataset.unstructureddataset import UnstructuredDataset
 from ..dataset.dataset import Dataset
 from ..dataset.datatypes import DataTypes
 from ..dataset.baseproduct import BaseProduct
@@ -151,8 +151,8 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
             for name, dlist in ima.items():
                 #print('dlist', dlist.__class__)
                 fits_dataset(hdul, [dlist], name_list=[name], level=level+1)
-        elif issubclass(ima.__class__, UnstrcturedDataset):
-            raise NotImplemented("UnstrcturedDataset not yet supported")
+        elif issubclass(ima.__class__, UnstructuredDataset):
+            raise NotImplemented("UnstructuredDataset not yet supported")
         else:
             raise TypeError('Must be a Dataset to convert to fits.')
     if debug:

@@ -152,7 +152,7 @@ reqs:
 gitadd:
 	git add LICENSE README.rst CHANGELOG.rst setup.py MANIFEST.in \
 	.gitignore noxfile.py Makefile .gitmodules .gitlab-ci.yml \
-	.readthedocs.yml .dockerignore CONTRIBUTORS
+	.readthedocs.yml .dockerignore CONTRIBUTORS stage-docker-fdi
 	git add bin/reinstall bin/installpns bin/update
 	git add resources
 	git add fdi/*.py

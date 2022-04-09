@@ -32,7 +32,7 @@ def padstr(s, w, just='left', pad=' '):
         return s.ljust(w, pad)
 
 
-def ndprint(data, trans=True, maxElem=sys.maxsize, tablefmt3='plain', **kwds):
+def ndprint(data, trans=True, mdim=None, maxElem=sys.maxsize, tablefmt3='plain', **kwds):
     """ makes a formated string of an N-dimensional array for printing.
     The fastest changing index is the innerest list. E.g.
     A 2 by 3 matrix is [[1,2],[3,4],[5,6]] written as::
@@ -52,6 +52,7 @@ But if the matrix is a table, the cells in a column change the fastest,
     Parameters
     ----------
     :tablefmt3: control 2d array printing. Default 'plain'.
+    :dim: Max dimension of the data. If given `None` guess will be made. This helps to disambiguit if there are iterables in the elements. DEfault ```None```.
 
     Returns
     -------
@@ -78,17 +79,21 @@ But if the matrix is a table, the cells in a column change the fastest,
         s = ''
 
     # print("start " + str(data) + ' ' + str(trans))
-    t = data
-    try:
-        while not issubclass(t.__class__, (str, bytes, bytearray, memoryview)):
-            tmp = list(t)
-            # if we reach this line, tmp has a valid value
-            #t[0] = tmp
-            t = tmp[0]
-            context.maxdim += 1
-    except TypeError as e:
-        # print(e)
-        pass
+    if mdim is not None:
+        context.maxdim = mdim
+    else:
+        t = data
+        try:
+            while not issubclass(t.__class__, (str, bytes, bytearray, memoryview)):
+                tmp = list(t)
+                # if we reach this line, tmp has a valid value
+                if len(tmp) == 0:
+                    break
+                t = tmp[0]
+                context.maxdim += 1
+        except TypeError as e:
+            # print(e)
+            pass
 
     def loop(data, trans, **kwds):
         # nonlocal s
@@ -128,7 +133,7 @@ But if the matrix is a table, the cells in a column change the fastest,
             except Exception as e:
                 msg = 'bad tabledataset for printing. ' + str(e)
                 logger.error(msg)
-                raise ValueError(msg)
+                raise
             if dbg:
                 print(padding + 'd2 %s' % str(d2))
             if context.dim + 1 == context.maxdim:
@@ -149,10 +154,12 @@ But if the matrix is a table, the cells in a column change the fastest,
                         if hd[0][0] == '':
                             hd[0] = ('..', hd[0][1])
                     last = hd[0][0]
-                    # group width
+
+                    # width of each group
                     w = tabulate.EVENTUAL_WIDTHS[0]
                     # group strings and widths
                     hd2, w2 = [], []
+
                     for i in range(1, len(hd)):
                         this = hd[i][0]
                         # column width
@@ -207,7 +214,8 @@ But if the matrix is a table, the cells in a column change the fastest,
                                                     stralign='center',
                                                     tablefmt=tf)
                         _header = _header  # .rsplit('\n', 3)[0]
-                        delta += _header + '\n;;;;;;;;;;;;;\n' + _tab
+                        delta += _header + _tab
+
                     tabulate.PRESERVE_WHITESPACE = saveb
 
                 else:

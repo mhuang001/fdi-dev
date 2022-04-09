@@ -40,6 +40,7 @@ def getAuth(user, password):
     return HTTPBasicAuth(user, password)
 
 
+@functools.lru_cache(maxsize=64)
 def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
     """ Returns URL for accessing pools with a URN.
 
@@ -147,7 +148,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 
 
 def post_to_server(data, urn, poolurl, contents='product', headers=None,
-                   no_serial=False, result_only=False):
+                   no_serial=False, result_only=False, auth=None):
     """Post data to server with  tag in headers
 
     data: goes to the request body
@@ -159,7 +160,8 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     result_only: only return requests result, no code and msg. Default False.
 
     """
-    auth = getAuth(pccnode['username'], pccnode['password'])
+    if auth is None:
+        auth = getAuth(pccnode['username'], pccnode['password'])
     api = urn2fdiurl(urn, poolurl, contents=contents, method='POST')
     # print('POST API: ' + api)
     if headers is None:
@@ -176,7 +178,7 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
         return res.status_code, 'FAILED', result
 
 
-def save_to_server(data, urn, poolurl, tag, no_serial=False):
+def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None):
     """Save product to server with putting tag in headers
 
     data: goes to the request body
@@ -187,26 +189,27 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False):
     """
     headers = {POST_PRODUCT_TAG_NAME: serialize(tag)}
     res = post_to_server(data, urn, poolurl, contents='product',
-                         headers=headers, no_serial=no_serial, result_only=True)
+                         headers=headers, no_serial=no_serial, result_only=True, auth=auth)
     return res
-    auth = getAuth(pccnode['username'], pccnode['password'])
-    api = urn2fdiurl(urn, poolurl, contents='product', method='POST')
-    # print('POST API: ' + api)
-    headers = {'tags': tag}
-    sd = data if no_serial else serialize(data)
-    res = requests.post(
-        api, auth=auth, data=sd, headers=headers)
-    # print(res)
-    return res
+    # auth = getAuth(pccnode['username'], pccnode['password'])
+    # api = urn2fdiurl(urn, poolurl, contents='product', method='POST')
+    # # print('POST API: ' + api)
+    # headers = {'tags': tag}
+    # sd = data if no_serial else serialize(data)
+    # res = requests.post(
+    #     api, auth=auth, data=sd, headers=headers)
+    # # print(res)
+    # return res
 
 
-def read_from_server(urn, poolurl, contents='product'):
+def read_from_server(urn, poolurl, contents='product', auth=None):
     """Read product or hk data from server
 
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     """
-    auth = getAuth(pccnode['username'], pccnode['password'])
+    if auth is None:
+        auth = getAuth(pccnode['username'], pccnode['password'])
     api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
     res = requests.get(api, auth=auth)
@@ -217,13 +220,14 @@ def read_from_server(urn, poolurl, contents='product'):
         return res.status_code, 'FAILED', result
 
 
-def put_on_server(urn, poolurl, contents='pool'):
+def put_on_server(urn, poolurl, contents='pool', auth=None):
     """Register the pool on the server.
 
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     """
-    auth = getAuth(pccnode['username'], pccnode['password'])
+    if auth is None:
+        auth = getAuth(pccnode['username'], pccnode['password'])
     api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
     # print("DELETE REQUEST API: " + api)
     res = requests.put(api, auth=auth)
@@ -234,13 +238,14 @@ def put_on_server(urn, poolurl, contents='pool'):
         return 'FAILED', result
 
 
-def delete_from_server(urn, poolurl, contents='product'):
+def delete_from_server(urn, poolurl, contents='product', auth=None):
     """Remove a product or pool from server
 
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     """
-    auth = getAuth(pccnode['username'], pccnode['password'])
+    if auth is None:
+        auth = getAuth(pccnode['username'], pccnode['password'])
     api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)
     res = requests.delete(api, auth=auth)
@@ -249,3 +254,11 @@ def delete_from_server(urn, poolurl, contents='product'):
         return result['result'], result['msg']
     else:
         return 'FAILED', result
+
+
+def getCacheInfo():
+    info = {}
+    for i in ['getAuth', 'urn2fdiurl']:
+        info[i] = i.cache_info()
+
+    return info

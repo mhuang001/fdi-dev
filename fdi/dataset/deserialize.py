@@ -8,6 +8,7 @@ from ..utils.common import lls, trbk, guess_value
 import logging
 import json
 import codecs
+import gzip
 import binascii
 import array
 import mmap
@@ -114,13 +115,28 @@ def constructSerializable(obj, lookup=None, debug=False):
                     print(spaces + 'Instanciate hex')
                 indent -= 1
                 return inst
-            elif classname.startswith('array.array'):
-                tcode = classname.rsplit('_', 1)[1]
-                inst = array.array(tcode, binascii.a2b_hex(obj['code']))
+            elif classname == 'bytes_gz':
+                inst = gzip.decompress(binascii.a2b_base64(obj['code']))
                 if debug:
-                    print(spaces + 'Instanciate array.array')
+                    print(spaces + 'Instanciate hex_gz')
                 indent -= 1
                 return inst
+            elif classname.startswith('a.array'):
+                array_t, tcode = tuple(classname.rsplit('_', 1))
+                if array_t == 'a.array':
+                    inst = array.array(tcode, binascii.a2b_hex(obj['code']))
+                    if debug:
+                        print(spaces + 'Instanciate array.array')
+                    indent -= 1
+                    return inst
+                elif array_t == 'a.array,gz,b64':
+                    # gzip-base64
+                    inst = array.array(tcode, gzip.decompress(
+                        binascii.a2b_base64(obj['code'])))
+                    if debug:
+                        print(spaces + 'Instanciate array.array gzip base64')
+                    indent -= 1
+                    return inst
         if classname in lookup:
             # Now we have a blank instance.
             inst = lookup[classname]()

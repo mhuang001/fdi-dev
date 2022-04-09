@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  version: 1.2.0
+  version: 1.2.2
   description: This is an API description of the HTTPPool Server for FDI (Flexible Dataset Integrator)
   title: fdi poolserver
   contact:
@@ -29,8 +29,19 @@ tags:
     externalDocs:
       url: 'https://fdi.readthedocs.io/en/latest/usage/httppool.html'
 servers:
+  - url: 'http://{host}:{port}/{basePath}'
+    description: httppool api flask-uwsgi dev version
+    variables:
+      host:
+        default: 123.56.102.90
+        description: 123.56.102.90 for production.
+      port:
+        default: '31702'
+        description: 31702 for production.
+      basePath:
+        default: fdi/v0.13
   - url: 'http://127.0.0.1:{port}/{basePath}'
-    description: httppool api flask-wsgi-apache2 version
+    description: httppool api flask-uwsgi dev version
     variables:
       port:
         enum:
@@ -41,7 +52,15 @@ servers:
       basePath:
         default: fdi/v0.13
   - url: 'http://10.0.10.114:9885/fdi/v0.13'
-    description: httppool api production flask-wsgi-apache2 version
+    description: httppool api production intranet
+    variables:
+      port:
+        enum:
+          - '9885'
+        default: '9885'
+        description: 9885 for production.
+      basePath:
+        default: fdi/v0.13
 security:
   - BasicAuth: []
 paths:

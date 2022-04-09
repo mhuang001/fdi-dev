@@ -1058,7 +1058,7 @@ def test_DateParameter():
     def0 = None
     assert v.default == def0
     assert v.valid is None
-    assert v.typecode == 'Q'
+    assert v.typecode == '%Y-%m-%dT%H:%M:%S.%f'
     v = DateParameter(789)
     assert v.value.format == FineTime.DEFAULT_FORMAT
 
@@ -1081,11 +1081,25 @@ def test_DateParameter():
     v.value = a8
     assert v.value == FineTime(a8)
 
+    # set DateParameter of a product with value to FineTime
+    p = Product()
+    p.creationDate = 3
+    assert p.meta['creationDate'].value.tai == 3
+    p.meta['creationDate'].typecode = '%Y'
+    p.creationDate = '2022'
+    assert p.meta['creationDate'].value.isoutc(
+    ) == '2022-01-01T00:00:00.000000'
+    setattr(p, 'creationDate', '1989')
+    assert p.meta['creationDate'].value.isoutc(
+    ) == '1989-01-01T00:00:00.000000'
+
     v = DateParameter('2019-02-19T01:02:03.457')
     assert v.value.tai == 1929229360457000
     v.value.format = '%Y'
     # print('********', v.value.isoutc(), ' ** ', v, '*******', v.toString(1))
-
+    assert v.value.isoutc() == '2019-02-19T01:02:03.457000'
+    assert str(
+        v) == 'DateParameter(finetime: 2019\n1929229360457000 <>, "UNKNOWN", default= None, valid= None tcode=%Y-%m-%dT%H:%M:%S.%f)'
     with pytest.raises(TypeError):
         DateParameter(3.3)
     vv = copy.copy(v)
@@ -1579,7 +1593,7 @@ def do_ArrayDataset_func(atype):
     if mk_outputs:
         print(ts[i:])
     else:
-        assert ts[i:-126] == nds2
+        assert ts[i:-132] == nds2
     ts += '\n\nlevel 1\n'
     ts += x.toString(1)
     ts += '\n\nlevel 2, repr\n'
@@ -1934,8 +1948,8 @@ def test_TableDataset_func():
     from fdi.utils.tree import tree
     print('\n'.join(tree(v, style='ascii')))
     from fdi.utils.jsonpath import jsonPath, flatten_compact
-    print('\n'.join(str(x.full_path)
-                    for x in jsonPath(v, '$..*', val='context')))
+    print(list(str(x.full_path)
+               for x in jsonPath(v, '$..*', val='context')))
     print('\n'.join(flatten_compact([v]).keys()))
 
     ts += 'grouped column names'

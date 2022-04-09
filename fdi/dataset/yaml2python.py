@@ -134,7 +134,7 @@ def getPython(val, indents, demo, onlyInclude, debug=False):
 def makeinitcode(dt, pval):
     """ python instanciation source code.
 
-    will be like "default: FineTime1(0)"
+    will be like "default: FineTime1(0)" in 'def __init__(self, 
     Parameters
     ----------
 
@@ -143,7 +143,7 @@ def makeinitcode(dt, pval):
     """
     if dt not in ['string', 'integer', 'hex', 'binary', 'float']:
         # custom classes
-        t = DataTypes[dt]
+        t = DataaTypes[dt]
         code = '%s(%s)' % (t, pval)
     elif dt in ['integer', 'hex', 'float', 'binary']:
         code = pval
@@ -269,7 +269,7 @@ def getCls(clp, rerun=True, exclude=None, ignore_error=True, verbose=False):
     return ret
 
 
-def readyaml(ypath, version=None, verbose=False):
+def read_yaml(ypath, version=None, verbose=False):
     """ read YAML files in ypath.
 
     output: nm is  stem of file name. desc is descriptor, key being yaml[name]
@@ -384,7 +384,7 @@ def output(nm, d, fins, version, dry_run=False, verbose=False):
             ydump(d,  yamlfile)
 
 
-def yamlupgrade(descriptors, fins, ypath, version, dry_run=False, verbose=False):
+def yaml_upgrade(descriptors, fins, ypath, version, dry_run=False, verbose=False):
     """
     Parameters
     ----------
@@ -472,10 +472,9 @@ def dependency_sort(descriptors):
             if len(p) == 0:
                 continue
             found = set(working_list) & set(p)
-            # for x in working_list:
-            #    if x == nm:
-            #        continue
-            #    if x in p:
+            type_of_nm = glb[nm]
+            found2 = any(issubclass(type_of_nm, glb[x]) for x in working_list)
+            assert bool(len(found)) == found2
             if len(found):
                 # parent is in working_list
                 working_list.remove(nm)
@@ -503,9 +502,12 @@ def removeParent(a, b):
     """ Returns the one who is the other one's parent.
     Parameters
     ----------
+    :a: a class name
+    :b: a class name
 
     Returns
     -------
+    classname if found or `None`.
     """
     if a == b:
         logger.debug('%s and %s are the same class' % (b, a))
@@ -525,11 +527,15 @@ def removeParent(a, b):
 
 def noParentsParents(pn):
     """
+    return a subset of class names such that no member is any other's parent.
+
     Parameters
     ----------
+    :pn: list of class names.
 
     Returns
     -------
+    list of non-parents.
     """
 
     removed = []
@@ -575,7 +581,7 @@ if __name__ == '__main__':
         {'long': 'userclasses=', 'char': 'c', 'default': '',
          'description': 'Python file name, or a module name,  to import prjcls to update Classes with user-defined classes which YAML file refers to.'},
         {'long': 'upgrade', 'char': 'u', 'default': False,
-         'description': 'Upgrade the file to current schema, by yamlupgrade(), to version + ' + version},
+         'description': 'Upgrade the file to current schema, by yaml_upgrade(), to version + ' + version},
         {'long': 'dry_run', 'char': 'n', 'default': False,
          'description': 'No writing. Dry run.'},
         {'long': 'debug', 'char': 'd', 'default': False,
@@ -604,10 +610,10 @@ if __name__ == '__main__':
         pdb.set_trace()
 
     # input file
-    descriptors, files_imput = readyaml(ypath, version, verbose)
+    descriptors, files_imput = read_yaml(ypath, version, verbose)
     if upgrade:
-        yamlupgrade(descriptors, files_imput, ypath, version,
-                    dry_run=dry_run, verbose=verbose)
+        yaml_upgrade(descriptors, files_imput, ypath, version,
+                     dry_run=dry_run, verbose=verbose)
         sys.exit()
 
     # Do not import modules that are to be generated. Thier source code
@@ -625,7 +631,7 @@ if __name__ == '__main__':
                  exclude=importexclude, verbose=verbose, ignore_error=True)
     glb = Classes.updateMapping(
         c=pcl, rerun=True, exclude=importexclude, verbose=verbose)
-    # make a list whose members do not depend members behind
+    # make a list whose members do not depend on members behind (to the left)
     sorted_list = dependency_sort(descriptors)
     skipped = []
     for nm in sorted_list:

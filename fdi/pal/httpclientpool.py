@@ -43,11 +43,12 @@ def toserver(self, method, *args, **kwds):
 
     logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
     if 0:  # len(apipath) < 800:
-        code, res, msg = read_from_server(urn, self._poolurl, apipath)
+        code, res, msg = read_from_server(
+            urn, self._poolurl, apipath, auth=self.auth)
     else:
         code, res, msg = post_to_server(apipath, urn, self._poolurl,
                                         contents=method + '__' + '/',
-                                        no_serial=True)
+                                        no_serial=True, auth=self.auth)
 
     if issubclass(res.__class__, str) and 'FAILED' in res or code != 200:
         for line in msg.split('\n'):
@@ -81,13 +82,14 @@ class HttpClientPool(ProductPool):
     """ the pool will save all products on a remote server.
     """
 
-    def __init__(self, **kwds):
+    def __init__(self, auth=None, **kwds):
         """ Initialize connection to the remote server. creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files on server if not exist.
 
         """
         # print(__name__ + str(kwds))
         super().__init__(**kwds)
         self.not_quoted = True
+        self.auth = auth
 
     def setup(self):
         """ Sets up HttpPool interals.
@@ -147,7 +149,7 @@ class HttpClientPool(ProductPool):
             first = False
         sized += ']'
         res = save_to_server(sized, urn, self._poolurl,
-                             tag, no_serial=True)
+                             tag, no_serial=True, auth=self.auth)
         sv = deserialize(res.text)
         if sv['result'] == 'FAILED' or res.status_code != 200:
             logger.error('Save %d products to server failed.%d Message from %s: %s' % (
@@ -192,7 +194,7 @@ class HttpClientPool(ProductPool):
         urn = makeUrn(self._poolname, resourcetype, indexstr)
         logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
         code, res, msg = read_from_server(
-            urn, self._poolurl)  # TODO: start,end
+            urn, self._poolurl, auth=self.auth)  # TODO: start,end
         if res == 'FAILED' or code != 200:
             raise NameError('Loading ' + urn + ' failed:%d. ' % code + msg)
         return res

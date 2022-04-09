@@ -1,0 +1,34 @@
+deactivate 
+cd ~
+rm -rf ~/csc && mkdir csc
+# virtualenv -p python3.6 ~/csc/fdi &&
+# . ~/csc/fdi/bin/activate &&
+
+export FDIVENV=${HOME}/csc/fdi/.venv
+export PIPCACHE=${HOME}/csc/fdi/pipcache
+export PIPWHEELS=${HOME}/csc/fdi/wheels
+mkdir -p $FDIVENV \
+&& umask 0002 && python3.6 -m venv ${FDIVENV}
+#if echo $PATH|grep $FDIVENV/bin > /dev/null; then echo FDIVENV/bin dir already in PATH; \
+#else export PATH="${FDIVENV}/bin:$PATH";fi
+. $FDIVENV/bin/activate \
+&& echo venv activated \
+&& umask 0002 && python3 -m pip install -U --cache-dir ${PIPCACHE} pip>=21  wheel setuptools
+
+cd ~/csc/fdi &&
+#pip3 install fdi &&
+#python3 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV,SERV] &&
+git clone --depth 50 -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git \
+&& cd fdi \
+&& make install EXT="[DEV,SERV,SCI]" PIPOPT="--disable-pip-version-check --no-color --cache-dir ${PIPCACHE}" \
+&& make test \
+&& python3 -m pip wheel --wheel-dir ${PIPWHEELS} pip wheel setuptools \
+&& cd fdi && python3 -m pip wheel --wheel-dir ${PIPWHEELS} -e .[DEV,SERV,SCI] && cd ..
+ls
+if false; then \
+mkdir ../csc && cd ../csc \
+git clone ssh://git@mercury.bao.ac.cn:9005/svom/csc.git --recurse-submodules \
+make update \
+&& make PROJ-INSTALL \
+&& make PROJ-TEST ;\
+fi

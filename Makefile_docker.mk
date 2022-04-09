@@ -6,11 +6,11 @@ NETWORK	= host
 ########
 DOCKER_NAME	= fdi
 DOCKER_VERSION   =$(shell if [ -f docker_version ]; then cat docker_version; fi)
-DFILE	=dockerfile
+DFILE	=fdi/dockerfile
 
 ifndef apache
 SERVER_NAME      =httppool
-API_BASE = /fdi-dev
+API_BASE = /fdi
 else
 SERVER_NAME      =httppool
 API_BASE = /fdi
@@ -53,13 +53,17 @@ imlatest:
 	docker tag $(LATEST_NAME):$(LATEST_VERSION) $(LATEST)
 	docker tag $(LATEST_NAME):$(LATEST_VERSION) $(LATEST_NAME):latest
 
+DOCKERHOME =..
 build_docker:
 	@echo Building $(DOCKER_VERSION)
+	cp docker_version $(DOCKERHOME) &&\
+	cd $(DOCKERHOME) &&\
 	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DOCKER_VERSION) \
 	--network=$(NETWORK) \
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
+	--build-arg LOGGER_LEVEL=$(LOGGER_LEVEL) \
 	--build-arg DOCKER_VERSION=$(DOCKER_VERSION) \
 	-f $(DFILE) \
 	$(D) --progress=plain .
@@ -76,7 +80,7 @@ build_server:
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
 	--build-arg SERVER_VERSION=$(SERVER_VERSION) \
-	-e API_BASE=$(API_BASE) \
+	--build-arg API_BASE=$(API_BASE) \
 	-f $(SFILE) \
 	$(D) --progress=plain .
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
@@ -91,6 +95,7 @@ launch_server:
 	-p $(PORT):$(EXTPORT) \
 	-e HOST_PORT=$(PORT) \
 	-e LOGGER_LEVEL=$(LOGGER_LEVEL) \
+	-e API_BASE=$(API_BASE) \
 	--name $$SN $(D) $(LATEST) $(LAU)
 	sleep 2
 	#docker inspect $$SN
@@ -196,6 +201,7 @@ update_docker:
 	$(MAKE) launch_test_server &&\
 	$(MAKE) test7 && $(MAKE) test8 &&\
 	$(MAKE) rm_docker
+	@echo Done. `cat docker_version`
 
 cleanup:
 	docker rmi -f `docker images -a|grep pool|awk 'BEGIN{FS=" "}{print $3}'`

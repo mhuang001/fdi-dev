@@ -215,7 +215,8 @@ def create_app(config_object=None, level=None):
         'title': 'FDI %s HTTPpool Server' % __version__,
         'universion': 3,
         'openapi': '3.0.3',
-        'specs_route': config_object['baseurl'] + '/apidocs/'
+        'specs_route': '/apidocs/',
+        'url_prefix': config_object['api_base']
     }
     swag['servers'].insert(0, {
         'description': 'As in config file and server command line.',

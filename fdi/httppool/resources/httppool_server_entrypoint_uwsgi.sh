@@ -1,14 +1,15 @@
 #!/bin/bash
 
 id | tee ~/last_entry.log
-echo ######                                                                     
-# if note set. level use WARNING
-s=${LOGGER_LEVEL:=30}
-s=${HOST_PORT:=9885}
-s=${HOST_USER:=ro}
-s=${HOST_PASS:=only5%}
-s=${SELF_USER:=fdi}
-# TODO: SELF_PASS to be removed?
+echo ######
+
+set -a
+source ./envs
+echo rm ./envs
+
+# if note set.
+s=${UWSGIOPT:=''}
+set +a
 
 sed -i "s/^EXTHOST =.*$/EXTHOST = \'$HOST_IP\'/g" ~/.config/pnslocal.py
 sed -i "s/^EXTPORT =.*$/EXTPORT = $HOST_PORT/g" ~/.config/pnslocal.py
@@ -38,11 +39,13 @@ echo =====  .config/pnslocal.py >> ~/last_entry.log
 grep ^conf  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^EXTHOST  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^EXTPORT  ~/.config/pnslocal.py >> ~/last_entry.log
+grep ^EXTUSER  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SELF_HOST  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SELF_PORT  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SELF_USER  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^BASE_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
+grep ^API_BASE  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SERVER_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
+grep ^LOGGER_LEVEL  ~/.config/pnslocal.py >> ~/last_entry.log
 
 if [ ! -d /var/log/uwsgi ]; then \
 sudo mkdir -p /var/log/uwsgi && \
@@ -58,8 +61,9 @@ sudo chown -R fdi:fdi  /var/www/httppool_server/data; fi
 				 
 date >> ~/last_entry.log
 cat ~/last_entry.log
-echo @@@ $@
+echo '>>>' $@
 for i in $@; do
-if [ $i = no-run ]; then exit 0;else $@; fi;
+if [ $i = no-run ]; then exit 0; fi;
 done
 
+exec "$@"

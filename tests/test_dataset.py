@@ -52,7 +52,7 @@ from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
 from fdi.dataset.browseproduct import BrowseProduct
 from fdi.dataset.readonlydict import ReadOnlyDict
-from fdi.dataset.unstructureddataset import UnstrcturedDataset
+from fdi.dataset.unstructureddataset import UnstructuredDataset
 from fdi.dataset.testproducts import SP, get_demo_product
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadMedia
@@ -186,7 +186,7 @@ def test_serialization():
     v = Ellipsis
     checkjson(v)
     v = b'\xde\xad\xbe\xef'
-    checkjson(v)
+    # checkjson(v)
     v = array.array('d', [1.2, 42])
     checkjson(v)
     v = [1.2, 'ww']
@@ -502,14 +502,14 @@ def test_MqttRelay_mqtt(mocksndrlsnr):
                           port=None, username=None, passwd=None,
                           client_id='foo', callback=None, qos=1,
                           userdata=None, clean_session=None,)
-    #mqhost = v.mq._host
+    # mqhost = v.mq._host
     mf = MockFileWatcher()
     mf.addListener(v)
     w = MqttRelaySender(topics="test.mq.bounce2", host=None,
                         port=None, username=None, passwd=None,
                         client_id='bar', callback=None, qos=1,
                         userdata=None, clean_session=None,)
-    #mquser = w.username
+    # mquser = w.username
     w.addListener(l1)
 
     def snd():
@@ -1213,6 +1213,7 @@ def test_MetaData():
                 break
             print(ts[i:])
             print(out_MetaData[i:])
+            assert ts[i:] == out_MetaData[i:]
             assert False
 
     # listeners
@@ -1477,12 +1478,16 @@ def do_ArrayDataset_func(atype):
     assert v1 == v
     # not equal
     # change data
-    v1.data += atype([6])
+    if issubclass(v1.data.__class__, memoryview):
+        v1.data[0] += 1
+    else:
+        v1.data += atype([6])
     assert v != v1
     assert v1 != v
     # restore v1 so that v==v1
-    v1.data = copy.deepcopy(a1)
-    assert v == v1
+    if not issubclass(v1.data.__class__, memoryview):
+        v1.data = copy.deepcopy(a1)
+        assert v == v1
     # change description
     v1.description = 'changed'
     assert v != v1
@@ -1617,6 +1622,16 @@ def test_ArrayDataset_array_func():
     do_ArrayDataset_func(atype)
 
 
+def XXXtest_ArrayDataset_memoryview_init():
+    def atype(x): return array.array('f', memoryview(x))
+    do_ArrayDataset_init(atype)
+
+
+def XXXtest_ArrayDataset_memoreyvew_func():
+    def atype(x): return array.array('f', memoryview(x))
+    do_ArrayDataset_func(atype)
+
+
 def test_Column():
     v = Column()
     assert v.type == 'Column'
@@ -1660,9 +1675,9 @@ def test_TableDataset_init():
     v2['col2'] = Column(data=copy.deepcopy(d2), unit='cnt')
     assert v2.shape == (2, 3)
 
-    #print('DDD ', deepcmp(v, v2, verbose=0))
+    # print('DDD ', deepcmp(v, v2, verbose=0))
 
-    #fdi.dataset.eq.XHASH_VERBOSE = True
+    # fdi.dataset.eq.XHASH_VERBOSE = True
     # print(v.hash())
     # print(v2.hash())
     assert v2 == v
@@ -1909,8 +1924,6 @@ def test_TableDataset_func():
     ts += 'an empty level 2: \n'
     ts += TableDataset().toString(level=2)
     ts += '\n\n'
-    ts += v.toString(tablefmt1='html')
-    ts += '\n\n'
     for n, c in {'group1.val': a10['col1'], 'group1.err': a10['col2'],
                  'no-group.val': a10['col1'],
                  'group2.val': a10['col1'], 'group2.err': a10['col2'],
@@ -1918,6 +1931,13 @@ def test_TableDataset_func():
                  'group2.wgt': Column(data=['', 0.32, -9876543210], unit='g'),
                  }.items():
         v.addColumn(n, c)
+    from fdi.utils.tree import tree
+    print('\n'.join(tree(v, style='ascii')))
+    from fdi.utils.jsonpath import jsonPath, flatten_compact
+    print('\n'.join(str(x.full_path)
+                    for x in jsonPath(v, '$..*', val='context')))
+    print('\n'.join(flatten_compact([v]).keys()))
+
     ts += 'grouped column names'
     ts += v.string(0, 'grid', 'rst', 'simple')
     ts += v.string(0, 'grid', 'rst', 'rst')
@@ -1926,6 +1946,7 @@ def test_TableDataset_func():
     ts += v.string(0, 'grid', 'rst', 'plain')
     ts += v.string(0, 'grid', 'rst', 'orgtbl')
     ts += v.string(0, 'grid', 'rst', 'psql')
+    ts += v.string(0, 'unsafehtml', 'unsafehtml', 'unsafehtml')
     ts += '\n\n'
     if mk_outputs:
         print(ts)
@@ -2186,7 +2207,7 @@ def test_CompositeDataset_init():
 
 def test_UnstrcturedDataset():
 
-    u = UnstrcturedDataset({3: 6}, 'foo')
+    u = UnstructuredDataset({3: 6}, 'foo')
     assert u.data == {3: 6}
     assert u.description == 'foo'
     assert u.meta['description'].value == 'foo'
@@ -2195,7 +2216,7 @@ def test_UnstrcturedDataset():
     assert u.doctype == 'json'
 
     p = get_demo_product()
-    u.input(p.serialized(), 'json')
+    u.put(p.serialized(), 'json')
     assert issubclass(u.data.__class__, dict)
 
     v, s = u.fetch(["data", "_ATTR_meta", "speed"])
@@ -2215,7 +2236,7 @@ def test_UnstrcturedDataset():
     assert v == u.data["measurements"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]
     assert s == '.data["measurements"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]'
 
-    print('cache:', fdi.dataset.serializable.getCacheInfo())
+    print('cache:', fdi.utils.jsonpath.getCacheInfo())
     checkjson(u)
     checkgeneral(u)
 
@@ -2276,14 +2297,14 @@ complex_ex = """
 def test_jsonPath():
 
     # xmltodict docs
-    u = UnstrcturedDataset(data=simple_ex, doctype='xml', attr_prefix='@')
+    u = UnstructuredDataset(data=simple_ex, doctype='xml', attr_prefix='@')
     assert u.data['a']['@prop'] == 'x'
     assert u.data['a']['b'] == ['1', '2']
     u.attr_prefix = '%'
-    u.input(simple_ex)
+    u.put(simple_ex)
     assert u.data['a']['%prop'] == 'x'
 
-    do_jsonPath(UnstrcturedDataset)
+    do_jsonPath(UnstructuredDataset)
 
 
 def do_jsonPath(UDSET):
@@ -2416,7 +2437,7 @@ def do_jsonPath(UDSET):
                  ('store/bicycle/color', 'red'),
                  ('store/bicycle/price', 19.95)
                  ]
-    print('cache:', fdi.dataset.serializable.getCacheInfo())
+    print('cache:', fdi.utils.jsonpath.getCacheInfo())
 
 
 def test_Indexed():
@@ -2591,6 +2612,9 @@ def test_FineTime():
     v = FineTime(1)
     assert v.toDatetime().microsecond == 1
     # from string
+    assert FineTime('0') == FineTime(0)
+    assert FineTime('10') == FineTime(10)
+    assert FineTime(b'20') == FineTime(20)
     v = FineTime('1990-09-09T12:34:56.789098 UTC')
 
     # comparison

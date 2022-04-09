@@ -11,25 +11,28 @@ RUN apt-get update \
 
 # setup user
 ARG USR=fdi
+# home is fdi git home
 ARG UHOME=/home/${USR}
 
 # rebuild mark
 ARG re=rebuild
+ARG LOGGER_LEVEL=10
+ENV LOGGER_LEVEL=${LOGGER_LEVEL}
 
 WORKDIR ${UHOME}
 # use fdi's virtual env path. this effectively activates fdi's virtuakenv
-# ENV PATH="${FDIVENV}:${UHOME}/.local/bin:$PATH"
 RUN echo ${PATH}
 
 # setup config files
 ARG PROJ_DIR
 ENV SERVER_POOLPATH=${PROJ_DIR}/data
-ENV LOGGING_LEVEL=20
-ENV API_BASE=/fdi
+ARG API_BASE=/fdi
+ENV API_BASE=${API_BASE}
 RUN mkdir -p ${PROJ_DIR}/data
 
+# remote-pdb https://stackoverflow.com/a/46436653/13472124
+
 # convinience aliases
-COPY --chown=root:root fdi/httppool/resources/httppool_server_uwsgi.service /etc/systemd/system
 # /var/log will on volume and the touched log files here will not be accessible.
 RUN mkdir -p /var/log/uwsgi \
 && touch /var/log/uwsgi/uwsgi.log \
@@ -38,46 +41,41 @@ RUN mkdir -p /var/log/uwsgi \
 && ln -s /var/log/uwsgi/uwsgi.log . \
 && ln -s /var/log/uwsgi/access.log . \
 && ln -s /var/log/uwsgi/error.log . \
-&& ln -s /etc/systemd/system/httppool_server_uwsgi.service . \
 && ln -s  ${SERVER_POOLPATH} data
 
-# Configure permission
-RUN for i in  ${PROJ_DIR} /var/log/uwsgi ${UHOME}/*; \
-do chown -R ${USR}:${USR} $i; echo $i owner ${USR}; done
+# update ~/.config/pnslocal.py so test can be run with correct settings
+RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
+&& sudo chown ${USR} ./envs \
+&& sed -i -e 's/=/:=/' -e 's/^/s=${/' -e 's/$/}/' ./envs
 
-WORKDIR ${UHOME}
+# Changr user, configure permission
+RUN for i in  ${PROJ_DIR} /var/log/uwsgi ${UHOME}/*; \
+do chown ${USR}:${USR} $i; echo $i; done ;echo  owner ${USR}
 
 USER ${USR}
 
-# httppool_server_entrypoint_uwsgi.sh is used for replacing apache listen ports and configurations of httppool_server.
-
-COPY --chown=${USR}:${USR} fdi/httppool/resources/httppool_server_entrypoint_uwsgi.sh .
-RUN chmod 755 ./httppool_server_entrypoint_uwsgi.sh
-
 # config software
+RUN cp ./fdi/fdi/httppool/resources/httppool_server_entrypoint_uwsgi.sh . \
+&& chmod 755 ./httppool_server_entrypoint_uwsgi.sh
 
-# update ~/.config/pnslocal.py so test can be run with correct setting
-RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
-&& sudo chown ${USR} ./envs \
-&& cat ./envs \
-&& for i in `cat ./envs`; do export $i; done \
-&& rm ./envs \
+RUN echo cat ./envs \
 && ./httppool_server_entrypoint_uwsgi.sh no-run
 
-
-WORKDIR ${UHOME}
-COPY fdi/httppool/resources/httppool_server_uwsgi.ini .
+RUN cp fdi/fdi/httppool/resources/httppool_server_uwsgi.ini . \
+&& ln fdi/wsgi.py .
 
 VOLUME /var/log ${SERVER_POOLPATH}
 
-USER ${USR}
 RUN /bin/ls -la; echo $PATH \
 date > build
 
 ENTRYPOINT  ["/home/fdi/httppool_server_entrypoint_uwsgi.sh"]
+
 #CMD ["uwsgi --master --module wsgi:app --processes 1"]
-CMD ["uwsgi --http-socket 0.0.0.0:9885 --master --module wsgi:app --logger file:/var/log/uwsgi/uwsgi.log --processes 1 --threads 2 --stats 0.0.0.0:9999"]
-#
+#CMD ["uwsgi --http-socket 0.0.0.0:9885 --master --module wsgi:app --touch-reload /home/fdi/reload --logger file:/var/log/uwsgi/uwsgi.log --processes 1 --threads 2 --stats 0.0.0.0:9999 --buffer-size 16384 --http-connect-timeout 600"]
+
+CMD ["uwsgi", "--ini", "httppool_server_uwsgi.ini"]
+
 ARG SERVER_VERSION
 LABEL PoolServer ${SERVER_VERSION}
 ENV SERVER_VERSION=${SERVER_VERSION}

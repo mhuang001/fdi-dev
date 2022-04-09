@@ -81,6 +81,8 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
         """
         """
 
+        # if issubclass(data.__class__, memoryview):
+        #    d = data
         isitr = hasattr(data, '__iter__')  # and hasattr(data, '__next__')
         if not isitr and data is not None:
             # dataWrapper initializes data as None
@@ -178,14 +180,15 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
             # (vs, us, ts, ds, fs, cs)
             return '%s data= %s)' % (s, vs)
 
-        html = tablefmt == 'html' or tablefmt2 == 'html'
+        html = 'html' in tablefmt.lower() or 'html' in tablefmt2.lower()
         br = '<br>' if html else '\n'
         if html:
-            tablefmt = tablefmt2 = 'html'
+            tablefmt = tablefmt2 = 'unsafehtml'
 
         s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
                                      tablefmt2=tablefmt2, center=center,
+                                     param_widths=param_widths,
                                      html=html, excpt=['description'])
         width = len(last)-1
         if level == 0:

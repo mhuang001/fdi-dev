@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from ruamel.yaml import YAML
-# import yaml
-from collections import OrderedDict
-import os
-import sys
-from string import Template
-import pkg_resources
-from datetime import datetime
-import importlib
-
 # from ..pal.context import MapContext
 from ..utils.options import opt
 from ..utils.common import pathjoin, lls
-from ..utils.ydump import ydump
+from ..utils.ydump import yinit, ydump
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 from .attributable import make_class_properties
 # a dictionary that translates metadata 'type' field to classname
 from .datatypes import DataTypes, DataTypeNames
+
+# from ruamel.yaml import YAML
+# import yaml
+from collections import OrderedDict
+import os
+import sys
+from itertools import chain
+from string import Template
+from datetime import datetime
+import importlib
 
 import logging
 
@@ -72,7 +72,7 @@ def sq(s):
     return '%s%s%s' % (qm, s, qm)
 
 
-def getPython(val, indents, demo, onlyInclude, debug=False):
+def get_Python(val, indents, demo, onlyInclude, debug=False):
     """ make Model and init__() code strings from given data.
 
     Parameters
@@ -104,7 +104,7 @@ def getPython(val, indents, demo, onlyInclude, debug=False):
                     v, indents[1:], demo, onlyInclude, debug=debug)
             else:
                 # headers such as name, parents, schema metadata...
-                istr, d_code = getPython(
+                istr, d_code = get_Python(
                     v, indents[1:], demo, onlyInclude, debug=debug)
             infostr += istr
             code[sk] = d_code
@@ -119,7 +119,7 @@ def getPython(val, indents, demo, onlyInclude, debug=False):
                 istr, d_code = params(
                     v, indents[1:], demo, onlyInclude, debug=debug)
             else:
-                istr, d_code = getPython(
+                istr, d_code = get_Python(
                     v, indents[1:], demo, onlyInclude, debug=debug)
             infostr += istr
             code.append(d_code)
@@ -131,10 +131,10 @@ def getPython(val, indents, demo, onlyInclude, debug=False):
     return infostr, code
 
 
-def makeinitcode(dt, pval):
+def make_initc_ode(dt, pval):
     """ python instanciation source code.
 
-    will be like "default: FineTime1(0)" in 'def __init__(self, 
+    will be like "default: FineTime1(0)" in 'def __init__(self...'
     Parameters
     ----------
 
@@ -165,7 +165,7 @@ def params(val, indents, demo, onlyInclude, debug=False):
         default: UNKNOWN
         valid: ''
     ```
-    see getPython
+    see get_Python
     Parameters
     ----------
 
@@ -224,7 +224,7 @@ def params(val, indents, demo, onlyInclude, debug=False):
             # get string representation
             pval = str(pv).strip() if iss else str(pv)
             if pname == 'default':
-                code = makeinitcode(dt, pval)
+                code = make_initc_ode(dt, pval)
             if pname in ['example', 'default']:
                 # here data_type instead of input type determines the output type
                 iss = (val['data_type'] == 'string') and (pval != 'None')
@@ -279,7 +279,7 @@ def read_yaml(ypath, version=None, verbose=False):
     Returns
     -------
     """
-    yaml = YAML()
+    yaml = yinit()
     desc = OrderedDict()
     fins = {}
     for findir in os.listdir(ypath):
@@ -300,64 +300,39 @@ def read_yaml(ypath, version=None, verbose=False):
         print('--- Reading ' + fin + '---')
         with open(fin, 'r', encoding='utf-8') as f:
             # pyYAML d = OrderedDict(yaml.load(f, Loader=yaml.FullLoader))
-            d = OrderedDict(yaml.load(f))
+            ytext = f.read()
+        y = yaml.load(ytext)
+        d = dict(OrderedDict(y))
+
+        if float(d['schema']) < 1.2:
+            raise NotImplemented('Schema %s is too old.' % d['schema'])
         if 'metadata' not in d or d['metadata'] is None:
             d['metadata'] = {}
         if 'datasets' not in d or d['datasets'] is None:
             d['datasets'] = {}
-        if float(d['schema']) >= 1.0:
-            pass
-        if float(d['schema']) > 0.6:
-            __import__('pdb').set_trace()
 
-            attrs = OrderedDict(d['metadata'])
-            datasets = OrderedDict()
-            # move primary level table to datasets
-            if 'TABLE' in attrs:
-                datasets['TABLE'] = {}
-                datasets['TABLE']['TABLE'] = attrs['TABLE']
-                del attrs['TABLE']
-            if 'datasets' in d:
-                datasets.update(d['datasets'])
-            if verbose:
-                print('Pre-emble:\n%s' %
-                      (''.join([k + '=' + str(v) + '\n'
-                                for k, v in d.items() if k not in ['metadata', 'datasets']])))
+        attrs = dict(d['metadata'])
+        datasets = dict(d['datasets'])
+        # move primary level table to datasets
+        if 'TABLE' in attrs:
+            datasets['TABLE_META'] = {}
+            datasets['TABLE_META']['TABLE'] = attrs['TABLE']
+            del attrs['TABLE']
+        if verbose:
+            print('Pre-emble:\n%s' %
+                  (''.join([k + '=' + str(v) + '\n'
+                            for k, v in d.items() if k not in ['metadata', 'datasets']])))
 
-            logger.debug('Find attributes:\n%s' %
-                         ''.join(('%20s' % (k+'=' + str(v['default'])
-                                            if 'default' in v else 'url' + ', ')
-                                  for k, v in attrs.items()
-                                  )))
-            if float(d['schema']) > 1.1:
-                itr = ('%20s' % (k+'=' + str([c for c in (v['TABLE'] if 'TABLE'
-                                                          in v else [])]))
-                       for k, v in datasets.items())
-                logger.debug('Find datasets:\n%s' % ', '.join(itr))
-            else:
-                raise NotImplemented('Schema %s is too old.' % d['schema'])
-        else:
-            # float(d['schema']) <= 0.6:
-            d2 = OrderedDict()
-            metadata = OrderedDict()
-            for k, v in d.items():
-                if issubclass(v.__class__, dict):
-                    if v['unit'] == 'None':
-                        dt = v['data_type']
-                        if dt in ['boolean', 'string']:
-                            v['unit'] = None
-                    metadata[k] = v
-                else:
-                    if k == 'definition':
-                        d2['description'] = v
-                    elif k == 'schema':
-                        d2[k] = version
-                    elif k == 'parent':
-                        d2['parents'] = [v]
-                    else:
-                        d2[k] = v
-            d2['metadata'] = metadata
-            desc[d['name']] = d2
+        logger.debug('Find attributes:\n%s' %
+                     ''.join(('%20s' % (k+'=' + str(v['default'])
+                                        if 'default' in v else 'url' + ', ')
+                              for k, v in attrs.items()
+                              )))
+        itr = ('%20s' % (k+'=' + str([c for c in (v['TABLE'] if 'TABLE'
+                                                  in v else [])]))
+               for k, v in datasets.items())
+        logger.debug('Find datasets:\n%s' % ', '.join(itr))
+        desc[d['name']] = (d, attrs, datasets, fin)
     return desc, fins
 
 
@@ -470,10 +445,10 @@ def dependency_sort(descriptors):
             if len(p) == 0:
                 continue
             found = set(working_list) & set(p)
-            type_of_nm = glb[nm]
-            found2 = any(issubclass(type_of_nm, glb[x])
-                         for x in working_list if x != nm)
-            assert bool(len(found)) == found2
+            # type_of_nm = glb[nm]
+            # found2 = any(issubclass(type_of_nm, glb[x])
+            #              for x in working_list if x != nm)
+            # assert bool(len(found)) == found2
             if len(found):
                 # parent is in working_list
                 working_list.remove(nm)
@@ -497,7 +472,7 @@ def dependency_sort(descriptors):
     return ret
 
 
-def removeParent(a, b):
+def remove_Parent(a, b):
     """ Returns the one who is the other one's parent.
     Parameters
     ----------
@@ -524,7 +499,7 @@ def removeParent(a, b):
         return None
 
 
-def noParentsParents(pn):
+def no_Parents_Parents(pn):
     """
     return a subset of class names such that no member is any other's parent.
 
@@ -542,7 +517,7 @@ def noParentsParents(pn):
         if pn[i] in removed:
             continue
         for j in range(i+1, len(pn)):
-            r = removeParent(pn[i], pn[j])
+            r = remove_Parent(pn[i], pn[j])
             if r:
                 removed.append(r)
             if r == pn[i]:
@@ -552,12 +527,92 @@ def noParentsParents(pn):
     return pn
 
 
+def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
+    """ inherit metadata and datasets from parents.
+
+    :attrs: metadata descriptor of the child
+    :datasets: datasets descriptor of the child
+    :seen: a dict holding class names that the py file is going to import
+ """
+    if parentNames and len(parentNames):
+        includingParentsAttributes = {}
+        includingParentsTableColumns = {}
+        for parent in parentNames:
+            if parent is None:
+                continue
+            mod_name = glb[parent].__module__
+            s = 'from %s import %s' % (mod_name, parent)
+            if parent not in seen:
+                seen[parent] = s
+
+            # get parent attributes and tables
+            mod = sys.modules[mod_name]
+            if hasattr(mod, '_Model_Spec'):
+                includingParentsAttributes.update(
+                    mod._Model_Spec['metadata'])
+
+                includingParentsTableColumns.update(
+                    mod._Model_Spec['datasets'])
+        # merge to get all attributes including parents' and self's.
+        toremove = []
+        for nam, val in attrs.items():
+            if float(schema) > 1.5 and 'data_type' not in val:
+                # update parent's
+                includingParentsAttributes[nam].update(attrs[nam])
+                toremove.append(nam)
+            else:
+                # override
+                includingParentsAttributes[nam] = attrs[nam]
+        for nam in toremove:
+            del attrs[nam]
+        if 0 and includingParentsAttributes['type']['default'] == 'Oem_Nssc':
+            __import__('pdb').set_trace()
+        # parents are updated but names and orders follow the child's
+        for ds_name, child_dataset in datasets.items():
+            # go through datasets  TODO: ArrayDataset
+            if ds_name not in includingParentsTableColumns:
+                # child has a name that the parent does not have
+                includingParentsTableColumns[ds_name] = child_dataset
+                continue
+            p_dset = includingParentsTableColumns[ds_name]
+            # go through the child's dataset
+            for name, c_val in child_dataset.items():
+                # child has a name that the parent does not have
+                if name not in p_dset:
+                    p_dset[name] = c_val
+                    continue
+                # p and c have dataset name in common
+                if name != 'TABLE':
+                    # parameter in meta
+                    p_dset.update(c_val)
+                    continue
+                p_tab = p_dset['TABLE']
+                _tab = {}
+                # go through the child columns
+                for colname, col in c_val.items():
+                    # child has a name that the parent does not have
+                    if colname not in p_tab:
+                        _tab[colname] = col
+                        continue
+                    if colname == 'EPOCH':
+                        __import__('pdb').set_trace()
+
+                    p_tab[colname].update(col)
+                    _tab[colname] = p_tab[colname]
+                p_dset['TABLE'] = _tab
+    else:
+        includingParentsAttributes = attrs
+        includingParentsTableColumns = datasets
+
+    return includingParentsAttributes, includingParentsTableColumns
+
+
 if __name__ == '__main__':
 
     print('product class generatiom')
 
     # schema version
-    version = '1.6'
+    version = '1.8'
 
     # Get input file name etc. from command line. defaut 'Product.yml'
     cwd = os.path.abspath(os.getcwd())
@@ -604,9 +659,6 @@ if __name__ == '__main__':
     dry_run = out[8]['result']
     debug = out[9]['result']
 
-    if debug:
-        __import__('pdb').set_trace()
-
     # input file
     descriptors, files_imput = read_yaml(ypath, version, verbose)
     if upgrade:
@@ -625,14 +677,16 @@ if __name__ == '__main__':
     # include project classes for every product so that products made just
     # now can be used as parents
     from .classes import Classes
+
     pc = get_projectclasses(project_class_path,  rerun=True,
                             exclude=importexclude, verbose=verbose)
-    glb = Classes.updateMapping(c=pc.PC.mapping,
+    glb = Classes.updateMapping(c=pc.PC.getMapping(exclude=importexclude),
                                 rerun=True,
                                 exclude=importexclude,
                                 verbose=verbose)
     # make a list whose members do not depend on members behind (to the left)
     sorted_list = dependency_sort(descriptors)
+
     skipped = []
     for nm in sorted_list:
         d, attrs, datasets, fin = descriptors[nm]
@@ -662,72 +716,22 @@ if __name__ == '__main__':
         schema = d['schema']
 
         # the generated source code must import these
-        seen = []
+        seen = {}
         imports = 'from collections import OrderedDict\n'
         # import parent classes
         parentNames = d['parents']
         # remove classes that are other's parent class (MRO problem)
         try:
             if parentNames and len(parentNames):
-                parentNames = noParentsParents(parentNames)
+                parentNames = no_Parents_Parents(parentNames)
         except KeyError as e:
             logger.warning('!!!!!!!!!!! Skipped %s due to %s.' %
                            (nm, type(e).__name__+str(e)))
             skipped.append(nm)
             continue
-        if parentNames and len(parentNames):
-            includingParentsAttributes = OrderedDict()
-            includingParentsTableColumns = OrderedDict()
-            for parent in parentNames:
-                if parent is None:
-                    continue
-                mod_name = glb[parent].__module__
-                s = 'from %s import %s\n' % (mod_name, parent)
-                if parent not in seen:
-                    seen.append(parent)
-                    imports += s
 
-                # get parent attributes and tables
-                mod = sys.modules[mod_name]
-                if hasattr(mod, '_Model_Spec'):
-                    includingParentsAttributes.update(
-                        mod._Model_Spec['metadata'])
-                    includingParentsTableColumns.update(
-                        mod._Model_Spec['datasets'])
-            # merge to get all attributes including parents' and self's.
-            toremove = []
-            for nam, val in attrs.items():
-                if float(schema) > 1.5 and 'data_type' not in val:
-                    # update parent's
-                    includingParentsAttributes[nam].update(attrs[nam])
-                    toremove.append(nam)
-                else:
-                    # override
-                    includingParentsAttributes[nam] = attrs[nam]
-            for ds_name, child_dataset in datasets.items():
-                # parents are updated
-                includingParentsTableColumns.update(
-                    datasets)
-                # but names and orders follow chid's
-                d = {}
-                for ds_name, c_tbl in datasets.items():
-                    tbl = {}
-                    for name, val in c_tbl.items():
-                        if name == 'TABLE':
-                            tb = {}
-                            for colname, col in val.items():
-                                tb[colname] = col
-                            tbl[name] = tb
-                            continue
-                        # metadata
-                        tbl[name] = val
-                    d[ds_name] = tbl
-                includingParentsTableColumns = d
-            for nam in toremove:
-                del attrs[nam]
-        else:
-            includingParentsAttributes = attrs
-
+        includingParentsAttributes, includingParentsTableColumns = \
+            inherit_from_parents(parentNames, attrs, datasets, schema, seen)
         # make output filename, lowercase modulename + .py
         fout = pathjoin(opath, modulename + '.py')
         print("Output python file is "+fout)
@@ -738,19 +742,24 @@ if __name__ == '__main__':
             fin, datetime.now(), d['description'])))
 
         # parameter classes used in init code may need to be imported, too
-        for met, val in includingParentsAttributes.items():
+        for val in chain(includingParentsAttributes.values(),
+                         chain(col for ds in
+                               includingParentsTableColumns.values()
+                               for col in ds.get('TABLE', {}).values()
+                               )
+                         ):
+            print(val)
             a = DataTypes[val['data_type']]
             if a in glb:
                 # this attribute class has module
                 s = 'from %s import %s' % (glb[a].__module__, a)
                 if a not in seen:
-                    seen.append(a)
-                    imports += s+'\n'
+                    seen[a] = s
 
         # make metadata and parent_dataset dicts
         d['metadata'] = includingParentsAttributes
-        d['datasets'] = datasets
-        infs, default_code = getPython(d, indents[1:], demo, onlyInclude)
+        d['datasets'] = includingParentsTableColumns
+        infs, default_code = get_Python(d, indents[1:], demo, onlyInclude)
         # remove the ',' at the end.
         modelString = (ei + '_Model_Spec = ' + infs).strip()[:-1]
 
@@ -772,8 +781,8 @@ if __name__ == '__main__':
         print('product name: %s' % subs['MODELNAME'])
         subs['PARENTS'] = ', '.join(c for c in parentNames if c)
         print('parent class: %s' % subs['PARENTS'])
-        subs['IMPORTS'] = imports
-        print('import class: %s' % seen)
+        subs['IMPORTS'] = imports + '\n'.join(seen.values())
+        print('import class: %s' % ', '.join(seen.keys()))
         subs['CLASSDOC'] = doc
         subs['MODELSPEC'] = modelString
         subs['INITARGS'] = ikwds

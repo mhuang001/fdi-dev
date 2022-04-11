@@ -134,6 +134,7 @@ But if the matrix is a table, the cells in a column change the fastest,
                 msg = 'bad tabledataset for printing. ' + str(e)
                 logger.error(msg)
                 raise
+
             if dbg:
                 print(padding + 'd2 %s' % str(d2))
             if context.dim + 1 == context.maxdim:

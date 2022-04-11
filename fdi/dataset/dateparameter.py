@@ -22,10 +22,13 @@ class DateParameter(Parameter, Typecoded):
                  description='UNKNOWN',
                  default=None,
                  valid=None,
+                 typecode=None,
                  **kwds):
         """
          Set up a parameter whose value is a point in TAI time.
 
+        :value:
+        :typecode: time format for the underlying FineTime object
         """
 
         # collect args-turned-local-variables.
@@ -36,7 +39,9 @@ class DateParameter(Parameter, Typecoded):
         args.update(kwds)
 
         # 'Q' is unsigned long long (8byte) integer.
-        typecode = 'Q'
+        typecode = typecode if typecode else 'Q'
+        if typecode == 'Q':
+            typecode = FineTime.DEFAULT_FORMAT
         # this will set default then set value.
         super().__init__(
             value=value, description=description, typ_='finetime', default=default, valid=valid, typecode=typecode)
@@ -44,11 +49,18 @@ class DateParameter(Parameter, Typecoded):
         self._all_attrs = args
 
     def setValue(self, value):
-        """ accept any type that a FineTime does.
+        """ accept any type that a FineTime does, with current typecode overriding format of the underlying FineTime
         """
         if value is not None and not issubclass(value.__class__, FineTime):
-            value = FineTime(date=value)
-        super().setValue(value)
+            # override format with typecode
+            if hasattr(self, 'typecode'):
+                tc = self.typecode
+                t = FineTime(date=value, format=tc)
+            else:
+                t = FineTime(date=value)
+        else:
+            t = value
+        super().setValue(t)
 
     def setDefault(self, default):
         """ accept any type that a FineTime does.
@@ -59,11 +71,14 @@ class DateParameter(Parameter, Typecoded):
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
-        return OrderedDict(description=self.description,
-                           default=self._default,
-                           value=self._value,
-                           valid=self._valid,
-                           typecode=self.typecode)
+        return OrderedDict(description=self.description if hasattr(self, 'description') else '',
+                           default=self._default if hasattr(
+                               self, '_default') else None,
+                           value=self._value if hasattr(
+                               self, '_value') else None,
+                           valid=self._valid if hasattr(
+                               self, '_valid') else None,
+                           typecode=self.typecode if hasattr(self, 'typecode') else '')
 
 
 class DateParameter1(DateParameter):

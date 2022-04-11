@@ -80,6 +80,7 @@ Parameter_Attr_Defaults = {
         typ_='',
         default=0,
         valid=None,
+        typecode=None
     ),
 
     'StringParameter': dict(
@@ -351,8 +352,8 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         -------
 
         """
-        vs = str(self._value)
-        ds = str(self.description)
+        vs = str(self._value if hasattr(self, '_value') else '')
+        ds = str(self.description if hasattr(self, 'description') else '')
         ss = '%s' % (vs) if level else \
             '%s, "%s"' % (vs, ds)
         if alist:
@@ -812,7 +813,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
     Default_Param_Widths = [
         {'name': 15, 'value': 18, 'unit': 6, 'type': 8,
-         'valid': 17, 'default': 15, 'code': 4, 'description': 17}
+         'valid': 17, 'default': 15, 'code': 10, 'description': 17}
     ]
     MaxDefWidth = max(Default_Param_Widths[0].values())
 
@@ -1012,7 +1013,8 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                         i, row = 0, []
             else:
                 n = att['name']
-                if n in self._defaults and self._defaults[n]['default'] == v.value:
+
+                if v is None or n in self._defaults and self._defaults[n]['default'] == v.value:
 
                     has_omission = True
                     pass

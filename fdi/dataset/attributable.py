@@ -224,8 +224,6 @@ class Attributable(MetaDataHolder):
 
         If ```self.alwaysMeta is True``` all properties of :class:`AbstractParameter` are taken as MDPs except those named in ```Reserved_Property_Names```
         """
-        # if self.__class__.__name__ == 'CompositeDataset' and name == '_STID':
-        #    __import__('pdb').set_trace()
 
         #print('setattr ' + name, value)
         if name in Reserved_Property_Names:
@@ -320,10 +318,11 @@ def value2parameter(name, value, descriptor):
     elif im['data_type'] == 'finetime':
         from .dateparameter import DateParameter
         if issubclass(value.__class__, str):
-            __import__('pdb').set_trace()
             fmt = ext.pop('typecode')
             dt = FineTime(value, format=None if fmt in ('Q', '') else fmt)
-        ret = DateParameter(value=value,
+        else:
+            dt = value
+        ret = DateParameter(value=dt,
                             description=im['description'],
                             typ_=im['data_type'],
                             default=fs,

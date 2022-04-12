@@ -594,9 +594,6 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
                     if colname not in p_tab:
                         _tab[colname] = col
                         continue
-                    if colname == 'EPOCH':
-                        __import__('pdb').set_trace()
-
                     p_tab[colname].update(col)
                     _tab[colname] = p_tab[colname]
                 p_dset['TABLE'] = _tab

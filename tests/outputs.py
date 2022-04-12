@@ -353,8 +353,6 @@ level 0
 +-----------------+--------------------+------+----------+-------------------+-----------------+------------+-------------------+
 | listeners       | <No listener>      |      |          |                   |                 |            |                   |
 +-----------------+--------------------+------+----------+-------------------+-----------------+------------+-------------------+
-                                                               DATA                                                              
-                                                               ----                                                              
 0  0  0  0  0
 0  0  0  0  0
 0  0  0  0  0
@@ -521,8 +519,6 @@ tablefmt = html
 +-----------------+--------------------+------+----------+-------------------+-----------------+------------+-------------------+
 | listeners       | <No listener>      |      |          |                   |                 |            |                   |
 +-----------------+--------------------+------+----------+-------------------+-----------------+------------+-------------------+
-                                                               DATA                                                              
-                                                               ----                                                              
 0  0  0  0  0
 0  0  0  0  0
 0  0  0  0  0
@@ -1093,24 +1089,20 @@ grouped column names                                                  **********
 <center><u>META</u></center>
 <table>
 <thead>
-<tr><th>name           </th><th>value        </th><th>unit</th><th>type    </th><th>valid                    </th><th>default     </th><th>code                </th><th>description                                                            </th></tr>
+<tr><th>name           </th><th>value                                              </th><th>unit</th><th>type    </th><th>valid                            </th><th>default                         </th><th>code                </th><th>description                                                                    </th></tr>
 </thead>
 <tbody>
-<tr><td>description    </td><td>UNKNOWN      </td><td>    </td><td>string  </td><td>None                     </td><td>UNKNOWN     </td><td>B                   </td><td>Description of this dataset                                            </td></tr>
-<tr><td>shape          </td><td>(9, 3)       </td><td>    </td><td>tuple   </td><td>None                     </td><td>()          </td><td>                    </td><td>Number of columns and rows.                                            </td></tr>
-<tr><td>type           </td><td>TableDataset </td><td>    </td><td>string  </td><td>None                     </td><td>TableDataset</td><td>B                   </td><td>Data Type identification.                                              </td></tr>
-<tr><td>version        </td><td>0.1          </td><td>    </td><td>string  </td><td>None                     </td><td>0.1         </td><td>B                   </td><td>Version of dataset                                                     </td></tr>
-<tr><td>FORMATV        </td><td>1.6.0.2      </td><td>    </td><td>string  </td><td>None                     </td><td>1.6.0.2     </td><td>B                   </td><td>Version of dataset schema and revision                                 </td></tr>
-<tr><td>a              </td><td>3.4          </td><td>None</td><td>float   </td><td>(0, 31): valid
-99:                          </td><td>2.0         </td><td>None                </td><td>rule name, if is "valid", "", or "default", is ommited in value string.</td></tr>
-<tr><td>b              </td><td>xy (2019-02-19T01:02:03.456789
-1929229360456789)              </td><td>    </td><td>finetime</td><td>(0, 9876543210123456): xy</td><td>1958-01-01T00:00:00.000099
-99             </td><td>%Y-%m-%dT%H:%M:%S.%f</td><td>date param                                                             </td></tr>
-<tr><td>c              </td><td>Invalid (IJK)</td><td>    </td><td>string  </td><td>'': empty                </td><td>cliche      </td><td>B                   </td><td>this is a string parameter. but only "" is allowed.                    </td></tr>
-<tr><td>d              </td><td>off (0b00)   </td><td>None</td><td>binary  </td><td>11000 0b01: on
-11000 0b00: off                          </td><td>0b0         </td><td>H                   </td><td>valid rules described with binary masks                                </td></tr>
-<tr><td>added_parameter</td><td>42           </td><td>None</td><td>integer </td><td>None                     </td><td>None        </td><td>None                </td><td>A non-builtin param                                                    </td></tr>
-<tr><td>listeners      </td><td><No listener></td><td>    </td><td>        </td><td>                         </td><td>            </td><td>                    </td><td>                                                                       </td></tr>
+<tr><td>description    </td><td>UNKNOWN                                            </td><td>    </td><td>string  </td><td>None                             </td><td>UNKNOWN                         </td><td>B                   </td><td>Description of this dataset                                                    </td></tr>
+<tr><td>shape          </td><td>(9, 3)                                             </td><td>    </td><td>tuple   </td><td>None                             </td><td>()                              </td><td>                    </td><td>Number of columns and rows.                                                    </td></tr>
+<tr><td>type           </td><td>TableDataset                                       </td><td>    </td><td>string  </td><td>None                             </td><td>TableDataset                    </td><td>B                   </td><td>Data Type identification.                                                      </td></tr>
+<tr><td>version        </td><td>0.1                                                </td><td>    </td><td>string  </td><td>None                             </td><td>0.1                             </td><td>B                   </td><td>Version of dataset                                                             </td></tr>
+<tr><td>FORMATV        </td><td>1.6.0.2                                            </td><td>    </td><td>string  </td><td>None                             </td><td>1.6.0.2                         </td><td>B                   </td><td>Version of dataset schema and <br>revision                                     </td></tr>
+<tr><td>a              </td><td>3.4                                                </td><td>None</td><td>float   </td><td>(0, 31): valid<br>99:            </td><td>2.0                             </td><td>None                </td><td>rule name, if is "valid", "", or <br>"default", is ommited in value <br>string.</td></tr>
+<tr><td>b              </td><td>xy (2019-02-19T01:02:03.456789<br>1929229360456789)</td><td>    </td><td>finetime</td><td>(0, 9876543210123456): xy        </td><td>1958-01-01T00:00:00.000099<br>99</td><td>%Y-%m-%dT%H:%M:%S.%f</td><td>date param                                                                     </td></tr>
+<tr><td>c              </td><td>Invalid (IJK)                                      </td><td>    </td><td>string  </td><td>'': empty                        </td><td>cliche                          </td><td>B                   </td><td>this is a string parameter. but only<br> "" is allowed.                        </td></tr>
+<tr><td>d              </td><td>off (0b00)                                         </td><td>None</td><td>binary  </td><td>11000 0b01: on<br>11000 0b00: off</td><td>0b0                             </td><td>H                   </td><td>valid rules described with binary <br>masks                                    </td></tr>
+<tr><td>added_parameter</td><td>42                                                 </td><td>None</td><td>integer </td><td>None                             </td><td>None                            </td><td>None                </td><td>A non-builtin param                                                            </td></tr>
+<tr><td>listeners      </td><td><No listener>                                      </td><td>    </td><td>        </td><td>                                 </td><td>                                </td><td>                    </td><td>                                                                               </td></tr>
 </tbody>
 </table>
 <center><u>DATA</u></center>
@@ -1197,8 +1189,6 @@ SubDataset  "dataset 1":
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
 | listeners   | <No listener> |      |        |       |              |      |                   |
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
-                                                            DATA                                                           
-                                                            ----                                                           
 768  4.4  5400
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1359,8 +1349,6 @@ SubDataset  "dataset 1":
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
 | listeners   | <No listener> |      |        |       |              |      |                   |
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
-                                                            DATA                                                           
-                                                            ----                                                           
 768  4.4  5400
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

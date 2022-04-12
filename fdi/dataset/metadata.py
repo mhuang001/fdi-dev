@@ -796,14 +796,19 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
                            )
 
 
+# Headers of MetaData.toString(1)
 MetaHeaders = ['name', 'value', 'unit', 'type', 'valid',
                'default', 'code', 'description']
+
+# Headers of extended MetaData.toString(1)
 ExtraAttributes = ['fits_keyword', 'id_zh_cn',
                    'description_zh_cn', 'valid_zh_cn']
 
 
 class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
-    """ A container of named Parameters. A MetaData object can
+    """ A container of named Parameters.
+
+    A MetaData object can
     have one or more parameters, each of them stored against a
     unique name. The order of adding parameters to this container
     is important, that is: the keySet() method will return a set of
@@ -811,11 +816,11 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
     Note that replacing a parameter with the same name,
     will keep the order. """
 
-    Default_Param_Widths = [
-        {'name': 15, 'value': 18, 'unit': 6, 'type': 8,
-         'valid': 17, 'default': 15, 'code': 10, 'description': 17}
-    ]
-    MaxDefWidth = max(Default_Param_Widths[0].values())
+    Default_Param_Widths = {'name': 15, 'value': 18, 'unit': 6,
+                            'type': 8, 'valid': 17, 'default': 15,
+                            'code': 10, 'description': 17}
+
+    MaxDefWidth = max(Default_Param_Widths.values())
 
     def __init__(self, copy=None, defaults=None, **kwds):
         """
@@ -926,7 +931,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
         level: 0 is the most detailed, 2 is the least,
         tablefmt: format string in packae ``tabulate``, for level==0, tablefmt1 for level1, tablefmt2: format of 2D table data.
-        param_widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its table cell is, 0 for ommiting the attributable. Default is `MetaData.Default_Param_Widths[0]`. e.g.
+        param_widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its table cell is, 0 for ommiting the attributable. Default is `MetaData.Default_Param_Widths`. e.g.
 ``{'name': 15, 'value': 18, 'unit': 6, 'type': 8,
          'valid': 17, 'default': 15, 'code': 4, 'description': 17}``
         """
@@ -980,14 +985,14 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             # limit cell width for level=0,1.
             if level == 0:
                 if param_widths == -1 or html:
-                    w = 0  # MetaData.MaxDefWidth
+                    w = MetaData.MaxDefWidth * 2
                     l = tuple(wls(att[n], w, linebreak=br)
                               for n in MetaHeaders)
                     if extra:
                         l += tuple(v for v in ext.values())
                 else:
                     thewidths = param_widths if param_widths else \
-                        MetaData.Default_Param_Widths[0]
+                        MetaData.Default_Param_Widths
                     l = tuple(wls(att[n], w)
                               for n, w in thewidths.items() if w != 0)
                     if extra:
@@ -997,7 +1002,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                         # print(l)
 
                 tab.append(l)
-                exh = [v for v in ext.keys()]
+                ext_hdr = [v for v in ext.keys()]
 
             elif level == 1:
                 ps = '%s= %s' % (att['name'], att['value'])
@@ -1012,6 +1017,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                         tab.append(row)
                         i, row = 0, []
             else:
+                # level > 1
                 n = att['name']
 
                 if v is None or n in self._defaults and self._defaults[n]['default'] == v.value:
@@ -1033,13 +1039,15 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
         # write out the table
         if level == 0:
-            allh = (MetaHeaders + exh) if extra else MetaHeaders
-            if param_widths == -1:
+            allh = copy.copy(MetaHeaders)
+            if extra:
+                allh += ext_hdr
+            if param_widths == -1 or html:
                 headers = allh
             else:
                 headers = []
                 thewidths = param_widths if param_widths else \
-                    MetaData.Default_Param_Widths[0]
+                    MetaData.Default_Param_Widths
                 for n in allh:
                     w = thewidths.get(n, Default_Extra_Param_Width)
                     #print(n, w)

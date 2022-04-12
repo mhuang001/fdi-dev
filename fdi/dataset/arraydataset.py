@@ -25,6 +25,21 @@ logger = logging.getLogger(__name__)
 
 MdpInfo = Model['metadata']
 
+# how many columns and rows to display and where to add '...'
+COLUMN_WIDTH = 20
+COLUMN_W_BREAK = 16
+ROW_HEIGHT = 20
+ROW_H_BREAK = 16
+
+
+def mkline(line):
+    """ make a display row from a given sequence.
+
+    :line: the array or sequence line to display.
+    """
+    return list(line[:COLUMN_W_BREAK]) + ['...'] + \
+        list(line[COLUMN_W_BREAK-COLUMN_WIDTH:])
+
 
 class ArrayDataset(GenericDataset, Iterable, Shaped):
     """  Special dataset that contains a single Array Data object.
@@ -199,11 +214,31 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
         else:
             d = ''
 
-        ds = bstr(self.data, level=level, **kwds) if matprint is None else \
-            matprint(self.data, trans=False, headers=[],
+        # limit max rows and columns of display
+        ls = len(self.shape)
+        if ls == 0 or \
+           ls == 1 and len(self.data) <= COLUMN_WIDTH or \
+           ls > 1 and len(self.data[0]) <= COLUMN_WIDTH and \
+           len(self.data) <= ROW_HEIGHT:
+            tdata = self.data
+        elif ls == 1:
+            tdata = mkline(self.data)
+        else:
+            # ls > 1
+            if len(self.data) <= ROW_HEIGHT:
+                tdata = [mkline(line) for line in self.data]
+            else:
+                tdata = [mkline(line) for line in self.data[:ROW_H_BREAK]]
+                tdata += [['...'] * len(tdata[0])]
+                tdata += [mkline(line)
+                          for line in self.data[ROW_H_BREAK-ROW_HEIGHT:]]
+
+        ds = bstr(tdata, level=level, **kwds) if matprint is None else \
+            matprint(tdata, trans=False, headers=[],
                      tablefmt2='html' if html else 'plain',
                      **kwds)
-        d += lls(ds, 9000 if html else 2000)
+        #d += lls(ds, 9000 if html else 2000)
+        d = ds
         return '%s\n%s%s%s%s' % (s, d, br, last, br)
 
     string = toString

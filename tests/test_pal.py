@@ -702,7 +702,7 @@ def backup_restore(ps):
 
     # make a backup tarfile
     tar = p1.backup()
-    os.makedirs('/tmp/fditest')
+    os.makedirs('/tmp/fditest', exist_ok=True)
     with open('/tmp/fditest/bk.tar', 'wb') as f:
         f.write(tar)
     with open('/tmp/fditest/bk.tar', 'rb') as f:

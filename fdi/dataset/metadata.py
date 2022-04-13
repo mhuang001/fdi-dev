@@ -926,7 +926,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
     def toString(self, level=0,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
-                 extra=False, param_widths=None, width=0, **kwds):
+                 extra=False, param_widths=None, **kwds):
         """ return  string representation of metada.
 
         level: 0 is the most detailed, 2 is the least,

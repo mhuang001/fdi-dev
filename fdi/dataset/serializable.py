@@ -320,10 +320,15 @@ class Serializable():
 
         return toFits(self, *args, **kwds)
 
-    def html(self, *args, level=0, param_widths=-1, **kwds):
+    def html(self, extra=False, param_widths=-1, **kwds):
         """ Get a HTML representation. """
 
-        return self.toString(level=level, tablefmt='unsafehtml', tablefmt1='unsafehtml', tablefmt2='unsafehtml', param_widths=param_widths, *args, **kwds)
+        return self.toString(level=0,
+                             tablefmt='unsafehtml',
+                             tablefmt1='unsafehtml',
+                             tablefmt2='unsafehtml',
+                             extra=extra,
+                             param_widths=param_widths, **kwds)
 
     def jsonPath(self, expr, val='simple', sep='/', indent=None, *args, **kwds):
         from ..utils.jsonpath import jsonPath

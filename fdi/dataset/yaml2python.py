@@ -237,7 +237,7 @@ def params(val, indents, demo, onlyInclude, debug=False):
 
 def get_projectclasses(clp, rerun=True, exclude=None, verbose=False):
     """
-    return a {class-name:class-type} from a file at gieven location.
+    return a `Classes` object that is going  to give {class-name:class-type} from a file at gieven location.
 
     Parameters
     ----------
@@ -246,11 +246,12 @@ def get_projectclasses(clp, rerun=True, exclude=None, verbose=False):
 
     Returns
     -------
-    The `projectclasses.Classes` object.
+    The `classes.Classes` object.
     """
 
     if clp is None or len(clp.strip()) == 0:
-        return {}
+        return None
+
     if exclude is None:
         exclude = []
     if '/' not in clp and '\\' not in clp and not clp.endswith('.py'):
@@ -258,7 +259,7 @@ def get_projectclasses(clp, rerun=True, exclude=None, verbose=False):
         # classes path not given on command line
         pc = importlib.import_module(clp)
         print(
-            'Imported project classes from svom.products.projectclasses module.')
+            'Imported project classes from %s module.' % clp)
 
     else:
         clpp, clpf = os.path.split(clp)
@@ -674,13 +675,13 @@ if __name__ == '__main__':
     # include project classes for every product so that products made just
     # now can be used as parents
     from .classes import Classes
-
     pc = get_projectclasses(project_class_path,  rerun=True,
                             exclude=importexclude, verbose=verbose)
-    glb = Classes.updateMapping(c=pc.PC.getMapping(exclude=importexclude),
-                                rerun=True,
-                                exclude=importexclude,
-                                verbose=verbose)
+    glb = Classes.updateMapping(
+        c=pc.PC.getMapping(exclude=importexclude) if pc else {},
+        rerun=True,
+        exclude=importexclude,
+        verbose=verbose)
     # make a list whose members do not depend on members behind (to the left)
     sorted_list = dependency_sort(descriptors)
 

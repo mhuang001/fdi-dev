@@ -6,7 +6,6 @@ from collections import OrderedDict
 from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.finetime import FineTime
 
-
 from fdi.dataset.readonlydict import ReadOnlyDict
 
 import itertools
@@ -20,7 +19,7 @@ logger = logging.getLogger(__name__)
 class Product(BaseProduct):
     """ Product class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/Product.yml on 2021-12-13 09:38:07.593902.
+Automatically generated from fdi/dataset/resources/Product.yml on 2022-04-12 19:46:37.291731.
 
 Description:
 Project level product

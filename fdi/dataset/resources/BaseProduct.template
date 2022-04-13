@@ -97,6 +97,7 @@ $INITARGS
 
     def toString(self, level=0,
                  tablefmt='grid', tablefmt1='rst', tablefmt2='rst',
+                 extra=False, param_widths=None,
                  matprint=None, trans=True, beforedata='', **kwds):
         """ like AbstractComposite but with history
         """

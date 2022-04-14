@@ -638,7 +638,7 @@ Default is to return all columns.
         w = MetaData.MaxDefWidth if param_widths == -1 or param_widths is None else \
             max(MetaData.MaxDefWidth, max(param_widths.values()))
         if html:
-            w = w // 2
+            w = w
         coldata = [list(itertools.islice(x.data, rowlimit)) for x in cols]
         hdr = maybe2rows(self.getData().keys(),
                          (str(x.unit) for x in cols),

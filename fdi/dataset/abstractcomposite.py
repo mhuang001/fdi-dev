@@ -11,13 +11,13 @@ from .attributable import Attributable
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
 class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMapper):
-    """ an annotatable and attributable subclass of Composite. 
+    """ an annotatable and attributable subclass of Composite.
 
-    Composite inherits annotatable via EventListener via DataContainer. 
+    Composite inherits annotatable via EventListener via DataContainer.
     """
 
     def __init__(self, **kwds):

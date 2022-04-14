@@ -96,7 +96,7 @@ class UnstructuredDataset(Dataset, Copyable):
         if data:
             # do not ask for self.type unless there is real data.
             if self.doctype == 'json':
-                data = json.loads(data, **kwds)
+                loaded = json.loads(data, **kwds)
             elif self.doctype == 'xml':
                 xa = kwds.pop('xml_attribs', None)
                 xa = self.xml_attribs if xa is None else xa
@@ -105,16 +105,20 @@ class UnstructuredDataset(Dataset, Copyable):
                 ck = kwds.pop('cdata_key', None)
                 ck = self.cdata_key if ck is None else ck
 
-                data = xmltodict.parse(data,
-                                       attr_prefix=ap,
-                                       cdata_key=ck,
-                                       xml_attribs=xa, **kwds)
+                loaded = xmltodict.parse(data,
+                                         attr_prefix=ap,
+                                         cdata_key=ck,
+                                         xml_attribs=xa, **kwds)
+            else:
+                # Others are loaded as data structures
+                loaded = data
+                #raise ValueError('Cannot process %s type.' % str(doctype))
             # set Escape if not set already
-            if hasattr(data, '__iter__') and '_STID' in data:
-                ds = data['_STID']
+            if hasattr(loaded, '__iter__') and '_STID' in loaded:
+                ds = loaded['_STID']
                 if not ds.startswith('0'):
-                    data['_STID'] = '0%s' % ds
-        super().setData(data)
+                    loaded['_STID'] = '0%s' % ds
+        super().setData(loaded)
         # self.make_meta()
 
     def __getstate__(self):

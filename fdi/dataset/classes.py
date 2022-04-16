@@ -184,20 +184,11 @@ class Classes_meta(type):
 
     # https://stackoverflow.com/a/1800999
     @property
-    def mapping(cls, ignore_error=False):
+    def mapping(cls):
         """ Returns the dictionary of classes allowed for deserialization, including the fdi built-ins and user added classes.
 
-        Will update the classes if the list is empty
-        Parameters
-        ----------
-
-        Returns
-        -------
         """
-        if len(cls._classes) == 0:
-            return cls.updateMapping(c=None, rerun=False, exclude=None,
-                                     verbose=False, ignore_error=ignore_error)
-        return cls._classes
+        return cls.getMapping()
 
     @mapping.setter
     def mapping(cls, c):
@@ -209,8 +200,22 @@ class Classes_meta(type):
         Returns
         -------
         """
-        raise NotImplementedError('Use Classes.updateMapping(c).')
+        raise NotImplementedError('Use Classes.updateMapping(c, **kwds).')
         cls.updateMapping(c)
+
+    def getMapping(cls, **kwds):
+        """         Will update the classes if the class list is empty
+        Parameters
+        ----------
+        passed to `updateMapping`.
+
+        Returns
+        -------
+
+        """
+        if len(cls._classes) == 0:
+            return cls.updateMapping(c=None, **kwds)
+        return cls._classes
 
 
 class Classes(metaclass=Classes_meta):

@@ -91,16 +91,16 @@ class FineTime(Copyable, DeepEqual, Serializable):
             setTai = self.datetimeToFineTime(d)
         elif issubclass(time.__class__, (str, bytes)):
             t = time.strip()
-            try:
-                setTai = int(t)
-            except ValueError:
-                pass
         else:
-            msg = ('%s must be an integer, a datetime object, or a string or bytes, but its type is %s.' % (
-                str(time), type(time).__name__))
+            msg = ('%s must be an integer,a datetime object,'
+                   'or a string or bytes, but its type is %s.' % (
+                       str(time), type(time).__name__))
             raise TypeError(msg)
+
         if setTai is ...:
             # Now t has a date-time string in it
+            if issubclass(t.__class__, bytes):
+                t = t.decode('ascii')
             try:
                 d = datetime.datetime.strptime(t, self.format)
             except ValueError:
@@ -135,11 +135,20 @@ class FineTime(Copyable, DeepEqual, Serializable):
                                 d = datetime.datetime.strptime(
                                     t, FineTime.DEFAULT_FORMAT + '%Z')
                             except ValueError:
-                                d = datetime.datetime.strptime(
-                                    t, FineTime.DEFAULT_FORMAT + '%z')
-                            logger.warning(
-                                'Time zone %s taken for %s', (d.tzname(), t))
-
+                                try:
+                                    d = datetime.datetime.strptime(
+                                        t, FineTime.DEFAULT_FORMAT + '%z')
+                                except ValueError:
+                                    try:
+                                        setTai = int(t)
+                                        self.tai = setTai
+                                        return
+                                    except ValueError:
+                                        msg = ('Cannot parse %s.' % t)
+                                        raise TypeError(msg)
+                                else:
+                                    logger.warning(
+                                        'Time zone %s taken for %s', (d.tzname(), t))
             d1 = d.replace(tzinfo=datetime.timezone.utc)
             setTai = self.datetimeToFineTime(d1)
         try:

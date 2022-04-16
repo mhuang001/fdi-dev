@@ -20,7 +20,7 @@ class Typed():
         -------
         """
 
-        #print(__name__ + str(kwds))
+        # print(__name__ + str(kwds))
         super().__init__(**kwds)
         self.setType(typ_)
 

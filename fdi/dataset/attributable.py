@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from collections import ChainMap
-import os
-from copy import copy
-
 from .metadataholder import MetaDataHolder
 from .metadata import AbstractParameter, Parameter
 from .datatypes import DataTypes
 from .deserialize import Class_Look_Up
+from .finetime import FineTime
+
+from collections import ChainMap
+import os
+import datetime
+from copy import copy
 
 import logging
 # create logger
@@ -188,10 +190,16 @@ class Attributable(MetaDataHolder):
                 if value is None or issubclass(v_type, p_type):
                     p.setValue(value)
                     return
+                elif issubclass(v_type, (int, datetime.datetime, str)) and issubclass(p_type, FineTime):
+                    # The parameter is of type `finetime`
+                    #fmt = p['typecode']
+                    # p(value, format=None if fmt in ('Q', '') else fmt)
+                    p.setValue(value)
+                    return
                 else:
                     vs = value
                     raise TypeError(
-                        "Value %s type is %s, not %s's %s." % (vs, v_type.__name__, name, p_type.__name__))
+                        "Value %s type is %s, not %s needed by %s." % (vs, v_type.__name__, p_type.__name__, name))
         else:
             # named parameter is not in meta
 
@@ -311,6 +319,10 @@ def value2parameter(name, value, descriptor):
                               )
     elif im['data_type'] == 'finetime':
         from .dateparameter import DateParameter
+        if issubclass(value.__class__, str):
+            __import__('pdb').set_trace()
+            fmt = ext.pop('typecode')
+            dt = FineTime(value, format=None if fmt in ('Q', '') else fmt)
         ret = DateParameter(value=value,
                             description=im['description'],
                             typ_=im['data_type'],

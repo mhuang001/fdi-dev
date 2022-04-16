@@ -2,6 +2,7 @@ import requests
 import functools
 import logging
 import sys
+import json
 from requests.auth import HTTPBasicAuth
 
 from fdi.dataset.serializable import serialize
@@ -41,7 +42,8 @@ def read_from_cloud(requestName, **kwargs):
     if requestName == 'getToken':
         requestAPI = defaulturl + '/user/auth/token'
         postData = {'username': AUTHUSER, 'password': AUTHPASS}
-        res = requests.post(requestAPI, headers=header, data=serialize(postData))
+        res = requests.post(requestAPI, headers=header,
+                            data=serialize(postData))
     elif requestName == 'verifyToken':
         requestAPI = defaulturl + '/user/auth/verify?token=' + kwargs['token']
         res = requests.get(requestAPI)
@@ -49,13 +51,15 @@ def read_from_cloud(requestName, **kwargs):
         header['X-AUTH-TOKEN'] = kwargs['token']
         if requestName == 'infoUrn':
             requestAPI = defaulturl + pcc['cloud_baseurl'] + \
-                         '/storage/info?urns=' + kwargs['urn']
+                '/storage/info?urns=' + kwargs['urn']
         elif requestName == 'infoPool':
             requestAPI = defaulturl + pcc['cloud_baseurl'] + \
-                         '/storage/info?pageIndex=1&pageSize=10000&pools=' + kwargs['poolpath']
+                '/storage/info?pageIndex=1&pageSize=10000&pools=' + \
+                kwargs['poolpath']
         elif requestName == 'infoPoolType':
             requestAPI = defaulturl + pcc['cloud_baseurl'] + \
-                         '/storage/info?pageIndex=1&pageSize=10000&paths=' + kwargs['poolpath']
+                '/storage/info?pageIndex=1&pageSize=10000&paths=' + \
+                kwargs['poolpath']
         else:
             raise ValueError("Unknown request API: " + str(requestName))
         res = requests.get(requestAPI, headers=header)
@@ -63,13 +67,13 @@ def read_from_cloud(requestName, **kwargs):
     elif requestName == 'getMeta':
         header['X-AUTH-TOKEN'] = kwargs['token']
         requestAPI = defaulturl + pcc['cloud_baseurl'] + \
-                     '/storage/meta?urn=' + kwargs['urn']
+            '/storage/meta?urn=' + kwargs['urn']
         res = requests.get(requestAPI, headers=header)
-
+        return deserialize(json.dumps(res.json()['data']['_ATTR_meta']))
     elif requestName == 'getDataType':
         header['X-AUTH-TOKEN'] = kwargs['token']
         requestAPI = defaulturl + pcc['cloud_baseurl'] + \
-                     '/datatype/list'
+            '/datatype/list'
         res = requests.get(requestAPI, headers=header)
     elif requestName == 'remove':
         header['X-AUTH-TOKEN'] = kwargs['token']
@@ -84,26 +88,27 @@ def read_from_cloud(requestName, **kwargs):
     elif requestName == 'createPool':
         header['X-AUTH-TOKEN'] = kwargs['token']
         requestAPI = defaulturl + pcc['cloud_baseurl'] + \
-                     '/pool/create?poolName=' + kwargs['poolname'] + '&read=0&write=0'
+            '/pool/create?poolName=' + kwargs['poolname'] + '&read=0&write=0'
         res = requests.post(requestAPI, headers=header)
     elif requestName == 'wipePool':
         header['X-AUTH-TOKEN'] = kwargs['token']
         requestAPI = defaulturl + pcc['cloud_baseurl'] + \
-                     '/pool/delete?storagePoolName=' + kwargs['poolname']
+            '/pool/delete?storagePoolName=' + kwargs['poolname']
         res = requests.post(requestAPI, headers=header)
     elif requestName == 'restorePool':
         header['X-AUTH-TOKEN'] = kwargs['token']
         requestAPI = defaulturl + pcc['cloud_baseurl'] + \
-                     '/pool/restore?storagePoolName=' + kwargs['poolname']
+            '/pool/restore?storagePoolName=' + kwargs['poolname']
         res = requests.post(requestAPI, headers=header)
     elif requestName == 'addTag':
         header['X-AUTH-TOKEN'] = kwargs['token']
         requestAPI = defaulturl + pcc['cloud_baseurl'] + \
-                    '/storage/addTags?tags=' + kwargs['tags'] + '&urn=' + kwargs['urn']
+            '/storage/addTags?tags=' + kwargs['tags'] + '&urn=' + kwargs['urn']
         res = requests.get(requestAPI, headers=header)
     else:
         raise ValueError("Unknown request API: " + str(requestName))
     # print("Read from API: " + requestAPI)
+    # must remove csdb layer
     return deserialize(res.text)
 
 
@@ -131,7 +136,8 @@ def load_from_cloud(requestName, **kwargs):
                 data = {'tags': tags}
             else:
                 data = None
-            res = requests.post(requestAPI, files={'file': (fileName, prd)}, data=data, headers=header)
+            res = requests.post(requestAPI, files={'file': (
+                fileName, prd)}, data=data, headers=header)
 
         elif requestName == 'pullProduct':
             header['X-AUTH-TOKEN'] = kwargs['token']

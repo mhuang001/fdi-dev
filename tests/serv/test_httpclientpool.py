@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from ..test_pal import backup_restore
+from conftest import csdb_pool_id
+
+from fdi.pal.context import MapContext
+from fdi.dataset.arraydataset import ArrayDataset
+from test_pal import backup_restore
 
 
 from fdi.dataset.product import Product
@@ -22,6 +26,7 @@ from fdi.utils.common import fullname
 
 import pytest
 import urllib
+import time
 import getpass
 import sys
 
@@ -135,7 +140,8 @@ def test_gen_url(server):
         urn=sampleurn, poolurl=samplepoolurl, contents=call, method='GET')
     webapi_url = aburl + '/' + samplepoolname + '/' + 'api/' + call
     # '/'
-    assert got_webapi_url == webapi_url + '/', 'Get WebAPI url error: ' + got_webapi_url
+    assert got_webapi_url == webapi_url + \
+        '/', 'Get WebAPI url error: ' + got_webapi_url
 
     logger.info('Post WebAPI url')
     call = 'tagExists__foo'
@@ -295,18 +301,13 @@ def test_webapi_backup_restore(server):
     backup_restore(pstore)
 
 
-
-from fdi.dataset.arraydataset import ArrayDataset
-from fdi.pal.context import MapContext
-
 # ----------------------TEST CSDB--------------------------------
-csdb_pool_id = 'csdb_test_pool'
 
 
-def genProduct(size=1, cls='ArrayDataset'):
+def genProduct(size=1, cls='ArrayDataset', unique=''):
     res = []
     for i in range(size):
-        x = Product(description="product example with several datasets",
+        x = Product(description="product example with several datasets" + unique,
                     instrument="Crystal-Ball", modelName="Mk II", creator='Cloud FDI developer')
         i0 = i
         i1 = [[i0, 2, 3], [4, 5, 6], [7, 8, 9]]
@@ -331,19 +332,10 @@ def genMapContext(size=1):
 
 
 @pytest.fixture(scope="module")
-def csdb(pc):
-    url = pc['cloud_scheme'] + ':///' + csdb_pool_id
-    # pc['cloud_host'] + ':' + \
-    # str(pc['cloud_port'])
-    test_pool = PublicClientPool(poolurl=url)
-    return test_pool, url
-
-
-@pytest.fixture(scope="module")
 def test_token(csdb):
     logger.info('test token')
     test_pool, url = csdb
-    test_pool.getPoolInfo()
+
     tokenFile = open(pcc['cloud_token'], 'r')
     token = tokenFile.read()
     tokenFile.close()
@@ -364,7 +356,7 @@ def test_createPool(csdb):
 def test_poolInfo(csdb):
     test_pool, url = csdb
     test_pool.getPoolInfo()
-    print(test_pool.poolInfo)
+    # print(test_pool.poolInfo)
 
 
 def test_upload():
@@ -381,24 +373,38 @@ def test_upload():
     resPrd = pstore.save(prd)
     resMaps = pstore.save(maps)
     # urn:poolbs:fdi.dataset.product.Product:x
-    assert resPrd.urn.startswith('urn:' + csdb_pool_id + ':fdi.dataset.product.Product')
-    assert resMaps.urn.startswith('urn:' + csdb_pool_id + ':fdi.pal.context.MapContext')
+    assert resPrd.urn.startswith(
+        'urn:' + csdb_pool_id + ':fdi.dataset.product.Product')
+    assert resMaps.urn.startswith(
+        'urn:' + csdb_pool_id + ':fdi.pal.context.MapContext')
 
     prds = genProduct(3)
     resPrds = pstore.save(prds)
     for ele in resPrds:
-        assert ele.urn.startswith('urn:' + csdb_pool_id + ':fdi.dataset.product.Product')
+        assert ele.urn.startswith(
+            'urn:' + csdb_pool_id + ':fdi.dataset.product.Product')
 
 
 def test_loadPrd(csdb):
     logger.info('test load product')
     test_pool, url = csdb
-    test_pool.getPoolInfo()
-    rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
-    prd = test_pool.schematicLoad('fdi.dataset.product.Product', rdIndex)
-    assert prd.description == 'product example with several datasets', 'retrieve production incorrect'
-    assert prd.instrument == 'Crystal-Ball', 'retrieve production incorrect'
-    assert prd['QualityImage'].shape == (3, 3), 'retrieve production incorrect'
+
+    pstore = ProductStorage(test_pool)
+    uniq = str(time.time())
+    prds = genProduct(3, unique=uniq)
+    resPrds = pstore.save(prds)
+    pinfo = test_pool.getPoolInfo()
+    # for cl in pinfo[test_pool.poolname]['_classes']:
+    #    if c['productTypeName'] == 'fdi.dataset.product.Product':
+    #        rdIndex = c['currentSN']
+    #        break
+    for i in range(1, 4):
+        rdIndex = pinfo[test_pool.poolname]['_classes'][0]['sn'][-i]
+        prd = test_pool.schematicLoad('fdi.dataset.product.Product', rdIndex)
+        assert prd.description.endswith(uniq), 'retrieve production incorrect'
+        assert prd.instrument == 'Crystal-Ball', 'retrieve production incorrect'
+        assert prd['QualityImage'].shape == (
+            3, 3), 'retrieve production incorrect'
 
 
 def test_getProductClasses(csdb):
@@ -414,7 +420,8 @@ def test_addTag(csdb):
     tag = 'test_prd'
     test_pool.getPoolInfo()
     rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
-    urn = 'urn:' + csdb_pool_id + ':fdi.dataset.product.Product:' + str(rdIndex)
+    urn = 'urn:' + csdb_pool_id + \
+        ':fdi.dataset.product.Product:' + str(rdIndex)
     test_pool.setTag(tag, urn)
     assert tag in test_pool.getTags(urn)
 
@@ -425,7 +432,8 @@ def test_delTag(csdb):
     tag = 'test_prd'
     test_pool.getPoolInfo()
     rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
-    urn = 'urn:' + csdb_pool_id + ':fdi.dataset.product.Product:' + str(rdIndex)
+    urn = 'urn:' + csdb_pool_id + \
+        ':fdi.dataset.product.Product:' + str(rdIndex)
     assert tag in test_pool.getTags(urn)
     test_pool.removeTag(tag)
     test_pool.getPoolInfo()
@@ -444,7 +452,8 @@ def test_remove(csdb):
     test_pool, url = csdb
     test_pool.getPoolInfo()
     rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
-    urn = 'urn:' + csdb_pool_id + ':fdi.dataset.product.Product:' + str(rdIndex)
+    urn = 'urn:' + csdb_pool_id + \
+        ':fdi.dataset.product.Product:' + str(rdIndex)
     res = test_pool.remove(urn)
     assert res in ['success', 'Not found resource.'], res
 
@@ -452,9 +461,11 @@ def test_remove(csdb):
 def test_wipe(csdb):
     logger.info('test wipe all')
     test_pool, url = csdb
+    test_upload()
+    assert not test_pool.isEmpty()
     test_pool.schematicWipe()
     info = test_pool.getPoolInfo()
+    # print(info)
     for classes in info[test_pool.poolname]['_classes']:
         assert [0] == classes['sn']
-
-
+    assert test_pool.isEmpty()

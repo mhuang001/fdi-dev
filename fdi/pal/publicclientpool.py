@@ -4,7 +4,7 @@ import pdb
 import sys
 
 from fdi.dataset.arraydataset import ArrayDataset
-from fdi.dataset.product import Product
+from fdi.dataset.product import Product, BaseProduct
 from fdi.dataset.serializable import serialize
 from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productpool import ManagedPool
@@ -64,7 +64,7 @@ class PublicClientPool(ManagedPool):
         """
         s = (not hasattr(self, '_poolurl') or not self._poolurl)
         self._poolpath, self._scheme, self._place, \
-        self._poolname, self._username, self._password = \
+            self._poolname, self._username, self._password = \
             parse_poolurl(poolurl)
         if self._scheme == '' or self._scheme == None:
             self._scheme = 'csdb'
@@ -102,28 +102,32 @@ class PublicClientPool(ManagedPool):
                 return tokenMsg['msg']
 
     def poolExists(self):
-        res = read_from_cloud('existPool', poolname=self.poolname, token=self.token)
+        res = read_from_cloud(
+            'existPool', poolname=self.poolname, token=self.token)
         if res['msg'] == 'success':
             return True
         else:
             return False
 
     def restorePool(self):
-        res = read_from_cloud('restorePool', poolname=self.poolname, token=self.token)
+        res = read_from_cloud(
+            'restorePool', poolname=self.poolname, token=self.token)
         if res['msg'] == 'success':
             return True
         else:
             return False
 
     def createPool(self):
-        res = read_from_cloud('createPool', poolname=self.poolname, token=self.token)
+        res = read_from_cloud(
+            'createPool', poolname=self.poolname, token=self.token)
 
         if res['msg'] == 'success':
             return True
         elif res['msg'] == 'The storage pool already exists. Change the storage pool name':
             return True
         elif res['msg'] == 'The storage pool name already exists in the recycle bin. Change the storage pool name':
-            raise ValueError(res['msg'] + ', please restore pool ' + self.poolname + ' firstly.')
+            raise ValueError(
+                res['msg'] + ', please restore pool ' + self.poolname + ' firstly.')
         else:
             return False
 
@@ -135,7 +139,8 @@ class PublicClientPool(ManagedPool):
                 _urns [{urn, tags[]}]
                 _tags [{tag, urns[]}]
         """
-        res = read_from_cloud('infoPool', poolpath=self.poolname, token=self.token)
+        res = read_from_cloud(
+            'infoPool', poolpath=self.poolname, token=self.token)
         if res['code'] == 0:
             if res['data']:
                 self.poolInfo = res['data']
@@ -175,9 +180,11 @@ class PublicClientPool(ManagedPool):
                     classes.append(clz['productTypeName'])
             return classes
         except TypeError as e:
-            raise TypeError('Pool info API changed or unexpected information: ' + str(e))
+            raise TypeError(
+                'Pool info API changed or unexpected information: ' + str(e))
         except KeyError as e:
-            raise TypeError('Pool info API changed or unexpected information: ' + str(e))
+            raise TypeError(
+                'Pool info API changed or unexpected information: ' + str(e))
 
     def getCount(self, typename):
         """
@@ -193,7 +200,8 @@ class PublicClientPool(ManagedPool):
                 raise ValueError("Current pool has no such type: " + typename)
             for clz in self.poolInfo[self.poolname]['_classes']:
                 if typename == clz['productTypeName']:
-                    return len(clz['sn'])
+                    # XXX -1 is due to a bug in sn[] in csdb
+                    return len(clz['sn'])-1
         except KeyError:
             return 0
 
@@ -202,10 +210,11 @@ class PublicClientPool(ManagedPool):
         Determines if the pool is empty.
         """
         res = self.getPoolInfo()
-        if issubclass(res, str):
-            return True
+        if issubclass(res.__class__, dict):
+            clses = res[self.poolname]['_classes']
+            return all(clz['sn'] == [0] for clz in clses)
         else:
-            return False
+            raise ValueError('Error getting PoolInfo ' + str(res))
 
     def getMetaByUrn(self, urn, resourcetype=None, index=None):
         """
@@ -253,7 +262,8 @@ class PublicClientPool(ManagedPool):
             raise ValueError('No such product type in cloud: ' + pn)
 
         targetPoolpath = self.getPoolpath() + '/' + pn
-        poolInfo = read_from_cloud('infoPoolType', poolpath=targetPoolpath, token=self.token)
+        poolInfo = read_from_cloud(
+            'infoPoolType', poolpath=targetPoolpath, token=self.token)
         if poolInfo['data'].get(targetPoolpath):
             sn = poolInfo['data'][targetPoolpath]['lastIndex'] + 1
         else:
@@ -349,6 +359,8 @@ class PublicClientPool(ManagedPool):
                     # +2 to skip the following ', '
                     last_end += 2
                     comma = products.find(',', last_end)
+        # XXX refresh currentSn on server
+        self.getPoolInfo()
         sz = 1 if not alist else len(
             products) if serialize_in else len(productlist)
         logger.debug('%d product(s) generated %d %s: %s.' %
@@ -364,17 +376,19 @@ class PublicClientPool(ManagedPool):
         """ do the scheme-specific loading
         """
         targetPoolpath = self.getPoolpath() + '/' + resourcetype
-        poolInfo = read_from_cloud('infoPoolType', poolpath=targetPoolpath, token=self.token)
+        poolInfo = read_from_cloud(
+            'infoPoolType', poolpath=targetPoolpath, token=self.token)
         try:
             if poolInfo['data']:
                 poolInfo = poolInfo['data']
                 if poolInfo.get(targetPoolpath):
                     if index in poolInfo[targetPoolpath]['indexes']:
-                        urn = makeUrn(poolname=self._poolname, typename=resourcetype, index=index)
+                        urn = makeUrn(poolname=self._poolname,
+                                      typename=resourcetype, index=index)
                         res = self.doLoadByUrn(urn)
                         # res is a product like fdi.dataset.product.Product
 
-                        if res:
+                        if issubclass(res.__class__, BaseProduct):
                             if serialize_out:
                                 from fdi.dataset.deserialize import serialize
                                 return serialize(res)
@@ -385,8 +399,10 @@ class PublicClientPool(ManagedPool):
         except Exception as e:
             logger.debug('Load product failed:' + str(e))
             raise e
-        logger.debug('No such product:' + resourcetype + ' with index: ' + str(index))
-        raise ValueError('No such product:' + resourcetype + ' with index: ' + str(index))
+        logger.debug('No such product:' + resourcetype +
+                     ' with index: ' + str(index))
+        raise ValueError('No such product:' + resourcetype +
+                         ' with index: ' + str(index))
 
     def doLoad(self, resourcetype, index, start=None, end=None, serialize_out=False):
         """ to be implemented by subclasses to do the action of loading
@@ -432,7 +448,8 @@ class PublicClientPool(ManagedPool):
         """
         path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
         res = read_from_cloud('remove', token=self.token, path=path)
-        print("index: " + str(index) + " remove result: "+str(res) + ' from : ' + path)
+        print("index: " + str(index) + " remove result: " +
+              str(res) + ' from : ' + path)
         return res['msg']
 
     def remove(self, urn):
@@ -466,7 +483,8 @@ class PublicClientPool(ManagedPool):
         if isinstance(tag, str) and len(tag) > 0:
             res = read_from_cloud('addTag', token=self.token, tags=tag, urn=u)
             if res['msg'] != 'OK':
-                raise ValueError('Set tag to ' + urn + ' failed: ' + res['msg'])
+                raise ValueError('Set tag to ' + urn +
+                                 ' failed: ' + res['msg'])
         else:
             raise ValueError('Tag can not be empty or non-string!')
 
@@ -530,7 +548,6 @@ def genProduct(size=1):
         return res
 
 
-
 # from fdi.pal.query import MetaQuery
 # qt = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] <= 5005')
 # <MetaQuery where='m["extra"] > 5000 and m["extra"] <= 5005', type=<class 'fdi.dataset.product.Product'>, variable='m', allVersions=False>
@@ -542,6 +559,7 @@ def test_getToken():
     token = tokenFile.read()
     tokenFile.close()
     assert token == test_pool.token, "Tokens are not equal or not synchronized"
+
 
 def test_poolInfo():
     poolurl = 'csdb:///csdb_test_pool'

@@ -88,8 +88,8 @@ else:
 
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
-    from pycontext import fdi
-
+    #from pycontext import fdi
+    import fdi
     if not mk_outputs:
         from outputs import nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
 

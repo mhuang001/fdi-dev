@@ -71,7 +71,7 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 Classes.updateMapping()
 
 # make format output in /tmp/outputs.py
-mk_outputs = 1
+mk_outputs = 0
 output_write = 'tests/outputs.py'
 
 if mk_outputs:
@@ -1164,6 +1164,9 @@ def test_MetaData():
                                  value=2.3, unit='sec')
     v['birthday'] = Parameter(description='was made on',
                               value=FineTime('2020-09-09T12:34:56.789098'))
+    # only Parameters are taken
+    with pytest.raises(TypeError):
+        v['bomb'] = 'BOMM'
     # names of all parameters
     assert [n for n in v] == [a1, 'time', 'birthday']
 

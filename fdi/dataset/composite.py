@@ -97,7 +97,7 @@ class Composite(DataContainer, Serializable, MutableMapping):
         -------
 
         """
-        self.data[name] = dataset
+        self._data[name] = dataset
 
     def __getitem__(self, name):
         """
@@ -136,7 +136,8 @@ class Composite(DataContainer, Serializable, MutableMapping):
             self._data[name] = dataset
             self._data['refs'] = refs
         else:
-            self._data[name] = dataset
+            # this must call `set` which can be overridden by subclasses
+            self.set(name, dataset)
 
     def getSets(self):
         """ Provide access to the Map < String, Dataset > .

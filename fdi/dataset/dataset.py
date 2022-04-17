@@ -149,9 +149,10 @@ def make_title_meta_l0(self, level=0,
 
     # title
     cn = self.__class__.__name__
-    t = ('*** <b>%s (%s)</b> ***' if html else '*** %s (%s) ***') %\
-        (cn, self.description if hasattr(
-            self, 'description') else '')
+    desc = self.meta.get('description', '')
+    if desc:
+        desc = desc.value
+    t = ('*** <b>%s (%s)</b> ***' if html else '*** %s (%s) ***') % (cn, desc)
     tw = len(t)
     # make the table and find out the width first
     table = mstr(self._meta, level=level, html=html, **kwds)
@@ -236,7 +237,7 @@ class CompositeDataset(MetaDataListener, AbstractComposite):
             **kwds)  # initialize _sets, meta, unit
 
     def __getstate__(self):
-        """ Can be encoded with serializableEncoder 
+        """ Can be encoded with serializableEncoder
 
         Parameter
         ---------

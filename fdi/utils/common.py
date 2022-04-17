@@ -695,7 +695,7 @@ def guess_value(input_string, parameter=False, last=str):
                 else:
                     res = last(input_string)
                     return Parameter(value=res) if parameter else res
-    return None
+    return StringParameter('null') if parameter else None
 
 
 def find_all_files(datadir, verbose=False, include=None, exclude=None):

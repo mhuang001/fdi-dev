@@ -2626,9 +2626,15 @@ def test_FineTime():
     v = FineTime(1)
     assert v.toDatetime().microsecond == 1
     # from string
-    assert FineTime('0') == FineTime(0)
-    assert FineTime('10') == FineTime(10)
-    assert FineTime(b'20') == FineTime(20)
+    print(FineTime('1970', format='%Y'))
+    print(FineTime(
+        datetime.datetime(1970, 1, 1, 0, 0, 0)))
+    assert FineTime('1970', format='%Y') == FineTime(
+        datetime.datetime(1970, 1, 1, 0, 0, 0))
+    assert FineTime('2000', format='%Y') == FineTime(
+        datetime.datetime(2000, 1, 1, 0, 0, 0))
+    assert FineTime(b'3000', format='%Y') == FineTime(
+        datetime.datetime(3000, 1, 1, 0, 0, 0))
     v = FineTime('1990-09-09T12:34:56.789098 UTC')
 
     # comparison

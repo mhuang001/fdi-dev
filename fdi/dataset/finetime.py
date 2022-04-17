@@ -26,9 +26,9 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
     This has the following advantages, compared with the standard class:
 
-    It has better resolution(microseconds)
-    Time differences are correct across leap seconds
-    It is immutable.
+    * It has better resolution(microseconds);
+    * ime differences are correct across leap seconds
+    * It is immutable unless its TAI is 0..
     """
     """ Te starting date in UTC """
     EPOCH = datetime.datetime(1958, 1, 1, 0, 0, 0, tzinfo=utcobj)
@@ -92,6 +92,8 @@ class FineTime(Copyable, DeepEqual, Serializable):
             setTai = self.datetimeToFineTime(d)
         elif issubclass(time.__class__, (str, bytes)):
             t = time.strip()
+            if issubclass(t.__class__, bytes):
+                t = t.decode('ascii')
             fmt = self.format
             if fmt:
                 try:
@@ -108,8 +110,6 @@ class FineTime(Copyable, DeepEqual, Serializable):
         if setTai is ...:
             # Now t has a date-time string in it.
             msg = '%s is not an integer or `datetime`' % t
-            if issubclass(t.__class__, bytes):
-                t = t.decode('ascii')
             fmt = FineTime.DEFAULT_FORMAT
             try:
                 d = datetime.datetime.strptime(t, fmt)
@@ -137,7 +137,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
                         try:
                             d = datetime.datetime.strptime(t, fmt)
                             gotit = True
-                            logger.warning('Time zone 0 assumed for %s', t)
+                            logger.warning('Time zone 0 assumed for %s' % t)
                         except ValueError:
                             msg += '\n%s does not match %s.' % (t, fmt)
                             # try the tz's. maybe tz endswith Z?
@@ -155,7 +155,8 @@ class FineTime(Copyable, DeepEqual, Serializable):
                             except ValueError:
                                 msg += '\n%s does not match %s.' % (t, fmt)
                                 raise TypeError(msg)
-                logger.warning('Time zone % s taken for % s', (d.tzname(), t))
+                logger.warning('Time zone %s taken for %s' %
+                               (str(d.tzname()), t))
             d1 = d.replace(tzinfo=datetime.timezone.utc)
             setTai = self.datetimeToFineTime(d1)
         # setTai has a value
@@ -315,6 +316,19 @@ class FineTime(Copyable, DeepEqual, Serializable):
         else:
             raise TypeError(f'{sc.__name__} cannot add/minus {oc} {obj}')
 
+    def __eq__(self, obj, **kwds):
+        """ fast comparison using TAI. """
+
+        if obj is None or not hasattr(self, 'tai') or not hasattr(obj, 'tai'):
+            return False
+
+        if id(self) == id(obj):
+            return True
+
+        if type(self) != type(obj):
+            return False
+        return self.tai == obj.tai
+
     def __lt__(self, obj):
         """ can compare TAI directly """
 
@@ -367,7 +381,7 @@ class FineTime1(FineTime):
         self.relative_res = FineTime.RESOLUTION / float(self.RESOLUTION)
         super().__init__(*args, **kwds)
 
-    @classmethod
+    @ classmethod
     def datetimeToFineTime(cls, dtm):
 
         sec = (FineTime.datetimeToFineTime(dtm) -

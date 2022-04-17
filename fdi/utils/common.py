@@ -471,7 +471,7 @@ def attrstr1(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
 def exprstrs(param, v='_value', extra=False, **kwds):
     """ Generates a set of strings for param.toString().
 
-    :param: Parameeter or xDstaset.
+    :param: Parameter or xDstaset.
     :extra: Whether to include less often used attributes suc as ```fits_keyword```.
     """
     if issubclass(param.__class__, dataset.metadata.Parameter):

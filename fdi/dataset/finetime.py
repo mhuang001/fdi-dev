@@ -78,6 +78,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         If a datetime object or a string code is given, the timezone will be set to UTC.
         A FineTime instance is immutable except when TAI == 0. Violation gets a TypeError.
         """
+        # setting to an impossible value
         setTai = ...
         if time is None:
             setTai = None
@@ -91,66 +92,73 @@ class FineTime(Copyable, DeepEqual, Serializable):
             setTai = self.datetimeToFineTime(d)
         elif issubclass(time.__class__, (str, bytes)):
             t = time.strip()
+            fmt = self.format
+            if fmt:
+                try:
+                    d = datetime.datetime.strptime(t, fmt)
+                    d1 = d.replace(tzinfo=datetime.timezone.utc)
+                    setTai = self.datetimeToFineTime(d1)
+                except ValueError:
+                    pass
         else:
             msg = ('%s must be an integer,a datetime object,'
                    'or a string or bytes, but its type is %s.' % (
                        str(time), type(time).__name__))
             raise TypeError(msg)
-
         if setTai is ...:
-            # Now t has a date-time string in it
+            # Now t has a date-time string in it.
+            msg = '%s is not an integer or `datetime`' % t
             if issubclass(t.__class__, bytes):
                 t = t.decode('ascii')
+            fmt = FineTime.DEFAULT_FORMAT
             try:
-                d = datetime.datetime.strptime(t, self.format)
+                d = datetime.datetime.strptime(t, fmt)
             except ValueError:
+                msg += '\n%s does not match %s.' % (t, fmt)
                 if ' ' in t:
+                    fmt = FineTime.DEFAULT_FORMAT + ' %Z'
                     try:
-                        d = datetime.datetime.strptime(
-                            t, FineTime.DEFAULT_FORMAT + ' %Z')
+                        d = datetime.datetime.strptime(t, fmt)
                     except ValueError:
-                        d = datetime.datetime.strptime(
-                            t, FineTime.DEFAULT_FORMAT + ' %z')
+                        msg += '\n%s does not match %s.' % (t, fmt)
+                        fmt = FineTime.DEFAULT_FORMAT + ' %z'
+                        try:
+                            d = datetime.datetime.strptime(t, fmt)
+                        except ValueError:
+                            msg += '\n%s does not match %s.' % (t, fmt)
+                            raise ValueError(msg)
                     logger.warning('Time zone %s assumed for %s' %
                                    (t.rsplit(' ')[1], t))
                 else:
+                    # No ' ' in time string
                     gotit = False
                     if t.endswith('Z'):
+                        fmt = FineTime.DEFAULT_FORMAT + 'Z'
                         try:
-                            d = datetime.datetime.strptime(
-                                t, FineTime.DEFAULT_FORMAT + 'Z')
+                            d = datetime.datetime.strptime(t, fmt)
                             gotit = True
                             logger.warning('Time zone 0 assumed for %s', t)
                         except ValueError:
+                            msg += '\n%s does not match %s.' % (t, fmt)
                             # try the tz's. maybe tz endswith Z?
                             pass
                     if not gotit:
+                        # not ending with 'Z' or not match fmt+'Z'
+                        fmt = FineTime.DEFAULT_FORMAT + '%Z'
                         try:
-                            # format does not have tz
-                            d = datetime.datetime.strptime(
-                                t, FineTime.DEFAULT_FORMAT)
-                            logger.warning('Time zone 0 assumed for %s', t)
+                            d = datetime.datetime.strptime(t, fmt)
                         except ValueError:
+                            msg += '\n%s does not match %s.' % (t, fmt)
+                            fmt = FineTime.DEFAULT_FORMAT + '%z'
                             try:
-                                d = datetime.datetime.strptime(
-                                    t, FineTime.DEFAULT_FORMAT + '%Z')
+                                d = datetime.datetime.strptime(t, fmt)
                             except ValueError:
-                                try:
-                                    d = datetime.datetime.strptime(
-                                        t, FineTime.DEFAULT_FORMAT + '%z')
-                                except ValueError:
-                                    try:
-                                        setTai = int(t)
-                                        self.tai = setTai
-                                        return
-                                    except ValueError:
-                                        msg = ('Cannot parse %s.' % t)
-                                        raise TypeError(msg)
-                                else:
-                                    logger.warning(
-                                        'Time zone %s taken for %s', (d.tzname(), t))
+                                msg += '\n%s does not match %s.' % (t, fmt)
+                                raise TypeError(msg)
+                logger.warning('Time zone % s taken for % s', (d.tzname(), t))
             d1 = d.replace(tzinfo=datetime.timezone.utc)
             setTai = self.datetimeToFineTime(d1)
+        # setTai has a value
         try:
             if setTai and self.tai:
                 raise TypeError(
@@ -174,7 +182,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         in microseconds. """
         return self.tai - time.tai
 
-    @classmethod
+    @ classmethod
     def datetimeToFineTime(cls, dtm):
         """ Return given  Python Datetime in FineTime to the precision of the input. Rounded to the last digit. Unit is decided by RESOLUTION."""
         if dtm < cls.UTC_LOW_LIMIT:
@@ -252,9 +260,9 @@ class FineTime(Copyable, DeepEqual, Serializable):
         return self.toString(level=2)
 
     def __bool__(self):
-        """ `True` if `tai > 0`.  
+        """ `True` if `tai > 0`.
 
-        For `if` etc 
+        For `if` etc
         """
         return bool(self.tai)
 

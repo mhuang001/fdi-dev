@@ -14,7 +14,7 @@ from .invalid import INVALID
 from ..utils.masked import masked
 from ..utils.common import grouper
 from ..utils.common import exprstrs, wls, bstr, t2l
-
+from fdi.dataset.listener import ListnerSet
 
 import cwcwidth as wcwidth
 import tabulate
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 tabulate.wcwidth = wcwidth
 tabulate.WIDE_CHARS_MODE = True
 tabulate.MIN_PADDING = 0
-#tabulate.PRESERVE_WHITESPACE = True
+# tabulate.PRESERVE_WHITESPACE = True
 Default_Extra_Param_Width = 10
 
 """
@@ -959,6 +959,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 att['value'], att['unit'], att['type'], att['description'],\
                     att['default'], att['valid'], att['code'], ext = v.toString(
                         level=level, width=0 if level > 1 else 1,
+                        param_widths=param_widths,
                         tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                         extra=extra,
                         alist=True)
@@ -969,7 +970,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 ext0 = ext
                 ext = {'fits_keyword': fk}
                 ext.update(ext0)
-            else:
+            elif issubclass(v.__class__, ListnerSet):
                 # listeners
                 lstr = '' if v is None else v.toString(level=level, alist=True)
                 if len(lstr) < 3:
@@ -980,7 +981,12 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                     '\n'.join(x[2] for x in lstr)
                 att['default'], att['valid'], att['code'] = '', '', ''
                 ext = dict((n, '') for n in ext)
+            else:
+                raise ValueError('Need a `Parameter` or a `ListenerSet`, not a `%s`, to print "%s" in `MetaData`.' % (
+                    type(v).__name__, k))
 
+            # if tablefmt == 'html':
+            #    att['valid'] = att['valid'].replace('\n', '<br>')
             # generate column vallues of the line and ext headers
             # limit cell width for level=0,1.
             if level == 0:
@@ -1018,19 +1024,19 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                         i, row = 0, []
             else:
                 # level > 1
-                n = att['name']
+                n=att['name']
 
                 if v is None or n in self._defaults and self._defaults[n]['default'] == v.value:
 
-                    has_omission = True
+                    has_omission=True
                     pass
                 elif n == 'listeners' and len(v) == 0:
-                    has_omission = True
+                    has_omission=True
                 else:
-                    ps = '%s=%s' % (n, v.toString(level)) if level == 2 else n
+                    ps='%s=%s' % (n, v.toString(level)) if level == 2 else n
                     # tab.append(wls(ps, 80//N))
                     tab.append(ps)
-            #nn += 1
+            # nn += 1
             # if nn == 2:
             #    pass  # break
 
@@ -1039,14 +1045,14 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
         # write out the table
         if level == 0:
-            allh = copy.copy(MetaHeaders)
+            allh=copy.copy(MetaHeaders)
             if extra:
                 allh += ext_hdr
             if param_widths == -1 or html:
-                headers = allh
+                headers=allh
             else:
-                headers = []
-                thewidths = param_widths if param_widths else \
+                headers=[]
+                thewidths=param_widths if param_widths else \
                     MetaData.Default_Param_Widths
                 for n in allh:
                     w = thewidths.get(n, Default_Extra_Param_Width)
@@ -1054,7 +1060,9 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                     if w != 0:
                         headers.append(wls(n, w))
             fmt = tablefmt
-            s += tabulate.tabulate(tab, headers=headers, tablefmt=fmt, missingval='',
+            maxwidth = MetaData.MaxDefWidth
+            s += tabulate.tabulate(tab, headers=headers, tablefmt=fmt,
+                                   missingval='', maxcolwidths=maxwidth,
                                    disable_numparse=True)
         elif level == 1:
             t = grouper(tab, N)

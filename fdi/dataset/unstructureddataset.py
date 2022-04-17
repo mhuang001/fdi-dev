@@ -118,6 +118,8 @@ class UnstructuredDataset(Dataset, Copyable):
                 ds = loaded['_STID']
                 if not ds.startswith('0'):
                     loaded['_STID'] = '0%s' % ds
+        else:
+            loaded = data
         super().setData(loaded)
         # self.make_meta()
 

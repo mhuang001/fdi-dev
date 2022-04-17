@@ -71,8 +71,8 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
         s, last = make_title_meta_l0(self, level=level, width=width,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
                                      tablefmt2=tablefmt2,
-                                     param_widths=param_widths,
                                      extra=extra, center=-1,
+                                     param_widths=param_widths,
                                      html=html, excpt=['description'],
                                      **kwds)
         width = len(last)-1

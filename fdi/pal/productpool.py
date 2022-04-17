@@ -52,13 +52,7 @@ def makeLockpath(direc, op='w'):
 
     lp = pathjoin(Lock_Path_Base, direc.replace('/', '_'))
 
-    if 1:
-        return lp+'.read' if op == 'r' else lp+'.write'
-    else:
-        if not os.path.exists(lp):
-            os.makedirs(lp)
-            lf = pathjoin(lp, 'lock')
-        return lf+'.read' if op == 'r' else lf+'.write'
+    return lp+'.read' if op == 'r' else lp+'.write'
 
 
 class ProductPool(Definable, Taggable, Versionable):

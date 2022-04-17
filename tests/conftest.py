@@ -6,6 +6,7 @@ from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.utils.common import lls
 from fdi.pns.jsonio import auth_headers
 from fdi.httppool.model.user import User
+from fdi.pal.publicclientpool import PublicClientPool
 
 import pytest
 import importlib
@@ -237,3 +238,15 @@ def client(server_app, mock_app):
 def demo_product():
     v = get_demo_product()
     return v, get_related_product()
+
+
+csdb_pool_id = 'csdb_test_pool'
+
+
+@pytest.fixture(scope="module")
+def csdb(pc):
+    url = pc['cloud_scheme'] + ':///' + csdb_pool_id
+    # pc['cloud_host'] + ':' + \
+    # str(pc['cloud_port'])
+    test_pool = PublicClientPool(poolurl=url)
+    return test_pool, url

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import pdb
 from collections import OrderedDict
 from .context import Context
 from .urn import Urn
@@ -172,7 +173,8 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
             loadmeta = (poolname or meta) and poolname != DEFAULT_MEM_POOL
             if poolname is None:
                 poolname = urnobj.pool
-            pool = PoolManager.getPool(poolname)
+            else:
+                pool = PoolManager.getPool(poolname)
             self._meta = (meta if meta else pool.meta(
                 urnobj.urn)) if loadmeta else None
             self._poolname = poolname

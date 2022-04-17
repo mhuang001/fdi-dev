@@ -364,7 +364,7 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb
             with open(cp, 'r') as fp:
                 js = fp.read()
             cread = deserialize(js)
-            if currentSN == -1:
+            if currentSN is None:
                 assert cread[prodname]['currentSN'] == currentSN
                 # number of items is expected_cnt
             assert len(cread[prodname]['sn']) == expected_cnt
@@ -373,11 +373,11 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb
         if mpool is None or len(mpool) == 0:
             # wiped
             assert expected_cnt == 0
-            assert currentSN == -1
+            assert currentSN is None
             return
         ns = [n for n in mpool if prodname in n]
         assert len(ns) == expected_cnt, len(ns)
-        if currentSN == -1:
+        if currentSN is None:
             assert mpool['classes'][prodname]['currentSN'] == currentSN
         # for this class there are  how many prods
         assert len(mpool['classes'][prodname]['sn']) == expected_cnt

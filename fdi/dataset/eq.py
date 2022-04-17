@@ -10,6 +10,7 @@ from collections import OrderedDict
 from functools import lru_cache
 import array
 import decimal
+import datetime
 import fractions
 import pprint
 import sys
@@ -81,7 +82,6 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
         -------
 
         """
-
         #
         # nonlocal seen
         # nonlocal level
@@ -110,9 +110,9 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
             _context.level -= 1
             del _context.seen[-1]
             return ' due to diff types: ' + c.__name__ + ' and ' + c2.__name__
-        if c == str:
+        if issubclass(c, (int, float, complex, str, bytes, bool, datetime.datetime)):
             if v:
-                print('find strings')
+                print('find simple type')
             _context.level -= 1
             del _context.seen[-1]
             if o1 != o2:

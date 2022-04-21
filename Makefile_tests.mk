@@ -28,13 +28,18 @@ test6:
 	$(PYTEST) $(OPT) $(T) tests/serv/test_httppool.py
 
 test7:
-	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py
+	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py -k 'not _csdb' $(T)
 
 test8:
-	$(PYTEST) $(OPT) tests/test_pal.py -k '_http or _csdb' $(T)
+	$(PYTEST) $(OPT) tests/test_pal.py -k '_http and not _csdb' $(T)
 
 test9:
 	$(PYTEST) tests/test_dataset.py -k '_mqtt' $(T)
 
 test10:
 	$(PYTEST) $(OPT) tests/test_fits.py
+
+test11:
+	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py -k '_csdb' $(T)
+	$(PYTEST) $(OPT) tests/test_pal.py -k '_csdb' $(T)
+

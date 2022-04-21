@@ -332,7 +332,7 @@ def genMapContext(size=1):
 
 
 @pytest.fixture(scope="module")
-def test_token(csdb):
+def test_csdb_token(csdb):
     logger.info('test token')
     test_pool, url = csdb
 
@@ -343,7 +343,7 @@ def test_token(csdb):
     return token
 
 
-def test_createPool(csdb):
+def test_csdb_createPool(csdb):
     logger.info('test create pool')
     test_pool, url = csdb
     try:
@@ -353,13 +353,13 @@ def test_createPool(csdb):
     assert test_pool.poolExists() is True
 
 
-def test_poolInfo(csdb):
+def test_csdb_poolInfo(csdb):
     test_pool, url = csdb
     test_pool.getPoolInfo()
     # print(test_pool.poolInfo)
 
 
-def test_upload():
+def test_csdb_upload():
     logger.info('test upload multiple products')
     poolurl = 'csdb:///' + csdb_pool_id
     poolname = csdb_pool_id
@@ -385,7 +385,7 @@ def test_upload():
             'urn:' + csdb_pool_id + ':fdi.dataset.product.Product')
 
 
-def test_loadPrd(csdb):
+def test_csdb_loadPrd(csdb):
     logger.info('test load product')
     test_pool, url = csdb
 
@@ -407,14 +407,14 @@ def test_loadPrd(csdb):
             3, 3), 'retrieve production incorrect'
 
 
-def test_getProductClasses(csdb):
+def test_csdb_getProductClasses(csdb):
     logger.info('test get classes')
     test_pool, url = csdb
     clz = test_pool.getProductClasses()
     assert clz == ['fdi.dataset.product.Product', 'fdi.pal.context.MapContext']
 
 
-def test_addTag(csdb):
+def test_csdb_addTag(csdb):
     logger.info('test add tag to urn')
     test_pool, url = csdb
     tag = 'test_prd'
@@ -426,7 +426,7 @@ def test_addTag(csdb):
     assert tag in test_pool.getTags(urn)
 
 
-def test_delTag(csdb):
+def test_csdb_delTag(csdb):
     logger.info('test delete a tag')
     test_pool, url = csdb
     tag = 'test_prd'
@@ -440,14 +440,14 @@ def test_delTag(csdb):
     assert tag not in test_pool.getTags(urn)
 
 
-def test_count(csdb):
+def test_csdb_count(csdb):
     logger.info('test count')
     test_pool, url = csdb
     count = test_pool.getCount('fdi.dataset.product.Product')
     assert count > 1
 
 
-def test_remove(csdb):
+def test_csdb_remove(csdb):
     logger.info('test remove product')
     test_pool, url = csdb
     test_pool.getPoolInfo()
@@ -458,7 +458,7 @@ def test_remove(csdb):
     assert res in ['success', 'Not found resource.'], res
 
 
-def test_wipe(csdb):
+def test_csdb_wipe(csdb):
     logger.info('test wipe all')
     test_pool, url = csdb
     test_upload()

@@ -94,6 +94,7 @@ class UnstructuredDataset(Dataset, Copyable):
         if doctype:
             self.doctype = doctype
         if data:
+            stid = b'_STID' if issubclass(data.__class__, bytes) else '_STID'
             # do not ask for self.type unless there is real data.
             if self.doctype == 'json':
                 loaded = json.loads(data, **kwds)
@@ -114,10 +115,10 @@ class UnstructuredDataset(Dataset, Copyable):
                 loaded = data
                 #raise ValueError('Cannot process %s type.' % str(doctype))
             # set Escape if not set already
-            if hasattr(loaded, '__iter__') and '_STID' in loaded:
-                ds = loaded['_STID']
+            if hasattr(loaded, '__iter__') and stid in loaded:
+                ds = loaded[stid]
                 if not ds.startswith('0'):
-                    loaded['_STID'] = '0%s' % ds
+                    loaded[stid] = '0%s' % ds
         else:
             loaded = data
         super().setData(loaded)

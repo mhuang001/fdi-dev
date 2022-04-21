@@ -402,9 +402,8 @@ class Parameter(AbstractParameter, Typed):
         """ invoked with no argument results in a parameter of
         None value and 'UNKNOWN' description ''. typ_ DataTypes[''], which is None.
         With a signle argument: arg -> value, 'UNKNOWN'-> description. ParameterTypes-> typ_, hex values have integer typ_.
-        Unsuported parameter types will get a NotImplementedError.
 f        With two positional arguments: arg1-> value, arg2-> description. ParameterTypes['']-> typ_.
-        Unsuported parameter types will get a NotImplementedError.
+
         With three positional arguments: arg1 casted to DataTypes[arg3]-> value, arg2-> description. arg3-> typ_.
         Unsuported parameter types will get a NotImplementedError.
         Incompatible value and typ_ will get a TypeError.
@@ -1024,16 +1023,16 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                         i, row = 0, []
             else:
                 # level > 1
-                n=att['name']
+                n = att['name']
 
                 if v is None or n in self._defaults and self._defaults[n]['default'] == v.value:
 
-                    has_omission=True
+                    has_omission = True
                     pass
                 elif n == 'listeners' and len(v) == 0:
-                    has_omission=True
+                    has_omission = True
                 else:
-                    ps='%s=%s' % (n, v.toString(level)) if level == 2 else n
+                    ps = '%s=%s' % (n, v.toString(level)) if level == 2 else n
                     # tab.append(wls(ps, 80//N))
                     tab.append(ps)
             # nn += 1
@@ -1045,14 +1044,14 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
         # write out the table
         if level == 0:
-            allh=copy.copy(MetaHeaders)
+            allh = copy.copy(MetaHeaders)
             if extra:
                 allh += ext_hdr
             if param_widths == -1 or html:
-                headers=allh
+                headers = allh
             else:
-                headers=[]
-                thewidths=param_widths if param_widths else \
+                headers = []
+                thewidths = param_widths if param_widths else \
                     MetaData.Default_Param_Widths
                 for n in allh:
                     w = thewidths.get(n, Default_Extra_Param_Width)

@@ -21,7 +21,7 @@ class Annotatable():
 
         """
 
-        # print(__name__ + str(kwds))
+        #print(__name__ + str(kwds))
         super().__init__(**kwds)  # Annotatable
         # skip if has been set by e.g. Attributable
         # if not hasattr(self, 'description'):

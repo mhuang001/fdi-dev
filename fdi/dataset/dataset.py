@@ -146,7 +146,6 @@ def make_title_meta_l0(self, level=0,
     :heavy: use bold symbols for separaters.
     :center: 0 for no centering;  -1 for centering with metadata table; other  for ``str.center(<center>``.
     """
-
     # title
     cn = self.__class__.__name__
     desc = self.meta.get('description', '')

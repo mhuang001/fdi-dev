@@ -399,7 +399,7 @@ def test_loadPrd(csdb):
     #        rdIndex = c['currentSN']
     #        break
     for i in range(1, 4):
-        rdIndex = pinfo[test_pool.poolname]['_classes'][0]['sn'][-i]
+        rdIndex = pinfo[test_pool.poolname]['_classes']['fdi.dataset.product.Product']['sn'][-i]
         prd = test_pool.schematicLoad('fdi.dataset.product.Product', rdIndex)
         assert prd.description.endswith(uniq), 'retrieve production incorrect'
         assert prd.instrument == 'Crystal-Ball', 'retrieve production incorrect'
@@ -419,7 +419,7 @@ def test_addTag(csdb):
     test_pool, url = csdb
     tag = 'test_prd'
     test_pool.getPoolInfo()
-    rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
+    rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes']['fdi.dataset.product.Product']['sn'][1]
     urn = 'urn:' + csdb_pool_id + \
         ':fdi.dataset.product.Product:' + str(rdIndex)
     test_pool.setTag(tag, urn)
@@ -431,7 +431,7 @@ def test_delTag(csdb):
     test_pool, url = csdb
     tag = 'test_prd'
     test_pool.getPoolInfo()
-    rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
+    rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes']['fdi.dataset.product.Product']['sn'][1]
     urn = 'urn:' + csdb_pool_id + \
         ':fdi.dataset.product.Product:' + str(rdIndex)
     assert tag in test_pool.getTags(urn)
@@ -444,28 +444,31 @@ def test_count(csdb):
     logger.info('test count')
     test_pool, url = csdb
     count = test_pool.getCount('fdi.dataset.product.Product')
-    assert count > 1
+    assert count == 7
 
 
 def test_remove(csdb):
     logger.info('test remove product')
     test_pool, url = csdb
     test_pool.getPoolInfo()
-    rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes'][0]['sn'][1]
+    rdIndex = test_pool.poolInfo[test_pool.poolname]['_classes']['fdi.dataset.product.Product']['sn'][1]
     urn = 'urn:' + csdb_pool_id + \
         ':fdi.dataset.product.Product:' + str(rdIndex)
     res = test_pool.remove(urn)
-    assert res in ['success', 'Not found resource.'], res
+    assert res in ['success'], res
+    test_pool.getPoolInfo()
+    sns = test_pool.poolInfo[test_pool.poolname]['_classes']['fdi.dataset.product.Product']['sn']
+    assert 1 not in sns
 
 
 def test_wipe(csdb):
     logger.info('test wipe all')
     test_pool, url = csdb
-    test_upload()
+    # test_upload()
     assert not test_pool.isEmpty()
     test_pool.schematicWipe()
     info = test_pool.getPoolInfo()
     # print(info)
     for classes in info[test_pool.poolname]['_classes']:
-        assert [0] == classes['sn']
+        assert [0] == info[test_pool.poolname]['_classes'][classes]['sn']
     assert test_pool.isEmpty()

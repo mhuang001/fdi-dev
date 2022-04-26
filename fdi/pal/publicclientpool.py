@@ -166,19 +166,16 @@ class PublicClientPool(ManagedPool):
         Returns all Product classes found in this pool.
         mh: returns an iterator.
         """
-        classes = []
+
         try:
             if self.poolInfo:
-                for clz in self.poolInfo[self.poolname]['_classes']:
-                    classes.append(clz['productTypeName'])
+                return list(self.poolInfo[self.poolname]['_classes'].keys())
             else:
                 self.getPoolInfo()
                 if self.poolInfo is None:
                     # No such pool in cloud
                     return None
-                for clz in self.poolInfo[self.poolname]['_classes']:
-                    classes.append(clz['productTypeName'])
-            return classes
+                return list(self.poolInfo[self.poolname]['_classes'].keys())
         except TypeError as e:
             raise TypeError(
                 'Pool info API changed or unexpected information: ' + str(e))
@@ -199,9 +196,9 @@ class PublicClientPool(ManagedPool):
             if typename not in clzes:
                 raise ValueError("Current pool has no such type: " + typename)
             for clz in self.poolInfo[self.poolname]['_classes']:
-                if typename == clz['productTypeName']:
+                if typename == clz:
                     # XXX -1 is due to a bug in sn[] in csdb
-                    return len(clz['sn'])-1
+                    return len(self.poolInfo[self.poolname]['_classes'][clz]['sn'])
         except KeyError:
             return 0
 
@@ -212,7 +209,7 @@ class PublicClientPool(ManagedPool):
         res = self.getPoolInfo()
         if issubclass(res.__class__, dict):
             clses = res[self.poolname]['_classes']
-            return all(clz['sn'] == [0] for clz in clses)
+            return all(clses[clz]['sn'] == [0] for clz in clses)
         else:
             raise ValueError('Error getting PoolInfo ' + str(res))
 
@@ -462,15 +459,12 @@ class PublicClientPool(ManagedPool):
     def doWipe(self):
         """ to be implemented by subclasses to do the action of wiping.
         """
-        # res = read_from_cloud('wipePool', poolname=self.poolname, token=self.token)
-        # if res['msg'] != 'success':
-        #     raise ValueError('Wipe pool ' + self.poolname + ' failed: ' + res['msg'])
         info = self.getPoolInfo()
         if isinstance(info, dict):
             for classes in info[self.poolname]['_classes']:
-                clazz = classes['productTypeName']
-                for i in classes['sn']:
-                    urn = 'urn:' + self.poolname + ':' + clazz + ':' + str(i)
+                clazz = info[self.poolname]['_classes'][classes]
+                for i in clazz['sn']:
+                    urn = 'urn:' + self.poolname + ':' + classes + ':' + str(i)
                     res = self.remove(urn)
                     assert res in ['Not found resource.', 'success']
         else:

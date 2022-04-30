@@ -342,16 +342,19 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise(NotImplementedError)
 
-    def remove(self, urn):
+    def remove(self, urn=None, resourcetype=None, index=None):
         """
-        Removes a Product belonging to specified URN.
+        Removes a Product belonging to specified URN or a pair of data type and serial number.
         """
-        poolname, resource, index = parseUrn(urn)
+        if resourcetype is None or index is None:
+            poolname, resource, index = parseUrn(urn)
+        else:
+            poolname = self._poolname
+            resource = resourcetype
 
         if self._poolname != poolname:
             raise ValueError(
                 urn + ' is not from the pool ' + self._poolname)
-
         res = self.schematicRemove(urn, resourcetype=resource, index=index)
         return res
 
@@ -450,6 +453,8 @@ class ManagedPool(ProductPool, DictHk):
         if super().setup():
             return True
         self._classes = dict()
+        # new ##
+        self._dTypes = dict()
         return False
 
     def getPoolpath(self):
@@ -492,13 +497,24 @@ class ManagedPool(ProductPool, DictHk):
         """
         Decrement the reference count of a ProductRef.
         """
-
+        # new ###
+        poolname, dt, sn = parseUrn(urn, int_index=True)
+        assert self._urns[ref.urn]['refcnt'] == self._dType[dt]['sn'][sn]['refcnt']
+        self._dType[dt]['sn'][sn]['refcnt'] -= 1
+        # /new ###
         self._urns[ref.urn]['refcnt'] -= 1
 
-    def exists(self, urn):
+    def exists(self, urn, resourcetype=None, index=None):
         """
         Determines the existence of a product with specified URN.
         """
+        # new ###
+        try:
+            urn, datatype, sn = self.get_missing(urn, resourcetype, index)
+        except KeyError:
+            return False
+        # return True
+        # /new#
         return urn in self._urns
 
     def getProductClasses(self):
@@ -506,6 +522,8 @@ class ManagedPool(ProductPool, DictHk):
         Returns all Product classes found in this pool.
         mh: returns an iterator.
         """
+        # new ###
+        assert list(self._classes.keys()) == list(self._dTypes.keys())
         return self._classes.keys()
 
     def getCount(self, typename):
@@ -513,6 +531,9 @@ class ManagedPool(ProductPool, DictHk):
         Return the number of URNs for the product type.
         """
         try:
+            # new ###
+            assert len(self._classes[typename]['sn']) == len(
+                self._dTypes[typename]['sn'])
             return len(self._classes[typename]['sn'])
         except KeyError:
             return 0
@@ -526,50 +547,73 @@ class ManagedPool(ProductPool, DictHk):
         """
         Returns the reference count of a ProductRef.
         """
+        # new ###
+        poolname, dt, sn = parseUrn(urn, int_index=False)
+        _snd = self._dType[dt]['sn'][sn]
+        assert self._urns[ref.urn]['refcnt'] == _snd['refcnt']
+        # return _snd['refcnt']
+        # /new ###
         return self._urns[ref.urn]['refcnt']
 
     def isEmpty(self):
         """
         Determines if the pool is empty.
         """
+        # new ###
+        assert bool(self._urns) == bool(self._dTypes)
         return len(self._urns) == 0
 
-    def loadDescriptors(self, urn):
+    def loadDescriptors(self, urn, resourcetype=None, index=None):
         """
         Loads the descriptors belonging to specified URN.
         """
+        # new ###
+        urn, datatype, sn = self.get_missing(urn, resourcetype, index)
+        # return self._dTypes
         return self._urns[urn]
 
-    def setMetaByUrn(self, start, end, urn):
+    def setMetaByUrn(self, start, end, urn=None, datatype=None, sn=None):
         """
-        Sets the location of the meta data of the specified data to the given URN.
+        Sets the location of the meta data of the specified data to the given URN or a pair of data type and serial number.
 
         :data: usually un/serialized Product.
+
+        Return
+        :urn: stirng
+        :datatype: class name
+        :sn: serial number in string.
         """
-        u = urn.urn if issubclass(urn.__class__, Urn) else urn
-        if u not in self._urns:
-            raise ValueError(urn + ' not found in pool ' + self._poolname)
 
         raise NotImplemented
 
-    def getMetaByUrn(self, urn, resourcetype=None, index=None):
-        """ 
+    def getMetaByUrn(self, urn=None, resourcetype=None, index=None):
+        """
         Get all of the meta data belonging to a product of a given URN.
 
         mh: returns an iterator.
         """
         raise NotImplemented
 
-    def meta(self,  urn):
+    def meta(self, *args, **kwds):
         """
         Loads the meta-data info belonging to the product of specified URN.
         """
-        return self.getMetaByUrn(urn)
+        return self.getMetaByUrn(*args, **kwds)
 
     def reference(self, ref):
         """
         Increment the reference count of a ProductRef.
         """
+        # new ###
+        poolname, dt, sn = parseUrn(ref.urn, int_index=True)
+        _snd = self._dType[dt]['sn'][sn]
+        if 'refcnt' not in _snd:
+            _snd['refcnt'] = 0
+        assert self._urns[ref.urn]['refcnt'] == _snd['refcnt']
+        _snd['refcnt'] += 1
+        # /new ###
+        if 'refcnt' not in self._urns:
+            self._urns['refcnt'] = 0
         self._urns[ref.urn]['refcnt'] += 1
 
     def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, kwds):
@@ -592,8 +636,49 @@ class ManagedPool(ProductPool, DictHk):
                 filelock.FileLock(self.lockpath('r')):
 
             # get the latest HK
-            self._classes, self._tags, self._urns = tuple(
-                self.readHK().values())
+            """ the new classes and tags.
+               dTypes combines old classes and urns, is defined as::
+                     $class_name0:
+                            'currentSN': $sn
+                            'sn':
+                                $sn0:
+                                   tags: [$tag1, $tag2, ...
+                                   meta: [$start, $end]
+                                   refcnt: $count
+                                $sn1:
+                                   tags: [$tag1, $tag2, ...
+                                   meta: [$start, $end]
+                                   refcnt: $count
+               example::
+                    foo.bar.Bar:
+                            'currentSN': 1
+                            0:
+                               tags: ['cat', 'white']
+                               meta: [123, 456]
+                               refcnt: 0
+                            1:
+                               tags: ['dog', 'white']
+                               meta: [321, 765]
+                               refcnt: 0
+                    foo.baz.Baz:
+                            'currentSN': 34
+                            34:
+                               tags: ['tree', 'green']
+                               meta: [100, 654]
+                               refcnt: 1
+     `dTags` differs from `tag` 1. uses pType:sn, instead of urn as key, so there is no poolname anywhere, 2. simplify by removo second level dict::
+                     $tag_name0: [$class_name1:$sn1, $class_name2:$sn2, ...]
+              exxample::
+                     'cat': [ 'foo.bar.Bar:0']
+                     'white': [ 'foo.bar.Bar:0', 'foo.barBar:1']
+                     'dog': ...
+            """
+
+            # some new ####
+            self._classes, self._tags, self._urns, \
+                self._dTypes, self._dTags = tuple(
+                    self.readHK().values())
+            # /some new ####
             c, t, u = self._classes, self._tags, self._urns
 
             if pn in c:
@@ -610,6 +695,7 @@ class ManagedPool(ProductPool, DictHk):
             if urn not in u:
                 u[urn] = dict(tags=[])
 
+            # new+old ###
             if tag is None:
                 tags = []
             elif issubclass(tag.__class__, str):
@@ -619,9 +705,31 @@ class ManagedPool(ProductPool, DictHk):
             else:
                 raise TypeError('Bad type for tag: %s.' %
                                 tag.__class__.__name__)
+            # new ####
+            dTypes, dTags = self._dTypes, self._dTags
+
+            if pn in dTypes:
+                _sn = dTypes[pn]['currentSN'] + 1
+            else:
+                _sn = 0
+                dTypes[pn] = {
+                    'currentSN': _sn,
+                    'sn': {}
+                }
+
+            snd = dTypes[pn]['sn']
+            if _sn not in snd:
+                snd[_sn] = {
+                    'tags': [],
+                    'meta': []
+                }
+
+            dTypes[pn]['currentSN'] = _sn
+            # /new #####
 
             for t in tags:
                 self.setTag(t, urn)
+
             try:
                 # save prod and HK
                 self.doSave(resourcetype=pn,
@@ -634,8 +742,10 @@ class ManagedPool(ProductPool, DictHk):
             except ValueError as e:
                 msg = 'product ' + urn + ' saving failed.' + str(e) + trbk(e)
                 logger.debug(msg)
-                self._classes, self._tags, self._urns = tuple(
-                    self.readHK().values())
+                # some new ##
+                self._classes, self._tags, self._urns, \
+                    self._dTypes, self._dTags = tuple(
+                        self.readHK().values())
                 raise e
 
         if geturnobjs:
@@ -727,33 +837,50 @@ class ManagedPool(ProductPool, DictHk):
         """ do the scheme-specific removing
         """
 
-        prod = resourcetype
+        datatype = resourcetype
         sn = index
 
         with filelock.FileLock(self.lockpath('w')),\
                 filelock.FileLock(self.lockpath('r')):
 
             # get the latest HK
-            self._classes, self._tags, self._urns = tuple(
-                self.readHK().values())
+            # some new ####
+            self._classes, self._tags, self._urns, \
+                self._dTypes, self._dTags = tuple(
+                    self.readHK().values())
             c, t, u = self._classes, self._tags, self._urns
-
             if urn not in u:
                 raise ValueError(
                     '%s not found in pool %s.' % (urn, self.getId()))
 
-            self.removeUrn(urn)
-            c[prod]['sn'].remove(sn)
+            # new ####
+            dTypes, dTags = self._dTypes, self._dTags
 
-            if len(c[prod]['sn']) == 0:
-                del c[prod]
+            if sn not in dTypes[datatype]['sn']:
+                raise ValueError(
+                    '%d not found in pool %s.' % (sn, self.getId()))
+            # /new ####
+
+            self.removeUrn(urn, datatype=datatype, sn=sn)
+
+            c[datatype]['sn'].remove(sn)
+
+            if len(c[datatype]['sn']) == 0:
+                del c[datatype]
+            # new ####
+            if len(dTypes[datatype]['sn']) == 0:
+                del dTypes[datatype]
+            else:
+                assert list(dTypes[datatype]['sn']) == list(c[datatype]['sn'])
+            # /new ####
             try:
-                self.doRemove(resourcetype=prod, index=sn)
+                self.doRemove(resourcetype=datatype, index=sn)
             except Exception as e:
                 msg = 'product ' + urn + ' removal failed'
                 logger.debug(msg)
-                self._classes, self._tags, self._urns = tuple(
-                    self.readHK().values())
+                self._classes, self._tags, self._urns, \
+                    self._dTypes, self._dTags = tuple(
+                        self.readHK().values())
                 raise e
         return 0
 
@@ -771,6 +898,10 @@ class ManagedPool(ProductPool, DictHk):
                 self._classes.clear()
                 self._tags.clear()
                 self._urns.clear()
+                # new ##
+                self._dTypes.clear()
+                self._dTags.clear()
+                # /new ##
                 self.doWipe()
             except Exception as e:
                 msg = self.getId() + 'wiping failed'
@@ -779,15 +910,19 @@ class ManagedPool(ProductPool, DictHk):
         logger.debug('Done.')
         return 0
 
-    def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):
+    def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None, datatypes=None):
         """ returns filtered collection using the query.
 
         q is a MetaQuery
-        valid inputs: typename and ns list; productref list; urn list
+        valid inputs: typename and ns list; productref list; urn list; datatypes dict.
+
+        :typename: data type (class name)
+        :reflist: list of ProductRefs
+        :urnlist: list of URNs
+        :datatypes:  dict of {typename:sn_list}
         """
 
         ret = []
-        u = self._urns
         qw = q.getWhere()
 
         if reflist:
@@ -820,37 +955,50 @@ class ManagedPool(ProductPool, DictHk):
                     if qw(m):
                         ret.append(ProductRef(urn=urn, meta=m))
                 return ret
-        elif snlist:
+        elif snlist or datatypes:
             if isinstance(qw, str):
                 code = compile(qw, 'py', 'eval')
-                for n in snlist:
-                    urn = makeUrn(poolname=self._poolname,
-                                  typename=typename, index=n)
-                    m = self.getMetaByUrn(urn)
-                    if eval(code):
-                        ret.append(ProductRef(urn=urn, meta=m))
+                if snlist:
+                    datatypes = {typename: snlist}
+                for cls in datatypes:
+                    snlist = datatypes[cls]
+                    for n in snlist:
+                        urn = makeUrn(poolname=self._poolname,
+                                      typename=typename, index=n)
+                        m = self.getMetaByUrn(urn)
+                        if eval(code):
+                            ret.append(ProductRef(urn=urn, meta=m))
                 return ret
             else:
-                for n in snlist:
-                    urn = makeUrn(poolname=self._poolname,
-                                  typename=typename, index=n)
-                    m = self.getMetaByUrn(urn)
-                    if qw(m):
-                        ret.append(ProductRef(urn=urn, meta=m))
+                if snlist:
+                    datatypes = {typename: snlist}
+                for cls in datatypes:
+                    snlist = datatypes[cls]
+                    for n in snlist:
+                        urn = makeUrn(poolname=self._poolname,
+                                      typename=typename, index=n)
+                        m = self.getMetaByUrn(urn)
+                        if qw(m):
+                            ret.append(ProductRef(urn=urn, meta=m))
                 return ret
         else:
             raise('Must give a list of ProductRef or urn or sn')
 
-    def prod_filter(self, q, cls=None, reflist=None, urnlist=None, snlist=None):
+    def prod_filter(self, q, cls=None, reflist=None, urnlist=None, snlist=None, datatypes=None):
         """ returns filtered collection using the query.
 
         q: an AbstractQuery.
-        valid inputs: cls and ns list; productref list; urn list
+        valid inputs: cls and ns list; productref list; urn list; datatypes dict.
+
+        :cls: type. data type
+        :reflist: list of ProductRefs
+        :urnlist: list of URNs
+        :datatypes:  dict of {cls:sn_list}
         """
 
         ret = []
+        # will add query variable (e.g. 'p') to Global name space
         glbs = globals()
-        u = self._urns
         qw = q.getWhere()
         var = q.getVariable()
         if var in glbs:
@@ -896,36 +1044,53 @@ class ManagedPool(ProductPool, DictHk):
                 if savevar != 'not in glbs':
                     glbs[var] = savevar
                 return ret
-        elif snlist:
+        elif snlist or datatypes:
             if isinstance(qw, str):
                 code = compile(qw, 'py', 'eval')
-                for n in snlist:
-                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
-                    pref = ProductRef(urn=urno)
-                    glbs[var] = pref.getProduct()
-                    if eval(code):
-                        ret.append(pref)
-                if savevar != 'not in glbs':
-                    glbs[var] = savevar
+                if snlist:
+                    datatypes = {cls.__name__: snlist}
+                for typename in datatypes:
+                    snlist = datatypes[typename]
+                    cls = Class_Look_Up[typename.rsplit('.', 1)[-1]]
+                    for n in snlist:
+                        urno = Urn(cls=cls, poolname=self._poolname, index=n)
+                        pref = ProductRef(urn=urno)
+                        glbs[var] = pref.getProduct()
+                        if eval(code):
+                            ret.append(pref)
+                    if savevar != 'not in glbs':
+                        glbs[var] = savevar
                 return ret
             else:
-                for n in snlist:
-                    urno = Urn(cls=cls, poolname=self._poolname, index=n)
-                    pref = ProductRef(urn=urno)
-                    glbs[var] = pref.getProduct()
-                    if qw(glbs[var]):
-                        ret.append(pref)
-                if savevar != 'not in glbs':
-                    glbs[var] = savevar
+                if snlist:
+                    datatypes = {cls.__name__: snlist}
+                for typename in datatypes:
+                    snlist = datatypes[typename]
+                    cls = glbs[typename]
+                    for n in snlist:
+                        urno = Urn(cls=cls, poolname=self._poolname, index=n)
+                        pref = ProductRef(urn=urno)
+                        glbs[var] = pref.getProduct()
+                        if qw(glbs[var]):
+                            ret.append(pref)
+                    if savevar != 'not in glbs':
+                        glbs[var] = savevar
                 return ret
         else:
             raise('Must give a list of ProductRef or urn or sn')
 
     def where(self, qw, prod='BaseProduct', urns=None):
         q = AbstractQuery(prod, 'p', qw)
-        if urns is None:
-            urns = self._urns.keys()
+        # if urns is None:
+        # new ###
+        datatypes = dict((k, list(v['sn'].keys()))
+                         for k, v in self._dTypes.items())
+        urns = self._urns.keys()
         res = self.prod_filter(q, prod, urnlist=urns)
+        # new ###
+        res2 = self.prod_filter(q, prod, datatypes=datatypes)
+
+        assert [r.urn for r in res] == [r.urn for r in res2]
         return [r.urn for r in res]
 
     def doSelect(self, query, results=None):
@@ -938,9 +1103,9 @@ class ManagedPool(ProductPool, DictHk):
         """
         do the scheme-specific querying.
         """
-        isMQ = issubclass(query.__class__, MetaQuery)
-        isAQ = issubclass(query.__class__, AbstractQuery)
-        if not isMQ and not isAQ:
+        is_MetaQ = issubclass(query.__class__, MetaQuery)
+        is_AbstQ = issubclass(query.__class__, AbstractQuery)
+        if not is_MetaQ and not is_AbstQ:
             raise TypeError('not a Query')
         lgb = Classes.mapping
         t, v, w, a = query.getType(), query.getVariable(
@@ -949,20 +1114,26 @@ class ManagedPool(ProductPool, DictHk):
         if results:
             this = (x for x in results if x.urnobj.getPoolId()
                     == self._poolname)
-            if isMQ:
+            if is_MetaQ:
                 ret += self.meta_filter(q=query, reflist=this)
             else:
                 ret += self.prod_filter(q=query, reflist=this)
         else:
+            # new ##
+            assert list(self._dTypes) == list(self._classes)
             for cname in self._classes:
-                cls = lgb[cname.split('.')[-1]]
+                cls = lgb[cname.rsplit('.', 1)[-1]]
                 if issubclass(cls, t):
-                    if isMQ:
+                    snlist = self._classes[cname]['sn']
+                    # new ###
+                    assert snlist == list(self._dTypes[cname]['sn'])
+                    # snlist =
+                    if is_MetaQ:
                         ret += self.meta_filter(q=query, typename=cname,
-                                                snlist=self._classes[cname]['sn'])
+                                                snlist=snlist)
                     else:
                         ret += self.prod_filter(q=query, cls=cls,
-                                                snlist=self._classes[cname]['sn'])
+                                                snlist=snlist)
 
         return ret
 
@@ -984,4 +1155,7 @@ class ManagedPool(ProductPool, DictHk):
             _classes=self._classes,
             _urns=self._urns,
             _tags=self._tags,
+            # new ###
+            _dTypes=self._dTypes,
+            _dTags=self._dTags,
         )

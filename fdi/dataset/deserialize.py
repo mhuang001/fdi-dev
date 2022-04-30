@@ -35,7 +35,7 @@ Serializable.
 '''
 
 
-def constructSerializable(obj, lookup=None, debug=False):
+def constructSerializable(obj, lookup=None, int_key=False, debug=False):
     """ mh: reconstruct object from the output of jason.loads().
     Recursively goes into nested class instances that are not
     encoded by default by JSONEncoder, instantiate and fill in
@@ -46,7 +46,7 @@ def constructSerializable(obj, lookup=None, debug=False):
 
     Parameters
     ----------
-
+    :useint: is a key in key-value pair has only digits characters the key will be substituted by `int(key)`.
     Returns
     -------
     """
@@ -76,7 +76,8 @@ def constructSerializable(obj, lookup=None, debug=False):
                 print(spaces + 'looping through list %d <%s>' %
                       (i, xc.__name__))
             if issubclass(xc, (list, dict)):
-                des = constructSerializable(x, lookup=lookup, debug=debug)
+                des = constructSerializable(
+                    x, lookup=lookup, int_key=int_key, debug=debug)
             else:
                 des = x
             inst.append(des)
@@ -148,7 +149,8 @@ def constructSerializable(obj, lookup=None, debug=False):
             indent -= 1
             return Ellipsis
         elif classname in lookup and 'obj' in obj:
-            o = constructSerializable(obj['obj'], lookup=lookup, debug=debug)
+            o = constructSerializable(
+                obj['obj'], lookup=lookup, int_key=int_key, debug=debug)
             inst = lookup[classname](o)
             if debug:
                 print(spaces + 'Instanciate defined %s' % obj['obj'])
@@ -164,8 +166,10 @@ def constructSerializable(obj, lookup=None, debug=False):
             raise ValueError('Class %s is not known.' % classname)
     if debug:
         print(spaces + 'Go through properties of instance')
-    for (k, v) in obj.items():
+    # we might change key during iteration so save the original keys
+    for k in list(obj.keys()):
         """ loop through all key-value pairs. """
+        v = obj[k]
         if k == '_STID':
             continue
         # deserialize v
@@ -175,11 +179,12 @@ def constructSerializable(obj, lookup=None, debug=False):
                 print(spaces + '[%s]value(dict/list) <%s>: %s' %
                       (k, v.__class__.__qualname__,
                        lls(list(iter(v)), 70)))
-            desv = constructSerializable(v, lookup=lookup, debug=debug)
+            desv = constructSerializable(
+                v, lookup=lookup, int_key=int_key, debug=debug)
         else:
             if debug:
                 print(spaces + '[%s]value(simple) <%s>: %s' %
-                      (k, v.__class__.__name__, lls(v, 70)))
+                      (str(k), v.__class__.__name__, lls(v, 70)))
             if 1:
                 desv = v
             else:
@@ -193,14 +198,20 @@ def constructSerializable(obj, lookup=None, debug=False):
         icn = inst.__class__.__name__
         dcn = desv.__class__.__name__
         if issubclass(inst.__class__, (MM)):    # should be object_pairs_hook
-            if k.startswith(ATTR):
+            if issubclass(k.__class__, str) and k.startswith(ATTR):
                 k2 = k[LEN_ATTR:]
                 setattr(inst, k2, desv)
                 if debug:
                     print(spaces + 'Set attrbute to dict/usrd <%s>.%s = %s <%s>' %
                           (icn, str(k2), lls(desv, 70), dcn))
             else:
-                inst[k] = desv
+                # convert key to int if required
+                if int_key and k.isdigit():
+                    # obj == inst so delete old entry if to change key
+                    inst.pop(k)
+                    inst[int(k)] = desv
+                else:
+                    inst[k] = desv
                 if debug:
                     print(spaces + 'Set member to dict/usrd <%s>[%s] = %s <%s>' %
                           (icn, str(k), lls(desv, 70), dcn))
@@ -280,7 +291,7 @@ class IntDecoderOD(IntDecoder):
             return o
 
 
-def deserialize(js, lookup=None, debug=False, usedict=True):
+def deserialize(js, lookup=None, debug=False, usedict=True, int_key=False, verbose=False):
     """ Loads classes with _STID from the results of serialize.
 
     if usedict is True dict insted of ODict will be used.
@@ -313,7 +324,7 @@ def deserialize(js, lookup=None, debug=False, usedict=True):
 
     global indent
     indent = -1
-    return constructSerializable(obj, lookup=lookup, debug=debug)
+    return constructSerializable(obj, lookup=lookup, int_key=int_key, debug=debug)
 
 
 Class_Look_Up = ChainMap(Classes._classes, globals(), vars(builtins))

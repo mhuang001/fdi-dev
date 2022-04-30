@@ -75,10 +75,18 @@ Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. T
 
         give urn and optional poolurl, or all poolname, cls, index arguments.
         if urn is given and pool, class, etc are also specified,
-        the latter are ignored. else the URN object is constructed from them. 
+        the latter are ignored. else the URN object is constructed from them.
         Urn(u) will make a Urn object out of u.
 
         All arguements are None by default.
+
+        Parameters
+        urn: string. A URM string.
+        poolname: string, provides pool name part of URN if URN is missing from input.
+        cls: type. the full class name is used for datatype.
+        index: int.
+        poolurl: string. IF specified will provide info of the pool involved.
+
         """
         super(Urn, self).__init__(**kwds)
 
@@ -96,18 +104,21 @@ Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. T
                 else:
                     raise ValueError(
                         'give urn and optional poolurl, or all poolname, cls, index arguments')
+            if not issubclass(cls.__class__, type):
+                raise TypeError('cls is a ' + cls.__class__ +
+                                ', not a class type.')
             urn = makeUrn(poolname=poolname,
                           typename=fullname(cls),
                           index=index)
         self.setUrn(urn, poolurl=poolurl)
 
-    @property
+    @ property
     def urn(self):
         """ property
         """
         return self.getUrn()
 
-    @urn.setter
+    @ urn.setter
     def urn(self, urn):
         """ property
         """
@@ -215,7 +226,7 @@ Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. T
     string = toString
 
 
-def parseUrn(urn):
+def parseUrn(urn, int_index=True):
     """
     Checks the URN string is valid in its form and splits it.
 
@@ -223,8 +234,16 @@ def parseUrn(urn):
     * poolname, also called poolURN or poolID, optionally path-like: ``mypool/v2``,
     * resource type (usually class) name ``proj1.product``,
     * index number  ``322``,
+    If urn is None or empty returns (None,None,None) 
 
-    returns poolname, resourceclass, index. if urn is None or empty returns (None,None,None) 
+    :urn: URN string to be decomposed.
+    :int_index: If `True` (default) returns integer index, else string index.
+
+    Return
+    ------
+    :poolname: NAme of the pool
+    :resourceclass: type of resource/products
+    :index: serial number of resourceclass in the pool.
 
     """
 
@@ -241,7 +260,7 @@ def parseUrn(urn):
         # must have 4 segments
         raise ValueError('bad urn: ' + str(sp1))
 
-    index = int(sp1[3])
+    index = int(sp1[3]) if int_index else sp1[3]
     resourcetype = sp1[2]
     poolname = sp1[1]
     if len(poolname) == 0:

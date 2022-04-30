@@ -544,7 +544,7 @@ def getCurrSnCount(csdb, prodname):
         csdb.getPoolInfo()
     # XXX the code below is due to a bug in csdb
     # correct version:
-    # init_count=len(pinfo[thepoolname]['_classes'][pcq]['sn])
+    # init_count=len(pinfo[thepoolname]['_classes'][pcq]['sn'])
     # init_sn = pinfo[thepoolname]['_classes'][pcq]['currentSn']
     for pool in pinfo.values():
         for cl in pool['_classes']:
@@ -737,6 +737,7 @@ def test_LocalPool():
     thepoolpath = '/tmp/fditest'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
 
+    cleanup(thepoolurl, thepoolname)
     ps = ProductStorage(thepoolname, thepoolurl)
     pname = ps.getPools()[0]
     # get the pool object
@@ -765,6 +766,8 @@ def test_LocalPool():
     assert deepcmp(p1._urns, p2._urns) is None
     assert deepcmp(p1._tags, p2._tags) is None
     assert deepcmp(p1._classes, p2._classes) is None
+    assert deepcmp(p1._dTypes, p2._dTypes) is None
+    assert deepcmp(p1._dTags, p2._dTags) is None
 
     backup_restore(ps)
 

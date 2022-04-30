@@ -133,8 +133,8 @@ class PublicClientPool(ManagedPool):
 
     def getPoolInfo(self):
         """
-        data:
-            poolname :
+        data: DEPRECATED. See productpool::ManagedPool::saveOne
+            poolname : 
                 _classes [{productTypeName, currentSn, sn}]
                 _urns [{urn, tags[]}]
                 _tags [{tag, urns[]}]
@@ -216,7 +216,7 @@ class PublicClientPool(ManagedPool):
         else:
             raise ValueError('Error getting PoolInfo ' + str(res))
 
-    def getMetaByUrn(self, urn, resourcetype=None, index=None):
+    def getMetaByUrn(self, urn=None, resourcetype=None, index=None):
         """
         Get all of the meta data belonging to a product of a given URN.
 
@@ -225,11 +225,11 @@ class PublicClientPool(ManagedPool):
         res = read_from_cloud(requestName='getMeta', urn=urn, token=self.token)
         return res
 
-    def meta(self, urn):
+    def meta(self, *args, **kwds):
         """
         Loads the meta-data info belonging to the product of specified URN.
         """
-        return self.getMetaByUrn(urn)
+        return self.getMetaByUrn(*args, **kwds)
 
     def getDataType(self):
         res = read_from_cloud('getDataType', token=self.token)

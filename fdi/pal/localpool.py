@@ -2,6 +2,7 @@
 
 from .productpool import ManagedPool, PoolNotFoundError, MetaData_Json_Start, MetaData_Json_End
 from ..utils.common import pathjoin, trbk, find_all_files
+from .dicthk import HKDBS
 from .urn import makeUrn, Urn, parseUrn
 from ..dataset.deserialize import deserialize
 
@@ -85,7 +86,7 @@ class LocalPool(ManagedPool):
         self._atimes = {}
         self._cached_files = {}
 
-        c, t, u = tuple(self.readHK().values())
+        c, t, u, dTypes, dTags = tuple(self.readHK().values())
 
         logger.debug('created ' + self.__class__.__name__ + ' ' + self._poolname +
                      ' at ' + real_poolpath + ' HK read.')
@@ -93,11 +94,15 @@ class LocalPool(ManagedPool):
         self._classes.update(c)
         self._tags.update(t)
         self._urns.update(u)
+        # new ####
+        self._dTypes.update(dTypes)
+        self._dTags.update(dTags)
+        # /new ###
         fp0 = self.transformpath(self._poolname)
         self.writeHK(fp0)
         return False
 
-    def readmmap(self, filename,  start=None, end=None, close=False, check_time=False):
+    def readmmap(self, filename, start=None, end=None, close=False, check_time=False):
         fp = op.abspath(filename)
         if check_time:
             sr = os.stat(fp)
@@ -136,11 +141,12 @@ class LocalPool(ManagedPool):
         """
         loads and returns the housekeeping data
 
-        hktype: one of 'classes', 'tags', 'urns' to return. default is None to return alldirs
+        hktype: one of the mappings listed in `dicthk.HKDBS`.
         serialize_out: if True return serialized form. Default is false.
         """
         if hktype is None:
-            hks = ['classes', 'tags', 'urns']
+            # some new ####
+            hks = HKDBS
         else:
             hks = [hktype]
         fp0 = self.transformpath(self._poolname)
@@ -155,7 +161,7 @@ class LocalPool(ManagedPool):
                         r = js
                     else:
                         from ..dataset.deserialize import deserialize
-                        r = deserialize(js)
+                        r = deserialize(js, int_key=True)
                     self._cached_files[fp] = js
                 else:
                     # the file hasnot changed since last time we r/w it.
@@ -168,7 +174,6 @@ class LocalPool(ManagedPool):
                     from ..dataset.odict import ODict
                     r = ODict()
             hk[hkdata] = r
-            assert r is not None
         logger.debug('HK read from ' + fp0)
         if serialize_out:
             return '{%s}' % ', '.join(('"%s": %s' % (k, v) for k, v in hk.items())) if hktype is None else hk[hktype]
@@ -236,40 +241,46 @@ class LocalPool(ManagedPool):
         if fp0 is None:
             fp0 = self._poolpath + '/' + self._poolname
         l = 0
-        for hkdata in ['classes', 'tags', 'urns']:
+        for hkdata in HKDBS:
             fp = pathjoin(fp0, hkdata + '.jsn')
             l += self.writeJsonmmap(fp, self.__getattribute__('_' + hkdata),
                                     check_time=True)
         return l
 
-    def setMetaByUrn(self, start, end, urn):
+    def setMetaByUrn(self, start, end, urn=None, datatype=None, sn=None):
         """
-        Sets the location of the meta data of the specified data to the given URN.
+        Sets the location of the meta data of the specified data to the given URN or a pair of data type and serial number.
 
         :data: usually serialized Product.
         """
-        u = urn.urn if issubclass(urn.__class__, Urn) else urn
-        if u not in self._urns:
-            raise ValueError(urn + ' not found in pool ' + self._poolname)
+        u, datatype, sn = self.get_missing(urn=urn, datatype=datatype, sn=sn)
         # char offset of the start and end points of metadata
         if start >= 0 and end > 0:
             mt = [start, end]
         else:
             mt = [None, None]
+        # new ##
+        self._dTypes[datatype]['sn'][sn]['meta'] = mt
         self._urns[u]['meta'] = mt
 
     @ lru_cache(maxsize=1024)
     def getMetaByUrnJson(self, urn, resourcetype, index):
+        """ like `getMetaByUrn` but returns un-deserialized form."""
 
+        urn, datatype, sn = self.get_missing(
+            urn=urn, datatype=resourcetype, sn=index)
         # deserialize(prd[start+len(MetaData_Json_Start):end+len(MetaData_Json_End)])
         try:
+            # new ##
+            assert tuple(self._urns[urn]['meta']) == \
+                tuple(self._dTypes[datatype]['sn'][sn]['meta'])
             start, end = tuple(self._urns[urn]['meta'])
         except KeyError as e:
-            msg = f"Trouble with {self._poolname}._urns[urn]['meta']"
+            msg = f"Trouble with {self._poolname}...['meta']"
             logger.debug(msg)
-            raise e
-        js = self.schematicLoad(resourcetype=resourcetype,
-                                index=index, start=start, end=end,
+            raise
+        js = self.schematicLoad(resourcetype=datatype,
+                                index=sn, start=start, end=end,
                                 serialize_out=True)
 
         return js
@@ -283,15 +294,10 @@ class LocalPool(ManagedPool):
 
     def getMetaByUrn(self, urn, resourcetype=None, index=None):
         """ 
-        Get all of the meta data belonging to a product of a given URN.
+        Get all of the meta data belonging to a product of a given URN or a pair of data type and serial number.
 
         mh: returns an iterator.
         """
-        if urn is None:
-            return None  # TODO self._meta.keys()
-        #uobj = Urn(urn=urn)
-        if resourcetype is None or index is None:
-            poolname, resourcetype, index = parseUrn(urn)
         m = self.getMetaByUrnJson(urn, resourcetype=resourcetype,
                                   index=index)
         return deserialize(m)  # self._urns[urn]['meta']
@@ -371,9 +377,7 @@ class LocalPool(ManagedPool):
         self._files.clear()
         self._atimes.clear()
         self._cached_files.clear()
-        self._classes.clear()
-        self._tags.clear()
-        self._urns.clear()
+
         # will leave a newly made pool dir
         wipeLocal(self.transformpath(self._poolname))
         return 0
@@ -411,7 +415,7 @@ class LocalPool(ManagedPool):
                     tf.extractall(fp0)
             allf = find_all_files(fp0)
             # read into memory
-            self._classes, self._tags, self._urns, = tuple(
+            self._classes, self._tags, self._urns, self._dTypes, self._dTags = tuple(
                 self.readHK().values())
         logger.info('Restored from a gz tar file to %s for pool %s. %d files.' %
                     (fp0, self._poolname, len(allf)))

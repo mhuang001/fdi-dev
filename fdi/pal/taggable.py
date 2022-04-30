@@ -18,17 +18,21 @@ class Taggable(object):
 
         # {urn->{'tags':[tag], 'meta':meta}}
 
-    def getTags(self, urn=None):
+    def getTags(self, urn=None, datatype=None, sn=None):
         """ 
-        Get all of the tags that map to a given URN.
+        Get all of the tags that map to a given URN or a pair of data type and serial number.
+
         Get all known tags if urn is not specified.
         mh: returns an iterator.
+
+        If datatype and sn are given, use them and ignore urn.
         """
         raise NotImplementedError
 
     def getTagUrnMap(self):
         """
         Get the full tag->urn mappings.
+
         mh: returns an iterator
         """
         raise NotImplementedError
@@ -45,25 +49,19 @@ class Taggable(object):
         """
         raise NotImplementedError
 
-    def removekey(self, key, themap, thename, othermap, othername):
-        """
-        Remove the given key.
-        """
-        raise NotImplementedError
-
     def removeTag(self, tag):
         """
         Remove the given tag from the tag and urn maps.
         """
         raise NotImplementedError
 
-    def removeUrn(self, urn):
+    def removeUrn(self, urn=None, datatype=None, sn=None):
         """
         Remove the given urn from the tag and urn maps.
         """
         raise NotImplementedError
 
-    def setTag(self, tag,  urn):
+    def setTag(self, tag,  urn=None, datatype=None, sn=None):
         """
         Sets the specified tag to the given URN.
         """

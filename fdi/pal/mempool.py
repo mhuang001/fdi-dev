@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from .productpool import ManagedPool
-from .urn import makeUrn, Urn
-
+from .urn import makeUrn
+from .dicthk import HKDBS
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -30,7 +30,8 @@ class MemPool(ManagedPool):
         self._MemPool = {}
         # if self._poolname not in self._MemPool:
         #      self._MemPool[self._poolname] = {}
-        c, t, u = tuple(self.readHK().values())
+        # some new ####
+        c, t, u, dTypes, dTags = tuple(self.readHK().values())
 
         logger.debug('created ' + self.__class__.__name__ +
                      ' ' + self._poolname + ' HK read.')
@@ -38,6 +39,10 @@ class MemPool(ManagedPool):
         self._classes.update(c)
         self._tags.update(t)
         self._urns.update(u)
+        # new ####
+        self._dTypes.update(dTypes)
+        self._dTags.update(dTags)
+        # /new ###
 
         return False
 
@@ -61,7 +66,8 @@ class MemPool(ManagedPool):
         if serialize_out:
             raise NotImplementedError
         if hktype is None:
-            hks = ['classes', 'tags', 'urns']
+            # some new ####
+            hks = HKDBS
         else:
             hks = [hktype]
         hk = {}
@@ -84,6 +90,10 @@ class MemPool(ManagedPool):
         myspace['classes'] = self._classes
         myspace['tags'] = self._tags
         myspace['urns'] = self._urns
+        # new ####
+        myspace['dTypes'] = self._dTypes
+        myspace['dTags'] = self._dTags
+        # /new ###
 
     def doSave(self, resourcetype, index, data, tags=None, serialize_in=True, **kwds):
         """ 
@@ -97,23 +107,27 @@ class MemPool(ManagedPool):
         self.writeHK()
         logger.debug('HK written')
 
-    def setMetaByUrn(self, data, urn):
+    def setMetaByUrn(self, data, urn, resourcetype=None, index=None):
         """
         Sets the location of the meta data of the specified data to the given URN.
 
         :data: usually unserialized Product.
         """
-        u = urn.urn if issubclass(urn.__class__, Urn) else urn
-        if u not in self._urns:
-            raise ValueError(urn + ' not found in pool ' + self._poolname)
-        self._urns[u]['meta'] = data._meta
+        urn, datatype, sn = self.get_missing(
+            urn=urn, datatype=resourcetype, sn=index)
+        # new ###
+        self._dTypes[datatype]['sn'][sn]['meta'] = data._meta
+        self._urns[urn]['meta'] = data._meta
 
     def getMetaByUrn(self, urn, resourcetype=None, index=None):
         """ 
         Get all of the meta data belonging to a product of a given URN.
 
         """
-
+        urn, datatype, sn = self.get_missing(
+            urn=urn, datatype=resourcetype, sn=index)
+        # new ##
+        assert self._urns[urn]['meta'] == self._dTypes[datatype]['sn'][sn]['meta']
         return self._urns[urn]['meta']
 
     def doLoad(self, resourcetype, index, start=0, end=0, serialize_out=False):

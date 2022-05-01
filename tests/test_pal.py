@@ -1268,7 +1268,7 @@ def test_realistic_http(server, demo_product):
 
 def test_realistic_csdb(csdb, demo_product):
     test_pool, url = csdb  # csdb:///csdb_test_pool
-    poolname = 'csdb_test_pool'
+    poolname = 'test_csdb'
     poolurl = 'csdb:///' + poolname
     cleanup(poolurl, poolname)
     # remove existing pools in memory

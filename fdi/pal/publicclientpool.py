@@ -1,6 +1,6 @@
 import logging
 import os
-import pdb
+from itertools import chain
 import sys
 
 from fdi.dataset.arraydataset import ArrayDataset
@@ -169,15 +169,17 @@ class PublicClientPool(ManagedPool):
         classes = []
         try:
             if self.poolInfo:
-                for clz in self.poolInfo[self.poolname]['_classes']:
-                    classes.append(clz['productTypeName'])
+                # for clz in self.poolInfo[self.poolname]['_classes']:
+                #    classes.append(clz['productTypeName'])
+                pass
             else:
                 self.getPoolInfo()
                 if self.poolInfo is None:
                     # No such pool in cloud
                     return None
-                for clz in self.poolInfo[self.poolname]['_classes']:
-                    classes.append(clz['productTypeName'])
+                # for clz in self.poolInfo[self.poolname]['_classes']:
+                #    classes.append(clz['productTypeName'])
+            classes = list(self.poolInfo[self.poolname]['_classes'])
             return classes
         except TypeError as e:
             raise TypeError(
@@ -191,13 +193,12 @@ class PublicClientPool(ManagedPool):
         Return the number of URNs for the product type.
         """
         try:
-            if not self.poolInfo:
-                self.getPoolInfo()
-            if not self.poolInfo:
-                return 0
             clzes = self.getProductClasses()
+            if clzes == 0:
+                return 0
             if typename not in clzes:
                 raise ValueError("Current pool has no such type: " + typename)
+            return len(self.poolInfo[self.poolname]['_classes'][typename]['sn'])
             for clz in self.poolInfo[self.poolname]['_classes']:
                 if typename == clz['productTypeName']:
                     # XXX -1 is due to a bug in sn[] in csdb
@@ -212,7 +213,7 @@ class PublicClientPool(ManagedPool):
         res = self.getPoolInfo()
         if issubclass(res.__class__, dict):
             clses = res[self.poolname]['_classes']
-            return all(clz['sn'] == [0] for clz in clses)
+            return len(clses) == 0
         else:
             raise ValueError('Error getting PoolInfo ' + str(res))
 
@@ -467,9 +468,8 @@ class PublicClientPool(ManagedPool):
         #     raise ValueError('Wipe pool ' + self.poolname + ' failed: ' + res['msg'])
         info = self.getPoolInfo()
         if isinstance(info, dict):
-            for classes in info[self.poolname]['_classes']:
-                clazz = classes['productTypeName']
-                for i in classes['sn']:
+            for clazz, cld in info[self.poolname]['_classes'].items():
+                for i in cld['sn']:
                     urn = 'urn:' + self.poolname + ':' + clazz + ':' + str(i)
                     res = self.remove(urn)
                     assert res in ['Not found resource.', 'success']
@@ -477,11 +477,18 @@ class PublicClientPool(ManagedPool):
             raise ValueError("Update pool information failed: " + str(info))
 
     def setTag(self, tag, urn):
+        """ Set given tag or list of tags to the URN.
+
+        Parameters
+        ----------
+        :tag: tag or list of tags.
+        """
         u = urn.urn if issubclass(urn.__class__, Urn) else urn
         if not self.exists(urn):
             raise ValueError('Urn does not exists!')
-        if isinstance(tag, str) and len(tag) > 0:
-            res = read_from_cloud('addTag', token=self.token, tags=tag, urn=u)
+        if isinstance(tag, (list, str)) and len(tag) > 0:
+            t = ', '.join(tag) if isinstance(tag, list) else tag
+            res = read_from_cloud('addTag', token=self.token, tags=t, urn=u)
             if res['msg'] != 'OK':
                 raise ValueError('Set tag to ' + urn +
                                  ' failed: ' + res['msg'])
@@ -492,7 +499,8 @@ class PublicClientPool(ManagedPool):
         u = urn.urn if issubclass(urn.__class__, Urn) else urn
         res = read_from_cloud('infoUrn', urn=u, token=self.token)
         if res['code'] == 0:
-            return res['data'][u]['tags']
+            ts = [t.split(',') for t in res['data'][u]['tags']]
+            return [x.strip() for x in chain(*ts)]
         else:
             raise ValueError('Read tags failed due to : ' + res['msg'])
 

@@ -240,7 +240,7 @@ def demo_product():
     return v, get_related_product()
 
 
-csdb_pool_id = 'csdb_test_pool'
+csdb_pool_id = 'test_csdb'
 
 
 @pytest.fixture(scope="module")

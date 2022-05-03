@@ -132,16 +132,19 @@ def est_getpnspoolconfig(pc, server):
 
 # TEST HTTPPOOL  API
 
-def getPayload(aResponse):
+def getPayload(aResponse, ignore_error=True):
     """ deserializes, if content_type is json, data or tex of responses from wither the live server or the mock one.
     """
+
+    if not ignore_error:
+        assert aResponse.status_code == 200, 'Unsuccessful response %d.' % aResponse.status_code
 
     x = aResponse.data if issubclass(
         aResponse.__class__, fwResponse) else aResponse.text
     if aResponse.headers['Content-Type'] == 'application/json':
-        return deserialize(x)
+        return deserialize(x, int_key=True),  aResponse.status_code
     else:
-        return x
+        return x, aResponse.status_code
 
 
 def check_response(o, code=200, failed_case=False, excluded=None):
@@ -193,21 +196,21 @@ def test_root(server, client):
     aburl, headers = server
     url = aburl + '/'
     x = client.get(url)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     c0 = o['result']  # a list
     # no slash
     url = aburl
     x = client.get(url)
-    o = getPayload(x)  # a dict of urls
-    if check_response(o, excluded=['Redirecting']):
+    o, code = getPayload(x)  # a dict of urls
+    if check_response(o, code=code, excluded=['Redirecting']):
         c = o['result']
         assert set(c0) == set(c)
     # /
     url = aburl + '/pools'
     x = client.get(url, headers=headers)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     c_pools = o['result']  # a dict
     assert set(iter(c_pools)) <= set(iter(c0))
 
@@ -223,8 +226,8 @@ def make_pools(name, aburl, clnt, auth, n=1):
         data = serialize(Product('lone prod in '+poolid))
         url = aburl + '/' + poolid + '/'
         x = clnt.post(url, auth=auth, data=data)
-        o = getPayload(x)
-        check_response(o, failed_case=False)
+        o, code = getPayload(x)
+        check_response(o, code=code, failed_case=False)
     return lst[0] if n == 1 else lst
 
 
@@ -238,8 +241,8 @@ def test_wipe_all_pools_on_server(server, local_pools_dir, client, userpass):
     # register all pools and get count
     url = aburl + '/' + 'pools/register_all'
     x = client.put(url, auth=auth)
-    o = getPayload(x)
-    check_response(o, failed_case=False)
+    o, code = getPayload(x)
+    check_response(o, code=code, failed_case=False)
     regd = o['result']
 
     # make some pools
@@ -255,8 +258,8 @@ def test_wipe_all_pools_on_server(server, local_pools_dir, client, userpass):
     # wipe all pools
     url = aburl + '/' + 'pools/wipe_all'
     x = client.delete(url, auth=auth)
-    o = getPayload(x)
-    check_response(o, failed_case=False)
+    o, code = getPayload(x)
+    check_response(o, code=code, failed_case=False)
 
     files = get_files_in_local_dir('', local_pools_dir)
     assert len(files) == 0, 'Wipe_all_pools failed: ' + \
@@ -306,7 +309,7 @@ def test_unauthorizedread_write(server, server_ro, client):
     uheaders = auth_headers('k', 'hu8')
     x = client.get(aburl+'/pools', headers=uheaders)
     assert x.status_code == 401
-    o = getPayload(x)
+    o, code = getPayload(x, ignore_error=True)
     assert o == 'Unauthorized Access'
 
     # These needs read_write
@@ -335,8 +338,8 @@ def test_authorizedread_write(server, new_user_read_write, client):
     x = client.get(aburl+'/pools', headers=headers)
     assert x.status_code == 200
     # with pytest.raises(URLError):
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     pools = o['result']
     assert isinstance(pools, list)
 
@@ -372,9 +375,9 @@ def empty_pool(post_poolid, aburl, auth, clnt):
     path = post_poolid + '/api/removeAll'
     url = aburl + '/' + path
     x = clnt.get(url, auth=HTTPBasicAuth(*auth))
-    o = getPayload(x)
+    o, code = getPayload(x)
     # ignore "FAILED" so non-exisiting target will not cause a failed case.
-    check_response(o, failed_case=None)
+    check_response(o, code=code, failed_case=None)
 
 
 def populate_pool(poolid, aburl, auth, clnt):
@@ -390,8 +393,8 @@ def populate_pool(poolid, aburl, auth, clnt):
         url = aburl + '/' + poolid + '/'
         x = clnt.post(url, auth=HTTPBasicAuth(*auth), data=data)
         # print(len(data))
-        o = getPayload(x)
-        check_response(o)
+        o, code = getPayload(x)
+        check_response(o, code=code)
         urns.append(o['result'])
 
     return creators, instruments, urns
@@ -444,8 +447,8 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     u = random.choice(urns)
     url = aburl + '/' + u  # [4:].replace(':', '/')
     x = client.get(url, auth=auth)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     assert o['result'].creator == creators[urns.index(u)], 'Creator not match'
 
     # ===========
@@ -455,58 +458,54 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     hkpath = '/hk'
     url = aburl + '/' + post_poolid + hkpath
     x = client.get(url, auth=auth)
-    o1 = getPayload(x)
+    o1, c1 = getPayload(x)
     url2 = aburl + '/' + post_poolid + '/api/readHK'
     x2 = client.get(url2, auth=auth)
-    o2 = getPayload(x2)
-    for o in [o1, o2]:
-        check_response(o)
+    o2, c2 = getPayload(x2)
+    for o, c in [(o1, c1), (o2, c2)]:
+        check_response(o, code=c)
         assert o['result']['classes'] is not None, 'Classes jsn read failed'
         assert o['result']['tags'] is not None, 'Tags jsn read failed'
         assert o['result']['urns'] is not None, 'Urns jsn read failed'
+        assert o['result']['dTypes'] is not None, 'dTypes jsn read failed'
+        assert o['result']['dTags'] is not None, 'dTags jsn read failed'
 
-        l = len(urns)
-        inds = [int(u.rsplit(':', 1)[1]) for u in urns]
+        inds = list(o['result']['dTypes'][prodt]['sn'])
+        l = len(inds)
         # the last l sn's
-        assert o['result']['classes'][prodt]['sn'][-l:] == inds
-        assert o['result']['classes'][prodt]['currentSN'] == inds[-1]
-        assert len(o['result']['tags']) == 0
-        assert set(o['result']['urns'].keys()) == set(urns1)
+        assert list(o['result']['dTypes'][prodt]['sn'])[-l:] == inds
+        assert o['result']['dTypes'][prodt]['currentSN'] == inds[-1]
+        assert len(o['result']['dTags']) == 0
+        assert set(':'.join(['urn', post_poolid, prodt, str(i)])
+                   for i in inds) == set(urns1)
 
-    logger.info('read classes')
-    hkpath = '/hk/classes'
+    logger.info('read dTypes')
+    hkpath = '/hk/dTypes'
     url = aburl + '/' + post_poolid + hkpath
     x = client.get(url, auth=auth)
-    o = getPayload(x)
-    check_response(o)
-    assert o['result'][prodt]['sn'][-l:] == inds
+    o, code = getPayload(x)
+    check_response(o, code=code)
+    assert list(o['result'][prodt]['sn'])[-l:] == inds
     assert o['result'][prodt]['currentSN'] == inds[-1]
+    assert set('urn:%s:%s:%s' % (post_poolid, c, str(n))
+               for c in o['result'] for n in o['result'][c]['sn'].keys()) == set(urns1)
 
     logger.info('check count')
     num = len(o['result'][prodt]['sn'])
     apipath = '/api/getCount__' + prodt
     url = aburl + '/' + post_poolid + apipath
     x = client.get(url, auth=auth)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     assert o['result'] == num
 
-    logger.info('read tags')
-    hkpath = '/hk/tags'
+    logger.info('read dTags')
+    hkpath = '/hk/dTags'
     url = aburl + '/' + post_poolid + hkpath
     x = client.get(url, auth=auth)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     assert len(o['result']) == 0
-
-    logger.info('read urns')
-    hkpath = '/hk/urns'
-    url = aburl + '/' + post_poolid + hkpath
-    x = client.get(url, auth=auth)
-    o = getPayload(x)
-    check_response(o)
-
-    assert set(o['result'].keys()) == set(urns1)
 
     # ========
     logger.info('delete a product')
@@ -516,12 +515,13 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     origin_prod = len(files)
 
     index = files[-1].rsplit('_', 1)[1]
+    # poolname following 'urn' immediately
     url = aburl + '/urn' + post_poolid + '/fdi.dataset.product.Product/' + index
 
     x = client.delete(url, auth=auth)
 
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
 
     files1 = [f for f in get_files_in_local_dir(
         post_poolid, local_pools_dir) if f[-1].isnumeric()]
@@ -533,6 +533,26 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     f = newfiles.pop()
     assert f.endswith(str(index))
 
+    # ':'+poolname following 'urn'
+    index2 = files[-2].rsplit('_', 1)[1]
+    url2 = aburl + '/urn' + ':' + post_poolid + \
+        '/fdi.dataset.product.Product/' + index2
+
+    x = client.delete(url2, auth=auth)
+
+    o, code = getPayload(x)
+    check_response(o, code=code)
+
+    files2 = [f for f in get_files_in_local_dir(
+        post_poolid, local_pools_dir) if f[-1].isnumeric()]
+    num_prod2 = len(files2)
+    assert num_prod2 + 2 == origin_prod, 'Products number not match'
+
+    newfiles = set(files1) - set(files2)
+    assert len(newfiles) == 1
+    f = newfiles.pop()
+    assert f.endswith(str(index2))
+
     # ========
     logger.info('wipe a pool')
     files = get_files_in_local_dir(post_poolid, local_pools_dir)
@@ -541,29 +561,29 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     # wipe the pool on the server
     url = aburl + '/' + post_poolid + '/api/removeAll'
     x = client.get(url, auth=auth)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
 
     files = get_files_in_local_dir(post_poolid, local_pools_dir)
     assert len(files) == 0, 'Wipe pool failed: ' + o['msg']
 
     url = aburl + '/' + post_poolid + '/api/isEmpty'
     x = client.get(url, auth=auth)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     assert o['result'] == True
 
     # ========
     logger.info('unregister a pool on the server')
     url = aburl + '/' + post_poolid
     x = client.delete(url, auth=auth)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
 
     # this should fail as pool is unregistered on the server
     url = aburl + '/' + post_poolid + '/api/isEmpty'
     x = client.get(url, auth=auth)
-    o = getPayload(x)
+    o, code = getPayload(x)
     check_response(o, code=x.status_code, failed_case=True)
 
 
@@ -583,8 +603,8 @@ def test_data_path(server, userpass, client):
     # print(len(data))
     url1 = url0
     x = client.post(url1, auth=auth, data=data)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     urn = o['result']
 
     # API
@@ -598,10 +618,9 @@ def test_data_path(server, userpass, client):
     urlapi = url0 + pcls
     # 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product'
     x = client.get(urlapi, auth=auth)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     c = o['result']
-    # pprint(c)
     assert 'metadata' in c
 
     # test product paths
@@ -611,8 +630,8 @@ def test_data_path(server, userpass, client):
     # url2       = 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product/0/measurements/Time_Energy_Pos/Energy/data'
     url2 = aburl + urn.replace(':', '/')[3:] + '/' + pth
     x = client.get(url2, auth=auth)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     c = o['result']
     assert c == p['measurements']['Time_Energy_Pos']['Energy'].data
     # make w/ prodtype
@@ -623,8 +642,8 @@ def test_data_path(server, userpass, client):
     # http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product/0/measurements/Time_Energy_Pos/Energy/data
     url3 = urlp + '/' + pth
     x = client.get(url3, auth=auth)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     c2 = o['result']
     assert c == p['measurements']['Time_Energy_Pos']['Energy'].data
 
@@ -638,8 +657,8 @@ def test_data_path(server, userpass, client):
     ]:
         url = urlp + '/' + pth
         x = client.get(url, auth=auth)
-        o = getPayload(x)
-        check_response(o)
+        o, code = getPayload(x)
+        check_response(o, code=code)
         c = o['result']
         f, s = fetch(pth, p)
         assert c == f
@@ -648,8 +667,8 @@ def test_data_path(server, userpass, client):
     # pt = fdi.dataset.product.Product/0
     url = url0 + pt + '/'
     x = client.get(url, auth=auth)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     c = o['result']
     assert 'description' in c
 
@@ -659,9 +678,8 @@ def test_data_path(server, userpass, client):
     url = url0 + pt + '/toString'
     x = client.get(url, auth=auth)
     assert x.headers['Content-Type'] == 'text/plain'
-    c = getPayload(x)
-    # print(c)
-    assert 'UNKNOWN' in c
+    o, c = getPayload(x)
+    assert 'UNKNOWN' in o
 
 
 def test_get_pools(local_pools_dir, server, client):
@@ -669,8 +687,8 @@ def test_get_pools(local_pools_dir, server, client):
     aburl, headers = server
     url = aburl + '/'+'pools'
     x = client.get(url, headers=headers)
-    o = getPayload(x)
-    check_response(o)
+    o, code = getPayload(x)
+    check_response(o, code=code)
     c = o['result']
     assert len(c)
     assert set(c) == set(get_files_in_local_dir('', local_pools_dir))
@@ -699,7 +717,7 @@ async def read_product(poolid, server, userpass):
         prodpath = '/'+prodt+'/0'
         url = aburl + '/' + poolid + prodpath
     else:
-        hkpath = '/hk/classes'
+        hkpath = '/hk/dTypes'
         url = aburl + '/' + poolid + hkpath
     logger.debug('Reading a locked file '+url)
     async with aiohttp.ClientSession() as session:
@@ -718,7 +736,7 @@ def test_lock_file(server, userpass, local_pools_dir, client):
     poolid = test_poolid
     # init server
     populate_pool(poolid, aburl, userpass, client)
-    # hkpath = '/hk/classes'
+    # hkpath = '/hk/dTypes'
     # url = aburl + '/' + poolid + hkpath
     # x = client.get(url, auth=HTTPBasicAuth(*userpass))
 
@@ -749,7 +767,7 @@ def test_read_non_exists_pool(server, userpass, client):
     prodpath = '/' + prodt + '/0'
     url = aburl + '/' + wrong_poolid + prodpath
     x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o = getPayload(x)
+    o, code = getPayload(x)
     check_response(o, code=400, failed_case=True)
 
 
@@ -788,8 +806,8 @@ def xtest_webapi_jsonPath(server, userpass, client):
             url = self.purl + '/jsonPath__' + urlargs
             nonlocal userpass
             x = client.get(url, auth=HTTPBasicAuth(*userpass))
-            o = getPayload(x)
-            check_response(o)
+            o, code = getPayload(x)
+            check_response(o, code=code)
             return o['result']
 
     do_jsonPath(Get_jsonPath_from_server)

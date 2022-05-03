@@ -32,18 +32,21 @@ class DictHk(Taggable):
         """ make urn if datatype and sn are given and vice versa.
 
         Rases
-        ValueError if None urn or urn not found.
+        ValueError if None urn or urn not found or not from this pool.
         KeyError if datatype does not exist.
         IndexError if sn does not exist.
         """
         if urn is None and datatype is None and sn is None:
-            assert list(self._classes.keys()) == list(self._dTypes.keys())
+            ####assert list(self._classes.keys()) == list(self._dTypes.keys())
             raise ValueError('Cannot accept None urn')
 
         #uobj = Urn(urn=urn)
         if datatype is None or sn is None and urn is not None:
             # new ###
-            _, datatype, sn = parseUrn(urn, int_index=True)
+            poolname, datatype, sn = parseUrn(urn, int_index=True)
+            if self._poolname != poolname:
+                raise ValueError(
+                    urn + ' is not from the pool ' + self._poolname)
         else:
             # datatype+sn takes priority over urn
             urn = makeUrn(self._poolname, datatype, sn)
@@ -55,11 +58,12 @@ class DictHk(Taggable):
                 raise KeyError(
                     datatype + ' not found in pool ' + self._poolname)
             if sn not in self._dTypes[datatype]['sn']:
-                raise IndexError('%s:%s not found in pool %s.' %
+                raise IndexError('%s:%d not found in pool %s.' %
                                  (datatype, sn, self._poolname))
         # /new ###
-        if u not in self._urns:
-            raise ValueError(urn + ' not found in pool ' + self._poolname)
+        if 0:
+            if u not in self._urns:
+                raise ValueError(urn + ' not found in pool ' + self._poolname)
         return u, datatype, sn
 
     def getTags(self, urn=None, datatype=None, sn=None):
@@ -81,8 +85,10 @@ class DictHk(Taggable):
             else:
                 raise
         # new ###
-        assert self._urns[urn]['tags'] == self._dTypes[datatype]['sn'][sn]['tags']
-        return self._urns[urn]['tags']
+        if 0:
+            assert self._urns[urn]['tags'] == self._dTypes[datatype]['sn'][sn]['tags']
+            return self._urns[urn]['tags']
+        return self._dTypes[datatype]['sn'][sn]['tags']
 
     def getTagUrnMap(self):
         """
@@ -92,9 +98,10 @@ class DictHk(Taggable):
         csdb: csdb/v1/storage/tag?tag=tag1,tag2
         """
         # new ###
-        r = self._dTags
+        return self._dTags
 
-        return zip(self._tags.keys(), map(lambda v: v['urns'], self._value()))
+        if 0:
+            return zip(self._tags.keys(), map(lambda v: v['urns'], self._value()))
 
     def getUrn(self, tag):
         """
@@ -105,24 +112,34 @@ class DictHk(Taggable):
 
 
         """
-        if tag not in self._tags:
+        if 0:
+            if tag not in self._tags:
+                return []
+        if tag not in self._dTags:
             return []
         # new ###
-        assert list(self._tags) == list(self._dTags)
-        assert list(self._tags[tag]['urns']) == list(self._dTags[tag])
-        return self._tags[tag]['urns']
+        if 0:
+            assert list(self._tags) == list(self._dTags)
+            assert list(self._tags[tag]['urns']) == list(self._dTags[tag])
+            return self._tags[tag]['urns']
+        return self._dTags[tag]
 
     def getUrnObject(self, tag):
         """
         Gets the URNobjects corresponding to the given tag.
         Returns an empty list if `tag` does not exist.
         """
-        if tag not in self._tags:
+        if 0:
+            if tag not in self._tags:
+                return []
+        if tag not in self._dTags:
             return []
 
         # new ##
-        assert list(self._tags[tag]['urns']) == list(self._dTags[tag])
-        return [Urn(x) for x in self._tags[tag]['urns']]
+        if 0:
+            assert list(self._tags[tag]['urns']) == list(self._dTags[tag])
+            return [Urn(x) for x in self._tags[tag]['urns']]
+        return [Urn(x) for x in self._dTags[tag]]
 
     def removekey(self, key, thecontainer, thename, cross_ref_map, othername):
         """
@@ -157,10 +174,10 @@ class DictHk(Taggable):
             else:
                 logger.warning('tag %s missing from %s:%s:%s.' %
                                (tag, self._poolname, datatype, sn))
-
-        self.removekey(tag, self._tags, 'tags', self._urns, 'urns')
+        if 0:
+            self.removekey(tag, self._tags, 'tags', self._urns, 'urns')
         # new ##
-        assert list(self._tags) == list(self._dTags)
+        #### assert list(self._tags) == list(self._dTags)
 
     def removeUrn(self, urn=None, datatype=None, sn=None):
         """
@@ -190,9 +207,10 @@ class DictHk(Taggable):
             del self._dTypes[datatype]
         # /new ##
 
-        self.removekey(u, self._urns, 'urns', self._tags, 'tags')
+        if 0:
+            self.removekey(u, self._urns, 'urns', self._tags, 'tags')
         # new ##
-        assert sn not in self._dTypes[datatype]['sn']
+        #assert sn not in self._dTypes[datatype]['sn']
 
     def setTag(self, tag, urn=None, datatype=None, sn=None):
         """
@@ -203,23 +221,26 @@ class DictHk(Taggable):
         u, datatype, sn = self.get_missing(
             urn=urn, datatype=datatype, sn=sn, no_check=True)
 
-        self._urns[u]['tags'].append(tag)
+        if 0:
+            self._urns[u]['tags'].append(tag)
 
-        if tag in self._tags:
-            self._tags[tag]['urns'].append(u)
-        else:
-            self._tags[tag] = dict(urns=[u])
+            if tag in self._tags:
+                self._tags[tag]['urns'].append(u)
+            else:
+                self._tags[tag] = dict(urns=[u])
 
         # new ###
         snt = self._dTypes[datatype]['sn'][sn]['tags']
         if tag not in snt:
             snt.append(tag)
+        # dTags saves datatype:sn
+        ty_sn = u.split(':', 2)[-1]
         if tag in self._dTags:
             t = self._dTags[tag]
-            if u not in t:
-                t.append(u)
+            if ty_sn not in t:
+                t.append(ty_sn)
         else:
-            self._dTags[tag] = [u]
+            self._dTags[tag] = [ty_sn]
 
     def tagExists(self, tag):
         """
@@ -227,5 +248,7 @@ class DictHk(Taggable):
         # TODO in CSDB
         """
         # new ##
-        assert (tag in self._dTags) == (tag in self._tags)
-        return tag in self._tags
+        if 0:
+            assert (tag in self._dTags) == (tag in self._tags)
+            return tag in self._tags
+        return tag in self._dTags

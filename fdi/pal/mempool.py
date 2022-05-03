@@ -73,7 +73,7 @@ class MemPool(ManagedPool):
         hk = {}
         myspace = self.getPoolSpace()
         for hkdata in hks:
-            if len(myspace) == 0:
+            if len(myspace) == 0 or not ('dT' in hkdata):
                 r = {}
             else:
                 r = myspace[hkdata]
@@ -117,7 +117,7 @@ class MemPool(ManagedPool):
             urn=urn, datatype=resourcetype, sn=index)
         # new ###
         self._dTypes[datatype]['sn'][sn]['meta'] = data._meta
-        self._urns[urn]['meta'] = data._meta
+        ##self._urns[urn]['meta'] = data._meta
 
     def getMetaByUrn(self, urn, resourcetype=None, index=None):
         """ 
@@ -127,8 +127,9 @@ class MemPool(ManagedPool):
         urn, datatype, sn = self.get_missing(
             urn=urn, datatype=resourcetype, sn=index)
         # new ##
-        assert self._urns[urn]['meta'] == self._dTypes[datatype]['sn'][sn]['meta']
-        return self._urns[urn]['meta']
+        #### assert self._urns[urn]['meta'] == self._dTypes[datatype]['sn'][sn]['meta']
+        # return self._urns[urn]['meta']
+        return self._dTypes[datatype]['sn'][sn]['meta']
 
     def doLoad(self, resourcetype, index, start=0, end=0, serialize_out=False):
         """

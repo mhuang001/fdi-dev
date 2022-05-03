@@ -154,7 +154,7 @@ class LocalPool(ManagedPool):
         hk = {}
         for hkdata in hks:
             fp = op.abspath(pathjoin(fp0, hkdata + '.jsn'))
-            if op.exists(fp):
+            if op.exists(fp) and ('dT' in fp):
                 js = self.readmmap(fp, check_time=True)
                 if js:
                     if serialize_out:
@@ -261,7 +261,7 @@ class LocalPool(ManagedPool):
             mt = [None, None]
         # new ##
         self._dTypes[datatype]['sn'][sn]['meta'] = mt
-        self._urns[u]['meta'] = mt
+        ####self._urns[u]['meta'] = mt
 
     @ lru_cache(maxsize=1024)
     def getMetaByUrnJson(self, urn, resourcetype, index):
@@ -272,9 +272,10 @@ class LocalPool(ManagedPool):
         # deserialize(prd[start+len(MetaData_Json_Start):end+len(MetaData_Json_End)])
         try:
             # new ##
-            assert tuple(self._urns[urn]['meta']) == \
-                tuple(self._dTypes[datatype]['sn'][sn]['meta'])
-            start, end = tuple(self._urns[urn]['meta'])
+            # assert tuple(self._urns[urn]['meta']) == \
+            # tuple(self._dTypes[datatype]['sn'][sn]['meta'])
+            start, end = tuple(self._dTypes[datatype]['sn'][sn]['meta'])
+            ####start, end = tuple(self._urns[urn]['meta'])
         except KeyError as e:
             msg = f"Trouble with {self._poolname}...['meta']"
             logger.debug(msg)
@@ -363,7 +364,7 @@ class LocalPool(ManagedPool):
         except IOError as e:
             logger.error('Remove failed. exc: %s trbk: %s.' %
                          (str(e), trbk(e)))
-            raise e  # needed for undoing HK changes
+            raise  # needed for undoing HK changes
         return 0
 
     def doWipe(self):

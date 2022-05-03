@@ -359,11 +359,11 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb
         path = op.join(poolpath, poolname)
         assert sum(1 for x in glob.glob(
             op.join(path, prodname + '*[0-9]'))) == expected_cnt
-        cp = op.join(path, 'classes.jsn')
+        cp = op.join(path, 'dTypes.jsn')
         if op.exists(cp) or expected_cnt != 0:
             with open(cp, 'r') as fp:
                 js = fp.read()
-            cread = deserialize(js)
+            cread = deserialize(js, int_key=True)
             if currentSN is None:
                 assert cread[prodname]['currentSN'] == currentSN
                 # number of items is expected_cnt
@@ -378,9 +378,9 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb
         ns = [n for n in mpool if prodname in n]
         assert len(ns) == expected_cnt, len(ns)
         if currentSN is None:
-            assert mpool['classes'][prodname]['currentSN'] == currentSN
+            assert mpool['dTypes'][prodname]['currentSN'] == currentSN
         # for this class there are  how many prods
-        assert len(mpool['classes'][prodname]['sn']) == expected_cnt
+        assert len(mpool['dTypes'][prodname]['sn']) == expected_cnt
     elif scheme in ['http', 'https']:
         auth = HTTPBasicAuth(*usrpsw)
         # count
@@ -393,7 +393,7 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb
         # sn
         if currentSN is None:
             return
-        spath = poolname + '/' + 'hk/classes'
+        spath = poolname + '/' + 'hk/dTypes'
         url = api_baseurl + spath
         x = requests.get(url, auth=auth)
         csn = x.json()['result'][prodname]['currentSN']
@@ -572,6 +572,7 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
         init_sn, init_count, pinfo = getCurrSnCount(csdb, pcq)
         init_sn_m, init_count_m, _ = getCurrSnCount(pinfo, mcq)
         print('1...', init_count, init_sn, init_count_m, init_sn_m)
+
     # save
     ref = ps.save(x)
     s0, s1 = tuple(ref.urn.rsplit(':', 1))
@@ -641,7 +642,7 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
         assert ts[0] == 't0'
         u = ps.getUrnFromTag('all-tm')
         assert len(u) == m
-        assert u[0] == ref2[q].urn
+        assert u[0] == ref2[q].urn.split(':', 2)[-1]
 
     # access resource
     checkdbcount(init_count+n, thepoolurl, pcq, init_sn+n-1, *args)
@@ -763,9 +764,9 @@ def test_LocalPool():
     ps2 = ProductStorage(pool=cpn, poolurl=cpu)
     # two ProdStorage instances have the same DB
     p2 = ps2.getPool(ps2.getPools()[0])
-    assert deepcmp(p1._urns, p2._urns) is None
-    assert deepcmp(p1._tags, p2._tags) is None
-    assert deepcmp(p1._classes, p2._classes) is None
+    #assert deepcmp(p1._urns, p2._urns) is None
+    #assert deepcmp(p1._tags, p2._tags) is None
+    #assert deepcmp(p1._classes, p2._classes) is None
     assert deepcmp(p1._dTypes, p2._dTypes) is None
     assert deepcmp(p1._dTags, p2._dTags) is None
 

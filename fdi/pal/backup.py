@@ -22,14 +22,14 @@ import os.path as op
 import sys
 
 
-def getPayload(aResponse):
-    """ deserializes, if content_type is json, data or tex of responses from wither the live server or the mock one.
+def getPayload(aResponse, int_key=True):
+    """ deserializes, if content_type is json, data or tex of responses from either the live server or the mock one.
     """
 
     x = aResponse.data if issubclass(
         aResponse.__class__, fwResponse) else aResponse.text
     if aResponse.headers['Content-Type'] == 'application/json':
-        return deserialize(x)
+        return deserialize(x, int_key=int_key)
     else:
         return x
 

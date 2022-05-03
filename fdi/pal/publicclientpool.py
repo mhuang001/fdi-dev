@@ -133,11 +133,11 @@ class PublicClientPool(ManagedPool):
 
     def getPoolInfo(self):
         """
-        data: DEPRECATED. See productpool::ManagedPool::saveOne
+        data:. See productpool::ManagedPool::saveOne
             poolname : 
-                _classes [{productTypeName, currentSn, sn}]
-                _urns [{urn, tags[]}]
-                _tags [{tag, urns[]}]
+                _classes= {productTypeName: {currentSn:csn, sn=[]}}
+                _urns= [{urn: tags[]}]
+                _tags= {urns:[]}
         """
         res = read_from_cloud(
             'infoPool', poolpath=self.poolname, token=self.token)

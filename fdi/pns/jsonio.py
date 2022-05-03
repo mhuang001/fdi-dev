@@ -79,43 +79,6 @@ def getJsonObj(url, headers=None, usedict=True, **kwds):
     return ret
 
 
-def getJsonObj1(url, headers=None, usedict=False):
-    """ return object from url. url can be http or file.
-    translate keys and values from string to
-    number if applicable. Return None if fails.
-    Not using requests.get() as it cannot open file:/// w/o installing
-    https://pypi.python.org/pypi/requests-file
-    """
-    logger.debug('url: %s' % (url))
-    i = 1
-    while True:
-        try:
-            stri = urlopen(
-                url, timeout=15).read().decode('utf-8')
-            #logger.debug('stri ' + stri)
-            break
-        except Exception as e:
-            logger.debug(e)
-            if issubclass(e.__class__, HTTPError):
-                print(e.code)
-                print('urllib   ' + e.read())
-                ret = e
-                return None
-            if i >= 1:
-                logger.error("Give up " + url + " after %d tries." % i)
-                return None
-            else:
-                i += 1
-    # print(url,stri)
-    # ret = json.loads(stri, parse_float=Decimal)
-    # ret = json.loads(stri, cls=Decoder,
-    #               object_pairs_hook=collections.OrderedDict)
-    ret = deserialize(stri, usedict=usedict)
-    #logger.debug(pformat(ret, depth=6)[:] + '...')
-    logger.debug(lls(str(ret), 160))
-    return ret
-
-
 def jsonREST(url, obj, headers, cmd):
     """ generic RESTful command handler for POST, PUT, and DELETE.
     """

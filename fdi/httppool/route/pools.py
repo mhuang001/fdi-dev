@@ -9,6 +9,7 @@ from ...pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
 from ...pal.productpool import PoolNotFoundError
 from ...pal.webapi import WebAPI
 from ...pal.urn import parseUrn
+from ...pal.dicthk import HKDBS
 from ...utils.common import lls
 
 from flask import Blueprint, jsonify, request, current_app, url_for, abort
@@ -355,36 +356,44 @@ def get_pool_info(poolname, serialize_out=False):
     allpools = get_name_all_pools(
         current_app.config['FULL_BASE_LOCAL_POOLPATH'])
     if poolname in allpools:
+
         code, result, mes = load_HKdata([poolname], serialize_out=True)
         # use json.loads to avoid _STID for human
-        result = json.loads(result)
-        # move 'classes' to the last
-        c = result['classes']
-        del result['classes']
-        result['classes'] = c
-        # print(result['classes'])
-        # for n in ['classes', 'urns', 'tags']:
-        #    del result[n]['_STID']
+        # result = json.loads(result)
+
+        result = deserialize(result, int_key=True)
+
         # Add url to tags
-        for t, ulist in result['tags'].items():
+        dt_display = {}
+        for t, ulist in result['dTags'].items():
+            udict = {}
             if t == '_STID':
                 continue
-            udict = {}
-            for u in ulist['urns']:
-                pn, cl, sn = parseUrn(u)
-                udict[u] = request.base_url + cl + '/' + str(sn)
-            ulist['urns'] = udict
-       # add urls to urns
-        for u, base in result['urns'].items():
-            if u == '_STID':
+            for u in ulist:
+                udict[u] = request.base_url + u.replace(':', '/')
+            dt_display[t] = udict
+        display = {'dTags with URLs': dt_display}
+        # add urls to urns
+        ty_display = {}
+        for cl, sns in result['dTypes'].items():
+            if cl == '_STID':
                 continue
-            base['meta'] = str(base['meta'])
-            pn, cl, sn = parseUrn(u)
-            base['url'] = request.base_url + cl + '/' + str(sn)
+            snd_url = {}
+            # sns is like {'currentSN': 2,
+            # 'sn': {'0': {'tags': [], 'meta': [14, 2779]}, '1': ...
+            for sn, snd in sns['sn'].items():
+                # str makes a list to show in ome line
+                base = {'tags': str(snd['tags']),
+                        'meta': str(snd['meta']),
+                        'url': request.base_url + cl + '/' + str(sn)
+                        }
+                snd_url[sn] = base
+            ty_display[cl] = snd_url
+        display['dTypes with URLs'] = ty_display
         msg = 'Getting pool %s information. %s.' % (poolname, mes)
     else:
         code, result, msg = 404, FAILED, poolname + ' is not an exisiting Pool ID.'
-    return resp(code, result, msg, ts, False)
+    return resp(code, display, msg, ts, False)
 
 
 ######################################
@@ -605,7 +614,8 @@ def load_single_HKdata(paths, serialize_out=True):
     poolname = '/'.join(paths[: -2])
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     # resourcetype = fullname(data)
-
+    if hkname not in HKDBS:
+        raise ValueError('Invalid HK type. Must be one of '+', '.join(HKDBS))
     try:
         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
         result = poolobj.readHK(hkname, serialize_out=serialize_out)
@@ -737,8 +747,7 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
         return 0, resp(422, result, msg, ts, serialize_out=False), 0
 
     method = m_args[0]
-    # if 'getPoolurl' in method:
-    #    __import__('pdb').set_trace()
+
     if method not in WebAPI:
         return 0, resp(400, FAILED,
                        'Unknown web API method: %s.' % method,

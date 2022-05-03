@@ -5,6 +5,7 @@ from ..dataset.deserialize import deserialize, serialize_args
 from .poolmanager import PoolManager
 from .productref import ProductRef
 from .productpool import ProductPool
+from .dicthk import HKDBS
 from ..utils.common import trbk, lls, fullname
 from .urn import Urn, makeUrn
 
@@ -114,7 +115,7 @@ class HttpClientPool(ProductPool):
             code, r, msg = read_from_server(
                 None, self._poolurl, 'housekeeping')
             if r != 'FAILED' and code == 200:
-                for hkdata in ['classes', 'tags', 'urns']:
+                for hkdata in HKDBS:
                     hk[hkdata] = r[hkdata]
         except Exception as e:
             msg = 'Reading %s failed.%d ' % (poolname, code) + str(e) + trbk(e)

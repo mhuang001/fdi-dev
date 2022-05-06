@@ -388,7 +388,7 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb
         api_baseurl = scheme + '://' + place + poolpath + '/'
         url = api_baseurl + cpath
         x = requests.get(url, auth=auth)
-        assert 'recorded' in x.text
+        assert 'Recorded' in x.text
         count = int(x.json()['result'])
         assert count == expected_cnt
         # counting files. Append a '/'
@@ -405,7 +405,7 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb
         api_baseurl = scheme + '://' + place + poolpath + '/'
         url = api_baseurl + cpath
         x = requests.get(url, auth=auth)
-        assert 'recorded' in x.text
+        assert 'Recorded' in x.text
         count = int(x.json()['result'])
         assert count >= expected_cnt
 

@@ -6,6 +6,22 @@ Change Log
 BETA1
 =====
 
+1.17.0 2022-05-06
+-----------------
+New pool hk. pool v0.14
+
+1.16.0 2022-04-17
+-----------------
+Dockerfiles use ADD; free form swagger server; yaml2python improvements; CSDB initial release.
+
+1.15.0 2022-03-22
+-----------------
+server tuning, FineTime accepts string, and base64/gzip used in pool
+
+1.14.0 2022-03-09
+-----------------
+'where' and 'jsonPath' for poolserver; uwsgi server
+
 1.13.0 2022-02-21
 -----------------
 New docker repo and script enhancement for k8s deployment. New translation. backup/restore. large webAPI diverted to POST; multi-tags. httppool api v0.13.

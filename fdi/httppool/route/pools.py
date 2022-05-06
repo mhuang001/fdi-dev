@@ -358,8 +358,6 @@ def get_pool_info(poolname, serialize_out=False):
     if poolname in allpools:
 
         code, result, mes = load_HKdata([poolname], serialize_out=True)
-        # use json.loads to avoid _STID for human
-        # result = json.loads(result)
 
         result = deserialize(result, int_key=True)
 
@@ -377,12 +375,14 @@ def get_pool_info(poolname, serialize_out=False):
         display = {'Tags with URLs': dt_display}
         # add urls to urns
         ty_display = {}
+        rec_u = 0
         for cl, sns in result['dTypes'].items():
             if cl == '_STID':
                 continue
             snd_url = {}
             # sns is like {'currentSN': 2,
             # 'sn': {'0': {'tags': [], 'meta': [14, 2779]}, '1': ...
+            rec_u += len(sns['sn'])
             for sn, snd in sns['sn'].items():
                 # str makes a list to show in ome line
                 base = {'tags': str(snd['tags']),
@@ -393,6 +393,8 @@ def get_pool_info(poolname, serialize_out=False):
             ty_display[cl] = snd_url
         display['Datatypes with URLs'] = ty_display
         msg = 'Getting pool %s information. %s.' % (poolname, mes)
+        _, count, _ = get_data_count(None, poolname)
+        msg += '%d data items recorded. %d counted.' % (rec_u, count)
     else:
         code, result, msg = 404, FAILED, poolname + ' is not an exisiting Pool ID.'
     return resp(code, display, msg, ts, False)
@@ -684,12 +686,12 @@ def counted(pool, data_type=None):
     pool = pool.strip('/')
     logger.debug(f'count {data_type} type for ' + pool)
 
-    code, result, msg = get_prod_count(data_type=data_type, pool_id=pool)
+    code, result, msg = get_data_count(data_type=data_type, pool_id=pool)
 
     return resp(code, result, msg, ts, serialize_out=False)
 
 
-def get_prod_count(data_type, pool_id):
+def get_data_count(data_type, pool_id):
     """ Return the total count for the given product type, or all types, and pool_id in the directory.
 
     'data_type': (part of) 'clsssname'. `None` for all types.

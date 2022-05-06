@@ -39,7 +39,7 @@ servers:
         default: '31702'
         description: 31702 for production.
       basePath:
-        default: fdi/v0.13
+        default: fdi/v0.14
   - url: 'http://127.0.0.1:{port}/{basePath}'
     description: httppool api flask-uwsgi dev version
     variables:
@@ -50,8 +50,8 @@ servers:
         default: '9885'
         description: 9881 for testing; 9885 for production.
       basePath:
-        default: fdi/v0.13
-  - url: 'http://10.0.10.114:9885/fdi/v0.13'
+        default: fdi/v0.14
+  - url: 'http://10.0.10.114:9885/fdi/v0.14'
     description: httppool api production intranet
     variables:
       port:
@@ -60,7 +60,7 @@ servers:
         default: '9885'
         description: 9885 for production.
       basePath:
-        default: fdi/v0.13
+        default: fdi/v0.14
 security:
   - BasicAuth: []
 paths:

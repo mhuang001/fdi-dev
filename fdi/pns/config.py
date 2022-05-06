@@ -34,7 +34,7 @@ BASE_LOCAL_POOLPATH = '/tmp'
 SERVER_POOLPATH = '/tmp/data'
 
 SCHEME = 'http'
-API_VERSION = 'v0.13'
+API_VERSION = 'v0.14'
 API_BASE = '/fdi'
 
 pnsconfig['server_scheme'] = 'server'
@@ -48,7 +48,8 @@ pnsconfig['cloud_port'] = 31702
 pnsconfig['cloud_scheme'] = 'csdb'
 pnsconfig['cloud_api_version'] = 'v1'
 pnsconfig['cloud_api_base'] = '/csdb'
-pnsconfig['cloud_baseurl'] = pnsconfig['cloud_api_base'] + '/' + pnsconfig['cloud_api_version']
+pnsconfig['cloud_baseurl'] = pnsconfig['cloud_api_base'] + \
+    '/' + pnsconfig['cloud_api_version']
 
 LOGGER_LEVEL = logging.INFO
 

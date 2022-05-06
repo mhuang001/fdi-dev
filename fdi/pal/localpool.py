@@ -76,6 +76,7 @@ class LocalPool(ManagedPool):
             return True
 
         real_poolpath = self.transformpath(self._poolname)
+
         if not op.exists(real_poolpath):
             if self._makenew:
                 os.makedirs(real_poolpath)
@@ -95,11 +96,17 @@ class LocalPool(ManagedPool):
         self._tags.update(t)
         self._urns.update(u)
         # new ####
+        if len(self._dTypes) or len(self._dTags):
+            raise ValueError('self._dTypes or self._dTags not empty %s %s' % (
+                str(self._dTypes), str(self._dTags)))
+
         self._dTypes.update(dTypes)
         self._dTags.update(dTags)
         # /new ###
-        fp0 = self.transformpath(self._poolname)
-        self.writeHK(fp0)
+
+        if any(not op.exists(op.join(real_poolpath, hk+'.jsn'))
+               for hk in HKDBS):
+            self.writeHK(real_poolpath)
         return False
 
     def readmmap(self, filename, start=None, end=None, close=False, check_time=False):
@@ -137,9 +144,9 @@ class LocalPool(ManagedPool):
             self._atimes[fp] = sr.st_mtime_ns
         return js.decode('ascii')
 
-    def readHK(self, hktype=None, serialize_out=False):
+    def readHK(self, hktype=None, serialize_out=False, all_versions=True):
         """
-        loads and returns the housekeeping data
+        loads and returns the housekeeping data, or empty `dict` if not found.
 
         hktype: one of the mappings listed in `dicthk.HKDBS`.
         serialize_out: if True return serialized form. Default is false.
@@ -154,7 +161,7 @@ class LocalPool(ManagedPool):
         hk = {}
         for hkdata in hks:
             fp = op.abspath(pathjoin(fp0, hkdata + '.jsn'))
-            if op.exists(fp) and ('dT' in fp):
+            if op.exists(fp) and (all_versions or ('dT' in fp)):
                 js = self.readmmap(fp, check_time=True)
                 if js:
                     if serialize_out:
@@ -169,10 +176,10 @@ class LocalPool(ManagedPool):
                         self.__getattribute__('_' + hkdata)
             else:
                 if serialize_out:
-                    r = '{"_STID":"ODict"}'
+                    r = '{}'  # '{"_STID":"ODict"}'
                 else:
                     from ..dataset.odict import ODict
-                    r = ODict()
+                    r = {}  # ODict()
             hk[hkdata] = r
         logger.debug('HK read from ' + fp0)
         if serialize_out:
@@ -235,13 +242,15 @@ class LocalPool(ManagedPool):
         else:
             return l
 
-    def writeHK(self, fp0=None):
+    def writeHK(self, fp0=None, all_versions=True):
         """ save the housekeeping data to disk
         """
         if fp0 is None:
             fp0 = self._poolpath + '/' + self._poolname
         l = 0
         for hkdata in HKDBS:
+            if not all_versions and not 'dT' in hkdata:
+                continue
             fp = pathjoin(fp0, hkdata + '.jsn')
             l += self.writeJsonmmap(fp, self.__getattribute__('_' + hkdata),
                                     check_time=True)

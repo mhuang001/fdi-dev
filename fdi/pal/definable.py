@@ -11,7 +11,7 @@ class Definable(object):
     """
 
     def __init__(self, **kwds):
-        super(Definable, self).__init__(**kwds)
+        super().__init__(**kwds)
         self._definition = None
 
     def getDefinition(self):

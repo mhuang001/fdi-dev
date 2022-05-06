@@ -163,7 +163,7 @@ def get_registered_pools():
     current_app.logger.debug('Listing all registered pools.')
 
     # [p.getPoolurl() for p in PM.getMap()()]
-    result = list(PM.getMap().keys())
+    result = list(PM.getMap())
     msg = 'There is/are %d pools registered to the PoolManager.' % len(result)
     code = 200
     return resp(code, result, msg, ts)
@@ -365,14 +365,16 @@ def get_pool_info(poolname, serialize_out=False):
 
         # Add url to tags
         dt_display = {}
-        for t, ulist in result['dTags'].items():
-            udict = {}
+        for t, clses in result['dTags'].items():
             if t == '_STID':
                 continue
-            for u in ulist:
-                udict[u] = request.base_url + u.replace(':', '/')
-            dt_display[t] = udict
-        display = {'dTags with URLs': dt_display}
+            cdict = {}
+            for cls, sns in clses.items():
+                sndict = dict((int(sn), request.base_url+cls+'/'+sn)
+                              for sn in sns)
+                cdict[cls] = sndict
+            dt_display[t] = cdict
+        display = {'Tags with URLs': dt_display}
         # add urls to urns
         ty_display = {}
         for cl, sns in result['dTypes'].items():
@@ -389,7 +391,7 @@ def get_pool_info(poolname, serialize_out=False):
                         }
                 snd_url[sn] = base
             ty_display[cl] = snd_url
-        display['dTypes with URLs'] = ty_display
+        display['Datatypes with URLs'] = ty_display
         msg = 'Getting pool %s information. %s.' % (poolname, mes)
     else:
         code, result, msg = 404, FAILED, poolname + ' is not an exisiting Pool ID.'
@@ -625,54 +627,93 @@ def load_single_HKdata(paths, serialize_out=True):
     return code, result, msg
 
 ######################################
-####  {pool}/count/{kind}          ####
+####  {pool}/count/{data_type}          ####
 ######################################
 
 
-@ pools_api.route('/<string:pool>/count/<string:data_type>', methods=['GET'])
-# @ pools_api.route('/<string:pool>/count/<string:data_type>/', methods=['GET'])
-def count(pool, data_type):
+# @ pools_api.route('/<string:pool>/count/<string:data_type>', methods=['GET'])
+def count_singleXXX(pool, data_type):
     """ Returns the number of given type of data in the given pool.
 
     :data_type:  (part of) dot-separated full class name of data items in pool.
+    """
+
+    return count_general(pool=pool, data_type=data_type, logger=current_app.logger)
+
+
+@ pools_api.route('/<string:pool>/count', methods=['GET'])
+@ pools_api.route('/<string:pool>/count/<string:data_type>', methods=['GET'])
+def count(pool, data_type=None):
+    """ Returns the number of all types or of a given type of data in the given pool.
+
+    Parameter
+
+    :data_type:  (part of) dot-separated full class name of data items in pool.
+    """
+    logger = current_app.logger
+    # return count_general(pool=pool, data_type=data_type, logger=current_app.logger)
+
+    # def count_general(pool, data_type, logger):
+    ts = time.time()
+    poolname = pool.strip('/')
+    poolurl = current_app.config['POOLURL_BASE'] + poolname
+    logger.debug(f'get {data_type} count for ' + pool)
+
+    try:
+        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        result = poolobj.getCount(data_type)
+        code, msg = 200, 'Recorded count of %s returned OK' % (
+            data_type if data_type else 'all types')
+    except Exception as e:
+        code, result, msg = excp(e, serialize_out=False)
+
+    return resp(code, result, msg, ts, serialize_out=False)
+
+
+@ pools_api.route('/<string:pool>/count/', methods=['GET'])
+@ pools_api.route('/<string:pool>/count/<string:data_type>/', methods=['GET'])
+def counted(pool, data_type=None):
+    """ Counts and Returns the number of given type of data in the given pool.
+
+    :data_type1:  (part of) dot-separated full class name of data items in pool.
     """
 
     logger = current_app.logger
 
     ts = time.time()
     pool = pool.strip('/')
-    logger.debug(f'get {data_type} count for ' + pool)
+    logger.debug(f'count {data_type} type for ' + pool)
 
-    code, result, msg = get_prod_count(data_type, pool)
+    code, result, msg = get_prod_count(data_type=data_type, pool_id=pool)
 
     return resp(code, result, msg, ts, serialize_out=False)
 
 
-def get_prod_count(prod_type, pool_id):
-    """ Return the total count for the given product type and pool_id in the directory.
+def get_prod_count(data_type, pool_id):
+    """ Return the total count for the given product type, or all types, and pool_id in the directory.
 
-    'prod_type': (part of) 'clsssname',
+    'data_type': (part of) 'clsssname'. `None` for all types.
     'pool_id': 'pool name'
 
     """
 
     logger = current_app.logger
-    logger.debug('### method %s prod_type %s pool %s***' %
-                 (request.method, prod_type, pool_id))
+    logger.debug('### method %s data_type %s pool %s***' %
+                 (request.method, data_type, pool_id))
     res = 0
     nm = []
 
     path = join(current_app.config['FULL_BASE_LOCAL_POOLPATH'], pool_id)
     if os.path.exists(path):
         for i in os.listdir(path):
-            if i[-1].isnumeric() and prod_type in i:
+            if i[-1].isnumeric() and ((data_type is None) or (data_type in i)):
                 res = res+1
                 nm.append(i)
     else:
         return 400, 'FAILED', f'Pool {pool} not found.'
     s = str(nm)
-    logger.debug(prod_type + ' found '+s)
-    return 200, res, 'Counting %d %s files OK.' % (res, prod_type)
+    logger.debug(str(data_type) + ' found '+s)
+    return 200, res, 'Counted %d %s files OK.' % (res, data_type if data_type else 'all types')
 
 
 ######################################
@@ -779,3 +820,11 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
         logger.error(msg)
 
     return 0, resp(code, result, msg, ts, serialize_out=False), 0
+
+
+@pools_api.before_request
+def before_request_callback():
+    path = request.path
+    method = request.method
+
+    print("pools_api " + path + " >>>>>>[" + method + "]<<<<<<")

@@ -120,9 +120,14 @@ class DictHk(Taggable):
         # new ###
         if 0:
             assert list(self._tags) == list(self._dTags)
-            assert list(self._tags[tag]['urns']) == list(self._dTags[tag])
+            assert list(self._tags[tag]['urns']) == list(':'.join(
+                ['urn', self._poolname, cl, sn]) for cl in self._dTags[tag] for sn in self._dTags[tag][cl])
             return self._tags[tag]['urns']
-        return self._dTags[tag]
+        # datatype:[sn] -> [urn:poolname:datatype:sn]
+        # return ['urn:%s:%s' % (self._poolname, t) for t in self._dTags[tag]]
+        t = self._dTags[tag]
+        pn = self._poolname
+        return list(':'.join(['urn', pn, cl, sn]) for cl in t for sn in t[cl])
 
     def getUrnObject(self, tag):
         """
@@ -162,18 +167,18 @@ class DictHk(Taggable):
         # TODO in CSDB
         """
         # new ##
-        clsn_sns = self._dTags.pop(tag, [])
-        for clsn_sn in clsn_sns:
-            datatype, sn = tuple(clsn_sn.split(':'))
-            sn = int(sn)
-            ts = self._dTypes[datatype]['sn'][sn]['tags']
-            if tag in ts:
-                ts.remove(tag)
-                if len(tags) == 0:
-                    del ts
-            else:
-                logger.warning('tag %s missing from %s:%s:%s.' %
-                               (tag, self._poolname, datatype, sn))
+        clsn_sns = self._dTags.pop(tag)
+        for datatype, sns in clsn_sns.items():
+            for sn in sns:
+                sn = int(sn)
+                ts = self._dTypes[datatype]['sn'][sn]['tags']
+                if tag in ts:
+                    ts.remove(tag)
+                    if len(tags) == 0:
+                        del ts
+                else:
+                    logger.warning('tag %s missing from %s:%s:%s.' %
+                                   (tag, self._poolname, datatype, sn))
         if 0:
             self.removekey(tag, self._tags, 'tags', self._urns, 'urns')
         # new ##
@@ -193,9 +198,11 @@ class DictHk(Taggable):
         if 'tags' in _snd:
             for tag in _snd['tags']:
                 if tag in self._dTags:
-                    self._dTags[tag].remove(':'.join(datatype, str(sn)))
-                    if len(self._dTags[tag]) == 0:
-                        del self._dTags[tag]
+                    self._dTags[tag][datatype].remove(str(sn))
+                    if len(self._dTags[tag][datatype]) == 0:
+                        del self._dTags[tag][datatype]
+                        if len(self._dTags[tag]) == 0:
+                            del self._dTags[tag]
                 else:
                     logger.warning('tag %s missing from %s.' %
                                    (tag, self._poolname))
@@ -234,13 +241,14 @@ class DictHk(Taggable):
         if tag not in snt:
             snt.append(tag)
         # dTags saves datatype:sn
-        ty_sn = u.split(':', 2)[-1]
-        if tag in self._dTags:
-            t = self._dTags[tag]
-            if ty_sn not in t:
-                t.append(ty_sn)
+        _, typ, sn = tuple(u.rsplit(':', 2))
+        if tag not in self._dTags:
+            self._dTags[tag] = {}
+        t = self._dTags[tag]
+        if typ not in t:
+            t[typ] = [sn]
         else:
-            self._dTags[tag] = [ty_sn]
+            t[typ].append(sn)
 
     def tagExists(self, tag):
         """

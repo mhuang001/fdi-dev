@@ -125,6 +125,8 @@ def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', l
 
 
 def excp(e, code=400, msg='', serialize_out=True):
+    if current_app.config['DEBUG']:
+        raise e
     result = '"FAILED"' if serialize_out else 'FAILED'
     msg = '%s\n%s: %s.\nTrace back: %s' % (
         msg, e.__class__.__name__, str(e), trbk(e))
@@ -146,6 +148,13 @@ def check_readonly(usr, meth, logger):
 
     return None
 
+
+@data_api.before_request
+def before_request_callback():
+    path = request.path
+    method = request.method
+
+    print("data_api " + path + " >>>>>>[" + method + "]<<<<<<")
 
 ######################################
 ####  /urn{parts} get data ####

@@ -188,7 +188,7 @@ class PublicClientPool(ManagedPool):
             raise TypeError(
                 'Pool info API changed or unexpected information: ' + str(e))
 
-    def getCount(self, typename):
+    def getCount(self, typename=None):
         """
         Return the number of URNs for the product type.
         """
@@ -196,13 +196,11 @@ class PublicClientPool(ManagedPool):
             clzes = self.getProductClasses()
             if clzes == 0:
                 return 0
+            if typename is None:
+                return sum(len(td['sn']) for td in self.poolInfo[self.poolname]['_classes'].value())
             if typename not in clzes:
                 raise ValueError("Current pool has no such type: " + typename)
             return len(self.poolInfo[self.poolname]['_classes'][typename]['sn'])
-            for clz in self.poolInfo[self.poolname]['_classes']:
-                if typename == clz['productTypeName']:
-                    # XXX -1 is due to a bug in sn[] in csdb
-                    return len(clz['sn'])-1
         except KeyError:
             return 0
 

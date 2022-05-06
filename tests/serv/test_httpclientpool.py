@@ -205,7 +205,8 @@ def crud_t(poolid, poolurl, local_pools_dir, pool):
                                                poolid + ' is None.'
 
     cnt = pool.getCount('fdi.dataset.product.Product')
-    assert cnt == 0, 'Local metadata file size is 2'
+    assert cnt == 0, 'Local metadata file size is 0'
+    assert pool.getCount() == pool.count == 0
 
     logger.info('Save data by ' + pool.__class__.__name__)
     x = Product(description='desc test')
@@ -220,7 +221,8 @@ def crud_t(poolid, poolurl, local_pools_dir, pool):
     poolpath, scheme, place, pn, un, pw = parse_poolurl(
         poolurl, poolhint=poolid)
     cnt = pool.getCount(typenm)
-    assert cnt == 2
+    assert cnt == pool.getCount()
+    assert cnt == 2 == pool.count
 
     logger.info('Load product from httpclientpool')
     res = pstore.getPool(poolid).loadProduct(urn2.urn)
@@ -247,6 +249,7 @@ def crud_t(poolid, poolurl, local_pools_dir, pool):
     logger.info('Wipe a pool')
     pstore.getPool(poolid).removeAll()
     assert pool.isEmpty()
+    assert pool.count == 0
 
     tag = '==== Demo Product ===='
     logger.info('test sample demo prod with tag: ' + tag)

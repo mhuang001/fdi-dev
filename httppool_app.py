@@ -52,6 +52,8 @@ if __name__ == '__main__':
                         type=str, help='server type: pns or httppool_server')
     parser.add_argument('-w', '--wsgi', default=False,
                         action='store_true', help='run a WSGI server.')
+    parser.add_argument('-d', '--debug', default=False,
+                        action='store_true', help='run in debug mode.')
     args = parser.parse_args()
 
     verbose = args.verbose
@@ -90,4 +92,4 @@ if __name__ == '__main__':
               host=pc['self_host'], port=pc['self_port'])
     else:
         app.run(host=pc['self_host'], port=pc['self_port'],
-                threaded=True, debug=verbose, processes=1, use_reloader=True)
+                threaded=True, debug=args.debug, processes=1, use_reloader=True, passthrough_errors=args.debug)

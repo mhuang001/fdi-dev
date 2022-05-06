@@ -52,7 +52,7 @@ def toserver(self, method, *args, **kwds):
                                         no_serial=True, auth=self.auth)
 
     if issubclass(res.__class__, str) and 'FAILED' in res or code != 200:
-        for line in msg.split('\n'):
+        for line in chain(msg.split('.', 1)[:1], msg.split('\n')):
             excpt = line.split(':', 1)[0]
             if excpt in bltn:
                 # relay the exception from server
@@ -316,7 +316,7 @@ class HttpClientPool(ProductPool):
         # return self.toserver('reference', ref)
 
     @ toServer()
-    def getCount(self, typename):
+    def getCount(self, typename=None):
         """
         Return the number of URNs for the product type.
         """

@@ -388,8 +388,38 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb
         api_baseurl = scheme + '://' + place + poolpath + '/'
         url = api_baseurl + cpath
         x = requests.get(url, auth=auth)
+        assert 'recorded' in x.text
         count = int(x.json()['result'])
         assert count == expected_cnt
+        # counting files. Append a '/'
+        cpath = poolname + '/' + 'count/' + prodname + '/'
+        api_baseurl = scheme + '://' + place + poolpath + '/'
+        url = api_baseurl + cpath
+        x = requests.get(url, auth=auth)
+        assert 'Counted' in x.text
+        count = int(x.json()['result'])
+        assert count == expected_cnt
+
+        # count all
+        cpath = poolname + '/' + 'count'
+        api_baseurl = scheme + '://' + place + poolpath + '/'
+        url = api_baseurl + cpath
+        x = requests.get(url, auth=auth)
+        assert 'recorded' in x.text
+        count = int(x.json()['result'])
+        assert count >= expected_cnt
+
+        # count all with couting
+        cpath = poolname + '/' + 'count' + '/'
+        api_baseurl = scheme + '://' + place + poolpath + '/'
+        url = api_baseurl + cpath
+        x = requests.get(url, auth=auth)
+        assert 'Counted' in x.text
+        count1 = int(x.json()['result'])
+        assert count1 >= expected_cnt
+
+        assert count == count1
+
         # sn
         if currentSN is None:
             return
@@ -642,7 +672,7 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
         assert ts[0] == 't0'
         u = ps.getUrnFromTag('all-tm')
         assert len(u) == m
-        assert u[0] == ref2[q].urn.split(':', 2)[-1]
+        assert u[0] == ref2[q].urn
 
     # access resource
     checkdbcount(init_count+n, thepoolurl, pcq, init_sn+n-1, *args)
@@ -879,6 +909,9 @@ def doquery(poolpath, newpoolpath):
 
     # [T T T C] [C M M]
     #  0 1 2 3   4 5 6
+
+    assert thepool.count == 4
+    assert newpool.count == 3
 
     # query with a specific parameter in all products' metadata, which is the variable 'm' in the query expression, i.e. ``m = product.meta; ...``
     m = 2

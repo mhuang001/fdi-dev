@@ -76,7 +76,7 @@ When implementing a ProductPool, the following rules need to be applied:
         * poolurl: needed to initialize.
 
         """
-        super(ProductPool, self).__init__(**kwds)
+        super().__init__(**kwds)
 
         self.setPoolname(poolname)
         self.setPoolurl(poolurl)
@@ -182,7 +182,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         Returns pool definition info which contains pool type and other pool specific configuration parameters
         """
-        return super(ProductPool, self).getDefinition()
+        return super().getDefinition()
 
     def getId(self):
         """
@@ -323,7 +323,19 @@ When implementing a ProductPool, the following rules need to be applied:
 
         raise(NotImplementedError)
 
-    def getCount(self, typename):
+    @property
+    def count(self):
+        """ for property getter
+        """
+        return self.getCount()
+
+    @count.setter
+    def count(self, count):
+        """ for property setter
+        """
+        raise ValueError('Pool.count is read-only.')
+
+    def getCount(self, typename=None):
         """
         Return the number of URNs for the product type.
         """
@@ -419,7 +431,7 @@ class ManagedPool(ProductPool, DictHk):
     """ A ProductPool that manages its internal house keeping. """
 
     def __init__(self, **kwds):
-        super(ManagedPool, self).__init__(**kwds)
+        super().__init__(**kwds)
         # {type|classname -> {'sn:[sn]'}}
 
     def setup(self):
@@ -490,10 +502,10 @@ class ManagedPool(ProductPool, DictHk):
         """
         # new ###
         poolname, dt, sn = parseUrn(urn, int_index=True)
-        ####assert self._urns[ref.urn]['refcnt'] == self._dType[dt]['sn'][sn]['refcnt']
+        # assert self._urns[ref.urn]['refcnt'] == self._dType[dt]['sn'][sn]['refcnt']
         self._dType[dt]['sn'][sn]['refcnt'] -= 1
         # /new ###
-        ####self._urns[ref.urn]['refcnt'] -= 1
+        # self._urns[ref.urn]['refcnt'] -= 1
 
     def exists(self, urn, resourcetype=None, index=None):
         """
@@ -517,7 +529,7 @@ class ManagedPool(ProductPool, DictHk):
         assert list(self._classes.keys()) == list(self._dTypes.keys())
         return self._classes.keys()
 
-    def getCount(self, typename):
+    def getCount(self, typename=None):
         """
         Return the number of URNs for the product type.
         """
@@ -525,7 +537,10 @@ class ManagedPool(ProductPool, DictHk):
             # new ###
             # assert len(self._classes[typename]['sn']) == len(
             # self._dTypes[typename]['sn'])
-            return len(self._dTypes[typename]['sn'])
+            if typename:
+                return len(self._dTypes[typename]['sn'])
+            else:
+                return sum(len(dt['sn']) for dt in self._dTypes.values())
         except KeyError:
             return 0
 
@@ -541,7 +556,7 @@ class ManagedPool(ProductPool, DictHk):
         # new ###
         poolname, dt, sn = parseUrn(urn, int_index=False)
         _snd = self._dType[dt]['sn'][sn]
-        ####assert self._urns[ref.urn]['refcnt'] == _snd['refcnt']
+        # assert self._urns[ref.urn]['refcnt'] == _snd['refcnt']
         return _snd['refcnt']
         # /new ###
         # return self._urns[ref.urn]['refcnt']
@@ -551,7 +566,7 @@ class ManagedPool(ProductPool, DictHk):
         Determines if the pool is empty.
         """
         # new ###
-        ####assert len(self._urns) == len(self._dTypes)
+        # assert len(self._urns) == len(self._dTypes)
         # return len(self._urns) == 0
         return len(self._dTypes) == 0
 
@@ -645,11 +660,13 @@ class ManagedPool(ProductPool, DictHk):
                                tags: ['tree', 'green']
                                meta: [100, 654]
                                refcnt: 1
-     `dTags` differs from `tag` 1. uses pType:sn, instead of urn as key, so there is no poolname anywhere, 2. simplify by removo second level dict::
-                     $tag_name0: [$class_name1:$sn1, $class_name2:$sn2, ...]
+     `dTags` differs from `tag` 1. uses dType:[sn], instead of urn, so there is no poolname anywhere, 2. simplify by removing second level dict::
+                     $tag_name0:
+                           $class_name1:[$sn1, $sn2...]
+                           $class_name2:[$sn3, ...]
               exxample::
-                     'cat': [ 'foo.bar.Bar:0']
-                     'white': [ 'foo.bar.Bar:0', 'foo.barBar:1']
+                     'cat': { 'foo.bar.Bar':[0] }
+                     'white': { 'foo.bar.Bar'; [0, 1] }
                      'dog': ...
 
         :res: list of result.
@@ -1151,10 +1168,6 @@ class ManagedPool(ProductPool, DictHk):
         return OrderedDict(
             poolname=getattr(self, '_poolname', 'unknown'),
             poolurl=getattr(self, '_poolurl', 'unknown'),
-            _classes=self._classes,
-            _urns=self._urns,
-            _tags=self._tags,
-            # new ###
             _dTypes=self._dTypes,
             _dTags=self._dTags,
         )

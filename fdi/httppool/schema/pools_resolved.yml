@@ -407,12 +407,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
+  '/{pool}/count':
+    get:
+      summary: Number of all types of data in the pool.
+      tags:
+        - Pool_Info
+      description: return the recorded total number of all data according to pool ID.
+      operationId: count
+      parameters:
+        - $ref: '#/components/parameters/Pool'
+      responses:
+        '200':
+          description: Done getting data count of the Pool.
+          content:
+            application/json:
+              schema: null
   '/{pool}/count/{data_type}':
     get:
       summary: Returns the number of given type of data in the given pool.
       tags:
         - Data
-      description: 'requests pool housekeeping data of specified kind: classes or urns or tags'
+      description: Returns the number of specific type of data in the pool
       operationId: count
       parameters:
         - $ref: '#/components/parameters/Pool'

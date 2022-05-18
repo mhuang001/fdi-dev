@@ -35,7 +35,7 @@ def getyaml():
         yinit()
 
 
-def checkjson(obj, dbg=0, **kwds):
+def checkjson(obj, dbg=0, int_key=True, **kwds):
     """ seriaizes the given object and deserialize. check equality.
     """
 
@@ -51,7 +51,7 @@ def checkjson(obj, dbg=0, **kwds):
         print(js)
         print('***>>>>>')
 
-    des = deserialize(js, lookup=Classes.mapping, debug=dbg)
+    des = deserialize(js, lookup=Classes.mapping, debug=dbg, int_key=int_key)
     if dbg:
         if 0 and hasattr(des, 'meta'):
             print('des.meta ' + str((des.meta.listeners)))
@@ -81,5 +81,6 @@ def checkjson(obj, dbg=0, **kwds):
         # obj.meta.listeners = []
         # des.meta.listeners = []
 
-    assert obj == des, deepcmp(obj, des, **kwds)
+    brief = kwds.pop('brief', False)
+    assert obj == des, deepcmp(obj, des, brief=brief, **kwds)
     return des

@@ -50,14 +50,14 @@ class Urn(DeepEqual, Serializable, Comparable):
 
     About_URN
 
-The Universial Resource Name (**URN**) string has this format:
+The Universial Resource Name (**URN**, https://datatracker.ietf.org/doc/html/rfc2141 ) string has this format:
 
         urn:<poolname>:<resourcetype>:<serialnumber>
 
-where
+with modified rules desribed below.
 
-:<poolname>: Also called poolID. Its requirements is like that to a file name and a URL segment, having only printable characters excluding `` ``, ``%``, ``?``, ``*``, ``=``, ``/``.
-:<resourcetype>: class name of the data item (usually :class:`Product`)
+:<poolname>: Also called poolID. It consists of 1-32 characters, is case-sensitive, which deviates from rfc2141. Character allowed are ``alpha``, ``digit``, ``safe``, defined in rfc1630 (https://datatracker.ietf.org/doc/html/rfc1630). These are excluded: `` ``, ``%``, ``?``, ``!``, ``*``,``'``, ``"``,  ``(``, ``)``, ``=``, ``/``, and what listed in ``mod:poolmanager:Invalid_Pool_Names``, e.g. ``pools``, ``urn``, ``URN``, ``api``.
+:<resourcetype>: type name of the data item (usually class name of data products inheriting :class:`BaseProduct`)
 :<serialnumber>: internal index for a certain <resourcetype>.
 
 The ``poolname`` in a URN is a label. Some examples:
@@ -65,7 +65,7 @@ The ``poolname`` in a URN is a label. Some examples:
 -  urn:pool_mh:fdi.dataset.product.Product:2
 -  urn:20.20:svom.products.SVOMMapContext:0
 
-Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. The **PoolURL** is used to give practical information of a pool, such as a poolname, its location, and its access scheme. It is designed to be a local set-up detail that is supposed to be hidden from pool users. Data processing software use ``URN``s to refer to products, without specifying pool location. The poolID in a URN could be a :class:`LocalPool` on the development laptop and a :class:`HTTPClientPool` on the production cloud.
+URNs are used to to identify data be cause URNs are location agnostic. Storage Pools (subclasses of :class:`ProductPool`) are where data item reside. The **PoolURL** is used to give practical information of a pool, such as a poolname, its location, and its access scheme. PoolURL is designed to be a local set-up detail that is supposed to be hidden from pool users. Data processing software use ``URN``s to refer to products, without specifying pool location. The poolID in a URN could be a :class:`LocalPool` on the development laptop and a :class:`HTTPClientPool` on the production cloud.
 
     """
 

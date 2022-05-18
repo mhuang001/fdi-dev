@@ -22,7 +22,7 @@ pc = getConfig()
 DEFAULT_MEM_POOL = 'defaultmem'
 # localpool
 DEFAULT_POOL = 'fdi_pool_' + __name__ + getpass.getuser()
-Invalid_Pool_Names = ['pools', 'urn', 'api']
+Invalid_Pool_Names = ['pools', 'urn', 'URN', 'api']
 
 
 def remoteRegister(poolurl, auth=None):

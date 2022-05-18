@@ -5,7 +5,6 @@ from .eq import DeepEqual, xhash
 from ..utils.common import bstr
 
 from collections import OrderedDict, UserDict
-from pprint import pformat
 import logging
 
 logger = logging.getLogger(__name__)

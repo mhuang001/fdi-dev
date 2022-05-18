@@ -3,9 +3,10 @@
 from .masked import masked
 from .ydump import ydump
 from .. import dataset
-
+from ..dataset.finetime import FineTime
 import hashlib
 import array
+import datetime
 import traceback
 import pprint
 import textwrap
@@ -653,7 +654,7 @@ def findShape(data, element_seq=(str)):
     return tuple(shape)
 
 
-def guess_value(input_string, parameter=False, last=str):
+def guess_value(data, parameter=False, last=str):
     """ Returns guessed value from a string.
 
     | input | output |
@@ -662,38 +663,56 @@ def guess_value(input_string, parameter=False, last=str):
     | float | `float()` |
     | ```'True'```, ```'False```` | `True`, `False` |
     | string starting with ```'0x'``` | `hex()` |
-    | else | run `last`(input_string) |
+    | else | run `last`(data) |
 
     """
     from ..dataset.numericparameter import NumericParameter, BooleanParameter
     from ..dataset.dateparameter import DateParameter
     from ..dataset.stringparameter import StringParameter
     from ..dataset.metadata import Parameter
-    if input_string == 'None':
+    if data == 'None':
         res = None
-    elif input_string == '':
+    elif data == '':
         if parameter:
-            return StringParameter(value=input_string)
+            return StringParameter(value=data)
         else:
-            return input_string
+            return data
     else:
         try:
-            res = int(input_string)
+            if issubclass(data.__class__, int):
+                res = data
+            else:
+                res = int(data)
             return NumericParameter(value=res) if parameter else res
         except ValueError:
             try:
-                res = float(input_string)
+                if issubclass(data.__class__, float):
+                    res = data
+                else:
+                    res = float(data)
                 return NumericParameter(value=res) if parameter else res
             except ValueError:
                 # string, bytes, bool
-                if input_string.startswith('0x'):
-                    res = bytes.fromhex(input_string[2:])
+                if issubclass(data.__class__, bytes):
+                    res = data
                     return NumericParameter(value=res) if parameter else res
-                elif input_string in ['True', 'False']:
-                    res = bool(input_string)
+                elif data.startswith('0x'):
+                    res = bytes.fromhex(data[2:])
+                    return NumericParameter(value=res) if parameter else res
+                elif issubclass(data.__class__, bool):
+                    res = data
                     return BooleanParameter(value=res) if parameter else res
+                elif data in ['True', 'False']:
+                    res = bool(data)
+                    return BooleanParameter(value=res) if parameter else res
+                elif issubclass(data.__class__, (datetime.datetime, FineTime)):
+                    res = data
+                    return DateParameter(value=res) if parameter else res
+                elif 'T' in data and ':' in data and '-' in data:
+                    res = FineTime(data)
+                    return DateParameter(value=res) if parameter else res
                 else:
-                    res = last(input_string)
+                    res = last(data)
                     return Parameter(value=res) if parameter else res
     return StringParameter('null') if parameter else None
 

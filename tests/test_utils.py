@@ -16,16 +16,16 @@ from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
 from fdi.utils.tree import tree
 from fdi.utils.loadfiles import loadMedia
-from fdi.utils.tofits import fits_dataset, toFits
+from fdi.utils.validator import getValidator, validateJson
 
 import traceback
 import copy
 from datetime import timezone, timedelta, datetime
 import sys
 import os
-import io
+import json
 import hashlib
-import os.path
+import os.path as op
 import pytest
 import numpy as np
 from astropy.io import fits
@@ -370,8 +370,8 @@ def test_loadcsv():
 
 def test_loadMedia():
     fname = 'bug.gif'
-    fname = os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                      'resources'), fname)
+    fname = op.join(op.join(op.abspath(op.dirname(__file__)),
+                            'resources'), fname)
     image = loadMedia(fname, 'image/gif')
     ho = hashlib.md5()
     ho.update(image.data)
@@ -381,7 +381,7 @@ def test_loadMedia():
 
 def test_moduleloader():
 
-    moduleloader.main(ipath=os.path.abspath('tests'))
+    moduleloader.main(ipath=op.abspath('tests'))
 
 
 def test_fullname():
@@ -482,8 +482,8 @@ def test_opt(caplog):
 
 def check_conf(cfp, typ, getConfig):
     cfn = typ + 'local.py'
-    cfp = os.path.expanduser(cfp)
-    filec = os.path.join(cfp, cfn)
+    cfp = op.expanduser(cfp)
+    filec = op.join(cfp, cfn)
     os.system('rm -f ' + filec)
     conf = 'import os; %sconfig={"jk":98, "m":os.path.abspath(__file__)}' % typ
     with open(filec, 'w') as f:
@@ -552,3 +552,17 @@ def test_leapseconds():
     assert utc_to_tai(t4) - utc_to_tai(t4 - timedelta(seconds=1)) == \
         timedelta(seconds=2)
     print(_fallback.cache_info())
+
+
+def test_validator():
+    fdi_sch_dir = op.join(op.abspath(op.dirname(__file__)), '../fdi/schemas')
+    sch_dir = op.join(op.abspath(op.dirname(__file__)), 'resources/schemas')
+    sch_path = op.join(sch_dir, 'prd_schema.jsn')
+    with open(sch_path, 'r') as file:
+        sch = json.load(file)
+
+    from fdi.dataset.baseproduct import BaseProduct
+    jsn = BaseProduct().zInfo
+
+    assert getValidator(sch, schema_dir=fdi_sch_dir,
+                        verbose=1).validate(jsn) is None

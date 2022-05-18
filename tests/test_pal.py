@@ -159,18 +159,18 @@ def test_UrnUtils():
 
 
 def test_Urn():
-    prd = Product(description='pal test')
+    prd = BaseProduct(description='pal test')
     a1 = 'file'      # scheme
     a2 = '/e:'            # place
     b1, b2 = '/tmp/foo', 'name'
     a3 = b1 + '/' + b2               # /tmp/foo/name
-    a4 = fullname(prd)           # fdi.dataset.Product
+    a4 = fullname(prd)           # fdi.dataset.BaseProduct
     a5 = 43
     s = a1 + '://' + a2          # file:///e:
     poolurl = s + a3                   # file:///e:/tmp/foo/name
-    r = a4 + ':' + str(a5)       # fdi.dataset.Product:43
-    rp = a4 + '_' + str(a5)      # fdi.dataset.Product_43
-    urn = 'urn:' + b2 + ':' + r  # urn:name:fdi.dataset.Product:43
+    r = a4 + ':' + str(a5)       # fdi.dataset.BaseProduct:43
+    rp = a4 + '_' + str(a5)      # fdi.dataset.BaseProduct_43
+    urn = 'urn:' + b2 + ':' + r  # urn:name:fdi.dataset.BaseProduct:43
     urn1 = 'urn:' + b2 + ':' + a4+':'+str(a5-1)
     # constructor
     # urn only
@@ -572,10 +572,6 @@ def test_ProductStorage_init():
 def getCurrSnCount(csdb, prodname):
     pinfo = csdb if issubclass(csdb.__class__, dict) else \
         csdb.getPoolInfo()
-    # XXX the code below is due to a bug in csdb
-    # correct version:
-    # init_count=len(pinfo[thepoolname]['_classes'][pcq]['sn'])
-    # init_sn = pinfo[thepoolname]['_classes'][pcq]['currentSn']
     for pool in pinfo.values():
         for cl in pool['_classes']:
             if cl['productTypeName'] == prodname:

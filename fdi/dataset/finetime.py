@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from .serializable import Serializable
-from .odict import ODict
 from .eq import DeepEqual
 from .copyable import Copyable
 # from .metadata import ParameterTypes
@@ -41,6 +40,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
     """ """
     DEFAULT_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'  # ISO
+    DEFAULT_FORMAT_SECOND = '%Y-%m-%dT%H:%M:%S'
 
     RETURNFMT = '%s.%06d'
 
@@ -115,48 +115,54 @@ class FineTime(Copyable, DeepEqual, Serializable):
                 d = datetime.datetime.strptime(t, fmt)
             except ValueError:
                 msg += '\n%s does not match %s.' % (t, fmt)
-                if ' ' in t:
-                    fmt = FineTime.DEFAULT_FORMAT + ' %Z'
-                    try:
-                        d = datetime.datetime.strptime(t, fmt)
-                    except ValueError:
-                        msg += '\n%s does not match %s.' % (t, fmt)
-                        fmt = FineTime.DEFAULT_FORMAT + ' %z'
+                fmt = FineTime.DEFAULT_FORMAT_SECOND
+                try:
+                    d = datetime.datetime.strptime(t, fmt)
+                except ValueError:
+                    msg += '\n%s does not match %s.' % (t, fmt)
+                    if ' ' in t:
+                        fmt = FineTime.DEFAULT_FORMAT + ' %Z'
                         try:
                             d = datetime.datetime.strptime(t, fmt)
                         except ValueError:
                             msg += '\n%s does not match %s.' % (t, fmt)
-                            raise ValueError(msg)
-                    logger.warning('Time zone %s assumed for %s' %
-                                   (t.rsplit(' ')[1], t))
-                else:
-                    # No ' ' in time string
-                    gotit = False
-                    if t.endswith('Z'):
-                        fmt = FineTime.DEFAULT_FORMAT + 'Z'
-                        try:
-                            d = datetime.datetime.strptime(t, fmt)
-                            gotit = True
-                            logger.warning('Time zone 0 assumed for %s' % t)
-                        except ValueError:
-                            msg += '\n%s does not match %s.' % (t, fmt)
-                            # try the tz's. maybe tz endswith Z?
-                            pass
-                    if not gotit:
-                        # not ending with 'Z' or not match fmt+'Z'
-                        fmt = FineTime.DEFAULT_FORMAT + '%Z'
-                        try:
-                            d = datetime.datetime.strptime(t, fmt)
-                        except ValueError:
-                            msg += '\n%s does not match %s.' % (t, fmt)
-                            fmt = FineTime.DEFAULT_FORMAT + '%z'
+                            fmt = FineTime.DEFAULT_FORMAT + ' %z'
                             try:
                                 d = datetime.datetime.strptime(t, fmt)
                             except ValueError:
                                 msg += '\n%s does not match %s.' % (t, fmt)
-                                raise TypeError(msg)
-                logger.warning('Time zone %s taken for %s' %
-                               (str(d.tzname()), t))
+                                raise ValueError(msg)
+                        logger.warning('Time zone %s assumed for %s' %
+                                       (t.rsplit(' ')[1], t))
+                    else:
+                        # No ' ' in time string
+                        gotit = False
+                        if t.endswith('Z'):
+                            fmt = FineTime.DEFAULT_FORMAT + 'Z'
+                            try:
+                                d = datetime.datetime.strptime(t, fmt)
+                                gotit = True
+                                logger.warning(
+                                    'Time zone 0 assumed for %s' % t)
+                            except ValueError:
+                                msg += '\n%s does not match %s.' % (t, fmt)
+                                # try the tz's. maybe tz endswith Z?
+                                pass
+                        if not gotit:
+                            # not ending with 'Z' or not match fmt+'Z'
+                            fmt = FineTime.DEFAULT_FORMAT + '%Z'
+                            try:
+                                d = datetime.datetime.strptime(t, fmt)
+                            except ValueError:
+                                msg += '\n%s does not match %s.' % (t, fmt)
+                                fmt = FineTime.DEFAULT_FORMAT + '%z'
+                                try:
+                                    d = datetime.datetime.strptime(t, fmt)
+                                except ValueError:
+                                    msg += '\n%s does not match %s.' % (t, fmt)
+                                    raise TypeError(msg)
+                    logger.warning('Time zone %s taken for %s' %
+                                   (str(d.tzname()), t))
             d1 = d.replace(tzinfo=datetime.timezone.utc)
             setTai = self.datetimeToFineTime(d1)
         # setTai has a value

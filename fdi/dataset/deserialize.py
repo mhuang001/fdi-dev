@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from .serializable import serialize, ATTR, LEN_ATTR
-from .odict import ODict
 from .classes import Classes
-from ..utils.common import lls, trbk, guess_value
+from ..utils.common import lls, guess_value
 
 import logging
 import json
@@ -11,12 +10,11 @@ import codecs
 import gzip
 import binascii
 import array
-import mmap
 from collections import ChainMap
 import builtins
 import urllib
-from collections import UserDict
-from collections.abc import MutableMapping as MM, MutableSequence as MS, MutableSet as MSe
+from .odict import ODict
+from collections.abc import MutableMapping as MM
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True

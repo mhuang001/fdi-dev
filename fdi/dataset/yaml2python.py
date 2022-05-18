@@ -131,7 +131,7 @@ def get_Python(val, indents, demo, onlyInclude, debug=False):
     return infostr, code
 
 
-def make_initc_ode(dt, pval):
+def make_init_code(dt, pval):
     """ python instanciation source code.
 
     will be like "default: FineTime1(0)" in 'def __init__(self...'
@@ -155,7 +155,7 @@ def make_initc_ode(dt, pval):
 
 
 def params(val, indents, demo, onlyInclude, debug=False):
-    """ generates python strng for val, a parameter with a set of attribute
+    """ generates python strng for val, a parameter with a set of attributes
 
     val: as in ```name:val```
     ```
@@ -224,7 +224,7 @@ def params(val, indents, demo, onlyInclude, debug=False):
             # get string representation
             pval = str(pv).strip() if iss else str(pv)
             if pname == 'default':
-                code = make_initc_ode(dt, pval)
+                code = make_init_code(dt, pval)
             if pname in ['example', 'default']:
                 # here data_type instead of input type determines the output type
                 iss = (val['data_type'] == 'string') and (pval != 'None')
@@ -241,7 +241,7 @@ def get_projectclasses(clp, rerun=True, exclude=None, verbose=False):
 
     Parameters
     ----------
-    :clp: paht of the mapping file.
+    :clp: path of the mapping file.
     :rerun, exclude: from `Classes`
 
     Returns
@@ -314,7 +314,7 @@ def read_yaml(ypath, version=None, verbose=False):
 
         attrs = dict(d['metadata'])
         datasets = dict(d['datasets'])
-        # move primary level table to datasets
+        # move primary level table to datasets, named 'TABLE_META'
         if 'TABLE' in attrs:
             datasets['TABLE_META'] = {}
             datasets['TABLE_META']['TABLE'] = attrs['TABLE']
@@ -536,8 +536,8 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
     :seen: a dict holding class names that the py file is going to import
  """
     if parentNames and len(parentNames):
-        includingParentsAttributes = {}
-        includingParentsTableColumns = {}
+        parentsAttributes = {}
+        parentsTableColumns = {}
         for parent in parentNames:
             if parent is None:
                 continue
@@ -549,33 +549,33 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
             # get parent attributes and tables
             mod = sys.modules[mod_name]
             if hasattr(mod, '_Model_Spec'):
-                includingParentsAttributes.update(
+                parentsAttributes.update(
                     mod._Model_Spec['metadata'])
 
-                includingParentsTableColumns.update(
+                parentsTableColumns.update(
                     mod._Model_Spec['datasets'])
         # merge to get all attributes including parents' and self's.
         toremove = []
         for nam, val in attrs.items():
             if float(schema) > 1.5 and 'data_type' not in val:
                 # update parent's
-                includingParentsAttributes[nam].update(attrs[nam])
+                parentsAttributes[nam].update(attrs[nam])
                 toremove.append(nam)
             else:
                 # override
-                includingParentsAttributes[nam] = attrs[nam]
+                parentsAttributes[nam] = attrs[nam]
         for nam in toremove:
             del attrs[nam]
-        if 0 and includingParentsAttributes['type']['default'] == 'Oem_Nssc':
+        if 0 and parentsAttributes['type']['default'] == 'Oem_Nssc':
             __import__('pdb').set_trace()
         # parents are updated but names and orders follow the child's
         for ds_name, child_dataset in datasets.items():
             # go through datasets  TODO: ArrayDataset
-            if ds_name not in includingParentsTableColumns:
+            if ds_name not in parentsTableColumns:
                 # child has a name that the parent does not have
-                includingParentsTableColumns[ds_name] = child_dataset
+                parentsTableColumns[ds_name] = child_dataset
                 continue
-            p_dset = includingParentsTableColumns[ds_name]
+            p_dset = parentsTableColumns[ds_name]
             # go through the child's dataset
             for name, c_val in child_dataset.items():
                 # child has a name that the parent does not have
@@ -599,10 +599,10 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
                     _tab[colname] = p_tab[colname]
                 p_dset['TABLE'] = _tab
     else:
-        includingParentsAttributes = attrs
-        includingParentsTableColumns = datasets
+        parentsAttributes = attrs
+        parentsTableColumns = datasets
 
-    return includingParentsAttributes, includingParentsTableColumns
+    return parentsAttributes, parentsTableColumns
 
 
 if __name__ == '__main__':
@@ -728,7 +728,7 @@ if __name__ == '__main__':
             skipped.append(nm)
             continue
 
-        includingParentsAttributes, includingParentsTableColumns = \
+        parentsAttributes, parentsTableColumns = \
             inherit_from_parents(parentNames, attrs, datasets, schema, seen)
         # make output filename, lowercase modulename + .py
         fout = pathjoin(opath, modulename + '.py')
@@ -740,9 +740,9 @@ if __name__ == '__main__':
             fin, datetime.now(), d['description'])))
 
         # parameter classes used in init code may need to be imported, too
-        for val in chain(includingParentsAttributes.values(),
+        for val in chain(parentsAttributes.values(),
                          chain(col for ds in
-                               includingParentsTableColumns.values()
+                               parentsTableColumns.values()
                                for col in ds.get('TABLE', {}).values()
                                )
                          ):
@@ -755,15 +755,15 @@ if __name__ == '__main__':
                     seen[a] = s
 
         # make metadata and parent_dataset dicts
-        d['metadata'] = includingParentsAttributes
-        d['datasets'] = includingParentsTableColumns
+        d['metadata'] = parentsAttributes
+        d['datasets'] = parentsTableColumns
         infs, default_code = get_Python(d, indents[1:], demo, onlyInclude)
         # remove the ',' at the end.
         modelString = (ei + '_Model_Spec = ' + infs).strip()[:-1]
 
         # keyword argument for __init__
         ls = []
-        for x in includingParentsAttributes:
+        for x in parentsAttributes:
             arg = 'typ_' if x == 'type' else x
             val = default_code['metadata'][x]
             ls.append(' '*17 + '%s = %s,' % (arg, val))

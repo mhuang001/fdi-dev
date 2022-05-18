@@ -43,7 +43,9 @@ typecode2np = {
     "d": np.float64,   # double
     "c": np.complex64,  # complex
     "c128": np.complex128,  # complex 128 b
-    "t": np.bool       # truth value
+    "t": np.bool,       # truth value
+    "V": np.void,       # raw bytes block of fixed length
+    "U": np.str
 }
 
 
@@ -73,6 +75,7 @@ def toFits(data, file='', **kwds):
         names = list(data.keys())
         hdul = fits_dataset(hdul, sets, names)
         add_header(data.meta, hdul[0].header)
+        hdul[0].header['EXTNAME'] = 'PrimaryHDU'
     elif issubclass(data.__class__, (ArrayDataset, TableDataset, CompositeDataset)):
         if issubclass(data.__class__, (ArrayDataset)):
             # dataset -> fits
@@ -131,8 +134,9 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
         elif issubclass(ima.__class__, TableDataset):
             t = Table()
             for name, col in ima.items():
-                tname = typecode2np['u' if col.typecode ==
-                                    'UNKNOWN' else col.typecode]
+                tname = typecode2np['u' if col.typecode == 'UNKNOWN' else
+                                    'u' if col.typecode.endswith('B') else
+                                    col.typecode]
                 if debug:
                     print('tname:', tname)
                 c = Column(data=col.data, name=name, dtype=tname, shape=(
@@ -170,7 +174,9 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
 
 
 def add_header(meta, header):
-    """
+    """ Populate  header with keyword lines extracted from MetaData.
+
+    :meta: :class: `MetaData`
     """
     for name, param in meta.items():
         pval = param.value

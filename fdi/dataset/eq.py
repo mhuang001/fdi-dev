@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from ..utils.common import lls, ld2tk, bstr
 from .serializable import Serializable
 
 import logging
 from collections.abc import Mapping, Sequence, Set
 from itertools import chain
 from collections import OrderedDict
-from functools import lru_cache
 import array
 import decimal
 import datetime
 import fractions
-import pprint
 import sys
 import hashlib
 
@@ -35,28 +32,27 @@ class CircularCallError(RuntimeError):
 DEEPCMP_RESULT = None
 
 
-def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
+def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False, brief=True):
     """ Recursively descends into obj1's every component and
     compares with its counterpart in obj2.
 
-    Factors includes;
+    Ways to test includes (in this order):
+
     * if they are the same object
     * type
-    * quick string
     * ```__eq__``` or ```__cmp__``` if requested
-    * state from ```__getstate__```
+    * state from ```__getstate__()```
     * quick length
     * members if is ```Mapping```, ```Sequence``` (
-    set, list, dict, ordereddict, UserDict ... )
+    tuple, set, list, dict, OrderedDict, UserDict ... )
     * properties/attributes in ```__dict__```
-
+    * ```__eq__``` or ```__cmp__``` even if not requested
 
     Detects cyclic references.
 
     Returns
     -------
-    ``None`` if finds no difference, a string of explanation
-    otherwise.
+    ``None`` if finds no difference, ```1``` if `brief is ```True``` else a string of explanation.
 
     :eqcmp: if True, use __eq__ or __cmp__ if the objs have them. If False only use as the last resort. default True.
     """
@@ -73,18 +69,26 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
             seen = seenlist
         level = 0
 
-    def run(o1, o2, v=False, eqcmp=True):
+    def run(o1, o2, explain=False, v=False, eqcmp=True, brief=True):
         """
         Paremeters
         ----------
+        :o1: object to be compared.
+        :o2: object to be compared.
+        :v: Prints out step-by-step comparison if set `True`.
+        :brief: if not equal, return 1 if set `True` else returns an explaination.
+        :eqcmp: use ```__eq__``` and ```__cmp__``` for comparison.
 
         Returns
         -------
+        ```None``` if equal. ```1``` if ```brief``` is ```True``` else a string of explanation why not equal.
 
         """
         #
         # nonlocal seen
         # nonlocal level
+        if v or not brief:
+            from ..utils.common import lls, bstr
         id1, id2 = id(o1), id(o2)
         if id1 == id2:
             if v:
@@ -109,14 +113,14 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                 print('type diff')
             _context.level -= 1
             del _context.seen[-1]
-            return ' due to diff types: ' + c.__name__ + ' and ' + c2.__name__
+            return 1 if brief else ' due to diff types: ' + c.__name__ + ' and ' + c2.__name__
         if issubclass(c, (int, float, complex, str, bytes, bool, datetime.datetime)):
             if v:
                 print('find simple type')
             _context.level -= 1
             del _context.seen[-1]
             if o1 != o2:
-                return ' due to difference: "%s" ||| "%s"' % (o1, o2)
+                return 1 if brief else ' due to difference: "%s" ||| "%s"' % (o1, o2)
             else:
                 return None
 
@@ -138,8 +142,9 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                 if t:
                     return None
                 else:  # o1 != o2:
-                    s = ' due to "%s" != "%s"' % (lls(o1, 155), lls(o2, 155))
-                    return s
+                    return 1 if brief else \
+                        ' due to "%s" != "%s"' % (lls(o1, 155), lls(o2, 155))
+
         if hasattr(o1, '__getstate__'):
             if v:
                 print('Find __getstate__')
@@ -150,11 +155,11 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                 logger.error('__getstate__ trouble')
                 raise
             else:  # no exception for __getstate__
-                r = run(o1, o2, v=v, eqcmp=eqcmp)
+                r = run(o1, o2, v=v, eqcmp=eqcmp, brief=brief)
                 del _context.seen[-1]
                 _context.level -= 1
                 if r:
-                    return ' due to o1.__getstate__ != o2.__getstate__' + r
+                    return 1 if brief else ' due to o1.__getstate__ != o2.__getstate__' + r
                 else:
                     return None
 
@@ -164,7 +169,8 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
             if hasattr(o1, '__len__') and len(o1) != len(o2):
                 del _context.seen[-1]
                 _context.level -= 1
-                return ' due to diff %s lengths: %d and %d (%s, %s)' %\
+                return 1 if brief else \
+                    ' due to diff %s lengths: %d and %d (%s, %s)' %\
                     (c.__name__, len(o1), len(o2), lls(
                         list(o1), 115), lls(list(o2), 115))
         except AttributeError:
@@ -178,29 +184,29 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
             from .odict import ODict
             if issubclass(c, (OrderedDict, ODict)) or PY36:
                 #
-                r = run(list(o1.keys()), list(o2.keys()), v=v, eqcmp=eqcmp)
+                r = run(list(o1.keys()), list(o2.keys()),
+                        v=v, eqcmp=eqcmp, brief=brief)
             else:
                 #  old dict or UserDict
                 r = run(tuple(sorted(o1.keys(), key=hash)),
                         tuple(sorted(o1.keys(), key=hash)),
-                        v=v, eqcmp=eqcmp)
+                        v=v, eqcmp=eqcmp, brief=brief)
             if r is not None:
                 del _context.seen[-1]
                 _context.level -= 1
-                return " due to diff " + c.__name__ + " keys" + r
+                return 1 if brief else " due to diff " + c.__name__ + " keys" + r
             if v:
                 print('check values')
             for k in o1.keys():
                 if k not in o2:
                     del _context.seen[-1]
                     _context.level -= 1
-                    return ' due to o2 has no key=%s' % (lls(k, 155))
-                r = run(o1[k], o2[k], v=v, eqcmp=eqcmp)
+                    return 1 if brief else ' due to o2 has no key=%s' % (lls(k, 155))
+                r = run(o1[k], o2[k], v=v, eqcmp=eqcmp, brief=brief)
                 if r is not None:
-                    s = ' due to diff values for key=%s' % (lls(k, 155))
                     del _context.seen[-1]
                     _context.level -= 1
-                    return s + r
+                    return 1 if brief else ' due to diff values for key=%s' % (lls(k, 155)) + r
             del _context.seen[-1]
             _context.level -= 1
             return None
@@ -211,11 +217,11 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                 if v:
                     print('Check Sequence.')
                 for i in range(len(o1)):
-                    r = run(o1[i], o2[i], v=v, eqcmp=eqcmp)
+                    r = run(o1[i], o2[i], v=v, eqcmp=eqcmp, brief=brief)
                     if r is not None:
                         del _context.seen[-1]
                         _context.level -= 1
-                        return ' due to diff at index=%d (%s %s)' % \
+                        return 1 if brief else ' due to diff at index=%d (%s %s)' % \
                             (i,
                              lls(o1[i], 10),
                              lls(o2[i], 10)) + r
@@ -229,7 +235,7 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                     del _context.seen[-1]
                     _context.level -= 1
                     if o1.difference(o2):
-                        return ' due to at least one in the foremer not in the latter'
+                        return 1 if brief else ' due to at least one element in o1 not in o2'
                     else:
                         return None
                 else:
@@ -237,14 +243,14 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                     for m in o1:
                         found = False
                         for n in oc:
-                            r = run(m, n, v=v, eqcmp=eqcmp)
+                            r = run(m, n, v=v, eqcmp=eqcmp, brief=brief)
                             if r is None:
                                 found = True
                                 break
                         if not found:
                             del _context.seen[-1]
                             _context.level -= 1
-                            return ' due to %s not in the latter' % (lls(m, 155))
+                            return 1 if brief else ' due to %s not in the latter' % (lls(m, 155))
                         oc.remove(n)
                     del _context.seen[-1]
                     _context.level -= 1
@@ -255,11 +261,11 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                     print('obj1 has __dict__')
                     o1 = sorted(vars(o1).items())
                     o2 = sorted(vars(o2).items())
-                    r = run(o1, o2, v=v, eqcmp=eqcmp)
+                    r = run(o1, o2, v=v, eqcmp=eqcmp, brief=brief)
                     del _context.seen[-1]
                     _context.level -= 1
                 if r:
-                    return ' due to o1.__dict__ != o2.__dict__' + r
+                    return 1 if brief else ' due to o1.__dict__ != o2.__dict__' + r
                 else:
                     return None
             # elif hasattr(o1, '__iter__') and hasattr(o1, '__next__') or \
@@ -277,16 +283,15 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False):
                 else:
                     del _context.seen[-1]
                     _context.level -= 1
-                    return ' according to __eq__ or __cmp__'
+                    return 1 if brief else ' according to __eq__ or __cmp__'
             else:  # o1 != o2:
+                del _context.seen[-1]
+                _context.level -= 1
                 if v:
                     print('no way')
-                    s = ' due to no reason found for "%s" == "%s"' % (
-                        lls(o1, 155), lls(o2, 155))
-                    del _context.seen[-1]
-                    _context.level -= 1
-                return s
-    res = run(obj1, obj2, v=verbose, eqcmp=eqcmp)
+                return 1 if brief else ' due to no reason found for "%s" == "%s"' % \
+                    (lls(o1, 155), lls(o2, 155))
+    res = run(obj1, obj2, v=verbose, eqcmp=eqcmp, brief=brief)
     DEEPCMP_RESULT = res
     return res
 
@@ -316,6 +321,9 @@ def xhash(hash_list=None, seenlist=None, verbose=None):
         _context.level += 1
         ind = ' ' * _context.level
         hashes = []
+
+        if verbose:
+            from ..utils.common import lls, bstr
 
         if 0 and verbose:
             print('entering id%d id%d lv%d len%d' % (id(_context.level), id(_context.seen),
@@ -418,23 +426,27 @@ def xhash(hash_list=None, seenlist=None, verbose=None):
 
 class DeepcmpEqual(object):
     """ mh: Can compare key-val pairs of another object
-    with self. False if compare with None
-    or exceptions raised, e.g. obj does not have items()
+    with self.
+
+    False if compare with None
+    or exceptions raised, e.g. objects that do not have items()
     """
 
     def __init__(self, **kwds):
         super().__init__(**kwds)
 
-    def equals(self, obj, verbose=False):
+    def equals(self, obj, verbose=False, brief=True):
         """
         Paremeters
         ----------
+
+        :verbose: Prints out step-by-step comparison if set `True`.
 
         Returns
         -------
 
         """
-        r = self.diff(obj, [], verbose=verbose)
+        r = self.diff(obj, [], verbose=verbose, brief=brief)
         # logging.debug(r)
         return r is None
 
@@ -461,10 +473,13 @@ class DeepcmpEqual(object):
 
         return not self.__eq__(obj)
 
-    def diff(self, obj, seenlist, verbose=False):
-        """ recursively compare components of list and dict.
-        until meeting equality.
-        seenlist: a list of classes that has been seen. will not descend in to them.
+    def diff(self, obj, seenlist, verbose=False, brief=True):
+        """ recursively compare components of list and dict
+        until finding equality or exhausting all ways of testing.
+
+        :seenlist: a list of classes that has been seen. will not descend in to them.
+        :verbose: Prints out step-by-step comparison if set `True`.
+        :brief: if not equal, return 1 if set `True` else returns an explaination.
         Paremeters
         ----------
 
@@ -474,18 +489,24 @@ class DeepcmpEqual(object):
         if issubclass(self.__class__, Serializable):
             if issubclass(obj.__class__, Serializable):
                 r = deepcmp(self.__getstate__(),
-                            obj.__getstate__(), seenlist=seenlist, verbose=verbose)
+                            obj.__getstate__(),
+                            seenlist=seenlist,
+                            verbose=verbose,
+                            brief=brief)
             else:
-                return('different classes')
+                return 1 if brief else('different classes')
         else:
-            r = deepcmp(self, obj, seenlist=seenlist, verbose=verbose)
+            r = deepcmp(self, obj, seenlist=seenlist,
+                        verbose=verbose, brief=brief)
         return r
 
 
 class EqualDict(object):
     """ mh: Can compare key-val pairs of another object
-    with self. False if compare with None
-    or exceptions raised, e.g. obj does not have items()
+    with self.
+
+    False if compare with None
+    or exceptions raised, e.g. obj  that do not have items().
     """
 
     def __init__(self, **kwds):
@@ -542,7 +563,7 @@ class EqualDict(object):
 class EqualODict(object):
     """ mh: Can compare order and key-val pairs of another object
     with self. False if compare with None
-    or exceptions raised, e.g. obj does not have items()
+    or exceptions raised, e.g. obj that do not have items()
     """
 
     def __init__(self, **kwds):
@@ -643,7 +664,7 @@ class DeepcmpEqual():
         super().__init__(*args, **kwds)  # DeepcmpEqual
 
     def __eq__(self, obj, **kwds):
-        """ compares using `deepcmp. """
+        """ compares using `deepcmp`. """
 
         if obj is None:
             return False

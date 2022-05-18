@@ -43,3 +43,5 @@ test11:
 	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py -k '_csdb' $(T)
 	$(PYTEST) $(OPT) tests/test_pal.py -k '_csdb' $(T)
 
+test12:
+	$(PYTEST) $(OPT) tests/test_yaml2python.py

@@ -238,7 +238,7 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
                      tablefmt2='html' if html else 'plain',
                      **kwds)
         #d += lls(ds, 9000 if html else 2000)
-        d = ds
+        d += ds
         return '%s\n%s%s%s%s' % (s, d, br, last, br)
 
     string = toString

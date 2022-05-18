@@ -110,17 +110,19 @@ FITS_keywords_HEASARC = {
 }
 
 # FITS keywords that are part of the FITS Standard definition:
-#   Definition of the Flexible Image Transport System (FITS}
-#   March 29, 1999
-#   NOST 100-2.0
+#   Definition of the Flexible Image Transport System (FITS)
+# Version 4.0 (13 August 2018): Latest language-edited version
+#   July 22, 2016
 #   http://archive.stsci.edu/fits/fits_standard/
 #
 FITS_keywords_Standard = {
     'AUTHOR': 'author',
     'CREATOR': 'creator',
-    'DATE-OBS': 'startDate',
     'DATE': 'creationDate',
-    'EPOCH': 'epoch',
+    'DATE-AVG': 'averageDate',
+    'DATE-BEG': 'startDate',
+    'DATE-END': 'endDate',
+    'DATE-OBS': 'startDate',
     'EQUINOX': 'equinox',
     'INSTRUME': 'instrument',
     'OBJECT': 'object',

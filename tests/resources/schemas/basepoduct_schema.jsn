@@ -1,0 +1,809 @@
+{
+  "definitions": {
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/object1651974966.json",
+  "title": "Root",
+  "type": "object",
+  "required": [
+    "_ATTR_meta",
+    "_ATTR_history",
+    "_ATTR_listeners",
+    "_STID"
+  ],
+  "properties": {
+    "_ATTR_meta": {
+      "$id": "#root/_ATTR_meta",
+      "title": "_attr_meta",
+      "type": "object",
+      "required": [
+        "description",
+        "type",
+        "level",
+        "creator",
+        "creationDate",
+        "rootCause",
+        "version",
+        "FORMATV",
+        "_ATTR_listeners",
+        "_STID"
+      ],
+      "properties": {
+        "description": {
+          "$id": "#root/_ATTR_meta/description",
+          "title": "Description",
+          "type": "object",
+          "required": [
+            "description",
+            "default",
+            "value",
+            "valid",
+            "typecode",
+            "_STID"
+          ],
+          "properties": {
+            "description": {
+              "$id": "#root/_ATTR_meta/description/description",
+              "title": "Description",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "Description of this product"
+              ],
+              "pattern": "^.*$"
+            },
+            "default": {
+              "$id": "#root/_ATTR_meta/description/default",
+              "title": "Default",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "UNKNOWN"
+              ],
+              "pattern": "^.*$"
+            },
+            "value": {
+              "$id": "#root/_ATTR_meta/description/value",
+              "title": "Value",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "UNKNOWN"
+              ],
+              "pattern": "^.*$"
+            },
+            "valid": {
+              "$id": "#root/_ATTR_meta/description/valid",
+              "title": "Valid",
+              "type": "null",
+              "default": null
+            },
+            "typecode": {
+              "$id": "#root/_ATTR_meta/description/typecode",
+              "title": "Typecode",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "B"
+              ],
+              "pattern": "^.*$"
+            },
+            "_STID": {
+              "$id": "#root/_ATTR_meta/description/_STID",
+              "title": "_stid",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "StringParameter"
+              ],
+              "pattern": "^.*$"
+            }
+          }
+        },
+        "type": {
+          "$id": "#root/_ATTR_meta/type",
+          "title": "Type",
+          "type": "object",
+          "required": [
+            "description",
+            "default",
+            "value",
+            "valid",
+            "typecode",
+            "_STID"
+          ],
+          "properties": {
+            "description": {
+              "$id": "#root/_ATTR_meta/type/description",
+              "title": "Description",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "Product Type identification. Name of class or CARD."
+              ],
+              "pattern": "^.*$"
+            },
+            "default": {
+              "$id": "#root/_ATTR_meta/type/default",
+              "title": "Default",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "BaseProduct"
+              ],
+              "pattern": "^.*$"
+            },
+            "value": {
+              "$id": "#root/_ATTR_meta/type/value",
+              "title": "Value",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "BaseProduct"
+              ],
+              "pattern": "^.*$"
+            },
+            "valid": {
+              "$id": "#root/_ATTR_meta/type/valid",
+              "title": "Valid",
+              "type": "null",
+              "default": null
+            },
+            "typecode": {
+              "$id": "#root/_ATTR_meta/type/typecode",
+              "title": "Typecode",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "B"
+              ],
+              "pattern": "^.*$"
+            },
+            "_STID": {
+              "$id": "#root/_ATTR_meta/type/_STID",
+              "title": "_stid",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "StringParameter"
+              ],
+              "pattern": "^.*$"
+            }
+          }
+        },
+        "level": {
+          "$id": "#root/_ATTR_meta/level",
+          "title": "Level",
+          "type": "object",
+          "required": [
+            "description",
+            "default",
+            "value",
+            "valid",
+            "typecode",
+            "_STID"
+          ],
+          "properties": {
+            "description": {
+              "$id": "#root/_ATTR_meta/level/description",
+              "title": "Description",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "Product level."
+              ],
+              "pattern": "^.*$"
+            },
+            "default": {
+              "$id": "#root/_ATTR_meta/level/default",
+              "title": "Default",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "ALL"
+              ],
+              "pattern": "^.*$"
+            },
+            "value": {
+              "$id": "#root/_ATTR_meta/level/value",
+              "title": "Value",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "ALL"
+              ],
+              "pattern": "^.*$"
+            },
+            "valid": {
+              "$id": "#root/_ATTR_meta/level/valid",
+              "title": "Valid",
+              "type": "null",
+              "default": null
+            },
+            "typecode": {
+              "$id": "#root/_ATTR_meta/level/typecode",
+              "title": "Typecode",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "B"
+              ],
+              "pattern": "^.*$"
+            },
+            "_STID": {
+              "$id": "#root/_ATTR_meta/level/_STID",
+              "title": "_stid",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "StringParameter"
+              ],
+              "pattern": "^.*$"
+            }
+          }
+        },
+        "creator": {
+          "$id": "#root/_ATTR_meta/creator",
+          "title": "Creator",
+          "type": "object",
+          "required": [
+            "description",
+            "default",
+            "value",
+            "valid",
+            "typecode",
+            "_STID"
+          ],
+          "properties": {
+            "description": {
+              "$id": "#root/_ATTR_meta/creator/description",
+              "title": "Description",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "Generator of this product."
+              ],
+              "pattern": "^.*$"
+            },
+            "default": {
+              "$id": "#root/_ATTR_meta/creator/default",
+              "title": "Default",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "UNKNOWN"
+              ],
+              "pattern": "^.*$"
+            },
+            "value": {
+              "$id": "#root/_ATTR_meta/creator/value",
+              "title": "Value",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "UNKNOWN"
+              ],
+              "pattern": "^.*$"
+            },
+            "valid": {
+              "$id": "#root/_ATTR_meta/creator/valid",
+              "title": "Valid",
+              "type": "null",
+              "default": null
+            },
+            "typecode": {
+              "$id": "#root/_ATTR_meta/creator/typecode",
+              "title": "Typecode",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "B"
+              ],
+              "pattern": "^.*$"
+            },
+            "_STID": {
+              "$id": "#root/_ATTR_meta/creator/_STID",
+              "title": "_stid",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "StringParameter"
+              ],
+              "pattern": "^.*$"
+            }
+          }
+        },
+        "creationDate": {
+          "$id": "#root/_ATTR_meta/creationDate",
+          "title": "Creationdate",
+          "type": "object",
+          "required": [
+            "description",
+            "default",
+            "value",
+            "valid",
+            "typecode",
+            "_STID"
+          ],
+          "properties": {
+            "description": {
+              "$id": "#root/_ATTR_meta/creationDate/description",
+              "title": "Description",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "Creation date of this product"
+              ],
+              "pattern": "^.*$"
+            },
+            "default": {
+              "$id": "#root/_ATTR_meta/creationDate/default",
+              "title": "Default",
+              "type": "object",
+              "required": [
+                "tai",
+                "format",
+                "_STID"
+              ],
+              "properties": {
+                "tai": {
+                  "$id": "#root/_ATTR_meta/creationDate/default/tai",
+                  "title": "Tai",
+                  "type": "integer",
+                  "examples": [
+                    0
+                  ],
+                  "default": 0
+                },
+                "format": {
+                  "$id": "#root/_ATTR_meta/creationDate/default/format",
+                  "title": "Format",
+                  "type": "string",
+                  "default": "",
+                  "examples": [
+                    "%Y-%m-%dT%H:%M:%S.%f"
+                  ],
+                  "pattern": "^.*$"
+                },
+                "_STID": {
+                  "$id": "#root/_ATTR_meta/creationDate/default/_STID",
+                  "title": "_stid",
+                  "type": "string",
+                  "default": "",
+                  "examples": [
+                    "FineTime"
+                  ],
+                  "pattern": "^.*$"
+                }
+              }
+            },
+            "value": {
+              "$id": "#root/_ATTR_meta/creationDate/value",
+              "title": "Value",
+              "type": "object",
+              "required": [
+                "tai",
+                "format",
+                "_STID"
+              ],
+              "properties": {
+                "tai": {
+                  "$id": "#root/_ATTR_meta/creationDate/value/tai",
+                  "title": "Tai",
+                  "type": "integer",
+                  "examples": [
+                    0
+                  ],
+                  "default": 0
+                },
+                "format": {
+                  "$id": "#root/_ATTR_meta/creationDate/value/format",
+                  "title": "Format",
+                  "type": "string",
+                  "default": "",
+                  "examples": [
+                    "%Y-%m-%dT%H:%M:%S.%f"
+                  ],
+                  "pattern": "^.*$"
+                },
+                "_STID": {
+                  "$id": "#root/_ATTR_meta/creationDate/value/_STID",
+                  "title": "_stid",
+                  "type": "string",
+                  "default": "",
+                  "examples": [
+                    "FineTime"
+                  ],
+                  "pattern": "^.*$"
+                }
+              }
+            },
+            "valid": {
+              "$id": "#root/_ATTR_meta/creationDate/valid",
+              "title": "Valid",
+              "type": "null",
+              "default": null
+            },
+            "typecode": {
+              "$id": "#root/_ATTR_meta/creationDate/typecode",
+              "title": "Typecode",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "%Y-%m-%dT%H:%M:%S.%f"
+              ],
+              "pattern": "^.*$"
+            },
+            "_STID": {
+              "$id": "#root/_ATTR_meta/creationDate/_STID",
+              "title": "_stid",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "DateParameter"
+              ],
+              "pattern": "^.*$"
+            }
+          }
+        },
+        "rootCause": {
+          "$id": "#root/_ATTR_meta/rootCause",
+          "title": "Rootcause",
+          "type": "object",
+          "required": [
+            "description",
+            "default",
+            "value",
+            "valid",
+            "typecode",
+            "_STID"
+          ],
+          "properties": {
+            "description": {
+              "$id": "#root/_ATTR_meta/rootCause/description",
+              "title": "Description",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "Reason of this run of pipeline."
+              ],
+              "pattern": "^.*$"
+            },
+            "default": {
+              "$id": "#root/_ATTR_meta/rootCause/default",
+              "title": "Default",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "UNKNOWN"
+              ],
+              "pattern": "^.*$"
+            },
+            "value": {
+              "$id": "#root/_ATTR_meta/rootCause/value",
+              "title": "Value",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "UNKNOWN"
+              ],
+              "pattern": "^.*$"
+            },
+            "valid": {
+              "$id": "#root/_ATTR_meta/rootCause/valid",
+              "title": "Valid",
+              "type": "null",
+              "default": null
+            },
+            "typecode": {
+              "$id": "#root/_ATTR_meta/rootCause/typecode",
+              "title": "Typecode",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "B"
+              ],
+              "pattern": "^.*$"
+            },
+            "_STID": {
+              "$id": "#root/_ATTR_meta/rootCause/_STID",
+              "title": "_stid",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "StringParameter"
+              ],
+              "pattern": "^.*$"
+            }
+          }
+        },
+        "version": {
+          "$id": "#root/_ATTR_meta/version",
+          "title": "Version",
+          "type": "object",
+          "required": [
+            "description",
+            "default",
+            "value",
+            "valid",
+            "typecode",
+            "_STID"
+          ],
+          "properties": {
+            "description": {
+              "$id": "#root/_ATTR_meta/version/description",
+              "title": "Description",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "Version of product"
+              ],
+              "pattern": "^.*$"
+            },
+            "default": {
+              "$id": "#root/_ATTR_meta/version/default",
+              "title": "Default",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "0.8"
+              ],
+              "pattern": "^.*$"
+            },
+            "value": {
+              "$id": "#root/_ATTR_meta/version/value",
+              "title": "Value",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "0.8"
+              ],
+              "pattern": "^.*$"
+            },
+            "valid": {
+              "$id": "#root/_ATTR_meta/version/valid",
+              "title": "Valid",
+              "type": "null",
+              "default": null
+            },
+            "typecode": {
+              "$id": "#root/_ATTR_meta/version/typecode",
+              "title": "Typecode",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "B"
+              ],
+              "pattern": "^.*$"
+            },
+            "_STID": {
+              "$id": "#root/_ATTR_meta/version/_STID",
+              "title": "_stid",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "StringParameter"
+              ],
+              "pattern": "^.*$"
+            }
+          }
+        },
+        "FORMATV": {
+          "$id": "#root/_ATTR_meta/FORMATV",
+          "title": "Formatv",
+          "type": "object",
+          "required": [
+            "description",
+            "default",
+            "value",
+            "valid",
+            "typecode",
+            "_STID"
+          ],
+          "properties": {
+            "description": {
+              "$id": "#root/_ATTR_meta/FORMATV/description",
+              "title": "Description",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "Version of product schema and revision"
+              ],
+              "pattern": "^.*$"
+            },
+            "default": {
+              "$id": "#root/_ATTR_meta/FORMATV/default",
+              "title": "Default",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "1.6.0.11"
+              ],
+              "pattern": "^.*$"
+            },
+            "value": {
+              "$id": "#root/_ATTR_meta/FORMATV/value",
+              "title": "Value",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "1.6.0.11"
+              ],
+              "pattern": "^.*$"
+            },
+            "valid": {
+              "$id": "#root/_ATTR_meta/FORMATV/valid",
+              "title": "Valid",
+              "type": "null",
+              "default": null
+            },
+            "typecode": {
+              "$id": "#root/_ATTR_meta/FORMATV/typecode",
+              "title": "Typecode",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "B"
+              ],
+              "pattern": "^.*$"
+            },
+            "_STID": {
+              "$id": "#root/_ATTR_meta/FORMATV/_STID",
+              "title": "_stid",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "StringParameter"
+              ],
+              "pattern": "^.*$"
+            }
+          }
+        },
+        "_ATTR_listeners": {
+          "$id": "#root/_ATTR_meta/_ATTR_listeners",
+          "title": "_attr_listeners",
+          "type": "object",
+          "required": [
+            "_STID"
+          ],
+          "properties": {
+            "_STID": {
+              "$id": "#root/_ATTR_meta/_ATTR_listeners/_STID",
+              "title": "_stid",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "ListnerSet"
+              ],
+              "pattern": "^.*$"
+            }
+          }
+        },
+        "_STID": {
+          "$id": "#root/_ATTR_meta/_STID",
+          "title": "_stid",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "MetaData"
+          ],
+          "pattern": "^.*$"
+        }
+      }
+    },
+    "_ATTR_history": {
+      "$id": "#root/_ATTR_history",
+      "title": "_attr_history",
+      "type": "object",
+      "required": [
+        "_ATTR_PARAM_HISTORY",
+        "_ATTR_TASK_HISTORY",
+        "_ATTR_meta",
+        "_STID"
+      ],
+      "properties": {
+        "_ATTR_PARAM_HISTORY": {
+          "$id": "#root/_ATTR_history/_ATTR_PARAM_HISTORY",
+          "title": "_attr_param_history",
+          "type": "string",
+          "default": "",
+          "examples": [
+            ""
+          ],
+          "pattern": "^.*$"
+        },
+        "_ATTR_TASK_HISTORY": {
+          "$id": "#root/_ATTR_history/_ATTR_TASK_HISTORY",
+          "title": "_attr_task_history",
+          "type": "string",
+          "default": "",
+          "examples": [
+            ""
+          ],
+          "pattern": "^.*$"
+        },
+        "_ATTR_meta": {
+          "$id": "#root/_ATTR_history/_ATTR_meta",
+          "title": "_attr_meta",
+          "type": "object",
+          "required": [
+            "_ATTR_listeners",
+            "_STID"
+          ],
+          "properties": {
+            "_ATTR_listeners": {
+              "$id": "#root/_ATTR_history/_ATTR_meta/_ATTR_listeners",
+              "title": "_attr_listeners",
+              "type": "object",
+              "required": [
+                "_STID"
+              ],
+              "properties": {
+                "_STID": {
+                  "$id": "#root/_ATTR_history/_ATTR_meta/_ATTR_listeners/_STID",
+                  "title": "_stid",
+                  "type": "string",
+                  "default": "",
+                  "examples": [
+                    "ListnerSet"
+                  ],
+                  "pattern": "^.*$"
+                }
+              }
+            },
+            "_STID": {
+              "$id": "#root/_ATTR_history/_ATTR_meta/_STID",
+              "title": "_stid",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "MetaData"
+              ],
+              "pattern": "^.*$"
+            }
+          }
+        },
+        "_STID": {
+          "$id": "#root/_ATTR_history/_STID",
+          "title": "_stid",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "History"
+          ],
+          "pattern": "^.*$"
+        }
+      }
+    },
+    "_ATTR_listeners": {
+      "$id": "#root/_ATTR_listeners",
+      "title": "_attr_listeners",
+      "type": "object",
+      "required": [
+        "_STID"
+      ],
+      "properties": {
+        "_STID": {
+          "$id": "#root/_ATTR_listeners/_STID",
+          "title": "_stid",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "ListnerSet"
+          ],
+          "pattern": "^.*$"
+        }
+      }
+    },
+    "_STID": {
+      "$id": "#root/_STID",
+      "title": "_stid",
+      "type": "string",
+      "default": "",
+      "examples": [
+        "BaseProduct"
+      ],
+      "pattern": "^.*$"
+    }
+  }
+}

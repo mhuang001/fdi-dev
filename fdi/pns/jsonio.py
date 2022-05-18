@@ -58,10 +58,10 @@ def auth_headers(username, password, headers=None):
     return headers
 
 
-def getJsonObj(url, headers=None, usedict=True, **kwds):
+def getJsonObj(url, headers=None, usedict=True, int_key=False, **kwds):
     """ return object from url. url can be http or file.
-    translate keys and values from string to
-    number if applicable. Raise exception if fails.
+
+    :int_key: translate keys from string to int if `True` Raise exception if fails.
     Not using requests.get() as it cannot open file:/// w/o installing
     https://pypi.python.org/pypi/requests-file
     """
@@ -73,7 +73,7 @@ def getJsonObj(url, headers=None, usedict=True, **kwds):
     # ret = json.loads(stri, parse_float=Decimal)
     # ret = json.loads(stri, cls=Decoder,
     #               object_pairs_hook=collections.OrderedDict)
-    ret = deserialize(stri, usedict=usedict, **kwds)
+    ret = deserialize(stri, usedict=usedict, int_key=int_key, **kwds)
     #logger.debug(pformat(ret, depth=6)[:] + '...')
     logger.debug(lls(str(ret), 160))
     return ret

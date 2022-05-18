@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ..model.user import getUsers, auth
+from ..model.user import auth
 
-from ...utils.common import lls
-from ...dataset.deserialize import deserialize, deserialize_args
+from ...dataset.deserialize import deserialize
 from ...dataset.serializable import serialize
 from ...dataset.mediawrapper import MediaWrapper
 from ...pal.urn import makeUrn
@@ -20,7 +19,7 @@ from ...pns.fdi_requests import POST_PRODUCT_TAG_NAME
 
 from flasgger import swag_from
 
-from flask import request, make_response, jsonify, Blueprint, current_app
+from flask import request, make_response, Blueprint, current_app
 from flask.wrappers import Response
 
 
@@ -31,6 +30,7 @@ import builtins
 import functools
 from pathlib import Path
 import importlib
+import logging
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -114,7 +114,9 @@ def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', l
     else:
         w = result
 
-    logger.debug(lls(w, length))
+    if logger.getEffectiveLevel() <= logging.DEBUG:
+        from ...utils.common import lls
+        logger.debug(lls(w, length))
     # logger.debug(pprint.pformat(w, depth=3, indent=4))
     resp = make_response(w, code)
     resp.headers['Content-Type'] = ctype

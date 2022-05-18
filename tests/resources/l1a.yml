@@ -1,0 +1,623 @@
+name: VTSE_L1A
+description: VT Single Exposure L1A. This product provides de-packetizing information such as pixel data type and the width of how many bits parameter occupies in the VT telemetery frame header. These header parameters are extracted. The order of parameter in this file must be the same as that in the header. Spacer such as `fill0XAA` must present at correct places and be removed from the output product.
+parents:
+  - L1keysOBS
+  - L1A
+schema: '1.6'
+metadata:
+    type:
+        default: VTSE_L1A
+    level:
+        default: CL1A
+    pixelTypecode:
+        id_zh_cn: 像素数据类型
+        fits_keyword: PIXTCODE
+        data_type: string
+        description: L0 image pixel DataTypes. Ref datatypes.Datatypes.
+        description_zh_cn: L0图像像素数据类型。见datatypes.DataTypes
+        default: short
+        valid: ''
+        valid_zh_cn: ''
+        typecode: 
+    Start:
+        id_zh_cn: 曝光开始时间（UTC）
+        data_type: integer
+        description: The CCD start Time
+        description_zh_cn: VT CCD 的曝光开始时间（UTC）
+        unit: ''
+        default: 0
+        valid: ''
+        typecode:
+        width: 6
+    Exposure:
+        id_zh_cn: 曝光时间
+        data_type: integer
+        description: 'exposure duration of the image: 0~3000'
+        description_zh_cn: 'VT 曝光时间: 0~3000'
+        unit: second
+        default: 0
+        valid:
+            [0, 3000]: ''
+        valid_zh_cn:
+            [0, 3000]: ''
+        typecode:
+        width: 2
+    Status:
+        id_zh_cn: 工作状态
+        data_type: integer
+        description: 'work status of ccd: Bit7~Bit6 image port status [01: port
+            1; 10: port 2; 11: port closed]; Bit5 VT video processing backup status
+            [0:  stand by; 1: main]; Bit4 PPS status [0: error; 1: normal]; Bit3~Bit0
+            reserved'
+        description_zh_cn: 'VT CCD 的工作状态: Bit7~Bit6 图像接口状态 [01: 接口1; 10: 接口2;
+            11: 接口关闭]; Bit5 VT视频处理主备状态 [0: 备份; 1: 主份]; Bit4 PPS秒脉冲状态[0: 错误; 1: 正常];
+            Bit3~Bit0 备用'
+        unit: ''
+        default: 0b01110000
+        valid:
+            [0b11000000, 0b01]: port_1
+            [0b11000000, 0b10]: port_2
+            [0b11000000, 0b11]: port_closed
+            [0b00100000, 0b0]: video_stand_by
+            [0b00100000, 0b1]: video_main
+            [0b00010000, 0b0]: PPS_error
+            [0b00010000, 0b1]: PPS_normal
+            [0b00001111, 0b0]: reserved
+        valid_zh_cn:
+            [0b11000000, 0b01]: 接口1
+            [0b11000000, 0b10]: 接口2
+            [0b11000000, 0b11]: 接口关闭
+            [0b00100000, 0b0]: 备份
+            [0b00100000, 0b1]: 主份
+            [0b00010000, 0b0]: 错误
+            [0b00010000, 0b1]: 正常
+            [0b00001111, 0b0]: 备用
+        typecode:
+        width: 1
+    Mode:
+        id_zh_cn: 工作方式
+        data_type: integer
+        description: 'The work mode of VT CCD: 0x33: Imaging; 0x55: Blank; 0xA3:
+            CTE; 0xA5: Dark; 0xAA: FlatField; 0xAC: Focusing; 0xCC: Reserved'
+        description_zh_cn: 'VT CCD的工作方式: 0x33: 成像; 0x55: 空读; 0xA3: CTE测试; 0xA5:
+            暗场定标; 0xAA: 平场定标; 0xAC: 调焦; 0xCC: 备用'
+        unit: ''
+        default: 0x0
+        valid:
+            0x33: Imaging
+            0x55: Blank
+            0xA3: CTE
+            0xA5: Dark
+            0xAA: FlatField
+            0xAC: Focusing
+            0xCC: Reserved
+        valid_zh_cn:
+            0x33: 成像
+            0x55: 空读
+            0xA3: CTE测试
+            0xA5: 暗场定标
+            0xAA: 平场定标
+            0xAC: 调焦
+            0xCC: 备用
+        typecode:
+        width: 1
+    WinSize:
+        id_zh_cn: 开窗大小
+        data_type: integer
+        description: 'window size of image: Full frame: 0xCCCC; Window: 300~1200
+            (default: 800) TBC            '
+        description_zh_cn: 'VT 开窗大小: 全帧: 0xCCCC; 开窗: 300~1200（默认: 800）TBC'
+        unit: pixel
+        default: 0
+        valid:
+            0xCCCC: Frame
+            [300, 1200]: Window
+        valid_zh_cn:
+            0xCCCC: 全帧
+            [300, 1200]: 开窗
+        typecode:
+        width: 2
+    WinX:
+        id_zh_cn: 开窗位置 X
+        data_type: integer
+        description: 'image position X: 0~ (2048- window size)'
+        description_zh_cn: 'VT 开窗位置 X: 0~（2048-窗口大小)'
+        unit: pixel
+        default: 0
+        valid:
+            [0, 2047]: ''
+        valid_zh_cn:
+            [0, 2047]: ''
+        typecode:
+        width: 2
+    WinY:
+        id_zh_cn: 开窗位置 Y
+        data_type: integer
+        description: 'image position Y: 0~ (2048- window size)'
+        description_zh_cn: 'VT 开窗位置 Y: 0~（2048-窗口大小)'
+        unit: pixel
+        default: 0
+        valid:
+            [0, 2047]: ''
+        valid_zh_cn:
+            [0, 2047]: ''
+        typecode:
+        width: 2
+    Flush:
+        id_zh_cn: 清空方式
+        data_type: integer
+        description: 'VT clean mode: 0x55: flush; 0xAA: keep'
+        description_zh_cn: 'VT 清空方式: 0x55: 完全清空; 0xAA: 不清空'
+        unit: ''
+        default: 0x0
+        valid:
+            0x55: flush
+            0xAA: keep
+        valid_zh_cn:
+            0x55: 完全清空
+            0xAA: 不清空
+        typecode:
+        width: 1
+    ReadSpeed:
+        id_zh_cn: 像元读出速率
+        data_type: integer
+        description: 'VT readout speed: 0x33: 200kHz; 0x55: 150kHz; 0xAA: 100kHz;
+            0xCC: 70kHz'
+        description_zh_cn: 'VT 像元读出速率: 0x33: 200kHz; 0x55: 150kHz; 0xAA: 100kHz;
+            0xCC: 70kHz'
+        unit: ''
+        default: 0x0
+        valid:
+            0x33: 200kHz
+            0x55: 150kHz
+            0xAA: 100kHz
+            0xCC: 70kHz
+        valid_zh_cn:
+            0x33: 200kHz
+            0x55: 150kHz
+            0xAA: 100kHz
+            0xCC: 70kHz
+        typecode:
+        width: 1
+    Gain:
+        id_zh_cn: 增益
+        data_type: integer
+        description: 'band gain: 0x33: level_1; 0x55: level_2; 0xAA: level_3'
+        description_zh_cn: 'VT 增益: 0x33: 1档; 0x55: 2档; 0xAA: 3档'
+        unit: ''
+        default: 0x0
+        valid:
+            0x33: level_1
+            0x55: level_2
+            0xAA: level_3
+        valid_zh_cn:
+            0x33: 1档
+            0x55: 2档
+            0xAA: 3档
+        typecode:
+        width: 1
+    InteSpeed:
+        id_zh_cn: CDS 积分速度
+        data_type: integer
+        description: 'VT CDS integral speed: 0x33: level_1; 0x55: level_2; 0xAA:
+            level_3; 0xCC: level_4'
+        description_zh_cn: 'VT CDS 积分速度: 0x33: 1档; 0x55: 2档; 0xAA: 3档; 0xCC: 4档'
+        unit: ''
+        default: 0x0
+        valid:
+            0x33: level_1
+            0x55: level_2
+            0xAA: level_3
+            0xCC: level_4
+        valid_zh_cn:
+            0x33: 1档
+            0x55: 2档
+            0xAA: 3档
+            0xCC: 4档
+        typecode:
+        width: 1
+    ReadChan:
+        id_zh_cn: 读出通道
+        data_type: integer
+        description: 'VT ccd readout channel: 0x33: left; 0x55: right; 0xAA:
+            left and right'
+        description_zh_cn: 'VT CCD读出通道: 0x33: 左通道; 0x55: 右通道; 0xAA: 左右通道'
+        unit: ''
+        default: 0xAA
+        valid:
+            0x33: left
+            0x55: right
+            0xAA: left_and_right
+        valid_zh_cn:
+            0x33: 左通道
+            0x55: 右通道
+            0xAA: 左右通道
+        typecode:
+        width: 1
+    LeftBias:
+        id_zh_cn: 左通道偏置
+        data_type: integer
+        description: 'left bias value: 0~4095'
+        description_zh_cn: 'VT 左通道偏置: 0~4095'
+        unit: ''
+        default: 0
+        valid:
+            [0, 4095]: ''
+        valid_zh_cn:
+            [0, 4095]: ''
+        typecode:
+        width: 2
+    RightBias:
+        id_zh_cn: 右通道偏置
+        data_type: integer
+        description: 'right bias value: 0, 4095'
+        description_zh_cn: 'VT 右通道偏置: 0, 4095'
+        unit: ''
+        default: 0
+        valid:
+            [0, 4095]: ''
+        valid_zh_cn:
+            [0, 4095]: ''
+        typecode:
+        width: 2
+    Frame:
+        id_zh_cn: 发送图像帧计数
+        data_type: integer
+        description: 'frame count: 0~0xFFFF'
+        description_zh_cn: 'VT 发送图像帧计数: 0~0xFFFF'
+        unit: ''
+        default: 0
+        valid:
+            [0, 0xFFFF]: ''
+        valid_zh_cn:
+            [0, 0xFFFF]: ''
+        typecode:
+        width: 2
+    Output:
+        id_zh_cn: 图像帧输出模式
+        data_type: integer
+        description: 'frame output mode: 0x33: continuously; 0x55: 1 frame interval;
+            0xAA: 2 frame interval; 0xCC: reserved'
+        description_zh_cn: '图像帧输出模式: 0x33: 连续输出; 0x55: 间隔1帧输出; 0xAA: 间隔2帧输出; 0xCC:
+            备用'
+        unit: ''
+        default: 0
+        valid:
+            0x33: continuously
+            0x55: 1_frame_interval
+            0xAA: 2_frame_interval
+            0xCC: reserved
+        valid_zh_cn:
+            0x33: 连续输出
+            0x55: 间隔1帧输出
+            0xAA: 间隔2帧输出
+            0xCC: 备用
+        typecode:
+        width: 1
+    tmSentCount:
+        id_zh_cn: 发送遥测计数
+        fits_keyword: TMSNTCNT
+        data_type: integer
+        description: Telemetry sent count
+        description_zh_cn: 发送遥测计数
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 2
+    tcRcvOkCount:
+        id_zh_cn: 接收正确指令计数
+        fits_keyword: TCRCVERR
+        data_type: integer
+        description: Count of telecommands received correctly
+        description_zh_cn: 接收正确指令计数
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 2
+    invalidTcCount:
+        id_zh_cn: 非法指令计数
+        fits_keyword: INVLDTC
+        data_type: integer
+        description: Invalid telecommand count
+        description_zh_cn: 非法指令计数
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 1
+    tcFormatErrCount:
+        id_zh_cn: 指令格式错误计数
+        fits_keyword: TCFMTERR
+        data_type: integer
+        description: Command format error count
+        description_zh_cn: 指令格式错误计数
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 1
+    oddParityErrCount:
+        id_zh_cn: 奇校验错误计数
+        fits_keyword: OPRTYERR
+        data_type: integer
+        description: Odd parity error count
+        description_zh_cn: 奇校验错误计数
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 1
+    tcParityErrCount:
+        id_zh_cn: 指令校验错误计数
+        fits_keyword: TCPRTYER
+        data_type: integer
+        description: Telecommand parity error count
+        description_zh_cn: 指令校验错误计数
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 1
+    tcTimeoutErrCount:
+        id_zh_cn: 指令超时错误计数
+        fits_keyword: TCTOERR
+        data_type: integer
+        description: Teleommand timeout error count
+        description_zh_cn: 指令超时错误计数
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 1
+    fill0XAA:
+        id_zh_cn: 填充
+        data_type: integer
+        description: fill
+        description_zh_cn: 填充
+        default: 0xaa
+        valid: ''
+        typecode: B
+        width: 1
+    AAVTime:
+        id_zh_cn: AAV时间
+        data_type: integer
+        description: AAV packet time
+        description_zh_cn: AAV包时间
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: 
+        typecode:
+        width: 7
+    AAVQuate0:
+        id_zh_cn: AAV四元数
+        data_type: integer
+        description: Inertia coordinates, attitude quaternion
+        description_zh_cn: 惯性坐标系四元数 
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    AAVQuate1:
+        id_zh_cn: AAV四元数
+        data_type: integer
+        description: Inertia coordinates, attitude quaternion
+        description_zh_cn: 惯性坐标系四元数 
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    AAVQuate2:
+        id_zh_cn: AAV四元数
+        data_type: integer
+        description: Inertia coordinates, attitude quaternion
+        description_zh_cn: 惯性坐标系四元数 
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    AAVQuate3:
+        id_zh_cn: AAV四元数
+        data_type: integer
+        description: Inertia coordinates, attitude quaternion
+        description_zh_cn: 惯性坐标系四元数 
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    AAVAngVelocity0:
+        id_zh_cn: AAV三维坐标角速度
+        data_type: integer
+        description: AAV angular velocity on [X,Y,Z]
+        description_zh_cn: AAV包三维坐标角速度
+        unit: 'rad/s'
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    AAVAngVelocity1:
+        id_zh_cn: AAV三维坐标角速度
+        data_type: integer
+        description: AAV angular velocity on [X,Y,Z]
+        description_zh_cn: AAV包三维坐标角速度
+        unit: 'rad/s'
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    AAVAngVelocity2:
+        id_zh_cn: AAV三维坐标角速度
+        data_type: integer
+        description: AAV angular velocity on [X,Y,Z]
+        description_zh_cn: AAV包三维坐标角速度
+        unit: 'rad/s'
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    slewStatus:
+        id_zh_cn: 机动状态
+        data_type: integer
+        description: Slew status
+        description_zh_cn: 机动状态
+        unit: ''
+        default: 0
+        valid: 
+            0x55: slewing
+            0xAA: not_slewing
+        valid_zh_cn: 
+            0x55: 机动 
+            0xAA: 非机动 
+        typecode:
+        width: 1
+    targetID:
+        id_zh_cn: AAV目标ID
+        data_type: integer
+        description: AAV Target ID
+        description_zh_cn: AAV包目标 ID
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode: B
+        width: 4
+    stability:
+        id_zh_cn: 指向稳定性
+        data_type: integer
+        description: pointing stability
+        description_zh_cn: 指向稳定性
+        unit: ''
+        default: 0
+        valid: 
+            0x00: other_mode
+            0x33: chance_mode_for_VT
+            0x55: general_pointing_mode
+            0xAA: high_stablility_pointing_mode
+        valid_zh_cn: 
+            0x00: 其他模式 
+            0x33: 机会模式 
+            0x55: 常规指向模式 
+            0xAA: 高稳定性指向模式 
+        typecode:
+        width: 1
+    Spare:
+        id_zh_cn: 参考系
+        data_type: integer
+        description: the current satellite mission reference frame
+        description_zh_cn: 当前参考系
+        default: 0x00
+        valid: ''
+        typecode: B
+        width: 1
+    PVTTime:
+        id_zh_cn: CUC格式的PVT时间
+        data_type: integer
+        description: PVT time in CUC format
+        description_zh_cn: PVT CUC 格式的 PVT 时间
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: 
+        typecode:
+        width: 7
+    PVTPosition0:
+        id_zh_cn: PVT坐标
+        data_type: integer
+        description: PVT position [X,Y,Z]
+        description_zh_cn: PVT包坐标
+        unit: 'm'
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    PVTPosition1:
+        id_zh_cn: PVT坐标
+        data_type: integer
+        description: PVT position [X,Y,Z]
+        description_zh_cn: PVT包坐标
+        unit: 'm'
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    PVTPosition2:
+        id_zh_cn: PVT坐标
+        data_type: integer
+        description: PVT position [X,Y,Z]
+        description_zh_cn: PVT包坐标
+        unit: 'm'
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    PVTVelocity0:
+        id_zh_cn: PVT速度
+        data_type: integer
+        description: PVT Velocity [X,Y,Z]
+        description_zh_cn: PVT包速度
+        unit: 'm/s'
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    PVTVelocity1:
+        id_zh_cn: PVT速度
+        data_type: integer
+        description: PVT Velocity [X,Y,Z]
+        description_zh_cn: PVT包速度
+        unit: 'm/s'
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    PVTVelocity2:
+        id_zh_cn: PVT速度
+        data_type: integer
+        description: PVT Velocity [X,Y,Z]
+        description_zh_cn: PVT包速度
+        unit: 'm/s'
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 4
+    PVTSubsolar:
+        id_zh_cn: 日下点在 PVT中的ID
+        data_type: integer
+        description: Subsolar ID in PVT
+        description_zh_cn: PVT包日下点在PVT中的ID
+        unit: ''
+        default: 0
+        valid: ''
+        valid_zh_cn: ''
+        typecode:
+        width: 2
+    FORMATV:
+        default: '1.6.0.7'
+
+datasets:
+  

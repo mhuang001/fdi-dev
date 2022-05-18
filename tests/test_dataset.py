@@ -144,7 +144,7 @@ def test_deepcmp():
     d2 = {i2: 3982, t2: i1, 6666.2: t2, (765, 3982, 'd', 'p'): l2}
     d3 = {i2: 3982, '4': i1, i3: t1, (765, 3982, 'd'): l1}
     d4 = {i2: 3982, t2: i1, 6666.2: t2, (765, 3982, 'd', 'p'): d1}
-    r = deepcmp(i1, i2)
+    r = deepcmp(i1, i2)  # , verbose=1, brief=0)
     assert r is None
     r = deepcmp(t1, t2)
     assert r is None
@@ -2763,6 +2763,30 @@ def test_FineTimes_toString():
 
 def test_History():
     v = History()
+    with pytest.raises(TypeError):
+        v.add_input(args=[(2, 3)])
+
+    v = History()
+    v.add_input(args=[1, 2.33, 'asd', True, [4, 5], array.array('f', [6, 7])],
+                keywords=dict(a='b', c=[11]),
+                info=dict(c='d')
+                )
+    args, kwds = v.get_args()
+    assert args[-1] == array.array('f', [6, 7])
+    assert kwds.rowCount == 2
+    assert v.meta['c'].value == 'd'
+    assert 'e' not in v.meta
+    # add more
+    v.add_input(args=[{9: 10}],
+                keywords=dict(d=FineTime(123456)),
+                info=dict(e='f')
+                )
+    assert args[-1][9] == 10
+    assert v['kw_args'].rowCount == 3
+    assert v.meta['e'].value == 'f'
+    # print(v.string())
+    # print(kwds.string())
+    # print(v.tree())
     checkjson(v)
     checkgeneral(v)
 

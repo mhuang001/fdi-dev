@@ -23,10 +23,14 @@ out_tree = """tree out_tree
 │   │       └── urn                                    <str>
 │   └── a_different_name                        <ProductRef>
 ├── history                                        <History>
-│   ├── PARAM_HISTORY                                  <str>
-│   ├── TASK_HISTORY                                   <str>
-│   └── meta                                      <MetaData>
-│       └── listeners                           <ListnerSet>
+│   ├── meta                                      <MetaData>
+│   │   └── listeners                           <ListnerSet>
+│   ├── args                             <ArrayDataset> (0,)
+│   └── kw_args                        <TableDataset> (2, 0)
+│       ├── meta                                  <MetaData>
+│       │   └── listeners                       <ListnerSet>
+│       ├── name                               <Column> (0,)
+│       └── value                              <Column> (0,)
 └── listeners                                   <ListnerSet>
 ├── meta                                          <MetaData>
 │   ├── description                                 <string>
@@ -149,10 +153,45 @@ out_tree = """tree out_tree
 │   │       └── urn                                    <str>
 │   └── a_different_name                        <ProductRef>
 ├── history                                        <History>
-│   ├── PARAM_HISTORY                                  <str>
-│   ├── TASK_HISTORY                                   <str>
-│   └── meta                                      <MetaData>
-│       └── listeners                           <ListnerSet>
+│   ├── meta                                      <MetaData>
+│   │   └── listeners                           <ListnerSet>
+│   ├── args                             <ArrayDataset> (0,)
+│   └── kw_args                        <TableDataset> (2, 0)
+│       ├── meta                                  <MetaData>
+│       │   ├── description                         <string>
+│       │   │   ├── description                        <str>
+│       │   │   ├── default                            <str>
+│       │   │   ├── value                              <str>
+│       │   │   ├── valid                         <NoneType>
+│       │   │   └── typecode                           <str>
+│       │   ├── shape                                <tuple>
+│       │   │   ├── description                        <str>
+│       │   │   ├── type                               <str>
+│       │   │   ├── default                          <tuple>
+│       │   │   ├── value                            <tuple>
+│       │   │   ├── valid                         <NoneType>
+│       │   │   └── listeners                   <ListnerSet>
+│       │   ├── type                                <string>
+│       │   │   ├── description                        <str>
+│       │   │   ├── default                            <str>
+│       │   │   ├── value                              <str>
+│       │   │   ├── valid                         <NoneType>
+│       │   │   └── typecode                           <str>
+│       │   ├── version                             <string>
+│       │   │   ├── description                        <str>
+│       │   │   ├── default                            <str>
+│       │   │   ├── value                              <str>
+│       │   │   ├── valid                         <NoneType>
+│       │   │   └── typecode                           <str>
+│       │   ├── FORMATV                             <string>
+│       │   │   ├── description                        <str>
+│       │   │   ├── default                            <str>
+│       │   │   ├── value                              <str>
+│       │   │   ├── valid                         <NoneType>
+│       │   │   └── typecode                           <str>
+│       │   └── listeners                       <ListnerSet>
+│       ├── name                               <Column> (0,)
+│       └── value                              <Column> (0,)
 └── listeners                                   <ListnerSet>
 |__ meta                                          <MetaData>
 |   |__ description                                 <string>
@@ -275,8 +314,43 @@ out_tree = """tree out_tree
 |   |       \__ urn                                    <str>
 |   \__ a_different_name                        <ProductRef>
 |__ history                                        <History>
-|   |__ PARAM_HISTORY                                  <str>
-|   |__ TASK_HISTORY                                   <str>
-|   \__ meta                                      <MetaData>
-|       \__ listeners                           <ListnerSet>
+|   |__ meta                                      <MetaData>
+|   |   \__ listeners                           <ListnerSet>
+|   |__ args                             <ArrayDataset> (0,)
+|   \__ kw_args                        <TableDataset> (2, 0)
+|       |__ meta                                  <MetaData>
+|       |   |__ description                         <string>
+|       |   |   |__ description                        <str>
+|       |   |   |__ default                            <str>
+|       |   |   |__ value                              <str>
+|       |   |   |__ valid                         <NoneType>
+|       |   |   \__ typecode                           <str>
+|       |   |__ shape                                <tuple>
+|       |   |   |__ description                        <str>
+|       |   |   |__ type                               <str>
+|       |   |   |__ default                          <tuple>
+|       |   |   |__ value                            <tuple>
+|       |   |   |__ valid                         <NoneType>
+|       |   |   \__ listeners                   <ListnerSet>
+|       |   |__ type                                <string>
+|       |   |   |__ description                        <str>
+|       |   |   |__ default                            <str>
+|       |   |   |__ value                              <str>
+|       |   |   |__ valid                         <NoneType>
+|       |   |   \__ typecode                           <str>
+|       |   |__ version                             <string>
+|       |   |   |__ description                        <str>
+|       |   |   |__ default                            <str>
+|       |   |   |__ value                              <str>
+|       |   |   |__ valid                         <NoneType>
+|       |   |   \__ typecode                           <str>
+|       |   |__ FORMATV                             <string>
+|       |   |   |__ description                        <str>
+|       |   |   |__ default                            <str>
+|       |   |   |__ value                              <str>
+|       |   |   |__ valid                         <NoneType>
+|       |   |   \__ typecode                           <str>
+|       |   \__ listeners                       <ListnerSet>
+|       |__ name                               <Column> (0,)
+|       \__ value                              <Column> (0,)
 \__ listeners                                   <ListnerSet>"""

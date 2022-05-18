@@ -1,0 +1,38 @@
+{
+  "definitions": {
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/object1651974966.json",
+  "title": "Root",
+  "type": "object",
+  "properties": {
+    "_ATTR_meta": {
+      "$id": "#root/_ATTR_meta",
+      "title": "_attr_meta",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+              "$id": "#root/_ATTR_meta/description/description",
+              "title": "Description",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "Description of this product"
+              ],
+              "pattern": "^.*$"
+        }
+      }
+    }
+  },
+  "_STID": {
+    "$id": "#root/_STID",
+    "title": "_stid",
+    "type": "string",
+    "default": "",
+    "examples": [
+      "BaseProduct"
+    ],
+    "pattern": "^.*$"
+  }
+}

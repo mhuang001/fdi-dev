@@ -1,15 +1,37 @@
 # -*- coding: utf-8 -*-
 
-from .odict import ODict
-from .finetime import FineTime, utcobj
+
+from ..utils.common import guess_value
 from .dataset import CompositeDataset
-from .eq import DeepEqual, deepcmp
-from collections import OrderedDict
+from .arraydataset import ArrayDataset, Column
+from .tabledataset import TableDataset
+from .serializable import Serializable
+
+import array
+from collections import OrderedDict, UserDict
 
 import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
+
+#    prjcls = PC.updateMapping()
+
+
+def check_input(arg, serializable=True):
+    """ Raise exception if needed when arg is not simple type or Serializable.
+    """
+    cls = arg.__class__
+    nm = cls.__name__
+    if issubclass(cls, (int, float, str, bool, bytes, complex,
+                        list, dict, array.array, UserDict)):
+        return arg
+
+    if serializable:
+        if issubclass(cls, tuple) or not issubclass(cls, Serializable):
+            raise TypeError(
+                'History parameter "%s" not found to be serializable by `json.dump()` or a subclass of `Serializable`.' % nm)
+    return arg
 
 
 class History(CompositeDataset):
@@ -34,13 +56,11 @@ class History(CompositeDataset):
         """
         super(History, self).__init__(**kwds)
 
-        # Name of the table which contains the history script
-        self.HIST_SCRIPT = ''
-
-        # Name of the parameter history table
-        self.PARAM_HISTORY = ''
-        # Name of the task history table
-        self.TASK_HISTORY = ''
+        self['args'] = ArrayDataset(
+            data=[], description='Positional arguments given to the pipeline or task that generated this product.')
+        self['kw_args'] = TableDataset(
+            data=[['name', [], ''], ['value', [], '']],
+            description='Keyword arguments given to the pipeline or task that generated this product.')
 
     def accept(self, visitor):
         """ Hook for adding functionality to meta data object
@@ -55,20 +75,8 @@ class History(CompositeDataset):
         """
         visitor.visit(self)
 
-    def getOutputVar(self):
-        """ Returns the final output variable of the history script.
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-
-        """
-        return None
-
     def getScript(self):
-        """ Creates a Jython script from the history.
+        """ Creates a script from the history.
 
         Parameters
         ----------
@@ -77,7 +85,8 @@ class History(CompositeDataset):
         -------
 
         """
-        return self.HIST_SCRIPT
+
+        raise NotImplemented()
 
     def getTaskHistory(self):
         """ Returns a human readable formatted history tree.
@@ -89,18 +98,31 @@ class History(CompositeDataset):
         -------
 
         """
-        return self.TASK_HISTORY
+        raise NotImplemented()
 
-    def saveScript(self, file):
-        """ Saves the history script to a file.
+    def add_input(self, args=None, keywords=None, info=None, *kwds):
+        if args:
+            for arg in args:
+                carg = check_input(arg)
+                self['args'].append(carg)
+        if kwds:
+            if keywords:
+                keywords.update(kwds)
+            else:
+                keywords = kwds
+        if keywords:
+            for name, var in keywords.items():
+                cvar = check_input(var)
+                # append the parameter name column and value column
+                self['kw_args'].addRow(row={'name': name,
+                                            'value': cvar},
+                                       rows=False)
+        for k, v in info.items():
+            self.meta[k] = guess_value(v, parameter=True)
 
-        Parameters
-        ----------
+    def get_args(self):
 
-        Returns
-        -------
-
-        """
+        return self['args'], self['kw_args']
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder
@@ -113,7 +135,5 @@ class History(CompositeDataset):
 
         """
         return OrderedDict(
-            _ATTR_PARAM_HISTORY=self.PARAM_HISTORY,
-            _ATTR_TASK_HISTORY=self.TASK_HISTORY,
             _ATTR_meta=self._meta,
             **self.data)

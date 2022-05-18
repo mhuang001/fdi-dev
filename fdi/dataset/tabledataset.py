@@ -3,8 +3,8 @@
 from .indexed import Indexed
 from .ndprint import ndprint
 from .odict import ODict
-from ..utils.common import mstr, bstr, lls, wls, exprstrs, findShape
-from .dataset import Dataset, make_title_meta_l0, CompositeDataset
+from ..utils.common import wls
+from .dataset import make_title_meta_l0, CompositeDataset
 from .shaped import Shaped
 from .metadata import MetaData
 
@@ -339,7 +339,7 @@ class TableDataset(CompositeDataset, TableModel, Shaped):
     def addRow(self, row, rows=False):
         """ Adds the specified map as a new row to this table.
 
-        row: mh: row is a dict with names as keys and row data as value.
+        row: row is a dict with names as keys and row data as values.
         rows: append each element in row if the row data is a list.
         """
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from ..utils.common import guess_value
+from .metadata import guess_value
 from .dataset import CompositeDataset
 from .arraydataset import ArrayDataset, Column
 from .tabledataset import TableDataset
@@ -39,7 +39,7 @@ class History(CompositeDataset):
     main methods for retrieving a script and copying the history.
     """
 
-    def __init__(self, other=None, **kwds):
+    def __init__(self, **kwds):
         """
         mh: The copy constructor is better not be implemented. Use copy()
         instead. Remember: not only copies the datasets,
@@ -117,8 +117,9 @@ class History(CompositeDataset):
                 self['kw_args'].addRow(row={'name': name,
                                             'value': cvar},
                                        rows=False)
-        for k, v in info.items():
-            self.meta[k] = guess_value(v, parameter=True)
+        if info:
+            for k, v in info.items():
+                self.meta[k] = guess_value(v, parameter=True)
 
     def get_args(self):
 

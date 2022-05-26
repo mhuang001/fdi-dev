@@ -21,6 +21,8 @@ import tabulate
 
 from itertools import zip_longest, filterfalse
 import builtins
+import array
+import datetime
 import copy
 from collections import OrderedDict, UserList
 from numbers import Number
@@ -375,6 +377,76 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
                            value=self.value,
                            listeners=self.listeners
                            )
+
+
+def guess_value(data, parameter=False, last=str):
+    """ Returns guessed value from a string.
+
+    | input | output |
+    | ```'None'``` | `None` |
+    | integer | `int()` |
+    | float | `float()` |
+    | ```'True'```, ```'False```` | `True`, `False` |
+    | string starting with ```'0x'``` | `hex()` |
+    | else | run `last`(data) |
+
+    """
+    from .numericparameter import NumericParameter, BooleanParameter
+    from .dateparameter import DateParameter
+    from .stringparameter import StringParameter
+    from .datatypes import Vector
+    from .metadata import Parameter
+    from .finetime import FineTime
+    if data == 'None':
+        res = None
+    elif data == '':
+        if parameter:
+            return StringParameter(value=data)
+        else:
+            return data
+    else:
+        if issubclass(data.__class__, (list, tuple, set, array.array)):
+            res = data
+            return NumericParameter(valoe=res) if parameter else res
+        try:
+            if issubclass(data.__class__, int):
+                res = data
+            else:
+                res = int(data)
+            return NumericParameter(value=res) if parameter else res
+        except (ValueError, TypeError):
+            try:
+                if issubclass(data.__class__, float):
+                    res = data
+                else:
+                    res = float(data)
+                return NumericParameter(value=res) if parameter else res
+            except (ValueError, TypeError):
+                # string, bytes, bool
+                if issubclass(data.__class__, bytes):
+                    res = data
+                    return NumericParameter(value=res) if parameter else res
+                if data is None:
+                    return StringParameter(value='') if parameter else None
+                elif data.startswith('0x'):
+                    res = bytes.fromhex(data[2:])
+                    return NumericParameter(value=res) if parameter else res
+                elif issubclass(data.__class__, bool):
+                    res = data
+                    return BooleanParameter(value=res) if parameter else res
+                elif data in ['True', 'False']:
+                    res = bool(data)
+                    return BooleanParameter(value=res) if parameter else res
+                elif issubclass(data.__class__, (datetime.datetime, FineTime)):
+                    res = data
+                    return DateParameter(value=res) if parameter else res
+                elif 'T' in data and ':' in data and '-' in data:
+                    res = FineTime(data)
+                    return DateParameter(value=res) if parameter else res
+                else:
+                    res = last(data)
+                    return Parameter(value=res) if parameter else res
+    return StringParameter('null') if parameter else None
 
 
 def make_jsonable(valid):

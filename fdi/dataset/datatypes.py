@@ -165,7 +165,7 @@ def cast(val, typ_, namespace=None):
 class Vector(Quantifiable, Serializable, DeepEqual):
     """ N dimensional vector.
 
-    If unit, description, type etc meta data is needed, use a Parameter.
+    If description, type etc meta data is needed, use a Parameter.
 
     A Vector can compare with a value whose type is in ``DataTypes``, the quantity being used is the magnitude.
     """

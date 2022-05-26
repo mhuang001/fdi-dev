@@ -3,7 +3,7 @@
 from .masked import masked
 from .ydump import ydump
 from .. import dataset
-from ..dataset.finetime import FineTime
+
 import hashlib
 import array
 import datetime
@@ -652,69 +652,6 @@ def findShape(data, element_seq=(str)):
             except (TypeError, IndexError, KeyError) as e:
                 d = None
     return tuple(shape)
-
-
-def guess_value(data, parameter=False, last=str):
-    """ Returns guessed value from a string.
-
-    | input | output |
-    | ```'None'``` | `None` |
-    | integer | `int()` |
-    | float | `float()` |
-    | ```'True'```, ```'False```` | `True`, `False` |
-    | string starting with ```'0x'``` | `hex()` |
-    | else | run `last`(data) |
-
-    """
-    from ..dataset.numericparameter import NumericParameter, BooleanParameter
-    from ..dataset.dateparameter import DateParameter
-    from ..dataset.stringparameter import StringParameter
-    from ..dataset.metadata import Parameter
-    if data == 'None':
-        res = None
-    elif data == '':
-        if parameter:
-            return StringParameter(value=data)
-        else:
-            return data
-    else:
-        try:
-            if issubclass(data.__class__, int):
-                res = data
-            else:
-                res = int(data)
-            return NumericParameter(value=res) if parameter else res
-        except ValueError:
-            try:
-                if issubclass(data.__class__, float):
-                    res = data
-                else:
-                    res = float(data)
-                return NumericParameter(value=res) if parameter else res
-            except ValueError:
-                # string, bytes, bool
-                if issubclass(data.__class__, bytes):
-                    res = data
-                    return NumericParameter(value=res) if parameter else res
-                elif data.startswith('0x'):
-                    res = bytes.fromhex(data[2:])
-                    return NumericParameter(value=res) if parameter else res
-                elif issubclass(data.__class__, bool):
-                    res = data
-                    return BooleanParameter(value=res) if parameter else res
-                elif data in ['True', 'False']:
-                    res = bool(data)
-                    return BooleanParameter(value=res) if parameter else res
-                elif issubclass(data.__class__, (datetime.datetime, FineTime)):
-                    res = data
-                    return DateParameter(value=res) if parameter else res
-                elif 'T' in data and ':' in data and '-' in data:
-                    res = FineTime(data)
-                    return DateParameter(value=res) if parameter else res
-                else:
-                    res = last(data)
-                    return Parameter(value=res) if parameter else res
-    return StringParameter('null') if parameter else None
 
 
 def find_all_files(datadir, verbose=False, include=None, exclude=None):

@@ -120,6 +120,9 @@ def make_pool(pool, conf='pns', auth=None, wipe=False):
     ;name: PoolURL, or pool name (has no "://"), in which case a pool URL is made based on the result of `getConfig(name=pool, conf=conf)`. Default is ''.
     :conf: passed to `getconfig` to determine which configuration. Default ```pns```.
     :wipe: whether to delete everything in the pool first.
+
+    Exception
+    ConnectionError
     """
 
     if '://' in pool:

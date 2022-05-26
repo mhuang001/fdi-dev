@@ -2,7 +2,8 @@
 
 from .serializable import serialize, ATTR, LEN_ATTR
 from .classes import Classes
-from ..utils.common import lls, guess_value
+from ..utils.common import lls
+from ..dataset.metadata import guess_value
 
 import logging
 import json

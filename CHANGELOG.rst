@@ -6,6 +6,10 @@ Change Log
 BETA1
 =====
 
+1.17.0 2022-05-18
+-----------------
+History implemented.
+
 1.17.0 2022-05-06
 -----------------
 New pool hk. pool v0.14

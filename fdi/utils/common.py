@@ -12,6 +12,7 @@ import pprint
 import textwrap
 import copy
 import os
+from pathlib import Path
 import pwd
 import logging
 from functools import lru_cache
@@ -167,7 +168,7 @@ def wcw_wls(st, width=15, fill=None, linebreak='\n', unprintable='#'):
             if fill:
                 line.append((width-l) * fill)
             line.append(linebreak)
-        #print('*****', line)
+        # print('*****', line)
     end = len(linebreak)
     return ''.join(line[:-end])
 
@@ -664,20 +665,31 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None):
 
     allf = []
 
-    def ok(f, inc, exc, verbose=False):
-        if inc and all(i not in f for i in inc):
-            return False
-        if exc and any(e in f for e in exc):
-            return False
-        return True
+    # def ok(f, inc, exc, verbose=False):
+    #     if inc and all(i not in f for i in inc):
+    #         return False
+    #     if exc and any(e in f for e in exc):
+    #         return False
+    #     return True
+    if not include:
+        include = '*'
+    inc = Path(datadir).glob(include)
+    #li = list(inc)
+    #print("find", len(inc))
 
-    for root, dirs, files in os.walk(datadir):
-        if verbose:
-            print("In ", root, "...", end=" ")
-            print("find", len(files), "non-dir files", end=' ')
-            print("and", len(dirs), "dirs")
-        allf += [os.path.join(root, f)
-                 for f in files if ok(f, include, exclude)]
+    if exclude:
+        allf = list(str(f) for f in inc if not any(
+            e in f.name for e in exclude))
+    else:
+        allf = list(str(f) for f in inc)
+
+    # for root, dirs, files in os.walk(datadir):
+    #     if verbose:
+    #         print("In ", root, "...", end=" ")
+    #         print("find", len(files), "non-dir files", end=' ')
+    #         print("and", len(dirs), "dirs")
+    #     allf += [os.path.join(root, f)
+    #              for f in files if ok(f, include, exclude)]
     if verbose:
         print('Find %d files total.' % len(allf))
     return allf

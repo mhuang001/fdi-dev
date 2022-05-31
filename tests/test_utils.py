@@ -11,7 +11,7 @@ from fdi.pal.productref import ProductRef
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadcsv
 from fdi.utils import moduleloader
-from fdi.utils.common import fullname, wls
+from fdi.utils.common import fullname, wls, find_all_files
 from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
 from fdi.utils.tree import tree
@@ -313,6 +313,26 @@ def test_tree(demo_product):
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
         assert ts == out_tree
+
+
+def test_find_all_files():
+    tdir = '/tmp/test_find_all_files'
+    if os.path.exists(tdir) and tdir != '/':
+        os.system('rm -rf '+tdir)
+    os.makedirs(tdir+'/sub', exist_ok=True)
+    os.system('cd %s; touch a.jsn b.json sub/c.jsn' % tdir)
+    fs = find_all_files(tdir)
+    assert set(fs) == {tdir+'/a.jsn', tdir+'/b.json', tdir+'/sub'}
+
+    fs = find_all_files(tdir, include='*.jsn')
+    assert set(fs) == {tdir+'/a.jsn'}
+    fs = find_all_files(tdir, include='**/*')
+    assert set(fs) == {tdir+'/a.jsn', tdir+'/b.json',
+                       tdir+'/sub', tdir+'/sub/c.jsn'}
+    fs = find_all_files(tdir, include='**/*.jsn')
+    assert set(fs) == {tdir+'/a.jsn', tdir+'/sub/c.jsn'}
+    fs = find_all_files(tdir, include='**/*.js*n')
+    assert set(fs) == {tdir+'/a.jsn', tdir+'/b.json', tdir+'/sub/c.jsn'}
 
 
 def test_loadcsv():

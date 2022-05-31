@@ -27,8 +27,8 @@ def getValidator(schema, schemas=None, schema_dir=None, base_schema=None, verbos
                 '`schema_dir` cannot be None when `schemas` is None.')
         schemas = list(json.load(open(source))
                        for source in find_all_files(schema_dir, verbose=verbose,
-                                                    include=('.jsn', '.json'),
-                                                    exclude=('~')))
+                                                    include='**/*.js*n',
+                                                    exclude=('')))
     elif issubclass(schemas.__class__, dict):
         schemas = [schemas]
     schema_store = {schema["$id"]: schema for schema in schemas}

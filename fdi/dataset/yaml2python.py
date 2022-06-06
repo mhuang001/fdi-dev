@@ -811,9 +811,11 @@ if __name__ == '__main__':
 
         # import the newly made module to test and, for class generatiom, so the following classes could use it
         importexclude.remove(modulename)
-        # importlib.invalidate_caches()
         if cwd not in sys.path:
             sys.path.insert(0, cwd)
+        importlib.invalidate_caches()
+        logger.debug('sys.path is '+str(sys.path))
+
         newp = 'fresh ' + modelName + ' from ' + modulename + \
             '.py of package ' + package_name + ' in ' + opath + '.'
         if modelName.endswith('_DataModel'):
@@ -830,7 +832,7 @@ if __name__ == '__main__':
             glb[modelName] = getattr(_o, modelName)
         except Exception as e:
             print('Unable to import ' + newp)
-            raise(e)
+            raise
         importexclude.extend(exclude_save)
         print('Imported ' + newp)
         # Instantiate and dump metadata in text format

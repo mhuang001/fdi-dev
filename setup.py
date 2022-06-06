@@ -12,9 +12,11 @@ with open('fdi/_version.py') as fp:
     exec(fp.read(), None, _locals)
 version = _locals['__version__']
 
+pkgd = os.path.dirname(__file__)
+
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname), encoding='utf-8').read()
+    return open(os.path.join(pkgd, fname), encoding='utf-8').read()
 
 
 setup(
@@ -35,7 +37,8 @@ setup(
         'requests>=2.23.0',
         'filelock>=3.0.12',
         'ruamel.yaml<0.17',
-        'tabulate @ git+https://github.com/mhuang001/python-tabulate.git@r1',
+        'tabulate @ file://%s/resources/tabulate-0.8.10-py3-none-any.whl' % pkgd,
+        #'tabulate @ git+https://github.com/mhuang001/python-tabulate.git@r1',
         #'tabulate @ git+http://mercury.bao.ac.cn:9006/mirrors/tabulate.git@r1',
         #'tabulate @ git+ssh://git@mercury.bao.ac.cn:9005/mirrors/tabulate.git@r1',
         'cwcwidth>=0.1.5',

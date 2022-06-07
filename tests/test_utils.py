@@ -321,14 +321,24 @@ def test_find_all_files():
         os.system('rm -rf '+tdir)
     os.makedirs(tdir+'/sub', exist_ok=True)
     os.system('cd %s; touch a.jsn b.json sub/c.jsn' % tdir)
-    fs = find_all_files(tdir)
+    # exclude nothing
+    fs = find_all_files(tdir, not_if=lambda x: False)
     assert set(fs) == {tdir+'/a.jsn', tdir+'/b.json', tdir+'/sub'}
-
+    # exclude directories
+    fs = find_all_files(tdir)
+    assert set(fs) == {tdir+'/a.jsn', tdir+'/b.json'}
+    # only with extension
     fs = find_all_files(tdir, include='*.jsn')
     assert set(fs) == {tdir+'/a.jsn'}
+    # recursive, no directories
     fs = find_all_files(tdir, include='**/*')
     assert set(fs) == {tdir+'/a.jsn', tdir+'/b.json',
+                       tdir+'/sub/c.jsn'}
+    # recursive, no directories
+    fs = find_all_files(tdir, include='**/*', not_if=lambda x: False)
+    assert set(fs) == {tdir+'/a.jsn', tdir+'/b.json',
                        tdir+'/sub', tdir+'/sub/c.jsn'}
+    # recursive, no directories, limit names
     fs = find_all_files(tdir, include='**/*.jsn')
     assert set(fs) == {tdir+'/a.jsn', tdir+'/sub/c.jsn'}
     fs = find_all_files(tdir, include='**/*.js*n')

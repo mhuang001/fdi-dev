@@ -398,7 +398,7 @@ def guess_value(data, parameter=False, last=str):
     from .metadata import Parameter
     from .finetime import FineTime
     if data is 'None':
-        return data
+        return Parameter(value=data) if parameter else data
     else:
         if issubclass(data.__class__, (list, tuple, set, array.array)):
             res = data

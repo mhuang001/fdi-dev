@@ -428,7 +428,7 @@ def guess_value(data, parameter=False, last=str):
                     res = data
                     return DateParameter(value=res) if parameter else res
                 elif data[:4].upper() in ('NONE', 'NULL', 'NUL'):
-                    return None
+                    return Parameter(value=None) if parameter else None
                 elif data.startswith('0x'):
                     res = bytes.fromhex(data[2:])
                     return NumericParameter(value=res) if parameter else res

@@ -660,7 +660,7 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=No
 
     :name: of starting directory
     :include: only if a file name has any of these sub-strings.
-    :exclude: only if a file name has not any of these sub-strings.
+    :exclude: only if a file name has not any of these sub-strings. Empty strings are removed.
     :not_if: a function that returns true if given a name of unwanted file. default is None, ```os.is_dir```, which excludes directories.
     """
 
@@ -682,7 +682,7 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=No
     if exclude is None:
         exclude = []
     allf = list(str(f) for f in inc if not any(
-        e in f.name for e in exclude) and not (not_if(f)))
+        e in f.name for e in exclude and e != '') and not (not_if(f)))
 
     # for root, dirs, files in os.walk(datadir):
     #     if verbose:

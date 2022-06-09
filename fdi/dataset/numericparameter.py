@@ -10,7 +10,7 @@ from itertools import filterfalse
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' %  (logger.getEffectiveLevel()))
+# logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
 class NumericParameter(Parameter, Quantifiable):
@@ -65,8 +65,7 @@ class NumericParameter(Parameter, Quantifiable):
             elif len(d) == 4:
                 value = Quaternion(d)
             else:
-                raise ValueError(
-                    'Sequence of only 2 to 4 elements for NumericParameter')
+                value = Vector(d)
         super().setValue(value)
 
     def setDefault(self, default):

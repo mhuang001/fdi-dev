@@ -397,17 +397,12 @@ def guess_value(data, parameter=False, last=str):
     from .datatypes import Vector
     from .metadata import Parameter
     from .finetime import FineTime
-    if data == 'None':
-        res = None
-    elif data == '':
-        if parameter:
-            return StringParameter(value=data)
-        else:
-            return data
+    if data is 'None':
+        return data
     else:
         if issubclass(data.__class__, (list, tuple, set, array.array)):
             res = data
-            return NumericParameter(valoe=res) if parameter else res
+            return NumericParameter(value=res) if parameter else res
         try:
             if issubclass(data.__class__, int):
                 res = data
@@ -426,21 +421,19 @@ def guess_value(data, parameter=False, last=str):
                 if issubclass(data.__class__, bytes):
                     res = data
                     return NumericParameter(value=res) if parameter else res
-                if data is None:
-                    return StringParameter(value='') if parameter else None
+                if issubclass(data.__class__, bool):
+                    res = data
+                    return BooleanParameter(value=res) if parameter else res
+                if issubclass(data.__class__, (datetime.datetime, FineTime)):
+                    res = data
+                    return DateParameter(value=res) if parameter else res
                 elif data.startswith('0x'):
                     res = bytes.fromhex(data[2:])
                     return NumericParameter(value=res) if parameter else res
-                elif issubclass(data.__class__, bool):
-                    res = data
-                    return BooleanParameter(value=res) if parameter else res
-                elif data in ['True', 'False']:
+                elif data.upper() in ['TRUE', 'FALSE']:
                     res = bool(data)
                     return BooleanParameter(value=res) if parameter else res
-                elif issubclass(data.__class__, (datetime.datetime, FineTime)):
-                    res = data
-                    return DateParameter(value=res) if parameter else res
-                elif 'T' in data and ':' in data and '-' in data:
+                elif data[0] in '0987654321' and 'T' in data and ':' in data and '-' in data:
                     res = FineTime(data)
                     return DateParameter(value=res) if parameter else res
                 else:

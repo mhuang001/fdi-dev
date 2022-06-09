@@ -383,7 +383,7 @@ def guess_value(data, parameter=False, last=str):
     """ Returns guessed value from a string.
 
     | input | output |
-    | ```'None'``` | `None` |
+    | ```'None'```,```'null'```,```'nul'``` any case | `None` |
     | integer | `int()` |
     | float | `float()` |
     | ```'True'```, ```'False```` | `True`, `False` |
@@ -427,6 +427,8 @@ def guess_value(data, parameter=False, last=str):
                 if issubclass(data.__class__, (datetime.datetime, FineTime)):
                     res = data
                     return DateParameter(value=res) if parameter else res
+                elif data[:4].upper() in ('NONE', 'NULL', 'NUL'):
+                    return None
                 elif data.startswith('0x'):
                     res = bytes.fromhex(data[2:])
                     return NumericParameter(value=res) if parameter else res

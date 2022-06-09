@@ -27,8 +27,6 @@ from fdi.utils.common import fullname
 import pytest
 import urllib
 import time
-import getpass
-import sys
 
 
 def setuplogging():

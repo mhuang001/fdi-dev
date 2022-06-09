@@ -397,7 +397,7 @@ def guess_value(data, parameter=False, last=str):
     from .datatypes import Vector
     from .metadata import Parameter
     from .finetime import FineTime
-    if data is 'None':
+    if data is None:
         return Parameter(value=data) if parameter else data
     else:
         if issubclass(data.__class__, (list, tuple, set, array.array)):
@@ -435,7 +435,7 @@ def guess_value(data, parameter=False, last=str):
                 elif data.upper() in ['TRUE', 'FALSE']:
                     res = bool(data)
                     return BooleanParameter(value=res) if parameter else res
-                elif data[0] in '0987654321' and 'T' in data and ':' in data and '-' in data:
+                elif len(data) > 16 and data[0] in '0987654321' and 'T' in data and ':' in data and '-' in data:
                     res = FineTime(data)
                     return DateParameter(value=res) if parameter else res
                 else:

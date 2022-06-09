@@ -29,7 +29,7 @@ from fdi.dataset.quantifiable import Quantifiable
 from fdi.dataset.listener import EventSender, EventTypes, EventType, EventTypeOf, MetaDataListener, EventListener
 from fdi.dataset.messagequeue import MqttRelayListener, MqttRelaySender
 from fdi.dataset.composite import Composite
-from fdi.dataset.metadata import Parameter, MetaData, make_jsonable
+from fdi.dataset.metadata import Parameter, MetaData, make_jsonable, guess_value
 from fdi.dataset.metadataholder import MetaDataHolder
 from fdi.dataset.numericparameter import NumericParameter, BooleanParameter
 from fdi.dataset.stringparameter import StringParameter
@@ -1138,6 +1138,13 @@ def test_StringParameter():
     assert v.description == a1
     assert v.value == a2
     checkjson(v)
+
+
+def test_guess_value():
+    assert guess_value('') == ''  # StringParameter('')
+    assert guess_value('None', parameter=True) == Parameter(None)
+    assert guess_value('nul', parameter=True) == Parameter(None)
+    assert guess_value(None, parameter=True) == Parameter(None)
 
 
 def test_MetaData():

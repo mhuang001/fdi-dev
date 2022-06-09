@@ -40,7 +40,8 @@ class StringParameter(Parameter, Typecoded):
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(
-            description=self.description,
+            description=self.description if hasattr(
+                self, 'description') else '',
             default=self._default,
             value=self._value if hasattr(self, '_value') else None,
             valid=self._valid,

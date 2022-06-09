@@ -682,7 +682,7 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=No
     if exclude is None:
         exclude = []
     allf = list(str(f) for f in inc if not any(
-        e in f.name for e in exclude and e != '') and not (not_if(f)))
+        e in f.name for e in exclude if e != '') and not (not_if(f)))
 
     # for root, dirs, files in os.walk(datadir):
     #     if verbose:

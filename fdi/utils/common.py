@@ -11,6 +11,7 @@ import traceback
 import pprint
 import textwrap
 import copy
+import fnmatch
 import os
 from pathlib import Path
 import pwd
@@ -658,31 +659,32 @@ def findShape(data, element_seq=(str)):
 def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=None):
     """ returns a list of names of all files in `datadir`.
 
-    :name: of starting directory
+    :name: of starting directory or a list of file name strings to filter.
     :include: only if a file name has any of these sub-strings.
     :exclude: only if a file name has not any of these sub-strings. Empty strings are removed.
-    :not_if: a function that returns true if given a name of unwanted file. default is None, ```os.is_dir```, which excludes directories.
+    :not_if: a function that returns true if given a name of unwanted file. default is None, (which excludes directories when `datadir` is a string, and disabled if `datadir` is a `list`.
     """
 
     allf = []
-    if not_if is None:
-        not_if = os.path.isdir
-    # def ok(f, inc, exc, verbose=False):
-    #     if inc and all(i not in f for i in inc):
-    #         return False
-    #     if exc and any(e in f for e in exc):
-    #         return False
-    #     return True
+
     if not include:
         include = '*'
-    inc = Path(datadir).glob(include)
-    #li = list(inc)
+
+    isadir = issubclass(datadir.__class__, str)
+    if isadir:
+        if not_if is None:
+            not_if = os.path.isdir
+        inc = Path(datadir).glob(include)
+        inc = list(str(f) for f in inc)
+    else:
+        inc = fnmatch.filter(datadir, include)
+
     #print("find", len(inc))
 
     if exclude is None:
         exclude = []
-    allf = list(str(f) for f in inc if not any(
-        e in f.name for e in exclude if e != '') and not (not_if(f)))
+    allf = list(f for f in inc if not any(
+        e in f for e in exclude if e != '') and not (isadir and not_if(f)))
 
     # for root, dirs, files in os.walk(datadir):
     #     if verbose:

@@ -49,6 +49,14 @@ fdi.pns.pns\_server module
    :undoc-members:
    :show-inheritance:
 
+fdi.pns.public\_fdi\_requests module
+------------------------------------
+
+.. automodule:: fdi.pns.public_fdi_requests
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.pns.runflaskserver module
 -----------------------------
 

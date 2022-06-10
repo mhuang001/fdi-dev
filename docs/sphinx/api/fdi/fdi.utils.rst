@@ -73,6 +73,14 @@ fdi.utils.json\_to\_yaml module
    :undoc-members:
    :show-inheritance:
 
+fdi.utils.jsonpath module
+-------------------------
+
+.. automodule:: fdi.utils.jsonpath
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.utils.leapseconds module
 ----------------------------
 
@@ -157,6 +165,14 @@ fdi.utils.tree module
 ---------------------
 
 .. automodule:: fdi.utils.tree
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.utils.validator module
+--------------------------
+
+.. automodule:: fdi.utils.validator
    :members:
    :undoc-members:
    :show-inheritance:

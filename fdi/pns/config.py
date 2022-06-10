@@ -76,14 +76,6 @@ pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
 pnsconfig['defaultpool'] = 'default'
 pnsconfig['loggerlevel'] = LOGGER_LEVEL
 
-# message queue config
-pnsconfig['mqtt'] = dict(
-    host='0.0.0.0',
-    port=31876,
-    username='foo',
-    passwd='bar',
-)
-
 # choose from pre-defined.
 conf = ['dev', 'external', 'production', 'public'][0]
 
@@ -114,13 +106,6 @@ elif conf == 'external':
                          'host': EXTHOST, 'port': EXTPORT,
                          'ro_username': EXTRO_USER, 'ro_password': EXTRO_PASS,
                          }
-    # message queue config
-    pnsconfig['mqtt'] = dict(
-        host=MQHOST,
-        port=MQPORT,
-        username=MQUSER,
-        passwd=MQPASS,
-    )
     pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
     # server's own
     pnsconfig['self_host'] = SELF_HOST
@@ -190,3 +175,20 @@ del phome, h
 
 # seconds
 pnsconfig['timeout'] = 10
+
+############## project specifig ####################
+# message queue config
+pnsconfig['mqtt'] = dict(
+    host='0.0.0.0',
+    port=31876,
+    username='foo',
+    passwd='bar',
+)
+
+# OSS config
+pnsconfig['oss'] = dict(
+    access_key_id=os.getenv('OSS_ACCESS_KEY_ID'),
+    access_key_secret=os.getenv('OSS_ACCESS_KEY_SECRET'),
+    bucket_name=os.getenv('OSS_BUCKET'),
+    endpoint=os.getenv('OSS_ENDPOINT'),
+)

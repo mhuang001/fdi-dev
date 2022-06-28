@@ -130,7 +130,7 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None, verbose=False):
     lowlim = - 2**(bitdepth-1)
 
     # color legend band
-    clh = 10
+    color_legend_height = 10
     ncolor = 2**cspace
 
     if grey:
@@ -163,9 +163,10 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None, verbose=False):
         wlscale = (ulimit-llimit)/float(width)
         clscale = (ulimit-llimit)/float(ncolor-1)
 
+        # color legend
         clegend = [array.array(tcode, list(llimit+int(x*wlscale)
-                                           for x in range(width)))]*clh
-        height += clh
+                                           for x in range(width)))]*color_legend_height
+        height += color_legend_height
         # signed to unsigned. clip to llimit<= v <=ulimit then scale to cspace
         img = list(
             array.array(unsigned_tc, (
@@ -208,9 +209,14 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None, verbose=False):
     cnt = dict((c, int(i*scl)) for i, c in enumerate(uniq_vals))
 
     wlscale = nuniq_vals/float(width)
-    clegend = [array.array(tcode, list(uniq_vals[int(x*wlscale)]
-                                       for x in range(width)))]*clh
-    height += clh
+
+#    _r = range(-(width//2), (width//2)
+#               ) if tcode in ['h', 'b'] else range(width)
+    uv = [uniq_vals[int(x*wlscale)] for x in range(width)]
+
+    clegend = [array.array(tcode, uv)]*color_legend_height
+
+    height += color_legend_height
 
     t1 = time.time()
     if use_pypng:

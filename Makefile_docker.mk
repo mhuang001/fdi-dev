@@ -10,10 +10,10 @@ DFILE	=fdi/dockerfile
 
 ifndef apache
 SERVER_NAME      =httppool
-API_BASE = /fdi
+API_BASE = $(shell python -m fdi.utils.getconfig api_base)
 else
 SERVER_NAME      =httppool
-API_BASE = /fdi
+API_BASE = $(shell python -m fdi.utils.getconfig api_base)
 endif
 
 SERVER_VERSION	= $(DOCKER_VERSION)

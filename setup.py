@@ -52,7 +52,9 @@ setup(
         'pypng>=0.0.21',
     ],
     entry_points={'console_scripts': [
-        'yaml2python=fdi.dataset.yaml2python:main']},
+        'yaml2python=fdi.dataset.yaml2python:main',
+        'fdi-getconfig=fdi.utils.getconfig:main',
+    ]},
     setup_requires=[],
     tests_require=['pytest', 'pytest-cov', ],
     extras_require={

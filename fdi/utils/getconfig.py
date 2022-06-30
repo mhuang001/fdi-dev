@@ -1,9 +1,12 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from ..pns.config import pnsconfig as builtin_conf
+from fdi.pns.config import pnsconfig as builtin_conf
 
 from os.path import join, expanduser, expandvars, isdir
 import functools
+import json
+import argparse
 import sys
 import importlib
 
@@ -39,10 +42,14 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
     """ Imports a dict named [conf]config.
 
     The contents of the config are defined in the ``.config/[conf]local.py`` file. The contenss are used to update defaults in ``fdi.pns.config``.
-    Th config file directory can be modified by the environment variable ``CONF_DIR``, which, if  not given or pointing to an existing directory, is the process owner's ``~/.config`` directory.
+    The config file directory can be modified by the environment variable ``CONF_DIR``, which, if  not given or pointing to an existing directory, is the process owner's ``~/.config`` directory.
 
-    name: if given the poolurl in ``poolurl_of`` is returned, else construct a poolul ending with ```/{name}``` from the contents in dict <conf>config. Default ```None```.
+    name: If found to be a key in ``poolurl_of`` in dict <conf>config, the value poolurl is returned, else construct a poolurl with ```scheme``` and ```node``` with ```/{name}``` at the end. Default ```None```.
     conf: configuration ID. default 'pns', so the file is 'pnslocal.py'.
+
+    Return
+    ------
+
     """
     # default configuration is provided. Copy pns/config.py to ~/.config/pnslocal.py
 
@@ -105,11 +112,14 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
         if name in urlof:
             return urlof[name]
         else:
-            return config['scheme'] + '://' + \
-                config['node']['host'] + ':' + \
-                str(config['node']['port']) + \
-                config['baseurl'] + \
-                '/' + name
+            return ''.join([config['scheme'],
+                            '://',
+                            config['node']['host'],
+                            ':',
+                            str(config['node']['port']),
+                            config['baseurl'],
+                            '/',
+                            name])
     else:
         return config
 
@@ -142,3 +152,41 @@ def make_pool(pool, conf='pns', auth=None, wipe=False):
     # print(pstore)
 
     return pstore
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    group = parser.add_mutually_exclusive_group()
+
+    group.add_argument("param", nargs='?',
+                       default=None, help="Same as -p, and mutually exclusive with.")
+    group.add_argument("-p", "--parameter",
+                       default=None, help="parameter name in the config file.")
+    parser.add_argument("-n", "--name", type=str,
+                        default=None, help="If found to be a key in ``poolurl_of`` in dict <conf>config, the value poolurl is returned, else construct a poolurl with ```scheme``` and ```node``` with ```/{name}``` at the end. Default ```None```.")
+    parser.add_argument("-c", "--conf",
+                        default='pns', help="Configuration ID. default 'pns', so the file is 'pnslocal.py'.")
+
+    parser.add_argument("-f", "--force",  action='store_true',
+                        default=False, help="")
+
+    args, remainings = parser.parse_known_args(args=sys.argv[1:])
+
+    if args.parameter is not None or args.param is not None:
+        conf = getConfig(conf=args.conf, force=args.force)
+        p = args.parameter if args.parameter is not None else args.param
+        if p in conf:
+            print(conf[p])
+            sys.exit(0)
+        else:
+            print('')
+            sys.exit(-1)
+    conf = getConfig(name=args.name, conf=args.conf, force=args.force)
+    if issubclass(conf.__class__, dict):
+        print(json.dumps(conf, indent=4))
+    else:
+        print(conf)
+    sys.exit(0)

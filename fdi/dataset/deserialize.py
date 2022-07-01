@@ -110,15 +110,29 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
         # process types wrapped in a dict
         if PY3:
             if classname == 'bytes':
-                inst = codecs.decode(obj['code'], 'hex')
+                inst = bytes.fromhex(obj['code'])
+                #inst = codecs.decode(obj['code'], 'hex')
                 if debug:
-                    print(spaces + 'Instanciate hex')
+                    print(spaces + 'Instanciate bytes')
                 indent -= 1
                 return inst
-            elif classname == 'bytes_gz':
+            elif classname == 'bytes_gz' or classname == 'bytes,gz,64':
                 inst = gzip.decompress(binascii.a2b_base64(obj['code']))
                 if debug:
                     print(spaces + 'Instanciate hex_gz')
+                indent -= 1
+                return inst
+            elif classname == 'bytearray':
+                inst = bytearray.fromhex(obj['code'])
+                if debug:
+                    print(spaces + 'Instanciate bytearray')
+                indent -= 1
+                return inst
+            elif classname == 'bytearray_gz' or classname == 'bytearray,gz,64':
+                inst = bytearray(gzip.decompress(
+                    binascii.a2b_base64(obj['code'])))
+                if debug:
+                    print(spaces + 'Instanciate bytearray_gz')
                 indent -= 1
                 return inst
             elif classname.startswith('a.array'):

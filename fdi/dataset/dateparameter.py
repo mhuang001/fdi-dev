@@ -32,10 +32,14 @@ class DateParameter(Parameter, Typecoded):
         """
 
         # collect args-turned-local-variables.
-        args = OrderedDict(filterfalse(
-            lambda x: x[0] in ('self', '__class__', 'kwds'),
-            locals().items())
-        )
+        args = vars(locals())
+        args.pop('__class__', None)
+        args.pop('kwds', None)
+        args.pop('self', None)
+        # OrderedDict(filterfalse(
+        #    lambda x: x[0] in ('self', '__class__', 'kwds'),
+        #    locals().items())
+        # )
         args.update(kwds)
 
         # 'Q' is unsigned long long (8byte) integer.

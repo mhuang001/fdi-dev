@@ -150,18 +150,23 @@ class SerializableEncoder(json.JSONEncoder):
             try:
                 # logger.debug
                 # print('&&&& %s %s' % (str(obj.__class__), str(obj)))
+                oc = obj.__class__
                 if PY3:
-                    if issubclass(obj.__class__, bytes):
-                        # return dict(code=str(codecs.encode(obj, 'hex'), encoding='ascii'), _STID='bytes')
-                        return dict(code=binascii.b2a_base64(gzip.compress(obj, 5)).decode('ascii'), _STID='bytes_gz')
-                    elif issubclass(obj.__class__, array.array):
-                        return dict(code=binascii.b2a_base64(gzip.compress(obj, 5)).decode('ascii'), _STID='a.array,gz,b64_'+obj.typecode)
-                if not PY3 and issubclass(obj.__class__, str):
+                    if issubclass(oc, (bytes, bytearray)):
+                        return dict(code=obj.hex(), _STID=oc.__name__)
+                        # return dict(code=binascii.b2a_base64(gzip.compress(obj, 5)).decode('ascii'), _STID=oc.__name__ + ',gz,b64')
+                    elif issubclass(oc, array.array):
+                        return dict(code=str(codecs.encode(obj, 'hex'), encoding='ascii'), _STID='a.array_'+obj.typecode)
+                        # return dict(code=binascii.b2a_base64(gzip.compress(obj, 5)).decode('ascii'), _STID='a.array,gz,b64_'+obj.typecode)
+                if not PY3 and issubclass(oc, str):
                     # return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
+                    assert False, lls(obj, 50)
+
+                    return obj
                     return dict(code=gzip.compress(obj, 5), _STID='bytes_gz')
                 if obj is Ellipsis:
                     return {'obj': '...', '_STID': 'ellipsis'}
-                if issubclass(obj.__class__, type):
+                if issubclass(oc, type):
                     return {'obj': obj.__name__, '_STID': 'dtype'}
                 if hasattr(obj, 'serializable'):
                     # print(obj.serializable())

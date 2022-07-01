@@ -189,6 +189,10 @@ def test_serialization():
     # checkjson(v)
     v = array.array('d', [1.2, 42])
     checkjson(v)
+    v = array.array('H', b'123\xef')
+    checkjson(v)
+    v = bytearray(b'1234\xef')
+    checkjson(v)
     v = [1.2, 'ww']
     checkjson(v)
     v = Product

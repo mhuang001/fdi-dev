@@ -220,9 +220,16 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None, verbose=False):
 
     t1 = time.time()
     if use_pypng:
-        img = list(
-            array.array('B', (cnt[x] for x in row))
-            for row in chain(data, clegend))
+        cg = cnt.get
+        img = list(bytes(map(cnt.__getitem__, row))
+                   for row in chain(data, clegend))
+        # img = list(
+        #    array.array('B', map(cnt.get, row))
+        #    for row in chain(data, clegend))
+        # 20% slower
+        # img = list(
+        #    array.array('B', (cnt[x] for x in row))
+        #    for row in chain(data, clegend))
     else:
         img = list(
             array.array('B', chain.from_iterable(cmap[cnt[x]] for x in row))
@@ -234,7 +241,7 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None, verbose=False):
         print('mlc90', max(li), len(li), len(set(list(li))),
               list(map(hex, li[:7])), (data[0][0]-mean)/stdev)
 
-    if img[0].typecode[0] in ['H', 'h'] and sys.byteorder == 'little':
+    if issubclass(img[0].__class__, array.array) and img[0].typecode[0] in ['H', 'h'] and sys.byteorder == 'little':
         for i in img:
             i.byteswap()
 

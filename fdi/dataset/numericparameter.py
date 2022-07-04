@@ -32,10 +32,10 @@ class NumericParameter(Parameter, Quantifiable):
         """
 
         # collect args-turned-local-variables.
-        args = OrderedDict(filterfalse(
-            lambda x: x[0] in ('self', '__class__', 'kwds'),
-            locals().items())
-        )
+        args = copy(locals())
+        args.pop('__class__', None)
+        args.pop('kwds', None)
+        args.pop('self', None)
         args.update(kwds)
 
         super().__init__(
@@ -101,10 +101,10 @@ class BooleanParameter(Parameter):
 
         typ_ = kwds.pop('typ_', 'boolean')
         # collect args-turned-local-variables.
-        args = OrderedDict(filterfalse(
-            lambda x: x[0] in ('self', '__class__', 'kwds'),
-            locals().items())
-        )
+        args = copy(locals())
+        args.pop('__class__', None)
+        args.pop('kwds', None)
+        args.pop('self', None)
         args.update(kwds)
 
         super().__init__(

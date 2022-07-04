@@ -116,7 +116,7 @@ class Attributable(MetaDataHolder):
         -------
 
         """
-        return self.getMeta()
+        return self._meta
 
     @meta.setter
     def meta(self, newMetadata):
@@ -229,6 +229,7 @@ class Attributable(MetaDataHolder):
         if name in Reserved_Property_Names:
             super().__setattr__(name, value)
             return
+
         try:
             if self.alwaysMeta:
                 if issubclass(value.__class__, AbstractParameter):

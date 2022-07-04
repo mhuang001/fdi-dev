@@ -216,10 +216,8 @@ class Serializable():
         super().__init__(*args, **kwds)
         sc = self.__class__
         # print('@@@ ' + sc.__name__, str(issubclass(sc, dict)))
-        if 0 and issubclass(sc, dict):
-            self['_STID'] = sc.__name__
-        else:
-            self._STID = sc.__name__
+
+        self._STID = sc.__name__
 
     def serialized(self, indent=None):
         """

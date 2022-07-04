@@ -18,6 +18,7 @@ import sys
 from collections.abc import Sequence
 from collections import OrderedDict
 import itertools
+from copy import copy
 
 if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.3:
     PY33 = True
@@ -187,12 +188,11 @@ class TableDataset(CompositeDataset, TableModel, Shaped):
         self._list = []
 
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = OrderedDict(
-            itertools.filterfalse(
-                lambda x: x[0] in ('self', '__class__', 'zInfo',
-                                   'kwds'),
-                locals().items())
-        )
+        metasToBeInstalled = copy(locals())
+        metasToBeInstalled.pop('__class__', None)
+        metasToBeInstalled.pop('kwds', None)
+        metasToBeInstalled.pop('self', None)
+        metasToBeInstalled.pop('zInfo', None)
 
         global Model
         if zInfo is None:

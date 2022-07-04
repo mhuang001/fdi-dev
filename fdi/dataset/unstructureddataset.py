@@ -16,7 +16,7 @@ except ImportError:
 import xmltodict
 
 import json
-import itertools
+from copy import copy
 from collections import OrderedDict
 import logging
 # create logger
@@ -43,15 +43,14 @@ class UnstructuredDataset(Dataset, Copyable):
         Accepts keyword args to `xmltodict`, e.g. `xml_attribs`, `attr_prefix` and `cdata_key`.
         """
 
-        self._list = []
-
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = OrderedDict(
-            itertools.filterfalse(
-                lambda x: x[0] in ('self', '__class__',
-                                   'data', 'zInfo', 'kwds'),
-                locals().items())
-        )
+        metasToBeInstalled = copy(locals())
+        metasToBeInstalled.pop('__class__', None)
+        metasToBeInstalled.pop('kwds', None)
+        metasToBeInstalled.pop('self', None)
+        metasToBeInstalled.pop('zInfo', None)
+
+        self._list = []
 
         global Model
         if zInfo is None:

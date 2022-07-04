@@ -10,13 +10,13 @@ from ..utils.common import mstr, bstr, lls, exprstrs, findShape
 from .dataset import GenericDataset, make_title_meta_l0
 try:
     from .arraydataset_datamodel import Model
-except ImportError:
+except ImportError as e:
     Model = {'metadata': {}}
 
 
 from collections.abc import Sequence, Iterable
 from collections import OrderedDict
-import itertools
+from copy import copy
 
 import logging
 # create logger
@@ -71,12 +71,11 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
         """
 
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = OrderedDict(
-            itertools.filterfalse(
-                lambda x: x[0] in ('self', '__class__',
-                                   'zInfo', 'kwds'),
-                locals().items())
-        )
+        metasToBeInstalled = copy(locals())
+        metasToBeInstalled.pop('__class__', None)
+        metasToBeInstalled.pop('kwds', None)
+        metasToBeInstalled.pop('self', None)
+        metasToBeInstalled.pop('zInfo', None)
 
         global Model
         if zInfo is None:

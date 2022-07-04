@@ -19,11 +19,10 @@ from fdi.dataset.listener import ListnerSet
 import cwcwidth as wcwidth
 import tabulate
 
-from itertools import zip_longest, filterfalse
+from copy import copy
 import builtins
 import array
 import datetime
-import copy
 from collections import OrderedDict, UserList
 from numbers import Number
 import logging
@@ -483,11 +482,12 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         """
 
         # collect args-turned-local-variables.
-        args = OrderedDict(filterfalse(
-            lambda x: x[0] in ('self', '__class__', 'kwds'),
-            locals().items())
-        )
+        args = copy(locals())
+        args.pop('__class__', None)
+        args.pop('kwds', None)
+        args.pop('self', None)
         args.update(kwds)
+
         self._all_attrs = args
 
         self.setDefault(default)
@@ -888,7 +888,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
     MaxDefWidth = max(Default_Param_Widths.values())
 
-    def __init__(self, copy=None, defaults=None, **kwds):
+    def __init__(self, copy_=None, defaults=None, **kwds):
         """
 
         Parameters
@@ -899,9 +899,9 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         """
 
         super().__init__(**kwds)
-        if copy:
+        if copy_:
             # not implemented ref https://stackoverflow.com/questions/10640642/is-there-a-decent-way-of-creating-a-copy-constructor-in-python
-            raise ValueError('use copy.copy() insteadof MetaData(copy)')
+            raise ValueError('use copy.copy() insteadof MetaData(copy_)')
         else:
             self._defaults = [] if defaults is None else defaults
             return

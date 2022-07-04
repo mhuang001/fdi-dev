@@ -8,7 +8,7 @@ from fdi.dataset.finetime import FineTime
 
 from fdi.dataset.readonlydict import ReadOnlyDict
 
-import itertools
+from copy import copy
 
 import logging
 # create logger
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class BrowseProduct(BaseProduct):
     """ BrowseProduct class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/BrowseProduct.yml on 2022-04-12 19:46:37.255935.
+Automatically generated from fdi/dataset/resources/BrowseProduct.yml on 2022-07-02 06:57:54.028630.
 
 Description:
 Container of media data for browsing.
@@ -45,11 +45,11 @@ Container of media data for browsing.
         """
 
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = OrderedDict(
-            itertools.filterfalse(
-                lambda x: x[0] in ('self', '__class__', 'zInfo', 'kwds'),
-                locals().items())
-        )
+        metasToBeInstalled = copy(locals())
+        metasToBeInstalled.pop('__class__', None)
+        metasToBeInstalled.pop('kwds', None)
+        metasToBeInstalled.pop('self', None)
+        metasToBeInstalled.pop('zInfo', None)
 
         global Model
         if zInfo is None:

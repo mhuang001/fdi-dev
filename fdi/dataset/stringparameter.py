@@ -3,8 +3,8 @@
 from .metadata import Parameter
 from .typecoded import Typecoded
 
+from copy import copy
 from collections import OrderedDict
-from itertools import filterfalse
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -25,10 +25,10 @@ class StringParameter(Parameter, Typecoded):
 
         typ_ = kwds.pop('typ_', 'string')
         # collect args-turned-local-variables.
-        args = OrderedDict(filterfalse(
-            lambda x: x[0] in ('self', '__class__', 'kwds'),
-            locals().items())
-        )
+        args = copy(locals())
+        args.pop('__class__', None)
+        args.pop('kwds', None)
+        args.pop('self', None)
         args.update(kwds)
 
         self.setTypecode(typecode)

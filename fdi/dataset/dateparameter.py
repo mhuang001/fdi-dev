@@ -6,7 +6,7 @@ from .typecoded import Typecoded
 from .finetime import FineTime, FineTime1, utcobj
 
 from collections import OrderedDict
-from itertools import filterfalse
+from copy import copy
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -32,14 +32,10 @@ class DateParameter(Parameter, Typecoded):
         """
 
         # collect args-turned-local-variables.
-        args = vars(locals())
+        args = copy(locals())
         args.pop('__class__', None)
         args.pop('kwds', None)
         args.pop('self', None)
-        # OrderedDict(filterfalse(
-        #    lambda x: x[0] in ('self', '__class__', 'kwds'),
-        #    locals().items())
-        # )
         args.update(kwds)
 
         # 'Q' is unsigned long long (8byte) integer.

@@ -13,7 +13,7 @@ from fdi.dataset.copyable import Copyable
 from fdi.dataset.history import History
 
 from collections import OrderedDict
-import itertools
+from copy import copy
 
 import logging
 # create logger
@@ -46,7 +46,7 @@ class BaseProduct( AbstractComposite, Copyable, EventSender):
     =====
     BaseProduct class schema 1.6 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2022-04-12 19:46:37.219754.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2022-07-02 06:57:53.980995.
 
 Description:
 FDI base class data model
@@ -66,11 +66,11 @@ FDI base class data model
                  **kwds):
 
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = OrderedDict(
-            itertools.filterfalse(
-                lambda x: x[0] in ('self', '__class__', 'zInfo', 'kwds'),
-                locals().items())
-        )
+        metasToBeInstalled = copy(locals())
+        metasToBeInstalled.pop('__class__', None)
+        metasToBeInstalled.pop('kwds', None)
+        metasToBeInstalled.pop('self', None)
+        metasToBeInstalled.pop('zInfo', None)
 
         global Model
 	# instance variable for Model to be passed down inhritance chains.

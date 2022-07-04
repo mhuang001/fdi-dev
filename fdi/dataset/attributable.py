@@ -49,7 +49,7 @@ class Attributable(MetaDataHolder):
 
         meta: meta data container.
         zInfo: configuration
-        alwaysMeta: always treat parameters as MetaDataProperties (MDPs).
+        alwaysMeta: always treat parameters as MetaDataProperties.
         """
 
         self.alwaysMeta = alwaysMeta
@@ -166,49 +166,78 @@ class Attributable(MetaDataHolder):
 
         return super().__getattribute__(name)
 
-    def setMdp(self, name, value, met=None):
+    def setMdp(self, name, value, met=None, strict=False):
+        """Set Metadata Property.
 
-        m = self.getMeta()
-        # print('MDP ', name, value, id(m), len(m))
+        An MDP attribute like 'description', stored in `meta`
+
+        Parameters
+        ----------
+        name : string
+            Name of the parameter.
+        value : Value of the parameter.
+        met : FrozenDict
+            Is `zInfo('metadata']` or `zInfo['dataset'][xxx]`self.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        TypeError
+            Wrong type.
+
+        """
+
+        m = self._meta
+        #print('MDP ', name, value, id(m), len(m))
+
         if name in m:
             # meta already has a Parameter for name
             p = m[name]
             if issubclass(value.__class__, AbstractParameter):
-                tv, tp = value.getType(), p.getType()
-                if issubclass(Class_Look_Up[DataTypes[tv]],
-                              Class_Look_Up[DataTypes[tp]]):
-                    p = value
-                    return
-                else:
-                    vs = value.value
-                    raise TypeError(
-                        "Parameter %s type is %s, not %s's %s." % (vs, tv, name, tp))
+                m.set(name, value)
+                # tv, tp = value.getType(), p.getType()
+                # if issubclass(Class_Look_Up[DataTypes[tv]],
+                #               Class_Look_Up[DataTypes[tp]]):
+                #     p = value
+                #     return
+                # else:
+                #     vs = value.value
+                #     raise TypeError(
+                #         "Parameter %s type is %s, not %s's %s." % (vs, tv, name, tp))
             else:
-                # value is not a Parameter
-                v_type = type(value)
-                p_type = Class_Look_Up[DataTypes[p.getType()]]
-                if value is None or issubclass(v_type, p_type):
-                    p.setValue(value)
-                    return
-                elif issubclass(v_type, (int, datetime.datetime, str)) and issubclass(p_type, FineTime):
-                    # The parameter is of type `finetime`
-                    #fmt = p['typecode']
-                    # p(value, format=None if fmt in ('Q', '') else fmt)
-                    p.setValue(value)
-                    return
+                # value is not a Parameter. Check value of the parameter currently in metadata.
+                if strict:
+                    v_type = type(value)
+                    p_type = Class_Look_Up[DataTypes[p.getType()]]
+                    if value is None or issubclass(v_type, p_type):
+                        p.setValue(value)
+                        return
+                    elif issubclass(v_type, (int, datetime.datetime, str)) and issubclass(p_type, FineTime):
+                        # The parameter is of type `finetime`
+                        #fmt = p['typecode']
+                        # p(value, format=None if fmt in ('Q', '') else fmt)
+                        p.setValue(value)
+                        return
+                    else:
+                        vs = value
+                        raise TypeError(
+                            "Value %s type is %s, not %s needed by %s." %
+                            (value, type(value).__name__, p_type.__name__, name))
                 else:
-                    vs = value
-                    raise TypeError(
-                        "Value %s type is %s, not %s needed by %s." % (vs, v_type.__name__, p_type.__name__, name))
+                    p.setValue(value)
         else:
             # named parameter is not in meta
-
             if issubclass(value.__class__, AbstractParameter):
                 # value is a parameter
                 m[name] = value
                 return
-            # value is not  a Parameter make one.
+
+            # value is not  a Parameter. make one.
             m[name] = value2parameter(name, value, met)
+
         return
 
     def __setattr__(self, name, value):
@@ -240,7 +269,6 @@ class Attributable(MetaDataHolder):
                     # must return without updating self.__dict__
                     return
             if name in self._MDP:
-                # an MDP attribute like 'description'. store in meta
                 self.setMdp(name, value, self._MDP)
                 # assert self.meta[name].value == value
                 # must return without updating self.__dict__
@@ -251,7 +279,7 @@ class Attributable(MetaDataHolder):
         super(Attributable, self).__setattr__(name, value)
 
     def __delattr__(self, name):
-        """ Refuses deletion of mandatory attributes.
+        """ Refuses deletion of MetaData and Reserved Properties.
         """
 
         try:
@@ -283,10 +311,27 @@ class Attributable(MetaDataHolder):
 
 
 def value2parameter(name, value, descriptor):
-    """ returns a parameter with correct type and attributes according to its value and name.
+    """returns a parameter with correct type and attributes.
 
-    value: type must be compatible with data_type. For example [0, 0] is wrong; Vector2d([0, 0)] is right if ``data_type``==``vector2d``.
-    descriptor: is zInfo('metadata'] or zInfo['dataset'][xxx]
+    According to the value, name, and specification in the data model.
+
+    Parameters
+    ----------
+    name : str
+    value : multiple
+        Type must be compatible with data_type. Use `datatypes.cast` to cast nominal string values first, the pass the result to `value` here, if needed. For example [0, 0] is wrong; Vector2d([0, 0)] is right if ``data_type``==``vector2d``.
+    descriptor : dict
+        Is `zInfo('metadata']` or `zInfo['dataset'][xxx]`.
+    Returns
+    -------
+    Parameter
+        The parameter.
+
+    Raises
+    ------
+    NameError
+        Parameter name not found.
+
     """
 
     # if descriptor is None:
@@ -298,17 +343,15 @@ def value2parameter(name, value, descriptor):
     # in ['integer','hex','float','vector','quaternion']
 
     ext = dict(im)
-    fs = im.get('default', None)
-    gs = im.get('valid', None)
+    fs = ext.pop('default', None)
+    gs = ext.pop('valid', None)
     ext.pop('value', '')
     ext.pop('description', '')
-    ext.pop('data_type', '')
-    ext.pop('default', '')
-    ext.pop('valid', '')
-    if im['data_type'] == 'string':
+    dt = ext.pop('data_type', '')
+
+    if dt == 'string':
         from .stringparameter import StringParameter
-        cs = im.get('typecode', 'B')
-        ext.pop('typecode', '')
+        cs = ext.pop('typecode', 'B')
         ret = StringParameter(value=value,
                               description=im['description'],
                               default=fs,
@@ -316,7 +359,7 @@ def value2parameter(name, value, descriptor):
                               typecode=cs,
                               **ext,
                               )
-    elif im['data_type'] == 'finetime':
+    elif dt in ('finetime', 'finetime1'):
         from .dateparameter import DateParameter
         if issubclass(value.__class__, str):
             fmt = ext.pop('typecode')
@@ -325,25 +368,25 @@ def value2parameter(name, value, descriptor):
             dt = value
         ret = DateParameter(value=dt,
                             description=im['description'],
-                            typ_=im['data_type'],
+                            typ_=dt,
                             default=fs,
                             valid=gs,
                             **ext,
                             )
-    elif DataTypes[im['data_type']] in ['int', 'float', 'Vector', 'Vector2D', 'Quaternion']:
+    elif DataTypes[dt] in ('int', 'float', 'list', 'tuple', 'Vector', 'Vector2D', 'Quaternion'):
         from .numericparameter import NumericParameter
         us = ext.pop('unit', '')
         cs = ext.pop('typecode', '')
         ret = NumericParameter(value=value,
                                description=im['description'],
-                               typ_=im['data_type'],
+                               typ_=dt,
                                unit=us,
                                default=fs,
                                valid=gs,
                                typecode=cs,
                                **ext,
                                )
-    elif DataTypes[im['data_type']] in ['bool']:
+    elif DataTypes[dt] in ['bool']:
         from .numericparameter import BooleanParameter
         ext.pop('unit', '')
         ext.pop('typecode', '')
@@ -354,9 +397,11 @@ def value2parameter(name, value, descriptor):
                                **ext,
                                )
     else:
+        raise TypeError('Cannot find parameter type for metadata "%s" (typed %s).' %
+                        (name, dt))
         ret = Parameter(value=value,
                         description=im['description'],
-                        typ_=im['data_type'],
+                        typ_=dt,
                         default=fs,
                         valid=gs,
                         **ext,

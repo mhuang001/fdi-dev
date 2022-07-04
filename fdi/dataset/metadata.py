@@ -381,6 +381,8 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
 def guess_value(data, parameter=False, last=str):
     """ Returns guessed value from a string.
 
+    This is different from `Attributable.value2parameter`
+
     | input | output |
     | ```'None'```,```'null'```,```'nul'``` any case | `None` |
     | integer | `int()` |
@@ -388,6 +390,10 @@ def guess_value(data, parameter=False, last=str):
     | ```'True'```, ```'False```` | `True`, `False` |
     | string starting with ```'0x'``` | `hex()` |
     | else | run `last`(data) |
+
+    Returns
+    -------
+    Parameter
 
     """
     from .numericparameter import NumericParameter, BooleanParameter
@@ -512,11 +518,13 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
         Default will be casted if not the same.
         Unsuported parameter types will get a NotImplementedError.
+
         Parameters
         ----------
 
         Returns
         -------
+        None
 
         """
         if typ_ is None or typ_ == '':
@@ -538,6 +546,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         else if type is not set, return value after setting type;
         If value's type is a subclass of self's type, return the value;
         If value's and self's types are both subclass of Number, returns value casted in self's type.
+
         Parameters
         ----------
 
@@ -1111,7 +1120,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
         # write out the table
         if level == 0:
-            allh = copy.copy(MetaHeaders)
+            allh = copy(MetaHeaders)
             if extra:
                 allh += ext_hdr
             if param_widths == -1 or html:

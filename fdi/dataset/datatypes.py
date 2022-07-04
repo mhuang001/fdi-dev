@@ -16,10 +16,9 @@ logger = logging.getLogger(__name__)
 
 bltns = vars(builtins)
 
+ENDIAN = 'little'
+""" Endianess of products generated. """
 
-""" Allowed data (Parameter and Dataset) types and the corresponding classe names.
-The keys are mnemonics for humans; the values are type(x).__name__.
-"""
 DataTypes = {
     'baseProduct': 'BaseProduct',
     'binary': 'int',
@@ -45,9 +44,10 @@ DataTypes = {
     'vector3d': 'Vector3D',
     '': 'None'
 }
+""" Allowed data (Parameter and Dataset) types and the corresponding classe names.
+The keys are mnemonics for humans; the values are type(x).__name__.
+"""
 
-
-""" maps class type names to human-friendly types """
 DataTypeNames = {}
 for tn, tt in DataTypes.items():
     if tt == 'int':
@@ -61,6 +61,8 @@ DataTypeNames.update({
     'UserDict': 'vector',
     'ODict': 'vector',
 })
+""" maps class type names to human-friendly types, reverse `DataTypes`. """
+
 del tt, tn
 
 
@@ -141,12 +143,29 @@ def lookup_bd(t):
 
 
 def cast(val, typ_, namespace=None):
-    """ casts the input value to type specified, which is in DataTypeNames.
+    """Casts the input value to type specified.
 
     For example 'binary' type '0x9' is casted to int 9.
 
-    namespace: default is Classes.mapping.
+    Parameters
+    ----------
+    val : multiple
+        value to be casted.
+    typ_ : string
+        "human name" of `datatypes.DataTypeNames`. e.g. `integer`, `vector2d`, 'list'.
+    namespace : dict
+        namespace to look up classes. default is `Classes.mapping`.
+
+    Returns
+    -------
+    multiple
+        Casted value.
+
+    Raises
+    ------
+
     """
+
     t = DataTypes[typ_]
     vstring = str(val).lower()
     tbd = bltns.get(t, None)  # lookup_bd(t)

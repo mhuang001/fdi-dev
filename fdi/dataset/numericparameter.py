@@ -2,11 +2,11 @@
 
 from .metadata import Parameter
 from .quantifiable import Quantifiable
-from .datatypes import Vector, Vector2D, Quaternion
+from .datatypes import Vector, Vector2D, Vector3D, Quaternion
 
 from collections.abc import Sequence
 from collections import OrderedDict
-from itertools import filterfalse
+from copy import copy
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -57,31 +57,40 @@ class NumericParameter(Parameter, Quantifiable):
         """ accept any type that a Vector does.
         """
         if value is not None and issubclass(value.__class__, Sequence):
-            d = list(value)
-            if len(d) == 2:
-                value = Vector2D(d)
-            elif len(d) == 3:
-                value = Vector(d)
-            elif len(d) == 4:
-                value = Quaternion(d)
-            else:
-                value = Vector(d)
+            if self.type in ('vector', 'vector2d', 'vector3d'):
+                d = list(value)
+                len_d = len(d)
+                if len_d == 2:
+                    value = Vector2D(d)
+                elif len_d == 3:
+                    value = Vector3D(d)
+                elif len_d == 4:
+                    value = Quaternion(d)
+                else:
+                    value = Vector(d)
         super().setValue(value)
 
     def setDefault(self, default):
         """ accept any type that a Vector does.
+
+        'Accept sequence of only 0 to 4 elements for NumericParameter and Vectors.')
+
         """
         if default is not None and issubclass(default.__class__, Sequence):
-            d = list(default)
-            if len(d) == 2:
-                default = Vector2D(d)
-            elif len(d) == 3:
-                default = Vector(d)
-            elif len(d) == 4:
-                default = Quaternion(d)
-            else:
-                raise ValueError(
-                    'Sequence of only 2 to 4 elements for NumericParameter')
+            # MUST NOT depend on self.type being existing
+            if getattr(self, '_type', None) in ('vector', 'vector2d', 'vector3d'):
+                d = list(default)
+                len_d = len(d)
+                if len_d == 2:
+                    default = Vector2D(d)
+                elif len_d == 3:
+                    default = Vector3D(d)
+                elif len_d == 4:
+                    default = Quaternion(d)
+                else:
+                    pass
+                    # raise ValueError(
+                    #        'Sequence of only 0 to 4 elements for NumericParameter and Vectors.')
         super().setDefault(default)
 
 
@@ -115,10 +124,10 @@ class BooleanParameter(Parameter):
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(description=self.description,
-                           type=self._type,
-                           default=self._default,
-                           value=self._value,
-                           valid=self._valid,)
+                           type=getattr(self, '_type', ''),
+                           default=getattr(self, '_default', ''),
+                           value=getattr(self, '_value', ''),
+                           valid=getattr(self, '_valid', ''),)
 
     def setValue(self, value):
         """ accept any type that `bool` does.

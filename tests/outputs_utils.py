@@ -118,7 +118,8 @@ out_tree = """tree out_tree
 │   │   │   │   ├── default                          <tuple>
 │   │   │   │   ├── value                            <tuple>
 │   │   │   │   ├── valid                         <NoneType>
-│   │   │   │   └── listeners                   <ListnerSet>
+│   │   │   │   ├── unit                               <str>
+│   │   │   │   └── typecode                           <str>
 │   │   │   ├── type                                <string>
 │   │   │   │   ├── description                        <str>
 │   │   │   │   ├── default                            <str>
@@ -170,7 +171,8 @@ out_tree = """tree out_tree
 │       │   │   ├── default                          <tuple>
 │       │   │   ├── value                            <tuple>
 │       │   │   ├── valid                         <NoneType>
-│       │   │   └── listeners                   <ListnerSet>
+│       │   │   ├── unit                               <str>
+│       │   │   └── typecode                           <str>
 │       │   ├── type                                <string>
 │       │   │   ├── description                        <str>
 │       │   │   ├── default                            <str>
@@ -279,7 +281,8 @@ out_tree = """tree out_tree
 |   |   |   |   |__ default                          <tuple>
 |   |   |   |   |__ value                            <tuple>
 |   |   |   |   |__ valid                         <NoneType>
-|   |   |   |   \__ listeners                   <ListnerSet>
+|   |   |   |   |__ unit                               <str>
+|   |   |   |   \__ typecode                           <str>
 |   |   |   |__ type                                <string>
 |   |   |   |   |__ description                        <str>
 |   |   |   |   |__ default                            <str>
@@ -331,7 +334,8 @@ out_tree = """tree out_tree
 |       |   |   |__ default                          <tuple>
 |       |   |   |__ value                            <tuple>
 |       |   |   |__ valid                         <NoneType>
-|       |   |   \__ listeners                   <ListnerSet>
+|       |   |   |__ unit                               <str>
+|       |   |   \__ typecode                           <str>
 |       |   |__ type                                <string>
 |       |   |   |__ description                        <str>
 |       |   |   |__ default                            <str>

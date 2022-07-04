@@ -32,7 +32,7 @@ class DataContainer(Annotatable, Copyable, DeepEqual, Container):
         """
         #print(__name__ + str(kwds))
 
-        if data is None or issubclass(data.__class__, Container):
+        if 1:  # data is None:  # or issubclass(data.__class__, Container):
             super().__init__(**kwds)  # DataContainer
             self.setData(data)
         else:

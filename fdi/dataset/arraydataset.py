@@ -50,7 +50,7 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
 
         Parameters
         ----------
-    :data: the payload data of this dataset. Default is None,
+    :data: the payload data of this dataset. Default is None, Can be any iterable except for memoryview.
         Returns
         -------
     """
@@ -97,14 +97,18 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
 
         # if issubclass(data.__class__, memoryview):
         #    d = data
-        isitr = hasattr(data, '__iter__')  # and hasattr(data, '__next__')
-        if not isitr and data is not None:
-            # dataWrapper initializes data as None
-            m = 'data in ArrayDataset must be an iterator, not ' + \
-                data.__class__.__name__
-            raise TypeError(m)
-        d = None if data is None else \
-            data if hasattr(data, '__getitem__') else list(data)
+        if data is None:
+            d = None
+        else:
+            isitr = hasattr(data, '__iter__') or hasattr(data, '__getitem__')
+            # and hasattr(data, '__next__')
+            if not isitr:
+                # dataWrapper initializes data as None
+                m = 'data in ArrayDataset must be an iterator, not ' + \
+                    data.__class__.__name__
+                raise TypeError(m)
+            else:
+                d = data
         # no passive shape-updating. no
         super(ArrayDataset, self).setData(d)
         self.updateShape()

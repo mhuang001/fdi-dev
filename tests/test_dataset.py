@@ -1410,11 +1410,16 @@ def do_ArrayDataset_init(atype):
     assert v.typecode == 'UNKNOWN'
     assert v.meta['description'].value == 'UNKNOWN'
     # from DRM
-    a1 = atype([1, 4.4, 5.4E3])      # an array of data
+    if issubclass(atype([]).__class__, (bytes, bytearray)):
+        a1 = atype([1, 44, 0xff])      # an array of data
+        a4 = 'integer'              # type
+        a6 = 'H'                  # typecode
+    else:
+        a1 = atype([1, 4.4, 5.4E3])      # an array of data
+        a4 = 'float'              # type
+        a6 = 'f'                  # typecode
     a2 = 'ev'                 # unit
     a3 = 'three energy vals'  # description
-    a4 = 'float'              # type
-    a6 = 'f'                  # typecode
     a7 = (8, 9)
 
     v = ArrayDataset(data=a1, unit=a2, description=a3,
@@ -1466,9 +1471,12 @@ def check_MDP(x):
 def do_ArrayDataset_func(atype):
 
     # test data and unit
-    a1 = atype([1, 4.4, 5.4E3])      # an array of data
+    if issubclass(atype([]).__class__, (bytes, bytearray)):
+        a1 = atype([1, 44, 0xde])      # an array of data
+    else:
+        a1 = atype([1, 4.4, 5.4E3])      # an array of data
     a2 = 'ev'                 # unit
-    a3 = atype([34, 9999])
+    a3 = atype([34, 99])
     a4 = 'm'
     a5 = 'new description'
     v = ArrayDataset(data=a1)
@@ -1478,10 +1486,13 @@ def do_ArrayDataset_func(atype):
     v.unit = a4
     assert v.data == a3
     assert v.unit == a4
-    assert v.data[1] == 9999
+    assert v.data[1] == 99
 
     # test equality
-    a1 = atype([1, 4.4, 5.4E3])
+    if issubclass(atype([]).__class__, (bytes, bytearray)):
+        a1 = atype([1, 44, 0xde])      # an array of data
+    else:
+        a1 = atype([1, 4.4, 5.4E3])      # an array of data
     a2 = 'ev'
     a3 = 'three energy vals'
     a6 = None
@@ -1492,7 +1503,10 @@ def do_ArrayDataset_func(atype):
     v.meta[a4] = a5
 
     # b[1-5] and v1 have the  same contents as a[1-5] and v
-    b1 = atype([1, 4.4, 5.4E3])
+    if issubclass(atype([]).__class__, (bytes, bytearray)):
+        b1 = atype([1, 44, 0xde])      # an array of data
+    else:
+        b1 = atype([1, 4.4, 5.4E3])      # an array of data
     b2 = ''.join(a2)
     b3 = ''.join(a3)
     v1 = ArrayDataset(data=b1, unit=b2, description=b3)
@@ -1544,27 +1558,38 @@ def do_ArrayDataset_func(atype):
     assert y[0] == 3
     # removal
     r0 = x[2]
-    x.remove(r0)
-    assert x[4] == 6  # x=[1,2,4,5,6]
-    r0 = x[0]
-    assert r0 == x.pop(0)
-    assert x[0] == 2
+    if issubclass(atype([]).__class__, (bytes)):
+        with pytest.raises(AttributeError):
+            x.remove(r0)
+        # iteration
+        i = []
+        for m in v:
+            i.append(m)
+    else:
+        x.remove(r0)
+        assert x[4] == 6  # x=[1,2,4,5,6]
+        r0 = x[0]
+        assert r0 == x.pop(0)
+        assert x[0] == 2
 
-    # iteration
-    i = atype([])
-    for m in v:
-        i.append(m)
-    assert i == a1
+        # iteration
+        i = atype([])
+        for m in v:
+            i.append(m)
+    assert list(i) == list(a1)
 
     try:
         d = atype([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     except TypeError:
-        d = atype([2.3, 4e3, -9.9])
+        if issubclass(atype([]).__class__, (bytes, bytearray)):
+            d = atype(b'1s\xde')
+        else:
+            d = atype([2.3, 4e3, -9.9])
         x = ArrayDataset(data=d)
         for n, p in standardtestmeta().items():
             x.meta[n] = p
         ts = x.toString()
-        # print(atype, ts)
+        #print('***', atype, ts)
 
         checkjson(x)
         checkgeneral(x)
@@ -1637,6 +1662,26 @@ def test_ArrayDataset_init():
 
 def test_ArrayDataset_func():
     atype = list
+    do_ArrayDataset_func(atype)
+
+
+def test_bytes_init():
+    atype = bytes
+    do_ArrayDataset_init(atype)
+
+
+def test_bytes_func():
+    atype = bytes
+    do_ArrayDataset_func(atype)
+
+
+def test_bytearray_init():
+    atype = bytearray
+    do_ArrayDataset_init(atype)
+
+
+def test_bytearray_func():
+    atype = bytearray
     do_ArrayDataset_func(atype)
 
 

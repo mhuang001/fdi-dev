@@ -175,7 +175,7 @@ def cast(val, typ_, namespace=None):
                 '0x') else 2 if vstring.startswith('0b') else 10
             return tbd(vstring, base)
         elif t == 'bytes':
-            return int(val).to_bytes(1, 'little')
+            return int(val).to_bytes(1, ENDIAN)
         return tbd(val)
     else:
         return Classes.mapping[t](val) if namespace is None else namespace[t](val)

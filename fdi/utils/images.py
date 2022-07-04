@@ -5,7 +5,7 @@ import struct
 from math import sqrt
 import png
 import sys
-from itertools import chain, islice, repeat
+from itertools import chain, islice, repeat, starmap
 import logging
 from collections import OrderedDict
 from pprint import pprint
@@ -220,17 +220,31 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None, verbose=False):
 
     t1 = time.time()
     if use_pypng:
-        cg = cnt.get
-        img = list(bytes(map(cnt.__getitem__, row))
-                   for row in chain(data, clegend))
-        # img = list(
-        #    array.array('B', map(cnt.get, row))
-        #    for row in chain(data, clegend))
-        # 20% slower
-        # img = list(
-        #    array.array('B', (cnt[x] for x in row))
-        #    for row in chain(data, clegend))
-    else:
+        if 0:  # 29.0
+            #def mkb(row): return bytes(map(cnt.__getitem__, row))
+            img = list(
+                map(
+                    lambda row: bytes(map(cnt.__getitem__, row)),
+                    chain(data, clegend)
+                )
+            )
+        elif 0:
+            # 29.1
+            def para(row): return bytes(map(cnt.__getitem__, row))
+            img = list(map(para, chain(data, clegend)))
+        elif 0:  # 29.0sec
+            img = list(bytes(map(cnt.__getitem__, row)) for
+                       row in chain(data, clegend))
+        elif 1:  # 32.0
+            img = list(
+                array.array('B', map(cnt.get, row))
+                for row in chain(data, clegend))
+        else:
+            # 39sec
+            img = list(
+                array.array('B', (cnt[x] for x in row))
+                for row in chain(data, clegend))
+    else:  # 39sec
         img = list(
             array.array('B', chain.from_iterable(cmap[cnt[x]] for x in row))
             for row in chain(data, clegend))

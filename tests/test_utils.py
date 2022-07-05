@@ -23,6 +23,7 @@ import copy
 from datetime import timezone, timedelta, datetime
 import sys
 import os
+import getopt
 import json
 import hashlib
 import os.path as op
@@ -500,7 +501,7 @@ def test_opt(caplog):
     assert out[0]['result'] == 1
 
     # unplanned option and '--help' get exception and exits
-    with pytest.raises(SystemExit):
+    with pytest.raises(getopt.GetoptError):
         out = opt(options, ['exe', '--helpme', '--name=Awk', '-y'])
     assert 'option -y not recognized' in caplog.text
 

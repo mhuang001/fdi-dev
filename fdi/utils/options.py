@@ -45,7 +45,7 @@ def opt(ops, argv=None):
         # print help information and exit:
         # will print something like "option -a not recognized"
         logger.error(str(err) + 'Received: ' + str(argv))
-        sys.exit(2)
+        raise
     logger.debug('Command line options %s args %s' % (opts, args))
 
     for i in ops:

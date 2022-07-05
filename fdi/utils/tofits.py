@@ -189,8 +189,8 @@ def add_header(meta, header):
             kw = getFitsKw(name)
             header[kw] = (value, param.description)
         elif issubclass(param.__class__, NumericParameter):
-            if issubclass(pval.__class__, Vector):
-                for i, com in enumerate(pval.components):
+            if issubclass(pval.__class__, (Sequence)):
+                for i, com in enumerate(pval):
                     kw = getFitsKw(name, ndigits=1)+str(i)
                     header[kw] = (com, param.description+str(i))
                     if debug:

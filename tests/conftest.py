@@ -10,8 +10,6 @@ from fdi.pal.publicclientpool import PublicClientPool
 
 import pytest
 import importlib
-import base64
-import copy
 from urllib.error import HTTPError
 import os
 import requests

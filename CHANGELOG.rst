@@ -6,7 +6,11 @@ Change Log
 BETA1
 =====
 
-1.17.0 2022-05-18
+1.19.0 2022-07-08
+-----------------
+Pipeeline, image, pool test with mock server. pyton3.8.
+
+1.18.0 2022-05-18
 -----------------
 History implemented.
 

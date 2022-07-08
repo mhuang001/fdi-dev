@@ -6,7 +6,7 @@ from ...dataset.deserialize import deserialize
 from ...dataset.serializable import serialize
 from ...dataset.mediawrapper import MediaWrapper
 from ...pal.urn import makeUrn
-from ...pal.poolmanager import PoolManager as PM
+from ...pal.poolmanager import PoolManager
 from ...dataset.classes import Classes
 from ...utils.common import trbk, getUidGid
 from ...utils.fetch import fetch
@@ -27,6 +27,7 @@ import sys
 import os
 import time
 import builtins
+from weakref import WeakValueDictionary, getweakrefcount
 import functools
 from pathlib import Path
 import importlib
@@ -49,6 +50,12 @@ logger = __import__('logging').getLogger(__name__)
 data_api = Blueprint('httppool_server', __name__)
 
 WRITE_LIST = ['POST', 'PUT', 'DELETE', 'PATCH']
+
+
+class PM_S(PoolManager):
+    """Made to provid a different `_GlobalPoolList` useful for testing as a mock"""
+    _GlobalPoolList = WeakValueDictionary()
+    """ Another Global centralized dict that returns singleton -- the same -- pool for the same ID."""
 
 
 @functools.lru_cache(6)
@@ -245,7 +252,7 @@ def delete_product(paths, serialize_out=False):
     urn = makeUrn(poolname=poolname, typename=typename, index=indexstr)
     # resourcetype = fullname(data)
 
-    if not PM.isLoaded(poolname):
+    if not PM_S.isLoaded(poolname):
         result = FAILED
         msg = 'Pool not found or not registered: ' + poolname
         code = 400
@@ -253,7 +260,7 @@ def delete_product(paths, serialize_out=False):
         return code, result, msg
     logger.debug('DELETE product urn: ' + urn)
     try:
-        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
         poolobj.remove(urn)
         result = 0
         msg = 'remove product ' + urn + ' OK.'
@@ -345,10 +352,10 @@ def save_product(data, paths, tags=None, serialize_in=True, serialize_out=False)
         return 400, result, msg
 
     logger.debug('SAVE product to: ' + poolurl)
-    # logger.debug(str(id(PM._GlobalPoolList)) + ' ' + str(PM._GlobalPoolList))
+    # logger.debug(str(id(PM_S._GlobalPoolList)) + ' ' + str(PM_S._GlobalPoolList))
 
     try:
-        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
         result = poolobj.saveProduct(
             product=data, tag=tags, geturnobjs=True, serialize_in=serialize_in, serialize_out=serialize_out)
         msg = 'Save data to ' + poolurl + ' OK.'
@@ -422,7 +429,7 @@ def getProduct_Or_Component(paths, serialize_out=False):
     # elif lp == 3 and paths[-1]=='':
 
     #     try:
-    #         poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+    #         poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
     #         result = poolobj.readHK(hkname, serialize_out=serialize_out)
     #         code, msg = 200, hkname + ' HK data returned OK'
     #     except Exception as e:
@@ -571,7 +578,7 @@ def load_product(p, paths, serialize_out=False):
 
     logger.debug('LOAD product: ' + urn)
     try:
-        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
         result = poolobj.loadProduct(urn=urn, serialize_out=serialize_out)
         msg = ''
         code = 200

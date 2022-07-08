@@ -1,18 +1,19 @@
 
 # -*- coding: utf-8 -*-
-import pdb
+import logging
+from weakref import WeakValueDictionary, getweakrefcount
+import getpass
 
 from ..utils.getconfig import getConfig
 from ..utils.common import lls
 from .urn import parse_poolurl
 from ..pns.fdi_requests import put_on_server, delete_from_server
-from ..pal.productpool import ProductPool
+from ..pal.httppool import HttpPool
+
 
 from requests.exceptions import ConnectionError
+import requests
 
-import getpass
-from weakref import WeakValueDictionary, getweakrefcount, finalize, getweakrefs
-import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
@@ -25,13 +26,29 @@ DEFAULT_POOL = 'fdi_pool_' + __name__ + getpass.getuser()
 Invalid_Pool_Names = ['pools', 'urn', 'URN', 'api']
 
 
-def remoteRegister(poolurl, auth=None):
+def remoteRegister(poolurl, auth=None, client=None):
+    """ if registered a pool's auth and client will be used """
+    # check if poolurl has been registered
+    for pool, poolo in PoolManager._GlobalPoolList.items():
+        if issubclass(poolo.__class__, HttpPool):
+            continue
+        if poolurl == poolo._poolurl:
+            if client is None:
+                client = poolo.client
+            if auth is None:
+                auth = poolo.auth
+            break
+    else:
+        # not found
+        if client is None:
+            client = requests
+
     logger.debug('Register %s on the server', poolurl)
     if poolurl.endswith('/'):
         poolurl = poolurl[:-1]
     try:
         res, msg = put_on_server(
-            'urn:::0', poolurl, 'register_pool', auth=auth)
+            'urn:::0', poolurl, 'register_pool', auth=auth, client=client)
     except ConnectionError as e:
         res, msg = 'FAILED', str(e)
         logger.error(poolurl + ' ' + msg)
@@ -44,19 +61,36 @@ def remoteRegister(poolurl, auth=None):
     return res, msg
 
 
-def remoteUnregister(poolurl, auth=None):
+def remoteUnregister(poolurl, auth=None, client=None):
     """ this method does not reference pool object. """
+
     if not poolurl.lower().startswith('http'):
         logger.warning('Ignored: %s not for a remote pool.' % poolurl)
         return 1
     logger.debug('unregister %s on the server', poolurl)
+
+    # check if poolurl has been registered
+    for pool, poolo in PoolManager._GlobalPoolList.items():
+        if issubclass(poolo.__class__, HttpPool):
+            continue
+        if poolurl == poolo._poolurl:
+            if client is None:
+                client = poolo.client
+            if auth is None:
+                auth = poolo.auth
+            break
+    else:
+        # not found
+        if client is None:
+            client = requests
+
     #url = api_baseurl + post_poolid
     #x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     #o = deserialize(x.text)
     urn = 'urn:::0'
     try:
         res, msg = delete_from_server(
-            urn, poolurl, 'unregister_pool', auth=auth)
+            urn, poolurl, 'unregister_pool', auth=auth, client=client)
     except ConnectionError as e:
         res, msg = 'FAILED', str(e)
     if res == 'FAILED':
@@ -74,8 +108,9 @@ class PoolManager(object):
 
 This is done by calling the getPool() method, which will return an existing pool or create a new one if necessary.
     """
-    # Global centralized dict that returns singleton -- the same -- pool for the same ID.
+
     _GlobalPoolList = WeakValueDictionary()
+    """ Global centralized dict that returns singleton -- the same -- pool for the same ID."""
 
     # maps scheme to default place/poolpath
     # pc['node']['host']+':'+str(pc['node']['port'])+pc['baseurl']
@@ -90,7 +125,7 @@ This is done by calling the getPool() method, which will return an existing pool
     del p
 
     @classmethod
-    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=True, auth=None, **kwds):
+    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=True, auth=None, client=requests, **kwds):
         """ returns an instance of pool according to name or path of the pool.
 
         Returns the pool object if the pool is registered. Creates the pool if it does not already exist. the same poolname-path always get the same pool. Http pools will be registered on the sserver side.
@@ -106,14 +141,13 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
         """
         # logger.debug('GPL ' + str(id(cls._GlobalPoolList)) +
         #             str(cls._GlobalPoolList) + ' PConf ' + str(cls.PlacePaths))
-
         if pool:
             if poolname:
                 raise ValueError(
                     'Pool name %s and pool object cannot be both given.' % poolname)
             poolname, poolurl, p = pool._poolname, pool._poolurl, pool
             if poolurl.lower().startswith('http'):
-                res, msg = remoteRegister(poolurl, p.auth)
+                res, msg = remoteRegister(poolurl)
         else:
             # quick decisions can be made knowing poolname only
             if poolname == DEFAULT_MEM_POOL:
@@ -130,6 +164,8 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
             if poolurl:
                 pp, schm, pl, pn, un, pw = parse_poolurl(poolurl)
             else:
+                __import__('pdb').set_trace()
+
                 raise ValueError(
                     'A new pool %s cannot be created without a pool url.' % poolname)
             if poolname:
@@ -159,12 +195,13 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
             elif schm in ('http', 'https'):
                 from . import httpclientpool
                 p = httpclientpool.HttpClientPool(
-                    poolname=poolname, poolurl=poolurl, auth=auth, **kwds)
-                res, msg = remoteRegister(poolurl, auth=p.auth)
+                    poolname=poolname, poolurl=poolurl,
+                    auth=auth, client=client, **kwds)
+                res, msg = remoteRegister(poolurl, p.auth, p.client)
             elif schm == 'csdb':
                 from . import publicclientpool
                 p = publicclientpool.PublicClientPool(poolurl=poolurl)
-                # res, msg = remoteRegister(poolurl, auth=p.auth)
+                # res, msg = remoteRegister(poolurl)
             else:
                 raise NotImplementedError(schm + ':// is not supported')
         #print(getweakrefs(p), id(p), '////')
@@ -209,6 +246,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
         """
         """
         cls._GlobalPoolList[poolname] = poolobj
+        poolobj.setPoolManager(cls)
 
     @ classmethod
     def remove(cls, poolname):
@@ -226,7 +264,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
             thepool = cls._GlobalPoolList[poolname]
             poolurl = thepool._poolurl
             if poolurl.lower().startswith('http'):
-                code = remoteUnregister(poolurl, thepool.auth)
+                code = remoteUnregister(poolurl)
             else:
                 code = 0
         elif nwr > 1:
@@ -236,8 +274,9 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
             # nwr <=  0
             code = 1
         try:
-            del cls._GlobalPoolList[poolname]
-        except Exception as e:
+            pool = cls._GlobalPoolList.pop(poolname)
+            pool.setPoolManager(None)
+        except ValueError as e:
             logger.info("Ignored: "+str(e))
         return code
 
@@ -269,20 +308,22 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
         """
         return self._GlobalPoolList.items()
 
-    def __setitem__(self, *args, **kwargs):
+    def __setitem__(self, poolname, poolobj):
         """ sets value at key.
         """
-        self._GlobalPoolList.__setitem__(*args, **kwargs)
+        self._GlobalPoolList.__setitem__(poolname, poolobj)
+        poolobj.setPoolManager(None, self.__class__)
 
     def __getitem__(self, *args, **kwargs):
         """ returns value at key.
         """
         return self._GlobalPoolList.__getitem__(*args, **kwargs)
 
-    def __delitem__(self, *args, **kwargs):
+    def __delitem__(self, poolname):
         """ removes value and its key.
         """
-        self._GlobalPoolList.__delitem__(*args, **kwargs)
+        self._GlobalPoolList[poolname].setPoolManager(None)
+        self._GlobalPoolList.__delitem__(poolname)
 
     def __len__(self, *args, **kwargs):
         """ size of data

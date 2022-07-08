@@ -82,6 +82,7 @@ When implementing a ProductPool, the following rules need to be applied:
         self.setPoolurl(poolurl)
         # self._pathurl = pr.netloc + pr.path
         # self._pathurl = None
+        self._poolmanager = None
 
     class ParametersIncommpleteError(Exception):
         pass
@@ -164,9 +165,21 @@ When implementing a ProductPool, the following rules need to be applied:
         through visitor pattern."""
         visitor.visit(self)
 
+    def getPoolManager(self):
+        """
+        """
+        return self._poolmanager
+
+    def setPoolManager(self, pm):
+        """
+        """
+        self._poolmanager = pm
+
     def dereference(self, ref):
         """
         Decrement the reference count of a ProductRef.
+
+        XXX TODO
         """
 
         raise(NotImplementedError)
@@ -767,7 +780,8 @@ class ManagedPool(ProductPool, DictHk):
             else:
                 res.append(Urn(urn, poolurl=self._poolurl))
         else:
-            rf = ProductRef(urn=Urn(urn, poolurl=self._poolurl))
+            rf = ProductRef(urn=Urn(urn, poolurl=self._poolurl),
+                            poolmanager=self._poolmanager)
             if serialize_out:
                 # return without meta
                 res.append(rf)
@@ -962,13 +976,15 @@ class ManagedPool(ProductPool, DictHk):
                 for urn in urnlist:
                     m = self.getMetaByUrn(urn)
                     if eval(code):
-                        ret.append(ProductRef(urn=urn, meta=m))
+                        ret.append(ProductRef(urn=urn, meta=m,
+                                   poolmanager=self._poolmanager))
                 return ret
             else:
                 for urn in urnlist:
                     m = self.getMetaByUrn(urn)
                     if qw(m):
-                        ret.append(ProductRef(urn=urn, meta=m))
+                        ret.append(ProductRef(urn=urn, meta=m,
+                                   poolmanager=self._poolmanager))
                 return ret
         elif snlist or datatypes:
             if isinstance(qw, str):
@@ -982,7 +998,8 @@ class ManagedPool(ProductPool, DictHk):
                                       typename=typename, index=n)
                         m = self.getMetaByUrn(urn)
                         if eval(code):
-                            ret.append(ProductRef(urn=urn, meta=m))
+                            ret.append(ProductRef(urn=urn, meta=m,
+                                       poolmanager=self._poolmanager))
                 return ret
             else:
                 if snlist:
@@ -994,7 +1011,8 @@ class ManagedPool(ProductPool, DictHk):
                                       typename=typename, index=n)
                         m = self.getMetaByUrn(urn)
                         if qw(m):
-                            ret.append(ProductRef(urn=urn, meta=m))
+                            ret.append(ProductRef(urn=urn, meta=m,
+                                       poolmanager=self._poolmanager))
                 return ret
         else:
             raise('Must give a list of ProductRef or urn or sn')
@@ -1043,7 +1061,7 @@ class ManagedPool(ProductPool, DictHk):
             if isinstance(qw, str):
                 code = compile(qw, 'py', 'eval')
                 for urn in urnlist:
-                    pref = ProductRef(urn=urn)
+                    pref = ProductRef(urn=urn, poolmanager=self._poolmanager)
                     glbs[var] = pref.getProduct()
                     if eval(code):
                         ret.append(pref)
@@ -1052,7 +1070,7 @@ class ManagedPool(ProductPool, DictHk):
                 return ret
             else:
                 for urn in urnlist:
-                    pref = ProductRef(urn=urn)
+                    pref = ProductRef(urn=urn, poolmanager=self._poolmanager)
                     glbs[var] = pref.getProduct()
                     if qw(glbs[var]):
                         ret.append(pref)
@@ -1069,7 +1087,8 @@ class ManagedPool(ProductPool, DictHk):
                     cls = Class_Look_Up[typename.rsplit('.', 1)[-1]]
                     for n in snlist:
                         urno = Urn(cls=cls, poolname=self._poolname, index=n)
-                        pref = ProductRef(urn=urno)
+                        pref = ProductRef(
+                            urn=urno, poolmanager=self._poolmanager)
                         glbs[var] = pref.getProduct()
                         if eval(code):
                             ret.append(pref)
@@ -1084,7 +1103,8 @@ class ManagedPool(ProductPool, DictHk):
                     cls = glbs[typename]
                     for n in snlist:
                         urno = Urn(cls=cls, poolname=self._poolname, index=n)
-                        pref = ProductRef(urn=urno)
+                        pref = ProductRef(
+                            urn=urno, poolmanager=self._poolmanager)
                         glbs[var] = pref.getProduct()
                         if qw(glbs[var]):
                             ret.append(pref)

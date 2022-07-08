@@ -32,7 +32,7 @@ setup(
     include_package_data=True,
     long_description=read('README.rst'),
     long_description_content_type="text/x-rst",
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     install_requires=[
         'requests>=2.23.0',
         'filelock>=3.0.12',
@@ -63,7 +63,6 @@ setup(
             'wheel>=0.32.1',
             'pytest>=5.4.1',
             'pytest-cov',
-            'aiohttp>=3.6.2',
         ],
         'SERV': [
             'Flask_HTTPAuth>=4.1.0',
@@ -71,9 +70,11 @@ setup(
             # 'waitress>=2.0.0',
             'uwsgi>=2.0.20',
             'flasgger>=0.9.5',
+            'aiohttp>=3.8.1',
+            'astropy==5.1'
         ],
         'SCI': [
-            'astropy==4.1'
+            'astropy[recommended]==5.1'
         ],
         'PUB': [
             'sphinx>=4.4.0',
@@ -84,7 +85,7 @@ setup(
     },
     classifiers=[
         "Development Status :: 4 - Beta",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Scientific/Engineering",
         "Topic :: Software Development :: Libraries :: Application Frameworks",
         "Topic :: Software Development :: Libraries :: Python Modules",

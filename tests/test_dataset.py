@@ -1,23 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import os.path as op
-import datetime
-import fractions
-import decimal
-import traceback
-from pprint import pprint
-import copy
-import json
-import sys
-import threading
-import functools
-import time
-import locale
-import array
-from math import sqrt
-from datetime import timezone
-import pytest
-
 from fdi.dataset.annotatable import Annotatable
 from fdi.dataset.copyable import Copyable
 from fdi.dataset.odict import ODict
@@ -59,6 +41,25 @@ from fdi.utils.loadfiles import loadMedia
 from fdi.utils.ydump import ydump
 
 from jsonpath_ng.parser import JsonPathParserError
+
+import os.path as op
+import datetime
+import fractions
+import decimal
+import traceback
+from pprint import pprint
+import copy
+import json
+import sys
+import threading
+import functools
+import time
+import locale
+import array
+from math import sqrt
+from datetime import timezone
+import pytest
+
 
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -825,7 +826,7 @@ def test_Parameter_features():
     # CHANNGED parameter equality behavior
     assert v.equals(v1)
     assert v.__eq__(v1)
-    assert v.__eq__ == v1.__eq__
+    #assert v.__eq__ == v1.__eq__
     assert v == v1
     v1.value = -4
 
@@ -2005,11 +2006,11 @@ def test_TableDataset_func():
                  }.items():
         v.addColumn(n, c)
     from fdi.utils.tree import tree
-    print('\n'.join(tree(v, style='ascii')))
+    #print('\n'.join(tree(v, style='ascii')))
     from fdi.utils.jsonpath import jsonPath, flatten_compact
-    print(list(str(x.full_path)
-               for x in jsonPath(v, '$..*', val='context')))
-    print('\n'.join(flatten_compact([v]).keys()))
+    #print(list(str(x.full_path)
+    #           for x in jsonPath(v, '$..*', val='context')))
+    #print('\n'.join(flatten_compact([v]).keys()))
 
     ts += 'grouped column names'
     ts += v.string(0, 'grid', 'rst', 'simple')

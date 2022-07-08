@@ -1,4 +1,4 @@
-PYEXE	= python3
+PYEXE	= python3.8
 
 info:
 	$(PYEXE) -c "import sys, time; print('sys.hash_info.width', sys.hash_info.width, 'epoch', time.gmtime(0))"

@@ -199,6 +199,7 @@ def mock_app(mock_server, project_app):
 
 @pytest.fixture(scope="module")
 def server_app(live_or_mock_server, project_app):
+    """ returns server app wen it is a live one, None when mock."""
     a, server_type = live_or_mock_server
     if server_type != 'mock':
         yield None
@@ -230,6 +231,19 @@ def client(server_app, mock_app):
                 # mock_app.preprocess_request()
                 assert current_app.config["ENV"] == "production"
             yield client
+
+
+@pytest.fixture(scope="module")
+async def a_client(aiohttp_client, server_app, mock_app):
+    if server_app == None:
+        yield aiohttp_client(requests)
+    else:
+        logger.info('**** mock_app as client *****')
+        with mock_app.test_client() as client:
+            with mock_app.app_context():
+                # mock_app.preprocess_request()
+                assert current_app.config["ENV"] == "production"
+            yield aiohttp_client(client)
 
 
 @pytest.fixture(scope='package')

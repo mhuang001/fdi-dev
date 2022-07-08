@@ -22,6 +22,7 @@ from fdi.pns.jsonio import auth_headers
 import pytest
 import filelock
 import sys
+import requests.models
 from urllib.request import pathname2url
 from urllib.error import URLError
 
@@ -29,6 +30,7 @@ from flask import current_app
 from requests.auth import HTTPBasicAuth
 from requests.models import Response as rmResponse  # mock server
 from flask.wrappers import Response as fwResponse  # live server
+from werkzeug.datastructures import Authorization
 # import requests
 import random
 import os
@@ -100,6 +102,13 @@ if 0:
 def project_app(pc):
     from fdi.httppool import create_app
     return create_app(config_object=pc, level=logger.getEffectiveLevel())
+
+
+def make_auth(userpass):
+    return userpass
+    # for mock server.
+    # return Authorization(
+    #   "basic", {"username": userpass[0], "password": userpass[1]})
 
 
 def issane(o):
@@ -207,7 +216,7 @@ def test_root(server, client):
         c = o['result']
         assert set(c0) == set(c)
     # /
-    url = aburl + '/pools'
+    url = aburl + '/pools/'
     x = client.get(url, headers=headers)
     o, code = getPayload(x)
     check_response(o, code=code)
@@ -217,11 +226,14 @@ def test_root(server, client):
 
 def make_pools(name, aburl, clnt, auth, n=1):
     """ generate n pools """
-
     lst = []
     for i in range(n):
         poolid = name + str(i)
-        pool = PoolManager.getPool(poolid, aburl + '/'+poolid)
+        pool = PoolManager.getPool(
+            poolid, aburl + '/'+poolid,
+            auth=auth if isinstance(auth, tuple) else (
+                auth.username, auth.passwd),
+            client=clnt)
         lst.append(pool)
         data = serialize(Product('lone prod in '+poolid))
         url = aburl + '/' + poolid + '/'
@@ -234,7 +246,7 @@ def make_pools(name, aburl, clnt, auth, n=1):
 def test_wipe_all_pools_on_server(server, local_pools_dir, client, userpass):
     aburl, headers = server
     post_poolid = test_poolid
-    auth = HTTPBasicAuth(*userpass)
+    auth = make_auth(userpass)
     # ======== wipe all pools =====
     logger.info('Wipe all pools on the server')
 
@@ -247,7 +259,9 @@ def test_wipe_all_pools_on_server(server, local_pools_dir, client, userpass):
 
     # make some pools
     n = 5
-    lst = make_pools(post_poolid, aburl, client, auth, n)
+    import random
+    pn = post_poolid+str(random.randint(0, 100))
+    lst = make_pools(pn, aburl, client, auth, n)
     # make an unregistered pool by copying an existing pool
     p = os.path.join(local_pools_dir, lst[0].getId())
     os.system('cp -rf %s %s_copy' % (p, p))
@@ -298,7 +312,7 @@ def test_new_user_read_only(new_user_read_only, pc):
 def getapis(server_ro, client):
     aburl, headers = server_ro
     x = client.get(aburl.rsplit('/', 1)[0]+'/apispec_1.json', headers=headers)
-    return x.json()
+    return deserialize(x.text if type(x) == requests.models.Response else x.data)
 
 
 def test_unauthorizedread_write(server, server_ro, client):
@@ -307,10 +321,10 @@ def test_unauthorizedread_write(server, server_ro, client):
     poolid = test_poolid
     # generate a unauthorized user header
     uheaders = auth_headers('k', 'hu8')
-    x = client.get(aburl+'/pools', headers=uheaders)
+    x = client.get(aburl+'/pools/', headers=uheaders)
     assert x.status_code == 401
     o, code = getPayload(x, ignore_error=True)
-    assert o == 'Unauthorized Access'
+    assert o in ('Unauthorized Access', b'Unauthorized Access')
 
     # These needs read_write
     paths = getapis(server_ro, client)['paths']
@@ -335,7 +349,7 @@ def test_unauthorizedread_write(server, server_ro, client):
 
 def test_authorizedread_write(server, new_user_read_write, client):
     aburl, headers = server
-    x = client.get(aburl+'/pools', headers=headers)
+    x = client.get(aburl+'/pools/', headers=headers)
     assert x.status_code == 200
     # with pytest.raises(URLError):
     o, code = getPayload(x)
@@ -357,7 +371,7 @@ def clear_server_local_pools_dir(poolid, local_pools_dir):
         # x.creator = 'test'
         # data = serialize(x)
         # url = aburl + '/' + test_poolid + '/fdi.dataset.product.Product/0'
-        # x = requests.post(url, auth=HTTPBasicAuth(*userpass), data=data)
+        # x = requests.post(url, auth=make_auth(userpass), data=data)
 
 
 def get_files_in_local_dir(poolid, local_pools_dir):
@@ -373,8 +387,8 @@ def get_files_in_local_dir(poolid, local_pools_dir):
 
 def empty_pool(post_poolid, aburl, auth, clnt):
     path = post_poolid + '/api/removeAll'
-    url = aburl + '/' + path
-    x = clnt.get(url, auth=HTTPBasicAuth(*auth))
+    url = aburl + '/' + path + '/'  # trailing / is needed by mock server
+    x = clnt.get(url, auth=auth)
     o, code = getPayload(x)
     # ignore "FAILED" so non-exisiting target will not cause a failed case.
     check_response(o, code=code, failed_case=None)
@@ -391,7 +405,7 @@ def populate_pool(poolid, aburl, auth, clnt):
         x.creator = i
         data = serialize(x)
         url = aburl + '/' + poolid + '/'
-        x = clnt.post(url, auth=HTTPBasicAuth(*auth), data=data)
+        x = clnt.post(url, auth=auth, data=data)
         # print(len(data))
         o, code = getPayload(x)
         check_response(o, code=code)
@@ -403,7 +417,7 @@ def populate_pool(poolid, aburl, auth, clnt):
 @ pytest.fixture(scope='function')
 def thepool(server, client, userpass):
     aburl, headers = server
-    auth = HTTPBasicAuth(*userpass)
+    auth = make_auth(userpass)
     # register
     pool = 1  # make_pools(test_poolid, aburl, client, auth, n=1)
     yield pool, test_poolid
@@ -418,17 +432,20 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     aburl, headers = server
 
     post_poolid = test_poolid
-    auth = HTTPBasicAuth(*userpass)
+    # auth = HTTPBasicAuth(*userpass) # not working with mock server
+    auth = make_auth(userpass)
+    # auth = tuple(userpasss.values())
+
     # register
     pool = make_pools(test_poolid, aburl, client, auth, n=1)
-    empty_pool(post_poolid, aburl, userpass, client)
+    empty_pool(post_poolid, aburl, auth, client)
 
     files = [f for f in get_files_in_local_dir(
         post_poolid, local_pools_dir) if f[-1].isnumeric()]
     origin_prod = len(files)
 
     creators, instruments, urns = populate_pool(
-        post_poolid, aburl, userpass, client)
+        post_poolid, aburl, auth, client)
 
     files1 = [f for f in get_files_in_local_dir(
         post_poolid, local_pools_dir) if f[-1].isnumeric()]
@@ -456,10 +473,12 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     '''
     logger.info('read hk')
     hkpath = '/hk'
-    url = aburl + '/' + post_poolid + hkpath
+    url = aburl + '/' + post_poolid + hkpath + \
+        '/'  # trailing / is needed by mock server
     x = client.get(url, auth=auth)
     o1, c1 = getPayload(x)
-    url2 = aburl + '/' + post_poolid + '/api/readHK'
+    url2 = aburl + '/' + post_poolid + '/api/readHK' + \
+        '/'  # trailing / is needed by mock server
     x2 = client.get(url2, auth=auth)
     o2, c2 = getPayload(x2)
     for o, c in [(o1, c1), (o2, c2)]:
@@ -493,7 +512,8 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     logger.info('check count')
     num = len(o['result'][prodt]['sn'])
     apipath = '/api/getCount__' + prodt
-    url = aburl + '/' + post_poolid + apipath
+    url = aburl + '/' + post_poolid + apipath + \
+        '/'  # trailing / is needed by mock server
     x = client.get(url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
@@ -502,6 +522,7 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     logger.info('read dTags')
     hkpath = '/hk/dTags'
     url = aburl + '/' + post_poolid + hkpath
+    # '/'  # trailing / is needed by mock server
     x = client.get(url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
@@ -559,7 +580,8 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     assert len(files) != 0, 'Pool is already empty: ' + post_poolid
 
     # wipe the pool on the server
-    url = aburl + '/' + post_poolid + '/api/removeAll'
+    url = aburl + '/' + post_poolid + '/api/removeAll' + \
+        '/'  # trailing / is needed by mock server
     x = client.get(url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
@@ -567,7 +589,8 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     files = get_files_in_local_dir(post_poolid, local_pools_dir)
     assert len(files) == 0, 'Wipe pool failed: ' + o['msg']
 
-    url = aburl + '/' + post_poolid + '/api/isEmpty'
+    url = aburl + '/' + post_poolid + '/api/isEmpty' + \
+        '/'  # trailing / is needed by mock server
     x = client.get(url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
@@ -581,7 +604,8 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
     check_response(o, code=code)
 
     # this should fail as pool is unregistered on the server
-    url = aburl + '/' + post_poolid + '/api/isEmpty'
+    url = aburl + '/' + post_poolid + '/api/isEmpty' + \
+        '/'  # trailing / is needed by mock server
     x = client.get(url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=x.status_code, failed_case=True)
@@ -590,9 +614,10 @@ def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
 def test_data_path(server, userpass, client):
 
     aburl, headers = server
-    auth = HTTPBasicAuth(*userpass)
+    auth = make_auth(userpass)
     # empty_pool(post_poolid,aburl,userpass)
-    pstore = ProductStorage(test_poolid, aburl + '/'+test_poolid)
+    pstore = ProductStorage(test_poolid, aburl + '/' +
+                            test_poolid, auth=auth, client=client)
     pool = PoolManager.getPool(test_poolid)
 
     url0 = aburl + '/' + test_poolid + '/'
@@ -679,13 +704,13 @@ def test_data_path(server, userpass, client):
     x = client.get(url, auth=auth)
     assert x.headers['Content-Type'] == 'text/plain'
     o, c = getPayload(x)
-    assert 'UNKNOWN' in o
+    assert ('UNKNOWN' if isinstance(o, str) else b'UNKNOWN') in o
 
 
 def test_get_pools(local_pools_dir, server, client):
 
     aburl, headers = server
-    url = aburl + '/'+'pools'
+    url = aburl + '/'+'pools' + '/'  # trailing / is needed by mock server
     x = client.get(url, headers=headers)
     o, code = getPayload(x)
     check_response(o, code=code)
@@ -694,7 +719,7 @@ def test_get_pools(local_pools_dir, server, client):
     assert set(c) == set(get_files_in_local_dir('', local_pools_dir))
 
 
-async def lock_pool(poolid, sec, local_pools_dir):
+def lock_pool2(poolid, sec, local_pools_dir):
     ''' Lock a pool from reading and return a fake response
     '''
     logger.info('Keeping files locked for %f sec' % sec)
@@ -703,32 +728,39 @@ async def lock_pool(poolid, sec, local_pools_dir):
     lock = Lock_Path_Base + ppath.replace('/', '_') + '.write'
     logger.debug(lock)
     with filelock.FileLock(lock):
-        await asyncio.sleep(sec)
+        time.sleep(sec)
     fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "time": ' + \
         str(time.time()) + '}'
     return deserialize(fakeres)
 
 
-async def read_product(poolid, server, userpass):
+def read_product2(poolid, server, userpass, client):
 
     aburl, headers = server
+    if headers['server_type'] == 'live':
+        auth = aiohttp.BasicAuth(*userpass)
+    else:
+        auth = make_auth(userpass)
     # trying to read
     if 1:
         prodpath = '/'+prodt+'/0'
-        url = aburl + '/' + poolid + prodpath
+        # trailing / is needed by mock server
+        url = aburl + '/' + poolid + prodpath + '/'
     else:
         hkpath = '/hk/dTypes'
-        url = aburl + '/' + poolid + hkpath
+        url = aburl + '/' + poolid + hkpath + '/'  # trailing / is needed by mock server
     logger.debug('Reading a locked file '+url)
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, auth=aiohttp.BasicAuth(*userpass)) as res:
-            x = await res.text()
-            o = deserialize(x)
-    logger.debug("@@@@@@@locked file read: " + lls(x, 200))
+    x = client.get(url, auth=auth)
+    r = x.text if type(x) == requests.models.Response else x.data
+    logger.debug("@@@@@@@locked file read: " + lls(r, 200))
+    o, code = getPayload(x)
     return o
 
+# https://github.com/pallets/flask/issues/4375#issuecomment-990102774
 
-def test_lock_file(server, userpass, local_pools_dir, client):
+
+@ pytest.mark.asyncio
+async def test_lock_file2(server, userpass, local_pools_dir, client):
     ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
     '''
     logger.info('Test read a locked file, it will return FAILED')
@@ -738,99 +770,177 @@ def test_lock_file(server, userpass, local_pools_dir, client):
     populate_pool(poolid, aburl, userpass, client)
     # hkpath = '/hk/dTypes'
     # url = aburl + '/' + poolid + hkpath
-    # x = client.get(url, auth=HTTPBasicAuth(*userpass))
+    # x = client.get(url, auth=make_auth(userpass))
+    res = []
+    try:
+        loop = asyncio.get_running_loop()
+        # 1. Run in the default loop's executor:
+        result = await loop.run_in_executor(None, lock_pool2, poolid, 2, local_pools_dir)
+        # 2. Run in a custom thread pool:
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            result = await loop.run_in_executor(
+                pool, read_product, poolid, server, userpass, client)
+            res.append(result)
+        # task=functool.partial(read_product,poolid, server, userpass, client))
+        print('custom thread pool', result, res)
+    except Exception as e:
+        logger.error('unable to start thread ' + str(e) + trbk(e))
+        raise
+    logger.debug('res ' + lls(res[0], 200) + '************' + lls(res[1], 200))
+    __import__('pdb').set_trace()
+
+    if issubclass(res[0].__class__, Mapping) and 'result' in res[0] \
+       and issubclass(res[0]['result'].__class__, str):
+        r1, r2 = res[0], res[1]
+    else:
+        r2, r1 = res[0], res[1]
+
+
+async def lock_pool(poolid, sec, local_pools_dir):
+    ''' Lock a pool from reading and return a fake response
+    '''
+    logger.info('Keeping files locked for %f sec' % sec)
+    ppath = os.path.join(local_pools_dir, poolid)
+    # lock to prevent writing
+    lock=Lock_Path_Base + ppath.replace('/', '_') + '.write'
+    logger.debug(lock)
+    with filelock.FileLock(lock):
+        await asyncio.sleep(sec)
+    fakeres='{"result": "FAILED", "msg": "This is a fake responses", "time": ' + \
+        str(time.time()) + '}'
+    return deserialize(fakeres)
+
+
+async def read_product(poolid, server, userpass, client):
+
+    aburl, headers=server
+    if headers['server_type'] == 'live':
+        auth=aiohttp.BasicAuth(*userpass)
+    else:
+        auth=make_auth(userpass)
+    # trying to read
+    if 1:
+        prodpath='/'+prodt+'/0'
+        # trailing / is needed by mock server
+        url=aburl + '/' + poolid + prodpath + '/'
+    else:
+        hkpath='/hk/dTypes'
+        url=aburl + '/' + poolid + hkpath + '/'  # trailing / is needed by mock server
+    logger.debug('Reading a locked file '+url)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, auth = auth) as res:
+            x=await res.text()
+            o=deserialize(x)
+    logger.debug("@@@@@@@locked file read: " + lls(x, 200))
+    return o
+
+# https://github.com/pallets/flask/issues/4375#issuecomment-990102774
+
+
+def XXtest_lock_file(server, userpass, local_pools_dir, client):
+    ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
+    '''
+    logger.info('Test read a locked file, it will return FAILED')
+    aburl, headers=server
+    poolid=test_poolid
+    # init server
+    populate_pool(poolid, aburl, userpass, client)
+    # hkpath = '/hk/dTypes'
+    # url = aburl + '/' + poolid + hkpath
+    # x = client.get(url, auth=make_auth(userpass))
 
     try:
-        loop = asyncio.get_event_loop()
-        tasks = [asyncio.ensure_future(
-            lock_pool(poolid, 2, local_pools_dir)), asyncio.ensure_future(read_product(poolid, server, userpass))]
-        taskres = loop.run_until_complete(asyncio.wait(tasks))
+        loop=asyncio.get_event_loop()
+        tasks=[asyncio.ensure_future(
+            lock_pool(poolid, 2, local_pools_dir)), asyncio.ensure_future(read_product(poolid, server, userpass, client))]
+        taskres=loop.run_until_complete(asyncio.wait(tasks))
         loop.close()
     except Exception as e:
         logger.error('unable to start thread ' + str(e) + trbk(e))
         raise
-    res = [f.result() for f in [x for x in taskres][0]]
+    res=[f.result() for f in [x for x in taskres][0]]
     logger.debug('res ' + lls(res[0], 200) + '************' + lls(res[1], 200))
-    if issubclass(res[0].__class__, Mapping) and 'result' in res[0] and issubclass(res[0]['result'].__class__, str):
-        r1, r2 = res[0], res[1]
+    if issubclass(res[0].__class__, Mapping) and 'result' in res[0] \
+       and issubclass(res[0]['result'].__class__, str):
+        r1, r2=res[0], res[1]
     else:
-        r2, r1 = res[0], res[1]
-    check_response(r1, code=400, failed_case=True)
+        r2, r1=res[0], res[1]
+    check_response(r1, code = 400, failed_case = True)
 
 
 def test_read_non_exists_pool(server, userpass, client):
     ''' Test read a pool which doesnot exist, returns FAILED
     '''
     logger.info('Test query a pool non exist.')
-    aburl, headers = server
-    wrong_poolid = 'nonexist_' + __name__.replace('.', '_')
-    prodpath = '/' + prodt + '/0'
-    url = aburl + '/' + wrong_poolid + prodpath
-    x = client.get(url, auth=HTTPBasicAuth(*userpass))
-    o, code = getPayload(x)
-    check_response(o, code=400, failed_case=True)
+    aburl, headers=server
+    wrong_poolid='nonexist_' + __name__.replace('.', '_')
+    prodpath='/' + prodt + '/0'
+    url=aburl + '/' + wrong_poolid + prodpath
+    x=client.get(url, auth = make_auth(userpass))
+    o, code=getPayload(x)
+    check_response(o, code = 400, failed_case = True)
 
 
 def xtest_webapi_jsonPath(server, userpass, client):
     """
     """
 
-    aburl, headers = server
+    aburl, headers=server
 
     logger.info('Create pools on the server.')
-    poolid = test_poolid
-    poolurl = aburl + '/' + poolid
-    pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
-    pstore = ProductStorage(pool)
+    poolid=test_poolid
+    poolurl=aburl + '/' + poolid
+    pool=HttpClientPool(poolname = poolid, poolurl = poolurl)
+    pstore=ProductStorage(pool)
     logger.info('n the server.')
 
     # ref
     class Get_jsonPath_from_server():
-        def __init__(self, data=None, doctype='xml', attr_prefix='', *args, **kwds):
-            dnm = 'bookstore' if 'bicycle' in data else 'complex_ex' if 'complex' in data else 'simple_ex'
-            u = UnstructuredDataset(data=data, description=dnm,
-                                    doctype=doctype, attr_prefix=attr_prefix,
+        def __init__(self, data = None, doctype = 'xml', attr_prefix = '', *args, **kwds):
+            dnm='bookstore' if 'bicycle' in data else 'complex_ex' if 'complex' in data else 'simple_ex'
+            u=UnstructuredDataset(data = data, description = dnm,
+                                    doctype = doctype, attr_prefix = attr_prefix,
                                     *args, **kwds)
-            p = Product(description=dnm, data=u)
+            p=Product(description = dnm, data = u)
             nonlocal pool
             nonlocal pstore
-            ref = pstore.save(u, tag=dnm)
+            ref=pstore.save(u, tag = dnm)
             # prod  url. remove 'urn:', ':' -> '/'
-            self.pool = pool
-            self.purl = aburl + '/' + ref.urn[4:].replace(':', '/')
+            self.pool=pool
+            self.purl=aburl + '/' + ref.urn[4:].replace(':', '/')
 
         def jsonPath(self, *args, **kwds):
-            urlargs = serialize_args(*args, not_quoted=False, **kwds)
-            urlargs = serialize_args(
-                urlargs, not_quoted=False)
-            url = self.purl + '/jsonPath__' + urlargs
+            urlargs=serialize_args(*args, not_quoted = False, **kwds)
+            urlargs=serialize_args(urlargs, not_quoted = False)
+            url=self.purl + '/jsonPath__' + urlargs
             nonlocal userpass
-            x = client.get(url, auth=HTTPBasicAuth(*userpass))
-            o, code = getPayload(x)
-            check_response(o, code=code)
+            auth=make_auth(userpass)
+            x=client.get(url, auth = auth)
+            o, code=getPayload(x)
+            check_response(o, code = code)
             return o['result']
 
     do_jsonPath(Get_jsonPath_from_server)
 
 
 if __name__ == '__main__':
-    now = time.time()
-    node, verbose = opt(pc['node'])
+    now=time.time()
+    node, verbose=opt(pc['node'])
     if verbose:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
     logger.info('logging level %d' % (logger.getEffectiveLevel()))
 
-    t = 8
+    t=8
 
     if t == 7:
         # test_lock()
         # asyncio.AbstractEventLoop.set_debug()
-        loop = asyncio.get_event_loop()
-        tasks = [asyncio.ensure_future(napa(5, 0)),
+        loop=asyncio.get_event_loop()
+        tasks=[asyncio.ensure_future(napa(5, 0)),
                  asyncio.ensure_future(napa(0.5, 0.5))]
-        res = loop.run_until_complete(asyncio.wait(tasks))
+        res=loop.run_until_complete(asyncio.wait(tasks))
         loop.close()
         print(res)
 

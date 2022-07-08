@@ -6,12 +6,12 @@ from .route.getswag import swag
 from .route.pools import pools_api
 from .model.user import getUsers
 
-from .route.httppool_server import data_api, checkpath
+from .route.httppool_server import data_api, checkpath, PM_S
 
 from .._version import __version__
 from ..utils import getconfig
 from ..utils.common import getUidGid, trbk
-from ..pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
+from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 
 from flasgger import Swagger
 from werkzeug.exceptions import HTTPException
@@ -142,19 +142,19 @@ def init_httppool_server(app):
     app.config['USERS'] = getUsers(pc)
 
     # PoolManager is a singleton
-    if PM.isLoaded(DEFAULT_MEM_POOL):
+    if PM_S.isLoaded(DEFAULT_MEM_POOL):
         logger.debug('cleanup DEFAULT_MEM_POOL')
-        PM.getPool(DEFAULT_MEM_POOL).removeAll()
+        PM_S.getPool(DEFAULT_MEM_POOL).removeAll()
     app.logger.debug('Done cleanup PoolManager.')
     app.logger.debug('ProcID %d. Got 1st request %s' % (os.getpid(),
                                                         str(app._got_first_request))
                      )
-    PM.removeAll()
+    PM_S.removeAll()
 
     # pool-related paths
     # the httppool that is local to the server
     scheme = 'server'
-    _basepath = PM.PlacePaths[scheme]
+    _basepath = PM_S.PlacePaths[scheme]
     full_base_local_poolpath = os.path.join(_basepath, pc['api_version'])
 
     if checkpath(full_base_local_poolpath, pc['self_username']) is None:

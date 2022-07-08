@@ -22,7 +22,7 @@ class ProductStorage(object):
 
     """
 
-    def __init__(self, pool=None, poolurl=None, **kwds):
+    def __init__(self, pool=None, poolurl=None, poolmanager=None, **kwds):
         """ Gets the storage "control pannel" for pool with specifed name.
 
         pool: if is a string will be taken as a poolname. if is a pool object will be registered with its name,
@@ -32,6 +32,14 @@ class ProductStorage(object):
             raise TypeError(
                 'First argument must be a poolname or a pool object, not ' + str(pool))
         super(ProductStorage, self).__init__()
+
+        if poolmanager:
+            # poolservers have their own PoolManagers
+            self.PM = poolmanager
+        else:
+            from .poolmanager import PoolManager
+            self.PM = PoolManager
+
         self._pools = ODict()  # dict of poolname - poolobj pairs
         self.register(pool=pool, poolurl=poolurl, **kwds)
 
@@ -46,7 +54,7 @@ class ProductStorage(object):
         with filelock.FileLock(makeLockpath('ProdStorage', 'w')), \
                 filelock.FileLock(makeLockpath('ProdStorage', 'r')):
             if pool and issubclass(pool.__class__, ProductPool):
-                _p = PoolManager.getPool(pool=pool, **kwds)
+                _p = self.PM.getPool(pool=pool, **kwds)
             elif poolurl is None and poolname is None:
                 # quietly return for no-arg construction case
                 return
@@ -57,7 +65,7 @@ class ProductStorage(object):
                 if poolurl is not None and not issubclass(poolurl.__class__, str):
                     raise TypeError('Poolurl must be a string, not ' +
                                     poolurl.__class__.__name__)
-                _p = PoolManager.getPool(
+                _p = self.PM.getPool(
                     poolname=poolname, poolurl=poolurl, **kwds)
             self._pools[_p._poolname] = _p
 
@@ -73,9 +81,9 @@ class ProductStorage(object):
                 poolname = pool.getId()
             else:
                 poolname = pool
-            if PoolManager.isLoaded(poolname):
+            if self.PM.isLoaded(poolname):
                 # remove frpm pool manager
-                res = PoolManager.remove(poolname)  # TODO i dentify self
+                res = self.PM.remove(poolname)  # TODO i dentify self
                 # do this after del above
                 del self._pools[poolname]
                 logger.debug('unregistered pool %s -> %s.' %
@@ -85,7 +93,7 @@ class ProductStorage(object):
         return
 
     def unregisterAll(self):
-        PoolManager.removeAll()
+        self.PM.removeAll()
         self._pools.clear()
 
     def load(self, urnortag):

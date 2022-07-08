@@ -148,7 +148,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 
 
 def post_to_server(data, urn, poolurl, contents='product', headers=None,
-                   no_serial=False, result_only=False, auth=None):
+                   no_serial=False, result_only=False, auth=None, client=requests):
     """Post data to server with  tag in headers
 
     data: goes to the request body
@@ -158,7 +158,7 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     headers: request header dictionary. Default None.
     no_serial: do not serialize the data.
     result_only: only return requests result, no code and msg. Default False.
-
+    client: alternative client to answer API calls. For tests etc.
     """
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
@@ -167,7 +167,7 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     if headers is None:
         headers = {}
     sd = data if no_serial else serialize(data)
-    res = requests.post(api, auth=auth, data=sd, headers=headers)
+    res = client.post(api, auth=auth, data=sd, headers=headers)
     # print(res)
     if result_only:
         return res
@@ -178,7 +178,7 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
         return res.status_code, 'FAILED', result
 
 
-def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None):
+def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None, client=requests):
     """Save product to server with putting tag in headers
 
     data: goes to the request body
@@ -186,6 +186,7 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None):
     poolurl: the only parameter must be provided
     tag: go with the products into the pool
     no_serial: do not serialize the data.
+    client: alternative client to answer API calls. For tests etc.
     """
     headers = {POST_PRODUCT_TAG_NAME: serialize(tag)}
     res = post_to_server(data, urn, poolurl, contents='product',
@@ -196,13 +197,13 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None):
     # # print('POST API: ' + api)
     # headers = {'tags': tag}
     # sd = data if no_serial else serialize(data)
-    # res = requests.post(
+    # res = client.post(
     #     api, auth=auth, data=sd, headers=headers)
     # # print(res)
     # return res
 
 
-def read_from_server(urn, poolurl, contents='product', auth=None):
+def read_from_server(urn, poolurl, contents='product', auth=None, client=requests):
     """Read product or hk data from server
 
     urn: to extract poolname, product type, and index if any of these are needed
@@ -212,44 +213,51 @@ def read_from_server(urn, poolurl, contents='product', auth=None):
         auth = getAuth(pccnode['username'], pccnode['password'])
     api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
-    res = requests.get(api, auth=auth)
-    result = deserialize(res.text)
+    res = client.get(api, auth=auth)
+    result = deserialize(res.text if type(res) == requests.models.Response
+                         else res.data)
     if issubclass(result.__class__, dict):
         return res.status_code, result['result'], result['msg']
     else:
         return res.status_code, 'FAILED', result
 
 
-def put_on_server(urn, poolurl, contents='pool', auth=None):
+def put_on_server(urn, poolurl, contents='pool', auth=None, client=requests):
     """Register the pool on the server.
 
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
+    client: alternative client to answer API calls. For tests etc.
     """
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
     api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
     # print("DELETE REQUEST API: " + api)
-    res = requests.put(api, auth=auth)
-    result = deserialize(res.text)
+    res = client.put(api, auth=auth)
+    result = deserialize(res.text if type(res) == requests.models.Response
+                         else res.data)
     if issubclass(result.__class__, dict):
         return result['result'], result['msg']
     else:
         return 'FAILED', result
 
 
-def delete_from_server(urn, poolurl, contents='product', auth=None):
+def delete_from_server(urn, poolurl, contents='product', auth=None, client=None):
     """Remove a product or pool from server
 
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
+    client: alternative client to answer API calls. For tests etc. Default None for `requests`.
     """
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
+    if client is None:
+        client = requests
     api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)
-    res = requests.delete(api, auth=auth)
-    result = deserialize(res.text)
+    res = client.delete(api, auth=auth)
+    result = deserialize(res.text if type(res) == requests.models.Response
+                         else res.data)
     if issubclass(result.__class__, dict):
         return result['result'], result['msg']
     else:

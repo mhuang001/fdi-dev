@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from .getswag import swag
-from .httppool_server import resp, excp, checkpath, check_readonly
+from .httppool_server import resp, excp, checkpath, check_readonly, PM_S
 from ..model.user import auth, getUsers
 from ..._version import __version__
 from ...dataset.deserialize import deserialize_args, deserialize
-from ...pal.poolmanager import PoolManager as PM, DEFAULT_MEM_POOL
+from ...pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from ...pal.productpool import PoolNotFoundError
 from ...pal.webapi import WebAPI
 from ...pal.urn import parseUrn
@@ -162,8 +162,8 @@ def get_registered_pools():
     path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     current_app.logger.debug('Listing all registered pools.')
 
-    # [p.getPoolurl() for p in PM.getMap()()]
-    result = list(PM.getMap())
+    # [p.getPoolurl() for p in PM_S.getMap()()]
+    result = list(PM_S.getMap())
     msg = 'There is/are %d pools registered to the PoolManager.' % len(result)
     code = 200
     return resp(code, result, msg, ts)
@@ -210,7 +210,7 @@ def load_pools(poolnames, usr):
     logger.debug('loading all from ' + path)
     alldirs = poolnames if poolnames else get_name_all_pools(path)
     for nm in alldirs:
-        # must save the link or PM._GLOBALPOOLLIST will remove as dead weakref
+        # must save the link or PM_S._GLOBALPOOLLIST will remove as dead weakref
         code, thepool, msg = register_pool(nm, usr=usr)
         if code == 200:
             pmap[nm] = thepool
@@ -254,7 +254,8 @@ def unregister_pools(poolnames=None):
 
     good = []
     notgood = []
-    all_pools = poolnames if poolnames else copy.copy(list(PM.getMap().keys()))
+    all_pools = poolnames if poolnames else copy.copy(
+        list(PM_S.getMap().keys()))
     logger.debug('unregister pools ' + str(all_pools))
 
     for nm in all_pools:
@@ -313,7 +314,7 @@ def wipe_pools(poolnames, usr):
         try:
             thepool.removeAll()
             shutil.rmtree(join(path, nm))
-            res = PM.remove(nm)
+            res = PM_S.remove(nm)
             if res > 1:
                 notgood.append(nm+': '+str(res))
                 logger.info('Pool %s not deleted.' % nm)
@@ -436,7 +437,7 @@ def register_pool(pool, usr):
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     makenew = usr and usr.role == 'read_write'
     try:
-        po = PM.getPool(poolname=poolname, poolurl=poolurl, makenew=makenew)
+        po = PM_S.getPool(poolname=poolname, poolurl=poolurl, makenew=makenew)
         return 200, po, 'register pool ' + poolname + ' OK.'
     except (ValueError, NotImplementedError, PoolNotFoundError) as e:
         code, result, msg = excp(
@@ -472,7 +473,7 @@ def unregister_pool(pool):
     poolname = pool
     current_app.logger.debug('UNREGISTER (DELETE) POOL' + poolname)
     try:
-        result = PM.remove(poolname)
+        result = PM_S.remove(poolname)
         if result == 1:
             result = '1'
             msg = 'Pool not registered or referenced: ' + poolname
@@ -527,7 +528,7 @@ def load_HKdata(paths, serialize_out=True):
     # resourcetype = fullname(data)
 
     try:
-        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
         result = poolobj.readHK(serialize_out=serialize_out)
         msg = 'OK.'
         code = 200
@@ -621,7 +622,7 @@ def load_single_HKdata(paths, serialize_out=True):
     if hkname not in HKDBS:
         raise ValueError('Invalid HK type. Must be one of '+', '.join(HKDBS))
     try:
-        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
         result = poolobj.readHK(hkname, serialize_out=serialize_out)
         code, msg = 200, hkname + ' HK data returned OK'
     except Exception as e:
@@ -662,7 +663,7 @@ def count(pool, data_type=None):
     logger.debug(f'get {data_type} count for ' + pool)
 
     try:
-        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
         result = poolobj.getCount(data_type)
         code, msg = 200, 'Recorded count of %s returned OK' % (
             data_type if data_type else 'all types')
@@ -805,14 +806,14 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
 
     poolname = paths[0]
     poolurl = current_app.config['POOLURL_BASE'] + poolname
-    if not PM.isLoaded(poolname):
+    if not PM_S.isLoaded(poolname):
         result = FAILED
         msg = 'Pool not found or not registered: ' + poolname
         logger.error(msg)
         return 0, resp(404, result, msg, ts, serialize_out=False), 0
 
     try:
-        poolobj = PM.getPool(poolname=poolname, poolurl=poolurl)
+        poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
         res = getattr(poolobj, method)(*args, **kwds)
         result = res
         msg = msg + ' OK.'

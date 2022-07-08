@@ -9,6 +9,8 @@ from .dicthk import HKDBS
 from ..utils.common import trbk, lls, fullname
 from .urn import Urn, makeUrn
 
+import requests
+
 import os
 import builtins
 from itertools import chain
@@ -83,14 +85,33 @@ class HttpClientPool(ProductPool):
     """ the pool will save all products on a remote server.
     """
 
-    def __init__(self, auth=None, **kwds):
-        """ Initialize connection to the remote server. creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files on server if not exist.
+    def __init__(self, auth=None, client=None, **kwds):
+        """Initialize connection to the remote server.
+
+        Sreates file structure if there isn't one. if there is, read
+        and populate house-keeping records. create persistent files on
+        server if not exist.
+
+        Parameters
+        ----------
+        auth : tuple, HTTPBasicAuth, or Authorization
+            Authorization for remote pool.
+        client : Request or Wrapper
+            Mainly used for testing with mock server, where `client`
+            is a wrapper of Flask Client.
+        **kwds :
+
+        Returns
+        -------
+
 
         """
+
         # print(__name__ + str(kwds))
         super().__init__(**kwds)
         self.not_quoted = True
         self.auth = auth
+        self.client = requests if client is None else client
 
     def setup(self):
         """ Sets up HttpPool interals.
@@ -150,7 +171,8 @@ class HttpClientPool(ProductPool):
             first = False
         sized += ']'
         res = save_to_server(sized, urn, self._poolurl,
-                             tag, no_serial=True, auth=self.auth)
+                             tag, no_serial=True,
+                             auth=self.auth, client=self.client)
         sv = deserialize(res.text)
         if sv['result'] == 'FAILED' or res.status_code != 200:
             logger.error('Save %d products to server failed.%d Message from %s: %s' % (
@@ -195,7 +217,8 @@ class HttpClientPool(ProductPool):
         urn = makeUrn(self._poolname, resourcetype, indexstr)
         logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
         code, res, msg = read_from_server(
-            urn, self._poolurl, auth=self.auth)  # TODO: start,end
+            urn, self._poolurl,
+            auth=self.auth, client=self.client)  # TODO: start,end
         if res == 'FAILED' or code != 200:
             raise NameError('Loading ' + urn + ' failed:%d. ' % code + msg)
         return res
@@ -210,7 +233,7 @@ class HttpClientPool(ProductPool):
             if resourcetype is None or index is None:
                 raise ValueError()
             urn = makeUrn(self._poolname, resourcetype, index)
-        res, msg = delete_from_server(urn, self._poolurl)
+        res, msg = delete_from_server(urn, self._poolurl, client=self.client)
         if res == 'FAILED':
             logger.error('Remove from server ' + self._poolname +
                          ' failed. Caused by: ' + msg)
@@ -222,7 +245,8 @@ class HttpClientPool(ProductPool):
         does the scheme-specific remove-all
         """
 
-        res, msg = delete_from_server(None, self._poolurl, 'pool')
+        res, msg = delete_from_server(
+            None, self._poolurl, 'pool', client=self.client)
         if res == 'FAILED':
             logger.error(msg)
             raise Exception(msg)

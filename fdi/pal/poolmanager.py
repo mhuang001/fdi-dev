@@ -164,8 +164,6 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
             if poolurl:
                 pp, schm, pl, pn, un, pw = parse_poolurl(poolurl)
             else:
-                __import__('pdb').set_trace()
-
                 raise ValueError(
                     'A new pool %s cannot be created without a pool url.' % poolname)
             if poolname:
@@ -276,7 +274,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
         try:
             pool = cls._GlobalPoolList.pop(poolname)
             pool.setPoolManager(None)
-        except ValueError as e:
+        except KeyError as e:
             logger.info("Ignored: "+str(e))
         return code
 

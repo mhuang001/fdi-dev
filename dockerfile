@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.2
 
 FROM ubuntu:18.04 AS fdi
-# 1-3 M. Huang <mhuang@nao.cas.cn>
+# 1-4 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
 
@@ -10,7 +10,7 @@ User root
 #ENV TZ=Etc/UTC
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools\
-&& apt-get install -y git python3-pip python3-venv locales
+&& apt-get install -y git python3-pip python3.8-venv locales
 #&& rm -rf /var/lib/apt/lists/*
 
 # rebuild mark
@@ -50,10 +50,10 @@ RUN umask 0002
 ADD --chown=${USR}:${USR} pipcache ${UHOME}/pipcache
 ADD --chown=${USR}:${USR} wheels ${UHOME}/wheels
 ADD --chown=${USR}:${USR} fdi ${UHOME}/fdi
-RUN pwd; echo --- \
-&& ls wheels ; echo --- \
-&& ls . ; echo --- \
-&& ls ${PKG}
+# RUN pwd; echo --- \
+# && ls wheels ; echo --- \
+# && ls . ; echo --- \
+# && ls ${PKG}
 
 ARG LOCALE=en_US.UTF-8
 ENV LC_ALL=${LOCALE}
@@ -75,7 +75,7 @@ ARG PIPCACHE=${UHOME}/pipcache
 ARG PIPWHEELS=${UHOME}/wheels
 ARG PIPOPT="--cache-dir ${PIPCACHE} --no-index -f ${PIPWHEELS} --disable-pip-version-check"
 RUN umask 0002 ; echo ${PIPOPT} \
-&& python3 -m pip install ${PIPOPT} -U 'pip>=21.3'  wheel setuptools
+&& python3 -m pip install ${PIPOPT} -U pip  wheel setuptools
 
 RUN python3.8 -c 'import sys;print(sys.path)' \
 &&  python3.8 -m pip list --format=columns \

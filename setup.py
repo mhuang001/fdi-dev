@@ -44,7 +44,7 @@ setup(
         #'tabulate @ git+https://github.com/mhuang001/python-tabulate.git@r1',
         #'tabulate @ git+http://mercury.bao.ac.cn:9006/mirrors/tabulate.git@r1',
         #'tabulate @ git+ssh://git@mercury.bao.ac.cn:9005/mirrors/tabulate.git@r1',
-        'cwcwidth>=0.1.5',
+        'cwcwidth>=0.1.6',
         'paho-mqtt>=1.6.1',
         'jsonschema>=3.2.0',
         'xmltodict>=0.12.0',

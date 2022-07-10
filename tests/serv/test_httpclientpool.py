@@ -453,7 +453,7 @@ def test_csdb_addTag(csdb_uploaded):
     test_pool.setTag(tag1, urn2)
     test_pool.setTag(tag2, urn2)
     tagsall = [tag1]+tag2
-    assert test_pool.getTags(urn2) == tagsall
+    assert set(test_pool.getTags(urn2)) == set(tagsall)
     return test_pool, tag, urn, tagsall, urn2
 
 

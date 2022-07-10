@@ -7,7 +7,7 @@ test: test1 test2 test5
 
 testpns: test4
 
-testhttp: test6 test7 test8 test9
+testhttp: test7 test8 test9
 
 test1: 
 	$(PYTEST) tests/test_dataset.py -k 'not _mqtt' --cov=fdi/dataset $(OPT) $(T)

@@ -1,0 +1,12 @@
+export FDIVENV=${HOME}/csc38/fdi/.venv
+export PIPCACHE=${HOME}/csc38/fdi
+. $FDIVENV/bin/activate \
+&& echo venv activated \
+&& cd ~/csc38/fdi && rm -rf csc \
+&& git clone ssh://git@mercury.bao.ac.cn:9005/svom/csc.git --recurse-submodules \
+&& ln -f fdi/Makefile_docker.mk csc/Makefile_docker_common.mk \
+&& cd ~/csc38/fdi/csc \
+&& make update
+# make PROJ-INSTALL
+# make PROJ-TEST
+

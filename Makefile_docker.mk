@@ -194,7 +194,7 @@ restore_test:
 	@echo %%% above should NOT be empty %%%%%%%
 
 update_docker:
-	$(MAKE) install EXT=[DEV,SERV,SCI] I=-U &&\
+	#$(MAKE) install EXT=[DEV,SERV,SCI] I=-U &&\
 	$(MAKE) docker_version &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\

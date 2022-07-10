@@ -1,0 +1,37 @@
+deactivate 
+cd ~
+rm -rf ~/csc38 && mkdir csc38
+# virtualenv -p python3.8 ~/csc38/fdi &&
+# . ~/csc38/fdi/bin/activate &&
+
+export FDIVENV=${HOME}/csc38/fdi/.venv
+export PIPCACHE=${HOME}/csc38/fdi/pipcache
+export PIPWHEELS=${HOME}/csc38/fdi/wheels
+mkdir -p $FDIVENV \
+mkdir -p $PIPWHEELS \
+&& umask 0002 && python3.8 -m venv ${FDIVENV}
+#if echo $PATH|grep $FDIVENV/bin > /dev/null; then echo FDIVENV/bin dir already in PATH; \
+#else export PATH="${FDIVENV}/bin:$PATH";fi
+. $FDIVENV/bin/activate \
+&& echo venv activated \
+&& umask 0002 && python3.8 -m pip install -U --cache-dir ${PIPCACHE} pip>=21 setuptools
+
+cd ~/csc38/fdi &&
+#python3.8 -m pip install fdi &&
+#python3.8 -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV,SERV] &&
+git clone --depth 50 -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git \
+&& cd fdi \
+&& make install EXT="[DEV,SERV,SCI]" PIPOPT="--disable-pip-version-check --no-color --cache-dir ${PIPCACHE}" \
+&& make test \
+&& cd ..
+cd fdi \
+&& python3.8 -m pip wheel --disable-pip-version-check --cache-dir ${PIPCACHE} --wheel-dir ${PIPWHEELS} pip>=21 wheel setuptools \ 
+&& python3.8 -m pip wheel --disable-pip-version-check --cache-dir ${PIPCACHE} --wheel-dir ${PIPWHEELS} -e .[DEV,SERV,SCI] 
+ls
+if false; then \
+mkdir ../csc38 && cd ../csc38 \
+git clone ssh://git@mercury.bao.ac.cn:9005/svom/csc.git --recurse-submodules \
+make update \
+&& make PROJ-INSTALL \
+&& make PROJ-TEST ;\
+fi

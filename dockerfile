@@ -80,7 +80,7 @@ RUN umask 0002 ; echo ${PIPOPT} \
 RUN python3.8 -c 'import sys;print(sys.path)' \
 &&  python3.8 -m pip list --format=columns \
 && which pip \
-&& which python;cat .venv/bin/pip
+&& which python3;cat .venv/bin/pip
 
 WORKDIR ${UHOME}
 
@@ -107,7 +107,7 @@ WORKDIR ${PKGS_DIR}/${PKG}
 
 # all dependents have to be from pip cache
 RUN umask 0002 \
-&& python3.8 -m pip install ${PIPOPT} --no-index -f ${PIPWHEELS} -e .[DEV,SERV,SCI]
+&& python3.8 -m pip install ${PIPOPT} --no-index -f ${PIPWHEELS} fdi[DEV,SERV,SCI]
 
 WORKDIR ${PKGS_DIR}
 

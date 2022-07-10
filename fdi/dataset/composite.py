@@ -2,11 +2,10 @@
 
 from .datawrapper import DataContainer
 from .odict import ODict
-from .eq import DeepEqual
 from .serializable import Serializable
 from .invalid import INVALID
 
-from collections import Sized, Container, Iterator, OrderedDict, UserDict
+from collections import UserDict
 from collections.abc import MutableMapping
 import logging
 # create logger

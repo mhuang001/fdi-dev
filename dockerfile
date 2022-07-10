@@ -75,7 +75,7 @@ ARG PIPCACHE=${UHOME}/pipcache
 ARG PIPWHEELS=${UHOME}/wheels
 ARG PIPOPT="--cache-dir ${PIPCACHE} --no-index -f ${PIPWHEELS} --disable-pip-version-check"
 RUN umask 0002 ; echo ${PIPOPT} \
-&& python3 -m pip install ${PIPOPT} -U pip  wheel setuptools
+&& python3 -m pip install ${PIPOPT} -U pip setuptools
 
 RUN python3.8 -c 'import sys;print(sys.path)' \
 &&  python3.8 -m pip list --format=columns \

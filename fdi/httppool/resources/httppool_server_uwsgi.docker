@@ -66,7 +66,7 @@ RUN echo cat ./envs \
 && ./httppool_server_entrypoint_uwsgi.sh no-run
 
 RUN cp fdi/fdi/httppool/resources/httppool_server_uwsgi.ini . \
-&& ln fdi/wsgi.py .
+&& echo ln fdi/wsgi.py .
 
 VOLUME /var/log ${SERVER_POOLPATH}
 

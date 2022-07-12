@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.2
 
 FROM ubuntu:18.04 AS fdi
-# 1-4 M. Huang <mhuang@nao.cas.cn>
+# 1-5 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
 
@@ -10,8 +10,8 @@ User root
 #ENV TZ=Etc/UTC
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools\
-&& apt-get install -y git python3-pip python3.8-venv locales
-#&& rm -rf /var/lib/apt/lists/*
+&& apt-get install -y git python3-pip python3.8-venv libpython3.8 locales \
+&& rm -rf /var/lib/apt/lists/*
 
 # rebuild mark
 ARG re=rebuild
@@ -107,7 +107,7 @@ WORKDIR ${PKGS_DIR}/${PKG}
 
 # all dependents have to be from pip cache
 RUN umask 0002 \
-&& python3.8 -m pip install ${PIPOPT} --no-index -f ${PIPWHEELS} fdi[DEV,SERV,SCI]
+&& python3.8 -m pip install ${PIPOPT} --no-index -f ${PIPWHEELS} -e .[DEV,SERV,SCI]
 
 WORKDIR ${PKGS_DIR}
 
@@ -126,7 +126,6 @@ RUN echo cat ./envs \
 WORKDIR ${PKGS_DIR}/${PKG}/
 RUN pwd \
 && ls -ls \
-&& python3.8 -c 'import sys;print(sys.path)' \
 &&  python3.8 -m pip list \
 && make test \
 && rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}

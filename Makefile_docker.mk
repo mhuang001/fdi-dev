@@ -96,19 +96,22 @@ launch_server:
 	-e HOST_PORT=$(PORT) \
 	-e LOGGER_LEVEL=$(LOGGER_LEVEL) \
 	-e API_BASE=$(API_BASE) \
-	--name $$SN $(D) $(LATEST) $(LAU)
-	sleep 2
-	#docker inspect $$SN
-	docker ps -n 1
+	--name $$SN $(D) $(LATEST) $(LAU) ;\
+	#if [ $$? -gt 0 ]; then echo *** Launch failed; false; else \
+	sleep 2 ;\
+	#docker inspect $$SN ;\
+	docker ps -n 1 ;\
 
 launch_test_server:
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
 	$(MAKE) launch_server PORT=$(TEST_PORT) EXTPORT=$(TEST_PORT) LOGGER_LEVEL=$(LOGGER_LEVEL) #LATEST=mhastro/httppool
 
 rm_docker:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	cids=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
 	echo Gracefully shutdown server ... 10sec ;\
-	if docker stop $$cid; then docker  rm $$cid; else echo NOT running ; fi
+	for cid in $$cids; do echo rm $$cid ...; \
+	if docker stop $$cid; then docker  rm $$cid; else echo NOT running ; fi ;\
+	done
 
 rm_dockeri:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
@@ -195,7 +198,7 @@ restore_test:
 
 update_docker:
 	(\
-	#$(MAKE) install EXT=[DEV,SERV,SCI] I=-U &&\
+	$(MAKE) install EXT=[DEV,SERV,SCI] I=-U &&\
 	$(MAKE) docker_version &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\

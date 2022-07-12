@@ -47,7 +47,7 @@ ENV PKGS_DIR=${UHOME}
 RUN umask 0002
 
 # copy fdi and .venv over
-ADD --chown=${USR}:${USR} pipcache ${UHOME}/pipcache
+#ADD --chown=${USR}:${USR} pipcache ${UHOME}/pipcache
 ADD --chown=${USR}:${USR} wheels ${UHOME}/wheels
 ADD --chown=${USR}:${USR} fdi ${UHOME}/fdi
 # RUN pwd; echo --- \

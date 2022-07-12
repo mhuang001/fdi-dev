@@ -233,17 +233,17 @@ def client(server_app, mock_app):
             yield client
 
 
-@pytest.fixture(scope="module")
-async def a_client(aiohttp_client, server_app, mock_app):
-    if server_app == None:
-        yield aiohttp_client(requests)
-    else:
-        logger.info('**** mock_app as client *****')
-        with mock_app.test_client() as client:
-            with mock_app.app_context():
-                # mock_app.preprocess_request()
-                assert current_app.config["ENV"] == "production"
-            yield aiohttp_client(client)
+#@pytest.fixture(scope="module")
+#async def a_client(aiohttp_client, server_app, mock_app):
+#    if server_app == None:
+#        yield aiohttp_client(requests)
+#    else:
+#        logger.info('**** mock_app as client *****')
+#        with mock_app.test_client() as client:
+#            with mock_app.app_context():
+#                # mock_app.preprocess_request()
+#                assert current_app.config["ENV"] == "production"
+#            yield aiohttp_client(client)
 
 
 @pytest.fixture(scope='package')

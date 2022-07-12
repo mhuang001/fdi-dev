@@ -50,7 +50,7 @@ yamlupgrade:
 # extra option for 'make runserver S=...'
 S	=
 # default username and password are in pnsconfig.py
-runserver:
+runpnsserver:
 	$(PYEXE) -m fdi.pns.runflaskserver $(S)
 runpoolserver:
 	$(PYEXE) httppool_app.py --server=httppool_server $(S)

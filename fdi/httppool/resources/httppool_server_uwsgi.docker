@@ -6,7 +6,7 @@ FROM fdi:latest
 
 USER root
 RUN apt-get update \
-&& apt-get install -y curl \
+&& DEBIAN_FRONTEND=noninteractive apt-get install -y curl \
 && rm -rf /var/lib/apt/lists/*
 
 # setup user
@@ -56,7 +56,11 @@ USER ${USR}
 
 # config software
 RUN cp ./fdi/fdi/httppool/resources/httppool_server_entrypoint_uwsgi.sh . \
-&& chmod 755 ./httppool_server_entrypoint_uwsgi.sh
+&& chmod 755 ./httppool_server_entrypoint_uwsgi.sh; ls -l 
+
+# self test with mock server
+RUN cd fdi \
+&& python3.8 -m pytest -r P -v -l --pdb -s --show-capture=all  --log-level=INFO   tests/serv/test_httppool.py
 
 RUN echo cat ./envs \
 && ./httppool_server_entrypoint_uwsgi.sh no-run

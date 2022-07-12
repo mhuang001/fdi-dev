@@ -194,16 +194,23 @@ restore_test:
 	@echo %%% above should NOT be empty %%%%%%%
 
 update_docker:
+	(\
 	#$(MAKE) install EXT=[DEV,SERV,SCI] I=-U &&\
 	$(MAKE) docker_version &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\
 	$(MAKE) test7 && $(MAKE) test8 &&\
-	$(MAKE) rm_docker
+	$(MAKE) rm_docker ) 2>&1 | tee update.log
 	@echo Done. `cat docker_version`
 
 cleanup:
 	docker rmi -f `docker images -a|grep pool|awk 'BEGIN{FS=" "}{print $3}'`
 	docker rmi -f `docker images -a|grep csc |awk 'BEGIN{FS=" "}{print $3}'`
 	docker rmi -f `docker images -a|grep m/fdi|awk 'BEGIN{FS=" "}{print $3}'`
+
+PIPCACHE=~/csc38/fdi/pipcache
+PIPWHEELS=~/csc38/fdi/wheels
+stage:
+	python3.8 -m pip wheel --disable-pip-version-check --cache-dir $(PIPCACHE) --wheel-dir $(PIPWHEELS) pip>=21 wheel setuptools &&\
+	python3.8 -m pip wheel --disable-pip-version-check --cache-dir $(PIPCACHE) --wheel-dir $(PIPWHEELS) -e .[DEV,SERV,SCI]

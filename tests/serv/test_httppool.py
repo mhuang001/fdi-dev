@@ -14,14 +14,16 @@ from fdi.dataset.product import Product
 from fdi.pal.httpclientpool import HttpClientPool
 from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
-from fdi.pal.productpool import Lock_Path_Base
+from fdi.pal.productpool import Lock_Path_Base, makeLockpath
 from fdi.utils.common import lls, trbk, fullname
 from fdi.utils.fetch import fetch
 from fdi.pns.jsonio import auth_headers
 
 import pytest
+import pytest_asyncio.plugin
 import filelock
-import sys
+
+import sys, concurrent.futures
 import requests.models
 from urllib.request import pathname2url
 from urllib.error import URLError
@@ -42,7 +44,7 @@ import getpass
 from collections.abc import Mapping
 
 import asyncio
-import aiohttp
+#import aiohttp
 
 from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.utils.options import opt
@@ -722,48 +724,49 @@ def test_get_pools(local_pools_dir, server, client):
 def lock_pool2(poolid, sec, local_pools_dir):
     ''' Lock a pool from reading and return a fake response
     '''
-    logger.info('Keeping files locked for %f sec' % sec)
     ppath = os.path.join(local_pools_dir, poolid)
     # lock to prevent writing
-    lock = Lock_Path_Base + ppath.replace('/', '_') + '.write'
-    logger.debug(lock)
+    lock = Lock_Path_Base + ppath.replace('/', '_') + '.read'
+    xx = makeLockpath(poolid, 'r')
+    logger.info('Keeping files %s locked for %f sec' % (lock,sec))
+    t0= str(time.time())
     with filelock.FileLock(lock):
         time.sleep(sec)
-    fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "time": ' + \
-        str(time.time()) + '}'
+    fakeres = '{"result": "DONE", "msg": "This is a fake responses", "time": ' + t0 + '}'
     return deserialize(fakeres)
 
 
 def read_product2(poolid, server, userpass, client):
 
     aburl, headers = server
+
     if headers['server_type'] == 'live':
-        auth = aiohttp.BasicAuth(*userpass)
+        auth = HTTPBasicAuth(*userpass)
     else:
         auth = make_auth(userpass)
     # trying to read
     if 1:
         prodpath = '/'+prodt+'/0'
         # trailing / is needed by mock server
-        url = aburl + '/' + poolid + prodpath + '/'
+        url = aburl + '/' + poolid + prodpath # + '/'
     else:
         hkpath = '/hk/dTypes'
         url = aburl + '/' + poolid + hkpath + '/'  # trailing / is needed by mock server
-    logger.debug('Reading a locked file '+url)
+    logger.debug('Reading a locked file http...%s' % (url[-5:]))
     x = client.get(url, auth=auth)
     r = x.text if type(x) == requests.models.Response else x.data
-    logger.debug("@@@@@@@locked file read: " + lls(r, 200))
+    logger.info("read %f http...%s  %s" % (time.time(), url[-5:], lls(r, 26)))
     o, code = getPayload(x)
+    o['msg'] = r
     return o
 
 # https://github.com/pallets/flask/issues/4375#issuecomment-990102774
 
-
-@ pytest.mark.asyncio
-async def test_lock_file2(server, userpass, local_pools_dir, client):
+#@pytest.mark.asyncio
+def test_lock_file2(server, userpass, local_pools_dir, client):
     ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
     '''
-    logger.info('Test read a locked file, it will return FAILED')
+    logger.info('%f Test read a locked file, it will return DONE.' % time.time())
     aburl, headers = server
     poolid = test_poolid
     # init server
@@ -771,31 +774,57 @@ async def test_lock_file2(server, userpass, local_pools_dir, client):
     # hkpath = '/hk/dTypes'
     # url = aburl + '/' + poolid + hkpath
     # x = client.get(url, auth=make_auth(userpass))
-    res = []
-    try:
+    res,futs = {},{}
+    sleep1, sleep2 = 1.0, 0.12
+    with concurrent.futures.ThreadPoolExecutor(max_workers=11) as executor:
+        future = executor.submit(lock_pool2, poolid, sleep1, local_pools_dir)
+        result=future.result()
+        logger.info('%f lock submitted. start reading ...' % time.time())
+        for i in range(10):
+            time.sleep(sleep2)
+            tt = time.time()
+            readfut = executor.submit(read_product2, poolid, server, userpass, client)
+            futs[tt] =readfut
+        for creadfut in concurrent.futures.as_completed(futs.values()):
+            #__import__('pdb').set_trace()
+
+            readres = creadfut.result()
+            tt = time.time()
+            #logger.info('PPPPPP %f %s' % (readres['time'], readres['result'].description))
+            #readres['msg'] = tt
+            res[tt]=(readres)
+    """try:
         loop = asyncio.get_running_loop()
         # 1. Run in the default loop's executor:
-        result = await loop.run_in_executor(None, lock_pool2, poolid, 2, local_pools_dir)
-        # 2. Run in a custom thread pool:
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            result = await loop.run_in_executor(
-                pool, read_product, poolid, server, userpass, client)
-            res.append(result)
+        #__import__('pdb').set_trace()
+        result = await loop.run_in_executor(None, lock_pool2, poolid, sleep1, local_pools_dir)
+        for i in range(10):
+                readres = read_product2(poolid, server, userpass, client)
+                logger.info('PPPPPP %d %d' % (i,i))
+                res.append(readres)
+                if 'FAIL' in readres['result']:
+                     time.sleep(sleep2)
+                else:
+                     break
         # task=functool.partial(read_product,poolid, server, userpass, client))
-        print('custom thread pool', result, res)
+        # print('custom thread pool', result, res)
     except Exception as e:
         logger.error('unable to start thread ' + str(e) + trbk(e))
         raise
-    logger.debug('res ' + lls(res[0], 200) + '************' + lls(res[1], 200))
-    __import__('pdb').set_trace()
+    """
+    logger.debug('res ' + str(res))
 
-    if issubclass(res[0].__class__, Mapping) and 'result' in res[0] \
-       and issubclass(res[0]['result'].__class__, str):
-        r1, r2 = res[0], res[1]
-    else:
-        r2, r1 = res[0], res[1]
+    assert result['result'] == 'DONE'
+    v = list(res.values())
+    assert issubclass(v[0].__class__, Mapping)
+    assert 'result' in v[-1]
+    assert v[0]['result'].description == 'desc 0'
+    assert not issubclass(v[-1]['result'].__class__, str) 
+    print( len(res), v[-1]['time']-result['time'] )
+    assert v[-1]['time']-result['time'] > sleep1
+    assert len(v) > int(sleep1/sleep2) -1
 
-
+"""
 async def lock_pool(poolid, sec, local_pools_dir):
     ''' Lock a pool from reading and return a fake response
     '''
@@ -866,7 +895,7 @@ def XXtest_lock_file(server, userpass, local_pools_dir, client):
     else:
         r2, r1=res[0], res[1]
     check_response(r1, code = 400, failed_case = True)
-
+"""
 
 def test_read_non_exists_pool(server, userpass, client):
     ''' Test read a pool which doesnot exist, returns FAILED

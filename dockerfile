@@ -10,7 +10,7 @@ User root
 #ENV TZ=Etc/UTC
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools\
-&& apt-get install -y git python3-pip python3.8-venv libpython3.8 locales \
+&& apt-get install -y git python3-pip python3.8-venv libpython3.8-dev locales \
 && rm -rf /var/lib/apt/lists/*
 
 # rebuild mark
@@ -47,7 +47,7 @@ ENV PKGS_DIR=${UHOME}
 RUN umask 0002
 
 # copy fdi and .venv over
-#ADD --chown=${USR}:${USR} pipcache ${UHOME}/pipcache
+ADD --chown=${USR}:${USR} pipcache ${UHOME}/pipcache
 ADD --chown=${USR}:${USR} wheels ${UHOME}/wheels
 ADD --chown=${USR}:${USR} fdi ${UHOME}/fdi
 # RUN pwd; echo --- \

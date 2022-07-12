@@ -25,7 +25,7 @@ test5:
 	$(PYTEST)  $(OPT) $(T) tests/test_utils.py --cov=fdi/utils
 
 test6:
-	$(PYTEST) $(OPT) --asyncio-mode=strict $(T) tests/serv/test_httppool.py
+	$(PYTEST) $(OPT) $(T) tests/serv/test_httppool.py
 
 test7:
 	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py -k 'not _csdb' $(T)

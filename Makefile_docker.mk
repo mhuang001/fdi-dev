@@ -56,7 +56,7 @@ imlatest:
 DOCKERHOME =..
 build_docker:
 	@echo Building $(DOCKER_VERSION)
-	cp docker_version $(DOCKERHOME) &&\
+	cp docker_version cpfoo; mv -f cpfoo $(DOCKERHOME)/docker_version &&\
 	cd $(DOCKERHOME) &&\
 	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DOCKER_VERSION) \
 	--network=$(NETWORK) \
@@ -198,7 +198,7 @@ restore_test:
 
 update_docker:
 	(\
-	$(MAKE) install EXT=[DEV,SERV,SCI] I=-U &&\
+	#$(MAKE) install EXT=[DEV,SERV,SCI] I=-U &&\
 	$(MAKE) docker_version &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\

@@ -70,7 +70,6 @@ setup(
             # 'waitress>=2.0.0',
             'uwsgi>=2.0.20',
             'flasgger>=0.9.5',
-            'pytest-asyncio>=0.18.3',
             'astropy==5.1'
         ],
         'SCI': [

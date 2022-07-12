@@ -20,7 +20,6 @@ from fdi.utils.fetch import fetch
 from fdi.pns.jsonio import auth_headers
 
 import pytest
-import pytest_asyncio.plugin
 import filelock
 
 import sys, concurrent.futures
@@ -42,9 +41,6 @@ from pprint import pprint
 import time
 import getpass
 from collections.abc import Mapping
-
-import asyncio
-#import aiohttp
 
 from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.utils.options import opt
@@ -762,7 +758,6 @@ def read_product2(poolid, server, userpass, client):
 
 # https://github.com/pallets/flask/issues/4375#issuecomment-990102774
 
-#@pytest.mark.asyncio
 def test_lock_file2(server, userpass, local_pools_dir, client):
     ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
     '''

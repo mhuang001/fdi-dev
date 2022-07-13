@@ -24,7 +24,7 @@ def check_input(arg, serializable=True):
     cls = arg.__class__
     nm = cls.__name__
     if issubclass(cls, (int, float, str, bool, bytes, complex,
-                        list, dict, array.array, UserDict)):
+                        list, dict, array.array, UserDict, type(None))):
         return arg
 
     if serializable:
@@ -101,6 +101,30 @@ class History(CompositeDataset):
         raise NotImplemented()
 
     def add_input(self, args=None, keywords=None, info=None, *kwds):
+        """Add an entry to History records.
+
+        A `History` is made of a series of records, each added by a
+        processing step, usually called a pipeline. The record can be
+        added, possiblly incrementally, by this method.
+
+        Parameters
+        ----------
+        args : list
+            A list of tuples of positional argument names and their
+            values. Can be `ArgParse()._get_args()`. Values must be serializable.
+        keywords : list
+            A list of tuples of keyword argument names and their values. Can be `ArgParse()._get_kwargs()`. Values must be serializable.
+        info : dict
+            keywords and values in string.
+        *kwds :
+
+        Returns
+        -------
+
+            result
+
+
+        """
         if args:
             for arg in args:
                 carg = check_input(arg)
@@ -111,7 +135,7 @@ class History(CompositeDataset):
             else:
                 keywords = kwds
         if keywords:
-            for name, var in keywords.items():
+            for name, var in keywords if isinstance(keywords, list) else keywords.items():
                 cvar = check_input(var)
                 # append the parameter name column and value column
                 self['kw_args'].addRow(row={'name': name,

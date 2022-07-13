@@ -696,7 +696,6 @@ class ManagedPool(ProductPool, DictHk):
             pn = fullname(cls)
         with filelock.FileLock(self.lockpath('w')), \
                 filelock.FileLock(self.lockpath('r')):
-
             # some new ####
             self._classes, self._tags, self._urns, \
                 self._dTypes, self._dTags = tuple(

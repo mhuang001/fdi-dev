@@ -22,7 +22,8 @@ from fdi.pns.jsonio import auth_headers
 import pytest
 import filelock
 
-import sys, concurrent.futures
+import sys
+import concurrent.futures
 import requests.models
 from urllib.request import pathname2url
 from urllib.error import URLError
@@ -724,8 +725,8 @@ def lock_pool2(poolid, sec, local_pools_dir):
     # lock to prevent writing
     lock = Lock_Path_Base + ppath.replace('/', '_') + '.read'
     xx = makeLockpath(poolid, 'r')
-    logger.info('Keeping files %s locked for %f sec' % (lock,sec))
-    t0= str(time.time())
+    logger.info('Keeping files %s locked for %f sec' % (lock, sec))
+    t0 = str(time.time())
     with filelock.FileLock(lock):
         time.sleep(sec)
     fakeres = '{"result": "DONE", "msg": "This is a fake responses", "time": ' + t0 + '}'
@@ -744,7 +745,7 @@ def read_product2(poolid, server, userpass, client):
     if 1:
         prodpath = '/'+prodt+'/0'
         # trailing / is needed by mock server
-        url = aburl + '/' + poolid + prodpath # + '/'
+        url = aburl + '/' + poolid + prodpath  # + '/'
     else:
         hkpath = '/hk/dTypes'
         url = aburl + '/' + poolid + hkpath + '/'  # trailing / is needed by mock server
@@ -758,10 +759,12 @@ def read_product2(poolid, server, userpass, client):
 
 # https://github.com/pallets/flask/issues/4375#issuecomment-990102774
 
+
 def test_lock_file2(server, userpass, local_pools_dir, client):
     ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
     '''
-    logger.info('%f Test read a locked file, it will return DONE.' % time.time())
+    logger.info('%f Test read a locked file, it will return DONE.' %
+                time.time())
     aburl, headers = server
     poolid = test_poolid
     # init server
@@ -769,25 +772,26 @@ def test_lock_file2(server, userpass, local_pools_dir, client):
     # hkpath = '/hk/dTypes'
     # url = aburl + '/' + poolid + hkpath
     # x = client.get(url, auth=make_auth(userpass))
-    res,futs = {},{}
+    res, futs = {}, {}
     sleep1, sleep2 = 1.0, 0.12
     with concurrent.futures.ThreadPoolExecutor(max_workers=11) as executor:
         future = executor.submit(lock_pool2, poolid, sleep1, local_pools_dir)
-        result=future.result()
+        result = future.result()
         logger.info('%f lock submitted. start reading ...' % time.time())
         for i in range(10):
             time.sleep(sleep2)
             tt = time.time()
-            readfut = executor.submit(read_product2, poolid, server, userpass, client)
-            futs[tt] =readfut
+            readfut = executor.submit(
+                read_product2, poolid, server, userpass, client)
+            futs[tt] = readfut
         for creadfut in concurrent.futures.as_completed(futs.values()):
-            #__import__('pdb').set_trace()
+            # __import__('pdb').set_trace()
 
             readres = creadfut.result()
             tt = time.time()
             #logger.info('PPPPPP %f %s' % (readres['time'], readres['result'].description))
             #readres['msg'] = tt
-            res[tt]=(readres)
+            res[tt] = (readres)
     """try:
         loop = asyncio.get_running_loop()
         # 1. Run in the default loop's executor:
@@ -814,10 +818,11 @@ def test_lock_file2(server, userpass, local_pools_dir, client):
     assert issubclass(v[0].__class__, Mapping)
     assert 'result' in v[-1]
     assert v[0]['result'].description == 'desc 0'
-    assert not issubclass(v[-1]['result'].__class__, str) 
-    print( len(res), v[-1]['time']-result['time'] )
+    assert not issubclass(v[-1]['result'].__class__, str)
+    print(len(res), v[-1]['time']-result['time'])
     assert v[-1]['time']-result['time'] > sleep1
-    assert len(v) > int(sleep1/sleep2) -1
+    assert len(v) > int(sleep1/sleep2) - 1
+
 
 """
 async def lock_pool(poolid, sec, local_pools_dir):
@@ -826,35 +831,35 @@ async def lock_pool(poolid, sec, local_pools_dir):
     logger.info('Keeping files locked for %f sec' % sec)
     ppath = os.path.join(local_pools_dir, poolid)
     # lock to prevent writing
-    lock=Lock_Path_Base + ppath.replace('/', '_') + '.write'
+    lock = Lock_Path_Base + ppath.replace('/', '_') + '.write'
     logger.debug(lock)
     with filelock.FileLock(lock):
         await asyncio.sleep(sec)
-    fakeres='{"result": "FAILED", "msg": "This is a fake responses", "time": ' + \
+    fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "time": ' + \
         str(time.time()) + '}'
     return deserialize(fakeres)
 
 
 async def read_product(poolid, server, userpass, client):
 
-    aburl, headers=server
+    aburl, headers = server
     if headers['server_type'] == 'live':
-        auth=aiohttp.BasicAuth(*userpass)
+        auth = aiohttp.BasicAuth(*userpass)
     else:
-        auth=make_auth(userpass)
+        auth = make_auth(userpass)
     # trying to read
     if 1:
-        prodpath='/'+prodt+'/0'
+        prodpath = '/'+prodt+'/0'
         # trailing / is needed by mock server
-        url=aburl + '/' + poolid + prodpath + '/'
+        url = aburl + '/' + poolid + prodpath + '/'
     else:
-        hkpath='/hk/dTypes'
-        url=aburl + '/' + poolid + hkpath + '/'  # trailing / is needed by mock server
+        hkpath = '/hk/dTypes'
+        url = aburl + '/' + poolid + hkpath + '/'  # trailing / is needed by mock server
     logger.debug('Reading a locked file '+url)
     async with aiohttp.ClientSession() as session:
-        async with session.get(url, auth = auth) as res:
-            x=await res.text()
-            o=deserialize(x)
+        async with session.get(url, auth=auth) as res:
+            x = await res.text()
+            o = deserialize(x)
     logger.debug("@@@@@@@locked file read: " + lls(x, 200))
     return o
 
@@ -865,8 +870,8 @@ def XXtest_lock_file(server, userpass, local_pools_dir, client):
     ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
     '''
     logger.info('Test read a locked file, it will return FAILED')
-    aburl, headers=server
-    poolid=test_poolid
+    aburl, headers = server
+    poolid = test_poolid
     # init server
     populate_pool(poolid, aburl, userpass, client)
     # hkpath = '/hk/dTypes'
@@ -874,97 +879,98 @@ def XXtest_lock_file(server, userpass, local_pools_dir, client):
     # x = client.get(url, auth=make_auth(userpass))
 
     try:
-        loop=asyncio.get_event_loop()
-        tasks=[asyncio.ensure_future(
+        loop = asyncio.get_event_loop()
+        tasks = [asyncio.ensure_future(
             lock_pool(poolid, 2, local_pools_dir)), asyncio.ensure_future(read_product(poolid, server, userpass, client))]
-        taskres=loop.run_until_complete(asyncio.wait(tasks))
+        taskres = loop.run_until_complete(asyncio.wait(tasks))
         loop.close()
     except Exception as e:
         logger.error('unable to start thread ' + str(e) + trbk(e))
         raise
-    res=[f.result() for f in [x for x in taskres][0]]
+    res = [f.result() for f in [x for x in taskres][0]]
     logger.debug('res ' + lls(res[0], 200) + '************' + lls(res[1], 200))
     if issubclass(res[0].__class__, Mapping) and 'result' in res[0] \
        and issubclass(res[0]['result'].__class__, str):
-        r1, r2=res[0], res[1]
+        r1, r2 = res[0], res[1]
     else:
-        r2, r1=res[0], res[1]
-    check_response(r1, code = 400, failed_case = True)
-"""
+        r2, r1 = res[0], res[1]
+    check_response(r1, code=400, failed_case=True)
+    """
+
 
 def test_read_non_exists_pool(server, userpass, client):
     ''' Test read a pool which doesnot exist, returns FAILED
     '''
     logger.info('Test query a pool non exist.')
-    aburl, headers=server
-    wrong_poolid='nonexist_' + __name__.replace('.', '_')
-    prodpath='/' + prodt + '/0'
-    url=aburl + '/' + wrong_poolid + prodpath
-    x=client.get(url, auth = make_auth(userpass))
-    o, code=getPayload(x)
-    check_response(o, code = 400, failed_case = True)
+    aburl, headers = server
+    wrong_poolid = 'nonexist_' + __name__.replace('.', '_')
+    prodpath = '/' + prodt + '/0'
+    url = aburl + '/' + wrong_poolid + prodpath
+    x = client.get(url, auth=make_auth(userpass))
+    o, code = getPayload(x)
+    check_response(o, code=400, failed_case=True)
 
 
 def xtest_webapi_jsonPath(server, userpass, client):
     """
     """
 
-    aburl, headers=server
+    aburl, headers = server
 
     logger.info('Create pools on the server.')
-    poolid=test_poolid
-    poolurl=aburl + '/' + poolid
-    pool=HttpClientPool(poolname = poolid, poolurl = poolurl)
-    pstore=ProductStorage(pool)
+    poolid = test_poolid
+    poolurl = aburl + '/' + poolid
+    pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
+    pstore = ProductStorage(pool)
     logger.info('n the server.')
 
     # ref
     class Get_jsonPath_from_server():
-        def __init__(self, data = None, doctype = 'xml', attr_prefix = '', *args, **kwds):
-            dnm='bookstore' if 'bicycle' in data else 'complex_ex' if 'complex' in data else 'simple_ex'
-            u=UnstructuredDataset(data = data, description = dnm,
-                                    doctype = doctype, attr_prefix = attr_prefix,
+        def __init__(self, data=None, doctype='xml', attr_prefix='', *args, **kwds):
+            dnm = 'bookstore' if 'bicycle' in data else 'complex_ex' if 'complex' in data else 'simple_ex'
+            u = UnstructuredDataset(data=data, description=dnm,
+                                    doctype=doctype, attr_prefix=attr_prefix,
                                     *args, **kwds)
-            p=Product(description = dnm, data = u)
+            p = Product(description=dnm, data=u)
             nonlocal pool
             nonlocal pstore
-            ref=pstore.save(u, tag = dnm)
+            ref = pstore.save(u, tag=dnm)
             # prod  url. remove 'urn:', ':' -> '/'
-            self.pool=pool
-            self.purl=aburl + '/' + ref.urn[4:].replace(':', '/')
+            self.pool = pool
+            self.purl = aburl + '/' + ref.urn[4:].replace(':', '/')
 
         def jsonPath(self, *args, **kwds):
-            urlargs=serialize_args(*args, not_quoted = False, **kwds)
-            urlargs=serialize_args(urlargs, not_quoted = False)
-            url=self.purl + '/jsonPath__' + urlargs
+            urlargs = serialize_args(*args, not_quoted=False, **kwds)
+            urlargs = serialize_args(urlargs, not_quoted=False)
+            url = self.purl + '/jsonPath__' + urlargs
             nonlocal userpass
-            auth=make_auth(userpass)
-            x=client.get(url, auth = auth)
-            o, code=getPayload(x)
-            check_response(o, code = code)
+            auth = make_auth(userpass)
+            x = client.get(url, auth=auth)
+            o, code = getPayload(x)
+            check_response(o, code=code)
             return o['result']
 
     do_jsonPath(Get_jsonPath_from_server)
 
 
 if __name__ == '__main__':
-    now=time.time()
-    node, verbose=opt(pc['node'])
+    now = time.time()
+    node, verbose = opt(pc['node'])
     if verbose:
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
     logger.info('logging level %d' % (logger.getEffectiveLevel()))
 
-    t=8
+    t = 8
 
     if t == 7:
         # test_lock()
         # asyncio.AbstractEventLoop.set_debug()
-        loop=asyncio.get_event_loop()
-        tasks=[asyncio.ensure_future(napa(5, 0)),
+        loop = asyncio.get_event_loop()
+        tasks = [asyncio.ensure_future(napa(5, 0)),
                  asyncio.ensure_future(napa(0.5, 0.5))]
-        res=loop.run_until_complete(asyncio.wait(tasks))
+        res = loop.run_until_complete(asyncio.wait(tasks))
         loop.close()
         print(res)
 

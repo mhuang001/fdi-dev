@@ -61,7 +61,6 @@ from datetime import timezone
 import pytest
 
 
-
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
 else:
@@ -2008,9 +2007,9 @@ def test_TableDataset_func():
     from fdi.utils.tree import tree
     #print('\n'.join(tree(v, style='ascii')))
     from fdi.utils.jsonpath import jsonPath, flatten_compact
-    #print(list(str(x.full_path)
+    # print(list(str(x.full_path)
     #           for x in jsonPath(v, '$..*', val='context')))
-    #print('\n'.join(flatten_compact([v]).keys()))
+    # print('\n'.join(flatten_compact([v]).keys()))
 
     ts += 'grouped column names'
     ts += v.string(0, 'grid', 'rst', 'simple')
@@ -2824,7 +2823,7 @@ def test_History():
         v.add_input(args=[(2, 3)])
 
     v = History()
-    v.add_input(args=[1, 2.33, 'asd', True, [4, 5], array.array('f', [6, 7])],
+    v.add_input(args=[('id', 1), ('width', 2.33), ('name', 'asd'), ('ok', True), ('speed', [4, 5]), ('scores', array.array('f', [6, 7])), ('and', None)],
                 keywords=dict(a='b', c=[11]),
                 info=dict(c='d')
                 )
@@ -2834,7 +2833,7 @@ def test_History():
     assert v.meta['c'].value == 'd'
     assert 'e' not in v.meta
     # add more
-    v.add_input(args=[{9: 10}],
+    v.add_input(args=[('more', {9: 10})],
                 keywords=dict(d=FineTime(123456)),
                 info=dict(e='f')
                 )

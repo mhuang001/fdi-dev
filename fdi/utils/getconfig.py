@@ -140,7 +140,7 @@ def make_pool(pool, conf='pns', auth=None, wipe=False):
     if '://' in pool:
         poolurl = pool
     else:
-        poolurl = pc['lookup'][pool]
+        poolurl = getConfig(pool)
 
     if auth is None:
         auth = HTTPBasicAuth(pc['node']['username'], pc['node']['password'])

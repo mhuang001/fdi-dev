@@ -25,8 +25,7 @@ out_tree = """tree out_tree
 ├── history                                        <History>
 │   ├── meta                                      <MetaData>
 │   │   └── listeners                           <ListnerSet>
-│   ├── args                             <ArrayDataset> (0,)
-│   └── kw_args                        <TableDataset> (2, 0)
+│   └── args                           <TableDataset> (2, 0)
 │       ├── meta                                  <MetaData>
 │       │   └── listeners                       <ListnerSet>
 │       ├── name                               <Column> (0,)
@@ -156,8 +155,7 @@ out_tree = """tree out_tree
 ├── history                                        <History>
 │   ├── meta                                      <MetaData>
 │   │   └── listeners                           <ListnerSet>
-│   ├── args                             <ArrayDataset> (0,)
-│   └── kw_args                        <TableDataset> (2, 0)
+│   └── args                           <TableDataset> (2, 0)
 │       ├── meta                                  <MetaData>
 │       │   ├── description                         <string>
 │       │   │   ├── description                        <str>
@@ -319,8 +317,7 @@ out_tree = """tree out_tree
 |__ history                                        <History>
 |   |__ meta                                      <MetaData>
 |   |   \__ listeners                           <ListnerSet>
-|   |__ args                             <ArrayDataset> (0,)
-|   \__ kw_args                        <TableDataset> (2, 0)
+|   \__ args                           <TableDataset> (2, 0)
 |       |__ meta                                  <MetaData>
 |       |   |__ description                         <string>
 |       |   |   |__ description                        <str>

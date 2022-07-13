@@ -2819,27 +2819,30 @@ def test_FineTimes_toString():
 
 def test_History():
     v = History()
-    with pytest.raises(TypeError):
+    with pytest.raises(AttributeError):
         v.add_input(args=[(2, 3)])
 
     v = History()
-    v.add_input(args=[('id', 1), ('width', 2.33), ('name', 'asd'), ('ok', True), ('speed', [4, 5]), ('scores', array.array('f', [6, 7])), ('and', None)],
+    v.add_input(args={'id': 1, 'width': 2.33, 'name': 'asd',
+                      'ok': True, 'speed': [4, 5],
+                      'scores': array.array('f', [6, 7]), 'and': None},
                 keywords=dict(a='b', c=[11]),
                 info=dict(c='d')
                 )
-    args, kwds = v.get_args()
-    assert args[-1] == array.array('f', [6, 7])
-    assert kwds.rowCount == 2
+    args = v.get_args()
+    assert args['scores'] == array.array('f', [6, 7])
+    assert v['args'].rowCount == 9
     assert v.meta['c'].value == 'd'
     assert 'e' not in v.meta
     # add more
-    v.add_input(args=[('more', {9: 10})],
+    v.add_input(args={'more': {9: 10}},
                 keywords=dict(d=FineTime(123456)),
                 info=dict(e='f')
                 )
-    assert args[-1][9] == 10
-    assert v['kw_args'].rowCount == 3
+    assert v.get_args()['more'][9] == 10
+    assert v['args'].rowCount == 11
     assert v.meta['e'].value == 'f'
+    assert len(v.meta) == 2
     # print(v.string())
     # print(kwds.string())
     # print(v.tree())

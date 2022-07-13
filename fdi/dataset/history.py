@@ -9,6 +9,7 @@ from .serializable import Serializable
 
 import array
 from collections import OrderedDict, UserDict
+import itertools
 
 import logging
 # create logger
@@ -56,11 +57,9 @@ class History(CompositeDataset):
         """
         super(History, self).__init__(**kwds)
 
-        self['args'] = ArrayDataset(
-            data=[], description='Positional arguments given to the pipeline or task that generated this product.')
-        self['kw_args'] = TableDataset(
+        self['args'] = TableDataset(
             data=[['name', [], ''], ['value', [], '']],
-            description='Keyword arguments given to the pipeline or task that generated this product.')
+            description='Named ppositional and keyword arguments given to the pipeline or task that generated this product.')
 
     def accept(self, visitor):
         """ Hook for adding functionality to meta data object
@@ -100,7 +99,7 @@ class History(CompositeDataset):
         """
         raise NotImplemented()
 
-    def add_input(self, args=None, keywords=None, info=None, *kwds):
+    def add_input(self, args=None, keywords=None, info=None, **kwds):
         """Add an entry to History records.
 
         A `History` is made of a series of records, each added by a
@@ -109,15 +108,15 @@ class History(CompositeDataset):
 
         Parameters
         ----------
-        args : list
-            A list of tuples of positional argument names and their
-            values. Can be `ArgParse()._get_args()`. Values must be serializable.
-        keywords : list
-            A list of tuples of keyword argument names and their values. Can be `ArgParse()._get_kwargs()`. Values must be serializable.
+        args : dict
+            A mapping of positional argument names and their
+            values. Can be `dict(ArgParse()._get_args()))`. Values must be serializable.
+        keywords : dict
+            A mapping of keyword argument names and their values. Can be `dict(ArgParse()._get_kwargs())`. Values must be serializable.
         info : dict
             keywords and values in string.
-        *kwds :
-
+        **kwds : dict
+            appended.
         Returns
         -------
 
@@ -125,29 +124,27 @@ class History(CompositeDataset):
 
 
         """
-        if args:
-            for arg in args:
-                carg = check_input(arg)
-                self['args'].append(carg)
-        if kwds:
-            if keywords:
-                keywords.update(kwds)
-            else:
-                keywords = kwds
-        if keywords:
-            for name, var in keywords if isinstance(keywords, list) else keywords.items():
+        if args or keywords or kwds:
+            for name, var in itertools.chain(args.items(), keywords.items(), kwds.items()):
                 cvar = check_input(var)
                 # append the parameter name column and value column
-                self['kw_args'].addRow(row={'name': name,
-                                            'value': cvar},
-                                       rows=False)
+                self['args'].addRow(row={'name': name,
+                                         'value': cvar},
+                                    rows=False)
         if info:
             for k, v in info.items():
                 self.meta[k] = guess_value(v, parameter=True)
 
     def get_args(self):
+        """Get args table data as a dictionary.
 
-        return self['args'], self['kw_args']
+        Returns
+        -------
+        dict
+
+        """
+
+        return dict((n, v) for n, v in zip(self['args']['name'], self['args']['value']))
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder

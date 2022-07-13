@@ -177,24 +177,26 @@ def test_gen_url(server):
         assert exc_msg == 'No such method and contents composition: GET/pool'
 
 
-def test_CRUD_product_by_client(server, local_pools_dir):
+def test_CRUD_product_by_client(server, local_pools_dir, userpass):
     """Client http product storage READ, CREATE, DELETE products in remote
     """
     aburl, headers = server
-
+    # u-p tuple
+    auth = userpass
+    client = None
     poolid = test_poolid
     poolurl = aburl + '/' + poolid
     pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
-    crud_t(poolid, poolurl, local_pools_dir, pool)
+    crud_t(poolid, poolurl, local_pools_dir, pool, auth, client)
 
 
-def crud_t(poolid, poolurl, local_pools_dir, pool):
+def crud_t(poolid, poolurl, local_pools_dir, pool, auth, client):
     logger.info('Init a pstore')
 
     if PoolManager.isLoaded(DEFAULT_MEM_POOL):
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
     # this will also register the server side
-    pstore = ProductStorage(pool=pool)
+    pstore = ProductStorage(pool=pool, auth=auth, client=client)
     pool.removeAll()
 
     assert len(pstore.getPools()) == 1, 'product storage size error: ' + \

@@ -147,7 +147,7 @@ If poolname is missing it is derived from poolurl; if poolurl is also absent, Va
                     'Pool name %s and pool object cannot be both given.' % poolname)
             poolname, poolurl, p = pool._poolname, pool._poolurl, pool
             if poolurl.lower().startswith('http'):
-                res, msg = remoteRegister(poolurl)
+                res, msg = remoteRegister(poolurl, auth, client)
         else:
             # quick decisions can be made knowing poolname only
             if poolname == DEFAULT_MEM_POOL:

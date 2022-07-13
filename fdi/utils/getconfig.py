@@ -135,10 +135,13 @@ def make_pool(pool, conf='pns', auth=None, wipe=False):
     ConnectionError
     """
 
+    pc = getConfig()
     if '://' in pool:
         poolurl = pool
     else:
-        poolurl = getConfig(pool)
+        poolurl = pc['lookup'][pool]
+    if auth is None:
+        auth = HTTPBasicAuth(pc['node']['username'], pc['node']['password'])
     logger.info("PoolURL: " + poolurl)
 
     # create a product store

@@ -24,6 +24,7 @@ from fdi.pns.fdi_requests import *
 from fdi.utils.getconfig import getConfig
 from fdi.utils.common import fullname
 
+from requests.auth import HTTPBasicAuth
 import pytest
 import urllib
 import time
@@ -181,8 +182,8 @@ def test_CRUD_product_by_client(server, local_pools_dir, userpass):
     """Client http product storage READ, CREATE, DELETE products in remote
     """
     aburl, headers = server
-    # u-p tuple
-    auth = userpass
+    #  u-p tuple
+    auth = HTTPBasicAuth(*userpass)
     client = None
     poolid = test_poolid
     poolurl = aburl + '/' + poolid

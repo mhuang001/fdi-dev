@@ -37,7 +37,7 @@ setup(
         'requests>=2.23.0',
         'filelock>=3.0.12',
         'ruamel.yaml<0.17',
-        'tabulate-expwidth>=0.8.10',
+        'tabulate-expwidth>=0.8.10.1',
         # for actual use
         #'tabulate @ file://%s/resources/tabulate-0.8.10-py3-none-any.whl' % pkgd,
         # not uploadable for pypi

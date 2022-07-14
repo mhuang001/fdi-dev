@@ -96,10 +96,10 @@ $INITARGS
                 pass
 
     def toString(self, level=0,
-                 tablefmt='grid', tablefmt1='rst', tablefmt2='rst',
+                 tablefmt='grid', tablefmt1='rst', tablefmt2='psql',
                  extra=False, param_widths=None,
                  matprint=None, trans=True, beforedata='', **kwds):
-        """ like AbstractComposite but with history
+        """ like AbstractComposite but with history.
         """
         h = self.history.toString(
             level=level,
@@ -112,6 +112,7 @@ $INITARGS
         return s
 
     string = toString
+    txt = toString
     
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

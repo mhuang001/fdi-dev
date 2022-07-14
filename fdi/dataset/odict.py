@@ -95,6 +95,7 @@ class ODict(UserDict, Serializable, DeepEqual):
         return d + ('' if keyval else ')')
 
     string = toString
+    txt = toString
 
     def get(self, name):
         """ Raise a ``KeyError`` to change the default behavior of colections.Mapping to quietly return a None when a key is not found in the dict.

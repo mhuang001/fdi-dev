@@ -369,6 +369,7 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
         return s
 
     string = toString
+    txt = toString
 
     __str__ = toString
 

@@ -169,8 +169,8 @@ But if the matrix is a table, the cells in a column change the fastest,
                         if this == last and tf != 'plain':
                             # extra 2 for every internal gaps grouped
                             w += wc + 2 + \
-                                (1 if tf in [
-                                    'grid', 'fancy_grid', 'orgtbl', 'psql'] else 0)
+                                (1 if any(x in tf for x in
+                                          ['grid', 'orgtbl', 'psql']) else 0)
                         else:
                             # padstr(last, w, just='center'))
                             # if tf == 'simple' else last)
@@ -198,7 +198,8 @@ But if the matrix is a table, the cells in a column change the fastest,
                         par.insert(1, _header.rsplit('\n', 1)[0])
                         _tab = '\n'.join(par)
                         delta += '\n' + _tab
-                    elif tf in ['grid', 'fancy_grid', 'psql']:
+                    elif any(x in tf for x in
+                             ['grid', 'orgtbl', 'psql']):
                         _header = tabulate.tabulate(dummy, headers=hd2,
                                                     stralign='center',
                                                     tablefmt=tf)

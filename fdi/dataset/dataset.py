@@ -77,7 +77,7 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
         visitor.visit(self)
 
     def toString(self, level=0,
-                 tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='psql',
                  param_widths=None, width=0, matprint=None, trans=True,
                  heavy=True, center=-1, **kwds):
         """ matprint: an external matrix print function
@@ -121,6 +121,7 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
         return f'{s}\n{d}\n{last}\n'
 
     string = toString
+    txt = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder.

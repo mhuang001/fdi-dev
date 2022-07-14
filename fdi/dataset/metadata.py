@@ -362,6 +362,7 @@ class AbstractParameter(Annotatable, Copyable, DeepEqual, DatasetEventSender, Se
         return self.__class__.__name__ + ss
 
     string = toString
+    txt = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder
@@ -851,6 +852,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             (self.__class__.__name__, ts, vs, us, ds, fs, gs, cs)
 
     string = toString
+    txt = toString
 
     __str__ = toString
 
@@ -1000,7 +1002,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         return r
 
     def toString(self, level=0,
-                 tablefmt='grid', tablefmt1='simple', tablefmt2='rst',
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='psql',
                  extra=False, param_widths=None, **kwds):
         """ return  string representation of metada.
 
@@ -1156,6 +1158,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         #    '%s %s-listeners = %s' % ('(No Parameter.)', cn, lsnr)
 
     string = toString
+    txt = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder

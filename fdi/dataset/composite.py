@@ -231,10 +231,10 @@ class Composite(DataContainer, Serializable, MutableMapping):
         o = ODict(self.data)
         return self.__class__.__name__ + \
             o.toString(level=level,
-                       tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                        matprint=matprint, trans=trans, **kwds)
 
     string = toString
+    txt = toString
 
 
 class UserDictAdapter(UserDict):

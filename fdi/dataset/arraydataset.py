@@ -245,6 +245,7 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
         return '%s\n%s%s%s%s' % (s, d, br, last, br)
 
     string = toString
+    txt = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

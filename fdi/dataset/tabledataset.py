@@ -93,10 +93,11 @@ class TableModel():
         self.getColumn(columnIndex).data[rowIndex] = value
 
 
-def maybe2rows(header_names, units, col_width, one_row=False, linebreak='\n'):
-    """ makes one-row or two-row header
+def maybe2rows(header_names, units, col_width, sep='._/', one_row=False, linebreak='\n'):
+    """ makes one-row or two-row column headers
 
-    :one_row: Force one row but add line breaks at '.'
+    :sep: a string of separator characters to split header into two fragments. a header only uses the first matching char from left. Grouping does not distinguish which sep-char was used to split a header.
+    :one_row: Force one row but add line breaks at sep
 
     """
     if col_width is None:
@@ -108,7 +109,7 @@ def maybe2rows(header_names, units, col_width, one_row=False, linebreak='\n'):
     for x in header_names:
         try:
             # only test if there is '.'
-            if not '.' in x:
+            if not any(s in x for s in sep):
                 raise ValueError()
             f = float(x)
             hd.append(x)
@@ -117,14 +118,23 @@ def maybe2rows(header_names, units, col_width, one_row=False, linebreak='\n'):
                 last = ''
         except ValueError:
             # 'a.b', 'a.c' -> ('a','b'), ('a','c')
-            p = str(x).rsplit('.', 1)
+            r = str(x)
+            # try splitting with all sep chars until the first successful split to get the right-most fragment
+
+            for s in sep:
+                p = r.rsplit(s, 1)
+                if len(p) > 1:
+                    break
             # p0 is the group. p1 the sub-name
             if len(p) > 1:
+                # 'foo.'.rsplit('.') == ['foo','']
                 p0 = p[0]
-                hd.append(p[1])
+                p1 = p[1]
             else:
+                # 'bar'.rsplit('.') == ['bar']
                 p0 = ''
-                hd.append(p[0])
+                p1 = r
+            hd.append(p1)
             hd2.append(p0)
             # repeat is never found if one row
             if not one_row and not found_repeat:
@@ -640,6 +650,7 @@ Default is to return all columns.
         if html:
             w = w
         coldata = [list(itertools.islice(x.data, rowlimit)) for x in cols]
+        # table headers
         hdr = maybe2rows(self.getData().keys(),
                          (str(x.unit) for x in cols),
                          col_width=w, one_row=html,
@@ -655,6 +666,7 @@ Default is to return all columns.
         return f'{s}\n{d}{last}\n'
 
     string = toString
+    txt = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """

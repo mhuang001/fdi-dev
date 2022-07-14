@@ -487,12 +487,14 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
         # grand tour
         compo, path_str, prod = load_component_at(1, paths, mInfo)
         # see :func:`fetch`
+        # e.g. path_str is like '.string()' '["text"]'  '.meta["speed"].isValid()'
         if compo or 'has no' not in path_str:
             code = 200
             msg = f'Getting {path_str} OK'
             compo_meth_name = path_str.split('.')[-1]
             if compo_meth_name[:8] == 'toString' or \
-               compo_meth_name[:6] == 'string':
+               compo_meth_name[:6] == 'string' or \
+               compo_meth_name[:3] == 'txt':
                 if 'html' in compo_meth_name:
                     ct = 'text/html'
                     result = HTML_STYLE + compo

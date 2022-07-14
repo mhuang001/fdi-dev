@@ -270,6 +270,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         return s
 
     string = toString
+    txt = toString
 
     def __repr__(self):
         return self.toString(level=2)

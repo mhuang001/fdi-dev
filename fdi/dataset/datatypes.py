@@ -311,6 +311,7 @@ class Vector(Quantifiable, Serializable, DeepEqual):
     __str__ = toString
 
     string = toString
+    txt = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder

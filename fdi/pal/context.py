@@ -145,6 +145,7 @@ class RefContainer(ODict):
                                   stralign='center', tablefmt=tablefmt)
         return s
     string = toString
+    txt = toString
 
 
 class AbstractContext():

@@ -34,7 +34,7 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
         super().__init__(**kwds)
 
     def toString(self, level=0, width=0,
-                 tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
+                 tablefmt='grid', tablefmt1='simple', tablefmt2='psql',
                  extra=False, param_widths=None,
                  matprint=None, trans=True, beforedata='', heavy=True,
                  center=-1, **kwds):
@@ -91,3 +91,4 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
         return '\n\n'.join((x for x in (s, beforedata, d) if len(x))) + '\n' + last
 
     string = toString
+    txt = toString

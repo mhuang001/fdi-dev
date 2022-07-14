@@ -197,6 +197,7 @@ class ListnerSet(Serializable, DeepEqual, UserList):
             return self.__class__.__name__ + '(' + ', '.join(l) + ')'
 
     string = toString
+    txt = toString
 
 
 class EventSender():
@@ -445,6 +446,7 @@ class DatasetEvent(Serializable):
         return self.__repr__()
 
     string = toString
+    txt = toString
 
     def __getstate__(self):
         """ Can be encoded with serializableEncoder 

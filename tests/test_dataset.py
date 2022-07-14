@@ -1909,7 +1909,7 @@ def test_TableDataset_func_column():
     assert w3.list == []
 
 
-def test_TableDataset_func():
+def test_TableDataset_func0():
     u = TableDataset()
     c1 = Column([1, 4], 'sec')
     u.addColumn('col3', c1)
@@ -1997,13 +1997,19 @@ def test_TableDataset_func():
     ts += 'an empty level 2: \n'
     ts += TableDataset().toString(level=2)
     ts += '\n\n'
-    for n, c in {'group1.val': a10['col1'], 'group1.err': a10['col2'],
-                 'no-group.val': a10['col1'],
-                 'group2.val': a10['col1'], 'group2.err': a10['col2'],
-                 'group2.seq': a10['col2'],
-                 'group2.wgt': Column(data=['', 0.32, -9876543210], unit='g'),
-                 }.items():
-        v.addColumn(n, c)
+    for i, n in enumerate([
+        'no-group1.val',
+        'group1.val1',
+        'group1.val2',
+        '.val',
+        'grou.p2.val1',
+        'grou.p2.',
+        'grou.p2.val3',
+        'group3_val1',
+        'group3.val2',
+        'group3/val3',
+    ]):
+        v.addColumn(n, Column(data=[n, 123], unit='g'+str(i)),)
     from fdi.utils.tree import tree
     #print('\n'.join(tree(v, style='ascii')))
     from fdi.utils.jsonpath import jsonPath, flatten_compact
@@ -2013,9 +2019,11 @@ def test_TableDataset_func():
 
     ts += 'grouped column names'
     ts += v.string(0, 'grid', 'rst', 'simple')
-    ts += v.string(0, 'grid', 'rst', 'rst')
-    ts += v.string(0, 'grid', 'rst', 'grid')
-    ts += v.string(0, 'grid', 'rst', 'fancy_grid')
+    ts += v.string(0, 'simple_grid', 'rst', 'rst')
+    ts += v.string(0, 'rounded_grid', 'rst', 'outline')
+    ts += v.string(0, 'grid', 'rst', 'rounded_outline')
+    ts += v.string(0, 'grid', 'rst', 'fancy_outline')
+    ts += v.string(0, 'fancy_grid', 'rst', 'fancy_grid')
     ts += v.string(0, 'grid', 'rst', 'plain')
     ts += v.string(0, 'grid', 'rst', 'orgtbl')
     ts += v.string(0, 'grid', 'rst', 'psql')

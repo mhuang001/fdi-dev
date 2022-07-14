@@ -19,6 +19,9 @@ def fetch(paths, nested, re='', sep='/', exe=['is'], not_quoted=True):
     :re: datapath representation for `nested`. Can be applied to reproduce the result.
     :exe: 1) A list of patterns which if found in the name of a method/function the matching method/function is allowed to run. 2) If one of the pattern is '*', all methods/functions are allowed to run. 3) If a pattern starts with a '-' then the matching method/function to the pattern ('-' removed) is not allowed to run (overriding previous rules.
     :not_quoted: the method-args string is not encoded with `quote`.
+
+    Result
+    A found object and a string of python code e.g.  '.meta["speed"].isValid()'
     """
 
     if issubclass(paths.__class__, str):

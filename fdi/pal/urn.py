@@ -224,6 +224,7 @@ URNs are used to to identify data be cause URNs are location agnostic. Storage P
             )
 
     string = toString
+    txt = toString
 
 
 def parseUrn(urn, int_index=True):

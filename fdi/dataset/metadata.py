@@ -1069,27 +1069,38 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             if level == 0:
                 if param_widths == -1 or html:
                     w = MetaData.MaxDefWidth * 2
-                    l = tuple(wls(att[n], w, linebreak=br)
-                              for n in MetaHeaders)
+                    l = list(wls(att[n], w, linebreak=br)
+                             for n in MetaHeaders)
+                    if l[3] == 'boolean':  # work around a bug in tabulate
+                        l[1] = l[1].lower() if l[1] in (
+                            'True', 'False') else l[1]
+                        l[5] = l[5].lower() if l[5] in (
+                            'True', 'False') else l[5]
                     if extra:
-                        l += tuple(v for v in ext.values())
+                        l += list(v for v in ext.values())
                 else:
                     thewidths = param_widths if param_widths else \
                         MetaData.Default_Param_Widths
-                    l = tuple(wls(att[n], w)
-                              for n, w in thewidths.items() if w != 0)
+                    l = list(wls(att[n], w)
+                             for n, w in thewidths.items() if w != 0)
+                    if l[3] == 'boolean':  # work around a bug in tabulate
+                        l[1] = l[1].lower() if l[1] in (
+                            'True', 'False') else l[1]
+                        l[5] = l[5].lower() if l[5] in (
+                            'True', 'False') else l[5]
                     if extra:
-                        l += tuple(
+                        l += list(
                             wls(v, Default_Extra_Param_Width)
                             for v in ext.values())
                         # print(l)
+                l = tuple(l)
 
                 tab.append(l)
                 ext_hdr = [v for v in ext.keys()]
 
             elif level == 1:
                 ps = '%s= %s' % (att['name'], att['value'])
-                tab.append(wls(ps, 80//N))
+                tab.append(wls(ps, 81//N))
                 # s += mstr(self, level=level, tablefmt = tablefmt, \
                 # tablefmt=tablefmt, tablefmt1=tablefmt1, \
                 # tablefmt2=tablefmt2,depth=1, **kwds)
@@ -1133,7 +1144,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                     MetaData.Default_Param_Widths
                 for n in allh:
                     w = thewidths.get(n, Default_Extra_Param_Width)
-                    #print(n, w)
+                    # print(n, w)
                     if w != 0:
                         headers.append(wls(n, w))
             fmt = tablefmt
@@ -1145,6 +1156,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             t = grouper(tab, N)
             headers = ''
             fmt = tablefmt1
+
             s += tabulate.tabulate(t, headers=headers, tablefmt=fmt, missingval='',
                                    disable_numparse=True)
         elif level > 1:  # level 2 and 3

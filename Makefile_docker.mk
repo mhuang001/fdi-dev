@@ -198,6 +198,7 @@ restore_test:
 
 update_docker:
 	(\
+	$(MAKE) rm_docker
 	$(MAKE) install EXT=[DEV,SERV,SCI] I=-U &&\
 	$(MAKE) docker_version &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\

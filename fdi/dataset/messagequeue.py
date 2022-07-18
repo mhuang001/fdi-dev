@@ -1,18 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from .serializable import Serializable
 from .deserialize import deserialize
-from .eq import DeepEqual
-from ..utils.common import trbk
-from ..utils.getconfig import getConfig
+from ..utils.getconfig import get_mqtt_config
 from .listener import EventListener, EventSender
 from .serializable import serialize
-from ..utils.queueworks import queuework2
 
 import paho.mqtt.client as mqtt
 from paho.mqtt.client import error_string, MQTT_ERR_NO_CONN
 
-from collections import namedtuple, OrderedDict
 from itertools import chain
 import logging
 
@@ -38,20 +33,20 @@ class MqttRelayListener(EventListener):
                  **kwds):  # MqttRelayListener
         """ Starts a MQTT message queue and forward everything in the arguement list to the MQ serialized.
 
-        host, port, username, passwd: if any is not provided, it is looked up in `config['mqtt'].
+        host, port, username, passwd: if any is not provided, it is looked up in `config[...].
         """
         super().__init__(**kwds)
 
         if bool(host and port and username and passwd) is False:
-            conf = getConfig(conf='pns')
+            conf = get_mqtt_config()
 
         mq = mqtt.Client(
             client_id=client_id,
             clean_session=clean_session,
             userdata=userdata if userdata else self)
 
-        mq.username_pw_set(username if username else conf['mqtt']['username'],
-                           passwd if passwd else conf['mqtt']['passwd'])
+        mq.username_pw_set(username if username else conf['mquser'],
+                           passwd if passwd else conf['mqpass'])
 
         self.mq = mq
         self.topics = topics
@@ -71,13 +66,13 @@ class MqttRelayListener(EventListener):
             return None
         self.topics_for_subscription = topics
 
-        self.host = host if host else conf['mqtt']['host']
-        self.port = port if port else conf['mqtt']['port']
+        self.host = host if host else conf['mqhost']
+        self.port = port if port else conf['mqport']
         self.qos = qos
 
         self.keepalive = True
-        self.username = username if username else conf['mqtt']['username']
-        self.passwd = passwd if passwd else conf['mqtt']['passwd']
+        self.username = username if username else conf['mquser']
+        self.passwd = passwd if passwd else conf['mqpass']
         mq.username_pw_set(self.username, self.passwd)
 
         #mq.on_message = callback if callback else on_message
@@ -123,23 +118,23 @@ class MqttRelaySender(EventSender):
                  qos=1, **kwds):
         """ Starts a MQTT message queue and forward everything in the arguement list to the MQ serialized.
 
-        host, port, username, passwd: if any is not provided, it is looked up in `config['mqtt'].
+        host, port, username, passwd: if any is not provided, it is looked up in `config[...].
         """
         super().__init__(**kwds)
 
         if bool(host and port and username and passwd) is False:
-            conf = getConfig(conf='pns')
+            conf = get_mqtt_config()
         logger.debug('starting mq listening to '+str(topics))
         mq = mqtt.Client(
             client_id=client_id,
             clean_session=clean_session,
             userdata=userdata if userdata else self)
 
-        username = username if username else conf['mqtt']['username']
-        passwd = passwd if passwd else conf['mqtt']['passwd']
+        username = username if username else conf['mquser']
+        passwd = passwd if passwd else conf['mqpass']
         mq.username_pw_set(username, passwd)
-        host = host if host else conf['mqtt']['host']
-        port = port if port else conf['mqtt']['port']
+        host = host if host else conf['mqhost']
+        port = port if port else conf['mqport']
         mq.on_message = on_message
         mq.connect(host, port, keepalive=keepalive)
         logger.debug("Connect " + host + ":" + str(port))

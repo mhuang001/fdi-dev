@@ -76,6 +76,12 @@ pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
 pnsconfig['defaultpool'] = 'default'
 pnsconfig['loggerlevel'] = LOGGER_LEVEL
 
+# server's own
+pnsconfig['self_host'] = SELF_HOST
+pnsconfig['self_port'] = SELF_PORT
+pnsconfig['self_username'] = SELF_USER
+pnsconfig['self_password'] = SELF_PASS
+
 # choose from pre-defined.
 conf = ['dev', 'external', 'production', 'public'][0]
 
@@ -88,14 +94,14 @@ if conf == 'dev':
                          'ro_username': 'poolro', 'ro_password': 'only5%',
                          }
 
-    # server permission user
-    pnsconfig['base_local_poolpath'] = '/tmp'
-    pnsconfig['server_poolpath'] = '/tmp/data'  # For server
     # server's own
     pnsconfig['self_host'] = pnsconfig['node']['host']
     pnsconfig['self_port'] = pnsconfig['node']['port']
     pnsconfig['self_username'] = pnsconfig['node']['username']
     pnsconfig['self_password'] = pnsconfig['node']['password']
+    # server permission user
+    pnsconfig['base_local_poolpath'] = '/tmp'
+    pnsconfig['server_poolpath'] = '/tmp/data'  # For server
     # PTS app permission user
     pnsconfig['ptsuser'] = 'mh'
     # on pns server
@@ -121,25 +127,6 @@ elif conf == 'production':
                          'host': '10.0.10.114', 'port': 9885,
                          'ro_username': 'ro', 'ro_password': '',
                          }
-    # server's own
-    pnsconfig['self_host'] = pnsconfig['node']['host']
-    pnsconfig['self_port'] = pnsconfig['node']['port']
-    pnsconfig['self_username'] = pnsconfig['node']['username']
-    pnsconfig['self_password'] = pnsconfig['node']['password']
-    # PTS app permission user
-    pnsconfig['ptsuser'] = 'pns'
-    # on pns server
-    home = '/home/' + pnsconfig['ptsuser']
-elif conf == 'public':
-    pnsconfig['node'] = {'username': 'rw', 'password': 'only6%',
-                         'host': '123.56.102.90', 'port': 31702,
-                         'ro_username': 'ro', 'ro_password': 'only5%',
-                         }
-    # server's own
-    pnsconfig['self_host'] = pnsconfig['node']['host']
-    pnsconfig['self_port'] = pnsconfig['node']['port']
-    pnsconfig['self_username'] = pnsconfig['node']['username']
-    pnsconfig['self_password'] = pnsconfig['node']['password']
     # PTS app permission user
     pnsconfig['ptsuser'] = 'pns'
     # on pns server
@@ -178,12 +165,12 @@ pnsconfig['timeout'] = 10
 
 ############## project specifig ####################
 # message queue config
-pnsconfig['mqtt'] = dict(
-    host='0.0.0.0',
-    port=31876,
-    username='foo',
-    passwd='bar',
-)
+pnsconfig.update(dict(
+    mqhost=MQHOST,
+    mqport=MQPORT,
+    mquser=MQUSER,
+    mqpass=MQPASS,
+))
 
 # OSS config
 pnsconfig['oss'] = dict(

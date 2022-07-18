@@ -5,7 +5,10 @@ from fdi.pns.config import pnsconfig as builtin_conf
 from requests.auth import HTTPBasicAuth
 from os.path import join, expanduser, expandvars, isdir
 import functools
+import socket
+import getpass
 import json
+import os
 import argparse
 import sys
 import importlib
@@ -157,6 +160,27 @@ def make_pool(pool, conf='pns', auth=None, wipe=False):
     # print(pstore)
 
     return pstore
+
+
+def get_mqtt_config():
+    """ Get configured MQTT info from project configuration file.
+
+    Overrideable by uppercased environment variables.
+
+    ref `fdi.utils.getConfig` and your local ```~/.config/pnslocal.py```
+    """
+    pc = getConfig()
+    # default mqtt settings
+    mqttargs = dict(
+        mqhost=os.getenv('MQHOST', pc['mqhost']),
+        mqport=os.getenv('MQPORT', pc['mqport']),
+        mquser=os.getenv('MQUSER', pc['mquser']),
+        mqpass=os.getenv('MQPASS', pc['mqpass']),
+        qos=1,
+        clean_session=True,
+        client_id=socket.gethostname()+'_' + getpass.getuser()+'_' + str(os.getpid())
+    )
+    return mqttargs
 
 
 if __name__ == '__main__':

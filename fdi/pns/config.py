@@ -41,8 +41,8 @@ pnsconfig['server_scheme'] = 'server'
 
 pnsconfig['cloud_token'] = '/tmp/.cloud_token'
 pnsconfig['cloud_username'] = 'mh'
-pnsconfig['cloud_password'] = 'G44G898g'
-pnsconfig['cloud_host'] = '123.56.102.90'
+pnsconfig['cloud_password'] = ''
+pnsconfig['cloud_host'] = ''
 pnsconfig['cloud_port'] = 31702
 
 pnsconfig['cloud_scheme'] = 'csdb'
@@ -76,14 +76,8 @@ pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
 pnsconfig['defaultpool'] = 'default'
 pnsconfig['loggerlevel'] = LOGGER_LEVEL
 
-# server's own
-pnsconfig['self_host'] = SELF_HOST
-pnsconfig['self_port'] = SELF_PORT
-pnsconfig['self_username'] = SELF_USER
-pnsconfig['self_password'] = SELF_PASS
-
 # choose from pre-defined.
-conf = ['dev', 'external', 'production', 'public'][0]
+conf = ['dev', 'external', 'production'][0]
 
 # modify
 if conf == 'dev':
@@ -118,15 +112,6 @@ elif conf == 'external':
     pnsconfig['self_port'] = SELF_PORT
     pnsconfig['self_username'] = SELF_USER
     pnsconfig['self_password'] = SELF_PASS
-    # PTS app permission user
-    pnsconfig['ptsuser'] = 'pns'
-    # on pns server
-    home = '/home/' + pnsconfig['ptsuser']
-elif conf == 'production':
-    pnsconfig['node'] = {'username': 'fdi', 'password': 'bar',
-                         'host': '10.0.10.114', 'port': 9885,
-                         'ro_username': 'ro', 'ro_password': '',
-                         }
     # PTS app permission user
     pnsconfig['ptsuser'] = 'pns'
     # on pns server
@@ -174,8 +159,8 @@ pnsconfig.update(dict(
 
 # OSS config
 pnsconfig['oss'] = dict(
-    access_key_id=os.getenv('OSS_ACCESS_KEY_ID'),
-    access_key_secret=os.getenv('OSS_ACCESS_KEY_SECRET'),
-    bucket_name=os.getenv('OSS_BUCKET'),
-    endpoint=os.getenv('OSS_ENDPOINT'),
+    access_key_id='',
+    access_key_secret='',
+    bucket_name='',
+    endpoint=''
 )

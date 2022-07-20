@@ -538,6 +538,9 @@ def test_MqttRelay_mqtt(mocksndrlsnr):
         print(w.last_msg)
         assert test123 == "['foo'] changed."
         assert w.last_msg == ['foo']
+    # to avoid this client from messing up later tests
+    v.mq.disconnect()
+    w.mq.disconnect()
 
 
 def test_datatypes():

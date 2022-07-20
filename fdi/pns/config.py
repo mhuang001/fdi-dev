@@ -159,8 +159,8 @@ pnsconfig.update(dict(
 
 # OSS config
 pnsconfig['oss'] = dict(
-    access_key_id='',
-    access_key_secret='',
-    bucket_name='',
-    endpoint=''
+    access_key_id=None,
+    access_key_secret=None,
+    bucket_name=None,
+    endpoint=None
 )

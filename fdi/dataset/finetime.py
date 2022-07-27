@@ -75,6 +75,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
         If an integer is given, it will be taken as the TAI.
 '0' and b'0' are taken as TAI=0.
+        If a float is given, it will be taken as the `time` time stamp..
         If a datetime object or a string code is given, the timezone will be set to UTC.
         A FineTime instance is immutable except when TAI == 0. Violation gets a TypeError.
         """
@@ -84,6 +85,9 @@ class FineTime(Copyable, DeepEqual, Serializable):
             setTai = None
         elif issubclass(time.__class__, int):
             setTai = time
+        elif issubclass(time.__class__, float):
+            d = datetime.datetime.fromtimestamp(time)
+            setTai = self.datetimeToFineTime(d)
         elif issubclass(time.__class__, datetime.datetime):
             if time.tzinfo is None:
                 d = time.replace(tzinfo=utcobj)
@@ -104,7 +108,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
                     pass
         else:
             msg = ('%s must be an integer,a datetime object,'
-                   'or a string or bytes, but its type is %s.' % (
+                   'or a string or bytes or float, but its type is %s.' % (
                        str(time), type(time).__name__))
             raise TypeError(msg)
         if setTai is ...:

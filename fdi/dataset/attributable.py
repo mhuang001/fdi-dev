@@ -259,6 +259,9 @@ class Attributable(MetaDataHolder):
             super().__setattr__(name, value)
             return
 
+        # if name == 'creationDate' and str(value).startswith('16589'):
+        #    __import__('pdb').set_trace()
+
         try:
             if self.alwaysMeta:
                 if issubclass(value.__class__, AbstractParameter):

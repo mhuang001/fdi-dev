@@ -15,6 +15,8 @@ except ImportError:
     Model = {'metadata': {}}
 import xmltodict
 
+import mmap
+
 import json
 from copy import copy
 from collections import OrderedDict
@@ -96,6 +98,8 @@ class UnstructuredDataset(Dataset, Copyable):
             stid = b'_STID' if issubclass(data.__class__, bytes) else '_STID'
             # do not ask for self.type unless there is real data.
             if self.doctype == 'json':
+                if issubclass(data.__class__, mmap.mmap):
+                    data = bytearray(data)
                 loaded = json.loads(data, **kwds)
             elif self.doctype == 'xml':
                 xa = kwds.pop('xml_attribs', None)

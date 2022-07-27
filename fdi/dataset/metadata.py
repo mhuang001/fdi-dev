@@ -556,49 +556,52 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
 
         """
         if not hasattr(self, '_type'):
-
             return value
 
-        t_type = type(value)
-        t = t_type.__name__
-        st = self._type
-        if st == '' or st is None:
+        value_class = type(value)
+        value_cls_name = value_class.__name__
+        self_type = self._type
+        if self_type == '' or self_type is None:
             # self does not have a type
             try:
-                ct = DataTypeNames[t]
+                ct = DataTypeNames[value_cls_name]
                 if ct == 'vector':
                     self._type = 'quaternion' if len(value) == 4 else ct
                 else:
                     self._type = ct
             except KeyError as e:
                 raise TypeError("Type %s is not in %s." %
-                                (t, str([''.join(x) for x in DataTypeNames])))
+                                (value_cls_name, str([''.join(x) for x in DataTypeNames])))
             return value
 
-        # self has type
-        tt = DataTypes[st]
-        if tt in Classes.mapping:
+        self_cls_name = DataTypes[self_type]
+        if self_cls_name in Classes.mapping:
             # custom-defined parameter. delegate checking to themselves
             if issubclass(type(value), tuple):
                 # frozendict used in baseproduct module change lists to tuples
                 # which causes deserialized parameter to differ from ProductInfo.
                 value = list(value)
             return value
-        tt_type = builtins.__dict__[tt]
-        if issubclass(t_type, tt_type):
+        self_class = builtins.__dict__[self_cls_name]
+        # if value type is a subclass of self type
+        # if issubclass(value_class, float):
+        #    __import__('pdb').set_trace()
+        "Can't set"
+        if issubclass(value_class, self_class):
             return value
-        elif issubclass(t_type, Number) and issubclass(tt_type, Number):
+        elif issubclass(value_class, Number) and issubclass(self_class, Number):
             # , if both are Numbers.Number, value is casted into given typ_.
-            return tt_type(value)
-            # st = tt
-        elif issubclass(t_type, Seqs) and issubclass(tt_type, Seqs):
+            return self_class(value)
+            # self_type = self_cls_name
+        elif issubclass(value_class, Seqs) and issubclass(self_class, Seqs):
             # , if both are Numbers.Number, value is casted into given typ_.
-            return tt_type(value)
-            # st = tt
+            return self_class(value)
+            # self_type = self_cls_name
         else:
-            vs = hex(value) if t == 'int' and st == 'hex' else str(value)
+            vs = hex(value) if value_cls_name == 'int' and self_type == 'hex' else str(
+                value)
             raise TypeError(
-                'Value %s is of type %s, but should be %s.' % (vs, t, tt))
+                'Value %s is of type %s, but should be %s.' % (vs, value_cls_name, self_cls_name))
 
     def setValue(self, value):
         """ Replaces the current value of this parameter.

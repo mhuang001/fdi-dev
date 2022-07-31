@@ -42,18 +42,32 @@ CONFIG = None
 
 
 def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
-    """ Imports a dict named [conf]config.
+    """Imports a dict named [conf]config.
 
     The contents of the config are defined in the ``.config/[conf]local.py`` file. The contenss are used to update defaults in ``fdi.pns.config``.
-    The config file directory can be modified by the environment variable ``CONF_DIR``, which, if  not given or pointing to an existing directory, is the process owner's ``~/.config`` directory.
+    The config file directory can be modified by the environment
+    variable ``CONF_DIR``, which, if not given or pointing to an
+    existing directory, is the process owner's ``~/.config``
+    directory.
 
-    name: If found to be a key in ``poolurl_of`` in dict <conf>config, the value poolurl is returned, else construct a poolurl with ```scheme``` and ```node``` with ```/{name}``` at the end. Default ```None```.
-    conf: configuration ID. default 'pns', so the file is 'pnslocal.py'.
+    Parameters
+    ----------
+    name : str
+        If found to be a key in ``poolurl_of`` in dict <conf>config, the value poolurl is returned, else construct a poolurl with ```scheme``` and ```node``` with ```/{name}``` at the end. Default ```None```.
+    conf : str
+        configuration ID. default 'pns', so the file is 'pnslocal.py'.
+    builtin : dict
+    force : bool
+        reload from file instead of cache.
 
-    Return
-    ------
+    Returns
+    -------
+    obj
+        configured value.
 
     """
+
+    "eturn    ------    "
     # default configuration is provided. Copy pns/config.py to ~/.config/pnslocal.py
 
     global CONFIG
@@ -124,6 +138,7 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
                             '/',
                             name])
     else:
+        # name not given
         return config
 
 
@@ -190,11 +205,11 @@ if __name__ == '__main__':
     )
     group = parser.add_mutually_exclusive_group()
 
-    group.add_argument("param", nargs='?',
-                       default=None, help="Same as -p, and mutually exclusive with.")
-    group.add_argument("-p", "--parameter",
+    group.add_argument("pname", nargs='?',
+                       default=None, help="Same as, and mutually exclusive with '-n'.")
+    group.add_argument("-n", "--name",
                        default=None, help="parameter name in the config file.")
-    parser.add_argument("-n", "--name", type=str,
+    parser.add_argument("-u", "--url_of", type=str,
                         default=None, help="If found to be a key in ``poolurl_of`` in dict <conf>config, the value poolurl is returned, else construct a poolurl with ```scheme``` and ```node``` with ```/{name}``` at the end. Default ```None```.")
     parser.add_argument("-c", "--conf",
                         default='pns', help="Configuration ID. default 'pns', so the file is 'pnslocal.py'.")
@@ -204,16 +219,16 @@ if __name__ == '__main__':
 
     args, remainings = parser.parse_known_args(args=sys.argv[1:])
 
-    if args.parameter is not None or args.param is not None:
+    if args.name is not None or args.pname is not None:
         conf = getConfig(conf=args.conf, force=args.force)
-        p = args.parameter if args.parameter is not None else args.param
+        p = args.name if args.name is not None else args.pname
         if p in conf:
             print(conf[p])
             sys.exit(0)
         else:
             print('')
             sys.exit(-1)
-    conf = getConfig(name=args.name, conf=args.conf, force=args.force)
+    conf = getConfig(name=args.url_of, conf=args.conf, force=args.force)
     if issubclass(conf.__class__, dict):
         print(json.dumps(conf, indent=4))
     else:

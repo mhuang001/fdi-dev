@@ -607,7 +607,7 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
 
 if __name__ == '__main__':
 
-    print('product class generatiom')
+    print('Generating Python code for product class definition..')
 
     # schema version
     version = '1.8'

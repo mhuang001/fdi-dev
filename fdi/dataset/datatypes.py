@@ -24,6 +24,7 @@ DataTypes = {
     'binary': 'int',
     'boolean': 'bool',
     'byte': 'int',
+    'complex': 'complex',
     'finetime': 'FineTime',
     'finetime1': 'FineTime1',
     'float': 'float',
@@ -108,9 +109,22 @@ numpytype_to_ctype = {
     'u1': 'c_ubyte'
 }
 
+numpy_dtypekind_to_typecode = {
+    'b': 't_',  # 'boolean',
+    'i': 'i',    # integer',
+    'u': 'I',    # unsigned integer',
+    'f': 'd',    # float',
+    'c': 'c',    # complex float',
+    'm': 'datetime.timedelta',    # timedelta',
+    'M': 'datetime,    # datetime',
+    'O': 'object',    # object',
+    'S': 'B',    # string',
+    'U': 'B',    # unicode string',
+    'V': 'V',    # fixed chunk of memory for other type ( void )',
+}
 # https://docs.python.org/3.6/library/ctypes.html#fundamental-data-types
 
-ctype_to_bytecode = {
+ctype_to_typecode = {
     'c_bool': 't_',    # Bool
     'c_char': 'b',  # 1-char bytes
     'c_wchar': 'b',  # 1-char string
@@ -130,7 +144,7 @@ ctype_to_bytecode = {
 }
 
 
-def numpytype_to_typecode(x): return ctype_to_bytecode[numpytype_to_ctype[x]]
+def numpytype_to_typecode(x): return ctype_to_typecode[numpytype_to_ctype[x]]
 
 
 @ lru_cache(maxsize=64)

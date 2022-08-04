@@ -913,7 +913,6 @@ def doquery(poolpath, newpoolpath):
     m = 2
     q = MetaQuery(TP, 'm["description"].value == "%s"' % rec1[m]['a0'])
     res = pstore.select(q)
-    assert len(res) == 1, str(res)
 
     def chk(r, c):
         p = r.product
@@ -947,6 +946,11 @@ def doquery(poolpath, newpoolpath):
     assert len(res) == 2, str(res)
     chk(res[0], rec1[1])
     chk(res[1], rec1[2])
+
+    qstr = 'm["extra"] > 5000 and m["extra"] <= 5002'
+    pqv = pstore.select(qstr, variable='m', ptype=BaseProduct)
+    pqs = pstore.select(qstr, variable='m', ptype='BaseProduct')
+    assert res == pqv == pqs
 
     # two classes
     q = MetaQuery(BaseProduct, 'm["extra"] > 5000 and m["extra"] < 5004')
@@ -994,6 +998,11 @@ def doquery(poolpath, newpoolpath):
     chk(res[2], rec1[5])
     chk(res[3], rec1[6])
 
+    qstr = 'True'
+    pqv = pstore.select(qstr, variable='m', ptype=Context)
+    pqs = pstore.select(qstr, variable='m', ptype='Context')
+    assert res == pqv == pqs
+
     # all 'time' < 5006. will cause KeyError because some Contex data do not have 'time'
     q = MetaQuery(Context, 'm["time"] < 5006')
     with pytest.raises(KeyError):
@@ -1026,6 +1035,11 @@ def doquery(poolpath, newpoolpath):
     chk(res[0], rec1[3])
     chk(res[1], rec1[4])
 
+    qstr = '"n 1" in m["creator"].value'
+    pq1 = thepool.select(qstr, ptype='BaseProduct')
+    pq2 = newpool.qm(qstr, 'BaseProduct')
+    assert res == pq1 + pq2
+
     if not newpoolpath.startswith('http'):
         # same as above but query is a function
         def t(m):
@@ -1046,6 +1060,15 @@ def doquery(poolpath, newpoolpath):
     assert len(res) == 2, str(res)
     chk(res[0], rec1[3])
     chk(res[1], rec1[4])
+
+    qstr = '"n 1" in p.creator'
+    pqv = pstore.select(qstr, variable='p', ptype=BaseProduct)
+    pqs = pstore.select(qstr, variable='p', ptype='BaseProduct')
+    assert res == pqv == pqs
+    # pool
+    pq1 = thepool.select(qstr, 'p', 'BaseProduct')
+    pq2 = newpool.select(qstr, 'p', 'BaseProduct')
+    assert res == pq1 + pq2
 
     q = '"n 1" in p.creator'
     resu = thepool.where(q)

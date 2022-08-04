@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ..dataset.odict import ODict
+from ..dataset.baseproduct import BaseProduct
 from ..dataset.classes import Classes
 from ..dataset.product import Product
 from ..dataset.serializable import serialize
@@ -16,6 +16,7 @@ from .query import AbstractQuery, MetaQuery, StorageQuery
 import logging
 import filelock
 import getpass
+import functools
 import os
 import sys
 import builtins
@@ -392,25 +393,62 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise(NotImplementedError)
 
-    def schematicSelect(self,  query, results=None):
+    def schematicSelect(self,  query, previous=None):
         """
         to be implemented by subclasses to do the scheme-specific querying.
         """
         raise(NotImplementedError)
 
     def select(self,  query, variable='m', ptype=Product,
-               results=None):
+               previous=None):
+        """Returns a list of references to products that match the specified query.
+
+        Parameters
+        ----------
+        query : str
+            the 'where' query string to make a query object.
+        variable : str
+            name of the dummy variable in the query string.
+            if `variable` is 'm', query goes via `MetaQuery(ptype, query)` ; else by `AbstractQuery(ptype, variable, query)` .
+        ptype : class
+            The class object whose instances are to be queried. Or
+            fragment of the name of such classes.
+        previous : list or str
+            of urns, possibly from previous search. or a string of comma-separated urns, e.g. `'urn:a:foo:12,urn:b:bar:9'`
+
+        Returns
+        -------
+        list
+            of found URNs.
+
         """
-        Returns a list of references to products that match the specified query.
-        """
+        if issubclass(previous.__class__, str):
+            previous = previous.split(',')
         if issubclass(query.__class__, StorageQuery):
-            res = self.schematicSelect(query, results)
-        elif variable == 'm':
-            res = self.schematicSelect(MetaQuery(ptype, where=query), results)
+            res = self.schematicSelect(query, previous)
+            return res
+        if issubclass(ptype.__class__, str):
+            for cn, cls in Classes.mapping.items():
+                if ptype in cn and issubclass(cls, BaseProduct):
+                    break
+            else:
+                raise(ValueError(ptype + ' is not a product type.'))
+            ptype = cls
+        if variable == 'm':
+            res = self.schematicSelect(MetaQuery(ptype, where=query), previous)
         else:
             res = self.schematicSelect(AbstractQuery(
-                ptype, where=query, variable=variable), results)
+                ptype, where=query, variable=variable), previous)
         return res
+
+    def qm(self, qw, prod='BaseProduct', urns=None):
+        """ short-hand method for `select(qw, variable'm', ptype=prod, previous=urns`.
+
+        example:
+        ..code:
+        curl http://foo.edu:23456/data/pool/api/qm__m["age"]>66 and m["name"]=="Bob"'
+        """
+        return self.select(qw, variable='m', ptype=prod, previous=urns)
 
     def __repr__(self):
         co = ', '.join(str(k) + '=' + lls(v, 40)
@@ -1128,13 +1166,13 @@ class ManagedPool(ProductPool, DictHk):
         #### assert [r.urn for r in res] == [r.urn for r in res2]
         return [r.urn for r in res2]
 
-    def doSelect(self, query, results=None):
+    def doSelect(self, query, previous=None):
         """
         to be implemented by subclasses to do the action of querying.
         """
         raise(NotImplementedError)
 
-    def schematicSelect(self,  query, results=None):
+    def schematicSelect(self,  query, previous=None):
         """
         do the scheme-specific querying.
         """
@@ -1146,8 +1184,8 @@ class ManagedPool(ProductPool, DictHk):
         t, v, w, a = query.getType(), query.getVariable(
         ), query.getWhere(), query.retrieveAllVersions()
         ret = []
-        if results:
-            this = (x for x in results if x.urnobj.getPoolId()
+        if previous:
+            this = (x for x in previous if x.urnobj.getPoolId()
                     == self._poolname)
             if is_MetaQ:
                 ret += self.meta_filter(q=query, reflist=this)

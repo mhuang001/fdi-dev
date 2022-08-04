@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-WebAPI = ['backup',
+WebAPI = ('backup',
           'dereference',
           'exists',
           'getCacheInfo', 'getCount', 'getDefinition', 'getHead',
@@ -14,6 +14,7 @@ WebAPI = ['backup',
           'loadDescriptors', 'loadProduct', 'lockpath',
           'meta', 'mfilter',
           'pfilter', 'poolname', 'poolurl',
+          'qm',
           'readHK', 'reference',
           'remove', 'removeAll', 'removeTag', 'removeUrn', 'removekey',
           'restore',
@@ -21,5 +22,4 @@ WebAPI = ['backup',
           'schematicLoad', 'schematicRemove', 'schematicSave', 'schematicSelect', 'schematicWipe',
           'select', 'setTag', 'setup',
           'tagExists',
-          'where', 'writeHK']
-
+          'where', 'writeHK')

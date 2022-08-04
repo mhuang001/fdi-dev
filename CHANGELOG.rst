@@ -6,9 +6,13 @@ Change Log
 BETA1
 =====
 
+1.20.0 2022-08-05
+-----------------
+Docker tests concurrent wr during building. History implemented. Tabulate updated, patched 2-row header, and working with docker. getConfig/env works. OSS. Pipeline in production. Query http pool. v0.15 pool api.
+
 1.19.0 2022-07-08
 -----------------
-Pipeeline, image, pool test with mock server. pyton3.8.
+Pipeline, image, pool test with mock server. pyton3.8.
 
 1.18.0 2022-05-18
 -----------------

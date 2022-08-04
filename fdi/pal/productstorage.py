@@ -244,16 +244,36 @@ class ProductStorage(object):
 
         list(self._pools.values())[0].removeAll()
 
-    def select(self, query, previous=None):
+    def select(self, query, variable=None, ptype=None, previous=None):
         """ Returns a list of URNs to products that match the specified query.
 
-        Parameters:
-        query - the query object
-        previous - results to be refined
-        Returns:
+        Parameters
+        ----------
+        query : the query object, or str
+            The Query instances or
+             the 'where' query string to make a query object.
+        variable : str
+            name of the dummy variable in the query string.
+            if `variable` is 'm', query goes via `MetaQuery(ptype, query)` ; else by `AbstractQuery(ptype, variable, query)` .
+        ptype : class
+            The class object whose instances are to be queried. Or
+            fragment of the name of such classes.
+        previous : list or str
+            of urns, possibly from previous search. or a string of comma-separated urns, e.g. `'urn:a:foo:12,urn:b:bar:9'`
+
+        Returns
+        -------
         the set of return eferences to products matching the supplied query.
         """
         ret = []
+        if issubclass(previous.__class__, str):
+            previous = previous.split(',')
+        if issubclass(query.__class__, str) and ptype and variable:
+            # search all registered pools
+            for poolnm, pool in self._pools.items():
+                ret += pool.select(query, variable, ptype, previous)
+            return ret
+
         # search all registered pools
         for poolnm, pool in self._pools.items():
             ret += pool.select(query, previous)

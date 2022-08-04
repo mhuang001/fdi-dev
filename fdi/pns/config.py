@@ -34,7 +34,7 @@ BASE_LOCAL_POOLPATH = '/tmp'
 SERVER_POOLPATH = '/tmp/data'
 
 SCHEME = 'http'
-API_VERSION = 'v0.14'
+API_VERSION = 'v0.15'
 API_BASE = '/fdi'
 
 pnsconfig['server_scheme'] = 'server'

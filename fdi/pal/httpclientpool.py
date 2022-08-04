@@ -429,11 +429,18 @@ class HttpClientPool(ProductPool):
     @ toServer()
     def where(self, qw, prod='BaseProduct', urns=None):
         """
-        Restore the remote pool with the contents of the named tar file.
+        AbstractQuery convenience api with 'p' for the product.
         """
         raise NotImplementedError
 
-###
+    @ toServer()
+    def qm(self, qw, prod='BaseProduct', urns=None):
+        """
+        MetaQuery convenience api with 'm' for 'meta'..
+        """
+        raise NotImplementedError
+
+#
 
 
 def serialize_args1(*args, **kwds):

@@ -65,7 +65,7 @@ ENV LOGGER_LEVEL=${LOGGER_LEVEL}
 # set fdi's virtual env
 # let group access cache and bin. https://stackoverflow.com/a/46900270
 ENV FDIVENV=${UHOME}/.venv
-RUN python3.8 -m venv ${FDIVENV}
+RUN python3 -m venv ${FDIVENV}
 
 # effectively activate fdi virtual env for ${USR}
 ENV PATH="${FDIVENV}/bin:$PATH"
@@ -77,8 +77,8 @@ ARG PIPOPT="--cache-dir ${PIPCACHE} --no-index -f ${PIPWHEELS} --disable-pip-ver
 RUN umask 0002 ; echo ${PIPOPT} \
 && python3 -m pip install ${PIPOPT} -U pip setuptools
 
-RUN python3.8 -c 'import sys;print(sys.path)' \
-&&  python3.8 -m pip list --format=columns \
+RUN python3 -c 'import sys;print(sys.path)' \
+&&  python3 -m pip list --format=columns \
 && which pip \
 && which python3;cat .venv/bin/pip
 
@@ -90,8 +90,8 @@ RUN cat profile >> .bashrc && rm profile
 ### ADD .ssh ${UHOME}/.ssh
 
 # config python.
-#if venv is made with 'python3', python3.8 link needs to be made
-# RUN ln -s /usr/bin/python3.8 ${FDIVENV}/bin/python3.8
+#if venv is made with 'python3', python3 link needs to be made
+# RUN ln -s /usr/bin/python3 ${FDIVENV}/bin/python3
 
 # Configure permissions
 #RUN for i in ${UHOME}/; do chown -R ${USR}:${USR} $i; echo $i; done 
@@ -107,7 +107,7 @@ WORKDIR ${PKGS_DIR}/${PKG}
 
 # all dependents have to be from pip cache
 RUN umask 0002 \
-&& python3.8 -m pip install ${PIPOPT} --no-index -f ${PIPWHEELS} -e .[DEV,SERV,SCI]
+&& python3 -m pip install ${PIPOPT} --no-index -f ${PIPWHEELS} -e .[DEV,SERV,SCI]
 
 WORKDIR ${PKGS_DIR}
 
@@ -126,7 +126,7 @@ RUN echo cat ./envs \
 WORKDIR ${PKGS_DIR}/${PKG}/
 RUN pwd \
 && ls -ls \
-&&  python3.8 -m pip list \
+&&  python3 -m pip list \
 && make test \
 && rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
 

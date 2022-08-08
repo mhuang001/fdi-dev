@@ -10,7 +10,7 @@ User root
 #ENV TZ=Etc/UTC
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools\
-&& apt-get install -y git python3-pip python3.8-venv libpython3.8-dev locales \
+&& apt-get install -y git python3-pip python3-venv libpython3.8-dev locales \
 && rm -rf /var/lib/apt/lists/*
 
 # rebuild mark

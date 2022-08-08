@@ -32,7 +32,7 @@ setup(
     include_package_data=True,
     long_description=read('README.rst'),
     long_description_content_type="text/x-rst",
-    python_requires=">=3.8",
+    python_requires=">=3.6",
     install_requires=[
         'requests>=2.23.0',
         'filelock>=3.0.12',
@@ -44,12 +44,12 @@ setup(
         #'tabulate @ git+https://github.com/mhuang001/python-tabulate.git@r1',
         #'tabulate @ git+http://mercury.bao.ac.cn:9006/mirrors/tabulate.git@r1',
         #'tabulate @ git+ssh://git@mercury.bao.ac.cn:9005/mirrors/tabulate.git@r1',
-        'cwcwidth>=0.1.6',
+        'cwcwidth>=0.1.5',
         'paho-mqtt>=1.6.1',
         'jsonschema>=3.2.0',
         'xmltodict>=0.12.0',
         'jsonpath-ng>=1.5.3',
-        'pypng>=0.0.21',
+        'pypng',
     ],
     entry_points={'console_scripts': [
         'yaml2python=fdi.dataset.yaml2python:main',
@@ -70,14 +70,13 @@ setup(
             # 'waitress>=2.0.0',
             'uwsgi>=2.0.20',
             'flasgger>=0.9.5',
-            'astropy==5.1'
         ],
         'SCI': [
-            'astropy[recommended]==5.1'
+            'astropy'
         ],
         'PUB': [
             'sphinx>=4.4.0',
-            'sphinx_rtd_theme>=1.0.0',
+            'sphinx_rtd_theme',
             'sphinx-copybutton>=0.3.0',
             'twine>=3.3.0'
         ]

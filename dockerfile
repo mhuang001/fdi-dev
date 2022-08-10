@@ -4,14 +4,18 @@ FROM ubuntu:18.04 AS fdi
 # 1-6 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
+ARG PYTHON_VER=3.8
 
 User root
 
 #ENV TZ=Etc/UTC
 RUN apt-get update \
-&& apt-get install -y apt-utils sudo nano net-tools\
-&& apt-get install -y git python3-pip python3-venv libpython3-dev locales \
-&& rm -rf /var/lib/apt/lists/*
+&& apt-get install -y apt-utils sudo nano net-tools locales \
+&& apt-get install -y git python3-pip python3.6-venv python3.8-venv python3.8
+
+#libpython${PYTHON_VER}-dev
+
+RUN rm -rf /var/lib/apt/lists/*
 
 # rebuild mark
 ARG re=rebuild
@@ -26,7 +30,6 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/'  /etc/locale.gen \
 ARG USR=fdi
 ARG UHOME=/home/${USR}
 ARG PKG=fdi
-ARG PYTHON_VER=3.8
 WORKDIR ${UHOME}
 
 # add user
@@ -65,6 +68,7 @@ ENV LOGGER_LEVEL=${LOGGER_LEVEL}
 # set fdi's virtual env
 # let group access cache and bin. https://stackoverflow.com/a/46900270
 ENV FDIVENV=${UHOME}/.venv
+RUN which python3; python3 --version; ls -l /usr/bin/py*
 RUN python${PYTHON_VER} -m venv ${FDIVENV}
 
 # effectively activate fdi virtual env for ${USR}
@@ -79,6 +83,7 @@ RUN umask 0002 ; echo ${PIPOPT} \
 
 RUN python3 -c 'import sys;print(sys.path)' \
 &&  python3 -m pip list --format=columns \
+
 && which pip \
 && which python3;cat .venv/bin/pip
 

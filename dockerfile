@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.2
 
 FROM ubuntu:18.04 AS fdi
-# 1-5 M. Huang <mhuang@nao.cas.cn>
+# 1-6 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
 
@@ -10,7 +10,7 @@ User root
 #ENV TZ=Etc/UTC
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools\
-&& apt-get install -y git python3-pip python3-venv libpython3.8-dev locales \
+&& apt-get install -y git python3-pip python3-venv libpython3-dev locales \
 && rm -rf /var/lib/apt/lists/*
 
 # rebuild mark
@@ -26,7 +26,7 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/'  /etc/locale.gen \
 ARG USR=fdi
 ARG UHOME=/home/${USR}
 ARG PKG=fdi
-
+ARG PYTHON_VER=3.8
 WORKDIR ${UHOME}
 
 # add user
@@ -65,7 +65,7 @@ ENV LOGGER_LEVEL=${LOGGER_LEVEL}
 # set fdi's virtual env
 # let group access cache and bin. https://stackoverflow.com/a/46900270
 ENV FDIVENV=${UHOME}/.venv
-RUN python3 -m venv ${FDIVENV}
+RUN python${PYTHON_VER} -m venv ${FDIVENV}
 
 # effectively activate fdi virtual env for ${USR}
 ENV PATH="${FDIVENV}/bin:$PATH"

@@ -14,9 +14,10 @@ RUN apt-get update \
 && apt-get install -y git python3-pip python3.6-venv libpython3.6-dev \
 python${PYTHON_VER}-venv python${PYTHON_VER} libpython${PYTHON_VER}-dev
 
-#libpython${PYTHON_VER}-dev
-
-RUN rm -rf /var/lib/apt/lists/*
+# have to do this
+RUN ln -s /usr/lib/x86_64-linux-gnu/libpython3.6.so.1.0 /usr/local/lib/libpython3.6.so.1.0 \
+&& ln -s /usr/lib/x86_64-linux-gnu/libpython$libpython${PYTHON_VER}.so.1.0 /usr/local/lib/libpython$libpython${PYTHON_VER}.so.1.0 \
+&& rm -rf /var/lib/apt/lists/*
 
 # rebuild mark
 ARG re=rebuild

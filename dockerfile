@@ -11,7 +11,8 @@ User root
 #ENV TZ=Etc/UTC
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools locales \
-&& apt-get install -y git python3-pip python3.6-venv python3.8-venv python3.8
+&& apt-get install -y git python3-pip python3.6-venv libpython3.6-dev \
+python${PYTHON_VER}-venv python${PYTHON_VER} libpython${PYTHON_VER}-dev
 
 #libpython${PYTHON_VER}-dev
 

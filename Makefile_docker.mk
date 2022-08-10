@@ -70,7 +70,7 @@ build_docker:
 	$(MAKE) imlatest LATEST_NAME=$(DOCKER_NAME)
 
 launch_docker:
-	docker run -dit --network=$(NETWORK) --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(LATEST) $(LAU)
+	docker run -dit --network=$(NETWORK) --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):latest $(LAU)
 
 build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SERVER_VERSION) \

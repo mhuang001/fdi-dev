@@ -4,7 +4,7 @@ import jsonpath_ng.ext as jex
 
 from functools import lru_cache
 import itertools
-from collections import OrderedDict, UserDict
+from collections import UserDict
 
 
 JEXP = jex.parse('$..*')
@@ -77,16 +77,16 @@ The 'group' part  look good in a table header::
 
     :roots: where
     :num: preceed keys with sequence numbers.
-    :style: for keys, `short`: use shortened path e.g. ```abc.def.hgi``` ```a.d.hgi```. `last2`: use the right-most 2 segments, anything else to use only the last one.
+    :style: for keys, `short`: use shortened path e.g. ```abc.def.hgi``` ```a.d.hgi```. `last2`: use the right-most 2 fragments, anything else to use only the last one.
     :sep: separater used in output. Default is '.'.
-    :path_list: a list of path segment in place of value. Defalut `False`.
+    :path_list: a list of path fragments in place of value. Defalut `False`.
     :return: dict(flatten_compact_path:(list of path|val)
     """
-    res = OrderedDict()
+    res = dict()
     for root in roots:
         match = JEXP.find(root)
         n = 0
-        hdrs = OrderedDict()
+        hdrs = dict()
 
         for node in match:
             if not issubclass(node.value.__class__, (dict, list, UserDict)):
@@ -97,7 +97,7 @@ The 'group' part  look good in a table header::
                     # first char
                     key = ''.join((x[:1] + sep) for x in fp[:-1])
                 elif style == 'last2':
-                    # last two segments
+                    # last two fragments
                     key = (fp[-2] + sep) if len(fp) > 1 else ''
                 else:
                     key = ''

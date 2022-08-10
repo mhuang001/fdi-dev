@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 # from ..utils.common import fullname
 
 import array
@@ -14,6 +13,7 @@ import codecs
 from collections import ChainMap
 from collections.abc import Collection, Mapping
 import sys
+import datetime
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
     strset = (str, bytes)
@@ -152,6 +152,11 @@ class SerializableEncoder(json.JSONEncoder):
                 # print('&&&& %s %s' % (str(obj.__class__), str(obj)))
                 oc = obj.__class__
                 if PY3:
+                    if issubclass(oc, (datetime.datetime)):
+                        from ..dataset.finetime import FineTime
+                        return dict(
+                            code=FineTime.datetimeToFineTime(obj),
+                            _STID=oc.__name__+'tai')
                     if issubclass(oc, (bytes, bytearray)):
                         return dict(code=obj.hex(), _STID=oc.__name__)
                         # return dict(code=binascii.b2a_base64(gzip.compress(obj, 5)).decode('ascii'), _STID=oc.__name__ + ',gz,b64')

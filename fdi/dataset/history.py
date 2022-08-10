@@ -8,6 +8,7 @@ from .tabledataset import TableDataset
 from .serializable import Serializable
 
 import array
+import datetime
 from collections import OrderedDict, UserDict
 import itertools
 
@@ -25,7 +26,8 @@ def check_input(arg, serializable=True):
     cls = arg.__class__
     nm = cls.__name__
     if issubclass(cls, (int, float, str, bool, bytes, complex,
-                        list, dict, array.array, UserDict, type(None))):
+                        list, dict, array.array, UserDict,
+                        datetime.datetime, type(None))):
         return arg
 
     if serializable:
@@ -99,7 +101,7 @@ class History(CompositeDataset):
         """
         raise NotImplemented()
 
-    def add_input(self, args=None, keywords=None, info=None, **kwds):
+    def add_input(self, args=None, info=None, **kwds):
         """Add an entry to History records.
 
         A `History` is made of a series of records, each added by a
@@ -109,10 +111,9 @@ class History(CompositeDataset):
         Parameters
         ----------
         args : dict
-            A mapping of positional argument names and their
-            values. Can be `dict(ArgParse()._get_args()))`. Values must be serializable.
-        keywords : dict
-            A mapping of keyword argument names and their values. Can be `dict(ArgParse()._get_kwargs())`. Values must be serializable.
+            A mapping of  argument names and their
+            values. Can be `vars(ArgParse())`. Values must be serializable.
+
         info : dict
             keywords and values in string.
         **kwds : dict
@@ -124,8 +125,8 @@ class History(CompositeDataset):
 
 
         """
-        if args or keywords or kwds:
-            for name, var in itertools.chain(args.items(), keywords.items(), kwds.items()):
+        if args or kwds:
+            for name, var in itertools.chain(args.items(), kwds.items()):
                 cvar = check_input(var)
                 # append the parameter name column and value column
                 self['args'].addRow(row={'name': name,

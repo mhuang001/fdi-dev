@@ -205,8 +205,8 @@ class FineTime(Copyable, DeepEqual, Serializable):
     def datetimeToFineTime(cls, dtm):
         """ Return given  Python Datetime in FineTime to the precision of the input. Rounded to the last digit. Unit is decided by RESOLUTION."""
         if dtm < cls.UTC_LOW_LIMIT:
-            raise NotImplemented(
-                'UTC before %s not working yet.' % str(cls.UTC_LOW_LIMIT))
+            raise NotImplementedError(
+                'UTC before %s not defined yet.' % str(cls.UTC_LOW_LIMIT))
         leapsec = leapseconds.dTAI_UTC_from_utc(dtm)
         sec = cls.RESOLUTION * ((dtm - cls.EPOCH + leapsec).total_seconds())
         return int(sec+0.5)

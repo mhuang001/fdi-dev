@@ -185,6 +185,10 @@ def test_serialization():
     checkjson(v)
     v = Ellipsis
     checkjson(v)
+    v = datetime.datetime(2022, 2, 3, 4, 5, 6, 765432,
+                          tzinfo=datetime.timezone.utc)
+
+    checkjson(v)
     v = b'\xde\xad\xbe\xef'
     # checkjson(v)
     v = array.array('d', [1.2, 42])
@@ -2834,15 +2838,21 @@ def test_History():
         v.add_input(args=[(2, 3)])
 
     v = History()
+    dt = datetime.datetime(
+        2019, 2, 19, 1, 2, 3, 456789, tzinfo=timezone.utc)
     v.add_input(args={'id': 1, 'width': 2.33, 'name': 'asd',
                       'ok': True, 'speed': [4, 5],
-                      'scores': array.array('f', [6, 7]), 'and': None},
-                keywords=dict(a='b', c=[11]),
+                      'scores': array.array('f', [6, 7]),
+                      'and': None, 'a': 'b', 'c': [11],
+                      'dt': dt
+                      },
                 info=dict(c='d')
                 )
     args = v.get_args()
     assert args['scores'] == array.array('f', [6, 7])
-    assert v['args'].rowCount == 9
+    assert v['args'].rowCount == 10
+    assert isinstance(args['dt'], datetime.datetime)
+
     assert v.meta['c'].value == 'd'
     assert 'e' not in v.meta
     # add more
@@ -2851,7 +2861,7 @@ def test_History():
                 info=dict(e='f')
                 )
     assert v.get_args()['more'][9] == 10
-    assert v['args'].rowCount == 11
+    assert v['args'].rowCount == 12
     assert v.meta['e'].value == 'f'
     assert len(v.meta) == 2
     # print(v.string())

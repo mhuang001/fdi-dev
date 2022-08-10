@@ -4,10 +4,11 @@ from .serializable import serialize, ATTR, LEN_ATTR
 from .classes import Classes
 from ..utils.common import lls
 from ..dataset.metadata import guess_value
+from ..dataset.finetime import FineTime
 
 import logging
 import json
-import codecs
+import datetime
 import gzip
 import binascii
 import array
@@ -109,6 +110,12 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
                 print(spaces + 'Find _STID <%s>.' % (ostid))
         # process types wrapped in a dict
         if PY3:
+            if classname == 'datetimetai':
+                inst = FineTime(obj['code']).toDatetime()
+                if debug:
+                    print(spaces + 'Instanciate datetime')
+                indent -= 1
+                return inst
             if classname == 'bytes':
                 inst = bytes.fromhex(obj['code'])
                 #inst = codecs.decode(obj['code'], 'hex')

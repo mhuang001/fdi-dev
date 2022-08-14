@@ -136,7 +136,7 @@ WORKDIR ${PKGS_DIR}/${PKG}/
 RUN pwd \
 && ls -ls \
 &&  python3 -m pip list \
-&& make test \
+&& make -s -S test \
 && rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
 
 WORKDIR ${UHOME}

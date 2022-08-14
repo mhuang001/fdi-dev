@@ -15,9 +15,7 @@ RUN apt-get update \
 python${PYTHON_VER}-venv python${PYTHON_VER} libpython${PYTHON_VER}-dev
 
 # have to do this
-ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
-RUN ln -s /usr/lib/x86_64-linux-gnu/libpython3.6.so.1.0 /usr/lib/libpython3.6.so.1.0 \
-&& ln -s /usr/lib/x86_64-linux-gnu/libpython$libpython${PYTHON_VER}.so.1.0 /usr/lib/libpython$libpython${PYTHON_VER}.so.1.0 \
+RUN ln -s /usr/lib/x86_64-linux-gnu/libpython$libpython${PYTHON_VER}.so.1.0 /usr/lib/libpython$libpython${PYTHON_VER}.so.1.0 \
 && rm -rf /var/lib/apt/lists/*
 
 # rebuild mark
@@ -49,7 +47,6 @@ RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 USER ${USR}
 
 # If install fdi package
-ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
 ENV PKGS_DIR=${UHOME}
 RUN umask 0002
 

@@ -57,14 +57,6 @@ fdi.dataset.baseproduct module
    :undoc-members:
    :show-inheritance:
 
-fdi.dataset.booleanparameter module
------------------------------------
-
-.. automodule:: fdi.dataset.booleanparameter
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 fdi.dataset.browseproduct module
 --------------------------------
 

@@ -25,10 +25,14 @@ SELF_HOST = '172.17.0.2'
 SELF_PORT = 9876
 SELF_USER = 'fdi'
 SELF_PASS = ''
-MQUSER = ''
-MQPASS = ''
 MQHOST = '172.17.0.1'
 MQPORT = 9876
+MQUSER = ''
+MQPASS = ''
+PIPELINEHOST = '172.17.0.1'
+PIPELINEPORT = 9876
+PIPELINEUSER = ''
+PIPELINEPASS = ''
 
 BASE_LOCAL_POOLPATH = '/tmp'
 SERVER_POOLPATH = '/tmp/data'
@@ -148,13 +152,21 @@ del phome, h
 # seconds
 pnsconfig['timeout'] = 10
 
-############## project specifig ####################
+############## project specific ####################
 # message queue config
 pnsconfig.update(dict(
     mqhost=MQHOST,
     mqport=MQPORT,
     mquser=MQUSER,
     mqpass=MQPASS,
+))
+
+# pipeline config
+pnsconfig.update(dict(
+    pipelinehost=PIPELINEHOST,
+    pipelineport=PIPELINEPORT,
+    pipelineuser=PIPELINEUSER,
+    pipelinepass=PIPELINEPASS,
 ))
 
 # OSS config

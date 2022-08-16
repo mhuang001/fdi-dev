@@ -24,6 +24,10 @@ sed -i "s/^MQPORT =.*$/MQPORT = $MQ_PORT/g" ~/.config/pnslocal.py
 sed -i "s/^MQUSER =.*$/MQUSER = \'$MQ_USER\'/g" ~/.config/pnslocal.py
 sed -i "s/^MQPASS =.*$/MQPASS = \'$MQ_PASS\'/g" ~/.config/pnslocal.py
 
+sed -i "s/^PIPELINEHOST =.*$/PIPELINEHOST = \'$PIPELINEHOST\'/g" ~/.config/pnslocal.py
+sed -i "s/^PIPELINEPORT =.*$/PIPELINEPORT = $PIPELINEPORT/g" ~/.config/pnslocal.py
+sed -i "s/^PIPELINEUSER =.*$/PIPELINEUSER = \'$PIPELINEUSER\'/g" ~/.config/pnslocal.py
+sed -i "s/^PIPELINEPASS =.*$/PIPELINEPASS = \'$PIPELINEPASS\'/g" ~/.config/pnslocal.py
 
 sed -i "s/^conf\s*=\s*.*$/conf = 'external'/g" ~/.config/pnslocal.py
 

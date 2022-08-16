@@ -26,7 +26,7 @@ endif
 PORT        =9885
 
 ifndef apache
-SECFILE = $${HOME}/.secret-uwsgi
+SECFILE = $${HOME}/.secret
 else
 SECFILE = $${HOME}/.secret
 endif

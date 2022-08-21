@@ -99,10 +99,10 @@ def get_demo_product():
 |   |__ version                                     <string>
 |   |__ FORMATV                                     <string>
 |   |__ speed                                       <vector>
-|   \__ listeners                               <ListnerSet>
+|   \__ listeners                               <ListenerSet>
 |__ measurements                          <CompositeDataset>
 |   |__ meta                                      <MetaData>
-|   |   \__ listeners                           <ListnerSet>
+|   |   \__ listeners                           <ListenerSet>
 |   |__ Time_Energy_Pos               <TableDataset> (5, 20)
 |   |   |__ meta                                  <MetaData>
 |   |   |   |__ description                         <string>
@@ -110,7 +110,7 @@ def get_demo_product():
 |   |   |   |__ type                                <string>
 |   |   |   |__ version                             <string>
 |   |   |   |__ FORMATV                             <string>
-|   |   |   \__ listeners                       <ListnerSet>
+|   |   |   \__ listeners                       <ListenerSet>
 |   |   |__ Time                              <Column> (20,)
 |   |   |__ Energy                            <Column> (20,)
 |   |   |__ Error                             <Column> (20,)
@@ -127,8 +127,8 @@ def get_demo_product():
 |   |__ PARAM_HISTORY                                  <str>
 |   |__ TASK_HISTORY                                   <str>
 |   \__ meta                                      <MetaData>
-|       \__ listeners                           <ListnerSet>
-\__ listeners                                   <ListnerSet>
+|       \__ listeners                           <ListenerSet>
+\__ listeners                                   <ListenerSet>
     ```
 
     """

@@ -14,7 +14,7 @@ from .invalid import INVALID
 from ..utils.masked import masked
 from ..utils.common import grouper
 from ..utils.common import exprstrs, wls, bstr, t2l
-from fdi.dataset.listener import ListnerSet
+from fdi.dataset.listener import ListenerSet
 
 import cwcwidth as wcwidth
 import tabulate
@@ -1050,7 +1050,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 ext0 = ext
                 ext = {'fits_keyword': fk}
                 ext.update(ext0)
-            elif issubclass(v.__class__, ListnerSet):
+            elif issubclass(v.__class__, ListenerSet):
                 # listeners
                 lstr = '' if v is None else v.toString(level=level, alist=True)
                 if len(lstr) < 3:

@@ -1,0 +1,65 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://fdi.net/schemas/dataset/MetaParameter",
+    "title": "MetaParameter",
+    "definitions": {
+	"ParameterType": {
+	    "type": ["string", "null"],
+	    "desscription": "Type (class, CARD) of the parameter",
+	    "enum": [
+		"binary",  "boolean", "byte",
+		"complex",
+		"finetime", "float",
+		"hex",
+		"integer",
+		"list",
+ 		"quaternion",
+		"tuple",
+ 		"short", "string",
+ 		"vector", "vector2d", "vector3d",
+		null
+ 	    ],
+ 	    "examples": [
+		"string", "integer", null
+ 	    ]
+	}
+    },
+
+
+    "required": ["_STID"],
+    "properties": {
+	"description": {
+	    "type": ["string", "null"],
+	    "default": "UNKNOWN",
+	    "examples": [
+		"Something about this parameter."
+	    ]
+	},
+	"valid": {
+	    "description": "Allowed value or range of this parameter.",
+	    "oneOf": [
+		{
+		"type": "array",
+		"items": {
+		    "type": "array",
+		    "maxItems": 2,
+		    "minItems": 2
+		} },
+		{"type": "null"}
+	    ],
+	    "default": null,
+	    "examples": [
+		[["0b11000000", "power status"]]
+	    ]
+	},
+	"type": {
+	    "$ref": "#/definitions/ParameterType"
+	},
+	"_STID": {
+	    "$ref": "STID"
+	},
+	"listeners": {
+	    "$ref": "ListenerSet"
+	}
+    }
+}

@@ -1,0 +1,13 @@
+{
+  "definitions": {
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://fdi.net/schemas/pal/Urn",
+  "title": "Urn",
+  "type": "string",
+  "pattern": "^urn:[^:]+:[^:]+:[0-9]+$",
+  "default": "",
+  "examples": [
+    "urn:e2e:fdi.dataset.product.Product:0"
+  ]
+}

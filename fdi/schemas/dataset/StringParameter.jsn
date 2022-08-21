@@ -1,0 +1,54 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://fdi.net/schemas/dataset/StringParameter",
+    "title": "StringParameter",
+    "definitions": {
+    },
+
+    "description": "schema for fdi StringParameter type",
+    "allOf": [
+	{"$ref": "MetaParameter"},
+	{
+	    "type": "object",
+	    "required": ["value"],
+	    "properties": {
+		"value": {
+		    "description": "Contents.",
+		    "anyOf": [
+			{"type": "string" },
+			{"type": "null" }
+		    ],
+		    "default": "",
+		    "examples": [
+                        "4", "$def", null
+		    ]
+                },
+		"default": {
+		    "description": "The value to assume.",
+		    "anyOf": [
+			{"type": "object" },
+			{"type": "null" }
+		    ],
+		    "default": {"value": "", "_STID": "StringParameter"},
+		    "examples": [
+			{"value": "=42", "_STID": "StringParameter"}
+		    ]
+		},
+		"typecode": {
+		    "description": "Python Typecode of the value.",
+		    "enum": [
+			"B",
+			null
+		    ],
+		    "default": "B"
+		}
+	    }
+	}
+    ],
+    "examples": [
+	{"description": "tester", "type": "string", "default": null,
+	 "value": "all the fish", "valid": [[["a", "z"], "ok"]],
+	 "listeners": {"_STID": "ListenerSet"},
+	 "_STID": "StringParameter"}
+    ]
+}

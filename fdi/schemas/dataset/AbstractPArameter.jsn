@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://fdi.net/schemas/dataset/AbstractParameter",
+    "title": "AbstractParameter",
+    "definitions": {
+    },
+
+    "allOf": [
+	{"$ref": "#/definitions/MetaParameter"},
+	{
+	    "type": "object",
+	    "required": ["value", "description", "_STID"],
+	    "properties": {
+		"value": {
+		    "description": "Amplitude or magnitude.",
+		    "examples": [
+			1642648857.544
+		    ]
+		},
+		"description": {
+		    "type": "string",
+		    "default": "UNKNOWN",
+		    "examples": [
+			"Something about this parameter."
+		    ]
+		},
+		"_STID": {
+		    "$ref": "/dataset/STID"
+		}
+	    }
+	}
+    ]
+}

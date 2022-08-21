@@ -656,13 +656,14 @@ def findShape(data, element_seq=(str)):
     return tuple(shape)
 
 
-def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=None):
+def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=None, absdir=False):
     """ returns a list of names of all files in `datadir`.
 
     :name: of starting directory or a list of file name strings to filter.
     :include: only if a file name has any of these sub-strings.
     :exclude: only if a file name has not any of these sub-strings. Empty strings are removed.
     :not_if: a function that returns true if given a name of unwanted file. default is None, (which excludes directories when `datadir` is a string, and disabled if `datadir` is a `list`.
+    :absdir: Set to True to return absolute_paths.
     """
 
     allf = []
@@ -683,7 +684,8 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=No
 
     if exclude is None:
         exclude = []
-    allf = list(f for f in inc if not any(
+    ab = os.path.abspath if absdir else lambda x: x
+    allf = list(ab(f) for f in inc if not any(
         e in f for e in exclude if e != '') and not (isadir and not_if(f)))
 
     # for root, dirs, files in os.walk(datadir):

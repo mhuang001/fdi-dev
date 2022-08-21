@@ -1078,6 +1078,7 @@ def test_DateParameter():
     a5 = 9
     a6 = ''
     a7 = '%f'
+    # value can take integer as TAI.
     v = DateParameter(description=a1, value=a2,
                       default=a5, valid=a6)
     assert v.description == a1

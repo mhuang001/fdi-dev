@@ -40,11 +40,14 @@ test9:
 	$(PYTEST) tests/test_dataset.py -k '_mqtt' $(T)
 
 test10:
-	$(PYTEST) $(OPT) tests/test_fits.py
+	$(PYTEST) $(OPT) tests/test_fits.py $(T)
 
 test11:
 	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py -k '_csdb' $(T)
 	$(PYTEST) $(OPT) tests/test_pal.py -k '_csdb' $(T)
 
 test12:
-	$(PYTEST) $(OPT) tests/test_yaml2python.py
+	$(PYTEST) $(OPT) tests/test_yaml2python.py $(T)
+
+test13:
+	$(PYTEST) $(OPT) tests/test_schemas.py $(T)

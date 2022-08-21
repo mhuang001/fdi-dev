@@ -26,6 +26,11 @@ sed -i "s/^SELF_PORT =.*$/SELF_PORT = $SELF_PORT/g" ~/.config/pnslocal.py
 sed -i "s/^SELF_USER =.*$/SELF_USER = \'$SELF_USER\'/g" ~/.config/pnslocal.py
 sed -i "s/^SELF_PASS =.*$/SELF_PASS = \'$SELF_PASS\'/g" ~/.config/pnslocal.py
 
+sed -i "s/^PIPELINEHOST =.*$/PIPELINEHOST = \'$PIPELINEHOST\'/g" ~/.config/pnslocal.py
+sed -i "s/^PIPELINEPORT =.*$/PIPELINEPORT = $PIPELINEPORT/g" ~/.config/pnslocal.py
+sed -i "s/^PIPELINEUSER =.*$/PIPELINEUSER = \'$PIPELINEUSER\'/g" ~/.config/pnslocal.py
+sed -i "s/^PIPELINEPASS =.*$/PIPELINEPASS = \'$PIPELINEPASS\'/g" ~/.config/pnslocal.py
+
 sed -i "s|^API_BASE =.*$|API_BASE = \'$API_BASE\'|g" ~/.config/pnslocal.py
 sed -i "s|^SERVER_POOLPATH =.*$|SERVER_POOLPATH = \'$SERVER_POOLPATH\'|g" ~/.config/pnslocal.py
 # if note set. use WARNING

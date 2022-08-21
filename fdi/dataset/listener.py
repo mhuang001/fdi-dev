@@ -66,7 +66,7 @@ class EventListener(Annotatable):
 #         pass
 
 
-class ListnerSet(Serializable, DeepEqual, UserList):
+class ListenerSet(Serializable, DeepEqual, UserList):
     """ Mutable collection of Listeners of an EvenSender.
     """
 
@@ -214,7 +214,7 @@ class EventSender():
 
         """
 
-        self._listeners = ListnerSet()
+        self._listeners = ListenerSet()
         super().__init__(**kwds)  # EventSender
 
     @property
@@ -250,7 +250,7 @@ class EventSender():
         -------
 
         """
-        self._listeners = ListnerSet()
+        self._listeners = ListenerSet()
         if listeners:
             for listener in listeners:
                 self.addListener(listener)

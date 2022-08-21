@@ -31,7 +31,7 @@ class Classes_meta(type):
     # modules and classes to import from them
     module_class = {
         'fdi.dataset.deserialize': ['deserialize'],
-        'fdi.dataset.listener': ['ListnerSet'],
+        'fdi.dataset.listener': ['ListenerSet'],
         'fdi.dataset.serializable': ['Serializable'],
         'fdi.dataset.eq': ['DeepEqual'],
         'fdi.dataset.odict': ['ODict'],

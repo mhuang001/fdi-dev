@@ -1,0 +1,36 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://fdi.net/schemas/dataset/Parameter",
+    "title": "Parameter",
+    "definitions": {
+    },
+
+    "allOf": [
+	{"$ref": "MetaParameter"},
+	{
+	    "required": ["value", "default"],
+	    "properties": {
+		"value": {
+		    "description": "Amplitude or magnitude.",
+		    "examples": [
+                        1642648857.544
+		    ]
+                },
+		"default": {
+		    "description": "The value to assume.",
+		    "properties": {
+		    },	      
+		    "examples": [
+			"Ambient temperature."
+		    ],
+		    "default": null
+		}
+	    }
+	}
+    ],
+    "examples": [
+	{"description": "in-schema example", "type": "string",
+	 "default": "42", "value": "pi", "valid": [[["a", "z"], "ok"]],
+	 "listeners": {"_STID": "ListenerSet"}, "_STID": "Parameter"}
+    ]    
+}

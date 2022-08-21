@@ -1,0 +1,33 @@
+{
+    "definitions": {
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://fdi.net/schemas/dataset/FineTime",
+    "title": "FineTime",
+    "type": "object",
+    "description": "International Atomic Time",
+    "required": ["tai", "_STID"],
+    "properties": {	
+	"tai": {
+	    "description": "Number of microseconds since 1958-01-01T00:00:00 GMT",
+	    "type": "integer",
+	    "default": 0
+	},
+        "format": {
+	    "description": "Representation Format per Python datetime module.",
+	    "type": "string",
+	    "pattern": "^%.*$",
+	    "default": "%Y-%m-%dT%H:%M:%S.%f",
+	    "examples": [
+		"%Y",  "%Y%m%d_%H:%M:%S"
+		]
+	},
+        "_STID": {
+	    "$ref": "STID"
+	}
+    },
+    "additionalProperties":  true,
+    "examples": [
+	{"tai": 42424242, "format": "%Y",  "_STID": "FineTime"}
+    ] 
+}

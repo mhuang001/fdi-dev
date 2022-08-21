@@ -75,14 +75,15 @@ The 'group' part  look good in a table header::
     +--------+--------+--------+--------+--------+--------+--------+--------+-------------+
 
 
-    :roots: where
+    :roots: where. A list of maps.
     :num: preceed keys with sequence numbers.
-    :style: for keys, `short`: use shortened path e.g. ```abc.def.hgi``` ```a.d.hgi```. `last2`: use the right-most 2 fragments, anything else to use only the last one.
+    :style: for keys, `short`: use shortened path e.g. ```abc.def.hgi``` ```a.d.hgi```. `last2`: use the right-most 2 segments, `full` for untrated paths, anything else to use only the last one.
     :sep: separater used in output. Default is '.'.
-    :path_list: a list of path fragments in place of value. Defalut `False`.
+    :path_list: a list of path segments in place of value. Defalut `False`.
     :return: dict(flatten_compact_path:(list of path|val)
     """
     res = dict()
+
     for root in roots:
         match = JEXP.find(root)
         n = 0
@@ -96,8 +97,10 @@ The 'group' part  look good in a table header::
                 if style == 'short':
                     # first char
                     key = ''.join((x[:1] + sep) for x in fp[:-1])
+                elif style == 'full':
+                    key = ''.join((x + sep) for x in fp[:-1])
                 elif style == 'last2':
-                    # last two fragments
+                    # last two segments
                     key = (fp[-2] + sep) if len(fp) > 1 else ''
                 else:
                     key = ''

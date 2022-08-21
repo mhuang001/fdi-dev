@@ -1,0 +1,68 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://fdi.net/schemas/dataset/NumericParameter",
+    "title": "NumericParameter",
+    "definitions": {
+    },
+
+    "description": "schema for fdi NumericParameter type",
+    "allOf": [
+	{"$ref": "MetaParameter"},
+	{
+	    "type": "object",
+	    "required": ["value", "default", "typecode"],
+	    "properties": {
+		"value": {
+		    "description": "Amplitude or magnitude.",
+		    "type": ["number", "null"],
+		    "default": null,
+		    "examples": [
+                        1642648857.544
+		    ]
+                },
+		"default": {
+		    "description": "The value to assume.",
+		    "type": ["number", "null"],
+		    "default": null,
+		    "examples": [
+			42
+		    ]
+		},
+		"unit": {
+		    "type": ["string", "null"],
+		    "description": "Name of the unit.",
+		    "default": null
+		},
+		"typecode": {
+		    "description": "Python Typecode of the value.",
+		    "enum": [
+			"b",
+			"B",
+			"u",
+			"h",
+			"H",
+			"c",
+			"i",
+			"I",
+			"l",
+			"L",
+			"V",
+			"q",
+			"Q",
+			"f",
+			"d",
+			"datetime",
+			"datetime.timedelta",
+			"t_",
+			null
+		    ],
+		    "default": null
+		}
+	    }
+	}
+    ],
+    "examples": [
+	{"description": "in-schema example", "type": "float",
+	 "default": 42, "value": 3.14159265e3, "valid": [[[0, 30], "ok"]],
+	 "unit": "null", "typecode": "f", "_STID": "NumericParameter"} ]
+}

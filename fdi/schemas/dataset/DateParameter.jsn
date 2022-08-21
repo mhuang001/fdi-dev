@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://fdi.net/schemas/dataset/DateParameter",
+    "title": "DateParameter",
+    "definitions": {
+    },
+    "description": "schema for fdi DateParameter type",
+    
+    "allOf": [
+	{"$ref": "MetaParameter"},
+	{
+	    "type": "object",
+	    "required": ["value"],
+	    "properties": {
+		"value": {
+		    "description": "Date and time in FineTime.",
+		    "anyOf": [
+			{"$ref": "FineTime"},
+			{"type": "null" }
+		    ],
+		    "examples": [
+			null, {"tai": 123456789, "_STID": "FineTime"}
+		    ]
+                },
+		"default": {
+		    "description": "The value to assume.",
+		    "anyOf": [
+			{"$ref": "FineTime"},
+			{"type": "integer" }
+		    ],
+		    "default": {"value": {"tai": 0, "_STID": "FineTime"}, "_STID": "DateParameter"},
+		    "examples": [
+			{"value": {"tai": 1234567, "_STID": "FineTime"}, 
+			 "_STID": "DateParameter"}
+		    ]
+		},
+		"typecode": {
+		    "description": "ISO8601 time format.",
+		    "$ref": "FineTime#properties/format"
+		}
+	    }
+	}
+    ],
+    "examples": [
+	{"value": {"tai": 123456789, "_STID": "FineTime"},
+	 "_STID": "DateParameter"}
+    ]
+}

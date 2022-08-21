@@ -18,7 +18,6 @@
 			{"type": "string" },
 			{"type": "null" }
 		    ],
-		    "default": "",
 		    "examples": [
                         "4", "$def", null
 		    ]
@@ -26,21 +25,26 @@
 		"default": {
 		    "description": "The value to assume.",
 		    "anyOf": [
-			{"type": "object" },
+			{"type": "string" },
 			{"type": "null" }
 		    ],
-		    "default": {"value": "", "_STID": "StringParameter"},
+		    "default": "",
 		    "examples": [
-			{"value": "=42", "_STID": "StringParameter"}
+			"42"
 		    ]
 		},
 		"typecode": {
 		    "description": "Python Typecode of the value.",
-		    "enum": [
-			"B",
-			null
+		    "anyOf": [
+			{"type": "string", "pattern": "[0-9]*B"},
+			{"type": "null"}
 		    ],
 		    "default": "B"
+		},
+		"_STID": {
+		    "allOf": [{"$ref": "STID"},
+			      {"pattern": "StringParameter"}
+			     ]
 		}
 	    }
 	}

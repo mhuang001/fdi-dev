@@ -15,7 +15,7 @@
 		"value": {
 		    "description": "Date and time in FineTime.",
 		    "anyOf": [
-			{"$ref": "FineTime"},
+			{"$ref": "FineTime"}, 
 			{"type": "null" }
 		    ],
 		    "examples": [
@@ -28,15 +28,19 @@
 			{"$ref": "FineTime"},
 			{"type": "integer" }
 		    ],
-		    "default": {"value": {"tai": 0, "_STID": "FineTime"}, "_STID": "DateParameter"},
+		    "default": {"tai": 0, "_STID": "FineTime"},
 		    "examples": [
-			{"value": {"tai": 1234567, "_STID": "FineTime"}, 
-			 "_STID": "DateParameter"}
+			{"tai": 1234567, "_STID": "FineTime"}
 		    ]
 		},
 		"typecode": {
 		    "description": "ISO8601 time format.",
 		    "$ref": "FineTime#properties/format"
+		},
+		"_STID": {
+		    "allOf": [{"$ref": "STID"},
+			      {"pattern": "DateParameter"}
+			     ]
 		}
 	    }
 	}

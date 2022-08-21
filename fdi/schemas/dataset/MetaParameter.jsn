@@ -17,7 +17,7 @@
 		"tuple",
  		"short", "string",
  		"vector", "vector2d", "vector3d",
-		null
+		"", null
  	    ],
  	    "examples": [
 		"string", "integer", null
@@ -26,7 +26,6 @@
     },
 
 
-    "required": ["_STID"],
     "properties": {
 	"description": {
 	    "type": ["string", "null"],
@@ -54,9 +53,6 @@
 	},
 	"type": {
 	    "$ref": "#/definitions/ParameterType"
-	},
-	"_STID": {
-	    "$ref": "STID"
 	},
 	"listeners": {
 	    "$ref": "ListenerSet"

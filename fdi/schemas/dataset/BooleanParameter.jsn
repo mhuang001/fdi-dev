@@ -30,11 +30,15 @@
 			{"type": "boolean"},
 			{"type": "null" }
 		    ],
-		    "default": {"value": null, "_STID": "BooleanParameter"},
+		    "default": null,
 		    "examples": [
-			{"value": true, "_STID": "BooleanParameter"},
-			{"value": null, "_STID": "BooleanParameter"}
+			true, null
 		    ]
+		},
+		"_STID": {
+		    "allOf": [{"$ref": "STID"},
+			      {"pattern": "BooleanParameter"}
+			     ]
 		}
 	    }
 	}

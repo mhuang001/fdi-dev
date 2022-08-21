@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://fdi.net/schemas/dataset/ArrayDataset",
+    "title": "ArrayDataset",
+    "definitions": {
+    },
+    "description": "Container for FDI ArrayDatasets.",
+    
+    "type": "object",
+    "required": ["_ATTR_meta", "_ATTR_data", "_STID"],
+    "properties": {
+	"description": {"type": "string"},
+	"_ATTR_meta": {"$ref": "MetaData"},
+	"_ATTR_data": {"type": "array"},
+	"listeners": {"$ref": "ListenerSet"},
+	"_STID": {
+	    "allOf": [{"$ref": "STID"},
+		      {"pattern": "ArrayDataset"}
+		     ]
+	}
+    },
+    "additionalProperties":  {
+	"anyOf": [
+	    {"type": "object"},
+	    {"type": "number"}
+	    ]
+    }
+}

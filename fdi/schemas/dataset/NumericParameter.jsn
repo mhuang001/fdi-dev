@@ -14,7 +14,7 @@
 	    "properties": {
 		"value": {
 		    "description": "Amplitude or magnitude.",
-		    "type": ["number", "null"],
+		    "type": ["number", "array", "null"],
 		    "default": null,
 		    "examples": [
                         1642648857.544
@@ -22,7 +22,7 @@
                 },
 		"default": {
 		    "description": "The value to assume.",
-		    "type": ["number", "null"],
+		    "type": ["number", "array", "null"],
 		    "default": null,
 		    "examples": [
 			42
@@ -54,9 +54,15 @@
 			"datetime",
 			"datetime.timedelta",
 			"t_",
+			"",
 			null
 		    ],
 		    "default": null
+		},
+		"_STID": {
+		    "allOf": [{"$ref": "STID"},
+			      {"pattern": "NumericParameter"}
+			     ]
 		}
 	    }
 	}

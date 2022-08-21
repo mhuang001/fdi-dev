@@ -25,7 +25,9 @@
 		    ]
 		},
 		"_STID": {
-		    "$ref": "/dataset/STID"
+		    "allOf": [{"$ref": "STID"},
+			      {"pattern": "AbstractParameter"}
+			     ]
 		}
 	    }
 	}

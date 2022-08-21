@@ -1006,37 +1006,6 @@ def test_NumericParameter():
     checkgeneral(v)
 
 
-def test_NumericParameter():
-    v = NumericParameter()
-    assert v.description == 'UNKNOWN'
-    assert v.value is None
-    assert v.unit is None
-    assert v.type == ''
-    assert v.default is None
-    assert v.valid is None
-    assert v.typecode is None
-    h = v.hash()
-
-    a1 = 'a test NumericParameter'
-    a2 = 100.234
-    a3 = 'second'
-    a4 = 'float'
-    a5 = 0
-    a6 = ''
-    a7 = 'f'
-    v = NumericParameter(description=a1, value=a2, unit=a3,
-                         typ_=a4, default=a5, valid=a6, typecode=a7)
-    assert v.description == a1
-    assert v.value == a2
-    assert v.unit == a3
-    assert v.type == a4
-    assert v.default == a5
-    assert v.valid is None
-    assert v.typecode == a7
-
-    checkjson(v)
-
-
 def test_BooleanParameter():
     v = BooleanParameter()
     assert v.description == 'UNKNOWN'

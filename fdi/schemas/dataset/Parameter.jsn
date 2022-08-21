@@ -8,7 +8,7 @@
     "allOf": [
 	{"$ref": "MetaParameter"},
 	{
-	    "required": ["value", "default"],
+	    "required": ["value", "_STID"],
 	    "properties": {
 		"value": {
 		    "description": "Amplitude or magnitude.",
@@ -24,6 +24,11 @@
 			"Ambient temperature."
 		    ],
 		    "default": null
+		},
+		"_STID": {
+		    "allOf": [{"$ref": "STID"},
+			      {"pattern": "^Parameter$"}
+			     ]
 		}
 	    }
 	}

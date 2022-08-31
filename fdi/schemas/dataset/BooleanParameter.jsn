@@ -1,12 +1,13 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://fdi.net/schemas/dataset/BooleanParameter",
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/BooleanParameter",
     "title": "BooleanParameter",
     "definitions": {
     },
 
     "description": "schema for fdi BooleanParameter type",
-
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
     "allOf": [
 	{"$ref": "MetaParameter"},
 	{
@@ -35,11 +36,7 @@
 			true, null
 		    ]
 		},
-		"_STID": {
-		    "allOf": [{"$ref": "STID"},
-			      {"pattern": "BooleanParameter"}
-			     ]
-		}
+		"_STID": {"const": "BooleanParameter" }
 	    }
 	}
     ],

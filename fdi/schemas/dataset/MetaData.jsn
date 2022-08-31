@@ -1,16 +1,17 @@
 {
     "definitions": {
     },
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://fdi.net/schemas/dataset/MetaData",
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/MetaData",
     "title": "MetaData",
     "description": "Container for FDI MetaData -- named Parameters.",
     
     "type": "object",
-    "required": ["_STID"],
+    "$ref": "https://fdi.schemas/Require_STID",
+    "required": [],
     "properties": {
 	"_ATTR_listeners": {"$ref": "ListenerSet"},
-	"_STID": {"$ref": "STID"}
+	"_STID": { "const": "MetaData"}
     },
     "additionalProperties":  {
 	"anyOf": [

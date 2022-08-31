@@ -23,7 +23,6 @@ def fetch(paths, nested, re='', sep='/', exe=['is'], not_quoted=True):
     Result
     A found object and a string of python code e.g.  '.meta["speed"].isValid()'
     """
-
     if issubclass(paths.__class__, str):
         # treat integers in data path as string
         paths = paths.strip(' ').strip(sep).split(sep)

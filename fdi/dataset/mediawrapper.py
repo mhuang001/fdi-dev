@@ -37,7 +37,7 @@ class MediaWrapper(ArrayDataset):
                  ** kwds):
         """ Initializes media data wrapped in ArrayDataset.
 
-        typ_: www style string that follows `Content-Type: `. Default is `imagw/png`.
+        typ_: www style string that follows `Content-Type: `. Default is `image/png`.
         """
 
         # collect MDPs from args-turned-local-variables.

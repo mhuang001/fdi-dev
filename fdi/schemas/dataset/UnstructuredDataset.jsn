@@ -1,0 +1,17 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/UnstructuredDataset",
+    "title": "UnstructuredDataset",
+    "definitions": {
+    },
+    "description": "Container for FDI UnstructuredDataset.",
+    
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
+    "required": ["meta", "data"],
+    "properties": {
+	"meta": {"$ref": "MetaData"},
+	"data": {},
+	"_STID": { "const": "UnstructuredDataset"}
+    }
+}

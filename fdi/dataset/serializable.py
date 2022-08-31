@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # from ..utils.common import fullname
+from .schemas import makeSchemaStore
 
 import array
 import binascii
@@ -10,8 +11,10 @@ import logging
 import json
 import copy
 import codecs
+import urllib
 from collections import ChainMap
 from collections.abc import Collection, Mapping
+from functools import lru_cache
 import sys
 import datetime
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -124,6 +127,13 @@ class SerializableEncoderAll(json.JSONEncoder):
         return super().iterencode(self._preprocess(obj), **kwds)
 
 
+GZIP = False
+""" Use ```gzip``` (and ```Bae64``` if needed) to compress. """
+
+SCHEMA = False
+""" Output JSONschema instead of JSON erialization. """
+
+
 class SerializableEncoder(json.JSONEncoder):
     """ can encode parameter and product etc such that they can be recovered
     with deserialize().
@@ -153,27 +163,62 @@ class SerializableEncoder(json.JSONEncoder):
                 oc = obj.__class__
                 if PY3:
                     if issubclass(oc, (datetime.datetime)):
+                        if SCHEMA:
+                            return '{"$ref": "%s"}' % oc.__name__
                         from ..dataset.finetime import FineTime
                         return dict(
                             code=FineTime.datetimeToFineTime(obj),
-                            _STID=oc.__name__+'tai')
+                            _STID=oc.__name__+',tai')
                     if issubclass(oc, (bytes, bytearray)):
-                        return dict(code=obj.hex(), _STID=oc.__name__)
-                        # return dict(code=binascii.b2a_base64(gzip.compress(obj, 5)).decode('ascii'), _STID=oc.__name__ + ',gz,b64')
+                        if SCHEMA:
+                            return '{"$ref": "bytes"}'
+                        if GZIP:
+                            r = dict(code=binascii.b2a_base64(
+                                gzip.compress(obj, 5)).decode('ascii'),
+                                _STID=oc.__name__ + ',gz,b64')
+                        else:
+                            r = dict(code=obj.hex(), _STID=oc.__name__)
+                        return r
                     elif issubclass(oc, array.array):
-                        return dict(code=str(codecs.encode(obj, 'hex'), encoding='ascii'), _STID='a.array_'+obj.typecode)
-                        # return dict(code=binascii.b2a_base64(gzip.compress(obj, 5)).decode('ascii'), _STID='a.array,gz,b64_'+obj.typecode)
+                        if SCHEMA:
+                            return '{"$ref": "%s"}' % oc.__name__
+                        if GZIP:
+                            r = dict(code=binascii.b2a_base64(
+                                gzip.compress(obj, 5)).decode('ascii'),
+                                _STID='a.array_%s,gz,b64' % obj.typecode)
+                        else:
+                            r = dict(code=str(codecs.encode(obj, 'hex'),
+                                              encoding='ascii'),
+                                     _STID='a.array_'+obj.typecode)
+                        return r
                 if not PY3 and issubclass(oc, str):
                     # return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
                     assert False, lls(obj, 50)
-
-                    return obj
-                    return dict(code=gzip.compress(obj, 5), _STID='bytes_gz')
+                    if GZIP:
+                        if SCHEMA:
+                            return '{"$ref": "%s"}' % 'bytes'
+                        return dict(code=gzip.compress(obj, 5),
+                                    _STID='bytes,gz')
+                    else:
+                        return obj
                 if obj is Ellipsis:
+                    if SCHEMA:
+                        return '{"$ref": "%s"}' % oc.__name__
                     return {'obj': '...', '_STID': 'ellipsis'}
                 if issubclass(oc, type):
+                    if SCHEMA:
+                        return '{"$ref": "%s"}' % oc.__name__
                     return {'obj': obj.__name__, '_STID': 'dtype'}
                 if hasattr(obj, 'serializable'):
+                    if SCHEMA:
+                        return '{%s}' % obj.schema()
+                    try:
+                        typ = obj.type
+                    except (LookupError, AttributeError):
+                        typ = None
+                    if typ in ['image/svg']:
+                        ser = obj.serializable()[ATTR+'data']
+                        ser = urllib.parse.quote(ser)
                     # print(obj.serializable())
                     return obj.serializable()
                 try:
@@ -199,6 +244,21 @@ def serialize(o, cls=None, **kwds):
     if not cls:
         cls = SerializableEncoder
     return json.dumps(o, cls=cls, allow_nan=True, **kwds)
+
+
+@lru_cache(maxsize=256)
+def get_schema_id(cls_name, store=None):
+    if store is None:
+        store = makeSchemeStore()
+    for sch in store:
+        if cls_name == 'array':
+            n = 'a_array'
+        else:
+            n = cls_name
+        if sch.endswith('/%s' % n):
+            return sch, store[sch]
+    # did not find.
+    return None, None
 
 
 ATTR = '_ATTR_'
@@ -298,13 +358,23 @@ class Serializable():
         return self.__reduce_ex__(4)
 
     def serializable(self):
-        """ Can be encoded with serializableEncoder """
+        """ Can be encoded with serializableEncoder.
+
+        Return
+        ------
+        dict
+             The state variables plus the Serialization Type ID with ```_STID``` as uts key.
+        """
         s = copy.copy(self.__getstate__())
         # make sure _STID is the last, for pools to ID data.
         if '_STID' in s:
             del s['_STID']
         s.update({'_STID': self._STID})
         return s
+
+    def schema(self):
+        sid, sch = get_schema(self.__class__.__name__)
+        return sch
 
     def yaml(self, *args, **kwds):
         """ Get a YAML representation. """

@@ -1,11 +1,13 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://fdi.net/schemas/dataset/DateParameter",
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/DateParameter",
     "title": "DateParameter",
     "definitions": {
     },
     "description": "schema for fdi DateParameter type",
     
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
     "allOf": [
 	{"$ref": "MetaParameter"},
 	{
@@ -26,7 +28,8 @@
 		    "description": "The value to assume.",
 		    "anyOf": [
 			{"$ref": "FineTime"},
-			{"type": "integer" }
+			{"type": "integer" },
+			{"type": "null" }
 		    ],
 		    "default": {"tai": 0, "_STID": "FineTime"},
 		    "examples": [
@@ -35,13 +38,9 @@
 		},
 		"typecode": {
 		    "description": "ISO8601 time format.",
-		    "$ref": "FineTime#properties/format"
+		    "$ref": "FineTime#/properties/format"
 		},
-		"_STID": {
-		    "allOf": [{"$ref": "STID"},
-			      {"pattern": "DateParameter"}
-			     ]
-		}
+		"_STID": {"const": "DateParameter"}
 	    }
 	}
     ],

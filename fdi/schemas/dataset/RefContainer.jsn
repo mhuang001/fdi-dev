@@ -1,0 +1,18 @@
+{
+    "definitions": {
+    },
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/RefContainer",
+    "title": "RefContainer",
+    "$ref": "https://fdi.schemas/Require_STID",
+    "anyOf": [
+	{"type": "object",
+	 "required": [],
+	 "properties": {	
+             "_STID": { "const": "RefContainer"}
+	 }
+	},
+	{"type": "null"}
+    ]
+}
+

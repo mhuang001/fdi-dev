@@ -1,18 +1,19 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://fdi.net/schemas/dataset/Dataset",
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/Dataset",
     "title": "Dataset",
     "definitions": {
     },
     "description": "Container for FDI Datasets.",
     
     "type": "object",
-    "required": ["meta", "data", "_STID"],
+    "$ref": "https://fdi.schemas/Require_STID",
+    "required": ["meta", "data"],
     "properties": {
 	"description": {"type": "string"},
 	"meta": {"$ref": "MetaData"},
 	"listeners": {"$ref": "ListenerSet"},
-	"_STID": {"$ref": "STID"}
+	"_STID": { "enum": ["Dataset"]}
     },
     "additionalProperties":  {
 	"anyOf": [

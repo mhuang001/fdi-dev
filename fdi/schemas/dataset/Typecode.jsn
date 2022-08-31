@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/Typecode",
+    "title": "Typecode",
+    "definitions": {
+    },
+
+    "description": "schema for fdi Typecoded type -- Python Typecode of the value.",
+    "type": ["string", "null"],
+    "enum": [
+			"b",
+			"B",
+			"u",
+			"h",
+			"H",
+			"c",
+			"i",
+			"I",
+			"l",
+			"L",
+			"V",
+			"q",
+			"Q",
+			"f",
+			"d",
+			"datetime",
+			"datetime.timedelta",
+			"t_",
+			"",
+			null
+    ],
+    "default": null
+}

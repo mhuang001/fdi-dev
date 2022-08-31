@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/bytes",
+    "definitions": {},
+    "deacription": "starting with 0 means to escape deserialization",
+    "title": "bytes",
+
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
+    "anyOf": [
+	{ "properties": {
+	    "code": {"contentEncoding": "base16" },
+	    "_STID": { "enum": [
+		"bytes",
+		"bytearray"]}
+	}},
+	{ "properties": {
+	    "code": {"contentEncoding": "base64" },
+	    "_STID": { "enum": [
+		"bytes,gz,b64",
+		"bytearray,gz,b64"]}
+	}}
+    ],
+    "examples": [
+	{"code":"123a", "_STID":"bytes"},
+	{"code":"123a", "_STID":"bytearray"},
+	{"code":"123t", "_STID":"bytes,gz,b64"},
+	{"code":"123t", "_STID":"bytearray,gz,b64"}
+	]
+}

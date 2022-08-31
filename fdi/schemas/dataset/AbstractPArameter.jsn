@@ -1,15 +1,17 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://fdi.net/schemas/dataset/AbstractParameter",
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/AbstractParameter",
     "title": "AbstractParameter",
     "definitions": {
     },
 
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
     "allOf": [
 	{"$ref": "#/definitions/MetaParameter"},
 	{
 	    "type": "object",
-	    "required": ["value", "description", "_STID"],
+	    "required": ["value", "description"],
 	    "properties": {
 		"value": {
 		    "description": "Amplitude or magnitude.",
@@ -24,11 +26,7 @@
 			"Something about this parameter."
 		    ]
 		},
-		"_STID": {
-		    "allOf": [{"$ref": "STID"},
-			      {"pattern": "AbstractParameter"}
-			     ]
-		}
+		"_STID": { "const": ["AbstractParameter"]}
 	    }
 	}
     ]

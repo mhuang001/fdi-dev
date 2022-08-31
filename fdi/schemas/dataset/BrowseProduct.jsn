@@ -1,0 +1,17 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/BrowseProduct",
+    "title": "BrowseProduct",
+    "definitions": {    },
+    "description": "Container for FDI BrowseProduct.",
+    
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
+    "allOf": [
+	{"$ref": "BaseProduct#/definitions/BaseProduct_no_STID"},
+	{
+	    "required": [],
+	    "_STID": { "enum": ["BrowseProduct"]}
+	}
+    ]
+}

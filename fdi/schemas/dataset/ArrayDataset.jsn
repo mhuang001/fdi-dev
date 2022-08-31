@@ -1,28 +1,36 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://fdi.net/schemas/dataset/ArrayDataset",
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/ArrayDataset",
     "title": "ArrayDataset",
     "definitions": {
-    },
-    "description": "Container for FDI ArrayDatasets.",
-    
-    "type": "object",
-    "required": ["_ATTR_meta", "_ATTR_data", "_STID"],
-    "properties": {
-	"description": {"type": "string"},
-	"_ATTR_meta": {"$ref": "MetaData"},
-	"_ATTR_data": {"type": "array"},
-	"listeners": {"$ref": "ListenerSet"},
-	"_STID": {
-	    "allOf": [{"$ref": "STID"},
-		      {"pattern": "ArrayDataset"}
-		     ]
+	"ArrayDataset_no_STID": {
+	    "type": "object",
+	    "required": ["_ATTR_meta", "_ATTR_data"],
+	    "properties": {
+		"description": {"type": "string"},
+		"_ATTR_meta": {"$ref": "MetaData"},
+		"_ATTR_data": {
+		    "anyOf": [
+			{"type": "array" },
+			{
+			    "type": "string",
+			    "contentEncoding": "quoted-printable"
+			},
+			{"$ref": "https://fdi.schemas/bytes"},
+			{"$ref": "https://fdi.schemas/a_array"},
+			{"type": "null" }
+		    ]
+		},
+		"listeners": {"$ref": "ListenerSet"}
+	    }
 	}
     },
-    "additionalProperties":  {
-	"anyOf": [
-	    {"type": "object"},
-	    {"type": "number"}
-	    ]
-    }
+    "description": "Container for FDI ArrayDatasets.",
+
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
+    "allOf": [
+	{"$ref": "#/definitions/ArrayDataset_no_STID"},
+	{ "properties": {"_STID": { "const": "ArrayDataset" }}}
+    ]
 }

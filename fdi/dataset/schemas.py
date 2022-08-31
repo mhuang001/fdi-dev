@@ -2,13 +2,15 @@
 
 """ from https://stackoverflow.com/a/70797664  reubano"""
 
-import json
+from .readonlydict import ReadOnlyDict
+from ..utils.common import find_all_files, trbk
 
-
-from jsonschema import Draft7Validator, RefResolver
+#from jsonschema import Draft7Validator as the_validator
+from jsonschema import Draft201909Validator as the_validator
+from jsonschema import RefResolver
 from jsonschema.exceptions import RefResolutionError
-from .common import find_all_files, trbk
 
+import json
 import os
 import copy
 from collections import ChainMap
@@ -17,7 +19,7 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-FDI_SCHEMA_BASE = 'https://fdi.net/schemas'
+FDI_SCHEMA_BASE = 'https://fdi.schemas'
 
 FDI_SCHEMA_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '../schemas'))
@@ -84,11 +86,12 @@ def getValidator(schema, schemas=None, schema_store=None, base_schema=None, verb
     :schema: the schema this validator is made for.
     :schemas: A map of schema id and schema objects. default is all schemas found in ```schema_store```. If it has '$schema' and '$id' as keys, it will be the lone schema to be validated against by the returned validator.
     :schema_store: get schemas here if ```schemas``` is ```None```. default is `FDI_SCHEMA_STORE`.
-    :base_schema: A reference schema object providing BaseURI. Default is `schemas["...base.schema"]`.
+    :base_schema: A reference schema object providing BaseURI. Default is `schema_store[FDI_SCHEMA_BASE]`, whereas the `schema_store` is made with `FDI_SCHEMA_STORE` and `schemas`.
     """
+
     if issubclass(schema.__class__, str):
         schema = json.loads(schema)
-    Draft7Validator.check_schema(schema)
+    the_validator.check_schema(schema)
     if issubclass(schemas.__class__, dict) and '$schema' in schemas and '$id' in schemas:
         store = {schemas['$id']: schemas}
     else:
@@ -102,12 +105,15 @@ def getValidator(schema, schemas=None, schema_store=None, base_schema=None, verb
         print('Schema store:', list(store))
     if base_schema is None:
         # json.load(open("schema/dir/extend.schema.json"))
+        #resolver = RefResolver(schema['$id'], store=store, referrer=schema)
+        if FDI_SCHEMA_BASE not in store:
+            store = ChainMap(schemas, makeSchemaStore())
         base_schema = store[FDI_SCHEMA_BASE]
     resolver = RefResolver.from_schema(base_schema, store=store)
 
     if verbose:
         print('Schema resolver:', resolver)
-    validator = Draft7Validator(schema, resolver=resolver)
+    validator = the_validator(schema, resolver=resolver)
 
     return validator
 
@@ -118,11 +124,13 @@ def validateJson(data, validator):
     :data: a JSON object or a _file_full_path that ends with 'json' or 'jsn'.
     """
 
-    if data.endswith('.jsn') or data.endswith('.json'):
+    if issubclass(data.__class__, str) and \
+       (data.endswith('.jsn') or data.endswith('.json')):
         instance = json.load(open(data))
     else:
         instance = data
     try:
         errors = sorted(validator.iter_errors(instance), key=lambda e: e.path)
     except RefResolutionError as e:
-        print(e)
+        logger.error(e)
+    return errors

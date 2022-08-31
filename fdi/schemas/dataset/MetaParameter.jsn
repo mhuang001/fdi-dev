@@ -1,6 +1,6 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://fdi.net/schemas/dataset/MetaParameter",
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/MetaParameter",
     "title": "MetaParameter",
     "definitions": {
 	"ParameterType": {
@@ -16,7 +16,7 @@
  		"quaternion",
 		"tuple",
  		"short", "string",
- 		"vector", "vector2d", "vector3d",
+ 		"vector", "vector2d", "vector3d", "quaternion",
 		"", null
  	    ],
  	    "examples": [
@@ -25,18 +25,17 @@
 	}
     },
 
-
     "properties": {
 	"description": {
 	    "type": ["string", "null"],
-	    "default": "UNKNOWN",
+	    "default": {"type": "null"},
 	    "examples": [
-		"Something about this parameter."
+		"Something about this parameter.", null
 	    ]
 	},
 	"valid": {
 	    "description": "Allowed value or range of this parameter.",
-	    "oneOf": [
+	    "anyOf": [
 		{
 		"type": "array",
 		"items": {
@@ -55,7 +54,10 @@
 	    "$ref": "#/definitions/ParameterType"
 	},
 	"listeners": {
-	    "$ref": "ListenerSet"
+	    "anyOf": [
+		{"type": "null"},
+		{"$ref": "ListenerSet"}
+		]
 	}
     }
 }

@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/type",
+    "title": "type",
+    "definitions": {},
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
+    "properties": {
+	"obj": {"type": "string"},
+	"_STID": {"const": "dtype"}
+    },
+    "examples": [
+	{ "obj": "dict", "_STID": "dtype"}
+    ]
+}
+

@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/TableDataset",
+    "title": "TableDataset",
+    "definitions": {
+    },
+    "description": "Container for FDI TableDatasets.",
+    
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
+    "required": ["_ATTR_meta"],
+    "properties": {
+	"_ATTR_meta": {"$ref": "MetaData"},
+	"_STID": { "const": "TableDataset"}
+    },
+    "additionalProperties":  {
+	"anyOf": [
+	    {"$ref": "Column"}
+	    ]
+    }
+}

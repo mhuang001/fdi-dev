@@ -1,0 +1,53 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/BaseProduct",
+    "title": "BaseProduct",
+    "definitions": {
+	"BaseProduct_no_STID": {
+	    "required": ["_ATTR_meta", "_ATTR_history"],
+	    "properties": {
+		"_ATTR_meta": {
+		    "allOf": [
+			{"$ref": "MetaData"},
+			{"required": [
+			    "description",
+			    "type",
+			    "level",
+			    "creator",
+			    "creationDate",
+			    "rootCause",
+			    "version",
+			    "FORMATV"
+			]}
+		    ]},
+		"_ATTR_history": {"$ref": "History"},
+		"_ATTR_listeners": {"$ref": "ListenerSet"}
+	    },
+	    "additionalProperties":  {
+		"anyOf": [
+		    {"$ref": "ArrayDataset"},
+		    {"$ref": "TableDataset"},
+		    {"$ref": "CompositeDataset"},
+		    {"$ref": "UnstructuredDataset"},
+		    {"$ref": "MediaWrapper"},
+		    {"$ref": "Dataset"},
+		    {"type": ["object", "string"]}
+		]
+	    }
+	}
+    },
+    "description": "Container for FDI BaseProduct.",
+    
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
+    "required": [
+    ],
+    "allOf": [
+	{"$ref": "#/definitions/BaseProduct_no_STID"},
+	{
+	    "properties": {
+		"_STID": { "const": "BaseProduct" }
+	    }
+	}
+    ]
+}

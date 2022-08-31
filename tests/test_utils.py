@@ -16,7 +16,7 @@ from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
 from fdi.utils.tree import tree
 from fdi.utils.loadfiles import loadMedia
-from fdi.utils.validator import getValidator, validateJson
+from fdi.dataset.schemas import makeSchemaStore, getValidator, validateJson
 
 import traceback
 import copy
@@ -37,7 +37,7 @@ else:
     PY3 = False
 
 # make format output in /tmp/outputs.py
-mk_outputs = 0
+mk_outputs = 1
 output_write = 'tests/outputs_utils.py'
 
 if mk_outputs:
@@ -593,7 +593,8 @@ def test_validator():
         sch = json.load(file)
 
     from fdi.dataset.baseproduct import BaseProduct
-    jsn = BaseProduct().zInfo
+    jsn = json.loads(BaseProduct().serialized())
 
-    assert getValidator(sch, schema_dir=fdi_sch_dir,
+    store = makeSchemaStore(sch_dir)
+    assert getValidator(sch, schema_store=store,
                         verbose=1).validate(jsn) is None

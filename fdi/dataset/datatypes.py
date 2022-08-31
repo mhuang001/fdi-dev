@@ -218,7 +218,7 @@ class Vector(Quantifiable, Serializable, DeepEqual):
             self._data = [0, 0, 0]
         else:
             self.setComponents(components)
-        super(Vector, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     @ property
     def components(self):
@@ -354,7 +354,7 @@ class Vector2D(Vector):
         Returns
         -------
         """
-        super(Vector2D, self).__init__(**kwds)
+        super().__init__(**kwds)
 
         if components is None:
             self._data = [0, 0]
@@ -374,7 +374,7 @@ class Vector3D(Vector):
         Returns
         -------
         """
-        super(Vector3D, self).__init__(**kwds)
+        super().__init__(**kwds)
 
         if components is None:
             self._data = [0, 0, 0]

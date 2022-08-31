@@ -1,0 +1,10 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/Require_STID",
+    "definitions": {
+    },
+    "description": "starting with 0 means to escape deserialization",
+    "title": "https://fdi.schemas/Require_STID",
+    "if": true,
+    "then": { "required": ["_STID"] }
+}

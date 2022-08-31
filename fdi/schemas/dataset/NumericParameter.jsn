@@ -1,74 +1,60 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://fdi.net/schemas/dataset/NumericParameter",
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/NumericParameter",
     "title": "NumericParameter",
     "definitions": {
     },
 
     "description": "schema for fdi NumericParameter type",
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
     "allOf": [
 	{"$ref": "MetaParameter"},
 	{
 	    "type": "object",
-	    "required": ["value", "default", "typecode"],
+	    "required": ["value", "typecode"],
 	    "properties": {
 		"value": {
 		    "description": "Amplitude or magnitude.",
-		    "type": ["number", "array", "null"],
-		    "default": null,
+		    "anyOf": [
+			{"type": "number" },
+			{"type": "array" },
+			{"$ref": "Vector" },
+			{"type": "null" }
+		    ],
 		    "examples": [
                         1642648857.544
 		    ]
                 },
 		"default": {
 		    "description": "The value to assume.",
-		    "type": ["number", "array", "null"],
+		    "anyOf": [
+			{"type": "number" },
+			{"type": "array" },
+			{"$ref": "Vector" },
+			{"type": "null" }
+		    ],
 		    "default": null,
 		    "examples": [
 			42
 		    ]
 		},
+		"typecode": {"$ref": "Typecode"},
 		"unit": {
 		    "type": ["string", "null"],
 		    "description": "Name of the unit.",
 		    "default": null
 		},
-		"typecode": {
-		    "description": "Python Typecode of the value.",
-		    "enum": [
-			"b",
-			"B",
-			"u",
-			"h",
-			"H",
-			"c",
-			"i",
-			"I",
-			"l",
-			"L",
-			"V",
-			"q",
-			"Q",
-			"f",
-			"d",
-			"datetime",
-			"datetime.timedelta",
-			"t_",
-			"",
-			null
-		    ],
-		    "default": null
-		},
-		"_STID": {
-		    "allOf": [{"$ref": "STID"},
-			      {"pattern": "NumericParameter"}
-			     ]
-		}
+		"_STID": { "const": "NumericParameter" }
 	    }
 	}
     ],
     "examples": [
 	{"description": "in-schema example", "type": "float",
 	 "default": 42, "value": 3.14159265e3, "valid": [[[0, 30], "ok"]],
-	 "unit": "null", "typecode": "f", "_STID": "NumericParameter"} ]
+	 "unit": "null", "typecode": "f", "_STID": "NumericParameter"},
+	{"description": "vector example", "type": "vector",
+	 "default": [1, 2, 3], "value": {"components":[1,3,5], "_STID":"Vector"}, 
+	 "unit": "null", "typecode": "i", "_STID": "NumericParameter"}
+    ]
 }

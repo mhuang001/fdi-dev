@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/a_array",
+    "definitions": {
+    },
+    "deacription": "starting with 0 means to escape deserialization",
+    "title": "a_array",
+
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
+    "anyOf": [
+	{ "properties": {
+	    "code": {"contentEncoding": "base16" },
+	    "_STID": {"pattern": "^a\\.array_.$"}
+	}},
+	{ "properties": {
+	    "code": {"contentEncoding": "base64" },
+	    "_STID": {"pattern": "^a\\.array_.,gz,b64$"}
+	}}
+    ],
+    "examples": [
+	{"code":"123a", "_STID":"a.array_i"},
+	{"code":"H4sIABqX\n", "_STID":"a.array_i,gz,b64"}
+	]
+}

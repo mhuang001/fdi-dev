@@ -1,0 +1,9 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/STID",
+    "title": "STID",
+    "deacription": "starting with 0 means to escape deserialization",
+    "type": "string",
+    "pattern": "^([0-9])*([a-zA-Z_][A-Za-z0-9_]*\\.)*[A-Za-z_][A-Za-z0-9_]+(,[^,]+)*$",
+    "examples": ["FineTime", "0CompositeDataset", "4a.array_i,gz,b64"]
+}

@@ -137,7 +137,7 @@ def get_demo_product():
     # add a parameter with validity descriptors to the product
     prodx.meta['speed'] = NumericParameter(
         description='an extra param',
-        value=Vector((1.1, 2.2, 3.3)),
+        value=Vector((1.1, 2.2, 3.3)),  # do not use list
         valid={(1, 22): 'normal', (30, 33): 'fast'}, unit='meter')
 
     # A CompositeDataset 'measurements' of two sub-datasets: calibration and measurements

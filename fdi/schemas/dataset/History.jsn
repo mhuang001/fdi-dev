@@ -1,0 +1,24 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/History",
+    "title": "History",
+    "definitions": {
+    },
+    "description": "Container for FDI History.",
+    
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
+    "required": ["_ATTR_meta"],
+    "properties": {
+	"_ATTR_meta": {"$ref": "MetaData"},
+	"_STID": { "const": "History"}
+    },
+    "additionalProperties":  {
+	"anyOf": [
+	    {"$ref": "ArrayDataset"},
+	    {"$ref": "TableDataset"},
+	    {"$ref": "CompositeDataset"},
+	    {"$ref": "Dataset"}
+	    ]
+    }
+}

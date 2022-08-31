@@ -1,0 +1,16 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/MediaWrapper",
+    "title": "MediaWrapper",
+    "definitions": {
+    },
+    "description": "Container for media data.",
+    
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
+    "required": [],
+    "allOf": [
+	{"$ref": "ArrayDataset#/definitions/ArrayDataset_no_STID"},
+	{ "properties": {"_STID": { "const": "MediaWrapper" }}}
+    ]
+}

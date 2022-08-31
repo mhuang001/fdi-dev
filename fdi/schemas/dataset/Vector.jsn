@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/Vector",
+    "title": "Vector",
+    "definitions": {
+    },
+    "description": "Container for FDI table columns. same as ArrayDataset.",
+    
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
+    "required": ["components"],
+    "properties": {
+	"components": {"type": "array"},
+	"unit": {"type": ["string", "null"]},
+	"typecode": {"$ref": "Typecode"},
+	"_STID": { "const": "Vector" }
+    }
+}

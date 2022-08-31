@@ -751,6 +751,25 @@ def test_Parameter_valid():
     assert v.validate('') == ('', 'empty')
     assert v.toString(alist=True)[0] == 'Invalid (Right)'
 
+    if 0:
+        # vector. all element must pass the same test to gether
+        a1 = 'a test parameter with vector in value'
+        a2 = [1, 2, 3, 4]
+        a3 = 'list'
+        a4 = [0, 0, 0, 0]
+        a5 = {(0, 4): 'ok'}
+        v = Parameter(description=a1, value=a2, typ_=a3, default=a4, valid=a5)
+        assert v.isValid() == True
+        v.valid = {(0, 3): 'ok'}
+        assert v.isValid() == False
+        v.valid = {(0, 3): 'ok', 4: 'also'}
+        assert v.isValid() == False
+        v = Parameter(value=['b', 'aa', 'd'], typ_='list',
+                      valid={('a', 'c'): 'ok'})
+        assert v.isValid() == False
+        del v.value[2]
+        assert v.isValid()
+
 
 def test_Parameter_features():
     # test equivalence of v.setXxxx(a) and v.xxx = a
@@ -2299,7 +2318,7 @@ def test_UnstrcturedDataset():
     checkgeneral(u)
 
 
-# https://goessner.net/articles/JsonPath/
+# https://goessner.articles/JsonPath/
 bookstore = """{ "store": {
     "book": [
       { "category": "reference",

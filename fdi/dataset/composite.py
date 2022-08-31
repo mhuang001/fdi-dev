@@ -107,6 +107,7 @@ class Composite(DataContainer, Serializable, MutableMapping):
         -------
 
         """
+
         return self._data[name]
 
     def __delitem__(self, name):

@@ -110,7 +110,7 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
                 print(spaces + 'Find _STID <%s>.' % (ostid))
         # process types wrapped in a dict
         if PY3:
-            if classname == 'datetimetai':
+            if classname == 'datetime,tai':
                 inst = FineTime(obj['code']).toDatetime()
                 if debug:
                     print(spaces + 'Instanciate datetime')
@@ -123,7 +123,7 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
                     print(spaces + 'Instanciate bytes')
                 indent -= 1
                 return inst
-            elif classname == 'bytes_gz' or classname == 'bytes,gz,64':
+            elif classname == 'bytes,gz' or classname == 'bytes,gz,b64':
                 inst = gzip.decompress(binascii.a2b_base64(obj['code']))
                 if debug:
                     print(spaces + 'Instanciate hex_gz')
@@ -135,7 +135,7 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
                     print(spaces + 'Instanciate bytearray')
                 indent -= 1
                 return inst
-            elif classname == 'bytearray_gz' or classname == 'bytearray,gz,64':
+            elif classname == 'bytearray,gz' or classname == 'bytearray,gz,b64':
                 inst = bytearray(gzip.decompress(
                     binascii.a2b_base64(obj['code'])))
                 if debug:
@@ -143,7 +143,10 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
                 indent -= 1
                 return inst
             elif classname.startswith('a.array'):
-                array_t, tcode = tuple(classname.rsplit('_', 1))
+                # format is "...a.array_I,..."
+                array_t, tcode = tuple(classname.split(',', 1)[0].split('_'))
+                __import__('pdb').set_trace()
+
                 if array_t == 'a.array':
                     inst = array.array(tcode, binascii.a2b_hex(obj['code']))
                     if debug:
@@ -172,6 +175,15 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
             o = constructSerializable(
                 obj['obj'], lookup=lookup, int_key=int_key, debug=debug)
             inst = lookup[classname](o)
+            obj = inst
+            try:
+                typ = obj.type
+            except (LookupError, AttributeError) as e:
+                typ = None
+            if typ in ['image/svg']:
+                ser = obj[ATTR+'data']
+                ser = urllib.parse.unquote(ser)
+
             if debug:
                 print(spaces + 'Instanciate defined %s' % obj['obj'])
             indent -= 1

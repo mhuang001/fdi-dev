@@ -1,11 +1,13 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://fdi.net/schemas/dataset/StringParameter",
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/StringParameter",
     "title": "StringParameter",
     "definitions": {
     },
 
     "description": "schema for fdi StringParameter type",
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
     "allOf": [
 	{"$ref": "MetaParameter"},
 	{
@@ -41,11 +43,7 @@
 		    ],
 		    "default": "B"
 		},
-		"_STID": {
-		    "allOf": [{"$ref": "STID"},
-			      {"pattern": "StringParameter"}
-			     ]
-		}
+		"_STID": {"const": "StringParameter" }
 	    }
 	}
     ],

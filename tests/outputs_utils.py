@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 out_tree = """tree out_tree
 ├── meta                                          <MetaData>
-│   └── listeners                               <ListnerSet>
+│   └── listeners                              <ListenerSet>
 ├── measurements                          <CompositeDataset>
 │   ├── meta                                      <MetaData>
-│   │   └── listeners                           <ListnerSet>
+│   │   └── listeners                          <ListenerSet>
 │   ├── Time_Energy_Pos               <TableDataset> (5, 20)
 │   │   ├── meta                                  <MetaData>
-│   │   │   └── listeners                       <ListnerSet>
+│   │   │   └── listeners                      <ListenerSet>
 │   │   ├── Time                              <Column> (20,)
 │   │   ├── Energy                            <Column> (20,)
 │   │   ├── Error                             <Column> (20,)
@@ -24,13 +24,13 @@ out_tree = """tree out_tree
 │   └── a_different_name                        <ProductRef>
 ├── history                                        <History>
 │   ├── meta                                      <MetaData>
-│   │   └── listeners                           <ListnerSet>
+│   │   └── listeners                          <ListenerSet>
 │   └── args                           <TableDataset> (2, 0)
 │       ├── meta                                  <MetaData>
-│       │   └── listeners                       <ListnerSet>
+│       │   └── listeners                      <ListenerSet>
 │       ├── name                               <Column> (0,)
 │       └── value                              <Column> (0,)
-└── listeners                                   <ListnerSet>
+└── listeners                                  <ListenerSet>
 ├── meta                                          <MetaData>
 │   ├── description                                 <string>
 │   │   ├── description                                <str>
@@ -99,10 +99,10 @@ out_tree = """tree out_tree
 │   │   │       └── 0                                 <list>
 │   │   ├── unit                                       <str>
 │   │   └── typecode                              <NoneType>
-│   └── listeners                               <ListnerSet>
+│   └── listeners                              <ListenerSet>
 ├── measurements                          <CompositeDataset>
 │   ├── meta                                      <MetaData>
-│   │   └── listeners                           <ListnerSet>
+│   │   └── listeners                          <ListenerSet>
 │   ├── Time_Energy_Pos               <TableDataset> (5, 20)
 │   │   ├── meta                                  <MetaData>
 │   │   │   ├── description                         <string>
@@ -137,7 +137,7 @@ out_tree = """tree out_tree
 │   │   │   │   ├── value                              <str>
 │   │   │   │   ├── valid                         <NoneType>
 │   │   │   │   └── typecode                           <str>
-│   │   │   └── listeners                       <ListnerSet>
+│   │   │   └── listeners                      <ListenerSet>
 │   │   ├── Time                              <Column> (20,)
 │   │   ├── Energy                            <Column> (20,)
 │   │   ├── Error                             <Column> (20,)
@@ -154,7 +154,7 @@ out_tree = """tree out_tree
 │   └── a_different_name                        <ProductRef>
 ├── history                                        <History>
 │   ├── meta                                      <MetaData>
-│   │   └── listeners                           <ListnerSet>
+│   │   └── listeners                          <ListenerSet>
 │   └── args                           <TableDataset> (2, 0)
 │       ├── meta                                  <MetaData>
 │       │   ├── description                         <string>
@@ -189,10 +189,10 @@ out_tree = """tree out_tree
 │       │   │   ├── value                              <str>
 │       │   │   ├── valid                         <NoneType>
 │       │   │   └── typecode                           <str>
-│       │   └── listeners                       <ListnerSet>
+│       │   └── listeners                      <ListenerSet>
 │       ├── name                               <Column> (0,)
 │       └── value                              <Column> (0,)
-└── listeners                                   <ListnerSet>
+└── listeners                                  <ListenerSet>
 |__ meta                                          <MetaData>
 |   |__ description                                 <string>
 |   |   |__ description                                <str>
@@ -261,10 +261,10 @@ out_tree = """tree out_tree
 |   |   |       \__ 0                                 <list>
 |   |   |__ unit                                       <str>
 |   |   \__ typecode                              <NoneType>
-|   \__ listeners                               <ListnerSet>
+|   \__ listeners                              <ListenerSet>
 |__ measurements                          <CompositeDataset>
 |   |__ meta                                      <MetaData>
-|   |   \__ listeners                           <ListnerSet>
+|   |   \__ listeners                          <ListenerSet>
 |   |__ Time_Energy_Pos               <TableDataset> (5, 20)
 |   |   |__ meta                                  <MetaData>
 |   |   |   |__ description                         <string>
@@ -299,7 +299,7 @@ out_tree = """tree out_tree
 |   |   |   |   |__ value                              <str>
 |   |   |   |   |__ valid                         <NoneType>
 |   |   |   |   \__ typecode                           <str>
-|   |   |   \__ listeners                       <ListnerSet>
+|   |   |   \__ listeners                      <ListenerSet>
 |   |   |__ Time                              <Column> (20,)
 |   |   |__ Energy                            <Column> (20,)
 |   |   |__ Error                             <Column> (20,)
@@ -316,7 +316,7 @@ out_tree = """tree out_tree
 |   \__ a_different_name                        <ProductRef>
 |__ history                                        <History>
 |   |__ meta                                      <MetaData>
-|   |   \__ listeners                           <ListnerSet>
+|   |   \__ listeners                          <ListenerSet>
 |   \__ args                           <TableDataset> (2, 0)
 |       |__ meta                                  <MetaData>
 |       |   |__ description                         <string>
@@ -351,7 +351,7 @@ out_tree = """tree out_tree
 |       |   |   |__ value                              <str>
 |       |   |   |__ valid                         <NoneType>
 |       |   |   \__ typecode                           <str>
-|       |   \__ listeners                       <ListnerSet>
+|       |   \__ listeners                      <ListenerSet>
 |       |__ name                               <Column> (0,)
 |       \__ value                              <Column> (0,)
-\__ listeners                                   <ListnerSet>"""
+\__ listeners                                  <ListenerSet>"""

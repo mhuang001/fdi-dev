@@ -1,14 +1,15 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://fdi.net/schemas/dataset/Parameter",
+    "$schema": "http://json-schema.org/draft/2020-12/schema",
+    "$id": "https://fdi.schemas/dataset/Parameter",
     "title": "Parameter",
     "definitions": {
     },
-
+    "type": "object",
+    "$ref": "https://fdi.schemas/Require_STID",
     "allOf": [
 	{"$ref": "MetaParameter"},
 	{
-	    "required": ["value", "_STID"],
+	    "required": ["value"],
 	    "properties": {
 		"value": {
 		    "description": "Amplitude or magnitude.",
@@ -25,14 +26,11 @@
 		    ],
 		    "default": null
 		},
-		"_STID": {
-		    "allOf": [{"$ref": "STID"},
-			      {"pattern": "^Parameter$"}
-			     ]
-		}
+		"_STID": { "const": "Parameter" }
 	    }
 	}
     ],
+    "$ref": "https://fdi.schemas/Require_STID",
     "examples": [
 	{"description": "in-schema example", "type": "string",
 	 "default": "42", "value": "pi", "valid": [[["a", "z"], "ok"]],

@@ -118,7 +118,7 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
                 return inst
             if classname == 'bytes':
                 inst = bytes.fromhex(obj['code'])
-                #inst = codecs.decode(obj['code'], 'hex')
+                # inst = codecs.decode(obj['code'], 'hex')
                 if debug:
                     print(spaces + 'Instanciate bytes')
                 indent -= 1
@@ -145,8 +145,6 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
             elif classname.startswith('a.array'):
                 # format is "...a.array_I,..."
                 array_t, tcode = tuple(classname.split(',', 1)[0].split('_'))
-                __import__('pdb').set_trace()
-
                 if array_t == 'a.array':
                     inst = array.array(tcode, binascii.a2b_hex(obj['code']))
                     if debug:
@@ -323,6 +321,11 @@ class IntDecoderOD(IntDecoder):
             return o
 
 
+_bltn = dict((k, v) for k, v in vars(builtins).items() if k[0] != '_')
+Classes.mapping.add_ns(_bltn, order=-1)
+Class_Look_Up = Classes.mapping
+
+
 def deserialize(js, lookup=None, debug=False, usedict=True, int_key=False, verbose=False):
     """ Loads classes with _STID from the results of serialize.
 
@@ -334,7 +337,8 @@ def deserialize(js, lookup=None, debug=False, usedict=True, int_key=False, verbo
     -------
     """
 
-    lookup = Class_Look_Up
+    if lookup is None:
+        lookup = Class_Look_Up
 
     if not isinstance(js, strset) or len(js) == 0:
         return None
@@ -358,8 +362,6 @@ def deserialize(js, lookup=None, debug=False, usedict=True, int_key=False, verbo
     indent = -1
     return constructSerializable(obj, lookup=lookup, int_key=int_key, debug=debug)
 
-
-Class_Look_Up = ChainMap(Classes._classes, globals(), vars(builtins))
 
 Serialize_Args_Sep = '__'
 SAS_Avatar = '~'

@@ -33,8 +33,6 @@ from collections.abc import Mapping
 # https://docs.python-guide.org/writing/structure/
 from .pycontext import fdi
 
-Classes.updateMapping()
-
 
 @pytest.fixture(scope='module')
 def importserver():

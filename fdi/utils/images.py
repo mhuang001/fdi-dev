@@ -190,7 +190,7 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None, verbose=False):
                     b.write(generate_png(img, width, height, greyscale=grey,
                                          bitdepth=bitdepth, compression=compression))
         image_dset = MediaWrapper(data=img, description=fnm, typ_='image/png',
-                                  shape=(height, width))
+                                  shape=[height, width])
 
         return image_dset
 

@@ -17,8 +17,6 @@ import logging
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
-#    prjcls = PC.updateMapping()
-
 
 def check_input(arg, serializable=True):
     """ Raise exception if needed when arg is not simple type or Serializable.

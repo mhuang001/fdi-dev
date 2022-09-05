@@ -69,8 +69,6 @@ else:
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
-Classes.updateMapping()
-
 # make format output in /tmp/outputs.py
 mk_outputs = 0
 output_write = 'tests/outputs.py'

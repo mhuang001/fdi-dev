@@ -302,7 +302,7 @@ level 0
 | description     | toString tester AD |      | string   | None               | UNKNOWN         | B          | Description of   |
 |                 |                    |      |          |                    |                 |            | this dataset     |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+------------------+
-| shape           | (2, 3, 4, 5)       |      | tuple    | None               | ()              |            | Number of        |
+| shape           | [2, 3, 4, 5]       |      | list     | None               | []              |            | Number of        |
 |                 |                    |      |          |                    |                 |            | elements in each |
 |                 |                    |      |          |                    |                 |            | dimension. Quick |
 |                 |                    |      |          |                    |                 |            | changers to the  |
@@ -317,10 +317,10 @@ level 0
 | typecode        | UNKNOWN            |      | string   | None               | UNKNOWN         | B          | Python internal  |
 |                 |                    |      |          |                    |                 |            | storage code.    |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+------------------+
-| version         | 0.1                |      | string   | None               | 0.1             | B          | Version of       |
+| version         | 0.3                |      | string   | None               | 0.3             | B          | Version of       |
 |                 |                    |      |          |                    |                 |            | dataset          |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+------------------+
-| FORMATV         | 1.6.0.2            |      | string   | None               | 1.6.0.2         | B          | Version of       |
+| FORMATV         | 1.6.0.3            |      | string   | None               | 1.6.0.3         | B          | Version of       |
 |                 |                    |      |          |                    |                 |            | dataset schema   |
 |                 |                    |      |          |                    |                 |            | and revision     |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+------------------+
@@ -399,10 +399,10 @@ level 1
                 *** ArrayDataset (toString tester AD) ***                 
 
 ------------------------  -------------------  ---------------------------
-description= toString     shape= (2, 3, 4, 5)  type= ArrayDataset
+description= toString     shape= [2, 3, 4, 5]  type= ArrayDataset
 tester AD
-unit= lyr                 typecode= UNKNOWN    version= 0.1
-FORMATV= 1.6.0.2          a= 3.4               b= xy
+unit= lyr                 typecode= UNKNOWN    version= 0.3
+FORMATV= 1.6.0.3          a= 3.4               b= xy
                                                (2019-02-19T01:02:03.456789
                                                1929229360456789)
 c= Invalid (IJK)          d= off (0b00)        added_parameter= 42
@@ -455,11 +455,11 @@ listeners= <No listener>
 
 
 level 2, repr
-ArrayDataset(<MetaData description=(string: toString tester AD <>), shape=(tuple: (2, 3, 4, 5) <>), unit=(string: lyr <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19
+ArrayDataset(<MetaData description=(string: toString tester AD <>), shape=(list: [2, 3, 4, 5] <>), unit=(string: lyr <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19
 01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...> data= [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]])
 
 an empty meta and long data level 2: 
-ArrayDataset(<MetaData shape=(tuple: (8,) <>), ...> data= [8, 8, 8, 8, 8, 8, 8, 8])
+ArrayDataset(<MetaData shape=(list: [8] <>), ...> data= [8, 8, 8, 8, 8, 8, 8, 8])
 tablefmt = html
                                             *****************************************                                            
                                             *** ArrayDataset (toString tester AD) ***                                            
@@ -470,7 +470,7 @@ tablefmt = html
 | description     | toString tester AD |      | string   | None               | UNKNOWN         | B          | Description of   |
 |                 |                    |      |          |                    |                 |            | this dataset     |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+------------------+
-| shape           | (2, 3, 4, 5)       |      | tuple    | None               | ()              |            | Number of        |
+| shape           | [2, 3, 4, 5]       |      | list     | None               | []              |            | Number of        |
 |                 |                    |      |          |                    |                 |            | elements in each |
 |                 |                    |      |          |                    |                 |            | dimension. Quick |
 |                 |                    |      |          |                    |                 |            | changers to the  |
@@ -485,10 +485,10 @@ tablefmt = html
 | typecode        | UNKNOWN            |      | string   | None               | UNKNOWN         | B          | Python internal  |
 |                 |                    |      |          |                    |                 |            | storage code.    |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+------------------+
-| version         | 0.1                |      | string   | None               | 0.1             | B          | Version of       |
+| version         | 0.3                |      | string   | None               | 0.3             | B          | Version of       |
 |                 |                    |      |          |                    |                 |            | dataset          |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+------------------+
-| FORMATV         | 1.6.0.2            |      | string   | None               | 1.6.0.2         | B          | Version of       |
+| FORMATV         | 1.6.0.3            |      | string   | None               | 1.6.0.3         | B          | Version of       |
 |                 |                    |      |          |                    |                 |            | dataset schema   |
 |                 |                    |      |          |                    |                 |            | and revision     |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+------------------+
@@ -574,16 +574,16 @@ level 0
 | description     | UNKNOWN            |      | string   | None               | UNKNOWN         | B          | Description of    |
 |                 |                    |      |          |                    |                 |            | this dataset      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| shape           | (2, 3)             |      | tuple    | None               | ()              |            | Number of columns |
+| shape           | [2, 3]             |      | list     | None               | []              |            | Number of columns |
 |                 |                    |      |          |                    |                 |            | and rows.         |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
 | type            | TableDataset       |      | string   | None               | TableDataset    | B          | Data Type         |
 |                 |                    |      |          |                    |                 |            | identification.   |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| version         | 0.1                |      | string   | None               | 0.1             | B          | Version of        |
+| version         | 0.3                |      | string   | None               | 0.3             | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset           |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| FORMATV         | 1.6.0.2            |      | string   | None               | 1.6.0.2         | B          | Version of        |
+| FORMATV         | 1.6.0.3            |      | string   | None               | 1.6.0.3         | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset schema    |
 |                 |                    |      |          |                    |                 |            | and revision      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
@@ -627,8 +627,8 @@ level 1
                       *** TableDataset (UNKNOWN) ***                     
 
 ---------------------------  ------------------------  ------------------
-description= UNKNOWN         shape= (2, 3)             type= TableDataset
-version= 0.1                 FORMATV= 1.6.0.2          a= 3.4
+description= UNKNOWN         shape= [2, 3]             type= TableDataset
+version= 0.3                 FORMATV= 1.6.0.3          a= 3.4
 b= xy                        c= Invalid (IJK)          d= off (0b00)
 (2019-02-19T01:02:03.456789
 1929229360456789)
@@ -646,11 +646,11 @@ added_parameter= 42          listeners= <No listener>
 
 
 level 2, repr
-TableDataset(<MetaData shape=(tuple: (2, 3) <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19
-01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...>data= {"col1": Column(<MetaData description=(string: 1 <>), shape=(tuple: (3,) <>), type=(string: Column <>), unit=(string: eV <>), ...> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData description=(string: 2 <>), shape=(tuple: (3,) <>), type=(string: Column <>), unit=(string: cnt <>), ...> data= [0, 43.2, 2000.0])})
+TableDataset(<MetaData shape=(list: [2, 3] <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19
+01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...>data= {"col1": Column(<MetaData description=(string: 1 <>), shape=(list: [3] <>), type=(string: Column <>), unit=(string: eV <>), ...> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData description=(string: 2 <>), shape=(list: [3] <>), type=(string: Column <>), unit=(string: cnt <>), ...> data= [0, 43.2, 2000.0])})
 
 an empty level 2: 
-TableDataset(<MetaData shape=(tuple: (0,) <>), ...>data= {})
+TableDataset(<MetaData shape=(list: [0] <>), ...>data= {})
 
 grouped column names                                                  ******************************                                                  
                                                   *** TableDataset (UNKNOWN) ***                                                  
@@ -661,16 +661,16 @@ grouped column names                                                  **********
 | description     | UNKNOWN            |      | string   | None               | UNKNOWN         | B          | Description of    |
 |                 |                    |      |          |                    |                 |            | this dataset      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| shape           | (12, 3)            |      | tuple    | None               | ()              |            | Number of columns |
+| shape           | [12, 3]            |      | list     | None               | []              |            | Number of columns |
 |                 |                    |      |          |                    |                 |            | and rows.         |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
 | type            | TableDataset       |      | string   | None               | TableDataset    | B          | Data Type         |
 |                 |                    |      |          |                    |                 |            | identification.   |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| version         | 0.1                |      | string   | None               | 0.1             | B          | Version of        |
+| version         | 0.3                |      | string   | None               | 0.3             | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset           |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| FORMATV         | 1.6.0.2            |      | string   | None               | 1.6.0.2         | B          | Version of        |
+| FORMATV         | 1.6.0.3            |      | string   | None               | 1.6.0.3         | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset schema    |
 |                 |                    |      |          |                    |                 |            | and revision      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
@@ -720,16 +720,16 @@ grouped column names                                                  **********
 │ description     │ UNKNOWN            │      │ string   │ None               │ UNKNOWN         │ B          │ Description of    │
 │                 │                    │      │          │                    │                 │            │ this dataset      │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
-│ shape           │ (12, 3)            │      │ tuple    │ None               │ ()              │            │ Number of columns │
+│ shape           │ [12, 3]            │      │ list     │ None               │ []              │            │ Number of columns │
 │                 │                    │      │          │                    │                 │            │ and rows.         │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
 │ type            │ TableDataset       │      │ string   │ None               │ TableDataset    │ B          │ Data Type         │
 │                 │                    │      │          │                    │                 │            │ identification.   │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
-│ version         │ 0.1                │      │ string   │ None               │ 0.1             │ B          │ Version of        │
+│ version         │ 0.3                │      │ string   │ None               │ 0.3             │ B          │ Version of        │
 │                 │                    │      │          │                    │                 │            │ dataset           │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
-│ FORMATV         │ 1.6.0.2            │      │ string   │ None               │ 1.6.0.2         │ B          │ Version of        │
+│ FORMATV         │ 1.6.0.3            │      │ string   │ None               │ 1.6.0.3         │ B          │ Version of        │
 │                 │                    │      │          │                    │                 │            │ dataset schema    │
 │                 │                    │      │          │                    │                 │            │ and revision      │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
@@ -782,16 +782,16 @@ grouped column names                                                  **********
 │ description     │ UNKNOWN            │      │ string   │ None               │ UNKNOWN         │ B          │ Description of    │
 │                 │                    │      │          │                    │                 │            │ this dataset      │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
-│ shape           │ (12, 3)            │      │ tuple    │ None               │ ()              │            │ Number of columns │
+│ shape           │ [12, 3]            │      │ list     │ None               │ []              │            │ Number of columns │
 │                 │                    │      │          │                    │                 │            │ and rows.         │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
 │ type            │ TableDataset       │      │ string   │ None               │ TableDataset    │ B          │ Data Type         │
 │                 │                    │      │          │                    │                 │            │ identification.   │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
-│ version         │ 0.1                │      │ string   │ None               │ 0.1             │ B          │ Version of        │
+│ version         │ 0.3                │      │ string   │ None               │ 0.3             │ B          │ Version of        │
 │                 │                    │      │          │                    │                 │            │ dataset           │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
-│ FORMATV         │ 1.6.0.2            │      │ string   │ None               │ 1.6.0.2         │ B          │ Version of        │
+│ FORMATV         │ 1.6.0.3            │      │ string   │ None               │ 1.6.0.3         │ B          │ Version of        │
 │                 │                    │      │          │                    │                 │            │ dataset schema    │
 │                 │                    │      │          │                    │                 │            │ and revision      │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
@@ -862,16 +862,16 @@ p
 | description     | UNKNOWN            |      | string   | None               | UNKNOWN         | B          | Description of    |
 |                 |                    |      |          |                    |                 |            | this dataset      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| shape           | (12, 3)            |      | tuple    | None               | ()              |            | Number of columns |
+| shape           | [12, 3]            |      | list     | None               | []              |            | Number of columns |
 |                 |                    |      |          |                    |                 |            | and rows.         |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
 | type            | TableDataset       |      | string   | None               | TableDataset    | B          | Data Type         |
 |                 |                    |      |          |                    |                 |            | identification.   |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| version         | 0.1                |      | string   | None               | 0.1             | B          | Version of        |
+| version         | 0.3                |      | string   | None               | 0.3             | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset           |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| FORMATV         | 1.6.0.2            |      | string   | None               | 1.6.0.2         | B          | Version of        |
+| FORMATV         | 1.6.0.3            |      | string   | None               | 1.6.0.3         | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset schema    |
 |                 |                    |      |          |                    |                 |            | and revision      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
@@ -942,16 +942,16 @@ p
 | description     | UNKNOWN            |      | string   | None               | UNKNOWN         | B          | Description of    |
 |                 |                    |      |          |                    |                 |            | this dataset      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| shape           | (12, 3)            |      | tuple    | None               | ()              |            | Number of columns |
+| shape           | [12, 3]            |      | list     | None               | []              |            | Number of columns |
 |                 |                    |      |          |                    |                 |            | and rows.         |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
 | type            | TableDataset       |      | string   | None               | TableDataset    | B          | Data Type         |
 |                 |                    |      |          |                    |                 |            | identification.   |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| version         | 0.1                |      | string   | None               | 0.1             | B          | Version of        |
+| version         | 0.3                |      | string   | None               | 0.3             | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset           |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| FORMATV         | 1.6.0.2            |      | string   | None               | 1.6.0.2         | B          | Version of        |
+| FORMATV         | 1.6.0.3            |      | string   | None               | 1.6.0.3         | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset schema    |
 |                 |                    |      |          |                    |                 |            | and revision      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
@@ -1022,16 +1022,16 @@ p
 │ description     │ UNKNOWN            │      │ string   │ None               │ UNKNOWN         │ B          │ Description of    │
 │                 │                    │      │          │                    │                 │            │ this dataset      │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
-│ shape           │ (12, 3)            │      │ tuple    │ None               │ ()              │            │ Number of columns │
+│ shape           │ [12, 3]            │      │ list     │ None               │ []              │            │ Number of columns │
 │                 │                    │      │          │                    │                 │            │ and rows.         │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
 │ type            │ TableDataset       │      │ string   │ None               │ TableDataset    │ B          │ Data Type         │
 │                 │                    │      │          │                    │                 │            │ identification.   │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
-│ version         │ 0.1                │      │ string   │ None               │ 0.1             │ B          │ Version of        │
+│ version         │ 0.3                │      │ string   │ None               │ 0.3             │ B          │ Version of        │
 │                 │                    │      │          │                    │                 │            │ dataset           │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
-│ FORMATV         │ 1.6.0.2            │      │ string   │ None               │ 1.6.0.2         │ B          │ Version of        │
+│ FORMATV         │ 1.6.0.3            │      │ string   │ None               │ 1.6.0.3         │ B          │ Version of        │
 │                 │                    │      │          │                    │                 │            │ dataset schema    │
 │                 │                    │      │          │                    │                 │            │ and revision      │
 ├─────────────────┼────────────────────┼──────┼──────────┼────────────────────┼─────────────────┼────────────┼───────────────────┤
@@ -1085,16 +1085,16 @@ p
 | description     | UNKNOWN            |      | string   | None               | UNKNOWN         | B          | Description of    |
 |                 |                    |      |          |                    |                 |            | this dataset      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| shape           | (12, 3)            |      | tuple    | None               | ()              |            | Number of columns |
+| shape           | [12, 3]            |      | list     | None               | []              |            | Number of columns |
 |                 |                    |      |          |                    |                 |            | and rows.         |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
 | type            | TableDataset       |      | string   | None               | TableDataset    | B          | Data Type         |
 |                 |                    |      |          |                    |                 |            | identification.   |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| version         | 0.1                |      | string   | None               | 0.1             | B          | Version of        |
+| version         | 0.3                |      | string   | None               | 0.3             | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset           |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| FORMATV         | 1.6.0.2            |      | string   | None               | 1.6.0.2         | B          | Version of        |
+| FORMATV         | 1.6.0.3            |      | string   | None               | 1.6.0.3         | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset schema    |
 |                 |                    |      |          |                    |                 |            | and revision      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
@@ -1142,16 +1142,16 @@ p
 | description     | UNKNOWN            |      | string   | None               | UNKNOWN         | B          | Description of    |
 |                 |                    |      |          |                    |                 |            | this dataset      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| shape           | (12, 3)            |      | tuple    | None               | ()              |            | Number of columns |
+| shape           | [12, 3]            |      | list     | None               | []              |            | Number of columns |
 |                 |                    |      |          |                    |                 |            | and rows.         |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
 | type            | TableDataset       |      | string   | None               | TableDataset    | B          | Data Type         |
 |                 |                    |      |          |                    |                 |            | identification.   |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| version         | 0.1                |      | string   | None               | 0.1             | B          | Version of        |
+| version         | 0.3                |      | string   | None               | 0.3             | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset           |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| FORMATV         | 1.6.0.2            |      | string   | None               | 1.6.0.2         | B          | Version of        |
+| FORMATV         | 1.6.0.3            |      | string   | None               | 1.6.0.3         | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset schema    |
 |                 |                    |      |          |                    |                 |            | and revision      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
@@ -1201,16 +1201,16 @@ p
 | description     | UNKNOWN            |      | string   | None               | UNKNOWN         | B          | Description of    |
 |                 |                    |      |          |                    |                 |            | this dataset      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| shape           | (12, 3)            |      | tuple    | None               | ()              |            | Number of columns |
+| shape           | [12, 3]            |      | list     | None               | []              |            | Number of columns |
 |                 |                    |      |          |                    |                 |            | and rows.         |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
 | type            | TableDataset       |      | string   | None               | TableDataset    | B          | Data Type         |
 |                 |                    |      |          |                    |                 |            | identification.   |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| version         | 0.1                |      | string   | None               | 0.1             | B          | Version of        |
+| version         | 0.3                |      | string   | None               | 0.3             | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset           |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
-| FORMATV         | 1.6.0.2            |      | string   | None               | 1.6.0.2         | B          | Version of        |
+| FORMATV         | 1.6.0.3            |      | string   | None               | 1.6.0.3         | B          | Version of        |
 |                 |                    |      |          |                    |                 |            | dataset schema    |
 |                 |                    |      |          |                    |                 |            | and revision      |
 +-----------------+--------------------+------+----------+--------------------+-----------------+------------+-------------------+
@@ -1263,12 +1263,12 @@ p
 <tbody>
 <tr><td>description    </td><td>UNKNOWN      </td><td>    </td><td>string  </td><td>None     </td><td>UNKNOWN     </td><td>B   </td><td>Description of
 this dataset                   </td></tr>
-<tr><td>shape          </td><td>(12, 3)      </td><td>    </td><td>tuple   </td><td>None     </td><td>()          </td><td>    </td><td>Number of columns
+<tr><td>shape          </td><td>[12, 3]      </td><td>    </td><td>list    </td><td>None     </td><td>[]          </td><td>    </td><td>Number of columns
 and rows.                   </td></tr>
 <tr><td>type           </td><td>TableDataset </td><td>    </td><td>string  </td><td>None     </td><td>TableDataset</td><td>B   </td><td>Data Type
 identification.                   </td></tr>
-<tr><td>version        </td><td>0.1          </td><td>    </td><td>string  </td><td>None     </td><td>0.1         </td><td>B   </td><td>Version of dataset</td></tr>
-<tr><td>FORMATV        </td><td>1.6.0.2      </td><td>    </td><td>string  </td><td>None     </td><td>1.6.0.2     </td><td>B   </td><td>Version of dataset
+<tr><td>version        </td><td>0.3          </td><td>    </td><td>string  </td><td>None     </td><td>0.3         </td><td>B   </td><td>Version of dataset</td></tr>
+<tr><td>FORMATV        </td><td>1.6.0.3      </td><td>    </td><td>string  </td><td>None     </td><td>1.6.0.3     </td><td>B   </td><td>Version of dataset
 schema and
 <br>revision                   </td></tr>
 <tr><td>a              </td><td>3.4          </td><td>None</td><td>float   </td><td>(0, 31):
@@ -1358,7 +1358,7 @@ SubDataset  "dataset 1":
 | description | arraydset 1   |      | string | None  | UNKNOWN      | B    | Description of   |
 |             |               |      |        |       |              |      | this dataset     |
 +-------------+---------------+------+--------+-------+--------------+------+------------------+
-| shape       | (3,)          |      | tuple  | None  | ()           |      | Number of        |
+| shape       | [3]           |      | list   | None  | []           |      | Number of        |
 |             |               |      |        |       |              |      | elements in each |
 |             |               |      |        |       |              |      | dimension. Quick |
 |             |               |      |        |       |              |      | changers to the  |
@@ -1373,10 +1373,10 @@ SubDataset  "dataset 1":
 | typecode    | UNKNOWN       |      | string | None  | UNKNOWN      | B    | Python internal  |
 |             |               |      |        |       |              |      | storage code.    |
 +-------------+---------------+------+--------+-------+--------------+------+------------------+
-| version     | 0.1           |      | string | None  | 0.1          | B    | Version of       |
+| version     | 0.3           |      | string | None  | 0.3          | B    | Version of       |
 |             |               |      |        |       |              |      | dataset          |
 +-------------+---------------+------+--------+-------+--------------+------+------------------+
-| FORMATV     | 1.6.0.2       |      | string | None  | 1.6.0.2      | B    | Version of       |
+| FORMATV     | 1.6.0.3       |      | string | None  | 1.6.0.3      | B    | Version of       |
 |             |               |      |        |       |              |      | dataset schema   |
 |             |               |      |        |       |              |      | and revision     |
 +-------------+---------------+------+--------+-------+--------------+------+------------------+
@@ -1397,16 +1397,16 @@ SubDataset  "dataset 2":
 | description | Example table |      | string | None  | UNKNOWN      | B    | Description of    |
 |             |               |      |        |       |              |      | this dataset      |
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
-| shape       | (2, 5)        |      | tuple  | None  | ()           |      | Number of columns |
+| shape       | [2, 5]        |      | list   | None  | []           |      | Number of columns |
 |             |               |      |        |       |              |      | and rows.         |
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
 | type        | TableDataset  |      | string | None  | TableDataset | B    | Data Type         |
 |             |               |      |        |       |              |      | identification.   |
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
-| version     | 0.1           |      | string | None  | 0.1          | B    | Version of        |
+| version     | 0.3           |      | string | None  | 0.3          | B    | Version of        |
 |             |               |      |        |       |              |      | dataset           |
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
-| FORMATV     | 1.6.0.2       |      | string | None  | 1.6.0.2      | B    | Version of        |
+| FORMATV     | 1.6.0.3       |      | string | None  | 1.6.0.3      | B    | Version of        |
 |             |               |      |        |       |              |      | dataset schema    |
 |             |               |      |        |       |              |      | and revision      |
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
@@ -1446,9 +1446,9 @@ SubDataset  "dataset 1":
                  *** ArrayDataset (arraydset 1) ***                 
 
 ------------------------  ------------------------  ------------------
-description= arraydset 1  shape= (3,)               type= ArrayDataset
-unit= ev                  typecode= UNKNOWN         version= 0.1
-FORMATV= 1.6.0.2          listeners= <No listener>
+description= arraydset 1  shape= [3]                type= ArrayDataset
+unit= ev                  typecode= UNKNOWN         version= 0.3
+FORMATV= 1.6.0.3          listeners= <No listener>
 ------------------------  ------------------------  ------------------
 
 768  4.4  5400
@@ -1458,8 +1458,8 @@ SubDataset  "dataset 2":
                 *** TableDataset (Example table) ***                
 
 --------------------------  ----------------  ------------------------
-description= Example table  shape= (2, 5)     type= TableDataset
-version= 0.1                FORMATV= 1.6.0.2  listeners= <No listener>
+description= Example table  shape= [2, 5]     type= TableDataset
+version= 0.3                FORMATV= 1.6.0.3  listeners= <No listener>
 --------------------------  ----------------  ------------------------
 
 +-------+--------+
@@ -1524,7 +1524,7 @@ SubDataset  "dataset 1":
 | description | arraydset 1   |      | string | None  | UNKNOWN      | B    | Description of   |
 |             |               |      |        |       |              |      | this dataset     |
 +-------------+---------------+------+--------+-------+--------------+------+------------------+
-| shape       | (3,)          |      | tuple  | None  | ()           |      | Number of        |
+| shape       | [3]           |      | list   | None  | []           |      | Number of        |
 |             |               |      |        |       |              |      | elements in each |
 |             |               |      |        |       |              |      | dimension. Quick |
 |             |               |      |        |       |              |      | changers to the  |
@@ -1539,10 +1539,10 @@ SubDataset  "dataset 1":
 | typecode    | UNKNOWN       |      | string | None  | UNKNOWN      | B    | Python internal  |
 |             |               |      |        |       |              |      | storage code.    |
 +-------------+---------------+------+--------+-------+--------------+------+------------------+
-| version     | 0.1           |      | string | None  | 0.1          | B    | Version of       |
+| version     | 0.3           |      | string | None  | 0.3          | B    | Version of       |
 |             |               |      |        |       |              |      | dataset          |
 +-------------+---------------+------+--------+-------+--------------+------+------------------+
-| FORMATV     | 1.6.0.2       |      | string | None  | 1.6.0.2      | B    | Version of       |
+| FORMATV     | 1.6.0.3       |      | string | None  | 1.6.0.3      | B    | Version of       |
 |             |               |      |        |       |              |      | dataset schema   |
 |             |               |      |        |       |              |      | and revision     |
 +-------------+---------------+------+--------+-------+--------------+------+------------------+
@@ -1563,16 +1563,16 @@ SubDataset  "dataset 2":
 | description | Example table |      | string | None  | UNKNOWN      | B    | Description of    |
 |             |               |      |        |       |              |      | this dataset      |
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
-| shape       | (2, 5)        |      | tuple  | None  | ()           |      | Number of columns |
+| shape       | [2, 5]        |      | list   | None  | []           |      | Number of columns |
 |             |               |      |        |       |              |      | and rows.         |
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
 | type        | TableDataset  |      | string | None  | TableDataset | B    | Data Type         |
 |             |               |      |        |       |              |      | identification.   |
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
-| version     | 0.1           |      | string | None  | 0.1          | B    | Version of        |
+| version     | 0.3           |      | string | None  | 0.3          | B    | Version of        |
 |             |               |      |        |       |              |      | dataset           |
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+
-| FORMATV     | 1.6.0.2       |      | string | None  | 1.6.0.2      | B    | Version of        |
+| FORMATV     | 1.6.0.3       |      | string | None  | 1.6.0.3      | B    | Version of        |
 |             |               |      |        |       |              |      | dataset schema    |
 |             |               |      |        |       |              |      | and revision      |
 +-------------+---------------+------+--------+-------+--------------+------+-------------------+

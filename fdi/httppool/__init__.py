@@ -101,23 +101,23 @@ def setup_logging(level=None, extras=None):
 
 def init_conf_classes(pc, lggr):
 
-    from ..dataset.classes import Classes
-
     # setup user class mapping
     clp = pc['userclasses']
     lggr.debug('User class file '+clp)
     if clp == '':
-        Classes.updateMapping()
+        from ..dataset.classes import Classes
+        return Classes
     else:
         clpp, clpf = os.path.split(clp)
         sys.path.insert(0, os.path.abspath(clpp))
         # print(sys.path)
-        pcs = __import__(clpf.rsplit('.py', 1)[
-            0], globals(), locals(), ['PC'], 0)
-        pcs.PC.updateMapping()
-        Classes.updateMapping(pcs.PC.mapping)
-        lggr.debug('User classes: %d found.' % len(pcs.PC.mapping))
-    return Classes
+        # get the 'ProjectClasses' attribute
+        projectclasses = __import__(clpf.rsplit('.py', 1)[0],
+                                    globals(), locals(),
+                                    ['ProjectClasses'], 0)
+        Clz = projectclasses.ProjectClasses
+        lggr.debug('User classes: %d found.' % len(Clz.mapping))
+        return Clz
 
 
 def init_httppool_server(app):
@@ -127,8 +127,9 @@ def init_httppool_server(app):
     pc = app.config['PC']
     # class namespace
     Classes = init_conf_classes(pc, app.logger)
-    lookup = ChainMap(Classes.mapping, globals(), vars(builtins))
-    app.config['LOOKUP'] = lookup
+    _bltn = dict((k, v) for k, v in vars(builtins).items() if k[0] != '_')
+    Classes.mapping.add_ns(_bltn, order=-1)
+    app.config['LOOKUP'] = Classes.mapping
 
     # users
     # effective group of current process

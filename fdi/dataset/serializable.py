@@ -12,7 +12,6 @@ import json
 import copy
 import codecs
 import urllib
-from collections import ChainMap
 from collections.abc import Collection, Mapping
 from functools import lru_cache
 import sys
@@ -247,7 +246,7 @@ def serialize(o, cls=None, **kwds):
 
 
 @lru_cache(maxsize=256)
-def get_schema_id(cls_name, store=None):
+def get_schema_with_classname(cls_name, store=None):
     if store is None:
         store = makeSchemeStore()
     for sch in store:
@@ -373,7 +372,9 @@ class Serializable():
         return s
 
     def schema(self):
-        sid, sch = get_schema(self.__class__.__name__)
+        """ Get schema definition using the FDI standard schema set in `FDI_SCHEMA_STORE`. Subclassing to add more schemas.
+        """
+        sid, sch = get_schema_with_classname(self.__class__.__name__)
         return sch
 
     def yaml(self, *args, **kwds):

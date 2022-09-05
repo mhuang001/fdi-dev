@@ -55,8 +55,6 @@ else:
 Test_Pool_Name = __name__.replace('.', '_')
 defaultpoolPath = '/tmp/fditest'
 
-Classes.updateMapping()
-
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
 

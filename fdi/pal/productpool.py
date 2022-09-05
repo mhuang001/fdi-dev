@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+
 from ..dataset.baseproduct import BaseProduct
 from ..dataset.classes import Classes
 from ..dataset.product import Product
 from ..dataset.serializable import serialize
-from ..dataset.deserialize import deserialize
+from ..dataset.deserialize import deserialize, Class_Look_Up
 from .urn import Urn, parseUrn, parse_poolurl, makeUrn
 from .versionable import Versionable
 from .taggable import Taggable
@@ -13,6 +14,8 @@ from ..utils.common import pathjoin, fullname, lls, trbk
 from .productref import ProductRef
 from .query import AbstractQuery, MetaQuery, StorageQuery
 
+from collections import OrderedDict, ChainMap
+from functools import lru_cache
 import logging
 import filelock
 import getpass
@@ -20,8 +23,6 @@ import functools
 import os
 import sys
 import builtins
-from collections import OrderedDict, ChainMap
-from functools import lru_cache
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -33,9 +34,6 @@ else:
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
-
-Class_Look_Up = ChainMap(Classes.mapping, globals(), vars(builtins))
-
 
 Lock_Path_Base = '/tmp/fdi_locks_' + getpass.getuser()
 # lock time-out

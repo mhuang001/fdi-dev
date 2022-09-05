@@ -139,8 +139,8 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
                                     col.typecode]
                 if debug:
                     print('tname:', tname)
-                c = Column(data=col.data, name=name, dtype=tname, shape=(
-                ), length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
+                c = Column(data=col.data, name=name, dtype=tname, shape=[
+                ], length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
                 t.add_column(c)
             if not dataset_only:
                 header = add_header(ima.meta, header)

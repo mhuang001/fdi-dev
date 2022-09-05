@@ -61,7 +61,7 @@ class PublicClientPool(ManagedPool):
         """
         s = (not hasattr(self, '_poolurl') or not self._poolurl)
         self._poolpath, self._scheme, self._place, \
-        self._poolname, self._username, self._password = \
+            self._poolname, self._username, self._password = \
             parse_poolurl(poolurl)
 
         self._cloudpoolpath = self._poolpath + '/' + self._poolname
@@ -102,7 +102,8 @@ class PublicClientPool(ManagedPool):
 
     def getPoolInfo(self):
         # TODO: waiting for updating get poolpath like poolbs
-        res = read_from_cloud('infoPool', poolpath=self.getPoolpath(), token=self.token)
+        res = read_from_cloud(
+            'infoPool', poolpath=self.getPoolpath(), token=self.token)
         if res['code'] == 0:
             if res['data']:
                 self.poolInfo = res['data']
@@ -215,7 +216,8 @@ class PublicClientPool(ManagedPool):
             raise ValueError('No such product type in cloud: ' + pn)
 
         targetPoolpath = self.getPoolpath() + '/' + pn
-        poolInfo = read_from_cloud('infoPool', poolpath=targetPoolpath, token=self.token)
+        poolInfo = read_from_cloud(
+            'infoPool', poolpath=targetPoolpath, token=self.token)
         if poolInfo.get(targetPoolpath):
             sn = poolInfo[targetPoolpath]['lastIndex'] + 1
         else:
@@ -322,13 +324,15 @@ class PublicClientPool(ManagedPool):
         """ do the scheme-specific loading
         """
         targetPoolpath = self.getPoolpath() + '/' + resourcetype
-        poolInfo = read_from_cloud('infoPool', poolpath=targetPoolpath, token=self.token)
+        poolInfo = read_from_cloud(
+            'infoPool', poolpath=targetPoolpath, token=self.token)
         try:
             if poolInfo['data']:
                 poolInfo = poolInfo['data']
                 if poolInfo.get(targetPoolpath):
                     if index in poolInfo[targetPoolpath]['indexes']:
-                        urn = makeUrn(poolname=self._poolname, typename=resourcetype, index=index)
+                        urn = makeUrn(poolname=self._poolname,
+                                      typename=resourcetype, index=index)
                         res = self.doLoadByUrn(urn)
                         # res is a product like fdi.dataset.product.Product
 
@@ -343,8 +347,10 @@ class PublicClientPool(ManagedPool):
         except Exception as e:
             logger.debug('Load product failed:' + str(e))
             raise e
-        logger.debug('No such product:' + resourcetype + ' with index: ' + str(index))
-        raise ValueError('No such product:' + resourcetype + ' with index: ' + str(index))
+        logger.debug('No such product:' + resourcetype +
+                     ' with index: ' + str(index))
+        raise ValueError('No such product:' + resourcetype +
+                         ' with index: ' + str(index))
 
     def doLoad(self, resourcetype, index, start=None, end=None, serialize_out=False):
         """ to be implemented by subclasses to do the action of loading
@@ -448,7 +454,6 @@ def genProduct(size=1):
         return res
 
 
-
 # from fdi.pal.query import MetaQuery
 # qt = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] <= 5005')
 # <MetaQuery where='m["extra"] > 5000 and m["extra"] <= 5005', type=<class 'fdi.dataset.product.Product'>, variable='m', allVersions=False>
@@ -495,7 +500,7 @@ def test_get():
     prd = test_pool.schematicLoad('fdi.dataset.product.Product', 1)
     assert prd.description == 'product example with several datasets', 'retrieve production incorrect'
     assert prd.instrument == 'Crystal-Ball', 'retrieve production incorrect'
-    assert prd['QualityImage'].shape == (3, 3), 'retrieve production incorrect'
+    assert prd['QualityImage'].shape == [3, 3], 'retrieve production incorrect'
 
 
 def test_remove():
@@ -512,6 +517,7 @@ def test_remove():
             assert res == 'success'
     info = test_pool.getPoolInfo()
     print(info)
+
 
 def test_search():
     pass

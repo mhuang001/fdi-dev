@@ -3,7 +3,6 @@
 from .metadataholder import MetaDataHolder
 from .metadata import AbstractParameter, Parameter
 from .datatypes import DataTypes
-from .deserialize import Class_Look_Up
 from .finetime import FineTime
 
 from collections import ChainMap

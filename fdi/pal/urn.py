@@ -132,7 +132,8 @@ URNs are used to to identify data be cause URNs are location agnostic. Storage P
 
         poolname, resourcetype, index = parseUrn(urn)
 
-        Class_Look_Up = ChainMap(Classes.mapping, globals(), vars(builtins))
+        Class_Look_Up = ChainMap(
+            Classes.mapping, globals(), vars(builtins))
         cls = Class_Look_Up[resourcetype.split('.')[-1]]
 
         self._poolname = poolname

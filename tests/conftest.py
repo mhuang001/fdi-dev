@@ -29,7 +29,6 @@ def clean_board():
     global Class_Look_Up
     # importlib.reload(Class_Look_Up)
     from fdi.dataset.deserialize import Class_Look_Up
-    Classes.updateMapping()
 
     return Classes
 
@@ -233,8 +232,8 @@ def client(server_app, mock_app):
             yield client
 
 
-#@pytest.fixture(scope="module")
-#async def a_client(aiohttp_client, server_app, mock_app):
+# @pytest.fixture(scope="module")
+# async def a_client(aiohttp_client, server_app, mock_app):
 #    if server_app == None:
 #        yield aiohttp_client(requests)
 #    else:

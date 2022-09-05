@@ -653,7 +653,7 @@ def findShape(data, element_seq=(str)):
                     d.__class__, Mapping) else d[0]
             except (TypeError, IndexError, KeyError) as e:
                 d = None
-    return tuple(shape)
+    return shape
 
 
 def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=None, absdir=False):

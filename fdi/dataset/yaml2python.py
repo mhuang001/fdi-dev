@@ -675,13 +675,15 @@ if __name__ == '__main__':
     # include project classes for every product so that products made just
     # now can be used as parents
     from .classes import Classes
+
     pc = get_projectclasses(project_class_path,  rerun=True,
                             exclude=importexclude, verbose=verbose)
-    glb = Classes.updateMapping(
-        c=pc.PC.getMapping(exclude=importexclude) if pc else {},
-        rerun=True,
+    spupd = pc.PC
+    glb = Classes.update(
+        c=spupd,
         exclude=importexclude,
-        verbose=verbose)
+        extension=True,
+        verbose=verbose) if pc else Classes.mapping
     # make a list whose members do not depend on members behind (to the left)
     sorted_list = dependency_sort(descriptors)
 

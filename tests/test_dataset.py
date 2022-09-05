@@ -35,7 +35,7 @@ from fdi.dataset.product import Product
 from fdi.dataset.browseproduct import BrowseProduct
 from fdi.dataset.readonlydict import ReadOnlyDict
 from fdi.dataset.unstructureddataset import UnstructuredDataset
-from fdi.dataset.testproducts import SP, get_demo_product
+from fdi.dataset.testproducts import get_demo_product
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadMedia
 from fdi.utils.ydump import ydump
@@ -67,8 +67,6 @@ else:
     PY3 = False
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-
-Classes.updateMapping()
 
 # make format output in /tmp/outputs.py
 mk_outputs = 0
@@ -792,7 +790,7 @@ def test_Parameter_features():
         with pytest.raises(TypeError):
             v = Parameter(a2, a1, a4)
     else:  # smart
-        # not recommendedxs
+        # not recommended
         v = Parameter(a2, a1, a4)
         # v = Parameter(typ_=a4)
         # v.value = a2
@@ -1424,18 +1422,18 @@ def do_ArrayDataset_init(atype):
     assert v.unit == a2
     assert v.description == a3
     assert v.typecode == a6
-    assert v.shape == (len(a1),)
+    assert v.shape == [len(a1)]
 
     ashape = [[[1], [2]], [[3], [4]], [[5], [6]]]
     v2 = ArrayDataset()
     # setting data also sets shape
     v2.data = ashape
     # setting dataa also v.updateShape()
-    assert v2.shape == (3, 2, 1)
+    assert v2.shape == [3, 2, 1]
     v2.pop()
-    assert v2.shape == (2, 2, 1)
+    assert v2.shape == [2, 2, 1]
     v2 = ArrayDataset(data=['poi'])
-    assert v2.shape == (1,)
+    assert v2.shape == [1]
 
     # omit the parameter names when instantiating, the orders are data, unit, description
     v2 = ArrayDataset(a1)
@@ -1736,13 +1734,13 @@ def test_TableDataset_init():
         assert v.getColumnName(0) == 'col1'
         t = a1['col2'].data[1]  # 43.2
         assert v.getValueAt(rowIndex=1, columnIndex=1) == t
-        assert v.shape == (2, 3)
+        assert v.shape == [2, 3]
 
     # 2: add columns one by one
     v2 = TableDataset()
     v2['col1'] = Column(data=copy.deepcopy(d1), unit='eV')
     v2['col2'] = Column(data=copy.deepcopy(d2), unit='cnt')
-    assert v2.shape == (2, 3)
+    assert v2.shape == [2, 3]
 
     # print('DDD ', deepcmp(v, v2, verbose=0))
 
@@ -3060,28 +3058,6 @@ def test_BrowseProduct():
                       )
     v['copybutton'] = cb
     assert v.getDefault().data.startswith(b'GIF')
-
-
-def test_SubProduct():
-
-    y = SP()
-
-    # register it in Classes.mapping so deserializer knows how to instanciate.
-    Classes.mapping.update({'SP': SP})
-
-    check_Product(SP)
-
-    from fdi.pal.context import MapContext
-
-    class SSP(SP, MapContext):
-        def __init__(self, **kwds):
-            super().__init__(**kwds)
-
-    x = SSP()
-    x.instrument = 'ff'
-    assert x.instrument == 'ff'
-    x.rr = 'r'
-    assert x.rr == 'r'
 
 
 def est_yaml2python():

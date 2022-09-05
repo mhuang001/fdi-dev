@@ -318,6 +318,7 @@ class LocalPool(ManagedPool):
 
         index: int
         """
+
         fp0 = self.transformpath(self._poolname)
         fp = pathjoin(fp0, quote(resourcetype) + '_' + str(index))
         try:

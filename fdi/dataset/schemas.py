@@ -134,3 +134,9 @@ def validateJson(data, validator):
     except RefResolutionError as e:
         logger.error(e)
     return errors
+
+
+class Schmas(ChainMap):
+    def __init__(self, **kwds):
+
+        makeSchemaStore()

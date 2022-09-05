@@ -3,7 +3,7 @@ TESTLOG	= /tmp/fdi-tests.log
 L	= INFO #WARNING
 OPT	=    --log-level=$(L)
 T	= 
-test: test1 test2 test5
+test: test1 test2 test5 test14
 
 testpns: test4
 
@@ -51,3 +51,6 @@ test12:
 
 test13:
 	$(PYTEST) $(OPT) tests/test_schemas.py $(T)
+
+test14:
+	$(PYTEST) $(OPT) --noconftest tests/test_classes.py $(T)

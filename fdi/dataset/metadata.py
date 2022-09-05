@@ -8,7 +8,7 @@ from .listener import DatasetEventSender, ParameterListener, DatasetEvent, Event
 from .eq import DeepEqual, xhash
 from .copyable import Copyable
 from .annotatable import Annotatable
-from .classes import Classes
+from .classes import Classes, Class_Module_Map
 from .typed import Typed
 from .invalid import INVALID
 from ..utils.masked import masked
@@ -575,18 +575,22 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             return value
 
         self_cls_name = DataTypes[self_type]
-        if self_cls_name in Classes.mapping:
+        from .deserialize import Class_Look_Up
+        if self_cls_name not in Class_Look_Up:
+            return
+        if self_cls_name in Class_Module_Map:
             # custom-defined parameter. delegate checking to themselves
-            if issubclass(type(value), tuple):
-                # frozendict used in baseproduct module change lists to tuples
-                # which causes deserialized parameter to differ from ProductInfo.
-                value = list(value)
             return value
-        self_class = builtins.__dict__[self_cls_name]
+
+        if issubclass(type(value), tuple):
+            # frozendict used in baseproduct module change lists to tuples
+            # which causes deserialized parameter to differ from ProductInfo.
+            value = list(value)
+        self_class = Class_Look_Up[self_cls_name]
         # if value type is a subclass of self type
         # if issubclass(value_class, float):
         #    __import__('pdb').set_trace()
-        "Can't set"
+
         if issubclass(value_class, self_class):
             return value
         elif issubclass(value_class, Number) and issubclass(self_class, Number):

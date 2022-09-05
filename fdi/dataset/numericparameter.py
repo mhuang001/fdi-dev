@@ -57,14 +57,14 @@ class NumericParameter(Parameter, Quantifiable):
         """ accept any type that a Vector does.
         """
         if value is not None and issubclass(value.__class__, Sequence):
-            if self.type in ('vector', 'vector2d', 'vector3d'):
+            if self.type in ('vector', 'vector2d', 'vector3d', 'quaternion'):
                 d = list(value)
                 len_d = len(d)
                 if len_d == 2:
                     value = Vector2D(d)
                 elif len_d == 3:
                     value = Vector3D(d)
-                elif len_d == 4:
+                elif len_d == 4 and getattr(self, '_type', None) == 'quaternion':
                     value = Quaternion(d)
                 else:
                     value = Vector(d)
@@ -78,14 +78,14 @@ class NumericParameter(Parameter, Quantifiable):
         """
         if default is not None and issubclass(default.__class__, Sequence):
             # MUST NOT depend on self.type being existing
-            if getattr(self, '_type', None) in ('vector', 'vector2d', 'vector3d'):
+            if getattr(self, '_type', None) in ('vector', 'vector2d', 'vector3d', 'quaternion'):
                 d = list(default)
                 len_d = len(d)
                 if len_d == 2:
                     default = Vector2D(d)
                 elif len_d == 3:
                     default = Vector3D(d)
-                elif len_d == 4:
+                elif len_d == 4 and getattr(self, '_type', None) == 'quaternion':
                     default = Quaternion(d)
                 else:
                     pass

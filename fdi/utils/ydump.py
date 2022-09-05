@@ -51,9 +51,10 @@ def yinit(mapping=4, sequence=4, offset=2, register=None):
     global notinited
 
     yaml.indent(mapping=mapping, sequence=sequence, offset=offset)
-    from ..dataset.classes import Classes
+    from ..dataset.classes import Classes, Class_Module_Map
 
-    for n, c in Classes.mapping.items():
+    for n in Class_Module_Map:
+        c = Classes.mapping[n]
         if inspect.isclass(c):
             yaml.register_class(c)
 

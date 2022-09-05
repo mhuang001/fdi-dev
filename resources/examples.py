@@ -33,7 +33,7 @@ import logging
 
 
 # initialize the white-listed class dictionary
-cmap = Classes.updateMapping()
+cmap = Classes.mapping
 
 print("""
 dataset

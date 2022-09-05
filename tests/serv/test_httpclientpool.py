@@ -214,6 +214,7 @@ def crud_t(poolid, poolurl, local_pools_dir, pool, auth, client):
 
     urn = pstore.save(x, geturnobjs=True)
     x.creator = 'httpclient'
+
     urn2 = pstore.save(x, geturnobjs=True)
     typenm = fullname(x)
     expected_urn = 'urn:' + poolid + ':' + fullname(x)
@@ -424,8 +425,8 @@ def test_csdb_loadPrd(csdb_uploaded):
         prd = test_pool.schematicLoad(typename, rdIndex)
         assert prd.description.endswith(uniq), 'retrieve production incorrect'
         assert prd.instrument == 'Crystal-Ball', 'retrieve production incorrect'
-        assert prd['QualityImage'].shape == (
-            3, 3), 'retrieve production incorrect'
+        assert prd['QualityImage'].shape == [
+            3, 3], 'retrieve production incorrect'
 
 
 def test_csdb_getProductClasses(csdb):

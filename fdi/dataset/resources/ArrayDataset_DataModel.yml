@@ -20,9 +20,9 @@ metadata:
         default: null
         valid: ''
     shape:
-        data_type: tuple
+        data_type: list
         description: Number of elements in each dimension. Quick changers to the right.
-        default: ()
+        default: []
         valid: ''
     typecode:
         data_type: string
@@ -32,12 +32,12 @@ metadata:
     version:
         data_type: string
         description: Version of dataset
-        default: '0.1'
+        default: '0.3'
         valid: ''
     FORMATV:
         data_type: string
         description: Version of dataset schema and revision
-        default: '1.6.0.2'
+        default: '1.6.0.3'
         valid: ''
 datasets:
   

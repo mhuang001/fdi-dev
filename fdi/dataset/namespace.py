@@ -38,7 +38,7 @@ def refloader(key, mapping, remove=True):
        key and load-result pairs. load-result is `Load_Failed` if loading of the key was not successful.
     """
 
-    res = mapping[key]
+    res = mapping.get(key, Load_Failed)
     if remove and res is not Load_Failed:
         del mapping[key]
     # return key in the mapping and the load result.
@@ -50,20 +50,18 @@ class NameSpace_meta(type):
 
     Ref 'classproperty'.   # https://stackoverflow.com/a/1800999
     """
-    default_map = {}
-    """ name-content list from the main package."""
 
-    extension_maps = [{}]
-    """ Similar to the `default_map` but for plug-in/app."""
+    sources = [{}]
+    """ name-content list from the main package and for plug-in/app."""
 
     def __new__(metacls,  clsname, bases, attrs,
-                default_map=None,
-                extension_maps=None,
+                sources=None,
+                extensions=None,
                 load=None, **kwds):
-        """ Internal map is initialized with `extension_maps` and `default_map`.
+        """ Internal map is initialized with `sources`.
 
-        The internal map is initialized with a `default` and a list of `extension` maps which can be collection of key-value pairs. These maps are put into the `chained` map. However these maps are only the information needed to populate the main map, the target map of namespace.
-The target namespace is also represented by a collection of key-value pairs but each of them reside in a cache map, and are loaded into the cache map by the `load` function lazily when the key is used. The default `refloader` just copy the reference of the values in the `chained` map by the same name.
+        The internal map is initialized with a `default` and a list of `extension` maps which can be collection of key-value pairs. These maps are put into the `sources` map. However these maps are only the information needed to populate the main map, the target map of namespace.
+The target namespace is also represented by a collection of key-value pairs but each of them reside in a cache map, and are loaded into the cache map by the `load` function lazily when the key is used. The default `refloader` just copy the reference of the values in the `sources` map by the same name.
 This architecture allows expensive values to be associated with names gradually in a cache in a pay-as-you-need manner.
 
         Examples
@@ -95,8 +93,7 @@ This architecture allows expensive values to be associated with names gradually 
             ...
 
         Class PC(metaclass=NameSpace_meta,
-                  default_map=Reverse_Modules_Classes,
-                  extension_maps=[pairs, clz_map],
+                  sources=[Reverse_Modules_Classes, pairs, clz_map],
                   load=loader
                   ):
               pass
@@ -124,10 +121,10 @@ This architecture allows expensive values to be associated with names gradually 
             Base classes of the constructed class, empty tuple in this case
         attrs: dict
             Dict containing methods and fields defined in the class
-        default_map: dict
-            A dict containing the core/platform/framework/primary package namespace.
-        extension_maps: list
-            A dict for a list of plug-in/application package name spaces.
+        sources: list
+            A list of maps containing the core/platform/framework/primary package namespace and plug-in/application package name spaces.
+        extensions: list
+            A list of key-value maps to extend the `cache`.
         load: function
             classmethod to load a key from `initial` of the internal map.
         kwds: dict
@@ -140,28 +137,23 @@ This architecture allows expensive values to be associated with names gradually 
         """
         new_cls = super().__new__(metacls, clsname, bases, attrs)
 
-        if extension_maps is None:
-            extension_maps = metacls.extension_maps
-        if default_map is None:
-            default_map = metacls.default_map
-        # put extesions and default into one list, as accepted by ChainMap
-        maps = [*extension_maps, default_map]
+        if sources is None:
+            sources = metacls.sources
         if load is None:
             # defined in this module
             load = refloader
-        # class list from the app and with modifcation
-        nm = Lazy_Loading_ChainMap(*maps, load=load)
+        nm = Lazy_Loading_ChainMap(*sources, extensions=extensions, load=load)
         if kwds:
             for name, value in kwds.items():
                 setattr(new_cls, name, value)
-        logger.debug('***maps*** %s' % str(maps)[:300])
+        logger.debug('***maps*** %s' % str(sources)[:300])
         new_cls._the_map = nm
         new_cls.mapping = nm
 
-        logger.debug("New class made with metaclass %s: _the_map 0x%x, chained %d, initial %d, cache %d. load %s, kwds %s,initial=%s..." %
+        logger.debug("New class made with metaclass %s: _the_map 0x%x, sources %d, initial %d, cache %d. load %s, kwds %s,initial=%s..." %
                      (metacls.__name__,
                       id(nm),
-                      len(nm.chained),
+                      len(nm.sources),
                       len(nm.initial),
                       len(nm.cache),
                       str(load)[:300],
@@ -173,7 +165,7 @@ This architecture allows expensive values to be associated with names gradually 
     def clear(cls):
         """ Empty the internal mapping including `maps[1:]`.
 
-        `chained` map is not wiped.
+        `sources` map is not wiped.
 
         """
         for m in cls._the_map.maps:
@@ -218,25 +210,28 @@ class Lazy_Loading_ChainMap(ChainMap):
     ```__getitem__```. Example: module_name-classe_names, schema
     store."""
 
-    def __init__(self, *args, load=None, **kwds):
+    def __init__(self, *args, extensions=None, load=None, **kwds):
+        if extensions is None:
+            extensions = []
         if load is None:
             load = refloader
+        self.extenions = extensions
         self.load = load
-        self.chained = ChainMap(*args, **kwds)
-        self.initial = dict(self.chained)
-        super().__init__(self.cache, self.initial)
+        self.sources = ChainMap(*args, **kwds)
+        self.initial = dict(self.sources)
+        super().__init__(self.cache, self.initial, *extensions)
 
-        logger.debug("New LLC %s initialized: _the_map 0x%x chained %d, initial %d, cache %d. initial=%s..." %
+        logger.debug("New LLC %s initialized: _the_map 0x%x sources %d, initial %d, cache %d. extensions %d. initial=%s..." %
                      (self.__class__.__name__,
                       id(self),
-                         len(self.chained),
+                         len(self.sources),
                          len(self.initial),
                          len(self.cache),
+                         len(self.extenions),
                          str(self.initial)[:300]
                       ))
 
     def __getitem__(self, key):
-
         for m in self.maps:
             if m is self.initial:
                 loaded = self.load(key, self.initial, remove=True)
@@ -250,7 +245,8 @@ class Lazy_Loading_ChainMap(ChainMap):
                         #  ignore to let future calls try.
                         pass
 
-                return None if res is Load_Failed else res
+                if res is not Load_Failed:
+                    return res
             else:
                 # in the cache?
                 if key in m:
@@ -271,15 +267,18 @@ class Lazy_Loading_ChainMap(ChainMap):
         ----------
         order: int
             The number of maps to look up before this one is . If negative, `-n
-
-
-` means the n-th from the last.
+ ` means the n-th from the last. E.g. `order=-1` means to become the last one.
         ns: mapping
             Namespace map to be looked up.
         """
         if ns is None:
             ns = {}
-        self.maps.insert(order, ns)
+        if order == -1:
+            self.maps.append(ns)
+        elif order < -1:
+            self.maps.insert(order+1, ns)
+        else:
+            self.maps.insert(order, ns)
 
     def update(self, c=None, exclude=None, verbose=False,
                extension=None, ignore_error=False,
@@ -294,7 +293,7 @@ class Lazy_Loading_ChainMap(ChainMap):
         exclude: boolean
             Ignore these keys when updating.
         extension: mapping
-            add `c` as a new extension map.
+            add `c` as a new sources map.
 
         Returns
         -------
@@ -308,7 +307,7 @@ class Lazy_Loading_ChainMap(ChainMap):
             for x in exclude:
                 cc.pop(x, None)
             if extension:
-                self.chained.maps.insert(0, cc)
+                self.sources.maps.insert(0, cc)
             else:
                 ini = self.initial
                 in_initial = set(cc.keys()) & set(ini.keys())
@@ -330,5 +329,5 @@ class Lazy_Loading_ChainMap(ChainMap):
         """
 
         self.clear()
-        self.initial.update(self.chained)
+        self.initial.update(self.sources)
         return self

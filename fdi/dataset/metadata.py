@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import logging
+from numbers import Number
+from collections import OrderedDict, UserList
+import datetime
+import array
 from .serializable import Serializable
 from .datatypes import DataTypes, DataTypeNames
 from .odict import ODict
@@ -8,7 +13,8 @@ from .listener import DatasetEventSender, ParameterListener, DatasetEvent, Event
 from .eq import DeepEqual, xhash
 from .copyable import Copyable
 from .annotatable import Annotatable
-from .classes import Classes, Class_Module_Map
+#from .classes import Classes, Class_Module_Map
+from . import classes  # import Classes, _bltn
 from .typed import Typed
 from .invalid import INVALID
 from ..utils.masked import masked
@@ -21,11 +27,6 @@ import tabulate
 
 from copy import copy
 import builtins
-import array
-import datetime
-from collections import OrderedDict, UserList
-from numbers import Number
-import logging
 # create logger
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
@@ -575,10 +576,20 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             return value
 
         self_cls_name = DataTypes[self_type]
-        from .deserialize import Class_Look_Up
-        if self_cls_name not in Class_Look_Up:
-            return
-        if self_cls_name in Class_Module_Map:
+        if 0:
+            logger1 = str(value)
+            logger2 = self_cls_name+'+++ %x %d' % \
+                (id(classes._bltn), len(classes.Classes.mapping.maps[2]))
+
+        if self_cls_name not in classes.Classes.mapping:
+            # __import__('pdb').set_trace()
+            if 0:
+                logger.warning(logger1+logger2 + str(value))
+                logger.warning(self_cls_name+'+++$$$$$$ %x %d' %
+                               (id(classes._bltn), len(classes.Classes.mapping.maps[2])))
+
+            return value
+        if self_cls_name in classes.Class_Module_Map:
             # custom-defined parameter. delegate checking to themselves
             return value
 
@@ -586,7 +597,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
             # frozendict used in baseproduct module change lists to tuples
             # which causes deserialized parameter to differ from ProductInfo.
             value = list(value)
-        self_class = Class_Look_Up[self_cls_name]
+        self_class = classes.Classes.mapping[self_cls_name]
         # if value type is a subclass of self type
         # if issubclass(value_class, float):
         #    __import__('pdb').set_trace()
@@ -1059,8 +1070,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 lstr = '' if v is None else v.toString(level=level, alist=True)
                 if len(lstr) < 3:
                     lstr = [["", "<No listener>", ""]]
-                att['value'], att['unit'], att['type'], att['description'] = \
-                    '\n'.join(str(x[1]) for x in lstr), '', \
+                att['value'], att['unit'], att['type'], att['description'] = '\n'.join(str(x[1]) for x in lstr), '', \
                     '\n'.join(x[0] for x in lstr), \
                     '\n'.join(x[2] for x in lstr)
                 att['default'], att['valid'], att['code'] = '', '', ''

@@ -261,8 +261,8 @@ class Attributable(MetaDataHolder):
         # if name == 'creationDate' and str(value).startswith('16589'):
         #    __import__('pdb').set_trace()
 
-        try:
-            if self.alwaysMeta:
+        if 1:  # try:
+            if getattr(self, 'alwaysMeta', False):
                 if issubclass(value.__class__, AbstractParameter):
                     # taken as an MDP attribute . store in meta
                     self.extraMdp[name] = value
@@ -270,15 +270,14 @@ class Attributable(MetaDataHolder):
                     # assert self.meta[name].value == value
                     # must return without updating self.__dict__
                     return
-            if name in self._MDP:
+            if hasattr(self, '_MDP') and name in self._MDP:
                 self.setMdp(name, value, self._MDP)
                 # assert self.meta[name].value == value
                 # must return without updating self.__dict__
                 return
-        except AttributeError:
-            pass
+        # except AttributeError:
 
-        super(Attributable, self).__setattr__(name, value)
+        super().__setattr__(name, value)
 
     def __delattr__(self, name):
         """ Refuses deletion of MetaData and Reserved Properties.

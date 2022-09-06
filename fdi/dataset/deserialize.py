@@ -321,8 +321,6 @@ class IntDecoderOD(IntDecoder):
             return o
 
 
-_bltn = dict((k, v) for k, v in vars(builtins).items() if k[0] != '_')
-Classes.mapping.add_ns(_bltn, order=-1)
 Class_Look_Up = Classes.mapping
 
 

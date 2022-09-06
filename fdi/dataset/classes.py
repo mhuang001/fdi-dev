@@ -3,6 +3,8 @@
 from ..utils.common import trbk
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 from .namespace import Load_Failed, NameSpace_meta
+
+import builtins
 from collections import ChainMap
 import sys
 import logging
@@ -76,9 +78,13 @@ def load(key, mapping, remove=True,
     return res
 
 
+# add builtins (without any that starts with a '_'.
+_bltn = dict((k, v) for k, v in vars(builtins).items() if k[0] != '_')
+
+
 class Classes(metaclass=NameSpace_meta,
-              default_map=Class_Module_Map,
-              extension_maps=None,
+              sources=[Class_Module_Map],
+              extensions=[_bltn],
               load=load
               ):
     """ A dictionary of class names and their class objects that are allowed to be deserialized.
@@ -86,9 +92,13 @@ class Classes(metaclass=NameSpace_meta,
     An fdi package built-in dictionary is loaded from the module `Class_Module_Map`. Users who need add more deserializable class can for example:
 
     """
+    pass
 
 
-logger.info(str(Class_Module_Map))
+#Classes.mapping.add_ns(_bltn, order=-1)
+#logger.info('*** %d %x' % (len(_bltn), id(Classes.mapping.maps[2])))
+
+# logger.info(str(Class_Module_Map))
 
 
 def importModuleClasses(scope=None, mapping=None,
@@ -140,7 +150,11 @@ def importModuleClasses(scope=None, mapping=None,
 
     res = {}
     for cl in scope:
-        module_name = mapping[cl]
+        if cl not in mapping:
+            res[cl] = Load_Failed
+            continue
+        else:
+            module_name = mapping[cl]
         if isinstance(module_name, type):
             res[cl] = module_name
             continue

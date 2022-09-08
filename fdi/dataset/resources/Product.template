@@ -4,9 +4,7 @@ $WARNING
 
 $IMPORTS
 
-from fdi.dataset.readonlydict import ReadOnlyDict
-
-from copy import copy
+import copy
 
 import logging
 # create logger
@@ -31,7 +29,7 @@ $INITARGS
         """
 
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = copy(locals())
+        metasToBeInstalled = copy.copy(locals())
         metasToBeInstalled.pop('__class__', None)
         metasToBeInstalled.pop('kwds', None)
         metasToBeInstalled.pop('self', None)
@@ -54,7 +52,7 @@ $PROPERTIES
 # Data Model specification for mandatory components
 $MODELSPEC
 
-Model = ReadOnlyDict(_Model_Spec)
+Model = copy.deepcopy(_Model_Spec)
 
 MdpInfo = Model['metadata']
 

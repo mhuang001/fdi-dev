@@ -7,7 +7,7 @@ import os.path
 
 from importlib.abc import Loader, MetaPathFinder
 from importlib.util import spec_from_file_location
-
+from importlib.machinery import SourceFileLoader
 
 import logging
 # create logger
@@ -92,10 +92,19 @@ class SelectiveMetaFinder(MetaPathFinder):
         return None  # we don't know how to import this
 
 
-class MyLoader(Loader):
+class MyLoader(SourceFileLoader):
     def __init__(self, filename):
         self.filename = filename
         logger.debug('Created MyLoader for ' + filename)
+
+    def get_filename(self, fullname):
+        return self.filename
+
+    def get_data(self, path):
+
+        with open(path, 'rb') as f:
+            d = f.read()
+        return d
 
     def create_module(self, spec):
         return None  # use default module creation semantics

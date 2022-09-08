@@ -83,13 +83,23 @@ def test_Lazy(NSmeta):
     assert len(v.cache) == 2
     assert v.initial['f'] is Load_Failed
     assert len(v.cache) == 2
+    v.ignore_error = True
     # reading result is None
     assert v['f'] is None
+    v.ignore_error = False
     assert len(v.initial) == 1
     assert 'f' in v.initial
     assert 'f' not in v.cache
     assert len(v) == lab + (len(e)-1)
     assert len(v) == len(v.initial) + len(v.cache) + (len(e)-1)
+    # exclude
+    v.exclude.append('a')
+
+    assert v['a'] is None
+    with pytest.raises(KeyError):
+        assert v['nonexist'] is None
+    v.ignore_error = True
+    assert v['nonexist'] is None
 
 
 def test_NameSpace_func(NSmeta):
@@ -108,12 +118,12 @@ def test_NameSpace_func(NSmeta):
             cnt += 1
         return w
 
-    def loada(key, mapping, remove=True):
+    def loada(key, mapping, remove=True, exclude=None, ignore_error=False):
         logger.debug(key)
         nonlocal cnt
         cnt += 1
         logger.debug('cnt = %d' % cnt)
-        return fdi.dataset.namespace.refloader(key, mapping, remove)
+        return fdi.dataset.namespace.refloader(key, mapping, remove, exclude=exclude, ignore_error=ignore_error)
 
     class ns(metaclass=NSmeta,
              sources=[a, b],
@@ -207,14 +217,14 @@ def test_Classes():
     assert c
     assert issubclass(c, BaseProduct)
     assert c(description='foobar').description == 'foobar'
-    # Add a class
+    # Add a class to current namespace
     PC.update({'foo': int})
-    # it shows in PC.mapping
+    # it shows in mapping
     assert 'foo' in prjcls
     # but not in PC.mapping.initial
     assert 'foo' not in prjcls.initial
     assert 'foo' not in prjcls.sources
-    # mockup permanent updating PC.sources
+    # mockup "permanent" updating PC.sources
     prjcls.sources.update({'path': 'sys'})
     assert 'path' in prjcls.sources
     assert 'path' not in prjcls
@@ -222,6 +232,7 @@ def test_Classes():
     PC.reload()
     assert 'path' in prjcls
     assert issubclass(prjcls['path'].__class__, list)
+    # if there arre a lot of new classes e.g. there is a new package, to add
     # mockup permanent updating PC.sources with a dict of classname:class_obj/module_name
 
     class foo():
@@ -238,6 +249,8 @@ def test_Classes():
     assert prjcls['maxsize'] == sys.maxsize
     assert 'f_' in prjcls
     assert issubclass(prjcls['f_'], foo)
+
+# add name spacw
 
 
 def test_gb():

@@ -20,7 +20,7 @@ Load_Failed = object()
 """ unique object to mark failure condition."""
 
 
-def refloader(key, mapping, remove=True):
+def refloader(key, mapping, remove=True, exclude=None, ignore_error=False):
     """ Generates key-value pair out of a map containing name-content
     pairs, by referencing.
 
@@ -31,14 +31,21 @@ def refloader(key, mapping, remove=True):
     ----------
     mapping : dict
         a map containing name-content pairs (such as `default`, `initial`).
+    exclude : list
+        A list of keys to avoid loading. Default None.
+    ignore_error : boolean
+        Do not throw exception when error happens during loading. Log, set `Load_Failed`, and Move on.
 
     Returns
     -------
-    dict:
+   dict:
        key and load-result pairs. load-result is `Load_Failed` if loading of the key was not successful.
     """
 
-    res = mapping.get(key, Load_Failed)
+    if key in exclude:
+        res = Load_Failed
+    else:
+        res = mapping.get(key, Load_Failed)
     if remove and res is not Load_Failed:
         del mapping[key]
     # return key in the mapping and the load result.
@@ -204,11 +211,19 @@ class Lazy_Loading_ChainMap(ChainMap):
     cache = {}
     """ for the loaded key-vals. """
 
-    default = {}
+    initial = {}
     """ This mapping stores name-content pairs that are used to
     build the main map, which is located in the ```lru_cache``` of
     ```__getitem__```. Example: module_name-classe_names, schema
     store."""
+
+    exclude = []
+    """exclude : list
+        A list of keys to avoid loading. Default None."""
+
+    ignore_error = False
+    """ignore_error : boolean
+        Do not throw exception when error happens during loading. Log, set `Load_Failed`, and Move on."""
 
     def __init__(self, *args, extensions=None, load=None, **kwds):
         if extensions is None:
@@ -232,26 +247,35 @@ class Lazy_Loading_ChainMap(ChainMap):
                       ))
 
     def __getitem__(self, key):
-        for m in self.maps:
+
+        for i, m in enumerate(self.maps):
             if m is self.initial:
-                loaded = self.load(key, self.initial, remove=True)
+                loaded = self.load(key, self.initial, remove=True,
+                                   exclude=self.exclude, ignore_error=self.ignore_error)
                 for k, re in loaded.items():
-                    if k == key:
-                        res = re
                     if re is not Load_Failed:
                         # success. put into cache
                         self.cache[k] = re
+                        # is what we look for
+                        if k == key:
+                            return re
                     else:
                         #  ignore to let future calls try.
                         pass
-
-                if res is not Load_Failed:
-                    return res
+                # reaching this point means not found in loaded.
+                continue
             else:
-                # in the cache?
+                # is it excluded?
+
                 if key in m:
+                    if key in self.exclude:
+                        logger.debug(
+                            'Find "%s" in map%d but it is excluded.' % (key, i))
+                        return None
                     return m[key]
-        res = None
+        if not self.ignore_error:
+            raise KeyError('Key "%s" not found in any namespace.' % key)
+        return None
 
     def __setitem__(self, key, value):
 

@@ -104,7 +104,7 @@ class Classes(metaclass=NameSpace_meta,
 def importModuleClasses(scope=None, mapping=None,
                         exclude=None, ignore_error=False,
                         verbose=False):
-    """ The set of deserializable classes in default_map is
+    """ Return of a set of deserializable classes in `initial` map, which is
     maintained by hand.
 
     Do nothing if the classes mapping is already made so repeated
@@ -114,15 +114,13 @@ def importModuleClasses(scope=None, mapping=None,
     ----------
 
     scope : NoneType, string, list
-       If is None, import all classes in `default_map`; if is a
+        if is a string, take as a class name; (not implemented: If is None, import all classes in `initial` map; if a list, a list of class names.)
     mapping: mapping
-        A mapping to get module names with class names. If returns a class object for a key, the object will be the value in the returned dict for the key.
-    string, take it as a fully qualified module name and only load
-    its member classes; if is a list, take it as a list of module names.
+        A mapping to get module names with class names. For a given key, if `mapping` returns a class object, the object will be the value returned for the key; if `mapping` returns a string, take it as a fully qualified module name and load its member classes; if is a list, take it as a list of module names.
     exclude : list
-        Modules whose names (without '.') are in exclude are not imported. Default is empty.
+        A list of class names (without '.') that are not to be imported. Default is empty.
     ignore_error : boolean
-        IF set class importing errors will be logged but otherwise ignored. Default is `False`.
+        Importing errors will be logged but otherwise ignored. Default is `False`.
 
     Returns
     -------
@@ -135,8 +133,8 @@ def importModuleClasses(scope=None, mapping=None,
 
     if scope is None:
         return {}
-    elif issubclass(scope.__class__, str):
-        scope = [scope]
+    # elif issubclass(scope.__class__, str):
+    #    scope = [scope]
     if mapping is None:
         mapping = Class_Module_Map
 
@@ -149,13 +147,13 @@ def importModuleClasses(scope=None, mapping=None,
         logger.debug(msg)
 
     res = {}
-    for cl in scope:
+    for cl in [scope]:
         if cl not in mapping:
             res[cl] = Load_Failed
             continue
-        else:
-            module_name = mapping[cl]
+        module_name = mapping[cl]
         if isinstance(module_name, type):
+            # no need to load
             res[cl] = module_name
             continue
         # if we cannot find the module we make a class list

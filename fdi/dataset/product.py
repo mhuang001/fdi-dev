@@ -4,11 +4,10 @@
 
 from collections import OrderedDict
 from fdi.dataset.baseproduct import BaseProduct
+from builtins import str
 from fdi.dataset.finetime import FineTime
 
-from fdi.dataset.readonlydict import ReadOnlyDict
-
-from copy import copy
+import copy
 
 import logging
 # create logger
@@ -19,7 +18,7 @@ logger = logging.getLogger(__name__)
 class Product(BaseProduct):
     """ Product class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/Product.yml on 2022-07-14 18:21:40.164275.
+Automatically generated from fdi/dataset/resources/Product.yml on 2022-09-08 17:18:31.298571.
 
 Description:
 Project level product
@@ -50,7 +49,7 @@ Project level product
         """
 
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = copy(locals())
+        metasToBeInstalled = copy.copy(locals())
         metasToBeInstalled.pop('__class__', None)
         metasToBeInstalled.pop('kwds', None)
         metasToBeInstalled.pop('self', None)
@@ -221,7 +220,7 @@ _Model_Spec = {
         },
     }
 
-Model = ReadOnlyDict(_Model_Spec)
+Model = copy.deepcopy(_Model_Spec)
 
 MdpInfo = Model['metadata']
 

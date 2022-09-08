@@ -3,9 +3,9 @@
 # Automatically generated from fdi/dataset/resources/BaseProduct.yml. Do not edit.
 
 from collections import OrderedDict
+from builtins import str
 from fdi.dataset.finetime import FineTime
 
-from fdi.dataset.readonlydict import ReadOnlyDict
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.listener import EventSender, EventType
 from fdi.dataset.eq import deepcmp
@@ -13,7 +13,7 @@ from fdi.dataset.copyable import Copyable
 from fdi.dataset.history import History
 
 from collections import OrderedDict
-from copy import copy
+import copy
 
 import logging
 # create logger
@@ -46,7 +46,7 @@ class BaseProduct( AbstractComposite, Copyable, EventSender):
     =====
     BaseProduct class schema 1.6 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2022-07-14 18:21:40.073760.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2022-09-08 17:12:18.564701.
 
 Description:
 FDI base class data model
@@ -66,7 +66,7 @@ FDI base class data model
                  **kwds):
 
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = copy(locals())
+        metasToBeInstalled = copy.copy(locals())
         metasToBeInstalled.pop('__class__', None)
         metasToBeInstalled.pop('kwds', None)
         metasToBeInstalled.pop('self', None)
@@ -242,7 +242,7 @@ _Model_Spec = {
         },
     }
 
-Model = ReadOnlyDict(_Model_Spec)
+Model = copy.deepcopy(_Model_Spec)
 
 MdpInfo = Model['metadata']
 

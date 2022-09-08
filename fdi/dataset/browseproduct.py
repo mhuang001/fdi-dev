@@ -4,11 +4,10 @@
 
 from collections import OrderedDict
 from fdi.dataset.baseproduct import BaseProduct
+from builtins import str
 from fdi.dataset.finetime import FineTime
 
-from fdi.dataset.readonlydict import ReadOnlyDict
-
-from copy import copy
+import copy
 
 import logging
 # create logger
@@ -19,7 +18,7 @@ logger = logging.getLogger(__name__)
 class BrowseProduct(BaseProduct):
     """ BrowseProduct class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/BrowseProduct.yml on 2022-07-14 18:21:40.128449.
+Automatically generated from fdi/dataset/resources/BrowseProduct.yml on 2022-09-08 17:17:52.863925.
 
 Description:
 Container of media data for browsing.
@@ -45,7 +44,7 @@ Container of media data for browsing.
         """
 
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = copy(locals())
+        metasToBeInstalled = copy.copy(locals())
         metasToBeInstalled.pop('__class__', None)
         metasToBeInstalled.pop('kwds', None)
         metasToBeInstalled.pop('self', None)
@@ -152,7 +151,7 @@ _Model_Spec = {
         },
     }
 
-Model = ReadOnlyDict(_Model_Spec)
+Model = copy.deepcopy(_Model_Spec)
 
 MdpInfo = Model['metadata']
 

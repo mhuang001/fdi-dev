@@ -235,7 +235,7 @@ def params(val, indents, demo, onlyInclude, debug=False):
     return modelString, code
 
 
-def get_projectclasses(clp, rerun=True, exclude=None, verbose=False):
+def get_projectclasses(clp, exclude=None, verbose=False):
     """
     return a `Classes` object that is going  to give {class-name:class-type} from a file at gieven location.
 
@@ -305,7 +305,7 @@ def read_yaml(ypath, version=None, verbose=False):
         y = yaml.load(ytext)
         d = dict(OrderedDict(y))
 
-        if float(d['schema']) < 1.2:
+        if 'schema' in d and float(d['schema']) < 1.2:
             raise NotImplemented('Schema %s is too old.' % d['schema'])
         if 'metadata' not in d or d['metadata'] is None:
             d['metadata'] = {}
@@ -367,7 +367,7 @@ def yaml_upgrade(descriptors, fins, ypath, version, dry_run=False, verbose=False
     -------
     """
 
-    if float(version) == 'xx':
+    if float(version) == 1.8:
         for nm, daf in descriptors.items():
             d, attrs, datasets, fin = daf
             if float(d['schema']) >= float(version):
@@ -657,6 +657,12 @@ if __name__ == '__main__':
     dry_run = out[8]['result']
     debug = out[9]['result']
 
+    # now can be used as parents
+    from .classes import Classes
+
+    # No bomb out if some target modules are missing.
+    Classes.mapping.ignore_error = True
+
     # input file
     descriptors, files_imput = read_yaml(ypath, version, verbose)
     if upgrade:
@@ -673,12 +679,10 @@ if __name__ == '__main__':
     installSelectiveMetaFinder()
 
     # include project classes for every product so that products made just
-    # now can be used as parents
-    from .classes import Classes
 
-    pc = get_projectclasses(project_class_path,  rerun=True,
+    pc = get_projectclasses(project_class_path,
                             exclude=importexclude, verbose=verbose)
-    spupd = pc.PC
+    spupd = pc.Classes.mapping if pc else {}
     glb = Classes.update(
         c=spupd,
         exclude=importexclude,
@@ -854,7 +858,7 @@ if __name__ == '__main__':
         if len(importexclude) == 0:
             exit(0)
 
-        Classes.updateMapping(c=importinclude, exclude=importexclude)
+        Classes.update(c=importinclude, exclude=importexclude)
         glb = Classes.mapping
 
     if len(skipped):

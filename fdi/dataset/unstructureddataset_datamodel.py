@@ -3,9 +3,8 @@
 # Automatically generated from fdi/dataset/resources/UnstructuredDataset_DataModel.yml. Do not edit.
 
 from collections import OrderedDict
+from builtins import str
 
-
-from fdi.dataset.readonlydict import ReadOnlyDict
 
 import copy
 
@@ -60,5 +59,4 @@ _Model_Spec = {
         },
     }
 
-Model = ReadOnlyDict(_Model_Spec)
-
+Model = copy.deepcopy(_Model_Spec)

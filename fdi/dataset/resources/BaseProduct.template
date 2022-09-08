@@ -4,7 +4,6 @@ $WARNING
 
 $IMPORTS
 
-from fdi.dataset.readonlydict import ReadOnlyDict
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.listener import EventSender, EventType
 from fdi.dataset.eq import deepcmp
@@ -12,7 +11,7 @@ from fdi.dataset.copyable import Copyable
 from fdi.dataset.history import History
 
 from collections import OrderedDict
-from copy import copy
+import copy
 
 import logging
 # create logger
@@ -53,7 +52,7 @@ $INITARGS
                  **kwds):
 
         # collect MDPs from args-turned-local-variables.
-        metasToBeInstalled = copy(locals())
+        metasToBeInstalled = copy.copy(locals())
         metasToBeInstalled.pop('__class__', None)
         metasToBeInstalled.pop('kwds', None)
         metasToBeInstalled.pop('self', None)
@@ -129,7 +128,7 @@ $PROPERTIES
 # Data Model specification for mandatory components
 $MODELSPEC
 
-Model = ReadOnlyDict(_Model_Spec)
+Model = copy.deepcopy(_Model_Spec)
 
 MdpInfo = Model['metadata']
 

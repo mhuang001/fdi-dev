@@ -190,6 +190,9 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
             if debug:
                 print(spaces + 'Instanciate type %s' % obj['obj'])
             inst = lookup[obj['obj']]
+            if inst is None:
+                __import__('pdb').set_trace()
+
             indent -= 1
             return inst
         else:

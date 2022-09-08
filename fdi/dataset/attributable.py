@@ -374,7 +374,7 @@ def value2parameter(name, value, descriptor):
                             valid=gs,
                             **ext,
                             )
-    elif DataTypes[dt] in ('int', 'float', 'list', 'tuple', 'Vector', 'Vector2D', 'Quaternion'):
+    elif DataTypes[dt] in ('int', 'float', 'list', 'tuple', 'Vector', 'Vector2D', 'Vector3D', 'Quaternion'):
         from .numericparameter import NumericParameter
         us = ext.pop('unit', '')
         cs = ext.pop('typecode', '')

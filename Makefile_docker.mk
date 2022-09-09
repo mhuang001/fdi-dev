@@ -196,11 +196,14 @@ restore_test:
 	$(MAKE) it B='/bin/ls -l $(PROJ_DIR)/data'
 	@echo %%% above should NOT be empty %%%%%%%
 
+
+PIPCACHE=../fdi/pipcache
+PIPWHEELS=../fdi/wheels
 update_docker:
 	(\
 	$(MAKE) rm_docker &&\
-	$(MAKE) install EXT=[DEV,SERV,SCI] I=-U &&\
 	$(MAKE) docker_version &&\
+	python3 -m pip wheel --disable-pip-version-check --cache-dir $(PIPCACHE) --wheel-dir $(PIPWHEELS) -e .[DEV,SERV,SCI] -U &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\

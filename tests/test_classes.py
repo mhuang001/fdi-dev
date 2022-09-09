@@ -26,8 +26,9 @@ def NSmeta():
     importlib.reload(fdi.dataset.namespace)
 
 
-# @pytest.fixture(scope='function')
+@pytest.fixture(scope='function')
 def claz():
+    import fdi.dataset.classes
     importlib.reload(fdi.dataset.classes)
     from fdi.dataset.classes import Classes
     return Classes
@@ -174,11 +175,11 @@ def test_NameSpace_func(NSmeta):
     assert cnt == 3
 
 
-def test_SubProduct():
+def test_SubProduct(claz):
     from fdi.dataset.testproducts import SP
     from fdi.dataset.baseproduct import BaseProduct
 
-    Classes = claz()
+    Classes = claz
     y = SP()
 
     # register it in Classes so deserializer knows how to instanciate.
@@ -199,9 +200,9 @@ def test_SubProduct():
     assert x.rr == 'r'
 
 
-def test_Classes():
+def test_Classes(claz):
     from fdi.dataset.baseproduct import BaseProduct
-    PC = claz()
+    PC = claz
     prjcls = PC.mapping
     nc = len(prjcls)
     assert nc > 44
@@ -253,10 +254,10 @@ def test_Classes():
 # add name spacw
 
 
-def test_gb():
+def test_gb(claz):
     from fdi.dataset.baseproduct import BaseProduct
 
-    Classes = claz()
+    Classes = claz
     Class_Look_Up = Classes.mapping
     nm = len(Classes.mapping.maps)
     assert 'wakaka' not in Class_Look_Up

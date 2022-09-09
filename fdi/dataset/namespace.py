@@ -303,6 +303,7 @@ class Lazy_Loading_ChainMap(ChainMap):
             self.maps.insert(order+1, ns)
         else:
             self.maps.insert(order, ns)
+        return self
 
     def update(self, c=None, exclude=None, verbose=False,
                extension=None, ignore_error=False,

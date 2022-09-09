@@ -2,7 +2,7 @@
 
 """ from https://stackoverflow.com/a/70797664  reubano"""
 
-from .readonlydict import ReadOnlyDict
+from .namespace import NameSpace_meta, refloader
 from ..utils.common import find_all_files, trbk
 
 #from jsonschema import Draft7Validator as the_validator
@@ -25,7 +25,6 @@ FDI_SCHEMA_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '../schemas'))
 """ The directory where the schema definition files are stored."""
 
-FDI_SCHEMA_STORE = None
 """ The id-obj map for package-wide schemas. To be updated by `makeSchemaStore` when it runs for the first time."""
 
 
@@ -74,10 +73,42 @@ def makeSchemaStore(schema_dir=None, verbose=False):
             raise
     store = dict((schema["$id"], schema) for schema in schemas)
 
-    if os.path.abspath(schema_dir) == FDI_SCHEMA_DIR:
-        FDI_SCHEMA_STORE = copy.deepcopy(store)
-
     return store
+
+
+def schema_dir_loader(key, mapping, remove=True,
+                      exclude=None, ignore_error=False,
+                      verbose=False):
+    """ load all schemas in the given directory and its subdirs. """
+
+    if exclude is None:
+        exclude = []
+
+    if key is None:
+        return {}
+
+    res = {}
+
+    spath, sname = tuple(key.rsplit('/', 1))
+    family = (x for x in mapping if x not in exclude and x.startswith(spath))
+    for sch in family:
+        jsn = json.load(sch)
+        if jsn is None:
+            if ignore_error:
+                continue
+            else:
+                raise ValueError(sch)
+        else:
+            res[sch] = jsn
+            del mapping[sch]
+    return res
+
+
+class Schemas(metaclass=NameSpace_meta,
+              sources=[makeSchemaStore(FDI_SCHEMA_DIR)],
+              load=refloader
+              ):
+    pass
 
 
 def getValidator(schema, schemas=None, schema_store=None, base_schema=None, verbose=False):
@@ -98,16 +129,16 @@ def getValidator(schema, schemas=None, schema_store=None, base_schema=None, verb
         if schemas is None:
             schemas = {}
         if schema_store is None:
-            schema_store = makeSchemaStore()
-        store = ChainMap(schemas, schema_store)
-
+            schema_store = Schemas.mapping
+        store = schema_store.add_ns(schemas, 0) if schemas else schema_store
     if verbose:
         print('Schema store:', list(store))
     if base_schema is None:
         # json.load(open("schema/dir/extend.schema.json"))
         #resolver = RefResolver(schema['$id'], store=store, referrer=schema)
         if FDI_SCHEMA_BASE not in store:
-            store = ChainMap(schemas, makeSchemaStore())
+            raise ValueError(
+                'Base schema is not given and FDI_SCHEMA_BASE %s is not in store.' % FDI_SCHEMA_BASE)
         base_schema = store[FDI_SCHEMA_BASE]
     resolver = RefResolver.from_schema(base_schema, store=store)
 

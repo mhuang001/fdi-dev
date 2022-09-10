@@ -3,7 +3,7 @@
   },
   "$schema": "http://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.com/object1651974966.json",
-  "title": "Root",
+  "title": "Prd",
   "type": "object",
   "properties": {
   },

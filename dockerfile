@@ -86,7 +86,8 @@ RUN python3 -c 'import sys;print(sys.path)' \
 &&  python3 -m pip list --format=columns \
 
 && which pip \
-&& which python3;cat .venv/bin/pip
+&& which python3
+# ;cat .venv/bin/pip
 
 WORKDIR ${UHOME}
 
@@ -133,8 +134,9 @@ WORKDIR ${PKGS_DIR}/${PKG}/
 RUN pwd \
 && ls -ls \
 &&  python3 -m pip list \
-&& make -s -S test \
-&& rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
+&& make -s -S test
+#\
+#&& rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
 
 WORKDIR ${UHOME}
 

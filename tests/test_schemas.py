@@ -63,6 +63,7 @@ import array
 import datetime
 from datetime import timezone
 import os
+import os.path as op
 
 import logging
 # create logger
@@ -152,6 +153,21 @@ def check_general(vtr, jsn, name):
         st = bad.pop('_STID', '')
         # STID is not required.
         assert vtr.validate(bad) is None
+
+
+def test_validator():
+    #fdi_sch_dir = op.dirname(op.join(op.abspath(__file__), '../fdi/schemas'))
+    sch_dir = op.join(op.abspath(op.dirname(__file__)), 'resources/schemas')
+    sch_path = op.join(sch_dir, 'prd_schema.jsn')
+    with open(sch_path, 'r') as file:
+        sch = json.load(file)
+
+    from fdi.dataset.baseproduct import BaseProduct
+    jsn = json.loads(BaseProduct().serialized())
+
+    store = makeSchemaStore(sch_dir)
+    assert getValidator(sch, schema_store=store, base_schema=sch,
+                        verbose=1).validate(jsn) is None
 
 
 def test_true_false(schema_store):

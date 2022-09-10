@@ -16,7 +16,6 @@ from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
 from fdi.utils.tree import tree
 from fdi.utils.loadfiles import loadMedia
-from fdi.dataset.schemas import makeSchemaStore, getValidator, validateJson
 
 import traceback
 import copy
@@ -28,7 +27,6 @@ import json
 import hashlib
 import os.path as op
 import pytest
-import numpy as np
 from astropy.io import fits
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -583,18 +581,3 @@ def test_leapseconds():
     assert utc_to_tai(t4) - utc_to_tai(t4 - timedelta(seconds=1)) == \
         timedelta(seconds=2)
     print(_fallback.cache_info())
-
-
-def test_validator():
-    fdi_sch_dir = op.join(op.abspath(op.dirname(__file__)), '../fdi/schemas')
-    sch_dir = op.join(op.abspath(op.dirname(__file__)), 'resources/schemas')
-    sch_path = op.join(sch_dir, 'prd_schema.jsn')
-    with open(sch_path, 'r') as file:
-        sch = json.load(file)
-
-    from fdi.dataset.baseproduct import BaseProduct
-    jsn = json.loads(BaseProduct().serialized())
-
-    store = makeSchemaStore(sch_dir)
-    assert getValidator(sch, schema_store=store,
-                        verbose=1).validate(jsn) is None

@@ -49,11 +49,8 @@ def makeSchemaStore(schema_dir=None, verbose=False):
     # raise ValueError
 
     """
-    global FDI_SCHEMA_STORE
 
     if schema_dir is None:
-        if FDI_SCHEMA_STORE:
-            return copy.deepcopy(FDI_SCHEMA_STORE)
         # make package schemas list
         schema_dir = FDI_SCHEMA_DIR
 

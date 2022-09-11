@@ -174,5 +174,6 @@ pnsconfig['oss'] = dict(
     access_key_id=None,
     access_key_secret=None,
     bucket_name=None,
-    endpoint=None
+    endpoint=None,
+    prefix=None
 )

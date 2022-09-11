@@ -136,6 +136,8 @@ Pools registered are kept as long as the last reference remains. When the last i
         :poolurl: if given the poolpath, scheme, place will be derived from it. if not given for making a new pool (i.e. when poolname is not a registered pool name.. 
 If poolname is missing it is derived from poolurl; if poolurl is also absent, ValueError will be raised.
         :makenew: when the pool does not exist, make a new one (````True```; default) or throws `PoolNotFoundError` (```False```).
+        :auth: for `remoteRegister`.
+        :client: for `remoteRegister`.
         :kwds: passed to pool instanciation arg-list.
         :Returns: the pool object.
         """

@@ -26,11 +26,7 @@ def clean_board():
     importlib.invalidate_caches()
     # importlib.reload(Classes)
     from fdi.dataset.classes import Classes
-    global Class_Look_Up
-    # importlib.reload(Class_Look_Up)
-    from fdi.dataset.deserialize import Class_Look_Up
-
-    return Classes
+    return Classes.mapping
 
 
 @pytest.fixture(scope="package")
@@ -197,16 +193,13 @@ def mock_app(mock_server, project_app):
 
 
 @pytest.fixture(scope="module")
-def server_app(live_or_mock_server, project_app):
+def server_app(live_or_mock_server, mock_app):
     """ returns server app wen it is a live one, None when mock."""
     a, server_type = live_or_mock_server
     if server_type != 'mock':
         yield None
     else:
-        app = project_app
-        app.config['TESTING'] = True
-        with app.app_context():
-            yield app
+        yield mock_app
 
 
 @pytest.fixture(scope="module")

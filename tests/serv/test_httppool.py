@@ -172,7 +172,9 @@ def check_response(o, code=200, failed_case=False, excluded=None):
         issubclass(oc, str) and 'Bad string to decode as JSON' not in o or \
         issubclass(oc, bytes) and not o.startswith(b'<!DOC') or \
         someone, o
-    if not failed_case:
+    if failed_case is None:
+        return True
+    elif not failed_case:
         if not someone:
             # properly formated
             assert 'FAILED' != o['result'], o['result']
@@ -423,7 +425,7 @@ def thepool(server, client, userpass):
     del pool
 
 
-def test_CRUD_product(local_pools_dir, server, userpass, client, thepool):
+def test_CRUD_product(local_pools_dir, server, userpass, client):
     ''' test saving, read, delete products API, products will be saved at /data/pool_id
     '''
 
@@ -757,10 +759,29 @@ def read_product2(poolid, server, userpass, client):
     o['msg'] = r
     return o
 
+
+def pararun(n, sleep2, *args):
+    res, futs = {}, {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=n) as executor:
+        for i in range(n):
+            time.sleep(sleep2)
+            tt = time.time()
+            readfut = executor.submit(*args)
+            futs[tt] = readfut
+        for creadfut in concurrent.futures.as_completed(futs.values()):
+            # __import__('pdb').set_trace()
+
+            readres = creadfut.result()
+            tt = time.time()
+            # logger.info('PPPPPP %f %s FFFF %s' % (readres['time'], readres['result'].description,st$
+            #readres['msg'] = tt
+            res[tt] = readres
+    return res
+
 # https://github.com/pallets/flask/issues/4375#issuecomment-990102774
 
 
-def test_lock_file2(server, userpass, local_pools_dir, client):
+def Xest_lock_file2(server, userpass, local_pools_dir, client):
     ''' Test if a pool is locked, others can not manipulate this pool anymore before it's released
     '''
     logger.info('%f Test read a locked file, it will return DONE.' %
@@ -772,26 +793,43 @@ def test_lock_file2(server, userpass, local_pools_dir, client):
     # hkpath = '/hk/dTypes'
     # url = aburl + '/' + poolid + hkpath
     # x = client.get(url, auth=make_auth(userpass))
-    res, futs = {}, {}
+    locreadres, futs = {}, {}
     sleep1, sleep2 = 1.0, 0.12
-    with concurrent.futures.ThreadPoolExecutor(max_workers=11) as executor:
-        future = executor.submit(lock_pool2, poolid, sleep1, local_pools_dir)
-        result = future.result()
-        logger.info('%f lock submitted. start reading ...' % time.time())
-        for i in range(10):
-            time.sleep(sleep2)
-            tt = time.time()
-            readfut = executor.submit(
-                read_product2, poolid, server, userpass, client)
-            futs[tt] = readfut
-        for creadfut in concurrent.futures.as_completed(futs.values()):
-            # __import__('pdb').set_trace()
 
-            readres = creadfut.result()
-            tt = time.time()
-            #logger.info('PPPPPP %f %s' % (readres['time'], readres['result'].description))
-            #readres['msg'] = tt
-            res[tt] = (readres)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        futs[time.time()] = executor.submit(
+            lock_pool2, poolid, sleep1, local_pools_dir)
+        logger.info('%f lock submitted. %s. start reading ...' %
+                    (time.time(), str(futs)))
+
+        futs[time.time()] = executor.submit(pararun, 10, sleep2,
+                                            read_product2, poolid,
+                                            server, userpass, client)
+        for locreadfut in concurrent.futures.as_completed(futs.values()):
+            locreadres[time.time()] = locreadfut.result()
+
+    logger.debug(list(locreadres))
+    # __import__('pdb').set_trace()
+    for t, r in locreadres.items():
+        if r.get('msg', '') == 'This is a fake responses':
+            # lock process
+            result = r
+            tl = t
+        else:
+            res = r
+            tr = t
+    logger.debug('res ' + str(res)[:99])
+
+    #assert result['result'] == 'DONE'
+    v = list(res.values())
+    assert issubclass(v[0].__class__, Mapping)
+    assert 'result' in v[-1]
+    assert v[0]['result'].description == 'desc 0'
+    assert not issubclass(v[-1]['result'].__class__, str)
+    print(len(res), v[-1]['time']-result['time'])
+    assert v[-1]['time']-result['time'] > sleep1
+    assert len(v) > int(sleep1/sleep2) - 1
+
     """try:
         loop = asyncio.get_running_loop()
         # 1. Run in the default loop's executor:
@@ -811,17 +849,6 @@ def test_lock_file2(server, userpass, local_pools_dir, client):
         logger.error('unable to start thread ' + str(e) + trbk(e))
         raise
     """
-    logger.debug('res ' + str(res))
-
-    assert result['result'] == 'DONE'
-    v = list(res.values())
-    assert issubclass(v[0].__class__, Mapping)
-    assert 'result' in v[-1]
-    assert v[0]['result'].description == 'desc 0'
-    assert not issubclass(v[-1]['result'].__class__, str)
-    print(len(res), v[-1]['time']-result['time'])
-    assert v[-1]['time']-result['time'] > sleep1
-    assert len(v) > int(sleep1/sleep2) - 1
 
 
 """

@@ -175,11 +175,13 @@ Pools registered are kept as long as the last reference remains. When the last i
                     return cls._GlobalPoolList[poolname]
 
             # get poolname and scheme
+            if not poolurl:
+                poolurl = getConfig(poolname)
             if poolurl:
                 pp, schm, pl, pn, un, pw = parse_poolurl(poolurl)
             else:
                 raise ValueError(
-                    'A new pool %s cannot be created without a pool url.' % poolname)
+                    'A new pool %s cannot be created without a pool url. Maybe the pool needs to be registered?' % poolname)
             if poolname:
                 if pn != poolname:
                     raise ValueError(

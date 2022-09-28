@@ -526,6 +526,11 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
                 result = compo.data
 
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
+            elif compo_meth_name in ('graph()', 'getTaskHistory()'):
+                ct = 'image/png'
+                result = compo
+                return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
+
             else:
                 return 0, resp(code, compo, msg, ts, serialize_out=False), 0
 

@@ -25,8 +25,6 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
     def __init__(self, urn=None, poolname=None, product=None, meta=None, poolmanager=None, **kwds):
         """Urn can be the string or URNobject.
 
-
-
         Parameters
         ----------
         urn : str
@@ -112,8 +110,7 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
         poolname = self.getPoolname()
         if poolname is None:
             raise ValueError('ProductRef needs a poolname to get product.')
-        p = self._poolmanager.getPool(
-            self._poolname).loadProduct(self.getUrn())
+        p = self._poolmanager.getPool(poolname).loadProduct(self.getUrn())
         if issubclass(p.__class__, Context):
             self._product = p
         return p
@@ -130,7 +127,8 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
     def getStorage(self):
         """ Returns the product storage associated.
         """
-
+        st = productstorage.ProductStorage(self._poolname, )
+        self._storage
         return self._storage
 
     def setStorage(self, storage):
@@ -189,12 +187,12 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
 
         Parameters:
         -----------
-        urnobj: Urn
-        a URN object.
-        poolname: str
-        if given overrides the pool name in urn, and causes metadata to be loaded from pool.
+        urnobj : Urn
+            a URN object.
+        poolname : str
+            if given overrides the pool name in urn, and causes metadata to be loaded from pool.
         meta: MetaData
-        If  is given, it will be used instead of that from poolname.
+            If  is given, it will be used instead of that from poolname.
         """
         if urnobj is not None:
             uc = urnobj.__class__

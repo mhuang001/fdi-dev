@@ -24,9 +24,12 @@ from fdi.pns.fdi_requests import *
 from fdi.utils.getconfig import getConfig
 from fdi.utils.common import fullname
 
+import networkx as nx
+
 from requests.auth import HTTPBasicAuth
 import pytest
 import urllib
+import copy
 import time
 
 
@@ -534,3 +537,52 @@ def test_csdb_wipe(csdb_uploaded):
     info = test_pool.getPoolInfo()
     # print(info)
     assert test_pool.isEmpty()
+
+
+def test_hist(tmp_remote_storage, tmp_prods):
+    # add urn
+    ps = tmp_remote_storage
+    p0_, p11_, p12_, p121, p122, p1221, p12211 = tmp_prods
+    urn12211 = ps.save(p12211).urn
+    p1221.history.add_input(refs={'p1-2-2-1-1': urn12211})
+    assert p1221.history.rowCount == 1
+    assert p12211.history.rowCount == 0
+
+    urn1221 = ps.save(p1221).urn
+    p122.history.add_input(refs={'p1-2-2-1': urn1221})
+    assert p121.history.rowCount == 0
+    assert p122.history.rowCount == 1
+
+    urn121 = ps.save(p121).urn
+    urn122 = ps.save(p122).urn
+    # get fresh p0, p11, p12
+    p11 = copy.deepcopy(p11_)
+    p12 = copy.deepcopy(p12_)
+    p11.description = p11.description + '_new'
+    p12.description = p12.description + '_new'
+    p12.history.add_input(refs={'p1-2-1': urn121, 'p1-2-2': urn122})
+    assert p11.history.rowCount == 0
+    assert p12.history.rowCount == 2
+
+    urn11new = ps.save(p11).urn
+    urn12new = ps.save(p12).urn
+    p0 = copy.deepcopy(p11_)
+    v = p0.history
+    v.add_input(refs={'p1-1': urn11new, 'p1-2': urn12new})
+    assert v.rowCount == 2
+    th = v.getTaskHistory(use_name=False, verbose=1)
+    assert len(th.nodes) == 7
+    assert len(th.adj) == 7
+    assert len(list(th.pred['root'])) == 2
+
+    h = p0.history.getTaskHistory(verbose=1)
+    if 1:
+        assert len(p11.history['name']) == 0
+        assert p12.history['name'][0] == 'p1-2-1'
+        assert p12.history['name'][1] == 'p1-2-2'
+        assert p122.history['name'][0] == 'p1-2-2-1'
+        assert p1221.history['name'][0] == 'p1-2-2-1-1'
+        assert nx.is_directed_acyclic_graph(h)
+        # __import__('pdb').set_trace()
+    assert len(h.adj) == 7
+    print(f'Graph {h}')

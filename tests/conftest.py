@@ -275,6 +275,16 @@ def tmp_local_storage(tmp_path_factory):
     yield ps
 
 
+@pytest.fixture(scope="module")
+def tmp_remote_storage(server):
+    """ temporary servered pool with session scope """
+    aburl, headers = server
+    poolid = str('test_remote_pool')
+    pool = PoolManager.getPool(poolid, aburl + '/' + poolid)
+    ps = ProductStorage(pool)
+    yield ps
+
+
 @pytest.fixture(scope="session")
 def tmp_prods():
     """ temporary local pool with session scope """

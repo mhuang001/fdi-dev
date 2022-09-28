@@ -150,7 +150,7 @@ class History(TableDataset):
             except ImportError:
                 pass
             else:
-                return nx.drawing.nx_pydot.to_pydot(new_g).to_string()
+                return networkx.drawing.nx_pydot.to_pydot(new_g).to_string()
             return str(new_g.succ)
         if format == 'aaasvg':
             pass
@@ -160,8 +160,15 @@ class History(TableDataset):
             except ImportError:
                 pass
             else:
-                return nx.drawing.nx_pydot.create(format=format)
+                im = networkx.drawing.nx_pydot.to_pydot(
+                    new_g).create(format=format)
+                return im
             return newg_g
+
+    def graph(self, format='png', **kwds):
+        """ calling getTaskHistory with simplified parameters format, default to svg."""
+
+        return self.getTaskHistory(format=format, **kwds)
 
     def add_input(self, args=None, info=None, refs=None, **kwds):
         """Add an entry to History records.

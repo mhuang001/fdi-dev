@@ -3,8 +3,9 @@ from .comparable import Comparable
 from ..dataset.serializable import Serializable
 from ..dataset.odict import ODict
 from ..dataset.eq import DeepEqual
-from ..dataset.classes import Classes
+from ..dataset.classes import Class_Look_Up
 from ..utils.common import fullname
+
 import sys
 import os
 import builtins
@@ -137,8 +138,6 @@ URNs are used to to identify data be cause URNs are location agnostic. Storage P
 
         poolname, resourcetype, index = parseUrn(urn)
 
-        Class_Look_Up = ChainMap(
-            Classes.mapping, globals(), vars(builtins))
         cls = Class_Look_Up[resourcetype.split('.')[-1]]
 
         self._poolname = poolname
@@ -380,7 +379,7 @@ class UrnUtils():
     def getClass(urn):
         """ Get the class contained in a URN. """
         pn, prod, sn = parseUrn(urn)
-        return Classes.mapping[prod.rsplit('.', 1)[1]]
+        return Class_Look_Up[prod.rsplit('.', 1)[1]]
 
     @ staticmethod
     def getClassName(urn):

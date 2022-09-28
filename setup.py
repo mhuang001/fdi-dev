@@ -50,6 +50,7 @@ setup(
         'xmltodict>=0.12.0',
         'jsonpath-ng>=1.5.3',
         'pypng',
+        'networkx>=2.8',
     ],
     entry_points={'console_scripts': [
         'yaml2python=fdi.dataset.yaml2python:main',
@@ -77,6 +78,7 @@ setup(
         'PUB': [
             'sphinx>=4.4.0',
             'sphinx_rtd_theme',
+            'alabaster>=0.7.12',
             'sphinx-copybutton>=0.3.0',
             'twine>=3.3.0'
         ]

@@ -169,14 +169,6 @@ fdi.utils.tree module
    :undoc-members:
    :show-inheritance:
 
-fdi.utils.validator module
---------------------------
-
-.. automodule:: fdi.utils.validator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 fdi.utils.ydump module
 ----------------------
 

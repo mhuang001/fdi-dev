@@ -135,7 +135,7 @@ html_js_files = [
 copybutton_prompt_text = r">>> |\.\.\. |\.\.\.: |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
 copybutton_prompt_is_regexp = True
 copybutton_only_copy_prompt_lines = True
-copybutton_image_path = 'copy-button-yellow.svg'
+copybutton_image_svg = 'copy-button-yellow.svg'
 copybutton_remove_prompts = True
 
 # Theme options are theme-specific and customize the look and feel of a

@@ -14,7 +14,7 @@ Data and Meta Data
 -------------------
 
 .. image:: ../_static/product.png
-   :width: 30%
+   :width: 50%
 		   
 A product has
    * zero or more datasets: defining well described data entities (say images, tables, spectra etc...). 
@@ -33,9 +33,26 @@ A product has
 History
 -------
 
-The history is a lightweight mechanism to record the origin of this product or changes made to this product. Lightweight means, that the Product data itself does not  records changes, but external parties can attach additional information to the Product which reflects the changes.
+Product History records how each step of data processing has manipulated the data. Every pipeline add information of input data, auxliary data, calibration data, command line, environment variables to a :class:'fdi.dataset.history.History' object attached to the product. `History` can walk up the processing-input chain and visualize the hitory of an example product named "root" ::
 
-The sole purpose of the history interface of a Product is to allow notably pipeline tasks (as defined by the pipeline framework) to record what they have done to generate and/or modify a Product. 
+   "p1-1" [ref="urn:pools0:fdi.dataset.baseproduct.BaseProduct:1"];
+   root;
+   "p1-2" [ref="urn:pools0:fdi.dataset.product.Product:1"];
+   "p1-2-1" [ref="urn:pools0:fdi.pal.context.Context:0"];
+   "p1-2-2" [ref="urn:pools0:fdi.pal.context.MapContext:0"];
+   "p1-2-2-1" [ref="urn:pools0:fdi.dataset.testproducts.TP:0"];
+   "p1-2-2-1-1" [ref="urn:pools0:fdi.dataset.testproducts.SP:0"];
+   "p1-1" -> root;
+   "p1-2" -> root;
+   "p1-2-1" -> "p1-2";
+   "p1-2-2" -> "p1-2";
+   "p1-2-2-1" -> "p1-2-2";
+   "p1-2-2-1-1" -> "p1-2-2-1";
+
+with a Directed Acyclic Graph like this:
+
+.. image:: ../_static/history.svg
+   :width: 30%
 
 Serializable
 ---------------
@@ -79,8 +96,32 @@ From the creation process requires every product to carry the following metadata
 
 The parameters are tabulated below.
 
-.. include:: ../../../fdi/dataset/resources/BaseProduct.txt
-   :code: text
+.. include:: ../../../fdi/dataset/resources/BaseProduct.rst
+
+
+Product Hierachy
+----------------
+
+
+Product Levels
+""""""""""""""
+
+Product generation is usually a process with a number of stages. Each stage often produces consumeable prooducts of similar processing "levels". The processing levels adopted here are:
+
+
+====== =================================================================
+Level  Description
+====== =================================================================
+L0      Data organized in stram of homogeneous packets or transmision frames.
+L1A     Structured, key-value pairs and arrays, input is packet or frame stream.
+L1B     Formated according to application domain convention. Translate instrument-specific format to physics standard (e.g. hardware time to Fine Time.) No information from L1A is lost. This is the starting point of most domain-users who demand unspoiled but civilized data.
+L1C      Binary switch,  binary masked, and enumerated metadata quantities are translated to text/numerical mnemonics according to metadata value; domain-specific customary coorrdinates, representation or format are used (e.g. R.A. Dec. instead of quaternion; TT instead of TAI). Some information from L1B is lost.
+====== =================================================================
+
+Quick-look, or "browse" product can be generated for data products at any level. Their generation is not mandatory.
+
+Although product levels defined this way is useful for grouping, they are too coarse and general for specifying relations between specific products or product groups with respect to other ones preciely. To do that a rigorous hierachical approach is needed.
+
 
 Examples (from :doc:`quickstart` page):
 

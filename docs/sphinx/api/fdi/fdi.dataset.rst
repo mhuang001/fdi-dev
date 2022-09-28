@@ -225,6 +225,14 @@ fdi.dataset.metadataholder module
    :undoc-members:
    :show-inheritance:
 
+fdi.dataset.namespace module
+----------------------------
+
+.. automodule:: fdi.dataset.namespace
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 fdi.dataset.ndprint module
 --------------------------
 
@@ -269,6 +277,22 @@ fdi.dataset.readonlydict module
 -------------------------------
 
 .. automodule:: fdi.dataset.readonlydict
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.s module
+--------------------
+
+.. automodule:: fdi.dataset.s
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fdi.dataset.schemas module
+--------------------------
+
+.. automodule:: fdi.dataset.schemas
    :members:
    :undoc-members:
    :show-inheritance:

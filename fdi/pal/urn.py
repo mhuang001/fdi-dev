@@ -26,6 +26,11 @@ else:
     from urlparse import urlparse
 
 
+def is_urn(u):
+    sp = u.split(':')
+    return len(sp) == 4 and sp[0].lower() and sp[3].isdigit()
+
+
 def makeUrn(poolname, typename, index):
     """ assembles a URN with infos of the pool, the resource type, and the index
 

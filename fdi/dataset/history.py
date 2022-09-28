@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 
-
-from .metadata import guess_value
+from .metadata import guess_value, Parameter
 from .dataset import CompositeDataset
 from .arraydataset import ArrayDataset, Column
 from .tabledataset import TableDataset
 from .serializable import Serializable
 
-import array
-import datetime
-from collections import OrderedDict, UserDict
 import itertools
+from collections import OrderedDict, UserDict
+import datetime
+import array
 
 import logging
 # create logger
@@ -35,13 +34,19 @@ def check_input(arg, serializable=True):
     return arg
 
 
-class History(CompositeDataset):
+class History(TableDataset):
     """ Public interface to the history dataset. Contains the
     main methods for retrieving a script and copying the history.
     """
 
     def __init__(self, **kwds):
         """
+
+        Implemented as a `TableDataset`. Argument and context information
+        are stored as metadata key-variable pairs in the metadata.
+        Input data are in the table where name is the column name and
+        references in the first cell of columns.
+
         mh: The copy constructor is better not be implemented. Use copy()
         instead. Remember: not only copies the datasets,
         but also changes the history ID in the metadata and
@@ -56,10 +61,10 @@ class History(CompositeDataset):
 
         """
         super(History, self).__init__(**kwds)
-
-        self['args'] = TableDataset(
-            data=[['name', [], ''], ['value', [], '']],
-            description='Named ppositional and keyword arguments given to the pipeline or task that generated this product.')
+        self['name'] = Column([], '')
+        self['reference'] = Column([], '')
+        self.description = 'Named positional and keyword arguments, relevant context, and input data to the pipeline or task that generated this product.'
+        self.builtin_keys = list(self._meta.keys())
 
     def accept(self, visitor):
         """ Hook for adding functionality to meta data object
@@ -85,57 +90,122 @@ class History(CompositeDataset):
 
         """
 
-        raise NotImplemented()
+        return self._meta['command_line'].value()
 
-    def getTaskHistory(self):
+    def getTaskHistory(self, format='graph', node=None, use_name=True, verbose=False):
         """ Returns a human readable formatted history tree.
 
         Parameters
         ----------
+        format : str
+            Output format: `graph' (default) for `networkx.DiGraph`; 'ascii" for dump; 'png', 'svg', 'jpg' for graphic formats.
+        node : str
+            A name that uniquely identifies the parent product.
 
         Returns
         -------
-
+        `networkx.DiGraph`:
+            A graph of input data names and references.
         """
-        raise NotImplemented()
+        from ..pal.urn import is_urn
+        from ..pal.productref import ProductRef
+        import networkx
+        if node is None:
+            node = 'root'
+        new_g = networkx.DiGraph()
+        h = None
+        dt = self._data
+        if verbose:
+            print('History graph for %s has %d inputs: %s.' %
+                  (node, len(dt['name']), str(list(dt['name']))))
+        # __import__('pdb').set_trace()
 
-    def add_input(self, args=None, info=None, **kwds):
+        for name, ref in zip(dt['name'], dt['reference']):
+            if use_name:
+                ref_node = (name, {'ref': f'"{ref}"'})
+            else:
+                ref_node = (ref, {'name': name})
+            if verbose:
+                print(f"Node {ref_node}")
+            new_g.add_nodes_from([ref_node])
+            new_g.add_edge(name if use_name else ref, node)
+            if is_urn(ref):
+                inp = ProductRef(ref).getProduct()
+                if verbose:
+                    print(f'Load product {inp.description}:{id(inp)}.')
+                # get a graph with a node named with ref
+                h = inp.history.getTaskHistory(
+                    node=name if use_name else ref,
+                    use_name=use_name, verbose=verbose)
+                # Merge
+                new_g = networkx.compose(new_g, h)
+                if verbose:
+                    print(
+                        f'Returning history graph {h.adj} for {node}==>{new_g.adj}')
+        if format == 'graph':
+            return new_g
+        if format == 'ascii':
+            try:
+                import pydot
+            except ImportError:
+                pass
+            else:
+                return nx.drawing.nx_pydot.to_pydot(new_g).to_string()
+            return str(new_g.succ)
+        if format == 'aaasvg':
+            pass
+        if format in ('svg', 'png', 'jpg'):
+            try:
+                import pydot
+            except ImportError:
+                pass
+            else:
+                return nx.drawing.nx_pydot.create(format=format)
+            return newg_g
+
+    def add_input(self, args=None, info=None, refs=None, **kwds):
         """Add an entry to History records.
 
-        A `History` is made of a series of records, each added by a
+        A general product history is made of a series of records, each added by a
         processing step, usually called a pipeline. The record can be
-        added, possiblly incrementally, by this method.
+        added by this method to this `History` object..
 
         Parameters
         ----------
         args : dict
             A mapping of  argument names and their
-            values. Can be `vars(ArgParse())`. Values must be serializable.
-
+            values. Can be `vars(ArgParse())`. Values must be serializablee.
         info : dict
             keywords and values in string.
+        refs : dict
+            A mapping of name and reference string pairs. The Reference string is the URN, file name, OSS address, URL, or other kind of pointer. The name is for human to identify the data, the reference for recursive retrieving inputs to the data.
         **kwds : dict
-            appended.
+            appended to `info` by default.
         Returns
         -------
-
             result
 
-
         """
-        if args or kwds:
-            for name, var in itertools.chain(args.items(), kwds.items()):
+        if args or info or kwds:
+            for name, var in itertools.chain(args.items(), info.items(), kwds.items()):
                 cvar = check_input(var)
-                # append the parameter name column and value column
-                self['args'].addRow(row={'name': name,
-                                         'value': cvar},
-                                    rows=False)
-        if info:
-            for k, v in info.items():
-                self.meta[k] = guess_value(v, parameter=True)
+                # append the parameter name and value
+                self._meta[name] = Parameter(value=cvar)
 
-    def get_args(self):
-        """Get args table data as a dictionary.
+        if not refs:
+            refs = {}
+        for name, ref in refs.items():
+            # append the name and input data reference
+            if name in self.builtin_keys:
+                name = name + '___'
+            self._data['name']._data.append(name)
+            self._data['reference']._data.append(ref)
+            self._data['name'].updateShape()
+            self._data['reference'].updateShape()
+            self.updateShape()
+
+    def get_args_info(self):
+        """Get arguments and context information as a dictionary.
 
         Returns
         -------
@@ -143,9 +213,9 @@ class History(CompositeDataset):
 
         """
 
-        return dict((n, v) for n, v in zip(self['args']['name'], self['args']['value']))
+        return dict((n[:-3] if n.endswith('___') else n, v.value) for n, v in self._meta._data.items() if n not in self.builtin_keys)
 
-    def __getstate__(self):
+    def xx__getstate__(self):
         """ Can be encoded with serializableEncoder
 
         Parameters

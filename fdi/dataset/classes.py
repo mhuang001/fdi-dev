@@ -40,7 +40,7 @@ Modules_Classes = {
     'fdi.dataset.baseproduct': ['BaseProduct'],
     'fdi.dataset.product': ['Product'],
     'fdi.dataset.browseproduct': ['BrowseProduct'],
-    'fdi.dataset.testproducts': ['TP', 'TC', 'TM'],
+    'fdi.dataset.testproducts': ['TP', 'TC', 'TM', 'SP'],
     'fdi.dataset.datatypes': ['Vector', 'Vector2D', 'Vector3D', 'Quaternion'],
     'fdi.dataset.metadata': ['AbstractParameter', 'Parameter', 'MetaData'],
     'fdi.dataset.numericparameter': ['NumericParameter', 'BooleanParameter'],
@@ -192,3 +192,6 @@ def importModuleClasses(scope=None, mapping=None,
             logger.debug(msg)
 
     return res
+
+
+Class_Look_Up = Classes.mapping

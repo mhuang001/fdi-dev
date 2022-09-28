@@ -132,17 +132,29 @@ This is done by calling the getPool() method, which will return an existing pool
 
 Pools registered are kept as long as the last reference remains. When the last is gone the pool gets :meth;`removed` d.
 
-        :poolname: name of the pool.
-        :poolurl: if given the poolpath, scheme, place will be derived from it. if not given for making a new pool (i.e. when poolname is not a registered pool name.. 
-If poolname is missing it is derived from poolurl; if poolurl is also absent, ValueError will be raised.
-        :makenew: when the pool does not exist, make a new one (````True```; default) or throws `PoolNotFoundError` (```False```).
-        :auth: for `remoteRegister`.
-        :client: for `remoteRegister`.
-        :kwds: passed to pool instanciation arg-list.
-        :Returns: the pool object.
+        Parameter
+        ---------
+        poolname : str
+            name of the pool.
+        poolurl : str
+            If given the poolpath, scheme, place will be derived from it. if not given for making a new pool (i.e. when poolname is not a registered pool name. If poolname is missing it is derived from poolurl; if poolurl is also absent, ValueError will be raised.
+        makenew : bool
+            When the pool does not exist, make a new one (````True```; default) or throws `PoolNotFoundError` (```False```).
+        auth : str
+            For `remoteRegister`.
+        client : request
+            For `remoteRegister`.
+        kwds  : dict
+            Passed to pool instanciation arg-list.
+
+        Returns
+        -------
+        ProductPool:
+            The pool object.
         """
         # logger.debug('GPL ' + str(id(cls._GlobalPoolList)) +
         #             str(cls._GlobalPoolList) + ' PConf ' + str(cls.PlacePaths))
+
         if pool:
             if poolname:
                 raise ValueError(

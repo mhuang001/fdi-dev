@@ -59,7 +59,6 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
         else:
             from .poolmanager import PoolManager
             self._poolmanager = PoolManager
-
         super(ProductRef, self).__init__(**kwds)
         if issubclass(urn.__class__, str):
             urnobj = Urn(urn)
@@ -107,10 +106,12 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
         the product
         """
 
-        if self._poolname is None:
-            return None
         if hasattr(self, '_product') and self._product is not None:
             return self._product
+
+        poolname = self.getPoolname()
+        if poolname is None:
+            raise ValueError('ProductRef needs a poolname to get product.')
         p = self._poolmanager.getPool(
             self._poolname).loadProduct(self.getUrn())
         if issubclass(p.__class__, Context):
@@ -119,19 +120,23 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
 
     def getPoolname(self):
         """ Returns the name of the product pool associated.
+
+        If not set, poolname from `getUrnObj().getPoolname()` is used and set to `self`.
         """
+        if self._poolname is None:
+            self._poolname = self.getUrnObj().getPoolname()
         return self._poolname
 
     def getStorage(self):
         """ Returns the product storage associated.
         """
-        raise NotImplementedError
+
         return self._storage
 
     def setStorage(self, storage):
         """ Sets the product storage associated.
         """
-        raise NotImplementedError
+
         self._storage = storage
         # if hasattr(self, '_urn') and self._urn:
         #    self._meta = self._storage.getMeta(self._urn)

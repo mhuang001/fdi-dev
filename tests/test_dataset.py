@@ -41,6 +41,7 @@ from fdi.utils.loadfiles import loadMedia
 from fdi.utils.ydump import ydump
 
 from jsonpath_ng.parser import JsonPathParserError
+import networkx as nx
 
 import os.path as op
 import datetime
@@ -239,16 +240,16 @@ def test_sys():
 
 
 def est_TupleKeys():
-    a1=('1', '2')
-    a2=(3.333, 7)
-    a3=[a1, a2]
-    v=ODict(a3)
+    a1 = ('1', '2')
+    a2 = (3.333, 7)
+    a3 = [a1, a2]
+    v = ODict(a3)
     assert v[a1[0]] == a1[1]
-    v=ODict([(a1, a2)])
+    v = ODict([(a1, a2)])
     assert v[a1] == a2
     assert v.listoflists == [[['1', '2'], a2]]
-    v1=ODict()
-    v1.listoflists=[[['1', '2'], a2]]
+    v1 = ODict()
+    v1.listoflists = [[['1', '2'], a2]]
     assert v1 == v
     checkjson(v)
 
@@ -260,59 +261,59 @@ def ndlist(*args, atype=list):
     ``ndlist(2, 3, 4, 5)`` will make a list of 2 lists of 3 lists of 4 lists of 5 elements of 0.
     https://stackoverflow.com/a/33460217
     """
-    dp=0
+    dp = 0
     for x in reversed(args):
-        dp=atype([copy.deepcopy(dp) for i in range(x)])
+        dp = atype([copy.deepcopy(dp) for i in range(x)])
     return dp
 
 
 def test_ndprint():
-    s=42
-    v=ndprint(s)
+    s = 42
+    v = ndprint(s)
     # print(v)
     assert v == '42'
-    s=[1, 2, 3]
-    v=ndprint(s, headers=[], tablefmt3='plain')
+    s = [1, 2, 3]
+    v = ndprint(s, headers=[], tablefmt3='plain')
     # print(v)
     # table, 1 column
     assert v == '1\n2\n3'
-    v=ndprint(s, trans=False, headers=[], tablefmt3='plain')
+    v = ndprint(s, trans=False, headers=[], tablefmt3='plain')
     # print(v)
     # 1D matrix. 1 row.
     assert v == '1  2  3'
-    s=[[i + j for i in range(2)] for j in range(3)]
-    v=ndprint(s, headers=[], tablefmt2='plain')
+    s = [[i + j for i in range(2)] for j in range(3)]
+    v = ndprint(s, headers=[], tablefmt2='plain')
     # print(v)
     # 2x3 matrix 3 columns 2 rows
     assert v == '0  1  2\n1  2  3\n\n'
-    v=ndprint(s, trans=False, headers=[], tablefmt2='plain')
+    v = ndprint(s, trans=False, headers=[], tablefmt2='plain')
     # print(v)
     # 2x3 table view 2 columns 3 rows
     assert v == '0  1\n1  2\n2  3\n\n'
 
-    s=ndlist(2, 3, 4, 5)
-    s[0][1][0]=[0, 0, 0, 0, 0]
-    s[0][1][1]=[0, 0, 0, 1, 0]
-    s[0][1][2]=[5, 4, 3, 2, 1]
-    s[0][1][3]=[0, 0, 0, 3, 0]
-    v=ndprint(s, trans=False, headers=[], tablefmt2='plain')
-    ts=v
+    s = ndlist(2, 3, 4, 5)
+    s[0][1][0] = [0, 0, 0, 0, 0]
+    s[0][1][1] = [0, 0, 0, 1, 0]
+    s[0][1][2] = [5, 4, 3, 2, 1]
+    s[0][1][3] = [0, 0, 0, 3, 0]
+    v = ndprint(s, trans=False, headers=[], tablefmt2='plain')
+    ts = v
     if mk_outputs:
         print(v)
         # print(nds2)
         with open(output_write, 'a') as f:
-            clsn='nds2'
+            clsn = 'nds2'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
         assert ts == nds2
-    v=ndprint(s, headers=[], tablefmt2='plain')
-    ts='\nnds3\n'
+    v = ndprint(s, headers=[], tablefmt2='plain')
+    ts = '\nnds3\n'
     ts += v
     ts += '\n'
     if mk_outputs:
         print(v)
         with open(output_write, 'a') as f:
-            clsn='nds3'
+            clsn = 'nds3'
             f.write('%s = """%s"""\n' % (clsn, ts))
     else:
         assert ts == nds3
@@ -320,22 +321,22 @@ def test_ndprint():
 
 
 def test_ODict():
-    v=ODict()
+    v = ODict()
     assert len(v.data) == 0
 
 
 def test_Annotatable():
 
-    v=Annotatable()
+    v = Annotatable()
     assert v.getDescription() == 'UNKNOWN'
-    a='this'
-    v=Annotatable(a)
+    a = 'this'
+    v = Annotatable(a)
     assert v.getDescription() == a
     assert v.description is v.getDescription()
-    a1='that'
+    a1 = 'that'
     v.setDescription(a1)
     assert v.description == a1
-    v.description=a
+    v.description = a
     assert v.description == a
     checkgeneral(v)
 
@@ -343,34 +344,34 @@ def test_Annotatable():
 def test_Composite():
 
     # set/get
-    a1='this'
-    a2='that'
-    v=Composite()
+    a1 = 'this'
+    a2 = 'that'
+    v = Composite()
     v.set(a1, a2)
     assert v.get(a1) == a2
     # keyword arg, new value substitute old
-    a3='more'
+    a3 = 'more'
     v.set(name=a1, dataset=a3)
     assert v.get(a1) == a3
 
     # access
-    v=Composite()
-    v[a1]=a2  # DRM doc case 'v.get(a1)' == 'v[a1]'
+    v = Composite()
+    v[a1] = a2  # DRM doc case 'v.get(a1)' == 'v[a1]'
     assert v[a1] == a2
     assert v[a1] == v.get(a1)
-    sets=v.getSets()
+    sets = v.getSets()
     assert issubclass(sets.__class__, dict)
 
     # dict view
-    a3='k'
-    a4='focus'
-    v[a3]=a4
+    a3 = 'k'
+    a4 = 'focus'
+    v[a3] = a4
     assert [k for k in v] == [a1, a3]
     assert [(k, v) for (k, v) in v.items()] == [(a1, a2), (a3, a4)]
     assert list(v.values()) == [a2, a4]
 
     # remove
-    v=Composite()
+    v = Composite()
     v.set(a1, a2)
     assert v[a1] == a2
     assert v.remove(a1) is None
@@ -378,16 +379,16 @@ def test_Composite():
     assert v.remove('notexist') is None
 
     # test for containsKey, isEmpty, keySet, size
-    v=Composite()
+    v = Composite()
     assert v.containsKey(a1) == False
     assert v.isEmpty() == True
-    ks=v.keySet()
+    ks = v.keySet()
     assert len(ks) == 0
     assert v.size() == 0
     v.set(a1, a2)
     assert v.containsKey(a1) == True
     assert v.isEmpty() == False
-    ks=v.keySet()
+    ks = v.keySet()
     assert len(ks) == 1 and ks[0] == a1
     assert v.getDatasetNames() == ks
     assert v.size() == 1
@@ -397,7 +398,7 @@ def test_Composite():
 
 def test_AbstractComposite():
 
-    v=AbstractComposite()
+    v = AbstractComposite()
     assert issubclass(v.__class__, Annotatable)
     assert issubclass(v.__class__, Attributable)
     assert issubclass(v.__class__, DataWrapperMapper)
@@ -408,16 +409,16 @@ def test_Copyable():
     """ tests in a subprocess. """
     class Ctest(Copyable):
         def __init__(self, _p, **kwds):
-            self.p=_p
+            self.p = _p
             super(Ctest, self).__init__(**kwds)
 
         def get(self):
             return self.p
 
-    old=[[1, 1, 1], [2, 2, 2], [3, 3, 3]]
-    v=Ctest(old)
-    new=v.copy().get()
-    old[1][1]='AA'
+    old = [[1, 1, 1], [2, 2, 2], [3, 3, 3]]
+    v = Ctest(old)
+    new = v.copy().get()
+    old[1][1] = 'AA'
     assert new[1][1] == 2
     assert id(old) != id(new)
 
@@ -431,7 +432,7 @@ def test_EventType():
     assert EventTypeOf['CHANGED']['UNKNOWN_ATTRIBUTE'] == 'UNKNOWN_ATTRIBUTE_CHANGED'
 
 
-test123=0
+test123 = 0
 
 
 @ pytest.fixture()
@@ -442,17 +443,17 @@ def mocksndrlsnr():
         """ Preferred: subclassing EvenSender """
 
         def watchFiles(self):
-            source_path="foo"
+            source_path = "foo"
             self.fire(source_path)
 
     class MockFileWatcher2():
         """ evensender is an attribute """
 
         def __init__(self):
-            self.fileChanged=EventSender()
+            self.fileChanged = EventSender()
 
         def watchFiles(self):
-            source_path="foo"
+            source_path = "foo"
             self.fileChanged(source_path)
 
     class MockListener(EventListener):
@@ -460,20 +461,20 @@ def mocksndrlsnr():
 
     def log_file_change(source_path):
         global test123
-        r="%r changed." % (source_path)
+        r = "%r changed." % (source_path)
         # print(r)
-        test123=r
+        test123 = r
 
     def log_file_change2(source_path):
         global test123
-        r="%r changed2." % (source_path)
+        r = "%r changed2." % (source_path)
         # print(r)
-        test123=r
+        test123 = r
 
-    l1=MockListener()
-    l1.targetChanged=log_file_change
-    l2=MockListener()
-    l2.targetChanged=log_file_change2
+    l1 = MockListener()
+    l1.targetChanged = log_file_change
+    l2 = MockListener()
+    l2.targetChanged = log_file_change2
 
     return MockFileWatcher, MockFileWatcher2, l1, l2
 
@@ -481,16 +482,16 @@ def mocksndrlsnr():
 def test_EventSender(mocksndrlsnr):
 
     global test123
-    MockFileWatcher, MockFileWatcher2, l1, l2=mocksndrlsnr
-    watcher=MockFileWatcher()
+    MockFileWatcher, MockFileWatcher2, l1, l2 = mocksndrlsnr
+    watcher = MockFileWatcher()
     watcher.addListener(l2)
     watcher.addListener(l1)
     watcher.removeListener(l2)
     watcher.watchFiles()
     assert test123 == "'foo' changed."
 
-    test123=0
-    watcher=MockFileWatcher2()
+    test123 = 0
+    watcher = MockFileWatcher2()
     watcher.fileChanged.addListener(l2)
     watcher.fileChanged.addListener(l1)
     watcher.fileChanged.removeListener(l2)
@@ -501,17 +502,17 @@ def test_EventSender(mocksndrlsnr):
 def test_MqttRelay_mqtt(mocksndrlsnr):
 
     global test123
-    MockFileWatcher, MockFileWatcher2, l1, l2=mocksndrlsnr
+    MockFileWatcher, MockFileWatcher2, l1, l2 = mocksndrlsnr
 
     # MQ Relay
-    v=MqttRelayListener(topics="test.mq.bounce2", host=None,
+    v = MqttRelayListener(topics="test.mq.bounce2", host=None,
                           port=None, username=None, passwd=None,
                           client_id='foo', callback=None, qos=1,
                           userdata=None, clean_session=None,)
     # mqhost = v.mq._host
-    mf=MockFileWatcher()
+    mf = MockFileWatcher()
     mf.addListener(v)
-    w=MqttRelaySender(topics="test.mq.bounce2", host=None,
+    w = MqttRelaySender(topics="test.mq.bounce2", host=None,
                         port=None, username=None, passwd=None,
                         client_id='bar', callback=None, qos=1,
                         userdata=None, clean_session=None,)
@@ -523,14 +524,14 @@ def test_MqttRelay_mqtt(mocksndrlsnr):
         mf.watchFiles()
 
     def rcv():
-        t0=time.time()
+        t0 = time.time()
         while w.last_msg is None and (time.time()-t0 < 3):
             time.sleep(0.2)
     for ii in range(3):
-        w.last_msg=None
-        test123=''
-        t1=threading.Thread(target=snd)
-        t2=threading.Thread(target=rcv)
+        w.last_msg = None
+        test123 = ''
+        t1 = threading.Thread(target=snd)
+        t2 = threading.Thread(target=rcv)
         t1.start()
         t2.start()
         t2.join()
@@ -547,36 +548,36 @@ def test_MqttRelay_mqtt(mocksndrlsnr):
 
 def test_datatypes():
     # constructor
-    v=Vector()
+    v = Vector()
     assert len(v) == 3
     assert v.getComponents() == [0, 0, 0]
-    v=Vector([1, 2.3, 4.5])
+    v = Vector([1, 2.3, 4.5])
     assert v.getComponents() == [1, 2.3, 4.5]
-    v.components=[4, 5, 6]
+    v.components = [4, 5, 6]
     assert v.components == [4, 5, 6]
     checkjson(v)
 
-    v=Vector2D()
+    v = Vector2D()
     assert len(v) == 2
     assert v.getComponents() == [0, 0]
-    v=Vector([1, 2.3])
+    v = Vector([1, 2.3])
     assert v.getComponents() == [1, 2.3]
     # comparison
     assert v > sqrt(1+2.3**2) - 1
     assert v < sqrt(1+2.3**2) + 1
 
     # assignment
-    v.components=[0xaa, 1, 1e2]
+    v.components = [0xaa, 1, 1e2]
     assert v.components == [0xaa, 1, 1e2]
 
     checkjson(v)
 
     # Quaternion
-    v=Quaternion([-1, 1, 2.3, 4.5])
+    v = Quaternion([-1, 1, 2.3, 4.5])
     assert v.getComponents() == [-1, 1, 2.3, 4.5]
     # equal
-    a1=-1
-    v2=Quaternion([a1, 1+0, 1-a1+0.3, 4.5])
+    a1 = -1
+    v2 = Quaternion([a1, 1+0, 1-a1+0.3, 4.5])
     assert v == v2
     checkjson(v)
 
@@ -638,8 +639,8 @@ def test_Parameter_init():
     assert v.valid is None
     # incompatible type
     a2 = DataWrapper()
-    with pytest.raises(TypeError):
-        v = Parameter(a2)
+    v = Parameter(a2)
+    assert a2 == v.value
     # also only one positional argument, but with a keyword arg
     a1 = 'a test parameter'
     a2 = FineTime1(8765)
@@ -2819,7 +2820,7 @@ def test_FineTimes_toString():
         assert ts == out_FineTime
 
 
-def test_History():
+def test_History(tmp_local_storage, tmp_prods):
     v = History()
     with pytest.raises(AttributeError):
         v.add_input(args=[(2, 3)])
@@ -2835,10 +2836,12 @@ def test_History():
                       },
                 info=dict(c='d')
                 )
-    args = v.get_args()
+    bik = v.builtin_keys
+    len0 = len(bik)
+    args = v.get_args_info()
     assert args['scores'] == array.array('f', [6, 7])
-    assert v['args'].rowCount == 10
-    assert isinstance(args['dt'], datetime.datetime)
+    assert len(v.meta) == len0 + 10
+    assert isinstance(v.meta['dt'].value, datetime.datetime)
 
     assert v.meta['c'].value == 'd'
     assert 'e' not in v.meta
@@ -2847,15 +2850,106 @@ def test_History():
                 keywords=dict(d=FineTime(123456)),
                 info=dict(e='f')
                 )
-    assert v.get_args()['more'][9] == 10
-    assert v['args'].rowCount == 12
+    assert v.get_args_info()['more'][9] == 10
+    assert len(v.meta) == len0 + 13
     assert v.meta['e'].value == 'f'
-    assert len(v.meta) == 2
+    assert v.rowCount == 0
+    # add urn
+    ps = tmp_local_storage
+    p0_, p11_, p12_, p121, p122, p1221, p12211 = tmp_prods
+    p0 = copy.deepcopy(p11_)
+    p11 = copy.deepcopy(p11_)
+    p12 = copy.deepcopy(p12_)
+    urn11 = ps.save(p11).urn
+    urn12 = ps.save(p12).urn
+    v = p0.history
+    v.add_input(refs={'p1-1': urn11, 'p1-2': urn12})
+    assert v.rowCount == 2
+    th = v.getTaskHistory(use_name=False, verbose=1)
+    assert len(th.nodes) == 3
+    assert len(th.edges) == 2
+    assert len(list(th.pred['root'])) == 2
+    # urn ends with '2'
+    assert th[urn11] == th[urn12] == {'root': {}}
+    checkjson(v)
+    checkgeneral(v)
+
+    # build a bigger chain
+    urn12211 = ps.save(p12211).urn
+    p1221.history.add_input(refs={'p1-2-2-1-1': urn12211})
+    assert p1221.history.rowCount == 1
+    assert p12211.history.rowCount == 0
+
+    urn1221 = ps.save(p1221).urn
+    p122.history.add_input(refs={'p1-2-2-1': urn1221})
+    assert p121.history.rowCount == 0
+    assert p122.history.rowCount == 1
+
+    urn121 = ps.save(p121).urn
+    urn122 = ps.save(p122).urn
+    # get fresh p0, p11, p12
+    p11 = copy.deepcopy(p11_)
+    p12 = copy.deepcopy(p12_)
+    p11.description = p11.description + '_new'
+    p12.description = p12.description + '_new'
+    p12.history.add_input(refs={'p1-2-1': urn121, 'p1-2-2': urn122})
+    assert p11.history.rowCount == 0
+    assert p12.history.rowCount == 2
+
+    urn11new = ps.save(p11).urn
+    urn12new = ps.save(p12).urn
+    p0 = copy.deepcopy(p11_)
+    v = p0.history
+    v.add_input(refs={'p1-1': urn11new, 'p1-2': urn12new})
+    assert v.rowCount == 2
+    th = v.getTaskHistory(use_name=False, verbose=1)
+    assert len(th.nodes) == 7
+    assert len(th.adj) == 7
+    assert len(list(th.pred['root'])) == 2
+
+    h = p0.history.getTaskHistory(verbose=1)
+    if 1:
+        assert len(p11.history['name']) == 0
+        assert p12.history['name'][0] == 'p1-2-1'
+        assert p12.history['name'][1] == 'p1-2-2'
+        assert p122.history['name'][0] == 'p1-2-2-1'
+        assert p1221.history['name'][0] == 'p1-2-2-1-1'
+        assert nx.is_directed_acyclic_graph(h)
+        # __import__('pdb').set_trace()
+    assert len(h.adj) == 7
+    print(f'Graph {h}')
     # print(v.string())
     # print(kwds.string())
     # print(v.tree())
-    checkjson(v)
+    v = p12
+    checkjson(v, 0)
     checkgeneral(v)
+
+    #pos = nx.nx_agraph.graphviz_layout(h)
+
+    import pydot
+
+    pdot = nx.drawing.nx_pydot.to_pydot(h)
+    print(pdot.to_string())
+    svg = pdot.create(format='svg')
+    # print(svg)
+    with open('/tmp/G.svg', 'wb') as f:
+        f.write(svg)
+    pdot.write_png("/tmp/D.png")
+
+    if 0:
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError:
+            pass
+        else:
+            plt.tight_layout()
+            nx.draw_networkx(g, arrows=True)
+            plt.savefig("/tmp/g.png", format="PNG")
+            plt.savefig("/tmp/g.svg", format="SVG")
+            # tell matplotlib you're done with the plot: https://stackoverflow.com/questions/741877/how-do-i-tell-matplotlib-that-i-am-done-with-a-plot
+            # plt.clf()
+            # plt.show()
 
 
 def test_BaseProduct():

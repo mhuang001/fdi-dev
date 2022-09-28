@@ -53,6 +53,7 @@ def bstr(x, length=0, tostr=True, quote="'", level=0,
          width=0, heavy=True, yaml=False, html=False,
          **kwds):
     """ returns the best string representation.
+
     if the object is a string, return single-quoted; if has toString(), use it; else returns str(). Length limited by lls(lls)
     """
 
@@ -660,7 +661,7 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=No
     """ returns a list of names of all files in `datadir`.
 
     :name: of starting directory or a list of file name strings to filter.
-    :include: only if a file name has any of these sub-strings.
+    :include: only if a file name has any of these sub-strings. format is as if used in `glob(include)`.
     :exclude: only if a file name has not any of these sub-strings. Empty strings are removed.
     :not_if: a function that returns true if given a name of unwanted file. default is None, (which excludes directories when `datadir` is a string, and disabled if `datadir` is a `list`.
     :absdir: Set to True to return absolute_paths.

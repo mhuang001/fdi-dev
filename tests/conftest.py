@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from fdi.dataset.testproducts import get_demo_product, get_related_product
+from fdi.dataset.classes import Class_Look_Up
 from fdi.pal.poolmanager import PoolManager
+from fdi.pal.productstorage import ProductStorage
 from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.utils.common import lls
 from fdi.pns.jsonio import auth_headers
@@ -19,6 +21,8 @@ from flask import current_app
 
 
 logger = logging.getLogger(__name__)
+
+print(Class_Look_Up)
 
 
 @pytest.fixture(scope='package')
@@ -254,3 +258,32 @@ def csdb(pc):
     # str(pc['cloud_port'])
     test_pool = PublicClientPool(poolurl=url)
     return test_pool, url
+
+
+@pytest.fixture(scope="session")
+def tmp_local_storage(tmp_path_factory):
+    """ temporary local pool with session scope """
+
+    tmppath = tmp_path_factory.mktemp('pools')
+    cschm = 'file'
+    pdir = str(tmppath.parent)  # PoolManager.PlacePaths[cschm]
+    aburl = cschm + '://' + pdir
+    poolid = str(tmppath.name)
+
+    pool = PoolManager.getPool(poolid, aburl + '/' + poolid)
+    ps = ProductStorage(pool)
+    yield ps
+
+
+@pytest.fixture(scope="session")
+def tmp_prods():
+    """ temporary local pool with session scope """
+    prds = [get_demo_product('test-product-0: demo-prod')]
+    for i, n in enumerate(('BaseProduct', 'Product',
+                          'Context', 'MapContext',
+                           'TP', 'SP'), 1):
+        p = Class_Look_Up[n]('test-product-%d: %s' % (i, n))
+        prds.append(p)
+    print("Made products: ", list((p.description, id(p)) for p in prds))
+
+    return tuple(prds)

@@ -84,7 +84,7 @@ def makeCal2D(width=11, height=11):
     return z
 
 
-def get_demo_product():
+def get_demo_product(desc=''):
     """
     A complex context product as a reference for testing and demo.
 
@@ -132,7 +132,7 @@ def get_demo_product():
     ```
 
     """
-    prodx = MapContext('A complex product for demonstration.')
+    prodx = MapContext(desc if desc else 'A complex product for demo/test.')
     prodx.creator = 'Frankenstein'
     # add a parameter with validity descriptors to the product
     prodx.meta['speed'] = NumericParameter(

@@ -15,6 +15,7 @@ from .datatypes import DataTypes, DataTypeNames
 from collections import OrderedDict
 import os
 import sys
+import functools
 from itertools import chain
 from string import Template
 from datetime import datetime
@@ -23,7 +24,7 @@ import importlib
 import logging
 
 # create logger
-logger = logging.getLogger(__file__)
+logger = logging.getLogger()
 logging.basicConfig(stream=sys.stdout,
                     format='%(asctime)s -%(levelname)4s'
                            ' -[%(filename)s:%(lineno)3s'
@@ -274,11 +275,14 @@ def get_projectclasses(clp, exclude=None, verbose=False):
 def read_yaml(ypath, version=None, verbose=False):
     """ read YAML files in ypath.
 
-    output: nm is  stem of file name. desc is descriptor, key being yaml[name]
     Parameters
     ----------
+
     Returns
     -------
+    tuple
+        nm is  stem of file name. desc is descriptor, key being yaml[name]
+
     """
     yaml = yinit()
     desc = OrderedDict()
@@ -423,6 +427,102 @@ def yaml_upgrade(descriptors, fins, ypath, version, dry_run=False, verbose=False
         exit(-1)
 
 
+verbo = 0
+
+
+@functools.lru_cache
+def mro_cmp(cn1, cn2):
+    """ compare two classes by their MRO relative positions.
+
+    Parameters
+    ----------
+    cn1 : str
+        classname
+    cn2 : str
+        classname
+
+    Returns
+    -------
+    int
+        Returns -1 if class by the name of cn2 is a parent that of cn1,
+    0 if c1 and c2 are the same class; 1 for c1 being superclasses or no relation.
+    """
+    if not (cn1 and cn2 and issubclass(cn1.__class__, str) and issubclass(cn2.__class__, str)):
+        raise TypeError('%s and %s must be classnames.' % (str(nc1), str(nc2)))
+    if verbo:
+        print('...mro_cmp ', cn1, cn2)
+    if cn1 == cn2:
+        # quick result
+        return 0
+    c1 = glb[cn1]
+    c2 = glb[cn2]
+    if c1 is None or c2 is None:
+        return None
+    res = 0 if (c1 is c2) else -1 if issubclass(c1, c2) else 1
+    if verbo:
+        print('... ', c1, c2, res)
+    return res
+
+
+def descriptor_mro_cmp(nc1, nc2, des):
+    """ find if nc1 is a subclasss of nc1.
+
+    cn1 : str
+        classname
+    cn2 : str
+        classname
+    Returns
+    -------
+    int
+        Returns -1 if class by the name of cn2 is a parent that of cn1 or its parent,
+    0 if c1 and c2 are the same class; 1 for c1 being superclasses or no relation. This is to be used by `cmp_to_key` so besides having to return a negative number if `mro(nc1)` < `mro(nc2)`, it cannot return `None` for invalid situations.
+  """
+    if verbo:
+        print('*** des_m_cmp', nc1, nc2)
+
+    mc = mro_cmp(nc1, nc2)
+    if verbo:
+        print('**** mro_cmp', mc)
+
+    if mc is None:
+        if nc1 not in des:
+            return 0
+        # no class definition
+        # 0 for top level
+        parents = des[nc1][0]['parents']
+        if len(parents) == 0:
+            return 0
+        if nc1 in parents:
+            raise ValueError(
+                nc1 + ' cannot be its own parent. Check the YAML file.')
+        if verbo:
+            print(f"***** parents for {nc1} found: {parents}")
+        for p in parents:
+            if p == nc2:
+                # This is where parent-in-des case answered.
+                # parent is subclass so nc1 must be nc2's subclass
+                if verbo:
+                    print(f'{nc1} parent is {nc2}.')
+                return -1
+            else:
+                dmc = descriptor_mro_cmp(p, nc2, des)
+            if dmc == -1:
+                # parent is subclass so nc1 must be nc2's subclass
+                if verbo:
+                    print(f'{nc1} parent is subc of {nc2}. d{dmc}')
+                return -1
+        else:
+            if verbo:
+                print(f'{nc1} parent is not subc of {nc2}. d{dmc}')
+            return 0
+    else:
+        # nc1 is subclass or the same class.
+        if verbo:
+            print(f'{nc1} vs {nc2} => {mc}')
+
+        return mc
+
+
 def dependency_sort(descriptors):
     """ sort the descriptors so that everyone's parents are to his right.
     Parameters
@@ -434,6 +534,16 @@ def dependency_sort(descriptors):
     ret = []
     # make a list of prodcts
     working_list = list(descriptors.keys())
+    if verbo:
+        print('+++++', str('\n'.join(working_list)))
+
+    working_list.sort(key=functools.cmp_to_key(
+        functools.partial(descriptor_mro_cmp, des=descriptors)))
+
+    if verbo:
+        print('!!!!!', str('\n'.join(working_list)))
+    return working_list
+
     while len(working_list):
         # examin one by one
         # must use index to loop
@@ -442,6 +552,8 @@ def dependency_sort(descriptors):
             nm = working_list[i]
             # 0 for top level
             p = descriptors[nm][0]['parents']
+            if nm in p:
+                raise ValueError(nm + 'cannot be its own parent.')
             nm_found_parent = False
             if len(p) == 0:
                 continue
@@ -470,6 +582,9 @@ def dependency_sort(descriptors):
                 msg = 'Cyclic dependency among ' + str(working_list)
                 logger.error(msg)
                 sys.exit(-5)
+        if verbo:
+            print(i, nm, p, working_list)
+
     return ret
 
 
@@ -524,7 +639,9 @@ def no_Parents_Parents(pn):
             if r == pn[i]:
                 break
     for r in removed:
-        pn.remove(r)
+        # more than one r could be in removed.
+        if r in pn:
+            pn.remove(r)
     return pn
 
 
@@ -682,6 +799,7 @@ if __name__ == '__main__':
 
     pc = get_projectclasses(project_class_path,
                             exclude=importexclude, verbose=verbose)
+
     spupd = pc.Classes.mapping if pc else {}
     glb = Classes.update(
         c=spupd,
@@ -690,7 +808,7 @@ if __name__ == '__main__':
         verbose=verbose) if pc else Classes.mapping
     # make a list whose members do not depend on members behind (to the left)
     sorted_list = dependency_sort(descriptors)
-
+    sorted_list.reverse()
     skipped = []
     for nm in sorted_list:
         d, attrs, datasets, fin = descriptors[nm]
@@ -753,12 +871,16 @@ if __name__ == '__main__':
                                )
                          ):
             print(val)
-            a = DataTypes[val['data_type']]
-            if a in glb:
-                # this attribute class has module
-                s = 'from %s import %s' % (glb[a].__module__, a)
-                if a not in seen:
-                    seen[a] = s
+            if 'data_type' not in val:
+
+                __import__('pdb').set_trace()
+            else:
+                a = DataTypes[val['data_type']]
+                if a in glb:
+                    # this attribute class has module
+                    s = 'from %s import %s' % (glb[a].__module__, a)
+                    if a not in seen:
+                        seen[a] = s
 
         # make metadata and parent_dataset dicts
         d['metadata'] = parentsAttributes

@@ -180,6 +180,11 @@ def test_SubProduct(claz):
     from fdi.dataset.baseproduct import BaseProduct
 
     Classes = claz
+
+    # equivalence
+    v = Classes.mapping['BaseProduct']
+    assert v is BaseProduct
+
     y = SP()
 
     # register it in Classes so deserializer knows how to instanciate.

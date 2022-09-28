@@ -13,7 +13,7 @@ from .listener import DatasetEventSender, ParameterListener, DatasetEvent, Event
 from .eq import DeepEqual, xhash
 from .copyable import Copyable
 from .annotatable import Annotatable
-#from .classes import Classes, Class_Module_Map
+# from .classes import Classes, Class_Module_Map
 from . import classes  # import Classes, _bltn
 from .typed import Typed
 from .invalid import INVALID
@@ -406,48 +406,48 @@ def guess_value(data, parameter=False, last=str):
     from .finetime import FineTime
     if data is None:
         return Parameter(value=data) if parameter else data
-    else:
-        if issubclass(data.__class__, (list, tuple, set, array.array)):
+
+    if issubclass(data.__class__, (list, tuple, set, array.array)):
+        res = data
+        return NumericParameter(value=res) if parameter else res
+    try:
+        if issubclass(data.__class__, int):
             res = data
-            return NumericParameter(value=res) if parameter else res
+        else:
+            res = int(data)
+        return NumericParameter(value=res) if parameter else res
+    except (ValueError, TypeError):
         try:
-            if issubclass(data.__class__, int):
+            if issubclass(data.__class__, float):
                 res = data
             else:
-                res = int(data)
+                res = float(data)
             return NumericParameter(value=res) if parameter else res
         except (ValueError, TypeError):
-            try:
-                if issubclass(data.__class__, float):
-                    res = data
-                else:
-                    res = float(data)
+            # string, bytes, bool
+            if issubclass(data.__class__, bytes):
+                res = data
                 return NumericParameter(value=res) if parameter else res
-            except (ValueError, TypeError):
-                # string, bytes, bool
-                if issubclass(data.__class__, bytes):
-                    res = data
-                    return NumericParameter(value=res) if parameter else res
-                if issubclass(data.__class__, bool):
-                    res = data
-                    return BooleanParameter(value=res) if parameter else res
-                if issubclass(data.__class__, (datetime.datetime, FineTime)):
-                    res = data
-                    return DateParameter(value=res) if parameter else res
-                elif data[:4].upper() in ('NONE', 'NULL', 'NUL'):
-                    return Parameter(value=None) if parameter else None
-                elif data.startswith('0x'):
-                    res = bytes.fromhex(data[2:])
-                    return NumericParameter(value=res) if parameter else res
-                elif data.upper() in ['TRUE', 'FALSE']:
-                    res = bool(data)
-                    return BooleanParameter(value=res) if parameter else res
-                elif len(data) > 16 and data[0] in '0987654321' and 'T' in data and ':' in data and '-' in data:
-                    res = FineTime(data)
-                    return DateParameter(value=res) if parameter else res
-                else:
-                    res = last(data)
-                    return Parameter(value=res) if parameter else res
+            if issubclass(data.__class__, bool):
+                res = data
+                return BooleanParameter(value=res) if parameter else res
+            if issubclass(data.__class__, (datetime.datetime, FineTime)):
+                res = data
+                return DateParameter(value=res) if parameter else res
+            elif data[:4].upper() in ('NONE', 'NULL', 'NUL'):
+                return Parameter(value=None) if parameter else None
+            elif data.startswith('0x'):
+                res = bytes.fromhex(data[2:])
+                return NumericParameter(value=res) if parameter else res
+            elif data.upper() in ['TRUE', 'FALSE']:
+                res = bool(data)
+                return BooleanParameter(value=res) if parameter else res
+            elif len(data) > 16 and data[0] in '0987654321' and 'T' in data and ':' in data and '-' in data:
+                res = FineTime(data)
+                return DateParameter(value=res) if parameter else res
+            else:
+                res = last(data)
+                return Parameter(value=res) if parameter else res
     return StringParameter('null') if parameter else None
 
 
@@ -461,7 +461,9 @@ Seqs = (list, tuple, UserList)
 
 class Parameter(AbstractParameter, Typed):
     """ Parameter is the interface for all named attributes
-    in the MetaData container. It can have a value and a description.
+    in the MetaData container.
+
+     It can have a value and a description.
     Default arguments: typ_='', default=None, valid=None.
     value=default, description='UNKNOWN'
     """
@@ -541,6 +543,9 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
                 'Parameter type %s is not in %s.' %
                 (typ_, str([''.join(x) for x in DataTypes])))
 
+    ALLOWED_PARAM_DATA_TYPES = DataTypeNames
+    ALLOWED_PARAM_DATA_TYPES.update({'array': 'array'})
+
     def checked(self, value):
         """ Checks input value against self.type.
 
@@ -565,14 +570,18 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         if self_type == '' or self_type is None:
             # self does not have a type
             try:
-                ct = DataTypeNames[value_cls_name]
-                if ct == 'vector':
+                ct = self.ALLOWED_PARAM_DATA_TYPES[value_cls_name]
+                if 0 and ct == 'vector':
                     self._type = 'quaternion' if len(value) == 4 else ct
                 else:
                     self._type = ct
             except KeyError as e:
-                raise TypeError("Type %s is not in %s." %
-                                (value_cls_name, str([''.join(x) for x in DataTypeNames])))
+                if 0:
+                    raise TypeError("Type %s is not in %s." %
+                                    (value_cls_name,
+                                     str([''.join(x) for x in
+                                          self.ALLOWED_PARAM_DATA_TYPES])))
+                self._type = None
             return value
 
         self_cls_name = DataTypes[self_type]

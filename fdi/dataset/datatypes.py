@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from functools import lru_cache
 from .serializable import Serializable
 from .eq import DeepEqual
 from .classes import Classes
 from .quantifiable import Quantifiable
 
+from functools import lru_cache
 from collections import OrderedDict
 import builtins
 from math import sqrt
@@ -19,6 +19,7 @@ bltns = vars(builtins)
 ENDIAN = 'little'
 """ Endianess of products generated. """
 
+# data_type in parameter/column descriptors vs `data.__class__.__name__`
 DataTypes = {
     'baseProduct': 'BaseProduct',
     'binary': 'int',
@@ -77,51 +78,6 @@ try:
 except ImportError:
     pass
 
-# from https://stackoverflow.com/a/53702352/13472124 by tel
-
-
-def get_typecodes():
-    import numpy as np
-    import ctypes as ct
-    import pprint
-    # np.ctypeslib.as_ctypes_type(dtype)
-    simple_types = [
-        ct.c_byte, ct.c_short, ct.c_int, ct.c_long, ct.c_longlong,
-        ct.c_ubyte, ct.c_ushort, ct.c_uint, ct.c_ulong, ct.c_ulonglong,
-        ct.c_float, ct.c_double,
-    ]
-    return pprint.pprint({np.dtype(ctype).str: ctype.__name__ for ctype in simple_types})
-
-# generated with get_typecodes() above
-
-
-# w/o endian
-numpytype_to_ctype = {
-    'f4': 'c_float',
-    'f8': 'c_double',
-    'i2': 'c_short',
-    'i4': 'c_int',
-    'i8': 'c_long',
-    'u2': 'c_ushort',
-    'u4': 'c_uint',
-    'u8': 'c_ulong',
-    'i1': 'c_byte',
-    'u1': 'c_ubyte'
-}
-
-numpy_dtypekind_to_typecode = {
-    'b': 't_',  # 'boolean',
-    'i': 'i',    # integer',
-    'u': 'I',    # unsigned integer',
-    'f': 'd',    # float',
-    'c': 'c',    # complex float',
-    'm': 'datetime.timedelta',    # timedelta',
-    'M': 'datetime,    # datetime',
-    'O': 'object',    # object',
-    'S': 'B',    # string',
-    'U': 'B',    # unicode string',
-    'V': 'V',    # fixed chunk of memory for other type ( void )',
-}
 # https://docs.python.org/3.6/library/ctypes.html#fundamental-data-types
 
 ctype_to_typecode = {
@@ -141,6 +97,69 @@ ctype_to_typecode = {
     'c_float': 'f',  # float
     'c_double': 'd',  # double
     'c_char_p': 'u',  # string
+}
+
+# from https://stackoverflow.com/a/53702352/13472124 by tel
+
+
+def get_typecodes():
+    import numpy as np
+    import ctypes as ct
+    import pprint
+    # np.ctypeslib.as_ctypes_type(dtype)
+    simple_types = [
+        ct.c_byte, ct.c_short, ct.c_int, ct.c_long, ct.c_longlong,
+        ct.c_ubyte, ct.c_ushort, ct.c_uint, ct.c_ulong, ct.c_ulonglong,
+        ct.c_float, ct.c_double,
+    ]
+    return pprint.pprint([
+        {np.dtype(ctype).str: ctype.__name__ for ctype in simple_types},
+        {ctype_to_typecode[ctype.__name__]: np.dtype(
+            ctype).itemsize for ctype in simple_types}
+    ])
+
+# generated with get_typecodes() above
+
+
+# w/o endian
+numpytype_to_ctype = {
+    'f4': 'c_float',
+    'f8': 'c_double',
+    'i2': 'c_short',
+    'i4': 'c_int',
+    'i8': 'c_long',
+    'u2': 'c_ushort',
+    'u4': 'c_uint',
+    'u8': 'c_ulong',
+    'i1': 'c_byte',
+    'u1': 'c_ubyte'
+}
+
+# generated with get_typecodes() above
+
+typecode_itemsize = {'B': 1,
+                     'H': 2,
+                     'I': 4,
+                     'L': 8,
+                     'b': 1,
+                     'd': 8,
+                     'f': 4,
+                     'h': 2,
+                     'i': 4,
+                     'l': 8}
+
+numpy_dtypekind_to_typecode = {
+    'b': 't_',  # 'boolean',
+    'i': 'i',    # integer',
+    'u': 'I',    # unsigned integer',
+    'f': 'd',    # float',
+    'c': 'c',    # complex float',
+    'm': 'datetime.timedelta',    # timedelta',
+    'M': 'datetime,    # datetime',
+    'O': 'object',    # object',
+    'S': 'B',    # string',
+    'U': 'B',    # unicode string',
+    'V': 'V',    # fixed chunk of memory for other type ( void )',
 }
 
 

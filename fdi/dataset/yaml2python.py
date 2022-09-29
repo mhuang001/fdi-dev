@@ -968,7 +968,8 @@ if __name__ == '__main__':
         print('Imported ' + newp)
         # Instantiate and dump metadata in other formats
         prod = glb[modelName]()
-        for fmt, ext in [('fancy_grid', '.txt'), ('rst', '.rst')]:
+        # [('fancy_grid', '.txt'), ('rst', '.rst')]:
+        for fmt, ext in [('fancy_grid', '.txt')]:
             fg = {'name': 15, 'value': 18, 'unit': 7, 'type': 8,
                   'valid': 26, 'default': 18, 'code': 4, 'description': 30}
             sp = prod.meta.toString(tablefmt=fmt, param_widths=fg)

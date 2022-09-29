@@ -447,8 +447,11 @@ def mro_cmp(cn1, cn2):
         Returns -1 if class by the name of cn2 is a parent that of cn1,
     0 if c1 and c2 are the same class; 1 for c1 being superclasses or no relation.
     """
+    if cn1 is None or cn2 is None:
+        __import__('pdb').set_trace()
+
     if not (cn1 and cn2 and issubclass(cn1.__class__, str) and issubclass(cn2.__class__, str)):
-        raise TypeError('%s and %s must be classnames.' % (str(nc1), str(nc2)))
+        raise TypeError('%s and %s must be classnames.' % (str(cn1), str(cn2)))
     if verbo:
         print('...mro_cmp ', cn1, cn2)
     if cn1 == cn2:
@@ -490,7 +493,7 @@ def descriptor_mro_cmp(nc1, nc2, des):
         # no class definition
         # 0 for top level
         parents = des[nc1][0]['parents']
-        if len(parents) == 0:
+        if len(parents) == 0 or len(parents) == 1 and parents[0] is None:
             return 0
         if nc1 in parents:
             raise ValueError(

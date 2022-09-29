@@ -2865,7 +2865,7 @@ def test_History(tmp_local_storage, tmp_prods):
     v = p0.history
     v.add_input(refs={'p1-1': urn11, 'p1-2': urn12})
     assert v.rowCount == 2
-    th = v.getTaskHistory(use_name=False, verbose=1)
+    th = v.getTaskHistory(use_name=False, verbose=0)
     assert len(th.nodes) == 3
     assert len(th.edges) == 2
     assert len(list(th.pred['root'])) == 2
@@ -2902,12 +2902,12 @@ def test_History(tmp_local_storage, tmp_prods):
     v = p0.history
     v.add_input(refs={'p1-1': urn11new, 'p1-2': urn12new})
     assert v.rowCount == 2
-    th = v.getTaskHistory(use_name=False, verbose=1)
+    th = v.getTaskHistory(use_name=False, verbose=0)
     assert len(th.nodes) == 7
     assert len(th.adj) == 7
     assert len(list(th.pred['root'])) == 2
 
-    h = p0.history.getTaskHistory(verbose=1)
+    h = p0.history.getTaskHistory(verbose=0)
     if 1:
         assert len(p11.history['name']) == 0
         assert p12.history['name'][0] == 'p1-2-1'

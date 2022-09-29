@@ -288,7 +288,7 @@ def tmp_remote_storage(server):
 @pytest.fixture(scope="session")
 def tmp_prods():
     """ temporary local pool with session scope """
-    prds = [get_demo_product('test-product-0: demo-prod')]
+    prds = [get_demo_product('test-product-0: Demo_Product')]
     for i, n in enumerate(('BaseProduct', 'Product',
                           'Context', 'MapContext',
                            'TP', 'SP'), 1):

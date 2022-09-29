@@ -553,29 +553,32 @@ def test_hist(tmp_remote_storage, tmp_prods):
     assert p121.history.rowCount == 0
     assert p122.history.rowCount == 1
 
-    urn121 = ps.save(p121).urn
-    urn122 = ps.save(p122).urn
-    # get fresh p0, p11, p12
+    # get fresh p0, p11, p12 in case they used for something else
     p11 = copy.deepcopy(p11_)
     p12 = copy.deepcopy(p12_)
-    p11.description = p11.description + '_new'
-    p12.description = p12.description + '_new'
+
+    urn121 = ps.save(p121).urn
+    urn122 = ps.save(p122).urn
     p12.history.add_input(refs={'p1-2-1': urn121, 'p1-2-2': urn122})
     assert p11.history.rowCount == 0
     assert p12.history.rowCount == 2
 
-    urn11new = ps.save(p11).urn
-    urn12new = ps.save(p12).urn
-    p0 = copy.deepcopy(p11_)
+    urn11 = ps.save(p11).urn
+    urn12 = ps.save(p12).urn
+    p0 = copy.deepcopy(p0_)
     v = p0.history
-    v.add_input(refs={'p1-1': urn11new, 'p1-2': urn12new})
+    v.add_input(refs={'p1-1': urn11, 'p1-2': urn12})
     assert v.rowCount == 2
-    th = v.getTaskHistory(use_name=False, verbose=1)
+
+    # use ref as labels
+    th = v.getTaskHistory(use_name=False, verbose=0)
     assert len(th.nodes) == 7
     assert len(th.adj) == 7
     assert len(list(th.pred['root'])) == 2
 
-    h = p0.history.getTaskHistory(verbose=1)
+    urn0 = ps.save(p0).urn
+    h = p0.history.getTaskHistory(verbose=False)
+    h.nodes['root']['ref'] = f'"{urn0}"'
     if 1:
         assert len(p11.history['name']) == 0
         assert p12.history['name'][0] == 'p1-2-1'
@@ -585,4 +588,5 @@ def test_hist(tmp_remote_storage, tmp_prods):
         assert nx.is_directed_acyclic_graph(h)
         # __import__('pdb').set_trace()
     assert len(h.adj) == 7
-    print(f'Graph {h}')
+    pdot = nx.drawing.nx_pydot.to_pydot(h)
+    print(pdot.to_string())

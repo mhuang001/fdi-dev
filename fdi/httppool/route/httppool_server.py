@@ -512,12 +512,12 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
                 ct = 'text/html'
                 result = HTML_STYLE + compo
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
-            elif compo_meth_name == 'yaml()' or compo_meth_name == 'tree()':
+            elif compo_meth_name.startswith('yaml(') or compo_meth_name.startswith('tree('):
                 ct = 'text/plain;charset=utf-8'
                 # 'font-family: "Courier New",monospace;\n'
                 result = compo
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
-            elif compo_meth_name == 'fits()':
+            elif compo_meth_name.startswith('fits('):
                 ct = 'application/fits'
                 result = compo
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
@@ -526,7 +526,8 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
                 result = compo.data
 
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
-            elif compo_meth_name in ('graph()', 'getTaskHistory()'):
+            elif compo_meth_name.startswith('graph(') or \
+                    compo_meth_name.startswith('getTaskHistory('):
                 ct = 'image/png'
                 result = compo
                 return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0

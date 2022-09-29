@@ -572,13 +572,15 @@ def test_hist(tmp_remote_storage, tmp_prods):
 
     # use ref as labels
     th = v.getTaskHistory(use_name=False, verbose=0)
+    pdot = nx.drawing.nx_pydot.to_pydot(th)
+    print(pdot.to_string())
     assert len(th.nodes) == 7
     assert len(th.adj) == 7
     assert len(list(th.pred['root'])) == 2
 
     urn0 = ps.save(p0).urn
     h = p0.history.getTaskHistory(verbose=False)
-    h.nodes['root']['ref'] = f'"{urn0}"'
+    h.nodes['root']['product_ref'] = f'"{urn0}"'
     if 1:
         assert len(p11.history['name']) == 0
         assert p12.history['name'][0] == 'p1-2-1'

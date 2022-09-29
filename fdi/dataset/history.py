@@ -121,21 +121,23 @@ class History(TableDataset):
         # __import__('pdb').set_trace()
 
         for name, ref in zip(dt['name'], dt['reference']):
+            # pydot wants no unquoted :
+            refq = f'"{ref}"'
             if use_name:
-                ref_node = (name, {'ref': f'"{ref}"'})
+                ref_node = (name, {'product_reference': refq})
             else:
-                ref_node = (ref, {'name': name})
+                ref_node = (refq, {'product_name': name})
             if verbose:
                 print(f"Node {ref_node}")
             new_g.add_nodes_from([ref_node])
-            new_g.add_edge(name if use_name else ref, node)
+            new_g.add_edge(name if use_name else refq, node)
             if is_urn(ref):
                 inp = ProductRef(ref).getProduct()
                 if verbose:
                     print(f'Load product {inp.description}:{id(inp)}.')
                 # get a graph with a node named with ref
                 h = inp.history.getTaskHistory(
-                    node=name if use_name else ref,
+                    node=name if use_name else refq,
                     use_name=use_name, verbose=verbose)
                 # Merge
                 new_g = networkx.compose(new_g, h)
@@ -166,7 +168,7 @@ class History(TableDataset):
             return newg_g
 
     def graph(self, format='png', **kwds):
-        """ calling getTaskHistory with simplified parameters format, default to svg."""
+        """ calling getTaskHistory with simplified parameters format, default to png."""
 
         return self.getTaskHistory(format=format, **kwds)
 

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class Product(BaseProduct):
     """ Product class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/Product.yml on 2022-09-29 10:39:28.603537.
+Automatically generated from fdi/dataset/resources/Product.yml on 2022-09-29 11:07:59.037722.
 
 Description:
 Project level product

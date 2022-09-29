@@ -2870,7 +2870,7 @@ def test_History(tmp_local_storage, tmp_prods):
     assert len(th.edges) == 2
     assert len(list(th.pred['root'])) == 2
     # urn ends with '2'
-    assert th[urn11] == th[urn12] == {'root': {}}
+    assert th[f'"{urn11}"'] == th[f'"{urn12}"'] == {'root': {}}
     checkjson(v)
     checkgeneral(v)
 

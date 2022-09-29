@@ -966,19 +966,20 @@ if __name__ == '__main__':
             raise
         importexclude.extend(exclude_save)
         print('Imported ' + newp)
-        # Instantiate and dump metadata in text format
+        # Instantiate and dump metadata in other formats
         prod = glb[modelName]()
-        fg = {'name': 15, 'value': 18, 'unit': 7, 'type': 8,
-              'valid': 26, 'default': 18, 'code': 4, 'description': 25}
-        sp = prod.meta.toString(tablefmt='fancy_grid', param_widths=fg)
+        for fmt, ext in [('fancy_grid', '.txt'), ('rst', '.rst')]:
+            fg = {'name': 15, 'value': 18, 'unit': 7, 'type': 8,
+                  'valid': 26, 'default': 18, 'code': 4, 'description': 30}
+            sp = prod.meta.toString(tablefmt=fmt, param_widths=fg)
 
-        mout = pathjoin(ypath, modelName + '.txt')
-        if dry_run:
-            print('Dry-run. Not dumping ' + mout + '\n' + '*'*40)
-        else:
-            with open(mout, 'w', encoding='utf-8') as f:
-                f.write(sp)
-            print('Done dumping ' + mout + '\n' + '*'*40)
+            mout = pathjoin(ypath, modelName + ext)
+            if dry_run:
+                print('Dry-run. Not dumping ' + mout + '\n' + '*'*40)
+            else:
+                with open(mout, 'w', encoding='utf-8') as f:
+                    f.write(sp)
+                print('Done dumping ' + mout + '\n' + '*'*40)
 
         if len(importexclude) == 0:
             exit(0)

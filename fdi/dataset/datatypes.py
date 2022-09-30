@@ -166,15 +166,6 @@ numpy_dtypekind_to_typecode = {
 def numpytype_to_typecode(x): return ctype_to_typecode[numpytype_to_ctype[x]]
 
 
-@ lru_cache(maxsize=64)
-def lookup_bd(t):
-
-    try:
-        return builtins.__dict__[t]
-    except KeyError:
-        return None
-
-
 def cast(val, typ_, namespace=None):
     """Casts the input value to type specified.
 

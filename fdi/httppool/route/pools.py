@@ -183,12 +183,12 @@ def register_all():
 
     """
     ts = time.time()
-
+    burl = request.base_url.rsplit('/', 1)[0]
     result, bad = load_pools(None, auth.current_user())
     code = 400 if len(bad) else 200
     # result = ', '.join(pmap.keys())
     if issubclass(result.__class__, dict):
-        result = dict((x, request.base_url+x) for x in result)
+        result = dict((x, burl+x) for x in result)
     msg = '%d pools successfully loaded. Troubled: %s' % (
         len(result), str(bad))
     return resp(code, result, msg, ts)
@@ -341,7 +341,7 @@ def get_pool(pool):
     logger = current_app.logger
 
     ts = time.time()
-    logger.debug('Get pool info of ' + pool)
+    logger.debug('Get pool info of ' + pool + ' '+request.base_url)
 
     result = get_pool_info(pool)
     return result
@@ -362,6 +362,8 @@ def get_pool_info(poolname, serialize_out=False):
 
         result = deserialize(result, int_key=True)
 
+        burl = request.base_url.rsplit('/', 1)[0]
+
         # Add url to tags
         dt_display = {}
         for t, clses in result['dTags'].items():
@@ -369,7 +371,7 @@ def get_pool_info(poolname, serialize_out=False):
                 continue
             cdict = {}
             for cls, sns in clses.items():
-                sndict = dict((int(sn), request.base_url+cls+'/'+sn)
+                sndict = dict((int(sn), '/'.join((burl, cls, sn)))
                               for sn in sns)
                 cdict[cls] = sndict
             dt_display[t] = cdict

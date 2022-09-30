@@ -51,6 +51,7 @@ setup(
         'jsonpath-ng>=1.5.3',
         'pypng',
         'networkx>=2.8',
+        'pydot>=1.4.2'
     ],
     entry_points={'console_scripts': [
         'yaml2python=fdi.dataset.yaml2python:main',

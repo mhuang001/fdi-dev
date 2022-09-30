@@ -42,6 +42,7 @@ from fdi.utils.ydump import ydump
 
 from jsonpath_ng.parser import JsonPathParserError
 import networkx as nx
+import pydot
 
 import os.path as op
 import datetime
@@ -2926,8 +2927,6 @@ def test_History(tmp_local_storage, tmp_prods):
     checkgeneral(v)
 
     #pos = nx.nx_agraph.graphviz_layout(h)
-
-    import pydot
 
     pdot = nx.drawing.nx_pydot.to_pydot(h)
     print(pdot.to_string())

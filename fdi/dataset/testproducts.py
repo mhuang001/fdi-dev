@@ -92,48 +92,48 @@ def get_demo_product(desc=''):
     """
     A complex context product as a reference for testing and demo.
 
-    ```
+::
+
 |__ meta                                          <MetaData>
-|   |__ description                                 <string>
-|   |__ type                                        <string>
-|   |__ level                                       <string>
-|   |__ creator                                     <string>
-|   |__ creationDate                              <finetime>
-|   |__ rootCause                                   <string>
-|   |__ version                                     <string>
-|   |__ FORMATV                                     <string>
-|   |__ speed                                       <vector>
-|   \__ listeners                               <ListenerSet>
-|__ measurements                          <CompositeDataset>
-|   |__ meta                                      <MetaData>
-|   |   \__ listeners                           <ListenerSet>
-|   |__ Time_Energy_Pos               <TableDataset> (5, 20)
-|   |   |__ meta                                  <MetaData>
-|   |   |   |__ description                         <string>
-|   |   |   |__ shape                                <tuple>
-|   |   |   |__ type                                <string>
-|   |   |   |__ version                             <string>
-|   |   |   |__ FORMATV                             <string>
-|   |   |   \__ listeners                       <ListenerSet>
-|   |   |__ Time                              <Column> (20,)
-|   |   |__ Energy                            <Column> (20,)
-|   |   |__ Error                             <Column> (20,)
-|   |   |__ y                                 <Column> (20,)
-|   |   \__ z                                 <Column> (20,)
-|   |__ calibration                  <ArrayDataset> (11, 11)
-|   \__ dset                                           <str>
-|__ Environment Temperature              <ArrayDataset> (7,)
-|__ Browse                               <image/png> (5976,)
-|__ refs                                      <RefContainer>
-|   |__ a_reference                             <ProductRef>
-|   \__ a_different_name                        <ProductRef>
-|__ history                                        <History>
-|   |__ PARAM_HISTORY                                  <str>
-|   |__ TASK_HISTORY                                   <str>
-|   \__ meta                                      <MetaData>
-|       \__ listeners                           <ListenerSet>
-\__ listeners                                   <ListenerSet>
-    ```
+    |   |__ description                                 <string>
+    |   |__ type                                        <string>
+    |   |__ level                                       <string>
+    |   |__ creator                                     <string>
+    |   |__ creationDate                              <finetime>
+    |   |__ rootCause                                   <string>
+    |   |__ version                                     <string>
+    |   |__ FORMATV                                     <string>
+    |   |__ speed                                       <vector>
+    |   \__ listeners                               <ListenerSet>
+    |__ measurements                          <CompositeDataset>
+    |   |__ meta                                      <MetaData>
+    |   |   \__ listeners                           <ListenerSet>
+    |   |__ Time_Energy_Pos               <TableDataset> (5, 20)
+    |   |   |__ meta                                  <MetaData>
+    |   |   |   |__ description                         <string>
+    |   |   |   |__ shape                                <tuple>
+    |   |   |   |__ type                                <string>
+    |   |   |   |__ version                             <string>
+    |   |   |   |__ FORMATV                             <string>
+    |   |   |   \__ listeners                       <ListenerSet>
+    |   |   |__ Time                              <Column> (20,)
+    |   |   |__ Energy                            <Column> (20,)
+    |   |   |__ Error                             <Column> (20,)
+    |   |   |__ y                                 <Column> (20,)
+    |   |   \__ z                                 <Column> (20,)
+    |   |__ calibration                  <ArrayDataset> (11, 11)
+    |   \__ dset                                           <str>
+    |__ Environment Temperature              <ArrayDataset> (7,)
+    |__ Browse                               <image/png> (5976,)
+    |__ refs                                      <RefContainer>
+    |   |__ a_reference                             <ProductRef>
+    |   \__ a_different_name                        <ProductRef>
+    |__ history                                        <History>
+    |   |__ PARAM_HISTORY                                  <str>
+    |   |__ TASK_HISTORY                                   <str>
+    |   \__ meta                                      <MetaData>
+    |       \__ listeners                           <ListenerSet>
+    \__ listeners                                   <ListenerSet>
 
     """
 

@@ -5,14 +5,13 @@
 https://stackoverflow.com/questions/13751277/how-can-i-use-an-app-factory-in-flask-wsgi-servers-and-why-might-it-be-unsafe
 """
 
-from fdi.httppool import setup_logging, create_app
+from fdi.httppool import create_app
 from fdi.httppool.route.pools import pools_api
 #from fdi.httppool.route.httppool_server import init_httppool_server, httppool_api
 
 from fdi._version import __version__
 from fdi.utils import getconfig
-from flasgger import Swagger
-from flask import Flask
+
 
 import sys
 import argparse

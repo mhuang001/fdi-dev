@@ -2,7 +2,6 @@
 
 from ..model.user import auth
 
-from ...dataset.deserialize import deserialize
 from ...dataset.serializable import serialize
 from ...dataset.mediawrapper import MediaWrapper
 from ...pal.urn import makeUrn
@@ -17,14 +16,13 @@ from ...pns.fdi_requests import POST_PRODUCT_TAG_NAME
 # import mysql.connector
 # from mysql.connector import Error
 
-from flasgger import swag_from
-
 from flask import request, make_response, Blueprint, current_app
 from flask.wrappers import Response
 
 
 import sys
 import os
+import urllib
 import time
 import builtins
 from weakref import WeakValueDictionary, getweakrefcount
@@ -162,8 +160,9 @@ def check_readonly(usr, meth, logger):
 def before_request_callback():
     path = request.path
     method = request.method
+    # __import__('pdb').set_trace()
 
-    print("data_api " + path + " >>>>>>[" + method + "]<<<<<<")
+    print(path + " >>>[" + method + "]<<<")
 
 ######################################
 ####  /urn{parts} get data ####
@@ -301,7 +300,8 @@ def save_data(pool):
 
     # save product
     if request.headers.get(POST_PRODUCT_TAG_NAME) is not None:
-        tags = deserialize(request.headers.get(POST_PRODUCT_TAG_NAME))
+        tags = request.headers.get(POST_PRODUCT_TAG_NAME)
+        tags = urllib.parse.unquote(tags)
     else:
         tags = None
 

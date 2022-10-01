@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 # from ..utils.common import fullname
-from .schemas import makeSchemaStore
 
 import array
 import binascii

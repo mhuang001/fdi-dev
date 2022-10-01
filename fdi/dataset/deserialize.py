@@ -8,12 +8,9 @@ from ..dataset.finetime import FineTime
 
 import logging
 import json
-import datetime
 import gzip
 import binascii
 import array
-from collections import ChainMap
-import builtins
 import urllib
 from .odict import ODict
 from collections.abc import MutableMapping as MM

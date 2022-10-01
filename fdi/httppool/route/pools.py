@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from .getswag import swag
-from .httppool_server import resp, excp, checkpath, check_readonly, PM_S
+from .httppool_server import (
+    before_request_callback,
+    excp,
+    checkpath,
+    check_readonly,
+    PM_S,
+    resp
+)
 from ..model.user import auth, getUsers
 from ..._version import __version__
 from ...dataset.deserialize import deserialize_args, deserialize
@@ -94,8 +101,9 @@ def get_pools_url():
 
     result = get_name_all_pools(path)
 
+    burl = request.base_url.rsplit('register_all', 1)[0]
     if issubclass(result.__class__, list):
-        res = dict((x, request.base_url+'/'+x) for x in result)
+        res = dict((x, burl+x) for x in result)
     else:
         res = {}
 
@@ -183,7 +191,8 @@ def register_all():
 
     """
     ts = time.time()
-    burl = request.base_url.rsplit('/', 1)[0]
+    current_app.logger.debug('Load all pools.')
+    burl = request.base_url.rsplit('register_all', 1)[0]
     result, bad = load_pools(None, auth.current_user())
     code = 400 if len(bad) else 200
     # result = ', '.join(pmap.keys())
@@ -207,7 +216,7 @@ def load_pools(poolnames, usr):
     path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     pmap = {}
     bad = {}
-    logger.debug('loading all from ' + path)
+    current_app.logger.debug('loading all from ' + path)
     alldirs = poolnames if poolnames else get_name_all_pools(path)
     for nm in alldirs:
         # must save the link or PM_S._GLOBALPOOLLIST will remove as dead weakref
@@ -341,7 +350,7 @@ def get_pool(pool):
     logger = current_app.logger
 
     ts = time.time()
-    logger.debug('Get pool info of ' + pool + ' '+request.base_url)
+    logger.debug('Get pool info of ' + pool)
 
     result = get_pool_info(pool)
     return result
@@ -362,7 +371,9 @@ def get_pool_info(poolname, serialize_out=False):
 
         result = deserialize(result, int_key=True)
 
-        burl = request.base_url.rsplit('/', 1)[0]
+        burl = request.base_url
+        if burl.endswith('/'):
+            burl = burl[:-1]
 
         # Add url to tags
         dt_display = {}
@@ -390,7 +401,7 @@ def get_pool_info(poolname, serialize_out=False):
                 # str makes a list to show in ome line
                 base = {'tags': str(snd['tags']),
                         'meta': str(snd['meta']),
-                        'url': request.base_url + cl + '/' + str(sn)
+                        'url': '/'.join((burl, cl, str(sn)))
                         }
                 snd_url[sn] = base
             ty_display[cl] = snd_url
@@ -825,11 +836,3 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
         logger.error(msg)
 
     return 0, resp(code, result, msg, ts, serialize_out=False), 0
-
-
-@pools_api.before_request
-def before_request_callback():
-    path = request.path
-    method = request.method
-
-    print("pools_api " + path + " >>>>>>[" + method + "]<<<<<<")

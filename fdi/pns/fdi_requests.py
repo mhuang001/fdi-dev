@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from ..dataset.serializable import serialize
-from ..dataset.deserialize import deserialize
-from ..pal.urn import parseUrn, parse_poolurl
-from ..utils.getconfig import getConfig
-from ..pal.webapi import WebAPI
-
-import urllib
 import requests
 import functools
 import logging
 import sys
 from requests.auth import HTTPBasicAuth
+
+from ..dataset.serializable import serialize
+from ..dataset.deserialize import deserialize
+from ..pal.urn import parseUrn, parse_poolurl
+from ..utils.getconfig import getConfig
+from ..pal.webapi import WebAPI
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -189,7 +188,7 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None, client=r
     no_serial: do not serialize the data.
     client: alternative client to answer API calls. For tests etc.
     """
-    headers = {POST_PRODUCT_TAG_NAME: urllib.parse.quote(tag)}
+    headers = {POST_PRODUCT_TAG_NAME: serialize(tag)}
     res = post_to_server(data, urn, poolurl, contents='product',
                          headers=headers, no_serial=no_serial, result_only=True, auth=auth)
     return res

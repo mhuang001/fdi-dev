@@ -5,7 +5,7 @@ from conftest import csdb_pool_id
 from fdi.pal.context import MapContext
 from fdi.dataset.arraydataset import ArrayDataset
 from test_pal import backup_restore
-
+from serv.test_httppool import getPayload, check_response
 
 from fdi.dataset.product import Product
 from fdi.dataset.numericparameter import NumericParameter
@@ -26,7 +26,8 @@ from fdi.utils.common import fullname
 
 import networkx as nx
 
-from requests.auth import HTTPBasicAuth
+from flask_httpauth import HTTPBasicAuth
+# from requests.auth import HTTPBasicAuth
 import pytest
 import urllib
 import copy
@@ -181,12 +182,10 @@ def test_gen_url(server):
         assert exc_msg == 'No such method and contents composition: GET/pool'
 
 
-def test_CRUD_product_by_client(server, local_pools_dir, userpass):
+def test_CRUD_product_by_client(server, local_pools_dir, auth):
     """Client http product storage READ, CREATE, DELETE products in remote
     """
     aburl, headers = server
-    #  u-p tuple
-    auth = HTTPBasicAuth(*userpass)
     client = None
     poolid = test_poolid
     poolurl = aburl + '/' + poolid
@@ -278,18 +277,6 @@ def crud_t(poolid, poolurl, local_pools_dir, pool, auth, client):
         pstore.getPool(poolid + 'NON_EXISTS ') is None
 
 
-def make_pools(name, aburl, n=1):
-    """ generate n pools """
-
-    lst = []
-    for i in range(n):
-        poolid = name + str(n)
-        pool = PoolManager.getPool(poolid, aburl + '/' + poolid)
-        lst.append(pool)
-        ps = ProductStorage(pool).save(Product('lone prod in ' + poolid))
-    return lst[0] if n == 1 else lst
-
-
 def test_webapi_backup_restore(server):
     """
     """
@@ -308,6 +295,60 @@ def test_webapi_backup_restore(server):
     pstore = ProductStorage(pool=pool)
     backup_restore(pstore)
 
+
+def test_flask_fmt(tmp_pools, server, client,  auth):
+    pool, prd, ref, tag = tmp_pools[0]
+    aburl, header = server
+    prd_urn = ref.urn
+
+    #### /{pool}  /{pool}/  GET  ####
+
+    # server url without slash
+    aburl_no_slash = aburl.rstrip('/')
+    # get poolname
+    x = client.get(aburl_no_slash, auth=auth)
+    o, code = getPayload(x)
+    # check to see if the pool url is malformed
+    check_response(o, code=code, failed_case=False)
+    # should be a list of names
+    poolnames = o['result']
+    assert isinstance(poolnames, dict)
+    assert pool._poolname in poolnames
+
+    # check to see if the pool url is malformed by checking if
+    # the pool's url can be used to retrieve the pool
+    from fdi.pal.urn import Urn, parseUrn
+    p_pname, p_type, p_index = parseUrn(prd_urn)
+
+    received_poolurls_no_slash = poolnames[pool._poolname].rstrip('/')
+    # get pool with products and their urls
+
+    x = client.get(received_poolurls_no_slash, auth=auth)
+    o, code = getPayload(x)
+    # check to see if the pool url is malformed
+    check_response(o, code=code, failed_case=False)
+    # The product under the correct type and sn has the right tag
+    # tags are a string to make btter display.
+
+    # the url is right
+    assert o['result']['DataTypes'][p_type][p_index]['url'] == '/'.join(
+        (received_poolurls_no_slash, p_type, str(p_index)))
+    assert o['result']['DataTypes'][p_type][p_index]['tags'] == str([tag])
+    # pool aburl with slash
+    # get the pool using url with slash
+    received_poolurls_slash = received_poolurls_no_slash+'/'
+    x1 = client.get(received_poolurls_slash, auth=auth)
+    o1, code = getPayload(x1)
+    assert o['result'] == o1['result']
+
+    aburl_slash = aburl_no_slash+'/'
+    x = client.get(aburl_slash, auth=auth)
+    o, code = getPayload(x)
+    check_response(o, code=code, failed_case=False)
+    # should be a list of names
+    poolnames = o['result']
+    assert isinstance(poolnames, list)
+    assert pool._poolname in poolnames
 
 # ----------------------TEST CSDB--------------------------------
 
@@ -339,7 +380,7 @@ def genMapContext(size=1):
     return map1
 
 
-@pytest.fixture(scope="module")
+@ pytest.fixture(scope="module")
 def test_csdb_token(csdb):
     logger.info('test token')
     test_pool, url = csdb
@@ -367,14 +408,14 @@ def test_csdb_poolInfo(csdb):
     # print(test_pool.poolInfo)
 
 
-@pytest.fixture(scope='function')
+@ pytest.fixture(scope='function')
 def csdb_uploaded(csdb):
     ftest_pool, poolurl = csdb
     poolname = ftest_pool._poolname
 
     pstore = ProductStorage(poolname=poolname, poolurl=poolurl)
     test_pool = pstore.getPool(poolname)
-    ## PoolManager.getPool(poolurl=urnobj.getScheme() + ':///' + urnobj.getPool())
+    # PoolManager.getPool(poolurl=urnobj.getScheme() + ':///' + urnobj.getPool())
     assert deepcmp(ftest_pool, test_pool) is None
 
     prd = genProduct()
@@ -389,8 +430,8 @@ def csdb_uploaded(csdb):
 
 def test_csdb_upload(csdb_uploaded):
     logger.info('test upload multiple products')
-    #poolurl = 'csdb:///' + csdb_pool_id
-    #poolname = csdb_pool_id
+    # poolurl = 'csdb:///' + csdb_pool_id
+    # poolname = csdb_pool_id
 
     test_pool, resPrd, resMap, uniq, resPrds = csdb_uploaded
 
@@ -439,10 +480,10 @@ def test_csdb_getProductClasses(csdb):
     assert clz == ['fdi.dataset.product.Product', 'fdi.pal.context.MapContext']
 
 
-@pytest.fixture(scope='function')
+@ pytest.fixture(scope='function')
 def test_csdb_addTag(csdb_uploaded):
     logger.info('test add tag to urn')
-    #test_pool, url = csdb
+    # test_pool, url = csdb
 
     test_pool, resPrd, resMap, uniq, resPrds = csdb_uploaded
     pinfo = test_pool.getPoolInfo()
@@ -482,7 +523,7 @@ def test_csdb_delTag(test_csdb_addTag):
 
 def test_csdb_count(csdb_uploaded):
     logger.info('test count')
-    #test_pool, url = csdb
+    # test_pool, url = csdb
 
     # start with none-empty
     test_pool, resPrd, resMap, uniq, resPrds = csdb_uploaded
@@ -510,7 +551,7 @@ def test_csdb_count(csdb_uploaded):
 
 def test_csdb_remove(csdb_uploaded):
     logger.info('test remove product')
-    #test_pool, url = csdb
+    # test_pool, url = csdb
     test_pool, resPrd, resMap, uniq, resPrds = csdb_uploaded
     poolname = test_pool.poolname
     pinfo = test_pool.getPoolInfo()
@@ -525,7 +566,7 @@ def test_csdb_remove(csdb_uploaded):
 
 def test_csdb_wipe(csdb_uploaded):
     logger.info('test wipe all')
-    #test_pool, url = csdb
+    # test_pool, url = csdb
 
     test_pool, resPrd, resMap, uniq, resPrds = csdb_uploaded
     poolname = test_pool.poolname
@@ -537,6 +578,13 @@ def test_csdb_wipe(csdb_uploaded):
     info = test_pool.getPoolInfo()
     # print(info)
     assert test_pool.isEmpty()
+
+
+def test_slash(tmp_remote_storage, tmp_prods):
+    # add urn
+    ps = tmp_remote_storage
+    p0_, p11_, p12_, p121, p122, p1221, p12211 = tmp_prods
+    urn12211 = ps.save(p12211).urn
 
 
 def test_hist(tmp_remote_storage, tmp_prods):
@@ -592,3 +640,44 @@ def test_hist(tmp_remote_storage, tmp_prods):
     assert len(h.adj) == 7
     pdot = nx.drawing.nx_pydot.to_pydot(h)
     print(pdot.to_string())
+
+
+def test_no_auth(tmp_pools, server, client):
+
+    pool, prd, ref, tag = tmp_pools[0]
+    aburl, header = server
+    prd_urn = ref.urn
+
+    # server url
+
+    # get pool without auth
+    x = client.get(aburl, auth=None)
+    o, code = getPayload(x)
+    # check to see if the pool url is malformed
+    check_response(o, code=code, failed_case=False)
+    # pool name is found
+    assert pool.poolname in o['result']
+
+
+def test_need_auth(existing_pools, server, client, auth):
+    pool = existing_pools[0]
+    aburl, header = server
+
+    url = '/'.join((aburl, pool.poolname, 'hk/'))
+    # get pool with auth
+    x = client.get(url, auth=auth)
+    cookie = x.cookies
+    o, code = getPayload(x)
+
+    # check to see if the pool url is malformed
+    check_response(o, code=code, failed_case=False)
+    assert o['msg'] == 'OK.'
+
+    # in session
+    url = '/'.join((aburl, pool.poolname, 'hk/dTags'))
+
+    x = client.get(url, auth=auth)
+
+    o, code = getPayload(x)
+    check_response(o, code=code, failed_case=False)
+    assert o['msg'] == 'dTags HK data returned OK'

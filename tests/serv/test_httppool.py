@@ -97,16 +97,10 @@ if 0:
     sys.exit()
 
 
-@pytest.fixture(scope="module")
-def project_app(pc):
-    from fdi.httppool import create_app
-    return create_app(config_object=pc, level=logger.getEffectiveLevel())
-
-
 def make_auth(userpass):
     return userpass
     # for mock server.
-    # return Authorization(
+    # return
     #   "basic", {"username": userpass[0], "password": userpass[1]})
 
 
@@ -225,29 +219,9 @@ def test_root(server, client):
     assert set(iter(c_pools)) <= set(iter(c0))
 
 
-def make_pools(name, aburl, clnt, auth, n=1):
-    """ generate n pools """
-    lst = []
-    for i in range(n):
-        poolid = name + str(i)
-        pool = PoolManager.getPool(
-            poolid, aburl + '/'+poolid,
-            auth=auth if isinstance(auth, tuple) else (
-                auth.username, auth.passwd),
-            client=clnt)
-        lst.append(pool)
-        data = serialize(Product('lone prod in '+poolid))
-        url = aburl + '/' + poolid + '/'
-        x = clnt.post(url, auth=auth, data=data)
-        o, code = getPayload(x)
-        check_response(o, code=code, failed_case=False)
-    return lst[0] if n == 1 else lst
-
-
-def test_wipe_all_pools_on_server(server, local_pools_dir, client, userpass):
+def test_wipe_all_pools_on_server(server, local_pools_dir, client, auth):
     aburl, headers = server
     post_poolid = test_poolid
-    auth = make_auth(userpass)
     # ======== wipe all pools =====
     logger.info('Wipe all pools on the server')
 
@@ -303,10 +277,10 @@ def test_new_user_read_only(new_user_read_only, pc):
     THEN check the username, hashed_password, authenticated, and role fields are defined correctly
     """
     new_user, headers = new_user_read_only
-    assert new_user.username == pc['node']['ro_username']
+    assert new_user.username == pc['USERS'][1]['username']
     assert not new_user.hashed_password.startswith('o')
     assert not new_user.authenticated
-    assert new_user.role == 'read_only'
+    assert new_user.role == read_only['roles']
     logger.debug('Done.')
 
 
@@ -415,17 +389,7 @@ def populate_pool(poolid, aburl, auth, clnt):
     return creators, instruments, urns
 
 
-@ pytest.fixture(scope='function')
-def thepool(server, client, userpass):
-    aburl, headers = server
-    auth = make_auth(userpass)
-    # register
-    pool = 1  # make_pools(test_poolid, aburl, client, auth, n=1)
-    yield pool, test_poolid
-    del pool
-
-
-def test_CRUD_product(local_pools_dir, server, userpass, client):
+def test_CRUD_product(local_pools_dir, server, auth, client):
     ''' test saving, read, delete products API, products will be saved at /data/pool_id
     '''
 
@@ -434,11 +398,10 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
 
     post_poolid = test_poolid
     # auth = HTTPBasicAuth(*userpass) # not working with mock server
-    auth = make_auth(userpass)
     # auth = tuple(userpasss.values())
 
     # register
-    pool = make_pools(test_poolid, aburl, client, auth, n=1)
+    #pool = make_pools(test_poolid, aburl, client, auth, n=1)
     empty_pool(post_poolid, aburl, auth, client)
 
     files = [f for f in get_files_in_local_dir(
@@ -612,11 +575,10 @@ def test_CRUD_product(local_pools_dir, server, userpass, client):
     check_response(o, code=x.status_code, failed_case=True)
 
 
-def test_data_path(server, userpass, client):
+def test_data_path(server, auth, client):
 
     aburl, headers = server
-    auth = make_auth(userpass)
-    # empty_pool(post_poolid,aburl,userpass)
+    # empty_pool(post_poolid,aburl,auth)
     pstore = ProductStorage(test_poolid, aburl + '/' +
                             test_poolid, auth=auth, client=client)
     pool = PoolManager.getPool(test_poolid)
@@ -735,14 +697,10 @@ def lock_pool2(poolid, sec, local_pools_dir):
     return deserialize(fakeres)
 
 
-def read_product2(poolid, server, userpass, client):
+def read_product2(poolid, server, auth, client):
 
     aburl, headers = server
 
-    if headers['server_type'] == 'live':
-        auth = HTTPBasicAuth(*userpass)
-    else:
-        auth = make_auth(userpass)
     # trying to read
     if 1:
         prodpath = '/'+prodt+'/0'

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .getswag import swag
+
 from .httppool_server import (
     before_request_callback,
     excp,
@@ -9,7 +10,9 @@ from .httppool_server import (
     PM_S,
     resp
 )
-from ..model.user import auth, getUsers
+#from .. import auth
+from ..model.user import getUsers, auth
+
 from ..._version import __version__
 from ...dataset.deserialize import deserialize_args, deserialize
 from ...pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
@@ -39,52 +42,6 @@ pools_api = Blueprint('pools', __name__)
 
 
 ######################################
-####  /user/login GET, POST  ####
-######################################
-
-
-@ pools_api.route('/user/login', methods=['GET', 'POST'])
-@ auth.login_required(role=['read_only', 'read_write'])
-def login():
-    """ Logging in on the server.
-
-    :return: response made from http code, poolurl, message
-    """
-
-    logger = current_app.logger
-    ts = time.time()
-    logger.debug('login')
-
-    msg = 'User %s logged-in %s.' % (auth.current_user().username,
-                                     auth.current_user().role)
-    logger.debug(msg)
-
-    return resp(200, 'OK', msg, ts, req_auth=True)
-
-######################################
-####  /user/logout GET, POST  ####
-######################################
-
-
-@ pools_api.route('/user/logout', methods=['GET', 'POST'])
-@ auth.login_required(role=['read_only', 'read_write'])
-def logout():
-    """ Logging in on the server.
-
-    :return: response made from http code, poolurl, message
-    """
-
-    logger = current_app.logger
-    ts = time.time()
-    logger.debug('logout')
-
-    msg = 'User %s logged-out %s.' % (auth.current_user().username,
-                                      auth.current_user().role)
-    logger.debug(msg)
-
-    return resp(401, 'OK. Bye.', msg, ts)
-
-######################################
 ####   get_pools_url   ####
 ######################################
 
@@ -101,9 +58,9 @@ def get_pools_url():
 
     result = get_name_all_pools(path)
 
-    burl = request.base_url.rsplit('register_all', 1)[0]
+    burl = request.base_url
     if issubclass(result.__class__, list):
-        res = dict((x, burl+x) for x in result)
+        res = dict((x, '/'.join((burl, x))) for x in result)
     else:
         res = {}
 
@@ -151,7 +108,7 @@ def get_name_all_pools(path):
         filepath = join(path, file)
         if os.path.isdir(filepath):
             alldirs.append(file)
-    current_app.logger.debug(path + ' has ' + str(alldirs))
+    current_app.logger.debug(path + ' has ' + lls(alldirs, 100))
     return alldirs
 
 ######################################
@@ -192,6 +149,7 @@ def register_all():
     """
     ts = time.time()
     current_app.logger.debug('Load all pools.')
+    # will have / at the end
     burl = request.base_url.rsplit('register_all', 1)[0]
     result, bad = load_pools(None, auth.current_user())
     code = 400 if len(bad) else 200
@@ -341,6 +299,7 @@ def wipe_pools(poolnames, usr):
 
 @ pools_api.route('/<string:pool>', methods=['GET'])
 @ pools_api.route('/<string:pool>/', methods=['GET'])
+# @ auth.login_required(role=['read_only', 'read_write'])
 def get_pool(pool):
     """ Get information of the given pool.
 
@@ -386,7 +345,7 @@ def get_pool_info(poolname, serialize_out=False):
                               for sn in sns)
                 cdict[cls] = sndict
             dt_display[t] = cdict
-        display = {'Tags with URLs': dt_display}
+        display = {'Tags': dt_display}
         # add urls to urns
         ty_display = {}
         rec_u = 0
@@ -405,12 +364,13 @@ def get_pool_info(poolname, serialize_out=False):
                         }
                 snd_url[sn] = base
             ty_display[cl] = snd_url
-        display['Datatypes with URLs'] = ty_display
+        display['DataTypes'] = ty_display
         msg = 'Getting pool %s information. %s.' % (poolname, mes)
         _, count, _ = get_data_count(None, poolname)
         msg += '%d data items recorded. %d counted.' % (rec_u, count)
     else:
         code, result, msg = 404, FAILED, poolname + ' is not an exisiting Pool ID.'
+        display = {'result': result}
     return resp(code, display, msg, ts, False)
 
 
@@ -516,6 +476,7 @@ def unregister_pool(pool):
 
 # @ pools_api.route('/<string:pool>/hk', methods=['GET'])
 @ pools_api.route('/<string:pool>/hk/', methods=['GET'])
+@ auth.login_required(role=['read_only', 'read_write'])
 def hk(pool):
     """ All kinds of pool housekeeping data.
 
@@ -558,6 +519,7 @@ def load_HKdata(paths, serialize_out=True):
 
 # @ pools_api.route('/<string:pool>/api', methods=['GET'])
 @ pools_api.route('/<string:pool>/api/', methods=['GET'])
+@ auth.login_required(role=['read_only', 'read_write'])
 def api_info(pool):
     """ A list of names of allowed API methods.
 
@@ -607,7 +569,7 @@ def wipe(pool):
 
 
 @ pools_api.route('/<string:pool>/hk/<string:kind>', methods=['GET'])
-# @ pools_api.route('/<string:pool>/hk/<string:kind>/', methods=['GET'])
+@ auth.login_required(role=['read_only', 'read_write'])
 def hk_single(pool, kind):
     """ Returns the given kind of pool housekeeping data.
     """
@@ -728,7 +690,8 @@ def get_data_count(data_type, pool_id):
     else:
         return 400, 'FAILED', f'Pool {pool} not found.'
     s = str(nm)
-    logger.debug(str(data_type) + ' found '+s)
+    logger.debug(('All types' if data_type is None else data_type) +
+                 ' found ' + lls(s, 120))
     return 200, res, 'Counted %d %s files OK.' % (res, data_type if data_type else 'all types')
 
 

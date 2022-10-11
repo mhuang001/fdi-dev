@@ -3,10 +3,8 @@
 """ https://livecodestream.dev/post/python-flask-api-starter-kit-and-project-layout/ """
 
 from .route.getswag import swag
-from .route.pools import pools_api
-from .model.user import getUsers
 
-from .route.httppool_server import data_api, checkpath, PM_S
+from .route.httppool_server import checkpath, PM_S
 
 from .._version import __version__
 from ..utils import getconfig
@@ -20,14 +18,12 @@ from werkzeug.routing import RequestRedirect
 from werkzeug.routing import RoutingException, Map
 
 import builtins
-from collections import ChainMap
+from datetime import timedelta
 from os.path import expandvars
 import sys
 import json
 import time
 import os
-
-# sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
 # print(sys.path)
 global logging
@@ -131,24 +127,17 @@ def init_httppool_server(app):
     Classes.mapping.add_ns(_bltn, order=-1)
     app.config['LOOKUP'] = Classes.mapping
 
-    # users
-    # effective group of current process
-
-    uid, gid = getUidGid(pc['self_username'])
-
-    app.logger.info("Self_Username: %s uid %d and gid %d..." %
-                    (pc['self_username'], uid, gid))
-    # os.setuid(uid)
-    # os.setgid(gid)
-    app.config['USERS'] = getUsers(pc)
+    # client users
+    from .model.user import getUsers
+    app.config['USERS'] = getUsers(app)
 
     # PoolManager is a singleton
     if PM_S.isLoaded(DEFAULT_MEM_POOL):
         logger.debug('cleanup DEFAULT_MEM_POOL')
         PM_S.getPool(DEFAULT_MEM_POOL).removeAll()
     app.logger.debug('Done cleanup PoolManager.')
-    app.logger.debug('ProcID %d. Got 1st request %s' % (os.getpid(),
-                                                        str(app._got_first_request))
+    app.logger.debug('ProcID %d. Got 1st request %s' %
+                     (os.getpid(), str(app._got_first_request))
                      )
     PM_S.removeAll()
 
@@ -175,39 +164,36 @@ def init_httppool_server(app):
 #### Application Factory Function ####
 ######################################
 
-def create_app(config_object=None, level=None):
-    """ If args have logger level, use it; else if enivronment car FLASK_ENV is set, use $ENV settings; else use 'development' pnslocal.py config.
+def create_app(config_object=None, level=None, debug=False):
+    """ If args have logger level, use it; else if 
+ use 'development' pnslocal.py config.
     """
     config_object = config_object if config_object else getconfig.getConfig()
+
     logging = setup_logging(level)
     logger = logging.getLogger('httppool_app')
     if level is None:
-        if 'FLASK_ENV' not in os.environ:
-            # env var not set
-            logger.info('FLASK_ENV not found in environment')
-            level = config_object['loggerlevel']
-        else:
-            level = logging.WARNING
+        level = config_object['loggerlevel']
+        #level = logging.WARNING
     logger.setLevel(level)
-    app = Flask('HttpPool', instance_relative_config=True)
+    app = Flask('HttpPool', instance_relative_config=False,
+                root_path=os.path.abspath(os.path.dirname(__file__)))
     app.logger = logger
-    if 'FLASK_ENV' in os.environ:
-        if app.config['ENV'] == 'production':
-            level = logging.INFO
-            logger.setLevel(level)
-            logger.info('ENV %s DEBUG %s' %
-                        (app.config['ENV'], app.config['DEBUG']))
-        else:
-            # development
-            level = logging.DEBUG
-            logger.setLevel(level)
-            logger.info('ENV %s DEBUG %s' %
-                        (app.config['ENV'], app.config['DEBUG']))
-            from werkzeug.debug import DebuggedApplication
-            app.wsgi_app = DebuggedApplication(app.wsgi_app, True)
-            app.debug = True
-            app.config['PROPAGATE_EXCEPTIONS'] = True
+    app.config_object = config_object
 
+    if debug:
+        level = logging.DEBUG
+        logger.setLevel(level)
+        logger.info('DEBUG mode %s' % (app.config['DEBUG']))
+        from werkzeug.debug import DebuggedApplication
+        app.wsgi_app = DebuggedApplication(app.wsgi_app, True)
+        app.debug = True
+        app.config['PROPAGATE_EXCEPTIONS'] = True
+    elif 'proxy_fix' in app.config:
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(
+            app.wsgi_app, **app.config['proxy_fix']
+        )
     # from flask.logging import default_handler
     # app.logger.removeHandler(default_handler)
     app.config['LOGGER_LEVEL'] = logger.getEffectiveLevel()
@@ -215,7 +201,7 @@ def create_app(config_object=None, level=None):
     app.config['SWAGGER'] = {
         'title': 'FDI %s HTTPpool Server' % __version__,
         'universion': 3,
-        'openapi': '3.0.3',
+        'openapi': '3.0.4',
         'specs_route': '/apidocs/',
         'url_prefix': config_object['api_base']
     }
@@ -230,34 +216,61 @@ def create_app(config_object=None, level=None):
     # swagger.config['specs'][0]['route'] = config_object['api_base'] + s1
     app.config['PC'] = config_object
 
+    # initialize_extensions(app)
+    # register_blueprints(app)
+
+    from .model.user import user, SESSION
+    app.register_blueprint(user, url_prefix=config_object['baseurl'])
+
+    from .route.pools import pools_api
+    app.register_blueprint(pools_api, url_prefix=config_object['baseurl'])
+    from .route.httppool_server import data_api
+    app.register_blueprint(data_api, url_prefix=config_object['baseurl'])
+
+    # for sessions
+    if SESSION:
+        import secrets
+        app.secret_key = secrets.token_hex()
+        app.permanent_session_lifetime = timedelta(minutes=30)
+
+    @app.errorhandler(401)
+    @app.errorhandler(403)
+    def hadle_auth_error_codes(error):
+        """ if verify_password returns False, this gets to run. """
+        if error in [401, 403]:
+            # send a login page
+            app.logger("Error %d. Start login page..." % error)
+            page = make_response(render_template(LOGIN_TMPLT))
+            return page
+        else:
+            raise ValueError('Must be 401 or 403. Nor %s' % str(error))
+
+    # hadlers for exceptions and some code
+    add_errorhandlers(app)
+
+    # Do not redirect a URL ends with no spash to URL/
+    app.url_map.strict_slashes = False
+
     with app.app_context():
         init_httppool_server(app)
     logger.info('Server initialized. logging level ' +
                 str(app.logger.getEffectiveLevel()))
 
-    # initialize_extensions(app)
-    # register_blueprints(app)
-
-    app.register_blueprint(pools_api, url_prefix=config_object['baseurl'])
-    app.register_blueprint(data_api, url_prefix=config_object['baseurl'])
-    addHandlers(app)
-    #app.url_map.strict_slashes = False
-
     return app
 
 
-def addHandlers(app):
+# @app.errorhandler(RequestRedirect)
+# def handle_redirect(error):
+#     __import__('pdb').set_trace()
 
-    # @app.errorhandler(RequestRedirect)
-    # def handle_redirect(error):
-    #     __import__('pdb').set_trace()
+#     spec = 'redirect'
 
-    #     spec = 'redirect'
-
+def add_errorhandlers(app):
     @app.errorhandler(Exception)
     def handle_excep(error):
         """ ref flask docs """
         ts = time.time()
+
         if issubclass(error.__class__, HTTPException):
             if error.code == 409:
                 spec = "Conflict or updating. "

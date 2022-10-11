@@ -68,7 +68,7 @@ setup(
         ],
         'SERV': [
             'Flask_HTTPAuth>=4.1.0',
-            'Flask>=2.0.2',
+            'Flask>=2.2.2',
             # 'waitress>=2.0.0',
             'uwsgi>=2.0.20',
             'flasgger>=0.9.5',

@@ -73,11 +73,11 @@ def init_conf_clas(pc0):
         "rw": generate_password_hash(pc['node']['username']),
         "ro": generate_password_hash(pc['node']['password'])
     }
-    users = [
-        User(pc['node']['username'], pc['node']['password'], 'read_write'),
-        User(pc['node']['ro_username'], pc['node']
-             ['ro_password'], 'read_only')
-    ]
+    users = dict(((u['username'],
+                  User(u['username'],
+                       hashed_password=u['hashed_password'],
+                       role=u['roles'])
+                   ) for u in app.config['PC']['USERS']))
 
     # setup user class mapping
     clp = pc['userclasses']

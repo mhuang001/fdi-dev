@@ -54,6 +54,9 @@ runpnsserver:
 	$(PYEXE) -m fdi.pns.runflaskserver $(S)
 runpoolserver:
 	$(PYEXE) httppool_app.py --server=httppool_server $(S)
+
+initdb:
+	flask --app fdi.httppool  init-db
 wsgi:
 	uwsgi --wsgi-file wsgi.py --http-buffer-size 65536 --master --enable-threads --http-socket :9885 $(S)
 

@@ -54,6 +54,7 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
             s = f'{cn}('
             s += 'META: ' + mstr(self._meta, level=level, width=width,
                                  tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                                 extra=extra,
                                  param_widths=param_widths,
                                  excpt=['description'], **kwds)
             s += ' DATA: ' + mstr(self.data, level=level,

@@ -177,6 +177,8 @@ def importModuleClasses(scope=None, mapping=None,
         except ModuleNotFoundError as e:
             msg += ' Could not import %s, as %s' % (
                 str(class_list), str(e))
+            msg += '*** %s ' % str(sys.path)
+
             if ignore_error:
                 msg += ' Ignored.'
             else:

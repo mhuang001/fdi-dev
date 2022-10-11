@@ -6,12 +6,10 @@ https://stackoverflow.com/questions/13751277/how-can-i-use-an-app-factory-in-fla
 """
 
 from fdi.httppool import create_app
-from fdi.httppool.route.pools import pools_api
 #from fdi.httppool.route.httppool_server import init_httppool_server, httppool_api
 
 from fdi._version import __version__
 from fdi.utils import getconfig
-
 
 import sys
 import argparse
@@ -80,7 +78,7 @@ if __name__ == '__main__':
         sys.exit(1)
     elif servertype == 'httppool_server':
         print('<<<<<< %s >>>>>' % servertype)
-        app = create_app(pc)  # , level)
+        app = create_app(pc, debug=args.debug)  # , level)
     else:
         logger.error('Unknown server %s' % servertype)
         sys.exit(-1)

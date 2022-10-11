@@ -40,7 +40,7 @@ def trbk(e):
     """
     ls = [x for x in traceback.extract_tb(e.__traceback__).format()] if hasattr(
         e, '__traceback__') else ['']
-    return ' '.join(ls) + ' ' + \
+    return '\n'.join(ls) + ' ' + \
         (e.child_traceback if hasattr(e, 'child_traceback') else '')
 
 

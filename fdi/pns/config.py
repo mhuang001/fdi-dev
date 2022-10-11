@@ -85,21 +85,33 @@ conf = ['dev', 'external', 'production'][0]
 
 # modify
 if conf == 'dev':
-    # username, passwd, flask ip, flask port
+    # username, passwd, flask ip, flask port.
+    # For server these are for clients,
+    # for a client this is server access info.
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
                          'host': '0.0.0.0', 'port': 9885,
-                         'ro_username': 'poolrw', 'rw_password': 'k/p=0',
-                         'ro_username': 'poolro', 'ro_password': 'only5%',
                          }
 
-    # server's own
+    # server's own in the context of its os/fs/globals
     pnsconfig['self_host'] = pnsconfig['node']['host']
     pnsconfig['self_port'] = pnsconfig['node']['port']
     pnsconfig['self_username'] = pnsconfig['node']['username']
     pnsconfig['self_password'] = pnsconfig['node']['password']
-    # server permission user
     pnsconfig['base_local_poolpath'] = '/tmp'
     pnsconfig['server_poolpath'] = '/tmp/data'  # For server
+    pnsconfig['POOL_DATABASE'] = pnsconfig['server_poolpath'] + '/pool.db'
+    # In place of a frozen user DB for backend server and test.
+    pnsconfig['USERS'] = [
+        {'username': 'foo',
+         'hashed_password': 'pbkdf2:sha256:260000$Ch0GEGjA6ipF3dOb$3d408b50a31c64de75d8973e8aebaf76a510cfb01c9af03a1294bac792fe9608',
+         'roles': ('read_write',)
+         },
+        {'username': 'ro',
+         'hashed_password': 'pbkdf2:sha256:260000$gzsbbunF2NQb5okJ$0ef0a27f7f6802d0394214df638c739d2bb0a5c4091ac7d4273fd236ca77ee3f',
+         'roles': ('read_only',)
+         }
+    ]
+
     # PTS app permission user
     pnsconfig['ptsuser'] = 'mh'
     # on pns server
@@ -108,14 +120,28 @@ elif conf == 'external':
     # wsgi behind apach2. cannot use env vars
     pnsconfig['node'] = {'username': EXTUSER, 'password': EXTPASS,
                          'host': EXTHOST, 'port': EXTPORT,
-                         'ro_username': EXTRO_USER, 'ro_password': EXTRO_PASS,
                          }
     pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
-    # server's own
+    # server's own in the context of its os/fs/globals
     pnsconfig['self_host'] = SELF_HOST
     pnsconfig['self_port'] = SELF_PORT
     pnsconfig['self_username'] = SELF_USER
     pnsconfig['self_password'] = SELF_PASS
+
+    # In place of a frozen user DB for backend server and test.
+    pnsconfig['USERS'] = [
+        {'username': EXTUSER,
+         'hashed_password': EXTPASS,
+         'roles': ['read_write']
+         },
+        {'username': EXTRO_USER,
+         'hashed_password': EXTRO_PASS,
+         'roles': ['read_only']
+         }
+    ]
+
+    # (reverse) proxy_fix
+    pnsconfig['proxy_fix'] = dict(x_for=1, x_proto=1, x_host=1, x_prefix=1)
     # PTS app permission user
     pnsconfig['ptsuser'] = 'pns'
     # on pns server

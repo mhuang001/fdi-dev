@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+#from .. import auth
 from ..model.user import auth
 
 from ...dataset.deserialize import deserialize
@@ -97,35 +98,38 @@ def checkpath(path, un):
 
 # =============HTTP POOL=========================
 
-# @data_api.before_app_first_request
 
 def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', length=80, req_auth=False):
     """
     Make response.
 
+    :result: if is `Response`, this is returned req_auth applied.
     :ctype: Content-Type. Default is `application/json`
     :serialize_out: if True `result` is in already in serialized form.
     """
+
     # return if `result` is already a Response
     if issubclass(result.__class__, Response):
-        return result
-    if ctype == 'application/json':
-        if serialize_out:
-            # result is already in serialized form
-            p = 'no-serialization-result-place-holder'
-            t = serialize({"result": p, "msg": msg, "time": ts})
-            w = t.replace('"'+p+'"', result)
-        else:
-            w = serialize({"result": result, "msg": msg, "time": ts})
+        resp = result
     else:
-        w = result
+        if ctype == 'application/json':
+            if serialize_out:
+                # result is already in serialized form
+                p = 'no-serialization-result-place-holder'
+                t = serialize({"result": p, "msg": msg, "time": ts})
+                w = t.replace('"'+p+'"', result)
+            else:
+                w = serialize({"result": result, "msg": msg, "time": ts})
+        else:
+            w = result
 
-    if logger.getEffectiveLevel() <= logging.DEBUG:
-        from ...utils.common import lls
-        logger.debug(lls(w, length))
-    # logger.debug(pprint.pformat(w, depth=3, indent=4))
-    resp = make_response(w, code)
-    resp.headers['Content-Type'] = ctype
+        if logger.getEffectiveLevel() <= logging.DEBUG:
+            from ...utils.common import lls
+            logger.debug(lls(w, length))
+            # logger.debug(pprint.pformat(w, depth=3, indent=4))
+
+        resp = make_response(w, code)
+        resp.headers['Content-Type'] = ctype
 
     if req_auth:
         resp.headers['WWW-Authenticate'] = 'Basic'
@@ -157,12 +161,17 @@ def check_readonly(usr, meth, logger):
     return None
 
 
+cnt = 0
+
+
 @data_api.before_request
 def before_request_callback():
-    path = request.path
+    global cnt
+    args = request.view_args
     method = request.method
 
-    print(path + " >>>[" + method + "]<<<")
+    cnt += 1
+    print("%3d >>>[%4s] %s" % (cnt, method, str(args)))
 
 ######################################
 ####  /urn{parts} get data ####
@@ -379,7 +388,6 @@ def data_paths(pool, data_paths):
 
     ts = time.time()
     logger = current_app.logger
-    logger.debug(f'datapath of ' + pool)
 
     logger = current_app.logger
 
@@ -388,7 +396,7 @@ def data_paths(pool, data_paths):
 
     paths = [pool] + parts2paths(data_paths)
 
-    logger.debug('*** method= %s pool= %s data_paths= %s paths= %s' %
+    logger.debug('>>>[%4s] %s data_paths= %s paths= %s' %
                  (request.method, pool, str(data_paths), str(paths)))
 
     code, result, msg = getProduct_Or_Component(

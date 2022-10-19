@@ -33,15 +33,18 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
 
         super().__init__(**kwds)
 
-    def toString(self, level=0, width=0,
+    def toString(self, level=0, extra=False, param_widths=None,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='psql',
-                 extra=False, param_widths=None,
+                 width=0,
                  matprint=None, trans=True, beforedata='', heavy=True,
                  center=-1, **kwds):
         """ matprint: an external matrix print function
 
         Parameters
         ----------
+        level : int
+            Detailedness level.
+
         trans: print 2D matrix transposed. default is True.
         -------
 
@@ -53,9 +56,9 @@ class AbstractComposite(Attributable, EventListener, Composite, DataWrapperMappe
         if level > 1:
             s = f'{cn}('
             s += 'META: ' + mstr(self._meta, level=level, width=width,
-                                 tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                                  extra=extra,
                                  param_widths=param_widths,
+                                 tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                                  excpt=['description'], **kwds)
             s += ' DATA: ' + mstr(self.data, level=level,
                                   excpt=['description'],

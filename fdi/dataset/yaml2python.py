@@ -38,6 +38,9 @@ demo = 0
 # if demo is true, only output this subset.
 onlyInclude = ['default', 'description',
                'data_type', 'unit', 'valid', 'fits_keyword']
+# inlcude allVersions]
+onlyInclude = None
+
 # only these attributes in meta
 attrs = ['startDate', 'endDate', 'instrument', 'modelName', 'mission', 'type']
 indent = '    '
@@ -185,7 +188,7 @@ def params(val, indents, demo, onlyInclude, debug=False):
     for pname, pv in val.items():
         # pname is like 'data_type', 'default'
         # pv is like 'string', 'foo, bar, and baz', '2', '(0, 0, 0,)'
-        if demo and pname not in onlyInclude:
+        if demo and (onlyInclude is not None) and pname not in onlyInclude:
             continue
         if debug:
             logger.info('val[%s]=%s' % (str(pname), str(pv)))

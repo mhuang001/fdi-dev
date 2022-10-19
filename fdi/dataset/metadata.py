@@ -25,7 +25,7 @@ from fdi.dataset.listener import ListenerSet
 import cwcwidth as wcwidth
 import tabulate
 
-from copy import copy
+import copy
 import builtins
 # create logger
 logger = logging.getLogger(__name__)
@@ -492,7 +492,7 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         """
 
         # collect args-turned-local-variables.
-        args = copy(locals())
+        args = copy.copy(locals())
         args.pop('__class__', None)
         args.pop('kwds', None)
         args.pop('self', None)
@@ -609,7 +609,6 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         self_class = classes.Classes.mapping[self_cls_name]
         # if value type is a subclass of self type
         # if issubclass(value_class, float):
-        #    __import__('pdb').set_trace()
 
         if issubclass(value_class, self_class):
             return value
@@ -1028,16 +1027,25 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             self.fire(e)
         return r
 
-    def toString(self, level=0,
+    def toString(self, level=0, extra=False, param_widths=None,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='psql',
-                 extra=False, param_widths=None, **kwds):
+                 **kwds):
         """ return  string representation of metada.
 
-        level: 0 is the most detailed, 2 is the least,
-        tablefmt: format string in packae ``tabulate``, for level==0, tablefmt1 for level1, tablefmt2: format of 2D table data.
-        param_widths: controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit. For finer control set a dictionary of parameter attitute names and how many characters wide its table cell is, 0 for ommiting the attributable. Default is `MetaData.Default_Param_Widths`. e.g.
-``{'name': 15, 'value': 18, 'unit': 6, 'type': 8,
-         'valid': 17, 'default': 15, 'code': 4, 'description': 17}``
+        The order of parameters are important as the httppool API use the order when passing parameters to, e.g. `txt`.
+
+        Parameters
+        ----------
+        level : int
+            detailed-ness level. 0 is the most detailed, 2 is the least,
+        param_widths : int or dict
+            Controls how the attributes of every parameter are displayed in the table cells. If is set to -1, there is no cell-width limit (e.g. fot html output). If set to >=0, all widths are set to this. For finer control set a dictionary of parameter attribute names and how many characters wide its table cell is, 0 for ommiting the attributable. Default is `MetaData.Default_Param_Widths`. Example: ``{'name': 15, 'value': 18, 'unit': 6, 'type': 8, 'valid': 17, 'default': 15, 'code': 4, 'description': 17}``. default is
+        tablefmt : str
+            format string in packae ``tabulate``, for level==0.
+        tablefmt1 : string
+            for level1
+        tablefmt2 : str
+            format of 2D table data.
         """
 
         html = 'html' in tablefmt.lower() or 'html' in tablefmt2.lower()
@@ -1050,13 +1058,53 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         s = ''
         att, ext = {}, {}
         has_omission = False
-        nn = 0
+
+        if param_widths is None:
+            param_widths = copy.copy(MetaData.Default_Param_Widths)
+
+        def _fix_bool(l):
+            
+            #__import__("pdb").set_trace()
+            
+            # work around a bug in tabulate
+            for i in range(len(l)):
+                v = l[i]
+                if isinstance(v, bool):
+                    v = str(v)
+                ll = v.lower()
+                if ll in ('true', 'false'):
+                    l[i] = ll
+            #ll = l[5].lower()
+            #if l[5] in ('true', 'false'):
+            #    l[5] = ll
+
+        def get_thewidths_l0(param_widths):
+            # limit cell width for level=0,1.
+            if isinstance(param_widths, int) and param_widths <= -1 or html:
+                thewidths = dict((n, MetaData.MaxDefWidth)
+                                 for n in MetaHeaders)
+            else:
+                # param_widths is not -1. can be 0, >0 , list
+                if isinstance(param_widths, int):
+                    if param_widths > 0:
+                        thewidths = dict((n, param_widths)
+                                         for n in MetaHeaders)
+                    else:
+                        # == 0
+                        thewidths = copy.copy(MetaData.Default_Param_Widths)
+                else:
+                    thewidths = param_widths if param_widths else \
+                        copy.copy(MetaData.Default_Param_Widths)
+            return thewidths
+
         for (k, v) in self.__getstate__().items():
             if k.startswith('_ATTR_'):
                 k = k[6:]
             elif k == '_STID':
                 continue
             att['name'] = k
+            # if k == 'urls':
+            #    __import__('pdb').set_trace()
 
             # get values of line k.
             if issubclass(v.__class__, Parameter):
@@ -1067,6 +1115,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                         tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
                         extra=extra,
                         alist=True)
+
                 from ..utils.fits_kw import getFitsKw
                 # make sure every line has fits_keyword in ext #1
                 fk = ext.pop('fits_keyword') if 'fits_keyword' \
@@ -1090,52 +1139,26 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
             # if tablefmt == 'html':
             #    att['valid'] = att['valid'].replace('\n', '<br>')
-            # generate column vallues of the line and ext headers
-            # limit cell width for level=0,1.
+
             if level == 0:
-                if param_widths == -1 or html:
-                    w = MetaData.MaxDefWidth * 2
-                    l = list(wls(att[n], w, linebreak=br)
-                             for n in MetaHeaders)
-                    if l[3] == 'boolean':  # work around a bug in tabulate
-                        l[1] = l[1].lower() if l[1] in (
-                            'True', 'False') else l[1]
-                        l[5] = l[5].lower() if l[5] in (
-                            'True', 'False') else l[5]
-                    if extra:
-                        l += list(v for v in ext.values())
-                else:
-                    thewidths = param_widths if param_widths else \
-                        MetaData.Default_Param_Widths
-                    l = list(wls(att[n], w)
-                             for n, w in thewidths.items() if w != 0)
-                    if l[3] == 'boolean':  # work around a bug in tabulate
-                        l[1] = l[1].lower() if l[1] in (
-                            'True', 'False') else l[1]
-                        l[5] = l[5].lower() if l[5] in (
-                            'True', 'False') else l[5]
-                    if extra:
-                        l += list(
-                            wls(v, Default_Extra_Param_Width)
-                            for v in ext.values())
-                        # print(l)
+                # generate column values of the line and ext headers
+                # limit cell width for level=0,1.
+                thewidths = get_thewidths_l0(param_widths)
+                l = list(map(str, att.values()))
+                #print('+++ %s' % str(l))
+                if l[3] == 'boolean':
+                    _fix_bool(l)
+                #print('### %s' % str(l))
+                if extra:
+                    l += list(map(str, ext.values()))
                 l = tuple(l)
 
                 tab.append(l)
                 ext_hdr = [v for v in ext.keys()]
 
             elif level == 1:
-                ps = '%s= %s' % (att['name'], att['value'])
+                ps = '%s= %s' % (att['name'], str(att['value']))
                 tab.append(wls(ps, 81//N))
-                # s += mstr(self, level=level, tablefmt = tablefmt, \
-                # tablefmt=tablefmt, tablefmt1=tablefmt1, \
-                # tablefmt2=tablefmt2,depth=1, **kwds)
-                if 0:
-                    row.append(wls(ps, 80//N))
-                    i += 1
-                    if i == N:
-                        tab.append(row)
-                        i, row = 0, []
             else:
                 # level > 1
                 n = att['name']
@@ -1150,34 +1173,22 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                     ps = '%s=%s' % (n, v.toString(level)) if level == 2 else n
                     # tab.append(wls(ps, 80//N))
                     tab.append(ps)
-            # nn += 1
-            # if nn == 2:
-            #    pass  # break
 
         if has_omission:
             tab.append('..')
 
         # write out the table
         if level == 0:
-            allh = copy(MetaHeaders)
+            thewidths = get_thewidths_l0(param_widths)
+            headers = list(thewidths)
             if extra:
-                allh += ext_hdr
-            if param_widths == -1 or html:
-                headers = allh
-            else:
-                headers = []
-                thewidths = param_widths if param_widths else \
-                    MetaData.Default_Param_Widths
-                for n in allh:
-                    w = thewidths.get(n, Default_Extra_Param_Width)
-                    # print(n, w)
-                    if w != 0:
-                        headers.append(wls(n, w))
+                headers.extend(ext_hdr)
             fmt = tablefmt
-            maxwidth = MetaData.MaxDefWidth
+            maxwidth = list(thewidths.values())
             s += tabulate.tabulate(tab, headers=headers, tablefmt=fmt,
                                    missingval='', maxcolwidths=maxwidth,
                                    disable_numparse=True)
+
         elif level == 1:
             t = grouper(tab, N)
             headers = ''

@@ -71,7 +71,7 @@ def new_user_read_only(pc):
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
     pn = pc['USERS'][1]
-    new_user = User(pn['username'], pn['hashed_password'], pn['roles'])
+    new_user = User(pn['username'], pn['hashed_password'], role=pn['roles'])
     headers = auth_headers(
         pn['username'], hashed_password=pn['hashed_password'])
 

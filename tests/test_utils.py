@@ -433,6 +433,9 @@ def test_wls():
     assert wls('1\n2345', 2) == '1\n23\n45'
     assert wls('1\n\n2345', 2) == '1\n23\n45'
     assert wls('12345\n\n', 2) == '12\n34\n5'
+
+
+def obsolete_wls():
     assert wls('格式版本', 4) == '格式\n版本'
     assert wls('格式版本', 8) == '格式版本'
     assert wls('格式版本。', 10) == '格式版本。'

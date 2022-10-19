@@ -35,7 +35,7 @@ from fdi.dataset.product import Product
 from fdi.dataset.browseproduct import BrowseProduct
 from fdi.dataset.readonlydict import ReadOnlyDict
 from fdi.dataset.unstructureddataset import UnstructuredDataset
-from fdi.dataset.testproducts import get_demo_product
+from fdi.dataset.testproducts import get_demo_product, DemoProduct
 from fdi.utils.checkjson import checkjson
 from fdi.utils.loadfiles import loadMedia
 from fdi.utils.ydump import ydump
@@ -71,7 +71,7 @@ else:
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 # make format output in /tmp/outputs.py
-mk_outputs = 0
+mk_outputs = 1
 output_write = 'tests/outputs.py'
 
 if mk_outputs:
@@ -1215,7 +1215,7 @@ def test_MetaData():
 
     # toString wth extra attributes
     ts = 'MetaData.toString with extra'
-    v = Product(ts)
+    v = DemoProduct(ts)
     v = v.meta
     ts += '\n'
     ts += v.toString(extra=True)
@@ -2014,16 +2014,16 @@ def test_TableDataset_func0():
     # print('\n'.join(flatten_compact([v]).keys()))
 
     ts += 'grouped column names'
-    ts += v.string(0, 'grid', 'rst', 'simple')
-    ts += v.string(0, 'simple_grid', 'rst', 'rst')
-    ts += v.string(0, 'rounded_grid', 'rst', 'outline')
-    ts += v.string(0, 'grid', 'rst', 'rounded_outline')
-    ts += v.string(0, 'grid', 'rst', 'fancy_outline')
-    ts += v.string(0, 'fancy_grid', 'rst', 'fancy_grid')
-    ts += v.string(0, 'grid', 'rst', 'plain')
-    ts += v.string(0, 'grid', 'rst', 'orgtbl')
-    ts += v.string(0, 'grid', 'rst', 'psql')
-    ts += v.string(0, 'unsafehtml', 'unsafehtml', 'unsafehtml')
+    ts += v.string(0, False, None, 'grid', 'rst', 'simple')
+    ts += v.string(0, False, None, 'simple_grid', 'rst', 'rst')
+    ts += v.string(0, False, None, 'rounded_grid', 'rst', 'outline')
+    ts += v.string(0, False, None, 'grid', 'rst', 'rounded_outline')
+    ts += v.string(0, False, None, 'grid', 'rst', 'fancy_outline')
+    ts += v.string(0, False, None, 'fancy_grid', 'rst', 'fancy_grid')
+    ts += v.string(0, False, None, 'grid', 'rst', 'plain')
+    ts += v.string(0, False, None, 'grid', 'rst', 'orgtbl')
+    ts += v.string(0, False, None, 'grid', 'rst', 'psql')
+    ts += v.string(0, False, None, 'unsafehtml', 'unsafehtml', 'unsafehtml')
     ts += '\n\n'
     if mk_outputs:
         print(ts)

@@ -172,9 +172,9 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
     def __repr__(self):
         return self.toString(level=2)
 
-    def toString(self, level=0,
+    def toString(self, level=0, param_widths=None,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='simple',
-                 width=0, param_widths=None, matprint=None, trans=True,
+                 width=0, matprint=None, trans=True,
                  center=-1, heavy=True, **kwds):
         """ matprint: an external matrix print function
         trans: print 2D matrix transposed. default is True.

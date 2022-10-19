@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-$WARNING
-
-$IMPORTS
-
 from fdi.dataset.abstractcomposite import AbstractComposite
 from fdi.dataset.listener import EventSender, EventType
 from fdi.dataset.eq import deepcmp
@@ -14,6 +10,12 @@ from collections import OrderedDict
 import copy
 
 import logging
+
+$WARNING
+
+$IMPORTS
+
+
 # create logger
 logger = logging.getLogger(__name__)
 
@@ -36,10 +38,10 @@ class $MODELNAME($PARENTS AbstractComposite, Copyable, EventSender):
     A built-in attributes in `Model['metadata']` ("MetaData Parameter" or `MDP`) can be accessed with e.g. ``p.creator``, or p.meta['creator'].value::
 
         p.creator='foo'
-    	assert p.creatur=='foo'
-    	assert p.meta['creator']=='foo'
-    	p.meta['creator']=Parameter('bar')
-    	assert p.meta['creator']==Parameter('bar')
+        assert p.creatur=='foo'
+        assert p.meta['creator']=='foo'
+        p.meta['creator']=Parameter('bar')
+        assert p.meta['creator']==Parameter('bar')
 
     =====
     $CLASSDOC
@@ -59,7 +61,7 @@ $INITARGS
         metasToBeInstalled.pop('zInfo', None)
 
         global Model
-	# instance variable for Model to be passed down inhritance chains.
+        # instance variable for Model to be passed down inhritance chains.
         if zInfo is None:
             zInfo = Model
 
@@ -68,7 +70,6 @@ $INITARGS
         super().__init__(zInfo=zInfo, **metasToBeInstalled, **kwds)
 
         self._history = History()
-
 
     @property
     def history(self):
@@ -84,7 +85,6 @@ $INITARGS
         """ Hook for adding functionality to meta data object
         through visitor pattern."""
         visitor.visit(self)
-
 
     def targetChanged(self, event):
         pass
@@ -103,16 +103,17 @@ $INITARGS
         h = self.history.toString(
             level=level,
             tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-	    matprint=matprint, trans=trans, **kwds)
+            matprint=matprint, trans=trans, **kwds)
         s = super(BaseProduct, self).toString(
             level=level,
             tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-	    matprint=matprint, trans=trans, beforedata=h, **kwds)
+            extra=extra,
+            matprint=matprint, trans=trans, beforedata=h, **kwds)
         return s
 
     string = toString
     txt = toString
-    
+
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         s = OrderedDict(
@@ -131,4 +132,3 @@ $MODELSPEC
 Model = copy.deepcopy(_Model_Spec)
 
 MdpInfo = Model['metadata']
-

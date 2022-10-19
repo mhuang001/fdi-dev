@@ -93,10 +93,10 @@ class TableModel():
         self.getColumn(columnIndex).data[rowIndex] = value
 
 
-def maybe2rows(header_names, units, col_width, sep='._/', one_row=False, linebreak='\n'):
+def maybe2rows(header_names, units, col_width, sep='.', one_row=False, linebreak='\n'):
     """ makes one-row or two-row column headers
 
-    :sep: a string of separator characters to split header into two fragments. a header only uses the first matching char from left. Grouping does not distinguish which sep-char was used to split a header.
+    :sep: a string of separator characters to split header into two fragments. a header only uses the first matching char from left. Grouping does not distinguish which sep-char was used to split a header. Example: '.' (default), '._/'
     :one_row: Force one row but add line breaks at sep
 
     """
@@ -146,6 +146,7 @@ def maybe2rows(header_names, units, col_width, sep='._/', one_row=False, linebre
     hdr1 = [wls(x.replace('.', '.\n') if one_row else x,
                 width=col_width, linebreak=linebreak)
             for x in (hd if found_repeat else header_names)]
+    # name and unit rows.
     hdr = list('%s%s(%s)' % (nu[0], linebreak, nu[1])
                for nu in zip(hdr1, units))
 
@@ -596,9 +597,9 @@ Default is to return all columns.
     def __repr__(self):
         return self.toString(level=2)
 
-    def toString(self, level=0,
+    def toString(self, level=0, extra=False, param_widths=None,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='plain',
-                 width=0, param_widths=None, matprint=None, trans=True,
+                 width=0, matprint=None, trans=True,
                  heavy=True, center=-1, **kwds):
         """
         tablefmt2: format of 2D data, others see `MetaData.toString`.
@@ -611,15 +612,15 @@ Default is to return all columns.
         if level > 1:
             s = cn + '('
             s += self.meta.toString(
-                level=level,
+                level=level, extra=extra,  param_widths=param_widths,
                 tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                width=width, param_widths=param_widths,
+                width=width,
                 **kwds)
             return s + 'data= {' + \
                 ', '.join('"%s": %s' % (k, v.toString(
-                    level=level, heavy=heavy,
+                    level=level, extra=extra,  param_widths=param_widths,
                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt,
-                    width=width, param_widths=param_widths, **kwds))
+                    width=width, heavy=heavy, **kwds))
                     for k, v in self.getColumnMap().items()) + \
                 '})'
 
@@ -627,10 +628,10 @@ Default is to return all columns.
         br = '<br>' if html else '\n'
         if html:
             tablefmt = tablefmt2 = 'unsafehtml'
-        s, last = make_title_meta_l0(self, level=level, width=width, heavy=heavy,
+        s, last = make_title_meta_l0(self, level=level, extra=extra, param_widths=param_widths,
                                      tablefmt=tablefmt, tablefmt1=tablefmt1,
                                      tablefmt2=tablefmt2, center=center,
-                                     param_widths=param_widths,
+                                     width=width, heavy=heavy,
                                      html=html, excpt=['description'],
                                      **kwds)
         width = len(last)-1
@@ -644,11 +645,14 @@ Default is to return all columns.
         rowlimit = 2 if level > 1 else 20 if level == 1 else None
 
         cols = self.getData().values()
+        # This is obsolete for tabulate >= 0.8.10:
         # widest width in all of default and in param_widths
-        w = MetaData.MaxDefWidth if param_widths == -1 or param_widths is None else \
-            max(MetaData.MaxDefWidth, max(param_widths.values()))
-        if html:
-            w = w
+        # w = MetaData.MaxDefWidth if param_widths == -1 or \
+        #    param_widths is None else \
+        #    max(MetaData.MaxDefWidth, max(param_widths.values()))
+        # if html:
+        #     w = w
+        w = MetaData.MaxDefWidth
         coldata = [list(itertools.islice(x.data, rowlimit)) for x in cols]
         # table headers
         hdr = maybe2rows(self.getData().keys(),

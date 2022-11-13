@@ -48,6 +48,7 @@ extensions.append('sphinx_copybutton')
 extensions.append('sphinx.ext.napoleon')
 extensions.append('sphinx.ext.inheritance_diagram')
 extensions.append('sphinx.ext.viewcode')
+extensions.append('sphinx.ext.intersphinx')
 # extensions.append(['IPython.sphinxext.ipython_console_highlighting',
 #              'IPython.sphinxext.ipython_directive'])
 # Add any paths that contain templates here, relative to this directory.
@@ -58,10 +59,15 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '*~']
 
+# intersphinx_mapping = {'python': ('https://docs.python.org/3','*')}
+intersphinx_mapping = {
+}
 
 # -- Options for HTML output -------------------------------------------------
 
 # https://stackoverflow.com/a/32079202
+
+
 def setup(app):
     # app.add_css_file("hatnotes.css")
     # app.add_css_file("custom.css")

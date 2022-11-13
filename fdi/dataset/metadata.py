@@ -453,7 +453,7 @@ def guess_value(data, parameter=False, last=str):
 
 def make_jsonable(valid):
 
-    return[t2l([k, v]) for k, v in valid.items()] if issubclass(valid.__class__, dict) else t2l(valid)
+    return [t2l([k, v]) for k, v in valid.items()] if issubclass(valid.__class__, dict) else t2l(valid)
 
 
 Seqs = (list, tuple, UserList)
@@ -1063,9 +1063,9 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             param_widths = copy.copy(MetaData.Default_Param_Widths)
 
         def _fix_bool(l):
-            
-            #__import__("pdb").set_trace()
-            
+
+            # __import__("pdb").set_trace()
+
             # work around a bug in tabulate
             for i in range(len(l)):
                 v = l[i]
@@ -1075,7 +1075,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 if ll in ('true', 'false'):
                     l[i] = ll
             #ll = l[5].lower()
-            #if l[5] in ('true', 'false'):
+            # if l[5] in ('true', 'false'):
             #    l[5] = ll
 
         def get_thewidths_l0(param_widths):
@@ -1097,6 +1097,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                         copy.copy(MetaData.Default_Param_Widths)
             return thewidths
 
+        ext_hdr = []
         for (k, v) in self.__getstate__().items():
             if k.startswith('_ATTR_'):
                 k = k[6:]
@@ -1148,13 +1149,18 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 #print('+++ %s' % str(l))
                 if l[3] == 'boolean':
                     _fix_bool(l)
-                #print('### %s' % str(l))
+                # print('### %s' % str(l))
                 if extra:
                     l += list(map(str, ext.values()))
                 l = tuple(l)
 
                 tab.append(l)
-                ext_hdr = [v for v in ext.keys()]
+                if 0:
+                    ext_hdr = [v for v in ext.keys()]
+                else:
+                    for v in ext.keys():
+                        if v not in ext_hdr:
+                            ext_hdr.append(v)
 
             elif level == 1:
                 ps = '%s= %s' % (att['name'], str(att['value']))

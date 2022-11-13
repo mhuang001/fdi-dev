@@ -281,14 +281,6 @@ fdi.dataset.readonlydict module
    :undoc-members:
    :show-inheritance:
 
-fdi.dataset.s module
---------------------
-
-.. automodule:: fdi.dataset.s
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 fdi.dataset.schemas module
 --------------------------
 

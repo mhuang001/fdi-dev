@@ -2930,10 +2930,11 @@ def test_History(tmp_local_storage, tmp_prods):
 
     pdot = nx.drawing.nx_pydot.to_pydot(h)
     print(pdot.to_string())
-    svg = pdot.create(format='svg')
-    # print(svg)
-    with open('/tmp/G.svg', 'wb') as f:
-        f.write(svg)
+    fmt = 'png'
+    fig = pdot.create(format=fmt)
+    # print(fig)
+    with open('/tmp/G.'+fmt, 'wb') as f:
+        f.write(fig)
     pdot.write_png("/tmp/D.png")
 
     if 0:

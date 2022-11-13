@@ -1,10 +1,9 @@
+
 # -*- coding: utf-8 -*-
 
 """ https://livecodestream.dev/post/python-flask-api-starter-kit-and-project-layout/ """
 
 from .route.getswag import swag
-
-from .route.httppool_server import checkpath, PM_S
 
 from .._version import __version__
 from ..utils import getconfig
@@ -20,6 +19,9 @@ from werkzeug.routing import RoutingException, Map
 import builtins
 from datetime import timedelta
 from os.path import expandvars
+from weakref import WeakValueDictionary, getweakrefcount
+import functools
+from pathlib import Path
 import sys
 import json
 import time
@@ -27,6 +29,12 @@ import os
 
 # print(sys.path)
 global logging
+
+class PM_S(PoolManager):
+    """Made to provid a different `_GlobalPoolList` useful for testing as a mock"""
+    _GlobalPoolList = WeakValueDictionary()
+    """ Another Global centralized dict that returns singleton -- the same -- pool for the same ID."""
+
 
 
 def setup_logging(level=None, extras=None):
@@ -101,8 +109,7 @@ def init_conf_classes(pc, lggr):
     clp = pc['userclasses']
     lggr.debug('User class file '+clp)
     if clp == '':
-        from ..dataset.classes import Classes
-        return Classes
+        from ..dataset.classes import Classes as clz
     else:
         clpp, clpf = os.path.split(clp)
         sys.path.insert(0, os.path.abspath(clpp))
@@ -111,10 +118,73 @@ def init_conf_classes(pc, lggr):
         projectclasses = __import__(clpf.rsplit('.py', 1)[0],
                                     globals(), locals(),
                                     ['ProjectClasses'], 0)
-        Clz = projectclasses.ProjectClasses
-        lggr.debug('User classes: %d found.' % len(Clz.mapping))
-        return Clz
+        clz = projectclasses.ProjectClasses
+        lggr.debug('User classes: %d found.' % len(clz.mapping))
+        return clz
+    _bltn = dict((k, v) for k, v in vars(builtins).items() if k[0] != '_')
+    clz.mapping.add_ns(_bltn, order=-1)
+    app.config['LOOKUP'] = clz.mapping
+    return clz
 
+@functools.lru_cache(6)
+def checkpath(path, un, logger):
+    """ Checks  the directories and creats if missing.
+
+    path: str. can be resolved with Path.
+    un: server user name
+    """
+    logger.debug('path %s user %s' % (path, un))
+
+    p = Path(path).resolve()
+    if p.exists():
+        if not p.is_dir():
+            msg = str(p) + ' is not a directory.'
+            logger.error(msg)
+            return None
+        else:
+            # if path exists and can be set owner and group
+            if p.owner() != un or p.group() != un:
+                msg = str(p) + ' owner %s group %s. Should be %s.' % \
+                    (p.owner(), p.group(), un)
+                logger.warning(msg)
+    else:
+        # path does not exist
+
+        msg = str(p) + ' does not exist. Creating...'
+        logger.debug(msg)
+        p.mkdir(mode=0o775, parents=True, exist_ok=True)
+        logger.info(str(p) + ' directory has been made.')
+
+    # logger.info('Setting owner, group, and mode...')
+    if not setOwnerMode(p, un, logger):
+        logger.info('Cannot set owner %s to %s.' % (un, str(p)))
+        return None
+
+    logger.debug('checked path at ' + str(p))
+    return p
+
+def setOwnerMode(p, username, logger):
+    """ makes UID and GID set to those of self_username given in the config file. This function is usually done by the initPTS script.
+    """
+
+    logger.debug('set owner, group to %s, mode to 0o775' % username)
+
+    uid, gid = getUidGid(username)
+    if uid == -1 or gid == -1:
+        logger.debug(f'user {username} uid={uid} gid{gid}')
+        return None
+    try:
+        os.chown(str(p), uid, gid)
+        os.chmod(str(p), mode=0o775)
+    except Exception as e:
+        code, result, msg = excp(
+            e,
+            msg='cannot set input/output dirs owner to ' +
+            username + ' or mode. check config. ')
+        logger.error(msg)
+        return None
+
+    return username
 
 def init_httppool_server(app):
     """ Init a global HTTP POOL """
@@ -123,9 +193,6 @@ def init_httppool_server(app):
     pc = app.config['PC']
     # class namespace
     Classes = init_conf_classes(pc, app.logger)
-    _bltn = dict((k, v) for k, v in vars(builtins).items() if k[0] != '_')
-    Classes.mapping.add_ns(_bltn, order=-1)
-    app.config['LOOKUP'] = Classes.mapping
 
     # client users
     from .model.user import getUsers
@@ -147,7 +214,7 @@ def init_httppool_server(app):
     _basepath = PM_S.PlacePaths[scheme]
     full_base_local_poolpath = os.path.join(_basepath, pc['api_version'])
 
-    if checkpath(full_base_local_poolpath, pc['self_username']) is None:
+    if checkpath(full_base_local_poolpath, pc['self_username'], app.logger) is None:
         msg = 'Store path %s unavailable.' % full_base_local_poolpath
         app.logger.error(msg)
         return None
@@ -176,7 +243,10 @@ def create_app(config_object=None, level=None, debug=False):
         level = config_object['loggerlevel']
         #level = logging.WARNING
     logger.setLevel(level)
-    app = Flask('HttpPool', instance_relative_config=False,
+
+    #app = Flask('HttpPool', instance_relative_config=False,
+    #            root_path=os.path.abspath(os.path.dirname(__file__)))
+    app = Flask(__name__.split('.')[0], instance_relative_config=False,
                 root_path=os.path.abspath(os.path.dirname(__file__)))
     app.logger = logger
     app.config_object = config_object
@@ -231,7 +301,7 @@ def create_app(config_object=None, level=None, debug=False):
     if SESSION:
         import secrets
         app.secret_key = secrets.token_hex()
-        app.permanent_session_lifetime = timedelta(minutes=30)
+        app.permanent_session_lifetime = timedelta(days=1)
 
     @app.errorhandler(401)
     @app.errorhandler(403)
@@ -251,8 +321,8 @@ def create_app(config_object=None, level=None, debug=False):
     # Do not redirect a URL ends with no spash to URL/
     app.url_map.strict_slashes = False
 
-    with app.app_context():
-        init_httppool_server(app)
+    #with app.app_context():
+    init_httppool_server(app)
     logger.info('Server initialized. logging level ' +
                 str(app.logger.getEffectiveLevel()))
 

@@ -68,7 +68,7 @@ def makeSchemaStore(schema_dir=None, verbose=False):
             logger.warning('Cannot load schema %s. No Skipping...' % source)
             logger.warning(trbk(e))
             raise
-    store = dict((schema["$id"], schema) for schema in schemas)
+    store = dict((schema.get("$id",schema.get("id")), schema) for schema in schemas)
 
     return store
 

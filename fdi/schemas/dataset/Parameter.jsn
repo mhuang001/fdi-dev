@@ -30,7 +30,6 @@
 	    }
 	}
     ],
-    "$ref": "https://fdi.schemas/Require_STID",
     "examples": [
 	{"description": "in-schema example", "type": "string",
 	 "default": "42", "value": "pi", "valid": [[["a", "z"], "ok"]],

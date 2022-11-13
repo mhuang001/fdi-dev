@@ -10,25 +10,27 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def run_proc(cmd, as_user, pwdir, timeout):
+def run_proc(cmd, as_user, pwdir, timeout, pty=PIPE):
     """ Execute a shell command and return status.
 
     """
 
     try:
         # https://stackoverflow.com/a/6037494
-        pw_record = pwd.getpwnam(as_user)
+
+        user_name = as_user if as_user else environ.get('USER')
+        pw_record = pwd.getpwnam(user_name)
         user_name = pw_record.pw_name
         user_home_dir = pw_record.pw_dir
         user_uid = pw_record.pw_uid
         user_gid = pw_record.pw_gid
         env = environ.copy()
         env['HOME'] = user_home_dir
-        env['LOGNAME'] = user_name
+        env['LOGNAME'] = env['USER'] = user_name
         env['PWD'] = pwdir
-        env['USER'] = user_name
 
         def chusr(user_uid, user_gid):
+
             def result():
                 setgid(user_gid)
                 setuid(user_uid)
@@ -44,7 +46,7 @@ def run_proc(cmd, as_user, pwdir, timeout):
         logger.debug('Popen %s env:%s uid: %d gid:%d' %
                      (str(cmd), lls(env, 40), user_uid, user_gid))
         proc = Popen(cmd, executable=executable,
-                     stdin=PIPE, stdout=PIPE, stderr=PIPE,
+                     stdin=pty, stdout=pty, stderr=pty,
                      preexec_fn=None,
                      cwd=pwdir,
                      env=env, shell=False,

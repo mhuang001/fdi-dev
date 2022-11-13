@@ -9,6 +9,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app, Response
 from flask_httpauth import HTTPBasicAuth
 
+import requests
+
 import datetime
 import time
 import functools
@@ -83,9 +85,9 @@ if SESSION:
     @user.before_app_request
     def load_logged_in_user():
         user_id = session.get('user_id')
-        current_app.logger.debug('session %x user_id = %s' %
-                                 (id(session), str(user_id)))
-
+        headers = str(request.headers)
+        current_app.logger.debug('S:%x "%s"\n%s\n%s' %
+                                 (id(session), str(user_id), str(headers), str(request.cookies)))
         if user_id is None:
             g.user = None
         else:
@@ -122,20 +124,26 @@ def login():
 
     try:
         reqanm = request.authorization['username']
+        reqanm = request.authorization['passwd']
     except (AttributeError, TypeError):
-        reqanm = ''
-    msg = 'LOGIN meth=%s req_auth_nm= %s' % (request.method, reqanm)
+        reqanm = reqaps = ''
+    msg = 'LOGIN meth=%s req_auth_nm= "%s"' % (request.method, reqanm)
     logger.debug(msg)
+    if reqanm == 'ro':
+        __import__("pdb").set_trace()
 
     if request.method == 'POST':
-        rnm = request.form['username']
-        rpas = request.form['password']
+        rnm = request.form.get('username', None)
+        rpas = request.form.get('password', None)
         logger.debug(f'Request form {rnm}')
 
-        if 0 and reqanm and rnm != reqanm:
-            msg = f'Username {rnm} POSTed does not match {reqanm} in auth header. Logging out first...'
+        if not (rpas and rnm):
+            msg('Bad username or password posted %s' % str(rnm))
             logger.warning(msg)
-            return logout()
+            if reqanm and reqaps:
+                msg = f'Username {reqanm} and pswd in auth header used.'
+                logger.warning(msg)
+                rnm, rpas = reqanm, reqaps
 
         vp = verify_password(rnm, rpas, check_session=False)
         if vp in (False, None):
@@ -145,6 +153,7 @@ def login():
             if SESSION:
                 session.clear()
                 session['user_id'] = rnm
+                session.modified = True
             msg = 'User %s logged-in %s.' % (rnm, vp.role)
             logger.debug(msg)
             # return redirect(url_for('pools.get_pools_url'))
@@ -190,6 +199,7 @@ def logout():
     if SESSION:
         session.clear()
         g.user = None
+        session.modified = True
 
     from ..route.httppool_server import resp
 
@@ -206,22 +216,21 @@ def verify_password(username, password, check_session=True):
         or True if a user object is not available. In case of 
         failed authentication, it should return None or False. 
 
-    `check_session`=`True`
+    `check_session`=`True` ('u/k' means unknown)
 
-    =========== ============= ======= ========== ========= =============
+    =========== ============= ======= ========== ========= ==================
     state          `session`   `g`     username  password      action
-    =========== ============= ======= ========== ========= =============
-    no Session  no 'user_id'          not empty  valid     new  session
-    no Session  no 'user_id'          not empty  invalid   login
-    no Session  no 'user_id'          ''                   return None
-    no Session  no 'user_id'          None                 login
-    In session  w/ 'user_id'  ''|None not empty  valid     new session
-    In session  w/ 'user_id'  user    diff n/em  valid     new session
-    In session  w/ 'user_id'  ''|None ''                   return None
-    In session  w/ 'user_id'  user               invalid   keep session
-    In session  w/ 'user_id'  user    None *               keep session
-    In session  w/ 'user_id'  user    same user  valid     keep session
-    =========== ============= ======= ========== ========= =============
+    =========== ============= ======= ========== ========= ==================
+    no Session  no 'user_id'          not empty  valid     new session, r/t new u
+    no Session  no 'user_id'          not empty  invalid   login, r/t `False`
+    no Session  no 'user_id'          ''                   r/t None
+    no Session  no 'user_id'          None, u/k            login, r/t `False`
+    In session  w/ 'user_id'  ''|None not empty  valid     new session, r/t new u
+    ..                                not same 
+    In session  w/ 'user_id'          not empty  invalid   login, return `False`
+    In session  w/ 'user_id'  user    None ""              login, return `False`
+    ..                                u/k
+    =========== ============= ======= ========== ========= ==================
 
     `check_session`=`False`
 
@@ -234,33 +243,41 @@ def verify_password(username, password, check_session=True):
                ''                   return None
                None                 return False
     ========== ========= =========  ================
+
+    No SESSION:
+
+    > return `True`
     """
 
     logger = current_app.logger
-
+    logger.info(f'!!!! {username} {password} chk={check_session} Se={SESSION}')
     if check_session:
         if SESSION:
             has_session = 'user_id' in session and hasattr(
                 g, 'user') and g.user is not None
             if has_session:
+                logger.info(f'has_session usr=%s g.u={g.user}' % (
+                    session.get("user_id", "None")))
                 user = g.user
                 gname = user.username
-                if gname != username:
-                    newu = current_app.config['USERS'].get(username, None)
-                    if newu is None:
-                        logger.debug(
-                            f"Unknown user {username}. Keep existing session {gname}")
-                        return user
+                newu = current_app.config['USERS'].get(username, None)
+                # first check if the username is actually unchanged and valid
+                if newu is not None and newu.is_correct_password(password):
+                    if gname == username:
+                        logger.debug(f"Same session {gname}.")
                     else:
                         logger.debug(f"New session {username}.")
                         session.clear()
                         session['user_id'] = username
-                        return newu
-                else:
-                    logger.debug(f"Keep existing session {gname}")
-                    return user
+                        session.modified = True
+                    return newu
+                logger.debug(
+                    f"Unknown {username} or Null or anonymous user, or new user '{username}' has invalid password.")
+                return False
             else:
                 # has no session
+                logger.info('no session. has %s "user_id". has %s g. g.user= %s' % (
+                    ('' if 'user_id' in session else 'no'), ('' if hasattr(g, 'user') else 'no'), (g.get('user', 'None'))))
                 if username == '':
                     logger.debug(f"Anonymous user.")
                     return None
@@ -268,25 +285,31 @@ def verify_password(username, password, check_session=True):
                 if newu is None:
                     logger.debug(f"Unknown user {username}")
                     return False
-                else:
+                if newu.is_correct_password(password):
                     logger.debug('Approved. Start new session:'+username)
                     session.clear()
                     session['user_id'] = username
+                    session.modified = True                    
                     return newu
+                else:
+                    return False
         else:
-            pass
+            # No session at all
+            return True
     else:
         # check_session is False. called by login to check formed name/pass
         if username == '':
-            logger.debug('L anon')
+            logger.debug('Lcheck anon')
             return None
         newu = current_app.config['USERS'].get(username, None)
         if newu is None:
             logger.debug(f"L Unknown user {username}")
             return False
-        else:
+        if newu.is_correct_password(password):
             logger.debug('Approved {username}')
             return newu
+        else:
+            return False
 
     __import__('pdb').set_trace()
 
@@ -318,6 +341,7 @@ def verify_password(username, password, check_session=True):
             session.clear()
             session['user_id'] = username
             logger.debug('Approved login with new session.'+username)
+            session.modified = True
         else:
             logger.debug('Approved login '+username)
         return user

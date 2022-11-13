@@ -9,6 +9,7 @@ from functools import lru_cache
 from collections import OrderedDict
 import builtins
 from math import sqrt
+import array
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ ENDIAN = 'little'
 
 # data_type in parameter/column descriptors vs `data.__class__.__name__`
 DataTypes = {
+    'array': 'array.array',
     'baseProduct': 'BaseProduct',
     'binary': 'int',
     'boolean': 'bool',

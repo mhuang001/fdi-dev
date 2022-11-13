@@ -127,8 +127,9 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
     def getStorage(self):
         """ Returns the product storage associated.
         """
-        st = productstorage.ProductStorage(self._poolname, )
-        self._storage
+        st = productstorage.ProductStorage(self._poolname,
+                                           poolmanager=self._poolmanager)
+        self._storage = st
         return self._storage
 
     def setStorage(self, storage):

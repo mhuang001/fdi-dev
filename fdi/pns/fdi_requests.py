@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from flask import Flask  # request as
+from flask.testing import FlaskClient
+
 import requests
 import functools
 import logging
@@ -11,6 +14,7 @@ from ..dataset.deserialize import deserialize
 from ..pal.urn import parseUrn, parse_poolurl
 from ..utils.getconfig import getConfig
 from ..pal.webapi import WebAPI
+from .jsonio import auth_headers
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -25,6 +29,8 @@ else:
 
 logger = logging.getLogger(__name__)
 #logger.debug('level %d' % (logger.getEffectiveLevel()))
+
+clnt = requests.Session()
 
 POST_PRODUCT_TAG_NAME = 'FDI-Product-Tags'
 
@@ -148,14 +154,14 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 
 
 def post_to_server(data, urn, poolurl, contents='product', headers=None,
-                   no_serial=False, result_only=False, auth=None, client=requests):
+                   no_serial=False, result_only=False, auth=None, client=None):
     """Post data to server with  tag in headers
 
     data: goes to the request body
     urn: to extract poolname, product type, and index if any of these are needed
-    poolurl: the only parameter must be provided
+    poolurl: the only parameter that must be provided
     contents: type of request. Default 'api'.
-    headers: request header dictionary. Default None.
+    headers: request header dictionary. Default `None` using `jsonio.auth_headers()`.
     no_serial: do not serialize the data.
     result_only: only return requests result, no code and msg. Default False.
     client: alternative client to answer API calls. For tests etc.
@@ -163,9 +169,11 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
     api = urn2fdiurl(urn, poolurl, contents=contents, method='POST')
+    if client is None:
+        client = clnt
     # print('POST API: ' + api)
     if headers is None:
-        headers = {}
+        headers = auth_headers(auth.username, auth.password)
     sd = data if no_serial else serialize(data)
     res = client.post(api, auth=auth, data=sd, headers=headers)
     # print(res)
@@ -178,7 +186,7 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
         return res.status_code, 'FAILED', result
 
 
-def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None, client=requests):
+def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None, client=None):
     """Save product to server with putting tag in headers
 
     data: goes to the request body
@@ -190,7 +198,8 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None, client=r
     """
     headers = {POST_PRODUCT_TAG_NAME: serialize(tag)}
     res = post_to_server(data, urn, poolurl, contents='product',
-                         headers=headers, no_serial=no_serial, result_only=True, auth=auth)
+                         headers=headers, no_serial=no_serial, result_only=True,
+                         auth=auth, client=client)
     return res
     # auth = getAuth(pccnode['username'], pccnode['password'])
     # api = urn2fdiurl(urn, poolurl, contents='product', method='POST')
@@ -203,7 +212,7 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None, client=r
     # return res
 
 
-def read_from_server(urn, poolurl, contents='product', auth=None, client=requests):
+def read_from_server(urn, poolurl, contents='product', auth=None, client=None):
     """Read product or hk data from server
 
     urn: to extract poolname, product type, and index if any of these are needed
@@ -211,6 +220,8 @@ def read_from_server(urn, poolurl, contents='product', auth=None, client=request
     """
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
+    if client is None:
+        client = clnt
     api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
     res = client.get(api, auth=auth)
@@ -222,7 +233,7 @@ def read_from_server(urn, poolurl, contents='product', auth=None, client=request
         return res.status_code, 'FAILED', result
 
 
-def put_on_server(urn, poolurl, contents='pool', auth=None, client=requests):
+def put_on_server(urn, poolurl, contents='pool', auth=None, client=None):
     """Register the pool on the server.
 
     urn: to extract poolname, product type, and index if any of these are needed
@@ -231,11 +242,20 @@ def put_on_server(urn, poolurl, contents='pool', auth=None, client=requests):
     """
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
+    if client is None:
+        client = clnt
     api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
     # print("DELETE REQUEST API: " + api)
+    if not issubclass(client.__class__, FlaskClient):
+        print('######', client.cookies.get('session', None))
     res = client.put(api, auth=auth)
     result = deserialize(res.text if type(res) == requests.models.Response
                          else res.data)
+    if not issubclass(client.__class__, FlaskClient):
+        print('@@@@@@', client.cookies['session'])
+    else:
+        print('@@@@@@', res.request.cookies.get('session', None))
+
     if issubclass(result.__class__, dict):
         return result['result'], result['msg']
     else:
@@ -252,9 +272,11 @@ def delete_from_server(urn, poolurl, contents='product', auth=None, client=None)
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
     if client is None:
-        client = requests
+        client = clnt
     api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)
+    if client is None:
+        client = clnt
     res = client.delete(api, auth=auth)
     result = deserialize(res.text if type(res) == requests.models.Response
                          else res.data)

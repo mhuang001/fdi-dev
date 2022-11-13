@@ -10,19 +10,23 @@ from fdi.utils.common import lls
 from fdi.pns.jsonio import auth_headers
 from fdi.httppool.model.user import User
 from fdi.pal.publicclientpool import PublicClientPool
+from fdi.utils.run_proc import run_proc
 
-import pytest
 from flask_httpauth import HTTPBasicAuth as FH_HTTPBasic_Auth
+from flask import current_app
+from flask.testing import FlaskClient
+
 from requests.auth import HTTPBasicAuth
+import pytest
 import importlib
 from urllib.error import HTTPError
 import os
+import time
+import pty
 import datetime
 import requests
 import logging
 from urllib.error import HTTPError, URLError
-from flask import current_app
-
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +55,10 @@ def pc(getConfig):
 ######
 
 
-@pytest.fixture(scope="package")
+SHORT = 'function'
+
+
+@pytest.fixture(scope=SHORT)
 def new_user_read_write(pc):
     """
     GIVEN a User model
@@ -64,7 +71,7 @@ def new_user_read_write(pc):
     return new_user, headers
 
 
-@pytest.fixture(scope="package")
+@pytest.fixture(scope=SHORT)
 def new_user_read_only(pc):
     """
     GIVEN a User model
@@ -72,13 +79,12 @@ def new_user_read_only(pc):
     """
     pn = pc['USERS'][1]
     new_user = User(pn['username'], pn['hashed_password'], role=pn['roles'])
-    headers = auth_headers(
-        pn['username'], hashed_password=pn['hashed_password'])
+    headers = auth_headers(pn['username'], password=pn['hashed_password'])
 
     return new_user, headers
 
 
-@pytest.fixture(scope="package")
+@pytest.fixture(scope=SHORT)
 def userpass(pc):
     auth_user = pc['node']['username']
     auth_pass = pc['node']['password']
@@ -96,26 +102,10 @@ def local_pools_dir(pc):
 
     # basepath = pc['server_local_pools_dir']
     basepath = PoolManager.PlacePaths[schm]
-    local_pools_dir = os.path.join(basepath, pc['api_version'])
-    return local_pools_dir
+    #print('WWW ', basepath, pc['api_version'])
+    pools_dir = os.path.join(basepath, pc['api_version'])
+    return pools_dir
 
-
-@pytest.fixture()
-def t_app():
-    from fdi.httppool import create_app
-    app = create_app(config_object=pc, level=logger.getEffectiveLevel())
-    app.config.update({
-        "TESTING": True,
-    })
-
-    # other setup can go here
-
-    yield app
-
-
-@pytest.fixture()
-def t_client(y_app):
-    return app.test_client()
 ####
 
 
@@ -123,6 +113,51 @@ def t_client(y_app):
 def project_app(pc):
     from fdi.httppool import create_app
     return create_app(config_object=pc, level=logger.getEffectiveLevel())
+
+
+@pytest.fixture(scope="module")
+def mock_app(project_app):
+    app = project_app
+    app.config['TESTING'] = True
+    with app.app_context():
+        yield app
+
+
+@pytest.fixture(scope="module")
+def background_app(project_app):
+
+    # client side.
+    # pool url from a local client
+    cschm = 'http'
+    aburl = cschm + '://' + PoolManager.PlacePaths[cschm]
+
+    pwdir = os.path.abspath(os.path.join(__file__, '..'))
+    as_user = None
+    #pid, pty_fd = pty.fork()
+    pid = os.fork()
+    if pid:
+        # child process
+        cmd = 'python3.8  httppool_app.py --server=httppool_server'.split()
+        try:
+            with open('/tmp/pty3', 'rw') as f:
+                sta = run_proc(cmd, as_user, pwdir, timeout, f.fileno)
+        except IOError:
+            sta = run_proc(cmd, as_user, pwdir, timeout)
+        logger.info("Background live server status: %s." % str(sta))
+    else:
+        # main process
+        logger.info('live local server %d' % pid)
+        sta = None
+        # wait for checkserver to return 'live'
+        n = 2
+        while checkserver(aburl) == 'mock':
+            n -= 1
+            time.sleep(4)
+            if n == 0:
+                break
+        if n == 0:
+            raise RuntimeError('Cannot run server in background.')
+    return sta
 
 
 def checkserver(aburl, excluded=None):
@@ -176,7 +211,6 @@ def live_or_mock(pc):
     """
     server_type = None
 
-    testname = 'SVOM'
     # client side.
     # pool url from a local client
     cschm = 'http'
@@ -184,10 +218,12 @@ def live_or_mock(pc):
     # aburl='http://' + pc['node']['host'] + ':' + \
     #    str(pc['node']['port']) + pc['baseurl']
     server_type = checkserver(aburl)
+    if server_type == 'mock':
+        ra
     yield aburl, server_type
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope=SHORT)
 def server(live_or_mock, new_user_read_write):
     """ Server data from r/w user, mock or alive.
 
@@ -198,7 +234,7 @@ def server(live_or_mock, new_user_read_write):
     yield aburl, headers
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope=SHORT)
 def server_ro(live_or_mock, new_user_read_only):
     """ Server data from r/w user, alive.
 
@@ -208,14 +244,6 @@ def server_ro(live_or_mock, new_user_read_only):
     headers['server_type'] = ty
     yield aburl, headers
     del aburl, headers
-
-
-@pytest.fixture(scope="module")
-def mock_app(project_app):
-    app = project_app
-    app.config['TESTING'] = True
-    with app.app_context():
-        yield app
 
 
 @pytest.fixture(scope="module")
@@ -233,14 +261,21 @@ def client(live_or_mock, mock_app):
 
     a, server_type = live_or_mock
     if server_type == 'live':
-        yield requests
+        logger.info('**** requests as client *****')
+        with requests.Session() as live_client:
+            yield live_client
     elif server_type == 'mock':
         logger.info('**** mock_app as client *****')
-        with mock_app.test_client() as client:
-            if 0:
-                with mock_app.app_context():
-                    mock_app.preprocess_request()
-            yield client
+        a = background_app
+        with requests.Session() as live_client:
+            yield live_client
+
+        if 0:
+            with mock_app.test_client() as client:
+                if 0:
+                    with mock_app.app_context():
+                        mock_app.preprocess_request()
+                yield client
     else:
         raise ValueError('Invalid server type: ' + server_type)
 
@@ -275,9 +310,9 @@ def csdb(pc):
     return test_pool, url
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope=SHORT)
 def tmp_local_storage(tmp_path_factory):
-    """ temporary local pool with module scope """
+    """ temporary local pool """
 
     tmppath = tmp_path_factory.mktemp('pools')
     cschm = 'file'
@@ -290,13 +325,17 @@ def tmp_local_storage(tmp_path_factory):
     yield ps
 
 
-@pytest.fixture(scope="module")
-def tmp_remote_storage(server):
+@pytest.fixture(scope=SHORT)
+def tmp_remote_storage(server, client, auth):
     """ temporary servered pool with module scope """
     aburl, headers = server
-    poolid = str('test_remote_pool')
-    pool = PoolManager.getPool(poolid, aburl + '/' + poolid)
-    ps = ProductStorage(pool)
+    poolid = 'test_remote_pool'
+    pool = PoolManager.getPool(
+        poolid, aburl + '/' + poolid, auth=auth, client=client)
+    pool.removeAll()
+    ps = ProductStorage(pool, client=client, auth=auth)
+    assert issubclass(ps.getPool(poolid).client.__class__,
+                      (requests.Session, FlaskClient))
     yield ps
 
 
@@ -314,7 +353,7 @@ def tmp_prods():
     return tuple(prds)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope=SHORT)
 def auth(userpass, live_or_mock):
 
     a, server_type = live_or_mock
@@ -325,7 +364,26 @@ def auth(userpass, live_or_mock):
             "basic", {"username": userpass[0], "password": userpass[1]})
 
 
-@pytest.fixture(scope="module")
+def gen_pools(url, auth, client, prds):
+
+    tag = str(datetime.datetime.now())
+    lst = []
+    # n = len(prds)
+    n = 2
+    for i in range(n):
+        poolid = 'test_%d' % i
+        poolurl = url + '/' + poolid
+        ps = ProductStorage(poolid, poolurl, client=client, auth=auth)
+        # the first pool in ps
+        pool = ps.getPool(poolid)
+        prd = prds[i]
+        prd.description = 'lone prod in '+poolid
+        ref = ps.save(prd, tag=tag)
+        lst.append((pool, prd, ref, tag))
+    return lst
+
+
+@pytest.fixture(scope=SHORT)
 def tmp_pools(server, client, auth, tmp_prods):
     """ generate n pools.
 
@@ -335,28 +393,30 @@ def tmp_pools(server, client, auth, tmp_prods):
         list of tuples containing `ProductPool`, `BaseProduct`, `ProductRef`, `str` for each pool.
 
 """
-    prds = list(tmp_prods)
     aburl, headers = server
-    tag = str(datetime.datetime.now())
-    lst = []
-    # n = len(prds)
-    n = 1
-    for i in range(n):
-        poolid = 'test_%d' % i
-        pool = PoolManager.getPool(poolid, aburl + '/' + poolid,
-                                   auth=auth,
-                                   client=client)
-        ps = ProductStorage(pool)
-        prd = prds[i]
-        prd.description = 'lone prod in '+poolid
-        ref = ps.save(prd, tag=tag)
-        lst.append((pool, prd, ref, tag))
-
+    lst = gen_pools(aburl, auth, client, list(tmp_prods))
     return lst
 
 
-@pytest.fixture(scope="module")
-def existing_pools(server, client, auth, tmp_prods):
+@pytest.fixture(scope=SHORT)
+def tmp_local_remote_pools(server, client, auth, tmp_prods):
+    """ generate n local pools.
+
+    Return
+    ------
+    list
+        list of tuples containing `ProductPool`, `BaseProduct`, `ProductRef`, `str` for each pool.
+
+"""
+    aburl, headers = server
+    if not aburl.startswith('file://') and not '://127.0.0.1' in aburl and not '://0.0.0.0' in aburl:
+        raise ValueError('must be a pool running locally. not %s.' % aburl)
+    lst = gen_pools(aburl, auth, client, list(tmp_prods))
+    return lst
+
+
+@pytest.fixture(scope=SHORT)
+def existing_pools(tmp_pools):
     """ return n existing pools.
 
     Return
@@ -365,17 +425,6 @@ def existing_pools(server, client, auth, tmp_prods):
         list of tuples containing `ProductPool`, `BaseProduct`, `ProductRef`, `str` for each pool.
 
 """
-    prds = list(tmp_prods)
-    aburl, headers = server
-    tag = str(datetime.datetime.now())
-    lst = []
-    # n = len(prds)
-    n = 1
-    for i in range(n):
-        poolid = 'test_%d' % i
-        if PoolManager.isLoaded(poolid):
-            pool = PoolManager.getPool(poolid)
-            lst.append(pool)
-    if len(lst) == 0:
-        raise ValueError('Pools not made yet. Run `tmp_pools`.')
-    return lst
+    pools = [p[0] for p in tmp_pools]
+    print("get existing pools:", [p.poolname for p in pools])
+    return pools

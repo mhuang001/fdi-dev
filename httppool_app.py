@@ -88,5 +88,9 @@ if __name__ == '__main__':
         serve(app, url_scheme='https',
               host=pc['self_host'], port=pc['self_port'])
     else:
+        debug = args.debug
         app.run(host=pc['self_host'], port=pc['self_port'],
-                threaded=True, debug=args.debug, processes=1, use_reloader=True, passthrough_errors=args.debug)
+                threaded=not debug, processes=1,
+                use_reloader=False, reloader_type='stat',
+                debug=debug, passthrough_errors=debug,
+                use_debugger=debug )

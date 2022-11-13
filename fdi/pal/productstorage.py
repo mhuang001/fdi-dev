@@ -22,11 +22,16 @@ class ProductStorage(object):
 
     """
 
-    def __init__(self, pool=None, poolurl=None, poolmanager=None, **kwds):
+    def __init__(self, pool=None, poolurl=None, poolmanager=None,
+                 **kwds):
         """ Gets the storage "control pannel" for pool with specifed name.
 
-        pool: if is a string will be taken as a poolname. if is a pool object will be registered with its name,
-        poolurl: is sent to the PoolManager with poolname to get the pool object.
+        `auth` with `client`, can be given here to be passed to `PoolManager.getPool`.
+        `client` how to call remote api if poolurl indicates a remote pool. Default is `None` for using the configured host/port/credentials. If doing a mocked server test, this needs to be set.
+        :pool: can be given as the only pramemter. If `auth` and `client` are given they will substitute those of  `pool`. If `pool` is not given, those will need to be given.
+        :poolname: if is a string will be taken as a poolname. if is a pool object will be registered with its name,
+        :poolurl: is sent to the PoolManager with poolname to get the pool object.
+
         """
         if issubclass(pool.__class__, str) and ':' in pool:
             raise TypeError(
@@ -43,10 +48,12 @@ class ProductStorage(object):
         self._pools = ODict()  # dict of poolname - poolobj pairs
         self.register(pool=pool, poolurl=poolurl, **kwds)
 
-    def register(self,  poolname=None, poolurl=None, pool=None, **kwds):
+    def register(self,  poolname=None, poolurl=None, pool=None,
+                 **kwds):
         """ Registers the given pools to the storage.
 
-
+        :client: passed to `PoolManager.getPool`.
+        :auth: passed to `PoolManager.getPool`.
         """
 
         if issubclass(pool.__class__, str) and poolname is None:
@@ -65,8 +72,8 @@ class ProductStorage(object):
                 if poolurl is not None and not issubclass(poolurl.__class__, str):
                     raise TypeError('Poolurl must be a string, not ' +
                                     poolurl.__class__.__name__)
-                _p = self.PM.getPool(
-                    poolname=poolname, poolurl=poolurl, **kwds)
+                _p = self.PM.getPool(poolname=poolname, poolurl=poolurl,
+                                     **kwds)
             self._pools[_p._poolname] = _p
 
         logger.debug('registered pool %s -> %s.' %
@@ -149,10 +156,11 @@ class ProductStorage(object):
         elif poolname not in self._pools:
             self.register(poolname)
 
-        desc = [x.description for x in product] if issubclass(
-            product.__class__, list) else product.description
-        logger.debug('saving product:' + str(desc) +
-                     ' to pool ' + str(poolname) + ' with tag ' + str(tag))
+        if logger.getEffectiveLevel() <= logging.DEBUG:
+            desc = [x.description for x in product] if issubclass(
+                product.__class__, list) else product.description
+            logger.debug('saving product:' + str(desc) +
+                         ' to pool ' + str(poolname) + ' with tag ' + str(tag))
 
         try:
             ret = self._pools[poolname].saveProduct(
@@ -161,6 +169,11 @@ class ProductStorage(object):
         except Exception as e:
             logger.error('unable to save to the writable pool.')
             raise
+        from fdi.pal.productref import ProductRef
+        if issubclass(ret.__class__, list):
+            if ret and issubclass(ret[0].__class__, ProductRef):
+                for r in ret:
+                    r.setStorage(self)
         return ret
 
     def remove(self, urn):
@@ -189,11 +202,12 @@ class ProductStorage(object):
     def getPools(self):
         """  Returns the set of ProductPools registered.
         mh: in a list of poolnames
+        XXX TODO: getPoolnames
         """
         return list(self._pools.keys())
 
     def getPool(self, poolname):
-        """ mh: returns the pool object from poolname
+        """ mh: returns the pool object by poolname from this storage
         """
         if poolname not in self._pools:
             msg = 'pool ' + poolname + ' not found'

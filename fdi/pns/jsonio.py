@@ -49,9 +49,29 @@ commonheaders = {
 }
 
 
-def auth_headers(username, password, headers=None):
+def auth_headers(username=None, password=None, headers=None):
+    """Generate HTTP header with auth.
+
+    Parameters
+    ----------
+    username : str
+        user name. Default is `None`.
+    password : str
+        Password. Set both `username` and `password` to `None` to use
+        the values in `pnconfig["node"]`.
+    headers : dict
+        key-values of HTTP headers, Default is `None` for using
+        `jsonio.commonheaders`.
+
+    Examples
+    --------
+    FIXME: Add docs.
+
+    """
     if headers is None:
         headers = copy.copy(commonheaders)
+    if username is None and password is None:
+        return headers
     up = bytes((username + ':' + password).encode('ascii'))
     code = base64.b64encode(up).decode("ascii")
     headers.update({'Authorization': 'Basic %s' % (code)})
@@ -79,52 +99,52 @@ def getJsonObj(url, headers=None, usedict=True, int_key=False, **kwds):
     return ret
 
 
-def jsonREST(url, obj, headers, cmd):
-    """ generic RESTful command handler for POST, PUT, and DELETE.
-    """
-    js = serialize(obj)
-    # %s obj %s headers %s' % (url, obj, headers))
-    logger.debug(url + lls(js, 160))
+# def jsonREST(url, obj, headers, cmd):
+#     """ generic RESTful command handler for POST, PUT, and DELETE.
+#     """
+#     js = serialize(obj)
+#     # %s obj %s headers %s' % (url, obj, headers))
+#     logger.debug(url + lls(js, 160))
 
-    i = 1
-    while True:
-        try:
-            if 0 and sys.version_info[0] > 2:
-                if cmd == 'POST':
-                    r = requests.post(
-                        url, data=js, headers=headers, timeout=15)
-                elif cmd == 'PUT':
-                    r = requests.post(
-                        url, data=js, headers=headers, timeout=15)
-                elif cmd == 'DELETE':
-                    r = requests.post(
-                        url, data=js, headers=headers, timeout=15)
-                else:
-                    raise ValueError('Bad REST command ' + cmd)
-                stri = r.text
-            else:
-                o = urlsplit(url)
-                u = o.netloc
-                p = o.path + '?' + o.query + '#' + o.fragment
-                h = HTTPConnection(u, timeout=15)
-                h.request(cmd, p, js, headers)
-                r = h.getresponse()
-                stri = r.read()
-            # print('ps textx %s\nstatus %d\nheader %s' % (stri, r.status_code, r.headers))
-            break
-        except Exception as e:
-            logger.debug(e)
-            if i >= 1:
-                logger.error("Give up %s %s after %d tries." % (cmd, url, i))
-                return None
-            else:
-                i += 1
+#     i = 1
+#     while True:
+#         try:
+#             if 0 and sys.version_info[0] > 2:
+#                 if cmd == 'POST':
+#                     r = requests.post(
+#                         url, data=js, headers=headers, timeout=15)
+#                 elif cmd == 'PUT':
+#                     r = requests.post(
+#                         url, data=js, headers=headers, timeout=15)
+#                 elif cmd == 'DELETE':
+#                     r = requests.post(
+#                         url, data=js, headers=headers, timeout=15)
+#                 else:
+#                     raise ValueError('Bad REST command ' + cmd)
+#                 stri = r.text
+#             else:
+#                 o = urlsplit(url)
+#                 u = o.netloc
+#                 p = o.path + '?' + o.query + '#' + o.fragment
+#                 h = HTTPConnection(u, timeout=15)
+#                 h.request(cmd, p, js, headers)
+#                 r = h.getresponse()
+#                 stri = r.read()
+#             # print('ps textx %s\nstatus %d\nheader %s' % (stri, r.status_code, r.headers))
+#             break
+#         except Exception as e:
+#             logger.debug(e)
+#             if i >= 1:
+#                 logger.error("Give up %s %s after %d tries." % (cmd, url, i))
+#                 return None
+#             else:
+#                 i += 1
 
-    # ret = json.loads(stri, parse_float=Decimal)
-    # ret = json.loads(stri, cls=Decoder)
-    ret = deserialize(stri)
-    logger.debug(str(ret)[:160] + '...')
-    return ret
+#     # ret = json.loads(stri, parse_float=Decimal)
+#     # ret = json.loads(stri, cls=Decoder)
+#     ret = deserialize(stri)
+#     logger.debug(str(ret)[:160] + '...')
+#     return ret
 
 
 def postJsonObj(url, obj, headers):

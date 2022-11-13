@@ -15,10 +15,7 @@
     },
     "additionalProperties":  {
 	"anyOf": [
-	    {"$ref": "ArrayDataset"},
-	    {"$ref": "TableDataset"},
-	    {"$ref": "CompositeDataset"},
-	    {"$ref": "Dataset"}
+	    {"$ref": "Column"}
 	    ]
     }
 }

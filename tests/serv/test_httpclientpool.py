@@ -29,6 +29,7 @@ import networkx as nx
 from flask_httpauth import HTTPBasicAuth
 # from requests.auth import HTTPBasicAuth
 import pytest
+import time
 import urllib
 import copy
 import time
@@ -182,7 +183,31 @@ def test_gen_url(server):
         assert exc_msg == 'No such method and contents composition: GET/pool'
 
 
-def test_CRUD_product_by_client(server, local_pools_dir, auth):
+def test_tmp_remote_storage(tmp_remote_storage, tmp_prods):
+
+    ps = tmp_remote_storage
+    # lit of poolnames
+    plst = list(ps.getPools())
+    assert len(plst) == 1
+    assert plst[0] == 'test_remote_pool'
+    pool = ps.getPool(plst[0])
+    # empty
+    assert pool.getCount() == 0
+    assert pool.isEmpty()
+    prod_lst = tmp_prods
+    refs = []
+    for i, p in enumerate(prod_lst):
+        ts = 'saved at %d' % time.time()
+        refs.append(ps.save(p, tag=ts))
+    retrd = []
+    for r in refs:
+        p = r.product
+        retrd.append(p)
+        assert p.description.startswith('test-product-')
+    assert len(prod_lst) == len(retrd) == pool.getCount()
+
+
+def est_CRUD_product_by_client(server, local_pools_dir, auth):
     """Client http product storage READ, CREATE, DELETE products in remote
     """
     aburl, headers = server
@@ -190,16 +215,29 @@ def test_CRUD_product_by_client(server, local_pools_dir, auth):
     poolid = test_poolid
     poolurl = aburl + '/' + poolid
     pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
-    crud_t(poolid, poolurl, local_pools_dir, pool, auth, client)
+    crud_t(poolid, poolurl, pool, auth, client)
 
 
-def crud_t(poolid, poolurl, local_pools_dir, pool, auth, client):
+def test_CRUD_product_by_client(server, tmp_remote_storage, auth, client):
+    """Client http product storage READ, CREATE, DELETE products in remote
+    """
+    ps_remote = tmp_remote_storage
+    aburl, headers = server
+    poolid = ps_remote.getPools()[0]
+    pool = ps_remote.getPool(poolid)
+    poolurl = pool.poolurl
+    crud_t(poolid, poolurl, pool, auth, client)
+
+
+def crud_t(poolid, poolurl, pool, auth, client):
     logger.info('Init a pstore')
 
-    if PoolManager.isLoaded(DEFAULT_MEM_POOL):
-        PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-    # this will also register the server side
-    pstore = ProductStorage(pool=pool, auth=auth, client=client)
+    if 1:
+        if PoolManager.isLoaded(DEFAULT_MEM_POOL):
+            PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+        # this will also register the server side
+        pstore = ProductStorage(pool=pool, auth=auth, client=client)
+        pstore.register(poolid)
     pool.removeAll()
 
     assert len(pstore.getPools()) == 1, 'product storage size error: ' + \
@@ -244,6 +282,7 @@ def crud_t(poolid, poolurl, local_pools_dir, pool, auth, client):
     lsn = pstore.getPool(poolid).getCount('fdi.dataset.product.Product')
     assert lsn == 1, 'Delete product local error, len sn : ' + lsn
     logger.info('A load exception message is expected')
+
     with pytest.raises(NameError):
         res = pstore.getPool(poolid).loadProduct(urn.urn)
     with pytest.raises(NameError):
@@ -277,7 +316,7 @@ def crud_t(poolid, poolurl, local_pools_dir, pool, auth, client):
         pstore.getPool(poolid + 'NON_EXISTS ') is None
 
 
-def test_webapi_backup_restore(server):
+def est_webapi_backup_restore(server):
     """
     """
     aburl, headers = server
@@ -293,6 +332,15 @@ def test_webapi_backup_restore(server):
         PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
     # this will also register the server side
     pstore = ProductStorage(pool=pool)
+    backup_restore(pstore)
+
+
+def test_webapi_backup_restore(tmp_remote_storage):
+    """
+    """
+    logger.info('Create pools on the server.')
+    pstore = tmp_remote_storage
+    logger.info('Bacckup/restore a pool on the server.')
     backup_restore(pstore)
 
 

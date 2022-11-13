@@ -23,16 +23,15 @@ import pytest
 import filelock
 
 import sys
+import copy
 import concurrent.futures
 import requests.models
 from urllib.request import pathname2url
 from urllib.error import URLError
 
-from flask import current_app
+from flask import current_app, g, request
 from requests.auth import HTTPBasicAuth
-from requests.models import Response as rmResponse  # mock server
 from flask.wrappers import Response as fwResponse  # live server
-from werkzeug.datastructures import Authorization
 # import requests
 import random
 import os
@@ -40,10 +39,8 @@ import requests
 import pytest
 from pprint import pprint
 import time
-import getpass
 from collections.abc import Mapping
 
-from fdi.pns.jsonio import getJsonObj, postJsonObj, putJsonObj, commonheaders
 from fdi.utils.options import opt
 
 
@@ -149,7 +146,7 @@ def getPayload(aResponse, ignore_error=True):
         return x, aResponse.status_code
 
 
-def check_response(o, code=200, failed_case=False, excluded=None):
+def check_response(o, code=200, failed_case=False, excluded=None, login=False):
     """ Generic checking.
 
     :o: deserialized response data or text.
@@ -171,6 +168,12 @@ def check_response(o, code=200, failed_case=False, excluded=None):
     elif not failed_case:
         if not someone:
             # properly formated
+            if login:
+                if issubclass(oc, bytes) and o.startswith(b'<!doctype html>'):
+                    assert b'password' in o
+                    return True
+                else:
+                    return o
             assert 'FAILED' != o['result'], o['result']
             assert code == 200, str(o)
             assert o['time'] > lupd
@@ -219,7 +222,41 @@ def test_root(server, client):
     assert set(iter(c_pools)) <= set(iter(c0))
 
 
-def test_wipe_all_pools_on_server(server, local_pools_dir, client, auth):
+def test_wipe_all_pools_on_server(server, tmp_local_remote_pools, local_pools_dir, client, auth):
+
+    npools = tmp_local_remote_pools
+    n = len(npools)
+    pool, prd, ref, tag = npools[0]
+    # ======== wipe all pools =====
+    logger.info('Wipe all pools on the server')
+
+    # register all pools and get count
+    aburl, headers = server
+    url = aburl + '/' + 'pools/register_all'
+    x = client.put(url, auth=auth)
+    o, code = getPayload(x)
+    check_response(o, code=code, failed_case=False)
+    regd = o['result']
+
+    # make an unregistered pool by copying an existing pool
+    p = os.path.join(local_pools_dir, pool.getId())
+    os.system('cp -rf %s %s_copy' % (p, p))
+    assert os.path.exists(p+'_copy')
+
+    assert len(get_files_in_local_dir('', local_pools_dir)) >= n+1
+
+    # wipe all pools
+    url = aburl + '/' + 'pools/wipe_all'
+    x = client.delete(url, auth=auth)
+    o, code = getPayload(x)
+    check_response(o, code=code, failed_case=False)
+
+    files = get_files_in_local_dir('', local_pools_dir)
+    assert len(files) == 0, 'Wipe_all_pools failed: ' + \
+        o['msg'] + 'Files ' + str(files)
+
+
+def est_wipe_all_pools_on_server(server, local_pools_dir, client, auth):
     aburl, headers = server
     post_poolid = test_poolid
     # ======== wipe all pools =====
@@ -280,7 +317,7 @@ def test_new_user_read_only(new_user_read_only, pc):
     assert new_user.username == pc['USERS'][1]['username']
     assert not new_user.hashed_password.startswith('o')
     assert not new_user.authenticated
-    assert new_user.role == read_only['roles']
+    assert new_user.role == ('read_only',)
     logger.debug('Done.')
 
 
@@ -290,16 +327,42 @@ def getapis(server_ro, client):
     return deserialize(x.text if type(x) == requests.models.Response else x.data)
 
 
-def test_unauthorizedread_write(server, server_ro, client):
+PAGE = True
+
+
+def test_unauthorizedread_write(server, server_ro, client, tmp_local_remote_pools):
     aburl, headers = server
     roaburl, roheaders = server_ro
-    poolid = test_poolid
+    pool, prod, ref, tag = tmp_local_remote_pools[0]
+    poolid = pool.poolname
     # generate a unauthorized user header
-    uheaders = auth_headers('k', 'hu8')
-    x = client.get(aburl+'/pools/', headers=uheaders)
-    assert x.status_code == 401
-    o, code = getPayload(x, ignore_error=True)
-    assert o in ('Unauthorized Access', b'Unauthorized Access')
+    uheaders = auth_headers('k', 'hu8', headers=headers)
+    if uheaders['server_type'] == 'mock':
+        # we need to run before_requet, so we call full_dispatch_request
+        # ref https://flask.palletsprojects.com/en/2.2.x/testing/#accessing-and-modifying-the-session
+        with current_app.test_request_context(aburl+'/pools/', method='GET', headers=uheaders):
+            # now we have request set
+            with current_app.test_client() as client:
+                # now we have client set
+                with client.session_transaction() as session:
+                    # now we have session set
+                    user_id = session.get('user_id')
+                    hdrs = str(request.headers)
+                    logger.debug('*** session %x user_id = "%s"' %
+                                 (id(session), str(user_id))+hdrs)
+                    x = current_app.full_dispatch_request()
+    else:
+        x = client.get(aburl+'/pools/', headers=uheaders)
+    if PAGE:
+        # In order to use the login page, the return code has to be 200
+        assert x.status_code == 200
+        o, code = getPayload(x, ignore_error=False)
+        assert o.startswith(b'<!doctype html>')
+    else:
+        # If json is to be used, the return code shoul be 401 to trigger browser login prompt
+        assert x.status_code == 401
+        o, code = getPayload(x, ignore_error=True)
+        assert o in ('Unauthorized Access', b'Unauthorized Access')
 
     # These needs read_write
     paths = getapis(server_ro, client)['paths']
@@ -313,10 +376,14 @@ def test_unauthorizedread_write(server, server_ro, client):
                 assert x.status_code == 200 if p == '/pool/{method_args}' else 401
                 # read_only
                 x = client.post(roaburl+api, headers=roheaders, data='')
-                assert x.status_code == 200 if p == '/user/login' \
-                    else 401 if p == '/user/logout' else 403
+                if PAGE:
+                    # In order to use the login page, the return code has to be 200
+                    assert x.status_code == 200 if p == '/login' \
+                        else 401 if p == '/logout' else 403
+                assert x.status_code == 200 if p == '/login' \
+                    else 401 if p == '/logout' else 403
                 # read_write
-                x = client.post(roaburl+api, headers=headers, data='')
+                x = client.post(aburl+api, headers=headers, data='')
                 assert x.status_code == 401 if p == '/user/logout' else 200
 
     logger.debug('Done.')
@@ -328,7 +395,7 @@ def test_authorizedread_write(server, new_user_read_write, client):
     assert x.status_code == 200
     # with pytest.raises(URLError):
     o, code = getPayload(x)
-    check_response(o, code=code)
+    check_response(o, code=code, login=True)
     pools = o['result']
     assert isinstance(pools, list)
 

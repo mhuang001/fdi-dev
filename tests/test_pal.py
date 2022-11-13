@@ -24,6 +24,8 @@ from fdi.dataset.testproducts import TP
 from fdi.utils.checkjson import checkjson
 from fdi.pns.fdi_requests import save_to_server, read_from_server, delete_from_server
 
+# from flask import request as
+import requests
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import ConnectionError
 import itertools
@@ -37,7 +39,6 @@ import json
 import shutil
 import getpass
 import os
-import requests
 import weakref
 import gc
 from os import path as op
@@ -920,6 +921,10 @@ def doquery(poolpath, newpoolpath):
         assert p.meta['extra'].value == c['a2']
 
     chk(res[0], rec1[m])
+
+    # gracefully handle none-exisiting key
+    #q = MetaQuery(TP, 'm["not_exists"].value == "%s"' % rec1[m]['a0'])
+    #res = pstore.select(q)
 
     # query with a parent class and a specific parameter
     m = 3

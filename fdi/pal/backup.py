@@ -133,8 +133,8 @@ if __name__ == '__main__':
 
     auth = HTTPBasicAuth(args.username, args.password)
     url = args.poolurl
-    pstore = make_pool(url)
-    clientpool = pstore.getPool(pstore.getPools()[0])
+    pstore = make_pool(url, auth=auth)
+    clientpool = pstore.getPool(pstore.getPools(auth=auth, client=client)[0])
     print(clientpool)
 
     if args.outputdir is not None:

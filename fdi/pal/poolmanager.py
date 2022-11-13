@@ -10,7 +10,6 @@ from .urn import parse_poolurl
 from ..pns.fdi_requests import put_on_server, delete_from_server
 from ..pal.httppool import HttpPool
 
-
 from requests.exceptions import ConnectionError
 import requests
 
@@ -26,29 +25,51 @@ DEFAULT_POOL = 'fdi_pool_' + __name__ + getpass.getuser()
 Invalid_Pool_Names = ['pools', 'urn', 'URN', 'api']
 
 
-def remoteRegister(poolurl, auth=None, client=None):
-    """ if registered a pool's auth and client will be used """
-    # check if poolurl has been registered
-    for pool, poolo in PoolManager._GlobalPoolList.items():
-        if issubclass(poolo.__class__, HttpPool):
-            continue
-        if poolurl == poolo._poolurl:
-            if client is None:
-                client = poolo.client
-            if auth is None:
-                auth = poolo.auth
-            break
+def remoteRegister(pool):
+    """ if registered a pool's auth and client will be used.
+
+    Note that a new httppool gets remoteRegistered before locally registered.
+
+    Parameter
+    ---------
+    pool : HttpClientPool
+        Pool object to be registered on remote server and have client/session set.
+    auth : object
+        Authorization object for the client. If given will substitute that of pool, if pool has auth.
+    client : flask.requests (testing), or requests.Session
+        The client. If given will substitute that of pool, if pool is given
+
+    """
+    # pool object
+    poolo = None
+    from ..pal import httpclientpool
+    if issubclass(pool.__class__, httpclientpool.HttpClientPool):
+        poolurl = pool._poolurl
+        poolo = pool
     else:
-        # not found
-        if client is None:
-            client = requests
+        return
+    if 0:
+        # check if poolurl has been registered
+        for poolnm, poolo in PoolManager._GlobalPoolList.items():
+            if issubclass(poolo.__class__, HttpPool):
+                # This is a server pool.
+                continue
+            if poolurl == poolo._poolurl:
+                msg = f'Find {poolurl}. Already registered.'
+                logger.info(msg)
+                break
+    if 0 and poolo:
+        if client is not None:
+            poolo.client = client
+        if auth is not None:
+            poolo.auth = auth
 
     logger.debug('Register %s on the server', poolurl)
     if poolurl.endswith('/'):
         poolurl = poolurl[:-1]
     try:
         res, msg = put_on_server(
-            'urn:::0', poolurl, 'register_pool', auth=auth, client=client)
+            'urn:::0', poolurl, 'register_pool', auth=poolo.auth, client=poolo.client)
     except ConnectionError as e:
         res, msg = 'FAILED', str(e)
         logger.error(poolurl + ' ' + msg)
@@ -79,10 +100,6 @@ def remoteUnregister(poolurl, auth=None, client=None):
             if auth is None:
                 auth = poolo.auth
             break
-    else:
-        # not found
-        if client is None:
-            client = requests
 
     #url = api_baseurl + post_poolid
     #x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
@@ -125,10 +142,10 @@ This is done by calling the getPool() method, which will return an existing pool
     del p
 
     @classmethod
-    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=True, auth=None, client=requests, **kwds):
+    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=True, auth=None, client=None, **kwds):
         """ returns an instance of pool according to name or path of the pool.
 
-        Returns the pool object if the pool is registered. Creates the pool if it does not already exist. the same poolname-path always get the same pool. Http pools will be registered on the sserver side.
+        Returns the pool object if the pool is registered. Creates the pool if it does not already exist. the same poolname-path always get the same pool. Http pools will be registered on the server side.
 
 Pools registered are kept as long as the last reference remains. When the last is gone the pool gets :meth;`removed` d.
 
@@ -138,11 +155,13 @@ Pools registered are kept as long as the last reference remains. When the last i
             name of the pool.
         poolurl : str
             If given the poolpath, scheme, place will be derived from it. if not given for making a new pool (i.e. when poolname is not a registered pool name. If poolname is missing it is derived from poolurl; if poolurl is also absent, ValueError will be raised.
+        pool: ProductPool
+            If `auth` and `client` are given they will substitute those of  `pool`. If `pool` is not given, those will need to be given.
         makenew : bool
             When the pool does not exist, make a new one (````True```; default) or throws `PoolNotFoundError` (```False```).
         auth : str
             For `remoteRegister`.
-        client : request
+        client : default is `None`.
             For `remoteRegister`.
         kwds  : dict
             Passed to pool instanciation arg-list.
@@ -157,11 +176,21 @@ Pools registered are kept as long as the last reference remains. When the last i
 
         if pool:
             if poolname:
+                __import__("pdb").set_trace()
+
                 raise ValueError(
                     'Pool name %s and pool object cannot be both given.' % poolname)
-            poolname, poolurl, p = pool._poolname, pool._poolurl, pool
+            poolname, poolurl = pool._poolname, pool._poolurl
+            if cls.isLoaded(poolname):
+                return cls._GlobalPoolList[poolname]
             if poolurl.lower().startswith('http'):
-                res, msg = remoteRegister(poolurl, auth, client)
+                import requests
+                if auth is not None and getattr(pool, 'auth', None) is None:
+                    pool.auth = auth
+                if client is not None and getattr(pool, 'client', None) is None:
+                    pool.client = requests.Session()
+                res, msg = remoteRegister(pool)
+            p = pool
         else:
             # quick decisions can be made knowing poolname only
             if poolname == DEFAULT_MEM_POOL:
@@ -208,10 +237,18 @@ Pools registered are kept as long as the last reference remains. When the last i
                     poolname=poolname, poolurl=poolurl, **kwds)
             elif schm in ('http', 'https'):
                 from . import httpclientpool
+                import requests
+                from requests.auth import HTTPBasicAuth
+
+                if auth is None:
+                    auth = HTTPBasicAuth(pc['node']['username'],
+                                         pc['node']['password'])
+                if client is None:
+                    client = requests.Session()
                 p = httpclientpool.HttpClientPool(
                     poolname=poolname, poolurl=poolurl,
                     auth=auth, client=client, **kwds)
-                res, msg = remoteRegister(poolurl, p.auth, p.client)
+                res, msg = remoteRegister(p)
             elif schm == 'csdb':
                 from . import publicclientpool
                 p = publicclientpool.PublicClientPool(poolurl=poolurl)

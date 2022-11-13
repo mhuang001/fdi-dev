@@ -181,14 +181,14 @@ When implementing a ProductPool, the following rules need to be applied:
         XXX TODO
         """
 
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def exists(self, urn):
         """
         Determines the existence of a product with specified URN.
         """
 
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def getDefinition(self):
         """
@@ -219,13 +219,13 @@ When implementing a ProductPool, the following rules need to be applied:
         Returns all Product classes found in this pool.
         mh: returns an iterator.
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def getReferenceCount(self, ref):
         """
         Returns the reference count of a ProductRef.
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def getScheme(self):
         """
@@ -250,12 +250,12 @@ When implementing a ProductPool, the following rules need to be applied:
         Determines if the pool is empty.
         """
 
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def schematicSave(self, products, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, **kwds):
         """ to be implemented by subclasses to do the scheme-specific saving
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def saveProduct(self, product, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, **kwds):
         """
@@ -293,13 +293,13 @@ When implementing a ProductPool, the following rules need to be applied:
         Loads the descriptors belonging to specified URN.
         """
 
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def schematicLoad(self, resourcetype, index,
                       start=None, end=None, serialize_out=False):
         """ to be implemented by subclasses to do the scheme-specific loading
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def loadProduct(self, urn, serialize_out=False):
         """
@@ -309,8 +309,8 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         poolname, resource, index = parseUrn(urn)
         if poolname != self._poolname:
-            raise(ValueError('wrong pool: ' + poolname +
-                             ' . This is ' + self._poolname))
+            raise (ValueError('wrong pool: ' + poolname +
+                              ' . This is ' + self._poolname))
         ret = self.schematicLoad(
             resourcetype=resource, index=index, serialize_out=serialize_out)
 
@@ -333,7 +333,7 @@ When implementing a ProductPool, the following rules need to be applied:
         Loads the meta-data belonging to the product of specified URN.
         """
 
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     @property
     def count(self):
@@ -352,19 +352,19 @@ When implementing a ProductPool, the following rules need to be applied:
         Return the number of URNs for the product type.
         """
 
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def reference(self, ref):
         """
         Increment the reference count of a ProductRef.
         """
 
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def schematicRemove(self, urn=None, resourcetype=None, index=None):
         """ to be implemented by subclasses to do the scheme-specific removing
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def remove(self, urn=None, resourcetype=None, index=None):
         """
@@ -376,7 +376,7 @@ When implementing a ProductPool, the following rules need to be applied:
     def schematicWipe(self):
         """ to be implemented by subclasses to do the scheme-specific wiping.
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def removeAll(self):
         """
@@ -389,13 +389,13 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         Save/Update descriptors in pool.
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def schematicSelect(self,  query, previous=None):
         """
         to be implemented by subclasses to do the scheme-specific querying.
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def select(self,  query, variable='m', ptype=Product,
                previous=None):
@@ -430,7 +430,7 @@ When implementing a ProductPool, the following rules need to be applied:
                 if ptype in cn and issubclass(cls, BaseProduct):
                     break
             else:
-                raise(ValueError(ptype + ' is not a product type.'))
+                raise (ValueError(ptype + ' is not a product type.'))
             ptype = cls
         if variable == 'm':
             res = self.schematicSelect(MetaQuery(ptype, where=query), previous)
@@ -596,7 +596,7 @@ class ManagedPool(ProductPool, DictHk):
     def doSave(self, resourcetype, index, data, tags=None, serialize_in=True, **kwds):
         """ to be implemented by subclasses to do the action of saving
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def getReferenceCount(self, ref):
         """
@@ -720,6 +720,12 @@ class ManagedPool(ProductPool, DictHk):
 
         :res: list of result.
         :serialize_out: if True returns contents in serialized form.
+
+        Return
+        ------
+        `list` of the following:
+        `ProductRef`. `Urn` if `geturnobjs` is set. if`serialze_out` is set for `ProductRef` no product metadata is stored in the returned instance.
+        The result is also stored in the `re` parameter.
         """
         if serialize_in:
             pn = fullname(prd)
@@ -827,8 +833,15 @@ class ManagedPool(ProductPool, DictHk):
 
     def schematicSave(self, products, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, **kwds):
         """ do the scheme-specific saving.
+        :product:  product or '[ size1, prd, size2, prd2, ...]'.
+        :serialize_out: if True returns contents in serialized form.
+        :serialize_in: if set, product input is seriaized.
 
-            :serialize_out: if True returns contents in serialized form.
+        Return
+        ------
+        `ProductRef`. `Urn` if `geturnobjs` is set. If `serialze_out` is set `str` of serialized form of `ProductRef` or `URN`.
+
+        `list` of the above of input is a list.
         """
         res = []
 
@@ -840,6 +853,7 @@ class ManagedPool(ProductPool, DictHk):
                              serialize_in, serialize_out, res, kwds)
             else:
                 for prd in products:
+                    # result is in res
                     self.saveOne(prd, tag, geturnobjs,
                                  serialize_in, serialize_out, res, kwds)
         else:
@@ -876,7 +890,7 @@ class ManagedPool(ProductPool, DictHk):
     def doLoad(self, resourcetype, index, start=None, end=None, serialize_out=False):
         """ to be implemented by subclasses to do the action of loading
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def schematicLoad(self, resourcetype, index, start=None, end=None,
                       serialize_out=False):
@@ -892,7 +906,7 @@ class ManagedPool(ProductPool, DictHk):
     def doRemove(self, resourcetype, index):
         """ to be implemented by subclasses to do the action of reemoving
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def schematicRemove(self, urn=None, resourcetype=None, index=None):
         """ do the scheme-specific removing

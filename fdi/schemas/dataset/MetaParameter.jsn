@@ -7,6 +7,7 @@
 	    "type": ["string", "null"],
 	    "desscription": "Type (class, CARD) of the parameter",
 	    "enum": [
+		"array",
 		"binary",  "boolean", "byte",
 		"complex",
 		"finetime", "float",
@@ -16,7 +17,7 @@
  		"quaternion",
 		"tuple",
  		"short", "string",
- 		"vector", "vector2d", "vector3d", "quaternion",
+ 		"vector", "vector2d", "vector3d",
 		"", null
  	    ],
  	    "examples": [

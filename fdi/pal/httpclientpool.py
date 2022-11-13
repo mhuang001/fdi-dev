@@ -51,7 +51,8 @@ def toserver(self, method, *args, **kwds):
     else:
         code, res, msg = post_to_server(apipath, urn, self._poolurl,
                                         contents=method + '__' + '/',
-                                        no_serial=True, auth=self.auth)
+                                        no_serial=True,
+                                        auth=self.auth, client=self.client)
 
     if issubclass(res.__class__, str) and 'FAILED' in res or code != 200:
         for line in chain(msg.split('.', 1)[:1], msg.split('\n')):
@@ -111,7 +112,8 @@ class HttpClientPool(ProductPool):
         super().__init__(**kwds)
         self.not_quoted = True
         self.auth = auth
-        self.client = requests if client is None else client
+        session = requests.Session()
+        self.client = session if client is None else client
 
     def setup(self):
         """ Sets up HttpPool interals.
@@ -132,6 +134,7 @@ class HttpClientPool(ProductPool):
         poolname = self._poolname
         logger.debug("READ HK FROM REMOTE===>poolurl: " + poolname)
         hk = {}
+        code = None
         try:
             code, r, msg = read_from_server(
                 None, self._poolurl, 'housekeeping')
@@ -139,7 +142,7 @@ class HttpClientPool(ProductPool):
                 for hkdata in HKDBS:
                     hk[hkdata] = r[hkdata]
         except Exception as e:
-            msg = 'Reading %s failed.%d ' % (poolname, code) + str(e) + trbk(e)
+            msg = 'Reading %s failed. %s ' % (poolname, 'No code' if code is None else str(code)) + str(e) + trbk(e)
             r = 'FAILED'
 
         if r == 'FAILED':
@@ -233,7 +236,7 @@ class HttpClientPool(ProductPool):
             if resourcetype is None or index is None:
                 raise ValueError()
             urn = makeUrn(self._poolname, resourcetype, index)
-        res, msg = delete_from_server(urn, self._poolurl, client=self.client)
+        res, msg = delete_from_server(urn, self._poolurl, auth=self.auth, client=self.client)
         if res == 'FAILED':
             logger.error('Remove from server ' + self._poolname +
                          ' failed. Caused by: ' + msg)

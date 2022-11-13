@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  version: 1.2.3
+  version: 1.2.4
   description: This is an API description of the HTTPPool Server for FDI (Flexible Dataset Integrator)
   title: fdi poolserver
   contact:
@@ -64,7 +64,23 @@ servers:
 security:
   - BasicAuth: []
 paths:
-  /user/login:
+  /login:
+    get:
+      summary: Get Login page from the server.
+      tags:
+        - User
+      description: Show login page asking for username and password.
+      operationId: login
+      responses:
+        '200':
+          description: Showing logging in.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponseContents'
+            text/html; charset=utf-8:
+              schema:
+                type: string
     post:
       summary: Login on the server.
       tags:
@@ -78,7 +94,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
-  /user/logout:
+  /logout:
     post:
       summary: Logout and possiblly login again on the server.
       tags:
@@ -242,111 +258,35 @@ paths:
               type: string
             examples:
               BaseProduct:
-                value: |
-                  '
-                  {
-                    "meta": {
-                      "_sets": {
-                        "description": {
-                          "description": "Description of this product",
-                          "default": "UNKNOWN",
-                          "value": "demo",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "type": {
-                          "description": "Product Type identification. Name of class or CARD.",
-                          "default": "BaseProduct",
-                          "value": "BaseProduct",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "level": {
-                          "description": "Product level.",
-                          "default": "ALL",
-                          "value": "ALL",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "creator": {
-                          "description": "Generator of this product.",
-                          "default": "UNKNOWN",
-                          "value": "dev",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "creationDate": {
-                          "description": "Creation date of this product",
-                          "default": {
-                            "tai": 0,
-                            "format": "%Y-%m-%dT%H:%M:%S.%f",
-                            "_STID": "FineTime"
-                          },
-                          "value": {
-                            "tai": 0,
-                            "format": "%Y-%m-%dT%H:%M:%S.%f",
-                            "_STID": "FineTime"
-                          },
-                          "valid": null,
-                          "typecode": "Q",
-                          "_STID": "DateParameter"
-                        },
-                        "rootCause": {
-                          "description": "Reason of this run of pipeline.",
-                          "default": "UNKNOWN",
-                          "value": "UNKNOWN",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "version": {
-                          "description": "Version of product",
-                          "default": "0.8",
-                          "value": "0.8",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "FORMATV": {
-                          "description": "Version of product schema and revision",
-                          "default": "1.6.0.10",
-                          "value": "1.6.0.10",
-                          "valid": null,
-                          "typecode": "B",
-                          "_STID": "StringParameter"
-                        },
-                        "_STID": "ODict"
-                      },
-                      "listeners": [],
-                      "_STID": "MetaData"
-                    },
-                    "_sets": {
-                      "_STID": "ODict"
-                    },
-                    "history": {
-                      "description": "UNKNOWN",
-                      "PARAM_HISTORY": "",
-                      "TASK_HISTORY": "",
-                      "meta": {
-                        "_sets": {
-                          "_STID": "ODict"
-                        },
-                        "listeners": [],
-                        "_STID": "MetaData"
-                      },
-                      "_sets": {
-                        "_STID": "ODict"
-                      },
-                      "_STID": "History"
-                    },
-                    "listeners": [],
-                    "_STID": "BaseProduct"
-                  }
-                  '
+                value: |-
+
+                  ╒══════════════╤════════════════════╤══════╤══════════╤════════════════════════════╤════════════════════╤══════╤══════════════════════╕
+                  │ name         │ value              │ unit │ type     │ valid                      │ default            │ code │ description          │
+                  ╞══════════════╪════════════════════╪══════╪══════════╪════════════════════════════╪════════════════════╪══════╪══════════════════════╡
+                  │ description  │ UNKNOWN            │      │ string   │ Description of this        │ UNKNOWN            │ None │ B                    │
+                  │              │                    │      │          │ product                    │                    │      │                      │
+                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
+                  │ type         │ BaseProduct        │      │ string   │ Product Type               │ BaseProduct        │ None │ B                    │
+                  │              │                    │      │          │ identification. Name of    │                    │      │                      │
+                  │              │                    │      │          │ class or CARD.             │                    │      │                      │
+                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
+                  │ level        │ ALL                │      │ string   │ Product level.             │ ALL                │ None │ B                    │
+                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
+                  │ creator      │ UNKNOWN            │      │ string   │ Generator of this product. │ UNKNOWN            │ None │ B                    │
+                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
+                  │ creationDate │ 1958-01-01T00:00:0 │      │ finetime │ Creation date of this      │ 1958-01-01T00:00:0 │ None │ %Y-%m-%dT%H:%M:%S.%f │
+                  │              │ 0.000000 0         │      │          │ product                    │ 0.000000 0         │      │                      │
+                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
+                  │ rootCause    │ UNKNOWN            │      │ string   │ Reason of this run of      │ UNKNOWN            │ None │ B                    │
+                  │              │                    │      │          │ pipeline.                  │                    │      │                      │
+                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
+                  │ version      │ 0.8                │      │ string   │ Version of product         │ 0.8                │ None │ B                    │
+                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
+                  │ FORMATV      │ 1.6.0.11           │      │ string   │ Version of product schema  │ 1.6.0.11           │ None │ B                    │
+                  │              │                    │      │          │ and revision               │                    │      │                      │
+                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
+                  │ listeners    │ <No listener>      │      │          │                            │                    │      │                      │
+                  ╘══════════════╧════════════════════╧══════╧══════════╧════════════════════════════╧════════════════════╧══════╧══════════════════════╛
                 summary: A mostly blank BaseProduct.
               Dummy:
                 value: '{"meta": {}}'

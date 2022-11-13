@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#from .. import auth
+from .. import checkpath, PM_S
 from ..model.user import auth
 
 from ...dataset.deserialize import deserialize
@@ -27,9 +27,6 @@ import sys
 import os
 import time
 import builtins
-from weakref import WeakValueDictionary, getweakrefcount
-import functools
-from pathlib import Path
 import importlib
 import logging
 
@@ -50,50 +47,6 @@ logger = __import__('logging').getLogger(__name__)
 data_api = Blueprint('httppool_server', __name__)
 
 WRITE_LIST = ['POST', 'PUT', 'DELETE', 'PATCH']
-
-
-class PM_S(PoolManager):
-    """Made to provid a different `_GlobalPoolList` useful for testing as a mock"""
-    _GlobalPoolList = WeakValueDictionary()
-    """ Another Global centralized dict that returns singleton -- the same -- pool for the same ID."""
-
-
-@functools.lru_cache(6)
-def checkpath(path, un):
-    """ Checks  the directories and creats if missing.
-
-    path: str. can be resolved with Path.
-    un: server user name
-    """
-    logger.debug('path %s user %s' % (path, un))
-
-    p = Path(path).resolve()
-    if p.exists():
-        if not p.is_dir():
-            msg = str(p) + ' is not a directory.'
-            logger.error(msg)
-            return None
-        else:
-            # if path exists and can be set owner and group
-            if p.owner() != un or p.group() != un:
-                msg = str(p) + ' owner %s group %s. Should be %s.' % \
-                    (p.owner(), p.group(), un)
-                logger.warning(msg)
-    else:
-        # path does not exist
-
-        msg = str(p) + ' does not exist. Creating...'
-        logger.debug(msg)
-        p.mkdir(mode=0o775, parents=True, exist_ok=True)
-        logger.info(str(p) + ' directory has been made.')
-
-    # logger.info('Setting owner, group, and mode...')
-    if not setOwnerMode(p, un):
-        logger.info('Cannot set owner %s to %s.' % (un, str(p)))
-        return None
-
-    logger.debug('checked path at ' + str(p))
-    return p
 
 
 # =============HTTP POOL=========================
@@ -354,7 +307,7 @@ def save_product(data, paths, tags=None, serialize_in=True, serialize_out=False)
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     # resourcetype = fullname(data)
 
-    if checkpath(fullpoolpath, current_app.config['PC']['self_username']) is None:
+    if checkpath(fullpoolpath, current_app.config['PC']['self_username'], logger) is None:
         result = FAILED
         msg = 'Pool directory error: ' + fullpoolpath
         return 400, result, msg
@@ -606,30 +559,6 @@ def load_product(p, paths, serialize_out=False):
         code, result, msg = excp(
             e, code=code, msg=msg, serialize_out=serialize_out)
     return code, result, msg
-
-
-def setOwnerMode(p, username):
-    """ makes UID and GID set to those of self_username given in the config file. This function is usually done by the initPTS script.
-    """
-
-    logger.debug('set owner, group to %s, mode to 0o775' % username)
-
-    uid, gid = getUidGid(username)
-    if uid == -1 or gid == -1:
-        logger.debug(f'user {username} uid={uid} gid{gid}')
-        return None
-    try:
-        os.chown(str(p), uid, gid)
-        os.chmod(str(p), mode=0o775)
-    except Exception as e:
-        code, result, msg = excp(
-            e,
-            msg='cannot set input/output dirs owner to ' +
-            username + ' or mode. check config. ')
-        logger.error(msg)
-        return None
-
-    return username
 
 
 Builtins = vars(builtins)

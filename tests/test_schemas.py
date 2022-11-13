@@ -23,7 +23,8 @@ from fdi.dataset.product import Product
 from fdi.dataset.datatypes import Vector, Vector2D, Quaternion
 from fdi.dataset.classes import Classes
 from fdi.dataset.serializable import serialize, Serializable
-
+from fdi.pal.context import MapContext
+from fdi.pal.productref import ProductRef
 if 0:
     from fdi.dataset.annotatable import Annotatable
     from fdi.dataset.copyable import Copyable
@@ -78,7 +79,7 @@ SCHEMA_DIR = os.path.abspath(os.path.join(
 SSP = 'https://fdi.schemas/%s%s'
 """ Schema store prefix"""
 
-verbose = False
+verbose = 1 #False
 
 
 @pytest.fixture(scope='function')
@@ -1051,14 +1052,21 @@ def test_History(schema_store):
                 info=dict(c='d')
                 )
 
-    # v.meta = MetaData(description='test History.MEtadata')
-    # v.data = 987.4
+    # odd ball
+    parray = v.meta['scores']
+    assert parray.value == array.array('f', [6, 7])
+    sparray = json.loads(serialize(parray))
+    pasc = schema_store[SSP % ('dataset/', 'Parameter')]
+    tor = getValidator(pasc, verbose=verbose)
+    res=tor.validate(sparray)
+    assert res is None
 
     jsn = json.loads(serialize(v))
 
     if 1 or verbose:
         logger.info("JSON instance to test: %s" %
                     lls(pformat(jsn, indent=4), 2000))
+
     # assert jsn['default']['tai'] == 99
     # assert jsn['typecode'] == tc == "%Y-%m-%dT%H:%M:%S.%f"
     vtr = getValidator(sch, verbose=verbose)
@@ -1110,10 +1118,10 @@ def test_MapContext(schema_store):
     scn = 'MapContext'
     sch = schema_store[SSP % ('dataset/', scn)]
 
-    v = get_demo_product()
-
-    # v.meta = MetaData(description='test MapContext.MEtadata')
-    # v.data = 987.4
+    v = MapContext(description='MapContext demo')
+    r = ProductRef(v)
+    v.refs['self'] = r
+    v['arr']=ArrayDataset([6,4,2])
 
     jsn = json.loads(serialize(v))
 

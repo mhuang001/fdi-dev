@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  version: 1.2.3
+  version: 1.2.4
   description: "This is an API description of the HTTPPool Server for FDI (Flexible\
     \ Dataset Integrator)"
   title: "fdi poolserver"
@@ -72,7 +72,23 @@ security:
   - BasicAuth: []
 
 paths:
-  /user/login:
+  /login:
+    get:
+      summary: "Get Login page from the server."
+      tags:
+        - User
+      description: "Show login page asking for username and password."
+      operationId: login
+      responses:
+        "200":
+          description: "Showing logging in."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponseContents"
+            text/html; charset=utf-8:
+              schema:
+                type: string
     post:
       summary: "Login on the server."
       tags:
@@ -86,7 +102,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GenericResponseContents"
-  /user/logout:
+  /logout:
     post:
       summary: "Logout and possiblly login again on the server."
       tags:
@@ -242,7 +258,7 @@ paths:
             examples:
               BaseProduct:
                 value:
-                  $ref: "baseproduct.txt"
+                  $ref: "../../dataset/resources/BaseProduct.txt"
                 summary: An mostly blank BaseProduct.
               Dummy:
                 value: '{"meta": {}}'
@@ -253,7 +269,7 @@ paths:
             examples:
               BaseProduct:
                 value:
-                  $ref: "baseproduct.txt"
+                  $ref: "../../dataset/resources/BaseProduct.txt"
                 summary: A mostly blank BaseProduct.
               Dummy:
                 value: '{"meta": {}}'
@@ -683,4 +699,4 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/GenericResponseContents'
-  
+

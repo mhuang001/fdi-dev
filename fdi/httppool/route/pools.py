@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from .getswag import swag
-
+from .. import checkpath, PM_S
 from .httppool_server import (
     before_request_callback,
     excp,
-    checkpath,
     check_readonly,
-    PM_S,
     resp
 )
 #from .. import auth
@@ -177,7 +175,7 @@ def load_pools(poolnames, usr):
     current_app.logger.debug('loading all from ' + path)
     alldirs = poolnames if poolnames else get_name_all_pools(path)
     for nm in alldirs:
-        # must save the link or PM_S._GLOBALPOOLLIST will remove as dead weakref
+        # must save the link or PM_S._GlobalPoolList will remove as dead weakref
         code, thepool, msg = register_pool(nm, usr=usr)
         if code == 200:
             pmap[nm] = thepool
@@ -394,7 +392,10 @@ def register(pool):
     ts = time.time()
     logger.debug('register pool ' + pool)
 
+
     code, thepool, msg = register_pool(pool, auth.current_user())
+    logger.debug('_G %x' % id(PM_S._GlobalPoolList))
+    
     res = thepool if issubclass(thepool.__class__, str) else thepool._poolurl
     return resp(code, res, msg, ts)
 
@@ -777,6 +778,8 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
     msg = '%s(%s)' % (method, ', '.join(
         chain(map(str, args), kwdsexpr)))
     logger.debug('WebAPI ' + lls(msg, 300))
+    logger.debug('*_G %x' % id(PM_S._GlobalPoolList))
+
     # if args and args[0] == 'select':
     #    __import__('pdb').set_trace()
 

@@ -18,6 +18,24 @@ import argparse
 
 # print(sys.path)
 
+
+def setup_logging(lggng, logstream=None):
+    lggng.basicConfig(stream=sys.stdout,
+                      format='%(asctime)s.%(msecs)03d %(name)8s '
+                      '%(process)d %(threadName)s %(levelname)3s '
+                      '%(funcName)10s():%(lineno)3d- %(message)s',
+                      datefmt="%Y-%m-%d %H:%M:%S")
+
+    lggng.getLogger("requests").setLevel(lggng.WARNING)
+    lggng.getLogger("filelock").setLevel(lggng.WARNING)
+    logger = lggng.getLogger()
+    if logstream:
+        stream = open(logstream, 'a')
+        handler = logging.StreamHandler(stream=stream)
+        logger.addHandler(handler)
+    return logger
+
+
 if __name__ == '__main__':
 
     import logging
@@ -28,7 +46,6 @@ if __name__ == '__main__':
     pc = getconfig.getConfig()
 
     #lev = pc['loggerlevel']
-    #logging = setup_logging(lev if lev < logging.WARN else logging.WARN)
 
     # Get username and password and host ip and port.
 
@@ -51,6 +68,8 @@ if __name__ == '__main__':
                         action='store_true', help='run a WSGI server.')
     parser.add_argument('-d', '--debug', default=False,
                         action='store_true', help='run in debug mode.')
+    parser.add_argument('-l', '--logstream',
+                        default=None, type=str, help='name of logfile')
     args = parser.parse_args()
 
     verbose = args.verbose
@@ -60,6 +79,9 @@ if __name__ == '__main__':
     pc['self_port'] = args.port
     servertype = args.server
     wsgi = args.wsgi
+
+    # create app only needs
+    logger = setup_logging(logging, args.logstream)
 
     if verbose:
         logger.setLevel(logging.DEBUG)
@@ -78,7 +100,9 @@ if __name__ == '__main__':
         sys.exit(1)
     elif servertype == 'httppool_server':
         print('<<<<<< %s >>>>>' % servertype)
-        app = create_app(pc, debug=args.debug)  # , level)
+        app = create_app(pc, debug=args.debug,
+                         logstream=args.logstream,
+                         level=lev)
     else:
         logger.error('Unknown server %s' % servertype)
         sys.exit(-1)
@@ -93,4 +117,4 @@ if __name__ == '__main__':
                 threaded=not debug, processes=1,
                 use_reloader=False, reloader_type='stat',
                 debug=debug, passthrough_errors=debug,
-                use_debugger=debug )
+                use_debugger=debug)

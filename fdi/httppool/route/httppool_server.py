@@ -9,7 +9,15 @@ from ...dataset.mediawrapper import MediaWrapper
 from ...pal.urn import makeUrn
 from ...pal.poolmanager import PoolManager
 from ...dataset.classes import Classes
-from ...utils.common import trbk, getUidGid
+from ...utils.common import (trbk,
+                             getUidGid,
+                             lls,
+                             logging_ERROR,
+                             logging_WARNING,
+                             logging_INFO,
+                             logging_DEBUG
+                             )
+
 from ...utils.fetch import fetch
 from ...pns.fdi_requests import POST_PRODUCT_TAG_NAME
 
@@ -43,6 +51,7 @@ else:
 
 # Global variables set to temprary values before setGlabals() runs
 logger = __import__('logging').getLogger(__name__)
+logdebug = logger.isEnabledFor(logging_DEBUG)
 
 data_api = Blueprint('httppool_server', __name__)
 
@@ -76,8 +85,7 @@ def resp(code, result, msg, ts, serialize_out=False, ctype='application/json', l
         else:
             w = result
 
-        if logger.getEffectiveLevel() <= logging.DEBUG:
-            from ...utils.common import lls
+        if logdebug:
             logger.debug(lls(w, length))
             # logger.debug(pprint.pformat(w, depth=3, indent=4))
 
@@ -103,12 +111,14 @@ def check_readonly(usr, meth, logger):
     return None
     if usr is None:
         msg = 'Unknown user %s.' % usr
-        logger.debug(msg)
+        if logdebug:
+            logger.debug(msg)
         return unauthorized(msg)
 
     if meth in WRITE_LIST and usr.role == 'read_only':
         msg = 'User %s is Read-Only, not allowed to %s.' % (usr.name, meth)
-        logger.debug(msg)
+        if logdebug:
+            logger.debug(msg)
         return unauthorized(msg)
 
     return None
@@ -118,13 +128,19 @@ cnt = 0
 
 
 @data_api.before_request
-def before_request_callback():
+def b4request():
     global cnt
-    args = request.view_args
-    method = request.method
-
     cnt += 1
-    print("%3d >>>[%4s] %s" % (cnt, method, str(args)))
+    if logger.isEnabledFor(logging_DEBUG):
+        args = request.view_args
+        method = request.method
+        logger.debug("%3d >>>[%4s] %s" % (cnt, method, lls(str(args), 300)))
+    elif logger.isEnabledFor(logging_INFO):
+        # remove leading e.g. /fdi/v0.16
+        s = request.path.split(current_app.config['PC']['baseurl'])
+        p = s[0] if len(s) == 1 else s[1] if s[0] == '' else request.path
+        method = request.method
+        logger.info("%3d >>>[%4s] %s" % (cnt, method, lls(p, 40)))
 
 ######################################
 ####  /urn{parts} get data ####
@@ -307,7 +323,7 @@ def save_product(data, paths, tags=None, serialize_in=True, serialize_out=False)
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     # resourcetype = fullname(data)
 
-    if checkpath(fullpoolpath, current_app.config['PC']['self_username'], logger) is None:
+    if checkpath(fullpoolpath, current_app.config['PC']['self_username']) is None:
         result = FAILED
         msg = 'Pool directory error: ' + fullpoolpath
         return 400, result, msg

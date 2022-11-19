@@ -1,6 +1,6 @@
 PYTEST	= python3 -m pytest
 TESTLOG	= /tmp/fdi-tests.log
-L	= INFO #WARNING
+L	= 
 OPT	=    --log-level=$(L)
 T	= 
 test: test1 test2 test5 test14
@@ -28,7 +28,7 @@ test5:
 	$(PYTEST)  $(OPT) $(T) tests/test_utils.py
 
 test6:
-	$(PYTEST) $(OPT) $(T) tests/serv/test_httppool.py
+	$(PYTEST) $(OPT) $(T) tests/serv/test_httppool.py 
 
 test7:
 	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py -k 'not _csdb' $(T)

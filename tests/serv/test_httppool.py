@@ -4,7 +4,7 @@
 # This test is to be run on the same machine where the http pool server is running.
 #################
 
-
+from fdi.httppool.model.user import LOGIN_TMPLT
 from fdi.dataset.unstructureddataset import UnstructuredDataset
 from test_dataset import bookstore, simple_ex, complex_ex, do_jsonPath
 from fdi.dataset.testproducts import get_demo_product
@@ -62,16 +62,6 @@ logger = logging.getLogger()
 
 logger.setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
-
-
-if 0:
-    @pytest.fixture(scope="module")
-    def runserver():
-        from fdi.pns.httppool_server import app
-        app.run(host='127.0.0.1', port=5000,
-                threaded=False, debug=verbose, processes=5)
-
-        return smtplib.SMTP("smtp.gmail.com", 587, timeout=5)
 
 
 # last time/lastUpdate
@@ -197,6 +187,13 @@ def test_clear_local_server(local_pools_dir):
         f.write('k')
     clear_server_local_pools_dir(clrpool, local_pools_dir)
     assert not os.path.exists(ppath)
+
+
+def test_svcl(server, client):
+    aburl, headers = server
+    cl = client
+    print(cl)
+    print(aburl)
 
 
 def test_root(server, client):
@@ -327,9 +324,6 @@ def getapis(server_ro, client):
     return deserialize(x.text if type(x) == requests.models.Response else x.data)
 
 
-PAGE = True
-
-
 def test_unauthorizedread_write(server, server_ro, client, tmp_local_remote_pools):
     aburl, headers = server
     roaburl, roheaders = server_ro
@@ -353,11 +347,11 @@ def test_unauthorizedread_write(server, server_ro, client, tmp_local_remote_pool
                     x = current_app.full_dispatch_request()
     else:
         x = client.get(aburl+'/pools/', headers=uheaders)
-    if PAGE:
+    if LOGIN_TMPLT:
         # In order to use the login page, the return code has to be 200
         assert x.status_code == 200
         o, code = getPayload(x, ignore_error=False)
-        assert o.startswith(b'<!doctype html>')
+        assert str(o).startswith('<!doctype html>')
     else:
         # If json is to be used, the return code shoul be 401 to trigger browser login prompt
         assert x.status_code == 401
@@ -376,7 +370,7 @@ def test_unauthorizedread_write(server, server_ro, client, tmp_local_remote_pool
                 assert x.status_code == 200 if p == '/pool/{method_args}' else 401
                 # read_only
                 x = client.post(roaburl+api, headers=roheaders, data='')
-                if PAGE:
+                if LOGIN_TMPLT:
                     # In order to use the login page, the return code has to be 200
                     assert x.status_code == 200 if p == '/login' \
                         else 401 if p == '/logout' else 403

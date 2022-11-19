@@ -1,5 +1,6 @@
-__version_info__ = (1, 24, 1)
+__version_info__ = (1, 24, 2)
 __version__ = '.'.join(map(str, __version_info__))
+# 1.24.2 session works and all tests with live (fore/background) pools, w or w/o session. py3.9 in readthdoc.yml.'
 # 1.24.1 intersphinx enabled for docs.
 # 1.24.0 session for httppool, testing wih live mock server
 # 1.23.1 greatly simplfies MetaData.toString with new Python-tabulate.

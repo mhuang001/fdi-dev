@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import getpass
+import os
 
 # different user has different log file to allow multiple user
+#logfile = '/tmp/fditest_' + getpass.getuser() + '_%d.log' % os.getpid()
 logfile = '/tmp/fditest_' + getpass.getuser() + '.log'
 logdict = {
     "version": 1,

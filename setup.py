@@ -50,7 +50,7 @@ setup(
         'xmltodict>=0.12.0',
         'jsonpath-ng>=1.5.3',
         'pypng',
-        'networkx>=2.8',
+        'networkx>=2.8.1',
         'pydot>=1.4.2'
     ],
     entry_points={'console_scripts': [

@@ -142,7 +142,8 @@ class HttpClientPool(ProductPool):
                 for hkdata in HKDBS:
                     hk[hkdata] = r[hkdata]
         except Exception as e:
-            msg = 'Reading %s failed. %s ' % (poolname, 'No code' if code is None else str(code)) + str(e) + trbk(e)
+            msg = 'Reading %s failed. %s ' % (
+                poolname, 'No code' if code is None else str(code)) + str(e) + trbk(e)
             r = 'FAILED'
 
         if r == 'FAILED':
@@ -180,7 +181,7 @@ class HttpClientPool(ProductPool):
         if sv['result'] == 'FAILED' or res.status_code != 200:
             logger.error('Save %d products to server failed.%d Message from %s: %s' % (
                 len(productlist), res.status_code, self._poolurl, sv['msg']))
-            raise Exception(sv['msg'])
+            raise RuntimeError(sv['msg'])
         else:
             urns = sv['result']
         logger.debug('Product written to remote server successful')
@@ -236,7 +237,8 @@ class HttpClientPool(ProductPool):
             if resourcetype is None or index is None:
                 raise ValueError()
             urn = makeUrn(self._poolname, resourcetype, index)
-        res, msg = delete_from_server(urn, self._poolurl, auth=self.auth, client=self.client)
+        res, msg = delete_from_server(
+            urn, self._poolurl, auth=self.auth, client=self.client)
         if res == 'FAILED':
             logger.error('Remove from server ' + self._poolname +
                          ' failed. Caused by: ' + msg)

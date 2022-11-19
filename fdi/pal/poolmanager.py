@@ -58,11 +58,6 @@ def remoteRegister(pool):
                 msg = f'Find {poolurl}. Already registered.'
                 logger.info(msg)
                 break
-    if 0 and poolo:
-        if client is not None:
-            poolo.client = client
-        if auth is not None:
-            poolo.auth = auth
 
     logger.debug('Register %s on the server', poolurl)
     if poolurl.endswith('/'):
@@ -75,8 +70,8 @@ def remoteRegister(pool):
         logger.error(poolurl + ' ' + msg)
         raise
     if res == 'FAILED':
-        np = '<' + auth.username + ' ' + auth.password + \
-            '>' if auth else '<no authorization>'
+        np = '<' + poolo.auth.username + ' ' + poolo.auth.password + \
+            '>' if poolo.auth else '<no authorization>'
         raise RuntimeError(
             'Registering ' + poolurl + ' failed with auth ' + np + ' , ' + msg)
     return res, msg

@@ -3,23 +3,24 @@
 from .getswag import swag
 from .. import checkpath, PM_S
 from .httppool_server import (
-    before_request_callback,
     excp,
-    check_readonly,
     resp
 )
 #from .. import auth
-from ..model.user import getUsers, auth
+from ..model.user import auth
 
 from ..._version import __version__
 from ...dataset.deserialize import deserialize_args, deserialize
-from ...pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from ...pal.productpool import PoolNotFoundError
 from ...pal.webapi import WebAPI
-from ...pal.urn import parseUrn
+#from ...pal.urn import parseUrn
 from ...pal.dicthk import HKDBS
-from ...utils.common import lls
-
+from ...utils.common import (lls,
+                             logging_ERROR,
+                             logging_WARNING,
+                             logging_INFO,
+                             logging_DEBUG
+                             )
 from flask import Blueprint, jsonify, request, current_app, url_for, abort
 from werkzeug.exceptions import HTTPException
 # from flasgger import swag_from
@@ -27,11 +28,9 @@ from werkzeug.exceptions import HTTPException
 import shutil
 import time
 import copy
-import json
 import os
 from os.path import join, expandvars
 from itertools import chain
-from http import HTTPStatus
 
 
 endp = swag['paths']
@@ -52,7 +51,8 @@ def get_pools_url():
 
     ts = time.time()
     path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
-    logger.debug('Listing all directories from ' + path)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('Listing all directories from ' + path)
 
     result = get_name_all_pools(path)
 
@@ -65,8 +65,15 @@ def get_pools_url():
     dvers = expandvars('$DOCKER_VERSION')
     svers = expandvars('$SERVER_VERSION')
 
+    from ..model.user import getUsers
+    # report lru_cache info
+    lru = 'LRU user '
+    for name, usr in current_app.config['USERS'].items():
+        lru += '%s: %s ' % (name, usr.getCacheInfo())
+
     msg = '%d pools found. Versiosn: fdi %s docker %s pool server %s' % (
         len(result), __version__, dvers, svers)
+    msg += lru
     code = 200
     return resp(code, res, msg, ts)
 
@@ -84,7 +91,8 @@ def get_pools():
 
     ts = time.time()
     path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
-    logger.debug('Listing all directories from ' + path)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('Listing all directories from ' + path)
 
     result = get_name_all_pools(path)
 
@@ -99,6 +107,7 @@ def get_name_all_pools(path):
 
     """
 
+    logger = current_app.logger
     alldirs = []
     os.makedirs(path, exist_ok=True)
     allfilelist = os.listdir(path)
@@ -106,7 +115,8 @@ def get_name_all_pools(path):
         filepath = join(path, file)
         if os.path.isdir(filepath):
             alldirs.append(file)
-    current_app.logger.debug(path + ' has ' + lls(alldirs, 100))
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug(path + ' has ' + lls(alldirs, 100))
     return alldirs
 
 ######################################
@@ -121,9 +131,12 @@ def get_registered_pools():
     """ Returns a list of Pool IDs (pool names) of all pools registered with the Global PoolManager.
     ---
     """
+
+    logger = current_app.logger
     ts = time.time()
     path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
-    current_app.logger.debug('Listing all registered pools.')
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('Listing all registered pools.')
 
     # [p.getPoolurl() for p in PM_S.getMap()()]
     result = list(PM_S.getMap())
@@ -145,8 +158,11 @@ def register_all():
 
 
     """
+
+    logger = current_app.logger
     ts = time.time()
-    current_app.logger.debug('Load all pools.')
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('Load all pools.')
     # will have / at the end
     burl = request.base_url.rsplit('register_all', 1)[0]
     result, bad = load_pools(None, auth.current_user())
@@ -172,7 +188,8 @@ def load_pools(poolnames, usr):
     path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     pmap = {}
     bad = {}
-    current_app.logger.debug('loading all from ' + path)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('loading all from ' + path)
     alldirs = poolnames if poolnames else get_name_all_pools(path)
     for nm in alldirs:
         # must save the link or PM_S._GlobalPoolList will remove as dead weakref
@@ -182,7 +199,9 @@ def load_pools(poolnames, usr):
         else:
             bad[nm] = nm+': '+msg
 
-    logger.debug("Registered pools: %s in %s" % (str(list(pmap.keys())), path))
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug("Registered pools: %s in %s" %
+                     (str(list(pmap.keys())), path))
     return pmap, bad
 
 ######################################
@@ -197,7 +216,8 @@ def unregister_all():
 
     logger = current_app.logger
     ts = time.time()
-    logger.debug('unregister-all ' + pool)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('unregister-all ' + pool)
 
     good, bad = unregister_pools()
     code = 200 if not bad else 416
@@ -221,7 +241,8 @@ def unregister_pools(poolnames=None):
     notgood = []
     all_pools = poolnames if poolnames else copy.copy(
         list(PM_S.getMap().keys()))
-    logger.debug('unregister pools ' + str(all_pools))
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('unregister pools ' + str(all_pools))
 
     for nm in all_pools:
         code, res, msg = unregister_pool(nm)
@@ -246,7 +267,8 @@ def wipe_all():
     """
     logger = current_app.logger
     ts = time.time()
-    logger.debug('Wipe-all pool')
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('Wipe-all pool')
 
     good, bad = wipe_pools(None, auth.current_user())
     code = 200 if not bad else 416
@@ -266,7 +288,8 @@ def wipe_pools(poolnames, usr):
     """
     logger = current_app.logger
     path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
-    logger.debug('DELETING pools contents from ' + path)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('DELETING pools contents from ' + path)
 
     # alldirs = poolnames if poolnames else get_name_all_pools(path)
 
@@ -307,7 +330,8 @@ def get_pool(pool):
     logger = current_app.logger
 
     ts = time.time()
-    logger.debug('Get pool info of ' + pool)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('Get pool info of ' + pool)
 
     result = get_pool_info(pool)
     return result
@@ -390,12 +414,13 @@ def register(pool):
     logger = current_app.logger
 
     ts = time.time()
-    logger.debug('register pool ' + pool)
-
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('register pool ' + pool)
 
     code, thepool, msg = register_pool(pool, auth.current_user())
-    logger.debug('_G %x' % id(PM_S._GlobalPoolList))
-    
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('_G %x' % id(PM_S._GlobalPoolList))
+
     res = thepool if issubclass(thepool.__class__, str) else thepool._poolurl
     return resp(code, res, msg, ts)
 
@@ -405,6 +430,8 @@ def register_pool(pool, usr):
 
     :returns: code, pool object if successful, message
     """
+
+    logger = current_app.logger
     poolname = pool
     fullpoolpath = join(
         current_app.config['FULL_BASE_LOCAL_POOLPATH'], poolname)
@@ -417,7 +444,7 @@ def register_pool(pool, usr):
         code, result, msg = excp(
             e,
             msg='Unable to register pool: ' + poolname)
-        current_app.logger.error(msg)
+        logger.error(msg)
         return code, result, msg
 
 
@@ -431,7 +458,8 @@ def unregister(pool):
     """
     logger = current_app.logger
     ts = time.time()
-    logger.debug('Unregister pool ' + pool)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('Unregister pool ' + pool)
 
     code, result, msg = unregister_pool(pool)
     return resp(code, result, msg, ts)
@@ -487,7 +515,8 @@ def hk(pool):
 
     ts = time.time()
     pool = pool.strip('/')
-    logger.debug('get HK for ' + pool)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('get HK for ' + pool)
 
     code, result, msg = load_HKdata([pool, 'hk'])
 
@@ -530,7 +559,8 @@ def api_info(pool):
     logger = current_app.logger
 
     ts = time.time()
-    logger.debug(f'get allowed API methods for {pool}')
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug(f'get allowed API methods for {pool}')
 
     return resp(200, WebAPI, 'OK.', ts, serialize_out=False)
 
@@ -550,7 +580,8 @@ def wipe(pool):
     """
     ts = time.time()
     logger = current_app.logger
-    logger.debug(f'wipe ' + pool)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug(f'wipe ' + pool)
 
     good, bad = wipe_pools([pool])
     if bad:
@@ -579,7 +610,8 @@ def hk_single(pool, kind):
 
     ts = time.time()
     pool = pool.strip('/')
-    logger.debug(f'get {kind} HK for ' + pool)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug(f'get {kind} HK for ' + pool)
 
     code, result, msg = load_single_HKdata([pool, 'hk', kind])
 
@@ -636,7 +668,8 @@ def count(pool, data_type=None):
     ts = time.time()
     poolname = pool.strip('/')
     poolurl = current_app.config['POOLURL_BASE'] + poolname
-    logger.debug(f'get {data_type} count for ' + pool)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug(f'get {data_type} count for ' + pool)
 
     try:
         poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
@@ -661,7 +694,8 @@ def counted(pool, data_type=None):
 
     ts = time.time()
     pool = pool.strip('/')
-    logger.debug(f'count {data_type} type for ' + pool)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug(f'count {data_type} type for ' + pool)
 
     code, result, msg = get_data_count(data_type=data_type, pool_id=pool)
 
@@ -677,8 +711,9 @@ def get_data_count(data_type, pool_id):
     """
 
     logger = current_app.logger
-    logger.debug('### method %s data_type %s pool %s***' %
-                 (request.method, data_type, pool_id))
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('### method %s data_type %s pool %s***' %
+                     (request.method, data_type, pool_id))
     res = 0
     nm = []
 
@@ -691,8 +726,9 @@ def get_data_count(data_type, pool_id):
     else:
         return 400, 'FAILED', f'Pool {pool} not found.'
     s = str(nm)
-    logger.debug(('All types' if data_type is None else data_type) +
-                 ' found ' + lls(s, 120))
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug(('All types' if data_type is None else data_type) +
+                     ' found ' + lls(s, 120))
     return 200, res, 'Counted %d %s files OK.' % (res, data_type if data_type else 'all types')
 
 
@@ -712,7 +748,8 @@ def api(pool, method_args):
     logger = current_app.logger
 
     ts = time.time()
-    logger.debug('get API for %s ; %s.' % (pool, lls(method_args, 200)))
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('get API for %s ; %s.' % (pool, lls(method_args, 200)))
     if request.method == 'POST':
         # long args are sent with POST
         if request.data is None:
@@ -758,7 +795,8 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
         # from the unquoted url extract the fist path segment.
         quoted_m_args = request.url.split(
             paths[0] + '/' + paths[1] + '/')[1].strip('/')
-        logger.debug('get API : %s' % lls(quoted_m_args, 1000))
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.debug('get API : %s' % lls(quoted_m_args, 1000))
         # get command positional arguments and keyword arguments
         code, m_args, kwds = deserialize_args(
             quoted_m_args, serialize_out=serialize_out)
@@ -777,8 +815,9 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
     kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
     msg = '%s(%s)' % (method, ', '.join(
         chain(map(str, args), kwdsexpr)))
-    logger.debug('WebAPI ' + lls(msg, 300))
-    logger.debug('*_G %x' % id(PM_S._GlobalPoolList))
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('WebAPI ' + lls(msg, 300))
+        logger.debug('*_G %x' % id(PM_S._GlobalPoolList))
 
     # if args and args[0] == 'select':
     #    __import__('pdb').set_trace()

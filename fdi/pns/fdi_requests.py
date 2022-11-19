@@ -246,15 +246,16 @@ def put_on_server(urn, poolurl, contents='pool', auth=None, client=None):
         client = clnt
     api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
     # print("DELETE REQUEST API: " + api)
-    if not issubclass(client.__class__, FlaskClient):
+    if 0 and not issubclass(client.__class__, FlaskClient):
         print('######', client.cookies.get('session', None))
     res = client.put(api, auth=auth)
     result = deserialize(res.text if type(res) == requests.models.Response
                          else res.data)
-    if not issubclass(client.__class__, FlaskClient):
-        print('@@@@@@', client.cookies['session'])
-    else:
-        print('@@@@@@', res.request.cookies.get('session', None))
+    if 0:
+        if not issubclass(client.__class__, FlaskClient):
+            print('@@@@@@', client.cookies['session'])
+        else:
+            print('@@@@@@', res.request.cookies.get('session', None))
 
     if issubclass(result.__class__, dict):
         return result['result'], result['msg']

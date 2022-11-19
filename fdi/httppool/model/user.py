@@ -1,15 +1,23 @@
 # -*- coding: utf-8 -*-
 
 #from ..route.pools import pools_api
+from ...utils.common import (logging_ERROR,
+                             logging_WARNING,
+                             logging_INFO,
+                             logging_DEBUG
+                             )
 
-from flask import (
-    Blueprint, flash, g, make_response, redirect, render_template, request, session, url_for
-)
+from flask import (abort,
+                   Blueprint,
+                   flash,
+                   g,
+                   make_response,
+                   render_template,
+                   request,
+                   session)
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import current_app, Response
+from flask import current_app
 from flask_httpauth import HTTPBasicAuth
-
-import requests
 
 import datetime
 import time
@@ -38,10 +46,9 @@ class User():
         self.username = name
         if hashed_password:
             if password:
-                __import__('pdb').set_trace()
-
-                logger.warning(
-                    'Both password and hashed_password are given for %s. Password is igored.' % name)
+                if logger.isEnabledFor(logging_WARNING):
+                    logger.warning(
+                        'Both password and hashed_password are given for %s. Password is igored.' % name)
                 password = None
         elif password:
             hashed_password = self.hash_of(password)
@@ -55,6 +62,7 @@ class User():
         self.role = role if issubclass(role.__class__, str) else tuple(role)
         self.authenticated = False
 
+    @functools.lru_cache(maxsize=1024)
     def is_correct_password(self, plaintext_password):
 
         return check_password_hash(self.hashed_password, plaintext_password)
@@ -66,6 +74,12 @@ class User():
 
     def __repr__(self):
         return f'<User: {self.username}>'
+
+    def getCacheInfo(self):
+        info = {}
+        for i in ['is_correct_password', 'hash_of']:
+            info[i] = getattr(self, i).cache_info()
+        return info
 
 
 def getUsers(app):
@@ -84,10 +98,13 @@ def getUsers(app):
 if SESSION:
     @user.before_app_request
     def load_logged_in_user():
+        logger = current_app.logger
         user_id = session.get('user_id')
-        headers = str(request.headers)
-        current_app.logger.debug('S:%x "%s"\n%s\n%s' %
-                                 (id(session), str(user_id), str(headers), str(request.cookies)))
+        if logger.isEnabledFor(logging_DEBUG):
+            headers = str(request.headers)
+            logger.debug('S:%x "%s"\n%s\n%s' %
+                         (id(session), str(user_id),
+                          str(headers), str(request.cookies)))
         if user_id is None:
             g.user = None
         else:
@@ -102,8 +119,8 @@ def get_user_roles(user):
         return None
 
 
-LOGIN_TMPLT = 'user/login.html'
-
+LOGIN_TMPLT = ''  # 'user/login.html'
+""" Set LOGIN_TMPLT to '' to disable the login page."""
 
 ######################################
 ####  /login GET, POST  ####
@@ -127,48 +144,59 @@ def login():
         reqanm = request.authorization['passwd']
     except (AttributeError, TypeError):
         reqanm = reqaps = ''
-    msg = 'LOGIN meth=%s req_auth_nm= "%s"' % (request.method, reqanm)
-    logger.debug(msg)
-    if reqanm == 'ro':
-        __import__("pdb").set_trace()
+    if logger.isEnabledFor(logging_DEBUG):
+        msg = 'LOGIN meth=%s req_auth_nm= "%s"' % (request.method, reqanm)
+        logger.debug(msg)
 
     if request.method == 'POST':
         rnm = request.form.get('username', None)
         rpas = request.form.get('password', None)
-        logger.debug(f'Request form {rnm}')
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.debug(f'Request form {rnm}')
 
         if not (rpas and rnm):
-            msg('Bad username or password posted %s' % str(rnm))
-            logger.warning(msg)
-            if reqanm and reqaps:
-                msg = f'Username {reqanm} and pswd in auth header used.'
+            msg = 'Bad username or password posted %s' % str(rnm)
+            if logger.isEnabledFor(logging_WARNING):
                 logger.warning(msg)
+            if reqanm and reqaps:
+                if logger.isEnabledFor(logging_WARNING):
+                    msg = f'Username {reqanm} and pswd in auth header used.'
+                    logger.warning(msg)
                 rnm, rpas = reqanm, reqaps
 
         vp = verify_password(rnm, rpas, check_session=False)
         if vp in (False, None):
-            msg = f'Verifying {rnm} with password failed.'
-            logger.debug(msg)
+            if logger.isEnabledFor(logging_DEBUG):
+                msg = f'Verifying {rnm} with password failed.'
+                logger.debug(msg)
         else:
             if SESSION:
                 session.clear()
                 session['user_id'] = rnm
                 session.modified = True
             msg = 'User %s logged-in %s.' % (rnm, vp.role)
-            logger.debug(msg)
+            if logger.isEnabledFor(logging_DEBUG):
+                logger.debug(msg)
             # return redirect(url_for('pools.get_pools_url'))
             if SESSION:
                 flash(msg)
             from ..route.httppool_server import resp
             return resp(200, 'OK.', msg, ts, req_auth=True)
     elif request.method == 'GET':
-        logger.debug('start login page')
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.debug('start login')
     else:
-        logger.warning('How come the method is ' + request.method)
-    if SESSION:
-        flash(msg)
-    return make_response(render_template(LOGIN_TMPLT))
-
+        if logger.isEnabledFor(logging_ERROR):
+            logger.error('How come the method is ' + request.method)
+    if LOGIN_TMPLT:
+        if SESSION:
+            flash(msg)
+        else:
+            if logger.isEnabledFor(logging_INFO):
+                logger.info(msg)
+        return make_response(render_template(LOGIN_TMPLT))
+    else:
+        abort(401)
 
 ######################################
 ####  /user/logout GET, POST  ####
@@ -185,7 +213,8 @@ def logout():
 
     logger = current_app.logger
     ts = time.time()
-    logger.debug('logout')
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('logout')
     # session.get('user_id') is the name
 
     if SESSION and hasattr(g, 'user') and hasattr(g.user, 'username'):
@@ -195,7 +224,8 @@ def logout():
     else:
         msg = 'User logged-out.'
         res = 'OK. Bye.'
-    logger.debug(msg)
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug(msg)
     if SESSION:
         session.clear()
         g.user = None
@@ -225,7 +255,8 @@ def verify_password(username, password, check_session=True):
     no Session  no 'user_id'          not empty  invalid   login, r/t `False`
     no Session  no 'user_id'          ''                   r/t None
     no Session  no 'user_id'          None, u/k            login, r/t `False`
-    In session  w/ 'user_id'  ''|None not empty  valid     new session, r/t new u
+    no SESSION  not enabled           not empty  cleartext approve 
+   In session  w/ 'user_id'  ''|None not empty  valid      new session, r/t new u
     ..                                not same 
     In session  w/ 'user_id'          not empty  invalid   login, return `False`
     In session  w/ 'user_id'  user    None ""              login, return `False`
@@ -250,106 +281,99 @@ def verify_password(username, password, check_session=True):
     """
 
     logger = current_app.logger
-    logger.info(f'!!!! {username} {password} chk={check_session} Se={SESSION}')
+
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug(f'{username} %s chk={check_session} Se={SESSION}' %
+                     (len(password) * '*'))
     if check_session:
         if SESSION:
             has_session = 'user_id' in session and hasattr(
                 g, 'user') and g.user is not None
             if has_session:
-                logger.info(f'has_session usr=%s g.u={g.user}' % (
-                    session.get("user_id", "None")))
+                if logger.isEnabledFor(logging_DEBUG):
+                    logger.debug(f'has_session usr=%s g.usr={g.user}' % (
+                        session.get("user_id", "None")))
                 user = g.user
                 gname = user.username
                 newu = current_app.config['USERS'].get(username, None)
                 # first check if the username is actually unchanged and valid
                 if newu is not None and newu.is_correct_password(password):
                     if gname == username:
-                        logger.debug(f"Same session {gname}.")
+                        if logger.isEnabledFor(logging_DEBUG):
+                            logger.debug(f"Same session {gname}.")
+                        return user
                     else:
-                        logger.debug(f"New session {username}.")
+                        if logger.isEnabledFor(logging_INFO):
+                            logger.info(f"New session {username}.")
                         session.clear()
                         session['user_id'] = username
                         session.modified = True
-                    return newu
-                logger.debug(
-                    f"Unknown {username} or Null or anonymous user, or new user '{username}' has invalid password.")
+                        return newu
+                if logger.isEnabledFor(logging_DEBUG):
+                    logger.debug(
+                        f"Unknown {username} or Null or anonymous user, or new user '{username}' has invalid password.")
                 return False
             else:
-                # has no session
-                logger.info('no session. has %s "user_id". has %s g. g.user= %s' % (
-                    ('' if 'user_id' in session else 'no'), ('' if hasattr(g, 'user') else 'no'), (g.get('user', 'None'))))
+                # SESSION enabled but has not valid user_id
+                if logger.isEnabledFor(logging_DEBUG):
+                    logger.debug('no session.'
+                                 'has %s "user_id". %s g. g.user= %s' % (
+                                     ('' if 'user_id' in session else 'no'),
+                                     ('' if hasattr(g, 'user') else 'no'), (g.get('user', 'None'))))
                 if username == '':
-                    logger.debug(f"Anonymous user.")
+                    if logger.isEnabledFor(logging_DEBUG):
+                        logger.debug(f"Anonymous user.")
                     return None
                 newu = current_app.config['USERS'].get(username, None)
                 if newu is None:
-                    logger.debug(f"Unknown user {username}")
+                    if logger.isEnabledFor(logging_DEBUG):
+                        logger.debug(f"Unknown user {username}")
                     return False
                 if newu.is_correct_password(password):
-                    logger.debug('Approved. Start new session:'+username)
+                    if logger.isEnabledFor(logging_INFO):
+                        logger.info(
+                            f'Approved new user {username}. Start new session')
                     session.clear()
                     session['user_id'] = username
-                    session.modified = True                    
+                    session.modified = True
                     return newu
                 else:
+                    if logger.isEnabledFor(logging_DEBUG):
+                        logger.debug(
+                            f"new user '{username}' has invalid password.")
                     return False
         else:
-            # No session at all
-            return True
+            # SESSION not enabled. Use clear text passwd
+            newu = current_app.config['USERS'].get(username, None)
+            if newu and newu.is_correct_password(password):
+                if logger.isEnabledFor(logging_INFO):
+                    logger.info('Approved new user {username} w/o session')
+                return newu
+            else:
+                if logger.isEnabledFor(logging_DEBUG):
+                    logger.debug(
+                        f"Null or anonymous user, or new user '{username}' has invalid password.")
+                return False
     else:
         # check_session is False. called by login to check formed name/pass
         if username == '':
-            logger.debug('Lcheck anon')
+            if logger.isEnabledFor(logging_DEBUG):
+                logger.debug('LOGIN: check anon')
             return None
         newu = current_app.config['USERS'].get(username, None)
         if newu is None:
-            logger.debug(f"L Unknown user {username}")
+            if logger.isEnabledFor(logging_DEBUG):
+                logger.debug(f"LOGIN: Unknown user {username}")
             return False
         if newu.is_correct_password(password):
-            logger.debug('Approved {username}')
+            if logger.isEnabledFor(logging_INFO):
+                logger.info('LOGIN Approved {username}')
             return newu
         else:
+            if logger.isEnabledFor(logging_DEBUG):
+                logger.debug('LOGIN False for {username}')
             return False
 
-    __import__('pdb').set_trace()
-
-    # Anonymous users not allowed
-
-    # go to login page when no username is given
-    if username == '':
-        msg = 'username is "".'
-        logger.debug(msg)
-        return False
-
-    has_session = 'user_id' in session and hasattr(
-        g, 'user') and g.user is not None
-    if has_session and check_session:
-        user = g.user
-    else:
-        user = current_app.config['USERS'].get(username, None)
-
-    logger.debug('verify user/pass "%s" "%s" vs. %s' % (
-        str(username), str(password), str(user)))
-
-    if user is None:
-        msg = 'Unrecognized or wrong username "%s"' % (username)
-        logger.debug(msg)
-        return False
-
-    if user.is_correct_password(password):
-        if SESSION and check_session:
-            session.clear()
-            session['user_id'] = username
-            logger.debug('Approved login with new session.'+username)
-            session.modified = True
-        else:
-            logger.debug('Approved login '+username)
-        return user
-    else:
-        logger.warning('Incorrect password by '+username)
-
-    msg = 'Incorrect username or password.'
-    return False
 
 ######################################
 ####  /register GET, POST  ####
@@ -363,19 +387,20 @@ def register():
     return resp(300, 'FAILED', 'Not available.', ts)
 
 
-@auth.error_handler
-def hadle_auth_error_codes(error=401):
-    """ if verify_password returns False, this gets to run.
-    Note that this is decorated with flask_httpauth's `error_handler`, not flask's `errorhandler`.
-    """
+if LOGIN_TMPLT:
+    @auth.error_handler
+    def handle_auth_error_codes(error=401):
+        """ if verify_password returns False, this gets to run.
 
-    if error in [401, 403]:
-        # send a login page
-        current_app.logger.debug("Error %d. Start login page..." % error)
-        page = make_response(render_template(LOGIN_TMPLT))
-        return page
-    else:
-        raise ValueError('Must be 401 or 403. Nor %s' % str(error))
+        Note that this is decorated with flask_httpauth's `error_handler`, not flask's `errorhandler`.
+        """
+        if error in [401, 403]:
+            # send a login page
+            current_app.logger.debug("Error %d. Start login page..." % error)
+            page = make_response(render_template(LOGIN_TMPLT))
+            return page
+        else:
+            raise ValueError('Must be 401 or 403. Nor %s' % str(error))
 
 
 # open text passwd

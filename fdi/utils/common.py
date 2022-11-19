@@ -30,6 +30,11 @@ else:
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
+logging_ERROR = logging.ERROR
+logging_WARNING = logging.WARNING
+logging_INFO = logging.INFO
+logging_DEBUG = logging.DEBUG
+
 
 def str2md5(string):
     return hashlib.md5(string.encode('utf8')).hexdigest()
@@ -330,7 +335,7 @@ def attrstr(p, v, missingval='', ftime=False, state=True, width=1, **kwds):
                 # binary masked. validity is a list of tuple/lists
                 # validity is (val, state, mask height, mask width)
                 sep = '\n' if width else ', '
-                vs = sep.join(r[1] if r[1] == 'Invalid' else'%s (%s)' %
+                vs = sep.join(r[1] if r[1] == 'Invalid' else '%s (%s)' %
                               (r[1], format(r[0], '#0%db' % (r[3]+2))) for r in validity)
     return vs
 

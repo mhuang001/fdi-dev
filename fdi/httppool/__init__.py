@@ -7,7 +7,14 @@ from .route.getswag import swag
 
 from .._version import __version__
 from ..utils import getconfig
-from ..utils.common import getUidGid, trbk
+from ..utils.common import (getUidGid,
+                            trbk,
+                            logging_ERROR,
+                            logging_WARNING,
+                            logging_INFO,
+                            logging_DEBUG
+                            )
+
 from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 
 from flasgger import Swagger
@@ -28,7 +35,8 @@ import time
 import os
 
 # print(sys.path)
-global logging
+global logger
+
 
 class PM_S(PoolManager):
     """Made to provid a different `_GlobalPoolList` useful for testing as a mock"""
@@ -36,8 +44,7 @@ class PM_S(PoolManager):
     """ Another Global centralized dict that returns singleton -- the same -- pool for the same ID."""
 
 
-
-def setup_logging(level=None, extras=None):
+def setup_logging(level=None, extras=None, tofile=None):
     import logging
     from logging.config import dictConfig
     from logging.handlers import QueueListener
@@ -45,16 +52,21 @@ def setup_logging(level=None, extras=None):
     que = queue.Queue(-1)  # no limit on size
 
     if extras is None:
-        extras = logging.WARNING
-    fmt = dict(format='%(asctime)s.%(msecs)03d'
-               ' %(process)d %(thread)6d '
-               ' %(levelname)4s'
-               ' %(filename)6s:%(lineno)3s'
-               ' %(funcName)10s() - %(message)s',
-               datefmt="%Y%m%d %H:%M:%S")
-    dict_config = dictConfig({
+        extras = logging_WARNING
+    short = dict(format='%(asctime)s.%(msecs)03d'
+                 ' %(levelname)4s'
+                 ' %(filename)6s:%(lineno)3s'
+                 ' - %(message)s',
+                 datefmt="%y%m%d %H:%M:%S")
+    detailed = dict(format='%(asctime)s.%(msecs)03d'
+                    ' %(process)d %(thread)6d '
+                    ' %(levelname)4s'
+                    ' %(filename)6s:%(lineno)3s'
+                    ' %(funcName)10s() - %(message)s',
+                    datefmt="%Y%m%d %H:%M:%S")
+    basedict = {
         'version': 1,
-        'formatters': {'default': fmt},
+        'formatters': {'default': detailed, 'short': short},
         'handlers': {
             'wsgi': {
                 'class': 'logging.StreamHandler',
@@ -66,11 +78,12 @@ def setup_logging(level=None, extras=None):
                 # 'stream': 'ext://flask.logging.wsgi_errors_stream',
                 'formatter': 'default',
                 'queue': que,
-            }
+            },
+
         },
         "loggers": {
             "werkzeug": {
-                "level": "INFO",
+                "level": "WARNING",
                 "handlers": ["non_block"],
                 "propagate": False
             }
@@ -80,7 +93,17 @@ def setup_logging(level=None, extras=None):
             'handlers': ['wsgi']
         },
         'disable_existing_loggers': False
-    })
+    }
+    if tofile:
+        basedict['handlers']['stream'] = {
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+            #level   : INFO
+            #filters: [allow_foo]
+            'stream': open(tofile, 'a')
+        }
+        basedict['root']['handlers'].append('stream')
+    dict_config = dictConfig(basedict)
 
     if level is None:
         level = logging.WARN
@@ -90,10 +113,12 @@ def setup_logging(level=None, extras=None):
         logging_listener = QueueListener(
             que, handler, respect_handler_level=True)
         logging_listener.start()
-    #logging.basicConfig(stream=sys.stdout, **fmt)
+    #logging.basicConfig(stream=sys.stdout, **detailed)
     # create logger
     logging.getLogger("requests").setLevel(extras)
     logging.getLogger("filelock").setLevel(extras)
+    # logging.getLogger("werkzeug").setLevel(extras)
+
     if sys.version_info[0] > 2:
         logging.getLogger("urllib3").setLevel(extras)
     return logging
@@ -126,45 +151,56 @@ def init_conf_classes(pc, lggr):
     app.config['LOOKUP'] = clz.mapping
     return clz
 
+
 @functools.lru_cache(6)
-def checkpath(path, un, logger):
+def checkpath(path, un):
     """ Checks  the directories and creats if missing.
 
     path: str. can be resolved with Path.
     un: server user name
     """
-    logger.debug('path %s user %s' % (path, un))
+    #logger = current_app.logger
+
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('path %s user %s' % (path, un))
 
     p = Path(path).resolve()
     if p.exists():
         if not p.is_dir():
-            msg = str(p) + ' is not a directory.'
-            logger.error(msg)
+            if logger.isEnabledFor(logging_ERROR):
+                msg = str(p) + ' is not a directory.'
+                logger.error(msg)
             return None
         else:
             # if path exists and can be set owner and group
             if p.owner() != un or p.group() != un:
-                msg = str(p) + ' owner %s group %s. Should be %s.' % \
-                    (p.owner(), p.group(), un)
-                logger.warning(msg)
+                if logger.isEnabledFor(logging_WARNING):
+                    msg = str(p) + ' owner %s group %s. Should be %s.' % \
+                        (p.owner(), p.group(), un)
+                    logger.warning(msg)
     else:
         # path does not exist
 
-        msg = str(p) + ' does not exist. Creating...'
-        logger.debug(msg)
+        if logger.isEnabledFor(logging_DEBUG):
+            msg = str(p) + ' does not exist. Creating...'
+            logger.debug(msg)
         p.mkdir(mode=0o775, parents=True, exist_ok=True)
-        logger.info(str(p) + ' directory has been made.')
+        if logger.isEnabledFor(logging_INFO):
+            logger.info(str(p) + ' directory has been made.')
 
     # logger.info('Setting owner, group, and mode...')
     if not setOwnerMode(p, un, logger):
-        logger.info('Cannot set owner %s to %s.' % (un, str(p)))
+        if logger.isEnabledFor(logging_INFO):
+            logger.info('Cannot set owner %s to %s.' % (un, str(p)))
         return None
 
-    logger.debug('checked path at ' + str(p))
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('checked path at ' + str(p))
     return p
 
+
 def setOwnerMode(p, username, logger):
-    """ makes UID and GID set to those of self_username given in the config file. This function is usually done by the initPTS script.
+    """ makes UID and GID set to those of self_username given in the config file. This function is usually done by the init script.
     """
 
     logger.debug('set owner, group to %s, mode to 0o775' % username)
@@ -186,13 +222,15 @@ def setOwnerMode(p, username, logger):
 
     return username
 
+
 def init_httppool_server(app):
     """ Init a global HTTP POOL """
 
     # get settings from ~/.config/pnslocal.py config
     pc = app.config['PC']
+    logger = app.logger
     # class namespace
-    Classes = init_conf_classes(pc, app.logger)
+    Classes = init_conf_classes(pc, logger)
 
     # client users
     from .model.user import getUsers
@@ -200,10 +238,12 @@ def init_httppool_server(app):
 
     # PoolManager is a singleton
     if PM_S.isLoaded(DEFAULT_MEM_POOL):
-        logger.debug('cleanup DEFAULT_MEM_POOL')
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.debug('cleanup DEFAULT_MEM_POOL')
         PM_S.getPool(DEFAULT_MEM_POOL).removeAll()
-    app.logger.debug('Done cleanup PoolManager.')
-    app.logger.debug('ProcID %d. Got 1st request %s' %
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('Done cleanup PoolManager.')
+        logger.debug('ProcID %d. Got 1st request %s' %
                      (os.getpid(), str(app._got_first_request))
                      )
     PM_S.removeAll()
@@ -214,9 +254,9 @@ def init_httppool_server(app):
     _basepath = PM_S.PlacePaths[scheme]
     full_base_local_poolpath = os.path.join(_basepath, pc['api_version'])
 
-    if checkpath(full_base_local_poolpath, pc['self_username'], app.logger) is None:
+    if checkpath(full_base_local_poolpath, pc['self_username']) is None:
         msg = 'Store path %s unavailable.' % full_base_local_poolpath
-        app.logger.error(msg)
+        logger.error(msg)
         return None
 
     app.config['POOLSCHEME'] = scheme
@@ -231,20 +271,22 @@ def init_httppool_server(app):
 #### Application Factory Function ####
 ######################################
 
-def create_app(config_object=None, level=None, debug=False):
+def create_app(config_object=None, level=None, debug=False, logstream=None):
     """ If args have logger level, use it; else if 
  use 'development' pnslocal.py config.
     """
     config_object = config_object if config_object else getconfig.getConfig()
 
-    logging = setup_logging(level)
+    global logger
+    logging = setup_logging(level, tofile=logstream)
     logger = logging.getLogger('httppool_app')
+
     if level is None:
         level = config_object['loggerlevel']
-        #level = logging.WARNING
+        #level = logging_WARNING
     logger.setLevel(level)
 
-    #app = Flask('HttpPool', instance_relative_config=False,
+    # app = Flask('HttpPool', instance_relative_config=False,
     #            root_path=os.path.abspath(os.path.dirname(__file__)))
     app = Flask(__name__.split('.')[0], instance_relative_config=False,
                 root_path=os.path.abspath(os.path.dirname(__file__)))
@@ -252,7 +294,7 @@ def create_app(config_object=None, level=None, debug=False):
     app.config_object = config_object
 
     if debug:
-        level = logging.DEBUG
+        level = logging_DEBUG
         logger.setLevel(level)
         logger.info('DEBUG mode %s' % (app.config['DEBUG']))
         from werkzeug.debug import DebuggedApplication
@@ -303,37 +345,34 @@ def create_app(config_object=None, level=None, debug=False):
         app.secret_key = secrets.token_hex()
         app.permanent_session_lifetime = timedelta(days=1)
 
-    @app.errorhandler(401)
-    @app.errorhandler(403)
-    def hadle_auth_error_codes(error):
-        """ if verify_password returns False, this gets to run. """
-        if error in [401, 403]:
-            # send a login page
-            app.logger("Error %d. Start login page..." % error)
-            page = make_response(render_template(LOGIN_TMPLT))
-            return page
-        else:
-            raise ValueError('Must be 401 or 403. Nor %s' % str(error))
+    from .model.user import LOGIN_TMPLT
+    if LOGIN_TMPLT:
+        @app.errorhandler(401)
+        @app.errorhandler(403)
+        def handle_auth_error_codes(error):
+            """ if verify_password returns False, this gets to run. """
+            if error in [401, 403]:
+                # send a login page
+                if app.logger.isEnabledFor(logging_ERROR):
+                    app.logger.error("Error %d. Start login page..." % error)
+                page = make_response(render_template(LOGIN_TMPLT))
+                return page
+            else:
+                raise ValueError('Must be 401 or 403. Nor %s' % str(error))
 
-    # hadlers for exceptions and some code
+    # handlers for exceptions and some code
     add_errorhandlers(app)
 
     # Do not redirect a URL ends with no spash to URL/
     app.url_map.strict_slashes = False
 
-    #with app.app_context():
+    # with app.app_context():
     init_httppool_server(app)
     logger.info('Server initialized. logging level ' +
                 str(app.logger.getEffectiveLevel()))
 
     return app
 
-
-# @app.errorhandler(RequestRedirect)
-# def handle_redirect(error):
-#     __import__('pdb').set_trace()
-
-#     spec = 'redirect'
 
 def add_errorhandlers(app):
     @app.errorhandler(Exception)

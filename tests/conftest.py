@@ -10,10 +10,7 @@ from fdi.utils.common import lls
 from fdi.pns.jsonio import auth_headers
 from fdi.httppool.model.user import User
 from fdi.pal.publicclientpool import PublicClientPool
-from fdi.utils.run_proc import run_proc
 
-from flask_httpauth import HTTPBasicAuth as FH_HTTPBasic_Auth
-from flask import current_app
 from flask.testing import FlaskClient
 
 from requests.auth import HTTPBasicAuth
@@ -21,17 +18,36 @@ import pytest
 import importlib
 from urllib.error import HTTPError
 import os
+import sys
+import json
 import time
-import pty
+import copy
+import getpass
+import shlex
+import signal
 import datetime
 import requests
+from subprocess import Popen, TimeoutExpired
 import logging
+import logging.config
 from urllib.error import HTTPError, URLError
+
+from logdict import logdict
+logging.config.dictConfig(logdict)
 
 logger = logging.getLogger(__name__)
 
+EX = ' -l /tmp/foo.log'
 
-@pytest.fixture(scope='package')
+RUN_SERVER_IN_BACKGROUND = 'python3.8 httppool_app.py --server=httppool_server'
+""" set to '' to disable running a pool in the background as the mock. """
+
+
+TEST_SERVER_LIFE = 600
+""" test server time limit in seconds."""
+
+
+@pytest.fixture(scope='session')
 def clean_board():
     importlib.invalidate_caches()
     # importlib.reload(Classes)
@@ -45,12 +61,20 @@ def getConfig(clean_board):
     return getc
 
 
-@pytest.fixture(scope="package")
-def pc(getConfig):
+@pytest.fixture(scope="session")
+def pc(clean_board):
     """ get configuration.
 
     """
-    return getConfig(force=True)
+    from fdi.utils.getconfig import getConfig as getc
+    return getc(force=True)
+
+
+@pytest.fixture(scope="session")
+def mock_in_the_background():
+
+    return RUN_SERVER_IN_BACKGROUND
+
 
 ######
 
@@ -91,7 +115,7 @@ def userpass(pc):
     return auth_user, auth_pass
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def local_pools_dir(pc):
     """ this is a path in the local OS, where the server runs, used to directly access pool server's internals.
 
@@ -102,68 +126,102 @@ def local_pools_dir(pc):
 
     # basepath = pc['server_local_pools_dir']
     basepath = PoolManager.PlacePaths[schm]
-    #print('WWW ', basepath, pc['api_version'])
+    # print('WWW ', basepath, pc['api_version'])
     pools_dir = os.path.join(basepath, pc['api_version'])
     return pools_dir
 
 ####
 
 
-@pytest.fixture(scope="module")
-def project_app(pc):
-    from fdi.httppool import create_app
-    return create_app(config_object=pc, level=logger.getEffectiveLevel())
+@pytest.fixture(scope="session")
+def mock_app(pc, mock_in_the_background):
+    if mock_in_the_background:
+        yield None
+    else:
+        from fdi.httppool import create_app
+        app = create_app(config_object=pc, level=logger.getEffectiveLevel())
+        app.config['TESTING'] = True
+        with app.app_context():
+            yield app
+            # app.
 
 
-@pytest.fixture(scope="module")
-def mock_app(project_app):
-    app = project_app
-    app.config['TESTING'] = True
-    with app.app_context():
-        yield app
-
-
-@pytest.fixture(scope="module")
-def background_app(project_app):
+def background_app():
+    """ if requied starts a server in the background. """
 
     # client side.
     # pool url from a local client
     cschm = 'http'
     aburl = cschm + '://' + PoolManager.PlacePaths[cschm]
+    pwdir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-    pwdir = os.path.abspath(os.path.join(__file__, '..'))
-    as_user = None
-    #pid, pty_fd = pty.fork()
     pid = os.fork()
-    if pid:
+    if pid == 0:
         # child process
-        cmd = 'python3.8  httppool_app.py --server=httppool_server'.split()
+        # ref https://code.activestate.com/recipes/66012-fork-a-daemon-process-on-unix/
+        os.setsid()
+        # Redirect standard file descriptors.
+        sys.stdin = open('/dev/null', 'r')
+        sys.stdout = open('/dev/null', 'w')
+        sys.stderr = open('/dev/null', 'w')
+        # run server in b/g
+        chldlogger = logger
+        cmd = shlex.split(RUN_SERVER_IN_BACKGROUND)
+        sta = {'command': str(cmd)}
+        proc = Popen(cmd, cwd=pwdir, shell=False)
+        timeout = TEST_SERVER_LIFE
         try:
-            with open('/tmp/pty3', 'rw') as f:
-                sta = run_proc(cmd, as_user, pwdir, timeout, f.fileno)
-        except IOError:
-            sta = run_proc(cmd, as_user, pwdir, timeout)
-        logger.info("Background live server status: %s." % str(sta))
+            sta['stdout'], sta['stderr'] = proc.communicate(
+                timeout=timeout)
+            sta['returncode'] = proc.returncode
+            msg = 'Successful.' if proc.returncode == 0 else 'killed?'
+        except TimeoutExpired:
+            # https://docs.python.org/3.6/library/subprocess.html?highlight=subprocess#subprocess.Popen.communicate
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+            sta['stdout'], sta['stderr'] = proc.communicate()
+            sta['returncode'] = proc.returncode
+            msg = 'PID %d is terminated after pre-set timeout %d sec.' % (
+                proc.pid, timeout)
+        sta['message'] = msg
+        logg = "Background live server status: %s." % json.dumps(
+            dict((k, lls(v, 1000)) for k, v in sta.items()))
+        chldlogger.info(logg)
+        with open('/tmp/bar.log', 'a') as f:
+            f.write(logg)
+
+        assert sta['returncode'] in (
+            0, -signal.SIGTERM, -signal.SIGKILL,  -signal.SIGHUP)
+        sys.exit(0)
     else:
         # main process
-        logger.info('live local server %d' % pid)
-        sta = None
         # wait for checkserver to return 'live'
+        time.sleep(2)
         n = 2
-        while checkserver(aburl) == 'mock':
+        while checkserver(aburl) != 'live':
+            logger.debug('No server yet %d' % n)
             n -= 1
-            time.sleep(4)
             if n == 0:
                 break
-        if n == 0:
-            raise RuntimeError('Cannot run server in background.')
-    return sta
+            time.sleep(2)
+        if n:
+            msg = 'Made live local server %d' % pid
+        else:
+            msg = 'Failed running server PID=%s in background. n=%s.' % (
+                str(pid), str(n))
+        logger.info(msg)
+        return pid
 
 
-def checkserver(aburl, excluded=None):
+def checkserver(aburl):
     """ make sure the server is running when tests start.
 
-    when aburl points to an live server running external to this test (e.g. by `make runpoolserver`), server_type is set to 'live'; or a server instance will be created on-demand as a 'mock' up server.
+    Parameters
+    ----------
+
+    Return
+    ------
+    str
+        when aburl points to an live server running either externally to this test (e.g. by `make runpoolserver`), or a server instance by `background_app` fixture created on-demand, server_type is set to 'live'; If no response is returned by `GET`, 'mock' is returned; If server response is abnormal, 'trouble' is returned.
     """
 
     server_type = None
@@ -175,13 +233,13 @@ def checkserver(aburl, excluded=None):
         logger.info('Initial server %s response %s' % (aburl, lls(o, 70)))
     except HTTPError as e:
         if e.code == 308:
-            logger.info('%s alive. initial server response 308' % (aburl))
+            logger.info('%s alive. Server response 308' % (aburl))
             server_type = 'live'
         else:
             logger.warning(aburl + ' is alive. but trouble is ')
             logger.warning(e)
             logger.warning('Live server')
-            server_type = 'live'
+            server_type = 'trouble'
     except URLError as e:
         logger.info('Not a live server, because %s' % str(e))
         server_type = 'mock'
@@ -194,8 +252,8 @@ def checkserver(aburl, excluded=None):
     # initialize test data.
 
 
-@pytest.fixture(scope="module")
-def live_or_mock(pc):
+@ pytest.fixture(scope="session")
+def live_or_mock(pc, mock_in_the_background, mock_app):
     """ Prepares server absolute base url and common headers for clients to use.
 
     Based on ``PoolManager.PlacePaths[scheme]`` where ``scheme`` is `http` or `https` and auth info from `pnsconfig` from the configuration file and commandline.
@@ -217,13 +275,30 @@ def live_or_mock(pc):
     aburl = cschm + '://' + PoolManager.PlacePaths[cschm]
     # aburl='http://' + pc['node']['host'] + ':' + \
     #    str(pc['node']['port']) + pc['baseurl']
+    logger.debug('Check out %s ...' % aburl)
     server_type = checkserver(aburl)
     if server_type == 'mock':
-        ra
-    yield aburl, server_type
+        if mock_in_the_background:
+            pid = background_app()
+            # None means no mock_in_the_background
+            assert pid is not None
+            server_type = 'live'
+            yield aburl, server_type
+
+            if pid > 0:
+                logger.info(
+                    'Killing server PID=%d running in the background.' % pid)
+                kpg = os.killpg(os.getpgid(pid), signal.SIGTERM)
+                logger.info('... killed. rc= %s' % str(kpg))
+
+    elif server_type == 'live':
+        yield aburl, server_type
+    else:
+        logger.error('Invalid server state '+server_type)
+        assert 0
 
 
-@pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope=SHORT)
 def server(live_or_mock, new_user_read_write):
     """ Server data from r/w user, mock or alive.
 
@@ -234,7 +309,7 @@ def server(live_or_mock, new_user_read_write):
     yield aburl, headers
 
 
-@pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope=SHORT)
 def server_ro(live_or_mock, new_user_read_only):
     """ Server data from r/w user, alive.
 
@@ -246,7 +321,7 @@ def server_ro(live_or_mock, new_user_read_only):
     del aburl, headers
 
 
-@pytest.fixture(scope="module")
+@ pytest.fixture(scope="module")
 def request_context(mock_app):
     """create the app and return the request context as a fixture
        so that this process does not need to be repeated in each test
@@ -256,7 +331,7 @@ def request_context(mock_app):
     yield mock_app.test_request_context
 
 
-@pytest.fixture(scope="module")
+@ pytest.fixture(scope="module")
 def client(live_or_mock, mock_app):
 
     a, server_type = live_or_mock
@@ -266,16 +341,11 @@ def client(live_or_mock, mock_app):
             yield live_client
     elif server_type == 'mock':
         logger.info('**** mock_app as client *****')
-        a = background_app
-        with requests.Session() as live_client:
-            yield live_client
-
-        if 0:
-            with mock_app.test_client() as client:
-                if 0:
-                    with mock_app.app_context():
-                        mock_app.preprocess_request()
-                yield client
+        with mock_app.test_client() as client:
+            if 0:
+                with mock_app.app_context():
+                    mock_app.preprocess_request()
+            yield client
     else:
         raise ValueError('Invalid server type: ' + server_type)
 
@@ -292,7 +362,7 @@ def client(live_or_mock, mock_app):
 #            yield aiohttp_client(client)
 
 
-@pytest.fixture(scope='module')
+@ pytest.fixture(scope='module')
 def demo_product():
     v = get_demo_product()
     return v, get_related_product()
@@ -301,7 +371,7 @@ def demo_product():
 csdb_pool_id = 'test_csdb'
 
 
-@pytest.fixture(scope="module")
+@ pytest.fixture(scope="module")
 def csdb(pc):
     url = pc['cloud_scheme'] + ':///' + csdb_pool_id
     # pc['cloud_host'] + ':' + \
@@ -310,7 +380,7 @@ def csdb(pc):
     return test_pool, url
 
 
-@pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope=SHORT)
 def tmp_local_storage(tmp_path_factory):
     """ temporary local pool """
 
@@ -325,7 +395,7 @@ def tmp_local_storage(tmp_path_factory):
     yield ps
 
 
-@pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope=SHORT)
 def tmp_remote_storage(server, client, auth):
     """ temporary servered pool with module scope """
     aburl, headers = server
@@ -339,7 +409,7 @@ def tmp_remote_storage(server, client, auth):
     yield ps
 
 
-@pytest.fixture(scope="module")
+@ pytest.fixture(scope="module")
 def tmp_prods():
     """ temporary local pool with module scope """
     prds = [get_demo_product('test-product-0: Demo_Product')]
@@ -353,7 +423,7 @@ def tmp_prods():
     return tuple(prds)
 
 
-@pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope=SHORT)
 def auth(userpass, live_or_mock):
 
     a, server_type = live_or_mock
@@ -383,7 +453,7 @@ def gen_pools(url, auth, client, prds):
     return lst
 
 
-@pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope=SHORT)
 def tmp_pools(server, client, auth, tmp_prods):
     """ generate n pools.
 
@@ -398,7 +468,7 @@ def tmp_pools(server, client, auth, tmp_prods):
     return lst
 
 
-@pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope=SHORT)
 def tmp_local_remote_pools(server, client, auth, tmp_prods):
     """ generate n local pools.
 
@@ -415,7 +485,7 @@ def tmp_local_remote_pools(server, client, auth, tmp_prods):
     return lst
 
 
-@pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope=SHORT)
 def existing_pools(tmp_pools):
     """ return n existing pools.
 

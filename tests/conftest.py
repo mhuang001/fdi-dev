@@ -173,15 +173,16 @@ def background_app():
         try:
             sta['stdout'], sta['stderr'] = proc.communicate(
                 timeout=timeout)
-            sta['returncode'] = proc.returncode
-            msg = 'Successful.' if proc.returncode == 0 else 'killed?'
         except TimeoutExpired:
             # https://docs.python.org/3.6/library/subprocess.html?highlight=subprocess#subprocess.Popen.communicate
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-            sta['stdout'], sta['stderr'] = proc.communicate()
-            sta['returncode'] = proc.returncode
             msg = 'PID %d is terminated after pre-set timeout %d sec.' % (
                 proc.pid, timeout)
+        else:
+            msg = 'Successful.' if proc.returncode == 0 else 'killed?'
+        sta['stdout'], sta['stderr'] = proc.communicate()
+        sta['returncode'] = proc.returncode
+
         sta['message'] = msg
         logg = "Background live server status: %s." % json.dumps(
             dict((k, lls(v, 1000)) for k, v in sta.items()))
@@ -190,7 +191,7 @@ def background_app():
             f.write(logg)
 
         assert sta['returncode'] in (
-            0, -signal.SIGTERM, -signal.SIGKILL,  -signal.SIGHUP)
+            0, -signal.SIGTERM, -signal.SIGKILL,  -signal.SIGHUP), logg
         sys.exit(0)
     else:
         # main process

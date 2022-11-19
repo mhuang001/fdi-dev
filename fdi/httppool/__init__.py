@@ -135,6 +135,9 @@ def init_conf_classes(pc, lggr):
     lggr.debug('User class file '+clp)
     if clp == '':
         from ..dataset.classes import Classes as clz
+        _bltn = dict((k, v) for k, v in vars(builtins).items() if k[0] != '_')
+        clz.mapping.add_ns(_bltn, order=-1)
+        return clz
     else:
         clpp, clpf = os.path.split(clp)
         sys.path.insert(0, os.path.abspath(clpp))
@@ -146,10 +149,6 @@ def init_conf_classes(pc, lggr):
         clz = projectclasses.ProjectClasses
         lggr.debug('User classes: %d found.' % len(clz.mapping))
         return clz
-    _bltn = dict((k, v) for k, v in vars(builtins).items() if k[0] != '_')
-    clz.mapping.add_ns(_bltn, order=-1)
-    app.config['LOOKUP'] = clz.mapping
-    return clz
 
 
 @functools.lru_cache(6)
@@ -231,6 +230,7 @@ def init_httppool_server(app):
     logger = app.logger
     # class namespace
     Classes = init_conf_classes(pc, logger)
+    app.config['LOOKUP'] = Classes.mapping
 
     # client users
     from .model.user import getUsers

@@ -7,6 +7,7 @@ https://stackoverflow.com/questions/13751277/how-can-i-use-an-app-factory-in-fla
 
 from fdi.httppool import create_app
 #from fdi.httppool.route.httppool_server import init_httppool_server, httppool_api
+from fdi.httppool.model.user import User
 
 from fdi._version import __version__
 from fdi.utils import getconfig
@@ -55,7 +56,7 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', default=False,
                         action='store_true', help='Be verbose.')
     parser.add_argument('-u', '--username',
-                        default=pc['self_username'], type=str, help='user name/ID')
+                        default=pc['self_username'], type=str, help='user name/ID. Prints hashed password if username is "hashed"')
     parser.add_argument('-p', '--password',
                         default=pc['self_password'], type=str, help='password')
     parser.add_argument('-i', '--host',
@@ -82,6 +83,11 @@ if __name__ == '__main__':
 
     # create app only needs
     logger = setup_logging(logging, args.logstream)
+
+    if pc['self_username'] == 'hashed':
+        print('Hashed password %s is\n' % pc['self_password'], User(
+            'h', password=pc['self_password']).hashed_password)
+        sys.exit(0)
 
     if verbose:
         logger.setLevel(logging.DEBUG)

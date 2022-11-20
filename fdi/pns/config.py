@@ -96,7 +96,7 @@ if conf == 'dev':
     # username, passwd, flask ip, flask port.
     # For server these are for clients,
     # for a client this is server access info.
-    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
+    pnsconfig['node'] = {'username': 'foo', 'password': '*',
                          'host': '127.0.0.1', 'port': 9885
                          }
 

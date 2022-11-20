@@ -91,7 +91,6 @@ def new_user_read_write(pc):
     pn = pc['node']
     new_user = User(pn['username'], pn['password'], role='read_write')
     headers = auth_headers(pn['username'], pn['password'])
-    print(User('t', 'only5%')
     return new_user, headers
 
 
@@ -101,17 +100,17 @@ def new_user_read_only(pc):
     GIVEN a User model
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
-    pn=pc['USERS'][1]
-    new_user=User(pn['username'], pn['hashed_password'], role=pn['roles'])
-    headers=auth_headers(pn['username'], password=pn['hashed_password'])
+    pn = pc['USERS'][1]
+    new_user = User(pn['username'], pn['hashed_password'], role=pn['roles'])
+    headers = auth_headers(pn['username'], password=pn['hashed_password'])
 
     return new_user, headers
 
 
 @ pytest.fixture(scope=SHORT)
 def userpass(pc):
-    auth_user=pc['node']['username']
-    auth_pass=pc['node']['password']
+    auth_user = pc['node']['username']
+    auth_pass = pc['node']['password']
     return auth_user, auth_pass
 
 
@@ -122,12 +121,12 @@ def local_pools_dir(pc):
     return: has no trailing '/'
     """
     # http server pool
-    schm='server'
+    schm = 'server'
 
     # basepath = pc['server_local_pools_dir']
-    basepath=PoolManager.PlacePaths[schm]
+    basepath = PoolManager.PlacePaths[schm]
     # print('WWW ', basepath, pc['api_version'])
-    pools_dir=os.path.join(basepath, pc['api_version'])
+    pools_dir = os.path.join(basepath, pc['api_version'])
     return pools_dir
 
 ####
@@ -139,8 +138,8 @@ def mock_app(pc, mock_in_the_background):
         yield None
     else:
         from fdi.httppool import create_app
-        app=create_app(config_object=pc, level=logger.getEffectiveLevel())
-        app.config['TESTING']=True
+        app = create_app(config_object=pc, level=logger.getEffectiveLevel())
+        app.config['TESTING'] = True
         with app.app_context():
             yield app
             # app.
@@ -151,32 +150,32 @@ def background_app():
 
     # client side.
     # pool url from a local client
-    cschm='http'
-    aburl=cschm + '://' + PoolManager.PlacePaths[cschm]
-    pwdir=os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    cschm = 'http'
+    aburl = cschm + '://' + PoolManager.PlacePaths[cschm]
+    pwdir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-    pid=os.fork()
+    pid = os.fork()
     if pid == 0:
         # child process
         # ref https://code.activestate.com/recipes/66012-fork-a-daemon-process-on-unix/
         os.setsid()
         # Redirect standard file descriptors.
-        sys.stdin=open('/dev/null', 'r')
-        sys.stdout=open('/dev/null', 'w')
-        sys.stderr=open('/dev/null', 'w')
+        sys.stdin = open('/dev/null', 'r')
+        sys.stdout = open('/dev/null', 'w')
+        sys.stderr = open('/dev/null', 'w')
         # run server in b/g
-        chldlogger=logger
-        cmd=shlex.split(RUN_SERVER_IN_BACKGROUND)
-        sta={'command': str(cmd)}
-        proc=Popen(cmd, cwd=pwdir, shell=False)
-        timeout=TEST_SERVER_LIFE
+        chldlogger = logger
+        cmd = shlex.split(RUN_SERVER_IN_BACKGROUND)
+        sta = {'command': str(cmd)}
+        proc = Popen(cmd, cwd=pwdir, shell=False)
+        timeout = TEST_SERVER_LIFE
         try:
-            sta['stdout'], sta['stderr']=proc.communicate(
+            sta['stdout'], sta['stderr'] = proc.communicate(
                 timeout=timeout)
         except TimeoutExpired:
             # https://docs.python.org/3.6/library/subprocess.html?highlight=subprocess#subprocess.Popen.communicate
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-            msg='PID %d is terminated after pre-set timeout %d sec.' % (
+            msg = 'PID %d is terminated after pre-set timeout %d sec.' % (
                 proc.pid, timeout)
         else:
             msg='Successful.' if proc.returncode == 0 else 'killed?'

@@ -132,7 +132,7 @@ This is done by calling the getPool() method, which will return an existing pool
         'mem': '/',
         'http': p,
         'https': p,
-        'server': pc['server_poolpath'],
+        'server': pc['server_local_poolpath'],
     }
     del p
 

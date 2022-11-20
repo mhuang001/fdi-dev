@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+
+import os
 from os.path import join
 import logging
 import getpass
-import os
-from os.path import expanduser, expandvars
 
 pnsconfig = dict()
 
@@ -35,7 +35,7 @@ PIPELINEUSER = ''
 PIPELINEPASS = ''
 
 BASE_LOCAL_POOLPATH = '/tmp'
-SERVER_POOLPATH = '/tmp/data'
+SERVER_LOCAL_POOLPATH = '/tmp/data'
 
 SCHEME = 'http'
 API_VERSION = 'v0.15'
@@ -56,12 +56,13 @@ pnsconfig['cloud_baseurl'] = pnsconfig['cloud_api_base'] + \
     '/' + pnsconfig['cloud_api_version']
 
 LOGGER_LEVEL = logging.INFO
+pnsconfig['loggerlevel'] = LOGGER_LEVEL
 
 # base url for webserver. Update version if needed.
 pnsconfig['scheme'] = SCHEME
-pnsconfig['api_version'] = API_VERSION
-pnsconfig['api_base'] = API_BASE
-pnsconfig['baseurl'] = API_BASE + '/' + API_VERSION
+pnsconfig['api_version'] = API_VERSION  # vx.yyy
+pnsconfig['api_base'] = API_BASE        # /fdi
+pnsconfig['baseurl'] = API_BASE + '/' + API_VERSION   # /fdi/vx.yyy
 
 # look-up table for PoolManager (therefor HttpClient) to get pool URLs eith Pool ID (poolname)
 poolurl_of = {
@@ -76,9 +77,16 @@ pnsconfig['lookup'] = poolurl_of
 # pstore = PoolManager.getPool('/demopool_user'), it will create a pool at /data.demopool_user/
 # User can disable  basepoolpath by: pstore = PoolManager.getPool('/demopool_user', use_default_poolpath=False)
 pnsconfig['base_local_poolpath'] = BASE_LOCAL_POOLPATH
-pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
+pnsconfig['server_local_poolpath'] = SERVER_LOCAL_POOLPATH  # For server
 pnsconfig['defaultpool'] = 'default'
 pnsconfig['loggerlevel'] = LOGGER_LEVEL
+
+
+# server's own
+pnsconfig['self_host'] = SELF_HOST
+pnsconfig['self_port'] = SELF_PORT
+pnsconfig['self_username'] = SELF_USER
+pnsconfig['self_password'] = SELF_PASS
 
 # choose from pre-defined.
 conf = ['dev', 'external', 'production'][0]
@@ -89,17 +97,17 @@ if conf == 'dev':
     # For server these are for clients,
     # for a client this is server access info.
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '0.0.0.0', 'port': 9885,
+                         'host': '127.0.0.1', 'port': 9885
                          }
 
     # server's own in the context of its os/fs/globals
     pnsconfig['self_host'] = pnsconfig['node']['host']
     pnsconfig['self_port'] = pnsconfig['node']['port']
-    pnsconfig['self_username'] = pnsconfig['node']['username']
-    pnsconfig['self_password'] = pnsconfig['node']['password']
+    pnsconfig['self_username'] = 'USERNAME'
+    pnsconfig['self_password'] = 'ONLY_IF_NEEDED'
     pnsconfig['base_local_poolpath'] = '/tmp'
-    pnsconfig['server_poolpath'] = '/tmp/data'  # For server
-    pnsconfig['POOL_DATABASE'] = pnsconfig['server_poolpath'] + '/pool.db'
+    pnsconfig['server_local_poolpath'] = '/tmp/data'  # For server
+
     # In place of a frozen user DB for backend server and test.
     pnsconfig['USERS'] = [
         {'username': 'foo',
@@ -112,21 +120,24 @@ if conf == 'dev':
          }
     ]
 
-    # PTS app permission user
-    pnsconfig['ptsuser'] = 'mh'
-    # on pns server
-    home = '/home/' + pnsconfig['ptsuser']
+    # (reverse) proxy_fix
+    # /pnsconfig['proxy_fix'] = dict(x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
 elif conf == 'external':
     # wsgi behind apach2. cannot use env vars
     pnsconfig['node'] = {'username': EXTUSER, 'password': EXTPASS,
                          'host': EXTHOST, 'port': EXTPORT,
+                         'ro_username': EXTRO_USER, 'ro_password': EXTRO_PASS,
                          }
-    pnsconfig['server_poolpath'] = SERVER_POOLPATH  # For server
+    pnsconfig['server_local_poolpath'] = SERVER_LOCAL_POOLPATH  # For server
     # server's own in the context of its os/fs/globals
     pnsconfig['self_host'] = SELF_HOST
     pnsconfig['self_port'] = SELF_PORT
     pnsconfig['self_username'] = SELF_USER
     pnsconfig['self_password'] = SELF_PASS
+
+    # (reverse) proxy_fix
+    pnsconfig['proxy_fix'] = dict(x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     # In place of a frozen user DB for backend server and test.
     pnsconfig['USERS'] = [
@@ -139,44 +150,12 @@ elif conf == 'external':
          'roles': ['read_only']
          }
     ]
-
-    # (reverse) proxy_fix
-    pnsconfig['proxy_fix'] = dict(x_for=1, x_proto=1, x_host=1, x_prefix=1)
-    # PTS app permission user
-    pnsconfig['ptsuser'] = 'pns'
-    # on pns server
-    home = '/home/' + pnsconfig['ptsuser']
 else:
     pass
 
 # import user classes for server.
 # See document in :class:`Classes`
 pnsconfig['userclasses'] = ''
-
-########### PNS-specific setup ############
-
-phome = join(home, 'pns')
-pnsconfig['paths'] = dict(
-    pnshome=phome,
-    inputdir=join(phome, 'input'),
-    inputfiles=['pns.cat', 'pns.pn'],
-    outputdir=join(phome, 'output'),
-    outputfiles=['xycc.dat', 'atc.cc']
-)
-
-# the stateless data processing program that reads from inputdir and
-# leave the output in the outputdir. The format is the input for subprocess()
-h = pnsconfig['paths']['pnshome']
-pnsconfig['scripts'] = dict(
-    init=[join(h, 'initPTS'), ''],
-    config=[join(h, 'configPTS'), ''],
-    run=[join(h, 'runPTS'), ''],
-    clean=[join(h, 'cleanPTS'), '']
-)
-del phome, h
-
-# seconds
-pnsconfig['timeout'] = 10
 
 ############## project specific ####################
 # message queue config

@@ -5,7 +5,7 @@ echo ######
 
 set -a
 source ./envs
-echo rm ./envs
+echo do not rm ./envs
 set +a
 
 sed -i "s/^LOGGER_LEVEL =.*$/LOGGER_LEVEL = $LOGGER_LEVEL/g" ~/.config/pnslocal.py

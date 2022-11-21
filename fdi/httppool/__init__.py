@@ -252,6 +252,7 @@ def init_httppool_server(app):
     # the httppool that is local to the server
     scheme = 'server'
     _basepath = PM_S.PlacePaths[scheme]
+    # this is SERVER_LOCAL_POOLPATH/data
     full_base_local_poolpath = os.path.join(_basepath, pc['api_version'])
 
     if checkpath(full_base_local_poolpath, pc['self_username']) is None:

@@ -14,11 +14,12 @@ pnsconfig = dict()
 # the key (variable names) must be uppercased for Flask server
 # FLASK_CONF = pnsconfig
 
-# To be edited automatically with sed -i 's/^EXTHOST =.*$/EXTHOST = xxx/g' file
 EXTUSER = ''
 EXTPASS = ''
 EXTHOST = '172.17.0.1'
 EXTPORT = 9876
+EXTRW_USER = ''
+EXTRW_PASS = ''
 EXTRO_USER = ''
 EXTRO_PASS = ''
 SELF_HOST = '172.17.0.2'
@@ -33,6 +34,18 @@ PIPELINEHOST = '172.17.0.1'
 PIPELINEPORT = 9876
 PIPELINEUSER = ''
 PIPELINEPASS = ''
+""" To be edited automatically with
+
+    `dockerfile_entrypoint.sh` or
+    `httppool_server_entrypoint_uwsgi.sh`
+
+file. e.g. `EXTUSER = ''` is transformed to `EXTUSER = 'foo'` by
+
+   `sed -i "s/^EXTHOST =.*$/EXTHOST = \'$HOST_IP\'/g"  ${cofig_py}` ,
+
+where `\'$HOST_IP\'` is an envirionment variable that has the value `foo`.
+"""
+
 
 BASE_LOCAL_POOLPATH = '/tmp'
 SERVER_LOCAL_POOLPATH = '/tmp/data'
@@ -94,8 +107,7 @@ conf = ['dev', 'external', 'production'][1]
 # modify
 if conf == 'dev':
     # username, passwd, flask ip, flask port.
-    # For server these are for clients,
-    # for a client this is server access info.
+    # For test clients. the username/password must match ['USERS'][0]
     pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
                          'host': '127.0.0.1', 'port': 9885
                          }
@@ -141,8 +153,8 @@ elif conf == 'external':
 
     # In place of a frozen user DB for backend server and test.
     pnsconfig['USERS'] = [
-        {'username': EXTUSER,
-         'hashed_password': EXTPASS,
+        {'username': EXTRW_USER,
+         'hashed_password': EXTRW_PASS,
          'roles': ['read_write']
          },
         {'username': EXTRO_USER,

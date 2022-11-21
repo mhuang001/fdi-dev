@@ -29,6 +29,11 @@ logger = logging.getLogger(__name__)
 auth = HTTPBasicAuth()
 
 SESSION = True
+""" Enable session. """
+
+
+LOGIN_TMPLT = ''  # 'user/login.html'
+""" Set LOGIN_TMPLT to '' to disable the login page."""
 
 
 user = Blueprint('user', __name__)
@@ -118,9 +123,6 @@ def get_user_roles(user):
     else:
         return None
 
-
-LOGIN_TMPLT = ''  # 'user/login.html'
-""" Set LOGIN_TMPLT to '' to disable the login page."""
 
 ######################################
 ####  /login GET, POST  ####

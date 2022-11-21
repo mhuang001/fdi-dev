@@ -1,5 +1,6 @@
-__version_info__ = (1, 24, 2)
+__version_info__ = (1, 24, 3)
 __version__ = '.'.join(map(str, __version_info__))
+# 1.24.3 improved config.py for docker, RW_USER, missing templates.
 # 1.24.2 session works and all tests with live (fore/background) pools, w or w/o session. py3.9 in readthdoc.yml.'
 # 1.24.1 intersphinx enabled for docs.
 # 1.24.0 session for httppool, testing wih live mock server

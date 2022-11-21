@@ -40,8 +40,8 @@ grep ^SELF_HOST  ~/.config/pnslocal.py >> ~/lastent
 grep ^SELF_PORT  ~/.config/pnslocal.py >> ~/lastent
 grep ^SELF_USER  ~/.config/pnslocal.py >> ~/lastent
 grep ^API_BASE  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^BASE_POOLPATH  ~/.config/pnslocal.py >> ~/lastent
-grep ^SERVER_POOLPATH  ~/.config/pnslocal.py >> ~/lastent
+grep ^BASE_LOCAL_POOLPATH  ~/.config/pnslocal.py >> ~/lastent
+grep ^SERVER_LOCAL_POOLPATH  ~/.config/pnslocal.py >> ~/lastent
 grep ^LOGGER_LEVEL  ~/.config/pnslocal.py >> ~/lastent
 
 rm -rf /tmp/fditest* /tmp/data

@@ -32,7 +32,7 @@ sed -i "s/^PIPELINEUSER =.*$/PIPELINEUSER = \'$PIPELINEUSER\'/g" ~/.config/pnslo
 sed -i "s/^PIPELINEPASS =.*$/PIPELINEPASS = \'$PIPELINEPASS\'/g" ~/.config/pnslocal.py
 
 sed -i "s|^API_BASE =.*$|API_BASE = \'$API_BASE\'|g" ~/.config/pnslocal.py
-sed -i "s|^SERVER_POOLPATH =.*$|SERVER_POOLPATH = \'$SERVER_POOLPATH\'|g" ~/.config/pnslocal.py
+sed -i "s|^SERVER_LOCAL_POOLPATH =.*$|SERVER_LOCAL_POOLPATH = \'$SERVER_LOCAL_POOLPATH\'|g" ~/.config/pnslocal.py
 # if note set. use WARNING
 s=${LOGGER_LEVEL:=30}
 sed -i "s/^LOGGER_LEVEL =.*$/LOGGER_LEVEL = $LOGGER_LEVEL/g" ~/.config/pnslocal.py
@@ -49,7 +49,7 @@ grep ^SELF_HOST  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SELF_PORT  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SELF_USER  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^API_BASE  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^SERVER_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
+grep ^SERVER_LOCAL_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^LOGGER_LEVEL  ~/.config/pnslocal.py >> ~/last_entry.log
 
 if [ ! -d /var/log/uwsgi ]; then \

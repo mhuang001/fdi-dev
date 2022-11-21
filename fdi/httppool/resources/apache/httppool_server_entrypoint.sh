@@ -48,7 +48,7 @@ sed -i "s/^SELF_USER =.*$/SELF_USER = \'$SELF_USER\'/g" ~/.config/pnslocal.py
 sed -i "s/^SELF_PASS =.*$/SELF_PASS = \'$SELF_PASS\'/g" ~/.config/pnslocal.py
 
 sed -i "s|^API_BASE =.*$|API_BASE = \'$API_BASE\'|g" ~/.config/pnslocal.py
-sed -i "s|^SERVER_POOLPATH =.*$|SERVER_POOLPATH = \'$SERVER_POOLPATH\'|g" ~/.config/pnslocal.py
+sed -i "s|^SERVER_LOCAL_POOLPATH =.*$|SERVER_LOCAL_POOLPATH = \'$SERVER_LOCAL_POOLPATH\'|g" ~/.config/pnslocal.py
 
 sed -i "s/^conf\s*=\s*.*$/conf = 'external'/g" ~/.config/pnslocal.py 
 
@@ -58,8 +58,8 @@ grep ^EXTHOST  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^EXTPORT  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SELF_HOST  ~/.config/pnslocal.py >> ~/last_entry.log
 grep ^SELF_PORT  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^BASE_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^SERVER_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
+grep ^BASE_LOCAL_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
+grep ^SERVER_LOCAL_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
 
 if [ ! -d /var/log/apache2 ]; then \
 sudo mkdir -p /var/log/apache2 && \

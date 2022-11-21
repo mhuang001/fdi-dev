@@ -31,7 +31,7 @@ RUN echo ${PATH}
 RUN cp /home/fdi/.config/pnslocal.py .config/pnslocal.py
 COPY fdi/httppool/resources/httppool_server.conf /etc/apache2/sites-available/httppool_server.conf
 ARG PROJ_DIR
-ENV SERVER_POOLPATH=${PROJ_DIR}/data
+ENV SERVER_LOCAL_POOLPATH=${PROJ_DIR}/data
 ENV LOGGING_LEVEL=20
 ENV API_BASE=/fdi
 RUN mkdir -p ${PROJ_DIR}/data \
@@ -56,7 +56,7 @@ COPY fdi/httppool/resources/httppool_server.wsgi ${PROJ_DIR}/
 RUN cat profile >> .bashrc && rm profile \
 && chmod 755 ${PROJ_DIR}/httppool_server.wsgi \
 && ln -s  ${PROJ_DIR}/httppool_server.wsgi . \
-&& ln -s  ${SERVER_POOLPATH} data
+&& ln -s  ${SERVER_LOCAL_POOLPATH} data
 
 # Configure permission
 RUN for i in  /var/log/apache2 /var/run/lock/ /var/run/apache2 ${PROJ_DIR} ${UHOME}/; \
@@ -85,7 +85,7 @@ RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 
 WORKDIR ${UHOME}
 
-VOLUME /var/log ${SERVER_POOLPATH}
+VOLUME /var/log ${SERVER_LOCAL_POOLPATH}
 
 RUN /bin/ls -la; echo $PATH \
 date > build

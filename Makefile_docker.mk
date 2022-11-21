@@ -34,7 +34,7 @@ endif
 EXTPORT =$(PORT)
 IP_ADDR     =0.0.0.0
 PROJ_DIR	= /var/www/httppool_server
-SERVER_POOLPATH	= $(PROJ_DIR)/data
+SERVER_LOCAL_POOLPATH	= $(PROJ_DIR)/data
 LOGGER_LEVEL	= 10
 TEST_PORT	= 9885
 
@@ -89,7 +89,7 @@ build_server:
 launch_server:
 	SN=$(SERVER_NAME)$$(date +'%s') && \
 	docker run -dit --network=$(NETWORK) \
-	--mount source=httppool,target=$(SERVER_POOLPATH) \
+	--mount source=httppool,target=$(SERVER_LOCAL_POOLPATH) \
 	--mount source=log,target=/var/log \
 	--env-file $(SECFILE) \
 	-p $(PORT):$(EXTPORT) \
@@ -161,7 +161,7 @@ backup_server:
 	f=backup_$(SERVER_NAME)_$(SERVER_VERSION)_`date +'%y%m%dT%H%M%S' --utc`.tar &&\
 	echo Backup file: $$f ;\
 	docker run -it --rm \
-	--mount source=httppool,target=$(SERVER_POOLPATH) \
+	--mount source=httppool,target=$(SERVER_LOCAL_POOLPATH) \
 	--mount source=log,target=/var/log \
 	--env-file $(SECFILE) \
 	-p 9883:9883 \
@@ -176,7 +176,7 @@ ifndef from
 else
 	echo Restore from backup file: $(from)
 	cat $(from) | docker run -i --rm \
-	--mount source=httppool,target=$(SERVER_POOLPATH) \
+	--mount source=httppool,target=$(SERVER_LOCAL_POOLPATH) \
 	--mount source=log,target=/var/log \
 	--env-file $(SECFILE) \
 	-p 9883:9883 \

@@ -89,14 +89,14 @@ pnsconfig['self_username'] = SELF_USER
 pnsconfig['self_password'] = SELF_PASS
 
 # choose from pre-defined.
-conf = ['dev', 'external', 'production'][0]
+conf = ['dev', 'external', 'production'][1]
 
 # modify
 if conf == 'dev':
     # username, passwd, flask ip, flask port.
     # For server these are for clients,
     # for a client this is server access info.
-    pnsconfig['node'] = {'username': 'foo', 'password': '*',
+    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
                          'host': '127.0.0.1', 'port': 9885
                          }
 

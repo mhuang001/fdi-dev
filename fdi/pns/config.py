@@ -139,6 +139,7 @@ elif conf == 'external':
     # wsgi behind apach2. cannot use env vars
     pnsconfig['node'] = {'username': EXTUSER, 'password': EXTPASS,
                          'host': EXTHOST, 'port': EXTPORT,
+                         'rw_username': EXTRW_USER, 'rw_password': EXTRW_PASS,
                          'ro_username': EXTRO_USER, 'ro_password': EXTRO_PASS,
                          }
     pnsconfig['server_local_poolpath'] = SERVER_LOCAL_POOLPATH  # For server

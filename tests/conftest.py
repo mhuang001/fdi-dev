@@ -89,7 +89,7 @@ def new_user_read_write(pc):
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
     pn = pc['node']
-    new_user = User(pn['username'], pn['password'], role='read_write')
+    new_user = User(pn['username'], pn['password'], roles='read_write')
     headers = auth_headers(pn['username'], pn['password'])
     return new_user, headers
 
@@ -101,7 +101,7 @@ def new_user_read_only(pc):
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
     pn = pc['USERS'][1]
-    new_user = User(pn['username'], pn['hashed_password'], role=pn['roles'])
+    new_user = User(**pn)
     headers = auth_headers(pn['username'], password=pn['hashed_password'])
 
     return new_user, headers
@@ -178,12 +178,12 @@ def background_app():
             msg = 'PID %d is terminated after pre-set timeout %d sec.' % (
                 proc.pid, timeout)
         else:
-            msg='Successful.' if proc.returncode == 0 else 'killed?'
-        sta['stdout'], sta['stderr']=proc.communicate()
-        sta['returncode']=proc.returncode
+            msg = 'Successful.' if proc.returncode == 0 else 'killed?'
+        sta['stdout'], sta['stderr'] = proc.communicate()
+        sta['returncode'] = proc.returncode
 
-        sta['message']=msg
-        logg="Background live server status: %s." % json.dumps(
+        sta['message'] = msg
+        logg = "Background live server status: %s." % json.dumps(
             dict((k, lls(v, 1000)) for k, v in sta.items()))
         chldlogger.info(logg)
         with open('/tmp/bar.log', 'a') as f:
@@ -196,7 +196,7 @@ def background_app():
         # main process
         # wait for checkserver to return 'live'
         time.sleep(2)
-        n=2
+        n = 2
         while checkserver(aburl) != 'live':
             logger.debug('No server yet %d' % n)
             n -= 1
@@ -204,9 +204,9 @@ def background_app():
                 break
             time.sleep(2)
         if n:
-            msg='Made live local server %d' % pid
+            msg = 'Made live local server %d' % pid
         else:
-            msg='Failed running server PID=%s in background. n=%s.' % (
+            msg = 'Failed running server PID=%s in background. n=%s.' % (
                 str(pid), str(n))
         logger.info(msg)
         return pid
@@ -224,28 +224,28 @@ def checkserver(aburl):
         when aburl points to an live server running either externally to this test (e.g. by `make runpoolserver`), or a server instance by `background_app` fixture created on-demand, server_type is set to 'live'; If no response is returned by `GET`, 'mock' is returned; If server response is abnormal, 'trouble' is returned.
     """
 
-    server_type=None
+    server_type = None
 
     # check if data already exists
     try:
-        o=getJsonObj(aburl)
+        o = getJsonObj(aburl)
         assert o is not None, 'Cannot connect to the server'
         logger.info('Initial server %s response %s' % (aburl, lls(o, 70)))
     except HTTPError as e:
         if e.code == 308:
             logger.info('%s alive. Server response 308' % (aburl))
-            server_type='live'
+            server_type = 'live'
         else:
             logger.warning(aburl + ' is alive. but trouble is ')
             logger.warning(e)
             logger.warning('Live server')
-            server_type='trouble'
+            server_type = 'trouble'
     except URLError as e:
         logger.info('Not a live server, because %s' % str(e))
-        server_type='mock'
+        server_type = 'mock'
     else:
         logger.info('Live server')
-        server_type='live'
+        server_type = 'live'
     return server_type
 
     # assert 'measurements' is not None, 'please start the server to refresh.'
@@ -267,28 +267,28 @@ def live_or_mock(pc, mock_in_the_background, mock_app):
        server os alive, 'mock' if the server is not useable as it is.
 
     """
-    server_type=None
+    server_type = None
 
     # client side.
     # pool url from a local client
-    cschm='http'
-    aburl=cschm + '://' + PoolManager.PlacePaths[cschm]
+    cschm = 'http'
+    aburl = cschm + '://' + PoolManager.PlacePaths[cschm]
     # aburl='http://' + pc['node']['host'] + ':' + \
     #    str(pc['node']['port']) + pc['baseurl']
     logger.debug('Check out %s ...' % aburl)
-    server_type=checkserver(aburl)
+    server_type = checkserver(aburl)
     if server_type == 'mock':
         if mock_in_the_background:
-            pid=background_app()
+            pid = background_app()
             # None means no mock_in_the_background
             assert pid is not None
-            server_type='live'
+            server_type = 'live'
             yield aburl, server_type
 
             if pid > 0:
                 logger.info(
                     'Killing server PID=%d running in the background.' % pid)
-                kpg=os.killpg(os.getpgid(pid), signal.SIGTERM)
+                kpg = os.killpg(os.getpgid(pid), signal.SIGTERM)
                 logger.info('... killed. rc= %s' % str(kpg))
 
     elif server_type == 'live':
@@ -303,9 +303,9 @@ def server(live_or_mock, new_user_read_write):
     """ Server data from r/w user, mock or alive.
 
     """
-    aburl, ty=live_or_mock
-    user, headers=new_user_read_write
-    headers['server_type']=ty
+    aburl, ty = live_or_mock
+    user, headers = new_user_read_write
+    headers['server_type'] = ty
     yield aburl, headers
 
 
@@ -314,9 +314,9 @@ def server_ro(live_or_mock, new_user_read_only):
     """ Server data from r/w user, alive.
 
     """
-    aburl, ty=live_or_mock
-    user, headers=new_user_read_only
-    headers['server_type']=ty
+    aburl, ty = live_or_mock
+    user, headers = new_user_read_only
+    headers['server_type'] = ty
     yield aburl, headers
     del aburl, headers
 
@@ -334,7 +334,7 @@ def request_context(mock_app):
 @ pytest.fixture(scope="module")
 def client(live_or_mock, mock_app):
 
-    a, server_type=live_or_mock
+    a, server_type = live_or_mock
     if server_type == 'live':
         logger.info('**** requests as client *****')
         with requests.Session() as live_client:
@@ -364,19 +364,19 @@ def client(live_or_mock, mock_app):
 
 @ pytest.fixture(scope='module')
 def demo_product():
-    v=get_demo_product()
+    v = get_demo_product()
     return v, get_related_product()
 
 
-csdb_pool_id='test_csdb'
+csdb_pool_id = 'test_csdb'
 
 
 @ pytest.fixture(scope="module")
 def csdb(pc):
-    url=pc['cloud_scheme'] + ':///' + csdb_pool_id
+    url = pc['cloud_scheme'] + ':///' + csdb_pool_id
     # pc['cloud_host'] + ':' + \
     # str(pc['cloud_port'])
-    test_pool=PublicClientPool(poolurl=url)
+    test_pool = PublicClientPool(poolurl=url)
     return test_pool, url
 
 
@@ -384,26 +384,26 @@ def csdb(pc):
 def tmp_local_storage(tmp_path_factory):
     """ temporary local pool """
 
-    tmppath=tmp_path_factory.mktemp('pools')
-    cschm='file'
-    pdir=str(tmppath.parent)  # PoolManager.PlacePaths[cschm]
-    aburl=cschm + '://' + pdir
-    poolid=str(tmppath.name)
+    tmppath = tmp_path_factory.mktemp('pools')
+    cschm = 'file'
+    pdir = str(tmppath.parent)  # PoolManager.PlacePaths[cschm]
+    aburl = cschm + '://' + pdir
+    poolid = str(tmppath.name)
 
-    pool=PoolManager.getPool(poolid, aburl + '/' + poolid)
-    ps=ProductStorage(pool)
+    pool = PoolManager.getPool(poolid, aburl + '/' + poolid)
+    ps = ProductStorage(pool)
     yield ps
 
 
 @ pytest.fixture(scope=SHORT)
 def tmp_remote_storage(server, client, auth):
     """ temporary servered pool with module scope """
-    aburl, headers=server
-    poolid='test_remote_pool'
-    pool=PoolManager.getPool(
+    aburl, headers = server
+    poolid = 'test_remote_pool'
+    pool = PoolManager.getPool(
         poolid, aburl + '/' + poolid, auth=auth, client=client)
     pool.removeAll()
-    ps=ProductStorage(pool, client=client, auth=auth)
+    ps = ProductStorage(pool, client=client, auth=auth)
     assert issubclass(ps.getPool(poolid).client.__class__,
                       (requests.Session, FlaskClient))
     yield ps
@@ -412,7 +412,7 @@ def tmp_remote_storage(server, client, auth):
 @ pytest.fixture(scope="module")
 def tmp_prods():
     """ temporary local pool with module scope """
-    prds=[get_demo_product('test-product-0: Demo_Product')]
+    prds = [get_demo_product('test-product-0: Demo_Product')]
     for i, n in enumerate(('BaseProduct', 'Product',
                           'Context', 'MapContext',
                            'TP', 'SP'), 1):

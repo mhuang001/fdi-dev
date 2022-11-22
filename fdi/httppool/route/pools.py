@@ -436,7 +436,8 @@ def register_pool(pool, usr):
     fullpoolpath = join(
         current_app.config['FULL_BASE_LOCAL_POOLPATH'], poolname)
     poolurl = current_app.config['POOLURL_BASE'] + poolname
-    makenew = usr and usr.role == 'read_write'
+    # read_write has precedence over read_only
+    makenew = usr and ('read_write' in usr.roles)
     try:
         po = PM_S.getPool(poolname=poolname, poolurl=poolurl, makenew=makenew)
         return 200, po, 'register pool ' + poolname + ' OK.'

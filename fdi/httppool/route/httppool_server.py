@@ -108,18 +108,20 @@ def excp(e, code=400, msg='', serialize_out=True):
 
 
 def check_readonly(usr, meth, logger):
+    """ If both 'read_write' and 'read_only' present, 'read_write' has precedence.
+    """
     return None
     if usr is None:
         msg = 'Unknown user %s.' % usr
         if logdebug:
             logger.debug(msg)
-        return unauthorized(msg)
+        return msg, 401
 
-    if meth in WRITE_LIST and usr.role == 'read_only':
+    if meth in WRITE_LIST and ('read_only' in usr.roles) and ('read_write' not in usr.roles):
         msg = 'User %s is Read-Only, not allowed to %s.' % (usr.name, meth)
         if logdebug:
             logger.debug(msg)
-        return unauthorized(msg)
+        return msg, 401
 
     return None
 

@@ -41,30 +41,31 @@ user = Blueprint('user', __name__)
 
 class User():
 
-    def __init__(self, name,
+    def __init__(self, username,
                  password=None,
                  hashed_password=None,
-                 role='read_only'):
+                 roles=['read_only']):
 
         global logger
 
-        self.username = name
+        self.username = username
         if hashed_password:
             if password:
                 if logger.isEnabledFor(logging_WARNING):
                     logger.warning(
-                        'Both password and hashed_password are given for %s. Password is igored.' % name)
+                        'Both password and hashed_password are given for %s. Password is igored.' % username)
                 password = None
         elif password:
             hashed_password = self.hash_of(password)
         else:
             raise ValueError(
-                'No password and no hashed_password given for ' + name)
+                'No password and no hashed_password given for ' + username)
         self.password = password
         self.registered_on = datetime.datetime.now()
 
         self.hashed_password = hashed_password
-        self.role = role if issubclass(role.__class__, str) else tuple(role)
+        self.roles = (roles,) if issubclass(
+            roles.__class__, str) else tuple(roles)
         self.authenticated = False
 
     @functools.lru_cache(maxsize=1024)
@@ -91,11 +92,8 @@ def getUsers(app):
     """ Returns the USER DB from `config.py` ro local config file. """
 
     # pnsconfig from config file
-    users = dict(((u['username'],
-                  User(u['username'],
-                       hashed_password=u['hashed_password'],
-                       role=u['roles'])
-                   ) for u in app.config['PC']['USERS']))
+    users = dict(((u['username'], User(**u))
+                 for u in app.config['PC']['USERS']))
 
     return users
 
@@ -119,7 +117,7 @@ if SESSION:
 @auth.get_user_roles
 def get_user_roles(user):
     if issubclass(user.__class__, User):
-        return user.role
+        return user.roles
     else:
         return None
 
@@ -176,7 +174,7 @@ def login():
                 session.clear()
                 session['user_id'] = rnm
                 session.modified = True
-            msg = 'User %s logged-in %s.' % (rnm, vp.role)
+            msg = 'User %s logged-in %s.' % (rnm, vp.roles)
             if logger.isEnabledFor(logging_DEBUG):
                 logger.debug(msg)
             # return redirect(url_for('pools.get_pools_url'))
@@ -220,7 +218,7 @@ def logout():
     # session.get('user_id') is the name
 
     if SESSION and hasattr(g, 'user') and hasattr(g.user, 'username'):
-        nm, rl = g.user.username, g.user.role
+        nm, rl = g.user.username, g.user.roles
         msg = 'User %s logged-out %s.' % (nm, rl)
         res = 'OK. Bye, %s (%s).' % (nm, rl)
     else:

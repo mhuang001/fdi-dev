@@ -293,14 +293,14 @@ def test_new_user_read_write(new_user_read_write, pc):
     """
     GIVEN a User model
     WHEN a new User is created
-    THEN check the username, hashed_password, authenticated, and role fields are defined correctly
+    THEN check the username, hashed_password, authenticated, and roles fields are defined correctly
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
     new_user, headers = new_user_read_write
     assert new_user.username == pc['node']['username']
     assert new_user.hashed_password != pc['node']['password']
     assert not new_user.authenticated
-    assert new_user.role == 'read_write'
+    assert new_user.roles == ('read_write',)
     logger.debug('Done.')
 
 
@@ -308,13 +308,13 @@ def test_new_user_read_only(new_user_read_only, pc):
     """
     GIVEN a User model
     WHEN a new User is created
-    THEN check the username, hashed_password, authenticated, and role fields are defined correctly
+    THEN check the username, hashed_password, authenticated, and roles fields are defined correctly
     """
     new_user, headers = new_user_read_only
     assert new_user.username == pc['USERS'][1]['username']
     assert not new_user.hashed_password.startswith('o')
     assert not new_user.authenticated
-    assert new_user.role == ('read_only',)
+    assert new_user.roles == ('read_only',)
     logger.debug('Done.')
 
 

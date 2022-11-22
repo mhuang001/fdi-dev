@@ -14,12 +14,12 @@ pnsconfig = dict()
 # the key (variable names) must be uppercased for Flask server
 # FLASK_CONF = pnsconfig
 
-EXTUSER = ''
-EXTPASS = ''
+EXTUSER = 'foo'
+EXTPASS = 'bar'
 EXTHOST = '172.17.0.1'
 EXTPORT = 9876
-EXTRW_USER = ''
-EXTRW_PASS = ''
+EXTRW_USER = 'foo'
+EXTRW_PASS = 'pbkdf2:sha256:260000$Ch0GEGjA6ipF3dOb$3d408b50a31c64de75d8973e8aebaf76a510cfb01c9af03a1294bac792fe9608'
 EXTRO_USER = ''
 EXTRO_PASS = ''
 SELF_HOST = '172.17.0.2'
@@ -139,8 +139,6 @@ elif conf == 'external':
     # wsgi behind apach2. cannot use env vars
     pnsconfig['node'] = {'username': EXTUSER, 'password': EXTPASS,
                          'host': EXTHOST, 'port': EXTPORT,
-                         'rw_username': EXTRW_USER, 'rw_password': EXTRW_PASS,
-                         'ro_username': EXTRO_USER, 'ro_password': EXTRO_PASS,
                          }
     pnsconfig['server_local_poolpath'] = SERVER_LOCAL_POOLPATH  # For server
     # server's own in the context of its os/fs/globals

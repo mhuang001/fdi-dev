@@ -58,9 +58,12 @@ USER ${USR}
 RUN cp ./fdi/fdi/httppool/resources/httppool_server_entrypoint_uwsgi.sh . \
 && chmod 755 ./httppool_server_entrypoint_uwsgi.sh; ls -l 
 
-# self test with mock server
+# self test with mock server. tests and the mock server use
+# "external" settings in ~/.config/pnsconfig.py (copied from config.py).
+# user is "foo" set to EXTUSER
 RUN cd fdi \
-&& python3.8 -m pytest -r P -v -l -s --show-capture=all  --log-level=INFO   tests/serv/test_httppool.py
+&& make testhttp
+# && python3.8 -m pytest -r P -v -l -s --show-capture=all  --log-level=INFO   tests/serv/test_httppool.py
 
 RUN echo cat ./envs \
 && ./httppool_server_entrypoint_uwsgi.sh no-run

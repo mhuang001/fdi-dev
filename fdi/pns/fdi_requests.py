@@ -164,7 +164,7 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     contents: type of request. Default 'api'.
     headers: request header dictionary. Default `None` using `jsonio.auth_headers()`.
     no_serial: do not serialize the data.
-    result_only: only return requests result, no code and msg. Default False.
+    result_only: only return the reponse result. Default False.
     client: alternative client to answer API calls. For tests etc.
     """
     if auth is None:
@@ -198,10 +198,14 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None, client=N
     tag: go with the products into the pool
     no_serial: do not serialize the data.
     client: alternative client to answer API calls. For tests etc.
+
+    Return
+    The `Response` result.
     """
     headers = {POST_PRODUCT_TAG_NAME: serialize(tag)}
     res = post_to_server(data, urn, poolurl, contents='product',
-                         headers=headers, no_serial=no_serial, result_only=True,
+                         headers=headers, no_serial=no_serial,
+                         result_only=True,
                          auth=auth, client=client)
     return res
     # auth = getAuth(pccnode['username'], pccnode['password'])
@@ -215,11 +219,13 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None, client=N
     # return res
 
 
-def read_from_server(urn, poolurl, contents='product', auth=None, client=None):
+def read_from_server(urn, poolurl, contents='product', result_only=False, auth=None, client=None):
     """Read product or hk data from server
 
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
+    result_only: only return the reponse result. Default False.
+    client: alternative client to answer API calls. For tests etc.
     """
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
@@ -228,6 +234,9 @@ def read_from_server(urn, poolurl, contents='product', auth=None, client=None):
     api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
     res = client.get(api, auth=auth, timeout=TIMEOUT)
+    # print(res)
+    if result_only:
+        return res
     result = deserialize(res.text if type(res) == requests.models.Response
                          else res.data)
     if issubclass(result.__class__, dict):
@@ -241,7 +250,8 @@ def put_on_server(urn, poolurl, contents='pool', auth=None, client=None):
 
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
-    client: alternative client to answer API calls. For tests etc.
+    result_only: only return the reponse result. Default False.
+    client: alternative client to answer API calls. For tests etc. Default None for `requests`.
     """
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
@@ -252,6 +262,9 @@ def put_on_server(urn, poolurl, contents='pool', auth=None, client=None):
     if 0 and not issubclass(client.__class__, FlaskClient):
         print('######', client.cookies.get('session', None))
     res = client.put(api, auth=auth, timeout=TIMEOUT)
+    # print(res)
+    if result_only:
+        return res
     result = deserialize(res.text if type(res) == requests.models.Response
                          else res.data)
     if 0:
@@ -266,11 +279,12 @@ def put_on_server(urn, poolurl, contents='pool', auth=None, client=None):
         return 'FAILED', result
 
 
-def delete_from_server(urn, poolurl, contents='product', auth=None, client=None):
+def delete_from_server(urn, poolurl, contents='product', result_only=False, auth=None, client=None):
     """Remove a product or pool from server
 
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
+    result_only: only return the reponse result. Default False.
     client: alternative client to answer API calls. For tests etc. Default None for `requests`.
     """
     if auth is None:
@@ -280,6 +294,9 @@ def delete_from_server(urn, poolurl, contents='product', auth=None, client=None)
     api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)
     res = client.delete(api, auth=auth, timeout=TIMEOUT)
+    # print(res)
+    if result_only:
+        return res
     result = deserialize(res.text if type(res) == requests.models.Response
                          else res.data)
     if issubclass(result.__class__, dict):

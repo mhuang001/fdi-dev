@@ -750,7 +750,8 @@ def api(pool, method_args):
 
     ts = time.time()
     if logger.isEnabledFor(logging_DEBUG):
-        logger.debug('get API for %s, %s(%d args).' % (pool, len(method_args)))
+        logger.debug('get API for %s, %s(%d args).' %
+                     (pool, method_args[0], len(method_args)))
     if request.method == 'POST':
         # long args are sent with POST
         if request.data is None:

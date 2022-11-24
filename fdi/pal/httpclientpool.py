@@ -44,7 +44,7 @@ def toserver(self, method, *args, **kwds):
     apipath = serialize([args, kwds])
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
 
-    logger.debug("READ PRODUCT FROM REMOTE===> " + urn)
+    logger.debug("toServer ===> " + urn)
     if 0:  # len(apipath) < 800:
         code, res, msg = read_from_server(
             urn, self._poolurl, apipath, auth=self.auth)

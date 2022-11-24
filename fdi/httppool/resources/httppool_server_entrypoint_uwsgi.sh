@@ -1,16 +1,19 @@
 #!/bin/bash
 
 id | tee ~/last_entry.log
-echo ######
+echo ###### update env using .env 
 
 set -a
 source ./envs
 echo rm ./envs
 
-# if note set.
+# if not set.
 s=${UWSGIOPT:=''}
+echo ###### if not set, logging level use WARNING in config
+s=${LOGGER_LEVEL:=30}
 set +a
 
+echo ###### update config file with environmwnt variables
 sed -i "s/^EXTHOST =.*$/EXTHOST = \'$HOST_IP\'/g" ~/.config/pnslocal.py
 sed -i "s/^EXTPORT =.*$/EXTPORT = $HOST_PORT/g" ~/.config/pnslocal.py
 sed -i "s/^EXTUSER =.*$/EXTUSER = \'$HOST_USER\'/g" ~/.config/pnslocal.py
@@ -37,24 +40,24 @@ sed -i "s/^PIPELINEPASS =.*$/PIPELINEPASS = \'$PIPELINEPASS\'/g" ~/.config/pnslo
 
 sed -i "s|^API_BASE =.*$|API_BASE = \'$API_BASE\'|g" ~/.config/pnslocal.py
 sed -i "s|^SERVER_LOCAL_POOLPATH =.*$|SERVER_LOCAL_POOLPATH = \'$SERVER_LOCAL_POOLPATH\'|g" ~/.config/pnslocal.py
-# if note set. use WARNING
-s=${LOGGER_LEVEL:=30}
+
 sed -i "s/^LOGGER_LEVEL =.*$/LOGGER_LEVEL = $LOGGER_LEVEL/g" ~/.config/pnslocal.py
+sed -i "s/^LOGGER_LEVEL_EXTRA =.*$/LOGGER_LEVEL_EXTRA = $LOGGER_LEVEL_EXTRA/g" ~/.config/pnslocal.py
 
 sed -i "s/^conf\s*=\s*.*$/conf = 'external'/g" ~/.config/pnslocal.py 
 mkdir -p /var/log/uwsgi
 
-echo =====  .config/pnslocal.py >> ~/last_entry.log
-grep ^conf  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^EXTHOST  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^EXTPORT  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^EXTUSER  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^SELF_HOST  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^SELF_PORT  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^SELF_USER  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^API_BASE  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^SERVER_LOCAL_POOLPATH  ~/.config/pnslocal.py >> ~/last_entry.log
-grep ^LOGGER_LEVEL  ~/.config/pnslocal.py >> ~/last_entry.log
+echo ===== confirm  .config/pnslocal.py >> ~/last_entrypoint.log
+grep ^conf  ~/.config/pnslocal.py >> ~/last_entrypoint.log
+grep ^EXTRW_USER  ~/.config/pnslocal.py >> ~/last_entrypoint.log
+grep ^EXTPORT  ~/.config/pnslocal.py >> ~/last_entrypoint.log
+grep ^EXTRO_USER  ~/.config/pnslocal.py >> ~/last_entrypoint.log
+grep ^SELF_HOST  ~/.config/pnslocal.py >> ~/last_entrypoint.log
+grep ^SELF_PORT  ~/.config/pnslocal.py >> ~/last_entrypoint.log
+grep ^SELF_USER  ~/.config/pnslocal.py >> ~/last_entrypoint.log
+grep ^API_BASE  ~/.config/pnslocal.py >> ~/last_entrypoint.log
+grep ^SERVER_LOCAL_POOLPATH  ~/.config/pnslocal.py >> ~/last_entrypoint.log
+grep ^LOGGER_LEVEL  ~/.config/pnslocal.py >> ~/last_entrypoint.log
 
 if [ ! -d /var/log/uwsgi ]; then \
 sudo mkdir -p /var/log/uwsgi && \
@@ -66,10 +69,10 @@ mkdir -p /var/www/httppool_server/data
 if [ ! -O /var/www/httppool_server/data ]; then \
 sudo chown -R fdi:fdi  /var/www/httppool_server/data; fi
 
-#ls -l /var/log /var/www/httppool_server/data >> ~/last_entry.log
+#ls -l /var/log /var/www/httppool_server/data >> ~/last_entrypoint.log
 				 
-date >> ~/last_entry.log
-cat ~/last_entry.log
+date >> ~/last_entrypoint.log
+cat ~/last_entrypoint.log
 echo '>>>' $@
 for i in $@; do
 if [ $i = no-run ]; then exit 0; fi;

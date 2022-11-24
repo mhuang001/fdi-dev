@@ -104,10 +104,11 @@ if SESSION:
         logger = current_app.logger
         user_id = session.get('user_id')
         if logger.isEnabledFor(logging_DEBUG):
-            headers = str(request.headers)
-            logger.debug('S:%x "%s"\n%s\n%s' %
+            headers = dict(request.headers)
+            logger.debug('S:%x "%s", %s, %s' %
                          (id(session), str(user_id),
-                          str(headers), str(request.cookies)))
+                          str(headers.get('Authorization', '')),
+                          str(request.cookies)))
         if user_id is None:
             g.user = None
         else:
@@ -283,24 +284,24 @@ def verify_password(username, password, check_session=True):
     logger = current_app.logger
 
     if logger.isEnabledFor(logging_DEBUG):
-        logger.debug(f'{username} %s chk={check_session} Se={SESSION}' %
-                     (len(password) * '*'))
+        logger.debug('%s %s %s %s' % (username, len(password) * '*',
+                     'chk' if check_session else 'nochk',
+                                      'Se' if SESSION else 'noSe'))
     if check_session:
         if SESSION:
             has_session = 'user_id' in session and hasattr(
                 g, 'user') and g.user is not None
             if has_session:
-                if logger.isEnabledFor(logging_DEBUG):
-                    logger.debug(f'has_session usr=%s g.usr={g.user}' % (
-                        session.get("user_id", "None")))
                 user = g.user
+                if logger.isEnabledFor(logging_DEBUG):
+                    logger.debug(f'g.usr={user.username}')
                 gname = user.username
                 newu = current_app.config['USERS'].get(username, None)
                 # first check if the username is actually unchanged and valid
                 if newu is not None and newu.is_correct_password(password):
                     if gname == username:
                         if logger.isEnabledFor(logging_DEBUG):
-                            logger.debug(f"Same session {gname}.")
+                            logger.debug(f"Same session.")
                         return user
                     else:
                         if logger.isEnabledFor(logging_INFO):

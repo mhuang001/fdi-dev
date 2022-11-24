@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.8
 from fdi.httppool import create_app  # , setup_logging
 app = create_app()  # logger=logger)
 application = app

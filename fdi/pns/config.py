@@ -69,7 +69,9 @@ pnsconfig['cloud_baseurl'] = pnsconfig['cloud_api_base'] + \
     '/' + pnsconfig['cloud_api_version']
 
 LOGGER_LEVEL = logging.INFO
-pnsconfig['loggerlevel'] = LOGGER_LEVEL
+pnsconfig['logger_level'] = LOGGER_LEVEL
+LOGGER_LEVEL_EXTRAS = logging.WARNING
+pnsconfig['logger_level_extras'] = LOGGER_LEVEL_EXTRAS
 
 # base url for webserver. Update version if needed.
 pnsconfig['scheme'] = SCHEME
@@ -92,7 +94,7 @@ pnsconfig['lookup'] = poolurl_of
 pnsconfig['base_local_poolpath'] = BASE_LOCAL_POOLPATH
 pnsconfig['server_local_poolpath'] = SERVER_LOCAL_POOLPATH  # For server
 pnsconfig['defaultpool'] = 'default'
-pnsconfig['loggerlevel'] = LOGGER_LEVEL
+pnsconfig['logger_level'] = LOGGER_LEVEL
 
 
 # server's own
@@ -103,6 +105,8 @@ pnsconfig['self_password'] = SELF_PASS
 
 # choose from pre-defined.
 conf = ['dev', 'external', 'production'][1]
+# https://requests.readthedocs.io/en/latest/user/advanced/?highlight=keep%20alive#timeouts
+pnsconfig['requests_timeout'] = (3.3, 909)
 
 # modify
 if conf == 'dev':

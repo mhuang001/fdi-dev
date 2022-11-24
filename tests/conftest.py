@@ -416,9 +416,9 @@ def tmp_prods():
     for i, n in enumerate(('BaseProduct', 'Product',
                           'Context', 'MapContext',
                            'TP', 'SP'), 1):
-        p=Class_Look_Up[n]('test-product-%d: %s' % (i, n))
+        p = Class_Look_Up[n]('test-product-%d: %s' % (i, n))
         prds.append(p)
-    print("Made products: ", list((p.description, id(p)) for p in prds))
+    logger.debug("Made products: ", list((p.description, id(p)) for p in prds))
 
     return tuple(prds)
 
@@ -426,7 +426,7 @@ def tmp_prods():
 @ pytest.fixture(scope=SHORT)
 def auth(userpass, live_or_mock):
 
-    a, server_type=live_or_mock
+    a, server_type = live_or_mock
     if server_type == 'live':
         return HTTPBasicAuth(*userpass)
     else:
@@ -436,19 +436,19 @@ def auth(userpass, live_or_mock):
 
 def gen_pools(url, auth, client, prds):
 
-    tag=str(datetime.datetime.now())
-    lst=[]
+    tag = str(datetime.datetime.now())
+    lst = []
     # n = len(prds)
-    n=2
+    n = 2
     for i in range(n):
-        poolid='test_%d' % i
-        poolurl=url + '/' + poolid
-        ps=ProductStorage(poolid, poolurl, client=client, auth=auth)
+        poolid = 'test_%d' % i
+        poolurl = url + '/' + poolid
+        ps = ProductStorage(poolid, poolurl, client=client, auth=auth)
         # the first pool in ps
-        pool=ps.getPool(poolid)
-        prd=prds[i]
-        prd.description='lone prod in '+poolid
-        ref=ps.save(prd, tag=tag)
+        pool = ps.getPool(poolid)
+        prd = prds[i]
+        prd.description = 'lone prod in '+poolid
+        ref = ps.save(prd, tag=tag)
         lst.append((pool, prd, ref, tag))
     return lst
 
@@ -463,8 +463,8 @@ def tmp_pools(server, client, auth, tmp_prods):
         list of tuples containing `ProductPool`, `BaseProduct`, `ProductRef`, `str` for each pool.
 
 """
-    aburl, headers=server
-    lst=gen_pools(aburl, auth, client, list(tmp_prods))
+    aburl, headers = server
+    lst = gen_pools(aburl, auth, client, list(tmp_prods))
     return lst
 
 

@@ -264,6 +264,8 @@ def crud_t(poolid, poolurl, pool, auth, client):
         poolurl, poolhint=poolid)
     cnt = pool.getCount(typenm)
     assert cnt == pool.getCount()
+    # __import__("pdb").set_trace()
+
     assert cnt == 2 == pool.count
 
     logger.info('Load product from httpclientpool')

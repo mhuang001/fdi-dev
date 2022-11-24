@@ -164,7 +164,7 @@ def check_response(o, code=200, failed_case=False, excluded=None, login=False):
                     return True
                 else:
                     return o
-            assert 'FAILED' != o['result'], o['result']
+            assert 'FAILED' != o['result'], o['msg']
             assert code == 200, str(o)
             assert o['time'] > lupd
             lupd = o['time']

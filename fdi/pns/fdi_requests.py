@@ -39,6 +39,7 @@ defaulturl = 'http://' + pcc['node']['host'] + \
     ':' + str(pcc['node']['port']) + pcc['baseurl']
 
 pccnode = pcc['node']
+TIMEOUT = pcc['requests_timeout']
 
 
 @functools.lru_cache(maxsize=16)
@@ -171,11 +172,13 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     api = urn2fdiurl(urn, poolurl, contents=contents, method='POST')
     if client is None:
         client = clnt
-    # print('POST API: ' + api)
+    # from fdi.utils.common import lls
+    # print('POST API: ' + api + ' | ' + lls(data, 900))
     if headers is None:
         headers = auth_headers(auth.username, auth.password)
     sd = data if no_serial else serialize(data)
-    res = client.post(api, auth=auth, data=sd, headers=headers)
+    res = client.post(api, auth=auth, data=sd,
+                      headers=headers, timeout=TIMEOUT)
     # print(res)
     if result_only:
         return res
@@ -224,7 +227,7 @@ def read_from_server(urn, poolurl, contents='product', auth=None, client=None):
         client = clnt
     api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
-    res = client.get(api, auth=auth)
+    res = client.get(api, auth=auth, timeout=TIMEOUT)
     result = deserialize(res.text if type(res) == requests.models.Response
                          else res.data)
     if issubclass(result.__class__, dict):
@@ -248,7 +251,7 @@ def put_on_server(urn, poolurl, contents='pool', auth=None, client=None):
     # print("DELETE REQUEST API: " + api)
     if 0 and not issubclass(client.__class__, FlaskClient):
         print('######', client.cookies.get('session', None))
-    res = client.put(api, auth=auth)
+    res = client.put(api, auth=auth, timeout=TIMEOUT)
     result = deserialize(res.text if type(res) == requests.models.Response
                          else res.data)
     if 0:
@@ -276,9 +279,7 @@ def delete_from_server(urn, poolurl, contents='product', auth=None, client=None)
         client = clnt
     api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)
-    if client is None:
-        client = clnt
-    res = client.delete(api, auth=auth)
+    res = client.delete(api, auth=auth, timeout=TIMEOUT)
     result = deserialize(res.text if type(res) == requests.models.Response
                          else res.data)
     if issubclass(result.__class__, dict):

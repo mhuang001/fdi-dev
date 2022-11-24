@@ -279,11 +279,13 @@ def create_app(config_object=None, level=None, debug=False, logstream=None):
     config_object = config_object if config_object else getconfig.getConfig()
 
     global logger
-    logging = setup_logging(level, tofile=logstream)
+    logging = setup_logging(level=level,
+                            extras=config_object['logger_level_extras'],
+                            tofile=logstream)
     logger = logging.getLogger('httppool_app')
 
     if level is None:
-        level = config_object['loggerlevel']
+        level = config_object['logger_level']
         #level = logging_WARNING
     logger.setLevel(level)
 

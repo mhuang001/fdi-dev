@@ -750,11 +750,11 @@ def api(pool, method_args):
 
     ts = time.time()
     if logger.isEnabledFor(logging_DEBUG):
-        logger.debug('get API for %s ; %s.' % (pool, lls(method_args, 200)))
+        logger.debug('get API for %s, %s(%d args).' % (pool, len(method_args)))
     if request.method == 'POST':
         # long args are sent with POST
         if request.data is None:
-            result, msg = '"FAILED"', 'No REquest data for command '+request.method
+            result, msg = '"FAILED"', 'No Request data for command '+request.method
             code = 400
             return resp(code, result, msg, ts, serialize_out=True)
         data = str(request.data, encoding='ascii')
@@ -815,7 +815,7 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
     args = m_args[1:] if len(m_args) > 1 else []
     kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
     msg = '%s(%s)' % (method, ', '.join(
-        chain(map(str, args), kwdsexpr)))
+        chain((str(x)[:10] for x in args), kwdsexpr)))
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('WebAPI ' + lls(msg, 300))
         logger.debug('*_G %x' % id(PM_S._GlobalPoolList))

@@ -127,16 +127,11 @@ it:
 t:
 	@ cid=`docker ps -a|grep $(LATEST) | head -n 1 |awk '{print $$1}'` &&\
 	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
-	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/apache/error-ps.log
-
-u:
-	@ cid=`docker ps -a|grep $(LATEST) | head -n 1 |awk '{print $$1}'` &&\
-	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
-	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /home/fdi/uwsgi.log
+	docker exec -it $(D) $$cid /usr/bin/tail -n 100 -f /var/log/uwsgi/uwsgi/uwsgi.log
 i:
 	@ cid=`docker ps -a|grep $(LATEST) | head -n 1 | awk '{print $$1}'` &&\
 	if [ -z $$cid ]; then echo NOT running ; false; fi &&\
-	docker exec -it $(D) $$cid /usr/bin/less -f /home/apache/error-ps.log
+	docker exec -it $(D) $$cid /usr/bin/less -f /var/log/uwsgi/uwsgi/uwsgi.log
 
 PUSH_NAME	= $(SERVER_NAME)
 PUSH_VERSION	= $(SERVER_VERSION)

@@ -67,7 +67,7 @@ def requests_retry_session(
     return session
 
 
-clnt = requests_retry_session((retries=1, backoff_factor=0.5)
+clnt = requests_retry_session(retries=1, backoff_factor=0.5)
 # clnt = requests.Session()  #
 
 
@@ -112,7 +112,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 
     """
 
-    poolname, resourcecn, index=parseUrn(
+    poolname, resourcecn, index = parseUrn(
         urn) if urn and (len(urn) > 7) else ('', '', '0')
     indexs = str(index)
     poolpath, scheme, place, pn, un, pw = parse_poolurl(

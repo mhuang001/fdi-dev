@@ -46,7 +46,7 @@ RUN_SERVER_IN_BACKGROUND = 'python3.8 httppool_app.py --server=httppool_server'
 
 TEST_SERVER_LIFE = 600
 """ test server time limit in seconds."""
-verify
+
 the_session = requests_retry_session(retries=1, backoff_factor=0.5)
 # the_session=requests.Session()
 

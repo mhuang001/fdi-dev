@@ -67,7 +67,7 @@ def requests_retry_session(
     return session
 
 
-clnt = requests_retry_session(retries=1, backoff_factor=0.5)
+clnt = requests_retry_session(retries=2, backoff_factor=0.5)
 # clnt = requests.Session()  #
 
 

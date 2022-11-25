@@ -758,7 +758,7 @@ def api(pool, method_args):
             result, msg = '"FAILED"', 'No Request data for command '+request.method
             code = 400
             return resp(code, result, msg, ts, serialize_out=True)
-        data = str(request.data, encoding='ascii')
+        data = request.get_data(as_text=True)
         paths = [pool, 'api', method_args, data]
     else:
         paths = [pool, 'api', method_args]

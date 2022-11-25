@@ -245,7 +245,7 @@ def read_from_server(urn, poolurl, contents='product', result_only=False, auth=N
         return res.status_code, 'FAILED', result
 
 
-def put_on_server(urn, poolurl, contents='pool', auth=None, client=None):
+def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, client=None):
     """Register the pool on the server.
 
     urn: to extract poolname, product type, and index if any of these are needed

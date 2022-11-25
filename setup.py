@@ -67,8 +67,9 @@ setup(
             'pytest-cov',
         ],
         'SERV': [
-            'requests=2.27.1',
-            'urllib3=            'Flask_HTTPAuth >= 4.1.0',
+            'requests = 2.27.1',
+            'urllib3 = 1.16.13',
+            'Flask_HTTPAuth >= 4.1.0',
             'Flask>=2.2.2',
             'Werkzeug[watchdog]',
             'uwsgi>=2.0.20',

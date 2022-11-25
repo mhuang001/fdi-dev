@@ -97,10 +97,6 @@ def test_serialize_args():
     chksa(a, k)
 
 
-def test_gen_url2(server):
-    aburl, headers = server
-
-
 def test_gen_url(server):
     """ Makesure that request create corrent url
     """

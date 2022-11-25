@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from requests.packages.urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 from flask import Flask  # request as
 from flask.testing import FlaskClient
 
@@ -28,9 +30,8 @@ else:
 
 
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' % (logger.getEffectiveLevel()))
+# logger.debug('level %d' % (logger.getEffectiveLevel()))
 
-clnt = requests.Session()
 
 POST_PRODUCT_TAG_NAME = 'FDI-Product-Tags'
 
@@ -42,12 +43,40 @@ pccnode = pcc['node']
 TIMEOUT = pcc['requests_timeout']
 
 
-@functools.lru_cache(maxsize=16)
+def requests_retry_session(
+    retries=3,
+    backoff_factor=0.3,
+    status_forcelist=(500, 502, 504),
+    session=None,
+):
+    """ session made with retries
+
+    https://www.peterbe.com/plog/best-practice-with-retries-with-requests
+    """
+    session = session or requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
+
+
+clnt = requests_retry_session((retries=1, backoff_factor=0.5)
+# clnt = requests.Session()  #
+
+
+@ functools.lru_cache(maxsize=16)
 def getAuth(user, password):
     return HTTPBasicAuth(user, password)
 
 
-@functools.lru_cache(maxsize=64)
+@ functools.lru_cache(maxsize=64)
 def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
     """ Returns URL for accessing pools with a URN.
 
@@ -83,7 +112,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 
     """
 
-    poolname, resourcecn, index = parseUrn(
+    poolname, resourcecn, index=parseUrn(
         urn) if urn and (len(urn) > 7) else ('', '', '0')
     indexs = str(index)
     poolpath, scheme, place, pn, un, pw = parse_poolurl(

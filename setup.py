@@ -68,7 +68,7 @@ setup(
         ],
         'SERV': [
             'requests == 2.27.1',
-            'urllib3 == 1.16.13',
+            'urllib3 == 1.26.13',
             'Flask_HTTPAuth >= 4.1.0',
             'Flask>=2.2.2',
             'Werkzeug[watchdog]',

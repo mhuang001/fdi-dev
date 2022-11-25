@@ -46,7 +46,7 @@ RUN_SERVER_IN_BACKGROUND = 'python3.8 httppool_app.py --server=httppool_server'
 
 TEST_SERVER_LIFE = 600
 """ test server time limit in seconds."""
-
+verify
 the_session = requests_retry_session(retries=1, backoff_factor=0.5)
 # the_session=requests.Session()
 
@@ -92,9 +92,9 @@ def new_user_read_write(pc):
     GIVEN a User model
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
-    pn=pc['node']
-    new_user=User(pn['username'], pn['password'], roles='read_write')
-    headers=auth_headers(pn['username'], pn['password'])
+    pn = pc['node']
+    new_user = User(pn['username'], pn['password'], roles='read_write')
+    headers = auth_headers(pn['username'], pn['password'])
     return new_user, headers
 
 

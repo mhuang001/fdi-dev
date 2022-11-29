@@ -413,7 +413,7 @@ if LOGIN_TMPLT:
 #     pc = current_app.config['PC']
 #     if not (username and password):
 #         return False
-#     return username == pc['node']['username'] and password == pc['node']['password']
+#     return username == pc['username'] and password == pc['password']
 
     # if 0:
     #        pass

@@ -125,8 +125,8 @@ This is done by calling the getPool() method, which will return an existing pool
     """ Global centralized dict that returns singleton -- the same -- pool for the same ID."""
 
     # maps scheme to default place/poolpath
-    # pc['node']['host']+':'+str(pc['node']['port'])+pc['baseurl']
-    p = getConfig(name='').strip('/').split('://')[1]
+    # pc['host']+':'+str(pc['port'])+pc['baseurl']
+    p = getConfig('poolurl').strip('/').split('://')[1]
     PlacePaths = {
         'file': pc['base_local_poolpath'],
         'mem': '/',
@@ -236,8 +236,8 @@ Pools registered are kept as long as the last reference remains. When the last i
                 from requests.auth import HTTPBasicAuth
 
                 if auth is None:
-                    auth = HTTPBasicAuth(pc['node']['username'],
-                                         pc['node']['password'])
+                    auth = HTTPBasicAuth(pc['username'],
+                                         pc['password'])
                 if client is None:
                     client = requests.Session()
                 p = httpclientpool.HttpClientPool(

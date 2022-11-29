@@ -5,106 +5,46 @@ from os.path import join
 import logging
 import getpass
 
-pnsconfig = dict()
+pnsconfig = {}
 
 ###########################################
 # Configuration for Servers running locally.
-# components of the default poolurl
 
 # the key (variable names) must be uppercased for Flask server
 # FLASK_CONF = pnsconfig
 
-EXTUSER = 'foo'
-EXTPASS = 'bar'
-EXTHOST = '172.17.0.1'
-EXTPORT = 9876
-EXTRW_USER = 'foo'
-EXTRW_PASS = 'pbkdf2:sha256:260000$Ch0GEGjA6ipF3dOb$3d408b50a31c64de75d8973e8aebaf76a510cfb01c9af03a1294bac792fe9608'
-EXTRO_USER = 'ro'
-EXTRO_PASS = '*'
-SELF_HOST = '172.17.0.2'
-SELF_PORT = 9876
-SELF_USER = 'fdi'
-SELF_PASS = ''
-MQHOST = '172.17.0.1'
-MQPORT = 9876
-MQUSER = ''
-MQPASS = ''
-PIPELINEHOST = '172.17.0.1'
-PIPELINEPORT = 9876
-PIPELINEUSER = ''
-PIPELINEPASS = ''
-""" To be edited automatically with
-
-    `dockerfile_entrypoint.sh` or
-    `httppool_server_entrypoint_uwsgi.sh`
-
-file. e.g. `EXTUSER = ''` is transformed to `EXTUSER = 'foo'` by
-
-   `sed -i "s/^EXTHOST =.*$/EXTHOST = \'$HOST_IP\'/g"  ${cofig_py}` ,
-
-where `\'$HOST_IP\'` is an envirionment variable that has the value `foo`.
-"""
-
-
-BASE_LOCAL_POOLPATH = '/tmp'
-SERVER_LOCAL_POOLPATH = '/tmp/data'
-
-SCHEME = 'http'
-API_VERSION = 'v0.15'
-API_BASE = '/fdi'
-
 pnsconfig['server_scheme'] = 'server'
 
-pnsconfig['cloud_token'] = '/tmp/.cloud_token'
-pnsconfig['cloud_username'] = 'mh'
-pnsconfig['cloud_password'] = ''
-pnsconfig['cloud_host'] = ''
-pnsconfig['cloud_port'] = 31702
+pnsconfig['logger_level'] = logging.INFO
+pnsconfig['logger_level_extras'] = logging.WARNING
 
-pnsconfig['cloud_scheme'] = 'csdb'
-pnsconfig['cloud_api_version'] = 'v1'
-pnsconfig['cloud_api_base'] = '/csdb'
-pnsconfig['cloud_baseurl'] = pnsconfig['cloud_api_base'] + \
-    '/' + pnsconfig['cloud_api_version']
+# base url for webserver.
+pnsconfig['scheme'] = 'http'
+pnsconfig['api_version'] = 'v0.15'  # vx.yyy
+pnsconfig['api_base'] = '/fdi'        # /fdi
+pnsconfig['baseurl'] = pnsconfig['api_base'] + \
+    '/' + pnsconfig['api_version']  # /fdi/vx.yyy
 
-LOGGER_LEVEL = logging.INFO
-pnsconfig['logger_level'] = LOGGER_LEVEL
-LOGGER_LEVEL_EXTRAS = logging.WARNING
-pnsconfig['logger_level_extras'] = LOGGER_LEVEL_EXTRAS
+""" base url for the pool, you must have permission of this path, for example : /home/user/Documents
+# This local base pool path will be added at the beginning of your pool urn when you init a pool like:
 
-# base url for webserver. Update version if needed.
-pnsconfig['scheme'] = SCHEME
-pnsconfig['api_version'] = API_VERSION  # vx.yyy
-pnsconfig['api_base'] = API_BASE        # /fdi
-pnsconfig['baseurl'] = API_BASE + '/' + API_VERSION   # /fdi/vx.yyy
+.. :code:
+  pstore = PoolManager.getPool('/demopool_user')
 
-# look-up table for PoolManager (therefor HttpClient) to get pool URLs eith Pool ID (poolname)
-poolurl_of = {
-    'e2e10': 'http://10.0.10.114:9885'+pnsconfig['baseurl']+'/e2e',
-    'e2e5k': 'http://127.0.0.1:5000'+pnsconfig['baseurl']+'/e2e',
-    'e2e127': 'http://127.0.0.1:9885'+pnsconfig['baseurl']+'/e2e',
-}
-pnsconfig['lookup'] = poolurl_of
+It will create a pool at /data/demopool_user/
+# User can disable  basepoolpath by:
 
-# base url for pool, you must have permission of this path, for example : /home/user/Documents
-# this base pool path will be added at the beginning of your pool urn when you init a pool like:
-# pstore = PoolManager.getPool('/demopool_user'), it will create a pool at /data.demopool_user/
-# User can disable  basepoolpath by: pstore = PoolManager.getPool('/demopool_user', use_default_poolpath=False)
-pnsconfig['base_local_poolpath'] = BASE_LOCAL_POOLPATH
-pnsconfig['server_local_poolpath'] = SERVER_LOCAL_POOLPATH  # For server
+.. :code:
+
+  pstore = PoolManager.getPool('/demopool_user', use_default_poolpath=False)
+
+"""
+
+pnsconfig['server_local_poolpath'] = '/tmp/data'
 pnsconfig['defaultpool'] = 'default'
-pnsconfig['logger_level'] = LOGGER_LEVEL
 
-
-# server's own
-pnsconfig['self_host'] = SELF_HOST
-pnsconfig['self_port'] = SELF_PORT
-pnsconfig['self_username'] = SELF_USER
-pnsconfig['self_password'] = SELF_PASS
-
-# choose from pre-defined.
-conf = ['dev', 'external', 'production'][1]
+# choose from pre-defined profiles. 'production' is for making docker image.
+conf = ['dev', 'production'][1]
 # https://requests.readthedocs.io/en/latest/user/advanced/?highlight=keep%20alive#timeouts
 pnsconfig['requests_timeout'] = (3.3, 909)
 
@@ -112,13 +52,14 @@ pnsconfig['requests_timeout'] = (3.3, 909)
 if conf == 'dev':
     # username, passwd, flask ip, flask port.
     # For test clients. the username/password must match ['USERS'][0]
-    pnsconfig['node'] = {'username': 'foo', 'password': 'bar',
-                         'host': '127.0.0.1', 'port': 9885
-                         }
+    pnsconfig['username'] = 'foo'
+    pnsconfig['password': 'bar']
+    pnsconfig['host'] = '127.0.0.1'
+    pnsconfig['port'] = 9885
 
     # server's own in the context of its os/fs/globals
-    pnsconfig['self_host'] = pnsconfig['node']['host']
-    pnsconfig['self_port'] = pnsconfig['node']['port']
+    pnsconfig['self_host'] = pnsconfig['host']
+    pnsconfig['self_port'] = pnsconfig['port']
     pnsconfig['self_username'] = 'USERNAME'
     pnsconfig['self_password'] = 'ONLY_IF_NEEDED'
     pnsconfig['base_local_poolpath'] = '/tmp'
@@ -138,33 +79,30 @@ if conf == 'dev':
 
     # (reverse) proxy_fix
     # /pnsconfig['proxy_fix'] = dict(x_for=1, x_proto=1, x_host=1, x_prefix=1)
+elif conf == 'production':
+    pnsconfig['username'] = 'foo'
+    pnsconfig['password'] = 'bar'
+    pnsconfig['host'] = '127.0.0.1'
+    pnsconfig['port'] = 9876
 
-elif conf == 'external':
-    # wsgi behind apach2. cannot use env vars
-    pnsconfig['node'] = {'username': EXTUSER, 'password': EXTPASS,
-                         'host': EXTHOST, 'port': EXTPORT,
-                         }
-    pnsconfig['server_local_poolpath'] = SERVER_LOCAL_POOLPATH  # For server
-    # server's own in the context of its os/fs/globals
-    pnsconfig['self_host'] = SELF_HOST
-    pnsconfig['self_port'] = SELF_PORT
-    pnsconfig['self_username'] = SELF_USER
-    pnsconfig['self_password'] = SELF_PASS
+    pnsconfig['self_host'] = '172.17.0.2'
+    pnsconfig['self_port'] = 9876
+    pnsconfig['self_username'] = 'fdi'
+    pnsconfig['self_password'] = 'ONLY_IF_NEEDED'
+    pnsconfig['base_local_poolpath'] = '/var/httppool'
+    pnsconfig['server_local_poolpath'] = '/var/httppool/data'  # For server
 
-    # (reverse) proxy_fix
-    pnsconfig['proxy_fix'] = dict(x_for=1, x_proto=1, x_host=1, x_prefix=1)
-
-    # In place of a frozen user DB for backend server and test.
     pnsconfig['USERS'] = [
-        {'username': EXTRW_USER,
-         'hashed_password': EXTRW_PASS,
-         'roles': ['read_write']
+        {'username': 'foo',
+         'hashed_password': 'pbkdf2:sha256:260000$Ch0GEGjA6ipF3dOb$3d408b50a31c64de75d8973e8aebaf76a510cfb01c9af03a1294bac792fe9608',
+         'roles': ('read_write',)
          },
-        {'username': EXTRO_USER,
-         'hashed_password': EXTRO_PASS,
-         'roles': ['read_only']
+        {'username': 'ro',
+         'hashed_password': 'pbkdf2:sha256:260000$gzsbbunF2NQb5okJ$0ef0a27f7f6802d0394214df638c739d2bb0a5c4091ac7d4273fd236ca77ee3f',
+         'roles': ('read_only',)
          }
     ]
+
 else:
     pass
 
@@ -172,21 +110,39 @@ else:
 # See document in :class:`Classes`
 pnsconfig['userclasses'] = ''
 
+pnsconfig['poolurl'] = ''.join((pnsconfig['scheme'], '://',
+                                pnsconfig['host'], ':',
+                                str(pnsconfig['port']),
+                                pnsconfig['baseurl']
+                                ))
+
 ############## project specific ####################
+pnsconfig['cloud_token'] = '/tmp/.cloud_token'
+pnsconfig['cloud_username'] = 'mh'
+pnsconfig['cloud_password'] = ''
+pnsconfig['cloud_host'] = ''
+pnsconfig['cloud_port'] = 31702
+
+pnsconfig['cloud_scheme'] = 'csdb'
+pnsconfig['cloud_api_version'] = 'v1'
+pnsconfig['cloud_api_base'] = '/csdb'
+pnsconfig['cloud_baseurl'] = pnsconfig['cloud_api_base'] + \
+    '/' + pnsconfig['cloud_api_version']
+
 # message queue config
 pnsconfig.update(dict(
-    mqhost=MQHOST,
-    mqport=MQPORT,
-    mquser=MQUSER,
-    mqpass=MQPASS,
+    mqhost='172.17.0.1',
+    mqport=9876,
+    mquser='',
+    mqpass='',
 ))
 
 # pipeline config
 pnsconfig.update(dict(
-    pipelinehost=PIPELINEHOST,
-    pipelineport=PIPELINEPORT,
-    pipelineuser=PIPELINEUSER,
-    pipelinepass=PIPELINEPASS,
+    pipelinehost='172.17.0.1',
+    pipelineport=9876,
+    pipelineuser='',
+    pipelinepass='',
 ))
 
 # OSS config

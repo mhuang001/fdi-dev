@@ -17,18 +17,18 @@ ARG UHOME=/home/${USR}
 # rebuild mark
 ARG re=rebuild
 ARG LOGGER_LEVEL=10
-ENV LOGGER_LEVEL=${LOGGER_LEVEL}
+ENV PNS_LOGGER_LEVEL=${LOGGER_LEVEL}
 
 WORKDIR ${UHOME}
 # use fdi's virtual env path. this effectively activates fdi's virtuakenv
 RUN echo ${PATH}
 
 # setup config files
-ARG PROJ_DIR
-ENV SERVER_LOCAL_POOLPATH=${PROJ_DIR}/data
+ARG SERVER_LOCAL_POOLPATH
+ENV PNS_SERVER_LOCAL_POOLPATH=${SERVER_LOCAL_POOLPATH}
 ARG API_BASE=/fdi
 ENV API_BASE=${API_BASE}
-RUN mkdir -p ${PROJ_DIR}/data
+RUN mkdir -p ${PNS_SERVER_LOCAL_POOLPATH}
 
 # remote-pdb https://stackoverflow.com/a/46436653/13472124
 
@@ -41,7 +41,7 @@ RUN mkdir -p /var/log/uwsgi \
 && ln -s /var/log/uwsgi/uwsgi.log . \
 && ln -s /var/log/uwsgi/access.log . \
 && ln -s /var/log/uwsgi/error.log . \
-&& ln -s  ${SERVER_LOCAL_POOLPATH} data
+&& ln -s  ${PNS_SERVER_LOCAL_POOLPATH} data
 
 # update ~/.config/pnslocal.py so test can be run with correct settings
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
@@ -49,7 +49,7 @@ RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sed -i -e 's/=/:=/' -e 's/^/s=${/' -e 's/$/}/' ./envs
 
 # Changr user, configure permission
-RUN for i in  ${PROJ_DIR} /var/log/uwsgi ${UHOME}/*; \
+RUN for i in  ${PNS_SERVER_LOCAL_POOLPATH}/.. /var/log/uwsgi ${UHOME}/*; \
 do chown ${USR}:${USR} $i; echo $i; done ;echo  owner ${USR}
 
 USER ${USR}
@@ -71,7 +71,7 @@ RUN echo cat ./envs \
 RUN cp fdi/fdi/httppool/resources/httppool_server_uwsgi.ini . \
 && echo ln fdi/wsgi.py .
 
-VOLUME /var/log ${SERVER_LOCAL_POOLPATH}
+VOLUME /var/log ${PNS_SERVER_LOCAL_POOLPATH}/..
 
 RUN /bin/ls -la; echo $PATH \
 date > build

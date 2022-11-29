@@ -26,8 +26,8 @@ To customize ``~/.config/pnslocal.py`` modify these according to your system:
 
 .. code-block::
 
-   pnsconfig = dict(logginglevel=logging.DEBUG)
-   pnsconfig['baseurl'] = '/v0.9'
+   pnsconfig = dict(loggerlevel=logging.DEBUG)
+   pnsconfig['baseurl'] = '/v0.15'
    pnsconfig['base_poolpath'] = '/tmp'
    pnsconfig['server_poolpath'] = '/tmp/data'  # For server
    pnsconfig['defaultpool'] = 'default'

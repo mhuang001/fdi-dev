@@ -18,6 +18,7 @@ from fdi.utils.tree import tree
 from fdi.utils.loadfiles import loadMedia
 
 import traceback
+import importlib
 import copy
 from datetime import timezone, timedelta, datetime
 import sys
@@ -513,10 +514,19 @@ def test_opt(caplog):
 
 
 def check_conf(cfp, typ, getConfig):
+    """ plant a config file and show that it works. """
+
     cfn = typ + 'local.py'
-    cfp = op.expanduser(cfp)
-    filec = op.join(cfp, cfn)
-    os.system('rm -f ' + filec)
+    if cfp:
+        cfp = op.expanduser(cfp)
+        filec = op.join(cfp, cfn)
+    else:
+        # see test_getConfig_init
+        return
+    try:
+        os.unlink(filec)
+    except:
+        pass
     conf = 'import os; %sconfig={"jk":98, "m":os.path.abspath(__file__)}' % typ
     with open(filec, 'w') as f:
         f.write(conf)
@@ -524,45 +534,84 @@ def check_conf(cfp, typ, getConfig):
     w = getConfig(conf=typ, force=True)
     assert w['jk'] == 98
     pfile = w['m']
+    assert getConfig('jk', conf=typ) == 98
     assert pfile.startswith(cfp)
-    os.system('rm -f ' + filec)
+    # XXX TODO: NOT WORKING
+    # conf file changed afer loading
+    if 0:
+        try:
+            pass  # os.unlink(filec)
+        except:
+            pass
+        conf = 'import os; %sconfig={"jk":33, "m":os.path.abspath(__file__)}' % typ
+        with open(filec, 'w') as f:
+            f.write(conf)
+        # check conf file directory
+        w = getConfig(conf=typ)  # cached if w/o force
+        assert w['jk'] == 98
+        w = getConfig(conf=typ, force=True)  # loaded from file if force
+        assert w['jk'] == 33 == getConfig('jk', conf=typ)
+        os.unlink(filec)
+
+    # getting url
+    assert getConfig('poolurl:foo') == getConfig('poolurl')+'/foo'
 
 
 def test_getConfig_init(getConfig):
 
     # no arg
     v = getConfig()
-    from fdi.pns.config import pnsconfig
+    from fdi.pns.config import pnsconfig as defaultconf
+    # default settings enables default config+pnslocal
     # v is a superset
-    assert all(n in v for n in pnsconfig)
+    assert all(n in v for n in defaultconf)
+
+    logging.debug('Test non-exisiting.')
+    # builtin is {} means not using the default config.
+    non = getConfig(conf='non-existing', builtin={}, force=True)
+    assert non == {}
+    # default builtin means using the default config.
+    non = getConfig(conf='non-existing', force=True)
+    assert non == defaultconf
+
+    f = {'foo': 9}
+    # the order of the right-hand side is {foo}+pnslocal
+    v_diff = dict((n, v[n]) for n in (set(v.keys()-set(defaultconf))))
+    f = getConfig(builtin={'foo': 9})
+    assert f.pop('foo') == 9
+    # every item in v_diff  is in f
+    assert all(v == f[k] for k, v in v_diff.items())
 
 
-def test_getConfig_noENV(getConfig):
+def test_getConfig_ENV(getConfig):
 
     # non-default conf type
-    typ = 'abc'
+    typ = 'xyz'
     # environment variable not set
     try:
-        del os.environ['CONF_DIR']
+        del os.environ[typ.upper()+'_CONF_DIR']
     except:
         pass
 
-    # default dir, there is  nothing
-    # put mock in the default directory
-    check_conf('~/.config', typ, getConfig)
+    # specify directory set a dir with ENV
+    cp = '/tmp'
+    # environment variable
+    os.environ[typ.upper()+'_CONF_DIR'] = cp
+    check_conf(cp, typ, getConfig)
+
+    # env var overrides
+    os.environ[typ.upper()+'_JK'] = 'shroom'
+    assert typ.upper()+'_JK' in os.environ
+    assert getConfig('jk', conf=typ) == 'shroom'
 
 
 def test_getConfig_conf(getConfig):
-
+    # clear previous load
+    importlib.invalidate_caches()
     # non-default conf type
     typ = 'abc'
-    # specify directory
-    cp = '/tmp'
-    # environment variable
-    os.environ['CONF_DIR_' + typ.upper()] = cp
-    check_conf(cp, typ, getConfig)
-    # non-existing. the file has been deleted by the check_conf in the last line
-    w = getConfig(conf=typ)
+    check_conf('~/.config', typ, getConfig)
+    # the file has been deleted by the check_conf in the last line
 
 
 def test_leapseconds():

@@ -108,9 +108,9 @@ if __name__ == '__main__':
     parser.add_argument("-o", "--outputdir", type=str,
                         default=outputdir, help='Output directory or poolname.')
     parser.add_argument('-U', '--username',
-                        default=pc['node']['username'], type=str, help='user name/ID')
+                        default=pc['username'], type=str, help='user name/ID')
     parser.add_argument('-P', '--password',
-                        default=pc['node']['password'], type=str, help='password')
+                        default=pc['password'], type=str, help='password')
     parser.add_argument("-n", "--number", type=int,
                         default=onlyframes, help='Only read this number of ?.')
     parser.add_argument("-t", "--tarfile",  action='store_true',
@@ -119,8 +119,8 @@ if __name__ == '__main__':
                         default=verbose, help="Print more details.")
 
     args = parser.parse_args()
-    pc['node']['username'] = args.username
-    pc['node']['password'] = args.password
+    pc['username'] = args.username
+    pc['password'] = args.password
     verbose = args.verbose
     if args.verbose:
         print(args)

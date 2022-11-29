@@ -4,8 +4,8 @@ from fdi.utils.getconfig import getConfig
 # default configuration is provided. Copy contents of svom/engisim/config.py to ~/.config/engisimlocal.py
 pc = getConfig()
 
-defaulturl = 'http://' + pc['node']['host'] + ':' + \
-    str(pc['node']['port']) + pc['baseurl']
+defaulturl = 'http://' + pc['host'] + ':' + \
+    str(pc['port']) + pc['baseurl']
 
 
 def urn2url(urn, contents='product'):

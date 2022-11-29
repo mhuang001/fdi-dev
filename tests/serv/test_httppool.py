@@ -297,8 +297,8 @@ def test_new_user_read_write(new_user_read_write, pc):
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
     new_user, headers = new_user_read_write
-    assert new_user.username == pc['node']['username']
-    assert new_user.hashed_password != pc['node']['password']
+    assert new_user.username == pc['username']
+    assert new_user.hashed_password != pc['password']
     assert not new_user.authenticated
     assert new_user.roles == ('read_write',)
     logger.debug('Done.')
@@ -1001,7 +1001,7 @@ def xtest_webapi_jsonPath(server, userpass, client):
 
 if __name__ == '__main__':
     now = time.time()
-    node, verbose = opt(pc['node'])
+    node, verbose = opt(pc)
     if verbose:
         logger.setLevel(logging.DEBUG)
     else:

@@ -33,9 +33,10 @@ endif
 
 EXTPORT =$(PORT)
 IP_ADDR     =0.0.0.0
-PROJ_DIR	= /var/www/httppool_server
-SERVER_LOCAL_POOLPATH	= $(PROJ_DIR)/data
+SERVER_LOCAL_POOLPATH	= /var/www/httppool_server/data
 LOGGER_LEVEL	= 10
+LOGGER_LEVEL_EXTRAS	= 30
+
 TEST_PORT	= 9885
 
 B       =/bin/bash
@@ -64,6 +65,7 @@ build_docker:
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
 	--build-arg LOGGER_LEVEL=$(LOGGER_LEVEL) \
+	--build-arg LOGGER_LEVEL_EXTRAS=$(LOGGER_LEVEL_EXTRAS) \
 	--build-arg DOCKER_VERSION=$(DOCKER_VERSION) \
 	-f $(DFILE) \
 	$(D) --progress=plain .
@@ -76,7 +78,7 @@ build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SERVER_VERSION) \
 	--network=$(NETWORK) \
 	--secret id=envs,src=$(SECFILE) \
-	--build-arg PROJ_DIR=$(PROJ_DIR) \
+	--build-arg SERVER_LOCAL_POOLPATH=$(SERVER_LOCAL_POOLPATH) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
 	--build-arg SERVER_VERSION=$(SERVER_VERSION) \
@@ -90,11 +92,12 @@ launch_server:
 	SN=$(SERVER_NAME)$$(date +'%s') && \
 	docker run -dit --network=$(NETWORK) \
 	--mount source=httppool,target=$(SERVER_LOCAL_POOLPATH) \
-	--mount source=log,target=/var/log \
+	# --mount source=log,target=/var/log \
 	--env-file $(SECFILE) \
 	-p $(PORT):$(EXTPORT) \
 	-e HOST_PORT=$(PORT) \
 	-e LOGGER_LEVEL=$(LOGGER_LEVEL) \
+	--build-arg LOGGER_LEVEL_EXTRAS=$(LOGGER_LEVEL_EXTRAS) \
 	-e API_BASE=$(API_BASE) \
 	--name $$SN $(D) $(LATEST) $(LAU) ;\
 	#if [ $$? -gt 0 ]; then echo *** Launch failed; false; else \
@@ -104,7 +107,7 @@ launch_server:
 
 launch_test_server:
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
-	$(MAKE) launch_server PORT=$(TEST_PORT) EXTPORT=$(TEST_PORT) LOGGER_LEVEL=$(LOGGER_LEVEL) #LATEST=mhastro/httppool
+	$(MAKE) launch_server PORT=$(TEST_PORT) EXTPORT=$(TEST_PORT) LOGGER_LEVEL=$(LOGGER_LEVEL) LOGGER_LEVEL_EXTRAS=$(LOGGER_LEVEL_EXTRAS) #LATEST=mhastro/httppool
 
 rm_docker:
 	cids=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\

@@ -228,22 +228,29 @@ def get_mqtt_config():
 
 if __name__ == '__main__':
 
+    logger = logging.getLogger()
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
+    parser.add_argument("name1", metavar='NAME', nargs='?',
+                        help="Value of the name parameter in the config file.")
     parser.add_argument("-n", "--name",
                         default=None, help="Value of the name parameter in the config file.")
     parser.add_argument("-c", "--conf",
                         default='pns', help="Configuration ID. default 'pns', so the file is 'pnslocal.py'.")
     parser.add_argument("-f", "--force",  action='store_true',
                         default=False, help="")
+    parser.add_argument("-d", "--debug",  action='store_true',
+                        default=False, help="")
 
     args, remainings = parser.parse_known_args(args=sys.argv[1:])
 
-    if args.name is not None:
-        conf = getConfig(args.name, conf=args.conf, force=args.force)
-    conf = getConfig(name=args.url_of, conf=args.conf, force=args.force)
+    logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
+    # logger.info
+    print(logger.getEffectiveLevel(), f'args: {args}')
+    name0 = args.name1 if args.name is None else args.name
+    conf = getConfig(name0, conf=args.conf, force=args.force)
     if issubclass(conf.__class__, dict):
         # dictionart of all config items.
         print(json.dumps(conf, indent=4))

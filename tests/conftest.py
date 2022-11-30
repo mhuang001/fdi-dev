@@ -194,6 +194,7 @@ def background_app():
 
         assert sta['returncode'] in (
             0, -signal.SIGTERM, -signal.SIGKILL,  signal.SIGHUP), logg
+        time.sleep(10000)  # avoid trouble for pytest
         sys.exit(0)
     else:
         # main process

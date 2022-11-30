@@ -89,8 +89,11 @@ elif conf == 'production':
     pnsconfig['self_port'] = 9876
     pnsconfig['self_username'] = 'fdi'
     pnsconfig['self_password'] = 'ONLY_IF_NEEDED'
-    pnsconfig['base_local_poolpath'] = '/var/httppool'
-    pnsconfig['server_local_poolpath'] = '/var/httppool/data'  # For server
+    # For server. needed for test_pal so this should point to a locally
+    # writeable dir. If needed to change for a server, do it with
+    # an environment var.
+    pnsconfig['base_local_poolpath'] = '/tmp/httppool'
+    pnsconfig['server_local_poolpath'] = pnsconfig['base_local_poolpath'] + '/data'
 
     pnsconfig['USERS'] = [
         {'username': 'foo',

@@ -600,9 +600,17 @@ def test_getConfig_ENV(getConfig):
     check_conf(cp, typ, getConfig)
 
     # env var overrides
+    before = getConfig(conf=typ)
+    assert 98 == before['jk']
+    assert before['username'] != 'fungi'
     os.environ[typ.upper()+'_JK'] = 'shroom'
     assert typ.upper()+'_JK' in os.environ
+    # with pytest.raises(KeyError):
+    # a new mapping is generated without jk
     assert getConfig('jk', conf=typ) == 'shroom'
+    os.environ[typ.upper()+'_USERNAME'] = 'fungi'
+    pc = getConfig(conf=typ)
+    assert pc['username'] == 'fungi'
 
 
 def test_getConfig_conf(getConfig):

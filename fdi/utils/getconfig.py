@@ -78,12 +78,8 @@ def get_file_conf(conf):
 
 
 def cget(name, conf='pns', builtin=None):
+    osenviron = os.environ
 
-    if name:
-        cn = '%s_%s' % (conf, name)
-        env_var = cn.upper()
-        if env_var in os.environ:
-            return os.environ[env_var]
     if builtin is None:
         builtin = builtin_conf
     config = copy.copy(builtin)
@@ -92,7 +88,20 @@ def cget(name, conf='pns', builtin=None):
     if name is None:
         # name not given
         logger.debug(f'Dumping config {conf}.')
-        return config
+        res = {}
+        for k, v in config.items():
+            cn = '%s_%s' % (conf, k)
+            env_var = cn.upper()
+            res[k] = osenviron.get(env_var, v)
+        return res
+    if name not in config:
+        raise KeyError(f'{name} is not found in config {conf}.')
+    # chec env first
+    cn = '%s_%s' % (conf, name)
+    env_var = cn.upper()
+    if env_var in osenviron:
+        logger.debug(f'found value for {name} in Env.')
+        return osenviron[env_var]
     var = config[name]
     logger.debug(f'Get  {name} : {var}.')
     return var
@@ -118,7 +127,8 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
     by default. It can be modified by the environment
     variable ``<uppercased conf>_CONF_DIR``, e.g. `PNS_CONF_DIR`..
 
-    The configuration value is overridden by that of an environment
+    An exisiting configuration value can be overridden
+    by that of an environment
     variable named `<uppercased <conf>_<name>`. For example configuration
     of `host` is overridden by the value of envirionment variable
     `PNS_HOST`.
@@ -129,7 +139,8 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
         If found to be a key in ``poolurl_of`` in dict `<conf>config`,
         the value poolurl is returned, else construct a poolurl with
         ```scheme``` and ```node``` with ```/{name}``` at the end.
-        Default ```None```.
+        Default ```None```, a mapping of all configured items 
+        corrected with envirionment variables is returned..
     conf : str
          File `<conf>local.py`` defines configuration key-value
          pairs in `dict` named `<conf>config. Default 'pns', so the

@@ -53,7 +53,7 @@ if conf == 'dev':
     # username, passwd, flask ip, flask port.
     # For test clients. the username/password must match ['USERS'][0]
     pnsconfig['username'] = 'foo'
-    pnsconfig['password': 'bar']
+    pnsconfig['password'] = 'bar'
     pnsconfig['host'] = '127.0.0.1'
     pnsconfig['port'] = 9885
 

@@ -63,11 +63,11 @@ RUN cp ./fdi/fdi/httppool/resources/httppool_server_entrypoint_uwsgi.sh . \
 # self test with mock server. tests and the mock server use
 # "production" settings in ~/.config/pnsconfig.py (copied from config.py).
 RUN cd fdi \
-&& envs \
+&& env \
 && make testhttp L=${PNS_LOGGER_LEVEL} T='--setup-show' \
 # && python3.8 -m pytest -r P -v -l -s --show-capture=all  --log-level=INFO   tests/serv/test_httppool.py
 
-RUN echo cat ./env \
+RUN echo cat ./envs \
 && ./httppool_server_entrypoint_uwsgi.sh no-run
 
 RUN cp fdi/fdi/httppool/resources/httppool_server_uwsgi.ini . \

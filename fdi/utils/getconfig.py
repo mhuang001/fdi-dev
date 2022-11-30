@@ -233,7 +233,7 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument("name1", metavar='NAME', nargs='?',
+    parser.add_argument("name_pos", metavar='NAME', nargs='?',
                         help="Value of the name parameter in the config file.")
     parser.add_argument("-n", "--name",
                         default=None, help="Value of the name parameter in the config file.")
@@ -246,10 +246,9 @@ if __name__ == '__main__':
 
     args, remainings = parser.parse_known_args(args=sys.argv[1:])
 
-    logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
-    # logger.info
-    print(logger.getEffectiveLevel(), f'args: {args}')
-    name0 = args.name1 if args.name is None else args.name
+    if args.debug:
+        print(f'args: {args}')
+    name0 = args.name_pos if args.name is None else args.name
     conf = getConfig(name0, conf=args.conf, force=args.force)
     if issubclass(conf.__class__, dict):
         # dictionart of all config items.

@@ -40,7 +40,11 @@ It will create a pool at /data/demopool_user/
 
 """
 
-pnsconfig['server_local_poolpath'] = '/tmp/data'
+# For server. If needed for test_pal this should point to a locally
+# writeable dir. If needed to change for a server, do it with
+# an environment var.
+pnsconfig['base_local_poolpath'] = '/tmp/httppool'
+pnsconfig['server_local_poolpath'] = pnsconfig['base_local_poolpath'] + '/data'
 pnsconfig['defaultpool'] = 'default'
 
 # choose from pre-defined profiles. 'production' is for making docker image.
@@ -149,10 +153,10 @@ pnsconfig.update(dict(
 ))
 
 # OSS config
-pnsconfig['oss'] = dict(
-    access_key_id=None,
-    access_key_secret=None,
-    bucket_name=None,
-    endpoint=None,
-    prefix=None
-)
+pnsconfig.update(dict(
+    oss_access_key_id=None,
+    oss_access_key_secret=None,
+    oss_bucket_name=None,
+    oss_endpoint=None,
+    oss_prefix=None
+))

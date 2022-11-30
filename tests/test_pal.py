@@ -740,10 +740,10 @@ def test_ProdStorage_func_http(server, userpass):
     check_prodStorage_func_for_pool(thepoolname, thepoolurl, userpass)
 
 
-def test_ProdStorage_func_server(local_pools_dir):
+def test_ProdStorage_func_server():
     # httppool , the http server-side pool
     thepoolname = 'server'+Test_Pool_Name
-    thepoolurl = 'server://' + local_pools_dir + '/' + thepoolname
+    thepoolurl = 'server://' + '/tmp/fditest' + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
     check_prodStorage_func_for_pool(thepoolname, thepoolurl, None)

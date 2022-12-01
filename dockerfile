@@ -131,8 +131,7 @@ RUN mkdir -p ${UHOME}/.config \
 && cp fdi/fdi/pns/config.py ${UHOME}/.config/pnslocal.py
 
 # modify pnslocal.py
-RUN cat ./envs \
-&& ./dockerfile_entrypoint.sh  no-run  
+RUN ./dockerfile_entrypoint.sh  no-run  
 
 WORKDIR ${PKGS_DIR}/${PKG}/
 ARG TEST_OPTS=""

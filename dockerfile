@@ -42,7 +42,7 @@ RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo -K UM
 # update ~/.config/pnslocal.py so test can be run with correct settings
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sed -i -e 's/=/:=/' -e 's/^/s=${/' -e 's/$/}/' ./envs \
-&& cat ./envs \
+&& cat ./env \
 && sudo chown -R ${USR}:${USR} .
 
 # Run as user

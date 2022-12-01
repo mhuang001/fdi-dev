@@ -25,11 +25,8 @@ endif
 
 PORT        =9885
 
-ifndef apache
 SECFILE = $${HOME}/.secret
-else
-SECFILE = $${HOME}/.secret
-endif
+SECFILE_SERV = $${HOME}/.secret_serv
 
 EXTPORT =$(PORT)
 IP_ADDR     =0.0.0.0
@@ -78,7 +75,7 @@ launch_docker:
 build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SERVER_VERSION) \
 	--network=$(NETWORK) \
-	--secret id=envs,src=$(SECFILE) \
+	--secret id=envs,src=$(SECFILE_SERV) \
 	--build-arg SERVER_LOCAL_POOLPATH=$(SERVER_LOCAL_POOLPATH) \
 	--build-arg fd=$(fd) \
 	--build-arg re=$(re) \
@@ -95,7 +92,7 @@ launch_server:
 	docker run -dit --network=$(NETWORK) \
 	--mount source=httppool,target=$(SERVER_LOCAL_POOLPATH) \
 	--mount source=log,target=/var/log_mounted \
-	--env-file $(SECFILE) \
+	--env-file $(SECFILE_SERV) \
 	-p $(PORT):$(EXTPORT) \
 	-e PNS_HOST_PORT=$(PORT) \
 	-e PNS_LOGGER_LEVEL=$(LOGGER_LEVEL) \

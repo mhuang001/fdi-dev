@@ -41,6 +41,8 @@ RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo -K UM
 # get passwords etc from ~/.secret
 # RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . 
 
+RUN sudo chown -R ${USR}:${USR} .
+
 # Run as user
 USER ${USR}
 

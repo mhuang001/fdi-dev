@@ -16,6 +16,7 @@ from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
 from fdi.utils.tree import tree
 from fdi.utils.loadfiles import loadMedia
+from fdi.utils.getconfig import getConfig
 
 import traceback
 import importlib
@@ -557,7 +558,7 @@ def check_conf(cfp, typ, getConfig):
     assert getConfig('poolurl:foo') == getConfig('poolurl')+'/foo'
 
 
-def test_getConfig_init(getConfig):
+def test_getConfig_init():
 
     # no arg
     v = getConfig()
@@ -583,7 +584,7 @@ def test_getConfig_init(getConfig):
     assert all(v == f[k] for k, v in v_diff.items())
 
 
-def test_getConfig_ENV(getConfig):
+def test_getConfig_ENV():
 
     # non-default conf type
     typ = 'xyz'
@@ -613,7 +614,7 @@ def test_getConfig_ENV(getConfig):
     assert pc['username'] == 'fungi'
 
 
-def test_getConfig_conf(getConfig):
+def test_getConfig_conf():
     # clear previous load
     importlib.invalidate_caches()
     # non-default conf type

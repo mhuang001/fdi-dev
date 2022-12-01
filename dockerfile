@@ -140,7 +140,7 @@ RUN pwd \
 && ls -ls \
 && env \
 &&  python3 -m pip list \
-&& make -s -S T=\"${TEST_OPTS}\"
+&& make -s -S T='${TEST_OPTS}'
 #\
 #&& rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
 

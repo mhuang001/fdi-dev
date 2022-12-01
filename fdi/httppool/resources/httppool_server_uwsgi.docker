@@ -68,7 +68,7 @@ RUN cp ./fdi/fdi/httppool/resources/httppool_server_entrypoint_uwsgi.sh . \
 ARG TEST_OPTS=""
 RUN cd fdi \
 && env \
-&& make testhttp T=\"${TEST_OPTS}\" \
+&& make testhttp T='${TEST_OPTS}' \
 # && python3.8 -m pytest -r P -v -l -s --show-capture=all  --log-level=INFO   tests/serv/test_httppool.py
 
 RUN echo cat ./envs \

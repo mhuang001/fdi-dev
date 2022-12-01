@@ -3,9 +3,9 @@
 id | tee ~/last_entrypoint.log
 echo ###### update env using .env 
 
-set -a
-source ./envs
-echo rm ./envs
+#set -a
+#source ./envs
+#echo rm ./envs
 
 # if not set.
 s=${UWSGIOPT:=''}

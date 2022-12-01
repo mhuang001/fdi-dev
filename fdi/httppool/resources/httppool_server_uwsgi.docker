@@ -63,7 +63,14 @@ USER ${USR}
 RUN cp ./fdi/fdi/httppool/resources/httppool_server_entrypoint_uwsgi.sh . \
 && chmod 755 ./httppool_server_entrypoint_uwsgi.sh; ls -l 
 
-RUN ./httppool_server_entrypoint_uwsgi.sh no-run
+RUN set -a \
+&& source ./envs \
+&& echo rm ./envs \
+&& s=${UWSGIOPT:=''} \
+&& set +a \
+&& ./httppool_server_entrypoint_uwsgi.sh no-run
+
+sed -i "s/^conf\s*=\s*.*$/conf = 'production'/g" ~/.config/pnslocal.py 
 
 # self test with mock server. tests and the mock server use
 # "production" settings in ~/.config/pnsconfig.py (copied from config.py).

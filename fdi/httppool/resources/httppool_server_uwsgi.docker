@@ -67,7 +67,7 @@ ARG TEST_OPTS=""
 
 RUN env
 
-RUN && . ./envs \
+RUN . ./envs \
 && echo do not rm ./envs \
 && export UWSGIOPT=''} \
 && ./httppool_server_entrypoint_uwsgi.sh no-run

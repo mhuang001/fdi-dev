@@ -134,10 +134,11 @@ RUN cat ./envs \
 && ./dockerfile_entrypoint.sh  no-run  
 
 WORKDIR ${PKGS_DIR}/${PKG}/
+ARG TEST_OPTS=""
 RUN pwd \
 && ls -ls \
 &&  python3 -m pip list \
-&& make -s -S test
+&& make -s -S test ${TEST_OPTS}
 #\
 #&& rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
 

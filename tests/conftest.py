@@ -37,7 +37,7 @@ from logdict import logdict
 logging.config.dictConfig(logdict)
 
 logger = logging.getLogger(__name__)
-
+print('**conftest effective logging level** ', logger.getEffectiveLevel())
 EX = ' -l /tmp/foo.log'
 
 RUN_SERVER_IN_BACKGROUND = 'python3.8 httppool_app.py --server=httppool_server'
@@ -65,7 +65,9 @@ def pc(clean_board):
 
     """
     from fdi.utils.getconfig import getConfig as getc
-    return getc(force=True)
+    pns = getc(force=True)
+    logger.debug(json.dumps(pns))
+    return pns
 
 
 @ pytest.fixture(scope="session")

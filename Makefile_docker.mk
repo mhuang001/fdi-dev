@@ -64,6 +64,7 @@ build_docker:
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
+	--build-arg TEST_OPTS='L=10 -r P --setup-show' \
 	--build-arg LOGGER_LEVEL=$(LOGGER_LEVEL) \
 	--build-arg LOGGER_LEVEL_EXTRAS=$(LOGGER_LEVEL_EXTRAS) \
 	--build-arg DOCKER_VERSION=$(DOCKER_VERSION) \
@@ -81,6 +82,7 @@ build_server:
 	--build-arg SERVER_LOCAL_POOLPATH=$(SERVER_LOCAL_POOLPATH) \
 	--build-arg fd=$(fd) \
 	--build-arg re=$(re) \
+	--build-arg TEST_OPTS='L=10 -r P --setup-show' \
 	--build-arg SERVER_VERSION=$(SERVER_VERSION) \
 	--build-arg API_BASE=$(API_BASE) \
 	-f $(SFILE) \

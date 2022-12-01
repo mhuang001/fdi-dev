@@ -68,9 +68,8 @@ RUN set -a \
 && echo rm ./envs \
 && s=${UWSGIOPT:=''} \
 && set +a \
-&& ./httppool_server_entrypoint_uwsgi.sh no-run
-
-sed -i "s/^conf\s*=\s*.*$/conf = 'production'/g" ~/.config/pnslocal.py 
+&& ./httppool_server_entrypoint_uwsgi.sh no-run \
+&& sed -i "s/^conf\s*=\s*.*$/conf = 'production'/g" .config/pnslocal.py 
 
 # self test with mock server. tests and the mock server use
 # "production" settings in ~/.config/pnsconfig.py (copied from config.py).

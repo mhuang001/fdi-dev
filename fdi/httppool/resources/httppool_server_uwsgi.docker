@@ -50,7 +50,7 @@ RUN mkdir -p /var/log/uwsgi \
 # update ~/.config/pnslocal.py so test can be run with correct settings
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
 && sudo chown ${USR}:${USR} ./envs \
-&& sed -i -e 's/=/:=/' -e 's/^/s=${/' -e 's/$/}/' ./envs \
+&& sed -i -e 's/^/export /' ./envs \
 && cat ./envs
 
 # Changr user, configure permission
@@ -67,11 +67,9 @@ ARG TEST_OPTS=""
 
 RUN env
 
-RUN set -a \
-&& . ./envs \
-&& echo rm ./envs \
-&& s=${UWSGIOPT:=''} \
-&& set +a \
+RUN && . ./envs \
+&& echo do not rm ./envs \
+&& export UWSGIOPT=''} \
 && ./httppool_server_entrypoint_uwsgi.sh no-run
 # && sed -i "s/^conf\s*=\s*.*$/conf = 'production'/g" .config/pnslocal.py 
 

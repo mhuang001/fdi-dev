@@ -202,7 +202,7 @@ update_docker:
 	$(MAKE) docker_version &&\
 	python3 -m pip wheel --disable-pip-version-check --cache-dir $(PIPCACHE) --wheel-dir $(PIPWHEELS) -e .[DEV,SERV,SCI] &&\
 	python3 -m pip install $(PIPOPT) --no-index -f $(PIPWHEELS) -e .[DEV,SERV,SCI] &&\
-	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
+	echo $(MAKE) build_docker && echo $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\
 	$(MAKE) test7 && $(MAKE) test8 &&\

@@ -80,7 +80,7 @@ build_server:
 	--secret id=envs,src=$(SECFILE) \
 	--build-arg SERVER_LOCAL_POOLPATH=$(SERVER_LOCAL_POOLPATH) \
 	--build-arg fd=$(fd) \
-	--build-arg  re=$(re) \
+	--build-arg re=$(re) \
 	--build-arg SERVER_VERSION=$(SERVER_VERSION) \
 	--build-arg API_BASE=$(API_BASE) \
 	-f $(SFILE) \
@@ -92,18 +92,18 @@ launch_server:
 	SN=$(SERVER_NAME)$$(date +'%s') && \
 	docker run -dit --network=$(NETWORK) \
 	--mount source=httppool,target=$(SERVER_LOCAL_POOLPATH) \
-	# --mount source=log,target=/var/log \
+	--mount source=log,target=/var/log_mounted \
 	--env-file $(SECFILE) \
 	-p $(PORT):$(EXTPORT) \
-	-e HOST_PORT=$(PORT) \
-	-e LOGGER_LEVEL=$(LOGGER_LEVEL) \
-	--build-arg LOGGER_LEVEL_EXTRAS=$(LOGGER_LEVEL_EXTRAS) \
-	-e API_BASE=$(API_BASE) \
+	-e PNS_HOST_PORT=$(PORT) \
+	-e PNS_LOGGER_LEVEL=$(LOGGER_LEVEL) \
+	-e PNS_LOGGER_LEVEL_EXTRAS=$(LOGGER_LEVEL_EXTRAS) \
+	-e PNS_API_BASE=$(API_BASE) \
 	--name $$SN $(D) $(LATEST) $(LAU) ;\
+	docker ps -n 1
 	#if [ $$? -gt 0 ]; then echo *** Launch failed; false; else \
 	sleep 2 ;\
 	#docker inspect $$SN ;\
-	docker ps -n 1 ;\
 
 launch_test_server:
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)

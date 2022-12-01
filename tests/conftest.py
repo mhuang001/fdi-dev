@@ -420,7 +420,8 @@ def tmp_prods():
                            'TP', 'SP'), 1):
         p = Class_Look_Up[n]('test-product-%d: %s' % (i, n))
         prds.append(p)
-    logger.debug("Made products: ", list((p.description, id(p)) for p in prds))
+    logger.debug("Made products: %s" %
+                 str(list((p.description, id(p)) for p in prds)))
 
     return tuple(prds)
 

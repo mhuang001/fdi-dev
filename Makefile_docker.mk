@@ -82,7 +82,7 @@ build_server:
 	--build-arg SERVER_LOCAL_POOLPATH=$(SERVER_LOCAL_POOLPATH) \
 	--build-arg fd=$(fd) \
 	--build-arg re=$(re) \
-	--build-arg TEST_OPTS='L=10 -r P --setup-show' \
+	--build-arg TEST_OPTS='L=10 T="-r P --setup-show"' \
 	--build-arg SERVER_VERSION=$(SERVER_VERSION) \
 	--build-arg API_BASE=$(API_BASE) \
 	-f $(SFILE) \

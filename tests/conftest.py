@@ -59,12 +59,6 @@ def clean_board():
     return Classes.mapping
 
 
-@ pytest.fixture(scope="package")
-def getConfig(clean_board):
-    from fdi.utils.getconfig import getConfig as getcfg
-    return getcfg
-
-
 @ pytest.fixture(scope="session")
 def pc(clean_board):
     """ get configuration.

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.2
 
 FROM fdi:latest
-# 0.2-5 M. Huang <mhuang@nao.cas.cn>
+# 0.2-6 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 
 USER root
@@ -9,13 +9,15 @@ RUN apt-get update \
 && DEBIAN_FRONTEND=noninteractive apt-get install -y curl \
 && rm -rf /var/lib/apt/lists/*
 
+# rebuild mark
+ARG re=rebuild
+RUN echo ${re} > /tmp/rebuild_mark
+
 # setup user
 ARG USR=fdi
 # home is fdi git home
 ARG UHOME=/home/${USR}
 
-# rebuild mark
-ARG re=rebuild
 ARG LOGGER_LEVEL=10
 ENV PNS_LOGGER_LEVEL=${LOGGER_LEVEL}
 ARG LOGGER_LEVEL_EXTRAS=30
@@ -47,7 +49,7 @@ RUN mkdir -p /var/log/uwsgi \
 
 # update ~/.config/pnslocal.py so test can be run with correct settings
 RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
-&& sudo chown ${USR} ./envs \
+&& sudo chown ${USR}:${USR} ./envs \
 && sed -i -e 's/=/:=/' -e 's/^/s=${/' -e 's/$/}/' ./envs
 
 # Changr user, configure permission

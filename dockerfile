@@ -20,6 +20,7 @@ RUN ln -s /usr/lib/x86_64-linux-gnu/libpython$libpython${PYTHON_VER}.so.1.0 /usr
 
 # rebuild mark
 ARG re=rebuild
+RUN echo ${re} > /tmp/rebuild_mark
 
 # setup env
 

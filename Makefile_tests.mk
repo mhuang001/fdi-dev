@@ -37,7 +37,7 @@ test8:
 	$(PYTEST) $(OPT) tests/test_pal.py -k '_http and not _csdb' $(T)
 
 test9:
-	$(PYTEST) tests/test_dataset.py -k '_mqtt' $(T)
+	$(PYTEST) $(OPT) tests/test_dataset.py -k '_mqtt' $(T)
 
 test10:
 	$(PYTEST) $(OPT) tests/test_fits.py $(T)

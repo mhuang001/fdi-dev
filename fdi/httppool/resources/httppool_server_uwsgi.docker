@@ -75,9 +75,9 @@ RUN . ./envs \
 
 # self test with mock server. tests and the mock server use
 # "production" settings in ~/.config/pnsconfig.py (copied from config.py).
-RUN cd fdi \
-&& env \
-&& make testhttp T='${TEST_OPTS}'
+#RUN cd fdi \
+#&& env \
+#&& make testhttp T='${TEST_OPTS}'
 
 RUN cp fdi/fdi/httppool/resources/httppool_server_uwsgi.ini . \
 && echo ln fdi/wsgi.py .

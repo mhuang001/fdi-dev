@@ -64,7 +64,7 @@ RUN cp ./fdi/fdi/httppool/resources/httppool_server_entrypoint_uwsgi.sh . \
 && chmod 755 ./httppool_server_entrypoint_uwsgi.sh; ls -l 
 
 RUN set -a \
-&& source ./envs \
+&& . ./envs \
 && echo rm ./envs \
 && s=${UWSGIOPT:=''} \
 && set +a \

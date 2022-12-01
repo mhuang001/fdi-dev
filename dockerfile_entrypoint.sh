@@ -1,18 +1,12 @@
 #!/bin/bash
 
-id | tee ~/lastent
+id | tee ~/lastent_docker
 echo ######
-
-set -a
-source ./envs
-echo do not rm ./envs
-set +a
-
 
 rm -rf /tmp/fditest* /tmp/data
 
-date >> ~/lastent
-cat ~/lastent
+date >> ~/lastent_docker
+cat ~/lastent_docker
 
 echo @@@ $@
 for i in $@; do

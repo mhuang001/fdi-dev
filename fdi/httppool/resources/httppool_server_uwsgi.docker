@@ -47,13 +47,7 @@ RUN mkdir -p /var/log/uwsgi \
 && ln -s /var/log/uwsgi/error.log . \
 && ln -s  ${PNS_SERVER_LOCAL_POOLPATH} data
 
-# update ~/.config/pnslocal.py so test can be run with correct settings
-RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
-&& sudo chown ${USR}:${USR} ./envs \
-&& sed -i -e 's/=/:=/' -e 's/^/s=${/' -e 's/$/}/' ./envs \
-&& cat ./envs
-
-# Changr user, configure permission
+# Change user, configure permission
 RUN for i in  ${PNS_SERVER_LOCAL_POOLPATH}/.. /var/log/uwsgi ${UHOME}/*; \
 do chown ${USR}:${USR} $i; echo $i; done ;echo  owner ${USR}
 
@@ -63,21 +57,7 @@ USER ${USR}
 RUN cp ./fdi/fdi/httppool/resources/httppool_server_entrypoint_uwsgi.sh . \
 && chmod 755 ./httppool_server_entrypoint_uwsgi.sh; ls -l 
 
-ARG TEST_OPTS=""
-
 RUN env
-
-RUN . ./envs \
-&& echo do not rm ./envs \
-&& export UWSGIOPT=''} \
-&& ./httppool_server_entrypoint_uwsgi.sh no-run
-
-
-# self test with mock server. tests and the mock server use
-# "production" settings in ~/.config/pnsconfig.py (copied from config.py).
-#RUN cd fdi \
-#&& env \
-#&& make testhttp T='${TEST_OPTS}'
 
 RUN cp fdi/fdi/httppool/resources/httppool_server_uwsgi.ini . \
 && echo ln fdi/wsgi.py .

@@ -72,6 +72,10 @@ build_docker:
 launch_docker:
 	docker run -dit --network=$(NETWORK) --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):latest $(LAU)
 
+test_docker:
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	docker exec -it $$cid sh -c '(cd fdi; make test)'
+
 build_server:
 	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SERVER_VERSION) \
 	--network=$(NETWORK) \
@@ -107,6 +111,10 @@ launch_server:
 launch_test_server:
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
 	$(MAKE) launch_server PORT=$(TEST_PORT) EXTPORT=$(TEST_PORT) LOGGER_LEVEL=$(LOGGER_LEVEL) LOGGER_LEVEL_EXTRAS=$(LOGGER_LEVEL_EXTRAS) #LATEST=mhastro/httppool
+
+test_server:
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	docker exec -it $$cid sh -c '(cd fdi; make testhttp)'
 
 rm_docker:
 	cids=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
@@ -202,10 +210,10 @@ update_docker:
 	$(MAKE) docker_version &&\
 	python3 -m pip wheel --disable-pip-version-check --cache-dir $(PIPCACHE) --wheel-dir $(PIPWHEELS) -e .[DEV,SERV,SCI] &&\
 	python3 -m pip install $(PIPOPT) --no-index -f $(PIPWHEELS) -e .[DEV,SERV,SCI] &&\
-	echo $(MAKE) build_docker && echo $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
+	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\
-	$(MAKE) test7 && $(MAKE) test8 &&\
+	$(MAKE) test_server &&\
 	$(MAKE) rm_docker ) 2>&1 | tee update.log
 	@echo Done. `cat docker_version`
 

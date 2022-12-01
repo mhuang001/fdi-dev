@@ -39,11 +39,7 @@ RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo -K UM
 && /bin/echo -e '\n'${USR} ALL = NOPASSWD: ALL >> /etc/sudoers
 
 # get passwords etc from ~/.secret
-# update ~/.config/pnslocal.py so test can be run with correct settings
-RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . \
-&& sed -i -e 's/=/:=/' -e 's/^/s=${/' -e 's/$/}/' ./envs \
-&& cat ./envs \
-&& sudo chown -R ${USR}:${USR} .
+# RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . 
 
 # Run as user
 USER ${USR}
@@ -111,7 +107,7 @@ RUN cat profile >> .bashrc && rm profile
 ### RUN chmod 700 -R ${UHOME}/.ssh
 ### RUN ls -la ${UHOME}/.ssh
 
-# install and test fdi
+# install fdi
 ARG fd=rebuild
 
 WORKDIR ${PKGS_DIR}/${PKG}
@@ -122,7 +118,6 @@ RUN umask 0002 \
 
 WORKDIR ${PKGS_DIR}
 
-# dockerfile_entrypoint.sh replaces IP/ports and configurations.
 # GET THE LOCAL COPY, with possible uncommitted changes
 RUN cp fdi/dockerfile_entrypoint.sh ./ \
 &&  chmod 755 dockerfile_entrypoint.sh
@@ -130,17 +125,7 @@ RUN cp fdi/dockerfile_entrypoint.sh ./ \
 RUN mkdir -p ${UHOME}/.config \
 && cp fdi/fdi/pns/config.py ${UHOME}/.config/pnslocal.py
 
-# modify pnslocal.py
-RUN ./dockerfile_entrypoint.sh  no-run  
 
-WORKDIR ${PKGS_DIR}/${PKG}/
-ARG TEST_OPTS=""
-RUN pwd \
-&& ls -ls \
-&& env \
-&&  python3 -m pip list \
-&& make -s -S T='${TEST_OPTS}'
-#\
 #&& rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
 
 WORKDIR ${UHOME}

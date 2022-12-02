@@ -8,13 +8,8 @@ DOCKER_NAME	= fdi
 DOCKER_VERSION   =$(shell if [ -f docker_version ]; then cat docker_version; fi)
 DFILE	=fdi/dockerfile
 
-ifndef apache
 SERVER_NAME      =httppool
 API_BASE = $(shell python -m fdi.utils.getconfig api_base)
-else
-SERVER_NAME      =httppool
-API_BASE = $(shell python -m fdi.utils.getconfig api_base)
-endif
 
 SERVER_VERSION	= $(DOCKER_VERSION)
 ifndef apache
@@ -30,7 +25,7 @@ SECFILE_SERV = $${HOME}/.secret_serv
 
 EXTPORT =$(PORT)
 IP_ADDR     =0.0.0.0
-SERVSERVSERVER_LOCAL_POOLPATH	= /var/www/httppool_server/data
+SERVER_LOCAL_POOLPATH	= /var/www/httppool_server/data
 LOGGER_LEVEL	= 10
 LOGGER_LEVEL_EXTRAS	= 30
 

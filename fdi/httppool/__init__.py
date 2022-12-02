@@ -106,8 +106,8 @@ def setup_logging(level=None, extras=None, tofile=None):
     dict_config = dictConfig(basedict)
 
     if level is None:
-        level = logging.WARN
-    if level < logging.WARN:
+        level = logging.WARNING
+    if level < logging.WARNING:
         handler = logging.StreamHandler()
         handler.setFormatter(logging.Formatter("%(message)s"))
         logging_listener = QueueListener(
@@ -280,7 +280,7 @@ def create_app(config_object=None, level=None, debug=False, logstream=None):
 
     global logger
     logging = setup_logging(level=level,
-                            extras=config_object['logger_level_extras'],
+                            extras=int(config_object['logger_level_extras']),
                             tofile=logstream)
     logger = logging.getLogger('httppool_app')
 

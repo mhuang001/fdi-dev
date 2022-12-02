@@ -30,7 +30,7 @@ SECFILE_SERV = $${HOME}/.secret_serv
 
 EXTPORT =$(PORT)
 IP_ADDR     =0.0.0.0
-SERVER_LOCAL_POOLPATH	= /var/www/httppool_server/data
+SERVSERVSERVER_LOCAL_POOLPATH	= /var/www/httppool_server/data
 LOGGER_LEVEL	= 10
 LOGGER_LEVEL_EXTRAS	= 30
 
@@ -98,7 +98,7 @@ launch_server:
 	--mount source=log,target=/var/log_mounted \
 	--env-file $(SECFILE_SERV) \
 	-p $(PORT):$(EXTPORT) \
-	-e PNS_HOST_PORT=$(PORT) \
+	-e PNS_PORT=$(PORT) \
 	-e PNS_LOGGER_LEVEL=$(LOGGER_LEVEL) \
 	-e PNS_LOGGER_LEVEL_EXTRAS=$(LOGGER_LEVEL_EXTRAS) \
 	-e PNS_API_BASE=$(API_BASE) \
@@ -213,6 +213,7 @@ update_docker:
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\
+	$(MAKE) test_docker &&\
 	$(MAKE) test_server &&\
 	$(MAKE) rm_docker ) 2>&1 | tee update.log
 	@echo Done. `cat docker_version`

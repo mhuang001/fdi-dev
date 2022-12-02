@@ -86,7 +86,6 @@ RUN umask 0002 ; echo ${PIPOPT} \
 
 RUN python3 -c 'import sys;print(sys.path)' \
 &&  python3 -m pip list --format=columns \
-
 && which pip \
 && which python3
 # ;cat .venv/bin/pip
@@ -132,7 +131,7 @@ RUN mkdir -p ${UHOME}/.config \
 
 WORKDIR ${UHOME}
 
-RUN pwd; /bin/ls -la; \
+RUN pwd; /bin/ls -la; env \
 date > build
 
 ENTRYPOINT  ["/home/fdi/dockerfile_entrypoint.sh"]

@@ -510,7 +510,7 @@ def test_MqttRelay_mqtt(mocksndrlsnr):
                           port=None, username=None, passwd=None,
                           client_id='foo', callback=None, qos=1,
                           userdata=None, clean_session=None,)
-    # mqhost = v.mq._host
+    # mq_host = v.mq._host
     mf = MockFileWatcher()
     mf.addListener(v)
     w = MqttRelaySender(topics="test.mq.bounce2", host=None,

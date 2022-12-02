@@ -45,8 +45,8 @@ class MqttRelayListener(EventListener):
             clean_session=clean_session,
             userdata=userdata if userdata else self)
 
-        mq.username_pw_set(username if username else conf['mquser'],
-                           passwd if passwd else conf['mqpass'])
+        mq.username_pw_set(username if username else conf['mq_user'],
+                           passwd if passwd else conf['mq_pass'])
 
         self.mq = mq
         self.topics = topics
@@ -66,13 +66,13 @@ class MqttRelayListener(EventListener):
             return None
         self.topics_for_subscription = topics
 
-        self.host = host if host else conf['mqhost']
-        self.port = port if port else conf['mqport']
+        self.host = host if host else conf['mq_host']
+        self.port = port if port else conf['mq_port']
         self.qos = qos
 
         self.keepalive = True
-        self.username = username if username else conf['mquser']
-        self.passwd = passwd if passwd else conf['mqpass']
+        self.username = username if username else conf['mq_user']
+        self.passwd = passwd if passwd else conf['mq_pass']
         mq.username_pw_set(self.username, self.passwd)
 
         #mq.on_message = callback if callback else on_message
@@ -130,11 +130,11 @@ class MqttRelaySender(EventSender):
             clean_session=clean_session,
             userdata=userdata if userdata else self)
 
-        username = username if username else conf['mquser']
-        passwd = passwd if passwd else conf['mqpass']
+        username = username if username else conf['mq_user']
+        passwd = passwd if passwd else conf['mq_pass']
         mq.username_pw_set(username, passwd)
-        host = host if host else conf['mqhost']
-        port = port if port else conf['mqport']
+        host = host if host else conf['mq_host']
+        port = port if port else conf['mq_port']
         mq.on_message = on_message
         mq.connect(host, port, keepalive=keepalive)
         logger.debug("Connect " + host + ":" + str(port))

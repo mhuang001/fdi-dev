@@ -132,18 +132,18 @@ pnsconfig['cloud_baseurl'] = pnsconfig['cloud_api_base'] + \
 
 # message queue config
 pnsconfig.update(dict(
-    mqhost='172.17.0.1',
-    mqport=9876,
-    mquser='',
-    mqpass='',
+    mq_host='172.17.0.1',
+    mq_port=9876,
+    mq_user='',
+    mq_pass='',
 ))
 
 # pipeline config
 pnsconfig.update(dict(
-    pipelinehost='172.17.0.1',
-    pipelineport=9876,
-    pipelineuser='',
-    pipelinepass='',
+    pipeline_host='172.17.0.1',
+    pipeline_port=9876,
+    pipeline_user='',
+    pipeline_pass='',
 ))
 
 # OSS config

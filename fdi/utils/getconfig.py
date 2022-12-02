@@ -224,16 +224,17 @@ def get_mqtt_config():
     """ Get configured MQTT info from project configuration file.
 
     Overrideable by uppercased environment variables.
-    Note that there is a '_' in the envirionment variable name, e.g. ```MQ_HOST``` for ```pc['mqhost']```
+    Note that there is a 'PNS_' in the beginning environment variable 
+    name, e.g. ```PNS_MQ_HOST``` for ```pc['mq_host']```
     ref `fdi.utils.getConfig` and your local ```~/.config/pnslocal.py```
     """
     pc = getConfig()
     # default mqtt settings
     mqttargs = dict(
-        mqhost=os.getenv('MQ_HOST', pc['mqhost']),
-        mqport=os.getenv('MQ_PORT', pc['mqport']),
-        mquser=os.getenv('MQ_USER', pc['mquser']),
-        mqpass=os.getenv('MQ_PASS', pc['mqpass']),
+        mqhost=pc['mq_host'],
+        mqport=pc['mq_port'],
+        mquser=pc['mq_user'],
+        mqpass=pc['mq_pass'],
         qos=1,
         clean_session=True,
         client_id=socket.gethostname()+'_' + getpass.getuser()+'_' + str(os.getpid())

@@ -231,10 +231,10 @@ def get_mqtt_config():
     pc = getConfig()
     # default mqtt settings
     mqttargs = dict(
-        mqhost=pc['mq_host'],
-        mqport=pc['mq_port'],
-        mquser=pc['mq_user'],
-        mqpass=pc['mq_pass'],
+        mq_host=pc['mq_host'],
+        mq_port=pc['mq_port'],
+        mq_user=pc['mq_user'],
+        mq_pass=pc['mq_pass'],
         qos=1,
         clean_session=True,
         client_id=socket.gethostname()+'_' + getpass.getuser()+'_' + str(os.getpid())

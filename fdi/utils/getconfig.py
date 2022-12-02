@@ -77,6 +77,16 @@ def get_file_conf(conf):
     return copy.deepcopy(getattr(module, var_name))
 
 
+def check_env(config, conf, osenviron, name):
+    cn = '%s_%s' % (conf, name)
+    env_var = cn.upper()
+    if env_var in osenviron:
+        logger.debug(f'found value for {name} in Env.')
+        return osenviron[env_var]
+    else:
+        return config[name]
+
+
 def cget(name, conf='pns', builtin=None):
     osenviron = os.environ
 
@@ -94,27 +104,23 @@ def cget(name, conf='pns', builtin=None):
             env_var = cn.upper()
             res[k] = osenviron.get(env_var, v)
         return res
+    withEnv = functools.partial(check_env, config, conf, osenviron)
     if name not in config:
         # check if request poolurn
         if name.startswith(_url_mark):
             # return poolurl if name startswith `poolurl`
             logger.debug('Getting poolurl by {name}.')
-            purl = ''.join((config['scheme'], '://',
-                            config['host'], ':',
-                            str(config['port']),
-                            config['baseurl']
+            purl = ''.join((withEnv('scheme'), '://',
+                            withEnv('host'), ':',
+                            str(withEnv('port')),
+                            withEnv('baseurl')
                             ))
             # with the name
             return '%s/%s' % (purl, name[_len_um:])
         else:
             raise KeyError(f'{name} is not found in config {conf}.')
     # check env first
-    cn = '%s_%s' % (conf, name)
-    env_var = cn.upper()
-    if env_var in osenviron:
-        logger.debug(f'found value for {name} in Env.')
-        return osenviron[env_var]
-    var = config[name]
+    var = withEnv(name)
     logger.debug(f'Get  {name} : {var}.')
     return var
 

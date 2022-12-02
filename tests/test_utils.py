@@ -37,7 +37,7 @@ else:
     PY3 = False
 
 # make format output in /tmp/outputs.py
-mk_outputs = 1
+mk_outputs = 0
 output_write = 'tests/outputs_utils.py'
 
 if mk_outputs:
@@ -622,6 +622,9 @@ def test_getConfig_ENV():
     os.environ[typ.upper()+'_USERNAME'] = 'fungi'
     con = getConfig(conf=typ)
     assert con['username'] == 'fungi'
+
+    os.environ[typ.upper()+'_HOST'] = 'lichen'
+    assert '://lichen:' in getConfig('poolurl:', conf=typ)
 
 
 def test_getConfig_conf():

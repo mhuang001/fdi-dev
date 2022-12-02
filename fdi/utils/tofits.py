@@ -30,7 +30,7 @@ debug = False
 typecode2np = {
     "b": np.int8,    # signed char
     "B": np.uint8,   # unsigned char
-    "u": np.str,     # string
+    "u": str,     # string
     "h": np.int16,   # signed short
     "H": np.uint16,  # unsigned integer
     "i": np.int16,   # signed integer
@@ -43,9 +43,9 @@ typecode2np = {
     "d": np.float64,   # double
     "c": np.complex64,  # complex
     "c128": np.complex128,  # complex 128 b
-    "t": np.bool,       # truth value
+    "t": bool,       # truth value
     "V": np.void,       # raw bytes block of fixed length
-    "U": np.str
+    "U": str
 }
 
 

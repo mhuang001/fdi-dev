@@ -117,12 +117,6 @@ else:
 # See document in :class:`Classes`
 pnsconfig['userclasses'] = ''
 
-pnsconfig['poolurl'] = ''.join((pnsconfig['scheme'], '://',
-                                pnsconfig['host'], ':',
-                                str(pnsconfig['port']),
-                                pnsconfig['baseurl']
-                                ))
-
 ############## project specific ####################
 pnsconfig['cloud_token'] = '/tmp/.cloud_token'
 pnsconfig['cloud_username'] = 'mh'

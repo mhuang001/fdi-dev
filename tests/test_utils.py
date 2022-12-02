@@ -554,9 +554,6 @@ def check_conf(cfp, typ, getConfig):
         assert w['jk'] == 33 == getConfig('jk', conf=typ)
         os.unlink(filec)
 
-    # getting url
-    assert getConfig('poolurl:foo') == getConfig('poolurl')+'/foo'
-
 
 def test_getConfig_init():
 
@@ -566,6 +563,19 @@ def test_getConfig_init():
     # default settings enables default config+pnslocal
     # v is a superset
     assert all(n in v for n in defaultconf)
+
+    # get value of normal item
+    assert getConfig('scheme').startswith('http')
+    # get url
+    con = getConfig()
+    purl = ''.join((con['scheme'], '://',
+                    con['host'], ':',
+                    str(con['port']),
+                    con['baseurl']
+                    ))
+
+    assert getConfig('poolurl:') == purl + '/'
+    assert getConfig('poolurl:foo') == purl + '/' + 'foo'
 
     logging.debug('Test non-exisiting.')
     # builtin is {} means not using the default config.
@@ -610,8 +620,8 @@ def test_getConfig_ENV():
     # a new mapping is generated without jk
     assert getConfig('jk', conf=typ) == 'shroom'
     os.environ[typ.upper()+'_USERNAME'] = 'fungi'
-    pc = getConfig(conf=typ)
-    assert pc['username'] == 'fungi'
+    con = getConfig(conf=typ)
+    assert con['username'] == 'fungi'
 
 
 def test_getConfig_conf():

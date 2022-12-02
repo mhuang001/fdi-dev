@@ -133,7 +133,7 @@ def test_com_fits(makecom):
     "C": "c",  # complex
     "M": "c"  # complex
 """
-tcode = {'b': np.bool,  # Boolean
+tcode = {'b': bool,  # Boolean
          'i8': np.int8,  # 8-bit signed integer
          'i16': np.int16,  # 16-bit signed integer
          'i32': np.int32,  # 32-bit signed integer

@@ -95,8 +95,20 @@ def cget(name, conf='pns', builtin=None):
             res[k] = osenviron.get(env_var, v)
         return res
     if name not in config:
-        raise KeyError(f'{name} is not found in config {conf}.')
-    # chec env first
+        # check if request poolurn
+        if name.startswith(_url_mark):
+            # return poolurl if name startswith `poolurl`
+            logger.debug('Getting poolurl by {name}.')
+            purl = ''.join((config['scheme'], '://',
+                            config['host'], ':',
+                            str(config['port']),
+                            config['baseurl']
+                            ))
+            # with the name
+            return '%s/%s' % (purl, name[_len_um:])
+        else:
+            raise KeyError(f'{name} is not found in config {conf}.')
+    # check env first
     cn = '%s_%s' % (conf, name)
     env_var = cn.upper()
     if env_var in osenviron:
@@ -136,10 +148,10 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
     Parameters
     ----------
     name : str
-        If found to be a key in ``poolurl_of`` in dict `<conf>config`,
-        the value poolurl is returned, else construct a poolurl with
+        Identifier of the configured item whose value will be returned.
+        If started with ```poolurl:```, construct a poolurl with
         ```scheme``` and ```node``` with ```/{name}``` at the end.
-        Default ```None```, a mapping of all configured items 
+        Default ```None```, a mapping of all configured items
         corrected with envirionment variables is returned..
     conf : str
          File `<conf>local.py`` defines configuration key-value
@@ -162,10 +174,7 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
         logger.debug('Clearing config caches.')
         get_file_conf.cache_clear()
     if name:
-        if name.startswith(_url_mark):
-            # return poolurl if name startswith `poolurl`
-            logger.debug('Getting poolurl by {name}.')
-            return ''.join([cget('poolurl', conf=conf, builtin=builtin), '/', name[_len_um:]])
+        name = name.strip()
 
     return cget(name, conf=conf, builtin=builtin)
 

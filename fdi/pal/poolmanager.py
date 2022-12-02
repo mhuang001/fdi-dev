@@ -126,7 +126,7 @@ This is done by calling the getPool() method, which will return an existing pool
 
     # maps scheme to default place/poolpath
     # pc['host']+':'+str(pc['port'])+pc['baseurl']
-    p = getConfig('poolurl').strip('/').split('://')[1]
+    p = getConfig('poolurl:').strip('/').split('://')[1]
     PlacePaths = {
         'file': pc['base_local_poolpath'],
         'mem': '/',

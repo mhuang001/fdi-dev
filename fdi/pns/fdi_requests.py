@@ -35,8 +35,9 @@ logger = logging.getLogger(__name__)
 
 POST_PRODUCT_TAG_NAME = 'FDI-Product-Tags'
 
+# all items
 pcc = getConfig()
-defaulturl = pcc['poolurl']
+defaulturl = getConfig('poolurl:')
 
 pccnode = pcc
 TIMEOUT = pcc['requests_timeout']

@@ -1628,7 +1628,7 @@ def do_ArrayDataset_func(atype):
     if mk_outputs:
         print(ts[i:])
     else:
-        assert ts[i:-132] == nds2
+        assert ts[i:-131] == nds2
     ts += '\n\nlevel 1\n'
     ts += x.toString(1)
     ts += '\n\nlevel 2, repr\n'

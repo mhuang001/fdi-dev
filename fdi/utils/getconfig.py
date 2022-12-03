@@ -112,7 +112,7 @@ def cget(name, conf='pns', builtin=None):
             logger.debug('Getting poolurl by {name}.')
             purl = ''.join((withEnv('scheme'), '://',
                             withEnv('host'), ':',
-                            str(withEnv('port')),
+                            int(withEnv('port')),
                             withEnv('baseurl')
                             ))
             # with the name
@@ -232,7 +232,7 @@ def get_mqtt_config():
     # default mqtt settings
     mqttargs = dict(
         mq_host=pc['mq_host'],
-        mq_port=pc['mq_port'],
+        mq_port=int(pc['mq_port']),
         mq_user=pc['mq_user'],
         mq_pass=pc['mq_pass'],
         qos=1,

@@ -67,7 +67,7 @@ class MqttRelayListener(EventListener):
         self.topics_for_subscription = topics
 
         self.host = host if host else conf['mq_host']
-        self.port = port if port else str(conf['mq_port'])
+        self.port = port if port else int(conf['mq_port'])
         self.qos = qos
 
         self.keepalive = True
@@ -134,7 +134,7 @@ class MqttRelaySender(EventSender):
         passwd = passwd if passwd else conf['mq_pass']
         mq.username_pw_set(username, passwd)
         host = host if host else conf['mq_host']
-        port = port if port else str(conf['mq_port'])
+        port = port if port else int(conf['mq_port'])
         mq.on_message = on_message
         mq.connect(host, port, keepalive=keepalive)
         logger.debug("Connect " + host + ":" + str(port))

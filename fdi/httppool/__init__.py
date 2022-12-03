@@ -151,6 +151,9 @@ def init_conf_classes(pc, lggr):
         return clz
 
 
+SET_OWNER_MODE = False
+
+
 @functools.lru_cache(6)
 def checkpath(path, un):
     """ Checks  the directories and creats if missing.
@@ -188,7 +191,7 @@ def checkpath(path, un):
             logger.info(str(p) + ' directory has been made.')
 
     # logger.info('Setting owner, group, and mode...')
-    if not setOwnerMode(p, un, logger):
+    if SET_OWNER_MODE and not setOwnerMode(p, un, logger):
         if logger.isEnabledFor(logging_INFO):
             logger.info('Cannot set owner %s to %s.' % (un, str(p)))
         return None
@@ -214,7 +217,7 @@ def setOwnerMode(p, username, logger):
     except Exception as e:
         code, result, msg = excp(
             e,
-            msg='cannot set input/output dirs owner to ' +
+            msg='cannot set dirs owner to ' +
             username + ' or mode. check config. ')
         logger.error(msg)
         return None

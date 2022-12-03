@@ -112,7 +112,7 @@ def cget(name, conf='pns', builtin=None):
             logger.debug('Getting poolurl by {name}.')
             purl = ''.join((withEnv('scheme'), '://',
                             withEnv('host'), ':',
-                            int(withEnv('port')),
+                            str(withEnv('port')),
                             withEnv('baseurl')
                             ))
             # with the name

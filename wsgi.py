@@ -3,13 +3,13 @@ import os
 from fdi.httppool import create_app  # , setup_logging
 app = create_app()  # logger=logger)
 
-if 'APP_DEBUG' in os.environ:
+if os.environ.get('APP_DEBUG', False) in (1, 'True'):
     from werkzeug.debug import DebuggedApplication
     app = DebuggedApplication(app, True)
 
 application = app
 
-if 'UW_DEBUG' in os.environ:
+if os.environ.get('UW_DEBUG', False) in (1, 'True'):
     from remote_pdb import RemotePdb
     RemotePdb('127.0.0.1', 4444).set_trace()
 

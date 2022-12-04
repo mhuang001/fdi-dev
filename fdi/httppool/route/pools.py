@@ -819,7 +819,7 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
         chain((str(x)[:10] for x in args), kwdsexpr)))
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('WebAPI ' + lls(msg, 300) +
-                     'G %x' % id(PM_S._GlobalPoolList))
+                     's %x' % id(PM_S._GlobalPoolList))
 
     # if args and args[0] == 'select':
     #    __import__('pdb').set_trace()

@@ -41,18 +41,26 @@ defaulturl = getConfig('poolurl:')
 
 pccnode = pcc
 TIMEOUT = pcc['requests_timeout']
+FORCED = (500, 502, 503, 504, 408, 425, 429)
+METHODS = ("HEAD", "GET", "PUT", "DELETE", "OPTIONS", "TRACE")
+MAX_RETRY = 3
 
 
 def requests_retry_session(
-    retries=3,
-    backoff_factor=0.3,
-    status_forcelist=(500, 502, 504),
-    session=None,
+        retries=MAX_RETRY,
+        backoff_factor=0.3,
+        status_forcelist=None,
+        method_whitelist=None,
+        session=None
 ):
     """ session made with retries
 
     https://www.peterbe.com/plog/best-practice-with-retries-with-requests
     """
+    if method_whitelist is None:
+        method_whitelist = METHODS
+    if status_forcelist is None:
+        status_forcelist = FORCED
     session = session or requests.Session()
     retry = Retry(
         total=retries,

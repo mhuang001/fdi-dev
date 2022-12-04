@@ -818,8 +818,8 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
     msg = '%s(%s)' % (method, ', '.join(
         chain((str(x)[:10] for x in args), kwdsexpr)))
     if logger.isEnabledFor(logging_DEBUG):
-        logger.debug('WebAPI ' + lls(msg, 300))
-        logger.debug('*_G %x' % id(PM_S._GlobalPoolList))
+        logger.debug('WebAPI ' + lls(msg, 300) +
+                     'G %x' % id(PM_S._GlobalPoolList))
 
     # if args and args[0] == 'select':
     #    __import__('pdb').set_trace()
@@ -827,10 +827,17 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
     poolname = paths[0]
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     if not PM_S.isLoaded(poolname):
-        result = FAILED
         msg = 'Pool not found or not registered: ' + poolname
-        logger.error(msg)
-        return 0, resp(404, result, msg, ts, serialize_out=False), 0
+        if method in ('removeAll'):
+            if logger.isEnabledFor(logging_DEBUG):
+                logger.debug(msg)
+            result = 'OK'
+            return 0, resp(200, result, msg, ts, serialize_out=False), 0
+        else:
+            result = FAILED
+            if logger.isEnabledFor(logging_ERROR):
+                logger.error(msg)
+            return 0, resp(404, result, msg, ts, serialize_out=False), 0
 
     try:
         poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from conftest import csdb_pool_id
+from conftest import csdb_pool_id, SHORT
 
 from fdi.pal.context import MapContext
 from fdi.dataset.arraydataset import ArrayDataset
@@ -214,32 +214,37 @@ def est_CRUD_product_by_client(server, local_pools_dir, auth):
     crud_t(poolid, poolurl, pool, auth, client)
 
 
-def test_CRUD_product_by_client(server, tmp_remote_storage, auth, client):
-    """Client http product storage READ, CREATE, DELETE products in remote
-    """
+@pytest.fixture(scope=SHORT)
+def get_PS_for_CRUD(server, tmp_remote_storage, auth, client):
+
+    logger.info('Init a pstore')
+
     ps_remote = tmp_remote_storage
     aburl, headers = server
     poolid = ps_remote.getPools()[0]
     pool = ps_remote.getPool(poolid)
     poolurl = pool.poolurl
-    crud_t(poolid, poolurl, pool, auth, client)
-
-
-def crud_t(poolid, poolurl, pool, auth, client):
-    logger.info('Init a pstore')
-
     if 1:
         if PoolManager.isLoaded(DEFAULT_MEM_POOL):
             PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-        # this will also register the server side
-        pstore = ProductStorage(pool=pool, auth=auth, client=client)
-        pstore.register(poolid)
+    # this will also register the server side
+    pstore = ProductStorage(pool=pool, auth=auth, client=client)
+    pstore.register(poolid)
     pool.removeAll()
 
     assert len(pstore.getPools()) == 1, 'product storage size error: ' + \
                                         str(pstore.getPools())
     assert pstore.getPool(poolid) is not None, 'Pool ' + \
                                                poolid + ' is None.'
+    return poolid, poolurl, pool, auth, client, pstore
+
+
+def test_CRUD_product_by_client(get_PS_for_CRUD):
+    """Client http product storage READ, CREATE, DELETE products in remote
+    """
+    logger.debug('start CRUD test')
+
+    poolid, poolurl, pool, auth, client, pstore = get_PS_for_CRUD
 
     cnt = pool.getCount('fdi.dataset.product.Product')
     assert cnt == 0, 'Local metadata file size is 0'

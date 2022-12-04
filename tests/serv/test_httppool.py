@@ -482,7 +482,6 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
     newfiles = set(files1) - set(files)
     us = set(u.split(':', 2)[2].replace(':', '_') for u in urns)
     assert newfiles == us, str(newfiles) + str(us)
-
     # ==========
     logger.info('read product')
 

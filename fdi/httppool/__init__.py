@@ -288,7 +288,7 @@ def create_app(config_object=None, level=None, debug=False, logstream=None):
     logger = logging.getLogger('httppool_app')
 
     if level is None:
-        level = config_object['logger_level']
+        level = int(config_object['logger_level'])
         #level = logging_WARNING
     logger.setLevel(level)
 

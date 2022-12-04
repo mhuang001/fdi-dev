@@ -65,7 +65,7 @@ build_docker:
 	$(MAKE) imlatest LATEST_NAME=$(DOCKER_NAME)
 
 launch_docker:
-	docker run -dit --network=$(NETWORK) --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):latest $(LAU)
+	docker run -dit --network=$(NETWORK) --add-host dev:127.0.0.1 --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):latest $(LAU)
 
 test_docker:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
@@ -92,6 +92,7 @@ launch_server:
 	--mount source=httppool,target=$(SERVER_LOCAL_POOLPATH) \
 	--mount source=log,target=/var/log_mounted \
 	--env-file $(SECFILE_SERV) \
+	--add-host dev:127.0.0.1 \
 	-p $(PORT):$(EXTPORT) \
 	-e PNS_PORT=$(PORT) \
 	-e PNS_LOGGER_LEVEL=$(LOGGER_LEVEL) \

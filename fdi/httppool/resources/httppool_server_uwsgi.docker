@@ -60,7 +60,7 @@ RUN cp ./fdi/fdi/httppool/resources/httppool_server_entrypoint_uwsgi.sh . \
 RUN env
 
 RUN cp fdi/fdi/httppool/resources/httppool_server_uwsgi.ini . \
-&& echo ln fdi/wsgi.py .
+&& ln fdi/wsgi.py .
 
 VOLUME /var/log ${PNS_SERVER_LOCAL_POOLPATH}/..
 

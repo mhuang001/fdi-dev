@@ -65,6 +65,7 @@ setup(
             'wheel>=0.32.1',
             'pytest>=5.4.1',
             'pytest-cov',
+            'remote-pdb',
         ],
         'SERV': [
             'requests == 2.27.1',

@@ -805,13 +805,19 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
 
     if code != 200:
         result, msg = m_args, kwds
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.debug(f'RT{code} {msg}')
         return 0, resp(422, result, msg, ts, serialize_out=False), 0
 
     method = m_args[0]
 
     if method not in WebAPI:
-        return 0, resp(400, FAILED,
-                       'Unknown web API method: %s.' % method,
+        code = 400
+        msg = 'Unknown web API method: %s.' % method
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.debug(f'RT{code} {msg}')
+        return 0, resp(code, FAILED,
+                       msg,
                        ts, serialize_out=False), 0
     args = m_args[1:] if len(m_args) > 1 else []
     kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
@@ -829,15 +835,19 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
     if not PM_S.isLoaded(poolname):
         msg = 'Pool not found or not registered: ' + poolname
         if method in ('removeAll'):
-            if logger.isEnabledFor(logging_DEBUG):
-                logger.debug(msg)
             result = 'OK'
-            return 0, resp(200, result, msg, ts, serialize_out=False), 0
+            code = 200
+            if logger.isEnabledFor(logging_DEBUG):
+                logger.debug(f'RT{code} {msg}')
+            return 0, resp(code, result, msg, ts, serialize_out=False), 0
         else:
             result = FAILED
             if logger.isEnabledFor(logging_ERROR):
                 logger.error(msg)
-            return 0, resp(404, result, msg, ts, serialize_out=False), 0
+            code = 404
+            if logger.isEnabledFor(logging_DEBUG):
+                logger.debug(f'RT{code} {msg}')
+            return 0, resp(code, result, msg, ts, serialize_out=False), 0
 
     try:
         poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
@@ -849,4 +859,6 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
         code, result, msg = excp(e, 422, serialize_out=serialize_out)
         logger.error(msg)
 
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug(f'RT{code} {msg}')
     return 0, resp(code, result, msg, ts, serialize_out=False), 0

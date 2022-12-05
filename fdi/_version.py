@@ -1,5 +1,6 @@
-__version_info__ = (1, 25, 1)
+__version_info__ = (1, 25, 2)
 __version__ = '.'.join(map(str, __version_info__))
+# 1.25.2 server remote debug
 # 1.25.1 externalize docker tests.
 # 1.25.0 getConfig and configuration improvement
 # 1.24.4 requets timeout; logger_level_extras; single thread and python3.8 in wsgi; other improvement to get self-test pass for server docker.

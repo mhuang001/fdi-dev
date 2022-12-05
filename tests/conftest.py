@@ -6,7 +6,7 @@ from fdi.dataset.classes import Class_Look_Up
 from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
 from fdi.pns.jsonio import getJsonObj
-from fdi.pns.fdi_requests import requests_retry_session
+from fdi.pns.fdi_requests import requests_retry_session, TIMEOUT, MAX_RETRY
 from fdi.utils.common import lls
 from fdi.pns.jsonio import auth_headers
 from fdi.httppool.model.user import User
@@ -47,7 +47,7 @@ RUN_SERVER_IN_BACKGROUND = 'python3.8 httppool_app.py --server=httppool_server'
 TEST_SERVER_LIFE = 600
 """ test server time limit in seconds."""
 
-the_session = requests_retry_session(retries=1, backoff_factor=0.5)
+the_session = requests_retry_session(retries=MAX_RETRY, backoff_factor=0.5)
 # the_session=requests.Session()
 
 

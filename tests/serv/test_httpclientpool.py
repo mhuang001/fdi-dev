@@ -243,13 +243,13 @@ def get_PS_for_CRUD(server, tmp_remote_storage, auth, client):
 def test_CRUD_product_by_client(get_PS_for_CRUD):
     """Client http product storage READ, CREATE, DELETE products in remote
     """
-    logger.debug('start CRUD test')
+    logger.info('start CRUD test')
 
     poolid, poolurl, pool, auth, client, pstore = get_PS_for_CRUD
 
     cnt = pool.getCount('fdi.dataset.product.Product')
     assert cnt == 0, 'Local metadata file size is 0'
-    assert pool.getCount() == pool.count == 0
+    assert pool.count == 0
 
     logger.info('Save data by ' + pool.__class__.__name__)
     x = Product(description='desc test')
@@ -262,8 +262,13 @@ def test_CRUD_product_by_client(get_PS_for_CRUD):
     expected_urn = 'urn:' + poolid + ':' + fullname(x)
     assert urn.urn.rsplit(':', 1)[0] == expected_urn, \
         'Urn error: ' + expected_urn
+    logger.info('Saved two products.')
+
     poolpath, scheme, place, pn, un, pw = parse_poolurl(
         poolurl, poolhint=poolid)
+    #import http
+    # http.client.HTTPConnection.debuglevel = 1
+
     cnt = pool.getCount(typenm)
     assert cnt == pool.getCount()
     # __import__("pdb").set_trace()
@@ -299,7 +304,7 @@ def test_CRUD_product_by_client(get_PS_for_CRUD):
         assert pool.isEmpty()
         assert pool.count == 0
     except ConnectionError:
-        logger.debug('Unregistered Pool raises connectionError.')
+        logger.info('Unregistered Pool raises connectionError.')
     tag = '==== Demo Product ===='
     logger.info('test sample demo prod with tag: ' + tag)
     sp = get_demo_product()

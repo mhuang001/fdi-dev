@@ -196,8 +196,6 @@ def checkpath(path, un):
             logger.info('Cannot set owner %s to %s.' % (un, str(p)))
         return None
 
-    if logger.isEnabledFor(logging_DEBUG):
-        logger.debug('checked path at ' + str(p))
     return p
 
 
@@ -393,7 +391,11 @@ def add_errorhandlers(app):
         """ ref flask docs """
         ts = time.time()
 
-        if issubclass(error.__class__, HTTPException):
+        if issubclass(error.__class__, HTTPException) and error.code == 429:
+            msg = "429 "
+            error.code = 200
+            response = make_response('', error)
+        elif issubclass(error.__class__, HTTPException):
             if error.code == 409:
                 spec = "Conflict or updating. "
             elif error.code == 500 and error.original_exception:

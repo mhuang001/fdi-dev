@@ -42,9 +42,9 @@ defaulturl = getConfig('poolurl:')
 pccnode = pcc
 TIMEOUT = pcc['requests_timeout']
 # default RETRY_AFTER_STATUS_CODES = frozenset({413, 429, 503})
-FORCED = (500, 502, 503, 504, 408, 413, 425, 429)
+FORCED = None  # (503, 504, 408, 413, 429)
 # default DEFAULT_ALLOWED_METHODS = frozenset({'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PUT', 'TRACE'})
-METHODS = ("HEAD", "GET", "PUT", "DELETE", "OPTIONS", "TRACE")
+METHODS = ("HEAD", "GET", "OPTIONS")
 MAX_RETRY = 3
 
 
@@ -67,9 +67,9 @@ def requests_retry_session(
     retry = Retry(
         total=retries,
         read=retries,
-        status=retries,
+        status=5,
         connect=retries,
-        other=0,
+        other=None,
         redirect=5,
         backoff_factor=backoff_factor,
         status_forcelist=status_forcelist,

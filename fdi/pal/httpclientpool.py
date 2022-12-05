@@ -40,19 +40,21 @@ def toserver(self, method, *args, **kwds):
     # if method == 'select':
     #    __import__('pdb').set_trace()
 
-    #apipath = serialize_args(method, *args, not_quoted=self.not_quoted, **kwds)
-    apipath = serialize([args, kwds])
+    apipath = serialize_args(method, *args, not_quoted=self.not_quoted, **kwds)
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
 
     logger.debug("toServer ===> " + urn)
-    if 0:  # len(apipath) < 800:
+    if len(apipath) < 80:
         code, res, msg = read_from_server(
             urn, self._poolurl, apipath, auth=self.auth)
     else:
+        apipath = serialize([args, kwds])
         code, res, msg = post_to_server(apipath, urn, self._poolurl,
                                         contents=method + '__' + '/',
                                         no_serial=True,
                                         auth=self.auth, client=self.client)
+    if issubclass(res.__class__, str) and '429' in res:
+        __import__('pdb').set_trace()
 
     if issubclass(res.__class__, str) and 'FAILED' in res or code != 200:
         for line in chain(msg.split('.', 1)[:1], msg.split('\n')):

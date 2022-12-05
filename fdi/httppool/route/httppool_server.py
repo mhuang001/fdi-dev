@@ -188,7 +188,7 @@ def delete_urn(parts):
     logger = current_app.logger
 
     ts = time.time()
-    logger.debug('get data for URN parts ' + parts)
+    logger.debug('delete data for URN parts ' + parts)
 
     paths = parts2paths(parts)
     # if paths[-1] == '':
@@ -234,7 +234,7 @@ def delete_product(paths, serialize_out=False):
     if not PM_S.isLoaded(poolname):
         result = FAILED
         msg = 'Pool not found or not registered: ' + poolname
-        code = 400
+        code = 404
         logger.error(msg)
         return code, result, msg
     logger.debug('DELETE product urn: ' + urn)

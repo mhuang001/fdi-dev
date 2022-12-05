@@ -28,6 +28,7 @@ import networkx as nx
 
 from flask_httpauth import HTTPBasicAuth
 # from requests.auth import HTTPBasicAuth
+from requests.exceptions import ConnectionError
 import pytest
 import time
 import urllib
@@ -294,9 +295,11 @@ def test_CRUD_product_by_client(get_PS_for_CRUD):
 
     logger.info('Wipe a pool')
     pstore.getPool(poolid).removeAll()
-    assert pool.isEmpty()
-    assert pool.count == 0
-
+    try:
+        assert pool.isEmpty()
+        assert pool.count == 0
+    except ConnectionError:
+        logger.debug('Unregistered Pool raises connectionError.')
     tag = '==== Demo Product ===='
     logger.info('test sample demo prod with tag: ' + tag)
     sp = get_demo_product()

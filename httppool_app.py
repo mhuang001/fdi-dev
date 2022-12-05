@@ -118,7 +118,8 @@ if __name__ == '__main__':
         serve(app, url_scheme='https',
               host=pc['self_host'], port=pc['self_port'])
     else:
-        debug = args.debug
+        # app may have changed debug, so do not use args.debug
+        debug = app.debug
         app.run(host=pc['self_host'], port=pc['self_port'],
                 threaded=not debug, processes=1,
                 use_reloader=False, reloader_type='stat',

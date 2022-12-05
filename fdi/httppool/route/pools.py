@@ -419,7 +419,7 @@ def register(pool):
 
     code, thepool, msg = register_pool(pool, auth.current_user())
     if logger.isEnabledFor(logging_DEBUG):
-        logger.debug('_G %x' % id(PM_S._GlobalPoolList))
+        logger.debug('pmsGLB%x' % id(PM_S._GlobalPoolList))
 
     res = thepool if issubclass(thepool.__class__, str) else thepool._poolurl
     return resp(code, res, msg, ts)

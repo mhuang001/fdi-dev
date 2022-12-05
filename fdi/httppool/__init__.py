@@ -299,6 +299,13 @@ def create_app(config_object=None, level=None, debug=False, logstream=None):
     app.logger = logger
     app.config_object = config_object
 
+    if os.environ.get('UW_DEBUG', False) in (1, '1', 'True', True):
+        from remote_pdb import RemotePdb
+        RemotePdb('127.0.0.1', 4444).set_trace()
+
+    if os.environ.get('PNS_DEBUG', False) in (1, '1', 'True', True):
+        debug = True
+
     if debug:
         level = logging_DEBUG
         logger.setLevel(level)

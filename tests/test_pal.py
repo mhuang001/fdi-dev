@@ -430,8 +430,8 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb
 
     elif scheme in ['csdb']:
         test_pool = PoolManager.getPool(poolname)
-        #a, b = csdb
-        #assert test_pool == csdb
+        # a, b = csdb
+        # assert test_pool == csdb
         pinfo = test_pool.getPoolInfo()
         count = test_pool.getCount(prodname)
         assert count == expected_cnt
@@ -602,7 +602,7 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
     ref = ps.save(x)
     s0, s1 = tuple(ref.urn.rsplit(':', 1))
     assert s0 == 'urn:' + thepoolname + ':' + pcq
-    #ref_m = ps.save(y)
+    # ref_m = ps.save(y)
     init_count, init_count_m = 0, 0
     is_csdb = thepoolurl.startswith('csdb://')
     if is_csdb:
@@ -627,7 +627,7 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
     # ps has 1 prod
     assert init_sn == int(s1)
     checkdbcount(init_count+1, thepoolurl, pcq, init_sn + 0, *args)
-    #checkdbcount(init_count_m+0, thepoolurl, mcq, init_sn_m + 0, *args)
+    # checkdbcount(init_count_m+0, thepoolurl, mcq, init_sn_m + 0, *args)
 
     # save more
     # one by one
@@ -692,7 +692,7 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
     checkdbcount(init_count_m+1, thepoolurl, mcq, init_sn_m+0, *args)
 
     # report lru_cache info
-    print('****** %s ' % str(type(pspool)), pspool.getCacheInfo())
+    print('***HTTPClient Pool cache*** %s ' % str(pspool.getCacheInfo()))
 
     # clean up a pool
     ps.wipePool()
@@ -759,39 +759,39 @@ def test_ProdStorage_func_csdb(csdb):
 
 
 def test_LocalPool():
-    thepoolname = 'localpool_' + Test_Pool_Name
-    thepoolpath = '/tmp/fditest'
-    thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
+    thepoolname='localpool_' + Test_Pool_Name
+    thepoolpath='/tmp/fditest'
+    thepoolurl='file://' + thepoolpath + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
-    ps = ProductStorage(thepoolname, thepoolurl)
-    pname = ps.getPools()[0]
+    ps=ProductStorage(thepoolname, thepoolurl)
+    pname=ps.getPools()[0]
     # get the pool object
-    pspool = ps.getPool(pname)
+    pspool=ps.getPool(pname)
 
-    x = Product(description="This is my product example",
+    x=Product(description="This is my product example",
                 instrument="MyFavourite", modelName="Flight")
-    pcq = fullname(x)
+    pcq=fullname(x)
     # save
-    ref = ps.save(x, tag='ttag')
+    ref=ps.save(x, tag='ttag')
 
     # read HK
     # copy default pool data in memory
-    p1 = pspool
+    p1=pspool
     # rename the pool
-    cpn = thepoolname + '_copy'
-    cpu = thepoolurl + '_copy'
-    pcp = transpath(cpn, thepoolpath)
+    cpn=thepoolname + '_copy'
+    cpu=thepoolurl + '_copy'
+    pcp=transpath(cpn, thepoolpath)
     if op.exists(pcp):
         shutil.rmtree(pcp)
     # make a copy of the old pool on disk
     shutil.copytree(transpath(thepoolname, thepoolpath), pcp)
-    ps2 = ProductStorage(pool=cpn, poolurl=cpu)
+    ps2=ProductStorage(pool=cpn, poolurl=cpu)
     # two ProdStorage instances have the same DB
-    p2 = ps2.getPool(ps2.getPools()[0])
-    #assert deepcmp(p1._urns, p2._urns) is None
-    #assert deepcmp(p1._tags, p2._tags) is None
-    #assert deepcmp(p1._classes, p2._classes) is None
+    p2=ps2.getPool(ps2.getPools()[0])
+    # assert deepcmp(p1._urns, p2._urns) is None
+    # assert deepcmp(p1._tags, p2._tags) is None
+    # assert deepcmp(p1._classes, p2._classes) is None
     assert deepcmp(p1._dTypes, p2._dTypes) is None
     assert deepcmp(p1._dTags, p2._dTags) is None
 
@@ -799,36 +799,36 @@ def test_LocalPool():
 
 
 def backup_restore(ps):
-    p1 = ps.getPool(ps.getPools()[0])
-    hk1 = p1.readHK()
-    cpn = p1._poolname + '_2'
-    cpu = p1._poolurl + '_2'
-    pstore = ProductStorage(pool=cpn, poolurl=cpu)
+    p1=ps.getPool(ps.getPools()[0])
+    hk1=p1.readHK()
+    cpn=p1._poolname + '_2'
+    cpu=p1._poolurl + '_2'
+    pstore=ProductStorage(pool=cpn, poolurl=cpu)
     # backup
     # the new pool is made empty
     pstore.wipePool()
     # register
-    pstore = ProductStorage(pool=cpn, poolurl=cpu)
+    pstore=ProductStorage(pool=cpn, poolurl=cpu)
     # save something to the new pool
-    x = Product(description="This is my product 2")
-    ref = pstore.save(x, tag='i think')
-    ref2 = pstore.save(x, tag='i think')
+    x=Product(description="This is my product 2")
+    ref=pstore.save(x, tag='i think')
+    ref2=pstore.save(x, tag='i think')
     assert ref != ref2
     # two pools are different
-    p2 = pstore.getPool(pstore.getPools()[0])
+    p2=pstore.getPool(pstore.getPools()[0])
     assert deepcmp(hk1, p2.readHK()) is not None
 
     # make a backup tarfile
-    tar = p1.backup()
+    tar=p1.backup()
     os.makedirs('/tmp/fditest', exist_ok=True)
     with open('/tmp/fditest/bk.tar', 'wb') as f:
         f.write(tar)
     with open('/tmp/fditest/bk.tar', 'rb') as f:
-        tar2 = f.read()
+        tar2=f.read()
     assert tar == tar2
     # restore
-    lst = p2.restore(tar2)
-    # print(lst)
+    lst=p2.restore(tar2)
+
     # two pools are the same
     assert deepcmp(hk1, p2.readHK()) is None
 
@@ -837,13 +837,13 @@ def mkStorage(thepoolname, thepoolurl, db=None):
     """ returns pool object and productStorage """
 
     cleanup(thepoolurl, thepoolname)
-    pstore = ProductStorage(thepoolname, thepoolurl)
-    thepoolpath, tsc, tpl, pn, un, pw = parse_poolurl(thepoolurl, thepoolname)
+    pstore=ProductStorage(thepoolname, thepoolurl)
+    thepoolpath, tsc, tpl, pn, un, pw=parse_poolurl(thepoolurl, thepoolname)
     if tsc in ['file', 'server']:
         assert op.exists(transpath(thepoolname, thepoolpath))
     assert len(pstore.getPools()) == 1
     assert pstore.getPools()[0] == thepoolname
-    thepool = PoolManager.getMap()[thepoolname]
+    thepool=PoolManager.getMap()[thepoolname]
     assert thepool.getScheme() == tsc
     assert thepool.isEmpty()
     return thepool, pstore
@@ -851,55 +851,55 @@ def mkStorage(thepoolname, thepoolurl, db=None):
 
 def doquery(poolpath, newpoolpath):
     # creation
-    a1 = MapContext
-    a2 = 'p'
-    a3 = 'p.description == "mc"'
-    a4 = False
-    q = AbstractQuery(product=a1, variable=a2, where=a3, allVersions=a4)
+    a1=MapContext
+    a2='p'
+    a3='p.description == "mc"'
+    a4=False
+    q=AbstractQuery(product=a1, variable=a2, where=a3, allVersions=a4)
     assert q.getType() == a1
     assert q.getVariable() == a2
     assert q.getWhere() == a3
     assert q.retrieveAllVersions() == a4
 
-    a1 = TP
-    a2 = 'm'
-    a3 = 'm["description"].value == "pr"'
-    a4 = False
-    q = MetaQuery(product=a1, where=a3, allVersions=a4)
+    a1=TP
+    a2='m'
+    a3='m["description"].value == "pr"'
+    a4=False
+    q=MetaQuery(product=a1, where=a3, allVersions=a4)
     assert q.getType() == a1
     assert q.getVariable() == a2
     assert q.getWhere() == a3
     assert q.retrieveAllVersions() == a4
 
     # make a productStorage
-    thepoolname = Test_Pool_Name
-    thepoolurl = poolpath + '/' + thepoolname
-    thepool, pstore = mkStorage(thepoolname, thepoolurl)
+    thepoolname=Test_Pool_Name
+    thepoolurl=poolpath + '/' + thepoolname
+    thepool, pstore=mkStorage(thepoolname, thepoolurl)
 
     # make another
-    newpoolname = 'new_' + Test_Pool_Name
-    newpoolurl = newpoolpath + '/' + newpoolname
-    newpool, pstore2 = mkStorage(newpoolname, newpoolurl)
+    newpoolname='new_' + Test_Pool_Name
+    newpoolurl=newpoolpath + '/' + newpoolname
+    newpool, pstore2=mkStorage(newpoolname, newpoolurl)
 
     # add some products to both storages
-    n = 7
-    rec1 = []
+    n=7
+    rec1=[]
     for i in range(n):
-        a0, a1, a2 = 'desc %d' % i, 'fatman %d' % (i*4), 5000+i
+        a0, a1, a2='desc %d' % i, 'fatman %d' % (i*4), 5000+i
         if i < 3:
-            x = TP(description=a0, creator=a1)
-            x.meta['extra'] = Parameter(value=a2)
+            x=TP(description=a0, creator=a1)
+            x.meta['extra']=Parameter(value=a2)
         elif i < 5:
-            x = Context(description=a0, creator=a1)
-            x.meta['extra'] = Parameter(value=a2)
+            x=Context(description=a0, creator=a1)
+            x.meta['extra']=Parameter(value=a2)
         else:
-            x = MapContext(description=a0, creator=a1)
-            x.meta['extra'] = Parameter(value=a2)
-            x.meta['time'] = Parameter(value=FineTime1(a2))
+            x=MapContext(description=a0, creator=a1)
+            x.meta['extra']=Parameter(value=a2)
+            x.meta['time']=Parameter(value=FineTime1(a2))
         if i < 4:
-            r = pstore.save(x)
+            r=pstore.save(x)
         else:
-            r = pstore2.save(x)
+            r=pstore2.save(x)
         rec1.append(dict(p=x, r=r, a0=a0, a1=a1, a2=a2))
 
     # [T T T C] [C M M]
@@ -909,12 +909,12 @@ def doquery(poolpath, newpoolpath):
     assert newpool.count == 3
 
     # query with a specific parameter in all products' metadata, which is the variable 'm' in the query expression, i.e. ``m = product.meta; ...``
-    m = 2
-    q = MetaQuery(TP, 'm["description"].value == "%s"' % rec1[m]['a0'])
-    res = pstore.select(q)
+    m=2
+    q=MetaQuery(TP, 'm["description"].value == "%s"' % rec1[m]['a0'])
+    res=pstore.select(q)
 
     def chk(r, c):
-        p = r.product
+        p=r.product
         assert type(p) == type(c['p'])
         assert p.description == c['a0']
         assert p.creator == c['a1']
@@ -923,18 +923,18 @@ def doquery(poolpath, newpoolpath):
     chk(res[0], rec1[m])
 
     # gracefully handle none-exisiting key
-    #q = MetaQuery(TP, 'm["not_exists"].value == "%s"' % rec1[m]['a0'])
-    #res = pstore.select(q)
+    # q = MetaQuery(TP, 'm["not_exists"].value == "%s"' % rec1[m]['a0'])
+    # res = pstore.select(q)
 
     # query with a parent class and a specific parameter
-    m = 3
-    q = MetaQuery(BaseProduct, 'm["creator"].value == "%s"' % rec1[m]['a1'])
-    res = pstore.select(q)
+    m=3
+    q=MetaQuery(BaseProduct, 'm["creator"].value == "%s"' % rec1[m]['a1'])
+    res=pstore.select(q)
     assert len(res) == 1, str(res)
     chk(res[0], rec1[m])
     # query with a parent class and a specific parameter
-    q = MetaQuery(BaseProduct, 'm["extra"].value < 5002')
-    res = pstore.select(q)
+    q=MetaQuery(BaseProduct, 'm["extra"].value < 5002')
+    res=pstore.select(q)
     # [0,1]
     assert len(res) == 2, str(res)
     chk(res[0], rec1[0])
@@ -943,21 +943,21 @@ def doquery(poolpath, newpoolpath):
     # simpler syntax for comparing value only but a bit slower.
     # the parameter with simpler syntax must be on the left hand side of a comparison operator.
     # '5000 < m["extra"]' does not work. But '5000 < m["extra"].value' works.
-    q = MetaQuery(BaseProduct, 'm["extra"] > 5000 and m["extra"] <= 5002')
-    res = pstore.select(q)
+    q=MetaQuery(BaseProduct, 'm["extra"] > 5000 and m["extra"] <= 5002')
+    res=pstore.select(q)
     # [1,2]
     assert len(res) == 2, str(res)
     chk(res[0], rec1[1])
     chk(res[1], rec1[2])
 
-    qstr = 'm["extra"] > 5000 and m["extra"] <= 5002'
-    pqv = pstore.select(qstr, variable='m', ptype=BaseProduct)
-    pqs = pstore.select(qstr, variable='m', ptype='BaseProduct')
+    qstr='m["extra"] > 5000 and m["extra"] <= 5002'
+    pqv=pstore.select(qstr, variable='m', ptype=BaseProduct)
+    pqs=pstore.select(qstr, variable='m', ptype='BaseProduct')
     assert res == pqv == pqs
 
     # two classes
-    q = MetaQuery(BaseProduct, 'm["extra"] > 5000 and m["extra"] < 5004')
-    res = pstore.select(q)
+    q=MetaQuery(BaseProduct, 'm["extra"] > 5000 and m["extra"] < 5004')
+    res=pstore.select(q)
     # [1,2,3]
     assert len(res) == 3, str(res)
     chk(res[0], rec1[1])
@@ -965,21 +965,21 @@ def doquery(poolpath, newpoolpath):
     chk(res[2], rec1[3])
 
     # this is not in this store
-    q = MetaQuery(BaseProduct, 'm["extra"] == 5004')
-    res = pstore.select(q)
+    q=MetaQuery(BaseProduct, 'm["extra"] == 5004')
+    res=pstore.select(q)
     # []
     assert len(res) == 0, str(res)
 
     # it is in the other store
-    q = MetaQuery(BaseProduct, 'm["extra"] == 5004')
-    res = pstore2.select(q)
+    q=MetaQuery(BaseProduct, 'm["extra"] == 5004')
+    res=pstore2.select(q)
     # [4]
     assert len(res) == 1, str(res)
     chk(res[0], rec1[4])
 
     # all in  the other store
-    q = MetaQuery(BaseProduct, '1')
-    res = pstore2.select(q)
+    q=MetaQuery(BaseProduct, '1')
+    res=pstore2.select(q)
     # [4,5,6]
     assert len(res) == 3, str(res)
     chk(res[0], rec1[4])
@@ -992,8 +992,8 @@ def doquery(poolpath, newpoolpath):
     assert pstore.getPools()[1] == newpoolname
 
     # all Context, spans over two pools
-    q = MetaQuery(Context, 'True')
-    res = pstore.select(q)
+    q=MetaQuery(Context, 'True')
+    res=pstore.select(q)
     # [3,4,5,6]
     assert len(res) == 4, str(res)
     chk(res[0], rec1[3])
@@ -1001,30 +1001,30 @@ def doquery(poolpath, newpoolpath):
     chk(res[2], rec1[5])
     chk(res[3], rec1[6])
 
-    qstr = 'True'
-    pqv = pstore.select(qstr, variable='m', ptype=Context)
-    pqs = pstore.select(qstr, variable='m', ptype='Context')
+    qstr='True'
+    pqv=pstore.select(qstr, variable='m', ptype=Context)
+    pqs=pstore.select(qstr, variable='m', ptype='Context')
     assert res == pqv == pqs
 
     # all 'time' < 5006. will cause KeyError because some Contex data do not have 'time'
-    q = MetaQuery(Context, 'm["time"] < 5006')
+    q=MetaQuery(Context, 'm["time"] < 5006')
     with pytest.raises(KeyError):
-        res = pstore.select(q)
+        res=pstore.select(q)
 
-    q = MetaQuery(Context, 'm["this_and_the_last_errors_are_expected"] < 5006')
+    q=MetaQuery(Context, 'm["this_and_the_last_errors_are_expected"] < 5006')
     with pytest.raises(KeyError):
-        res = pstore.select(q)
+        res=pstore.select(q)
 
     # all 'time' < 5006 mapcontext. all in newpool
-    q = MetaQuery(MapContext, 'm["time"] < 5006')
-    res = pstore.select(q)
+    q=MetaQuery(MapContext, 'm["time"] < 5006')
+    res=pstore.select(q)
     # [5]
     assert len(res) == 1, str(res)
     chk(res[0], rec1[5])
 
     # all 'extra' < 5002, all in 1st pool
-    q = MetaQuery(BaseProduct, 'm["extra"] < 5002')
-    res = pstore.select(q)
+    q=MetaQuery(BaseProduct, 'm["extra"] < 5002')
+    res=pstore.select(q)
     # [0,1   ]
     assert len(res) == 2, str(res)
     chk(res[0], rec1[0])
@@ -1089,7 +1089,7 @@ def doquery(poolpath, newpoolpath):
     chk(res[2], rec1[3])
 
     # report lru_cache info
-    print('****** %s ' % str(type(thepool)), thepool.getCacheInfo())
+    print('***cache*** %s ' % str(thepool.getCacheInfo()))
 
 
 def test_query_local_mem():

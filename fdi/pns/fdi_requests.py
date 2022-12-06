@@ -51,18 +51,14 @@ MAX_RETRY = 3
 def requests_retry_session(
         retries=MAX_RETRY,
         backoff_factor=0.3,
-        status_forcelist=None,
-        method_whitelist=None,
+        status_forcelist=FORCED,
+        method_whitelist=METHODS,
         session=None
 ):
     """ session made with retries
 
     https://www.peterbe.com/plog/best-practice-with-retries-with-requests
     """
-    if method_whitelist is None:
-        method_whitelist = METHODS
-    if status_forcelist is None:
-        status_forcelist = FORCED
     session = session or requests.Session()
     retry = Retry(
         total=retries,

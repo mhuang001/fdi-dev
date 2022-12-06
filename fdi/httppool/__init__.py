@@ -393,7 +393,7 @@ def add_errorhandlers(app):
 
         if issubclass(error.__class__, HTTPException) and error.code == 429:
             msg = "429 "
-            error.code = 200
+            error.code = 401
             response = make_response('', error)
         elif issubclass(error.__class__, HTTPException):
             if error.code == 409:

@@ -98,17 +98,22 @@ def getUsers(app):
     return users
 
 
+SES_DBG = 0
+""" debug msg for session """
+
 if SESSION:
     @user.before_app_request
     def load_logged_in_user():
         logger = current_app.logger
         user_id = session.get('user_id')
-        if logger.isEnabledFor(logging_DEBUG):
+        if SES_DBG and logger.isEnabledFor(logging_DEBUG):
             headers = dict(request.headers)
+            cook = dict(request.cookies)
+
             logger.debug('S:%x "%s", %s, %s' %
                          (id(session), str(user_id),
                           str(headers.get('Authorization', '')),
-                          str(request.cookies)))
+                          str(cook.get('session', '')[:6])))
         if user_id is None:
             g.user = None
         else:
@@ -280,10 +285,9 @@ def verify_password(username, password, check_session=True):
 
     > return `True`
     """
-
     logger = current_app.logger
 
-    if logger.isEnabledFor(logging_DEBUG):
+    if SES_DBG and logger.isEnabledFor(logging_DEBUG):
         logger.debug('%s %s %s %s' % (username, len(password) * '*',
                      'chk' if check_session else 'nochk',
                                       'Se' if SESSION else 'noSe'))
@@ -293,7 +297,7 @@ def verify_password(username, password, check_session=True):
                 g, 'user') and g.user is not None
             if has_session:
                 user = g.user
-                if logger.isEnabledFor(logging_DEBUG):
+                if SES_DBG and logger.isEnabledFor(logging_DEBUG):
                     logger.debug(f'g.usr={user.username}')
                 gname = user.username
                 newu = current_app.config['USERS'].get(username, None)

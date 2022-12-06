@@ -53,9 +53,6 @@ def toserver(self, method, *args, **kwds):
                                         contents=method + '__' + '/',
                                         no_serial=True,
                                         auth=self.auth, client=self.client)
-    if issubclass(res.__class__, str) and '429' in res:
-        __import__('pdb').set_trace()
-
     if issubclass(res.__class__, str) and 'FAILED' in res or code != 200:
         for line in chain(msg.split('.', 1)[:1], msg.split('\n')):
             excpt = line.split(':', 1)[0]

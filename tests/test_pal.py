@@ -759,36 +759,36 @@ def test_ProdStorage_func_csdb(csdb):
 
 
 def test_LocalPool():
-    thepoolname='localpool_' + Test_Pool_Name
-    thepoolpath='/tmp/fditest'
-    thepoolurl='file://' + thepoolpath + '/' + thepoolname
+    thepoolname = 'localpool_' + Test_Pool_Name
+    thepoolpath = '/tmp/fditest'
+    thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
-    ps=ProductStorage(thepoolname, thepoolurl)
-    pname=ps.getPools()[0]
+    ps = ProductStorage(thepoolname, thepoolurl)
+    pname = ps.getPools()[0]
     # get the pool object
-    pspool=ps.getPool(pname)
+    pspool = ps.getPool(pname)
 
-    x=Product(description="This is my product example",
+    x = Product(description="This is my product example",
                 instrument="MyFavourite", modelName="Flight")
-    pcq=fullname(x)
+    pcq = fullname(x)
     # save
-    ref=ps.save(x, tag='ttag')
+    ref = ps.save(x, tag='ttag')
 
     # read HK
     # copy default pool data in memory
-    p1=pspool
+    p1 = pspool
     # rename the pool
-    cpn=thepoolname + '_copy'
-    cpu=thepoolurl + '_copy'
-    pcp=transpath(cpn, thepoolpath)
+    cpn = thepoolname + '_copy'
+    cpu = thepoolurl + '_copy'
+    pcp = transpath(cpn, thepoolpath)
     if op.exists(pcp):
         shutil.rmtree(pcp)
     # make a copy of the old pool on disk
     shutil.copytree(transpath(thepoolname, thepoolpath), pcp)
-    ps2=ProductStorage(pool=cpn, poolurl=cpu)
+    ps2 = ProductStorage(pool=cpn, poolurl=cpu)
     # two ProdStorage instances have the same DB
-    p2=ps2.getPool(ps2.getPools()[0])
+    p2 = ps2.getPool(ps2.getPools()[0])
     # assert deepcmp(p1._urns, p2._urns) is None
     # assert deepcmp(p1._tags, p2._tags) is None
     # assert deepcmp(p1._classes, p2._classes) is None
@@ -799,35 +799,35 @@ def test_LocalPool():
 
 
 def backup_restore(ps):
-    p1=ps.getPool(ps.getPools()[0])
-    hk1=p1.readHK()
-    cpn=p1._poolname + '_2'
-    cpu=p1._poolurl + '_2'
-    pstore=ProductStorage(pool=cpn, poolurl=cpu)
+    p1 = ps.getPool(ps.getPools()[0])
+    hk1 = p1.readHK()
+    cpn = p1._poolname + '_2'
+    cpu = p1._poolurl + '_2'
+    pstore = ProductStorage(pool=cpn, poolurl=cpu)
     # backup
     # the new pool is made empty
     pstore.wipePool()
     # register
-    pstore=ProductStorage(pool=cpn, poolurl=cpu)
+    pstore = ProductStorage(pool=cpn, poolurl=cpu)
     # save something to the new pool
-    x=Product(description="This is my product 2")
-    ref=pstore.save(x, tag='i think')
-    ref2=pstore.save(x, tag='i think')
+    x = Product(description="This is my product 2")
+    ref = pstore.save(x, tag='i think')
+    ref2 = pstore.save(x, tag='i think')
     assert ref != ref2
     # two pools are different
-    p2=pstore.getPool(pstore.getPools()[0])
+    p2 = pstore.getPool(pstore.getPools()[0])
     assert deepcmp(hk1, p2.readHK()) is not None
 
     # make a backup tarfile
-    tar=p1.backup()
+    tar = p1.backup()
     os.makedirs('/tmp/fditest', exist_ok=True)
     with open('/tmp/fditest/bk.tar', 'wb') as f:
         f.write(tar)
     with open('/tmp/fditest/bk.tar', 'rb') as f:
-        tar2=f.read()
+        tar2 = f.read()
     assert tar == tar2
     # restore
-    lst=p2.restore(tar2)
+    lst = p2.restore(tar2)
 
     # two pools are the same
     assert deepcmp(hk1, p2.readHK()) is None
@@ -837,8 +837,8 @@ def mkStorage(thepoolname, thepoolurl, db=None):
     """ returns pool object and productStorage """
 
     cleanup(thepoolurl, thepoolname)
-    pstore=ProductStorage(thepoolname, thepoolurl)
-    thepoolpath, tsc, tpl, pn, un, pw=parse_poolurl(thepoolurl, thepoolname)
+    pstore = ProductStorage(thepoolname, thepoolurl)
+    thepoolpath, tsc, tpl, pn, un, pw = parse_poolurl(thepoolurl, thepoolname)
     if tsc in ['file', 'server']:
         assert op.exists(transpath(thepoolname, thepoolpath))
     assert len(pstore.getPools()) == 1
@@ -851,17 +851,17 @@ def mkStorage(thepoolname, thepoolurl, db=None):
 
 def doquery(poolpath, newpoolpath):
     # creation
-    a1=MapContext
-    a2='p'
-    a3='p.description == "mc"'
-    a4=False
-    q=AbstractQuery(product=a1, variable=a2, where=a3, allVersions=a4)
+    a1 = MapContext
+    a2 = 'p'
+    a3 = 'p.description == "mc"'
+    a4 = False
+    q = AbstractQuery(product=a1, variable=a2, where=a3, allVersions=a4)
     assert q.getType() == a1
     assert q.getVariable() == a2
     assert q.getWhere() == a3
     assert q.retrieveAllVersions() == a4
 
-    a1=TP
+    a1 = TP
     a2='m'
     a3='m["description"].value == "pr"'
     a4=False
@@ -910,6 +910,7 @@ def doquery(poolpath, newpoolpath):
 
     # query with a specific parameter in all products' metadata, which is the variable 'm' in the query expression, i.e. ``m = product.meta; ...``
     m=2
+    
     q=MetaQuery(TP, 'm["description"].value == "%s"' % rec1[m]['a0'])
     res=pstore.select(q)
 

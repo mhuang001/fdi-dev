@@ -6,7 +6,7 @@ from .httppool_server import (
     excp,
     resp
 )
-#from .. import auth
+# from .. import auth
 from ..model.user import auth
 
 from ..._version import __version__
@@ -822,7 +822,7 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
     args = m_args[1:] if len(m_args) > 1 else []
     kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
     msg = '%s(%s)' % (method, ', '.join(
-        chain((str(x)[:10] for x in args), kwdsexpr)))
+        chain(((getattr(x, 'where', str(x)))[:100] for x in args), kwdsexpr)))
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('WebAPI ' + lls(msg, 300) +
                      's %x' % id(PM_S._GlobalPoolList))

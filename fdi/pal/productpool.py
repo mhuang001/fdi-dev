@@ -471,6 +471,18 @@ class PoolNotFoundError(Exception):
     pass
 
 
+def _eval(code='', m='', **kwds):
+    """ evaluate compiled code with given local vars. """
+    try:
+        res = eval(code)
+    except NameError:
+        res = False
+        logger.debug("Evaluation error: %s. Traceback %s" %
+                     (str(e), trbk(e)))
+
+    return res
+
+
 # Do not include leading or trailing whitespace as they are not guarantteed.
 MetaData_Json_Start = '{"_ATTR_meta":'
 MetaData_Json_End = '"_STID": "MetaData"}'
@@ -964,7 +976,7 @@ class ManagedPool(ProductPool, DictHk):
     def doWipe(self):
         """ to be implemented by subclasses to do the action of wiping.
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def schematicWipe(self):
         """ do the scheme-specific wiping
@@ -1005,11 +1017,11 @@ class ManagedPool(ProductPool, DictHk):
 
         if reflist:
             if isinstance(qw, str):
-                code = compile(qw, 'py', 'eval')
+                code = compile(qw, 'qw.py', 'eval')
                 for ref in reflist:
                     refmet = ref.getMeta()
                     m = refmet if refmet else self.getMetaByUrn(ref.urn)
-                    if eval(code):
+                    if _eval(code=code, m=m):
                         ret.append(ref)
                 return ret
             else:
@@ -1021,10 +1033,10 @@ class ManagedPool(ProductPool, DictHk):
                 return ret
         elif urnlist:
             if isinstance(qw, str):
-                code = compile(qw, 'py', 'eval')
+                code = compile(qw, 'qw.py', 'eval')
                 for urn in urnlist:
                     m = self.getMetaByUrn(urn)
-                    if eval(code):
+                    if _eval(code=code, m=m):
                         ret.append(ProductRef(urn=urn, meta=m,
                                    poolmanager=self._poolmanager))
                 return ret
@@ -1037,7 +1049,7 @@ class ManagedPool(ProductPool, DictHk):
                 return ret
         elif snlist or datatypes:
             if isinstance(qw, str):
-                code = compile(qw, 'py', 'eval')
+                code = compile(qw, 'qw.py', 'eval')
                 if snlist:
                     datatypes = {typename: snlist}
                 for cls in datatypes:
@@ -1046,7 +1058,7 @@ class ManagedPool(ProductPool, DictHk):
                         urn = makeUrn(poolname=self._poolname,
                                       typename=typename, index=n)
                         m = self.getMetaByUrn(urn)
-                        if eval(code):
+                        if _eval(code=code, m=m):
                             ret.append(ProductRef(urn=urn, meta=m,
                                        poolmanager=self._poolmanager))
                 return ret
@@ -1064,7 +1076,7 @@ class ManagedPool(ProductPool, DictHk):
                                        poolmanager=self._poolmanager))
                 return ret
         else:
-            raise('Must give a list of ProductRef or urn or sn')
+            raise ('Must give a list of ProductRef or urn or sn')
 
     def prod_filter(self, q, cls=None, reflist=None, urnlist=None, snlist=None, datatypes=None):
         """ returns filtered collection using the query.
@@ -1090,10 +1102,10 @@ class ManagedPool(ProductPool, DictHk):
 
         if reflist:
             if isinstance(qw, str):
-                code = compile(qw, 'py', 'eval')
+                code = compile(qw, 'qw.py', 'eval')
                 for ref in reflist:
                     glbs[var] = pref.getProduct()
-                    if eval(code):
+                    if _eval(code=code, m=m):
                         ret.append(ref)
                 if savevar != 'not in glbs':
                     glbs[var] = savevar
@@ -1108,11 +1120,11 @@ class ManagedPool(ProductPool, DictHk):
                 return ret
         elif urnlist:
             if isinstance(qw, str):
-                code = compile(qw, 'py', 'eval')
+                code = compile(qw, 'qw.py', 'eval')
                 for urn in urnlist:
                     pref = ProductRef(urn=urn, poolmanager=self._poolmanager)
                     glbs[var] = pref.getProduct()
-                    if eval(code):
+                    if _eval(code=code):
                         ret.append(pref)
                 if savevar != 'not in glbs':
                     glbs[var] = savevar
@@ -1128,7 +1140,7 @@ class ManagedPool(ProductPool, DictHk):
                 return ret
         elif snlist or datatypes:
             if isinstance(qw, str):
-                code = compile(qw, 'py', 'eval')
+                code = compile(qw, 'qw.py', 'eval')
                 if snlist:
                     datatypes = {cls.__name__: snlist}
                 for typename in datatypes:
@@ -1139,7 +1151,7 @@ class ManagedPool(ProductPool, DictHk):
                         pref = ProductRef(
                             urn=urno, poolmanager=self._poolmanager)
                         glbs[var] = pref.getProduct()
-                        if eval(code):
+                        if _eval(code=code):
                             ret.append(pref)
                     if savevar != 'not in glbs':
                         glbs[var] = savevar
@@ -1161,7 +1173,7 @@ class ManagedPool(ProductPool, DictHk):
                         glbs[var] = savevar
                 return ret
         else:
-            raise('Must give a list of ProductRef or urn or sn')
+            raise ('Must give a list of ProductRef or urn or sn')
 
     def where(self, qw, prod='BaseProduct', urns=None):
         q = AbstractQuery(prod, 'p', qw)
@@ -1182,7 +1194,7 @@ class ManagedPool(ProductPool, DictHk):
         """
         to be implemented by subclasses to do the action of querying.
         """
-        raise(NotImplementedError)
+        raise (NotImplementedError)
 
     def schematicSelect(self,  query, previous=None):
         """

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
+from requests.exceptions import ConnectionError
 from flask import Flask  # request as
 from flask.testing import FlaskClient
 
@@ -42,15 +43,15 @@ defaulturl = getConfig('poolurl:')
 pccnode = pcc
 TIMEOUT = pcc['requests_timeout']
 # default RETRY_AFTER_STATUS_CODES = frozenset({413, 429, 503})
-FORCED = None  # (503, 504, 408, 413, 429)
+FORCED = (503, 504, 408, 413, 429)
 # default DEFAULT_ALLOWED_METHODS = frozenset({'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PUT', 'TRACE'})
-METHODS = ("HEAD", "GET", "OPTIONS")
-MAX_RETRY = 3
+METHODS = ("POST", "PUT", "HEAD", "GET", "OPTIONS")
+MAX_RETRY = 5
 
 
 def requests_retry_session(
         retries=MAX_RETRY,
-        backoff_factor=0.3,
+        backoff_factor=3,
         status_forcelist=FORCED,
         method_whitelist=METHODS,
         session=None
@@ -63,7 +64,7 @@ def requests_retry_session(
     retry = Retry(
         total=retries,
         read=retries,
-        status=5,
+        status=retries,
         connect=retries,
         other=None,
         redirect=5,
@@ -78,7 +79,8 @@ def requests_retry_session(
     return session
 
 
-clnt = requests_retry_session(retries=2, backoff_factor=0.5)
+# set `reries` to `False` to disable retrying.
+clnt = requests_retry_session(retries=False, backoff_factor=0.1)
 # clnt = requests.Session()  #
 
 
@@ -217,6 +219,14 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     if headers is None:
         headers = auth_headers(auth.username, auth.password)
     sd = data if no_serial else serialize(data)
+    for n in range(MAX_RETRY):
+        try:
+            res = client.post(api, auth=auth, data=sd,
+                              headers=headers, timeout=TIMEOUT)
+            if res.status_code not in FORCED:
+                break
+        except ConnectionError:
+            pass
     res = client.post(api, auth=auth, data=sd,
                       headers=headers, timeout=TIMEOUT)
     # print(res)
@@ -273,7 +283,13 @@ def read_from_server(urn, poolurl, contents='product', result_only=False, auth=N
         client = clnt
     api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
-    res = client.get(api, auth=auth, timeout=TIMEOUT)
+    for n in range(MAX_RETRY):
+        try:
+            res = client.get(api, auth=auth, timeout=TIMEOUT)
+            if res.status_code not in FORCED:
+                break
+        except ConnectionError:
+            pass
     # print(res)
     if result_only:
         return res
@@ -301,7 +317,13 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
     # print("DELETE REQUEST API: " + api)
     if 0 and not issubclass(client.__class__, FlaskClient):
         print('######', client.cookies.get('session', None))
-    res = client.put(api, auth=auth, timeout=TIMEOUT)
+    for n in range(MAX_RETRY):
+        try:
+            res = client.put(api, auth=auth, timeout=TIMEOUT)
+            if res.status_code not in FORCED:
+                break
+        except ConnectionError:
+            pass
     # print(res)
     if result_only:
         return res
@@ -333,7 +355,13 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
         client = clnt
     api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)
-    res = client.delete(api, auth=auth, timeout=TIMEOUT)
+    for n in range(MAX_RETRY):
+        try:
+            res = client.delete(api, auth=auth, timeout=TIMEOUT)
+            if res.status_code not in FORCED:
+                break
+        except ConnectionError:
+            pass
     # print(res)
     if result_only:
         return res

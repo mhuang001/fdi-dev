@@ -139,12 +139,13 @@ def importModuleClasses(scope=None, mapping=None,
         mapping = Class_Module_Map
 
     SelectiveMetaFinder.exclude = exclude
-    msg = 'With %s excluded.. and SelectiveMetaFinder.exclude=%s' % (
-        str(exclude), str(SelectiveMetaFinder.exclude))
-    if verbose:
-        logger.info(msg)
+    if exclude or SelectiveMetaFinder.exclude:
+        msg = 'With %s excluded.. and SelectiveMetaFinder.exclude=%s' % (
+            str(exclude), str(SelectiveMetaFinder.exclude))
     else:
-        logger.debug(msg)
+        msg = ''
+
+    logger.debug(msg)
 
     res = {}
     for cl in [scope]:

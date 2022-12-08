@@ -37,6 +37,9 @@ import os
 # print(sys.path)
 global logger
 
+LOGGING_NORMAL = logging_WARNING
+""" routine logging level."""
+
 
 class PM_S(PoolManager):
     """Made to provid a different `_GlobalPoolList` useful for testing as a mock"""
@@ -52,7 +55,7 @@ def setup_logging(level=None, extras=None, tofile=None):
     que = queue.Queue(-1)  # no limit on size
 
     if extras is None:
-        extras = logging_WARNING
+        extras = LOGGING_NORMAL
     short = dict(format='%(asctime)s.%(msecs)03d'
                  ' %(levelname)4s'
                  ' %(filename)6s:%(lineno)3s'
@@ -83,13 +86,13 @@ def setup_logging(level=None, extras=None, tofile=None):
         },
         "loggers": {
             "werkzeug": {
-                "level": "WARNING",
+                "level": LOGGING_NORMAL,
                 "handlers": ["non_block"],
                 "propagate": False
             }
         },
         'root': {
-            'level': 'INFO',
+            'level': LOGGING_NORMAL,
             'handlers': ['wsgi']
         },
         'disable_existing_loggers': False
@@ -106,8 +109,8 @@ def setup_logging(level=None, extras=None, tofile=None):
     dict_config = dictConfig(basedict)
 
     if level is None:
-        level = logging.WARNING
-    if level < logging.WARNING:
+        level = LOGGING_NORMAL
+    if level < LOGGING_NORMAL:
         handler = logging.StreamHandler()
         handler.setFormatter(logging.Formatter("%(message)s"))
         logging_listener = QueueListener(
@@ -115,12 +118,12 @@ def setup_logging(level=None, extras=None, tofile=None):
         logging_listener.start()
     #logging.basicConfig(stream=sys.stdout, **detailed)
     # create logger
-    logging.getLogger("requests").setLevel(extras)
-    logging.getLogger("filelock").setLevel(extras)
-    # logging.getLogger("werkzeug").setLevel(extras)
-
-    if sys.version_info[0] > 2:
-        logging.getLogger("urllib3").setLevel(extras)
+    if 0:
+        for mod in ("requests", "filelock", ):
+            logging.getLogger(mod).setLevel(extras)
+        # logging.getLogger("werkzeug").setLevel(extras)
+        if sys.version_info[0] > 2:
+            logging.getLogger("urllib3").setLevel(extras)
     return logging
 
 ########################################
@@ -273,44 +276,72 @@ def init_httppool_server(app):
 #### Application Factory Function ####
 ######################################
 
-def create_app(config_object=None, level=None, debug=False, logstream=None):
+LOGGING_DETAILED = logging_DEBUG
+
+
+def create_app(config_object=None, debug=LOGGING_NORMAL, logstream=None):
     """ If args have logger level, use it; else if 
  use 'development' pnslocal.py config.
+
+    :debug: level if `int`, name of modules that are set to givren level.
     """
     config_object = config_object if config_object else getconfig.getConfig()
 
     global logger
-    logging = setup_logging(level=level,
+    _d = os.environ.get('PNS_DEBUG', debug)
+    __import__("pdb").set_trace()
+
+    if isinstance(_d, str):
+        try:
+            _d = int(_d)
+        except TypeError:
+            # must come from env -- ',' separated module list
+            _d = _d.split(',')
+    if isinstance(_d, list):
+        debug_picked = _d
+        level_picked = LOGGING_DETAILED
+    else:
+        # level number in str
+        level_picked = _d
+        debug_picked = []
+    debug_picked.append('')
+    logging = setup_logging(level=level_picked,
                             extras=int(config_object['logger_level_extras']),
                             tofile=logstream)
-    logger = logging.getLogger('httppool_app')
+    logger = logging.getLogger('fdi.httppool_app')
 
-    if level is None:
-        level = int(config_object['logger_level'])
-        #level = logging_WARNING
+    debug = (level_picked < logging_INFO)
+    if debug_picked:
+        for mod in debug_picked:
+            mod = mod.strip()
+            if not mod:
+                continue
+            if mod.startswith('='):
+                logging.getLogger(mod[1:]).setLevel(LOGGING_NORMAL)
+            else:
+                logging.getLogger(mod).setLevel(level_picked)
+    if 0:  # turn off picked as server code use current_app.logger!
+        level = LOGGING_NORMAL
+    else:
+        level = level_picked
     logger.setLevel(level)
-
     # app = Flask('HttpPool', instance_relative_config=False,
     #            root_path=os.path.abspath(os.path.dirname(__file__)))
     app = Flask(__name__.split('.')[0], instance_relative_config=False,
                 root_path=os.path.abspath(os.path.dirname(__file__)))
     app.logger = logger
     app.config_object = config_object
+    app.config['LOGGER_LEVEL'] = level
 
     if os.environ.get('UW_DEBUG', False) in (1, '1', 'True', True):
         from remote_pdb import RemotePdb
         RemotePdb('127.0.0.1', 4444).set_trace()
 
-    if os.environ.get('PNS_DEBUG', False) in (1, '1', 'True', True):
-        debug = True
-
     if debug:
-        level = logging_DEBUG
-        logger.setLevel(level)
-        logger.info('DEBUG mode %s' % (app.config['DEBUG']))
         from werkzeug.debug import DebuggedApplication
         app.wsgi_app = DebuggedApplication(app.wsgi_app, True)
         app.debug = True
+        logger.info('DEBUG mode %s' % (app.config['DEBUG']))
         app.config['PROPAGATE_EXCEPTIONS'] = True
     elif 'proxy_fix' in app.config:
         from werkzeug.middleware.proxy_fix import ProxyFix
@@ -319,7 +350,6 @@ def create_app(config_object=None, level=None, debug=False, logstream=None):
         )
     # from flask.logging import default_handler
     # app.logger.removeHandler(default_handler)
-    app.config['LOGGER_LEVEL'] = logger.getEffectiveLevel()
 
     app.config['SWAGGER'] = {
         'title': 'FDI %s HTTPpool Server' % __version__,

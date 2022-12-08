@@ -13,6 +13,7 @@ from fdi._version import __version__
 from fdi.utils import getconfig
 
 import sys
+import os
 import argparse
 
 #sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
@@ -27,8 +28,8 @@ def setup_logging(lggng, logstream=None):
                       '%(funcName)10s():%(lineno)3d- %(message)s',
                       datefmt="%Y-%m-%d %H:%M:%S")
 
-    lggng.getLogger("requests").setLevel(lggng.WARNING)
-    lggng.getLogger("filelock").setLevel(lggng.WARNING)
+    # lggng.getLogger("requests").setLevel(lggng.WARNING)
+    # lggng.getLogger("filelock").setLevel(lggng.WARNING)
     logger = lggng.getLogger()
     if logstream:
         stream = open(logstream, 'a')
@@ -43,6 +44,7 @@ if __name__ == '__main__':
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     # default configuration is provided. Copy config.py to ~/.config/pnslocal.py
+    debug = os.environ.get('PNS_DEBUG', logging.WARNING)
 
     pc = getconfig.getConfig()
 
@@ -67,35 +69,40 @@ if __name__ == '__main__':
                         type=str, help='server type: pns or httppool_server')
     parser.add_argument('-w', '--wsgi', default=False,
                         action='store_true', help='run a WSGI server.')
-    parser.add_argument('-d', '--debug', default=False,
-                        action='store_true', help='run in debug mode.')
+    parser.add_argument('-d', '--debug', nargs='*', default=debug,
+                        help='run in debug mode for the given modules. Empty list means all modules.')
     parser.add_argument('-l', '--logstream',
                         default=None, type=str, help='name of logfile')
     args = parser.parse_args()
 
     verbose = args.verbose
-    pc['self_username'] = args.username
-    pc['self_password'] = args.password
-    pc['self_host'] = args.host
-    pc['self_port'] = args.port
+    os.environ['PNS_SELF_USERNAME'] = args.username
+    os.environ['PNS_SELF_PASSWORD'] = args.password
+    os.environ['PNS_SELF_HOST'] = args.host
+    os.environ['PNS_SELF_PORT'] = str(args.port)
     servertype = args.server
     wsgi = args.wsgi
 
     # create app only needs
     logger = setup_logging(logging, args.logstream)
-
-    if pc['self_username'] == 'hashed':
-        print('Hashed password %s is\n' % pc['self_password'], User(
-            'h', password=pc['self_password']).hashed_password)
+    debug = args.debug
+    if args.username == 'hashed':
+        print('Hashed password %s is\n' % args.password, User(
+            'h', password=args.password).hashed_password)
         sys.exit(0)
 
     if verbose:
-        logger.setLevel(logging.DEBUG)
-        pc['loggerlevel'] = logging.DEBUG
+        level = logging.DEBUG
+        print(args)
+    else:
+        level = logging.WARNING
+    logger.setLevel(level)
+    os.environ['loggerlevel'] = str(level)
     print('Check ' + pc['scheme'] + '://' + pc['self_host'] +
           ':' + str(pc['self_port']) + pc['api_base'] +
           '/apidocs' + ' for API documents.')
 
+    pc = getconfig.getConfig()
     lev = logger.getEffectiveLevel()
     logger.info(
         'Server starting. Make sure no other instance is running. Initial logging level '+str(lev))
@@ -106,9 +113,9 @@ if __name__ == '__main__':
         sys.exit(1)
     elif servertype == 'httppool_server':
         print('<<<<<< %s >>>>>' % servertype)
-        app = create_app(pc, debug=args.debug,
+        app = create_app(pc, debug=debug,
                          logstream=args.logstream,
-                         level=lev)
+                         )
     else:
         logger.error('Unknown server %s' % servertype)
         sys.exit(-1)
@@ -116,11 +123,11 @@ if __name__ == '__main__':
     if wsgi:
         from waitress import serve
         serve(app, url_scheme='https',
-              host=pc['self_host'], port=pc['self_port'])
+              host=args.host, port=args.port)
     else:
         # app may have changed debug, so do not use args.debug
         debug = app.debug
-        app.run(host=pc['self_host'], port=pc['self_port'],
+        app.run(host=args.host, port=args.port,
                 threaded=not debug, processes=1,
                 use_reloader=False, reloader_type='stat',
                 debug=debug, passthrough_errors=debug,

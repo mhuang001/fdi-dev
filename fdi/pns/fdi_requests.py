@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from urllib3.util.retry import Retry
+from urllib3.exceptions import NewConnectionError
 from requests.adapters import HTTPAdapter
 from requests.exceptions import ConnectionError
 from flask import Flask  # request as
@@ -16,6 +17,7 @@ from ..dataset.serializable import serialize
 from ..dataset.deserialize import deserialize
 from ..pal.urn import parseUrn, parse_poolurl
 from ..utils.getconfig import getConfig
+from ..utils.common import trbk
 from ..pal.webapi import WebAPI
 from .jsonio import auth_headers
 
@@ -225,11 +227,11 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
                               headers=headers, timeout=TIMEOUT)
             if res.status_code not in FORCED:
                 break
-        except ConnectionError:
-            pass
-    res = client.post(api, auth=auth, data=sd,
-                      headers=headers, timeout=TIMEOUT)
-    # print(res)
+        except ConnectionError as e:
+            cause = e.__context__.reason
+            if isinstance(cause, NewConnectionError):
+                raise cause
+    #print(n, res)
     if result_only:
         return res
     result = deserialize(res.text)
@@ -288,8 +290,10 @@ def read_from_server(urn, poolurl, contents='product', result_only=False, auth=N
             res = client.get(api, auth=auth, timeout=TIMEOUT)
             if res.status_code not in FORCED:
                 break
-        except ConnectionError:
-            pass
+        except ConnectionError as e:
+            cause = e.__context__.reason
+            if isinstance(cause, NewConnectionError):
+                raise cause
     # print(res)
     if result_only:
         return res
@@ -314,7 +318,7 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
     if client is None:
         client = clnt
     api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
-    # print("DELETE REQUEST API: " + api)
+    # print("PUT REQUEST API: " + api)
     if 0 and not issubclass(client.__class__, FlaskClient):
         print('######', client.cookies.get('session', None))
     for n in range(MAX_RETRY):
@@ -322,9 +326,11 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
             res = client.put(api, auth=auth, timeout=TIMEOUT)
             if res.status_code not in FORCED:
                 break
-        except ConnectionError:
-            pass
-    # print(res)
+        except ConnectionError as e:
+            cause = e.__context__.reason
+            if isinstance(cause, NewConnectionError):
+                raise cause
+    print(res, n)
     if result_only:
         return res
     result = deserialize(res.text if type(res) == requests.models.Response

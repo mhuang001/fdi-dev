@@ -188,13 +188,14 @@ def test_tmp_remote_storage(tmp_remote_storage, tmp_prods):
     assert len(plst) == 1
     assert plst[0] == 'test_remote_pool'
     pool = ps.getPool(plst[0])
+
     # empty
     assert pool.getCount() == 0
     assert pool.isEmpty()
     prod_lst = tmp_prods
     refs = []
     for i, p in enumerate(prod_lst):
-        ts = 'saved at %d' % time.time()
+        ts = 'saved at %d' % time.time_ns()
         refs.append(ps.save(p, tag=ts))
     retrd = []
     for r in refs:
@@ -271,7 +272,6 @@ def test_CRUD_product_by_client(get_PS_for_CRUD):
 
     cnt = pool.getCount(typenm)
     assert cnt == pool.getCount()
-    # __import__("pdb").set_trace()
 
     assert cnt == 2 == pool.count
 
@@ -695,7 +695,7 @@ def test_hist(tmp_remote_storage, tmp_prods):
         assert p122.history['name'][0] == 'p1-2-2-1'
         assert p1221.history['name'][0] == 'p1-2-2-1-1'
         assert nx.is_directed_acyclic_graph(h)
-        # __import__('pdb').set_trace()
+
     assert len(h.adj) == 7
     pdot = nx.drawing.nx_pydot.to_pydot(h)
     print(pdot.to_string())

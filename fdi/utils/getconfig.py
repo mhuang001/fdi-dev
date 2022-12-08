@@ -188,7 +188,7 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
 def make_pool(pool, conf='pns', auth=None, wipe=False):
     """ Return a ProductStorage with given pool name or poolURL.
 
-    ;name: PoolURL, or pool name (has no "://"), in which case a pool URL is made based on the result of `getConfig(name=pool, conf=conf)`. Default is ''.
+    :name: PoolURL, or pool name (has no "://"), in which case a pool URL is made based on the result of `getConfig(name=pool, conf=conf)`. Default is ''.
     :auth: if is None will be set to `HTTPBasicAuth` using the `config`.
     :conf: passed to `getconfig` to determine which configuration. Default ```pns```.
     :wipe: whether to delete everything in the pool first.
@@ -201,7 +201,7 @@ def make_pool(pool, conf='pns', auth=None, wipe=False):
     if '://' in pool:
         poolurl = pool
     else:
-        poolurl = getConfig(pool)
+        poolurl = getConfig('poolurl:'+pool)
 
     if auth is None:
         auth = HTTPBasicAuth(pc['username'], pc['password'])

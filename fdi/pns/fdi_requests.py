@@ -198,6 +198,20 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 # Store tag in headers, maybe that's  not a good idea
 
 
+def safe_client(method, api, *args, **kwds):
+    for n in range(MAX_RETRY):
+        try:
+            res = method(api, *args, **kwds)
+            if res.status_code not in FORCED:
+                break
+        except ConnectionError as e:
+            cause = e.__context__.reason
+            if isinstance(cause, NewConnectionError):
+                raise cause
+    # print(n, res)
+    return res
+
+
 def post_to_server(data, urn, poolurl, contents='product', headers=None,
                    no_serial=False, result_only=False, auth=None, client=None):
     """Post data to server with  tag in headers
@@ -221,17 +235,9 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     if headers is None:
         headers = auth_headers(auth.username, auth.password)
     sd = data if no_serial else serialize(data)
-    for n in range(MAX_RETRY):
-        try:
-            res = client.post(api, auth=auth, data=sd,
-                              headers=headers, timeout=TIMEOUT)
-            if res.status_code not in FORCED:
-                break
-        except ConnectionError as e:
-            cause = e.__context__.reason
-            if isinstance(cause, NewConnectionError):
-                raise cause
-    #print(n, res)
+    res = safe_client(client.post, api, auth=auth, data=sd,
+                      headers=headers, timeout=TIMEOUT)
+
     if result_only:
         return res
     result = deserialize(res.text)
@@ -285,16 +291,8 @@ def read_from_server(urn, poolurl, contents='product', result_only=False, auth=N
         client = clnt
     api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
-    for n in range(MAX_RETRY):
-        try:
-            res = client.get(api, auth=auth, timeout=TIMEOUT)
-            if res.status_code not in FORCED:
-                break
-        except ConnectionError as e:
-            cause = e.__context__.reason
-            if isinstance(cause, NewConnectionError):
-                raise cause
-    # print(res)
+    res = safe_client(client.get, api, auth=auth, timeout=TIMEOUT)
+
     if result_only:
         return res
     result = deserialize(res.text if type(res) == requests.models.Response
@@ -321,16 +319,7 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
     # print("PUT REQUEST API: " + api)
     if 0 and not issubclass(client.__class__, FlaskClient):
         print('######', client.cookies.get('session', None))
-    for n in range(MAX_RETRY):
-        try:
-            res = client.put(api, auth=auth, timeout=TIMEOUT)
-            if res.status_code not in FORCED:
-                break
-        except ConnectionError as e:
-            cause = e.__context__.reason
-            if isinstance(cause, NewConnectionError):
-                raise cause
-    print(res, n)
+    res = safe_client(client.put, api, auth=auth, timeout=TIMEOUT)
     if result_only:
         return res
     result = deserialize(res.text if type(res) == requests.models.Response
@@ -361,14 +350,8 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
         client = clnt
     api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)
-    for n in range(MAX_RETRY):
-        try:
-            res = client.delete(api, auth=auth, timeout=TIMEOUT)
-            if res.status_code not in FORCED:
-                break
-        except ConnectionError:
-            pass
-    # print(res)
+    res = safe_client(client.delete, api, auth=auth, timeout=TIMEOUT)
+
     if result_only:
         return res
     result = deserialize(res.text if type(res) == requests.models.Response

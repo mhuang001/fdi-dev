@@ -17,6 +17,7 @@ from fdi.pal.productstorage import ProductStorage
 from fdi.pal.productpool import Lock_Path_Base, makeLockpath
 from fdi.utils.common import lls, trbk, fullname
 from fdi.utils.fetch import fetch
+from fdi.pns.fdi_requests import safe_client
 from fdi.pns.jsonio import auth_headers
 
 import pytest
@@ -199,20 +200,20 @@ def test_svcl(server, client):
 def test_root(server, client):
     aburl, headers = server
     url = aburl + '/'
-    x = client.get(url)
+    x = safe_client(client.get, url)
     o, code = getPayload(x)
     check_response(o, code=code)
     c0 = o['result']  # a list
     # no slash
     url = aburl
-    x = client.get(url)
+    x = safe_client(client.get, url)
     o, code = getPayload(x)  # a dict of urls
     if check_response(o, code=code, excluded=['Redirecting']):
         c = o['result']
         assert set(c0) == set(c)
     # /
     url = aburl + '/pools/'
-    x = client.get(url, headers=headers)
+    x = safe_client(client.get, url, headers=headers)
     o, code = getPayload(x)
     check_response(o, code=code)
     c_pools = o['result']  # a dict
@@ -230,7 +231,7 @@ def test_wipe_all_pools_on_server(server, tmp_local_remote_pools, local_pools_di
     # register all pools and get count
     aburl, headers = server
     url = aburl + '/' + 'pools/register_all'
-    x = client.put(url, auth=auth)
+    x = safe_client(client.post, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code, failed_case=False)
     regd = o['result']
@@ -244,7 +245,7 @@ def test_wipe_all_pools_on_server(server, tmp_local_remote_pools, local_pools_di
 
     # wipe all pools
     url = aburl + '/' + 'pools/wipe_all'
-    x = client.delete(url, auth=auth)
+    x = safe_client(client.delete, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code, failed_case=False)
 
@@ -261,7 +262,7 @@ def est_wipe_all_pools_on_server(server, local_pools_dir, client, auth):
 
     # register all pools and get count
     url = aburl + '/' + 'pools/register_all'
-    x = client.put(url, auth=auth)
+    x = safe_client(client.post, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code, failed_case=False)
     regd = o['result']
@@ -280,7 +281,7 @@ def est_wipe_all_pools_on_server(server, local_pools_dir, client, auth):
 
     # wipe all pools
     url = aburl + '/' + 'pools/wipe_all'
-    x = client.delete(url, auth=auth)
+    x = safe_client(client.delete, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code, failed_case=False)
 
@@ -320,7 +321,8 @@ def test_new_user_read_only(new_user_read_only, pc):
 
 def getapis(server_ro, client):
     aburl, headers = server_ro
-    x = client.get(aburl.rsplit('/', 1)[0]+'/apispec_1.json', headers=headers)
+    x = safe_client(client.get, aburl.rsplit('/', 1)
+                    [0]+'/apispec_1.json', headers=headers)
     return deserialize(x.text if type(x) == requests.models.Response else x.data)
 
 
@@ -346,7 +348,7 @@ def test_unauthorizedread_write(server, server_ro, client, tmp_local_remote_pool
                                  (id(session), str(user_id))+hdrs)
                     x = current_app.full_dispatch_request()
     else:
-        x = client.get(aburl+'/pools/', headers=uheaders)
+        x = safe_client(client.get, aburl+'/pools/', headers=uheaders)
     if LOGIN_TMPLT:
         # In order to use the login page, the return code has to be 200
         assert x.status_code == 200
@@ -366,10 +368,12 @@ def test_unauthorizedread_write(server, server_ro, client, tmp_local_remote_pool
             if meth == 'post':
                 print(meth, aburl+api, '""')
                 # unknown user
-                x = client.post(aburl+api, headers=uheaders, data='')
+                x = safe_client(client.post, aburl+api,
+                                headers=uheaders, data='')
                 assert x.status_code == 200 if p == '/pool/{method_args}' else 401
                 # read_only
-                x = client.post(roaburl+api, headers=roheaders, data='')
+                x = safe_client(client.post, roaburl+api,
+                                headers=roheaders, data='')
                 if LOGIN_TMPLT:
                     # In order to use the login page, the return code has to be 200
                     assert x.status_code == 200 if p == '/login' \
@@ -377,7 +381,8 @@ def test_unauthorizedread_write(server, server_ro, client, tmp_local_remote_pool
                 assert x.status_code == 200 if p == '/login' \
                     else 401 if p == '/logout' else 403
                 # read_write
-                x = client.post(aburl+api, headers=headers, data='')
+                x = safe_client(client.post, aburl+api,
+                                headers=headers, data='')
                 assert x.status_code == 401 if p == '/user/logout' else 200
 
     logger.debug('Done.')
@@ -385,7 +390,7 @@ def test_unauthorizedread_write(server, server_ro, client, tmp_local_remote_pool
 
 def test_authorizedread_write(server, new_user_read_write, client):
     aburl, headers = server
-    x = client.get(aburl+'/pools/', headers=headers)
+    x = safe_client(client.get, aburl+'/pools/', headers=headers)
     assert x.status_code == 200
     # with pytest.raises(URLError):
     o, code = getPayload(x)
@@ -487,7 +492,7 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
 
     u = random.choice(urns)
     url = aburl + '/' + u  # [4:].replace(':', '/')
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
     assert o['result'].creator == creators[urns.index(u)], 'Creator not match'
@@ -499,11 +504,11 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
     hkpath = '/hk'
     url = aburl + '/' + post_poolid + hkpath + \
         '/'  # trailing / is needed by mock server
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
     o1, c1 = getPayload(x)
     url2 = aburl + '/' + post_poolid + '/api/readHK' + \
         '/'  # trailing / is needed by mock server
-    x2 = client.get(url2, auth=auth)
+    x2 = safe_client(client.get, url2, auth=auth)
     o2, c2 = getPayload(x2)
     for o, c in [(o1, c1), (o2, c2)]:
         check_response(o, code=c)
@@ -525,7 +530,7 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
     logger.info('read dTypes')
     hkpath = '/hk/dTypes'
     url = aburl + '/' + post_poolid + hkpath
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
     assert list(o['result'][prodt]['sn'])[-l:] == inds
@@ -538,7 +543,7 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
     apipath = '/api/getCount__' + prodt
     url = aburl + '/' + post_poolid + apipath + \
         '/'  # trailing / is needed by mock server
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
     assert o['result'] == num
@@ -547,7 +552,7 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
     hkpath = '/hk/dTags'
     url = aburl + '/' + post_poolid + hkpath
     # '/'  # trailing / is needed by mock server
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
     assert len(o['result']) == 0
@@ -563,7 +568,7 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
     # poolname following 'urn' immediately
     url = aburl + '/urn' + post_poolid + '/fdi.dataset.product.Product/' + index
 
-    x = client.delete(url, auth=auth)
+    x = safe_client(client.delete, url, auth=auth)
 
     o, code = getPayload(x)
     check_response(o, code=code)
@@ -583,7 +588,7 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
     url2 = aburl + '/urn' + ':' + post_poolid + \
         '/fdi.dataset.product.Product/' + index2
 
-    x = client.delete(url2, auth=auth)
+    x = safe_client(client.delete, url2, auth=auth)
 
     o, code = getPayload(x)
     check_response(o, code=code)
@@ -606,7 +611,7 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
     # wipe the pool on the server
     url = aburl + '/' + post_poolid + '/api/removeAll' + \
         '/'  # trailing / is needed by mock server
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
 
@@ -615,7 +620,7 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
 
     url = aburl + '/' + post_poolid + '/api/isEmpty' + \
         '/'  # trailing / is needed by mock server
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
     assert o['result'] == True
@@ -623,14 +628,14 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
     # ========
     logger.info('unregister a pool on the server')
     url = aburl + '/' + post_poolid
-    x = client.delete(url, auth=auth)
+    x = safe_client(client.delete, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
 
     # this should fail as pool is unregistered on the server
     url = aburl + '/' + post_poolid + '/api/isEmpty' + \
         '/'  # trailing / is needed by mock server
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=x.status_code, failed_case=True)
 
@@ -650,7 +655,7 @@ def test_data_path(server, auth, client):
     data = serialize(p)
     # print(len(data))
     url1 = url0
-    x = client.post(url1, auth=auth, data=data)
+    x = safe_client(client.post, url1, auth=auth, data=data)
     o, code = getPayload(x)
     check_response(o, code=code)
     urn = o['result']
@@ -665,7 +670,7 @@ def test_data_path(server, auth, client):
     pcls = urn.split(':')[2].replace(':', '/')
     urlapi = url0 + pcls
     # 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product'
-    x = client.get(urlapi, auth=auth)
+    x = safe_client(client.get, urlapi, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
     c = o['result']
@@ -677,7 +682,7 @@ def test_data_path(server, auth, client):
     # make url w/  urn
     # url2       = 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product/0/measurements/Time_Energy_Pos/Energy/data'
     url2 = aburl + urn.replace(':', '/')[3:] + '/' + pth
-    x = client.get(url2, auth=auth)
+    x = safe_client(client.get, url2, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
     c = o['result']
@@ -689,7 +694,7 @@ def test_data_path(server, auth, client):
     urlp = url0 + pt
     # http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/fdi.dataset.product.Product/0/measurements/Time_Energy_Pos/Energy/data
     url3 = urlp + '/' + pth
-    x = client.get(url3, auth=auth)
+    x = safe_client(client.get, url3, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
     c2 = o['result']
@@ -704,7 +709,7 @@ def test_data_path(server, auth, client):
             "measurements/calibration/unit",
     ]:
         url = urlp + '/' + pth
-        x = client.get(url, auth=auth)
+        x = safe_client(client.get, url, auth=auth)
         o, code = getPayload(x)
         check_response(o, code=code)
         c = o['result']
@@ -714,7 +719,7 @@ def test_data_path(server, auth, client):
 
     # pt = fdi.dataset.product.Product/0
     url = url0 + pt + '/'
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code)
     c = o['result']
@@ -724,7 +729,7 @@ def test_data_path(server, auth, client):
 
     # 'http://127.0.0.1:5000/fdi/v0.10/fdi_serv.test_httppool/string/fdi.dataset.product.Product/0'
     url = url0 + pt + '/toString'
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
     assert x.headers['Content-Type'] == 'text/plain'
     o, c = getPayload(x)
     assert ('UNKNOWN' if isinstance(o, str) else b'UNKNOWN') in o
@@ -734,7 +739,7 @@ def test_get_pools(local_pools_dir, server, client):
 
     aburl, headers = server
     url = aburl + '/'+'pools' + '/'  # trailing / is needed by mock server
-    x = client.get(url, headers=headers)
+    x = safe_client(client.get, url, headers=headers)
     o, code = getPayload(x)
     check_response(o, code=code)
     c = o['result']
@@ -770,7 +775,7 @@ def read_product2(poolid, server, auth, client):
         hkpath = '/hk/dTypes'
         url = aburl + '/' + poolid + hkpath + '/'  # trailing / is needed by mock server
     logger.debug('Reading a locked file http...%s' % (url[-5:]))
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
     r = x.text if type(x) == requests.models.Response else x.data
     logger.info("read %f http...%s  %s" % (time.time(), url[-5:], lls(r, 26)))
     o, code = getPayload(x)
@@ -810,7 +815,7 @@ def Xest_lock_file2(server, userpass, local_pools_dir, client):
     populate_pool(poolid, aburl, userpass, client)
     # hkpath = '/hk/dTypes'
     # url = aburl + '/' + poolid + hkpath
-    # x = client.get(url, auth=make_auth(userpass))
+    # x = safe_client(client.get, url, auth=make_auth(userpass))
     locreadres, futs = {}, {}
     sleep1, sleep2 = 1.0, 0.12
 
@@ -921,7 +926,7 @@ def XXtest_lock_file(server, userpass, local_pools_dir, client):
     populate_pool(poolid, aburl, userpass, client)
     # hkpath = '/hk/dTypes'
     # url = aburl + '/' + poolid + hkpath
-    # x = client.get(url, auth=make_auth(userpass))
+    # x = safe_client(client.get, url, auth=make_auth(userpass))
 
     try:
         loop = asyncio.get_event_loop()
@@ -951,7 +956,7 @@ def test_read_non_exists_pool(server, userpass, client):
     wrong_poolid = 'nonexist_' + __name__.replace('.', '_')
     prodpath = '/' + prodt + '/0'
     url = aburl + '/' + wrong_poolid + prodpath
-    x = client.get(url, auth=make_auth(userpass))
+    x = safe_client(client.get, url, auth=make_auth(userpass))
     o, code = getPayload(x)
     check_response(o, code=400, failed_case=True)
 
@@ -990,7 +995,7 @@ def xtest_webapi_jsonPath(server, userpass, client):
             url = self.purl + '/jsonPath__' + urlargs
             nonlocal userpass
             auth = make_auth(userpass)
-            x = client.get(url, auth=auth)
+            x = safe_client(client.get, url, auth=auth)
             o, code = getPayload(x)
             check_response(o, code=code)
             return o['result']

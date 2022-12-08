@@ -20,7 +20,7 @@ from fdi.pal.publicclientpool import PublicClientPool
 from fdi.pal.query import MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.pal.httpclientpool import HttpClientPool
-from fdi.pns.fdi_requests import *
+from fdi.pns.fdi_requests import safe_client, urn2fdiurl, parse_poolurl
 from fdi.utils.getconfig import getConfig
 from fdi.utils.common import fullname
 
@@ -365,7 +365,7 @@ def test_flask_fmt(tmp_pools, server, client,  auth):
     # server url without slash
     aburl_no_slash = aburl.rstrip('/')
     # get poolname
-    x = client.get(aburl_no_slash, auth=auth)
+    x = safe_client(client.get, aburl_no_slash, auth=auth)
     o, code = getPayload(x)
     # check to see if the pool url is malformed
     check_response(o, code=code, failed_case=False)
@@ -382,7 +382,7 @@ def test_flask_fmt(tmp_pools, server, client,  auth):
     received_poolurls_no_slash = poolnames[pool._poolname].rstrip('/')
     # get pool with products and their urls
 
-    x = client.get(received_poolurls_no_slash, auth=auth)
+    x = safe_client(client.get, received_poolurls_no_slash, auth=auth)
     o, code = getPayload(x)
     # check to see if the pool url is malformed
     check_response(o, code=code, failed_case=False)
@@ -396,12 +396,12 @@ def test_flask_fmt(tmp_pools, server, client,  auth):
     # pool aburl with slash
     # get the pool using url with slash
     received_poolurls_slash = received_poolurls_no_slash+'/'
-    x1 = client.get(received_poolurls_slash, auth=auth)
+    x1 = safe_client(client.get, received_poolurls_slash, auth=auth)
     o1, code = getPayload(x1)
     assert o['result'] == o1['result']
 
     aburl_slash = aburl_no_slash+'/'
-    x = client.get(aburl_slash, auth=auth)
+    x = safe_client(client.get, aburl_slash, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code, failed_case=False)
     # should be a list of names
@@ -710,7 +710,7 @@ def test_no_auth(tmp_pools, server, client):
     # server url
 
     # get pool without auth
-    x = client.get(aburl, auth=None)
+    x = safe_client(client.get, aburl, auth=None)
     o, code = getPayload(x)
     # check to see if the pool url is malformed
     check_response(o, code=code, failed_case=False)
@@ -724,7 +724,7 @@ def test_need_auth(existing_pools, server, client, auth):
 
     url = '/'.join((aburl, pool.poolname, 'hk/'))
     # get pool with auth
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
     cookie = x.cookies
     o, code = getPayload(x)
 
@@ -735,7 +735,7 @@ def test_need_auth(existing_pools, server, client, auth):
     # in session
     url = '/'.join((aburl, pool.poolname, 'hk/dTags'))
 
-    x = client.get(url, auth=auth)
+    x = safe_client(client.get, url, auth=auth)
 
     o, code = getPayload(x)
     check_response(o, code=code, failed_case=False)

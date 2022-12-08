@@ -289,7 +289,6 @@ def create_app(config_object=None, debug=LOGGING_NORMAL, logstream=None):
 
     global logger
     _d = os.environ.get('PNS_DEBUG', debug)
-    __import__("pdb").set_trace()
 
     if isinstance(_d, str):
         try:

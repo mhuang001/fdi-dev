@@ -205,9 +205,12 @@ def safe_client(method, api, *args, **kwds):
             if res.status_code not in FORCED:
                 break
         except ConnectionError as e:
-            cause = e.__context__.reason
-            if isinstance(cause, NewConnectionError):
-                raise cause
+            if isinstance(e.__context__, ProtocolError):
+                pass
+            else:
+                cause = e.__context__.reason
+                if isinstance(cause, NewConnectionError):
+                    raise cause
     # print(n, res)
     return res
 

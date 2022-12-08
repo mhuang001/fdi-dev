@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from urllib3.util.retry import Retry
-from urllib3.exceptions import NewConnectionError
+from urllib3.exceptions import NewConnectionError, ProtocolError
 from requests.adapters import HTTPAdapter
 from requests.exceptions import ConnectionError
 from flask import Flask  # request as

@@ -1100,8 +1100,10 @@ def test_DateParameter():
     assert v.value.isoutc() == '2019-02-19T01:02:03.457000'
     assert str(
         v) == 'DateParameter(finetime: 2019\n1929229360457000 <>, "UNKNOWN", default= None, valid= None tcode=%Y-%m-%dT%H:%M:%S.%f)'
-    with pytest.raises(TypeError):
-        DateParameter(3.3)
+    # 1972-1-1 emit warning
+    assert DateParameter(63072000.0).value.isoutc(
+    ) == '1972-01-01T00:00:00.000000'
+    DateParameter(63043200.0 - 0.0000001)
     vv = copy.copy(v)
     checkjson(v)
 

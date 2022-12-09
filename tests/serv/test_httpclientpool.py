@@ -707,8 +707,6 @@ def test_no_auth(tmp_pools, server, client):
     aburl, header = server
     prd_urn = ref.urn
 
-    # server url
-
     # get pool without auth
     x = safe_client(client.get, aburl, auth=None)
     o, code = getPayload(x)
@@ -740,3 +738,30 @@ def test_need_auth(existing_pools, server, client, auth):
     o, code = getPayload(x)
     check_response(o, code=code, failed_case=False)
     assert o['msg'] == 'dTags HK data returned OK'
+
+
+def test_threaded(tmp_pools, server, client):
+
+    pool, prd, ref, tag = tmp_pools[0]
+    aburl, header = server
+    prd_urn = ref.urn
+
+    # server url
+
+    # get pool without auth
+    x = safe_client(client.get, aburl, auth=None)
+    from requests_threads import AsyncSession
+    session = AsyncSession(n=100)
+
+    async def _x100():
+        rs = []
+        for _ in range(1000):
+            rs.append(await session.get(aburl, auth=None))
+        return rs
+    with pytest.raises(SystemExit):
+        for x in session.run(_x100):
+            o, code = getPayload(x)
+            # check to see if the pool url is malformed
+            check_response(o, code=code, failed_case=False)
+            # pool name is found
+            assert pool.poolname in o['result']

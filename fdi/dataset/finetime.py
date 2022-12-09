@@ -29,17 +29,21 @@ class FineTime(Copyable, DeepEqual, Serializable):
     * ime differences are correct across leap seconds
     * It is immutable unless its TAI is 0..
     """
-    """ Te starting date in UTC """
+
+    """ The starting date in UTC """
     EPOCH = datetime.datetime(1958, 1, 1, 0, 0, 0, tzinfo=utcobj)
 
     """ number of TAI units in a second """
-    RESOLUTION = 1000000  # microsecond
+    RESOLUTION = 1000000  # microseconds
 
-    """ """
-    UTC_LOW_LIMIT = EPOCH  # datetime.datetime(1972, 1, 1, 0, 0, 0, tzinfo=utcobj)
+    """ The earliest time when valid leapsecond is used."""
+    UTC_LOW_LIMIT = datetime.datetime(1972, 1, 1, 0, 0, 0, tzinfo=utcobj)
 
-    """ """
+    UTC_LOW_LIMIT_TIMESTAMP = UTC_LOW_LIMIT.timestamp()
+
+    """ Format used when not specified."""
     DEFAULT_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'  # ISO
+
     DEFAULT_FORMAT_SECOND = '%Y-%m-%dT%H:%M:%S'
 
     RETURNFMT = '%s.%06d'
@@ -50,7 +54,15 @@ class FineTime(Copyable, DeepEqual, Serializable):
     def __init__(self, date=None, format=None, **kwds):
         """ Initiate with a UTC date or an integer TAI.
 
-        date; time to be set to. Acceptable types: `int` for TAI, `datetime.datetime`, `string` for ISO format date-time, or bytes-like classed that can get string by calling its `decode(encoding='utf-8')`
+        :date: time to be set to. Acceptable types: 
+
+          * `int` for TAI,
+          * `float`, `double` for UNIX time-stamp,
+          * `datetime.datetime`,
+          * `string` for ISO format date-time, 
+          * bytes-like classes that can get string by calling its `decode(encoding='utf-8')`
+        :format: ISO-8601 or some variation of it. Default is
+`DEFAULT_FORMAT` and `DEFAULT_FORMAT_SECOND`.
         """
 
         self.format = FineTime.DEFAULT_FORMAT if format is None else format
@@ -75,7 +87,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
         If an integer is given, it will be taken as the TAI.
 '0' and b'0' are taken as TAI=0.
-        If a float is given, it will be taken as the `time` time stamp..
+        If a float is given, it will be taken as the `time` time stamp (UTC).
         If a datetime object or a string code is given, the timezone will be set to UTC.
         A FineTime instance is immutable except when TAI == 0. Violation gets a TypeError.
         """
@@ -86,7 +98,10 @@ class FineTime(Copyable, DeepEqual, Serializable):
         elif issubclass(time.__class__, int):
             setTai = time
         elif issubclass(time.__class__, float):
-            d = datetime.datetime.fromtimestamp(time)
+            if time < self.UTC_LOW_LIMIT_TIMESTAMP:
+                logger.warn(
+                    'Timestamp before %s not defined yet.' % str(self.UTC_LOW_LIMIT_TIMESTAMP))
+            d = datetime.datetime.fromtimestamp(time, tz=utcobj)
             setTai = self.datetimeToFineTime(d)
         elif issubclass(time.__class__, datetime.datetime):
             if time.tzinfo is None:
@@ -203,9 +218,27 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
     @ classmethod
     def datetimeToFineTime(cls, dtm):
-        """ Return given  Python Datetime in FineTime to the precision of the input. Rounded to the last digit. Unit is decided by RESOLUTION."""
+        """DateTime to FineTime conversion.
+
+        Return given Python Datetime in FineTime to the precision of
+        the input. Rounded to the last digit. Unit is decided by
+        RESOLUTION.
+
+        Parameters
+        ----------
+        cls : class
+        dtm : DateTime
+            Must be time-zone aware.
+
+        Returns
+        -------
+        FineTime
+            converted.
+
+        """
+
         if dtm < cls.UTC_LOW_LIMIT:
-            raise NotImplementedError(
+            logger.warn(
                 'UTC before %s not defined yet.' % str(cls.UTC_LOW_LIMIT))
         leapsec = leapseconds.dTAI_UTC_from_utc(dtm)
         sec = cls.RESOLUTION * ((dtm - cls.EPOCH + leapsec).total_seconds())

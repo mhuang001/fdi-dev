@@ -128,7 +128,7 @@ if __name__ == '__main__':
         # app may have changed debug, so do not use args.debug
         debug = app.debug
         app.run(host=args.host, port=args.port,
-                threaded=not debug, processes=1,
+                threaded=1 or not debug, processes=1,
                 use_reloader=False, reloader_type='stat',
                 debug=debug, passthrough_errors=debug,
                 use_debugger=debug)

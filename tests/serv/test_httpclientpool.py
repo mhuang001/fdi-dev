@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from fdi.dataset.deserialize import deserialize
 from conftest import csdb_pool_id, SHORT
 
 from fdi.pal.context import MapContext
@@ -12,7 +13,7 @@ from fdi.dataset.numericparameter import NumericParameter
 from fdi.dataset.stringparameter import StringParameter
 from fdi.dataset.eq import deepcmp
 
-from fdi.dataset.deserialize import serialize_args, deserialize_args
+from fdi.dataset.deserialize import serialize_args, deserialize_args, deserialize
 from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.productref import ProductRef
@@ -30,6 +31,8 @@ from flask_httpauth import HTTPBasicAuth
 # from requests.auth import HTTPBasicAuth
 from requests.exceptions import ConnectionError
 import pytest
+import os
+import json
 import time
 import urllib
 import copy
@@ -267,7 +270,7 @@ def test_CRUD_product_by_client(get_PS_for_CRUD):
 
     poolpath, scheme, place, pn, un, pw = parse_poolurl(
         poolurl, poolhint=poolid)
-    #import http
+    # import http
     # http.client.HTTPConnection.debuglevel = 1
 
     cnt = pool.getCount(typenm)
@@ -738,30 +741,3 @@ def test_need_auth(existing_pools, server, client, auth):
     o, code = getPayload(x)
     check_response(o, code=code, failed_case=False)
     assert o['msg'] == 'dTags HK data returned OK'
-
-
-def test_threaded(tmp_pools, server, client):
-
-    pool, prd, ref, tag = tmp_pools[0]
-    aburl, header = server
-    prd_urn = ref.urn
-
-    # server url
-
-    # get pool without auth
-    x = safe_client(client.get, aburl, auth=None)
-    from requests_threads import AsyncSession
-    session = AsyncSession(n=100)
-
-    async def _x100():
-        rs = []
-        for _ in range(1000):
-            rs.append(await session.get(aburl, auth=None))
-        return rs
-    with pytest.raises(SystemExit):
-        for x in session.run(_x100):
-            o, code = getPayload(x)
-            # check to see if the pool url is malformed
-            check_response(o, code=code, failed_case=False)
-            # pool name is found
-            assert pool.poolname in o['result']

@@ -137,7 +137,7 @@ def getPayload(aResponse, ignore_error=True):
         return x, aResponse.status_code
 
 
-def check_response(o, code=200, failed_case=False, excluded=None, login=False):
+def check_response(o, code=200, failed_case=False, excluded=None, login=False, ordered=True):
     """ Generic checking.
 
     :o: deserialized response data or text.
@@ -167,7 +167,8 @@ def check_response(o, code=200, failed_case=False, excluded=None, login=False):
                     return o
             assert 'FAILED' != o['result'], o['msg']
             assert code == 200, str(o)
-            assert o['time'] > lupd
+            if ordered:
+                assert o['time'] > lupd
             lupd = o['time']
             return True
     else:

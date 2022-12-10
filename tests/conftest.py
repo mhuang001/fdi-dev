@@ -61,7 +61,7 @@ def clean_board():
 
 
 @ pytest.fixture(scope="session")
-def pc(clean_board):
+def pc():
     """ get configuration.
 
     """
@@ -395,16 +395,23 @@ def tmp_local_storage(tmp_path_factory):
 
 
 @ pytest.fixture(scope=SHORT)
-def tmp_remote_storage(server, client, auth):
+def tmp_remote_storage_no_wipe(server, client, auth):
     """ temporary servered pool with module scope """
     aburl, headers = server
     poolid = 'test_remote_pool'
     pool = PoolManager.getPool(
         poolid, aburl + '/' + poolid, auth=auth, client=client)
-    pool.removeAll()
     ps = ProductStorage(pool, client=client, auth=auth)
     assert issubclass(ps.getPool(poolid).client.__class__,
                       (requests.Session, FlaskClient))
+    yield ps, pool
+
+
+@ pytest.fixture(scope=SHORT)
+def tmp_remote_storage(tmp_remote_storage_no_wipe):
+    """ temporary servered pool wiped """
+    ps, pool = tmp_remote_storage_no_wipe
+    pool.removeAll()
     yield ps
 
 

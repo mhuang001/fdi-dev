@@ -89,7 +89,7 @@ elif conf == 'production':
     pnsconfig['host'] = '127.0.0.1'
     pnsconfig['port'] = 9876
 
-    pnsconfig['self_host'] = '172.17.0.2'
+    pnsconfig['self_host'] = '0.0.0.0'
     pnsconfig['self_port'] = 9876
     pnsconfig['self_username'] = 'fdi'
     pnsconfig['self_password'] = 'ONLY_IF_NEEDED'

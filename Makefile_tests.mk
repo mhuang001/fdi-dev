@@ -3,11 +3,11 @@ TESTLOG	= /tmp/fdi-tests.log
 L	= 
 OPT	=    --log-level=$(L)
 T	= 
-test: test1 test2 test5 test14
+test: test1 test2 test5 test13 test14 test10
 
 testpns: test4
 
-testhttp: test7 test8 test9
+testhttp: test7 test8 test9 test15
 
 test1: 
 	$(PYTEST) tests/test_dataset.py -k 'not _mqtt' $(OPT) $(T)
@@ -52,5 +52,10 @@ test12:
 test13:
 	$(PYTEST) $(OPT) tests/test_schemas.py $(T)
 
+
 test14:
-	$(PYTEST) $(OPT) --noconftest tests/test_classes.py $(T)
+	$(PYTEST) $(OPT) tests/test_classes.py $(T)
+
+test15:
+	$(PYTEST) $(OPT) tests/serv/test_thread.py -k threaded_post $(T)
+	$(PYTEST) $(OPT) tests/serv/test_thread.py -k threaded_read $(T)

@@ -112,7 +112,7 @@ def test_com_fits(makecom):
     u = toFits(data, file=None)
     print(u, len(u))
     assert u[2].data[0] == v['dataset 1'].data[0]
-    assert u[2].shape == v['dataset 1'].shape
+    assert u[2].shape == tuple(v['dataset 1'].shape)
     assert u[3].data['col1'][1] == v['dataset 2']['col1'][1]
     assert u[3].data.dtype[0] == '<f8'
 

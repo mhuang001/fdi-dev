@@ -5,7 +5,7 @@
 https://stackoverflow.com/questions/13751277/how-can-i-use-an-app-factory-in-flask-wsgi-servers-and-why-might-it-be-unsafe
 """
 
-from fdi.httppool import create_app
+from fdi.httppool import create_app, LOGGING_NORMAL
 #from fdi.httppool.route.httppool_server import init_httppool_server, httppool_api
 from fdi.httppool.model.user import User
 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     # default configuration is provided. Copy config.py to ~/.config/pnslocal.py
-    debug = os.environ.get('PNS_DEBUG', logging.WARNING)
+    debug = os.environ.get('PNS_DEBUG', LOGGING_NORMAL)
 
     pc = getconfig.getConfig()
 
@@ -95,16 +95,16 @@ if __name__ == '__main__':
         level = logging.DEBUG
         print(args)
     else:
-        level = logging.WARNING
+        level = LOGGING_NORMAL
     logger.setLevel(level)
-    os.environ['loggerlevel'] = str(level)
+
     print('Check ' + pc['scheme'] + '://' + pc['self_host'] +
           ':' + str(pc['self_port']) + pc['api_base'] +
           '/apidocs' + ' for API documents.')
 
     pc = getconfig.getConfig()
     lev = logger.getEffectiveLevel()
-    logger.info(
+    print(
         'Server starting. Make sure no other instance is running. Initial logging level '+str(lev))
 
     if servertype == 'pns':

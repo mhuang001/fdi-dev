@@ -37,7 +37,7 @@ import os
 # print(sys.path)
 global logger
 
-LOGGING_NORMAL = logging_WARNING
+LOGGING_NORMAL = logging_INFO
 """ routine logging level."""
 
 

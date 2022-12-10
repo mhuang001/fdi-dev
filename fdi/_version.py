@@ -1,5 +1,6 @@
-__version_info__ = (1, 25, 3)
+__version_info__ = (1, 25, 4)
 __version__ = '.'.join(map(str, __version_info__))
+# 1.25.4 threaded test code. local httppool read/write prod 20-30ms
 # 1.25.3 refactor query code
 # 1.25.2 server remote debug
 # 1.25.1 externalize docker tests.

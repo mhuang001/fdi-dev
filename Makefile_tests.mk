@@ -57,5 +57,4 @@ test14:
 	$(PYTEST) $(OPT) tests/test_classes.py $(T)
 
 test15:
-	$(PYTEST) $(OPT) tests/serv/test_thread.py -k threaded_post $(T)
-	$(PYTEST) $(OPT) tests/serv/test_thread.py -k threaded_read $(T)
+	$(PYTEST) $(OPT) tests/serv/test_thread.py $(T)

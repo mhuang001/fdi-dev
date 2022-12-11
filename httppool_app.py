@@ -5,7 +5,7 @@
 https://stackoverflow.com/questions/13751277/how-can-i-use-an-app-factory-in-flask-wsgi-servers-and-why-might-it-be-unsafe
 """
 
-from fdi.httppool import create_app, LOGGING_NORMAL
+from fdi.httppool import create_app, LOGGING_NORMAL, LOGGING_DETAILED
 #from fdi.httppool.route.httppool_server import init_httppool_server, httppool_api
 from fdi.httppool.model.user import User
 
@@ -42,9 +42,9 @@ if __name__ == '__main__':
 
     import logging
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    level = os.environ.get('PNS_DEBUG', LOGGING_NORMAL)
+    logger.setLevel(level)
     # default configuration is provided. Copy config.py to ~/.config/pnslocal.py
-    debug = os.environ.get('PNS_DEBUG', LOGGING_NORMAL)
 
     pc = getconfig.getConfig()
 
@@ -55,8 +55,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument('-v', '--verbose', default=False,
-                        action='store_true', help='Be verbose.')
     parser.add_argument('-u', '--username',
                         default=pc['self_username'], type=str, help='user name/ID. Prints hashed password if username is "hashed"')
     parser.add_argument('-p', '--password',
@@ -69,13 +67,12 @@ if __name__ == '__main__':
                         type=str, help='server type: pns or httppool_server')
     parser.add_argument('-w', '--wsgi', default=False,
                         action='store_true', help='run a WSGI server.')
-    parser.add_argument('-d', '--debug', nargs='*', default=debug,
-                        help='run in debug mode for the given modules. Empty list means all modules.')
+    parser.add_argument('-d', '--debug', type=int, default=level,
+                        help='run at the given logger level.')
     parser.add_argument('-l', '--logstream',
                         default=None, type=str, help='name of logfile')
     args = parser.parse_args()
 
-    verbose = args.verbose
     os.environ['PNS_SELF_USERNAME'] = args.username
     os.environ['PNS_SELF_PASSWORD'] = args.password
     os.environ['PNS_SELF_HOST'] = args.host
@@ -85,17 +82,13 @@ if __name__ == '__main__':
 
     # create app only needs
     logger = setup_logging(logging, args.logstream)
-    debug = args.debug
+
     if args.username == 'hashed':
         print('Hashed password %s is\n' % args.password, User(
             'h', password=args.password).hashed_password)
         sys.exit(0)
-
-    if verbose:
-        level = logging.DEBUG
-        print(args)
-    else:
-        level = LOGGING_NORMAL
+    level = args.debug
+    print(args)
     logger.setLevel(level)
 
     print('Check ' + pc['scheme'] + '://' + pc['self_host'] +
@@ -113,7 +106,7 @@ if __name__ == '__main__':
         sys.exit(1)
     elif servertype == 'httppool_server':
         print('<<<<<< %s >>>>>' % servertype)
-        app = create_app(pc, debug=debug,
+        app = create_app(pc, level=level,
                          logstream=args.logstream,
                          )
     else:
@@ -128,7 +121,7 @@ if __name__ == '__main__':
         # app may have changed debug, so do not use args.debug
         debug = app.debug
         app.run(host=args.host, port=args.port,
-                threaded=1 or not debug, processes=1,
+                threaded=50, processes=1,
                 use_reloader=False, reloader_type='stat',
                 debug=debug, passthrough_errors=debug,
                 use_debugger=debug)

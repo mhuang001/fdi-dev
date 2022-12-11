@@ -101,8 +101,8 @@ def setup_logging(level=None, extras=None, tofile=None):
         basedict['handlers']['stream'] = {
             'class': 'logging.StreamHandler',
             'formatter': 'default',
-            #level   : INFO
-            #filters: [allow_foo]
+            # level   : INFO
+            # filters: [allow_foo]
             'stream': open(tofile, 'a')
         }
         basedict['root']['handlers'].append('stream')
@@ -116,7 +116,7 @@ def setup_logging(level=None, extras=None, tofile=None):
         logging_listener = QueueListener(
             que, handler, respect_handler_level=True)
         logging_listener.start()
-    #logging.basicConfig(stream=sys.stdout, **detailed)
+    # logging.basicConfig(stream=sys.stdout, **detailed)
     # create logger
     if 0:
         for mod in ("requests", "filelock", ):
@@ -164,7 +164,7 @@ def checkpath(path, un):
     path: str. can be resolved with Path.
     un: server user name
     """
-    #logger = current_app.logger
+    # logger = current_app.logger
 
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('path %s user %s' % (path, un))
@@ -279,16 +279,17 @@ def init_httppool_server(app):
 LOGGING_DETAILED = logging_DEBUG
 
 
-def create_app(config_object=None, debug=LOGGING_NORMAL, logstream=None):
-    """ If args have logger level, use it; else if 
+def create_app(config_object=None, debug=False, level=LOGGING_NORMAL, logstream=None):
+    """ If args have logger level, use it; else if debug is `True` set to 20
  use 'development' pnslocal.py config.
 
-    :debug: level if `int`, name of modules that are set to givren level.
+    :debug: level < `LOGGING_NORMAL`
     """
     config_object = config_object if config_object else getconfig.getConfig()
 
     global logger
-    _d = os.environ.get('PNS_DEBUG', debug)
+    _d = os.environ.get('PNS_DEBUG', None)
+    _d = level if level else _d if _d else LOGGING_NORMAL
 
     if isinstance(_d, str):
         try:
@@ -316,7 +317,7 @@ def create_app(config_object=None, debug=LOGGING_NORMAL, logstream=None):
             if not mod:
                 continue
             if mod.startswith('='):
-                logging.getLogger(mod[1:]).setLevel(LOGGING_NORMAL)
+                logging.getLogger(mod[1:]).setLevel(logging_WARNING)
             else:
                 logging.getLogger(mod).setLevel(level_picked)
     if 0:  # turn off picked as server code use current_app.logger!
@@ -342,11 +343,11 @@ def create_app(config_object=None, debug=LOGGING_NORMAL, logstream=None):
         app.debug = True
         logger.info('DEBUG mode %s' % (app.config['DEBUG']))
         app.config['PROPAGATE_EXCEPTIONS'] = True
-    elif 'proxy_fix' in app.config:
+    elif 'proxy_fix' in app.config_object:
+
         from werkzeug.middleware.proxy_fix import ProxyFix
-        app.wsgi_app = ProxyFix(
-            app.wsgi_app, **app.config['proxy_fix']
-        )
+        app.wsgi_app = ProxyFix(app.wsgi_app, **app.config_object['proxy_fix'])
+
     # from flask.logging import default_handler
     # app.logger.removeHandler(default_handler)
 

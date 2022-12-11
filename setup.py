@@ -66,7 +66,8 @@ setup(
             'pytest>=5.4.1',
             'pytest-cov',
             'remote-pdb',
-            'requests-threads',
+            'asyncio',
+            'aiohttp'
         ],
         'SERV': [
             'requests == 2.27.1',

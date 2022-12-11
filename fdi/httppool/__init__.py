@@ -428,7 +428,7 @@ def create_app(config_object=None, level=None, logstream=None):
                          (cnt, method, lls(str(args), 300)))
         elif logger.isEnabledFor(logging_INFO):
             # remove leading e.g. /fdi/v0.16
-            s = request.path.split(BASEURL)
+            s = request.path.split(_BASEURL)
             p = s[0] if len(s) == 1 else s[1] if s[0] == '' else request.path
             method = request.method
             logger.info("%3d >>>[%4s] %s" % (cnt, method, lls(p, 40)))

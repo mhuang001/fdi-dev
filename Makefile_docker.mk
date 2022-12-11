@@ -9,7 +9,7 @@ DOCKER_VERSION   =$(shell if [ -f docker_version ]; then cat docker_version; fi)
 DFILE	=fdi/dockerfile
 
 SERVER_NAME      =httppool
-API_BASE = $(shell python -m fdi.utils.getconfig api_base)
+BASEURL = $(shell python -m fdi.utils.getconfig baseurl)
 
 SERVER_VERSION	= $(DOCKER_VERSION)
 ifndef apache
@@ -80,7 +80,7 @@ build_server:
 	--build-arg re=$(re) \
 	--build-arg TEST_T='-r P --setup-show' \
 	--build-arg SERVER_VERSION=$(SERVER_VERSION) \
-	--build-arg API_BASE=$(API_BASE) \
+	--build-arg BASEURL=$(BASEURL) \
 	-f $(SFILE) \
 	$(D) --progress=plain .
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
@@ -97,7 +97,7 @@ launch_server:
 	-e PNS_PORT=$(PORT) \
 	-e PNS_LOGGER_LEVEL=$(LOGGER_LEVEL) \
 	-e PNS_LOGGER_LEVEL_EXTRAS=$(LOGGER_LEVEL_EXTRAS) \
-	-e PNS_API_BASE=$(API_BASE) \
+	-e PNS_BASEURL=$(BASEURL) \
 	--name $$SN $(D) $(LATEST) $(LAU) ;\
 	docker ps -n 1
 	#if [ $$? -gt 0 ]; then echo *** Launch failed; false; else \

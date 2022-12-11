@@ -12,14 +12,14 @@ from ..utils.common import (getUidGid,
                             logging_ERROR,
                             logging_WARNING,
                             logging_INFO,
-                            logging_DEBUG
+                            logging_DEBUG, lls
                             )
 
 from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 
 from flasgger import Swagger
 from werkzeug.exceptions import HTTPException
-from flask import Flask, make_response, jsonify
+from flask import Flask, make_response, jsonify, request
 from werkzeug.routing import RequestRedirect
 from werkzeug.routing import RoutingException, Map
 
@@ -40,6 +40,12 @@ global logger
 LOGGING_NORMAL = logging_INFO
 """ routine logging level."""
 
+LOGGING_DETAILED = logging_DEBUG
+""" usually set to debugging """
+
+cnt = 0
+_BASEURL = ''
+
 
 class PM_S(PoolManager):
     """Made to provid a different `_GlobalPoolList` useful for testing as a mock"""
@@ -47,7 +53,7 @@ class PM_S(PoolManager):
     """ Another Global centralized dict that returns singleton -- the same -- pool for the same ID."""
 
 
-def setup_logging(level=None, extras=None, tofile=None):
+def setup_logging(level=LOGGING_NORMAL, extras=None, tofile=None):
     import logging
     from logging.config import dictConfig
     from logging.handlers import QueueListener
@@ -108,8 +114,6 @@ def setup_logging(level=None, extras=None, tofile=None):
         basedict['root']['handlers'].append('stream')
     dict_config = dictConfig(basedict)
 
-    if level is None:
-        level = LOGGING_NORMAL
     if level < LOGGING_NORMAL:
         handler = logging.StreamHandler()
         handler.setFormatter(logging.Formatter("%(message)s"))
@@ -276,18 +280,19 @@ def init_httppool_server(app):
 #### Application Factory Function ####
 ######################################
 
-LOGGING_DETAILED = logging_DEBUG
 
-
-def create_app(config_object=None, debug=False, level=LOGGING_NORMAL, logstream=None):
+def create_app(config_object=None, level=None, logstream=None):
     """ If args have logger level, use it; else if debug is `True` set to 20
  use 'development' pnslocal.py config.
 
-    :debug: level < `LOGGING_NORMAL`
+    :level: logging level. default `None`
     """
     config_object = config_object if config_object else getconfig.getConfig()
 
     global logger
+    global _BASEURL
+
+    _BASEURL = config_object['baseurl']
     _d = os.environ.get('PNS_DEBUG', None)
     _d = level if level else _d if _d else LOGGING_NORMAL
 
@@ -311,7 +316,7 @@ def create_app(config_object=None, debug=False, level=LOGGING_NORMAL, logstream=
     logger = logging.getLogger('fdi.httppool_app')
 
     debug = (level_picked < logging_INFO)
-    if debug_picked:
+    if 0 and debug_picked:
         for mod in debug_picked:
             mod = mod.strip()
             if not mod:
@@ -356,29 +361,29 @@ def create_app(config_object=None, debug=False, level=LOGGING_NORMAL, logstream=
         'universion': 3,
         'openapi': '3.0.4',
         'specs_route': '/apidocs/',
-        'url_prefix': config_object['api_base']
+        'url_prefix': _BASEURL
     }
     swag['servers'].insert(0, {
         'description': 'As in config file and server command line.',
         'url': config_object['scheme']+'://' +
         config_object['self_host'] + ':' +
         str(config_object['self_port']) +
-        config_object['baseurl']
+        _BASEURL
     })
     swagger = Swagger(app, config=swag, merge=True)
-    # swagger.config['specs'][0]['route'] = config_object['api_base'] + s1
+    # swagger.config['specs'][0]['route'] = _BASEURL + s1
     app.config['PC'] = config_object
 
     # initialize_extensions(app)
     # register_blueprints(app)
 
     from .model.user import user, SESSION
-    app.register_blueprint(user, url_prefix=config_object['baseurl'])
+    app.register_blueprint(user, url_prefix=_BASEURL)
 
     from .route.pools import pools_api
-    app.register_blueprint(pools_api, url_prefix=config_object['baseurl'])
+    app.register_blueprint(pools_api, url_prefix=_BASEURL)
     from .route.httppool_server import data_api
-    app.register_blueprint(data_api, url_prefix=config_object['baseurl'])
+    app.register_blueprint(data_api, url_prefix=_BASEURL)
 
     # for sessions
     if SESSION:
@@ -411,6 +416,22 @@ def create_app(config_object=None, debug=False, level=LOGGING_NORMAL, logstream=
     init_httppool_server(app)
     logger.info('Server initialized. logging level ' +
                 str(app.logger.getEffectiveLevel()))
+
+    @app.before_request
+    def b4request():
+        global cnt
+        cnt += 1
+        if logger.isEnabledFor(logging_DEBUG):
+            args = request.view_args
+            method = request.method
+            logger.debug("%3d >>>[%4s] %s" %
+                         (cnt, method, lls(str(args), 300)))
+        elif logger.isEnabledFor(logging_INFO):
+            # remove leading e.g. /fdi/v0.16
+            s = request.path.split(BASEURL)
+            p = s[0] if len(s) == 1 else s[1] if s[0] == '' else request.path
+            method = request.method
+            logger.info("%3d >>>[%4s] %s" % (cnt, method, lls(p, 40)))
 
     return app
 

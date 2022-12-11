@@ -67,7 +67,8 @@ if __name__ == '__main__':
                         type=str, help='server type: pns or httppool_server')
     parser.add_argument('-w', '--wsgi', default=False,
                         action='store_true', help='run a WSGI server.')
-    parser.add_argument('-d', '--debug', type=int, default=level,
+    parser.add_argument('-d', '--debug', default=level, const=logging.DEBUG,
+                        nargs='?', type=int,
                         help='run at the given logger level.')
     parser.add_argument('-l', '--logstream',
                         default=None, type=str, help='name of logfile')
@@ -92,7 +93,7 @@ if __name__ == '__main__':
     logger.setLevel(level)
 
     print('Check ' + pc['scheme'] + '://' + pc['self_host'] +
-          ':' + str(pc['self_port']) + pc['api_base'] +
+          ':' + str(pc['self_port']) + pc['baseurl'] +
           '/apidocs' + ' for API documents.')
 
     pc = getconfig.getConfig()

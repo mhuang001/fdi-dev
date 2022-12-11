@@ -20,10 +20,8 @@ pnsconfig['logger_level_extras'] = logging.WARNING
 
 # base url for webserver.
 pnsconfig['scheme'] = 'http'
-pnsconfig['api_version'] = 'v0.15'  # vx.yyy
-pnsconfig['api_base'] = '/fdi'        # /fdi
-pnsconfig['baseurl'] = pnsconfig['api_base'] + \
-    '/' + pnsconfig['api_version']  # /fdi/vx.yyy
+pnsconfig['api_version'] = 'v0.15'  # vx.yy
+pnsconfig['baseurl'] = '/fdi/v0.15'  # fdi/vx.yy
 
 """ base url for the pool, you must have permission of this path, for example : /home/user/Documents
 # This local base pool path will be added at the beginning of your pool urn when you init a pool like:

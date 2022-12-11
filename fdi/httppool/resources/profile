@@ -1,6 +1,6 @@
 alias sr='service apache2 --full-restart'
 alias cu='curl -i http://localhost:${PNS_SELF_PORT}'
-alias cu0='curl -i http://localhost:${PNS_SELF_PORT}${PNS_API_BASE}'
+alias cu0='curl -i http://localhost:${PNS_SELF_PORT}${PNS_BASEURL}'
 alias er='less /var/log/apache2/error-ps.log'
 
 alias pd='python -m pdb -c continue '
@@ -29,3 +29,5 @@ alias l=less
 alias e='emacs -nw'
 #
 alias l50='export TERM=vt100-50; tset'
+export EDITOR=emacs
+export FCEDIT=emacs

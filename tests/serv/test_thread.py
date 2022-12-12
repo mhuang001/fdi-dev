@@ -56,8 +56,9 @@ def num_pool(tmp_remote_storage_no_wipe, server, client, auth):
 
 async def get_result(method, *args, **kwds):
     async with method(*args, **kwds) as resp:
-        urn = await resp.json()
-        return urn['result']
+        # print(type(resp),dir(resp))
+        con = await resp.text()
+        return con
 
 
 def test_cio_post(num_pool):
@@ -77,13 +78,20 @@ def test_cio_post(num_pool):
                 tasks.append(asyncio.ensure_future(
                     get_result(session.post, poolurl, data=d, headers=header)))
 
-            res = await asyncio.gather(*tasks)
+            content = await asyncio.gather(*tasks)
+            res = [deserialize(c)['result'] for c in content]
+            print('pppp', res[0])
             print(len(res))
             return res
 
     urns = asyncio.run(m100())
+
     print("--- %s seconds ---" % (time.time() - start_time))
     assert len(urns) == Number
+    res = []
+    for n in range(Number):
+        int(urns[n].rsplit(':', 1)[1]) == n
+        print(f"{n} {urns[n]}")
     with open('/tmp/testurn', 'w') as f:
         json.dump(urns, f)
 
@@ -108,13 +116,20 @@ def test_cio_read(num_pool):
                 tasks.append(asyncio.ensure_future(
                     get_result(session.get, url, headers=header)))
 
-            res = await asyncio.gather(*tasks)
+            content = await asyncio.gather(*tasks)
+            res = [deserialize(c)['result'] for c in content]
+            print('qqqq', type(res[0]))
             print(len(res))
             return res
 
-    urns = asyncio.run(m100())
+    res = asyncio.run(m100())
     assert len(urns) == Number
     print("--- %s seconds ---" % (time.time() - start_time))
+
+    for n in range(Number):
+        int(urns[n].rsplit(':', 1)[1]) == n
+        p = res[n]
+        print(f"{n} {urns[n]} {p.description}")
 
 
 def est_threaded_post(num_pool):

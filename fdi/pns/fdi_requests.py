@@ -212,6 +212,8 @@ def safe_client(method, api, *args, **kwds):
                 if isinstance(cause, NewConnectionError):
                     raise cause
     # print(n, res)
+    logger.debug(f'===={res.history}, {getattr(res.request,"path","")}')
+
     return res
 
 

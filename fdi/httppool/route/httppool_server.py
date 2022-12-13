@@ -157,6 +157,7 @@ def urn(parts):
 ######################################
 
 
+@ data_api.route('/urn<path:parts>/', methods=['DELETE'])
 @ data_api.route('/urn<path:parts>', methods=['DELETE'])
 @ auth.login_required(role='read_write')
 def delete_urn(parts):
@@ -237,7 +238,7 @@ def delete_product(paths, serialize_out=False):
 ######################################
 
 
-# @ data_api.route('/<string:pool>', methods=['POST'])
+@ data_api.route('/<string:pool>', methods=['POST'])
 @ data_api.route('/<string:pool>/', methods=['POST'])
 @ auth.login_required(role='read_write')
 def save_data(pool):
@@ -346,11 +347,9 @@ def data_paths(pool, data_paths):
 
     ts = time.time()
     logger = current_app.logger
-
-    logger = current_app.logger
+    serial_through = True
 
     # do not deserialize if set True. save directly to disk
-    serial_through = True
 
     paths = [pool] + parts2paths(data_paths)
 
@@ -407,6 +406,8 @@ def getProduct_Or_Component(paths, serialize_out=False):
         return get_component_or_method(paths, mInfo, serialize_out=serialize_out)
 
     else:
+        __import__("pdb").set_trace()
+
         code = 400
         msg = 'Unknown path %s' % str(paths)
         logger.info(f'{code} {msg}')
@@ -441,13 +442,13 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
 
     if paths[-1] == '':
         # command is '' and url endswith a'/'
-        compo, path_str, prod = load_component_at(1, paths[:-1], mInfo)
-        if compo:
+        compo, path_str, prod = load_component_at(1, paths[:], mInfo)
+        if compo is not None:
             ls = [m for m in dir(compo) if not m.startswith('_')]
             return 0, resp(200, ls, 'Getting %s members/attrbutes OK' % (path_str),
                            ts, serialize_out=False), 0
         else:
-            return 400, FAILED, '%s' % (path_str)
+            return 400, FAILED, 'Cannot get %s for "%s".' % ('/'.join(paths[:-1]), path_str)
     elif lp == 3:
         # url ends with index
         # no cmd, ex: test/fdi.dataset.Product/4
@@ -567,6 +568,8 @@ def load_product(p, paths, serialize_out=False):
             msg = 'Not found: ' + poolname
             code = 404
         else:
+            __import__("pdb").set_trace()
+
             msg, code = '', 400
         code, result, msg = excp(
             e, code=code, msg=msg, serialize_out=serialize_out)

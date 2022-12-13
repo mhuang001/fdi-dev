@@ -108,7 +108,7 @@ elif conf == 'production':
          }
     ]
     # (reverse) proxy_fix
-    pnsconfig['proxy_fix'] = dict(x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    # pnsconfig['proxy_fix'] = dict(x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 else:
     pass

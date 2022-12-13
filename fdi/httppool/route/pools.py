@@ -119,12 +119,48 @@ def get_name_all_pools(path):
         logger.debug(path + ' has ' + lls(alldirs, 100))
     return alldirs
 
-######################################
-#### /pools  get_registered_pools/  ####
-######################################
+
+####################################################
+#### /pools   get_all_pools_size_counts/        ####
+#### 333#######################################V#####
 
 
-# @ pools_api.route('/pools', methods=['GET'])
+@ pools_api.route('/pools', methods=['GET'])
+@ auth.login_required(role=['read_only', 'read_write'])
+def get_all_pools_size_counts():
+    """ Returns a list of Pool IDs (pool names) of all pools and their size and file counts.
+    ---
+    """
+
+    logger = current_app.logger
+    ts = time.time()
+    serialize_out = False
+    FAILED = '"FAILED"' if serialize_out else 'FAILED'
+    data_path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug('Information of all  pools.')
+
+    if not os.path.exists(data_path):
+        return resp(404, FAILED, f'Find no directory at {data_path}')
+    pools = {}
+    s = c = 0
+    for i in os.listdir(data_path):
+        _, count, msg, size = get_data_count(None, i)
+        pools[i] = {'size_in_bytes': size, 'number_of_data_files': count}
+        s += size
+        c += count
+    result = pools
+    msg = 'There is/are %d pools holding %d products. %.1d MB.' % \
+        (len(pools), c, s/1000000)
+    code = 200
+    return resp(code, result, msg, ts)
+
+##########################################
+#### /pools/   get_registered_pools/  ####
+##########################################
+
+
+@ pools_api.route('/pools', methods=['GET'])
 @ pools_api.route('/pools/', methods=['GET'])
 @ auth.login_required(role=['read_only', 'read_write'])
 def get_registered_pools():
@@ -151,7 +187,7 @@ def get_registered_pools():
 
 
 @ pools_api.route('/pools/register_all', methods=['PUT'])
-# @ pools_api.route('/pools/register_all/', methods=['PUT'])
+@ pools_api.route('/pools/register_all/', methods=['PUT'])
 @auth.login_required(role='read_write')
 def register_all():
     """ Register (Load) all pools on tme server.
@@ -210,7 +246,7 @@ def load_pools(poolnames, usr):
 
 
 @ pools_api.route('/pools/unregister_all', methods=['PUT'])
-# @ pools_api.route('/pools/unregister_all/', methods=['PUT'])
+@ pools_api.route('/pools/unregister_all/', methods=['PUT'])
 @ auth.login_required(role='read_write')
 def unregister_all():
 
@@ -388,7 +424,7 @@ def get_pool_info(poolname, serialize_out=False):
             ty_display[cl] = snd_url
         display['DataTypes'] = ty_display
         msg = 'Getting pool %s information. %s.' % (poolname, mes)
-        _, count, _ = get_data_count(None, poolname)
+        _, count, _, _ = get_data_count(None, poolname)
         msg += '%d data items recorded. %d counted.' % (rec_u, count)
     else:
         code, result, msg = 404, FAILED, poolname + ' is not an exisiting Pool ID.'
@@ -401,7 +437,7 @@ def get_pool_info(poolname, serialize_out=False):
 ######################################
 
 @ pools_api.route('/<string:pool>', methods=['PUT'])
-# @ pools_api.route('/<string:pool>/', methods=['PUT'])
+@ pools_api.route('/<string:pool>/', methods=['PUT'])
 @ auth.login_required(role='read_write')
 def register(pool):
     """ Register the given pool.
@@ -572,7 +608,7 @@ def api_info(pool):
 
 
 @ pools_api.route('/<string:pool>/wipe', methods=['PUT'])
-# @ pools_api.route('/<string:pool>/wipe/', methods=['PUT'])
+@ pools_api.route('/<string:pool>/wipe/', methods=['PUT'])
 @ auth.login_required(role='read_write')
 def wipe(pool):
     """ Removes all contents of the pool.
@@ -698,7 +734,7 @@ def counted(pool, data_type=None):
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(f'count {data_type} type for ' + pool)
 
-    code, result, msg = get_data_count(data_type=data_type, pool_id=pool)
+    code, result, msg, size = get_data_count(data_type=data_type, pool_id=pool)
 
     return resp(code, result, msg, ts, serialize_out=False)
 
@@ -719,18 +755,20 @@ def get_data_count(data_type, pool_id):
     nm = []
 
     path = join(current_app.config['FULL_BASE_LOCAL_POOLPATH'], pool_id)
+    size = 0
     if os.path.exists(path):
         for i in os.listdir(path):
+            size += os.path.getsize(join(path, i))
             if i[-1].isnumeric() and ((data_type is None) or (data_type in i)):
                 res = res+1
                 nm.append(i)
     else:
-        return 400, 'FAILED', f'Pool {pool} not found.'
+        return 400, 'FAILED', f'Pool {pool} not found.', 0
     s = str(nm)
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(('All types' if data_type is None else data_type) +
                      ' found ' + lls(s, 120))
-    return 200, res, 'Counted %d %s files OK.' % (res, data_type if data_type else 'all types')
+    return 200, res, 'Counted %d %s files OK.' % (res, data_type if data_type else 'all types'), size
 
 
 ######################################

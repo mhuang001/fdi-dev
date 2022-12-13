@@ -133,6 +133,7 @@ def get_user_roles(user):
 ######################################
 
 
+@ user.route('/login/', methods=['GET', 'POST'])
 @ user.route('/login', methods=['GET', 'POST'])
 # @ auth.login_required(role=['read_only', 'read_write'])
 def login():
@@ -209,6 +210,7 @@ def login():
 ######################################
 
 
+@ user.route('/logout/', methods=['GET', 'POST'])
 @ user.route('/logout', methods=['GET', 'POST'])
 # @ auth.login_required(role=['read_only', 'read_write'])
 def logout():

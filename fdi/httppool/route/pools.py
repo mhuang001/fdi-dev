@@ -15,6 +15,7 @@ from ...pal.productpool import PoolNotFoundError
 from ...pal.webapi import WebAPI
 #from ...pal.urn import parseUrn
 from ...pal.dicthk import HKDBS
+from ...utils.getconfig import getConfig
 from ...utils.common import (lls,
                              logging_ERROR,
                              logging_WARNING,
@@ -62,8 +63,8 @@ def get_pools_url():
     else:
         res = {}
 
-    dvers = expandvars('$DOCKER_VERSION')
-    svers = expandvars('$SERVER_VERSION')
+    dvers = getConfig('docker_version')
+    svers = getConfig('server_version')
 
     from ..model.user import getUsers
     # report lru_cache info
@@ -350,7 +351,7 @@ def wipe_pools(poolnames, usr):
     return good, notgood
 
 ######################################
-#### /{pool}  /{pool}/  GET  ####
+####    /{pool}    /{pool}/  GET  ####
 ######################################
 
 

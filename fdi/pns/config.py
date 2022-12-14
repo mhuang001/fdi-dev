@@ -118,6 +118,9 @@ else:
 pnsconfig['userclasses'] = ''
 
 ############## project specific ####################
+pnsconfig['docker_version'] = ''
+pnsconfig['server_version'] = ''
+
 pnsconfig['cloud_token'] = '/tmp/.cloud_token'
 pnsconfig['cloud_username'] = 'mh'
 pnsconfig['cloud_password'] = ''

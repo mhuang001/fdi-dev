@@ -13,7 +13,7 @@ from ..._version import __version__
 from ...dataset.deserialize import deserialize_args, deserialize
 from ...pal.productpool import PoolNotFoundError
 from ...pal.webapi import WebAPI
-#from ...pal.urn import parseUrn
+# from ...pal.urn import parseUrn
 from ...pal.dicthk import HKDBS
 from ...utils.getconfig import getConfig
 from ...utils.common import (lls,
@@ -355,8 +355,8 @@ def wipe_pools(poolnames, usr):
 ######################################
 
 
-@ pools_api.route('/<string:pool>', methods=['GET'])
 @ pools_api.route('/<string:pool>/', methods=['GET'])
+@ pools_api.route('/<string:pool>', methods=['GET'])
 # @ auth.login_required(role=['read_only', 'read_write'])
 def get_pool(pool):
     """ Get information of the given pool.
@@ -437,8 +437,8 @@ def get_pool_info(poolname, serialize_out=False):
 ####  {pooolid}/register PUT /unreg DELETE  ####
 ######################################
 
-@ pools_api.route('/<string:pool>', methods=['PUT'])
 @ pools_api.route('/<string:pool>/', methods=['PUT'])
+@ pools_api.route('/<string:pool>', methods=['PUT'])
 @ auth.login_required(role='read_write')
 def register(pool):
     """ Register the given pool.
@@ -580,13 +580,13 @@ def load_HKdata(paths, serialize_out=True):
     return code, result, msg
 
 
-######################################
+################################################
 ####  {pool}/api/        List webAPIs       ####
-######################################
+################################################
 
 
-# @ pools_api.route('/<string:pool>/api', methods=['GET'])
 @ pools_api.route('/<string:pool>/api/', methods=['GET'])
+@ pools_api.route('/<string:pool>/api', methods=['GET'])
 @ auth.login_required(role=['read_only', 'read_write'])
 def api_info(pool):
     """ A list of names of allowed API methods.
@@ -680,17 +680,9 @@ def load_single_HKdata(paths, serialize_out=True):
 ######################################
 
 
-# @ pools_api.route('/<string:pool>/count/<string:data_type>', methods=['GET'])
-def count_singleXXX(pool, data_type):
-    """ Returns the number of given type of data in the given pool.
-
-    :data_type:  (part of) dot-separated full class name of data items in pool.
-    """
-
-    return count_general(pool=pool, data_type=data_type, logger=current_app.logger)
-
-
+@ pools_api.route('/<string:pool>/count/', methods=['GET'])
 @ pools_api.route('/<string:pool>/count', methods=['GET'])
+@ pools_api.route('/<string:pool>/count/<string:data_type>/', methods=['GET'])
 @ pools_api.route('/<string:pool>/count/<string:data_type>', methods=['GET'])
 def count(pool, data_type=None):
     """ Returns the number of all types or of a given type of data in the given pool.
@@ -720,8 +712,10 @@ def count(pool, data_type=None):
     return resp(code, result, msg, ts, serialize_out=False)
 
 
-@ pools_api.route('/<string:pool>/count/', methods=['GET'])
-@ pools_api.route('/<string:pool>/count/<string:data_type>/', methods=['GET'])
+@ pools_api.route('/<string:pool>/counted/', methods=['GET'])
+@ pools_api.route('/<string:pool>/counted', methods=['GET'])
+@ pools_api.route('/<string:pool>/counted/<string:data_type>/', methods=['GET'])
+@ pools_api.route('/<string:pool>/counted/<string:data_type>', methods=['GET'])
 def counted(pool, data_type=None):
     """ Counts and Returns the number of given type of data in the given pool.
 
@@ -777,8 +771,8 @@ def get_data_count(data_type, pool_id):
 ######################################
 
 
-@ pools_api.route('/<string:pool>/api/<string:method_args>', methods=['GET', 'POST'])
 @ pools_api.route('/<string:pool>/api/<string:method_args>/', methods=['GET', 'POST'])
+@ pools_api.route('/<string:pool>/api/<string:method_args>', methods=['GET', 'POST'])
 @ auth.login_required(role='read_write')
 def api(pool, method_args):
     """ Call api mathods on the running pool and returns the result.
@@ -813,7 +807,7 @@ def api(pool, method_args):
 def call_pool_Api(paths, serialize_out=False, posted=False):
     """ Call api mathods on the running pool and returns the result.
 
-    return: value if args is pool property; execution result if method. 
+    return: value if args is pool property; execution result if method.
     """
 
     FAILED = '"FAILED"' if serialize_out else 'FAILED'

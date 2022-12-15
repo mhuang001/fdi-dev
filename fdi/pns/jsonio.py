@@ -43,6 +43,7 @@ commonheaders = {
     'Accept': 'application/json',
     'Accept-Charset': 'utf-8',
     'Accept-Encoding': 'identity',
+    'SameSite': 'Strict',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive',
     "Content-type": 'application/json'

@@ -238,8 +238,8 @@ def delete_product(paths, serialize_out=False):
 ######################################
 
 
-@ data_api.route('/<string:pool>', methods=['POST'])
 @ data_api.route('/<string:pool>/', methods=['POST'])
+@ data_api.route('/<string:pool>', methods=['POST'])
 @ auth.login_required(role='read_write')
 def save_data(pool):
     """

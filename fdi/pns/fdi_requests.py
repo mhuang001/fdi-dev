@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from urllib3.util.retry import Retry
 from urllib3.exceptions import NewConnectionError, ProtocolError
-from requests.adapters import HTTPAdapter
 from requests.exceptions import ConnectionError
-from flask import Flask  # request as
+from flask import Flask
 from flask.testing import FlaskClient
 
 import requests
@@ -21,6 +19,11 @@ from ..utils.common import trbk
 from ..pal.webapi import WebAPI
 from .jsonio import auth_headers
 
+from ..httppool.session import TIMEOUT, MAX_RETRY, FORCED, \
+    requests_retry_session
+
+session = requests_retry_session()
+
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
     strset = str
@@ -30,7 +33,6 @@ else:
     # strset = (str, unicode)
     strset = str
     from urlparse import urlparse
-
 
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' % (logger.getEffectiveLevel()))
@@ -43,47 +45,6 @@ pcc = getConfig()
 defaulturl = getConfig('poolurl:')
 
 pccnode = pcc
-TIMEOUT = pcc['requests_timeout']
-# default RETRY_AFTER_STATUS_CODES = frozenset({413, 429, 503})
-FORCED = (503, 504, 408, 413, 429)
-# default DEFAULT_ALLOWED_METHODS = frozenset({'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PUT', 'TRACE'})
-METHODS = ("POST", "PUT", "HEAD", "GET", "OPTIONS")
-MAX_RETRY = 5
-
-
-def requests_retry_session(
-        retries=MAX_RETRY,
-        backoff_factor=3,
-        status_forcelist=FORCED,
-        method_whitelist=METHODS,
-        session=None
-):
-    """ session made with retries
-
-    https://www.peterbe.com/plog/best-practice-with-retries-with-requests
-    """
-    session = session or requests.Session()
-    retry = Retry(
-        total=retries,
-        read=retries,
-        status=retries,
-        connect=retries,
-        other=None,
-        redirect=5,
-        backoff_factor=backoff_factor,
-        status_forcelist=status_forcelist,
-        raise_on_redirect=False,
-        raise_on_status=False,
-    )
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-    return session
-
-
-# set `reries` to `False` to disable retrying.
-clnt = requests_retry_session(retries=False, backoff_factor=0.1)
-# clnt = requests.Session()  #
 
 
 @ functools.lru_cache(maxsize=16)
@@ -199,6 +160,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 
 
 def safe_client(method, api, *args, **kwds):
+
     for n in range(MAX_RETRY):
         try:
             res = method(api, *args, **kwds)
@@ -231,11 +193,12 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     result_only: only return the reponse result. Default False.
     client: alternative client to answer API calls. For tests etc.
     """
+
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
     api = urn2fdiurl(urn, poolurl, contents=contents, method='POST')
     if client is None:
-        client = clnt
+        client = session
     # from fdi.utils.common import lls
     # print('POST API: ' + api + ' | ' + lls(data, 900))
     if headers is None:
@@ -291,10 +254,11 @@ def read_from_server(urn, poolurl, contents='product', result_only=False, auth=N
     result_only: only return the reponse result. Default False.
     client: alternative client to answer API calls. For tests etc.
     """
+
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
     if client is None:
-        client = clnt
+        client = session
     api = urn2fdiurl(urn, poolurl, contents=contents)
     # print("GET REQUEST API: " + api)
     res = safe_client(client.get, api, auth=auth, timeout=TIMEOUT)
@@ -317,10 +281,11 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
     result_only: only return the reponse result. Default False.
     client: alternative client to answer API calls. For tests etc. Default None for `requests`.
     """
+
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
     if client is None:
-        client = clnt
+        client = session
     api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
     # print("PUT REQUEST API: " + api)
     if 0 and not issubclass(client.__class__, FlaskClient):
@@ -350,10 +315,11 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
     result_only: only return the reponse result. Default False.
     client: alternative client to answer API calls. For tests etc. Default None for `requests`.
     """
+
     if auth is None:
         auth = getAuth(pccnode['username'], pccnode['password'])
     if client is None:
-        client = clnt
+        client = session
     api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
     # print("DELETE REQUEST API: " + api)
     res = safe_client(client.delete, api, auth=auth, timeout=TIMEOUT)

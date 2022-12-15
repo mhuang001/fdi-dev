@@ -7,7 +7,6 @@ import getpass
 from ..utils.getconfig import getConfig
 from ..utils.common import lls
 from .urn import parse_poolurl
-from ..pns.fdi_requests import put_on_server, delete_from_server
 from ..pal.httppool import HttpPool
 
 from requests.exceptions import ConnectionError
@@ -40,6 +39,7 @@ def remoteRegister(pool):
         The client. If given will substitute that of pool, if pool is given
 
     """
+    from ..pns.fdi_requests import put_on_server
     # pool object
     poolo = None
     from ..pal import httpclientpool
@@ -96,6 +96,7 @@ def remoteUnregister(poolurl, auth=None, client=None):
                 auth = poolo.auth
             break
 
+    from ..pns.fdi_requests import delete_from_server
     #url = api_baseurl + post_poolid
     #x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
     #o = deserialize(x.text)

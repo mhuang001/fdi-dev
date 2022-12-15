@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-#from ..route.pools import pools_api
+# from ..route.pools import pools_api
 from ...utils.common import (logging_ERROR,
                              logging_WARNING,
                              logging_INFO,
@@ -180,6 +180,7 @@ def login():
             if SESSION:
                 session.clear()
                 session['user_id'] = rnm
+                session.new = True
                 session.modified = True
             msg = 'User %s logged-in %s.' % (rnm, vp.roles)
             if logger.isEnabledFor(logging_DEBUG):
@@ -237,6 +238,7 @@ def logout():
     if SESSION:
         session.clear()
         g.user = None
+        session.new = True
         session.modified = True
 
     from ..route.httppool_server import resp
@@ -251,8 +253,8 @@ def verify_password(username, password, check_session=True):
     ref: https://flask-httpauth.readthedocs.io/en/latest/index.html
 
         must return the user object if credentials are valid,
-        or True if a user object is not available. In case of 
-        failed authentication, it should return None or False. 
+        or True if a user object is not available. In case of
+        failed authentication, it should return None or False.
 
     `check_session`=`True` ('u/k' means unknown)
 
@@ -263,9 +265,9 @@ def verify_password(username, password, check_session=True):
     no Session  no 'user_id'          not empty  invalid   login, r/t `False`
     no Session  no 'user_id'          ''                   r/t None
     no Session  no 'user_id'          None, u/k            login, r/t `False`
-    no SESSION  not enabled           not empty  cleartext approve 
+    no SESSION  not enabled           not empty  cleartext approve
    In session  w/ 'user_id'  ''|None not empty  valid      new session, r/t new u
-    ..                                not same 
+    ..                                not same
     In session  w/ 'user_id'          not empty  invalid   login, return `False`
     In session  w/ 'user_id'  user    None ""              login, return `False`
     ..                                u/k
@@ -293,6 +295,7 @@ def verify_password(username, password, check_session=True):
         logger.debug('%s %s %s %s' % (username, len(password) * '*',
                      'chk' if check_session else 'nochk',
                                       'Se' if SESSION else 'noSe'))
+    # __import__("pdb").set_trace()
     if check_session:
         if SESSION:
             has_session = 'user_id' in session and hasattr(
@@ -309,6 +312,7 @@ def verify_password(username, password, check_session=True):
                         if logger.isEnabledFor(logging_DEBUG):
                             logger.debug(f"Same session.")
                         return user
+                        #################
                     else:
                         if logger.isEnabledFor(logging_INFO):
                             logger.info(f"New session {username}.")
@@ -316,10 +320,12 @@ def verify_password(username, password, check_session=True):
                         session['user_id'] = username
                         session.modified = True
                         return newu
+                        #################
                 if logger.isEnabledFor(logging_DEBUG):
                     logger.debug(
                         f"Unknown {username} or Null or anonymous user, or new user '{username}' has invalid password.")
                 return False
+                #################
             else:
                 # SESSION enabled but has not valid user_id
                 if logger.isEnabledFor(logging_DEBUG):
@@ -331,11 +337,13 @@ def verify_password(username, password, check_session=True):
                     if logger.isEnabledFor(logging_DEBUG):
                         logger.debug(f"Anonymous user.")
                     return None
+                    #################
                 newu = current_app.config['USERS'].get(username, None)
                 if newu is None:
                     if logger.isEnabledFor(logging_DEBUG):
                         logger.debug(f"Unknown user {username}")
                     return False
+                    #################
                 if newu.is_correct_password(password):
                     if logger.isEnabledFor(logging_INFO):
                         logger.info(
@@ -344,11 +352,13 @@ def verify_password(username, password, check_session=True):
                     session['user_id'] = username
                     session.modified = True
                     return newu
+                    #################
                 else:
                     if logger.isEnabledFor(logging_DEBUG):
                         logger.debug(
                             f"new user '{username}' has invalid password.")
                     return False
+                    #################
         else:
             # SESSION not enabled. Use clear text passwd
             newu = current_app.config['USERS'].get(username, None)
@@ -356,30 +366,36 @@ def verify_password(username, password, check_session=True):
                 if logger.isEnabledFor(logging_INFO):
                     logger.info('Approved new user {username} w/o session')
                 return newu
+                #################
             else:
                 if logger.isEnabledFor(logging_DEBUG):
                     logger.debug(
                         f"Null or anonymous user, or new user '{username}' has invalid password.")
                 return False
+                #################
     else:
         # check_session is False. called by login to check formed name/pass
         if username == '':
             if logger.isEnabledFor(logging_DEBUG):
                 logger.debug('LOGIN: check anon')
             return None
+            #################
         newu = current_app.config['USERS'].get(username, None)
         if newu is None:
             if logger.isEnabledFor(logging_DEBUG):
                 logger.debug(f"LOGIN: Unknown user {username}")
             return False
+            #################
         if newu.is_correct_password(password):
             if logger.isEnabledFor(logging_INFO):
                 logger.info('LOGIN Approved {username}')
             return newu
+            #################
         else:
             if logger.isEnabledFor(logging_DEBUG):
                 logger.debug('LOGIN False for {username}')
             return False
+            #################
 
 
 ######################################
@@ -445,3 +461,14 @@ if LOGIN_TMPLT:
     #             return False
     #     except Error as e:
     #         current_app.logger.error("Connect to database failed: " +str(e))
+
+
+def login_required1(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return 401, 'FAILED', "This operation needs authorization."
+
+        return view(**kwargs)
+
+    return wrapped_view

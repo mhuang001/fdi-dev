@@ -15,6 +15,8 @@ from ..utils.common import (getUidGid,
                             logging_DEBUG, lls
                             )
 
+from .session import init_session
+
 from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 
 from flasgger import Swagger
@@ -24,7 +26,6 @@ from werkzeug.routing import RequestRedirect
 from werkzeug.routing import RoutingException, Map
 
 import builtins
-from datetime import timedelta
 from os.path import expandvars
 from weakref import WeakValueDictionary, getweakrefcount
 import functools
@@ -325,7 +326,7 @@ def create_app(config_object=None, level=None, logstream=None):
                 logging.getLogger(mod[1:]).setLevel(logging_WARNING)
             else:
                 logging.getLogger(mod).setLevel(level_picked)
-    if 0:  # turn off picked as server code use current_app.logger!
+
         level = LOGGING_NORMAL
     else:
         level = level_picked
@@ -341,6 +342,8 @@ def create_app(config_object=None, level=None, logstream=None):
     if os.environ.get('UW_DEBUG', False) in (1, '1', 'True', True):
         from remote_pdb import RemotePdb
         RemotePdb('127.0.0.1', 4444).set_trace()
+
+    session = init_session(app)
 
     if debug:
         from werkzeug.debug import DebuggedApplication
@@ -376,20 +379,13 @@ def create_app(config_object=None, level=None, logstream=None):
 
     # initialize_extensions(app)
     # register_blueprints(app)
-
-    from .model.user import user, SESSION
+    from .model.user import user
     app.register_blueprint(user, url_prefix=_BASEURL)
 
     from .route.pools import pools_api
     app.register_blueprint(pools_api, url_prefix=_BASEURL)
     from .route.httppool_server import data_api
     app.register_blueprint(data_api, url_prefix=_BASEURL)
-
-    # for sessions
-    if SESSION:
-        import secrets
-        app.secret_key = secrets.token_hex()
-        app.permanent_session_lifetime = timedelta(days=1)
 
     from .model.user import LOGIN_TMPLT
     if LOGIN_TMPLT:

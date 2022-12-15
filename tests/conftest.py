@@ -6,18 +6,19 @@ from fdi.dataset.classes import Class_Look_Up
 from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
 from fdi.pns.jsonio import getJsonObj
-from fdi.pns.fdi_requests import clnt
 from fdi.utils.common import lls
 from fdi.pns.jsonio import auth_headers
 from fdi.httppool.model.user import User
 from fdi.pal.publicclientpool import PublicClientPool
 
 from flask.testing import FlaskClient
+from flask import request
 
 from requests.auth import HTTPBasicAuth
 import pytest
 import importlib
 from urllib.error import HTTPError
+import requests
 import os
 import sys
 import json
@@ -47,9 +48,8 @@ RUN_SERVER_IN_BACKGROUND = 'python3.8 httppool_app.py --server=httppool_server'
 TEST_SERVER_LIFE = 600
 """ test server time limit in seconds."""
 
-the_session = clnt
-# requests_retry_session(retries=MAX_RETRY, backoff_factor=0.5)
-# the_session=requests.Session()
+the_session = requests.Session()
+the_session.secret_key = 'BAD_SECRET_KEY'
 
 
 @ pytest.fixture(scope='session')

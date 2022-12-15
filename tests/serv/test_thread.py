@@ -50,7 +50,7 @@ def num_pool(tmp_remote_storage_no_wipe, server, client, auth):
     aburl, header = server
     poolurl = pool.poolurl
     print(pool.poolname)
-    Number = 10
+    Number = 100
     return aburl, header, pool, poolurl, auth, Number
 
 
@@ -90,8 +90,9 @@ def test_cio_post(num_pool):
     assert len(urns) == Number
     res = []
     for n in range(Number):
-        int(urns[n].rsplit(':', 1)[1]) == n
-        print(f"{n} {urns[n]}")
+        idx = int(urns[n].rsplit(':', 1)[1])
+        print(f"{n} {idx}", end=' ')
+
     with open('/tmp/testurn', 'w') as f:
         json.dump(urns, f)
 
@@ -127,9 +128,9 @@ def test_cio_read(num_pool):
     print("--- %s seconds ---" % (time.time() - start_time))
 
     for n in range(Number):
-        int(urns[n].rsplit(':', 1)[1]) == n
+        idx = int(urns[n].rsplit(':', 1)[1])
         p = res[n]
-        print(f"{n} {urns[n]} {p.description}")
+        print(f"{n} {p.description} {idx}", end=' ')
 
 
 def est_threaded_post(num_pool):

@@ -313,7 +313,7 @@ def test_new_user_read_only(new_user_read_only, pc):
     THEN check the username, hashed_password, authenticated, and roles fields are defined correctly
     """
     new_user, headers = new_user_read_only
-    assert new_user.username == pc['USERS'][1]['username']
+    assert new_user.username == pc['ro_user']
     assert not new_user.hashed_password.startswith('o')
     assert not new_user.authenticated
     assert new_user.roles == ('read_only',)

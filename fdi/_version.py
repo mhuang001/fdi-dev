@@ -1,5 +1,6 @@
-__version_info__ = (1, 25, 4)
+__version_info__ = (1, 26, 1)
 __version__ = '.'.join(map(str, __version_info__))
+# 1.26.1 simplify user config for httppool.
 # 1.26.0 relate the 104 Connection Reset error to auto redirect to trailing '/' url. Add '/' to endpoints. add "/pools" to show pool info.
 # 1.25.4 threaded test code. local httppool read/write prod 20-30ms
 # 1.25.3 refactor query code

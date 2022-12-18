@@ -243,7 +243,7 @@ def init_httppool_server(app):
 
     # client users
     from .model.user import getUsers
-    app.config['USERS'] = getUsers(app)
+    app.config['USERS'] = getUsers(pc)
 
     # PoolManager is a singleton
     if PM_S.isLoaded(DEFAULT_MEM_POOL):

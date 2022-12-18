@@ -53,7 +53,7 @@ pnsconfig['requests_timeout'] = (3.3, 909)
 # modify
 if conf == 'dev':
     # username, passwd, flask ip, flask port.
-    # For test clients. the username/password must match ['USERS'][0]
+    # For test clients. the username/password must match rw
     pnsconfig['username'] = 'foo'
     pnsconfig['password'] = 'bar'
     pnsconfig['host'] = '127.0.0.1'
@@ -68,24 +68,17 @@ if conf == 'dev':
     pnsconfig['server_local_poolpath'] = '/tmp/data'  # For server
 
     # In place of a frozen user DB for backend server and test.
-    pnsconfig['USERS'] = [
-        {'username': 'foo',
-         'hashed_password': 'pbkdf2:sha256:260000$Ch0GEGjA6ipF3dOb$3d408b50a31c64de75d8973e8aebaf76a510cfb01c9af03a1294bac792fe9608',
-         'roles': ('read_write',)
-         },
-        {'username': 'ro',
-         'hashed_password': 'pbkdf2:sha256:260000$gzsbbunF2NQb5okJ$0ef0a27f7f6802d0394214df638c739d2bb0a5c4091ac7d4273fd236ca77ee3f',
-         'roles': ('read_only',)
-         }
-    ]
+    pnsconfig['rw_user'] = 'foo'
+    pnsconfig['rw_pass'] = 'pbkdf2:sha256:260000$V1hXW8OVUKekaSHP$85b21f4fb0a3c6f0eef73165538d7aab7881ce8acc48c4af59fd33edd8bf13f2'
 
-    # (reverse) proxy_fix
-    # /pnsconfig['proxy_fix'] = dict(x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    pnsconfig['ro_user'] = 'bar'
+    pnsconfig['ro_pass'] = 'pbkdf2:sha256:260000$8vrAxZeeJJhTrZLQ$70fd3819d62bb46fe89fc1cd933fb8052e83da75d66624b6146f105288be0bfd'
+
 elif conf == 'production':
     pnsconfig['username'] = 'foo'
     pnsconfig['password'] = 'bar'
-    pnsconfig['host'] = '127.0.0.1'
-    pnsconfig['port'] = 9876
+    pnsconfig['host'] = '111.111.111.111'
+    pnsconfig['port'] = 2222
 
     pnsconfig['self_host'] = '0.0.0.0'
     pnsconfig['self_port'] = 9876
@@ -97,16 +90,11 @@ elif conf == 'production':
     pnsconfig['base_local_poolpath'] = '/tmp/httppool'
     pnsconfig['server_local_poolpath'] = pnsconfig['base_local_poolpath'] + '/data'
 
-    pnsconfig['USERS'] = [
-        {'username': 'foo',
-         'hashed_password': 'pbkdf2:sha256:260000$Ch0GEGjA6ipF3dOb$3d408b50a31c64de75d8973e8aebaf76a510cfb01c9af03a1294bac792fe9608',
-         'roles': ('read_write',)
-         },
-        {'username': 'ro',
-         'hashed_password': 'pbkdf2:sha256:260000$gzsbbunF2NQb5okJ$0ef0a27f7f6802d0394214df638c739d2bb0a5c4091ac7d4273fd236ca77ee3f',
-         'roles': ('read_only',)
-         }
-    ]
+    pnsconfig['rw_user'] = 'foo'
+    pnsconfig['rw_pass'] = 'pbkdf2:sha256:260000$V1hXW8OVUKekaSHP$85b21f4fb0a3c6f0eef73165538d7aab7881ce8acc48c4af59fd33edd8bf13f2'
+    pnsconfig['ro_user'] = 'bar'
+    pnsconfig['ro_pass'] = 'pbkdf2:sha256:260000$8vrAxZeeJJhTrZLQ$70fd3819d62bb46fe89fc1cd933fb8052e83da75d66624b6146f105288be0bfd'
+
     # (reverse) proxy_fix
     # pnsconfig['proxy_fix'] = dict(x_for=1, x_proto=1, x_host=1, x_prefix=1)
 

@@ -8,7 +8,7 @@ from fdi.pal.productstorage import ProductStorage
 from fdi.pns.jsonio import getJsonObj
 from fdi.utils.common import lls
 from fdi.pns.jsonio import auth_headers
-from fdi.httppool.model.user import User
+from fdi.httppool.model.user import User, getUsers
 from fdi.pal.publicclientpool import PublicClientPool
 
 from flask.testing import FlaskClient
@@ -100,9 +100,9 @@ def new_user_read_only(pc):
     GIVEN a User model
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
-    pn = pc['USERS'][1]
-    new_user = User(**pn)
-    headers = auth_headers(pn['username'], password=pn['hashed_password'])
+    users = getUsers(pc)
+    new_user = users['ro']
+    headers = auth_headers(pc['ro_user'], password=pc['ro_pass'])
 
     return new_user, headers
 

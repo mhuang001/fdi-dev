@@ -65,7 +65,6 @@ def test_cio_post(num_pool):
     aburl, header, pool, poolurl, auth, Number = num_pool
     pool.removeAll()
     plist = [Product(description=str(i)).serialized() for i in range(Number)]
-    # server url
     urns = []
 
     start_time = time.time()

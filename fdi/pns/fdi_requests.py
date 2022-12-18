@@ -160,7 +160,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 
 
 def safe_client(method, api, *args, **kwds):
-
+    # return method(api, *args, **kwds)
     for n in range(MAX_RETRY):
         try:
             res = method(api, *args, **kwds)

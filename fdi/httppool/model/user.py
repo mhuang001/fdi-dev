@@ -88,13 +88,36 @@ class User():
         return info
 
 
-def getUsers(app):
-    """ Returns the USER DB from `config.py` ro local config file. """
+def get_names2roles_mapping(pc):
+    # pc is pnsconfig from config filea
+    mapping = {'read_write': [], 'read_only': []}
+    for authtype in ('rw_user', 'ro_user'):
+        unames = pc[authtype]
+        unames = unames if isinstance(unames, list) else [unames]
+        for n in unames:
+            if authtype == 'rw_user':
+                mapping['read_write'].append(n)
+            else:
+                mapping['read_only'].append(n)
+    return mapping
 
-    # pnsconfig from config file
-    users = dict(((u['username'], User(**u))
-                 for u in app.config['PC']['USERS']))
 
+NAMES2ROLES = None
+
+
+def getUsers(pc):
+    """ Returns the USER DB from `config.py` ro local config file.
+
+    Allows multiple user under the save role"""
+
+    global NAMES2ROLES
+    if NAMES2ROLES is None:
+        NAMES2ROLES = get_names2roles_mapping(pc)
+    users = dict(((u, User(u, None, hp,
+                           [r for r, n in NAMES2ROLES.items() if u in n]))
+                  for u, hp in ((pc['rw_user'], pc['rw_pass']),
+                                (pc['ro_user'], pc['rw_pass']))
+                  ))
     return users
 
 
@@ -295,7 +318,7 @@ def verify_password(username, password, check_session=True):
         logger.debug('%s %s %s %s' % (username, len(password) * '*',
                      'chk' if check_session else 'nochk',
                                       'Se' if SESSION else 'noSe'))
-    # __import__("pdb").set_trace()
+
     if check_session:
         if SESSION:
             has_session = 'user_id' in session and hasattr(
@@ -340,6 +363,7 @@ def verify_password(username, password, check_session=True):
                     #################
                 newu = current_app.config['USERS'].get(username, None)
                 if newu is None:
+
                     if logger.isEnabledFor(logging_DEBUG):
                         logger.debug(f"Unknown user {username}")
                     return False
@@ -357,6 +381,8 @@ def verify_password(username, password, check_session=True):
                     if logger.isEnabledFor(logging_DEBUG):
                         logger.debug(
                             f"new user '{username}' has invalid password.")
+                    __import__("pdb").set_trace()
+
                     return False
                     #################
         else:

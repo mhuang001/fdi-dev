@@ -175,7 +175,7 @@ def safe_client(method, api, *args, **kwds):
                     raise cause
     # print(n, res)
     logger.debug(
-        f'resp {n}===={res.history}, {getattr(res.request,"path","")} {method}')
+        f'resp {n} retry.{res.history}, {getattr(res.request,"path","")} {method.__func__.__qualname__}')
 
     return res
 

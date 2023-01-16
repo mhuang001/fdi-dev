@@ -3,7 +3,6 @@
 from ..utils.getconfig import getConfig
 from .model.user import SESSION
 
-import flask
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 import requests
@@ -19,7 +18,7 @@ TIMEOUT = pc['requests_timeout']
 FORCED = (503, 504, 408, 413, 429)
 # default DEFAULT_ALLOWED_METHODS = frozenset({'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PUT', 'TRACE'})
 METHODS = ("POST", "PUT", "HEAD", "GET", "OPTIONS")
-MAX_RETRY = 5
+MAX_RETRY = 2
 
 
 def requests_retry_session(
@@ -34,7 +33,7 @@ def requests_retry_session(
 
     https://www.peterbe.com/plog/best-practice-with-retries-with-requests
     """
-    session = session or requests.Session()
+    session = session or requests.session()
     retry = Retry(
         total=retries,
         read=retries,

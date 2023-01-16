@@ -8,7 +8,7 @@ from ..dataset.deserialize import deserialize, Class_Look_Up
 from .urn import Urn, parseUrn, parse_poolurl, makeUrn
 from .versionable import Versionable
 from .taggable import Taggable
-from .dicthk import DictHk
+from . import dicthk
 from .definable import Definable
 from ..utils.common import pathjoin, fullname, lls, trbk
 from .productref import ProductRef
@@ -366,10 +366,12 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise (NotImplementedError)
 
-    def remove(self, urn=None, resourcetype=None, index=None):
+    def remove(self, urn=None, resourcetype=None, index=None,
+               ignore_error=False):
         """
         Removes a Product belonging to specified URN or a pair of data type and serial number.
         """
+        self.ignore_error_when_delete = ignore_error
         res = self.schematicRemove(urn, resourcetype=resourcetype, index=index)
         return res
 
@@ -378,11 +380,11 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise (NotImplementedError)
 
-    def removeAll(self):
+    def removeAll(self, ignore_error=False):
         """
         Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).
         """
-
+        self.ignore_error_when_delete = ignore_error
         return self.schematicWipe()
 
     def saveDescriptors(self,  urn,  desc):
@@ -483,12 +485,57 @@ def _eval(code='', m='', **kwds):
     return res
 
 
+def populate_pool2(tags, pn, dTypes=None, dTags=None):
+    """
+    tags : list
+        The tags in a list.
+    pn : str
+        The product name / datatype / class name of the data item, new or existing.
+
+    Returns
+    -------
+    tuple
+        dTypes and dTags with updates, and the index/serial number
+    """
+
+    # new ###
+    if dTypes is None:
+        dTypes = {}
+    if dTags is None:
+        dTags = {}
+
+    if pn in dTypes:
+        int_sn = dTypes[pn]['currentSN'] + 1
+    else:
+        int_sn = 0
+        dTypes[pn] = {
+            'currentSN': int_sn,
+            'sn': {}
+        }
+
+    snd = dTypes[pn]['sn']
+    _sn = str(int_sn)
+    if int_sn not in snd:
+        snd[int_sn] = {
+            'tags': [],
+            'meta': []
+        }
+
+    dTypes[pn]['currentSN'] = int_sn
+
+    # /new #####
+    for t in tags:
+        dicthk.add_tag_datatype_sn(t, pn, int_sn, dTypes, dTags)
+
+    return dTypes, dTags, _sn
+
+
 # Do not include leading or trailing whitespace as they are not guarantteed.
 MetaData_Json_Start = '{"_ATTR_meta":'
 MetaData_Json_End = '"_STID": "MetaData"}'
 
 
-class ManagedPool(ProductPool, DictHk):
+class ManagedPool(ProductPool, dicthk.DictHk):
     """ A ProductPool that manages its internal house keeping. """
 
     def __init__(self, **kwds):
@@ -564,7 +611,11 @@ class ManagedPool(ProductPool, DictHk):
         # new ###
         poolname, dt, sn = parseUrn(urn, int_index=True)
         # assert self._urns[ref.urn]['refcnt'] == self._dType[dt]['sn'][sn]['refcnt']
-        self._dType[dt]['sn'][sn]['refcnt'] -= 1
+        r = self._dType[dt]['sn'][sn]
+        if r['refcnt'] == 0:
+            raise ValueError('Cannot deref below 0.')
+        else:
+            r['refcnt'] -= 1
         # /new ###
         # self._urns[ref.urn]['refcnt'] -= 1
 
@@ -588,6 +639,8 @@ class ManagedPool(ProductPool, DictHk):
         """
         # new ###
         assert list(self._classes.keys()) == list(self._dTypes.keys())
+        __import__("pdb").set_trace()
+
         return self._classes.keys()
 
     def getCount(self, typename=None):
@@ -705,27 +758,27 @@ class ManagedPool(ProductPool, DictHk):
                                    meta: [$start, $end]
                                    refcnt: $count
                example::
-                    foo.bar.Bar:
+                    'foo.bar.Bar':
                             'currentSN': 1
                             0:
-                               tags: ['cat', 'white']
-                               meta: [123, 456]
-                               refcnt: 0
+                               'tags': ['cat', 'white']
+                               'meta': [123, 456]
+                               'refcnt': 0
                             1:
-                               tags: ['dog', 'white']
-                               meta: [321, 765]
-                               refcnt: 0
-                    foo.baz.Baz:
+                               'tags': ['dog', 'white']
+                               'meta': [321, 765]
+                               'refcnt': 0
+                    'foo.baz.Baz':
                             'currentSN': 34
                             34:
-                               tags: ['tree', 'green']
-                               meta: [100, 654]
-                               refcnt: 1
+                               'tags': ['tree', 'green']
+                               'meta': [100, 654]
+                               'refcnt': 1
      `dTags` differs from `tag` 1. uses dType:[sn], instead of urn, so there is no poolname anywhere, 2. simplify by removing second level dict::
                      $tag_name0:
                            $class_name1:[$sn1, $sn2...]
                            $class_name2:[$sn3, ...]
-              exxample::
+               example::
                      'cat': { 'foo.bar.Bar':[0] }
                      'white': { 'foo.bar.Bar'; [0, 1] }
                      'dog': ...
@@ -770,7 +823,7 @@ class ManagedPool(ProductPool, DictHk):
                 urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
 
                 if urn not in u:
-                    u[urn] = dict(tags=[])
+                    u[urn] = {'tags': []}
 
             # new+old ###
             if tag is None:
@@ -783,31 +836,46 @@ class ManagedPool(ProductPool, DictHk):
                 raise TypeError('Bad type for tag: %s.' %
                                 tag.__class__.__name__)
             # new ####
-            dTypes, dTags = self._dTypes, self._dTags
+            self._dTypes, self._dTags, _sn = populate_pool2(tags, pn,
+                                                            self._dTypes,
+                                                            self._dTags)
 
-            if pn in dTypes:
-                _sn = dTypes[pn]['currentSN'] + 1
-            else:
-                _sn = 0
-                dTypes[pn] = {
-                    'currentSN': _sn,
-                    'sn': {}
-                }
+            if 0:
+                if tag is None:
+                    tags = []
+                elif issubclass(tag.__class__, str):
+                    tags = [tag]
+                elif issubclass(tag.__class__, list):
+                    tags = tag
+                else:
+                    raise TypeError('Bad type for tag: %s.' %
+                                    tag.__class__.__name__)
+                # new ####
+                dTypes, dTags = self._dTypes, self._dTags
 
-            snd = dTypes[pn]['sn']
-            if _sn not in snd:
-                snd[_sn] = {
-                    'tags': [],
-                    'meta': []
-                }
+                if pn in dTypes:
+                    _sn = dTypes[pn]['currentSN'] + 1
+                else:
+                    _sn = 0
+                    dTypes[pn] = {
+                        'currentSN': _sn,
+                        'sn': {}
+                    }
 
-            dTypes[pn]['currentSN'] = _sn
+                snd = dTypes[pn]['sn']
+                if _sn not in snd:
+                    snd[_sn] = {
+                        'tags': [],
+                        'meta': []
+                    }
+
+                dTypes[pn]['currentSN'] = _sn
+                urn = makeUrn(poolname=self._poolname, typename=pn, index=_sn)
+                # /new #####
+
+                for t in tags:
+                    self.setTag(t, urn)
             urn = makeUrn(poolname=self._poolname, typename=pn, index=_sn)
-            # /new #####
-
-            for t in tags:
-                self.setTag(t, urn)
-
             try:
                 # save prod and HK
                 self.doSave(resourcetype=pn,

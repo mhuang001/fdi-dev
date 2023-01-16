@@ -249,7 +249,7 @@ def parseUrn(urn, int_index=True):
     ------
     :poolname: NAme of the pool
     :resourceclass: type of resource/products
-    :index: serial number of resourceclass in the pool.
+    :index: (int) serial number of resourceclass in the pool.
 
     """
 

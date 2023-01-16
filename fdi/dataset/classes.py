@@ -40,7 +40,7 @@ Modules_Classes = {
     'fdi.dataset.baseproduct': ['BaseProduct'],
     'fdi.dataset.product': ['Product'],
     'fdi.dataset.browseproduct': ['BrowseProduct'],
-    'fdi.dataset.testproducts': ['TP', 'TC', 'TM', 'SP', 'DemoProduct'],
+    'fdi.dataset.testproducts': ['TP', 'TB', 'TC', 'TCC', 'TM', 'SP', 'DemoProduct'],
     'fdi.dataset.datatypes': ['Vector', 'Vector2D', 'Vector3D', 'Quaternion'],
     'fdi.dataset.metadata': ['AbstractParameter', 'Parameter', 'MetaData'],
     'fdi.dataset.numericparameter': ['NumericParameter', 'BooleanParameter'],

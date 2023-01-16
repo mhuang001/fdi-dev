@@ -1,9 +1,6 @@
-import logging
-import os
-from itertools import chain
-import sys
+# -*- coding: utf-8 -*-
 
-from fdi.dataset.arraydataset import ArrayDataset
+from fdi.httppool.session import requests_retry_session
 from fdi.dataset.product import Product, BaseProduct
 from fdi.dataset.serializable import serialize
 from fdi.pal.poolmanager import PoolManager
@@ -14,6 +11,11 @@ from fdi.pal.urn import makeUrn, parse_poolurl, Urn, parseUrn
 from fdi.pns.public_fdi_requests import read_from_cloud, load_from_cloud, delete_from_server
 from fdi.utils.common import fullname, lls, trbk
 from fdi.utils.getconfig import getConfig
+
+import logging
+import os
+from itertools import chain
+import sys
 
 logger = logging.getLogger(__name__)
 pcc = getConfig()
@@ -27,20 +29,37 @@ else:
 
 """
 Cloud apis classification:
-DOC: http://123.56.102.90:31702/api/swagger-ui.html#/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86
+#/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86
+DOC: http://123.56.102.90:31702/api/swagger-ui.html
 Problem:
 1. No class shown in storage/info API
 2. No pattern for pool path, API use poolname+random name instead of pool <scheme>://<place><poolpath>/<poolname>
-3. getMetaByUrn(self, urn, resourcetype=None, index=None) What's means resourcetype and index? 
+3. getMetaByUrn(self, urn, resourcetype=None, index=None) What's means resourcetype and index?
 """
 
 
 class PublicClientPool(ManagedPool):
-    def __init__(self, **kwds):
+    def __init__(self,  auth=None, client=None, **kwds):
         """ creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
+
+        Parameters
+        ----------
+        auth : tuple, HTTPBasicAuth, or Authorization
+            Authorization for remote pool.
+        client : Request or Wrapper
+            Mainly used for testing with mock server.
+        **kwds :
+
+        Returns
+        -------
+
         """
         # print(__name__ + str(kwds))
         super().__init__(**kwds)
+        self.auth = auth
+        if client is None:
+            client = requests_retry_session()
+        self.client = client
         self.getToken()
         self.poolInfo = None
 
@@ -81,25 +100,33 @@ class PublicClientPool(ManagedPool):
             return self._poolpath
 
     def getToken(self):
-        TOKEN_PATH = pcc['cloud_token']
+        """Get CSDB acces token.
 
-        if os.path.exists(TOKEN_PATH):
-            tokenFile = open(TOKEN_PATH, 'r')
-            self.token = tokenFile.read()
-            tokenFile.close()
-            tokenMsg = read_from_cloud('verifyToken', token=self.token)
-            if tokenMsg.get('code') != 0:
-                os.remove(TOKEN_PATH)
-                self.getToken()
-        else:
-            tokenMsg = read_from_cloud('getToken')
+        Returns
+        -------
+        str
+            Saved or newly gotten token.
+
+        Raises
+        ------
+        RuntimeError
+            Could not get new token.
+
+        """
+
+        self.token = pcc['cloud_token']
+        tokenMsg = read_from_cloud(
+            'verifyToken', token=self.token, client=self.client)
+        if tokenMsg.get('code') != 0:
+            logger.debug('Cloud token %s to be updated.' % self.token[:5])
+            tokenMsg = read_from_cloud('getToken', client=self.client)
             if tokenMsg['data']:
-                tokenFile = open(TOKEN_PATH, 'w+')
-                tokenFile.write(tokenMsg['data']['token'])
-                tokenFile.close()
                 self.token = tokenMsg['data']['token']
+                logger.debug('Cloud token %s updated.' % self.token[:5])
             else:
-                return tokenMsg['msg']
+                raise RuntimeError('Update cloud token failed: ' +
+                                   tokenMsg['msg'])
+        return self.token
 
     def poolExists(self):
         res = read_from_cloud(
@@ -117,24 +144,28 @@ class PublicClientPool(ManagedPool):
         else:
             return False
 
-    def createPool(self):
+    def createPool2(self):
         res = read_from_cloud(
             'createPool', poolname=self.poolname, token=self.token)
 
         if res['msg'] == 'success':
-            return True
+            return True, res
         elif res['msg'] == 'The storage pool already exists. Change the storage pool name':
-            return True
+            return True, res
         elif res['msg'] == 'The storage pool name already exists in the recycle bin. Change the storage pool name':
             raise ValueError(
                 res['msg'] + ', please restore pool ' + self.poolname + ' firstly.')
         else:
-            return False
+            return False, res
+
+    def createPool(self):
+        return self.createPool2()[0]
 
     def getPoolInfo(self):
         """
+        Pool schema 1.0 consisted of three maps: classes, urns and tags
         data:. See productpool::ManagedPool::saveOne
-            poolname : 
+            poolname :
                 _classes= {productTypeName: {currentSn:csn, sn=[]}}
                 _urns= [{urn: tags[]}]
                 _tags= {urns:[]}
@@ -192,17 +223,17 @@ class PublicClientPool(ManagedPool):
         """
         Return the number of URNs for the product type.
         """
-        try:
-            clzes = self.getProductClasses()
-            if clzes == 0:
-                return 0
-            if typename is None:
-                return sum(len(td['sn']) for td in self.poolInfo[self.poolname]['_classes'].value())
-            if typename not in clzes:
-                raise ValueError("Current pool has no such type: " + typename)
-            return len(self.poolInfo[self.poolname]['_classes'][typename]['sn'])
-        except KeyError:
+
+        clzes = self.getProductClasses()
+        if clzes == 0:
             return 0
+        _c = self.poolInfo[self.poolname]['_classes']
+        if typename is None:
+            return sum(len(td['sn']) for td in _c.value())
+        if typename not in clzes:
+            # raise ValueError("Current pool has no such type: " + typename)
+            return 0
+        return len(_c[typename]['sn'])
 
     def isEmpty(self):
         """
@@ -237,6 +268,12 @@ class PublicClientPool(ManagedPool):
         else:
             return []
 
+    def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
+        path = '/' + self._poolname + '/' + resourcetype
+        res = load_from_cloud('uploadProduct', token=self.token,
+                              products=data, path=path, tags=tag, resourcetype=resourcetype)
+        return res
+
     def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, kwds):
         """
                 Save one product.
@@ -244,6 +281,7 @@ class PublicClientPool(ManagedPool):
                 :res: list of result.
                 :serialize_out: if True returns contents in serialized form.
                 """
+
         jsonPrd = prd
         if serialize_in:
             pn = fullname(prd)
@@ -260,14 +298,14 @@ class PublicClientPool(ManagedPool):
         if pn not in datatype:
             raise ValueError('No such product type in cloud: ' + pn)
 
-        targetPoolpath = self.getPoolpath() + '/' + pn
+        # targetPoolpath = self.getPoolpath() + '/' + pn
         poolInfo = read_from_cloud(
-            'infoPoolType', poolpath=targetPoolpath, token=self.token)
-        if poolInfo['data'].get(targetPoolpath):
-            sn = poolInfo['data'][targetPoolpath]['lastIndex'] + 1
+            'infoPoolType', pools=self.poolname, client=self.client, token=self.token)
+
+        if self.poolname in poolInfo['data'] and pn in poolInfo['data'][self.poolname]:
+            sn = poolInfo['data'][self.poolname][pn]['currentSn'] + 1
         else:
             sn = 0
-        # __import__("pdb").set_trace()
         urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
 
         try:
@@ -295,7 +333,8 @@ class PublicClientPool(ManagedPool):
             raise e
 
         if uploadRes['msg'] != 'success':
-            raise Exception('Upload failed: ' + uploadRes['msg'])
+            raise Exception('Upload failed: product "%s" to %s:' % (
+                prd.description, self.poolurl) + uploadRes['msg'])
         else:
             urn = uploadRes['data']['urn']
 
@@ -306,8 +345,6 @@ class PublicClientPool(ManagedPool):
             else:
                 res.append(Urn(urn))
         else:
-            # import pdb
-            # pdb.set_trace()
             rf = ProductRef(urn=Urn(urn, poolurl=self.poolurl))
             if serialize_out:
                 # return without meta
@@ -323,9 +360,8 @@ class PublicClientPool(ManagedPool):
             :serialize_out: if True returns contents in serialized form.
         """
         res = []
-        if not self.poolExists():
-            # Create pool
-            self.createPool()
+        if not PoolManager.isLoaded(self._poolname):  # self.poolExists():
+            raise ValueError(f'Pool {self._poolname} is not registered.')
         if serialize_in:
             alist = issubclass(products.__class__, list)
             if not alist:
@@ -374,15 +410,16 @@ class PublicClientPool(ManagedPool):
                       serialize_out=False):
         """ do the scheme-specific loading
         """
-        targetPoolpath = self.getPoolpath() + '/' + resourcetype
+
+        spn = self._poolname
         poolInfo = read_from_cloud(
-            'infoPoolType', poolpath=targetPoolpath, token=self.token)
+            'infoPoolType', pools=spn, token=self.token)
         try:
             if poolInfo['data']:
                 poolInfo = poolInfo['data']
-                if poolInfo.get(targetPoolpath):
-                    if index in poolInfo[targetPoolpath]['indexes']:
-                        urn = makeUrn(poolname=self._poolname,
+                if spn in poolInfo:
+                    if index in poolInfo[spn]['_classes'][resourcetype]['sn']:
+                        urn = makeUrn(poolname=spn,
                                       typename=resourcetype, index=index)
                         res = self.doLoadByUrn(urn)
                         # res is a product like fdi.dataset.product.Product
@@ -409,15 +446,7 @@ class PublicClientPool(ManagedPool):
         raise NotImplementedError
 
     def doLoadByUrn(self, urn):
-        # import pdb
-        # pdb.set_trace()
         res = load_from_cloud('pullProduct', token=self.token, urn=urn)
-        return res
-
-    def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
-        path = self._cloudpoolpath + '/' + resourcetype
-        res = load_from_cloud('uploadProduct', token=self.token,
-                              products=data, path=path, tags=tag, resourcetype=resourcetype)
         return res
 
     def schematicRemove(self, urn=None, resourcetype=None, index=None):
@@ -445,10 +474,14 @@ class PublicClientPool(ManagedPool):
     def doRemove(self, resourcetype, index):
         """ to be implemented by subclasses to do the action of reemoving
         """
-        path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
+        # path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
+        path0 = f'/{self._poolname}/{resourcetype}'
+        path = f'{path0}/{index}'
         res = read_from_cloud('remove', token=self.token, path=path)
-        print("index: " + str(index) + " remove result: " +
-              str(res) + ' from : ' + path)
+        if res['code'] and not getattr(self, 'ignore_error_when_delete', False):
+            raise ValueError(f"Remove producr {path} failed: {res['msg']}")
+        logger.debug(f"Remove {path} code: {res['code']} {res['msg']}")
+
         return res['msg']
 
     def remove(self, urn):
@@ -461,16 +494,50 @@ class PublicClientPool(ManagedPool):
     def doWipe(self):
         """ to be implemented by subclasses to do the action of wiping.
         """
-        # res = read_from_cloud('wipePool', poolname=self.poolname, token=self.token)
-        # if res['msg'] != 'success':
-        #     raise ValueError('Wipe pool ' + self.poolname + ' failed: ' + res['msg'])
+        if 0:
+            res = read_from_cloud(
+                'wipePool', poolname=self.poolname, token=self.token)
+            if res['msg'] != 'success':
+                raise ValueError('Wipe pool ' + self.poolname +
+                                 ' failed: ' + res['msg'])
+            return
         info = self.getPoolInfo()
         if isinstance(info, dict):
             for clazz, cld in info[self.poolname]['_classes'].items():
-                for i in cld['sn']:
-                    urn = 'urn:' + self.poolname + ':' + clazz + ':' + str(i)
-                    res = self.remove(urn)
-                    assert res in ['Not found resource.', 'success']
+                if 1:
+                    path = f'/{self.poolname}/{clazz}'
+                    res = read_from_cloud('delDataType', token=self.token,
+                                          path=path)
+                    if res['msg'] != 'success' and not getattr(self, 'ignore_error_when_delete', False):
+                        raise ValueError(
+                            f'Wipe pool {self.poolname} failed: ' + res['msg'])
+                else:
+                    for i in cld['sn']:
+                        if 0:
+                            urn = 'urn:' + self.poolname + \
+                                ':' + clazz + ':' + str(i)
+                            res = self.remove(urn)
+                        else:
+                            res = self.doRemove(clazz, i)
+                        assert res in ['Not found resource.', 'success']
+                        if res == 'Not found resource.':
+                            logger.debug(f'Ignoring {clazz}:{i} not found')
+                # restore deleted datatype by error by csdb
+                res = read_from_cloud(
+                    'uploadDataType', cls_full_name=clazz, token=self.token)
+                if res['code'] != 0:
+                    raise ValueError(
+                        f'Restoring Datatype {clazz} durin Wipe pool {self.poolname} failed: ' + res['msg'])
+                logger.debug(f'Done removing {path}')
+
+                if 0:
+                    url_l = 'http://123.56.102.90:31702/csdb/v1/datatype/list'
+                    types = self.client.get(url_l).json()['data']
+                    logger.debug(f'$$$$ {clazz} {len(types)}')
+                    if 'fdi.dataset.testproducts.DemoProduct' not in types:
+                        __import__("pdb").set_trace()
+                        print(len(types))
+
         else:
             raise ValueError("Update pool information failed: " + str(info))
 
@@ -532,48 +599,6 @@ class PublicClientPool(ManagedPool):
         """
         raise (NotImplementedError)
 
-
-def genProduct(size=1):
-    res = []
-    for i in range(size):
-        x = Product(description="product example with several datasets",
-                    instrument="Crystal-Ball", modelName="Mk II", creator='Cloud FDI developer')
-        i0 = i
-        i1 = [[i0, 2, 3], [4, 5, 6], [7, 8, 9]]
-        i2 = 'ev'  # unit
-        i3 = 'image1'  # description
-        image = ArrayDataset(data=i1, unit=i2, description=i3)
-        # put the dataset into the product
-        x["RawImage"] = image
-        x.set('QualityImage', ArrayDataset(
-            [[0.1, 0.5, 0.7], [4e3, 6e7, 8], [-2, 0, 3.1]]))
-        res.append(x)
-    if size == 1:
-        return res[0]
-    else:
-        return res
-
-
-# from fdi.pal.query import MetaQuery
-# qt = MetaQuery(Product, 'm["extra"] > 5000 and m["extra"] <= 5005')
-# <MetaQuery where='m["extra"] > 5000 and m["extra"] <= 5005', type=<class 'fdi.dataset.product.Product'>, variable='m', allVersions=False>
-
-def test_getToken():
-    poolurl = 'csdb:///poolbs'
-    test_pool = PublicClientPool(poolurl=poolurl)
-    tokenFile = open(pcc['cloud_token'], 'r')
-    token = tokenFile.read()
-    tokenFile.close()
-    assert token == test_pool.token, "Tokens are not equal or not synchronized"
-
-
-def test_poolInfo():
-    poolurl = 'csdb:///csdb_test_pool'
-    test_pool = PublicClientPool(poolurl=poolurl)
-    test_pool.getPoolInfo()
-    import pdb
-    pdb.set_trace()
-    print(test_pool.poolInfo)
 
 # =================SAVE REMOVE LOAD================
 # test_getToken2()

@@ -118,8 +118,6 @@ pnsconfig['cloud_port'] = 31702
 pnsconfig['cloud_scheme'] = 'csdb'
 pnsconfig['cloud_api_version'] = 'v1'
 pnsconfig['cloud_api_base'] = '/csdb'
-pnsconfig['cloud_baseurl'] = pnsconfig['cloud_api_base'] + \
-    '/' + pnsconfig['cloud_api_version']
 
 # message queue config
 pnsconfig.update(dict(

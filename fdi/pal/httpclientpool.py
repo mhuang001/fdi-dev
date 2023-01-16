@@ -5,6 +5,8 @@ from ..dataset.deserialize import deserialize, serialize_args
 from .poolmanager import PoolManager
 from .productref import ProductRef
 from .productpool import ProductPool
+from ..httppool.session import requests_retry_session
+
 from .dicthk import HKDBS
 from ..utils.common import trbk, lls, fullname
 from .urn import Urn, makeUrn
@@ -97,8 +99,7 @@ class HttpClientPool(ProductPool):
         auth : tuple, HTTPBasicAuth, or Authorization
             Authorization for remote pool.
         client : Request or Wrapper
-            Mainly used for testing with mock server, where `client`
-            is a wrapper of Flask Client.
+            Mainly used for testing with mock server.
         **kwds :
 
         Returns
@@ -111,8 +112,9 @@ class HttpClientPool(ProductPool):
         super().__init__(**kwds)
         self.not_quoted = True
         self.auth = auth
-        session = requests.Session()
-        self.client = session if client is None else client
+        if client is None:
+            client = requests_retry_session()
+        self.client = client
 
     def setup(self):
         """ Sets up HttpPool interals.

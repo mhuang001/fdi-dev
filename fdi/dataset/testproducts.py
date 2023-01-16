@@ -1,5 +1,6 @@
 from fdi.dataset.product import _Model_Spec as PPI
 from .product import Product
+from .baseproduct import BaseProduct
 from .numericparameter import NumericParameter
 from .dateparameter import DateParameter
 from .stringparameter import StringParameter
@@ -18,20 +19,51 @@ import random
 from os import path as op
 
 
+class TB(BaseProduct):
+    def __init__(self, *args, **kwds):
+        super().__init__(*args, **kwds)
+        self.zInfo['name'] = 'TB'
+        self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
+        self.zInfo['metadata']['type']['default'] = self.zInfo['name']
+
+
 class TP(Product):
-    pass
+    def __init__(self, *args, **kwds):
+        super().__init__(*args, **kwds)
+        self.zInfo['name'] = 'TC'
+        self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
+        self.zInfo['metadata']['type']['default'] = self.zInfo['name']
 
 
 class TC(Context):
-    pass
+    def __init__(self, *args, **kwds):
+
+        super().__init__(*args, **kwds)
+        self.zInfo['name'] = 'TC'
+        self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
+        self.zInfo['metadata']['type']['default'] = self.zInfo['name']
+
+
+class TCC(TC):
+    def __init__(self, *args, **kwds):
+
+        super().__init__(*args, **kwds)
+        self.zInfo['name'] = 'TCC'
+        self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
+        self.zInfo['metadata']['type']['default'] = self.zInfo['name']
 
 
 class TM(MapContext):
-    pass
+    def __init__(self, *args, **kwds):
 
+        super().__init__(*args, **kwds)
+        self.zInfo['name'] = 'TM'
+        self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
+        self.zInfo['metadata']['type']['default'] = self.zInfo['name']
 
 # sub-classing testing class
 # 'version' of subclass is int, not string
+
 
 sp = copy.deepcopy(PPI)
 sp['name'] = 'SP'
@@ -85,7 +117,12 @@ def makeCal2D(width=11, height=11):
 
 
 class DemoProduct(MapContext):
-    pass
+    def __init__(self, *args, **kwds):
+
+        super().__init__(*args, **kwds)
+        self.zInfo['name'] = 'DemoProduct'
+        self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
+        self.zInfo['metadata']['type']['default'] = self.zInfo['name']
 
 
 def get_demo_product(desc=''):

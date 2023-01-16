@@ -48,7 +48,7 @@ RUN_SERVER_IN_BACKGROUND = 'python3.8 httppool_app.py --server=httppool_server'
 TEST_SERVER_LIFE = 600
 """ test server time limit in seconds."""
 
-the_session = requests.Session()
+the_session = requests.session()
 the_session.secret_key = 'BAD_SECRET_KEY'
 
 
@@ -67,7 +67,8 @@ def pc():
     """
     from fdi.utils.getconfig import getConfig as getc
     pns = getc(force=True)
-    logger.debug(json.dumps(pns))
+    # logger.debug(json.dumps(pns))
+
     return pns
 
 
@@ -367,16 +368,58 @@ def demo_product():
     return v, get_related_product()
 
 
-csdb_pool_id = 'test_csdb'
+csdb_pool_id = 'test_csdb_fdi'
 
 
-@ pytest.fixture(scope="module")
-def csdb(pc):
-    url = pc['cloud_scheme'] + ':///' + csdb_pool_id
-    # pc['cloud_host'] + ':' + \
-    # str(pc['cloud_port'])
-    test_pool = PublicClientPool(poolurl=url)
-    return test_pool, url
+@ pytest.fixture(scope="session")
+def urlcsdb(pc):
+
+    return '%s://%s:%d%s/%s' % (pc['scheme'],
+                                pc['cloud_host'],
+                                pc['cloud_port'],
+                                pc['cloud_api_base'],
+                                pc['cloud_api_version'])
+
+
+def make_csdb(poolurl):
+    client = the_session
+    ps = ProductStorage(poolurl=poolurl, client=client)
+    test_pool = ps.getWritablePool(True)  # PublicClientPool(poolurl=url)
+    return test_pool, poolurl, ps
+
+
+@ pytest.fixture(scope="session")
+def csdb(urlcsdb, pc):
+    url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
+    return make_csdb(url)
+
+
+@ pytest.fixture(scope="session")
+def csdb_new(urlcsdb, pc):
+    url = pc['cloud_scheme'] + \
+        urlcsdb[len('csdb'):] + '/' + csdb_pool_id + str(time.time())
+    url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
+    return make_csdb(url)
+
+
+@ pytest.fixture(scope="function")
+def clean_csdb(csdb):
+    test_pool, url, ps = csdb
+
+    # url_l = 'http://123.56.102.90:31702/csdb/v1/datatype/list'
+    # types = test_pool.client.get(url_l).json()['data']
+    # if 'fdi.dataset.testproducts.DemoProduct' in types:
+    #     __import__("pdb").set_trace()
+    #     t = len(types)
+
+    ps.wipePool(ignore_error=True)
+
+    # if 'fdi.dataset.testproducts.DemoProduct' in types:
+    #     types2 = test_pool.client.get(url_l).json()['data']
+    #     assert 'fdi.dataset.testproducts.DemoProduct' in types2
+
+    assert test_pool.isEmpty()
+    return test_pool, url, ps
 
 
 @ pytest.fixture(scope=SHORT)
@@ -415,14 +458,26 @@ def tmp_remote_storage(tmp_remote_storage_no_wipe):
     yield ps
 
 
-@ pytest.fixture(scope="module")
-def tmp_prods():
-    """ temporary local pool with module scope """
+@ pytest.fixture(scope="session")
+def tmp_prod_types():
+    """ classe of temporary prods with sesion scope """
+    ty = []
+    for n in ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC'):
+        ty.append(Class_Look_Up[n])
+    return ty
+
+
+@ pytest.fixture(scope="function")
+def tmp_prods(tmp_prod_types):
+    """ instances of temporary prods with function scope """
+
+    array_cls = Class_Look_Up['ArrayDataset']
     prds = [get_demo_product('test-product-0: Demo_Product')]
-    for i, n in enumerate(('BaseProduct', 'Product',
-                          'Context', 'MapContext',
-                           'TP', 'SP'), 1):
-        p = Class_Look_Up[n]('test-product-%d: %s' % (i, n))
+    for i, n in enumerate(tmp_prod_types):
+        if i == 0:
+            continue
+        p = n('test-product-%d: %s' % (i, n))
+        p['the_data'] = array_cls(data=[time.time()], unit='s')
         prds.append(p)
     logger.debug("Made products: %s" %
                  str(list((p.description, id(p)) for p in prds)))

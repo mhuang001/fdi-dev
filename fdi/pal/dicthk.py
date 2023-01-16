@@ -13,6 +13,38 @@ logger = logging.getLogger(__name__)
 HKDBS = ['classes', 'tags', 'urns', 'dTypes', 'dTags']
 
 
+def add_tag_datatype_sn(tag, datatype, sn, dTypes=None, dTags=None):
+    """Static function to  add a tag to datatype-sn to pool fmt 2.0
+
+    Parameters
+    ----------
+    tag : str 
+        A tag. Multiple tags have to make multiple calls.
+    datatype : str
+        The class name of the data item, new or existing.
+    sn : int
+        The serial number in integer.
+    dTypes : dict
+        the first nested mapping of pool fmt 2.
+    dTags : dict
+        the tag mapping of pool fmt 2.
+
+    """
+
+    snt = dTypes[datatype]['sn'][sn]['tags']
+    if tag not in snt:
+        snt.append(tag)
+    # dTags saves datatype:sn
+    typ = datatype
+    if tag not in dTags:
+        dTags[tag] = {}
+    t = dTags[tag]
+    if typ not in t:
+        t[typ] = [str(sn)]
+    else:
+        t[typ].append(str(sn))
+
+
 class DictHk(Taggable):
     """
     Definition of services provided by a product storage supporting versioning.
@@ -31,7 +63,12 @@ class DictHk(Taggable):
     def get_missing(self, urn, datatype, sn, no_check=False):
         """ make urn if datatype and sn are given and vice versa.
 
-        Rases
+        Return
+        ------
+        tuple
+        str, str, int 
+
+        Raises
         ValueError if None urn or urn not found or not from this pool.
         KeyError if datatype does not exist.
         IndexError if sn does not exist.
@@ -234,21 +271,24 @@ class DictHk(Taggable):
             if tag in self._tags:
                 self._tags[tag]['urns'].append(u)
             else:
-                self._tags[tag] = dict(urns=[u])
+                self._tags[tag] = {'urns': [u]}
 
         # new ###
-        snt = self._dTypes[datatype]['sn'][sn]['tags']
-        if tag not in snt:
-            snt.append(tag)
-        # dTags saves datatype:sn
-        _, typ, sn = tuple(u.rsplit(':', 2))
-        if tag not in self._dTags:
-            self._dTags[tag] = {}
-        t = self._dTags[tag]
-        if typ not in t:
-            t[typ] = [sn]
-        else:
-            t[typ].append(sn)
+        add_tag_datatype_sn(tag, datatype, sn,
+                            dTypes=self._dTypes, dTags=self._dTags)
+        if 0:
+            snt = self._dTypes[datatype]['sn'][sn]['tags']
+            if tag not in snt:
+                snt.append(tag)
+            # dTags saves datatype:sn
+            _, typ, sn = tuple(u.rsplit(':', 2))
+            if tag not in self._dTags:
+                self._dTags[tag] = {}
+            t = self._dTags[tag]
+            if typ not in t:
+                t[typ] = [sn]
+            else:
+                t[typ].append(sn)
 
     def tagExists(self, tag):
         """

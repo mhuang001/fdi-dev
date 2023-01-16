@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from fdi.dataset.deserialize import deserialize
-from conftest import csdb_pool_id, SHORT
+from conftest import SHORT
 
-from fdi.pal.context import MapContext
-from fdi.dataset.arraydataset import ArrayDataset
 from test_pal import backup_restore
 from serv.test_httppool import getPayload, check_response
 
@@ -17,12 +15,10 @@ from fdi.dataset.deserialize import serialize_args, deserialize_args, deserializ
 from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.productref import ProductRef
-from fdi.pal.publicclientpool import PublicClientPool
 from fdi.pal.query import MetaQuery
 from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
 from fdi.pal.httpclientpool import HttpClientPool
 from fdi.pns.fdi_requests import safe_client, urn2fdiurl, parse_poolurl
-from fdi.utils.getconfig import getConfig
 from fdi.utils.common import fullname
 
 import networkx as nx
@@ -411,235 +407,6 @@ def test_flask_fmt(tmp_pools, server, client,  auth):
     poolnames = o['result']
     assert isinstance(poolnames, list)
     assert pool._poolname in poolnames
-
-# ----------------------TEST CSDB--------------------------------
-
-
-def genProduct(size=1, cls='ArrayDataset', unique=''):
-    res = []
-    for i in range(size):
-        x = Product(description="product example with several datasets" + unique,
-                    instrument="Crystal-Ball", modelName="Mk II", creator='Cloud FDI developer')
-        i0 = i
-        i1 = [[i0, 2, 3], [4, 5, 6], [7, 8, 9]]
-        i2 = 'ev'  # unit
-        i3 = 'image1'  # description
-        image = ArrayDataset(data=i1, unit=i2, description=i3)
-        # put the dataset into the product
-        x["RawImage"] = image
-        x.set('QualityImage', ArrayDataset(
-            [[0.1, 0.5, 0.7], [4e3, 6e7, 8], [-2, 0, 3.1]]))
-        res.append(x)
-    if size == 1:
-        return res[0]
-    else:
-        return res
-
-
-def genMapContext(size=1):
-    map1 = MapContext(description='product with refs 1')
-    map1['creator'] = 'Cloud FDI developer'
-    return map1
-
-
-@ pytest.fixture(scope="module")
-def test_csdb_token(csdb):
-    logger.info('test token')
-    test_pool, url = csdb
-
-    tokenFile = open(pcc['cloud_token'], 'r')
-    token = tokenFile.read()
-    tokenFile.close()
-    assert token == test_pool.token, "Tokens are not equal or not synchronized"
-    return token
-
-
-def test_csdb_createPool(csdb):
-    logger.info('test create pool')
-    test_pool, url = csdb
-    try:
-        assert test_pool.createPool() is True
-    except ValueError:
-        assert test_pool.restorePool() is True
-    assert test_pool.poolExists() is True
-
-
-def test_csdb_poolInfo(csdb):
-    test_pool, url = csdb
-    test_pool.getPoolInfo()
-    # print(test_pool.poolInfo)
-
-
-@ pytest.fixture(scope='function')
-def csdb_uploaded(csdb):
-    ftest_pool, poolurl = csdb
-    poolname = ftest_pool._poolname
-
-    pstore = ProductStorage(poolname=poolname, poolurl=poolurl)
-    test_pool = pstore.getPool(poolname)
-    # PoolManager.getPool(poolurl=urnobj.getScheme() + ':///' + urnobj.getPool())
-    assert deepcmp(ftest_pool, test_pool) is None
-
-    prd = genProduct()
-    maps = genMapContext()
-    resPrd = pstore.save(prd)
-    resMap = pstore.save(maps)
-    uniq = str(time.time())
-    prds = genProduct(3, unique=uniq)
-    resPrds = pstore.save(prds)
-    return test_pool, resPrd, resMap, uniq, resPrds
-
-
-def test_csdb_upload(csdb_uploaded):
-    logger.info('test upload multiple products')
-    # poolurl = 'csdb:///' + csdb_pool_id
-    # poolname = csdb_pool_id
-
-    test_pool, resPrd, resMap, uniq, resPrds = csdb_uploaded
-
-    # urn:poolbs:fdi.dataset.product.Product:x
-    assert csdb_pool_id in resPrd.urn
-    assert 'Product' in resPrd.urn
-    assert csdb_pool_id in resMap.urn
-    assert 'MapContext' in resMap.urn
-
-    for ele in resPrds:
-        assert csdb_pool_id in ele.urn
-        assert 'Product' in ele.urn
-        assert uniq in ele.product.description
-
-
-def test_csdb_loadPrd(csdb_uploaded):
-    logger.info('test load product')
-    # test_pool, url = csdb
-
-    # pstore = ProductStorage(test_pool)
-    # uniq = str(time.time())
-    # prds = genProduct(3, unique=uniq)
-    # resPrds = pstore.save(prds)
-
-    test_pool, resPrd, resMap, uniq, resPrds = csdb_uploaded
-    pinfo = test_pool.getPoolInfo()
-    # for cl in pinfo[test_pool.poolname]['_classes']:
-    #    if c['productTypeName'] == 'fdi.dataset.product.Product':
-    #        rdIndex = c['currentSN']
-    #        break
-    typename = resPrds[0].urnobj.getTypeName()
-    snd = pinfo[test_pool.poolname]['_classes'][typename]['sn']
-    for i in range(1, 4):
-        rdIndex = snd[-i]
-        prd = test_pool.schematicLoad(typename, rdIndex)
-        assert prd.description.endswith(uniq), 'retrieve production incorrect'
-        assert prd.instrument == 'Crystal-Ball', 'retrieve production incorrect'
-        assert prd['QualityImage'].shape == [
-            3, 3], 'retrieve production incorrect'
-
-
-def test_csdb_getProductClasses(csdb):
-    logger.info('test get classes')
-    test_pool, url = csdb
-    clz = test_pool.getProductClasses()
-    assert clz == ['fdi.dataset.product.Product', 'fdi.pal.context.MapContext']
-
-
-@ pytest.fixture(scope='function')
-def test_csdb_addTag(csdb_uploaded):
-    logger.info('test add tag to urn')
-    # test_pool, url = csdb
-
-    test_pool, resPrd, resMap, uniq, resPrds = csdb_uploaded
-    pinfo = test_pool.getPoolInfo()
-    tag = 'test_prd'
-    typename = list(pinfo[test_pool.poolname]['_classes'])[0]
-    rdIndex = pinfo[test_pool.poolname]['_classes'][typename]['sn'][0]
-    urn = 'urn:' + csdb_pool_id + ':' + typename + ':' + str(rdIndex)
-    test_pool.setTag(tag, urn)
-    assert tag in test_pool.getTags(urn)
-    tag1 = 'test_prd1'
-    tag2 = ['test_prd2', 'test_prd3']
-    typename2 = list(pinfo[test_pool.poolname]['_classes'])[1]
-    rdIndex2 = pinfo[test_pool.poolname]['_classes'][typename2]['sn'][0]
-    urn2 = 'urn:' + csdb_pool_id + ':' + typename2 + ':' + str(rdIndex2)
-    test_pool.setTag(tag1, urn2)
-    test_pool.setTag(tag2, urn2)
-    tagsall = [tag1]+tag2
-    assert set(test_pool.getTags(urn2)) == set(tagsall)
-    return test_pool, tag, urn, tagsall, urn2
-
-
-def test_csdb_delTag(test_csdb_addTag):
-    logger.info('test delete a tag')
-
-    test_pool, tag, urn, tag2, urn2 = test_csdb_addTag
-    assert tag in test_pool.getTags(urn)
-    test_pool.removeTag(tag)
-    test_pool.getPoolInfo()
-    assert tag not in test_pool.getTags(urn)
-    assert tag2[0] in test_pool.getTags(urn2)
-    assert tag2[1] in test_pool.getTags(urn2)
-    test_pool.removeTag(tag2[1])
-    test_pool.getPoolInfo()
-    assert tag2[1] not in test_pool.getTags(urn2)
-    assert tag2[0] in test_pool.getTags(urn2)
-
-
-def test_csdb_count(csdb_uploaded):
-    logger.info('test count')
-    # test_pool, url = csdb
-
-    # start with none-empty
-    test_pool, resPrd, resMap, uniq, resPrds = csdb_uploaded
-    poolname = test_pool.poolname
-    pinfo = test_pool.getPoolInfo()
-    typename = resPrd.urnobj.getTypeName()
-
-    count = test_pool.getCount(typename)
-    np = 1 + len(resPrds)
-    assert count == len(pinfo[poolname]['_classes'][typename]['sn'])
-    assert count >= np
-
-    # wipe pool
-    test_csdb_wipe(csdb_uploaded)
-    assert test_pool.isEmpty()
-    assert count == len(pinfo[poolname]['_classes'][typename]['sn'])
-    assert count == 0
-
-    # add prods again.
-    csdb_uploaded(csdb)
-    assert not test_pool.isEmpty()
-    assert count == len(pinfo[poolname]['_classes'][typename]['sn'])
-    assert count == np
-
-
-def test_csdb_remove(csdb_uploaded):
-    logger.info('test remove product')
-    # test_pool, url = csdb
-    test_pool, resPrd, resMap, uniq, resPrds = csdb_uploaded
-    poolname = test_pool.poolname
-    pinfo = test_pool.getPoolInfo()
-    typename = resPrd.urnobj.getTypeName()
-    rdIndex = pinfo[poolname]['_classes'][typename]['sn'][-1]
-    urn = 'urn:' + csdb_pool_id + ':' + typename + ':' + str(rdIndex)
-    res = test_pool.remove(urn)
-    assert res in ['success', 'Not found resource.'], res
-    pinfo = test_pool.getPoolInfo()
-    assert rdIndex not in pinfo[poolname]['_classes'][typename]['sn']
-
-
-def test_csdb_wipe(csdb_uploaded):
-    logger.info('test wipe all')
-    # test_pool, url = csdb
-
-    test_pool, resPrd, resMap, uniq, resPrds = csdb_uploaded
-    poolname = test_pool.poolname
-    pinfo = test_pool.getPoolInfo()
-    typename = resPrd.urnobj.getTypeName()
-
-    assert not test_pool.isEmpty()
-    test_pool.schematicWipe()
-    info = test_pool.getPoolInfo()
-    # print(info)
-    assert test_pool.isEmpty()
 
 
 def test_slash(tmp_remote_storage, tmp_prods):

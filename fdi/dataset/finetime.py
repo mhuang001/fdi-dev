@@ -238,7 +238,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         """
 
         if dtm < cls.UTC_LOW_LIMIT:
-            logger.warn(
+            logger.warning(
                 'UTC before %s not defined yet.' % str(cls.UTC_LOW_LIMIT))
         leapsec = leapseconds.dTAI_UTC_from_utc(dtm)
         sec = cls.RESOLUTION * ((dtm - cls.EPOCH + leapsec).total_seconds())

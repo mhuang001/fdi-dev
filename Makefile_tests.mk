@@ -5,9 +5,12 @@ OPT	=    --log-level=$(L)
 T	= 
 test: test1 test2 test5 test13 test14 test10
 
+testhttp: test7 test8 test9 test15
+
+testcsdb: test11
+
 testpns: test4
 
-testhttp: test7 test8 test9 test15
 
 test1: 
 	$(PYTEST) tests/test_dataset.py -k 'not _mqtt' $(OPT) $(T)
@@ -42,9 +45,12 @@ test9:
 test10:
 	$(PYTEST) $(OPT) tests/test_fits.py $(T)
 
+K='-k csdb'
 test11:
-	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py -k '_csdb' $(T)
-	$(PYTEST) $(OPT) tests/test_pal.py -k '_csdb' $(T)
+	$(PYTEST) $(OPT) tests/test_csdb.py $(T)
+	#$(PYTEST) $(OPT) tests/serv/test_httpclientpool.py $(K) $(T)
+t11:
+	$(PYTEST) $(OPT) tests/test_pal.py $(K) $(T)
 
 test12:
 	$(PYTEST) $(OPT) tests/test_yaml2python.py $(T)

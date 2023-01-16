@@ -86,12 +86,13 @@ class PublicClientPool(ManagedPool):
             tokenFile = open(TOKEN_PATH, 'r')
             self.token = tokenFile.read()
             tokenFile.close()
-            tokenMsg = read_from_cloud('verifyToken', token=self.token)
+            tokenMsg = read_from_cloud(
+                'verifyToken', token=self.token, client=self.client)
             if tokenMsg.get('code') != 0:
                 os.remove(TOKEN_PATH)
                 self.getToken()
         else:
-            tokenMsg = read_from_cloud('getToken')
+            tokenMsg = read_from_cloud('getToken', client=self.client)
             if tokenMsg['data']:
                 tokenFile = open(TOKEN_PATH, 'w+')
                 tokenFile.write(tokenMsg['data']['token'])

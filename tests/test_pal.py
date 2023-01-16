@@ -278,7 +278,7 @@ def cleanup(poolurl=None, poolname=None):
         try:
             p = PoolManager.getPool(pname, poolurl)
             p.removeAll()
-        except RuntimeError:
+        except (RuntimeError, ValueError):
             pass
 
         PoolManager.remove(pname)
@@ -569,15 +569,17 @@ def test_ProductStorage_init():
         pass  # assert False, 'exception expected'
 
 
-def getCurrSnCount(csdb, prodname):
-    pinfo = csdb if issubclass(csdb.__class__, dict) else \
-        csdb.getPoolInfo()
+def getCurrSnCount(csdb_c, prodname):
+    pinfo = csdb_c if issubclass(csdb_c.__class__, dict) else \
+        csdb_c.getPoolInfo()
+    init_sn, init_count = 0, 0
     for pool in pinfo.values():
-        for cl in pool['_classes']:
-            if cl['productTypeName'] == prodname:
-                init_sn = cl['currentSn']
-                init_count = len(cl['sn']) - 1
-                break
+        poolclass = pool['_classes']
+        if prodname in poolclass:
+            init_sn = poolclass[prodname]['currentSn']
+            # XXX was the issue xaused " - 1" fixed?
+            init_count = len(poolclass[prodname]['sn'])
+            break
     return init_sn, init_count, pinfo
 
 
@@ -597,19 +599,22 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
         csdb = PoolManager.getPool(thepoolname)
         init_sn, init_count, pinfo = getCurrSnCount(csdb, pcq)
         init_sn_m, init_count_m, _ = getCurrSnCount(pinfo, mcq)
-        print('1...', init_count, init_sn, init_count_m, init_sn_m)
+        logger.debug('1...', init_count, init_sn, init_count_m, init_sn_m)
 
     # save
     ref = ps.save(x)
     s0, s1 = tuple(ref.urn.rsplit(':', 1))
     assert s0 == 'urn:' + thepoolname + ':' + pcq
+    # not saving thie one
     # ref_m = ps.save(y)
     init_count, init_count_m = 0, 0
-    is_csdb = thepoolurl.startswith('csdb://')
     if is_csdb:
+        __import__("pdb").set_trace()
+
         currentsn2, count2, pinfo2 = getCurrSnCount(csdb, pcq)
-        currentsn_m2, count_m2, _ = getCurrSnCount(pinfo2, mcq)
-        print('2...', count2, currentsn2, count_m2, currentsn_m2)
+        # m is unchanged
+        currentsn_m2, count_m2, pinfo_m2 = getCurrSnCount(pinfo2, mcq)
+        logger.debug('2...', count2, currentsn2, count_m2, currentsn_m2)
 
         assert count2 == init_count + 1
         assert currentsn2 == init_sn + 1
@@ -751,9 +756,8 @@ def test_ProdStorage_func_server():
 
 
 def test_ProdStorage_func_csdb(csdb):
-    test_pool, url = csdb  # csdb:///csdb_test_pool
-    thepoolname = 'csdb_test_pool'
-    thepoolurl = 'csdb:///' + thepoolname
+    thepool, thepoolurl, pstore = csdb  # csdb:///csdb_test_pool
+    thepoolname = thepool.poolname
 
     cleanup(thepoolurl, thepoolname)
     check_prodStorage_func_for_pool(thepoolname, thepoolurl, None)
@@ -834,11 +838,12 @@ def backup_restore(ps):
     assert deepcmp(hk1, p2.readHK()) is None
 
 
-def mkStorage(thepoolname, thepoolurl, db=None):
+def mkStorage(thepoolname, thepoolurl, pstore=None):
     """ returns pool object and productStorage """
 
     cleanup(thepoolurl, thepoolname)
-    pstore = ProductStorage(thepoolname, thepoolurl)
+    if not pstore:
+        pstore = ProductStorage(thepoolname, thepoolurl)
     thepoolpath, tsc, tpl, pn, un, pw = parse_poolurl(thepoolurl, thepoolname)
     if tsc in ['file', 'server']:
         assert op.exists(transpath(thepoolname, thepoolpath))
@@ -1324,14 +1329,15 @@ def test_realistic_http(server, demo_product):
     pass
 
 
-def test_realistic_csdb(csdb, demo_product):
-    test_pool, url = csdb  # csdb:///csdb_test_pool
-    poolname = 'test_csdb'
-    poolurl = 'csdb:///' + poolname
+def test_realistic_csdb(csdb, urlcsdb, csdb_client, demo_product):
+    urlupload, urldelete, urllist, client = csdb_client
+    test_pool, poolurl, pstore = csdb  # csdb:///csdb_test_pool
+    poolname = test_pool
+
     cleanup(poolurl, poolname)
     # remove existing pools in memory
     # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
-    thepool, pstore = mkStorage(poolname, poolurl, test_pool)
+    thepool, pstore = mkStorage(poolname, poolurl, pstore)
 
     p1 = Product(description='p1')
     p2 = Product(description='p2')

@@ -27,11 +27,11 @@ Invalid_Pool_Names = ['pools', 'urn', 'URN', 'api']
 def remoteRegister(pool):
     """ if registered a pool's auth and client will be used.
 
-    Note that a new httppool gets remoteRegistered before locally registered.
+    Note that a new http/csdb pool gets remoteRegistered before locally registered.
 
     Parameter
     ---------
-    pool : HttpClientPool
+    pool : HttpClientPool, PublicClientPool
         Pool object to be registered on remote server and have client/session set.
     auth : object
         Authorization object for the client. If given will substitute that of pool, if pool has auth.
@@ -39,42 +39,53 @@ def remoteRegister(pool):
         The client. If given will substitute that of pool, if pool is given
 
     """
-    from ..pns.fdi_requests import put_on_server
     # pool object
     poolo = None
-    from ..pal import httpclientpool
+    from ..pal import httpclientpool, publicclientpool
+
     if issubclass(pool.__class__, httpclientpool.HttpClientPool):
+
+        # HttpClientPool. Init the remote pool. If exists, load.d
         poolurl = pool._poolurl
         poolo = pool
+
+        logger.debug('Register %s on the server', poolurl)
+        if poolurl.endswith('/'):
+            poolurl = poolurl[:-1]
+        from ..pns.fdi_requests import put_on_server
+        try:
+            res, msg = put_on_server(
+                'urn:::0', poolurl, 'register_pool', auth=poolo.auth, client=poolo.client)
+        except ConnectionError as e:
+            res, msg = 'FAILED', str(e)
+            logger.error(poolurl + ' ' + msg)
+            raise
+        if res == 'FAILED':
+            np = '<' + poolo.auth.username + ' ' + poolo.auth.password + \
+                '>' if poolo.auth else '<no authorization>'
+            raise RuntimeError(
+                'Registering ' + poolurl + ' failed with auth ' + np + ' , ' + msg)
+        return res, msg
+    elif issubclass(pool.__class__, publicclientpool.PublicClientPool):
+
+        # register csdb pool. If existing, load. IF not exists, create and initialize sn.
+        status, poolres = pool.createPool2()
+
+        if status:
+            pool.getToken()
+            pool.client.headers.update({'X-AUTH-TOKEN': pool.token})
+            if poolres['code'] == 1:
+                # exists
+                pinfo = pool.getPoolInfo()
+            res = 'OK'
+        elif not status:
+            msg = poolres['msg']
+            logger.error(
+                'Registering ' + poolurl + ' failed with auth ' + 'np' + ' , ' + msg)
+            res = 'FAILED'
+        return res, poolres['msg']
     else:
         return
-    if 0:
-        # check if poolurl has been registered
-        for poolnm, poolo in PoolManager._GlobalPoolList.items():
-            if issubclass(poolo.__class__, HttpPool):
-                # This is a server pool.
-                continue
-            if poolurl == poolo._poolurl:
-                msg = f'Find {poolurl}. Already registered.'
-                logger.info(msg)
-                break
-
-    logger.debug('Register %s on the server', poolurl)
-    if poolurl.endswith('/'):
-        poolurl = poolurl[:-1]
-    try:
-        res, msg = put_on_server(
-            'urn:::0', poolurl, 'register_pool', auth=poolo.auth, client=poolo.client)
-    except ConnectionError as e:
-        res, msg = 'FAILED', str(e)
-        logger.error(poolurl + ' ' + msg)
-        raise
-    if res == 'FAILED':
-        np = '<' + poolo.auth.username + ' ' + poolo.auth.password + \
-            '>' if poolo.auth else '<no authorization>'
-        raise RuntimeError(
-            'Registering ' + poolurl + ' failed with auth ' + np + ' , ' + msg)
-    return res, msg
 
 
 def remoteUnregister(poolurl, auth=None, client=None):
@@ -107,7 +118,7 @@ def remoteUnregister(poolurl, auth=None, client=None):
     except ConnectionError as e:
         res, msg = 'FAILED', str(e)
     if res == 'FAILED':
-        logger.warning('Ignored: Unregisterinf ' +
+        logger.warning('Ignored: Unregistering ' +
                        poolurl + ' failed.  ' + msg)
         code = 2
     else:
@@ -134,6 +145,7 @@ This is done by calling the getPool() method, which will return an existing pool
         'http': p,
         'https': p,
         'server': pc['server_local_poolpath'],
+        'csdb': pc['cloud_api_version']
     }
     del p
 
@@ -169,22 +181,19 @@ Pools registered are kept as long as the last reference remains. When the last i
         """
         # logger.debug('GPL ' + str(id(cls._GlobalPoolList)) +
         #             str(cls._GlobalPoolList) + ' PConf ' + str(cls.PlacePaths))
-
         if pool:
             if poolname:
-                __import__("pdb").set_trace()
-
                 raise ValueError(
                     'Pool name %s and pool object cannot be both given.' % poolname)
             poolname, poolurl = pool._poolname, pool._poolurl
             if cls.isLoaded(poolname):
                 return cls._GlobalPoolList[poolname]
-            if poolurl.lower().startswith('http'):
-                import requests
+            if poolurl.lower()[:4] in ('http', 'csdb'):
                 if auth is not None and getattr(pool, 'auth', None) is None:
                     pool.auth = auth
                 if client is not None and getattr(pool, 'client', None) is None:
-                    pool.client = requests.Session()
+                    from ..httppool.session import requests_retry_session
+                    pool.client = requests_retry_session()
                 res, msg = remoteRegister(pool)
             p = pool
         else:
@@ -201,7 +210,7 @@ Pools registered are kept as long as the last reference remains. When the last i
 
             # get poolname and scheme
             if not poolurl:
-                poolurl = getConfig(poolname)
+                poolurl = getConfig('poolurl:'+poolname)
             if poolurl:
                 pp, schm, pl, pn, un, pw = parse_poolurl(poolurl)
             else:
@@ -231,24 +240,25 @@ Pools registered are kept as long as the last reference remains. When the last i
                 from . import httppool
                 p = httppool.HttpPool(
                     poolname=poolname, poolurl=poolurl, **kwds)
-            elif schm in ('http', 'https'):
-                from . import httpclientpool
-                import requests
-                from requests.auth import HTTPBasicAuth
-
+            elif schm in ('http', 'https', 'csdb'):
+                if schm == 'csdb':
+                    from . import publicclientpool
+                    pooltype = publicclientpool.PublicClientPool
+                    purl = pc['scheme'] + poolurl[4:]
+                else:
+                    from . import httpclientpool
+                    pooltype = httpclientpool.HttpClientPool
+                    purl = poolurl
                 if auth is None:
+                    from requests.auth import HTTPBasicAuth
                     auth = HTTPBasicAuth(pc['username'],
                                          pc['password'])
                 if client is None:
-                    client = requests.Session()
-                p = httpclientpool.HttpClientPool(
-                    poolname=poolname, poolurl=poolurl,
-                    auth=auth, client=client, **kwds)
+                    from ..httppool.session import requests_retry_session
+                    client = requests_retry_session()
+                p = pooltype(poolname=poolname, poolurl=purl,
+                             auth=auth, client=client, **kwds)
                 res, msg = remoteRegister(p)
-            elif schm == 'csdb':
-                from . import publicclientpool
-                p = publicclientpool.PublicClientPool(poolurl=poolurl)
-                # res, msg = remoteRegister(poolurl)
             else:
                 raise NotImplementedError(schm + ':// is not supported')
         #print(getweakrefs(p), id(p), '////')
@@ -310,7 +320,7 @@ Pools registered are kept as long as the last reference remains. When the last i
             # this is the only reference. unregister remote first.
             thepool = cls._GlobalPoolList[poolname]
             poolurl = thepool._poolurl
-            if poolurl.lower().startswith('http'):
+            if issubclass(thepool.__class__, HttpPool):
                 code = remoteUnregister(poolurl)
             else:
                 code = 0

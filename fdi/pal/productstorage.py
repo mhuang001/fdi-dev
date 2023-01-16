@@ -79,7 +79,7 @@ class ProductStorage(object):
         logger.debug('registered pool %s -> %s.' %
                      (str(pool), str(self._pools)))
 
-    def unregister(self, pool=None, **kwds):
+    def unregister(self, pool=None, ignore_error=False, **kwds):
         """ Unregisters the given pools to the storage.
         """
 
@@ -90,7 +90,8 @@ class ProductStorage(object):
                 poolname = pool
             if self.PM.isLoaded(poolname):
                 # remove frpm pool manager
-                res = self.PM.remove(poolname)  # TODO i dentify self
+                # TODO i dentify self
+                res = self.PM.remove(poolname, ignore_error=ignore_error)
                 # do this after del above
                 del self._pools[poolname]
                 logger.debug('unregistered pool %s -> %s.' %
@@ -99,8 +100,8 @@ class ProductStorage(object):
                 logger.info('Pool %s is not registered.' % poolname)
         return
 
-    def unregisterAll(self):
-        self.PM.removeAll()
+    def unregisterAll(self, ignore_error=False):
+        self.PM.removeAll(ignore_error=ignore_error)
         self._pools.clear()
 
     def load(self, urnortag):
@@ -176,14 +177,14 @@ class ProductStorage(object):
                     r.setStorage(self)
         return ret
 
-    def remove(self, urn):
+    def remove(self, urn, ignore_error=False):
         """ removes product of urn from the writeable pool
         """
         poolname = self.getWritablePool()
         logger.debug('removing product:' + str(urn) +
                      ' from pool ' + str(poolname))
         try:
-            self._pools[poolname].remove(urn)
+            self._pools[poolname].remove(urn, ignore_error=ignore_error)
         except Exception as e:
             logger.error('unable to remove from the writable pool.')
             raise e
@@ -215,10 +216,14 @@ class ProductStorage(object):
             raise NameError(msg)
         return self._pools[poolname]
 
-    def getWritablePool(self):
+    def getWritablePool(self, obj=False):
         """ returns the poolname of the first pool, which is the only writeable pool.
+
+        :obj: (bool) return the pool objject instead of the name.
         """
-        return self.getPools()[0]
+        l = list(self._pools.items())
+
+        return l[0][1] if obj else l[0][0]
 
     def getAllTags(self):
         """ Get all tags defined in the writable pool.
@@ -252,11 +257,12 @@ class ProductStorage(object):
 
         return self._pools[self.getWritablePool()].getUrn(tag)
 
-    def wipePool(self):
+    def wipePool(self, ignore_error=False):
         """ Clear all data and meta data of the writable pool.
         """
 
-        list(self._pools.values())[0].removeAll()
+        val = self._pools.values
+        list(val())[0].removeAll(ignore_error=ignore_error)
 
     def select(self, query, variable=None, ptype=None, previous=None):
         """ Returns a list of URNs to products that match the specified query.

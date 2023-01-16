@@ -53,7 +53,7 @@ def get_file_conf(conf):
         # print('zz', spec)
         module = sys.modules.get(module_name, None)
 
-        if module:
+        if 0 and module:
             # module has been imported. clear cache and re-read
             # importlib.invalidate_caches()
             module = importlib.reload(module)
@@ -165,6 +165,7 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
          file is 'pnslocal.py', and the variable is `pnsconfig`.
     builtin : dict. To be updated by `<conf>local`. default is `fdi.pns.config`.
     force : bool
+        Always 'True'
         reload from file instead of cache for all `conf`s cached.
 
     Returns
@@ -176,9 +177,11 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
 
     # default configuration is provided. Copy pns/config.py to ~/.config/pnslocal.py
     conflc = conf+'local'
-    if force and conflc in sys.modules:
-        logger.debug('Clearing config caches.')
-        get_file_conf.cache_clear()
+    # this will cause 'spec not found
+    # if force and conflc in sys.modules:
+    #     logger.debug('Clearing config caches.')
+    #     get_file_conf.cache_clear()
+
     if name:
         name = name.strip()
 

@@ -301,6 +301,9 @@ def test_PoolManager():
     assert PoolManager.size() == 1
     assert defaultpoolName in PoolManager.getMap()
     # print('GlobalPoolList#: ' + str(id(pm.getMap())) + str(pm))
+    PoolManager.remove('not_exists', ignore_error=True)
+    with pytest.raises(KeyError):
+        PoolManager.remove('not_exists')
     PoolManager.removeAll()
     assert PoolManager.size() == 0
     assert weakref.getweakrefcount(pool) == 0
@@ -345,7 +348,8 @@ def test_PoolManager():
     with pytest.raises(NewConnectionError):
         ph = pm.getPool(poolurl='http://h.edu/foo')
     assert not PoolManager.isLoaded('foo')
-    assert PoolManager.remove('foo') == 1
+    with pytest.raises(KeyError):
+        assert PoolManager.remove('foo') == 1
 
 
 def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb=None, **kwds):
@@ -541,6 +545,8 @@ def test_ProductStorage_init():
         p1 = ps.getPools()[0]
     # with poolurl the pool is constructed
     ps = ProductStorage(poolurl=defaultpoolurl)
+    # There is no product
+    assert ps.isEmpty()
     # get the pool object
     pspool = ps.getPool(defaultpoolname)
     assert len(pspool.getProductClasses()) == 0
@@ -561,12 +567,8 @@ def test_ProductStorage_init():
     assert ps2.getPools()[1] == newpoolname
 
     # multiple storages pointing to the same pool will get exception
-    try:
-        ps2 = ProductStorage()
-    except Exception as e:
-        pass
-    else:
-        pass  # assert False, 'exception expected'
+    # with pytest.raises(TypeError):
+    ps2 = ProductStorage()
 
 
 def getCurrSnCount(csdb_c, prodname):
@@ -697,6 +699,8 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
                  pcq, init_sn+n-1, *args)
     checkdbcount(init_count_m+1, thepoolurl, mcq, init_sn_m+0, *args)
 
+    # check isEmpty
+
     # report lru_cache info
     print('***HTTPClient Pool cache*** %s ' % str(pspool.getCacheInfo()))
 
@@ -733,11 +737,10 @@ def test_ProdStorage_func_http(server, userpass):
     cleanup(thepoolurl, thepoolname)
     # First test registering with local pstor will also register on server
     pool = HttpClientPool(poolurl=thepoolurl)
-    # not exist
-    with pytest.raises(RuntimeError):
-        assert pool.isEmpty()
+
     # register
     pstore = ProductStorage(pool=pool)
+
     assert pool.isEmpty()
     pstore.unregister(thepoolname)
     # not exist

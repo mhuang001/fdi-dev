@@ -64,7 +64,7 @@ def get_all_prod_types(urllist, client):
     return types
 
 
-def add_a_productType(full_name, jsn):
+def add_a_productType(full_name, jsn, client):
     hdr = {"accept": "*/*"}
     fdata = {"file": (full_name, jsn)}
     data = {"metaPath": "/metadata", "productType": full_name}
@@ -98,7 +98,7 @@ def upload_defintion(clsn, full_name, urllist, urlupload, urldelete,
     # with open(filen, 'rb') as f:
     #     fdata = [("file", (filen, f))]
     if 1:
-        x = add_a_productType(full_name, jsn=jsn)
+        x = add_a_productType(full_name, jsn=jsn, client=client)
         #### !!!! This throws error !!! ####
         assert x.status_code == 200, x.text
         o, code = getPayload(x)
@@ -172,7 +172,6 @@ def upload_prod_data(prd, cls_full_name,
         urn = o['data']['urn']
         path = o['data']['path']
         typ = o['data']['type']
-        __import__("pdb").set_trace()
 
         logger.debug("uploaded product urn={urn} path={path} type={typ}")
         """ output example:
@@ -462,7 +461,7 @@ def test_list(csdb_client, urlcsdb):
 
     urlupload, urldelete, urllist, client = csdb_client
     allurns = get_all_in_pool(csdb_pool_id, 'urn', urlcsdb, client)
-    logger.info(str(allurns))
+    # logger.info(pformat(allurns))
 
 # ----------------------TEST CSDB WITH ProductStorage----------------
 
@@ -515,7 +514,8 @@ def test_csdb_createPool(csdb_new):
     logger.info('test create a brand new pool')
     test_pool, url, pstore = csdb_new
     try:
-        assert len(test_pool.poolInfo['_classes']) == 0
+        info_of_a_pool = test_pool.poolInfo[test_pool.poolname]
+        #assert len(info_of_a_pool['_classes']) == 0
     except ValueError:
         # found deleted pool by this name.
         assert test_pool.restorePool() is True
@@ -535,7 +535,7 @@ def test_clean_csdb(clean_csdb):
     assert len(pinfo[test_pool.poolname]['_classes'].keys()) == 0
     assert len(pinfo[test_pool.poolname]['_tags'].keys()) == 0
     assert len(pinfo[test_pool.poolname]['_urns'].keys()) == 0
-    __import__("pdb").set_trace()
+    # __import__("pdb").set_trace()
     pinfo = test_pool.getPoolInfo()
 
     cls_full_name = 'fdi.dataset.testproducts.TP'

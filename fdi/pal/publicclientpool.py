@@ -161,7 +161,7 @@ class PublicClientPool(ManagedPool):
     def createPool(self):
         return self.createPool2()[0]
 
-    def getPoolInfo(self):
+    def getPoolInfo(self, update_hk=True):
         """
         Pool schema 1.0 consisted of three maps: classes, urns and tags
         data:. See productpool::ManagedPool::saveOne
@@ -175,8 +175,12 @@ class PublicClientPool(ManagedPool):
         if res['code'] == 0:
             if res['data']:
                 self.poolInfo = res['data']
+                info2hk(res['data'])
                 return self.poolInfo
             else:
+                self._dTypes = None
+                self._dTags = None
+
                 return 'No data in the pool ' + self.poolurl
         else:
             raise ValueError(res['msg'])

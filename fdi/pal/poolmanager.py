@@ -106,7 +106,9 @@ def remoteUnregister(poolurl, auth=None, client=None):
             if auth is None:
                 auth = poolo.auth
             break
-
+    else:
+        raise NameError(
+            f'Remote Unregistering failed. {poolurl} not registered or not suitable.')
     from ..pns.fdi_requests import delete_from_server
     #url = api_baseurl + post_poolid
     #x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
@@ -291,12 +293,12 @@ Pools registered are kept as long as the last reference remains. When the last i
             return 0
 
     @ classmethod
-    def removeAll(cls):
+    def removeAll(cls, ignore_error=False):
         """ deletes all pools from the pool list, pools not wiped
         """
         nl = list(cls._GlobalPoolList)
         for pool in nl:
-            cls.remove(pool)
+            cls.remove(pool, ignore_error=ignore_error)
 
     @ classmethod
     def save(cls, poolname, poolobj):
@@ -306,7 +308,7 @@ Pools registered are kept as long as the last reference remains. When the last i
         poolobj.setPoolManager(cls)
 
     @ classmethod
-    def remove(cls, poolname):
+    def remove(cls, poolname, ignore_error=False):
         """ Remove from list and unregister remote pools.
 
         returns 0 for successful removal, ``1`` for poolname not registered or referenced, still attempted to remove. ``> 1`` for the number of weakrefs the pool still have, and removing failed.
@@ -320,7 +322,8 @@ Pools registered are kept as long as the last reference remains. When the last i
             # this is the only reference. unregister remote first.
             thepool = cls._GlobalPoolList[poolname]
             poolurl = thepool._poolurl
-            if issubclass(thepool.__class__, HttpPool):
+            from ..pal.httpclientpool import HttpClientPool
+            if issubclass(thepool.__class__, HttpClientPool):
                 code = remoteUnregister(poolurl)
             else:
                 code = 0
@@ -334,7 +337,10 @@ Pools registered are kept as long as the last reference remains. When the last i
             pool = cls._GlobalPoolList.pop(poolname)
             pool.setPoolManager(None)
         except KeyError as e:
-            logger.info("Ignored: "+str(e))
+            if ignore_error:
+                logger.info("Ignored: "+str(e))
+            else:
+                raise
         return code
 
     @ classmethod

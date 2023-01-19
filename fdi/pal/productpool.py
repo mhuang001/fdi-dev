@@ -250,7 +250,7 @@ When implementing a ProductPool, the following rules need to be applied:
         Determines if the pool is empty.
         """
 
-        raise (NotImplementedError)
+        raise NotImplementedError
 
     def schematicSave(self, products, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, **kwds):
         """ to be implemented by subclasses to do the scheme-specific saving
@@ -639,7 +639,6 @@ class ManagedPool(ProductPool, dicthk.DictHk):
         """
         # new ###
         assert list(self._classes.keys()) == list(self._dTypes.keys())
-        __import__("pdb").set_trace()
 
         return self._classes.keys()
 

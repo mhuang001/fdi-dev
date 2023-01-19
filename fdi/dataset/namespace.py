@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 Load_Failed = object()
-""" unique object to mark failure condition."""
+""" unique object to mark this failure condition."""
 
 
 def refloader(key, mapping, remove=True, exclude=None, ignore_error=False):
@@ -29,8 +29,13 @@ def refloader(key, mapping, remove=True, exclude=None, ignore_error=False):
 
     Parameters
     ----------
+    key: str
+        name in the key-value pair.
     mapping : dict
-        a map containing name-content pairs (such as `default`, `initial`).
+        a map containing name-content pairs (such as
+    `default`, `initial`).
+    remove : bool
+        if set, remove this pair from the source after loading.
     exclude : list
         A list of keys to avoid loading. Default None.
     ignore_error : boolean
@@ -67,17 +72,36 @@ class NameSpace_meta(type):
                 load=None, **kwds):
         """ Internal map is initialized with `sources`.
 
-        The internal map is initialized with a `default` and a list of `extension` maps which can be collection of key-value pairs. These maps are put into the `sources` map. However these maps are only the information needed to populate the main map, the target map of namespace.
-The target namespace is also represented by a collection of key-value pairs but each of them reside in a cache map, and are loaded into the cache map by the `load` function lazily when the key is used. The default `refloader` just copy the reference of the values in the `sources` map by the same name.
-This architecture allows expensive values to be associated with names gradually in a cache in a pay-as-you-need manner.
+            The internal map is initialized with a `default`
+        and a list of `extension` maps which can be
+        collection of key-value pairs. These maps are put
+        into the `sources` map. However these maps are only
+        the information needed to populate the main map, the
+        target map of namespace.
+
+        The target namespace is also represented by a
+        collection of key-value pairs but each of them
+        reside in a cache map, and are loaded into the cache
+        map by the `load` function lazily when the key is
+        used. The default `refloader` just copies the
+        reference of the values in the `sources` map by the
+        same name.
+
+        When looking up a key, the cache maps will be
+        searched left to right.
+
+        This architecture allows expensive values to be
+        associated with names gradually in a cache in a
+        pay-as-you-need manner.
 
         Examples
         --------
-        .. code-bloc::
 
         For an app package with many classes:
 
-        Import user classes in a python file for example projectclasses.py:
+        Import user classes in a python file for example
+        projectclasses.py:
+
         .. code-bloc::
 
         clz_map = {
@@ -85,7 +109,8 @@ This architecture allows expensive values to be associated with names gradually 
                 'MyClass2': 'mypackage.mymodule'
         }
 
-        # from yet another module defining a dict of Class_name: Class_obj pairs
+        # from another module defining a dict of
+        # Class_name: Class_obj pairs
 
         try:
             from mypackage.mymodule import pairs
@@ -93,13 +118,12 @@ This architecture allows expensive values to be associated with names gradually 
             logger.info(e)
             raise
 
-        import fdi.dataset.namespace import NameSpace_meta
-        import Reverse_Modules_Classes
+        from fdi.dataset.namespace import NameSpace_meta
 
         def loader():
             ...
 
-        Class PC(metaclass=NameSpace_meta,
+        class PC(metaclass=NameSpace_meta,
                   sources=[Reverse_Modules_Classes, pairs, clz_map],
                   load=loader
                   ):
@@ -149,6 +173,7 @@ This architecture allows expensive values to be associated with names gradually 
         if load is None:
             # defined in this module
             load = refloader
+
         nm = Lazy_Loading_ChainMap(*sources, extensions=extensions, load=load)
         if kwds:
             for name, value in kwds.items():
@@ -204,36 +229,49 @@ This architecture allows expensive values to be associated with names gradually 
 
 
 class Lazy_Loading_ChainMap(ChainMap):
+    """ A mapping the populates its main storage as needed
+    from source and extension maps.
 
-    # failed = {}
-    # """ name-content pairs of the unloadable pairs from `default`. """
+    Implementated with a `ChainMap` of a cache, a initial,
+    and an arbitrary number of extension maps.
 
-    cache = {}
-    """ for the loaded key-vals. """
-
-    initial = {}
-    """ This mapping stores name-content pairs that are used to
-    build the main map, which is located in the ```lru_cache``` of
-    ```__getitem__```. Example: module_name-classe_names, schema
-    store."""
-
-    exclude = []
-    """exclude : list
-        A list of keys to avoid loading. Default None."""
-
-    ignore_error = False
-    """ignore_error : boolean
-        Do not throw exception when error happens during loading. Log, set `Load_Failed`, and Move on."""
+    The name (the key) is searched in the cache and, if not
+    found, in other maps on the chain. the `load` function is
+    used to do the loading.
+    """
 
     def __init__(self, *args, extensions=None, load=None, **kwds):
+
         if extensions is None:
             extensions = []
         if load is None:
             load = refloader
-        self.extenions = extensions
         self.load = load
+
+        self.extenions = extensions
+
+        # failed = {}
+        # """ name-content pairs of the unloadable pairs from `default`. """
+
+        self.cache = dict()
+        """ for the loaded key-vals. """
+
+        self.exclude = list()
+        """exclude : list
+            A list of keys to avoid loading. Default None."""
+
+        self.ignore_error = False
+        """ignore_error : boolean
+            Do not throw exception when error happens during loading. Log, set `Load_Failed`, and Move on."""
+
         self.sources = ChainMap(*args, **kwds)
+
         self.initial = dict(self.sources)
+        """ This mapping stores name-content pairs that are used to
+        build the main map (the `cache`). It is dict-wrapped `sources`.
+        Example: module_name-classe_names, schema
+        store, configs."""
+
         super().__init__(self.cache, self.initial, *extensions)
 
         logger.debug("New LLC %s initialized: _the_map 0x%x sources %d, initial %d, cache %d. extensions %d. initial=%s..." %
@@ -266,7 +304,6 @@ class Lazy_Loading_ChainMap(ChainMap):
                 continue
             else:
                 # is it excluded?
-
                 if key in m:
                     if key in self.exclude:
                         logger.debug(
@@ -290,8 +327,9 @@ class Lazy_Loading_ChainMap(ChainMap):
         Parameters
         ----------
         order: int
-            The number of maps to look up before this one is . If negative, `-n
- ` means the n-th from the last. E.g. `order=-1` means to become the last one.
+            The number of maps to look up before this one
+        is . If negative, `-n` means the n-th from the last.
+        E.g. `order=-1` means to become the last one.
         ns: mapping
             Namespace map to be looked up.
         """
@@ -339,10 +377,11 @@ class Lazy_Loading_ChainMap(ChainMap):
                 for i in in_initial:
                     ini.__delitem__(i)
                 self.cache.update(cc)
+
         return self
 
     def reload(self):
-        """ replenish the `initial` map, empty other map.
+        """ Update the `initial` map with `sources`, empty other maps.
 
         Parameters
         ----------

@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-from os.path import join
 import logging
-import getpass
 
+
+# with prefix
 pnsconfig = {}
+# without prefix
+config = {}
 
 ###########################################
 # Configuration for Servers running locally.

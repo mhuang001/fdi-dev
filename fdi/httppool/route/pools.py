@@ -860,8 +860,8 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
         logger.debug('WebAPI ' + lls(msg, 300) +
                      's %x' % id(PM_S._GlobalPoolList))
 
-    # if args and args[0] == 'select':
-    #    __import__('pdb').set_trace()
+    if method == 'isEmpty':
+        print('********', list(PM_S._GlobalPoolList))
 
     poolname = paths[0]
     poolurl = current_app.config['POOLURL_BASE'] + poolname

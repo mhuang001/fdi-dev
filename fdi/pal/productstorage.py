@@ -264,6 +264,11 @@ class ProductStorage(object):
         val = self._pools.values
         list(val())[0].removeAll(ignore_error=ignore_error)
 
+    def isEmpty(self):
+        """ Returns whether all pools are empty or there is no pool. """
+
+        return len(self._pools) == 0 or all(p.isEmpty() for p in self._pools.values())
+
     def select(self, query, variable=None, ptype=None, previous=None):
         """ Returns a list of URNs to products that match the specified query.
 

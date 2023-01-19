@@ -16,8 +16,7 @@ from fdi.utils.options import opt
 from fdi.utils.fetch import fetch
 from fdi.utils.tree import tree
 from fdi.utils.loadfiles import loadMedia
-from fdi.utils.getconfig import getConfig
-
+from fdi.utils.getconfig import getConfig, Config_Look_Up, Config_NameSpace
 import traceback
 import importlib
 import copy
@@ -528,12 +527,15 @@ def check_conf(cfp, typ, getConfig):
         os.unlink(filec)
     except:
         pass
-    conf = 'import os; %sconfig={"jk":98, "m":os.path.abspath(__file__)}' % typ
+    for v in ('NO_PRE',):
+        os.environ.pop(v, '')
+    conf = 'import os; %sconfig={"jk":98, "m":os.path.abspath(__file__)}; config={"no_pre":4}' % typ
     with open(filec, 'w') as f:
         f.write(conf)
     # check conf file directory
     w = getConfig(conf=typ, force=True)
     assert w['jk'] == 98
+    assert w['no_pre'] == 4
     pfile = w['m']
     assert getConfig('jk', conf=typ) == 98
     assert pfile.startswith(cfp)
@@ -559,13 +561,22 @@ def test_getConfig_init():
 
     # no arg
     v = getConfig()
-    from fdi.pns.config import pnsconfig as defaultconf
+    c = getConfig()
+    clu = Config_Look_Up['pns']
+    assert v is c
+    assert all(v[k] == _v for k, _v in clu.items())
+    assert all(clu[k] == _v for k, _v in v.items())
+
+    from fdi.pns.config import pnsconfig, config as config_
+    defaultconf = copy.deepcopy(pnsconfig)
+    defaultconf.update(config_)
     # default settings enables default config+pnslocal
     # v is a superset
     assert all(n in v for n in defaultconf)
 
     # get value of normal item
     assert getConfig('scheme').startswith('http')
+    assert getConfig('scheme') == clu['scheme']
     # get url
     con = getConfig()
     purl = ''.join((con['scheme'], '://',
@@ -580,16 +591,19 @@ def test_getConfig_init():
     logging.debug('Test non-exisiting.')
     # builtin is {} means not using the default config.
     non = getConfig(conf='non-existing', builtin={}, force=True)
-    assert non == {}
-    # default builtin means using the default config.
-    non = getConfig(conf='non-existing', force=True)
-    assert non == defaultconf
+    assert len(non) == 0  # len(pnsconfig) + len(config_)
 
     f = {'foo': 9}
     # the order of the right-hand side is {foo}+pnslocal
     v_diff = dict((n, v[n]) for n in (set(v.keys()-set(defaultconf))))
     f = getConfig(builtin={'foo': 9})
-    assert f.pop('foo') == 9
+    try:
+        # foo is not in maps[0]
+        assert f.pop('foo') == 9
+    except KeyError as e:
+        f['foo']
+        # foo is in maps[0]
+        assert f.pop('foo') == 9
     # every item in v_diff  is in f
     assert all(v == f[k] for k, v in v_diff.items())
 
@@ -611,20 +625,55 @@ def test_getConfig_ENV():
     check_conf(cp, typ, getConfig)
 
     # env var overrides
+    # with prefix
     before = getConfig(conf=typ)
+
     assert 98 == before['jk']
     assert before['username'] != 'fungi'
+    # prefixed_osenv
+    # now 'jk' in pnsconfig
+    assert Config_Look_Up[typ].sources.maps[1]['jk'] == 98
     os.environ[typ.upper()+'_JK'] = 'shroom'
     assert typ.upper()+'_JK' in os.environ
     # with pytest.raises(KeyError):
     # a new mapping is generated without jk
+    a = [len(x) for x in Config_Look_Up[typ].sources.maps]
+    assert a[:4] == [1, 2, 0, 1]
+    con = getConfig(conf=typ, force=True)
+    b = [len(x) for x in Config_Look_Up[typ].sources.maps]
+    assert b[:4] == [2, 2, 0, 1]
+    assert len(Config_Look_Up[typ].cache) == 0
+    assert Config_Look_Up[typ].sources.maps[0]['jk'] == 'shroom'
     assert getConfig('jk', conf=typ) == 'shroom'
+
+    # a key not in config
+    con = getConfig(conf=typ, force=True)
+    assert con['username'] == 'foo'
     os.environ[typ.upper()+'_USERNAME'] = 'fungi'
-    con = getConfig(conf=typ)
+    assert os.environ[typ.upper()+'_USERNAME'] == 'fungi'
+
+    a = [len(x) for x in Config_Look_Up[typ].sources.maps]
+    assert a[:4] == [2, 2, 0, 1]
+    con = getConfig(conf=typ, force=True)
+    b = [len(x) for x in Config_Look_Up[typ].sources.maps]
+    assert b[:4] == [3, 2, 0, 1]
+
+    # changed
     assert con['username'] == 'fungi'
+    assert getConfig('username', conf=typ) == 'fungi'
+
+    # no prefix
+    assert con['no_pre'] == 4
+    os.environ['NO_PRE'] = 'mollen'
+    assert os.environ['NO_PRE'] == 'mollen'
+
+    con_e = getConfig(conf=typ, force=True)
+    b = [len(x) for x in Config_Look_Up[typ].sources.maps]
+    assert b[:4] == [3, 2, 1, 1]
+    assert con_e['no_pre'] == 'mollen'
 
     os.environ[typ.upper()+'_HOST'] = 'lichen'
-    assert '://lichen:' in getConfig('poolurl:', conf=typ)
+    assert '://lichen:' in getConfig('poolurl:', conf=typ, force=True)
 
 
 def test_getConfig_conf():

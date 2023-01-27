@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 # app.config.from_object('fdi.pns.config')
 # try:
-#     app.config.from_envvar('PNSCONFIG')
+#     app.config.from_envvar('PNS_CONFIG')
 #     pc = app.config['FLASK_CONF']
 # except RuntimeError:
 #     pc = getconfig.getConfig()

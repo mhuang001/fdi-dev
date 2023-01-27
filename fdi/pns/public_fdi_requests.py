@@ -1,19 +1,23 @@
-import functools
-import logging
-import sys
-import json
-from requests.auth import HTTPBasicAuth
 
 from ..dataset.serializable import serialize
-from ..dataset.classes import Class_Look_Up
+from ..dataset.classes import Class_Look_Up, All_Exceptions
 from ..dataset.deserialize import deserialize
 from ..utils.getconfig import getConfig
+from ..utils.common import lls
 from ..pal import webapi
 from .fdi_requests import safe_client
 
 from ..httppool.session import requests_retry_session
 
-session = requests_retry_session()
+import functools
+import logging
+import sys
+import json
+from itertools import chain
+from requests.auth import HTTPBasicAuth
+import asyncio
+import aiohttp
+
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -28,6 +32,7 @@ else:
 logger = logging.getLogger(__name__)
 # logger.debug('level %d' % (logger.getEffectiveLevel()))
 
+session = requests_retry_session()
 
 pcc = getConfig()
 defaulturl = 'http://' + pcc['cloud_host'] + \
@@ -43,15 +48,91 @@ def getAuth(user=AUTHUSER, password=AUTHPASS):
     return HTTPBasicAuth(user, password)
 
 
-@functools.lru_cache(maxsize=256)
+def aio_save(self, datatypes, sns):
+    pass
+
+
+async def get_aio_result(method, *args, **kwds):
+    async with method(*args, **kwds) as resp:
+        # print(type(resp),dir(resp))
+        con = await resp.text()
+        return resp.status, con
+
+
+def aio_client(method_name, apis, data=None, headers=None):
+    cnt = 0
+    method_name = method_name.lower()
+    alist = issubclass(apis.__class__, (list, tuple))
+    dlist = issubclass(data.__class__, (list, tuple))
+    hlist = issubclass(headers.__class__, (list, tuple))
+    if alist:
+        cnt = len(apis)
+    elif dlist:
+        cnt = len(data)
+    elif hlist:
+        cnt = len(headers)
+    else:
+        raise TypeError('None of the parameters is a list or a tuple.')
+
+    async def multi():
+        aio_session = aiohttp.ClientSession()
+        async with aio_session as session:
+            tasks = []
+            method = getattr(session, method_name)
+            for n in range(cnt):
+                a = apis[n] if alist else apis
+                d = data[n] if dlist else data
+                h = headers[n] if hlist else headers
+                if method_name == 'post':
+                    tasks.append(asyncio.ensure_future(
+                        get_aio_result(method, a, data=d, headers=h)))
+                elif method_name in ('get', 'delete'):
+                    tasks.append(asyncio.ensure_future(
+                        get_aio_result(method, a, headers=h)))
+                else:
+                    raise ValueError(f"Unknown AIO method {method_name}.")
+            content = await asyncio.gather(*tasks)
+            res = []
+            logger.debug(f'AIO {method_name} return {len(content)} items')
+            for code, text in content:
+                obj = deserialize(text)
+                ores = obj['result']
+                if code != 200 or issubclass(ores.__class__, str) and ores[:6] == 'FAILED':
+                    if not issubclass(obj.__class__, dict):
+                        # cannot deserialize
+                        raise RuntimeError(
+                            f'AIO {method_name} error SERVER: {code} Message: %s' % lls(text, 200))
+                    # deserializable
+                    msg = obj['msg']
+                    for line in chain(msg.split('.', 1)[:1], msg.split('\n')):
+                        excpt = line.split(':', 1)[0]
+                        if excpt in All_Exceptions:
+                            # relay the exception from server
+                            raise All_Exceptions[excpt](
+                                f'SERVER: Code {code} Message: {msg}***{res}={len(res)}')
+                    raise RuntimeError(
+                        f'AIO {method_name} error SERVER: {ores}: %s' % lls(obj['msg'], 200))
+                logger.debug(lls(text, 100))
+                res.append(ores)
+            # print('pppp', res[0])
+            print(len(res))
+            return res
+
+    res = asyncio.run(multi())
+    return res
+
+
+@ functools.lru_cache(maxsize=256)
 def cached_json_dumps(cls_full_name, ensure_ascii=True, indent=2):
     # XXX add Model to Class
     obj = Class_Look_Up[cls_full_name.rsplit('.', 1)[-1]]()
     return json.dumps(obj.zInfo, ensure_ascii=ensure_ascii, indent=indent)
 
 
-def read_from_cloud(requestName, client=None, **kwargs):
-    if client is None:
+def read_from_cloud(requestName, client=None, aio=False, **kwargs):
+    if aio:
+        client = aio_session
+    elif client is None:
         client = session
     header = {'Content-Type': 'application/json;charset=UTF-8'}
     if requestName == 'getToken':
@@ -114,9 +195,13 @@ def read_from_cloud(requestName, client=None, **kwargs):
         res = safe_client(client.delete, requestAPI, headers=header)
     elif requestName == 'remove':
         header['X-AUTH-TOKEN'] = kwargs['token']
-        requestAPI = default_base + \
-            '/storage/delete?path=' + kwargs['path']
-        res = safe_client(client.post, requestAPI, headers=header)
+        requestAPI0 = default_base + \
+            '/storage/delete?path='
+        if aio:
+            res = aio_client('post', requestAPI0, headers=header)
+        else:
+            res = safe_client(client.post, requestAPI0 +
+                              kwargs['path'], headers=header)
     elif requestName == 'existPool':
         header['X-AUTH-TOKEN'] = kwargs['token']
         requestAPI = default_base + \

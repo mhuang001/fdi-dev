@@ -123,7 +123,7 @@ def setup_logging(level=LOGGING_NORMAL, extras=None, tofile=None):
         logging_listener.start()
     # logging.basicConfig(stream=sys.stdout, **detailed)
     # create logger
-    if 0:
+    if 1:
         for mod in ("requests", "filelock", ):
             logging.getLogger(mod).setLevel(extras)
         # logging.getLogger("werkzeug").setLevel(extras)

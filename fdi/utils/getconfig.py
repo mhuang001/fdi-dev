@@ -128,17 +128,16 @@ def getMappings(conf_name, builtin):
 
     # 'pns' etc
     skip = len(conf_name) + 1
-    cnu = conf_name.upper()
-
+    cnu = conf_name.upper() + '_'
     prefixed, not_prefixed = get_file_conf(conf_name)
 
     if 0:
         prefixed_osenv = dict((k[skip:].lower(), v)
-                              for k, v in os.environ.items() if k[:skip-1] == cnu and k[skip:].lower() in prefixed)
+                              for k, v in os.environ.items() if k[:skip] == cnu and k[skip:].lower() in prefixed)
     else:
         # prefixed names in ENV but not in config files allowed
         prefixed_osenv = dict((k[skip:].lower(), v)
-                              for k, v in os.environ.items() if k[:skip-1] == cnu)
+                              for k, v in os.environ.items() if k[:skip] == cnu)
 
     not_prefixed_osenv = dict((k, os.environ[k.upper()])
                               for k, v in not_prefixed.items() if k.upper() in os.environ)

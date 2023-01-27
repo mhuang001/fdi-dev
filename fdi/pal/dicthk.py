@@ -18,7 +18,7 @@ def add_tag_datatype_sn(tag, datatype, sn, dTypes=None, dTags=None):
 
     Parameters
     ----------
-    tag : str 
+    tag : str
         A tag. Multiple tags have to make multiple calls.
     datatype : str
         The class name of the data item, new or existing.
@@ -61,29 +61,28 @@ class DictHk(Taggable):
         self._dTags = dict()
 
     def get_missing(self, urn, datatype, sn, no_check=False):
-        """ make urn if datatype and sn are given and vice versa.
+        """ make URN(s) if datatype and sn(s) are given and vice versa.
 
         Return
         ------
         tuple
-        str, str, int 
+        str, str, int
+            Refer tp `parseUrn`.
 
         Raises
-        ValueError if None urn or urn not found or not from this pool.
+        ------
+        ValueError if urn not found or not from this pool.
         KeyError if datatype does not exist.
         IndexError if sn does not exist.
         """
         if urn is None and datatype is None and sn is None:
-            ####assert list(self._classes.keys()) == list(self._dTypes.keys())
-            raise ValueError('Cannot accept None urn')
+            # assert list(self._classes.keys()) == list(self._dTypes.keys())
+            return None, None, None
 
-        #uobj = Urn(urn=urn)
         if datatype is None or sn is None and urn is not None:
             # new ###
-            poolname, datatype, sn = parseUrn(urn, int_index=True)
-            if self._poolname != poolname:
-                raise ValueError(
-                    urn + ' is not from the pool ' + self._poolname)
+            poolname, datatype, sn = parseUrn(urn, int_index=True,
+                                              check_poolename=self._poolname)
         else:
             # datatype+sn takes priority over urn
             urn = makeUrn(self._poolname, datatype, sn)
@@ -93,10 +92,12 @@ class DictHk(Taggable):
         if not no_check:
             if datatype not in self._dTypes:
                 raise KeyError(
-                    datatype + ' not found in pool ' + self._poolname)
-            if sn not in self._dTypes[datatype]['sn']:
-                raise IndexError('%s:%d not found in pool %s.' %
-                                 (datatype, sn, self._poolname))
+                    f'{datatype} not found in pool {self._poolname}')
+            sns = sn if issubclass(sn.__class__, (list, tuple)) else [sn]
+            for _sn in sns:
+                if _sn not in self._dTypes[datatype]['sn']:
+                    raise IndexError('%s:%d not found in pool %s.' %
+                                     (datatype, _sn, self._poolname))
         # /new ###
         if 0:
             if u not in self._urns:
@@ -113,18 +114,16 @@ class DictHk(Taggable):
         If datatype and sn are given, use them and ignore urn.
         """
 
-        try:
-            urn, datatype, sn = self.get_missing(
-                urn=urn, datatype=datatype, sn=sn)
-        except ValueError as e:
-            if urn is None:
-                return self._dTags.keys()
-            else:
-                raise
+        urn, datatype, sn = self.get_missing(
+            urn=urn, datatype=datatype, sn=sn)
+        if urn is None:
+            return self._dTags.keys()
+
         # new ###
         if 0:
             assert self._urns[urn]['tags'] == self._dTypes[datatype]['sn'][sn]['tags']
             return self._urns[urn]['tags']
+
         return self._dTypes[datatype]['sn'][sn]['tags']
 
     def getTagUrnMap(self):
@@ -146,7 +145,6 @@ class DictHk(Taggable):
 
         Returns an empty list if `tag` is not `None` and does not exist.
         curl -X GET "http://123.56.102.90:31702/csdb/v1/storage/info?urns=urn%3Apoolbs%3A20211018%3A1" -H "accept: */*"
-
 
         """
         if 0:
@@ -171,17 +169,19 @@ class DictHk(Taggable):
         Gets the URNobjects corresponding to the given tag.
         Returns an empty list if `tag` does not exist.
         """
-        if 0:
-            if tag not in self._tags:
-                return []
-        if tag not in self._dTags:
-            return []
 
-        # new ##
         if 0:
             assert list(self._tags[tag]['urns']) == list(self._dTags[tag])
             return [Urn(x) for x in self._tags[tag]['urns']]
         return [Urn(x) for x in self._dTags[tag]]
+
+    def getAllUrns(self):
+        """ Returns a list of all URNs in the pool."""
+        res = []
+        poolname = self.poolname
+        for cls, v in self._dTypes.items():
+            res.extend(f'urn:{poolname}:{cls}:{sn}' for sn in v['sn'])
+        return res
 
     def removekey(self, key, thecontainer, thename, cross_ref_map, othername):
         """
@@ -219,7 +219,7 @@ class DictHk(Taggable):
         if 0:
             self.removekey(tag, self._tags, 'tags', self._urns, 'urns')
         # new ##
-        #### assert list(self._tags) == list(self._dTags)
+        # assert list(self._tags) == list(self._dTags)
 
     def removeUrn(self, urn=None, datatype=None, sn=None):
         """
@@ -228,33 +228,56 @@ class DictHk(Taggable):
         Only changes maps in memory, not on disk.
         curl -X POST "http://123.56.102.90:31702/csdb/v1/storage/delete?path=%2Fpoolbs%2Ffdi.dataset.product.Product%2F24" -H "accept: */*"
         """
-        u, datatype, sn = self.get_missing(
-            urn=urn, datatype=datatype, sn=sn)
-        # new ##
-        _snd = self._dTypes[datatype]['sn']
-        if 'tags' in _snd:
-            for tag in _snd['tags']:
-                if tag in self._dTags:
-                    self._dTags[tag][datatype].remove(str(sn))
-                    if len(self._dTags[tag][datatype]) == 0:
-                        del self._dTags[tag][datatype]
-                        if len(self._dTags[tag]) == 0:
-                            del self._dTags[tag]
-                else:
-                    logger.warning('tag %s missing from %s.' %
-                                   (tag, self._poolname))
+        try:
+            u, datatype, sn = self.get_missing(
+                urn=urn, datatype=datatype, sn=sn,
+                no_check=False)
+        except (KeyError, IndexError) as e:
+            if self.ignore_error_when_delete:
+                logger.debug(f'Ignoring not found: {e}')
             else:
-                logger.warning('tag %s missing from %s:%s:%s.' %
-                               (tag, self._poolname, datatype, sn))
-        _snd.pop(sn)
-        if len(_snd) == 0:
-            del self._dTypes[datatype]
-        # /new ##
-
-        if 0:
-            self.removekey(u, self._urns, 'urns', self._tags, 'tags')
+                raise
         # new ##
-        #assert sn not in self._dTypes[datatype]['sn']
+        sns = sn if issubclass(sn.__class__, list) else [sn]
+
+        # if datatype not in self._dTypes:
+        #     if self.ignore_error_when_delete:
+        #         return -1
+        #     else:
+        #         raise ValueError(f'{datatype} not found in {self.poolname}.')
+        _snd = self._dTypes[datatype]['sn']
+        for _sn in sns:
+            if _sn not in _snd:
+                msg = f'{_sn} not found in pool {self.getId()}.'
+                if self.ignore_error_when_delete:
+                    raise IndexError(msg)
+                else:
+                    logger.debug(msg)
+                    continue
+            if 'tags' in _snd[_sn]:
+                for tag in _snd[_sn]['tags']:
+                    if tag in self._dTags:
+                        self._dTags[tag][datatype].remove(str(_sn))
+                        if len(self._dTags[tag][datatype]) == 0:
+                            del self._dTags[tag][datatype]
+                            if len(self._dTags[tag]) == 0:
+                                del self._dTags[tag]
+                    else:
+                        logger.warning('tag %s missing from %s.' %
+                                       (tag, self._poolname))
+                else:
+                    if 0:
+                        logger.warning('tag %s missing from %s:%s:%s.' %
+                                       (tag, self._poolname, datatype, _sn))
+            _snd.pop(_sn)
+            if len(_snd) == 0:
+                del self._dTypes[datatype]
+            # /new ##
+
+            if 0:
+                self.removekey(u, self._urns, 'urns', self._tags, 'tags')
+            # new ##
+            # assert _sn not in self._dTypes[datatype]['sn']
 
     def setTag(self, tag, urn=None, datatype=None, sn=None):
         """

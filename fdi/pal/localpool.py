@@ -40,7 +40,7 @@ def wipeLocal(path):
     # logger.debug()
 
     if path == '/':
-        raise(ValueError('Do not remove root directory.'))
+        raise (ValueError('Do not remove root directory.'))
 
     try:
         if op.exists(path):
@@ -130,7 +130,8 @@ class LocalPool(ManagedPool):
                 fo.seek(start)
                 js = fo.read(end - start)
         except Exception as e:
-            msg = 'Error in HK reading. file: %s. exc: %s trbk: %s.' % (fp, str(e), trbk(e))
+            msg = 'Error in HK reading. file: %s. exc: %s trbk: %s.' % (
+                fp, str(e), trbk(e))
             logging.error(msg)
             raise NameError(msg)
         if 1:  # close:
@@ -201,7 +202,7 @@ class LocalPool(ManagedPool):
         from ..dataset.serializable import serialize
 
         js = serialize(data, **kwds) if serialize_in else data
-        #start = end = None
+        # start = end = None
         if meta_location:
             # locate metadata
             start = js.find(MetaData_Json_Start, 0)
@@ -245,6 +246,7 @@ class LocalPool(ManagedPool):
     def writeHK(self, fp0=None, all_versions=True):
         """ save the housekeeping data to disk
         """
+
         if fp0 is None:
             fp0 = self._poolpath + '/' + self._poolname
         l = 0
@@ -254,6 +256,7 @@ class LocalPool(ManagedPool):
             fp = pathjoin(fp0, hkdata + '.jsn')
             l += self.writeJsonmmap(fp, self.__getattribute__('_' + hkdata),
                                     check_time=True)
+        logger.debug('=== '+str(self._dTypes))
         return l
 
     def setMetaByUrn(self, start, end, urn=None, datatype=None, sn=None):
@@ -262,7 +265,8 @@ class LocalPool(ManagedPool):
 
         :data: usually serialized Product.
         """
-        u, datatype, sn = self.get_missing(urn=urn, datatype=datatype, sn=sn)
+        u, datatype, sn = self.get_missing(
+            urn=urn, datatype=datatype, sn=sn, no_check=True)
         # char offset of the start and end points of metadata
         if start >= 0 and end > 0:
             mt = [start, end]
@@ -270,7 +274,7 @@ class LocalPool(ManagedPool):
             mt = [None, None]
         # new ##
         self._dTypes[datatype]['sn'][sn]['meta'] = mt
-        ####self._urns[u]['meta'] = mt
+        # self._urns[u]['meta'] = mt
 
     @ lru_cache(maxsize=1024)
     def getMetaByUrnJson(self, urn, resourcetype, index):
@@ -284,7 +288,7 @@ class LocalPool(ManagedPool):
             # assert tuple(self._urns[urn]['meta']) == \
             # tuple(self._dTypes[datatype]['sn'][sn]['meta'])
             start, end = tuple(self._dTypes[datatype]['sn'][sn]['meta'])
-            ####start, end = tuple(self._urns[urn]['meta'])
+            # start, end = tuple(self._urns[urn]['meta'])
         except KeyError as e:
             msg = f"Trouble with {self._poolname}...['meta']"
             logger.debug(msg)
@@ -362,19 +366,25 @@ class LocalPool(ManagedPool):
         does the action of removal of product from pool.
         """
         fp0 = self.transformpath(self._poolname)
-        fp = op.abspath(pathjoin(fp0,  quote(resourcetype) + '_' + str(index)))
-        try:
-            if fp in self._files:
-                if self._files[fp]:
-                    self._files[fp].flush()
-                    self._files[fp].close()
-                del self._files[fp]
-            os.unlink(fp)
-            self.writeHK(fp0)
-        except IOError as e:
-            logger.error('Remove failed. exc: %s trbk: %s.' %
-                         (str(e), trbk(e)))
-            raise  # needed for undoing HK changes
+        fp1 = op.abspath(pathjoin(fp0,  quote(resourcetype) + '_'))
+        sns = index if issubclass(index.__class__, (list, tuple)) else [index]
+        for index in sns:
+            fp = fp1 + str(index)
+            try:
+                if fp in self._files:
+                    if self._files[fp]:
+                        self._files[fp].flush()
+                        self._files[fp].close()
+                    del self._files[fp]
+                os.unlink(fp)
+                self.writeHK(fp0)
+            except IOError as e:
+                msg = f'Remove failed. exc: {e} trbk: {trbk(e)}'
+                logger.debug(msg)
+                if self.ignore_error_when_delete:
+                    raise
+                else:
+                    continue
         return 0
 
     def doWipe(self):
@@ -398,7 +408,7 @@ class LocalPool(ManagedPool):
         to the first pool where the same track id is found.
         """
 
-        raise(NotImplementedError())
+        raise (NotImplementedError())
 
     def backup(self):
         """ make a tarfile string into a string """

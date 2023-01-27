@@ -33,11 +33,19 @@ def is_urn(u):
 
 
 def makeUrn(poolname, typename, index):
-    """ assembles a URN with infos of the pool, the resource type, and the index
+    """ assembles a URN or a list of URNs with infos of the pool, the resource type, and the index.
 
-    index: int or string
+    :poolname: str
+    :typename: str, name of data type.
+    index: int or string or list of them.
     """
-    return 'urn:' + poolname + ':' + typename + ':' + str(index)
+    upt = 'urn:' + poolname + ':' + typename + ':'
+    if issubclass(index.__class__, (list, tuple)):
+        urns = []
+        for ind in index:
+            urns.append(upt + str(ind))
+        return urns
+    return upt + str(index)
 
 
 class Urn(DeepEqual, Serializable, Comparable):
@@ -232,7 +240,7 @@ URNs are used to to identify data be cause URNs are location agnostic. Storage P
     txt = toString
 
 
-def parseUrn(urn, int_index=True):
+def parseUrn(urn, int_index=True, check_poolename=None):
     """
     Checks the URN string is valid in its form and splits it.
 
@@ -240,41 +248,86 @@ def parseUrn(urn, int_index=True):
     * poolname, also called poolURN or poolID, optionally path-like: ``mypool/v2``,
     * resource type (usually class) name ``proj1.product``,
     * index number  ``322``,
-    If urn is None or empty returns (None,None,None) 
+    If urn is None or empty returns (None,None,None)
 
-    :urn: URN string to be decomposed.
-    :int_index: If `True` (default) returns integer index, else string index.
+    Parameter
+    ---------
+
+    urn : str,list
+        One or a list of URN strings to be decomposed.
+    int_index : bool
+        If `True` (default) returns integer index, else string index.
+    check_poolename : str
+        Raise `ValueError` is any `urn` has a poolname different from the value of `check_poolename`.
 
     Return
     ------
-    :poolname: NAme of the pool
-    :resourceclass: type of resource/products
-    :index: (int) serial number of resourceclass in the pool.
+
+    tuple
+
+    * If `urn` is `None` or a zero-length string, returns `(None, None, None)`.
+    * If `urn` is a non-zero-length string, returns a tuple of
+
+      :poolname: Name of the pool
+      :resourceclass: type of resource/products
+      :index: One or a list of (int) serial number of resourceclass in the pool.
+    * If `urn` is a list URNs and all of them have identical poolname and identical resourceclasses, returns a tuple `(poolname, resourceclass, list-of-index])`
+    * If `urn` is a list URNs and not all of them have identical poolname or not identical resourceclasses, returns a tuple `(list_of_poolname, list_of_resourceclass, list-of-index), ...)`
 
     """
 
     if urn is None or urn == '':
         return (None, None, None)
-    if not issubclass(urn.__class__, strset):
-        raise ValueError('a string is needed: ' + str(urn))
-    # is a urn str?
-    sp1 = urn.split(':')
-    if sp1[0].lower() != 'urn':
-        raise ValueError('Not a URN: ' + urn)
-    # this is a product URN
-    if len(sp1) != 4:
-        # must have 4 segments
-        raise ValueError('bad urn: ' + str(sp1))
+    if issubclass(urn.__class__, (list, tuple)):
+        urns = urn
+        alist = True
+    else:
+        urns = [urn]
+        alist = False
+    res, pnames, ptypes, inds = [], [], [], []
+    first = True
+    same_pname, same_type = True, True
+    for urn in urns:
+        if not issubclass(urn.__class__, strset):
+            raise ValueError('a string is needed: ' + str(urn))
+        # is a urn str?
+        sp1 = urn.split(':')
+        if sp1[0].lower() != 'urn':
+            raise ValueError('Not a URN: ' + urn)
+        # this is a product URN
+        if len(sp1) != 4:
+            # must have 4 segments
+            raise ValueError(
+                'Bad URN. Must have 4 ":"-separators: ' + str(sp1))
 
-    index = int(sp1[3]) if int_index else sp1[3]
-    resourcetype = sp1[2]
-    poolname = sp1[1]
-    if len(poolname) == 0:
-        poolname = None
-    if len(resourcetype) == 0:
-        resourcetype = None
-
-    return poolname, resourcetype, index
+        index = int(sp1[3]) if int_index else sp1[3]
+        resourcetype = sp1[2]
+        poolname = sp1[1]
+        if check_poolename and check_poolename != poolname:
+            raise ValueError(
+                urn + ' is not from the pool ' + self._poolname)
+        if len(poolname) == 0:
+            poolname = None
+        if len(resourcetype) == 0:
+            resourcetype = None
+        if first:
+            first_pname, first_type = poolname, resourcetype
+            first = False
+        else:
+            if first_pname != poolname:
+                same_pname = False
+            if first_type != resourcetype:
+                same_type = False
+        pnames.append(poolname)
+        ptypes.append(resourcetype)
+        inds.append(index)
+    if alist:
+        if same_pname and same_type:
+            return (first_pname, first_type, inds)
+        # poolname and resourceclass not repeating
+        return (pnames, ptypes, inds)
+    else:
+        return (first_pname, first_type, inds[0])
 
 
 def parse_poolurl(url, poolhint=None):

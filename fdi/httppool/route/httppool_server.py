@@ -222,6 +222,7 @@ def delete_product(paths, serialize_out=False):
     logger.debug('DELETE product urn: ' + urn)
     try:
         poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
+        logger.debug('**** '+str(list(poolobj._dTypes))+urn)
         poolobj.remove(urn)
         result = 0
         msg = 'remove product ' + urn + ' OK.'

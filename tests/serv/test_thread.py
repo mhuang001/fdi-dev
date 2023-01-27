@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from fdi.pns.public_fdi_requests import aio_client, get_aio_result
 from serv.test_httppool import getPayload, check_response
 from fdi.utils.getconfig import getConfig
 from fdi.dataset.deserialize import deserialize
@@ -13,7 +14,7 @@ import time
 import pytest
 import asyncio
 import aiohttp
-#from requests_threads import AsyncSession
+# from requests_threads import AsyncSession
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -54,14 +55,11 @@ def num_pool(tmp_remote_storage_no_wipe, server, client, auth):
     return aburl, header, pool, poolurl, auth, Number
 
 
-async def get_result(method, *args, **kwds):
-    async with method(*args, **kwds) as resp:
-        # print(type(resp),dir(resp))
-        con = await resp.text()
-        return con
+what_ = pytest.mark.skip
 
 
-def test_cio_post(num_pool):
+@what_
+def xtest_cio_post(num_pool):
     aburl, header, pool, poolurl, auth, Number = num_pool
     pool.removeAll()
     plist = [Product(description=str(i)).serialized() for i in range(Number)]
@@ -75,10 +73,10 @@ def test_cio_post(num_pool):
             for n in range(len(plist)):
                 d = plist[n]
                 tasks.append(asyncio.ensure_future(
-                    get_result(session.post, poolurl, data=d, headers=header)))
+                    get_aio_result(session.post, poolurl, data=d, headers=header)))
 
             content = await asyncio.gather(*tasks)
-            res = [deserialize(c)['result'] for c in content]
+            res = [deserialize(c)['result'] for code, c in content]
             print('pppp', res[0])
             print(len(res))
             return res
@@ -96,7 +94,29 @@ def test_cio_post(num_pool):
         json.dump(urns, f)
 
 
-def test_cio_read(num_pool):
+def test_cio_post2(num_pool):
+    aburl, header, pool, poolurl, auth, Number = num_pool
+    pool.removeAll()
+    plist = [Product(description=str(i)).serialized() for i in range(Number)]
+    urns = []
+
+    start_time = time.time()
+    purls = [poolurl] * len(plist)
+    urns = aio_client('post', apis=purls, data=plist, headers=header)
+
+    print("--- %s seconds ---" % (time.time() - start_time))
+    assert len(urns) == Number
+    res = []
+    for n in range(Number):
+        idx = int(urns[n].rsplit(':', 1)[1])
+        print(f"{n} {idx}", end=' ')
+
+    with open('/tmp/testurn', 'w') as f:
+        json.dump(urns, f)
+
+
+@what_
+def xtest_cio_read(num_pool):
     aburl, header, pool, poolurl, auth, Number = num_pool
     # server url
     urns = []
@@ -114,10 +134,15 @@ def test_cio_read(num_pool):
             for n in range(len(urns)):
                 url = aburl+'/'+urns[n]
                 tasks.append(asyncio.ensure_future(
-                    get_result(session.get, url, headers=header)))
+                    get_aio_result(session.get, url, headers=header)))
 
             content = await asyncio.gather(*tasks)
-            res = [deserialize(c)['result'] for c in content]
+            res = []
+            for code, text in content:
+                if code != 200:
+                    raise RuntimeError(
+                        f'AIO {method_name} error {code}: %s' % lls(text, 200))
+                res.append(deserialize(text)['result'])
             print('qqqq', type(res[0]))
             print(len(res))
             return res
@@ -130,6 +155,45 @@ def test_cio_read(num_pool):
         idx = int(urns[n].rsplit(':', 1)[1])
         p = res[n]
         print(f"{n} {p.description} {idx}", end=' ')
+
+
+def test_cio_read2(num_pool):
+    aburl, header, pool, poolurl, auth, Number = num_pool
+    # server url
+    urns = []
+    try:
+        with open('/tmp/testurn', 'r') as f:
+            urns = json.load(f)
+    except FileNotFoundError:
+        urns = [""] * Number
+
+    start_time = time.time()
+
+    apis = [aburl+'/'+u for u in urns]
+    res = aio_client('get', apis=apis, headers=header)
+
+    assert len(urns) == Number
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+    for n in range(Number):
+        idx = int(urns[n].rsplit(':', 1)[1])
+        p = res[n]
+        print(f"{n} {p.description} {idx}", end=' ')
+
+
+def test_cio_remove2(num_pool):
+    aburl, header, pool, poolurl, auth, Number = num_pool
+
+    urns = pool.getAllUrns()
+    print(f'remove all {len(urns)} urns in a pool with AIO.')
+    start_time = time.time()
+
+    apis = [aburl+'/'+u for u in urns]
+    res = aio_client('delete', apis=apis, headers=header)
+
+    print("--- %s seconds --- %d" % (time.time() - start_time, len(res)))
+    assert len(res) == Number
+    assert len(pool.getAllUrns()) == 0
 
 
 def est_threaded_post(num_pool):

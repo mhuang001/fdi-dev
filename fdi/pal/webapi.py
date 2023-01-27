@@ -3,7 +3,7 @@
 WebAPI = ('backup',
           'dereference',
           'exists',
-          'getCacheInfo', 'getCount', 'getDefinition', 'getHead',
+          'getAllUrns', 'getCacheInfo', 'getCount', 'getDefinition', 'getHead',
           'getId', 'getLastVersion', 'getPlace',
           'getPoolname', 'getPoolurl', 'getPoolpath',
           'getProductClasses', 'getReferenceCount',

@@ -207,6 +207,7 @@ def test_SubProduct(claz):
 
 def test_Classes(claz):
     from fdi.dataset.baseproduct import BaseProduct
+    from fdi.dataset.classes import All_Globals_Builtins
     PC = claz
     prjcls = PC.mapping
     nc = len(prjcls)
@@ -215,10 +216,10 @@ def test_Classes(claz):
     assert 'Product' in prjcls
     PC.clear()
     m = prjcls
-    assert len(m) == 0
+    assert len(m) == len(All_Globals_Builtins)
     # clear() replenishes `initial` map
     PC.reload()
-    assert len(prjcls) == len(prjcls.sources)
+    assert len(prjcls) == len(prjcls.sources) + len(All_Globals_Builtins)
     c = prjcls['Product']
     assert c
     assert issubclass(c, BaseProduct)

@@ -111,7 +111,12 @@ def test_UrnUtils():
     urn = 'urn:' + b2 + ':' + r  # urn:name:fdi.dataset.Product:43
     urn1 = 'urn:' + b2 + ':' + a4+':'+str(a5-1)
     # utils
+    assert parseUrn(None) == (None, None, None)
     assert parseUrn(urn) == (b2, a4, a5)
+    assert parseUrn([urn, urn]) == (b2, a4, [a5, a5])
+    assert parseUrn(urn) == (b2, a4, a5)
+    assert parseUrn([urn, f'urn:{b2+"a"}:{a4+"b"}:{a5+3}']) == \
+        ([b2, b2+"a"], [a4, a4+"b"], [a5, a5+3])
     assert UrnUtils.isUrn(urn)
     assert UrnUtils.getProductId(urn) == a5
     assert UrnUtils.getPoolId(urn) == b2
@@ -803,6 +808,25 @@ def test_LocalPool():
     assert deepcmp(p1._dTypes, p2._dTypes) is None
     assert deepcmp(p1._dTags, p2._dTags) is None
 
+    # remove till empty
+    ps2.save(x, tag='ttag')
+    urns = ps2.getUrnFromTag('ttag')
+    assert len(urns) == 2
+    for u in urns:
+        p2.remove(u)
+    assert len(ps2.getUrnFromTag('ttag')) == 0
+
+    # remove multiple sn
+    ps2.save(x, tag='mtag')
+    ps2.save(x, tag='mtag')
+    urns = ps2.getUrnFromTag('mtag')
+    pool, dtype, sns = parseUrn(urns)
+    assert pool == cpn
+    assert dtype == 'fdi.dataset.product.Product'
+    assert len(sns) == 2
+    p2.remove(resourcetype=dtype, index=sns)
+    assert len(ps2.getUrnFromTag('mtag')) == 0
+
     backup_restore(ps)
 
 
@@ -1117,7 +1141,7 @@ def test_query_http(server):
     aburl = aburl.rstrip('/')
     cleanup()
     lpath = '/tmp'
-    ### TODO: http
+    # TODO: http
     doquery(aburl, aburl)
     doquery('file://'+lpath, aburl)
     doquery('mem://'+lpath, aburl)

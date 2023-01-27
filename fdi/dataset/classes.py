@@ -40,7 +40,7 @@ Modules_Classes = {
     'fdi.dataset.baseproduct': ['BaseProduct'],
     'fdi.dataset.product': ['Product'],
     'fdi.dataset.browseproduct': ['BrowseProduct'],
-    'fdi.dataset.testproducts': ['TP', 'TB', 'TC', 'TCC', 'TM', 'SP', 'DemoProduct'],
+    'fdi.dataset.testproducts': ['TP', 'TP_0X', 'TB', 'TC', 'TCC', 'TM', 'SP', 'DemoProduct'],
     'fdi.dataset.datatypes': ['Vector', 'Vector2D', 'Vector3D', 'Quaternion'],
     'fdi.dataset.metadata': ['AbstractParameter', 'Parameter', 'MetaData'],
     'fdi.dataset.numericparameter': ['NumericParameter', 'BooleanParameter'],
@@ -64,41 +64,6 @@ Modules_Classes = {
 
 Class_Module_Map = dict((c, m)
                         for m, clses in Modules_Classes.items() for c in clses)
-
-
-def load(key, mapping, remove=True,
-         exclude=None, ignore_error=False,
-         verbose=False):
-
-    res = importModuleClasses(key, mapping=mapping,
-                              exclude=exclude,
-                              ignore_error=ignore_error,
-                              verbose=verbose
-                              )
-    return res
-
-
-# add builtins (without any that starts with a '_'.
-_bltn = dict((k, v) for k, v in vars(builtins).items() if k[0] != '_')
-
-
-class Classes(metaclass=NameSpace_meta,
-              sources=[Class_Module_Map],
-              extensions=[_bltn],
-              load=load
-              ):
-    """ A dictionary of class names and their class objects that are allowed to be deserialized.
-
-    An fdi package built-in dictionary is loaded from the module `Class_Module_Map`. Users who need add more deserializable class can for example:
-
-    """
-    pass
-
-
-#Classes.mapping.add_ns(_bltn, order=-1)
-#logger.info('*** %d %x' % (len(_bltn), id(Classes.mapping.maps[2])))
-
-# logger.info(str(Class_Module_Map))
 
 
 def importModuleClasses(scope=None, mapping=None,
@@ -162,11 +127,11 @@ def importModuleClasses(scope=None, mapping=None,
         msg = 'importing %s from %s...' % (str(class_list), module_name)
 
         try:
-            #m = importlib.__import__(module_name, globals(), locals(), class_list)
+            # m = importlib.__import__(module_name, globals(), locals(), class_list)
             m = importlib.import_module(module_name)
         except SelectiveMetaFinder.ExcludedModule as e:
             msg += ' Did not import %s, as %s' % (str(class_list), str(e))
-            #ety, enm, tb = sys.exc_info()
+            # ety, enm, tb = sys.exc_info()
         except SyntaxError as e:
             msg += ' Could not import %s, as %s' % (
                 str(class_list), str(e))
@@ -192,6 +157,42 @@ def importModuleClasses(scope=None, mapping=None,
             logger.debug(msg)
 
     return res
+
+
+def load(key, mapping, remove=True,
+         exclude=None, ignore_error=False,
+         verbose=False):
+
+    res = importModuleClasses(key, mapping=mapping,
+                              exclude=exclude,
+                              ignore_error=ignore_error,
+                              verbose=verbose
+                              )
+    return res
+
+
+# add builtins (without any that starts with a '_'.
+_bltn = dict((k, v) for k, v in vars(builtins).items() if k[0] != '_')
+
+All_Globals_Builtins = ChainMap(copy.copy(globals()), _bltn)
+"""A name-class `dict` of all global and builtins."""
+
+All_Exceptions = dict((
+    (n, e) for n, e in All_Globals_Builtins.items() if issubclass(e.__class__, type) and issubclass(e, Exception)))
+"""A name-class `dict` of all Exceptions."""
+
+
+class Classes(metaclass=NameSpace_meta,
+              sources=[Class_Module_Map],
+              extensions=[All_Globals_Builtins],
+              load=load
+              ):
+    """ A dictionary of class names and their class objects that are allowed to be deserialized.
+
+    An fdi package built-in dictionary is loaded from the module `Class_Module_Map`. Users who need add more deserializable class can for example:
+
+    """
+    pass
 
 
 Class_Look_Up = Classes.mapping

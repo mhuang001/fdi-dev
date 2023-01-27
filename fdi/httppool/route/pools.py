@@ -456,7 +456,7 @@ def register(pool):
 
     code, thepool, msg = register_pool(pool, auth.current_user())
     if logger.isEnabledFor(logging_DEBUG):
-        logger.debug('pmsGLB%x' % id(PM_S._GlobalPoolList))
+        logger.debug('PoolMgr GLB id %x' % id(PM_S._GlobalPoolList))
 
     res = thepool if issubclass(thepool.__class__, str) else thepool._poolurl
     return resp(code, res, msg, ts)
@@ -784,7 +784,7 @@ def api(pool, method_args):
     ts = time.time()
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('get API for %s, %s(%d args).' %
-                     (pool, method_args[0], len(method_args)))
+                     (pool, method_args[:6], len(method_args)))
     if request.method == 'POST':
         # long args are sent with POST
         if request.data is None:

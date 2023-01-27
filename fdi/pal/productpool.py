@@ -366,8 +366,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise (NotImplementedError)
 
-    def remove(self, urn=None, resourcetype=None, index=None,
-               ignore_error=False):
+    def remove(self, urn=None, resourcetype=None, index=None, ignore_error=False):
         """
         Removes a Product belonging to specified URN or a pair of data type and serial number.
         """
@@ -380,14 +379,14 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise (NotImplementedError)
 
-    def removeAll(self, ignore_error=False):
+    def removeAll(self, ignore_error=False, **kwds):
         """
         Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).
         """
         self.ignore_error_when_delete = ignore_error
-        return self.schematicWipe()
+        return self.schematicWipe(**kwds)
 
-    def saveDescriptors(self,  urn,  desc):
+    def saveDescriptors(self, urn, desc):
         """
         Save/Update descriptors in pool.
         """
@@ -625,7 +624,8 @@ class ManagedPool(ProductPool, dicthk.DictHk):
         """
         # new ###
         try:
-            urn, datatype, sn = self.get_missing(urn, resourcetype, index)
+            urn, datatype, sn = self.get_missing(
+                urn, resourcetype, index, no_check=True)
         except KeyError:
             return False
         # return True
@@ -729,7 +729,7 @@ class ManagedPool(ProductPool, dicthk.DictHk):
         _snd = self._dType[dt]['sn'][sn]
         if 'refcnt' not in _snd:
             _snd['refcnt'] = 0
-        ####assert self._urns[ref.urn]['refcnt'] == _snd['refcnt']
+        # assert self._urns[ref.urn]['refcnt'] == _snd['refcnt']
         _snd['refcnt'] += 1
         # /new ###
         if 0:
@@ -991,7 +991,8 @@ class ManagedPool(ProductPool, dicthk.DictHk):
         """ do the scheme-specific removing
         """
 
-        urn, datatype, sn = self.get_missing(urn, resourcetype, index)
+        urn, datatype, sn = self.get_missing(
+            urn, resourcetype, index, no_check=True)
 
         with filelock.FileLock(self.lockpath('w')),\
                 filelock.FileLock(self.lockpath('r')):
@@ -1009,10 +1010,6 @@ class ManagedPool(ProductPool, dicthk.DictHk):
 
             # new ####
             dTypes, dTags = self._dTypes, self._dTags
-
-            if sn not in dTypes[datatype]['sn']:
-                raise ValueError(
-                    '%d not found in pool %s.' % (sn, self.getId()))
             # /new ####
 
             self.removeUrn(urn, datatype=datatype, sn=sn)
@@ -1022,13 +1019,8 @@ class ManagedPool(ProductPool, dicthk.DictHk):
 
                 if len(c[datatype]['sn']) == 0:
                     del c[datatype]
-            # new ####
-            if len(dTypes[datatype]['sn']) == 0:
-                del dTypes[datatype]
-            else:
-                ####assert list(dTypes[datatype]['sn']) == list(c[datatype]['sn'])
-                pass
-            # /new ####
+
+            # assert list(dTypes[datatype]['sn']) == list(c[datatype]['sn'])
             try:
                 self.doRemove(resourcetype=datatype, index=sn)
             except Exception as e:
@@ -1254,7 +1246,7 @@ class ManagedPool(ProductPool, dicthk.DictHk):
         # new ###
         res2 = self.prod_filter(q, prod, datatypes=datatypes)
 
-        #### assert [r.urn for r in res] == [r.urn for r in res2]
+        # assert [r.urn for r in res] == [r.urn for r in res2]
         return [r.urn for r in res2]
 
     def doSelect(self, query, previous=None):
@@ -1284,13 +1276,13 @@ class ManagedPool(ProductPool, dicthk.DictHk):
                 ret += self.prod_filter(q=query, reflist=this)
         else:
             # new ##
-            #### assert list(self._dTypes) == list(self._classes)
+            # assert list(self._dTypes) == list(self._classes)
             for cname in self._dTypes:
                 cls = lgb[cname.rsplit('.', 1)[-1]]
                 if issubclass(cls, t):
-                    ###snlist = self._classes[cname]['sn']
+                    # snlist = self._classes[cname]['sn']
                     # new ###
-                    ####assert snlist == list(self._dTypes[cname]['sn'])
+                    # assert snlist == list(self._dTypes[cname]['sn'])
                     snlist = list(self._dTypes[cname]['sn'])
                     if is_MetaQ:
                         ret += self.meta_filter(q=query, typename=cname,

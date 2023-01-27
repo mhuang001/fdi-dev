@@ -114,10 +114,10 @@ class MemPool(ManagedPool):
         :data: usually unserialized Product.
         """
         urn, datatype, sn = self.get_missing(
-            urn=urn, datatype=resourcetype, sn=index)
+            urn=urn, datatype=resourcetype, sn=index, no_check=True)
         # new ###
         self._dTypes[datatype]['sn'][sn]['meta'] = data._meta
-        ##self._urns[urn]['meta'] = data._meta
+        # self._urns[urn]['meta'] = data._meta
 
     def getMetaByUrn(self, urn, resourcetype=None, index=None):
         """ 
@@ -127,7 +127,7 @@ class MemPool(ManagedPool):
         urn, datatype, sn = self.get_missing(
             urn=urn, datatype=resourcetype, sn=index)
         # new ##
-        #### assert self._urns[urn]['meta'] == self._dTypes[datatype]['sn'][sn]['meta']
+        # assert self._urns[urn]['meta'] == self._dTypes[datatype]['sn'][sn]['meta']
         # return self._urns[urn]['meta']
         return self._dTypes[datatype]['sn'][sn]['meta']
 

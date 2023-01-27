@@ -2,6 +2,7 @@
 from ..pns.fdi_requests import save_to_server, read_from_server, delete_from_server, post_to_server
 from ..dataset.serializable import serialize
 from ..dataset.deserialize import deserialize, serialize_args
+from ..dataset.classes import All_Exceptions
 from .poolmanager import PoolManager
 from .productref import ProductRef
 from .productpool import ProductPool
@@ -35,9 +36,6 @@ def writeJsonwithbackup(fp, data):
         f.write(js)
 
 
-bltn = vars(builtins)
-
-
 def toserver(self, method, *args, **kwds):
     # if method == 'select':
     #    __import__('pdb').set_trace()
@@ -58,11 +56,12 @@ def toserver(self, method, *args, **kwds):
     if issubclass(res.__class__, str) and 'FAILED' in res or code != 200:
         for line in chain(msg.split('.', 1)[:1], msg.split('\n')):
             excpt = line.split(':', 1)[0]
-            if excpt in bltn:
+            if excpt in All_Exceptions:
                 # relay the exception from server
-                raise bltn[excpt](('Code %d: %s' % (code, msg)))
-        raise RuntimeError('Executing ' + method +
-                           ' failed. Code: %d Message: %s' % (code, msg))
+                raise All_Exceptions[excpt](
+                    (f'SERVER: Code {code} Message: {msg}'))
+        raise RuntimeError(
+            f'Executing {method} failed. SERVER: Code {code} Message: {msg}')
     return res
 
 
@@ -288,6 +287,13 @@ class HttpClientPool(ProductPool):
         """
 
         # return self.toserver('exists', urn)
+
+    @ toServer()
+    def getAllUrns(self):
+        """
+        Return all URNs in the remote pool.
+        """
+        raise NotImplementedError
 
     @ toServer()
     def getPoolpath(self):

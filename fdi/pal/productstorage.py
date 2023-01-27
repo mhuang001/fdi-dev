@@ -143,7 +143,7 @@ class ProductStorage(object):
         """ saves to the writable pool if it has been registered.
 
         product: can be one or a list of prpoducts.
-        poolName: if the named pool is not registered, registers and saves.
+         poolName: if the named pool is not registered, registers and saves.
         geturnobjs: mh: returns UrnObjs if geturnobjs is True.
         kwds: options passed to json.dump() for localpools.
         Returns: one or a list of productref with storage info.
@@ -257,12 +257,13 @@ class ProductStorage(object):
 
         return self._pools[self.getWritablePool()].getUrn(tag)
 
-    def wipePool(self, ignore_error=False):
+    def wipePool(self, ignore_error=False, **kwds):
         """ Clear all data and meta data of the writable pool.
         """
 
-        val = self._pools.values
-        list(val())[0].removeAll(ignore_error=ignore_error)
+        self.ignore_error_when_delete = ignore_error
+        self.getWritablePool(obj=True).removeAll(
+            ignore_error=ignore_error, **kwds)
 
     def isEmpty(self):
         """ Returns whether all pools are empty or there is no pool. """

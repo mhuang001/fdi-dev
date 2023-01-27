@@ -38,6 +38,10 @@ Problem:
 """
 
 
+def info2hk(data):
+    pass
+
+
 class PublicClientPool(ManagedPool):
     def __init__(self,  auth=None, client=None, **kwds):
         """ creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
@@ -175,7 +179,8 @@ class PublicClientPool(ManagedPool):
         if res['code'] == 0:
             if res['data']:
                 self.poolInfo = res['data']
-                info2hk(res['data'])
+                if update_hk:
+                    info2hk(res['data'])
                 return self.poolInfo
             else:
                 self._dTypes = None
@@ -233,7 +238,7 @@ class PublicClientPool(ManagedPool):
             return 0
         _c = self.poolInfo[self.poolname]['_classes']
         if typename is None:
-            return sum(len(td['sn']) for td in _c.value())
+            return sum(len(td['sn']) for td in _c.values())
         if typename not in clzes:
             # raise ValueError("Current pool has no such type: " + typename)
             return 0
@@ -278,7 +283,7 @@ class PublicClientPool(ManagedPool):
                               products=data, path=path, tags=tag, resourcetype=resourcetype)
         return res
 
-    def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, kwds):
+    def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, check_type=True, **kwds):
         """
                 Save one product.
 
@@ -298,25 +303,27 @@ class PublicClientPool(ManagedPool):
             cls = Class_Look_Up[pn]
             pn = fullname(cls)
 
-        datatype = self.getDataType()
-        if pn not in datatype:
-            raise ValueError('No such product type in cloud: ' + pn)
+        if check_type:
+            datatype = self.getDataType()
+            if pn not in datatype:
+                raise ValueError('No such product type in cloud: ' + pn)
 
         # targetPoolpath = self.getPoolpath() + '/' + pn
-        poolInfo = read_from_cloud(
-            'infoPoolType', pools=self.poolname, client=self.client, token=self.token)
+        if 0:
+            poolInfo = read_from_cloud(
+                'infoPoolType', pools=self.poolname, client=self.client, token=self.token)
 
-        if self.poolname in poolInfo['data'] and pn in poolInfo['data'][self.poolname]:
-            sn = poolInfo['data'][self.poolname][pn]['currentSn'] + 1
-        else:
-            sn = 0
-        urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
+            if self.poolname in poolInfo['data'] and pn in poolInfo['data'][self.poolname]:
+                sn = poolInfo['data'][self.poolname][pn]['currentSn'] + 1
+            else:
+                sn = 0
+            urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
 
         try:
             # save prod to cloud
             if serialize_in:
                 uploadRes = self.doSave(resourcetype=pn,
-                                        index=sn,
+                                        index=None,
                                         data=jsonPrd,
                                         tag=tag,
                                         serialize_in=serialize_in,
@@ -325,14 +332,14 @@ class PublicClientPool(ManagedPool):
 
             else:
                 uploadRes = self.doSave(resourcetype=pn,
-                                        index=sn,
+                                        index=None,
                                         data=prd,
                                         tag=tag,
                                         serialize_in=serialize_in,
                                         serialize_out=serialize_out,
                                         **kwds)
         except ValueError as e:
-            msg = 'product ' + urn + ' saving failed.' + str(e) + trbk(e)
+            msg = f'product {self.poolname}/{pn} saving failed. {e} {trbk(e)}'
             logger.debug(msg)
             raise e
 
@@ -454,26 +461,19 @@ class PublicClientPool(ManagedPool):
         return res
 
     def schematicRemove(self, urn=None, resourcetype=None, index=None):
-        """ do the scheme-specific removing
+        """ do the scheme-specific removing.
+
+        `resourcetype+index` takes priority over `urn`.
         """
-        prod = resourcetype
-        sn = index
-        if self.exists(urn):
-            try:
-                if resourcetype and index:
-                    self.doRemove(resourcetype=prod, index=sn)
-                else:
-                    poolname, resourcetype, index = parseUrn(urn)
-                    if self.poolname == poolname:
-                        self.doRemove(resourcetype=resourcetype, index=index)
-                    else:
-                        raise ValueError('You can not delete from pool:' + poolname
-                                         + ', because current pool is' + self.poolname)
-            except Exception as e:
-                msg = 'product ' + urn + ' removal failed'
-                logger.debug(msg)
-                raise e
-        return 0
+        prod, sn, urn = self.get_missing(urn, resourcetype, index,
+                                         no_check=True)
+        all_sns = index is None or index == ''
+
+        if not all_sns and not issubclass(index.__class__, list):
+            return self.doRemove(resourcetype, index)
+
+        for i, ind in enumerate(sn):
+            raise NotImplemented()
 
     def doRemove(self, resourcetype, index):
         """ to be implemented by subclasses to do the action of reemoving
@@ -483,19 +483,25 @@ class PublicClientPool(ManagedPool):
         path = f'{path0}/{index}'
         res = read_from_cloud('remove', token=self.token, path=path)
         if res['code'] and not getattr(self, 'ignore_error_when_delete', False):
-            raise ValueError(f"Remove producr {path} failed: {res['msg']}")
+            raise ValueError(
+                f"Remove product_meta {path} failed: {res['msg']}")
         logger.debug(f"Remove {path} code: {res['code']} {res['msg']}")
 
         return res['msg']
 
     def remove(self, urn):
         poolname, resource, index = parseUrn(urn)
-        return self.doRemove(resource, index)
+        if issubclass(poolname.__class__, str):
+            return self.doRemove(resource, index)
+        else:
+            for pn in poolname:
+                res.append(self.doRemove(resource, index))
+            return res
 
-    def schematicWipe(self):
-        self.doWipe()
+    def schematicWipe(self, restore_type=True):
+        self.doWipe(restore_type)
 
-    def doWipe(self):
+    def doWipe(self, restore_type=True):
         """ to be implemented by subclasses to do the action of wiping.
         """
         if 0:
@@ -506,32 +512,37 @@ class PublicClientPool(ManagedPool):
                                  ' failed: ' + res['msg'])
             return
         info = self.getPoolInfo()
+        __import__("pdb").set_trace()
+
         if isinstance(info, dict):
             for clazz, cld in info[self.poolname]['_classes'].items():
                 if 1:
                     path = f'/{self.poolname}/{clazz}'
                     res = read_from_cloud('delDataType', token=self.token,
                                           path=path)
-                    if res['msg'] != 'success' and not getattr(self, 'ignore_error_when_delete', False):
-                        raise ValueError(
+                    # res['msg'] != 'success' and not getattr(self, 'ignore_error_when_delete', False):
+                    if res['msg'] != 'success':
+                        # raise ValueError(
+                        print(
                             f'Wipe pool {self.poolname} failed: ' + res['msg'])
-                else:
-                    for i in cld['sn']:
-                        if 0:
-                            urn = 'urn:' + self.poolname + \
-                                ':' + clazz + ':' + str(i)
-                            res = self.remove(urn)
-                        else:
-                            res = self.doRemove(clazz, i)
-                        assert res in ['Not found resource.', 'success']
-                        if res == 'Not found resource.':
-                            logger.debug(f'Ignoring {clazz}:{i} not found')
-                # restore deleted datatype by error by csdb
-                res = read_from_cloud(
-                    'uploadDataType', cls_full_name=clazz, token=self.token)
-                if res['code'] != 0:
-                    raise ValueError(
-                        f'Restoring Datatype {clazz} durin Wipe pool {self.poolname} failed: ' + res['msg'])
+                        for i in cld['sn']:
+                            if 0:
+                                urn = 'urn:' + self.poolname + \
+                                    ':' + clazz + ':' + str(i)
+                                res = self.remove(urn)
+                            else:
+                                res = self.doRemove(clazz, i)
+                            assert res in ['Not found resource.', 'success']
+                            if res == 'Not found resource.':
+                                logger.debug(f'Ignoring {clazz}:{i} not found')
+
+                if restore_type:
+                    # restore deleted datatype by error by csdb
+                    res = read_from_cloud(
+                        'uploadDataType', cls_full_name=clazz, token=self.token)
+                    if res['code'] != 0:
+                        raise ValueError(
+                            f'Restoring Datatype {clazz} durin Wipe pool {self.poolname} failed: ' + res['msg'])
                 logger.debug(f'Done removing {path}')
 
                 if 0:

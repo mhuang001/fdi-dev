@@ -18,6 +18,12 @@ from ..utils.getconfig import getConfig
 from ..utils.common import trbk
 from ..pal.webapi import WebAPI
 from .jsonio import auth_headers
+from ..utils.common import (lls,
+                            logging_ERROR,
+                            logging_WARNING,
+                            logging_INFO,
+                            logging_DEBUG
+                            )
 
 from ..httppool.session import TIMEOUT, MAX_RETRY, FORCED, \
     requests_retry_session
@@ -174,8 +180,9 @@ def safe_client(method, api, *args, **kwds):
                 if isinstance(cause, NewConnectionError):
                     raise cause
     # print(n, res)
-    logger.debug(
-        f'resp {n} retry.{res.history}, {getattr(res.request,"path","")} {method.__func__.__qualname__}')
+    if logger.isEnabledFor(logging_DEBUG):
+        logger.debug(
+            f'resp {n} retry.{res.history}, {getattr(res.request,"path","")} {method.__func__.__qualname__}')
 
     return res
 

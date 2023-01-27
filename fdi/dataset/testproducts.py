@@ -30,7 +30,15 @@ class TB(BaseProduct):
 class TP(Product):
     def __init__(self, *args, **kwds):
         super().__init__(*args, **kwds)
-        self.zInfo['name'] = 'TC'
+        self.zInfo['name'] = 'TP'
+        self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
+        self.zInfo['metadata']['type']['default'] = self.zInfo['name']
+
+
+class TP_0X(TP):
+    def __init__(self, *args, **kwds):
+        super().__init__(*args, **kwds)
+        self.zInfo['name'] = 'TP_0X'
         self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
         self.zInfo['metadata']['type']['default'] = self.zInfo['name']
 

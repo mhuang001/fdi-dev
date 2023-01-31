@@ -108,7 +108,7 @@ NAMES2ROLES = None
 def getUsers(pc):
     """ Returns the USER DB from `config.py` ro local config file.
 
-    Allows multiple user under the save role"""
+    Allows multiple user under the same role"""
 
     global NAMES2ROLES
     if NAMES2ROLES is None:
@@ -116,7 +116,7 @@ def getUsers(pc):
     users = dict(((u, User(u, None, hp,
                            [r for r, n in NAMES2ROLES.items() if u in n]))
                   for u, hp in ((pc['rw_user'], pc['rw_pass']),
-                                (pc['ro_user'], pc['rw_pass']))
+                                (pc['ro_user'], pc['ro_pass']))
                   ))
     return users
 
@@ -381,8 +381,6 @@ def verify_password(username, password, check_session=True):
                     if logger.isEnabledFor(logging_DEBUG):
                         logger.debug(
                             f"new user '{username}' has invalid password.")
-                    __import__("pdb").set_trace()
-
                     return False
                     #################
         else:

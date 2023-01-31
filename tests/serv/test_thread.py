@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from fdi.pns.public_fdi_requests import aio_client, get_aio_result
 from serv.test_httppool import getPayload, check_response
 from fdi.utils.getconfig import getConfig
 from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
-from fdi.pns.fdi_requests import safe_client
+from fdi.pns.fdi_requests import safe_client, aio_client, get_aio_result
 
 import sys
 import json

@@ -238,7 +238,7 @@ class DictHk(Taggable):
             else:
                 raise
         # new ##
-        sns = sn if issubclass(sn.__class__, list) else [sn]
+        sns = sn if issubclass(sn.__class__, (list, tuple)) else [sn]
 
         # if datatype not in self._dTypes:
         #     if self.ignore_error_when_delete:

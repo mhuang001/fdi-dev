@@ -232,7 +232,7 @@ def test_wipe_all_pools_on_server(server, tmp_local_remote_pools, local_pools_di
     # register all pools and get count
     aburl, headers = server
     url = aburl + '/' + 'pools/register_all'
-    x = safe_client(client.post, url, auth=auth)
+    x = safe_client(client.put, url, auth=auth)
     o, code = getPayload(x)
     check_response(o, code=code, failed_case=False)
     regd = o['result']
@@ -322,8 +322,8 @@ def test_new_user_read_only(new_user_read_only, pc):
 
 def getapis(server_ro, client):
     aburl, headers = server_ro
-    x = safe_client(client.get, aburl.rsplit('/', 1)
-                    [0]+'/apispec_1.json', headers=headers)
+    x = safe_client(client.get, aburl.strip(
+        '/')+'/apispec_1.json', headers=headers)
     return deserialize(x.text if type(x) == requests.models.Response else x.data)
 
 
@@ -468,7 +468,7 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
     # auth = tuple(userpasss.values())
 
     # register
-    #pool = make_pools(test_poolid, aburl, client, auth, n=1)
+    # pool = make_pools(test_poolid, aburl, client, auth, n=1)
     empty_pool(post_poolid, aburl, auth, client)
 
     files = [f for f in get_files_in_local_dir(
@@ -798,7 +798,7 @@ def pararun(n, sleep2, *args):
             readres = creadfut.result()
             tt = time.time()
             # logger.info('PPPPPP %f %s FFFF %s' % (readres['time'], readres['result'].description,st$
-            #readres['msg'] = tt
+            # readres['msg'] = tt
             res[tt] = readres
     return res
 
@@ -844,7 +844,7 @@ def Xest_lock_file2(server, userpass, local_pools_dir, client):
             tr = t
     logger.debug('res ' + str(res)[:99])
 
-    #assert result['result'] == 'DONE'
+    # assert result['result'] == 'DONE'
     v = list(res.values())
     assert issubclass(v[0].__class__, Mapping)
     assert 'result' in v[-1]

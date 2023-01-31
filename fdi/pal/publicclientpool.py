@@ -270,17 +270,64 @@ class PublicClientPool(ManagedPool):
         """
         return self.getMetaByUrn(*args, **kwds)
 
-    def getDataType(self):
-        res = read_from_cloud('getDataType', token=self.token)
-        if res.get('code') == 0:
-            return res['data']
-        else:
-            return []
+    def getDataType(self, urn=None):
+        """Returns the Datatype of one or a list of URNs.
+
+        Parameters
+        ----------
+        urn : str, list, None
+
+        Returns
+        -------
+        dict, list
+            all types if `urn` is not given. one or a list of
+            datatypes (None if the URN is not found, '' of no
+            Datatype.
+
+        Examples
+        --------
+        FIXME: Add docs.
+
+        """
+
+        if urn is None:
+            res = read_from_cloud('getDataType', token=self.token)
+            return res
+        return self.get_DataInfo(urn, 'productType')
+
+    def getDataInfo(self, urn=None, prop='tags', limit=None):
+        """Returns the CSDB storage information of one or a list of URNs.
+
+        Parameters
+        ----------
+        urn : str, list, None
+            URN, URNs, or `None`
+        prop : str
+        limit : int
+            Maximum record number. None for no limit.
+
+        Returns
+        -------
+        dict, list
+            None if `urn` is not given or is None. one or a list of
+            info records (None if the URN is not found, '' of no
+            property.
+
+        Examples
+        --------
+        FIXME: Add docs.
+
+        """
+
+        alist = issubclass(urn.__class__, (list, tuple))
+        urns = urn if alist else [urn]
+        res = read_from_cloud('getInfo', token=self.token, urn=urns)
+        return [r['type'] for r in res] if alist else res['type']
 
     def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
         path = '/' + self._poolname + '/' + resourcetype
         res = load_from_cloud('uploadProduct', token=self.token,
-                              products=data, path=path, tags=tag, resourcetype=resourcetype)
+                              products=data, path=path, tags=tag, resourcetype=resourcetype, **kwds)
         return res
 
     def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, check_type=True, **kwds):
@@ -365,7 +412,7 @@ class PublicClientPool(ManagedPool):
                 rf._meta = prd.getMeta()
                 res.append(rf)
 
-    def schematicSave(self, products, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, **kwds):
+    def schematicSave(self, products, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, asyn=False, **kwds):
         """ do the scheme-specific saving.
 
             :serialize_out: if True returns contents in serialized form.
@@ -445,6 +492,8 @@ class PublicClientPool(ManagedPool):
                             raise Exception('Load failed: ' + res['msg'])
         except Exception as e:
             logger.debug('Load product failed:' + str(e))
+            __import__("pdb").set_trace()
+
             raise e
         logger.debug('No such product:' + resourcetype +
                      ' with index: ' + str(index))
@@ -460,20 +509,26 @@ class PublicClientPool(ManagedPool):
         res = load_from_cloud('pullProduct', token=self.token, urn=urn)
         return res
 
-    def schematicRemove(self, urn=None, resourcetype=None, index=None):
-        """ do the scheme-specific removing.
+    # def schematicRemove(self, urn=None, resourcetype=None, index=None, asyn=False, **kwds):
+    #     """ do the scheme-specific removing.
 
-        `resourcetype+index` takes priority over `urn`.
-        """
-        prod, sn, urn = self.get_missing(urn, resourcetype, index,
-                                         no_check=True)
-        all_sns = index is None or index == ''
+    #     `resourcetype+index` takes priority over `urn`.
+    #     """
+    #     prod, sn, urn = self.get_missing(urn, resourcetype, index,
+    #                                      no_check=True)
+    #     if index is None or index == '':
+    #         self.schematicWipe()
+    #         return
 
-        if not all_sns and not issubclass(index.__class__, list):
-            return self.doRemove(resourcetype, index)
-
-        for i, ind in enumerate(sn):
-            raise NotImplemented()
+    #     if issubclass(index.__class__, (list, tuple)):
+    #         if asyn:
+    #             return
+    #         else:
+    #             for i, ind in enumerate(index):
+    #                 self.doRemove(resourcetype, ind)
+    #     else:
+    #         # a single product
+    #         return self.doRemove(resourcetype, index)
 
     def doRemove(self, resourcetype, index):
         """ to be implemented by subclasses to do the action of reemoving
@@ -482,77 +537,75 @@ class PublicClientPool(ManagedPool):
         path0 = f'/{self._poolname}/{resourcetype}'
         path = f'{path0}/{index}'
         res = read_from_cloud('remove', token=self.token, path=path)
+        if res['code']:
+            msg = f"Remove product_meta {path} failed: {res['msg']}"
+            raise ValueError(msg)
+
+        return res
+
+    def doAsyncRemove(self, resourcetype, index):
+        """ implemented with aio to do the action of removing asynchronously.
+        """
+        # path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
+
+        res = read_from_cloud('remove', token=self.token, path=path)
         if res['code'] and not getattr(self, 'ignore_error_when_delete', False):
             raise ValueError(
                 f"Remove product_meta {path} failed: {res['msg']}")
         logger.debug(f"Remove {path} code: {res['code']} {res['msg']}")
 
-        return res['msg']
+        return res
 
-    def remove(self, urn):
-        poolname, resource, index = parseUrn(urn)
-        if issubclass(poolname.__class__, str):
-            return self.doRemove(resource, index)
-        else:
-            for pn in poolname:
-                res.append(self.doRemove(resource, index))
-            return res
+#     def schematicWipe(self, restore_type=True):
+#
+#         self.doWipe(restore_type)
 
-    def schematicWipe(self, restore_type=True):
-        self.doWipe(restore_type)
-
-    def doWipe(self, restore_type=True):
+    def doWipe(self, restore_type=False):
         """ to be implemented by subclasses to do the action of wiping.
         """
-        if 0:
-            res = read_from_cloud(
-                'wipePool', poolname=self.poolname, token=self.token)
-            if res['msg'] != 'success':
-                raise ValueError('Wipe pool ' + self.poolname +
-                                 ' failed: ' + res['msg'])
-            return
+        poolname = self._poolname
+
+        # res = read_from_cloud(
+        #     'wipePool', poolname=poolname, token=self.token)
+        # if res['msg'] != 'success':
+        #     raise ValueError('Wipe pool ' + poolname +
+        #                      ' failed: ' + res['msg'])
+        # return
         info = self.getPoolInfo()
-        __import__("pdb").set_trace()
-
+        path = None
         if isinstance(info, dict):
-            for clazz, cld in info[self.poolname]['_classes'].items():
-                if 1:
-                    path = f'/{self.poolname}/{clazz}'
-                    res = read_from_cloud('delDataType', token=self.token,
-                                          path=path)
-                    # res['msg'] != 'success' and not getattr(self, 'ignore_error_when_delete', False):
-                    if res['msg'] != 'success':
-                        # raise ValueError(
-                        print(
-                            f'Wipe pool {self.poolname} failed: ' + res['msg'])
-                        for i in cld['sn']:
-                            if 0:
-                                urn = 'urn:' + self.poolname + \
-                                    ':' + clazz + ':' + str(i)
-                                res = self.remove(urn)
-                            else:
-                                res = self.doRemove(clazz, i)
-                            assert res in ['Not found resource.', 'success']
-                            if res == 'Not found resource.':
-                                logger.debug(f'Ignoring {clazz}:{i} not found')
+            for clazz, cld in info[poolname]['_classes'].items():
+                path = f'/{poolname}/{clazz}'
 
-                if restore_type:
-                    # restore deleted datatype by error by csdb
+                if clazz == 'fdi.dataset.testproducts.TP':
+                    # csdb bug, remove all one-by-one
+                    for s in cld['sn']:
+                        if s == 426:
+                            continue
+                        res = self.doRemove(resourcetype=clazz, index=s)
+                else:
+                    # can use delDataType
                     res = read_from_cloud(
-                        'uploadDataType', cls_full_name=clazz, token=self.token)
-                    if res['code'] != 0:
-                        raise ValueError(
-                            f'Restoring Datatype {clazz} durin Wipe pool {self.poolname} failed: ' + res['msg'])
-                logger.debug(f'Done removing {path}')
+                        'delDataType', path=path, token=self.token)
+                if res['msg'] != 'success':
+                    msg = f'Wipe pool {poolname} failed: ' + res['msg']
+                    if getattr(self, 'ignore_error_when_delete', False):
+                        logger.warning(msg)
+                    else:
+                        raise ValueError(msg)
 
-                if 0:
-                    url_l = 'http://123.56.102.90:31702/csdb/v1/datatype/list'
-                    types = self.client.get(url_l).json()['data']
-                    logger.debug(f'$$$$ {clazz} {len(types)}')
-                    if 'fdi.dataset.testproducts.DemoProduct' not in types:
-                        __import__("pdb").set_trace()
-                        print(len(types))
-
+            if restore_type:
+                # restore deleted datatype by error by csdb
+                res = read_from_cloud(
+                    'uploadDataType', cls_full_name=clazz, token=self.token)
+                if res['code'] != 0:
+                    msg = f'Restoring Datatype {clazz} when wiping pool {poolname} failed: ' + \
+                        res['msg']
+                    if getattr(self, 'ignore_error_when_delete', False):
+                        logger.warning(msg)
+                    else:
+                        raise ValueError(msg)
+            logger.debug(f'Done removing {path}')
         else:
             raise ValueError("Update pool information failed: " + str(info))
 
@@ -568,7 +621,8 @@ class PublicClientPool(ManagedPool):
             raise ValueError('Urn does not exists!')
         if isinstance(tag, (list, str)) and len(tag) > 0:
             t = ', '.join(tag) if isinstance(tag, list) else tag
-            res = read_from_cloud('addTag', token=self.token, tags=t, urn=u)
+            res = read_from_cloud(
+                'addTag', token=self.token, tags=t, urn=u)
             if res['msg'] != 'OK':
                 raise ValueError('Set tag to ' + urn +
                                  ' failed: ' + res['msg'])

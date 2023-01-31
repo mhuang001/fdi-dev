@@ -82,6 +82,7 @@ When implementing a ProductPool, the following rules need to be applied:
         # self._pathurl = pr.netloc + pr.path
         # self._pathurl = None
         self._poolmanager = None
+        self.ignore_error_when_delete = False
 
     class ParametersIncommpleteError(Exception):
         pass
@@ -252,7 +253,7 @@ When implementing a ProductPool, the following rules need to be applied:
 
         raise NotImplementedError
 
-    def schematicSave(self, products, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, **kwds):
+    def schematicSave(self, products, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, asyn=False, **kwds):
         """ to be implemented by subclasses to do the scheme-specific saving
         """
         raise (NotImplementedError)
@@ -275,7 +276,8 @@ When implementing a ProductPool, the following rules need to be applied:
         res = self.schematicSave(product, tag=tag,
                                  geturnobjs=geturnobjs,
                                  serialize_in=serialize_in,
-                                 serialize_out=serialize_out, **kwds)
+                                 serialize_out=serialize_out,
+                                 asyn=False, **kwds)
         if issubclass(product.__class__, str) or isinstance(product, list) and \
            issubclass(product[0].__class__, str):
             # p is urn string from server-side LocalPool
@@ -301,7 +303,7 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise (NotImplementedError)
 
-    def loadProduct(self, urn, serialize_out=False):
+    def loadProduct(self, urn, serialize_out=False, asyn=False):
         """
         Loads a Product belonging to specified URN.
 
@@ -361,17 +363,18 @@ When implementing a ProductPool, the following rules need to be applied:
 
         raise (NotImplementedError)
 
-    def schematicRemove(self, urn=None, resourcetype=None, index=None):
+    def schematicRemove(self, urn=None, resourcetype=None, index=None, asyn=False, **kwds):
         """ to be implemented by subclasses to do the scheme-specific removing
         """
         raise (NotImplementedError)
 
-    def remove(self, urn=None, resourcetype=None, index=None, ignore_error=False):
+    def remove(self, urn=None, resourcetype=None, index=None, ignore_error=False, asyn=False, **kwds):
         """
         Removes a Product belonging to specified URN or a pair of data type and serial number.
         """
         self.ignore_error_when_delete = ignore_error
-        res = self.schematicRemove(urn, resourcetype=resourcetype, index=index)
+        res = self.schematicRemove(
+            urn, resourcetype=resourcetype, index=index, asyn=asyn, **kwds)
         return res
 
     def schematicWipe(self):
@@ -379,12 +382,12 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise (NotImplementedError)
 
-    def removeAll(self, ignore_error=False, **kwds):
+    def removeAll(self, ignore_error=False, asyn=False, **kwds):
         """
         Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).
         """
         self.ignore_error_when_delete = ignore_error
-        return self.schematicWipe(**kwds)
+        return self.schematicWipe(asyn=asyn, **kwds)
 
     def saveDescriptors(self, urn, desc):
         """
@@ -484,11 +487,11 @@ def _eval(code='', m='', **kwds):
     return res
 
 
-def populate_pool2(tags, pn, dTypes=None, dTags=None):
+def populate_pool2(tags, ptype, dTypes=None, dTags=None):
     """
     tags : list
         The tags in a list.
-    pn : str
+    ptype : str
         The product name / datatype / class name of the data item, new or existing.
 
     Returns
@@ -503,16 +506,16 @@ def populate_pool2(tags, pn, dTypes=None, dTags=None):
     if dTags is None:
         dTags = {}
 
-    if pn in dTypes:
-        int_sn = dTypes[pn]['currentSN'] + 1
+    if ptype in dTypes:
+        int_sn = dTypes[ptype]['currentSN'] + 1
     else:
         int_sn = 0
-        dTypes[pn] = {
+        dTypes[ptype] = {
             'currentSN': int_sn,
             'sn': {}
         }
 
-    snd = dTypes[pn]['sn']
+    snd = dTypes[ptype]['sn']
     _sn = str(int_sn)
     if int_sn not in snd:
         snd[int_sn] = {
@@ -520,11 +523,11 @@ def populate_pool2(tags, pn, dTypes=None, dTags=None):
             'meta': []
         }
 
-    dTypes[pn]['currentSN'] = int_sn
+    dTypes[ptype]['currentSN'] = int_sn
 
     # /new #####
     for t in tags:
-        dicthk.add_tag_datatype_sn(t, pn, int_sn, dTypes, dTags)
+        dicthk.add_tag_datatype_sn(t, ptype, int_sn, dTypes, dTags)
 
     return dTypes, dTags, _sn
 
@@ -807,24 +810,24 @@ class ManagedPool(ProductPool, dicthk.DictHk):
                 self._dTypes, self._dTags = tuple(
                     self.readHK().values())
             # /some new ####
-            if 0:
-                c, t, u = self._classes, self._tags, self._urns
+            # if 0:
+            #     c, t, u = self._classes, self._tags, self._urns
 
-                if pn in c:
-                    sn = (c[pn]['currentSN'] + 1)
-                else:
-                    sn = 0
-                    c[pn] = dict(sn=[])
+            #     if pn in c:
+            #         sn = (c[pn]['currentSN'] + 1)
+            #     else:
+            #         sn = 0
+            #         c[pn] = dict(sn=[])
 
-                c[pn]['currentSN'] = sn
-                c[pn]['sn'].append(sn)
+            #     c[pn]['currentSN'] = sn
+            #     c[pn]['sn'].append(sn)
 
-                urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
+            #     urn = makeUrn(poolname=self._poolname, typename=pn, index=sn)
 
-                if urn not in u:
-                    u[urn] = {'tags': []}
+            #     if urn not in u:
+            #         u[urn] = {'tags': []}
 
-            # new+old ###
+            # new+old NORMALIZE TAGS###
             if tag is None:
                 tags = []
             elif issubclass(tag.__class__, str):
@@ -835,45 +838,44 @@ class ManagedPool(ProductPool, dicthk.DictHk):
                 raise TypeError('Bad type for tag: %s.' %
                                 tag.__class__.__name__)
             # new ####
-            self._dTypes, self._dTags, _sn = populate_pool2(tags, pn,
-                                                            self._dTypes,
-                                                            self._dTags)
+            self._dTypes, self._dTags, _sn = \
+                populate_pool2(tags, pn, self._dTypes, self._dTags)
 
-            if 0:
-                if tag is None:
-                    tags = []
-                elif issubclass(tag.__class__, str):
-                    tags = [tag]
-                elif issubclass(tag.__class__, list):
-                    tags = tag
-                else:
-                    raise TypeError('Bad type for tag: %s.' %
-                                    tag.__class__.__name__)
-                # new ####
-                dTypes, dTags = self._dTypes, self._dTags
+            # if 0:
+            #     if tag is None:
+            #         tags = []
+            #     elif issubclass(tag.__class__, str):
+            #         tags = [tag]
+            #     elif issubclass(tag.__class__, list):
+            #         tags = tag
+            #     else:
+            #         raise TypeError('Bad type for tag: %s.' %
+            #                         tag.__class__.__name__)
+            #     # new ####
+            #     dTypes, dTags = self._dTypes, self._dTags
 
-                if pn in dTypes:
-                    _sn = dTypes[pn]['currentSN'] + 1
-                else:
-                    _sn = 0
-                    dTypes[pn] = {
-                        'currentSN': _sn,
-                        'sn': {}
-                    }
+            #     if pn in dTypes:
+            #         _sn = dTypes[pn]['currentSN'] + 1
+            #     else:
+            #         _sn = 0
+            #         dTypes[pn] = {
+            #             'currentSN': _sn,
+            #             'sn': {}
+            #         }
 
-                snd = dTypes[pn]['sn']
-                if _sn not in snd:
-                    snd[_sn] = {
-                        'tags': [],
-                        'meta': []
-                    }
+            #     snd = dTypes[pn]['sn']
+            #     if _sn not in snd:
+            #         snd[_sn] = {
+            #             'tags': [],
+            #             'meta': []
+            #         }
 
-                dTypes[pn]['currentSN'] = _sn
-                urn = makeUrn(poolname=self._poolname, typename=pn, index=_sn)
-                # /new #####
+            #     dTypes[pn]['currentSN'] = _sn
+            #     urn = makeUrn(poolname=self._poolname, typename=pn, index=_sn)
+            #     # /new #####
 
-                for t in tags:
-                    self.setTag(t, urn)
+            #     for t in tags:
+            #         self.setTag(t, urn)
             urn = makeUrn(poolname=self._poolname, typename=pn, index=_sn)
             try:
                 # save prod and HK
@@ -910,7 +912,7 @@ class ManagedPool(ProductPool, dicthk.DictHk):
                 rf._meta = prd.getMeta()
                 res.append(rf)
 
-    def schematicSave(self, products, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, **kwds):
+    def schematicSave(self, products, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, asyn=False, **kwds):
         """ do the scheme-specific saving.
         :product:  product or '[ size1, prd, size2, prd2, ...]'.
         :serialize_out: if True returns contents in serialized form.
@@ -987,7 +989,7 @@ class ManagedPool(ProductPool, dicthk.DictHk):
         """
         raise (NotImplementedError)
 
-    def schematicRemove(self, urn=None, resourcetype=None, index=None):
+    def schematicRemove(self, urn=None, resourcetype=None, index=None, asyn=False, **kwds):
         """ do the scheme-specific removing
         """
 
@@ -1002,11 +1004,10 @@ class ManagedPool(ProductPool, dicthk.DictHk):
             self._classes, self._tags, self._urns, \
                 self._dTypes, self._dTags = tuple(
                     self.readHK().values())
-            if 0:
-                c, t, u = self._classes, self._tags, self._urns
-                if urn not in u:
-                    raise ValueError(
-                        '%s not found in pool %s.' % (urn, self.getId()))
+            # c, t, u = self._classes, self._tags, self._urns
+            # if urn not in u:
+            #     raise ValueError(
+            #         '%s not found in pool %s.' % (urn, self.getId()))
 
             # new ####
             dTypes, dTags = self._dTypes, self._dTags
@@ -1014,22 +1015,29 @@ class ManagedPool(ProductPool, dicthk.DictHk):
 
             self.removeUrn(urn, datatype=datatype, sn=sn)
 
-            if 0:
-                c[datatype]['sn'].remove(sn)
-
-                if len(c[datatype]['sn']) == 0:
-                    del c[datatype]
-
+            # c[datatype]['sn'].remove(sn)
+            # if len(c[datatype]['sn']) == 0:
+            #     del c[datatype]
             # assert list(dTypes[datatype]['sn']) == list(c[datatype]['sn'])
+        if issubclass(sn.__class__, (list, tuple)):
+            sns = sn
+            if asyn:
+                res = self.doAsyncRemove(resourcetype=datatype, index=sns)
+                return res
+        else:
+            sns = [sn]
+        for i, ind in enumerate(sns):
             try:
-                self.doRemove(resourcetype=datatype, index=sn)
+                res = self.doRemove(resourcetype=datatype, index=ind)
             except Exception as e:
-                msg = 'product ' + urn + ' removal failed'
-                logger.debug(msg)
+                msg = f'product {urn} removal failed. {e} traceback: {trbk(e)}'
                 self._classes, self._tags, self._urns, \
                     self._dTypes, self._dTags = tuple(
                         self.readHK().values())
-                raise e
+                if getattr(self, 'ignore_error_when_delete', False):
+                    logger.warning(msg)
+                else:
+                    raise
         return 0
 
     def doWipe(self):
@@ -1037,27 +1045,30 @@ class ManagedPool(ProductPool, dicthk.DictHk):
         """
         raise (NotImplementedError)
 
-    def schematicWipe(self):
+    def schematicWipe(self, asyn=False):
         """ do the scheme-specific wiping
         """
         with filelock.FileLock(self.lockpath('w')),\
                 filelock.FileLock(self.lockpath('r')):
-            try:
-                if 0:
-                    self._classes.clear()
-                    self._tags.clear()
-                    self._urns.clear()
-                # new ##
-                self._dTypes.clear()
-                self._dTags.clear()
-                # /new ##
-                self.doWipe()
-            except Exception as e:
-                msg = self.getId() + 'wiping failed'
-                logger.debug(msg)
-                raise e
-        logger.debug('Done.')
-        return 0
+            # self._classes.clear()
+            # self._tags.clear()
+            # self._urns.clear()
+            # new ##
+            self._dTypes.clear()
+            self._dTags.clear()
+            # /new ##
+            if asyn:
+                res = self.doAsyncWipe()
+            else:
+                try:
+                    res = self.doWipe()
+                except ValueError as e:
+                    msg = f'Wiping {self.poolname} failed. {e} traceback: {trbk(e)}'
+                    if getattr(self, 'ignore_error_when_delete', False):
+                        logger.warning(msg)
+                    else:
+                        raise
+        return res
 
     def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None, datatypes=None):
         """ returns filtered collection using the query.

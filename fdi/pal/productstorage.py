@@ -177,17 +177,22 @@ class ProductStorage(object):
                     r.setStorage(self)
         return ret
 
-    def remove(self, urn, ignore_error=False):
+    def remove(self, urn, datatype=None, index=None, ignore_error=False):
         """ removes product of urn from the writeable pool
         """
         poolname = self.getWritablePool()
         logger.debug('removing product:' + str(urn) +
                      ' from pool ' + str(poolname))
         try:
-            self._pools[poolname].remove(urn, ignore_error=ignore_error)
+            pool = self._pools[poolname]
+            pool.ignore_error_when_delete = ignore_error
+            pool.remove(urn, resourcetype=datatype, index=index)
         except Exception as e:
-            logger.error('unable to remove from the writable pool.')
-            raise e
+            msg = 'unable to remove from the writable pool.'
+            if ignore_error:
+                logger.error(msg)
+            else:
+                raise
 
     def accept(self, visitor):
         """ Hook for adding functionality to object
@@ -257,13 +262,15 @@ class ProductStorage(object):
 
         return self._pools[self.getWritablePool()].getUrn(tag)
 
-    def wipePool(self, ignore_error=False, **kwds):
+    def wipePool(self, ignore_error=False, asyn=False, **kwds):
         """ Clear all data and meta data of the writable pool.
         """
 
         self.ignore_error_when_delete = ignore_error
-        self.getWritablePool(obj=True).removeAll(
-            ignore_error=ignore_error, **kwds)
+        pool = self.getWritablePool(obj=True)
+        pool.ignore_error_when_delete = ignore_error
+        pool.removeAll(
+            ignore_error=ignore_error, asyn=asyn, **kwds)
 
     def isEmpty(self):
         """ Returns whether all pools are empty or there is no pool. """

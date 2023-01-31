@@ -827,6 +827,17 @@ def test_LocalPool():
     p2.remove(resourcetype=dtype, index=sns)
     assert len(ps2.getUrnFromTag('mtag')) == 0
 
+    # remove multiple sn ASYNCHRONOUSLY
+    ps2.save(x, tag='mtag')
+    ps2.save(x, tag='mtag')
+    urns = ps2.getUrnFromTag('mtag')
+    pool, dtype, sns = parseUrn(urns)
+    assert pool == cpn
+    assert dtype == 'fdi.dataset.product.Product'
+    assert len(sns) == 2
+    p2.remove(resourcetype=dtype, index=sns, asyn=True)
+    assert len(ps2.getUrnFromTag('mtag')) == 0
+
     backup_restore(ps)
 
 

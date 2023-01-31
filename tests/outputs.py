@@ -98,7 +98,7 @@ out_MetaData = """MetaData.toString with extra
 | description  | MetaData.toString  |      | string   | Description of    | UNKNOWN         | None | B                 | DESC         | 描述         | 对本产品的描述。                                                     |
 |              | with extra         |      |          | this product      |                 |      |                   |              |              |                                                                      |
 +--------------+--------------------+------+----------+-------------------+-----------------+------+-------------------+--------------+--------------+----------------------------------------------------------------------+
-| type         | BaseProduct        |      | string   | Product Type      | BaseProduct     | None | B                 | TYPE         | 产品类型     | 产品类型。完整Python类名或卡片名。                                   |
+| type         | BaseProduct        |      | string   | Product Type      | DemoProduct     | None | B                 | TYPE         | 产品类型     | 产品类型。完整Python类名或卡片名。                                   |
 |              |                    |      |          | identification.   |                 |      |                   |              |              |                                                                      |
 |              |                    |      |          | Name of class or  |                 |      |                   |              |              |                                                                      |
 |              |                    |      |          | CARD.             |                 |      |                   |              |              |                                                                      |
@@ -131,7 +131,7 @@ tablefmt = html
 | description  | MetaData.toString  |      | string   | Description of    | UNKNOWN         | None | B                 |
 |              | with extra         |      |          | this product      |                 |      |                   |
 +--------------+--------------------+------+----------+-------------------+-----------------+------+-------------------+
-| type         | BaseProduct        |      | string   | Product Type      | BaseProduct     | None | B                 |
+| type         | BaseProduct        |      | string   | Product Type      | DemoProduct     | None | B                 |
 |              |                    |      |          | identification.   |                 |      |                   |
 |              |                    |      |          | Name of class or  |                 |      |                   |
 |              |                    |      |          | CARD.             |                 |      |                   |

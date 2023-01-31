@@ -151,7 +151,7 @@ class HttpClientPool(ProductPool):
             raise Exception(msg)
         return hk
 
-    def schematicSave(self, products, tag=None, geturnobjs=False, serialize_out=False, **kwds):
+    def schematicSave(self, products, tag=None, geturnobjs=False, serialize_out=False, asyn=False, **kwds):
         """
         does the media-specific saving to remote server.
         """
@@ -227,7 +227,7 @@ class HttpClientPool(ProductPool):
             raise NameError('Loading ' + urn + ' failed:%d. ' % code + msg)
         return res
 
-    def schematicRemove(self, urn=None, resourcetype=None, index=None):
+    def schematicRemove(self, urn=None, resourcetype=None, index=None, asyn=False, **kwds):
         """
         does the scheme-specific part of removal.
 
@@ -238,16 +238,17 @@ class HttpClientPool(ProductPool):
                 raise ValueError()
             urn = makeUrn(self._poolname, resourcetype, index)
         res, msg = delete_from_server(
-            urn, self._poolurl, auth=self.auth, client=self.client)
+            urn, self._poolurl, auth=self.auth, client=self.client,
+            asyn=asyn, **kwds)
         if res == 'FAILED':
             logger.error('Remove from server ' + self._poolname +
                          ' failed. Caused by: ' + msg)
             raise RuntimeError(msg)
         return 0
 
-    def schematicWipe(self):
+    def doWipe(self):
         """
-        does the scheme-specific remove-all
+        does the scheme-specific wiping.
         """
 
         res, msg = delete_from_server(
@@ -255,7 +256,7 @@ class HttpClientPool(ProductPool):
         if res == 'FAILED':
             logger.error(msg)
             raise Exception(msg)
-        return 0
+        return res
 
     @ toServer()
     def removeAll(self):

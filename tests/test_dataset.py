@@ -851,7 +851,7 @@ def test_Parameter_features():
     # CHANNGED parameter equality behavior
     assert v.equals(v1)
     assert v.__eq__(v1)
-    #assert v.__eq__ == v1.__eq__
+    # assert v.__eq__ == v1.__eq__
     assert v == v1
     v1.value = -4
 
@@ -1587,7 +1587,7 @@ def do_ArrayDataset_func(atype):
         for n, p in standardtestmeta().items():
             x.meta[n] = p
         ts = x.toString()
-        #print('***', atype, ts)
+        # print('***', atype, ts)
 
         checkjson(x)
         checkgeneral(x)
@@ -2009,7 +2009,7 @@ def test_TableDataset_func0():
     ]):
         v.addColumn(n, Column(data=[n, 123], unit='g'+str(i)),)
     from fdi.utils.tree import tree
-    #print('\n'.join(tree(v, style='ascii')))
+    # print('\n'.join(tree(v, style='ascii')))
     from fdi.utils.jsonpath import jsonPath, flatten_compact
     # print(list(str(x.full_path)
     #           for x in jsonPath(v, '$..*', val='context')))
@@ -2440,11 +2440,11 @@ def do_jsonPath(UDSET):
         assert len(m) > 0
     # use this instead. MUST HAVE THE WHITESPACES in ' - 1'
     # NOT working: Full diff:
-    #- ['J. R. R. Tolkien']
-    #+ ['Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien']
+    # - ['J. R. R. Tolkien']
+    # + ['Nigel Rees', 'Evelyn Waugh', 'Herman Melville', 'J. R. R. Tolkien']
     #
-    #m = u.jsonPath('$..book[?(@.`len` - 1)]', val='context')
-    #assert list(x.value['author'] for x in m) == ['J. R. R. Tolkien']
+    # m = u.jsonPath('$..book[?(@.`len` - 1)]', val='context')
+    # assert list(x.value['author'] for x in m) == ['J. R. R. Tolkien']
     # the last book in order. #2
     m = u.jsonPath('$..book[-1:]', val='full')
     assert [x[1]['author'] for x in m] == ['J. R. R. Tolkien']
@@ -2452,8 +2452,8 @@ def do_jsonPath(UDSET):
     assert m == [('store/book/3/author', 'J. R. R. Tolkien')]
 
     # the first two books
-    #m = u.jsonPath('$..book[0,1]', val='full')
-    #assert list(x['author'] for x in m.values()) == 9
+    # m = u.jsonPath('$..book[0,1]', val='full')
+    # assert list(x['author'] for x in m.values()) == 9
     m = u.jsonPath('$..book[:2].author')
     assert [x[1] for x in m] == ['Nigel Rees', 'Evelyn Waugh']
 
@@ -2683,7 +2683,7 @@ def test_FineTime():
     v = FineTime()
     assert v.tai is None
     assert v.format == v.DEFAULT_FORMAT
-    #assert v.toDatetime().year == 1958
+    # assert v.toDatetime().year == 1958
     # at Epoch, TAI=0
     v = FineTime(v.EPOCH)
     assert v.tai == 0
@@ -2769,7 +2769,7 @@ def test_FineTime1():
     v = FineTime1()
     assert v.tai is None
     assert v.format == v.DEFAULT_FORMAT
-    #assert v.toDatetime().year == 2017
+    # assert v.toDatetime().year == 2017
     # at Epoch, TAI=0
     v = FineTime1(v.EPOCH)
     assert v.tai == 0
@@ -2928,7 +2928,7 @@ def test_History(tmp_local_storage, tmp_prods):
     checkjson(v, 0)
     checkgeneral(v)
 
-    #pos = nx.nx_agraph.graphviz_layout(h)
+    # pos = nx.nx_agraph.graphviz_layout(h)
 
     pdot = nx.drawing.nx_pydot.to_pydot(h)
     print(pdot.to_string())

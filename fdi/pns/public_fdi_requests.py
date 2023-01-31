@@ -1,11 +1,10 @@
 
 from ..dataset.serializable import serialize
-from ..dataset.classes import Class_Look_Up, All_Exceptions
 from ..dataset.deserialize import deserialize
 from ..utils.getconfig import getConfig
-from ..utils.common import lls
+from ..utils.common import trbk
 from ..pal import webapi
-from .fdi_requests import safe_client
+from .fdi_requests import safe_client, cached_json_dumps
 
 from ..httppool.session import requests_retry_session
 
@@ -13,11 +12,6 @@ import functools
 import logging
 import sys
 import json
-from itertools import chain
-from requests.auth import HTTPBasicAuth
-import asyncio
-import aiohttp
-
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -48,91 +42,8 @@ def getAuth(user=AUTHUSER, password=AUTHPASS):
     return HTTPBasicAuth(user, password)
 
 
-def aio_save(self, datatypes, sns):
-    pass
-
-
-async def get_aio_result(method, *args, **kwds):
-    async with method(*args, **kwds) as resp:
-        # print(type(resp),dir(resp))
-        con = await resp.text()
-        return resp.status, con
-
-
-def aio_client(method_name, apis, data=None, headers=None):
-    cnt = 0
-    method_name = method_name.lower()
-    alist = issubclass(apis.__class__, (list, tuple))
-    dlist = issubclass(data.__class__, (list, tuple))
-    hlist = issubclass(headers.__class__, (list, tuple))
-    if alist:
-        cnt = len(apis)
-    elif dlist:
-        cnt = len(data)
-    elif hlist:
-        cnt = len(headers)
-    else:
-        raise TypeError('None of the parameters is a list or a tuple.')
-
-    async def multi():
-        aio_session = aiohttp.ClientSession()
-        async with aio_session as session:
-            tasks = []
-            method = getattr(session, method_name)
-            for n in range(cnt):
-                a = apis[n] if alist else apis
-                d = data[n] if dlist else data
-                h = headers[n] if hlist else headers
-                if method_name == 'post':
-                    tasks.append(asyncio.ensure_future(
-                        get_aio_result(method, a, data=d, headers=h)))
-                elif method_name in ('get', 'delete'):
-                    tasks.append(asyncio.ensure_future(
-                        get_aio_result(method, a, headers=h)))
-                else:
-                    raise ValueError(f"Unknown AIO method {method_name}.")
-            content = await asyncio.gather(*tasks)
-            res = []
-            logger.debug(f'AIO {method_name} return {len(content)} items')
-            for code, text in content:
-                obj = deserialize(text)
-                ores = obj['result']
-                if code != 200 or issubclass(ores.__class__, str) and ores[:6] == 'FAILED':
-                    if not issubclass(obj.__class__, dict):
-                        # cannot deserialize
-                        raise RuntimeError(
-                            f'AIO {method_name} error SERVER: {code} Message: %s' % lls(text, 200))
-                    # deserializable
-                    msg = obj['msg']
-                    for line in chain(msg.split('.', 1)[:1], msg.split('\n')):
-                        excpt = line.split(':', 1)[0]
-                        if excpt in All_Exceptions:
-                            # relay the exception from server
-                            raise All_Exceptions[excpt](
-                                f'SERVER: Code {code} Message: {msg}***{res}={len(res)}')
-                    raise RuntimeError(
-                        f'AIO {method_name} error SERVER: {ores}: %s' % lls(obj['msg'], 200))
-                logger.debug(lls(text, 100))
-                res.append(ores)
-            # print('pppp', res[0])
-            print(len(res))
-            return res
-
-    res = asyncio.run(multi())
-    return res
-
-
-@ functools.lru_cache(maxsize=256)
-def cached_json_dumps(cls_full_name, ensure_ascii=True, indent=2):
-    # XXX add Model to Class
-    obj = Class_Look_Up[cls_full_name.rsplit('.', 1)[-1]]()
-    return json.dumps(obj.zInfo, ensure_ascii=ensure_ascii, indent=indent)
-
-
-def read_from_cloud(requestName, client=None, aio=False, **kwargs):
-    if aio:
-        client = aio_session
-    elif client is None:
+def read_from_cloud(requestName, client=None, asyn=False, **kwds):
+    if client is None:
         client = session
     header = {'Content-Type': 'application/json;charset=UTF-8'}
     if requestName == 'getToken':
@@ -141,91 +52,111 @@ def read_from_cloud(requestName, client=None, aio=False, **kwargs):
         res = safe_client(client.post, requestAPI, headers=header,
                           data=serialize(postData))
     elif requestName == 'verifyToken':
-        requestAPI = defaulturl + '/user/auth/verify?token=' + kwargs['token']
+        requestAPI = defaulturl + '/user/auth/verify?token=' + kwds['token']
         res = safe_client(client.get, requestAPI)
     elif requestName[0:4] == 'info':
-        header['X-AUTH-TOKEN'] = kwargs['token']
+        header['X-AUTH-TOKEN'] = kwds['token']
         if requestName == 'infoUrn':
             requestAPI = default_base + \
-                '/storage/info?urns=' + kwargs['urn']
+                '/storage/info?urns=' + kwds['urn']
         elif requestName == 'infoPool':
             requestAPI = default_base + \
                 '/storage/info?pageIndex=1&pageSize=10000&pools=' + \
-                kwargs['poolpath']
+                kwds['poolpath']
         elif requestName == 'infoPoolType':
             # use pools instead of paths -mh
             requestAPI = default_base + \
                 '/storage/info?pageIndex=1&pageSize=10000&pools=' + \
-                kwargs['pools']
+                kwds['pools']
         else:
             raise ValueError("Unknown request API: " + str(requestName))
         res = safe_client(client.get, requestAPI, headers=header)
 
     elif requestName == 'getMeta':
-        header['X-AUTH-TOKEN'] = kwargs['token']
+        header['X-AUTH-TOKEN'] = kwds['token']
         requestAPI = default_base + \
-            '/storage/meta?urn=' + kwargs['urn']
+            '/storage/meta?urn=' + kwds['urn']
         res = safe_client(client.get, requestAPI, headers=header)
         return deserialize(json.dumps(res.json()['data']['_ATTR_meta']))
+    elif requestName == 'getDataInfo':
+        header['X-AUTH-TOKEN'] = kwds['token']
+        requestAPI0 = default_base + \
+            '/storage/searchByPoolOrPath?limitCount=%d&path='
+        res = []
+        urns = kwds.get('urn', [])
+        # max length with one extra
+        requestAPI1 = requestAPI0 % (len(urns) + 1)
+        for u in urns:
+            requestAPI = requestAPI1 + u[3:].replace(':', '/')
+            d = safe_client(client.get, requestAPI,
+                            headers=header).json()['data']
+            # if not found: r['data']==[]
+            res.append(d[0] if d else None)
+        return res
+
     elif requestName == 'getDataType':
-        header['X-AUTH-TOKEN'] = kwargs['token']
+        header['X-AUTH-TOKEN'] = kwds['token']
+
         requestAPI = default_base + \
             '/datatype/list'
         res = safe_client(client.get, requestAPI, headers=header)
+
     elif requestName == 'uploadDataType':
-        header['X-AUTH-TOKEN'] = kwargs['token']
+        header['X-AUTH-TOKEN'] = kwds['token']
         header["accept"] = "*/*"
         # somehow application/json will cause error "unsupported"
         del header['Content-Type']  # = 'application/json'  # ;charset=UTF-8'
         requestAPI = default_base + \
             '/datatype/upload'
-        cls_full_name = kwargs['cls_full_name']
+        cls_full_name = kwds['cls_full_name']
         jsn = cached_json_dumps(cls_full_name,
-                                ensure_ascii=kwargs.get('ensure_ascii', True),
-                                indent=kwargs.get('indent', 2))
+                                ensure_ascii=kwds.get('ensure_ascii', True),
+                                indent=kwds.get('indent', 2))
         fdata = {"file": (cls_full_name, jsn)}
         data = {"metaPath": "/metadata",
                 "productType": cls_full_name}
         res = safe_client(client.post, requestAPI,
                           files=fdata, data=data, headers=header)
     elif requestName == 'delDataType':
-        header['X-AUTH-TOKEN'] = kwargs['token']
+        header['X-AUTH-TOKEN'] = kwds['token']
         requestAPI = default_base + \
-            f'/storage/delDatatype?path=' + kwargs['path']
+            f'/storage/delDatatype?path=' + kwds['path']
         res = safe_client(client.delete, requestAPI, headers=header)
     elif requestName == 'remove':
-        header['X-AUTH-TOKEN'] = kwargs['token']
+        header['X-AUTH-TOKEN'] = kwds['token']
         requestAPI0 = default_base + \
             '/storage/delete?path='
-        if aio:
-            res = aio_client('post', requestAPI0, headers=header)
+        path = kwds['path']
+        if asyn:
+            apis = [requestAPI0+p for p in path]
+            res = aio_client('post', apis, headers=header)
         else:
             res = safe_client(client.post, requestAPI0 +
-                              kwargs['path'], headers=header)
+                              path, headers=header)
     elif requestName == 'existPool':
-        header['X-AUTH-TOKEN'] = kwargs['token']
+        header['X-AUTH-TOKEN'] = kwds['token']
         requestAPI = default_base + \
-            '/pool/info?storagePoolName=' + kwargs['poolname']
+            '/pool/info?storagePoolName=' + kwds['poolname']
         res = safe_client(client.get, requestAPI, headers=header)
     elif requestName == 'createPool':
-        header['X-AUTH-TOKEN'] = kwargs['token']
+        header['X-AUTH-TOKEN'] = kwds['token']
         requestAPI = default_base + \
-            '/pool/create?poolName=' + kwargs['poolname'] + '&read=0&write=0'
+            '/pool/create?poolName=' + kwds['poolname'] + '&read=0&write=0'
         res = safe_client(client.post, requestAPI, headers=header)
     elif requestName == 'wipePool':
-        header['X-AUTH-TOKEN'] = kwargs['token']
+        header['X-AUTH-TOKEN'] = kwds['token']
         requestAPI = default_base + \
-            '/pool/delete?storagePoolName=' + kwargs['poolname']
+            '/pool/delete?storagePoolName=' + kwds['poolname']
         res = safe_client(client.post, requestAPI, headers=header)
     elif requestName == 'restorePool':
-        header['X-AUTH-TOKEN'] = kwargs['token']
+        header['X-AUTH-TOKEN'] = kwds['token']
         requestAPI = default_base + \
-            '/pool/restore?storagePoolName=' + kwargs['poolname']
+            '/pool/restore?storagePoolName=' + kwds['poolname']
         res = safe_client(client.post, requestAPI, headers=header)
     elif requestName == 'addTag':
-        header['X-AUTH-TOKEN'] = kwargs['token']
+        header['X-AUTH-TOKEN'] = kwds['token']
         requestAPI = default_base + \
-            '/storage/addTags?tags=' + kwargs['tags'] + '&urn=' + kwargs['urn']
+            '/storage/addTags?tags=' + kwds['tags'] + '&urn=' + kwds['urn']
         res = safe_client(client.get, requestAPI, headers=header)
     else:
         raise ValueError("Unknown request API: " + str(requestName))
@@ -234,7 +165,7 @@ def read_from_cloud(requestName, client=None, aio=False, **kwargs):
     return deserialize(res.text)
 
 
-def load_from_cloud(requestName, client=None, **kwargs):
+def load_from_cloud(requestName, client=None, **kwds):
     if client is None:
         client = session
     header = {'Content-Type': 'application/json;charset=UTF-8'}
@@ -242,33 +173,38 @@ def load_from_cloud(requestName, client=None, **kwargs):
     try:
         if requestName == 'uploadProduct':
             header = {}
-            header['X-AUTH-TOKEN'] = kwargs['token']
+            header['X-AUTH-TOKEN'] = kwds.pop('token', '')
             header['X-CSDB-AUTOINDEX'] = '1'
             header['X-CSDB-METADATA'] = '/_ATTR_meta'
             header['X-CSDB-HASHCOMPARE'] = '0'
 
-            requestAPI = requestAPI + '/storage/upload?path=' + kwargs['path']
-            prd = kwargs['products']
-            fileName = kwargs['resourcetype']
-            if kwargs.get('tags'):
-                if isinstance(kwargs['tags'], str):
-                    tags = [kwargs['tags']]
+            requestAPI = requestAPI + \
+                '/storage/upload?path=' + kwds.pop('path', '')
+            prd = kwds.pop('products', None)
+            fileName = kwds.pop('resourcetype', '')
+            if not fileName:
+                __import__("pdb").set_trace()
+
+            if 'tags' in kwds:
+                t = kwds.pop('tags')
+                tags = [t] if isinstance(t, str) else t if t else ''
                 data = {'tags': ','.join(tags)}
             else:
                 data = None
+            kwds.pop('serialize_out', '')
             res = safe_client(client.post, requestAPI, files={'file': (
-                fileName, prd)}, data=data, headers=header)
+                fileName, prd)}, data=data, headers=header, **kwds)
 
         elif requestName == 'pullProduct':
-            header['X-AUTH-TOKEN'] = kwargs['token']
-            requestAPI = requestAPI + '/storage/get?urn=' + kwargs['urn']
+            header['X-AUTH-TOKEN'] = kwds.pop('token', '')
+            requestAPI = requestAPI + '/storage/get?urn=' + kwds.pop('urn', '')
             res = safe_client(client.get, requestAPI,
                               headers=header, stream=True)
             # TODO: save product to local
         else:
             raise ValueError("Unknown request API: " + str(requestName))
     except Exception as e:
-        return 'Load File failed: ' + str(e)
+        return 'Load File failed: ' + str(e) + trbk(e)
     # print("Load from API: " + requestAPI)
     return deserialize(res.text)
 

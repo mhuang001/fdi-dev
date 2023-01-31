@@ -102,7 +102,7 @@ def new_user_read_only(pc):
     https://www.patricksoftwareblog.com/testing-a-flask-application-using-pytest/
     """
     users = getUsers(pc)
-    new_user = users['ro']
+    new_user = users[pc['ro_user']]
     headers = auth_headers(pc['ro_user'], password=pc['ro_pass'])
 
     return new_user, headers
@@ -409,10 +409,9 @@ def clean_csdb(csdb):
     # url_l = 'http://123.56.102.90:31702/csdb/v1/datatype/list'
     # types = test_pool.client.get(url_l).json()['data']
     # if 'fdi.dataset.testproducts.DemoProduct' in types:
-    #     __import__("pdb").set_trace()
     #     t = len(types)
 
-    ps.wipePool(ignore_error=True)
+    ps.wipePool(ignore_error=False)
 
     # if 'fdi.dataset.testproducts.DemoProduct' in types:
     #     types2 = test_pool.client.get(url_l).json()['data']
@@ -467,22 +466,26 @@ def tmp_prod_types():
     return ty
 
 
-@ pytest.fixture(scope="function")
+PRD0 = [get_demo_product('test-product-0: Demo_Product')]
+array_cls = Class_Look_Up['ArrayDataset']
+
+
+@ pytest.fixture(scope=SHORT)
 def tmp_prods(tmp_prod_types):
     """ instances of temporary prods with function scope """
 
-    array_cls = Class_Look_Up['ArrayDataset']
-    prds = [get_demo_product('test-product-0: Demo_Product')]
+    prds = copy.copy(PRD0)
     for i, n in enumerate(tmp_prod_types):
         if i == 0:
             continue
         p = n('test-product-%d: %s' % (i, n))
-        p['the_data'] = array_cls(data=[time.time()], unit='s')
+        p['the_data'] = array_cls(data=[time.time(), n], unit='s')
         prds.append(p)
     logger.debug("Made products: %s" %
                  str(list((p.description, id(p)) for p in prds)))
-
-    return tuple(prds)
+    res = tuple(prds)
+    return res
+    # del res
 
 
 @ pytest.fixture(scope=SHORT)

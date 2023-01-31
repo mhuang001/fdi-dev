@@ -1,18 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from urllib3.exceptions import NewConnectionError, ProtocolError
-from requests.exceptions import ConnectionError
-from flask import Flask
-from flask.testing import FlaskClient
-
-import requests
-import functools
-import logging
-import sys
-from requests.auth import HTTPBasicAuth
-
 from ..dataset.serializable import serialize
 from ..dataset.deserialize import deserialize
+from ..dataset.classes import Class_Look_Up, All_Exceptions
 from ..pal.urn import parseUrn, parse_poolurl
 from ..utils.getconfig import getConfig
 from ..utils.common import trbk
@@ -24,6 +14,23 @@ from ..utils.common import (lls,
                             logging_INFO,
                             logging_DEBUG
                             )
+
+from urllib3.exceptions import NewConnectionError, ProtocolError
+from requests.exceptions import ConnectionError
+from flask import Flask
+from flask.testing import FlaskClient
+
+import requests
+from itertools import chain
+from requests.auth import HTTPBasicAuth
+import asyncio
+import aiohttp
+
+import functools
+import logging
+import sys
+import json
+from requests.auth import HTTPBasicAuth
 
 from ..httppool.session import TIMEOUT, MAX_RETRY, FORCED, \
     requests_retry_session
@@ -314,7 +321,7 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
         return 'FAILED', result
 
 
-def delete_from_server(urn, poolurl, contents='product', result_only=False, auth=None, client=None):
+def delete_from_server(urn, poolurl, contents='product', result_only=False, auth=None, client=None, asyn=False):
     """Remove a product or pool from server
 
     urn: to extract poolname, product type, and index if any of these are needed
@@ -327,9 +334,14 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
         auth = getAuth(pccnode['username'], pccnode['password'])
     if client is None:
         client = session
-    api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
-    # print("DELETE REQUEST API: " + api)
-    res = safe_client(client.delete, api, auth=auth, timeout=TIMEOUT)
+
+    if asyn:
+        apis = [poolurl+'/'+u for u in urn]
+        res = aio_client('delete', apis=apis, **kwds)
+    else:
+        api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
+        # print("DELETE REQUEST API: " + api)
+        res = safe_client(client.delete, api, auth=auth, timeout=TIMEOUT)
 
     if result_only:
         return res
@@ -339,6 +351,120 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
         return result['result'], result['msg']
     else:
         return 'FAILED', result
+
+
+# == == == = Async IO == == ==
+
+
+async def get_aio_result(method, *args, **kwds):
+    async with method(*args, **kwds) as resp:
+        # print(type(resp),dir(resp))
+        con = await resp.text()
+        return resp.status, con
+
+
+def reqst(method, apis, *args, **kwds):
+    """send session, requests, aiohttp requests.
+
+    Parameters
+    ----------
+    method : str, function
+        If is a string, will be the method name of `aio_client`;
+        if a function, will be the method functiono of
+        session/request.
+    apis : str, list, tuple
+
+    *args : 
+
+    **kwds : 
+
+
+    Returns
+    -------
+    str or object:
+        deserialized response.text, or error message.
+
+    Examples
+    --------
+    FIXME: Add docs.
+    """
+
+    if isinstance(method, str):
+        res = aio_client(method_name, apis, *args, **kwds)
+    else:
+        res = safe_client(method, api, *args, **kwds)
+
+    return res
+
+
+def aio_client(method_name, apis, data=None, headers=None):
+    cnt = 0
+    method_name = method_name.lower()
+    alist = issubclass(apis.__class__, (list, tuple))
+    dlist = issubclass(data.__class__, (list, tuple))
+    hlist = issubclass(headers.__class__, (list, tuple))
+    if alist:
+        cnt = len(apis)
+    elif dlist:
+        cnt = len(data)
+    elif hlist:
+        cnt = len(headers)
+    else:
+        raise TypeError('None of the parameters is a list or a tuple.')
+
+    async def multi():
+        aio_session = aiohttp.ClientSession()
+        async with aio_session as session:
+            tasks = []
+            method = getattr(session, method_name)
+            for n in range(cnt):
+                a = apis[n] if alist else apis
+                d = data[n] if dlist else data
+                h = headers[n] if hlist else headers
+                if method_name == 'post':
+                    tasks.append(asyncio.ensure_future(
+                        get_aio_result(method, a, data=d, headers=h)))
+                elif method_name in ('get', 'delete'):
+                    tasks.append(asyncio.ensure_future(
+                        get_aio_result(method, a, headers=h)))
+                else:
+                    raise ValueError(f"Unknown AIO method {method_name}.")
+            content = await asyncio.gather(*tasks)
+            res = []
+            logger.debug(f'AIO {method_name} return {len(content)} items')
+            for code, text in content:
+                obj = deserialize(text)
+                ores = obj['result']
+                if code != 200 or issubclass(ores.__class__, str) and ores[:6] == 'FAILED':
+                    if not issubclass(obj.__class__, dict):
+                        # cannot deserialize
+                        raise RuntimeError(
+                            f'AIO {method_name} error SERVER: {code} Message: %s' % lls(text, 200))
+                    # deserializable
+                    msg = obj['msg']
+                    for line in chain(msg.split('.', 1)[:1], msg.split('\n')):
+                        excpt = line.split(':', 1)[0]
+                        if excpt in All_Exceptions:
+                            # relay the exception from server
+                            raise All_Exceptions[excpt](
+                                f'SERVER: Code {code} Message: {msg}***{res}={len(res)}')
+                    raise RuntimeError(
+                        f'AIO {method_name} error SERVER: {ores}: %s' % lls(obj['msg'], 200))
+                logger.debug(lls(text, 100))
+                res.append(ores)
+            # print('pppp', res[0])
+            print(len(res))
+            return res
+
+    res = asyncio.run(multi())
+    return res
+
+
+@ functools.lru_cache(maxsize=256)
+def cached_json_dumps(cls_full_name, ensure_ascii=True, indent=2):
+    # XXX add Model to Class
+    obj = Class_Look_Up[cls_full_name.rsplit('.', 1)[-1]]()
+    return json.dumps(obj.zInfo, ensure_ascii=ensure_ascii, indent=indent)
 
 
 def getCacheInfo():

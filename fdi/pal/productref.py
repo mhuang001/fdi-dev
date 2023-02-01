@@ -315,7 +315,7 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
         """     true if o is a non-null ProductRef, with the same Product type than this one, and:
 
         urns and products are null in both refs, or
-        nurs are equal and products are null, or # <-- mh
+        unrs are equal and products are null, or # <-- mh
         urns are null in both refs, and their products are equal, or
         urns and products are equal in both refs
         """

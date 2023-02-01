@@ -487,13 +487,14 @@ def _eval(code='', m='', **kwds):
     return res
 
 
-def populate_pool2(tags, ptype, dTypes=None, dTags=None):
+def populate_pool2(tags, ptype, sn=None, dTypes=None, dTags=None):
     """
     tags : list
         The tags in a list.
     ptype : str
         The product name / datatype / class name of the data item, new or existing.
-
+    sn : str
+        Serial number. If is `None`, use the one in `dTypes`.
     Returns
     -------
     tuple
@@ -507,7 +508,11 @@ def populate_pool2(tags, ptype, dTypes=None, dTags=None):
         dTags = {}
 
     if ptype in dTypes:
-        int_sn = dTypes[ptype]['currentSN'] + 1
+        if sn:
+            int_sn = int(sn)
+        else:
+            int_sn = dTypes[ptype]['currentSN'] + 1
+
     else:
         int_sn = 0
         dTypes[ptype] = {
@@ -839,7 +844,8 @@ class ManagedPool(ProductPool, dicthk.DictHk):
                                 tag.__class__.__name__)
             # new ####
             self._dTypes, self._dTags, _sn = \
-                populate_pool2(tags, pn, self._dTypes, self._dTags)
+                populate_pool2(tags, pn, sn=None,
+                               dTypes=self._dTypes, dTags=self._dTags)
 
             # if 0:
             #     if tag is None:
@@ -1021,9 +1027,9 @@ class ManagedPool(ProductPool, dicthk.DictHk):
             # assert list(dTypes[datatype]['sn']) == list(c[datatype]['sn'])
         if issubclass(sn.__class__, (list, tuple)):
             sns = sn
-            if asyn:
-                res = self.doAsyncRemove(resourcetype=datatype, index=sns)
-                return res
+            # paralell local remove not implemented
+            res = self.doRemove(resourcetype=datatype, index=sns, asyn=asyn)
+            return res
         else:
             sns = [sn]
         for i, ind in enumerate(sns):

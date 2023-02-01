@@ -361,7 +361,7 @@ class LocalPool(ManagedPool):
 
         return r
 
-    def doRemove(self, resourcetype, index):
+    def doRemove(self, resourcetype, index, **kwds):
         """
         does the action of removal of product from pool.
         """
@@ -382,9 +382,9 @@ class LocalPool(ManagedPool):
                 msg = f'Remove failed. exc: {e} trbk: {trbk(e)}'
                 logger.debug(msg)
                 if self.ignore_error_when_delete:
-                    raise
-                else:
                     continue
+                else:
+                    raise
         return 0
 
     def doWipe(self):

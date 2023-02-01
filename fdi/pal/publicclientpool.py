@@ -4,7 +4,7 @@ from fdi.httppool.session import requests_retry_session
 from fdi.dataset.product import Product, BaseProduct
 from fdi.dataset.serializable import serialize
 from fdi.pal.poolmanager import PoolManager
-from fdi.pal.productpool import ManagedPool
+from fdi.pal.productpool import ManagedPool, populate_pool2
 from fdi.pal.productref import ProductRef
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.urn import makeUrn, parse_poolurl, Urn, parseUrn
@@ -36,10 +36,6 @@ Problem:
 2. No pattern for pool path, API use poolname+random name instead of pool <scheme>://<place><poolpath>/<poolname>
 3. getMetaByUrn(self, urn, resourcetype=None, index=None) What's means resourcetype and index?
 """
-
-
-def info2hk(data):
-    pass
 
 
 class PublicClientPool(ManagedPool):
@@ -175,25 +171,31 @@ class PublicClientPool(ManagedPool):
                 _tags= {urns:[]}
         """
         res = read_from_cloud(
-            'infoPool', poolpath=self.poolname, token=self.token)
+            'infoPool', pool=self.poolname, token=self.token)
         if res['code'] == 0:
-            if res['data']:
-                self.poolInfo = res['data']
-                if update_hk:
-                    info2hk(res['data'])
-                return self.poolInfo
+            rdata = res['data']
+            if rdata:
+                self.poolInfo = rdata
+                if self._poolname in rdata:
+                    if update_hk:
+                        for urn, tags in rdata[self._poolname]['_urns'].items():
+                            pool, ptype, sn = parseUrn(urn)
+                            self._dTypes, self._dTags, sn = \
+                                populate_pool2(tags, ptype, sn, self._dTypes,
+                                               self._dTags)
+                        logger.debug(
+                            f'HK updated for the pool {self.poolname}.')
+                else:
+                    logger.info(f'No pool found by the name {self.poolname}')
             else:
-                self._dTypes = None
-                self._dTags = None
-
-                return 'No data in the pool ' + self.poolurl
+                logger.info(f'No pool found.')
+            return rdata
         else:
             raise ValueError(res['msg'])
 
     def exists(self, urn):
         """
         Determines the existence of a product with specified URN.
-        cloud: urn:poolbs:20211018:0,urn:poolbs:20211018:1
         """
         res = read_from_cloud('infoUrn', urn=urn, token=self.token)
         if res['code'] == 0:
@@ -208,23 +210,17 @@ class PublicClientPool(ManagedPool):
         """
         classes = []
         try:
-            if self.poolInfo:
-                # for clz in self.poolInfo[self.poolname]['_classes']:
-                #    classes.append(clz['productTypeName'])
-                pass
-            else:
+            if self.poolInfo is None:
                 self.getPoolInfo()
                 if self.poolInfo is None:
                     # No such pool in cloud
                     return None
-                # for clz in self.poolInfo[self.poolname]['_classes']:
-                #    classes.append(clz['productTypeName'])
+            for clz in self.poolInfo[self.poolname]['_classes']:
+                classes.append(clz['productTypeName'])
+
             classes = list(self.poolInfo[self.poolname]['_classes'])
             return classes
         except TypeError as e:
-            raise TypeError(
-                'Pool info API changed or unexpected information: ' + str(e))
-        except KeyError as e:
             raise TypeError(
                 'Pool info API changed or unexpected information: ' + str(e))
 
@@ -265,8 +261,7 @@ class PublicClientPool(ManagedPool):
         return res
 
     def meta(self, *args, **kwds):
-        """
-        Loads the meta-data info belonging to the product of specified URN.
+        """        Loads the meta-data info belonging to the product of specified URN.
         """
         return self.getMetaByUrn(*args, **kwds)
 
@@ -295,14 +290,18 @@ class PublicClientPool(ManagedPool):
             return res
         return self.get_DataInfo(urn, 'productType')
 
-    def getDataInfo(self, urn=None, prop='tags', limit=None):
+    def getDataInfo(self, urn=None, what='tags', limit=None):
         """Returns the CSDB storage information of one or a list of URNs.
 
         Parameters
         ----------
         urn : str, list, None
             URN, URNs, or `None`
-        prop : str
+        what : str
+            which item in ['data'] list to return. e.g. 'urn' means a list
+            of URNs found in the poolname. 'count' means the length of
+            ['data'].
+
         limit : int
             Maximum record number. None for no limit.
 
@@ -310,8 +309,7 @@ class PublicClientPool(ManagedPool):
         -------
         dict, list
             None if `urn` is not given or is None. one or a list of
-            info records (None if the URN is not found, '' of no
-            property.
+            info records (None if the URN is not found).
 
         Examples
         --------
@@ -321,8 +319,9 @@ class PublicClientPool(ManagedPool):
 
         alist = issubclass(urn.__class__, (list, tuple))
         urns = urn if alist else [urn]
-        res = read_from_cloud('getInfo', token=self.token, urn=urns)
-        return [r['type'] for r in res] if alist else res['type']
+        res = read_from_cloud('getInfo', token=self.token,
+                              urn=urns, limit=limit)
+        return [r[what] for r in res] if alist else res[0][what] if res else None
 
     def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
         path = '/' + self._poolname + '/' + resourcetype
@@ -439,22 +438,22 @@ class PublicClientPool(ManagedPool):
             else:
                 # parse '[ size1, prd, size2, prd2, ...]'
 
-                last_end = 1
-                productlist = []
-                comma = products.find(',', last_end)
+                last_end=1
+                productlist=[]
+                comma=products.find(',', last_end)
                 while comma > 0:
-                    length = int(products[last_end: comma])
+                    length=int(products[last_end: comma])
                     productlist.append(length)
-                    last_end = comma + 1 + length
-                    prd = products[comma + 2: last_end + 1]
+                    last_end=comma + 1 + length
+                    prd=products[comma + 2: last_end + 1]
                     self.saveOne(prd, tag, geturnobjs,
                                  serialize_in, serialize_out, res, kwds)
                     # +2 to skip the following ', '
                     last_end += 2
-                    comma = products.find(',', last_end)
+                    comma=products.find(',', last_end)
         # XXX refresh currentSn on server
         self.getPoolInfo()
-        sz = 1 if not alist else len(
+        sz=1 if not alist else len(
             products) if serialize_in else len(productlist)
         logger.debug('%d product(s) generated %d %s: %s.' %
                      (sz, len(res), 'Urns ' if geturnobjs else 'prodRefs', lls(res, 200)))
@@ -469,17 +468,17 @@ class PublicClientPool(ManagedPool):
         """ do the scheme-specific loading
         """
 
-        spn = self._poolname
-        poolInfo = read_from_cloud(
+        spn=self._poolname
+        poolInfo=read_from_cloud(
             'infoPoolType', pools=spn, token=self.token)
         try:
             if poolInfo['data']:
-                poolInfo = poolInfo['data']
+                poolInfo=poolInfo['data']
                 if spn in poolInfo:
                     if index in poolInfo[spn]['_classes'][resourcetype]['sn']:
-                        urn = makeUrn(poolname=spn,
+                        urn=makeUrn(poolname=spn,
                                       typename=resourcetype, index=index)
-                        res = self.doLoadByUrn(urn)
+                        res=self.doLoadByUrn(urn)
                         # res is a product like fdi.dataset.product.Product
 
                         if issubclass(res.__class__, BaseProduct):
@@ -506,7 +505,7 @@ class PublicClientPool(ManagedPool):
         raise NotImplementedError
 
     def doLoadByUrn(self, urn):
-        res = load_from_cloud('pullProduct', token=self.token, urn=urn)
+        res=load_from_cloud('pullProduct', token=self.token, urn=urn)
         return res
 
     # def schematicRemove(self, urn=None, resourcetype=None, index=None, asyn=False, **kwds):
@@ -534,11 +533,11 @@ class PublicClientPool(ManagedPool):
         """ to be implemented by subclasses to do the action of reemoving
         """
         # path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
-        path0 = f'/{self._poolname}/{resourcetype}'
-        path = f'{path0}/{index}'
-        res = read_from_cloud('remove', token=self.token, path=path)
+        path0=f'/{self._poolname}/{resourcetype}'
+        path=f'{path0}/{index}'
+        res=read_from_cloud('remove', token=self.token, path=path)
         if res['code']:
-            msg = f"Remove product_meta {path} failed: {res['msg']}"
+            msg=f"Remove product_meta {path} failed: {res['msg']}"
             raise ValueError(msg)
 
         return res
@@ -548,7 +547,7 @@ class PublicClientPool(ManagedPool):
         """
         # path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
 
-        res = read_from_cloud('remove', token=self.token, path=path)
+        res=read_from_cloud('remove', token=self.token, path=path)
         if res['code'] and not getattr(self, 'ignore_error_when_delete', False):
             raise ValueError(
                 f"Remove product_meta {path} failed: {res['msg']}")
@@ -563,7 +562,7 @@ class PublicClientPool(ManagedPool):
     def doWipe(self, restore_type=False):
         """ to be implemented by subclasses to do the action of wiping.
         """
-        poolname = self._poolname
+        poolname=self._poolname
 
         # res = read_from_cloud(
         #     'wipePool', poolname=poolname, token=self.token)
@@ -571,24 +570,24 @@ class PublicClientPool(ManagedPool):
         #     raise ValueError('Wipe pool ' + poolname +
         #                      ' failed: ' + res['msg'])
         # return
-        info = self.getPoolInfo()
-        path = None
+        info=self.getPoolInfo()
+        path=None
         if isinstance(info, dict):
             for clazz, cld in info[poolname]['_classes'].items():
-                path = f'/{poolname}/{clazz}'
+                path=f'/{poolname}/{clazz}'
 
                 if clazz == 'fdi.dataset.testproducts.TP':
                     # csdb bug, remove all one-by-one
                     for s in cld['sn']:
                         if s == 426:
                             continue
-                        res = self.doRemove(resourcetype=clazz, index=s)
+                        res=self.doRemove(resourcetype=clazz, index=s)
                 else:
                     # can use delDataType
-                    res = read_from_cloud(
+                    res=read_from_cloud(
                         'delDataType', path=path, token=self.token)
                 if res['msg'] != 'success':
-                    msg = f'Wipe pool {poolname} failed: ' + res['msg']
+                    msg=f'Wipe pool {poolname} failed: ' + res['msg']
                     if getattr(self, 'ignore_error_when_delete', False):
                         logger.warning(msg)
                     else:
@@ -596,10 +595,10 @@ class PublicClientPool(ManagedPool):
 
             if restore_type:
                 # restore deleted datatype by error by csdb
-                res = read_from_cloud(
+                res=read_from_cloud(
                     'uploadDataType', cls_full_name=clazz, token=self.token)
                 if res['code'] != 0:
-                    msg = f'Restoring Datatype {clazz} when wiping pool {poolname} failed: ' + \
+                    msg=f'Restoring Datatype {clazz} when wiping pool {poolname} failed: ' + \
                         res['msg']
                     if getattr(self, 'ignore_error_when_delete', False):
                         logger.warning(msg)
@@ -616,12 +615,12 @@ class PublicClientPool(ManagedPool):
         ----------
         :tag: tag or list of tags.
         """
-        u = urn.urn if issubclass(urn.__class__, Urn) else urn
+        u=urn.urn if issubclass(urn.__class__, Urn) else urn
         if not self.exists(urn):
             raise ValueError('Urn does not exists!')
         if isinstance(tag, (list, str)) and len(tag) > 0:
-            t = ', '.join(tag) if isinstance(tag, list) else tag
-            res = read_from_cloud(
+            t=', '.join(tag) if isinstance(tag, list) else tag
+            res=read_from_cloud(
                 'addTag', token=self.token, tags=t, urn=u)
             if res['msg'] != 'OK':
                 raise ValueError('Set tag to ' + urn +
@@ -630,10 +629,10 @@ class PublicClientPool(ManagedPool):
             raise ValueError('Tag can not be empty or non-string!')
 
     def getTags(self, urn=None):
-        u = urn.urn if issubclass(urn.__class__, Urn) else urn
-        res = read_from_cloud('infoUrn', urn=u, token=self.token)
+        u=urn.urn if issubclass(urn.__class__, Urn) else urn
+        res=read_from_cloud('infoUrn', urn=u, token=self.token)
         if res['code'] == 0:
-            ts = [t.split(',') for t in res['data'][u]['tags']]
+            ts=[t.split(',') for t in res['data'][u]['tags']]
             return [x.strip() for x in chain(*ts)]
         else:
             raise ValueError('Read tags failed due to : ' + res['msg'])
@@ -643,7 +642,7 @@ class PublicClientPool(ManagedPool):
 
     def removeTag(self, tag):
         if isinstance(tag, str):
-            res = delete_from_server('delTag', token=self.token, tag=tag)
+            res=delete_from_server('delTag', token=self.token, tag=tag)
         else:
             raise ValueError('Tag must be a string!')
 

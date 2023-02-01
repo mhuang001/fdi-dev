@@ -8,7 +8,7 @@ from ..utils.common import fullname
 
 import sys
 import os
-import builtins
+import functools
 from collections import OrderedDict, ChainMap
 
 import logging
@@ -275,19 +275,8 @@ def parseUrn(urn, int_index=True, check_poolename=None):
     * If `urn` is a list URNs and not all of them have identical poolname or not identical resourceclasses, returns a tuple `(list_of_poolname, list_of_resourceclass, list-of-index), ...)`
 
     """
-
-    if urn is None or urn == '':
-        return (None, None, None)
-    if issubclass(urn.__class__, (list, tuple)):
-        urns = urn
-        alist = True
-    else:
-        urns = [urn]
-        alist = False
-    res, pnames, ptypes, inds = [], [], [], []
-    first = True
-    same_pname, same_type = True, True
-    for urn in urns:
+    @functools.lru_cache(maxsize=512)
+    def _parse(urn):
         if not issubclass(urn.__class__, strset):
             raise ValueError('a string is needed: ' + str(urn))
         # is a urn str?
@@ -310,6 +299,20 @@ def parseUrn(urn, int_index=True, check_poolename=None):
             poolname = None
         if len(resourcetype) == 0:
             resourcetype = None
+        return poolname, resourcetype, index
+    if urn is None or urn == '':
+        return (None, None, None)
+    if issubclass(urn.__class__, (list, tuple)):
+        urns = urn
+        alist = True
+    else:
+        urns = [urn]
+        alist = False
+    res, pnames, ptypes, inds = [], [], [], []
+    first = True
+    same_pname, same_type = True, True
+    for urn in urns:
+        poolname, resourcetype, index = _parse(urn)
         if first:
             first_pname, first_type = poolname, resourcetype
             first = False

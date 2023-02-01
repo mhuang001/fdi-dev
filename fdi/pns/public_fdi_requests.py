@@ -60,13 +60,15 @@ def read_from_cloud(requestName, client=None, asyn=False, **kwds):
             requestAPI = default_base + \
                 '/storage/info?urns=' + kwds['urn']
         elif requestName == 'infoPool':
+            limit = kwds.get('limit', 10000)
             requestAPI = default_base + \
-                '/storage/info?pageIndex=1&pageSize=10000&pools=' + \
-                kwds['poolpath']
+                f'/storage/info?pageIndex=1&pageSize={limit}&pools=' + \
+                kwds['paths']
         elif requestName == 'infoPoolType':
+            limit = kwds.get('limit', 10000)
             # use pools instead of paths -mh
             requestAPI = default_base + \
-                '/storage/info?pageIndex=1&pageSize=10000&pools=' + \
+                f'/storage/info?pageIndex=1&pageSize={limit}&&pools=' + \
                 kwds['pools']
         else:
             raise ValueError("Unknown request API: " + str(requestName))

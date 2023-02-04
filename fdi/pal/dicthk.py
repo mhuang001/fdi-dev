@@ -13,6 +13,55 @@ logger = logging.getLogger(__name__)
 HKDBS = ['classes', 'tags', 'urns', 'dTypes', 'dTags']
 
 
+def get_missing(self, urn, datatype, sn, no_check=False):
+    """ make URN(s) if datatype and sn(s) are given and vice versa.
+
+    Parameters
+    ----------
+
+    no_check: bool
+        Do not Check if `datatype` and `sn` are in the pool's HK.
+        Default is `False`
+    Return
+    ------
+    tuple
+    str, str, int
+        Refer tp `parseUrn`.
+
+    Raises
+    ------
+    ValueError if urn not found or not from this pool.
+    KeyError if datatype does not exist.
+    IndexError if sn does not exist.
+    """
+    if urn is None and datatype is None and sn is None:
+        return None, None, None
+
+    if datatype is None or sn is None and urn is not None:
+        # new ###
+        poolname, datatype, sn = parseUrn(urn, int_index=True)
+    else:
+        # datatype+sn takes priority over urn
+        urn = makeUrn(self._poolname, datatype, sn)
+
+    u = urn.urn if issubclass(urn.__class__, Urn) else urn
+    # new ###
+    if not no_check:
+        if datatype not in self._dTypes:
+            raise KeyError(
+                f'{datatype} not found in pool {self._poolname}')
+        sns = sn if issubclass(sn.__class__, (list, tuple)) else [sn]
+        for _sn in sns:
+            if _sn not in self._dTypes[datatype]['sn']:
+                raise IndexError('%s:%d not found in pool %s.' %
+                                 (datatype, _sn, self._poolname))
+    # /new ###
+    if 0:
+        if u not in self._urns:
+            raise ValueError(urn + ' not found in pool ' + self._poolname)
+    return u, datatype, sn
+
+
 def add_tag_datatype_sn(tag, datatype, sn, dTypes=None, dTags=None):
     """Static function to  add a tag to datatype-sn to pool fmt 2.0
 
@@ -60,50 +109,6 @@ class DictHk(Taggable):
         self._dTypes = dict()
         self._dTags = dict()
 
-    def get_missing(self, urn, datatype, sn, no_check=False):
-        """ make URN(s) if datatype and sn(s) are given and vice versa.
-
-        Return
-        ------
-        tuple
-        str, str, int
-            Refer tp `parseUrn`.
-
-        Raises
-        ------
-        ValueError if urn not found or not from this pool.
-        KeyError if datatype does not exist.
-        IndexError if sn does not exist.
-        """
-        if urn is None and datatype is None and sn is None:
-            # assert list(self._classes.keys()) == list(self._dTypes.keys())
-            return None, None, None
-
-        if datatype is None or sn is None and urn is not None:
-            # new ###
-            poolname, datatype, sn = parseUrn(urn, int_index=True,
-                                              check_poolename=self._poolname)
-        else:
-            # datatype+sn takes priority over urn
-            urn = makeUrn(self._poolname, datatype, sn)
-
-        u = urn.urn if issubclass(urn.__class__, Urn) else urn
-        # new ###
-        if not no_check:
-            if datatype not in self._dTypes:
-                raise KeyError(
-                    f'{datatype} not found in pool {self._poolname}')
-            sns = sn if issubclass(sn.__class__, (list, tuple)) else [sn]
-            for _sn in sns:
-                if _sn not in self._dTypes[datatype]['sn']:
-                    raise IndexError('%s:%d not found in pool %s.' %
-                                     (datatype, _sn, self._poolname))
-        # /new ###
-        if 0:
-            if u not in self._urns:
-                raise ValueError(urn + ' not found in pool ' + self._poolname)
-        return u, datatype, sn
-
     def getTags(self, urn=None, datatype=None, sn=None):
         """ 
         Get all of the tags that map to a given URN or a pair of data type and serial number.
@@ -125,6 +130,8 @@ class DictHk(Taggable):
             return self._urns[urn]['tags']
 
         return self._dTypes[datatype]['sn'][sn]['tags']
+
+    get_missing = get_missing
 
     def getTagUrnMap(self):
         """

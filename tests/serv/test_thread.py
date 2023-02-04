@@ -4,7 +4,7 @@ from serv.test_httppool import getPayload, check_response
 from fdi.utils.getconfig import getConfig
 from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
-from fdi.pns.fdi_requests import safe_client, aio_client, get_aio_result
+from fdi.pns.fdi_requests import safe_client, reqst, get_aio_result
 
 import sys
 import json
@@ -101,7 +101,7 @@ def test_cio_post2(num_pool):
 
     start_time = time.time()
     purls = [poolurl] * len(plist)
-    urns = aio_client('post', apis=purls, data=plist, headers=header)
+    urns = reqst('post', apis=purls, data=plist, headers=header)
 
     print("--- %s seconds ---" % (time.time() - start_time))
     assert len(urns) == Number
@@ -169,7 +169,7 @@ def test_cio_read2(num_pool):
     start_time = time.time()
 
     apis = [aburl+'/'+u for u in urns]
-    res = aio_client('get', apis=apis, headers=header)
+    res = reqst('get', apis=apis, headers=header)
 
     assert len(urns) == Number
     print("--- %s seconds ---" % (time.time() - start_time))
@@ -188,7 +188,7 @@ def test_cio_remove2(num_pool):
     start_time = time.time()
 
     apis = [aburl+'/'+u for u in urns]
-    res = aio_client('delete', apis=apis, headers=header)
+    res = reqst('delete', apis=apis, headers=header)
 
     print("--- %s seconds --- %d" % (time.time() - start_time, len(res)))
     assert len(res) == Number

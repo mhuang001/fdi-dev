@@ -110,9 +110,9 @@ def remoteUnregister(poolurl, auth=None, client=None):
         raise NameError(
             f'Remote Unregistering failed. {poolurl} not registered or not suitable.')
     from ..pns.fdi_requests import delete_from_server
-    #url = api_baseurl + post_poolid
-    #x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
-    #o = deserialize(x.text)
+    # url = api_baseurl + post_poolid
+    # x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+    # o = deserialize(x.text)
     urn = 'urn:::0'
     try:
         res, msg = delete_from_server(
@@ -120,9 +120,12 @@ def remoteUnregister(poolurl, auth=None, client=None):
     except ConnectionError as e:
         res, msg = 'FAILED', str(e)
     if res == 'FAILED':
-        logger.warning('Ignored: Unregistering ' +
-                       poolurl + ' failed.  ' + msg)
-        code = 2
+        msg = f'Unregistering {poolurl} failed. {msg}'
+        if getattr(poolo, 'ignore_error_when_delete', False):
+            logger.info('Ignored: ' + msg)
+            code = 2
+        else:
+            raise ValueError(msg)
     else:
         code = 0
     return code
@@ -263,9 +266,9 @@ Pools registered are kept as long as the last reference remains. When the last i
                 res, msg = remoteRegister(p)
             else:
                 raise NotImplementedError(schm + ':// is not supported')
-        #print(getweakrefs(p), id(p), '////')
+        # print(getweakrefs(p), id(p), '////')
         cls.save(poolname, p)
-        #print(getweakrefs(p), id(p))
+        # print(getweakrefs(p), id(p))
 
         # Pass poolurl to PoolManager.remove() for remote pools
         # finalize(p, print, poolname, poolurl)

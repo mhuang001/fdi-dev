@@ -8,7 +8,7 @@ from .productref import ProductRef
 from .productpool import ProductPool
 from ..httppool.session import requests_retry_session
 
-from .dicthk import HKDBS
+from .dicthk import HKDBS, get_missing
 from ..utils.common import trbk, lls, fullname
 from .urn import Urn, makeUrn
 
@@ -126,6 +126,8 @@ class HttpClientPool(ProductPool):
 
         return False
 
+    get_missing = get_missing
+
     # @toServer()
     def readHK(self):
         """
@@ -233,17 +235,18 @@ class HttpClientPool(ProductPool):
 
         urn or (resourcetype, index)
         """
-        if urn is None:
-            if resourcetype is None or index is None:
-                raise ValueError()
-            urn = makeUrn(self._poolname, resourcetype, index)
+        urn, datatype, sn = self.get_missing(
+            urn, resourcetype, index, no_check=True)
         res, msg = delete_from_server(
             urn, self._poolurl, auth=self.auth, client=self.client,
             asyn=asyn, **kwds)
         if res == 'FAILED':
-            logger.error('Remove from server ' + self._poolname +
-                         ' failed. Caused by: ' + msg)
-            raise RuntimeError(msg)
+            msg = 'Remove from server ' + self._poolname +\
+                ' failed. Caused by: ' + msg
+            if getattr(self, 'ignore_error_when_delete', False):
+                logger.warning(msg)
+            else:
+                raise RuntimeError(msg)
         return 0
 
     def doWipe(self):
@@ -252,10 +255,13 @@ class HttpClientPool(ProductPool):
         """
 
         res, msg = delete_from_server(
-            None, self._poolurl, 'pool', client=self.client)
+            None, self._poolurl, 'pool', client=self.client,
+            asyn=asyn, **kwds)
         if res == 'FAILED':
-            logger.error(msg)
-            raise Exception(msg)
+            if getattr(self, 'ignore_error_when_delete', False):
+                logger.warning(msg)
+            else:
+                raise Exception(msg)
         return res
 
     @ toServer()

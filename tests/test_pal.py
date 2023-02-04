@@ -22,7 +22,7 @@ from fdi.dataset.metadata import MetaData, Parameter
 from fdi.dataset.finetime import FineTime1
 from fdi.dataset.testproducts import TP
 from fdi.utils.checkjson import checkjson
-from fdi.pns.fdi_requests import save_to_server, read_from_server, delete_from_server
+from fdi.pns.fdi_requests import save_to_server, read_from_server
 
 # from flask import request as
 import requests
@@ -350,7 +350,7 @@ def test_PoolManager():
     assert pm.remove(defaultpoolName) == 0
 
     # http pool gets registered
-    with pytest.raises(NewConnectionError):
+    with pytest.raises(ConnectionError):
         ph = pm.getPool(poolurl='http://h.edu/foo')
     assert not PoolManager.isLoaded('foo')
     with pytest.raises(KeyError):

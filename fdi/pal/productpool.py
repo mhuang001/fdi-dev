@@ -10,7 +10,12 @@ from .versionable import Versionable
 from .taggable import Taggable
 from . import dicthk
 from .definable import Definable
-from ..utils.common import pathjoin, fullname, lls, trbk
+from ..utils.common import (fullname, lls, trbk, pathjoin,
+                            logging_ERROR,
+                            logging_WARNING,
+                            logging_INFO,
+                            logging_DEBUG
+                            )
 from .productref import ProductRef
 from .query import AbstractQuery, MetaQuery, StorageQuery
 
@@ -240,6 +245,36 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         return self.getId()
 
+    @staticmethod
+    def vectorize(*p):
+        """
+      ::
+        vectorize(9, [8,7,6]) -> ([9, 9, 9], [8, 7,  6], True)
+        """
+
+        lens = [len(v) if isinstance(v, (list, tuple)) else 0 for v in p]
+
+        sz = max(lens)
+        # remove redundant
+        s = set(lens)
+        alist = any(s)
+        # remove longest and scalar
+        s.remove(sz)
+        try:
+            s.remove(0)
+        except KeyError:
+            pass
+        if len(s):
+            # found more than 2 sizes
+            raise ValueError(f'Some args have different sizes {s}.')
+        if sz == 0:
+            # force scalar  to vector
+            sz = 1
+
+        res = [q if l else ([q] * sz) for q, l in zip(p, lens)]
+        res.append(alist)
+        return tuple(res)
+
     def isAlive(self):
         """
         Test if the pool is capable of responding to commands.
@@ -258,9 +293,9 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise (NotImplementedError)
 
-    def saveProduct(self, product, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, **kwds):
+    def saveProduct(self, product, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, asyn=False, **kwds):
         """
-        Saves specified product and returns the designated ProductRefs or URNs.
+        Saves specified product(s) and returns the designated ProductRefs or URNs.
 
         Saves a product or a list of products to the pool, possibly under the
         supplied tag(s), and returns the reference (or a list of references if
@@ -268,16 +303,28 @@ When implementing a ProductPool, the following rules need to be applied:
 
         See pal document for pool structure.
 
+        Parameters
+        ----------
+        product : BaseProduct, list
+            Product or a list of them or '[ size1, prd, size2, prd2, ...]'.
+        tag : str, list
+            If given a tag, all products will be having this tag.
+        If a list tags are given to every one product then the
+        number of tags must not be the same to that of `product`. If
+        they are equal, each tag is goven to the product at the same
+        index in the `product` list.
+        serialize_out : bool
+            if `True` returns contents in serialized form.
+        serialize_in : bool
+            If set, product input is serialized.
 
-        tag: a tag if given as a string type; a list of tags if given a list.
-        serialize_out: if True returns contents in serialized form.
         """
 
         res = self.schematicSave(product, tag=tag,
                                  geturnobjs=geturnobjs,
                                  serialize_in=serialize_in,
                                  serialize_out=serialize_out,
-                                 asyn=False, **kwds)
+                                 asyn=asyn, **kwds)
         if issubclass(product.__class__, str) or isinstance(product, list) and \
            issubclass(product[0].__class__, str):
             # p is urn string from server-side LocalPool
@@ -490,7 +537,7 @@ def _eval(code='', m='', **kwds):
 def populate_pool2(tags, ptype, sn=None, dTypes=None, dTags=None):
     """
     tags : list
-        The tags in a list.
+        The tags in a list. `None` and empty tags are ignored.
     ptype : str
         The product name / datatype / class name of the data item, new or existing.
     sn : str
@@ -508,13 +555,12 @@ def populate_pool2(tags, ptype, sn=None, dTypes=None, dTags=None):
         dTags = {}
 
     if ptype in dTypes:
-        if sn:
-            int_sn = int(sn)
-        else:
+        if sn is None:
             int_sn = dTypes[ptype]['currentSN'] + 1
-
+        else:
+            int_sn = int(sn)
     else:
-        int_sn = 0
+        int_sn = 0 if sn is None else int(sn)
         dTypes[ptype] = {
             'currentSN': int_sn,
             'sn': {}
@@ -531,8 +577,9 @@ def populate_pool2(tags, ptype, sn=None, dTypes=None, dTags=None):
     dTypes[ptype]['currentSN'] = int_sn
 
     # /new #####
-    for t in tags:
-        dicthk.add_tag_datatype_sn(t, ptype, int_sn, dTypes, dTags)
+    if tags is not None:
+        for t in tags:
+            dicthk.add_tag_datatype_sn(t, ptype, int_sn, dTypes, dTags)
 
     return dTypes, dTags, _sn
 
@@ -700,6 +747,19 @@ class ManagedPool(ProductPool, dicthk.DictHk):
         return self._dTypes
         # return self._urns[urn]
 
+    def readHK():
+        """ Subclass should overide this.
+
+        Returns
+        -------
+        tuple
+          Of 5 dicts that are the legacy `self._classes`, `self._tags`,
+           `self._urns`, and
+                    `self._dTypes`, `self._dTags`
+
+        """
+        raise NotImplementedError()
+
     def setMetaByUrn(self, start, end, urn=None, datatype=None, sn=None):
         """
         Sets the location of the meta data of the specified data to the given URN or a pair of data type and serial number.
@@ -712,7 +772,7 @@ class ManagedPool(ProductPool, dicthk.DictHk):
         :sn: serial number in string.
         """
 
-        raise NotImplemented
+        raise NotImplementedError()
 
     def getMetaByUrn(self, urn=None, resourcetype=None, index=None):
         """
@@ -745,7 +805,7 @@ class ManagedPool(ProductPool, dicthk.DictHk):
                 self._urns['refcnt'] = 0
             self._urns[ref.urn]['refcnt'] += 1
 
-    def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, kwds):
+    def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, **kwds):
         """
         Save one product.
 
@@ -790,7 +850,7 @@ class ManagedPool(ProductPool, dicthk.DictHk):
                      'white': { 'foo.bar.Bar'; [0, 1] }
                      'dog': ...
 
-        :res: list of result.
+        :res: list of results.
         :serialize_out: if True returns contents in serialized form.
 
         Return
@@ -920,35 +980,64 @@ class ManagedPool(ProductPool, dicthk.DictHk):
 
     def schematicSave(self, products, tag=None, geturnobjs=False, serialize_in=True, serialize_out=False, asyn=False, **kwds):
         """ do the scheme-specific saving.
-        :product:  product or '[ size1, prd, size2, prd2, ...]'.
-        :serialize_out: if True returns contents in serialized form.
-        :serialize_in: if set, product input is seriaized.
 
-        Return
-        ------
-        `ProductRef`. `Urn` if `geturnobjs` is set. If `serialze_out` is set `str` of serialized form of `ProductRef` or `URN`.
+        Parameters
+        ----------
+        product : BaseProduct, list
+            Product or a list of them or '[ size1, prd, size2, prd2, ...]'.
+        tag : str, list
+            If given a tag, all products will be having this tag.
+        If a list tags are given to every one product then the
+        number of tags must not be the same to that of `product`. If
+        they are equal, each tag is goven to the product at the same
+        index in the `product` list.
+        serialize_out : bool
+            if `True` returns contents in serialized form.
+        serialize_in : bool
+            If set, product input is serialized.
 
-        `list` of the above of input is a list.
+        Returns
+        -------
+        ProductRef: Product reference.
+        Urn: If `geturnobjs` is set.
+        str: If `serialze_out` is set, serialized form of `ProductRef` or `URN`.
+        list: `list` of the above of input is a list.
         """
+
         res = []
+        alist = issubclass(products.__class__, list)
+        json_list = False
+
+        if alist:
+            if isinstance(tag, list) and len(tag) != len(products):
+                # make a list of tags to ','-separated tags
+                tag = ','.join(t for t in tag if t)
+            if isinstance(tag, str) or tag is None:
+                tag = [tag] * len(products)
 
         if serialize_in:
-            alist = issubclass(products.__class__, list)
             if not alist:
                 prd = products
                 self.saveOne(prd, tag, geturnobjs,
-                             serialize_in, serialize_out, res, kwds)
+                             serialize_in, serialize_out, res, **kwds)
             else:
-                for prd in products:
-                    # result is in res
-                    self.saveOne(prd, tag, geturnobjs,
-                                 serialize_in, serialize_out, res, kwds)
+                if asyn:
+                    prd = products
+                    self.asyncSave(prd, tag, geturnobjs,
+                                   serialize_in, serialize_out, res, **kwds)
+                else:
+                    for prd, t in zip(products, tag):
+                        # result is in res
+                        self.saveOne(prd, t, geturnobjs,
+                                     serialize_in, serialize_out, res, **kwds)
         else:
-            alist = products.lstrip().startswith('[')
-            if not alist:
+            if alist:
+                raise TypeError('a list cannot go with False serialize-in.')
+            json_list = products.lstrip().startswith('[')
+            if not json_list:
                 prd = products
                 self.saveOne(prd, tag, geturnobjs,
-                             serialize_in, serialize_out, res, kwds)
+                             serialize_in, serialize_out, res, **kwds)
             else:
                 # parse '[ size1, prd, size2, prd2, ...]'
 
@@ -961,15 +1050,16 @@ class ManagedPool(ProductPool, dicthk.DictHk):
                     last_end = comma + 1 + length
                     prd = products[comma + 2: last_end+1]
                     self.saveOne(prd, tag, geturnobjs,
-                                 serialize_in, serialize_out, res, kwds)
+                                 serialize_in, serialize_out, res, **kwds)
                     # +2 to skip the following ', '
                     last_end += 2
                     comma = products.find(',', last_end)
-        sz = 1 if not alist else len(
-            products) if serialize_in else len(productlist)
-        logger.debug('%d product(s) generated %d %s: %s.' %
-                     (sz, len(res), 'Urns ' if geturnobjs else 'prodRefs', lls(res, 200)))
-        if alist:
+        if logger.isEnabledFor(logging_DEBUG):
+            sz = 1 if not json_list and not alist else len(
+                products) if serialize_in else len(productlist)
+            logger.debug('%d product(s) generated %d %s: %s.' %
+                         (sz, len(res), 'Urns ' if geturnobjs else 'prodRefs', lls(res, 200)))
+        if alist or json_list:
             return serialize(res) if serialize_out else res
         else:
             return serialize(res[0]) if serialize_out else res[0]
@@ -990,7 +1080,7 @@ class ManagedPool(ProductPool, dicthk.DictHk):
                               serialize_out=serialize_out)
         return ret
 
-    def doRemove(self, resourcetype, index):
+    def doRemove(self, resourcetype, index, ayn=False):
         """ to be implemented by subclasses to do the action of reemoving
         """
         raise (NotImplementedError)
@@ -1014,37 +1104,41 @@ class ManagedPool(ProductPool, dicthk.DictHk):
             # if urn not in u:
             #     raise ValueError(
             #         '%s not found in pool %s.' % (urn, self.getId()))
-
-            # new ####
-            dTypes, dTags = self._dTypes, self._dTags
-            # /new ####
+            datatypes, sns, alist = ProductPool.vectorize(datatype, sn)
 
             self.removeUrn(urn, datatype=datatype, sn=sn)
 
-            # c[datatype]['sn'].remove(sn)
-            # if len(c[datatype]['sn']) == 0:
-            #     del c[datatype]
-            # assert list(dTypes[datatype]['sn']) == list(c[datatype]['sn'])
-        if issubclass(sn.__class__, (list, tuple)):
-            sns = sn
-            # paralell local remove not implemented
-            res = self.doRemove(resourcetype=datatype, index=sns, asyn=asyn)
-            return res
-        else:
-            sns = [sn]
-        for i, ind in enumerate(sns):
-            try:
-                res = self.doRemove(resourcetype=datatype, index=ind)
-            except Exception as e:
-                msg = f'product {urn} removal failed. {e} traceback: {trbk(e)}'
-                self._classes, self._tags, self._urns, \
-                    self._dTypes, self._dTags = tuple(
-                        self.readHK().values())
-                if getattr(self, 'ignore_error_when_delete', False):
-                    logger.warning(msg)
-                else:
-                    raise
-        return 0
+        if 0:
+            n = max(lr, li)
+            if lr and li and lr != li:
+                raise TypeError(
+                    f'Two args have different sizes {lr}, {li}.')
+            alist = lr or li
+            if n == 0:
+                n = 1
+            datatypes = datatype if lr else [datatype] * n
+            sns = sn if li else [sn] * n
+
+        res = self.doRemove(resourcetype=datatypes, index=sns, asyn=asyn)
+
+        res1 = res if alist else [res]
+        for i, r in enumerate(res1):
+            if r is None:
+                msg = f'product {urn[i]} removal failed.'
+                if isinstance(self, (LocalPool, MemPool, HTTPClientpool)):
+                    self._classes, self._tags, self._urns, \
+                        self._dTypes, self._dTags = tuple(
+                            self.readHK().values())
+                    if getattr(self, 'ignore_error_when_delete', False):
+                        raise
+                    else:
+                        logger.warning(msg)
+
+                    # can only do one at a time
+                    break
+                elif isinstance(self, (PublicClientPool)):
+                    self.getPoolInfo(update_hk=True)
+        return res if alist else res[0]
 
     def doWipe(self):
         """ to be implemented by subclasses to do the action of wiping.

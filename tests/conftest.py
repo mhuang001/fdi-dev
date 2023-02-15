@@ -3,6 +3,7 @@
 from werkzeug.datastructures import Authorization
 from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.dataset.classes import Class_Look_Up
+from fdi.dataset.deserialize import deserialize
 from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
 from fdi.pns.jsonio import getJsonObj
@@ -368,7 +369,7 @@ def demo_product():
     return v, get_related_product()
 
 
-csdb_pool_id = 'test_csdb_fdi'
+csdb_pool_id = 'test_csdb_fdi1'
 
 
 @ pytest.fixture(scope="session")
@@ -384,7 +385,10 @@ def urlcsdb(pc):
 def make_csdb(poolurl):
     client = the_session
     ps = ProductStorage(poolurl=poolurl, client=client)
+
     test_pool = ps.getWritablePool(True)  # PublicClientPool(poolurl=url)
+    assert test_pool
+
     return test_pool, poolurl, ps
 
 
@@ -394,11 +398,11 @@ def csdb(urlcsdb, pc):
     return make_csdb(url)
 
 
-@ pytest.fixture(scope="session")
+@ pytest.fixture(scope=SHORT)
 def csdb_new(urlcsdb, pc):
     url = pc['cloud_scheme'] + \
-        urlcsdb[len('csdb'):] + '/' + csdb_pool_id + str(time.time())
-    url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
+        urlcsdb[len('csdb'):] + '/' + csdb_pool_id + str(int(time.time()))
+    # url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
     return make_csdb(url)
 
 
@@ -461,31 +465,37 @@ def tmp_remote_storage(tmp_remote_storage_no_wipe):
 def tmp_prod_types():
     """ classe of temporary prods with sesion scope """
     ty = []
+    se = []
     for n in ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC'):
-        ty.append(Class_Look_Up[n])
-    return ty
+        cls = Class_Look_Up[n]
+        se.append(cls())
+        ty.append(cls)
+    return ty, se
 
 
-PRD0 = [get_demo_product('test-product-0: Demo_Product')]
-array_cls = Class_Look_Up['ArrayDataset']
+PRD0_ser = get_demo_product('test-product-0: Demo_Product')
+array_ser = Class_Look_Up['ArrayDataset']()
 
 
 @ pytest.fixture(scope=SHORT)
 def tmp_prods(tmp_prod_types):
     """ instances of temporary prods with function scope """
-
-    prds = copy.copy(PRD0)
-    for i, n in enumerate(tmp_prod_types):
-        if i == 0:
-            continue
-        p = n('test-product-%d: %s' % (i, n))
-        p['the_data'] = array_cls(data=[time.time(), n], unit='s')
-        prds.append(p)
-    logger.debug("Made products: %s" %
-                 str(list((p.description, id(p)) for p in prds)))
-    res = tuple(prds)
-    return res
-    # del res
+    types, seri = tmp_prod_types
+    while True:
+        prds = [copy.deepcopy(PRD0_ser)]
+        for i, n in enumerate(seri):
+            if i == 0:
+                continue
+            p = copy.deepcopy(n)
+            p.description = ('test-product-%d: %s' % (i, n))
+            a = copy.deepcopy(array_ser)
+            a.data = [[time.time(), n], 's']
+            p['the_data'] = a
+            prds.append(p)
+        logger.debug("Made products: %s" %
+                     str(list((p.description, id(p)) for p in prds)))
+        res = tuple(prds)
+        return res
 
 
 @ pytest.fixture(scope=SHORT)

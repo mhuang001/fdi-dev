@@ -1,5 +1,6 @@
-__version_info__ = (1, 27, 0)
+__version_info__ = (1, 28, 0)
 __version__ = '.'.join(map(str, __version_info__))
+# 1.28.0 csdb overaul and asynhttp. bug fixes,
 # 1.27.0 list input to `remove` localpool and subclasses. async io for HttpClientPool
 # 1.26.2 Implement namespace-based getConfig(). Fix unregister bug in PS.remove()
 # 1.26.1 simplify user config for httppool.

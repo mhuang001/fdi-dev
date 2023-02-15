@@ -67,23 +67,26 @@ def remoteRegister(pool):
                 'Registering ' + poolurl + ' failed with auth ' + np + ' , ' + msg)
         return res, msg
     elif issubclass(pool.__class__, publicclientpool.PublicClientPool):
-
+        from ..pns.fdi_requests import ServerError
         # register csdb pool. If existing, load. IF not exists, create and initialize sn.
-        status, poolres = pool.createPool2()
+        poolurl = pool._poolurl
+        try:
+            res = pool.createPool2()
 
-        if status:
             pool.getToken()
             pool.client.headers.update({'X-AUTH-TOKEN': pool.token})
-            if poolres['code'] == 1:
-                # exists
-                pinfo = pool.getPoolInfo()
+            msg = 'New pool made.'
+            pool.poolInfo = pool.getPoolInfo()
             res = 'OK'
-        elif not status:
-            msg = poolres['msg']
+        except ServerError as e:
+            # if e.code == 1:
+            #   msg = 'Pool exists or bad namw.'
+            msg = str(e)
             logger.error(
                 'Registering ' + poolurl + ' failed with auth ' + 'np' + ' , ' + msg)
             res = 'FAILED'
-        return res, poolres['msg']
+            raise
+        return res, msg
     else:
         return
 

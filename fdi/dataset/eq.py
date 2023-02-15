@@ -98,6 +98,7 @@ def deepcmp(obj1, obj2, seenlist=None, verbose=False, eqcmp=False, brief=True):
         pair = (id1, id2) if id1 < id2 else (id2, id1)
         c = o1.__class__
         c2 = o2.__class__
+
         _context.level += 1
         if v:
             print('deepcmp level %d seenlist length %d' %
@@ -494,7 +495,7 @@ class DeepcmpEqual(object):
                             verbose=verbose,
                             brief=brief)
             else:
-                return 1 if brief else('different classes')
+                return 1 if brief else ('different classes')
         else:
             r = deepcmp(self, obj, seenlist=seenlist,
                         verbose=verbose, brief=brief)

@@ -7,11 +7,13 @@ from ..pal import webapi
 from .fdi_requests import reqst, cached_json_dumps
 
 from ..httppool.session import requests_retry_session
+import aiohttp
 
 import functools
 import logging
 import sys
 import json
+import copy
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -42,7 +44,32 @@ def getAuth(user=AUTHUSER, password=AUTHPASS):
     return HTTPBasicAuth(user, password)
 
 
-def read_from_cloud(requestName, client=None, asyn=False, **kwds):
+def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **kwds):
+    """Apply GET method to CSDB server and get reply info back.
+
+    if k-v parameters in kwds are simple values, return simple result,
+    or parts of them; is v is a list, return a list of values of each
+    member of v.
+
+    Parameters
+    ----------
+    requestName : str
+    client : str, method-func
+    asyn : bool
+        Run asynchronously. On of the parameters must be a list.
+    **kwds :
+
+    Returns
+    -------
+    obj, list
+
+    Raises
+    ------
+    ValueError
+
+
+    """
+
     if client is None:
         client = session
     header = {'Content-Type': 'application/json;charset=UTF-8'}
@@ -50,32 +77,36 @@ def read_from_cloud(requestName, client=None, asyn=False, **kwds):
         requestAPI = defaulturl + '/user/auth/token'
         postData = {'username': AUTHUSER, 'password': AUTHPASS}
         res = reqst(client.post, requestAPI, headers=header,
-                    data=serialize(postData))
+                    data=serialize(postData), server_type=server_type, **kwds)
     elif requestName == 'verifyToken':
-        requestAPI = defaulturl + '/user/auth/verify?token=' + kwds['token']
-        res = reqst(client.get, requestAPI)
+        requestAPI = defaulturl + \
+            '/user/auth/verify?token=' + kwds.pop('token', '')
+        res = reqst(client.get, requestAPI, server_type=server_type, **kwds)
     elif requestName[0:4] == 'info':
-        header['X-AUTH-TOKEN'] = kwds['token']
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         if requestName == 'infoUrn':
             requestAPI = default_base + \
-                '/storage/info?urns=' + kwds['urn']
+                '/storage/info?urns=' + kwds.pop('urn')
         elif requestName == 'infoPool':
-            limit = kwds.get('limit', 10000)
+            limit = kwds.pop('limit', 10000)
+            getc = 1 if kwds.pop('getCount', 0) else 0
             requestAPI = default_base + \
-                f'/storage/info?pageIndex=1&pageSize={limit}&pools=' + \
-                kwds['pools']
+                f'/storage/info?getCount={getc}&pageIndex=1&pageSize={limit}&pools=' + \
+                kwds.pop('pools')
         else:
             raise ValueError("Unknown request API: " + str(requestName))
-        res = reqst(client.get, requestAPI, headers=header)
+        res = reqst(client.get, requestAPI, headers=header,
+                    server_type=server_type, **kwds)
 
     elif requestName == 'getMeta':
-        header['X-AUTH-TOKEN'] = kwds['token']
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         requestAPI = default_base + \
-            '/storage/meta?urn=' + kwds['urn']
-        res = reqst(client.get, requestAPI, headers=header)
-        return deserialize(json.dumps(res.json()['data']['_ATTR_meta']))
+            '/storage/meta?urn=' + kwds.pop('urn')
+        res = reqst(client.get, requestAPI, headers=header,
+                    server_type=server_type, **kwds)
+        return res['_ATTR_meta']
     elif requestName == 'getDataInfo':
-        header['X-AUTH-TOKEN'] = kwds['token']
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         requestAPI0 = default_base + \
             '/storage/searchByPoolOrPath?limitCount=%d'
 
@@ -85,7 +116,7 @@ def read_from_cloud(requestName, client=None, asyn=False, **kwds):
               "msg": "OK",
               "data": [
                 {
-                  "url": "http://{host}:{port}/csdb/v1/storage/test_csdb_fdi/fdi.dataset.testproducts.TCC/732",
+                  "url": "http://...:.../csdb/v1/storage/test_csdb_fdi/fdi.dataset.testproducts.TCC/732",
                   "path": "/test_csdb_fdi/fdi.dataset.testproducts.TCC/732",
                   "urn": "urn:test_csdb_fdi:fdi.dataset.testproducts.TCC:732",
                   "timestamp": 1675267011883,
@@ -95,29 +126,29 @@ def read_from_cloud(requestName, client=None, asyn=False, **kwds):
                   "size": 5246,
                   "contentType": null,
                   "fileName": "fdi.dataset.testproducts.TCC",
-                  "productType": "fdi.dataset.testproducts.TCC"
+                  "dataType": "fdi.dataset.testproducts.TCC"
                 },
                 ...
                       ],
                 "total": 84
          }
         """
-        paths = kwds.get('paths', '')
-        pool = kwds.get('pool', None)
+        # paths can be URNs
+        paths = kwds.pop('paths', '')
+        pool = kwds.pop('pool', None)
 
-        if not isinstance(pool, (str)) or not pool:
-            raise TypeError(
-                f'pool must be an non-empty string, not {type(pool)}.')
         listpa = isinstance(paths, (list, tuple))
         if not listpa:
             paths = [paths]
-        po = f'&pool={pool}'
+        po = f'&pool={pool}' if pool else ''
         # this remembers all members
         pp = []
         # this has only one that has pool
         pp_one_pool = []
         for a in paths:
             if a:
+                if a.startswith('urn:'):
+                    a = a[3:].replace(':', '/')
                 seg = f'&path={a}'
                 pp.append(seg)
                 pp_one_pool.append(seg)
@@ -125,177 +156,330 @@ def read_from_cloud(requestName, client=None, asyn=False, **kwds):
                 pp.append(po)
                 if not pp_one_pool:
                     pp_one_pool.append(po)
-        limit = kwds.get('limit', 10000)
+        limit = kwds.pop('limit', 10000)
         # max length with one extra
         requestAPI1 = requestAPI0 % (limit)
         if asyn:
             apis = [requestAPI1+p for p in pp_one_pool]
-            reses = reqst('get', apis, headers=header, server_type='csdb')
+            reses = reqst('get', apis, headers=header,
+                          server_type=server_type, **kwds)
             re = dict(zip(pp_one_pool, reses))
         else:
             re = {}
             for p in pp_one_pool:
                 requestAPI = requestAPI1 + p
-                r = reqst(client.get, requestAPI, headers=header)
-                # if not found: res['data']==[]
-                # if r.status_code != 200:
-                #    __import__("pdb").set_trace()
-                re[p] = deserialize(r.text)[
-                    'data'] if r.status_code == 200 else r.reason+lls(r.text, 500)
+                r = reqst(client.get, requestAPI, headers=header,
+                          server_type=server_type, **kwds)
+
+                re[p] = r
         # reconstruct
         res = [re[x] for x in pp]
         return res if listpa else res[0]
 
     elif requestName == 'getDataType':
-        header['X-AUTH-TOKEN'] = kwds['token']
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
 
         requestAPI = default_base + \
             '/datatype/list'
-        res = reqst(client.get, requestAPI, headers=header)
+        res = reqst(client.get, requestAPI, headers=header,
+                    server_type=server_type, **kwds)
 
     elif requestName == 'uploadDataType':
-        header['X-AUTH-TOKEN'] = kwds['token']
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         header["accept"] = "*/*"
         # somehow application/json will cause error "unsupported"
         del header['Content-Type']  # = 'application/json'  # ;charset=UTF-8'
         requestAPI = default_base + \
             '/datatype/upload'
-        cls_full_name = kwds['cls_full_name']
+        cls_full_name = kwds.pop('cls_full_name')
         jsn = cached_json_dumps(cls_full_name,
                                 ensure_ascii=kwds.get('ensure_ascii', True),
                                 indent=kwds.get('indent', 2))
         fdata = {"file": (cls_full_name, jsn)}
         data = {"metaPath": "/metadata",
-                "productType": cls_full_name}
+                "dataType": cls_full_name}
         res = reqst(client.post, requestAPI,
-                    files=fdata, data=data, headers=header)
-    elif requestName == 'delDataType':
-        header['X-AUTH-TOKEN'] = kwds['token']
+                    files=fdata, data=data, headers=header, server_type=server_type, **kwds)
+    elif requestName == 'delDataTypeData':
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         requestAPI = default_base + \
-            f'/storage/delDatatype?path=' + kwds['path']
-        res = reqst(client.delete, requestAPI, headers=header)
+            f'/storage/delDatatypeData?path=' + kwds.pop('path')
+        res = reqst(client.delete, requestAPI, headers=header,
+                    server_type=server_type, **kwds)
+    elif requestName == 'delDataType':
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
+        requestAPI0 = default_base + \
+            f'/storage/delDatatype?path='
+        _p = kwds.pop('path')
+        if isinstance(_p, str):
+            paths = [_p]
+            alist = False
+        else:
+            paths = _p
+            alist = True
+        apis = [requestAPI0+p for p in paths]
+        if asyn:
+            res = reqst('delete', apis, headers=header,
+                        server_type=server_type, **kwds)
+        else:
+            rs = []
+            for a in apis:
+                r = reqst(client.delete, a, headers=header,
+                          server_type=server_type, **kwds)
+                rs.append(r)
+            res = rs if alist else rs[0]
     elif requestName == 'remove':
-        header['X-AUTH-TOKEN'] = kwds['token']
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         requestAPI0 = default_base + \
             '/storage/delete?path='
-        path = kwds['path']
-        if asyn:
-            apis = [requestAPI0+p for p in path]
-            res = reqst('post', apis, headers=header, server_type='csdb')
+        _p = kwds.pop('path', '')
+        if isinstance(_p, str):
+            paths = [_p]
+            alist = False
         else:
-            apis = requestAPI0 + path
-            res = reqst(client.post, apis, headers=header)
+            paths = _p
+            alist = True
 
+        apis = [requestAPI0+p for p in paths]
+        if asyn:
+            r = reqst('post', apis, headers=header,
+                      server_type=server_type, **kwds)
+            rs = [0 if x is None else 1 for x in r]
+        else:
+            rs = []
+            for a in apis:
+                r = reqst(client.post, a, headers=header,
+                          server_type=server_type, **kwds)
+                rs.append(0 if r is None else 1)
+        res = rs if alist else rs[0]
     elif requestName == 'existPool':
-        header['X-AUTH-TOKEN'] = kwds['token']
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         requestAPI = default_base + \
-            '/pool/info?storagePoolName=' + kwds['poolname']
-        res = reqst(client.get, requestAPI, headers=header)
+            '/pool/info?storagePoolName=' + kwds.pop('poolname')
+        res = reqst(client.get, requestAPI, headers=header,
+                    server_type=server_type, **kwds)
     elif requestName == 'createPool':
-        header['X-AUTH-TOKEN'] = kwds['token']
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         requestAPI = default_base + \
-            '/pool/create?poolName=' + kwds['poolname'] + '&read=0&write=0'
-        res = reqst(client.post, requestAPI, headers=header)
+            '/pool/create?poolName=' + kwds.pop('poolname') + '&read=0&write=0'
+        res = reqst(client.post, requestAPI, headers=header,
+                    server_type=server_type, **kwds)
     elif requestName == 'wipePool':
-        header['X-AUTH-TOKEN'] = kwds['token']
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         requestAPI = default_base + \
-            '/pool/delete?storagePoolName=' + kwds['poolname']
-        res = reqst(client.post, requestAPI, headers=header)
+            '/pool/delete?storagePoolName=' + kwds.pop('poolname')
+        res = reqst(client.post, requestAPI, headers=header,
+                    server_type=server_type, **kwds)
     elif requestName == 'restorePool':
-        header['X-AUTH-TOKEN'] = kwds['token']
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         requestAPI = default_base + \
-            '/pool/restore?storagePoolName=' + kwds['poolname']
-        res = reqst(client.post, requestAPI, headers=header)
+            '/pool/restore?storagePoolName=' + kwds.pop('poolname')
+        res = reqst(client.post, requestAPI, headers=header,
+                    server_type=server_type, **kwds)
     elif requestName == 'addTag':
-        header['X-AUTH-TOKEN'] = kwds['token']
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
+        requestAPI0 = default_base + \
+            '/storage/addTags?tags='
+
+        _t = kwds.pop('tag')
+        if isinstance(_t, str):
+            tags = [_t]
+            alist = False
+        else:
+            tags = _t
+            alist = True
+        u = '&urn=' + kwds.pop('urn')
+        apis = [requestAPI0+t+u for t in tags]
+        if asyn:
+            res = reqst('get', apis, headers=header,
+                        server_type=server_type, **kwds)
+        else:
+            rs = []
+            for a in apis:
+                r = reqst(client.get, a, headers=header,
+                          server_type=server_type, **kwds)
+                rs.append(r)
+            res = rs if alist else rs[0]
+    elif requestName == 'tagExist':
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         requestAPI = default_base + \
-            '/storage/addTags?tags=' + kwds['tags'] + '&urn=' + kwds['urn']
-        res = reqst(client.get, requestAPI, headers=header)
+            '/storage/tagExist?tag=' + kwds.pop('tag')
+        res = reqst(client.get, requestAPI, headers=header,
+                    server_type=server_type, **kwds)
+    elif requestName == 'getUrn':
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
+        requestAPI = default_base + \
+            '/storage/tag?tag=' + kwds.pop('tag')
+        res = reqst(client.get, requestAPI, headers=header,
+                    server_type=server_type, **kwds)
     else:
         raise ValueError("Unknown request API: " + str(requestName))
     # print("Read from API: " + requestAPI)
     # must remove csdb layer
-    return deserialize(res.text)
+    return res
 
 
-def load_from_cloud(requestName, client=None, **kwds):
+def _multi_input_header(kwds, n, header):
+
+    _k = kwds.pop('token', '')
+    withtokens = []
+    for tok in (_k if isinstance(_k, list) else ([_k] * n)):
+        w = copy.copy(header)
+        w['X-AUTH-TOKEN'] = tok
+        withtokens.append(w)
+
+    _h = kwds.pop('header', {})
+    if not isinstance(_h, list):
+        for _ in withtokens:
+            _.update(_h)
+        headers = withtokens
+    else:
+        for hdr, tok in zip(_h, withtokens):
+            hdr.update(tok)
+        headers = _h
+    return headers
+
+
+def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **kwds):
     if client is None:
         client = session
     header = {'Content-Type': 'application/json;charset=UTF-8'}
     requestAPI = default_base
-    try:
-        if requestName == 'uploadProduct':
-            header = {}
-            header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-            header['X-CSDB-AUTOINDEX'] = '1'
-            header['X-CSDB-METADATA'] = '/_ATTR_meta'
-            header['X-CSDB-HASHCOMPARE'] = '0'
 
-            requestAPI = requestAPI + \
-                '/storage/upload?path=' + kwds.pop('path', '')
-            prd = kwds.pop('products', None)
-            fileName = kwds.pop('resourcetype', '')
-            if not fileName:
-                __import__("pdb").set_trace()
+    if requestName == 'uploadProduct':
+        # application/json causes "only allow use multipart/form-data"
+        del header['Content-Type']
+        header['X-CSDB-AUTOINDEX'] = '1'
+        header['X-CSDB-METADATA'] = '/_ATTR_meta'
+        header['X-CSDB-HASHCOMPARE'] = '0'
 
-            if 'tags' in kwds:
-                t = kwds.pop('tags')
-                tags = [t] if isinstance(t, str) else t if t else ''
-                data = {'tags': ','.join(tags)}
-            else:
-                data = None
-            kwds.pop('serialize_out', '')
-            res = reqst(client.post, requestAPI, files={'file': (
-                fileName, prd)}, data=data, headers=header, **kwds)
-
-        elif requestName == 'pullProduct':
-            # header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-            # requestAPI = requestAPI + '/storage/get?urn=' + kwds.pop('urn', '')
-            # res = reqst(client.get, requestAPI,
-            #             headers=header, stream=True)
-            # TODO: save product to local
-
-            header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-            b = default_base + '/storage/get?urn='
-            if asyn:
-                apis = [b + t for t in kwargs.get('urn', [])]
-                res = reqst('get', apis, headers=header, server_type='csdb')
-            else:
-                apis = b + kwargs['tag']
-                res = reqst(client.get, requestAPI,
-                            headers=header, stream=True)
-
+        requestAPI0 = requestAPI + \
+            '/storage/upload'
+        _p = kwds.pop('path', '')
+        if isinstance(_p, str):
+            paths = [_p]
+            alist = False
         else:
-            raise ValueError("Unknown request API: " + str(requestName))
-    except Exception as e:
-        return 'Load File failed: ' + str(e) + trbk(e)
-    # print("Load from API: " + requestAPI)
-    return deserialize(res.text)
+            paths = _p
+            alist = True
+        apis = [
+            (f'{requestAPI0}?path={p}' if p else requestAPI0) for p in paths]
+        # all parameters, if is given a single value, will be expanded to a list of this size.
+        n = len(apis)
+
+        _pr = kwds.pop('products', None)
+        if not isinstance(_pr, list):
+            # XXX TODO: a better way to determine seriaized product
+            prds = [_pr] * n
+        else:
+            prds = _pr
+
+        _f = kwds.pop('resourcetype')
+        if isinstance(_f, str):
+            fileNames = [_f] * n
+        else:
+            fileNames = _f
+
+        _t = kwds.pop('tags', None)
+        if isinstance(_t, str) or _t is None:
+            tags = [_t] * n
+        else:
+            tags = _t
+
+        if asyn:
+            # data = [{'file': (f, p), 'tags': t}
+            #         for f, p, t in zip(fileNames, prds, tags)]
+            data = []
+            for f, p, t in zip(fileNames, prds, tags):
+                d = aiohttp.FormData()
+                d.add_field('file', p,
+                            content_type='application/json', filename=f)
+                if t:
+                    d.add_field('tags', t)
+                data.append(d)
+        else:
+            files = [{'file': (f, p)} for f, p in zip(fileNames, prds)]
+            data = [{'tags': t} for t in tags]
+
+        headers = _multi_input_header(kwds, n, header)
+
+        serialize_out = kwds.pop('serialize_out', '')
+        if asyn:
+            res = reqst('post', apis, data=data,
+                        headers=headers, server_type=server_type, **kwds)
+        else:
+            res = []
+            for a, f, d, h in zip(apis, files, data, headers):
+                r = reqst(client.post, a, files=f, data=d,
+                          headers=h, server_type=server_type, **kwds)
+                res.append(r)
+        return res if alist else res[0]
+
+    elif requestName == 'pullProduct':
+        # header['X-AUTH-TOKEN'] = kwds.pop('token', '')
+        # requestAPI = requestAPI + '/storage/get?urn=' + kwds.pop('urn', '')
+        # res = reqst(client.get, requestAPI,
+        #             headers=header, stream=True, server_type=server_type, **kwds)
+        # TODO: save product to local
+
+        requestAPI0 = requestAPI + '/storage/get?urn='
+        _u = kwds.pop('urn', '')
+        if isinstance(_u, list):
+            alist = True
+        else:
+            urns = [_u]
+            alist = False
+
+        n = len(urns)
+
+        headers = _multi_input_header(kwds, n, header)
+        apis = [requestAPI0 + u for u in urns]
+
+        if asyn:
+            res = reqst('get', apis, headers=headers,
+                        server_type=server_type, **kwds)
+        else:
+            res = []
+            for a, h in zip(apis, headers):
+                r = reqst(client.get, a, headers=h,
+                          stream=True, server_type=server_type, **kwds)
+                res.append(r)
+        return res if alist else res[0]
+    else:
+        raise ValueError(f'Unknown request API: {requestName}')
 
 
-def delete_from_server(requestName, client=None, asyn=False, **kwargs):
+def delete_from_server(requestName, client=None, asyn=False, server_type='csdb', **kwds):
     if client is None:
         client = session
     header = {'Content-Type': 'application/json;charset=UTF-8'}
     requestAPI = default_base
-    try:
-        if requestName == 'delTag':
-            header['X-AUTH-TOKEN'] = kwargs['token']
-            b = default_base + '/storage/delTag?tag='
-            if asyn:
-                apis = [b + t for t in kwargs.get('tag', [])]
-                res = reqst('delete', requestAPI,
-                            headers=header, server_type='csdb')
-            else:
-                apis = b + kwargs['tag']
-                res = reqst(client.delete, requestAPI, headers=header)
+    if requestName == 'delTag':
+        header['X-AUTH-TOKEN'] = kwds.pop('token', '')
+        requestAPI0 = requestAPI + '/storage/delTag?tag='
+
+        _t = kwds.pop('tag', None)
+        if isinstance(_t, str) or _t is None:
+            tags = [_t]
+            alist = False
         else:
-            raise ValueError("Unknown request API: " + str(requestName))
-        # print("Read from API: " + requestAPI)
-        return deserialize(res.text)
-    except Exception as e:
-        err = {'msg': str(e)}
-        return err
+            tags = _t
+            alist = True
+        apis = [requestAPI0 + t for t in tags]
+        if asyn:
+            res = reqst('delete', apis,
+                        headers=header, server_type=server_type, **kwds)
+        else:
+            rs = []
+            for a in apis:
+                r = reqst(client.delete, a, headers=header,
+                          server_type=server_type, **kwds)
+                rs.append(r)
+            res = rs if alist else rs[0]
+    else:
+        raise ValueError("Unknown request API: " + str(requestName))
+    # print("Read from API: " + requestAPI)
+    return res
 
 
 def get_service_method(method):

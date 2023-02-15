@@ -143,15 +143,16 @@ class MemPool(ManagedPool):
         myspace = self.getPoolSpace()
         return myspace[resourcep]
 
-    def doRemove(self, resourcetype, index):
+    def doRemove(self, resourcetype, index, asyn=False):
         """
         does the action of removal.
         """
-        resourcep = resourcetype + '_' + str(index)
+
         myspace = self.getPoolSpace()
-        del myspace[resourcep]
+        for r in [f'{r}_{i}' for r, i in zip(resourcetype, index)]:
+            del myspace[r]
         self.writeHK()
-        return 0
+        return [0]
 
     def doWipe(self):
         """

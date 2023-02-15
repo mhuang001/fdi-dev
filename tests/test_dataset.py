@@ -205,6 +205,10 @@ def test_serialization():
     assert deserialize('{ "_STID":"set"}').__class__ == set
     assert deserialize('{ "_STID":"0set"}').__class__ == dict
     assert deserialize('{ "_STID":"0set"}')['_STID'] == '0set'
+    # for dict, "_ATTR_..." is taken leterally
+    assert deserialize('{ "_ATTR_meta":42}')['_ATTR_meta'] == 42
+    # unless it has _STID which makes it an FDI serializable object.
+    assert deserialize('{ "_ATTR_meta":42, "_STID":"FineTime"}').meta == 42
 
     # v = (1, 8.2, 'tt')
     # checkjson(v)
@@ -214,6 +218,7 @@ def test_serialization():
 
     # https://github.com/mverleg/pyjson_tricks
     # json_tricks/test_class.py
+
     class MyTestCls:
         def __init__(self, **kwargs):
             for k, v in kwargs.items():

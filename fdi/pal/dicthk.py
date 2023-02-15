@@ -47,14 +47,18 @@ def get_missing(self, urn, datatype, sn, no_check=False):
     u = urn.urn if issubclass(urn.__class__, Urn) else urn
     # new ###
     if not no_check:
-        if datatype not in self._dTypes:
-            raise KeyError(
-                f'{datatype} not found in pool {self._poolname}')
-        sns = sn if issubclass(sn.__class__, (list, tuple)) else [sn]
-        for _sn in sns:
-            if _sn not in self._dTypes[datatype]['sn']:
-                raise IndexError('%s:%d not found in pool %s.' %
-                                 (datatype, _sn, self._poolname))
+        dat = datatype
+        sns = sn
+        if not issubclass(sn.__class__, (list, tuple)):
+            dat = [datatype]
+            sns = [sn]
+            for d, s in zip(dat, sns):
+                if d not in self._dTypes:
+                    raise KeyError(
+                        f'{d} not found in pool {self._poolname}')
+                if s not in self._dTypes[d]['sn']:
+                    raise IndexError('%s:%d not found in pool %s.' %
+                                     (d, s, self._poolname))
     # /new ###
     if 0:
         if u not in self._urns:
@@ -68,7 +72,7 @@ def add_tag_datatype_sn(tag, datatype, sn, dTypes=None, dTags=None):
     Parameters
     ----------
     tag : str
-        A tag. Multiple tags have to make multiple calls.
+        A tag. Multiple tags have to make multiple calls. `None` and empty tags are ignored.
     datatype : str
         The class name of the data item, new or existing.
     sn : int
@@ -79,7 +83,8 @@ def add_tag_datatype_sn(tag, datatype, sn, dTypes=None, dTags=None):
         the tag mapping of pool fmt 2.
 
     """
-
+    if not tag:
+        return
     snt = dTypes[datatype]['sn'][sn]['tags']
     if tag not in snt:
         snt.append(tag)
@@ -232,41 +237,34 @@ class DictHk(Taggable):
         """
         Remove the given urn (or a pair of data type and serial number) from the tag and urn maps.
 
-        Only changes maps in memory, not on disk.
-        curl -X POST "http://123.56.102.90:31702/csdb/v1/storage/delete?path=%2Fpoolbs%2Ffdi.dataset.product.Product%2F24" -H "accept: */*"
+        Only changes maps in memory, not to write on disk here.
         """
-        try:
-            u, datatype, sn = self.get_missing(
-                urn=urn, datatype=datatype, sn=sn,
-                no_check=False)
-        except (KeyError, IndexError) as e:
-            if self.ignore_error_when_delete:
-                logger.debug(f'Ignoring not found: {e}')
-            else:
-                raise
+        u, datatype, sn = self.get_missing(
+            urn=urn, datatype=datatype, sn=sn,
+            no_check=False)
         # new ##
-        sns = sn if issubclass(sn.__class__, (list, tuple)) else [sn]
-
-        # if datatype not in self._dTypes:
-        #     if self.ignore_error_when_delete:
-        #         return -1
-        #     else:
-        #         raise ValueError(f'{datatype} not found in {self.poolname}.')
-        _snd = self._dTypes[datatype]['sn']
-        for _sn in sns:
-            if _sn not in _snd:
-                msg = f'{_sn} not found in pool {self.getId()}.'
-                if self.ignore_error_when_delete:
+        from .productpool import ProductPool
+        dats, sns, alist = ProductPool.vectorize(datatype, sn)
+        for d, s in zip(dats, sns):
+            # if d not in self._dTypes:
+            #     if self.ignore_error_when_delete:
+            #         return -1
+            #     else:
+            #         raise ValueError(f'{d} not found in {self.poolname}.')
+            _snd = self._dTypes[d]['sn']
+            if s not in _snd:
+                msg = f'{s} not found in pool {self.getId()}.'
+                if not self.ignore_error_when_delete:
                     raise IndexError(msg)
                 else:
                     logger.debug(msg)
                     continue
-            if 'tags' in _snd[_sn]:
-                for tag in _snd[_sn]['tags']:
+            if 'tags' in _snd[s]:
+                for tag in _snd[s]['tags']:
                     if tag in self._dTags:
-                        self._dTags[tag][datatype].remove(str(_sn))
-                        if len(self._dTags[tag][datatype]) == 0:
-                            del self._dTags[tag][datatype]
+                        self._dTags[tag][d].remove(str(s))
+                        if len(self._dTags[tag][d]) == 0:
+                            del self._dTags[tag][d]
                             if len(self._dTags[tag]) == 0:
                                 del self._dTags[tag]
                     else:
@@ -275,16 +273,16 @@ class DictHk(Taggable):
                 else:
                     if 0:
                         logger.warning('tag %s missing from %s:%s:%s.' %
-                                       (tag, self._poolname, datatype, _sn))
-            _snd.pop(_sn)
+                                       (tag, self._poolname, d, s))
+            _snd.pop(s)
             if len(_snd) == 0:
-                del self._dTypes[datatype]
+                del self._dTypes[d]
             # /new ##
 
             if 0:
                 self.removekey(u, self._urns, 'urns', self._tags, 'tags')
             # new ##
-            # assert _sn not in self._dTypes[datatype]['sn']
+            # assert s not in self._dTypes[d]['sn']
 
     def setTag(self, tag, urn=None, datatype=None, sn=None):
         """
@@ -323,7 +321,7 @@ class DictHk(Taggable):
     def tagExists(self, tag):
         """
         Tests if a tag exists.
-        # TODO in CSDB
+
         """
         # new ##
         if 0:

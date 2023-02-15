@@ -139,14 +139,35 @@ class ProductStorage(object):
         # return a list only when more than one refs
         return ls  # if len(ls) > 1 else ls[0]
 
-    def save(self, product, tag=None, poolname=None, geturnobjs=False, **kwds):
+    def save(self, product, tag=None, poolname=None, geturnobjs=False, asyn=False, **kwds):
         """ saves to the writable pool if it has been registered.
 
-        product: can be one or a list of prpoducts.
-         poolName: if the named pool is not registered, registers and saves.
-        geturnobjs: mh: returns UrnObjs if geturnobjs is True.
-        kwds: options passed to json.dump() for localpools.
-        Returns: one or a list of productref with storage info.
+        Parameters
+        ----------
+        product : BaseProduct, list
+            Product or a list of them or '[ size1, prd, size2, prd2, ...]'.
+        tag : str, list
+            If given a tag, all products will be having this tag.
+        If a list tags are given to every one product then the
+        number of tags must not be the same to that of `product`. If
+        they are equal, each tag is goven to the product at the same
+        index in the `product` list.
+        serialize_out : bool
+            if `True` returns contents in serialized form.
+        serialize_in : bool
+            If set, product input is serialized.
+        poolName: str
+            If the named pool is not registered, registers and saves.
+        geturnobjs : bool
+            returns UrnObjs if geturnobjs is True.
+        kwds: options passed to json.dump() for subclasses.
+
+        Returns
+        -------
+        ProductRef: Product reference.
+        Urn: If `geturnobjs` is set.
+        str: If `serialze_out` is set, serialized form of `ProductRef` or `URN`.
+        list: `list` of the above of input is a list.
         """
 
         if poolname is None:
@@ -158,15 +179,15 @@ class ProductStorage(object):
             self.register(poolname)
 
         if logger.getEffectiveLevel() <= logging.DEBUG:
-            desc = [x.description for x in product] if issubclass(
-                product.__class__, list) else product.description
+            desc = [x.description[-6:] for x in product] if issubclass(
+                product.__class__, list) else product.description[-6:]
             logger.debug('saving product:' + str(desc) +
                          ' to pool ' + str(poolname) + ' with tag ' + str(tag))
 
         try:
             ret = self._pools[poolname].saveProduct(
                 product, tag=tag, geturnobjs=geturnobjs,
-                **kwds)
+                asyn=asyn, **kwds)
         except Exception as e:
             logger.error('unable to save to the writable pool.')
             raise
@@ -186,11 +207,13 @@ class ProductStorage(object):
         try:
             pool = self._pools[poolname]
             pool.ignore_error_when_delete = ignore_error
-            pool.remove(urn, resourcetype=datatype, index=index)
+            res = pool.remove(urn, resourcetype=datatype, index=index)
+            return res
         except Exception as e:
             msg = 'unable to remove from the writable pool.'
             if ignore_error:
                 logger.error(msg)
+                return None
             else:
                 raise
 

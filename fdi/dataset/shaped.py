@@ -33,4 +33,5 @@ class Shaped():
         # `attributable.__init__`s initializing list because 'shape'
         # is not in `ArrayDAtaset.init` args.
         # self.shape = findShape(self.data, **kwds)
+
         return self.shape

@@ -228,7 +228,8 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
         icn = inst.__class__.__name__
         dcn = desv.__class__.__name__
         if issubclass(inst.__class__, (MM)):    # should be object_pairs_hook
-            if issubclass(k.__class__, str) and k.startswith(ATTR):
+            # set attributes. JSON doesn't support attributes to all objects so we have to use the `ATTR` work-around. Because `inst` could actually could have a key starting with `ATTR`, we set the attributes only when inst is not `dict` or when '_STID' is a member.
+            if issubclass(k.__class__, str) and k.startswith(ATTR) and (not isinstance(inst, dict) or '_STID' in inst):
                 k2 = k[LEN_ATTR:]
                 setattr(inst, k2, desv)
                 if debug:

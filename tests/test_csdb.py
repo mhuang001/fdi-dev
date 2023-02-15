@@ -20,8 +20,9 @@ from fdi.utils.getconfig import getConfig
 from fdi.utils.common import lls
 from conftest import csdb_pool_id, SHORT
 from fdi.pal.publicclientpool import PublicClientPool
-from fdi.pns.public_fdi_requests import read_from_cloud
+from fdi.pns.public_fdi_requests import read_from_cloud, load_from_cloud
 from fdi.utils.getconfig import getConfig
+from fdi.pns.fdi_requests import reqst
 
 import json
 import time
@@ -75,12 +76,13 @@ def get_all_prod_types(urllist, client):
     return types
 
 
-def add_a_productType(full_name, jsn, client, urlup):
-    """ not using csdb_client fixture. returns post result. """
+def add_a_dataType(full_name, jsn, client, urlup):
+    """ not using csdb_client fixture. returns csdb ['data'] result. """
     hdr = {"accept": "*/*"}
     fdata = {"file": (full_name, jsn)}
     data = {"metaPath": "/metadata", "productType": full_name}
-    x = client.post(urlup, files=fdata, data=data, headers=hdr)
+    x = reqst(client.post, apis=urlup, files=fdata,
+              data=data, headers=hdr)
     return x
 
 
@@ -93,26 +95,63 @@ def cls2jsn(clsn):
     return json.dumps(obj.zInfo, ensure_ascii=asci, indent=2)
 
 
-def upload_defintion(clsn, full_cls, urllist, urlupload, urldelete,
+def pool_exists(poolname, csdb_c, urlc, create_clean=False):
+    urlupload, urldelete, urllist, client = csdb_c
+
+    x = client.get(urlc+f"/pool/info?storagePoolName={poolname}")
+    assert x.status_code == 200
+    o, code = getPayload(x)
+    if o['code'] == 0:
+        if create_clean:
+            for u in get_all_in_pool(poolname, what='urn', urlc=urlc, client=client, nulltype=False):
+                part = u[3:].replace(':', '/')
+                x = client.post(urlc+f'/storage/delete?path={part}')
+                assert x.status_code == 200, x.text
+                o, code = getPayload(x)
+                if o['code']:
+                    raise RuntimeError(
+                        'Cleanin exisiting pool {part} failed.')
+        return True
+    elif create_clean:
+        x = client.post(
+            urlc+f"/pool/create?poolName={poolname}&read=0&write=0")
+        assert x.status_code == 200
+        o, code = getPayload(x)
+        return o['code'] == 0
+    return o['code'] == 0
+
+
+def upload_defintion(full_cls, urllist, urlupload, urldelete,
                      client=None, check=True):
     """upload the definition of given class.
 
     """
+    if isinstance(full_cls, list):
+        alist = True
+        fs = full_cls
+    else:
+        alist = False
+        fs = [full_cls]
+
     if check:
         # new one not there?
         types = get_all_prod_types(urllist, client=client)
-        if full_cls in types:  # and full_name.startswith('sv.'):
-            logger.debug('dataTypes'+lls(types, 80))
+        for full_cls in fs:
+            if full_cls in types:  # and full_name.startswith('sv.'):
+                logger.debug('confirm dataTypes'+lls(types, 80))
 
     # upload
-    jsn = cls2jsn(clsn)
-    add_a_productType(full_cls, jsn, client=client, urlup=urlupload)
+    for full_cls in fs:
+        jsn = cls2jsn(full_cls.rsplit('.', 1)[-1])
+        r = add_a_dataType(full_cls, jsn, client=client, urlup=urlupload)
+        assert r.status_code == 200
     if check:
         # check ptypes again
         types = get_all_prod_types(urllist, client)
         # print(types)
-        assert full_cls in types
-    return full_cls
+        for full_cls in fs:
+            assert full_cls in types
+    return fs if alist else fs[0]
 
 
 USE_SV_MODULE_NAME = False
@@ -128,15 +167,19 @@ def test_upload_def_Tx(csdb_client):
         cls_full_name = f'sv.{cls}'  # cls_full_name.rsplit('.', 1)[-1]
     else:
         cls_full_name = Class_Module_Map[cls] + '.' + cls
-    upload_defintion(cls, cls_full_name, urllist, urlupload, urldelete,
+    upload_defintion(cls_full_name, urllist, urlupload, urldelete,
                      client=client)
 
 
 def upload_prod_data(prd, cls_full_name,
                      desc, obj, obs_id, instr, start, end,
                      level='CL1a', program='GRB', url='',
-                     client=None, verify=False):
+                     client=None, verify=False, token='',
+                     asyn=False, **kwds):
     """ upload product data """
+
+    hdr = client.headers
+    hdr.update(kwds.pop('header', {}))
 
     prd.description = desc
     prd.instrument = StringParameter(instr)
@@ -159,71 +202,82 @@ def upload_prod_data(prd, cls_full_name,
     if 1:
         fdata = {'file': (cls_full_name, jsn)}
         data = {'tags': 'foo,'+str(datetime.now())}
-        hdr = {}
-        hdr['X-AUTH-TOKEN'] = getattr(client, 'token', '')
+
+        hdr.update({"accept": "*/*", 'X-CSDB-METADATA': '/_ATTR_meta'})
+        hdr['X-AUTH-TOKEN'] = token
         hdr['X-CSDB-AUTOINDEX'] = '1'
         hdr['X-CSDB-METADATA'] = '/_ATTR_meta'
         hdr['X-CSDB-HASHCOMPARE'] = '0'
 
         # url urlupdata = urlcsdb + f'/storage/{pool}/{cls_full_name}'
-        x = client.post(url, files=fdata, data=data, headers=hdr)
-        assert x.status_code == 200, lls(x.text, 500)
-        o, code = getPayload(x)
-        assert o['code'] == 0
-        urn = o['data']['urn']
-        path = o['data']['path']
-        typ = o['data']['type']
+        # x = client.post(url, files=fdata, data=data, headers=hdr)
+        if asyn:
+            if 1:
+
+                res = load_from_cloud('uploadProduct', token=token,
+                                      products=jsn,
+                                      path=['/%s/%s' %
+                                            tuple(url.rsplit('/', 2)[-2:])],
+                                      tags=str(datetime.now()),
+                                      resourcetype=cls_full_name,
+                                      header=hdr,
+                                      asyn=True,
+                                      **kwds)
+                od = res[0]
+                assert len(od) > 4
+            else:
+                x = reqst('post', [url], data=data, headers=hdr,
+                          **kwds)
+                assert x.status_code == 200, lls(x.text, 500)
+        else:
+            x = reqst(client.post, url, files=fdata,
+                      data=data, headers=hdr, **kwds)
+            assert x.status_code == 200, lls(x.text, 500)
+            o, code = getPayload(x)
+            od = o['data']
+            assert o['code'] == 0
+        urn = od['urn']
+        path = od['path']
+        typ = od['dataType']
 
         if not typ:
             logger.warning(
-                f'{urn} has no type. Upload Datatype definition to fix.')
+                f'{urn} has no dataType. Upload Datatype definition to fix.')
         logger.debug(f"uploaded product urn={urn} path={path} type={typ}")
         """ output example:
-            {
-              "code": 0,
-              "data": {
-                "index": 0,
-                "md5": "string",
-                "path": "string",
-                "size": 0,
-                "tags": [
-                  "string"
-                ],
-                "timestamp": 0,
-                "type": "string",
-                "url": "string",
-                "urn": "string"
-              },
-              "msg": "string",
-              "total": 0
-            }
-
-    Example: 
-    url: http://IP:port/csdb/v1/storage/test_csdb_fdi/fdi.dataset.testproducts.TP
-     o['data']
-     {'index': 424,
-     'md5': '2DAFEA60ECC01443DCFE21E23096F98A',
-     'path': '/test_csdb_fdi/fdi.dataset.testproducts.TP/424',
-     'size': 45394,
-     'tags': ['2023-01-15 15:56:38.782800'],
-     'timestamp': 1673769399861,
-     'type': None,
-     'url': 'http://123.56.102.90:31702/csdb/v1/storage/test_csdb_fdi/fdi.dataset.testproducts.TP/424',
-     'urn': 'urn:test_csdb_fdi:fdi.dataset.testproducts.TP:424'}
-
+    Example:
+    {
+      "code": 0,
+      "data": {
+        "dataType": "string",
+        "index": 0,
+        "md5": "string",
+        "path": "string",
+        "size": 0,
+        "tags": [
+          "string"
+        ],
+        "timestamp": 0,
+        "type": "string",
+        "url": "string",
+        "urn": "string"
+      },
+      "msg": "string",
+      "total": 0
+    }
 """
     if verify:
         # read back
-        y = client.get(o['data']['url'])
+        y = client.get(od['url'])
         assert y.text == jsn
         logger.debug('upload verified')
-    logger.info('UPLD URN %s' % o['data']['urn'])
-    return o['data']
+    logger.info('UPLD URN %s' % od['urn'])
+    return od
 
 
 def ddd():
     if 1:
-        x = add_a_productType(cls_full_name, jsn=jsn, client=client)
+        x = add_a_dataType(cls_full_name, jsn=jsn, client=client)
         #### !!!! This throws error !!! ####
         assert x.status_code == 200, x.text
         o, code = getPayload(x)
@@ -231,7 +285,7 @@ def ddd():
         assert o['data'] is None
 
 
-def test_upload_data_Tx(csdb_client, urlcsdb):
+def test_upload_data_Tx(csdb_client, urlcsdb, csdb_token):
     """ upload a Tx prod. definition not auto uploaded"""
 
     urlupload, urldelete, urllist, client = csdb_client
@@ -259,12 +313,14 @@ def test_upload_data_Tx(csdb_client, urlcsdb):
                            program='PPT',
                            url=urlupdata,
                            client=client,
-                           verify=True
+                           verify=True,
+                           token=csdb_token,
+                           asyn=ASYN
                            )
     logger.debug(f'{cls_full_name} uploaded {res}')
 
 
-def get_all_in_pool(poolname=None, path=None, what='urn', urlc='', client=None, limit=10000):
+def get_all_in_pool(poolname=None, path=None, what='urn', urlc='', client=None, limit=10000, nulltype=True):
     """Return all of something in a pool.
 
     Parameters
@@ -302,7 +358,8 @@ def get_all_in_pool(poolname=None, path=None, what='urn', urlc='', client=None, 
     assert x.status_code == 200
     o, code = getPayload(x)
     assert o['code'] == 0
-    prodList = o['data']
+    od = o['data']
+    prodList = od if nulltype else [p for p in od if p['dataType']]
     """
   "data": [
     {
@@ -316,15 +373,15 @@ def get_all_in_pool(poolname=None, path=None, what='urn', urlc='', client=None, 
       "size": 45395,
       "contentType": null,
       "fileName": "fdi.dataset.testproducts.TP",
-      "productType": "fdi.dataset.testproducts.TP"
+      "dataType": "fdi.dataset.testproducts.TP"
     }, ...]
     """
     return len(prodList) if what == 'count' else [p[what] for p in prodList]
 
 
-def test_getDataInfo(urlcsdb, csdb, csdb_client):  # _uploaded
-    test_pool, url, pstore = csdb
-#    test_pool, uniq, resPrds, pstore = csdb_uploaded
+def test_getDataInfo(urlcsdb, csdb_uploaded, csdb_client):  # _uploaded
+    # test_pool, url, pstore = csdb
+    test_pool, uniq, resPrds, pstore = csdb_uploaded
 #    r = resPrds
     pname = test_pool.poolname
 
@@ -336,67 +393,79 @@ def test_getDataInfo(urlcsdb, csdb, csdb_client):  # _uploaded
     else:
         cls_full_name = Class_Module_Map[cls] + '.' + cls
     aip_ctl = add_a_prod_in_another_pool(
-        pool2, urlcsdb, cls_full_name, csdb_client)
+        pool2, urlcsdb, cls_full_name, csdb_client, nulltype=True)
 
     assert len(aip_ctl) > 0
 
+    # this only has non-null types
     pinfo = test_pool.getPoolInfo()[pname]
 
     tget = test_pool.getDataInfo
 
     # info of all prods in this pool
     dinfo = tget()
-    assert dinfo == tget(
-        '') == tget(what='', paths='', pool=pname)
-    assert len(dinfo) == test_pool.getCount()
-    # get all URNs in the pool.
+    assert dinfo == tget('') == tget(what='', paths='', pool=pname)
+    assert len(tget(nulltype=False)) == test_pool.getCount()
+
+    # get all URNs in the pool. including nulltype
     urns = tget('urn')
-    assert set(urns) == set(x['urn'] for x in dinfo) == set(
-        pinfo['_urns'])
+    assert set(urns) == set(pinfo['_urns'])
+    assert set(x['urn'] for x in dinfo) == set(pinfo['_urns'])
     # of all pools
     p2urns = tget('urn', pool=pool2)
     assert set(p2urns) == set(aip_ctl)
-    urns2 = tget('urn', paths=cls, pool='')
-    assert set(urns2) == set(
-        u for u in pinfo['_urns'] if cls in u) | set(p2urns)
-    # get all datatypes
+
+    # not include null typed. and all pools
+    urns2 = tget('urn', paths=cls, pool='', nulltype=False)
+    p2urns2 = tget('urn', pool=pool2, nulltype=False)
+    p3urns2 = tget('urn', pool=pname+'3', nulltype=False)
+    # this may fail if other pools have
+    assert set(urns2) >= set(
+        u for u in pinfo['_urns'] if cls in u) | set(p2urns2) | set(p3urns2)
 
     # get info of a URN with a identifying part as `paths`
-    assert tget('', urns[0][3:].replace(':', '/'))['urn'] == urns[0]
+    if urns2:
+        assert tget('', urns2[0][3:].replace(':', '/'))[0]['urn'] == urns2[0]
 
     # a list of urns: get their index one by one
-    num = min(len(urns), 10)
+    urn_test_pool = [x for x in urns2 if pname in x]
+    num = min(len(urn_test_pool), 5)
     t0 = time.time()
-    po, dt, sn = parseUrn(urns[:num])
-    assert len(po) == len(dt) == num
-    for i, s in enumerate(sn):
-        isn = int(sn[i])
-        # stupid csdb behavior: if sn is 0, sn is not shown.
-        part = f'{po[i]}/{dt[i]}/{sn[i]}'
-        assert tget('index', part) == isn
-    print(time.time() - t0)
+    ilsns = []
+    _urns = urn_test_pool[:num]
+    for part in _urns:
+        if pname not in part:
+            continue
+        sn = part.rsplit(':', 1)[-1]
+        isn = int(sn)
+        assert tget('index', part, nulltype=False)[0] == isn
+        ilsns.append([isn])
+
+    logger.info(time.time() - t0)
 
     # a list of urns: get their indices as a list
     t0 = time.time()
-    parts = list(map(lambda x: x[3:].replace(':', '/'), urns[:num]))
-    isns = list(map(lambda x: int(x.rsplit(':', 1)[-1]), urns[:num]))
-    assert tget('index', parts) == isns
-    print(time.time() - t0)
+    parts = list(map(lambda x: x[3:].replace(':', '/'), urn_test_pool[:num]))
+    # take only the first if multiple are found
+    inds = [i[:1] for i in tget('index', parts)]
+    # stupid csdb behavior: if sn is 0, sn is not shown.
+    # p = [[0] if i == [] else i for i in ilsns]
+    p = ilsns
+    assert inds == p
+    logger.info(f'no asyn get index {time.time() - t0}')
 
     # a list of urns: fix the pool, get their indices as a list
     t0 = time.time()
     po, dt, sn = parseUrn(urns[:num])
-    parts = list(map(lambda x: x[3:].replace(':', '/'), urns[:num]))
-    isns = list(map(lambda x: int(x.rsplit(':', 1)[-1]), urns[:num]))
-    assert tget('index', parts, asyn=1) == isns
-    print(time.time() - t0)
-    assert 1
-    assert 1
+    parts = list(map(lambda x: x[3:].replace(':', '/'), urn_test_pool[:num]))
+    # take only the first if multiple are found
+    inds = [i[:1] for i in tget('index', parts, asyn=1)]
+    logger.info(f'asyn {time.time() - t0}')
 
 
-def delDataType(urlc, poolname, cls_full_name, client):
+def delDataTypeData(urlc, poolname, cls_full_name, client):
     """ This API deletes all products of the given datatype and the datatype object. """
-    logger.debug('Try storage/delDataType')
+    logger.debug('Try storage/delDatatype')
     url = urlc + \
         f"/storage/delDatatype?path=/{poolname}/{cls_full_name}"
     x = client.delete(url)
@@ -410,7 +479,7 @@ def delDataType(urlc, poolname, cls_full_name, client):
 
 def delete_datatype(urlc, cls_full_name, client):
     """ This API deletes the datatype object of the given datatype. """
-    logger.debug('Try delete /v1/datatype/productType')
+    logger.debug('Try delete /v1/datatype/dataType')
     url = urlc + \
         f"/datatype/{cls_full_name}"
     x = client.delete(url)
@@ -427,20 +496,20 @@ def delete_defintion(clsn, full_name, urllist, urldelete,
                      client=None, poolname='', urlc='', deldatt=True):
     """delete the definition of a given class.
 
-    Datatypes are not supposed to be deleted frequently. Use upload to update. 
+    Datatypes are not supposed to be deleted frequently. Use upload to update.
     """
 
     types = get_all_prod_types(urllist, client=client)
-    # print(lls(types, 80), full_name in types)
+    # logger.info(lls(types, 80), full_name in types)
 
     # The first step is different depending on whether full_name is in
     if full_name in types:
         logger.debug(
             f'Type {full_name} exists in type list. Use upload to update. Datatypes are not supposed to be deleted frequently.')
         if deldatt:
-            res = delDataType(urlc, poolname, full_name, client=client)
+            res = delDataTypeData(urlc, poolname, full_name, client=client)
             if not res:
-                # delDataType failed, usually due to no exisiting products
+                # delDataTypeData failed, usually due to no exisiting products
                 res = delete_datatype(urlc, full_name, client=client)
         # gone
         types = get_all_prod_types(urllist, client)
@@ -462,14 +531,13 @@ def test_del_def_Tx(csdb_client, csdb):
     else:
         cls_full_name = Class_Module_Map[cls] + '.' + cls
 
-    # __import__("pdb").set_trace()
     pinfo = test_pool.getPoolInfo()
     pname = test_pool.poolname
 
     # add type
     jsn = cls2jsn(cls)
-    x = add_a_productType(cls_full_name, jsn=jsn,
-                          client=client, urlup=urlupload)
+    x = add_a_dataType(cls_full_name, jsn=jsn,
+                       client=client, urlup=urlupload)
     clz = test_pool.getProductClasses()
     assert cls_full_name in clz
     delete_defintion(cls, cls_full_name, urllist, urldelete,
@@ -478,8 +546,8 @@ def test_del_def_Tx(csdb_client, csdb):
 
 def xxxfollow():
     # add a type and a prod
-    x = add_a_productType(cls_full_name, jsn=jsn,
-                          client=client, urlup=urlupload)
+    x = add_a_dataType(cls_full_name, jsn=jsn,
+                       client=client, urlup=urlupload)
     assert cls_full_name in clz
     clz = test_pool.getProductClasses()
     assert cls_full_name in clz
@@ -504,36 +572,9 @@ def xxxfollow():
     with pytest.raises(TypeError):
         delete_defintion(cls, cls_full_name, urllist, urldelete,
                          client=client, urlc=urlc, deldatt=True)
-    # __import__("pdb").set_trace()
     pinfo = test_pool.getPoolInfo()
     # The prod is still there
     assert prod_urn in pinfo[pname]['_urns']
-
-
-def pool_exists(poolname, csdb_c, urlc, create_clean=False):
-    urlupload, urldelete, urllist, client = csdb_c
-
-    x = client.get(urlc+f"/pool/info?storagePoolName={poolname}")
-    assert x.status_code == 200
-    o, code = getPayload(x)
-    if o['code'] == 0:
-        if 0 and create_clean:
-            for u in get_all_in_pool(poolname, urlc=urlc, client=client):
-                part = u[3:].replace(':', '/')
-                x = client.post(urlc+f'/storage/delete?path={part}')
-                assert x.status_code == 200, x.text
-                o, code = getPayload(x)
-                if o['code']:
-                    raise RuntimeError(
-                        'Cleanin exisiting pool {part} failed.')
-        return True
-    elif create_clean:
-        x = client.post(
-            urlc+f"/pool/create?poolName={poolname}&read=0&write=0")
-        assert x.status_code == 200
-        o, code = getPayload(x)
-        return o['code'] == 0
-    return o['code'] == 0
 
 
 @ pytest.fixture(scope='function')
@@ -549,7 +590,7 @@ def upload_7products(csdb, urlcsdb, csdb_client, tmp_prods):
   'size': 9838,
   'tags': ['foo', '2023-01-28 11:15:33.938743'],
   'timestamp': 1674875733148,
-  'type': None,
+  'dataType': None,
   'url': 'http://...:31702/csdb/v1/storage/test_csdb_fdi/fdi.dataset.testproducts.TB/647',
   'urn': 'urn:test_csdb_fdi:fdi.dataset.testproducts.TB:647'}, ...]`
 
@@ -591,10 +632,10 @@ def test_upload_products(csdb_7types_defined, upload_7products):
     all_data = upload_7products
 
     assert len(all_data) == 7
-    assert set(d['type'] for d in all_data) == set(t for t in all_types)
+    assert set(d['dataType'] for d in all_data) == {t for t in all_types}
 
 
-def add_a_prod_in_another_pool(poolname2, urlc, cls_full_name, csdb_c):
+def add_a_prod_in_another_pool(poolname2, urlc, cls_full_name, csdb_c, nulltype=True):
     path2 = f'{poolname2}/{cls_full_name}'
     urlupdata = urlc + f'/storage/{path2}'
     cls = cls_full_name.rsplit('.', 1)[1]
@@ -602,7 +643,7 @@ def add_a_prod_in_another_pool(poolname2, urlc, cls_full_name, csdb_c):
     pool_exists(poolname2, csdb_c, urlc,
                 create_clean=True)
     jsn = cls2jsn(cls)
-    add_a_productType(cls_full_name, jsn, csdb_c[-1], urlc+'/datatype/upload')
+    add_a_dataType(cls_full_name, jsn, csdb_c[-1], urlc+'/datatype/upload')
     upload_prod_data(prd,
                      cls_full_name=cls_full_name,
                      desc=f'delte_dataType_control',
@@ -618,7 +659,8 @@ def add_a_prod_in_another_pool(poolname2, urlc, cls_full_name, csdb_c):
                      )
     # number of control prod
     aip_ctl = get_all_in_pool(
-        path=f'/{path2}', what='urn', urlc=urlc, client=csdb_c[-1]
+        path=f'/{path2}', what='urn', urlc=urlc, client=csdb_c[-1],
+        nulltype=nulltype
     )
     assert all(cls_full_name in a for a in aip_ctl)
     return aip_ctl
@@ -650,7 +692,7 @@ def test_del_7products(urlcsdb, csdb_client, upload_7products):
     del1 = 1
     urns = []
     for dt in data:
-        # ‘productType' in post storage/pool/prod, None in ['type']
+        # ‘dataType' in post storage/pool/prod, None in ['type']
         cls_full_name = dt['path'].rsplit('/', 2)[-2]
         ind = dt['index']
         path = f'/{poolname}/{cls_full_name}'
@@ -680,7 +722,7 @@ def test_del_7products(urlcsdb, csdb_client, upload_7products):
                     poolname+'2', urlc, cls_full_name, csdb_client)
                 # delete from pool 1
                 urlxxx = urlc + \
-                    f"/storage/delDatatype?path=/{poolname}/{cls_full_name}"
+                    f"/storage/delDatatypeData?path=/{poolname}/{cls_full_name}"
                 url = urlc + \
                     f"/storage/delete?path=/{poolname}/{cls_full_name}{ind}"
                 x = client.delete(url)
@@ -743,7 +785,7 @@ def csdb_token(csdb, pc):
     token = pc['cloud_token']
     if token != test_pool.token:
         logger.info("Tokens are not equal or not synchronized")
-    return token
+    return test_pool.token
 
 
 def test_csdb_token(csdb_token):
@@ -754,18 +796,19 @@ def test_csdb_createPool(csdb_new):
     logger.info('test create a brand new pool')
     test_pool, url, pstore = csdb_new
     try:
-        info_of_a_pool = test_pool.poolInfo[test_pool.poolname]
-        # assert len(info_of_a_pool['_classes']) == 0
+        pinfo = test_pool.poolInfo[test_pool.poolname]
+        assert len(pinfo['_classes']) == 0
     except ValueError:
         # found deleted pool by this name.
         assert test_pool.restorePool() is True
     assert test_pool.poolExists() is True
+    assert test_pool.poolExists('non_existant') is False
 
 
 def test_csdb_poolInfo(csdb):
     test_pool, url, pstore = csdb
     test_pool.getPoolInfo()
-    # print(test_pool.poolInfo)
+    # logger.info(test_pool.poolInfo)
 
 
 def test_clean_csdb(clean_csdb):
@@ -809,7 +852,7 @@ def csdb_7types_defined(csdb, urlcsdb, csdb_client, tmp_prod_types):
     ftest_pool, poolurl, pstore = csdb
     # get_all_prod_types(urlcsdb+'/datatype/list', ftest_pool.client)
     # 7 products
-    prd_types = tmp_prod_types
+    prd_types, seri = tmp_prod_types
 
     asci = False
 
@@ -821,58 +864,59 @@ def csdb_7types_defined(csdb, urlcsdb, csdb_client, tmp_prod_types):
             full_cls = f'sv.{cls}'  # cls_full_name.rsplit('.', 1)[-1]
         else:
             full_cls = Class_Module_Map[cls] + '.' + cls
-
-        defn = upload_defintion(cls, full_cls,
-                                urllist, urlupload, urldelete,
-                                client=client, check=1)
-        logger.debug(f'Added/updated definition for {full_cls}.')
         all_data.append(full_cls)
-    assert len(prd_types) == len(all_data)
-    return all_data
+    defns = upload_defintion(all_data,
+                             urllist, urlupload, urldelete,
+                             client=client, check=1)
+    logger.debug(f'Added/updated definition for {defns}.')
+
+    assert len(prd_types) == len(defns)
+    return defns
 
 
 @ pytest.fixture(scope='function')
 def csdb_uploaded(csdb, csdb_7types_defined, csdb_client):
-    return csdb_up(csdb, csdb_7types_defined, csdb_client, ntimes=1)
+    return csdb_up(csdb, csdb_7types_defined, csdb_client, asyn=ASYN, ntimes=1)
 
 
-SKIP = False
-N = 1
+# total of 7*N
+N = 3
+ASYN = 0
 
 
 @ pytest.fixture(scope='function')
 def csdb_uploaded_n(csdb, csdb_7types_defined, csdb_client):
-    return csdb_up(csdb, csdb_7types_defined, csdb_client, N)
+    return csdb_up(csdb, csdb_7types_defined, csdb_client, asyn=ASYN, ntimes=N)
 
 
-def csdb_up(_csdb, _csdb_7types_defined, _csdb_client, ntimes):
+def csdb_up(_csdb, _csdb_7types_defined, _csdb_client, ntimes, asyn=False):
     urlupload, urldelete, urllist, client = _csdb_client
     test_pool, poolurl, pstore = _csdb
     poolname = test_pool._poolname
 
     all7Types = _csdb_7types_defined
-    logger.debug(f'To upload {all7Types}...')
-    n0 = test_pool.getCount()
+
+    cnt0 = test_pool.getCount(update=True)
+    logger.info(
+        f'To upload all7Types ...count={cnt0}')
     t0 = time.time()
 
-    uniq = str(time.time())
+    uniq = str(t0)
     resPrds = []
 
     for i, full_cls in enumerate(all7Types):
-        if SKIP and full_cls == 'fdi.dataset.testproducts.TP':
-            continue
         cls = full_cls.rsplit('.', 1)[1]
         ptype = Classes.mapping[cls]
-        for _ in range(ntimes):
-            # if full_cls.endswith('TP'):
-            #    __import__("pdb").set_trace()
+        prds = [ptype(f'demo {cls} {uniq}')] * ntimes
+        r = pstore.save(prds, asyn=asyn)
+        # assert all(i for i in r), full_cls
+        resPrds.extend(r)
 
-            r = pstore.save(ptype(f'demo {cls} {uniq}'))
-            resPrds.append(r)
-
-    assert len(resPrds) == len(all7Types)
+    n0 = len(resPrds)
+    assert n0 == len(all7Types) * ntimes
     # pinfo = test_pool.getPoolInfo()
-    logger.info(f'Generated in {time.time()-t0} secs {n0}, {len(resPrds)}')
+    logger.info(
+        f'Generated in {time.time()-t0} secs n0={n0}, count={test_pool.getCount(update=True)}')
     # logger.info(f'{test_pool.getDataInfo("_urns")}')
     return test_pool, uniq, resPrds, pstore
 
@@ -882,21 +926,39 @@ def test_csdb_upload(csdb_uploaded):
     test_pool, uniq, resPrds, pstore = csdb_uploaded
     r = resPrds
 
-    urninfo = test_pool.getPoolInfo()[test_pool._poolname]['_urns']
+    urninfo = test_pool.getDataInfo('urn')
     assert len(r) == 7
-    assert len(urninfo) == 7
+    assert len(urninfo) >= 7
 
     for ele in resPrds:
         assert csdb_pool_id in ele.urn
         assert ele.urn in urninfo
         assert uniq in ele.product.description
 
-    # urn:{poolname}:fdi.dataset.testproducts.TP:x
-    assert all(csdb_pool_id in x.urn for x in resPrds)
+    urnsN7 = [ele.urn for ele in resPrds] * N
+    po, pt, sn = parseUrn(urnsN7)
+    po = test_pool._poolname
+    ures = []
+    oldCount = test_pool.getCount(update=True)
+    assert len(urninfo) == oldCount
 
-    for ele in resPrds:
-        assert csdb_pool_id in ele.urn
-        assert uniq in ele.product.description
+    tags = []
+    prds = []
+    for n, ref in enumerate([*resPrds] * N):
+        tags.append(f'{n} {pt[n]}')
+        prds.append(ref.product)
+    t0 = time.time()
+    if not ASYN:
+        for n, ref in enumerate([*resPrds] * N):
+            ures.append(pstore.save(prds[n], tag=tags[n],
+                        poolname=po))
+    else:
+        rs = pstore.save(prds, tag=tags, poolname=po, asyn=ASYN)
+        ures = rs
+
+    cnt1 = test_pool.getCount()
+    assert cnt1 == oldCount + N*7
+    logger.info(f'Uploaded in {time.time()-t0} {len(ures)}, curr cnt {cnt1}')
 
 
 def test_csdb_load_Prd(csdb_uploaded):
@@ -905,10 +967,6 @@ def test_csdb_load_Prd(csdb_uploaded):
 
     test_pool, uniq, resPrds, pstore = csdb_uploaded
     pinfo = test_pool.getPoolInfo()
-    # for cl in pinfo[test_pool.poolname]['_classes']:
-    #    if c['productTypeName'] == 'fdi.dataset.product.Product':
-    #        rdIndex = c['currentSN']
-    #        break
     urns = list(r.urn for r in resPrds)
     us = list(pinfo[test_pool.poolname]['_urns'].keys())
     for u in urns:
@@ -923,21 +981,48 @@ def csdb_addTag(csdb_uploaded):
 
     test_pool, uniq, resPrds, pstore = csdb_uploaded
     pinfo = test_pool.getPoolInfo()
-    tag = 'test_prd'
-    typename = list(pinfo[test_pool.poolname]['_classes'])[0]
-    rdIndex = pinfo[test_pool.poolname]['_classes'][typename]['sn'][0]
-    urn = 'urn:' + csdb_pool_id + ':' + typename + ':' + str(rdIndex)
+    ppu = pinfo[test_pool._poolname]['_urns']
+    times = str(int(time.time()))
+    tag = 'test_prd_' + times
+
+    # get a tag-free URN
+    for u, ts in reversed(ppu.items()):
+        if len(ts) == 0:
+            break
+    urn = u
+
+    assert not test_pool.tagExists(tag)
     test_pool.setTag(tag, urn)
-    assert tag in test_pool.getTags(urn)
-    tag1 = 'test_prd1'
+    assert test_pool.tagExists(tag)
+    with pytest.raises(AssertionError):
+        assert tag in test_pool.getTags(urn)
+    assert tag in test_pool.getTags(urn, update=True)
+    # pinfo = test_pool.getPoolInfo()
+
+    # multiple tags
+    tag1 = 'test_prd1_' + times
     tag2 = ['test_prd2', 'test_prd3']
-    typename2 = list(pinfo[test_pool.poolname]['_classes'])[1]
-    rdIndex2 = pinfo[test_pool.poolname]['_classes'][typename2]['sn'][-1]
-    urn2 = 'urn:' + csdb_pool_id + ':' + typename2 + ':' + str(rdIndex2)
+    # get a tag-free URn
+    start = 0
+    for u, ts in reversed(ppu.items()):
+        if not start:
+            if u == urn:
+                start = 1
+            continue
+        if len(ts) == 0:
+            break
+    urn2 = u
+    assert not test_pool.tagExists(tag1)
+
     test_pool.setTag(tag1, urn2)
     test_pool.setTag(tag2, urn2)
     tagsall = [tag1]+tag2
-    assert set(test_pool.getTags(urn2)) == set(tagsall)
+    tu2 = test_pool.getTags(urn2)
+    with pytest.raises(AssertionError):
+        assert set(tu2) == set(tagsall)
+    # add update=1
+    tu2 = test_pool.getTags(urn2, update=True)
+    assert set(tu2) == set(tagsall)
     return test_pool, tag, urn, tagsall, urn2
 
 
@@ -946,14 +1031,15 @@ def test_csdb_delTag(csdb_addTag):
 
     test_pool, tag, urn, tag2, urn2 = csdb_addTag
     assert tag in test_pool.getTags(urn)
-
-    assert test_pool.getTagUrnMap() is not None
+    tag_urn_map = test_pool.getTagUrnMap()
+    assert tag_urn_map is not None
 
     test_pool.removeTag(tag)
     test_pool.getPoolInfo()
     assert tag not in test_pool.getTags(urn)
     assert tag2[0] in test_pool.getTags(urn2)
     assert tag2[1] in test_pool.getTags(urn2)
+
     test_pool.removeTag(tag2[1])
     test_pool.getPoolInfo()
     assert tag2[1] not in test_pool.getTags(urn2)
@@ -1003,51 +1089,60 @@ def test_csdb_remove(csdb_uploaded):
     rdIndex = pinfo[poolname]['_classes'][cls_full_name]['sn'][-1]
     urn = 'urn:' + csdb_pool_id + ':' + cls_full_name + ':' + str(rdIndex)
     res = test_pool.remove(urn)
-    assert res == 'success', res
+    assert res == 0, res
     pinfo = test_pool.getPoolInfo()
     assert cls_full_name not in pinfo[poolname]['_classes'] or rdIndex not in pinfo[poolname]['_classes'][cls_full_name]['sn']
     # test pstore
-    cls = resPrds[1].getType().__name__
-    if USE_SV_MODULE_NAME:
-        cls_full_name = f'sv.{cls}'
-    else:
-        cls_full_name = Class_Module_Map[cls] + '.' + cls
-    rdIndex = pinfo[poolname]['_classes'][cls_full_name]['sn'][-1]
-    res = pstore.remove(cls_full_name, rdIndex)
-    assert res == 'success', res
+    urn = list(pinfo[poolname]['_urns'])[-1]
+    res = pstore.remove(urn)
+    assert res == 0, res
     pinfo = test_pool.getPoolInfo()
-    assert rdIndex not in pinfo[poolname]['_classes'][cls_full_name]['sn']
+    assert urn not in pinfo[poolname]['_urns']
 
 
-def test_csdb_wipe(csdb_uploaded_n, csdb_client):
+NWIPE = N
+
+
+def test_csdb_wipe_(csdb_uploaded_n, csdb_client):
     logger.info('test wipe all')
     # test_pool, url, pstore = csdb
 
     test_pool, uniq, resPrds, pstore = csdb_uploaded_n
     urlupload, urldelete, urllist, client = csdb_client
     pname = test_pool.poolname
-    info = test_pool.getPoolInfo()
-    assert isinstance(info, dict), str(info)
-    n0 = len(info[pname]['_urns'])
-    n0 = test_pool.getCount()
-    print('wipe setup', n0)
-    t0 = time.time()
 
-    # first not delDataType
-    for clazz, cld in info[pname]['_classes'].items():
-        # all datatypes
-        # types = get_all_prod_types(urllist, client)
-        # assert clazz in types
-        if SKIP and clazz == 'fdi.dataset.testproducts.TP':
-            continue
-        path = f'/{pname}/{clazz}'
-        # res = read_from_cloud('delDataType', token=test_pool.token,
-        #                       path=path)
-        # if res['msg'] != 'success':
-        #     logger.debug(f'Wipe pool with delDataType failed: ' +
-        #                  res['msg'] + 'rm with remove()')
-    test_pool.removeAll(ignore_error=True)
-    print(time.time()-t0, n0, test_pool.getCount())
+    if 1:
+        oldCount = test_pool.getCount(update=True)
+        n0 = oldCount  # , NWIPE*7)
+        logger.info(f'wipe setup {n0}')
+        t0 = time.time()
+        path = f"/{pname}"
+        # res = read_from_cloud('remove', token=test_pool.token,
+        #                      path=path)
+        rec = test_pool.removeAll()
+
+    elif 0:
+        tyinfo = test_pool.getProductClasses(count=True)
+        assert tyinfo
+        assert isinstance(tyinfo, set), str(tyinfo)
+        pinfo = test_pool.getPoolInfo(update_hk=True)
+        # logger.info(list(pinfo[pname]['_urns'])[-8:])
+
+        oldCount = sum(test_pool.getCount(typename=t, update=False)
+                       for t in tyinfo)
+        n0 = oldCount  # , NWIPE*7)
+        logger.info(f'wipe setup, {n0}')
+        t0 = time.time()
+
+        # first not delDataTypeData
+        for cls in tyinfo:
+            path = f"/{pname}/{cls}"
+            res = read_from_cloud('delDataTypeData', token=test_pool.token,
+                                  path=path)
+        # test_pool.removeAll(ignore_error=True)
+    newCount = test_pool.getCount(update=True)
+    assert newCount == 0
+    logger.info(f'>>> {time.time()-t0} {oldCount} -> {newCount}')
 
 
 what_wipe = pytest.mark.skipif(0, reason='digging')
@@ -1058,23 +1153,24 @@ def test_cmp_wipe1(csdb_client, csdb_uploaded_n):
     test_pool, uniq, resPrds, pstore = csdb_uploaded_n
     urlupload, urldelete, urllist, client = csdb_client
     pname = test_pool.poolname
-    info = test_pool.getPoolInfo()
+    info = test_pool.getPoolInfo(update_hk=True)
     assert isinstance(info, dict), str(info)
+    oldCount = test_pool.getCount()
+    assert oldCount
     n0 = len(info[pname]['_urns'])
-    print('wipe setup', n0)
+    logger.info(f'wipe setup {n0}, {oldCount}')
     t0 = time.time()
 
     for clazz, cld in info[pname]['_classes'].items():
         # all datatypes
         # types = get_all_prod_types(urllist, client)
         # assert clazz in types
-        if SKIP and clazz == 'fdi.dataset.testproducts.TP':
-            continue
         path = f'/{pname}/{clazz}'
-        res = read_from_cloud('delDataType', token=test_pool.token,
+        res = read_from_cloud('delDataTypeData', token=test_pool.token,
                               path=path)
-        assert res['msg'] == 'success',   f'Wipe pool {pname} failed: ' + res['msg']
-    print('delDataType', time.time()-t0, n0, len(info[pname]['_urns']))
+    logger.info(
+        f"delDataTypeData, >>> {time.time()-t0}, {n0}, {len(info[pname]['_urns'])}")
+    assert test_pool.getCount(update=True) == 0
 
 
 DTYPE = 'fdi.dataset.testproducts.TP'
@@ -1083,16 +1179,17 @@ ONLY_IN_test_pool = True
 """ products of this type are going to be removed in test_pool, not all csdb storage."""
 
 if ONLY_IN_test_pool:
-    @what_wipe
+    @ what_wipe
     def test_cmp_wipe2(csdb, csdb_client, csdb_uploaded_n):
-        wipe_all(_csdb_client=csdb_client, _csdb_uploaded_n=csdb_uploaded_n)
+        wipe_all(_csdb_client=csdb_client,
+                 _csdb_uploaded_n=csdb_uploaded_n)
 else:
-    @what_wipe
+    @ what_wipe
     def test_wipe_urns(csdb, csdb_client):
         wipe_all(_csdb_client=csdb_client, _csdb=csdb)
 
 
-def wipe_all(_csdb=None, _csdb_client=None, csdb_uploaded_n=None):
+def wipe_all(_csdb=None, _csdb_client=None, _csdb_uploaded_n=None):
     # products of this type are going to be removed in csdb storage.
 
     if ONLY_IN_test_pool:
@@ -1103,44 +1200,52 @@ def wipe_all(_csdb=None, _csdb_client=None, csdb_uploaded_n=None):
     urlc = urldelete.rsplit('/datatype', 1)[0]
     if ONLY_IN_test_pool:
         pname = test_pool.poolname
+        test_pool._poolname = pname
         info = test_pool.getPoolInfo()
+
+        oldCount = test_pool.getCount()
+        assert oldCount
         assert isinstance(info, dict), str(info)
         urns = info[pname]['_urns']
+        assert len(urns) == oldCount
     else:
         path_part = DTYPE
         _all = get_all_in_pool(
             poolname=None, path=path_part, what='urn', urlc=urlc, client=client
         )
         urns = [u for u in _all if DTYPE in u]
-    n0 = len(urns)
-    print('wipe setup', n0, lls(urns, 300))
-    pp = input(f'wipe2 {n0} URNs?')
+        oldCount = len(urns)
+    n0 = min(len(urns), NWIPE*7)
+    logger.info(f'wipe setup, {n0}, {lls(urns, 300)}')
+    # pp = input(f'wipe2 {n0} URNs?')
+    if len(urns) > 999:
+        urns = urns[:999]
     t0 = time.time()
+    res = test_pool.remove(list(urns), asyn=ASYN)
+    logger.info(f'urn >>> {time.time()-t0}, n0={n0}, len={len(urns)}')
+    newCount = max(oldCount - n0, 0)
+    assert test_pool.getCount(update=True) == newCount
 
-    for urn in urns:
-        if SKIP and 'fdi.dataset.testproducts.TP' in urn:
-            continue
-        pname, full_name, sn = parseUrn(urn)
-        test_pool.poolname = pname
-        res = test_pool.remove(urn)
-    print('urn', time.time()-t0, n0, len(urns))
+    ##########
 
 
-@what_wipe
 def test_cmp_wipe3(csdb_client, csdb_uploaded_n):
     test_pool, uniq, resPrds, pstore = csdb_uploaded_n
     urlupload, urldelete, urllist, client = csdb_client
+    urlc = urldelete.rsplit('/datatype', 1)[0]
     pname = test_pool.poolname
+    test_pool._poolname = pname
     info = test_pool.getPoolInfo()
-    assert isinstance(info, dict), str(info)
-    n0 = len(info[pname]['_urns'])
-    print('wipe setup', n0)
-    t0 = time.time()
+    oldCount = test_pool.getCount()
+    assert oldCount
 
+    n0 = min(oldCount, NWIPE*7)
+    logger.info(f'wipe setup, {n0}.')
+    t0 = time.time()
     test_pool.ignore_error_when_delete = True
     for clazz, cld in info[pname]['_classes'].items():
-        if SKIP and clazz == 'fdi.dataset.testproducts.TP':
-            continue
-        for i in cld['sn']:
-            res = test_pool.doRemove(clazz, i)
-    print('doRemove', time.time()-t0, n0, len(info[pname]['_urns']))
+        res = test_pool.remove(resourcetype=clazz, index=cld['sn'])
+    logger.info(
+        f"'class-sn', >>> {time.time()-t0}, {n0}, {len(info[pname]['_urns'])}")
+    newCount = max(oldCount - n0, 0)
+    assert test_pool.getCount(update=True) == newCount

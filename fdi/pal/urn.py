@@ -35,17 +35,32 @@ def is_urn(u):
 def makeUrn(poolname, typename, index):
     """ assembles a URN or a list of URNs with infos of the pool, the resource type, and the index.
 
-    :poolname: str
-    :typename: str, name of data type.
+    :poolname: str or list of them.
+    :typename: str, name of data type. or list of them.
     index: int or string or list of them.
+    If any two or more are lists, all have to be list of the same length.
     """
-    upt = 'urn:' + poolname + ':' + typename + ':'
-    if issubclass(index.__class__, (list, tuple)):
-        urns = []
-        for ind in index:
-            urns.append(upt + str(ind))
+    lp = lt = li = 0
+
+    lp = len(poolname) if isinstance(poolname, list) else 0
+    lt = len(typename) if isinstance(typename, list) else 0
+    li = len(index) if isinstance(index, list) else 0
+
+    sz = max(lp, lt, li)
+    if sz:
+        if not ((lp == 0 or lp == sz) and (lt == 0 or lt == sz) and (li == 0 or li == sz)):
+            raise TypeError(
+                f'At least two args have different sizes {lp}, {ly}, {li}.')
+        # at least one is a list. make them all lists of sz size.
+        po = poolname if lp else [poolname]*sz
+        ty = typename if lt else [typename]*sz
+        sn = index if li else [index]*sz
+
+        urns = [f'urn:{po[i]}:{ty[i]}:{sn[i]}' for i in range(sz)]
         return urns
-    return upt + str(index)
+    else:
+        urns = f'urn:{poolname}:{typename}:{index}'
+        return urns
 
 
 class Urn(DeepEqual, Serializable, Comparable):

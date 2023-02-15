@@ -365,11 +365,12 @@ class LocalPool(ManagedPool):
         """
         does the action of removal of product from pool.
         """
+
         fp0 = self.transformpath(self._poolname)
-        fp1 = op.abspath(pathjoin(fp0,  quote(resourcetype) + '_'))
-        sns = index if issubclass(index.__class__, (list, tuple)) else [index]
-        for index in sns:
-            fp = fp1 + str(index)
+        fp1 = [op.abspath(pathjoin(fp0,  quote(r) + f'_{i}'))
+               for r, i in zip(resourcetype, index)]
+        res = []
+        for fp in fp1:
             try:
                 if fp in self._files:
                     if self._files[fp]:
@@ -378,14 +379,16 @@ class LocalPool(ManagedPool):
                     del self._files[fp]
                 os.unlink(fp)
                 self.writeHK(fp0)
-            except IOError as e:
+                res.append(0)
+            except RuntimeError as e:
                 msg = f'Remove failed. exc: {e} trbk: {trbk(e)}'
                 logger.debug(msg)
                 if self.ignore_error_when_delete:
+                    res.append(None)
                     continue
                 else:
                     raise
-        return 0
+        return res
 
     def doWipe(self):
         """

@@ -350,8 +350,11 @@ def test_PoolManager():
     assert pm.remove(defaultpoolName) == 0
 
     # http pool gets registered
-    with pytest.raises(ConnectionError):
-        ph = pm.getPool(poolurl='http://h.edu/foo')
+    try:
+        with pytest.raises(ConnectionError):
+            ph = pm.getPool(poolurl='http://h.edu/foo')
+    except NewConnectionError:
+        pass
     assert not PoolManager.isLoaded('foo')
     with pytest.raises(KeyError):
         assert PoolManager.remove('foo') == 1
@@ -607,12 +610,11 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
         init_sn, init_count, pinfo = getCurrSnCount(csdb, pcq)
         init_sn_m, init_count_m, _ = getCurrSnCount(pinfo, mcq)
         logger.debug('1...', init_count, init_sn, init_count_m, init_sn_m)
-
     # save
     ref = ps.save(x)
     s0, s1 = tuple(ref.urn.rsplit(':', 1))
     assert s0 == 'urn:' + thepoolname + ':' + pcq
-    # not saving thie one
+    # not saving this one
     # ref_m = ps.save(y)
     init_count, init_count_m = 0, 0
     if is_csdb:

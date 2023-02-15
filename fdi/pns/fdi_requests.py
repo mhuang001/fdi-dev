@@ -21,6 +21,7 @@ from flask import Flask
 from flask.testing import FlaskClient
 
 import requests
+from inspect import ismethod
 from itertools import chain
 from requests.auth import HTTPBasicAuth
 import asyncio
@@ -59,6 +60,17 @@ pcc = getConfig()
 defaulturl = getConfig('poolurl:')
 
 pccnode = pcc
+
+
+class ServerError(BaseException):
+    def __init__(self, r, *args, rsps=None, code=None, **kwds):
+        self.response = rsps
+        if code is None:
+            self.code = rsps.getapis(
+                'status_code', rsps.getattr('status', '')) if rsps else None
+        else:
+            self.code = code
+        return super().__init__(r, *args, **kwds)
 
 
 @ functools.lru_cache(maxsize=16)
@@ -173,7 +185,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 # Store tag in headers, maybe that's  not a good idea
 
 
-def safe_client(method, api, *args, no_retry_controls=True, **kwds):
+def safe_client(method, api, *args, no_retry_controls=False, **kwds):
     """ call Session/requests method with or without try controls.
 
     Parameters
@@ -181,7 +193,7 @@ def safe_client(method, api, *args, no_retry_controls=True, **kwds):
     method: function
          urllib3 Session or requests function such as `get`.
     no_retry_controls: bool
-         without retry controls. Default `True`.
+         without retry controls. Default `False`.
 
     Returns
     -------
@@ -369,12 +381,49 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
     else:
         return 'FAILED', result
 
-
 # == == == = Async IO == == ==
+
+
 def content2result_httppool(content):
+    """Format aiohttp responses to httppool output.
+
+    This is mainly used by `reqst` to adapt results to server API conventions.
+
+    Parameters
+    ----------
+    content : list
+        list of `aiohttp.ClientResponse` made by `aio_client`
+    or of `urllib3.Session` (and `requests`) by `safe_client`.
+
+    Returns
+    -------
+    list
+        of values of the `result` key of dictionaries httppool
+        returns.
+
+    Raises
+    ------
+    ServerError
+        Server error that returns non-json result or of un-understandable error messages.
+    All_Exceptions[excpt]
+        Exceptions that made understandable messages, named by variable 'excpt'.
+    Examples
+    --------
+    FIXME: Add docs.
+
+
+    """
+
     res = []
+    if not isinstance(content, list):
+        content = [content]
+        alist = False
+    else:
+        alist = True
+
     for resp in content:
-        if isinstance(resp, tuple):
+        is_aio = isinstance(resp, tuple)
+        if is_aio:
             code, text, url = resp  # .status, resp.text(), resp.url.raw_path_qs
         else:
             code, text, url = resp.status_code, resp.text, resp.url
@@ -383,8 +432,8 @@ def content2result_httppool(content):
         if code != 200 or issubclass(ores.__class__, str) and ores[:6] == 'FAILED':
             if not issubclass(obj.__class__, dict):
                 # cannot deserialize
-                raise RuntimeError(
-                    f'AIO {method_name} error SERVER: {code} Message: '+lls(text, 200))
+                raise ServerError(
+                    f'AIO {resp.request.method} error {code} Message: '+lls(text, 200), resp, code=code)
             # deserializable
             msg = obj['msg']
             for line in chain(msg.split('.', 1)[:1], msg.split('\n')):
@@ -392,9 +441,10 @@ def content2result_httppool(content):
                 if excpt in All_Exceptions:
                     # relay the exception from server
                     raise All_Exceptions[excpt](
-                        f'SERVER: Code {code} Message: {msg}***{res}={len(res)}')
-            raise RuntimeError(
-                f'AIO {method_name} error SERVER: {ores}: '+lls(msg, 200))
+                        f'Code {code} Message: {msg}')
+            raise ServerError(
+                f'AIO {method_name} error {ores}: '+lls(msg, 200), resp,
+                code=code)
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug(lls(text, 100))
         res.append(ores)
@@ -402,28 +452,76 @@ def content2result_httppool(content):
     # print('pppp', res[0])
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(f'AIO result size: {len(res)}.')
-    return res
+    return res if alist else res[0]
 
 
 def content2result_csdb(content):
+    """Format aiohttp responses to CSDB output.
+
+    This is mainly used by `reqst` to adapt results to server API conventions.
+
+    Parameters
+    ----------
+    content : list
+        list of `aiohttp.ClientResponse` made by `aio_client`.
+    or of `urllib3.Session` (and `requests`) by `safe_client`.
+
+    Returns
+    -------
+    list
+        of values of the `data` key of dictionaries httppool
+        returns.
+
+    Raises
+    ------
+    ServerError
+        Server error that returns non-200 HTTP code, or non-0 `['code']`.
+
+    Examples
+    --------
+    FIXME: Add docs.
+
+
+    """
+
     res = []
+    if not isinstance(content, list):
+        content = [content]
+        alist = False
+    else:
+        alist = True
+
     for resp in content:
-        if isinstance(resp, tuple):
+        is_aio = isinstance(resp, tuple)
+        if is_aio:
+            # AIO
             code, text, url = resp  # .status, resp.text(), resp.url.raw_path_qs
         else:
+            # requests
             code, text, url = resp.status_code, resp.text, resp.url
         obj = deserialize(text)
-        if code != 200 or not issubclass(obj.__class__, dict):
-            # cannot deserialize
-            raise RuntimeError(
-                f'AIO {method_name} error: {code} Message: '+lls(text, 200))
-        # deserializable
-        msg = obj['msg']
-        ores = obj['data']
-        code = obj['code']
-        if code:
-            raise RuntimeError(
-                f'Code {code} Message: {msg}***{lls(text, 200)}={len(text)}')
+        if code != 200 or issubclass(obj.__class__, str):
+            # cannot deserialize and/or bad code
+            try:
+                eo = resp.json()
+                code = eo['status']
+                msg = eo['message']
+            except:
+                msg = lls(text, 200)
+            raise ServerError(
+                f'AIO {resp.request.method} error: {code} Message: ' + msg, rsps=resp, code=code)
+
+        # if deserializable
+        if issubclass(obj.__class__, dict) and 'data' in obj:
+            msg = obj['msg']
+            ores = obj['data']
+            code = obj['code']
+            if code:
+                raise ServerError(
+                    f'Code {code} Message: {msg}', resp, code=code)
+        else:
+            # e.g. /get?urn=...
+            ores = obj
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug(lls(text, 100))
         res.append(ores)
@@ -431,7 +529,7 @@ def content2result_csdb(content):
     # print('pppp', res[0])
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(f'AIO result size: {len(res)}.')
-    return res
+    return res if alist else res[0]
 
 
 async def get_aio_result(method, *args, **kwds):
@@ -441,12 +539,12 @@ async def get_aio_result(method, *args, **kwds):
         return resp.status, con, resp.url.raw_path_qs
 
 
-def reqst(method, apis, *args, server_type='httppool', **kwds):
+def reqst(meth, apis, *args, server_type='httppool', ret_rqst=False, **kwds):
     """send session, requests, aiohttp requests.
 
     Parameters
     ----------
-    method : str, function
+    meth : str, function
         If is a string, will be the method name of `aio_client`,
         `aio_client` is used so
         at least one of the `apis`, 'data' in `kwds`, and `headers`
@@ -455,8 +553,13 @@ def reqst(method, apis, *args, server_type='httppool', **kwds):
         If is a function, the method functiono of
         session/request is used and apis is expected to be a string.
     apis : str, list, tuple
-        The URL string if `method` is a function. A list of URL strings
-        if `method` is a string. See `method` docs above.
+        The URL string if `meth` is a function. A list of URL strings
+        if `meth` is a string. See `meth` docs above.
+    server_type : string
+        One of 'httppool' (default) and 'csdb', for HttpPool server
+    and CSDB server, respectively.
+    ret_rqst: bool
+        return a list of respons (only effective to `aio_client`. Default is `False`.
     *args : list
 
     **kwds : dict
@@ -465,30 +568,42 @@ def reqst(method, apis, *args, server_type='httppool', **kwds):
     Returns
     -------
     list
-        list of deserialized response.text if `aio_client` is used,
-        a response object or error message if `safe_client` is used.
+        If `aio_client` is used, if 'httppool' is selected for 
+    `server_type`, the result is that of `content2result_httppool`;
+    if 'csdb', is that of `content2result_csdb`.
+
+        If `safe_client` is used, a list if response object.
 
     Examples
     --------
     FIXME: Add docs.
     """
-
-    if isinstance(method, str):
-        content = aio_client(method, apis, *args, **kwds)
+    if isinstance(meth, str):
+        # use AIO
+        content = aio_client(meth, apis, *args, **kwds)
+        if ret_rqst:
+            return content
         if server_type == 'httppool':
             res = content2result_httppool(content)
         elif server_type == 'csdb':
             res = content2result_csdb(content)
         else:
             raise ValueError('Unknown server type: {server_type}.')
+    elif ismethod(meth):
+        # use request, urllib3.Session
+        content = safe_client(meth, apis, *args, **kwds)
+        if server_type == 'httppool':
+            res = content
+        elif server_type == 'csdb':
+            res = content2result_csdb(content)
     else:
-        content = safe_client(method, apis, *args, **kwds)
-        res = content
-
+        raise TypeError(
+            'Unknown type for `reqst` arguement "meth": {method_name}.')
     return res
 
 
-def aio_client(method_name, apis, data=None, headers=None):
+def aio_client(method_name, apis, data=None, headers=None,
+               no_retry_controls=True, **kwds):
     """
     Parameters
     ----------
@@ -499,8 +614,9 @@ def aio_client(method_name, apis, data=None, headers=None):
 
     Returns
     -------
-    list
-       List if urllib3 Session or requests Response.
+    tuple: 
+       List of tuples, each tuple containing the three properties of 
+    'ClientResponse`: `status`, text, `url.raw_path_qs`.
     """
 
     cnt = 0
@@ -528,17 +644,16 @@ def aio_client(method_name, apis, data=None, headers=None):
                 h = headers[n] if hlist else headers
                 if method_name == 'post':
                     tasks.append(asyncio.ensure_future(
-                        get_aio_result(method, a, data=d, headers=h)))
+                        get_aio_result(method, a, data=d, headers=h, **kwds)))
                 elif method_name in ('get', 'delete'):
                     tasks.append(asyncio.ensure_future(
-                        get_aio_result(method, a, headers=h)))
+                        get_aio_result(method, a, headers=h, **kwds)))
                 else:
                     raise ValueError(f"Unknown AIO method {method_name}.")
-            content = await asyncio.gather(*tasks)
+                content = await asyncio.gather(*tasks)
 
             if logger.isEnabledFor(logging_DEBUG):
                 logger.debug(f'AIO {method_name} return {len(content)} items')
-
             return content
 
     res = asyncio.run(multi())

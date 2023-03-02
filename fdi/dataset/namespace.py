@@ -248,7 +248,7 @@ class Lazy_Loading_ChainMap(ChainMap):
             load = refloader
         self.load = load
 
-        self.extenions = extensions
+        self.extensions = extensions
 
         # failed = {}
         # """ name-content pairs of the unloadable pairs from `default`. """
@@ -280,7 +280,7 @@ class Lazy_Loading_ChainMap(ChainMap):
                          len(self.sources),
                          len(self.initial),
                          len(self.cache),
-                         len(self.extenions),
+                         len(self.extensions),
                          str(self.initial)[:300]
                       ))
 

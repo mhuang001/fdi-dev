@@ -165,6 +165,7 @@ def test_NameSpace_func(NSmeta):
     # repr calls each of the maps directly. no loading.
     print(tmap)
     assert cnt == 3
+
     ns.clear()
     assert len(tmap) == 0
     ns.reload()

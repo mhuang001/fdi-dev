@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import fdi.dataset.baseproduct
-from ..utils.common import trbk
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 from .namespace import Load_Failed, NameSpace_meta
 
@@ -197,9 +195,6 @@ class Classes(metaclass=NameSpace_meta,
 
 
 Class_Look_Up = Classes.mapping
-
-
-All_Product_ = []
 
 
 @lru_cache(maxsize=8)

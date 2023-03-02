@@ -2,11 +2,13 @@
 
 from . import productref
 from .poolmanager import PoolManager
-from .productpool import ProductPool, makeLockpath
+from .productpool import ProductPool
+from .managedpool import makeLockpath
 from .urn import Urn
 from ..dataset.odict import ODict
 
 import filelock
+import copy
 from weakref import finalize
 
 import logging
@@ -62,6 +64,11 @@ class ProductStorage(object):
                 filelock.FileLock(makeLockpath('ProdStorage', 'r')):
             if pool and issubclass(pool.__class__, ProductPool):
                 _p = self.PM.getPool(pool=pool, **kwds)
+                from fdi.pal.publicclientpool import PublicClientPool
+                if issubclass(pool.__class__, PublicClientPool):
+                    pe = _p.poolExists()
+                    if not pe:
+                        __import__("pdb").set_trace()
             elif poolurl is None and poolname is None:
                 # quietly return for no-arg construction case
                 return
@@ -72,15 +79,29 @@ class ProductStorage(object):
                 if poolurl is not None and not issubclass(poolurl.__class__, str):
                     raise TypeError('Poolurl must be a string, not ' +
                                     poolurl.__class__.__name__)
-                _p = self.PM.getPool(poolname=poolname, poolurl=poolurl,
-                                     **kwds)
+                _p = self.PM.getPool(
+                    poolname=poolname, poolurl=poolurl, **kwds)
+                #########
+                if 0:
+                    cr = _p.client.get(
+                        f'http://123.56.102.90:31702/csdb/v1/pool/info?storagePoolName={_p._poolname}', headers={'User-Agent': 'python-requests/2.26.0', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'X-AUTH-TOKEN': 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJtaCIsInVzZXJJZCI6IjM2MzEiLCJuYW1lIjoiTWFvaGFpSHVhbmciLCJleHAiOjE2Nzc3MzE2MTJ9.UChjZJsnzfHXJeeVUVNxShL7zssejkR17LcOZXwOK6auHNIOXTbhc_pKUEpvJ_h2m5H3UOVAwVKTcQWI9kw-9ul-5YduG5yv9HaqzA0s7fxISbIjFL3vR6hHP4wU7xWtwAy8RwGNL6XqcplxexZ1FWDNawijqVVWfKId_JeWkGA'}).text
+                    _ = _p.log()
+                    if _:
+                        logger.info(_)
+                    if not cr[8] == '0':
+                        __import__("pdb").set_trace()
+                    else:
+                        logger.info(f'Pool {_p.poolname} exists.')
+
             self._pools[_p._poolname] = _p
 
         logger.debug('registered pool %s -> %s.' %
-                     (str(pool), str(self._pools)))
+                     (str(_p), str(self._pools)))
 
     def unregister(self, pool=None, ignore_error=False, **kwds):
         """ Unregisters the given pools to the storage.
+
+        In the process the pool is also unregistered from the `PoolManager`.
         """
 
         with filelock.FileLock(makeLockpath('ProdStorage', 'w')):
@@ -89,7 +110,7 @@ class ProductStorage(object):
             else:
                 poolname = pool
             if self.PM.isLoaded(poolname):
-                # remove frpm pool manager
+                # remove from pool manager
                 # TODO i dentify self
                 res = self.PM.remove(poolname, ignore_error=ignore_error)
                 # do this after del above
@@ -236,13 +257,41 @@ class ProductStorage(object):
         return list(self._pools.keys())
 
     def getPool(self, poolname):
-        """ mh: returns the pool object by poolname from this storage
+        """ returns the pool object from this storage
+
+        Parameters
+        ----------
+        poolname : str, int
+            The poolname or index.
+
+        Returns
+        -------
+        ProductPool
+            The pool object.
+
+        Raises
+        ------
+        ValueError, IndexError, TypeError
+            wrong poolname / index.
+
+        Examples
+        --------
+        FIXME: Add docs.
+
         """
-        if poolname not in self._pools:
+
+        if isinstance(poolname, str):
+            if poolname not in self._pools:
+                msg = 'pool ' + poolname + ' not found'
+                logger.error(msg)
+                raise ValueError(msg)
+            return self._pools[poolname]
+        try:
+            return list(self._pools.values())[poolname]
+        except (IndexError, TypeError) as e:
             msg = 'pool ' + poolname + ' not found'
             logger.error(msg)
-            raise NameError(msg)
-        return self._pools[poolname]
+            raise ValueError(msg)
 
     def getWritablePool(self, obj=False):
         """ returns the poolname of the first pool, which is the only writeable pool.
@@ -287,12 +336,14 @@ class ProductStorage(object):
 
     def wipePool(self, ignore_error=False, asyn=False, **kwds):
         """ Clear all data and meta data of the writable pool.
+
+        Keep it registered.
         """
 
         self.ignore_error_when_delete = ignore_error
         pool = self.getWritablePool(obj=True)
         pool.ignore_error_when_delete = ignore_error
-        pool.removeAll(
+        pool.wipe(
             ignore_error=ignore_error, asyn=asyn, **kwds)
 
     def isEmpty(self):

@@ -38,10 +38,10 @@ import time
 def setuplogging():
     import logging
     import logging.config
-    from . import logdict
+    from . import logdict1
 
     # create logger
-    logging.config.dictConfig(logdict.logdict)
+    logging.config.dictConfig(logdict1.logdict)
     logging.getLogger("requests").setLevel(logging.WARN)
     logging.getLogger("urllib3").setLevel(logging.WARN)
     logging.getLogger("filelock").setLevel(logging.WARN)
@@ -321,8 +321,8 @@ def test_CRUD_product_by_client(get_PS_for_CRUD):
     assert len(pstore.getPools()) == 0, 'product storage size error: ' + \
                                         str(pstore.getPools())
 
-    logger.info('Access a non-existing pool and trgger an Error.')
-    with pytest.raises(NameError):
+    logger.info('Access a non-existing pool and trigger an Error.')
+    with pytest.raises(ValueError):
         pstore.getPool(poolid + 'NON_EXISTS ') is None
 
 
@@ -391,7 +391,7 @@ def test_flask_fmt(tmp_pools, server, client,  auth):
     # the url is right
     assert o['result']['DataTypes'][p_type][p_index]['url'] == '/'.join(
         (received_poolurls_no_slash, p_type, str(p_index)))
-    assert o['result']['DataTypes'][p_type][p_index]['tags'] == str([tag])
+    assert o['result']['DataTypes'][p_type][p_index]['tags'] == str({tag})
     # pool aburl with slash
     # get the pool using url with slash
     received_poolurls_slash = received_poolurls_no_slash+'/'

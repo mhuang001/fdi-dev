@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-from ..pns.fdi_requests import save_to_server, read_from_server, delete_from_server, post_to_server
+from ..pns.fdi_requests import (ServerError,
+                                save_to_server,
+                                read_from_server,
+                                delete_from_server,
+                                post_to_server
+                                )
 from ..dataset.serializable import serialize
 from ..dataset.deserialize import deserialize, serialize_args
 from ..dataset.classes import All_Exceptions
@@ -17,7 +22,6 @@ import requests
 import os
 import builtins
 from itertools import chain
-import urllib
 from functools import lru_cache
 from os import path as op
 import logging
@@ -60,7 +64,7 @@ def toserver(self, method, *args, **kwds):
                 # relay the exception from server
                 raise All_Exceptions[excpt](
                     (f'SERVER: Code {code} Message: {msg}'))
-        raise RuntimeError(
+        raise ServerError(
             f'Executing {method} failed. SERVER: Code {code} Message: {msg}')
     return res
 
@@ -183,7 +187,7 @@ class HttpClientPool(ProductPool):
         if sv['result'] == 'FAILED' or res.status_code != 200:
             logger.error('Save %d products to server failed.%d Message from %s: %s' % (
                 len(productlist), res.status_code, self._poolurl, sv['msg']))
-            raise RuntimeError(sv['msg'])
+            raise ServerError(sv['msg'])
         else:
             urns = sv['result']
         logger.debug('Product written to remote server successful')
@@ -237,40 +241,52 @@ class HttpClientPool(ProductPool):
         """
         urn, datatype, sn = self.get_missing(
             urn, resourcetype, index, no_check=True)
-        res, msg = delete_from_server(
-            urn, self._poolurl, auth=self.auth, client=self.client,
-            asyn=asyn, **kwds)
-        if res == 'FAILED':
-            msg = 'Remove from server ' + self._poolname +\
-                ' failed. Caused by: ' + msg
-            if getattr(self, 'ignore_error_when_delete', False):
-                logger.warning(msg)
-            else:
-                raise RuntimeError(msg)
-        return 0
+        _u = urn
+        if isinstance(_u, list):
+            urns = _u
+            alist = True
+        else:
+            urns = [_u]
+            alist = False
+        rs = []
+        for u in urns:
+            r, msg = delete_from_server(
+                u, self._poolurl, auth=self.auth, client=self.client,
+                asyn=False, **kwds)
+            if r == 'FAILED':
+                msg = 'Remove from server ' + self._poolname +\
+                    ' failed. Caused by: ' + msg
+                if getattr(self, 'ignore_error_when_delete', False):
+                    logger.warning(msg)
+                else:
+                    raise RuntimeError(msg)
+            rs.append(r)
+        return rs if alist else rs[0]
 
-    def doWipe(self):
-        """
-        does the scheme-specific wiping.
-        """
+    # def doWipe(self):
+    #     """
+    #     does the scheme-specific wiping.
+    #     """
 
-        res, msg = delete_from_server(
-            None, self._poolurl, 'pool', client=self.client,
-            asyn=asyn, **kwds)
-        if res == 'FAILED':
-            if getattr(self, 'ignore_error_when_delete', False):
-                logger.warning(msg)
-            else:
-                raise Exception(msg)
-        return res
+    #     res, msg = delete_from_server(
+    #         None, self._poolurl, 'pool', client=self.client,
+    #         asyn=asyn, **kwds)
+    #     if res == 'FAILED':
+    #         if getattr(self, 'ignore_error_when_delete', False):
+    #             logger.warning(msg)
+    #         else:
+    #             raise Exception(msg)
+    #     return res
 
     @ toServer()
-    def removeAll(self):
+    def wipe(self):
         """
         Remove all pool data (self, products) and all pool meta data (self, descriptors, indices, etc.).
 
         Pool is still left registered to ProductStorage and PoolManager.
         """
+
+    removeAll = wipe
 
     @ toServer(method_name='select')
     def schematicSelect(self,  query, results=None):
@@ -414,6 +430,13 @@ class HttpClientPool(ProductPool):
     def removeUrn(self, urn):
         """
         Remove the given urn from the tag and urn maps.
+        """
+        raise NotImplementedError
+
+    @ toServer()
+    def removeTag(self, tag):
+        """
+        Remove the given tag from the urn and urn maps.
         """
         raise NotImplementedError
 

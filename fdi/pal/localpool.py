@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from .productpool import ManagedPool, PoolNotFoundError, MetaData_Json_Start, MetaData_Json_End
+from .productpool import PoolNotFoundError
 from ..utils.common import pathjoin, trbk, find_all_files
 from .dicthk import HKDBS
 from .urn import makeUrn, Urn, parseUrn
 from ..dataset.deserialize import deserialize
+from .managedpool import ManagedPool, MetaData_Json_Start, MetaData_Json_End
 
 
 import tarfile
@@ -31,11 +32,14 @@ else:
     from urlparse import urlparse, quote, unquote
 
 
-def wipeLocal(path):
+def wipeLocal(path, keep=True):
     """
     does the scheme-specific remove-all.
 
-    A new directory at `path` will be created.
+    Parameters
+    ----------
+    keep : bool
+        If set, a new directory at `path` will be created after wiping.
     """
     # logger.debug()
 
@@ -45,8 +49,9 @@ def wipeLocal(path):
     try:
         if op.exists(path):
             shutil.rmtree(path)
-        os.makedirs(path)
-    except Exception as e:
+            if keep:
+                os.makedirs(path)
+    except OSError as e:
         msg = 'remove-mkdir failed. exc: %s trbk: %s.' % (str(e), trbk(e))
         logger.error(msg)
         raise e
@@ -61,6 +66,11 @@ class LocalPool(ManagedPool):
 
     def __init__(self, makenew=True, **kwds):
         """ creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
+
+        Parameters
+        ----------
+        makenew : bool
+            If the pool does not exist create it (default).
         """
         # print(__name__ + str(kwds))
         self._makenew = makenew  # must preceed setup() in super
@@ -87,14 +97,11 @@ class LocalPool(ManagedPool):
         self._atimes = {}
         self._cached_files = {}
 
-        c, t, u, dTypes, dTags = tuple(self.readHK().values())
+        dTypes, dTags = tuple(self.readHK().values())
 
         logger.debug('created ' + self.__class__.__name__ + ' ' + self._poolname +
                      ' at ' + real_poolpath + ' HK read.')
 
-        self._classes.update(c)
-        self._tags.update(t)
-        self._urns.update(u)
         # new ####
         if len(self._dTypes) or len(self._dTags):
             raise ValueError('self._dTypes or self._dTags not empty %s %s' % (
@@ -181,6 +188,17 @@ class LocalPool(ManagedPool):
                 else:
                     from ..dataset.odict import ODict
                     r = {}  # ODict()
+            # [] -> {}
+            if hkdata == 'dTags' and isinstance(r, dict):
+                for t, td in r.items():
+                    for ty, sns in td.items():
+                        td[ty] = set(sns)
+            elif hkdata == 'dTypes' and isinstance(r, dict):
+                for ty, tyd in r.items():
+                    rsn = tyd['sn']
+                    for sn, snd in rsn.items():
+                        if 'tags' in snd:
+                            snd['tags'] = set(snd['tags'])
             hk[hkdata] = r
         logger.debug('HK read from ' + fp0)
         if serialize_out:
@@ -390,7 +408,15 @@ class LocalPool(ManagedPool):
                     raise
         return res
 
-    def doWipe(self):
+    def doRemoveTag(self, tag, **kwds):
+        """
+        does the action of removal of product from pool.
+        """
+        real_poolpath = self.transformpath(self._poolname)
+        l = self.writeHK(real_poolpath)
+        return
+
+    def doWipe(self, keep=True):
         """
         does the action of remove-all
         """
@@ -403,7 +429,7 @@ class LocalPool(ManagedPool):
         self._cached_files.clear()
 
         # will leave a newly made pool dir
-        wipeLocal(self.transformpath(self._poolname))
+        wipeLocal(self.transformpath(self._poolname), keep=keep)
         return 0
 
     def getHead(self, ref):
@@ -439,7 +465,7 @@ class LocalPool(ManagedPool):
                     tf.extractall(fp0)
             allf = find_all_files(fp0)
             # read into memory
-            self._classes, self._tags, self._urns, self._dTypes, self._dTags = tuple(
+            self._dTypes, self._dTags = tuple(
                 self.readHK().values())
         logger.info('Restored from a gz tar file to %s for pool %s. %d files.' %
                     (fp0, self._poolname, len(allf)))

@@ -3,7 +3,6 @@ from .comparable import Comparable
 from ..dataset.serializable import Serializable
 from ..dataset.odict import ODict
 from ..dataset.eq import DeepEqual
-from ..dataset.classes import Class_Look_Up
 from ..utils.common import fullname
 
 import sys
@@ -154,13 +153,14 @@ URNs are used to to identify data be cause URNs are location agnostic. Storage P
         self.setUrn(urn)
 
     def setUrn(self, urn, poolurl=None):
-        """ parse urn to get poolname, resource, index.
+        """ Set urn, poolname, resource, index attributes.
         """
         if hasattr(self, '_urn') and self._urn and urn:
             raise TypeError('URN is immutable.')
 
         poolname, resourcetype, index = parseUrn(urn)
 
+        from ..dataset.classes import Class_Look_Up
         cls = Class_Look_Up[resourcetype.split('.')[-1]]
 
         self._poolname = poolname
@@ -304,7 +304,7 @@ def parseUrn(urn, int_index=True, check_poolename=None):
             raise ValueError(
                 'Bad URN. Must have 4 ":"-separators: ' + str(sp1))
 
-        index = int(sp1[3]) if int_index else sp1[3]
+        i_index = int(sp1[3])
         resourcetype = sp1[2]
         poolname = sp1[1]
         if check_poolename and check_poolename != poolname:
@@ -314,8 +314,8 @@ def parseUrn(urn, int_index=True, check_poolename=None):
             poolname = None
         if len(resourcetype) == 0:
             resourcetype = None
-        return poolname, resourcetype, index
-    if urn is None or urn == '':
+        return poolname, resourcetype, i_index
+    if urn in [None, '', [], tuple()]:
         return (None, None, None)
     if issubclass(urn.__class__, (list, tuple)):
         urns = urn
@@ -338,7 +338,7 @@ def parseUrn(urn, int_index=True, check_poolename=None):
                 same_type = False
         pnames.append(poolname)
         ptypes.append(resourcetype)
-        inds.append(index)
+        inds.append(index if int_index else str(index))
     if alist:
         if same_pname and same_type:
             return (first_pname, first_type, inds)
@@ -450,6 +450,8 @@ class UrnUtils():
     def getClass(urn):
         """ Get the class contained in a URN. """
         pn, prod, sn = parseUrn(urn)
+
+        from ..dataset.classes import Class_Look_Up
         return Class_Look_Up[prod.rsplit('.', 1)[1]]
 
     @ staticmethod

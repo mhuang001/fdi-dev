@@ -12,6 +12,10 @@ logdict = {
         "full": {
             "format": "%(asctime)s %(name)s %(levelname)s %(args)s %(funcName)s():%(lineno)s - %(message)s",
             'datefmt': '%Y%m%d %H:%M:%S'
+        },
+        "threaded": {
+            "format": "%(asctime)s %(name)9s %(levelname)s %(process)d %(threadName)s %(funcName)10s():%(lineno)3s - %(message)s",
+            'datefmt': '%H:%M:%S'
         }
     },
     "handlers": {

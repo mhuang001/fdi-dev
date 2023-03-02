@@ -14,7 +14,7 @@ from fdi.dataset.product import Product
 from fdi.pal.httpclientpool import HttpClientPool
 from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
-from fdi.pal.productpool import Lock_Path_Base, makeLockpath
+from fdi.pal.managedpool import Lock_Path_Base, makeLockpath
 from fdi.utils.common import lls, trbk, fullname
 from fdi.utils.fetch import fetch
 from fdi.pns.fdi_requests import safe_client
@@ -48,10 +48,10 @@ from fdi.utils.options import opt
 def setuplogging():
     import logging
     import logging.config
-    from . import logdict
+    from . import logdict1
 
     # create logger
-    logging.config.dictConfig(logdict.logdict)
+    logging.config.dictConfig(logdict1.logdict)
     logging.getLogger("requests").setLevel(logging.WARN)
     logging.getLogger("urllib3").setLevel(logging.WARN)
     logging.getLogger("filelock").setLevel(logging.WARN)

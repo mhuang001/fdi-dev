@@ -13,7 +13,7 @@ class Taggable(object):
     """
 
     def __init__(self, **kwds):
-        super(Taggable, self).__init__(**kwds)
+        super().__init__(**kwds)
         # {tag->{'urns':[urn]}
 
         # {urn->{'tags':[tag], 'meta':meta}}
@@ -23,7 +23,6 @@ class Taggable(object):
         Get all of the tags that map to a given URN or a pair of data type and serial number.
 
         Get all known tags if urn is not specified.
-        mh: returns an iterator.
 
         If datatype and sn are given, use them and ignore urn.
         """

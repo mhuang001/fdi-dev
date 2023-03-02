@@ -24,10 +24,10 @@ else:
 def setuplogging():
     import logging
     import logging.config
-    from . import logdict
+    from .logdict1 import logdict
 
     # create logger
-    logging.config.dictConfig(logdict.logdict)
+    logging.config.dictConfig(logdict)
     logging.getLogger("requests").setLevel(logging.WARN)
     logging.getLogger("urllib3").setLevel(logging.WARN)
     logging.getLogger("filelock").setLevel(logging.WARN)

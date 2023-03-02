@@ -156,6 +156,13 @@ def constructSerializable(obj, lookup=None, int_key=False, debug=False):
                         print(spaces + 'Instanciate array.array gzip base64')
                     indent -= 1
                     return inst
+        if classname == 'set':
+            obj.pop('_STID')
+            inst = set(obj.values())
+            if debug:
+                print(spaces + 'Instanciate set')
+            indent -= 1
+            return inst
         if classname in lookup:
             # Now we have a blank instance.
             inst = lookup[classname]()

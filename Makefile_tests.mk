@@ -47,7 +47,7 @@ test10:
 
 K='-k csdb'
 test11:
-	$(PYTEST) $(OPT) tests/test_csdb.py $(T)
+	$(PYTEST) $(OPT) tests/serv/test_csdb.py $(T)
 	#$(PYTEST) $(OPT) tests/serv/test_httpclientpool.py $(K) $(T)
 t11:
 	$(PYTEST) $(OPT) tests/test_pal.py $(K) $(T)

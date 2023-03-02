@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import fdi.dataset.baseproduct
 from ..utils.common import trbk
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 from .namespace import Load_Failed, NameSpace_meta
@@ -196,3 +197,42 @@ class Classes(metaclass=NameSpace_meta,
 
 
 Class_Look_Up = Classes.mapping
+
+
+All_Product_ = []
+
+
+@lru_cache(maxsize=8)
+def get_All_Products(what='Full_Class_Names'):
+    """Get names, classes, or full classnames of all subclasses of `BaseClass`.
+
+    Parameters
+    ----------
+    what : str
+        One of 'Class_Names', 'Full_Class_Names' and 'Classes'.
+
+    Returns
+    -------
+    list
+        of the requested.
+
+    Examples
+    --------
+    FIXME: Add docs.
+
+    """
+
+    from fdi.dataset.baseproduct import BaseProduct
+    res = []
+    for n, cl in Class_Look_Up.items():
+        if isinstance(cl, type) and issubclass(cl, BaseProduct):
+            if what == 'Class_Names':
+                res.append(n)
+            elif what == 'Classes':
+                res.append(cl)
+            elif what == 'Full_Class_Names':
+                res.append(f'{Class_Module_Map[n]}.{n}')
+            else:
+                raise ValueError(
+                    "Allowed parameters: 'Class_Names', 'Full_Class_Names' and 'Classes'.")
+    return res

@@ -39,11 +39,11 @@ setup(
         'ruamel.yaml<0.17',
         'tabulate-expwidth>=0.9.0.1',
         # for actual use
-        #'tabulate @ file://%s/resources/tabulate-0.8.10-py3-none-any.whl' % pkgd,
+        # 'tabulate @ file://%s/resources/tabulate-0.8.10-py3-none-any.whl' % pkgd,
         # not uploadable for pypi
-        #'tabulate @ git+https://github.com/mhuang001/python-tabulate.git@r1',
-        #'tabulate @ git+http://mercury.bao.ac.cn:9006/mirrors/tabulate.git@r1',
-        #'tabulate @ git+ssh://git@mercury.bao.ac.cn:9005/mirrors/tabulate.git@r1',
+        # 'tabulate @ git+https://github.com/mhuang001/python-tabulate.git@r1',
+        # 'tabulate @ git+http://mercury.bao.ac.cn:9006/mirrors/tabulate.git@r1',
+        # 'tabulate @ git+ssh://git@mercury.bao.ac.cn:9005/mirrors/tabulate.git@r1',
         'cwcwidth>=0.1.5',
         'paho-mqtt>=1.6.1',
         'jsonschema>=3.2.0',
@@ -65,9 +65,7 @@ setup(
             'wheel>=0.32.1',
             'pytest>=5.4.1',
             'pytest-cov',
-            'remote-pdb',
-            'asyncio',
-            'aiohttp'
+            'remote-pdb'
         ],
         'SERV': [
             'requests == 2.27.1',
@@ -77,6 +75,8 @@ setup(
             'Werkzeug[watchdog]',
             'uwsgi>=2.0.20',
             'flasgger>=0.9.5',
+            'asyncio',
+            'aiohttp'
         ],
         'SCI': [
             'astropy'

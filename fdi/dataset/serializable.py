@@ -13,6 +13,7 @@ import codecs
 import urllib
 from collections.abc import Collection, Mapping
 from functools import lru_cache
+from itertools import count
 import sys
 import datetime
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -189,6 +190,17 @@ class SerializableEncoder(json.JSONEncoder):
                                               encoding='ascii'),
                                      _STID='a.array_'+obj.typecode)
                         return r
+                    elif issubclass(oc, set):
+                        if SCHEMA:
+                            return '{"$ref": "%s"}' % oc.__name__
+                        if GZIP:
+                            r = dict(code=binascii.b2a_base64(
+                                gzip.compress(obj, 5)).decode('ascii'),
+                                _STID='set_%s,gz,b64' % obj.typecode)
+                        else:
+                            r = dict(zip(count(), obj))
+                            r['_STID'] = 'set'
+                        return r
                 if not PY3 and issubclass(oc, str):
                     # return dict(code=codec.encode(obj, 'hex'), _STID='bytes')
                     assert False, lls(obj, 50)
@@ -244,7 +256,7 @@ def serialize(o, cls=None, **kwds):
     return json.dumps(o, cls=cls, allow_nan=True, **kwds)
 
 
-@lru_cache(maxsize=256)
+@ lru_cache(maxsize=256)
 def get_schema_with_classname(cls_name, store=None):
     if store is None:
         store = makeSchemeStore()

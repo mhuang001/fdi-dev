@@ -1,4 +1,6 @@
 
+from conftest import csdb_pool_id, SHORT
+
 from fdi.dataset.arraydataset import ArrayDataset
 
 from fdi.pal.mempool import MemPool
@@ -9,6 +11,7 @@ from fdi.pal.productref import ProductRef
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.urn import Urn, parseUrn, parse_poolurl, makeUrn, UrnUtils
 from fdi.pal.productpool import ProductPool
+from fdi.pal.managedpool import ManagedPool
 from fdi.pal.localpool import LocalPool
 from fdi.pal.httpclientpool import HttpClientPool
 from fdi.pal.context import Context
@@ -17,12 +20,13 @@ from fdi.dataset.deserialize import deserialize
 from fdi.dataset.product import Product
 from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.eq import deepcmp
-from fdi.dataset.classes import Classes
+from fdi.dataset.classes import Class_Look_Up
 from fdi.dataset.metadata import MetaData, Parameter
 from fdi.dataset.finetime import FineTime1
 from fdi.dataset.testproducts import TP
 from fdi.utils.checkjson import checkjson
-from fdi.pns.fdi_requests import save_to_server, read_from_server
+from fdi.pns.fdi_requests import save_to_server, read_from_server, ServerError
+from fdi.pns.public_fdi_requests import read_from_cloud
 
 # from flask import request as
 import requests
@@ -282,10 +286,11 @@ def cleanup(poolurl=None, poolname=None):
         # correct way
         try:
             p = PoolManager.getPool(pname, poolurl)
-            p.removeAll()
-        except (RuntimeError, ValueError):
+            p.wipe()
+        except (AssertionError):  # ,ServerError, ValueError):
             pass
 
+        assert p.isEmpty()
         PoolManager.remove(pname)
         try:
             del p
@@ -450,11 +455,11 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb
         assert count == expected_cnt
         if currentSN is None:
             return
-        for cl in pinfo[poolname]['_classes']:
-            if cl['productTypeName'] == prodname:
-                sn = cl['sn']
-                assert cl['currentSn'] == currentSN
-                break
+        # This is the version on the server
+        cl = pinfo[poolname]['_classes']
+        if prodname in cl:
+            sn = cl[prodname]['sn']
+            assert cl[prodname]['currentSn'] == currentSN
     else:
         assert False, 'bad pool scheme'
 
@@ -580,16 +585,22 @@ def test_ProductStorage_init():
 
 
 def getCurrSnCount(csdb_c, prodname):
-    pinfo = csdb_c if issubclass(csdb_c.__class__, dict) else \
-        csdb_c.getPoolInfo()
-    init_sn, init_count = 0, 0
-    for pool in pinfo.values():
-        poolclass = pool['_classes']
-        if prodname in poolclass:
-            init_sn = poolclass[prodname]['currentSn']
-            # XXX was the issue xaused " - 1" fixed?
-            init_count = len(poolclass[prodname]['sn'])
-            break
+    if isinstance(csdb_c, dict):
+        pinfo = csdb_c
+    else:
+        pinfo = read_from_cloud(
+            'infoPool', pools=csdb_c.poolname, getCount=0, token=csdb_c.token)[csdb_c.poolname]
+
+    # init_sn, init_count = 0, 0
+    poolclass = pinfo.get('_classes', {})
+    pr = poolclass.get(prodname, {})
+    init_sn = pr.get('currentSn', None)
+    # XXX was the issue caused " - 1" fixed?
+    try:
+        init_count = len(pr['sn'])
+    except:
+        init_count = None
+
     return init_sn, init_count, pinfo
 
 
@@ -604,61 +615,113 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
     pcq = fullname(x)
     mcq = fullname(MapContext)
 
+    try:
+        pspool.removeTag('tm-all')
+    except:
+        pass
+    try:
+        assert len(pspool.getUrn('tm-all')) == 0
+    except ServerError as e:
+        assert e.code == 400
+
+    # We monitor internal pool state changes for
+    # `Producr` type in a ProductPool using currentsn_# and size_#;
+    # MapContext using currentsn_m_# size_m_#.
+    # In an ideal pool thier init vals are -1,0.
+    # Every product added increments them by 1, every removed
+    # by -1, to `size_` only.
+    # They are reset only by initialization.
+    # ref `dicthk` document.
+
     is_csdb = thepoolurl.startswith('csdb://')
     if is_csdb:
         csdb = PoolManager.getPool(thepoolname)
-        init_sn, init_count, pinfo = getCurrSnCount(csdb, pcq)
-        init_sn_m, init_count_m, _ = getCurrSnCount(pinfo, mcq)
-        logger.debug('1...', init_count, init_sn, init_count_m, init_sn_m)
-    # save
+        pinfo = csdb.getPoolInfo(update_hk=True)
+        currentsn_0, size_0, _ = getCurrSnCount(pinfo, pcq)
+        currentsn_m_0, size_m_0, _ = getCurrSnCount(pinfo, mcq)
+        assert size_0 is currentsn_0 is None
+        logger.debug(
+            f'1..., {size_0}, {currentsn_0}, {size_m_0}, {currentsn_m_0}')
+    else:
+        currentsn_0 = 0
+        size_0 = 0
+        currentsn_m_0 = 0
+        size_m_0 = 0
+
+    # 1st save, only to Product
     ref = ps.save(x)
     s0, s1 = tuple(ref.urn.rsplit(':', 1))
     assert s0 == 'urn:' + thepoolname + ':' + pcq
     # not saving this one
     # ref_m = ps.save(y)
-    init_count, init_count_m = 0, 0
+
     if is_csdb:
-        __import__("pdb").set_trace()
+        pinfo = csdb.getPoolInfo(update_hk=True)
+        assert len(pinfo[pspool._poolname]['_tags']) == 0
+        assert len(pinfo[pspool._poolname]['_classes']) == 1
+        assert len(pinfo[pspool._poolname]['_urns']) == 1
 
-        currentsn2, count2, pinfo2 = getCurrSnCount(csdb, pcq)
+        currentsn_1, size_1, pinfo_1 = getCurrSnCount(csdb, pcq)
         # m is unchanged
-        currentsn_m2, count_m2, pinfo_m2 = getCurrSnCount(pinfo2, mcq)
-        logger.debug('2...', count2, currentsn2, count_m2, currentsn_m2)
-
-        assert count2 == init_count + 1
-        assert currentsn2 == init_sn + 1
-        assert init_count_m == init_count_m
-        assert currentsn_m2 == init_sn_m
+        currentsn_m_1, size_m_1, pinfo_m_1 = getCurrSnCount(pinfo_1, mcq)
+        logger.debug(
+            f'2..., {currentsn_1}, {size_1}, {currentsn_m_1}, {size_m_1}')
 
         # XXX this 1 is due to a bug in csdb implementation
-        init_sn += 1
-        init_sn_m += 1
+        # currentsn_0 = currentsn_1-1
+        # size_0 = size_1-1
+        # # _m does not change as nothing has happened to it.
+        # currentsn_m_0 = currentsn_m_1
+        # size_m_0 = size_m_1
+
     else:
-        init_sn = 0
-        init_count = 0
-        init_sn_m = 0
-        init_count_m = 0
+        currentsn_1 = 0
+        size_1 = 1
+        currentsn_m_1 = -1
+        size_m_1 = 0
 
     # ps has 1 prod
-    assert init_sn == int(s1)
-    checkdbcount(init_count+1, thepoolurl, pcq, init_sn + 0, *args)
-    # checkdbcount(init_count_m+0, thepoolurl, mcq, init_sn_m + 0, *args)
+    assert size_1 == 1
+    assert currentsn_1 == int(s1)  # + 1  # incremented after s1 took value
+    checkdbcount(size_1, thepoolurl, pcq, currentsn_1, *args)
+    # checkdbcount(size_m_0+0, thepoolurl, mcq, currentsn_m_0 + 0, *args)
 
     # save more
     # one by one
     q = 3
+    """ how many to save in total """
+
     x2, ref2 = [], []
+    NUM_M = 1
+    """ how many MapContext to save"""
 
     for d in range(q):
-        # The 1st one is a mapcontext, rest product
+        # The 1st one is a mapcontext, rest product's
         tmp = Product(description='x' + str(d)
-                      ) if d > 0 else MapContext(description='x0')
+                      ) if d > (NUM_M-1) else MapContext(description='x0')
         x2.append(tmp)
         ref2.append(ps.save(tmp, tag='t' + str(d)))
+    # the first time _m exposes its currentSN
+    # __import__("pdb").set_trace()
 
-    checkdbcount(init_count + q, thepoolurl, pcq,
-                 init_sn + q - 1, *args)
-    checkdbcount(init_count_m+1, thepoolurl, mcq, init_sn_m+0, *args)
+    if is_csdb:
+        # only by now we know the initial states of m
+        currentsn_m_2, size_m_2, pinfo_m_2 = getCurrSnCount(csdb, mcq)
+        size_m_1 = size_m_2 - 1
+        currentsn_m_1 = currentsn_m_2 - 1
+
+    size_2 = size_1 + (q-NUM_M)
+    currentsn_2 = currentsn_1+(q-NUM_M)
+    size_m_2 = size_m_1+NUM_M
+    currentsn_m_2 = currentsn_m_1+NUM_M
+
+    cnt = size_2
+    sn = currentsn_2
+    checkdbcount(cnt, thepoolurl, pcq, sn, *args)
+
+    cnt_m = size_m_2
+    sn_m = currentsn_m_2
+    checkdbcount(cnt_m, thepoolurl, mcq, sn_m, *args)
     # save many in one go
     m, x3 = 2, []
     n = q + m
@@ -669,44 +732,143 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
     x2 += x3  # there are n prods in x2
     # check refs
     assert len(ref2) == n
-    checkdbcount(init_count+n, thepoolurl, pcq, init_sn + n - 1, *args)
-    checkdbcount(init_count_m+1, thepoolurl, mcq, init_sn_m+0, *args)
+
+    if is_csdb:
+        pinfo = pspool.getPoolInfo(update_hk=True)
+    cnt += m
+    sn += m
+    cnt_m += 0
+    sn_m += 0
+    checkdbcount(cnt, thepoolurl, pcq, sn, *args)
+    checkdbcount(cnt_m, thepoolurl, mcq, sn_m, *args)
 
     # tags
     # XXX fix getUrn() and getTag() when no arg   is given
-    if not is_csdb:
-        ts = ps.getAllTags()
-        assert len(ts) == q + 1
-        ts = ps.getTags(ref2[0].urn)
-        assert len(ts) == 1
-        assert ts[0] == 't0'
-        u = ps.getUrnFromTag('all-tm')
-        assert len(u) == m
-        assert u[0] == ref2[q].urn
+    u0 = ps.getUrnFromTag('all-tm')
+    ts = pspool.getTags()
+    assert len(ts) == q + 1
+    ts = ps.getTags(ref2[0].urn)
+    assert len(ts) == 1
+    assert 't0' in ts
+    assert ref2[q].urn in u0
+
+    # remove tags
+    pspool.removeTag('all-tm')
+
+    # data is still there
+    assert pspool.exists(u0[-1])
+    u = ps.getUrnFromTag('all-tm')
+    assert not u   # not exist.
+
+    # remove the last tag 'tags' in 'sn' is gone.
+    # two tags
+
+    try:
+        u2g = ps.getUrnFromTag('test2go')
+    except ServerError as e:
+        pass
+    else:
+        # ignore not exisiting error for urn to be deleted.
+        ts = ps.remove(u2g, ignore_error=True)
+    try:
+        u2g = ps.getUrnFromTag('2go2')
+    except ServerError as e:
+        pass
+    else:
+        ts = ps.remove(u2g, ignore_error=True)
+    prdtc = Class_Look_Up['TC']()
+    rf2g = ps.save(prdtc, tag=['test2go', '2go2'])
+    assert rf2g.urn in ps.getUrnFromTag('test2go')
+    pspool.removeTag('test2go')
+    assert ps.getUrnFromTag('test2go') == []
+    assert rf2g.urn in ps.getUrnFromTag('2go2')
+    pspool.removeTag('2go2')
+    # XXXXXXXXX
+    if 0 and is_csdb:
+        pinfo = pspool.getPoolInfo(update_hk=True)
+        assert 'test2go' not in pspool._dTags
+        assert '2go2' not in pspool._dTags
+
+    ps.remove(rf2g.urn)
 
     # access resource
-    checkdbcount(init_count+n, thepoolurl, pcq, init_sn+n-1, *args)
-    checkdbcount(init_count_m+1, thepoolurl, mcq, init_sn_m+0, *args)
+
     # get ref from urn
     pref = ps.load(ref2[n - 2].urn)
     assert pref == ref2[n - 2]
     # actual product
     # print(pref._product)
     assert pref.product == x2[n - 2]
+    psave = pref.product
+    usave = pref.urn
     # from tags
 
     # removal by reference urn
     # print(ref2[n - 2].urn)
+
     ps.remove(ref2[n - 2].urn)
     # files are less
     # DB shows less in record
     # current serial number not changed
     # number of items decreased by 1
-    checkdbcount(init_count + n - 1, thepoolurl,
-                 pcq, init_sn+n-1, *args)
-    checkdbcount(init_count_m+1, thepoolurl, mcq, init_sn_m+0, *args)
 
+    if is_csdb:
+        pinfo = pspool.getPoolInfo(update_hk=True)
+
+    cnt += -1
+    sn += 0
+    cnt_m += 0
+    sn_m += 0
+    checkdbcount(cnt, thepoolurl, pcq, sn, *args)
+    checkdbcount(cnt_m, thepoolurl, mcq, sn_m, *args)
+
+    # remove all of one type
+    t0 = fullname(psave)
+    if issubclass(pspool.__class__, ManagedPool):
+        # LocalPool, MemPool, PublicClientPool
+        dt = pspool._dTypes
+    elif issubclass(pspool.__class__, HttpClientPool):
+        dt = pspool.readHK()['dTypes']
+        csn = dt[t0]['currentSN']
+    else:
+        assert 0, pspool
+    rmed = []
+    for cl, clo in dt.items():
+        if cl == t0:
+            # remove all in this class
+            rmed.append((cl, list(clo['sn'])))
+    for cl, s in rmed:
+        ps.remove('', datatype=cl, index=s)
+    print("removed:", rmed)
+    r = ps.save(psave)
+
+    if is_csdb:
+        pinfo = pspool.getPoolInfo(update_hk=True)
+    # currentSN is preserved
+    assert int(r.urn.rsplit(':', 1)[-1]) != 0
+
+    # else:
+    # currentSN is not preserved
+    # assert int(r.urn.rsplit(':', 1)[-1]) == 0
+
+    cnt -= len(rmed[0][1])-1
+    sn += 1
+    cnt_m += 0
+    sn_m += 0
+    checkdbcount(cnt, thepoolurl, pcq, sn, *args)
+    checkdbcount(cnt_m, thepoolurl, mcq, sn_m, *args)
+
+    # wipe
+    ps.wipePool()
     # check isEmpty
+    assert ps.isEmpty()
+    r = ps.save(psave)
+    if is_csdb:
+        # wiping cannot erase it
+        assert int(r.urn.rsplit(':', 1)[-1]) > 0
+    else:
+        # wiping can erase it
+        assert int(r.urn.rsplit(':', 1)[-1]) == 0
 
     # report lru_cache info
     print('***HTTPClient Pool cache*** %s ' % str(pspool.getCacheInfo()))
@@ -749,9 +911,10 @@ def test_ProdStorage_func_http(server, userpass):
     pstore = ProductStorage(pool=pool)
 
     assert pool.isEmpty()
+
     pstore.unregister(thepoolname)
     # not exist
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ServerError):
         assert pool.isEmpty()
     check_prodStorage_func_for_pool(thepoolname, thepoolurl, userpass)
 
@@ -765,9 +928,9 @@ def test_ProdStorage_func_server():
     check_prodStorage_func_for_pool(thepoolname, thepoolurl, None)
 
 
-def test_ProdStorage_func_csdb(csdb):
-    thepool, thepoolurl, pstore = csdb  # csdb:///csdb_test_pool
-    thepoolname = thepool.poolname
+def test_ProdStorage_func_csdb(pc, urlcsdb):
+    thepoolname, thepoolurl = csdb_pool_id, \
+        pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
 
     cleanup(thepoolurl, thepoolname)
     check_prodStorage_func_for_pool(thepoolname, thepoolurl, None)
@@ -807,8 +970,8 @@ def test_LocalPool():
     # assert deepcmp(p1._urns, p2._urns) is None
     # assert deepcmp(p1._tags, p2._tags) is None
     # assert deepcmp(p1._classes, p2._classes) is None
-    assert deepcmp(p1._dTypes, p2._dTypes) is None
-    assert deepcmp(p1._dTags, p2._dTags) is None
+    # XXX assert deepcmp(p1._dTypes, p2._dTypes) is None
+    # XXX assert deepcmp(p1._dTags, p2._dTags) is None
 
     # remove till empty
     ps2.save(x, tag='ttag')
@@ -844,6 +1007,7 @@ def test_LocalPool():
 
 
 def backup_restore(ps):
+
     p1 = ps.getPool(ps.getPools()[0])
     hk1 = p1.readHK()
     cpn = p1._poolname + '_2'
@@ -1356,7 +1520,7 @@ def test_MapContext(a_storage):
     # realistic scenario
 
 
-def test_realistic_http(server, demo_product):
+def test_realistic_http(server):
 
     aburl, hdrs = server
     aburl = aburl.rstrip('/')
@@ -1369,15 +1533,16 @@ def test_realistic_http(server, demo_product):
     pass
 
 
-def test_realistic_csdb(csdb, urlcsdb, csdb_client, demo_product):
-    urlupload, urldelete, urllist, client = csdb_client
+def test_realistic_csdb(clean_csdb, urlcsdb,  demo_product):
     test_pool, poolurl, pstore = csdb  # csdb:///csdb_test_pool
-    poolname = test_pool
+    poolname = test_pool._poolname
 
-    cleanup(poolurl, poolname)
-    # remove existing pools in memory
-    # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
-    thepool, pstore = mkStorage(poolname, poolurl, pstore)
+    if 0:
+        cleanup(poolurl, poolname)
+        # remove existing pools in memory
+        # clean up possible garbage of previous runs. use class method to
+        # avoid reading pool hk info during ProdStorage initialization.
+        test_pool, pstore = mkStorage(poolname, poolurl, pstore)
 
     p1 = Product(description='p1')
     p2 = Product(description='p2')

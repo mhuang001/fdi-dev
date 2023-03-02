@@ -199,6 +199,10 @@ def test_serialization():
     checkjson(v)
     v = [1.2, 'ww']
     checkjson(v)
+    v = {'t0'}
+    checkjson(v, 1)
+    v = {1.2, 'ww'}
+    checkjson(v)
     v = Product
     checkjson(v, 1)
     # escape

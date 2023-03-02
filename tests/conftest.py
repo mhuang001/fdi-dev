@@ -10,6 +10,7 @@ from fdi.pns.jsonio import getJsonObj
 from fdi.utils.common import lls
 from fdi.pns.jsonio import auth_headers
 from fdi.httppool.model.user import User, getUsers
+from fdi.httppool.session import requests_retry_session
 from fdi.pal.publicclientpool import PublicClientPool
 
 from flask.testing import FlaskClient
@@ -35,8 +36,8 @@ import logging
 import logging.config
 from urllib.error import HTTPError, URLError
 
-from logdict import logdict
-logging.config.dictConfig(logdict)
+# from logdict import logdict
+# logging.config.dictConfig(logdict)
 
 logger = logging.getLogger(__name__)
 print('**conftest effective logging level** ', logger.getEffectiveLevel())
@@ -369,7 +370,7 @@ def demo_product():
     return v, get_related_product()
 
 
-csdb_pool_id = 'test_csdb_fdi1'
+csdb_pool_id = 'test_csdb_fdi2'
 
 
 @ pytest.fixture(scope="session")
@@ -383,46 +384,64 @@ def urlcsdb(pc):
 
 
 def make_csdb(poolurl):
-    client = the_session
-    ps = ProductStorage(poolurl=poolurl, client=client)
+    # client = requests_retry_session()
 
-    test_pool = ps.getWritablePool(True)  # PublicClientPool(poolurl=url)
-    assert test_pool
+    ps = ProductStorage()
+    if PoolManager.size():
+        logger.debug("$$$ PM not empty")
+    if 0:
+        for poolname, pool in PoolManager.items():
+            #######
+            logger.info(f'$$ {poolname} {pool.__class__.__name__}')
+            cr = pool.client.get(
+                f'http://123.56.102.90:31702/csdb/v1/pool/info?storagePoolName={poolname}', headers={'User-Agent': 'python-requests/2.26.0', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'X-AUTH-TOKEN': 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJtaCIsInVzZXJJZCI6IjM2MzEiLCJuYW1lIjoiTWFvaGFpSHVhbmciLCJleHAiOjE2Nzc3MzE2MTJ9.UChjZJsnzfHXJeeVUVNxShL7zssejkR17LcOZXwOK6auHNIOXTbhc_pKUEpvJ_h2m5H3UOVAwVKTcQWI9kw-9ul-5YduG5yv9HaqzA0s7fxISbIjFL3vR6hHP4wU7xWtwAy8RwGNL6XqcplxexZ1FWDNawijqVVWfKId_JeWkGA'}).text
+            if not cr[8] == '0':
+                __import__("pdb").set_trace()
+            else:
+                logger.info(f'****** Pool {poolurl} exists.')
 
-    return test_pool, poolurl, ps
+    ps.unregisterAll()
+    assert ps.isEmpty()
+    assert PoolManager.size() == 0
+
+    return ps
 
 
-@ pytest.fixture(scope="session")
-def csdb(urlcsdb, pc):
+@ pytest.fixture(scope="function")
+def clean_csdb(urlcsdb, pc):
     url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
-    return make_csdb(url)
+
+    ps = make_csdb(url)
+    ps.register(poolurl=url, client=the_session)
+    # ps.register(poolname=test_pool.poolname, poolurl=poolurl)
+    test_pool = ps.getWritablePool(True)  # PublicClientPool(poolurl=url)
+    pname = test_pool._poolname
+    test_pool.wipe()
+
+    assert pname in PoolManager.getMap()
+    assert pname in ps._pools
+
+    assert test_pool.isEmpty()
+    return test_pool, url, ps
+
+
+@ pytest.fixture(scope=SHORT)
+def csdb(clean_csdb):
+
+    return clean_csdb
 
 
 @ pytest.fixture(scope=SHORT)
 def csdb_new(urlcsdb, pc):
+    logger.debug('wipe cdb_new. {purl}')
     url = pc['cloud_scheme'] + \
         urlcsdb[len('csdb'):] + '/' + csdb_pool_id + str(int(time.time()))
     # url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
-    return make_csdb(url)
-
-
-@ pytest.fixture(scope="function")
-def clean_csdb(csdb):
-    test_pool, url, ps = csdb
-
-    # url_l = 'http://123.56.102.90:31702/csdb/v1/datatype/list'
-    # types = test_pool.client.get(url_l).json()['data']
-    # if 'fdi.dataset.testproducts.DemoProduct' in types:
-    #     t = len(types)
-
-    ps.wipePool(ignore_error=False)
-
-    # if 'fdi.dataset.testproducts.DemoProduct' in types:
-    #     types2 = test_pool.client.get(url_l).json()['data']
-    #     assert 'fdi.dataset.testproducts.DemoProduct' in types2
-
-    assert test_pool.isEmpty()
-    return test_pool, url, ps
+    ps = make_csdb(url)
+    ps.register(poolurl=url, client=the_session)
+    pool = ps.getWritablePool(True)  # PublicClientPool(poolurl=url)
+    poolname = pool._poolname
+    yield pool, url, ps
 
 
 @ pytest.fixture(scope=SHORT)
@@ -521,6 +540,7 @@ def gen_pools(url, auth, client, prds):
         ps = ProductStorage(poolid, poolurl, client=client, auth=auth)
         # the first pool in ps
         pool = ps.getPool(poolid)
+        pool.wipe()
         prd = prds[i]
         prd.description = 'lone prod in '+poolid
         ref = ps.save(prd, tag=tag)

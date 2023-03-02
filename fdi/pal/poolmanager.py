@@ -8,7 +8,7 @@ from ..utils.getconfig import getConfig
 from ..utils.common import lls
 from .urn import parse_poolurl
 from ..pal.httppool import HttpPool
-
+from ..dataset.classes import get_All_Products
 from requests.exceptions import ConnectionError
 import requests
 
@@ -50,8 +50,8 @@ def remoteRegister(pool):
         poolo = pool
 
         logger.debug('Register %s on the server', poolurl)
-        if poolurl.endswith('/'):
-            poolurl = poolurl[:-1]
+        poolurl = poolurl.strip('/')
+
         from ..pns.fdi_requests import put_on_server
         try:
             res, msg = put_on_server(
@@ -69,32 +69,67 @@ def remoteRegister(pool):
     elif issubclass(pool.__class__, publicclientpool.PublicClientPool):
         from ..pns.fdi_requests import ServerError
         # register csdb pool. If existing, load. IF not exists, create and initialize sn.
-        poolurl = pool._poolurl
-        try:
-            res = pool.createPool2()
 
-            pool.getToken()
-            pool.client.headers.update({'X-AUTH-TOKEN': pool.token})
-            msg = 'New pool made.'
-            pool.poolInfo = pool.getPoolInfo()
-            res = 'OK'
-        except ServerError as e:
-            # if e.code == 1:
-            #   msg = 'Pool exists or bad namw.'
-            msg = str(e)
-            logger.error(
-                'Registering ' + poolurl + ' failed with auth ' + 'np' + ' , ' + msg)
-            res = 'FAILED'
-            raise
+        poolurl = pool._poolurl
+        stat = 'new'
+        _lg = pool.log()
+        if _lg:
+            logger.info(_lg)
+
+        if pool.poolExists():
+            logger.info(f'Pool {poolurl} already exists.')
+        else:
+            logger.info(f'Pool {poolurl} NOT exists.')
+
+            try:
+                res = pool.createPool2()
+
+            except ServerError as e:
+                if e.code != 2:
+                    if e.code == 1:
+                        msg = 'Bad pool name.'
+                    else:
+                        msg = 'Unknown reason.'
+                    msg = f'Registering {poolurl} failed with auth {np}. {msg} {e}'
+                    logger.error(msg)
+                    res = 'FAILED'
+                    raise
+                stat = 'Existing'
+        _lg = pool.log()
+        if _lg:
+            logger.info(_lg)
+
+        pool.getToken()
+        pool.client.headers.update({'X-AUTH-TOKEN': pool.token})
+        pool.poolInfo = pool.getPoolInfo(update_hk=True)
+        pool.serverDatatypes = get_All_Products('Full_Class_Names')
+        msg = f'{stat} pool registered.'
+        res = 'OK'
+
+        ######
+        if 0:
+            cr = pool.client.get(
+                f'http://123.56.102.90:31702/csdb/v1/pool/info?storagePoolName={pool._poolname}', headers={'User-Agent': 'python-requests/2.26.0', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'X-AUTH-TOKEN': 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJtaCIsInVzZXJJZCI6IjM2MzEiLCJuYW1lIjoiTWFvaGFpSHVhbmciLCJleHAiOjE2Nzc3MzE2MTJ9.UChjZJsnzfHXJeeVUVNxShL7zssejkR17LcOZXwOK6auHNIOXTbhc_pKUEpvJ_h2m5H3UOVAwVKTcQWI9kw-9ul-5YduG5yv9HaqzA0s7fxISbIjFL3vR6hHP4wU7xWtwAy8RwGNL6XqcplxexZ1FWDNawijqVVWfKId_JeWkGA'}).text
+            _lg = pool.log()
+            if _lg:
+                logger.info(_lg)
+            if not cr[8] == '0':
+                __import__("pdb").set_trace()
+            else:
+                logger.info(f'Pool {poolurl} exists.')
+
         return res, msg
     else:
         return
 
 
 def remoteUnregister(poolurl, auth=None, client=None):
-    """ this method does not reference pool object. """
+    """ Unregister a client pool from remote servers.
 
-    if not poolurl.lower().startswith('http'):
+    This method does not reference or dereferencepool object. """
+
+    poolurl = poolurl.lower()
+    if not (poolurl.startswith('http') or poolurl.startswith('csdb')):
         logger.warning('Ignored: %s not for a remote pool.' % poolurl)
         return 1
     logger.debug('unregister %s on the server', poolurl)
@@ -110,25 +145,33 @@ def remoteUnregister(poolurl, auth=None, client=None):
                 auth = poolo.auth
             break
     else:
-        raise NameError(
-            f'Remote Unregistering failed. {poolurl} not registered or not suitable.')
-    from ..pns.fdi_requests import delete_from_server
-    # url = api_baseurl + post_poolid
-    # x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
-    # o = deserialize(x.text)
-    urn = 'urn:::0'
-    try:
-        res, msg = delete_from_server(
-            urn, poolurl, 'unregister_pool', auth=auth, client=client)
-    except ConnectionError as e:
-        res, msg = 'FAILED', str(e)
-    if res == 'FAILED':
-        msg = f'Unregistering {poolurl} failed. {msg}'
-        if getattr(poolo, 'ignore_error_when_delete', False):
-            logger.info('Ignored: ' + msg)
-            code = 2
+        raise ValueError(f'Remote Unregistering failed. {poolurl} '
+                         'not registered in this client or not suitable.')
+    from . import httpclientpool, publicclientpool
+    if issubclass(poolo.__class__, httpclientpool.HttpClientPool):
+        from ..pns.fdi_requests import delete_from_server
+        # url = api_baseurl + post_poolid
+        # x = requests.delete(url, auth=HTTPBasicAuth(auth_user, auth_pass))
+        # o = deserialize(x.text)
+        urn = 'urn:::0'
+        try:
+            res, msg = delete_from_server(
+                urn, poolurl, 'unregister_pool', auth=auth, client=client)
+        except ConnectionError as e:
+            res, msg = 'FAILED', str(e)
+        if res == 'FAILED':
+            msg = f'Unregistering {poolurl} failed. {msg}'
+            if getattr(poolo, 'ignore_error_when_delete', False):
+                logger.info('Ignored: ' + msg)
+                code = 2
+            else:
+                raise ValueError(msg)
         else:
-            raise ValueError(msg)
+            code = 0
+    elif issubclass(poolo.__class__, publicclientpool.PublicClientPool):
+        poolo.poolInfo = None
+        poolo.serverDatatypes = None
+        code = 0
     else:
         code = 0
     return code
@@ -161,7 +204,7 @@ This is done by calling the getPool() method, which will return an existing pool
     def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=True, auth=None, client=None, **kwds):
         """ returns an instance of pool according to name or path of the pool.
 
-        Returns the pool object if the pool is registered. Creates the pool if it does not already exist. the same poolname-path always get the same pool. Http pools will be registered on the server side.
+        Returns the pool object if the pool is registered. Creates the pool if it does not already exist. the same poolname-path always get the same pool. Http pools (e.g. `HttpClientPool` and `PublicClientPool`) will be registered on the server side.
 
 Pools registered are kept as long as the last reference remains. When the last is gone the pool gets :meth;`removed` d.
 
@@ -266,13 +309,24 @@ Pools registered are kept as long as the last reference remains. When the last i
                     client = requests_retry_session()
                 p = pooltype(poolname=poolname, poolurl=purl,
                              auth=auth, client=client, **kwds)
+
                 res, msg = remoteRegister(p)
+                if hasattr(p, 'poolExists'):
+                    pe = p.poolExists()
+                    if not pe:
+                        __import__("pdb").set_trace()
             else:
                 raise NotImplementedError(schm + ':// is not supported')
         # print(getweakrefs(p), id(p), '////')
+        # If the pool is a client pool, it is this pool that goes into
+        # the PM._GlobalPoolList, not the remote pool
         cls.save(poolname, p)
         # print(getweakrefs(p), id(p))
 
+        if hasattr(p, 'poolExists'):
+            pe = p.poolExists()
+            if not pe:
+                __import__("pdb").set_trace()
         # Pass poolurl to PoolManager.remove() for remote pools
         # finalize(p, print, poolname, poolurl)
         logger.debug('made pool ' + lls(p, 900))
@@ -317,8 +371,15 @@ Pools registered are kept as long as the last reference remains. When the last i
     def remove(cls, poolname, ignore_error=False):
         """ Remove from list and unregister remote pools.
 
-        returns 0 for successful removal, ``1`` for poolname not registered or referenced, still attempted to remove. ``> 1`` for the number of weakrefs the pool still have, and removing failed.
+        Returns
+        -------
+        int :
+            * returns 0 for successful removal
+            * ``1`` for poolname not registered or referenced, still attempted to remove. 
+            * ``> 1`` for the number of weakrefs the pool still have, and removing failed.
+            * ``<0`` Trouble removing entry from `_GlobalPoolList`.
         """
+
         # number of weakrefs
         nwr = cls.isLoaded(poolname)
         # print(getweakrefs(cls._GlobalPoolList[poolname]), id(
@@ -328,8 +389,10 @@ Pools registered are kept as long as the last reference remains. When the last i
             # this is the only reference. unregister remote first.
             thepool = cls._GlobalPoolList[poolname]
             poolurl = thepool._poolurl
-            from ..pal.httpclientpool import HttpClientPool
-            if issubclass(thepool.__class__, HttpClientPool):
+            from .httpclientpool import HttpClientPool
+            from .publicclientpool import PublicClientPool
+
+            if issubclass(thepool.__class__, (HttpClientPool, PublicClientPool)):
                 code = remoteUnregister(poolurl)
             else:
                 code = 0
@@ -345,6 +408,7 @@ Pools registered are kept as long as the last reference remains. When the last i
         except KeyError as e:
             if ignore_error:
                 logger.info("Ignored: "+str(e))
+                code = -1
             else:
                 raise
         return code
@@ -371,11 +435,7 @@ Pools registered are kept as long as the last reference remains. When the last i
         """
         return len(cls._GlobalPoolList)
 
-    def items(self):
-        """
-        Returns map's items
-        """
-        return self._GlobalPoolList.items()
+    items = _GlobalPoolList.items
 
     def __setitem__(self, poolname, poolobj):
         """ sets value at key.

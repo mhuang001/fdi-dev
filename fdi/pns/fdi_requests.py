@@ -200,6 +200,7 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
     Response
        Of urllib3 Session or requests Response.
 """
+
     if no_retry_controls:
         return method(api, *args, **kwds)
 
@@ -215,7 +216,9 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
                 cause = e.__context__.reason
                 if isinstance(cause, NewConnectionError):
                     raise cause
+            res = None
     # print(n, res)
+
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(
             f'Resp {n} retries, hist:{res.history}, {getattr(res.request,"path","")} {method.__func__.__qualname__}')
@@ -364,22 +367,36 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
     if client is None:
         client = session
 
+    _u = urn
+    if isinstance(_u, list):
+        urns = _u
+        alist = True
+    else:
+        urns = [_u]
+        alist = False
+
     if asyn:
-        apis = [poolurl+'/'+u for u in urn]
+        apis = [poolurl+'/'+u for u in urns]
         res = reqst('delete', apis=apis, **kwds)
     else:
-        api = urn2fdiurl(urn, poolurl, contents=contents, method='DELETE')
-        # print("DELETE REQUEST API: " + api)
-        res = reqst(client.delete, api, auth=auth, timeout=TIMEOUT)
+        rs = []
+        for u in urns:
+            a = urn2fdiurl(u, poolurl, contents=contents, method='DELETE')
+            # print("DELETE REQUEST API: " + a)
+            r = reqst(client.delete, a, auth=auth, timeout=TIMEOUT)
 
-    if result_only:
+            if result_only:
+                rs.append(r)
+                continue
+
+            result = deserialize(r.text if type(r) == requests.models.Response
+                                 else r.data)
+            if issubclass(result.__class__, dict):
+                rs.append((result['result'], result['msg']))
+            else:
+                rs.append(('FAILED', result))
+        res = rs if alist else rs[0]
         return res
-    result = deserialize(res.text if type(res) == requests.models.Response
-                         else res.data)
-    if issubclass(result.__class__, dict):
-        return result['result'], result['msg']
-    else:
-        return 'FAILED', result
 
 # == == == = Async IO == == ==
 
@@ -509,7 +526,7 @@ def content2result_csdb(content):
             except:
                 msg = lls(text, 200)
             raise ServerError(
-                f'AIO {resp.request.method} error: {code} Message: ' + msg, rsps=resp, code=code)
+                f'REQ {resp.request.method} error: {code} Message: ' + msg, rsps=resp, code=code)
 
         # if deserializable
         if issubclass(obj.__class__, dict) and 'data' in obj:
@@ -528,7 +545,7 @@ def content2result_csdb(content):
 
     # print('pppp', res[0])
     if logger.isEnabledFor(logging_DEBUG):
-        logger.debug(f'AIO result size: {len(res)}.')
+        logger.debug(f'Result size: {len(res)}.')
     return res if alist else res[0]
 
 
@@ -539,7 +556,7 @@ async def get_aio_result(method, *args, **kwds):
         return resp.status, con, resp.url.raw_path_qs
 
 
-def reqst(meth, apis, *args, server_type='httppool', ret_rqst=False, **kwds):
+def reqst(meth, apis, *args, server_type='httppool', return_request=False, **kwds):
     """send session, requests, aiohttp requests.
 
     Parameters
@@ -558,7 +575,7 @@ def reqst(meth, apis, *args, server_type='httppool', ret_rqst=False, **kwds):
     server_type : string
         One of 'httppool' (default) and 'csdb', for HttpPool server
     and CSDB server, respectively.
-    ret_rqst: bool
+    return_request: bool
         return a list of respons (only effective to `aio_client`. Default is `False`.
     *args : list
 
@@ -578,10 +595,11 @@ def reqst(meth, apis, *args, server_type='httppool', ret_rqst=False, **kwds):
     --------
     FIXME: Add docs.
     """
+
     if isinstance(meth, str):
         # use AIO
         content = aio_client(meth, apis, *args, **kwds)
-        if ret_rqst:
+        if return_request:
             return content
         if server_type == 'httppool':
             res = content2result_httppool(content)

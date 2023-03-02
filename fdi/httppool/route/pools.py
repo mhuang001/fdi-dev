@@ -400,8 +400,12 @@ def get_pool_info(poolname, serialize_out=False):
                 continue
             cdict = {}
             for cls, sns in clses.items():
-                sndict = dict((int(sn), '/'.join((burl, cls, sn)))
-                              for sn in sns)
+                try:
+                    sndict = dict((int(sn), '/'.join((burl, cls, sn)))
+                                  for sn in sns)
+                except TypeError as e:
+                    __import__("pdb").set_trace()
+
                 cdict[cls] = sndict
             dt_display[t] = cdict
         display = {'Tags': dt_display}
@@ -865,6 +869,7 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
 
     poolname = paths[0]
     poolurl = current_app.config['POOLURL_BASE'] + poolname
+
     if not PM_S.isLoaded(poolname):
         msg = 'Pool not found or not registered: ' + poolname
         if method in ('removeAll'):
@@ -886,7 +891,7 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
         poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
         res = getattr(poolobj, method)(*args, **kwds)
         result = res
-        msg = msg + ' OK.'
+        msg = f'{msg}>{lls(res,32)}< OK.'
         code = 200
     except Exception as e:
         code, result, msg = excp(e, 422, serialize_out=serialize_out)

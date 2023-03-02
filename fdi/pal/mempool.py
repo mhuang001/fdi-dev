@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .productpool import ManagedPool
+from .managedpool import ManagedPool
 from .urn import makeUrn
 from .dicthk import HKDBS
 import logging
@@ -31,14 +31,10 @@ class MemPool(ManagedPool):
         # if self._poolname not in self._MemPool:
         #      self._MemPool[self._poolname] = {}
         # some new ####
-        c, t, u, dTypes, dTags = tuple(self.readHK().values())
+        dTypes, dTags = tuple(self.readHK().values())
 
         logger.debug('created ' + self.__class__.__name__ +
                      ' ' + self._poolname + ' HK read.')
-
-        self._classes.update(c)
-        self._tags.update(t)
-        self._urns.update(u)
         # new ####
         self._dTypes.update(dTypes)
         self._dTags.update(dTags)
@@ -87,9 +83,6 @@ class MemPool(ManagedPool):
         """
 
         myspace = self.getPoolSpace()
-        myspace['classes'] = self._classes
-        myspace['tags'] = self._tags
-        myspace['urns'] = self._urns
         # new ####
         myspace['dTypes'] = self._dTypes
         myspace['dTags'] = self._dTags
@@ -154,7 +147,7 @@ class MemPool(ManagedPool):
         self.writeHK()
         return [0]
 
-    def doWipe(self):
+    def doWipe(self, keep=True):
         """
         does the action of remove-all
         """
@@ -172,7 +165,14 @@ class MemPool(ManagedPool):
         #    del self._MemPool[self._poolname]
         return 0
 
+    def doRemoveTag(self, tag, asyn=False):
+        """
+        does the action of tag removal.
+        """
+        pass
+
     def getHead(self, ref):
         """ Returns the latest version of a given product, belonging
         to the first pool where the same track id is found.
         """
+        raise NotImplementedError

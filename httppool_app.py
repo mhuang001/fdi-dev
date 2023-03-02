@@ -6,7 +6,7 @@ https://stackoverflow.com/questions/13751277/how-can-i-use-an-app-factory-in-fla
 """
 
 from fdi.httppool import create_app, LOGGING_NORMAL, LOGGING_DETAILED
-#from fdi.httppool.route.httppool_server import init_httppool_server, httppool_api
+# from fdi.httppool.route.httppool_server import init_httppool_server, httppool_api
 from fdi.httppool.model.user import User
 
 from fdi._version import __version__
@@ -16,7 +16,7 @@ import sys
 import os
 import argparse
 
-#sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
+# sys.path.insert(0, abspath(join(join(dirname(__file__), '..'), '..')))
 
 # print(sys.path)
 
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     pc = getconfig.getConfig()
 
-    #lev = pc['loggerlevel']
+    # lev = pc['loggerlevel']
 
     # Get username and password and host ip and port.
 
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     if servertype == 'pns':
         print('======== %s ========' % servertype)
-        #from fdi.pns.pns_server import app
+        # from fdi.pns.pns_server import app
         sys.exit(1)
     elif servertype == 'httppool_server':
         print('<<<<<< %s >>>>>' % servertype)
@@ -122,7 +122,7 @@ if __name__ == '__main__':
         # app may have changed debug, so do not use args.debug
         debug = app.debug
         app.run(host=args.host, port=args.port,
-                threaded=50, processes=1,
-                use_reloader=False, reloader_type='stat',
+                threaded=10, processes=1,
+                use_reloader=True, reloader_type='stat',
                 debug=debug, passthrough_errors=debug,
                 use_debugger=debug)

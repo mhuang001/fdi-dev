@@ -11,7 +11,7 @@ class Versionable(object):
     """
 
     def __init__(self, **kwds):
-        super(Versionable, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     def getLastVersion(self, ref):
         """

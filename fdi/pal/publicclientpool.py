@@ -5,10 +5,11 @@ from ..dataset.product import Product, BaseProduct
 from ..dataset.classes import Class_Look_Up
 from ..dataset.serializable import serialize
 from .poolmanager import PoolManager
-from .productpool import ManagedPool, populate_pool2, ProductPool
+from .productpool import ProductPool
+from .managedpool import ManagedPool
 from .productref import ProductRef
 from .productstorage import ProductStorage
-from .dicthk import HKDBS
+from .dicthk import HKDBS, populate_pool2
 from .urn import makeUrn, parse_poolurl, Urn, parseUrn
 from ..pns.public_fdi_requests import read_from_cloud, load_from_cloud, delete_from_server
 from ..pns.fdi_requests import ServerError
@@ -22,7 +23,6 @@ from ..utils.common import (fullname, lls, trbk,
 from ..utils.getconfig import getConfig
 
 import logging
-import os
 from itertools import chain
 import sys
 
@@ -74,6 +74,7 @@ def get_Values_From_A_list_of_dicts(res, what, get_list=True, excpt=True):
 
 
 class PublicClientPool(ManagedPool):
+
     def __init__(self,  auth=None, client=None, **kwds):
         """ creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
 
@@ -97,6 +98,9 @@ class PublicClientPool(ManagedPool):
         self.client = client
         self.getToken()
         self.poolInfo = None
+
+        self.CSDB_LOG = self.loggen()
+        """ Generator object to produce latest n CSDB storage log entres."""
 
     def setup(self):
         """ Sets up HttpPool interals.
@@ -162,13 +166,11 @@ class PublicClientPool(ManagedPool):
         else:
             raise
 
-        tokenMsg = read_from_cloud('getToken', client=self.client)
-        if tokenMsg:
-            self.token = tokenMsg['token']
-            logger.debug('Cloud token %s updated.' % self.token[:5])
-        else:
-            raise ServerError('Update cloud token failed: ' +
-                              tokenMsg['msg'])
+        tokenMsg = read_from_cloud('getToken', client=self.client,
+                                   token=self.token)
+        self.token = tokenMsg['token']
+        logger.debug('Cloud token %s updated.' % self.token[:5])
+
         return self.token
 
     def poolExists(self, poolname=None):
@@ -178,28 +180,85 @@ class PublicClientPool(ManagedPool):
             res = read_from_cloud(
                 'existPool', poolname=poolname, token=self.token)
             return True
-        except:
-            return False
+        except ServerError as e:
+            if e.code == 1:
+                return False
+            raise
 
     def restorePool(self):
-        res = read_from_cloud(
-            'restorePool', poolname=self.poolname, token=self.token)
-        if res['msg'] == 'success':
-            return True
-        else:
-            return False
-
-    def createPool2(self):
         try:
             res = read_from_cloud(
-                'createPool', poolname=self.poolname, token=self.token)
+                'restorePool', poolname=self.poolname, token=self.token)
+            return True
         except:
-            pass
-        return None
+            return False
+
+    def loggen(self):
+        """ Generator that returns the latest two entries of csdb storage log
+        """
+        exlog = 0
+        last = ''
+        cnt = 0
+        if exlog:
+            logger.info(f'^^^^')
+        while True:
+            res = read_from_cloud('poolLogInfo', token=self.token)
+            if exlog:
+                logger.info(f'>>>cnt={cnt} last={last} len={len(res)}')
+            lines = []
+            latest_i = ''
+            for t in res:
+                i = t['id'][-6:]
+                if exlog:
+                    logger.info(f'...i={i}')
+                # save the id of the latest log entry
+                if latest_i == '':
+                    latest_i = i
+                    if exlog:
+                        logger.info(f'add latest_i==={latest_i}')
+                if i == last:
+                    if exlog:
+                        logger.info(f'm {i}')
+                    break
+                lines.append(f"CSDB Storage {i} {t['path']}.")
+            else:
+                # break did not happen. 'last' is not found.
+                if exlog:
+                    logger.info('last not found')
+                if lines:
+                    # there must be some missed ones.
+                    lines.append('...')
+
+            if lines:
+                last = latest_i
+                cnt += 1
+                if exlog:
+                    logger.info('last updated {last}')
+            else:
+                if exlog:
+                    logger.info('last not updated')
+            res = f'>>Polling log {cnt}<<\n%s' % '\n'.join(lines)
+
+            yield res
+
+    def log(self):
+        """ returns the latest two entries of csdb storage log
+        """
+        n = next(self.CSDB_LOG)
+        if isinstance(n, str):
+            n = n.strip()
+        return n if n else ''
+
+    def createPool2(self):
+
+        res = read_from_cloud(
+            'createPool', poolname=self.poolname, token=self.token)
+
+        return res
 
     def createPool(self):
-        ok, res = self.createPool2()
-        return ok
+        res = self.createPool2()
+        return True
 
     def getPoolInfo(self, update_hk=True, count=False):
         """
@@ -234,9 +293,8 @@ class PublicClientPool(ManagedPool):
             rdata = res
             if rdata:
                 if self._poolname in rdata:
-                    dpu = rdata[self._poolname]['_urns']
-                    if count:
-                        return len(dpu)
+                    ucnt = len(rdata[self._poolname].get('_urns', 0))
+                    dpu = rdata[self._poolname]['_urns'] if ucnt else {}
                     for urn, tags in dpu.items():
                         pool, ptype, sn = parseUrn(urn)
                         self._dTypes, self._dTags, sn = \
@@ -267,7 +325,6 @@ class PublicClientPool(ManagedPool):
         self.getPoolInfo(update_hk=True)
 
         return dict((n, db) for n, db in zip(HKDBS, [
-            self._classes, self._tags, self._urns,
             self._dTypes, self._dTags]))
 
     def exists(self, urn, update=True):
@@ -451,10 +508,6 @@ class PublicClientPool(ManagedPool):
                 r = res
             return r
         # alist
-        if 0:
-            if a and pool:
-                raise ValueError(
-                    f"Path '{a}' and pool '{pool}' cannot be both non-empty for getDataInfo.")
         # if both are empty, pool takes self.poolname
         if not pool:
             pool = pname
@@ -531,7 +584,7 @@ class PublicClientPool(ManagedPool):
         else:
             # prd is json. extract prod name
             # '... "_STID": "Product"}]'
-            pn = prd.rsplit('"', 2)[1]
+            # pn = prd.rsplit('"', 2)[1]
             cls = Class_Look_Up[pn]
             pn = fullname(cls)
 
@@ -542,23 +595,13 @@ class PublicClientPool(ManagedPool):
         # targetPoolpath = self.getPoolpath() + '/' + pn
         try:
             # save prod to cloud
-            if serialize_in:
-                uploadRes = self.doSave(resourcetype=pn,
-                                        index=None,
-                                        data=jsonPrd,
-                                        tag=tag,
-                                        serialize_in=serialize_in,
-                                        serialize_out=serialize_out,
-                                        **kwds)
-
-            else:
-                uploadRes = self.doSave(resourcetype=pn,
-                                        index=None,
-                                        data=prd,
-                                        tag=tag,
-                                        serialize_in=serialize_in,
-                                        serialize_out=serialize_out,
-                                        **kwds)
+            uploadRes = self.doSave(resourcetype=pn,
+                                    index=None,
+                                    data=jsonPrd if serialize_in else prd,
+                                    tag=tag,
+                                    serialize_in=serialize_in,
+                                    serialize_out=serialize_out,
+                                    **kwds)
         except ValueError as e:
             msg = f'product {self.poolname}/{pn} saving failed. {e} {trbk(e)}'
             logger.debug(msg)
@@ -640,7 +683,7 @@ class PublicClientPool(ManagedPool):
         if not PoolManager.isLoaded(self._poolname):  # self.poolExists():
             raise ValueError(f'Pool {self._poolname} is not registered.')
 
-        check_type = self.getDataType()
+        check_type = self.serverDatatypes
 
         res = super().schematicSave(products, tag=tag, geturnobjs=geturnobjs,
                                     serialize_in=serialize_in,
@@ -738,12 +781,48 @@ class PublicClientPool(ManagedPool):
 
         return res
 
-#     def schematicWipe(self, restore_type=True):
-#
-#         self.doWipe(restore_type)
+    def doRemoveTag(self, tag, update=True, asyn=False):
+        """remove the tags
 
-    def doWipe(self, restore_type=False):
-        """ to be implemented by subclasses to do the action of wiping.
+        Parameters
+        ----------
+        update : bool
+            update internal H/K tables by reading the server. Defaut
+            `True`.
+        asyn : bool
+            doing it in parallel.
+
+        Returns
+        -------
+        int
+            0 means OK.
+
+        Raises
+        ------
+        ValueError
+            Target not found.
+
+        Examples
+        --------
+        FIXME: Add docs.
+
+        """
+        if update:
+            self.getPoolInfo(update_hk=True)
+
+        if isinstance(tag, (str, list)):
+            res = delete_from_server('delTag', token=self.token, tag=tag)
+        else:
+            raise ValueError('Tag must be a string or a list of string.')
+        return res
+
+    def doWipe(self, keep=True):
+        """ to do the action of wiping.
+
+        Parameters
+        ----------
+        keep : boolean
+            If set (default) clean up data and metadata but keep the container object.
         """
         poolname = self._poolname
 
@@ -759,19 +838,40 @@ class PublicClientPool(ManagedPool):
 
         for clazz in cnt:
             path = f'/{poolname}/{clazz}'
-            try:
-                r = read_from_cloud(
-                    'delDataTypeData', path=path, token=self.token)
-            except Exception as e:
-                msg = f'Wipe pool {poolname} failed: ' + str(e)
+
+            r = read_from_cloud(
+                'delDataTypeData', path=path, token=self.token)
+            res.append(r)
+            logger.debug(f'Removed {path}')
+        if not keep:
+            # remove the pool object from the DB
+            r = read_from_cloud(
+                'wipePool', poolname=poolname, token=self.token)
+            if r is None:
+                logger.debug(f'Done removing {path}')
+            else:
+                msg = f'Wipe pool {poolname} failed to remove pool.'
                 if getattr(self, 'ignore_error_when_delete', False):
                     logger.warning(msg)
                 else:
-                    raise ValueError(msg)
-            res.append(r)
-            logger.debug(f'Removed {path}/{clazz}')
-        logger.debug(f'Done removing {path}')
+                    raise ServerError(msg)
+
         return res
+
+    # def acquire_lock(self):
+    #     lock_proc_id = socket.gethostname()+'_' + getpass.getuser() + \
+    #         '_' + str(os.getpid())
+    #     if not getattr(self, 'locks'):
+    #         self.locks = {}
+    #     if not self.locks:
+    #         self.nlocks = 50
+    #         self.lock_n = 0
+    #     while 1:
+    #         self.lock_n = self.lock_n mod self.nlocks
+    #         if self.lock_n not in self.lock:
+    #             self.lock[self.nlock] = lock_proc_id
+    #             self.lockid2lock_n[lock_proc_id] = self.lock_n
+    #         self
 
     def setTag(self, tag, urn):
         """ Set given tag or list of tags to the URN.
@@ -797,25 +897,22 @@ class PublicClientPool(ManagedPool):
                 msg = 'Tag can not be empty or non-string!'
                 raise
 
-    def getTags(self, urn=None, update=False):
+    def doGetTags(self, urn=None, update=True, **kwds):
         """
-
+        :urn: missing or `None` will have all tags in the pool returned.
         :update: read the server using `getPoolInfo` w/o updating the HK tables. Default is `False`: only look up in the local cache of `PoolInfo`.
         """
 
         if update:
             self.getPoolInfo()
-        ts = self.poolInfo[self._poolname]['_urns'].get(urn)
-        return ts
+        # if not urn:
+        #     return list(self.poolInfo[self._poolname]['_tags'])
+        # ts = self.poolInfo[self._poolname]['_urns'].get(urn)
+        # return ts
 
     def removeTagByUrn(self, tag, urn):
+        raise NotImplementedError
         pass
-
-    def removeTag(self, tag):
-        if isinstance(tag, str):
-            res = delete_from_server('delTag', token=self.token, tag=tag)
-        else:
-            raise ValueError('Tag must be a string!')
 
     def tagExists(self, tag):
         """
@@ -841,16 +938,11 @@ class PublicClientPool(ManagedPool):
         if tag is None:
             raise ValueError('Cannot take None or "" as a tag.')
 
-        if isinstance(tag, list):
-            alist = True
-        else:
-            alist = False
-            tags = [tag]
         try:
             res = read_from_cloud(
                 'tagExist', token=self.token, tag=tag)
         except ServerError as e:
-            msg = f'Get existancw tag failed: {e}'
+            msg = f'Get existance tag failed: {e}'
             logger.warning(msg)
             raise
         return res
@@ -879,18 +971,15 @@ class PublicClientPool(ManagedPool):
         if tag is None:
             raise ValueError('Cannot take None or "" as a tag.')
 
-        if isinstance(tag, list):
-            alist = True
-        else:
-            alist = False
-            tags = [tag]
         try:
             res = read_from_cloud(
-                'tagExist', token=self.token, tag=tags)
+                'getUrn', token=self.token, tag=tag)
         except ServerError as e:
-            msg = f'Get URNs by tag failed: {e}'
-            logger.warning(msg)
-            raise
+            if e.code == 1 and e.args[0].endswith('fail'):
+                # urn doesn't exist
+                res = []
+            else:
+                raise
         return res
 
     def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):

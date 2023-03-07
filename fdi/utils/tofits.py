@@ -12,7 +12,7 @@ from ..dataset.dateparameter import DateParameter
 from ..dataset.stringparameter import StringParameter
 from ..dataset.numericparameter import NumericParameter, BooleanParameter
 from ..dataset.datatypes import Vector
-
+from ..pal.context import RefContainer
 import os
 from collections.abc import Sequence
 import io
@@ -67,7 +67,7 @@ def toFits(data, file='', **kwds):
     :data: a list of Dataset or a BaseProduct (or its subclass).
     :file: '' for returning fits stream. string for file name. default ''.
     """
-    # __import__('pdb').set_trace()
+
     hdul = fits.HDUList()
     hdul.append(fits.PrimaryHDU())
     if issubclass(data.__class__, (BaseProduct)):
@@ -131,7 +131,7 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
                 name_list) == 0 else name_list[n]
             header['EXTNAME'] = ename
             hdul.append(fits.ImageHDU(a, header=header))
-        elif issubclass(ima.__class__, TableDataset):
+        elif issubclass(ima.__class__, (TableDataset, RefContainer)):
             t = Table()
             for name, col in ima.items():
                 tname = typecode2np['u' if col.typecode == 'UNKNOWN' else
@@ -142,7 +142,7 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
                 c = Column(data=col.data, name=name, dtype=tname, shape=[
                 ], length=0, description=col.description, unit=col.unit, format=None, meta=None, copy=False, copy_indices=True)
                 t.add_column(c)
-            if not dataset_only:
+            if not dataset_only and not isinstance(ima, RefContainer):
                 header = add_header(ima.meta, header)
             ename = ima.__class__.__name__ if len(
                 name_list) == 0 else name_list[n]
@@ -153,7 +153,7 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
                 header = add_header(ima.meta, header)
             hdul.append(fits.BinTableHDU(Table(), header=header))
             for name, dlist in ima.items():
-                #print('dlist', dlist.__class__)
+                # print('dlist', dlist.__class__)
                 fits_dataset(hdul, [dlist], name_list=[name], level=level+1)
         elif issubclass(ima.__class__, UnstructuredDataset):
             raise NotImplemented("UnstructuredDataset not yet supported")
@@ -163,12 +163,12 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
         print("****", len(hdul))
     return hdul
 
-    #hdul.writeto(fitsdir + 'array.fits')
+    # hdul.writeto(fitsdir + 'array.fits')
 
    # f = fits.open(fitsdir + 'array.fits')
    # print(len(f))
-    #h1 = f[0].header
-    #h2 = f[1].header
+    # h1 = f[0].header
+    # h2 = f[1].header
     # print(h2)
     # return h1
 
@@ -189,12 +189,16 @@ def add_header(meta, header):
             kw = getFitsKw(name)
             header[kw] = (value, param.description)
         elif issubclass(param.__class__, NumericParameter):
-            if issubclass(pval.__class__, (Sequence)):
+            if issubclass(pval.__class__, (Sequence, list)):
                 for i, com in enumerate(pval):
-                    kw = getFitsKw(name, ndigits=1)+str(i)
+                    kw = getFitsKw(name, ndigits=1)[:7]+str(i)
                     header[kw] = (com, param.description+str(i))
                     if debug:
                         print(kw, com)
+            elif issubclass(pval.__class__, (Vector)):
+                for i, com in enumerate(pval.components):
+                    kw = getFitsKw(name, ndigits=1)[:7]+str(i)
+                    header[kw] = (com, param.description+str(i))
             else:
                 kw = getFitsKw(name)
                 header[kw] = (pval, param.description)
@@ -222,7 +226,7 @@ def fits_header():
     fitsdir = '/Users/jia/desktop/vtse_out/'
     f = fits.open(fitsdir + 'array.fits')
     h = f[0].header
-    #h.set('add','header','add a header')
+    # h.set('add','header','add a header')
     h['add'] = ('header', 'add a header')
     h['test'] = ('123', 'des')
     f.close()
@@ -233,7 +237,7 @@ def fits_header():
 def test_fits_kw(h):
     # print(h)
     # print(list(h.keys()))
-    #assert FITS_KEYWORDS['CUNIT'] == 'cunit'
+    # assert FITS_KEYWORDS['CUNIT'] == 'cunit'
     assert getFitsKw(list(h.keys())[0]) == 'SIMPLE'
     assert getFitsKw(list(h.keys())[3]) == 'NAXIS1'
 

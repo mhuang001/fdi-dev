@@ -1,5 +1,6 @@
-__version_info__ = (1, 28, 1)
+__version_info__ = (1, 28, 2)
 __version__ = '.'.join(map(str, __version_info__))
+# 1.28.2 tofits ans image.py adapted to latest pipeline_l1
 # 1.28.1 fix 'set' bug and currentSN->0 bugs in pool; add set to serializable, csdb pool, tag and other working.
 # 1.28.0 csdb overaul and asynhttp. bug fixes,
 # 1.27.0 list input to `remove` localpool and subclasses. async io for HttpClientPool

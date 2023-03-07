@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from fdi.dataset.mediawrapper import MediaWrapper
+from fdi.dataset.numericparameter import NumericParameter
 
 import struct
 from math import sqrt
@@ -107,7 +109,9 @@ def longrainbowl(n=8):
 use_pypng = 1
 
 
-def toPng(adset, grey=False, compression=0, cspace=8, cmap=None, verbose=False):
+def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
+          png_file_name=None, return_medw=False, return_bin=False,
+          verbose=False):
     """ Make a PNG an image from an `ArrayDataset`.
 
     adset: ArrayDataset whose data is a Sequence of Sequence of 2byte data.
@@ -176,9 +180,9 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None, verbose=False):
             ))
             for row in chain(data, clegend))
         # print('AAAA', max(chain(*img)))
-        if fnm:
+        if png_file_name:
             if use_pypng:
-                with open(fnm+'.png', 'wb') as f:
+                with open(png_file_name+'.png', 'wb') as f:
                     w = png.Writer(width, height, greyscale=grey,
                                    bitdepth=bitdepth, compression=compression)
                     w.write(f, img)
@@ -186,18 +190,24 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None, verbose=False):
                 if img[0].typecode[0] in [unsigned_tc, 'h'] and sys.byteorder == 'little':
                     for i in img:
                         i.byteswap()
-                with open(fnm+'.png', 'wb') as b:
+                with open(png_file_name+'.png', 'wb') as b:
                     b.write(generate_png(img, width, height, greyscale=grey,
                                          bitdepth=bitdepth, compression=compression))
-        image_dset = MediaWrapper(data=img, description=fnm, typ_='image/png',
-                                  shape=[height, width])
+        else:
 
-        return image_dset
+            if return_medw:
+                image_dset = MediaWrapper(data=img,
+                                          description=png_file_name, typ_='image/png',
+                                          shape=[height, width])
+                return image_dset
 
-        bf = b''.join(x.tobytes() for x in data)
-        with open(fnm+'.bin', 'wb') as b:
-            b.write(bf)
-
+            if return_bin:
+                bf = b''.join(x.tobytes() for x in data)
+                return bf
+            # with open(fnm+'.bin', 'wb') as b:
+            #        pb.write(bf)
+            return generate_png(img, width, height, greyscale=grey,
+                                bitdepth=bitdepth, compression=compression)
     if cmap is None:
         cmap = longrainbowl(cspace)
 
@@ -221,7 +231,7 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None, verbose=False):
     t1 = time.time()
     if use_pypng:
         if 0:  # 29.0
-            #def mkb(row): return bytes(map(cnt.__getitem__, row))
+            # def mkb(row): return bytes(map(cnt.__getitem__, row))
             img = list(
                 map(
                     lambda row: bytes(map(cnt.__getitem__, row)),

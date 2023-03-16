@@ -3,7 +3,7 @@
 
 # from ..pal.context import MapContext
 from ..utils.options import opt
-from ..utils.common import pathjoin, lls
+from ..utils.common import pathjoin, lls, trbk, trbk2
 from ..utils.ydump import yinit, ydump
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 from .attributable import make_class_properties
@@ -450,8 +450,6 @@ def mro_cmp(cn1, cn2):
         Returns -1 if class by the name of cn2 is a parent that of cn1,
     0 if c1 and c2 are the same class; 1 for c1 being superclasses or no relation.
     """
-    if cn1 is None or cn2 is None:
-        __import__('pdb').set_trace()
 
     if not (cn1 and cn2 and issubclass(cn1.__class__, str) and issubclass(cn2.__class__, str)):
         raise TypeError('%s and %s must be classnames.' % (str(cn1), str(cn2)))
@@ -460,8 +458,17 @@ def mro_cmp(cn1, cn2):
     if cn1 == cn2:
         # quick result
         return 0
-    c1 = glb[cn1]
-    c2 = glb[cn2]
+    try:
+        c1 = glb[cn1]
+    except TypeError as e:
+        logger.error(f'{trbk(e)}: {cn1}: {e}')
+        exit(-6)
+    try:
+        c2 = glb[cn2]
+    except TypeError as e:
+        logger.error(f'{trbk(e)}: {cn2}: {e}')
+        exit(-6)
+
     if c1 is None or c2 is None:
         return None
     res = 0 if (c1 is c2) else -1 if issubclass(c1, c2) else 1
@@ -665,7 +672,8 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
             if parent is None:
                 continue
             mod_name = glb[parent].__module__
-            s = 'from %s import %s' % (mod_name, parent)
+            if mod_name != 'builtins':
+                s = 'from %s import %s' % (mod_name, parent)
             if parent not in seen:
                 seen[parent] = s
 
@@ -689,8 +697,7 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
                 parentsAttributes[nam] = attrs[nam]
         for nam in toremove:
             del attrs[nam]
-        if 0 and parentsAttributes['type']['default'] == 'Oem_Nssc':
-            __import__('pdb').set_trace()
+
         # parents are updated but names and orders follow the child's
         for ds_name, child_dataset in datasets.items():
             # go through datasets  TODO: ArrayDataset
@@ -814,6 +821,7 @@ if __name__ == '__main__':
         verbose=verbose) if pc else Classes.mapping
     # make a list whose members do not depend on members behind (to the left)
     sorted_list = dependency_sort(descriptors)
+
     sorted_list.reverse()
     skipped = []
     for nm in sorted_list:
@@ -870,18 +878,26 @@ if __name__ == '__main__':
             fin, datetime.now(), d['description'])))
 
         # parameter classes used in init code may need to be imported, too
-        for val in chain(parentsAttributes.values(),
-                         chain(col for ds in
-                               parentsTableColumns.values()
-                               for col in ds.get('TABLE', {}).values()
-                               )
-                         ):
-            print(val)
-            if 'data_type' not in val:
-
+        for nm, val in chain(parentsAttributes.items(),
+                             chain(((colnm, v) for v in col)
+                                   for colnm, ds in
+                                   parentsTableColumns.items()
+                                   for col in ds.get('TABLE', {}).values()
+                                   )
+                             ):
+            #            print(val)
+            if 0:  # 'data_type' not in val:
                 __import__('pdb').set_trace()
             else:
-                a = DataTypes[val['data_type']]
+                t = val['data_type']
+                try:
+                    a = DataTypes[t]
+                except KeyError as e:
+                    maybe = DataTypeNames.get(t, '')
+                    logger.error(
+                        f'"{t}" is an invalid type for {nm}.'
+                        f'{"Do you mean "+maybe+"?" if maybe else ""}')
+                    exit(-5)
                 if a in glb:
                     # this attribute class has module
                     s = 'from %s import %s' % (glb[a].__module__, a)
@@ -893,7 +909,7 @@ if __name__ == '__main__':
         d['datasets'] = parentsTableColumns
         infs, default_code = get_Python(d, indents[1:], demo, onlyInclude)
         # remove the ',' at the end.
-        modelString = (ei + '_Model_Spec = ' + infs).strip()[:-1]
+        modelString = (ei + '_Model_Spec = ' + infs).strip()[: -1]
 
         # keyword argument for __init__
         ls = []
@@ -970,6 +986,7 @@ if __name__ == '__main__':
         importexclude.extend(exclude_save)
         print('Imported ' + newp)
         # Instantiate and dump metadata in other formats
+
         prod = glb[modelName]()
         # [('fancy_grid', '.txt'), ('rst', '.rst')]:
         for fmt, ext in [('fancy_grid', '.txt')]:

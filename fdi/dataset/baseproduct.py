@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import logging
-import copy
-from collections import OrderedDict
-from fdi.dataset.history import History
-from fdi.dataset.copyable import Copyable
-from fdi.dataset.eq import deepcmp
-from fdi.dataset.listener import EventSender, EventType
 from fdi.dataset.abstractcomposite import AbstractComposite
+from fdi.dataset.listener import EventSender, EventType
+from fdi.dataset.eq import deepcmp
+from fdi.dataset.copyable import Copyable
+from fdi.dataset.history import History
+
+from collections import OrderedDict
+import copy
+
+import logging
 
 # Automatically generated from fdi/dataset/resources/BaseProduct.yml. Do not edit.
 
@@ -46,7 +48,7 @@ class BaseProduct( AbstractComposite, Copyable, EventSender):
     =====
     BaseProduct class schema 1.6 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2022-10-14 23:26:41.001193.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2023-03-16 23:42:45.693310.
 
 Description:
 FDI base class data model
@@ -54,7 +56,7 @@ FDI base class data model
     """
 
     def __init__(self,
-                                  description = 'UNKNOWN',
+                 description = 'UNKNOWN',
                  typ_ = 'BaseProduct',
                  level = 'ALL',
                  creator = 'UNKNOWN',

@@ -2,6 +2,7 @@
 
 from fdi.dataset.mediawrapper import MediaWrapper
 from fdi.dataset.numericparameter import NumericParameter
+from fdi.dataset.arraydataset import ArrayDataset
 
 import struct
 from math import sqrt
@@ -114,19 +115,33 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
           verbose=False):
     """ Make a PNG an image from an `ArrayDataset`.
 
-    adset: ArrayDataset whose data is a Sequence of Sequence of 2byte data.
-    grey: Grey scale for pixel values clipped to [median-3stdev, median+3stdev] then mapped to full grey range, if True (default) else RGB color of sorted unique pixel values scaled to full color space..
-    compression: 0-9 for how much to compress. default to 0 for no compression
-    cspace; 1-16 for bits per channel. 16 for grey 8 for color.
-    cmap: an ordered dictionary that gives (R,G,B) for a pixel value. default is `longrainbowl`.
+    Parameters
+    ----------
+    adset : list, ArrayDataset,
+        Any Sequence of Sequence of 2byte data.
+    grey : bool
+        Grey scale for pixel values clipped to [median-3stdev,
+    median+3stdev] then mapped to full grey range, if set `True`
+    (default) else RGB color of sorted unique pixel values
+    scaled to full color space.
+    compression : int
+        0-9 for how much to compress. default to 0 for no compression
+    cspace : int
+        Frim 1 to 16 for bits per channel. 16 for grey 8 for color.
+    cmap : dict
+        An ordered dictionary that gives (R,G,B) for a pixel value.
+    default is `longrainbowl`.
     """
 
     # add color legend
-    data = adset.data
+    if issubclass(adset.__class__, ArrayDataset):
+        data = adset.data
+    else:
+        data = adset
 
     height = len(data)
     width = len(data[0])
-    tcode = adset.typecode[0]
+    tcode = getattr(adset, 'typecode', 'H')[0]
     unsigned_tc = tcode.upper()
     bitdepth = 16 if tcode in ('H', 'h') else 8 if tcode in ('b', 'B') else 32
     # highest and lowest value
@@ -182,17 +197,19 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
         # print('AAAA', max(chain(*img)))
         if png_file_name:
             if use_pypng:
-                with open(png_file_name+'.png', 'wb') as f:
-                    w = png.Writer(width, height, greyscale=grey,
-                                   bitdepth=bitdepth, compression=compression)
-                    w.write(f, img)
+                if png_file_name:
+                    with open(png_file_name+'.png', 'wb') as f:
+                        w = png.Writer(width, height, greyscale=grey,
+                                       bitdepth=bitdepth, compression=compression)
+                        w.write(f, img)
             else:
                 if img[0].typecode[0] in [unsigned_tc, 'h'] and sys.byteorder == 'little':
                     for i in img:
                         i.byteswap()
-                with open(png_file_name+'.png', 'wb') as b:
-                    b.write(generate_png(img, width, height, greyscale=grey,
-                                         bitdepth=bitdepth, compression=compression))
+                if png_file_name:
+                    with open(png_file_name+'.png', 'wb') as b:
+                        b.write(generate_png(img, width, height, greyscale=grey,
+                                             bitdepth=bitdepth, compression=compression))
         else:
 
             if return_medw:
@@ -273,9 +290,13 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
         wtr = png.Writer(width, height, palette=cmap.values(),
                          bitdepth=cspace,
                          compression=compression)
+
         with io.BytesIO() as iob:
             wtr.write(iob, img)
             png_im = iob.getvalue()
+        if png_file_name:
+            with open(png_file_name+'.png', 'wb') as b:
+                b.write(png_im)
     else:
         png_im = generate_png(img, width, height, greyscale=False,
                               bitdepth=8, compression=compression)

@@ -215,7 +215,14 @@ class EventSender():
         """
 
         self._listeners = ListenerSet()
-        super().__init__(**kwds)  # EventSender
+        # if kwds and 'typ_' not in kwds:
+        #    __import__("pdb").set_trace()
+
+        try:
+            super().__init__(**kwds)  # EventSender
+        except TypeError as e:
+            logger.error(f'Extra args {kwds}. err {e}')
+            raise
 
     @property
     def listeners(self):

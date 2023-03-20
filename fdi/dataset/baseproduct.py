@@ -48,7 +48,7 @@ class BaseProduct( AbstractComposite, Copyable, EventSender):
     =====
     BaseProduct class schema 1.6 inheriting [None].
 
-Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2023-03-16 23:42:45.693310.
+Automatically generated from fdi/dataset/resources/BaseProduct.yml on 2023-03-20 19:52:02.788365.
 
 Description:
 FDI base class data model

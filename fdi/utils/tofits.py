@@ -74,7 +74,7 @@ def toFits(data, file='', **kwds):
         sets = data.values()
         names = list(data.keys())
         hdul = fits_dataset(hdul, sets, names)
-        add_header(data.meta, hdul[0].header)
+        add_header(data.meta, hdul[0].header, data.zInfo['metadata'])
         hdul[0].header['EXTNAME'] = 'PrimaryHDU'
     elif issubclass(data.__class__, (ArrayDataset, TableDataset, CompositeDataset)):
         if issubclass(data.__class__, (ArrayDataset)):
@@ -111,7 +111,7 @@ def toFits(data, file='', **kwds):
 def fits_dataset(hdul, dataset_list, name_list=None, level=0):
     """ Fill an HDU list with dataset data.
 
-    :hdul: `list` of HDUs. 
+    :hdul: `list` of HDUs.
     :dataset_list: `list` of dataset subclasses.
     :name_list:
     """
@@ -173,48 +173,55 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
     # return h1
 
 
-def add_header(meta, header):
+def add_header(meta, header, zim={}):
     """ Populate  header with keyword lines extracted from MetaData.
 
     :meta: :class: `MetaData`
+    :zim: `zInfo['metadata']`.
+
     """
     for name, param in meta.items():
         pval = param.value
+        if name in zim and 'fits_keyword' in zim[name]:
+            kw = zim[name]['fits_keyword']
+            ex = ((name, kw),)
+        else:
+            ex = None
         if pval is None:
             v = fits.card.Undefined()
-            kw = getFitsKw(name)
+            kw = getFitsKw(name, extra=ex)
             header[kw] = (v, param.description)
         elif issubclass(param.__class__, DateParameter):
             value = pval.isoutc() if pval.tai else fits.card.Undefined()
-            kw = getFitsKw(name)
+            kw = getFitsKw(name, extra=ex)
             header[kw] = (value, param.description)
         elif issubclass(param.__class__, NumericParameter):
             if issubclass(pval.__class__, (Sequence, list)):
                 for i, com in enumerate(pval):
-                    kw = getFitsKw(name, ndigits=1)[:7]+str(i)
+                    kw = getFitsKw(name, ndigits=1, extra=ex)[:7]+str(i)
                     header[kw] = (com, param.description+str(i))
                     if debug:
                         print(kw, com)
             elif issubclass(pval.__class__, (Vector)):
                 for i, com in enumerate(pval.components):
-                    kw = getFitsKw(name, ndigits=1)[:7]+str(i)
+                    kw = getFitsKw(name, ndigits=1, extra=ex)[:7]+str(i)
                     header[kw] = (com, param.description+str(i))
             else:
-                kw = getFitsKw(name)
+                kw = getFitsKw(name, extra=ex)
                 header[kw] = (pval, param.description)
         elif issubclass(param.__class__, StringParameter):
-            kw = getFitsKw(name)
+            kw = getFitsKw(name, extra=ex)
             if pval == 'UNKNOWN':
                 v = fits.card.Undefined()
             else:
                 v = pval
             header[kw] = (v, param.description)
         elif issubclass(param.__class__, BooleanParameter):
-            kw = getFitsKw(name)
+            kw = getFitsKw(name, extra=ex)
             v = 'T' if pval else 'F'
             header[kw] = (v, param.description)
         else:
-            kw = getFitsKw(name)
+            kw = getFitsKw(name, extra=ex)
             v = fits.card.Undefined()
             header[kw] = (v, '%s of unknown type' % str(pval))
     if debug:

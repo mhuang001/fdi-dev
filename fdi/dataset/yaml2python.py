@@ -132,6 +132,7 @@ def get_Python(val, indents, demo, onlyInclude, debug=False):
         pval = sq(val) if issubclass(val.__class__, (str, bytes)) else str(val)
         infostr += pval + ',\n'
         code = pval
+
     return infostr, code
 
 
@@ -666,10 +667,11 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
     :seen: a dict holding class names that the py file is going to import
  """
     if parentNames and len(parentNames):
-        parentsAttributes = {}
-        parentsTableColumns = {}
+        parentsAttributes = OrderedDict()
+        temp = {}
+        parentsTableColumns = OrderedDict()
         for parent in parentNames:
-            if parent is None:
+            if not parent:
                 continue
             mod_name = glb[parent].__module__
             if mod_name != 'builtins':
@@ -680,7 +682,7 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
             # get parent attributes and tables
             mod = sys.modules[mod_name]
             if hasattr(mod, '_Model_Spec'):
-                parentsAttributes.update(
+                temp.update(
                     mod._Model_Spec['metadata'])
 
                 parentsTableColumns.update(
@@ -690,13 +692,28 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
         for nam, val in attrs.items():
             if float(schema) > 1.5 and 'data_type' not in val:
                 # update parent's
-                parentsAttributes[nam].update(attrs[nam])
+                temp[nam].update(attrs[nam])
                 toremove.append(nam)
             else:
                 # override
-                parentsAttributes[nam] = attrs[nam]
+                temp[nam] = attrs[nam]
+            # move attrs items to the front
+            parentsAttributes[nam] = temp[nam]
+            del temp[nam]
         for nam in toremove:
             del attrs[nam]
+        parentsAttributes.update(temp)
+        # set some absolute ones
+        if 'type' in parentsAttributes:
+            parentsAttributes.move_to_end('type', last=False)
+        # first
+        if 'description' in parentsAttributes:
+            parentsAttributes.move_to_end('description', last=False)
+        if 'version' in parentsAttributes:
+            parentsAttributes.move_to_end('version')
+        # last
+        if 'FORMATV' in parentsAttributes:
+            parentsAttributes.move_to_end('FORMATV')
 
         # parents are updated but names and orders follow the child's
         for ds_name, child_dataset in datasets.items():
@@ -907,6 +924,7 @@ if __name__ == '__main__':
         # make metadata and parent_dataset dicts
         d['metadata'] = parentsAttributes
         d['datasets'] = parentsTableColumns
+
         infs, default_code = get_Python(d, indents[1:], demo, onlyInclude)
         # remove the ',' at the end.
         modelString = (ei + '_Model_Spec = ' + infs).strip()[: -1]

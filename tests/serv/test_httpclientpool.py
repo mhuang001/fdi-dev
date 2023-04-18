@@ -391,7 +391,7 @@ def test_flask_fmt(tmp_pools, server, client,  auth):
     # the url is right
     assert o['result']['DataTypes'][p_type][p_index]['url'] == '/'.join(
         (received_poolurls_no_slash, p_type, str(p_index)))
-    assert o['result']['DataTypes'][p_type][p_index]['tags'] == str({tag})
+    assert o['result']['DataTypes'][p_type][p_index]['tags'] == str([tag])
     # pool aburl with slash
     # get the pool using url with slash
     received_poolurls_slash = received_poolurls_no_slash+'/'

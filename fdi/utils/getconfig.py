@@ -195,7 +195,9 @@ def cget(name, conf_name='pns', builtin=None, force=False):
     ----------
     name : str
         variable name. If starting with 'poolurl:' the rest of the
-        name is used as the poolname part of a default-spec poolurl.
+        name is used as  the key in the `url_aliases` dictionary to
+        get the pre-stored url, and if unsuccessful, as the
+        poolname part of a default-spec poolurl.
     conf_name : str
         name of configuration. Default 'pns'.
     builtin : dict
@@ -229,18 +231,22 @@ def cget(name, conf_name='pns', builtin=None, force=False):
         logger.debug(f'Dumping config {conf_name}.')
         return clu
 
-    # check if request poolurn
+    # check if request poolurl
     for_poolurl = name.startswith(_url_mark)
 
     if for_poolurl:
         name = name[_len_um:]
         # return poolurl if name startswith `poolurl`
         logger.debug(f'Getting poolurl by {name}.')
-        purl = ''.join((clu['scheme'], '://',
-                        clu['host'], ':',
-                        str(clu['port']),
-                        clu['baseurl']
-                        ))
+        # look up or make up
+        if 'url_aliases' in clu and name in clu['url_aliases']:
+            purl = clu['url_aliases'][name]
+        else:
+            purl = ''.join((clu['scheme'], '://',
+                            clu['host'], ':',
+                            str(clu['port']),
+                            clu['baseurl']
+                            ))
         # with the name
         return '%s/%s' % (purl, name)
 
@@ -279,8 +285,11 @@ def getConfig(name=None, conf='pns', builtin=builtin_conf, force=False):
     ----------
     name : str
         Identifier of the configured item whose value will be returned.
-        If started with ```poolurl:```, construct a poolurl with
-        ```scheme``` and ```node``` with ```/{name}``` at the end.
+        If started with ```poolurl:```, rest of `name`  used as the key
+        in the `url_aliases` dictionary to get the pre-stored url, 
+        and if unsuccessful, construct a poolurl with
+        ```scheme``` and ```node```, then in either case append a
+        ```/{name}``` at the end.
         Default ```None```, a mapping of all configured items
         corrected with envirionment variables is returned. 
         Prefixed names in ENV but not in config files are allowed.
@@ -460,7 +469,9 @@ def XXXcget(name, conf_name='pns', builtin=None, force=False):
     ----------
     name : str
         variable name. If starting with 'poolurl:' the rest of the
-        name is used as the poolname part of a default-spec poolurl.
+        name is used as the key in the `url_aliases` dictionary to
+        get the pre-stored url, and if unsuccessful, as the poolname
+        part of a default-spec poolurl.
     conf_name : str
         name of configuration. Default 'pns'.
     builtin : dict
@@ -495,7 +506,7 @@ def XXXcget(name, conf_name='pns', builtin=None, force=False):
         return res
     withEnv = functools.partial(check_env, prefixed, not_prefixed,
                                 conf_name, osenviron)
-    # check if request poolurn
+    # check if request poolurl
     for_poolurl = name.startswith(_url_mark)
 
     if for_poolurl:

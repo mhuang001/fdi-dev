@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from .. import checkpath, PM_S
+from ...pal.poolmanager import PM_S
 from ..model.user import auth
 
 from ...dataset.deserialize import deserialize
 from ...dataset.serializable import serialize
 from ...dataset.mediawrapper import MediaWrapper
 from ...pal.urn import makeUrn
-from ...pal.poolmanager import PoolManager
 from ...dataset.classes import Classes
 from ...utils.common import (trbk,
                              getUidGid,
@@ -317,22 +316,19 @@ def save_product(data, paths, tags=None, serialize_in=True, serialize_out=False,
     FAILED = '"FAILED"' if serialize_out else 'FAILED'
 
     poolname = paths[0]
-    fullpoolpath = os.path.join(
-        current_app.config['FULL_BASE_LOCAL_POOLPATH'], poolname)
-    poolurl = current_app.config['POOLURL_BASE'] + poolname
-    # resourcetype = fullname(data)
-
-    if checkpath(fullpoolpath, current_app.config['PC']['self_username']) is None:
+    if not PM_S.isLoaded(poolname):
         result = FAILED
-        msg = 'Pool directory error: ' + fullpoolpath
+        msg = f'Pool {poolname} is not registered.'
         if logger.isEnabledFor(logging_INFO):
-            logger.info(f'SAVE product to {poolurl} {msg}.')
+            logger.info(f'SAVE product stopped. {msg}.')
         return 400, result, msg
 
     # logger.debug(str(id(PM_S._GlobalPoolList)) + ' ' + str(PM_S._GlobalPoolList))
 
+    poolobj = PM_S.getPool(poolname=poolname)
+    poolurl = poolobj.poolurl
+
     try:
-        poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
         result = poolobj.saveProduct(
             product=data, tag=tags, geturnobjs=True, serialize_in=serialize_in, serialize_out=serialize_out)
         # seriaized:'"urn:test_remote_pool:fdi.dataset.product.Product:0"'
@@ -595,8 +591,6 @@ def load_product(p, paths, serialize_out=False):
             msg = 'Not found: ' + poolname
             code = 404
         else:
-            __import__("pdb").set_trace()
-
             msg, code = '', 400
         code, result, msg = excp(
             e, code=code, msg=msg, serialize_out=serialize_out)

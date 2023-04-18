@@ -5,6 +5,7 @@ import pdb
 from collections import OrderedDict
 from .context import Context
 from .urn import Urn
+from ..utils.getconfig import getConfig
 from .comparable import Comparable
 from ..dataset.product import BaseProduct
 from ..dataset.odict import ODict
@@ -25,9 +26,10 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
     def __init__(self, urn=None, poolname=None, product=None, meta=None, poolmanager=None, **kwds):
         """Urn can be the string or URNobject.
 
+        ProductRef keeps references of the pool and the PoolManager associated with.
         Parameters
         ----------
-        urn : str
+        urn : str, Urn
         poolname : str
              If given overrides the pool name in urn, and causes
              metadata to be loaded from pool, unless this prodref
@@ -40,7 +42,7 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
             poolname.
         poolmanager : class
             subclass od PoolManager
-        **kwds :
+        **kwds : dict
 
         Returns
         -------
@@ -51,15 +53,16 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
 
         urnobj = None
 
+        from .poolmanager import DEFAULT_MEM_POOL, PoolManager
         if poolmanager:
             # poolservers have their own PoolManagers
             self._poolmanager = poolmanager
         else:
-            from .poolmanager import PoolManager
             self._poolmanager = PoolManager
+
         super(ProductRef, self).__init__(**kwds)
         if issubclass(urn.__class__, str):
-            urnobj = Urn(urn)
+            urnobj = Urn(urn, poolname)
         elif issubclass(urn.__class__, Urn):
             urnobj = urn
         elif issubclass(urn.__class__, BaseProduct):
@@ -69,21 +72,34 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
         else:
             urnobj = None
 
+        from . import productstorage
         if product is not None:
-            from .poolmanager import DEFAULT_MEM_POOL
-            from . import productstorage
-            pool = self._poolmanager.getPool(
-                poolurl='mem:///' + DEFAULT_MEM_POOL)
+            if poolname:
+                pool = self._poolmanager.getPool(poolname=poolname, **kwds)
+            else:
+                # a lone product passed to prodref will be stored to mempool
+                pool = self._poolmanager.getPool(
+                    poolurl='mem:///' + DEFAULT_MEM_POOL)
+                poolname = pool._poolname
             st = productstorage.ProductStorage(
                 pool, poolmanager=self._poolmanager)
             urnobj = st.save(product, geturnobjs=True)
-            # a lone product passed to prodref will be stored to mempool
 
-        self.setUrnObj(urnobj, poolname, meta)
+        if not poolname and urnobj:
+            poolname = getattr(urnobj, 'pool')
 
+        # logger.info(f"urnobj = {urnobj}")
+
+        PG = self._poolmanager._GlobalPoolList
+        # print(hex(id(PG)))
+        if poolname:
+            self.setUrnObj(urnobj, poolname, meta)
+            assert poolname in PG, f"in GPL? {hex(id(PG))}"
+            self.pool = PG[poolname]
+        else:
+            self.pool = None
         if product and isinstance(product, Context):
             self._product = product
-
         self._parents = []
 
     @property
@@ -209,7 +225,8 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
             if poolname is None:
                 poolname = urnobj.pool
             else:
-                pool = self._poolmanager.getPool(poolname)
+                pool = self._poolmanager.getPool(
+                    poolname, poolurl=urnobj._poolurl)
             self._meta = (meta if meta else pool.meta(
                 urnobj.urn)) if loadmeta else None
             self._poolname = poolname

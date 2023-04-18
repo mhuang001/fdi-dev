@@ -35,7 +35,7 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         'requests>=2.23.0',
-        'filelock>=3.0.12',
+        'filelock>=3.10',
         'ruamel.yaml<0.17',
         'tabulate-expwidth>=0.9.0.1',
         # for actual use

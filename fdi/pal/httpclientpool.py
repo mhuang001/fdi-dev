@@ -8,7 +8,7 @@ from ..pns.fdi_requests import (ServerError,
 from ..dataset.serializable import serialize
 from ..dataset.deserialize import deserialize, serialize_args
 from ..dataset.classes import All_Exceptions
-from .poolmanager import PoolManager
+from .poolmanager import PoolManager, save_cookies
 from .productref import ProductRef
 from .productpool import ProductPool
 from ..httppool.session import requests_retry_session
@@ -47,25 +47,31 @@ def toserver(self, method, *args, **kwds):
     apipath = serialize_args(method, *args, not_quoted=self.not_quoted, **kwds)
     urn = 'urn:::0'  # makeUrn(self._poolname, typename, 0)
 
-    logger.debug("toServer ===> " + urn)
+    logger.debug("toServer ==> " + urn)
     if len(apipath) < 80:
         code, res, msg = read_from_server(
-            urn, self._poolurl, apipath, auth=self.auth)
+            urn, self._poolurl, apipath, auth=self.auth, client=self.client)
     else:
         apipath = serialize([args, kwds])
         code, res, msg = post_to_server(apipath, urn, self._poolurl,
                                         contents=method + '__' + '/',
                                         no_serial=True,
                                         auth=self.auth, client=self.client)
+
+    save_cookies(self.client)
+
     if issubclass(res.__class__, str) and 'FAILED' in res or code != 200:
         for line in chain(msg.split('.', 1)[:1], msg.split('\n')):
             excpt = line.split(':', 1)[0]
             if excpt in All_Exceptions:
                 # relay the exception from server
-                raise All_Exceptions[excpt](
-                    (f'SERVER: Code {code} Message: {msg}'))
+                except_cls = All_Exceptions[excpt]
+                kw = {'code': code} if issubclass(
+                    except_cls, ServerError) else {}
+                raise except_cls(f'SERVER: Code {code} Message: {msg}', **kw)
         raise ServerError(
-            f'Executing {method} failed. SERVER: Code {code} Message: {msg}')
+            f'Executing {method} failed. SERVER: Code {code} Message: {msg}', code=code)
+
     return res
 
 
@@ -133,9 +139,11 @@ class HttpClientPool(ProductPool):
     get_missing = get_missing
 
     # @toServer()
-    def readHK(self):
+    def readHK(self, hktype=None, serialize_out=False):
         """
-        loads and returns the housekeeping data
+        loads and returns the housekeeping data.
+
+        `hktype` has been taken care of by the serverside.
         """
         poolname = self._poolname
         logger.debug("READ HK FROM REMOTE===>poolurl: " + poolname)
@@ -145,8 +153,7 @@ class HttpClientPool(ProductPool):
             code, r, msg = read_from_server(
                 None, self._poolurl, 'housekeeping')
             if r != 'FAILED' and code == 200:
-                for hkdata in HKDBS:
-                    hk[hkdata] = r[hkdata]
+                hk = r
         except Exception as e:
             msg = 'Reading %s failed. %s ' % (
                 poolname, 'No code' if code is None else str(code)) + str(e) + trbk(e)
@@ -155,7 +162,7 @@ class HttpClientPool(ProductPool):
         if r == 'FAILED':
             logger.error(msg)
             raise Exception(msg)
-        return hk
+        return json.dumps(hk) if serialize_out else hk
 
     def schematicSave(self, products, tag=None, geturnobjs=False, serialize_out=False, asyn=False, **kwds):
         """

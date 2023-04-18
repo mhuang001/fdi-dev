@@ -63,6 +63,8 @@ if __name__ == '__main__':
                         default=pc['self_host'], type=str, help='host IP/name')
     parser.add_argument('-o', '--port',
                         default=pc['self_port'], type=int, help='port number')
+    parser.add_argument('-t', '--threads',
+                        default=10, type=int, help='max number of threads. Default=100. 1 if debug is set')
     parser.add_argument('-s', '--server', default='httppool_server',
                         type=str, help='server type: pns or httppool_server')
     parser.add_argument('-w', '--wsgi', default=False,
@@ -121,8 +123,9 @@ if __name__ == '__main__':
     else:
         # app may have changed debug, so do not use args.debug
         debug = app.debug
+        logger.info(f"App.debug = {debug}")
         app.run(host=args.host, port=args.port,
-                threaded=10, processes=1,
+                threaded=args.threads, processes=1,
                 use_reloader=True, reloader_type='stat',
                 debug=debug, passthrough_errors=debug,
                 use_debugger=debug)

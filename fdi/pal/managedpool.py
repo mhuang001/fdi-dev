@@ -18,7 +18,8 @@ from .productpool import ProductPool
 from collections import OrderedDict, ChainMap
 from functools import lru_cache
 import logging
-import filelock
+from filelock import FileLock
+
 import getpass
 import os
 import sys
@@ -35,23 +36,32 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 
-Lock_Path_Base = '/tmp/fdi_locks_' + getpass.getuser()
+Lock_Path_Base = '/tmp/fdi_locks_'  # getpass.getuser()
 # lock time-out
 locktout = 10
 
 
-def makeLockpath(direc, op='w'):
-    """ returns the appropriate path to put lock file.
+# @lru_cache(maxsize=256)
+def makeLock(direc, op='w', base=Lock_Path_Base):
+    """ returns the appropriate path based lock file object.
 
     creats the path if non-existing. Set lockpath-base permission to all-modify so other fdi users can use.
-    op: 'r' for readlock no-reading) 'w' for writelock (no-writing)
+
+    Parameters
+    ----------
+    direc: str
+       path name to append to `base` to form the path for `FileLock`.
+    op: str
+        'r' for readlock no-reading) 'w' for writelock (no-writing)
+    base: str
+        Default to `Lock_Path_Base`.
     """
-    if not os.path.exists(Lock_Path_Base):
-        os.makedirs(Lock_Path_Base, mode=0o777)
+    if not os.path.exists(base):
+        os.makedirs(base, mode=0o777)
 
-    lp = pathjoin(Lock_Path_Base, direc.replace('/', '_'))
+    lp = pathjoin(base, direc.replace('/', '_'))
 
-    return lp+'.read' if op == 'r' else lp+'.write'
+    return FileLock(lp+'.r') if op == 'r' else FileLock(lp+'.w')
 
 
 def _eval(code='', m='', **kwds):
@@ -74,9 +84,18 @@ MetaData_Json_End = '"_STID": "MetaData"}'
 
 
 class ManagedPool(dicthk.DictHk):
-    """ A ProductPool that manages its internal house keeping. """
+    """ A ProductPool that manages its internal house keeping with nested mappings. """
 
-    def __init__(self, **kwds):
+    def __init__(self, makenew=True, **kwds):
+        """ Initialization.
+
+        Parameters
+        ----------
+        makenew : bool
+            Create a new management (Houses keeping) structures (default `True`).
+        """
+
+        self._makenew = makenew  # must preceed setup() in super
         super().__init__(**kwds)
         # {type|classname -> {'sn:[sn]'}}
 
@@ -101,8 +120,13 @@ class ManagedPool(dicthk.DictHk):
 
         if super().setup():
             return True
+        if self._makenew:
+            pass
         # new ##
         self._dTypes = dict()
+        sid = hex(id(self))
+        self._locks = dict((op, makeLock(sid+'_'+self._poolurl, op))
+                           for op in ('r', 'w'))
 
         return False
 
@@ -114,13 +138,6 @@ class ManagedPool(dicthk.DictHk):
         """
         return self._poolpath
 
-    def lockpath(self, op='w'):
-        """ Make lock path using transformed poolname as name.
-
-        """
-        return makeLockpath(self.transformpath(self._poolname), op)
-
-    @ lru_cache(maxsize=32)
     def transformpath(self, path):
         """ override this to changes the output from the input one (default) to something else.
 
@@ -137,10 +154,14 @@ class ManagedPool(dicthk.DictHk):
 
     def getCacheInfo(self):
         info = {}
-        for i in ['transformpath']:
+        for i in []:
             info[i] = getattr(self, i).cache_info()
 
         return info
+
+    def make_new(self, *args, **kwds):
+
+        pass
 
     def dereference(self, ref):
         """
@@ -149,13 +170,17 @@ class ManagedPool(dicthk.DictHk):
         # new ###
         poolname, dt, sn = parseUrn(urn, int_index=True)
         # assert self._urns[ref.urn]['refcnt'] == self._dType[dt]['sn'][sn]['refcnt']
-        r = self._dType[dt]['sn'][sn]
-        if r['refcnt'] == 0:
-            raise ValueError('Cannot deref below 0.')
-        else:
-            r['refcnt'] -= 1
-        # /new ###
-        # self._urns[ref.urn]['refcnt'] -= 1
+        with self._locks['w'], self._locks['r']:
+
+            r = self._dType[dt]['sn'][sn]
+            if 'refcnt' not in r:
+                return
+            if r['refcnt'] == 0:
+                raise ValueError('Cannot deref below 0.')
+            else:
+                r['refcnt'] -= 1
+            # /new ###
+            # self._urns[ref.urn]['refcnt'] -= 1
 
     def exists(self, urn, resourcetype=None, index=None):
         """
@@ -328,8 +353,7 @@ class ManagedPool(dicthk.DictHk):
             cls = Class_Look_Up[pn]
             pn = fullname(cls)
 
-        with filelock.FileLock(self.lockpath('w')), \
-                filelock.FileLock(self.lockpath('r')):
+        with self._locks['w'], self._locks['r']:
             # some new ####
             self._dTypes, self._dTags = tuple(
                 self.readHK().values())
@@ -347,7 +371,9 @@ class ManagedPool(dicthk.DictHk):
             # new ####
             self._dTypes, self._dTags, _sn = \
                 dicthk.populate_pool2(tags, pn, sn=None,
-                                      dTypes=self._dTypes, dTags=self._dTags)
+                                      cursn=None,
+                                      dTypes=self._dTypes,
+                                      dTags=self._dTags)
 
             urn = makeUrn(poolname=self._poolname, typename=pn, index=_sn)
             try:
@@ -363,6 +389,8 @@ class ManagedPool(dicthk.DictHk):
                 msg = 'product ' + urn + ' saving failed.' + str(e) + trbk(e)
                 logger.debug(msg)
                 # some new ##
+                __import__("pdb").set_trace()
+
                 self._dTypes, self._dTags = tuple(
                     self.readHK().values())
                 raise e
@@ -480,7 +508,7 @@ class ManagedPool(dicthk.DictHk):
         """ do the scheme-specific loading
         """
 
-        with filelock.FileLock(self.lockpath('w')):
+        with self._locks['w'], self._locks['r']:
             ret = self.doLoad(resourcetype=resourcetype,
                               index=index, start=start, end=end,
                               serialize_out=serialize_out)
@@ -498,8 +526,7 @@ class ManagedPool(dicthk.DictHk):
         if not urn and (not resourcetype or not index):
             return 0
 
-        with filelock.FileLock(self.lockpath('w')),\
-                filelock.FileLock(self.lockpath('r')):
+        with self._locks['w'], self._locks['r']:
 
             urn, datatype, sn = self.get_missing(
                 urn, resourcetype, index, no_check=True)
@@ -516,40 +543,39 @@ class ManagedPool(dicthk.DictHk):
 
             self.removeUrn(urn, datatype=datatype, sn=sn)
 
-        res = self.doRemove(resourcetype=datatypes, index=sns, asyn=asyn)
+            res = self.doRemove(resourcetype=datatypes, index=sns, asyn=asyn)
 
-        res1 = res if alist else [res]
-        for i, r in enumerate(res1):
-            if r is None:
-                msg = f'product {urn[i]} removal failed.'
-                if isinstance(self, (LocalPool, MemPool, HTTPClientpool)):
-                    self._dTypes, self._dTags = tuple(
-                        self.readHK().values())
-                    if getattr(self, 'ignore_error_when_delete', False):
-                        raise
-                    else:
-                        logger.warning(msg)
+            res1 = res if alist else [res]
+            for i, r in enumerate(res1):
+                if r is None:
+                    msg = f'product {urn[i]} removal failed.'
+                    if isinstance(self, (LocalPool, MemPool, HTTPClientpool)):
+                        self._dTypes, self._dTags = tuple(
+                            self.readHK().values())
+                        if getattr(self, 'ignore_error_when_delete', False):
+                            raise
+                        else:
+                            logger.warning(msg)
 
-                    # can only do one at a time
-                    break
-                elif isinstance(self, (PublicClientPool)):
-                    self.getPoolInfo(update_hk=True)
+                        # can only do one at a time
+                        break
+                    elif isinstance(self, (PublicClientPool)):
+                        self.getPoolInfo(update_hk=True)
         return res if alist else res[0]
 
     def getTags(self, urn=None, datatype=None, sn=None, asyn=False, **kwds):
         """ do the scheme-specific getting a tag or tags.
         """
 
-        with filelock.FileLock(self.lockpath('w')),\
-                filelock.FileLock(self.lockpath('r')):
+        # This should have locks as at lower levels getPoolInfo would not be able to get lock.
 
-            # the real thing.
-            if hasattr(self, 'doGetTags'):
-                self.doGetTags(urn=urn, asyn=asyn, **kwds)
-            # update H/K tables
-            res = super().getTags(urn=urn, datatype=datatype, sn=sn, **kwds)
+        # the real thing.
+        if hasattr(self, 'doGetTags'):
+            self.doGetTags(urn=urn, asyn=asyn, **kwds)
+        # update H/K tables
+        res = super().getTags(urn=urn, datatype=datatype, sn=sn, no_check=True, **kwds)
 
-            return res
+        return res
 
     def removeTag(self, tag=None, asyn=False, **kwds):
         """ do the scheme-specific removing a tag or tags.
@@ -558,16 +584,15 @@ class ManagedPool(dicthk.DictHk):
         if not tag:
             return 0
 
-        with filelock.FileLock(self.lockpath('w')),\
-                filelock.FileLock(self.lockpath('r')):
+        # This should have locks as at lower levels getPoolInfo would not be able to get lock.
 
-            # the real thing.
-            if hasattr(self, 'doGetTags'):
-                self.doRemoveTag(tag, asyn=asyn, **kwds)
-            # remove from H/K tables
-            res = super().removeTag(tag)
+        # the real thing.
+        if hasattr(self, 'doGetTags'):
+            self.doRemoveTag(tag, asyn=asyn, **kwds)
+        # remove from H/K tables
+        res = super().removeTag(tag)
 
-            return res
+        return res
 
     def doWipe(self, keep=False):
         """ to be implemented by subclasses to do the action of wiping.
@@ -578,8 +603,7 @@ class ManagedPool(dicthk.DictHk):
         """ do the scheme-specific wiping
 
         """
-        with filelock.FileLock(self.lockpath('w')),\
-                filelock.FileLock(self.lockpath('r')):
+        with self._locks['w'], self._locks['r']:
             # new ##
             self._dTypes.clear()
             self._dTags.clear()
@@ -660,11 +684,11 @@ class ManagedPool(dicthk.DictHk):
                 if snlist:
                     datatypes = {typename: snlist}
                 for cls in datatypes:
-                    snlist = datatypes[cls]
+                    snlist=datatypes[cls]
                     for n in snlist:
-                        urn = makeUrn(poolname=self._poolname,
+                        urn=makeUrn(poolname=self._poolname,
                                       typename=typename, index=n)
-                        m = self.getMetaByUrn(urn)
+                        m=self.getMetaByUrn(urn)
                         if qw(m):
                             ret.append(ProductRef(urn=urn, meta=m,
                                        poolmanager=self._poolmanager))
@@ -684,59 +708,59 @@ class ManagedPool(dicthk.DictHk):
         :datatypes:  dict of {cls:sn_list}
         """
 
-        ret = []
+        ret=[]
         # will add query variable (e.g. 'p') to Global name space
-        glbs = globals()
-        qw = q.getWhere()
-        var = q.getVariable()
+        glbs=globals()
+        qw=q.getWhere()
+        var=q.getVariable()
         if var in glbs:
-            savevar = glbs[var]
+            savevar=glbs[var]
         else:
-            savevar = 'not in glbs'
+            savevar='not in glbs'
 
         if reflist:
             if isinstance(qw, str):
-                code = compile(qw, 'qw.py', 'eval')
+                code=compile(qw, 'qw.py', 'eval')
                 for ref in reflist:
-                    glbs[var] = pref.getProduct()
+                    glbs[var]=pref.getProduct()
                     if _eval(code=code, m=m):
                         ret.append(ref)
                 if savevar != 'not in glbs':
-                    glbs[var] = savevar
+                    glbs[var]=savevar
                 return ret
             else:
                 for ref in reflist:
-                    glbs[var] = pref.getProduct()
+                    glbs[var]=pref.getProduct()
                     if qw(m):
                         ret.append(ref)
                 if savevar != 'not in glbs':
-                    glbs[var] = savevar
+                    glbs[var]=savevar
                 return ret
         elif urnlist:
             if isinstance(qw, str):
-                code = compile(qw, 'qw.py', 'eval')
+                code=compile(qw, 'qw.py', 'eval')
                 for urn in urnlist:
-                    pref = ProductRef(urn=urn, poolmanager=self._poolmanager)
-                    glbs[var] = pref.getProduct()
+                    pref=ProductRef(urn=urn, poolmanager=self._poolmanager)
+                    glbs[var]=pref.getProduct()
                     if _eval(code=code):
                         ret.append(pref)
                 if savevar != 'not in glbs':
-                    glbs[var] = savevar
+                    glbs[var]=savevar
                 return ret
             else:
                 for urn in urnlist:
-                    pref = ProductRef(urn=urn, poolmanager=self._poolmanager)
-                    glbs[var] = pref.getProduct()
+                    pref=ProductRef(urn=urn, poolmanager=self._poolmanager)
+                    glbs[var]=pref.getProduct()
                     if qw(glbs[var]):
                         ret.append(pref)
                 if savevar != 'not in glbs':
-                    glbs[var] = savevar
+                    glbs[var]=savevar
                 return ret
         elif snlist or datatypes:
             if isinstance(qw, str):
-                code = compile(qw, 'qw.py', 'eval')
+                code=compile(qw, 'qw.py', 'eval')
                 if snlist:
-                    datatypes = {cls.__name__: snlist}
+                    datatypes={cls.__name__: snlist}
                 for typename in datatypes:
                     snlist = datatypes[typename]
                     cls = Class_Look_Up[typename.rsplit('.', 1)[-1]]

@@ -579,6 +579,9 @@ def test_getConfig_init():
     assert getConfig('scheme') == clu['scheme']
     # get url
     con = getConfig()
+    con['url_aliases'] = {'fo': 'ba'}
+    assert getConfig('poolurl:fo') == 'ba/fo'
+
     purl = ''.join((con['scheme'], '://',
                     con['host'], ':',
                     str(con['port']),

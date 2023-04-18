@@ -79,7 +79,7 @@ SCHEMA_DIR = os.path.abspath(os.path.join(
 SSP = 'https://fdi.schemas/%s%s'
 """ Schema store prefix"""
 
-verbose = 1 #False
+verbose = 1  # False
 
 
 @pytest.fixture(scope='function')
@@ -157,7 +157,7 @@ def check_general(vtr, jsn, name):
 
 
 def test_validator():
-    #fdi_sch_dir = op.dirname(op.join(op.abspath(__file__), '../fdi/schemas'))
+    # fdi_sch_dir = op.dirname(op.join(op.abspath(__file__), '../fdi/schemas'))
     sch_dir = op.join(op.abspath(op.dirname(__file__)), 'resources/schemas')
     sch_path = op.join(sch_dir, 'prd_schema.jsn')
     with open(sch_path, 'r') as file:
@@ -713,14 +713,13 @@ def test_Vector(schema_store):
     scn = 'Vector'
     sch = schema_store[SSP % ('dataset/', scn)]
 
-    if 1:
+    if verbose:
         jsn = json.loads(serialize(Vector((3.14, 5, 0xb),
                                           typecode='f',
                                           unit='au'),
                                    indent=4)
                          )
-    if verbose:
-        logger.info(jsn)
+        logger.debug(jsn)
     assert jsn['unit'] == 'au'
     assert jsn['typecode'] == 'f'
     vtr = getValidator(sch, verbose=verbose)
@@ -854,7 +853,7 @@ def test_MetaData(schema_store):
 
     jsn = json.loads(serialize(v))
 
-    if 1 or verbose:
+    if verbose:
         logger.info("JSON instance to test: %s" %
                     lls(pformat(jsn, indent=4), 2000))
     # assert jsn['default']['tai'] == 99
@@ -1058,7 +1057,7 @@ def test_History(schema_store):
     sparray = json.loads(serialize(parray))
     pasc = schema_store[SSP % ('dataset/', 'Parameter')]
     tor = getValidator(pasc, verbose=verbose)
-    res=tor.validate(sparray)
+    res = tor.validate(sparray)
     assert res is None
 
     jsn = json.loads(serialize(v))
@@ -1121,7 +1120,7 @@ def test_MapContext(schema_store):
     v = MapContext(description='MapContext demo')
     r = ProductRef(v)
     v.refs['self'] = r
-    v['arr']=ArrayDataset([6,4,2])
+    v['arr'] = ArrayDataset([6, 4, 2])
 
     jsn = json.loads(serialize(v))
 

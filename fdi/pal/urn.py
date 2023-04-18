@@ -128,6 +128,7 @@ URNs are used to to identify data be cause URNs are location agnostic. Storage P
                     self._index = None
                     self._poolpath = None
                     self._urn = None
+                    self._poolurl = None
                     return
                 else:
                     raise ValueError(
@@ -174,11 +175,13 @@ URNs are used to to identify data be cause URNs are location agnostic. Storage P
             self._poolpath = poolpath
             self._scheme = scheme
             self._place = place
+            self._poolurl = poolurl
         else:
             self._poolpath = None
             self._scheme = None
             self._place = None
             self._username, self._password = None, None
+            self._poolurl = None
 
     def getUrn(self):
         """ Returns the urn in this """
@@ -260,7 +263,7 @@ def parseUrn(urn, int_index=True, check_poolename=None):
     Checks the URN string is valid in its form and splits it.
 
     A Product URN has several segment. For example if the urn is ``urn:mypool/v2:proj1.product:322``
-    * poolname, also called poolURN or poolID, optionally path-like: ``mypool/v2``,
+    * poolname, also called or poolID, optionally path-like: ``mypool/v2``,
     * resource type (usually class) name ``proj1.product``,
     * index number  ``322``,
     If urn is None or empty returns (None,None,None)
@@ -354,14 +357,6 @@ def parse_poolurl(url, poolhint=None):
 
     A Pool URL is  It is generated to desribe . For example:
 
-    input:
-    * url: to be decomposed.
-    * poolhint:  A urn or a poolname (the first distinctive substring) needs to be given if the poolname has more than one level.
-
-    returns: poolpath, scheme, place, poolname.
-    returns (None, None,None,None) if url is None or empty.
-
-
     About_poolURL
 
 The ``PoolURL`` format is in the form of a URL that preceeds its poolname part:
@@ -370,7 +365,7 @@ The ``PoolURL`` format is in the form of a URL that preceeds its poolname part:
 
 :<scheme>: Implementation protocol including ``file`` for :class:`LocalPool`, ``mem`` for :class:`MemPool`, ``http``, ``https`` for :class:`HttpclientPool`.
 :<place>: IP:port such as``192.168.5.6:8080`` for ``http`` and ``https`` schemes, or an empty string for ``file`` and ``mem`` schemes.
-:<poolname>: same as in URN.
+:<poolname>: In its simple form, the `poolname` is a string that has the same requirement as does the URN. One can put in another poolurl in the place of the `poolname` after replacing every '/' with ','.
 :<poolpath>: The part between ``place`` and an optional ``poolhint``::
 :<username>:
 :<password>:
@@ -378,14 +373,40 @@ The ``PoolURL`` format is in the form of a URL that preceeds its poolname part:
 - For ``file`` or ``server`` schemes, e.g. poolpath is ``/c:/tmp`` in ``http://localhost:9000/c:/tmp/mypool/`` with ``poolhint`` keyword arguement of :func:`parse_poolurl` not given, or given as ``mypool`` (or ``myp`` or ``my`` ...).
 - For ``http`` and ``https`` schemes, it is e.g. ``/0.6/tmp`` in ``https://10.0.0.114:5000/v0.6/tmp/mypool`` with ``poolhint`` keyword arguement not given, or given as ``mypool`` (or ``myp` or 'my' ...). The meaning of poolpath is subject to interpretation by the  server. In the preceeding example the poolpath has an API version.  :meth:`ProductPool.transformpath` is used to map it further. Note that trailing blank and ``/`` are ignored, and stripped in the output.
 
-Examples:
+    Parameters
+    ----------
+    url : str
+        to be decomposed.
+    poolhint : str
+        An optional URN (to extract poolname) or a pool URL (to be
+    used for further connection, or usually, a simple poolname.
+    The first distinctive substring is the poolname. If `poolhint`
+    is not found, poolname is the default last fragment.
 
--  file:///tmp/mydata for pool ```mydata```
--  file:///d:/data/test2--v2 for pool ``test2--v2``
--  mem:///dummy for pool ``dummy``
--  https://10.0.0.114:5000/v0.6/obs for a httpclientpool ``obs``
--  server:///tmp/data/0.4/test for a pool ``test`` used on a server.
+    Returns
+    -------
+    tuple
+        poolpath, scheme, place, poolname.
+        `(None, None,None,None)` if url is None or empty.
 
+    Examples
+    --------
+
+    -  file:///tmp/mydata for pool ```mydata```
+    -  file:///d:/data/test2--v2 for pool ``test2--v2``
+    -  mem:///dummy for pool ``dummy``
+    -  https://10.0.0.114:5000/v0.6/obs for a httpclientpool ``obs``
+    -  server:///tmp/data/0.4/test for a pool ``test`` used on a server.
+    -  csdb://127.0.0.1:9876/cc/v1/foo for a pool ``foo`` on a CSDB server running locally on port 9876.
+    - http://127.0.0.1:5000/bar/csdb:,,10.0.0.114:9876,cc,v1,foo for a pool ``foo`` on a CSDB server running on 10.0.0.114:9876 with an HTTPPool interface server running locally. After registration with the poolurl,
+`foo` can be accessed as http://127.0.0.1:5000/bar/foo
+
+    >>> poolpath, scheme, place, poolname, un, pw = parse_poolurl(
+    ... 'https://127.0.0.1:5000/v3/mypool', 'urn:mypool:foo.KProduct:43')
+    >>> assert poolpath == '/v3'
+    assert scheme == 'https'
+    assert place == '127.0.0.1:5000'
+    assert poolname == 'mypool'
 
     """
 
@@ -394,10 +415,10 @@ Examples:
     if not issubclass(url.__class__, strset):
         raise ValueError('a string is needed: ' + str(url))
 
-    sp1 = url.split(':')
-    if len(sp1) > 4:  # after scheme and a possible windows path, and one for user:pass
-        raise ValueError(
-            'a pool URN can have no more than 3 \':\'.')
+    # sp1 = url.split(':')
+    # if len(sp1) > 4:  # after scheme and a possible windows path, and one for user:pass
+    #     raise ValueError(
+    #         'a pool URL can have no more than 3 \':\'.')
 
     pr = urlparse(url.strip())
     scheme = pr.scheme       # file
@@ -406,16 +427,22 @@ Examples:
     path = pr.path.strip().rstrip('/')
     # convenient access path
     # get the poolname
-    if poolhint:
+    if poolhint and poolhint in path:
         ps = poolhint.split(':')
-        poolin = ps[1] if ps[0].lower() == 'urn' else ps[0]
-        pind = path.index(poolin)
+        if ps[0].lower() == 'urn':
+            # hint is an URN
+            poolnameindex = ps[1]
+        else:
+            # hint points to a poolurl. start with poolhint
+            # or hint is for a simple path
+            poolnameindex = poolhint
+        pind = path.index(poolnameindex)
         poolname = path[pind:]
         poolpath = path[:pind].rstrip('/')
     else:
         # the last level is assumed to be the poolname
         sp = path.rsplit('/', 1)
-        poolname = sp[1]
+        poolname = sp[-1]
         poolpath = sp[0]
 
     poolpath = place + poolpath if scheme in ('file') else poolpath

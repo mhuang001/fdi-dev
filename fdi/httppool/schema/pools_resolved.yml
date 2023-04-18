@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  version: 1.2.4
+  version: 1.3.0
   description: This is an API description of the HTTPPool Server for FDI (Flexible Dataset Integrator)
   title: fdi poolserver
   contact:
@@ -39,7 +39,7 @@ servers:
         default: '31702'
         description: 31702 for production.
       basePath:
-        default: fdi/v0.15
+        default: fdi/v0.16
   - url: 'http://127.0.0.1:{port}/{basePath}'
     description: httppool api flask-uwsgi dev version
     variables:
@@ -50,8 +50,8 @@ servers:
         default: '9885'
         description: 9881 for testing; 9885 for production.
       basePath:
-        default: fdi/v0.15
-  - url: 'http://10.0.10.114:9885/fdi/v0.15'
+        default: fdi/v0.16
+  - url: 'http://10.0.10.114:9885/fdi/v0.16'
     description: httppool api production intranet
     variables:
       port:
@@ -60,7 +60,7 @@ servers:
         default: '9885'
         description: 9885 for production.
       basePath:
-        default: fdi/v0.15
+        default: fdi/v0.16
 security:
   - BasicAuth: []
 paths:
@@ -335,7 +335,7 @@ paths:
       summary: Returns the given kind of pool housekeeping data.
       tags:
         - Pool_Info
-      description: 'requests pool housekeeping data of specified kind: classes or urns or tags'
+      description: 'requests pool housekeeping data of specified kind: dTypes or dTags.'
       operationId: hk_single
       parameters:
         - $ref: '#/components/parameters/Pool'
@@ -528,26 +528,31 @@ components:
         type: string
       examples:
         1. server:
+          value: test_csdb_fdi2
+          summary: from CSDB server test `test_csdb.py`.
+        2. server:
+          value: 'csdb:,,123.56.102.90:31702,csdb,v1,storage,test_nms_compat1'
+          summary: full CSDB poolURL for TEST_NMS_COMPAT1.
+        3. server:
           value: serv_test_httppool
           summary: from server test `test_httppool.py`.
-        2. client:
+        4. client:
           value: serv_test_httpclientpool
           summary: from client test `test_httpclientpool.py`.
-        3. pal:
+        5. pal:
           value: test_pal
           summary: from `test_pal.py`.
     HkKind:
       name: kind
       in: path
-      description: 'one of "classes", "urns", "tags".'
+      description: 'one of "dTypes", "dTags".'
       required: true
       schema:
         type: string
         enum:
-          - classes
-          - urns
-          - tags
-      example: classes
+          - dTypes
+          - dTags
+      example: dTypes
     DataType:
       name: data_type
       in: path

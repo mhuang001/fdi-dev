@@ -14,10 +14,9 @@ from ..utils.common import (getUidGid,
                             logging_INFO,
                             logging_DEBUG, lls
                             )
+from ..pal.poolmanager import DEFAULT_MEM_POOL
 
-from .session import init_session
-
-from ..pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
+from .session import init_session, SESSION
 
 from flasgger import Swagger
 from werkzeug.exceptions import HTTPException
@@ -27,13 +26,13 @@ from werkzeug.routing import RoutingException, Map
 
 import builtins
 from os.path import expandvars
-from weakref import WeakValueDictionary, getweakrefcount
 import functools
 from pathlib import Path
 import sys
 import json
 import time
 import os
+from collections import defaultdict
 
 # print(sys.path)
 global logger
@@ -47,11 +46,7 @@ LOGGING_DETAILED = logging_DEBUG
 cnt = 0
 _BASEURL = ''
 
-
-class PM_S(PoolManager):
-    """Made to provid a different `_GlobalPoolList` useful for testing as a mock"""
-    _GlobalPoolList = WeakValueDictionary()
-    """ Another Global centralized dict that returns singleton -- the same -- pool for the same ID."""
+PC = None
 
 
 def setup_logging(level=LOGGING_NORMAL, extras=None, tofile=None):
@@ -163,16 +158,24 @@ SET_OWNER_MODE = False
 
 
 @functools.lru_cache(6)
-def checkpath(path, un):
+def checkpath(path, un=None):
     """ Checks  the directories and creats if missing.
 
-    path: str. can be resolved with Path.
-    un: server user name
+    Parameters
+    ----------
+    path : str
+        can be resolved with `Path`.
+    un: str, None
+        server user name set in the config file as, and is default to when set as `None`, `self_username`.
     """
-    # logger = current_app.logger
 
+    # logger = current_app.logger
+    if un is None:
+        un = getconfig.getConfig('self_username')
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('path %s user %s' % (path, un))
+    if 'fdi2' in path:
+        __import__("pdb").set_trace()
 
     p = Path(path).resolve()
     if p.exists():
@@ -241,9 +244,14 @@ def init_httppool_server(app):
     Classes = init_conf_classes(pc, logger)
     app.config['LOOKUP'] = Classes.mapping
 
+    from ..pal.poolmanager import PM_S
+    from ..pal.managedpool import makeLock
     # client users
     from .model.user import getUsers
     app.config['USERS'] = getUsers(pc)
+    sid = hex(os.getpid())
+    app.config['LOCKS'] = dict((op, makeLock('FDI_Pool'+sid, op))
+                               for op in ('r', 'w'))
 
     # PoolManager is a singleton
     if PM_S.isLoaded(DEFAULT_MEM_POOL):
@@ -256,15 +264,17 @@ def init_httppool_server(app):
                      (os.getpid(), str(app._got_first_request))
                      )
     PM_S.removeAll()
+    app.config['POOLMANAGER'] = PM_S
 
     # pool-related paths
     # the httppool that is local to the server
     scheme = 'server'
     _basepath = PM_S.PlacePaths[scheme]
-    # this is SERVER_LOCAL_POOLPATH/data
-    full_base_local_poolpath = os.path.join(_basepath, pc['api_version'])
+    # this is something like SERVER_LOCAL_POOLPATH, /.../v0.16
+    # os.path.join(_basepath, pc['api_version'])
+    full_base_local_poolpath = _basepath
 
-    if checkpath(full_base_local_poolpath, pc['self_username']) is None:
+    if checkpath(full_base_local_poolpath) is None:
         msg = 'Store path %s unavailable.' % full_base_local_poolpath
         logger.error(msg)
         return None
@@ -409,6 +419,8 @@ def create_app(config_object=None, level=None, logstream=None):
     app.url_map.strict_slashes = False
 
     # with app.app_context():
+    app.config['POOLS'] = {}
+    app.config['ACCESS'] = {'usrcnt': defaultdict(int)}
     init_httppool_server(app)
     logger.info('Server initialized. logging level ' +
                 str(app.logger.getEffectiveLevel()))
@@ -437,13 +449,13 @@ def add_errorhandlers(app):
     def handle_excep(error):
         """ ref flask docs """
         ts = time.time()
-
-        if issubclass(error.__class__, HTTPException) and error.code == 429:
-            msg = "429 "
-            error.code = 401
-            response = make_response('', error)
-        elif issubclass(error.__class__, HTTPException):
-            if error.code == 409:
+        if issubclass(error.__class__, HTTPException):
+            if error.code == 401:
+                return error
+            elif error.code == 429:
+                msg = "429 "
+                error.code = 401
+            elif error.code == 409:
                 spec = "Conflict or updating. "
             elif error.code == 500 and error.original_exception:
                 error = error.original_exception
@@ -454,13 +466,13 @@ def add_errorhandlers(app):
             msg = '%s%d. %s, %s\n%s' % \
                 (spec, error.code, error.name, error.description, t)
         elif issubclass(error.__class__, Exception):
-            response = make_response()
+            response = make_response(str(error), 400)
             t = 'Traceback: ' + trbk(error)
             msg = '%s. %s.\n%s' % (error.__class__.__name__,
                                    str(error), t)
         else:
             response = make_response('', error)
-            msg = ''
+            msg = 'Untreated error type.'
         w = {'result': 'FAILED', 'msg': msg, 'time': ts}
         response.data = json.dumps(w)
         response.content_type = 'application/json'

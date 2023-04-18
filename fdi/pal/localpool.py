@@ -9,7 +9,6 @@ from .managedpool import ManagedPool, MetaData_Json_Start, MetaData_Json_End
 
 
 import tarfile
-import filelock
 from functools import lru_cache
 import sys
 import shutil
@@ -60,20 +59,20 @@ def wipeLocal(path, keep=True):
 class LocalPool(ManagedPool):
     """ the pool will save all products in local computer.
 
-        :makenew: when the pool does not exist, make a new one (````True```; default) or throws `PoolNotFoundError` (```False```).
+    Parameters
+    ----------
+        makenew : bool
+             when the pool does not exist, make a new directory (`True`;
+             default) or throws `PoolNotFoundError` (`False`).
 
     """
 
-    def __init__(self, makenew=True, **kwds):
-        """ creates file structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
+    def __init__(self, **kwds):
+        """ creates data structure structure if there isn't one. if there is, read and populate house-keeping records. create persistent files if not exist.
 
-        Parameters
-        ----------
-        makenew : bool
-            If the pool does not exist create it (default).
+
         """
         # print(__name__ + str(kwds))
-        self._makenew = makenew  # must preceed setup() in super
         super().__init__(**kwds)
 
     def setup(self):
@@ -85,22 +84,23 @@ class LocalPool(ManagedPool):
         if super().setup():
             return True
 
-        real_poolpath = self.transformpath(self._poolname)
+        real_poolpath = self.real_poolpath = self.transformpath(self._poolname)
 
+        if self._makenew:
+            self.make_new()
         if not op.exists(real_poolpath):
-            if self._makenew:
-                os.makedirs(real_poolpath)
-            else:
-                raise PoolNotFoundError('poolname: %r poolurl: %r real_poolpath: %r' % (
+            raise PoolNotFoundError(
+                'poolname: %r poolurl: %r real_poolpath: %r' % (
                     self._poolname, self._poolurl, real_poolpath))
+
         self._files = {}
         self._atimes = {}
         self._cached_files = {}
 
         dTypes, dTags = tuple(self.readHK().values())
 
-        logger.debug('created ' + self.__class__.__name__ + ' ' + self._poolname +
-                     ' at ' + real_poolpath + ' HK read.')
+        logger.debug(
+            f'created {self.__class__.__name__} {self._poolname}at {real_poolpath} HKs read.')
 
         # new ####
         if len(self._dTypes) or len(self._dTags):
@@ -188,17 +188,6 @@ class LocalPool(ManagedPool):
                 else:
                     from ..dataset.odict import ODict
                     r = {}  # ODict()
-            # [] -> {}
-            if hkdata == 'dTags' and isinstance(r, dict):
-                for t, td in r.items():
-                    for ty, sns in td.items():
-                        td[ty] = set(sns)
-            elif hkdata == 'dTypes' and isinstance(r, dict):
-                for ty, tyd in r.items():
-                    rsn = tyd['sn']
-                    for sn, snd in rsn.items():
-                        if 'tags' in snd:
-                            snd['tags'] = set(snd['tags'])
             hk[hkdata] = r
         logger.debug('HK read from ' + fp0)
         if serialize_out:
@@ -218,7 +207,6 @@ class LocalPool(ManagedPool):
         int bytes written. If `meta_location` is ```True```, adding int int start and end point offsets of metadata in seriaized data.
         """
         from ..dataset.serializable import serialize
-
         js = serialize(data, **kwds) if serialize_in else data
         # start = end = None
         if meta_location:
@@ -277,6 +265,18 @@ class LocalPool(ManagedPool):
         logger.debug('=== '+str(self._dTypes))
         return l
 
+    def make_new(self, path=None):
+        """ make a new directory.
+
+        Parameters
+        ----------
+            path: str
+                default `real_poolpath`
+        """
+        if path is None:
+            path = self.real_poolpath
+        os.makedirs(path, mode=0o755, exist_ok=True)
+
     def setMetaByUrn(self, start, end, urn=None, datatype=None, sn=None):
         """
         Sets the location of the meta data of the specified data to the given URN or a pair of data type and serial number.
@@ -319,7 +319,7 @@ class LocalPool(ManagedPool):
 
     def getCacheInfo(self):
         info = super().getCacheInfo()
-        for i in ['getMetaByUrnJson', 'transformpath']:
+        for i in ['getMetaByUrnJson']:
             info[i] = getattr(self, i).cache_info()
 
         return info
@@ -445,7 +445,7 @@ class LocalPool(ManagedPool):
         fp0 = self.transformpath(self._poolname)
         logger.info('Making a gz tar file of %s for pool %s.' %
                     (fp0, self._poolname))
-        with filelock.FileLock(self.lockpath('r')):
+        with self._locks['r']:
             # Save unsaved changes
             self.writeHK(fp0)
             with io.BytesIO() as iob:
@@ -457,7 +457,7 @@ class LocalPool(ManagedPool):
     def restore(self, tar):
         """untar the input file to this pool and return the file list."""
 
-        with filelock.FileLock(self.lockpath('w')):
+        with self._locks['w']:
             fp0 = self.transformpath(self._poolname)
             self.doWipe()
             with io.BytesIO(tar) as iob:

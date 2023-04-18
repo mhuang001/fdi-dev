@@ -3,6 +3,7 @@ from .taggable import Taggable
 from .urn import Urn, parseUrn, makeUrn
 from .productpool import ProductPool
 
+from collections import defaultdict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
@@ -41,11 +42,11 @@ All data are cleared by initialization. Removing all items within a DTM does not
                             'currentSN': $csn
                             'sn':
                                 $sn0:
-                                   tags: {$tag1, $tag2, ...
+                                   tags: [$tag1, $tag2, ...
                                    meta: [$start, $end]
                                    refcnt: $count
                                 $sn1:
-                                   tags: {$tag1, $tag2, ...
+                                   tags: [$tag1, $tag2, ...
                                    meta: [$start, $end]
                                    refcnt: $count
 
@@ -55,18 +56,18 @@ All data are cleared by initialization. Removing all items within a DTM does not
                             'currentSN': 1
                             'sn':
                                 0:
-                                   'tags': {'cat', 'white'}
+                                   'tags': ['cat', 'white']
                                    'meta': [123, 456]
                                    'refcnt': 0
                                 1:
-                                   'tags': {'dog', 'white'}
+                                   'tags': ['dog', 'white']
                                    'meta': [321, 765]
                                    'refcnt': 0
                     'foo.baz.Baz':
                             'currentSN': 34
                             'sn':
                                 34:
-                                   'tags': {'tree', 'green'}
+                                   'tags': ['tree', 'green']
                                    'meta': [100, 654]
                                    'refcnt': 1
 
@@ -82,13 +83,13 @@ The schematic of the `dTags` table is::
 .. code::
 
                      $tag_name0:
-                           $Datatype_Name1:{$sn1, $sn2...}
-                           $Datatype_Name2:{$sn3, ...}
+                           $Datatype_Name1:[$sn1, $sn2...]
+                           $Datatype_Name2:[$sn3, ...]
 
 example::
 
-                     'cat': { 'foo.bar.Bar':{0} }
-                     'white': { 'foo.bar.Bar'; {0, 1} }
+                     'cat': [ 'foo.bar.Bar':[0] ]
+                     'white': [ 'foo.bar.Bar'; [0, 1] ]
                      'dog': ...
 """
 
@@ -108,7 +109,7 @@ def get_missing(self, urn, datatype, sn, no_check=False,
     ------
     tuple
     str, str, int
-        Refer tp `parseUrn`.
+        Refer to `parseUrn`.
 
     Raises
     ------
@@ -168,28 +169,30 @@ def add_tag_datatype_sn(tag, datatype, sn, dTypes=None, dTags=None):
     if not tag:
         return
 
-    if not isinstance(sn, int):
-        raise TypeError('serial number must be an integer.')
-    snt = dTypes[datatype]['sn'][sn].get('tags', set())
-    if isinstance(snt, list):
-        snt = set(snt)
-    # if tag not in snt:
-    snt.add(tag)
-    dTypes[datatype]['sn'][sn]['tags'] = snt  # newly created {tag..}
+    int_sn = 0 if sn is None else int(sn)
+    str_sn = str(int_sn)
+
+    snt = dTypes[datatype]['sn'][int_sn].get('tags', [])
+    # if isinstance(snt, list):
+    #    snt = list(snt)
+    if tag not in snt:
+        snt.append(tag)
+    dTypes[datatype]['sn'][int_sn]['tags'] = snt  # newly created [tag..]
     # dTags saves datatype:sn
     typ = datatype
     if tag not in dTags:
         dTags[tag] = {}
     t = dTags[tag]
     if typ not in t:
-        t[typ] = {str(sn)}
+        # 'list(str)' is a list of chars.
+        t[typ] = [str_sn]
     else:
-        if isinstance(t[typ], list):
-            t[typ] = set(t[typ])
-        t[typ].add(str(sn))
+        # if isinstance(t[typ], list):
+        #    t[typ] = list(t[typ])
+        t[typ].append(str_sn)
 
 
-def populate_pool2(tags, ptype, sn=None, dTypes=None, dTags=None):
+def populate_pool2(tags, ptype, sn=None, cursn=None, dTypes=None, dTags=None):
     """Add a new product to Housekeeping Tables v2.
 
     A new product is representated by its type name and optional
@@ -212,36 +215,39 @@ def populate_pool2(tags, ptype, sn=None, dTypes=None, dTags=None):
 
     # new ###
     if dTypes is None:
-        dTypes = {}
+        dTypes = []
     if dTags is None:
         dTags = {}
+    if 0 and ptype == 'fdi.dataset.product.Product':
+        __import__("pdb").set_trace()
+
+    int_sn = 0 if sn is None else int(sn)
+    str_sn = str(int_sn)
 
     if ptype in dTypes:
-        if sn is None:
-            int_sn = dTypes[ptype]['currentSN'] + 1
+        if cursn is None:
+            if sn is None:
+                dTypes[ptype]['currentSN'] += 1
+                int_sn = dTypes[ptype]['currentSN']
+                str_sn = str(int_sn)
         else:
-            int_sn = int(sn)
+            dTypes[ptype]['currentSN'] = cursn
     else:
-        int_sn = 0 if sn is None else int(sn)
         dTypes[ptype] = {
             'currentSN': int_sn,
             'sn': {}
         }
 
-    snd = dTypes[ptype]['sn']
-    _sn = str(int_sn)
-    if int_sn not in snd:
-        snd[int_sn] = {
-        }
-
-    dTypes[ptype]['currentSN'] = int_sn
+    sndict = dTypes[ptype]['sn']
+    if int_sn not in sndict:
+        sndict[int_sn] = {}
 
     # /new #####
     if tags is not None:
         for t in tags:
             add_tag_datatype_sn(t, ptype, int_sn, dTypes, dTags)
 
-    return dTypes, dTags, _sn
+    return dTypes, dTags, str_sn
 
 
 class DictHk(ProductPool):
@@ -290,7 +296,7 @@ class DictHk(ProductPool):
         """
 
         urn, datatype, sn = self.get_missing(
-            urn=urn, datatype=datatype, sn=sn)
+            urn=urn, datatype=datatype, sn=sn, no_check=True)
         if urn is None:
             return self._dTags.keys()
 
@@ -298,7 +304,7 @@ class DictHk(ProductPool):
         # assert self._urns[urn]['tags'] == self._dTypes[datatype]['sn'][sn]['tags']
         # return self._urns[urn]['tags']
 
-        p = self._dTypes[datatype]['sn'][sn].get('tags', set())
+        p = self._dTypes[datatype]['sn'][sn].get('tags', list())
 
         return p
 
@@ -318,21 +324,28 @@ class DictHk(ProductPool):
         """
         Gets the URNs corresponding to the given tag.
 
-        Returns an empty list if `tag` is not `None` and does not exist.
-        curl -X GET "http://123.56.102.90:31702/csdb/v1/storage/info?urns=urn%3Apoolbs%3A20211018%3A1" -H "accept: */*"
 
+        Parameters
+        ----------
+        tag : str, list
+            One or a list of tags that can e given to a
+            product being saved.
+
+        Returns
+        -------
+        dict, list, None
+            One or a list of
+            URNs (Empty list if the tag is not found and
+            is not `None` or zero-length. None if `tag` 
+            is  `None` or zero-length.
         """
-        if 0:
-            if tag not in self._tags:
-                return []
+
+        if not tag:
+            return None
+
         if tag not in self._dTags:
             return []
-        # new ###
-        if 0:
-            assert list(self._tags) == list(self._dTags)
-            assert list(self._tags[tag]['urns']) == list(':'.join(
-                ['urn', self._poolname, cl, sn]) for cl in self._dTags[tag] for sn in self._dTags[tag][cl])
-            return self._tags[tag]['urns']
+
         # datatype:[sn] -> [urn:poolname:datatype:sn]
         # return ['urn:%s:%s' % (self._poolname, t) for t in self._dTags[tag]]
         t = self._dTags[tag]
@@ -484,7 +497,7 @@ class DictHk(ProductPool):
             # dTags saves datatype:sn
             _, typ, sn = tuple(u.rsplit(':', 2))
             if tag not in self._dTags:
-                self._dTags[tag] = {}
+                self._dTags[tag] = []
             t = self._dTags[tag]
             if typ not in t:
                 t[typ] = [sn]

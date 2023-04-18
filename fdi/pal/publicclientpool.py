@@ -23,6 +23,8 @@ from ..utils.common import (fullname, lls, trbk,
 from ..utils.getconfig import getConfig
 
 import logging
+import json
+from collections import defaultdict
 from itertools import chain
 import sys
 
@@ -98,7 +100,7 @@ class PublicClientPool(ManagedPool):
         self.client = client
         self.getToken()
         self.poolInfo = None
-
+        self.serverDatatypes = []
         self.CSDB_LOG = self.loggen()
         """ Generator object to produce latest n CSDB storage log entres."""
 
@@ -181,7 +183,7 @@ class PublicClientPool(ManagedPool):
                 'existPool', poolname=poolname, token=self.token)
             return True
         except ServerError as e:
-            if e.code == 1:
+            if e.code == 404:
                 return False
             raise
 
@@ -281,35 +283,67 @@ class PublicClientPool(ManagedPool):
         Results
         -------
         dict
-
-            | update_hk | count  |  output     |
-            | `True`    | any | Get the updated PoolInfo and save and returns updated PoolInfo |
-            | `False`   | `True`  | Get and returns Count-format PoolInfo from `storage/info?getCount=1` |
-            | `False`   | `False` | Returns the local PoolInfo in memory. |
+        ============ ======= =====================================
+          update_hk   count    output 
+        ------------ ------- -------------------------------------
+          `True`       any    Get the updated PoolInfo and saves and returns updated PoolInfo  
+          `False`     `True`  Get and returns Count-format PoolInfo from `storage/info?getCount=1`  
+          `False`    `False`   Returns the local PoolInfo in memory
+        ============ ======= =====================================
+.  
         """
+
         if update_hk:
-            res = read_from_cloud(
-                'infoPool', pools=self.poolname, getCount=0, token=self.token)
-            rdata = res
-            if rdata:
-                if self._poolname in rdata:
-                    ucnt = len(rdata[self._poolname].get('_urns', 0))
-                    dpu = rdata[self._poolname]['_urns'] if ucnt else {}
-                    for urn, tags in dpu.items():
-                        pool, ptype, sn = parseUrn(urn)
-                        self._dTypes, self._dTags, sn = \
-                            populate_pool2(tags, ptype, sn, self._dTypes,
-                                           self._dTags)
-                    logger.debug(
-                        f'HK updated for the pool {self.poolname}.')
+            with self._locks['r'], self._locks['w']:
+
+                res = read_from_cloud(
+                    'infoPool', pools=self.poolname, getCount=0, token=self.token)
+                rdata = res
+                if rdata:
+                    if self._poolname in rdata:
+                        dpu = rdata[self._poolname].get('_urns', {})
+                        ucnt = len(dpu)
+                        u0 = f"urn:{self._poolname}"
+                        dpc = rdata[self._poolname].get('_classes', {})
+                        dpt = rdata[self._poolname].get('_tags', {})
+                        if 1:
+                            dTypes = defaultdict(lambda: defaultdict(
+                                lambda: defaultdict(lambda: defaultdict(dict))))
+                            dTags = defaultdict(lambda: defaultdict(list))
+                            for cn, ct in dpc.items():
+                                dTypes[cn]['currentSN'] = ct.get(
+                                    'currentSn', None)
+                                for s in ct['sn']:
+                                    urn = f"{u0}:{cn}:{s}"
+                                    # tags for the urn
+                                    ts = dpu.get(urn, [])
+                                    dTypes[cn]['sn'][s]['tags'] = ts
+                                    for t in ts:
+                                        dTags[t][cn].append(str(s))
+                            # print(json.dumps(
+                            #    {"res": res, "Typs": dTypes, "Tags": dTags}, indent=2))
+                            # __import__("pdb").set_trace()
+                            self._dTypes, self._dTags = dTypes, dTags
+                            pass
+                        else:
+                            for urn, tags in dpu.items():
+                                pool, ptype, sn = parseUrn(urn)
+                                # note the spelling diff in currentSn
+                                self._dTypes, self._dTags, sn = \
+                                    populate_pool2(tags, ptype, sn,
+                                                   dpc[ptype]['currentSn'],
+                                                   self._dTypes,
+                                                   self._dTags)
+                        logger.debug(
+                            f'HK updated for the pool {self.poolname}.')
+                    else:
+                        logger.info(
+                            f'No pool found by the name {self.poolname}')
+                    self.poolInfo = rdata
+                    return rdata
                 else:
-                    logger.info(
-                        f'No pool found by the name {self.poolname}')
-                self.poolInfo = rdata
-                return rdata
-            else:
-                logger.info(f'No pool found.')
-            return None
+                    logger.info(f'No pool found.')
+                return None
         else:
             # update_hk is False
             if count:
@@ -319,13 +353,22 @@ class PublicClientPool(ManagedPool):
             else:
                 return self.poolInfo
 
-    def readHK(self):
-        """ read housekeeping data from server """
+    def readHK(self, hktype=None, serialize_out=False):
+        """ read housekeeping data from server, or empty `dict` if not found.
 
+        hktype: one of the mappings listed in `dicthk.HKDBS`.
+        serialize_out: if True return serialized form. Default is false.
+        """
         self.getPoolInfo(update_hk=True)
 
-        return dict((n, db) for n, db in zip(HKDBS, [
+        hk = dict((n, db) for n, db in zip(HKDBS, [
             self._dTypes, self._dTags]))
+
+        if hktype is None:
+            return json.dumps(hk) if serialize_out else hk
+        else:
+            hk1 = hk.get(hktype, {})
+            return json.dumps(hk1) if serialize_out else hk1
 
     def exists(self, urn, update=True):
         """
@@ -335,7 +378,7 @@ class PublicClientPool(ManagedPool):
         """
 
         if update:
-            self.getPoolInfo(update_hk=False)
+            self.getPoolInfo()
         return urn in self.poolInfo[self._poolname]['_urns']
 
     def getProductClasses(self, count=True):
@@ -347,7 +390,7 @@ class PublicClientPool(ManagedPool):
         Parameters
         -----------
         count : bool
-
+          Use `getPoolInfo` with count=1.
         Returns
         -------
         list:
@@ -364,16 +407,16 @@ class PublicClientPool(ManagedPool):
         classes = list(self.poolInfo[self.poolname]['_classes'])
         return classes
 
-    def getCount(self, typename=None, update=True):
+    def getCount(self, typename=None, remote=True):
         """
         Return the number of URNs for the product type in the pool.
 
         Parameters
         -----------
-        update : bool
-             Read the latest from server if set (default) or use the local `poolInfo`.
         typename : str, None
             Name of datatype. If is `None` get count of all types.
+        remote : bool
+             Read the latest from server if 'True' (default) or use the local `poolInfo`.
 
         Returns
         -------
@@ -382,14 +425,16 @@ class PublicClientPool(ManagedPool):
         None:
             No such pool.
         """
-        cnt = self.getPoolInfo(update_hk=False, count=update)
-        if update:
+
+        cnt = self.getPoolInfo(update_hk=False, count=remote)
+        if remote:
             # return cnt[self._poolname]['cnt'] if typename is None else cnt[self._poolname]['_classes'].get(typename, 0)
             cp = cnt.get(self._poolname, 0)
             if cp == 0:
-                return 0
+                raise (f"Pool not found on server..")
             return cp.get('_urns', 0) if typename is None else cp['_classes'].get(typename, {'cnt': 0})['cnt']
-        return super().getCount(typename)
+        else:
+            return super().getCount(typename)
 
     def isEmpty(self):
         """
@@ -411,19 +456,22 @@ class PublicClientPool(ManagedPool):
         res = read_from_cloud(requestName='getMeta', urn=urn, token=self.token)
         return res
 
-    def getDataType(self, urn=None):
-        """Returns the Datatype of one or a list of URNs.
+    def getDataType(self, substrings=None):
+        """Returns the Datatype of one or a list of substrings.
 
         Parameters
         ----------
-        urn : str, list, None
+        substrings : str, list, None
+               Only chose the type names that have the substring.
+               Defalut is `None` which returns all DataTypes on the serve
 
         Returns
         -------
-        dict, list
-            all types if `urn` is not given. one or a list of
-            datatypes (None if the URN is not found, '' of no
-            Datatype.
+        list
+            A list of all types if `substring` is not given.
+            Or a list of datatypes that have the substring in their names if `substring` is a string.
+            Or a list of lists each is the list described above.
+            Or `[]` if the SUBSTRING is not found.
 
         Examples
         --------
@@ -431,18 +479,23 @@ class PublicClientPool(ManagedPool):
 
         """
 
-        if urn is None:
+        if substrings is None:
             res = read_from_cloud('getDataType', token=self.token)
             return res
+        # [t for t in res if substring in t] if substring else res
 
-        if isinstance(urn, list):
+        if isinstance(substrings, list):
             alist = True
         else:
             alist = False
-            urns = [urn]
-        paths = [u[3:].replace(':', '/') for u in urn]
-        r = self.get_DataInfo('dataType', paths=paths)
-        return r if alist else r[0]
+            substrings = [substrings]
+        res = []
+        for substring in substrings:
+            r = read_from_cloud('getDataType', substring=substring,
+                                token=self.token)
+            res.append(r)
+
+        return r if alist else res[0]
 
     def getDataInfo(self, what='', paths=None, pool=None,
                     nulltype=True, limit=10000, asyn=False,
@@ -575,7 +628,6 @@ class PublicClientPool(ManagedPool):
 
 
         """
-
         jsonPrd = prd
         if serialize_in:
             pn = fullname(prd)
@@ -584,7 +636,7 @@ class PublicClientPool(ManagedPool):
         else:
             # prd is json. extract prod name
             # '... "_STID": "Product"}]'
-            # pn = prd.rsplit('"', 2)[1]
+            pn = prd.rsplit('"', 2)[1]
             cls = Class_Look_Up[pn]
             pn = fullname(cls)
 
@@ -680,8 +732,6 @@ class PublicClientPool(ManagedPool):
             :serialize_out: if True returns contents in serialized form.
         """
         res = []
-        if not PoolManager.isLoaded(self._poolname):  # self.poolExists():
-            raise ValueError(f'Pool {self._poolname} is not registered.')
 
         check_type = self.serverDatatypes
 
@@ -822,41 +872,52 @@ class PublicClientPool(ManagedPool):
         Parameters
         ----------
         keep : boolean
-            If set (default) clean up data and metadata but keep the container object.
+            If set (default) clean up data and metadata but
+            keep the container object.
+
+        Returns
+        -------
+        None:
+            Successful
         """
         poolname = self._poolname
 
-        # res = read_from_cloud(
-        #     'wipePool', poolname=poolname, token=self.token)
-        # if res['msg'] != 'success':
-        #     raise ValueError('Wipe pool ' + poolname +
-        #                      ' failed: ' + res['msg'])
-        # return
-        cnt = self.getProductClasses(count=True)
-        path = None
         res = []
 
-        for clazz in cnt:
-            path = f'/{poolname}/{clazz}'
+        if 0:
+            for clazz in cnt:
+                path = f'/{poolname}/{clazz}'
 
-            r = read_from_cloud(
-                'delDataTypeData', path=path, token=self.token)
-            res.append(r)
-            logger.debug(f'Removed {path}')
-        if not keep:
-            # remove the pool object from the DB
-            r = read_from_cloud(
-                'wipePool', poolname=poolname, token=self.token)
-            if r is None:
-                logger.debug(f'Done removing {path}')
-            else:
-                msg = f'Wipe pool {poolname} failed to remove pool.'
-                if getattr(self, 'ignore_error_when_delete', False):
-                    logger.warning(msg)
+                r = read_from_cloud(
+                    'delDataTypeData', path=path, token=self.token)
+                res.append(r)
+                logger.debug(f'Removed {path}')
+            if not keep:
+                # remove the pool object from the DB
+                r = read_from_cloud(
+                    'wipePool', poolname=poolname, token=self.token)
+                if r is None:
+                    logger.debug(f'Done removing {path}')
                 else:
-                    raise ServerError(msg)
+                    msg = f'Wipe pool {poolname} failed to remove pool.'
+                    if getattr(self, 'ignore_error_when_delete', False):
+                        logger.warning(msg)
+                    else:
+                        raise ServerError(msg)
 
-        return res
+        r = read_from_cloud(
+            'wipePool', poolname=poolname, token=self.token, keep=keep)
+        if r is None:
+            logger.debug(f'Done removing {poolname}')
+        else:
+            msg = f'Wipe pool {poolname} failed to remove pool.'
+            if getattr(self, 'ignore_error_when_delete', False):
+                logger.warning(msg)
+                # r = msg
+            else:
+                raise ServerError(msg)
+
+        return r
 
     # def acquire_lock(self):
     #     lock_proc_id = socket.gethostname()+'_' + getpass.getuser() + \
@@ -947,7 +1008,7 @@ class PublicClientPool(ManagedPool):
             raise
         return res
 
-    def getUrn(self, tag=None):
+    def getUrn(self, tag=None, update=False):
         """
         Gets the URNs corresponding to the given tag.
 
@@ -955,12 +1016,19 @@ class PublicClientPool(ManagedPool):
         Parameters
         ----------
         tag : str, list
+            One or a list of tags that can e given to a
+            product being saved.
+        update : bool
+            Read from the server to get the latest status.
+            Defalut is `False`, which calls `dicthk.DictHk::getUrn()`.
 
         Returns
         -------
-        dict, list
-            all URNs if `tag` is not given. one or a list of
-            URNs (None if the tag is not found.
+        dict, list, None
+            One or a list of
+            URNs (Empty list if the tag is not found and
+            is not `None` or zero-length. None if `tag` 
+            is  `None` or zero-length.
 
         Examples
         --------
@@ -968,18 +1036,23 @@ class PublicClientPool(ManagedPool):
 
         """
 
-        if tag is None:
-            raise ValueError('Cannot take None or "" as a tag.')
+        if not tag:
+            return None
 
-        try:
-            res = read_from_cloud(
-                'getUrn', token=self.token, tag=tag)
-        except ServerError as e:
-            if e.code == 1 and e.args[0].endswith('fail'):
-                # urn doesn't exist
-                res = []
-            else:
-                raise
+        if update:
+            try:
+                res = read_from_cloud(
+                    'getUrn', token=self.token, tag=tag)
+            except ServerError as e:
+                __import__("pdb").set_trace()
+
+                if e.code == 1 and e.args[0].endswith('fail'):
+                    # urn doesn't exist
+                    res = []
+                else:
+                    raise
+        else:
+            res = super().getUrn(tag)
         return res
 
     def meta_filter(self, q, typename=None, reflist=None, urnlist=None, snlist=None):

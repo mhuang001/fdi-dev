@@ -20,7 +20,7 @@ from os import listdir
 from pathlib import Path
 from subprocess import Popen, PIPE, TimeoutExpired, run as srun
 from flask import abort, make_response, request, jsonify
-import filelock
+from filelock import FileLock
 import sys
 import logging
 
@@ -468,7 +468,7 @@ def calcresult(cmd, ops=''):
         # the following need to be locked
         pnsh = pc['paths']['pnshome']
         # check if it is locked with timeout==0
-        lock = filelock.FileLock(pnsh + '/.lock', timeout=0)
+        lock = Lock(pnsh + '/.lock', timeout=0)
         try:
             lock.acquire()
         except filelock.Timeout as e:
@@ -532,7 +532,7 @@ def setup(cmd, ops=''):
     # the following need to be locked
     pnsh = pc['paths']['pnshome']
     # check if it is locked with timeout==0
-    lock = filelock.FileLock(pnsh + '/.lock', timeout=0)
+    lock = Lock(pnsh + '/.lock', timeout=0)
     try:
         lock.acquire()
     except filelock.Timeout as e:

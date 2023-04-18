@@ -17,8 +17,9 @@ TIMEOUT = pc['requests_timeout']
 # default RETRY_AFTER_STATUS_CODES = frozenset({413, 429, 503})
 FORCED = (503, 504, 408, 413, 429)
 # default DEFAULT_ALLOWED_METHODS = frozenset({'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PUT', 'TRACE'})
-METHODS = ("POST", "PUT", "HEAD", "GET", "OPTIONS")
-MAX_RETRY = 2
+# METHODS = ("POST", "PUT", "HEAD", "GET", "OPTIONS")
+METHODS = ("PUT", "GET")
+MAX_RETRY = 0
 
 
 def requests_retry_session(
@@ -59,7 +60,8 @@ def init_session(app):
         return None
 
     app.secret_key = secrets.token_hex()
-    app.config["SESSION_PERMANENT"] = False
+    app.config["SESSION_PERMANENT"] = True
+    app.config["SESSION_REFRESH_EACH_REQUEST"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = 'LAX'
     app.permanent_session_lifetime = timedelta(days=1)
     app.config["SESSION_TYPE"] = "filesystem"

@@ -506,7 +506,7 @@ When implementing a ProductPool, the following rules need to be applied:
         #         return r
         #     else:
         #         raise
-        logger.debug('Removing pool gets {r}')
+        logger.debug(r'Removing pool gets {r}')
         return r
 
     removeAll = wipe

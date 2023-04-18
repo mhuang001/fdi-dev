@@ -5,6 +5,7 @@ from ..dataset.deserialize import deserialize
 from ..utils.getconfig import getConfig
 from ..utils.common import trbk, lls
 from ..pal import webapi
+from ..pal.poolmanager import dbg_7types
 from .fdi_requests import reqst, cached_json_dumps
 from ..httppool.session import requests_retry_session
 
@@ -209,9 +210,9 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
     elif requestName == 'getDataType':
         with lock_r:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-
+            subs = kwds.pop('substring', '')
             requestAPI = default_base + \
-                '/datatype/list'
+                '/datatype/list' + (f'?substring={subs}' if subs else '')
             res = reqst(client.get, requestAPI, headers=header,
                         server_type=server_type, **kwds)
 
@@ -315,11 +316,26 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
                         server_type=server_type, **kwds)
     elif requestName == 'wipePool':
         with lock_w:
-            header['X-AUTH-TOKEN'] = kwds.pop('token', '')
+            tk = kwds.pop('token', '')
+            header['X-AUTH-TOKEN'] = tk
+            keep_pool = 'resetSN=1&' if kwds.pop('keep', True) else ''
             requestAPI = default_base + \
-                '/pool/delete?storagePoolName=' + kwds.pop('poolname')
-            res = None if 0 else reqst(client.post, requestAPI, headers=header,
-                                       server_type=server_type, **kwds)
+                f'/pool/delete?{keep_pool}storagePoolName=' + \
+                kwds.pop('poolname')
+            #######
+            if dbg_7types:
+                tl = read_from_cloud(
+                    'getDataType', substring='testproducts', token=tk)
+                print('<'*21, len(tl), tl)
+
+            res = reqst(client.post, requestAPI, headers=header,
+                        server_type=server_type, **kwds)
+            #######
+            if dbg_7types:
+                tl = read_from_cloud(
+                    'getDataType', substring='testproducts', token=tk)
+                print('>'*21, len(tl), tl)
+                print(requestAPI, res)
     elif requestName == 'restorePool':
         with lock_w:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')

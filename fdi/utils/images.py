@@ -225,6 +225,7 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
             #        pb.write(bf)
             return generate_png(img, width, height, greyscale=grey,
                                 bitdepth=bitdepth, compression=compression)
+
     if cmap is None:
         cmap = longrainbowl(cspace)
 
@@ -300,7 +301,10 @@ def toPng(adset, grey=False, compression=0, cspace=8, cmap=None,
     else:
         png_im = generate_png(img, width, height, greyscale=False,
                               bitdepth=8, compression=compression)
-
+    if png_file_name:
+        bf = b''.join(x.tobytes() for x in data)
+        with open(png_file_name+'.bin', 'wb') as b:
+            b.write(bf)
     if 0:
         print('p', time.time()-t1, 'sec')
 

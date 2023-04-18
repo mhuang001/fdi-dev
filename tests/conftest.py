@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 from werkzeug.datastructures import Authorization
 from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.dataset.classes import Class_Look_Up
@@ -7,11 +8,16 @@ from fdi.dataset.deserialize import deserialize
 from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
 from fdi.pns.jsonio import getJsonObj
+from fdi.pns.fdi_requests import reqst
+from fdi.pns.public_fdi_requests import read_from_cloud
 from fdi.utils.common import lls
 from fdi.pns.jsonio import auth_headers
 from fdi.httppool.model.user import User, getUsers
 from fdi.httppool.session import requests_retry_session
 from fdi.pal.publicclientpool import PublicClientPool
+
+from fdi.pal.poolmanager import dbg_7types
+
 
 from flask.testing import FlaskClient
 from flask import request
@@ -62,11 +68,15 @@ def clean_board():
     return Classes.mapping
 
 
+pns = None
+
+
 @ pytest.fixture(scope="session")
 def pc():
     """ get configuration.
 
     """
+    global pns
     from fdi.utils.getconfig import getConfig as getc
     pns = getc(force=True)
     # logger.debug(json.dumps(pns))
@@ -127,10 +137,10 @@ def local_pools_dir(pc):
     schm = 'server'
 
     # basepath = pc['server_local_pools_dir']
-    basepath = PoolManager.PlacePaths[schm]
+    # basepath = PoolManager.PlacePaths[schm]
     # print('WWW ', basepath, pc['api_version'])
-    pools_dir = os.path.join(basepath, pc['api_version'])
-    return pools_dir
+    # pools_dir = os.path.join(basepath, pc['api_version'])
+    return PoolManager.PlacePaths[schm]
 
 ####
 
@@ -370,17 +380,20 @@ def demo_product():
     return v, get_related_product()
 
 
-csdb_pool_id = 'test_csdb_fdi2'
+csdb_pool_id = 'sv2'  # 'test_csdb_fdi2'
+url_c = None
 
 
 @ pytest.fixture(scope="session")
 def urlcsdb(pc):
+    global url_c
 
-    return '%s://%s:%d%s/%s' % (pc['scheme'],
-                                pc['cloud_host'],
-                                pc['cloud_port'],
-                                pc['cloud_api_base'],
-                                pc['cloud_api_version'])
+    url_c = '%s://%s:%d%s/%s' % (pc['scheme'],
+                                 pc['cloud_host'],
+                                 pc['cloud_port'],
+                                 pc['cloud_api_base'],
+                                 pc['cloud_api_version'])
+    return url_c
 
 
 def make_csdb(poolurl):
@@ -389,17 +402,6 @@ def make_csdb(poolurl):
     ps = ProductStorage()
     if PoolManager.size():
         logger.debug("$$$ PM not empty")
-    if 0:
-        for poolname, pool in PoolManager.items():
-            #######
-            logger.info(f'$$ {poolname} {pool.__class__.__name__}')
-            cr = pool.client.get(
-                f'http://123.56.102.90:31702/csdb/v1/pool/info?storagePoolName={poolname}', headers={'User-Agent': 'python-requests/2.26.0', 'Accept-Encoding': 'gzip, deflate', 'Accept': '*/*', 'Connection': 'keep-alive', 'X-AUTH-TOKEN': 'eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJtaCIsInVzZXJJZCI6IjM2MzEiLCJuYW1lIjoiTWFvaGFpSHVhbmciLCJleHAiOjE2Nzc3MzE2MTJ9.UChjZJsnzfHXJeeVUVNxShL7zssejkR17LcOZXwOK6auHNIOXTbhc_pKUEpvJ_h2m5H3UOVAwVKTcQWI9kw-9ul-5YduG5yv9HaqzA0s7fxISbIjFL3vR6hHP4wU7xWtwAy8RwGNL6XqcplxexZ1FWDNawijqVVWfKId_JeWkGA'}).text
-            if not cr[8] == '0':
-                __import__("pdb").set_trace()
-            else:
-                logger.info(f'****** Pool {poolurl} exists.')
-
     ps.unregisterAll()
     assert ps.isEmpty()
     assert PoolManager.size() == 0
@@ -407,41 +409,109 @@ def make_csdb(poolurl):
     return ps
 
 
-@ pytest.fixture(scope="function")
-def clean_csdb(urlcsdb, pc):
+def do_clean_csdb():
+    urlcsdb = url_c
+    pc = pns
     url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
 
-    ps = make_csdb(url)
-    ps.register(poolurl=url, client=the_session)
+    # register to clean up
+    ps = ProductStorage()
+    ps.PM.removeAll()
+
+    ps.register(poolurl=url, client=the_session, auth=auth)
     # ps.register(poolname=test_pool.poolname, poolurl=poolurl)
     test_pool = ps.getWritablePool(True)  # PublicClientPool(poolurl=url)
     pname = test_pool._poolname
-    test_pool.wipe()
+    assert test_pool.serverDatatypes
+
+    ######
+    if dbg_7types:
+        tl = test_pool.getDataType(substrings='testproducts')
+        print('+'*21, len(tl), tl)
+
+    if 0:
+        test_pool.wipe()
+    else:
+        header = {'Content-Type': 'application/json;charset=UTF-8'}
+        header['X-AUTH-TOKEN'] = test_pool.token
+        requestAPI = 'http' + urlcsdb[len('csdb'):] + \
+            f'/pool/delete?resetSN=1&storagePoolName='+csdb_pool_id
+        #######
+        if dbg_7types:
+            tl = test_pool.getDataType(substrings='testproducts')
+            print('<'*21, len(tl), tl)
+
+        res = reqst(test_pool.client.post, requestAPI, headers=header,
+                    server_type='csdb')
+        assert res is None
+        #######
+        if dbg_7types:
+            tl = test_pool.getDataType(substrings='testproducts')
+            print('>'*21, len(tl), tl)
 
     assert pname in PoolManager.getMap()
     assert pname in ps._pools
 
     assert test_pool.isEmpty()
+
+    ####
+    if dbg_7types:
+        tl = test_pool.getDataType(substrings='testproducts')
+        print('.'*21, len(tl), tl)
+
+    # unregister. this will set test_pool.serverDatatypes to None
+    ps.unregister(pname)
+    assert not ps.PM.isLoaded(pname)
+    assert ps.isEmpty()
+    assert test_pool.serverDatatypes == []
+
+    # re-register the wiped pool
+    ps.register(poolurl=url, client=the_session, auth=auth)
+    assert ps.PM.isLoaded(pname)
+    test_pool = ps.getWritablePool(True)
+
+    assert test_pool.serverDatatypes
+    if 0 and hasattr(test_pool, 'serverDatatypes'):
+        logger.info(
+            f"@{pname}.serverDatatypes={sorted(test_pool.serverDatatypes)}")
+
     return test_pool, url, ps
 
 
 @ pytest.fixture(scope=SHORT)
-def csdb(clean_csdb):
+def clean_csdb_fs(clean_csdb):
+    return do_clean_csdb()
 
-    return clean_csdb
+
+@ pytest.fixture(scope="session")
+def clean_csdb(urlcsdb, pc):
+    return do_clean_csdb()
 
 
 @ pytest.fixture(scope=SHORT)
-def csdb_new(urlcsdb, pc):
+def new_csdb(urlcsdb, pc):
     logger.debug('wipe cdb_new. {purl}')
     url = pc['cloud_scheme'] + \
         urlcsdb[len('csdb'):] + '/' + csdb_pool_id + str(int(time.time()))
     # url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
     ps = make_csdb(url)
-    ps.register(poolurl=url, client=the_session)
+    ps.register(poolurl=url, client=the_session, auth=auth)
     pool = ps.getWritablePool(True)  # PublicClientPool(poolurl=url)
     poolname = pool._poolname
+    assert ps.PM.isLoaded(poolname)
+    if hasattr(pool, 'serverDatatypes'):
+        logger.debug(f"{poolname}.serverDatatypes={pool.serverDatatypes}")
+    if dbg_7types:
+        tl = pool.getDataType(substrings='testproducts')
+        print('.'*21, len(tl), tl)
+
     yield pool, url, ps
+
+
+@ pytest.fixture(scope='session')
+def csdb(clean_csdb):
+
+    return clean_csdb
 
 
 @ pytest.fixture(scope=SHORT)
@@ -464,6 +534,7 @@ def tmp_remote_storage_no_wipe(server, client, auth):
     """ temporary servered pool with module scope """
     aburl, headers = server
     poolid = 'test_remote_pool'
+
     pool = PoolManager.getPool(
         poolid, aburl + '/' + poolid, auth=auth, client=client)
     ps = ProductStorage(pool, client=client, auth=auth)
@@ -483,20 +554,20 @@ def tmp_remote_storage(tmp_remote_storage_no_wipe):
 @ pytest.fixture(scope="session")
 def tmp_prod_types():
     """ classe of temporary prods with sesion scope """
-    ty = []
-    se = []
+    ptypes = []
+    pobjs = []
     for n in ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC'):
         cls = Class_Look_Up[n]
-        se.append(cls())
-        ty.append(cls)
-    return ty, se
+        pobjs.append(cls())
+        ptypes.append(cls)
+    return ptypes, pobjs
 
 
 PRD0_ser = get_demo_product('test-product-0: Demo_Product')
 array_ser = Class_Look_Up['ArrayDataset']()
 
 
-@ pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope='session')
 def tmp_prods(tmp_prod_types):
     """ instances of temporary prods with function scope """
     types, seri = tmp_prod_types

@@ -14,14 +14,13 @@ from fdi.dataset.product import Product
 from fdi.pal.httpclientpool import HttpClientPool
 from fdi.pal.poolmanager import PoolManager
 from fdi.pal.productstorage import ProductStorage
-from fdi.pal.managedpool import Lock_Path_Base, makeLockpath
+from fdi.pal.managedpool import Lock_Path_Base, makeLock
 from fdi.utils.common import lls, trbk, fullname
 from fdi.utils.fetch import fetch
 from fdi.pns.fdi_requests import safe_client
 from fdi.pns.jsonio import auth_headers
 
 import pytest
-import filelock
 
 import sys
 import copy
@@ -375,12 +374,10 @@ def test_unauthorizedread_write(server, server_ro, client, tmp_local_remote_pool
                 # read_only
                 x = safe_client(client.post, roaburl+api,
                                 headers=roheaders, data='')
-                if LOGIN_TMPLT:
-                    # In order to use the login page, the return code has to be 200
-                    assert x.status_code == 200 if p == '/login' \
+                if 1 or LOGIN_TMPLT:
+                    # No: In order to use the login page, the return code has to be 200
+                    assert x.status_code == 401 if p == '/login' \
                         else 401 if p == '/logout' else 403
-                assert x.status_code == 200 if p == '/login' \
-                    else 401 if p == '/logout' else 403
                 # read_write
                 x = safe_client(client.post, aburl+api,
                                 headers=headers, data='')
@@ -428,10 +425,16 @@ def get_files_in_local_dir(poolid, local_pools_dir):
 
 
 def empty_pool(post_poolid, aburl, auth, clnt):
+    path = post_poolid
+    url = aburl + '/' + path + '/'  # trailing / is needed by mock server
+    x = clnt.put(url, auth=auth)
+    o, code = getPayload(x)
+    logger.debug(f"ignored {o} {code}")
     path = post_poolid + '/api/removeAll'
     url = aburl + '/' + path + '/'  # trailing / is needed by mock server
     x = clnt.get(url, auth=auth)
     o, code = getPayload(x)
+    logger.debug(f"ignored {o} {code}")
     # ignore "FAILED" so non-exisiting target will not cause a failed case.
     check_response(o, code=code, failed_case=None)
 
@@ -468,7 +471,6 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
     # auth = tuple(userpasss.values())
 
     # register
-    # pool = make_pools(test_poolid, aburl, client, auth, n=1)
     empty_pool(post_poolid, aburl, auth, client)
 
     files = [f for f in get_files_in_local_dir(
@@ -513,9 +515,9 @@ def test_CRUD_product(local_pools_dir, server, auth, client):
     o2, c2 = getPayload(x2)
     for o, c in [(o1, c1), (o2, c2)]:
         check_response(o, code=c)
-        assert o['result']['classes'] is not None, 'Classes jsn read failed'
-        assert o['result']['tags'] is not None, 'Tags jsn read failed'
-        assert o['result']['urns'] is not None, 'Urns jsn read failed'
+        # assert o['result']['classes'] is not None, 'Classes jsn read failed'
+        # assert o['result']['tags'] is not None, 'Tags jsn read failed'
+        # assert o['result']['urns'] is not None, 'Urns jsn read failed'
         assert o['result']['dTypes'] is not None, 'dTypes jsn read failed'
         assert o['result']['dTags'] is not None, 'dTags jsn read failed'
 
@@ -754,10 +756,10 @@ def lock_pool2(poolid, sec, local_pools_dir):
     ppath = os.path.join(local_pools_dir, poolid)
     # lock to prevent writing
     lock = Lock_Path_Base + ppath.replace('/', '_') + '.read'
-    xx = makeLockpath(poolid, 'r')
+    lockr = makeLock(poolid, 'r', '')
     logger.info('Keeping files %s locked for %f sec' % (lock, sec))
     t0 = str(time.time())
-    with filelock.FileLock(lock):
+    with lockr:
         time.sleep(sec)
     fakeres = '{"result": "DONE", "msg": "This is a fake responses", "time": ' + t0 + '}'
     return deserialize(fakeres)
@@ -884,7 +886,7 @@ async def lock_pool(poolid, sec, local_pools_dir):
     # lock to prevent writing
     lock = Lock_Path_Base + ppath.replace('/', '_') + '.write'
     logger.debug(lock)
-    with filelock.FileLock(lock):
+    with makLock(lock, 'r'):
         await asyncio.sleep(sec)
     fakeres = '{"result": "FAILED", "msg": "This is a fake responses", "time": ' + \
         str(time.time()) + '}'

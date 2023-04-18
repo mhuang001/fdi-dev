@@ -2,6 +2,7 @@
 .*~
 #*
 .#*
+*.log
 *~
 .*~
 *.class
@@ -15,9 +16,13 @@ Flask-HTTPAuth
 *.old.*
 .cache
 *egg-*
+docs/build
+docs/Makefile
+docs/make.bat
+docs/html
 .eggs
 .ipynb_checkpoints
 *.ipynb
 dist
 build
-docs/html
+

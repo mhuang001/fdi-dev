@@ -14,6 +14,7 @@ from ..utils.common import (lls,
                             logging_INFO,
                             logging_DEBUG
                             )
+from ..httppool.model.user import SES_DBG
 
 from urllib3.exceptions import NewConnectionError, ProtocolError
 from requests.exceptions import ConnectionError
@@ -62,7 +63,7 @@ defaulturl = getConfig('poolurl:')
 pccnode = pcc
 
 
-class ServerError(BaseException):
+class ServerError(Exception):
     def __init__(self, r, *args, rsps=None, code=None, **kwds):
         self.response = rsps
         if code is None:
@@ -97,20 +98,21 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
     'GET' compo for retrieving product or hk or classes, urns, tags,
     'POST' compo for uploading  product
     'PUT' for registering pool
-    'DELETE' compo for removing product or removing pool
+    'DELETE' compo for removing product or unregistering pool
 
     Example:
     IP=ip poolpath=/a poolname=b files=/a/b/classes.jsn | urns.jsn | t.. | urn...
 
-    with python:
-    m.refs['myinput'] = special_ref
-    ref=pstore.save(m)
-    assert ref.urn == 'urn:b:fdi.dataset.MapContext:203'
-    p=ref.product
-    myref=p.refs['myinput']
+    .. code-block::
 
-    with a pool:
-    myref=pool.load('http://ip:port/v0.6/b/fdi.dataset.MapContext/203/refs/myinput')
+        m.refs['myinput'] = special_ref
+        ref=pstore.save(m)
+        assert ref.urn == 'urn:b:fdi.dataset.MapContext:203'
+        p=ref.product
+        myref=p.refs['myinput']
+
+        # with a pool:
+        myref=pool.load('http://ip:port/v0.6/b/fdi.dataset.MapContext/203/refs/myinput')
 
     """
 
@@ -201,7 +203,7 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
        Of urllib3 Session or requests Response.
 """
 
-    if no_retry_controls:
+    if no_retry_controls or MAX_RETRY == 0:
         return method(api, *args, **kwds)
 
     for n in range(MAX_RETRY):
@@ -246,7 +248,8 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     if client is None:
         client = session
     # from fdi.utils.common import lls
-    # print('POST API: ' + api + ' | ' + lls(data, 900))
+    if SES_DBG:
+        print('POST API: ' + api + ' | ' + lls(data, 90))
     if headers is None:
         headers = auth_headers(auth.username, auth.password)
     sd = data if no_serial else serialize(data)
@@ -306,7 +309,9 @@ def read_from_server(urn, poolurl, contents='product', result_only=False, auth=N
     if client is None:
         client = session
     api = urn2fdiurl(urn, poolurl, contents=contents)
-    # print("GET REQUEST API: " + api)
+    if SES_DBG:
+        print("GET REQUEST API: " + api)
+
     res = safe_client(client.get, api, auth=auth, timeout=TIMEOUT)
 
     if result_only:
@@ -325,7 +330,7 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
     urn: to extract poolname, product type, and index if any of these are needed
     poolurl: the only parameter must be provided
     result_only: only return the reponse result. Default False.
-    client: alternative client to answer API calls. For tests etc. Default None for `requests`.
+    client: alternative client to answer API calls. For tests etc. Default None for `session`.
     """
 
     if auth is None:
@@ -333,24 +338,32 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
     if client is None:
         client = session
     api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
-    # print("PUT REQUEST API: " + api)
-    if 0 and not issubclass(client.__class__, FlaskClient):
-        print('######', client.cookies.get('session', None))
+
+    # client.auth = auth
+    if SES_DBG:
+        print("PUT REQUEST API: " + api)
+        if not issubclass(client.__class__, FlaskClient):
+            print('client session cookies', list(client.cookies))
+
+    # auth has priority over headers here
+    # auth = getAuth(pccnode['username'], pccnode['password'])
+    # headers = auth_headers(auth.username, auth.password)
+    # client.headers.update(headers)
     res = reqst(client.put, api, auth=auth, timeout=TIMEOUT)
     if result_only:
         return res
     result = deserialize(res.text if type(res) == requests.models.Response
                          else res.data)
-    if 0:
+    if 0 and SES_DBG:
         if not issubclass(client.__class__, FlaskClient):
-            print('@@@@@@', client.cookies['session'])
+            print('@@@ session cookie', list(client.cookies))
         else:
-            print('@@@@@@', res.request.cookies.get('session', None))
+            print('@@@ session cookie', list(res.request.cookies))
 
-    if issubclass(result.__class__, dict):
+    try:
         return result['result'], result['msg']
-    else:
-        return 'FAILED', result
+    except (KeyError, TypeError):
+        return 'FAILED', result['msg']
 
 
 def delete_from_server(urn, poolurl, contents='product', result_only=False, auth=None, client=None, asyn=False):
@@ -382,7 +395,8 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
         rs = []
         for u in urns:
             a = urn2fdiurl(u, poolurl, contents=contents, method='DELETE')
-            # print("DELETE REQUEST API: " + a)
+            if SES_DBG:
+                print("DELETE REQUEST API: " + a)
             r = reqst(client.delete, a, auth=auth, timeout=TIMEOUT)
 
             if result_only:
@@ -445,8 +459,8 @@ def content2result_httppool(content):
         else:
             code, text, url = resp.status_code, resp.text, resp.url
         obj = deserialize(text)
-        ores = obj['result']
-        if code != 200 or issubclass(ores.__class__, str) and ores[:6] == 'FAILED':
+        ores = obj.get('result', '')
+        if code != 200 or issubclass(obj.__class__, str) or issubclass(ores.__class__, str) and ores[:6] == 'FAILED':
             if not issubclass(obj.__class__, dict):
                 # cannot deserialize
                 raise ServerError(
@@ -517,25 +531,39 @@ def content2result_csdb(content):
             # requests
             code, text, url = resp.status_code, resp.text, resp.url
         obj = deserialize(text)
+
         if code != 200 or issubclass(obj.__class__, str):
             # cannot deserialize and/or bad code
             try:
                 eo = resp.json()
-                code = eo['status']
-                msg = eo['message']
-            except:
+                if code == 500:
+                    ocode = eo['status']
+                    msg = eo['message']
+                else:
+                    ocode = eo['code']
+                    msg = eo['msg']
+            except (TypeError, KeyError) as e:
                 msg = lls(text, 200)
+                ocode = None
+            if 'not exist' in msg:
+                code = 404
+            if code == 422:
+                pass
+
             raise ServerError(
-                f'REQ {resp.request.method} error: {code} Message: ' + msg, rsps=resp, code=code)
+                f'REQ {resp.request.method} error: {ocode} Messag: {msg}', rsps=resp, code=code)
 
         # if deserializable
         if issubclass(obj.__class__, dict) and 'data' in obj:
-            msg = obj['msg']
             ores = obj['data']
-            code = obj['code']
-            if code:
+            msg = obj.get('msg', '')
+            ocode = obj.get('code', None)
+
+            if 'not exist' in msg:
+                code = 404
+            if code != 200:
                 raise ServerError(
-                    f'Code {code} Message: {msg}', resp, code=code)
+                    f'Server Code {ocode} Message: {msg}', resp, code=code)
         else:
             # e.g. /get?urn=...
             ores = obj

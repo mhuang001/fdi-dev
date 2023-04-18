@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
-# from ..route.pools import pools_api
 from ...utils.common import (logging_ERROR,
                              logging_WARNING,
                              logging_INFO,
                              logging_DEBUG
                              )
-
 from flask import (abort,
                    Blueprint,
+                   current_app,
                    flash,
                    g,
                    make_response,
@@ -21,6 +20,7 @@ from flask_httpauth import HTTPBasicAuth
 
 import datetime
 import time
+import copy
 import functools
 import logging
 
@@ -32,7 +32,7 @@ SESSION = True
 """ Enable session. """
 
 
-LOGIN_TMPLT = ''  # 'user/login.html'
+LOGIN_TMPLT = 'user/login.html'
 """ Set LOGIN_TMPLT to '' to disable the login page."""
 
 
@@ -121,26 +121,108 @@ def getUsers(pc):
     return users
 
 
-SES_DBG = 0
+SES_DBG = 1
 """ debug msg for session """
 
 if SESSION:
+
+    def set_user_session(username, pools=None, session=None, new=False, logger=logger):
+        from ..route.pools import register_pool
+        from ...pal.poolmanager import PM_S
+
+        if session is None:
+            logger.debug('No session. Return.')
+            return
+
+        if not pools:
+            pools = session.get('registered_pools', {})
+
+        GPL = PM_S.getMap()
+        m = 0
+        if logger.isEnabledFor(logging_DEBUG):
+            s = hex(id(session)) + str(session) + str(pools)
+            m = f'PM_GLB_id={ hex(id(PM_S._GlobalPoolList))[-5:]} {s}'
+
+        session['user_id'] = username
+        for pn, pu in pools.items():
+            if not pn in GPL:
+                code, po, msg = register_pool(
+                    pn, current_app.config['USERS'][username], poolurl=pu)
+                assert po is GPL[pn]
+            assert pn in GPL
+            assert GPL[pn]._poolurl == pu
+
+        if not username:
+            g.user = None
+        else:
+            g.user = current_app.config['USERS'][username]
+
+        session.new = new
+        current_app.config['ACCESS']['usrcnt'][username] += 1
+        session.modified = True
+
+        logger.debug(
+            f'LDUSR tcf2 {PM_S.isLoaded("test_csdb_fdi2")} GPL {GPL.data} m={m}')
+
     @user.before_app_request
     def load_logged_in_user():
         logger = current_app.logger
-        user_id = session.get('user_id')
+
+        if not SESSION:
+            if logger.isEnabledFor(logging_DEBUG):
+                logger.warning('Called with no SESSION')
+            return
+
+        user_id = session.get('user_id', '')
+        if user_id:
+            if 'registered_pools' not in session:
+                session['registered_pools'] = {}
+            pools = session.get('registered_pools', {})
+            # pools = current_app.config.get('POOLS', {}).get('user_id', {})
+        else:
+            pools = {}
+
         if SES_DBG and logger.isEnabledFor(logging_DEBUG):
+            from ...pal.poolmanager import PM_S
             headers = dict(request.headers)
             cook = dict(request.cookies)
+            if logger.isEnabledFor(logging_DEBUG):
+                gl = 'PM_GLB_id=%s' % hex(id(PM_S._GlobalPoolList))[-4:]
+                # sid = hex(id(current_app.config['POOLS']))[-4:],
+                logger.debug('Ses"%s">%d %s, %s, %s' %
+                             (str(user_id),
+                              current_app.config['ACCESS']['usrcnt'][user_id],
+                              str(headers.get('Authorization', '')),
+                              str(cook.get('session', '')[-6:]),
+                              str(pools)[:]) + gl)
 
-            logger.debug('S:%x "%s", %s, %s' %
-                         (id(session), str(user_id),
-                          str(headers.get('Authorization', '')),
-                          str(cook.get('session', '')[:6])))
-        if user_id is None:
-            g.user = None
-        else:
-            g.user = current_app.config['USERS'][user_id]
+    @user.after_app_request
+    def save_registered_pools(resp):
+        logger = current_app.logger
+
+        if not SESSION:
+            if logger.isEnabledFor(logging_DEBUG):
+                logger.debug('Called with no SESSION')
+            return resp
+
+        user_id = session.get('user_id', None)
+
+        if not user_id:
+            return resp
+
+        from ...pal.poolmanager import PM_S
+        GPL = PM_S.getMap()
+        # session['registered_pools']
+        if SES_DBG and logger.isEnabledFor(logging_DEBUG):
+            hdr = ''  # dict(resp.headers)
+            gl = 'PM_GLB_id=%s' % hex(id(GPL))[-4:]
+            logger.debug(' Ses"%s"<%d %s, %s, %s' %
+                         (str(user_id),
+                          current_app.config['ACCESS']['usrcnt'][user_id],
+                          str(hdr),
+                          str(session.get('registered_pools', {})), gl))
+            # print(f"$$$ {session}")
+        return resp
 
 
 @auth.get_user_roles
@@ -152,7 +234,7 @@ def get_user_roles(user):
 
 
 ######################################
-####  /login GET, POST  ####
+####  /login GET, POST            ####
 ######################################
 
 
@@ -166,17 +248,22 @@ def login():
     """
     global logger
     logger = current_app.logger
+    serialize_out = True
     ts = time.time()
+    FAILED = '"FAILED"' if serialize_out else 'FAILED'
     acu = auth.current_user()
 
     try:
         reqanm = request.authorization['username']
-        reqanm = request.authorization['passwd']
+        reqaps = request.authorization['password']
     except (AttributeError, TypeError):
         reqanm = reqaps = ''
     if logger.isEnabledFor(logging_DEBUG):
-        msg = 'LOGIN meth=%s req_auth_nm= "%s"' % (request.method, reqanm)
+        msg = 'LOGIN meth=%s req_auth_nm= "%s"' % (
+            request.method, '*' * len(reqanm))
         logger.debug(msg)
+
+    from ..route.httppool_server import resp
 
     if request.method == 'POST':
         rnm = request.form.get('username', None)
@@ -184,50 +271,48 @@ def login():
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug(f'Request form {rnm}')
 
-        if not (rpas and rnm):
-            msg = 'Bad username or password posted %s' % str(rnm)
-            if logger.isEnabledFor(logging_WARNING):
-                logger.warning(msg)
-            if reqanm and reqaps:
-                if logger.isEnabledFor(logging_WARNING):
-                    msg = f'Username {reqanm} and pswd in auth header used.'
-                    logger.warning(msg)
-                rnm, rpas = reqanm, reqaps
+        # if not (rpas and rnm):
+        #     msg = 'Bad username or password posted %s' % str(rnm)
+        #     if logger.isEnabledFor(logging_WARNING):
+        #         logger.warning(msg)
+        #     if reqanm and reqaps:
+        #         if logger.isEnabledFor(logging_WARNING):
+        #             msg = f'Username {reqanm} and pswd in auth header used.'
+        #             logger.warning(msg)
+        #         rnm, rpas = reqanm, reqaps
+        # vp = verify_password(rnm, rpas, check_session=False)
 
-        vp = verify_password(rnm, rpas, check_session=False)
+        vp = verify_password(rnm, rpas, check_session=True)
         if vp in (False, None):
             if logger.isEnabledFor(logging_DEBUG):
                 msg = f'Verifying {rnm} with password failed.'
                 logger.debug(msg)
+            return resp(401, FAILED, msg, ts, req_auth=True)
         else:
-            if SESSION:
-                session.clear()
-                session['user_id'] = rnm
-                session.new = True
-                session.modified = True
-            msg = 'User %s logged-in %s.' % (rnm, vp.roles)
+            msg = 'User %s logged-in %s.' % (vp, vp.roles)
             if logger.isEnabledFor(logging_DEBUG):
                 logger.debug(msg)
             # return redirect(url_for('pools.get_pools_url'))
             if SESSION:
-                flash(msg)
-            from ..route.httppool_server import resp
+                if LOGIN_TMPLT:
+                    flash(msg)
             return resp(200, 'OK.', msg, ts, req_auth=True)
     elif request.method == 'GET':
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug('start login')
     else:
+        msg = f'The method should be GET or POST, not {request.method}.'
         if logger.isEnabledFor(logging_ERROR):
-            logger.error('How come the method is ' + request.method)
-    if LOGIN_TMPLT:
-        if SESSION:
+            logger.error(msg)
+        raise resp(409, FAILED, msg, ts)
+    if SESSION:
+        if LOGIN_TMPLT:
             flash(msg)
-        else:
-            if logger.isEnabledFor(logging_INFO):
-                logger.info(msg)
-        return make_response(render_template(LOGIN_TMPLT))
+            return make_response(render_template(LOGIN_TMPLT))
     else:
-        abort(401)
+        if logger.isEnabledFor(logging_INFO):
+            logger.info(msg)
+    abort(401)
 
 ######################################
 ####  /user/logout GET, POST  ####
@@ -259,17 +344,27 @@ def logout():
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(msg)
     if SESSION:
-        session.clear()
+        # session.clear()
         g.user = None
-        session.new = True
+        g.pools = None
         session.modified = True
 
     from ..route.httppool_server import resp
 
-    return resp(200, res, msg, ts)
+    # return resp(200, res, msg, ts)
+    msg = 'Welcome to Poolserver.'
+    if LOGIN_TMPLT:
+        if SESSION:
+            flash(msg)
+        else:
+            if logger.isEnabledFor(logging_INFO):
+                logger.info(msg)
+        return make_response(render_template(LOGIN_TMPLT))
+    else:
+        abort(401, msg)
 
 
-@auth.verify_password
+@ auth.verify_password
 def verify_password(username, password, check_session=True):
     """ Call back.
 
@@ -289,9 +384,10 @@ def verify_password(username, password, check_session=True):
     no Session  no 'user_id'          ''                   r/t None
     no Session  no 'user_id'          None, u/k            login, r/t `False`
     no SESSION  not enabled           not empty  cleartext approve
-   In session  w/ 'user_id'  ''|None not empty  valid      new session, r/t new u
+    In session  w/ 'user_id'  ''|None different   valid      new session, r/t new u
     ..                                not same
     In session  w/ 'user_id'          not empty  invalid   login, return `False`
+    In session  w/ 'user_id'  user    == user      valid   login, return same user
     In session  w/ 'user_id'  user    None ""              login, return `False`
     ..                                u/k
     =========== ============= ======= ========== ========= ==================
@@ -311,14 +407,20 @@ def verify_password(username, password, check_session=True):
     No SESSION:
 
     > return `True`
+
+    Parameters
+    ----------
+    username : str
+    password : str
+        from header.
     """
     logger = current_app.logger
+    from ...pal.poolmanager import PM_S
 
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-        logger.debug('%s %s %s %s' % (username, len(password) * '*',
-                     'chk' if check_session else 'nochk',
-                                      'Se' if SESSION else 'noSe'))
-
+        logger.debug('%s %s %s %s' % (username, '' if password is None else (len(password) * '*'),
+                     'check' if check_session else 'nochk',
+                                      'Sess' if SESSION else 'noSess'))
     if check_session:
         if SESSION:
             has_session = 'user_id' in session and hasattr(
@@ -332,16 +434,21 @@ def verify_password(username, password, check_session=True):
                 # first check if the username is actually unchanged and valid
                 if newu is not None and newu.is_correct_password(password):
                     if gname == username:
+                        # username is from header AUTHR..
                         if logger.isEnabledFor(logging_DEBUG):
-                            logger.debug(f"Same session.")
+                            pools = dict((p, o._poolurl)
+                                         for p, o in PM_S.getMap().items())
+                            logger.debug(f"Same session {pools}.")
+                        set_user_session(
+                            username, session=session, logger=logger)
                         return user
                         #################
                     else:
+                        # headers do not agree with cookies token
                         if logger.isEnabledFor(logging_INFO):
-                            logger.info(f"New session {username}.")
-                        session.clear()
-                        session['user_id'] = username
-                        session.modified = True
+                            logger.info(f"New session {username}")
+                        set_user_session(
+                            username, session=session, logger=logger)
                         return newu
                         #################
                 if logger.isEnabledFor(logging_DEBUG):
@@ -351,36 +458,33 @@ def verify_password(username, password, check_session=True):
                 #################
             else:
                 # SESSION enabled but has not valid user_id
-                if logger.isEnabledFor(logging_DEBUG):
-                    logger.debug('no session.'
-                                 'has %s "user_id". %s g. g.user= %s' % (
-                                     ('' if 'user_id' in session else 'no'),
-                                     ('' if hasattr(g, 'user') else 'no'), (g.get('user', 'None'))))
+                stat = 'session. %s "user_id". %s g. g.user= %s. ' % (
+                    ('w/' if 'user_id' in session else 'w/o'),
+                    ('' if hasattr(g, 'user') else 'no'),
+                    (g.get('user', 'None')))
                 if username == '':
                     if logger.isEnabledFor(logging_DEBUG):
-                        logger.debug(f"Anonymous user.")
+                        logger.debug(f"{stat}Anonymous user.")
                     return None
                     #################
                 newu = current_app.config['USERS'].get(username, None)
                 if newu is None:
-
                     if logger.isEnabledFor(logging_DEBUG):
-                        logger.debug(f"Unknown user {username}")
+                        logger.debug(f"{stat}Unknown user {username}")
                     return False
                     #################
                 if newu.is_correct_password(password):
                     if logger.isEnabledFor(logging_INFO):
                         logger.info(
-                            f'Approved new user {username}. Start new session')
-                    session.clear()
-                    session['user_id'] = username
-                    session.modified = True
+                            f"{stat}Approved user {username}. Start session.")
+                    set_user_session(newu.username, pools=None,
+                                     session=session, new=False, logger=logger)
                     return newu
                     #################
                 else:
                     if logger.isEnabledFor(logging_DEBUG):
                         logger.debug(
-                            f"new user '{username}' has invalid password.")
+                            f"{stat}new user '{username}' has invalid password.")
                     return False
                     #################
         else:
@@ -388,7 +492,7 @@ def verify_password(username, password, check_session=True):
             newu = current_app.config['USERS'].get(username, None)
             if newu and newu.is_correct_password(password):
                 if logger.isEnabledFor(logging_INFO):
-                    logger.info('Approved new user {username} w/o session')
+                    logger.info(f'Approved new user {username} w/o session')
                 return newu
                 #################
             else:
@@ -423,12 +527,12 @@ def verify_password(username, password, check_session=True):
 
 
 ######################################
-####  /register GET, POST  ####
+####  /register GET, POST         ####
 ######################################
 
 
 @user.route('/register', methods=('GET', 'POST'))
-def register():
+def user_register():
     ts = time.time()
     from ..route.httppool_server import resp
     return resp(300, 'FAILED', 'Not available.', ts)

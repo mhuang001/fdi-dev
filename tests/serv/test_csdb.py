@@ -19,7 +19,7 @@ from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
 from fdi.dataset.dateparameter import DateParameter
-# from fdi.dataset.serializable import serialize
+from fdi.dataset.serializable import serialize
 from fdi.pal.context import MapContext
 from fdi.pal.urn import parseUrn
 from fdi.dataset.arraydataset import ArrayDataset
@@ -114,7 +114,8 @@ asci = False
 @lru_cache(maxsize=8)
 def cls2jsn(clsn):
     obj = Class_Look_Up[clsn]()
-    return json.dumps(obj.zInfo, ensure_ascii=asci, indent=2)
+    # return json.dumps(obj.zInfo, ensure_ascii=asci, indent=2)
+    return obj.serialized(indent=2)
 
 
 def XXXest_delete_pool(csdb, urlcsdb):
@@ -193,7 +194,7 @@ def pool_exists(poolname, csdb_c, urlc, create_clean=False):
 
 
 def upload_defintion(full_cls, urllist, urlupload, urldelete,
-                     client=None, check=True):
+                     client=None, check=True, skip=False):
     """upload the definition of given class.
 
     """
@@ -206,7 +207,7 @@ def upload_defintion(full_cls, urllist, urlupload, urldelete,
 
     # upload
     for f in fs:
-        if check:
+        if skip:
             # check type exists
             x = client.get(urllist + '?substring=' + f)
             o, code = getPayload(x)
@@ -247,6 +248,7 @@ def test_upload_All_prod_defn(csdb_client):
 
     full_names = get_All_Products('Full_Class_Names')
     # full_names = ['fdi.dataset.products.Product']
+
     upload_defintion(full_names, urllist, urlupload, urldelete,
                      client=client)
 
@@ -281,7 +283,7 @@ def upload_prod_data(prd, cls_full_name,
             fdata = [("file", (filen, f))]
     if 1:
         fdata = {'file': (cls_full_name, jsn)}
-        data = {'tags': 'foo,'+str(datetime.now())}
+        data = {'tags': f'foo,{prd.type},{datetime.now()}'}
 
         hdr.update({"accept": "*/*", 'X-CSDB-METADATA': '/_ATTR_meta'})
         hdr['X-AUTH-TOKEN'] = token
@@ -391,7 +393,7 @@ def test_upload_data_Tx(csdb_client, urlcsdb, csdb_token):
                            obs_id='b2000a',
                            instr='VT',
                            start='2000-01-01T00:00:00',
-                           end='2001-01-01T00:00:00',
+                           end='2021-01-01T00:00:00',
                            level='CL2a',
                            program='PPT',
                            url=urlupdata,

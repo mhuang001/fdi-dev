@@ -1,5 +1,6 @@
-__version_info__ = (1, 30, 0)
+__version_info__ = (1, 30, 1)
 __version__ = '.'.join(map(str, __version_info__))
+# 1.30.1 testproducts gets version update for csdb debugging. csdb serialiswitched from json to fdi
 # 1.30.0 GlobalPoolList not weakref anymore, working with server sessions. make login/out, saved cookies work. efficient update of pool HK by csdb backend. improve conftest efficiency for csdb.
 # 1.29.0  Implement CSDB pool on HTTPpool v0.16, with secondary_url w/ fxed currentSN in csdb pool api /pool/delete.
 # 1.28.3 arrange the order of parameters in yamt2python output.

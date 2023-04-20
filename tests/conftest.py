@@ -429,25 +429,12 @@ def do_clean_csdb():
         tl = test_pool.getDataType(substrings='testproducts')
         print('+'*21, len(tl), tl)
 
-    if 0:
-        test_pool.wipe()
-    else:
-        header = {'Content-Type': 'application/json;charset=UTF-8'}
-        header['X-AUTH-TOKEN'] = test_pool.token
-        requestAPI = 'http' + urlcsdb[len('csdb'):] + \
-            f'/pool/delete?resetSN=1&storagePoolName='+csdb_pool_id
-        #######
-        if dbg_7types:
-            tl = test_pool.getDataType(substrings='testproducts')
-            print('<'*21, len(tl), tl)
+    test_pool.wipe()
 
-        res = reqst(test_pool.client.post, requestAPI, headers=header,
-                    server_type='csdb')
-        assert res is None
-        #######
-        if dbg_7types:
-            tl = test_pool.getDataType(substrings='testproducts')
-            print('>'*21, len(tl), tl)
+    #######
+    if dbg_7types:
+        tl = test_pool.getDataType(substrings='testproducts')
+        print('>'*21, len(tl), tl)
 
     assert pname in PoolManager.getMap()
     assert pname in ps._pools
@@ -480,11 +467,12 @@ def do_clean_csdb():
 
 @ pytest.fixture(scope=SHORT)
 def clean_csdb_fs(clean_csdb):
+    """ fuction-scope verssion of clean_csdb """
     return do_clean_csdb()
 
 
 @ pytest.fixture(scope="session")
-def clean_csdb(urlcsdb, pc):
+def clean_csdb(urlcsdb):
     return do_clean_csdb()
 
 
@@ -578,6 +566,9 @@ def tmp_prods(tmp_prod_types):
                 continue
             p = copy.deepcopy(n)
             p.description = ('test-product-%d: %s' % (i, n))
+            if p.type == 'TB':
+                p.meta['pint'] = NumericParameter(
+                    value=11, valid={(0, 9): 'k'})
             a = copy.deepcopy(array_ser)
             a.data = [[time.time(), n], 's']
             p['the_data'] = a

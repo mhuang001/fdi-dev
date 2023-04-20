@@ -18,6 +18,9 @@ from math import sin, cos, sqrt
 import random
 from os import path as op
 
+VER = '0.9.1'
+VER1 = '10'
+
 
 class TB(BaseProduct):
     def __init__(self, *args, **kwds):
@@ -25,6 +28,7 @@ class TB(BaseProduct):
         self.zInfo['name'] = 'TB'
         self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
         self.zInfo['metadata']['type']['default'] = self.zInfo['name']
+        self.zInfo['metadata']['version']['default'] = VER
 
 
 class TP(Product):
@@ -33,6 +37,7 @@ class TP(Product):
         self.zInfo['name'] = 'TP'
         self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
         self.zInfo['metadata']['type']['default'] = self.zInfo['name']
+        self.zInfo['metadata']['version']['default'] = VER
 
 
 class TP_0X(TP):
@@ -41,6 +46,7 @@ class TP_0X(TP):
         self.zInfo['name'] = 'TP_0X'
         self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
         self.zInfo['metadata']['type']['default'] = self.zInfo['name']
+        self.zInfo['metadata']['version']['default'] = VER
 
 
 class TC(Context):
@@ -50,6 +56,7 @@ class TC(Context):
         self.zInfo['name'] = 'TC'
         self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
         self.zInfo['metadata']['type']['default'] = self.zInfo['name']
+        self.zInfo['metadata']['version']['default'] = VER
 
 
 class TCC(TC):
@@ -68,6 +75,7 @@ class TM(MapContext):
         self.zInfo['name'] = 'TM'
         self.zInfo['description'] = 'Test class %s.' % self.zInfo['name']
         self.zInfo['metadata']['type']['default'] = self.zInfo['name']
+        self.zInfo['metadata']['version']['default'] = VER
 
 # sub-classing testing class
 # 'version' of subclass is int, not string
@@ -76,7 +84,7 @@ class TM(MapContext):
 sp = copy.deepcopy(PPI)
 sp['name'] = 'SP'
 sp['metadata']['version']['data_type'] = 'integer'
-sp['metadata']['version']['default'] = 9
+sp['metadata']['version']['default'] = VER1
 sp['metadata']['type']['default'] = sp['name']
 MdpInfo = sp['metadata']
 
@@ -88,7 +96,7 @@ class SP(Product):
                  description='UNKNOWN',
                  typ_='SP',
                  creator='UNKNOWN',
-                 version='9',
+                 version=VER1,
                  creationDate=FineTime(0),
                  rootCause='UNKNOWN',
                  startDate=FineTime(0),

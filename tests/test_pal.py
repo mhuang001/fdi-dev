@@ -37,7 +37,7 @@ import itertools
 import random
 import timeit
 import pytest
-import copy
+import datetime
 import traceback
 from pprint import pprint
 import json
@@ -1604,7 +1604,7 @@ def test_MapContext(a_storage):
     # realistic scenario
 
 
-def test_realistic_http(server):
+def test_realistic_http(server, demo_product):
 
     aburl, hdrs = server
     aburl = aburl.rstrip('/')
@@ -1614,19 +1614,23 @@ def test_realistic_http(server):
     # remove existing pools in memory
     # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
     thepool, pstore = mkStorage(poolname, poolurl)
-    pass
+    do_realistic(thepool, pstore, demo_product)
 
 
 def test_realistic_csdb(clean_csdb, urlcsdb,  demo_product):
     test_pool, poolurl, pstore = clean_csdb  # csdb:///csdb_test_pool
-    poolname = test_pool._poolname
+    do_realistic(test_pool, pstore, demo_product)
 
+
+def do_realistic(test_pool, pstore, demo_):
     if 0:
         cleanup(poolurl, poolname)
         # remove existing pools in memory
         # clean up possible garbage of previous runs. use class method to
         # avoid reading pool hk info during ProdStorage initialization.
         test_pool, pstore = mkStorage(poolname, poolurl, pstore)
+
+    poolname, poolurl = test_pool.poolname, test_pool.poolurl
 
     p1 = Product(description='p1')
     p2 = Product(description='p2')
@@ -1666,11 +1670,24 @@ def test_realistic_csdb(clean_csdb, urlcsdb,  demo_product):
     map1ref = pstore.save(map1, tag=__name__+'::realistic.map1')
     map1ref = pstore.save(map2, tag=__name__+'::realistic.map2')
 
+
+def test_demoprod_csdb(clean_csdb, urlcsdb,  demo_product):
+    test_pool, poolurl, pstore = clean_csdb  # csdb:///csdb_test_pool
+    # do_realistic(test_pool, pstore, demo_product)
+
     # demo prod
     dp, related = demo_product
+    dp.version = str(datetime.datetime.now())
+    dp.description = 'for realistic test'
+    related.description = 'related prod generated for realistic test for ' + \
+        test_pool.__class__.__name__
     relatedref = pstore.save(related, tag='referenced by DemoProduct')
     dp['refs']['a related product'] = relatedref
-    demoprodref = pstore.save(dp, tag='DemoProduct')
+    demoprodref = pstore.save(dp, tag='DemoProduct with related ref')
+    get_back = demoprodref.getProduct()
+    assert get_back == dp
+
+    print(relatedref.urn + '->' + demoprodref.urn)
 
 
 def f(n):

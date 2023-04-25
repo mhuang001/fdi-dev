@@ -2,13 +2,11 @@
 
 from .masked import masked
 from .ydump import ydump
-from .. import dataset
+# from .. import dataset
 
 import hashlib
 import array
-import builtins
 import traceback
-import pprint
 import textwrap
 import copy
 import fnmatch
@@ -18,7 +16,6 @@ import pwd
 import logging
 from functools import lru_cache
 from itertools import zip_longest, chain
-import collections
 from collections.abc import Sequence, Mapping
 import sys
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
@@ -145,6 +142,7 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
 
     'tablefmt' is needed to be passed in recursive calls under some conditions it is used.
     """
+    from ..dataset.classes import Class_Look_Up
     excp = ['_STID', 'data', '_sets']
     if excpt:
         excp.extend(excpt)
@@ -153,7 +151,7 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
     if level == 0:
         if not hasattr(obj, 'items'):
             return bstr(obj, level=level, **kwds)
-        if issubclass(obj.__class__, dataset.metadata.MetaData):
+        if issubclass(obj.__class__, Class_Look_Up['MetaData']):
             return obj.toString(level=level, **kwds)
         s = ['%s= {%s}' % (mstr(k, level=level, excpt=excp,
                                 indent=indent, depth=depth+1, quote='',
@@ -174,7 +172,7 @@ def mstr(obj, level=0, excpt=None, indent=4, depth=0, **kwds):
             # returns value of value if possible. limit to 40 char
             obj = obj.getValue() if hasattr(obj, 'getValue') else obj
             return bstr(obj, length=80, level=level, **kwds)
-        if issubclass(obj.__class__, dataset.metadata.MetaData):
+        if issubclass(obj.__class__, Class_Look_Up['MetaData']):
             return obj.toString(level=level, **kwds) + '\n'
         else:
             pat = '%s= {%s}' if depth == 0 else '%s= %s'
@@ -416,11 +414,12 @@ def exprstrs(param, v='_value', extra=False, **kwds):
     :param: Parameter or xDstaset.
     :extra: Whether to include less often used attributes such as ```fits_keyword```.
     """
-    if issubclass(param.__class__, dataset.metadata.Parameter):
+    from ..dataset.classes import Class_Look_Up
+    if issubclass(param.__class__, Class_Look_Up['Parameter']):
         extra_attrs = copy.copy(param._all_attrs)
-    elif issubclass(param.__class__, (dataset.arraydataset.ArrayDataset,
-                                      dataset.tabledataset.TableDataset,
-                                      dataset.unstructureddataset.UnstructuredDataset)):  # if v['default'] else '')
+    elif issubclass(param.__class__, (Class_Look_Up['ArrayDataset'],
+                                      Class_Look_Up['TableDataset'],
+                                      Class_Look_Up['UnstructuredDataset'])):  # if v['default'] else '')
         extra_attrs = dict((n, v['default'])
                            for n, v in param.zInfo['metadata'].items())
     else:

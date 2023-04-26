@@ -20,38 +20,21 @@ pnsconfig['server_scheme'] = 'server'
 pnsconfig['logger_level'] = logging.INFO
 pnsconfig['logger_level_extras'] = logging.WARNING
 
-""" base url for webserver."""
+# base url for webserver.
 pnsconfig['scheme'] = 'http'
 pnsconfig['api_version'] = 'v0.16'  # vx.yy
 pnsconfig['baseurl'] = '/fdi/v0.16'  # fdi/vx.yy
 
-""" base url for the pool, you must have permission of this path, for example : /home/user/Documents
-# This base local pool path '/data' will be prepended to  your pool urn when you init a pool like:
-
-.. :code:
-  pstore = PoolManager.getPool('/demopool_user')
-
-It will create a pool at /data/demopool_user/
-# User can disable  basepoolpath by:
-
-.. :code:
-
-  pstore = PoolManager.getPool('/demopool_user', use_default_poolpath=False)
-
-"""
-
-pnsconfig['base_local_poolpath'] = '/tmp/httppool'
-
-# For server. If needed for test_pal this should point to a locally
+# For server. If needed for test_pal so this should point to a locally
 # writeable dir. If needed to change for a server, do it with
 # an environment var. Ref `PoolManager.PlacePaths`.
-pnsconfig['server_local_poolpath'] = pnsconfig['base_local_poolpath'] + '/data'
-pnsconfig['defaultpool'] = 'default'
+pnsconfig['base_local_poolpath'] = '/tmp/data'
+pnsconfig['server_local_poolpath'] = os.path.join(
+    pnsconfig['base_local_poolpath'],
+    pnsconfig['api_version'])
 pnsconfig['cookie_file'] = os.path.join(
     os.path.expanduser("~"), '.config', 'cookies.txt')
-
 # aliases for `getConfig('poolurl:[key]')
-
 pnsconfig['url_aliases'] = {}
 
 # choose from pre-defined profiles. 'production' is for making docker image.

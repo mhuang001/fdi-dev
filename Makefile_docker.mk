@@ -12,6 +12,7 @@ SERVER_NAME      =httppool
 BASEURL = $(shell python -m fdi.utils.getconfig baseurl)
 
 SERVER_VERSION	= $(DOCKER_VERSION)
+API_VERSION	= $(shell python -m fdi.utils.getconfig api_version)
 ifndef apache
 SFILE	= fdi/httppool/resources/httppool_server_uwsgi.docker
 else
@@ -25,7 +26,7 @@ SECFILE_SERV = $${HOME}/.secret_serv
 
 EXTPORT =$(PORT)
 IP_ADDR     =0.0.0.0
-SERVER_LOCAL_POOLPATH	= /var/www/httppool_server/data
+SERVER_LOCAL_POOLPATH	= /var/www/httppool_server/data/$(API_VERSION)
 LOGGER_LEVEL	= 10
 LOGGER_LEVEL_EXTRAS	= 30
 

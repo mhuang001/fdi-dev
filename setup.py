@@ -71,7 +71,7 @@ setup(
             'requests == 2.27.1',
             'urllib3 == 1.26.13',
             'Flask_HTTPAuth >= 4.1.0',
-            'Flask>=2.2.2',
+            'Flask<2.3',
             'Werkzeug[watchdog]',
             'uwsgi>=2.0.20',
             'flasgger>=0.9.5',

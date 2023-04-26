@@ -1,3 +1,7 @@
+include Makefile_tests.mk
+include Makefile_docs.mk
+include Makefile_docker.mk
+
 PYEXE	= python3.8
 
 info:
@@ -187,12 +191,8 @@ vtag:
 
 FORCE:
 
-include Makefile_tests.mk
-include Makefile_docs.mk
-
 ########
 # docker
 ########
 
-include Makefile_docker.mk
 

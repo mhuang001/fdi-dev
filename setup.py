@@ -75,8 +75,7 @@ setup(
             'Werkzeug[watchdog]',
             'uwsgi>=2.0.20',
             'flasgger>=0.9.5',
-            'asyncio',
-            'aiohttp'
+            'aiohttp>=3.8.3'
         ],
         'SCI': [
             'astropy'

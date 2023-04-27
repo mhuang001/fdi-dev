@@ -51,8 +51,10 @@ ENV PKGS_DIR=${UHOME}
 RUN umask 0002
 
 # copy fdi and .venv over
-ADD --chown=${USR}:${USR} pipcache ${UHOME}/pipcache
-ADD --chown=${USR}:${USR} wheels ${UHOME}/wheels
+ARG PIPCACHE=${UHOME}/pipcache
+ARG PIPWHEELS=${UHOME}/wheels
+ADD --chown=${USR}:${USR} pipcache ${PIPCACHE}
+ADD --chown=${USR}:${USR} wheels ${PIPWHEELS}
 ADD --chown=${USR}:${USR} fdi ${UHOME}/fdi
 # RUN pwd; echo --- \
 # && ls wheels ; echo --- \
@@ -78,8 +80,6 @@ RUN python${PYTHON_VER} -m venv ${FDIVENV}
 ENV PATH="${FDIVENV}/bin:$PATH"
 
 # update pip
-ARG PIPCACHE=${UHOME}/pipcache
-ARG PIPWHEELS=${UHOME}/wheels
 ARG PIPOPT="--cache-dir ${PIPCACHE} --no-index -f ${PIPWHEELS} --disable-pip-version-check"
 RUN umask 0002 ; echo ${PIPOPT} \
 && python3 -m pip install ${PIPOPT} -U pip setuptools
@@ -115,7 +115,7 @@ WORKDIR ${PKGS_DIR}/${PKG}
 
 # all dependents have to be from pip cache
 RUN umask 0002 \
-&& python3 -m pip install ${PIPOPT} --no-index -f ${PIPWHEELS} -e .[DEV,SERV,SCI]
+&& python3 -m pip install ${PIPOPT} -e .[DEV,SCI]
 
 WORKDIR ${PKGS_DIR}
 
@@ -127,7 +127,7 @@ RUN mkdir -p ${UHOME}/.config \
 && cp fdi/fdi/pns/config.py ${UHOME}/.config/pnslocal.py
 
 
-#&& rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
+RUN rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
 
 WORKDIR ${UHOME}
 

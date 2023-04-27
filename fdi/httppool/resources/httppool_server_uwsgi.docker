@@ -23,6 +23,24 @@ ENV PNS_LOGGER_LEVEL=${LOGGER_LEVEL}
 ARG LOGGER_LEVEL_EXTRAS=30
 ENV PNS_LOGGER_LEVEL_EXTRAS=${LOGGER_LEVEL_EXTRAS}
 
+# install fdi
+ARG fd=rebuild
+
+USER $USR
+ARG PIPCACHE=${UHOME}/pipcache
+ARG PIPWHEELS=${UHOME}/wheels
+ADD --chown=${USR}:${USR} pipcache ${UHOME}/pipcache
+ADD --chown=${USR}:${USR} wheels ${UHOME}/wheels
+ARG PIPOPT=--disable-pip-version-check \
+--cache-dir ${UHOME}/pipcache --no-index -f ${UHOME}/wheels 
+RUN echo ${PIPOPT}
+
+WORKDIR ${UHOME}/fdi
+# all dependents have to be from pip cache
+RUN umask 0002 \
+&& python3 -m pip install ${PIPOPT} -e .[DEV,SERV,SCI]
+
+USER root
 WORKDIR ${UHOME}
 # use fdi's virtual env path. this effectively activates fdi's virtuakenv
 RUN echo ${PATH}
@@ -30,7 +48,7 @@ RUN echo ${PATH}
 # setup config files
 ARG SERVER_LOCAL_POOLPATH=/tmp/data
 ENV PNS_SERVER_LOCAL_POOLPATH=${SERVER_LOCAL_POOLPATH}
-ARG BASEURL=/fdi/v0.15
+ARG BASEURL=/fdi/v0.16
 ENV PNS_BASEURL=${BASEURL}
 RUN mkdir -p ${PNS_SERVER_LOCAL_POOLPATH}
 
@@ -73,6 +91,8 @@ ENTRYPOINT  ["/home/fdi/httppool_server_entrypoint_uwsgi.sh"]
 #CMD ["uwsgi --http-socket 0.0.0.0:9885 --master --module wsgi:app --touch-reload /home/fdi/reload --logger file:/var/log/uwsgi/uwsgi.log --processes 1 --threads 2 --stats 0.0.0.0:9999 --buffer-size 16384 --http-connect-timeout 600"]
 
 CMD ["uwsgi", "--ini", "httppool_server_uwsgi.ini"]
+
+RUN rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
 
 ARG SERVER_VERSION
 LABEL PoolServer ${SERVER_VERSION}

@@ -655,3 +655,49 @@ def existing_pools(tmp_pools):
     pools = [p[0] for p in tmp_pools]
     print("get existing pools:", [p.poolname for p in pools])
     return pools
+
+
+@ pytest.fixture(scope='session')
+def t_package():
+    """
+    A names package with data
+    ├── Makefile
+    ├── resource3.txt
+    ├── setup.py
+    ├── standalone.py
+    └── testpackage
+        ├── one
+        │   ├── module1.py
+        │   ├── resource1
+        │   │   └── resource1.1.txt
+        │   ├── resource1.txt
+        │   └── __init__.py
+        └── two
+            ├── four
+            │   ├── five
+            │   │   └── resource5.jsn
+            │   ├── resource4.csv
+            │   └── __init__.py
+            ├── resource2.1.jsn
+            ├── resource2.2.json
+            ├── resource2.txt
+            └── __init__.py
+    """
+    try:
+        import testpackage
+    except ModuleNotFoundError as e:
+        try:
+            #  make clean-tpkg;
+            os.system(
+                '(cd tests/resources/testpackage; make install-tpkg) 2>&1| tee /tmp/testpackage.log')
+            # 'python3.8 -c "import sys; print(sys.path)"
+            # 'make  pip show testpackage;
+            sys.path.insert(0, '/tmp')
+            import testpackage
+        except Exception as e:
+            assert False, 'cannot test find_all_files from package.'+str(e)
+        logger.debug('Installed and imported testpackage.')
+
+    yield testpackage
+
+    os.system('cd tests/resources/testpackage;make clean-tpkg')

@@ -4,6 +4,9 @@ from .masked import masked
 from .ydump import ydump
 # from .. import dataset
 
+from importlib_resources import files
+from importlib_resources.readers import MultiplexedPath
+
 import hashlib
 import array
 import traceback
@@ -13,6 +16,7 @@ import fnmatch
 import os
 from pathlib import Path
 import pwd
+import builtins
 import logging
 from functools import lru_cache
 from itertools import zip_longest, chain
@@ -597,11 +601,23 @@ def findShape(data, element_seq=(str)):
 def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=None, absdir=False):
     """ returns a list of names of all files in `datadir`.
 
-    :name: of starting directory or a list of file name strings to filter.
-    :include: only if a file name has any of these sub-strings. format is as if used in `glob(include)`.
-    :exclude: only if a file name has not any of these sub-strings. Empty strings are removed.
-    :not_if: a function that returns true if given a name of unwanted file. default is None, (which excludes directories when `datadir` is a string, and disabled if `datadir` is a `list`.
-    :absdir: Set to True to return absolute_paths.
+    Parameter
+    ---------
+    name : str, Path
+        of starting directory or a list/iterable of file name
+        strings to filter by `fnmatch.filter`.
+    include : str
+        Will be selected only if a file name has any of these 
+        sub-strings. format is as if used in `glob(include)`.
+    exclude : list
+        Only if a file name has not any of these sub-strings.
+        Empty strings are removed.
+    not_if : a function that returns true if given a name of
+        unwanted file. default is None, (which excludes
+        directories when `datadir` is a string, and disabled
+        if `datadir` is a `list`.
+    absdir : boolean
+        Set to True to return absolute_paths.
     """
 
     allf = []
@@ -609,14 +625,24 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=No
     if not include:
         include = '*'
 
-    isadir = issubclass(datadir.__class__, str)
+    if issubclass(datadir.__class__, os.__class__):
+        fs = files(datadir)
+        if issubclass(fs.__class__, Path):
+            datadir = fs
+        else:
+            # MultiplexedPath
+            datadir = fs._paths[0]
+    isadir = issubclass(datadir.__class__, (str, Path))
     if isadir:
         if not_if is None:
             not_if = os.path.isdir
-        inc = Path(datadir).glob(include)
+        inc = Path(datadir).glob(include) if issubclass(datadir.__class__, (str)) \
+            else datadir.glob(include)
+
         inc = list(str(f) for f in inc)
     else:
-        inc = fnmatch.filter(datadir, include)
+        pat = include  # '*' if include is None else include
+        inc = fnmatch.filter(datadir, pat)
 
     # print("find", len(inc))
 

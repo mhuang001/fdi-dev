@@ -5,7 +5,7 @@
 from .namespace import NameSpace_meta, refloader
 from ..utils.common import find_all_files, trbk
 
-#from jsonschema import Draft7Validator as the_validator
+# from jsonschema import Draft7Validator as the_validator
 from jsonschema import Draft201909Validator as the_validator
 from jsonschema import RefResolver
 from jsonschema.exceptions import RefResolutionError
@@ -13,6 +13,7 @@ from jsonschema.exceptions import RefResolutionError
 import json
 import os
 import copy
+from pathlib import Path
 from collections import ChainMap
 import logging
 # create logger
@@ -28,14 +29,16 @@ FDI_SCHEMA_DIR = os.path.abspath(
 """ The id-obj map for package-wide schemas. To be updated by `makeSchemaStore` when it runs for the first time."""
 
 
-def makeSchemaStore(schema_dir=None, verbose=False):
+def makeSchemaStore(schema_location=None, include=None, exclude=None, verbose=False):
     """make a mapping of schema id and schema obj loaded from the given directory.
 
     Parameters
     ----------
-    schema_dir : str
-        Name of a directory containing schema definitions in JSON files
-    and subdirectories. If is `None` set to `FDI_SCHEMA_DIR`.
+    schema_location : str, Path, module, None
+        Name of a directory containing schema definitions
+        in JSON files and subdirectories if is string. Will get
+        package path using `import_resource.files`. If is `None`
+        set to `FDI_SCHEMA_DIR`.
     verbose : bool
         Say more if set.
 
@@ -50,17 +53,26 @@ def makeSchemaStore(schema_dir=None, verbose=False):
 
     """
 
-    if schema_dir is None:
+    if schema_location is None:
         # make package schemas list
-        schema_dir = FDI_SCHEMA_DIR
+        schema_location = FDI_SCHEMA_DIR
 
-    dirs = find_all_files(schema_dir, verbose=verbose,
-                          include='**/*.js*n',
-                          exclude=(''),
-                          absdir=True)
-
+    if issubclass(schema_location.__class__, (str, Path, os.__class__)):
+        if include is None:
+            include = '**/*.js*n'
+        if exclude is None:
+            exclude = ('')
+        srcs = find_all_files(schema_location, verbose=verbose,
+                              include=include,
+                              exclude=exclude,
+                              absdir=True)
+    elif issubclass(schema_location.__class__, module):
+        srcs = 0
+    else:
+        raise TypeError(
+            f"Schema location must be str or module, not {schema_location.__class__}")
     schemas = []
-    for source in dirs:
+    for source in srcs:
         try:
             with open(source, 'r') as f:
                 schemas.append(json.load(f))
@@ -68,7 +80,8 @@ def makeSchemaStore(schema_dir=None, verbose=False):
             logger.warning('Cannot load schema %s. No Skipping...' % source)
             logger.warning(trbk(e))
             raise
-    store = dict((schema.get("$id",schema.get("id")), schema) for schema in schemas)
+    store = dict((schema.get("$id", schema.get("id")), schema)
+                 for schema in schemas)
 
     return store
 
@@ -132,7 +145,7 @@ def getValidator(schema, schemas=None, schema_store=None, base_schema=None, verb
         print('Schema store:', list(store))
     if base_schema is None:
         # json.load(open("schema/dir/extend.schema.json"))
-        #resolver = RefResolver(schema['$id'], store=store, referrer=schema)
+        # resolver = RefResolver(schema['$id'], store=store, referrer=schema)
         if FDI_SCHEMA_BASE not in store:
             raise ValueError(
                 'Base schema is not given and FDI_SCHEMA_BASE %s is not in store.' % FDI_SCHEMA_BASE)

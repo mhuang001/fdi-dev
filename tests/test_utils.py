@@ -17,6 +17,7 @@ from fdi.utils.fetch import fetch
 from fdi.utils.tree import tree
 from fdi.utils.loadfiles import loadMedia
 from fdi.utils.getconfig import getConfig, Config_Look_Up, Config_NameSpace
+
 import traceback
 import importlib
 import copy
@@ -29,6 +30,9 @@ import hashlib
 import os.path as op
 import pytest
 from astropy.io import fits
+import importlib_resources
+from importlib_resources import files
+from importlib_resources.readers import MultiplexedPath
 
 if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
@@ -343,6 +347,25 @@ def test_find_all_files():
     assert set(fs) == {tdir+'/a.jsn', tdir+'/sub/c.jsn'}
     fs = find_all_files(tdir, include='**/*.js*n')
     assert set(fs) == {tdir+'/a.jsn', tdir+'/b.json', tdir+'/sub/c.jsn'}
+    del fs
+
+
+def test_get_data_in_package(t_package):
+    """
+    ############# data in a package #############
+    """
+    testpackage = t_package
+    fs = find_all_files(testpackage, include='**/*.txt')
+    assert len(fs) == 3
+    assert all(f.endswith('.txt') for f in fs)
+
+    import testpackage.two as t2
+    fs = find_all_files(t2, include='**/*.csv')
+    assert len(fs) == 1
+    assert len([1 for f in fs if f.endswith('.csv')]) == 1
+    fs = find_all_files(t2, include='**/*.js*n')
+    assert len(fs) == 3
+    assert len([1 for f in fs if f.endswith('.jsn')]) == 2
 
 
 def test_loadcsv():

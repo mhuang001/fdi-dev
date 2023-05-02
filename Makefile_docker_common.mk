@@ -192,6 +192,3 @@ cleanup:
 
 st_PIPCACHE=~/csc38/fdi/pipcache
 st_WHEELS=~/csc38/fdi/wheels
-stage:
-	python3.8 -m pip wheel --disable-pip-version-check --cache-dir $(st_PIPCACHE) --wheel-dir $(stWHEELS) pip>=21 wheel setuptools &&\
-	python3.8 -m pip wheel --disable-pip-version-check --cache-dir $(st_PIPCACHE) --wheel-dir $(st_WHEELS) -e .[DEV,SERV,SCI]

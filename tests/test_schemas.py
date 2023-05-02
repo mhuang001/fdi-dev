@@ -25,26 +25,6 @@ from fdi.dataset.classes import Classes
 from fdi.dataset.serializable import serialize, Serializable
 from fdi.pal.context import MapContext
 from fdi.pal.productref import ProductRef
-if 0:
-    from fdi.dataset.annotatable import Annotatable
-    from fdi.dataset.copyable import Copyable
-    from fdi.dataset.odict import ODict
-    from fdi.dataset.eq import deepcmp
-    from fdi.dataset.deserialize import deserialize
-    from fdi.dataset.quantifiable import Quantifiable
-    from fdi.dataset.messagequeue import MqttRelayListener, MqttRelaySender
-    from fdi.dataset.composite import Composite
-    from fdi.dataset.metadataholder import MetaDataHolder
-    from fdi.dataset.datatypes import DataTypes, DataTypeNames
-    from fdi.dataset.attributable import Attributable
-    from fdi.dataset.abstractcomposite import AbstractComposite
-    from fdi.dataset.datawrapper import DataWrapper, DataWrapperMapper
-    from fdi.dataset.indexed import Indexed
-    from fdi.dataset.ndprint import ndprint
-    from fdi.dataset.invalid import INVALID
-    from fdi.dataset.browseproduct import BrowseProduct
-    from fdi.dataset.readonlydict import ReadOnlyDict
-
 from fdi.dataset.testproducts import SP, get_demo_product
 
 from test_dataset import demo_TableDataset, demo_CompositeDataset
@@ -79,13 +59,26 @@ SCHEMA_DIR = os.path.abspath(os.path.join(
 SSP = 'https://fdi.schemas/%s%s'
 """ Schema store prefix"""
 
-verbose = 1  # False
+verbose = False
 
 
 @pytest.fixture(scope='function')
 def schema_store():
     store = makeSchemaStore()
     return store
+
+
+def test_packaged(t_package):
+    # import testpackage.two.four
+    # st = makeSchemaStore(testpackage.two.four)
+    st = makeSchemaStore(t_package, include='**/resource5.jsn')
+    scn = 'Urn'
+    sch = st['https://fdi.schemas/pal/Urn']
+
+    if 1:
+        jsn = json.loads(serialize('urn:pool:si.PL:20'))
+    vtr = getValidator(sch, verbose=verbose)
+    assert vtr.validate(jsn) is None
 
 
 def check_examples_defaults(vtr, schema, jsn, paths):
@@ -290,7 +283,7 @@ def test_a_array(schema_store):
                 with pytest.raises(ValidationError):
                     assert vtr.validate(bad) is None
     finally:
-        fdi.dataset.serializable.GZIP = saved
+        fdi.dataset.serializable.GZIP= saved
 
     # "example ignores jsn
     check_examples_defaults(vtr, sch, jsn, ['examples'])
@@ -299,50 +292,50 @@ def test_a_array(schema_store):
 def test_RQSTID(schema_store):
     """ Test setting requires:['_STID'] with schema "Require_STID".
     """
-    scn = 'TEST_STID'
-    sch = schema_store[SSP % ('', scn)]
+    scn= 'TEST_STID'
+    sch= schema_store[SSP % ('', scn)]
 
-    sch['$ref'] = "Require_STID_True"
-    vtr = getValidator(sch, verbose=verbose)
-    jsn = {"foo": "bar", "_STID": "byte"}
+    sch['$ref']= "Require_STID_True"
+    vtr= getValidator(sch, verbose=verbose)
+    jsn= {"foo": "bar", "_STID": "byte"}
     assert vtr.validate(jsn) is None
     # error from no _STID
-    jsn = {"foo": "bar", "m_STID": "byte"}
+    jsn= {"foo": "bar", "m_STID": "byte"}
     with pytest.raises(ValidationError):
         assert vtr.validate(jsn) is None
     with pytest.raises(ValidationError):
         assert vtr.validate({}) is None
 
     # pass
-    sch['$ref'] = "Require_STID_False"
-    vtr = getValidator(sch, verbose=verbose)
-    jsn = {"foo": "bar", "_STID": "byte"}
+    sch['$ref']= "Require_STID_False"
+    vtr= getValidator(sch, verbose=verbose)
+    jsn= {"foo": "bar", "_STID": "byte"}
     assert vtr.validate(jsn) is None
-    jsn = {"foo": "bar", "m_STID": "byte"}
+    jsn= {"foo": "bar", "m_STID": "byte"}
     assert vtr.validate(jsn) is None
     assert vtr.validate({}) is None
 
 
 def test_preset_STID(schema_store):
 
-    scn = 'TEST_STID'
-    sch = schema_store[SSP % ('', scn)]
+    scn= 'TEST_STID'
+    sch= schema_store[SSP % ('', scn)]
 
     # constant preset _STID
-    sch['properties']['_STID'] = {"const": "Foo"}
-    vtr = getValidator(sch, verbose=verbose)
-    jsn = {"foo": "bar", "_STID": "Foo"}
+    sch['properties']['_STID']= {"const": "Foo"}
+    vtr= getValidator(sch, verbose=verbose)
+    jsn= {"foo": "bar", "_STID": "Foo"}
     assert vtr.validate(jsn) is None
     # wrong STID
-    jsn = {"foo": "bar", "_STID": "bytes"}
+    jsn= {"foo": "bar", "_STID": "bytes"}
     with pytest.raises(ValidationError):
         assert vtr.validate(jsn) is None
     # missing
-    jsn = {"foo": "bar"}
+    jsn= {"foo": "bar"}
     with pytest.raises(ValidationError):
         assert vtr.validate(jsn) is None
     # also wrong
-    jsn = json.loads('{"foo":"bar", "_STID":"bytes,gz"}')
+    jsn= json.loads('{"foo":"bar", "_STID":"bytes,gz"}')
     with pytest.raises(ValidationError):
         assert vtr.validate(jsn) is None
     # empty
@@ -350,15 +343,15 @@ def test_preset_STID(schema_store):
         assert vtr.validate({}) is None
 
     # modift schema to have list of possible IDs in preset _STID
-    sch['properties']['_STID'] = {"enum": ["bytes", "bytes,gz"]}
-    vtr = getValidator(sch, verbose=verbose)
-    jsn = {"foo": "bar", "_STID": "bytes,gz"}
+    sch['properties']['_STID']= {"enum": ["bytes", "bytes,gz"]}
+    vtr= getValidator(sch, verbose=verbose)
+    jsn= {"foo": "bar", "_STID": "bytes,gz"}
     assert vtr.validate(jsn) is None
-    jsn = {"foo": "bar", "_STID": "bytes"}
+    jsn= {"foo": "bar", "_STID": "bytes"}
     assert vtr.validate(jsn) is None
 
     # errors in STID in instane
-    jsn = {"foo": "bar", "_STID": "bytes,g"}
+    jsn= {"foo": "bar", "_STID": "bytes,g"}
     with pytest.raises(ValidationError):
         assert vtr.validate(jsn) is None
     with pytest.raises(ValidationError):
@@ -366,7 +359,7 @@ def test_preset_STID(schema_store):
 
     # Properties is anyOf
     del sch['properties']
-    sch["anyOf"] = [
+    sch["anyOf"]= [
         {'properties': {
             "foo": {"const": "deadbeef"},
             "_STID": {"type": "string", "pattern": "^bytes$"}
@@ -376,37 +369,37 @@ def test_preset_STID(schema_store):
          }
     ]
 
-    vtr = getValidator(sch, verbose=verbose)
-    jsn = {"foo": "bar", "_STID": "bytes,gz"}
+    vtr= getValidator(sch, verbose=verbose)
+    jsn= {"foo": "bar", "_STID": "bytes,gz"}
     assert vtr.validate(jsn) is None
-    jsn = {"foo": "deadbeef", "_STID": "bytes"}
+    jsn= {"foo": "deadbeef", "_STID": "bytes"}
     assert vtr.validate(jsn) is None
 
     # error in foo: when STID=='gzip'
-    jsn = {"foo": "bar", "_STID": "bytes"}
+    jsn= {"foo": "bar", "_STID": "bytes"}
     with pytest.raises(ValidationError):
         assert vtr.validate(jsn) is None
 
     # errors in STID in instane
-    jsn = {"foo": "bar", "_STID": "bytes,g"}
+    jsn= {"foo": "bar", "_STID": "bytes,g"}
     with pytest.raises(ValidationError):
         assert vtr.validate(jsn) is None
     with pytest.raises(ValidationError):
         assert vtr.validate({"_STID": None}) is None
 
     # modify STID to ""
-    jsn = {"foo": "bar", "_STID": "g"}
+    jsn= {"foo": "bar", "_STID": "g"}
     with pytest.raises(ValidationError):
         assert vtr.validate(jsn) is None
 
 
 def test_urn(schema_store):
-    scn = 'Urn'
-    sch = schema_store[SSP % ('pal/', scn)]
+    scn= 'Urn'
+    sch= schema_store[SSP % ('pal/', scn)]
 
     if 1:
-        jsn = json.loads(serialize('urn:pool:si.PL:20'))
-    vtr = getValidator(sch, verbose=verbose)
+        jsn= json.loads(serialize('urn:pool:si.PL:20'))
+    vtr= getValidator(sch, verbose=verbose)
     assert vtr.validate(jsn) is None
 
     check_examples_defaults(vtr, sch, jsn, [
@@ -414,8 +407,8 @@ def test_urn(schema_store):
                             ])
 
     # invalid urn in 'urns'
-    cpy = copy.deepcopy(jsn)
-    bad = cpy.replace("urn:", "urn::")
+    cpy= copy.deepcopy(jsn)
+    bad= cpy.replace("urn:", "urn::")
     with pytest.raises(ValidationError):
         assert getValidator(sch, verbose=verbose).validate(bad) is None
 
@@ -713,12 +706,12 @@ def test_Vector(schema_store):
     scn = 'Vector'
     sch = schema_store[SSP % ('dataset/', scn)]
 
+    jsn = json.loads(serialize(Vector((3.14, 5, 0xb),
+                                      typecode='f',
+                                      unit='au'),
+                               indent=4)
+                     )
     if verbose:
-        jsn = json.loads(serialize(Vector((3.14, 5, 0xb),
-                                          typecode='f',
-                                          unit='au'),
-                                   indent=4)
-                         )
         logger.debug(jsn)
     assert jsn['unit'] == 'au'
     assert jsn['typecode'] == 'f'

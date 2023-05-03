@@ -69,7 +69,7 @@ setup(
             'remote-pdb'
         ],
         'SERV': [
-            'requests == 2.27.1',
+            'requests == 2.28.1',
             'urllib3 == 1.26.13',
             'Flask_HTTPAuth >= 4.1.0',
             'Flask<2.3',

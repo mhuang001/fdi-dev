@@ -30,6 +30,8 @@ setup(
     url="http://mercury.bao.ac.cn:9006/mh/fdi",
     packages=find_packages(exclude=['tests', 'tmp', 'docs']),
     include_package_data=True,
+    package_data={'': ['*.yml', '*.yaml', '*.jsn', '*.json', '*.txt']},
+    exclude_package_data={"": [".git*"]},
     long_description=read('README.rst'),
     long_description_content_type="text/x-rst",
     python_requires=">=3.6",

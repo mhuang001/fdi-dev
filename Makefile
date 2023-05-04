@@ -117,6 +117,10 @@ wheel:
 upload:
 	$(PYEXE) -m twine upload --repository $(PYREPO) dist/*
 
+FDI_WHEEL_DIR	= ./dist #../wheel
+wheel_install:
+	$(PYEXE) -m pip install fdi $(I) --disable-pip-version-check --cache-dir ../../pipcache --no-index -f $(FDI_WHEEL_DIR)
+
 virtest:
 	rm -rf /tmp/fditestvirt
 	virtualenv -p $(PYEXE) /tmp/fditestvirt

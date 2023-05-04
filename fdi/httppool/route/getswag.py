@@ -8,7 +8,7 @@ def getSwag():
 
     ypath = os.path.abspath(os.path.join(
         os.path.dirname(__file__), '../schema'))
-    print('************ swagger yaml dir:', ypath)
+    print('swagger yaml dir:', ypath)
     # Use a yaml file derefed with swagger-cli bundle -r
     full_doc = load_from_file(os.path.join(ypath, 'pools_resolved.yml'))
     yaml_start = full_doc.find('---')

@@ -81,7 +81,7 @@ setup(
             'aiohttp>=3.8.3'
         ],
         'SCI': [
-            'astropy'
+            'astropy>=5.2.1'
         ],
         'PUB': [
             'sphinx>=4.4.0',

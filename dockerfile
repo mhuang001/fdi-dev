@@ -56,7 +56,7 @@ ARG PIPWHEELS=${UHOME}/wheels
 ADD --chown=${USR}:${USR} pipcache ${PIPCACHE}
 ADD --chown=${USR}:${USR} wheels ${PIPWHEELS}
 ADD --chown=${USR}:${USR} fdi ${UHOME}/fdi
-# RUN pwd; echo --- \
+RUN pwd; echo --- ; du -sh *
 # && ls wheels ; echo --- \
 # && ls . ; echo --- \
 # && ls ${PKG}
@@ -73,16 +73,18 @@ ENV PNS_LOGGER_LEVEL_EXTRAS=${LOGGER_LEVEL_EXTRAS}
 # set fdi's virtual env
 # let group access cache and bin. https://stackoverflow.com/a/46900270
 ENV FDIVENV=${UHOME}/.venv
-RUN which python3; python3 --version; ls -l /usr/bin/py*
+RUN which python3; python3 --version #; ls -l /usr/bin/py*
 RUN python${PYTHON_VER} -m venv ${FDIVENV}
 
 # effectively activate fdi virtual env for ${USR}
 ENV PATH="${FDIVENV}/bin:$PATH"
 
+# use copied cache and wheels
+ARG PIPOPT="--cache-dir ${PIPCACHE} -f ${PIPWHEELS} --disable-pip-version-check"
+
 # update pip
-ARG PIPOPT="--cache-dir ${PIPCACHE} --no-index -f ${PIPWHEELS} --disable-pip-version-check"
 RUN umask 0002 ; echo ${PIPOPT} \
-&& python3 -m pip install ${PIPOPT} -U pip setuptools
+&& python3 -m pip install pip setuptools ${PIPOPT} -U 
 
 RUN python3 -c 'import sys;print(sys.path)' \
 &&  python3 -m pip list --format=columns \
@@ -115,7 +117,7 @@ WORKDIR ${PKGS_DIR}/${PKG}
 
 # all dependents have to be from pip cache
 RUN umask 0002 \
-&& python3 -m pip install ${PIPOPT} -e .[DEV,SCI]
+&& python3.8 -m pip install -e .[DEV,SCI] ${PIPOPT}
 
 WORKDIR ${PKGS_DIR}
 

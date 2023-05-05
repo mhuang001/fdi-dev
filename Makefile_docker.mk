@@ -22,6 +22,7 @@ TEST_PORT	= 9885
 
 B       =/bin/bash
 D	=
+DOCKERHOME      =..
 
 FORCE:
 

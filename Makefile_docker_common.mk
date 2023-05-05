@@ -66,6 +66,7 @@ launch_server:
 	--add-host dev:127.0.0.1 \
 	-p $(PORT):$(EXTPORT) \
 	-e PNS_PORT=$(PORT) \
+	-e PNS_SERVER_LOCAL_POOLPATH=$(SERVER_LOCAL_POOLPATH) \
 	-e PNS_LOGGER_LEVEL=$(LOGGER_LEVEL) \
 	-e PNS_LOGGER_LEVEL_EXTRAS=$(LOGGER_LEVEL_EXTRAS) \
 	-e PNS_BASEURL=$(BASEURL) \
@@ -168,15 +169,18 @@ restore_test:
 	$(MAKE) it B='/bin/ls -l $(PROJ_DIR)/data'
 	@echo %%% above should NOT be empty %%%%%%%
 
-
-UD_PIPCACHE=../fdi/pipcache
-UD_PIPWHEELS=../fdi/wheels
+st_PIPCACHE=~/csc38/fdi/pipcache
+st_WHEELS=~/csc38/fdi/wheels
+PIPOPT=--disable-pip-version-check  --cache-dir $(st_PIPCACHE)
 update_docker:
 	(\
 	$(MAKE) rm_docker &&\
 	$(MAKE) docker_version &&\
-	python3 -m pip wheel --disable-pip-version-check --cache-dir $(UD_PIPCACHE) --wheel-dir $(UD_PIPWHEELS) -e .[DEV,SERV,SCI] &&\
-	python3 -m pip install $(PIPOPT) --no-index -f $(UD_PIPWHEELS) -e .[DEV,SERV,SCI] &&\
+	rm -f $(st_WHEELS)/fdi*  &&\
+	python3 -m pip uninstall fdi -y &&\
+	python3 -m pip wheel $(PIPOPT) --wheel-dir $(st_WHEELS) -e .[DEV,SERV,SCI] &&\
+	#python3 -m pip install -e .[DEV,SERV,SCI] $(PIPOPT) &&\
+	#rm -f $(st_WHEELS)/fdi*  &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\
@@ -189,7 +193,4 @@ cleanup:
 	docker rmi -f `docker images -a|grep pool|awk 'BEGIN{FS=" "}{print $3}'`
 	docker rmi -f `docker images -a|grep csc |awk 'BEGIN{FS=" "}{print $3}'`
 	docker rmi -f `docker images -a|grep m/fdi|awk 'BEGIN{FS=" "}{print $3}'`
-
-st_PIPCACHE=~/csc38/fdi/pipcache
-st_WHEELS=~/csc38/fdi/wheels
 

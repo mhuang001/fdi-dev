@@ -269,10 +269,10 @@ def init_httppool_server(app):
     # pool-related paths
     # the httppool that is local to the server
     scheme = 'server'
-    _basepath = PM_S.PlacePaths[scheme]
+
     # this is something like SERVER_LOCAL_POOLPATH, /.../v0.16
     # os.path.join(_basepath, pc['api_version'])
-    full_base_local_poolpath = _basepath
+    full_base_local_poolpath = PM_S.PlacePaths[scheme]
 
     if checkpath(full_base_local_poolpath) is None:
         msg = 'Store path %s unavailable.' % full_base_local_poolpath

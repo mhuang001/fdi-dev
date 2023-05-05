@@ -113,7 +113,7 @@ class LocalPool(ManagedPool):
 
         if any(not op.exists(op.join(real_poolpath, hk+'.jsn'))
                for hk in HKDBS):
-            self.writeHK(real_poolpath)
+            self.writeHK()
         return False
 
     def readmmap(self, filename, start=None, end=None, close=False, check_time=False):
@@ -254,7 +254,7 @@ class LocalPool(ManagedPool):
         """
 
         if fp0 is None:
-            fp0 = self._poolpath + '/' + self._poolname
+            fp0 = self.transformpath(self._poolname)
         l = 0
         for hkdata in HKDBS:
             if not all_versions and not 'dT' in hkdata:
@@ -412,8 +412,8 @@ class LocalPool(ManagedPool):
         """
         does the action of removal of product from pool.
         """
-        real_poolpath = self.transformpath(self._poolname)
-        l = self.writeHK(real_poolpath)
+
+        l = self.writeHK()
         return
 
     def doWipe(self, keep=True):

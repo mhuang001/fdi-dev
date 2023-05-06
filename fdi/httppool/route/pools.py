@@ -158,8 +158,8 @@ def get_all_pools_size_counts():
         c += count
 
     result = pools
-    msg = 'There is/are %d pools ({data_path}) holding %d products. %.1d MB.' % \
-        (len(pools), c, s/1000000)
+    msg = 'There is/are %d pools (%s) holding %d products. %.1d MB.' % \
+        (len(pools), data_path, c, s/1000000)
     code = 200
     return resp(code, result, msg, ts)
 

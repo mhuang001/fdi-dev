@@ -19,7 +19,7 @@ FORCED = (503, 504, 408, 413, 429)
 # default DEFAULT_ALLOWED_METHODS = frozenset({'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PUT', 'TRACE'})
 # METHODS = ("POST", "PUT", "HEAD", "GET", "OPTIONS")
 METHODS = ("PUT", "GET")
-MAX_RETRY = 0
+MAX_RETRY = 3
 
 
 def requests_retry_session(

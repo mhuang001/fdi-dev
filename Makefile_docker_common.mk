@@ -5,6 +5,9 @@ DKRREPO = registry.cn-beijing.aliyuncs.com/svom
 NETWORK = host
 ########
 
+SERVER_LOCAL_DATAPATH   = /var/www/httppool_server/data
+SERVER_LOCAL_POOLPATH   = $(SERVER_LOCAL_DATAPATH)/$(API_VERSION)
+
 docker_version: FORCE
 	date +v%y%m%d_%H%M >| docker_version
 DOCKER_VERSION  = $(shell if [ -f docker_version ]; then cat docker_version; fi)
@@ -60,7 +63,7 @@ build_server:
 launch_server:
 	SN=$(SERVER_NAME)$$(date +'%s') && \
 	docker run -dit --network=$(NETWORK) \
-	--mount source=httppool,target=$(SERVER_LOCAL_POOLPATH) \
+	--mount source=httppool,target=$(SERVER_LOCAL_DATAPATH) \
 	--mount source=log,target=/var/log_mounted \
 	--env-file $(SECFILE_SERV) \
 	--add-host dev:127.0.0.1 \

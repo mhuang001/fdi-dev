@@ -28,6 +28,7 @@ from requests.auth import HTTPBasicAuth
 import asyncio
 import aiohttp
 from aiohttp.client_reqrep import ClientResponse
+from aiohttp import ClientTimeout
 
 import functools
 import logging
@@ -62,6 +63,8 @@ defaulturl = getConfig('poolurl:')
 
 pccnode = pcc
 
+aio_session = None
+""" the async io session for this app """
 
 class ServerError(Exception):
     def __init__(self, r, *args, rsps=None, code=None, **kwds):
@@ -206,12 +209,14 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
     if no_retry_controls or MAX_RETRY == 0:
         return method(api, *args, **kwds)
 
+    err = []
     for n in range(MAX_RETRY):
         try:
             res = method(api, *args, **kwds)
             if res.status_code not in FORCED:
                 break
         except ConnectionError as e:
+            err.append(e)
             if isinstance(e.__context__, ProtocolError):
                 pass
             else:
@@ -223,7 +228,9 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
 
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(
-            f'Resp {n} retries, hist:{res.history}, {getattr(res.request,"path","")} {method.__func__.__qualname__}')
+            f'Resp {n} retries'+\
+            ', hist:{res.history}, {getattr(res.request,"path","")} {method.__func__.__qualname__}' \
+            if res else ' failed.')
 
     return res
 
@@ -623,7 +630,6 @@ def reqst(meth, apis, *args, server_type='httppool', return_request=False, **kwd
     --------
     FIXME: Add docs.
     """
-
     if isinstance(meth, str):
         # use AIO
         content = aio_client(meth, apis, *args, **kwds)
@@ -680,10 +686,16 @@ def aio_client(method_name, apis, data=None, headers=None,
         raise TypeError('None of the parameters is a list or a tuple.')
 
     async def multi():
-        aio_session = aiohttp.ClientSession()
+        global aio_session
+        if aio_session is None:
+            tout = ClientTimeout(total=5*60, connect=None,
+                      sock_connect=3, sock_read=None)
+            aio_session = aiohttp.ClientSession(timeout=tout)
         async with aio_session as session:
             tasks = []
             method = getattr(session, method_name)
+            max_retries = 5
+            attempt = 0
             for n in range(cnt):
                 a = apis[n] if alist else apis
                 d = data[n] if dlist else data
@@ -696,14 +708,24 @@ def aio_client(method_name, apis, data=None, headers=None,
                         get_aio_result(method, a, headers=h, **kwds)))
                 else:
                     raise ValueError(f"Unknown AIO method {method_name}.")
-                content = await asyncio.gather(*tasks)
+                while True:
+                    try:
+                        content = await asyncio.gather(*tasks)
+                    except (
+                        aiohttp.ClientOSError,
+                        aiohttp.ServerDisconnectedError,
+                    ):
+                        if attempt < max_retries:
+                            attempt += 1
+                        else:
+                            raise
 
             if logger.isEnabledFor(logging_DEBUG):
                 logger.debug(f'AIO {method_name} return {len(content)} items')
             return content
 
-    res = asyncio.run(multi())
-    return res
+            res = asyncio.run(multi())
+            return res
 
 
 @ functools.lru_cache(maxsize=256)

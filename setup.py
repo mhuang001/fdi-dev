@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 _locals = {}
 with open('fdi/_version.py') as fp:
     exec(fp.read(), None, _locals)
-version = _locals['__revision__']
+version = _locals['__version__']
 
 pkgd = os.path.dirname(__file__)
 

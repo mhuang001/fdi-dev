@@ -34,7 +34,7 @@ author = 'Maohai Huang'
 _locals = {}
 with open('../../fdi/_version.py') as fp:
     exec(fp.read(), None, _locals)
-release = _locals['__version__']
+release = _locals['__revision__']
 
 
 # -- General configuration ---------------------------------------------------

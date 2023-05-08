@@ -5,7 +5,7 @@
 
 from .route.getswag import swag
 
-from .._version import __version__
+from .._version import __version__, __revision__
 from ..utils import getconfig
 from ..utils.common import (getUidGid,
                             trbk,
@@ -370,7 +370,7 @@ def create_app(config_object=None, level=None, logstream=None):
     # app.logger.removeHandler(default_handler)
 
     app.config['SWAGGER'] = {
-        'title': 'FDI %s HTTPpool Server' % __version__,
+        'title': 'FDI %s HTTPpool Server' % __revision__,
         'universion': 3,
         'openapi': '3.0.4',
         'specs_route': '/apidocs/',

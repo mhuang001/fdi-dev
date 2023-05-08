@@ -29,6 +29,14 @@ import asyncio
 import aiohttp
 from aiohttp.client_reqrep import ClientResponse
 from aiohttp import ClientTimeout
+from aiohttp_retry import RetryClient
+from aiohttp_retry import (
+    ExponentialRetry,
+    FibonacciRetry,
+    JitterRetry,
+    ListRetry,
+    RandomRetry,
+)
 
 import functools
 import logging
@@ -65,6 +73,7 @@ pccnode = pcc
 
 aio_session = None
 """ the async io session for this app """
+
 
 class ServerError(Exception):
     def __init__(self, r, *args, rsps=None, code=None, **kwds):
@@ -228,8 +237,8 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
 
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(
-            f'Resp {n} retries'+\
-            ', hist:{res.history}, {getattr(res.request,"path","")} {method.__func__.__qualname__}' \
+            f'Resp {n} retries' +
+            ', hist:{res.history}, {getattr(res.request,"path","")} {method.__func__.__qualname__}'
             if res else ' failed.')
 
     return res
@@ -584,13 +593,6 @@ def content2result_csdb(content):
     return res if alist else res[0]
 
 
-async def get_aio_result(method, *args, **kwds):
-    async with method(*args, **kwds) as resp:
-        # print(type(resp),dir(resp))
-        con = await resp.text()
-        return resp.status, con, resp.url.raw_path_qs
-
-
 def reqst(meth, apis, *args, server_type='httppool', return_request=False, **kwds):
     """send session, requests, aiohttp requests.
 
@@ -654,8 +656,24 @@ def reqst(meth, apis, *args, server_type='httppool', return_request=False, **kwd
     return res
 
 
+async def get_aio_result(method, *args, **kwds):
+    async with method(*args, **kwds) as resp:
+        # print(type(resp),dir(resp))
+        con = await resp.text()
+        return resp.status, con, resp.url.raw_path_qs
+
+
+# async def get_aio_retry_result(method, *args, **kwds):
+#     async with method(*args, **kwds) as resp:
+#         # print(type(resp),dir(resp))
+#         con = await resp.text()
+#         return resp.status, con, resp.url.raw_path_qs
+
+
 def aio_client(method_name, apis, data=None, headers=None,
-               no_retry_controls=True, **kwds):
+               no_retry_controls=False,
+               raise_for_status=False,
+               **kwds):
     """
     Parameters
     ----------
@@ -663,6 +681,8 @@ def aio_client(method_name, apis, data=None, headers=None,
          name ofurllib3 Session or requests function such as `"get"`.
     no_retry_controls: bool
          without retry controls. Default `True`.
+    raise_for_status: bool
+         Defalut `False`.
 
     Returns
     -------
@@ -686,46 +706,67 @@ def aio_client(method_name, apis, data=None, headers=None,
         raise TypeError('None of the parameters is a list or a tuple.')
 
     async def multi():
-        global aio_session
-        if aio_session is None:
-            tout = ClientTimeout(total=5*60, connect=None,
-                      sock_connect=3, sock_read=None)
-            aio_session = aiohttp.ClientSession(timeout=tout)
+        # global aio_session
+        # aio_session = None
+        if no_retry_controls:
+            if 1 or aio_session is None or not issubclass(aio_session.__class__, aiohttp.ClientSession):
+                tout = ClientTimeout(total=5*10, connect=10,
+                                     sock_connect=3, sock_read=8)
+                aio_session = aiohttp.ClientSession(timeout=tout)
+        else:
+            if 1 or aio_session is None or aio_session._closed or not issubclass(aio_session.__class__, RetryClient):
+                retry_options = ExponentialRetry(attempts=MAX_RETRY)
+                client = aiohttp.ClientSession()
+                # client = await aiohttp_client( app, raise_for_status=raise_for_status)
+                retry_client = RetryClient(
+                    client_session=client, retry_options=retry_options)
+                aio_session = retry_client
         async with aio_session as session:
             tasks = []
             method = getattr(session, method_name)
-            max_retries = 5
-            attempt = 0
+            print('****', method)
             for n in range(cnt):
                 a = apis[n] if alist else apis
                 d = data[n] if dlist else data
                 h = headers[n] if hlist else headers
                 if method_name == 'post':
-                    tasks.append(asyncio.ensure_future(
-                        get_aio_result(method, a, data=d, headers=h, **kwds)))
+                    if no_retry_controls:
+                        tasks.append(asyncio.ensure_future(
+                            get_aio_result(method, a, data=d, headers=h, **kwds)))
+                    else:
+                        tasks.append(asyncio.ensure_future(
+                            get_aio_result(method, a, data=d, headers=h, **kwds)))
                 elif method_name in ('get', 'delete'):
-                    tasks.append(asyncio.ensure_future(
-                        get_aio_result(method, a, headers=h, **kwds)))
+                    if no_retry_controls:
+                        tasks.append(asyncio.ensure_future(
+                            get_aio_result(method, a, headers=h, **kwds)))
+                    else:
+                        tasks.append(asyncio.ensure_future(
+                            get_aio_result(method, a, headers=h, **kwds)))
                 else:
                     raise ValueError(f"Unknown AIO method {method_name}.")
-                while True:
-                    try:
-                        content = await asyncio.gather(*tasks)
-                    except (
-                        aiohttp.ClientOSError,
-                        aiohttp.ServerDisconnectedError,
-                    ):
-                        if attempt < max_retries:
-                            attempt += 1
-                        else:
-                            raise
+
+                content = await asyncio.gather(*tasks)
 
             if logger.isEnabledFor(logging_DEBUG):
                 logger.debug(f'AIO {method_name} return {len(content)} items')
             return content
 
-            res = asyncio.run(multi())
-            return res
+    res = asyncio.run(multi())
+    return res
+
+
+async def get_retry_client(
+    aiohttp_client,
+    raise_for_status=False,
+    retry_options=None,
+):
+
+    client = await aiohttp_client(app, raise_for_status=raise_for_status)
+
+    retry_client = RetryClient(
+        client_session=client, retry_options=retry_options)
+    return retry_client, test_app
 
 
 @ functools.lru_cache(maxsize=256)

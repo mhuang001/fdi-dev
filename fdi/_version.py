@@ -1,6 +1,8 @@
-__version_info__ = (1, 30, 4)
+__version_info__ = (1, 31, 0)
 __version__ = '.'.join(map(str, __version_info__))
+__revision__ = 'unkown'
 
+# 1.31.0 add revision log. add aiohttp_retry
 # 1.30.4 fix for dockerbuilding
 # 1.30.3 data included in wheel. test_schema not fixed when package installed.
 # 1.30.2 common::find_all_files and makeSchemaStore accept imported packages.

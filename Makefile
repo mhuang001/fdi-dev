@@ -193,6 +193,10 @@ vtag:
 	git tag  $(VERSION)
 	git push origin $(VERSION)
 
+REVISION = UNKNOWN-REV
+rev:
+	@ echo  revision = \"$(REVISION)\"
+	sed -i.old "/^__revision__ *=/c__revision__ = \'$(REVISION)\'" $(VERSIONFILE)
 FORCE:
 
 ########

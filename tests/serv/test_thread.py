@@ -85,10 +85,17 @@ def xtest_cio_post(num_pool):
     print("--- %s seconds ---" % (time.time() - start_time))
     assert len(urns) == Number
     res = []
+    out = ''
     for n in range(Number):
         idx = int(urns[n].rsplit(':', 1)[1])
-        print(f"{n} {idx}", end=' ')
-
+        out += f"{n} idx={idx} "
+    logger.debug(out)
+    print('test urn in /tmp/testurn')
+    for n in range(Number):
+        idx = int(urns[n].rsplit(':', 1)[1])
+        out += f"{n} idx={idx} "
+    logger.debug(out)
+    print('test urn in /tmp/testurn')
     with open('/tmp/testurn', 'w') as f:
         json.dump(urns, f)
 
@@ -106,10 +113,13 @@ def test_cio_post2(num_pool):
     print("--- %s seconds ---" % (time.time() - start_time))
     assert len(urns) == Number
     res = []
+    out = ''
     for n in range(Number):
         idx = int(urns[n].rsplit(':', 1)[1])
-        print(f"{n} {idx}", end=' ')
-
+        out += f"{n}: {idx}"
+        out += '\n' if n % 10 == 0 else ' '
+    logger.debug(out)
+    print('test urn in /tmp/testurn')
     with open('/tmp/testurn', 'w') as f:
         json.dump(urns, f)
 
@@ -174,10 +184,13 @@ def test_cio_read2(num_pool):
     assert len(urns) == Number
     print("--- %s seconds ---" % (time.time() - start_time))
 
+    out = ''
     for n in range(Number):
         idx = int(urns[n].rsplit(':', 1)[1])
         p = res[n]
-        print(f"{n} {p.description} {idx}", end=' ')
+        out += f"{n} {p.description} {idx}"
+        out += '\n' if n % 10 == 0 else ' '
+    logger.debug(out)
 
 
 def test_cio_remove2(num_pool):

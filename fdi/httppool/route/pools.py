@@ -9,7 +9,7 @@ from .httppool_server import (
 # from .. import auth
 from ..model.user import auth
 
-from ..._version import __version__
+from ..._version import __version__, __revision__
 from ...dataset.deserialize import deserialize_args, deserialize
 from ...pal.poolmanager import PM_S
 from ...pal.productpool import PoolNotFoundError
@@ -78,8 +78,8 @@ def get_pools_url():
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug(lru)
 
-    msg = '%d pools found. Versiosn: fdi %s docker %s pool server %s' % (
-        len(result), __version__, dvers, svers)
+    msg = '%d pools found. Version: fdi %s docker %s pool server %s' % (
+        len(result), __revision__, dvers, svers)
     code = 200
     return resp(code, res, msg, ts)
 

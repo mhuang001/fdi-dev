@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 _locals = {}
 with open('fdi/_version.py') as fp:
     exec(fp.read(), None, _locals)
-version = _locals['__version__']
+version = _locals['__revision__']
 
 pkgd = os.path.dirname(__file__)
 
@@ -78,7 +78,8 @@ setup(
             'Werkzeug[watchdog]',
             'uwsgi>=2.0.20',
             'flasgger>=0.9.5',
-            'aiohttp>=3.8.3'
+            'aiohttp>=3.8.3',
+            'aiohttp_retry>=2.8.3',
         ],
         'SCI': [
             'astropy>=5.2.1'

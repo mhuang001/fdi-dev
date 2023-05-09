@@ -108,7 +108,7 @@ def test_cio_post2(num_pool):
 
     start_time = time.time()
     purls = [poolurl] * len(plist)
-    urns = reqst('post', apis=purls, data=plist, headers=header)
+    urns = reqst('post', apis=purls, data=plist, headers=header, auth=None, no_retry_controls=True)
 
     print("--- %s seconds ---" % (time.time() - start_time))
     assert len(urns) == Number
@@ -179,7 +179,7 @@ def test_cio_read2(num_pool):
     start_time = time.time()
 
     apis = [aburl+'/'+u for u in urns]
-    res = reqst('get', apis=apis, headers=header)
+    res = reqst('get', apis=apis, headers=header, auth=None, no_retry_controls=True)
 
     assert len(urns) == Number
     print("--- %s seconds ---" % (time.time() - start_time))
@@ -201,7 +201,7 @@ def test_cio_remove2(num_pool):
     start_time = time.time()
 
     apis = [aburl+'/'+u for u in urns]
-    res = reqst('delete', apis=apis, headers=header)
+    res = reqst('delete', apis=apis, headers=header, auth=None, no_retry_controls=True)
 
     print("--- %s seconds --- %d" % (time.time() - start_time, len(res)))
     assert len(res) == Number

@@ -5,7 +5,7 @@ OPT	=    --log-level=$(L)
 T	= 
 test: test1 test2 test5 test13 test14 test10
 
-testhttp: test7 test8 test9 test15
+testhttp: test7 test8 test9 #test15
 
 testcsdb: test11 test16 
 

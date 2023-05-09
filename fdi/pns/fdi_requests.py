@@ -707,16 +707,18 @@ def aio_client(method_name, apis, data=None, headers=None,
 
     async def multi():
         # global aio_session
-        # aio_session = None
+        aio_session = None
+        if aio_session is None or aio_session._closed:
+                tout = ClientTimeout(total=5*10, connect=5, sock_connect=3, sock_read=8)
+                client = aiohttp.ClientSession(timeout=tout, **kwds)
         if no_retry_controls:
-            if 1 or aio_session is None or not issubclass(aio_session.__class__, aiohttp.ClientSession):
-                tout = ClientTimeout(total=5*10, connect=10,
-                                     sock_connect=3, sock_read=8)
-                aio_session = aiohttp.ClientSession(timeout=tout)
+            aio_session = client
         else:
-            if 1 or aio_session is None or aio_session._closed or not issubclass(aio_session.__class__, RetryClient):
-                retry_options = ExponentialRetry(attempts=MAX_RETRY)
-                client = aiohttp.ClientSession()
+            if aio_session is None or aio_session._closed or not issubclass(aio_session.__class__, RetryClient):
+                if 0:
+                    retry_options = ExponentialRetry(attempts=MAX_RETRY)
+                else:
+                    retry_options = RandomRetry(attempts=MAX_RETRY)
                 # client = await aiohttp_client( app, raise_for_status=raise_for_status)
                 retry_client = RetryClient(
                     client_session=client, retry_options=retry_options)

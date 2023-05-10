@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.2
 
 FROM fdi:latest
-# 0.2-6 M. Huang <mhuang@nao.cas.cn>
+# 0.2-7 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 
 USER root
@@ -15,7 +15,6 @@ RUN echo ${re} > /tmp/rebuild_mark
 
 # setup user
 ARG USR=fdi
-# home is fdi git home
 ARG UHOME=/home/${USR}
 
 ARG LOGGER_LEVEL=10
@@ -42,7 +41,6 @@ RUN umask 0002 \
 
 USER root
 WORKDIR ${UHOME}
-# use fdi's virtual env path. this effectively activates fdi's virtuakenv
 RUN echo ${PATH}
 
 # setup config files
@@ -58,11 +56,9 @@ RUN mkdir -p ${PNS_SERVER_LOCAL_POOLPATH}
 # /var/log will on volume and the touched log files here will not be accessible.
 RUN mkdir -p /var/log/uwsgi \
 && touch /var/log/uwsgi/uwsgi.log \
-&& touch /var/log/uwsgi/access.log \
-&& touch /var/log/uwsgi/error.log \
+&& touch /var/log/uwsgi/errlog \
 && ln -s /var/log/uwsgi/uwsgi.log . \
-&& ln -s /var/log/uwsgi/access.log . \
-&& ln -s /var/log/uwsgi/error.log . \
+&& ln -s /var/log/uwsgi/errlog . \
 && ln -s  ${PNS_SERVER_LOCAL_POOLPATH} data
 
 # Change user, configure permission
@@ -92,7 +88,7 @@ ENTRYPOINT  ["/home/fdi/httppool_server_entrypoint_uwsgi.sh"]
 
 CMD ["uwsgi", "--ini", "httppool_server_uwsgi.ini"]
 
-RUN rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
+RUN rm -rf /tmp/test* /tmp/data
 
 ARG SERVER_VERSION
 LABEL PoolServer ${SERVER_VERSION}

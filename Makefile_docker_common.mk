@@ -179,11 +179,7 @@ update_docker:
 	(\
 	$(MAKE) rm_docker &&\
 	$(MAKE) docker_version &&\
-	rm -f $(st_WHEELS)/fdi*  &&\
-	python3 -m pip uninstall fdi -y &&\
-	python3 -m pip wheel $(PIPOPT) --wheel-dir $(st_WHEELS) -e .[DEV,SERV,SCI] &&\
-	#python3 -m pip install -e .[DEV,SERV,SCI] $(PIPOPT) &&\
-	#rm $(st_WHEELS)/fdi* &&\
+	$(MAKE) PROJ-INSTALL &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\

@@ -82,6 +82,7 @@ elif conf == 'production':
     pnsconfig['ro_user'] = 'bar'
     pnsconfig['ro_pass'] = 'pbkdf2:sha256:260000$8vrAxZeeJJhTrZLQ$70fd3819d62bb46fe89fc1cd933fb8052e83da75d66624b6146f105288be0bfd'
 
+    pnsconfig['baseurl'] = '/fdi-dev/v0.16'
     # (reverse) proxy_fix
     # pnsconfig['proxy_fix'] = dict(x_for=1, x_proto=1, x_host=1, x_prefix=1)
 

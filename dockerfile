@@ -84,10 +84,10 @@ ARG PIPOPT="--cache-dir ${PIPCACHE} -f ${PIPWHEELS} --disable-pip-version-check"
 
 # update pip
 RUN umask 0002 ; echo ${PIPOPT} \
-&& python3 -m pip install pip setuptools ${PIPOPT} -U 
+&& python${PYTHON_VER} -m pip install pip setuptools ${PIPOPT} -U 
 
-RUN python3 -c 'import sys;print(sys.path)' \
-&&  python3 -m pip list --format=columns \
+RUN python${PYTHON_VER} -c 'import sys;print(sys.path)' \
+&&  python${PYTHON_VER} -m pip list --format=columns \
 && which pip \
 && which python3
 # ;cat .venv/bin/pip
@@ -100,8 +100,8 @@ RUN cat profile >> .bashrc && rm profile
 ### ADD .ssh ${UHOME}/.ssh
 
 # config python.
-#if venv is made with 'python3', python3 link needs to be made
-# RUN ln -s /usr/bin/python3 ${FDIVENV}/bin/python3
+#if venv is made with 'python3', python${PYTHON_VER} link needs to be made
+# RUN ln -s /usr/bin/python${PYTHON_VER} ${FDIVENV}/bin/python3
 
 # Configure permissions
 #RUN for i in ${UHOME}/; do chown -R ${USR}:${USR} $i; echo $i; done 
@@ -129,7 +129,7 @@ RUN mkdir -p ${UHOME}/.config \
 && cp fdi/fdi/pns/config.py ${UHOME}/.config/pnslocal.py
 
 
-RUN rm -rf /tmp/test* /tmp/data ${PIPCACHE} ${PIPWHEELS}
+RUN rm -rf /tmp/test* /tmp/data
 
 WORKDIR ${UHOME}
 

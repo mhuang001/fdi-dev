@@ -1,6 +1,6 @@
 __version_info__ = (1, 31, 0)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.31.0-6-g522bb1c'
+__revision__ = '1.31.0-7-ga12dff9'
 
 # 1.31.0 add revision log. add aiohttp_retry
 # 1.30.4 fix for dockerbuilding

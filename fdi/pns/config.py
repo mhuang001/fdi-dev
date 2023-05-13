@@ -42,14 +42,22 @@ conf = ['dev', 'production'][1]
 # https://requests.readthedocs.io/en/latest/user/advanced/?highlight=keep%20alive#timeouts
 pnsconfig['requests_timeout'] = (3.3, 909)
 
+# nominal username, passwd, flask ip, flask port.
+# For test clients. the username/password must match rw
+pnsconfig['username'] = 'foo'
+pnsconfig['password'] = 'bar'
+pnsconfig['host'] = '127.0.0.1'
+pnsconfig['port'] = 9885
+
 # modify
 if conf == 'dev':
-    # username, passwd, flask ip, flask port.
-    # For test clients. the username/password must match rw
-    pnsconfig['username'] = 'foo'
-    pnsconfig['password'] = 'bar'
-    pnsconfig['host'] = '127.0.0.1'
-    pnsconfig['port'] = 9885
+    # In place of a frozen user DB for backend server and test.
+    # **** CHANGE rw/ro_... values on production deployment
+    pnsconfig['rw_user'] = pnsconfig['username']
+    pnsconfig['rw_pass'] = 'pbkdf2:sha256:260000$CMSfHEQMBKrIRbUx$2ecb5bb7d64b0b554238194046531612898ef28eef2d870d45309a91fceae655'
+
+    pnsconfig['ro_user'] = pnsconfig['password']
+    pnsconfig['ro_pass'] = 'pbkdf2:sha256:260000$8vrAxZeeJJhTrZLQ$70fd3819d62bb46fe89fc1cd933fb8052e83da75d66624b6146f105288be0bfd'
 
     # server's own in the context of its os/fs/globals
     pnsconfig['self_host'] = pnsconfig['host']
@@ -57,32 +65,27 @@ if conf == 'dev':
     pnsconfig['self_username'] = 'USERNAME'
     pnsconfig['self_password'] = 'ONLY_IF_NEEDED'
     pnsconfig['base_local_poolpath'] = '/tmp'
+    # For server. needed for test_pal so this should point to a locally
+    # writeable dir. If needed to change for a server, do it with
+    # an environment var.
     pnsconfig['server_local_poolpath'] = '/tmp/data'  # For server
 
-    # In place of a frozen user DB for backend server and test.
+elif conf == 'production':
     pnsconfig['rw_user'] = 'foo'
     pnsconfig['rw_pass'] = 'pbkdf2:sha256:260000$V1hXW8OVUKekaSHP$85b21f4fb0a3c6f0eef73165538d7aab7881ce8acc48c4af59fd33edd8bf13f2'
-
     pnsconfig['ro_user'] = 'bar'
     pnsconfig['ro_pass'] = 'pbkdf2:sha256:260000$8vrAxZeeJJhTrZLQ$70fd3819d62bb46fe89fc1cd933fb8052e83da75d66624b6146f105288be0bfd'
 
-elif conf == 'production':
-    pnsconfig['username'] = 'foo'
-    pnsconfig['password'] = 'bar'
-    pnsconfig['host'] = '111.111.111.111'
-    pnsconfig['port'] = 2222
+    # For server. needed for test_pal so this should point to a locally
+    # writeable dir. If needed to change for a server, do it with
+    # an environment var.
+    pnsconfig['baseurl'] = '/fdi-dev/v0.16'
 
     pnsconfig['self_host'] = '0.0.0.0'
     pnsconfig['self_port'] = 9876
     pnsconfig['self_username'] = 'fdi'
     pnsconfig['self_password'] = 'ONLY_IF_NEEDED'
 
-    pnsconfig['rw_user'] = 'foo'
-    pnsconfig['rw_pass'] = 'pbkdf2:sha256:260000$V1hXW8OVUKekaSHP$85b21f4fb0a3c6f0eef73165538d7aab7881ce8acc48c4af59fd33edd8bf13f2'
-    pnsconfig['ro_user'] = 'bar'
-    pnsconfig['ro_pass'] = 'pbkdf2:sha256:260000$8vrAxZeeJJhTrZLQ$70fd3819d62bb46fe89fc1cd933fb8052e83da75d66624b6146f105288be0bfd'
-
-    pnsconfig['baseurl'] = '/fdi-dev/v0.16'
     # (reverse) proxy_fix
     # pnsconfig['proxy_fix'] = dict(x_for=1, x_proto=1, x_host=1, x_prefix=1)
 

@@ -74,7 +74,7 @@ class User():
         return check_password_hash(self.hashed_password, plaintext_password)
 
     @staticmethod
-    @functools.lru_cache(maxsize=64)
+    @functools.lru_cache(maxsize=512)
     def hash_of(s):
         return generate_password_hash(s)
 
@@ -89,10 +89,12 @@ class User():
 
 
 def get_names2roles_mapping(pc):
-    # pc is pnsconfig from config filea
+    """ returns a mapping of {'read_write':[names]..} """
+    # pc is pnsconfig from config files
     mapping = {'read_write': [], 'read_only': []}
     for authtype in ('rw_user', 'ro_user'):
         unames = pc[authtype]
+        # can be a list.
         unames = unames if isinstance(unames, list) else [unames]
         for n in unames:
             if authtype == 'rw_user':
@@ -113,12 +115,18 @@ def getUsers(pc):
     global NAMES2ROLES
     if NAMES2ROLES is None:
         NAMES2ROLES = get_names2roles_mapping(pc)
-    users = dict(((u, User(u, None, hp,
-                           [r for r, n in NAMES2ROLES.items() if u in n]))
-                  for u, hp in ((pc['rw_user'], pc['rw_pass']),
-                                (pc['ro_user'], pc['ro_pass']))
-                  ))
+    users = {}
+    for usernames, hashed_pwd in ((pc['rw_user'], pc['rw_pass']),
+                                  (pc['ro_user'], pc['ro_pass'])):
+        for u in usernames:
+            roles = NAMES2ROLES[u]
+            users[u] = User(u, None, hashed_pwd, roles)
     return users
+    # users = dict(((u, User(u, None, hashed_pwd,
+    #                        roles=[r for r, names in NAMES2ROLES.items() if u in names]))
+    #               for u, hashed_pwd in ((pc['rw_user'], pc['rw_pass']),
+    #                            (pc['ro_user'], pc['ro_pass']))
+    #               ))
 
 
 SES_DBG = 1
@@ -422,6 +430,8 @@ def verify_password(username, password, check_session=True):
                      'check' if check_session else 'nochk',
                                       'Sess' if SESSION else 'noSess'))
     if check_session:
+        __import__("pdb").set_trace()
+
         if SESSION:
             has_session = 'user_id' in session and hasattr(
                 g, 'user') and g.user is not None

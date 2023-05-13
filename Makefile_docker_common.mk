@@ -37,12 +37,12 @@ build_docker:
 	$(D) --progress=plain .
 	$(MAKE) imlatest LATEST_NAME=$(DOCKER_NAME)
 
-launch_docker:
-	docker run -dit --network=$(NETWORK) --add-host dev:127.0.0.1 --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):latest $(LAU)
+#launch_docker:
+#	docker run -dit --network=$(NETWORK) --add-host dev:127.0.0.1 --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):latest $(LAU)
 
 test_docker:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	docker exec -it $$cid sh -c '(cd fdi; make test)'
+	docker exec -it $$cid sh -c '(cd $(DOCKER_NAME); make test)'
 
 build_server:
 	cd $(DOCKERHOME) &&\
@@ -179,14 +179,15 @@ update_docker:
 	(\
 	$(MAKE) rm_docker &&\
 	$(MAKE) docker_version &&\
-	$(MAKE) PROJ-INSTALL &&\
+	$(MAKE) PROJ-INSTALL WHEEL_INSTALL=13 I="$(I)" &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\
 	$(MAKE) test_docker &&\
 	$(MAKE) test_server &&\
-	$(MAKE) rm_docker ) 2>&1 | tee update.log
-	@echo Done. `cat docker_version`
+	$(MAKE) rm_docker &&\
+	@echo Done. `cat docker_version`) 2>&1 | tee update.log
+
 
 cleanup:
 	docker rmi -f `docker images -a|grep pool|awk 'BEGIN{FS=" "}{print $3}'`

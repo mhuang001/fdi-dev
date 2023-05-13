@@ -27,11 +27,11 @@ DOCKERHOME      =..
 FORCE:
 
 include  Makefile_docker_common.mk
-
+MKOPT	=-s -S
 PROJ-INSTALL:
 	rm -f $(st_WHEELS)/fdi*  &&\
-	python3 -m pip uninstall fdi -y &&\
-	python3 -m pip wheel $(PIPOPT) --wheel-dir $(st_WHEELS) -e .[DEV,SERV,SCI] &&\
-	python3 -m pip install -e .[DEV,SERV,SCI] $(PIPOPT) 
+	python3 -m pip uninstall fdi -y $(I) &&\
+	python3 -m pip wheel $(PIPOPT) --wheel-dir $(st_WHEELS) -e .[DEV,SERV,SCI] $(I) &&\
+	python3 -m pip install -e .[DEV,SERV,SCI] $(PIPOPT) $(I)
 	#rm $(st_WHEELS)/fdi* &&\
 

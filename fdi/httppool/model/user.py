@@ -21,6 +21,7 @@ from flask_httpauth import HTTPBasicAuth
 import datetime
 import time
 import copy
+from collections import defaultdict
 import functools
 import logging
 
@@ -91,16 +92,16 @@ class User():
 def get_names2roles_mapping(pc):
     """ returns a mapping of {'read_write':[names]..} """
     # pc is pnsconfig from config files
-    mapping = {'read_write': [], 'read_only': []}
+    mapping = defaultdict(set)
     for authtype in ('rw_user', 'ro_user'):
         unames = pc[authtype]
         # can be a list.
         unames = unames if isinstance(unames, list) else [unames]
         for n in unames:
             if authtype == 'rw_user':
-                mapping['read_write'].append(n)
+                mapping[n].add('read_write')
             else:
-                mapping['read_only'].append(n)
+                mapping[n].add('read_only')
     return mapping
 
 
@@ -118,6 +119,8 @@ def getUsers(pc):
     users = {}
     for usernames, hashed_pwd in ((pc['rw_user'], pc['rw_pass']),
                                   (pc['ro_user'], pc['ro_pass'])):
+        if issubclass(usernames.__class__, str):
+            usernames = [usernames]
         for u in usernames:
             roles = NAMES2ROLES[u]
             users[u] = User(u, None, hashed_pwd, roles)
@@ -430,8 +433,6 @@ def verify_password(username, password, check_session=True):
                      'check' if check_session else 'nochk',
                                       'Sess' if SESSION else 'noSess'))
     if check_session:
-        __import__("pdb").set_trace()
-
         if SESSION:
             has_session = 'user_id' in session and hasattr(
                 g, 'user') and g.user is not None

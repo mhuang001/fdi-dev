@@ -199,6 +199,19 @@ rev:
 	sed -i.old "/^__revision__ *=/c__revision__ = \'$(REVISION)\'" $(VERSIONFILE)
 FORCE:
 
+gcam:
+	@echo $(VERSION)
+	@line=`grep '^ *#' $(VERSIONFILE)  | head -n 1` &&\
+	if echo $$line|grep $(VERSION)'\s' ;\
+	then msg=`echo $$line | sed -e 's/^.*$(VERSION)\s*//'` ;\
+	elif  echo $$line|grep -o '^\s*#\s*[0-9]*\.*[0-9]*\.[0-9]*'; \
+	then echo 'The first line starting with # is for another version, not '$(VERSION); exit 1; else \
+	msg=`echo $$line | sed -e 's/^#\s*//'` ; fi ;\
+	echo $$msg &&\
+	git commit -a -m "$$msg" &&\
+	sed -i.save "/$${line}/c# $(VERSION) $${msg}" $(VERSIONFILE)
+	@grep '^ *#' $(VERSIONFILE)  | head -n 1
+
 ########
 # docker
 ########

@@ -37,7 +37,8 @@ RUN echo ${PIPOPT}
 WORKDIR ${UHOME}/fdi
 # all dependents have to be from pip cache
 RUN umask 0002 \
-&& python3 -m pip install ${PIPOPT} -e .[DEV,SERV,SCI]
+&& make -S  PROJ-INSTALL WHEEL_INSTALL=4 fdi_EXT="[DEV,SERV,SCI]" I='-q'
+# && python3 -m pip install ${PIPOPT} -e .[DEV,SERV,SCI]
 
 USER root
 WORKDIR ${UHOME}

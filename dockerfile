@@ -5,6 +5,7 @@ FROM ubuntu:18.04 AS fdi
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
 ARG PYTHON_VER=3.8
+ARG PYEXE=python${PYTHON_VER}
 
 User root
 
@@ -12,10 +13,10 @@ User root
 RUN apt-get update \
 && apt-get install -y apt-utils sudo nano net-tools telnet locales graphviz  \
 && apt-get install -y git python3-pip python3.6-venv libpython3.6-dev \
-python${PYTHON_VER}-venv python${PYTHON_VER} libpython${PYTHON_VER}-dev
+${PYEXE}-venv ${PYEXE} lib${PYEXE}-dev
 
 # have to do this
-RUN ln -s /usr/lib/x86_64-linux-gnu/libpython$libpython${PYTHON_VER}.so.1.0 /usr/lib/libpython$libpython${PYTHON_VER}.so.1.0 \
+RUN ln -s /usr/lib/x86_64-linux-gnu/libpython$lib${PYEXE}.so.1.0 /usr/lib/libpython$lib${PYEXE}.so.1.0 \
 && rm -rf /var/lib/apt/lists/*
 
 # rebuild mark
@@ -27,6 +28,7 @@ RUN echo ${re} > /tmp/rebuild_mark
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/'  /etc/locale.gen \
 && locale-gen \
 && dpkg-reconfigure --frontend=noninteractive locales
+
 
 # setup user
 ARG USR=fdi
@@ -74,7 +76,7 @@ ENV PNS_LOGGER_LEVEL_EXTRAS=${LOGGER_LEVEL_EXTRAS}
 # let group access cache and bin. https://stackoverflow.com/a/46900270
 ENV FDIVENV=${UHOME}/.venv
 RUN which python3; python3 --version #; ls -l /usr/bin/py*
-RUN python${PYTHON_VER} -m venv ${FDIVENV}
+RUN ${PYEXE} -m venv ${FDIVENV}
 
 # effectively activate fdi virtual env for ${USR}
 ENV PATH="${FDIVENV}/bin:$PATH"
@@ -83,16 +85,15 @@ ENV PATH="${FDIVENV}/bin:$PATH"
 ARG PIPOPT="--cache-dir ${PIPCACHE} -f ${PIPWHEELS} --disable-pip-version-check"
 
 # update pip
-RUN umask 0002 ; echo ${PIPOPT} \
-&& python${PYTHON_VER} -m pip install pip setuptools ${PIPOPT} -U 
+WORKDIR ${UHOME}
+RUN umask 0002 \
+&& ${PYEXE} -m pip install pip setuptools ${PIPOPT} -U 
 
-RUN python${PYTHON_VER} -c 'import sys;print(sys.path)' \
-&&  python${PYTHON_VER} -m pip list --format=columns \
+RUN ${PYEXE} -c 'import sys;print(sys.path)' \
+&&  ${PYEXE} -m pip list --format=columns \
 && which pip \
 && which python3
 # ;cat .venv/bin/pip
-
-WORKDIR ${UHOME}
 
 # convenience aliases
 COPY ./fdi/fdi/httppool/resources/profile .
@@ -100,8 +101,8 @@ RUN cat profile >> .bashrc && rm profile
 ### ADD .ssh ${UHOME}/.ssh
 
 # config python.
-#if venv is made with 'python3', python${PYTHON_VER} link needs to be made
-# RUN ln -s /usr/bin/python${PYTHON_VER} ${FDIVENV}/bin/python3
+#if venv is made with 'python3', ${PYEXE} link needs to be made
+# RUN ln -s /usr/bin/${PYEXE} ${FDIVENV}/bin/python3
 
 # Configure permissions
 #RUN for i in ${UHOME}/; do chown -R ${USR}:${USR} $i; echo $i; done 
@@ -117,7 +118,8 @@ WORKDIR ${PKGS_DIR}/${PKG}
 
 # all dependents have to be from pip cache
 RUN umask 0002 \
-&& python3.8 -m pip install -e .[DEV,SCI] ${PIPOPT}
+&& make PROJ-INSTALL WHEEL_INSTALL=4 fdi_EXT="[DEV,SCI]" I="-q"
+#&& ${PYEXE} -m pip install -e .[DEV,SCI] ${PIPOPT}
 
 WORKDIR ${PKGS_DIR}
 

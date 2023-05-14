@@ -1,3 +1,5 @@
+include  Makefile_docker_common.mk
+
 DOCKER_NAME	= fdi
 DFILE	=fdi/dockerfile
 
@@ -26,12 +28,35 @@ DOCKERHOME      =..
 
 FORCE:
 
-include  Makefile_docker_common.mk
 MKOPT	=-s -S
+fdi_WHEELS	=../wheels
+fdi_PIPCACHE	= ../pipcache
+fdi_PROJ_PIPCACHE	= $(fdi_PIPCACHE)
+FPK	:=fdi
+fdi_PIPOPT	=--disable-pip-version-check --cache-dir $(fdi_PROJ_PIPCACHE) -f $(fdi_WHEELS)
+fdi_EXT	:="[DEV,SERV,SCI]"
 PROJ-INSTALL:
-	rm -f $(st_WHEELS)/fdi*  &&\
-	python3 -m pip uninstall fdi -y $(I) &&\
-	python3 -m pip wheel $(PIPOPT) --wheel-dir $(st_WHEELS) -e .[DEV,SERV,SCI] $(I) &&\
-	python3 -m pip install -e .[DEV,SERV,SCI] $(PIPOPT) $(I)
-	#rm $(st_WHEELS)/fdi* &&\
+	@echo fdi_EXT=$(fdi_EXT) fdi_PIPOPT=$(fdi_PIPOPT)
+ifeq ($(WHEEL_INSTALL), 1)
+	@echo "*** MAKE WHEEL $(FPK) ***"
+	@echo ----- `pwd`
+	rm -f $(fdi_WHEELS)/fdi*
+	#make $(MKOPT) uninstall I="$(I)"
+	python3 -m pip wheel $(fdi_PIPOPT) --wheel-dir $(fdi_WHEELS) -e .$(fdi_EXT) $(I)
+else ifeq ($(WHEEL_INSTALL), 3)
+	@echo "*** WHEEL INSTALL $(FPK) ***"
+	$(MKPRE) $(PYEXE) -m pip  install $(FPK) $(I) --no-index $(fdi_PIPOPT) 
+else ifeq ($(WHEEL_INSTALL), 13)
+	@echo "*** MAKE WHEEL $(FPK) ***"
+	@echo ----- `pwd`
+	rm -f $(fdi_WHEELS)/fdi*
+	#make $(MKOPT) uninstall I="$(I)"
+	python3 -m pip wheel $(fdi_PIPOPT) --wheel-dir $(fdi_WHEELS) -e .$(fdi_EXT) $(I)
+	python3 -m pip install -e .$(fdi_EXT) $(fdi_PIPOPT) $(I)
+else ifeq ($(WHEEL_INSTALL), 4)
+	@echo "*** DEV INSTALL $(FPK) ***"
+	@echo ----- `pwd`
+	python3 -m pip install -e .$(fdi_EXT) $(fdi_PIPOPT) $(I)
+endif
+	#rm $(fdi_WHEELS)/fdi* &&\
 

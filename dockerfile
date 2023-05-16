@@ -6,6 +6,7 @@ FROM ubuntu:18.04 AS fdi
 #ARG DEBIAN_FRONTEND=noninteractive
 ARG PYTHON_VER=3.8
 ARG PYEXE=python${PYTHON_VER}
+ENV PYEXE=${PYEXE}
 
 User root
 
@@ -32,29 +33,50 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/'  /etc/locale.gen \
 
 # setup user
 ARG USR=fdi
+ENV USR=${USR}
 ARG UHOME=/home/${USR}
+ENV UHOME=${UHOME}
+ENV PKGS_DIR=/home/${USR}
+
 ARG PKG=fdi
+
+ARG LOGGER_LEVEL=30
+ENV PNS_LOGGER_LEVEL=${LOGGER_LEVEL}
+
 WORKDIR ${UHOME}
 
 # add user
 RUN groupadd ${USR} && useradd -g ${USR} ${USR} -m --home=${UHOME} -G sudo -K UMASK=002\
 && /bin/echo -e '\n'${USR} ALL = NOPASSWD: ALL >> /etc/sudoers
 
-# get passwords etc from ~/.secret
+RUN mkdir -p -m 0700 ${UHOME}/.ssh
+RUN --mount=type=secret,id=sshpri sudo cp /run/secrets/sshpri ${UHOME}/.ssh/id_rsa
+RUN --mount=type=secret,id=sshpub sudo cp /run/secrets/sshpub ${UHOME}/.ssh/id_rsa.pub
+RUN sudo chown -R ${USR}:${USR} ${UHOME}/.ssh
+RUN cp ${UHOME}/.ssh/id_rsa.pub ${UHOME}/.ssh/authorized_keys \
+&& chmod 0600 ${UHOME}/.ssh/* \
+&& ls -l ${UHOME}/.ssh
+
+#&& echo xxx cat ${UHOME}/.ssh/id_rsa
+
+# get passwords etc from ~/.secret with old method
 # RUN --mount=type=secret,id=envs sudo cp /run/secrets/envs . 
+
+RUN umask 0002 ; pwd; echo ${PIPOPT} ----\
+&& python3 -m pip install -U pip setuptools
 
 RUN sudo chown -R ${USR}:${USR} .
 
 # Run as user
 USER ${USR}
 
-# If install fdi package
-ENV PKGS_DIR=${UHOME}
 RUN umask 0002
 
 # copy fdi and .venv over
 ARG PIPCACHE=${UHOME}/pipcache
+ENV PIPCACHE=${UHOME}/pipcache
 ARG PIPWHEELS=${UHOME}/wheels
+ENV PIPWHEELS=${UHOME}/wheels
 ADD --chown=${USR}:${USR} pipcache ${PIPCACHE}
 ADD --chown=${USR}:${USR} wheels ${PIPWHEELS}
 ADD --chown=${USR}:${USR} fdi ${UHOME}/fdi
@@ -67,6 +89,7 @@ ARG LOCALE=en_US.UTF-8
 ENV LC_ALL=${LOCALE}
 ENV LC_CTYPE=${LOCALE}
 ENV LANG=${LOCALE}
+
 ARG LOGGER_LEVEL=10
 ENV PNS_LOGGER_LEVEL=${LOGGER_LEVEL}
 ARG LOGGER_LEVEL_EXTRAS=30
@@ -98,7 +121,6 @@ RUN ${PYEXE} -c 'import sys;print(sys.path)' \
 # convenience aliases
 COPY ./fdi/fdi/httppool/resources/profile .
 RUN cat profile >> .bashrc && rm profile
-### ADD .ssh ${UHOME}/.ssh
 
 # config python.
 #if venv is made with 'python3', ${PYEXE} link needs to be made
@@ -107,9 +129,6 @@ RUN cat profile >> .bashrc && rm profile
 # Configure permissions
 #RUN for i in ${UHOME}/; do chown -R ${USR}:${USR} $i; echo $i; done 
 #RUN chown ${USR}:${USR} ${PKGS_DIR}
-### ADD .ssh ${UHOME}/.ssh
-### RUN chmod 700 -R ${UHOME}/.ssh
-### RUN ls -la ${UHOME}/.ssh
 
 # install fdi
 ARG fd=rebuild
@@ -142,5 +161,5 @@ ENTRYPOINT  ["/home/fdi/dockerfile_entrypoint.sh"]
 CMD ["/bin/bash"]
 
 ARG DOCKER_VERSION
-LABEL fdi ${DOCKER_VERSION}
 ENV PNS_DOCKER_VERSION=${DOCKER_VERSION}
+LABEL fdi ${PNS_DOCKER_VERSION}

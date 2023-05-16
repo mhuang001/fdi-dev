@@ -1,10 +1,16 @@
-PYEXE   = python3
+
+.PHONY: i, t
+
+PYEXE   = python3.8
 LATEST  =im:latest
 DKRREPO = mhastro
 DKRREPO = registry.cn-beijing.aliyuncs.com/svom
 NETWORK = host
+SSHIDpri = $(HOME)/.ssh/id_rsa
+SSHIDpub = $(HOME)/.ssh/id_rsa.pub
 ########
 
+API_VERSION= $(shell python -m fdi.utils.getconfig api_version)
 SERVER_LOCAL_DATAPATH   = /var/www/httppool_server/data
 SERVER_LOCAL_POOLPATH   = $(SERVER_LOCAL_DATAPATH)/$(API_VERSION)
 
@@ -21,12 +27,14 @@ imlatest:
 	docker tag $(LATEST_NAME):$(LATEST_VERSION) $(LATEST_NAME):latest
 
 build_docker:
-	@echo Building $(DOCKER_VERSION) $(SECFILE)
+	@echo Building $(DOCKER_VERSION) $(SECFILE) with $(SSHID)
 	cp docker_version cpfoo; mv -f cpfoo $(DOCKERHOME)/docker_version &&\
 	cd $(DOCKERHOME) &&\
 	DOCKER_BUILDKIT=1 docker build -t $(DOCKER_NAME):$(DOCKER_VERSION) \
 	--network=$(NETWORK) \
 	--secret id=envs,src=$(SECFILE) \
+	--secret id=sshpri,src=$(SSHIDpri) \
+	--secret id=sshpub,src=$(SSHIDpub) \
 	--build-arg fd=$(fd) \
 	--build-arg  re=$(re) \
 	--build-arg TEST_OPTS='' \
@@ -36,19 +44,17 @@ build_docker:
 	-f $(DFILE) \
 	$(D) --progress=plain .
 	$(MAKE) imlatest LATEST_NAME=$(DOCKER_NAME)
-
+	#--ssh default=$$SSH_AUTH_SOCK,uid=$$(id -u) \
 #launch_docker:
 #	docker run -dit --network=$(NETWORK) --add-host dev:127.0.0.1 --env-file $(SECFILE) --name $(DOCKER_NAME) $(D) $(DOCKER_NAME):latest $(LAU)
-
-test_docker:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	docker exec -it $$cid sh -c '(cd $(DOCKER_NAME); make test)'
 
 build_server:
 	cd $(DOCKERHOME) &&\
 	DOCKER_BUILDKIT=1 docker build -t $(SERVER_NAME):$(SERVER_VERSION) \
 	--network=$(NETWORK) \
 	--secret id=envs,src=$(SECFILE_SERV) \
+	--secret id=sshpri,src=$(SSHIDpri) \
+	--secret id=sshpub,src=$(SSHIDpub) \
 	--build-arg SERVER_LOCAL_POOLPATH=$(SERVER_LOCAL_POOLPATH) \
 	--build-arg fd=$(fd) \
 	--build-arg re=$(re) \
@@ -83,9 +89,6 @@ launch_test_server:
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)
 	$(MAKE) launch_server PORT=$(TEST_PORT) EXTPORT=$(TEST_PORT) LOGGER_LEVEL=$(LOGGER_LEVEL) LOGGER_LEVEL_EXTRAS=$(LOGGER_LEVEL_EXTRAS) #LATEST=mhastro/httppool
 
-test_server:
-	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
-	docker exec -it $$cid sh -c '(cd fdi; make testhttp)'
 
 rm_docker:
 	cids=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
@@ -179,15 +182,15 @@ update_docker:
 	(\
 	$(MAKE) rm_docker &&\
 	$(MAKE) docker_version &&\
-	#rm -f ../csc_wheels/svom.product*.whl ;\
-	#$(MAKE) PROJ-INSTALL CLEAN=1 WHEEL_INSTALL=13 I="$(I)" &&\
+	rm -f ../csc_wheels/svom.product*.whl ;\
+	$(MAKE) PROJ-INSTALL CLEAN=1 WHEEL_INSTALL=4 I="$(I)" &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\
 	$(MAKE) test_docker &&\
 	$(MAKE) test_server &&\
 	$(MAKE) rm_docker &&\
-	@echo Done. `cat ../docker_version`) 2>&1 | tee update.log
+	@echo Done. `pwd; cat ../docker_version`) 2>&1 | tee update.log
 
 
 cleanup:

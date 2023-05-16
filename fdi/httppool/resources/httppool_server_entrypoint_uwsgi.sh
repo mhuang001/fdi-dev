@@ -25,7 +25,7 @@ mkdir -p ${PNS_SERVER_LOCAL_POOLPATH}
 if [ ! -O ${PNS_SERVER_LOCAL_POOLPATH} ]; then \
 sudo chown -R fdi:fdi  ${PNS_SERVER_LOCAL_POOLPATH}; fi
 
-#ls -l /var/log ${PNS_SERVER_LOCAL_POOLPATH} >> ~/last_entrypoint.log
+ls -lat . /var/log ${PNS_SERVER_LOCAL_POOLPATH} >> ~/last_entrypoint.log
 				 
 date >> ~/last_entrypoint.log
 cat ~/last_entrypoint.log

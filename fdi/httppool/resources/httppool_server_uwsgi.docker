@@ -14,33 +14,24 @@ ARG re=rebuild
 RUN echo ${re} > /tmp/rebuild_mark
 
 # setup user
-ARG USR=fdi
-ARG UHOME=/home/${USR}
-
-ARG LOGGER_LEVEL=10
-ENV PNS_LOGGER_LEVEL=${LOGGER_LEVEL}
-ARG LOGGER_LEVEL_EXTRAS=30
-ENV PNS_LOGGER_LEVEL_EXTRAS=${LOGGER_LEVEL_EXTRAS}
+#ARG USR=fdi
+#ARG UHOME=/home/${USR}
 
 # install fdi
 ARG fd=rebuild
 
+ARG PKG=fdi
+
 USER $USR
-ARG PIPCACHE=${UHOME}/pipcache
-ARG PIPWHEELS=${UHOME}/wheels
 ADD --chown=${USR}:${USR} pipcache ${UHOME}/pipcache
 ADD --chown=${USR}:${USR} wheels ${UHOME}/wheels
-ARG PIPOPT=--disable-pip-version-check \
---cache-dir ${UHOME}/pipcache --no-index -f ${UHOME}/wheels 
-RUN echo ${PIPOPT}
 
-WORKDIR ${UHOME}/fdi
+WORKDIR ${PKGS_DIR}/${PKG}
 # all dependents have to be from pip cache
 RUN umask 0002 \
 && make -S  PROJ-INSTALL WHEEL_INSTALL=4 fdi_EXT="[DEV,SERV,SCI]" I='-q'
-# && python3 -m pip install ${PIPOPT} -e .[DEV,SERV,SCI]
+# && python3 -m pip install -e .[DEV,SERV,SCI]
 
-USER root
 WORKDIR ${UHOME}
 RUN echo ${PATH}
 
@@ -49,6 +40,9 @@ ARG SERVER_LOCAL_POOLPATH=/tmp/data
 ENV PNS_SERVER_LOCAL_POOLPATH=${SERVER_LOCAL_POOLPATH}
 ARG BASEURL=/fdi/v0.16
 ENV PNS_BASEURL=${BASEURL}
+
+USER root
+# this needs root prev
 RUN mkdir -p ${PNS_SERVER_LOCAL_POOLPATH}
 
 # remote-pdb https://stackoverflow.com/a/46436653/13472124
@@ -79,8 +73,7 @@ RUN cp fdi/fdi/httppool/resources/httppool_server_uwsgi.ini . \
 
 VOLUME /var/log ${PNS_SERVER_LOCAL_POOLPATH}/..
 
-RUN /bin/ls -la; echo $PATH \
-date > build
+RUN date > build
 
 ENTRYPOINT  ["/home/fdi/httppool_server_entrypoint_uwsgi.sh"]
 
@@ -92,5 +85,5 @@ CMD ["uwsgi", "--ini", "httppool_server_uwsgi.ini"]
 RUN rm -rf /tmp/test* /tmp/data
 
 ARG SERVER_VERSION
-LABEL PoolServer ${SERVER_VERSION}
 ENV PNS_SERVER_VERSION=${SERVER_VERSION}
+LABEL PoolServer ${PNS_SERVER_VERSION}

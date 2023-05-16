@@ -5,8 +5,6 @@ DFILE	=fdi/dockerfile
 
 SERVER_NAME      =httppool
 BASEURL = $(shell python -m fdi.utils.getconfig baseurl)
-
-API_VERSION	= $(shell python -m fdi.utils.getconfig api_version)
 SFILE	= fdi/fdi/httppool/resources/httppool_server_uwsgi.docker
 
 PORT        =9885
@@ -59,4 +57,12 @@ else ifeq ($(WHEEL_INSTALL), 4)
 	python3 -m pip install -e .$(fdi_EXT) $(fdi_PIPOPT) $(I)
 endif
 	#rm $(fdi_WHEELS)/fdi* &&\
+
+test_docker:
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	docker exec -it $$cid sh -c '(cd $(DOCKER_NAME); make test)'
+
+test_server:
+	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\
+	docker exec -it $$cid sh -c '(cd fdi; make testhttp)'
 

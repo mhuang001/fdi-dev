@@ -4,7 +4,6 @@ DOCKER_NAME	= fdi
 DFILE	=fdi/dockerfile
 
 SERVER_NAME      =httppool
-BASEURL = $(shell python -m fdi.utils.getconfig baseurl)
 SFILE	= fdi/fdi/httppool/resources/httppool_server_uwsgi.docker
 
 PORT        =9885

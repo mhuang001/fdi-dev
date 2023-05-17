@@ -100,7 +100,7 @@ pnsconfig['userclasses'] = ''
 pnsconfig['docker_version'] = ''
 pnsconfig['server_version'] = ''
 
-pnsconfig['cloud_token'] = '/tmp/.cloud_token'
+pnsconfig['cloud_token'] = 'TO BE FILLED'
 pnsconfig['cloud_username'] = 'mh'
 pnsconfig['cloud_password'] = ''
 pnsconfig['cloud_host'] = ''

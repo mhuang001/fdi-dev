@@ -33,7 +33,7 @@ SESSION = True
 """ Enable session. """
 
 
-LOGIN_TMPLT = 'user/login.html'
+LOGIN_TMPLT = '' # 'user/login.html'
 """ Set LOGIN_TMPLT to '' to disable the login page."""
 
 
@@ -263,7 +263,7 @@ def login():
     ts = time.time()
     FAILED = '"FAILED"' if serialize_out else 'FAILED'
     acu = auth.current_user()
-
+    msg = ''
     try:
         reqanm = request.authorization['username']
         reqaps = request.authorization['password']

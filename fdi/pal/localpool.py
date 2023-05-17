@@ -253,10 +253,6 @@ class LocalPool(ManagedPool):
         """ save the housekeeping data to disk
         """
 
-        if os.environ.get('UW_DEBUG', False) in (1, '1', 'True', True):
-            from remote_pdb import RemotePdb
-            RemotePdb('127.0.0.1', 4444).set_trace()
-
         if fp0 is None:
             fp0 = self.transformpath(self._poolname)
         l = 0

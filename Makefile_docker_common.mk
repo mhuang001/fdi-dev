@@ -10,6 +10,7 @@ SSHIDpri = $(HOME)/.ssh/id_rsa
 SSHIDpub = $(HOME)/.ssh/id_rsa.pub
 ########
 
+BASEURL = $(shell python -m fdi.utils.getconfig baseurl)
 API_VERSION= $(shell python -m fdi.utils.getconfig api_version)
 SERVER_LOCAL_DATAPATH   = /var/www/httppool_server/data
 SERVER_LOCAL_POOLPATH   = $(SERVER_LOCAL_DATAPATH)/$(API_VERSION)
@@ -182,8 +183,8 @@ update_docker:
 	(\
 	$(MAKE) rm_docker &&\
 	$(MAKE) docker_version &&\
-	rm -f ../csc_wheels/svom.product*.whl ;\
-	$(MAKE) PROJ-INSTALL CLEAN=1 WHEEL_INSTALL=4 I="$(I)" &&\
+	#rm -f ../csc_wheels/svom.product*.whl ;\
+	#$(MAKE) PROJ-INSTALL CLEAN=1 WHEEL_INSTALL=4 I="$(I)" &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .productpool import PoolNotFoundError
-from ..utils.common import pathjoin, trbk, find_all_files
+from ..utils.common import pathjoin, trbk, find_all_files, wipeLocal
 from .dicthk import HKDBS
 from .urn import makeUrn, Urn, parseUrn
 from ..dataset.deserialize import deserialize
@@ -11,7 +11,6 @@ from .managedpool import ManagedPool, MetaData_Json_Start, MetaData_Json_End
 import tarfile
 from functools import lru_cache
 import sys
-import shutil
 import mmap
 import io
 import os
@@ -29,31 +28,6 @@ else:
     PY3 = False
     strset = (str, unicode)
     from urlparse import urlparse, quote, unquote
-
-
-def wipeLocal(path, keep=True):
-    """
-    does the scheme-specific remove-all.
-
-    Parameters
-    ----------
-    keep : bool
-        If set, a new directory at `path` will be created after wiping.
-    """
-    # logger.debug()
-
-    if path == '/':
-        raise (ValueError('Do not remove root directory.'))
-
-    try:
-        if op.exists(path):
-            shutil.rmtree(path)
-            if keep:
-                os.makedirs(path)
-    except OSError as e:
-        msg = 'remove-mkdir failed. exc: %s trbk: %s.' % (str(e), trbk(e))
-        logger.error(msg)
-        raise e
 
 
 class LocalPool(ManagedPool):

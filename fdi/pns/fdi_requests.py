@@ -366,6 +366,7 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
     # headers = auth_headers(auth.username, auth.password)
     # client.headers.update(headers)
     res = reqst(client.put, api, auth=auth, timeout=TIMEOUT)
+
     if result_only:
         return res
     result = deserialize(res.text if type(res) == requests.models.Response
@@ -709,8 +710,9 @@ def aio_client(method_name, apis, data=None, headers=None,
         # global aio_session
         aio_session = None
         if aio_session is None or aio_session._closed:
-                tout = ClientTimeout(total=5*10, connect=5, sock_connect=3, sock_read=8)
-                client = aiohttp.ClientSession(timeout=tout, **kwds)
+            tout = ClientTimeout(total=5*10, connect=5,
+                                 sock_connect=3, sock_read=8)
+            client = aiohttp.ClientSession(timeout=tout, **kwds)
         if no_retry_controls:
             aio_session = client
         else:

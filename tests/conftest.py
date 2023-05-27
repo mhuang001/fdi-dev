@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from werkzeug.datastructures import Authorization
 from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.dataset.classes import Class_Look_Up
 from fdi.dataset.deserialize import deserialize
@@ -20,7 +19,6 @@ from fdi.pal.poolmanager import dbg_7types
 
 
 from flask.testing import FlaskClient
-from flask import request
 
 from requests.auth import HTTPBasicAuth
 import pytest
@@ -586,6 +584,7 @@ def auth(userpass, live_or_mock):
     if server_type == 'live':
         return HTTPBasicAuth(*userpass)
     else:
+        from werkzeug.datastructures import Authorization
         return Authorization(
             "basic", {"username": userpass[0], "password": userpass[1]})
 

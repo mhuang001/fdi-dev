@@ -197,7 +197,6 @@ REVISION = ""
 rev:
 	@ echo  revision = \"$(REVISION)\"
 	sed -i.old "/^__revision__ *=/c__revision__ = \'$(REVISION)\'" $(VERSIONFILE)
-FORCE:
 
 gcam:
 	@echo $(VERSION)
@@ -211,6 +210,8 @@ gcam:
 	git commit -a -m "$$msg" &&\
 	sed -i.save "/$${line}/c# $(VERSION) $${msg}" $(VERSIONFILE)
 	@grep '^ *#' $(VERSIONFILE)  | head -n 1
+
+FORCE:
 
 ########
 # docker

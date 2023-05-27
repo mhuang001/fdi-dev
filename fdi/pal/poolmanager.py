@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# from ..httppool import logging
+
 from ..utils.common import (lls,
                             logging_ERROR,
                             logging_WARNING,
@@ -13,7 +13,6 @@ from .urn import parse_poolurl
 from ..pal.httppool import HttpPool
 from ..pal.managedpool import ManagedPool, makeLock
 
-from werkzeug.datastructures import Authorization
 from requests.auth import HTTPBasicAuth
 from http.cookiejar import MozillaCookieJar as CookieJar
 
@@ -622,8 +621,7 @@ Pools registered are kept as long as the last reference remains. When the last i
                         # instantiate with the "normal" poolurl.
                         # set property 'secondary_poolurl' after instantiation
                         if secondary_poolurl.startswith('csdb'):
-                            setattr(pool, 'secondary_poolurl',
-                                    secondary_poolurl)
+                            pool.secondary_poolurl = secondary_poolurl
                         else:
                             # http secondary from local not implemented
                             raise TypeError(
@@ -656,8 +654,8 @@ Pools registered are kept as long as the last reference remains. When the last i
 
         if makenew and issubclass(pool.__class__, ManagedPool):
             pool.make_new()
-        if schm in ('http', 'https', 'csdb') or issubclass(cls, PM_S):
-            # remote types or all tpyes pool on a server gets a client and aut
+        if schm in ('http', 'https', 'csdb'):
+            # remote types or all tpyes pool gets a client and aut
             if auth is not None:
                 pool.auth = auth
             elif getattr(pool, 'auth', None) is None:

@@ -118,14 +118,6 @@ pnsconfig.update(dict(
     mq_pass='',
 ))
 
-# pipeline config
-pnsconfig.update(dict(
-    pipeline_host='172.17.0.1',
-    pipeline_port=9876,
-    pipeline_user='',
-    pipeline_pass='',
-))
-
 # OSS config
 pnsconfig.update(dict(
     oss_access_key_id=None,

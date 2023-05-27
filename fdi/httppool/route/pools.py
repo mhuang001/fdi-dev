@@ -519,8 +519,16 @@ def register(pool):
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(f"Registering HTTPpool @ {pool} {m}")
 
+    if ':' in pool:
+        # with secondary poolurl
+        poolurl = pool.replace(',', '/')
+        poolname = poolurl.rsplit('/', 1)[1]
+    else:
+        poolname = pool
+        poolurl = None
+    usr = auth.current_user()
     with current_app.config['LOCKS']['w']:
-        code, thepool, msg = register_pool(pool, auth.current_user())
+        code, thepool, msg = register_pool(poolname, usr, poolurl=poolurl)
 
     res = thepool if issubclass(thepool.__class__, str) else thepool._poolurl
     return resp(code, res, msg, ts)
@@ -903,7 +911,6 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
             logger.debug('get API : %s' % lls(quoted_m_args, 1000))
         if 0 and quoted_m_args == 'removeTag__tm-all':
             logger.debug(f"%%% {PM_S.isLoaded('test_csdb_fdi2')}")
-            1/0
             __import__("pdb").set_trace()
         # get command positional arguments and keyword arguments
         code, m_args, kwds = deserialize_args(

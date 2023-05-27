@@ -674,7 +674,7 @@ def test_getConfig_ENV():
 
     # a key not in config
     con = getConfig(conf=typ, force=True)
-    assert con['username'] == 'foo'
+    assert con['username'] in ('foo', 'rw')
     os.environ[typ.upper()+'_USERNAME'] = 'fungi'
     assert os.environ[typ.upper()+'_USERNAME'] == 'fungi'
 

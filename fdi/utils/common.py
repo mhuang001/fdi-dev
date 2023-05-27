@@ -10,10 +10,12 @@ from importlib_resources.readers import MultiplexedPath
 import hashlib
 import array
 import traceback
+import shutil
 import textwrap
 import copy
 import fnmatch
 import os
+import os.path as op
 from pathlib import Path
 import pwd
 import builtins
@@ -40,6 +42,17 @@ logging_DEBUG = logging.DEBUG
 
 def str2md5(string):
     return hashlib.md5(string.encode('utf8')).hexdigest()
+
+
+def get_md5(buf, timeit=False):
+    """ get MD5. """
+    if timeit:
+        t0 = time.time()
+    ho = hashlib.md5()
+    ho.update(buf.read())
+    if timeit:
+        print('md5 %f sec' % (time.time()-t0))
+    return ho.hexdigest()
 
 
 def trbk(e):
@@ -603,9 +616,12 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=No
 
     Parameter
     ---------
-    name : str, Path
+    name : str, Path, module
         of starting directory or a list/iterable of file name
-        strings to filter by `fnmatch.filter`.
+        strings to filter by `fnmatch.filter`. It can also be a
+        `module`, whose internal files will be returned even the
+        module is a system installed package provided that
+        the packaging process of these data-carrying has packed data in.
     include : str
         Will be selected only if a file name has any of these 
         sub-strings. format is as if used in `glob(include)`.
@@ -662,6 +678,32 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=No
     if verbose:
         print('Find %d files total.' % len(allf))
     return allf
+
+
+def wipeLocal(path, keep=True):
+    """
+    does the scheme-specific remove-all.
+
+    Parameters
+    ----------
+    keep : bool
+        If set, a new directory at `path` will be created after wiping.
+    """
+    # logger.debug()
+
+    if path == '/':
+        raise (ValueError('Do not remove root directory.'))
+
+    try:
+        if op.exists(path):
+            shutil.rmtree(path)
+            if keep:
+                os.makedirs(path)
+    except OSError as e:
+        msg = 'remove-mkdir failed. exc: %s trbk: %s.' % (str(e), trbk(e))
+        logger.error(msg)
+        raise e
+
 
 ########### old code grave yard ############
 

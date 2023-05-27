@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
     """ A lightweight reference to a product that is stored in a ProductPool or in memory.
     """
+    typecode = 'B'
+    """ String type for FITS convertor etc."""
 
     def __init__(self, urn=None, poolname=None, product=None, meta=None, poolmanager=None, **kwds):
         """Urn can be the string or URNobject.

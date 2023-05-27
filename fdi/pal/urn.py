@@ -386,7 +386,7 @@ The ``PoolURL`` format is in the form of a URL that preceeds its poolname part:
     Returns
     -------
     tuple
-        poolpath, scheme, place, poolname.
+        poolpath, scheme, place, poolname, username, pasword.
         `(None, None,None,None)` if url is None or empty.
 
     Examples
@@ -413,7 +413,7 @@ The ``PoolURL`` format is in the form of a URL that preceeds its poolname part:
     if url is None or url == '':
         return (None, None, None, None)
     if not issubclass(url.__class__, strset):
-        raise ValueError('a string is needed: ' + str(url))
+        raise ValueError('A string is needed. Not ' + str(url))
 
     # sp1 = url.split(':')
     # if len(sp1) > 4:  # after scheme and a possible windows path, and one for user:pass

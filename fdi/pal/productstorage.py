@@ -29,11 +29,11 @@ class ProductStorage(object):
                  **kwds):
         """ Gets the storage "control pannel" for pool with specifed name.
 
-        `auth` with `client`, can be given here to be passed to `PoolManager.getPool`.
-        `client` how to call remote api if poolurl indicates a remote pool. Default is `None` for using the configured host/port/credentials. If doing a mocked server test, this needs to be set.
         :pool: can be given as the only pramemter. If `auth` and `client` are given they will substitute those of  `pool`. If `pool` is not given, those will need to be given.
         :poolname: if is a string will be taken as a poolname. if is a pool object will be registered with its name,
         :poolurl: is sent to the PoolManager with poolname to get the pool object.
+        `auth` with `client`, can be given here to be passed to `PoolManager.getPool`.
+        `client` how to call remote api if poolurl indicates a remote pool. Default is `None` for using the configured host/port/credentials. If doing a mocked server test, this needs to be set.
 
         """
         if issubclass(pool.__class__, str) and ':' in pool:

@@ -1,8 +1,8 @@
 __version_info__ = (1, 31, 3)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.31.1-0-g691b1e5'
+__revision__ = '1.31.3-0-gcf661c7'
 
-# credential fixed for secondary poolurl regitration.
+# 1.31.3 credential fixed for secondary poolurl regitration.
 # 1.31.2 docker-making rationalized and deployed.
 # 1.31.1 streamline docker making.
 # 1.31.0 add revision log. add aiohttp_retry

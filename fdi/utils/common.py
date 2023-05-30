@@ -15,6 +15,7 @@ import textwrap
 import copy
 import fnmatch
 import os
+import json
 import os.path as op
 from pathlib import Path
 import pwd
@@ -703,6 +704,33 @@ def wipeLocal(path, keep=True):
         msg = 'remove-mkdir failed. exc: %s trbk: %s.' % (str(e), trbk(e))
         logger.error(msg)
         raise e
+
+
+def normalize_nested_json(msg, verbose=False):
+    """ recursively convert nested JSON in JSON to data structures. """
+    if verbose:
+        print('XXXX', msg)
+
+    def proc_dict(dct):
+        if verbose:
+            print('DDDD', dct)
+        r = {}
+        for k, v in dct.items():
+            if isinstance(v, str) and '{' in v:
+                v = normalize_nested_json(v)
+            elif isinstance(v, dict):
+                v = proc_dict(v)
+            r[k] = v
+        dct.update(r)
+        return dct
+    try:
+        d = json.loads(msg)
+    except json.decoder.JSONDecodeError as e:
+        raise ValueError(msg[:200]) from e
+    if isinstance(d, dict):
+        return proc_dict(d)
+    else:
+        return d
 
 
 ########### old code grave yard ############

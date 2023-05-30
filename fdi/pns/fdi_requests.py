@@ -594,7 +594,7 @@ def content2result_csdb(content):
     return res if alist else res[0]
 
 
-def reqst(meth, apis, *args, server_type='httppool', return_request=False, **kwds):
+def reqst(meth, apis, *args, server_type='httppool', return_response=False, **kwds):
     """send session, requests, aiohttp requests.
 
     Parameters
@@ -613,8 +613,8 @@ def reqst(meth, apis, *args, server_type='httppool', return_request=False, **kwd
     server_type : string
         One of 'httppool' (default) and 'csdb', for HttpPool server
     and CSDB server, respectively.
-    return_request: bool
-        return a list of respons (only effective to `aio_client`. Default is `False`.
+    return_response: bool
+        return a list of respons (always true to `safe_client` and unlisted ones. Default is `False`.
     *args : list
 
     **kwds : dict
@@ -636,21 +636,26 @@ def reqst(meth, apis, *args, server_type='httppool', return_request=False, **kwd
     if isinstance(meth, str):
         # use AIO
         content = aio_client(meth, apis, *args, **kwds)
-        if return_request:
-            return content
         if server_type == 'httppool':
             res = content2result_httppool(content)
         elif server_type == 'csdb':
             res = content2result_csdb(content)
+        elif return_response:
+            res = content
         else:
             raise ValueError('Unknown server type: {server_type}.')
     elif ismethod(meth):
         # use request, urllib3.Session
-        content = safe_client(meth, apis, *args, **kwds)
+        content = safe_client(
+            meth, apis, *args, **kwds)
         if server_type == 'httppool':
             res = content
         elif server_type == 'csdb':
             res = content2result_csdb(content)
+        elif return_response:
+            res = content
+        else:
+            raise ValueError('Unknown server type: {server_type}.')
     else:
         raise TypeError(
             'Unknown type for `reqst` arguement "meth": {method_name}.')

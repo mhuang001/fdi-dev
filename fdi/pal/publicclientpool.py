@@ -168,13 +168,13 @@ class PublicClientPool(ManagedPool):
             tokenMsg = read_from_cloud(
                 'verifyToken', token=self.token, client=self.client)
         except ServerError as e:
-            self.auth = auth if auth else HTTPBasicAuth(pcc['cloud_username'], pcc['cloud_password'])
             err = e
             pass
         if (tokenMsg is not None) and tokenMsg['status'] == 500 or err:
-            logger.debug('Cloud token %s to be updated.' % self.token[:5])
+            logger.debug('Cloud token ...%s to be updated.' % self.token[-5:])
         else:
-            raise
+            logger.info(f'...{self.token[-8:]} aint no good there be no new one.')
+            raise err
 
         tokenMsg = read_from_cloud('getToken', client=self.client,
                                    token=self.token)

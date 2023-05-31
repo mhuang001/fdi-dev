@@ -594,7 +594,7 @@ def content2result_csdb(content):
     return res if alist else res[0]
 
 
-def reqst(meth, apis, *args, server_type='httppool', return_response=False, **kwds):
+def reqst(meth, apis, *args, server_type='httppool', auth=None, return_response=False, **kwds):
     """send session, requests, aiohttp requests.
 
     Parameters
@@ -647,7 +647,7 @@ def reqst(meth, apis, *args, server_type='httppool', return_response=False, **kw
     elif ismethod(meth):
         # use request, urllib3.Session
         content = safe_client(
-            meth, apis, *args, **kwds)
+            meth, apis, *args, auth=auth, **kwds)
         if server_type == 'httppool':
             res = content
         elif server_type == 'csdb':

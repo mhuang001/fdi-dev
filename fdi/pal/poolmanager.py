@@ -203,6 +203,9 @@ def remoteRegister(pool):
 
         restore_cookies(poolo.client)
 
+        if pool.auth:
+            pool.client.auth = pool.auth
+
         from ..pns.fdi_requests import put_on_server
         try:
             res, msg = put_on_server(
@@ -227,6 +230,10 @@ def remoteRegister(pool):
 
         poolurl = pool._poolurl
         stat = 'new'
+
+        # before checking poolExists
+        if pool.auth:
+            pool.client.auth = pool.auth
 
         if pool.poolExists():
             logger.info(f'Pool {poolurl} already exists.')

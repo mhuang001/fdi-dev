@@ -86,13 +86,13 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             requestAPI = defaulturl + '/user/auth/token'
             postData = {'username': AUTHUSER, 'password': AUTHPASS}
             res = reqst(client.post, requestAPI, headers=header,
-                        data=serialize(postData), server_type=server_type, **kwds)
+                        data=serialize(postData), server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'verifyToken':
         with lock_r:
             requestAPI = defaulturl + \
                 '/user/auth/verify?token=' + kwds.pop('token', '')
             res = reqst(client.get, requestAPI,
-                        server_type=server_type, **kwds)
+                        server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'poolLogInfo':
         with lock_r:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
@@ -109,7 +109,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             }""")
             res = reqst(client.post, requestAPI, headers=header,
                         data=data,
-                        server_type=server_type, **kwds)
+                        server_type=server_type, auth=client.auth, **kwds)
     elif requestName[0:4] == 'info':
         with lock_r:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
@@ -125,7 +125,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             else:
                 raise ValueError("Unknown request API: " + str(requestName))
             res = reqst(client.get, requestAPI, headers=header,
-                        server_type=server_type, **kwds)
+                        server_type=server_type, auth=client.auth, **kwds)
 
     elif requestName == 'getMeta':
         with lock_r:
@@ -133,7 +133,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             requestAPI = default_base + \
                 '/storage/meta?urn=' + kwds.pop('urn')
             res = reqst(client.get, requestAPI, headers=header,
-                        server_type=server_type, **kwds)
+                        server_type=server_type, auth=client.auth, **kwds)
             return res['_ATTR_meta']
     elif requestName == 'getDataInfo':
         with lock_r:
@@ -193,14 +193,14 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             if asyn:
                 apis = [requestAPI1+p for p in pp_one_pool]
                 reses = reqst('get', apis, headers=header,
-                              server_type=server_type, **kwds)
+                              server_type=server_type, auth=client.auth, **kwds)
                 re = dict(zip(pp_one_pool, reses))
             else:
                 re = {}
                 for p in pp_one_pool:
                     requestAPI = requestAPI1 + p
                     r = reqst(client.get, requestAPI, headers=header,
-                              server_type=server_type, **kwds)
+                              server_type=server_type, auth=client.auth, **kwds)
 
                     re[p] = r
             # reconstruct
@@ -214,7 +214,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             requestAPI = default_base + \
                 '/datatype/list' + (f'?substring={subs}' if subs else '')
             res = reqst(client.get, requestAPI, headers=header,
-                        server_type=server_type, **kwds)
+                        server_type=server_type, auth=client.auth, **kwds)
 
     elif requestName == 'uploadDataType':
         with lock_w:
@@ -234,7 +234,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             data = {"metaPath": "/metadata",
                     "dataType": cls_full_name}
             res = reqst(client.post, requestAPI,
-                        files=fdata, data=data, headers=header, server_type=server_type, **kwds)
+                        files=fdata, data=data, headers=header, server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'delDataTypeData':
         with lock_w:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
@@ -250,12 +250,12 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             apis = [requestAPI0+p for p in paths]
             if asyn:
                 res = reqst('delete', apis, headers=header,
-                            server_type=server_type, **kwds)
+                            server_type=server_type, auth=client.auth, **kwds)
             else:
                 rs = []
                 for a in apis:
                     r = reqst(client.delete, a, headers=header,
-                              server_type=server_type, **kwds)
+                              server_type=server_type, auth=client.auth, **kwds)
                     rs.append(r)
                 res = rs if alist else rs[0]
     elif requestName == 'remove':
@@ -274,13 +274,13 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             apis = [requestAPI0+p for p in paths]
             if asyn:
                 r = reqst('post', apis, headers=header,
-                          server_type=server_type, **kwds)
+                          server_type=server_type, auth=client.auth, **kwds)
                 rs = [0 if x is None else 1 for x in r]
             else:
                 rs = []
                 for a in apis:
                     r = reqst(client.post, a, headers=header,
-                              server_type=server_type, **kwds)
+                              server_type=server_type, auth=client.auth, **kwds)
                     rs.append(0 if r is None else 1)
             res = rs if alist else rs[0]
     elif requestName == 'existPool':
@@ -289,7 +289,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             requestAPI = default_base + \
                 '/pool/info?storagePoolName=' + kwds.pop('poolname')
             res = reqst(client.get, requestAPI, headers=header,
-                        server_type=server_type, **kwds)
+                        server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'createPool':
         with lock_w:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
@@ -297,7 +297,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
                 '/pool/create?poolName=' + \
                 kwds.pop('poolname') + '&read=0&write=0'
             res = reqst(client.post, requestAPI, headers=header,
-                        server_type=server_type, **kwds)
+                        server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'listPool':
         with lock_r:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
@@ -313,7 +313,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             }""")
             res = reqst(client.post, requestAPI, headers=header,
                         data=data,
-                        server_type=server_type, **kwds)
+                        server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'wipePool':
         with lock_w:
             tk = kwds.pop('token', '')
@@ -329,7 +329,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
                 print('<'*21, len(tl), tl)
 
             res = reqst(client.post, requestAPI, headers=header,
-                        server_type=server_type, **kwds)
+                        server_type=server_type, auth=client.auth, **kwds)
             #######
             if dbg_7types:
                 tl = read_from_cloud(
@@ -342,7 +342,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             requestAPI = default_base + \
                 '/pool/restore?storagePoolName=' + kwds.pop('poolname')
             res = reqst(client.post, requestAPI, headers=header,
-                        server_type=server_type, **kwds)
+                        server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'addTag':
         with lock_w:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
@@ -360,12 +360,12 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             apis = [requestAPI0 + quote(t) + u for t in tags]
             if asyn:
                 res = reqst('get', apis, headers=header,
-                            server_type=server_type, **kwds)
+                            server_type=server_type, auth=client.auth, **kwds)
             else:
                 rs = []
                 for a in apis:
                     r = reqst(client.get, a, headers=header,
-                              server_type=server_type, **kwds)
+                              server_type=server_type, auth=client.auth, **kwds)
                     rs.append(r)
                 res = rs if alist else rs[0]
     elif requestName in ('tagExist',
@@ -392,7 +392,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             rs = []
             for a in apis:
                 r = reqst(client.get, a, headers=header,
-                          server_type=server_type, **kwds)
+                          server_type=server_type, auth=client.auth, **kwds)
                 rs.append(r)
             res = rs if alist else rs[0]
     else:
@@ -489,12 +489,12 @@ def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             serialize_out = kwds.pop('serialize_out', '')
             if asyn:
                 res = reqst('post', apis, data=data,
-                            headers=headers, server_type=server_type, **kwds)
+                            headers=headers, server_type=server_type, auth=client.auth, **kwds)
             else:
                 res = []
                 for a, f, d, h in zip(apis, files, data, headers):
                     r = reqst(client.post, a, files=f, data=d,
-                              headers=h, server_type=server_type, **kwds)
+                              headers=h, server_type=server_type, auth=client.auth, **kwds)
                     res.append(r)
             return res if alist else res[0]
 
@@ -503,7 +503,7 @@ def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             # header['X-AUTH-TOKEN'] = kwds.pop('token', '')
             # requestAPI = requestAPI + '/storage/get?urn=' + kwds.pop('urn', '')
             # res = reqst(client.get, requestAPI,
-            #             headers=header, stream=True, server_type=server_type, **kwds)
+            #             headers=header, stream=True, server_type=server_type, auth=client.auth, **kwds)
             # TODO: save product to local
 
             requestAPI0 = requestAPI + '/storage/get?urn='
@@ -521,12 +521,12 @@ def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
 
             if asyn:
                 res = reqst('get', apis, headers=headers,
-                            server_type=server_type, **kwds)
+                            server_type=server_type, auth=client.auth, **kwds)
             else:
                 res = []
                 for a, h in zip(apis, headers):
                     r = reqst(client.get, a, headers=h,
-                              stream=True, server_type=server_type, **kwds)
+                              stream=True, server_type=server_type, auth=client.auth, **kwds)
                     res.append(r)
             return res if alist else res[0]
     else:
@@ -553,12 +553,12 @@ def delete_from_server(requestName, client=None, asyn=False, server_type='csdb',
             apis = [requestAPI0 + quote(t) for t in tags]
             if asyn:
                 res = reqst('delete', apis,
-                            headers=header, server_type=server_type, **kwds)
+                            headers=header, server_type=server_type, auth=client.auth, **kwds)
             else:
                 rs = []
                 for a in apis:
                     r = reqst(client.delete, a, headers=header,
-                              server_type=server_type, **kwds)
+                              server_type=server_type, auth=client.auth, **kwds)
                     rs.append(r)
                 res = rs if alist else rs[0]
     # print("Read from API: " + requestAPI)

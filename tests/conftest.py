@@ -475,7 +475,7 @@ def clean_csdb(urlcsdb, auth):
 
 
 @ pytest.fixture(scope=SHORT)
-def new_csdb(urlcsdb, pc):
+def new_csdb(urlcsdb, pc, auth):
     logger.debug('wipe cdb_new. {purl}')
     url = pc['cloud_scheme'] + \
         urlcsdb[len('csdb'):] + '/' + csdb_pool_id + str(int(time.time()))

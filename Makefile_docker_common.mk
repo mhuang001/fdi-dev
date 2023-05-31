@@ -69,7 +69,7 @@ build_server:
 # run im:latest
 launch_server:
 	SN=$(SERVER_NAME)$$(date +'%s') && \
-	docker run -dit --network=$(NETWORK) \
+	docker run -d -it --network=$(NETWORK) \
 	--mount source=httppool,target=$(SERVER_LOCAL_DATAPATH) \
 	--mount source=log,target=/var/log_mounted \
 	--env-file $(SECFILE_SERV) \
@@ -82,9 +82,11 @@ launch_server:
 	-e PNS_BASEURL=$(BASEURL) \
 	--name $$SN $(D) $(LATEST) $(LAU) ;\
 	docker ps -n 1
-	#if [ $$? -gt 0 ]; then echo *** Launch failed; false; else \
-	sleep 2 ;\
-	#docker inspect $$SN ;\
+	if [ $$? -gt 0 ]; then echo *** Launch failed; false; fi
+	cid=`docker ps |grep $(LATEST) | head -n 1 |awk '{print $$1}'` ;\
+	if [ -z $$cid ]; then echo NOT running ; false; fi ;\
+	sleep 2;\
+	echo docker inspect $$cid 
 
 launch_test_server:
 	$(MAKE) imlatest LATEST_NAME=$(SERVER_NAME)

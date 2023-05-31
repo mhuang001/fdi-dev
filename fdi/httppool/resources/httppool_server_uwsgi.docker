@@ -51,9 +51,9 @@ RUN mkdir -p ${PNS_SERVER_LOCAL_POOLPATH}
 # /var/log will on volume and the touched log files here will not be accessible.
 RUN mkdir -p /var/log/uwsgi \
 && touch /var/log/uwsgi/uwsgi.log \
-&& touch /var/log/uwsgi/errlog \
 && ln -s /var/log/uwsgi/uwsgi.log . \
-&& ln -s /var/log/uwsgi/errlog . \
+&& touch /var/log/uwsgi/error.log \
+&& ln -s /var/log/uwsgi/error.log . \
 && ln -s  ${PNS_SERVER_LOCAL_POOLPATH} data
 
 # Change user, configure permission

@@ -22,11 +22,12 @@ from ..utils.common import (fullname, lls, trbk,
 
 from ..utils.getconfig import getConfig
 
+from requests.auth import HTTPBasicAuth
 import logging
 import json
 from collections import defaultdict
 from itertools import chain
-import sys
+import sys, os
 
 logger = logging.getLogger(__name__)
 pcc = getConfig()
@@ -94,9 +95,14 @@ class PublicClientPool(ManagedPool):
         """
         # print(__name__ + str(kwds))
         super().__init__(**kwds)
-        self.auth = auth
+
         if client is None:
             client = requests_retry_session()
+        if auth is None:
+            auth = HTTPBasicAuth(pcc['cloud_user'], pcc['cloud_pass'])
+        client.auth = auth
+
+        self.auth = auth
         self.client = client
         self.getToken()
         self.poolInfo = None
@@ -157,10 +163,12 @@ class PublicClientPool(ManagedPool):
         err = False
         tokenMsg = None
         self.token = pcc['cloud_token']
+	#        __import__('pdb').set_trace()
         try:
             tokenMsg = read_from_cloud(
                 'verifyToken', token=self.token, client=self.client)
         except ServerError as e:
+            self.auth = auth if auth else HTTPBasicAuth(pcc['cloud_username'], pcc['cloud_password'])
             err = e
             pass
         if (tokenMsg is not None) and tokenMsg['status'] == 500 or err:

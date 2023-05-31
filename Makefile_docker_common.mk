@@ -183,8 +183,8 @@ update_docker:
 	(\
 	$(MAKE) rm_docker &&\
 	$(MAKE) docker_version &&\
-	#rm -f ../csc_wheels/svom.product*.whl ;\
-	#$(MAKE) PROJ-INSTALL CLEAN=1 WHEEL_INSTALL=4 I="$(I)" &&\
+	rm -f ../csc_wheels/svom.product*.whl ;\
+	$(MAKE) PROJ-INSTALL CLEAN=1 WHEEL_INSTALL=4 I="$(I)" &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\

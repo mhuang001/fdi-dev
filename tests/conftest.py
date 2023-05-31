@@ -118,7 +118,7 @@ def new_user_read_only(pc):
     return new_user, headers
 
 
-@ pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope='session')
 def userpass(pc):
     auth_user = pc['username']
     auth_pass = pc['password']
@@ -407,7 +407,7 @@ def make_csdb(poolurl):
     return ps
 
 
-def do_clean_csdb():
+def do_clean_csdb(auth):
     urlcsdb = url_c
     pc = pns
     url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
@@ -464,14 +464,14 @@ def do_clean_csdb():
 
 
 @ pytest.fixture(scope=SHORT)
-def clean_csdb_fs(clean_csdb):
+def clean_csdb_fs(clean_csdb, auth):
     """ fuction-scope verssion of clean_csdb """
-    return do_clean_csdb()
+    return do_clean_csdb(auth=auth)
 
 
 @ pytest.fixture(scope="session")
-def clean_csdb(urlcsdb):
-    return do_clean_csdb()
+def clean_csdb(urlcsdb, auth):
+    return do_clean_csdb(auth=auth)
 
 
 @ pytest.fixture(scope=SHORT)
@@ -577,7 +577,7 @@ def tmp_prods(tmp_prod_types):
         return res
 
 
-@ pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope='session')
 def auth(userpass, live_or_mock):
 
     a, server_type = live_or_mock

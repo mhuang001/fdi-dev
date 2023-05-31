@@ -180,7 +180,7 @@ class PublicClientPool(ManagedPool):
             poolname = self.poolname
         try:
             res = read_from_cloud(
-                'existPool', poolname=poolname, token=self.token)
+                'existPool', poolname=poolname, client=self.client, token=self.token)
             return True
         except ServerError as e:
             if e.code == 404:
@@ -190,7 +190,7 @@ class PublicClientPool(ManagedPool):
     def restorePool(self):
         try:
             res = read_from_cloud(
-                'restorePool', poolname=self.poolname, token=self.token)
+                'restorePool', poolname=self.poolname, client=self.client, token=self.token)
             return True
         except:
             return False
@@ -204,7 +204,8 @@ class PublicClientPool(ManagedPool):
         if exlog:
             logger.info(f'^^^^')
         while True:
-            res = read_from_cloud('poolLogInfo', token=self.token)
+            res = read_from_cloud(
+                'poolLogInfo', client=self.client, token=self.token)
             if exlog:
                 logger.info(f'>>>cnt={cnt} last={last} len={len(res)}')
             lines = []
@@ -254,7 +255,7 @@ class PublicClientPool(ManagedPool):
     def createPool2(self):
 
         res = read_from_cloud(
-            'createPool', poolname=self.poolname, token=self.token)
+            'createPool', poolname=self.poolname, client=self.client, token=self.token)
 
         return res
 
@@ -297,7 +298,7 @@ class PublicClientPool(ManagedPool):
             with self._locks['r'], self._locks['w']:
 
                 res = read_from_cloud(
-                    'infoPool', pools=self.poolname, getCount=0, token=self.token)
+                    'infoPool', pools=self.poolname, getCount=0, client=self.client, token=self.token)
                 rdata = res
                 if rdata:
                     if self._poolname in rdata:
@@ -348,7 +349,7 @@ class PublicClientPool(ManagedPool):
             # update_hk is False
             if count:
                 res = read_from_cloud(
-                    'infoPool', pools=self.poolname, getCount=1, token=self.token)
+                    'infoPool', pools=self.poolname, getCount=1, client=self.client, token=self.token)
                 return res
             else:
                 return self.poolInfo
@@ -453,7 +454,8 @@ class PublicClientPool(ManagedPool):
 
         mh: returns an iterator.
         """
-        res = read_from_cloud(requestName='getMeta', urn=urn, token=self.token)
+        res = read_from_cloud(requestName='getMeta', urn=urn,
+                              client=self.client, token=self.token)
         return res
 
     def getDataType(self, substrings=None):
@@ -480,7 +482,8 @@ class PublicClientPool(ManagedPool):
         """
 
         if substrings is None:
-            res = read_from_cloud('getDataType', token=self.token)
+            res = read_from_cloud(
+                'getDataType', client=self.client, token=self.token)
             return res
         # [t for t in res if substring in t] if substring else res
 
@@ -491,7 +494,7 @@ class PublicClientPool(ManagedPool):
             substrings = [substrings]
         res = []
         for substring in substrings:
-            r = read_from_cloud('getDataType', substring=substring,
+            r = read_from_cloud('getDataType', substring=substring, client=self.client,
                                 token=self.token)
             res.append(r)
 
@@ -546,7 +549,7 @@ class PublicClientPool(ManagedPool):
             # if both are empty, pool takes self.poolname
             if not pool and not paths:
                 pool = pname
-            res = read_from_cloud('getDataInfo', token=self.token,
+            res = read_from_cloud('getDataInfo', client=self.client, token=self.token,
                                   paths=paths, pool=pool, limit=limit)
             # if input is not list the output of each query is not a list
             if not nulltype:
@@ -564,7 +567,7 @@ class PublicClientPool(ManagedPool):
         # if both are empty, pool takes self.poolname
         if not pool:
             pool = pname
-        res = read_from_cloud('getDataInfo', token=self.token,
+        res = read_from_cloud('getDataInfo', client=self.client, token=self.token,
                               paths=paths, pool=pool, limit=limit, asyn=asyn)
         # in the output each query is a list[[p,p..],[p,p,...]]
         if not nulltype:
@@ -581,7 +584,7 @@ class PublicClientPool(ManagedPool):
     def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
         path = f'/{self._poolname}/{resourcetype}'
 
-        res = load_from_cloud('uploadProduct', token=self.token,
+        res = load_from_cloud('uploadProduct', token=self.token, client=self.client,
                               products=data, path=path, tags=tag, resourcetype=resourcetype, **kwds)
         return res
 
@@ -718,7 +721,7 @@ class PublicClientPool(ManagedPool):
         if serialize_in:
             uploadr = load_from_cloud('uploadProduct', token=self.token,
                                       products=jsonPrds, path=paths,
-                                      resourcetype=resourcetypes,
+                                      resourcetype=resourcetypes, client=self.client,
                                       tags=tags, asyn=True,
                                       **kwds)
             for i, uploadRes in enumerate(uploadr):
@@ -761,7 +764,7 @@ class PublicClientPool(ManagedPool):
                         urn = makeUrn(poolname=spn,
                                       typename=resourcetype, index=index)
                         res = load_from_cloud(
-                            'pullProduct', token=self.token, urn=urn)
+                            'pullProduct', token=self.token, client=self.client, urn=urn)
                         # res is a product like ..dataset.product.Product
 
                         if issubclass(res.__class__, BaseProduct):
@@ -815,7 +818,7 @@ class PublicClientPool(ManagedPool):
         datatype, sns, alist = ProductPool.vectorize(resourcetype, index)
 
         path = [f'{path0}/{f}/{i}' for f, i in zip(datatype, sns)]
-        res = read_from_cloud('remove', token=self.token, path=path, asyn=asyn)
+        res = read_from_cloud('remove', client=self.client, token=self.token, path=path, asyn=asyn)
         return res
 
     def XdoAsyncRemove(self, resourcetype, index):
@@ -823,7 +826,7 @@ class PublicClientPool(ManagedPool):
         """
         # path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
 
-        res = read_from_cloud('remove', token=self.token, path=path)
+        res = read_from_cloud('remove', client=self.client, token=self.token, path=path)
         if res['code'] and not getattr(self, 'ignore_error_when_delete', False):
             raise ValueError(
                 f"Remove product {path} failed: {res['msg']}")
@@ -861,7 +864,7 @@ class PublicClientPool(ManagedPool):
             self.getPoolInfo(update_hk=True)
 
         if isinstance(tag, (str, list)):
-            res = delete_from_server('delTag', token=self.token, tag=tag)
+            res = delete_from_server('delTag', token=self.token, client=self.client, tag=tag)
         else:
             raise ValueError('Tag must be a string or a list of string.')
         return res
@@ -889,13 +892,13 @@ class PublicClientPool(ManagedPool):
                 path = f'/{poolname}/{clazz}'
 
                 r = read_from_cloud(
-                    'delDataTypeData', path=path, token=self.token)
+                    'delDataTypeData', path=path, client=self.client, token=self.token)
                 res.append(r)
                 logger.debug(f'Removed {path}')
             if not keep:
                 # remove the pool object from the DB
                 r = read_from_cloud(
-                    'wipePool', poolname=poolname, token=self.token)
+                    'wipePool', poolname=poolname, client=self.client, token=self.token)
                 if r is None:
                     logger.debug(f'Done removing {path}')
                 else:
@@ -906,7 +909,7 @@ class PublicClientPool(ManagedPool):
                         raise ServerError(msg)
 
         r = read_from_cloud(
-            'wipePool', poolname=poolname, token=self.token, keep=keep)
+            'wipePool', poolname=poolname, client=self.client, token=self.token, keep=keep)
         if r is None:
             logger.debug(f'Done removing {poolname}')
         else:
@@ -949,7 +952,7 @@ class PublicClientPool(ManagedPool):
             t = ','.join(tag) if isinstance(tag, list) else tag
             try:
                 res = read_from_cloud(
-                    'addTag', token=self.token, tag=t, urn=u)
+                    'addTag', client=self.client, token=self.token, tag=t, urn=u)
             except ServerError as e:
                 msg = f'Set {tag} to {urn} failed: {e}'
                 logger.warning(msg)
@@ -1001,7 +1004,7 @@ class PublicClientPool(ManagedPool):
 
         try:
             res = read_from_cloud(
-                'tagExist', token=self.token, tag=tag)
+                'tagExist', client=self.client, token=self.token, tag=tag)
         except ServerError as e:
             msg = f'Get existance tag failed: {e}'
             logger.warning(msg)
@@ -1042,7 +1045,7 @@ class PublicClientPool(ManagedPool):
         if update:
             try:
                 res = read_from_cloud(
-                    'getUrn', token=self.token, tag=tag)
+                    'getUrn', client=self.client, token=self.token, tag=tag)
             except ServerError as e:
                 __import__("pdb").set_trace()
 

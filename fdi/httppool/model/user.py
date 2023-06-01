@@ -13,6 +13,8 @@ from flask import (abort,
                    make_response,
                    render_template,
                    request,
+                   redirect,
+                   url_for,
                    session)
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
@@ -33,7 +35,7 @@ SESSION = True
 """ Enable session. """
 
 
-LOGIN_TMPLT = '' # 'user/login.html'
+LOGIN_TMPLT = ''  # 'user/login.html'
 """ Set LOGIN_TMPLT to '' to disable the login page."""
 
 
@@ -259,6 +261,7 @@ def login():
     """
     global logger
     logger = current_app.logger
+
     serialize_out = True
     ts = time.time()
     FAILED = '"FAILED"' if serialize_out else 'FAILED'
@@ -323,10 +326,11 @@ def login():
     else:
         if logger.isEnabledFor(logging_INFO):
             logger.info(msg)
-    abort(401)
+    return resp(401, 'Authentication needed.', 'Username and password please.', ts)
+
 
 ######################################
-####  /user/logout GET, POST  ####
+####        logout GET, POST      ####
 ######################################
 
 
@@ -355,7 +359,7 @@ def logout():
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(msg)
     if SESSION:
-        # session.clear()
+        session.clear()
         g.user = None
         g.pools = None
         session.modified = True
@@ -372,7 +376,7 @@ def logout():
                 logger.info(msg)
         return make_response(render_template(LOGIN_TMPLT))
     else:
-        abort(401, msg)
+        return redirect(url_for('pools.get_pools_url'))
 
 
 @ auth.verify_password
@@ -550,8 +554,8 @@ def user_register():
 
 
 if LOGIN_TMPLT:
-    @auth.error_handler
-    def handle_auth_error_codes(error=401):
+    # @auth.error_handler
+    def XXXhandle_auth_error_codes(error=401):
         """ if verify_password returns False, this gets to run.
 
         Note that this is decorated with flask_httpauth's `error_handler`, not flask's `errorhandler`.

@@ -398,7 +398,7 @@ def create_app(config_object=None, level=None, logstream=None):
     app.register_blueprint(data_api, url_prefix=_BASEURL)
 
     from .model.user import LOGIN_TMPLT
-    if LOGIN_TMPLT:
+    if 0 and LOGIN_TMPLT:
         @app.errorhandler(401)
         @app.errorhandler(403)
         def handle_auth_error_codes(error):

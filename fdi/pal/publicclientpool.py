@@ -160,26 +160,33 @@ class PublicClientPool(ManagedPool):
             Could not get new token.
 
         """
-        err = False
+        err = ''
         tokenMsg = None
-        self.token = pcc['cloud_token']
-	#        __import__('pdb').set_trace()
+        if not getattr(self, 'token', None):
+            self.token = pcc['cloud_token']
+        #__import__('pdb').set_trace()
         try:
-            tokenMsg = read_from_cloud(
-                'verifyToken', token=self.token, client=self.client)
+            # None is OK (wtf)
+            tokenMsg = read_from_cloud('verifyToken', token=self.token, client=self.client)
         except ServerError as e:
             err = e
             pass
-        if (tokenMsg is not None) and tokenMsg['status'] == 500 or err:
-            logger.debug('Cloud token ...%s to be updated.' % self.token[-5:])
+        if tokenMsg is None:
+            logger.debug(f'Cloud token ...{self.token[-5:]} needs not updating.')
+            return self.token
+        if tokenMsg.get('status','') == 500 or err:
+            logger.info(f'{tokenMsg}-excpt {err}. Cloud token ...{self.token[-5:]} to be updated.')
         else:
-            logger.info(f'...{self.token[-8:]} aint no good there be no new one.')
+            logger.warning(
+                f'{tokenMsg}-excpt {err}...{self.token[-8:]} aint no good token there be no new one.')
             raise err
-
-        tokenMsg = read_from_cloud('getToken', client=self.client,
-                                   token=self.token)
-        self.token = tokenMsg['token']
-        logger.debug('Cloud token %s updated.' % self.token[:5])
+        err = ''
+        try:
+            tokenMsg = read_from_cloud('getToken', client=self.client, token=self.token)
+        except ServerError as e:
+              err = e
+        self.token = tokenMsg['token'] if tokenMsg else None
+        logger.info(f'Cloud token {lls(self.token, 50)} updated.{err} ')
 
         return self.token
 

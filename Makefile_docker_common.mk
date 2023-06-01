@@ -16,7 +16,7 @@ SERVER_LOCAL_DATAPATH   = /var/www/httppool_server/data
 SERVER_LOCAL_POOLPATH   = $(SERVER_LOCAL_DATAPATH)/$(API_VERSION)
 
 docker_version: FORCE
-	date +v%y%m%d_%H%M >| docker_version
+	date +v%y%m%d_%H%M > docker_version
 DOCKER_VERSION  = $(shell if [ -f docker_version ]; then cat docker_version; fi)
 SERVER_VERSION  = $(DOCKER_VERSION)
 

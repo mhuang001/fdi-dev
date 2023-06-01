@@ -79,12 +79,13 @@ def pytest_configure(config):
 
 
 @ pytest.fixture(scope='session')
-def csdb_client(urlcsdb):
+def csdb_client(urlcsdb, auth):
     urlupload = urlcsdb + '/datatype/upload'
     urldelete = urlcsdb + '/datatype/'
     urllist = urlcsdb + '/datatype/list'
     client = requests.session()
     headers = client.headers
+    client.auth = auth
     headers = auth_headers(pc['cloud_username'], pc['cloud_password'],
                            headers)
     client.headers.update(headers)

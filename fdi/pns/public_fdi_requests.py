@@ -38,8 +38,8 @@ defaulturl = 'http://' + pcc['cloud_host'] + \
              ':' + str(pcc['cloud_port'])
 default_base = defaulturl + pcc['cloud_api_base'] + \
     '/' + pcc['cloud_api_version']
-AUTHUSER = pcc['cloud_username']
-AUTHPASS = pcc['cloud_password']
+AUTHUSER = pcc['cloud_user']
+AUTHPASS = pcc['cloud_pass']
 
 
 @functools.lru_cache(maxsize=16)
@@ -84,13 +84,18 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
         header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         with lock_r:
             requestAPI = defaulturl + '/user/auth/token'
-            postData = {'username': AUTHUSER, 'password': AUTHPASS}
+            if client is None or not getattr(client, 'auth', ''):
+                postData = {'username': AUTHUSER , 'password': AUTHPASS}
+            else:
+                postData = {'username': client.auth.username , 'password': client.auth.password}
+
             res = reqst(client.post, requestAPI, headers=header,
                         data=serialize(postData), server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'verifyToken':
         with lock_r:
             requestAPI = defaulturl + \
                 '/user/auth/verify?token=' + kwds.pop('token', '')
+           # None is sucessful!
             res = reqst(client.get, requestAPI,
                         server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'poolLogInfo':

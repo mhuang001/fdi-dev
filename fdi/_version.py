@@ -1,8 +1,9 @@
-__version_info__ = (1, 31, 4)
+__version_info__ = (1, 32, 0)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.31.4-0-g723c565'
+__revision__ = '1.31.4-6-gc6a3328'
 
-# fix missing client arg in publicclient_pool.py
+# pass auth to aio_client, save csdb token in session cokies,
+# 1.31.4 fix missing client arg in publicclient_pool.py
 # 1.31.3 credential fixed for secondary poolurl regitration.
 # 1.31.2 docker-making rationalized and deployed.
 # 1.31.1 streamline docker making.

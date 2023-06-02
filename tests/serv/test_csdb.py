@@ -889,7 +889,7 @@ def csdb_token(csdb, pc):
     test_pool, url, pstore = csdb
 
     token = pc['cloud_token']
-    if token != test_pool.token:
+    if token and (token != test_pool.token):
         logger.info("Tokens are not equal or not synchronized")
     return test_pool.token
 

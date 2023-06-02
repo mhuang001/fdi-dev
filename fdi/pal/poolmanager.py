@@ -263,7 +263,6 @@ def remoteRegister(pool):
             if _lg:
                 logger.info(_lg)
 
-        pool.getToken()
         pool.client.headers.update({'X-AUTH-TOKEN': pool.token})
 
         pool.poolInfo = pool.getPoolInfo(update_hk=True)
@@ -666,14 +665,17 @@ Pools registered are kept as long as the last reference remains. When the last i
             if auth is not None:
                 pool.auth = auth
             elif getattr(pool, 'auth', None) is None:
-                auth = HTTPBasicAuth(pc['username'], pc['password'])
+                if schm == 'csdb':
+                    auth = HTTPBasicAuth(pc['cloud_user'], pc['cloud_pass'])
+                else:
+                    auth = HTTPBasicAuth(pc['username'], pc['password'])
                 pool.auth = auth
             if client is not None:
                 pool.client = client
             elif getattr(pool, 'client', None) is None:
                 from ..httppool.session import requests_retry_session
                 pool.client = requests_retry_session()
-
+                pool.client.auth = auth
         if need_to_reg_save:
             # remote register
             if schm in ('http', 'https', 'csdb'):
@@ -697,7 +699,6 @@ Pools registered are kept as long as the last reference remains. When the last i
             from flask import session as sess
 
             if sess and SESSION:
-                from flask import session as sess  # = pool.client
                 # save registered pools
                 if 'registered_pools' not in sess:
                     sess['registered_pools'] = {}

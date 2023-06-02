@@ -188,6 +188,27 @@ def get_registered_pools():
 
 
 ######################################
+#### /pools/register/{pool}       ####
+######################################
+
+
+@ pools_api.route('/pools/register/<string:pool>', methods=['GET'])
+@ pools_api.route('/pools/register/<string:pool>/', methods=['GET'])
+@auth.login_required(role='read_write')
+def register2():
+    """
+    Register the given pool with GET.
+
+    Register the pool of given Pool IDs to the global PoolManager. 
+    This is an alternative to PUT /{pool} using GET".
+
+    Ref. `register` document.
+    """
+
+    return register(pool)
+
+
+######################################
 #### /pools/register_all pools/register_all/  ####
 ######################################
 
@@ -494,7 +515,7 @@ def register_pool(poolname, usr, poolurl=None):
         return code, result, msg
 
 ################################################
-####  {poolid}/register PUT /unreg DELETE  ####
+####  {pool}/register PUT /unreg DELETE  ####
 ################################################
 
 

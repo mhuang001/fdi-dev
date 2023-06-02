@@ -27,7 +27,8 @@ import logging
 import json
 from collections import defaultdict
 from itertools import chain
-import sys, os
+import sys
+import os
 
 logger = logging.getLogger(__name__)
 pcc = getConfig()
@@ -76,6 +77,73 @@ def get_Values_From_A_list_of_dicts(res, what, get_list=True, excpt=True):
         return [r[what] for r in res]
 
 
+def getToken(poolurl, client):
+    """Get CSDB acces token.
+
+    Returns
+    -------
+    str
+        Saved or newly gotten token.
+
+    Raises
+    ------
+    RuntimeError
+        Could not get new token.
+
+    """
+    err = ''
+    tokenMsg = None
+
+    from ..httppool.model.user import SESSION
+    from flask import session as sess
+
+    current_token = None
+    if sess and SESSION:
+        # saved token
+        if 'tokens' in sess and sess['tokens']:
+            current_token = sess['tokens'].get(poolurl, '')
+
+    if not current_token:
+        current_token = pcc['cloud_token']
+    # __import__('pdb').set_trace()
+    try:
+        # None is OK (wtf)
+        tokenMsg = read_from_cloud(
+            'verifyToken', token=current_token, client=client)
+    except ServerError as e:
+        err = e
+        pass
+    if tokenMsg is None:
+        logger.debug(
+            f'Cloud token ...{current_token[-5:]} needs not updating.')
+        return current_token
+    if tokenMsg.get('status', '') == 500 or err:
+        logger.info(
+            f'{tokenMsg}-excpt {err}. Cloud token ...{current_token[-5:]} to be updated.')
+    else:
+        logger.warning(
+            f'{tokenMsg}-excpt {err}...{current_token[-8:]} aint no good token there be no new one.')
+        raise err
+    err = ''
+    try:
+        tokenMsg = read_from_cloud(
+            'getToken', client=client, token=current_token)
+    except ServerError as e:
+        err = e
+    token = tokenMsg['token'] if tokenMsg else None
+    logger.info(f'Cloud token {lls(token, 50)} updated.{err} ')
+
+    if sess and SESSION:
+        # save token
+        if 'tokens' not in sess:
+            sess['tokens'] = {}
+        if sess['tokens'].get(poolurl, '') != poolurl:
+            sess['tokens'][poolurl] = token
+            sess.modified = True
+
+    return token
+
+
 class PublicClientPool(ManagedPool):
 
     def __init__(self,  auth=None, client=None, **kwds):
@@ -104,7 +172,8 @@ class PublicClientPool(ManagedPool):
 
         self.auth = auth
         self.client = client
-        self.getToken()
+        ####
+        self.token = getToken(self.poolurl, client)
         self.poolInfo = None
         self.serverDatatypes = []
         self.CSDB_LOG = self.loggen()
@@ -145,50 +214,6 @@ class PublicClientPool(ManagedPool):
             return self._cloudpoolpath
         else:
             return self._poolpath
-
-    def getToken(self):
-        """Get CSDB acces token.
-
-        Returns
-        -------
-        str
-            Saved or newly gotten token.
-
-        Raises
-        ------
-        RuntimeError
-            Could not get new token.
-
-        """
-        err = ''
-        tokenMsg = None
-        if not getattr(self, 'token', None):
-            self.token = pcc['cloud_token']
-        #__import__('pdb').set_trace()
-        try:
-            # None is OK (wtf)
-            tokenMsg = read_from_cloud('verifyToken', token=self.token, client=self.client)
-        except ServerError as e:
-            err = e
-            pass
-        if tokenMsg is None:
-            logger.debug(f'Cloud token ...{self.token[-5:]} needs not updating.')
-            return self.token
-        if tokenMsg.get('status','') == 500 or err:
-            logger.info(f'{tokenMsg}-excpt {err}. Cloud token ...{self.token[-5:]} to be updated.')
-        else:
-            logger.warning(
-                f'{tokenMsg}-excpt {err}...{self.token[-8:]} aint no good token there be no new one.')
-            raise err
-        err = ''
-        try:
-            tokenMsg = read_from_cloud('getToken', client=self.client, token=self.token)
-        except ServerError as e:
-              err = e
-        self.token = tokenMsg['token'] if tokenMsg else None
-        logger.info(f'Cloud token {lls(self.token, 50)} updated.{err} ')
-
-        return self.token
 
     def poolExists(self, poolname=None):
         if poolname is None:
@@ -833,7 +858,8 @@ class PublicClientPool(ManagedPool):
         datatype, sns, alist = ProductPool.vectorize(resourcetype, index)
 
         path = [f'{path0}/{f}/{i}' for f, i in zip(datatype, sns)]
-        res = read_from_cloud('remove', client=self.client, token=self.token, path=path, asyn=asyn)
+        res = read_from_cloud('remove', client=self.client,
+                              token=self.token, path=path, asyn=asyn)
         return res
 
     def XdoAsyncRemove(self, resourcetype, index):
@@ -841,7 +867,8 @@ class PublicClientPool(ManagedPool):
         """
         # path = self._cloudpoolpath + '/' + resourcetype + '/' + str(index)
 
-        res = read_from_cloud('remove', client=self.client, token=self.token, path=path)
+        res = read_from_cloud('remove', client=self.client,
+                              token=self.token, path=path)
         if res['code'] and not getattr(self, 'ignore_error_when_delete', False):
             raise ValueError(
                 f"Remove product {path} failed: {res['msg']}")
@@ -879,7 +906,8 @@ class PublicClientPool(ManagedPool):
             self.getPoolInfo(update_hk=True)
 
         if isinstance(tag, (str, list)):
-            res = delete_from_server('delTag', token=self.token, client=self.client, tag=tag)
+            res = delete_from_server(
+                'delTag', token=self.token, client=self.client, tag=tag)
         else:
             raise ValueError('Tag must be a string or a list of string.')
         return res

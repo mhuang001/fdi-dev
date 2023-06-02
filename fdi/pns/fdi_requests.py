@@ -214,6 +214,9 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
     Response
        Of urllib3 Session or requests Response.
 """
+    if 1:
+        logger.info(
+            lls(f'{method.__func__.__name__} {api} arg={args} kwds={kwds}', 200))
 
     if no_retry_controls or MAX_RETRY == 0:
         return method(api, *args, **kwds)
@@ -548,8 +551,7 @@ def content2result_csdb(content):
             # requests
             code, text, url = resp.status_code, resp.text, resp.url
         obj = deserialize(text)
-
-        if code != 200 or issubclass(obj.__class__, str):
+        if issubclass(obj.__class__, str):
             # cannot deserialize and/or bad code
             try:
                 eo = resp.json()
@@ -634,8 +636,11 @@ def reqst(meth, apis, *args, server_type='httppool', auth=None, return_response=
     FIXME: Add docs.
     """
     if isinstance(meth, str):
+        from aiohttp.helpers import BasicAuth
+        ahb = BasicAuth(login=auth.username, password=auth.password)
         # use AIO
-        content = aio_client(meth, apis, *args, **kwds)
+        content = aio_client(
+            meth, apis, *args, auth=ahb, **kwds)
         if server_type == 'httppool':
             res = content2result_httppool(content)
         elif server_type == 'csdb':

@@ -192,6 +192,7 @@ def get_demo_product(desc=''):
 
     prodx = DemoProduct(desc if desc else 'A complex product for demo/test.')
     prodx.creator = 'Frankenstein'
+    prodx.version = '2'
     # add a parameter with validity descriptors to the product
     prodx.meta['speed'] = NumericParameter(
         description='an extra param',
@@ -211,17 +212,22 @@ def get_demo_product(desc=''):
     SECONDS = 'sec'
     METERS = 'm'
     t = [x * 1.0 for x in range(20)]
-    e = [2 * x + 100 for x in t]
+    e = [2 * x + 30 for x in t]
     err = [random.random() * 2 - 1 for x in t]
+    err_lower = [random.random() * 2 - 1 for x in t]
     y = [10 * sin(x*2*3.14/len(t)) for x in t]
     z = [10 * cos(x*2*3.14/len(t)) for x in t]
-
+    size = [0.1 * x for x in t]
+    label = [f'label{int(x)}' for x in t]
     x = TableDataset(description="A table of measurement reslts")
     x["Time"] = Column(data=t, unit=SECONDS)
     x["Energy"] = Column(data=e, unit=ELECTRON_VOLTS)
     x["Error"] = Column(data=err, unit=ELECTRON_VOLTS)
+    x["ErrorL"] = Column(data=err_lower, unit=ELECTRON_VOLTS)
     x["y"] = Column(data=y, unit=METERS)
     x["z"] = Column(data=z, unit=METERS)
+    x["size"] = Column(data=size, unit=METERS)
+    x["label"] = Column(data=label)
     # set a tabledataset ans an arraydset, with a parameter in metadata
     # this is the first dataset in composData
     composData['Time_Energy_Pos'] = x

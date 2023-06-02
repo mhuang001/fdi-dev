@@ -85,9 +85,10 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
         with lock_r:
             requestAPI = defaulturl + '/user/auth/token'
             if client is None or not getattr(client, 'auth', ''):
-                postData = {'username': AUTHUSER , 'password': AUTHPASS}
+                postData = {'username': AUTHUSER, 'password': AUTHPASS}
             else:
-                postData = {'username': client.auth.username , 'password': client.auth.password}
+                postData = {'username': client.auth.username,
+                            'password': client.auth.password}
 
             res = reqst(client.post, requestAPI, headers=header,
                         data=serialize(postData), server_type=server_type, auth=client.auth, **kwds)
@@ -198,7 +199,9 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             if asyn:
                 apis = [requestAPI1+p for p in pp_one_pool]
                 reses = reqst('get', apis, headers=header,
-                              server_type=server_type, auth=client.auth, **kwds)
+                              server_type=server_type,
+                              auth=client.auth, cookies=client.cookies,
+                              **kwds)
                 re = dict(zip(pp_one_pool, reses))
             else:
                 re = {}

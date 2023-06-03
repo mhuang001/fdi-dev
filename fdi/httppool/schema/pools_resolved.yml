@@ -137,20 +137,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/RegisteredPools'
   '/pools/register/{pool}':
-    summary: Register the given pool with GET.
-    tags:
-      - Pool
-    description: 'Register the pool of given Pool IDs to the global PoolManager. An alternative to PUT /{pool} using GET'
-    operationId: register2
-    parameters:
-      - $ref: '#/components/parameters/Pool'
-    responses:
-      '200':
-        description: Done registering the Pool to PoolManager.
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GenericResponseContents'
+    get:
+      summary: Register the given pool with GET.
+      tags:
+        - Pool
+      description: 'Register the pool of given Pool IDs to the global PoolManager. An alternative to PUT /{pool} using GET'
+      operationId: register2
+      parameters:
+        - $ref: '#/components/parameters/Pool'
+      responses:
+        '200':
+          description: Done registering the Pool to PoolManager.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponseContents'
   /pools/register_all:
     put:
       summary: Register (Load) all pools on the server.

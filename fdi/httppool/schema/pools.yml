@@ -146,6 +146,7 @@ paths:
                 $ref: '#/components/schemas/RegisteredPools'
       
   /pools/register/{pool}:
+    get:
       summary: "Register the given pool with GET."
       tags:
         - Pool

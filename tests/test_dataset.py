@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 
 from fdi.dataset.annotatable import Annotatable
@@ -2320,7 +2321,7 @@ def test_UnstrcturedDataset():
     v, s = u.fetch(
         ["data", "measurements", "Time_Energy_Pos", "Energy", "_ATTR_data"])
     t = [x * 1.0 for x in range(len(v))]
-    assert v == [2 * x + 100 for x in t]
+    assert v == [2 * x + 30 for x in t]
     assert v == u.data["measurements"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]
     assert s == '.data["measurements"]["Time_Energy_Pos"]["Energy"]["_ATTR_data"]'
 

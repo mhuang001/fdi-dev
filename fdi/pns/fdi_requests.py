@@ -262,18 +262,28 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     """
 
     if auth is None:
-        auth = getAuth(pccnode['username'], pccnode['password'])
-    api = urn2fdiurl(urn, poolurl, contents=contents, method='POST')
+        if client and getattr(client, 'auth', '') and client.auth:
+            auth = client.auth
+        else:
+            auth = getAuth(pccnode['username'], pccnode['password'])
     if client is None:
         client = session
+    client.auth = auth
+
+    api = urn2fdiurl(urn, poolurl, contents=contents, method='POST')
+
     # from fdi.utils.common import lls
     if SES_DBG:
         print('POST API: ' + api + ' | ' + lls(data, 90))
     if headers is None:
         headers = auth_headers(auth.username, auth.password)
     sd = data if no_serial else serialize(data)
-    res = safe_client(client.post, api, auth=auth, data=sd,
-                      headers=headers, timeout=TIMEOUT)
+    if isinstance(client, FlaskClient):
+        res = safe_client(client.post, api, auth=auth, data=sd,
+                          headers=headers)
+    else:
+        res = safe_client(client.post, api, auth=auth, data=sd,
+                          headers=headers, timeout=TIMEOUT)
 
     if result_only:
         return res
@@ -324,14 +334,21 @@ def read_from_server(urn, poolurl, contents='product', result_only=False, auth=N
     """
 
     if auth is None:
-        auth = getAuth(pccnode['username'], pccnode['password'])
+        if client and getattr(client, 'auth', '') and client.auth:
+            auth = client.auth
+        else:
+            auth = getAuth(pccnode['username'], pccnode['password'])
     if client is None:
         client = session
+    client.auth = auth
     api = urn2fdiurl(urn, poolurl, contents=contents)
     if SES_DBG:
         print("GET REQUEST API: " + api)
 
-    res = safe_client(client.get, api, auth=auth, timeout=TIMEOUT)
+    if isinstance(client, FlaskClient):
+        res = safe_client(client.get, api, auth=auth)
+    else:
+        res = safe_client(client.get, api, auth=auth, timeout=TIMEOUT)
 
     if result_only:
         return res
@@ -353,9 +370,14 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
     """
 
     if auth is None:
-        auth = getAuth(pccnode['username'], pccnode['password'])
+        if client and getattr(client, 'auth', '') and client.auth:
+            auth = client.auth
+        else:
+            auth = getAuth(pccnode['username'], pccnode['password'])
     if client is None:
         client = session
+    client.auth = auth
+
     api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
 
     # client.auth = auth
@@ -368,7 +390,10 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
     # auth = getAuth(pccnode['username'], pccnode['password'])
     # headers = auth_headers(auth.username, auth.password)
     # client.headers.update(headers)
-    res = reqst(client.put, api, auth=auth, timeout=TIMEOUT)
+    if isinstance(client, FlaskClient):
+        res = reqst(client.put, api, auth=auth)
+    else:
+        res = reqst(client.put, api, auth=auth, timeout=TIMEOUT)
 
     if result_only:
         return res
@@ -396,9 +421,13 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
     """
 
     if auth is None:
-        auth = getAuth(pccnode['username'], pccnode['password'])
+        if client and getattr(client, 'auth', '') and client.auth:
+            auth = client.auth
+        else:
+            auth = getAuth(pccnode['username'], pccnode['password'])
     if client is None:
         client = session
+    client.auth = auth
 
     _u = urn
     if isinstance(_u, list):
@@ -417,8 +446,11 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
             a = urn2fdiurl(u, poolurl, contents=contents, method='DELETE')
             if SES_DBG:
                 print("DELETE REQUEST API: " + a)
-            r = reqst(client.delete, a, auth=auth, timeout=TIMEOUT)
 
+                if issubclass(client.__class__, FlaskClient):
+                    r = reqst(client.delete, a, auth=auth)
+                else:
+                    r = reqst(client.delete, a, auth=auth, timeout=TIMEOUT)
             if result_only:
                 rs.append(r)
                 continue

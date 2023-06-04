@@ -99,7 +99,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
             setTai = time
         elif issubclass(time.__class__, float):
             if time < self.UTC_LOW_LIMIT_TIMESTAMP:
-                logger.warn(
+                logger.warning(
                     'Timestamp before %s not defined yet.' % str(self.UTC_LOW_LIMIT_TIMESTAMP))
             d = datetime.datetime.fromtimestamp(time, tz=utcobj)
             setTai = self.datetimeToFineTime(d)

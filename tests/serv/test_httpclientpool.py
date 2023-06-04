@@ -345,13 +345,13 @@ def est_webapi_backup_restore(server):
     backup_restore(pstore)
 
 
-def test_webapi_backup_restore(tmp_remote_storage):
+def test_webapi_backup_restore(tmp_remote_storage, client, auth):
     """
     """
     logger.info('Create pools on the server.')
     pstore = tmp_remote_storage
     logger.info('Bacckup/restore a pool on the server.')
-    backup_restore(pstore)
+    backup_restore(pstore, client, auth)
 
 
 def test_flask_fmt(tmp_pools, server, client,  auth):
@@ -493,7 +493,6 @@ def test_need_auth(existing_pools, server, client, auth):
     url = '/'.join((aburl, pool.poolname, 'hk/'))
     # get pool with auth
     x = safe_client(client.get, url, auth=auth)
-    cookie = x.cookies
     o, code = getPayload(x)
 
     # check to see if the pool url is malformed

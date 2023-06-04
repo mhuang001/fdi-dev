@@ -151,7 +151,7 @@ class HttpClientPool(ProductPool):
         code = None
         try:
             code, r, msg = read_from_server(
-                None, self._poolurl, 'housekeeping')
+                None, self._poolurl, 'housekeeping', client=getattr(self, 'client', None))
             if r != 'FAILED' and code == 200:
                 hk = r
         except Exception as e:

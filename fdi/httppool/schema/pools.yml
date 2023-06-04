@@ -149,7 +149,7 @@ paths:
     get:
       summary: "Register the given pool with GET."
       tags:
-        - Pool
+        - Server
       description: "Register the pool of given Pool IDs to the global PoolManager. An alternative to PUT /{pool} using GET"
       operationId: register2
       parameters:

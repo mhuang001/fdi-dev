@@ -12,7 +12,6 @@ def getSwag():
     # Use a yaml file derefed with swagger-cli bundle -r
     full_doc = load_from_file(os.path.join(ypath, 'pools_resolved.yml'))
     yaml_start = full_doc.find('---')
-    __import__("pdb").set_trace()
 
     swag = yaml.safe_load(full_doc[yaml_start if yaml_start >= 0 else 0:])
     # the following are not needed if merge is set in swagger=Swagger(app,merge=True)

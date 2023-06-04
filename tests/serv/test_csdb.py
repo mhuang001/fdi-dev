@@ -86,7 +86,7 @@ def csdb_client(urlcsdb, auth):
     client = requests.session()
     headers = client.headers
     client.auth = auth
-    headers = auth_headers(pc['cloud_username'], pc['cloud_password'],
+    headers = auth_headers(pc['cloud_user'], pc['cloud_pass'],
                            headers)
     client.headers.update(headers)
     yield urlupload, urldelete, urllist, client
@@ -896,6 +896,28 @@ def csdb_token(csdb, pc):
 
 def test_csdb_token(csdb_token):
     tok = csdb_token
+
+
+def test_verifyToken(csdb_client):
+    urlupload, urldelete, urllist, client = csdb_client
+    # get a fresh token that expires in 5 sec_key
+    # auth_token_req = {
+    #     "aesFlag": False,
+    #     "password":
+    #     "password": pc['cloud_user'],
+    #     "username": pc['cloud_pass'],
+    # }
+    token = read_from_cloud('getToken', client=client)
+    # verify it
+    __import__("pdb").set_trace()
+
+    v = read_from_cloud('verifyToken', token=token, client=client)
+    # success
+    assert v is None
+    logger.info('TOKEN fresh')
+    # invalid format
+    invalid = token[:-2]
+    v = read_from_cloud('verifyToken', token=invalid, client=client)
 
 
 def test_csdb_createPool(new_csdb):

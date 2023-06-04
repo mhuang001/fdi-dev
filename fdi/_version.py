@@ -1,7 +1,8 @@
-__version_info__ = (1, 32, 0)
+__version_info__ = (1, 32, 1)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.31.4-6-gc6a3328'
 
+# login has no gui. add /pools/register GET api to httppool (v1.4). conftest.py refactored to start server properly in 3 ways, using parameterized fixtures. testhttp passes with mock server.
 # 1.32.0 pass auth to aio_client, save csdb token in session cokies,
 # 1.31.4 fix missing client arg in publicclient_pool.py
 # 1.31.3 credential fixed for secondary poolurl regitration.

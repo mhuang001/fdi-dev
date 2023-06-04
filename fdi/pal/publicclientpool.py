@@ -77,6 +77,34 @@ def get_Values_From_A_list_of_dicts(res, what, get_list=True, excpt=True):
         return [r[what] for r in res]
 
 
+def verifyToken(poolurl, client):
+    pass
+
+
+def verifyToken(token, client):
+
+    try:
+        # None is OK (wtf)
+        tokenMsg = read_from_cloud(
+            'verifyToken', token=token, client=client)
+    except ServerError as e:
+        err = e
+        pass
+    if tokenMsg is None:
+        logger.debug(
+            f'Cloud token ...{current_token[-5:]} needs not updating.')
+        return current_token
+    __import__("pdb").set_trace()
+
+    if tokenMsg.get('status', '') == 500 or err:
+        logger.info(
+            f'{tokenMsg}-excpt {err}. Cloud token ...{current_token[-5:]} to be updated.')
+    else:
+        logger.warning(
+            f'{tokenMsg}-excpt {err}...{current_token[-8:]} aint no good token there be no new one.')
+        raise err
+
+
 def getToken(poolurl, client):
     """Get CSDB acces token.
 
@@ -106,24 +134,7 @@ def getToken(poolurl, client):
     if not current_token:
         current_token = pcc['cloud_token']
     # __import__('pdb').set_trace()
-    try:
-        # None is OK (wtf)
-        tokenMsg = read_from_cloud(
-            'verifyToken', token=current_token, client=client)
-    except ServerError as e:
-        err = e
-        pass
-    if tokenMsg is None:
-        logger.debug(
-            f'Cloud token ...{current_token[-5:]} needs not updating.')
-        return current_token
-    if tokenMsg.get('status', '') == 500 or err:
-        logger.info(
-            f'{tokenMsg}-excpt {err}. Cloud token ...{current_token[-5:]} to be updated.')
-    else:
-        logger.warning(
-            f'{tokenMsg}-excpt {err}...{current_token[-8:]} aint no good token there be no new one.')
-        raise err
+    verifyed = verifyToken(client)
     err = ''
     try:
         tokenMsg = read_from_cloud(

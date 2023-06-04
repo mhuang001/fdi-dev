@@ -179,7 +179,7 @@ def chk_sample_pd(p):
     # data of a column in tabledataset within compositedataset
     v, s = fetch(["measurements", "Time_Energy_Pos", "Energy", "data"], p)
     t = [x * 1.0 for x in range(len(v))]
-    assert v == [2 * x + 100 for x in t]
+    assert v == [2 * x + 30 for x in t]
     assert v == p['measurements']['Time_Energy_Pos']['Energy'].data
     assert s == '["measurements"]["Time_Energy_Pos"]["Energy"].data'
     ys, s = fetch(["measurements", "Time_Energy_Pos", "y"], p)

@@ -114,7 +114,7 @@ class LocalPool(ManagedPool):
             msg = 'Error in HK reading. file: %s. exc: %s trbk: %s.' % (
                 fp, str(e), trbk(e))
             logging.error(msg)
-            raise NameError(msg)
+            raise KeyError(msg)
         if 1:  # close:
             fo.close()
             if fp in self._files:

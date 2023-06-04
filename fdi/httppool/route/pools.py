@@ -194,12 +194,12 @@ def get_registered_pools():
 
 @ pools_api.route('/pools/register/<string:pool>', methods=['GET'])
 @ pools_api.route('/pools/register/<string:pool>/', methods=['GET'])
-@auth.login_required(role='read_write')
-def register2():
+@ auth.login_required(role='read_write')
+def register2(pool):
     """
     Register the given pool with GET.
 
-    Register the pool of given Pool IDs to the global PoolManager. 
+    Register the pool of given Pool IDs to the global PoolManager.
     This is an alternative to PUT /{pool} using GET".
 
     Ref. `register` document.
@@ -215,7 +215,7 @@ def register2():
 
 @ pools_api.route('/pools/register_all', methods=['PUT', 'GET'])
 @ pools_api.route('/pools/register_all/', methods=['PUT', 'GET'])
-@auth.login_required(role='read_write')
+@ auth.login_required(role='read_write')
 def register_all():
     """ Register (Load) all pools on the server.
 
@@ -269,7 +269,7 @@ def load_pools(poolnames, usr):
         if code == 200:
             pmap[nm] = thepool
         else:
-            bad[nm] = nm+': '+msg
+            bad[nm]=nm+': '+msg
 
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug("Registered pools: %s, bad %s.  Local dir %s" %
@@ -282,25 +282,25 @@ def load_pools(poolnames, usr):
 ######################################
 
 
-@ pools_api.route('/pools/unregister_all', methods=['PUT', 'GET'])
-@ pools_api.route('/pools/unregister_all/', methods=['PUT', 'GET'])
-@ auth.login_required(role='read_write')
+@ pools_api.route('/pools/unregister_all', methods = ['PUT', 'GET'])
+@ pools_api.route('/pools/unregister_all/', methods = ['PUT', 'GET'])
+@ auth.login_required(role = 'read_write')
 def unregister_all():
 
     logger = current_app.logger
-    ts = time.time()
+    ts=time.time()
     if logger.isEnabledFor(logging_DEBUG):
-        logger.debug('unregister-all ' + pool)
+        logger.debug('unregister-all ')
 
-    good, bad = unregister_pools()
-    code = 200 if not bad else 416
-    result = good
-    msg = '%d pools unregistered%s' % (len(good),
+    good, bad=unregister_pools()
+    code=200 if not bad else 416
+    result=good
+    msg='%d pools unregistered%s' % (len(good),
                                        (' except %s.' % str(bad) if len(bad) else '.'))
     return resp(code, result, msg, ts)
 
 
-def unregister_pools(poolnames=None):
+def unregister_pools(poolnames = None):
     """
     Removing all pools from the PoolManager.
 `w
@@ -308,17 +308,17 @@ def unregister_pools(poolnames=None):
 
     Returns: a list of successfully unregistered pools names in `good`, and troubled ones in `bad` with associated exception info.
     """
-    logger = current_app.logger
+    logger=current_app.logger
 
-    good = []
-    notgood = []
-    all_pools = poolnames if poolnames else copy.copy(
+    good=[]
+    notgood=[]
+    all_pools=poolnames if poolnames else copy.copy(
         list(PM_S.getMap().keys()))
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('unregister pools ' + str(all_pools))
 
     for nm in all_pools:
-        code, res, msg = unregister_pool(nm)
+        code, res, msg=unregister_pool(nm)
         if res == 'FAILED':
             notgood.append(nm+': '+msg)
         else:
@@ -330,23 +330,23 @@ def unregister_pools(poolnames=None):
 ######################################
 
 
-@ pools_api.route('/pools/wipe_all', methods=['DELETE'])
+@ pools_api.route('/pools/wipe_all', methods = ['DELETE'])
 # @ pools_api.route('/pools/wipe_all/', methods=['DELETE'])
-@ auth.login_required(role='read_write')
+@ auth.login_required(role = 'read_write')
 def wipe_all():
     """ Remove contents of all pools.
 
     Only registerable pools will be wiped. Pool directories are not removed.
     """
-    logger = current_app.logger
-    ts = time.time()
+    logger=current_app.logger
+    ts=time.time()
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('Wipe-all pool')
 
-    good, bad = wipe_pools(None, auth.current_user())
-    code = 200 if not bad else 416
-    result = good
-    msg = '%d pools wiped%s' % (0 if good is None else len(good),
+    good, bad=wipe_pools(None, auth.current_user())
+    code=200 if not bad else 416
+    result=good
+    msg='%d pools wiped%s' % (0 if good is None else len(good),
                                 (' except %s.' % '.' if bad is None or not len(bad) else str(bad)))
     return resp(code, result, msg, ts)
 
@@ -359,23 +359,23 @@ def wipe_pools(poolnames, usr):
 
     Returns: a list of successfully removed pools names in `good`, and troubled ones in `bad` with associated exception info.
     """
-    logger = current_app.logger
-    path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
+    logger=current_app.logger
+    path=current_app.config['FULL_BASE_LOCAL_POOLPATH']
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('DELETING pools contents from ' + path)
 
     # alldirs = poolnames if poolnames else get_name_all_pools(path)
 
-    good = []
-    notgood = []
-    all_pools, not_loadable = load_pools(poolnames, usr)
-    names = list(all_pools.keys())
+    good=[]
+    notgood=[]
+    all_pools, not_loadable=load_pools(poolnames, usr)
+    names=list(all_pools.keys())
     for nm in copy.copy(names):
-        thepool = all_pools[nm]
+        thepool=all_pools[nm]
         try:
-            re = thepool.removeAll()
+            re=thepool.removeAll()
             if isinstance(thepool, PublicClientPool):
-                res = 0 if re is None or len(re) == 0 else 2
+                res=0 if re is None or len(re) == 0 else 2
                 if res:
                     logger.info('CSDB Pool %s trouble deleting.' % nm)
                     notgood.append(nm+': '+str(res))
@@ -384,7 +384,7 @@ def wipe_pools(poolnames, usr):
                     logger.info('Pool %s deleted.' % nm)
             else:
                 shutil.rmtree(join(path, nm))
-                res = PM_S.remove(nm)
+                res=PM_S.remove(nm)
                 if res > 1:
                     notgood.append(nm+': '+str(res))
                     logger.info('Pool %s not deleted.' % nm)
@@ -401,8 +401,8 @@ def wipe_pools(poolnames, usr):
 ######################################
 
 
-@ pools_api.route('/<string:pool>/', methods=['GET'])
-@ pools_api.route('/<string:pool>', methods=['GET'])
+@ pools_api.route('/<string:pool>/', methods = ['GET'])
+@ pools_api.route('/<string:pool>', methods = ['GET'])
 # @ auth.login_required(role=['read_only', 'read_write'])
 def get_pool(pool):
     """ Get information of the given pool.
@@ -410,22 +410,22 @@ def get_pool(pool):
     Returns the state of the pool of given Pool IDs.
     """
 
-    logger = current_app.logger
+    logger=current_app.logger
 
-    ts = time.time()
+    ts=time.time()
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('Get pool info of ' + pool)
 
-    result = get_pool_info(pool)
+    result=get_pool_info(pool)
     return result
 
 
-def get_pool_info(poolname, serialize_out=False):
+def get_pool_info(poolname, serialize_out = False):
     ''' returns information of the pool.
     '''
-    msg = ''
-    ts = time.time()
-    FAILED = '"FAILED"' if serialize_out else 'FAILED'
+    msg=''
+    ts=time.time()
+    FAILED='"FAILED"' if serialize_out else 'FAILED'
 
     allpools = get_name_all_pools(
         current_app.config['FULL_BASE_LOCAL_POOLPATH'])
@@ -442,7 +442,6 @@ def get_pool_info(poolname, serialize_out=False):
         code, result, mes = load_HKdata([poolname], serialize_out=not_c)
         if not_c:
             result = deserialize(result, int_key=True)
-
         burl = request.base_url
         if burl.endswith('/'):
             burl = burl[:-1]
@@ -452,11 +451,14 @@ def get_pool_info(poolname, serialize_out=False):
         for t, clses in result['dTags'].items():
             if t == '_STID':
                 continue
+            
             cdict = {}
+            j = 0
             for cls, sns in clses.items():
-                sndict = dict((int(sn), '/'.join((burl, cls, sn)))
+                sndict = dict((int(j), '/'.join((burl, cls, sn)))
                               for sn in sns)
-                cdict[cls] = sndict
+                # use card name as index
+                cdict[cls.rsplit('.', 1)[-1]] = sndict
             dt_display[t] = cdict
         display = {'Tags': dt_display}
         # add urls to urns

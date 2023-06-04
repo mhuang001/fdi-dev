@@ -28,7 +28,7 @@ from fdi.utils.checkjson import checkjson
 from fdi.pns.fdi_requests import save_to_server, read_from_server, ServerError
 from fdi.pns.public_fdi_requests import read_from_cloud
 
-# from flask import request as
+from flask.testing import FlaskClient
 import requests
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import ConnectionError
@@ -296,7 +296,7 @@ def rmlocal(d):
         assert not op.exists(d)
 
 
-def cleanup(poolurl=None, poolname=None):
+def cleanup(poolurl=None, poolname=None, client=None, auth=None):
     """ remove pool from disk and memory"""
 
     if poolurl or poolname:
@@ -329,7 +329,7 @@ def cleanup(poolurl=None, poolname=None):
 
             # correct way. do not trust what hass been registered.
             pm._GlobalPoolList.pop(pname, '')
-            p = pm.getPool(pname, purl)
+            p = pm.getPool(pname, purl, client=client, auth=auth)
             try:
                 p.wipe()
             except (AssertionError):  # ,ServerError, ValueError):
@@ -416,12 +416,14 @@ def test_PoolManager():
         assert PoolManager.remove('foo') == 1
 
 
-def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb=None, **kwds):
+def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb=None, client=None, auth=None, **kwds):
     """ init_count files in pool and entries in class db.
 
     expected_cnt, currentSN: expected number of prods and currentSN in pool for products named prodname
     """
 
+    if client is None:
+        client = requests
     poolpath, schm, place, poolname, un, pw = parse_poolurl(
         poolurl,  poolhint='csdb://')
     # we need the local poolpath and poolname, not the remote url
@@ -455,40 +457,52 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb
         # for this class there are  how many prods
         assert len(mpool['dTypes'][prodname]['sn']) == expected_cnt
     elif scheme in ['http', 'https']:
-        auth = HTTPBasicAuth(*usrpsw)
+
         # count
         cpath = poolname + '/' + 'count/' + prodname
         api_baseurl = scheme + '://' + place + poolpath + '/'
         url = api_baseurl + cpath
-        x = requests.get(url, auth=auth)
+        x = client.get(url, auth=auth)
         assert 'Recorded' in x.text
-        count = int(x.json()['result'])
+        if isinstance(client, FlaskClient):
+            count = int(x.json['result'])
+        else:
+            count = int(x.json()['result'])
         assert count == expected_cnt
         # counting files. Append a '/'
         cpath = poolname + '/' + 'counted/' + prodname + '/'
         api_baseurl = scheme + '://' + place + poolpath + '/'
         url = api_baseurl + cpath
-        x = requests.get(url, auth=auth)
+        x = client.get(url, auth=auth)
         assert 'Counted' in x.text
-        count = int(x.json()['result'])
+        if isinstance(client, FlaskClient):
+            count = int(x.json['result'])
+        else:
+            count = int(x.json()['result'])
         assert count == expected_cnt
 
         # count all
         cpath = poolname + '/' + 'count'
         api_baseurl = scheme + '://' + place + poolpath + '/'
         url = api_baseurl + cpath
-        x = requests.get(url, auth=auth)
+        x = client.get(url, auth=auth)
         assert 'Recorded' in x.text
-        count = int(x.json()['result'])
+        if isinstance(client, FlaskClient):
+            count = int(x.json['result'])
+        else:
+            count = int(x.json()['result'])
         assert count >= expected_cnt
 
         # count all with couting
         cpath = poolname + '/' + 'counted' + '/'
         api_baseurl = scheme + '://' + place + poolpath + '/'
         url = api_baseurl + cpath
-        x = requests.get(url, auth=auth)
+        x = client.get(url, auth=auth)
         assert 'Counted' in x.text
-        count1 = int(x.json()['result'])
+        if isinstance(client, FlaskClient):
+            count1 = int(x.json['result'])
+        else:
+            count1 = int(x.json()['result'])
         assert count1 >= expected_cnt
 
         assert count == count1
@@ -498,8 +512,11 @@ def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb
             return
         spath = poolname + '/' + 'hk/dTypes'
         url = api_baseurl + spath
-        x = requests.get(url, auth=auth)
-        csn = x.json()['result'][prodname]['currentSN']
+        x = client.get(url, auth=auth)
+        if isinstance(client, FlaskClient):
+            csn = x.json['result'][prodname]['currentSN']
+        else:
+            csn = x.json()['result'][prodname]['currentSN']
         assert csn == currentSN
 
     elif scheme in ['csdb']:
@@ -666,11 +683,12 @@ def getCurrSnCount(csdb_c, prodname):
     return init_sn, init_count, pinfo
 
 
-def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
+def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args, client=None, auth=None):
     if thepoolurl.startswith('server'):
-        ps = ProductStorage(poolurl=thepoolurl, poolmanager=PM_S)
+        ps = ProductStorage(poolurl=thepoolurl,
+                            poolmanager=PM_S, client=client, auth=auth)
     else:
-        ps = ProductStorage(poolurl=thepoolurl)
+        ps = ProductStorage(poolurl=thepoolurl, client=client, auth=auth)
     p1 = ps.getPools()[0]
     # get the pool object
     pspool = ps.getPool(p1)
@@ -795,11 +813,11 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
 
     cnt = size_2
     sn = currentsn_2
-    checkdbcount(cnt, thepoolurl, pcq, sn, *args)
+    checkdbcount(cnt, thepoolurl, pcq, sn, *args, auth=auth, client=client)
 
     cnt_m = size_m_2
     sn_m = currentsn_m_2
-    checkdbcount(cnt_m, thepoolurl, mcq, sn_m, *args)
+    checkdbcount(cnt_m, thepoolurl, mcq, sn_m, *args, auth=auth, client=client)
     # save many in one go
     m, x3 = 2, []
     n = q + m
@@ -817,8 +835,8 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
     sn += m
     cnt_m += 0
     sn_m += 0
-    checkdbcount(cnt, thepoolurl, pcq, sn, *args)
-    checkdbcount(cnt_m, thepoolurl, mcq, sn_m, *args)
+    checkdbcount(cnt, thepoolurl, pcq, sn, *args, auth=auth, client=client)
+    checkdbcount(cnt_m, thepoolurl, mcq, sn_m, *args, auth=auth, client=client)
 
     # tags
     # XXX fix getUrn() and getTag() when no arg   is given
@@ -897,8 +915,8 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
     sn += 0
     cnt_m += 0
     sn_m += 0
-    checkdbcount(cnt, thepoolurl, pcq, sn, *args)
-    checkdbcount(cnt_m, thepoolurl, mcq, sn_m, *args)
+    checkdbcount(cnt, thepoolurl, pcq, sn, *args, auth=auth, client=client)
+    checkdbcount(cnt_m, thepoolurl, mcq, sn_m, *args, auth=auth, client=client)
 
     # remove all of one type
     t0 = fullname(psave)
@@ -933,8 +951,8 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
     sn += 1
     cnt_m += 0
     sn_m += 0
-    checkdbcount(cnt, thepoolurl, pcq, sn, *args)
-    checkdbcount(cnt_m, thepoolurl, mcq, sn_m, *args)
+    checkdbcount(cnt, thepoolurl, pcq, sn, *args, auth=auth, client=client)
+    checkdbcount(cnt_m, thepoolurl, mcq, sn_m, *args, auth=auth, client=client)
 
     # wipe
     ps.wipePool()
@@ -953,7 +971,7 @@ def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args):
 
     # clean up a pool
     ps.wipePool()
-    checkdbcount(0, thepoolurl, pcq, None, *args)
+    checkdbcount(0, thepoolurl, pcq, None, *args, auth=auth, client=client)
     assert ps.getPool(thepoolname).isEmpty()
 
 
@@ -974,19 +992,19 @@ def test_ProdStorage_func_local_mem():
     check_prodStorage_func_for_pool(thepoolname, thepoolurl, None)
 
 
-def test_ProdStorage_func_http(server, userpass):
+def test_ProdStorage_func_http(server, userpass, client, auth):
 
     aburl, hdr = server
     # httpclientpool
     thepoolname = Test_Pool_Name
     thepoolurl = aburl + '/' + thepoolname
 
-    cleanup(thepoolurl, thepoolname)
+    cleanup(thepoolurl, thepoolname, client=client, auth=auth)
     # First test registering with local pstor will also register on server
-    pool = HttpClientPool(poolurl=thepoolurl)
+    pool = HttpClientPool(poolurl=thepoolurl, client=client, auth=auth)
 
     # register
-    pstore = ProductStorage(pool=pool)
+    pstore = ProductStorage(pool=pool, client=client, auth=auth)
 
     assert pool.isEmpty()
 
@@ -995,19 +1013,21 @@ def test_ProdStorage_func_http(server, userpass):
     with pytest.raises(ServerError):
         assert pool.isEmpty()
 
-    check_prodStorage_func_for_pool(thepoolname, thepoolurl, userpass)
+    check_prodStorage_func_for_pool(
+        thepoolname, thepoolurl, userpass, client=client, auth=auth)
 
 
-def test_ProdStorage_func_server():
+def test_ProdStorage_func_server(client, auth):
     # httppool , the http server-side pool
     thepoolname = 'server'+Test_Pool_Name
     thepoolurl = 'server://' + '/tmp/fditest' + '/' + thepoolname
 
-    cleanup(thepoolurl, thepoolname)
-    check_prodStorage_func_for_pool(thepoolname, thepoolurl, None)
+    cleanup(thepoolurl, thepoolname, client=client, auth=auth)
+    check_prodStorage_func_for_pool(
+        thepoolname, thepoolurl, None, client=client, auth=auth)
 
 
-def test_ProdStorage_func_http_csdb(pc, urlcsdb, server, userpass):
+def test_ProdStorage_func_http_csdb(pc, urlcsdb, server, userpass, client, auth):
 
     aburl, hdr = server
     remote_purl = (pc['cloud_scheme'] +
@@ -1016,17 +1036,18 @@ def test_ProdStorage_func_http_csdb(pc, urlcsdb, server, userpass):
     thepoolname = csdb_pool_id
     thepoolurl = aburl + '/' + remote_purl
 
-    cleanup(thepoolurl, thepoolname)
-    check_prodStorage_func_for_pool(thepoolname, thepoolurl, userpass)
+    cleanup(thepoolurl, thepoolname, client=client, auth=auth)
+    check_prodStorage_func_for_pool(
+        thepoolname, thepoolurl, userpass, client=client, auth=auth)
 
 
-def test_LocalPool():
+def test_LocalPool(client, auth):
     thepoolname = 'localpool_' + Test_Pool_Name
     thepoolpath = '/tmp/fditest'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
 
     cleanup(thepoolurl, thepoolname)
-    ps = ProductStorage(thepoolname, thepoolurl)
+    ps = ProductStorage(thepoolname, thepoolurl, client=client, auth=auth)
     pname = ps.getPools()[0]
     # get the pool object
     pspool = ps.getPool(pname)
@@ -1048,7 +1069,7 @@ def test_LocalPool():
         shutil.rmtree(pcp)
     # make a copy of the old pool on disk
     shutil.copytree(transpath(thepoolname, thepoolpath), pcp)
-    ps2 = ProductStorage(pool=cpn, poolurl=cpu)
+    ps2 = ProductStorage(pool=cpn, poolurl=cpu, client=client, auth=auth)
     # two ProdStorage instances have the same DB
     p2 = ps2.getPool(ps2.getPools()[0])
     # assert deepcmp(p1._urns, p2._urns) is None
@@ -1087,21 +1108,21 @@ def test_LocalPool():
     p2.remove(resourcetype=dtype, index=sns, asyn=True)
     assert len(ps2.getUrnFromTag('mtag')) == 0
 
-    backup_restore(ps)
+    backup_restore(ps, client, auth)
 
 
-def backup_restore(ps):
+def backup_restore(ps, client, auth):
 
     p1 = ps.getPool(ps.getPools()[0])
     hk1 = p1.readHK()
     cpn = p1._poolname + '_2'
     cpu = p1._poolurl + '_2'
-    pstore = ProductStorage(pool=cpn, poolurl=cpu)
+    pstore = ProductStorage(pool=cpn, poolurl=cpu, client=client, auth=auth)
     # backup
     # the new pool is made empty
     pstore.wipePool()
     # register
-    pstore = ProductStorage(pool=cpn, poolurl=cpu)
+    pstore = ProductStorage(pool=cpn, poolurl=cpu, client=client, auth=auth)
     # save something to the new pool
     x = Product(description="This is my product 2")
     ref = pstore.save(x, tag='i think')
@@ -1126,12 +1147,13 @@ def backup_restore(ps):
     assert deepcmp(hk1, p2.readHK()) is None
 
 
-def mkStorage(thepoolname, thepoolurl, pstore=None):
+def mkStorage(thepoolname, thepoolurl, pstore=None, client=None, auth=None):
     """ returns pool object and productStorage """
 
-    cleanup(thepoolurl, thepoolname)
+    cleanup(thepoolurl, thepoolname, client=client, auth=auth)
     if not pstore:
-        pstore = ProductStorage(thepoolname, thepoolurl)
+        pstore = ProductStorage(thepoolname, thepoolurl,
+                                client=client, auth=auth)
     thepoolpath, tsc, tpl, pn, un, pw = parse_poolurl(thepoolurl, thepoolname)
     # if tsc in ['file', 'server']:
     # assert op.exists(transpath(thepoolname, thepoolpath))
@@ -1143,7 +1165,7 @@ def mkStorage(thepoolname, thepoolurl, pstore=None):
     return thepool, pstore
 
 
-def doquery(poolpath, newpoolpath):
+def doquery(poolpath, newpoolpath, client=None, auth=None):
     # creation
     a1 = MapContext
     a2 = 'p'
@@ -1168,12 +1190,14 @@ def doquery(poolpath, newpoolpath):
     # make a productStorage
     thepoolname = Test_Pool_Name
     thepoolurl = poolpath + '/' + thepoolname
-    thepool, pstore = mkStorage(thepoolname, thepoolurl)
+    thepool, pstore = mkStorage(
+        thepoolname, thepoolurl, client=client, auth=auth)
 
     # make another
     newpoolname = 'new_' + Test_Pool_Name
     newpoolurl = newpoolpath + '/' + newpoolname
-    newpool, pstore2 = mkStorage(newpoolname, newpoolurl)
+    newpool, pstore2 = mkStorage(
+        newpoolname, newpoolurl, client=client, auth=auth)
 
     # add some products to both storages
     n = 7
@@ -1396,16 +1420,16 @@ def test_query_local_mem():
     doquery('mem://'+thepoolpath, 'file://'+thepoolpath)
 
 
-def test_query_http(server):
+def test_query_http(server, client, auth):
 
     aburl, hdrs = server
     aburl = aburl.rstrip('/')
-    cleanup()
+    cleanup(client=client, auth=auth)
     lpath = '/tmp'
     # TODO: http
-    doquery(aburl, aburl)
-    doquery('file://'+lpath, aburl)
-    doquery('mem://'+lpath, aburl)
+    doquery(aburl, aburl, client=client, auth=auth)
+    doquery('file://'+lpath, aburl, client=client, auth=auth)
+    doquery('mem://'+lpath, aburl, client=client, auth=auth)
 
 
 def test_RefContainer():
@@ -1604,25 +1628,25 @@ def test_MapContext(a_storage):
     # realistic scenario
 
 
-def test_realistic_http(server, demo_product):
+def test_realistic_http(server, demo_product, client, auth):
 
     aburl, hdrs = server
     aburl = aburl.rstrip('/')
     poolname = 'demo'
     poolurl = aburl + '/' + poolname
-    cleanup(poolurl, poolname)
+    cleanup(poolurl, poolname, client=client, auth=auth)
     # remove existing pools in memory
     # clean up possible garbage of previous runs. use class method to avoid reading pool hk info during ProdStorage initialization.
-    thepool, pstore = mkStorage(poolname, poolurl)
-    do_realistic(thepool, pstore, demo_product)
+    thepool, pstore = mkStorage(poolname, poolurl, client=client, auth=auth)
+    do_realistic(thepool, pstore, demo_product, client=client, auth=auth)
 
 
-def test_realistic_csdb(clean_csdb, urlcsdb,  demo_product):
+def test_realistic_csdb(clean_csdb, urlcsdb,  demo_product, client, auth):
     test_pool, poolurl, pstore = clean_csdb  # csdb:///csdb_test_pool
-    do_realistic(test_pool, pstore, demo_product)
+    do_realistic(test_pool, pstore, demo_product, client=client, auth=auth)
 
 
-def do_realistic(test_pool, pstore, demo_):
+def do_realistic(test_pool, pstore, demo_, client=None, auth=None):
     if 0:
         cleanup(poolurl, poolname)
         # remove existing pools in memory
@@ -1671,7 +1695,7 @@ def do_realistic(test_pool, pstore, demo_):
     map1ref = pstore.save(map2, tag=__name__+'::realistic.map2')
 
 
-def test_demoprod_csdb(clean_csdb, urlcsdb,  demo_product):
+def test_demoprod_csdb(clean_csdb, urlcsdb,  demo_product, client, auth):
     test_pool, poolurl, pstore = clean_csdb  # csdb:///csdb_test_pool
     # do_realistic(test_pool, pstore, demo_product)
 

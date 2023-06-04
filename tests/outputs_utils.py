@@ -5,14 +5,17 @@ out_tree = """tree out_tree
 ├── measurements                          <CompositeDataset>
 │   ├── meta                                      <MetaData>
 │   │   └── listeners                          <ListenerSet>
-│   ├── Time_Energy_Pos               <TableDataset> [5, 20]
+│   ├── Time_Energy_Pos               <TableDataset> [8, 20]
 │   │   ├── meta                                  <MetaData>
 │   │   │   └── listeners                      <ListenerSet>
 │   │   ├── Time                               <Column> [20]
 │   │   ├── Energy                             <Column> [20]
 │   │   ├── Error                              <Column> [20]
+│   │   ├── ErrorL                             <Column> [20]
 │   │   ├── y                                  <Column> [20]
-│   │   └── z                                  <Column> [20]
+│   │   ├── z                                  <Column> [20]
+│   │   ├── size                               <Column> [20]
+│   │   └── label                              <Column> [20]
 │   ├── calibration                  <ArrayDataset> [11, 11]
 │   └── dset                                           <str>
 ├── Environment Temperature               <ArrayDataset> [7]
@@ -100,7 +103,7 @@ out_tree = """tree out_tree
 ├── measurements                          <CompositeDataset>
 │   ├── meta                                      <MetaData>
 │   │   └── listeners                          <ListenerSet>
-│   ├── Time_Energy_Pos               <TableDataset> [5, 20]
+│   ├── Time_Energy_Pos               <TableDataset> [8, 20]
 │   │   ├── meta                                  <MetaData>
 │   │   │   ├── description                         <string>
 │   │   │   │   ├── description                        <str>
@@ -138,8 +141,11 @@ out_tree = """tree out_tree
 │   │   ├── Time                               <Column> [20]
 │   │   ├── Energy                             <Column> [20]
 │   │   ├── Error                              <Column> [20]
+│   │   ├── ErrorL                             <Column> [20]
 │   │   ├── y                                  <Column> [20]
-│   │   └── z                                  <Column> [20]
+│   │   ├── z                                  <Column> [20]
+│   │   ├── size                               <Column> [20]
+│   │   └── label                              <Column> [20]
 │   ├── calibration                  <ArrayDataset> [11, 11]
 │   └── dset                                           <str>
 ├── Environment Temperature               <ArrayDataset> [7]
@@ -259,7 +265,7 @@ out_tree = """tree out_tree
 |__ measurements                          <CompositeDataset>
 |   |__ meta                                      <MetaData>
 |   |   \__ listeners                          <ListenerSet>
-|   |__ Time_Energy_Pos               <TableDataset> [5, 20]
+|   |__ Time_Energy_Pos               <TableDataset> [8, 20]
 |   |   |__ meta                                  <MetaData>
 |   |   |   |__ description                         <string>
 |   |   |   |   |__ description                        <str>
@@ -297,8 +303,11 @@ out_tree = """tree out_tree
 |   |   |__ Time                               <Column> [20]
 |   |   |__ Energy                             <Column> [20]
 |   |   |__ Error                              <Column> [20]
+|   |   |__ ErrorL                             <Column> [20]
 |   |   |__ y                                  <Column> [20]
-|   |   \__ z                                  <Column> [20]
+|   |   |__ z                                  <Column> [20]
+|   |   |__ size                               <Column> [20]
+|   |   \__ label                              <Column> [20]
 |   |__ calibration                  <ArrayDataset> [11, 11]
 |   \__ dset                                           <str>
 |__ Environment Temperature               <ArrayDataset> [7]

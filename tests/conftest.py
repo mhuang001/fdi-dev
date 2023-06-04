@@ -20,10 +20,10 @@ from fdi.pal.poolmanager import dbg_7types
 
 from flask.testing import FlaskClient
 
-from requests.auth import HTTPBasicAuth
 import pytest
 import importlib
 from urllib.error import HTTPError
+from requests.auth import HTTPBasicAuth
 import requests
 import os
 import sys
@@ -34,7 +34,7 @@ import getpass
 import shlex
 import signal
 import datetime
-import requests
+
 from subprocess import Popen, TimeoutExpired
 import logging
 import logging.config
@@ -50,6 +50,10 @@ EX = ' -l /tmp/foo.log'
 RUN_SERVER_IN_BACKGROUND = 'python3.8 httppool_app.py --server=httppool_server'
 """ set to '' to disable running a pool in the background as the mock. """
 
+SERVER_TYPE = [RUN_SERVER_IN_BACKGROUND,
+               'MOCKED_WITH_TEST_FRAMEWORK',
+               'Manually Run Somewhere'][2]
+""" Chooses how the test server is to br run """
 
 TEST_SERVER_LIFE = 600
 """ test server time limit in seconds."""
@@ -80,15 +84,6 @@ def pc():
     # logger.debug(json.dumps(pns))
 
     return pns
-
-
-@ pytest.fixture(scope="session")
-def mock_in_the_background():
-
-    return RUN_SERVER_IN_BACKGROUND
-
-
-######
 
 
 SHORT = 'function'
@@ -144,16 +139,15 @@ def local_pools_dir(pc):
 
 
 @ pytest.fixture(scope="session")
-def mock_app(pc, mock_in_the_background):
-    if mock_in_the_background:
-        yield None
-    else:
-        from fdi.httppool import create_app
-        app = create_app(config_object=pc, level=logger.getEffectiveLevel())
-        app.config['TESTING'] = True
-        with app.app_context():
-            yield app
-            # app.
+def mock_app(pc):
+    """ A mock app that act like a server to the client.
+    """
+    from fdi.httppool import create_app
+    app = create_app(config_object=pc, level=logger.getEffectiveLevel())
+    app.config['TESTING'] = True
+    with app.app_context():
+        yield app
+        # app.
 
 
 def background_app():
@@ -197,7 +191,7 @@ def background_app():
         logg = "Background live server status: %s." % json.dumps(
             dict((k, lls(v, 1000)) for k, v in sta.items()))
         chldlogger.info(logg)
-        with open('/tmp/bar.log', 'a') as f:
+        with open('/tmp/test_background_server.log', 'a') as f:
             f.write(logg)
 
         assert sta['returncode'] in (
@@ -207,7 +201,8 @@ def background_app():
     else:
         # main process
         # wait for checkserver to return 'live'
-        time.sleep(2)
+        t = 2
+        time.sleep(t)
         n = 2
         while checkserver(aburl) != 'live':
             logger.debug('No server yet %d' % n)
@@ -218,8 +213,8 @@ def background_app():
         if n:
             msg = 'Made live local server %d' % pid
         else:
-            msg = 'Failed running server PID=%s in background. n=%s.' % (
-                str(pid), str(n))
+            msg = 'Failed running server PID=%s in background. timeout %dsec.' % (
+                str(pid), (n+1)*2)
         logger.info(msg)
         return pid
 
@@ -264,48 +259,71 @@ def checkserver(aburl):
     # initialize test data.
 
 
-@ pytest.fixture(scope="session")
-def live_or_mock(pc, mock_in_the_background, mock_app):
-    """ Prepares server absolute base url and common headers for clients to use.
-
-    Based on ``PoolManager.PlacePaths[scheme]`` where ``scheme`` is `http` or `https` and auth info from `pnsconfig` from the configuration file and commandline.
-
-    e.g. ```'http://0.0.0.0:5000/v0.7/', ('foo', 'bar')```
+def pytest_generate_tests(metafunc):
+    """
+    Chooses server type and generate fixture accordingly.
 
     Return
     ------
-    tuple:
-       baseurl with no trailing '/' and a string set to 'live' if the
-       server os alive, 'mock' if the server is not useable as it is.
+    int:
+       The PID of the server running in the background
+    str:
+       "live", "mock", or "external"
+
+       "mock" is genrating an app for a mock server with flask test framework.
 
     """
-    server_type = None
+    if 'live_or_mock' in metafunc.fixturenames:
+        if SERVER_TYPE == RUN_SERVER_IN_BACKGROUND:
+            metafunc.parametrize("live_or_mock", ['background'], indirect=True)
+        elif SERVER_TYPE == 'MOCKED_WITH_TEST_FRAMEWORK':
+            metafunc.parametrize("live_or_mock", ['mock'], indirect=True)
+        else:
+            metafunc.parametrize("live_or_mock", ["external"], indirect=True)
 
-    # client side.
+
+@pytest.fixture(scope='session')
+def live_or_mock(request):
+    """ Tells absolute base url and common headers to clients to use.
+
+    Based on ``PoolManager.PlacePaths[scheme]`` where ``scheme`` 
+    is `http` or `https` and auth info from `pnsconfig` from the
+    configuration file and commandline.
+
+    e.g. ```'http://0.0.0.0:5000/v0.7/', ('foo', 'bar')```
+
+       baseurl with no trailing '/' and a string set to 'live' if the
+       server is alive, 'mock' if using Flask's testing lib.
+
+    """
+
     # pool url from a local client
     cschm = 'http'
     aburl = cschm + '://' + PoolManager.PlacePaths[cschm]
     logger.debug('Check out %s ...' % aburl)
-    server_type = checkserver(aburl)
-    if server_type == 'mock':
-        if mock_in_the_background:
+    server_type_found = checkserver(aburl)
+    if server_type_found == 'live':
+        if request.param == "background":
+            # isinstance(request.param, int):
             pid = background_app()
-            # None means no mock_in_the_background
-            assert pid is not None
             server_type = 'live'
-            yield aburl, server_type
-
+            yield aburl, server_type_found
+            # clean up
             if pid > 0:
                 logger.info(
                     'Killing server PID=%d running in the background.' % pid)
                 kpg = os.killpg(os.getpgid(pid), signal.SIGTERM)
                 logger.info('... killed. rc= %s' % str(kpg))
-
-    elif server_type == 'live':
-        yield aburl, server_type
+        elif request.param == "external":
+            yield aburl, server_type_found
+        else:
+            if request.param == "mock":
+                raise RuntimeError(
+                    'want to get a mock server but get %s one.' % server_type_found)
+    elif server_type_found == 'mock':
+        yield aburl, server_type_found
     else:
-        logger.error('Invalid server state '+server_type)
-        assert 0
+        raise ValueError('Invalid server state '+server_type_found)
 
 
 @ pytest.fixture(scope=SHORT)

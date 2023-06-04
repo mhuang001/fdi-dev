@@ -101,8 +101,8 @@ pnsconfig['docker_version'] = ''
 pnsconfig['server_version'] = ''
 
 pnsconfig['cloud_token'] = 'TO BE FILLED'
-pnsconfig['cloud_username'] = 'mh'
-pnsconfig['cloud_password'] = ''
+pnsconfig['cloud_user'] = 'mh'
+pnsconfig['cloud_pass'] = ''
 pnsconfig['cloud_host'] = ''
 pnsconfig['cloud_port'] = 31702
 

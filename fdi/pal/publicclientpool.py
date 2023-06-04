@@ -77,12 +77,8 @@ def get_Values_From_A_list_of_dicts(res, what, get_list=True, excpt=True):
         return [r[what] for r in res]
 
 
-def verifyToken(poolurl, client):
-    pass
-
-
 def verifyToken(token, client):
-
+    err = False
     try:
         # None is OK (wtf)
         tokenMsg = read_from_cloud(
@@ -92,17 +88,27 @@ def verifyToken(token, client):
         pass
     if tokenMsg is None:
         logger.debug(
-            f'Cloud token ...{current_token[-5:]} needs not updating.')
-        return current_token
-    __import__("pdb").set_trace()
+            f'Cloud token ...{token[-5:]} needs not updating.')
+        return 0
 
-    if tokenMsg.get('status', '') == 500 or err:
-        logger.info(
-            f'{tokenMsg}-excpt {err}. Cloud token ...{current_token[-5:]} to be updated.')
-    else:
-        logger.warning(
-            f'{tokenMsg}-excpt {err}...{current_token[-8:]} aint no good token there be no new one.')
-        raise err
+    if tokenMsg.get('status', '') == 500:
+        if 'JWT String argument cannot be null or empty.' in tokenMsg['message']:
+            return 1, 'Empty token'
+        elif 'Signature length not correct' in tokenMsg['message']:
+            return 2, 'Incorrect length'
+        elif 'JWT signature does not match locally computed signature.' in tokenMsg['message']:
+            return 3, 'JWT signature does not match locally computed signature.'
+        else:
+
+            if err:
+                logger.warning(
+                    f'{tokenMsg}-excpt {err}. Cloud token ...{current_token[-5:]} to be updated.')
+                raise err
+            else:
+                logger.info(
+                    f'{tokenMsg}-excpt {err}...{current_token[-8:]} aint no good token there be no new one.')
+
+        return -1, tokenMsg['message']
 
 
 def getToken(poolurl, client):
@@ -133,16 +139,12 @@ def getToken(poolurl, client):
 
     if not current_token:
         current_token = pcc['cloud_token']
-    # __import__('pdb').set_trace()
-    verifyed = verifyToken(client)
-    err = ''
-    try:
-        tokenMsg = read_from_cloud(
-            'getToken', client=client, token=current_token)
-    except ServerError as e:
-        err = e
-    token = tokenMsg['token'] if tokenMsg else None
-    logger.info(f'Cloud token {lls(token, 50)} updated.{err} ')
+    trouble = verifyToken(current_token, client)
+    if trouble:
+        logger.info(f'Cloud token {lls(token, 50)} {trouble} ')
+        token = getToken(poolurl, client)
+    else:
+        token = current_token
 
     if sess and SESSION:
         # save token

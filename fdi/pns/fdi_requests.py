@@ -65,6 +65,9 @@ logger = logging.getLogger(__name__)
 
 POST_PRODUCT_TAG_NAME = 'FDI-Product-Tags'
 
+SAFE_CLIENT_OUT = 0
+""" logger.info all url going out."""
+
 # all items
 pcc = getConfig()
 defaulturl = getConfig('poolurl:')
@@ -214,7 +217,7 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
     Response
        Of urllib3 Session or requests Response.
 """
-    if 1:
+    if SAFE_CLIENT_OUT:
         logger.info(
             lls(f'{method.__func__.__name__} {api} arg={args} kwds={kwds}', 200))
 

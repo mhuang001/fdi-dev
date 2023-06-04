@@ -1,4 +1,4 @@
-__version_info__ = (1, 32, 1)
+__version_info__ = (1, 32, 2)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.31.4-6-gc6a3328'
 

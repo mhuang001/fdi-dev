@@ -232,7 +232,6 @@ def checkserver(aburl):
     """
 
     server_type = None
-
     # check if data already exists
     try:
         o = getJsonObj(aburl)
@@ -241,6 +240,9 @@ def checkserver(aburl):
     except HTTPError as e:
         if e.code == 308:
             logger.info('%s alive. Server response 308' % (aburl))
+            server_type = 'live'
+        elif e.code == 401:
+            logger.info('%s alive. Server response 401' % (aburl))
             server_type = 'live'
         else:
             logger.warning(aburl + ' is alive. but trouble is ')
@@ -283,7 +285,7 @@ def pytest_generate_tests(metafunc):
 
 
 @pytest.fixture(scope='session')
-def live_or_mock(request):
+def live_or_mock(pc, request):
     """ Tells absolute base url and common headers to clients to use.
 
     Based on ``PoolManager.PlacePaths[scheme]`` where ``scheme`` 
@@ -298,10 +300,15 @@ def live_or_mock(request):
     """
 
     # pool url from a local client
-    cschm = 'http'
-    aburl = cschm + '://' + PoolManager.PlacePaths[cschm]
+    aburl = 'http://' + PoolManager.PlacePaths['http']
+    csci = pc['url_aliases']['csdb'].replace('csdb:', 'http:')
+
+    # 'http://' + pc['cloud_host']+'/' +\
+    #    pc['cloud_api_base']+'/'+pc['cloud_api_version']+'user/token'
     logger.debug('Check out %s ...' % aburl)
     server_type_found = checkserver(aburl)
+    logger.debug('Check out %s ...' % csci)
+    server_type_found2 = checkserver(csci)
     if server_type_found == 'live':
         if request.param == "background":
             # isinstance(request.param, int):
@@ -321,7 +328,13 @@ def live_or_mock(request):
                 raise RuntimeError(
                     'want to get a mock server but get %s one.' % server_type_found)
     elif server_type_found == 'mock':
-        yield aburl, server_type_found
+        if request.param == "mock":
+            yield aburl, server_type_found
+        elif server_type_found2 == 'live':
+            # in case of Csdb
+            yield csci, 'live'
+        else:
+            yield aburl, 'troubled'
     else:
         raise ValueError('Invalid server state '+server_type_found)
 
@@ -359,7 +372,7 @@ def request_context(mock_app):
     yield mock_app.test_request_context
 
 
-@ pytest.fixture(scope="module")
+@ pytest.fixture(scope="session")
 def client(live_or_mock, mock_app):
 
     a, server_type = live_or_mock
@@ -425,20 +438,7 @@ def make_csdb(poolurl):
     return ps
 
 
-def do_clean_csdb(auth):
-    urlcsdb = url_c
-    pc = pns
-    url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
-
-    # register to clean up
-    ps = ProductStorage()
-    ps.PM.removeAll()
-
-    ps.register(poolurl=url, client=the_session, auth=auth)
-    # ps.register(poolname=test_pool.poolname, poolurl=poolurl)
-    test_pool = ps.getWritablePool(True)  # PublicClientPool(poolurl=url)
-    pname = test_pool._poolname
-    assert test_pool.serverDatatypes
+def do_clean_csdb(test_pool, url, ps, auth):
 
     ######
     if dbg_7types:
@@ -446,14 +446,15 @@ def do_clean_csdb(auth):
         print('+'*21, len(tl), tl)
 
     test_pool.wipe()
+    pname = test_pool._poolname
 
     #######
     if dbg_7types:
         tl = test_pool.getDataType(substrings='testproducts')
         print('>'*21, len(tl), tl)
 
-    assert pname in PoolManager.getMap()
     assert pname in ps._pools
+    # assert pname in PoolManager.getMap()
 
     assert test_pool.isEmpty()
 
@@ -484,12 +485,14 @@ def do_clean_csdb(auth):
 @ pytest.fixture(scope=SHORT)
 def clean_csdb_fs(clean_csdb, auth):
     """ fuction-scope verssion of clean_csdb """
-    return do_clean_csdb(auth=auth)
+    test_pool, url, ps = clean_csdb
+    return do_clean_csdb(test_pool, url, ps, auth=auth)
 
 
 @ pytest.fixture(scope="session")
-def clean_csdb(urlcsdb, auth):
-    return do_clean_csdb(auth=auth)
+def clean_csdb(urlcsdb, csdb, auth):
+    test_pool, url, ps = csdb
+    return do_clean_csdb(test_pool, url, ps, auth=auth)
 
 
 @ pytest.fixture(scope=SHORT)
@@ -510,12 +513,26 @@ def new_csdb(urlcsdb, pc, auth):
         print('.'*21, len(tl), tl)
 
     yield pool, url, ps
+    ps.unregister(pool)
+    ps.PM.removeAll()
 
 
 @ pytest.fixture(scope='session')
-def csdb(clean_csdb):
+def csdb(pc, client, auth, urlcsdb):
 
-    return clean_csdb
+    url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
+
+    # register to clean up
+    ps = ProductStorage()
+    ps.PM.removeAll()
+
+    ps.register(poolurl=url, client=client, auth=auth)
+    # ps.register(poolname=test_pool.poolname, poolurl=poolurl)
+    test_pool = ps.getWritablePool(True)  # PublicClientPool(poolurl=url)
+
+    assert test_pool.serverDatatypes
+
+    return test_pool, url, ps
 
 
 @ pytest.fixture(scope=SHORT)

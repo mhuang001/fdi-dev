@@ -1027,14 +1027,15 @@ def test_ProdStorage_func_server(client, auth):
         thepoolname, thepoolurl, None, client=client, auth=auth)
 
 
-def test_ProdStorage_func_http_csdb(pc, urlcsdb, server, userpass, client, auth):
+def test_ProdStorage_func_http_csdb(pc, server, urlcsdb, userpass, client, auth):
 
     aburl, hdr = server
     remote_purl = (pc['cloud_scheme'] +
                    urlcsdb[len('csdb'):] + '/' + csdb_pool_id).replace('/', ',')
     # remote_comma = remote_purl.replace('/', ',')
     thepoolname = csdb_pool_id
-    thepoolurl = aburl + '/' + remote_purl
+    # must use http pool url explicitly b/c aburl is for the live csdb
+    thepoolurl = 'http://' + PoolManager.PlacePaths['http'] + '/' + remote_purl
 
     cleanup(thepoolurl, thepoolname, client=client, auth=auth)
     check_prodStorage_func_for_pool(

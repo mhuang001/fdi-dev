@@ -883,7 +883,7 @@ def genMapContext(size=1):
     return map1
 
 
-@ pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope='session')
 def csdb_token(csdb, pc):
     logger.info('test token')
     test_pool, url, pstore = csdb
@@ -898,26 +898,36 @@ def test_csdb_token(csdb_token):
     tok = csdb_token
 
 
-def test_verifyToken(csdb_client):
+def test_verifyToken(csdb_client, csdb):
     urlupload, urldelete, urllist, client = csdb_client
-    # get a fresh token that expires in 5 sec_key
-    # auth_token_req = {
-    #     "aesFlag": False,
-    #     "password":
-    #     "password": pc['cloud_user'],
-    #     "username": pc['cloud_pass'],
-    # }
-    token = read_from_cloud('getToken', client=client)
-    # verify it
-    __import__("pdb").set_trace()
+    # test_pool, url, pstore = csdb
 
-    v = read_from_cloud('verifyToken', token=token, client=client)
+    from fdi.pal.publicclientpool import verifyToken
+
+    tokenMsg = read_from_cloud('getToken', client=client)
+    token = tokenMsg['token']
+    # verify it
+
     # success
-    assert v is None
+    v = read_from_cloud('verifyToken', token=token, client=client)
     logger.info('TOKEN fresh')
+    assert verifyToken(token, client) == 0
+    # empty token
+    t = ''
+    v = read_from_cloud('verifyToken', token=t, client=client)
+    assert 'JWT String argument cannot be null or empty.' in v['message']
+    assert verifyToken(t, client) == (1, 'Empty token')
     # invalid format
-    invalid = token[:-2]
-    v = read_from_cloud('verifyToken', token=invalid, client=client)
+    t = token[:-5]
+    v = read_from_cloud('verifyToken', token=t, client=client)
+    assert 'Signature length not correct' in v['message']
+    assert verifyToken(t, client) == (2, 'Incorrect length')
+    # diff string
+    t = token[:-3] + 'zxc'
+    v = read_from_cloud('verifyToken', token=t, client=client)
+    assert 'JWT signature does not match locally computed signature.' in v['message']
+    assert verifyToken(t, client) == (
+        3, 'JWT signature does not match locally computed signature.')
 
 
 def test_csdb_createPool(new_csdb):

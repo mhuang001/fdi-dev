@@ -93,9 +93,9 @@ class TableModel():
         self.getColumn(columnIndex).data[rowIndex] = value
 
 
-def maybe2rows(header_names, units, col_width, sep='.', one_row=False, linebreak='\n'):
+def maybe2rows(header_names, units=None, col_width=None, sep='.', one_row=False, linebreak='\n'):
     """ makes one-row or two-row column headers
-
+    :units: will not show line if all blank.
     :sep: a string of separator characters to split header into two fragments. a header only uses the first matching char from left. Grouping does not distinguish which sep-char was used to split a header. Example: '.' (default), '._/'
     :one_row: Force one row but add line breaks at sep
 
@@ -147,8 +147,11 @@ def maybe2rows(header_names, units, col_width, sep='.', one_row=False, linebreak
                 width=col_width, linebreak=linebreak)
             for x in (hd if found_repeat else header_names)]
     # name and unit rows.
-    hdr = list('%s%s(%s)' % (nu[0], linebreak, nu[1])
-               for nu in zip(hdr1, units))
+    if any(units):
+        hdr = list('%s%s(%s)' % (nu[0], linebreak, nu[1])
+                   for nu in zip(hdr1, units))
+    else:
+        hdr = hdr1
 
     if 0:  # one_row:
         return list(linebreak.join(hd2, hdr))
@@ -323,7 +326,7 @@ class TableDataset(CompositeDataset, TableModel, Shaped):
 
         for name in self.getColumnMap(key).keys():
             self._list.pop(self.indexOf(name))
-            del(self.data[name])
+            del (self.data[name])
         self.updateShape()
 
     def indexOf(self, key):
@@ -599,7 +602,7 @@ Default is to return all columns.
 
     def toString(self, level=0, extra=False, param_widths=None,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='plain',
-                 width=0, matprint=None, trans=True,
+                 width=0, matprint=None, trans=True, no_meta=False,
                  heavy=True, center=-1, **kwds):
         """
         tablefmt2: format of 2D data, others see `MetaData.toString`.
@@ -611,12 +614,13 @@ Default is to return all columns.
         cn = self.__class__.__name__
         if level > 1:
             s = cn + '('
-            s += self.meta.toString(
-                level=level, extra=extra,  param_widths=param_widths,
-                tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                width=width,
-                **kwds)
-            return s + 'data= {' + \
+            if not no_meta:
+                s += self.meta.toString(
+                    level=level, extra=extra,  param_widths=param_widths,
+                    tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                    width=width,
+                    **kwds) + 'data= '
+            return s + '{' + \
                 ', '.join('"%s": %s' % (k, v.toString(
                     level=level, extra=extra,  param_widths=param_widths,
                     tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt,
@@ -633,9 +637,10 @@ Default is to return all columns.
                                      tablefmt2=tablefmt2, center=center,
                                      width=width, heavy=heavy,
                                      html=html, excpt=['description'],
+                                     no_meta=no_meta,
                                      **kwds)
         width = len(last)-1
-        if level == 0:
+        if level == 0 and not no_meta:
             if html:
                 d = '<center><u>%s</u></center>\n' % 'DATA'
             else:
@@ -659,15 +664,19 @@ Default is to return all columns.
                          (str(x.unit) for x in cols),
                          col_width=w, one_row=html,
                          linebreak=br)
-        d += matprint(coldata, trans=trans, headers=hdr,
-                      tablefmt=tablefmt, tablefmt1=tablefmt1,
-                      tablefmt2=tablefmt2, center=center,
-                      mdim=2, param_widths=param_widths,
-                      maxElem=sys.maxsize, **kwds)
+        dtab = matprint(coldata, trans=trans, headers=hdr,
+                        tablefmt=tablefmt, tablefmt1=tablefmt1,
+                        tablefmt2=tablefmt2, center=center,
+                        mdim=2, param_widths=param_widths,
+                        maxElem=sys.maxsize, **kwds)
+        table_width = max(len(x) for x in dtab[:600].split('\n'))
+        shift = ' ' * ((width - table_width) // 2)
+        shift1 = '\n%s' % shift
+        d += shift + dtab[:-1].replace('\n', shift1) + dtab[-1]
         collen = self.getRowCount()
         if level and rowlimit is not None and rowlimit < collen:
             d += '(Only display %d rows of %d for level=%d.)' % (rowlimit, collen, level)
-        return f'{s}\n{d}{last}\n'
+        return f'{d}{last}\n' if no_meta else f'{s}\n{d}{last}\n'
 
     string = toString
     txt = toString

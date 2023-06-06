@@ -192,11 +192,11 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
                     width=width, param_widths=param_widths,
                     **kwds)
             # set wiidth=0 level=2 to inhibit \n
-            vs, us, ts, ds, fs, gs, cs, ex = exprstrs(
+            att, ex = exprstrs(
                 self, '_data', width=0, level=level)
             # '{ %s (%s) <%s>, "%s", default %s, tcode=%s}' %\
             # (vs, us, ts, ds, fs, cs)
-            return '%s data= %s)' % (s, vs)
+            return '%s data= %s)' % (s, att['value'])
 
         html = 'html' in tablefmt.lower() or 'html' in tablefmt2.lower()
         br = '<br>' if html else '\n'
@@ -240,7 +240,7 @@ class ArrayDataset(GenericDataset, Iterable, Shaped):
             matprint(tdata, trans=False, headers=[],
                      tablefmt2='html' if html else 'plain',
                      **kwds)
-        #d += lls(ds, 9000 if html else 2000)
+        # d += lls(ds, 9000 if html else 2000)
         d += ds
         return '%s\n%s%s%s%s' % (s, d, br, last, br)
 

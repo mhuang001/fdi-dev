@@ -921,7 +921,7 @@ def test_verifyToken(csdb_client, csdb):
     t = token[:-5]
     v = read_from_cloud('verifyToken', token=t, client=client)
     assert 'Signature length not correct' in v['message']
-    assert verifyToken(t, client) == (2, 'Incorrect length')
+    assert verifyToken(t, client) == (2, 'Incorrect format')
     # diff string
     t = token[:-3] + 'zxc'
     v = read_from_cloud('verifyToken', token=t, client=client)

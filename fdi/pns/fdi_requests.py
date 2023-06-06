@@ -53,7 +53,7 @@ if sys.version_info[0] >= 3:  # + 0.1 * sys.version_info[1] >= 3.3:
     PY3 = True
     strset = str
     from urllib.parse import urlparse
-else:
+else:  # indent
     PY3 = False
     # strset = (str, unicode)
     strset = str

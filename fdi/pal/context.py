@@ -4,7 +4,9 @@ from ..dataset.serializable import Serializable
 from .. import pal
 from ..dataset.baseproduct import BaseProduct
 from ..dataset.odict import ODict
+from ..dataset.tabledataset import TableDataset
 from ..dataset.metadata import tabulate
+from ..dataset.arraydataset import Column
 from ..utils.common import bstr
 
 from collections import OrderedDict
@@ -12,7 +14,7 @@ from collections import UserDict
 import logging
 # create logger
 logger = logging.getLogger(__name__)
-#logger.debug('level %d' % (logger.getEffectiveLevel()))
+# logger.debug('level %d' % (logger.getEffectiveLevel()))
 
 
 class ContextRuleException(ValueError):
@@ -130,6 +132,16 @@ class RefContainer(ODict):
         # s.update(_ATTR_owner=self.owner)
         return s
 
+    def toTable(self):
+        """ Convert to `TableDataset`"""
+        t = TableDataset(description='References')
+        dat = [(n, r.urn, '\n'.join(str(id(p)) for p in r.parents), len(r.meta)
+                if r.meta else '(none)') for n, r in self.items()]
+        headers = ['lable', 'urn', 'parents', 'meta']
+        for n, d in zip(headers, zip(*dat)):
+            t.addColumn(n, Column(d, ''))
+        return t
+
     def toString(self, level=0, tablefmt='grid', **kwds):
 
         cn = self.__class__.__name__
@@ -138,11 +150,12 @@ class RefContainer(ODict):
             s += ', '.join('%s: %s' % (n, r.urn) for n, r in self.items())
             s += ')'
         else:
-            dat = [(n, r.urn, '\n'.join(str(id(p)) for p in r.parents), len(r.meta)
-                    if r.meta else '(none)') for n, r in self.items()]
-            headers = ['lable', 'urn', 'parents', 'meta']
-            s = tabulate.tabulate(dat, headers=headers,
-                                  stralign='center', tablefmt=tablefmt)
+            return self.toTable().toString(no_meta=True, no_unit=True, **kwds)
+            # dat = [(n, r.urn, '\n'.join(str(id(p)) for p in r.parents), len(r.meta)
+            #        if r.meta else '(none)') for n, r in self.items()]
+            # headers = ['lable', 'urn', 'parents', 'meta']
+            # s = tabulate.tabulate(dat, headers=headers,
+            #                      stralign='center', tablefmt=tablefmt)
         return s
     string = toString
     txt = toString

@@ -389,9 +389,10 @@ def test_flask_fmt(tmp_pools, server, client,  auth):
     # tags are a string to make btter display.
 
     # the url is right
-    assert o['result']['DataTypes'][p_type][p_index]['url'] == '/'.join(
+    assert o['result']['DataTypes'][p_type.rsplit('.', 1)[1]][p_index]['url'] == '/'.join(
         (received_poolurls_no_slash, p_type, str(p_index)))
-    assert o['result']['DataTypes'][p_type][p_index]['tags'] == str([tag])
+    assert o['result']['DataTypes'][p_type.rsplit(
+        '.', 1)[1]][p_index]['tags'] == str([tag])
     # pool aburl with slash
     # get the pool using url with slash
     received_poolurls_slash = received_poolurls_no_slash+'/'
@@ -459,11 +460,11 @@ def test_hist(tmp_remote_storage, tmp_prods):
     h = p0.history.getTaskHistory(verbose=False)
     h.nodes['root']['product_ref'] = f'"{urn0}"'
     if 1:
-        assert len(p11.history['name']) == 0
-        assert p12.history['name'][0] == 'p1-2-1'
-        assert p12.history['name'][1] == 'p1-2-2'
-        assert p122.history['name'][0] == 'p1-2-2-1'
-        assert p1221.history['name'][0] == 'p1-2-2-1-1'
+        assert len(p11.history['Name']) == 0
+        assert p12.history['Name'][0] == 'p1-2-1'
+        assert p12.history['Name'][1] == 'p1-2-2'
+        assert p122.history['Name'][0] == 'p1-2-2-1'
+        assert p1221.history['Name'][0] == 'p1-2-2-1-1'
         assert nx.is_directed_acyclic_graph(h)
 
     assert len(h.adj) == 7

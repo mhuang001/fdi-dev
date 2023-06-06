@@ -132,6 +132,8 @@ def fits_dataset(hdul, dataset_list, name_list=None, level=0):
             header['EXTNAME'] = ename
             hdul.append(fits.ImageHDU(a, header=header))
         elif issubclass(ima.__class__, (TableDataset, RefContainer)):
+            if issubclass(ima.__class__, RefContainer):
+                ima = ima.toTable()
             t = Table()
             for name, col in ima.items():
                 tname = typecode2np['u' if col.typecode == 'UNKNOWN' else

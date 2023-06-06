@@ -8,10 +8,11 @@ from fdi.dataset.dataset import CompositeDataset
 from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.dateparameter import DateParameter
 from fdi.dataset.stringparameter import StringParameter
-from fdi.dataset.dataset import Dataset
+from fdi.dataset.product import Product
 from fdi.dataset.numericparameter import NumericParameter, BooleanParameter
 from fdi.dataset.metadata import MetaData
-from fdi.dataset.deserialize import deserialize
+from fdi.pal.context import MapContext
+from fdi.pal.productref import ProductRef
 
 try:
     import numpy as np
@@ -86,7 +87,7 @@ def makecom():
     a3 = 'arraydset 1'
     a4 = ArrayDataset(data=a1, unit=a2, description=a3)
     a5, a6, a7 = [[1.09, 289], [3455, 564]], 'count', 'arraydset 2'
-    #a8 = ArrayDataset(data=a5, unit=a6, description=a7)
+    # a8 = ArrayDataset(data=a5, unit=a6, description=a7)
     d = {'col1': aCol(data=[1, 4.4, 5.4E3], unit='eV'),
          'col2': aCol(data=[0, -43, 2E3], unit='cnt')}
     d['col1'].typecode = 'd'
@@ -183,8 +184,8 @@ def test_toFits_metadata(makecom):
         data = [ima]
         u = toFits(data, file=None)
         assert issubclass(u.__class__, fits.HDUList)
-        #assert len(u) == len(data)+1
-        #print("-----", u[0].header)
+        # assert len(u) == len(data)+1
+        # print("-----", u[0].header)
         w = u[1]
         # print(w.header)
         assert w.header['DATETIME'] == '2023-01-23T12:34:56.789012'
@@ -237,6 +238,18 @@ def test_prd_fits(makecom):
     f.close()
     assert f[0].header == v[0].header
     del f
+
+
+def test_mapcontext_fits():
+
+    image = Product(description="hi")
+    spectrum = Product(description="there")
+    simple = Product(description="everyone")
+
+    context = MapContext()
+    context.refs.put("x", ProductRef(image))
+    context.refs.put("y", ProductRef(spectrum))
+    context.refs.put("z", ProductRef(simple))
 
 
 def test_Fits_Kw():

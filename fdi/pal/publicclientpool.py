@@ -92,21 +92,22 @@ def verifyToken(token, client):
         return 0
 
     if tokenMsg.get('status', '') == 500:
-        if 'JWT String argument cannot be null or empty.' in tokenMsg['message']:
+        tm = tokenMsg['message']
+        if 'JWT String argument cannot be null or empty.' in tm:
             return 1, 'Empty token'
-        elif 'Signature length not correct' in tokenMsg['message']:
-            return 2, 'Incorrect length'
-        elif 'JWT signature does not match locally computed signature.' in tokenMsg['message']:
+        elif 'Signature length not correct' in tm or \
+             'JWT strings must contain exactly 2 period characters.' in tm:
+            return 2, 'Incorrect format'
+        elif 'JWT signature does not match locally computed signature.' in tm:
             return 3, 'JWT signature does not match locally computed signature.'
         else:
 
             if err:
                 logger.warning(
-                    f'{tokenMsg}-excpt {err}. Cloud token ...{current_token[-5:]} to be updated.')
+                    f'{tokenMsg}-excpt {err}. Cloud token ...{token[-5:]} to be updated.')
                 raise err
             else:
-                logger.info(
-                    f'{tokenMsg}-excpt {err}...{current_token[-8:]} aint no good token there be no new one.')
+                logger.info(f'{tokenMsg}-excpt {err}...{token[-8:]}')
 
         return -1, tokenMsg['message']
 
@@ -141,8 +142,15 @@ def getToken(poolurl, client):
         current_token = pcc['cloud_token']
     trouble = verifyToken(current_token, client)
     if trouble:
-        logger.info(f'Cloud token {lls(token, 50)} {trouble} ')
-        token = getToken(poolurl, client)
+        logger.info(f'Cloud token {lls(current_token, 50)} {trouble} ')
+        tokenMsg = read_from_cloud('getToken', client=client)
+        if tokenMsg:
+            token = tokenMsg['token']
+        else:
+            # no token
+            if not token:
+                logger.error(f'Cannot get token: {tokenMsg}.')
+                return None
     else:
         token = current_token
 

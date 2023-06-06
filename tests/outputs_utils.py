@@ -28,8 +28,8 @@ out_tree = """tree out_tree
 ├── history                            <TableDataset> [2, 0]
 │   ├── meta                                      <MetaData>
 │   │   └── listeners                          <ListenerSet>
-│   ├── name                                    <Column> [0]
-│   └── reference                               <Column> [0]
+│   ├── Name                                    <Column> [0]
+│   └── Reference                               <Column> [0]
 └── listeners                                  <ListenerSet>
 ├── meta                                          <MetaData>
 │   ├── description                                 <string>
@@ -190,8 +190,8 @@ out_tree = """tree out_tree
 │   │   │   ├── valid                             <NoneType>
 │   │   │   └── typecode                               <str>
 │   │   └── listeners                          <ListenerSet>
-│   ├── name                                    <Column> [0]
-│   └── reference                               <Column> [0]
+│   ├── Name                                    <Column> [0]
+│   └── Reference                               <Column> [0]
 └── listeners                                  <ListenerSet>
 |__ meta                                          <MetaData>
 |   |__ description                                 <string>
@@ -352,6 +352,6 @@ out_tree = """tree out_tree
 |   |   |   |__ valid                             <NoneType>
 |   |   |   \__ typecode                               <str>
 |   |   \__ listeners                          <ListenerSet>
-|   |__ name                                    <Column> [0]
-|   \__ reference                               <Column> [0]
+|   |__ Name                                    <Column> [0]
+|   \__ Reference                               <Column> [0]
 \__ listeners                                  <ListenerSet>"""

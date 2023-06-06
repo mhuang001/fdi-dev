@@ -48,6 +48,7 @@ import pydot
 import os.path as op
 import datetime
 import fractions
+import time
 import decimal
 import traceback
 from pprint import pprint
@@ -759,7 +760,7 @@ def test_Parameter_valid():
                         valid={'': 'empty'}, default='cliche', typecode='B')
     assert v.validate() == (INVALID, 'Invalid')
     assert v.validate('') == ('', 'empty')
-    assert v.toString(alist=True)[0] == 'Invalid (Right)'
+    assert v.toString(alist=True)[0]['value'] == 'Invalid (Right)'
 
     if 0:
         # vector. all element must pass the same test to gether
@@ -1233,6 +1234,8 @@ def test_MetaData():
     ts += v.toString(extra=True)
     ts += '\ntablefmt = html\n'
     ts += v.toString(tablefmt1='html')
+    ts += '\nfull_width\n'
+    ts += v.toString(width=132)
     if mk_outputs:
         with open(output_write, 'a', encoding='utf-8') as f:
             clsn = 'out_MetaData'
@@ -2018,6 +2021,7 @@ def test_TableDataset_func0():
         'group3/val3',
     ]):
         v.addColumn(n, Column(data=[n, 123], unit='g'+str(i)),)
+
     from fdi.utils.tree import tree
     # print('\n'.join(tree(v, style='ascii')))
     from fdi.utils.jsonpath import jsonPath, flatten_compact
@@ -2036,6 +2040,17 @@ def test_TableDataset_func0():
     ts += v.string(0, False, None, 'grid', 'rst', 'orgtbl')
     ts += v.string(0, False, None, 'grid', 'rst', 'psql')
     ts += v.string(0, False, None, 'unsafehtml', 'unsafehtml', 'unsafehtml')
+    ts += '\n\n no_meta\n'
+
+    ts += '\n\nlevel 0\n'
+    ts += v.toString(0, False, None, 'grid', 'rst', 'grid', no_meta=True)
+    ts += '\n\nlevel 1\n'
+    ts += v.toString(1, no_meta=True)
+    ts += '\n\nlevel 2, repr\n'
+    ts += v.toString(2, no_meta=True)
+    ts += '\n\n'
+    ts += 'an empty level 2: \n'
+    ts += TableDataset().toString(level=2, no_meta=True)
     ts += '\n\n'
     if mk_outputs:
         print(ts)
@@ -2922,11 +2937,11 @@ def test_History(tmp_local_storage, tmp_prods):
 
     h = p0.history.getTaskHistory(verbose=0)
     if 1:
-        assert len(p11.history['name']) == 0
-        assert p12.history['name'][0] == 'p1-2-1'
-        assert p12.history['name'][1] == 'p1-2-2'
-        assert p122.history['name'][0] == 'p1-2-2-1'
-        assert p1221.history['name'][0] == 'p1-2-2-1-1'
+        assert len(p11.history['Name']) == 0
+        assert p12.history['Name'][0] == 'p1-2-1'
+        assert p12.history['Name'][1] == 'p1-2-2'
+        assert p122.history['Name'][0] == 'p1-2-2-1'
+        assert p1221.history['Name'][0] == 'p1-2-2-1-1'
         assert nx.is_directed_acyclic_graph(h)
         # __import__('pdb').set_trace()
     assert len(h.adj) == 7

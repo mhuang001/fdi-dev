@@ -29,7 +29,6 @@ import json
 import hashlib
 import os.path as op
 import pytest
-from astropy.io import fits
 import importlib_resources
 from importlib_resources import files
 from importlib_resources.readers import MultiplexedPath

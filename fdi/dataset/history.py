@@ -44,8 +44,8 @@ class History(TableDataset):
 
         Implemented as a `TableDataset`. Argument and context information
         are stored as metadata key-variable pairs in the metadata.
-        Input data are in the table where name is the column name and
-        references in the first cell of columns.
+        Input data are in the table where Name is the column name and
+        References in the first cell of columns.
 
         mh: The copy constructor is better not be implemented. Use copy()
         instead. Remember: not only copies the datasets,
@@ -61,8 +61,8 @@ class History(TableDataset):
 
         """
         super(History, self).__init__(**kwds)
-        self['name'] = Column([], '')
-        self['reference'] = Column([], '')
+        self['Name'] = Column([], '')
+        self['Reference'] = Column([], '')
         self.description = 'Named positional and keyword arguments, relevant context, and input data to the pipeline or task that generated this product.'
         self.builtin_keys = list(self._meta.keys())
 
@@ -117,10 +117,10 @@ class History(TableDataset):
         dt = self._data
         if verbose:
             print('History graph for %s has %d inputs: %s.' %
-                  (node, len(dt['name']), str(list(dt['name']))))
+                  (node, len(dt['Name']), str(list(dt['Name']))))
         # __import__('pdb').set_trace()
 
-        for name, ref in zip(dt['name'], dt['reference']):
+        for name, ref in zip(dt['Name'], dt['Reference']):
             # pydot wants no unquoted :
             refq = f'"{ref}"'
             if use_name:
@@ -207,10 +207,10 @@ class History(TableDataset):
             # append the name and input data reference
             if name in self.builtin_keys:
                 name = name + '___'
-            self._data['name']._data.append(name)
-            self._data['reference']._data.append(ref)
-            self._data['name'].updateShape()
-            self._data['reference'].updateShape()
+            self._data['Name']._data.append(name)
+            self._data['Reference']._data.append(ref)
+            self._data['Name'].updateShape()
+            self._data['Reference'].updateShape()
             self.updateShape()
 
     def get_args_info(self):

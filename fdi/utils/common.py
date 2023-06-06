@@ -442,25 +442,27 @@ def exprstrs(param, v='_value', extra=False, **kwds):
                            for n, v in param.zInfo['metadata'].items())
     else:
         extra_attrs = {}
-    ts = attrstr(param, '_type', **kwds)
+
+    astr = {}
+    astr['type'] = attrstr(param, '_type', **kwds)
     if 'typ_' in extra_attrs:
         extra_attrs.pop('typ_', '')
     else:  # Dataset
         extra_attrs.pop('type', '')
-    vs = attrstr(param, v, ftime=True, **kwds)
+    astr['value'] = attrstr(param, v, ftime=True, **kwds)
     extra_attrs.pop('value', '')
-    fs = attrstr(param, '_default', ftime=True, **kwds)
+    astr['default'] = attrstr(param, '_default', ftime=True, **kwds)
     extra_attrs.pop('default', '')
-    ds = attrstr(param, 'description', **kwds)
+    astr['description'] = attrstr(param, 'description', **kwds)
     extra_attrs.pop('description')
-    gs = attrstr(param, '_valid', ftime=True, **kwds)
+    astr['valid'] = attrstr(param, '_valid', ftime=True, **kwds)
     extra_attrs.pop('valid', '')
-    us = attrstr(param, '_unit', **kwds)
+    astr['unit'] = attrstr(param, '_unit', **kwds)
     extra_attrs.pop('unit', '')
-    cs = attrstr(param, '_typecode', **kwds)
+    astr['code'] = attrstr(param, '_typecode', **kwds)
     extra_attrs.pop('typecode', '')
 
-    return (vs, us, ts, ds, fs, gs, cs, extra_attrs)
+    return (astr, extra_attrs)
 
 
 def pathjoin(*p):

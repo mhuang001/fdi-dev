@@ -171,26 +171,18 @@ class ListenerSet(Serializable, DeepEqual, UserList):
         LIST[TUPLE(OBJ)] or STRXS
         A list of member-repre tuples or a string of all depending on `alist`.
         """
-
         if level == 0:
+            l = [(x.__class__.__name__, id(x),
+                  lls(getattr(x, 'description', 'UNKNOWN'), 20))
+                 for x in self.data]
             if alist:
-                l = [(x.__class__.__name__, id(x),
-                      lls((x.description if hasattr(x, 'description') else 'UNKNOWN'), 20))
-                     for x in self.data]
-            else:
-                l = ['%s(%d, %s)' % (x.__class__.__name__, id(x),
-                                     lls((x.description if hasattr(x, 'description') else 'UNKNOWN'), 20))
-                     for x in self.data]
-
+                l = ['%s(%d, %s)' % line for line in l]
         else:
+            l = [(x.__class__.__name__, id(x),
+                  lls(getattr(x, 'description', 'UNKNOWN'), 8))
+                 for x in self.data]
             if alist:
-                l = [(x.__class__.__name__, id(x),
-                      lls((x.description if hasattr(x, 'description') else 'UNKNOWN'), 8))
-                     for x in self.data]
-            else:
-                l = ['%s(%d, %s)' % (x.__class__.__name__, id(x),
-                                     lls((x.description if hasattr(x, 'description') else 'UNKNOWN'), 8))
-                     for x in self.data]
+                l = ['%s(%d, %s)' % line for line in l]
         if alist:
             return l
         else:

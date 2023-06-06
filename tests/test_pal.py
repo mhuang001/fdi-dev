@@ -62,18 +62,31 @@ PM = PoolManager
 Test_Pool_Name = __name__.replace('.', '_')
 defaultpoolPath = '/tmp/fditest'
 
+# make format output in /tmp/outputs.py
+mk_outputs = 0
+output_write = 'tests/outputs_pal.py'
+
+if mk_outputs:
+    with open(output_write, 'wt', encoding='utf-8') as f:
+        f.write('# -*- coding: utf-8 -*-\n')
+
 if __name__ == '__main__' and __package__ == 'tests':
     # run by python -m tests.test_dataset
 
     Test_Pool_Name = 'test_pal'
 
-    pass
+    # if not mk_outputs:
+    # from outputs import nds2, nds3, out_Dataset
 
 else:
     # run by pytest
 
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
+
+    # if not mk_outputs:
+    #    from outputs import nds2, nds3, out_Dataset
+
     from pycontext import fdi
 
     from logdict import logdict
@@ -1625,6 +1638,29 @@ def test_MapContext(a_storage):
     assert c2.getAllRefs() == [refp2, refc1]
     assert c2.getAllRefs(includeContexts=False) == [refp2]
     assert c2.getAllRefs(recursive=True) == [refp2, refc1, refp1]
+
+    v = c1
+    ts = v.__class__.__name__ + '\n'
+
+    ts += v.toString()
+    if mk_outputs:
+        with open(output_write, 'a', encoding='utf-8') as f:
+            clsn = 'out_MetaData'
+            f.write('%s = """%s"""\n' % (clsn, ts))
+        print(ts)
+    else:
+        print('LOCALE', locale.getlocale())
+        if ts != out_MetaData:
+            for i, t_o in enumerate(zip(ts, out_MetaData)):
+                t, o = t_o
+                if t == o:
+                    continue
+                print(i, t, o)
+                break
+            print(ts[i:])
+            print(out_MetaData[i:])
+            assert ts[i:] == out_MetaData[i:]
+            assert False
 
     # realistic scenario
 

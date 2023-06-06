@@ -16,6 +16,8 @@ from .annotatable import Annotatable
 from collections import OrderedDict
 import logging
 import sys
+import shutil
+import os
 
 if sys.version_info[0] + 0.1 * sys.version_info[1] >= 3.3:
     PY33 = True
@@ -141,7 +143,8 @@ class Dataset(Attributable, DataContainer, Serializable, MetaDataListener):
 
 
 def make_title_meta_l0(self, level=0,
-                       heavy=True, center=0, html=False, **kwds):
+                       heavy=True, center=0, html=False, no_meta=False,
+                       **kwds):
     """ make toString title and metadata.
 
     :heavy: use bold symbols for separaters.
@@ -155,11 +158,20 @@ def make_title_meta_l0(self, level=0,
     t = ('*** <b>%s (%s)</b> ***' if html else '*** %s (%s) ***') % (cn, desc)
     tw = len(t)
     # make the table and find out the width first
-    table = mstr(self._meta, level=level, html=html, **kwds)
+    table = '' if no_meta else mstr(self._meta, level=level, html=html, **kwds)
+    table_width = max(len(x) for x in table[:600].split('\n'))
     if center and not html:
         # max separation between consequitive '\n' s
         if center == -1:
-            width = max(len(x) for x in table[:600].split('\n'))
+            try:
+                tt = os.get_terminal_size()
+                width, height = tt
+                shift = ' ' * ((width - table_width) // 2)
+                shift1 = '\n%s' % shift
+                table = shift + table.replace('\n', shift1)
+            except OSError:
+                width = table_width
+
         else:
             width = center
     else:
@@ -177,13 +189,13 @@ def make_title_meta_l0(self, level=0,
         if html:
             t = '<center>%s</center>' % t
             l = '<center>%s</center>' % l
-            m = '<center><u>%s</u></center>' % 'META'
+            m = '' if no_meta else '<center><u>%s</u></center>' % 'META'
         else:
             t = t.center(width)
             l = l.center(width)
-            m = 'META'.center(width)
+            m = '' if no_meta else 'META'.center(width)
     else:
-        m = 'META%s----%s' % (br, br)
+        m = '' if no_meta else 'META%s----%s' % (br, br)
     t += '\n'
     l += '\n'
 

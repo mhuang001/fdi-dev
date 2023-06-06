@@ -26,6 +26,7 @@ import cwcwidth as wcwidth
 import tabulate
 
 import copy
+import os
 import builtins
 # create logger
 logger = logging.getLogger(__name__)
@@ -871,11 +872,10 @@ f        With two positional arguments: arg1-> value, arg2-> description. Parame
         ret = exprstrs(self, level=level, **kwds)
         if alist:
             return ret
-        vs, us, ts, ds, fs, gs, cs, ext = ret
+        att, ext = ret
         if level > 1:
-            return '(%s: %s <%s>)' % (ts, vs, us)
-        return '%s(%s: %s <%s>, "%s", default= %s, valid= %s tcode=%s)' % \
-            (self.__class__.__name__, ts, vs, us, ds, fs, gs, cs)
+            return f'({att["type"]}: {att["value"]} <{att["unit"]}>)'
+        return f'{self.__class__.__name__}({att["type"]}: {att["value"]} <{att["unit"]}>, "{att["description"]}", default= {att["default"]}, valid= {att["valid"]} tcode={att["code"]})'
 
     string = toString
     txt = toString
@@ -922,6 +922,8 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
     Default_Param_Widths = {'name': 15, 'value': 18, 'unit': 6,
                             'type': 8, 'valid': 17, 'default': 15,
                             'code': 10, 'description': 17}
+    """ Default print widths of eac para in `toString` and `tabulate`.
+        may be scaled if the screen is wider."""
 
     MaxDefWidth = max(Default_Param_Widths.values())
 
@@ -1029,8 +1031,8 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
     def toString(self, level=0, extra=False, param_widths=None,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='psql',
-                 **kwds):
-        """ return  string representation of metada.
+                 width=0, **kwds):
+        """ return  string representation of metadata.
 
         The order of parameters are important as the httppool API use the order when passing parameters to, e.g. `txt`.
 
@@ -1046,6 +1048,11 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             for level1
         tablefmt2 : str
             format of 2D table data.
+        width: int
+            If > 0, set the width of the display to it;
+            if set to 0 (default and for 'html') occupy the entire
+            display width returned by `os.get_terminal_size()`;
+            if <0 the width is determined by `Default_Param_Widths`.
         """
 
         html = 'html' in tablefmt.lower() or 'html' in tablefmt2.lower()
@@ -1059,6 +1066,21 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         att, ext = {}, {}
         has_omission = False
 
+        if param_widths is None:
+            if width >= 0:
+                # expandabe space. including no padding
+                allpar = sum(MetaData.Default_Param_Widths.values()) - \
+                    2 * len(MetaData.Default_Param_Widths)
+                try:
+                    twidth = width if width else os.get_terminal_size()[0]
+                    twidth -= 3 * len(MetaData.Default_Param_Widths) + 1
+                    if twidth > allpar:
+                        r = twidth / allpar
+                        # '2' for padding
+                        param_widths = dict((n, int((w-2)*r + 0.5)+2)
+                                            for n, w in MetaData.Default_Param_Widths.items())
+                except OSError:
+                    pass
         if param_widths is None:
             param_widths = copy.copy(MetaData.Default_Param_Widths)
 
@@ -1074,7 +1096,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 ll = v.lower()
                 if ll in ('true', 'false'):
                     l[i] = ll
-            #ll = l[5].lower()
+            # ll = l[5].lower()
             # if l[5] in ('true', 'false'):
             #    l[5] = ll
 
@@ -1104,18 +1126,19 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
             elif k == '_STID':
                 continue
             att['name'] = k
+
             # if k == 'urls':
             #    __import__('pdb').set_trace()
 
             # get values of line k.
             if issubclass(v.__class__, Parameter):
-                att['value'], att['unit'], att['type'], att['description'],\
-                    att['default'], att['valid'], att['code'], ext = v.toString(
-                        level=level, width=0 if level > 1 else 1,
-                        param_widths=param_widths,
-                        tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
-                        extra=extra,
-                        alist=True)
+                a, ext = v.toString(
+                    level=level, width=0 if level > 1 else 1,
+                    param_widths=param_widths,
+                    tablefmt=tablefmt, tablefmt1=tablefmt1, tablefmt2=tablefmt2,
+                    extra=extra,
+                    alist=True)
+                att.update(a)
 
                 from ..utils.fits_kw import getFitsKw
                 # make sure every line has fits_keyword in ext #1
@@ -1125,7 +1148,6 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 ext = {'fits_keyword': fk}
                 ext.update(ext0)
             elif issubclass(v.__class__, ListenerSet):
-                # listeners
                 lstr = '' if v is None else v.toString(level=level, alist=True)
                 if len(lstr) < 3:
                     lstr = [["", "<No listener>", ""]]
@@ -1145,8 +1167,9 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                 # generate column values of the line and ext headers
                 # limit cell width for level=0,1.
                 thewidths = get_thewidths_l0(param_widths)
-                l = list(map(str, att.values()))
-                #print('+++ %s' % str(l))
+                # l = list(map(str, att.values()))
+                l = list(str(att[n]) for n in thewidths)
+                # print('+++ %s' % str(l))
                 if l[3] == 'boolean':
                     _fix_bool(l)
                 # print('### %s' % str(l))

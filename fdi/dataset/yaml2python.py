@@ -49,6 +49,7 @@ ei = ''
 indents = [ei + indent * i for i in range(10)]
 
 fmtstr = {
+    'boolean': '{!r}',
     'integer': '{:d}',
     'short': '{:d}',
     'hex': '0x{:02X}',
@@ -431,7 +432,7 @@ def yaml_upgrade(descriptors, fins, ypath, version, dry_run=False, verbose=False
         exit(-1)
 
 
-verbo = 0
+verbo = 9
 
 
 @functools.lru_cache
@@ -491,6 +492,7 @@ def descriptor_mro_cmp(nc1, nc2, des):
         Returns -1 if class by the name of cn2 is a parent that of cn1 or its parent,
     0 if c1 and c2 are the same class; 1 for c1 being superclasses or no relation. This is to be used by `cmp_to_key` so besides having to return a negative number if `mro(nc1)` < `mro(nc2)`, it cannot return `None` for invalid situations.
   """
+
     if verbo:
         print('*** des_m_cmp', nc1, nc2)
 
@@ -617,16 +619,23 @@ def remove_Parent(a, b):
         logger.debug('%s and %s are the same class' % (b, a))
         return None
     tmp = "remove parent %s because it is another parent %s's"
-    if issubclass(glb[a], glb[b]):
+    ca, cb = glb[a], glb[b]
+    if ca is None or cb is None:
+        return None
+    if issubclass(ca, cb):
         # remove b
         logger.debug(tmp % (b, a))
         return b
-    elif issubclass(glb[b], glb[a]):
+    elif issubclass(cb, ca):
         # remove a
         logger.debug(tmp % (a, b))
         return a
     else:
         return None
+    # except TypeError as e:
+    #    msg = f'Error finding class definition for {a} (found {glb[a]} and {b} (found {glb[b]}). Are they registered in projectclasses.py?'
+     #   logger.error(msg)
+    #     raise TypeError(msg) from e
 
 
 def no_Parents_Parents(pn):
@@ -895,32 +904,42 @@ if __name__ == '__main__':
             fin, datetime.now(), d['description'])))
 
         # parameter classes used in init code may need to be imported, too
-        for nm, val in chain(parentsAttributes.items(),
-                             chain(((colnm, v) for v in col)
-                                   for colnm, ds in
-                                   parentsTableColumns.items()
-                                   for col in ds.get('TABLE', {}).values()
-                                   )
-                             ):
-            #            print(val)
-            if 0:  # 'data_type' not in val:
-                __import__('pdb').set_trace()
-            else:
-                t = val['data_type']
-                try:
-                    a = DataTypes[t]
-                except KeyError as e:
-                    maybe = DataTypeNames.get(t, '')
-                    logger.error(
-                        f'"{t}" is an invalid type for {nm}.'
-                        f'{"Do you mean "+maybe+"?" if maybe else ""}')
-                    exit(-5)
-                if a in glb:
-                    # this attribute class has module
-                    s = 'from %s import %s' % (glb[a].__module__, a)
-                    if a not in seen:
-                        seen[a] = s
-
+        col, v, colnm, ds, nm, val, a, maybe = tuple([None]*8)
+        try:
+            # for nm, val in chain(parentsAttributes.items(),
+            #                      chain(((colnm, v) for v in col)
+            #                            for colnm, ds in
+            #                            parentsTableColumns.items()
+            #                            for col in ds.get('TABLE', {}).values()
+            #                            )
+            #                      ):
+            tab = []
+            for colnm, ds in parentsTableColumns.items():
+                for ncol, col in ds.get('TABLE', {}).items():
+                    tab.append((ncol, col))
+            for nm, val in chain(parentsAttributes.items(),
+                                 tab):
+                #            print(val)
+                if 0:  # 'data_type' not in val:
+                    __import__('pdb').set_trace()
+                else:
+                    t = val['data_type']
+                    try:
+                        a = DataTypes[t]
+                    except KeyError as e:
+                        maybe = DataTypeNames.get(t, '')
+                        logger.error(
+                            f'"{t}" is an invalid type for {nm}.'
+                            f'{"Do you mean "+maybe+"?" if maybe else ""}')
+                        exit(-5)
+                    if a in glb:
+                        # this attribute class has module
+                        s = 'from %s import %s' % (glb[a].__module__, a)
+                        if a not in seen:
+                            seen[a] = s
+        except (ValueError, TypeError) as e:
+            __import__("pdb").set_trace()
+            pass
         # make metadata and parent_dataset dicts
         d['metadata'] = parentsAttributes
         d['datasets'] = parentsTableColumns

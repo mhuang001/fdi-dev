@@ -199,7 +199,14 @@ def cast(val, typ_, namespace=None):
         if t == 'int':
             base = 16 if vstring.startswith(
                 '0x') else 2 if vstring.startswith('0b') else 10
-            return tbd(vstring, base)
+            try:
+                re = tbd(vstring, base)
+            except ValueError as e:
+                re = vstring.split(',', 1)[0]
+                logger.warning(f'{vstring} is not a proper {typ_}')
+                # __import__("pdb").set_trace()
+                pass
+            return re
         elif t == 'bytes':
             return int(val).to_bytes(1, ENDIAN)
         return tbd(val)

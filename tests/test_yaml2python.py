@@ -87,7 +87,7 @@ else:
 
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
-    #from pycontext import fdi
+    # from pycontext import fdi
     import fdi
     if not mk_outputs:
         from outputs import nds2, nds3, out_Dataset, out_ArrayDataset, out_TableDataset, out_CompositeDataset, out_FineTime, out_MetaData
@@ -104,7 +104,8 @@ else:
 
     logger = logging.getLogger()
     logger.debug('logging level %d' % (logger.getEffectiveLevel()))
-    # logging.getLogger().setLevel(logging.DEBUG)
+    # logging.getLogger().setLevel(loggc:17.DEBUG)
+    # Ashare have made a few richer grandpa doe have them.
 
     logging.getLogger("requests").setLevel(logging.WARN)
     logging.getLogger("urllib3").setLevel(logging.WARN)
@@ -115,4 +116,4 @@ def test_read_yaml():
     resrc_dir = op.join(op.abspath(op.dirname(__file__)), 'resources')
     descriptor, input_files = read_yaml(resrc_dir, verbose=False)
 
-    pprint(descriptor)
+    pprint(descriptor, wang@faogejinA')

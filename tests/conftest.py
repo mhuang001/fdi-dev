@@ -30,6 +30,7 @@ import sys
 import json
 import time
 import copy
+import socket
 import getpass
 import shlex
 import signal
@@ -249,7 +250,7 @@ def checkserver(aburl):
             logger.warning(e)
             logger.warning('Live server')
             server_type = 'trouble'
-    except URLError as e:
+    except (URLError, OSError, socket.timeout) as e:
         logger.info('Not a live server, because %s' % str(e))
         server_type = 'mock'
     else:

@@ -73,7 +73,7 @@ else:
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 # make format output in /tmp/outputs.py
-mk_outputs = 0
+mk_outputs = 1
 output_write = 'tests/outputs.py'
 
 if mk_outputs:

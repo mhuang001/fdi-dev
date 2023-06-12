@@ -292,8 +292,14 @@ def read_yaml(ypath, version=None, verbose=False):
     yaml = yinit()
     desc = OrderedDict()
     fins = {}
-    for findir in os.listdir(ypath):
-        fin = os.path.join(ypath, findir)
+    if isinstance(ypath, str):
+        ypathl = [ypath]
+    else:
+        ypathl = ypath
+    __import__("pdb").set_trace()
+    ypathla = map(os.path.abspath, ypathl)
+    for found in chain(map(os.listdir, ypathla)):
+        findir = os.path.join(ypatha, found)
 
         ''' The  input file name ends with '.yaml' or '.yml' (case insensitive).
         the stem name of output file is input file name stripped of the extension.
@@ -304,7 +310,7 @@ def read_yaml(ypath, version=None, verbose=False):
             nm = os.path.splitext(findir)[0]
         else:
             continue
-        fins[nm] = fin
+        fins[nm] = finl
 
         # read YAML
         print('--- Reading ' + fin + '---')
@@ -774,44 +780,70 @@ if __name__ == '__main__':
     tpath = ''
     opath = ''
     dry_run = False
-    ops = [
-        {'long': 'help', 'char': 'h', 'default': False, 'description': 'print help'},
-        {'long': 'verbose', 'char': 'v', 'default': False,
-         'description': 'print info'},
-        {'long': 'yamldir=', 'char': 'y', 'default': ypath,
-         'description': 'Input YAML file directory.'},
-        {'long': 'template=', 'char': 't', 'default': tpath,
-         'description': 'Product class template file directory. Default is the YAML dir.'},
-        {'long': 'outputdir=', 'char': 'o', 'default': opath,
-         'description': 'Output directory for python files. Default is the parent directory of the YAML dir.'},
-        {'long': 'packagename=', 'char': 'p', 'default': '',
-         'description': 'Name of the package which the generated modules belong to when imported during code generation. Default is guessing from output path.'},
-        {'long': 'userclasses=', 'char': 'c', 'default': '',
-         'description': 'Python file name, or a module name,  to import prjcls to update Classes with user-defined classes which YAML file refers to.'},
-        {'long': 'upgrade', 'char': 'u', 'default': False,
-         'description': 'Upgrade the file to current schema, by yaml_upgrade(), to version + ' + version},
-        {'long': 'dry_run', 'char': 'n', 'default': False,
-         'description': 'No writing. Dry run.'},
-        {'long': 'debug', 'char': 'd', 'default': False,
-         'description': 'run in pdb. type "c" to continuue.'},
-    ]
-
-    out = opt(ops)
+    import argparse
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        epilog='Extra options will be passed to "run()" in "extra_args"'
+    )
+    parser.add_argument("-h", "--help", type=tr, help="print help")
+    parser.add_argument("-v", "--verbose",  type=int, nargs='?', const=1,
+                        default=df('verbose', 0), help="Set level of debugging info.")
+    parser.add_argument("-y", "--yamldir", nargs='*', default=ypath,
+                        help='Input YAML file directory.')
+    parser.add_argument("-t", "--template", default=tpath,
+                        help='Product class template file directory. Default is the YAML dir.')
+    parser.add_argument("-o", "--outputdir", default="opath",
+                        help="Output directory for python files. Default is the parent directory of the YAML dir.")
+    parser.add_argument("-p", "--packagename", default="",
+                        help="Name of the package which the generated modules belong to when imported during code generation. Default is guessing from output path.")
+    parser.add_argument("-c", "--userclasses", default="",
+                        help="Python file name, or a module name,  to import prjcls to update Classes with user-defined classes which YAML file refers to.")
+    parser.add_argument("-u", "--upgrade", action='store_true', default=False,
+                        help="Upgrade the file to current schema, by yaml_upgrade(), to version " + version)
+    parser.add_argument("-n", "--dry_run",  action='store_true', default=False,
+                        help="No writing. Dry run.")
+    parser.add_argument("-d", "--debug",  action='store_true', default=False,
+                        help="run in pdb. typec 'c' to continue.")
+    if 0:
+        ops = [
+            {'long': 'help', 'char': 'h', 'default': False,
+                'description': 'print help'},
+            {'long': 'verbose', 'char': 'v', 'default': False,
+             'description': 'print info'},
+            {'long': 'yamldir=', 'char': 'y', 'default': ypath,
+             'description': 'Input YAML file directory.'},
+            {'long': 'template=', 'char': 't', 'default': tpath,
+             'description': 'Product class template file directory. Default is the YAML dir.'},
+            {'long': 'outputdir=', 'char': 'o', 'default': opath,
+             'description': 'Output directory for python files. Default is the parent directory of the YAML dir.'},
+            {'long': 'packagename=', 'char': 'p', 'default': '',
+             'description': 'Name of the package which the generated modules belong to when imported during code generation. Default is guessing from output path.'},
+            {'long': 'userclasses=', 'char': 'c', 'default': '',
+             'description': 'Python file name, or a module name,  to import prjcls to update Classes with user-defined classes which YAML file refers to.'},
+            {'long': 'upgrade', 'char': 'u', 'default': False,
+             'description': 'Upgrade the file to current schema, by yaml_upgrade(), to version + ' + version},
+            {'long': 'dry_run', 'char': 'n', 'default': False,
+             'description': 'No writing. Dry run.'},
+            {'long': 'debug', 'char': 'd', 'default': False,
+             'description': 'run in pdb. type "c" to continuue.'},
+        ]
+        out = opt(ops)
     # print([(x['long'], x['result']) for x in out])
+    args = parser.parse()
     verbose = out[1]['result']
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     else:
         logging.getLogger().setLevel(logging.INFO)
 
-    ypath = out[2]['result']
-    cmd_tpath = out[3]['result']
-    cmd_opath = out[4]['result']
-    cmd_package_name = out[5]['result']
-    project_class_path = out[6]['result']
-    upgrade = out[7]['result']
-    dry_run = out[8]['result']
-    debug = out[9]['result']
+    ypath = args.yamldir
+    cmd_tpath = args.template
+    cmd_opath = args.outputdir
+    cmd_package_name = args.packagename
+    project_class_path = args.userclasses
+    upgrade = args.upgrade
+    dry_run = args.dry_run
+    debug = args.debug
 
     # now can be used as parents
     from .classes import Classes

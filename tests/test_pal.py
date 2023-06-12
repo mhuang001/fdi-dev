@@ -48,7 +48,7 @@ import weakref
 import gc
 from os import path as op
 import glob
-
+import locale
 
 import sys
 
@@ -58,6 +58,7 @@ else:
     PY3 = False
 
 PM = PoolManager
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 Test_Pool_Name = __name__.replace('.', '_')
 defaultpoolPath = '/tmp/fditest'

@@ -23,7 +23,7 @@ metadata:
     level:
         id_zh_cn: 产品xx
         data_type: string
-        description: Product level. 
+        description: Product level.
         description_zh_cn: 产品xx
         default: ALL
         valid: ''
@@ -66,7 +66,7 @@ metadata:
         data_type: string
         description: Version of product schema and revision
         description_zh_cn: 产品格式版本
-        default: '1.6.0.11'
+        default: 1.6.0.11
         valid: ''
         typecode: B
 datasets: {}

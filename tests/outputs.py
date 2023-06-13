@@ -307,7 +307,7 @@ level 0
 | version         | 0.3                |      | string   | None              | 0.3             | B          | Version of       |
 |                 |                    |      |          |                   |                 |            | dataset          |
 +-----------------+--------------------+------+----------+-------------------+-----------------+------------+------------------+
-| FORMATV         | 1.6.0.3            |      | string   | None              | 1.6.0.3         | B          | Version of       |
+| FORMATV         | 1.8.0.4            |      | string   | None              | 1.8.0.4         | B          | Version of       |
 |                 |                    |      |          |                   |                 |            | dataset schema   |
 |                 |                    |      |          |                   |                 |            | and revision     |
 +-----------------+--------------------+------+----------+-------------------+-----------------+------------+------------------+
@@ -389,7 +389,7 @@ level 1
 description= toString     shape= [2, 3, 4, 5]  type= ArrayDataset
 tester AD
 unit= lyr                 typecode= UNKNOWN    version= 0.3
-FORMATV= 1.6.0.3          a= 3.4               b= xy
+FORMATV= 1.8.0.4          a= 3.4               b= xy
                                                (2019-02-19T01:02:03.456789
                                                1929229360456789)
 c= Invalid (IJK)          d= off (0b00)        added_parameter= 42
@@ -475,7 +475,7 @@ tablefmt = html
 | version         | 0.3                |      | string   | None              | 0.3             | B          | Version of       |
 |                 |                    |      |          |                   |                 |            | dataset          |
 +-----------------+--------------------+------+----------+-------------------+-----------------+------------+------------------+
-| FORMATV         | 1.6.0.3            |      | string   | None              | 1.6.0.3         | B          | Version of       |
+| FORMATV         | 1.8.0.4            |      | string   | None              | 1.8.0.4         | B          | Version of       |
 |                 |                    |      |          |                   |                 |            | dataset schema   |
 |                 |                    |      |          |                   |                 |            | and revision     |
 +-----------------+--------------------+------+----------+-------------------+-----------------+------------+------------------+
@@ -1397,7 +1397,7 @@ SubDataset  "dataset 1":
 | version     | 0.3           |      | string | None  | 0.3          | B    | Version of       |
 |             |               |      |        |       |              |      | dataset          |
 +-------------+---------------+------+--------+-------+--------------+------+------------------+
-| FORMATV     | 1.6.0.3       |      | string | None  | 1.6.0.3      | B    | Version of       |
+| FORMATV     | 1.8.0.4       |      | string | None  | 1.8.0.4      | B    | Version of       |
 |             |               |      |        |       |              |      | dataset schema   |
 |             |               |      |        |       |              |      | and revision     |
 +-------------+---------------+------+--------+-------+--------------+------+------------------+
@@ -1469,7 +1469,7 @@ SubDataset  "dataset 1":
 ------------------------  ------------------------  ------------------
 description= arraydset 1  shape= [3]                type= ArrayDataset
 unit= ev                  typecode= UNKNOWN         version= 0.3
-FORMATV= 1.6.0.3          listeners= <No listener>
+FORMATV= 1.8.0.4          listeners= <No listener>
 ------------------------  ------------------------  ------------------
 
 768  4.4  5400
@@ -1563,7 +1563,7 @@ SubDataset  "dataset 1":
 | version     | 0.3           |      | string | None  | 0.3          | B    | Version of       |
 |             |               |      |        |       |              |      | dataset          |
 +-------------+---------------+------+--------+-------+--------------+------+------------------+
-| FORMATV     | 1.6.0.3       |      | string | None  | 1.6.0.3      | B    | Version of       |
+| FORMATV     | 1.8.0.4       |      | string | None  | 1.8.0.4      | B    | Version of       |
 |             |               |      |        |       |              |      | dataset schema   |
 |             |               |      |        |       |              |      | and revision     |
 +-------------+---------------+------+--------+-------+--------------+------+------------------+

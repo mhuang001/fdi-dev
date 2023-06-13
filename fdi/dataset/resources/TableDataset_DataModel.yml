@@ -16,7 +16,7 @@ metadata:
         valid: ''
     shape:
         data_type: list
-        description: 'Number of columns and rows.'
+        description: Number of columns and rows.
         default: []
         valid: ''
     version:
@@ -27,7 +27,6 @@ metadata:
     FORMATV:
         data_type: string
         description: Version of dataset schema and revision
-        default: '1.6.0.3'
+        default: 1.6.0.3
         valid: ''
-datasets:
-  
+datasets: {}

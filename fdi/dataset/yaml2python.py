@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # from ..pal.context import MapContext
-from ..utils.options import opt
-from ..utils.common import pathjoin, lls, trbk, trbk2
+from ..utils.common import lls, trbk, find_all_files
 from ..utils.ydump import yinit, ydump
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 from .attributable import make_class_properties
@@ -20,6 +19,7 @@ from itertools import chain
 from string import Template
 from datetime import datetime
 import importlib
+import argparse
 
 import logging
 
@@ -31,6 +31,20 @@ logging.basicConfig(stream=sys.stdout,
                            ' -%(funcName)10s()] - %(message)s',
                     datefmt="%Y%m%d %H:%M:%S")
 logging.getLogger().setLevel(logging.DEBUG)
+
+global version
+
+version = '1.8'
+""" schema version. The attribute `FORMATV` will have this schema version, hand-set version, and revision
+
+1.10: 'Instrument', 'VT', 'VT_PDPU' moved to svom.products.vt, 'GRM' are in svom.products.grm.'; FORMATV becomes $(schema_v}.${revision}
+1.9: remove version.
+1.8: 'Instrument', 'VT', 'VT_PDPU', 'GFT', 'GRM' are in svom.instrument'
+1.6  FORMATV becomes $(schema_v}.${version_v}; dummy dataset.
+"""
+global revision
+
+revision = ''
 
 
 # make simple demo for fdi
@@ -82,7 +96,8 @@ def get_Python(val, indents, demo, onlyInclude, debug=False):
 
     Parameters
     ----------
-
+    val : dict
+       starting from the top it is the whole document then is meta then...
     Returns
     -------
     """
@@ -109,6 +124,9 @@ def get_Python(val, indents, demo, onlyInclude, debug=False):
                     v, indents[1:], demo, onlyInclude, debug=debug)
             else:
                 # headers such as name, parents, schema metadata...
+                # extra care to these:
+                if k == 'FORMATV':
+                    v += f'.{revision}' if v else revision
                 istr, d_code = get_Python(
                     v, indents[1:], demo, onlyInclude, debug=debug)
             infostr += istr
@@ -122,7 +140,7 @@ def get_Python(val, indents, demo, onlyInclude, debug=False):
             if issubclass(v.__class__, dict) and 'data_type' in v:
                 # val is a list of column (and 'data' in x )
                 istr, d_code = params(
-                    v, indents[1:], demo, onlyInclude, debug=debug)
+                    v, indents[1:], demo, onlyInclude, prev_level=val, debug=debug)
             else:
                 istr, d_code = get_Python(
                     v, indents[1:], demo, onlyInclude, debug=debug)
@@ -130,6 +148,7 @@ def get_Python(val, indents, demo, onlyInclude, debug=False):
             code.append(d_code)
         infostr += indents[0] + '],\n'
     else:
+        # constants
         pval = sq(val) if issubclass(val.__class__, (str, bytes)) else str(val)
         infostr += pval + ',\n'
         code = pval
@@ -161,7 +180,7 @@ def make_init_code(dt, pval):
 
 
 def params(val, indents, demo, onlyInclude, debug=False):
-    """ generates python strng for val, a parameter with a set of attributes
+    """ generates python string for val, a parameter with a set of attributes
 
     val: as in ```name:val```
     ```
@@ -286,6 +305,7 @@ def read_yaml(ypath, version=None, verbose=False):
     Returns
     -------
     tuple
+        (nm, desc)
         nm is  stem of file name. desc is descriptor, key being yaml[name]
 
     """
@@ -296,25 +316,23 @@ def read_yaml(ypath, version=None, verbose=False):
         ypathl = [ypath]
     else:
         ypathl = ypath
-    __import__("pdb").set_trace()
-    ypathla = map(os.path.abspath, ypathl)
-    for found in chain(map(os.listdir, ypathla)):
-        findir = os.path.join(ypatha, found)
 
+    # ypathla = map(os.path.abspath, ypathl)
+    all_f = [find_all_files(y, include='*.y*ml', absdir=True) for y in ypathl]
+    for file_in_dir in chain(*all_f):
         ''' The  input file name ends with '.yaml' or '.yml' (case insensitive).
         the stem name of output file is input file name stripped of the extension.
         '''
+        dir_only, file_name = tuple(file_in_dir.rsplit('/', 1))
         # make it all lower case
-        finl = findir.lower()
-        if finl.endswith('.yml') or finl.endswith('.yaml'):
-            nm = os.path.splitext(findir)[0]
-        else:
-            continue
-        fins[nm] = finl
+        finl = file_name.lower()
+        stem = os.path.splitext(file_name)[0]
+        fins[stem] = (dir_only, finl)
 
         # read YAML
-        print('--- Reading ' + fin + '---')
-        with open(fin, 'r', encoding='utf-8') as f:
+        print('--- Reading ' + file_in_dir + '---')
+        with open(file_in_dir, 'r', encoding='utf-8') as f:
+
             # pyYAML d = OrderedDict(yaml.load(f, Loader=yaml.FullLoader))
             ytext = f.read()
         y = yaml.load(ytext)
@@ -348,46 +366,94 @@ def read_yaml(ypath, version=None, verbose=False):
                                                   in v else [])]))
                for k, v in datasets.items())
         logger.debug('Find datasets:\n%s' % ', '.join(itr))
-        desc[d['name']] = (d, attrs, datasets, fin)
-    return desc, fins
+
+        desc[d['name']] = (d, attrs, datasets, fins)
+    return desc
 
 
-def output(nm, d, fins, version, dry_run=False, verbose=False):
+def output(nm, d, yaml_dir, version, dry_run=False, verbose=False):
     """
     Parameters
     ----------
-
+    nm : str
+        Model nameand also yaml file name stem.
+    yaml_dir : str
+          yaml file direcrory.
     Returns
     -------
     """
-    print("Input YAML file is to be renamed to " + fins[nm]+'.old')
-    fout = fins[nm]
+    filen = nm + '.yml'
+    print("Input YAML file is to be renamed to " + filen + '.old')
+    fout = os.path.join(yaml_dir, filen)
     print("Output YAML file is "+fout)
     if dry_run:
         print('Dry run.')
         ydump(d, sys.stdout)  # yamlfile)
     else:
-        os.rename(fins[nm], fins[nm]+'.old')
+        os.rename(fout, fout+'.old')
         with open(fout, 'w', encoding='utf-8') as yamlfile:
             ydump(d,  yamlfile)
 
 
-def yaml_upgrade(descriptors, fins, ypath, version, dry_run=False, verbose=False):
+def yaml_upgrade(descriptors, ypath, version, dry_run=False, verbose=False):
     """
     Parameters
     ----------
-    :descriptors: a list of nested dicts describing the data model.
-    :version: current version. not that in the yaml to be modified.
+    descriptors : list
+        A list of tuples of nested dicts describing the data model. and filename info.
+    version : str
+          current version. not that in the yaml to be modified.
+
     Returns
     -------
     """
+    # global version
+    global revision
 
-    if float(version) == 1.8:
-        for nm, daf in descriptors.items():
-            d, attrs, datasets, fin = daf
-            if float(d['schema']) >= float(version):
-                print('No need to upgrade '+d['schema'])
+    target_version = float(version)
+
+    for nm, daf in descriptors.items():
+        d, attrs, datasets, fins = daf
+        in_doc_schema = float(d['schema'])
+        # __import__("pdb").set_trace()
+
+        if target_version == 1.9:
+            # this one is from the future
+            if in_doc_schema >= target_version:
+                print(
+                    f'No need to upgrade {nm}.yml of {in_doc_schema} to {target_version}.')
                 continue
+            elif in_doc_schema < 1.6:
+                logger.error(nm + ' version not good: '+d['schema'])
+                exit(1)
+
+            # make FORMATV
+            w = d['metadata']['FORMATV'].strip()
+            sch_ = d['schema']
+            if w.startswith(sch):
+                # remove schema and a '.'
+                in_doc_v_ = w[len(sch)+1:]
+            else:
+                in_doc_v_ = w
+            # set command version
+            d['schema'] = version
+            # w.clear()
+            # add revision
+            w['default'] = f'{version}.{revision}'
+            if 0:
+                output(nm, d, fins[nm][0], version,
+                       dry_run=dry_run, verbose=verbose)
+        elif target_version == 1.8:
+            # this one is from the future
+            if in_doc_schema >= target_version:
+                print(
+                    f'No need to upgrade {nm}.yml of {in_doc_schema} to {target_version}.')
+                continue
+            elif in_doc_schema < 1.6:
+                logger.error(nm + ' version not good: '+d['schema'])
+                exit(2)
+
+            logger.info(nm + ' apply changes of ' + version)
             d['schema'] = version
             newp = []
             for p in d['parents']:
@@ -399,16 +465,21 @@ def yaml_upgrade(descriptors, fins, ypath, version, dry_run=False, verbose=False
             # increment FORMATV
             w = d['metadata']['FORMATV']
             v = w['default'].split('.')
-            w.clear()
+            # w.clear()
             w['default'] = version + '.' + \
                 v[2] + '.' + str(int(v[3])+1)
-            output(nm, d, fins, version, verbose)
-    elif float(version) == 1.6:
-        for nm, daf in descriptors.items():
-            d, attrs, datasets, fin = daf
-            if float(d['schema']) >= float(version):
-                print('No need to upgrade '+d['schema'])
+            # v1.8
+            if 0:
+                output(nm, d, fins[nm][0], version,
+                       dry_run=dry_run, verbose=verbose)
+        elif target_version == 1.6:
+            if in_doc_schema >= target_version:
+                print(f'No need to upgrade {nm}.yml of {in_doc_schema}.')
                 continue
+            elif in_doc_schema < 1.6:
+                logger.error(nm + ' version not good: '+d['schema'])
+                exit(1)
+            logger.info('apply changes of ' + version)
             d['schema'] = version
             level = d.pop('level')
             md = OrderedDict()
@@ -423,7 +494,7 @@ def yaml_upgrade(descriptors, fins, ypath, version, dry_run=False, verbose=False
                     md['level'] = {'default': 'C' + level.upper()}
                 elif pname == 'FORMATV':
                     v = w['default'].split('.')
-                    w.clear()
+                    # w.clear()
                     w['default'] = version + '.' + \
                         v[2] + '.' + str(int(v[3])+1)
                     md[pname] = w
@@ -432,10 +503,14 @@ def yaml_upgrade(descriptors, fins, ypath, version, dry_run=False, verbose=False
             d['metadata'] = md
             if 'datasets' not in d:
                 d['datasets'] = {}
-            output(nm, d, fins, version, dry_run=dry_run, verbose=verbose)
-    else:
-        logger.error('version too old')
-        exit(-1)
+            # v1.6
+            if 0:
+                output(nm, d, fins[nm][0], version,
+                       dry_run=dry_run, verbose=verbose)
+        else:
+            logger.error('Given version not good: '+version)
+            exit(-1)
+        return d
 
 
 verbo = 9
@@ -683,7 +758,8 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
  """
     if parentNames and len(parentNames):
         parentsAttributes = OrderedDict()
-        temp = {}
+        from collections import defaultdict
+        temp = {}  # defaultdict(dict)
         parentsTableColumns = OrderedDict()
         for parent in parentNames:
             if not parent:
@@ -705,7 +781,11 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
         # merge to get all attributes including parents' and self's.
         toremove = []
         for nam, val in attrs.items():
-            if float(schema) > 1.5 and 'data_type' not in val:
+            # if 'FORMATV' == nam:
+            #    __import__("pdb").set_trace()
+
+            if float(schema) > 1.5 and 'data_type' not in val \
+               and nam in temp:
                 # update parent's
                 temp[nam].update(attrs[nam])
                 toremove.append(nam)
@@ -771,66 +851,41 @@ if __name__ == '__main__':
 
     print('Generating Python code for product class definition..')
 
-    # schema version
-    version = '1.8'
-
     # Get input file name etc. from command line. defaut 'Product.yml'
     cwd = os.path.abspath(os.getcwd())
     ypath = cwd
     tpath = ''
     opath = ''
     dry_run = False
-    import argparse
+
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        epilog='Extra options will be passed to "run()" in "extra_args"'
+        epilog=''
     )
-    parser.add_argument("-h", "--help", type=tr, help="print help")
     parser.add_argument("-v", "--verbose",  type=int, nargs='?', const=1,
-                        default=df('verbose', 0), help="Set level of debugging info.")
+                        default=0, help="Set level of debugging info.")
     parser.add_argument("-y", "--yamldir", nargs='*', default=ypath,
                         help='Input YAML file directory.')
-    parser.add_argument("-t", "--template", default=tpath,
+    parser.add_argument("-t", "--template", type=str, default=tpath,
                         help='Product class template file directory. Default is the YAML dir.')
-    parser.add_argument("-o", "--outputdir", default="opath",
+    parser.add_argument("-o", "--outputdir", type=str, default=opath,
                         help="Output directory for python files. Default is the parent directory of the YAML dir.")
     parser.add_argument("-p", "--packagename", default="",
                         help="Name of the package which the generated modules belong to when imported during code generation. Default is guessing from output path.")
     parser.add_argument("-c", "--userclasses", default="",
                         help="Python file name, or a module name,  to import prjcls to update Classes with user-defined classes which YAML file refers to.")
+    parser.add_argument("-r", "--revision",
+                        help="A string that is a revision identification, for example a git hash to be appended to attribute FORMATV.")
     parser.add_argument("-u", "--upgrade", action='store_true', default=False,
                         help="Upgrade the file to current schema, by yaml_upgrade(), to version " + version)
     parser.add_argument("-n", "--dry_run",  action='store_true', default=False,
                         help="No writing. Dry run.")
     parser.add_argument("-d", "--debug",  action='store_true', default=False,
                         help="run in pdb. typec 'c' to continue.")
-    if 0:
-        ops = [
-            {'long': 'help', 'char': 'h', 'default': False,
-                'description': 'print help'},
-            {'long': 'verbose', 'char': 'v', 'default': False,
-             'description': 'print info'},
-            {'long': 'yamldir=', 'char': 'y', 'default': ypath,
-             'description': 'Input YAML file directory.'},
-            {'long': 'template=', 'char': 't', 'default': tpath,
-             'description': 'Product class template file directory. Default is the YAML dir.'},
-            {'long': 'outputdir=', 'char': 'o', 'default': opath,
-             'description': 'Output directory for python files. Default is the parent directory of the YAML dir.'},
-            {'long': 'packagename=', 'char': 'p', 'default': '',
-             'description': 'Name of the package which the generated modules belong to when imported during code generation. Default is guessing from output path.'},
-            {'long': 'userclasses=', 'char': 'c', 'default': '',
-             'description': 'Python file name, or a module name,  to import prjcls to update Classes with user-defined classes which YAML file refers to.'},
-            {'long': 'upgrade', 'char': 'u', 'default': False,
-             'description': 'Upgrade the file to current schema, by yaml_upgrade(), to version + ' + version},
-            {'long': 'dry_run', 'char': 'n', 'default': False,
-             'description': 'No writing. Dry run.'},
-            {'long': 'debug', 'char': 'd', 'default': False,
-             'description': 'run in pdb. type "c" to continuue.'},
-        ]
-        out = opt(ops)
-    # print([(x['long'], x['result']) for x in out])
-    args = parser.parse()
-    verbose = out[1]['result']
+
+    args = parser.parse_args()
+    print(f'command line: {args}')
+    verbose = args.verbose
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     else:
@@ -842,6 +897,7 @@ if __name__ == '__main__':
     cmd_package_name = args.packagename
     project_class_path = args.userclasses
     upgrade = args.upgrade
+    revision = args.revision
     dry_run = args.dry_run
     debug = args.debug
 
@@ -852,11 +908,10 @@ if __name__ == '__main__':
     Classes.mapping.ignore_error = True
 
     # input file
-    descriptors, files_imput = read_yaml(ypath, version, verbose)
+    descriptors = read_yaml(ypath, version, verbose)
     if upgrade:
-        yaml_upgrade(descriptors, files_imput, ypath, version,
-                     dry_run=dry_run, verbose=verbose)
-        sys.exit()
+        descriptemptors = yaml_upgrade(descriptors, ypath, version,
+                                       dry_run=dry_run, verbose=verbose)
 
     # Do not import modules that are to be generated. Thier source code
     # could be  invalid due to unseccessful previous runs
@@ -883,7 +938,7 @@ if __name__ == '__main__':
     sorted_list.reverse()
     skipped = []
     for nm in sorted_list:
-        d, attrs, datasets, fin = descriptors[nm]
+        d, attrs, datasets, fins = descriptors[nm]
         print('************** Processing ' + nm + '***********')
 
         modelName = d['name']
@@ -891,7 +946,7 @@ if __name__ == '__main__':
         modulename = nm.lower()
 
         # set paths according to each file's path
-        ypath = files_imput[nm].rsplit('/', 1)[0]
+        ypath = fins[nm][0]
         tpath = ypath if cmd_tpath == '' else cmd_tpath
         opath = os.path.abspath(os.path.join(ypath, '..')
                                 ) if cmd_opath == '' else cmd_opath
@@ -926,17 +981,16 @@ if __name__ == '__main__':
 
         parentsAttributes, parentsTableColumns = \
             inherit_from_parents(parentNames, attrs, datasets, schema, seen)
+
         # make output filename, lowercase modulename + .py
-        fout = pathjoin(opath, modulename + '.py')
+        fout = os.path.join(opath, modulename + '.py')
         print("Output python file is "+fout)
 
         # class doc
-        doc = '%s class schema %s inheriting %s.\n\nAutomatically generated from %s on %s.\n\nDescription:\n%s' % tuple(map(str, (
-            modelName, schema, d['parents'],
-            fin, datetime.now(), d['description'])))
+        doc = f"{modelName} class schema {schema} inheriting {d['parents']}.\n\nAutomatically generated from {fins[nm][1]} on {datetime.now()}.\n\nDescription:\n{d['description']}"
 
         # parameter classes used in init code may need to be imported, too
-        col, v, colnm, ds, nm, val, a, maybe = tuple([None]*8)
+        col, v, colnm, ds, att_nm, val, a, maybe = tuple([None]*8)
         try:
             # for nm, val in chain(parentsAttributes.items(),
             #                      chain(((colnm, v) for v in col)
@@ -949,8 +1003,8 @@ if __name__ == '__main__':
             for colnm, ds in parentsTableColumns.items():
                 for ncol, col in ds.get('TABLE', {}).items():
                     tab.append((ncol, col))
-            for nm, val in chain(parentsAttributes.items(),
-                                 tab):
+            for att_nm, val in chain(parentsAttributes.items(),
+                                     tab):
                 #            print(val)
                 if 0:  # 'data_type' not in val:
                     __import__('pdb').set_trace()
@@ -961,7 +1015,7 @@ if __name__ == '__main__':
                     except KeyError as e:
                         maybe = DataTypeNames.get(t, '')
                         logger.error(
-                            f'"{t}" is an invalid type for {nm}.'
+                            f'"{t}" is an invalid type for {att_nm}.'
                             f'{"Do you mean "+maybe+"?" if maybe else ""}')
                         exit(-5)
                     if a in glb:
@@ -976,6 +1030,9 @@ if __name__ == '__main__':
         d['metadata'] = parentsAttributes
         d['datasets'] = parentsTableColumns
 
+        output(nm, d, ypath, version,
+               dry_run=dry_run, verbose=verbose)
+        continue
         infs, default_code = get_Python(d, indents[1:], demo, onlyInclude)
         # remove the ',' at the end.
         modelString = (ei + '_Model_Spec = ' + infs).strip()[: -1]
@@ -993,7 +1050,9 @@ if __name__ == '__main__':
 
         # make substitution dictionary for Template
         subs = {}
-        subs['WARNING'] = '# Automatically generated from %s. Do not edit.' % fin
+        subs['WARNING'] = '# Automatically generated from %s. Do not edit.' % (
+            os.path.join(fins[nm][0], nm+'.yml'))
+        pass
         subs['MODELNAME'] = modelName
         print('product name: %s' % subs['MODELNAME'])
         subs['PARENTS'] = ', '.join(c for c in parentNames if c)
@@ -1063,7 +1122,7 @@ if __name__ == '__main__':
                   'valid': 26, 'default': 18, 'code': 4, 'description': 30}
             sp = prod.meta.toString(tablefmt=fmt, param_widths=fg)
 
-            mout = pathjoin(ypath, modelName + ext)
+            mout = os.path.join(ypath, modelName + ext)
             if dry_run:
                 print('Dry-run. Not dumping ' + mout + '\n' + '*'*40)
             else:

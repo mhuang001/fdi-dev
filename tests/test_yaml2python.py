@@ -116,4 +116,4 @@ def test_read_yaml():
     resrc_dir = op.join(op.abspath(op.dirname(__file__)), 'resources')
     descriptor, input_files = read_yaml(resrc_dir, verbose=False)
 
-    pprint(descriptor, wang@faogejinA')
+    pprint(descriptor, input_files)

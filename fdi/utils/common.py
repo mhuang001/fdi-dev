@@ -652,6 +652,7 @@ def find_all_files(datadir, verbose=False, include=None, exclude=None, not_if=No
             # MultiplexedPath
             datadir = fs._paths[0]
     isadir = issubclass(datadir.__class__, (str, Path))
+
     if isadir:
         if not_if is None:
             not_if = os.path.isdir

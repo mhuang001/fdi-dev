@@ -64,7 +64,7 @@ Test_Pool_Name = __name__.replace('.', '_')
 defaultpoolPath = '/tmp/fditest'
 
 # make format output in /tmp/outputs.py
-mk_outputs = 0
+mk_outputs = 1
 output_write = 'tests/outputs_pal.py'
 
 if mk_outputs:
@@ -1646,21 +1646,21 @@ def test_MapContext(a_storage):
     ts += v.toString()
     if mk_outputs:
         with open(output_write, 'a', encoding='utf-8') as f:
-            clsn = 'out_MetaData'
+            clsn = 'out_MapContext'
             f.write('%s = """%s"""\n' % (clsn, ts))
         print(ts)
     else:
         print('LOCALE', locale.getlocale())
-        if ts != out_MetaData:
-            for i, t_o in enumerate(zip(ts, out_MetaData)):
+        if ts != out_MapContext:
+            for i, t_o in enumerate(zip(ts, out_MapContext)):
                 t, o = t_o
                 if t == o:
                     continue
                 print(i, t, o)
                 break
             print(ts[i:])
-            print(out_MetaData[i:])
-            assert ts[i:] == out_MetaData[i:]
+            print(out_MapContext[i:])
+            assert ts[i:] == out_MapContext[i:]
             assert False
 
     # realistic scenario

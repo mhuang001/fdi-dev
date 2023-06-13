@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Automatically generated from fdi/dataset/resources/Product.yml. Do not edit.
+# Automatically generated from /cygdrive/d/code/fdi/fdi/dataset/resources/Product.yml. Do not edit.
 
 from collections import OrderedDict
 from fdi.dataset.baseproduct import BaseProduct
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class Product(BaseProduct):
     """ Product class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/Product.yml on 2023-03-20 19:52:02.838860.
+Automatically generated from product.yml on 2023-06-13 20:12:25.490665.
 
 Description:
 Project level product
@@ -68,6 +68,10 @@ Project level product
         #print(self.meta.keySet(), id(self.meta))
 
     @property
+    def description(self): pass
+    @property
+    def type(self): pass
+    @property
     def startDate(self): pass
     @property
     def endDate(self): pass
@@ -77,6 +81,18 @@ Project level product
     def modelName(self): pass
     @property
     def mission(self): pass
+    @property
+    def level(self): pass
+    @property
+    def creator(self): pass
+    @property
+    def creationDate(self): pass
+    @property
+    def rootCause(self): pass
+    @property
+    def version(self): pass
+    @property
+    def FORMATV(self): pass
     pass
 
 # Data Model specification for mandatory components

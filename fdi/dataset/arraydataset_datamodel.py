@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Automatically generated from fdi/dataset/resources/ArrayDataset_DataModel.yml. Do not edit.
+# Automatically generated from /cygdrive/d/code/fdi/fdi/dataset/resources/ArrayDataset_DataModel.yml. Do not edit.
 
 from collections import OrderedDict
 from builtins import str
@@ -20,7 +20,7 @@ _Model_Spec = {
     'parents': [
         None,
         ],
-    'schema': '1.6',
+    'schema': '1.8',
     'metadata': {
         'description': {
                 'data_type': 'string',
@@ -61,7 +61,7 @@ _Model_Spec = {
         'FORMATV': {
                 'data_type': 'string',
                 'description': 'Version of dataset schema and revision',
-                'default': '1.6.0.3',
+                'default': '1.8.0.4',
                 'valid': '',
                 },
         },

@@ -2,7 +2,7 @@ name: ArrayDataset_DataModel
 description: ArrayDataset class data model mandatory configuration
 parents:
   - 
-schema: '1.6'
+schema: '1.8'
 metadata:
     description:
         data_type: string
@@ -17,7 +17,7 @@ metadata:
     unit:
         data_type: string
         description: Unit of every element.
-        default: null
+        default:
         valid: ''
     shape:
         data_type: list
@@ -37,7 +37,6 @@ metadata:
     FORMATV:
         data_type: string
         description: Version of dataset schema and revision
-        default: '1.6.0.3'
+        default: 1.8.0.4
         valid: ''
-datasets:
-  
+datasets: {}

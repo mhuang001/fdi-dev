@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Automatically generated from fdi/dataset/resources/BrowseProduct.yml. Do not edit.
+# Automatically generated from /cygdrive/d/code/fdi/fdi/dataset/resources/BrowseProduct.yml. Do not edit.
 
 from collections import OrderedDict
 from fdi.dataset.baseproduct import BaseProduct
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class BrowseProduct(BaseProduct):
     """ BrowseProduct class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from fdi/dataset/resources/BrowseProduct.yml on 2023-03-20 19:52:02.894117.
+Automatically generated from browseproduct.yml on 2023-06-13 20:12:27.257786.
 
 Description:
 Container of media data for browsing.
@@ -62,6 +62,22 @@ Container of media data for browsing.
 
         #print(self.meta.keySet(), id(self.meta))
 
+    @property
+    def description(self): pass
+    @property
+    def type(self): pass
+    @property
+    def level(self): pass
+    @property
+    def creator(self): pass
+    @property
+    def creationDate(self): pass
+    @property
+    def rootCause(self): pass
+    @property
+    def version(self): pass
+    @property
+    def FORMATV(self): pass
     pass
 
 # Data Model specification for mandatory components

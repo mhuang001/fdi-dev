@@ -17,7 +17,7 @@ metadata:
     source:
         data_type: string
         description: File, URL, or other reference on the origin of the media payload.
-        default: null
+        default:
         valid: ''
     shape:
         data_type: list
@@ -37,7 +37,6 @@ metadata:
     FORMATV:
         data_type: string
         description: Version of dataset schema and revision
-        default: '1.6.0.2'
+        default: 1.6.0.2
         valid: ''
-datasets:
-  
+datasets: {}

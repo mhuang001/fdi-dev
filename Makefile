@@ -1,12 +1,23 @@
-include Makefile_tests.mk
-include Makefile_docs.mk
-include Makefile_docker.mk
+#include Makefile_tests.mk
+#include Makefile_docs.mk
+#include Makefile_docker.mk
 
 PYEXE	= python3.8
 
 info:
 	$(PYEXE) -c "import sys, time; print('sys.hash_info.width', sys.hash_info.width, 'epoch', time.gmtime(0))"
 ####
+
+.SUFFIXES:            # Delete the default suffixes
+.SUFFIXES: .yml .py .pyc .template  # Define our suffix list
+
+.PHONY: Makefile py runpoolserver reqs install uninstall FORCE \
+	test test1 test2 test3 test4 test5 test6\
+	plots plotall plot_dataset plot_pal plot_pns \
+	docs docs_api docs_plots docs_html \
+	pipfile initdb wsgi addsubmodule update wheel upload virtest \
+	gcam vtag rev
+
 TO_UPPER    = $(shell python -c "print('$(1)'.upper())")
 TO_LOWER    = $(shell python -c "print('$(1)'.lower())")
 
@@ -28,28 +39,30 @@ DSETS_YAML	= $(foreach y,$(DSETS),$(RESDIR)/$(y).yml)
 DSETS_TEMPL	= $(foreach y,$(DSETS),$(RESDIR)/$(y).template)
 DSETSpy		= $(addprefix $(PYDIR)/,$(DSETS_PY))
 
+YML2PY = $(PYEXE) -m fdi.dataset.yaml2python -r $(RevString)
+# YML2PY = $(PYEXE) $(PYDIR)/yaml2python.py -r $(RevString) -n
+
 # BaseProduct, Product and datasets
 py: $(PYDIR)/$(B_PY) $(PYDIR)/$(P_PY) $(DSETSpy)
 
+
 $(DSETSpy): $(PYDIR)/yaml2python.py $(DSETS_YAML) $(DSETS_TEMPL) $(PYDIR)/$(B_PY)
-	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(RESDIR) -o $(PYDIR) $(Y)
+	$(YML2PY) -y $(RESDIR) -t $(RESDIR) -o $(PYDIR) $(Y)
+
 
 $(PYDIR)/$(P_PY): $(PYDIR)/yaml2python.py $(P_YAML) $(P_TEMPLATE) $(PYDIR)/$(B_PY)
-	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(RESDIR) -o $(PYDIR) $(Y)
+	$(YML2PY) -y $(RESDIR) -t $(RESDIR) -o $(PYDIR) $(Y)
 
 
 $(PYDIR)/$(B_PY): $(PYDIR)/yaml2python.py $(B_YAML) $(B_TEMPLATE) 
-	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -t $(RESDIR) -o $(PYDIR) $(Y)
+	$(YML2PY) -y $(RESDIR) -t $(RESDIR) -o $(PYDIR) $(Y)
 
 yamlupgrade: 
-	$(PYEXE) -m fdi.dataset.yaml2python -y $(RESDIR) -u
+	$(YML2PY) -y $(RESDIR)  -u
 
-
-.PHONY: runserver runpoolserver reqs install uninstall vtag FORCE \
-	test test1 test2 test3 test4 test5 test6\
-	plots plotall plot_dataset plot_pal plot_pns \
-	docs docs_api docs_plots docs_html \
-	pipfile
+yte:
+	echo $(RevString)
+	echo $(YML2PY)
 
 # extra option for 'make runserver S=...'
 S	=
@@ -185,8 +198,10 @@ gitadd:
 # @ echo update _version.py and tag to $(VERSION)
 
 
-VERSIONFILE	= fdi/_version.py
-VERSION	= $(shell $(PYEXE) -S -c "_l = {};f=open('$(VERSIONFILE)'); exec(f.read(), None, _l); f.close; print(_l['__version__'])")
+VERSIONFILE	:= fdi/_version.py
+VERSION	:= $(shell $(PYEXE) -S -c "_l = {};f=open('$(VERSIONFILE)'); exec(f.read(), None, _l); f.close; print(_l['__version__'])")
+RevString := $(shell grep __revision__ $(VERSIONFILE)|sed 's/^.*= *//')
+
 
 vtag:
 	@ echo  version = \"$(VERSION)\" in $(VERSIONFILE)

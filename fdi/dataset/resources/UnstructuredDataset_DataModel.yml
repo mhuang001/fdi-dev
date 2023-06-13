@@ -17,8 +17,8 @@ metadata:
         typecode: B
     doctype:
         data_type: string
-        description: "Data/doc Type identification. 'json', 'xml'. or nul."
-        default: null
+        description: Data/doc Type identification. 'json', 'xml'. or nul.
+        default:
         valid: ''
         typecode: B
     version:
@@ -29,6 +29,6 @@ metadata:
     FORMATV:
         data_type: string
         description: Version of dataset schema and revision
-        default: '1.6.0.1'
+        default: 1.6.0.1
         valid: ''
-datasets:
+datasets: {}

@@ -48,6 +48,9 @@ logger = logging.getLogger(__name__)
 print('**conftest effective logging level** ', logger.getEffectiveLevel())
 EX = ' -l /tmp/foo.log'
 
+ARCH = ['http', 'csdb'][0]
+
+
 RUN_SERVER_IN_BACKGROUND = 'python3.8 httppool_app.py --server=httppool_server'
 """ set to '' to disable running a pool in the background as the mock. """
 
@@ -271,7 +274,7 @@ def pytest_generate_tests(metafunc):
     int:
        The PID of the server running in the background
     str:
-       "live", "mock", or "external"
+       "background", "mock", or "external"
 
        "mock" is genrating an app for a mock server with flask test framework.
 
@@ -306,38 +309,46 @@ def live_or_mock(pc, request):
 
     # 'http://' + pc['cloud_host']+'/' +\
     #    pc['cloud_api_base']+'/'+pc['cloud_api_version']+'user/token'
-    logger.debug('Check out %s ...' % aburl)
-    server_type_found = checkserver(aburl)
-    logger.debug('Check out %s ...' % csci)
-    server_type_found2 = checkserver(csci)
-    if server_type_found == 'live':
-        if request.param == "background":
-            # isinstance(request.param, int):
-            pid = background_app()
-            server_type = 'live'
-            yield aburl, server_type_found
-            # clean up
-            if pid > 0:
-                logger.info(
-                    'Killing server PID=%d running in the background.' % pid)
-                kpg = os.killpg(os.getpgid(pid), signal.SIGTERM)
-                logger.info('... killed. rc= %s' % str(kpg))
-        elif request.param == "external":
+    if ARCH == 'http':
+        logger.debug('Check out %s ...' % aburl)
+        server_type_found = checkserver(aburl)
+        if server_type_found == 'live':
+            if request.param == "external":
+                yield aburl, server_type_found
+            elif request.param == "background":
+                # isinstance(request.param, int):
+                pid = background_app()
+                server_type = 'live'
+                yield aburl, server_type_found
+                # clean up
+                if pid > 0:
+                    logger.info(
+                        'Killing server PID=%d running in the background.' % pid)
+                    kpg = os.killpg(os.getpgid(pid), signal.SIGTERM)
+                    logger.info('... killed. rc= %s' % str(kpg))
+            else:
+                # request.param == "mock":
+                raise RuntimeError(
+                    'want to get an external server but get %s one.' % server_type_found)
+        elif server_type_found == "mock" and request.param == "mock":
             yield aburl, server_type_found
         else:
-            if request.param == "mock":
-                raise RuntimeError(
-                    'want to get a mock server but get %s one.' % server_type_found)
-    elif server_type_found == 'mock':
-        if request.param == "mock":
-            yield aburl, server_type_found
-        elif server_type_found2 == 'live':
-            # in case of Csdb
+            #  req non-mock but either get a mock or a troubled
+            raise RuntimeError(
+                'want to get a non-mock server but get %s one.' % server_type_found)
+    else:
+        # ARCH == csdb
+        if request.param in ['background', 'mock']:
+            raise ValueError(
+                f"'background', 'mock' not possible for {ARCH} server tests.")
+
+        logger.debug('Check out %s ...' % csci)
+        server_type_found = checkserver(csci)
+
+        if server_type_found == 'live':
             yield csci, 'live'
         else:
-            yield aburl, 'troubled'
-    else:
-        raise ValueError('Invalid server state '+server_type_found)
+            raise RuntimeError('Oops server state '+server_type_found)
 
 
 @ pytest.fixture(scope=SHORT)
@@ -410,7 +421,15 @@ def demo_product():
     return v, get_related_product()
 
 
-csdb_pool_id = 'sv2'  # 'test_csdb_fdi2'
+if 0:
+    csdb_pool_id = 'sv2'  # 'test_csdb_fdi2'
+    PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
+elif 1:
+    csdb_pool_id = 'test_sdb_vt'
+    PTYPES2 = ('CANDIDATE_VT',  'LC_VT',  'PO_VT', 'QSKY_VT',
+               'FDCHART_VT',    'OBATT_VT', 'QCANDI_VT')
+else:
+    PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
 url_c = None
 
 
@@ -578,7 +597,7 @@ def tmp_prod_types():
     """ classe of temporary prods with sesion scope """
     ptypes = []
     pobjs = []
-    for n in ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC'):
+    for n in PTYPES:
         cls = Class_Look_Up[n]
         pobjs.append(cls())
         ptypes.append(cls)

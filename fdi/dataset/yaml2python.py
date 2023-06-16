@@ -32,9 +32,9 @@ logging.basicConfig(stream=sys.stdout,
                     datefmt="%Y%m%d %H:%M:%S")
 logging.getLogger().setLevel(logging.DEBUG)
 
-global version
+global shema_version
 
-version = '1.8'
+shema_version = '1.6'
 """ schema version. The attribute `FORMATV` will have this schema version, hand-set version, and revision
 
 1.10: 'Instrument', 'VT', 'VT_PDPU' moved to svom.products.vt, 'GRM' are in svom.products.grm.'; FORMATV becomes $(schema_v}.${revision}
@@ -46,6 +46,8 @@ global revision
 
 revision = ''
 
+DEFAULT_CLASSES_PATH = '../share/svom/products/projectclasses.py'
+""" A last-resort place get a name-definition map. """
 
 # make simple demo for fdi
 demo = 0
@@ -275,7 +277,7 @@ def get_projectclasses(clp, exclude=None, verbose=False):
     """
 
     if clp is None or len(clp.strip()) == 0:
-        return None
+        c = DEFAULT_CLASSES_PATH
 
     if exclude is None:
         exclude = []
@@ -296,7 +298,7 @@ def get_projectclasses(clp, exclude=None, verbose=False):
     return pc
 
 
-def read_yaml(ypath, version=None, verbose=False):
+def read_yaml(ypath, shema_version=None, verbose=False):
     """ read YAML files in ypath.
 
     Parameters
@@ -371,7 +373,7 @@ def read_yaml(ypath, version=None, verbose=False):
     return desc
 
 
-def output(nm, d, yaml_dir, version, dry_run=False, verbose=False):
+def output(nm, d, yaml_dir, shema_version, dry_run=False, verbose=False):
     """
     Parameters
     ----------
@@ -395,22 +397,22 @@ def output(nm, d, yaml_dir, version, dry_run=False, verbose=False):
             ydump(d,  yamlfile)
 
 
-def yaml_upgrade(descriptors, ypath, version, dry_run=False, verbose=False):
+def yaml_upgrade(descriptors, ypath, shema_version, dry_run=False, verbose=False):
     """
     Parameters
     ----------
     descriptors : list
         A list of tuples of nested dicts describing the data model. and filename info.
-    version : str
-          current version. not that in the yaml to be modified.
+    shema_version : str
+          current shema_version. not that in the yaml to be modified.
 
     Returns
     -------
     """
-    # global version
+    # global shema_version
     global revision
 
-    target_version = float(version)
+    target_version = float(shema_version)
 
     for nm, daf in descriptors.items():
         d, attrs, datasets, fins = daf
@@ -423,8 +425,8 @@ def yaml_upgrade(descriptors, ypath, version, dry_run=False, verbose=False):
                 print(
                     f'No need to upgrade {nm}.yml of {in_doc_schema} to {target_version}.')
                 continue
-            elif in_doc_schema < 1.6:
-                logger.error(nm + ' version not good: '+d['schema'])
+            elif in_doc_schema < 1.4:
+                logger.error(nm + ' shema_version not good: '+d['schema'])
                 exit(1)
 
             # make FORMATV
@@ -435,13 +437,13 @@ def yaml_upgrade(descriptors, ypath, version, dry_run=False, verbose=False):
                 in_doc_v_ = w[len(sch)+1:]
             else:
                 in_doc_v_ = w
-            # set command version
-            d['schema'] = version
+            # set command shema_version
+            d['schema'] = shema_version
             # w.clear()
             # add revision
-            w['default'] = f'{version}.{revision}'
+            w['default'] = f'{shema_version}.{revision}'
             if 0:
-                output(nm, d, fins[nm][0], version,
+                output(nm, d, fins[nm][0], shema_version,
                        dry_run=dry_run, verbose=verbose)
         elif target_version == 1.8:
             # this one is from the future
@@ -450,11 +452,11 @@ def yaml_upgrade(descriptors, ypath, version, dry_run=False, verbose=False):
                     f'No need to upgrade {nm}.yml of {in_doc_schema} to {target_version}.')
                 continue
             elif in_doc_schema < 1.6:
-                logger.error(nm + ' version not good: '+d['schema'])
+                logger.error(nm + ' shema_version not good: '+d['schema'])
                 exit(2)
 
-            logger.info(nm + ' apply changes of ' + version)
-            d['schema'] = version
+            logger.info(nm + ' apply changes of ' + shema_version)
+            d['schema'] = shema_version
             newp = []
             for p in d['parents']:
                 if p in ['Instrument', 'VT', 'VT_PDPU', 'GFT', 'GRM']:
@@ -466,21 +468,21 @@ def yaml_upgrade(descriptors, ypath, version, dry_run=False, verbose=False):
             w = d['metadata']['FORMATV']
             v = w['default'].split('.')
             # w.clear()
-            w['default'] = version + '.' + \
+            w['default'] = shema_version + '.' + \
                 v[2] + '.' + str(int(v[3])+1)
             # v1.8
             if 0:
-                output(nm, d, fins[nm][0], version,
+                output(nm, d, fins[nm][0], shema_version,
                        dry_run=dry_run, verbose=verbose)
         elif target_version == 1.6:
             if in_doc_schema >= target_version:
                 print(f'No need to upgrade {nm}.yml of {in_doc_schema}.')
                 continue
-            elif in_doc_schema < 1.6:
-                logger.error(nm + ' version not good: '+d['schema'])
+            elif in_doc_schema < 1.4:
+                logger.error(nm + ' shema_version not good: '+d['schema'])
                 exit(1)
-            logger.info('apply changes of ' + version)
-            d['schema'] = version
+            logger.info('apply changes of ' + shema_version)
+            d['schema'] = shema_version
             level = d.pop('level')
             md = OrderedDict()
             for pname, w in d['metadata'].items():
@@ -495,7 +497,7 @@ def yaml_upgrade(descriptors, ypath, version, dry_run=False, verbose=False):
                 elif pname == 'FORMATV':
                     v = w['default'].split('.')
                     # w.clear()
-                    w['default'] = version + '.' + \
+                    w['default'] = shema_version + '.' + \
                         v[2] + '.' + str(int(v[3])+1)
                     md[pname] = w
                 else:
@@ -505,10 +507,10 @@ def yaml_upgrade(descriptors, ypath, version, dry_run=False, verbose=False):
                 d['datasets'] = {}
             # v1.6
             if 0:
-                output(nm, d, fins[nm][0], version,
+                output(nm, d, fins[nm][0], shema_version,
                        dry_run=dry_run, verbose=verbose)
         else:
-            logger.error('Given version not good: '+version)
+            logger.error('Given shema_version not good: '+shema_version)
             exit(-1)
         return d
 
@@ -764,6 +766,7 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
         for parent in parentNames:
             if not parent:
                 continue
+
             mod_name = glb[parent].__module__
             if mod_name != 'builtins':
                 s = 'from %s import %s' % (mod_name, parent)
@@ -847,17 +850,10 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
     return parentsAttributes, parentsTableColumns
 
 
-if __name__ == '__main__':
-
-    print('Generating Python code for product class definition..')
-
-    # Get input file name etc. from command line. defaut 'Product.yml'
-    cwd = os.path.abspath(os.getcwd())
-    ypath = cwd
+def get_cmdline(ypath):
+    # Get input file name etc. from command line.
     tpath = ''
     opath = ''
-    dry_run = False
-
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         epilog=''
@@ -872,12 +868,12 @@ if __name__ == '__main__':
                         help="Output directory for python files. Default is the parent directory of the YAML dir.")
     parser.add_argument("-p", "--packagename", default="",
                         help="Name of the package which the generated modules belong to when imported during code generation. Default is guessing from output path.")
-    parser.add_argument("-c", "--userclasses", default="",
+    parser.add_argument("-c", "--userclasses", default=DEFAULT_CLASSES_PATH,
                         help="Python file name, or a module name,  to import prjcls to update Classes with user-defined classes which YAML file refers to.")
     parser.add_argument("-r", "--revision",
                         help="A string that is a revision identification, for example a git hash to be appended to attribute FORMATV.")
-    parser.add_argument("-u", "--upgrade", action='store_true', default=False,
-                        help="Upgrade the file to current schema, by yaml_upgrade(), to version " + version)
+    parser.add_argument("-u", "--upgrade_to_version", type=str, default="",
+                        help="Upgrade the file(s) to this schema")
     parser.add_argument("-n", "--dry_run",  action='store_true', default=False,
                         help="No writing. Dry run.")
     parser.add_argument("-d", "--debug",  action='store_true', default=False,
@@ -885,6 +881,17 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     print(f'command line: {args}')
+    return args
+
+
+if __name__ == '__main__':
+    print('Generating Python code for product class definition..')
+
+    dry_run = False
+    cwd = os.path.abspath(os.getcwd())
+    ypath = cwd
+    args = get_cmdline(cwd)
+
     verbose = args.verbose
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -894,9 +901,11 @@ if __name__ == '__main__':
     ypath = args.yamldir
     cmd_tpath = args.template
     cmd_opath = args.outputdir
-    cmd_package_name = args.packagename
+    cmd_package_name = os.pat.join(
+        cwd, DEFAULT_CLASSES_PATH) if \
+        args.packagename == DEFAULT_CLASSES_PATH else args.packagename
     project_class_path = args.userclasses
-    upgrade = args.upgrade
+    schema_version = args.upgrade_to_version
     revision = args.revision
     dry_run = args.dry_run
     debug = args.debug
@@ -908,9 +917,9 @@ if __name__ == '__main__':
     Classes.mapping.ignore_error = True
 
     # input file
-    descriptors = read_yaml(ypath, version, verbose)
-    if upgrade:
-        descriptemptors = yaml_upgrade(descriptors, ypath, version,
+    descriptors = read_yaml(ypath, shema_version, verbose)
+    if schema_version:
+        descriptemptors = yaml_upgrade(descriptors, ypath, shema_version,
                                        dry_run=dry_run, verbose=verbose)
 
     # Do not import modules that are to be generated. Thier source code
@@ -1030,9 +1039,16 @@ if __name__ == '__main__':
         d['metadata'] = parentsAttributes
         d['datasets'] = parentsTableColumns
 
-        output(nm, d, ypath, version,
-               dry_run=dry_run, verbose=verbose)
-        continue
+        # if upgrade, write out the yaml file
+        if schema_version:
+            __import__("pdb").set_trace()
+
+            yml_level_attr = {}
+            for att in attrs:
+                yml_level_attr[att] = d[att]
+            output(nm, {nm: yml_level_attr}, ypath, shema_version,
+                   dry_run=dry_run, verbose=verbose)
+            continue
         infs, default_code = get_Python(d, indents[1:], demo, onlyInclude)
         # remove the ',' at the end.
         modelString = (ei + '_Model_Spec = ' + infs).strip()[: -1]

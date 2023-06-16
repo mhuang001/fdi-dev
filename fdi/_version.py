@@ -1,8 +1,9 @@
-__version_info__ = (1, 32, 4)
+__version_info__ = (1, 32, 5)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.32.3-2-gd996cce'
 
-# y2p changes pass test1,2. prod schema 1.9 with git hasf in FORMATV written
+# dev env moving to ubuntu on win.
+# 1.32.4 y2p changes pass test1,2. prod schema 1.9 with git hasf in FORMATV written
 # 1.32.3 fix metadata wrong col order. center disply. refactor RefContainer str. n fits.
 # 1.32.2login has no gui. add /pools/register GET api to httppool (v1.4). conftest.py refactored to start server properly in 3 ways, using parameterized fixtures. testhttp passes with mock server.
 # 1.32.0 pass auth to aio_client, save csdb token in session cokies,

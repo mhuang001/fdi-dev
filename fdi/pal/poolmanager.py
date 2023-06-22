@@ -186,6 +186,7 @@ def remoteRegister(pool):
     # pool object
     poolo = None
     from ..pal import httpclientpool, publicclientpool
+
     if issubclass(pool.__class__, httpclientpool.HttpClientPool):
 
         # HttpClientPool. Init the remote pool. If exists, load.d

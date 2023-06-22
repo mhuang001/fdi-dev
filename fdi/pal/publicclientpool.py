@@ -100,8 +100,9 @@ def verifyToken(token, client):
             return 2, 'Incorrect format'
         elif 'JWT signature does not match locally computed signature.' in tm:
             return 3, 'JWT signature does not match locally computed signature.'
+        elif 'JWT expired' in tm:
+            return 4, 'Expired.'
         else:
-
             if err:
                 logger.warning(
                     f'{tokenMsg}-excpt {err}. Cloud token ...{token[-5:]} to be updated.')

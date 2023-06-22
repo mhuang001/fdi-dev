@@ -1,0 +1,69 @@
+deactivate 
+PYEXE=python3.8
+
+# rm -rf ~/code && mkdir code
+# virtualenv -p ${PYEXE} ~/code/fdi &&
+# . ~/code/fdi/bin/activate &&
+export EXTRAWHEELS=extrawheels
+export FDIVENV=${HOME}/code/.venv
+export PIPCACHE=${HOME}/code/pipcache
+export PIPWHEELS=${HOME}/code/wheels
+mkdir -p $PIPWHEELS
+mkdir -p $PIPCACHE
+
+echo !!!!!!!!!!!!! PREPARE WHEEL REPO !!!!!!!!!!!!!!!!!
+mkdir -p $PIPWHEELS
+mkdir -p $PIPCACHE
+for i in `ls $EXTRAWHEELS`; do ln $EXTRAWHEELS/$i ${PIPWHEELS}/$i; done
+ls -l ${PIPWHEELS};
+
+echo !!!!!!!!!!!!! ACTIVATE VENV UPDATE pip wheel setuptools !!!!!!!!!!!!!!!!!
+umask 0002 && ${PYEXE} -m venv ${FDIVENV} --prompt "fc-dev" \
+&& . $FDIVENV/bin/activate && echo venv activated \
+&& umask 0002 && for i in pip setuptools wheel; do \
+${PYEXE} -m pip install `ls ${PIPWHEELS}/$i*| head -n 1`; done;
+#if echo $PATH|grep $FDIVENV/bin > /dev/null; then echo FDIVENV/bin dir already in PATH; \
+#else export PATH="${FDIVENV}/bin:$PATH";fi
+
+# alternative:
+#${PYEXE} -m pip install fdi &&
+#${PYEXE} -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV,SERV] &&
+
+# install fdi
+echo !!!!!!!!!!!!! INSTALL FDI THEN TEST !!!!!!!!!!!!!!!!!
+if false; then \
+cd ~/code \
+&& git clone -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git \
+&& cd fdi 
+${PYEXE} -m pip wheel --no-index -f ${PIPWHEELS} --disable-pip-version-check --cache-dir ${PIPCACHE} --wheel-dir ${PIPWHEELS} -e .[DEV,SERV,SCI] \
+&& make install EXT="[DEV,SERV,SCI]" PIPOPT="--disable-pip-version-check --cache-dir ${PIPCACHE} --no-index  -f ${PIPWHEELS} " \
+&& make test \
+; fi
+
+echo !!!!!!!!!!!!! CLONE and INSTALL share and others !!!!!!!!!!!!!!!!!
+if true; then \
+cd ~/code \
+&& echo export PRODS="share vtse fprods orbit tooreq" \
+&& for i in $PRODS; do rm -rf $i; echo PRODUCT $i \
+&& git clone ssh://git@mercury.bao.ac.cn:9005/svom/products/$i.git; done; \ 
+cd ~/code \
+export SHARE="hello rabbitmq" \
+&& for i in $SHARE; do rm -rf $i; echo SHARE $i \
+&& git clone ssh://git@mercury.bao.ac.cn:9005/share/$i.git; done; \ 
+cd ~/code \
+rm -rf engisim ; git clone ssh://git@mercury.bao.ac.cn:9005/svom/engisim.git
+cd ~/code/share \
+&& make installall WHEEL_INSTALL=13 I=-q\
+&& make testall \
+; fi
+
+echo !!!!!!!!!!!!! INSTALL csc, then test !!!!!!!!!!!!!!!!!
+if true; then \
+cd ~/code \
+&& rm -rf csc \
+&& git clone ssh://git@mercury.bao.ac.cn:9005/svom/csc.git --recurse-submodules \
+&& ln -f fdi/Makefile_docker.mk csc/Makefile_docker_common.mk \
+&& cd csc \
+&& make update \
+; fi
+

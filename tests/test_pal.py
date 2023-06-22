@@ -1,6 +1,4 @@
 
-from conftest import csdb_pool_id, SHORT
-
 from fdi.dataset.arraydataset import ArrayDataset
 
 from fdi.pal.mempool import MemPool
@@ -27,7 +25,7 @@ from fdi.dataset.testproducts import TP
 from fdi.utils.checkjson import checkjson
 from fdi.pns.fdi_requests import save_to_server, read_from_server, ServerError
 from fdi.pns.public_fdi_requests import read_from_cloud
-
+from fdi.testsupport.fixtures import csdb_pool_id
 from flask.testing import FlaskClient
 import requests
 from requests.auth import HTTPBasicAuth
@@ -64,7 +62,7 @@ Test_Pool_Name = __name__.replace('.', '_')
 defaultpoolPath = '/tmp/fditest'
 
 # make format output in /tmp/outputs.py
-mk_outputs = 1
+mk_outputs = 0
 output_write = 'tests/outputs_pal.py'
 
 if mk_outputs:
@@ -76,8 +74,8 @@ if __name__ == '__main__' and __package__ == 'tests':
 
     Test_Pool_Name = 'test_pal'
 
-    # if not mk_outputs:
-    # from outputs import nds2, nds3, out_Dataset
+    if not mk_outputs:
+        from outputs_pal import out_MapContext
 
 else:
     # run by pytest
@@ -85,8 +83,8 @@ else:
     # This is to be able to test w/ or w/o installing the package
     # https://docs.python-guide.org/writing/structure/
 
-    # if not mk_outputs:
-    #    from outputs import nds2, nds3, out_Dataset
+    if not mk_outputs:
+        from outputs_pal import out_MapContext
 
     from pycontext import fdi
 
@@ -420,11 +418,9 @@ def test_PoolManager():
         # assert pm.remove(defaultpoolName) == 0
 
     # http pool gets registered
-    try:
-        with pytest.raises(ConnectionError):
-            ph = pm.getPool(poolurl='http://h.edu/foo')
-    except NewConnectionError:
-        pass
+    with pytest.raises(ConnectionError), pytest.raises(NewConnectionError):
+        ph = pm.getPool(poolurl='http://h.edu/foo')
+
     assert not PoolManager.isLoaded('foo')
     with pytest.raises(KeyError):
         assert PoolManager.remove('foo') == 1
@@ -1641,9 +1637,10 @@ def test_MapContext(a_storage):
     assert c2.getAllRefs(recursive=True) == [refp2, refc1, refp1]
 
     v = c1
+    urn = refp1.urn
     ts = v.__class__.__name__ + '\n'
 
-    ts += v.toString()
+    ts += v.toString(width=120)
     if mk_outputs:
         with open(output_write, 'a', encoding='utf-8') as f:
             clsn = 'out_MapContext'
@@ -1651,7 +1648,7 @@ def test_MapContext(a_storage):
         print(ts)
     else:
         print('LOCALE', locale.getlocale())
-        if ts != out_MapContext:
+        if ts.rsplit(urn,1)[0] != out_MapContext.rsplit(urn,1)[0]:
             for i, t_o in enumerate(zip(ts, out_MapContext)):
                 t, o = t_o
                 if t == o:

@@ -15,15 +15,16 @@ pc = getConfig()
 
 TIMEOUT = pc['requests_timeout']
 # default RETRY_AFTER_STATUS_CODES = frozenset({413, 429, 503})
-FORCED = (503, 504, 408, 413, 429)
+FORCED = None #(503, 504, 408, 413, 429)
 # default DEFAULT_ALLOWED_METHODS = frozenset({'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PUT', 'TRACE'})
 # METHODS = ("POST", "PUT", "HEAD", "GET", "OPTIONS")
-METHODS = ("PUT", "GET")
-MAX_RETRY = 3
+METHODS = ("GET",)
+# 0 means disabled
+MAX_RETRIES = 0
 
 
 def requests_retry_session(
-        retries=MAX_RETRY,
+        retries=MAX_RETRIES,
         backoff_factor=3,
         status_forcelist=FORCED,
         method_whitelist=METHODS,
@@ -35,21 +36,25 @@ def requests_retry_session(
     https://www.peterbe.com/plog/best-practice-with-retries-with-requests
     """
     session = session or requests.session()
-    retry = Retry(
-        total=retries,
-        read=retries,
-        status=retries,
-        connect=retries,
-        other=None,
-        redirect=5,
-        backoff_factor=backoff_factor,
-        status_forcelist=status_forcelist,
-        raise_on_redirect=False,
-        raise_on_status=False,
-    )
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
+
+    if retries:
+        __import__("pdb").set_trace()
+
+        retry = Retry(
+            total=retries,
+            read=retries,
+            status=retries,
+            connect=retries,
+            other=None,
+            redirect=5,
+            backoff_factor=backoff_factor,
+            status_forcelist=status_forcelist,
+            raise_on_redirect=False,
+            raise_on_status=True,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
     return session
 
 

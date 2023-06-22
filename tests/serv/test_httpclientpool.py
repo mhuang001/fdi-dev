@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from fdi.dataset.deserialize import deserialize
-from conftest import SHORT
 
 from test_pal import backup_restore
 from serv.test_httppool import getPayload, check_response
@@ -55,7 +54,7 @@ logger.setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
 test_poolid = __name__.replace('.', '_')
-
+SHORT = 'function'
 
 @pytest.fixture(scope="module")
 def init_test():

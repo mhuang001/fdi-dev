@@ -34,7 +34,7 @@ setup(
     exclude_package_data={"": [".git*"]},
     long_description=read('README.rst'),
     long_description_content_type="text/x-rst",
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     install_requires=[
         'requests>=2.23.0',
         'filelock>=3.10',
@@ -59,6 +59,9 @@ setup(
     entry_points={'console_scripts': [
         'yaml2python=fdi.dataset.yaml2python:main',
         'fdi-getconfig=fdi.utils.getconfig:main',
+    ],
+        "pytest11": [
+        "products_pools=fdi.testsupport"
     ]},
     setup_requires=[],
     tests_require=['pytest', 'pytest-cov', ],
@@ -100,6 +103,7 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Utilities",
         "Framework :: Flask",
+        "Framework :: Pytest",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
     ],

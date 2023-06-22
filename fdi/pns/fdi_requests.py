@@ -44,7 +44,7 @@ import sys
 import json
 from requests.auth import HTTPBasicAuth
 
-from ..httppool.session import TIMEOUT, MAX_RETRY, FORCED, \
+from ..httppool.session import TIMEOUT, MAX_RETRIES, FORCED, \
     requests_retry_session
 
 session = requests_retry_session()
@@ -221,13 +221,15 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
         logger.info(
             lls(f'{method.__func__.__name__} {api} arg={args} kwds={kwds}', 200))
 
-    if no_retry_controls or MAX_RETRY == 0:
+    if no_retry_controls or MAX_RETRIES == 0:
         return method(api, *args, **kwds)
 
+    tries = int(MAX_RETRIES/ session.adapters['http://'].max_retries.total + 0.5)
     err = []
-    for n in range(MAX_RETRY):
+    for n in range(tries):
         try:
             res = method(api, *args, **kwds)
+
             if res.status_code not in FORCED:
                 break
         except ConnectionError as e:
@@ -763,9 +765,9 @@ def aio_client(method_name, apis, data=None, headers=None,
         else:
             if aio_session is None or aio_session._closed or not issubclass(aio_session.__class__, RetryClient):
                 if 0:
-                    retry_options = ExponentialRetry(attempts=MAX_RETRY)
+                    retry_options = ExponentialRetry(attempts=MAX_RETRIES)
                 else:
-                    retry_options = RandomRetry(attempts=MAX_RETRY)
+                    retry_options = RandomRetry(attempts=MAX_RETRIES)
                 # client = await aiohttp_client( app, raise_for_status=raise_for_status)
                 retry_client = RetryClient(
                     client_session=client, retry_options=retry_options)

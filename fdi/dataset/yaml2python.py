@@ -20,6 +20,7 @@ from string import Template
 from datetime import datetime
 import importlib
 import argparse
+import copy
 
 import logging
 
@@ -368,8 +369,7 @@ def read_yaml(ypath, shema_version=None, verbose=False):
                                                   in v else [])]))
                for k, v in datasets.items())
         logger.debug('Find datasets:\n%s' % ', '.join(itr))
-
-        desc[d['name']] = (d, attrs, datasets, fins)
+        desc[list(d.keys())[0]] = (d, attrs, datasets, fins)
     return desc
 
 
@@ -588,7 +588,8 @@ def descriptor_mro_cmp(nc1, nc2, des):
             return 0
         # no class definition
         # 0 for top level
-        parents = des[nc1][0]['parents']
+
+        parents = des[nc1][0].get('parents', [])
         if len(parents) == 0 or len(parents) == 1 and parents[0] is None:
             return 0
         if nc1 in parents:
@@ -910,6 +911,9 @@ if __name__ == '__main__':
     dry_run = args.dry_run
     debug = args.debug
 
+    if debug:
+        __import__("pdb").set_trace()
+
     # now can be used as parents
     from .classes import Classes
 
@@ -949,10 +953,15 @@ if __name__ == '__main__':
     for nm in sorted_list:
         d, attrs, datasets, fins = descriptors[nm]
         print('************** Processing ' + nm + '***********')
+        if 'name' not in d:
+            __import__("pdb").set_trace()
 
         modelName = d['name']
         # module/output file name is YAML input file "name" with lowercase
         modulename = nm.lower()
+
+        # save a copy of what are in the yaml file.
+        yaml_contents = copy.copy(d)
 
         # set paths according to each file's path
         ypath = fins[nm][0]
@@ -1043,10 +1052,14 @@ if __name__ == '__main__':
         if schema_version:
             __import__("pdb").set_trace()
 
-            yml_level_attr = {}
-            for att in attrs:
-                yml_level_attr[att] = d[att]
-            output(nm, {nm: yml_level_attr}, ypath, shema_version,
+            yml_level = copy.copy(yaml_contents)
+            # we only copy what the YAML had into the updated.
+            # those inderited are not included
+            to_ = yml_level['metadata']
+            from_ = d['metadata']
+            for att in yaml_contents['metadata']:
+                to_[att] = _from[att]
+            output(nm, {nm: yml_level}, ypath, shema_version,
                    dry_run=dry_run, verbose=verbose)
             continue
         infs, default_code = get_Python(d, indents[1:], demo, onlyInclude)

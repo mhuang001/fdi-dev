@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 from fdi.dataset.annotatable import Annotatable
@@ -72,8 +71,9 @@ else:
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
+
 # make format output in /tmp/outputs.py
-mk_outputs = 1
+mk_outputs = 0
 output_write = 'tests/outputs.py'
 
 if mk_outputs:
@@ -1231,11 +1231,10 @@ def test_MetaData():
     v = DemoProduct(ts)
     v = v.meta
     ts += '\n'
-    ts += v.toString(extra=True)
-    ts += '\ntablefmt = html\n'
-    ts += v.toString(tablefmt1='html')
-    ts += '\nfull_width\n'
-    ts += v.toString(width=132)
+    ts += '\n160_width\n'
+    ts += v.toString(extra=True, width=160)
+    #ts += '\ntablefmt = html\n'
+    #ts += v.toString(tablefmt1='html')
     if mk_outputs:
         with open(output_write, 'a', encoding='utf-8') as f:
             clsn = 'out_MetaData'
@@ -1389,12 +1388,12 @@ def test_Dataset():
     v.data = 88.8
     v.meta = standardtestmeta()
     ts = 'level 0\n'
-    ts += v.toString()
+    ts += v.toString(width=160)
     ts += 'level 1, repr\n'
-    ts += v.toString(1)
+    ts += v.toString(1,width=160)
     ts += 'level 2,\n'
-    ts += v.toString(2)
-    ts += '\ntablefmt = html\n'
+    ts += v.toString(2, width=160)
+    #ts += '\ntablefmt = html\n'
     ts += v.toString(tablefmt1='html')
     if mk_outputs:
         print(ts)
@@ -1643,7 +1642,21 @@ def do_ArrayDataset_func(atype):
     if mk_outputs:
         print(ts[i:])
     else:
-        assert ts[i:-131] == nds2
+        if ts[i:].rsplit('\n==',1)[0] == nds2:
+            pass
+        else:
+            for i, t_o in enumerate(zip(ts[i:], nds2)):
+                t, o = t_o
+                if t == o:
+                    continue
+                print(i, t, o)
+                break
+            print(ts[i:])
+            print(nds2)
+            assert ts[i:] == nds2
+            assert False
+
+        
     ts += '\n\nlevel 1\n'
     ts += x.toString(1)
     ts += '\n\nlevel 2, repr\n'

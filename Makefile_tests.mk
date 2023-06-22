@@ -1,19 +1,23 @@
 PYTEST	= python3 -m pytest
 TESTLOG	= /tmp/fdi-tests.log
-L	= 
-OPT	=    --log-level=$(L)
+L	=
+# --server can be 'mock' (default, ,background' (spawned) and 'external' real one given by config file.
+OPT	=    --log-level=$(L) --server 'mock'
+OPT1	=    --log-level=$(L) --server 'external'
 T	= 
 test: test1 test2 test5 test13 test14 test10
 
 testhttp: test7 test8 test9 #test15
+	@echo SERVRE OPTION: $(OPT)
 
 testcsdb: test11 test16 
+	@echo SERVRE OPTION: $(OPT)
 
 testpns: test4
 
 
 test1: 
-	$(PYTEST) tests/test_dataset.py -k 'not _mqtt' $(OPT) $(T)
+	$(PYTEST) tests/test_dataset.py  -k 'not _mqtt' $(OPT) $(T)
 
 # --cov=fdi/pal
 test2:
@@ -34,6 +38,8 @@ test6:
 	$(PYTEST) $(OPT) $(T) tests/serv/test_httppool.py 
 
 test7:
+	$(PYTEST) tests/test_server_setup.py $(OPT) $(T) -k '_pool_'
+
 	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py -k 'not _csdb' $(T)
 
 test8:
@@ -46,9 +52,11 @@ test10:
 	$(PYTEST) $(OPT) tests/test_fits.py $(T)
 
 test11:
-	$(PYTEST) $(OPT) tests/serv/test_csdb.py -v -l --pdb -s -r P $(T)
+	$(PYTEST) tests/test_server_setup.py $(OPT1) $(T) -k '_pool_'
+	$(PYTEST) $(OPT1) tests/serv/test_csdb.py  $(T)
+
 test16:
-	$(PYTEST) $(OPT) tests/test_pal.py -v  -k _csdb $(T)
+	$(PYTEST) $(OPT1) tests/test_pal.py -v  -k _csdb $(T)
 
 test12:
 	$(PYTEST) $(OPT) tests/test_yaml2python.py $(T)

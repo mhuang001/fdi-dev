@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# e.g. 1.31.0-0-gdde30ae
+rev=`git describe --tags --long`
+
+make rev REVISION="$rev"

@@ -1,0 +1,51 @@
+deactivate 
+PYEXE=python3.8
+
+rm -rf ~/csc38 && mkdir csc38
+# virtualenv -p ${PYEXE} ~/csc38/fdi &&
+# . ~/csc38/fdi/bin/activate &&
+export EXTRAWHEELS=extrawheels
+export FDIVENV=${HOME}/csc38/fdi/.venv
+export PIPCACHE=${HOME}/csc38/fdi/pipcache
+export PIPWHEELS=${HOME}/csc38/fdi/wheels
+mkdir -p $PIPWHEELS
+mkdir -p $PIPCACHE
+
+echo !!!!!!!!!!!!! PREPARE WHEEL REPO !!!!!!!!!!!!!!!!!
+for i in `ls $EXTRAWHEELS`; do ln $EXTRAWHEELS/$i ${PIPWHEELS}/$i; done
+ls -l ${PIPWHEELS};
+
+echo !!!!!!!!!!!!! ACTIVATE VENV UPDATE pip wheel setuptools !!!!!!!!!!!!!!!!!
+umask 0002 && ${PYEXE} -m venv ${FDIVENV} \
+&& . $FDIVENV/bin/activate && echo venv activated \
+&& umask 0002 && for i in pip setuptools wheel; do \
+${PYEXE} -m pip install `ls ${PIPWHEELS}/$i*| head -n 1`; done;
+#if echo $PATH|grep $FDIVENV/bin > /dev/null; then echo FDIVENV/bin dir already in PATH; \
+#else export PATH="${FDIVENV}/bin:$PATH";fi
+
+# alternative:
+#${PYEXE} -m pip install fdi &&
+#${PYEXE} -m pip install http://mercury.bao.ac.cn:9006/mh/fdi/-/archive/develop/fdi-develop.tar.gz#egg=fdi[DEV,SERV] &&
+
+
+# install fdi
+echo !!!!!!!!!!!!! INSTALL FDI THEN TEST !!!!!!!!!!!!!!!!!
+cd ~/csc38/fdi \
+&& git clone --depth=30 -b develop http://mercury.bao.ac.cn:9006/mh/fdi.git \
+&& cd fdi 
+${PYEXE} -m pip wheel --no-index -f ${PIPWHEELS} --disable-pip-version-check --cache-dir ${PIPCACHE} --wheel-dir ${PIPWHEELS} -e .[DEV,SERV,SCI] \
+&& make install EXT="[DEV,SERV,SCI]" PIPOPT="--disable-pip-version-check --cache-dir ${PIPCACHE} --no-index  -f ${PIPWHEELS} " \
+&& echo make test
+
+
+echo !!!!!!!!!!!!! INSTALL csc, then test !!!!!!!!!!!!!!!!!
+if false; then \
+cd ~/csc38/fdi ;\
+rm -rf csc; \
+git clone ssh://git@mercury.bao.ac.cn:9005/svom/csc.git --recurse-submodules \
+&& ln -f fdi/Makefile_docker.mk csc/Makefile_docker_common.mk \
+&& cd csc \
+&& make update \
+&& make PROJ-INSTALL \
+&& make PROJ-TEST ;\
+fi

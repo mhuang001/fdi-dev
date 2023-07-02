@@ -100,7 +100,7 @@ def test_gen_url(server):
     """ Makesure that request create corrent url
     """
 
-    aburl, headers = server
+    aburl, client, auth, pool, poolurl, pstore, server_type = server
     samplepoolname = 'sample_' + test_poolid
     samplepoolurl = aburl + '/' + samplepoolname
     sampleurn = 'urn:' + samplepoolname + ':fdi.dataset.product.Product:10'
@@ -215,21 +215,23 @@ def est_CRUD_product_by_client(server, local_pools_dir, auth):
 
 
 @pytest.fixture(scope=SHORT)
-def get_PS_for_CRUD(server, tmp_remote_storage, auth, client):
+def get_PS_for_CRUD(server, tmp_remote_storage):
 
     logger.info('Init a pstore')
 
     ps_remote = tmp_remote_storage
-    aburl, headers = server
-    poolid = ps_remote.getPools()[0]
-    pool = ps_remote.getPool(poolid)
-    poolurl = pool.poolurl
+    aburl, client, auth, pool, poolurl, pstore, server_type = server
+    poolid = pool.poolname
+    
+    # poolid = ps_remote.getPools()[0]
+    # pool = ps_remote.getPool(poolid)
+    # poolurl = pool.poolurl
     if 1:
         if PoolManager.isLoaded(DEFAULT_MEM_POOL):
             PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
-    # this will also register the server side
-    pstore = ProductStorage(pool=pool, auth=auth, client=client)
-    pstore.register(poolid)
+    # # this will also register the server side
+    # pstore = ProductStorage(pool=pool, auth=auth, client=client)
+    # pstore.register(poolid)
     pool.removeAll()
 
     assert len(pstore.getPools()) == 1, 'product storage size error: ' + \
@@ -344,18 +346,20 @@ def est_webapi_backup_restore(server):
     backup_restore(pstore)
 
 
-def test_webapi_backup_restore(tmp_remote_storage, client, auth):
+def test_webapi_backup_restore(server):
     """
     """
     logger.info('Create pools on the server.')
-    pstore = tmp_remote_storage
+    #pstore = tmp_remote_storage
+    aburl, client, auth, pool, poolurl, pstore, server_type = server
     logger.info('Bacckup/restore a pool on the server.')
+
     backup_restore(pstore, client, auth)
 
 
-def test_flask_fmt(tmp_pools, server, client,  auth):
+def test_flask_fmt(tmp_pools, server):
+    aburl, client, auth, pool, poolurl, pstore, server_type = server
     pool, prd, ref, tag = tmp_pools[0]
-    aburl, header = server
     prd_urn = ref.urn
 
     #### /{pool}  /{pool}/  GET  ####
@@ -471,10 +475,10 @@ def test_hist(tmp_remote_storage, tmp_prods):
     print(pdot.to_string())
 
 
-def test_no_auth(tmp_pools, server, client):
+def test_no_auth(server, tmp_pools):
 
+    aburl, client, auth, pool, poolurl, pstore, server_type = server
     pool, prd, ref, tag = tmp_pools[0]
-    aburl, header = server
     prd_urn = ref.urn
 
     # get pool without auth
@@ -486,10 +490,9 @@ def test_no_auth(tmp_pools, server, client):
     assert pool.poolname in o['result']
 
 
-def test_need_auth(existing_pools, server, client, auth):
-    pool = existing_pools[0]
-    aburl, header = server
+def test_need_auth(existing_pools, server):
 
+    aburl, client, auth, pool, poolurl, pstore, server_type = server
     url = '/'.join((aburl, pool.poolname, 'hk/'))
     # get pool with auth
     x = safe_client(client.get, url, auth=auth)

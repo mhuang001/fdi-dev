@@ -60,7 +60,49 @@ def main():
     hdul = fits.HDUList()
     fits_dataset(hdul, [ima, imb])
 
+def is_Fits(data, get_type=False):
+    """ Determine if data is a FITS blob and return CARD/TYPE name if needed.
 
+    Parameter
+    ---------
+    data : object
+    get_type : bool
+        If set return the TYPE or CARD name. Default is `False`. If set search all positions at 80 bytes interval for 'TYPE' and 'CARD' keyword and name up to '/'.
+
+    Returns
+    -------
+    bool, string
+
+    Exception
+    ---------
+        If `get_card` is set and TYPE/CARD or name is not found, raise KeyError.
+    """
+    ID = b'SIMPLE  =                    T'
+    strp = b"""" '"""
+    
+    try:
+        y= data.startswith(ID)
+    except:
+        return False
+    if y:
+        if get_type:
+            cls = None
+            for i in range(0, min(1800, len(data)), 80):
+                if data[i:i+8].strip() in (b'TYPE', b'CARD'):
+                    cls = data[i+10:i+80].split(b'/',1)[0].strip(strp)
+                    break
+            if not cls:
+                raise KeyError('TYPE or CARD name not found.')
+            else:
+                # found TYPE/CARD and a name with positive length.
+                return cls.decode('ascii')
+        else:
+            # no need for TYPE/CARD
+            return True
+    else:
+        # ID not found.
+        return False
+    
 def toFits(data, file='', **kwds):
     """convert dataset to FITS.
 

@@ -1,7 +1,8 @@
-__version_info__ = (1, 33, 0)
+__version_info__ = (1, 34, 0)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.32.5-0-gb339a43'
 
+# Upload FITS product.
 # 1.33.0 create fdi.testsupport.fixtures to make conftest reuseable. rewrite some fixtures.
 # 1.32.5 dev env moving to ubuntu on win.
 # 1.32.4 y2p changes pass test1,2. prod schema 1.9 with git hasf in FORMATV written

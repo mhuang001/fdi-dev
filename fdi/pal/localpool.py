@@ -59,9 +59,10 @@ class LocalPool(ManagedPool):
             return True
 
         real_poolpath = self.real_poolpath = self.transformpath(self._poolname)
+        #print('%%%%%%%%%%%% '+real_poolpath+str(self._make_new))
 
-        if self._makenew:
-            self.make_new()
+        self.make_new()
+        
         if not op.exists(real_poolpath):
             raise PoolNotFoundError(
                 'poolname: %r poolurl: %r real_poolpath: %r' % (
@@ -250,7 +251,9 @@ class LocalPool(ManagedPool):
         if path is None:
             path = self.real_poolpath
         os.makedirs(path, mode=0o755, exist_ok=True)
-
+        # print(os.stat(self.real_poolpath))
+        # assert os.stat(path)
+        
     def setMetaByUrn(self, start, end, urn=None, datatype=None, sn=None):
         """
         Sets the location of the meta data of the specified data to the given URN or a pair of data type and serial number.

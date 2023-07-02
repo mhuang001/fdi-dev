@@ -95,7 +95,7 @@ class ManagedPool(dicthk.DictHk):
             Create a new management (Houses keeping) structures (default `True`).
         """
 
-        self._makenew = makenew  # must preceed setup() in super
+        self._make_new = makenew  # must preceed setup() in super
         super().__init__(**kwds)
         # {type|classname -> {'sn:[sn]'}}
 
@@ -120,7 +120,7 @@ class ManagedPool(dicthk.DictHk):
 
         if super().setup():
             return True
-        if self._makenew:
+        if self._make_new:
             pass
         # new ##
         self._dTypes = dict()
@@ -161,7 +161,7 @@ class ManagedPool(dicthk.DictHk):
 
     def make_new(self, *args, **kwds):
 
-        pass
+        raise NotImplementedError
 
     def dereference(self, ref):
         """
@@ -317,7 +317,7 @@ class ManagedPool(dicthk.DictHk):
                 self._urns['refcnt'] = 0
             self._urns[ref.urn]['refcnt'] += 1
 
-    def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, **kwds):
+    def saveOne(self, prd, tag=None, geturnobjs=None, serialize_in=None, serialize_out=None, res=None, **kwds):
         """
         Save one product.
 
@@ -327,7 +327,8 @@ class ManagedPool(dicthk.DictHk):
         ----------
         tag : string list
              One or a list of strings. Comma is used to separate
-             multiple tags in one string.
+             multiple tags in one string. Note that from this point on
+             the calling chain, 'tag' becomes 'tags'.
         geturnobjs : bool
             return URN object(s) instead of ProductRef(s).
         serialize_in : bool
@@ -452,8 +453,10 @@ class ManagedPool(dicthk.DictHk):
         if serialize_in:
             if not alist:
                 prd = products
-                self.saveOne(prd, tag, geturnobjs,
-                             serialize_in, serialize_out, res, **kwds)
+                self.saveOne(prd, tag=tag, geturnobjs=geturnobjs,
+                             serialize_in=serialize_in,
+                             serialize_out=serialize_out,
+                             res=res, **kwds)
             else:
                 if asyn:
                     prd = products
@@ -462,8 +465,11 @@ class ManagedPool(dicthk.DictHk):
                 else:
                     for prd, t in zip(products, tag):
                         # result is in res
-                        self.saveOne(prd, t, geturnobjs,
-                                     serialize_in, serialize_out, res, **kwds)
+                        self.saveOne(prd, tag=tag,
+                                     geturnobjs=geturnobjs,
+                                     serialize_in=serialize_in,
+                                     serialize_out=serialize_out,
+                                     res=res, **kwds)
         else:
             if alist:
                 raise TypeError('a list cannot go with False serialize-in.')

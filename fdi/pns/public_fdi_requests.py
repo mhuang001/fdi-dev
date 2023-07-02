@@ -233,14 +233,22 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             del header['Content-Type']
             requestAPI = default_base + \
                 '/datatype/upload'
+            ea=kwds.pop('ensure_ascii', True),
             cls_full_name = kwds.pop('cls_full_name')
-            jsn = cached_json_dumps(cls_full_name,
-                                    ensure_ascii=kwds.get(
-                                        'ensure_ascii', True),
-                                    indent=kwds.get('indent', 2))
+            pkd = kwds.pop('picked', None)
+            ind=kwds.pop('indent', 2)
+            if pkd:
+                jsn = pkd
+            else:
+                jsn = cached_json_dumps(cls_full_name,
+                                        ensure_ascii=ea,
+                                        indent=ind,
+                                    des=True
+                                    )
             fdata = {"file": (cls_full_name, jsn)}
-            data = {"metaPath": "/metadata",
-                    "dataType": cls_full_name}
+            data = {"metaPath": kwds.pop('metaPath', "meta"),
+                    "productType": cls_full_name}
+            #   __import__("pdb").set_trace()
             res = reqst(client.post, requestAPI,
                         files=fdata, data=data, headers=header, server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'delDataTypeData':
@@ -476,7 +484,8 @@ def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             if isinstance(_t, list):
                 _t = ','.join(x for x in _t if x and x.strip())
             tags = [_t] * n
-
+            con = kwds.pop('content', None)
+            #con = 'application/octet-stream'
             if asyn:
                 # data = [{'file': (f, p), 'tags': t}
                 #         for f, p, t in zip(fileNames, prds, tags)]
@@ -484,15 +493,19 @@ def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
                 for f, p, t in zip(fileNames, prds, tags):
                     d = aiohttp.FormData()
                     d.add_field('file', p,
-                                content_type='application/json', filename=f)
+                                content_type=con, filename=f)
                     if t:
                         d.add_field('tags', t)
                     data.append(d)
             else:
-                files = [{'file': (f, p)} for f, p in zip(fileNames, prds)]
-                data = [{'tags': t} for t in tags]
-
-            headers = _multi_input_header(kwds, n, header)
+                files = [{'file': ('file', p, con) if con else p,
+                          #'tags': t, 'productType':_f
+                          } for f, p, t in zip(fileNames, prds, tags)]
+                data = [{"tags":t,
+                         #"productType":f
+                         } for t, f in zip(tags, fileNames)
+                        ]
+                headers = _multi_input_header(kwds, n, header)
 
             serialize_out = kwds.pop('serialize_out', '')
             if asyn:
@@ -501,8 +514,9 @@ def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             else:
                 res = []
                 for a, f, d, h in zip(apis, files, data, headers):
-                    r = reqst(client.post, a, files=f, data=d,
-                              headers=h, server_type=server_type, auth=client.auth, **kwds)
+                    r = reqst(client.post, a, files=f, #data=d,
+                              headers=h, server_type=server_type,
+                              auth=client.auth, **kwds)
                     res.append(r)
             return res if alist else res[0]
 

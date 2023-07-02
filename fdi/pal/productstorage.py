@@ -25,7 +25,10 @@ class ProductStorage(object):
 
     """
 
-    def __init__(self, pool=None, poolurl=None, poolmanager=None,
+    def __init__(self,
+                 pool=None,
+                 poolurl=None,
+                 poolmanager=None,
                  **kwds):
         """ Gets the storage "control pannel" for pool with specifed name.
 
@@ -55,11 +58,13 @@ class ProductStorage(object):
         self.register(pool=pool, poolurl=poolurl, **kwds)
 
     def register(self,  poolname=None, poolurl=None, pool=None,
+                 makenew=False,
                  **kwds):
         """ Registers the given pools to the storage.
 
         :client: passed to `PoolManager.getPool`.
         :auth: passed to `PoolManager.getPool`.
+        :makenew: Create pool if it does not exist.
         """
 
         if issubclass(pool.__class__, str) and poolname is None:
@@ -71,8 +76,11 @@ class ProductStorage(object):
                 if issubclass(pool.__class__, PublicClientPool):
                     pe = _p.poolExists()
                     if not pe:
-                        raise ServerError(
-                            f"CSDB {pool.poolurl} does not exist.")
+                        if not makenew:
+                            raise ServerError(
+                                f"CSDB {pool.poolurl} is made but does not exist on the server." +\
+                                (", no makenew. Please make it with `ProductStorage`." if makenew else "."))
+                    
             elif poolurl is None and poolname is None:
                 # quietly return for no-arg construction case
                 return
@@ -84,7 +92,7 @@ class ProductStorage(object):
                     raise TypeError('Poolurl must be a string, not ' +
                                     poolurl.__class__.__name__)
                 _p = self.PM.getPool(
-                    poolname=poolname, poolurl=poolurl, **kwds)
+                    poolname=poolname, poolurl=poolurl, makenew=makenew, **kwds)
             self._pools[_p._poolname] = _p
 
         logger.debug('registered pool %s -> %s.' %
@@ -157,23 +165,24 @@ class ProductStorage(object):
 
         Parameters
         ----------
-        product : BaseProduct, list
+        product : BaseProduct, FITS blob, list
             Product or a list of them or '[ size1, prd, size2, prd2, ...]'.
         tag : str, list
             If given a tag, all products will be having this tag.
-        If a list tags are given to every one product then the
-        number of tags must not be the same to that of `product`. If
-        they are equal, each tag is goven to the product at the same
-        index in the `product` list.
+            If a list tags are given to every one product then the
+            number of tags must not be the same to that of `product`. If
+            they are equal, each tag is goven to the product at the same
+            index in the `product` list.
+        poolname: str
+            If the named pool is not registered, registers and saves.
+        geturnobjs : bool
+            returns UrnObjs if geturnobjs is True.
+        kwds: options passed to json.dump() for subclasses, which can
+            have the following.
         serialize_out : bool
             if `True` returns contents in serialized form.
         serialize_in : bool
             If set, product input is serialized.
-        poolName: str
-            If the named pool is not registered, registers and saves.
-        geturnobjs : bool
-            returns UrnObjs if geturnobjs is True.
-        kwds: options passed to json.dump() for subclasses.
 
         Returns
         -------
@@ -187,7 +196,7 @@ class ProductStorage(object):
             if len(self._pools) > 0:
                 poolname = self.getWritablePool()
             else:
-                raise ValueError('no pool registered')
+                raise ValueError('no pool by "{poolname}" registered at the `PoolManager`.')
         elif poolname not in self._pools:
             self.register(poolname)
 

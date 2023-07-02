@@ -177,12 +177,12 @@ def remoteRegister(pool):
     ---------
     pool : HttpClientPool, PublicClientPool
         Pool object to be registered on remote server and have client/session set.
-    auth : object
-        Authorization object for the client. If given will substitute that of pool, if pool has auth.
-    client : flask.requests (testing), or requests.Session
-        The client. If given will substitute that of pool, if pool is given
-
     """
+    # auth : object
+    #     Authorization object for the client. If given will substitute that of pool, if pool has auth.
+    # client : flask.requests (testing), or requests.Session
+    #     The client. If given will substitute that of pool, if pool is given
+
     # pool object
     poolo = None
     from ..pal import httpclientpool, publicclientpool
@@ -492,7 +492,7 @@ This is done by calling the getPool() method, which will return an existing pool
         return poolname, poolurl, secondary_poolurl, gpl_pool
 
     @classmethod
-    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=True, auth=None, client=None, **kwds):
+    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=False, auth=None, client=None, **kwds):
         """ returns an instance of pool according to name or path of the pool.
 
         Returns the pool object if the pool is registered and new
@@ -538,7 +538,7 @@ Pools registered are kept as long as the last reference remains. When the last i
         pool: ProductPool
             If `auth` and `client` are given they will substitute those of  `pool`. If `pool` is not given, those will need to be given.
         makenew : bool
-            When the pool does not exist, make a new one (`True`; default), or `__init__` throws `PoolNotFoundError` (```False```).
+            When the pool does not exist, make a new one (`True`), or `__init__` throws `PoolNotFoundError` (```False```; default).
         auth : str
             For `remoteRegister`.
         client : default is `None`.
@@ -597,12 +597,16 @@ Pools registered are kept as long as the last reference remains. When the last i
                     from . import localpool
                     # register a localpool on GPL. No remote.
                     pool = localpool.LocalPool(
-                        poolname=poolname, poolurl=poolurl, makenew=makenew, **kwds)
+                        poolname=poolname, poolurl=poolurl,
+                        # makenew=makenew,
+                        **kwds)
                 elif schm == 'mem':
                     from . import mempool
                     # register a mempool on GPL. No remote.
                     pool = mempool.MemPool(
-                        poolname=poolname, poolurl=poolurl, **kwds)
+                        poolname=poolname, poolurl=poolurl,
+                        #makenew=makenew,
+                        **kwds)
                 elif schm == 'server':
                     # This registers a HttpP which is a version of local pool.
                     if not issubclass(cls, PM_S):
@@ -610,18 +614,21 @@ Pools registered are kept as long as the last reference remains. When the last i
                             f'Not allowed to register scheme {schm} pool {poolurl} on a client.')
                     from . import httppool
                     pool = httppool.HttpPool(
-                        poolname=poolname, poolurl=poolurl, **kwds)
+                        poolname=poolname, poolurl=poolurl,
+                        #makenew=makenew,
+                        **kwds)
                 elif schm == 'csdb':
                     from . import publicclientpool
                     pool = publicclientpool.PublicClientPool(
                         poolname=poolname,
                         poolurl=pc['scheme'] + poolurl[4:],
+                        #makenew=makenew,
                         **kwds)
                 elif schm in ('http', 'https'):
                     from . import httpclientpool
                     pool = httpclientpool.HttpClientPool(
                         poolname=poolname,
-                        poolurl=poolurl,
+                        poolurl=poolurl, # makenew=makenew,
                         **kwds)
                     if secondary_poolurl:
                         # secondary_poolurl

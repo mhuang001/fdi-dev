@@ -124,6 +124,14 @@ class MemPool(ManagedPool):
         # return self._urns[urn]['meta']
         return self._dTypes[datatype]['sn'][sn]['meta']
 
+    def make_new(self):
+        """ make a new directory.
+
+        """
+        pass
+
+
+    
     def doLoad(self, resourcetype, index, start=0, end=0, serialize_out=False):
         """
         does the action of loadProduct.

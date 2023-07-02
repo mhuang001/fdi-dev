@@ -4,6 +4,7 @@
 # from ..pal.context import MapContext
 from ..utils.common import lls, trbk, find_all_files
 from ..utils.ydump import yinit, ydump
+from ..utils.getconfig import get_projectclasses
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
 from .attributable import make_class_properties
 # a dictionary that translates metadata 'type' field to classname
@@ -261,42 +262,6 @@ def params(val, indents, demo, onlyInclude, debug=False):
     modelString += indents[1] + '},\n'
 
     return modelString, code
-
-
-def get_projectclasses(clp, exclude=None, verbose=False):
-    """
-    return a `Classes` object that is going  to give {class-name:class-type} from a file at gieven location.
-
-    Parameters
-    ----------
-    :clp: path of the mapping file.
-    :rerun, exclude: from `Classes`
-
-    Returns
-    -------
-    The `classes.Classes` object.
-    """
-
-    if clp is None or len(clp.strip()) == 0:
-        c = DEFAULT_CLASSES_PATH
-
-    if exclude is None:
-        exclude = []
-    if '/' not in clp and '\\' not in clp and not clp.endswith('.py'):
-        print('Importing project classes from module '+clp)
-        # classes path not given on command line
-        pc = importlib.import_module(clp)
-        print(
-            'Imported project classes from %s module.' % clp)
-
-    else:
-        clpp, clpf = os.path.split(clp)
-        sys.path.insert(0, os.path.abspath(clpp))
-        # print(sys.path)
-        print('Importing project classes from file '+clp)
-        pc = importlib.import_module(clpf.replace('.py', ''))
-        sys.path.pop(0)
-    return pc
 
 
 def read_yaml(ypath, shema_version=None, verbose=False):

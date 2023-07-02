@@ -10,28 +10,24 @@ def test_pool_server_url(server, pytestconfig):
         os.unlink(BG_SERVER_LOG)
 
     assert not os.path.exists(BG_SERVER_LOG)
-    url, hdr = server
+    url, client, auth, pool, poolurl, pstore, server_type = server
     assert url.startswith('http://127.0.0.1:9885/fdi/v')
-    assert hdr['server_type'] in ['mock', 'live']
+    assert server_type in ['mock', 'live']
     assert pytestconfig.getoption('--server') in ['mock', 'background', 'external']
-    print(url, hdr)
-    #time.sleep(1000)
+    print(url, client, pool, server_type)
 
-def test_pool_client_url(client, server):
-    url, ty = server
     res = client.get(url).text
     assert 'docker  pool server' in res
     print(client.get(url).text)
+    assert len(pstore.getPools()) == 1
 
 def test_csdb_server_url(csdb_server):
-    url, ty = csdb_server
+    url, client, auth, pool, poolurl, pstore, server_type = csdb_server
     print(csdb_server)
 
-def test_csdb_client_url(client, csdb_server):
-    url, ty = csdb_server
-    #print(csdb_client)
     res = client.get(url).text
-    assert res.endswith('{"code":1,"msg":"Not authorization","total":0}')
+    print(res)
+    assert res.endswith('{"code":1,"msg":"Not Permission","total":0}')
     print(res)
 
     

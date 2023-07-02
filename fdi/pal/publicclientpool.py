@@ -13,6 +13,7 @@ from .dicthk import HKDBS, populate_pool2
 from .urn import makeUrn, parse_poolurl, Urn, parseUrn
 from ..pns.public_fdi_requests import read_from_cloud, load_from_cloud, delete_from_server
 from ..pns.fdi_requests import ServerError
+from ..utils.tofits import is_Fits
 from ..utils.common import (fullname, lls, trbk,
                             logging_ERROR,
                             logging_WARNING,
@@ -116,6 +117,9 @@ def verifyToken(token, client):
 def getToken(poolurl, client):
     """Get CSDB acces token.
 
+    ref http://123.56.102.90:31101/sources/satellite-data-pipeline/-/blob/master/csdb/csdb/csdb.py#L74
+    There seems no need to verify existing token. it costs less to get a new one.
+    
     Returns
     -------
     str
@@ -133,17 +137,19 @@ def getToken(poolurl, client):
     from ..httppool.model.user import SESSION
     from flask import session as sess
 
-    current_token = None
-    if sess and SESSION:
-        # saved token
-        if 'tokens' in sess and sess['tokens']:
-            current_token = sess['tokens'].get(poolurl, '')
+    # current_token = None
+    # if sess and SESSION:
+    #     # saved token
+    #     if 'tokens' in sess and sess['tokens']:
+    #         current_token = sess['tokens'].get(poolurl, '')
 
-    if not current_token:
-        current_token = pcc['cloud_token']
-    trouble = verifyToken(current_token, client)
-    if trouble:
-        logger.info(f'Cloud token {lls(current_token, 50)} {trouble} ')
+    # if not current_token:
+    #     current_token = pcc['cloud_token']
+    # trouble = verifyToken(current_token, client)
+    # if trouble:
+    #     logger.info(f'Cloud token {lls(current_token, 50)} {trouble} ')
+    # 
+    if True:
         tokenMsg = read_from_cloud('getToken', client=client)
         if tokenMsg:
             token = tokenMsg['token']
@@ -155,13 +161,13 @@ def getToken(poolurl, client):
     else:
         token = current_token
 
-    if sess and SESSION:
-        # save token
-        if 'tokens' not in sess:
-            sess['tokens'] = {}
-        if sess['tokens'].get(poolurl, '') != poolurl:
-            sess['tokens'][poolurl] = token
-            sess.modified = True
+    # if sess and SESSION:
+    #     # save token
+    #     if 'tokens' not in sess:
+    #         sess['tokens'] = {}
+    #     if sess['tokens'].get(poolurl, '') != poolurl:
+    #         sess['tokens'][poolurl] = token
+    #         sess.modified = True
 
     return token
 
@@ -194,7 +200,7 @@ class PublicClientPool(ManagedPool):
 
         self.auth = auth
         self.client = client
-        ####
+        #### 
         self.token = getToken(self.poolurl, client)
         self.poolInfo = None
         self.serverDatatypes = []
@@ -643,11 +649,19 @@ class PublicClientPool(ManagedPool):
             bunch = res
         return bunch
 
-    def doSave(self, resourcetype, index, data, tag=None, serialize_in=True, **kwds):
+    def doSave(self, resourcetype, index,
+               data, tags=None, serialize_in=True, **kwds):
         path = f'/{self._poolname}/{resourcetype}'
 
-        res = load_from_cloud('uploadProduct', token=self.token, client=self.client,
-                              products=data, path=path, tags=tag, resourcetype=resourcetype, **kwds)
+        res = load_from_cloud('uploadProduct',
+                              token=self.token,
+                              client=self.client,
+                              products=data,
+                              path=path,
+                              tags=tags,
+                              resourcetype=resourcetype,
+                              #content=content,
+                              **kwds)
         return res
 
     def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, check_type=True, **kwds):
@@ -655,13 +669,14 @@ class PublicClientPool(ManagedPool):
 
         Parameters
         ----------
-        prd : BaseProduct, str, list
+        prd : BaseProduct, str, list, blob of FITS
             The product(s) to be saved. It can be a product, a list of
             product or, when `serialize_in` is false, a JSON
-            serialized product or list of products.
+            serialized product or list of products. or FITS blob.
         tag : string list
              One or a list of strings. Comma is used to separate
-             multiple tags in one string.
+             multiple tags in one string. Note that from this point on
+                     the calling chain, 'tag' becomes 'tags'.
         geturnobjs : bool
             return URN object(s) instead of ProductRef(s).
         serialize_in : bool
@@ -693,31 +708,43 @@ class PublicClientPool(ManagedPool):
 
 
         """
-        jsonPrd = prd
-        if serialize_in:
-            pn = fullname(prd)
-            cls = prd.__class__
-            jsonPrd = serialize(prd)
+        cls = None
+        fits_with_name = is_Fits(prd, get_type=True)
+        if fits_with_name:
+            cls = Class_Look_Up[fits_with_name]
+            content = 'application/fits'
+            serialize_in = False
         else:
-            # prd is json. extract prod name
-            # '... "_STID": "Product"}]'
-            pn = prd.rsplit('"', 2)[1]
-            cls = Class_Look_Up[pn]
-            pn = fullname(cls)
+            content = 'application/json;charset=UTF-8'
+
+        # now we know if we have FITS or JSON
+        if content == 'application/json;charset=UTF-8':
+            jsonPrd = prd
+            if serialize_in:
+                #pn = fullname(prd)
+                cls = prd.__class__
+                jsonPrd = serialize(prd)
+            else:
+                # prd is json. extract prod name
+                # '... "_STID": "Product"}]'
+                pn = prd.rsplit('"', 2)[1]
+                cls = Class_Look_Up[pn]
+        pn = fullname(cls)
 
         if check_type:
             if pn not in check_type:
                 raise ValueError('No such product type in csdb: ' + pn)
 
         # targetPoolpath = self.getPoolpath() + '/' + pn
-        try:
-            # save prod to cloud
+        try: 
+           # save prod to cloud
             uploadRes = self.doSave(resourcetype=pn,
                                     index=None,
                                     data=jsonPrd if serialize_in else prd,
-                                    tag=tag,
+                                    tags=tag,
                                     serialize_in=serialize_in,
                                     serialize_out=serialize_out,
+                                    content=content,
                                     **kwds)
         except ValueError as e:
             msg = f'product {self.poolname}/{pn} saving failed. {e} {trbk(e)}'
@@ -811,6 +838,14 @@ class PublicClientPool(ManagedPool):
 
         return res
 
+    
+    def make_new(self):
+        """ make a new directory.
+
+        """
+        pass
+
+
     def schematicLoad(self, resourcetype, index, start=None, end=None,
                       serialize_out=False):
         """ do the scheme-specific loading
@@ -845,6 +880,35 @@ class PublicClientPool(ManagedPool):
                      ' with index: ' + str(index))
         raise ValueError('No such product:' + resourcetype +
                          ' with index: ' + str(index))
+
+    def uploadDatatype(self, resourcetype, indent=2,
+                       metaPath='/metadata',
+                       ensure_ascii=True,
+
+
+                       picked=None,
+                       asyn=False):
+        """  Submit data product definition in JSON.
+
+        PARAMETERS
+        ----------
+        resourcetype : str
+            full class name of data product.
+        metaPath : str
+            JSONpath like specifications of where metadata start.
+        picked : str
+            Pick this JSON doc to upload instead of the one in the DB.
+        """
+
+        res = read_from_cloud('uploadDataType', client=self.client,
+                              cls_full_name=resourcetype,
+                              indent=indent,
+                              metaPath=metaPath,
+                              ensure_ascii=ensure_ascii,
+                              picked=picked,
+                              token=self.token,
+                              asyn=False)
+        return res
 
     def doLoad(self, resourcetype, index, start=None, end=None, serialize_out=False):
         """ to be implemented by subclasses to do the action of loading

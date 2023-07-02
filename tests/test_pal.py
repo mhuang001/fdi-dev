@@ -583,8 +583,8 @@ def test_ProductRef():
     assert v != r
 
     # construction
-
-    ps = ProductStorage(a3, poolurl=p)
+    # automatically amking new pool on registering
+    ps = ProductStorage(a3, poolurl=p, makenew=True)
     prd = Product()
     rfps = ps.save(prd)
     pr = ProductRef(urn=rfps.urnobj, poolname=a3)
@@ -1002,9 +1002,9 @@ def test_ProdStorage_func_local_mem():
     check_prodStorage_func_for_pool(thepoolname, thepoolurl, None)
 
 
-def test_ProdStorage_func_http(server, userpass, client, auth):
+def test_ProdStorage_func_http(server, userpass):
 
-    aburl, hdr = server
+    aburl, client, auth, pool, poolurl, pstore, server_type = server
     # httpclientpool
     thepoolname = Test_Pool_Name
     thepoolurl = aburl + '/' + thepoolname
@@ -1027,38 +1027,40 @@ def test_ProdStorage_func_http(server, userpass, client, auth):
         thepoolname, thepoolurl, userpass, client=client, auth=auth)
 
 
-def test_ProdStorage_func_server(client, auth):
+def test_ProdStorage_func_server(client, userpass):
     # httppool , the http server-side pool
     thepoolname = 'server'+Test_Pool_Name
     thepoolurl = 'server://' + '/tmp/fditest' + '/' + thepoolname
-
+    auth = HTTPBasicAuth(*userpass)
     cleanup(thepoolurl, thepoolname, client=client, auth=auth)
     check_prodStorage_func_for_pool(
         thepoolname, thepoolurl, None, client=client, auth=auth)
 
 
-def test_ProdStorage_func_http_csdb(pc, server, urlcsdb, userpass, client, auth):
+def test_ProdStorage_func_http_csdb(csdb_server, userpass):
+    urlcsdb, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
+    aburl = urlcsdb
+    __import__("pdb").set_trace()
 
-    aburl, hdr = server
     remote_purl = (pc['cloud_scheme'] +
                    urlcsdb[len('csdb'):] + '/' + csdb_pool_id).replace('/', ',')
     # remote_comma = remote_purl.replace('/', ',')
-    thepoolname = csdb_pool_id
+    thepoolname = pool.poolname
     # must use http pool url explicitly b/c aburl is for the live csdb
-    thepoolurl = 'http://' + PoolManager.PlacePaths['http'] + '/' + remote_purl
-
+    #thepoolurl = 'http://' + PoolManager.PlacePaths['http'] + '/' + remote_purl
+    thepoolurl = pool.poolurl
     cleanup(thepoolurl, thepoolname, client=client, auth=auth)
     check_prodStorage_func_for_pool(
         thepoolname, thepoolurl, userpass, client=client, auth=auth)
 
 
-def test_LocalPool(client, auth):
+def test_LocalPool(client, userpass):
     thepoolname = 'localpool_' + Test_Pool_Name
     thepoolpath = '/tmp/fditest'
     thepoolurl = 'file://' + thepoolpath + '/' + thepoolname
-
+    HTTPBasicAuth(*userpass)
     cleanup(thepoolurl, thepoolname)
-    ps = ProductStorage(thepoolname, thepoolurl, client=client, auth=auth)
+    ps = ProductStorage(thepoolname, thepoolurl)
     pname = ps.getPools()[0]
     # get the pool object
     pspool = ps.getPool(pname)
@@ -1080,7 +1082,8 @@ def test_LocalPool(client, auth):
         shutil.rmtree(pcp)
     # make a copy of the old pool on disk
     shutil.copytree(transpath(thepoolname, thepoolpath), pcp)
-    ps2 = ProductStorage(pool=cpn, poolurl=cpu, client=client, auth=auth)
+    ps2 = ProductStorage(pool=cpn, poolurl=cpu)
+    
     # two ProdStorage instances have the same DB
     p2 = ps2.getPool(ps2.getPools()[0])
     # assert deepcmp(p1._urns, p2._urns) is None
@@ -1119,6 +1122,7 @@ def test_LocalPool(client, auth):
     p2.remove(resourcetype=dtype, index=sns, asyn=True)
     assert len(ps2.getUrnFromTag('mtag')) == 0
 
+    auth = HTTPBasicAuth(*userpass)
     backup_restore(ps, client, auth)
 
 
@@ -1431,9 +1435,9 @@ def test_query_local_mem():
     doquery('mem://'+thepoolpath, 'file://'+thepoolpath)
 
 
-def test_query_http(server, client, auth):
+def test_query_http(server  ):
 
-    aburl, hdrs = server
+    aburl, client, auth, pool, poolurl, pstore, server_type = server
     aburl = aburl.rstrip('/')
     cleanup(client=client, auth=auth)
     lpath = '/tmp'
@@ -1663,9 +1667,9 @@ def test_MapContext(a_storage):
     # realistic scenario
 
 
-def test_realistic_http(server, demo_product, client, auth):
+def test_realistic_http(server, demo_product):
 
-    aburl, hdrs = server
+    aburl, client, auth, pool, poolurl, pstore, server_type = server
     aburl = aburl.rstrip('/')
     poolname = 'demo'
     poolurl = aburl + '/' + poolname

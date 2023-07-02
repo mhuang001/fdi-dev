@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from fdi.utils.fits_kw import FITS_KEYWORDS, getFitsKw
-from fdi.utils.tofits import toFits, fits_dataset
+from fdi.utils.tofits import is_Fits, toFits, fits_dataset
 from fdi.dataset.arraydataset import ArrayDataset, Column as aCol
 from fdi.dataset.tabledataset import TableDataset
 from fdi.dataset.dataset import CompositeDataset
@@ -81,7 +81,7 @@ def test_tab_fits():
 
 
 @pytest.fixture(scope='module')
-def makecom():
+def make_composite_prd():
     a1 = [768, 4.4, 5.4E3]
     a2 = 'ev'
     a3 = 'arraydset 1'
@@ -89,7 +89,7 @@ def makecom():
     a5, a6, a7 = [[1.09, 289], [3455, 564]], 'count', 'arraydset 2'
     # a8 = ArrayDataset(data=a5, unit=a6, description=a7)
     d = {'col1': aCol(data=[1, 4.4, 5.4E3], unit='eV'),
-         'col2': aCol(data=[0, -43, 2E3], unit='cnt')}
+         'col2': aCol(data=[0, -43, 2E3], unit='ct')}
     d['col1'].typecode = 'd'
     d['col2'].typecode = 'i'
     a8 = TableDataset(data=d)
@@ -106,8 +106,8 @@ def makecom():
     return v
 
 
-def test_com_fits(makecom):
-    v = makecom
+def test_com_fits(make_composite_prd):
+    v = make_composite_prd
     data = [v]
     # __import__('pdb').set_trace()
     u = toFits(data, file=None)
@@ -151,7 +151,7 @@ tcode = {'b': bool,  # Boolean
          }
 
 
-def test_toFits_metadata(makecom):
+def test_toFits_metadata(make_composite_prd):
     for ds in [ArrayDataset, TableDataset, CompositeDataset]:
         if issubclass(ds, ArrayDataset):
             ima = ds(data=[[1, 2, 3, 4], [5, 6, 7, 8]], description='a')
@@ -163,7 +163,7 @@ def test_toFits_metadata(makecom):
             ima = ds(data=d)
         elif issubclass(ds, CompositeDataset):
             # __import__('pdb').set_trace()
-            ima = makecom
+            ima = make_composite_prd
         else:
             assert False
         ima.meta['datetime'] = DateParameter(
@@ -212,8 +212,8 @@ def test_toFits_metadata(makecom):
             pass
 
 
-def test_prd_fits(makecom):
-    c = makecom
+def test_prd_fits(make_composite_prd):
+    c = make_composite_prd
     p = BaseProduct('abc')
     p['com'] = c
     p.meta['creationDate'] = DateParameter(
@@ -228,6 +228,7 @@ def test_prd_fits(makecom):
     f = fits.open('/tmp/test.fits')
     f.close()
     assert f[0].header == v[0].header
+    
     # test stream
     # __import__('pdb').set_trace()
     f = open('/tmp/test.fits', 'wb+')
@@ -238,7 +239,17 @@ def test_prd_fits(makecom):
     f.close()
     assert f[0].header == v[0].header
     del f
-
+    #
+    # test is_Fits()
+    with open('/tmp/test.fits', 'rb') as f:
+        v = f.read()
+    assert is_Fits(v)
+    assert is_Fits(v, get_type=True) == 'BaseProduct'
+    v1 = v.replace(b'TYPE', b'TTTT')
+    with pytest.raises(KeyError):
+        assert is_Fits(v1, get_type=True) == 'BaseProduct'
+    v2= b'U'+v[1:]
+    assert not is_Fits(v2)
 
 def test_mapcontext_fits():
 

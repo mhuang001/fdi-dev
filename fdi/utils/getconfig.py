@@ -75,6 +75,7 @@ def get_file_conf(conf_name):
             # c = getattr(nm, var_name)
             logger.debug(f'Module {module_name} to be reloaded.')
         spec = importlib.util.spec_from_file_location(absolute_name, filep)
+
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         logger.debug('Loaded %s/%s.' % (confp, file_name))
@@ -346,7 +347,10 @@ def make_pool(pool, conf='pns', auth=None, wipe=False):
         poolurl = getConfig(_url_mark+pool)
 
     if auth is None:
-        auth = HTTPBasicAuth(pc['username'], pc['password'])
+        if poolurl.startswith('csdb://'):
+            auth = HTTPBasicAuth(pc['username'], pc['password'])
+        else:
+            auth = HTTPBasicAuth(pc['username'], pc['password'])
     logger.info("PoolURL: " + poolurl)
 
     # create a product store
@@ -525,3 +529,38 @@ def XXXcget(name, conf_name='pns', builtin=None, force=False):
     var = withEnv(name)
 
     return var
+
+def get_projectclasses(clp, exclude=None, verbose=False):
+    """
+    return a `Classes` object that is going  to give {class-name:class-type} from a file at gieven location.
+
+    Parameters
+    ----------
+    :clp: path of the mapping file.
+    :rerun, exclude: from `Classes`
+
+    Returns
+    -------
+    The `classes.Classes` object.
+    """
+
+    if clp is None or len(clp.strip()) == 0:
+        c = DEFAULT_CLASSES_PATH
+
+    if exclude is None:
+        exclude = []
+    if '/' not in clp and '\\' not in clp and not clp.endswith('.py'):
+        print('Importing project classes from module '+clp)
+        # classes path not given on command line
+        pc = importlib.import_module(clp)
+        print(
+            'Imported project classes from %s module.' % clp)
+
+    else:
+        clpp, clpf = os.path.split(clp)
+        sys.path.insert(0, os.path.abspath(clpp))
+        # print(sys.path)
+        print('Importing project classes from file '+clp)
+        pc = importlib.import_module(clpf.replace('.py', ''))
+        sys.path.pop(0)
+    return pc

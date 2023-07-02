@@ -452,10 +452,10 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
             if SES_DBG:
                 print("DELETE REQUEST API: " + a)
 
-                if issubclass(client.__class__, FlaskClient):
-                    r = reqst(client.delete, a, auth=auth)
-                else:
-                    r = reqst(client.delete, a, auth=auth, timeout=TIMEOUT)
+            if issubclass(client.__class__, FlaskClient):
+                r = reqst(client.delete, a, auth=auth)
+            else:
+                r = reqst(client.delete, a, auth=auth, timeout=TIMEOUT)
             if result_only:
                 rs.append(r)
                 continue
@@ -688,6 +688,10 @@ def reqst(meth, apis, *args, server_type='httppool', auth=None, return_response=
             raise ValueError('Unknown server type: {server_type}.')
     elif ismethod(meth):
         # use request, urllib3.Session
+        #if 'upload' in apis:
+            #__import__("pdb").set_trace()
+
+            #apis = 'https://httpbin.org/post'
         content = safe_client(
             meth, apis, *args, auth=auth, **kwds)
         if server_type == 'httppool':
@@ -819,17 +823,20 @@ async def get_retry_client(
         client_session=client, retry_options=retry_options)
     return retry_client, test_app
 
-
+from fdi.dataset.serializable import serialize
 @ functools.lru_cache(maxsize=256)
-def cached_json_dumps(cls_full_name, ensure_ascii=True, indent=2):
+def cached_json_dumps(cls_full_name, ensure_ascii=True, indent=2,
+                      des=False):
     # XXX add Model to Class
     obj = Class_Look_Up[cls_full_name.rsplit('.', 1)[-1]]()
-    return json.dumps(obj.zInfo, ensure_ascii=ensure_ascii, indent=indent)
-
+    if des:
+        return serialize(obj, ensure_ascii=ensure_ascii, indent=indent)
+    else:
+        return json.dumps(obj.zInfo, ensure_ascii=ensure_ascii, indent=indent)
 
 def getCacheInfo():
     info = {}
-    for i in ['getAuth', 'urn2fdiurl']:
+    for i in ['getAuth', 'urn2fdiurl', 'cached_json_dumps']:
         info[i] = i.cache_info()
 
     return info

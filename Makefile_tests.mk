@@ -3,7 +3,7 @@ TESTLOG	= /tmp/fdi-tests.log
 L	=
 # --server can be 'mock' (default, ,background' (spawned) and 'external' real one given by config file.
 OPT	=    --log-level=$(L) --server 'mock'
-OPT1	=    --log-level=$(L) --server 'external'
+OPT1	=    --log-level=$(L) --server 'external' -v
 T	= 
 test: test1 test2 test5 test13 test14 test10
 
@@ -52,11 +52,11 @@ test10:
 	$(PYTEST) $(OPT) tests/test_fits.py $(T)
 
 test11:
-	$(PYTEST) tests/test_server_setup.py $(OPT1) $(T) -k '_pool_'
-	$(PYTEST) $(OPT1) tests/serv/test_csdb.py  $(T)
+	$(PYTEST) tests/test_server_setup.py $(OPT1) $(T) -k 'csdb'
+	$(PYTEST) $(OPT1) tests/serv/test_csdb.py $(T)
 
 test16:
-	$(PYTEST) $(OPT1) tests/test_pal.py -v  -k _csdb $(T)
+	$(PYTEST) $(OPT1) tests/test_pal.py -k _csdb $(T)
 
 test12:
 	$(PYTEST) $(OPT) tests/test_yaml2python.py $(T)

@@ -13,6 +13,7 @@ from ..utils.common import (fullname, lls, trbk, pathjoin,
                             logging_INFO,
                             logging_DEBUG
                             )
+from fdi.utils.tofits import is_Fits
 from .query import AbstractQuery, MetaQuery, StorageQuery
 
 from collections import OrderedDict, ChainMap
@@ -308,18 +309,21 @@ When implementing a ProductPool, the following rules need to be applied:
 
         """
 
-        if not (issubclass(product.__class__, BaseProduct)
-                or issubclass(product.__class__, str)
-                or isinstance(product, list)
-                and (issubclass(product[0].__class__, BaseProduct)
-                or issubclass(product[0].__class__, str))
-                ):
+        if not (issubclass(product.__class__, (BaseProduct, str))
+                or is_Fits(product)
+                or (
+                    isinstance(product, list)
+                    and (
+                        issubclass(product[0].__class__, (BaseProduct, str))
+                        or is_Fits(product[0])
+                    ))
+                     ):
             # p is urn string from server-side LocalPool
             if isinstance(product, list):
                 tstr = f'list({product[0].__class__.__name__})'
             else:
                 tstr = f'{type(product)}'
-            msg = f'Cannot remove a product with a {tstr} as input.'
+            msg = f'Cannot save product with a {tstr} as input.'
             raise TypeError(msg)
 
         res = self.schematicSave(product, tag=tag,

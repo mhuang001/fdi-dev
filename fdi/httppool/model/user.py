@@ -134,7 +134,7 @@ def getUsers(pc):
     #               ))
 
 
-SES_DBG = 1
+SES_DBG = 0
 """ debug msg for session """
 
 if SESSION:

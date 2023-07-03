@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Automatically generated from /cygdrive/d/code/fdi/fdi/dataset/resources/UnstructuredDataset_DataModel.yml. Do not edit.
+# Automatically generated from /home/mh/code/fdi/fdi/dataset/resources/UnstructuredDataset_DataModel.yml. Do not edit.
 
 from collections import OrderedDict
 from builtins import str

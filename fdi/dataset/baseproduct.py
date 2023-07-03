@@ -11,7 +11,7 @@ import copy
 
 import logging
 
-# Automatically generated from /cygdrive/d/code/fdi/fdi/dataset/resources/BaseProduct.yml. Do not edit.
+# Automatically generated from /home/mh/code/fdi/fdi/dataset/resources/BaseProduct.yml. Do not edit.
 
 from collections import OrderedDict
 from builtins import str
@@ -48,7 +48,7 @@ class BaseProduct( AbstractComposite, Copyable, EventSender):
     =====
     BaseProduct class schema 1.6 inheriting [None].
 
-Automatically generated from baseproduct.yml on 2023-06-13 20:12:23.475494.
+Automatically generated from baseproduct.yml on 2023-07-04 05:47:57.441890.
 
 Description:
 FDI base class data model

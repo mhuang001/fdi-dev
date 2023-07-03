@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Automatically generated from /cygdrive/d/code/fdi/fdi/dataset/resources/BrowseProduct.yml. Do not edit.
+# Automatically generated from /home/mh/code/fdi/fdi/dataset/resources/BrowseProduct.yml. Do not edit.
 
 from collections import OrderedDict
 from fdi.dataset.baseproduct import BaseProduct
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class BrowseProduct(BaseProduct):
     """ BrowseProduct class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from browseproduct.yml on 2023-06-13 20:12:27.257786.
+Automatically generated from browseproduct.yml on 2023-07-04 05:47:57.427078.
 
 Description:
 Container of media data for browsing.

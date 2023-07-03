@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Automatically generated from /cygdrive/d/code/fdi/fdi/dataset/resources/Product.yml. Do not edit.
+# Automatically generated from /home/mh/code/fdi/fdi/dataset/resources/Product.yml. Do not edit.
 
 from collections import OrderedDict
 from fdi.dataset.baseproduct import BaseProduct
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class Product(BaseProduct):
     """ Product class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from product.yml on 2023-06-13 20:12:25.490665.
+Automatically generated from product.yml on 2023-07-04 05:47:57.435276.
 
 Description:
 Project level product

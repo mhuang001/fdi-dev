@@ -327,14 +327,14 @@ def read_yaml(ypath, shema_version=None, verbose=False):
 
         logger.debug('Find attributes:\n%s' %
                      ''.join(('%20s' % (k+'=' + str(v['default'])
-                                        if 'default' in v else 'url' + ', ')
+                                        if v and 'default' in v else 'url' + ', ')
                               for k, v in attrs.items()
                               )))
         itr = ('%20s' % (k+'=' + str([c for c in (v['TABLE'] if 'TABLE'
                                                   in v else [])]))
                for k, v in datasets.items())
         logger.debug('Find datasets:\n%s' % ', '.join(itr))
-        desc[list(d.keys())[0]] = (d, attrs, datasets, fins)
+        desc[list(d.values())[0]] = (d, attrs, datasets, fins)
     return desc
 
 
@@ -750,16 +750,25 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
         # merge to get all attributes including parents' and self's.
         toremove = []
         for nam, val in attrs.items():
-            # if 'FORMATV' == nam:
-            #    __import__("pdb").set_trace()
-
-            if float(schema) > 1.5 and 'data_type' not in val \
-               and nam in temp:
-                # update parent's
-                temp[nam].update(attrs[nam])
-                toremove.append(nam)
+            #if nam == 'type':
+                #__import__("pdb").set_trace()
+            # val is None if the attribute is not defined, uaually set to use parents settings.
+            if float(schema) <= 1.5:
+                raise ValueError(f'{schema} is too old.')
+            if val is None:
+                if temp is None:
+                    #__import__("pdb").set_trace()
+                    raise ValueError(f"{attr['type']['default']} attribute {nam}  must be explicitly defined as the parents did not define it.")
+            elif 'data_type' not in val or 'default' not in val:
+                # reduced attributes  that expexts the parents and define the ommitted attrs.
+                if nam in temp:
+                   # update parent's
+                   temp[nam].update(attrs[nam])
+                   toremove.append(nam)
+                else:
+                    raise ValueError(f"{attr['type']['default']} attribute {nam}  must be explicitly defined as the parents did not define it.")                    
             else:
-                # override
+                # val has complete set of attributs. override
                 temp[nam] = attrs[nam]
             # move attrs items to the front
             parentsAttributes[nam] = temp[nam]
@@ -886,9 +895,9 @@ if __name__ == '__main__':
     Classes.mapping.ignore_error = True
 
     # input file
-    descriptors = read_yaml(ypath, shema_version, verbose)
+    descriptors = read_yaml(ypath, schema_version, verbose)
     if schema_version:
-        descriptemptors = yaml_upgrade(descriptors, ypath, shema_version,
+        descriptors = yaml_upgrade(descriptors, ypath, schema_version,
                                        dry_run=dry_run, verbose=verbose)
 
     # Do not import modules that are to be generated. Thier source code

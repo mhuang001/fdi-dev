@@ -113,8 +113,10 @@ def toFits(data, file='', **kwds):
     hdul = fits.HDUList()
     hdul.append(fits.PrimaryHDU())
     if issubclass(data.__class__, (BaseProduct)):
-        sets = data.values()
+        sets = list(data.values())
         names = list(data.keys())
+        sets.append(data.history)
+        names.append('history')
         hdul = fits_dataset(hdul, sets, names)
         add_header(data.meta, hdul[0].header, data.zInfo['metadata'])
         hdul[0].header['EXTNAME'] = 'PrimaryHDU'

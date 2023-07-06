@@ -23,6 +23,7 @@ from fdi.dataset.metadata import MetaData, Parameter
 from fdi.dataset.finetime import FineTime1
 from fdi.dataset.testproducts import TP
 from fdi.utils.checkjson import checkjson
+from fdi.utils.getconfig import getConfig
 from fdi.pns.fdi_requests import save_to_server, read_from_server, ServerError
 from fdi.pns.public_fdi_requests import read_from_cloud
 from fdi.testsupport.fixtures import csdb_pool_id
@@ -1012,7 +1013,7 @@ def test_ProdStorage_func_http(server, userpass):
     cleanup(thepoolurl, thepoolname, client=client, auth=auth)
     # First test registering with local pstor will also register on server
     pool = HttpClientPool(poolurl=thepoolurl, client=client, auth=auth)
-
+    pc = getConfig()
     # register
     pstore = ProductStorage(pool=pool, client=client, auth=auth)
 

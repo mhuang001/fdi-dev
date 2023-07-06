@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class Product(BaseProduct):
     """ Product class schema 1.6 inheriting ['BaseProduct'].
 
-Automatically generated from product.yml on 2023-07-04 05:47:57.435276.
+Automatically generated from product.yml on 2023-07-04 06:45:21.412892.
 
 Description:
 Project level product

@@ -621,7 +621,8 @@ Pools registered are kept as long as the last reference remains. When the last i
                     from . import publicclientpool
                     pool = publicclientpool.PublicClientPool(
                         poolname=poolname,
-                        poolurl=pc['scheme'] + poolurl[4:],
+                        #poolurl=pc['scheme'] + poolurl[4:],
+                        poolurl=poolurl,
                         #makenew=makenew,
                         **kwds)
                 elif schm in ('http', 'https'):
@@ -642,7 +643,7 @@ Pools registered are kept as long as the last reference remains. When the last i
                                 f'Not allowed to register scheme {schm} pool {poolurl} on a pool server.')
                 else:
                     raise NotImplementedError(f'{schm}:// is not supported')
-
+                pool._scheme = schm
         else:
             # pool was given from args
             if poolname and poolname != pool._poolname:
@@ -652,7 +653,7 @@ Pools registered are kept as long as the last reference remains. When the last i
                 raise ValueError(
                     f'Pool url {poolurl} and pool object do not agree.')
 
-            poolname, poolurl = pool._poolname, pool._poolurl
+            poolname, poolurl, schm = pool._poolname, pool._poolurl, pool._scheme
 
         # overide existing pool in GPL
         if not gpl_pool and cls.isLoaded(poolname):

@@ -319,6 +319,8 @@ class LocalPool(ManagedPool):
         """
 
         fp0 = self.transformpath(self._poolname)
+        if not os.stat(fp0):
+            raise PoolNotFoundError(f'{self.__class__.__name__} does not exist at {fp0}')
         fp = pathjoin(fp0, quote(resourcetype) + '_' + str(index))
         try:
             # t0 = time.time()
@@ -345,8 +347,11 @@ class LocalPool(ManagedPool):
         """
 
         indexstr = str(index)
-        pp = self.transformpath(self._poolname) + '/' + \
-            resourcetype + '_' + indexstr
+        fp0 = self.transformpath(self._poolname)
+        if not os.stat(fp0):
+            raise PoolNotFoundError(f'{self.__class__.__name__} does not exist at {fp0}')
+
+        pp = fp0 + '/' + resourcetype + '_' + indexstr
         js = self.readmmap(pp, start=start, end=end, close=True)
         if serialize_out:
             r = js

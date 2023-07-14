@@ -688,10 +688,10 @@ def reqst(meth, apis, *args, server_type='httppool', auth=None, return_response=
             raise ValueError('Unknown server type: {server_type}.')
     elif ismethod(meth):
         # use request, urllib3.Session
-        #if 'upload' in apis:
-            #__import__("pdb").set_trace()
+        if 0 and 'upload' in apis:
+            __import__("pdb").set_trace()
 
-            #apis = 'https://httpbin.org/post'
+            apis = 'https://httpbin.org/post'
         content = safe_client(
             meth, apis, *args, auth=auth, **kwds)
         if server_type == 'httppool':

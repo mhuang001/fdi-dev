@@ -490,7 +490,7 @@ def test_no_auth(server, tmp_pools):
     assert pool.poolname in o['result']
 
 
-def test_need_auth(existing_pools, server):
+def test_need_auth(server):
 
     aburl, client, auth, pool, poolurl, pstore, server_type = server
     url = '/'.join((aburl, pool.poolname, 'hk/'))

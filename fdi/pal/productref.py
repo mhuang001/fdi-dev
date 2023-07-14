@@ -35,15 +35,15 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
         poolname : str
              If given overrides the pool name in urn, and causes
              metadata to be loaded from pool, unless this prodref
-             points to a mempool.
+             points to a mempool, or if `meta` is `False`.
         product : subclass of BaseProduct
             A productref created from a single product will result in
             a memory pool urn, and the metadata won't be loaded.
-        meta : Metadata
+        meta : Metadata, bool
             If meta is given, it will be used instead of that from
-            poolname.
+            poolname. If is False, meta is not loaded.
         poolmanager : class
-            subclass od PoolManager
+            subclass of PoolManager
         **kwds : dict
 
         Returns
@@ -95,7 +95,8 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
         PG = self._poolmanager._GlobalPoolList
         # print(hex(id(PG)))
         if poolname:
-            self.setUrnObj(urnobj, poolname, meta)
+            # do not get metadata sue to hi cost on PublicClientPool
+            self.setUrnObj(urnobj, poolname, meta=meta)
             assert poolname in PG, f"in GPL? {hex(id(PG))}"
             self.pool = PG[poolname]
         else:
@@ -202,6 +203,7 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
     def setUrnObj(self, urnobj, poolname=None, meta=None):
         """ sets urn
 
+        Setter method of the `urnObj` property of `URN`.
         A productref created from a single product will result in a memory pool urn, and the metadata won't be loaded.
 
         Parameters:
@@ -210,8 +212,8 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
             a URN object.
         poolname : str
             if given overrides the pool name in urn, and causes metadata to be loaded from pool.
-        meta: MetaData
-            If  is given, it will be used instead of that from poolname.
+        meta: MetaData, bool
+            If  is given, it will be used instead of that from poolname. If is False, meta is not loaded.
         """
         if urnobj is not None:
             uc = urnobj.__class__
@@ -223,7 +225,12 @@ class ProductRef(MetaDataHolder, DeepEqual, Serializable, Comparable):
 
             from .poolmanager import PoolManager, DEFAULT_MEM_POOL
             from . import productstorage
-            loadmeta = (poolname or meta) and poolname != DEFAULT_MEM_POOL
+            loadmeta = (meta is not False) and \
+                (
+                    (meta and meta not in (True, None)) or \
+                    poolname and (meta is None or meta is True)
+                )\
+                and (poolname != DEFAULT_MEM_POOL)
             if poolname is None:
                 poolname = urnobj.pool
             else:

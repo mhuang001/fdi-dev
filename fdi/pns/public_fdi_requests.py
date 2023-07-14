@@ -246,11 +246,45 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
                                     des=True
                                     )
             fdata = {"file": (cls_full_name, jsn)}
-            data = {"metaPath": kwds.pop('metaPath', "meta"),
+            data = {"metaPath": kwds.pop('metaPath',
+                                         "/product_keywords"),
                     "productType": cls_full_name}
             #   __import__("pdb").set_trace()
             res = reqst(client.post, requestAPI,
                         files=fdata, data=data, headers=header, server_type=server_type, auth=client.auth, **kwds)
+    elif requestName == 'defineProductTypes':
+        # based on example http://123.56.102.90:31101/sources/satellite-data-pipeline/-/blob/master/csdb/csdb/csdb.py#L232
+        with lock_w:
+            header['X-AUTH-TOKEN'] = kwds.pop('token', '')
+            header["accept"] = "*/*"
+            # somehow application/json will cause error "unsupported"
+            # = 'application/json'  # ;charset=UTF-8'
+            # fileContentType=application/fits according to the example.
+            fileContentType = 'application/fits'
+            del header['Content-Type'] # = fileContentType
+            requestAPI = default_base + \
+                '/datatype/uploadProductTypes'
+
+            ea = kwds.pop('ensure_ascii', True),
+            cls_full_name = kwds.pop('cls_full_name')
+            pkd = kwds.pop('picked', None)
+            ind = kwds.pop('indent', 2)
+            if pkd:
+                jsn = pkd
+            else:
+                jsn = cached_json_dumps(cls_full_name,
+                                        ensure_ascii=ea,
+                                        indent=ind,
+                                        des=True
+                                        )
+            # fdata = {"file": (cls_full_name, jsn)}
+            # example: response = requests.post(url=url, files=files, headers=headers)
+            files = {"file": ("file", jsn, fileContentType)}
+            #__import__("pdb").set_trace()
+            res = reqst(client.post, requestAPI,
+                        files=files, headers=header,
+                        server_type=server_type, auth=client.auth, **kwds)
+
     elif requestName == 'delDataTypeData':
         with lock_w:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
@@ -450,7 +484,7 @@ def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             # application/json causes "only allow use multipart/form-data"
             del header['Content-Type']
             header['X-CSDB-AUTOINDEX'] = '1'
-            header['X-CSDB-METADATA'] = '/_ATTR_meta'
+            header['X-CSDB-METADATA'] = kwds.pop('metaPath','/_ATTR_meta')
             header['X-CSDB-HASHCOMPARE'] = '0'
 
             requestAPI0 = requestAPI + \
@@ -514,7 +548,7 @@ def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             else:
                 res = []
                 for a, f, d, h in zip(apis, files, data, headers):
-                    r = reqst(client.post, a, files=f, #data=d,
+                    r = reqst(client.post, a, files=f, data=d,
                               headers=h, server_type=server_type,
                               auth=client.auth, **kwds)
                     res.append(r)

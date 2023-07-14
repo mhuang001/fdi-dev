@@ -664,7 +664,7 @@ class PublicClientPool(ManagedPool):
                               **kwds)
         return res
 
-    def saveOne(self, prd, tag, geturnobjs, serialize_in, serialize_out, res, check_type=True, **kwds):
+    def saveOne(self, prd, tags, geturnobjs, serialize_in, serialize_out, res, check_type=True, **kwds):
         """Save one product.
 
         Parameters
@@ -673,7 +673,7 @@ class PublicClientPool(ManagedPool):
             The product(s) to be saved. It can be a product, a list of
             product or, when `serialize_in` is false, a JSON
             serialized product or list of products. or FITS blob.
-        tag : string list
+        tags : string list
              One or a list of strings. Comma is used to separate
              multiple tags in one string. Note that from this point on
                      the calling chain, 'tag' becomes 'tags'.
@@ -741,7 +741,7 @@ class PublicClientPool(ManagedPool):
             uploadRes = self.doSave(resourcetype=pn,
                                     index=None,
                                     data=jsonPrd if serialize_in else prd,
-                                    tags=tag,
+                                    tags=tags,
                                     serialize_in=serialize_in,
                                     serialize_out=serialize_out,
                                     content=content,
@@ -773,7 +773,7 @@ class PublicClientPool(ManagedPool):
             else:
                 res.append(Urn(urn))
         else:
-            rf = ProductRef(urn=Urn(urn, poolurl=self.poolurl))
+            rf = ProductRef(urn=Urn(urn, poolurl=self.poolurl), meta=False)
             if serialize_out:
                 # return without meta
                 res.append(rf)
@@ -899,15 +899,25 @@ class PublicClientPool(ManagedPool):
         picked : str
             Pick this JSON doc to upload instead of the one in the DB.
         """
+        if 1:
+            res = read_from_cloud('uploadDataType', client=self.client,
+                                  cls_full_name=resourcetype,
+                                  indent=indent,
+                                  metaPath=metaPath,
+                                  ensure_ascii=ensure_ascii,
+                                  picked=picked,
+                                  token=self.token,
+                                  asyn=False)
+        else:
+            res = read_from_cloud('defineProductTypes', client=self.client,
+                                  cls_full_name=resourcetype,
+                                  indent=indent,
+                                  #metaPath=metaPath,
+                                  ensure_ascii=ensure_ascii,
+                                  picked=picked,
+                                  token=self.token,
+                                  asyn=False)
 
-        res = read_from_cloud('uploadDataType', client=self.client,
-                              cls_full_name=resourcetype,
-                              indent=indent,
-                              metaPath=metaPath,
-                              ensure_ascii=ensure_ascii,
-                              picked=picked,
-                              token=self.token,
-                              asyn=False)
         return res
 
     def doLoad(self, resourcetype, index, start=None, end=None, serialize_out=False):

@@ -1,8 +1,9 @@
-__version_info__ = (1, 34, 2)
+__version_info__ = (1, 35, 0)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.32.5-0-gb339a43'
 
-# add history to tofits
+# work out csdb uploading.
+# 1.34.2 add history to tofits
 # 1.34.1 fix typo and bug in yaml2python
 # 1.34.0 Upload FITS product.
 # 1.33.0 create fdi.testsupport.fixtures to make conftest reuseable. rewrite some fixtures.

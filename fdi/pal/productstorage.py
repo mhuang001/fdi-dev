@@ -2,7 +2,8 @@
 
 from . import productref
 from .poolmanager import PoolManager
-from .productpool import ProductPool
+from .productpool import ProductPool, PoolNotFoundError
+from ..pal.httpclientpool import ServerError
 from .managedpool import makeLock
 from .urn import Urn
 from ..dataset.odict import ODict
@@ -210,7 +211,7 @@ class ProductStorage(object):
             ret = self._pools[poolname].saveProduct(
                 product, tag=tag, geturnobjs=geturnobjs,
                 asyn=asyn, **kwds)
-        except Exception as e:
+        except (PoolNotFoundError, ServerError) as e:
             logger.error('unable to save to the writable pool.'+str(e))
             raise
         from fdi.pal.productref import ProductRef

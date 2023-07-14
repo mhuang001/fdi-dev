@@ -588,7 +588,7 @@ def test_ProductRef():
     ps = ProductStorage(a3, poolurl=p, makenew=True)
     prd = Product()
     rfps = ps.save(prd)
-    pr = ProductRef(urn=rfps.urnobj, poolname=a3)
+    pr = ProductRef(urn=rfps.urnobj, poolname=a3, meta=rfps.meta)
     assert rfps == pr
     assert rfps.getMeta() == pr.getMeta()
     uobj = Urn(urn=u)
@@ -694,16 +694,18 @@ def getCurrSnCount(csdb_c, prodname):
     return init_sn, init_count, pinfo
 
 
-def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args, client=None, auth=None):
+def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args, client=None, auth=None, pstore=None):
     if thepoolurl.startswith('server'):
         ps = ProductStorage(poolurl=thepoolurl,
                             poolmanager=PM_S, client=client, auth=auth)
+    elif pstore:
+        ps = pstore
     else:
         ps = ProductStorage(poolurl=thepoolurl, client=client, auth=auth)
     p1 = ps.getPools()[0]
     # get the pool object
     pspool = ps.getPool(p1)
-    thepoolurl = pspool.poolurl
+    # thepoolurl = pspool.poolurl
     x = Product(description="This is my product example",
                 instrument="MyFavourite", modelName="Flight")
 #    y = MapContext(description='Keep it all un context.')
@@ -1039,20 +1041,21 @@ def test_ProdStorage_func_server(client, userpass):
 
 
 def test_ProdStorage_func_http_csdb(csdb_server, userpass):
-    urlcsdb, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
+    urlcsdb, client, auth, pool, poolurl, pstore, server_type = csdb_server
     aburl = urlcsdb
-    __import__("pdb").set_trace()
-
+    #__import__("pdb").set_trace()
+    pc = getConfig()
     remote_purl = (pc['cloud_scheme'] +
                    urlcsdb[len('csdb'):] + '/' + csdb_pool_id).replace('/', ',')
     # remote_comma = remote_purl.replace('/', ',')
     thepoolname = pool.poolname
     # must use http pool url explicitly b/c aburl is for the live csdb
     #thepoolurl = 'http://' + PoolManager.PlacePaths['http'] + '/' + remote_purl
-    thepoolurl = pool.poolurl
-    cleanup(thepoolurl, thepoolname, client=client, auth=auth)
+    thepoolurl = poolurl
+    cleanup(poolurl, thepoolname, client=client, auth=auth)
     check_prodStorage_func_for_pool(
-        thepoolname, thepoolurl, userpass, client=client, auth=auth)
+        thepoolname, thepoolurl,
+        userpass, client=client, auth=auth, pstore=pstore)
 
 
 def test_LocalPool(client, userpass):
@@ -1681,8 +1684,9 @@ def test_realistic_http(server, demo_product):
     do_realistic(thepool, pstore, demo_product, client=client, auth=auth)
 
 
-def test_realistic_csdb(clean_csdb, urlcsdb,  demo_product, client, auth):
-    test_pool, poolurl, pstore = clean_csdb  # csdb:///csdb_test_pool
+def test_realistic_csdb(csdb_server, demo_product):
+    aburl, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
+    
     do_realistic(test_pool, pstore, demo_product, client=client, auth=auth)
 
 
@@ -1735,8 +1739,10 @@ def do_realistic(test_pool, pstore, demo_, client=None, auth=None):
     map1ref = pstore.save(map2, tag=__name__+'::realistic.map2')
 
 
-def test_demoprod_csdb(clean_csdb, urlcsdb,  demo_product, client, auth):
-    test_pool, poolurl, pstore = clean_csdb  # csdb:///csdb_test_pool
+def test_demoprod_csdb(csdb_server, demo_product):
+
+    aburl, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
+
     # do_realistic(test_pool, pstore, demo_product)
 
     # demo prod

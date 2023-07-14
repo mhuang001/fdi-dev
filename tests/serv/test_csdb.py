@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import requests
 import pytest
 from datetime import datetime
 from functools import lru_cache
@@ -19,14 +18,10 @@ from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.dataset.baseproduct import BaseProduct
 from fdi.dataset.product import Product
 from fdi.dataset.dateparameter import DateParameter
-from fdi.dataset.serializable import serialize
 from fdi.pal.context import MapContext
 from fdi.pal.urn import parseUrn
 from fdi.dataset.arraydataset import ArrayDataset
 from fdi.dataset.stringparameter import StringParameter
-from fdi.pal.productstorage import ProductStorage
-from fdi.dataset.eq import deepcmp
-from fdi.pns.jsonio import auth_headers
 from fdi.dataset.classes import Classes, Class_Module_Map, Class_Look_Up, get_All_Products
 
 from fdi.pal.poolmanager import dbg_7types
@@ -88,7 +83,7 @@ def get_all_prod_types(urllist, client):
 
 
 def add_a_dataType(full_name, jsn, client, urlup):
-    """ not using csdb_client fixture. returns csdb ['data'] result. """
+    """ not using client fixture. returns csdb ['data'] result. """
     hdr = {"accept": "*/*"}
     fdata = {"file": (full_name, jsn)}
     data = {"metaPath": "/metadata", "productType": full_name}
@@ -272,68 +267,58 @@ def upload_prod_data(prd, cls_full_name,
             raise TypeError('unknown type of data.')
         payload = prd
 
-    if 0:
-        filen = f'/cygdrive/d/code/tmp/clz/{cls_full_name}.payload'
-        with open(filen, 'w+', encoding='utf-8') as f:
-            f.write(payload)
-        hdr = hdr.update({"accept": "*/*",
-                          'X-CSDB-METADATA': '/_ATTR_meta'
-                          })
-        with open(filen, 'rb') as f:
-            fdata = [("file", (filen, f))]
-    if 1:
-
-        hdr.update({"accept": "*/*", 'X-CSDB-METADATA': '/_ATTR_meta'})
-        hdr['X-AUTH-TOKEN'] = token
-        hdr['X-CSDB-AUTOINDEX'] = '1'
-        hdr['X-CSDB-METADATA'] = '/_ATTR_meta'
-        hdr['X-CSDB-HASHCOMPARE'] = '0'
-        tags = {"tags": f'foo,{prd.__class__.__name__},{datetime.now()}'}
-        fdata = {'file': ('file',
-                          payload,
-                          #content,
-                          #tags
-                          )}
-        data = tags
-        # url urlupdata = urlcsdb + f'/storage/{pool}/{cls_full_name}'
-        # x = client.post(url, files=fdata, data=data, headers=hdr)
-        if asyn:
-            if 1:
-                res = load_from_cloud('uploadProduct', token=token,
-                                      products=payload,
-                                      path=['/%s/%s' %
-                                            tuple(url.rsplit('/', 2)[-2:])],
-                                      tags=str(datetime.now()),
-                                      resourcetype=cls_full_name,
-                                      header=hdr,
-                                      content=content,
-                                      asyn=True,
-                                      **kwds)
-                od = res[0]
-                assert len(od) > 4
-            else:
-                x = reqst('post', [url], data=data, headers=hdr,
-                          **kwds)
-                assert x.status_code == 200, lls(x.text, 500)
+    hdr.update({"accept": "*/*"})
+    hdr['X-AUTH-TOKEN'] = token
+    hdr['X-CSDB-AUTOINDEX'] = '1'
+    #hdr['X-CSDB-METADATA'] = '/_ATTR_metadata'
+    hdr['X-CSDB-HASHCOMPARE'] = '0'
+    tags = {"tags": f'foo,{prd.__class__.__name__},{datetime.now()}'}
+    fdata = {'file': ('file',
+                      payload,
+                      #content,
+                      #tags
+                      )}
+    data = tags
+    # url urlupdata = urlcsdb + f'/storage/{pool}/{cls_full_name}'
+    # x = client.post(url, files=fdata, data=data, headers=hdr)
+    if asyn:
+        if 1:
+            res = load_from_cloud('uploadProduct', token=token,
+                                  products=payload,
+                                  path=['/%s/%s' %
+                                        tuple(url.rsplit('/', 2)[-2:])],
+                                  tags=str(datetime.now()),
+                                  resourcetype=cls_full_name,
+                                  header=hdr,
+                                  content=content,
+                                  asyn=True,
+                                  **kwds)
+            od = res[0]
+            assert len(od) > 4
         else:
-            x = reqst(client.post, url, files=fdata, data=data,
-                      headers=hdr, **kwds)
+            x = reqst('post', [url], data=data, headers=hdr,
+                      **kwds)
             assert x.status_code == 200, lls(x.text, 500)
-            o, code = getPayload(x)
-            od = o['data']
-            assert o['code'] == 0
-        urn = od['urn']
-        path = od['path']
-        typ = od['dataType']
+    else:
+        # not async
+        #__import__("pdb").set_trace()
 
-        if not typ:
-            __import__("pdb").set_trace()
+        x = reqst(client.post, url, files=fdata, data=data,
+                  headers=hdr, **kwds)
+        assert x.status_code == 200, lls(x.text, 500)
+        o, code = getPayload(x)
+        od = o['data']
+        assert o['code'] == 0
+    urn = od['urn']
+    path = od['path']
+    typ = od['dataType']
 
-            msg = f'{urn} has no dataType. Upload Datatype definition to fix.'
-            logger.error(msg)
-            raise ValueError(msg)
-        logger.debug(f"uploaded product urn={urn} path={path} type={typ}")
-        """ output example:
+    if not typ:
+        msg = f'{urn} has no dataType. Upload Datatype definition to fix.'
+        logger.error(msg)
+        raise ValueError(msg)
+    logger.debug(f"uploaded product urn={urn} path={path} type={typ}")
+    """ output example:
     Example:
     {
       "code": 0,
@@ -354,11 +339,11 @@ def upload_prod_data(prd, cls_full_name,
       "msg": "string",
       "total": 0
     }
-"""
+    """
     if verify:
         # read back
         y = client.get(od['url'])
-        assert y.text == payload
+        assert y.content == payload
         logger.debug('upload verified')
     logger.info('UPLD URN %s' % od['urn'])
     return od
@@ -376,40 +361,59 @@ def ddd():
 
 TxFITS = None
 
-@pytest.fixture
-def uploadFITS():
-
+#@pytest.fixture
+def FITSupload():
+    """ store full class name of the product to global var Tx and the FITS file in global var TxFITS.
+    """
     global TxFITS
     global Tx
 
-    prd = get_demo_product()
-    Tx = prd.__class__.__name__
-    TxFITS = prd.fits()
+    if 0:
+        # demoprod
+        prd = get_demo_product()
+        Tx = prd.__class__.__name__
+        TxFITS = prd.fits()
+    else:
+        Tx = 'TP'
+        prd = Class_Look_Up[Tx]()
+        # with open('../share/tests/resources/fsc_templates/PO_VT.fits', 'rb') as f:
+        TxFITS = prd.fits()
 
+#def test_upload_data_Tx(csdb_server, csdb_token, uploadFITS):
 
-def test_upload_data_Tx(csdb_server, csdb_token): #, uploadFITS):
-    """ upload a Tx prod. definition not auto uploaded"""
-    urlcsdb, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
-    global TxFITS
-    pool = csdb_pool_id
-    cls = Tx
+@pytest.fixture
+def prod_to_upload(request):
+    if request.param == json:
+        cls = Tx
+    else:
+        global TxFITS
+        FITSupload()
+        cls = Tx
     if USE_SV_MODULE_NAME:
         cls_full_name = f'sv.{cls}'
     else:
         cls_full_name = Class_Module_Map[cls] + '.' + cls
+    return cls_full_name
 
+@pytest.mark.parametrize("prod_to_upload", ['jsn', 'fits'], indirect=True)
+def test_upload_data_Tx(csdb_server, csdb_token, prod_to_upload):
+    """ upload a Tx prod. definition not auto uploaded"""
+    urlcsdb, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
+    pool = csdb_pool_id
+
+    cls_full_name = prod_to_upload
+    
     logger.debug(f'Upload {cls_full_name} data. Datatype %s found in type list.' % (
         '' if cls_full_name in get_all_prod_types(urlcsdb+ '/datatype/list', client=client) else 'not'))
-    urlupdata = urlcsdb + f'/storage/{pool}/{cls_full_name}'
+    urlupdata = urlcsdb + f'/storage/upload?path=/{pool}/{cls_full_name}'
     urn_in_pool_before = get_all_in_pool(poolname=pool,
                                          what='urn',
                                          urlc=urlcsdb,
                                          client=client)
-    if  TxFITS:
+    if TxFITS:
         prod = TxFITS
     else:
         prod = Class_Look_Up[cls]()
-
     res = upload_prod_data(prod,
                            cls_full_name=cls_full_name,
                            desc='Demo_Product',
@@ -428,7 +432,7 @@ def test_upload_data_Tx(csdb_server, csdb_token): #, uploadFITS):
                            )
     urn_in_pool_after = get_all_in_pool(poolname=pool,
                                         what='urn',
-                                         urlc=urlcsdb,
+                                        urlc=urlcsdb,
                                         client=client)
     diff = set(urn_in_pool_before) ^ set(urn_in_pool_after)
     assert len(diff) == 1
@@ -1418,16 +1422,14 @@ ONLY_IN_test_pool = True
 
 if ONLY_IN_test_pool:
     @ pytest.mark.skip
-    def test_cmp_wipe2(csdb, csdb_client, csdb_uploaded_n):
-        wipe_all(_csdb_client=csdb_client,
-                 _csdb_uploaded_n=csdb_uploaded_n)
+    def test_cmp_wipe2(csdb_server, csdb_uploaded_n):
+        wipe_all(_csdb_server=csdb_server, _csdb_uploaded_n=csdb_uploaded_n)
 else:
     @ what_wipe
-    def test_wipe_urns(csdb, csdb_client):
-        wipe_all(_csdb_client=csdb_client, _csdb=csdb)
+    def test_wipe_urns(csdb_server, csdb_uploaded_n):
+        wipe_all(_csdb_server=csdb_server, _csdb_uploaded_n=csdb_uploaded_n)
 
 
-@ no_wipe123
 def wipe_all(_csdb_server,_csdb_uploaded_n=None):
     # products of this type are going to be removed in csdb storage.
 
@@ -1435,7 +1437,7 @@ def wipe_all(_csdb_server,_csdb_uploaded_n=None):
         test_pool, uniq, resPrds, pstore = _csdb_uploaded_n
     else:
         urlcsdb, client, auth, test_pool, poolurl, pstore, server_type = _csdb_server
-    urlc, client = _csdb_client
+
     if ONLY_IN_test_pool:
         pname = test_pool.poolname
         test_pool._poolname = pname
@@ -1449,7 +1451,7 @@ def wipe_all(_csdb_server,_csdb_uploaded_n=None):
     else:
         path_part = DTYPE
         _all = get_all_in_pool(
-            poolname=None, path=path_part, what='urn', urlc=urlc, client=client
+            poolname=None, path=path_part, what='urn', urlc=urlcsdb, client=client
         )
         urns = [u for u in _all if DTYPE in u]
         oldCount = len(urns)
@@ -1463,7 +1465,7 @@ def wipe_all(_csdb_server,_csdb_uploaded_n=None):
     t0 = time.time()
     res = test_pool.remove(list(urns), asyn=ASYN)
     msg = f'urn >>> {time.time()-t0}, n0={n0}, len={len(urns)}'
-    logger.info(mssg)
+    logger.info(msg)
     newCount = max(oldCount - n0, 0)
     assert test_pool.getCount() == newCount
 

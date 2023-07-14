@@ -317,7 +317,7 @@ class ManagedPool(dicthk.DictHk):
                 self._urns['refcnt'] = 0
             self._urns[ref.urn]['refcnt'] += 1
 
-    def saveOne(self, prd, tag=None, geturnobjs=None, serialize_in=None, serialize_out=None, res=None, **kwds):
+    def saveOne(self, prd, tags=None, geturnobjs=None, serialize_in=None, serialize_out=None, res=None, **kwds):
         """
         Save one product.
 
@@ -342,7 +342,7 @@ class ManagedPool(dicthk.DictHk):
         ------
         `list` of the following:
         `ProductRef`. `Urn` if `geturnobjs` is set. if`serialze_out` is set for `ProductRef` no product metadata is stored in the returned instance.
-        The result is also stored in the `re` parameter.
+        The result is also stored in the `res` parameter.
         """
         if serialize_in:
             pn = fullname(prd)
@@ -360,12 +360,12 @@ class ManagedPool(dicthk.DictHk):
                 self.readHK().values())
 
             # new+old NORMALIZE TAGS###
-            if tag is None:
+            if tags is None:
                 tags = []
-            elif issubclass(tag.__class__, str):
-                tags = [tag]
-            elif issubclass(tag.__class__, list):
-                tags = tag
+            elif issubclass(tags.__class__, str):
+                tags = [tags]
+            elif issubclass(tags.__class__, list):
+                tags = tags
             else:
                 raise TypeError('Bad type for tag: %s.' %
                                 tag.__class__.__name__)
@@ -446,31 +446,33 @@ class ManagedPool(dicthk.DictHk):
         if alist:
             if isinstance(tag, list) and len(tag) != len(products):
                 # make a list of tags to ','-separated tags
-                tag = ','.join(t for t in tag if t)
+                tags = ','.join(t for t in tag if t)
             if isinstance(tag, str) or tag is None:
-                tag = [tag] * len(products)
+                tags = [tag] * len(products)
 
         if serialize_in:
             if not alist:
                 prd = products
-                self.saveOne(prd, tag=tag, geturnobjs=geturnobjs,
+                self.saveOne(prd, tags=tag, geturnobjs=geturnobjs,
                              serialize_in=serialize_in,
                              serialize_out=serialize_out,
                              res=res, **kwds)
             else:
+                # alist and tags are listified
                 if asyn:
                     prd = products
-                    self.asyncSave(prd, tag, geturnobjs,
+                    self.asyncSave(prd, tags, geturnobjs,
                                    serialize_in, serialize_out, res, **kwds)
                 else:
-                    for prd, t in zip(products, tag):
+                    for prd, t in zip(products, tags):
                         # result is in res
-                        self.saveOne(prd, tag=tag,
+                        self.saveOne(prd, tags=t,
                                      geturnobjs=geturnobjs,
                                      serialize_in=serialize_in,
                                      serialize_out=serialize_out,
                                      res=res, **kwds)
         else:
+            # not need to be serialized (already serialized)
             if alist:
                 raise TypeError('a list cannot go with False serialize-in.')
             json_list = products.lstrip().startswith('[')

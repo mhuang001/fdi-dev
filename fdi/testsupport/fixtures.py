@@ -153,6 +153,12 @@ def userpass():
     auth_pass = pc['password']
     return auth_user, auth_pass
 
+@ pytest.fixture(scope='session')
+def userpass_ro():
+    auth_user = pc['ro_user']
+    auth_pass = pc['ro_pass']
+    return auth_user, auth_pass
+
 
 @ pytest.fixture(scope="module")
 def local_pools_dir():
@@ -429,7 +435,7 @@ def server2(_pytestconfig, server_arch, request):
 
 
 @ pytest.fixture(scope=SHORT)
-def server( pytestconfig, userpass, mock_app, request):
+def server(pytestconfig, userpass, mock_app, request):
     """ Server data from r/w user, mock or alive.
 
     """
@@ -438,7 +444,48 @@ def server( pytestconfig, userpass, mock_app, request):
     url, server_type = next(server2(pytestconfig, 'http', request=request))
 
     # register to clean up
-    poolurl = url + '/' + csdb_pool_id
+    poolurl = url + '/' + http_pool_id
+    pstore = ProductStorage()
+    pstore.PM.removeAll()
+
+    if server_type == 'mock':
+        from werkzeug.datastructures import Authorization
+        auth = Authorization(
+            "basic", {"username": userpass[0], "password": userpass[1]})
+        logger.info('**** mock_app as client *****')
+        with mock_app.test_client() as client:
+            if 0:
+                with mock_app.app_context():
+                    mock_app.preprocess_request()
+            #yield client
+            pstore.register(poolurl=poolurl, client=client, auth=auth)
+            # pstore.register(poolname=test_pool.poolname, poolurl=poolurl)
+            pool = pstore.getWritablePool(True)  # PublicClientPool(poolurl=url)
+            yield url, client, auth, pool, poolurl, pstore, server_type
+
+    else:
+        auth = HTTPBasicAuth(*userpass)
+        logger.info('**** requests as client *****')
+        with the_session as live_client:
+            #yield live_client
+            pstore.register(poolurl=poolurl, client=live_client, auth=auth)
+            # ps.register(poolname=test_pool.poolname, poolurl=poolurl)
+            # PublicClientPool(poolurl=url)
+            pool = pstore.getWritablePool(True)
+
+            yield url, live_client, auth, pool, poolurl, pstore, server_type
+
+@ pytest.fixture(scope='session')
+def server_ro(pytestconfig, userpass_ro, mock_app, request):
+    """ Server data from r/w user, mock or alive.
+
+    """
+    #    yield from server2(pc, pytestconfig, 'http', reuest=request)
+
+    url, server_type = next(server2(pytestconfig, 'http', request=request))
+
+    # register to clean up
+    poolurl = url + '/' + http_pool_id
     pstore = ProductStorage()
     pstore.PM.removeAll()
 
@@ -470,7 +517,7 @@ def server( pytestconfig, userpass, mock_app, request):
             yield url, live_client, auth, pool, poolurl, pstore, server_type
 
 @ pytest.fixture(scope=SHORT)
-def csdb_server(pytestconfig, userpass, request):
+def XXXXcsdb_server(pytestconfig, userpass, request):
     """ CSDB Server data from r/w user, mock or alive.
 
     """
@@ -482,7 +529,7 @@ def csdb_server(pytestconfig, userpass, request):
     auth = HTTPBasicAuth(*userpass)
   
     # register to clean up
-    poolurl = pc['cloud_scheme'] + url[len('csdb'):] + '/' + csdb_pool_id
+    poolurl = pc['cloud_scheme'] + url[len('csdb'):] + '/storage/' + csdb_pool_id
     pstore = ProductStorage()
     pstore.PM.removeAll()
 
@@ -495,40 +542,50 @@ def csdb_server(pytestconfig, userpass, request):
 
         yield url, live_client, auth, pool, poolurl, pstore, server_type
 
-    
-# #@pytest.mark.parametrize("live_or_mock", ALL_ARCHS, indirect=True)
-# @ pytest.fixture(scope=MEDIUM)
-# def Xserver(live_or_mock, new_user_read_write, request):
-#     """ Server data from r/w user, mock or alive.
-
-#     """
-#     user, headers = new_user_read_write
-#     __import__("pdb").set_trace()
-
-#     # marker = request.node.get_closest_marker("server_arch")
-#     # if marker is None:
-#     #     server_arch = getattr( request.module, 'DEFAULT_SERVER_ARCH', '')
-#     #     if not server_arch:
-#     #         # use the one in this module.
-#     #         server_arch = DEFAULT_SERVER_ARCH
-#     # else:
-#     #     server_arch = marker.args[0]
-    
-#     url, ty = live_or_mock
-#     headers['server_type'] = ty
-#     yield url, headers
-
-
-@ pytest.fixture(scope=MEDIUM)
-def server_ro(server, new_user_read_only):
-    """ Server data from r/w user, alive.
+@ pytest.fixture(scope='session')
+def poolless_csdb_server(pytestconfig, userpass, request):
+    """ CSDB Server data from r/w user, mock or alive. This returns an empty ProductStorage.
 
     """
-    aburl, hdr = server
-    user, headers = new_user_read_only
-    hdr.updated(headers)
-    yield aburl, hdr
-    del aburl, hdr
+
+    #yield from server2(pc, pytestconfig, 'csdb', new_user_read_write,    request=request
+             
+    url, server_type = next( server2(pytestconfig, 'csdb', request=request))
+
+    auth = HTTPBasicAuth(*userpass)
+  
+    # register to clean up
+    poolurl = None
+    pstore = ProductStorage()
+    #pstore.PM.removeAll()
+
+    logger.info('**** requests as client *****')
+    with the_session as live_client:
+        poolurl = pool = None
+        yield url, live_client, auth, pool, poolurl, pstore, server_type
+
+@ pytest.fixture(scope=SHORT)
+def csdb_server(poolless_csdb_server):
+    """ CSDB Server data from r/w user, mock or alive.
+
+    """
+
+    #yield from server2(pc, pytestconfig, 'csdb', new_user_read_write,    request=request
+             
+    url, client, auth, pool, poolurl, pstore, server_type = poolless_csdb_server
+
+    # register to clean up
+    pstore.PM.removeAll()
+    poolurl = pc['cloud_scheme'] + url[len('csdb'):] + '/storage/' + csdb_pool_id
+
+    pstore.register(poolname=csdb_pool_id, poolurl=poolurl,
+                    makenew=True, client=client, auth=auth)
+    pool = pstore.getWritablePool(True)
+
+    assert pool.serverDatatypes
+
+    yield url, client, auth, pool, poolurl, pstore, server_type
+
 
 
 @ pytest.fixture(scope="session")
@@ -585,9 +642,11 @@ def demo_product():
 
 if 1:
     csdb_pool_id = 'sv2'  # 'test_csdb_fdi2'
+    http_pool_id = 'test_pool_1'
     PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
 else:
     csdb_pool_id = 'test_sdb_vt'
+    http_pool_id = test_pool_1
     PTYPES = ('CANDIDATE_VT',  'LC_VT',  'PO_VT', 'QSKY_VT',
               'FDCHART_VT',    'OBATT_VT', 'QCANDI_VT')
 url_c = None
@@ -667,15 +726,11 @@ def clean_csdb_fs(csdb_server):
     """ fuction-scope verssion of clean_csdb """
     url, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
     return do_clean_csdb(test_pool, poolurl, pstore, auth=auth)
-    
-def clean_csdb(csdb_server):
-    url, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
-    return do_clean_csdb(test_pool, poolurl, pstore, auth=auth)
 
 
 @ pytest.fixture(scope="session")
-def clean_csdb(csdb_server):
-    url, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
+def clean_csdb_ro(csdb_server_ro):
+    url, client, auth, test_pool, poolurl, pstore, server_type = csdb_server_ro
     return do_clean_csdb(test_pool, poolurl, pstore, auth=auth)
 
 
@@ -883,7 +938,7 @@ def tmp_local_remote_pools(server, client, auth, tmp_prods):
 
 
 @ pytest.fixture(scope=SHORT)
-def existing_pools(tmp_pools):
+def XXXexisting_pools(tmp_pools):
     """ return n existing pools.
 
     Return

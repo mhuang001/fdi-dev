@@ -77,6 +77,18 @@ def pytest_addoption(parser):
         help="'mock' for Flask mock server; 'background'for spawning a httppool server in the background; 'external' for using a server already setup somewhere for testing.",
         choices=('background', 'external', 'mock')
     )
+    parser.addoption(
+        "--id",
+        action='store',
+        #dest='SERVER_RUN',
+        default=0,
+        type=int,
+        help=\
+        "0 for http test_pool_1 /csdb sv2 / fdi types;"
+        "1 for http test_pool_1 /csdb sv2 / fsc types;"
+        "2 for http test_pool_1 /csdb test_sdb_vt / fsc types;",
+        choices=(0, 1, 2)
+    )
 
 def pytest_configure(config):
     config.addinivalue_line(
@@ -121,6 +133,47 @@ if 1:
     # cfg = get_projectclasses(userclasses_file)
     # logger.debug(json.dumps(cfg))
     #return cfg
+
+
+csdb_pool_id = 'sv2'  # 'test_csdb_fdi2'
+http_pool_id = 'test_pool_1'
+PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
+
+
+def set_ids(pytestconfig):
+    global csdb_pool_id
+    global http_pool_id
+    global PTYPES
+
+    cmd = pytestconfig.getoption("--id")
+    if cmd == 0:
+        csdb_pool_id = 'sv2'  # 'test_csdb_fdi2'
+        http_pool_id = 'test_pool_1'
+        PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
+    elif cmd == 1:
+        csdb_pool_id = 'sv2'
+        http_pool_id = test_pool_1
+        PTYPES = ('CANDIDATE_VT',  'LC_VT',  'PO_VT', 'QSKY_VT',
+                  'FDCHART_VT',    'OBATT_VT', 'QCANDI_VT')
+    else:
+        csdb_pool_id = 'test_sdb_vt'
+        http_pool_id = test_pool_1
+        PTYPES = ('CANDIDATE_VT',  'LC_VT',  'PO_VT', 'QSKY_VT',
+                  'FDCHART_VT',    'OBATT_VT', 'QCANDI_VT')
+
+url_c = None
+
+
+@ pytest.fixture(scope="session")
+def urlcsdb(set_ids):
+    global url_c
+
+    url_c = '%s://%s:%d%s/%s' % ('http',
+                                 pc['cloud_host'],
+                                 pc['cloud_port'],
+                                 pc['cloud_api_base'],
+                                 pc['cloud_api_version'])
+    return url_c
 
 
 @ pytest.fixture(scope='session')
@@ -638,31 +691,6 @@ def client(mock_app, pytestconfig):
 def demo_product():
     v = get_demo_product()
     return v, get_related_product()
-
-
-if 1:
-    csdb_pool_id = 'sv2'  # 'test_csdb_fdi2'
-    http_pool_id = 'test_pool_1'
-    PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
-else:
-    csdb_pool_id = 'test_sdb_vt'
-    http_pool_id = test_pool_1
-    PTYPES = ('CANDIDATE_VT',  'LC_VT',  'PO_VT', 'QSKY_VT',
-              'FDCHART_VT',    'OBATT_VT', 'QCANDI_VT')
-url_c = None
-
-
-@ pytest.fixture(scope="session")
-def urlcsdb():
-    global url_c
-
-    url_c = '%s://%s:%d%s/%s' % ('http',
-                                 pc['cloud_host'],
-                                 pc['cloud_port'],
-                                 pc['cloud_api_base'],
-                                 pc['cloud_api_version'])
-    return url_c
-
 
 def make_csdb(poolurl):
     # client = requests_retry_session()

@@ -1,6 +1,6 @@
 include Makefile_tests.mk
 #include Makefile_docs.mk
-#include Makefile_docker.mk
+include Makefile_docker.mk
 
 PYEXE	= python3.8
 

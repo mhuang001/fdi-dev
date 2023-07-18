@@ -29,12 +29,11 @@ from fdi.dataset.testproducts import SP, get_demo_product
 
 from test_dataset import demo_TableDataset, demo_CompositeDataset
 
-# from jsonschema import Draft7Validator as the_validator
+#from jsonschema import Draft7Validator as the_validator
 from jsonschema import Draft201909Validator as the_validator
 from jsonschema import RefResolver
-from jsonschema.exceptions import RefResolutionError
+from jsonschema.exceptions import RefResolutionError #, _RefResolutionError
 from jsonschema import validate, ValidationError, SchemaError
-
 
 import pytest
 from pprint import pprint, pformat
@@ -120,6 +119,7 @@ def check_examples_defaults(vtr, schema, jsn, paths):
 
 def check_general(vtr, jsn, name):
     # STID
+    
     assert vtr.validate(jsn) is None
     # change _STID
     bad = copy.deepcopy(jsn)

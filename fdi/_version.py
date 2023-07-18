@@ -1,8 +1,9 @@
-__version_info__ = (1, 35, 0)
+__version_info__ = (1, 35, 1)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.32.5-0-gb339a43'
 
-# work out csdb uploading.
+# fix jsonschema to 4.17.3 to void depre warning and bugs but still have draft2019.,,
+# 1.35.0 work out csdb uploading.
 # 1.34.2 add history to tofits
 # 1.34.1 fix typo and bug in yaml2python
 # 1.34.0 Upload FITS product.

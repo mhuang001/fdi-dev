@@ -2,7 +2,7 @@ __version_info__ = (1, 35, 4)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.35.3-1-g547b57f'
 
-# reduce fixture.py dependence on config
+# 1.35.4 reduce fixture.py dependence on config
 # 1.35.3 history has one line for an error msg
 # 1.35.2 add cmdline option to fixture.py
 # 1.35.1 fix jsonschema to 4.17.3 to void depre warning and bugs but still have draft2019.,,

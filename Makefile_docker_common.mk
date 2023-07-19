@@ -180,13 +180,13 @@ restore_test:
 
 st_PIPCACHE=~/csc38/fdi/pipcache
 st_WHEELS=~/csc38/fdi/wheels
-PIPOPT=--disable-pip-version-check  --cache-dir $(st_PIPCACHE)
+PIPOPT=--disable-pip-version-check PROJ_PIPCACHE = $(st_PIPCACHE) PROJ_PIPWHEELS = $(st_WHEELS)
 update_docker:
 	(\
 	$(MAKE) rm_docker &&\
 	$(MAKE) docker_version &&\
 	rm -f ../wheels/svom.product*.whl ;\
-	$(MAKE) PROJ-INSTALL CLEAN=1 WHEEL_INSTALL=14 I="$(I)" &&\
+	$(MAKE) PROJ-INSTALL CLEAN=1 WHEEL_INSTALL=14 I="$(I)" $(PIPOPT) &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\

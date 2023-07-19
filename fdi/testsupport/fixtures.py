@@ -139,7 +139,7 @@ csdb_pool_id = 'sv2'  # 'test_csdb_fdi2'
 http_pool_id = 'test_pool_1'
 PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
 
-
+@ pytest.fixture(scope='session')
 def set_ids(pytestconfig):
     global csdb_pool_id
     global http_pool_id
@@ -461,7 +461,7 @@ def mock_app():
         yield app
         # app.
 
-def server2(_pytestconfig, server_arch, request):
+def server2(_pytestconfig, server_arch, request, urlc=None):
     """
     Helper to make `server` and `csdb_server`
     
@@ -469,7 +469,7 @@ def server2(_pytestconfig, server_arch, request):
 
     # pool url from a local client
     aburl = 'http://' + PoolManager.PlacePaths['http']
-    csci_url = pc['url_aliases']['csdb'].replace('csdb:', 'http:') #+ '/storage'
+    csci_url = urlc
     how_to_run = _pytestconfig.getoption("--server")
     logger.info(f'command line set server running: {how_to_run}')
 
@@ -596,14 +596,14 @@ def XXXXcsdb_server(pytestconfig, userpass, request):
         yield url, live_client, auth, pool, poolurl, pstore, server_type
 
 @ pytest.fixture(scope='session')
-def poolless_csdb_server(pytestconfig, userpass, request):
+def poolless_csdb_server(pytestconfig, userpass, request, urlcsdb):
     """ CSDB Server data from r/w user, mock or alive. This returns an empty ProductStorage.
 
     """
 
     #yield from server2(pc, pytestconfig, 'csdb', new_user_read_write,    request=request
-             
-    url, server_type = next( server2(pytestconfig, 'csdb', request=request))
+    
+    url, server_type = next( server2(pytestconfig, 'csdb', request=request, urlc=urlcsdb))
 
     auth = HTTPBasicAuth(*userpass)
   
@@ -765,10 +765,10 @@ def clean_csdb_ro(csdb_server_ro):
 @ pytest.fixture(scope=SHORT)
 def new_csdb(csdb_server):
     logger.debug('wipe cdb_new. {purl}')
-    urlcsdb, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
+    urlc, client, auth, test_pool, poolurl, pstore, server_type = csdb_server
     url = pc['cloud_scheme'] + \
-        urlcsdb[len('csdb'):] + '/' + csdb_pool_id + str(int(time.time()))
-    # url = pc['cloud_scheme'] + urlcsdb[len('csdb'):] + '/' + csdb_pool_id
+        urlc[len('csdb'):] + '/' + csdb_pool_id + str(int(time.time()))
+    # url = pc['cloud_scheme'] + urlc[len('csdb'):] + '/' + csdb_pool_id
     ps = make_csdb(url)
     ps.register(poolurl=url, client=the_session, auth=auth)
     pool = ps.getWritablePool(True)  # PublicClientPool(poolurl=url)

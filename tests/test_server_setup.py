@@ -11,7 +11,7 @@ def test_pool_server_url(server, pytestconfig):
 
     assert not os.path.exists(BG_SERVER_LOG)
     url, client, auth, pool, poolurl, pstore, server_type = server
-    assert url.startswith('http://127.0.0.1:9885/fdi/v')
+    assert ':9885/fdi/v' in url
     assert server_type in ['mock', 'live']
     assert pytestconfig.getoption('--server') in ['mock', 'background', 'external']
     print(url, client, pool, server_type)

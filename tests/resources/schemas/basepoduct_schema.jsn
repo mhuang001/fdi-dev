@@ -673,7 +673,7 @@
               "type": "string",
               "default": "",
               "examples": [
-                "ListnerSet"
+                "ListenerSet"
               ],
               "pattern": "^.*$"
             }
@@ -745,7 +745,7 @@
                   "type": "string",
                   "default": "",
                   "examples": [
-                    "ListnerSet"
+                    "ListenerSet"
                   ],
                   "pattern": "^.*$"
                 }
@@ -789,7 +789,7 @@
           "type": "string",
           "default": "",
           "examples": [
-            "ListnerSet"
+            "ListenerSet"
           ],
           "pattern": "^.*$"
         }

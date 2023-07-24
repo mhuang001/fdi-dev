@@ -139,7 +139,7 @@ ArrayDataset(shape=(5,), description=5 elements, unit=ev, typecode=f, greeting=H
    greeting     Hi there.             string   None                B       UNKNOWN
    year         2020          None    integer  None     None       None    UNKNOWN
    ===========  ============  ======  =======  =======  =========  ======  =====================
-   MetaData-listeners = ListnerSet{}}
+   MetaData-listeners = ListenerSet{}}
    ArrayDataset-dataset =
    0  1  2  3  4
    1  2  3  4  5
@@ -218,7 +218,7 @@ version      0.1              string  None     0.1        B       Version of dat
 FORMATV      1.6.0.1          string  None     1.6.0.1    B       Version of dataset sc
                                                                   hema and revision
 ===========  =======  ======  ======  =======  =========  ======  =====================
-MetaData-listeners = ListnerSet{}}
+MetaData-listeners = ListenerSet{}}
 TableDataset-dataset =
   column1    column2  column3    column4
    (None)     (None)  (None)     (None)
@@ -324,7 +324,7 @@ FORMATV      1.6.0.1                string  None     1.6.0.1    B       Version 
                                                                         hema and revision
 temp         42.6           C       float   None     None       None    Ambient
 ===========  =============  ======  ======  =======  =========  ======  =====================
-MetaData-listeners = ListnerSet{}}
+MetaData-listeners = ListenerSet{}}
 TableDataset-dataset =
    Time    Energy    Distance
   (sec)      (eV)         (m)
@@ -528,7 +528,7 @@ True
                                                      00001111 0b0000: res
                                                      erved
    ========  ====================  ======  ========  ====================  =================  ======  =====================
-   MetaData-listeners = ListnerSet{}
+   MetaData-listeners = ListenerSet{}
    
 >>> # simplifed string representation, toString(level=1)
 ... v
@@ -661,14 +661,14 @@ Product with metadata and datasets
                                                          00001111 0b0000: res
                                                          erved
    ============  ====================  ======  ========  ====================  =================  ======  =====================
-   MetaData-listeners = ListnerSet{}},
+   MetaData-listeners = ListenerSet{}},
    history= {},
-   listeners= {ListnerSet{}}
+   listeners= {ListenerSet{}}
    
    === History (UNKNOWN) ===
    PARAM_HISTORY= {''},
    TASK_HISTORY= {''},
-   meta= {(No Parameter.) MetaData-listeners = ListnerSet{}}
+   meta= {(No Parameter.) MetaData-listeners = ListenerSet{}}
    
    History-datasets =
    <ODict >
@@ -694,7 +694,7 @@ Product with metadata and datasets
    FORMATV      1.6.0.1          string  None     1.6.0.1    B       Version of dataset sc
                                                                      hema and revision
    ===========  =======  ======  ======  =======  =========  ======  =====================
-   MetaData-listeners = ListnerSet{}}
+   MetaData-listeners = ListenerSet{}}
    ArrayDataset-dataset =
    1  2  3
    4  5  6
@@ -721,7 +721,7 @@ Product with metadata and datasets
    FORMATV      1.6.0.1          string  None     1.6.0.1    B       Version of dataset sc
                                                                      hema and revision
    ===========  =======  ======  ======  =======  =========  ======  =====================
-   MetaData-listeners = ListnerSet{}}
+   MetaData-listeners = ListenerSet{}}
    ArrayDataset-dataset =
       0.1  0.5    0.7
    4000    6e+07  8
@@ -740,7 +740,7 @@ Product with metadata and datasets
    FORMATV      1.6.0.1          string  None     1.6.0.1    B       Version of dataset sc
                                                                      hema and revision
    ===========  =======  ======  ======  =======  =========  ======  =====================
-   MetaData-listeners = ListnerSet{}}
+   MetaData-listeners = ListenerSet{}}
    TableDataset-dataset =
      col1     col2
      (eV)    (cnt)
@@ -837,7 +837,7 @@ modelName     UNKNOWN                       string    None     UNKNOWN          
                                                                                           ct
 mission       _AGS                          string    None     _AGS               B       Name of the mission.
 ============  ====================  ======  ========  =======  =================  ======  =====================
-MetaData-listeners = ListnerSet{}}
+MetaData-listeners = ListenerSet{}}
 
 >>> # get the URN string
 ... urn = prodref.urn

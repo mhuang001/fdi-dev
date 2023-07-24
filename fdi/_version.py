@@ -1,7 +1,8 @@
-__version_info__ = (1, 35, 4)
+__version_info__ = (1, 35, 5)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.35.3-1-g547b57f'
 
+# fix pip cache spec passing  in makefiles. fix typo .
 # 1.35.4 reduce fixture.py dependence on config
 # 1.35.3 history has one line for an error msg
 # 1.35.2 add cmdline option to fixture.py

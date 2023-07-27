@@ -484,7 +484,13 @@ def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             # application/json causes "only allow use multipart/form-data"
             del header['Content-Type']
             header['X-CSDB-AUTOINDEX'] = '1'
-            header['X-CSDB-METADATA'] = kwds.pop('metaPath','/_ATTR_meta')
+            # if not given use default
+            mp = kwds.pop('metaPath','/_ATTR_meta')
+            # if given none make no header
+            if mp:
+                header['X-CSDB-METADATA'] = mp
+            else:
+                header.pop('X-CSDB-METADATA', None)
             header['X-CSDB-HASHCOMPARE'] = '0'
 
             requestAPI0 = requestAPI + \

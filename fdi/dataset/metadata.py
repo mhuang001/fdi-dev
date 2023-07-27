@@ -1031,7 +1031,7 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
 
     def toString(self, level=0, extra=False, param_widths=None,
                  tablefmt='grid', tablefmt1='simple', tablefmt2='psql',
-                 width=0, **kwds):
+                 width=0, values=False, **kwds):
         """ return  string representation of metadata.
 
         The order of parameters are important as the httppool API use the order when passing parameters to, e.g. `txt`.
@@ -1049,10 +1049,11 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
         tablefmt2 : str
             format of 2D table data.
         width: int
-            If > 0, set the width of the display to it;
+            If > 0, set the width of the display to it; 
             if set to 0 (default and for 'html') occupy the entire
             display width returned by `os.get_terminal_size()`;
             if <0 the width is determined by `Default_Param_Widths`.
+        values: if set, return a tuple of header and rows data.
         """
 
         html = 'html' in tablefmt.lower() or 'html' in tablefmt2.lower()
@@ -1203,8 +1204,12 @@ class MetaData(ParameterListener, Composite, Copyable, DatasetEventSender):
                     # tab.append(wls(ps, 80//N))
                     tab.append(ps)
 
-        if has_omission:
-            tab.append('..')
+            if 0 and has_omission:
+                tab.append('..')
+
+        if values:
+            return (list(param_widths).extend(ext_hdr if extra else []),
+                    tab)
 
         # write out the table
         if level == 0:

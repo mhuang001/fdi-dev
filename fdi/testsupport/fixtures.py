@@ -152,12 +152,12 @@ def set_ids(pytestconfig):
         PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
     elif cmd == 1:
         csdb_pool_id = 'sv2'
-        http_pool_id = test_pool_1
+        http_pool_id = 'test_pool_1'
         PTYPES = ('CANDIDATE_VT',  'LC_VT',  'PO_VT', 'QSKY_VT',
                   'FDCHART_VT',    'OBATT_VT', 'QCANDI_VT')
     else:
         csdb_pool_id = 'test_sdb_vt'
-        http_pool_id = test_pool_1
+        http_pool_id = 'test_pool_1'
         PTYPES = ('CANDIDATE_VT',  'LC_VT',  'PO_VT', 'QSKY_VT',
                   'FDCHART_VT',    'OBATT_VT', 'QCANDI_VT')
 

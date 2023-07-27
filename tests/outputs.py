@@ -171,7 +171,7 @@ d= off (0b00)  listeners= <No listener>
 
 level 2,
 Dataset{ 88.8, description = "test Dataset", meta = <MetaData a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19
-01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), ...> }                                                    ******************                                                    
+01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>).> }                                                    ******************                                                    
                                                     *** Dataset () ***                                                    
                                                            META                                                           
 +-----------+--------------------+------+----------+-------------------+-----------------+------------+------------------+
@@ -372,10 +372,10 @@ listeners= <No listener>
 
 level 2, repr
 ArrayDataset(<MetaData description=(string: toString tester AD <>), shape=(list: [2, 3, 4, 5] <>), unit=(string: lyr <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19
-01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...> data= [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]])
+01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>).> data= [[[[0, 0, 0, ...0]]], [[[0, 0, 0, ...0]]]])
 
 an empty meta and long data level 2: 
-ArrayDataset(<MetaData shape=(list: [8] <>), ...> data= [8, 8, 8, 8, 8, 8, 8, 8])
+ArrayDataset(<MetaData shape=(list: [8] <>).> data= [8, 8, 8, 8, 8, 8, 8, 8])
 tablefmt = html
                                            *****************************************                                            
                                            *** ArrayDataset (toString tester AD) ***                                            
@@ -563,10 +563,10 @@ added_parameter= 42          listeners= <No listener>
 
 level 2, repr
 TableDataset(<MetaData shape=(list: [2, 3] <>), a=(float: 3.4 <None>), b=(finetime: xy (FineTime(2019-02-19
-01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>), ...>data= {"col1": Column(<MetaData description=(string: 1 <>), shape=(list: [3] <>), type=(string: Column <>), unit=(string: eV <>), ...> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData description=(string: 2 <>), shape=(list: [3] <>), type=(string: Column <>), unit=(string: cnt <>), ...> data= [0, 43.2, 2000.0])})
+01:02:03.456789)) <>), c=(string: Invalid (IJK) <>), d=(binary: off (0b00) <None>), added_parameter=(integer: 42 <None>).>data= {"col1": Column(<MetaData description=(string: 1 <>), shape=(list: [3] <>), type=(string: Column <>), unit=(string: eV <>).> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData description=(string: 2 <>), shape=(list: [3] <>), type=(string: Column <>), unit=(string: cnt <>).> data= [0, 43.2, 2000.0])})
 
 an empty level 2: 
-TableDataset(<MetaData shape=(list: [0] <>), ...>data= {})
+TableDataset(<MetaData shape=(list: [0] <>).>data= {})
 
 grouped column names                                                  ******************************                                                 
                                                   *** TableDataset (UNKNOWN) ***                                                 
@@ -1258,7 +1258,7 @@ level 1
 
 
 level 2, repr
-TableDataset({"col1": Column(<MetaData description=(string: 1 <>), shape=(list: [3] <>), type=(string: Column <>), unit=(string: eV <>), ...> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData description=(string: 2 <>), shape=(list: [3] <>), type=(string: Column <>), unit=(string: cnt <>), ...> data= [0, 43.2, 2000.0]), "no-group1.val": Column(<MetaData description=(string: no-group1.val <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g0 <>), ...> data= [no-group1.val, 123]), "group1.val1": Column(<MetaData description=(string: group1.val1 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g1 <>), ...> data= [group1.val1, 123]), "group1.val2": Column(<MetaData description=(string: group1.val2 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g2 <>), ...> data= [group1.val2, 123]), ".val": Column(<MetaData description=(string: .val <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g3 <>), ...> data= [.val, 123]), "grou.p2.val1": Column(<MetaData description=(string: grou.p2.val1 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g4 <>), ...> data= [grou.p2.val1, 123]), "grou.p2.": Column(<MetaData description=(string: grou.p2. <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g5 <>), ...> data= [grou.p2., 123]), "grou.p2.val3": Column(<MetaData description=(string: grou.p2.val3 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g6 <>), ...> data= [grou.p2.val3, 123]), "group3_val1": Column(<MetaData description=(string: group3_val1 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g7 <>), ...> data= [group3_val1, 123]), "group3.val2": Column(<MetaData description=(string: group3.val2 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g8 <>), ...> data= [group3.val2, 123]), "group3/val3": Column(<MetaData description=(string: group3/val3 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g9 <>), ...> data= [group3/val3, 123])})
+TableDataset({"col1": Column(<MetaData description=(string: 1 <>), shape=(list: [3] <>), type=(string: Column <>), unit=(string: eV <>).> data= [1, 4.4, 5400.0]), "col2": Column(<MetaData description=(string: 2 <>), shape=(list: [3] <>), type=(string: Column <>), unit=(string: cnt <>).> data= [0, 43.2, 2000.0]), "no-group1.val": Column(<MetaData description=(string: no-group1.val <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g0 <>).> data= [no-group1.val, 123]), "group1.val1": Column(<MetaData description=(string: group1.val1 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g1 <>).> data= [group1.val1, 123]), "group1.val2": Column(<MetaData description=(string: group1.val2 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g2 <>).> data= [group1.val2, 123]), ".val": Column(<MetaData description=(string: .val <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g3 <>).> data= [.val, 123]), "grou.p2.val1": Column(<MetaData description=(string: grou.p2.val1 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g4 <>).> data= [grou.p2.val1, 123]), "grou.p2.": Column(<MetaData description=(string: grou.p2. <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g5 <>).> data= [grou.p2., 123]), "grou.p2.val3": Column(<MetaData description=(string: grou.p2.val3 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g6 <>).> data= [grou.p2.val3, 123]), "group3_val1": Column(<MetaData description=(string: group3_val1 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g7 <>).> data= [group3_val1, 123]), "group3.val2": Column(<MetaData description=(string: group3.val2 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g8 <>).> data= [group3.val2, 123]), "group3/val3": Column(<MetaData description=(string: group3/val3 <>), shape=(list: [2] <>), type=(string: Column <>), unit=(string: g9 <>).> data= [group3/val3, 123])})
 
 an empty level 2: 
 TableDataset({})

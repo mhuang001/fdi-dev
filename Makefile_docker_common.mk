@@ -188,6 +188,7 @@ update_docker:
 	$(MAKE) docker_version &&\
 	rm -f ../wheels/svom.product*.whl ;\
 	$(MAKE) PROJ-INSTALL CLEAN=1 WHEEL_INSTALL=14 I="$(I)"  PROJ_PIPCACHE=$(st_PIPCACHE) PROJ_PIPWHEELS=$(st_WHEELS) &&\
+	rm -f ../wheels/svom.product*.whl &&\
 	$(MAKE) build_docker && $(MAKE) push_d PUSH_NAME=$(DOCKER_NAME) &&\
 	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) &&\
 	$(MAKE) launch_test_server &&\
@@ -196,7 +197,8 @@ update_docker:
 	$(MAKE) rm_docker &&\
 	@echo Done. `pwd; cat ./docker_version`) 2>&1 | tee update.log
 
-
+sss:
+	$(MAKE) build_server && $(MAKE) push_d PUSH_NAME=$(SERVER_NAME) 
 cleanup:
 	docker rmi -f `docker images -a|grep pool|awk 'BEGIN{FS=" "}{print $3}'`
 	docker rmi -f `docker images -a|grep csc |awk 'BEGIN{FS=" "}{print $3}'`

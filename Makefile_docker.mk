@@ -67,7 +67,8 @@ else ifeq ($(WHEEL_INSTALL), 14)
 	$(PYEXE) -m pip install -e .$(fdi_EXT) $(fdi_PIPOPT) $(I)
 
 endif
-	#rm $(fdi_WHEELS)/fdi* &&\
+	#rm $(fdi_WHEELS)/fdi* 
+	@echo END OF UPDATING DOCKER
 
 test_docker:
 	cid=`docker ps -a|grep $(LATEST) | awk '{print $$1}'` &&\

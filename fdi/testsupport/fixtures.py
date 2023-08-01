@@ -407,7 +407,7 @@ def prepare_servers(server_arch, how_to_run, aburl, csci_url, request):
             elif how_to_run == "mock":
                 # we eyiher get our wish has how the server runs, o we get exception.
                 logger.warning(
-                    'want to get an external server but get %s one. Will use mocked' % how_to_run_found)
+                    'want to get a mocked server but get %s one. Will use mocked' % how_to_run_found)
                 yield aburl, how_to_run
             elif how_to_run == "background":
                 # we eyiher get our wish has how the server runs, o we get exception.

@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  version: 1.4.0
+  version: 1.4.1
   description: This is an API description of the HTTPPool Server for FDI (Flexible Dataset Integrator)
   title: fdi poolserver
   contact:
@@ -40,6 +40,17 @@ servers:
         description: 31702 for production.
       basePath:
         default: fdi/v0.16
+  - url: 'http://{host}:{port}/{basePath}'
+    description: httppool api flask-uwsgi dev version
+    variables:
+      host:
+        default: 123.56.102.90
+        description: 123.56.102.90 for production.
+      port:
+        default: '31702'
+        description: 31702 for production.
+      basePath:
+        default: fdi-dev/v0.16
   - url: 'http://127.0.0.1:{port}/{basePath}'
     description: httppool api flask-uwsgi dev version
     variables:
@@ -48,7 +59,7 @@ servers:
           - '9881'
           - '9885'
         default: '9885'
-        description: 9881 for testing; 9885 for production.
+        description: 9885 usually.
       basePath:
         default: fdi/v0.16
   - url: 'http://10.0.10.114:9885/fdi/v0.16'
@@ -152,6 +163,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
+  '/pools/unregister/{pool}':
+    get:
+      summary: Unregister the given pool with GET.
+      tags:
+        - Server
+      description: 'Unregister the pool of given Pool IDs to the global PoolManager. An alternative to DEL /{pool} using GET'
+      operationId: unregister2
+      parameters:
+        - $ref: '#/components/parameters/Pool'
+      responses:
+        '200':
+          description: Done unregistering the Pool to PoolManager.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponseContents'
   /pools/register_all:
     put:
       summary: Register (Load) all pools on the server.
@@ -185,7 +212,7 @@ paths:
       summary: Remove contents of all pools.
       tags:
         - Server
-      description: Only registerable pools will be wiped. Pool directories are not removed.
+      description: Only registerable pools will be wiped. Pool directories are not removed. Registered pools are still registered after wiping.
       operationId: wipe_all
       responses:
         '200':
@@ -276,33 +303,34 @@ paths:
               BaseProduct:
                 value: |-
 
-                  ╒══════════════╤════════════════════╤══════╤══════════╤════════════════════════════╤════════════════════╤══════╤══════════════════════╕
-                  │ name         │ value              │ unit │ type     │ valid                      │ default            │ code │ description          │
-                  ╞══════════════╪════════════════════╪══════╪══════════╪════════════════════════════╪════════════════════╪══════╪══════════════════════╡
-                  │ description  │ UNKNOWN            │      │ string   │ Description of this        │ UNKNOWN            │ None │ B                    │
-                  │              │                    │      │          │ product                    │                    │      │                      │
-                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
-                  │ type         │ BaseProduct        │      │ string   │ Product Type               │ BaseProduct        │ None │ B                    │
-                  │              │                    │      │          │ identification. Name of    │                    │      │                      │
-                  │              │                    │      │          │ class or CARD.             │                    │      │                      │
-                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
-                  │ level        │ ALL                │      │ string   │ Product level.             │ ALL                │ None │ B                    │
-                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
-                  │ creator      │ UNKNOWN            │      │ string   │ Generator of this product. │ UNKNOWN            │ None │ B                    │
-                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
-                  │ creationDate │ 1958-01-01T00:00:0 │      │ finetime │ Creation date of this      │ 1958-01-01T00:00:0 │ None │ %Y-%m-%dT%H:%M:%S.%f │
-                  │              │ 0.000000 0         │      │          │ product                    │ 0.000000 0         │      │                      │
-                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
-                  │ rootCause    │ UNKNOWN            │      │ string   │ Reason of this run of      │ UNKNOWN            │ None │ B                    │
-                  │              │                    │      │          │ pipeline.                  │                    │      │                      │
-                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
-                  │ version      │ 0.8                │      │ string   │ Version of product         │ 0.8                │ None │ B                    │
-                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
-                  │ FORMATV      │ 1.6.0.11           │      │ string   │ Version of product schema  │ 1.6.0.11           │ None │ B                    │
-                  │              │                    │      │          │ and revision               │                    │      │                      │
-                  ├──────────────┼────────────────────┼──────┼──────────┼────────────────────────────┼────────────────────┼──────┼──────────────────────┤
-                  │ listeners    │ <No listener>      │      │          │                            │                    │      │                      │
-                  ╘══════════════╧════════════════════╧══════╧══════════╧════════════════════════════╧════════════════════╧══════╧══════════════════════╛
+                  ╒══════════════╤════════════════════╤══════╤══════════╤═══════╤════════════════════╤══════╤═══════════════════════════════╕
+                  │ name         │ value              │ unit │ type     │ valid │ default            │ code │ description                   │
+                  ╞══════════════╪════════════════════╪══════╪══════════╪═══════╪════════════════════╪══════╪═══════════════════════════════╡
+                  │ description  │ UNKNOWN            │      │ string   │ None  │ UNKNOWN            │ B    │ Description of this product   │
+                  ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
+                  │ type         │ BaseProduct        │      │ string   │ None  │ BaseProduct        │ B    │ Product Type identification.  │
+                  │              │                    │      │          │       │                    │      │ Name of class or CARD.        │
+                  ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
+                  │ level        │ ALL                │      │ string   │ None  │ ALL                │ B    │ Product level.                │
+                  ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
+                  │ creator      │ UNKNOWN            │      │ string   │ None  │ UNKNOWN            │ B    │ Generator of this product.    │
+                  ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
+                  │ creationDate │ 1958-01-01T00:00:0 │      │ finetime │ None  │ 1958-01-01T00:00:0 │ %Y-% │ Creation date of this product │
+                  │              │ 0.000000 0         │      │          │       │ 0.000000 0         │ m-%d │                               │
+                  │              │                    │      │          │       │                    │ T%H: │                               │
+                  │              │                    │      │          │       │                    │ %M:% │                               │
+                  │              │                    │      │          │       │                    │ S.%f │                               │
+                  ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
+                  │ rootCause    │ UNKNOWN            │      │ string   │ None  │ UNKNOWN            │ B    │ Reason of this run of         │
+                  │              │                    │      │          │       │                    │      │ pipeline.                     │
+                  ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
+                  │ version      │ 0.8                │      │ string   │ None  │ 0.8                │ B    │ Version of product            │
+                  ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
+                  │ FORMATV      │ 1.6.0.11           │      │ string   │ None  │ 1.6.0.11           │ B    │ Version of product schema and │
+                  │              │                    │      │          │       │                    │      │ revision                      │
+                  ├──────────────┼────────────────────┼──────┼──────────┼───────┼────────────────────┼──────┼───────────────────────────────┤
+                  │ listeners    │ <No listener>      │      │          │       │                    │      │                               │
+                  ╘══════════════╧════════════════════╧══════╧══════════╧═══════╧════════════════════╧══════╧═══════════════════════════════╛
                 summary: A mostly blank BaseProduct.
               Dummy:
                 value: '{"meta": {}}'
@@ -400,7 +428,7 @@ paths:
       summary: Removes all contents of the pool.
       tags:
         - Pool
-      description: 'Requests all data in the pool be removed, keeping pool directory.'
+      description: 'Requests all data in the pool be removed, keeping pool directory.  Aegistered pool is not unregistered after wiping.'
       operationId: wipe
       parameters:
         - $ref: '#/components/parameters/Pool'
@@ -544,11 +572,11 @@ components:
         type: string
       examples:
         1. server:
-          value: test_csdb_fdi2
+          value: sv2
           summary: from CSDB server test `test_csdb.py`.
         2. server:
-          value: 'csdb:,,123.56.102.90:31702,csdb,v1,storage,test_nms_compat1'
-          summary: full CSDB poolURL for TEST_NMS_COMPAT1.
+          value: 'csdb:,,123.56.102.90:31702,csdb,v1,storage,test_e2e2_vt'
+          summary: full CSDB poolURL for TEST_E2E2.
         3. server:
           value: serv_test_httppool
           summary: from server test `test_httppool.py`.

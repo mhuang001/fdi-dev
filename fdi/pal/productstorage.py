@@ -3,7 +3,7 @@
 from . import productref
 from .poolmanager import PoolManager
 from .productpool import ProductPool, PoolNotFoundError
-from ..pal.httpclientpool import ServerError
+from ..pns.fdi_requests import ServerError
 from .managedpool import makeLock
 from .urn import Urn
 from ..dataset.odict import ODict
@@ -30,15 +30,25 @@ class ProductStorage(object):
                  pool=None,
                  poolurl=None,
                  poolmanager=None,
+                 read_only=False,
                  **kwds):
         """ Gets the storage "control pannel" for pool with specifed name.
 
-        :pool: can be given as the only pramemter. If `auth` and `client` are given they will substitute those of  `pool`. If `pool` is not given, those will need to be given.
-        :poolname: if is a string will be taken as a poolname. if is a pool object will be registered with its name,
-        :poolurl: is sent to the PoolManager with poolname to get the pool object.
-        `auth` with `client`, can be given here to be passed to `PoolManager.getPool`.
-        `client` how to call remote api if poolurl indicates a remote pool. Default is `None` for using the configured host/port/credentials. If doing a mocked server test, this needs to be set.
-
+        :pool: can be given as the only pramemter. If `auth`
+        and `client` are given they will substitute those of
+        `pool`. If `pool` is not given, those will need to be given.
+        :poolname: if is a string will be taken as a poolname.
+        if is a pool object will be registered with its name,
+        :poolurl: is sent to the PoolManager with poolname to
+        get the pool object.
+        `auth` with `client`, can be given here to be passed
+        to `PoolManager.getPool`.
+        `client` how to call remote api if poolurl indicates
+        a remote pool. Default is `None` for using the configured
+        host/port/credentials. If doing a mocked server test,
+        this needs to be set.
+        :read_only: the initial pools will be registered in
+        always-on part of ProductManager.
         """
         if issubclass(pool.__class__, str) and ':' in pool:
             raise TypeError(
@@ -56,23 +66,28 @@ class ProductStorage(object):
         sid = hex(id(self))
         self._locks = dict((op, makeLock(self.__class__.__name__+sid, op))
                            for op in ('r', 'w'))
-        self.register(pool=pool, poolurl=poolurl, **kwds)
+        self.register(pool=pool, poolurl=poolurl,
+                      read_only=read_only, **kwds)
 
     def register(self,  poolname=None, poolurl=None, pool=None,
-                 makenew=False,
+                 makenew=False, read_only=False,
                  **kwds):
         """ Registers the given pools to the storage.
 
         :client: passed to `PoolManager.getPool`.
         :auth: passed to `PoolManager.getPool`.
         :makenew: Create pool if it does not exist.
+        :read_only: if set pool will be registered in the
+        READ_ONLY part of PoolMAnager._GlobalPoolList().
+        These pools are showing as registered to all users,
+        and cannot be deleted unless the server is restarted.
         """
 
         if issubclass(pool.__class__, str) and poolname is None:
             pool, poolname = poolname, pool
         with self._locks['w'], self._locks['r']:
             if pool and issubclass(pool.__class__, ProductPool):
-                _p = self.PM.getPool(pool=pool, **kwds)
+                _p = self.PM.getPool(pool=pool, read_only=read_only, **kwds)
                 from fdi.pal.publicclientpool import PublicClientPool
                 if issubclass(pool.__class__, PublicClientPool):
                     pe = _p.poolExists()
@@ -81,7 +96,8 @@ class ProductStorage(object):
                             raise ServerError(
                                 f"CSDB {pool.poolurl} is made but does not exist on the server." +\
                                 (", no makenew. Please make it with `ProductStorage`." if makenew else "."))
-                    
+
+                        
             elif poolurl is None and poolname is None:
                 # quietly return for no-arg construction case
                 return
@@ -92,8 +108,10 @@ class ProductStorage(object):
                 if poolurl is not None and not issubclass(poolurl.__class__, str):
                     raise TypeError('Poolurl must be a string, not ' +
                                     poolurl.__class__.__name__)
+
                 _p = self.PM.getPool(
-                    poolname=poolname, poolurl=poolurl, makenew=makenew, **kwds)
+                    poolname=poolname, poolurl=poolurl, makenew=makenew,
+                    read_only=read_only, **kwds)
             self._pools[_p._poolname] = _p
 
         logger.debug('registered pool %s -> %s.' %
@@ -175,7 +193,7 @@ class ProductStorage(object):
             they are equal, each tag is goven to the product at the same
             index in the `product` list.
         poolname: str
-            If the named pool is not registered, registers and saves.
+            If the named pool is not registered, registers and saves. DEfault is `None` which will use this storage's writable poolname if there is a pool. If there is not, throw a `ValiueError`.
         geturnobjs : bool
             returns UrnObjs if geturnobjs is True.
         kwds: options passed to json.dump() for subclasses, which can
@@ -197,7 +215,7 @@ class ProductStorage(object):
             if len(self._pools) > 0:
                 poolname = self.getWritablePool()
             else:
-                raise ValueError('no pool by "{poolname}" registered at the `PoolManager`.')
+                raise ValueError('None is not a valid pool name in the `PoolManager`.')
         elif poolname not in self._pools:
             self.register(poolname)
 
@@ -288,12 +306,6 @@ class ProductStorage(object):
                 logger.error(msg)
                 raise ValueError(msg)
             return self._pools[poolname]
-        try:
-            return list(self._pools.values())[poolname]
-        except (IndexError, TypeError) as e:
-            msg = 'pool ' + poolname + ' not found'
-            logger.error(msg)
-            raise ValueError(msg)
 
     def getWritablePool(self, obj=False):
         """ returns the poolname of the first pool, which is the only writeable pool.
@@ -344,7 +356,6 @@ class ProductStorage(object):
 
         self.ignore_error_when_delete = ignore_error
         pool = self.getWritablePool(obj=True)
-        pool.ignore_error_when_delete = ignore_error
         pool.wipe(
             ignore_error=ignore_error, asyn=asyn, **kwds)
 
@@ -388,6 +399,25 @@ class ProductStorage(object):
             ret += pool.select(query, previous)
         return ret
 
+    def __contains__(self, pool_or_urn):
+        """ test if a pool is in this ProductStorage.
+
+        Parameter
+        ---------
+        pool_or_urn : str, ProductPool
+            Can be a poolname, a pool object, or a URN.
+        
+        """
+        if issubclass(pool_or_urn.__class__, str):
+            if pool_or_urn.startswith('urn:'):
+                # urn
+                return any(p.exists(pool_or_urn) for p in self._pools.values())
+            # poolname
+            return pool_or_urn in self._pools
+        else:
+            pid = id(pool_or_urn)
+            return any(id(po)==pid for po in self._pools.values())
+        
     def __getstate__(self):
         """ Can be encoded with serializableEncoder """
         return OrderedDict(writablePool=self.getWritablePool())

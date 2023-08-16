@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from ...pal.poolmanager import PM_S
-from ..model.user import auth
+from ...pal import poolmanager as pm_mod
+from ...pal.poolmanager import PM_S_from_g
+from ..model.user import auth, SES_DBG
+from .. import ctx
+from ..session import SESSION
 
 from ...dataset.deserialize import deserialize
 from ...dataset.serializable import serialize
 from ...dataset.mediawrapper import MediaWrapper
 from ...pal.urn import makeUrn
 from ...dataset.classes import Classes
-from ...utils.common import (trbk,
+from ...utils.common import (trbk, trbk2,
                              getUidGid,
                              lls,
                              logging_ERROR,
@@ -26,7 +29,7 @@ from ...pns.fdi_requests import POST_PRODUCT_TAG_NAME
 # from mysql.connector import Error
 
 
-from flask import request, make_response, Blueprint, current_app
+from flask import g, request, make_response, Blueprint, current_app, session
 from flask.wrappers import Response
 
 
@@ -55,6 +58,7 @@ data_api = Blueprint('httppool_server', __name__)
 
 WRITE_LIST = ['POST', 'PUT', 'DELETE', 'PATCH']
 
+PM_S = None
 
 # =============HTTP POOL=========================
 
@@ -101,7 +105,10 @@ def excp(e, code=400, msg='', serialize_out=True):
     result = '"FAILED"' if serialize_out else 'FAILED'
     msg = '%s\n%s: %s.\nTrace back: %s' % (
         msg, e.__class__.__name__, str(e), trbk(e))
-
+    if 'not exist' in msg:
+        t=trbk2(e)
+        __import__("pdb").set_trace()
+        pass
     return code, result, msg
 
 
@@ -215,6 +222,7 @@ def delete_product(paths, serialize_out=False):
     urn = makeUrn(poolname=poolname, typename=typename, index=indexstr)
     # resourcetype = fullname(data)
 
+    PM_S = PM_S_from_g(g)
     if not PM_S.isLoaded(poolname):
         result = FAILED
         msg = 'Pool not found or not registered: ' + poolname
@@ -315,7 +323,11 @@ def save_product(data, paths, tags=None, serialize_in=True, serialize_out=False,
 
     FAILED = '"FAILED"' if serialize_out else 'FAILED'
 
+    PM_S = PM_S_from_g(g)
+    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
+
     poolname = paths[0]
+
     if not PM_S.isLoaded(poolname):
         result = FAILED
         msg = f'Pool {poolname} is not registered.'
@@ -579,6 +591,9 @@ def load_product(p, paths, serialize_out=False):
     urn = makeUrn(poolname=poolname, typename=typename, index=indexstr)
     # resourcetype = fullname(data)
 
+    PM_S = PM_S = PM_S_from_g(g)
+    
+    # empty
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('LOAD product: ' + urn)
     try:
@@ -610,3 +625,46 @@ def mkv(v, t):
     m = v if t == 'str' else None if t == 'NoneType' else Builtins[t](
         v) if t in Builtins else deserialize(v)
     return m
+
+@data_api.before_app_request
+def b4req_httppool():
+    global PM_S
+    
+    logger = current_app.logger
+
+    if not SESSION:
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.warning('Called with no SESSION')
+        return
+
+    PM_S = PM_S_from_g(g)
+    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
+
+    if SES_DBG and logger.isEnabledFor(logging_DEBUG):
+
+        _c =  (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+        logger.debug(f"{_c}")
+    del PM_S
+    
+@data_api.after_app_request
+def aftreq_httppool(resp):
+
+    logger = current_app.logger
+
+    if not SESSION:
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.debug('Called with no SESSION')
+        return resp
+
+    #session.user_id = user_id
+
+    PM_S = PM_S_from_g(g)
+
+    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
+
+    if SES_DBG and logger.isEnabledFor(logging_DEBUG):
+        logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+
+    del PM_S
+    
+    return resp

@@ -14,13 +14,13 @@ from ..utils.common import (getUidGid,
                             logging_INFO,
                             logging_DEBUG, lls
                             )
-from ..pal.poolmanager import DEFAULT_MEM_POOL
+from ..pal.poolmanager import DEFAULT_MEM_POOL, PM_S_from_g
 
 from .session import init_session, SESSION
 
 from flasgger import Swagger
 from werkzeug.exceptions import HTTPException
-from flask import Flask, make_response, jsonify, request
+from flask import Flask, make_response, jsonify, request, current_app, g
 from werkzeug.routing import RequestRedirect
 from werkzeug.routing import RoutingException, Map
 
@@ -48,6 +48,7 @@ _BASEURL = ''
 
 PC = None
 
+session = None
 
 def setup_logging(level=LOGGING_NORMAL, extras=None, tofile=None):
     import logging
@@ -174,8 +175,6 @@ def checkpath(path, un=None):
         un = getconfig.getConfig('self_username')
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('path %s user %s' % (path, un))
-    if 'fdi2' in path:
-        __import__("pdb").set_trace()
 
     p = Path(path).resolve()
     if p.exists():
@@ -244,7 +243,6 @@ def init_httppool_server(app):
     Classes = init_conf_classes(pc, logger)
     app.config['LOOKUP'] = Classes.mapping
 
-    from ..pal.poolmanager import PM_S
     from ..pal.managedpool import makeLock
     # client users
     from .model.user import getUsers
@@ -252,8 +250,26 @@ def init_httppool_server(app):
     sid = hex(os.getpid())
     app.config['LOCKS'] = dict((op, makeLock('FDI_Pool'+sid, op))
                                for op in ('r', 'w'))
+    # setup poolmanager
+    
+    PM_S = init_poolmanager(app, g, pc)
 
-    # PoolManager is a singleton
+    
+def init_poolmanager(app, g, pc):
+
+    # PoolManager is a singleton. get PM_S from 
+    with app.app_context():
+        PM_S = PM_S_from_g(g)
+        
+    logger.info('PM_S'+hex(id(PM_S._GlobalPoolList.maps[0])))
+    
+    # initialize read-only pools
+    from ..pal.productstorage  import ProductStorage
+
+    for pn, po in pc['read_only_pools'].items():
+        ps = ProductStorage(poolname=pn, poolurl=po, read_only=True)
+
+        ##PM_S.save(pn, po, read_only=True)
     if PM_S.isLoaded(DEFAULT_MEM_POOL):
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug('cleanup DEFAULT_MEM_POOL')
@@ -263,7 +279,10 @@ def init_httppool_server(app):
         logger.debug('ProcID %d. Got 1st request %s' %
                      (os.getpid(), str(app._got_first_request))
                      )
-    PM_S.removeAll()
+    try:
+        PM_S.removeAll(include_read_only=True)
+    except KeyError:
+        pass
     app.config['POOLMANAGER'] = PM_S
 
     # pool-related paths
@@ -281,7 +300,7 @@ def init_httppool_server(app):
 
     app.config['POOLSCHEME'] = scheme
 
-    # e.g. "/tmp/data/v0.13"
+    # e.g. "/tmp/data/v0.16"
     app.config['FULL_BASE_LOCAL_POOLPATH'] = full_base_local_poolpath
     app.config['POOLURL_BASE'] = scheme + \
         '://' + full_base_local_poolpath + '/'
@@ -353,6 +372,8 @@ def create_app(config_object=None, level=None, logstream=None):
         from remote_pdb import RemotePdb
         RemotePdb('127.0.0.1', 4444).set_trace()
 
+    global session
+    
     session = init_session(app)
 
     if debug:
@@ -425,23 +446,57 @@ def create_app(config_object=None, level=None, logstream=None):
     logger.info('Server initialized. logging level ' +
                 str(app.logger.getEffectiveLevel()))
 
+        
     @app.before_request
-    def b4request():
+    def b4req():
         global cnt
+        #global session
+
         cnt += 1
+
+        logger = current_app.logger
+
+        logger.debug(f"@@@@@ {cnt}")
+        return
         if logger.isEnabledFor(logging_DEBUG):
             args = request.view_args
             method = request.method
-            logger.debug("%3d >>>[%4s] %s" %
-                         (cnt, method, lls(str(args), 300)))
+            c = ctx(PM_S=None, app=current_app, session=session, request=request, auth=None)
+            logger.debug(f"{cnt} >>>[{method}] {lls(args, 300)} %s" %  c)
         elif logger.isEnabledFor(logging_INFO):
             # remove leading e.g. /fdi/v0.16
             s = request.path.split(_BASEURL)
             p = s[0] if len(s) == 1 else s[1] if s[0] == '' else request.path
             method = request.method
-            logger.info("%3d >>>[%4s] %s" % (cnt, method, lls(p, 40)))
+            logger.info("%3d >>>[%4s] %s" % (cnt, method, lls(p, 50)))
+        return
 
+    @app.after_request
+    def aftreq(resp):
+
+        #PM_S = PM_S_from_g(g)
+        
+        #c = ctx(PM_S=None, app=current_app, session=session, request=request, auth=None)
+        #logger.debug(c)
+        return resp
+    
     return app
+
+def ctx(PM_S, app, session, request, auth, **kwds):
+    G = hex(id(PM_S.getMap().maps[0]))[-4:] if PM_S else ""
+    _a = hex(id(app))[-4:]
+    _r = hex(id(request))[-4:]
+    _s = hex(id(session))[-4:]
+    #_g = hex(id(g._get_current_object()))[-4:]
+    _g = hex(id(g))[-4:]
+    _ps = list(map(dict,PM_S._GlobalPoolList.maps))
+    _u = f"auth.cuser{auth.current_user()}" if auth else "no-auth"
+    if hasattr(request, 'authorization'):
+        _u += f" req.ausr={request.authorization['username']}" if request.authorization else "none"
+    else:
+        _u += "no-autho"
+    m = f"{G} {_ps if PM_S else ''}, app:{_a} req:{_r} sess:{_s} g:{_g}"
+    return m
 
 
 def add_errorhandlers(app):

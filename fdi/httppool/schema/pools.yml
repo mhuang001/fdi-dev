@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  version: 1.4.0
+  version: 1.4.1
   description: "This is an API description of the HTTPPool Server for FDI (Flexible\
     \ Dataset Integrator)"
   title: "fdi poolserver"
@@ -43,6 +43,19 @@ servers:
         # no enum means it s an open value --
         # there is an opportunity for the provider to assign
         default: 'fdi/v0.16'
+  - url: http://{host}:{port}/{basePath}
+    description: httppool api flask-uwsgi dev version
+    variables:
+      host:
+        default: '123.56.102.90'
+        description: 123.56.102.90 for production.
+      port:
+        default: '31702'
+        description: 31702 for production.
+      basePath:
+        # no enum means it s an open value --
+        # there is an opportunity for the provider to assign
+        default: 'fdi-dev/v0.16'
   - url: http://127.0.0.1:{port}/{basePath}
     description: httppool api flask-uwsgi dev version
     variables:
@@ -51,7 +64,7 @@ servers:
           - '9881'
           - '9885'
         default: '9885'
-        description: 9881 for testing; 9885 for production.
+        description: 9885 usually.
       basePath:
         # no enum means it s an open value --
         # there is an opportunity for the provider to assign
@@ -161,6 +174,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenericResponseContents'
+  /pools/unregister/{pool}:
+    get:
+      summary: "Unregister the given pool with GET."
+      tags:
+        - Server
+      description: "Unregister the pool of given Pool IDs to the global PoolManager. An alternative to DEL /{pool} using GET"
+      operationId: unregister2
+      parameters:
+      - $ref: '#/components/parameters/Pool'
+      responses:
+        "200":
+          description: "Done unregistering the Pool to PoolManager."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponseContents'
   /pools/register_all:
     put:
       summary: "Register (Load) all pools on the server."
@@ -194,7 +223,7 @@ paths:
       summary: "Remove contents of all pools."
       tags:
         - Server
-      description: "Only registerable pools will be wiped. Pool directories are not removed."
+      description: "Only registerable pools will be wiped. Pool directories are not removed. Registered pools are still registered after wiping."
       operationId: wipe_all
       responses:
         "200":
@@ -386,7 +415,7 @@ paths:
       summary: "Removes all contents of the pool."
       tags:
         - Pool
-      description: "Requests all data in the pool be removed, keeping pool directory."
+      description: "Requests all data in the pool be removed, keeping pool directory.  Aegistered pool is not unregistered after wiping."
       operationId: wipe
       parameters:
       - $ref: '#/components/parameters/Pool'
@@ -543,11 +572,11 @@ components:
         type: "string"
       examples:
         1. server:
-          value: test_csdb_fdi2
+          value: sv2
           summary: from CSDB server test `test_csdb.py`.
         2. server:
-          value: csdb:,,123.56.102.90:31702,csdb,v1,storage,test_nms_compat1
-          summary: full CSDB poolURL for TEST_NMS_COMPAT1.
+          value: csdb:,,123.56.102.90:31702,csdb,v1,storage,test_e2e2_vt
+          summary: full CSDB poolURL for TEST_E2E2.
         3. server:
           value: serv_test_httppool
           summary: from server test `test_httppool.py`.

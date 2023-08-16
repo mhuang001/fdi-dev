@@ -1023,7 +1023,7 @@ def test_clean_csdb(clean_csdb_fs):
     assert len(pstore._pools) == 1
     assert test_pool.poolExists(pname)
     assert test_pool.isEmpty()
-    assert test_pool == pstore.getPool(0)
+    assert test_pool == pstore.getPool(pstore.getWritablePool())
 
     pinfo = test_pool.getPoolInfo(update_hk=1)
     assert len(pinfo[pname]['_classes'].keys()) == 0

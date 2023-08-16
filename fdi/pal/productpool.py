@@ -67,7 +67,9 @@ When implementing a ProductPool, the following rules need to be applied:
         # self._pathurl = pr.netloc + pr.path
         # self._pathurl = None
         self._poolmanager = None
-        self.ignore_error_when_delete = False
+        # ignore non-exist errors
+        self.ignore_error_when_delete = True
+        
 
     class ParametersIncommpleteError(Exception):
         pass
@@ -423,15 +425,26 @@ When implementing a ProductPool, the following rules need to be applied:
         """
         raise (NotImplementedError)
 
-    def remove(self, urn=None, resourcetype=None, index=None, ignore_error=False, asyn=False, **kwds):
+    def remove(self, urn=None, resourcetype=None, index=None, ignore_error=True, asyn=False, **kwds):
         """
         Removes a Product belonging to specified URN or a pair of data type and serial number.
+
+        Parameter
+        ---------
+        ignore_error : bool
+            IF set, ignore not-existing error when deleting. Overrides `self.ignore_error_when_delete`. Default `True`.
+        
         """
-        self.ignore_error_when_delete = ignore_error
         if not urn and (not resourcetype or not index):
             return 0
-        res = self.schematicRemove(
-            urn, resourcetype=resourcetype, index=index, asyn=asyn, **kwds)
+        
+        try:
+            res = self.schematicRemove(
+                urn, resourcetype=resourcetype, index=index, asyn=asyn, **kwds)
+        except KeyError:
+            if not ignore_error:
+                raise
+               
         return res
 
     def schematicWipe(self):

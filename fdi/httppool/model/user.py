@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from ..session import SESSION
+from .. import ctx
+from ...pal import poolmanager as pm_mod
+from ...pal.poolmanager import PM_S_from_g
 from ...utils.common import (logging_ERROR,
                              logging_WARNING,
                              logging_INFO,
@@ -30,10 +34,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 auth = HTTPBasicAuth()
-
-SESSION = True
-""" Enable session. """
-
 
 LOGIN_TMPLT = ''  # 'user/login.html'
 """ Set LOGIN_TMPLT to '' to disable the login page."""
@@ -134,49 +134,59 @@ def getUsers(pc):
     #               ))
 
 
-SES_DBG = 0
+SES_DBG = 1
 """ debug msg for session """
 
 if SESSION:
 
     def set_user_session(username, pools=None, session=None, new=False, logger=logger):
+        """ Every session keeps record of what pools it had
+        registered is the last request, everyone make the
+        record when leaving a request, and registers when
+        entering a request when current Poolmanager does not
+        have the pool.
+        """
         from ..route.pools import register_pool
-        from ...pal.poolmanager import PM_S
 
         if session is None:
             logger.debug('No session. Return.')
             return
 
+        PM_S =  PM_S_from_g(g)
         if not pools:
             pools = session.get('registered_pools', {})
 
-        GPL = PM_S.getMap()
-        m = 0
         if logger.isEnabledFor(logging_DEBUG):
-            s = hex(id(session)) + str(session) + str(pools)
-            m = f'PM_GLB_id={ hex(id(PM_S._GlobalPoolList))[-5:]} {s}'
-
+            logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+            
         session['user_id'] = username
-        for pn, pu in pools.items():
-            if not pn in GPL:
-                code, po, msg = register_pool(
-                    pn, current_app.config['USERS'][username], poolurl=pu)
-                assert po is GPL[pn]
-            assert pn in GPL
-            assert GPL[pn]._poolurl == pu
+        
+        # for pn, pu in pools.items():
+        #     if 1: #'ol_1' in pn:
+        #         __import__("pdb").set_trace()
+                
+        #     if pn not in GPL:
+        #         code, po, msg = register_pool(
+        #             pn, current_app.config['USERS'][username], poolurl=pu)
+        #         assert po is GPL[pn]
+        #     assert pn in GPL
+        #     assert GPL[pn]._poolurl == pu
 
         if not username:
             g.user = None
         else:
             g.user = current_app.config['USERS'][username]
 
+        # this will trigger session cookie-remaking
         session.new = new
         current_app.config['ACCESS']['usrcnt'][username] += 1
-        session.modified = True
+        ##session.modified = True
+        if logger.isEnabledFor(logging_DEBUG):
+            m = (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+            logger.debug(f'END of sus GPL {m}')
 
-        logger.debug(
-            f'LDUSR tcf2 {PM_S.isLoaded("test_csdb_fdi2")} GPL {GPL.data} m={m}')
-
+        del PM_S
+        
     @user.before_app_request
     def load_logged_in_user():
         logger = current_app.logger
@@ -186,31 +196,28 @@ if SESSION:
                 logger.warning('Called with no SESSION')
             return
 
+        PM_S = PM_S_from_g(g)
+        assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
+        
         user_id = session.get('user_id', '')
-        if user_id:
-            if 'registered_pools' not in session:
-                session['registered_pools'] = {}
-            pools = session.get('registered_pools', {})
-            # pools = current_app.config.get('POOLS', {}).get('user_id', {})
-        else:
-            pools = {}
+        # if user_id:
+        #     if 'registered_pools' not in session:
+        #         session['registered_pools'] = {}
+        #     pools = session.get('registered_pools', {})
+        #     # pools = current_app.config.get('POOLS', {}).get('user_id', {})
+        # else:
+        #    pools = {}
 
         if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-            from ...pal.poolmanager import PM_S
             headers = dict(request.headers)
             cook = dict(request.cookies)
-            if logger.isEnabledFor(logging_DEBUG):
-                gl = 'PM_GLB_id=%s' % hex(id(PM_S._GlobalPoolList))[-4:]
-                # sid = hex(id(current_app.config['POOLS']))[-4:],
-                logger.debug('Ses"%s">%d %s, %s, %s' %
-                             (str(user_id),
-                              current_app.config['ACCESS']['usrcnt'][user_id],
-                              str(headers.get('Authorization', '')),
-                              str(cook.get('session', '')[-6:]),
-                              str(pools)[:]) + gl)
+            _c =  (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+
+            logger.debug(f"Ses'{user_id}'>{current_app.config['ACCESS']['usrcnt'][user_id]} {headers.get('Authorization', '')}, {cook.get('session', '')[-6:]}, {_c}")
 
     @user.after_app_request
     def save_registered_pools(resp):
+
         logger = current_app.logger
 
         if not SESSION:
@@ -220,23 +227,19 @@ if SESSION:
 
         user_id = session.get('user_id', None)
 
-        if not user_id:
+        if 0 and not user_id:
             return resp
 
-        from ...pal.poolmanager import PM_S
-        GPL = PM_S.getMap()
-        # session['registered_pools']
+        PM_S = PM_S_from_g(g)
+        assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
+        
         if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-            hdr = ''  # dict(resp.headers)
-            gl = 'PM_GLB_id=%s' % hex(id(GPL))[-4:]
-            logger.debug(' Ses"%s"<%d %s, %s, %s' %
+            logger.debug(' Ses"%s"<%d, %s' %
                          (str(user_id),
                           current_app.config['ACCESS']['usrcnt'][user_id],
-                          str(hdr),
-                          str(session.get('registered_pools', {})), gl))
-            # print(f"$$$ {session}")
+                          ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth)))
+        del PM_S
         return resp
-
 
 @auth.get_user_roles
 def get_user_roles(user):
@@ -430,12 +433,15 @@ def verify_password(username, password, check_session=True):
         from header.
     """
     logger = current_app.logger
-    from ...pal.poolmanager import PM_S
+    PM_S = PM_S_from_g(g)
+    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
 
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
         logger.debug('%s %s %s %s' % (username, '' if password is None else (len(password) * '*'),
                      'check' if check_session else 'nochk',
-                                      'Sess' if SESSION else 'noSess'))
+                                  'Sess' if SESSION else 'noSess'))
+        logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+            
     if check_session:
         if SESSION:
             has_session = 'user_id' in session and hasattr(
@@ -454,7 +460,7 @@ def verify_password(username, password, check_session=True):
                             pools = dict((p, o._poolurl)
                                          for p, o in PM_S.getMap().items())
                             logger.debug(f"Same session {pools}.")
-                        set_user_session(
+                            set_user_session(
                             username, session=session, logger=logger)
                         return user
                         #################
@@ -482,6 +488,9 @@ def verify_password(username, password, check_session=True):
                         logger.debug(f"{stat}Anonymous user.")
                     return None
                     #################
+                if logger.isEnabledFor(logging_DEBUG):
+                    logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+
                 newu = current_app.config['USERS'].get(username, None)
                 if newu is None:
                     if logger.isEnabledFor(logging_DEBUG):

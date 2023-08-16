@@ -14,7 +14,6 @@ from ..utils.common import (lls,
                             logging_INFO,
                             logging_DEBUG
                             )
-from ..httppool.model.user import SES_DBG
 
 from urllib3.exceptions import NewConnectionError, ProtocolError
 from requests.exceptions import ConnectionError
@@ -278,7 +277,7 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     api = urn2fdiurl(urn, poolurl, contents=contents, method='POST')
 
     # from fdi.utils.common import lls
-    if SES_DBG:
+    if logger.isEnabledFor(logging_DEBUG):
         print('POST API: ' + api + ' | ' + lls(data, 90))
     if headers is None:
         headers = auth_headers(auth.username, auth.password)
@@ -347,7 +346,7 @@ def read_from_server(urn, poolurl, contents='product', result_only=False, auth=N
         client = session
     client.auth = auth
     api = urn2fdiurl(urn, poolurl, contents=contents)
-    if SES_DBG:
+    if logger.isEnabledFor(logging_DEBUG):
         print("GET REQUEST API: " + api)
 
     if isinstance(client, FlaskClient):
@@ -386,7 +385,7 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
     api = urn2fdiurl(urn, poolurl, contents=contents, method='PUT')
 
     # client.auth = auth
-    if SES_DBG:
+    if logger.isEnabledFor(logging_DEBUG):
         print("PUT REQUEST API: " + api)
         if not issubclass(client.__class__, FlaskClient):
             print('client session cookies', list(client.cookies))
@@ -404,7 +403,7 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
         return res
     result = deserialize(res.text if type(res) == requests.models.Response
                          else res.data)
-    if 0 and SES_DBG:
+    if 0 and logger.isEnabledFor(logging_DEBUG):
         if not issubclass(client.__class__, FlaskClient):
             print('@@@ session cookie', list(client.cookies))
         else:
@@ -449,7 +448,7 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
         rs = []
         for u in urns:
             a = urn2fdiurl(u, poolurl, contents=contents, method='DELETE')
-            if SES_DBG:
+            if logger.isEnabledFor(logging_DEBUG):
                 print("DELETE REQUEST API: " + a)
 
             if issubclass(client.__class__, FlaskClient):
@@ -694,6 +693,7 @@ def reqst(meth, apis, *args, server_type='httppool', auth=None, return_response=
             apis = 'https://httpbin.org/post'
         content = safe_client(
             meth, apis, *args, auth=auth, **kwds)
+        
         if server_type == 'httppool':
             res = content
         elif server_type == 'csdb':

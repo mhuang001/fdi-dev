@@ -2,7 +2,10 @@
 from fdi.dataset.arraydataset import ArrayDataset
 
 from fdi.pal.mempool import MemPool
-from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL, PM_S
+#from fdi.pal import poolmanager
+from fdi.pal.poolmanager import (PoolManager,
+                                 DEFAULT_MEM_POOL,
+                                 PM_S_from_g)
 from fdi.utils.common import trbk, fullname
 from fdi.pal.context import Context, MapContext, RefContainer
 from fdi.pal.productref import ProductRef
@@ -309,29 +312,32 @@ def rmlocal(d):
         assert not op.exists(d)
 
 
-def cleanup(poolurl=None, poolname=None, client=None, auth=None):
-    """ remove pool from disk and memory"""
+def cleanup(poolurl=None, poolname=None, client=None, auth=None, PM=None):
+    """ remove a pool or all pools from disk and memory, including those in read-only"""
 
+    if PM is None:
+        PM = PoolManager
+    else:
+        assert PM_S and (PM is PM_S) or (PoolManager and (PM is PoolManager)), "PM must be PM_S or PoolManager"
     if poolurl or poolname:
         name_url = [(poolname, poolurl)]
     else:
         name_url = []
-        for pn, pool in PoolManager.getMap().items():
+        for pn, pool in PM.getMap().items():
             name_url.append((pn, pool._poolurl))
     for pname, purl in name_url:
         direc, schm, place, pn, un, pw = parse_poolurl(purl, pname)
         if purl.startswith('server'):
-            # sync PM and PM_S
-            PM_S._GlobalPoolList.update(PoolManager._GlobalPoolList)
-            pm = PM_S
+            # sync
+            pm = PM_S_from_g(None)
         else:
             pm = PoolManager
         if schm in ['file', 'server']:
             d = direc + '/' + pn
             rmlocal(d)
         elif schm == 'mem':
-            if PoolManager.isLoaded(DEFAULT_MEM_POOL):
-                PoolManager.getPool(DEFAULT_MEM_POOL).removeAll()
+            if PM.isLoaded(DEFAULT_MEM_POOL):
+                PM.getPool(DEFAULT_MEM_POOL).removeAll()
         else:
             # elif schm in ['http', 'https']:
             #     pass
@@ -353,8 +359,8 @@ def cleanup(poolurl=None, poolname=None, client=None, auth=None):
                 del p
             except NameError:
                 pass
-        pm._GlobalPoolList.pop(pname, '')
-        assert pname not in pm._GlobalPoolList
+        PM._GlobalPoolList.pop(pname, '', include_read_only=True)
+        assert pname not in PM._GlobalPoolList
         gc.collect()
 
 
@@ -372,7 +378,7 @@ def test_PoolManager():
     # print('GlobalPoolList#: ' + str(id(pm.getMap())) + str(pm))
     PoolManager.remove('not_exists', ignore_error=True)
     with pytest.raises(KeyError):
-        PoolManager.remove('not_exists')
+        PoolManager.remove('not_exists', ignore_error=False)
     PoolManager.removeAll()
     assert PoolManager.size() == 0
     assert weakref.getweakrefcount(pool) == 0
@@ -394,7 +400,6 @@ def test_PoolManager():
     assert PoolManager.isLoaded(defaultpoolName) == 1
     if 0:
         # print(weakref.getweakrefs(PG[defaultpoolName]), id(
-        #    PG[defaultpoolName]), 'mmm GL')
         pr = weakref.ref(p1)
         assert pr() == p1
         # print(weakref.getweakrefs(PG[defaultpoolName]),
@@ -424,7 +429,9 @@ def test_PoolManager():
 
     assert not PoolManager.isLoaded('foo')
     with pytest.raises(KeyError):
-        assert PoolManager.remove('foo') == 1
+        assert PoolManager.remove('foo', ignore_error=False) == 1
+    # defaut is ignoring the no-exist error
+    assert PoolManager.remove('foo') == 0
 
 
 def checkdbcount(expected_cnt, poolurl, prodname, currentSN, usrpsw, *args, csdb=None, client=None, auth=None, **kwds):
@@ -650,8 +657,12 @@ def test_ProductStorage_init():
     ps = ProductStorage(poolurl=defaultpoolurl)
     # There is no product
     assert ps.isEmpty()
+    # __contains__
+    assert defaultpoolname in ps
     # get the pool object
     pspool = ps.getPool(defaultpoolname)
+    # __contains__
+    assert pspool in ps
     assert len(pspool.getProductClasses()) == 0
     # check syntax: construct a storage with a poolobj
     pool = LocalPool(poolurl=defaultpoolurl)
@@ -660,7 +671,12 @@ def test_ProductStorage_init():
     # wrong poolname
     with pytest.raises(TypeError):
         psbad = ProductStorage(defaultpoolurl)
-
+    # save
+    prd = Product()
+    rf = ps2.save(prd)
+    # __contains__
+    assert rf.urn in ps2
+    
     # register pool
     # with a storage that already has a pool
 
@@ -695,6 +711,7 @@ def getCurrSnCount(csdb_c, prodname):
 
 
 def check_prodStorage_func_for_pool(thepoolname, thepoolurl, *args, client=None, auth=None, pstore=None):
+    PM_S = PM_S_from_g(None)
     if thepoolurl.startswith('server'):
         ps = ProductStorage(poolurl=thepoolurl,
                             poolmanager=PM_S, client=client, auth=auth)

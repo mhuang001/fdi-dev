@@ -2,7 +2,7 @@ PYTEST	= python3 -m pytest
 TESTLOG	= /tmp/fdi-tests.log
 L	=
 # --server can be 'mock' (default, ,background' (spawned) and 'external' real one given by config file.
-OPT	=    --log-level=$(L) --server 'mock'
+OPT	=    --log-level=$(L) --server 'background'
 OPT1	=    --log-level=$(L) --server 'external' -v
 T	= 
 test: test1 test2 test5 test13 test14 test10

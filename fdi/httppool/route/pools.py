@@ -6,12 +6,15 @@ from .httppool_server import (
     excp,
     resp
 )
-# from .. import auth
-from ..model.user import auth
+from ..session import SESSION
+
+from .. import ctx
+from ..model.user import auth, SES_DBG
 
 from ..._version import __version__, __revision__
 from ...dataset.deserialize import deserialize_args, deserialize
-from ...pal.poolmanager import PM_S
+from ...pal import poolmanager as pm_mod
+from ...pal.poolmanager import Ignore_Not_Exists_Error_When_Delete, PM_S_from_g
 from ...pal.productpool import PoolNotFoundError
 from ...pal.publicclientpool import PublicClientPool
 from ...pal.webapi import WebAPI
@@ -26,13 +29,13 @@ from ...utils.common import (lls,
                              logging_DEBUG,
                              trbk
                              )
-from flask import Blueprint, jsonify, request, current_app, url_for, abort, session
+from flask import g, Blueprint, jsonify, request, current_app, url_for, abort, session
 from werkzeug.exceptions import HTTPException
 # from flasgger import swag_from
 
 
 import shutil
-import time
+import time, importlib
 import copy
 import os
 from operator import itemgetter
@@ -40,10 +43,46 @@ from operator import itemgetter
 from os.path import join, expandvars
 from itertools import chain
 
-
 endp = swag['paths']
 
 pools_api = Blueprint('pools', __name__)
+
+@pools_api.before_app_request
+def b4req_pools():
+
+    logger = current_app.logger
+
+    PM_S = PM_S_from_g(g)
+    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
+    
+    if not SESSION:
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.warning('Called with no SESSION')
+        return
+
+    if SES_DBG and logger.isEnabledFor(logging_DEBUG):
+        _c =  (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+        logger.debug(f"{_c}")
+
+@pools_api.after_app_request
+def aftreq_pools(resp):
+
+    logger = current_app.logger
+
+    if not SESSION:
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.debug('Called with no SESSION')
+        return resp
+
+    PM_S = PM_S_from_g(g)
+    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
+
+    if SES_DBG and logger.isEnabledFor(logging_DEBUG):
+        logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+
+    del PM_S
+    
+    return resp
 
 
 ######################################
@@ -109,6 +148,9 @@ def get_name_all_pools(path=None):
 
     """
 
+    PM_S = PM_S_from_g(g)
+    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
+    
     logger = current_app.logger
     path = current_app.config['FULL_BASE_LOCAL_POOLPATH'] if path is None else path
     if logger.isEnabledFor(logging_DEBUG):
@@ -180,7 +222,8 @@ def get_registered_pools():
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('Listing all registered pools.')
 
-    # [p.getPoolurl() for p in PM_S.getMap()()]
+        PM_S = PM_S = PM_S_from_g(g)
+        # [p.getPoolurl() for p in PM_S.getMap()()]
     result = list(PM_S.getMap())
     msg = 'There is/are %d pools registered to the PoolManager.' % len(result)
     code = 200
@@ -208,8 +251,30 @@ def register2(pool):
     return register(pool)
 
 
+
 ######################################
-#### /pools/register_all pools/register_all/  ####
+#### /pools/unregister/{pool}     ####
+######################################
+
+
+@ pools_api.route('/pools/unregister/<string:pool>', methods=['GET'])
+@ pools_api.route('/pools/unregister/<string:pool>/', methods=['GET'])
+@ auth.login_required(role='read_write')
+def unregister2(pool):
+    """
+    Unregister the given pool with GET.
+
+    Unregister the pool of given Pool IDs from the global PoolManager.
+    This is an alternative to PUT /{pool} using GET".
+
+    Ref. `unregister` document.
+    """
+
+    return unregister(pool)
+
+
+######################################
+#### /pools/regfister_all pools/register_all/  ####
 ######################################
 
 
@@ -257,19 +322,21 @@ def load_pools(poolnames, usr):
     logger = current_app.logger
     path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     # include those that do not have a directory (e.g. csdb)
+    PM_S = PM_S = PM_S_from_g(g)
     pmap = dict(PM_S.getMap())
 
     bad = {}
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('loading all from ' + path)
     alldirs = poolnames if poolnames else get_name_all_pools(path)
-    for nm in alldirs:
-        # must save the link or PM_S._GlobalPoolList will remove as dead weakref
-        code, thepool, msg = register_pool(nm, usr=usr)
-        if code == 200:
-            pmap[nm] = thepool
-        else:
-            bad[nm] = nm+': '+msg
+    with current_app.config['LOCKS']['w'], current_app.config['LOCKS']['r'] :
+        for nm in alldirs:
+            # must save the link or PM_S._GlobalPoolList will remove as dead weakref
+            code, thepool, msg = register_pool(nm, usr=usr)
+            if code == 200:
+                pmap[nm] = thepool
+            else:
+                bad[nm] = nm+': '+msg
 
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug("Registered pools: %s, bad %s.  Local dir %s" %
@@ -292,7 +359,9 @@ def unregister_all():
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('unregister-all ')
 
-    good, bad = unregister_pools()
+    with current_app.config['LOCKS']['w'], current_app.config['LOCKS']['r'] :
+
+        good, bad = unregister_pools()
     code = 200 if not bad else 416
     result = good
     msg = '%d pools unregistered%s' % (len(good),
@@ -309,7 +378,8 @@ def unregister_pools(poolnames=None):
     Returns: a list of successfully unregistered pools names in `good`, and troubled ones in `bad` with associated exception info.
     """
     logger = current_app.logger
-
+    PM_S = PM_S = PM_S_from_g(g)
+    
     good = []
     notgood = []
     all_pools = poolnames if poolnames else copy.copy(
@@ -317,12 +387,13 @@ def unregister_pools(poolnames=None):
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('unregister pools ' + str(all_pools))
 
-    for nm in all_pools:
-        code, res, msg = unregister_pool(nm)
-        if res == 'FAILED':
-            notgood.append(nm+': '+msg)
-        else:
-            good.append(nm)
+    with current_app.config['LOCKS']['w'], current_app.config['LOCKS']['r'] :
+        for nm in all_pools:
+            code, res, msg = unregister_pool(nm)
+            if res == 'FAILED':
+                notgood.append(nm+': '+msg)
+            else:
+                good.append(nm)
     return good, notgood
 
 ######################################
@@ -383,6 +454,7 @@ def wipe_pools(poolnames, usr):
                     good.append(nm)
                     logger.info('Pool %s deleted.' % nm)
             else:
+                PM_S = PM_S_from_g(g)
                 shutil.rmtree(join(path, nm))
                 res = PM_S.remove(nm)
                 if res > 1:
@@ -430,6 +502,7 @@ def get_pool_info(poolname, serialize_out=False):
     allpools = get_name_all_pools(
         current_app.config['FULL_BASE_LOCAL_POOLPATH'])
 
+    PM_S = PM_S = PM_S_from_g(g)
     try:
         poolobj = PM_S.getPool(poolname)
     except ValueError as e:
@@ -480,7 +553,7 @@ def get_pool_info(poolname, serialize_out=False):
             dt_display[t] = cdict
         display['Tags'] = dt_display
 
-        msg = 'Getting pool %s information. %s.' % (poolname, mes)
+        msg = 'Getting pool %s information. %s.' % (str(poolobj), mes)
         _, count, _, sz = get_data_count(None, poolname)
         msg += '%d data items recorded. %d counted. %d bytes total.' % (
             rec_u, count, sz)
@@ -500,15 +573,21 @@ def register_pool(poolname, usr, poolurl=None):
     if poolname is None:
         return 401, 'FAILED', f'No pool name.'
 
+    PM_S = PM_S_from_g(g)
+    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
+
     # with secondary={thepool.secondary_poolurl}")
     # read_write has precedence over read_only
     makenew = usr and ('read_write' in usr.roles)
     m = f'poolname={poolname} poolURL={poolurl} makenew={makenew}'
     logger.debug(m)
-
+    
+    PM_S = PM_S = PM_S_from_g(g)
     try:
         po = PM_S.getPool(poolname=poolname, poolurl=poolurl, makenew=makenew)
-        return 200, po, f"Registered {po.poolurl} @ {po.poolname} OK"
+        if logger.isEnabledFor(logging_DEBUG):
+            logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+        return 200, po, f"Registered {po.poolurl} @ {PM_S()} OK"
     except (ValueError, NotImplementedError, PoolNotFoundError) as e:
         code, result, msg = excp(
             e,
@@ -517,7 +596,7 @@ def register_pool(poolname, usr, poolurl=None):
         return code, result, msg
 
 ################################################
-####  {pool}/register PUT /unreg DELETE  ####
+####  {pool}/register PUT   ####
 ################################################
 
 
@@ -536,11 +615,12 @@ def register(pool):
 
     ts = time.time()
     if logger.isEnabledFor(logging_DEBUG):
-        d = auth.current_user(), request.authorization['username']
-        m = f'PM_GLB_id={ hex(id(PM_S._GlobalPoolList))[-5:]} {d}'
-
+        PM_S = PM_S_from_g(g)
+        assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
+        logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+        
     if logger.isEnabledFor(logging_DEBUG):
-        logger.debug(f"Registering HTTPpool @ {pool} {m}")
+        logger.debug(f"Registering pool @ {pool}")
 
     if ':' in pool:
         # with secondary poolurl
@@ -550,13 +630,16 @@ def register(pool):
         poolname = pool
         poolurl = None
     usr = auth.current_user()
-    with current_app.config['LOCKS']['w']:
+    with current_app.config['LOCKS']['w'], current_app.config['LOCKS']['r'] :
         code, thepool, msg = register_pool(poolname, usr, poolurl=poolurl)
 
     res = thepool if issubclass(thepool.__class__, str) else thepool._poolurl
-    return resp(code, res, msg, ts)
+    return resp(code, res, msg, ts, length=200)
 
 
+################################################
+####  {pool}/unregister DELETE   ####
+################################################
 @ pools_api.route('/<string:pool>', methods=['DELETE'])
 @ auth.login_required(role='read_write')
 def unregister(pool):
@@ -580,6 +663,7 @@ def unregister_pool(pool):
     Check if the pool exists in server, and unregister or raise exception message.
     :return: http code, return value, message.
     """
+    PM_S = PM_S_from_g(g)
 
     poolname = pool
     current_app.logger.debug('UNREGISTER (DELETE) POOL' + poolname)
@@ -630,6 +714,7 @@ def hk(pool):
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('get HK for ' + pool)
 
+    PM_S = PM_S = PM_S_from_g(g)
     poolobj = PM_S.getPool(pool)
     code, result, msg = load_HKdata([pool, 'hk'], serialize_out=True)
 
@@ -644,6 +729,7 @@ def load_HKdata(paths, serialize_out=True, poolurl=None):
     poolurl = poolurl if poolurl else current_app.config['POOLURL_BASE'] + poolname
     # resourcetype = fullname(data)
 
+    PM_S = PM_S = PM_S_from_g(g)
     try:
         poolobj = PM_S.getPool(poolname=poolname, poolurl=poolurl)
         result = poolobj.readHK(hktype=None, serialize_out=serialize_out)
@@ -725,8 +811,6 @@ def hk_single(pool, kind):
     pool = pool.strip('/')
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(f'get {kind} HK for ' + pool)
-    if 0 and kind:
-        __import__("pdb").set_trace()
 
     code, result, msg = load_single_HKdata([pool, 'hk', kind])
 
@@ -742,6 +826,9 @@ def load_single_HKdata(paths, serialize_out=True):
     poolname = '/'.join(paths[: -2])
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     # resourcetype = fullname(data)
+
+    PM_S = PM_S_from_g(g)
+
     if hkname not in HKDBS:
         raise ValueError('Invalid HK type. Must be one of '+', '.join(HKDBS))
     try:
@@ -771,6 +858,8 @@ def count(pool, data_type=None):
     logger = current_app.logger
     # return count_general(pool=pool, data_type=data_type, logger=current_app.logger)
 
+    PM_S = PM_S_from_g(g)
+    
     # def count_general(pool, data_type, logger):
     ts = time.time()
     poolname = pool.strip('/')
@@ -827,6 +916,8 @@ def get_data_count(data_type, pool_id, check_register=False):
     res = 0
     nm = []
 
+    PM_S = PM_S_from_g(g)
+
     if check_register and not PM_S.isLoaded(pool_id):
         return 404, 'FAILED', f'Pool {pool_id} not registered.', 0
     pool = PM_S.getPool(pool_id)
@@ -869,23 +960,20 @@ def api(pool, method_args):
     """ Call api mathods on the running pool and returns the result.
 
     """
-
+    
     logger = current_app.logger
 
     ts = time.time()
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('get API for %s, %s(%d args).' %
                      (pool, method_args[:6], len(method_args.split('__'))-1))
+    PM_S = PM_S_from_g(g)
     #######
-    if 1:  # 'move' in method_args:
-        if logger.isEnabledFor(logging_DEBUG):
-            d = auth.current_user(), request.authorization['username']
-            m = f'PM_GLB_id={ hex(id(PM_S._GlobalPoolList))[-5:]} {d}'
-            pools = dict((p, o._poolurl)
-                         for p, o in PM_S.getMap().items())
-            logger.debug(f'....{m}+{pools}')
-            logger.debug(f"%%% loaded tcf2 {PM_S.isLoaded('test_csdb_fdi2')}")
+    if logger.isEnabledFor(logging_DEBUG):
 
+        logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+            
+            
     if request.method == 'POST':
         # long args are sent with POST
         if request.data is None:
@@ -906,7 +994,7 @@ def api(pool, method_args):
 
 
 def call_pool_Api(paths, serialize_out=False, posted=False):
-    """ Call api mathods on the running pool and returns the result.
+    """ Call api methods on the running pool and returns the result.
 
     return: value if args is pool property; execution result if method.
     """
@@ -922,6 +1010,7 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
         except ValueError as e:
             code = 422
         m_args.insert(0, paths[2])
+
     else:
         args, kwds = [], {}
         # the unquoted args. may have ',' in strings
@@ -931,10 +1020,10 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
         quoted_m_args = request.url.split(
             paths[0] + '/' + paths[1] + '/')[1].strip('/')
         if logger.isEnabledFor(logging_DEBUG):
-            logger.debug('get API : %s' % lls(quoted_m_args, 1000))
+            logger.debug('get API : "%s"' % lls(quoted_m_args, 1000))
         if 0 and quoted_m_args == 'removeTag__tm-all':
             logger.debug(f"%%% {PM_S.isLoaded('test_csdb_fdi2')}")
-            __import__("pdb").set_trace()
+
         # get command positional arguments and keyword arguments
         code, m_args, kwds = deserialize_args(
             quoted_m_args, serialize_out=serialize_out)
@@ -952,23 +1041,23 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
         msg = 'Unknown web API method: %s.' % method
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug(f'RT{code} {msg}')
-        return 0, resp(code, FAILED,
-                       msg,
+        return 0, resp(code, FAILED,  msg,
                        ts, serialize_out=False), 0
     args = m_args[1:] if len(m_args) > 1 else []
     kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
     msg = '%s(%s)' % (method, ', '.join(
         chain(((getattr(x, 'where', str(x)))[:100] for x in args), kwdsexpr)))
     if logger.isEnabledFor(logging_DEBUG):
+        PM_S = PM_S_from_g(g)
         logger.debug('WebAPI ' + lls(msg, 300) +
-                     ' GPL%s' % hex(id(PM_S._GlobalPoolList))[-5:])
+                     (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth)))
 
     poolname = paths[0]
     poolurl = current_app.config['POOLURL_BASE'] + poolname
-
+    # not successful
     if not PM_S.isLoaded(poolname):
-        msg = 'Pool not found or not registered: ' + poolname
-        if method in ('removeAll'):
+        if method in ('removeAll', 'wipe') and Ignore_Not_Exists_Error_When_Delete:
+            msg = f'{method} API-method ignored: Pool {poolname} not found or not registered.'
             result = 'OK'
             code = 200
             if logger.isEnabledFor(logging_DEBUG):
@@ -976,11 +1065,9 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
             return 0, resp(code, result, msg, ts, serialize_out=False), 0
         else:
             result = FAILED
-            if logger.isEnabledFor(logging_ERROR):
-                logger.error(msg)
+            msg = f'{method} API-method: Pool {poolname} not found or not registered.'            
             code = 404
-            if logger.isEnabledFor(logging_DEBUG):
-                logger.debug(f'RT{code} {msg}')
+            logger.debug(f'RT{code} {msg}')
             return 0, resp(code, result, msg, ts, serialize_out=False), 0
 
     try:

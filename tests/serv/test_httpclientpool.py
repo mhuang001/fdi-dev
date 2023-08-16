@@ -15,7 +15,7 @@ from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.pal.productstorage import ProductStorage
 from fdi.pal.productref import ProductRef
 from fdi.pal.query import MetaQuery
-from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL
+from fdi.pal.poolmanager import PoolManager, DEFAULT_MEM_POOL, PM_S
 from fdi.pal.httpclientpool import HttpClientPool
 from fdi.pns.fdi_requests import safe_client, urn2fdiurl, parse_poolurl
 from fdi.utils.common import fullname
@@ -53,7 +53,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-test_poolid = __name__.replace('.', '_')
+from fdi.testsupport.fixtures import http_pool_id
 SHORT = 'function'
 
 @pytest.fixture(scope="module")
@@ -101,7 +101,7 @@ def test_gen_url(server):
     """
 
     aburl, client, auth, pool, poolurl, pstore, server_type = server
-    samplepoolname = 'sample_' + test_poolid
+    samplepoolname = 'sample_' + http_pool_id
     samplepoolurl = aburl + '/' + samplepoolname
     sampleurn = 'urn:' + samplepoolname + ':fdi.dataset.product.Product:10'
 
@@ -176,20 +176,38 @@ def test_gen_url(server):
             urn=sampleurn, poolurl=samplepoolurl, contents='pool', method='GET')
         exc_msg = exc.value.args[0]
         assert exc_msg == 'No such method and contents composition: GET/pool'
+        
+num = 0
+def test_foo(tmp_remote_storage_no_wipe):
+    ps, pool  = tmp_remote_storage_no_wipe
+    assert http_pool_id + '_remote' in ps
+    wtb = ps.getWritablePool()
+    pw = ps._pools[wtb]
+    pw.removeAll()
+    global num
+    num = pw.getCount()
+    p = Product('fffoooo')
+    ref = ps.save(p)
+    assert pw.getCount() == num + 1
+          
+def test_foo1(tmp_remote_storage_no_wipe):
+    ps, pool  = tmp_remote_storage_no_wipe
+    assert http_pool_id + '_remote' in ps
+    wtb = ps.getWritablePool()
+    pw = ps._pools[wtb]
+    assert pw.getCount() == num + 1
+          
 
+def test_tmp_remote_storage_no_wipe(tmp_remote_storage_no_wipe, tmp_prods):
 
-def test_tmp_remote_storage(tmp_remote_storage, tmp_prods):
-
-    ps = tmp_remote_storage
+    ps, pool = tmp_remote_storage_no_wipe
     # lit of poolnames
-    plst = list(ps.getPools())
-    assert len(plst) == 1
-    assert plst[0] == 'test_remote_pool'
-    pool = ps.getPool(plst[0])
+    plst = list(ps._pools)
+    assert len(plst) > 0
 
     # empty
-    assert pool.getCount() == 0
-    assert pool.isEmpty()
+    assert pool.getCount() > 0
+    assert not pool.isEmpty()
     prod_lst = tmp_prods
     refs = []
     for i, p in enumerate(prod_lst):
@@ -200,21 +218,21 @@ def test_tmp_remote_storage(tmp_remote_storage, tmp_prods):
         p = r.product
         retrd.append(p)
         assert p.description.startswith('test-product-')
-    assert len(prod_lst) == len(retrd) == pool.getCount()
+    assert len(prod_lst) == len(retrd) == pool.getCount() - 1
+    
+
+# def est_CRUD_product_by_client(server, local_pools_dir, auth):
+#     """Client http product storage READ, CREATE, DELETE products in remote
+#     """
+#     aburl, headers = server
+#     client = None
+#     poolid = http_pool_id
+#     poolurl = aburl + '/' + poolid
+#     pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
+#     crud_t(poolid, poolurl, pool, auth, client)
 
 
-def est_CRUD_product_by_client(server, local_pools_dir, auth):
-    """Client http product storage READ, CREATE, DELETE products in remote
-    """
-    aburl, headers = server
-    client = None
-    poolid = test_poolid
-    poolurl = aburl + '/' + poolid
-    pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
-    crud_t(poolid, poolurl, pool, auth, client)
-
-
-@pytest.fixture(scope=SHORT)
+@ pytest.fixture(scope="function")
 def get_PS_for_CRUD(server, tmp_remote_storage):
 
     logger.info('Init a pstore')
@@ -333,7 +351,7 @@ def est_webapi_backup_restore(server):
     aburl, headers = server
 
     logger.info('Create pools on the server.')
-    poolid = test_poolid
+    poolid = http_pool_id
     poolurl = aburl + '/' + poolid
     pool = HttpClientPool(poolname=poolid, poolurl=poolurl)
 
@@ -413,16 +431,16 @@ def test_flask_fmt(tmp_pools, server):
     assert pool._poolname in poolnames
 
 
-def test_slash(tmp_remote_storage, tmp_prods):
+def test_slash(tmp_remote_storage_no_wipe, tmp_prods):
     # add urn
-    ps = tmp_remote_storage
+    ps, pool = tmp_remote_storage_no_wipe
     p0_, p11_, p12_, p121, p122, p1221, p12211 = tmp_prods
     urn12211 = ps.save(p12211).urn
 
 
-def test_hist(tmp_remote_storage, tmp_prods):
+def test_hist(tmp_remote_storage_no_wipe, tmp_prods):
     # add urn
-    ps = tmp_remote_storage
+    ps, pool = tmp_remote_storage_no_wipe
     p0_, p11_, p12_, p121, p122, p1221, p12211 = tmp_prods
     urn12211 = ps.save(p12211).urn
     p1221.history.add_input(refs={'p1-2-2-1-1': urn12211})

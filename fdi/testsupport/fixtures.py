@@ -4,7 +4,7 @@
 from fdi.dataset.testproducts import get_demo_product, get_related_product
 from fdi.dataset.classes import Class_Look_Up
 from fdi.dataset.deserialize import deserialize
-from fdi.pal.poolmanager import PoolManager
+from fdi.pal.poolmanager import PoolManager, PM_S_from_g
 from fdi.pal.productstorage import ProductStorage
 from fdi.pns.jsonio import getJsonObj
 from fdi.pns.fdi_requests import reqst
@@ -20,7 +20,7 @@ from fdi.pal.poolmanager import dbg_7types
 
 
 from flask.testing import FlaskClient
-
+from flask import g
 import pytest
 import importlib
 from urllib.error import HTTPError
@@ -55,15 +55,18 @@ EX = ' -l /tmp/foo.log'
 
 ALL_ARCHS = ('http', 'csdb', '')
 
-DEFAULT_SERVER_RUN_METHOD = 'mock'
+DEFAULT_SERVER_RUN_METHOD = ''
 DEFAULT_SERVER_ARCH = 'http'
 
 """ DEfault how the test server is to be run """
 
 BG_SERVER_LOG = '/tmp/test_background_server.log'
 SVR_PATH=os.path.abspath(os.path.dirname(__file__)+'/../../httppool_app.py')
+
+POOL_SEVER_THREAD = 1
 RUN_SERVER_IN_BACKGROUND = f'python3.8 {SVR_PATH} --server=httppool_server --logstream {BG_SERVER_LOG} -d'
 """ set to '' to disable running a pool in the background as the mock. """
+
 
 
 def pytest_addoption(parser):
@@ -232,7 +235,7 @@ def local_pools_dir():
 
 
 def background_app():
-    """ if requied starts a server in the background. """
+    """ if required starts a server in the background. """
 
     # client side.
     # pool url from a local client
@@ -457,7 +460,7 @@ def mock_app():
     from fdi.httppool import create_app
     app = create_app(config_object=pc, level=logger.getEffectiveLevel())
     app.config['TESTING'] = True
-    with app.app_context():
+    with app.app_context():        
         yield app
         # app.
 
@@ -851,14 +854,14 @@ def tmp_local_storage(tmp_path_factory):
 
 @ pytest.fixture(scope=SHORT)
 def tmp_remote_storage_no_wipe(server):
-    """ temporary servered pool with module scope """
+    """ temporary servered pool in a local PoolManager, with module scope """
     aburl, client, auth, pool, poolurl, pstore, server_type = server
 
-    poolid = 'test_remote_pool'
+    poolid = http_pool_id + '_remote'
 
-    pool = PoolManager.getPool(
-        poolid, aburl + '/' + poolid, auth=auth, client=client)
-    ps = ProductStorage(pool, client=client, auth=auth)
+    ps = ProductStorage(poolname=poolid, poolurl=aburl + '/' + poolid,
+                        client=client, auth=auth)
+    pool = ps.getPool(poolid)
     assert issubclass(ps.getPool(poolid).client.__class__,
                       (requests.Session, FlaskClient))
     yield ps, pool
@@ -866,9 +869,12 @@ def tmp_remote_storage_no_wipe(server):
 
 @ pytest.fixture(scope=SHORT)
 def tmp_remote_storage(tmp_remote_storage_no_wipe):
-    """ temporary servered pool wiped """
+    """ temporary servered with pools cleared  """
     ps, pool = tmp_remote_storage_no_wipe
-    pool.removeAll()
+
+    ps._pools.clear()
+    PM_S = PM_S = PM_S_from_g(g)
+    PM_S._GlobalPoolList.clear(include_read_only=True)
     yield ps
 
 

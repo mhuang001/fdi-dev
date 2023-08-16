@@ -19,11 +19,11 @@ from http.cookiejar import MozillaCookieJar as CookieJar
 import weakref
 from weakref import WeakValueDictionary, getweakrefcount
 import getpass
-from collections import UserDict
-import json
+from collections import UserDict, ChainMap
+import json, copy, functools
 import os
 import time
-import logging
+import importlib, logging
 from requests.exceptions import ConnectionError
 from requests.utils import cookiejar_from_dict, dict_from_cookiejar
 # create logger
@@ -44,8 +44,9 @@ print(Cookie_File)
 # if not os.path.exists(Cookie_File):
 #    os.makedirs(Cookie_File, 0o640,  exist_ok=True)
 
-dbg_7types = False
+Ignore_Not_Exists_Error_When_Delete = True
 
+dbg_7types = False
 
 def restore_cookies(session):
     """Load cookies from file for pool server.
@@ -64,7 +65,7 @@ def restore_cookies(session):
     # session.cookies.update(cookies)
     session.cookies = cj
 
-
+        
 def save_cookies(session, interval=10):
     """Save cookies from pool server.
 
@@ -238,6 +239,7 @@ def remoteRegister(pool):
 
         if pool.poolExists():
             logger.info(f'Pool {poolurl} already exists.')
+            stat = 'Existing'
         else:
             logger.info(f'Pool {poolurl} NOT exists.')
 
@@ -264,6 +266,8 @@ def remoteRegister(pool):
             if _lg:
                 logger.info(_lg)
 
+        restore_cookies(pool.client)
+        pool.token = publicclientpool.getToken(poolurl, pool.client)
         pool.client.headers.update({'X-AUTH-TOKEN': pool.token})
 
         pool.poolInfo = pool.getPoolInfo(update_hk=True)
@@ -298,7 +302,7 @@ def remoteUnregister(poolurl, auth=None, client=None, poolmanager=None):
             'http', 'csdb') else PoolManager
 
     # check if poolurl has been registered
-    for pool, poolo in poolmanager._GlobalPoolList.items():
+    for pool, poolo in poolmanager._GlobalPoolList.maps[0].items():
         if issubclass(poolo.__class__, HttpPool):
             continue
         if poolurl == poolo._poolurl:
@@ -325,7 +329,7 @@ def remoteUnregister(poolurl, auth=None, client=None, poolmanager=None):
             res, msg = 'FAILED', str(e)
         if res == 'FAILED':
             msg = f'Unregistering {poolurl} failed. {msg}'
-            if getattr(poolo, 'ignore_error_when_delete', False):
+            if poolo.ignore_error_when_delete:
                 logger.info('Ignored: ' + msg)
                 code = 2
             else:
@@ -365,61 +369,157 @@ def remoteUnregister(poolurl, auth=None, client=None, poolmanager=None):
 #             ob = (ob, self.__counter)
 #         return ob
 
+def report2(self,  f, *args, **kwds):
+    
+    try:
+        if 0 and _CHECK in str(args[0]):
+            #__import__("pdb").set_trace()
+            pass
+    except IndexError as e:
+        pass
 
-# class Reporting_Wvd(WeakValueDictionary):
-class Reporting_Wvd(UserDict):
+    if self.logger  and logger.isEnabledFor(logging_DEBUG):
+        try:
+            _g = f"{hex(id(self.maps[0]))[-5:]}"
+        except (AttributeError, IndexError) as e:
+            _g = "xxx"
+
+        print(f"GPL {_g} {f.__name__}({args}, {kwds})")
+        pass
+    
+    return f(self, *args, **kwds)
+
+
+_CHECK = None
+def reporter2(sf):
+    """ decorator to divert calls to reporter.
+
+    """
+
+    @functools.wraps(sf)
+    def wrapper(*args, **kwds):
+        return report2(args[0],
+                      sf,
+                      *args[1:],
+                      **kwds)
+    return wrapper
+
+logger_GPL = logging.getLogger('_GPL')
+
+class Reporting_Map(ChainMap):
+
+    READ_WRITE = dict()
+    READ_ONLY = dict()
+    
     def __init__(self, *args, **kwds):
-        global logger
-        self.logger = logger
-        super().__init__(*args, **kwds)
+        global logger_GPL
+        self.logger = logger_GPL
+        super().__init__(self.READ_WRITE, self. READ_ONLY, *args, **kwds)
 
+    @reporter2
     def set(self, *args, **kwds):
-        if self.logger:
-            self.logger.debug(f"GPL{hex(id(self))} set. ({args}, {kwds})")
 
         super().set(*args, **kwds)
 
+    @reporter2
     def __setitem__(self, *args, **kwds):
-        if self.logger:
-            self.logger.debug(f"GPL{hex(id(self))} set_i. ({args}, {kwds})")
 
         super().__setitem__(*args, **kwds)
 
+    @reporter2
     def __getitem__(self, *args, **kwds):
-        if self.logger:
-            self.logger.debug(f"GPL{hex(id(self))} get_i. ({args}, {kwds})")
+
         return super().__getitem__(*args, **kwds)
 
+    @reporter2
     def __delete__(self, *args, **kwds):
-        if self.logger:
-            self.logger.debug(f"GPL{hex(id(self))} del. ({args}, {kwds})")
+
         return super().__delete__(*args, **kwds)
 
+    @reporter2
     def __delitem__(self, *args, **kwds):
-        if self.logger:
-            self.logger.debug(f"GPL{hex(id(self))} del_i. ({args}, {kwds})")
+
         super().__delitem__(*args, **kwds)
 
+    @reporter2
     def pop(self, *args, **kwds):
-        if self.logger:
-            self.logger.debug(f"GPL{hex(id(self))} pop. ({args}, {kwds})")
-            return super().pop(*args, **kwds)
 
+        key = args[0]
+        if kwds.pop('include_read_only', None):
+            for m in self.maps:
+                m.pop(key, None)
+        else:
+            ie = kwds.pop('ignore_error', True)
+            if key in self.maps[0]:
+                return super().pop(*args, **kwds)
+            elif key in self.parents:
+                msg = f'Cannot pop key {args[0]} from read-only mapping.'
+                if ie:
+                    self.logger.warning(msg)
+                    return None
+                else:
+                    raise TypeError(msg)
+            else:
+                msg = f'Key {args[0]} not found. Cannot pop from mapping.'
+                if ie:
+                    self.logger.warning(msg)
+                else:
+                    raise KeyError(msg)
+                
+    @reporter2
     def __popitem__(self, *args, **kwds):
-        if self.logger:
-            self.logger.debug(f"GPL{hex(id(self))} pop_i. ({args}, {kwds})")
-        return super().__popitem__(*args, **kwds)
 
+        key = args[0]
+        if kwds.pop('include_read_only', None):
+            for m in self.maps:
+                m.popitem(key, None)
+        else:
+            if key in self.maps[0]:
+                return super().popitem(*args, **kwds)
+            elif key in self.parents:
+                msg = f'Cannot popitem key {args[0]} from read-only mapping.'
+                if kwds.pop('ignore_error', True):
+                    self.logger.warning(msg)
+                    return None
+                else:
+                    raise TypeError(msg)
+            else:
+                msg = f'Key {args[0]} not found. Cannot popitem from mapping.'
+                if kwds.pop('ignore_error', True):
+                    self.logger.warning(msg)
+                else:
+                    raise KeyError(msg)
+
+    @reporter2
     def remove(self, *args, **kwds):
-        if self.logger:
-            self.logger.debug(f"GPL{hex(id(self))} removed. ({args}, {kwds})")
-        return super().remove(*args, **kwds)
 
+        self.pop(*args, **kwds)
+        
+    @reporter2
     def __update__(self, *args, **kwds):
-        if self.logger:
-            self.logger.debug(f"GPL{hex(id(self))} updated. ({args}, {kwds})")
-        super().__update__(*args, **kwds)
 
+        # if kwds.pop('include_read_only', None):
+        #     self.maps[0].__update__(*args, **kwds)
+
+        # self.logger.warning(f'Cannot update read-only mapping.')
+        #     return None
+        # elif kwds.pop('ignore_error', True):
+        super().__update__(*args, **kwds)
+            
+    @reporter2
+    def clear(self, *args, **kwds):
+
+        if kwds.pop('include_read_only', None):
+            self.maps[1].clear(*args, **kwds)
+        else:
+            self.maps[0].clear(*args, **kwds)
+    @reporter2
+    def __contains__(self, *args, **kwds):
+
+        if kwds.pop('include_read_only', True):
+            return super().__contains__(*args, **kwds)
+        else:
+            return self.maps[0].__contains__(*args, **kwds)
 
 class PoolManager(object):
     """
@@ -427,9 +527,9 @@ class PoolManager(object):
 
 This is done by calling the getPool() method, which will return an existing pool or create a new one if necessary.
     """
-
-    _GlobalPoolList = Reporting_Wvd()
-    """ Global centralized dictionary that returns singleton -- the same -- pool for the same ID."""
+    
+    _GlobalPoolList = Reporting_Map()
+    """ Global centralized dictionary that returns singleton -- the same -- pool for the same ID. It has multiple internal mappings, only the one named `READ_WRITE` is used by users. The others are for system use"""
 
     # maps scheme to default place/poolpath
     # pc['host']+':'+str(pc['port'])+pc['baseurl']
@@ -492,7 +592,7 @@ This is done by calling the getPool() method, which will return an existing pool
         return poolname, poolurl, secondary_poolurl, gpl_pool
 
     @classmethod
-    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=False, auth=None, client=None, **kwds):
+    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=False, auth=None, client=None, read_only=False, **kwds):
         """ returns an instance of pool according to name or path of the pool.
 
         Returns the pool object if the pool is registered and new
@@ -626,21 +726,29 @@ Pools registered are kept as long as the last reference remains. When the last i
                         #makenew=makenew,
                         **kwds)
                 elif schm in ('http', 'https'):
-                    from . import httpclientpool
-                    pool = httpclientpool.HttpClientPool(
-                        poolname=poolname,
-                        poolurl=poolurl, # makenew=makenew,
-                        **kwds)
-                    if secondary_poolurl:
-                        # secondary_poolurl
-                        # instantiate with the "normal" poolurl.
-                        # set property 'secondary_poolurl' after instantiation
-                        if secondary_poolurl.startswith('csdb'):
-                            pool.secondary_poolurl = secondary_poolurl
-                        else:
-                            # http secondary from local not implemented
-                            raise TypeError(
-                                f'Not allowed to register scheme {schm} pool {poolurl} on a pool server.')
+                    if issubclass(cls, PM_S):
+                        # on a server, make an Httppool
+                        from . import httppool
+                        pool = httppool.HttpPool(
+                            poolname=poolname, poolurl=poolurl,
+                            #makenew=makenew,
+                            **kwds)
+                    else:
+                        from . import httpclientpool
+                        pool = httpclientpool.HttpClientPool(
+                            poolname=poolname,
+                            poolurl=poolurl, # makenew=makenew,
+                            **kwds)
+                        if secondary_poolurl:
+                            # secondary_poolurl
+                            # instantiate with the "normal" poolurl.
+                            # set property 'secondary_poolurl' after instantiation
+                            if secondary_poolurl.startswith('csdb'):
+                                pool.secondary_poolurl = secondary_poolurl
+                            else:
+                                # http secondary from local not implemented
+                                raise TypeError(
+                                    f'Not allowed to register scheme {schm} pool {poolurl} on a pool server.')
                 else:
                     raise NotImplementedError(f'{schm}:// is not supported')
                 pool._scheme = schm
@@ -693,9 +801,8 @@ Pools registered are kept as long as the last reference remains. When the last i
 
             # If the pool is a client pool, it is this pool that goes into
             # the PM._GlobalPoolList, not the remote pool
-            cls.save(poolname, pool)
+            cls.save(poolname, pool, read_only=read_only)
             # print(getweakrefs(p), id(p))
-
             # Pass poolurl to PoolManager.remove() for remote pools
             # finalize(p, print, poolname, poolurl)
         else:
@@ -707,13 +814,13 @@ Pools registered are kept as long as the last reference remains. When the last i
             from ..httppool.model.user import SESSION
             from flask import session as sess
 
-            if sess and SESSION:
-                # save registered pools
-                if 'registered_pools' not in sess:
-                    sess['registered_pools'] = {}
-                if sess['registered_pools'].get(poolname, '') != pool._poolurl:
-                    sess['registered_pools'][poolname] = pool._poolurl
-                    sess.modified = True
+            # if sess and SESSION:
+            #     # save registered pools
+            #     if 'registered_pools' not in sess:
+            #         sess['registered_pools'] = {}
+            #     if sess['registered_pools'].get(poolname, '') != pool._poolurl:
+            #         sess['registered_pools'][poolname] = pool._poolurl
+            #         sess.modified = True
 
         logger.debug(f'pool {lls(pool, 900)}' +
                      (f' with secondary_poolurl={secondary_poolurl}' if secondary_poolurl else ''))
@@ -728,53 +835,64 @@ Pools registered are kept as long as the last reference remains. When the last i
         return cls._GlobalPoolList
 
     @ classmethod
-    def isLoaded(cls, poolname):
+    def isLoaded(cls, poolname, include_read_only=False):
         """
-        Whether an item with the given id has been loaded (cached).
+        Whether an item with the given id has been loaded (cached) in the `_GlobalPoolList`.
 
-        :returns: the number of remaining week references if the pool is loaded. Returns 0 if poolname is not found in _GlobalPoolList or weakref count is 0.
+        : including_read_only: If set, the result inlcudes counting the read-only part of the `_GlobalPoolList`.
+        :returns: in the full map (if `including_read_only` is set) or the writable map.       
+        
         """
-        if poolname in cls._GlobalPoolList:
-            # print(poolname, getweakrefcount(cls._GlobalPoolList[poolname]))
-            if 1:
-                return 1
-            else:
-                # weakref value dict
-                return getweakrefcount(cls._GlobalPoolList[poolname])
-        else:
-            return 0
+        #the number of remaining weak references if the pool is loaded. Returns 0 if poolname is not found in _GlobalPoolList or weakref count is 0. Do not include the read-only mapping unless `including_read_only` is set.
+        
+        m = cls._GlobalPoolList if include_read_only else cls._GlobalPoolList.maps[0]
+
+        return poolname in m
+
 
     @ classmethod
-    def removeAll(cls, ignore_error=False):
+    def removeAll(cls, ignore_error=True, include_read_only=False):
         """ deletes all pools from the pool list, pools not wiped
         """
-        nl = list(cls._GlobalPoolList)
-        for pool in nl:
-            cls.remove(pool, ignore_error=ignore_error)
+        
+        cls._GlobalPoolList.clear()
+        if include_read_only:
+            cls._GlobalPoolList.maps[1].clear()
 
     @ classmethod
-    def save(cls, poolname, poolobj):
+    def save(cls, poolname, poolobj, read_only=False):
         """
         """
-        cls._GlobalPoolList[poolname] = poolobj
+        #if not read_only:
+        #    __import__("pdb").set_trace()
+
+        if read_only:
+            cls._GlobalPoolList.maps[1][poolname] = poolobj
+        else:
+            cls._GlobalPoolList[poolname] = poolobj
         poolobj.setPoolManager(cls)
-
+    N=0
     @ classmethod
-    def remove(cls, poolname, ignore_error=False):
+    def remove(cls, poolname, ignore_error=True, include_read_only=False):
         """ Remove from list and unregister remote pools.
 
         Returns
         -------
         int :
-            * returns 0 for successful removal
+            * returns 0 for successful removal or not need to remove read-only pool.
             * ``1`` for poolname not registered or referenced, still attempted to remove. 
             * ``> 1`` for the number of weakrefs the pool still have, and removing failed.
             * ``<0`` Trouble removing entry from `_GlobalPoolList`.
+        ignore_error : bool
+            If set (default) ignore not-exit/not-found error when deleting. If set to `False` exceptions `KeyError`, 404, etc will be raised.
         """
 
         # number of weakrefs
-
-        nwr = cls.isLoaded(poolname)
+        
+        #cls.N+=1
+        #if cls.N>20:
+        
+        nwr = cls.isLoaded(poolname, include_read_only=include_read_only)
 
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug(
@@ -797,26 +915,36 @@ Pools registered are kept as long as the last reference remains. When the last i
         else:
             # nwr <=  0
             code = 1
-        try:
-            pool = cls._GlobalPoolList.pop(poolname)
-            pool.setPoolManager(None)
-
-            from ..httppool.model.user import SESSION
-            from flask import session as sess
-
-            if sess and SESSION:
-                from flask import session as sess
-                # removed registered pools
-                if 'registered_pools' in sess:
-                    sess['registered_pools'].pop(poolname, '')
-                sess.modified = True
-
-        except KeyError as e:
+        if poolname not in cls._GlobalPoolList:
+            msg = f'Pool {poolname} is not found in PoolManager pool list.'
             if ignore_error:
-                logger.info("Ignored: "+str(e))
-                code = -1
+                logger.info(f"Ignored: {msg}")
+                code = 0
             else:
-                raise
+                logger.error(msg)
+                raise KeyError(msg)
+        elif poolname not in cls._GlobalPoolList.maps[0]:
+            msg = f'Popping read-only pool {poolname}'
+            if ignore_error:
+                logger.info(f"Ignored: {msg}")
+                code = 0
+            else:
+                logger.error(msg)
+                code = 0
+        else:
+            pool = cls._GlobalPoolList.pop(poolname, ignore_error=True, include_read_only=False)
+            if pool is not None:
+                pool.setPoolManager(None)
+
+            # from ..httppool.model.user import SESSION
+            # from flask import session as sess
+
+            # if sess and SESSION:
+            #     from flask import session as sess
+            #     # removed registered pools
+            #     if 'registered_pools' in sess:
+            #         sess['registered_pools'].pop(poolname, '')
+            #     sess.modified = True
         return code
 
     @ classmethod
@@ -871,18 +999,14 @@ Pools registered are kept as long as the last reference remains. When the last i
         return self._GlobalPoolList.__iter__(*args, **kwargs)
 
     def __repr__(self):
-        return self.__class__.__name__ + '(' + str(self._GlobalPoolList) + ')'
+        return self.__class__.__name__ + '(' + str(list(map(dict, self._GlobalPoolList.maps))) + ')'
 
-    @classmethod
-    def g(cls):
-        return cls._GlobalPoolList.data
-
-    d = _GlobalPoolList.data
+    m = _GlobalPoolList.maps
 
 
 class PM_S(PoolManager):
     """Made to provid a different `_GlobalPoolList` useful for testing as a mock"""
-    _GlobalPoolList = Reporting_Wvd()
+    _GlobalPoolList = Reporting_Map()
     """ Another Global centralized dict that returns singleton -- the same -- pool for the same ID."""
 
     # @classmethod
@@ -902,3 +1026,27 @@ class PM_S(PoolManager):
     #     if SESSION:
     #         session.modified = True
     #     PoolManager.setPoolurlMap(*args, **kwds)
+
+
+def PM_S_from_g(gvar):
+
+    global PM_S
+
+    try:
+        pg = hex(id(_PM_S._GlobalPoolList.maps[0]))
+    except ValueError as e:
+        pg = ''
+    if gvar is None:
+        return PM_S
+    if 'PM_S' not in gvar or not gvar.PM_S:
+        print('**UPDATING g** g, _PMS_G_[0]', hex(id(gvar))[-5:], pg[-5:])
+        gvar.PM_S = _PM_S
+        # Set module variable PM_S to g-attribute so other get g when importing.
+        PM_S = gvar.PM_S
+        # force re-import.
+        #importlib.invalidate_caches()
+    
+    return PM_S
+
+# initialize with static definition.
+_PM_S = PM_S

@@ -27,8 +27,8 @@ logger = logging.getLogger(__name__)
 # logger.debug('level %d' %  (logger.getEffectiveLevel()))
 
 ''' Note: this has to be in a different file where other interface
-classes are defined to avoid circular dependency (such as ,
-Serializable.
+classes are defined to avoid circular dependency (such as 
+Serializable.)
 '''
 
 

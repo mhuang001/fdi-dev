@@ -863,9 +863,7 @@ class ManagedPool(dicthk.DictHk):
     def __repr__(self):
         # co = ', '.join(str(k) + '=' + lls(v, 40)
         #               for k, v in self.__getstate__().items())
-        co = ', '.join(str(k)+'=' + (v if issubclass(v.__class__, str) else
-                                     f'< {v.__class__.__name__} {len(v)} >')
-                       for k, v in self.__getstate__().items())
+        co = f"{getattr(self, '_poolname', 'unknown')}, poolurl={getattr(self, '_poolurl', 'unknown')[:15]}..., {len(self._dTypes)} products"
         return '<'+self.__class__.__name__ + ' ' + co + '>'
 
     def __getstate__(self):

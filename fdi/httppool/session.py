@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from ..utils.getconfig import getConfig
-from .model.user import SESSION
 
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
@@ -10,6 +9,9 @@ import secrets
 from datetime import timedelta
 
 pc = getConfig()
+
+SESSION = True
+# enable session
 
 #### for clients #####
 
@@ -22,6 +24,8 @@ METHODS = ("GET",)
 # 0 means disabled
 MAX_RETRIES = 0
 
+session = None
+# module variable holding initialized session
 
 def requests_retry_session(
         retries=MAX_RETRIES,
@@ -64,6 +68,7 @@ def init_session(app):
     if not SESSION:
         return None
 
+    global session
     app.secret_key = secrets.token_hex()
     app.config["SESSION_PERMANENT"] = True
     app.config["SESSION_REFRESH_EACH_REQUEST"] = True

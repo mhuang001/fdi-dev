@@ -261,15 +261,6 @@ def init_poolmanager(app, g, pc):
     with app.app_context():
         PM_S = PM_S_from_g(g)
         
-    logger.info('PM_S'+hex(id(PM_S._GlobalPoolList.maps[0])))
-    
-    # initialize read-only pools
-    from ..pal.productstorage  import ProductStorage
-
-    for pn, po in pc['read_only_pools'].items():
-        ps = ProductStorage(poolname=pn, poolurl=po, read_only=True)
-
-        ##PM_S.save(pn, po, read_only=True)
     if PM_S.isLoaded(DEFAULT_MEM_POOL):
         if logger.isEnabledFor(logging_DEBUG):
             logger.debug('cleanup DEFAULT_MEM_POOL')
@@ -285,6 +276,15 @@ def init_poolmanager(app, g, pc):
         pass
     app.config['POOLMANAGER'] = PM_S
 
+    # initialize read-only pools
+    from ..pal.productstorage  import ProductStorage
+
+    for pn, po in pc['read_only_pools'].items():
+        ps = ProductStorage(poolname=pn, poolurl=po, read_only=True)
+        ##PM_S.save(pn, po, read_only=True)
+
+    logger.info('PM_S initializing..'+hex(id(PM_S._GlobalPoolList.maps[0])) + ' ' + str(PM_S()))
+    
     # pool-related paths
     # the httppool that is local to the server
     scheme = 'server'

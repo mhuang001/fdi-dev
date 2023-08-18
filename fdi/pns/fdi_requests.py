@@ -228,8 +228,7 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
     for n in range(tries):
         try:
             res = method(api, *args, **kwds)
-
-            if res.status_code not in FORCED:
+            if FORCED is None or res.status_code not in FORCED:
                 break
         except ConnectionError as e:
             err.append(e)
@@ -372,6 +371,7 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
     result_only: only return the reponse result. Default False.
     client: alternative client to answer API calls. For tests etc. Default None for `session`.
     """
+
 
     if auth is None:
         if client and getattr(client, 'auth', '') and client.auth:

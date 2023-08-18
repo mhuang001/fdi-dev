@@ -22,7 +22,7 @@ FORCED = None #(503, 504, 408, 413, 429)
 # METHODS = ("POST", "PUT", "HEAD", "GET", "OPTIONS")
 METHODS = ("GET",)
 # 0 means disabled
-MAX_RETRIES = 0
+MAX_RETRIES = 2
 
 session = None
 # module variable holding initialized session
@@ -42,7 +42,6 @@ def requests_retry_session(
     session = session or requests.session()
 
     if retries:
-        __import__("pdb").set_trace()
 
         retry = Retry(
             total=retries,

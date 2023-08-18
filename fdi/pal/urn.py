@@ -411,7 +411,7 @@ The ``PoolURL`` format is in the form of a URL that preceeds its poolname part:
     """
 
     if url is None or url == '':
-        return (None, None, None, None)
+        return (None, None, None, None, None, None)
     if not issubclass(url.__class__, strset):
         raise ValueError('A string is needed. Not ' + str(url))
 

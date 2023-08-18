@@ -424,7 +424,8 @@ def test_PoolManager():
         # assert pm.remove(defaultpoolName) == 0
 
     # http pool gets registered
-    with pytest.raises(ConnectionError), pytest.raises(NewConnectionError):
+    #with pytest.raises(ConnectionError)
+    with pytest.raises(NewConnectionError):
         ph = pm.getPool(poolurl='http://h.edu/foo')
 
     assert not PoolManager.isLoaded('foo')

@@ -419,9 +419,9 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
                     rs.append(r)
                 res = rs if alist else rs[0]
     elif requestName in ('tagExist',
-                         'getUrn'):
+                         'getTag'):
         with lock_r:
-            if requestName == 'getUrn':
+            if requestName == 'getTag':
                 requestAPI0 = default_base + \
                     '/storage/tag?tag='
             else:

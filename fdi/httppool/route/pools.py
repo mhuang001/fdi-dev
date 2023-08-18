@@ -1052,6 +1052,8 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
         logger.debug('WebAPI ' + lls(msg, 300) +
                      (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth)))
 
+    PM_S = PM_S_from_g(g)
+
     poolname = paths[0]
     poolurl = current_app.config['POOLURL_BASE'] + poolname
     # not successful

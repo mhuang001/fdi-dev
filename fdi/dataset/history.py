@@ -192,7 +192,7 @@ class History(TableDataset):
             appended to `info` by default.
         Returns
         -------
-            result
+            None
 
         """
         if args or info or kwds:

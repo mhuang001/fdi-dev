@@ -664,7 +664,7 @@ Pools registered are kept as long as the last reference remains. When the last i
                 # have poolurl, check secondary_poolurl
                 poolhint = kwds.get('poolhint', None)
                 poolurl, secondary_poolurl, last_frag, schm = get_secondary_poolurl(
-                    poolurl, poolhint=poolhint)
+                    poolurl, poolhint=poolhint if poolhint else poolname)
                 if poolname:
                     if poolname != last_frag:
                         raise ValueError(

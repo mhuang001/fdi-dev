@@ -50,7 +50,7 @@ pnsconfig['host'] = '127.0.0.1'
 pnsconfig['port'] = 9885
 # a dictionary of poolname - poolurl pairs
 pnsconfig['read_only_pools'] = {
-    'test_e2e2_vt':'csdb:,,123.56.102.90:31702,csdb,v1,storage,test_e2e2_vt'}
+    'test_e2e2_vt':'csdb://123.56.102.90:31702/csdb/v1/storage/test_e2e2_vt'}
 
 # modify
 if conf == 'dev':

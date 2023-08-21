@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-date >> ~/last_ent_fdi
+date > ~/last_ent_fdi
 cat ~/lastent_docker
 
 echo @@@ $@

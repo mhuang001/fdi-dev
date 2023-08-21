@@ -1,6 +1,6 @@
 __version_info__ = (1, 37, 0)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.36.1-4-g2e4ba48'
+__revision__ = '1.37.0-5-g60bd3d1'
 
 # 1.37.0 attempt to add docker entrypoint inhrit.read_only pool avoid deleting.
 # 1.36.1 fix getUrn bug. vtse working.

@@ -75,6 +75,15 @@ VOLUME /var/log ${PNS_SERVER_LOCAL_POOLPATH}/..
 
 RUN date > build
 
+
+USER root
+COPY /home/fdi/dockerfile_entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN echo /bin/bash > /usr/local/bin/service-foreground.sh
+RUN chown ${USR}:${USR} /usr/local/bin/service-foreground.sh /usr/local/bin/docker-entrypoint.sh
+USER ${USR}
+RUN chmod +x  /usr/local/bin/service-foreground.sh /usr/local/bin/docker-entrypoint.sh
+
+
 ENTRYPOINT  ["/home/fdi/httppool_server_entrypoint_uwsgi.sh"]
 
 #CMD ["uwsgi --master --module wsgi:app --processes 1"]
@@ -86,4 +95,27 @@ RUN rm -rf /tmp/test* /tmp/data
 
 ARG SERVER_VERSION
 ENV PNS_SERVER_VERSION=${SERVER_VERSION}
-LABEL PoolServer ${PNS_SERVER_VERSION}
+LABEL poolserver_${PNS_SERVER_VERSION}
+
+## Extend foreground script
+
+# RUN echo uwsgi --ini httppool_server_uwsgi.ini > startsvr \
+#     && chmod 755 startsvr
+
+# USER root
+# RUN cd /usr/local/bin; \
+#     cp service-foreground service-foreground-inherit; \
+#     { \
+#         echo '#!/bin/bash'; \
+#         echo '[[ "$1" = "startsvr" ]] && { ~fdi/startsvr "$@"; exit; }'; \
+#         echo 'service-foreground-inherit "$@"'; \
+#     } > /usr/local/bin/service-foreground
+
+# ## Extend entrypoint script
+# RUN cd /usr/local/bin; \
+#     cp docker-entrypoint.sh docker-entrypoint-inherit.sh; \
+#     { \
+#         echo '#!/bin/bash'; \
+#         echo 'docker-entrypoint-inherit.sh no-run "$@"'; \
+#         echo '[[ "$1" = "startsvr" ]] && set -- startsvr "$@"'; \
+#     } > /usr/local/bin/docker-entrypoint.sh

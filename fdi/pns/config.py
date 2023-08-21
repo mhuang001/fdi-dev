@@ -82,7 +82,7 @@ elif conf == 'production':
     # For server. needed for test_pal so this should point to a locally
     # writeable dir. If needed to change for a server, do it with
     # an environment var.
-    pnsconfig['baseurl'] = '/fdi-dev/v0.16'
+    pnsconfig['baseurl'] = '/fdi/v0.16'
 
     pnsconfig['self_host'] = '0.0.0.0'
     pnsconfig['self_port'] = 9876

@@ -1008,7 +1008,7 @@ class PublicClientPool(ManagedPool):
             raise ValueError('Tag must be a string or a list of string.')
         return res
 
-    def doWipe(self, keep=True):
+    def doWipe(self, keep=True, include_read_only=False):
         """ to do the action of wiping.
 
         Parameters
@@ -1047,8 +1047,11 @@ class PublicClientPool(ManagedPool):
                     else:
                         raise ServerError(msg)
 
-        r = read_from_cloud(
-            'wipePool', poolname=poolname, client=self.client, token=self.token, keep=keep)
+        if not include_read_only and poolname in self.getPoolManager().getMap().parents:
+            r = None
+        else:
+            r = read_from_cloud(
+                'wipePool', poolname=poolname, client=self.client, token=self.token, keep=keep)
         if r is None:
             logger.debug(f'Done removing {poolname}')
         else:

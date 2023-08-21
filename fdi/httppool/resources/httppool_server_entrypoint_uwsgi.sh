@@ -16,6 +16,7 @@ set +a
 sed -i "s/^conf\s*=\s*.*$/conf = 'production'/g" ~/.config/pnslocal.py 
 mkdir -p /var/log/uwsgi
 
+
 if [ ! -d /var/log/uwsgi ]; then \
 sudo mkdir -p /var/log/uwsgi && \
 sudo chown -R fdi:fdi /var/log/uwsgi && \

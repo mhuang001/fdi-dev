@@ -585,6 +585,9 @@ def content2result_csdb(content):
             code, text, url = resp  # .status, resp.text(), resp.url.raw_path_qs
         else:
             # requests
+            if resp is None:
+                #__import__("pdb").set_trace()
+                return [None] * len(content) if alist else None
             code, text, url = resp.status_code, resp.text, resp.url
         obj = deserialize(text)
         if issubclass(obj.__class__, str):

@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1.2
 
 FROM ubuntu:18.04 AS fdi
+# 8 inherit ENTRYPOINT
 # 1-6 M. Huang <mhuang@nao.cas.cn>
 # 0.1 yuxin<syx1026@qq.com>
 #ARG DEBIAN_FRONTEND=noninteractive
@@ -157,8 +158,19 @@ WORKDIR ${UHOME}
 RUN pwd; /bin/ls -la; env \
 date > build
 
-ENTRYPOINT  ["/home/fdi/dockerfile_entrypoint.sh"]
-CMD ["/bin/bash"]
+# https://dev.to/francescobianco/override-docker-entrypoint-sh-into-dockerfile-4fh
+
+USER root
+COPY ${USR}:${USR} /home/fdi/dockerfile_entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN echo /bin/bash > /usr/local/bin/service-foreground.sh
+RUN chown ${USR}:${USR} /usr/local/bin/service-foreground.sh
+
+USER ${USR}
+RUN chmod +x  /usr/local/bin/service-foreground.sh /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["service-foreground.sh"]
+
 
 ARG DOCKER_VERSION
 ENV PNS_DOCKER_VERSION=${DOCKER_VERSION}

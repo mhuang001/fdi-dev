@@ -1,11 +1,7 @@
 #!/bin/bash
 
-id | tee ~/lastent_docker
-echo ######
 
-rm -rf /tmp/fditest* /tmp/data
-
-date >> ~/lastent_docker
+date >> ~/last_ent_fdi
 cat ~/lastent_docker
 
 echo @@@ $@

@@ -95,7 +95,7 @@ RUN rm -rf /tmp/test* /tmp/data
 
 ARG SERVER_VERSION
 ENV PNS_SERVER_VERSION=${SERVER_VERSION}
-LABEL poolserver_${PNS_SERVER_VERSION}
+LABEL poolserver ${PNS_SERVER_VERSION}
 
 ## Extend foreground script
 

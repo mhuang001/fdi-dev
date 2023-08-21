@@ -171,7 +171,6 @@ date > build
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["service-foreground.sh"]
 
-
 ARG DOCKER_VERSION
 ENV PNS_DOCKER_VERSION=${DOCKER_VERSION}
 LABEL fdi ${PNS_DOCKER_VERSION}

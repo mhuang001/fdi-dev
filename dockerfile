@@ -138,7 +138,7 @@ WORKDIR ${PKGS_DIR}/${PKG}
 
 # all dependents have to be from pip cache
 RUN umask 0002 \
-&& make PROJ-INSTALL WHEEL_INSTALL=14 fdi_EXT="[DEV,SCI]" I="-q"
+&& make PROJ-INSTALL WHEEL_INSTALL=4 fdi_EXT="[DEV,SCI]" I="-q"
 #&& ${PYEXE} -m pip install -e .[DEV,SCI] ${PIPOPT}
 
 WORKDIR ${PKGS_DIR}

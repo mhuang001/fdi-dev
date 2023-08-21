@@ -2,7 +2,7 @@ __version_info__ = (1, 37, 0)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.36.1-4-g2e4ba48'
 
-# attempt to add docker entrypoint inhrit.read_only pool avoid deleting.
+# 1.37.0 attempt to add docker entrypoint inhrit.read_only pool avoid deleting.
 # 1.36.1 fix getUrn bug. vtse working.
 # 1.36.0 read_only pools, single PoolManager for all. remove pool info in session. improve pool request processing and debugging info.rr
 # 1.35.6 fix typo. make running docker

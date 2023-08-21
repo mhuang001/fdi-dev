@@ -160,13 +160,13 @@ date > build
 
 # https://dev.to/francescobianco/override-docker-entrypoint-sh-into-dockerfile-4fh
 
-USER root
-COPY /home/fdi/dockerfile_entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN echo /bin/bash > /usr/local/bin/service-foreground.sh
-RUN chown ${USR}:${USR} /usr/local/bin/service-foreground.sh /usr/local/bin/docker-entrypoint.sh
+# USER root
+# COPY /home/fdi/dockerfile_entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+# RUN echo /bin/bash > /usr/local/bin/service-foreground.sh
+# RUN chown ${USR}:${USR} /usr/local/bin/service-foreground.sh /usr/local/bin/docker-entrypoint.sh
 
-USER ${USR}
-RUN chmod +x  /usr/local/bin/service-foreground.sh /usr/local/bin/docker-entrypoint.sh
+# USER ${USR}
+# RUN chmod +x  /usr/local/bin/service-foreground.sh /usr/local/bin/docker-entrypoint.sh
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["service-foreground.sh"]

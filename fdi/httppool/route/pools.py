@@ -47,6 +47,8 @@ endp = swag['paths']
 
 pools_api = Blueprint('pools', __name__)
 
+# Do not redirect a URL ends with no spash to URL/
+
 @pools_api.before_app_request
 def b4req_pools():
 
@@ -74,13 +76,12 @@ def aftreq_pools(resp):
             logger.debug('Called with no SESSION')
         return resp
 
-    PM_S = PM_S_from_g(g)
-    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
 
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-        logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+        PM_S = PM_S_from_g(g)
+        assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
 
-    del PM_S
+        logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
     
     return resp
 

@@ -860,6 +860,13 @@ def get_cmdline(ypath):
 
 
 if __name__ == '__main__':
+
+    main()
+
+def main():
+
+    global logger
+
     print('Generating Python code for product class definition..')
 
     dry_run = False

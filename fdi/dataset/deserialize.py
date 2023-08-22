@@ -508,5 +508,5 @@ def deserialize_args(all_args, not_quoted=False, first_string=True, serialize_ou
                 del dese['apiargs']
             kwds = dese
             break
-    logger.debug('args %s KWDS %s' % (str(args), str(kwds)))
+    #logger.debug('args %s KWDS %s' % (str(args), str(kwds)))
     return 200, args, kwds

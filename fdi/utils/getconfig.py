@@ -390,6 +390,12 @@ def get_mqtt_config():
 
 if __name__ == '__main__':
 
+    main()
+
+def main():
+
+    global logger
+    
     logger = logging.getLogger()
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -564,3 +570,4 @@ def get_projectclasses(clp, exclude=None, verbose=False):
         pc = importlib.import_module(clpf.replace('.py', ''))
         sys.path.pop(0)
     return pc
+

@@ -99,6 +99,7 @@ def tree(data_object, level=0, style='line', prefix='', seen=None):
         vc = v.__class__
         shp = (' %s' % str(v.shape)) if hasattr(v, 'shape') else ''
         typ = '%s' % (str(v.type) if hasattr(v, 'type') else vc.__name__)
+            
         # format output line
         ts = '<%s>%s' % (typ, shp)
         line = prefix + pointer + str(name_value[0])

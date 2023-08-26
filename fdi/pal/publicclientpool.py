@@ -13,7 +13,7 @@ from .dicthk import HKDBS, populate_pool2
 from .urn import makeUrn, parse_poolurl, Urn, parseUrn
 from ..pns.public_fdi_requests import read_from_cloud, load_from_cloud, delete_from_server
 from ..pns.fdi_requests import ServerError
-from ..utils.tofits import is_Fits
+from ..utils.tofits import is_Fits, convert_name
 from ..utils.common import (fullname, lls, trbk,
                             logging_ERROR,
                             logging_WARNING,
@@ -150,7 +150,9 @@ def getToken(poolurl, client):
     #     logger.info(f'Cloud token {lls(current_token, 50)} {trouble} ')
     # 
     if True:
-        tokenMsg = read_from_cloud('getToken', client=client)
+        poolpath, scheme, place, poolname, username, pasword = \
+            parse_poolurl(poolurl)
+        tokenMsg = read_from_cloud('getToken', client=client, url_user_base=f'http://{place}')
         if tokenMsg:
             token = tokenMsg['token']
         else:
@@ -711,12 +713,14 @@ class PublicClientPool(ManagedPool):
         cls = None
         fits_with_name = is_Fits(prd, get_type=True)
         if fits_with_name:
+            fits_with_name = convert_name(fits_with_name)
             cls = Class_Look_Up[fits_with_name]
             content = 'application/fits'
             serialize_in = False
+            mp = None
         else:
             content = 'application/json;charset=UTF-8'
-
+            mp = '/_ATTR_meta'
         # now we know if we have FITS or JSON
         if content == 'application/json;charset=UTF-8':
             jsonPrd = prd
@@ -736,8 +740,8 @@ class PublicClientPool(ManagedPool):
                 raise ValueError('No such product type in csdb: ' + pn)
 
         # targetPoolpath = self.getPoolpath() + '/' + pn
-        try: 
-           # save prod to cloud
+        try:
+            # save prod to cloud
             uploadRes = self.doSave(resourcetype=pn,
                                     index=None,
                                     data=jsonPrd if serialize_in else prd,
@@ -745,6 +749,7 @@ class PublicClientPool(ManagedPool):
                                     serialize_in=serialize_in,
                                     serialize_out=serialize_out,
                                     content=content,
+                                    metaPath=mp,
                                     **kwds)
         except ValueError as e:
             msg = f'product {self.poolname}/{pn} saving failed. {e} {trbk(e)}'
@@ -779,7 +784,7 @@ class PublicClientPool(ManagedPool):
                 res.append(rf)
             else:
                 # it seems that there is no better way to set meta
-                rf._meta = prd.getMeta() if getattr(prd, 'getMeta') else ''
+                rf._meta = prd.getMeta() if hasattr(prd, 'getMeta') else ''
                 res.append(rf)
 
     def asyncSave(self, prds, tags, geturnobjs, serialize_in, serialize_out, res, check_type=[], **kwds):
@@ -1047,7 +1052,7 @@ class PublicClientPool(ManagedPool):
                     else:
                         raise ServerError(msg)
 
-        if not include_read_only and poolname in self.getPoolManager().getMap().parents:
+        if (not include_read_only) and poolname in self.getPoolManager().getMap().maps[1]:
             r = None
         else:
             r = read_from_cloud(

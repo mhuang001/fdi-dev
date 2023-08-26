@@ -65,7 +65,7 @@ def is_Fits(data, get_type=False):
 
     Parameter
     ---------
-    data : object
+    data : object. string is encoded to `bytes` with utf-8.
     get_type : bool
         If set return the TYPE or CARD name. Default is `False`. If set search all positions at 80 bytes interval for 'TYPE' and 'CARD' keyword and name up to '/'.
 
@@ -79,7 +79,10 @@ def is_Fits(data, get_type=False):
     """
     ID = b'SIMPLE  =                    T'
     strp = b"""" '"""
-    
+
+    if issubclass(data.__class__, str):
+        data = data.encode('utf-8')
+        
     try:
         y= data.startswith(ID)
     except:
@@ -103,6 +106,13 @@ def is_Fits(data, get_type=False):
         # ID not found.
         return False
     
+def convert_name(n):
+    """ Converts model/card/definition/product name to comply to Python class naming convention.
+    """
+    name = n.replace('-', '_')
+    return name
+
+
 def toFits(data, file='', **kwds):
     """convert dataset to FITS.
 

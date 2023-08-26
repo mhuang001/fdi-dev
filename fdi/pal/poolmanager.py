@@ -213,7 +213,7 @@ def remoteRegister(pool):
             res, msg = put_on_server(
                 'urn:::0', poolurl, 'register_pool',
                 auth=poolo.auth, client=poolo.client)
-        except ConnectionError as e:
+        except (ConnectionError, NewConnectionError) as e:
             res, msg = 'FAILED', str(e)
             logger.error(poolurl + ' ' + lls(msg, 220))
             raise

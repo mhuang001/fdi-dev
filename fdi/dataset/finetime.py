@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 utcobj = datetime.timezone.utc
 
-
 class FineTime(Copyable, DeepEqual, Serializable):
     """ Atomic time (SI seconds) elapsed since the TAI epoch
     of 1 January 1958 UT2. The resolution is one microsecond and the
@@ -70,6 +69,13 @@ class FineTime(Copyable, DeepEqual, Serializable):
         # logger.debug('date= %s TAI = %d' % (str(date), self.tai))
         super().__init__(**kwds)
 
+    def _float2settai(self, time):
+        if time < self.UTC_LOW_LIMIT_TIMESTAMP:
+            logger.warning(
+                'Timestamp before %s not defined yet.' % str(self.UTC_LOW_LIMIT_TIMESTAMP))
+            d = datetime.datetime.fromtimestamp(time, tz=utcobj)
+            return self.datetimeToFineTime(d)
+
     @property
     def time(self):
         return self.getTime()
@@ -98,11 +104,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         elif issubclass(time.__class__, int):
             setTai = time
         elif issubclass(time.__class__, float):
-            if time < self.UTC_LOW_LIMIT_TIMESTAMP:
-                logger.warning(
-                    'Timestamp before %s not defined yet.' % str(self.UTC_LOW_LIMIT_TIMESTAMP))
-            d = datetime.datetime.fromtimestamp(time, tz=utcobj)
-            setTai = self.datetimeToFineTime(d)
+            setTai = self._float2settai(time)
         elif issubclass(time.__class__, datetime.datetime):
             if time.tzinfo is None:
                 d = time.replace(tzinfo=utcobj)
@@ -110,20 +112,27 @@ class FineTime(Copyable, DeepEqual, Serializable):
                 d = time
             setTai = self.datetimeToFineTime(d)
         elif issubclass(time.__class__, (str, bytes)):
-            t = time.strip()
+            t = time
             if issubclass(t.__class__, bytes):
                 t = t.decode('ascii')
-            fmt = self.format
-            if fmt:
+            try:
+                setTai = int(t)
+            except ValueError:
                 try:
-                    d = datetime.datetime.strptime(t, fmt)
-                    d1 = d.replace(tzinfo=utcobj)
-                    setTai = self.datetimeToFineTime(d1)
+                    f = float(t)
+                    setTai = self._float2settai(f)
                 except ValueError:
-                    pass
+                    fmt = self.format
+                    if fmt:
+                        try:
+                            d = datetime.datetime.strptime(t, fmt)
+                            d1 = d.replace(tzinfo=utcobj)
+                            setTai = self.datetimeToFineTime(d1)
+                        except ValueError:
+                            pass
         else:
-            msg = ('%s must be an integer,a datetime object,'
-                   'or a string or bytes or float, but its type is %s.' % (
+            msg = ('%s must be an integer, a float, a datetime object,'
+                   'or a string or bytes or str/bytes of an int or float, but its type is %s.' % (
                        str(time), type(time).__name__))
             raise TypeError(msg)
         if setTai is ...:

@@ -343,7 +343,7 @@ When implementing a ProductPool, the following rules need to be applied:
         if isinstance(res, list):
             for p, u in zip(product, res):
                 p._urn = u if geturnobjs else u.getUrnObj()
-        else:
+        elif isinstance(res, BaseProduct):
             product._urn = res if geturnobjs else res.getUrnObj()
         return res
 

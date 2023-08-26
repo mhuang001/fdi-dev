@@ -91,7 +91,7 @@ def aftreq_pools(resp):
 ######################################
 
 
-@ pools_api.route('', methods=['GET'])
+@ pools_api.route('/', methods=['GET'])
 def get_pools_url():
     """ Get names and urls of all pools, registered or not.
     """

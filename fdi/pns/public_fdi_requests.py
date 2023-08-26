@@ -76,14 +76,19 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
 
 
     """
-
+    urlbase = kwds.pop('urlbase', '')
+    urlbase = urlbase if urlbase else default_base
+    
     if client is None:
         client = session
     header = {'Content-Type': 'application/json;charset=UTF-8'}
     if requestName == 'getToken':
+        # e.g. http://10.0.0.2:8888
+        uub = kwds.pop('url_user_base', '')
+        user_url_base = uub if uub else defaulturl
         header['X-AUTH-TOKEN'] = kwds.pop('token', '')
         with lock_r:
-            requestAPI = defaulturl + '/user/auth/token'
+            requestAPI =  user_url_base + '/user/auth/token'
             if client is None or not getattr(client, 'auth', ''):
                 postData = {'username': AUTHUSER, 'password': AUTHPASS}
             else:
@@ -93,8 +98,12 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             res = reqst(client.post, requestAPI, headers=header,
                         data=serialize(postData), server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'verifyToken':
+    
+        # e.g. http://10.0.0.2:8888
+        uub = kwds.pop('user_url_base', '')
+        user_url_base = uub if uub else defaulturl
         with lock_r:
-            requestAPI = defaulturl + \
+            requestAPI = user_url_base + \
                 '/user/auth/verify?token=' + kwds.pop('token', '')
            # None is sucessful!
             res = reqst(client.get, requestAPI,
@@ -120,12 +129,12 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
         with lock_r:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
             if requestName == 'infoUrn':
-                requestAPI = default_base + \
+                requestAPI = urlbase + \
                     '/storage/info?urns=' + kwds.pop('urn')
             elif requestName == 'infoPool':
                 limit = kwds.pop('limit', 10000)
                 getc = 1 if kwds.pop('getCount', 0) else 0
-                requestAPI = default_base + \
+                requestAPI = urlbase + \
                     f'/storage/info?getCount={getc}&pageIndex=1&pageSize={limit}&pools=' + \
                     kwds.pop('pools')
             else:
@@ -136,7 +145,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
     elif requestName == 'getMeta':
         with lock_r:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-            requestAPI = default_base + \
+            requestAPI = urlbase + \
                 '/storage/meta?urn=' + kwds.pop('urn')
             res = reqst(client.get, requestAPI, headers=header,
                         server_type=server_type, auth=client.auth, **kwds)
@@ -144,7 +153,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
     elif requestName == 'getDataInfo':
         with lock_r:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-            requestAPI0 = default_base + \
+            requestAPI0 = urlbase + \
                 '/storage/searchByPoolOrPath?limitCount=%d'
 
             """ result example:
@@ -219,7 +228,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
         with lock_r:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
             subs = kwds.pop('substring', '')
-            requestAPI = default_base + \
+            requestAPI = urlbase + \
                 '/datatype/list' + (f'?substring={subs}' if subs else '')
             res = reqst(client.get, requestAPI, headers=header,
                         server_type=server_type, auth=client.auth, **kwds)
@@ -231,7 +240,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             # somehow application/json will cause error "unsupported"
             # = 'application/json'  # ;charset=UTF-8'
             del header['Content-Type']
-            requestAPI = default_base + \
+            requestAPI = urlbase + \
                 '/datatype/upload'
             ea=kwds.pop('ensure_ascii', True),
             cls_full_name = kwds.pop('cls_full_name')
@@ -262,7 +271,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             # fileContentType=application/fits according to the example.
             fileContentType = 'application/fits'
             del header['Content-Type'] # = fileContentType
-            requestAPI = default_base + \
+            requestAPI = urlbase + \
                 '/datatype/uploadProductTypes'
 
             ea = kwds.pop('ensure_ascii', True),
@@ -280,7 +289,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             # fdata = {"file": (cls_full_name, jsn)}
             # example: response = requests.post(url=url, files=files, headers=headers)
             files = {"file": ("file", jsn, fileContentType)}
-            #__import__("pdb").set_trace()
+
             res = reqst(client.post, requestAPI,
                         files=files, headers=header,
                         server_type=server_type, auth=client.auth, **kwds)
@@ -288,7 +297,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
     elif requestName == 'delDataTypeData':
         with lock_w:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-            requestAPI0 = default_base + \
+            requestAPI0 = urlbase + \
                 f'/storage/delDatatypeData?path='
             _p = kwds.pop('path')
             if isinstance(_p, str):
@@ -311,7 +320,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
     elif requestName == 'remove':
         with lock_w:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-            requestAPI0 = default_base + \
+            requestAPI0 = urlbase + \
                 '/storage/deleteData?path='
             _p = kwds.pop('path', '')
             if isinstance(_p, str):
@@ -336,14 +345,14 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
     elif requestName == 'existPool':
         with lock_r:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-            requestAPI = default_base + \
+            requestAPI = urlbase + \
                 '/pool/info?storagePoolName=' + kwds.pop('poolname')
             res = reqst(client.get, requestAPI, headers=header,
                         server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'createPool':
         with lock_w:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-            requestAPI = default_base + \
+            requestAPI = urlbase + \
                 '/pool/create?poolName=' + \
                 kwds.pop('poolname') + '&read=0&write=0'
             res = reqst(client.post, requestAPI, headers=header,
@@ -351,7 +360,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
     elif requestName == 'listPool':
         with lock_r:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-            requestAPI = default_base + \
+            requestAPI = urlbase + \
                 '/pool/list'
             data = kwds.pop('data', """{
                 "endTime": "",
@@ -369,7 +378,7 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
             tk = kwds.pop('token', '')
             header['X-AUTH-TOKEN'] = tk
             keep_pool = 'resetSN=1&' if kwds.pop('keep', True) else ''
-            requestAPI = default_base + \
+            requestAPI = urlbase + \
                 f'/pool/delete?{keep_pool}storagePoolName=' + \
                 kwds.pop('poolname')
             #######
@@ -389,14 +398,14 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
     elif requestName == 'restorePool':
         with lock_w:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-            requestAPI = default_base + \
+            requestAPI = urlbase + \
                 '/pool/restore?storagePoolName=' + kwds.pop('poolname')
             res = reqst(client.post, requestAPI, headers=header,
                         server_type=server_type, auth=client.auth, **kwds)
     elif requestName == 'addTag':
         with lock_w:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
-            requestAPI0 = default_base + \
+            requestAPI0 = urlbase + \
                 '/storage/addTags?tags='
 
             _t = kwds.pop('tag')
@@ -422,10 +431,10 @@ def read_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
                          'getTag'):
         with lock_r:
             if requestName == 'getTag':
-                requestAPI0 = default_base + \
+                requestAPI0 = urlbase + \
                     '/storage/tag?tag='
             else:
-                requestAPI0 = default_base + \
+                requestAPI0 = urlbase + \
                     '/storage/tagExist?tag='
 
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')
@@ -474,10 +483,14 @@ def _multi_input_header(kwds, n, header):
 
 
 def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **kwds):
+
     if client is None:
         client = session
+    urlbase = kwds.pop('urlbase', '')
+    urlbase = urlbase if urlbase else default_base
+    
     header = {'Content-Type': 'application/json;charset=UTF-8'}
-    requestAPI = default_base
+    requestAPI = urlbase
 
     if requestName == 'uploadProduct':
         with lock_w:
@@ -558,6 +571,7 @@ def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
                               headers=h, server_type=server_type,
                               auth=client.auth, **kwds)
                     res.append(r)
+
             return res if alist else res[0]
 
     elif requestName == 'pullProduct':
@@ -596,10 +610,14 @@ def load_from_cloud(requestName, client=None, asyn=False, server_type='csdb', **
 
 
 def delete_from_server(requestName, client=None, asyn=False, server_type='csdb', **kwds):
+
     if client is None:
         client = session
+    urlbase = kwds.pop('urlbase', '')
+    urlbase = urlbase if urlbase else default_base
+    
     header = {'Content-Type': 'application/json;charset=UTF-8'}
-    requestAPI = default_base
+    requestAPI = urlbase
     if requestName == 'delTag':
         with lock_w:
             header['X-AUTH-TOKEN'] = kwds.pop('token', '')

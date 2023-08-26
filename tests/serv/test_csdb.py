@@ -951,7 +951,9 @@ def test_verifyToken(csdb_server):
 
     from fdi.pal.publicclientpool import verifyToken
 
-    tokenMsg = read_from_cloud('getToken', client=client)
+    poolpath, scheme, place, poolname, username, pasword = \
+        parse_poolurl(poolurl)
+    tokenMsg = read_from_cloud('getToken', client=client, user_url_base==f'{scheme}://{place}')
     token = tokenMsg['token']
     # verify it
 

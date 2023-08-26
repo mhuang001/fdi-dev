@@ -1,7 +1,8 @@
-__version_info__ = (1, 37, 2)
+__version_info__ = (1, 38, 0)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.37.1-0-g81d1964'
+__revision__ = '1.37.2-2-ga8e7815'
 
+# fix FineTime('0'); fix gettign token with missing host; fix publicclient pool wipe; add fits in/out.
 # 1.37.2 fix missing main() getconfig and yaml2python.
 # 1.37.1 really fix dockerfile, for now.
 # 1.37.0 attempt to add docker entrypoint inhrit.read_only pool avoid deleting.

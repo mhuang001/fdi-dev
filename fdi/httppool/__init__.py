@@ -489,7 +489,7 @@ def ctx(PM_S, app, session, request, auth, **kwds):
     _s = hex(id(session))[-4:]
     #_g = hex(id(g._get_current_object()))[-4:]
     _g = hex(id(g))[-4:]
-    _ps = list(map(dict,PM_S._GlobalPoolList.maps))
+    _ps = list(map(list,PM_S._GlobalPoolList.maps))
     _u = f"auth.cuser{auth.current_user()}" if auth else "no-auth"
     if hasattr(request, 'authorization'):
         _u += f" req.ausr={request.authorization['username']}" if request.authorization else "none"

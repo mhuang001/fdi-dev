@@ -6,6 +6,7 @@ from ..dataset.classes import Class_Look_Up, All_Exceptions
 from ..pal.urn import parseUrn, parse_poolurl
 from ..utils.getconfig import getConfig
 from ..utils.common import trbk
+from ..utils.tofits import is_Fits
 from ..pal.webapi import WebAPI
 from .jsonio import auth_headers
 from ..utils.common import (lls,
@@ -588,16 +589,20 @@ def content2result_csdb(content):
             if resp is None:
                 #__import__("pdb").set_trace()
                 return [None] * len(content) if alist else None
-            code, text, url = resp.status_code, resp.text, resp.url
-        obj = deserialize(text)
+            code, cont, url = resp.status_code, resp.content, resp.url
+        if is_Fits(cont):
+            return cont 
+        obj = deserialize(resp.text)
         if issubclass(obj.__class__, str):
             # cannot deserialize and/or bad code
             try:
-                eo = resp.json()
                 if code == 500:
-                    ocode = eo['status']
+                    eo = resp.json()
+                    ocode = ['status']
                     msg = eo['message']
                 else:
+                    con = resp.contents
+                    eo = resp.json()
                     ocode = eo['code']
                     msg = eo['msg']
             except (TypeError, KeyError) as e:

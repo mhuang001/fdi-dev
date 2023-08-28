@@ -38,6 +38,7 @@ auth = HTTPBasicAuth()
 LOGIN_TMPLT = ''  # 'user/login.html'
 """ Set LOGIN_TMPLT to '' to disable the login page."""
 
+from fdi.httppool import SES_DBG
 
 user = Blueprint('user', __name__)
 
@@ -134,8 +135,6 @@ def getUsers(pc):
     #               ))
 
 
-SES_DBG = 1
-""" debug msg for session """
 
 if SESSION:
 

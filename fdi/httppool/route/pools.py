@@ -9,7 +9,8 @@ from .httppool_server import (
 from ..session import SESSION
 
 from .. import ctx
-from ..model.user import auth, SES_DBG
+from ..model.user import auth
+from .. import SES_DBG
 
 from ..._version import __version__, __revision__
 from ...dataset.deserialize import deserialize_args, deserialize
@@ -32,7 +33,7 @@ from ...utils.common import (lls,
 from flask import g, Blueprint, jsonify, request, current_app, url_for, abort, session
 from werkzeug.exceptions import HTTPException
 # from flasgger import swag_from
-
+from urllib.parse import urljoin 
 
 import shutil
 import time, importlib
@@ -91,7 +92,7 @@ def aftreq_pools(resp):
 ######################################
 
 
-@ pools_api.route('/', methods=['GET'])
+@ pools_api.route('', methods=['GET'], strict_slashes=False)
 def get_pools_url():
     """ Get names and urls of all pools, registered or not.
     """
@@ -101,8 +102,9 @@ def get_pools_url():
     result = get_name_all_pools()
 
     burl = request.base_url
+
     if issubclass(result.__class__, list):
-        res = dict((x, '/'.join((burl, x))) for x in result)
+        res = dict((x, f'{burl}/{x}') for x in result)
     else:
         res = {}
 

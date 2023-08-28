@@ -1112,6 +1112,8 @@ def test_DateParameter():
     assert str(
         v) == 'DateParameter(finetime: 2019\n1929229360457000 <>, "UNKNOWN", default= None, valid= None tcode=%Y-%m-%dT%H:%M:%S.%f)'
     # 1972-1-1 emit warning
+    
+    dd= DateParameter(63072000.0).value.isoutc()
     assert DateParameter(63072000.0).value.isoutc(
     ) == '1972-01-01T00:00:00.000000'
     DateParameter(63043200.0 - 0.0000001)

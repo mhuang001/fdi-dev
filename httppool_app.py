@@ -67,6 +67,8 @@ if __name__ == '__main__':
                         default=10, type=int, help='max number of threads. Default=100. 1 if debug is set')
     parser.add_argument('-s', '--server', default='httppool_server',
                         type=str, help='server type: pns or httppool_server')
+    parser.add_argument('-P', '--preload', default=False,
+                        action='store_true', help='Pre-load pools.')
     parser.add_argument('-w', '--wsgi', default=False,
                         action='store_true', help='run a WSGI server.')
     parser.add_argument('-d', '--debug', default=level, const=logging.DEBUG,
@@ -111,6 +113,7 @@ if __name__ == '__main__':
         print('<<<<<< %s >>>>>' % servertype)
         app = create_app(pc, level=level,
                          logstream=args.logstream,
+                         preload=args.preload
                          )
     else:
         logger.error('Unknown server %s' % servertype)
@@ -119,7 +122,8 @@ if __name__ == '__main__':
     if wsgi:
         from waitress import serve
         serve(app, url_scheme='https',
-              host=args.host, port=args.port)
+              host=args.host, port=args.port,
+              )
     else:
         # app may have changed debug, so do not use args.debug
         debug = app.debug
@@ -128,4 +132,5 @@ if __name__ == '__main__':
                 threaded=args.threads, processes=1,
                 use_reloader=True, reloader_type='stat',
                 debug=debug, passthrough_errors=debug,
-                use_debugger=debug)
+                use_debugger=debug,
+                )

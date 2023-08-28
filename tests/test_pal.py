@@ -312,19 +312,44 @@ def rmlocal(d):
         assert not op.exists(d)
 
 
-def cleanup(poolurl=None, poolname=None, client=None, auth=None, PM=None):
+def cleanup(poolurl=None, poolname=None, client=None, auth=None, PM=None, test=False):
     """ remove a pool or all pools from disk and memory, including those in read-only"""
 
     if PM is None:
         PM = PoolManager
     else:
         assert PM_S and (PM is PM_S) or (PoolManager and (PM is PoolManager)), "PM must be PM_S or PoolManager"
-    if poolurl or poolname:
-        name_url = [(poolname, poolurl)]
+    # if identity is known, remove from registration
+    #if (poolurl or poolname):
+        #PM.unregister(poolname)
+        # see if already registered. if yes, remove and return
+        # if poolname in PM.getMap():
+        #     po = PM.getMap()[poolname]
+        #    PM.getMap().remove(poolname, read_only = False)
+        #    gc.collect()
+        # else:
+        #     #poolname is None and poolurl is in
+        #     for pn, pu in PM.getMap().items():
+        #         if pu.poolurl  == poolurl:
+        #             PM.remove(pn)
+        #     else:
+        #         logger.warning("find no poolname {poolname} or poolurl {poolurl} to remove")
+        #return
+    if poolname:
+        if poolname in PM.getMap().maps[1]:
+            logger.warning(f"Cannot clean up read_only pool {polname}")
+            return
+        if poolname not in PM.getMap().maps[0]:
+            # register it
+            ProductStorage(pool=poolname, poolurl=poolurl, client=client, auth=auth, test=True).register()
+        gl = {poolname: PM.getMap()[poolname]}
     else:
-        name_url = []
-        for pn, pool in PM.getMap().items():
-            name_url.append((pn, pool._poolurl))
+        # not any specific pool
+        gl = PM.getMap().maps[0]
+    name_url = []
+    for pn, pool in gl.items():
+        name_url.append((pn, pool._poolurl))
+        
     for pname, purl in name_url:
         direc, schm, place, pn, un, pw = parse_poolurl(purl, pname)
         if purl.startswith('server'):
@@ -349,17 +374,19 @@ def cleanup(poolurl=None, poolname=None, client=None, auth=None, PM=None):
             # correct way. do not trust what hass been registered.
             pm._GlobalPoolList.pop(pname, '')
             p = pm.getPool(pname, purl, client=client, auth=auth)
+            if pname.startswith("test_e2e2"):
+                __import__("pdb").set_trace()
+
             try:
                 p.wipe()
             except (AssertionError):  # ,ServerError, ValueError):
                 pass
-
             assert p.isEmpty()
             try:
                 del p
             except NameError:
                 pass
-        PM._GlobalPoolList.pop(pname, '', include_read_only=True)
+        PM._GlobalPoolList.pop(pname, '', include_read_only=False)
         assert pname not in PM._GlobalPoolList
         gc.collect()
 
@@ -596,15 +623,16 @@ def test_ProductRef():
     ps = ProductStorage(a3, poolurl=p, makenew=True)
     prd = Product()
     rfps = ps.save(prd)
+    u2 = rfps.urn
     pr = ProductRef(urn=rfps.urnobj, poolname=a3, meta=rfps.meta)
     assert rfps == pr
     assert rfps.getMeta() == pr.getMeta()
-    uobj = Urn(urn=u)
+    uobj = Urn(urn=u2)
     assert pr.urnobj == uobj
     # load given metadata
     met = MetaData()
     met['foo'] = Parameter('bar')
-    prm = ProductRef(urn=u, meta=met)
+    prm = ProductRef(urn=u2, meta=met)
     assert prm.meta['foo'].value == 'bar'
     # This does not obtain metadata
     pr = ProductRef(urn=rfps.urnobj)
@@ -615,7 +643,7 @@ def test_ProductRef():
     assert pr.getPoolname() == a3
     assert rfps.getPoolname() is not None
     # load from a storage.
-    pr = ps.load(u)
+    pr = ps.load(u2)
     assert rfps == pr
     assert rfps.getMeta() == pr.getMeta()
     assert pr.getPoolname() == rfps.getPoolname()
@@ -633,7 +661,7 @@ def test_ProductRef():
     assert b1 not in list(pr.parents)
     # access
     assert pr.urnobj.getTypeName() == a4
-    assert pr.urnobj.getIndex() == a5
+    assert pr.urnobj.getIndex() == int(u2.rsplit(':',1)[-1])
     # this is tested in ProdStorage
     # assert pr.product == p
 
@@ -1183,7 +1211,24 @@ def backup_restore(ps, client, auth):
     # two pools are the same
     assert deepcmp(hk1, p2.readHK()) is None
 
+# @pytest.fixture(scope='function')
+# def mkStorage_1(make_remote_storage):
+#     """ returns pool object and productStorage """
 
+#     aburl, client, auth, pool, poolurl, pstore, server_type = server
+    
+#     assert pool.isEmpty()
+
+#     return pool, pstore
+
+# #thepoolname, thepoolurl, pstore=None, client=None, auth=None):
+
+# def mkStorage2(thepoolname, thepoolurl, pstore=None, client=None, auth=None):
+#     pool, pstore = mkStorage_1
+#     pstore.clear()
+#     pstore.register( thepoolname, thepoolurl, client=client, auth=auth)
+#     return pstore.getWritablePool(obj=True), pstore
+    
 def mkStorage(thepoolname, thepoolurl, pstore=None, client=None, auth=None):
     """ returns pool object and productStorage """
 
@@ -1197,6 +1242,7 @@ def mkStorage(thepoolname, thepoolurl, pstore=None, client=None, auth=None):
     assert len(pstore.getPools()) == 1
     assert pstore.getPools()[0] == thepoolname
     thepool = PoolManager.getMap()[thepoolname]
+    thepool.wipe()
     assert thepool.getScheme() == tsc
     assert thepool.isEmpty()
     return thepool, pstore
@@ -1465,6 +1511,7 @@ def test_query_http(server  ):
     lpath = '/tmp'
     # TODO: http
     doquery(aburl, aburl, client=client, auth=auth)
+
     doquery('file://'+lpath, aburl, client=client, auth=auth)
     doquery('mem://'+lpath, aburl, client=client, auth=auth)
 
@@ -1650,8 +1697,10 @@ def test_MapContext(a_storage):
     p1 = Product('p1')
     p2 = Product('p2')
     # _urn for product is set.
+    # not have it
     assert not hasattr(p1, '_urn')
     refp1 = pstore.save(p1)
+    # have it. note that it is not '.urn'. Ref productpool.ProductPool::loadProduct
     assert p1._urn == refp1.urnobj
     refp2 = pstore.save(p2)
     c1.refs['p1'] = refp1

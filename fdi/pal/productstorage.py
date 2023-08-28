@@ -49,6 +49,9 @@ class ProductStorage(object):
         this needs to be set.
         :read_only: the initial pools will be registered in
         always-on part of ProductManager.
+        :**kwds: Add `test=True`
+        to overid refusing to register `server://` on `PoolManager`.
+
         """
         if issubclass(pool.__class__, str) and ':' in pool:
             raise TypeError(
@@ -217,8 +220,8 @@ class ProductStorage(object):
             else:
                 raise ValueError('None is not a valid pool name in the `PoolManager`.')
         elif poolname not in self._pools:
-            self.register(poolname)
-
+            #self.register(poolname)
+            logger.warning('$$$$$$$$$$$$$ self registering '+poolname)
         if logger.getEffectiveLevel() <= logging.DEBUG:
             desc = [x.description[-6:] for x in product] if issubclass(
                 product.__class__, list) else product.description[-6:]

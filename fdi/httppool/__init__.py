@@ -50,6 +50,10 @@ PC = None
 
 session = None
 
+SES_DBG = 1
+""" debug msg for session """
+
+
 def setup_logging(level=LOGGING_NORMAL, extras=None, tofile=None):
     import logging
     from logging.config import dictConfig
@@ -233,7 +237,7 @@ def setOwnerMode(p, username, logger):
     return username
 
 
-def init_httppool_server(app):
+def init_httppool_server(app, preload):
     """ Init a global HTTP POOL """
 
     # get settings from ~/.config/pnslocal.py config
@@ -252,10 +256,10 @@ def init_httppool_server(app):
                                for op in ('r', 'w'))
     # setup poolmanager
     
-    PM_S = init_poolmanager(app, g, pc)
+    PM_S = init_poolmanager(app, g, pc, preload)
 
     
-def init_poolmanager(app, g, pc):
+def init_poolmanager(app, g, pc, preload):
 
     # PoolManager is a singleton. get PM_S from 
     with app.app_context():
@@ -271,19 +275,20 @@ def init_poolmanager(app, g, pc):
                      (os.getpid(), str(app._got_first_request))
                      )
     try:
-        PM_S.removeAll(include_read_only=True)
+        PM_S.removeAll(include_read_only=False)
     except KeyError:
         pass
     app.config['POOLMANAGER'] = PM_S
 
-    # initialize read-only pools
-    from ..pal.productstorage  import ProductStorage
+    if preload:
+        # initialize read-only pools
+        from ..pal.productstorage  import ProductStorage
 
-    for pn, po in pc['read_only_pools'].items():
-        ps = ProductStorage(poolname=pn, poolurl=po, read_only=True)
-        ##PM_S.save(pn, po, read_only=True)
+        for pn, po in pc['read_only_pools'].items():
+            ps = ProductStorage(poolname=pn, poolurl=po, read_only=True)
+            ##PM_S.save(pn, po, read_only=True)
 
-    logger.info('PM_S initializing..'+hex(id(PM_S._GlobalPoolList.maps[0])) + ' ' + str(PM_S()))
+        logger.info('PM_S initializing..'+hex(id(PM_S._GlobalPoolList.maps[0])) + ' ' + str(PM_S()))
     
     # pool-related paths
     # the httppool that is local to the server
@@ -311,7 +316,7 @@ def init_poolmanager(app, g, pc):
 ######################################
 
 
-def create_app(config_object=None, level=None, logstream=None):
+def create_app(config_object=None, level=None, logstream=None, preload=False):
     """ If args have logger level, use it; else if debug is `True` set to 20
  use 'development' pnslocal.py config.
 
@@ -383,9 +388,14 @@ def create_app(config_object=None, level=None, logstream=None):
         logger.info('DEBUG mode %s' % (app.config['DEBUG']))
         app.config['PROPAGATE_EXCEPTIONS'] = True
     elif 'proxy_fix' in app.config_object:
-
         from werkzeug.middleware.proxy_fix import ProxyFix
         app.wsgi_app = ProxyFix(app.wsgi_app, **app.config_object['proxy_fix'])
+
+    app.config['PREFERRED_URL_SCHEME'] = config_object['scheme']
+    app.config['SERVER_NAME'] = f"{config_object['self_host']}:{config_object['self_port']}"
+    app.config['APPLICATION_ROOT'] = config_object['baseurl']
+    with app.test_request_context():
+        app.config['REQUEST_BASE_URL'] = request.base_url
 
     # from flask.logging import default_handler
     # app.logger.removeHandler(default_handler)
@@ -399,10 +409,7 @@ def create_app(config_object=None, level=None, logstream=None):
     }
     swag['servers'].insert(0, {
         'description': 'As in config file and server command line.',
-        'url': config_object['scheme']+'://' +
-        config_object['self_host'] + ':' +
-        str(config_object['self_port']) +
-        _BASEURL
+        'url': app.config['REQUEST_BASE_URL']
     })
     swagger = Swagger(app, config=swag, merge=True)
     # swagger.config['specs'][0]['route'] = _BASEURL + s1
@@ -442,7 +449,7 @@ def create_app(config_object=None, level=None, logstream=None):
     # with app.app_context():
     app.config['POOLS'] = {}
     app.config['ACCESS'] = {'usrcnt': defaultdict(int)}
-    init_httppool_server(app)
+    init_httppool_server(app, preload)
     logger.info('Server initialized. logging level ' +
                 str(app.logger.getEffectiveLevel()))
 
@@ -452,23 +459,23 @@ def create_app(config_object=None, level=None, logstream=None):
         global cnt
         #global session
 
+        PM_S = PM_S_from_g(0)
         cnt += 1
 
         logger = current_app.logger
-
-        logger.debug(f"@@@@@ {cnt}")
-        return
-        if logger.isEnabledFor(logging_DEBUG):
-            args = request.view_args
-            method = request.method
-            c = ctx(PM_S=None, app=current_app, session=session, request=request, auth=None)
-            logger.debug(f"{cnt} >>>[{method}] {lls(args, 300)} %s" %  c)
-        elif logger.isEnabledFor(logging_INFO):
+        
+        if logger.getEffectiveLevel() < logging.WARNING: 
+            a = lls(request.view_args,50)
             # remove leading e.g. /fdi/v0.16
             s = request.path.split(_BASEURL)
             p = s[0] if len(s) == 1 else s[1] if s[0] == '' else request.path
             method = request.method
-            logger.info("%3d >>>[%4s] %s" % (cnt, method, lls(p, 50)))
+            info = ("%3d >>>[%s] %s %s" % (cnt, method, lls(p, 50), a))
+            if logger.getEffectiveLevel() < logging.INFO:
+                #if SES_DBG and logger.isEnabledFor(logging_DEBUG):
+                c = ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=None)
+                info += c
+            logger.info(info)
         return
 
     @app.after_request
@@ -483,19 +490,19 @@ def create_app(config_object=None, level=None, logstream=None):
     return app
 
 def ctx(PM_S, app, session, request, auth, **kwds):
-    G = hex(id(PM_S.getMap().maps[0]))[-4:] if PM_S else ""
+    G = hex(id(PM_S.getMap().maps[0]))[-4:] if PM_S else "nul"
     _a = hex(id(app))[-4:]
     _r = hex(id(request))[-4:]
     _s = hex(id(session))[-4:]
     #_g = hex(id(g._get_current_object()))[-4:]
     _g = hex(id(g))[-4:]
-    _ps = list(map(list,PM_S._GlobalPoolList.maps))
+    _ps = list(map(list,PM_S.getMap().maps)) if PM_S else "nul"
     _u = f"auth.cuser{auth.current_user()}" if auth else "no-auth"
     if hasattr(request, 'authorization'):
         _u += f" req.ausr={request.authorization['username']}" if request.authorization else "none"
     else:
         _u += "no-autho"
-    m = f"{G} {_ps if PM_S else ''}, app:{_a} req:{_r} sess:{_s} g:{_g}"
+    m = f"{G} {_ps}, app:{_a} req:{_r} sess:{_s} g:{_g}"
     return m
 
 

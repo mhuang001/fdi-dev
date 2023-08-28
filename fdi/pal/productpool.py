@@ -339,12 +339,15 @@ When implementing a ProductPool, the following rules need to be applied:
                 issubclass(product[0].__class__, str):
             # p is urn string from server-side LocalPool, return the str
             return res
-
-        if isinstance(res, list):
+        
+        if issubclass(res.__class__, list):
             for p, u in zip(product, res):
                 p._urn = u if geturnobjs else u.getUrnObj()
-        elif isinstance(res, BaseProduct):
+        elif issubclass(product.__class__, BaseProduct):
             product._urn = res if geturnobjs else res.getUrnObj()
+        elif issubclass(res.__class__, str):
+            product._urn = res
+            
         return res
 
     def loadDescriptors(self, urn):
@@ -377,7 +380,6 @@ When implementing a ProductPool, the following rules need to be applied:
            issubclass(ret[0].__class__, str):
             # ret is a urn string from server-side LocalPool
             return ret
-
         if isinstance(ret, list):
             logger.warning('TODO: unexpected')
             for x, u in zip(ret, urn):

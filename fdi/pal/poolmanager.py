@@ -26,6 +26,7 @@ import time
 import importlib, logging
 from requests.exceptions import ConnectionError
 from requests.utils import cookiejar_from_dict, dict_from_cookiejar
+from urllib3.exceptions import NewConnectionError
 # create logger
 logger = logging.getLogger(__name__)
 # logger.setLevel(20)
@@ -592,7 +593,7 @@ This is done by calling the getPool() method, which will return an existing pool
         return poolname, poolurl, secondary_poolurl, gpl_pool
 
     @classmethod
-    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=False, auth=None, client=None, read_only=False, **kwds):
+    def getPool(cls, poolname=None, poolurl=None, pool=None, makenew=False, auth=None, client=None, read_only=False, poolhint=None, test=False, **kwds):
         """ returns an instance of pool according to name or path of the pool.
 
         Returns the pool object if the pool is registered and new
@@ -644,7 +645,8 @@ Pools registered are kept as long as the last reference remains. When the last i
         client : default is `None`.
             For `remoteRegister`.
         kwds  : dict
-            Passed to pool instanciation arg-list.
+            Passed to pool instanciation arg-list. Add `test=True`
+        to overid refusing to register `server://` on `PoolManager`.
 
         Returns
         -------
@@ -662,7 +664,6 @@ Pools registered are kept as long as the last reference remains. When the last i
                     "getPool() eeds one of poolname, poolurl, or pool object.")
             elif poolurl:
                 # have poolurl, check secondary_poolurl
-                poolhint = kwds.get('poolhint', None)
                 poolurl, secondary_poolurl, last_frag, schm = get_secondary_poolurl(
                     poolurl, poolhint=poolhint if poolhint else poolname)
                 if poolname:
@@ -673,7 +674,6 @@ Pools registered are kept as long as the last reference remains. When the last i
                     poolname = last_frag
             else:
                 # have poolname only, check secondary_poolurl
-                poolhint = kwds.get('poolhint', None)
                 poolname, poolurl, secondary_poolurl, gpl_pool = cls._get_poolurl(
                     poolname)
 
@@ -709,7 +709,7 @@ Pools registered are kept as long as the last reference remains. When the last i
                         **kwds)
                 elif schm == 'server':
                     # This registers a HttpP which is a version of local pool.
-                    if not issubclass(cls, PM_S):
+                    if not issubclass(cls, PM_S) and not test:
                         raise ValueError(
                             f'Not allowed to register scheme {schm} pool {poolurl} on a client.')
                     from . import httppool
@@ -1027,11 +1027,11 @@ class PM_S(PoolManager):
     #         session.modified = True
     #     PoolManager.setPoolurlMap(*args, **kwds)
 
-
 def PM_S_from_g(gvar):
 
     global PM_S
-
+    return PM_S
+  
     try:
         pg = hex(id(_PM_S._GlobalPoolList.maps[0]))
     except ValueError as e:
@@ -1039,7 +1039,9 @@ def PM_S_from_g(gvar):
     if gvar is None:
         return PM_S
     if 'PM_S' not in gvar or not gvar.PM_S:
-        print('**UPDATING g** g, _PMS_G_[0]', hex(id(gvar))[-5:], pg[-5:])
+        from fdi.httppool import SES_DBG
+        if SES_DBG:
+            print('**UPDATING g** g, _PMS_G_[0]', hex(id(gvar))[-5:], pg[-5:])
         gvar.PM_S = _PM_S
         # Set module variable PM_S to g-attribute so other get g when importing.
         PM_S = gvar.PM_S

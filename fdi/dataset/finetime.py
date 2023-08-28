@@ -73,8 +73,8 @@ class FineTime(Copyable, DeepEqual, Serializable):
         if time < self.UTC_LOW_LIMIT_TIMESTAMP:
             logger.warning(
                 'Timestamp before %s not defined yet.' % str(self.UTC_LOW_LIMIT_TIMESTAMP))
-            d = datetime.datetime.fromtimestamp(time, tz=utcobj)
-            return self.datetimeToFineTime(d)
+        d = datetime.datetime.fromtimestamp(time, tz=utcobj)
+        return self.datetimeToFineTime(d)
 
     @property
     def time(self):
@@ -92,49 +92,71 @@ class FineTime(Copyable, DeepEqual, Serializable):
         """ Sets the time of this object.
 
         If an integer is given, it will be taken as the TAI.
-'0' and b'0' are taken as TAI=0.
-        If a float is given, it will be taken as the `time` time stamp (UTC).
-        If a datetime object or a string code is given, the timezone will be set to UTC.
-        A FineTime instance is immutable except when TAI == 0. Violation gets a TypeError.
+        '0' and b'0' are taken as TAI=0.
+        If a float is given, it will be taken as the `time`
+        time stamp (UTC).
+        If a datetime object or a string code is given, the
+        timezone will be set to UTC.
+        A FineTime instance is immutable except when TAI == 0.
+        Violation gets a `TypeError`.
         """
+        fmt = self.format
         # setting to an impossible value
         setTai = ...
         if time is None:
-            setTai = None
-        elif issubclass(time.__class__, int):
-            setTai = time
+            self.tai = None
+            return
+
+        # these can work without format
+        if issubclass(time.__class__, int):
+            self.tai = time
+            return
         elif issubclass(time.__class__, float):
-            setTai = self._float2settai(time)
-        elif issubclass(time.__class__, datetime.datetime):
+            self.tai = self._float2settai(time)
+            return
+        if issubclass(time.__class__, datetime.datetime):
             if time.tzinfo is None:
                 d = time.replace(tzinfo=utcobj)
             else:
                 d = time
-            setTai = self.datetimeToFineTime(d)
-        elif issubclass(time.__class__, (str, bytes)):
+            self.tai = self.datetimeToFineTime(d)
+            return
+        if issubclass(time.__class__, (str, bytes)):
             t = time
             if issubclass(t.__class__, bytes):
                 t = t.decode('ascii')
             try:
                 setTai = int(t)
+                # Do not return yet
             except ValueError:
                 try:
                     f = float(t)
-                    setTai = self._float2settai(f)
+                    self.tai = self._float2settai(f)
+                    return
                 except ValueError:
-                    fmt = self.format
-                    if fmt:
-                        try:
-                            d = datetime.datetime.strptime(t, fmt)
-                            d1 = d.replace(tzinfo=utcobj)
-                            setTai = self.datetimeToFineTime(d1)
-                        except ValueError:
-                            pass
-        else:
+                    pass
+            else:
+                # int works as tai but it would work better as something else
+                try:
+                    # the most often case
+                    d = datetime.datetime.strptime(t, fmt)
+                    d1 = d.replace(tzinfo=utcobj)
+                    self.tai = self.datetimeToFineTime(d1)
+                    # possible result of int(time) setTai is overidden
+                    return
+                except ValueError:
+                    # the time is a str and cannot be interpreted according to fmt
+                    # return the int if there has been one.
+                    if issubclass(setTai.__class__, int):
+                        self.tai = setTai
+                        return
+        else:    
             msg = ('%s must be an integer, a float, a datetime object,'
-                   'or a string or bytes or str/bytes of an int or float, but its type is %s.' % (
-                       str(time), type(time).__name__))
+                   'or a string or bytes or str/bytes of an int or float, '
+                   'but its type is %s.' % (str(time), type(time).__name__))
             raise TypeError(msg)
+        
+        #setTai is either "..." or a string.
         if setTai is ...:
             # Now t has a date-time string in it.
             msg = '%s is not an integer or `datetime`' % t

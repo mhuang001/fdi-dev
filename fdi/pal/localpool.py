@@ -256,7 +256,7 @@ class LocalPool(ManagedPool):
         
     def setMetaByUrn(self, start, end, urn=None, datatype=None, sn=None):
         """
-        Sets the location of the meta data of the specified data to the given URN or a pair of data type and serial number.
+        Sets the location character offset in JSON) of the meta data of the specified data to the given URN or a pair of data type and serial number.
 
         :data: usually serialized Product.
         """

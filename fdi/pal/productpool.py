@@ -377,7 +377,7 @@ When implementing a ProductPool, the following rules need to be applied:
             resourcetype=resource, index=index, serialize_out=serialize_out)
 
         if issubclass(ret.__class__, str) or isinstance(ret, list) and \
-           issubclass(ret[0].__class__, str):
+           issubclass(ret[0].__class__, str) or is_Fits(ret):
             # ret is a urn string from server-side LocalPool
             return ret
         if isinstance(ret, list):

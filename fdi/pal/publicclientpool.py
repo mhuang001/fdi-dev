@@ -875,6 +875,8 @@ class PublicClientPool(ManagedPool):
                                 return serialize(res)
                             else:
                                 return res
+                        elif is_Fits(res):
+                            return res
                         else:
                             raise Exception('Load failed: ' +
                                             res.get('msg', lls(res, 999)))

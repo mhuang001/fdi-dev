@@ -186,7 +186,8 @@ class ListenerSet(Serializable, DeepEqual, UserList):
         if alist:
             return l
         else:
-            return self.__class__.__name__ + '(' + ', '.join(l) + ')'
+            return self.__class__.__name__ + '(' + \
+                ', '.join( '0x%x[%s]' % (x[1],x[2]) for x in l) + ')'
 
     string = toString
     txt = toString

@@ -1,6 +1,6 @@
 __version_info__ = (1, 38, 2)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.38.0-0-gc3a0ec5'
+__revision__ = '1.38.2-1-g6a68382'
 
 # 1.38.2 fdi_requests.get returns fits. FineTime rationalization.
 # 1.38.1 add test option to ProductStorage.register(), fix test cases.

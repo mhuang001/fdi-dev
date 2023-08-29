@@ -356,10 +356,13 @@ def make_pool(pool, conf='pns', auth=None, wipe=False):
     # create a product store
     from ..pal.productstorage import ProductStorage
     pstore = ProductStorage(poolurl=poolurl, auth=auth)
+                
+    pstore.register(poolurl=poolurl, makenew=True)
     if wipe:
         logger.info('Wiping %s...' % str(pstore))
         pstore.wipePool()
         # pstore.getPool(pstore.getPools()[0]).removeAll()
+
     # see what is in it.
     # print(pstore)
 

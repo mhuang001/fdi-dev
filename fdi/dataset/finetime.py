@@ -40,6 +40,9 @@ class FineTime(Copyable, DeepEqual, Serializable):
 
     UTC_LOW_LIMIT_TIMESTAMP = UTC_LOW_LIMIT.timestamp()
 
+    """ The earliest time when valid leapsecond is used."""
+    UTC_LOW_LIMIT = datetime.datetime(1972, 1, 1, 0, 0, 0, tzinfo=utcobj)
+
     """ Format used when not specified."""
     DEFAULT_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'  # ISO
 
@@ -106,7 +109,63 @@ class FineTime(Copyable, DeepEqual, Serializable):
         if time is None:
             self.tai = None
             return
+        # def default_conv(t):
+        #     if t.tzinfo is None:
+        #         d = time.replace(tzinfo=utcobj)
+        #     else:
+        #         d = time
+        #     return self.datetimeToFineTime(d)
+        # def str_int(t):
+        #     if issubclass(t.__class__, bytes):
+        #         t = t.decode('ascii')
+        #     try:
+        #         setTai = int(t)
+        #         # Do not return yet
+        #     except ValueError:
+        #         try:
+        #             f = float(t)
+        #             # unix timestamp
+        #             self.tai = self._float2settai(f)
+        #             return
+        #         except ValueError:
+        #             pass
+        # def str_default_fmt(t):
+        #                     # int works as tai but it would work better as something else
+        #             # the most often case
+        #             d = datetime.datetime.strptime(t, fmt)
+        #             d1 = d.replace(tzinfo=utcobj)
+        #             self.tai = self.datetimeToFineTime(d1)
+        #             # possible result of int(time) setTai is overidden
+        #             return
+        #         except ValueError:
+        #             # the time is a str and cannot be interpreted according to fmt
+        #             # return the int if there has been one.
+        #             if issubclass(setTai.__class__, int):
+        #                 self.tai = setTai
+        #                 return
+        #  def str_datetime(t):
+        #         try:
+        #             # the most often case
+        #             d = datetime.datetime.strptime(t, fmt)
+        #             d1 = d.replace(tzinfo=utcobj)
+        #             self.tai = self.datetimeToFineTime(d1)
+        #             # possible result of int(time) setTai is overidden
+        #             return
+        #         except ValueError:
+        #             # the time is a str and cannot be interpreted according to fmt
+        #             # return the int if there has been one.
+        #             if issubclass(setTai.__class__, int):
+        #                 self.tai = setTai
+        #                 return
 
+        # cases = [(lambda t: issubclass(t.__class__, int), lambda t:t),
+        #          (lambda t: issubclass(t.__class__, float), lambda t:self._float2settai(t)),
+        #          (lambda t: issubclass(t.__class__, datetime.datetime), default_conv),
+        #          (lambda t: issubclass(time.__class__, (str, bytes)), str_int),
+        #          (lambda t: issubclass(time.__class__, datetime.datetime), str_datetime),
+        #          (lambda t: issubclass(time.__class__, (str)), str_default_fmt),
+                 
+        #          ]
         # these can work without format
         if issubclass(time.__class__, int):
             self.tai = time
@@ -114,14 +173,14 @@ class FineTime(Copyable, DeepEqual, Serializable):
         elif issubclass(time.__class__, float):
             self.tai = self._float2settai(time)
             return
-        if issubclass(time.__class__, datetime.datetime):
+        elif issubclass(time.__class__, datetime.datetime):
             if time.tzinfo is None:
                 d = time.replace(tzinfo=utcobj)
             else:
                 d = time
             self.tai = self.datetimeToFineTime(d)
             return
-        if issubclass(time.__class__, (str, bytes)):
+        elif issubclass(time.__class__, (str, bytes)):
             t = time
             if issubclass(t.__class__, bytes):
                 t = t.decode('ascii')
@@ -131,25 +190,26 @@ class FineTime(Copyable, DeepEqual, Serializable):
             except ValueError:
                 try:
                     f = float(t)
+                    # unix timestamp
                     self.tai = self._float2settai(f)
                     return
                 except ValueError:
                     pass
-            else:
-                # int works as tai but it would work better as something else
-                try:
-                    # the most often case
-                    d = datetime.datetime.strptime(t, fmt)
-                    d1 = d.replace(tzinfo=utcobj)
-                    self.tai = self.datetimeToFineTime(d1)
-                    # possible result of int(time) setTai is overidden
+
+            # int works as tai but it would work better as something else
+            try:
+                # the most often case
+                d = datetime.datetime.strptime(t, fmt)
+                d1 = d.replace(tzinfo=utcobj)
+                self.tai = self.datetimeToFineTime(d1)
+                # possible result of int(time) setTai is overidden
+                return
+            except ValueError:
+                # the time is a str and cannot be interpreted according to fmt
+                # return the int if there has been one.
+                if issubclass(setTai.__class__, int):
+                    self.tai = setTai
                     return
-                except ValueError:
-                    # the time is a str and cannot be interpreted according to fmt
-                    # return the int if there has been one.
-                    if issubclass(setTai.__class__, int):
-                        self.tai = setTai
-                        return
         else:    
             msg = ('%s must be an integer, a float, a datetime object,'
                    'or a string or bytes or str/bytes of an int or float, '
@@ -159,7 +219,7 @@ class FineTime(Copyable, DeepEqual, Serializable):
         #setTai is either "..." or a string.
         if setTai is ...:
             # Now t has a date-time string in it.
-            msg = '%s is not an integer or `datetime`' % t
+            msg = '%s is not an integer or `datetime` %s.' % (t, self.format)
             fmt = FineTime.DEFAULT_FORMAT
             try:
                 d = datetime.datetime.strptime(t, fmt)
@@ -171,21 +231,35 @@ class FineTime(Copyable, DeepEqual, Serializable):
                 except ValueError:
                     msg += '\n%s does not match %s.' % (t, fmt)
                     if ' ' in t:
-                        fmt = FineTime.DEFAULT_FORMAT + ' %Z'
+                        fmt = FineTime.DEFAULT_FORMAT.replace(' ','T')
                         try:
                             d = datetime.datetime.strptime(t, fmt)
                             gotit = 2
                         except ValueError:
                             msg += '\n%s does not match %s.' % (t, fmt)
-                            fmt = FineTime.DEFAULT_FORMAT + ' %z'
-                            try:
-                                d = datetime.datetime.strptime(t, fmt)
-                                gotit = 2
-                            except ValueError:
-                                msg += '\n%s does not match %s.' % (t, fmt)
-                                raise ValueError(msg)
-                        logger.warning('Time zone %s assumed for %s' %
-                                       (t.rsplit(' ')[1], t))
+                            if ' ' in t:
+                                fmt = FineTime.DEFAULT_FORMAT_SECOND.replace(' ','T')
+                                try:
+                                    d = datetime.datetime.strptime(t, fmt)
+                                    gotit = 2
+                                except ValueError:
+                                    msg += '\n%s does not match %s.' % (t, fmt)
+                                    if ' ' in t:
+                                        fmt = FineTime.DEFAULT_FORMAT + ' %Z'
+                                        try:
+                                            d = datetime.datetime.strptime(t, fmt)
+                                            gotit = 2
+                                        except ValueError:
+                                            msg += '\n%s does not match %s.' % (t, fmt)
+                                            fmt = FineTime.DEFAULT_FORMAT + ' %z'
+                                            try:
+                                                d = datetime.datetime.strptime(t, fmt)
+                                                gotit = 2
+                                            except ValueError:
+                                                msg += '\n%s does not match %s.' % (t, fmt)
+                                                raise ValueError(msg)
+                                        logger.warning('Time zone %s assumed for %s' %
+                                                       (t.rsplit(' ')[1], t))
                     else:
                         # No ' ' in time string
                         gotit = False
@@ -477,3 +551,11 @@ class FineTime1(FineTime):
         if tai is None:
             tai = self.tai
         return super().toDatetime(tai * self.relative_res + self.TAI_AT_EPOCH)
+
+
+""" The mission T0. No leapsecond in 7 years."""
+TAI2017 = FineTime().datetimeToFineTime(datetime.datetime(2017, 1, 1, 0, 0, 0, tzinfo=utcobj))
+
+""" The would-be starting time of UNIX timestamp."""
+TAI1970 = FineTime().datetimeToFineTime(datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=utcobj))
+

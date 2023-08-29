@@ -2,7 +2,7 @@ __version_info__ = (1, 38, 2)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.38.0-0-gc3a0ec5'
 
-#  fdi_requests.get returns fits
+# 1.38.2 fdi_requests.get returns fits. FineTime rationalization.
 # 1.38.1 add test option to ProductStorage.register(), fix test cases.
 # 1.38.0 fix FineTime('0'); fix gettign token with missing host; fix publicclient pool wipe; add fits in out.
 # 1.37.2 fix missing main() getconfig and yaml2python.

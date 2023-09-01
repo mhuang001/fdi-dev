@@ -391,10 +391,6 @@ def get_mqtt_config():
     return mqttargs
 
 
-if __name__ == '__main__':
-
-    main()
-
 def main():
 
     global logger
@@ -573,4 +569,9 @@ def get_projectclasses(clp, exclude=None, verbose=False):
         pc = importlib.import_module(clpf.replace('.py', ''))
         sys.path.pop(0)
     return pc
+
+
+if __name__ == '__main__':
+
+    main()
 

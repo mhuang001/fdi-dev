@@ -92,7 +92,7 @@ def aftreq_pools(resp):
 ######################################
 
 
-@ pools_api.route('', methods=['GET'], strict_slashes=False)
+@ pools_api.route('/', methods=['GET'], strict_slashes=False)
 def get_pools_url():
     """ Get names and urls of all pools, registered or not.
     """
@@ -131,7 +131,7 @@ def get_pools_url():
 ######################################
 
 
-@ pools_api.route('/', methods=['GET'])
+@ pools_api.route('/_', methods=['GET'])
 def get_pools():
     """ Get names of all pools, registered or not.
     """
@@ -225,7 +225,7 @@ def get_registered_pools():
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('Listing all registered pools.')
 
-        PM_S = PM_S = PM_S_from_g(g)
+        PM_S  = PM_S_from_g(g)
         # [p.getPoolurl() for p in PM_S.getMap()()]
     result = list(PM_S.getMap())
     msg = 'There is/are %d pools registered to the PoolManager.' % len(result)

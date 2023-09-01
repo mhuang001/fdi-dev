@@ -1,8 +1,8 @@
-__version_info__ = (1, 38, 3)
+__version_info__ = (1, 38, 4)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.38.3-0-gae09a34'
 
-# fix pools PM_S=PM_S, position of main(). gconfig.
+# 1.38.4 fix pools PM_S=PM_S, position of main(). gconfig.
 # 1.38.3 fix fits output adaption; FineTime bug. missing _version.py update.rr
 # 1.38.2 fdi_requests.get returns fits. FineTime rationalization.
 # 1.38.1 add test option to ProductStorage.register(), fix test cases.

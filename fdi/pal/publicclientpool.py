@@ -714,13 +714,20 @@ class PublicClientPool(ManagedPool):
         fits_with_name = is_Fits(prd, get_type=True)
         if fits_with_name:
             fits_with_name = convert_name(fits_with_name)
-            cls = Class_Look_Up[fits_with_name]
+            cls = fullname(Class_Look_Up[fits_with_name])
+            ## CHANGE subpackage name
+            if '.fprods.' in cls:
+                pn = cls.replace('.fprods.', '.sdb.')
+            else:
+                pn = cls           
+
             content = 'application/fits'
             serialize_in = False
             mp = None
         else:
             content = 'application/json;charset=UTF-8'
             mp = '/_ATTR_meta'
+            pn = 'anonymous.FITS'
         # now we know if we have FITS or JSON
         if content == 'application/json;charset=UTF-8':
             jsonPrd = prd
@@ -733,7 +740,7 @@ class PublicClientPool(ManagedPool):
                 # '... "_STID": "Product"}]'
                 pn = prd.rsplit('"', 2)[1]
                 cls = Class_Look_Up[pn]
-        pn = fullname(cls)
+            pn = fullname(cls)
 
         if check_type:
             if pn not in check_type:

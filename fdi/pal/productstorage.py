@@ -221,7 +221,7 @@ class ProductStorage(object):
                 raise ValueError('None is not a valid pool name in the `PoolManager`.')
         elif poolname not in self._pools:
             #self.register(poolname)
-            logger.warning('$$$$$$$$$$$$$ self registering '+poolname)
+            logger.warning('$$$$$$$$ NOT self registering '+poolname)
         if logger.getEffectiveLevel() <= logging.DEBUG:
             desc = [x.description[-6:] for x in product] if issubclass(
                 product.__class__, list) else product.description[-6:]

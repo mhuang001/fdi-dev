@@ -262,21 +262,19 @@ class Attributable(MetaDataHolder):
         # if name == 'creationDate' and str(value).startswith('16589'):
         #    __import__('pdb').set_trace()
 
-        if 1:  # try:
-            if getattr(self, 'alwaysMeta', False):
-                if issubclass(value.__class__, AbstractParameter):
-                    # taken as an MDP attribute . store in meta
-                    self.extraMdp[name] = value
-                    self.setMdp(name, value, self._MDP)
-                    # assert self.meta[name].value == value
-                    # must return without updating self.__dict__
-                    return
-            if hasattr(self, '_MDP') and name in self._MDP:
+        if getattr(self, 'alwaysMeta', False):
+            if issubclass(value.__class__, AbstractParameter):
+                # taken as an MDP attribute . store in meta
+                self.extraMdp[name] = value
                 self.setMdp(name, value, self._MDP)
                 # assert self.meta[name].value == value
                 # must return without updating self.__dict__
                 return
-        # except AttributeError:
+        if hasattr(self, '_MDP') and name in self._MDP:
+            self.setMdp(name, value, self._MDP)
+            # assert self.meta[name].value == value
+            # must return without updating self.__dict__
+            return
 
         super().__setattr__(name, value)
 

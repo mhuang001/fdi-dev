@@ -89,8 +89,10 @@ def pytest_addoption(parser):
         help=\
         "0 for http test_pool_1 /csdb sv2 / fdi types;"
         "1 for http test_pool_1 /csdb sv2 / fsc types;"
-        "2 for http test_pool_1 /csdb test_sdb_vt / fsc types;",
-        choices=(0, 1, 2)
+        "2 for http test_pool_1 /csdb test_sdb_vt / fsc types;"
+        "3 for http test_pool_1 /csdb test_e2e2_vt / all fsc _vt types;"
+        ,
+        choices=(0, 1, 2, 3)
     )
 
 def pytest_configure(config):
@@ -137,33 +139,20 @@ if 1:
     # logger.debug(json.dumps(cfg))
     #return cfg
 
-
-csdb_pool_id = 'sv2'  # 'test_csdb_fdi2'
-http_pool_id = 'test_pool_1'
-PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
-
 @ pytest.fixture(scope='session')
 def set_ids(pytestconfig):
-    global csdb_pool_id
-    global http_pool_id
-    global PTYPES
 
     cmd = pytestconfig.getoption("--id")
     if cmd == 0:
         csdb_pool_id = 'sv2'  # 'test_csdb_fdi2'
         http_pool_id = 'test_pool_1'
         PTYPES = ('DemoProduct', 'TB', 'TP', 'TC', 'TM', 'SP', 'TCC')
-    elif cmd == 1:
-        csdb_pool_id = 'sv2'
-        http_pool_id = 'test_pool_1'
-        PTYPES = ('CANDIDATE_VT',  'LC_VT',  'PO_VT', 'QSKY_VT',
-                  'FDCHART_VT',    'OBATT_VT', 'QCANDI_VT')
     else:
-        csdb_pool_id = 'test_sdb_vt'
-        http_pool_id = 'test_pool_1'
-        PTYPES = ('CANDIDATE_VT',  'LC_VT',  'PO_VT', 'QSKY_VT',
-                  'FDCHART_VT',    'OBATT_VT', 'QCANDI_VT')
-
+        __import__("pdb").set_trace()
+        
+        csdb_pool_id = http_pool_id = PTYPES = None
+    return csdb_pool_id, http_pool_id, PTYPES
+        
 url_c = None
 
 
@@ -491,14 +480,15 @@ def server2(_pytestconfig, server_arch, request, urlc=None):
 
 
 @ pytest.fixture(scope=SHORT)
-def server(pytestconfig, userpass, mock_app, request):
+def server(pytestconfig, set_ids, userpass, mock_app, request):
     """ Server data from r/w user, mock or alive.
 
     """
     #    yield from server2(pc, pytestconfig, 'http', reuest=request)
 
     url, server_type = next(server2(pytestconfig, 'http', request=request))
-
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
+    
     # register to clean up
     poolurl = url + '/' + http_pool_id
     pstore = ProductStorage()
@@ -532,13 +522,15 @@ def server(pytestconfig, userpass, mock_app, request):
             yield url, live_client, auth, pool, poolurl, pstore, server_type
 
 @ pytest.fixture(scope='session')
-def server_ro(pytestconfig, userpass_ro, mock_app, request):
+def server_ro(pytestconfig, set_ids, userpass_ro, mock_app, request):
     """ Server data from r/w user, mock or alive.
 
     """
     #    yield from server2(pc, pytestconfig, 'http', reuest=request)
 
     url, server_type = next(server2(pytestconfig, 'http', request=request))
+
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
 
     # register to clean up
     poolurl = url + '/' + http_pool_id
@@ -599,7 +591,7 @@ def XXXXcsdb_server(pytestconfig, userpass, request):
         yield url, live_client, auth, pool, poolurl, pstore, server_type
 
 @ pytest.fixture(scope='session')
-def poolless_csdb_server(pytestconfig, userpass, request, urlcsdb):
+def poolless_csdb_server(pytestconfig, set_ids, userpass, request, urlcsdb):
     """ CSDB Server data from r/w user, mock or alive. This returns an empty ProductStorage.
 
     """
@@ -621,7 +613,7 @@ def poolless_csdb_server(pytestconfig, userpass, request, urlcsdb):
         yield url, live_client, auth, pool, poolurl, pstore, server_type
 
 @ pytest.fixture(scope=SHORT)
-def csdb_server(poolless_csdb_server):
+def csdb_server(poolless_csdb_server, set_ids):
     """ CSDB Server data from r/w user, mock or alive.
 
     """
@@ -629,7 +621,9 @@ def csdb_server(poolless_csdb_server):
     #yield from server2(pc, pytestconfig, 'csdb', new_user_read_write,    request=request
              
     url, client, auth, pool, poolurl, pstore, server_type = poolless_csdb_server
-
+    
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
+    
     # register to clean up
     pstore.PM.removeAll()
     poolurl = pc['cloud_scheme'] + url[len('csdb'):] + '/storage/' + csdb_pool_id
@@ -853,9 +847,11 @@ def tmp_local_storage(tmp_path_factory):
 
 
 @ pytest.fixture(scope=SHORT)
-def tmp_remote_storage_no_wipe(server):
+def tmp_remote_storage_no_wipe(server, set_ids):
     """ temporary servered pool in a local PoolManager, with module scope """
     aburl, client, auth, pool, poolurl, pstore, server_type = server
+
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
 
     poolid = http_pool_id + '_remote'
 
@@ -873,14 +869,15 @@ def tmp_remote_storage(tmp_remote_storage_no_wipe):
     ps, pool = tmp_remote_storage_no_wipe
 
     ps._pools.clear()
-    PM_S = PM_S = PM_S_from_g(g)
+    PM_S = PM_S_from_g(g)
     PM_S._GlobalPoolList.clear(include_read_only=True)
     yield ps
 
 
 @ pytest.fixture(scope="session")
-def tmp_prod_types():
+def tmp_prod_types(set_ids):
     """ classe of temporary prods with sesion scope """
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
     ptypes = []
     pobjs = []
     for n in PTYPES:

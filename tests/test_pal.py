@@ -29,7 +29,7 @@ from fdi.utils.checkjson import checkjson
 from fdi.utils.getconfig import getConfig
 from fdi.pns.fdi_requests import save_to_server, read_from_server, ServerError
 from fdi.pns.public_fdi_requests import read_from_cloud
-from fdi.testsupport.fixtures import csdb_pool_id
+
 from flask.testing import FlaskClient
 import requests
 from requests.auth import HTTPBasicAuth

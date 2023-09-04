@@ -53,7 +53,6 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 logger.debug('logging level %d' % (logger.getEffectiveLevel()))
 
-from fdi.testsupport.fixtures import http_pool_id
 SHORT = 'function'
 
 @pytest.fixture(scope="module")
@@ -96,10 +95,11 @@ def test_serialize_args():
     chksa(a, k)
 
 
-def test_gen_url(server):
+def test_gen_url(server, set_ids):
     """ Makesure that request create corrent url
     """
-
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
+    
     aburl, client, auth, pool, poolurl, pstore, server_type = server
     samplepoolname = 'sample_' + http_pool_id
     samplepoolurl = aburl + '/' + samplepoolname
@@ -178,8 +178,9 @@ def test_gen_url(server):
         assert exc_msg == 'No such method and contents composition: GET/pool'
         
 num = 0
-def test_foo(tmp_remote_storage_no_wipe):
+def test_foo(tmp_remote_storage_no_wipe, set_ids):
     ps, pool  = tmp_remote_storage_no_wipe
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
     assert http_pool_id + '_remote' in ps
     wtb = ps.getWritablePool()
     pw = ps._pools[wtb]
@@ -190,7 +191,8 @@ def test_foo(tmp_remote_storage_no_wipe):
     ref = ps.save(p)
     assert pw.getCount() == num + 1
           
-def test_foo1(tmp_remote_storage_no_wipe):
+def test_foo1(set_ids, tmp_remote_storage_no_wipe):
+    csdb_pool_id, http_pool_id, PTYPES = set_ids
     ps, pool  = tmp_remote_storage_no_wipe
     assert http_pool_id + '_remote' in ps
     wtb = ps.getWritablePool()
@@ -427,7 +429,7 @@ def test_flask_fmt(tmp_pools, server):
     check_response(o, code=code, failed_case=False)
     # should be a list of names
     poolnames = o['result']
-    assert isinstance(poolnames, list)
+    assert isinstance(poolnames, dict)
     assert pool._poolname in poolnames
 
 

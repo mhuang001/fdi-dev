@@ -1,8 +1,9 @@
-__version_info__ = (1, 39, 0)
+__version_info__ = (1, 39, 1)
 __version__ = '.'.join(map(str, __version_info__))
-__revision__ = '1.38.3-2-gdc144d2'
+__revision__ = '1.39.0-0-gf015cd4'
 
-# product of pure FITS io.
+# refactor fixture.py to move some contents to share fixture.
+# 1.39.0 product of pure FITS io.
 # 1.38.4 fix pools PM_S=PM_S, position of main(). gconfig.
 # 1.38.3 fix fits output adaption; FineTime bug. missing _version.py update.rr
 # 1.38.2 fdi_requests.get returns fits. FineTime rationalization.

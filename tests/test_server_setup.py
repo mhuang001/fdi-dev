@@ -5,7 +5,7 @@ import pytest, os, sys, time
 from fdi.testsupport.fixtures import BG_SERVER_LOG
 
 
-def test_pool_server_url(server, pytestconfig):
+def test_pool_server_url(server, pytestconfig, set_ids):
     if os.path.exists(BG_SERVER_LOG):
         os.unlink(BG_SERVER_LOG)
 

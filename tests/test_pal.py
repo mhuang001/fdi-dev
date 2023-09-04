@@ -1434,6 +1434,8 @@ def doquery(poolpath, newpoolpath, client=None, auth=None):
 
     # creator = 'fatman 12|16', two pools
     q = MetaQuery(BaseProduct, '"n 1" in m["creator"].value')
+    __import__("pdb").set_trace()
+
     res = pstore.select(q)
     # [3,4]
     assert len(res) == 2, str(res)

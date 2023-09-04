@@ -226,6 +226,7 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
 
     tries = int(MAX_RETRIES/ session.adapters['http://'].max_retries.total + 0.5)
     err = []
+    res = None
     for n in range(tries):
         try:
             res = method(api, *args, **kwds)

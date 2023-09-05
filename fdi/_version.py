@@ -2,7 +2,7 @@ __version_info__ = (1, 39, 2)
 __version__ = '.'.join(map(str, __version_info__))
 __revision__ = '1.39.1-2-g0a8c631'
 
-# Fix bug when secondary pool returns fits. 
+# 1.39.2 Fix bug when secondary pool returns fits.
 # 1.39.1 refactor fixture.py to move some contents to share fixture.
 # 1.39.0 product of pure FITS io.
 # 1.38.4 fix pools PM_S=PM_S, position of main(). gconfig.

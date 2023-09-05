@@ -858,11 +858,6 @@ def get_cmdline(ypath):
     print(f'command line: {args}')
     return args
 
-
-if __name__ == '__main__':
-
-    main()
-
 def main():
 
     global logger
@@ -1148,3 +1143,10 @@ def main():
 
     if len(skipped):
         print('!!!!!!!!!!! Skipped: %s possiblly due to unresolved dependencies. Try re-running.   !!!!!!!!!!!' % str(skipped))
+
+
+if __name__ == '__main__':
+
+    main()
+
+        

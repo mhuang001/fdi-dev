@@ -157,7 +157,7 @@ def getToken(poolurl, client):
             token = tokenMsg['token']
         else:
             # no token
-            if not tokenMsgb:
+            if not tokenMsg:
                 logger.error(f'Cannot get token: {tokenMsg}.')
                 return None
     else:

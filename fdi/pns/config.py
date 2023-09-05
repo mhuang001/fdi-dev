@@ -19,6 +19,8 @@ pnsconfig['server_scheme'] = 'server'
 
 pnsconfig['logger_level'] = logging.INFO
 pnsconfig['logger_level_extras'] = logging.WARNING
+# session activity debugging
+pnsconfig['ses_dbg'] = 0
 
 # base url for webserver.
 pnsconfig['scheme'] = 'http'

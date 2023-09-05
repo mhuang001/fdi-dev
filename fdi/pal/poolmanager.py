@@ -446,14 +446,17 @@ class Reporting_Map(ChainMap):
     def pop(self, *args, **kwds):
 
         key = args[0]
+        popped = None
         if kwds.pop('include_read_only', None):
             for m in self.maps:
-                m.pop(key, None)
+                p = m.pop(key, None)
+                if p is None:
+                    return p
         else:
             ie = kwds.pop('ignore_error', True)
             if key in self.maps[0]:
                 return super().pop(*args, **kwds)
-            elif key in self.parents:
+            elif key in self.maps[1]:
                 msg = f'Cannot pop key {args[0]} from read-only mapping.'
                 if ie:
                     self.logger.warning(msg)
@@ -464,6 +467,7 @@ class Reporting_Map(ChainMap):
                 msg = f'Key {args[0]} not found. Cannot pop from mapping.'
                 if ie:
                     self.logger.warning(msg)
+                    return None
                 else:
                     raise KeyError(msg)
                 
@@ -494,7 +498,7 @@ class Reporting_Map(ChainMap):
     @reporter2
     def remove(self, *args, **kwds):
 
-        self.pop(*args, **kwds)
+        return self.pop(*args, **kwds)
         
     @reporter2
     def __update__(self, *args, **kwds):

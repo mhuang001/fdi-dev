@@ -21,6 +21,7 @@ from ...utils.common import (trbk, trbk2,
                              )
 
 from ...utils.fetch import fetch
+from ...utils.tofits import is_Fits
 from ...pns.fdi_requests import POST_PRODUCT_TAG_NAME
 
 # from .db_utils import check_and_create_fdi_record_table, save_action
@@ -486,6 +487,9 @@ def get_component_or_method(paths, mInfo, serialize_out=False):
         # send json of the prod
 
         code, result, msg = load_product(1, paths, serialize_out=serialize_out)
+        if is_Fits(result):
+            ct = 'application/fits'
+            return 0, resp(code, result, msg, ts, ctype=ct, serialize_out=False), 0
         return 0, resp(code, result, msg, ts, serialize_out=serialize_out), 0
     elif paths[2].isnumeric():
         # grand tour

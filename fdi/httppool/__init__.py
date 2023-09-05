@@ -50,7 +50,7 @@ PC = None
 
 session = None
 
-SES_DBG = 1
+SES_DBG = 0
 """ debug msg for session """
 
 
@@ -246,6 +246,8 @@ def init_httppool_server(app, preload):
     # class namespace
     Classes = init_conf_classes(pc, logger)
     app.config['LOOKUP'] = Classes.mapping
+    global SES_DBG
+    SES_DBG = pc['ses_dbg']
 
     from ..pal.managedpool import makeLock
     # client users

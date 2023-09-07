@@ -575,10 +575,10 @@ components:
           value: sv2
           summary: from CSDB server test `test_csdb.py`.
         2. server:
-          value: 'csdb:,,123.56.102.90:31702,csdb,v1,storage,test_e2e2_vt'
+          value: 'csdb:,,123.56.102.90:31702,csdb,v1,storage,test_e2e2_vt1'
           summary: full CSDB poolURL for test E2E 2.
         3. server:
-          value: serv_test_httppool
+          value: 'csdb:,,123.56.102.90:31702,csdb,v1,storage,test_e2e2_vhf1'
           summary: from server test `test_httppool.py`.
         4. client:
           value: serv_test_httpclientpool

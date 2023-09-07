@@ -40,7 +40,7 @@ test6:
 test7:
 	$(PYTEST) tests/test_server_setup.py $(OPT) $(T) -k '_pool_'
 
-	$(PYTEST) $(OPT) $(T) tests/serv/test_httpclientpool.py -k 'not _csdb' $(T)
+	$(PYTEST) $(OPT) tests/serv/test_httpclientpool.py -k 'not _csdb' $(T)
 
 test8:
 	$(PYTEST) $(OPT) tests/test_pal.py -k '_http and not _csdb' $(T)

@@ -407,7 +407,7 @@ class ManagedPool(dicthk.DictHk):
                             poolmanager=self._poolmanager)
             if serialize_out:
                 # return without meta
-                res.append(rf)
+                res.append(rf.serilized)
             else:
                 # it seems that there is no better way to set meta
                 rf._meta = prd.getMeta()

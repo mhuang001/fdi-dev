@@ -56,7 +56,6 @@ def b4req_pools():
     logger = current_app.logger
 
     PM_S = PM_S_from_g(g)
-    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
     
     if not SESSION:
         if logger.isEnabledFor(logging_DEBUG):
@@ -64,7 +63,8 @@ def b4req_pools():
         return
 
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-        _c =  (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+        _c =  (ctx(PM_S=PM_S, app=current_app, session=session,
+                   request=request, auth=auth))
         logger.debug(f"{_c}")
 
 @pools_api.after_app_request
@@ -77,12 +77,9 @@ def aftreq_pools(resp):
             logger.debug('Called with no SESSION')
         return resp
 
-
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
-        PM_S = PM_S_from_g(g)
-        assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
-
-        logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
+        logger.debug(ctx(PM_S=PM_S, app=current_app, session=session,
+                         request=request, auth=auth))
     
     return resp
 
@@ -98,15 +95,16 @@ def get_pools_url():
     """
     logger = current_app.logger
 
+    PM_S = PM_S_from_g(g)
+    
     ts = time.time()
-    result = get_name_all_pools()
-
     burl = request.base_url
 
-    if issubclass(result.__class__, list):
-        res = dict((x, f'{burl}/{x}') for x in result)
-    else:
-        res = {}
+    res = dict((f"({po.__class__.__name__.replace('Pool','')}) {n}", f"{burl}/{n}") \
+                for n, po in PM_S._GlobalPoolList.maps[0].items())
+    res_ro = dict((f"({po.__class__.__name__.replace('Pool','')}) {n}", f"{burl}/{n}") \
+               for n, po in PM_S._GlobalPoolList.maps[1].items())
+    res.update(res_ro)
 
     dvers = getConfig('docker_version')
     svers = getConfig('server_version')
@@ -121,7 +119,7 @@ def get_pools_url():
             logger.debug(lru)
 
     msg = '%d pools found. Version: fdi %s docker %s pool server %s' % (
-        len(result), __revision__, dvers, svers)
+        len(res), __revision__, dvers, svers)
     code = 200
     return resp(code, res, msg, ts)
 
@@ -146,26 +144,26 @@ def get_pools():
     return resp(code, res, msg, ts)
 
 
-def get_name_all_pools(path=None):
+def get_name_all_pools(path=None, make_dir = False):
     """ Returns names of all pools in the given directory.
 
     """
 
     PM_S = PM_S_from_g(g)
-    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
-    
+        
     logger = current_app.logger
     path = current_app.config['FULL_BASE_LOCAL_POOLPATH'] if path is None else path
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug('Listing all directories from ' + path)
 
     alldirs = dict(PM_S.getMap())
-    os.makedirs(path, exist_ok=True)
-    allfilelist = os.listdir(path)
-    for file in allfilelist:
-        filepath = join(path, file)
-        if os.path.isdir(filepath):
-            alldirs[file] = file
+    if make_dir:
+        os.makedirs(path, exist_ok=True)
+        allfilelist = os.listdir(path)
+        for file in allfilelist:
+            filepath = join(path, file)
+            if os.path.isdir(filepath):
+                alldirs[file] = file
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(f"PoolManager and {path} have {lls(alldirs, 100)}")
     return list(alldirs.keys())
@@ -325,7 +323,7 @@ def load_pools(poolnames, usr):
     logger = current_app.logger
     path = current_app.config['FULL_BASE_LOCAL_POOLPATH']
     # include those that do not have a directory (e.g. csdb)
-    PM_S = PM_S = PM_S_from_g(g)
+    PM_S = PM_S_from_g(g)
     pmap = dict(PM_S.getMap())
 
     bad = {}
@@ -1050,12 +1048,11 @@ def call_pool_Api(paths, serialize_out=False, posted=False):
     kwdsexpr = [str(k)+'='+str(v) for k, v in kwds.items()]
     msg = '%s(%s)' % (method, ', '.join(
         chain(((getattr(x, 'where', str(x)))[:100] for x in args), kwdsexpr)))
+    PM_S = PM_S_from_g(g)
     if logger.isEnabledFor(logging_DEBUG):
-        PM_S = PM_S_from_g(g)
         logger.debug('WebAPI ' + lls(msg, 300) +
                      (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth)))
 
-    PM_S = PM_S_from_g(g)
 
     poolname = paths[0]
     poolurl = current_app.config['POOLURL_BASE'] + poolname

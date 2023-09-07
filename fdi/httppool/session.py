@@ -22,7 +22,7 @@ FORCED = None #(503, 504, 408, 413, 429)
 # METHODS = ("POST", "PUT", "HEAD", "GET", "OPTIONS")
 METHODS = ("GET",)
 # 0 means disabled
-MAX_RETRIES = 2
+MAX_RETRIES = 0
 
 session = None
 # module variable holding initialized session

@@ -274,7 +274,8 @@ def test_CRUD_product_by_client(get_PS_for_CRUD):
 
     logger.info('Save data by ' + pool.__class__.__name__)
     x = Product(description='desc test')
-
+    x0 = x.copy()
+    
     urn = pstore.save(x, geturnobjs=True)
     x.creator = 'httpclient'
 
@@ -306,10 +307,16 @@ def test_CRUD_product_by_client(get_PS_for_CRUD):
     res = pstore.select(q)
     assert len(res) == 1, 'Select from metadata error: ' + str(res)
 
+    # save two in one go
+    p2 = [x0, x]
+    urns  = pstore.save(p2, geturnobjs=True)
+    assert all(expected_urn==u.urn.rsplit(':',1)[0] for u in urns)
+    assert x == pstore.getPool(poolid).loadProduct(urns[1].urn)
+
     logger.info('Delete a product from httpclientpool')
     pstore.getPool(poolid).remove(urn.urn)
     lsn = pstore.getPool(poolid).getCount('fdi.dataset.product.Product')
-    assert lsn == 1, 'Delete product local error, len sn : ' + lsn
+    assert lsn == 3, 'Delete product local error, len sn : ' + lsn
     logger.info('A load exception message is expected')
 
     with pytest.raises(NameError):
@@ -394,14 +401,14 @@ def test_flask_fmt(tmp_pools, server):
     # should be a list of names
     poolnames = o['result']
     assert isinstance(poolnames, dict)
-    assert pool._poolname in poolnames
+    assert any(pool._poolname in x for x in poolnames)
 
     # check to see if the pool url is malformed by checking if
     # the pool's url can be used to retrieve the pool
     from fdi.pal.urn import Urn, parseUrn
     p_pname, p_type, p_index = parseUrn(prd_urn)
 
-    received_poolurls_no_slash = poolnames[pool._poolname].rstrip('/')
+    received_poolurls_no_slash = PoolManager.getMap()[pool._poolname]._poolurl.rstrip('/')
     # get pool with products and their urls
 
     x = safe_client(client.get, received_poolurls_no_slash, auth=auth)
@@ -430,7 +437,8 @@ def test_flask_fmt(tmp_pools, server):
     # should be a list of names
     poolnames = o['result']
     assert isinstance(poolnames, dict)
-    assert pool._poolname in poolnames
+    assert any(pool._poolname in x for x in poolnames)
+
 
 
 def test_slash(tmp_remote_storage_no_wipe, tmp_prods):
@@ -507,7 +515,7 @@ def test_no_auth(server, tmp_pools):
     # check to see if the pool url is malformed
     check_response(o, code=code, failed_case=False)
     # pool name is found
-    assert pool.poolname in o['result']
+    assert any(pool._poolname in x for x in o['result'])
 
 
 def test_need_auth(server):

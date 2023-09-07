@@ -642,13 +642,11 @@ def b4req_httppool():
         return
 
     PM_S = PM_S_from_g(g)
-    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
 
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
 
         _c =  (ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
         logger.debug(f"{_c}")
-    del PM_S
     
 @data_api.after_app_request
 def aftreq_httppool(resp):
@@ -664,11 +662,7 @@ def aftreq_httppool(resp):
 
     PM_S = PM_S_from_g(g)
 
-    assert id(PM_S._GlobalPoolList.maps[0]) == id(pm_mod._PM_S._GlobalPoolList.maps[0])
-
     if SES_DBG and logger.isEnabledFor(logging_DEBUG):
         logger.debug(ctx(PM_S=PM_S, app=current_app, session=session, request=request, auth=auth))
 
-    del PM_S
-    
     return resp

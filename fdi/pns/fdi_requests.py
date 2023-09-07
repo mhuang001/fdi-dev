@@ -202,7 +202,7 @@ def urn2fdiurl(urn, poolurl, contents='product', method='GET'):
 # Store tag in headers, maybe that's  not a good idea
 
 
-def safe_client(method, api, *args, no_retry_controls=False, **kwds):
+def safe_client(method, api, *args, headers=None, no_retry_controls=False, **kwds):
     """ call Session/requests method with or without try controls.
 
     Parameters
@@ -222,7 +222,7 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
             lls(f'{method.__func__.__name__} {api} arg={args} kwds={kwds}', 200))
 
     if no_retry_controls or MAX_RETRIES == 0:
-        return method(api, *args, **kwds)
+        return method(api, *args, headers=headers, **kwds)
 
     tries = int(MAX_RETRIES/ session.adapters['http://'].max_retries.total + 0.5)
     err = []
@@ -246,7 +246,7 @@ def safe_client(method, api, *args, no_retry_controls=False, **kwds):
     if logger.isEnabledFor(logging_DEBUG):
         logger.debug(
             f'Resp {n} retries' +
-            ', hist:{res.history}, {getattr(res.request,"path","")} {method.__func__.__qualname__}'
+            f', hist:{res.history}, {getattr(res.request,"path","")} {method.__func__.__qualname__}'
             if res else ' failed.')
 
     return res
@@ -280,8 +280,16 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
     # from fdi.utils.common import lls
     if logger.isEnabledFor(logging_DEBUG):
         print('POST API: ' + api + ' | ' + lls(data, 90))
-    if headers is None:
-        headers = auth_headers(auth.username, auth.password)
+
+    aheaders = auth_headers(auth.username, auth.password)
+    if headers :
+        aheaders.update(headers)
+    headers = aheaders
+        
+    if 0:
+        __import__("pdb").set_trace()
+        api = 'https://httpbin.org/post'
+        
     sd = data if no_serial else serialize(data)
     if isinstance(client, FlaskClient):
         res = safe_client(client.post, api, auth=auth, data=sd,
@@ -292,6 +300,7 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
 
     if result_only:
         return res
+    
     result = deserialize(res.text)
     if issubclass(result.__class__, dict):
         return res.status_code, result['result'], result['msg']
@@ -299,7 +308,7 @@ def post_to_server(data, urn, poolurl, contents='product', headers=None,
         return res.status_code, 'FAILED', result
 
 
-def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None, client=None):
+def save_to_server(data, urn, poolurl, tag, headers=None, no_serial=False, auth=None, client=None):
     """Save product to server with putting tag in headers
 
     data: goes to the request body
@@ -312,7 +321,10 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None, client=N
     Return
     The `Response` result.
     """
-    headers = {POST_PRODUCT_TAG_NAME: serialize(tag)}
+    aheaders = {POST_PRODUCT_TAG_NAME: serialize(tag)}
+    if headers :
+        aheaders.update(headers)
+    headers = aheaders
     res = post_to_server(data, urn, poolurl, contents='product',
                          headers=headers, no_serial=no_serial,
                          result_only=True,
@@ -329,7 +341,7 @@ def save_to_server(data, urn, poolurl, tag, no_serial=False, auth=None, client=N
     # return res
 
 
-def read_from_server(urn, poolurl, contents='product', result_only=False, auth=None, client=None):
+def read_from_server(urn, poolurl, contents='product', headers=None, result_only=False, auth=None, client=None):
     """Read product or hk data from server
 
     urn: to extract poolname, product type, and index if any of these are needed
@@ -350,10 +362,19 @@ def read_from_server(urn, poolurl, contents='product', result_only=False, auth=N
     if logger.isEnabledFor(logging_DEBUG):
         print("GET REQUEST API: " + api)
 
+    aheaders = auth_headers(auth.username, auth.password)
+    if headers :
+        aheaders.update(headers)
+    headers = aheaders
+
+    if 0:
+        __import__("pdb").set_trace()
+        api = 'https://httpbin.org/get'
+        
     if isinstance(client, FlaskClient):
-        res = safe_client(client.get, api, auth=auth)
+        res = safe_client(client.get, api, headers=headers, auth=auth)
     else:
-        res = safe_client(client.get, api, auth=auth, timeout=TIMEOUT)
+        res = safe_client(client.get, api, headers=headers, auth=auth, timeout=TIMEOUT)
 
     if result_only:
         return res
@@ -365,7 +386,7 @@ def read_from_server(urn, poolurl, contents='product', result_only=False, auth=N
         return res.status_code, 'FAILED', result
 
 
-def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, client=None):
+def put_on_server(urn, poolurl, contents='pool', headers=None, result_only=False, auth=None, client=None):
     """Register the pool on the server.
 
     urn: to extract poolname, product type, and index if any of these are needed
@@ -392,6 +413,14 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
         if not issubclass(client.__class__, FlaskClient):
             print('client session cookies', list(client.cookies))
 
+    aheaders = auth_headers(auth.username, auth.password)
+    if headers :
+        aheaders.update(headers)
+    headers = aheaders
+
+    if 0:
+        __import__("pdb").set_trace()
+        api = 'https://httpbin.org/put'
     # auth has priority over headers here
     # auth = getAuth(pccnode['username'], pccnode['password'])
     # headers = auth_headers(auth.username, auth.password)
@@ -399,7 +428,7 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
     if isinstance(client, FlaskClient):
         res = reqst(client.put, api, auth=auth)
     else:
-        res = reqst(client.put, api, auth=auth, timeout=TIMEOUT)
+        res = reqst(client.put, api, headers=headers, auth=auth, timeout=TIMEOUT)
 
     if result_only:
         return res
@@ -417,7 +446,7 @@ def put_on_server(urn, poolurl, contents='pool', result_only=False, auth=None, c
         return 'FAILED', result['msg']
 
 
-def delete_from_server(urn, poolurl, contents='product', result_only=False, auth=None, client=None, asyn=False):
+def delete_from_server(urn, poolurl, contents='product', headers=None, result_only=False, auth=None, client=None, asyn=False):
     """Remove a product or pool from server
 
     urn: to extract poolname, product type, and index if any of these are needed
@@ -443,20 +472,29 @@ def delete_from_server(urn, poolurl, contents='product', result_only=False, auth
         urns = [_u]
         alist = False
 
+    aheaders = auth_headers(auth.username, auth.password)
+    if headers :
+        aheaders.update(headers)
+    headers = aheaders
+
     if asyn:
         apis = [poolurl+'/'+u for u in urns]
         res = reqst('delete', apis=apis, **kwds)
     else:
         rs = []
         for u in urns:
-            a = urn2fdiurl(u, poolurl, contents=contents, method='DELETE')
+            api = urn2fdiurl(u, poolurl, contents=contents, method='DELETE')
+            if 0:
+                __import__("pdb").set_trace()
+                api = 'https://httpbin.org/delete'
+
             if logger.isEnabledFor(logging_DEBUG):
-                print("DELETE REQUEST API: " + a)
+                print("DELETE REQUEST API: " + api)
 
             if issubclass(client.__class__, FlaskClient):
-                r = reqst(client.delete, a, auth=auth)
+                r = reqst(client.delete, api, headers=headers, auth=auth)
             else:
-                r = reqst(client.delete, a, auth=auth, timeout=TIMEOUT)
+                r = reqst(client.delete, api, headers=headers, auth=auth, timeout=TIMEOUT)
             if result_only:
                 rs.append(r)
                 continue
@@ -632,6 +670,7 @@ def content2result_csdb(content):
             # e.g. /get?urn=...
             ores = obj
         if logger.isEnabledFor(logging_DEBUG):
+            # XXXXX
             logger.debug(lls(text, 100))
         res.append(ores)
 
@@ -696,10 +735,6 @@ def reqst(meth, apis, *args, server_type='httppool', auth=None, return_response=
             raise ValueError('Unknown server type: {server_type}.')
     elif ismethod(meth):
         # use request, urllib3.Session
-        if 0 and 'upload' in apis:
-            __import__("pdb").set_trace()
-
-            apis = 'https://httpbin.org/post'
         content = safe_client(
             meth, apis, *args, auth=auth, **kwds)
         

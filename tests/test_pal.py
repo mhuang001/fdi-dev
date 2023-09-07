@@ -1051,9 +1051,10 @@ def test_ProdStorage_func_local_mem():
     check_prodStorage_func_for_pool(thepoolname, thepoolurl, None)
 
 
-def test_ProdStorage_func_http(server, userpass):
+def test_ProdStorage_func_http_only(server, userpass):
 
     aburl, client, auth, pool, poolurl, pstore, server_type = server
+    
     # httpclientpool
     thepoolname = Test_Pool_Name
     thepoolurl = aburl + '/' + thepoolname
@@ -1086,10 +1087,11 @@ def test_ProdStorage_func_server(client, userpass):
         thepoolname, thepoolurl, None, client=client, auth=auth)
 
 
-def test_ProdStorage_func_http_csdb(csdb_server, userpass):
+def test_ProdStorage_func_http_csdb(csdb_server, userpass, set_ids):
     urlcsdb, client, auth, pool, poolurl, pstore, server_type = csdb_server
     aburl = urlcsdb
     #__import__("pdb").set_trace()
+    csdb_pool_id, http_pool_id, PTYPES = set_ids       
     pc = getConfig()
     remote_purl = (pc['cloud_scheme'] +
                    urlcsdb[len('csdb'):] + '/' + csdb_pool_id).replace('/', ',')

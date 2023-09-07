@@ -440,7 +440,7 @@ def create_app(config_object=None, level=None, logstream=None, preload=False):
                 page = make_response(render_template(LOGIN_TMPLT))
                 return page
             else:
-                raise ValueError('Must be 401 or 403. Nor %s' % str(error))
+                raise ValueError('Must be 401 or 403. Not %s' % str(error))
 
     # handlers for exceptions and some code
     add_errorhandlers(app)
@@ -514,23 +514,15 @@ def add_errorhandlers(app):
         """ ref flask docs """
         ts = time.time()
         if issubclass(error.__class__, HTTPException):
-            if error.code == 401:
-                return error
-            elif error.code == 429:
-                msg = "429 "
-                error.code = 401
-            elif error.code == 409:
-                spec = "Conflict or updating. "
-            elif error.code == 500 and error.original_exception:
-                error = error.original_exception
-            else:
-                spec = ''
+            # https://flask.palletsprojects.com/en/latest/errorhandling/#generic-exception-handlers
+            return error
+        # non-HTTP exceptions:
             response = error.get_response()
             t = ' Traceback: ' + trbk(error)
             msg = '%s%d. %s, %s\n%s' % \
                 (spec, error.code, error.name, error.description, t)
         elif issubclass(error.__class__, Exception):
-            response = make_response(str(error), 400)
+            response = make_response(str(error), 500)
             t = 'Traceback: ' + trbk(error)
             msg = '%s. %s.\n%s' % (error.__class__.__name__,
                                    str(error), t)

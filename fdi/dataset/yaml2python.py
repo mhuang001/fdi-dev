@@ -6,10 +6,12 @@ from ..utils.common import lls, trbk, find_all_files
 from ..utils.ydump import yinit, ydump
 from ..utils.getconfig import get_projectclasses
 from ..utils.moduleloader import SelectiveMetaFinder, installSelectiveMetaFinder
+ 
 from .attributable import make_class_properties
 # a dictionary that translates metadata 'type' field to classname
 from .datatypes import DataTypes, DataTypeNames
 
+# from ruamel.yaml.comments import CommentedSeq
 # from ruamel.yaml import YAML
 # import yaml
 from collections import OrderedDict
@@ -34,7 +36,7 @@ logging.basicConfig(stream=sys.stdout,
                     datefmt="%Y%m%d %H:%M:%S")
 logging.getLogger().setLevel(logging.DEBUG)
 
-global shema_version
+global glb
 
 shema_version = '1.6'
 """ schema version. The attribute `FORMATV` will have this schema version, hand-set version, and revision
@@ -226,6 +228,7 @@ def params(val, indents, demo, onlyInclude, debug=False):
             else:
                 # e.g. {(5,66):'fooo'}
                 lst = []
+
                 for k, v in pv.items():
                     if issubclass(k.__class__, tuple):
                         fs = fmtstr[dt]
@@ -501,6 +504,8 @@ def mro_cmp(cn1, cn2):
     0 if c1 and c2 are the same class; 1 for c1 being superclasses or no relation.
     """
 
+    global glb
+    
     if not (cn1 and cn2 and issubclass(cn1.__class__, str) and issubclass(cn2.__class__, str)):
         raise TypeError('%s and %s must be classnames.' % (str(cn1), str(cn2)))
     if verbo:
@@ -596,6 +601,8 @@ def dependency_sort(descriptors):
     Returns
     -------
     """
+    global glb
+    
     ret = []
     # make a list of prodcts
     working_list = list(descriptors.keys())
@@ -664,6 +671,8 @@ def remove_Parent(a, b):
     -------
     classname if found or `None`.
     """
+    global glb
+    
     if a == b:
         logger.debug('%s and %s are the same class' % (b, a))
         return None
@@ -724,6 +733,8 @@ def inherit_from_parents(parentNames, attrs, datasets, schema, seen):
     :datasets: datasets descriptor of the child
     :seen: a dict holding class names that the py file is going to import
  """
+    global glb
+    
     if parentNames and len(parentNames):
         parentsAttributes = OrderedDict()
         from collections import defaultdict
@@ -861,7 +872,9 @@ def get_cmdline(ypath):
 def main():
 
     global logger
-
+    # global lookup table
+    global glb
+    
     print('Generating Python code for product class definition..')
 
     dry_run = False

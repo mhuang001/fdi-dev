@@ -263,6 +263,7 @@ def init_httppool_server(app, preload):
 def init_poolmanager(app, g, pc, preload):
 
     # PoolManager is a singleton. get PM_S from 
+
     with app.app_context():
         PM_S = PM_S_from_g(g)
         

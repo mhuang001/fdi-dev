@@ -87,10 +87,10 @@ security:
 paths:
   /lock:
     get:
-      summary: "Lock server. No reading or writing".
+      summary: "Lock server. No reading or writing."
       tags:
         - Server
-      description: "Disable all requests, except for unlocking"
+      description: "Disable all requests, except for unlocking."
       operationId: lock
       responses:
         "200":
@@ -99,12 +99,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GenericResponseContents"
-            text/html; charset=utf-8:
-              schema:
-                type: string
   /unlock:
     get:
-      summary: "Unlock server. Permit reading and writing".
+      summary: "Unlock server. Permit reading and writing."
       tags:
         - Server
       description: "Server returns request normally."
@@ -116,9 +113,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GenericResponseContents"
-            text/html; charset=utf-8:
-              schema:
-                type: string
   /login:
     get:
       summary: "Get Login page from the server."
